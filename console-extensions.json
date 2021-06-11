@@ -1,0 +1,30 @@
+[
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "odfdashboard",
+      "insertBefore": "persistentvolumes",
+      "section": "storage",
+      "name": "OpenShift Data Foundation",
+      "href": "/odf"
+    },
+    "flags": {
+      "required": ["OCS"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/odf"],
+      "exact": true,
+      "component": { "$codeRef": "dashboard.default" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/odf/system/:systemKind/:systemName"],
+      "component": { "$codeRef": "systemDashboard.default" }
+    }
+  }
+]

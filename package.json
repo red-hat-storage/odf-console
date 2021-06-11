@@ -1,8 +1,70 @@
 {
   "name": "odf-console",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "ODF console ",
   "main": "index.js",
   "author": "bipuladh <badhikar@redhat.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "private": true,
+  "repository": "git@github.com:bipuladh/odf-console.git",
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "build": "yarn clean && NODE_ENV=production yarn ts-node ./node_modules/.bin/webpack",
+    "build-dev": "yarn clean && yarn ts-node ./node_modules/.bin/webpack",
+    "http-server": "./http-server.sh ./dist",
+    "ts-node": "ts-node -O '{\"module\":\"commonjs\"}' -I '/node_modules/(?!(@console)/)/'"
+  },
+  "dependencies": {
+    "@patternfly/patternfly": "4.103.6",
+    "@patternfly/react-charts": "^6.15.3",
+    "@patternfly/react-core": "4.121.1",
+    "@patternfly/react-table": "4.27.7",
+    "@types/node": "^14.14.34",
+    "@types/react-helmet": "^6.1.1",
+    "classnames": "^2.3.1",
+    "i18next": "^19.8.3",
+    "lodash-es": "^4.17.21",
+    "react": "16.9.0",
+    "react-dom": "^17.0.1",
+    "react-helmet": "^6.1.0",
+    "react-i18next": "^11.8.11",
+    "react-router": "5.2.0",
+    "react-router-dom": "5.2.0"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.4",
+    "@types/react": "16.8.13",
+    "@types/react-router-dom": "5.1.2",
+    "badhikar-dynamic-plugin-sdk": "0.0.2-fixed",
+    "cache-loader": "1.x",
+    "comment-json": "4.x",
+    "css-loader": "0.28.x",
+    "file-loader": "1.x",
+    "http-server": "0.12.x",
+    "mini-css-extract-plugin": "0.4.x",
+    "node-sass": "^5.0.0",
+    "read-pkg": "5.x",
+    "resolve-url-loader": "2.x",
+    "sass-loader": "6.x",
+    "style-loader": "^0.23.1",
+    "thread-loader": "1.x",
+    "ts-loader": "6.2.2",
+    "ts-node": "5.0.1",
+    "typescript": "3.8.3",
+    "webpack": "5.0.0-beta.16",
+    "webpack-cli": "4.5.x"
+  },
+  "consolePlugin": {
+    "name": "odf-console",
+    "version": "0.0.0",
+    "displayName": "ODF(OpenShift Data Foundation) Plugin",
+    "description": "Console plugin for ODF",
+    "dependencies": {
+      "@console/pluginAPI": "*"
+    },
+    "exposedModules": {
+      "dashboard": "./components/odf-dashboard/dashboard",
+      "systemDashboard": "./components/system-dashboard/dashboard-loader"
+    }
+  }
 }

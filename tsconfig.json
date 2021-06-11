@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "target": "es2016",
+    "jsx": "react",
+    "allowJs": true,
+    "experimentalDecorators": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "paths": {
+      "badhikar-dynamic-plugin-sdk/api": [
+        "node_modules/badhikar-dynamic-plugin-sdk/lib/api/api"
+      ],
+      "badhikar-dynamic-plugin-sdk/internalAPI": [
+        "node_modules/badhikar-dynamic-plugin-sdk/lib/api/internal"
+      ],
+      "badhikar-dynamic-plugin-sdk/webpack": [
+        "node_modules/badhikar-dynamic-plugin-sdk/lib/webpack"
+      ]
+    }
+  },
+  "include": ["src"]
+}
