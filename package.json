@@ -1,0 +1,8 @@
+{
+  "name": "odf-console",
+  "version": "1.0.0",
+  "description": "ODF console ",
+  "main": "index.js",
+  "author": "bipuladh <badhikar@redhat.com>",
+  "license": "MIT"
+}
