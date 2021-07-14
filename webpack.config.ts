@@ -12,6 +12,13 @@ const config: webpack.Configuration = {
     filename: "[name]-bundle.js",
     chunkFilename: "[name]-chunk.js",
   },
+  watchOptions: {
+    ignored: ["node_modules", "dist"],
+  },
+  devServer: {
+    contentBase: path.join(__dirname, "dist"),
+    port: 9001,
+  },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx"],
   },

@@ -21,8 +21,9 @@ const ObjectCapacityCard: React.FC = () => {
   ); */
   const data = [
     {
-      systemKind: "ocs.openshift.io~v1~StorageCluster",
       systemName: "ocs-storagecluster",
+      managedSystemName: "",
+      managedSystemKind: "",
       usedValue: {
         value: 100,
         unit: "GiB",

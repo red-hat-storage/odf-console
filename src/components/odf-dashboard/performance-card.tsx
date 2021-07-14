@@ -1,17 +1,13 @@
 import * as React from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  Grid,
-  GridItem,
-  Title,
-} from "@patternfly/react-core";
+import { Grid, GridItem, Title } from "@patternfly/react-core";
 import {
   useK8sWatchResource,
   WatchK8sResource,
 } from "badhikar-dynamic-plugin-sdk/api";
 import {
+  DashboardCard,
+  DashboardCardHeader,
+  DashboardCardTitle,
   usePrometheusPoll,
   useUtilizationDuration,
   UtilizationDurationDropdown,
@@ -243,13 +239,13 @@ const PerformanceCardInternal: React.FC<PerformanceCardProps> = (props) => {
 };
 
 const PerformanceCard: React.FC<PerformanceCardProps> = (props) => (
-  <Card className="co-dashboard-card co-dashboard-card--gradient">
-    <CardHeader className="co-dashboard-card__header">
-      <CardTitle className="co-dashboard-card__title">Status</CardTitle>
+  <DashboardCard>
+    <DashboardCardHeader>
+      <DashboardCardTitle>Performance</DashboardCardTitle>
       <UtilizationDurationDropdown />
-    </CardHeader>
+    </DashboardCardHeader>
     <PerformanceCardInternal currentLocation={props.currentLocation} />
-  </Card>
+  </DashboardCard>
 );
 
 type PerformanceCardProps = {

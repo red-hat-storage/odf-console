@@ -11,6 +11,7 @@
     "clean": "rm -rf ./dist",
     "build": "yarn clean && NODE_ENV=production yarn ts-node ./node_modules/.bin/webpack",
     "build-dev": "yarn clean && yarn ts-node ./node_modules/.bin/webpack",
+    "dev": "yarn clean && yarn ts-node ./node_modules/.bin/webpack serve",
     "http-server": "./http-server.sh ./dist",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}' -I '/node_modules/(?!(@console)/)/'"
   },
@@ -35,6 +36,7 @@
     "@types/lodash-es": "^4.17.4",
     "@types/react": "16.8.13",
     "@types/react-router-dom": "5.1.2",
+    "@types/webpack-dev-server": "^3.11.5",
     "badhikar-dynamic-plugin-sdk": "0.0.2-fixed",
     "cache-loader": "1.x",
     "comment-json": "4.x",
@@ -52,7 +54,8 @@
     "ts-node": "5.0.1",
     "typescript": "3.8.3",
     "webpack": "5.0.0-beta.16",
-    "webpack-cli": "4.5.x"
+    "webpack-cli": "4.5.x",
+    "webpack-dev-server": "^3.11.2"
   },
   "consolePlugin": {
     "name": "odf-console",

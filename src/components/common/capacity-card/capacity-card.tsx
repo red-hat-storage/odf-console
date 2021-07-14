@@ -6,6 +6,8 @@ import {
   Title,
 } from "@patternfly/react-core";
 import * as React from "react";
+import { Link } from "react-router-dom";
+import { getDashboardLink } from "../../utils";
 import { humanizeBinaryBytes } from "../../../humanize";
 import "./capacity-card.scss";
 
@@ -18,7 +20,8 @@ type HumanizeResult = {
 
 type CapacityMetricDatum = {
   systemName: string;
-  systemKind: string;
+  managedSystemName: string;
+  managedSystemKind: string;
   totalValue?: HumanizeResult;
   usedValue: HumanizeResult;
 };
@@ -120,16 +123,20 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   largestValue,
 }) => (
   <>
-    <GridItem key={`${data.systemName}~${data.systemKind}~systemName`} span={3}>
-      {data.systemName}
+    <GridItem key={`${data.systemName}~name`} span={3}>
+      <Link
+        to={getDashboardLink(data.managedSystemKind, data.managedSystemName)}
+      >
+        {data.systemName}
+      </Link>
     </GridItem>
-    <GridItem key={`${data.systemName}~${data.systemKind}~`} span={7}>
+    <GridItem key={`${data.systemName}~progress`} span={7}>
       <Progress
         value={getProgress(data, isRelative, largestValue)}
         measureLocation={ProgressMeasureLocation.none}
       />
     </GridItem>
-    <GridItem span={2} key={`${data.systemName}~${data.systemKind}~value`}>
+    <GridItem span={2} key={`${data.systemName}~value`}>
       {isPercentage
         ? `${getProgress(data, isRelative, largestValue).toFixed(2)} %`
         : data.usedValue.string}
