@@ -13,31 +13,94 @@ import {
   Gallery,
   GalleryItem,
 } from "@patternfly/react-core";
-import { HealthItem } from "badhikar-dynamic-plugin-sdk/internalAPI";
-/* export const CephAlerts = withDashboardResources(
-  ({ watchAlerts, stopWatchAlerts, notificationAlerts }) => {
-    React.useEffect(() => {
-      watchAlerts();
-      return () => {
-        stopWatchAlerts();
-      };
-    }, [watchAlerts, stopWatchAlerts]);
+import {
+  AlertItem,
+  AlertsBody,
+  HealthItem,
+  usePrometheusPoll,
+} from "badhikar-dynamic-plugin-sdk/internalAPI";
+import {
+  Alert,
+  PrometheusLabels,
+  PrometheusRule,
+} from "badhikar-dynamic-plugin-sdk/lib/api/common-types";
+import * as _ from "lodash";
+export const AlertResource = {
+  kind: "Alert",
+  label: "Alert",
+  plural: "/monitoring/alerts",
+  abbr: "AL",
+};
 
-    const { data, loaded, loadError } = notificationAlerts || {};
-    const alerts = filterCephAlerts(data);
+type Group = {
+  rules: PrometheusRule[];
+  file: string;
+  name: string;
+};
 
-    return (
-      <AlertsBody error={!_.isEmpty(loadError)}>
-        {loaded &&
-          alerts.length > 0 &&
-          alerts.map((alert) => (
-            <AlertItem key={alertURL(alert, alert.rule.id)} alert={alert} />
-          ))}
-      </AlertsBody>
-    );
-  }
-);
-*/
+export type PrometheusRulesResponse = {
+  data: {
+    groups: Group[];
+  };
+  status: string;
+};
+
+export const labelsToParams = (labels: PrometheusLabels) =>
+  _.map(
+    labels,
+    (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+  ).join("&");
+
+export const filterCephAlerts = (alerts: Alert[]): Alert[] => {
+  const rookRegex = /.*rook.*/;
+  return alerts?.filter(
+    (alert) =>
+      alert?.annotations?.storage_type === "ceph" ||
+      Object.values(alert?.labels)?.some((item) => rookRegex.test(item))
+  );
+};
+
+const getAlertsFromPrometheusResponse = (response: PrometheusRulesResponse) => {
+  const alerts: Alert[] = [];
+  response?.data?.groups?.forEach((group) => {
+    group.rules.forEach((rule) => {
+      rule?.alerts?.forEach((alert) => {
+        alerts.push({
+          rule: {
+            ...rule,
+            id: group.name,
+          },
+          ...alert,
+        });
+      });
+    });
+  });
+  return alerts;
+};
+
+const alertURL = (alert: Alert, ruleID: string) =>
+  `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
+
+const OCSAlerts: React.FC = () => {
+  const [rules, alertsError, alertsLoaded] = usePrometheusPoll({
+    query: "",
+    endpoint: "api/v1/rules" as any,
+  });
+  const alerts = getAlertsFromPrometheusResponse(
+    rules as unknown as PrometheusRulesResponse
+  );
+  const filteredAlerts = filterCephAlerts(alerts);
+  return (
+    <AlertsBody error={alertsError}>
+      {!alertsLoaded &&
+        filteredAlerts.length > 0 &&
+        filteredAlerts.map((alert) => (
+          <AlertItem key={alertURL(alert, alert.rule.id)} alert={alert} />
+        ))}
+    </AlertsBody>
+  );
+};
+
 type K8sListKind = K8sResourceCommon & {
   items: K8sResourceCommon & {
     status?: any;
@@ -95,6 +158,7 @@ export const StatusCard: React.FC = () => {
             </GalleryItem>
           </Gallery>
         </div>
+        <OCSAlerts />
       </CardBody>
     </Card>
   );

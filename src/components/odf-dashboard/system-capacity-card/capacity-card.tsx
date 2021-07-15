@@ -25,7 +25,7 @@ const SystemCapacityCard: React.FC = () => {
 
   const data = systems.map((system) => {
     const datum = {
-      systemName: system.metadata.name,
+      name: system.metadata.name,
       managedSystemName: system.spec.name,
       managedSystemKind: system.spec.kind,
 

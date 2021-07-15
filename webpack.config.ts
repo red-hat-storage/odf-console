@@ -18,6 +18,7 @@ const config: webpack.Configuration = {
   devServer: {
     contentBase: path.join(__dirname, "dist"),
     port: 9001,
+    writeToDisk: true,
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx"],

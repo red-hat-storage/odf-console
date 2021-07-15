@@ -19,9 +19,9 @@ type HumanizeResult = {
 };
 
 type CapacityMetricDatum = {
-  systemName: string;
-  managedSystemName: string;
-  managedSystemKind: string;
+  name: string;
+  managedSystemName?: string;
+  managedSystemKind?: string;
   totalValue?: HumanizeResult;
   usedValue: HumanizeResult;
 };
@@ -123,20 +123,24 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   largestValue,
 }) => (
   <>
-    <GridItem key={`${data.systemName}~name`} span={3}>
-      <Link
-        to={getDashboardLink(data.managedSystemKind, data.managedSystemName)}
-      >
-        {data.systemName}
-      </Link>
+    <GridItem key={`${data.name}~name`} span={3}>
+      {data.managedSystemKind ? (
+        <Link
+          to={getDashboardLink(data.managedSystemKind, data.managedSystemName)}
+        >
+          {data.name}
+        </Link>
+      ) : (
+        data.name
+      )}
     </GridItem>
-    <GridItem key={`${data.systemName}~progress`} span={7}>
+    <GridItem key={`${data.name}~progress`} span={7}>
       <Progress
         value={getProgress(data, isRelative, largestValue)}
         measureLocation={ProgressMeasureLocation.none}
       />
     </GridItem>
-    <GridItem span={2} key={`${data.systemName}~value`}>
+    <GridItem span={2} key={`${data.name}~value`}>
       {isPercentage
         ? `${getProgress(data, isRelative, largestValue).toFixed(2)} %`
         : data.usedValue.string}
@@ -154,7 +158,7 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
     secureRelative = data[0]?.totalValue === undefined;
   }
   const sortedMetrics = sortMetrics(data, "ASC", secureRelative);
-  return (
+  return sortedMetrics.length > 0 ? (
     <Grid hasGutter>
       <CapacityCardHeader showPercentage={isPercentage} />
       {sortedMetrics.map((item) => (
@@ -166,6 +170,8 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
         />
       ))}
     </Grid>
+  ) : (
+    <div className="text-muted">No data available</div>
   );
 };
 
