@@ -7,11 +7,8 @@ import SystemCapacityCard from "./system-capacity-card/capacity-card";
 import { Grid, GridItem } from "@patternfly/react-core";
 import PerformanceCard from "./performance-card";
 import ObjectCapacityCard from "./object-storage-card/capacity-card";
-import {
-  HorizontalNav,
-  Page,
-  PageHeading,
-} from "badhikar-dynamic-plugin-sdk/internalAPI";
+import { HorizontalNav, Page } from "badhikar-dynamic-plugin-sdk/internalAPI";
+import PageHeading from "../common/heading/page-heading";
 
 type UpperSectionProps = {
   currentLocation: string;
@@ -68,7 +65,7 @@ const ODFDashboardPage: React.FC<any> = ({ match }) => {
       <Helmet>
         <title>{title}</title>
       </Helmet>
-      <PageHeading title={title} detail />
+      <PageHeading title={title} />
       <HorizontalNav pages={pages} match={match} noStatusBox />
     </>
   );

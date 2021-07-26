@@ -3,12 +3,12 @@
  */
 import * as React from "react";
 import { useResolvedExtensions } from "badhikar-dynamic-plugin-sdk/api";
-import { PageHeading } from "badhikar-dynamic-plugin-sdk/internalAPI";
 import {
   ODFPluginDashboard,
   isODFDashboardPlugin,
 } from "badhikar-dynamic-plugin-sdk";
 import { RouteComponentProps, StaticContext } from "react-router";
+import PageHeading from "../common/heading/page-heading";
 
 type DashboardPageProps = RouteComponentProps<
   {
@@ -49,7 +49,7 @@ const DashboardPage: React.FC<DashboardPageProps> = (props) => {
 
   return (
     <>
-      <PageHeading title={systemName} breadcrumbs={breadcrumbs} detail />
+      <PageHeading title={systemName} breadcrumbs={breadcrumbs} />
       {Component && (
         <Component name={systemName} kind={systemKind} {...props} />
       )}
