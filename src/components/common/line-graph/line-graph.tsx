@@ -1,14 +1,15 @@
 import {
   Chart,
-  ChartVoronoiContainer,
   ChartAxis,
   ChartGroup,
   ChartLine,
+  ChartVoronoiContainer,
 } from '@patternfly/react-charts';
-import { Flex, FlexItem, Grid, GridItem, Title } from '@patternfly/react-core';
+import { Title } from '@patternfly/react-core';
 import * as _ from 'lodash';
 import * as React from 'react';
-import { useRefWidth } from '../../../hooks/ref-width';
+import useRefWidth from '../../../hooks/ref-width';
+import './line-graph.scss';
 
 export type HumanizeResult = {
   value: number;
@@ -48,8 +49,8 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
   const tickPoints = getTickPoints(lineData);
   const latestValue = lineData[lineData.length - 1].y.string;
   return (
-    <Grid>
-      <GridItem span={10} ref={ref}>
+    <div className="lineGraph">
+      <div className="pf-u-w-95-md" ref={ref}>
         <Chart
           containerComponent={
             <ChartVoronoiContainer
@@ -73,25 +74,16 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
             <ChartLine data={mappedLineData} />
           </ChartGroup>
         </Chart>
-      </GridItem>
-      <GridItem span={2}>
-        <Flex
-          direction={{ default: 'column' }}
-          justifyContent={{ default: 'justifyContentCenter' }}
-        >
-          <FlexItem>
-            <Title headingLevel="h4" size="md">
-              {latestValue}
-            </Title>
-          </FlexItem>
-          <FlexItem>
-            <Title headingLevel="h5" size="md">
-              Current
-            </Title>
-          </FlexItem>
-        </Flex>
-      </GridItem>
-    </Grid>
+      </div>
+      <div className="pf-u-w-5-md valueBox">
+        <div>
+          <Title headingLevel="h5" size="md">
+            {latestValue}
+          </Title>
+        </div>
+        <div>Current</div>
+      </div>
+    </div>
   );
 };
 

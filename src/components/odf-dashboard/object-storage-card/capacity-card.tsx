@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {
   DashboardCard,
-  DashboardCardTitle,
   DashboardCardBody,
   DashboardCardHeader,
+  DashboardCardTitle,
   usePrometheusPoll,
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
 import { PrometheusResponse } from 'badhikar-dynamic-plugin-sdk';

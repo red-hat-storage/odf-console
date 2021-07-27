@@ -12,6 +12,8 @@ import { getDashboardLink } from '../../utils';
 import { humanizeBinaryBytes } from '../../../humanize';
 import './capacity-card.scss';
 import { DataUnavailableError } from '../generic/Error';
+import classNames from 'classnames';
+import * as _ from 'lodash';
 
 // Temporary soon to be part of the SDK
 type HumanizeResult = {
@@ -160,9 +162,14 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
     secureRelative = data[0]?.totalValue === undefined;
   }
   const sortedMetrics = sortMetrics(data, 'ASC', secureRelative);
+  const error = _.isEmpty(sortedMetrics);
   return (
-    <div className="o-capacityCard">
-      {sortedMetrics.length > 0 ? (
+    <div
+      className={classNames('o-capacityCard', {
+        'o-capacityCard--centered': error,
+      })}
+    >
+      {!error ? (
         <Grid hasGutter>
           <CapacityCardHeader showPercentage={isPercentage} />
           {sortedMetrics.map((item) => (

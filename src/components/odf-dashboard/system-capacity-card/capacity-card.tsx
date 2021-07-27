@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {
   DashboardCard,
-  DashboardCardTitle,
   DashboardCardBody,
   DashboardCardHeader,
+  DashboardCardTitle,
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
 import { WatchK8sResource } from 'badhikar-dynamic-plugin-sdk';
 import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';

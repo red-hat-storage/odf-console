@@ -1,33 +1,24 @@
 import * as React from 'react';
-import { Grid, GridItem, Title } from '@patternfly/react-core';
-import {
-  useK8sWatchResource,
-  WatchK8sResource,
-} from 'badhikar-dynamic-plugin-sdk/api';
 import {
   DashboardCard,
-  DashboardCardBody,
   DashboardCardHeader,
   DashboardCardTitle,
+  UtilizationDurationDropdown,
   usePrometheusPoll,
   useUtilizationDuration,
-  UtilizationDurationDropdown,
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
 import { Link } from 'react-router-dom';
 import * as _ from 'lodash';
-import { StorageDashboard, UTILIZATION_QUERY } from './queries';
-import LineGraph, { LineGraphProps } from '../common/line-graph/line-graph';
+import { StorageDashboard, UTILIZATION_QUERY } from '../queries';
+import LineGraph, { LineGraphProps } from '../../common/line-graph/line-graph';
 import './performance-card.scss';
-import { ODFStorageSystem } from '../../models';
-import { StorageSystemKind } from '../../types';
-import { referenceForModel } from '../utils';
-import { DataUnavailableError } from '../common/generic/Error';
-
-const storageSystemResource: WatchK8sResource = {
-  kind: referenceForModel(ODFStorageSystem),
-  namespace: 'openshift-storage',
-  isList: true,
-};
+import { StorageSystemKind } from '../../../types';
+import { referenceForModel } from '../../utils';
+import { WatchK8sResource } from 'badhikar-dynamic-plugin-sdk';
+import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
+import { ODFStorageSystem } from '../../../models';
+import Table, { Column } from '../../common/table/table';
+import { SortByDirection } from '@patternfly/react-table';
 
 type GridRowRendererProps = {
   systemName: string;
@@ -40,71 +31,13 @@ type GridRowRendererProps = {
   className?: string;
 };
 
-const GridRowRenderer: React.FC<GridRowRendererProps> = ({
-  managedSystemKind,
-  managedSystemName,
-  systemName,
-  currentLocation,
-  iopsData,
-  throughputData,
-  latencyData,
-  className,
-}) => (
-  <>
-    <GridItem span={3} className={className}>
-      <Link
-        to={{
-          pathname: `/odf/system/${managedSystemKind}/${managedSystemName}`,
-          state: { prevLocation: currentLocation },
-        }}
-      >
-        {systemName}
-      </Link>
-    </GridItem>
-    <GridItem className={className} span={3}>
-      <LineGraph {...iopsData} />
-    </GridItem>
-    <GridItem className={className} span={3}>
-      <LineGraph {...latencyData} />
-    </GridItem>
-    <GridItem className={className} span={3}>
-      <LineGraph {...throughputData} />
-    </GridItem>
-  </>
-);
-
-const PerformanceHeader: React.FC<{ className?: string }> = ({ className }) => (
-  <>
-    <GridItem className={className} span={3}>
-      <Title headingLevel="h5" size="md">
-        System
-      </Title>
-    </GridItem>
-    <GridItem className={className} span={3}>
-      <Title headingLevel="h5" size="md">
-        IOPS
-      </Title>
-    </GridItem>
-    <GridItem className={className} span={3}>
-      <Title headingLevel="h5" size="md">
-        Latency
-      </Title>
-    </GridItem>
-    <GridItem className={className} span={3}>
-      <Title headingLevel="h5" size="md">
-        Throughput
-      </Title>
-    </GridItem>
-  </>
-);
-
 type DataFrame = GridRowRendererProps[];
 
-const generateDataFrames = (
+export const generateDataFrames = (
   systems: StorageSystemKind[],
-  _ld: any[],
-  _td: any[],
-  _id: any[]
+  _ld: any,
+  _td: any,
+  _id: any
 ): DataFrame =>
   systems.reduce((acc, curr) => {
     const frame: GridRowRendererProps = {
@@ -199,23 +132,86 @@ const generateDataFrames = (
     };
     acc.push(frame);
     return acc;
-  }, []);
+  }, [] as GridRowRendererProps[]);
 
-type PerformanceCardInternalProps = {
-  systems: StorageSystemKind[];
+type RowProps = {
+  systemName: string;
+  managedSystemKind: string;
+  managedSystemName: string;
+  currentLocation: string;
+  iopsData: LineGraphProps;
+  throughputData: LineGraphProps;
+  latencyData: LineGraphProps;
+  className?: string;
 };
 
-const PerformanceCardInternal: React.FC<PerformanceCardInternalProps> = ({
-  systems,
-}) => {
-  if (_.isEmpty(systems) || systems === undefined) {
-    return (
-      <div className="performanceCard--error">
-        <DataUnavailableError />;
-      </div>
-    );
-  }
+type GetRow = (
+  args: RowProps
+) => [React.ReactNode, React.ReactNode, React.ReactNode, React.ReactNode];
 
+const getRow: GetRow = ({
+  managedSystemKind,
+  managedSystemName,
+  systemName,
+  currentLocation,
+  iopsData,
+  throughputData,
+  latencyData,
+}) => {
+  return [
+    <Link
+      key={systemName}
+      to={{
+        pathname: `/odf/system/${managedSystemKind}/${managedSystemName}`,
+        state: { prevLocation: currentLocation },
+      }}
+    >
+      {systemName}
+    </Link>,
+    <LineGraph key={`${systemName}_IOPS`} {...iopsData} />,
+
+    <LineGraph key={`${systemName}_LAT`} {...latencyData} />,
+
+    <LineGraph key={`${systemName}_THR`} {...throughputData} />,
+  ];
+};
+
+const storageSystemResource: WatchK8sResource = {
+  kind: referenceForModel(ODFStorageSystem),
+  namespace: 'openshift-storage',
+  isList: true,
+};
+
+const nameSort = (a: RowProps, b: RowProps, c: SortByDirection) => {
+  const negation = c !== SortByDirection.asc;
+  const sortVal = a.systemName.localeCompare(b.systemName);
+  return negation ? -sortVal : sortVal;
+};
+
+const PerformanceCard: React.FC<PerformanceCardProps> = (props) => {
+  const headerColumns: Column[] = [
+    {
+      columnName: 'Name',
+      className: 'pf-u-w-10 performanceCard--verticalAlign',
+      sortFunction: nameSort,
+    },
+    {
+      columnName: 'IOPS',
+      className: 'pf-u-w-30',
+    },
+    {
+      columnName: 'Latency',
+      className: 'pf-u-w-30',
+    },
+    {
+      columnName: 'Throughput',
+      className: 'pf-u-w-30',
+    },
+  ];
+
+  const [systems, loaded] = useK8sWatchResource<StorageSystemKind[]>(
+    storageSystemResource
+  );
   const { duration } = useUtilizationDuration();
   const [ld] = usePrometheusPoll({
     query: UTILIZATION_QUERY[StorageDashboard.LATENCY],
@@ -233,35 +229,21 @@ const PerformanceCardInternal: React.FC<PerformanceCardInternalProps> = ({
     timespan: duration,
   });
 
-  const data = generateDataFrames(systems, ld as any, td as any, id as any);
+  const rawRows = generateDataFrames(systems, ld, td, id);
 
-  return (
-    <Grid>
-      <PerformanceHeader className="performanceCard__header" />
-      <GridItem span={12} className="performanceCard__border" />
-      {data.map((datum) => (
-        <>
-          <GridRowRenderer {...datum} className="performanceCard__row" />
-          <GridItem span={12} className="performanceCard__border" />
-        </>
-      ))}
-    </Grid>
-  );
-};
-
-const PerformanceCard: React.FC<PerformanceCardProps> = (props) => {
-  const [systems, loaded] = useK8sWatchResource<StorageSystemKind[]>(
-    storageSystemResource
-  );
   return (
     <DashboardCard>
       <DashboardCardHeader>
         <DashboardCardTitle>Performance</DashboardCardTitle>
         <UtilizationDurationDropdown />
       </DashboardCardHeader>
-      <DashboardCardBody isLoading={!loaded}>
-        <PerformanceCardInternal systems={systems} />
-      </DashboardCardBody>
+      <Table
+        columns={headerColumns}
+        rawData={rawRows as []}
+        rowRenderer={getRow as any}
+        dataLoading={!loaded}
+        ariaLabel="Performance Card"
+      />
     </DashboardCard>
   );
 };

@@ -2,8 +2,10 @@
   padding-top: 5px;
   min-height: 215px;
   overflow-y: auto;
-  display: flex;
-  flex: 1;
-  place-content: center;
-  align-items: center;
+  &--centered {
+    display: flex;
+    flex: 1;
+    place-content: center;
+    align-items: center;
+  }
 }

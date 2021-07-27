@@ -1,8 +1,8 @@
 import {
-  Split,
-  SplitItem,
   Breadcrumb,
   BreadcrumbItem,
+  Split,
+  SplitItem,
 } from '@patternfly/react-core';
 import classNames from 'classnames';
 import * as _ from 'lodash';
