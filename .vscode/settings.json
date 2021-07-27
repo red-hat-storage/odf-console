@@ -4,5 +4,6 @@
       "fileMatch": ["**/console-extensions.json"],
       "url": "../console/frontend/packages/console-dynamic-plugin-sdk/dist/schema/console-extensions.json"
     }
-  ]
+  ],
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }

@@ -46,16 +46,18 @@ export type PrometheusRulesResponse = {
   status: string;
 };
 
-export const labelsToParams = (labels: PrometheusLabels) => _.map(
-  labels,
-  (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
-).join('&');
+export const labelsToParams = (labels: PrometheusLabels) =>
+  _.map(
+    labels,
+    (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+  ).join('&');
 
 export const filterCephAlerts = (alerts: Alert[]): Alert[] => {
   const rookRegex = /.*rook.*/;
   return alerts?.filter(
-    (alert) => alert?.annotations?.storage_type === 'ceph'
-      || Object.values(alert?.labels)?.some((item) => rookRegex.test(item)),
+    (alert) =>
+      alert?.annotations?.storage_type === 'ceph' ||
+      Object.values(alert?.labels)?.some((item) => rookRegex.test(item))
   );
 };
 
@@ -77,7 +79,8 @@ const getAlertsFromPrometheusResponse = (response: PrometheusRulesResponse) => {
   return alerts;
 };
 
-const alertURL = (alert: Alert, ruleID: string) => `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
+const alertURL = (alert: Alert, ruleID: string) =>
+  `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
 
 const OCSAlerts: React.FC = () => {
   const [rules, alertsError, alertsLoaded] = usePrometheusPoll({
@@ -85,14 +88,14 @@ const OCSAlerts: React.FC = () => {
     endpoint: 'api/v1/rules' as any,
   });
   const alerts = getAlertsFromPrometheusResponse(
-    rules as unknown as PrometheusRulesResponse,
+    rules as unknown as PrometheusRulesResponse
   );
   const filteredAlerts = filterCephAlerts(alerts);
   return (
     <AlertsBody error={alertsError}>
-      {!alertsLoaded
-        && filteredAlerts.length > 0
-        && filteredAlerts.map((alert) => (
+      {!alertsLoaded &&
+        filteredAlerts.length > 0 &&
+        filteredAlerts.map((alert) => (
           <AlertItem key={alertURL(alert, alert.rule.id)} alert={alert} />
         ))}
     </AlertsBody>
@@ -118,9 +121,11 @@ const cephClusterResource: WatchK8sResource = {
 };
 
 export const StatusCard: React.FC = () => {
-  const [cephData, cephLoaded, cephLoadError] = useK8sWatchResource(cephClusterResource);
+  const [cephData, cephLoaded, cephLoadError] =
+    useK8sWatchResource(cephClusterResource);
 
-  const [csvData, csvLoaded, csvLoadError] = useK8sWatchResource<K8sListKind>(operatorResource);
+  const [csvData, csvLoaded, csvLoadError] =
+    useK8sWatchResource<K8sListKind>(operatorResource);
 
   const operatorStatus = csvData?.[0]?.status?.phase;
 
@@ -131,7 +136,7 @@ export const StatusCard: React.FC = () => {
   const operatorHealthStatus = getOperatorHealthState(
     operatorStatus,
     !csvLoaded,
-    csvLoadError,
+    csvLoadError
   );
 
   return (

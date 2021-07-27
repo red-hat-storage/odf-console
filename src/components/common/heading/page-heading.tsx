@@ -1,5 +1,8 @@
 import {
-  Split, SplitItem, Breadcrumb, BreadcrumbItem,
+  Split,
+  SplitItem,
+  Breadcrumb,
+  BreadcrumbItem,
 } from '@patternfly/react-core';
 import classNames from 'classnames';
 import * as _ from 'lodash';
@@ -45,9 +48,7 @@ type PageHeadingProps = {
 };
 
 const PageHeading: React.FC<PageHeadingProps> = (props) => {
-  const {
-    title, breadcrumbs, style, badge, className,
-  } = props;
+  const { title, breadcrumbs, style, badge, className } = props;
   const resourceTitle = title;
   const showBreadcrumbs = !!breadcrumbs;
   return (
@@ -56,7 +57,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
         'co-m-nav-title',
         'co-m-nav-title--detail',
         { 'co-m-nav-title--breadcrumbs': showBreadcrumbs },
-        className,
+        className
       )}
       style={style}
     >

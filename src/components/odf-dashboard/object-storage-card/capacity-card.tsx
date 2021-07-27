@@ -11,10 +11,11 @@ import CapacityCard from '../../common/capacity-card/capacity-card';
 import { CAPACITY_QUERIES, StorageDashboard } from '../queries';
 import { humanizeBinaryBytes } from '../../../humanize';
 
-const parseMetricData = (metric: PrometheusResponse) => metric.data.result.map((datum) => ({
-  name: datum.metric.type,
-  usedValue: humanizeBinaryBytes(datum.value[1]),
-}));
+const parseMetricData = (metric: PrometheusResponse) =>
+  metric.data.result.map((datum) => ({
+    name: datum.metric.type,
+    usedValue: humanizeBinaryBytes(datum.value[1]),
+  }));
 
 const ObjectCapacityCard: React.FC = () => {
   const [data, error, loaded] = usePrometheusPoll({

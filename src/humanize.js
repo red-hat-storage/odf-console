@@ -1,51 +1,51 @@
-import * as _ from "lodash-es";
+import * as _ from 'lodash-es';
 
 export const units = {};
 export const validate = {};
 
 const TYPES = {
   numeric: {
-    units: ["", "k", "m", "b"],
+    units: ['', 'k', 'm', 'b'],
     space: false,
     divisor: 1000,
   },
   decimalBytes: {
-    units: ["B", "KB", "MB", "GB", "TB", "PB", "EB"],
+    units: ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'],
     space: true,
     divisor: 1000,
   },
   decimalBytesWithoutB: {
-    units: ["", "k", "M", "G", "T", "P", "E"],
+    units: ['', 'k', 'M', 'G', 'T', 'P', 'E'],
     space: true,
     divisor: 1000,
   },
   binaryBytes: {
-    units: ["B", "KiB", "MiB", "GiB", "TiB", "PiB"],
+    units: ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'],
     space: true,
     divisor: 1024,
   },
   binaryBytesWithoutB: {
-    units: ["i", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei"],
+    units: ['i', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei'],
     space: true,
     divisor: 1024,
   },
   SI: {
-    units: ["", "k", "M", "G", "T", "P", "E"],
+    units: ['', 'k', 'M', 'G', 'T', 'P', 'E'],
     space: false,
     divisor: 1000,
   },
   decimalBytesPerSec: {
-    units: ["Bps", "KBps", "MBps", "GBps", "TBps", "PBps", "EBps"],
+    units: ['Bps', 'KBps', 'MBps', 'GBps', 'TBps', 'PBps', 'EBps'],
     space: true,
     divisor: 1000,
   },
   packetsPerSec: {
-    units: ["pps", "kpps"],
+    units: ['pps', 'kpps'],
     space: true,
     divisor: 1000,
   },
   seconds: {
-    units: ["ns", "μs", "ms", "s"],
+    units: ['ns', 'μs', 'ms', 's'],
     space: true,
     divisor: 1000,
   },
@@ -73,7 +73,7 @@ const convertBaseValueToUnits = (
   const sliceIndex = initialUnit ? unitArray.indexOf(initialUnit) : 0;
   const units_ = unitArray.slice(sliceIndex);
 
-  if (preferredUnit || preferredUnit === "") {
+  if (preferredUnit || preferredUnit === '') {
     const unitIndex = units_.indexOf(preferredUnit);
     if (unitIndex !== -1) {
       return {
@@ -92,8 +92,8 @@ const convertBaseValueToUnits = (
 };
 
 const convertValueWithUnitsToBaseValue = (value, unitArray, divisor) => {
-  const defaultReturn = { value, unit: "" };
-  if (typeof value !== "string") {
+  const defaultReturn = { value, unit: '' };
+  if (typeof value !== 'string') {
     return defaultReturn;
   }
 
@@ -207,7 +207,7 @@ const humanize = (units.humanize = (
 
 const formatPercentage = (value, options) => {
   const { locales, ...rest } = _.defaults(
-    { style: "percent" }, // Don't allow perent style to be overridden.
+    { style: 'percent' }, // Don't allow perent style to be overridden.
     options,
     {
       maximumFractionDigits: 1,
@@ -217,24 +217,24 @@ const formatPercentage = (value, options) => {
 };
 
 export const humanizeBinaryBytesWithoutB = (v, initialUnit, preferredUnit) =>
-  humanize(v, "binaryBytesWithoutB", true, initialUnit, preferredUnit);
+  humanize(v, 'binaryBytesWithoutB', true, initialUnit, preferredUnit);
 export const humanizeBinaryBytes = (v, initialUnit, preferredUnit) =>
-  humanize(v, "binaryBytes", true, initialUnit, preferredUnit);
+  humanize(v, 'binaryBytes', true, initialUnit, preferredUnit);
 export const humanizeDecimalBytes = (v, initialUnit, preferredUnit) =>
-  humanize(v, "decimalBytes", true, initialUnit, preferredUnit);
+  humanize(v, 'decimalBytes', true, initialUnit, preferredUnit);
 export const humanizeDecimalBytesPerSec = (v, initialUnit, preferredUnit) =>
-  humanize(v, "decimalBytesPerSec", true, initialUnit, preferredUnit);
+  humanize(v, 'decimalBytesPerSec', true, initialUnit, preferredUnit);
 export const humanizePacketsPerSec = (v, initialUnit, preferredUnit) =>
-  humanize(v, "packetsPerSec", true, initialUnit, preferredUnit);
+  humanize(v, 'packetsPerSec', true, initialUnit, preferredUnit);
 export const humanizeNumber = (v, initialUnit, preferredUnit) =>
-  humanize(v, "numeric", true, initialUnit, preferredUnit);
+  humanize(v, 'numeric', true, initialUnit, preferredUnit);
 export const humanizeNumberSI = (v, initialUnit, preferredUnit) =>
-  humanize(v, "SI", true, initialUnit, preferredUnit);
+  humanize(v, 'SI', true, initialUnit, preferredUnit);
 export const humanizeSeconds = (v, initialUnit, preferredUnit) =>
-  humanize(v, "seconds", true, initialUnit, preferredUnit);
+  humanize(v, 'seconds', true, initialUnit, preferredUnit);
 export const humanizeCpuCores = (v) => {
   const value = v < 1 ? round(v * 1000) : v;
-  const unit = v < 1 ? "m" : "";
+  const unit = v < 1 ? 'm' : '';
   return {
     string: `${formatValue(value)}${unit}`,
     unit,
@@ -248,7 +248,7 @@ export const humanizePercentage = (value) => {
   }
   return {
     string: formatPercentage(value / 100),
-    unit: "%",
+    unit: '%',
     value: round(value, 1),
   };
 };
@@ -275,27 +275,27 @@ const baseUnitedValidation = (value) => {
     return;
   }
   if (value.search(/\s/g) !== -1) {
-    return "white space is not allowed";
+    return 'white space is not allowed';
   }
 };
 
-const validateNumber = (float = "") => {
+const validateNumber = (float = '') => {
   if (float < 0) {
-    return "must be positive";
+    return 'must be positive';
   }
   if (!isFinite(float)) {
-    return "must be a number";
+    return 'must be a number';
   }
 };
-const validCPUUnits = new Set(["m", ""]);
-const validateCPUUnit = (value = "") => {
+const validCPUUnits = new Set(['m', '']);
+const validateCPUUnit = (value = '') => {
   if (validCPUUnits.has(value)) {
     return;
   }
   return `unrecongnized unit: ${value}`;
 };
 
-validate.CPU = (value = "") => {
+validate.CPU = (value = '') => {
   if (!value) {
     return;
   }
@@ -314,34 +314,34 @@ validate.CPU = (value = "") => {
 };
 
 const validMemUnits = new Set([
-  "E",
-  "P",
-  "T",
-  "G",
-  "M",
-  "k",
-  "Pi",
-  "Ti",
-  "Gi",
-  "Mi",
-  "Ki",
+  'E',
+  'P',
+  'T',
+  'G',
+  'M',
+  'k',
+  'Pi',
+  'Ti',
+  'Gi',
+  'Mi',
+  'Ki',
 ]);
-const validateMemUnit = (value = "") => {
+const validateMemUnit = (value = '') => {
   if (validMemUnits.has(value)) {
     return;
   }
   return `unrecongnized unit: ${value}`;
 };
 
-const validTimeUnits = new Set(["s", "m", "h", "d", "M", "y"]);
-const validateTimeUnit = (value = "") => {
+const validTimeUnits = new Set(['s', 'm', 'h', 'd', 'M', 'y']);
+const validateTimeUnit = (value = '') => {
   if (validTimeUnits.has(value)) {
     return;
   }
   return `unrecongnized unit: ${value}`;
 };
 
-validate.time = (value = "") => {
+validate.time = (value = '') => {
   if (!value) {
     return;
   }
@@ -353,13 +353,13 @@ validate.time = (value = "") => {
   const [number, unit] = validate.split(value);
 
   if (!unit) {
-    return "number and unit required";
+    return 'number and unit required';
   }
 
   return validateNumber(number) || validateTimeUnit(unit);
 };
 
-validate.memory = (value = "") => {
+validate.memory = (value = '') => {
   if (!value) {
     return;
   }
@@ -399,16 +399,16 @@ export const convertToBaseValue = (value) => {
   }
 
   // Handle CPU millicores specifically.
-  if (unit === "m") {
+  if (unit === 'm') {
     return number / 1000;
   }
 
   if (TYPES.binaryBytesWithoutB.units.includes(unit)) {
-    return units.dehumanize(value, "binaryBytesWithoutB").value;
+    return units.dehumanize(value, 'binaryBytesWithoutB').value;
   }
 
   if (TYPES.decimalBytesWithoutB.units.includes(unit)) {
-    return units.dehumanize(value, "decimalBytesWithoutB").value;
+    return units.dehumanize(value, 'decimalBytesWithoutB').value;
   }
 
   // Unrecognized unit.

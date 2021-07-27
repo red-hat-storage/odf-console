@@ -38,7 +38,7 @@ const CephHealthStatus = (status: string): SubsystemHealth => {
 export const getOperatorHealthState = (
   state: string,
   loading,
-  loadError,
+  loadError
 ): SubsystemHealth => {
   if (loading) {
     return { state: HealthState.LOADING };
@@ -88,7 +88,8 @@ export const getDataResiliencyState = (responses) => {
   return { state: HealthState.OK };
 };
 
-export const getGaugeValue = (response) => response?.data?.result?.[0]?.value?.[1];
+export const getGaugeValue = (response) =>
+  response?.data?.result?.[0]?.value?.[1];
 
 export const getResiliencyProgress = (results): number => {
   /**

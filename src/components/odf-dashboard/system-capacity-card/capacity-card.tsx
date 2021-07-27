@@ -20,7 +20,7 @@ const storageSystemResource: WatchK8sResource = {
 
 const SystemCapacityCard: React.FC = () => {
   const [systems, loaded] = useK8sWatchResource<StorageSystemKind[]>(
-    storageSystemResource,
+    storageSystemResource
   );
 
   const data = systems.map((system) => {

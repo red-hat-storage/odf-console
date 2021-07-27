@@ -5,9 +5,7 @@ import {
   ChartGroup,
   ChartLine,
 } from '@patternfly/react-charts';
-import {
-  Flex, FlexItem, Grid, GridItem, Title,
-} from '@patternfly/react-core';
+import { Flex, FlexItem, Grid, GridItem, Title } from '@patternfly/react-core';
 import * as _ from 'lodash';
 import * as React from 'react';
 import { useRefWidth } from '../../../hooks/ref-width';
@@ -53,12 +51,12 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
     <Grid>
       <GridItem span={10} ref={ref}>
         <Chart
-          containerComponent={(
+          containerComponent={
             <ChartVoronoiContainer
               labels={({ datum }) => `${datum.y.string}: ${datum.timestamp}`}
               constrainToVisibleArea
             />
-          )}
+          }
           height={150}
           minDomain={{ y: tickPoints[0] }}
           maxDomain={{ y: tickPoints[tickPoints.length - 1] + 10 }}

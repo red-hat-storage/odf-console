@@ -104,101 +104,102 @@ const generateDataFrames = (
   systems: StorageSystemKind[],
   _ld: any[],
   _td: any[],
-  _id: any[],
-): DataFrame => systems.reduce((acc, curr) => {
-  const frame: GridRowRendererProps = {
-    managedSystemKind: curr.spec.kind,
-    managedSystemName: curr.spec.name,
-    systemName: curr.metadata.name,
-    currentLocation: '/',
-    iopsData: {
-      data: [
-        {
-          timestamp: new Date(),
-          y: {
-            value: 10,
-            unit: '',
-            string: '10',
+  _id: any[]
+): DataFrame =>
+  systems.reduce((acc, curr) => {
+    const frame: GridRowRendererProps = {
+      managedSystemKind: curr.spec.kind,
+      managedSystemName: curr.spec.name,
+      systemName: curr.metadata.name,
+      currentLocation: '/',
+      iopsData: {
+        data: [
+          {
+            timestamp: new Date(),
+            y: {
+              value: 10,
+              unit: '',
+              string: '10',
+            },
           },
-        },
-        {
-          timestamp: new Date(),
-          y: {
-            value: 20,
-            unit: '',
-            string: '20',
+          {
+            timestamp: new Date(),
+            y: {
+              value: 20,
+              unit: '',
+              string: '20',
+            },
           },
-        },
-        {
-          timestamp: new Date(),
-          y: {
-            value: 30,
-            unit: '',
-            string: '30',
+          {
+            timestamp: new Date(),
+            y: {
+              value: 30,
+              unit: '',
+              string: '30',
+            },
           },
-        },
-      ],
-    },
-    throughputData: {
-      data: [
-        {
-          timestamp: new Date(),
-          y: {
-            value: 10,
-            unit: '',
-            string: '10',
+        ],
+      },
+      throughputData: {
+        data: [
+          {
+            timestamp: new Date(),
+            y: {
+              value: 10,
+              unit: '',
+              string: '10',
+            },
           },
-        },
-        {
-          timestamp: new Date(),
-          y: {
-            value: 20,
-            unit: '',
-            string: '20',
+          {
+            timestamp: new Date(),
+            y: {
+              value: 20,
+              unit: '',
+              string: '20',
+            },
           },
-        },
-        {
-          timestamp: new Date(),
-          y: {
-            value: 30,
-            unit: '',
-            string: '30',
+          {
+            timestamp: new Date(),
+            y: {
+              value: 30,
+              unit: '',
+              string: '30',
+            },
           },
-        },
-      ],
-    },
-    latencyData: {
-      data: [
-        {
-          timestamp: new Date(),
-          y: {
-            value: 10,
-            unit: '',
-            string: '10',
+        ],
+      },
+      latencyData: {
+        data: [
+          {
+            timestamp: new Date(),
+            y: {
+              value: 10,
+              unit: '',
+              string: '10',
+            },
           },
-        },
-        {
-          timestamp: new Date(),
-          y: {
-            value: 20,
-            unit: '',
-            string: '20',
+          {
+            timestamp: new Date(),
+            y: {
+              value: 20,
+              unit: '',
+              string: '20',
+            },
           },
-        },
-        {
-          timestamp: new Date(),
-          y: {
-            value: 30,
-            unit: '',
-            string: '30',
+          {
+            timestamp: new Date(),
+            y: {
+              value: 30,
+              unit: '',
+              string: '30',
+            },
           },
-        },
-      ],
-    },
-  };
-  acc.push(frame);
-  return acc;
-}, []);
+        ],
+      },
+    };
+    acc.push(frame);
+    return acc;
+  }, []);
 
 type PerformanceCardInternalProps = {
   systems: StorageSystemKind[];
@@ -210,8 +211,7 @@ const PerformanceCardInternal: React.FC<PerformanceCardInternalProps> = ({
   if (_.isEmpty(systems) || systems === undefined) {
     return (
       <div className="performanceCard--error">
-        <DataUnavailableError />
-        ;
+        <DataUnavailableError />;
       </div>
     );
   }
@@ -251,7 +251,7 @@ const PerformanceCardInternal: React.FC<PerformanceCardInternalProps> = ({
 
 const PerformanceCard: React.FC<PerformanceCardProps> = (props) => {
   const [systems, loaded] = useK8sWatchResource<StorageSystemKind[]>(
-    storageSystemResource,
+    storageSystemResource
   );
   return (
     <DashboardCard>

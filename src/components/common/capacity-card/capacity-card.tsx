@@ -34,25 +34,26 @@ type CapacityCardProps = {
   isPercentage?: boolean;
 };
 
-const getPercentage = (item: CapacityMetricDatum) => (humanizeBinaryBytes(
-  item.usedValue.value,
-  item.usedValue.unit,
-  item.totalValue.unit,
-).value
-    / item.totalValue.value)
-  * 100;
+const getPercentage = (item: CapacityMetricDatum) =>
+  (humanizeBinaryBytes(
+    item.usedValue.value,
+    item.usedValue.unit,
+    item.totalValue.unit
+  ).value /
+    item.totalValue.value) *
+  100;
 
 const sortMetrics = (
   metrics: CapacityMetricDatum[],
   direction: 'ASC' | 'DESC' = 'ASC',
-  relative = false,
+  relative = false
 ): CapacityMetricDatum[] => {
   metrics.sort((a, b) => {
     let comparatorA = a.usedValue.value;
     const comparatorB = humanizeBinaryBytes(
       b.usedValue.value,
       b.usedValue.unit,
-      a.usedValue.unit,
+      a.usedValue.unit
     ).value;
     if (!relative) {
       comparatorA = getPercentage(a);
@@ -84,9 +85,7 @@ const CapacityCardHeader: React.FC<CapacityCardHeaderProps> = ({
     </GridItem>
     <GridItem span={7}>
       <Title headingLevel="h3" size="md">
-        Used Capacity
-        {' '}
-        {showPercentage && <> %</>}
+        Used Capacity {showPercentage && <> %</>}
       </Title>
     </GridItem>
     <GridItem span={2} />
@@ -103,17 +102,17 @@ type CapacityCardRowProps = {
 const getProgress = (
   data: CapacityMetricDatum,
   isRelative: boolean,
-  largestValue: HumanizeResult,
+  largestValue: HumanizeResult
 ) => {
   if (isRelative) {
     return (
       (humanizeBinaryBytes(
         data.usedValue.value,
         data.usedValue.unit,
-        largestValue.unit,
-      ).value
-        / largestValue.value)
-      * 100
+        largestValue.unit
+      ).value /
+        largestValue.value) *
+      100
     );
   }
   return getPercentage(data);
