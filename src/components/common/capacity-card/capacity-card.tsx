@@ -1,15 +1,17 @@
+// eslint-disable-next-line no-use-before-define
+import * as React from 'react';
 import {
   Grid,
   GridItem,
   Progress,
   ProgressMeasureLocation,
   Title,
-} from "@patternfly/react-core";
-import * as React from "react";
-import { Link } from "react-router-dom";
-import { getDashboardLink } from "../../utils";
-import { humanizeBinaryBytes } from "../../../humanize";
-import "./capacity-card.scss";
+} from '@patternfly/react-core';
+import { Link } from 'react-router-dom';
+import { getDashboardLink } from '../../utils';
+import { humanizeBinaryBytes } from '../../../humanize';
+import './capacity-card.scss';
+import { DataUnavailableError } from '../generic/Error';
 
 // Temporary soon to be part of the SDK
 type HumanizeResult = {
@@ -32,47 +34,46 @@ type CapacityCardProps = {
   isPercentage?: boolean;
 };
 
-const getPercentage = (item: CapacityMetricDatum) =>
-  (humanizeBinaryBytes(
-    item.usedValue.value,
-    item.usedValue.unit,
-    item.totalValue.unit
-  ).value /
-    item.totalValue.value) *
-  100;
+const getPercentage = (item: CapacityMetricDatum) => (humanizeBinaryBytes(
+  item.usedValue.value,
+  item.usedValue.unit,
+  item.totalValue.unit,
+).value
+    / item.totalValue.value)
+  * 100;
 
 const sortMetrics = (
   metrics: CapacityMetricDatum[],
-  direction: "ASC" | "DESC" = "ASC",
-  relative = false
+  direction: 'ASC' | 'DESC' = 'ASC',
+  relative = false,
 ): CapacityMetricDatum[] => {
   metrics.sort((a, b) => {
     let comparatorA = a.usedValue.value;
-    let comparatorB = humanizeBinaryBytes(
+    const comparatorB = humanizeBinaryBytes(
       b.usedValue.value,
       b.usedValue.unit,
-      a.usedValue.unit
+      a.usedValue.unit,
     ).value;
     if (!relative) {
       comparatorA = getPercentage(a);
       comparatorA = getPercentage(b);
     }
     if (comparatorA < comparatorB) {
-      return direction === "ASC" ? -1 : 1;
+      return direction === 'ASC' ? -1 : 1;
     }
     if (comparatorB > comparatorA) {
-      return direction === "ASC" ? 1 : -1;
+      return direction === 'ASC' ? 1 : -1;
     }
     return 0;
   });
   return metrics;
 };
 
-type CapacityCardHeader = {
+type CapacityCardHeaderProps = {
   showPercentage: boolean;
 };
 
-const CapacityCardHeader: React.FC<CapacityCardHeader> = ({
+const CapacityCardHeader: React.FC<CapacityCardHeaderProps> = ({
   showPercentage,
 }) => (
   <>
@@ -83,7 +84,9 @@ const CapacityCardHeader: React.FC<CapacityCardHeader> = ({
     </GridItem>
     <GridItem span={7}>
       <Title headingLevel="h3" size="md">
-        Used Capacity {showPercentage && <> %</>}
+        Used Capacity
+        {' '}
+        {showPercentage && <> %</>}
       </Title>
     </GridItem>
     <GridItem span={2} />
@@ -100,17 +103,17 @@ type CapacityCardRowProps = {
 const getProgress = (
   data: CapacityMetricDatum,
   isRelative: boolean,
-  largestValue: HumanizeResult
+  largestValue: HumanizeResult,
 ) => {
   if (isRelative) {
     return (
       (humanizeBinaryBytes(
         data.usedValue.value,
         data.usedValue.unit,
-        largestValue.unit
-      ).value /
-        largestValue.value) *
-      100
+        largestValue.unit,
+      ).value
+        / largestValue.value)
+      * 100
     );
   }
   return getPercentage(data);
@@ -157,21 +160,26 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
   if (relative === undefined) {
     secureRelative = data[0]?.totalValue === undefined;
   }
-  const sortedMetrics = sortMetrics(data, "ASC", secureRelative);
-  return sortedMetrics.length > 0 ? (
-    <Grid hasGutter>
-      <CapacityCardHeader showPercentage={isPercentage} />
-      {sortedMetrics.map((item) => (
-        <CapacityCardRow
-          data={item}
-          isPercentage={isPercentage}
-          isRelative={relative}
-          largestValue={sortedMetrics[0].usedValue}
-        />
-      ))}
-    </Grid>
-  ) : (
-    <div className="text-muted">No data available</div>
+  const sortedMetrics = sortMetrics(data, 'ASC', secureRelative);
+  return (
+    <div className="o-capacityCard">
+      {sortedMetrics.length > 0 ? (
+        <Grid hasGutter>
+          <CapacityCardHeader showPercentage={isPercentage} />
+          {sortedMetrics.map((item) => (
+            <CapacityCardRow
+              key={item.name}
+              data={item}
+              isPercentage={isPercentage}
+              isRelative={relative}
+              largestValue={sortedMetrics[0].usedValue}
+            />
+          ))}
+        </Grid>
+      ) : (
+        <DataUnavailableError />
+      )}
+    </div>
   );
 };
 

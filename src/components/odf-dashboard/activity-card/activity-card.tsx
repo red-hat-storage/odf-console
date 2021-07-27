@@ -1,19 +1,19 @@
-import * as React from "react";
-import { useK8sWatchResource } from "badhikar-dynamic-plugin-sdk/api";
+import * as React from 'react';
+import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
 import {
   DashboardCard,
   DashboardCardBody,
   DashboardCardHeader,
   DashboardCardTitle,
   RecentEventsBody,
-} from "badhikar-dynamic-plugin-sdk/internalAPI";
-import { FirehoseResource } from "badhikar-dynamic-plugin-sdk";
-import "./activity-card.scss";
+} from 'badhikar-dynamic-plugin-sdk/internalAPI';
+import { FirehoseResource } from 'badhikar-dynamic-plugin-sdk';
+import './activity-card.scss';
 
 const eventsResource: FirehoseResource = {
   isList: true,
-  kind: "Event",
-  prop: "events",
+  kind: 'Event',
+  prop: 'events',
 };
 
 const ActivityCard: React.FC = () => {

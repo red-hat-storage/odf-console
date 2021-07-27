@@ -1,12 +1,12 @@
 enum HealthState {
-  OK = "OK",
-  ERROR = "ERROR",
-  WARNING = "WARNING",
-  LOADING = "LOADING",
-  UNKNOWN = "UNKNOWN",
-  UPDATING = "UPDATING",
-  PROGRESS = "PROGRESS",
-  NOT_AVAILABLE = "NOT_AVAILABLE",
+  OK = 'OK',
+  ERROR = 'ERROR',
+  WARNING = 'WARNING',
+  LOADING = 'LOADING',
+  UNKNOWN = 'UNKNOWN',
+  UPDATING = 'UPDATING',
+  PROGRESS = 'PROGRESS',
+  NOT_AVAILABLE = 'NOT_AVAILABLE',
 }
 
 type SubsystemHealth = {
@@ -16,19 +16,19 @@ type SubsystemHealth = {
 
 const CephHealthStatus = (status: string): SubsystemHealth => {
   switch (status) {
-    case "HEALTH_OK":
+    case 'HEALTH_OK':
       return {
         state: HealthState.OK,
       };
-    case "HEALTH_WARN":
+    case 'HEALTH_WARN':
       return {
         state: HealthState.WARNING,
-        message: "Warning",
+        message: 'Warning',
       };
-    case "HEALTH_ERR":
+    case 'HEALTH_ERR':
       return {
         state: HealthState.ERROR,
-        message: "Error",
+        message: 'Error',
       };
     default:
       return { state: HealthState.UNKNOWN };
@@ -38,7 +38,7 @@ const CephHealthStatus = (status: string): SubsystemHealth => {
 export const getOperatorHealthState = (
   state: string,
   loading,
-  loadError
+  loadError,
 ): SubsystemHealth => {
   if (loading) {
     return { state: HealthState.LOADING };
@@ -46,7 +46,7 @@ export const getOperatorHealthState = (
   if (loadError) {
     return { state: HealthState.NOT_AVAILABLE };
   }
-  if (state === "Succeeded") {
+  if (state === 'Succeeded') {
     return { state: HealthState.OK };
   }
   return { state: HealthState.ERROR };
@@ -82,14 +82,13 @@ export const getDataResiliencyState = (responses) => {
   if (progress < 1) {
     return {
       state: HealthState.PROGRESS,
-      message: "Progressing",
+      message: 'Progressing',
     };
   }
   return { state: HealthState.OK };
 };
 
-export const getGaugeValue = (response) =>
-  response?.data?.result?.[0]?.value?.[1];
+export const getGaugeValue = (response) => response?.data?.result?.[0]?.value?.[1];
 
 export const getResiliencyProgress = (results): number => {
   /**

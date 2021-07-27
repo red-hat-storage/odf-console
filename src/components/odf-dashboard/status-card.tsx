@@ -1,10 +1,9 @@
-import * as React from "react";
+import * as React from 'react';
 import {
   K8sResourceCommon,
   WatchK8sResource,
-} from "badhikar-dynamic-plugin-sdk";
-import { useK8sWatchResource } from "badhikar-dynamic-plugin-sdk/api";
-import { getCephHealthState, getOperatorHealthState } from "./utils";
+} from 'badhikar-dynamic-plugin-sdk';
+import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
 import {
   Card,
   CardBody,
@@ -12,24 +11,26 @@ import {
   CardTitle,
   Gallery,
   GalleryItem,
-} from "@patternfly/react-core";
+} from '@patternfly/react-core';
 import {
   AlertItem,
   AlertsBody,
   HealthItem,
   usePrometheusPoll,
-} from "badhikar-dynamic-plugin-sdk/internalAPI";
+} from 'badhikar-dynamic-plugin-sdk/internalAPI';
 import {
   Alert,
   PrometheusLabels,
   PrometheusRule,
-} from "badhikar-dynamic-plugin-sdk/lib/api/common-types";
-import * as _ from "lodash";
+} from 'badhikar-dynamic-plugin-sdk/lib/api/common-types';
+import * as _ from 'lodash';
+import { getCephHealthState, getOperatorHealthState } from './utils';
+
 export const AlertResource = {
-  kind: "Alert",
-  label: "Alert",
-  plural: "/monitoring/alerts",
-  abbr: "AL",
+  kind: 'Alert',
+  label: 'Alert',
+  plural: '/monitoring/alerts',
+  abbr: 'AL',
 };
 
 type Group = {
@@ -45,18 +46,16 @@ export type PrometheusRulesResponse = {
   status: string;
 };
 
-export const labelsToParams = (labels: PrometheusLabels) =>
-  _.map(
-    labels,
-    (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
-  ).join("&");
+export const labelsToParams = (labels: PrometheusLabels) => _.map(
+  labels,
+  (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`,
+).join('&');
 
 export const filterCephAlerts = (alerts: Alert[]): Alert[] => {
   const rookRegex = /.*rook.*/;
   return alerts?.filter(
-    (alert) =>
-      alert?.annotations?.storage_type === "ceph" ||
-      Object.values(alert?.labels)?.some((item) => rookRegex.test(item))
+    (alert) => alert?.annotations?.storage_type === 'ceph'
+      || Object.values(alert?.labels)?.some((item) => rookRegex.test(item)),
   );
 };
 
@@ -78,23 +77,22 @@ const getAlertsFromPrometheusResponse = (response: PrometheusRulesResponse) => {
   return alerts;
 };
 
-const alertURL = (alert: Alert, ruleID: string) =>
-  `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
+const alertURL = (alert: Alert, ruleID: string) => `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
 
 const OCSAlerts: React.FC = () => {
   const [rules, alertsError, alertsLoaded] = usePrometheusPoll({
-    query: "",
-    endpoint: "api/v1/rules" as any,
+    query: '',
+    endpoint: 'api/v1/rules' as any,
   });
   const alerts = getAlertsFromPrometheusResponse(
-    rules as unknown as PrometheusRulesResponse
+    rules as unknown as PrometheusRulesResponse,
   );
   const filteredAlerts = filterCephAlerts(alerts);
   return (
     <AlertsBody error={alertsError}>
-      {!alertsLoaded &&
-        filteredAlerts.length > 0 &&
-        filteredAlerts.map((alert) => (
+      {!alertsLoaded
+        && filteredAlerts.length > 0
+        && filteredAlerts.map((alert) => (
           <AlertItem key={alertURL(alert, alert.rule.id)} alert={alert} />
         ))}
     </AlertsBody>
@@ -108,23 +106,21 @@ type K8sListKind = K8sResourceCommon & {
 };
 
 const operatorResource: WatchK8sResource = {
-  kind: "operators.coreos.com~v1alpha1~ClusterServiceVersion",
-  namespace: "openshift-storage",
+  kind: 'operators.coreos.com~v1alpha1~ClusterServiceVersion',
+  namespace: 'openshift-storage',
   isList: true,
 };
 
 const cephClusterResource: WatchK8sResource = {
-  kind: "ceph.rook.io~v1~CephCluster",
-  namespace: "openshift-storage",
+  kind: 'ceph.rook.io~v1~CephCluster',
+  namespace: 'openshift-storage',
   isList: true,
 };
 
 export const StatusCard: React.FC = () => {
-  const [cephData, cephLoaded, cephLoadError] =
-    useK8sWatchResource(cephClusterResource);
+  const [cephData, cephLoaded, cephLoadError] = useK8sWatchResource(cephClusterResource);
 
-  const [csvData, csvLoaded, csvLoadError] =
-    useK8sWatchResource<K8sListKind>(operatorResource);
+  const [csvData, csvLoaded, csvLoadError] = useK8sWatchResource<K8sListKind>(operatorResource);
 
   const operatorStatus = csvData?.[0]?.status?.phase;
 
@@ -135,7 +131,7 @@ export const StatusCard: React.FC = () => {
   const operatorHealthStatus = getOperatorHealthState(
     operatorStatus,
     !csvLoaded,
-    csvLoadError
+    csvLoadError,
   );
 
   return (

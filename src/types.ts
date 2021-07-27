@@ -1,4 +1,4 @@
-import { K8sResourceCommon } from "badhikar-dynamic-plugin-sdk";
+import { K8sResourceCommon } from 'badhikar-dynamic-plugin-sdk';
 
 export type StorageSystemKind = K8sResourceCommon & {
   spec: {

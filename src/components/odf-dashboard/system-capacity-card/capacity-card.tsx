@@ -1,26 +1,26 @@
-import * as React from "react";
+import * as React from 'react';
 import {
   DashboardCard,
   DashboardCardTitle,
   DashboardCardBody,
   DashboardCardHeader,
-} from "badhikar-dynamic-plugin-sdk/internalAPI";
-import CapacityCard from "../../common/capacity-card/capacity-card";
-import { WatchK8sResource } from "badhikar-dynamic-plugin-sdk";
-import { referenceForModel } from "../../utils";
-import { ODFStorageSystem } from "../../../models";
-import { useK8sWatchResource } from "badhikar-dynamic-plugin-sdk/api";
-import { StorageSystemKind } from "../../../types";
+} from 'badhikar-dynamic-plugin-sdk/internalAPI';
+import { WatchK8sResource } from 'badhikar-dynamic-plugin-sdk';
+import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
+import CapacityCard from '../../common/capacity-card/capacity-card';
+import { referenceForModel } from '../../utils';
+import { ODFStorageSystem } from '../../../models';
+import { StorageSystemKind } from '../../../types';
 
 const storageSystemResource: WatchK8sResource = {
   kind: referenceForModel(ODFStorageSystem),
-  namespace: "openshift-storage",
+  namespace: 'openshift-storage',
   isList: true,
 };
 
 const SystemCapacityCard: React.FC = () => {
   const [systems, loaded] = useK8sWatchResource<StorageSystemKind[]>(
-    storageSystemResource
+    storageSystemResource,
   );
 
   const data = systems.map((system) => {
@@ -32,15 +32,15 @@ const SystemCapacityCard: React.FC = () => {
       // Todo: (bipuladh) Replace with real metrics
       usedValue: {
         value: 100,
-        unit: "GiB",
-        string: "100 GiB",
+        unit: 'GiB',
+        string: '100 GiB',
       },
 
       // Todo: (bipuladh) Replace with real metrics
       totalValue: {
         value: 512,
-        unit: "GiB",
-        string: "512 GiB",
+        unit: 'GiB',
+        string: '512 GiB',
       },
     };
     return datum;
@@ -51,7 +51,7 @@ const SystemCapacityCard: React.FC = () => {
       <DashboardCardHeader>
         <DashboardCardTitle>System Capacity</DashboardCardTitle>
       </DashboardCardHeader>
-      <DashboardCardBody className="capacity-card" isLoading={!loaded}>
+      <DashboardCardBody isLoading={!loaded}>
         <CapacityCard data={data} isPercentage />
       </DashboardCardBody>
     </DashboardCard>

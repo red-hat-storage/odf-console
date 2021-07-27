@@ -1,27 +1,25 @@
-import * as React from "react";
+import * as React from 'react';
 import {
   DashboardCard,
   DashboardCardTitle,
   DashboardCardBody,
   DashboardCardHeader,
   usePrometheusPoll,
-} from "badhikar-dynamic-plugin-sdk/internalAPI";
-import CapacityCard from "../../common/capacity-card/capacity-card";
-import { CAPACITY_QUERIES, StorageDashboard } from "../queries";
-import { PrometheusResponse } from "badhikar-dynamic-plugin-sdk";
-import { humanizeBinaryBytes } from "../../../humanize";
+} from 'badhikar-dynamic-plugin-sdk/internalAPI';
+import { PrometheusResponse } from 'badhikar-dynamic-plugin-sdk';
+import CapacityCard from '../../common/capacity-card/capacity-card';
+import { CAPACITY_QUERIES, StorageDashboard } from '../queries';
+import { humanizeBinaryBytes } from '../../../humanize';
 
-const parseMetricData = (metric: PrometheusResponse) => {
-  return metric.data.result.map((datum) => ({
-    name: datum.metric.type,
-    usedValue: humanizeBinaryBytes(datum.value[1]),
-  }));
-};
+const parseMetricData = (metric: PrometheusResponse) => metric.data.result.map((datum) => ({
+  name: datum.metric.type,
+  usedValue: humanizeBinaryBytes(datum.value[1]),
+}));
 
 const ObjectCapacityCard: React.FC = () => {
   const [data, error, loaded] = usePrometheusPoll({
     query: CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_OBJECT],
-    endpoint: "api/v1/query" as any,
+    endpoint: 'api/v1/query' as any,
   });
 
   const dataFrames = !loaded && !error ? parseMetricData(data) : [];
@@ -33,8 +31,8 @@ const ObjectCapacityCard: React.FC = () => {
           External Object Provider Used Capacity
         </DashboardCardTitle>
       </DashboardCardHeader>
-      <DashboardCardBody className="capacity-card">
-        <CapacityCard data={dataFrames} relative={true} isPercentage={false} />
+      <DashboardCardBody>
+        <CapacityCard data={dataFrames} relative isPercentage={false} />
       </DashboardCardBody>
     </DashboardCard>
   );

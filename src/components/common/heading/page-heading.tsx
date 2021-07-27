@@ -1,9 +1,11 @@
-import { Split, SplitItem } from "@patternfly/react-core";
-import classNames from "classnames";
-import * as _ from "lodash";
-import * as React from "react";
-import { Breadcrumb, BreadcrumbItem } from "@patternfly/react-core";
-import { Link } from "react-router-dom";
+import {
+  Split, SplitItem, Breadcrumb, BreadcrumbItem,
+} from '@patternfly/react-core';
+import classNames from 'classnames';
+import * as _ from 'lodash';
+import * as React from 'react';
+
+import { Link } from 'react-router-dom';
 
 type BreadCrumbsProps = {
   breadcrumbs: { name: string; path: string }[];
@@ -43,27 +45,29 @@ type PageHeadingProps = {
 };
 
 const PageHeading: React.FC<PageHeadingProps> = (props) => {
-  const { title, breadcrumbs, style, badge, className } = props;
+  const {
+    title, breadcrumbs, style, badge, className,
+  } = props;
   const resourceTitle = title;
   const showBreadcrumbs = !!breadcrumbs;
   return (
     <div
       className={classNames(
-        "co-m-nav-title",
-        "co-m-nav-title--detail",
-        { "co-m-nav-title--breadcrumbs": showBreadcrumbs },
-        className
+        'co-m-nav-title',
+        'co-m-nav-title--detail',
+        { 'co-m-nav-title--breadcrumbs': showBreadcrumbs },
+        className,
       )}
       style={style}
     >
       {showBreadcrumbs && (
-        <Split style={{ alignItems: "baseline" }}>
+        <Split style={{ alignItems: 'baseline' }}>
           <SplitItem isFilled>
             <BreadCrumbs breadcrumbs={breadcrumbs} />
           </SplitItem>
           {badge && (
             <SplitItem>
-              {<span className="co-m-pane__heading-badge">{badge}</span>}
+              <span className="co-m-pane__heading-badge">{badge}</span>
             </SplitItem>
           )}
         </Split>

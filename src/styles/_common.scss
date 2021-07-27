@@ -1,0 +1,8 @@
+/* Use on the parent div/Block Element of the item which requires centering */
+.centerComponent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
