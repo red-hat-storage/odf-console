@@ -1,8 +1,6 @@
 import * as React from 'react';
-import {
-  K8sResourceCommon,
-  WatchK8sResource,
-} from 'badhikar-dynamic-plugin-sdk';
+import * as _ from 'lodash';
+import { HealthState, WatchK8sResource } from 'badhikar-dynamic-plugin-sdk';
 import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
 import {
   DashboardCard,
@@ -12,34 +10,13 @@ import {
   HealthBody,
   HealthItem,
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
-import {
-  Alert,
-  PrometheusLabels,
-} from 'badhikar-dynamic-plugin-sdk/lib/api/common-types';
-import * as _ from 'lodash';
-import { getCephHealthState, getOperatorHealthState } from '../utils';
+import { getOperatorHealthState } from '../utils';
 import { Gallery, GalleryItem } from '@patternfly/react-core';
-
-export const labelsToParams = (labels: PrometheusLabels) =>
-  _.map(
-    labels,
-    (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
-  ).join('&');
-
-export const filterCephAlerts = (alerts: Alert[]): Alert[] => {
-  const rookRegex = /.*rook.*/;
-  return alerts?.filter(
-    (alert) =>
-      alert?.annotations?.storage_type === 'ceph' ||
-      Object.values(alert?.labels)?.some((item) => rookRegex.test(item))
-  );
-};
-
-type K8sListKind = K8sResourceCommon & {
-  items: K8sResourceCommon & {
-    status?: any;
-  };
-};
+import { K8sListKind } from '../../../utils/types';
+import { getStorageSystemDashboardLink, referenceForModel } from '../../utils';
+import { ODFStorageSystem } from '../../../models';
+import StorageSystemPopup, { SystemHealthMap } from './storage-system-popup';
+import { StorageSystemKind } from '../../../types';
 
 const operatorResource: WatchK8sResource = {
   kind: 'operators.coreos.com~v1alpha1~ClusterServiceVersion',
@@ -47,24 +24,65 @@ const operatorResource: WatchK8sResource = {
   isList: true,
 };
 
-const cephClusterResource: WatchK8sResource = {
-  kind: 'ceph.rook.io~v1~CephCluster',
+const storageSystemResource: WatchK8sResource = {
+  kind: referenceForModel(ODFStorageSystem),
   namespace: 'openshift-storage',
   isList: true,
 };
 
 export const StatusCard: React.FC = () => {
-  const [cephData, cephLoaded, cephLoadError] =
-    useK8sWatchResource(cephClusterResource);
+  const [ssData, ssLoaded, ssError] = useK8sWatchResource<
+    K8sListKind<StorageSystemKind>
+  >(storageSystemResource);
 
   const [csvData, csvLoaded, csvLoadError] =
-    useK8sWatchResource<K8sListKind>(operatorResource);
+    useK8sWatchResource<K8sListKind<StorageSystemKind>>(operatorResource);
 
+  // Todo(bipuladh): Filter down to ODF
   const operatorStatus = csvData?.[0]?.status?.phase;
 
-  const cephHealthState = getCephHealthState({
-    ceph: { data: cephData, loaded: cephLoaded, loadError: cephLoadError },
-  });
+  const parsedData =
+    ssLoaded && !ssError
+      ? ssData.items?.reduce(
+          (acc, curr) => {
+            if (curr?.status?.phase === 'Ok') {
+              acc['healthySystems'] = [...acc['healthySystems'], curr];
+            } else {
+              acc['unhealthySystems'] = [...acc['unhealthySystems'], curr];
+            }
+            return acc;
+          },
+          {
+            healthySystems: [] as StorageSystemKind[],
+            unhealthySystems: [] as StorageSystemKind[],
+          }
+        )
+      : {
+          healthySystems: [] as StorageSystemKind[],
+          unhealthySystems: [] as StorageSystemKind[],
+        };
+
+  const { healthySystems = [], unhealthySystems = [] } = parsedData || {};
+
+  const healthySystemsMap = healthySystems?.reduce((acc, curr) => {
+    const systemMap = {
+      systemName: curr.metadata?.name,
+      healthState: HealthState.OK,
+      link: getStorageSystemDashboardLink(curr),
+    };
+    acc.push(systemMap);
+    return acc;
+  }, [] as SystemHealthMap[]);
+
+  const unhealthySystemsMap = unhealthySystems?.reduce((acc, curr) => {
+    const systemMap = {
+      systemName: curr.metadata?.name,
+      healthState: HealthState.ERROR,
+      link: getStorageSystemDashboardLink(curr),
+    };
+    acc.push(systemMap);
+    return acc;
+  }, [] as SystemHealthMap[]);
 
   const operatorHealthStatus = getOperatorHealthState(
     operatorStatus,
@@ -86,13 +104,28 @@ export const StatusCard: React.FC = () => {
                 state={operatorHealthStatus.state}
               />
             </GalleryItem>
-            <GalleryItem>
-              <HealthItem
-                title="Storage System"
-                state={cephHealthState.state}
-                details={cephHealthState.message}
-              />
-            </GalleryItem>
+            {healthySystems.length > 0 && (
+              <GalleryItem>
+                <HealthItem
+                  title="Storage Systems"
+                  popupTitle="Storage Systems"
+                  state={HealthState.OK}
+                >
+                  <StorageSystemPopup systemHealthMap={healthySystemsMap} />
+                </HealthItem>
+              </GalleryItem>
+            )}
+            {unhealthySystems.length > 0 && (
+              <GalleryItem>
+                <HealthItem
+                  title="Storage Systems"
+                  popupTitle="Storage Systems"
+                  state={HealthState.ERROR}
+                >
+                  <StorageSystemPopup systemHealthMap={unhealthySystemsMap} />
+                </HealthItem>
+              </GalleryItem>
+            )}
           </Gallery>
         </HealthBody>
       </DashboardCardBody>

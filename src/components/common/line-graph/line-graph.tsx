@@ -45,6 +45,7 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
   const mappedLineData = lineData.map((datum) => ({
     ...datum,
     y: datum.y.value,
+    yString: datum.y.string,
   }));
   const tickPoints = getTickPoints(lineData);
   const latestValue = lineData[lineData.length - 1].y.string;
@@ -54,7 +55,9 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
         <Chart
           containerComponent={
             <ChartVoronoiContainer
-              labels={({ datum }) => `${datum.y.string}: ${datum.timestamp}`}
+              labels={({ datum }) =>
+                `${datum.yString} at ${datum.timestamp.toLocaleTimeString()}`
+              }
               constrainToVisibleArea
             />
           }

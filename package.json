@@ -20,15 +20,16 @@
     "@patternfly/patternfly": "4.103.6",
     "@patternfly/react-charts": "^6.15.3",
     "@patternfly/react-core": "4.121.1",
+    "@patternfly/react-icons": "^4.11.0",
     "@patternfly/react-table": "^4.29.0",
+    "badhikar-dynamic-plugin-sdk": "0.0.4",
     "classnames": "^2.3.1",
     "lodash-es": "^4.17.21",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-helmet": "^6.1.0",
     "react-router": "5.2.0",
-    "react-router-dom": "5.2.0",
-    "badhikar-dynamic-plugin-sdk": "0.0.4"
+    "react-router-dom": "5.2.0"
   },
   "devDependencies": {
     "@types/lodash-es": "^4.17.4",

@@ -6,4 +6,7 @@ export type StorageSystemKind = K8sResourceCommon & {
     name: string;
     namespace: string;
   };
+  status: {
+    phase: string;
+  }
 };
