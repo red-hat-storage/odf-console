@@ -7,13 +7,14 @@ import {
   ProgressMeasureLocation,
   Title,
 } from '@patternfly/react-core';
-import { Link } from 'react-router-dom';
 import { getDashboardLink } from '../../utils';
 import { humanizeBinaryBytes } from '../../../humanize';
 import './capacity-card.scss';
 import { DataUnavailableError } from '../generic/Error';
 import classNames from 'classnames';
 import * as _ from 'lodash';
+import ResourceLink from '../resource-link/resource-link';
+import { ODFStorageSystem } from '../../../models';
 
 // Temporary soon to be part of the SDK
 type HumanizeResult = {
@@ -129,11 +130,14 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   <>
     <GridItem key={`${data.name}~name`} span={3}>
       {data.managedSystemKind ? (
-        <Link
-          to={getDashboardLink(data.managedSystemKind, data.managedSystemName)}
-        >
-          {data.name}
-        </Link>
+        <ResourceLink
+          link={getDashboardLink(
+            data.managedSystemKind,
+            data.managedSystemName
+          )}
+          resourceModel={ODFStorageSystem}
+          resourceName={data.managedSystemName}
+        />
       ) : (
         data.name
       )}

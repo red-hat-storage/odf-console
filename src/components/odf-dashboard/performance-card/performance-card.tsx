@@ -7,7 +7,6 @@ import {
   usePrometheusPoll,
   useUtilizationDuration,
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
-import { Link } from 'react-router-dom';
 import * as _ from 'lodash';
 import { StorageDashboard, UTILIZATION_QUERY } from '../queries';
 import LineGraph, { LineGraphProps } from '../../common/line-graph/line-graph';
@@ -19,6 +18,7 @@ import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
 import { ODFStorageSystem } from '../../../models';
 import Table, { Column } from '../../common/table/table';
 import { SortByDirection } from '@patternfly/react-table';
+import ResourceLink from '../../common/resource-link/resource-link';
 
 type GridRowRendererProps = {
   systemName: string;
@@ -153,21 +153,17 @@ const getRow: GetRow = ({
   managedSystemKind,
   managedSystemName,
   systemName,
-  currentLocation,
   iopsData,
   throughputData,
   latencyData,
 }) => {
   return [
-    <Link
+    <ResourceLink
       key={systemName}
-      to={{
-        pathname: `/odf/system/${managedSystemKind}/${managedSystemName}`,
-        state: { prevLocation: currentLocation },
-      }}
-    >
-      {systemName}
-    </Link>,
+      link={`/odf/system/${managedSystemKind}/${managedSystemName}`}
+      resourceModel={ODFStorageSystem}
+      resourceName={systemName}
+    />,
     <LineGraph key={`${systemName}_IOPS`} {...iopsData} />,
 
     <LineGraph key={`${systemName}_LAT`} {...latencyData} />,
