@@ -22,19 +22,19 @@ type ODFDashboardProps = {
 
 const UpperSection: React.FC<UpperSectionProps> = (props) => (
   <Grid hasGutter>
-    <GridItem span={8}>
+    <GridItem md={8} sm={12}>
       <StatusCard />
     </GridItem>
-    <GridItem span={4} rowSpan={2}>
+    <GridItem md={4} rowSpan={2} sm={12}>
       <ActivityCard />
     </GridItem>
-    <GridItem span={4}>
+    <GridItem md={4} sm={12}>
       <SystemCapacityCard />
     </GridItem>
-    <GridItem span={4}>
+    <GridItem md={4} sm={12}>
       <ObjectCapacityCard />
     </GridItem>
-    <GridItem span={12}>
+    <GridItem md={12} sm={12}>
       <PerformanceCard {...props} />
     </GridItem>
   </Grid>
