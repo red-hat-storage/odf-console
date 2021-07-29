@@ -28,7 +28,10 @@ type TableProps = {
 };
 
 const Table: React.FC<TableProps> = (props) => {
-  const { ariaLabel, columns, rawData, rowRenderer } = props;
+  const { ariaLabel, columns, rawData, rowRenderer, dataLoading } = props;
+  if (dataLoading) {
+    return null;
+  }
   const [sortIndex, setSortIndex] = React.useState(-1);
   const [sortDirection, setSortDirection] = React.useState<SortByDirection>(
     SortByDirection.asc
@@ -50,7 +53,7 @@ const Table: React.FC<TableProps> = (props) => {
         })
       : rawData;
 
-  const rowData = sortedData.map(rowRenderer);
+  const rowData = sortedData?.length > 0 ? sortedData.map(rowRenderer) : [];
 
   const classNames = columns.map((column) => column.className);
 
@@ -86,7 +89,7 @@ const Table: React.FC<TableProps> = (props) => {
         <Tr translate={null}>{...headerColumns}</Tr>
       </Thead>
       <Tbody translate={null}>
-        {rowData.map((row, index) => (
+        {rowData?.map((row, index) => (
           <Tr key={index} translate={null}>
             {row.map((item, cellIndex) => (
               <Td

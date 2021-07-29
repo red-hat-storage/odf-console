@@ -13,12 +13,20 @@ import LineGraph, { LineGraphProps } from '../../common/line-graph/line-graph';
 import './performance-card.scss';
 import { StorageSystemKind } from '../../../types';
 import { referenceForModel } from '../../utils';
-import { WatchK8sResource } from 'badhikar-dynamic-plugin-sdk';
+import {
+  PrometheusResponse,
+  WatchK8sResource,
+} from 'badhikar-dynamic-plugin-sdk';
 import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
 import { ODFStorageSystem } from '../../../models';
 import Table, { Column } from '../../common/table/table';
 import { SortByDirection } from '@patternfly/react-table';
 import ResourceLink from '../../common/resource-link/resource-link';
+import {
+  humanizeBinaryBytes,
+  humanizeIOPS,
+  humanizeLatency,
+} from '../../../humanize';
 
 type GridRowRendererProps = {
   systemName: string;
@@ -33,107 +41,49 @@ type GridRowRendererProps = {
 
 type DataFrame = GridRowRendererProps[];
 
+const getDatForSystem = (
+  promData: PrometheusResponse,
+  system: StorageSystemKind,
+  humanizer: Function
+) => {
+  const systemName = system.spec.name;
+  const relatedMetrics = promData?.data?.result?.find(
+    (value) => value.metric.managedBy === systemName
+  );
+  return (
+    relatedMetrics?.values?.map((value) => ({
+      timestamp: new Date(value[0] * 1000),
+      y: humanizer(value[1]),
+    })) || []
+  );
+};
+
 export const generateDataFrames = (
   systems: StorageSystemKind[],
-  _ld: any,
-  _td: any,
-  _id: any
-): DataFrame =>
-  systems.reduce((acc, curr) => {
+  ld: PrometheusResponse,
+  td: PrometheusResponse,
+  id: PrometheusResponse
+): DataFrame => {
+  return systems.reduce((acc, curr) => {
     const frame: GridRowRendererProps = {
       managedSystemKind: curr.spec.kind,
       managedSystemName: curr.spec.name,
       systemName: curr.metadata.name,
       currentLocation: '/',
       iopsData: {
-        data: [
-          {
-            timestamp: new Date(),
-            y: {
-              value: 10,
-              unit: '',
-              string: '10',
-            },
-          },
-          {
-            timestamp: new Date(),
-            y: {
-              value: 20,
-              unit: '',
-              string: '20',
-            },
-          },
-          {
-            timestamp: new Date(),
-            y: {
-              value: 30,
-              unit: '',
-              string: '30',
-            },
-          },
-        ],
+        data: getDatForSystem(id, curr, humanizeIOPS),
       },
       throughputData: {
-        data: [
-          {
-            timestamp: new Date(),
-            y: {
-              value: 10,
-              unit: '',
-              string: '10',
-            },
-          },
-          {
-            timestamp: new Date(),
-            y: {
-              value: 20,
-              unit: '',
-              string: '20',
-            },
-          },
-          {
-            timestamp: new Date(),
-            y: {
-              value: 30,
-              unit: '',
-              string: '30',
-            },
-          },
-        ],
+        data: getDatForSystem(td, curr, humanizeBinaryBytes),
       },
       latencyData: {
-        data: [
-          {
-            timestamp: new Date(),
-            y: {
-              value: 10,
-              unit: '',
-              string: '10',
-            },
-          },
-          {
-            timestamp: new Date(),
-            y: {
-              value: 20,
-              unit: '',
-              string: '20',
-            },
-          },
-          {
-            timestamp: new Date(),
-            y: {
-              value: 30,
-              unit: '',
-              string: '30',
-            },
-          },
-        ],
+        data: getDatForSystem(ld, curr, humanizeLatency),
       },
     };
     acc.push(frame);
     return acc;
   }, [] as GridRowRendererProps[]);
-
+};
 type RowProps = {
   systemName: string;
   managedSystemKind: string;
@@ -226,7 +176,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = (props) => {
   });
 
   const rawRows = generateDataFrames(systems, ld, td, id);
-
+  const loading = !loaded || _.isEmpty(rawRows);
   return (
     <DashboardCard>
       <DashboardCardHeader>
@@ -237,7 +187,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = (props) => {
         columns={headerColumns}
         rawData={rawRows as []}
         rowRenderer={getRow as any}
-        dataLoading={!loaded}
+        dataLoading={loading}
         ariaLabel="Performance Card"
       />
     </DashboardCard>

@@ -28,15 +28,10 @@ export type LineGraphProps = {
   error?: string;
 };
 
-const getTickPoints = (data: LineDataType[]) => {
-  const iteratee = (item: LineDataType) => item.y.value;
-  const max = _.maxBy(data, iteratee);
-  const min = _.minBy(data, iteratee);
-  const mid = (max.y.value + min.y.value) / 2;
-  return [min.y.value, mid, max.y.value];
-};
-
 const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
+  if (_.isEmpty(data)) {
+    return null;
+  }
   const [ref, width] = useRefWidth();
   const lineData = data.map((datum, i) => ({
     x: String(i + 1),
@@ -47,7 +42,9 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
     y: datum.y.value,
     yString: datum.y.string,
   }));
-  const tickPoints = getTickPoints(lineData);
+
+  const unit = lineData[0].y.unit;
+  //const tickPoints = getTickPoints(lineData);
   const latestValue = lineData[lineData.length - 1].y.string;
   return (
     <div className="lineGraph">
@@ -62,17 +59,22 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
             />
           }
           height={150}
-          minDomain={{ y: tickPoints[0] }}
-          maxDomain={{ y: tickPoints[tickPoints.length - 1] + 10 }}
           padding={{
             bottom: 20,
-            left: 50,
-            right: 20, // Adjusted to accommodate legend
+            left: 75,
+            right: 10, // Adjusted to accommodate legend
             top: 20,
           }}
           width={width}
         >
-          <ChartAxis dependentAxis showGrid tickValues={tickPoints} />
+          <ChartAxis
+            dependentAxis
+            showGrid
+            tickCount={2}
+            tickFormat={(tick, _index, _ticks) => {
+              return `${tick} ${unit}`;
+            }}
+          />
           <ChartGroup>
             <ChartLine data={mappedLineData} />
           </ChartGroup>

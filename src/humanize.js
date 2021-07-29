@@ -432,3 +432,21 @@ export const formatBytesAsMiB = (bytes) => {
 };
 
 export const formatCores = (cores) => formatToFractionalDigits(cores, 3);
+
+export const humanizeIOPS = (value) => {
+  const humanizedNumber = humanizeNumber(value);
+  return {
+    ...humanizedNumber,
+    string: `${humanizedNumber.string} IOPS`,
+    unit: `${humanizedNumber.unit} IOPS`,
+  };
+};
+
+export const humanizeLatency = (value) => {
+  const humanizedTime = humanizeSeconds(
+    secondsToNanoSeconds(value),
+    null,
+    'ms'
+  );
+  return humanizedTime;
+};
