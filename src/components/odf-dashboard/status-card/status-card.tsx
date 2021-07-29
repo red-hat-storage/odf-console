@@ -1,6 +1,10 @@
 import * as React from 'react';
 import * as _ from 'lodash';
-import { HealthState, WatchK8sResource } from 'badhikar-dynamic-plugin-sdk';
+import {
+  HealthState,
+  K8sResourceCommon,
+  WatchK8sResource,
+} from 'badhikar-dynamic-plugin-sdk';
 import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
 import {
   DashboardCard,
@@ -12,7 +16,6 @@ import {
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
 import { getOperatorHealthState } from '../utils';
 import { Gallery, GalleryItem } from '@patternfly/react-core';
-import { K8sListKind } from '../../../utils/types';
 import { getStorageSystemDashboardLink, referenceForModel } from '../../utils';
 import { ODFStorageSystem } from '../../../models';
 import StorageSystemPopup, { SystemHealthMap } from './storage-system-popup';
@@ -31,21 +34,21 @@ const storageSystemResource: WatchK8sResource = {
 };
 
 export const StatusCard: React.FC = () => {
-  const [ssData, ssLoaded, ssError] = useK8sWatchResource<
-    K8sListKind<StorageSystemKind>
-  >(storageSystemResource);
+  const [ssData, ssLoaded, ssError] = useK8sWatchResource<StorageSystemKind[]>(
+    storageSystemResource
+  );
 
   const [csvData, csvLoaded, csvLoadError] =
-    useK8sWatchResource<K8sListKind<StorageSystemKind>>(operatorResource);
+    useK8sWatchResource<K8sResourceCommon[]>(operatorResource);
 
   // Todo(bipuladh): Filter down to ODF
-  const operatorStatus = csvData?.[0]?.status?.phase;
+  const operatorStatus = (csvData?.[0] as any)?.status?.phase;
 
   const parsedData =
     ssLoaded && !ssError
-      ? ssData.items?.reduce(
+      ? ssData?.reduce(
           (acc, curr) => {
-            if (curr?.status?.phase === 'Ok') {
+            if (curr?.status?.phase === 'Succeeded') {
               acc['healthySystems'] = [...acc['healthySystems'], curr];
             } else {
               acc['unhealthySystems'] = [...acc['unhealthySystems'], curr];
@@ -106,22 +109,14 @@ export const StatusCard: React.FC = () => {
             </GalleryItem>
             {healthySystems.length > 0 && (
               <GalleryItem>
-                <HealthItem
-                  title="Storage Systems"
-                  popupTitle="Storage Systems"
-                  state={HealthState.OK}
-                >
+                <HealthItem title="Storage Systems" state={HealthState.OK}>
                   <StorageSystemPopup systemHealthMap={healthySystemsMap} />
                 </HealthItem>
               </GalleryItem>
             )}
             {unhealthySystems.length > 0 && (
               <GalleryItem>
-                <HealthItem
-                  title="Storage Systems"
-                  popupTitle="Storage Systems"
-                  state={HealthState.ERROR}
-                >
+                <HealthItem title="Storage Systems" state={HealthState.ERROR}>
                   <StorageSystemPopup systemHealthMap={unhealthySystemsMap} />
                 </HealthItem>
               </GalleryItem>

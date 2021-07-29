@@ -18,8 +18,12 @@ type StorageSystemPopopProps = {
 };
 
 const healthStateToIcon = {
-  [HealthState.OK]: <CheckCircleIcon />,
-  [HealthState.ERROR]: <ExclamationCircleIcon />,
+  [HealthState.OK]: (
+    <CheckCircleIcon color="var(--pf-global--primary-color--100)" />
+  ),
+  [HealthState.ERROR]: (
+    <ExclamationCircleIcon color="var(--pf-global--danger-color--100)" />
+  ),
 };
 
 const StorageSystemPopup: React.FC<StorageSystemPopopProps> = ({
