@@ -18,12 +18,5 @@
       "path": ["/odf"],
       "component": { "$codeRef": "dashboard.default" }
     }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": ["/odf/system/:systemKind/:systemName"],
-      "component": { "$codeRef": "systemDashboard.default" }
-    }
   }
 ]

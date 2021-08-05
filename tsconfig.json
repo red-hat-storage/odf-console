@@ -10,6 +10,7 @@
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "sourceMap": true,
+    "noEmitOnError": false,
     "paths": {
       "badhikar-dynamic-plugin-sdk/api": [
         "node_modules/badhikar-dynamic-plugin-sdk/lib/api/api"

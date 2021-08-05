@@ -69,14 +69,10 @@ const ODFDashboardPage: React.FC<any> = ({ match }) => {
       <HorizontalNav
         pages={pages}
         match={match}
-        obj={{
-          data: {
-            kind: ODFStorageSystem.kind,
-            apiVersion: `${ODFStorageSystem.apiGroup}/${ODFStorageSystem.apiVersion}`,
-          },
-          loaded: true,
+        resource={{
+          kind: ODFStorageSystem.kind,
+          apiVersion: `${ODFStorageSystem.apiGroup}/${ODFStorageSystem.apiVersion}`,
         }}
-        noStatusBox
       />
     </>
   );

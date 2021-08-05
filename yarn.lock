@@ -1063,10 +1063,10 @@ babel-code-frame@^6.26.0:
     esutils "^2.0.2"
     js-tokens "^3.0.2"
 
-badhikar-dynamic-plugin-sdk@0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/badhikar-dynamic-plugin-sdk/-/badhikar-dynamic-plugin-sdk-0.0.4.tgz#4320452e361f79eeb4f7f18475d7c0b28dcc0c8f"
-  integrity sha512-PsLn1yQL20dmaRCzy6MQ3ahF4bEFJDC1UoCJ1+N2OJv8OHWtwpOFnnuwg/rrFLGNZsMLXtFLK/qXDdW7onTCbQ==
+badhikar-dynamic-plugin-sdk@0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/badhikar-dynamic-plugin-sdk/-/badhikar-dynamic-plugin-sdk-0.0.5.tgz#9baa0821614b10c0c15340bffc334fd17d93afdc"
+  integrity sha512-f0mzXHK0ImTxhf8KAbSO1+Xsk2hyXawGewByTbWrWdqkDhEzLRBP4MIInOPiun3meX3/LpOcgqUKf95zes+4XQ==
 
 balanced-match@^0.4.2:
   version "0.4.2"

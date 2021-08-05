@@ -22,7 +22,7 @@
     "@patternfly/react-core": "4.121.1",
     "@patternfly/react-icons": "^4.11.0",
     "@patternfly/react-table": "^4.29.0",
-    "badhikar-dynamic-plugin-sdk": "0.0.4",
+    "badhikar-dynamic-plugin-sdk": "0.0.5",
     "classnames": "^2.3.1",
     "lodash-es": "^4.17.21",
     "react": "^17.0.1",
@@ -75,8 +75,7 @@
       "@console/pluginAPI": "*"
     },
     "exposedModules": {
-      "dashboard": "./components/odf-dashboard/dashboard",
-      "systemDashboard": "./components/system-dashboard/dashboard-loader"
+      "dashboard": "./components/odf-dashboard/dashboard"
     }
   }
 }
