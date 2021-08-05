@@ -1,26 +1,31 @@
-@import '../../../styles/skeleton-screen.scss';
+@import '../../../styles/skeleton-screen';
 
 .performanceCard {
   &__header {
     padding: 15px !important;
   }
+
   &__header > h5 {
     margin-left: 5px !important;
   }
+
   &__row {
     padding-bottom: 15px !important;
-    padding-top: 15px !important;
     padding-left: 5px !important;
+    padding-top: 15px !important;
   }
+
   &__border {
     border-bottom: 1px solid #d2d2d2 !important;
   }
+
   &--error {
+    align-items: center;
     display: flex;
     min-height: 30px;
     place-content: center;
-    align-items: center;
   }
+
   &--verticalAlign {
     vertical-align: middle !important;
   }
@@ -28,34 +33,38 @@
 
 .odf {
   &-performanceCardLoading-body {
-    height: 250px;
     display: flex;
     flex-direction: column;
+    height: 250px;
     margin: 10px;
-    &__item {
-      display: flex;
-      flex-direction: row;
-      flex-grow: 1;
-      justify-content: space-evenly;
-    }
-    &-item__element {
-      animation: $skeleton-animation;
-      background: $skeleton-color;
-      min-width: 150px;
-      height: 80px;
-      margin: 10px 20px;
-      display: flex;
-      flex-grow: 1;
-      &--header {
-        height: 25px;
-      }
-    }
   }
-  &-performanceCardError {
-    min-height: 150px;
-    display: flex;
-    flex: 1;
-    place-content: center;
-    align-items: center;
-  }
+}
+
+.odf-performanceCardLoading-body__item {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  justify-content: space-evenly;
+}
+
+.odf-performanceCardLoading-body-item__element {
+  animation: $skeleton-animation;
+  background: $skeleton-color;
+  display: flex;
+  flex-grow: 1;
+  height: 80px;
+  margin: 10px 20px;
+  min-width: 150px;
+}
+
+.odf-performanceCardLoading-body--header {
+  height: 25px;
+}
+
+.odf-performanceCardLoading-body-performanceCardError {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  min-height: 150px;
+  place-content: center;
 }

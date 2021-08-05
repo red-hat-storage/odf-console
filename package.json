@@ -14,8 +14,10 @@
     "dev": "yarn clean && yarn ts-node ./node_modules/.bin/webpack serve",
     "http-server": "./http-server.sh ./dist",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}' -I '/node_modules/(?!(@console)/)/'",
-    "lint": "yarn eslint --ext .ts,.tsx ./src/",
-    "lint-fix": "yarn eslint --fix --ext .ts,.tsx ./src/"
+    "lint-css": "yarn stylelint src/**/**/*.scss",
+    "lint-css-fix": "yarn stylelint src/**/**/*.scss --fix",
+    "lint": "yarn eslint --ext .ts,.tsx ./src/ && yarn lint-css",
+    "lint-fix": "yarn eslint --fix --ext .ts,.tsx ./src/ && yarn lint-css-fix"
   },
   "dependencies": {
     "@patternfly/patternfly": "4.103.6",
@@ -52,6 +54,7 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "file-loader": "1.x",
     "http-server": "0.12.x",
+    "jest": "^27.0.6",
     "mini-css-extract-plugin": "0.4.x",
     "node-sass": "^5.0.0",
     "prettier": "2.3.2",
@@ -59,6 +62,10 @@
     "resolve-url-loader": "2.x",
     "sass-loader": "6.x",
     "style-loader": "^0.23.1",
+    "stylelint": "^13.13.1",
+    "stylelint-config-sass-guidelines": "^8.0.0",
+    "stylelint-config-standard": "^22.0.0",
+    "stylelint-order": "^4.1.0",
     "thread-loader": "1.x",
     "ts-loader": "6.2.2",
     "ts-node": "5.0.1",
