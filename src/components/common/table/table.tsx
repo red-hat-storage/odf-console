@@ -23,15 +23,11 @@ type TableProps = {
   columns: Column[];
   rowRenderer: (rawData: []) => RowData[];
   rawData: [];
-  dataLoading: boolean;
   ariaLabel: string;
 };
 
 const Table: React.FC<TableProps> = (props) => {
-  const { ariaLabel, columns, rawData, rowRenderer, dataLoading } = props;
-  if (dataLoading) {
-    return null;
-  }
+  const { ariaLabel, columns, rawData, rowRenderer } = props;
   const [sortIndex, setSortIndex] = React.useState(-1);
   const [sortDirection, setSortDirection] = React.useState<SortByDirection>(
     SortByDirection.asc

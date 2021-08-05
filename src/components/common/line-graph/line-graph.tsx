@@ -29,9 +29,6 @@ export type LineGraphProps = {
 };
 
 const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
-  if (_.isEmpty(data)) {
-    return null;
-  }
   const [ref, width] = useRefWidth();
   const lineData = data.map((datum, i) => ({
     x: String(i + 1),
@@ -44,7 +41,6 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
   }));
 
   const unit = lineData[0].y.unit;
-  //const tickPoints = getTickPoints(lineData);
   const latestValue = lineData[lineData.length - 1].y.string;
   return (
     <div className="lineGraph">

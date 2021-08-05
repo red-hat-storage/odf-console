@@ -130,7 +130,6 @@ const PerformanceCard: React.FC<PerformanceCardProps> = (props) => {
           columns={headerColumns}
           rawData={rawRows as []}
           rowRenderer={getRow as any}
-          dataLoading={loading}
           ariaLabel="Performance Card"
         />
       )}
