@@ -5,6 +5,7 @@ import {
   DashboardCardBody,
   DashboardCardHeader,
   DashboardCardTitle,
+  EventKind,
   RecentEventsBody,
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
 import { FirehoseResource } from 'badhikar-dynamic-plugin-sdk';
@@ -17,16 +18,21 @@ const eventsResource: FirehoseResource = {
 };
 
 const ActivityCard: React.FC = () => {
-  const [events, eventsLoaded] = useK8sWatchResource(eventsResource);
+  const [data, loaded, loadError] =
+    useK8sWatchResource<EventKind[]>(eventsResource);
 
   return (
     <DashboardCard>
       <DashboardCardHeader>
         <DashboardCardTitle>Activity</DashboardCardTitle>
       </DashboardCardHeader>
-      <DashboardCardBody className="odf-activity-card">
+      <DashboardCardBody className="odf-activityCard">
         <RecentEventsBody
-          events={{ data: events, loaded: eventsLoaded } as any}
+          events={{
+            data,
+            loaded,
+            loadError,
+          }}
         />
       </DashboardCardBody>
     </DashboardCard>
