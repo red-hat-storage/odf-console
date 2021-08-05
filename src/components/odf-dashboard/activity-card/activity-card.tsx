@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { FirehoseResource } from 'badhikar-dynamic-plugin-sdk';
 import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
 import {
   DashboardCard,
@@ -8,7 +9,6 @@ import {
   EventKind,
   RecentEventsBody,
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
-import { FirehoseResource } from 'badhikar-dynamic-plugin-sdk';
 import './activity-card.scss';
 
 const eventsResource: FirehoseResource = {

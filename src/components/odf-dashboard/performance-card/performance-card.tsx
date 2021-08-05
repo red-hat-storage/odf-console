@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { WatchK8sResource } from 'badhikar-dynamic-plugin-sdk';
+import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
 import {
   DashboardCard,
   DashboardCardHeader,
@@ -8,19 +10,17 @@ import {
   useUtilizationDuration,
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
 import * as _ from 'lodash';
-import { StorageDashboard, UTILIZATION_QUERY } from '../queries';
-import LineGraph, { LineGraphProps } from '../../common/line-graph/line-graph';
-import './performance-card.scss';
-import { StorageSystemKind } from '../../../types';
-import { referenceForModel } from '../../utils';
-import { WatchK8sResource } from 'badhikar-dynamic-plugin-sdk';
-import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
-import { ODFStorageSystem } from '../../../models';
-import Table, { Column } from '../../common/table/table';
 import { SortByDirection } from '@patternfly/react-table';
-import ResourceLink from '../../common/resource-link/resource-link';
-import { generateDataFrames } from './utils';
+import { ODFStorageSystem } from '../../../models';
+import { StorageSystemKind } from '../../../types';
 import { DataUnavailableError } from '../../common/generic/Error';
+import LineGraph, { LineGraphProps } from '../../common/line-graph/line-graph';
+import ResourceLink from '../../common/resource-link/resource-link';
+import Table, { Column } from '../../common/table/table';
+import { referenceForModel } from '../../utils';
+import { StorageDashboard, UTILIZATION_QUERY } from '../queries';
+import './performance-card.scss';
+import { generateDataFrames } from './utils';
 
 type RowProps = {
   systemName: string;

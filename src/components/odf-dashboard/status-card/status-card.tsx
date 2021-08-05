@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as _ from 'lodash';
 import {
   HealthState,
   K8sResourceCommon,
@@ -14,12 +13,13 @@ import {
   HealthBody,
   HealthItem,
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
-import { getOperatorHealthState } from '../utils';
+import * as _ from 'lodash';
 import { Gallery, GalleryItem } from '@patternfly/react-core';
-import { getStorageSystemDashboardLink, referenceForModel } from '../../utils';
 import { ODFStorageSystem } from '../../../models';
-import StorageSystemPopup, { SystemHealthMap } from './storage-system-popup';
 import { StorageSystemKind } from '../../../types';
+import { getStorageSystemDashboardLink, referenceForModel } from '../../utils';
+import { getOperatorHealthState } from '../utils';
+import StorageSystemPopup, { SystemHealthMap } from './storage-system-popup';
 
 const operatorResource: WatchK8sResource = {
   kind: 'operators.coreos.com~v1alpha1~ClusterServiceVersion',

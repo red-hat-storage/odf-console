@@ -1,6 +1,6 @@
-import * as _ from "lodash";
 import { PrometheusResponse } from "badhikar-dynamic-plugin-sdk";
-import { humanizeIOPS, humanizeBinaryBytes, humanizeLatency } from "../../../humanize";
+import * as _ from "lodash";
+import { humanizeBinaryBytes, humanizeIOPS, humanizeLatency } from "../../../humanize";
 import { StorageSystemKind } from "../../../types";
 import { LineGraphProps } from "../../common/line-graph/line-graph";
 

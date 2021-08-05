@@ -1,5 +1,6 @@
-// eslint-disable-next-line no-use-before-define
 import * as React from 'react';
+import classNames from 'classnames';
+import * as _ from 'lodash';
 import {
   Grid,
   GridItem,
@@ -9,14 +10,12 @@ import {
   Title,
   Tooltip,
 } from '@patternfly/react-core';
-import { getDashboardLink } from '../../utils';
 import { humanizeBinaryBytes } from '../../../humanize';
-import './capacity-card.scss';
-import { DataUnavailableError } from '../generic/Error';
-import classNames from 'classnames';
-import * as _ from 'lodash';
-import ResourceLink from '../resource-link/resource-link';
 import { ODFStorageSystem } from '../../../models';
+import { getDashboardLink } from '../../utils';
+import { DataUnavailableError } from '../generic/Error';
+import ResourceLink from '../resource-link/resource-link';
+import './capacity-card.scss';
 
 // Temporary soon to be part of the SDK
 type HumanizeResult = {

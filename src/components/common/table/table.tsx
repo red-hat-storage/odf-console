@@ -1,3 +1,5 @@
+import * as React from 'react';
+import * as _ from 'lodash';
 import {
   OnSort,
   SortByDirection,
@@ -8,8 +10,6 @@ import {
   Thead,
   Tr,
 } from '@patternfly/react-table';
-import * as _ from 'lodash';
-import * as React from 'react';
 
 export type Column = {
   columnName: string;

@@ -1,11 +1,11 @@
+import * as React from 'react';
 import { HealthState } from 'badhikar-dynamic-plugin-sdk';
+import { Link } from 'react-router-dom';
 import {
   CheckCircleIcon,
   ExclamationCircleIcon,
 } from '@patternfly/react-icons';
-import * as React from 'react';
 import Status, { StatusPopupSection } from '../../common/popup/status-popup';
-import { Link } from 'react-router-dom';
 
 export type SystemHealthMap = {
   systemName: string;

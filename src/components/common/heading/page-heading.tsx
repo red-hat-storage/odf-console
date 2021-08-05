@@ -1,14 +1,13 @@
+import * as React from 'react';
+import classNames from 'classnames';
+import * as _ from 'lodash';
+import { Link } from 'react-router-dom';
 import {
   Breadcrumb,
   BreadcrumbItem,
   Split,
   SplitItem,
 } from '@patternfly/react-core';
-import classNames from 'classnames';
-import * as _ from 'lodash';
-import * as React from 'react';
-
-import { Link } from 'react-router-dom';
 
 type BreadCrumbsProps = {
   breadcrumbs: { name: string; path: string }[];

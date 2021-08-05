@@ -1,25 +1,25 @@
 import * as React from 'react';
 import {
+  PrometheusResponse,
+  WatchK8sResource,
+} from 'badhikar-dynamic-plugin-sdk';
+import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
+import {
   DashboardCard,
   DashboardCardBody,
   DashboardCardHeader,
   DashboardCardTitle,
   usePrometheusPoll,
 } from 'badhikar-dynamic-plugin-sdk/internalAPI';
-import {
-  PrometheusResponse,
-  WatchK8sResource,
-} from 'badhikar-dynamic-plugin-sdk';
-import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
+import * as _ from 'lodash';
+import { humanizeBinaryBytes } from '../../../humanize';
+import { ODFStorageSystem } from '../../../models';
+import { StorageSystemKind } from '../../../types';
 import CapacityCard, {
   CapacityMetricDatum,
 } from '../../common/capacity-card/capacity-card';
 import { getGVK, referenceFor, referenceForModel } from '../../utils';
-import { ODFStorageSystem } from '../../../models';
-import { StorageSystemKind } from '../../../types';
 import { CAPACITY_QUERIES, StorageDashboard } from '../queries';
-import { humanizeBinaryBytes } from '../../../humanize';
-import * as _ from 'lodash';
 
 const storageSystemResource: WatchK8sResource = {
   kind: referenceForModel(ODFStorageSystem),

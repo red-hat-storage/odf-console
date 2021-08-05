@@ -1,3 +1,5 @@
+import * as React from 'react';
+import * as _ from 'lodash';
 import {
   Chart,
   ChartAxis,
@@ -6,8 +8,6 @@ import {
   ChartVoronoiContainer,
 } from '@patternfly/react-charts';
 import { Title } from '@patternfly/react-core';
-import * as _ from 'lodash';
-import * as React from 'react';
 import useRefWidth from '../../../hooks/ref-width';
 import './line-graph.scss';
 

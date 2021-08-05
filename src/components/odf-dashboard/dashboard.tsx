@@ -1,15 +1,15 @@
 import * as React from 'react';
-import { RouteComponentProps } from 'react-router';
-import { Helmet } from 'react-helmet';
-import { Grid, GridItem } from '@patternfly/react-core';
 import { HorizontalNav, NavPage } from 'badhikar-dynamic-plugin-sdk/api';
-import { StatusCard } from './status-card/status-card';
-import ActivityCard from './activity-card/activity-card';
-import SystemCapacityCard from './system-capacity-card/capacity-card';
-import PerformanceCard from './performance-card/performance-card';
-import ObjectCapacityCard from './object-storage-card/capacity-card';
-import PageHeading from '../common/heading/page-heading';
+import { Helmet } from 'react-helmet';
+import { RouteComponentProps } from 'react-router';
+import { Grid, GridItem } from '@patternfly/react-core';
 import { ODFStorageSystem } from '../../models';
+import PageHeading from '../common/heading/page-heading';
+import ActivityCard from './activity-card/activity-card';
+import ObjectCapacityCard from './object-storage-card/capacity-card';
+import PerformanceCard from './performance-card/performance-card';
+import { StatusCard } from './status-card/status-card';
+import SystemCapacityCard from './system-capacity-card/capacity-card';
 import '../../style.scss';
 
 type UpperSectionProps = {
