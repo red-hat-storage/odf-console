@@ -1,14 +1,21 @@
 # ODF Console
 
-ODF Console is the UI for Openshift Data Foundation Operator. It is a remote module for the OpenShift Console. Hence it requires OpenShift Console to function properly.
+ODF Console is the UI plugin for Openshift Data Foundation Operator. It works as a remote application for OpenShift Container Platform console which inturn is the host application.
 
-## Steps to make this work
+## Running in Development Mode
 
-1. Pull [badhikar-sdk-branch](https://github.com/bipuladh/console/tree/badhikar-sdk-branch) and run the console from the branch.
-2. Apply [patch](https://gist.github.com/bipuladh/7b7400ee94fe0ab73297d4b167f2158b) to the above branch to link OCS Dashboard to ODF Dashboard. For IBM need to create a similar extension in IBM `console-extensions.json` file.
-3. Run bridge as follows `./bin/bridge -plugins odf-console=http://localhost:9001/`
+This application works as remote application for OCP Console so we have to first setup the OCP Console.
+The steps related to running OCP Console with our patches are as follows:
+
+1. Pull [run-console-branch](https://github.com/bipuladh/console/tree/run-console-branch) and run the console from the branch. (Until the SDK package is complete)
+2. Follow everything as mentioned in the console [README.md](https://github.com/openshift/console) to build the application.
+3. Run the console bridge as follows `./bin/bridge -plugins odf-console=http://localhost:9001/`
 4. Run developemnt mode of console by going into `console/frontend` and running `yarn run dev`
-5. Apply Storage System CRD from [here](https://gist.github.com/bipuladh/517b42efb84abc17b86d2d8f03059099)
-6. For Listing OCS in the SS List apply [this](https://gist.github.com/bipuladh/b992919a2e5f66f27742340a4128a9ed). Create similar YAML for IBM System and apply if you want to list IBM System in the Dashboard.
-7. Clone this repo. Build it using `yarn build-dev`
-8. Run the server using `yarn http-server`
+
+After the OCP console is set as required by ODF Console. Performs the following steps to make it run.
+
+1. Install ODF Operator
+2. Create a Storage System
+3. Clone this repo.
+4. Pull all required dependencies by running `yarn install`.
+5. Run the development mode of this plugin using `yarn run dev`. This runs a webserver in port 9001.

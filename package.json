@@ -14,6 +14,7 @@
     "dev": "yarn clean && yarn ts-node ./node_modules/.bin/webpack serve",
     "http-server": "./http-server.sh ./dist",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}' -I '/node_modules/(?!(@console)/)/'",
+    "lint": "yarn eslint --ext .ts,.tsx ./src/",
     "lint-fix": "yarn eslint --fix --ext .ts,.tsx ./src/"
   },
   "dependencies": {
