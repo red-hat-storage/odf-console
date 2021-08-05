@@ -1,0 +1,16 @@
+@keyframes loading-skeleton {
+  0% {
+    opacity: 0.15;
+  }
+
+  25% {
+    opacity: 0.65;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+$skeleton-animation: loading-skeleton 1s ease-out 0.15s infinite alternate;
+$skeleton-color: #eaedf1;

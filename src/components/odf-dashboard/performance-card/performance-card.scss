@@ -1,3 +1,5 @@
+@import '../../../styles/skeleton-screen.scss';
+
 .performanceCard {
   &__header {
     padding: 15px !important;
@@ -21,5 +23,39 @@
   }
   &--verticalAlign {
     vertical-align: middle !important;
+  }
+}
+
+.odf {
+  &-performanceCardLoading-body {
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    &__item {
+      display: flex;
+      flex-direction: row;
+      flex-grow: 1;
+      justify-content: space-evenly;
+    }
+    &-item__element {
+      animation: $skeleton-animation;
+      background: $skeleton-color;
+      min-width: 150px;
+      height: 80px;
+      margin: 10px 20px;
+      display: flex;
+      flex-grow: 1;
+      &--header {
+        height: 25px;
+      }
+    }
+  }
+  &-performanceCardError {
+    min-height: 150px;
+    display: flex;
+    flex: 1;
+    place-content: center;
+    align-items: center;
   }
 }
