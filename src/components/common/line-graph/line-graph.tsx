@@ -48,7 +48,10 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
   const latestValue = lineData[lineData.length - 1].y.string;
   return (
     <div className="lineGraph">
-      <div className="pf-u-w-95-md" ref={ref}>
+      <div
+        className="pf-u-display-none-on-md pf-u-display-inline-block-on-lg pf-u-w-95-lg"
+        ref={ref}
+      >
         <Chart
           containerComponent={
             <ChartVoronoiContainer
@@ -80,7 +83,7 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
           </ChartGroup>
         </Chart>
       </div>
-      <div className="pf-u-w-5-md valueBox">
+      <div className="pf-u-w-5-lg pf-u-w-100-md valueBox">
         <div>
           <Title headingLevel="h5" size="md">
             {latestValue}

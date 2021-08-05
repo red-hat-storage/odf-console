@@ -5,7 +5,9 @@ import {
   GridItem,
   Progress,
   ProgressMeasureLocation,
+  ProgressVariant,
   Title,
+  Tooltip,
 } from '@patternfly/react-core';
 import { getDashboardLink } from '../../utils';
 import { humanizeBinaryBytes } from '../../../humanize';
@@ -23,7 +25,7 @@ type HumanizeResult = {
   string: string;
 };
 
-type CapacityMetricDatum = {
+export type CapacityMetricDatum = {
   name: string;
   managedSystemName?: string;
   managedSystemKind?: string;
@@ -35,6 +37,7 @@ type CapacityCardProps = {
   data: CapacityMetricDatum[];
   relative?: boolean;
   isPercentage?: boolean;
+  loading?: boolean;
 };
 
 const getPercentage = (item: CapacityMetricDatum) =>
@@ -81,17 +84,21 @@ const CapacityCardHeader: React.FC<CapacityCardHeaderProps> = ({
   showPercentage,
 }) => (
   <>
-    <GridItem span={3}>
+    <GridItem span={2}>
       <Title headingLevel="h3" size="md">
         Name
       </Title>
     </GridItem>
     <GridItem span={7}>
       <Title headingLevel="h3" size="md">
-        Used Capacity {showPercentage && <> %</>}
+        Used Capacity {showPercentage && <>%</>}
       </Title>
     </GridItem>
-    <GridItem span={2} />
+    <GridItem span={3}>
+      <Title headingLevel="h3" size="md">
+        Used / Total
+      </Title>
+    </GridItem>
   </>
 );
 
@@ -102,7 +109,7 @@ type CapacityCardRowProps = {
   largestValue?: HumanizeResult;
 };
 
-const getProgress = (
+export const getProgress = (
   data: CapacityMetricDatum,
   isRelative: boolean,
   largestValue: HumanizeResult
@@ -126,40 +133,100 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   isPercentage,
   isRelative,
   largestValue,
-}) => (
-  <>
-    <GridItem key={`${data.name}~name`} span={3}>
-      {data.managedSystemKind ? (
-        <ResourceLink
-          link={getDashboardLink(
-            data.managedSystemKind,
-            data.managedSystemName
-          )}
-          resourceModel={ODFStorageSystem}
-          resourceName={data.managedSystemName}
-        />
-      ) : (
-        data.name
-      )}
-    </GridItem>
-    <GridItem key={`${data.name}~progress`} span={7}>
-      <Progress
-        value={getProgress(data, isRelative, largestValue)}
-        measureLocation={ProgressMeasureLocation.none}
-      />
-    </GridItem>
-    <GridItem span={2} key={`${data.name}~value`}>
-      {isPercentage
-        ? `${getProgress(data, isRelative, largestValue).toFixed(2)} %`
-        : data.usedValue.string}
-    </GridItem>
-  </>
+}) => {
+  const progress = getProgress(data, isRelative, largestValue);
+  const value = isPercentage
+    ? `${data.usedValue.string} / ${data.totalValue.string}`
+    : data.usedValue.string;
+  const variant = (() => {
+    if (!isPercentage) {
+      return null;
+    }
+    if (progress >= 80) {
+      return ProgressVariant.danger;
+    }
+    if (progress >= 75) {
+      return ProgressVariant.warning;
+    }
+  })();
+  return (
+    <>
+      <GridItem key={`${data.name}~name`} span={2}>
+        {data.managedSystemKind ? (
+          <ResourceLink
+            link={getDashboardLink(
+              data.managedSystemKind,
+              data.managedSystemName
+            )}
+            resourceModel={ODFStorageSystem}
+            resourceName={data.managedSystemName}
+          />
+        ) : (
+          data.name
+        )}
+      </GridItem>
+      <GridItem key={`${data.name}~progress`} span={7}>
+        <Tooltip content={<>{progress.toFixed(2)} %</>}>
+          <Progress
+            value={progress}
+            label={`${progress.toFixed(2)} %`}
+            size="md"
+            measureLocation={
+              !isPercentage
+                ? ProgressMeasureLocation.none
+                : ProgressMeasureLocation.outside
+            }
+            variant={variant}
+          />
+        </Tooltip>
+      </GridItem>
+      <GridItem span={3} key={`${data.name}~value`}>
+        {value}
+      </GridItem>
+    </>
+  );
+};
+
+const CapacityCardLoading: React.FC = () => (
+  <div className="odf-capacityCardLoading-body">
+    <div className="odf-capacityCardLoading-body__item">
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin odf-capacityCardLoading-body-item__element--header" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thick odf-capacityCardLoading-body-item__element--header" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin odf-capacityCardLoading-body-item__element--header" />
+    </div>
+    <div className="odf-capacityCardLoading-body__item">
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thick" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin" />
+    </div>
+    <div className="odf-capacityCardLoading-body__item">
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thick" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin" />
+    </div>
+    <div className="odf-capacityCardLoading-body__item">
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thick" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin" />
+    </div>
+    <div className="odf-capacityCardLoading-body__item">
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thick" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin" />
+    </div>
+    <div className="odf-capacityCardLoading-body__item">
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thick" />
+      <div className="odf-capacityCardLoading-body-item__element odf-capacityCardLoading-body-item__element--thin" />
+    </div>
+  </div>
 );
 
 const CapacityCard: React.FC<CapacityCardProps> = ({
   data,
   relative,
   isPercentage = true,
+  loading,
 }) => {
   let secureRelative = relative;
   if (relative === undefined) {
@@ -173,7 +240,7 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
         'o-capacityCard--centered': error,
       })}
     >
-      {!error ? (
+      {!error && !loading && (
         <Grid hasGutter>
           <CapacityCardHeader showPercentage={isPercentage} />
           {sortedMetrics.map((item) => (
@@ -186,9 +253,9 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
             />
           ))}
         </Grid>
-      ) : (
-        <DataUnavailableError />
       )}
+      {error && !loading && <DataUnavailableError />}
+      {loading && <CapacityCardLoading />}
     </div>
   );
 };

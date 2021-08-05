@@ -1,3 +1,5 @@
+@import '../../../styles/skeleton-screen.scss';
+
 .o-capacityCard {
   padding-top: 5px;
   min-height: 215px;
@@ -7,5 +9,37 @@
     flex: 1;
     place-content: center;
     align-items: center;
+  }
+}
+
+.odf {
+  &-capacityCardLoading-body {
+    height: 215px;
+    display: flex;
+    flex-direction: column;
+    &__item {
+      display: flex;
+      flex-direction: row;
+      flex-grow: 1;
+      justify-content: space-evenly;
+    }
+    &-item__element {
+      animation: $skeleton-animation;
+      background: $skeleton-color;
+      min-width: 50px;
+      height: 20px;
+      margin: 5px;
+      display: flex;
+      flex-grow: 1;
+      &--header {
+        height: 40px;
+      }
+      &--thin {
+        width: 25px;
+      }
+      &--thick {
+        width: 80px;
+      }
+    }
   }
 }
