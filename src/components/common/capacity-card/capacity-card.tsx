@@ -12,17 +12,11 @@ import {
 } from '@patternfly/react-core';
 import { humanizeBinaryBytes } from '../../../humanize';
 import { ODFStorageSystem } from '../../../models';
+import { HumanizeResult } from '../../../types';
 import { getDashboardLink } from '../../utils';
 import { DataUnavailableError } from '../generic/Error';
 import ResourceLink from '../resource-link/resource-link';
 import './capacity-card.scss';
-
-// Temporary soon to be part of the SDK
-type HumanizeResult = {
-  value: number;
-  unit: string;
-  string: string;
-};
 
 export type CapacityMetricDatum = {
   name: string;

@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import './status-popup.scss';
 
 export const StatusPopupSection: React.FC<StatusPopupSectionProps> = ({
@@ -8,8 +7,8 @@ export const StatusPopupSection: React.FC<StatusPopupSectionProps> = ({
   children,
 }) => (
   <>
-    <div className="co-status-popup__row co-status-popup__section">
-      <div className="co-status-popup__text--bold">{firstColumn}</div>
+    <div className="odf-status-popup__row odf-status-popup__section">
+      <div className="odf-status-popup__text--bold">{firstColumn}</div>
       {secondColumn && <div className="text-secondary">{secondColumn}</div>}
     </div>
     {children}
@@ -17,17 +16,17 @@ export const StatusPopupSection: React.FC<StatusPopupSectionProps> = ({
 );
 
 const Status: React.FC<StatusProps> = ({ value, icon, children }) => (
-  <div className="co-status-popup__row">
+  <div className="odf-status-popup__row">
     {children}
     {value ? (
-      <div className="co-status-popup__status">
+      <div className="odf-status-popup__status">
         <div className="text-secondary">{value}</div>
-        <div className="co-status-popup__icon">{icon}</div>
+        <div className="odf-status-popup__icon">{icon}</div>
       </div>
     ) : (
       icon && (
-        <div className="co-status-popup__status">
-          <div className="co-status-popup__icon">{icon}</div>
+        <div className="odf-status-popup__status">
+          <div className="odf-status-popup__icon">{icon}</div>
         </div>
       )
     )}

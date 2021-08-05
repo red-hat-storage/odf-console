@@ -9,13 +9,8 @@ import {
 } from '@patternfly/react-charts';
 import { Title } from '@patternfly/react-core';
 import useRefWidth from '../../../hooks/ref-width';
+import { HumanizeResult } from '../../../types';
 import './line-graph.scss';
-
-export type HumanizeResult = {
-  value: number;
-  unit: string;
-  string: string;
-};
 
 type LineDataType = {
   y: HumanizeResult;
@@ -43,7 +38,7 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
   const unit = lineData[0].y.unit;
   const latestValue = lineData[lineData.length - 1].y.string;
   return (
-    <div className="lineGraph">
+    <div className="odf-lineGraph">
       <div
         className="pf-u-display-none-on-md pf-u-display-inline-block-on-lg pf-u-w-95-lg"
         ref={ref}
@@ -79,7 +74,7 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
           </ChartGroup>
         </Chart>
       </div>
-      <div className="pf-u-w-5-lg pf-u-w-100-md valueBox">
+      <div className="pf-u-w-5-lg pf-u-w-100-md odf-valueBox">
         <div>
           <Title headingLevel="h5" size="md">
             {latestValue}
