@@ -16,7 +16,7 @@ jobs:
         id: vars
         run: echo ::set-output name=tag::$(echo ${GITHUB_SHA:0:8})
       - name: Build the tagged image
-        run: docker build . --file Dockerfile --tag quay.io/ocs-dev/odf-console{{steps.vars.outputs.tag}}
+        run: docker build . --file Dockerfile --tag quay.io/ocs-dev/odf-console:${{steps.vars.outputs.tag}}
       - name: Push the tagged image
         run: docker push quay.io/ocs-dev/odf-console:${{steps.vars.outputs.tag}}
       - name: Build the latest image
