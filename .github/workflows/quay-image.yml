@@ -1,0 +1,25 @@
+name: Image CI
+
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Login to Quay Registry
+        run: echo ${{ secrets.QUAY_SECRET }} | docker login quay.io -u ${{ secrets.QUAY_UNAME }} --password-stdin
+      - name: Get the version
+        id: vars
+        run: echo ::set-output name=tag::$(echo ${GITHUB_SHA:0:8})
+      - name: Build the tagged image
+        run: docker build . --file Dockerfile --tag quay.io/ocs-dev/odf-console{{steps.vars.outputs.tag}}
+      - name: Push the tagged image
+        run: docker push quay.io/ocs-dev/odf-console:${{steps.vars.outputs.tag}}
+      - name: Build the latest image
+        run: docker build . --file Dockerfile --tag quay.io/ocs-dev/odf-console:latest
+      - name: Push the latest image to ocs-dev
+        run: docker push quay.io/ocs-dev/odf-console:latest
