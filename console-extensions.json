@@ -9,7 +9,8 @@
       "href": "/odf"
     },
     "flags": {
-      "required": ["OCS"]
+      "required": ["OCS"],
+      "disallowed": ["ODF_MANAGED"]
     }
   },
   {
@@ -17,6 +18,10 @@
     "properties": {
       "path": ["/odf"],
       "component": { "$codeRef": "dashboard.default" }
+    },
+    "flags": {
+      "required": ["OCS"],
+      "disallowed": ["ODF_MANAGED"]
     }
   }
 ]
