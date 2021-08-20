@@ -12,14 +12,14 @@
     "sourceMap": true,
     "noEmitOnError": false,
     "paths": {
-      "badhikar-dynamic-plugin-sdk/api": [
-        "node_modules/badhikar-dynamic-plugin-sdk/lib/api/api"
+      "@openshift-console/dynamic-plugin-sdk/api": [
+        "node_modules/@openshift-console/dynamic-plugin-sdk/lib/api/api"
       ],
-      "badhikar-dynamic-plugin-sdk/internalAPI": [
-        "node_modules/badhikar-dynamic-plugin-sdk/lib/api/internal"
+      "@openshift-console/dynamic-plugin-sdk/internalAPI": [
+        "node_modules/@openshift-console/dynamic-plugin-sdk/lib/api/internal"
       ],
-      "badhikar-dynamic-plugin-sdk/webpack": [
-        "node_modules/badhikar-dynamic-plugin-sdk/lib/webpack"
+      "@openshift-console/dynamic-plugin-sdk/webpack": [
+        "node_modules/@openshift-console/dynamic-plugin-sdk/lib/webpack"
       ]
     }
   },

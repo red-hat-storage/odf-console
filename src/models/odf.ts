@@ -1,4 +1,4 @@
-import { K8sKind } from 'badhikar-dynamic-plugin-sdk/lib/api/common-types';
+import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
 export const ODFStorageSystem: K8sKind = {
   label: 'Storage System',

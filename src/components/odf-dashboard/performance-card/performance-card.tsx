@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { WatchK8sResource } from 'badhikar-dynamic-plugin-sdk';
-import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
+import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk/api';
 import {
   DashboardCard,
   DashboardCardHeader,
@@ -8,7 +8,7 @@ import {
   UtilizationDurationDropdown,
   usePrometheusPoll,
   useUtilizationDuration,
-} from 'badhikar-dynamic-plugin-sdk/internalAPI';
+} from '@openshift-console/dynamic-plugin-sdk/internalAPI';
 import * as _ from 'lodash';
 import { SortByDirection } from '@patternfly/react-table';
 import { ODFStorageSystem } from '../../../models';

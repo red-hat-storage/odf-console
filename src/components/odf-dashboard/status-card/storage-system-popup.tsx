@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { HealthState } from 'badhikar-dynamic-plugin-sdk';
+import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { Link } from 'react-router-dom';
 import {
   CheckCircleIcon,

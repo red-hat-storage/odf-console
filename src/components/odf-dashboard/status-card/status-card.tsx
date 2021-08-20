@@ -3,8 +3,8 @@ import {
   HealthState,
   K8sResourceCommon,
   WatchK8sResource,
-} from 'badhikar-dynamic-plugin-sdk';
-import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
+} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk/api';
 import {
   DashboardCard,
   DashboardCardBody,
@@ -12,7 +12,7 @@ import {
   DashboardCardTitle,
   HealthBody,
   HealthItem,
-} from 'badhikar-dynamic-plugin-sdk/internalAPI';
+} from '@openshift-console/dynamic-plugin-sdk/internalAPI';
 import * as _ from 'lodash';
 import { Gallery, GalleryItem } from '@patternfly/react-core';
 import { ODFStorageSystem } from '../../../models';

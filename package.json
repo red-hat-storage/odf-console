@@ -1,12 +1,12 @@
 {
   "name": "odf-console",
   "version": "0.0.0",
-  "description": "ODF console ",
+  "description": "ODF console",
   "main": "index.js",
   "author": "bipuladh <badhikar@redhat.com>",
   "license": "MIT",
   "private": true,
-  "repository": "git@github.com:bipuladh/odf-console.git",
+  "repository": "git@github.com:red-hat-storage/odf-console.git",
   "scripts": {
     "clean": "rm -rf ./dist",
     "build": "yarn clean && NODE_ENV=production yarn ts-node ./node_modules/.bin/webpack",
@@ -26,7 +26,7 @@
     "@patternfly/react-core": "4.121.1",
     "@patternfly/react-icons": "^4.11.0",
     "@patternfly/react-table": "^4.29.0",
-    "badhikar-dynamic-plugin-sdk": "0.0.5",
+    "@openshift-console/dynamic-plugin-sdk": "0.0.0-alpha15",
     "classnames": "^2.3.1",
     "lodash-es": "^4.17.21",
     "react": "^17.0.1",

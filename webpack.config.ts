@@ -2,7 +2,7 @@
 
 import * as webpack from 'webpack';
 import * as path from 'path';
-import { ConsoleRemotePlugin } from 'badhikar-dynamic-plugin-sdk/webpack';
+import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk/webpack';
 
 const config: webpack.Configuration = {
   mode: 'development',
@@ -85,8 +85,8 @@ const config: webpack.Configuration = {
     minimize: false,
   },
   externals: {
-    'badhikar-dynamic-plugin-sdk/api': 'api',
-    'badhikar-dynamic-plugin-sdk/internalAPI': 'internalAPI',
+    '@openshift-console/dynamic-plugin-sdk/api': 'api',
+    '@openshift-console/dynamic-plugin-sdk/internalAPI': 'internalAPI',
   },
 };
 
