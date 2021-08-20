@@ -2,15 +2,15 @@ import * as React from 'react';
 import {
   PrometheusResponse,
   WatchK8sResource,
-} from 'badhikar-dynamic-plugin-sdk';
-import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
+} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk/api';
 import {
   DashboardCard,
   DashboardCardBody,
   DashboardCardHeader,
   DashboardCardTitle,
   usePrometheusPoll,
-} from 'badhikar-dynamic-plugin-sdk/internalAPI';
+} from '@openshift-console/dynamic-plugin-sdk/internalAPI';
 import * as _ from 'lodash';
 import { humanizeBinaryBytes } from '../../../humanize';
 import { ODFStorageSystem } from '../../../models';

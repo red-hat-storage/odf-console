@@ -1,4 +1,4 @@
-import { PrometheusResponse } from "badhikar-dynamic-plugin-sdk";
+import { PrometheusResponse } from "@openshift-console/dynamic-plugin-sdk";
 import * as _ from "lodash";
 import { humanizeBinaryBytes, humanizeIOPS, humanizeLatency } from "../../../humanize";
 import { StorageSystemKind } from "../../../types";

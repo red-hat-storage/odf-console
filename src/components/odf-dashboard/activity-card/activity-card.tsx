@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { FirehoseResource } from 'badhikar-dynamic-plugin-sdk';
-import { useK8sWatchResource } from 'badhikar-dynamic-plugin-sdk/api';
+import { FirehoseResource } from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk/api';
 import {
   DashboardCard,
   DashboardCardBody,
@@ -8,7 +8,7 @@ import {
   DashboardCardTitle,
   EventKind,
   RecentEventsBody,
-} from 'badhikar-dynamic-plugin-sdk/internalAPI';
+} from '@openshift-console/dynamic-plugin-sdk/internalAPI';
 import './activity-card.scss';
 
 const eventsResource: FirehoseResource = {

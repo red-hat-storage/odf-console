@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { K8sKind } from 'badhikar-dynamic-plugin-sdk/lib/api/common-types';
+import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { Link } from 'react-router-dom';
 
 type ResourceLinkProps = {

@@ -576,6 +576,11 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@openshift-console/dynamic-plugin-sdk@0.0.0-alpha15":
+  version "0.0.0-alpha15"
+  resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk/-/dynamic-plugin-sdk-0.0.0-alpha15.tgz#43c5bbb1c7ba6caf3f828e9fef0001a32cd8f8e9"
+  integrity sha512-XDu5NCs7HiZ38SPWd8MGxoFiGmE+mVTA5i4xrCYnaLq/AvpabiP74pAsFWBsNdWFadQesytBqb1okCJLDok1wg==
+
 "@patternfly/patternfly@4.103.6":
   version "4.103.6"
   resolved "https://registry.yarnpkg.com/@patternfly/patternfly/-/patternfly-4.103.6.tgz#a01b1dced931eb4971a6c7366901fdde81a52284"
@@ -1784,11 +1789,6 @@ babel-preset-jest@^27.0.6:
   dependencies:
     babel-plugin-jest-hoist "^27.0.6"
     babel-preset-current-node-syntax "^1.0.0"
-
-badhikar-dynamic-plugin-sdk@0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/badhikar-dynamic-plugin-sdk/-/badhikar-dynamic-plugin-sdk-0.0.5.tgz#9baa0821614b10c0c15340bffc334fd17d93afdc"
-  integrity sha512-f0mzXHK0ImTxhf8KAbSO1+Xsk2hyXawGewByTbWrWdqkDhEzLRBP4MIInOPiun3meX3/LpOcgqUKf95zes+4XQ==
 
 bail@^1.0.0:
   version "1.0.5"

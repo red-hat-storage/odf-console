@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { HorizontalNav, NavPage } from 'badhikar-dynamic-plugin-sdk/api';
+import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk/api';
 import { Helmet } from 'react-helmet';
 import { RouteComponentProps } from 'react-router';
 import { Grid, GridItem } from '@patternfly/react-core';
@@ -51,9 +51,9 @@ export const ODFDashboard: React.FC<ODFDashboardProps> = (props) => {
   );
 };
 
-const ODFDashboardPage: React.FC<any> = ({ match }) => {
+const ODFDashboardPage: React.FC<any> = () => {
   const title = 'OpenShift Data Foundation Overview';
-  const pages: NavPage[] = [
+  const pages = [
     {
       href: '',
       name: 'Overview',
@@ -68,7 +68,6 @@ const ODFDashboardPage: React.FC<any> = ({ match }) => {
       <PageHeading title={title} />
       <HorizontalNav
         pages={pages}
-        match={match}
         resource={{
           kind: ODFStorageSystem.kind,
           apiVersion: `${ODFStorageSystem.apiGroup}/${ODFStorageSystem.apiVersion}`,

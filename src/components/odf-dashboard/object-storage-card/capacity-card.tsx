@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { PrometheusResponse } from 'badhikar-dynamic-plugin-sdk';
+import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import {
   DashboardCard,
   DashboardCardBody,
   DashboardCardHeader,
   DashboardCardTitle,
   usePrometheusPoll,
-} from 'badhikar-dynamic-plugin-sdk/internalAPI';
+} from '@openshift-console/dynamic-plugin-sdk/internalAPI';
 import { humanizeBinaryBytes } from '../../../humanize';
 import CapacityCard from '../../common/capacity-card/capacity-card';
 import { CAPACITY_QUERIES, StorageDashboard } from '../queries';
