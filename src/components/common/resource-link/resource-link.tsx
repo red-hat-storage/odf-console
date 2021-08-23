@@ -6,20 +6,32 @@ type ResourceLinkProps = {
   resourceModel: K8sKind;
   resourceName: string;
   link: string;
+  hideIcon?: boolean;
+  className?: string;
 };
 
 const ResourceLink: React.FC<ResourceLinkProps> = ({
   resourceModel,
   resourceName,
   link,
+  hideIcon,
+  className,
 }) => {
   return (
     <span className="co-resource-item">
-      <span className="sr-only">{resourceModel.abbr.toLocaleUpperCase()}</span>
-      <span className="co-m-resource-icon" title={resourceModel.kind}>
-        {resourceModel.abbr.toLocaleUpperCase()}
-      </span>
-      <Link to={link}>{resourceName}</Link>
+      {!hideIcon && (
+        <>
+          <span className="sr-only">
+            {resourceModel.abbr.toLocaleUpperCase()}
+          </span>
+          <span className="co-m-resource-icon" title={resourceModel.kind}>
+            {resourceModel.abbr.toLocaleUpperCase()}
+          </span>
+        </>
+      )}
+      <Link to={link} className={className}>
+        {resourceName}
+      </Link>
     </span>
   );
 };

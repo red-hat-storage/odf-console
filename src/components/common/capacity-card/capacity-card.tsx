@@ -146,14 +146,18 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
     <>
       <GridItem key={`${data.name}~name`} span={2}>
         {data.managedSystemKind ? (
-          <ResourceLink
-            link={getDashboardLink(
-              data.managedSystemKind,
-              data.managedSystemName
-            )}
-            resourceModel={ODFStorageSystem}
-            resourceName={data.managedSystemName}
-          />
+          <Tooltip content={data.name}>
+            <ResourceLink
+              link={getDashboardLink(
+                data.managedSystemKind,
+                data.managedSystemName
+              )}
+              resourceModel={ODFStorageSystem}
+              resourceName={data.name}
+              className="odf-capacityCardLink--ellipsis"
+              hideIcon
+            />
+          </Tooltip>
         ) : (
           data.name
         )}
