@@ -19,6 +19,14 @@
     flex-direction: column;
     height: 215px;
   }
+
+  &-capacityCardLink--ellipsis {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 50px;
+  }
 }
 
 .odf-capacityCardLoading-body__item {
