@@ -72,6 +72,18 @@ const nameSort = (a: RowProps, b: RowProps, c: SortByDirection) => {
   return negation ? -sortVal : sortVal;
 };
 
+const metricsSort =
+  (metric: 'iopsData' | 'throughputData' | 'latencyData') =>
+  (a: RowProps, b: RowProps, c: SortByDirection) => {
+    const negation = c !== SortByDirection.asc;
+    const dataA = a[metric]?.data;
+    const dataB = b[metric]?.data;
+    const sortVal =
+      dataA?.[dataA.length - 1]?.y?.value -
+        dataB?.[dataB.length - 1]?.y?.value || 0;
+    return negation ? -sortVal : sortVal;
+  };
+
 const PerformanceCard: React.FC = () => {
   const headerColumns: Column[] = [
     {
@@ -82,14 +94,17 @@ const PerformanceCard: React.FC = () => {
     {
       columnName: 'IOPS',
       className: 'pf-u-w-30',
+      sortFunction: metricsSort('iopsData'),
     },
     {
       columnName: 'Latency',
       className: 'pf-u-w-30',
+      sortFunction: metricsSort('latencyData'),
     },
     {
       columnName: 'Throughput',
       className: 'pf-u-w-30',
+      sortFunction: metricsSort('throughputData'),
     },
   ];
 
