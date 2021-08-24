@@ -35,8 +35,9 @@
   &-performanceCardLoading-body {
     display: flex;
     flex-direction: column;
-    height: 250px;
     margin: 10px;
+    min-height: 250px;
+    overflow-x: hidden;
   }
 }
 
