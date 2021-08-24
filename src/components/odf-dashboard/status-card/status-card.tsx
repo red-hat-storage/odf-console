@@ -14,7 +14,7 @@ import {
   HealthItem,
 } from '@openshift-console/dynamic-plugin-sdk/internalAPI';
 import * as _ from 'lodash';
-import { Gallery, GalleryItem } from '@patternfly/react-core';
+import { Gallery, GalleryItem, pluralize } from '@patternfly/react-core';
 import { ODFStorageSystem } from '../../../models';
 import { StorageSystemKind } from '../../../types';
 import { getStorageSystemDashboardLink, referenceForModel } from '../../utils';
@@ -109,14 +109,20 @@ export const StatusCard: React.FC = () => {
             </GalleryItem>
             {healthySystems.length > 0 && (
               <GalleryItem>
-                <HealthItem title="Storage Systems" state={HealthState.OK}>
+                <HealthItem
+                  title={pluralize(healthySystems.length, 'Storage System')}
+                  state={HealthState.OK}
+                >
                   <StorageSystemPopup systemHealthMap={healthySystemsMap} />
                 </HealthItem>
               </GalleryItem>
             )}
             {unhealthySystems.length > 0 && (
               <GalleryItem>
-                <HealthItem title="Storage Systems" state={HealthState.ERROR}>
+                <HealthItem
+                  title={pluralize(unhealthySystems.length, 'Storage System')}
+                  state={HealthState.ERROR}
+                >
                   <StorageSystemPopup systemHealthMap={unhealthySystemsMap} />
                 </HealthItem>
               </GalleryItem>
