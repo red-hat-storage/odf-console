@@ -12,6 +12,7 @@ import {
   usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk/internalAPI';
 import * as _ from 'lodash';
+import { useTranslation } from 'react-i18next';
 import { humanizeBinaryBytes } from '../../../humanize';
 import { ODFStorageSystem } from '../../../models';
 import { StorageSystemKind } from '../../../types';
@@ -36,6 +37,7 @@ const getMetricForSystem = (
   );
 
 const SystemCapacityCard: React.FC = () => {
+  const { t } = useTranslation('plugin__odf-console');
   const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<
     StorageSystemKind[]
   >(storageSystemResource);
@@ -77,13 +79,13 @@ const SystemCapacityCard: React.FC = () => {
   return (
     <DashboardCard>
       <DashboardCardHeader>
-        <DashboardCardTitle>System Capacity</DashboardCardTitle>
+        <DashboardCardTitle>{t('System Capacity')}</DashboardCardTitle>
       </DashboardCardHeader>
       <DashboardCardBody>
         {!error ? (
           <CapacityCard data={data} isPercentage loading={isLoading} />
         ) : (
-          <>No data available</>
+          <>{t('No data available')}</>
         )}
       </DashboardCardBody>
     </DashboardCard>

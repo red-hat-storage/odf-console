@@ -15,6 +15,7 @@ import {
   usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk/internalAPI';
 import * as _ from 'lodash';
+import { useTranslation } from 'react-i18next';
 import { Gallery, GalleryItem, pluralize } from '@patternfly/react-core';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { STATUS_QUERIES, StorageDashboard } from '../queries';
@@ -41,6 +42,7 @@ const healthStateMap = (state: string) => {
 };
 
 export const StatusCard: React.FC = () => {
+  const { t } = useTranslation('plugin__odf-console');
   const [csvData, csvLoaded, csvLoadError] =
     useK8sWatchResource<K8sResourceCommon[]>(operatorResource);
 
@@ -88,14 +90,14 @@ export const StatusCard: React.FC = () => {
   return (
     <DashboardCard>
       <DashboardCardHeader>
-        <DashboardCardTitle>Status</DashboardCardTitle>
+        <DashboardCardTitle>{t('Status')}</DashboardCardTitle>
       </DashboardCardHeader>
       <DashboardCardBody>
         <HealthBody>
           <Gallery className="co-overview-status__health" hasGutter>
             <GalleryItem>
               <HealthItem
-                title="OpenShift Data Foundation"
+                title={t('OpenShift Data Foundation')}
                 state={operatorHealthStatus.state}
               />
             </GalleryItem>

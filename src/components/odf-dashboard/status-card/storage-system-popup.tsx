@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   CheckCircleIcon,
@@ -29,8 +30,12 @@ const healthStateToIcon = {
 const StorageSystemPopup: React.FC<StorageSystemPopopProps> = ({
   systemHealthMap,
 }) => {
+  const { t } = useTranslation('plugin__odf-console');
   return (
-    <StatusPopupSection firstColumn="Storage System" secondColumn="Health">
+    <StatusPopupSection
+      firstColumn={t('Storage System')}
+      secondColumn={t('Health')}
+    >
       {systemHealthMap.map((system) => (
         <Status
           key={system.systemName}

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as _ from 'lodash';
+import { useTranslation } from 'react-i18next';
 import {
   Chart,
   ChartAxis,
@@ -24,6 +25,7 @@ export type LineGraphProps = {
 };
 
 const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
+  const { t } = useTranslation('plugin__odf-console');
   const [ref, width] = useRefWidth();
   const lineData = data.map((datum, i) => ({
     x: String(i + 1),
@@ -84,7 +86,7 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
             {latestValue}
           </Title>
         </div>
-        <div>Current</div>
+        <div>{t('Current')}</div>
       </div>
     </div>
   ) : (
