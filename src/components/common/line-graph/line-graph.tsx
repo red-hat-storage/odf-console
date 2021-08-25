@@ -35,9 +35,13 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
     yString: datum.y.string,
   }));
 
-  const unit = lineData[0].y.unit;
-  const latestValue = lineData[lineData.length - 1].y.string;
-  return (
+  const dataUnavailable = _.isEmpty(data);
+
+  const unit = !dataUnavailable ? lineData[0].y.unit : '';
+  const latestValue = !dataUnavailable
+    ? lineData[lineData.length - 1].y.string
+    : '';
+  return !dataUnavailable ? (
     <div className="odf-lineGraph">
       <div
         className="pf-u-display-none-on-md pf-u-display-inline-block-on-lg pf-u-w-95-lg"
@@ -83,6 +87,8 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
         <div>Current</div>
       </div>
     </div>
+  ) : (
+    <>-</>
   );
 };
 

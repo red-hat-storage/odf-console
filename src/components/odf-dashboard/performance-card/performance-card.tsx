@@ -72,7 +72,7 @@ const nameSort = (a: RowProps, b: RowProps, c: SortByDirection) => {
   return negation ? -sortVal : sortVal;
 };
 
-const PerformanceCard: React.FC<PerformanceCardProps> = (props) => {
+const PerformanceCard: React.FC = () => {
   const headerColumns: Column[] = [
     {
       columnName: 'Name',
@@ -141,10 +141,6 @@ const PerformanceCard: React.FC<PerformanceCardProps> = (props) => {
       )}
     </DashboardCard>
   );
-};
-
-type PerformanceCardProps = {
-  currentLocation: string;
 };
 
 export default PerformanceCard;

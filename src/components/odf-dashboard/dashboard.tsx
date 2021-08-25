@@ -12,15 +12,11 @@ import { StatusCard } from './status-card/status-card';
 import SystemCapacityCard from './system-capacity-card/capacity-card';
 import '../../style.scss';
 
-type UpperSectionProps = {
-  currentLocation: string;
-};
-
 type ODFDashboardProps = {
   match: RouteComponentProps['match'];
 };
 
-const UpperSection: React.FC<UpperSectionProps> = (props) => (
+const UpperSection: React.FC = () => (
   <Grid hasGutter>
     <GridItem md={8} sm={12}>
       <StatusCard />
@@ -35,17 +31,16 @@ const UpperSection: React.FC<UpperSectionProps> = (props) => (
       <ObjectCapacityCard />
     </GridItem>
     <GridItem md={12} sm={12}>
-      <PerformanceCard {...props} />
+      <PerformanceCard />
     </GridItem>
   </Grid>
 );
 
-export const ODFDashboard: React.FC<ODFDashboardProps> = (props) => {
-  const currentLocation = props.match.path;
+export const ODFDashboard: React.FC<ODFDashboardProps> = () => {
   return (
     <>
       <div className="co-dashboard-body">
-        <UpperSection currentLocation={currentLocation} />
+        <UpperSection />
       </div>
     </>
   );

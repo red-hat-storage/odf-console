@@ -142,6 +142,8 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
       return ProgressVariant.warning;
     }
   })();
+
+  const dataUnavailable = _.isNaN(progress);
   return (
     <>
       <GridItem key={`${data.name}~name`} span={2}>
@@ -163,10 +165,12 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
         )}
       </GridItem>
       <GridItem key={`${data.name}~progress`} span={7}>
-        <Tooltip content={<>{progress.toFixed(2)} %</>}>
+        <Tooltip
+          content={!dataUnavailable ? <>{progress.toFixed(2)} %</> : '-'}
+        >
           <Progress
-            value={progress}
-            label={`${progress.toFixed(2)} %`}
+            value={dataUnavailable ? null : progress}
+            label={!dataUnavailable ? `${progress.toFixed(2)} %` : ''}
             size="md"
             measureLocation={
               !isPercentage
@@ -178,7 +182,7 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
         </Tooltip>
       </GridItem>
       <GridItem span={3} key={`${data.name}~value`}>
-        {value}
+        {dataUnavailable ? '-' : value}
       </GridItem>
     </>
   );
