@@ -3,7 +3,7 @@ import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk/api';
 import { Helmet } from 'react-helmet';
 import { RouteComponentProps } from 'react-router';
 import { Grid, GridItem } from '@patternfly/react-core';
-import { ODFStorageSystem } from '../../models';
+import { ODFStorageSystemMock } from '../../models';
 import PageHeading from '../common/heading/page-heading';
 import ActivityCard from './activity-card/activity-card';
 import ObjectCapacityCard from './object-storage-card/capacity-card';
@@ -69,8 +69,8 @@ const ODFDashboardPage: React.FC<any> = () => {
       <HorizontalNav
         pages={pages}
         resource={{
-          kind: ODFStorageSystem.kind,
-          apiVersion: `${ODFStorageSystem.apiGroup}/${ODFStorageSystem.apiVersion}`,
+          kind: ODFStorageSystemMock.kind,
+          apiVersion: `${ODFStorageSystemMock.apiGroup}/${ODFStorageSystemMock.apiVersion}`,
         }}
       />
     </>
