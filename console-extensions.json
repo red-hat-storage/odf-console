@@ -16,7 +16,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": ["/odf"],
+      "path": "/odf",
       "component": { "$codeRef": "dashboard.default" }
     },
     "flags": {
