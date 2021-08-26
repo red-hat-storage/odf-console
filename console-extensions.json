@@ -9,6 +9,7 @@
       "href": "/odf"
     },
     "flags": {
+      "required": ["ODF_MODEL"],
       "disallowed": ["ODF_MANAGED"]
     }
   },
@@ -19,6 +20,7 @@
       "component": { "$codeRef": "dashboard.default" }
     },
     "flags": {
+      "required": ["ODF_MODEL"],
       "disallowed": ["ODF_MANAGED"]
     }
   }
