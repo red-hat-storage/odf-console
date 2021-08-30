@@ -149,11 +149,12 @@ const PerformanceCard: React.FC = () => {
         />
       )}
       {loading && <PerformanceCardLoading />}
-      {error && !loading && (
-        <div className="odf-performanceCardError">
-          <DataUnavailableError />{' '}
-        </div>
-      )}
+      {(error && !loading) ||
+        (_.isEmpty(rawRows) && (
+          <div className="performanceCard--error">
+            <DataUnavailableError />{' '}
+          </div>
+        ))}
     </DashboardCard>
   );
 };
