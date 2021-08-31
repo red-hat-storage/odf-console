@@ -12,14 +12,14 @@ import {
   DashboardCardTitle,
   HealthBody,
   HealthItem,
+  usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk/internalAPI';
 import * as _ from 'lodash';
 import { Gallery, GalleryItem, pluralize } from '@patternfly/react-core';
-import { ODFStorageSystem } from '../../../models';
-import { StorageSystemKind } from '../../../types';
-import { getStorageSystemDashboardLink, referenceForModel } from '../../utils';
+import { getVendorDashboardLinkFromMetrics } from '../../utils';
+import { STATUS_QUERIES, StorageDashboard } from '../queries';
 import { getOperatorHealthState } from '../utils';
-import StorageSystemPopup, { SystemHealthMap } from './storage-system-popup';
+import StorageSystemPopup from './storage-system-popup';
 
 const operatorResource: WatchK8sResource = {
   kind: 'operators.coreos.com~v1alpha1~ClusterServiceVersion',
@@ -27,65 +27,57 @@ const operatorResource: WatchK8sResource = {
   isList: true,
 };
 
-const storageSystemResource: WatchK8sResource = {
-  kind: referenceForModel(ODFStorageSystem),
-  namespace: 'openshift-storage',
-  isList: true,
+const healthStateMap = (state: string) => {
+  switch (state) {
+    case '0':
+      return HealthState.OK;
+    case '1':
+      return HealthState.WARNING;
+    case '2':
+      return HealthState.ERROR;
+    default:
+      return HealthState.LOADING;
+  }
 };
 
 export const StatusCard: React.FC = () => {
-  const [ssData, ssLoaded, ssError] = useK8sWatchResource<StorageSystemKind[]>(
-    storageSystemResource
-  );
-
   const [csvData, csvLoaded, csvLoadError] =
     useK8sWatchResource<K8sResourceCommon[]>(operatorResource);
 
-  // Todo(bipuladh): Filter down to ODF
-  const operatorStatus = (csvData?.[0] as any)?.status?.phase;
+  const [healthData, healthError, healthLoading] = usePrometheusPoll({
+    query: STATUS_QUERIES[StorageDashboard.HEALTH],
+    endpoint: 'api/v1/query' as any,
+  });
 
-  const parsedData =
-    ssLoaded && !ssError
-      ? ssData?.reduce(
-          (acc, curr) => {
-            if (curr?.status?.phase === 'Succeeded') {
-              acc['healthySystems'] = [...acc['healthySystems'], curr];
-            } else {
-              acc['unhealthySystems'] = [...acc['unhealthySystems'], curr];
-            }
-            return acc;
-          },
-          {
-            healthySystems: [] as StorageSystemKind[],
-            unhealthySystems: [] as StorageSystemKind[],
-          }
-        )
-      : {
-          healthySystems: [] as StorageSystemKind[],
-          unhealthySystems: [] as StorageSystemKind[],
-        };
+  console.log(healthData, healthError, healthLoading);
 
-  const { healthySystems = [], unhealthySystems = [] } = parsedData || {};
+  const operatorStatus: string = (
+    csvData?.find((csv) => csv.metadata.name.includes('odf-operator')) as any
+  )?.status?.phase;
 
-  const healthySystemsMap = healthySystems?.reduce((acc, curr) => {
-    const systemMap = {
-      systemName: curr.metadata?.name,
-      healthState: HealthState.OK,
-      link: getStorageSystemDashboardLink(curr),
-    };
-    acc.push(systemMap);
-    return acc;
-  }, [] as SystemHealthMap[]);
+  const parsedHealthData =
+    !healthError && !healthLoading
+      ? healthData.data.result.reduce((acc, curr) => {
+          const systemName = curr.metric.storage_system;
+          const systemData = {
+            systemName,
+            rawHealthData: curr.value[1],
+            healthState: healthStateMap(curr.value[1]),
+            link: getVendorDashboardLinkFromMetrics(
+              curr.metric.system_type,
+              systemName
+            ),
+          };
+          return [...acc, systemData];
+        }, [])
+      : [];
 
-  const unhealthySystemsMap = unhealthySystems?.reduce((acc, curr) => {
-    const systemMap = {
-      systemName: curr.metadata?.name,
-      healthState: HealthState.ERROR,
-      link: getStorageSystemDashboardLink(curr),
-    };
-    acc.push(systemMap);
-    return acc;
-  }, [] as SystemHealthMap[]);
+  const healthySystems = parsedHealthData.filter(
+    (item) => item.rawHealthData === '0'
+  );
+  const unHealthySystems = parsedHealthData.filter(
+    (item) => item.rawHealthData !== '0'
+  );
 
   const operatorHealthStatus = getOperatorHealthState(
     operatorStatus,
@@ -113,17 +105,17 @@ export const StatusCard: React.FC = () => {
                   title={pluralize(healthySystems.length, 'Storage System')}
                   state={HealthState.OK}
                 >
-                  <StorageSystemPopup systemHealthMap={healthySystemsMap} />
+                  <StorageSystemPopup systemHealthMap={healthySystems} />
                 </HealthItem>
               </GalleryItem>
             )}
-            {unhealthySystems.length > 0 && (
+            {unHealthySystems.length > 0 && (
               <GalleryItem>
                 <HealthItem
-                  title={pluralize(unhealthySystems.length, 'Storage System')}
+                  title={pluralize(unHealthySystems.length, 'Storage System')}
                   state={HealthState.ERROR}
                 >
-                  <StorageSystemPopup systemHealthMap={unhealthySystemsMap} />
+                  <StorageSystemPopup systemHealthMap={unHealthySystems} />
                 </HealthItem>
               </GalleryItem>
             )}

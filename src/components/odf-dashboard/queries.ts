@@ -5,6 +5,7 @@ export enum StorageDashboard {
   IOPS = 'IOPS',
   LATENCY = 'LATENCY',
   THROUGHPUT = 'THROUGHPUT',
+  HEALTH = 'HEALTH',
 }
 
 export const CAPACITY_QUERIES = {
@@ -22,4 +23,8 @@ export const UTILIZATION_QUERY = {
     'odf_system_latency_seconds',
   [StorageDashboard.THROUGHPUT]:
     'odf_system_throughput_total_bytes',
+};
+
+export const STATUS_QUERIES = {
+  [StorageDashboard.HEALTH]: '(label_replace(odf_system_map , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managed_by) group_right(storage_system) odf_system_health_status'
 };
