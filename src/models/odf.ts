@@ -25,3 +25,15 @@ export const ODFStorageSystemMock: K8sKind = {
   kind: 'StorageSystem',
   crd: true,
 };
+
+export const IBMFlashSystemModel: K8sKind = {
+  label: 'IBM Flash System',
+  labelPlural: 'IBM Flash Systems',
+  apiVersion: 'v1alpha1',
+  apiGroup: 'odf.ibm.com',
+  plural: 'flashsystemclusters',
+  abbr: 'FS',
+  namespaced: true,
+  kind: 'FlashSystemCluster',
+  crd: true,
+};

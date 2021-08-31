@@ -1,4 +1,5 @@
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { IBMFlashSystemModel, OCSStorageClusterModel } from '../../models';
 import { StorageSystemKind } from '../../types';
 
 export const referenceForModel = (model: K8sKind) =>
@@ -19,3 +20,8 @@ export const getStorageSystemDashboardLink = (storageSystem: StorageSystemKind) 
   return `odf/system/${referenceFor(apiGroup)(apiVersion)(kind)}/${storageSystem.metadata.name
     }`;
 };
+
+export const getVendorDashboardLinkFromMetrics = (systemType: string, systemName: string) => {
+  const systemKind = systemType === "OCS" ? referenceForModel(OCSStorageClusterModel) : referenceForModel(IBMFlashSystemModel);
+  return `odf/system/${systemKind}/${systemName}`
+}
