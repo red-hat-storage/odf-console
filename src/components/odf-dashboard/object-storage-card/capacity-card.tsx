@@ -7,6 +7,7 @@ import {
   DashboardCardTitle,
   usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk/internalAPI';
+import { useTranslation } from 'react-i18next';
 import { humanizeBinaryBytes } from '../../../humanize';
 import CapacityCard from '../../common/capacity-card/capacity-card';
 import { CAPACITY_QUERIES, StorageDashboard } from '../queries';
@@ -18,6 +19,7 @@ const parseMetricData = (metric: PrometheusResponse) =>
   }));
 
 const ObjectCapacityCard: React.FC = () => {
+  const { t } = useTranslation('plugin__odf-console');
   const [data, error, loaded] = usePrometheusPoll({
     query: CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_OBJECT],
     endpoint: 'api/v1/query' as any,
@@ -29,7 +31,7 @@ const ObjectCapacityCard: React.FC = () => {
     <DashboardCard>
       <DashboardCardHeader>
         <DashboardCardTitle>
-          External Object Provider Used Capacity
+          {t('External Object Provider Used Capacity')}
         </DashboardCardTitle>
       </DashboardCardHeader>
       <DashboardCardBody>

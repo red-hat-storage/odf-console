@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk/api';
 import { Helmet } from 'react-helmet';
+import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { ODFStorageSystemMock } from '../../models';
@@ -46,12 +47,13 @@ export const ODFDashboard: React.FC<ODFDashboardProps> = () => {
   );
 };
 
-const ODFDashboardPage: React.FC<any> = () => {
-  const title = 'OpenShift Data Foundation Overview';
+const ODFDashboardPage: React.FC = () => {
+  const { t } = useTranslation('plugin__odf-console');
+  const title = t('OpenShift Data Foundation Overview');
   const pages = [
     {
       href: '',
-      name: 'Overview',
+      name: t('Overview'),
       component: ODFDashboard,
     },
   ];

@@ -1,8 +1,9 @@
 /* eslint-env node */
 
-import * as webpack from 'webpack';
 import * as path from 'path';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk/webpack';
+import * as CopyWebpackPlugin from 'copy-webpack-plugin';
+import * as webpack from 'webpack';
 
 const config: webpack.Configuration = {
   mode: 'development',
@@ -78,7 +79,11 @@ const config: webpack.Configuration = {
       },
     ],
   },
-  plugins: [new ConsoleRemotePlugin()],
+  plugins: [new ConsoleRemotePlugin(), new CopyWebpackPlugin({
+    patterns: [
+      { from: path.resolve(__dirname, 'locales'), to: 'locales' }
+    ]
+  })],
   devtool: 'cheap-module-source-map',
   optimization: {
     chunkIds: 'named',

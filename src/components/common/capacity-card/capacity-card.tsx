@@ -1,6 +1,7 @@
 import * as React from 'react';
 import classNames from 'classnames';
 import * as _ from 'lodash';
+import { useTranslation } from 'react-i18next';
 import {
   Grid,
   GridItem,
@@ -75,25 +76,28 @@ type CapacityCardHeaderProps = {
 
 const CapacityCardHeader: React.FC<CapacityCardHeaderProps> = ({
   showPercentage,
-}) => (
-  <>
-    <GridItem span={2}>
-      <Title headingLevel="h3" size="md">
-        Name
-      </Title>
-    </GridItem>
-    <GridItem span={7}>
-      <Title headingLevel="h3" size="md">
-        Used Capacity {showPercentage && <>%</>}
-      </Title>
-    </GridItem>
-    <GridItem span={3}>
-      <Title headingLevel="h3" size="md">
-        Used / Total
-      </Title>
-    </GridItem>
-  </>
-);
+}) => {
+  const { t } = useTranslation('plugin__odf-console');
+  return (
+    <>
+      <GridItem span={2}>
+        <Title headingLevel="h3" size="md">
+          {t('Name')}
+        </Title>
+      </GridItem>
+      <GridItem span={7}>
+        <Title headingLevel="h3" size="md">
+          {t('Used Capacity')} {showPercentage && <>%</>}
+        </Title>
+      </GridItem>
+      <GridItem span={3}>
+        <Title headingLevel="h3" size="md">
+          {t('Used / Total')}
+        </Title>
+      </GridItem>
+    </>
+  );
+};
 
 type CapacityCardRowProps = {
   data: CapacityMetricDatum;

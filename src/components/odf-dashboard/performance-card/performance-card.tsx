@@ -10,6 +10,7 @@ import {
   useUtilizationDuration,
 } from '@openshift-console/dynamic-plugin-sdk/internalAPI';
 import * as _ from 'lodash';
+import { useTranslation } from 'react-i18next';
 import { SortByDirection } from '@patternfly/react-table';
 import { ODFStorageSystem } from '../../../models';
 import { StorageSystemKind } from '../../../types';
@@ -85,24 +86,25 @@ const metricsSort =
   };
 
 const PerformanceCard: React.FC = () => {
+  const { t } = useTranslation('plugin__odf-console');
   const headerColumns: Column[] = [
     {
-      columnName: 'Name',
+      columnName: t('Name'),
       className: 'pf-u-w-10 performanceCard--verticalAlign',
       sortFunction: nameSort,
     },
     {
-      columnName: 'IOPS',
+      columnName: t('IOPS'),
       className: 'pf-u-w-30',
       sortFunction: metricsSort('iopsData'),
     },
     {
-      columnName: 'Latency',
+      columnName: t('Latency'),
       className: 'pf-u-w-30',
       sortFunction: metricsSort('latencyData'),
     },
     {
-      columnName: 'Throughput',
+      columnName: t('Throughput'),
       className: 'pf-u-w-30',
       sortFunction: metricsSort('throughputData'),
     },
@@ -137,7 +139,7 @@ const PerformanceCard: React.FC = () => {
   return (
     <DashboardCard>
       <DashboardCardHeader>
-        <DashboardCardTitle>Performance</DashboardCardTitle>
+        <DashboardCardTitle>{t('Performance')}</DashboardCardTitle>
         <UtilizationDurationDropdown />
       </DashboardCardHeader>
       {!error && !loading && (
@@ -145,7 +147,7 @@ const PerformanceCard: React.FC = () => {
           columns={headerColumns}
           rawData={rawRows as []}
           rowRenderer={getRow as any}
-          ariaLabel="Performance Card"
+          ariaLabel={t('Performance Card')}
         />
       )}
       {loading && <PerformanceCardLoading />}

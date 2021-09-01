@@ -9,6 +9,7 @@ import {
   EventKind,
   RecentEventsBody,
 } from '@openshift-console/dynamic-plugin-sdk/internalAPI';
+import { useTranslation } from 'react-i18next';
 import './activity-card.scss';
 
 const eventsResource: FirehoseResource = {
@@ -18,13 +19,14 @@ const eventsResource: FirehoseResource = {
 };
 
 const ActivityCard: React.FC = () => {
+  const { t } = useTranslation('plugin__odf-console');
   const [data, loaded, loadError] =
     useK8sWatchResource<EventKind[]>(eventsResource);
 
   return (
     <DashboardCard>
       <DashboardCardHeader>
-        <DashboardCardTitle>Activity</DashboardCardTitle>
+        <DashboardCardTitle>{t('Activity')}</DashboardCardTitle>
       </DashboardCardHeader>
       <DashboardCardBody className="odf-activityCard">
         <RecentEventsBody

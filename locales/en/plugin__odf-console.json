@@ -1,0 +1,22 @@
+{
+  "Name": "Name",
+  "Used Capacity": "Used Capacity",
+  "Used / Total": "Used / Total",
+  "No data available": "No data available",
+  "Current": "Current",
+  "Activity": "Activity",
+  "OpenShift Data Foundation Overview": "OpenShift Data Foundation Overview",
+  "Overview": "Overview",
+  "External Object Provider Used Capacity": "External Object Provider Used Capacity",
+  "IOPS": "IOPS",
+  "Latency": "Latency",
+  "Throughput": "Throughput",
+  "Performance": "Performance",
+  "Performance Card": "Performance Card",
+  "Status": "Status",
+  "OpenShift Data Foundation": "OpenShift Data Foundation",
+  "Storage Systems": "Storage Systems",
+  "Storage System": "Storage System",
+  "Health": "Health",
+  "System Capacity": "System Capacity"
+}
