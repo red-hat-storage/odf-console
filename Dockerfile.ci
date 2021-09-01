@@ -1,0 +1,9 @@
+FROM quay.io/coreos/tectonic-console-builder:v22 AS build
+
+RUN mkdir -p /app
+ADD . /app
+WORKDIR /app
+
+RUN yarn build
+
+CMD ["yarn",  "http-server"]
