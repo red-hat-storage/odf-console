@@ -1,7 +1,7 @@
 /* eslint-env node */
 
 import * as path from 'path';
-import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk/webpack';
+import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk/lib/index-webpack';
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 import * as webpack from 'webpack';
 
@@ -88,11 +88,7 @@ const config: webpack.Configuration = {
   optimization: {
     chunkIds: 'named',
     minimize: false,
-  },
-  externals: {
-    '@openshift-console/dynamic-plugin-sdk/api': 'api',
-    '@openshift-console/dynamic-plugin-sdk/internalAPI': 'internalAPI',
-  },
+  }
 };
 
 export default config;

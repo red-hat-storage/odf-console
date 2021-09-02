@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { FirehoseResource } from '@openshift-console/dynamic-plugin-sdk';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk/api';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   DashboardCard,
   DashboardCardBody,
   DashboardCardHeader,
   DashboardCardTitle,
-  EventKind,
   RecentEventsBody,
-} from '@openshift-console/dynamic-plugin-sdk/internalAPI';
+} from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-api';
+import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import { useTranslation } from 'react-i18next';
 import './activity-card.scss';
 

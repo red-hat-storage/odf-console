@@ -4,7 +4,7 @@ import {
   K8sResourceCommon,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk/api';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   DashboardCard,
   DashboardCardBody,
@@ -13,7 +13,7 @@ import {
   HealthBody,
   HealthItem,
   usePrometheusPoll,
-} from '@openshift-console/dynamic-plugin-sdk/internalAPI';
+} from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-api';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Gallery, GalleryItem, pluralize } from '@patternfly/react-core';

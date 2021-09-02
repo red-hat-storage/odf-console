@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk/api';
+import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
