@@ -10,18 +10,7 @@
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "noEmitOnError": false,
-    "paths": {
-      "@openshift-console/dynamic-plugin-sdk/api": [
-        "node_modules/@openshift-console/dynamic-plugin-sdk/lib/api/api"
-      ],
-      "@openshift-console/dynamic-plugin-sdk/internalAPI": [
-        "node_modules/@openshift-console/dynamic-plugin-sdk/lib/api/internal"
-      ],
-      "@openshift-console/dynamic-plugin-sdk/webpack": [
-        "node_modules/@openshift-console/dynamic-plugin-sdk/lib/webpack"
-      ]
-    }
+    "noEmitOnError": false
   },
   "include": ["src"]
 }

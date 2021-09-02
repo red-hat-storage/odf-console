@@ -591,10 +591,10 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@openshift-console/dynamic-plugin-sdk@0.0.0-alpha17":
-  version "0.0.0-alpha17"
-  resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk/-/dynamic-plugin-sdk-0.0.0-alpha17.tgz#21892cfa29b913f27e9df11db93f32c88f6aff9c"
-  integrity sha512-vLIPA/4WCGDkGS/caccmuWnZwdkXSBGRJvlTfGWbn10bliha08aClRg8rBI5s64zRy6Zb8ZN/s/UQ/CxTmK7/A==
+"@openshift-console/dynamic-plugin-sdk@0.0.0-beta1":
+  version "0.0.0-beta1"
+  resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk/-/dynamic-plugin-sdk-0.0.0-beta1.tgz#1c86bb07ea00b280c9b5a3509b9c36cba3df3cf3"
+  integrity sha512-mT/6f+Gs8AkjD0xf+An9+Bs3fFv9LERYNHhhuyCiFtQ070Mc9LLryfY/GvvIQR1hA4OSCmhZYJ6vK5nV/DITng==
 
 "@patternfly/patternfly@4.103.6":
   version "4.103.6"

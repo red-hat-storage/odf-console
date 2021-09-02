@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk/api';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   DashboardCard,
   DashboardCardHeader,
@@ -8,7 +8,7 @@ import {
   UtilizationDurationDropdown,
   usePrometheusPoll,
   useUtilizationDuration,
-} from '@openshift-console/dynamic-plugin-sdk/internalAPI';
+} from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-api';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { SortByDirection } from '@patternfly/react-table';
