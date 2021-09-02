@@ -9,6 +9,7 @@
   "repository": "git@github.com:red-hat-storage/odf-console.git",
   "scripts": {
     "clean": "rm -rf ./dist",
+    "test-cypress": "node_modules/.bin/cypress open --config-file ./cypress/cypress.json --env openshift=true",
     "build": "yarn clean && NODE_ENV=production yarn ts-node ./node_modules/.bin/webpack",
     "build-dev": "yarn clean && yarn ts-node ./node_modules/.bin/webpack",
     "dev": "yarn clean && yarn ts-node ./node_modules/.bin/webpack serve",
@@ -37,6 +38,7 @@
     "react-router-dom": "5.2.0"
   },
   "devDependencies": {
+    "@cypress/webpack-preprocessor": "^5.9.1",
     "@openshift-console/dynamic-plugin-sdk": "0.0.0-beta1",
     "@types/lodash-es": "^4.17.4",
     "@types/node": "^14.14.34",
@@ -50,8 +52,12 @@
     "comment-json": "4.x",
     "copy-webpack-plugin": "^6.4.1",
     "css-loader": "0.28.x",
+    "cypress": "^8.3.1",
+    "cypress-multi-reporters": "^1.5.0",
     "eslint": "^7.31.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-chai-friendly": "^0.7.2",
+    "eslint-plugin-cypress": "^2.11.3",
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-react": "^7.24.0",
@@ -62,6 +68,8 @@
     "i18next-parser": "^3.3.0",
     "jest": "^27.0.6",
     "mini-css-extract-plugin": "0.4.x",
+    "mocha-junit-reporter": "^2.0.0",
+    "mochawesome": "^6.2.2",
     "node-sass": "^5.0.0",
     "prettier": "2.3.2",
     "read-pkg": "5.x",
@@ -89,7 +97,8 @@
       "@console/pluginAPI": "*"
     },
     "exposedModules": {
-      "dashboard": "./components/odf-dashboard/dashboard"
+      "dashboard": "./components/odf-dashboard/dashboard",
+      "features": "./features"
     }
   }
 }
