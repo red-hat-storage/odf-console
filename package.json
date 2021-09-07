@@ -89,7 +89,8 @@
       "@console/pluginAPI": "*"
     },
     "exposedModules": {
-      "dashboard": "./components/odf-dashboard/dashboard"
+      "dashboard": "./components/odf-dashboard/dashboard",
+      "features": "./features"
     }
   }
 }
