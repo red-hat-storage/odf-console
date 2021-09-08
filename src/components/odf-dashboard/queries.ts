@@ -26,5 +26,5 @@ export const UTILIZATION_QUERY = {
 };
 
 export const STATUS_QUERIES = {
-  [StorageDashboard.HEALTH]: '(label_replace(odf_system_map , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managed_by) group_right(storage_system) odf_system_health_status'
+  [StorageDashboard.HEALTH]: '(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy) group_right(storage_system) odf_system_health_status'
 };
