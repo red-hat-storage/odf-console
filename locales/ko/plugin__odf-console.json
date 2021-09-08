@@ -1,0 +1,22 @@
+{
+  "Name": "이름",
+  "Used Capacity": "사용된 용량",
+  "Used / Total": "사용 / 총계",
+  "No data available": "사용 가능한 데이터 없음",
+  "Current": "현재",
+  "Activity": "활동",
+  "OpenShift Data Foundation Overview": "OpenShift Data Foundation 개요",
+  "Overview": "개요",
+  "External Object Provider Used Capacity": "외부 개체 공급자 사용 용량",
+  "IOPS": "IOPS",
+  "Latency": "지연 시간",
+  "Throughput": "처리량",
+  "Performance": "성능",
+  "Performance Card": "성능 카드",
+  "Status": "상태",
+  "OpenShift Data Foundation": "OpenShift Data Foundation",
+  "Storage Systems": "스토리지 시스템",
+  "Storage System": "스토리지 시스템",
+  "Health": "상태",
+  "System Capacity": "시스템 용량"
+}
