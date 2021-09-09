@@ -1,0 +1,22 @@
+{
+  "Name": "名前",
+  "Used Capacity": "使用済みの容量",
+  "Used / Total": "使用済み/合計",
+  "No data available": "利用可能なデータはありません",
+  "Current": "現行",
+  "Activity": "アクティビティー",
+  "OpenShift Data Foundation Overview": "OpenShift Data Foundation の概要",
+  "Overview": "概要",
+  "External Object Provider Used Capacity": "外部オブジェクトプロバイダーの使用済みの容量",
+  "IOPS": "IOPS",
+  "Latency": "レイテンシー",
+  "Throughput": "スループット",
+  "Performance": "パフォーマンス",
+  "Performance Card": "パフォーマンスカード",
+  "Status": "ステータス",
+  "OpenShift Data Foundation": "OpenShift Data Foundation",
+  "Storage Systems": "ストレージシステム",
+  "Storage System": "ストレージシステム",
+  "Health": "健全性",
+  "System Capacity": "システムの容量"
+}

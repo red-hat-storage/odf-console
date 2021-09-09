@@ -1,0 +1,22 @@
+{
+  "Name": "名称",
+  "Used Capacity": "使用的容量",
+  "Used / Total": "已使用/总计",
+  "No data available": "没有可用数据",
+  "Current": "当前",
+  "Activity": "活跃",
+  "OpenShift Data Foundation Overview": "OpenShift Data Foundation 状态",
+  "Overview": "概述",
+  "External Object Provider Used Capacity": "外部对象供应商使用的容量",
+  "IOPS": "IOPS",
+  "Latency": "延迟",
+  "Throughput": "吞吐量",
+  "Performance": "性能",
+  "Performance Card": "性能卡",
+  "Status": "状态",
+  "OpenShift Data Foundation": "OpenShift Data Foundation",
+  "Storage Systems": "存储系统",
+  "Storage System": "存储系统",
+  "Health": "健康",
+  "System Capacity": "系统容量"
+}
