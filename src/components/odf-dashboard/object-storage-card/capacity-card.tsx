@@ -28,7 +28,7 @@ const ObjectCapacityCard: React.FC = () => {
   const dataFrames = !loaded && !error ? parseMetricData(data) : [];
 
   return (
-    <DashboardCard>
+    <DashboardCard className="odf-capacityCard--height">
       <DashboardCardHeader>
         <DashboardCardTitle>
           {t('External Object Provider Used Capacity')}

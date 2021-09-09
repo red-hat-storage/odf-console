@@ -77,7 +77,7 @@ const SystemCapacityCard: React.FC = () => {
   const isLoading =
     loadingUsedCapacity && loadingTotalCapacity && !systemsLoaded;
   return (
-    <DashboardCard>
+    <DashboardCard className="odf-capacityCard--height">
       <DashboardCardHeader>
         <DashboardCardTitle>{t('System Capacity')}</DashboardCardTitle>
       </DashboardCardHeader>

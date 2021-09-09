@@ -18,7 +18,12 @@ import { DataUnavailableError } from '../../common/generic/Error';
 import LineGraph, { LineGraphProps } from '../../common/line-graph/line-graph';
 import ResourceLink from '../../common/resource-link/resource-link';
 import Table, { Column } from '../../common/table/table';
-import { referenceForModel } from '../../utils';
+import {
+  getDashboardLink,
+  getGVK,
+  referenceFor,
+  referenceForModel,
+} from '../../utils';
 import { StorageDashboard, UTILIZATION_QUERY } from '../queries';
 import './performance-card.scss';
 import { generateDataFrames } from './utils';
@@ -40,16 +45,17 @@ type GetRow = (
 
 const getRow: GetRow = ({
   managedSystemKind,
-  managedSystemName,
   systemName,
   iopsData,
   throughputData,
   latencyData,
 }) => {
+  const { apiGroup, apiVersion, kind } = getGVK(managedSystemKind);
+  const refKind = referenceFor(apiGroup)(apiVersion)(kind);
   return [
     <ResourceLink
       key={systemName}
-      link={`/odf/system/${managedSystemKind}/${managedSystemName}`}
+      link={getDashboardLink(refKind, systemName)}
       resourceModel={ODFStorageSystem}
       resourceName={systemName}
     />,
@@ -150,13 +156,12 @@ const PerformanceCard: React.FC = () => {
           ariaLabel={t('Performance Card')}
         />
       )}
-      {loading && <PerformanceCardLoading />}
-      {(error && !loading) ||
-        (_.isEmpty(rawRows) && (
-          <div className="performanceCard--error">
-            <DataUnavailableError />{' '}
-          </div>
-        ))}
+      {loading && !error && <PerformanceCardLoading />}
+      {((error && !loading) || (!error && !loading && _.isEmpty(rawRows))) && (
+        <div className="performanceCard--error">
+          <DataUnavailableError />{' '}
+        </div>
+      )}
     </DashboardCard>
   );
 };
