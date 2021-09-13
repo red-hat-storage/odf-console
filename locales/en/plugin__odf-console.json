@@ -5,7 +5,7 @@
   "No data available": "No data available",
   "Current": "Current",
   "Activity": "Activity",
-  "OpenShift Data Foundation Overview": "OpenShift Data Foundation Overview",
+  "OpenShift Data Foundation": "OpenShift Data Foundation",
   "Overview": "Overview",
   "External Object Provider Used Capacity": "External Object Provider Used Capacity",
   "IOPS": "IOPS",
@@ -14,8 +14,6 @@
   "Performance": "Performance",
   "Performance Card": "Performance Card",
   "Status": "Status",
-  "OpenShift Data Foundation": "OpenShift Data Foundation",
-  "Storage Systems": "Storage Systems",
   "Storage System": "Storage System",
   "Health": "Health",
   "System Capacity": "System Capacity"
