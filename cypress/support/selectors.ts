@@ -21,6 +21,7 @@ declare global {
         selector: string,
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
       ): Chainable<Element>;
+      byTestDropDownMenu(selector: string): Chainable<Element>;
     }
   }
 }
@@ -67,3 +68,6 @@ Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
   }
 
 });
+Cypress.Commands.add('byTestDropDownMenu', (selector: string) =>
+  cy.get(`[data-test-dropdown-menu="${selector}"]`),
+);

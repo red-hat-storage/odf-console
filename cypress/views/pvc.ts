@@ -24,4 +24,8 @@ export const pvc = {
       .type(expansionSize);
     cy.byTestID('confirm-action').click();
   },
+  deletePVCFromCli: (pvcName: string) => {
+    cy.log('Delete pvc and try pool deletion');
+    cy.exec(`oc delete PersistentVolumeClaim ${pvcName}`);
+  }
 };
