@@ -27,6 +27,10 @@
     white-space: nowrap;
     width: 50px;
   }
+
+  &-capacityCard--height {
+    max-height: 286px;
+  }
 }
 
 .odf-capacityCardLoading-body__item {

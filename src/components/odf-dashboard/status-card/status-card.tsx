@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {
   HealthState,
-  K8sResourceCommon,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -17,6 +16,8 @@ import {
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Gallery, GalleryItem, pluralize } from '@patternfly/react-core';
+import { ODF_OPERATOR } from '../../../constants';
+import { ClusterServiceVersionKind } from '../../../types';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { STATUS_QUERIES, StorageDashboard } from '../queries';
 import { getOperatorHealthState } from '../utils';
@@ -44,18 +45,17 @@ const healthStateMap = (state: string) => {
 export const StatusCard: React.FC = () => {
   const { t } = useTranslation('plugin__odf-console');
   const [csvData, csvLoaded, csvLoadError] =
-    useK8sWatchResource<K8sResourceCommon[]>(operatorResource);
+    useK8sWatchResource<ClusterServiceVersionKind[]>(operatorResource);
 
   const [healthData, healthError, healthLoading] = usePrometheusPoll({
     query: STATUS_QUERIES[StorageDashboard.HEALTH],
     endpoint: 'api/v1/query' as any,
   });
 
-  console.log(healthData, healthError, healthLoading);
-
-  const operatorStatus: string = (
-    csvData?.find((csv) => csv.metadata.name.includes('odf-operator')) as any
-  )?.status?.phase;
+  const operator = csvData?.find((csv) =>
+    csv.metadata.name.startsWith(ODF_OPERATOR)
+  );
+  const operatorStatus = operator?.status?.phase;
 
   const parsedHealthData =
     !healthError && !healthLoading
@@ -88,7 +88,7 @@ export const StatusCard: React.FC = () => {
   );
 
   return (
-    <DashboardCard>
+    <DashboardCard className="odfDashboard-card--height">
       <DashboardCardHeader>
         <DashboardCardTitle>{t('Status')}</DashboardCardTitle>
       </DashboardCardHeader>
