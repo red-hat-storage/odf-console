@@ -14,10 +14,15 @@ module.exports = (on, config) => {
         rules: [
           {
             test: /\.ts$/,
-            loader: 'ts-loader',
+            use: 'ts-loader',
+            exclude: /node_modules/,
           },
         ],
       },
+      output: {
+        filename: 'bundle.js',
+        path: path.resolve(__dirname, 'cypress-dist'),
+  },
     },
   };
   // `on` is used to hook into various events Cypress emits
@@ -44,7 +49,7 @@ module.exports = (on, config) => {
   on('after:screenshot', (details) => {
     // Prepend "1_", "2_", etc. to screenshot filenames because they are sorted alphanumerically in CI's artifacts dir
     const pathObj = path.parse(details.path);
-    fs.readdir(pathObj.dir, (error, files) => {
+    fs.readdir(pathObj.dir, (_, files) => {
       const newPath = `${pathObj.dir}${path.sep}${files.length}_${pathObj.base}`;
       return new Promise((resolve, reject) => {
         // eslint-disable-next-line consistent-return
