@@ -1,0 +1,1 @@
+FROM quay.io/ocs-dev/ocs-operator-bundle:v4.9.0
