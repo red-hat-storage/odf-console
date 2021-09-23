@@ -14,10 +14,13 @@ declare global {
       ): Chainable<Element>;
       byLegacyTestID(selector: string): Chainable<Element>;
       byTestOperandLink(selector: string): Chainable<Element>;
+      byTestRows(selector: string): Chainable<Element>;
       clickNavLink(path: [string, string?]): Chainable<Element>;
     }
   }
 }
+
+const {$} = Cypress;
 
 Cypress.Commands.add(
   'byTestID',
@@ -34,10 +37,18 @@ Cypress.Commands.add('byTestOperandLink', (selector: string) =>
   cy.get(`[data-test-operand-link="${selector}"]`),
 );
 
+Cypress.Commands.add('byTestRows', (selector: string) =>
+  cy.get(`[data-test-rows="${selector}"]`),
+);
+
 Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
   cy.byTestID("nav")
     .contains(path[0], { timeout: 10 * 1000 })
-    .click({ force: true });
+    .should(el => {
+    if($(el).attr('aria-expanded') == "false") {
+      $(el).click();
+    }
+  });
   if(path.length > 1) {
     cy.get('#page-sidebar')
     .contains(path[1])

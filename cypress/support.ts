@@ -19,8 +19,8 @@ Cypress.on('uncaught:exception', () => {
   return false;
 });
 
-Cypress.Commands.add('install', (enableConsolePlugin: boolean = true) => {
-  cy.exec(`oc get storagecluster ocs-storagecluster -n ${NS}`, {
+Cypress.Commands.add('install', () => {
+  cy.exec(`oc get storagesystem ${OCS_SS} -n ${NS}`, {
     failOnNonZeroExit: false,
   }).then(({ code }) => {
     if (code !== 0) {
@@ -39,9 +39,7 @@ Cypress.Commands.add('install', (enableConsolePlugin: boolean = true) => {
       cy.byLegacyTestID('operator-install-btn').click({ force: true });
       cy.byTestID('Operator recommended Namespace:-radio-input').should('be.checked');
       cy.byTestID('Disable-radio-input').should('be.checked');
-      if(enableConsolePlugin) {
-        cy.byTestID('Enable-radio-input').click();
-      }
+      cy.byTestID('Enable-radio-input').click();
       cy.byTestID('install-operator').click({ force: true });
       cy.byTestID('success-icon', { timeout: 4 * 60000 }).should('be.visible');
       cy.log('Create a storage system')
@@ -49,22 +47,22 @@ Cypress.Commands.add('install', (enableConsolePlugin: boolean = true) => {
       cy.get('button').contains("Create StorageSystem").click();
       // Wait for the StorageSystem page to load.
       cy.contains("Create StorageSystem", { timeout: 10 * 1000 }).should("be.visible");
-      cy.url().then(url => {
-        const page = url.substring(0, url.lastIndexOf("~new"));
-        cy.get('button').contains("Next").click();
-        cy.get('input[type="checkbox"]').first().uncheck();
-        cy.get('input[type="checkbox"]').first().check();
-        cy.get('button').contains("Next").click();
-        cy.get('button').contains("Next").click();
-        cy.get('button').contains("Create StorageSystem").as('Create StorageSystem Button');
-        cy.get('@Create StorageSystem Button').click();
-        // Wait for the storage system to be created.
-        cy.get('@Create StorageSystem Button', { timeout: 10 * 1000 }).should('not.exist');
-        cy.log('Check if storage system was created')
-        cy.visit(page);
-        cy.byLegacyTestID('item-filter').type(`${OCS_SS}`);
-        cy.get('td[role="gridcell"]', { timeout: 5 * 60000 }).contains("Available");
-      });
+      cy.get('button').contains("Next").click();
+      cy.get('input[type="checkbox"]').first().uncheck();
+      cy.get('input[type="checkbox"]').first().check();
+      cy.get('button').contains("Next").click();
+      cy.get('button').contains("Next").click();
+      cy.get('button').contains("Create StorageSystem").as('Create StorageSystem Button');
+      cy.get('@Create StorageSystem Button').click();
+      // Wait for the storage system to be created.
+      cy.get('@Create StorageSystem Button', {timeout: 10 * 1000}).should('not.exist');
+      cy.log('Check if storage system was created')
+      cy.clickNavLink(['Operators', 'Installed Operators'])
+      cy.byLegacyTestID('item-filter').type("Openshift Data Foundation");
+      cy.byTestRows('resource-row').get('td').first().click();
+      cy.byLegacyTestID('horizontal-link-Storage System').click();
+      cy.byLegacyTestID('item-filter').type(`${OCS_SS}`);
+      cy.get('td[role="gridcell"]', {timeout: 5 * 60000}).contains("Available");
     } else {
       cy.log(' ocs-storagecluster-storagesystem is present, proceeding without installation.');
     }

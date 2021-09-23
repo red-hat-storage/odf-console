@@ -14,8 +14,8 @@ module.exports = {
   ],
   // Refer: https://github.com/cypress-io/eslint-plugin-cypress#rules
   "rules": {
-    "no-force": "warn",
-    "assertion-before-screenshot": "warn",
+    "no-force": "error",
+    "assertion-before-screenshot": "error",
     "require-data-selectors": "error",
   }
 }
