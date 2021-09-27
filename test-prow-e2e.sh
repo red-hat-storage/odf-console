@@ -27,6 +27,9 @@ export NO_COLOR=1
 # Install dependencies.
 yarn install
 
+mkdir cypress/tests
+echo 'describe("Test Intallation", () => { it("Installs", () => { cy.login(); cy.visit("/"); cy.install(); cy.logout(); }) })' > cypress/tests/test.spec.ts
+
 # Run tests.
 yarn run test-cypress-headless
 
