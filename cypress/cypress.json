@@ -2,12 +2,12 @@
   "viewportWidth": 1920,
   "viewportHeight": 1080,
   "integrationFolder": "cypress/tests/",
-  "screenshotsFolder": "cypress-metadata/screenshots/",
-  "videosFolder": "cypress-metadata/videos/",
+  "screenshotsFolder": "gui-test-screenshots/screenshots/",
+  "videosFolder": "gui-test-screenshots/videos/",
   "video": true,
   "reporter": "node_modules/cypress-multi-reporters",
   "reporterOptions": {
-    "configFile": "reporter-config.json"
+    "configFile": "cypress/reporter-config.json"
   },
   "screenshotOnRunFailure": true,
   "supportFile": "cypress/support.ts",
