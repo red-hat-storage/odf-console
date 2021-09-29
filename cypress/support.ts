@@ -24,27 +24,11 @@ Cypress.Commands.add('install', () => {
     failOnNonZeroExit: false,
   }).then(({ code }) => {
     if (code !== 0) {
-      cy.log('Perform ODF Operator installation and StorageSystem creation');
-      cy.log('Create custom catalog source with latest stable image of ODF');
-      // Apply CatalogSource.
-      cy.exec(`kubectl delete catalogsource ${ODFCatalogSource.metadata.name} -n ${ODFCatalogSource.metadata.namespace}`, { failOnNonZeroExit: false })
-      cy.exec(`echo '${JSON.stringify(ODFCatalogSource)}' | kubectl create -f -`);
-      cy.log('Search in Operator Hub');
-      // Search Operator in Operator Hub.
-      cy.clickNavLink(['Operators', 'OperatorHub']);
-      cy.byTestID('search-operatorhub').type('Openshift Data Foundation');
-      cy.byTestID('odf-operator-odf-catalogsource-openshift-marketplace', { timeout: 60000 }).click();
-      cy.log('Subscribe to ODF Operator');
-      // Install Operator.
-      cy.byLegacyTestID('operator-install-btn').click({ force: true });
-      cy.byTestID('Operator recommended Namespace:-radio-input').should('be.checked');
-      cy.byTestID('Disable-radio-input').should('be.checked');
-      cy.byTestID('Enable-radio-input').click();
-      cy.byTestID('install-operator').click({ force: true });
-      cy.byTestID('success-icon', { timeout: 4 * 60000 }).should('be.visible');
-      cy.log('Create a storage system')
-      // Create a storage system.
-      cy.get('button').contains("Create StorageSystem").click();
+      cy.clickNavLink(['Operators', 'Installed Operators'])
+      cy.byLegacyTestID('item-filter').type("Openshift Data Foundation");
+      cy.byTestRows('resource-row').get('td').first().click();
+      cy.byLegacyTestID('horizontal-link-Storage System').click();
+      cy.byTestID('item-create').click();
       // Wait for the StorageSystem page to load.
       cy.contains("Create StorageSystem", { timeout: 10 * 1000 }).should("be.visible");
       cy.get('button').contains("Next").click();
