@@ -2,7 +2,6 @@
   "compilerOptions": {
     "sourceMap": true,
     "outDir": "./cypress-dist/",
-    "noImplicitAny": true,
     "module": "esnext",
     "target": "es2016",
     "jsx": "react",
