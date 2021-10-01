@@ -9,6 +9,13 @@ if [ $# -eq 0 ]
     exit 1
 fi
 
+# Enable console plugin for ODF-Console
+export CONSOLE_CONFIG_NAME="cluster"
+export ODF_PLUGIN_NAME="odf-console"
+
+echo "Enabling Console Plugin for ODF Operator"
+oc patch console.v1.operator.openshift.io ${CONSOLE_CONFIG_NAME} --type=json -p="[{'op': 'add', 'path': '/spec/plugins/-', 'value':\"${ODF_PLUGIN_NAME}\"}]"
+
 ODF_CONSOLE_IMAGE="$1"
 export ODF_CSV_NAME="$(oc get csv -n openshift-storage -o=jsonpath='{.items[?(@.spec.displayName=="OpenShift Data Foundation")].metadata.name}')"
 
