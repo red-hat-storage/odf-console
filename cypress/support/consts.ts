@@ -26,3 +26,12 @@ export const ODFCatalogSource = {
     publisher: 'Red Hat',
   },
 };
+/* OCS_SC_STATE is divided up into sub-strings for better readability
+* as OCS_SC_JSONPATH uses some escape sequences in order to fetch the
+* storage cluster's status.
+*/
+const SC_PHASE_QUERY = (name) => {
+  return `{range .items[*]}{.metadata.name==${name}\"}{.status.phase}{\"\\n\"}{end}`;
+};
+const STORAGECLUSTER_PHASE=`"$(oc get storageclusters -n openshift-storage -o=jsonpath='${SC_PHASE_QUERY("ocs-storagecluster")}')"`;
+export const OCS_SC_STATE=`until [ ${STORAGECLUSTER_PHASE} = "Ready" ]; do sleep 1; done;`
