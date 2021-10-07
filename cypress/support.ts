@@ -2,6 +2,7 @@ import {
   NS,
   ODFCatalogSource,
   OCS_SS,
+  OCS_SC_STATE,
 } from './support/consts';
 import './support/selectors';
 import './support/login';
@@ -47,6 +48,7 @@ Cypress.Commands.add('install', () => {
       cy.byLegacyTestID('horizontal-link-Storage System').click();
       cy.byLegacyTestID('item-filter').type(`${OCS_SS}`);
       cy.get('td[role="gridcell"]', {timeout: 5 * 60000}).contains("Available");
+      cy.exec(OCS_SC_STATE, { timeout: 25 * 60000 });
     } else {
       cy.log(' ocs-storagecluster-storagesystem is present, proceeding without installation.');
     }
