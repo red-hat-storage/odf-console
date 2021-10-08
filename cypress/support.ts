@@ -20,6 +20,13 @@ Cypress.on('uncaught:exception', () => {
   return false;
 });
 
+
+Cypress.Cookies.debug(true);
+
+Cypress.Cookies.defaults({
+  preserve: ['openshift-session-token', 'csrf-token'],
+});
+
 Cypress.Commands.add('install', () => {
   cy.exec(`oc get storagesystem ${OCS_SS} -n ${NS}`, {
     failOnNonZeroExit: false,
