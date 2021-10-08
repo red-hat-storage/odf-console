@@ -36,14 +36,26 @@ ARTIFACT_DIR=${ARTIFACT_DIR:=/tmp/artifacts}
 SCREENSHOTS_DIR=gui-test-screenshots
 INSTALLER_DIR=${INSTALLER_DIR:=${ARTIFACT_DIR}/installer}
 
-function copyArtifacts {
+function generateLogsAndCopyArtifacts {
+  oc get storageclusters ocs-storagecluster -n openshift-storage -o yaml > ${ARTIFACT_DIR}/storagecluster.yaml
+  oc get storagesystems -n openshift-storage -o yaml > ${ARTIFACT_DIR}/storagesystem_details.yaml
+  oc get nodes -o yaml > ${ARTIFACT_DIR}/node.yaml
+  oc get csvs -n openshift-storage > ${ARTIFACT_DIR}/csvs.yaml
+  oc get csvs -n openshift-storage -o yaml >> ${ARTIFACT_DIR}/csvs.yaml
+  oc get pods -n openshift-storage -o wide > ${ARTIFACT_DIR}/pods_details.yaml
+  oc get pods -n openshift-storage -o yaml >> ${ARTIFACT_DIR}/pod_details.yaml
+  oc get deployments -n openshift-storage -o wide > ${ARTIFACT_DIR}/deployment_details.yaml
+  oc get deployments -n openshift-storage -o yaml >> ${ARTIFACT_DIR}/deployment_details.yaml
+  oc get subscriptions -n openshift-storage -o yaml > ${ARTIFACT_DIR}/subscription_details.yaml
+  oc cluster-info dump > ${ARTIFACT_DIR}/cluster_info.json
+
   if [ -d "$ARTIFACT_DIR" ] && [ -d "$SCREENSHOTS_DIR" ]; then
     echo "Copying artifacts from $(pwd)..."
     cp -r "$SCREENSHOTS_DIR" "${ARTIFACT_DIR}/gui-test-screenshots"
   fi
 }
 
-trap copyArtifacts EXIT
+trap generateLogsAndCopyArtifacts EXIT
 
 BRIDGE_KUBEADMIN_PASSWORD="$(cat "${KUBEADMIN_PASSWORD_FILE:-${INSTALLER_DIR}/auth/kubeadmin-password}")"
 export BRIDGE_KUBEADMIN_PASSWORD
