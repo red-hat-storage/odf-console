@@ -10,7 +10,7 @@ import {
   DashboardCardHeader,
   DashboardCardTitle,
   usePrometheusPoll,
-} from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-api';
+} from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { humanizeBinaryBytes } from '../../../humanize';
