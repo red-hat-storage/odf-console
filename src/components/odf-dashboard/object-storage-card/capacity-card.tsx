@@ -6,7 +6,7 @@ import {
   DashboardCardHeader,
   DashboardCardTitle,
   usePrometheusPoll,
-} from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-api';
+} from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { humanizeBinaryBytes } from '../../../humanize';
 import CapacityCard from '../../common/capacity-card/capacity-card';
