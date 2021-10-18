@@ -14,7 +14,19 @@
       "insertBefore": "persistentvolumes",
       "section": "storage",
       "name": "OpenShift Data Foundation",
-      "href": "/odf"
+      "href": "/odf/cluster"
+    },
+    "flags": {
+      "required": ["ODF_MODEL"],
+      "disallowed": ["ODF_MANAGED"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/odf/cluster", "/odf/systems"],
+      "exact": false,
+      "component": { "$codeRef": "dashboard.default" }
     },
     "flags": {
       "required": ["ODF_MODEL"],
@@ -25,11 +37,11 @@
     "type": "console.page/route",
     "properties": {
       "path": "/odf",
-      "component": { "$codeRef": "dashboard.default" }
+      "exact": true,
+      "component": { "$codeRef": "dashboard.Reroute" }
     },
     "flags": {
-      "required": ["ODF_MODEL"],
-      "disallowed": ["ODF_MANAGED"]
+      "required": ["ODF_MODEL"]
     }
   }
 ]
