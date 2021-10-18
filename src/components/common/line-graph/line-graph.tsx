@@ -61,8 +61,8 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
           height={150}
           padding={{
             bottom: 20,
-            left: 75,
-            right: 10, // Adjusted to accommodate legend
+            left: 95,
+            right: 15, // Adjusted to accommodate legend
             top: 20,
           }}
           width={width}
