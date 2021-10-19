@@ -1,9 +1,16 @@
-FROM node:14
-
-WORKDIR /usr/src/app
-COPY . /usr/src/app
+FROM node:15 AS builder
+WORKDIR /app
+COPY . /app
 RUN yarn install
 RUN yarn build
 
-EXPOSE 9001
-ENTRYPOINT [ "./http-server.sh", "./dist" ]
+
+FROM node:15 as serverpackage
+RUN yarn global add http-server
+RUN export PATH="$(yarn global bin):$PATH"
+
+FROM serverpackage
+COPY --from=builder /app/dist /app
+COPY --from=builder /app/http-server.sh .
+ENTRYPOINT [ "./http-server.sh", "./app" ]
+
