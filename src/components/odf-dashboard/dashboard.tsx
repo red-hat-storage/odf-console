@@ -3,6 +3,7 @@ import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
+import { useLocation } from 'react-router-dom';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { ODFStorageSystemMock } from '../../models';
 import PageHeading from '../common/heading/page-heading';
@@ -13,8 +14,8 @@ import { StatusCard } from './status-card/status-card';
 import SystemCapacityCard from './system-capacity-card/capacity-card';
 import '../../style.scss';
 
-type ODFDashboardProps = {
-  match: RouteComponentProps['match'];
+type ODFDashboardPageProps = {
+  history: RouteComponentProps['history'];
 };
 
 const UpperSection: React.FC = () => (
@@ -37,7 +38,7 @@ const UpperSection: React.FC = () => (
   </Grid>
 );
 
-export const ODFDashboard: React.FC<ODFDashboardProps> = () => {
+export const ODFDashboard: React.FC = () => {
   return (
     <>
       <div className="co-dashboard-body">
@@ -47,7 +48,7 @@ export const ODFDashboard: React.FC<ODFDashboardProps> = () => {
   );
 };
 
-const ODFDashboardPage: React.FC = () => {
+const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
   const { t } = useTranslation('plugin__odf-console');
   const title = t('OpenShift Data Foundation');
   const pages = [
@@ -57,6 +58,15 @@ const ODFDashboardPage: React.FC = () => {
       component: ODFDashboard,
     },
   ];
+  const { history } = props;
+  const location = useLocation();
+
+  React.useEffect(() => {
+    if (location.pathname.endsWith('/odf/systems')) {
+      history.push(`/odf/cluster/systems`);
+    }
+  }, [location, history]);
+
   return (
     <>
       <Helmet>
@@ -72,6 +82,18 @@ const ODFDashboardPage: React.FC = () => {
       />
     </>
   );
+};
+
+/**
+ * To support legacy /odf routes.
+ * Todo(fix): Remove from console in 4.10.
+ */
+export const Reroute: React.FC<ODFDashboardPageProps> = ({ history }) => {
+  React.useEffect(() => {
+    history.push(`/odf/cluster`);
+  }, [history]);
+
+  return null;
 };
 
 export default ODFDashboardPage;
