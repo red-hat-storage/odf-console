@@ -36,9 +36,20 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf",
+      "path": ["/odf", "/odf/overview"],
       "exact": true,
       "component": { "$codeRef": "dashboard.Reroute" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/resource/:kind",
+      "exact": true,
+      "component": { "$codeRef": "dashboard.RerouteResource" }
     },
     "flags": {
       "required": ["ODF_MODEL"]
