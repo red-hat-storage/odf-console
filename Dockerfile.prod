@@ -1,0 +1,30 @@
+FROM registry-proxy.engineering.redhat.com/rh-osbs/rhacm2-yarn-builder:v2.3.0_14-1.20210810163126 AS builder
+ARG TARGET_BRANCH=release-4.9
+
+RUN dnf install -y git
+RUN git clone https://github.com/red-hat-storage/odf-console.git
+WORKDIR /odf-console
+RUN git fetch origin ${TARGET_BRANCH} && git checkout origin/${TARGET_BRANCH}
+
+RUN yarn install --prod=false
+RUN yarn build
+RUN mv ./dist ../app
+
+RUN git fetch origin ${TARGET_BRANCH}-compatibility && git checkout origin/${TARGET_BRANCH}-compatibility
+RUN yarn install
+RUN yarn build
+RUN mv ./dist ../compatibility
+
+FROM registry.access.redhat.com/ubi8/nginx-118
+ADD default.conf "${NGINX_CONFIGURATION_PATH}"
+COPY --from=builder /app .
+COPY --from=builder /compatibility ./compatibility
+CMD /usr/libexec/s2i/run
+
+LABEL maintainer="Bipul Adhikari <badhikar@redhat.com>"
+LABEL name="odf-console"
+LABEL version="4.9"
+LABEL description="OpenShift Data Foundation Console container"
+LABEL summary="Provides the latest console for OpenShift Data Foundation."
+LABEL io.k8s.display-name="ODF Console"
+LABEL io.openshift.tags="odf"
