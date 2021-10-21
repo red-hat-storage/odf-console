@@ -2,7 +2,7 @@ import * as React from 'react';
 import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { RouteComponentProps } from 'react-router';
+import { RouteComponentProps, match as Match } from 'react-router';
 import { useLocation } from 'react-router-dom';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { ODFStorageSystemMock } from '../../models';
@@ -93,6 +93,25 @@ export const Reroute: React.FC<ODFDashboardPageProps> = ({ history }) => {
     history.push(`/odf/cluster`);
   }, [history]);
 
+  return null;
+};
+
+type ReRouteResourceProps = {
+  history: RouteComponentProps['history'];
+  match: Match<{ kind: string }>;
+};
+
+/**
+ * To support legacy /odf/resource/:kind Routes
+ * Todo(fix): Remove from console in 4.10.
+ */
+export const RerouteResource: React.FC<ReRouteResourceProps> = ({
+  match,
+  history,
+}) => {
+  React.useEffect(() => {
+    history.push(`/odf/cluster/resource/${match.params.kind}`);
+  }, [history, match]);
   return null;
 };
 
