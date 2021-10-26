@@ -9,7 +9,10 @@ if [ $# -eq 0 ]
     exit 1
 fi
 
-timeout 10m bash <<-'EOF'
+trap generateLogsAndCopyArtifacts EXIT
+trap generateLogsAndCopyArtifacts ERR
+
+timeout 15m bash <<-'EOF'
 echo "waiting for odf-catalogsource connection to be in READY state"
 until [ "$(oc get catalogsource -n openshift-marketplace -o=jsonpath='{.items[?(@.metadata.name=="odf-catalogsource")].status.connectionState.lastObservedState}')" == "READY" ]; do
   sleep 1
@@ -69,9 +72,6 @@ function generateLogsAndCopyArtifacts {
     fi
   fi
 }
-
-trap generateLogsAndCopyArtifacts EXIT
-trap generateLogsAndCopyArtifacts ERR
 
 # This is also the default case if the CSV is in "Installing" state initially.
 timeout 15m bash <<-'EOF'
