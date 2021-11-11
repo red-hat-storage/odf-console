@@ -1,6 +1,6 @@
 import { PrometheusResponse } from "@openshift-console/dynamic-plugin-sdk";
 import * as _ from "lodash";
-import { humanizeBinaryBytes, humanizeIOPS, humanizeLatency } from "../../../humanize";
+import { humanizeIOPS, humanizeLatency, humanizeDecimalBytesPerSec } from "../../../humanize";
 import { StorageSystemKind } from "../../../types";
 import { LineGraphProps } from "../../common/line-graph/line-graph";
 
@@ -51,7 +51,7 @@ export const generateDataFrames = (
                 data: getDatForSystem(id, curr, humanizeIOPS),
             },
             throughputData: {
-                data: getDatForSystem(td, curr, humanizeBinaryBytes),
+                data: getDatForSystem(td, curr, humanizeDecimalBytesPerSec),
             },
             latencyData: {
                 data: getDatForSystem(ld, curr, humanizeLatency),
