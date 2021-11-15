@@ -1,9 +1,15 @@
-FROM quay.io/coreos/tectonic-console-builder:v22
-
-WORKDIR /usr/src/app
-COPY . /usr/src/app
+FROM node:15 AS builder
+WORKDIR /app
+COPY . /app
 RUN yarn install
 RUN yarn build
 
-EXPOSE 9001
-ENTRYPOINT [ "./http-server.sh", "./dist" ]
+
+FROM cypress/browsers:node16.5.0-chrome94-ff93 as serverpackage
+RUN yarn global add http-server
+RUN export PATH="$(yarn global bin):$PATH"
+
+FROM serverpackage
+COPY --from=builder /app/dist /app
+COPY --from=builder /app/http-server.sh .
+ENTRYPOINT [ "./http-server.sh", "./app" ]
