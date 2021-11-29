@@ -30,9 +30,9 @@ export type CapacityMetricDatum = {
 type CapacityCardProps = {
   data: CapacityMetricDatum[];
   relative?: boolean;
-  isPercentage?: boolean;
   loading?: boolean;
   resourceModel?: K8sKind;
+  showPercentage?: boolean;
 };
 
 const getPercentage = (item: CapacityMetricDatum) =>
@@ -134,7 +134,10 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   largestValue,
   resourceModel,
 }) => {
-  const progress = getProgress(data, isRelative, largestValue);
+  const progress =
+    (!isPercentage && isRelative) || (isPercentage && !isRelative)
+      ? getProgress(data, isRelative, largestValue)
+      : 100;
   const value = isPercentage
     ? `${data.usedValue.string} / ${data.totalValue.string}`
     : data.usedValue.string;
@@ -169,9 +172,7 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
         )}
       </GridItem>
       <GridItem key={`${data.name}~progress`} span={7}>
-        <Tooltip
-          content={!dataUnavailable ? <>{progress.toFixed(2)} %</> : '-'}
-        >
+        {isRelative || !isPercentage ? (
           <Progress
             value={dataUnavailable ? null : progress}
             label={!dataUnavailable ? `${progress.toFixed(2)} %` : ''}
@@ -183,7 +184,19 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
             }
             variant={variant}
           />
-        </Tooltip>
+        ) : (
+          <Tooltip
+            content={!dataUnavailable ? <>{progress.toFixed(2)} %</> : null}
+          >
+            <Progress
+              value={dataUnavailable ? null : progress}
+              label={!dataUnavailable ? `${progress.toFixed(2)} %` : ''}
+              size="md"
+              measureLocation={ProgressMeasureLocation.outside}
+              variant={variant}
+            />
+          </Tooltip>
+        )}
       </GridItem>
       <GridItem span={3} key={`${data.name}~value`}>
         {dataUnavailable ? '-' : value}
@@ -229,16 +242,12 @@ const CapacityCardLoading: React.FC = () => (
 
 const CapacityCard: React.FC<CapacityCardProps> = ({
   data,
-  relative,
-  isPercentage = true,
+  relative = false,
   loading,
   resourceModel,
+  showPercentage,
 }) => {
-  let secureRelative = relative;
-  if (relative === undefined) {
-    secureRelative = data[0]?.totalValue === undefined;
-  }
-  const sortedMetrics = sortMetrics(data, 'ASC', secureRelative);
+  const sortedMetrics = sortMetrics(data, 'ASC', relative);
   const error = _.isEmpty(sortedMetrics);
   return (
     <div
@@ -248,17 +257,20 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
     >
       {!error && !loading && (
         <Grid hasGutter>
-          <CapacityCardHeader showPercentage={isPercentage} />
-          {sortedMetrics.map((item) => (
-            <CapacityCardRow
-              key={item.name}
-              data={item}
-              isPercentage={isPercentage}
-              isRelative={relative}
-              largestValue={sortedMetrics[0].usedValue}
-              resourceModel={resourceModel}
-            />
-          ))}
+          <CapacityCardHeader showPercentage={showPercentage} />
+          {sortedMetrics.map((item) => {
+            const isPercentage = !!item?.totalValue;
+            return (
+              <CapacityCardRow
+                key={item.name}
+                data={item}
+                isPercentage={isPercentage}
+                isRelative={relative}
+                largestValue={sortedMetrics[0].usedValue}
+                resourceModel={resourceModel}
+              />
+            );
+          })}
         </Grid>
       )}
       {error && !loading && <DataUnavailableError />}

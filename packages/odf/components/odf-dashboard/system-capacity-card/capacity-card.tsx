@@ -66,7 +66,9 @@ const SystemCapacityCard: React.FC = () => {
             managedSystemName: system.spec.name,
             managedSystemKind: referenceFor(apiGroup)(apiVersion)(kind),
             usedValue: humanizeBinaryBytes(usedMetric?.value?.[1]),
-            totalValue: humanizeBinaryBytes(totalMetric?.value?.[1]),
+            totalValue: _.isNumber(totalMetric?.value?.[1])
+              ? humanizeBinaryBytes(totalMetric?.value?.[1])
+              : undefined,
           };
           return datum;
         })
@@ -86,7 +88,6 @@ const SystemCapacityCard: React.FC = () => {
         {!error ? (
           <CapacityCard
             data={data}
-            isPercentage
             loading={isLoading}
             resourceModel={ODFStorageSystem}
           />
