@@ -1,10 +1,10 @@
-import { 
+import {
   KUBEADMIN_IDP,
   KUBEADMIN_USERNAME
-} from './consts';
+} from '../consts';
 import {
   submitButton,
-  masthead 
+  masthead
 } from './views';
 
 declare global {
