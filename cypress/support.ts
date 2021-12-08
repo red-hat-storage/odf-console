@@ -53,8 +53,15 @@ Cypress.Commands.add('install', () => {
       cy.byLegacyTestID('item-filter').type("Openshift Data Foundation");
       cy.byTestRows('resource-row').get('td').first().click();
       cy.byLegacyTestID('horizontal-link-Storage System').click();
-      cy.byLegacyTestID('item-filter').type(`${STORAGE_SYSTEM_NAME}`);
-      cy.get('td[role="gridcell"]', { timeout: 5 * 60000 }).contains("Available");
+      cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
+      cy.get('td[role="gridcell"]', {timeout: 5 * 60000}).contains("Available");
+      // Verify that ODF SS list page shows the SS.
+      cy.log('Check if storage system is listed as expected.')
+      cy.clickNavLink(['Storage', 'OpenShift Data Foundation']);
+      cy.byLegacyTestID('horizontal-link-Storage Systems').click();
+      cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
+      cy.get('a').contains(STORAGE_SYSTEM_NAME);
+      // Verify that the OCS SC is in READY state.
       cy.exec(OCS_SC_STATE, { timeout: 25 * 60000 });
     } else {
       cy.log(' ocs-storagecluster-storagesystem is present, proceeding without installation.');
