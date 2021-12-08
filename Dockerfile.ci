@@ -11,5 +11,6 @@ RUN export PATH="$(yarn global bin):$PATH"
 
 FROM serverpackage
 COPY --from=builder /app/dist /app
+COPY --from=builder /app/dist /app/compatibility
 COPY --from=builder /app/http-server.sh .
 ENTRYPOINT [ "./http-server.sh", "./app", "-S true", "-C /var/serving-cert/tls.crt", "-K /var/serving-cert/tls.key" ]
