@@ -4,7 +4,7 @@ import Timeoutable = Cypress.Timeoutable;
 import Withinable = Cypress.Withinable;
 import Shadow = Cypress.Shadow;
 
-export {};
+export { };
 declare global {
   namespace Cypress {
     interface Chainable<Subject> {
@@ -17,11 +17,15 @@ declare global {
       byTestOperandLink(selector: string): Chainable<Element>;
       byTestRows(selector: string): Chainable<Element>;
       clickNavLink(path: [string, string?]): Chainable<Element>;
+      byTestOperatorRow(
+        selector: string,
+        options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
+      ): Chainable<Element>;
     }
   }
 }
 
-const {$} = Cypress;
+const { $ } = Cypress;
 
 Cypress.Commands.add(
   'byTestID',
@@ -45,18 +49,21 @@ Cypress.Commands.add('byTestRows', (selector: string) =>
 Cypress.Commands.add('byTestActionID', (selector: string) =>
   cy.get(`[data-test-action="${selector}"]:not(.pf-m-disabled)`),
 );
-
+Cypress.Commands.add('byTestOperatorRow', (selector: string, options?: object) =>
+  cy.get(`[data-test-operator-row="${selector}"]`, options),
+);
 Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
   cy.byTestID("nav")
     .contains(path[0], { timeout: 10 * 1000 })
     .should(el => {
-    if($(el).attr('aria-expanded') == "false") {
-      $(el).click();
-    }
-  });
-  if(path.length > 1) {
+      if ($(el).attr('aria-expanded') == "false") {
+        $(el).click();
+      }
+    });
+  if (path.length > 1) {
     cy.get('#page-sidebar')
-    .contains(path[1])
-    .click();
+      .contains(path[1])
+      .click();
   }
+
 });

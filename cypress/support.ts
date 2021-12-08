@@ -1,9 +1,9 @@
-import { 
-  NS,
-  ODFCatalogSource,
-  OCS_SS,
+/* eslint-disable cypress/require-data-selectors */
+import {
+  CLUSTER_NAMESPACE,
+  STORAGE_SYSTEM_NAME,
   OCS_SC_STATE,
-} from './support/consts';
+} from './consts';
 import './support/selectors';
 import './support/login';
 
@@ -28,7 +28,7 @@ Cypress.Cookies.defaults({
 });
 
 Cypress.Commands.add('install', () => {
-  cy.exec(`oc get storagesystem ${OCS_SS} -n ${NS}`, {
+  cy.exec(`oc get storagesystem ${STORAGE_SYSTEM_NAME} -n ${CLUSTER_NAMESPACE}`, {
     failOnNonZeroExit: false,
   }).then(({ code }) => {
     if (code !== 0) {
@@ -47,14 +47,14 @@ Cypress.Commands.add('install', () => {
       cy.get('button').contains("Create StorageSystem").as('Create StorageSystem Button');
       cy.get('@Create StorageSystem Button').click();
       // Wait for the storage system to be created.
-      cy.get('@Create StorageSystem Button', {timeout: 10 * 1000}).should('not.exist');
+      cy.get('@Create StorageSystem Button', { timeout: 10 * 1000 }).should('not.exist');
       cy.log('Check if storage system was created')
       cy.clickNavLink(['Operators', 'Installed Operators'])
       cy.byLegacyTestID('item-filter').type("Openshift Data Foundation");
       cy.byTestRows('resource-row').get('td').first().click();
       cy.byLegacyTestID('horizontal-link-Storage System').click();
-      cy.byLegacyTestID('item-filter').type(`${OCS_SS}`);
-      cy.get('td[role="gridcell"]', {timeout: 5 * 60000}).contains("Available");
+      cy.byLegacyTestID('item-filter').type(`${STORAGE_SYSTEM_NAME}`);
+      cy.get('td[role="gridcell"]', { timeout: 5 * 60000 }).contains("Available");
       cy.exec(OCS_SC_STATE, { timeout: 25 * 60000 });
     } else {
       cy.log(' ocs-storagecluster-storagesystem is present, proceeding without installation.');
