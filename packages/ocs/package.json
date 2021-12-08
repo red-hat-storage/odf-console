@@ -1,0 +1,8 @@
+{
+  "name": "@odf/ocs",
+  "description": "Ceph and MCG components",
+  "version": "0.0.0",
+  "dependencies": {
+    "@odf/core": "0.0.0"
+  }
+}

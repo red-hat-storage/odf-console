@@ -6,6 +6,9 @@
   "author": "bipuladh <badhikar@redhat.com>",
   "license": "MIT",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "repository": "git@github.com:red-hat-storage/odf-console.git",
   "scripts": {
     "clean": "rm -rf ./dist",
@@ -19,10 +22,10 @@
     "dev": "yarn clean && yarn ts-node ./node_modules/.bin/webpack serve",
     "http-server": "./http-server.sh ./dist",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}' -I '/node_modules/(?!(@console)/)/'",
-    "lint-css": "yarn stylelint src/**/**/*.scss",
-    "lint-css-fix": "yarn stylelint src/**/**/*.scss --fix",
-    "lint": "yarn eslint --ext .ts,.tsx ./src/ && yarn lint-css",
-    "lint-fix": "yarn eslint --fix --ext .ts,.tsx ./src/ && yarn lint-css-fix",
+    "lint-css": "yarn stylelint packages/**/**/*.scss",
+    "lint-css-fix": "yarn stylelint packages/**/**/*.scss --fix",
+    "lint": "yarn eslint --ext .ts,.tsx ./packages/ && yarn lint-css",
+    "lint-fix": "yarn eslint --fix --ext .ts,.tsx ./packages/ && yarn lint-css-fix",
     "prepare": "husky install",
     "i18n": "i18next \"src/**/*.{js,ts,tsx}\" [-oc] -c i18next-parser.config.js"
   },
@@ -106,8 +109,8 @@
       "@console/pluginAPI": "*"
     },
     "exposedModules": {
-      "dashboard": "./components/odf-dashboard/dashboard",
-      "features": "./features"
+      "dashboard": "@odf/core/components/odf-dashboard/dashboard",
+      "features": "@odf/core/features"
     }
   }
 }
