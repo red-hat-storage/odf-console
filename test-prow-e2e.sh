@@ -34,6 +34,7 @@ function generateLogsAndCopyArtifacts {
   done
   oc get serviceaccounts -n openshift-storage -o wide > ${ARTIFACT_DIR}/serviceaccount.yaml
   oc get serviceaccounts -n openshift-storage -o yaml >> ${ARTIFACT_DIR}/serviceaccount.yaml
+  oc get console.v1.operator.openshift.io cluster -o yaml >> ${ARTIFACT_DIR}/cluster.yaml
   
   if [ -d "$ARTIFACT_DIR" ] && [ -d "$SCREENSHOTS_DIR" ]; then
     if [[ -z "$(ls -A -- "$SCREENSHOTS_DIR")" ]]; then
