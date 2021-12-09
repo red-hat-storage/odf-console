@@ -1,1 +1,0 @@
-FROM quay.io/ocs-dev/odf-operator-bundle:latest
