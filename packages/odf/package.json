@@ -1,0 +1,8 @@
+{
+  "name": "@odf/core",
+  "description": "Core ODF components",
+  "version": "0.0.0",
+  "dependencies": {
+    "@odf/shared": "0.0.0"
+  }
+}

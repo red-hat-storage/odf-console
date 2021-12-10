@@ -12,5 +12,5 @@
     "sourceMap": true,
     "noEmitOnError": false
   },
-  "include": ["src"]
+  "include": ["packages"]
 }
