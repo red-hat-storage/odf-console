@@ -12,3 +12,7 @@ export const getGVK = (label: string) => {
     const apiVersion = label.slice(label.indexOf('/') + 1, label.length);
     return { kind, apiGroup, apiVersion };
 };
+
+export const referenceForGroupVersionKind = (group: string) => (version: string) => (
+    kind: string,
+) => [group, version, kind].join('~');

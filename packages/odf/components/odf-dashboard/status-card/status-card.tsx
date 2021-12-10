@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ClusterServiceVersionKind } from '@odf/shared/types/console-types';
 import {
   HealthState,
   WatchK8sResource,
@@ -17,7 +18,6 @@ import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Gallery, GalleryItem, pluralize } from '@patternfly/react-core';
 import { ODF_OPERATOR } from '../../../constants';
-import { ClusterServiceVersionKind } from '../../../types';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { STATUS_QUERIES, StorageDashboard } from '../queries';
 import { getOperatorHealthState } from '../utils';

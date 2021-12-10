@@ -108,7 +108,7 @@ type CapacityCardRowProps = {
   resourceModel?: K8sKind;
 };
 
-export const getProgress = (
+const getProgress = (
   data: CapacityMetricDatum,
   isRelative: boolean,
   largestValue: HumanizeResult
