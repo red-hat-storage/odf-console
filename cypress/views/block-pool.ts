@@ -4,11 +4,14 @@ import { commonFlows, commandPoll } from './common';
 
 
 // enums
-enum Actions {
+export enum Actions {
   BOUNDED = 'bounded',
   CREATE = 'create',
   UPDATE = 'update',
   DELETE = 'delete',
+  MODALCREATE = 'modalCreate',
+  MODALFINISH = 'modalFinish',
+  MODALRETRY = 'modalRetry',
 };
 
 enum VolumeType {
@@ -42,6 +45,8 @@ const poolMessage: {
     [key in Actions]?: string;
 } = {
     [Actions.BOUNDED]: `${blockPoolProps.poolName} cannot be deleted. When a pool is bounded to PVC it cannot be deleted. Please detach all the resources from StorageClass(es):`,
+    [Actions.MODALFINISH]: `Pool ${blockPoolProps.poolName} was successfully created`,
+    [Actions.MODALRETRY]: `Pool "${blockPoolProps.poolName}" already exists`,
 };
 
 export const navigateToBlockPoolListPage = () => {
@@ -55,6 +60,7 @@ const invokeActions = (action: string) => {
     case Actions.CREATE:
     case Actions.UPDATE:
     case Actions.DELETE:
+    case Actions.MODALCREATE:
       cy.log(`Invoke ${action} action`);
       cy.byLegacyTestID('confirm-action')
         .scrollIntoView()
@@ -64,6 +70,13 @@ const invokeActions = (action: string) => {
       cy.log('Check go-to-pvc-list-action and close-action are enabled');
       cy.byLegacyTestID('modal-go-to-pvc-list-action').should('be.visible');
       cy.byLegacyTestID('modal-close-action').click();
+      break;
+    case Actions.MODALFINISH:
+      cy.byLegacyTestID('modal-finish-action').click();
+      break;
+    case Actions.MODALRETRY:
+      cy.byLegacyTestID('modal-try-again-action').should('be.visible');
+      cy.byLegacyTestID('modal-finish-action').click();
       break;
     default:
       cy.contains("Unsupported block pool action").should('not.exist')
@@ -116,13 +129,33 @@ export const blockPoolCRUDOperations = {
     cy.log('Creating a new block pool');
     cy.byTestID('item-create').click();
     populateBlockPoolForm(props);
-    invokeActions('create');
+    invokeActions(Actions.CREATE);
 
     cy.log('Verify a new block pool creation');
     cy.byTestID('status-text').contains('Ready');
 
     cy.log('Redirecting to block pool list page');
     cy.byLegacyTestID('breadcrumb-link-1').click();
+  },
+
+  createBlockPoolModal: (failCreation: boolean = false) => {
+    cy.log('Select new block pool creation option');
+    cy.byTestID('pool-dropdown-toggle').click();
+    cy.byTestID('create-new-pool-button').click();
+
+    cy.log('Create new block pool');
+    modal.shouldBeOpened();
+    modal.modalTitleShouldContain('Create BlockPool');
+    populateBlockPoolForm();
+    invokeActions(Actions.MODALCREATE);
+    
+
+    cy.log('Verify a new block pool creation');
+    const modalAction = !failCreation ? Actions.MODALFINISH : Actions.MODALRETRY;
+    cy.byTestID('empty-state-body').contains(poolMessage[modalAction]);
+    invokeActions(modalAction);
+    cy.byTestID('pool-dropdown-toggle').contains(blockPoolProps.poolName);
+    verifyBlockPoolJSON();
   },
 
   deleteBlockPool: (isPVCBounded: boolean=false, scName?: string) => {
@@ -144,7 +177,7 @@ export const blockPoolCRUDOperations = {
       invokeActions(Actions.BOUNDED);
     } else {
       cy.log('Verify successful block pool deletion');
-      invokeActions('delete');
+      invokeActions(Actions.DELETE);
     };
   },
 
@@ -158,7 +191,7 @@ export const blockPoolCRUDOperations = {
     cy.log('Verify block pool edit modal');
     modal.modalTitleShouldContain('Edit BlockPool');
     populateBlockPoolForm(props, true);
-    invokeActions('update');
+    invokeActions(Actions.UPDATE);
 
     cy.log('Verifying block pool updation');
     verifyBlockPoolJSON(props);
