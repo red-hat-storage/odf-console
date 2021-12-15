@@ -30,17 +30,3 @@ export const getOperatorHealthState = (
   }
   return { state: HealthState.ERROR };
 };
-
-export const getGaugeValue = (response) =>
-  response?.data?.result?.[0]?.value?.[1];
-
-export const getResiliencyProgress = (results): number => {
-  /**
-   * Possible values for progress:
-   *   - A float value of String type
-   *   - 'NaN'
-   *   - undefined
-   */
-  const progress: string = getGaugeValue(results);
-  return parseFloat(progress);
-};

@@ -1,0 +1,51 @@
+@import '~@patternfly/patternfly/sass-utilities/colors';
+
+.ceph-add-capacity__current-capacity {
+  display: flex;
+}
+
+.ceph-add-capacity__provisioned-capacity {
+  display: inline;
+}
+
+.ceph-add-capacity__current-capacity--loading {
+  margin-top: 0.2rem;
+  width: 9rem;
+}
+
+.ceph-add-capacity__current-capacity--text {
+  margin-right: 0.5rem;
+}
+
+.ceph-add-capacity__storage-class-dropdown--loading {
+  width: 16rem;
+}
+
+.ceph-add-capacity__form {
+  align-items: center;
+  display: flex;
+}
+
+.ceph-add-capacity__input {
+  max-width: 16rem !important;
+}
+
+.ceph-add-capacity__input--info-text {
+  margin-left: 0.5rem;
+}
+
+.ceph-add-capacity__modal {
+  padding-top: 2em;
+}
+
+.ceph-add-capacity__sc-dropdown {
+  width: 16rem;
+
+  &--margin {
+    margin-bottom: 1rem;
+  }
+}
+
+.ceph-add-capacity__sc-dropdown--hide {
+  display: none;
+}

@@ -8,7 +8,7 @@ import {
   ExclamationCircleIcon,
 } from '@patternfly/react-icons';
 
-export type SystemHealthMap = {
+type SystemHealthMap = {
   systemName: string;
   healthState: HealthState;
   link: string;
