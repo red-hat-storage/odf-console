@@ -18,6 +18,7 @@ declare global {
       byTestOperandLink(selector: string): Chainable<Element>;
       byTestRows(selector: string): Chainable<Element>;
       clickNavLink(path: [string, string?]): Chainable<Element>;
+      byTestDropDownMenu(selector: string): Chainable<Element>;
       byTestOperatorRow(
         selector: string,
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
