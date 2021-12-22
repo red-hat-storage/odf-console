@@ -7,7 +7,7 @@ import { RouteComponentProps, match as Match } from 'react-router';
 import { useLocation } from 'react-router-dom';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { ODFStorageSystemMock } from '../../models';
-import StorageSystemListPage from '../system-list/odf-system-list';
+import { StorageSystemListPage } from '../system-list/odf-system-list-new';
 import ActivityCard from './activity-card/activity-card';
 import ObjectCapacityCard from './object-storage-card/capacity-card';
 import PerformanceCard from './performance-card/performance-card';
