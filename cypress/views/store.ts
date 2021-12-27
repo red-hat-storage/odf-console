@@ -22,8 +22,8 @@ const inputCustomSecrets = (storeType: StoreType) => {
 };
 
 const setupProvider = (provider: Providers, storeType: StoreType) => {
-  cy.byTestID(`${storeType}-provider`).click();
   cy.log(`Setting up ${provider} provider`);
+  cy.byTestID(`${storeType}-provider`).click();
   cy.byTestDropDownMenu(provider).click();
   switch (provider) {
     case Providers.AWS:
