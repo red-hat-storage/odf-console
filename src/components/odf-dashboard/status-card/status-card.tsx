@@ -5,17 +5,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  DashboardCard,
-  DashboardCardBody,
-  DashboardCardHeader,
-  DashboardCardTitle,
   HealthBody,
   HealthItem,
   usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
-import { Gallery, GalleryItem, pluralize } from '@patternfly/react-core';
+import { Gallery, GalleryItem, pluralize, Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ODF_OPERATOR } from '../../../constants';
 import { ClusterServiceVersionKind } from '../../../types';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
@@ -88,11 +84,11 @@ export const StatusCard: React.FC = () => {
   );
 
   return (
-    <DashboardCard className="odfDashboard-card--height">
-      <DashboardCardHeader>
-        <DashboardCardTitle>{t('Status')}</DashboardCardTitle>
-      </DashboardCardHeader>
-      <DashboardCardBody>
+    <Card className="odfDashboard-card--height">
+      <CardHeader>
+        <CardTitle>{t('Status')}</CardTitle>
+      </CardHeader>
+      <CardBody>
         <HealthBody>
           <Gallery className="co-overview-status__health" hasGutter>
             <GalleryItem>
@@ -123,7 +119,7 @@ export const StatusCard: React.FC = () => {
             )}
           </Gallery>
         </HealthBody>
-      </DashboardCardBody>
-    </DashboardCard>
+      </CardBody>
+    </Card>
   );
 };

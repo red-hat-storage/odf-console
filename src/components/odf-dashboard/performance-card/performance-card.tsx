@@ -2,15 +2,13 @@ import * as React from 'react';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  DashboardCard,
-  DashboardCardHeader,
-  DashboardCardTitle,
   UtilizationDurationDropdown,
   usePrometheusPoll,
   useUtilizationDuration,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
+import { Card, CardHeader, CardTitle, Flex, FlexItem } from '@patternfly/react-core';
 import { SortByDirection } from '@patternfly/react-table';
 import { ODFStorageSystem } from '../../../models';
 import { StorageSystemKind } from '../../../types';
@@ -143,11 +141,13 @@ const PerformanceCard: React.FC = () => {
     !!systemLoadError || !!throughputError || !!latencyError || !!iopsError;
 
   return (
-    <DashboardCard>
-      <DashboardCardHeader>
-        <DashboardCardTitle>{t('Performance')}</DashboardCardTitle>
-        <UtilizationDurationDropdown />
-      </DashboardCardHeader>
+    <Card>
+      <CardHeader>
+        <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
+          <FlexItem><CardTitle>{t('Performance')}</CardTitle></FlexItem>
+          <FlexItem><UtilizationDurationDropdown /></FlexItem>
+        </Flex>
+      </CardHeader>
       {!error && !loading && (
         <Table
           columns={headerColumns}
@@ -162,7 +162,7 @@ const PerformanceCard: React.FC = () => {
           <DataUnavailableError />{' '}
         </div>
       )}
-    </DashboardCard>
+    </Card>
   );
 };
 

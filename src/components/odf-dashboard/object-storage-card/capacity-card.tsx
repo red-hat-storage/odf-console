@@ -1,13 +1,10 @@
 import * as React from 'react';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  DashboardCard,
-  DashboardCardBody,
-  DashboardCardHeader,
-  DashboardCardTitle,
   usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
+import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { humanizeBinaryBytes } from '../../../humanize';
 import CapacityCard from '../../common/capacity-card/capacity-card';
 import { CAPACITY_QUERIES, StorageDashboard } from '../queries';
@@ -28,16 +25,16 @@ const ObjectCapacityCard: React.FC = () => {
   const dataFrames = !loaded && !error ? parseMetricData(data) : [];
 
   return (
-    <DashboardCard className="odf-capacityCard--height">
-      <DashboardCardHeader>
-        <DashboardCardTitle>
+    <Card className="odf-capacityCard--height">
+      <CardHeader>
+        <CardTitle>
           {t('External Object Provider Used Capacity')}
-        </DashboardCardTitle>
-      </DashboardCardHeader>
-      <DashboardCardBody>
+        </CardTitle>
+      </CardHeader>
+      <CardBody>
         <CapacityCard data={dataFrames} relative isPercentage={false} />
-      </DashboardCardBody>
-    </DashboardCard>
+      </CardBody>
+    </Card>
   );
 };
 

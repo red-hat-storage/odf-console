@@ -5,14 +5,11 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  DashboardCard,
-  DashboardCardBody,
-  DashboardCardHeader,
-  DashboardCardTitle,
   usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
+import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { humanizeBinaryBytes } from '../../../humanize';
 import { ODFStorageSystem } from '../../../models';
 import { StorageSystemKind } from '../../../types';
@@ -77,18 +74,18 @@ const SystemCapacityCard: React.FC = () => {
   const isLoading =
     loadingUsedCapacity && loadingTotalCapacity && !systemsLoaded;
   return (
-    <DashboardCard className="odf-capacityCard--height">
-      <DashboardCardHeader>
-        <DashboardCardTitle>{t('System Capacity')}</DashboardCardTitle>
-      </DashboardCardHeader>
-      <DashboardCardBody>
+    <Card className="odf-capacityCard--height">
+      <CardHeader>
+        <CardTitle>{t('System Capacity')}</CardTitle>
+      </CardHeader>
+      <CardBody>
         {!error ? (
           <CapacityCard data={data} isPercentage loading={isLoading} />
         ) : (
           <>{t('No data available')}</>
         )}
-      </DashboardCardBody>
-    </DashboardCard>
+      </CardBody>
+    </Card>
   );
 };
 
