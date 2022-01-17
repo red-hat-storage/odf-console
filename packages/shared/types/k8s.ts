@@ -3,6 +3,15 @@ import { ObjectMetadata } from '@openshift-console/dynamic-plugin-sdk-internal/l
 import { K8sKind, MatchExpression } from "@openshift-console/dynamic-plugin-sdk/lib/api/common-types";
 import { K8sResourceCondition } from './common';
 
+// The config is a JSON object with the NetworkAttachmentDefinitionConfig type stored as a string
+export type NetworkAttachmentDefinitionSpec = {
+    config: string;
+};
+
+export type NetworkAttachmentDefinitionKind = {
+    spec?: NetworkAttachmentDefinitionSpec;
+} & K8sResourceKind;
+
 export type StorageClassResourceKind = {
     provisioner: string;
     reclaimPolicy: string;
