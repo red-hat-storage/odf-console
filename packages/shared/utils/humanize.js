@@ -450,3 +450,5 @@ export const humanizeLatency = (value) => {
   );
   return humanizedTime;
 };
+
+export const getConvertedUnits = (value) => humanizeBinaryBytes(convertToBaseValue(value)).string ?? '-';

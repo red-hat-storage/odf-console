@@ -125,7 +125,7 @@ type CustomData = {
 
 const SystemTableRow: React.FC<RowFunctionArgs<StorageSystemKind, CustomData>> =
   ({ obj, customData }) => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('plugin__odf-console');
     const { apiGroup, apiVersion, kind } = getGVK(obj.spec.kind);
     const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
     const systemName = obj?.metadata?.name;
