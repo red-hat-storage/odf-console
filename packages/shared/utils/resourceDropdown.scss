@@ -1,0 +1,11 @@
+.odf-resourceDropdown__container {
+  min-width: 20em;
+}
+
+.odf-resourceDropdownContainer__toggle--error {
+  color: var(--pf-global--danger-color--100);
+}
+
+.odf-resourceDropdown__container > button {
+  width: 100%;
+}
