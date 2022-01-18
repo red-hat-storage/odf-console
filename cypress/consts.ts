@@ -21,3 +21,6 @@ export enum CLUSTER_STATUS {
   PROGRESSING = 'Progressing',
   HEALTH_ERROR = 'HEALTH_ERR',
 }
+
+export const SECOND = 1000
+export const MINUTE = 60 * SECOND
