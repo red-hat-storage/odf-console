@@ -41,7 +41,7 @@ Cypress.Commands.add('install', () => {
       cy.contains("Create StorageSystem", { timeout: 10 * 1000 }).should("be.visible");
       cy.get('button').contains("Next").click();
       cy.get('input[type="checkbox"]').first().uncheck();
-      cy.get('input[type="checkbox"]').first().check();
+      cy.get('table').get('input[type="checkbox"]').first().check();
       cy.get('button').contains("Next").click();
       cy.get('button').contains("Next").click();
       cy.get('button').contains("Create StorageSystem").as('Create StorageSystem Button');
