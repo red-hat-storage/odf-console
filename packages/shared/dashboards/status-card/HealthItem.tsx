@@ -51,7 +51,7 @@ const HealthItem: React.FC<HealthItemProps> = React.memo(
         {state === HealthState.LOADING ? (
           <div className="skeleton-health">
             <span className="pf-u-screen-reader">
-              {t('public~Loading {{title}} status', { title })}
+              {t('plugin__odf-console~Loading {{title}} status', { title })}
             </span>
           </div>
         ) : (
