@@ -20,7 +20,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
-import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  Flex,
+  FlexItem,
+} from '@patternfly/react-core';
 import { SortByDirection } from '@patternfly/react-table';
 import { ODFStorageSystem } from '../../../models';
 import { StorageSystemKind } from '../../../types';
@@ -145,8 +151,17 @@ const PerformanceCard: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('Performance')}</CardTitle>
-        <UtilizationDurationDropdown />
+        <Flex
+          justifyContent={{ default: 'justifyContentSpaceBetween' }}
+          className="odf-performanceCard__header--width"
+        >
+          <FlexItem>
+            <CardTitle>{t('Performance')}</CardTitle>
+          </FlexItem>
+          <FlexItem>
+            <UtilizationDurationDropdown />
+          </FlexItem>
+        </Flex>
       </CardHeader>
       {!error && !loading && (
         <Table
