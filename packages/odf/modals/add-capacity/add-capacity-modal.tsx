@@ -22,7 +22,7 @@ import {
 import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import {
   useK8sGet,
-  StorageClassDropdown,
+  StorageClassDropdown as ScModule,
   createModalLauncher,
 } from '@openshift-console/dynamic-plugin-sdk-internal-kubevirt';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
@@ -56,6 +56,8 @@ import {
   isValidTopology,
 } from '../../utils/ocs';
 import './add-capacity-modal.scss';
+
+const StorageClassDropdown = (ScModule as any).StorageClassDropdown;
 
 const pvResource: WatchK8sResource = {
   kind: PersistentVolumeModel.kind,
@@ -172,11 +174,11 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
   const [inProgress, setProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState('');
 
-  const deviceSets: DeviceSet[] = ocsConfig?.spec.storageDeviceSets || [];
+  const deviceSets: DeviceSet[] = ocsConfig?.spec?.storageDeviceSets || [];
   const osdSizeWithUnit = getRequestedPVCSize(deviceSets?.[0]?.dataPVCTemplate);
   const osdSizeWithoutUnit: number = OSD_CAPACITY_SIZES[osdSizeWithUnit];
   const isNoProvionerSC: boolean = storageClass?.provisioner === NO_PROVISIONER;
-  const selectedSCName: string = storageClass.metadata.name;
+  const selectedSCName: string = storageClass?.metadata?.name;
   const deviceSetIndex: number = getCurrentDeviceSetIndex(
     deviceSets,
     selectedSCName
@@ -186,7 +188,7 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
   const replica = isArbiterEnabled
     ? OCS_DEVICE_SET_ARBITER_REPLICA
     : OCS_DEVICE_SET_REPLICA;
-  const name = ocsConfig.metadata.name;
+  const name = ocsConfig?.metadata?.name;
   const totalCapacityMetric = values?.[0];
   const usedCapacityMetric = values?.[1];
   const usedCapacity = humanizeBinaryBytes(usedCapacityMetric);
