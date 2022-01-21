@@ -14,6 +14,7 @@ declare global {
       ): Chainable<Element>;
       byTestActionID(selector: string): Chainable<Element>;
       byLegacyTestID(selector: string): Chainable<Element>;
+      byTestDropDownMenu(selector: string): Chainable<Element>;
       byTestOperandLink(selector: string): Chainable<Element>;
       byTestRows(selector: string): Chainable<Element>;
       clickNavLink(path: [string, string?]): Chainable<Element>;
@@ -52,6 +53,11 @@ Cypress.Commands.add('byTestActionID', (selector: string) =>
 Cypress.Commands.add('byTestOperatorRow', (selector: string, options?: object) =>
   cy.get(`[data-test-operator-row="${selector}"]`, options),
 );
+
+Cypress.Commands.add('byTestDropDownMenu', (selector: string) =>
+  cy.get(`[data-test-dropdown-menu="${selector}"]`),
+);
+
 Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
   cy.byTestID("nav")
     .contains(path[0], { timeout: 10 * 1000 })
