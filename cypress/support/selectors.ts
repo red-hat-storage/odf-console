@@ -22,6 +22,11 @@ declare global {
         selector: string,
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
       ): Chainable<Element>;
+      byItemID(selector: string): Chainable<Element>;
+      byStatusID(
+        selector: string,
+        options?: Partial<Loggable & Timeoutable & Withinable & Shadow>,
+      ): Chainable<Element>;
     }
   }
 }
@@ -73,3 +78,5 @@ Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
   }
 
 });
+Cypress.Commands.add('byItemID', (selector: string) => cy.get(`[data-item-id="${selector}"]`));
+Cypress.Commands.add('byStatusID', (selector: string) => cy.get(`[data-status-id="${selector}"]`));
