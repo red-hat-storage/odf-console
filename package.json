@@ -26,7 +26,7 @@
     "lint": "yarn eslint --ext .ts,.tsx ./packages/ && yarn lint-css",
     "lint-fix": "yarn eslint --fix --ext .ts,.tsx ./packages/ && yarn lint-css-fix",
     "prepare": "husky install",
-    "i18n": "i18next \"src/**/*.{js,ts,tsx}\" [-oc] -c i18next-parser.config.js"
+    "i18n": "i18next \"packages/**/*.{js,ts,tsx}\" [-oc] -c i18next-parser.config.js"
   },
   "dependencies": {
     "@patternfly/patternfly": "4.103.6",
