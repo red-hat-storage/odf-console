@@ -73,4 +73,4 @@ Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
 
 });
 Cypress.Commands.add('byItemID', (selector: string) => cy.get(`[data-item-id="${selector}"]`));
-Cypress.Commands.add('byStatusID', (selector: string) => cy.get(`[data-status-id="${selector}"]`));
+Cypress.Commands.add('byStatusID', (selector: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>) => cy.get(`[data-status-id="${selector}"]`, options));
