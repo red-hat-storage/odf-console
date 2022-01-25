@@ -111,6 +111,12 @@ linkSecrets
 echo "Restarting pods for secret update"
 deleteAllPods ${NS}
 
+echo "Adding secret to all service accounts in ${NS} namespace"
+linkSecrets
+
+echo "Restarting pods for secret update"
+deleteAllPods ${NS}
+
 sleep 120
 
 # Enable console plugin for ODF-Console
