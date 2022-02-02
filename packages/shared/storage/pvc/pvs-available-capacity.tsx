@@ -19,7 +19,7 @@ export const PVsAvailableCapacity: React.FC<PVAvaialbleCapacityProps> = ({
   loaded,
   loadError,
 }) => {
-  const { t } = useTranslation('ceph-storage-plugin');
+  const { t } = useTranslation('plugin_odf-console');
 
   let availableCapacity: string = '';
 

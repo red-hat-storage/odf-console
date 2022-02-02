@@ -178,7 +178,7 @@ const SystemTableRow: React.FC<RowFunctionArgs<StorageSystemKind, CustomData>> =
   };
 
 const StorageSystemList: React.FC<StorageSystemListProps> = (props) => {
-  const { t } = useTranslation('ceph-storage-plugin');
+  const { t } = useTranslation('plugin_odf-console');
   const Header = () => {
     return [
       {
