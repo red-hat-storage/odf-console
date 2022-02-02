@@ -146,7 +146,7 @@ const AddSSCapacityModal: React.FC<AddSSCapacityModalProps> = ({
 };
 
 const AddCapacityModal = (props: AddCapacityModalProps) => {
-  const { t } = useTranslation('ceph-storage-plugin');
+  const { t } = useTranslation('plugin__odf-console');
 
   const { ocsConfig, close, cancel } = props;
 
