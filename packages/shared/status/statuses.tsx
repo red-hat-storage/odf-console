@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StatusComponentProps } from './types';
 
 export const SuccessStatus: React.FC<StatusComponentProps> = (props) => {
-  const { t } = useTranslation('plugin_odf-console');
+  const { t } = useTranslation('plugin__odf-console');
   return (
     <GenericStatus
       {...props}

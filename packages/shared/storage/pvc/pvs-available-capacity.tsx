@@ -19,7 +19,7 @@ export const PVsAvailableCapacity: React.FC<PVAvaialbleCapacityProps> = ({
   loaded,
   loadError,
 }) => {
-  const { t } = useTranslation('plugin_odf-console');
+  const { t } = useTranslation('plugin__odf-console');
 
   let availableCapacity: string = '';
 
