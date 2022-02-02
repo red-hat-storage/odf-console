@@ -178,7 +178,7 @@ const SystemTableRow: React.FC<RowFunctionArgs<StorageSystemKind, CustomData>> =
   };
 
 const StorageSystemList: React.FC<StorageSystemListProps> = (props) => {
-  const { t } = useTranslation('plugin_odf-console');
+  const { t } = useTranslation('plugin__odf-console');
   const Header = () => {
     return [
       {

@@ -8,7 +8,7 @@ import { StorageSystemKind } from '../../types';
 const addStorage = (kind, resource: StorageSystemKind, _, customData) => {
     const t: TFunction = customData?.tFunction;
     return {
-        labelKey: t('ceph-storage-plugin~Add Capacity'),
+        labelKey: t('Add Capacity'),
         callback: () => addSSCapacityModal({ storageSystem: resource }),
     };
 };
