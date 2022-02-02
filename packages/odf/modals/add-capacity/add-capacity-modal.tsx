@@ -84,7 +84,7 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
     <>
       <FormGroup
         fieldId="request-size"
-        label={t('ceph-storage-plugin~Raw Capacity')}
+        label={t('Raw Capacity')}
         labelIcon={
           <FieldLevelHelp>{requestedCapacityTooltip(t)}</FieldLevelHelp>
         }
@@ -104,7 +104,7 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
         />
         <TextContent className="ceph-add-capacity__provisioned-capacity">
           {' '}
-          {t('ceph-storage-plugin~x {{ replica, number }} replicas =', {
+          {t('x {{ replica, number }} replicas =', {
             replica,
           })}{' '}
           <strong data-test="provisioned-capacity">
@@ -321,7 +321,7 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
       <div className="modal-content modal-content--no-inner-scroll">
         <ModalTitle>{t('Add Capacity')}</ModalTitle>
         <ModalBody>
-          <Trans t={t as any} ns="ceph-storage-plugin" values={{ name }}>
+          <Trans t={t as any} ns="plugin__odf-console" values={{ name }}>
             Adding capacity for <strong>{{ name }}</strong>, may increase your
             expenses.
           </Trans>
