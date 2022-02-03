@@ -2,9 +2,7 @@ import * as React from 'react';
 import CapacityCard from '@odf/shared/dashboards/capacity-card/capacity-card';
 import { humanizeBinaryBytes } from '@odf/shared/utils/humanize';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  usePrometheusPoll,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ODFStorageSystem } from '../../../models';
@@ -28,15 +26,13 @@ const ObjectCapacityCard: React.FC = () => {
   return (
     <Card className="odf-capacityCard--height">
       <CardHeader>
-        <CardTitle>
-          {t('External Object Provider Used Capacity')}
-        </CardTitle>
+        <CardTitle>{t('External Object Provider Used Capacity')}</CardTitle>
       </CardHeader>
       <CardBody>
         <CapacityCard
           data={dataFrames}
           relative
-          isPercentage={false}
+          showPercentage={false}
           resourceModel={ODFStorageSystem}
         />
       </CardBody>
