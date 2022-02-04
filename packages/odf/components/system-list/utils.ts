@@ -8,7 +8,7 @@ import { StorageSystemKind } from '../../types';
 const addStorage = (kind, resource: StorageSystemKind, _, customData) => {
     const t: TFunction = customData?.tFunction;
     return {
-        labelKey: t('Add Capacity'),
+        labelKey: t('plugin__odf-console~Add Capacity'),
         callback: () => addSSCapacityModal({ storageSystem: resource }),
     };
 };
