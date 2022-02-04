@@ -5,7 +5,7 @@ RUN yarn install
 RUN yarn build
 
 
-FROM cypress/browsers:node14.17.0-chrome91-ff89 as serverpackage
+FROM quay.io/ocs-dev/cypress:latest as serverpackage
 RUN yarn global add http-server
 RUN export PATH="$(yarn global bin):$PATH"
 
