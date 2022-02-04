@@ -7,12 +7,12 @@ import { useTranslation } from 'react-i18next';
 import { StatusComponentProps } from './types';
 
 export const SuccessStatus: React.FC<StatusComponentProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__odf-console');
   return (
     <GenericStatus
       {...props}
       Icon={GreenCheckCircleIcon}
-      title={props.title || t('console-shared~Healthy')}
+      title={props.title || t('Healthy')}
     />
   );
 };

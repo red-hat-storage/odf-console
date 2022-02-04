@@ -84,7 +84,7 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
     <>
       <FormGroup
         fieldId="request-size"
-        label={t('ceph-storage-plugin~Raw Capacity')}
+        label={t('Raw Capacity')}
         labelIcon={
           <FieldLevelHelp>{requestedCapacityTooltip(t)}</FieldLevelHelp>
         }
@@ -104,7 +104,7 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
         />
         <TextContent className="ceph-add-capacity__provisioned-capacity">
           {' '}
-          {t('ceph-storage-plugin~x {{ replica, number }} replicas =', {
+          {t('x {{ replica, number }} replicas =', {
             replica,
           })}{' '}
           <strong data-test="provisioned-capacity">
@@ -146,7 +146,7 @@ const AddSSCapacityModal: React.FC<AddSSCapacityModalProps> = ({
 };
 
 const AddCapacityModal = (props: AddCapacityModalProps) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__odf-console');
 
   const { ocsConfig, close, cancel } = props;
 
@@ -201,11 +201,11 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
 
   const validateSC = React.useCallback(() => {
     if (!selectedSCName)
-      return t('ceph-storage-plugin~No StorageClass selected');
+      return t('No StorageClass selected');
     if (!isNoProvionerSC || hasFlexibleScaling) return '';
     if (isArbiterEnabled && !isArbiterSC(selectedSCName, pvData, nodesData)) {
       return t(
-        'ceph-storage-plugin~The Arbiter stretch cluster requires a minimum of 4 nodes (2 different zones, 2 nodes per zone). Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.'
+        'The Arbiter stretch cluster requires a minimum of 4 nodes (2 different zones, 2 nodes per zone). Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.'
       );
     }
     if (
@@ -213,7 +213,7 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
       !isValidTopology(selectedSCName, pvData, nodesData)
     ) {
       return t(
-        'ceph-storage-plugin~The StorageCluster requires a minimum of 3 nodes. Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.'
+        'The StorageCluster requires a minimum of 3 nodes. Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.'
       );
     }
     return '';
@@ -241,7 +241,7 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
     );
   } else if (loadError || !totalCapacityMetric || !usedCapacityMetric) {
     currentCapacity = (
-      <div className="text-muted">{t('ceph-storage-plugin~Not available')}</div>
+      <div className="text-muted">{t('Not available')}</div>
     );
   } else {
     currentCapacity = (
@@ -319,9 +319,9 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
        * Wrapped components inside a <div> to fix it.
        */}
       <div className="modal-content modal-content--no-inner-scroll">
-        <ModalTitle>{t('ceph-storage-plugin~Add Capacity')}</ModalTitle>
+        <ModalTitle>{t('Add Capacity')}</ModalTitle>
         <ModalBody>
-          <Trans t={t as any} ns="ceph-storage-plugin" values={{ name }}>
+          <Trans t={t as any} ns="plugin__odf-console" values={{ name }}>
             Adding capacity for <strong>{{ name }}</strong>, may increase your
             expenses.
           </Trans>
@@ -329,7 +329,7 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
             className="pf-u-pt-md pf-u-pb-sm"
             id="add-cap-sc-dropdown__FormGroup"
             fieldId="add-capacity-dropdown"
-            label={t('ceph-storage-plugin~StorageClass')}
+            label={t('StorageClass')}
             labelIcon={
               <FieldLevelHelp>{storageClassTooltip(t)}</FieldLevelHelp>
             }
@@ -372,7 +372,7 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
                   />
                 )}
                 <TextContent className="pf-u-font-weight-bold pf-u-secondary-color-100 ceph-add-capacity__current-capacity">
-                  {t('ceph-storage-plugin~Currently Used:')}&nbsp;
+                  {t('Currently Used:')}&nbsp;
                   {currentCapacity}
                 </TextContent>
               </>
@@ -381,7 +381,7 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
         <ModalSubmitFooter
           inProgress={inProgress}
           errorMessage={errorMessage}
-          submitText={t('ceph-storage-plugin~Add')}
+          submitText={t('Add')}
           cancel={cancel}
           submitDisabled={isNoProvionerSC && (!availablePvsCount || nodesError)}
         />
