@@ -14,12 +14,12 @@ export enum defaultRequestSize {
 
 export const requestedCapacityTooltip = (t: TFunction) =>
     t(
-        'plugin__odf-console~The amount of capacity that would be dynamically allocated on the selected StorageClass.',
+        'ceph-storage-plugin~The amount of capacity that would be dynamically allocated on the selected StorageClass.',
     );
 
 export const storageClassTooltip = (t: TFunction) =>
     t(
-        'plugin__odf-console~The StorageClass used by OpenShift Data Foundation to write its data and metadata.',
+        'ceph-storage-plugin~The StorageClass used by OpenShift Data Foundation to write its data and metadata.',
     );
 
 export const OCS_PROVISIONERS = [

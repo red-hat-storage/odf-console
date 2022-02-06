@@ -5,18 +5,18 @@ import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 
 export const FieldLevelHelp: React.FC<FieldLevelHelpProps> = React.memo(
   ({ children, popoverHasAutoWidth, testId }) => {
-    const { t } = useTranslation('plugin__odf-console');
+    const { t } = useTranslation();
     if (React.Children.count(children) === 0) {
       return null;
     }
     return (
       <Popover
-        aria-label={t('Help')}
+        aria-label={t('public~Help')}
         bodyContent={children}
         hasAutoWidth={popoverHasAutoWidth}
       >
         <Button
-          aria-label={t('Help')}
+          aria-label={t('public~Help')}
           variant="link"
           isInline
           className="co-field-level-help"

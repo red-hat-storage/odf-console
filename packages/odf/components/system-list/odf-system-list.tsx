@@ -178,42 +178,42 @@ const SystemTableRow: React.FC<RowFunctionArgs<StorageSystemKind, CustomData>> =
   };
 
 const StorageSystemList: React.FC<StorageSystemListProps> = (props) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useTranslation();
   const Header = () => {
     return [
       {
-        title: t('Name'),
+        title: t('ceph-storage-plugin~Name'),
         sortField: 'metadata.name',
         transforms: [sortable, wrappable],
         props: { className: tableColumnClasses[0] },
       },
       {
-        title: t('Status'),
+        title: t('ceph-storage-plugin~Status'),
         transforms: [wrappable],
         props: { className: tableColumnClasses[1] },
       },
       {
-        title: t('Raw Capacity'),
+        title: t('ceph-storage-plugin~Raw Capacity'),
         transforms: [wrappable],
         props: { className: tableColumnClasses[2] },
       },
       {
-        title: t('Used capacity'),
+        title: t('ceph-storage-plugin~Used capacity'),
         transforms: [wrappable],
         props: { className: tableColumnClasses[3] },
       },
       {
-        title: t('IOPS'),
+        title: t('ceph-storage-plugin~IOPS'),
         transforms: [wrappable],
         props: { className: tableColumnClasses[4] },
       },
       {
-        title: t('Throughput'),
+        title: t('ceph-storage-plugin~Throughput'),
         transforms: [wrappable],
         props: { className: tableColumnClasses[5] },
       },
       {
-        title: t('Latency'),
+        title: t('ceph-storage-plugin~Latency'),
         props: { className: tableColumnClasses[6] },
       },
       {
@@ -263,7 +263,7 @@ const StorageSystemList: React.FC<StorageSystemListProps> = (props) => {
     <Table
       {...props}
       customData={normalizedMetrics}
-      aria-label={t('Storage Systems')}
+      aria-label={t('ceph-storage-plugin~Storage Systems')}
       Header={Header}
       Row={SystemTableRow}
       virtualize

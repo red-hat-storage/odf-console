@@ -16,28 +16,28 @@ export const ClusterServiceVersionModel: K8sKind = {
 
 export const PersistentVolumeModel: K8sKind = {
   label: 'PersistentVolume',
-  // t('plugin__odf-console~PersistentVolume')
-  labelKey: 'plugin__odf-console~PersistentVolume',
+  // t('public~PersistentVolume')
+  labelKey: 'public~PersistentVolume',
   apiVersion: 'v1',
   plural: 'persistentvolumes',
   abbr: 'PV',
   kind: 'PersistentVolume',
   id: 'persistentvolume',
   labelPlural: 'PersistentVolumes',
-  // t('plugin__odf-console~PersistentVolumes')
-  labelPluralKey: 'plugin__odf-console~PersistentVolumes',
+  // t('public~PersistentVolumes')
+  labelPluralKey: 'public~PersistentVolumes',
 };
 
 export const NodeModel: K8sKind = {
   apiVersion: 'v1',
   label: 'Node',
-  // t('plugin__odf-console~Node')
-  labelKey: 'plugin__odf-console~Node',
+  // t('public~Node')
+  labelKey: 'public~Node',
   plural: 'nodes',
   abbr: 'N',
   kind: 'Node',
   id: 'node',
   labelPlural: 'Nodes',
-  // t('plugin__odf-console~Nodes')
-  labelPluralKey: 'plugin__odf-console~Nodes',
+  // t('public~Nodes')
+  labelPluralKey: 'public~Nodes',
 };
