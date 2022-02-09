@@ -20,8 +20,8 @@ const Status: React.FC<StatusProps> = ({ value, icon, children }) => (
     {children}
     {value ? (
       <div className="odf-status-popup__status">
+        <div>{icon}</div>
         <div className="text-secondary">{value}</div>
-        <div className="odf-status-popup__icon">{icon}</div>
       </div>
     ) : (
       icon && (

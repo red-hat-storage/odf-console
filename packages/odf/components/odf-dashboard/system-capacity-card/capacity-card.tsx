@@ -13,9 +13,7 @@ import {
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  usePrometheusPoll,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -66,7 +64,7 @@ const SystemCapacityCard: React.FC = () => {
             managedSystemName: system.spec.name,
             managedSystemKind: referenceFor(apiGroup)(apiVersion)(kind),
             usedValue: humanizeBinaryBytes(usedMetric?.value?.[1]),
-            totalValue: _.isNumber(totalMetric?.value?.[1])
+            totalValue: !!totalMetric?.value?.[1]
               ? humanizeBinaryBytes(totalMetric?.value?.[1])
               : undefined,
           };
