@@ -1,11 +1,13 @@
 import * as React from 'react';
 import {
   useK8sWatchResource,
+  useK8sWatchResources,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk-internal-kubevirt/lib/api/common-types';
 import classNames from 'classnames';
 import * as fuzzy from 'fuzzysearch';
+import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import {
   Dropdown,
@@ -186,6 +188,166 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
     }
   }, [
     resources,
+    loaded,
+    loadError,
+    resourceModel,
+    showBadge,
+    propertySelector,
+    secondaryTextGenerator,
+    onClick,
+    searchText,
+    filterResource,
+  ]);
+
+  const onToggle = () => {
+    setOpen((o) => !o);
+    setSearchText('');
+  };
+
+  return (
+    <Dropdown
+      className={classNames('odf-resourceDropdown__container', className)}
+      toggle={
+        <DropdownToggle
+          onToggle={loaded && !loadError ? onToggle : () => {}}
+          toggleIndicator={CaretDownIcon}
+        >
+          {!loaded && <LoadingInline />}
+          {loaded && !loadError && (
+            <ResourceDropdownText
+              text={selectedItem ? propertySelector(selectedItem) : ''}
+              resourceModel={resourceModel}
+              showBadge={showBadge}
+            />
+          )}
+          {loaded && loadError && (
+            <span className="odf-resourceDropdownContainer__toggle--error">
+              {t('Error Loading')}
+            </span>
+          )}
+        </DropdownToggle>
+      }
+      isOpen={isOpen}
+    >
+      <TextInput
+        id="search-bar"
+        iconVariant="search"
+        value={searchText}
+        onChange={(val) => setSearchText(val)}
+        autoComplete="off"
+      />
+      {dropdownItems}
+    </Dropdown>
+  );
+};
+
+type ResourcesDropdownProps<T> = {
+  resources: {[key: string]: WatchK8sResource};
+} & Omit<ResourceDropdownProps<T>, 'resource'>;
+
+type ResourcesDropdown = <T>(
+  props: React.PropsWithChildren<ResourcesDropdownProps<T>>
+) => ReturnType<React.FC>;
+
+type ResourcesObject<T> = {
+  [key: string]: {
+      data: T[],
+      loaded: boolean,
+      loadError: any,
+  }
+}
+
+export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
+  resources: watchResources,
+  resourceModel,
+  showBadge,
+  propertySelector = getName,
+  onSelect,
+  secondaryTextGenerator,
+  className,
+  initialSelection,
+  filterResource,
+}) => {
+  const [isOpen, setOpen] = React.useState(false);
+  const [selectedItem, setSelectedItem] = React.useState(null);
+  const [searchText, setSearchText] = React.useState('');
+
+  const { t } = useTranslation('plugin__odf-console');
+
+  const resourcesObj: ResourcesObject<T> = useK8sWatchResources(watchResources);
+
+  const [data, loaded, loadError] = React.useMemo(() => {
+    let loaded = false, loadError: any;
+    let firstItr = true;
+    let data: T[] = _.reduce(resourcesObj, (acc, curr) => {
+        if (firstItr) {
+          loaded = curr.loaded;
+          firstItr = false;
+        }
+        else loaded = loaded && curr.loaded;
+        loadError = loadError || curr.loadError;
+        return [...acc, ...curr.data];
+    }, []);
+    return [data, loaded, loadError];
+  }, [resourcesObj]);
+
+  React.useEffect(() => {
+      if (initialSelection && selectedItem === null && loaded && !loadError) {
+        const item = initialSelection(data);
+        onSelect(item);
+        setSelectedItem(item);
+      }
+    }, [
+      selectedItem,
+      initialSelection,
+      setSelectedItem,
+      loaded,
+      loadError,
+      data,
+      onSelect,
+    ]);
+
+  const onClick = React.useCallback(
+    (event: React.SyntheticEvent<HTMLDivElement>) => {
+      const resourceUID = event?.currentTarget?.id;
+      const selectedResource = data.find(
+        (resource) => getUID(resource) === resourceUID
+      );
+      onSelect(selectedResource);
+      setSelectedItem(selectedResource);
+      setOpen(false);
+    },
+    [onSelect, setSelectedItem, data]
+  );
+
+  const dropdownItems = React.useMemo(() => {
+    if (!loaded && loadError) {
+      return [];
+    } else {
+      return data
+        .filter(
+          (res) =>
+            filterName(searchText, getName(res)) &&
+            (filterResource ? filterResource(res) : true)
+        )
+        .reduce((acc, curr) => {
+          return [
+            ...acc,
+            <ResourceDropdownItem<T>
+              key={propertySelector(curr)}
+              resourceModel={resourceModel}
+              showBadge={showBadge}
+              resource={curr}
+              id={getUID(curr)}
+              propertySelector={propertySelector}
+              secondaryTextGenerator={secondaryTextGenerator}
+              onClick={onClick}
+            />,
+          ];
+        }, []);
+    }
+  }, [
+    data,
     loaded,
     loadError,
     resourceModel,

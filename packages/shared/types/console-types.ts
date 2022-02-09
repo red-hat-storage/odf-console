@@ -2,7 +2,8 @@
  * Store types that are essential but are not part of Console SDK
  */
 
-import { K8sResourceCommon } from "@openshift-console/dynamic-plugin-sdk";
+import { K8sResourceCommon, ObjectReference } from "@openshift-console/dynamic-plugin-sdk";
+import { K8sResourceCondition } from './common';
 
 export type ClusterServiceVersionIcon = { base64data: string; mediatype: string };
 
@@ -18,6 +19,19 @@ export enum InstallModeType {
     InstallModeTypeSingleNamespace = 'SingleNamespace',
     InstallModeTypeMultiNamespace = 'MultiNamespace',
     InstallModeTypeAllNamespaces = 'AllNamespaces',
+}
+
+export enum InstallPlanApproval {
+    Automatic = 'Automatic',
+    Manual = 'Manual',
+}
+
+export enum SubscriptionState {
+    SubscriptionStateNone = '',
+    SubscriptionStateFailed = 'UpgradeFailed',
+    SubscriptionStateUpgradeAvailable = 'UpgradeAvailable',
+    SubscriptionStateUpgradePending = 'UpgradePending',
+    SubscriptionStateAtLatest = 'AtLatestKnown',
 }
 
 export type Descriptor<T = any> = {
@@ -126,5 +140,35 @@ export type ClusterServiceVersionKind = {
         phase: ClusterServiceVersionPhase;
         reason: CSVConditionReason;
         requirementStatus?: RequirementStatus[];
+    };
+} & K8sResourceCommon;
+
+export type ListKind<R extends K8sResourceCommon> = K8sResourceCommon & {
+    items: R[];
+};
+
+export type SubscriptionKind = {
+    apiVersion: 'operators.coreos.com/v1alpha1';
+    kind: 'Subscription';
+    spec: {
+      source: string;
+      name: string;
+      channel?: string;
+      startingCSV?: string;
+      sourceNamespace?: string;
+      installPlanApproval?: InstallPlanApproval;
+    };
+    status?: {
+      catalogHealth?: {
+        catalogSourceRef?: ObjectReference;
+        healthy?: boolean;
+        lastUpdated?: string;
+      }[];
+      conditions?: K8sResourceCondition[];
+      installedCSV?: string;
+      installPlanRef?: ObjectReference;
+      state?: SubscriptionState;
+      lastUpdated?: string;
+      currentCSV?: string;
     };
 } & K8sResourceCommon;

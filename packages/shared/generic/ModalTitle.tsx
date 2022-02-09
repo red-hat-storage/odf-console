@@ -155,3 +155,8 @@ export type ModalSubmitFooterProps = {
   submitDisabled?: boolean;
   submitDanger?: boolean;
 };
+
+export type ModalComponentProps = {
+  cancel?: () => void;
+  close?: () => void;
+};

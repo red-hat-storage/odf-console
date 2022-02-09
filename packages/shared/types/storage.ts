@@ -2,34 +2,41 @@ import { K8sResourceCommon } from "@openshift-console/dynamic-plugin-sdk";
 
 export type StorageClusterKind = K8sResourceCommon & {
     spec: {
-        network: {
-            provider: string;
-            selectors: {
-                public: string;
-                private?: string;
-            };
+      network?: {
+        provider: string;
+        selectors: {
+          public: string;
+          private?: string;
         };
-        manageNodes: boolean;
-        storageDeviceSets: DeviceSet[];
-        resources: StorageClusterResource;
-        encryption?: {
-            enable: boolean;
-            kms?: {
-                enable: boolean;
-            };
+      };
+      manageNodes?: boolean;
+      storageDeviceSets?: DeviceSet[];
+      resources?: StorageClusterResource;
+      arbiter?: {
+        enable: boolean;
+      };
+      nodeTopologies?: {
+        arbiterLocation: string;
+      };
+      encryption?: {
+        /** @deprecated - enable is deprecated from 4.10 */
+        enable: boolean;
+        clusterWide: boolean;
+        storageClass: boolean;
+        kms?: {
+          enable: boolean;
         };
-        arbiter: {
-            enable: boolean;
-        };
-        nodeTopologies: {
-            arbiterLocation: string;
-        };
-        flexibleScaling?: boolean;
-        monDataDirHostPath?: string;
+      };
+      flexibleScaling?: boolean;
+      monDataDirHostPath?: string;
+      multiCloudGateway?: {
+        reconcileStrategy: string;
+        dbStorageClassName: string;
+      };
     };
     status?: {
-        phase: string;
-        failureDomain?: string;
+      phase: string;
+      failureDomain?: string;
     };
 };
 
