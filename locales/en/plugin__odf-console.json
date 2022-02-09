@@ -1,4 +1,12 @@
 {
+  "Block and File service is unhealthy": "Block and File service is unhealthy",
+  "Object service is unhealthy": "Object service is unhealthy",
+  "Warning": "Warning",
+  "Error": "Error",
+  "All resources are unhealthy": "All resources are unhealthy",
+  "Object Bucket has an issue": "Object Bucket has an issue",
+  "Many buckets have issues": "Many buckets have issues",
+  "Some buckets have issues": "Some buckets have issues",
   "Activity": "Activity",
   "OpenShift Data Foundation": "OpenShift Data Foundation",
   "Overview": "Overview",
