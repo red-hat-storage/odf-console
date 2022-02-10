@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
+import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { ClusterServiceVersionKind } from '@odf/shared/types/console-types';
 import {
   getGVK,
@@ -12,7 +13,6 @@ import {
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   HealthBody,
-  HealthItem,
   usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
@@ -159,6 +159,7 @@ export const StatusCard: React.FC = () => {
                 <HealthItem
                   title={pluralize(unHealthySystems.length, 'Storage System')}
                   state={HealthState.ERROR}
+                  maxWidth='35rem'
                 >
                   <StorageSystemPopup systemHealthMap={unHealthySystems} />
                 </HealthItem>
