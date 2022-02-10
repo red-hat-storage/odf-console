@@ -2,16 +2,16 @@
   align-items: center;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
-  justify-content: center;
-  margin-left: var(--pf-global--spacer--sm);
-  place-items: center;
+  flex-grow: 0.3;
+  justify-items: center;
   white-space: nowrap;
 }
 
 .odf-status-popup__row {
   display: flex;
+  flex-grow: 1;
   justify-content: space-between;
+  min-width: 17rem;
   padding-bottom: var(--pf-global--spacer--xs);
 }
 
