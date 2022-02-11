@@ -62,10 +62,10 @@ export const ModalSubmitFooter: React.SFC<ModalSubmitFooterProps> = ({
   cancelText,
   submitDisabled,
   submitDanger,
-  resetText = i18next.t('public~Reset'),
+  resetText = i18next.t('plugin__odf-console~Reset'),
   reset,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__odf-console');
   const onCancelClick = (e) => {
     e.stopPropagation();
     cancel(e);
@@ -98,9 +98,9 @@ export const ModalSubmitFooter: React.SFC<ModalSubmitFooterProps> = ({
           variant="secondary"
           data-test-id="modal-cancel-action"
           onClick={onCancelClick}
-          aria-label={t('public~Cancel')}
+          aria-label={t('Cancel')}
         >
-          {cancelText || t('public~Cancel')}
+          {cancelText || t('Cancel')}
         </Button>
         {submitDanger ? (
           <Button

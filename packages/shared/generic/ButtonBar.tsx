@@ -16,13 +16,13 @@ const injectDisabled = (children: React.ReactChild, disabled) => {
 };
 
 const ErrorMessage = ({ message }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__odf-console');
   return (
     <Alert
       isInline
       className="co-alert co-alert--scrollable"
       variant="danger"
-      title={t('public~An error occurred')}
+      title={t('An error occurred')}
     >
       <div className="co-pre-line">{message}</div>
     </Alert>

@@ -19,7 +19,7 @@ export const PVsAvailableCapacity: React.FC<PVAvaialbleCapacityProps> = ({
   loaded,
   loadError,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__odf-console');
 
   let availableCapacity: string = '';
 
@@ -33,7 +33,7 @@ export const PVsAvailableCapacity: React.FC<PVAvaialbleCapacityProps> = ({
     availableStatusElement = (
       <div>
         {t(
-          'ceph-storage-plugin~{{availableCapacity}} /  {{replica}} replicas',
+          '{{availableCapacity}} /  {{replica}} replicas',
           {
             availableCapacity,
             replica,
@@ -43,14 +43,14 @@ export const PVsAvailableCapacity: React.FC<PVAvaialbleCapacityProps> = ({
     );
   } else if (loaded || loadError) {
     availableStatusElement = (
-      <div className="text-muted">{t('ceph-storage-plugin~Not Available')}</div>
+      <div className="text-muted">{t('Not Available')}</div>
     );
   }
 
   return (
     <div className="ceph-add-capacity__current-capacity">
       <div className="text-secondary ceph-add-capacity__current-capacity--text">
-        <strong>{t('ceph-storage-plugin~Available capacity:')}</strong>
+        <strong>{t('Available capacity:')}</strong>
       </div>
       {availableStatusElement}
     </div>
