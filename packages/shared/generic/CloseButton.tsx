@@ -17,10 +17,10 @@ const CloseButton: React.FC<CloseButtonProps> = ({
   dataTestID,
   onClick,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__odf-console');
   return (
     <Button
-      aria-label={ariaLabel || t('public~Close')}
+      aria-label={ariaLabel || t('Close')}
       className={classNames('co-close-button', additionalClassName)}
       data-test-id={dataTestID}
       onClick={onClick}
