@@ -2,8 +2,9 @@
   "json.schemas": [
     {
       "fileMatch": ["**/console-extensions.json"],
-      "url": "../console/frontend/packages/console-dynamic-plugin-sdk/dist/schema/console-extensions.json"
+      "url": "../node_modules/@openshift-console/dynamic-plugin-sdk-webpack/schema/console-extensions.json"
     }
   ],
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.insertFinalNewline": true
 }
