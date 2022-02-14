@@ -1,17 +1,17 @@
 .odf-status-popup__status {
   align-items: center;
   display: flex;
-  padding-left: var(--pf-global--spacer--xs);
+  flex-direction: column;
+  flex-grow: 0.3;
+  justify-items: center;
   white-space: nowrap;
-}
-
-.odf--status-popup__icon {
-  padding-left: var(--pf-global--spacer--xs);
 }
 
 .odf-status-popup__row {
   display: flex;
+  flex-grow: 1;
   justify-content: space-between;
+  min-width: 17rem;
   padding-bottom: var(--pf-global--spacer--xs);
 }
 
