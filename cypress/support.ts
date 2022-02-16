@@ -57,7 +57,7 @@ Cypress.Commands.add('install', () => {
       cy.get('td[role="gridcell"]', {timeout: 5 * 60000}).contains("Available");
       // Verify that ODF SS list page shows the SS.
       cy.log('Check if storage system is listed as expected.')
-      cy.clickNavLink(['Storage', 'OpenShift Data Foundation']);
+      cy.clickNavLink(['Storage', 'Data Foundation']);
       cy.byLegacyTestID('horizontal-link-Storage Systems').click();
       cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
       cy.get('a').contains(STORAGE_SYSTEM_NAME);
