@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
-import { ClusterServiceVersionKind } from '@odf/shared/types/console-types';
+import { ClusterServiceVersionKind } from '@odf/shared/types';
 import {
   getGVK,
   referenceForModel,

@@ -30,14 +30,13 @@ import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
+import { CEPH_STORAGE_NAMESPACE } from '../../constants';
 import { ODFStorageSystem } from '../../models';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
 import { StorageSystemKind } from '../../types';
 import { OperandStatus } from './status';
 import ODFSystemLink from './system-link';
 import { getActions } from './utils';
-
-const CEPH_STORAGE_NAMESPACE = 'openshift-storage';
 
 type SystemMetrics = {
   [systeName: string]: {
