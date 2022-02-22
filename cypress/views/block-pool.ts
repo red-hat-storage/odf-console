@@ -20,7 +20,10 @@ export const poolMessage: {
 
 export const navigateToBlockPool = () => {
   ODFCommon.visitStorageDashboard();
-  cy.byLegacyTestID('horizontal-link-Block Pools').click();
+  cy.byLegacyTestID('horizontal-link-Storage Systems').click();
+  cy.byLegacyTestID('item-filter').type("ocs-storagecluster-storagesystem");
+  cy.byTestRows('resource-row').get('td a').first().click();
+  cy.byLegacyTestID('horizontal-link-BlockPools').click();
 };
 
 export const populateBlockPoolForm = () => {
