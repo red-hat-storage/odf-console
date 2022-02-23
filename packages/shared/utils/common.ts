@@ -1,5 +1,6 @@
 import { K8sResourceKind, Patch } from '@odf/shared/types';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
+import { K8sGroupVersionKind, K8sResourceKindReference, OwnerReference, GroupVersionKind } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
@@ -73,3 +74,23 @@ export const k8sPatchByName = <R extends K8sResourceCommon>(
   namespace: string,
   data: Patch[],
 ) => k8sPatch({model: kind, resource: { metadata: { name, namespace } }, data: data}) as Promise<R>;
+
+export const groupVersionFor = (apiVersion: string) => ({
+  group: apiVersion.split('/').length === 2 ? apiVersion.split('/')[0] : 'core',
+  version:
+    apiVersion.split('/').length === 2 ? apiVersion.split('/')[1] : apiVersion,
+});
+
+export const getReference = ({
+  group,
+  version,
+  kind,
+}: K8sGroupVersionKind): K8sResourceKindReference =>
+  [group || 'core', version, kind].join('~');
+
+export const referenceForOwnerRef = (
+  ownerRef: OwnerReference
+): GroupVersionKind =>
+  referenceForGroupVersionKind(groupVersionFor(ownerRef.apiVersion).group)(
+    groupVersionFor(ownerRef.apiVersion).version
+  )(ownerRef.kind);

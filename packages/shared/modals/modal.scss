@@ -1,0 +1,12 @@
+.icon--spacer {
+  margin-right: 0.25em;
+}
+
+.modal--padding {
+  padding: var(--pf-global--spacer--xl) var(--pf-global--spacer--xl)
+    var(--pf-global--spacer--xs);
+}
+
+.modalFooter--justifyEnd {
+  justify-content: flex-end;
+}
