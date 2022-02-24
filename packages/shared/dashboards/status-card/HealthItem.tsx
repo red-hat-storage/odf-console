@@ -39,7 +39,7 @@ const HealthItem: React.FC<HealthItemProps> = React.memo(
     children,
     maxWidth,
   }) => {
-    const { t } = useTranslation();
+    const { t } = useTranslation('plugin__odf-console');
 
     const detailMessage = details || healthStateMessage(state, t);
 
@@ -51,7 +51,7 @@ const HealthItem: React.FC<HealthItemProps> = React.memo(
         {state === HealthState.LOADING ? (
           <div className="skeleton-health">
             <span className="pf-u-screen-reader">
-              {t('plugin__odf-console~Loading {{title}} status', { title })}
+              {t('Loading {{title}} status', { title })}
             </span>
           </div>
         ) : (

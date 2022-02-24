@@ -25,8 +25,8 @@ import {
   StorageClassDropdown as ScModule,
   createModalLauncher,
 } from '@openshift-console/dynamic-plugin-sdk-internal-kubevirt';
+import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
-import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
