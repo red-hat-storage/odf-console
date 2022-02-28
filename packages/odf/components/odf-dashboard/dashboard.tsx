@@ -51,7 +51,7 @@ export const ODFDashboard: React.FC = () => {
 
 const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
   const { t } = useTranslation('plugin__odf-console');
-  const title = t('OpenShift Data Foundation');
+  const title = t('Data Foundation');
   const pages = [
     {
       href: '',

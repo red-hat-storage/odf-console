@@ -140,7 +140,7 @@ export const StatusCard: React.FC = () => {
           <Gallery className="co-overview-status__health" hasGutter>
             <GalleryItem>
               <HealthItem
-                title={t('OpenShift Data Foundation')}
+                title={t('Data Foundation')}
                 state={operatorHealthStatus.state}
               />
             </GalleryItem>
