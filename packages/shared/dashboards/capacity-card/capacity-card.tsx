@@ -1,4 +1,5 @@
 import * as React from 'react';
+import PlainResourceName from '@odf/shared/resource-link/plain-resource-link';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import classNames from 'classnames';
 import * as _ from 'lodash';
@@ -168,7 +169,7 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
             />
           </Tooltip>
         ) : (
-          data.name
+          <PlainResourceName resourceName={data.name} />
         )}
       </GridItem>
       <GridItem key={`${data.name}~progress`} span={7}>
