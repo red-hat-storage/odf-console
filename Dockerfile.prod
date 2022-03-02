@@ -1,5 +1,5 @@
 FROM registry-proxy.engineering.redhat.com/rh-osbs/rhacm2-yarn-builder:v2.3.0_14-1.20210810163126 AS builder
-ARG TARGET_BRANCH=master
+ARG TARGET_BRANCH=release-4.10
 
 RUN dnf install -y git
 RUN git clone https://github.com/red-hat-storage/odf-console.git
