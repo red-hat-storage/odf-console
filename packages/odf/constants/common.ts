@@ -17,6 +17,7 @@ export const OCS_DEVICE_SET_REPLICA = 3;
 export const OCS_DEVICE_SET_ARBITER_REPLICA = 4;
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
 export const MINIMUM_NODES = 3;
+export const SECOND = 1000;
 
 export enum defaultRequestSize {
     BAREMETAL = '1',
