@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { history } from '@odf/shared/hooks/history';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { InfrastructureModel } from '@odf/shared/models';
 import { ListKind } from '@odf/shared/types';
 import { useTranslation } from 'react-i18next';
-import { RouteComponentProps, match as RouteMatch } from 'react-router';
+import { RouteComponentProps, match as RouteMatch, useHistory } from 'react-router';
 import { Wizard, WizardStep } from '@patternfly/react-core';
 import {
   Steps,
@@ -21,6 +20,7 @@ import { initialState, reducer, WizardReducer } from './reducer';
 
 const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
   const { t } = useTranslation('plugin__odf-console');
+  const history = useHistory();
   const [state, dispatch] = React.useReducer<WizardReducer>(reducer, initialState);
   const [ssList, ssLoaded, ssLoadError] = useK8sGet<ListKind<StorageSystemKind>>(
     ODFStorageSystem,
