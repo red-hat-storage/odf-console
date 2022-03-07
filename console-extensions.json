@@ -54,5 +54,32 @@
     "flags": {
       "required": ["ODF_MODEL"]
     }
+  },
+  {
+    "type": "console.navigation/section",
+    "properties": {
+        "id": "mco-data-services",
+        "perspective": "acm",
+        "name": "%plugin__odf-plugin~Data Services%",
+        "insertBefore": "acm-applications"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "mco-data-policies",
+      "perspective" : "acm",
+      "section": "mco-data-services",
+      "name": "%plugin__odf-plugin~Data policies%",
+      "href": "/multicloud/data-services/data-policies"
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/multicloud/data-services/data-policies",
+      "exact": true,
+      "component": { "$codeRef": "dataPolicies.DataPoliciesList" }
+    }
   }
 ]
