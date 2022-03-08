@@ -1,14 +1,13 @@
 import * as React from 'react';
-import { ClusterServiceVersionModel } from '@odf/shared/models';
+import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
+import { ClusterServiceVersionModel, SubscriptionModel } from '@odf/shared/models';
 import { Status } from '@odf/shared/status/Status';
-import { HumanizeResult, RowFunctionArgs } from '@odf/shared/types';
+import { HumanizeResult, RowFunctionArgs, SubscriptionKind } from '@odf/shared/types';
 import {
   humanizeBinaryBytes,
   humanizeDecimalBytesPerSec,
   humanizeIOPS,
   humanizeLatency,
-} from '@odf/shared/utils';
-import {
   referenceForGroupVersionKind,
   referenceForModel,
   getGVK,
@@ -30,7 +29,7 @@ import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { CEPH_STORAGE_NAMESPACE } from '../../constants';
+import { CEPH_STORAGE_NAMESPACE, ODF_OPERATOR } from '../../constants';
 import { ODFStorageSystem } from '../../models';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
 import { StorageSystemKind } from '../../types';
@@ -271,11 +270,19 @@ const StorageSystemList: React.FC<StorageSystemListProps> = (props) => {
 };
 
 const StorageSystemListPage: React.FC<RouteComponentProps> = (props) => {
+  const [subs, subsLoaded, subsLoadError] = useK8sGet<SubscriptionKind>(
+    SubscriptionModel,
+    ODF_OPERATOR,
+    CEPH_STORAGE_NAMESPACE,
+  );
+
+  const csvName = subs?.status?.currentCSV || ODF_OPERATOR;
   const createProps = {
     to: `/k8s/ns/openshift-storage/${referenceForModel(
       ClusterServiceVersionModel
-    )}/odf-operator/${referenceForModel(ODFStorageSystem)}/~new`,
+    )}/${csvName}/${referenceForModel(ODFStorageSystem)}/~new`,
   };
+
   return (
     <ListPage
       {...props}
@@ -283,7 +290,7 @@ const StorageSystemListPage: React.FC<RouteComponentProps> = (props) => {
       ListComponent={StorageSystemList}
       kind={referenceForModel(ODFStorageSystem)}
       namespace={CEPH_STORAGE_NAMESPACE}
-      canCreate
+      canCreate={subsLoaded && !subsLoadError}
       createProps={createProps}
     />
   );
