@@ -112,7 +112,8 @@
     },
     "exposedModules": {
       "dashboard": "@odf/core/components/odf-dashboard/dashboard",
-      "features": "@odf/core/features"
+      "features": "@odf/core/features",
+      "dataPolicies": "@odf/mco/components/data-policies-list"
     }
   }
 }
