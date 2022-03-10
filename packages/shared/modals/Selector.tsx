@@ -10,6 +10,17 @@ import * as TagsInput from 'react-tagsinput';
 import * as k8sSelectorRequirement from './selector-requirement';
 import { createEquals, requirementFromString } from './selector-requirement';
 
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'tags-input': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+    }
+  }
+}
+
 export const split = (str: string) =>
   str.trim() ? str.split(/,(?![^(]*\))/) : []; // [''] -> []
 
@@ -248,7 +259,6 @@ export class SelectorInput extends React.Component<any, SelectorInputState> {
 
     return (
       <div className="co-search-input pf-c-form-control">
-        {/*@ts-ignore*/}
         <tags-input>
           <TagsInput
             ref={this.setRef}
@@ -261,7 +271,6 @@ export class SelectorInput extends React.Component<any, SelectorInputState> {
             onChange={this.handleChange.bind(this)}
             addOnBlur
           />
-        {/*@ts-ignore*/}
         </tags-input>
       </div>
     );

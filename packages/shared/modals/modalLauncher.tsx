@@ -15,6 +15,8 @@ export type ModalMap = {
 
 const defaultModalMap: ModalMap = {
   [ModalKeys.DELETE]: React.lazy(() => import('./DeleteModal')),
+  [ModalKeys.EDIT_ANN]: React.lazy(() => import('./EditAnnotations')),
+  [ModalKeys.EDIT_LABELS]: React.lazy(() => import('./EditLabelModal')),
 };
 
 const EmptyJSX: React.FC = () => <></>;

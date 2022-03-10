@@ -10,6 +10,19 @@ type ResourceLinkProps = {
   className?: string;
 };
 
+type ResourceIconProps = {
+  resourceModel: K8sKind;
+};
+
+export const ResourceIcon: React.FC<ResourceIconProps> = ({ resourceModel }) => (
+  <>
+    <span className="sr-only">{resourceModel.abbr.toLocaleUpperCase()}</span>
+    <span className="co-m-resource-icon" title={resourceModel.kind}>
+      {resourceModel.abbr.toLocaleUpperCase()}
+    </span>
+  </>
+);
+
 const ResourceLink: React.FC<ResourceLinkProps> = ({
   resourceModel,
   resourceName,

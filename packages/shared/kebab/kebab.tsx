@@ -18,6 +18,12 @@ type KebabProps = {
 };
 
 const defaultKebabItems = (t: TFunction) => [
+  <DropdownItem key={ModalKeys.EDIT_LABELS} id={ModalKeys.EDIT_LABELS}>
+    {t('plugin__odf-console~Edit Labels')}
+  </DropdownItem>,
+  <DropdownItem key={ModalKeys.EDIT_ANN} id={ModalKeys.EDIT_ANN}>
+    {t('plugin__odf-console~Edit Annotations')}
+  </DropdownItem>,
   <DropdownItem key={ModalKeys.DELETE} id={ModalKeys.DELETE}>
     {t('plugin__odf-console~Delete')}
   </DropdownItem>,
@@ -58,6 +64,7 @@ export const Kebab: React.FC<KebabProps> = ({
       isOpen={isOpen}
       isPlain
       dropdownItems={drpodownItems}
+      position="right"
     />
   );
 };
