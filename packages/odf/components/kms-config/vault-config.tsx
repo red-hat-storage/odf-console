@@ -49,26 +49,41 @@ export const ValutConfigure: React.FC<KMSConfigureProps> = ({
 
   const updateVaultState = (vaultConfig: VaultConfig) =>
     dispatch({
-          type: 'securityAndNetwork/setVault',
-          payload: vaultConfig,
+      type: 'securityAndNetwork/setVault',
+      payload: vaultConfig,
     });
 
+  const setAuthValue = (authValue: string) => {
+    vaultStateClone.authValue.value = authValue;
+    vaultStateClone.authValue.valid = authValue !== '';
+    updateVaultState(vaultStateClone);
+  };
+
   const setAuthMethod = (authMethod: VaultAuthMethods) => {
+    setAuthValue('');
     vaultStateClone.authMethod = authMethod;
     updateVaultState(vaultStateClone);
   };
 
-  const filteredVaultAuthMethodMapping = Object.values(VaultAuthMethodMapping).filter(
+  const filteredVaultAuthMethodMapping = Object.values(
+    VaultAuthMethodMapping
+  ).filter(
     (authMethod) =>
       (encryption.clusterWide
-        ? authMethod.supportedEncryptionType.includes(KmsEncryptionLevel.CLUSTER_WIDE)
+        ? authMethod.supportedEncryptionType.includes(
+            KmsEncryptionLevel.CLUSTER_WIDE
+          )
         : true) &&
       (encryption.storageClass
-        ? authMethod.supportedEncryptionType.includes(KmsEncryptionLevel.STORAGE_CLASS)
-        : true),
+        ? authMethod.supportedEncryptionType.includes(
+            KmsEncryptionLevel.STORAGE_CLASS
+          )
+        : true)
   );
 
-  const vaultAuthMethods = filteredVaultAuthMethodMapping.map((authMethod) => authMethod.value);
+  const vaultAuthMethods = filteredVaultAuthMethodMapping.map(
+    (authMethod) => authMethod.value
+  );
   if (!vaultAuthMethods.includes(vaultState.authMethod)) {
     if (isKmsVaultSASupported) {
       // From 4.10 kubernetes is default auth method
@@ -116,6 +131,7 @@ export const ValutConfigure: React.FC<KMSConfigureProps> = ({
           isWizardFlow,
           dispatch,
           updateVaultState,
+          setAuthValue,
         }}
       />
     </>
@@ -130,6 +146,7 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
   isWizardFlow,
   dispatch,
   updateVaultState,
+  setAuthValue,
 }) => {
   const vaultStateClone: VaultConfig = _.cloneDeep(vaultState);
   const Component: React.FC<VaultAuthMethodProps> =
@@ -144,13 +161,13 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
       vaultState.authValue?.value !== '' &&
       kmsConfigValidation(vaultState, ProviderNames.VAULT);
     if (vaultState.hasHandled !== hasHandled) {
-        dispatch({
-            type: 'securityAndNetwork/setVault',
-            payload: {
-              ...vaultState,
-              hasHandled,
-            },
-        });
+      dispatch({
+        type: 'securityAndNetwork/setVault',
+        payload: {
+          ...vaultState,
+          hasHandled,
+        },
+      });
     }
   }, [dispatch, vaultState]);
 
@@ -169,20 +186,18 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
 
   const setAddress = (address: string) => {
     vaultStateClone.address.value = address;
-    vaultStateClone.address.valid = address !== '' && parseURL(address.trim()) != null;
+    vaultStateClone.address.valid =
+      address !== '' && parseURL(address.trim()) != null;
     updateVaultState(vaultStateClone);
   };
 
   const setAddressPort = (port: string) => {
     vaultStateClone.port.value = port;
     vaultStateClone.port.valid =
-      port !== '' && !_.isNaN(Number(port)) && Number(port) > 0 && Number(port) < 65536;
-    updateVaultState(vaultStateClone);
-  };
-
-  const setAuthValue = (authValue: string) => {
-    vaultStateClone.authValue.value = authValue;
-    vaultStateClone.authValue.valid = authValue !== '';
+      port !== '' &&
+      !_.isNaN(Number(port)) &&
+      Number(port) > 0 &&
+      Number(port) < 65536;
     updateVaultState(vaultStateClone);
   };
 
@@ -196,7 +211,8 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
       ? t('This is a required field')
       : t('Please enter a valid port');
 
-  const isValid = (value: boolean) => (value ? ValidatedOptions.default : ValidatedOptions.error);
+  const isValid = (value: boolean) =>
+    value ? ValidatedOptions.default : ValidatedOptions.error;
 
   return (
     <>
@@ -207,7 +223,7 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
         helperTextInvalid={t('This is a required field')}
         validated={isValid(vaultState.name?.valid)}
         helperText={t(
-          'A unique name for the key management service within the project.',
+          'A unique name for the key management service within the project.'
         )}
         isRequired
       >
@@ -226,7 +242,10 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
         <FormGroup
           fieldId="kms-address"
           label={t('Address')}
-          className={classNames('ocs-install-kms__form-address', `${className}__form-body`)}
+          className={classNames(
+            'ocs-install-kms__form-address',
+            `${className}__form-body`
+          )}
           helperTextInvalid={validateAddressMessage()}
           validated={isValid(vaultState.address?.valid)}
           isRequired
@@ -248,7 +267,7 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
           label={t('Port')}
           className={classNames(
             'ocs-install-kms__form-port',
-            `${className}__form-body--small-padding`,
+            `${className}__form-body--small-padding`
           )}
           helperTextInvalid={validatePortMessage()}
           validated={isValid(vaultState.port?.valid)}
@@ -268,7 +287,13 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
       </div>
       {isWizardFlow && (
         <Component
-          {...{ t, className: `${className}__form-body`, vaultState, setAuthValue, isValid }}
+          {...{
+            t,
+            className: `${className}__form-body`,
+            vaultState,
+            setAuthValue,
+            isValid,
+          }}
         />
       )}
       <Button
@@ -284,7 +309,11 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
           vaultState.clientCert ||
           vaultState.clientKey ||
           vaultState.providerNamespace) && (
-          <PencilAltIcon data-test="edit-icon" size="sm" color={blueInfoColor.value} />
+          <PencilAltIcon
+            data-test="edit-icon"
+            size="sm"
+            color={blueInfoColor.value}
+          />
         )}
       </Button>
     </>
@@ -300,4 +329,5 @@ export type ValutConnectionFormProps = {
   t: TFunction;
   dispatch: EncryptionDispatch;
   updateVaultState: (VaultConfig) => void;
+  setAuthValue: (string) => void;
 };
