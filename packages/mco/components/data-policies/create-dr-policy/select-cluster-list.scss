@@ -1,0 +1,21 @@
+.mco-select-cluster-list {
+  border: 1px solid #eee;
+}
+
+.mco-select-cluster-list__bullseye {
+  min-height: 200px;
+}
+
+.mco-select-cluster-list__data-list {
+  --pf-c-data-list__item--BorderBottomWidth: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.mco-select-cluster-list__filter-toolbar-item {
+  width: 8rem;
+}
+
+.mco-select-cluster-list__search-toolbar-item {
+  width: 11rem;
+}

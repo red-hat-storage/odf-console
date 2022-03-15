@@ -58,17 +58,17 @@
   {
     "type": "console.navigation/section",
     "properties": {
-        "id": "mco-data-services",
-        "perspective": "acm",
-        "name": "%plugin__odf-plugin~Data Services%",
-        "insertBefore": "acm-applications"
+      "id": "mco-data-services",
+      "perspective": "acm",
+      "name": "%plugin__odf-plugin~Data Services%",
+      "insertBefore": "acm-applications"
     }
   },
   {
     "type": "console.navigation/href",
     "properties": {
       "id": "mco-data-policies",
-      "perspective" : "acm",
+      "perspective": "acm",
       "section": "mco-data-services",
       "name": "%plugin__odf-plugin~Data policies%",
       "href": "/multicloud/data-services/data-policies"
@@ -77,9 +77,17 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/multicloud/data-services/data-policies",
+      "path": "/multicloud/data-services/data-policies/ramendr.openshift.io~v1alpha1~DRPolicy",
       "exact": true,
       "component": { "$codeRef": "dataPolicies.DataPoliciesList" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/multicloud/data-services/data-policies/ramendr.openshift.io~v1alpha1~DRPolicy/~new",
+      "exact": true,
+      "component": { "$codeRef": "createDataPolicy.CreateDRPolicy" }
     }
   }
 ]

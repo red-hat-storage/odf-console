@@ -1,0 +1,14 @@
+.mco-create-data-policy {
+  margin: var(--pf-global--spacer--lg);
+  .pf-c-form.pf-m-limit-width {
+    max-width: 33rem;
+  }
+}
+
+.mco-create-data-policy__action-group {
+  margin-bottom: var(--pf-global--spacer--md);
+}
+
+.mco-create-data-policy__description {
+  margin-bottom: var(--pf-global--spacer--sm);
+}
