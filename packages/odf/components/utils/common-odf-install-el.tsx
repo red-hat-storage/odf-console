@@ -1,5 +1,4 @@
 import * as React from 'react';
-import TechPreviewBadge from '@odf/shared/badges/TechPreviewBadge';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
@@ -45,7 +44,6 @@ export const VALIDATIONS = (type: keyof typeof ValidationType, t: TFunction): Va
         title: (
           <div className="ceph-minimal-deployment-alert__header">
             {t('A minimal cluster deployment will be performed.')}
-            <TechPreviewBadge />
           </div>
         ),
         text: t(
