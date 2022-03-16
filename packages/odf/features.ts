@@ -1,4 +1,8 @@
-import { SetFeatureFlag } from "@openshift-console/dynamic-plugin-sdk";
+import { OCSStorageClusterModel } from '@odf/core/models';
+import { StorageClusterKind } from '@odf/shared/types';
+import { SetFeatureFlag, k8sList } from "@openshift-console/dynamic-plugin-sdk";
+import * as _ from 'lodash';
+import { CEPH_STORAGE_NAMESPACE, SECOND } from './constants';
 
 export const ODF_MODEL_FLAG = 'ODF_MODEL';
 export const OCS_INDEPENDENT_FLAG = 'OCS_INDEPENDENT';
@@ -46,4 +50,47 @@ export const OCS_FEATURE_FLAGS = {
   [FEATURES.ODF_VAULT_SA_KMS]: 'vault-sa-kms',
 };
 
+const setOCSFlagsFalse = (setFlag: SetFeatureFlag) => {
+  setFlag(OCS_FLAG, false);
+  setFlag(OCS_CONVERGED_FLAG, false);
+  setFlag(OCS_INDEPENDENT_FLAG, false);
+  setFlag(MCG_STANDALONE, false);
+};
+
 export const setODFFlag = (setFlag: SetFeatureFlag) => setFlag(ODF_MODEL_FLAG, true);
+
+export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
+  let ocsIntervalId = null;
+  // to prevent unnecessary re-render every 15 sec
+  // until storageClusters are found
+  let setFlagFalse = true;
+  const ocsDetector = async () => {
+    try {
+      const storageClusters = await k8sList({model: OCSStorageClusterModel, queryParams: { CEPH_STORAGE_NAMESPACE }});
+      if (storageClusters?.length > 0) {
+        const storageCluster = storageClusters.find(
+          (sc: StorageClusterKind) => sc.status.phase !== 'Ignored',
+        );
+        const isInternal = _.isEmpty(storageCluster?.spec?.externalStorage);
+        setFlag(OCS_CONVERGED_FLAG, isInternal);
+        setFlag(OCS_INDEPENDENT_FLAG, !isInternal);
+        setFlag(OCS_FLAG, true);
+        setFlag(
+          MCG_STANDALONE,
+          storageCluster?.spec?.multiCloudGateway?.reconcileStrategy === 'standalone',
+        );
+        clearInterval(ocsIntervalId);
+      } else if(setFlagFalse) {
+        setFlagFalse = false;
+        setOCSFlagsFalse(setFlag);
+      }
+    } catch (error) {
+      setOCSFlagsFalse(setFlag);
+    }
+  };
+
+  // calling first time instantaneously
+  // else it will wait for 15s before polling
+  ocsDetector();
+  ocsIntervalId = setInterval(ocsDetector, 15 * SECOND);
+};
