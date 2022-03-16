@@ -18,5 +18,6 @@ export type AdvancedKMSModalProps = {
   state: Pick<WizardState['securityAndNetwork'], 'encryption' | 'kms'>;
   dispatch: EncryptionDispatch;
   mode?: string;
+  isWizardFlow?: boolean;
 } & HandlePromiseProps &
   ModalComponentProps;
