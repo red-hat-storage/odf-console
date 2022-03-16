@@ -1,6 +1,3 @@
-import { StorageClusterResource, ResourceConstraints } from '@odf/shared/types';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-
 export enum BackingStorageType {
     EXISTING = 'existing',
     LOCAL_DEVICES = 'local-devices',
@@ -25,18 +22,6 @@ export enum ValidationType {
     'ATTACHED_DEVICES_FLEXIBLE_SCALING' = 'ATTACHED_DEVICES_FLEXIBLE_SCALING',
 }
 
-export type StorageSystemKind = K8sResourceCommon & {
-    spec: {
-        kind: string;
-        name: string;
-        namespace: string;
-    };
-    status?: {
-        phase?: string;
-        conditions?: any;
-    };
-};
-
 export type EncryptionType = {
     clusterWide: boolean;
     storageClass: boolean;
@@ -46,38 +31,4 @@ export type EncryptionType = {
 
 export type NodesPerZoneMap = {
     [zones: string]: number;
-};
-
-export const MIN_SPEC_RESOURCES: StorageClusterResource = {
-    mds: {
-      limits: {
-        cpu: '3',
-        memory: '8Gi',
-      },
-      requests: {
-        cpu: '1',
-        memory: '8Gi',
-      },
-    },
-    rgw: {
-      limits: {
-        cpu: '2',
-        memory: '4Gi',
-      },
-      requests: {
-        cpu: '1',
-        memory: '4Gi',
-      },
-    },
-};
-  
-export const MIN_DEVICESET_RESOURCES: ResourceConstraints = {
-    limits: {
-      cpu: '2',
-      memory: '5Gi',
-    },
-    requests: {
-      cpu: '1',
-      memory: '5Gi',
-    },
 };

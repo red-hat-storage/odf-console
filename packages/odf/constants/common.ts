@@ -13,11 +13,19 @@ export const LABEL_OPERATOR = 'In';
 export const RACK_LABEL = 'topology.rook.io/rack';
 export const ODF_VENDOR_ANNOTATION = 'vendors.odf.openshift.io/kind';
 export const CEPH_STORAGE_LABEL = 'cluster.ocs.openshift.io/openshift-storage';
+export const CEPH_INTERNAL_CR_NAME = 'ocs-storagecluster-cephcluster';
+export const CEPH_EXTERNAL_CR_NAME = 'ocs-external-storagecluster-cephcluster';
 export const OCS_DEVICE_SET_REPLICA = 3;
 export const OCS_DEVICE_SET_ARBITER_REPLICA = 4;
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
 export const MINIMUM_NODES = 3;
 export const SECOND = 1000;
+export const MINUTE = 60 * SECOND;
+
+export enum CLUSTER_STATUS {
+    READY = 'Ready',
+    PROGRESSING = 'Progressing',
+}
 
 export enum defaultRequestSize {
     BAREMETAL = '1',

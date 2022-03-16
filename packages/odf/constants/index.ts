@@ -3,3 +3,4 @@ export * from './kms';
 export * from './lso';
 export * from './network';
 export * from './tooltips';
+export * from './storage-pool-const';

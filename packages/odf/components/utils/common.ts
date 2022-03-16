@@ -1,5 +1,5 @@
 import { NodesPerZoneMap, ValidationType, EncryptionType } from '@odf/core/types';
-import { MIN_SPEC_RESOURCES, MIN_DEVICESET_RESOURCES } from '@odf/core/types';
+import { StorageClusterKind, MIN_SPEC_RESOURCES, MIN_DEVICESET_RESOURCES } from '@odf/core/types';
 import { 
   getNodeCPUCapacity,
   getNodeAllocatableMemory,
@@ -15,7 +15,7 @@ import {
   getName,
   getUID,
 } from '@odf/shared/selectors';
-import { NodeKind, StorageClusterKind } from '@odf/shared/types';
+import { NodeKind } from '@odf/shared/types';
 import { 
   referenceForModel,
   humanizeCpuCores,

@@ -64,7 +64,7 @@ type ButtonBarProps = {
   children: React.ReactChild;
   successMessage?: string;
   errorMessage: React.ReactNode;
-  infoMessage: string;
+  infoMessage?: string;
   inProgress: boolean;
-  className: string;
+  className?: string;
 };
