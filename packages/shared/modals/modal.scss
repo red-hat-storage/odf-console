@@ -10,3 +10,14 @@
 .modalFooter--justifyEnd {
   justify-content: flex-end;
 }
+
+.modalBody tags-input .tags {
+  background-color: rgba(255, 255, 255, 0.5);
+  background-image: none;
+  border-radius: 4px;
+  color: rgb(85, 85, 85);
+  cursor: text;
+  line-height: 20px;
+  margin-bottom: 1rem;
+  min-height: 120px;
+}
