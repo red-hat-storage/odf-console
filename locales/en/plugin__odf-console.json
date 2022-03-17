@@ -25,6 +25,7 @@
   "No data available": "No data available",
   "Raw Capacity": "Raw Capacity",
   "Used capacity": "Used capacity",
+  "StorageSystems": "StorageSystems",
   "Add Capacity": "Add Capacity",
   "The amount of capacity that would be dynamically allocated on the selected StorageClass.": "The amount of capacity that would be dynamically allocated on the selected StorageClass.",
   "The StorageClass used by OpenShift Data Foundation to write its data and metadata.": "The StorageClass used by OpenShift Data Foundation to write its data and metadata.",
