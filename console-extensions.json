@@ -3,6 +3,14 @@
     "type": "console.flag",
     "properties": {
       "handler": {
+        "$codeRef": "features.setOCSFlags"
+      }
+    }
+  },
+  {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
         "$codeRef": "features.setODFFlag"
       }
     }
@@ -61,6 +69,17 @@
     },
     "flags": {
       "required": ["ODF_MODEL"]
+    }
+  },
+  {
+    "type": "console.resource/create",
+    "properties": {
+      "model": {
+        "group": "odf.openshift.io",
+        "version": "v1alpha1",
+        "kind": "StorageSystem"
+      },
+      "component": { "$codeRef": "wizard.default" }
     }
   },
   {
