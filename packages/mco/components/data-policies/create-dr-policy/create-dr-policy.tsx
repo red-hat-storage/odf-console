@@ -27,7 +27,7 @@ import {
   MAX_ALLOWED_CLUSTERS,
   REPLICATION_TYPE,
 } from '../../../constants/dr-policy';
-import { DRPolicyModel } from '../../../models/models';
+import { DRPolicyModel } from '../../../models';
 import { DRPolicyKind } from '../../../types/types';
 import { Cluster, SelectClusterList } from './select-cluster-list';
 import './create-dr-policy.scss';
