@@ -1,0 +1,18 @@
+.mco-apply-policy-modal {
+    &__form{
+        padding: var(--pf-global--spacer--sm) var(--pf-global--spacer--sm) var(--pf-global--spacer--xs) var(--pf-global--spacer--sm);
+    };
+
+    &__description{
+        margin-bottom: var(--pf-global--spacer--lg) !important;
+    };
+
+    &__body {
+        margin-left: var(--pf-global--spacer--xs);
+        margin-right: var(--pf-global--spacer--lg);
+    };
+
+    &__alert{
+        margin-bottom: var(--pf-global--spacer--xs) !important;
+    };
+};

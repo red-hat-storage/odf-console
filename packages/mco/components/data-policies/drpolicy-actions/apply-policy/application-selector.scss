@@ -1,0 +1,16 @@
+.mco-application-selector {
+  &__box {
+    border: var(--pf-global--BorderWidth--sm) solid var(--pf-global--BorderColor--100);
+  };
+
+  &__table {
+    border-top: var(--pf-global--BorderWidth--sm) solid var(--pf-global--BorderColor--100);
+    max-height: 200px;
+    min-height: 200px;
+    overflow-y: auto;
+  };
+
+  &__bullseye {
+    min-height: 200px;
+  };
+};

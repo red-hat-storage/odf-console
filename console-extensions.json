@@ -77,7 +77,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/multicloud/data-services/data-policies/ramendr.openshift.io~v1alpha1~DRPolicy",
+      "path": "/multicloud/data-services/data-policies",
       "exact": true,
       "component": { "$codeRef": "dataPolicies.DataPoliciesList" }
     }

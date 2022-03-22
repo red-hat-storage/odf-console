@@ -3,7 +3,7 @@ import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { Dropdown, DropdownItem, KebabToggle } from '@patternfly/react-core';
+import { Dropdown, DropdownItem, KebabToggle, DropdownItemProps } from '@patternfly/react-core';
 import { ModalKeys, LaunchModal } from '../modals/modalLauncher';
 
 type KebabProps = {
@@ -13,7 +13,10 @@ type KebabProps = {
     resourceModel: K8sModel;
   };
   customKebabItems?: (t: TFunction) => {
-    [key: string]: string;
+    [key: string]: {
+      label: string
+      props? : DropdownItemProps;
+    }
   };
 };
 
@@ -49,8 +52,8 @@ export const Kebab: React.FC<KebabProps> = ({
       customKebabItems ? customKebabItems(t) : {}
     ).map(([k, v]) => {
       return (
-        <DropdownItem key={k} id={k}>
-          {v}
+        <DropdownItem key={k} id={v.label} {...v.props}>
+          {v.label}
         </DropdownItem>
       );
     });
