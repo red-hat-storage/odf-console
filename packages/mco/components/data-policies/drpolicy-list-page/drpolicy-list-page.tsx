@@ -28,6 +28,7 @@ import { sortable, wrappable } from '@patternfly/react-table';
 import { DRPolicyModel, DRPlacementControlModel } from '../../../models';
 import { DRPolicyKind, DRPlacementControlKind } from '../../../types';
 import { DRPolicyActions, Actions} from '../drpolicy-actions/policy-actions';
+import { ApplicationStatus } from './application-status';
 
 type CustomData = {
   launchModal: LaunchModal;
@@ -85,6 +86,8 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
     },
   });
 
+
+
   return (
       <>
         <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
@@ -92,6 +95,15 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
         </TableData>
         <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
           {obj?.status?.conditions?.type}
+        </TableData>
+        <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
+          {""}
+        </TableData>
+        <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
+          {""}
+        </TableData>
+        <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
+          <ApplicationStatus drPlacementControls={drPlacementControlList}/>
         </TableData>
         <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
           <Kebab

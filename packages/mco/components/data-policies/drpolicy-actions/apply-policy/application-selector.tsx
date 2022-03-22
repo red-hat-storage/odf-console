@@ -142,7 +142,8 @@ export type ApplicationToPlacementRuleMap = {
     placementRule: string;
     subscriptions: string[];
     namespace: string;
-    disable: boolean;
+    placementControlRuleStatus?: string;
+    disable?: boolean;
   };
 };
 

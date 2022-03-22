@@ -5,8 +5,7 @@ import { ModalBody, ModalFooter, CommonModalProps } from '@odf/shared/modals/Mod
 import { ListKind, K8sResourceKind } from '@odf/shared/types';
 import { getAPIVersionForModel } from '@odf/shared/utils';
 import { k8sPatch, k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
-import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import { Operator } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { K8sModel, Operator } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { useTranslation } from 'react-i18next';
 import { Alert, Text, Modal, Button, ButtonVariant, TextVariants, TextContent } from '@patternfly/react-core';
 import { ApplicationModel, PlacementRuleModel, SubscriptionModel, DRPlacementControlModel } from '../../../../models';

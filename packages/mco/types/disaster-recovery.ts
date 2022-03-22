@@ -45,4 +45,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
             }
         }
     };
+    status?: {
+        Phase: string;
+    }
 };
