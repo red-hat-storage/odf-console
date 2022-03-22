@@ -4,7 +4,7 @@ import {
   useK8sWatchResources,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { K8sModel } from '@openshift-console/dynamic-plugin-sdk-internal-kubevirt/lib/api/common-types';
+import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import classNames from 'classnames';
 import * as fuzzy from 'fuzzysearch';
 import * as _ from 'lodash';

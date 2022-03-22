@@ -1,16 +1,11 @@
 import * as React from 'react';
+import { calcPVsCapacity } from '@odf/core/utils'
+import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import { humanizeBinaryBytes } from '@odf/shared/utils/humanize';
 import { useTranslation } from 'react-i18next';
-import { getSCAvailablePVs } from '../../../../packages/odf/utils/ocs';
-import { K8sResourceKind, StorageClassResourceKind } from '../../types';
-import { convertToBaseValue, humanizeBinaryBytes } from '../../utils/humanize';
-import '../../../../packages/odf/modals/add-capacity/add-capacity-modal.scss';
+import { getSCAvailablePVs } from '../../utils/ocs';
+import './add-capacity-modal.scss';
 import './pvs-available-capacity.scss';
-
-export const calcPVsCapacity = (pvs: K8sResourceKind[]): number =>
-  pvs.reduce((sum, pv) => {
-    const storage = Number(convertToBaseValue(pv.spec.capacity.storage));
-    return sum + storage;
-  }, 0);
 
 export const PVsAvailableCapacity: React.FC<PVAvaialbleCapacityProps> = ({
   replica,
