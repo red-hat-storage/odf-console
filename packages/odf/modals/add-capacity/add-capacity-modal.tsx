@@ -9,7 +9,6 @@ import {
   PersistentVolumeModel,
   StorageClassModel,
 } from '@odf/shared/models';
-import { PVsAvailableCapacity } from '@odf/shared/storage/pvc/pvs-available-capacity';
 import {
   StorageClassResourceKind,
   NodeKind,
@@ -62,6 +61,7 @@ import {
   isArbiterSC,
   isValidTopology,
 } from '../../utils/ocs';
+import { PVsAvailableCapacity } from './pvs-available-capacity';
 import './add-capacity-modal.scss';
 
 type StorageClassDropdownProps = {
