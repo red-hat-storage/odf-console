@@ -11,6 +11,7 @@ import { ODFStorageSystem } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import Table from '@odf/shared/table/table';
 import { HumanizeResult } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
 import {
   PrometheusResult,
@@ -20,7 +21,6 @@ import {
 import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Progress,
   ProgressMeasureLocation,
@@ -202,7 +202,7 @@ const getRow: GetRow = (
 };
 
 const SystemCapacityCard: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [updatefilteredData, setUpdateFilteredData] =
     React.useState<boolean>(true);
   const [unfilteredData, setUnfilteredData] = React.useState<

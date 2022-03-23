@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { Flex, FlexItem, Title } from '@patternfly/react-core';
 
 export type SystemHealthMap = {
@@ -61,7 +61,7 @@ const SystemHealthCount: React.FC<SystemHealthCountProps> = ({
 export const StorageSystemPopup: React.FC<StorageSystemPopopProps> = ({
   systemHealthMap,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [sysCount, setSysCount] = React.useState({});
 
   React.useEffect(() => {
@@ -131,7 +131,7 @@ const StatusIcon: React.FC<StatusIconProps> = ({ health, count }) => (
 export const ODFOperatorPopup: React.FC<ODFOperatorPopupProps> = ({
   csvStatusMap,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [operatorStatus, setOperatorStatus] = React.useState({});
 
   React.useEffect(() => {

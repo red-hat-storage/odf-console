@@ -1,3 +1,4 @@
+import { getLabel, hasLabel } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types/k8s';
 import {
   Operator,
@@ -18,8 +19,8 @@ const isSubscriptionInApplication = (
   match: Boolean
 ) =>
   match
-    ? expr?.values?.includes(subscription?.metadata?.labels?.[expr?.key])
-    : !expr?.values?.includes(subscription?.metadata?.labels?.[expr?.key]);
+    ? expr?.values?.includes(getLabel(subscription, expr?.key))
+    : !expr?.values?.includes(getLabel(subscription, expr?.key));
 
 const isApplicationInSubscription = (
   subscription: ACMSubscriptionKind,
@@ -27,9 +28,9 @@ const isApplicationInSubscription = (
   match: Boolean
 ) =>
   match
-    ? Object.keys(subscription?.metadata?.labels).includes(expr?.key) &&
+    ? hasLabel(subscription?.metadata?.labels, expr?.key) &&
       !Array.isArray(expr?.values)
-    : !Object.keys(subscription?.metadata?.labels).includes(expr?.key) &&
+    : !hasLabel(subscription?.metadata?.labels, expr?.key) &&
       !Array.isArray(expr?.values);
 
 export const matchApplicationsToSubstring = (

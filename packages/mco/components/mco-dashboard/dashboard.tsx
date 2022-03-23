@@ -1,8 +1,8 @@
 import * as React from 'react';
 import PageHeading from '@odf/shared/heading/page-heading';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { StatusCard } from './status-card/status-card';
@@ -32,7 +32,7 @@ export const MCODashboard: React.FC = () => {
 };
 
 const MCODashboardPage: React.FC<MCODashboardPageProps> = (props) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const title = t('Storage System');
   const pages = [
     {
