@@ -220,11 +220,16 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
     setModalOpen(!isModalOpen);
   };
 
+  const onClear = () => {
+    setSearchAppName('');
+    setFilteredNames(applicationNames);
+  };
+
   const onSearch = (searchValue: string) => {
-    setSearchAppName(searchValue);
     if (searchValue === '') {
-      setFilteredNames(applicationNames);
+      onClear();
     } else {
+      setSearchAppName(searchValue);
       setFilteredNames(
         applicationNames.filter((name) => filterItems(name, searchValue))
       );
@@ -286,7 +291,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
                   aria-label={t('application name search')}
                   value={searchAppName}
                   onChange={onSearch}
-                  onClear={() => setSearchAppName('')}
+                  onClear={() => onClear()}
                 />
               </ToolbarItem>
             </ToolbarContent>

@@ -89,6 +89,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
 
   const submit = (event) => {
     event.preventDefault();
+    setLoading(true);
 
     //https://kubernetes.io/docs/concepts/workloads/controllers/garbage-collection/
     const propagationPolicy =
@@ -99,14 +100,18 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
 
     k8sDelete({ resource, model: resourceModel, json, requestInit: null })
       .then(() => {
-        setLoading(false);
         // If we are currently on the deleted resource's page, redirect to the resource list page
         const re = new RegExp(`/${resource.metadata.name}(/|$)`);
         if (re.test(window.location.pathname)) {
           history.replaceState('/', '');
+        } else {
+          closeModal();
         }
       })
-      .catch((error) => setError(error));
+      .catch((error) => {
+        setError(error);
+        setLoading(false);
+      });
   };
 
   const header = (

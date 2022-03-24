@@ -3,6 +3,7 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import {
   LaunchModal,
   useModalLauncher,
+  ModalKeys,
 } from '@odf/shared/modals/modalLauncher';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -20,7 +21,6 @@ import {
   TableColumn,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash';
 import { RouteComponentProps } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
@@ -51,10 +51,6 @@ const tableColumnInfo = [
   },
   { className: 'dropdown-kebab-pf pf-c-table__action', id: '' },
 ];
-
-const kebabActionItems = (t: TFunction) => ({
-  [Actions(t).APPLY_DR_POLICY]: Actions(t).APPLY_DR_POLICY,
-});
 
 const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
   obj,
@@ -98,6 +94,21 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
     drPlacementsControlLoadError,
     obj?.metadata?.name,
   ]);
+
+  const kebabActionItems = () => ({
+    [ModalKeys.DELETE]: {
+      value: Actions(t).DELETE_DR_POLICY,
+      props: filteredDRPlacementControl?.length
+        ? {
+            description: t('Cannot delete while connected to an application'),
+            isDisabled: true,
+          }
+        : {},
+    },
+    [Actions(t).APPLY_DR_POLICY]: {
+      value: Actions(t).APPLY_DR_POLICY,
+    },
+  });
 
   return (
     <>

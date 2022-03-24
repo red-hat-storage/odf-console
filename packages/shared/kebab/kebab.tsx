@@ -8,6 +8,7 @@ import {
   DropdownItem,
   DropdownToggle,
   KebabToggle,
+  DropdownItemProps,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import { ModalKeys, LaunchModal } from '../modals/modalLauncher';
@@ -20,7 +21,10 @@ type KebabProps = {
     [key: string]: any;
   };
   customKebabItems?: (t: TFunction) => {
-    [key: string]: string;
+    [key: string]: {
+      value: string;
+      props?: DropdownItemProps;
+    };
   };
   toggleType?: 'Kebab' | 'Dropdown';
   isDisabled?: boolean;
@@ -65,7 +69,13 @@ export const Kebab: React.FC<KebabProps> = ({
     const defaultResolved = defaultKebabItems(t);
     const customResolved = customKebabItems ? customKebabItems(t) : {};
     const { overrides, custom } = Object.entries(customResolved).reduce(
-      (acc, [k, v]) => {
+      (acc, [k, obj]) => {
+        const dropdownItem = (
+          <DropdownItem key={k} id={k} {...obj?.props}>
+            {obj?.value}
+          </DropdownItem>
+        );
+
         if (
           [
             ModalKeys.EDIT_LABELS,
@@ -73,13 +83,9 @@ export const Kebab: React.FC<KebabProps> = ({
             ModalKeys.DELETE,
           ].includes(k as ModalKeys)
         ) {
-          acc['overrides'][k] = (
-            <DropdownItem key={k} id={k}>
-              {v}
-            </DropdownItem>
-          );
+          acc['overrides'][k] = dropdownItem;
         } else {
-          acc['custom'][k] = v;
+          acc['custom'][k] = dropdownItem;
         }
         return acc;
       },
@@ -88,13 +94,8 @@ export const Kebab: React.FC<KebabProps> = ({
     const deafultItems = Object.values(
       Object.assign(defaultResolved, overrides)
     );
-    const customItems = Object.entries(custom).map(([k, v]) => {
-      return (
-        <DropdownItem key={k} id={k}>
-          {v}
-        </DropdownItem>
-      );
-    });
+
+    const customItems = Object.values(custom) ?? [];
 
     return [...customItems, ...deafultItems];
   }, [t, customKebabItems]);
