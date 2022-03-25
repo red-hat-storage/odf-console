@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { referenceForModel } from '@odf/shared/utils';
-import { ResourceIcon } from '@openshift-console/dynamic-plugin-sdk-internal-kubevirt';
+import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { Link } from 'react-router-dom';
 import { ODFStorageSystem } from '../../models';
 
@@ -18,7 +17,7 @@ const ODFSystemLink: React.FC<ODFSystemLinkProps> = ({
   const path = `/odf/system/${kind}/${providerName}/overview`;
   return (
     <span>
-      <ResourceIcon kind={referenceForModel(ODFStorageSystem)} />
+      <ResourceIcon resourceModel={ODFStorageSystem} />
       <Link to={path}>{systemName}</Link>
     </span>
   );

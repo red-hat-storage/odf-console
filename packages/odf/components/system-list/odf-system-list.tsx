@@ -285,6 +285,9 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
         <Kebab
           launchModal={launchModal}
           extraProps={{ resource: obj, resourceModel: ODFStorageSystem }}
+          customKebabItems={(t) => ({
+            ADD_CAPACITY: t('Add Capacity'),
+          })}
         />
       </TableData>
     </>
@@ -300,13 +303,19 @@ type StorageSystemListPageProps = {
   hideColumnManagement?: boolean;
 };
 
+const extraMap = {
+  ADD_CAPACITY: React.lazy(
+    () => import('../../modals/add-capacity/add-capacity-modal')
+  ),
+};
+
 export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
   selector,
   namespace,
 }) => {
   const { t } = useTranslation('plugin__odf-console');
 
-  const [ModalComponent, props, launchModal] = useModalLauncher();
+  const [ModalComponent, props, launchModal] = useModalLauncher(extraMap);
 
   const [storageSystems, loaded, loadError] = useK8sWatchResource<
     StorageSystemKind[]
