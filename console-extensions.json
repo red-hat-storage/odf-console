@@ -16,6 +16,14 @@
     }
   },
   {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.detectACMObservability"
+      }
+    }
+  },
+  {
     "type": "console.navigation/href",
     "properties": {
       "id": "odfdashboard",
@@ -164,6 +172,9 @@
       "section": "mco-data-services",
       "name": "%plugin__odf-plugin~Storage System%",
       "href": "/multicloud/clusters"
+    },
+    "flags": {
+      "required": ["ACM_OBSERVABILITY"]
     }
   },
   {
@@ -172,6 +183,9 @@
       "path": "/multicloud/clusters",
       "exact": false,
       "component": { "$codeRef": "mcoDashboard.default" }
+    },
+    "flags": {
+      "required": ["ACM_OBSERVABILITY"]
     }
   }
 ]

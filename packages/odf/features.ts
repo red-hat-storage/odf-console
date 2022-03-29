@@ -1,10 +1,14 @@
 import { OCSStorageClusterModel } from '@odf/core/models';
-import { StorageClusterKind } from '@odf/shared/types';
+import { ACM_OBSERVABILITY_NS, ACM_WHITELISTING_METRICS_CONFIG_MAP, ODF_METRICS_LABEL  } from '@odf/shared/constants';
+import { ConfigMapModel, AcmMultiClusterObservabilityModel } from '@odf/shared/models';
+import { StorageClusterKind, ConfigMapKind, ACMMultiClusterObservability } from '@odf/shared/types';
 import {
   SetFeatureFlag,
   k8sList,
   K8sResourceCommon,
+  k8sGet
 } from '@openshift-console/dynamic-plugin-sdk';
+import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
 import { CEPH_STORAGE_NAMESPACE, SECOND } from './constants';
 
@@ -26,6 +30,8 @@ export const OCS_FLAG = 'OCS';
 export const MCO_MODE_FLAG = 'MCO';
 
 export const isMCO = process.env.MODE === 'MCO';
+
+const ACM_OBSERVABILITY_FLAG = 'ACM_OBSERVABILITY';
 
 export enum FEATURES {
   // Flag names to be prefixed with "OCS_" so as to seperate from console flags
@@ -112,3 +118,63 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
   ocsDetector();
   ocsIntervalId = setInterval(ocsDetector, 15 * SECOND);
 };
+
+
+export const detectACMObservability = async (setFeatureFlag: SetFeatureFlag) => {
+  let id = null;
+  let isInitial = true;
+  let mcokind: K8sModel = AcmMultiClusterObservabilityModel
+  let configMapkind: K8sModel = {...ConfigMapModel}
+
+  const handleFlag = ((isEnabled: boolean) => {
+    if (isEnabled){
+      setFeatureFlag(ACM_OBSERVABILITY_FLAG, isEnabled);
+    } else {
+      if (isInitial === true) {
+        setFeatureFlag(ACM_OBSERVABILITY_FLAG, isEnabled);
+        isInitial = false;
+      };
+    }
+  });
+
+  const handleError = ((error) => {
+    if (error?.response instanceof Response) {
+      const status = error?.response?.status;
+      if (_.includes([403, 502], status)) {
+        setFeatureFlag(ACM_OBSERVABILITY_FLAG, false);
+        clearInterval(id);
+      }
+      if (!_.includes([401, 403, 500], status)) {
+        handleFlag(false);
+      }
+    } else {
+      clearInterval(id);
+    }
+  });
+
+  const logicHandler = (() =>{
+    k8sList({model: mcokind, queryParams: {}, requestInit: null,})
+      .then((data: ACMMultiClusterObservability[]) => {
+        const isEnabled = data?.[0].status?.conditions?.some((condition) => condition.status == "True"  && condition.type == "Ready");
+        if (isEnabled) {
+          k8sGet({model: configMapkind, name: ACM_WHITELISTING_METRICS_CONFIG_MAP, ns: ACM_OBSERVABILITY_NS}).then((config: ConfigMapKind) => {
+            if (config?.metadata?.labels?.[ODF_METRICS_LABEL] === "true"){
+              handleFlag(true);
+              clearInterval(id);
+            } else {
+              handleFlag(false);
+            }
+          }).catch((error) => {
+            handleError(error);
+          });
+        } else {
+          handleFlag(false);
+        };
+      })
+      .catch((error) => {
+        handleError(error);
+      });
+    });
+  id = setInterval(logicHandler, 5 * 1000);
+} 
+
