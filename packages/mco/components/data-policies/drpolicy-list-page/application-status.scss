@@ -1,0 +1,20 @@
+.mco-application-status {
+    &__form{
+        padding: var(--pf-global--spacer--sm) var(--pf-global--spacer--sm) var(--pf-global--spacer--xs) var(--pf-global--spacer--sm);
+    };
+    &__box {
+        border: var(--pf-global--BorderWidth--sm) solid var(--pf-global--BorderColor--100);
+      };
+    &__table {
+        max-height: 12.5rem;
+        min-height: 12.5rem;
+        overflow-y: auto;
+    };
+    &__bullseye {
+        min-height: 12.5rem;
+    };
+    &__body {
+        margin-left: var(--pf-global--spacer--xs);
+        margin-right: var(--pf-global--spacer--lg);
+    };
+};

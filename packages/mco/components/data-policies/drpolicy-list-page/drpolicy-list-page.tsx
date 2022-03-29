@@ -23,8 +23,11 @@ import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { DRPolicyModel } from '../../../models/models';
-import { DRPolicyKind } from '../../../types/types';
+import { REPLICATION_TYPE } from '../../../constants/dr-policy';
+import { DRPolicyModel, DRPlacementControlModel } from '../../../models/models';
+import { DRPolicyKind, DRPlacementControlKind } from '../../../types/types';
+import { ApplicationStatus } from './application-status';
+
 
 type CustomData = {
   launchModal: LaunchModal;
@@ -59,6 +62,22 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
   const clusterNames = obj?.spec?.drClusters?.map(clusterName => <p key={clusterName}> {clusterName} </p>);
   const condition = obj?.status?.conditions?.find(condition => condition.type === 'Validated');
 
+  const [filteredDRPlacementControl, setFilteredDRPlacementControl] = React.useState<DRPlacementControlKind[]>([]);
+  const [drPlacementControls, drPlacementsControlLoaded, drPlacementsControlLoadError] = useK8sWatchResource<DRPlacementControlKind[]>({
+    kind: referenceForModel(DRPlacementControlModel),
+    isList: true,
+    namespaced: true,
+  });
+
+  React.useEffect(() => {
+    if(drPlacementsControlLoaded && !drPlacementsControlLoadError){
+      setFilteredDRPlacementControl(
+        drPlacementControls?.filter((drPlacementControl) => drPlacementControl?.spec?.drPolicyRef?.name === obj?.metadata?.name) ?? []
+      );
+    };
+  }, [drPlacementControls, drPlacementsControlLoaded, drPlacementsControlLoadError,  obj?.metadata?.name]);
+
+
   return (
       <>
         <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
@@ -71,10 +90,10 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
         {clusterNames}
         </TableData>
         <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
-          {"Synchronous"}
+          {obj?.spec?.schedulingInterval !== "0m" ? REPLICATION_TYPE(t)['async'] : REPLICATION_TYPE(t)['sync']}
         </TableData>
         <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-          58 Applications
+          {<ApplicationStatus drPlacementControls={filteredDRPlacementControl} />}
         </TableData>
         <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
           <Kebab
@@ -133,7 +152,7 @@ const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
           className: tableColumnInfo[4].className,
         },
         id: tableColumnInfo[4].id,
-      },
+      }, 
       {
         title: '',
         props: {
@@ -188,7 +207,7 @@ export const DRPolicyListPage: React.FC<RouteComponentProps> = () => {
   return (
     <>
     <ModalComponent {...props} />
-      <ListPageHeader title={''}>
+      <ListPageHeader title={'DRPolicies'}>
           <ListPageCreateLink to={createProps}>
             {t('Create DRPolicy')}
           </ListPageCreateLink>
