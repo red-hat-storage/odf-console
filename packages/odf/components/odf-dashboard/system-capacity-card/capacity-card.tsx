@@ -2,6 +2,7 @@ import * as React from 'react';
 import CapacityCard, {
   CapacityMetricDatum,
 } from '@odf/shared/dashboards/capacity-card/capacity-card';
+import { ODFStorageSystem } from '@odf/shared/models';
 import { StorageSystemKind } from '@odf/shared/types';
 import {
   getGVK,
@@ -18,8 +19,7 @@ import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-interna
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { ODFStorageSystem } from '../../../models';
-import { CAPACITY_QUERIES, StorageDashboard } from '../queries';
+import { StorageDashboard, CAPACITY_QUERIES } from '../queries';
 
 const storageSystemResource: WatchK8sResource = {
   kind: referenceForModel(ODFStorageSystem),
@@ -49,7 +49,7 @@ const SystemCapacityCard: React.FC = () => {
 
   const [totalCapacity, errorTotalCapacity, loadingTotalCapacity] =
     usePrometheusPoll({
-      query: CAPACITY_QUERIES[StorageDashboard.TOTAL_CAP_FILE_BLOCK],
+      query: CAPACITY_QUERIES[StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK],
       endpoint: 'api/v1/query' as any,
     });
 

@@ -1,9 +1,9 @@
 import * as React from 'react';
+import { OCSStorageClusterModel } from '@odf/shared/models';
 import { TFunction } from 'i18next';
 import { RouteComponentProps } from 'react-router';
 import { WizardStep } from '@patternfly/react-core';
 import { Steps, StepsName } from '../../constants';
-import { OCSStorageClusterModel } from '../../models';
 import { BackingStorageType, DeploymentType } from '../../types';
 import {
   CapacityAndNodes,

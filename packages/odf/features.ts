@@ -1,5 +1,5 @@
-import { OCSStorageClusterModel } from '@odf/core/models';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { OCSStorageClusterModel } from '@odf/shared/models';
 import { StorageClusterKind } from '@odf/shared/types';
 import {
   SetFeatureFlag,

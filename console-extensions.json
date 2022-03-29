@@ -99,6 +99,25 @@
     }
   },
   {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "mcodashboard",
+      "perspective": "acm",
+      "insertAfter": "mco-data-policies",
+      "section": "mco-data-services",
+      "name": "%plugin__odf-plugin~Storage System%",
+      "href": "/multicloud/data-services/storagesystem"
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/multicloud/data-services/storagesystem",
+      "exact": false,
+      "component": { "$codeRef": "mcoDashboard.default" }
+    }
+  },
+  {
     "type": "console.page/resource/list",
     "properties": {
       "model": {

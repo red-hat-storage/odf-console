@@ -44,7 +44,7 @@ const Table: React.FC<TableProps> = (props) => {
 
   const sortedData =
     sortIndex !== -1
-      ? rawData.sort((a, b) => {
+      ? rawData?.sort((a, b) => {
           return columns[sortIndex].sortFunction(a, b, sortDirection);
         })
       : rawData;

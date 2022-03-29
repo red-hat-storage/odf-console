@@ -2,6 +2,7 @@ import { getOCSRequestData, capacityAndNodesValidate } from '@odf/core/component
 import { Payload, DeploymentType } from '@odf/core/types';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { CustomResourceDefinitionModel, NodeModel } from '@odf/shared/models';
+import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
 import { K8sResourceKind, Patch, StorageSystemKind } from '@odf/shared/types';
 import { getAPIVersionForModel, k8sPatchByName } from '@odf/shared/utils';
 import { k8sCreate, k8sGet } from '@openshift-console/dynamic-plugin-sdk';
@@ -13,7 +14,6 @@ import {
   NO_PROVISIONER,
   CEPH_STORAGE_LABEL,
 } from '../../constants';
-import { OCSStorageClusterModel, ODFStorageSystem } from '../../models';
 import { ValidationType } from '../utils/common-odf-install-el';
 import { WizardNodeState, WizardState } from './reducer';
 

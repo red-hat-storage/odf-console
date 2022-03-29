@@ -20,8 +20,8 @@ import {
     Bullseye,
 } from '@patternfly/react-core';
 import { TableComposable, Tbody, Tr, Td, Th, Thead, ThProps} from '@patternfly/react-table';
-import { ACMPlacementRuleModel, ACMSubscriptionModel } from '../../../models/models';
-import { ACMSubscriptionKind, DRPlacementControlKind} from '../../../types/types';
+import { ACMPlacementRuleModel, ACMSubscriptionModel } from '../../../models';
+import { ACMSubscriptionKind, DRPlacementControlKind} from '../../../types';
 import { matchApplicationsToSubstring } from '../../../utils';
 import './application-status.scss';
 

@@ -1,6 +1,5 @@
 import {
   CephBlockPoolModel,
-  OCSStorageClusterModel,
   NooBaaBackingStoreModel,
   NooBaaNamespaceStoreModel,
   LocalVolumeDiscoveryResult,
@@ -9,6 +8,7 @@ import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import {
   PersistentVolumeModel,
   StorageClassModel,
+  OCSStorageClusterModel,
   NodeModel,
   PersistentVolumeClaimModel,
   SecretModel,

@@ -40,8 +40,8 @@ import {
   ODF_MINIMUM_SUPPORT,
   CEPH_CLUSTER_NAME,
 } from '../../../constants/dr-policy';
-import { DRPolicyModel, MirrorPeerModel } from '../../../models/models';
-import { DRPolicyKind, MirrorPeerKind, } from '../../../types/types';
+import { DRPolicyModel, MirrorPeerModel } from '../../../models';
+import { DRPolicyKind, MirrorPeerKind, } from '../../../types';
 import { isMinimumSupportedODFVersion } from '../../../utils/disaster-recovery';
 import { Cluster, SelectClusterList, ManagedClusterMapping } from './select-cluster-list';
 import './create-dr-policy.scss';

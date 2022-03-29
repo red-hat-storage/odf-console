@@ -12,6 +12,18 @@ export const ODFStorageSystem: K8sModel = {
     crd: true,
   };
   
+  export const OCSStorageClusterModel: K8sModel = {
+    label: 'Storage Cluster',
+    labelPlural: 'Storage Clusters',
+    apiVersion: 'v1',
+    apiGroup: 'ocs.openshift.io',
+    plural: 'storageclusters',
+    abbr: 'OCS',
+    namespaced: true,
+    kind: 'StorageCluster',
+    crd: true,
+};
+
   export const CephClusterModel: K8sModel = {
     label: 'Ceph Cluster',
     labelPlural: 'Ceph Clusters',

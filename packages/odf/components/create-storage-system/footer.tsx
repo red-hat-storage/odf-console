@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { OCSStorageClusterModel } from '@odf/shared/models';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
@@ -17,7 +18,6 @@ import {
 } from '../../constants';
 import './create-storage-system.scss';
 import { MINIMUM_NODES, OCS_EXTERNAL_CR_NAME, OCS_INTERNAL_CR_NAME } from '../../constants';
-import { OCSStorageClusterModel } from '../../models';
 import { 
   NetworkType,
   BackingStorageType,
