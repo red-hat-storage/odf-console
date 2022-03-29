@@ -6,12 +6,18 @@ export type ManagedCluster = {
     s3ProfileName: string,
 };
 
+export type Conditions = {
+    status: string,
+    type: string,
+}
+
 export type DRPolicyKind = K8sResourceCommon & {
     spec: {
         schedulingInterval: String;
         drClusterSet: ManagedCluster[];
     };
     status: {
+        conditions: Conditions[];
         phase: string;
     };
 };

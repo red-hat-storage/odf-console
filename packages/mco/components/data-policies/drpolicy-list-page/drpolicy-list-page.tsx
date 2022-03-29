@@ -50,10 +50,10 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind>> = ({
           {obj?.metadata?.name}
         </TableData>
         <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-          {"Status"}
+        {obj?.status?.conditions[0].type}
         </TableData>
         <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
-          {obj?.spec?.drClusterSet?.map(cluster => cluster.name)}
+        {obj?.spec?.drClusterSet?.map(cluster =>  <p key={cluster?.name}> {cluster?.name} </p>)}
         </TableData>
         <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
           {"Synchronous"}
