@@ -154,5 +154,24 @@
       },
       "component": { "$codeRef": "ob.ObjectBucketListPage" }
     }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "mcodashboard",
+      "perspective": "acm",
+      "insertAfter": "mco-data-policies",
+      "section": "mco-data-services",
+      "name": "%plugin__odf-plugin~Storage System%",
+      "href": "/multicloud/clusters"
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/multicloud/clusters",
+      "exact": false,
+      "component": { "$codeRef": "mcoDashboard.default" }
+    }
   }
 ]

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
+import { healthStateMap } from '@odf/shared/dashboards/status-card/states';
 import { ClusterServiceVersionKind } from '@odf/shared/types';
 import { getGVK, referenceForModel } from '@odf/shared/utils';
 import {
@@ -41,19 +42,6 @@ const storageSystemResource: WatchK8sResource = {
   kind: referenceForModel(ODFStorageSystem),
   namespace: 'openshift-storage',
   isList: true,
-};
-
-const healthStateMap = (state: string) => {
-  switch (state) {
-    case '0':
-      return HealthState.OK;
-    case '1':
-      return HealthState.WARNING;
-    case '2':
-      return HealthState.ERROR;
-    default:
-      return HealthState.LOADING;
-  }
 };
 
 export const StatusCard: React.FC = () => {
