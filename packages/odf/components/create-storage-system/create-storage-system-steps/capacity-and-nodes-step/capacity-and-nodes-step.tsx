@@ -17,9 +17,9 @@ import { FEATURES } from '@odf/core/features';
 import { pvResource, nodeResource } from '@odf/core/resources';
 import { NodesPerZoneMap } from '@odf/core/types';
 import { getSCAvailablePVs, getAssociatedNodes } from '@odf/core/utils';
+import  { calcPVsCapacity } from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import  { calcPVsCapacity } from '@odf/shared/storage/pvc/pvs-available-capacity';
 import { K8sResourceKind, NodeKind } from '@odf/shared/types';
 import { humanizeBinaryBytes } from '@odf/shared/utils'
 import { useK8sWatchResource, useFlag } from '@openshift-console/dynamic-plugin-sdk';
