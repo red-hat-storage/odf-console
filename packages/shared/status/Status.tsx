@@ -1,12 +1,5 @@
 import * as React from 'react';
 import {
-  YellowExclamationTriangleIcon,
-  ErrorStatus,
-  InfoStatus,
-  ProgressStatus,
-  SuccessStatus,
-} from '@openshift-console/dynamic-plugin-sdk-internal-kubevirt';
-import {
   BanIcon,
   ClipboardListIcon,
   ExclamationTriangleIcon,
@@ -17,6 +10,13 @@ import {
   UnknownIcon,
 } from '@patternfly/react-icons';
 import { DASH } from '../constants';
+import { YellowExclamationTriangleIcon } from './icons';
+import {
+  ErrorStatus,
+  InfoStatus,
+  ProgressStatus,
+  SuccessStatus,
+} from './statuses';
 import StatusIconAndText from './StatusIconAndText';
 import { StatusComponentProps } from './types';
 

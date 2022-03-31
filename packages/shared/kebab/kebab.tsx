@@ -54,7 +54,7 @@ export const Kebab: React.FC<KebabProps> = ({
         </DropdownItem>
       );
     });
-    return [...defaultKebabItems(t), ...customItems];
+    return [...customItems, ...defaultKebabItems(t)];
   }, [t, customKebabItems]);
 
   return (

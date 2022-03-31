@@ -1,8 +1,12 @@
 import * as React from 'react';
-import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
-import { ClusterServiceVersionModel, SubscriptionModel } from '@odf/shared/models';
+import { Kebab } from '@odf/shared/kebab/kebab';
+import {
+  LaunchModal,
+  useModalLauncher,
+} from '@odf/shared/modals/modalLauncher';
+import { ClusterServiceVersionModel } from '@odf/shared/models';
 import { Status } from '@odf/shared/status/Status';
-import { HumanizeResult, RowFunctionArgs, SubscriptionKind } from '@odf/shared/types';
+import { ClusterServiceVersionKind, HumanizeResult } from '@odf/shared/types';
 import {
   humanizeBinaryBytes,
   humanizeDecimalBytesPerSec,
@@ -13,29 +17,30 @@ import {
   getGVK,
 } from '@odf/shared/utils';
 import {
-  FirehoseResourcesResult,
+  ListPageBody,
+  ListPageCreateLink,
+  ListPageFilter,
+  ListPageHeader,
   PrometheusResponse,
+  RowProps,
+  TableColumn,
+  TableData,
+  useActiveColumns,
+  useK8sWatchResource,
+  useListPageFilter,
+  VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
-import {
-  Kebab,
-  ResourceKebab,
-  TableData,
-  Table,
-  ListPage,
-} from '@openshift-console/dynamic-plugin-sdk-internal-kubevirt';
 import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
+import classNames from 'classnames';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
-import { RouteComponentProps } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { CEPH_STORAGE_NAMESPACE, ODF_OPERATOR } from '../../constants';
 import { ODFStorageSystem } from '../../models';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
 import { StorageSystemKind } from '../../types';
 import { OperandStatus } from './status';
 import ODFSystemLink from './system-link';
-import { getActions } from './utils';
 
 type SystemMetrics = {
   [systeName: string]: {
@@ -106,121 +111,223 @@ export const normalizeMetrics: MetricNormalize = (
   }, {});
 };
 
-const tableColumnClasses = [
-  'pf-u-w-15-on-xl',
-  'pf-m-hidden pf-m-visible-on-md pf-u-w-12-on-xl',
-  'pf-m-hidden pf-m-visible-on-lg pf-u-w-12-on-xl',
-  'pf-m-hidden pf-m-visible-on-lg pf-u-w-12-on-xl',
-  'pf-m-hidden pf-m-visible-on-lg pf-u-w-12-on-xl',
-  'pf-m-hidden pf-m-visible-on-lg pf-u-w-12-on-xl',
-  'pf-m-hidden pf-m-visible-on-lg pf-u-w-12-on-xl',
-  Kebab.columnClass,
-];
-
 type CustomData = {
   normalizedMetrics: ReturnType<typeof normalizeMetrics>;
+  launchModal: LaunchModal;
 };
 
-const SystemTableRow: React.FC<RowFunctionArgs<StorageSystemKind, CustomData>> =
-  ({ obj, customData }) => {
-    const { t } = useTranslation('plugin__odf-console');
-    const { apiGroup, apiVersion, kind } = getGVK(obj.spec.kind);
-    const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
-    const systemName = obj?.metadata?.name;
-    const { normalizedMetrics } = customData;
+type StorageSystemNewPageProps = {
+  data: StorageSystemKind[];
+  unfilteredData: StorageSystemKind[];
+  loaded: boolean;
+  loadError: any;
+  rowData: any;
+};
 
-    const { rawCapacity, usedCapacity, iops, throughput, latency } =
-      normalizedMetrics?.[systemName] || {};
+const tableColumnInfo = [
+  { className: '', id: 'name' },
+  { className: '', id: 'status' },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-sm'),
+    id: 'rawCapacity',
+  },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-md'),
+    id: 'usedCapacity',
+  },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-lg'),
+    id: 'iops',
+  },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
+    id: 'throughput',
+  },
+  { className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'), id: 'latency' },
+  { className: 'dropdown-kebab-pf pf-c-table__action', id: '' },
+];
 
-    return (
-      <>
-        <TableData className={tableColumnClasses[0]}>
-          <ODFSystemLink
-            kind={systemKind}
-            systemName={systemName}
-            providerName={systemName}
-          />
-        </TableData>
-        <TableData className={tableColumnClasses[1]}>
-          {obj?.metadata?.deletionTimestamp ? (
-            <Status status="Terminating" />
-          ) : (
-            <OperandStatus operand={obj} />
-          )}
-        </TableData>
-        <TableData className={tableColumnClasses[2]}>
-          {rawCapacity?.string || '-'}
-        </TableData>
-        <TableData className={tableColumnClasses[3]}>
-          {usedCapacity?.string || '-'}
-        </TableData>
-        <TableData className={tableColumnClasses[4]}>
-          {iops?.string || '-'}
-        </TableData>
-        <TableData className={tableColumnClasses[5]}>
-          {throughput?.string || '-'}
-        </TableData>
-        <TableData className={tableColumnClasses[6]}>
-          {latency?.string || '-'}
-        </TableData>
-        <TableData className={tableColumnClasses[7]}>
-          <ResourceKebab
-            actions={getActions(systemKind)}
-            resource={obj}
-            kind={referenceForModel(ODFStorageSystem)}
-            customData={{ tFunction: t }}
-          />
-        </TableData>
-      </>
-    );
-  };
-
-const StorageSystemList: React.FC<StorageSystemListProps> = (props) => {
+const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
   const { t } = useTranslation('plugin__odf-console');
-  const Header = () => {
-    return [
+  const storageSystemTableColumns = React.useMemo<
+    TableColumn<StorageSystemKind>[]
+  >(
+    () => [
       {
         title: t('Name'),
-        sortField: 'metadata.name',
-        transforms: [sortable, wrappable],
-        props: { className: tableColumnClasses[0] },
+        sort: 'metadata.name',
+        transforms: [sortable],
+        props: {
+          className: tableColumnInfo[0].className,
+        },
+        id: tableColumnInfo[0].id,
       },
       {
         title: t('Status'),
         transforms: [wrappable],
-        props: { className: tableColumnClasses[1] },
+        props: {
+          className: tableColumnInfo[1].className,
+        },
+        id: tableColumnInfo[1].id,
       },
       {
         title: t('Raw Capacity'),
         transforms: [wrappable],
-        props: { className: tableColumnClasses[2] },
+        props: {
+          className: tableColumnInfo[2].className,
+        },
+        id: tableColumnInfo[2].id,
       },
       {
         title: t('Used capacity'),
         transforms: [wrappable],
-        props: { className: tableColumnClasses[3] },
+        props: {
+          className: tableColumnInfo[3].className,
+        },
+        id: tableColumnInfo[3].id,
       },
       {
         title: t('IOPS'),
         transforms: [wrappable],
-        props: { className: tableColumnClasses[4] },
+        props: {
+          className: tableColumnInfo[4].className,
+        },
+        id: tableColumnInfo[4].id,
       },
       {
         title: t('Throughput'),
         transforms: [wrappable],
-        props: { className: tableColumnClasses[5] },
+        props: {
+          className: tableColumnInfo[5].className,
+        },
+        id: tableColumnInfo[5].id,
       },
       {
         title: t('Latency'),
-        props: { className: tableColumnClasses[6] },
+        props: {
+          className: tableColumnInfo[6].className,
+        },
+        id: tableColumnInfo[6].id,
       },
       {
         title: '',
-        props: { className: tableColumnClasses[7] },
+        props: {
+          className: tableColumnInfo[7].className,
+        },
+        id: tableColumnInfo[7].id,
       },
-    ];
-  };
-  Header.displayName = 'SSHeader';
+    ],
+    [t]
+  );
+
+  const [columns] = useActiveColumns({
+    columns: storageSystemTableColumns,
+    showNamespaceOverride: false,
+    columnManagementID: null,
+  });
+
+  return (
+    <VirtualizedTable
+      {...props}
+      aria-label={t('StorageSystems')}
+      columns={columns}
+      Row={StorageSystemRow}
+    />
+  );
+};
+
+const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
+  obj,
+  activeColumnIDs,
+  rowData,
+}) => {
+  const { apiGroup, apiVersion, kind } = getGVK(obj.spec.kind);
+  const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
+  const systemName = obj?.metadata?.name;
+  const { normalizedMetrics, launchModal } = rowData;
+
+  const metrics = normalizedMetrics?.normalizedMetrics?.[systemName];
+
+  const { rawCapacity, usedCapacity, iops, throughput, latency } =
+    metrics || {};
+  return (
+    <>
+      <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
+        <ODFSystemLink
+          kind={systemKind}
+          systemName={systemName}
+          providerName={systemName}
+        />
+      </TableData>
+      <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
+        {obj?.metadata?.deletionTimestamp ? (
+          <Status status="Terminating" />
+        ) : (
+          <OperandStatus operand={obj} />
+        )}
+      </TableData>
+      <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
+        {rawCapacity?.string || '-'}
+      </TableData>
+      <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
+        {usedCapacity?.string || '-'}
+      </TableData>
+      <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
+        {iops?.string || '-'}
+      </TableData>
+      <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
+        {throughput?.string || '-'}
+      </TableData>
+      <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
+        {latency?.string || '-'}
+      </TableData>
+      <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
+        <Kebab
+          launchModal={launchModal}
+          extraProps={{ resource: obj, resourceModel: ODFStorageSystem }}
+          customKebabItems={(t) => ({
+            ADD_CAPACITY: t('Add Capacity'),
+          })}
+        />
+      </TableData>
+    </>
+  );
+};
+
+type StorageSystemListPageProps = {
+  showTitle?: boolean;
+  namespace?: string;
+  selector?: any;
+  hideLabelFilter?: boolean;
+  hideNameLabelFilters?: boolean;
+  hideColumnManagement?: boolean;
+};
+
+const extraMap = {
+  ADD_CAPACITY: React.lazy(
+    () => import('../../modals/add-capacity/add-capacity-modal')
+  ),
+};
+
+export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
+  selector,
+  namespace,
+}) => {
+  const { t } = useTranslation('plugin__odf-console');
+
+  const [ModalComponent, props, launchModal] = useModalLauncher(extraMap);
+
+  const [storageSystems, loaded, loadError] = useK8sWatchResource<
+    StorageSystemKind[]
+  >({
+    kind: referenceForModel(ODFStorageSystem),
+    isList: true,
+    selector,
+    namespace,
+  });
+
+  const [data, filteredData, onFilterChange] =
+    useListPageFilter(storageSystems);
 
   const [latency] = usePrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
@@ -243,10 +350,24 @@ const StorageSystemList: React.FC<StorageSystemListProps> = (props) => {
     query: ODF_QUERIES[ODFQueries.USED_CAPACITY],
   });
 
+  const [csv, csvLoaded] = useK8sWatchResource<ClusterServiceVersionKind[]>({
+    kind: referenceForModel(ClusterServiceVersionModel),
+    isList: true,
+    namespace,
+    selector,
+  });
+
+  const odfCsvName: string = csvLoaded
+    ? csv?.find((item) => item.metadata.name.includes('odf-operator'))?.metadata
+        ?.name
+    : null;
+
+  const createLink = `/k8s/ns/openshift-storage/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
+
   const normalizedMetrics = React.useMemo(
     () => ({
       normalizedMetrics: normalizeMetrics(
-        props.data,
+        data as any,
         latency,
         throughput,
         rawCapacity,
@@ -254,66 +375,34 @@ const StorageSystemList: React.FC<StorageSystemListProps> = (props) => {
         iops
       ),
     }),
-    [props.data, iops, latency, rawCapacity, throughput, usedCapacity]
+    [data, iops, latency, rawCapacity, throughput, usedCapacity]
   );
 
   return (
-    <Table
-      {...props}
-      customData={normalizedMetrics}
-      aria-label={t('Storage Systems')}
-      Header={Header}
-      Row={SystemTableRow}
-      virtualize
-    />
+    <>
+      <ModalComponent {...props} />
+      <ListPageHeader title={t('StorageSystems')}>
+        {odfCsvName && (
+          <ListPageCreateLink to={createLink}>
+            {t('Create StorageSystem')}
+          </ListPageCreateLink>
+        )}
+      </ListPageHeader>
+      <ListPageBody>
+        <ListPageFilter
+          data={data}
+          loaded={loaded}
+          onFilterChange={onFilterChange}
+          hideColumnManagement={true}
+        />
+        <StorageSystemList
+          data={filteredData as StorageSystemKind[]}
+          unfilteredData={storageSystems}
+          loaded={loaded}
+          loadError={loadError}
+          rowData={{ normalizedMetrics, launchModal }}
+        />
+      </ListPageBody>
+    </>
   );
 };
-
-const StorageSystemListPage: React.FC<RouteComponentProps> = (props) => {
-  const [subs, subsLoaded, subsLoadError] = useK8sGet<SubscriptionKind>(
-    SubscriptionModel,
-    ODF_OPERATOR,
-    CEPH_STORAGE_NAMESPACE,
-  );
-
-  const csvName = subs?.status?.currentCSV || ODF_OPERATOR;
-  const createProps = {
-    to: `/k8s/ns/openshift-storage/${referenceForModel(
-      ClusterServiceVersionModel
-    )}/${csvName}/${referenceForModel(ODFStorageSystem)}/~new`,
-  };
-
-  return (
-    <ListPage
-      {...props}
-      showTitle={false}
-      ListComponent={StorageSystemList}
-      kind={referenceForModel(ODFStorageSystem)}
-      namespace={CEPH_STORAGE_NAMESPACE}
-      canCreate={subsLoaded && !subsLoadError}
-      createProps={createProps}
-    />
-  );
-};
-
-type StorageSystemListProps = {
-  ListComponent: React.ComponentType;
-  kinds: string[];
-  filters?: any;
-  flatten?: any;
-  rowFilters?: any[];
-  hideNameLabelFilters?: boolean;
-  hideLabelFilter?: boolean;
-  columnLayout?: any;
-  name?: string;
-  resources?: FirehoseResourcesResult;
-  reduxIDs?: string[];
-  textFilter?: string;
-  nameFilterPlaceholder?: string;
-  labelFilterPlaceholder?: string;
-  label?: string;
-  staticFilters?: { key: string; value: string }[];
-  data?: StorageSystemKind[];
-};
-
-export default StorageSystemListPage;

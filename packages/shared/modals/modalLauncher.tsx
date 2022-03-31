@@ -35,7 +35,7 @@ export const useModalLauncher = (modals?: ModalMap) => {
   const [extraProps, setExtraProps] = React.useState({});
 
   const modalMap: ModalMap = React.useMemo(
-    () => ({ ...defaultModalMap, ...(modals ? modals : {}) }),
+    () => ({ ...(modals ? modals : {}), ...defaultModalMap }),
     [modals]
   );
 
