@@ -99,12 +99,13 @@ type ResourceDropdownProps<T> = {
   resource: WatchK8sResource;
   resourceModel: K8sModel;
   onSelect: (resource: T) => void;
-  secondaryTextGenerator: (resource: T) => string;
+  secondaryTextGenerator?: (resource: T) => string;
   propertySelector?: (resource: T) => string;
   showBadge?: boolean;
   className?: string;
   initialSelection?: (resource: T[]) => T;
   filterResource?: (resource: T) => boolean;
+  'data-test'?: string;
 };
 
 type ResourceDropdown = <T>(
@@ -121,6 +122,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
   className,
   initialSelection,
   filterResource,
+  'data-test': dataTest,
 }) => {
   const [isOpen, setOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState(null);
@@ -211,6 +213,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
         <DropdownToggle
           onToggle={loaded && !loadError ? onToggle : () => {}}
           toggleIndicator={CaretDownIcon}
+          data-test={dataTest}
         >
           {!loaded && <LoadingInline />}
           {loaded && !loadError && (
@@ -242,7 +245,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
 };
 
 type ResourcesDropdownProps<T> = {
-  resources: {[key: string]: WatchK8sResource};
+  resources: { [key: string]: WatchK8sResource };
 } & Omit<ResourceDropdownProps<T>, 'resource'>;
 
 type ResourcesDropdown = <T>(
@@ -251,11 +254,11 @@ type ResourcesDropdown = <T>(
 
 type ResourcesObject<T> = {
   [key: string]: {
-      data: T[],
-      loaded: boolean,
-      loadError: any,
-  }
-}
+    data: T[];
+    loaded: boolean;
+    loadError: any;
+  };
+};
 
 export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
   resources: watchResources,
@@ -277,35 +280,39 @@ export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
   const resourcesObj: ResourcesObject<T> = useK8sWatchResources(watchResources);
 
   const [data, loaded, loadError] = React.useMemo(() => {
-    let loaded = false, loadError: any;
+    let loaded = false,
+      loadError: any;
     let firstItr = true;
-    let data: T[] = _.reduce(resourcesObj, (acc, curr) => {
+    let data: T[] = _.reduce(
+      resourcesObj,
+      (acc, curr) => {
         if (firstItr) {
           loaded = curr.loaded;
           firstItr = false;
-        }
-        else loaded = loaded && curr.loaded;
+        } else loaded = loaded && curr.loaded;
         loadError = loadError || curr.loadError;
         return [...acc, ...curr.data];
-    }, []);
+      },
+      []
+    );
     return [data, loaded, loadError];
   }, [resourcesObj]);
 
   React.useEffect(() => {
-      if (initialSelection && selectedItem === null && loaded && !loadError) {
-        const item = initialSelection(data);
-        onSelect(item);
-        setSelectedItem(item);
-      }
-    }, [
-      selectedItem,
-      initialSelection,
-      setSelectedItem,
-      loaded,
-      loadError,
-      data,
-      onSelect,
-    ]);
+    if (initialSelection && selectedItem === null && loaded && !loadError) {
+      const item = initialSelection(data);
+      onSelect(item);
+      setSelectedItem(item);
+    }
+  }, [
+    selectedItem,
+    initialSelection,
+    setSelectedItem,
+    loaded,
+    loadError,
+    data,
+    onSelect,
+  ]);
 
   const onClick = React.useCallback(
     (event: React.SyntheticEvent<HTMLDivElement>) => {

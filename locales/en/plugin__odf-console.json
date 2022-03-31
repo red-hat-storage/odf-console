@@ -224,6 +224,7 @@
   "No data available": "No data available",
   "Raw Capacity": "Raw Capacity",
   "Used capacity": "Used capacity",
+  "StorageSystems": "StorageSystems",
   "Add Capacity": "Add Capacity",
   "A minimal cluster deployment will be performed.": "A minimal cluster deployment will be performed.",
   "The selected nodes do not match OpenShift Data Foundation's StorageCluster requirement of an aggregated 30 CPUs and 72 GiB of RAM. If the selection cannot be modified a minimal cluster will be deployed.": "The selected nodes do not match OpenShift Data Foundation's StorageCluster requirement of an aggregated 30 CPUs and 72 GiB of RAM. If the selection cannot be modified a minimal cluster will be deployed.",
