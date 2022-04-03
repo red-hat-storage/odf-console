@@ -4,6 +4,10 @@ import {
   NooBaaObjectBucketModel,
 } from '@odf/core/models';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
@@ -12,7 +16,6 @@ import {
   useK8sWatchResource,
   InventoryItem,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -47,18 +50,23 @@ const ObjectDashboardBucketsCard: React.FC<{}> = () => {
   const [obData, obLoaded, obLoadError] =
     useK8sWatchResource<K8sResourceKind[]>(objectBucketResource);
 
-  const [noobaaCount, noobaaCountError] = usePrometheusPoll({
+  const [noobaaCount, noobaaCountError] = useCustomPrometheusPoll({
     query: BucketsCardQueries.BUCKETS_COUNT,
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [noobaaObjectsCount, noobaaObjectsCountError] = usePrometheusPoll({
-    query: BucketsCardQueries.BUCKET_OBJECTS_COUNT,
-    endpoint: 'api/v1/query' as any,
-  });
+  const [noobaaObjectsCount, noobaaObjectsCountError] = useCustomPrometheusPoll(
+    {
+      query: BucketsCardQueries.BUCKET_OBJECTS_COUNT,
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    }
+  );
   const [unhealthyNoobaaBuckets, unhealthyNoobaaBucketsError] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: BucketsCardQueries.UNHEALTHY_BUCKETS,
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
 
   const unhealthyNoobaaBucketsCount = Number(

@@ -1,6 +1,9 @@
 import * as React from 'react';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { getInstantVectorStats } from '@odf/shared/utils';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
 import {
@@ -22,16 +25,20 @@ export const RawCapacityCard: React.FC = () => {
     ],
     [name]
   );
+
   const [usedCapacityData, usedCapacityLoading, usedCapacityLoadError] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: queries[0],
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    });
+  const [availableData, availableLoading, availableError] =
+    useCustomPrometheusPoll({
+      query: queries[1],
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
 
-  const [availableData, availableLoading, availableError] = usePrometheusPoll({
-    query: queries[1],
-    endpoint: 'api/v1/query' as any,
-  });
   const usedCapacityMetric = getInstantVectorStats(usedCapacityData)?.[0]?.y;
   const availableCapacityMetric = getInstantVectorStats(availableData)?.[0]?.y;
   const totalCapacityMetric = usedCapacityMetric + availableCapacityMetric;

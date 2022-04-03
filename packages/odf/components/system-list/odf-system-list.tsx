@@ -1,4 +1,8 @@
 import * as React from 'react';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import {
   LaunchModal,
@@ -35,7 +39,6 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import classNames from 'classnames';
 import * as _ from 'lodash';
@@ -332,25 +335,30 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
   const [data, filteredData, onFilterChange] =
     useListPageFilter(storageSystems);
 
-  const [latency] = usePrometheusPoll({
+  const [latency] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.LATENCY],
+    basePath: usePrometheusBasePath(),
   });
-  const [iops] = usePrometheusPoll({
+  const [iops] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.IOPS],
+    basePath: usePrometheusBasePath(),
   });
-  const [throughput] = usePrometheusPoll({
+  const [throughput] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.THROUGHPUT],
+    basePath: usePrometheusBasePath(),
   });
-  const [rawCapacity] = usePrometheusPoll({
+  const [rawCapacity] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.RAW_CAPACITY],
+    basePath: usePrometheusBasePath(),
   });
-  const [usedCapacity] = usePrometheusPoll({
+  const [usedCapacity] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.USED_CAPACITY],
+    basePath: usePrometheusBasePath(),
   });
 
   const [csv, csvLoaded] = useK8sWatchResource<ClusterServiceVersionKind[]>({

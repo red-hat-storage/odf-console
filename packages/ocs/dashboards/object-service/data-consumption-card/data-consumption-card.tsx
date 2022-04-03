@@ -10,6 +10,10 @@ import { DATA_CONSUMPTION_QUERIES } from '@odf/ocs/queries';
 import { getRangeVectorStats } from '@odf/shared/charts';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { ClusterServiceVersionModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { ClusterServiceVersionKind } from '@odf/shared/types';
@@ -20,7 +24,6 @@ import {
   PrometheusResponse,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -53,21 +56,25 @@ const MCGCommonComponent: React.FC<ServiceTypeProps> = ({
   breakdownBy,
   metric,
 }) => {
-  const [queryA, queryAError, queryALoading] = usePrometheusPoll({
+  const [queryA, queryAError, queryALoading] = useCustomPrometheusPoll({
     query: queries?.[0],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [queryB, queryBError, queryBLoading] = usePrometheusPoll({
+  const [queryB, queryBError, queryBLoading] = useCustomPrometheusPoll({
     query: queries?.[1],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [queryC, queryCError, queryCLoading] = usePrometheusPoll({
+  const [queryC, queryCError, queryCLoading] = useCustomPrometheusPoll({
     query: queries?.[2],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [queryD, queryDError, queryDLoading] = usePrometheusPoll({
+  const [queryD, queryDError, queryDLoading] = useCustomPrometheusPoll({
     query: queries?.[3],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const loading =
@@ -95,14 +102,17 @@ const AccountsLogical: React.FC<ServiceTypeProps> = ({
   breakdownBy,
   metric,
 }) => {
-  const [usage, usageError, usageLoading] = usePrometheusPoll({
+  const [usage, usageError, usageLoading] = useCustomPrometheusPoll({
     query: queries?.[0],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [totalUsage, totalUsageError, totalUsageLoading] = usePrometheusPoll({
-    query: queries?.[1],
-    endpoint: 'api/v1/query' as any,
-  });
+  const [totalUsage, totalUsageError, totalUsageLoading] =
+    useCustomPrometheusPoll({
+      query: queries?.[1],
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    });
 
   const loading = usageLoading || totalUsageLoading;
   const error = !!usageError || !!totalUsageError;
@@ -127,9 +137,10 @@ const ProvidersEgress: React.FC<ServiceTypeProps> = ({
   breakdownBy,
   metric,
 }) => {
-  const [egress, egressError, egressLoading] = usePrometheusPoll({
+  const [egress, egressError, egressLoading] = useCustomPrometheusPoll({
     query: queries?.[0],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const response: Response = React.useMemo(() => {
@@ -192,15 +203,17 @@ const MCGBreakdownMetricMap = (queries: string[]) => {
 };
 
 const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({ queries, metric }) => {
-  const [get, getError, getLoading] = usePrometheusPoll({
+  const [get, getError, getLoading] = useCustomPrometheusPoll({
     query: queries?.[0],
     endpoint: 'api/v1/query_range' as any,
     timespan: timeSpan[ServiceType.RGW],
+    basePath: usePrometheusBasePath(),
   });
-  const [put, putError, putLoading] = usePrometheusPoll({
+  const [put, putError, putLoading] = useCustomPrometheusPoll({
     query: queries?.[1],
     endpoint: 'api/v1/query_range' as any,
     timespan: timeSpan[ServiceType.RGW],
+    basePath: usePrometheusBasePath(),
   });
 
   const loading = getLoading || putLoading;

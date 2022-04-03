@@ -1,9 +1,12 @@
 import * as React from 'react';
 import { ObjectStorageEfficiencyQueries } from '@odf/ocs/queries';
 import { EfficiencyItemBody } from '@odf/shared/dashboards/storage-efficiency/storage-efficiency-card-item';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { humanizeBinaryBytes, humanizePercentage } from '@odf/shared/utils';
 import { getGaugeValue } from '@odf/shared/utils';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 
@@ -11,18 +14,23 @@ const StorageEfficiencyCard: React.FC<{}> = () => {
   const { t } = useTranslation();
 
   const [compressionQueryResult, compressionQueryResultError] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: ObjectStorageEfficiencyQueries.COMPRESSION_RATIO,
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
-  const [savingsQueryResult, savingsQueryResultError] = usePrometheusPoll({
-    query: ObjectStorageEfficiencyQueries.SAVINGS_QUERY,
-    endpoint: 'api/v1/query' as any,
-  });
+  const [savingsQueryResult, savingsQueryResultError] = useCustomPrometheusPoll(
+    {
+      query: ObjectStorageEfficiencyQueries.SAVINGS_QUERY,
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    }
+  );
   const [logicalSavingsQueryResult, logicalSavingsQueryResultError] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: ObjectStorageEfficiencyQueries.LOGICAL_SAVINGS_QUERY,
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
 
   const compressionRatio = getGaugeValue(compressionQueryResult);

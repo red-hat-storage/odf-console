@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { EfficiencyItemBody } from '@odf/shared/dashboards/storage-efficiency/storage-efficiency-card-item';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { getGaugeValue, humanizeBinaryBytes } from '@odf/shared/utils';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import {
@@ -13,20 +16,22 @@ const StorageEfficiencyCard: React.FC = () => {
   const { t } = useTranslation();
 
   const [poolCapacityRatioResult, poolCapacityRatioResultError] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query:
         POOL_STORAGE_EFFICIENCY_QUERIES[
           StorageDashboardQuery.POOL_CAPACITY_RATIO
         ],
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
 
-  const [poolSavedResult, poolSavedResultError] = usePrometheusPoll({
+  const [poolSavedResult, poolSavedResultError] = useCustomPrometheusPoll({
     query:
       POOL_STORAGE_EFFICIENCY_QUERIES[
         StorageDashboardQuery.POOL_CAPACITY_RATIO
       ],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
   const ratio = getGaugeValue(poolCapacityRatioResult);
   const saved = getGaugeValue(poolSavedResult);

@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { UtilizationItem } from '@odf/shared/dashboards/utilization-card/utilization-item';
-import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  usePrometheusPoll,
-  useUtilizationDuration,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
+import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
+import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 
 enum LIMIT_STATE {
@@ -21,13 +22,16 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
     byteDataType,
     TopConsumerPopover,
     setLimitReqState,
+    basePath,
   }) => {
     const { duration } = useUtilizationDuration();
+    const defaultBasePath = usePrometheusBasePath();
 
-    const [utilization, error, loading] = usePrometheusPoll({
+    const [utilization, error, loading] = useCustomPrometheusPoll({
       query: utilizationQuery,
       endpoint: 'api/v1/query_range' as any,
       delay: duration,
+      basePath: basePath || defaultBasePath,
     });
 
     return (
@@ -76,4 +80,5 @@ type PrometheusUtilizationItemProps = PrometheusCommonProps & {
   requestQuery?: string;
   TopConsumerPopover?: React.ComponentType<TopConsumerPopoverProp>;
   setLimitReqState?: (state: LimitRequested) => void;
+  basePath?: string;
 };

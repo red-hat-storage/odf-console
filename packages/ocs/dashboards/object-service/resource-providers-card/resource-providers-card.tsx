@@ -1,8 +1,11 @@
 import * as React from 'react';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { getMetric } from '@odf/shared/utils';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -42,21 +45,24 @@ const ResourceProviders: React.FC<{}> = () => {
   const { t } = useTranslation();
 
   const [providersTypesQueryResult, providersTypesQueryResultError] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: RESOURCE_PROVIDERS_QUERY.PROVIDERS_TYPES,
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
   const [
     unhealthyProvidersTypesQueryResult,
     unhealthyProvidersTypesQueryResultError,
-  ] = usePrometheusPoll({
+  ] = useCustomPrometheusPoll({
     query: RESOURCE_PROVIDERS_QUERY.UNHEALTHY_PROVIDERS_TYPES,
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
   const [resourcesLinksResponse, resourcesLinksResponseError] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: RESOURCE_PROVIDERS_QUERY.RESOURCES_LINK_QUERY,
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
 
   const error =

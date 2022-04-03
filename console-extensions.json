@@ -25,8 +25,7 @@
       "href": "/odf/cluster"
     },
     "flags": {
-      "required": ["ODF_MODEL"],
-      "disallowed": ["ODF_MANAGED"]
+      "required": ["ODF_MODEL"]
     }
   },
   {
@@ -37,8 +36,7 @@
       "component": { "$codeRef": "dashboard.default" }
     },
     "flags": {
-      "required": ["ODF_MODEL"],
-      "disallowed": ["ODF_MANAGED"]
+      "required": ["ODF_MODEL"]
     }
   },
   {

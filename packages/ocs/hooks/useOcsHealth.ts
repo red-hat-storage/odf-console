@@ -1,4 +1,8 @@
 import * as React from 'react';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import {
@@ -6,7 +10,6 @@ import {
   useK8sWatchResource,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import {
   CephClusterModel,
@@ -56,9 +59,10 @@ export const useGetOCSHealth = () => {
   const [noobaaData, noobaaLoaded, noobaaLoadError] =
     useK8sWatchResource<K8sResourceKind[]>(noobaaResource);
 
-  const [noobaaHealthStatus, noobaaQueryLoadError] = usePrometheusPoll({
+  const [noobaaHealthStatus, noobaaQueryLoadError] = useCustomPrometheusPoll({
     query: HEALTH_QUERY[Health.NOOBAA],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const cephHealthState = getCephHealthState(

@@ -1,6 +1,9 @@
 import * as React from 'react';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { getInstantVectorStats } from '@odf/shared/utils';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { compose } from 'redux';
 import {
@@ -18,13 +21,15 @@ const parser = compose((val) => val?.[0]?.y, getInstantVectorStats);
 const RawCapacityCard: React.FC = () => {
   const { t } = useTranslation();
 
-  const [totalCapacity, totalError, totalLoading] = usePrometheusPoll({
+  const [totalCapacity, totalError, totalLoading] = useCustomPrometheusPoll({
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_TOTAL],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [usedCapacity, usedError, usedLoading] = usePrometheusPoll({
+  const [usedCapacity, usedError, usedLoading] = useCustomPrometheusPoll({
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_USED],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const loadError = totalError || usedError;

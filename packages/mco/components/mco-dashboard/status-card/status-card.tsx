@@ -5,7 +5,7 @@ import {
   healthStateMap,
   csvStatusMap,
 } from '@odf/shared/dashboards/status-card/states';
-import { useURLPoll } from '@odf/shared/hooks/use-url-poll/use-url-poll';
+import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVK } from '@odf/shared/utils';
@@ -88,13 +88,17 @@ const StorageSystemHealthItem: React.FC = () => {
 
   const [worstHealth, setWorstHealth] = React.useState<string>('');
   const [sysHealthData, sysHealthError, sysHealthLoading] =
-    useURLPoll<PrometheusResponse>(
-      `${ACM_ENDPOINT}=${STATUS_QUERIES[StorageDashboard.SYSTEM_HEALTH]}`
-    );
+    useCustomPrometheusPoll({
+      endpoint: 'api/v1/query' as any,
+      query: STATUS_QUERIES[StorageDashboard.SYSTEM_HEALTH],
+      basePath: ACM_ENDPOINT,
+    });
   const [subSysHealthData, subSysHealthError, subSysHealthLoading] =
-    useURLPoll<PrometheusResponse>(
-      `${ACM_ENDPOINT}=${STATUS_QUERIES[StorageDashboard.HEALTH]}`
-    );
+    useCustomPrometheusPoll({
+      endpoint: 'api/v1/query' as any,
+      query: STATUS_QUERIES[StorageDashboard.HEALTH],
+      basePath: ACM_ENDPOINT,
+    });
 
   const parsedHealthData = React.useMemo(() => {
     const healthData: SystemHealthMap[] = [];
@@ -154,9 +158,11 @@ const CSVStatusHealthItem: React.FC = () => {
   const { t } = useCustomTranslation();
 
   const [worstStatus, setWorstStatus] = React.useState<string>('');
-  const [csvData, csvError, csvLoading] = useURLPoll<PrometheusResponse>(
-    `${ACM_ENDPOINT}=${STATUS_QUERIES[StorageDashboard.CSV_STATUS]}`
-  );
+  const [csvData, csvError, csvLoading] = useCustomPrometheusPoll({
+    endpoint: 'api/v1/query' as any,
+    query: STATUS_QUERIES[StorageDashboard.CSV_STATUS],
+    basePath: ACM_ENDPOINT,
+  });
 
   const parsedCSVData = React.useMemo(() => {
     let csvStatusData = [];

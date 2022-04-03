@@ -2,11 +2,14 @@ import * as React from 'react';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { getSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
+import {
   humanizeBinaryBytes,
   getInstantVectorStats,
   sortInstantVectorStats,
 } from '@odf/shared/utils';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import {
   Select,
@@ -28,14 +31,18 @@ export const BreakdownCard: React.FC = () => {
   const { queries, model, metric } = breakdownIndependentQueryMap[metricType];
   const queryKeys = Object.keys(queries);
 
-  const [byUsed, byUsedError, byUsedLoading] = usePrometheusPoll({
+  const [byUsed, byUsedError, byUsedLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as any,
     query: queries[queryKeys[0]],
+    basePath: usePrometheusBasePath(),
   });
-  const [totalUsed, totalUsedError, totalUsedLoading] = usePrometheusPoll({
-    endpoint: 'api/v1/query' as any,
-    query: queries[queryKeys[1]],
-  });
+  const [totalUsed, totalUsedError, totalUsedLoading] = useCustomPrometheusPoll(
+    {
+      endpoint: 'api/v1/query' as any,
+      query: queries[queryKeys[1]],
+      basePath: usePrometheusBasePath(),
+    }
+  );
 
   const queriesLoadError = byUsedError || totalUsedError;
   const queriesDataLoaded = !byUsedLoading && !totalUsedLoading;

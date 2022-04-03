@@ -3,6 +3,10 @@ import { useGetOCSHealth } from '@odf/ocs/hooks';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMap } from '@odf/shared/dashboards/status-card/states';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
 import {
   ClusterServiceVersionKind,
@@ -14,10 +18,7 @@ import {
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  HealthBody,
-  usePrometheusPoll,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import {
@@ -54,9 +55,10 @@ export const StatusCard: React.FC = () => {
     StorageSystemKind[]
   >(storageSystemResource);
 
-  const [healthData, healthError, healthLoading] = usePrometheusPoll({
+  const [healthData, healthError, healthLoading] = useCustomPrometheusPoll({
     query: STATUS_QUERIES[StorageDashboard.HEALTH],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const operator = csvData?.find((csv) =>

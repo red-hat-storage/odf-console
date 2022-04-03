@@ -1,5 +1,9 @@
 import * as React from 'react';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import useAlerts from '@odf/shared/monitoring/useAlert';
 import { alertURL } from '@odf/shared/monitoring/utils';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -13,7 +17,6 @@ import {
   AlertsBody,
   HealthBody,
   HealthItem,
-  usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import * as _ from 'lodash';
@@ -50,7 +53,7 @@ export const CephAlerts: React.FC = () => {
         alerts.length > 0 &&
         alerts.map((alert) => (
           <AlertItem
-            key={alertURL(alert, alert.rule.id)}
+            key={alertURL(alert, alert?.rule?.id)}
             alert={alert as any}
           />
         ))}
@@ -101,10 +104,13 @@ export const StatusCard: React.FC = () => {
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
-  const [resiliencyProgress, resiliencyProgressError] = usePrometheusPoll({
-    query: resiliencyProgressQuery,
-    endpoint: 'api/v1/query' as any,
-  });
+  const [resiliencyProgress, resiliencyProgressError] = useCustomPrometheusPoll(
+    {
+      query: resiliencyProgressQuery,
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    }
+  );
 
   const cephHealthState = getCephHealthState(
     { ceph: { data, loaded, loadError } },

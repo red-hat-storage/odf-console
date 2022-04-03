@@ -3,7 +3,11 @@ import { RGW_FLAG } from '@odf/core/features';
 import { CephObjectStoreModel } from '@odf/core/models';
 import { NooBaaSystemModel } from '@odf/core/models';
 import { secretResource } from '@odf/core/resources';
-import useAlerts from '@odf/shared/hooks/use-alerts';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
+import useAlerts from '@odf/shared/monitoring/useAlert';
 import { K8sResourceKind } from '@odf/shared/types';
 import { alertURL } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
@@ -15,7 +19,6 @@ import {
   AlertsBody,
   AlertItem,
   HealthBody,
-  usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import * as _ from 'lodash';
@@ -69,7 +72,7 @@ const ObjectStorageAlerts = () => {
         alerts.length > 0 &&
         alerts.map((alert) => (
           <AlertItem
-            key={alertURL(alert, alert.rule.id)}
+            key={alertURL(alert, alert?.rule?.id)}
             alert={alert as any}
           />
         ))}
@@ -102,17 +105,20 @@ const StatusCard: React.FC<{}> = () => {
       ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY
     ](rgwPrefix);
 
-  const [healthStatusResult, healthStatusError] = usePrometheusPoll({
+  const [healthStatusResult, healthStatusError] = useCustomPrometheusPoll({
     query: StatusCardQueries.HEALTH_QUERY,
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [progressResult, progressError] = usePrometheusPoll({
+  const [progressResult, progressError] = useCustomPrometheusPoll({
     query: StatusCardQueries.MCG_REBUILD_PROGRESS_QUERY,
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [rgwResiliencyResult, rgwResiliencyError] = usePrometheusPoll({
+  const [rgwResiliencyResult, rgwResiliencyError] = useCustomPrometheusPoll({
     query: rgwResiliencyQuery,
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const MCGState = getNooBaaState(
