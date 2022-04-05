@@ -1,79 +1,82 @@
-import { K8sResourceCommon } from "@openshift-console/dynamic-plugin-sdk";
+import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { ObjectMetadata } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
-import { K8sKind, MatchExpression } from "@openshift-console/dynamic-plugin-sdk/lib/api/common-types";
+import {
+  K8sKind,
+  MatchExpression,
+} from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { K8sResourceCondition } from './common';
 
 // The config is a JSON object with the NetworkAttachmentDefinitionConfig type stored as a string
 export type NetworkAttachmentDefinitionSpec = {
-    config: string;
+  config: string;
 };
 
 export type NetworkAttachmentDefinitionKind = {
-    spec?: NetworkAttachmentDefinitionSpec;
+  spec?: NetworkAttachmentDefinitionSpec;
 } & K8sResourceKind;
 
 export type StorageClassResourceKind = {
-    provisioner: string;
-    reclaimPolicy: string;
-    parameters?: {
-        [key: string]: string;
-    };
+  provisioner: string;
+  reclaimPolicy: string;
+  parameters?: {
+    [key: string]: string;
+  };
 } & K8sResourceCommon;
 
 export type K8sResourceKind = K8sResourceCommon & {
-    spec?: {
-        selector?: Selector | MatchLabels;
-        [key: string]: any;
-    };
-    status?: { [key: string]: any };
-    data?: { [key: string]: any };
+  spec?: {
+    selector?: Selector | MatchLabels;
+    [key: string]: any;
+  };
+  status?: { [key: string]: any };
+  data?: { [key: string]: any };
 };
 
 export type Selector = {
-    matchLabels?: MatchLabels;
-    matchExpressions?: MatchExpression[];
+  matchLabels?: MatchLabels;
+  matchExpressions?: MatchExpression[];
 };
 
 export type MatchLabels = {
-    [key: string]: string;
+  [key: string]: string;
 };
 
 export type NodeKind = {
-    spec: {
-        taints?: Taint[];
-        unschedulable?: boolean;
+  spec: {
+    taints?: Taint[];
+    unschedulable?: boolean;
+  };
+  status?: {
+    capacity?: {
+      [key: string]: string;
     };
-    status?: {
-        capacity?: {
-            [key: string]: string;
-        };
-        conditions?: NodeCondition[];
-        images?: {
-            names: string[];
-            sizeBytes?: number;
-        }[];
-        phase?: string;
-        nodeInfo?: {
-            operatingSystem: string;
-        };
+    conditions?: NodeCondition[];
+    images?: {
+      names: string[];
+      sizeBytes?: number;
+    }[];
+    phase?: string;
+    nodeInfo?: {
+      operatingSystem: string;
     };
+  };
 } & K8sResourceCommon;
 
 export type SecretKind = {
-    data?: { [key: string]: string };
-    stringData?: { [key: string]: string };
-    type?: string;
+  data?: { [key: string]: string };
+  stringData?: { [key: string]: string };
+  type?: string;
 } & K8sResourceCommon;
 
 export type ConfigMapKind = {
-    data?: { [key: string]: string };
-    binaryData?: { [key: string]: string };
+  data?: { [key: string]: string };
+  binaryData?: { [key: string]: string };
 } & K8sResourceCommon;
 
 export type Taint = {
-    key: string;
-    value: string;
-    effect: TaintEffect;
+  key: string;
+  value: string;
+  effect: TaintEffect;
 };
 
 export type TaintEffect = '' | 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
@@ -81,93 +84,93 @@ export type TaintEffect = '' | 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
 export type TolerationOperator = 'Exists' | 'Equal';
 
 export type Toleration = {
-    effect: TaintEffect;
-    key?: string;
-    operator: TolerationOperator;
-    tolerationSeconds?: number;
-    value?: string;
+  effect: TaintEffect;
+  key?: string;
+  operator: TolerationOperator;
+  tolerationSeconds?: number;
+  value?: string;
 };
 
 export type Patch = {
-    op: string;
-    path: string;
-    value?: any;
-}
+  op: string;
+  path: string;
+  value?: any;
+};
 
 export type NodeCondition = {
-    lastHeartbeatTime?: string;
+  lastHeartbeatTime?: string;
 } & K8sResourceCondition;
 
 export type PodKind = {
-    status?: PodStatus;
+  status?: PodStatus;
 } & K8sResourceCommon &
-    PodTemplate;
+  PodTemplate;
 
 export type GetAPIVersionForModel = (model: K8sKind) => string;
 
 enum ImagePullPolicy {
-    Always = 'Always',
-    Never = 'Never',
-    IfNotPresent = 'IfNotPresent',
+  Always = 'Always',
+  Never = 'Never',
+  IfNotPresent = 'IfNotPresent',
 }
 
 // https://github.com/kubernetes/api/blob/release-1.16/core/v1/types.go#L2411-L2432
 type PodPhase = 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Unknown';
 
 type VolumeMount = {
-    mountPath: string;
-    mountPropagation?: 'None' | 'HostToContainer' | 'Bidirectional';
-    name: string;
-    readOnly?: boolean;
-    subPath?: string;
-    subPathExpr?: string;
+  mountPath: string;
+  mountPropagation?: 'None' | 'HostToContainer' | 'Bidirectional';
+  name: string;
+  readOnly?: boolean;
+  subPath?: string;
+  subPathExpr?: string;
 };
 
 type VolumeDevice = {
-    devicePath: string;
-    name: string;
+  devicePath: string;
+  name: string;
 };
 
 type EnvVarSource = {
-    fieldRef?: {
-      apiVersion?: string;
-      fieldPath: string;
-    };
-    resourceFieldRef?: {
-      resource: string;
-      containerName?: string;
-      divisor?: string;
-    };
-    configMapKeyRef?: {
-      key: string;
-      name: string;
-    };
-    secretKeyRef?: {
-      key: string;
-      name: string;
-    };
-    configMapRef?: {
-      key?: string;
-      name: string;
-    };
-    secretRef?: {
-      key?: string;
-      name: string;
-    };
-    configMapSecretRef?: {
-      key?: string;
-      name: string;
-    };
-    serviceAccountRef?: {
-      key?: string;
-      name: string;
-    };
+  fieldRef?: {
+    apiVersion?: string;
+    fieldPath: string;
+  };
+  resourceFieldRef?: {
+    resource: string;
+    containerName?: string;
+    divisor?: string;
+  };
+  configMapKeyRef?: {
+    key: string;
+    name: string;
+  };
+  secretKeyRef?: {
+    key: string;
+    name: string;
+  };
+  configMapRef?: {
+    key?: string;
+    name: string;
+  };
+  secretRef?: {
+    key?: string;
+    name: string;
+  };
+  configMapSecretRef?: {
+    key?: string;
+    name: string;
+  };
+  serviceAccountRef?: {
+    key?: string;
+    name: string;
+  };
 };
 
 type EnvVar = {
-    name: string;
-    value?: string;
-    valueFrom?: EnvVarSource;
+  name: string;
+  value?: string;
+  valueFrom?: EnvVarSource;
 };
 
 type ProbePort = string | number;
@@ -190,112 +193,135 @@ type TCPSocketProbe = {
 };
 
 type Handler = {
-    exec?: ExecProbe;
-    httpGet?: HTTPGetProbe;
-    tcpSocket?: TCPSocketProbe;
+  exec?: ExecProbe;
+  httpGet?: HTTPGetProbe;
+  tcpSocket?: TCPSocketProbe;
 };
-  
+
 type ContainerProbe = {
-    initialDelaySeconds?: number;
-    timeoutSeconds?: number;
-    periodSeconds?: number;
-    successThreshold?: number;
-    failureThreshold?: number;
+  initialDelaySeconds?: number;
+  timeoutSeconds?: number;
+  periodSeconds?: number;
+  successThreshold?: number;
+  failureThreshold?: number;
 } & Handler;
 
 type ContainerLifecycle = {
-    postStart?: Handler;
-    preStop?: Handler;
+  postStart?: Handler;
+  preStop?: Handler;
 };
 
 type ResourceList = {
-    [resourceName: string]: string;
+  [resourceName: string]: string;
 };
 
 type ContainerPort = {
-    name?: string;
-    containerPort: number;
-    protocol: string;
+  name?: string;
+  containerPort: number;
+  protocol: string;
 };
 
 type ContainerSpec = {
-    name: string;
-    volumeMounts?: VolumeMount[];
-    volumeDevices?: VolumeDevice[];
-    env?: EnvVar[];
-    livenessProbe?: ContainerProbe;
-    readinessProbe?: ContainerProbe;
-    lifecycle?: ContainerLifecycle;
-    resources?: {
-      limits?: ResourceList;
-      requested?: ResourceList;
-    };
-    ports?: ContainerPort[];
-    imagePullPolicy?: ImagePullPolicy;
-    [key: string]: any;
+  name: string;
+  volumeMounts?: VolumeMount[];
+  volumeDevices?: VolumeDevice[];
+  env?: EnvVar[];
+  livenessProbe?: ContainerProbe;
+  readinessProbe?: ContainerProbe;
+  lifecycle?: ContainerLifecycle;
+  resources?: {
+    limits?: ResourceList;
+    requested?: ResourceList;
+  };
+  ports?: ContainerPort[];
+  imagePullPolicy?: ImagePullPolicy;
+  [key: string]: any;
 };
 
 type Volume = {
-    name: string;
-    [key: string]: any;
+  name: string;
+  [key: string]: any;
 };
-  
+
 type PodSpec = {
-    volumes?: Volume[];
-    initContainers?: ContainerSpec[];
-    containers: ContainerSpec[];
-    restartPolicy?: 'Always' | 'OnFailure' | 'Never';
-    terminationGracePeriodSeconds?: number;
-    activeDeadlineSeconds?: number;
-    nodeSelector?: any;
-    serviceAccountName?: string;
-    priorityClassName?: string;
-    tolerations?: Toleration[];
-    nodeName?: string;
-    hostname?: string;
-    [key: string]: any;
+  volumes?: Volume[];
+  initContainers?: ContainerSpec[];
+  containers: ContainerSpec[];
+  restartPolicy?: 'Always' | 'OnFailure' | 'Never';
+  terminationGracePeriodSeconds?: number;
+  activeDeadlineSeconds?: number;
+  nodeSelector?: any;
+  serviceAccountName?: string;
+  priorityClassName?: string;
+  tolerations?: Toleration[];
+  nodeName?: string;
+  hostname?: string;
+  [key: string]: any;
 };
 
 type PodTemplate = {
-    metadata: ObjectMetadata;
-    spec: PodSpec;
+  metadata: ObjectMetadata;
+  spec: PodSpec;
 };
 
 type PodCondition = {
-    lastProbeTime?: string;
+  lastProbeTime?: string;
 } & K8sResourceCondition;
-  
+
 type PodStatus = {
-    phase: PodPhase;
-    conditions?: PodCondition[];
-    message?: string;
-    reason?: string;
-    startTime?: string;
-    initContainerStatuses?: ContainerStatus[];
-    containerStatuses?: ContainerStatus[];
-    [key: string]: any;
+  phase: PodPhase;
+  conditions?: PodCondition[];
+  message?: string;
+  reason?: string;
+  startTime?: string;
+  initContainerStatuses?: ContainerStatus[];
+  containerStatuses?: ContainerStatus[];
+  [key: string]: any;
 };
 
 type ContainerStateValue = {
-    reason?: string;
-    [key: string]: any;
+  reason?: string;
+  [key: string]: any;
 };
-  
+
 type ContainerState = {
-    waiting?: ContainerStateValue;
-    running?: ContainerStateValue;
-    terminated?: ContainerStateValue;
+  waiting?: ContainerStateValue;
+  running?: ContainerStateValue;
+  terminated?: ContainerStateValue;
 };
 
 type ContainerStatus = {
-    name: string;
-    state?: ContainerState;
-    lastState?: ContainerState;
-    ready: boolean;
-    restartCount: number;
-    image: string;
-    imageID: string;
-    containerID?: string;
+  name: string;
+  state?: ContainerState;
+  lastState?: ContainerState;
+  ready: boolean;
+  restartCount: number;
+  image: string;
+  imageID: string;
+  containerID?: string;
+};
+
+export type PersistentVolumeClaimKind = K8sResourceCommon & {
+  spec: {
+    accessModes: string[];
+    resources: {
+      requests: {
+        storage: string;
+      };
+    };
+    storageClassName: string;
+    volumeMode?: string;
+    /* Parameters in a cloned PVC */
+    dataSource?: {
+      name: string;
+      kind: string;
+      apiGroup: string;
+    };
+    /**/
+  };
+  status?: {
+    phase: string;
+  };
 };
 
 export type DeploymentCondition = {

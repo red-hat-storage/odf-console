@@ -149,4 +149,17 @@ export const DeploymentModel: K8sKind = {
   labelPlural: 'Deployments',
   // t('plugin__odf-console~Deployments')
   labelPluralKey: 'plugin__odf-console~Deployments',
+}
+
+export const EventModel: K8sKind = {
+  apiVersion: 'v1',
+  label: 'Event',
+  labelKey: 'Event',
+  plural: 'events',
+  abbr: 'E',
+  namespaced: true,
+  kind: 'Event',
+  id: 'event',
+  labelPlural: 'Events',
+  labelPluralKey: 'Events',
 };
