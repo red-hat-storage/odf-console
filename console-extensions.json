@@ -97,5 +97,40 @@
       "exact": true,
       "component": { "$codeRef": "createDataPolicy.CreateDRPolicy" }
     }
+  },
+  {
+    "type": "console.page/resource/list",
+    "properties": {
+      "model": {
+        "group": "objectbucket.io",
+        "kind": "ObjectBucketClaim",
+        "version": "v1alpha1"
+      },
+      "component": { "$codeRef": "obc.OBCListPage" }
+    }
+  },
+  {
+    "type": "console.page/resource/details",
+    "properties": {
+      "model": {
+        "group": "objectbucket.io",
+        "kind": "ObjectBucketClaim",
+        "version": "v1alpha1"
+      },
+      "component": { "$codeRef": "obc.OBCDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/k8s/ns/:ns/objectbucket.io~v1alpha1~ObjectBucketClaim/~new/form",
+      "component": {
+        "$codeRef": "createOBC.CreateOBCPage"
+      }
+    },
+    "flags": {
+      "required": ["OCS"]
+    }
   }
 ]

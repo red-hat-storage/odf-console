@@ -11,17 +11,20 @@ import {
 import './modal.scss';
 
 export type CommonModalProps<T = {}> = {
-    isOpen: boolean;
-    closeModal: () => void;
-    extraProps: T;
-}
+  isOpen: boolean;
+  closeModal: () => void;
+  extraProps: T;
+};
 
 export const ModalBody: React.FC<ModalBoxBodyProps> = ({
   children,
   className,
   ...props
 }) => (
-  <ModalBoxBody className={classNames('modal--padding', className)} {...props}>
+  <ModalBoxBody
+    className={classNames('modal--padding', 'modal--overflow', className)}
+    {...props}
+  >
     {children}
   </ModalBoxBody>
 );

@@ -1,6 +1,10 @@
 import { OCSStorageClusterModel } from '@odf/core/models';
 import { StorageClusterKind } from '@odf/shared/types';
-import { SetFeatureFlag, k8sList } from "@openshift-console/dynamic-plugin-sdk";
+import {
+  SetFeatureFlag,
+  k8sList,
+  K8sResourceCommon,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import { CEPH_STORAGE_NAMESPACE, SECOND } from './constants';
 
@@ -62,7 +66,8 @@ const setOCSFlagsFalse = (setFlag: SetFeatureFlag) => {
   setFlag(MCG_STANDALONE, false);
 };
 
-export const setODFFlag = (setFlag: SetFeatureFlag) => setFlag(ODF_MODEL_FLAG, true);
+export const setODFFlag = (setFlag: SetFeatureFlag) =>
+  setFlag(ODF_MODEL_FLAG, true);
 
 export const setMCOFlag = (setFlag: SetFeatureFlag) => setFlag(MCO_MODE_FLAG, isMCO);
 
@@ -73,10 +78,15 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
   let setFlagFalse = true;
   const ocsDetector = async () => {
     try {
-      const storageClusters = await k8sList({model: OCSStorageClusterModel, queryParams: { CEPH_STORAGE_NAMESPACE }});
+      const storageClusters: StorageClusterKind[] =
+        await k8sList<K8sResourceCommon>({
+          model: OCSStorageClusterModel,
+          queryParams: { CEPH_STORAGE_NAMESPACE },
+          requestInit: null,
+        }) as StorageClusterKind[];
       if (storageClusters?.length > 0) {
         const storageCluster = storageClusters.find(
-          (sc: StorageClusterKind) => sc.status.phase !== 'Ignored',
+          (sc: StorageClusterKind) => sc.status.phase !== 'Ignored'
         );
         const isInternal = _.isEmpty(storageCluster?.spec?.externalStorage);
         setFlag(OCS_CONVERGED_FLAG, isInternal);
@@ -84,10 +94,11 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
         setFlag(OCS_FLAG, true);
         setFlag(
           MCG_STANDALONE,
-          storageCluster?.spec?.multiCloudGateway?.reconcileStrategy === 'standalone',
+          storageCluster?.spec?.multiCloudGateway?.reconcileStrategy ===
+            'standalone'
         );
         clearInterval(ocsIntervalId);
-      } else if(setFlagFalse) {
+      } else if (setFlagFalse) {
         setFlagFalse = false;
         setOCSFlagsFalse(setFlag);
       }

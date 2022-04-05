@@ -106,6 +106,7 @@ type ResourceDropdownProps<T> = {
   initialSelection?: (resource: T[]) => T;
   filterResource?: (resource: T) => boolean;
   'data-test'?: string;
+  id?: string;
 };
 
 type ResourceDropdown = <T>(
@@ -123,6 +124,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
   initialSelection,
   filterResource,
   'data-test': dataTest,
+  id,
 }) => {
   const [isOpen, setOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState(null);
@@ -208,6 +210,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
 
   return (
     <Dropdown
+      id={id}
       className={classNames('odf-resourceDropdown__container', className)}
       toggle={
         <DropdownToggle
@@ -376,7 +379,8 @@ export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
       className={classNames('odf-resourceDropdown__container', className)}
       toggle={
         <DropdownToggle
-          onToggle={loaded && !loadError ? onToggle : () => {}}
+          isDisabled={!loaded || loadError}
+          onToggle={onToggle}
           toggleIndicator={CaretDownIcon}
         >
           {!loaded && <LoadingInline />}

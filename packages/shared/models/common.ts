@@ -133,3 +133,20 @@ export const CustomResourceDefinitionModel: K8sKind = {
   // t('plugin__odf-console~CustomResourceDefinitions')
   labelPluralKey: 'plugin__odf-console~CustomResourceDefinitions',
 };
+
+export const DeploymentModel: K8sKind = {
+  label: 'Deployment',
+  // t('Deployment')
+  labelKey: 'Deployment',
+  apiVersion: 'v1',
+  apiGroup: 'apps',
+  plural: 'deployments',
+  abbr: 'D',
+  namespaced: true,
+  propagationPolicy: 'Foreground',
+  kind: 'Deployment',
+  id: 'deployment',
+  labelPlural: 'Deployments',
+  // t('plugin__odf-console~Deployments')
+  labelPluralKey: 'plugin__odf-console~Deployments',
+};
