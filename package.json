@@ -40,11 +40,13 @@
     "fuzzysearch": "^1.0.3",
     "lodash-es": "^4.17.21",
     "react": "^17.0.1",
+    "react-copy-to-clipboard": "5.x",
     "react-dnd": "^15.1.1",
     "react-dnd-html5-backend": "^15.1.2",
     "react-dom": "^17.0.1",
     "react-helmet": "^6.1.0",
     "react-i18next": "^11.11.4",
+    "react-linkify": "^0.2.2",
     "react-redux": "^7.2.6",
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
@@ -52,7 +54,7 @@
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^5.9.1",
-    "@openshift-console/dynamic-plugin-sdk": "0.0.4",
+    "@openshift-console/dynamic-plugin-sdk": "0.0.6",
     "@openshift-console/dynamic-plugin-sdk-internal": "0.0.2",
     "@openshift-console/dynamic-plugin-sdk-internal-kubevirt": "^0.0.10",
     "@openshift-console/dynamic-plugin-sdk-webpack": "0.0.4",
@@ -119,7 +121,9 @@
       "dashboard": "@odf/core/components/odf-dashboard/dashboard",
       "features": "@odf/core/features",
       "dataPolicies": "@odf/mco/components/data-policies/data-policies-list",
-      "createDataPolicy": "@odf/mco/components/data-policies/create-dr-policy/create-dr-policy"
+      "createDataPolicy": "@odf/mco/components/data-policies/create-dr-policy/create-dr-policy",
+      "obc": "@odf/core/components/mcg/ObjectBucketClaim",
+      "createOBC": "@odf/core/components/mcg/CreateObjectBucketClaim"
     }
   }
 }
