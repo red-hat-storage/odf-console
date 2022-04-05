@@ -7,7 +7,7 @@ type ClusterStatus = {
   status: string;
 };
 
-type ManagedCluster = {
+export type ManagedCluster = {
   name: string;
   region: string;
   s3profileName: string;
@@ -22,9 +22,10 @@ export type DRPolicyKind = K8sResourceCommon & {
     replicationClassSelector?: Selector;
   };
   status?: {
-    conditions?: K8sResourceCondition;
+    conditions?: K8sResourceCondition[];
     drClusters?: {
       [key: string]: ClusterStatus;
     };
+    phase: string;
   };
 };
