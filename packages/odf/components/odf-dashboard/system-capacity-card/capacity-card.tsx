@@ -63,7 +63,9 @@ const SystemCapacityCard: React.FC = () => {
             name: system.metadata.name,
             managedSystemName: system.spec.name,
             managedSystemKind: referenceFor(apiGroup)(apiVersion)(kind),
-            usedValue: humanizeBinaryBytes(usedMetric?.value?.[1]),
+            usedValue: usedMetric
+              ? humanizeBinaryBytes(usedMetric?.value?.[1])
+              : undefined,
             totalValue: !!totalMetric?.value?.[1]
               ? humanizeBinaryBytes(totalMetric?.value?.[1])
               : undefined,
