@@ -38,11 +38,11 @@ type CapacityCardProps = {
 
 const getPercentage = (item: CapacityMetricDatum) =>
   (humanizeBinaryBytes(
-    item.usedValue.value,
-    item.usedValue.unit,
-    item.totalValue.unit
-  ).value /
-    item.totalValue.value) *
+    item?.usedValue?.value,
+    item?.usedValue?.unit,
+    item?.totalValue?.unit
+  )?.value /
+    item?.totalValue?.value) *
   100;
 
 const sortMetrics = (
@@ -117,11 +117,11 @@ const getProgress = (
   if (isRelative) {
     return (
       (humanizeBinaryBytes(
-        data.usedValue.value,
-        data.usedValue.unit,
-        largestValue.unit
-      ).value /
-        largestValue.value) *
+        data?.usedValue?.value,
+        data?.usedValue?.unit,
+        largestValue?.unit
+      )?.value /
+        largestValue?.value) *
       100
     );
   }
@@ -138,10 +138,12 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   const progress =
     (!isPercentage && isRelative) || (isPercentage && !isRelative)
       ? getProgress(data, isRelative, largestValue)
-      : 100;
+      : data?.usedValue?.value > 0
+      ? 100
+      : 0;
   const value = isPercentage
-    ? `${data.usedValue.string} / ${data.totalValue.string}`
-    : data.usedValue.string;
+    ? `${data?.usedValue?.string} / ${data?.totalValue?.string}`
+    : data?.usedValue?.string;
   const variant = (() => {
     if (!isPercentage) {
       return null;
@@ -157,25 +159,25 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   const dataUnavailable = _.isNaN(progress);
   return (
     <>
-      <GridItem key={`${data.name}~name`} span={2}>
-        {data.managedSystemKind ? (
-          <Tooltip content={data.name}>
+      <GridItem key={`${data?.name}~name`} span={2}>
+        {data?.managedSystemKind ? (
+          <Tooltip content={data?.name}>
             <ResourceLink
-              link={getDashboardLink(data.managedSystemKind, data.name)}
+              link={getDashboardLink(data?.managedSystemKind, data?.name)}
               resourceModel={resourceModel}
-              resourceName={data.name}
+              resourceName={data?.name}
               className="odf-capacityCardLink--ellipsis"
               hideIcon
             />
           </Tooltip>
         ) : (
-          <PlainResourceName resourceName={data.name} />
+          <PlainResourceName resourceName={data?.name} />
         )}
       </GridItem>
-      <GridItem key={`${data.name}~progress`} span={7}>
+      <GridItem key={`${data?.name}~progress`} span={7}>
         {isRelative || !isPercentage ? (
           <Progress
-            value={dataUnavailable ? null : progress}
+            value={dataUnavailable ? 0 : progress}
             label={!dataUnavailable ? `${progress.toFixed(2)} %` : ''}
             size="md"
             measureLocation={
@@ -199,7 +201,7 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
           </Tooltip>
         )}
       </GridItem>
-      <GridItem span={3} key={`${data.name}~value`}>
+      <GridItem span={3} key={`${data?.name}~value`}>
         {dataUnavailable ? '-' : value}
       </GridItem>
     </>
@@ -248,7 +250,10 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
   resourceModel,
   showPercentage,
 }) => {
-  const sortedMetrics = sortMetrics(data, 'ASC', relative);
+  const safeData = data.every(
+    (item) => item.totalValue !== undefined && item.usedValue !== undefined
+  );
+  const sortedMetrics = safeData ? sortMetrics(data, 'ASC', relative) : data;
   const error = _.isEmpty(sortedMetrics);
   return (
     <div
@@ -259,7 +264,7 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
       {!error && !loading && (
         <Grid hasGutter>
           <CapacityCardHeader showPercentage={showPercentage} />
-          {sortedMetrics.map((item) => {
+          {sortedMetrics?.map((item) => {
             const isPercentage = !!item?.totalValue;
             return (
               <CapacityCardRow
@@ -267,7 +272,7 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
                 data={item}
                 isPercentage={isPercentage}
                 isRelative={relative}
-                largestValue={sortedMetrics[0].usedValue}
+                largestValue={sortedMetrics?.[0]?.usedValue}
                 resourceModel={resourceModel}
               />
             );

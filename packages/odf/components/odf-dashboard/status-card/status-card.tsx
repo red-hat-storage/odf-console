@@ -2,10 +2,7 @@ import * as React from 'react';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { ClusterServiceVersionKind } from '@odf/shared/types';
-import {
-  getGVK,
-  referenceForModel,
-} from '@odf/shared/utils';
+import { getGVK, referenceForModel } from '@odf/shared/utils';
 import {
   HealthState,
   WatchK8sResource,
@@ -81,8 +78,12 @@ export const StatusCard: React.FC = () => {
   const ocsHealthStatus = useGetOCSHealth();
 
   const parsedHealthData =
-    !healthError && !healthLoading && systemsLoaded && !systemsLoadError
-      ? healthData.data.result.reduce((acc, curr) => {
+    !healthError &&
+    !healthLoading &&
+    systemsLoaded &&
+    !systemsLoadError &&
+    healthData
+      ? healthData?.data?.result?.reduce((acc, curr) => {
           const systemName = curr.metric.storage_system;
           const storageSystem = systems.find(
             (system) => system.metadata.name === systemName
@@ -159,7 +160,7 @@ export const StatusCard: React.FC = () => {
                 <HealthItem
                   title={pluralize(unHealthySystems.length, 'Storage System')}
                   state={HealthState.ERROR}
-                  maxWidth='35rem'
+                  maxWidth="35rem"
                 >
                   <StorageSystemPopup systemHealthMap={unHealthySystems} />
                 </HealthItem>
