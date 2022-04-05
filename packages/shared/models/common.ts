@@ -41,3 +41,19 @@ export const NodeModel: K8sKind = {
   // t('plugin__odf-console~Nodes')
   labelPluralKey: 'plugin__odf-console~Nodes',
 };
+
+export const StorageClassModel: K8sKind = {
+  label: 'StorageClass',
+  // t('plugin__odf-console~StorageClass')
+  labelKey: 'plugin__odf-console~StorageClass',
+  labelPlural: 'StorageClasses',
+  // t('plugin__odf-console~StorageClasses')
+  labelPluralKey: 'plugin__odf-console~StorageClasses',
+  apiVersion: 'v1',
+  apiGroup: 'storage.k8s.io',
+  plural: 'storageclasses',
+  abbr: 'SC',
+  namespaced: false,
+  kind: 'StorageClass',
+  id: 'storageclass',
+};
