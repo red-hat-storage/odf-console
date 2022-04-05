@@ -651,19 +651,6 @@
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
 
-"@openshift-console/dynamic-plugin-sdk-internal-kubevirt@^0.0.10":
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk-internal-kubevirt/-/dynamic-plugin-sdk-internal-kubevirt-0.0.10.tgz#082695a86da3dd2b85348c039c8f0444130ca28f"
-  integrity sha512-vOXTULwUFfVEkM1SuOh05FR0F7dT2i0FSyAvkGwASdQKqUfCtZCmr65qSKGD2VqqJVbEUXXjapjY+0+CizTPmA==
-  dependencies:
-    "@patternfly/react-core" "4.168.8"
-    "@patternfly/react-table" "4.37.8"
-    react "^17.0.1"
-    react-helmet "^6.1.0"
-    react-i18next "^11.7.3"
-    react-router "5.2.0"
-    react-router-dom "5.2.0"
-
 "@openshift-console/dynamic-plugin-sdk-internal@0.0.2":
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk-internal/-/dynamic-plugin-sdk-internal-0.0.2.tgz#9fd758dfcb9c0122d1a665f4cc550df69859cc50"
