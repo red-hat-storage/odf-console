@@ -109,7 +109,7 @@ export const fromNow = (dateTime: string | Date, now?: Date, options?) => {
 
   const d = new Date(dateTime);
   const ms = now.getTime() - d.getTime();
-  const justNow = i18n.t('public~Just now');
+  const justNow = i18n.t('Just now');
 
   // If the event occurred less than one minute in the future, assume it's clock drift and show "Just now."
   if (!options?.omitSuffix && ms < 60000 && ms > maxClockSkewMS) {
@@ -125,12 +125,12 @@ export const fromNow = (dateTime: string | Date, now?: Date, options?) => {
 
   if (options?.omitSuffix) {
     if (days) {
-      return i18n.t('public~{{count}} day', { count: days });
+      return i18n.t('{{count}} day', { count: days });
     }
     if (hours) {
-      return i18n.t('public~{{count}} hour', { count: hours });
+      return i18n.t('{{count}} hour', { count: hours });
     }
-    return i18n.t('public~{{count}} minute', { count: minutes });
+    return i18n.t('{{count}} minute', { count: minutes });
   }
 
   // Fallback to normal date/time formatting if Intl.RelativeTimeFormat is not

@@ -136,8 +136,8 @@ export const CustomResourceDefinitionModel: K8sKind = {
 
 export const DeploymentModel: K8sKind = {
   label: 'Deployment',
-  // t('public~Deployment')
-  labelKey: 'public~Deployment',
+  // t('Deployment')
+  labelKey: 'Deployment',
   apiVersion: 'v1',
   apiGroup: 'apps',
   plural: 'deployments',

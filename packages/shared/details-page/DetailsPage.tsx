@@ -236,7 +236,7 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
               <SplitItem isFilled />
               <SplitItem>
                 <EditButton testId={label} onClick={onEdit}>
-                  {t('public~Edit')}
+                  {t('Edit')}
                 </EditButton>
               </SplitItem>
             </>
@@ -291,13 +291,13 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   return (
     <dl data-test-id="resource-summary" className="co-m-pane__details">
       <DetailsItem
-        label={t('public~Name')}
+        label={t('Name')}
         obj={resource}
         path={customPathName || 'metadata.name'}
       />
       {metadata.namespace && (
         <DetailsItem
-          label={t('public~Namespace')}
+          label={t('Namespace')}
           obj={resource}
           path="metadata.namespace"
         >
@@ -310,7 +310,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
         </DetailsItem>
       )}
       <DetailsItem
-        label={t('public~Labels')}
+        label={t('Labels')}
         obj={resource}
         path="metadata.labels"
         valueClassName="details-item__value--labels"
@@ -324,7 +324,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
       </DetailsItem>
       {showAnnotations && (
         <DetailsItem
-          label={t('public~Annotations')}
+          label={t('Annotations')}
           obj={resource}
           path="metadata.annotations"
         >
@@ -341,13 +341,13 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
               }
               variant="link"
             >
-              {t('public~{{count}} annotation', {
+              {t('{{count}} annotation', {
                 count: _.size(metadata.annotations),
               })}
               <PencilAltIcon className="co-icon-space-l pf-c-button-icon--plain" />
             </Button>
           ) : (
-            t('public~{{count}} annotation', {
+            t('{{count}} annotation', {
               count: _.size(metadata.annotations),
             })
           )}
@@ -355,14 +355,14 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
       )}
       {children}
       <DetailsItem
-        label={t('public~Created at')}
+        label={t('Created at')}
         obj={resource}
         path="metadata.creationTimestamp"
       >
         <Timestamp timestamp={metadata.creationTimestamp} />
       </DetailsItem>
       <DetailsItem
-        label={t('public~Owner')}
+        label={t('Owner')}
         obj={resource}
         path="metadata.ownerReferences"
       >

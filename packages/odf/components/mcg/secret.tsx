@@ -1,42 +1,15 @@
 import * as React from 'react';
-import { CopyToClipboard } from '@odf/shared/utils/copy-to-clipboard';
+import { EmptyBox } from '@odf/shared/generic/status-box';
+import { SectionHeading } from '@odf/shared/heading/page-heading';
+import { SecretModel, ConfigMapModel } from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
+import { SecretKind, ConfigMapKind, K8sResourceKind } from '@odf/shared/types';
+import { SecretValue } from '@odf/shared/utils/SecretValue';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { Base64 } from 'js-base64';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@patternfly/react-core';
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
-import { EmptyBox } from '../generic/status-box';
-import { SectionHeading } from '../heading/page-heading';
-import { ConfigMapModel, SecretModel } from '../models';
-import { getName, getNamespace } from '../selectors';
-import { ConfigMapKind, K8sResourceKind, SecretKind } from '../types';
-
-type SecretValueProps = {
-  value: string;
-  encoded?: boolean;
-  reveal: boolean;
-};
-
-export const MaskedData: React.FC<{}> = () => {
-  const { t } = useTranslation();
-  return (
-    <>
-      <span className="sr-only">{t('Value hidden')}</span>
-      <span aria-hidden="true">&bull;&bull;&bull;&bull;&bull;</span>
-    </>
-  );
-};
-
-export const SecretValue: React.FC<SecretValueProps> = ({ value, reveal, encoded = true }) => {
-  const { t } = useTranslation();
-  if (!value) {
-    return <span className="text-muted">{t('No value')}</span>;
-  }
-
-  const decodedValue = encoded ? Base64.decode(value) : value;
-  const visibleValue = reveal ? decodedValue : <MaskedData />;
-  return <CopyToClipboard value={decodedValue} visibleValue={visibleValue} />;
-};
 
 export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
   const { t } = useTranslation();

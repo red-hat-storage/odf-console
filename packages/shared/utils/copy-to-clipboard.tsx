@@ -9,7 +9,7 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo((props
   const [copied, setCopied] = React.useState(false);
 
   const { t } = useTranslation();
-  const tooltipText = copied ? t('public~Copied') : t('public~Copy to clipboard');
+  const tooltipText = copied ? t('Copied') : t('Copy to clipboard');
   const tooltipContent = [
     <span className="co-nowrap" key="nowrap">
       {tooltipText}
@@ -33,7 +33,7 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo((props
             type="button"
           >
             <CopyIcon />
-            <span className="sr-only">{t('public~Copy to clipboard')}</span>
+            <span className="sr-only">{t('Copy to clipboard')}</span>
           </Button>
         </CTC>
       </Tooltip>
