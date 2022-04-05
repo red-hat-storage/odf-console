@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {
   HorizontalNav,
+  K8sKind,
   K8sResourceCommon,
   NavPage,
   ResourceLink,
   useAccessReview,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { K8sKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/common-types';
 import classnames from 'classnames';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';

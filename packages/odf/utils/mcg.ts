@@ -76,3 +76,24 @@ export const obcStatusFilter = (t): RowFilter<K8sResourceKind> => ({
     );
   },
 });
+
+export const obStatusFilter = (t): RowFilter<K8sResourceKind> => ({
+  type: 'ob-status',
+  filterGroupName: t('Status'),
+  reducer: getPhase,
+  items: _.map(allPhases, (phase) => ({
+    id: phase,
+    title: phase,
+  })),
+  filter: (phases, ob) => {
+    if (!phases || !phases.selected) {
+      return true;
+    }
+    const phase = getPhase(ob);
+    return (
+      phases.selected.includes(phase) ||
+      !_.includes(phases.all, phase) ||
+      _.isEmpty(phases.selected)
+    );
+  },
+});
