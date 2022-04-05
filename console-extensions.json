@@ -132,5 +132,27 @@
     "flags": {
       "required": ["OCS"]
     }
+  },
+  {
+    "type": "console.page/resource/details",
+    "properties": {
+      "model": {
+        "group": "objectbucket.io",
+        "kind": "ObjectBucket",
+        "version": "v1alpha1"
+      },
+      "component": { "$codeRef": "ob.OBDetailsPage" }
+    }
+  },
+  {
+    "type": "console.page/resource/list",
+    "properties": {
+      "model": {
+        "group": "objectbucket.io",
+        "kind": "ObjectBucket",
+        "version": "v1alpha1"
+      },
+      "component": { "$codeRef": "ob.ObjectBucketListPage" }
+    }
   }
 ]

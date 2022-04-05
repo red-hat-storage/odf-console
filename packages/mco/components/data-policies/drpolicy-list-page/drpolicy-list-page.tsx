@@ -177,7 +177,7 @@ export const DRPolicyListPage: React.FC<RouteComponentProps> = () => {
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] = useK8sWatchResource<DRPolicyKind[]>({
     kind: referenceForModel(DRPolicyModel),
     isList: true,
-    namespace: false,
+    namespaced: false,
   });
 
   const [data, filteredData, onFilterChange] =

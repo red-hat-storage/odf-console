@@ -165,9 +165,9 @@ const ObjectBucketClaimsList: React.FC<ObjectBucketClaimsListProps> = ({
   return (
     <VirtualizedTable
       {...props}
-      aria-label={t('StorageSystems')}
+      aria-label={t('ObjectBucketClaims')}
       columns={columns}
-      Row={StorageSystemRow}
+      Row={OBCRow}
     />
   );
 };
@@ -179,7 +179,7 @@ type CustomData = {
 
 const kind = referenceForModel(NooBaaObjectBucketClaimModel);
 
-const StorageSystemRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
+const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
   obj,
   activeColumnIDs,
   rowData: { launchModal, namespace },
