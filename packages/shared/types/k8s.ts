@@ -297,3 +297,36 @@ type ContainerStatus = {
     imageID: string;
     containerID?: string;
 };
+
+export type DeploymentCondition = {
+  lastUpdateTime?: string;
+} & K8sResourceCondition;
+
+export type DeploymentKind = {
+  spec: {
+    minReadySeconds?: number;
+    paused?: boolean;
+    progressDeadlineSeconds?: number;
+    replicas?: number;
+    revisionHistoryLimit?: number;
+    selector: Selector;
+    strategy?: {
+      rollingUpdate?: {
+        maxSurge: number | string;
+        maxUnavailable: number | string;
+      };
+      type?: string;
+    };
+    template: PodTemplate;
+  };
+  status?: {
+    availableReplicas?: number;
+    collisionCount?: number;
+    conditions?: DeploymentCondition[];
+    observedGeneration?: number;
+    readyReplicas?: number;
+    replicas?: number;
+    unavailableReplicas?: number;
+    updatedReplicas?: number;
+  };
+} & K8sResourceCommon;

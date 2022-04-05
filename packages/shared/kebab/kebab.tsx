@@ -3,7 +3,13 @@ import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { Dropdown, DropdownItem, KebabToggle } from '@patternfly/react-core';
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownToggle,
+  KebabToggle,
+} from '@patternfly/react-core';
+import { CaretDownIcon } from '@patternfly/react-icons';
 import { ModalKeys, LaunchModal } from '../modals/modalLauncher';
 
 type KebabProps = {
@@ -11,10 +17,12 @@ type KebabProps = {
   extraProps: {
     resource: K8sResourceCommon;
     resourceModel: K8sModel;
+    [key: string]: any;
   };
   customKebabItems?: (t: TFunction) => {
     [key: string]: string;
   };
+  toggleType?: 'Kebab' | 'Dropdown';
 };
 
 const defaultKebabItems = (t: TFunction) => [
@@ -33,6 +41,7 @@ export const Kebab: React.FC<KebabProps> = ({
   launchModal,
   extraProps,
   customKebabItems,
+  toggleType = 'Kebab',
 }) => {
   const { t } = useTranslation('plugin__odf-console');
 
@@ -57,12 +66,23 @@ export const Kebab: React.FC<KebabProps> = ({
     return [...customItems, ...defaultKebabItems(t)];
   }, [t, customKebabItems]);
 
+  const toggle = React.useMemo(() => {
+    const onToggle = () => setOpen((open) => !open);
+    return toggleType === 'Kebab' ? (
+      <KebabToggle onToggle={onToggle} />
+    ) : (
+      <DropdownToggle onToggle={onToggle} toggleIndicator={CaretDownIcon}>
+        Actions
+      </DropdownToggle>
+    );
+  }, [setOpen, toggleType]);
+
   return (
     <Dropdown
       onSelect={onClick}
-      toggle={<KebabToggle onToggle={() => setOpen((open) => !open)} />}
+      toggle={toggle}
       isOpen={isOpen}
-      isPlain
+      isPlain={toggleType === 'Kebab' ? true : false}
       dropdownItems={drpodownItems}
       position="right"
     />

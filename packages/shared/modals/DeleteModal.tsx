@@ -74,9 +74,10 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
     k8sList<ClusterServiceVersionKind>({
       model: ClusterServiceVersionModel,
       queryParams: { namespace },
+      requestInit: null,
     })
       .then((data) => {
-        const resourceOwner = findOwner(resource, data);
+        const resourceOwner = findOwner(resource, data as any);
         setOwner(resourceOwner);
       })
       .catch((e) => {
@@ -95,7 +96,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
       ? { kind: 'DeleteOptions', apiVersion: 'v1', propagationPolicy }
       : null;
 
-    k8sDelete({ resource, model: resourceModel, json })
+    k8sDelete({ resource, model: resourceModel, json, requestInit: null })
       .then(() => {
         setLoading(false);
         // If we are currently on the deleted resource's page, redirect to the resource list page
@@ -159,7 +160,9 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
                 onChange={() => setIsChecked(!isChecked)}
                 checked={!!isChecked}
               />
-              {t('plugin__odf-console~Delete dependent objects of this resource')}
+              {t(
+                'plugin__odf-console~Delete dependent objects of this resource'
+              )}
             </label>
           </div>
         )}
