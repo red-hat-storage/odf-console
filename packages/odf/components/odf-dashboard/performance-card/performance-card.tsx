@@ -172,7 +172,7 @@ const PerformanceCard: React.FC = () => {
         />
       )}
       {loading && !error && <PerformanceCardLoading />}
-      {((error && !loading) || (!error && !loading && _.isEmpty(rawRows))) && (
+      {((error) || (!error && !loading && _.isEmpty(rawRows))) && (
         <div className="performanceCard--error">
           <DataUnavailableError />{' '}
         </div>
