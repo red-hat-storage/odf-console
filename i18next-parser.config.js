@@ -5,4 +5,5 @@ module.exports = {
   namespaceSeparator: '~',
   reactNamespace: false,
   useKeysAsDefaultValue: true,
+  defaultNamespace: 'plugin__odf-console'
 };
