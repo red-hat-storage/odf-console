@@ -9,11 +9,12 @@ import {
   PersistentVolumeModel,
 } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
-import { K8sResourceKind } from '@odf/shared/types';
-import { FirehoseResult } from '@openshift-console/dynamic-plugin-sdk';
+import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import { StatusGroupMapper } from '@openshift-console/dynamic-plugin-sdk';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import * as _ from 'lodash';
 import { CEPH_STORAGE_NAMESPACE, ODF_OPERATOR } from 'packages/odf/constants';
+import { cephStorageLabel } from '../constants';
 
 export const cephStorageProvisioners = [
   'ceph.rook.io/block',
@@ -66,4 +67,62 @@ export const getODFVersion = (items: K8sResourceKind[]): string => {
     (item) => item?.spec?.name === ODF_OPERATOR
   );
   return getOperatorVersion(operator);
+};
+
+export const getCephSC = (
+  scData: StorageClassResourceKind[]
+): K8sResourceKind[] =>
+  scData.filter((sc) => {
+    return cephStorageProvisioners.some((provisioner: string) =>
+      (sc?.provisioner).includes(provisioner)
+    );
+  });
+
+export const getCephNodes = (
+  nodesData: K8sResourceKind[] = []
+): K8sResourceKind[] =>
+  nodesData.filter((node) =>
+    Object.keys(node?.metadata?.labels).includes(cephStorageLabel)
+  );
+
+export const getCephPVs = (
+  pvsData: K8sResourceKind[] = []
+): K8sResourceKind[] =>
+  pvsData.filter((pv) => {
+    return cephStorageProvisioners.some((provisioner: string) =>
+      (
+        pv?.metadata?.annotations?.['pv.kubernetes.io/provisioned-by'] ?? ''
+      ).includes(provisioner)
+    );
+  });
+
+const enum Status {
+  BOUND = 'Bound',
+  AVAILABLE = 'Available',
+}
+const isBound = (pvc: K8sResourceKind) => pvc.status.phase === Status.BOUND;
+const getPVStorageClass = (pv: K8sResourceKind) => pv?.spec?.storageClassName;
+const getStorageClassName = (pvc: K8sResourceKind) =>
+  pvc?.spec?.storageClassName ||
+  pvc?.metadata?.annotations?.['volume.beta.kubernetes.io/storage-class'];
+
+export const getCephPVCs = (
+  cephSCNames: string[] = [],
+  pvcsData: K8sResourceKind[] = [],
+  pvsData: K8sResourceKind[] = []
+): K8sResourceKind[] => {
+  const cephPVs = getCephPVs(pvsData);
+  const cephSCNameSet = new Set<string>([
+    ...cephSCNames,
+    ...cephPVs.map(getPVStorageClass),
+  ]);
+  const cephBoundPVCUIDSet = new Set<string>(
+    _.map(cephPVs, 'spec.claimRef.uid')
+  );
+  // If the PVC is bound use claim uid(links PVC to PV) else storage class to verify it's provisioned by ceph.
+  return pvcsData.filter((pvc: K8sResourceKind) =>
+    isBound(pvc)
+      ? cephBoundPVCUIDSet.has(pvc.metadata.uid)
+      : cephSCNameSet.has(getStorageClassName(pvc))
+  );
 };

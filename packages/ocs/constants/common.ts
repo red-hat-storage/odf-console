@@ -8,3 +8,5 @@ export const PODS = 'Pods';
 export const CEPH_NS = 'openshift-storage';
 
 export const ODF_MODEL_FLAG = 'ODF_MODEL';
+
+export const cephStorageLabel = 'cluster.ocs.openshift.io/openshift-storage';
