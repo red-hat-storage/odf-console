@@ -163,3 +163,16 @@ export const EventModel: K8sKind = {
   labelPlural: 'Events',
   labelPluralKey: 'Events',
 };
+
+export const ProjectModel: K8sKind = {
+  apiVersion: 'v1',
+  apiGroup: 'project.openshift.io',
+  label: 'Project',
+  labelKey: 'Project',
+  plural: 'projects',
+  abbr: 'PR',
+  kind: 'Project',
+  id: 'project',
+  labelPlural: 'Projects',
+  labelPluralKey: 'Projects',
+};
