@@ -1,5 +1,5 @@
 import { DataPoint } from "@odf/shared/utils";
-import { Humanize } from "@openshift-console/dynamic-plugin-sdk";
+import { Alert, Humanize } from "@openshift-console/dynamic-plugin-sdk";
 import * as _ from "lodash";
 import { Colors, COLORMAP } from "../constants";
 
@@ -38,4 +38,13 @@ export type StackDataPoint = DataPoint<string> & {
   fill: string;
   id: number;
   ns: string;
+};
+
+export const filterCephAlerts = (alerts: Alert[]): Alert[] => {
+  const rookRegex = /.*rook.*/;
+  return alerts?.filter(
+    (alert) =>
+      alert?.annotations?.storage_type === 'ceph' ||
+      Object.values(alert?.labels)?.some((item) => rookRegex.test(item)),
+  );
 };
