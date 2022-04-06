@@ -11,3 +11,6 @@ export enum Colors {
   OTHER = '#000',
   LINK = '#0066cc',
 }
+
+export const DANGER_THRESHOLD = 0.8;
+export const WARNING_THRESHOLD = 0.75;

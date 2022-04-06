@@ -12,6 +12,12 @@ export enum StorageDashboardQuery {
   PODS_TOTAL_USED = 'PODS_TOTAL_USED',
   CEPH_CAPACITY_TOTAL = 'CEPH_CAPACITY_TOATL',
   CEPH_CAPACITY_AVAILABLE = 'CEPH_CAPACITY_AVAILABLE',
+  // Capacity Info Card
+  RAW_CAPACITY_TOTAL = 'RAW_TOTAL_CAPACITY',
+  RAW_CAPACITY_USED = 'RAW_CAPACITY_USED',
+  // Pool Info
+  POOL_CAPACITY_RATIO = 'POOL_CAPACITY_RATIO',
+  POOL_SAVED_CAPACITY = 'POOL_SAVED_CAPACITY',
 }
 
 export const DATA_RESILIENCY_QUERY = {
@@ -83,4 +89,16 @@ export const breakdownQueryMap = {
         CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
     },
   },
+};
+
+export const CAPACITY_INFO_QUERIES = {
+  [StorageDashboardQuery.RAW_CAPACITY_TOTAL]: 'ceph_cluster_total_bytes',
+  [StorageDashboardQuery.RAW_CAPACITY_USED]: 'ceph_cluster_total_used_raw_bytes',
+};
+
+export const POOL_STORAGE_EFFICIENCY_QUERIES = {
+  [StorageDashboardQuery.POOL_CAPACITY_RATIO]:
+    'sum(ceph_bluestore_bluestore_compressed_original) / clamp_min(sum(ceph_bluestore_bluestore_compressed_allocated),1)',
+  [StorageDashboardQuery.POOL_SAVED_CAPACITY]:
+    '(sum(ceph_bluestore_bluestore_compressed_original) - sum(ceph_bluestore_bluestore_compressed_allocated))',
 };
