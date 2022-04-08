@@ -39,7 +39,7 @@ const resiliencyProgressQuery =
 
 export const CephAlerts: React.FC = () => {
   const [data, loaded, error] = useAlerts();
-  const alerts = filterCephAlerts(data as any);
+  const alerts = data ? filterCephAlerts([]) : [];
 
   return (
     <AlertsBody error={!_.isEmpty(error)}>
@@ -98,11 +98,10 @@ export const StatusCard: React.FC = () => {
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
-  const [resiliencyProgress, resiliencyProgressError ] =
-    usePrometheusPoll({
-      query: resiliencyProgressQuery,
-      endpoint: null,
-    });
+  const [resiliencyProgress, resiliencyProgressError] = usePrometheusPoll({
+    query: resiliencyProgressQuery,
+    endpoint: 'api/v1/query' as any,
+  });
 
   const cephHealthState = getCephHealthState(
     { ceph: { data, loaded, loadError } },

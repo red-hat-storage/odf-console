@@ -18,7 +18,7 @@ const StorageEfficiencyCard: React.FC = () => {
         POOL_STORAGE_EFFICIENCY_QUERIES[
           StorageDashboardQuery.POOL_CAPACITY_RATIO
         ],
-      endpoint: null,
+    endpoint: 'api/v1/query' as any,
     });
 
   const [poolSavedResult, poolSavedResultError] = usePrometheusPoll({
@@ -26,7 +26,7 @@ const StorageEfficiencyCard: React.FC = () => {
       POOL_STORAGE_EFFICIENCY_QUERIES[
         StorageDashboardQuery.POOL_CAPACITY_RATIO
       ],
-    endpoint: null,
+    endpoint: 'api/v1/query' as any,
   });
   const ratio = getGaugeValue(poolCapacityRatioResult);
   const saved = getGaugeValue(poolSavedResult);

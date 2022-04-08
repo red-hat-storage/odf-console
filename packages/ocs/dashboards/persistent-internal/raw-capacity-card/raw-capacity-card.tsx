@@ -17,11 +17,11 @@ const RawCapacityCard: React.FC = () => {
 
   const [totalCapacity, totalError, totalLoading] = usePrometheusPoll({
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_TOTAL],
-    endpoint: null,
+    endpoint: 'api/v1/query' as any,
   });
   const [usedCapacity, usedError, usedLoading] = usePrometheusPoll({
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_USED],
-    endpoint: null,
+    endpoint: 'api/v1/query' as any,
   });
 
   const loadError = totalError || usedError;

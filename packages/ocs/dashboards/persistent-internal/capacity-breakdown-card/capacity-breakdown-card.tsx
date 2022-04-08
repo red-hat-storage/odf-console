@@ -49,18 +49,18 @@ const BreakdownCard: React.FC = () => {
 
   const [modelByUsed, modelUsedError, modelUsedLoading] = usePrometheusPoll({
     query: queries[modelByUsedQueryMap[metricType]],
-    endpoint: null,
+    endpoint: 'api/v1/query' as any,
   });
 
   const [modelTotalUsed, modelTotalError, modalTotalLoading] =
     usePrometheusPoll({
       query: queries[modelByTotalQueryMap[metricType]],
-      endpoint: null,
+    endpoint: 'api/v1/query' as any,
     });
 
   const [cephUsedMetric, cephError, cephLoading] = usePrometheusPoll({
     query: CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
-    endpoint: null,
+    endpoint: 'api/v1/query' as any,
   });
 
   const queriesLoadError = modelUsedError || modelTotalError || cephError;
@@ -123,7 +123,7 @@ const BreakdownCard: React.FC = () => {
       </CardHeader>
       <CardBody className="ceph-capacity-breakdown-card__body">
         <BreakdownCardBody
-          isLoading={dataLoaded}
+          isLoading={!dataLoaded}
           hasLoadError={queriesLoadError}
           metricTotal={metricTotal}
           top5MetricsStats={top5MetricsStats}

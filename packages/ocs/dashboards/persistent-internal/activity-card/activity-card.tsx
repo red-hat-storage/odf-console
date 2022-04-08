@@ -19,6 +19,7 @@ import {
   RecentEventsBody,
   usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -63,7 +64,7 @@ export const eventsResource = {
 const RecentEvent: React.FC = () => {
   const [pvcs, pvcLoaded] =
     useK8sWatchResource<PersistentVolumeClaimKind[]>(pvcResource);
-  const [events, eventsLoaded] = useK8sWatchResource(eventsResource);
+  const [events, eventsLoaded] = useK8sWatchResource<EventKind[]>(eventsResource);
 
   const validPVC = pvcs
     .filter((obj) =>
@@ -78,12 +79,14 @@ const RecentEvent: React.FC = () => {
   );
 
   const eventObject = {
-    ...events,
+    data: events,
     loaded: eventsLoaded && pvcLoaded,
+    kind: "Event",
+    loadError: null
   };
 
   return (
-    <RecentEventsBody events={eventObject as any} filter={ocsEventsFilter()} />
+    <RecentEventsBody events={eventObject} filter={ocsEventsFilter()} />
   );
 };
 
