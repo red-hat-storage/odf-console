@@ -25,11 +25,11 @@ const CapacityStatusIcon: React.FC<CapacityStatusIconProps> = React.memo(
     return (
       <>
         {ratio > DANGER_THRESHOLD && (
-          <RedExclamationCircleIcon title={t('ceph-storage-plugin~Error')} />
+          <RedExclamationCircleIcon title={t('Error')} />
         )}
         {ratio > WARNING_THRESHOLD && ratio <= DANGER_THRESHOLD && (
           <YellowExclamationTriangleIcon
-            title={t('ceph-storage-plugin~Warning')}
+            title={t('Warning')}
           />
         )}
       </>
@@ -92,7 +92,7 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
     <Card>
       <CardHeader>
         <CardTitle>
-          {t('ceph-storage-plugin~Raw capacity')}
+          {t('Raw capacity')}
           <FieldLevelHelp>{description}</FieldLevelHelp>
         </CardTitle>
       </CardHeader>
@@ -102,13 +102,13 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
             <div className="ceph-raw-usage__item ceph-raw-usage__legend">
               <ChartLegend
                 fill={colorScale[0]}
-                title={t('ceph-storage-plugin~Used')}
+                title={t('Used')}
                 text={usedCapacityAdjusted.string}
                 titleClassName="ceph-raw-card-legend__title--pad"
               />
               <ChartLegend
                 fill={colorScale[1]}
-                title={t('ceph-storage-plugin~Available')}
+                title={t('Available')}
                 text={availableCapacityAdjusted.string}
                 capacityStatus={<CapacityStatusIcon ratio={capacityRatio} />}
               />
@@ -116,17 +116,17 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
             <div className="ceph-raw-usage__item ceph-raw-usage__chart">
               <ChartDonut
                 ariaDesc={t(
-                  'ceph-storage-plugin~Available versus Used Capacity'
+                  'Available versus Used Capacity'
                 )}
                 ariaTitle={t(
-                  'ceph-storage-plugin~Available versus Used Capacity'
+                  'Available versus Used Capacity'
                 )}
                 height={150}
                 width={150}
                 data={donutData}
                 labels={({ datum }) => `${datum.string}`}
                 title={usedCapacityAdjusted.string}
-                subTitle={t('ceph-storage-plugin~Used of {{capacity}}', {
+                subTitle={t('Used of {{capacity}}', {
                   capacity: totalCapacity.string,
                 })}
                 colorScale={colorScale}
@@ -164,7 +164,7 @@ const ErrorCardBody: React.FC = () => {
   return (
     <>
       <div className="ceph-raw-usage--error text-muted">
-        {t('ceph-storage-plugin~Not Available')}
+        {t('Not Available')}
       </div>
     </>
   );

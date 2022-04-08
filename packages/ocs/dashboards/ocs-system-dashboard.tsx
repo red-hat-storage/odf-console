@@ -6,17 +6,16 @@
  */
 
 import * as React from 'react';
+import { LoadingBox } from '@odf/shared/generic/status-box';
+import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import {
-  HorizontalNav,
-  NavPage,
   Overview,
   OverviewGrid,
   OverviewGridCard,
-  PageComponentProps,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
-import { RouteComponentProps, useLocation } from 'react-router-dom';
+import { RouteComponentProps } from 'react-router-dom';
 import { default as ActivityCard } from './persistent-internal/activity-card/activity-card';
 import BreakdownCard from './persistent-internal/capacity-breakdown-card/capacity-breakdown-card';
 import DetailsCard from './persistent-internal/details-card';
@@ -26,28 +25,21 @@ import { default as StatusCard } from './persistent-internal/status-card/status-
 import storageEfficiencyCard from './persistent-internal/storage-efficiency-card/storage-efficiency-card';
 import UtilizationCard from './persistent-internal/utilization-card/utilization-card';
 
-export type Page<D = any> = Partial<Omit<NavPage, 'component'>> & {
-  component?: React.ComponentType<PageComponentProps & D>;
-  badge?: React.ReactNode;
-  pageData?: D;
-  nameKey?: string;
-};
-
 const convertToCard = (Card: React.ComponentType): OverviewGridCard => ({
   Card,
 });
 
-const isPagePresent = (pages: Page[], page: Page): boolean =>
+const isPagePresent = (pages: TabPage[], page: TabPage): boolean =>
   pages.some((p) => page.href === p.href);
 
-export const BLOCK_FILE = 'block-file';
-export const OBJECT = 'object';
-
-const sortPages = (a: Page, b: Page): number => {
+const sortPages = (a: TabPage, b: TabPage): number => {
   if (a.href === BLOCK_FILE || a.href === `overview/${BLOCK_FILE}`) return -1;
   if (b.href === OBJECT || a.href === `overview/${OBJECT}`) return 1;
   return 0;
 };
+
+export const BLOCK_FILE = 'block-file';
+export const OBJECT = 'object';
 
 type CommonDashboardRendererProps = {
   leftCards: React.ComponentType[];
@@ -103,27 +95,24 @@ export const MCG_FLAG = 'MCG';
 // Based on the existence of CephCluster
 export const CEPH_FLAG = 'CEPH';
 
-const OCSSystemDashboard: React.FC<RouteComponentProps> = ({
-  match,
-  history,
-}) => {
-  const isIndependent = useFlag(OCS_INDEPENDENT_FLAG);
-  const isObjectServiceAvailable = useFlag(MCG_FLAG);
-  const isCephAvailable = useFlag(CEPH_FLAG);
-  const [pages, setPages] = React.useState<Page[]>([]);
+const OCSSystemDashboard: React.FC<RouteComponentProps> = () => {
   const { t } = useTranslation();
-  const location = useLocation();
 
-  const showInternalDashboard = !isIndependent && isCephAvailable;
+  const isIndependent = useFlag(OCS_INDEPENDENT_FLAG);
+  const isCephAvailable = useFlag(CEPH_FLAG);
+
+  const [pages, setPages] = React.useState<TabPage[]>([]);
 
   const internalPage = React.useMemo(
     () => ({
-      href: ``,
-      name: t('Block and File'),
+      href: BLOCK_FILE,
+      title: t('Block and File'),
       component: PersistentInternalDashboard,
     }),
     [t]
   );
+
+  const showInternalDashboard = !isIndependent && isCephAvailable;
 
   React.useEffect(() => {
     if (showInternalDashboard && !isPagePresent(pages, internalPage)) {
@@ -131,31 +120,12 @@ const OCSSystemDashboard: React.FC<RouteComponentProps> = ({
       const sortedPages = tempPages.sort(sortPages);
       setPages(sortedPages);
     }
-  }, [pages, showInternalDashboard, isIndependent, internalPage]);
+  }, [internalPage, pages, showInternalDashboard]);
 
-  React.useEffect(() => {
-    if (
-      !location.pathname.includes(BLOCK_FILE) &&
-      !location.pathname.includes(OBJECT)
-    ) {
-      if (isCephAvailable === true) {
-        history.push(`${match.url}/${BLOCK_FILE}`);
-      } else if (isCephAvailable === false && isObjectServiceAvailable) {
-        history.push(`${match.url}/${OBJECT}`);
-      }
-    }
-  }, [
-    isCephAvailable,
-    isObjectServiceAvailable,
-    history,
-    match.url,
-    location.pathname,
-  ]);
-
-  return (
-    <>
-      <HorizontalNav pages={pages as any} />
-    </>
+  return pages.length > 0 ? (
+    <Tabs id="odf-dashboard-tab" tabs={pages} />
+  ) : (
+    <LoadingBox />
   );
 };
 

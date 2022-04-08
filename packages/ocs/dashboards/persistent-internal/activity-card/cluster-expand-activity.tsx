@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 export const ClusterExpandActivity: React.FC = () => {
   const { t } = useTranslation();
 
-  return <ActivityItem>{t('ceph-storage-plugin~Expanding StorageCluster')}</ActivityItem>;
+  return <ActivityItem>{t('Expanding StorageCluster')}</ActivityItem>;
 };
 
 export const isClusterExpandActivity = (storageCluster: K8sResourceKind): boolean =>

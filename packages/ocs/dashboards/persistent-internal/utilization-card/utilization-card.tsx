@@ -31,12 +31,10 @@ const UtilizationCard: React.FC = () => {
   const storagePopover = React.useCallback(
     ({ current }) => (
       <ConsumerPopover
-        title={t('ceph-storage-plugin~Used Capacity')}
+        title={t('Used Capacity')}
         current={current}
         consumers={utilizationPopoverQueryMap}
         humanize={humanizeBinaryBytes}
-        namespace="openshift-storage"
-        description={undefined}
       />
     ),
     [t]
@@ -46,10 +44,10 @@ const UtilizationCard: React.FC = () => {
     <Card>
       <CardHeader>
         <CardTitle className="co-utilization-card__title">
-          {t('ceph-storage-plugin~Utilization')}
+          {t('Utilization')}
           <FieldLevelHelp>
             {t(
-              'ceph-storage-plugin~Performance metrics over time showing IOPS, Latency and more. Each metric is a link to a detailed view of this metric.'
+              'Performance metrics over time showing IOPS, Latency and more. Each metric is a link to a detailed view of this metric.'
             )}
           </FieldLevelHelp>
         </CardTitle>
@@ -59,7 +57,7 @@ const UtilizationCard: React.FC = () => {
       </CardHeader>
       <Grid className="co-utilization-card__body">
         <PrometheusUtilizationItem
-          title={t('ceph-storage-plugin~Used Capacity')}
+          title={t('Used Capacity')}
           utilizationQuery={
             UTILIZATION_QUERY[StorageDashboardQuery.CEPH_CAPACITY_USED]
           }
@@ -68,7 +66,7 @@ const UtilizationCard: React.FC = () => {
           TopConsumerPopover={storagePopover}
         />
         <PrometheusMultilineUtilizationItem
-          title={t('ceph-storage-plugin~IOPS')}
+          title={t('IOPS')}
           queries={[
             UTILIZATION_QUERY[
               StorageDashboardQuery.UTILIZATION_IOPS_READ_QUERY
@@ -81,7 +79,7 @@ const UtilizationCard: React.FC = () => {
           chartType="stacked-area"
         />
         <PrometheusMultilineUtilizationItem
-          title={t('ceph-storage-plugin~Throughput')}
+          title={t('Throughput')}
           queries={[
             UTILIZATION_QUERY[
               StorageDashboardQuery.UTILIZATION_THROUGHPUT_READ_QUERY
@@ -94,7 +92,7 @@ const UtilizationCard: React.FC = () => {
           chartType="stacked-area"
         />
         <PrometheusMultilineUtilizationItem
-          title={t('ceph-storage-plugin~Latency')}
+          title={t('Latency')}
           queries={[
             UTILIZATION_QUERY[
               StorageDashboardQuery.UTILIZATION_LATENCY_READ_QUERY
@@ -107,7 +105,7 @@ const UtilizationCard: React.FC = () => {
           chartType="grouped-line"
         />
         <PrometheusUtilizationItem
-          title={t('ceph-storage-plugin~Recovery')}
+          title={t('Recovery')}
           utilizationQuery={
             UTILIZATION_QUERY[
               StorageDashboardQuery.UTILIZATION_RECOVERY_RATE_QUERY

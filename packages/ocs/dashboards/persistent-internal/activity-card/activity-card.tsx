@@ -171,7 +171,7 @@ export const ActivityCard: React.FC = React.memo(() => {
   return (
     <Card className="co-overview-card--gradient">
       <CardHeader>
-        <CardTitle>{t('ceph-storage-plugin~Activity')}</CardTitle>
+        <CardTitle>{t('Activity')}</CardTitle>
       </CardHeader>
       <ActivityBody className="ceph-activity-card__body">
         <OngoingActivity />

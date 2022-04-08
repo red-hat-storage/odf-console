@@ -13,8 +13,10 @@ import {
   Popover,
   Button,
   Dropdown,
-  ListItem,
+  DropdownItem,
+  DropdownToggle,
 } from '@patternfly/react-core';
+import { CaretDownIcon } from '@patternfly/react-icons';
 import { getName, getNamespace } from '../../selectors';
 import {
   DataPoint,
@@ -27,9 +29,9 @@ export type ConsumerPopoverProps = PopoverProps & {
   position?: PopoverPosition;
   title: string;
   current: string;
-  namespace: string;
+  namespace?: string;
   humanize: any;
-  description: any;
+  description?: any;
   consumers?: any;
 };
 
@@ -109,10 +111,22 @@ const getResourceToWatch = (
   namespace,
 });
 
+const ListItem: React.FC<ListItemProps> = ({ children, value }) => (
+  <li className="co-utilization-card-popover__consumer-item">
+    {children}
+    <div className="co-utilization-card-popover__consumer-value">{value}</div>
+  </li>
+);
+
+type ListItemProps = {
+  value: React.ReactText;
+};
+
 export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
   ({ humanize, consumers, namespace, isOpen, description, children }) => {
     const { t } = useTranslation();
     const [currentConsumer, setCurrentConsumer] = React.useState(consumers[0]);
+    const [dropdownOpen, setDropdownOpen] = React.useState(false);
     const { query, model, metric, fieldSelector } = currentConsumer;
     const k8sResource = React.useMemo(
       () =>
@@ -122,14 +136,11 @@ export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
     const [consumerData, consumerLoaded, consumersLoadError] =
       useK8sWatchResource<K8sResourceCommon[]>(k8sResource);
 
-    const [metrics, metricsError, metricsLoading] = isOpen
-      ? // eslint-disable-next-line react-hooks/rules-of-hooks
-        usePrometheusPoll({
-          endpoint: 'api/v1/query' as any,
-          query,
-          namespace,
-        })
-      : [null, null, false];
+    const [metrics, metricsError, metricsLoading] = usePrometheusPoll({
+      endpoint: isOpen ? ('api/v1/query' as any) : null,
+      query: isOpen ? query : null,
+      namespace,
+    });
 
     const top5Data = [];
 
@@ -162,37 +173,41 @@ export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
     const dropdownItems = React.useMemo(
       () =>
         consumers.reduce((items, curr) => {
-          items[referenceForModel(curr.model)] = t(
-            'By {{label}}',
-            {
-              label: curr.model.labelKey
-                ? t(curr.model.labelKey)
-                : curr.model.label,
-            }
+          const ref = referenceForModel(curr.model);
+          const dropdownItem = (
+            <DropdownItem key={ref} id={ref}>
+              {t('By {{label}}', {
+                label: curr.model.labelKey
+                  ? t(curr.model.labelKey)
+                  : curr.model.label,
+              })}
+            </DropdownItem>
           );
-          return items;
-        }, {}),
+          return [...items, dropdownItem];
+        }, []),
       [consumers, t]
     );
 
     const onDropdownChange = React.useCallback(
-      (key) =>
+      (event: React.SyntheticEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
         setCurrentConsumer(
-          consumers.find((c) => referenceForModel(c.model) === key)
-        ),
-      [consumers]
+          consumers.find(
+            (c) => referenceForModel(c.model) === event?.currentTarget?.id
+          )
+        );
+        setDropdownOpen((o) => !o);
+      },
+      [consumers, setDropdownOpen]
     );
 
     const monitoringURL = `/monitoring/query-browser?${monitoringParams.toString()}`;
 
     let body: React.ReactNode;
     if (metricsError || consumersLoadError) {
-      body = (
-        <div className="text-secondary">
-          {t('Not available')}
-        </div>
-      );
-    } else if (!consumerLoaded || metricsLoading) {
+      body = <div className="text-secondary">{t('Not available')}</div>;
+    } else if (!consumerLoaded || metricsLoading || top5Data.length === 0) {
       body = (
         <ul className="co-utilization-card-popover__consumer-list">
           <li className="skeleton-consumer" />
@@ -252,13 +267,25 @@ export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
         </div>
         {consumers.length > 1 && (
           <Dropdown
+            isOpen={dropdownOpen}
             className="co-utilization-card-popover__dropdown"
             id="consumer-select"
             name="selectConsumerType"
             aria-label={t('Select consumer type')}
-            dropdownItems={[dropdownItems]}
+            dropdownItems={dropdownItems}
             onSelect={onDropdownChange}
-            toggle={<></>}
+            toggle={
+              <DropdownToggle
+                onToggle={() => setDropdownOpen((o) => !o)}
+                toggleIndicator={CaretDownIcon}
+              >
+                {t('By {{label}}', {
+                  label: currentConsumer.model.labelKey
+                    ? t(currentConsumer.model.labelKey)
+                    : currentConsumer.model.label,
+                })}
+              </DropdownToggle>
+            }
           />
         )}
         {body}

@@ -37,9 +37,21 @@ import './healthchecks.scss';
 const resiliencyProgressQuery =
   DATA_RESILIENCY_QUERY[StorageDashboardQuery.RESILIENCY_PROGRESS];
 
+const getAlertsFromRules = (rules) => {
+  let temp = [];
+  rules.forEach((r) => {
+    r.rules.forEach((rule) => {
+      temp = [...temp, ...(rule.alerts || [])];
+    });
+  });
+  return temp;
+};
+
 export const CephAlerts: React.FC = () => {
   const [data, loaded, error] = useAlerts();
-  const alerts = data ? filterCephAlerts([]) : [];
+  const alerts = data
+    ? filterCephAlerts(getAlertsFromRules(data?.data?.groups))
+    : [];
 
   return (
     <AlertsBody error={!_.isEmpty(error)}>
@@ -79,7 +91,7 @@ const CephHealthCheck: React.FC<CephHealthCheckProps> = ({
             className="ceph-health-check-card__link"
             href={healthCheck.troubleshootLink}
           >
-            {t('ceph-storage-plugin~Troubleshoot')}
+            {t('Troubleshoot')}
           </a>
         )}
       </FlexItem>
@@ -129,20 +141,16 @@ export const StatusCard: React.FC = () => {
   return (
     <Card className="co-overview-card--gradient">
       <CardHeader>
-        <CardTitle>{t('ceph-storage-plugin~Status')}</CardTitle>
+        <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <HealthBody>
         <Gallery className="co-overview-status__health" hasGutter>
           <GalleryItem>
             <HealthItem
-              title={t('ceph-storage-plugin~Storage Cluster')}
+              title={t('Storage Cluster')}
               state={cephHealthState.state}
               details={cephHealthState.message}
-              popupTitle={
-                healthChecks
-                  ? t('ceph-storage-plugin~Active health checks')
-                  : null
-              }
+              popupTitle={healthChecks ? t('Active health checks') : null}
             >
               {healthChecks?.map((healthCheck: CephHealthCheckType, i) => (
                 <CephHealthCheck
@@ -155,7 +163,7 @@ export const StatusCard: React.FC = () => {
           </GalleryItem>
           <GalleryItem>
             <HealthItem
-              title={t('ceph-storage-plugin~Data Resiliency')}
+              title={t('Data Resiliency')}
               state={dataResiliencyState.state}
               details={dataResiliencyState.message}
             />

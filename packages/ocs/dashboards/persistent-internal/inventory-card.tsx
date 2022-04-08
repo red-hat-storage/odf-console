@@ -67,7 +67,7 @@ const InventoryCard: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('ceph-storage-plugin~Inventory')}</CardTitle>
+        <CardTitle>{t('Inventory')}</CardTitle>
       </CardHeader>
       <CardBody>
         <ResourceInventoryItem

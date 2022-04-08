@@ -41,17 +41,17 @@ const DetailsCard: React.FC = () => {
     serviceVersion,
     CEPH_NS
   )}`;
-  const serviceName = t('ceph-storage-plugin~OpenShift Data Foundation');
+  const serviceName = t('OpenShift Data Foundation');
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('ceph-storage-plugin~Details')}</CardTitle>
+        <CardTitle>{t('Details')}</CardTitle>
       </CardHeader>
       <CardBody>
         <DetailsBody>
           <DetailItem
             key="service_name"
-            title={t('ceph-storage-plugin~Service name')}
+            title={t('Service name')}
             isLoading={false}
             error={false}
           >
@@ -61,7 +61,7 @@ const DetailsCard: React.FC = () => {
           </DetailItem>
           <DetailItem
             key="cluster_name"
-            title={t('ceph-storage-plugin~Cluster name')}
+            title={t('Cluster name')}
             error={!!ocsError}
             isLoading={!ocsLoaded}
           >
@@ -69,7 +69,7 @@ const DetailsCard: React.FC = () => {
           </DetailItem>
           <DetailItem
             key="provider"
-            title={t('ceph-storage-plugin~Provider')}
+            title={t('Provider')}
             error={
               !!infrastructureError ||
               (infrastructure && !infrastructurePlatform)
@@ -78,12 +78,12 @@ const DetailsCard: React.FC = () => {
           >
             {infrastructurePlatform}
           </DetailItem>
-          <DetailItem title={t('ceph-storage-plugin~Mode')}>
-            {t('ceph-storage-plugin~Internal')}
+          <DetailItem title={t('Mode')}>
+            {t('Internal')}
           </DetailItem>
           <DetailItem
             key="version"
-            title={t('ceph-storage-plugin~Version')}
+            title={t('Version')}
             isLoading={!subscriptionLoaded}
             error={subscriptionLoaded && !serviceVersion}
           >

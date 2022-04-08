@@ -33,7 +33,7 @@ const StorageEfficiencyCard: React.FC = () => {
 
   const compressionStats = () => {
     const capacityRatio = Number(ratio);
-    return t('ceph-storage-plugin~{{capacityRatio, number}}:1', {
+    return t('{{capacityRatio, number}}:1', {
       capacityRatio: Math.round(capacityRatio),
     });
   };
@@ -48,9 +48,9 @@ const StorageEfficiencyCard: React.FC = () => {
     stats: Number(ratio),
     isLoading: !poolCapacityRatioResult && !poolCapacityRatioResultError,
     error: !!poolCapacityRatioResultError || !ratio,
-    title: t('ceph-storage-plugin~Compression ratio'),
+    title: t('Compression ratio'),
     infoText: t(
-      'ceph-storage-plugin~The Compression Ratio represents the compressible data effectiveness metric inclusive of all compression-enabled pools.'
+      'The Compression Ratio represents the compressible data effectiveness metric inclusive of all compression-enabled pools.'
     ),
     getStats: compressionStats,
   };
@@ -59,9 +59,9 @@ const StorageEfficiencyCard: React.FC = () => {
     stats: Number(saved),
     isLoading: !poolSavedResult && !poolSavedResultError,
     error: !!poolSavedResultError || !saved,
-    title: t('ceph-storage-plugin~Savings'),
+    title: t('Savings'),
     infoText: t(
-      'ceph-storage-plugin~The Savings metric represents the actual disk capacity saved inclusive of all compression-enabled pools and associated replicas.'
+      'The Savings metric represents the actual disk capacity saved inclusive of all compression-enabled pools and associated replicas.'
     ),
     getStats: savingStats,
   };
@@ -69,7 +69,7 @@ const StorageEfficiencyCard: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('ceph-storage-plugin~Storage Efficiency')}</CardTitle>
+        <CardTitle>{t('Storage Efficiency')}</CardTitle>
       </CardHeader>
       <CardBody>
         <EfficiencyItemBody {...compressionRatioProps} />

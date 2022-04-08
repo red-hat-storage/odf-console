@@ -1,5 +1,4 @@
 import * as React from 'react';
-import {} from '@odf/shared/charts/PrometheusGraph';
 import {
   ChartLegendTooltip,
   CursorVoronoiContainer,

@@ -154,5 +154,15 @@
       },
       "component": { "$codeRef": "ob.ObjectBucketListPage" }
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName",
+      "exact": false,
+      "component": {
+        "$codeRef": "ocs.default"
+      }
+    }
   }
 ]

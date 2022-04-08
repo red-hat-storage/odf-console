@@ -80,15 +80,15 @@ const BreakdownCard: React.FC = () => {
 
   const dropdownOptions = [
     {
-      name: t('ceph-storage-plugin~Projects'),
+      name: t('Projects'),
       id: PROJECTS,
     },
     {
-      name: t('ceph-storage-plugin~Storage Classes'),
+      name: t('Storage Classes'),
       id: STORAGE_CLASSES,
     },
     {
-      name: t('ceph-storage-plugin~Pods'),
+      name: t('Pods'),
       id: PODS,
     },
   ];
@@ -112,10 +112,10 @@ const BreakdownCard: React.FC = () => {
           onToggle={() => setBreakdownSelect(!isOpenBreakdownSelect)}
           isOpen={isOpenBreakdownSelect}
           selections={[metricType]}
-          placeholderText={t('ceph-storage-plugin~{{metricType}}', {
+          placeholderText={t('{{metricType}}', {
             metricType,
           })}
-          aria-label={t('ceph-storage-plugin~Break By Dropdown')}
+          aria-label={t('Break By Dropdown')}
           isCheckboxSelectionBadgeHidden
         >
           {breakdownSelectItems}

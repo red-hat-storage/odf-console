@@ -13,12 +13,12 @@ const CephHealthStatus = (status: string, t: TFunction): SubsystemHealth => {
     case 'HEALTH_WARN':
       return {
         state: HealthState.WARNING,
-        message: t('ceph-storage-plugin~Warning'),
+        message: t('Warning'),
       };
     case 'HEALTH_ERR':
       return {
         state: HealthState.ERROR,
-        message: t('ceph-storage-plugin~Error'),
+        message: t('Error'),
       };
     default:
       return { state: HealthState.UNKNOWN };
@@ -53,7 +53,7 @@ export const getDataResiliencyState: PrometheusHealthHandler = (responses, t) =>
     return { state: HealthState.UNKNOWN };
   }
   if (progress < 1) {
-    return { state: HealthState.PROGRESS, message: t('ceph-storage-plugin~Progressing') };
+    return { state: HealthState.PROGRESS, message: t('Progressing') };
   }
   return { state: HealthState.OK };
 };
