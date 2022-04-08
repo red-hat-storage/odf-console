@@ -47,18 +47,3 @@ export const SubscriptionModel: K8sKind = {
     plural: 'subscriptions',
     legacyPluralURL: true,
   };
-
-export const EventModel: K8sKind = {
-  apiVersion: 'v1',
-  label: 'Event',
-  // t('public~Event')
-  labelKey: 'public~Event',
-  plural: 'events',
-  abbr: 'E',
-  namespaced: true,
-  kind: 'Event',
-  id: 'event',
-  labelPlural: 'Events',
-  // t('public~Events')
-  labelPluralKey: 'public~Events',
-};

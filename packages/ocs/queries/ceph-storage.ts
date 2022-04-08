@@ -18,6 +18,14 @@ export enum StorageDashboardQuery {
   // Pool Info
   POOL_CAPACITY_RATIO = 'POOL_CAPACITY_RATIO',
   POOL_SAVED_CAPACITY = 'POOL_SAVED_CAPACITY',
+  // Utilization Queries
+  UTILIZATION_IOPS_READ_QUERY = 'UTILIZATION_IOPS_READ_QUERY',
+  UTILIZATION_IOPS_WRITE_QUERY = 'UTILIZATION_IOPS_WRITE_QUERY',
+  UTILIZATION_LATENCY_READ_QUERY = 'UTILIZATION_LATENCY_READ_QUERY',
+  UTILIZATION_LATENCY_WRITE_QUERY = 'UTILIZATION_LATENCY_WRITE_QUERY',
+  UTILIZATION_THROUGHPUT_READ_QUERY = 'UTILIZATION_THROUGHPUT_READ_QUERY',
+  UTILIZATION_THROUGHPUT_WRITE_QUERY = 'UTILIZATION_THROUGHPUT_WRITE_QUERY',
+  UTILIZATION_RECOVERY_RATE_QUERY = 'UTILIZATION_RECOVERY_RATE_QUERY',
 }
 
 export const DATA_RESILIENCY_QUERY = {
@@ -93,7 +101,8 @@ export const breakdownQueryMap = {
 
 export const CAPACITY_INFO_QUERIES = {
   [StorageDashboardQuery.RAW_CAPACITY_TOTAL]: 'ceph_cluster_total_bytes',
-  [StorageDashboardQuery.RAW_CAPACITY_USED]: 'ceph_cluster_total_used_raw_bytes',
+  [StorageDashboardQuery.RAW_CAPACITY_USED]:
+    'ceph_cluster_total_used_raw_bytes',
 };
 
 export const POOL_STORAGE_EFFICIENCY_QUERIES = {
@@ -102,3 +111,58 @@ export const POOL_STORAGE_EFFICIENCY_QUERIES = {
   [StorageDashboardQuery.POOL_SAVED_CAPACITY]:
     '(sum(ceph_bluestore_bluestore_compressed_original) - sum(ceph_bluestore_bluestore_compressed_allocated))',
 };
+
+export const UTILIZATION_QUERY = {
+  [StorageDashboardQuery.CEPH_CAPACITY_USED]:
+    'sum(kubelet_volume_stats_used_bytes * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)"}))',
+  [StorageDashboardQuery.UTILIZATION_IOPS_READ_QUERY]: {
+    query: 'ceil(sum(rate(ceph_pool_rd[4m])))',
+    desc: 'Reads',
+  },
+  [StorageDashboardQuery.UTILIZATION_IOPS_WRITE_QUERY]: {
+    query: 'ceil(sum(rate(ceph_pool_wr[4m])))',
+    desc: 'Writes',
+  },
+  [StorageDashboardQuery.UTILIZATION_LATENCY_READ_QUERY]: {
+    query: 'cluster:ceph_disk_latency_read:join_ceph_node_disk_rate1m',
+    desc: 'Reads',
+  },
+  [StorageDashboardQuery.UTILIZATION_LATENCY_WRITE_QUERY]: {
+    query: 'cluster:ceph_disk_latency_write:join_ceph_node_disk_rate1m',
+    desc: 'Writes',
+  },
+  [StorageDashboardQuery.UTILIZATION_THROUGHPUT_READ_QUERY]: {
+    query: 'sum(rate(ceph_pool_rd_bytes[4m]))',
+    desc: 'Reads',
+  },
+  [StorageDashboardQuery.UTILIZATION_THROUGHPUT_WRITE_QUERY]: {
+    query: 'sum(rate(ceph_pool_wr_bytes[4m]))',
+    desc: 'Writes',
+  },
+  [StorageDashboardQuery.UTILIZATION_RECOVERY_RATE_QUERY]:
+    '(sum(ceph_pool_recovering_bytes_per_sec))',
+};
+
+export const utilizationPopoverQueryMap = [
+  {
+    model: ProjectModel,
+    metric: 'namespace',
+    query: `(sort_desc(topk(25,(${
+      CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_BY_USED]
+    }))))`,
+  },
+  {
+    model: StorageClassModel,
+    metric: 'storageclass',
+    query: `(sort_desc(topk(25,(${
+      CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.STORAGE_CLASSES_BY_USED]
+    }))))`,
+  },
+  {
+    model: PodModel,
+    metric: 'pod',
+    query: `(sort_desc(topk(25, (${
+      CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PODS_BY_USED]
+    }))))`,
+  },
+];

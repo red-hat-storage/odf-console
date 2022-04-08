@@ -1,8 +1,7 @@
-import { DataPoint } from "@odf/shared/utils";
-import { Alert, Humanize } from "@openshift-console/dynamic-plugin-sdk";
-import * as _ from "lodash";
-import { Colors, COLORMAP } from "../constants";
-
+import { DataPoint } from '@odf/shared/utils';
+import { Alert, Humanize } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash';
+import { Colors, COLORMAP } from '../constants';
 
 export const getStackChartStats: GetStackStats = (
   response,
@@ -42,9 +41,11 @@ export type StackDataPoint = DataPoint<string> & {
 
 export const filterCephAlerts = (alerts: Alert[]): Alert[] => {
   const rookRegex = /.*rook.*/;
-  return alerts?.filter(
-    (alert) =>
-      alert?.annotations?.storage_type === 'ceph' ||
-      Object.values(alert?.labels)?.some((item) => rookRegex.test(item)),
-  );
+  return alerts
+    ? alerts?.filter(
+        (alert) =>
+          alert?.annotations?.storage_type === 'ceph' ||
+          Object.values(alert?.labels)?.some((item) => rookRegex.test(item))
+      )
+    : [];
 };

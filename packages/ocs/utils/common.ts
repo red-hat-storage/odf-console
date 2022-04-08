@@ -10,11 +10,11 @@ import {
 } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
-import { StatusGroupMapper } from '@openshift-console/dynamic-plugin-sdk';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import * as _ from 'lodash';
-import { CEPH_STORAGE_NAMESPACE, ODF_OPERATOR } from 'packages/odf/constants';
-import { cephStorageLabel } from '../constants';
+import { cephStorageLabel, CEPH_NS } from '../constants';
+
+const ODF_OPERATOR = 'odf-operator';
 
 export const cephStorageProvisioners = [
   'ceph.rook.io/block',
@@ -55,7 +55,7 @@ export const isPersistentStorageEvent =
     const eventObjectName = event?.involvedObject?.name;
     return eventKind === PersistentVolumeClaimModel.kind
       ? pvcs.includes(eventObjectName)
-      : eventNamespace === CEPH_STORAGE_NAMESPACE;
+      : eventNamespace === CEPH_NS;
   };
 
 export const getOperatorVersion = (operator: K8sResourceKind): string =>
