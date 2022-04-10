@@ -33,7 +33,7 @@ export const DATA_RESILIENCY_QUERY = {
     '(ceph_pg_clean and ceph_pg_active)/ceph_pg_total',
 };
 
-export const CAPACITY_BREAKDOWN_QUERIES = {
+export const CEPH_CAPACITY_BREAKDOWN_QUERIES = {
   [StorageDashboardQuery.PROJECTS_TOTAL_USED]:
     'sum(sum(kubelet_volume_stats_used_bytes * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)"})) by (namespace))',
   [StorageDashboardQuery.PROJECTS_BY_USED]:
@@ -53,18 +53,18 @@ export const CAPACITY_BREAKDOWN_QUERIES = {
     'max(ceph_pool_max_avail * on (pool_id) group_left(name)ceph_pool_metadata{name=~"(.*file.*)|(.*block.*)"})',
 };
 
-export const breakdownQueryMap = {
+export const breakdownQueryMapCEPH = {
   [PROJECTS]: {
     model: ProjectModel,
     metric: 'namespace',
     queries: {
       [StorageDashboardQuery.PROJECTS_BY_USED]: `(topk(6,(${
-        CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_BY_USED]
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_BY_USED]
       })))`,
       [StorageDashboardQuery.PROJECTS_TOTAL_USED]:
-        CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_TOTAL_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_TOTAL_USED],
       [StorageDashboardQuery.CEPH_CAPACITY_USED]:
-        CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
     },
   },
   [STORAGE_CLASSES]: {
@@ -72,16 +72,16 @@ export const breakdownQueryMap = {
     metric: 'storageclass',
     queries: {
       [StorageDashboardQuery.STORAGE_CLASSES_BY_USED]: `(topk(6,(${
-        CAPACITY_BREAKDOWN_QUERIES[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[
           StorageDashboardQuery.STORAGE_CLASSES_BY_USED
         ]
       })))`,
       [StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED]:
-        CAPACITY_BREAKDOWN_QUERIES[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[
           StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED
         ],
       [StorageDashboardQuery.CEPH_CAPACITY_USED]:
-        CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
     },
   },
   [PODS]: {
@@ -89,12 +89,12 @@ export const breakdownQueryMap = {
     metric: 'pod',
     queries: {
       [StorageDashboardQuery.PODS_BY_USED]: `(topk(6,(${
-        CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PODS_BY_USED]
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PODS_BY_USED]
       })))`,
       [StorageDashboardQuery.PODS_TOTAL_USED]:
-        CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PODS_TOTAL_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PODS_TOTAL_USED],
       [StorageDashboardQuery.CEPH_CAPACITY_USED]:
-        CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
     },
   },
 };
@@ -148,21 +148,21 @@ export const utilizationPopoverQueryMap = [
     model: ProjectModel,
     metric: 'namespace',
     query: `(sort_desc(topk(25,(${
-      CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_BY_USED]
+      CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_BY_USED]
     }))))`,
   },
   {
     model: StorageClassModel,
     metric: 'storageclass',
     query: `(sort_desc(topk(25,(${
-      CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.STORAGE_CLASSES_BY_USED]
+      CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.STORAGE_CLASSES_BY_USED]
     }))))`,
   },
   {
     model: PodModel,
     metric: 'pod',
     query: `(sort_desc(topk(25, (${
-      CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PODS_BY_USED]
+      CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PODS_BY_USED]
     }))))`,
   },
 ];

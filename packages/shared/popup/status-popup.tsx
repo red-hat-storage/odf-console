@@ -15,7 +15,7 @@ export const StatusPopupSection: React.FC<StatusPopupSectionProps> = ({
   </>
 );
 
-const Status: React.FC<StatusProps> = ({ value, icon, children }) => (
+export const Status: React.FC<StatusProps> = ({ value, icon, children }) => (
   <div className="odf-status-popup__row">
     {children}
     {value ? (

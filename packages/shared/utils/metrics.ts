@@ -2,6 +2,7 @@ import {
   Humanize,
   PrometheusResponse,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Alert, PrometheusLabels } from "@openshift-console/dynamic-plugin-sdk";
 import * as _ from 'lodash';
 
 export const getGaugeValue = (response: PrometheusResponse) =>
@@ -66,3 +67,32 @@ export const sortInstantVectorStats = (stats: DataPoint[]): DataPoint[] => {
   });
   return stats.length === 6 ? stats.splice(0, 5) : stats;
 };
+
+export const getMetric = (result: PrometheusResponse, metric: string): string =>
+  _.get(result, ['data', 'result', '0', 'metric', metric], null);
+
+export type MonitoringResource = {
+  abbr: string;
+  kind: string;
+  label: string;
+  plural: string;
+};
+
+export const AlertResource: MonitoringResource = {
+  kind: 'Alert',
+  label: 'Alert',
+  plural: '/monitoring/alerts',
+  abbr: 'AL',
+};
+
+export const labelsToParams = (labels: PrometheusLabels) =>
+  _.map(labels, (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+
+export const alertURL = (alert: Alert, ruleID: string) =>
+  `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
+
+export const defaultXMutator: XMutator = (x) => new Date(x * 1000);
+export const defaultYMutator: YMutator = (y) => parseFloat(y);
+
+type XMutator = (x: any) => Date;
+type YMutator = (y: any) => number;

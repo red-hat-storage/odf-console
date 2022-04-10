@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { NooBaaObjectBucketClaimModel } from '@odf/core/models';
 import DetailsPage, {
   ResourceSummary,
 } from '@odf/shared/details-page/DetailsPage';
@@ -33,20 +34,6 @@ import { MCG_FLAG, RGW_FLAG } from '../../features';
 import { NooBaaObjectBucketModel } from '../../models';
 import { getPhase, isBound, obcStatusFilter } from '../../utils';
 import { GetSecret } from './secret';
-
-export const NooBaaObjectBucketClaimModel = {
-  label: 'Object Bucket Claim',
-  labelPlural: 'Object Bucket Claims',
-  apiVersion: 'v1alpha1',
-  apiGroup: 'objectbucket.io',
-  plural: 'objectbucketclaims',
-  abbr: 'OBC',
-  namespaced: true,
-  kind: 'ObjectBucketClaim',
-  id: 'objectbucketclaims',
-  crd: true,
-  legacyPluralURL: true,
-};
 
 const tableColumnInfo = [
   {

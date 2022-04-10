@@ -1,20 +1,9 @@
+import { DataPoint } from '@odf/shared/utils';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_black_400 as globalBlack400 } from '@patternfly/react-tokens/dist/js/global_palette_black_400';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash';
-import { Colors, COLORMAP } from './consts';
-
-type DataPoint<X = Date | number | string> = {
-  x?: X;
-  y?: number;
-  label?: string;
-  metric?: { [key: string]: string };
-  description?: string;
-  symbol?: {
-    type?: string;
-    fill?: string;
-  };
-};
+import { Colors } from './consts';
 
 const getTotal = (stats: StackDataPoint[]) =>
   stats.reduce((total, dataPoint) => total + dataPoint.y, 0);
@@ -98,42 +87,6 @@ export const getBarRadius = (index: number, length: number) => {
   return {};
 };
 
-export const sortInstantVectorStats = (stats: DataPoint[]): DataPoint[] => {
-  stats.sort((a, b) => {
-    const y1 = a.y;
-    const y2 = b.y;
-    if (y1 === y2) {
-      const x1 = a.x;
-      const x2 = b.x;
-      return x1 < x2 ? -1 : x1 > x2 ? 1 : 0;
-    }
-    return y2 - y1;
-  });
-  return stats.length === 6 ? stats.splice(0, 5) : stats;
-};
-
-export const getStackChartStats: GetStackStats = (response, humanize, labelNames) =>
-  response.map((r, i) => {
-    const capacity = humanize(r.y).string;
-    return {
-      // x value needs to be same for single bar stack chart
-      x: '0',
-      y: r.y,
-      name: labelNames ? labelNames[i] : _.truncate(`${r.x}`, { length: 12 }),
-      link: labelNames ? labelNames[i] : `${r.x}`,
-      color: labelNames ? Colors.OTHER : Colors.LINK,
-      fill: COLORMAP[i],
-      label: capacity,
-      id: i,
-      ns: r.metric.namespace,
-    };
-  });
-
-type GetStackStats = (
-  response: DataPoint[],
-  humanize: Humanize,
-  labelNames?: string[],
-) => StackDataPoint[];
 
 export type StackDataPoint = DataPoint<string> & {
   name: string;

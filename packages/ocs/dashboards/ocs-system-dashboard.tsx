@@ -6,6 +6,7 @@
  */
 
 import * as React from 'react';
+import { OCS_INDEPENDENT_FLAG, MCG_FLAG, CEPH_FLAG } from '@odf/core/features';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import {
@@ -14,8 +15,17 @@ import {
   OverviewGridCard,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router-dom';
+import { default as ObjectActivityCard } from './object-service/activity-card/activity-card';
+import { BucketsCard } from './object-service/buckets-card/buckets-card';
+import { default as ObjectBreakdownCard } from './object-service/capacity-breakdown/capacity-breakdown-card';
+import DataConsumptionCard from './object-service/data-consumption-card/data-consumption-card';
+import { DetailsCard as ObjectDetailsCard } from './object-service/details-card/details-card';
+import { ResourceProvidersCard } from './object-service/resource-providers-card/resource-providers-card';
+import { default as ObjectStatusCard } from './object-service/status-card/status-card';
+import StorageEfficiencyCard from './object-service/storage-efficiency-card/storage-efficiency-card';
 import { default as ActivityCard } from './persistent-internal/activity-card/activity-card';
 import BreakdownCard from './persistent-internal/capacity-breakdown-card/capacity-breakdown-card';
 import DetailsCard from './persistent-internal/details-card';
@@ -28,15 +38,6 @@ import UtilizationCard from './persistent-internal/utilization-card/utilization-
 const convertToCard = (Card: React.ComponentType): OverviewGridCard => ({
   Card,
 });
-
-const isPagePresent = (pages: TabPage[], page: TabPage): boolean =>
-  pages.some((p) => page.href === p.href);
-
-const sortPages = (a: TabPage, b: TabPage): number => {
-  if (a.href === BLOCK_FILE || a.href === `overview/${BLOCK_FILE}`) return -1;
-  if (b.href === OBJECT || a.href === `overview/${OBJECT}`) return 1;
-  return 0;
-};
 
 export const BLOCK_FILE = 'block-file';
 export const OBJECT = 'object';
@@ -90,37 +91,55 @@ const PersistentInternalDashboard: React.FC = () => {
   );
 };
 
-export const OCS_INDEPENDENT_FLAG = 'OCS_INDEPENDENT';
-export const MCG_FLAG = 'MCG';
-// Based on the existence of CephCluster
-export const CEPH_FLAG = 'CEPH';
+const ObjectServiceDashboard: React.FC = () => {
+  const mainCards: React.ComponentType[] = [
+    ObjectStatusCard,
+    ObjectBreakdownCard,
+    DataConsumptionCard,
+  ];
+  const leftCards: React.ComponentType[] = [
+    ObjectDetailsCard,
+    StorageEfficiencyCard,
+    BucketsCard,
+    ResourceProvidersCard,
+  ];
+  const rightCards: React.ComponentType[] = [ObjectActivityCard];
+  return (
+    <CommonDashboardRenderer leftCards={leftCards} mainCards={mainCards} rightCards={rightCards} />
+  );
+};
+
+const internalPage = (t: TFunction): TabPage => {
+  return {
+    href: BLOCK_FILE,
+    title: t('Block and File'),
+    component: PersistentInternalDashboard,
+  }
+}
+
+const objectPage = (t: TFunction): TabPage => {
+  return {
+    href: OBJECT,
+    title: t('Object'),
+    component: ObjectServiceDashboard,
+  }
+}
 
 const OCSSystemDashboard: React.FC<RouteComponentProps> = () => {
   const { t } = useTranslation();
 
   const isIndependent = useFlag(OCS_INDEPENDENT_FLAG);
+  const isObjectServiceAvailable = useFlag(MCG_FLAG);
   const isCephAvailable = useFlag(CEPH_FLAG);
-
-  const [pages, setPages] = React.useState<TabPage[]>([]);
-
-  const internalPage = React.useMemo(
-    () => ({
-      href: BLOCK_FILE,
-      title: t('Block and File'),
-      component: PersistentInternalDashboard,
-    }),
-    [t]
-  );
 
   const showInternalDashboard = !isIndependent && isCephAvailable;
 
-  React.useEffect(() => {
-    if (showInternalDashboard && !isPagePresent(pages, internalPage)) {
-      const tempPages = [...pages, internalPage];
-      const sortedPages = tempPages.sort(sortPages);
-      setPages(sortedPages);
-    }
-  }, [internalPage, pages, showInternalDashboard]);
+  const pages = React.useMemo(() => {
+    const tempPages = [];
+    showInternalDashboard && tempPages.push(internalPage(t));
+    isObjectServiceAvailable && tempPages.push(objectPage(t));
+    return tempPages;
+  }, [showInternalDashboard, isObjectServiceAvailable, t]);
 
   return pages.length > 0 ? (
     <Tabs id="odf-dashboard-tab" tabs={pages} />

@@ -1,8 +1,8 @@
+import { getResiliencyProgress } from '@odf/shared/utils';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { PrometheusHealthHandler, ResourceHealthHandler, SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import { TFunction } from 'i18next';
 import { WatchCephResource } from '../../../utils';
-import { getResiliencyProgress } from '../activity-card/activity-card';
 
 const CephHealthStatus = (status: string, t: TFunction): SubsystemHealth => {
   switch (status) {

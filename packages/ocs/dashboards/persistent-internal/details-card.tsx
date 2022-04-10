@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getODFVersion } from '@odf/core/utils';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import {
@@ -18,7 +19,6 @@ import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { CEPH_NS } from '../../constants';
 import { StorageClusterModel } from '../../models';
-import { getODFVersion } from '../../utils/common';
 
 const DetailsCard: React.FC = () => {
   const { t } = useTranslation();

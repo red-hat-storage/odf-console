@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { NooBaaObjectBucketClaimModel } from '@odf/core/models';
 import DetailsPage, {
   ResourceSummary,
 } from '@odf/shared/details-page/DetailsPage';
@@ -29,7 +30,6 @@ import { RouteComponentProps } from 'react-router';
 import { sortable } from '@patternfly/react-table';
 import { NooBaaObjectBucketModel } from '../../models/ocs';
 import { getPhase, obStatusFilter } from '../../utils';
-import { NooBaaObjectBucketClaimModel } from './ObjectBucketClaim';
 
 const kind = referenceForModel(NooBaaObjectBucketModel);
 

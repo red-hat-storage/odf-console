@@ -29,6 +29,7 @@ import {
 } from '@patternfly/react-core';
 import { CephClusterModel } from '../../../models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
+import { getAlertsFromRules } from  '../../../utils';
 import { filterCephAlerts } from '../../../utils/metrics';
 import { getCephHealthState, getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
@@ -36,16 +37,6 @@ import './healthchecks.scss';
 
 const resiliencyProgressQuery =
   DATA_RESILIENCY_QUERY[StorageDashboardQuery.RESILIENCY_PROGRESS];
-
-const getAlertsFromRules = (rules) => {
-  let temp = [];
-  rules.forEach((r) => {
-    r.rules.forEach((rule) => {
-      temp = [...temp, ...(rule.alerts || [])];
-    });
-  });
-  return temp;
-};
 
 export const CephAlerts: React.FC = () => {
   const [data, loaded, error] = useAlerts();

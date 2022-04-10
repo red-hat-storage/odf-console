@@ -94,3 +94,9 @@ export const referenceForOwnerRef = (
   referenceForGroupVersionKind(groupVersionFor(ownerRef.apiVersion).group)(
     groupVersionFor(ownerRef.apiVersion).version
   )(ownerRef.kind);
+
+export const isFunctionThenApply = (fn: any) => (args: string) =>
+  typeof fn === 'function' ? fn(args) : fn;
+
+export const getInfrastructurePlatform = (infrastructure: K8sResourceKind): string =>
+  infrastructure && infrastructure.status ? infrastructure.status.platform : undefined;

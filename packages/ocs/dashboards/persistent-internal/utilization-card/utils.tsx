@@ -2,7 +2,6 @@ import {
   humanizeNumber,
   humanizeSeconds,
   secondsToNanoSeconds,
-  DataPoint,
 } from '@odf/shared/utils';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 
@@ -23,6 +22,3 @@ export const humanizeLatency: Humanize = (value) => {
   );
   return humanizedTime;
 };
-
-export const getLatestValue = (stats: DataPoint[] = []) =>
-  Number(stats?.[stats?.length - 1]?.y);
