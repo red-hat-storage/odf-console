@@ -23,6 +23,7 @@ type KebabProps = {
     [key: string]: string;
   };
   toggleType?: 'Kebab' | 'Dropdown';
+  isDisabled?: boolean;
 };
 
 const defaultKebabItems = (t: TFunction) => [
@@ -42,6 +43,7 @@ export const Kebab: React.FC<KebabProps> = ({
   extraProps,
   customKebabItems,
   toggleType = 'Kebab',
+  isDisabled,
 }) => {
   const { t } = useTranslation('plugin__odf-console');
 
@@ -69,13 +71,17 @@ export const Kebab: React.FC<KebabProps> = ({
   const toggle = React.useMemo(() => {
     const onToggle = () => setOpen((open) => !open);
     return toggleType === 'Kebab' ? (
-      <KebabToggle onToggle={onToggle} />
+      <KebabToggle onToggle={onToggle} isDisabled={isDisabled} />
     ) : (
-      <DropdownToggle onToggle={onToggle} toggleIndicator={CaretDownIcon}>
+      <DropdownToggle
+        onToggle={onToggle}
+        toggleIndicator={CaretDownIcon}
+        isDisabled={isDisabled}
+      >
         Actions
       </DropdownToggle>
     );
-  }, [setOpen, toggleType]);
+  }, [setOpen, toggleType, isDisabled]);
 
   return (
     <Dropdown

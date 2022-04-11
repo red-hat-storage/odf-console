@@ -1,4 +1,4 @@
-import { K8sKind } from "@openshift-console/dynamic-plugin-sdk/lib/api/common-types";
+import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
 export const CephClusterModel: K8sKind = {
   label: 'Ceph Cluster',
@@ -50,5 +50,18 @@ export const StorageClusterModel: K8sKind = {
   namespaced: true,
   kind: 'StorageCluster',
   id: 'ocscluster',
+  crd: true,
+};
+
+export const CephBlockPoolModel: K8sKind = {
+  label: 'BlockPool',
+  labelPlural: 'BlockPools',
+  apiVersion: 'v1',
+  apiGroup: 'ceph.rook.io',
+  plural: 'cephblockpools',
+  abbr: 'CBP',
+  namespaced: true,
+  kind: 'CephBlockPool',
+  id: 'cephblockpools',
   crd: true,
 };

@@ -5,6 +5,7 @@ import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { match as Match } from 'react-router-dom';
+import { BlockPoolListPage } from '../block-pool/BlockPoolListPage';
 import OCSSystemDashboard from './ocs-system-dashboard';
 
 export type DashboardsPageProps = RouteComponentProps;
@@ -37,6 +38,11 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
         title: t('Overview'),
         href: 'overview',
       },
+      {
+        component: BlockPoolListPage,
+        title: t('BlockPools'),
+        href: 'blockpools'
+      }
     ],
     [t]
   );
