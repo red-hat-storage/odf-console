@@ -6,7 +6,7 @@ import {
   isValidJSON,
   prettifyJSON,
 } from '@odf/core/components/utils';
-import { CEPH_STORAGE_NAMESPACE, IP_FAMILY, OCS_OPERATOR } from '@odf/core/constants';
+import { CEPH_STORAGE_NAMESPACE, IP_FAMILY } from '@odf/core/constants';
 import { RHCSState, CanGoToNextStep, CreatePayload, ExternalComponentProps } from '@odf/core/types';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { PodModel, SecretModel } from '@odf/shared/models';
@@ -20,6 +20,8 @@ import { FormGroup, FileUpload, FileUploadProps, Form } from '@patternfly/react-
 import { ErrorHandler } from '../../error-handler';
 import { useFetchCsv } from '../../use-fetch-csv';
 import './index.scss';
+
+const OCS_OPERATOR = 'ocs-operator';
 
 const SCRIPT_NAME = 'ceph-external-cluster-details-exporter.py';
 
