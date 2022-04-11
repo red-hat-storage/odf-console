@@ -12,7 +12,7 @@ type DataPoliciesListProps = {
 };
 
 export const DataPoliciesList: React.FC<DataPoliciesListProps> = (props) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useTranslation('plugin__odf-multicluster-console');
   const title = t('Data policies');
   const pages = [
     {

@@ -48,7 +48,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   selectedClusters,
   setSelectedClusters,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useTranslation('plugin__odf-multicluster-console');
   const [isRegionOpen, setIsRegionOpen] = React.useState(false);
   const [isZoneOpen, setIsZoneOpen] = React.useState(false);
   const [region, setRegion] = React.useState('');

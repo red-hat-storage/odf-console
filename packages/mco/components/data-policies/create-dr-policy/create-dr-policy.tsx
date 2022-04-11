@@ -67,7 +67,7 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({
   schedule,
   setSchedule,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useTranslation('plugin__odf-multicluster-console');
 
   const SyncSchedule = {
     minutes: t('minutes'),
@@ -139,7 +139,7 @@ type SyncScheduleProps = {
 };
 
 export const CreateDRPolicy: React.FC<{}> = ({}) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useTranslation('plugin__odf-multicluster-console');
   const history = useHistory();
   const [policyName, setPolicyName] = React.useState('');
   const [replication] = React.useState('');

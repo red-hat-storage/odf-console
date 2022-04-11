@@ -68,7 +68,7 @@
     "properties": {
       "id": "mco-data-services",
       "perspective": "acm",
-      "name": "%plugin__odf-plugin~Data Services%",
+      "name": "Data Services",
       "insertBefore": "acm-applications"
     }
   },
@@ -78,7 +78,7 @@
       "id": "mco-data-policies",
       "perspective": "acm",
       "section": "mco-data-services",
-      "name": "%plugin__odf-plugin~Data policies%",
+      "name": "Data policies",
       "href": "/multicloud/data-services/data-policies"
     }
   },

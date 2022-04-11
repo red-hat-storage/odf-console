@@ -54,7 +54,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
   rowData
 }) => {
   const { launchModal } = rowData;
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useTranslation('plugin__odf-multicluster-console');
   
   const clusterNames = obj?.spec?.drClusterSet?.map(cluster => <p key={cluster?.name}> {cluster?.name} </p>);
   const condition = obj?.status?.conditions?.find(condition => condition.type === 'Validated');
@@ -87,7 +87,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
   };
 
 const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useTranslation('plugin__odf-multicluster-console');
   
   const Header = React.useMemo<
     TableColumn<DRPolicyKind>[]
@@ -170,7 +170,7 @@ type DRPolicyListProps = {
 };
 
 export const DRPolicyListPage: React.FC<RouteComponentProps> = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useTranslation('plugin__odf-multicluster-console');
   const [ModalComponent, props, launchModal] = useModalLauncher();
   const createProps =`/multicloud/data-services/data-policies/${referenceForModel(DRPolicyModel)}/~new`;
 
