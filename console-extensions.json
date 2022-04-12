@@ -168,6 +168,19 @@
   {
     "type": "console.page/route",
     "properties": {
+      "exact": true,
+      "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/create/~new",
+      "component": {
+        "$codeRef": "createBlockPools.default"
+      }
+    },
+    "flags": {
+      "required": ["OCS"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName",
       "exact": false,
       "component": {
