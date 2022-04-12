@@ -35,13 +35,13 @@ import { CEPH_NS, COMPRESSION_ON } from '../constants';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
 import { CephClusterKind, StoragePoolKind } from '../types';
-import { PopoverHelper } from './popover-helper';
 import {
   disableMenuAction,
   getPerPoolMetrics,
   getScNamesUsingPool,
   twelveHoursdateTimeNoYear,
-} from './utils';
+} from '../utils';
+import { PopoverHelper } from './popover-helper';
 
 const tableColumnInfo = [
   { className: 'pf-u-w-16-on-2xl', id: 'name' },
@@ -287,13 +287,13 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         {mirroringStatus
-          ? t('ceph-storage-plugin~Enabled')
-          : t('ceph-storage-plugin~Disabled')}
+          ? t('Enabled')
+          : t('Disabled')}
       </TableData>
       <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
         <Tooltip
           content={`${t(
-            'ceph-storage-plugin~Last synced'
+            'Last synced'
           )} ${formatedDateTime}`}
         >
           <StatusIconAndText
@@ -304,8 +304,8 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
         {compressionStatus
-          ? t('ceph-storage-plugin~Enabled')
-          : t('ceph-storage-plugin~Disabled')}
+          ? t('Enabled')
+          : t('Disabled')}
       </TableData>
       <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
         {compressionStatus ? compressionSavings : '-'}
