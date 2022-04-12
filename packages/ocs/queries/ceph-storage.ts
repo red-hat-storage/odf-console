@@ -26,6 +26,14 @@ export enum StorageDashboardQuery {
   UTILIZATION_THROUGHPUT_READ_QUERY = 'UTILIZATION_THROUGHPUT_READ_QUERY',
   UTILIZATION_THROUGHPUT_WRITE_QUERY = 'UTILIZATION_THROUGHPUT_WRITE_QUERY',
   UTILIZATION_RECOVERY_RATE_QUERY = 'UTILIZATION_RECOVERY_RATE_QUERY',
+  // Pool Compression Details
+  POOL_COMPRESSION_SAVINGS = 'POOL_COMPRESSION_SAVINGS',
+  POOL_COMPRESSION_RATIO = 'POOL_COMPRESSION_RATIO',
+  POOL_COMPRESSION_ELIGIBILITY = 'POOL_COMPRESSION_ELIGIBILITY',
+  POOL_RAW_CAPACITY_USED = 'POOL_RAW_CAPACITY_USED',
+  POOL_MAX_CAPACITY_AVAILABLE = 'POOL_MAX_CAPACITY_AVAILABLE',
+  POOL_UTILIZATION_IOPS_QUERY = 'POOL_UTILIZATION_IOPS_QUERY',
+  POOL_UTILIZATION_THROUGHPUT_QUERY = 'POOL_UTILIZATION_THROUGHPUT_QUERY',
 }
 
 export const DATA_RESILIENCY_QUERY = {
@@ -166,3 +174,20 @@ export const utilizationPopoverQueryMap = [
     }))))`,
   },
 ];
+
+export const getPoolQuery = (
+  poolNames: string[],
+  queryName: StorageDashboardQuery
+) => {
+  const names = poolNames.join('|');
+  const queries = {
+    [StorageDashboardQuery.POOL_RAW_CAPACITY_USED]: `ceph_pool_bytes_used * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}'}`,
+    [StorageDashboardQuery.POOL_MAX_CAPACITY_AVAILABLE]: `ceph_pool_max_avail * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}'}`,
+    [StorageDashboardQuery.POOL_UTILIZATION_IOPS_QUERY]: `(rate(ceph_pool_wr[1m]) + rate(ceph_pool_rd[1m])) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}'}`,
+    [StorageDashboardQuery.POOL_UTILIZATION_THROUGHPUT_QUERY]: `(rate(ceph_pool_wr_bytes[1m]) + rate(ceph_pool_rd_bytes[1m])) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}'}`,
+    [StorageDashboardQuery.POOL_COMPRESSION_SAVINGS]: `(ceph_pool_compress_under_bytes - ceph_pool_compress_bytes_used) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}'}`,
+    [StorageDashboardQuery.POOL_COMPRESSION_ELIGIBILITY]: `(((ceph_pool_compress_under_bytes > 0) / ceph_pool_stored_raw) * 100) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}'}`,
+    [StorageDashboardQuery.POOL_COMPRESSION_RATIO]: `((ceph_pool_compress_under_bytes / ceph_pool_compress_bytes_used > 0) and on(pool_id) (((ceph_pool_compress_under_bytes > 0) / ceph_pool_stored_raw) * 100 > 0.5)) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}'}`,
+  };
+  return queries[queryName];
+};
