@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { RGW_FLAG } from '@odf/core/features';
 import { getODFVersion } from '@odf/core/utils';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { InfrastructureModel, SubscriptionModel, ClusterServiceVersionModel } from '@odf/shared/models';
 import { K8sResourceKind } from '@odf/shared/types';

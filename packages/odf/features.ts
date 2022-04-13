@@ -1,4 +1,5 @@
 import { OCSStorageClusterModel } from '@odf/core/models';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { StorageClusterKind } from '@odf/shared/types';
 import {
   SetFeatureFlag,
@@ -6,7 +7,7 @@ import {
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { CEPH_STORAGE_NAMESPACE, SECOND } from './constants';
+import { SECOND } from './constants';
 
 export const ODF_MODEL_FLAG = 'ODF_MODEL';
 export const OCS_INDEPENDENT_FLAG = 'OCS_INDEPENDENT';

@@ -1,8 +1,8 @@
 import { LineGraphProps } from "@odf/shared/dashboards/line-graph/line-graph";
+import { StorageSystemKind } from '@odf/shared/types';
 import { humanizeIOPS, humanizeLatency, humanizeDecimalBytesPerSec } from "@odf/shared/utils/humanize";
 import { PrometheusResponse } from "@openshift-console/dynamic-plugin-sdk";
 import * as _ from "lodash";
-import { StorageSystemKind } from "../../../types";
 
 
 type DataFrame = {

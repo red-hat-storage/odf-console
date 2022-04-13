@@ -15,6 +15,7 @@ import {
   NodeKind,
   StorageClusterKind,
   DeviceSet,
+  StorageSystemKind
 } from '@odf/shared/types';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import {
@@ -48,7 +49,6 @@ import {
 } from '../../constants';
 import { OCSStorageClusterModel } from '../../models';
 import { CAPACITY_INFO_QUERIES, StorageDashboardQuery } from '../../queries';
-import { StorageSystemKind } from '../../types';
 import {
   checkArbiterCluster,
   checkFlexibleScaling,

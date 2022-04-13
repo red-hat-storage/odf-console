@@ -6,8 +6,9 @@ import {
   isValidJSON,
   prettifyJSON,
 } from '@odf/core/components/utils';
-import { CEPH_STORAGE_NAMESPACE, IP_FAMILY } from '@odf/core/constants';
+import { IP_FAMILY } from '@odf/core/constants';
 import { RHCSState, CanGoToNextStep, CreatePayload, ExternalComponentProps } from '@odf/core/types';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { PodModel, SecretModel } from '@odf/shared/models';
 import { getAnnotations } from '@odf/shared/selectors';

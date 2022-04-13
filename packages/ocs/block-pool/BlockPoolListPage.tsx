@@ -133,7 +133,7 @@ const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('UsedCapacity'),
+        title: t('Used capacity'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[4].className,
@@ -141,7 +141,7 @@ const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
         id: tableColumnInfo[4].id,
       },
       {
-        title: t('Mirroring Status'),
+        title: t('Mirroring status'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[5].className,
@@ -149,21 +149,21 @@ const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
         id: tableColumnInfo[5].id,
       },
       {
-        title: t('Overall Image Health'),
+        title: t('Overall image health'),
         props: {
           className: tableColumnInfo[6].className,
         },
         id: tableColumnInfo[6].id,
       },
       {
-        title: t('Compression Status'),
+        title: t('Compression status'),
         props: {
           className: tableColumnInfo[7].className,
         },
         id: tableColumnInfo[7].id,
       },
       {
-        title: t('Compression Savings'),
+        title: t('Compression savings'),
         props: {
           className: tableColumnInfo[8].className,
         },

@@ -1,5 +1,6 @@
 .mco-create-data-policy {
   margin: var(--pf-global--spacer--lg);
+  max-width: 800px;
   .pf-c-form.pf-m-limit-width {
     max-width: 33rem;
   }
@@ -11,4 +12,12 @@
 
 .mco-create-data-policy__description {
   margin-bottom: var(--pf-global--spacer--sm);
+}
+
+.mco-create-data-policy__flex {
+  margin-right: var(--pf-global--spacer--lg);
+}
+
+.mco-create-data-policy__dropdown {
+  min-width: 12em;
 }

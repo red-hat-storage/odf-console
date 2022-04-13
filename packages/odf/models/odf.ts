@@ -9,7 +9,6 @@ export const ODFStorageSystem: K8sKind = {
   abbr: 'ss',
   namespaced: true,
   kind: 'StorageSystem',
-  id: 'storagesystem',
   crd: true,
 };
 

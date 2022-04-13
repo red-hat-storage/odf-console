@@ -2,6 +2,7 @@ import * as React from 'react';
 import CapacityCard, {
   CapacityMetricDatum,
 } from '@odf/shared/dashboards/capacity-card/capacity-card';
+import { StorageSystemKind } from '@odf/shared/types';
 import {
   getGVK,
   humanizeBinaryBytes,
@@ -18,7 +19,6 @@ import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ODFStorageSystem } from '../../../models';
-import { StorageSystemKind } from '../../../types';
 import { CAPACITY_QUERIES, StorageDashboard } from '../queries';
 
 const storageSystemResource: WatchK8sResource = {

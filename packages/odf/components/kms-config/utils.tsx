@@ -1,10 +1,10 @@
 import { KMSConfigMap, KMSConfiguration } from '@odf/core/types';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { ConfigMapModel, SecretModel } from '@odf/shared/models';
 import { K8sResourceKind, ConfigMapKind, SecretKind } from '@odf/shared/types';
 import { k8sCreate, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import {
-  CEPH_STORAGE_NAMESPACE,
   KMSConfigMapName,
   KMSVaultTokenSecretName,
   KMSConfigMapCSIName,

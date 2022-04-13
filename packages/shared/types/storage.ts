@@ -77,3 +77,16 @@ export type ResourceConstraints = {
     memory: string;
   };
 };
+
+export type StorageSystemKind = K8sResourceCommon & {
+  spec: {
+      kind: string;
+      name: string;
+      namespace: string;
+  };
+  status?: {
+      phase?: string;
+      conditions?: any;
+  };
+};
+

@@ -13,19 +13,6 @@ export const OCSStorageClusterModel: K8sKind = {
     crd: true,
 };
 
-export const CephClusterModel: K8sKind = {
-    label: 'Ceph Cluster',
-    labelPlural: 'Ceph Clusters',
-    apiVersion: 'v1',
-    apiGroup: 'ceph.rook.io',
-    plural: 'cephclusters',
-    abbr: 'CC',
-    namespaced: true,
-    kind: 'CephCluster',
-    id: 'cephcluster',
-    crd: true,
-};
-
 export const CephBlockPoolModel: K8sKind = {
     label: 'BlockPool',
     labelPlural: 'BlockPools',

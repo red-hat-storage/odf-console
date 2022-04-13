@@ -6,7 +6,7 @@ import {
 } from '@odf/shared/modals/modalLauncher';
 import { ClusterServiceVersionModel } from '@odf/shared/models';
 import { Status } from '@odf/shared/status/Status';
-import { ClusterServiceVersionKind, HumanizeResult } from '@odf/shared/types';
+import { ClusterServiceVersionKind, HumanizeResult, StorageSystemKind } from '@odf/shared/types';
 import {
   humanizeBinaryBytes,
   humanizeDecimalBytesPerSec,
@@ -38,7 +38,6 @@ import { useTranslation } from 'react-i18next';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { ODFStorageSystem } from '../../models';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
-import { StorageSystemKind } from '../../types';
 import { OperandStatus } from './status';
 import ODFSystemLink from './system-link';
 
