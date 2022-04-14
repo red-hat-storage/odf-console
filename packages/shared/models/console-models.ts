@@ -47,3 +47,18 @@ export const SubscriptionModel: K8sKind = {
     plural: 'subscriptions',
     legacyPluralURL: true,
   };
+
+export const ProjectModel: K8sKind = {
+    apiVersion: 'v1',
+    apiGroup: 'project.openshift.io',
+    label: 'Project',
+    // t('plugin__odf-console~Project')
+    labelKey: 'plugin__odf-console~Project',
+    plural: 'projects',
+    abbr: 'PR',
+    kind: 'Project',
+    id: 'project',
+    labelPlural: 'Projects',
+    // t('plugin__odf-console~Projects')
+    labelPluralKey: 'plugin__odf-console~Projects',
+  };

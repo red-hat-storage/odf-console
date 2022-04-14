@@ -1,7 +1,7 @@
+import { Colors, COLORMAP } from '@odf/shared/dashboards/breakdown-card/consts';
 import { DataPoint } from '@odf/shared/utils';
 import { Alert, Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { Colors, COLORMAP } from '../constants';
 
 export const getStackChartStats: GetStackStats = (
   response,
@@ -48,4 +48,21 @@ export const filterCephAlerts = (alerts: Alert[]): Alert[] => {
           Object.values(alert?.labels)?.some((item) => rookRegex.test(item))
       )
     : [];
+};
+
+
+export const filterNooBaaAlerts = (alerts: Alert[]): Alert[] =>
+  alerts.filter((alert) => _.get(alert, 'annotations.storage_type') === 'NooBaa');
+
+export const filterRGWAlerts = (alerts: Alert[]): Alert[] =>
+  alerts.filter((alert) => alert?.annotations?.storage_type === 'RGW');
+
+export const getAlertsFromRules = (rules) => {
+  let temp = [];
+  rules.forEach((r) => {
+    r.rules.forEach((rule) => {
+      temp = [...temp, ...(rule.alerts || [])];
+    });
+  });
+  return temp;
 };

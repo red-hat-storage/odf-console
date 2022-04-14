@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { LinkifyExternal } from '@odf/shared/utils/link';
 import {
   HorizontalNav,
   K8sKind,
@@ -10,7 +11,6 @@ import {
 import classnames from 'classnames';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
-import Linkify from 'react-linkify';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -91,14 +91,6 @@ export type ResourceSummaryProps = {
   launchModal: LaunchModal;
   resourceModel: K8sKind;
 };
-
-export const LinkifyExternal: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
-  <Linkify properties={{ target: '_blank', rel: 'noopener noreferrer' }}>
-    {children}
-  </Linkify>
-);
 
 export type DetailsItemProps = {
   canEdit?: boolean;

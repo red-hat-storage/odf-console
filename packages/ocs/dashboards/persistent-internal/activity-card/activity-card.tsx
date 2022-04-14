@@ -11,7 +11,7 @@ import {
   PersistentVolumeClaimKind,
   SubscriptionKind,
 } from '@odf/shared/types';
-import { getGaugeValue, referenceForModel } from '@odf/shared/utils';
+import { getResiliencyProgress, referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActivityBody,
@@ -100,17 +100,6 @@ export const storageClusterResource = {
   isList: true,
   kind: referenceForModel(StorageClusterModel),
   namespaced: false,
-};
-
-export const getResiliencyProgress = (results): number => {
-  /**
-   * Possible values for progress:
-   *   - A float value of String type
-   *   - 'NaN'
-   *   - undefined
-   */
-  const progress: string = getGaugeValue(results);
-  return parseFloat(progress);
 };
 
 const OngoingActivity = () => {

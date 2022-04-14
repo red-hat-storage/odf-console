@@ -10,11 +10,12 @@ import {
 } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import { DataPoint } from '@odf/shared/utils';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import * as _ from 'lodash';
 import { cephStorageLabel, CEPH_NS } from '../constants';
 
-const ODF_OPERATOR = 'odf-operator';
+const OCS_OPERATOR = 'odf-operator';
 
 export const cephStorageProvisioners = [
   'ceph.rook.io/block',
@@ -61,11 +62,8 @@ export const isPersistentStorageEvent =
 export const getOperatorVersion = (operator: K8sResourceKind): string =>
   operator?.status?.installedCSV;
 
-export const getODFVersion = (items: K8sResourceKind[]): string => {
-  const operator: K8sResourceKind = _.find(
-    items,
-    (item) => item?.spec?.name === ODF_OPERATOR
-  );
+export const getOCSVersion = (items: K8sResourceKind[]): string => {
+  const operator: K8sResourceKind = _.find(items, (item) => item?.spec?.name === OCS_OPERATOR);
   return getOperatorVersion(operator);
 };
 
@@ -126,3 +124,18 @@ export const getCephPVCs = (
       : cephSCNameSet.has(getStorageClassName(pvc))
   );
 };
+
+export const decodeRGWPrefix = (secretData: K8sResourceKind) => {
+  try {
+    return JSON.parse(atob(secretData?.data?.external_cluster_details)).find(
+      (item) => item?.name === 'ceph-rgw',
+    )?.data?.poolPrefix;
+  } catch {
+    return '';
+  }
+};
+
+export const convertNaNToNull = (value: DataPoint) =>
+  _.isNaN(value?.y) ? Object.assign(value, { y: null }) : value;
+
+export const getLatestValue = (stats: DataPoint[] = []) => Number(stats?.[stats?.length - 1]?.y);

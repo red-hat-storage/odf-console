@@ -19,8 +19,8 @@ import {
 } from '@patternfly/react-core';
 import { PROJECTS, PODS, STORAGE_CLASSES } from '../../../constants';
 import {
-  breakdownQueryMap,
-  CAPACITY_BREAKDOWN_QUERIES,
+  breakdownQueryMapCEPH,
+  CEPH_CAPACITY_BREAKDOWN_QUERIES,
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
 import { getStackChartStats } from '../../../utils/metrics';
@@ -45,7 +45,7 @@ const BreakdownCard: React.FC = () => {
   >(PROJECTS);
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
 
-  const { queries, model, metric } = breakdownQueryMap[metricType];
+  const { queries, model, metric } = breakdownQueryMapCEPH[metricType];
 
   const [modelByUsed, modelUsedError, modelUsedLoading] = usePrometheusPoll({
     query: queries[modelByUsedQueryMap[metricType]],
@@ -59,7 +59,7 @@ const BreakdownCard: React.FC = () => {
     });
 
   const [cephUsedMetric, cephError, cephLoading] = usePrometheusPoll({
-    query: CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
+    query: CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
     endpoint: 'api/v1/query' as any,
   });
 

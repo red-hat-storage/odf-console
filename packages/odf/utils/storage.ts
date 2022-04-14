@@ -1,5 +1,6 @@
 import { K8sResourceKind } from '@odf/shared/types';
 import { convertToBaseValue } from '@odf/shared/utils/humanize';
+import * as _ from 'lodash';
 
 export const calcPVsCapacity = (pvs: K8sResourceKind[]): number =>
   pvs.reduce((sum, pv) => {
