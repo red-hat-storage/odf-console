@@ -1,11 +1,11 @@
 import * as React from 'react';
+import { UtilizationItem } from '@odf/shared/dashboards/utilization-card/utilization-item';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import {
   usePrometheusPoll,
   useUtilizationDuration,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
-import { UtilizationItem } from './utilization-item';
 
 enum LIMIT_STATE {
   ERROR = 'ERROR',
