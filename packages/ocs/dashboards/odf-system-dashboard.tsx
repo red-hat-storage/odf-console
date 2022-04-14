@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
+import { referenceForModel } from '@odf/shared/utils';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { match as Match } from 'react-router-dom';
 import { BlockPoolListPage } from '../block-pool/BlockPoolListPage';
+import { CephBlockPoolModel } from '../models';
 import OCSSystemDashboard from './ocs-system-dashboard';
 
 export type DashboardsPageProps = RouteComponentProps;
@@ -13,6 +15,8 @@ export type DashboardsPageProps = RouteComponentProps;
 type ODFSystemDashboardPageProps = Omit<DashboardsPageProps, 'match'> & {
   match: Match<{ systemName: string }>;
 };
+
+const blockPoolHref = referenceForModel(CephBlockPoolModel);
 
 const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
   match,
@@ -41,7 +45,7 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
       {
         component: BlockPoolListPage,
         title: t('BlockPools'),
-        href: 'blockpools'
+        href: blockPoolHref
       }
     ],
     [t]

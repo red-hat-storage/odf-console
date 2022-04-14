@@ -34,12 +34,12 @@ export const PopoverHelper: React.FC<PopoverHelperProps> = ({
       {names?.length ? (
         names?.length > 1 ? (
           <Popover
-            aria-label={t('ceph-storage-plugin~Help')}
+            aria-label={t('Help')}
             bodyContent={popOverBody}
             hasAutoWidth={popoverHasAutoWidth}
           >
             <Button
-              aria-label={t('ceph-storage-plugin~Help')}
+              aria-label={t('Help')}
               variant="link"
               isInline
               data-test-id={testId || null}

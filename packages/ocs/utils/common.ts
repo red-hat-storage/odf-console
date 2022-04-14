@@ -9,8 +9,8 @@ import {
   PersistentVolumeModel,
 } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
-import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
-import { DataPoint } from '@odf/shared/utils';
+import { HumanizeResult, K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import { DataPoint, humanizePercentage } from '@odf/shared/utils';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import * as _ from 'lodash';
 import { cephStorageLabel, CEPH_NS } from '../constants';
@@ -100,7 +100,7 @@ const enum Status {
 }
 const isBound = (pvc: K8sResourceKind) => pvc.status.phase === Status.BOUND;
 const getPVStorageClass = (pv: K8sResourceKind) => pv?.spec?.storageClassName;
-const getStorageClassName = (pvc: K8sResourceKind) =>
+export const getStorageClassName = (pvc: K8sResourceKind) =>
   pvc?.spec?.storageClassName ||
   pvc?.metadata?.annotations?.['volume.beta.kubernetes.io/storage-class'];
 
@@ -139,3 +139,6 @@ export const convertNaNToNull = (value: DataPoint) =>
   _.isNaN(value?.y) ? Object.assign(value, { y: null }) : value;
 
 export const getLatestValue = (stats: DataPoint[] = []) => Number(stats?.[stats?.length - 1]?.y);
+
+export const calcPercentage = (value: number, total: number): HumanizeResult =>
+  humanizePercentage((value * 100) / total);

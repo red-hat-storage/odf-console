@@ -158,6 +158,16 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/:poolName",
+      "exact": false,
+      "component": {
+        "$codeRef": "blockPoolDetailsPage.default"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName",
       "exact": false,
       "component": {
