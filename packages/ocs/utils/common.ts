@@ -15,7 +15,7 @@ import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/ap
 import * as _ from 'lodash';
 import { cephStorageLabel, CEPH_NS } from '../constants';
 
-const OCS_OPERATOR = 'odf-operator';
+const OCS_OPERATOR = 'ocs-operator';
 
 export const cephStorageProvisioners = [
   'ceph.rook.io/block',

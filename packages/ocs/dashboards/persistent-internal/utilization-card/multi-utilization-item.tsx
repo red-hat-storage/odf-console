@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { AreaChart } from '@odf/shared/dashboards/utilization-card/area-chart';
 import { DataPoint } from '@odf/shared/utils';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
-import { AreaChart } from './area-chart';
 
 export const MultilineUtilizationItem: React.FC<MultilineUtilizationItemProps> = React.memo(
   ({ title, data, humanizeValue, isLoading = false, queries, error, chartType }) => {

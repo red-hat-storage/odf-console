@@ -1,6 +1,7 @@
 // TODO (@rexagod): https://github.com/openshift/console/pull/10470#discussion_r766453369
 import * as React from 'react';
 import ConsumerPopover from '@odf/shared/dashboards/utilization-card/ConsumerPopover';
+import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
   humanizeBinaryBytes,
@@ -23,7 +24,6 @@ import {
 } from '../../../queries';
 import './utilization-card.scss';
 import { PrometheusMultilineUtilizationItem } from './prometheus-multi-utilization-item';
-import { PrometheusUtilizationItem } from './prometheus-utilization-item';
 import { humanizeIOPS, humanizeLatency } from './utils';
 
 const UtilizationCard: React.FC = () => {

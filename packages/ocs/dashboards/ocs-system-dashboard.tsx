@@ -26,6 +26,10 @@ import { DetailsCard as ObjectDetailsCard } from './object-service/details-card/
 import { ResourceProvidersCard } from './object-service/resource-providers-card/resource-providers-card';
 import { default as ObjectStatusCard } from './object-service/status-card/status-card';
 import StorageEfficiencyCard from './object-service/storage-efficiency-card/storage-efficiency-card';
+import { default as ExtBreakdownCard } from './persistent-external/breakdown-card';
+import { default as ExtDetailsCard } from './persistent-external/details-card';
+import { StatusCard as ExtStatusCard } from './persistent-external/status-card';
+import { default as ExtUtilizationCard } from './persistent-external/utilization-card';
 import { default as ActivityCard } from './persistent-internal/activity-card/activity-card';
 import BreakdownCard from './persistent-internal/capacity-breakdown-card/capacity-breakdown-card';
 import DetailsCard from './persistent-internal/details-card';
@@ -91,6 +95,16 @@ const PersistentInternalDashboard: React.FC = () => {
   );
 };
 
+const PersistentExternalDashboard: React.FC = () => {
+  const mainCards: React.ComponentType[] = [ExtStatusCard, ExtBreakdownCard, ExtUtilizationCard];
+  const leftCards: React.ComponentType[] = [ExtDetailsCard, InventoryCard];
+  const rightCards: React.ComponentType[] = [ActivityCard];
+
+  return (
+    <CommonDashboardRenderer leftCards={leftCards} mainCards={mainCards} rightCards={rightCards} />
+  );
+};
+
 const ObjectServiceDashboard: React.FC = () => {
   const mainCards: React.ComponentType[] = [
     ObjectStatusCard,
@@ -117,6 +131,14 @@ const internalPage = (t: TFunction): TabPage => {
   }
 }
 
+const externalPage = (t: TFunction): TabPage => {
+  return {
+    href: BLOCK_FILE,
+    title: t('Block and File'),
+    component: PersistentExternalDashboard,
+  }
+}
+
 const objectPage = (t: TFunction): TabPage => {
   return {
     href: OBJECT,
@@ -137,9 +159,10 @@ const OCSSystemDashboard: React.FC<RouteComponentProps> = () => {
   const pages = React.useMemo(() => {
     const tempPages = [];
     showInternalDashboard && tempPages.push(internalPage(t));
+    isIndependent && tempPages.push(externalPage(t));
     isObjectServiceAvailable && tempPages.push(objectPage(t));
     return tempPages;
-  }, [showInternalDashboard, isObjectServiceAvailable, t]);
+  }, [showInternalDashboard, isIndependent, isObjectServiceAvailable, t]);
 
   return pages.length > 0 ? (
     <Tabs id="odf-dashboard-tab" tabs={pages} />

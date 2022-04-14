@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { mapLimitsRequests } from '@odf/shared/charts';
+import { AreaChart } from '@odf/shared/dashboards/utilization-card/area-chart';
 import {
   ColoredIconProps,
   Humanize,
@@ -12,7 +13,6 @@ import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/int
 import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
 import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import { useTranslation } from 'react-i18next';
-import { AreaChart } from './area-chart';
 
 enum LIMIT_STATE {
   ERROR = 'ERROR',

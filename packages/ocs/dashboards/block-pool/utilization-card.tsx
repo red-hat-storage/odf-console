@@ -1,10 +1,10 @@
 import * as React from 'react';
+import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { humanizeDecimalBytesPerSec } from '@odf/shared/utils';
 import { UtilizationBody, UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { Card, CardActions, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
-import { PrometheusUtilizationItem } from '../persistent-internal/utilization-card/prometheus-utilization-item';
 import { humanizeIOPS } from '../persistent-internal/utilization-card/utils';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
