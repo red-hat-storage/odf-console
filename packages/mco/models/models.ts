@@ -35,3 +35,39 @@ export const MirrorPeerModel: K8sModel = {
   abbr: 'MP',
   namespaced: false,
 };
+
+export const DRPlacementControlModel: K8sModel = {
+    label: 'DR Placement Control',
+    labelPlural: 'DR Placement Controls',
+    apiVersion: 'v1alpha1',
+    apiGroup: 'ramendr.openshift.io',
+    plural: 'drplacementcontrols',
+    abbr: 'DRPC',
+    namespaced: true,
+    kind: 'DRPlacementControl',
+    crd: true,
+};
+
+export const ACMPlacementRuleModel: K8sModel = {
+    label: 'Placement Rule',
+    labelPlural: 'Placement Rules',
+    apiVersion: 'v1',
+    apiGroup: 'apps.open-cluster-management.io',
+    plural: 'placementrules',
+    abbr: 'PRL',
+    namespaced: true,
+    kind: 'PlacementRule',
+    crd: true,
+};
+
+export const ACMSubscriptionModel: K8sModel = {
+    label: 'Subscription',
+    labelPlural: 'Subscriptions',
+    apiVersion: 'v1',
+    apiGroup: 'apps.open-cluster-management.io',
+    plural: 'subscriptions',
+    abbr: 'SUBS',
+    namespaced: true,
+    kind: 'Subscription',
+    crd: true,
+};

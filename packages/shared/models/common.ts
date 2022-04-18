@@ -163,3 +163,15 @@ export const EventModel: K8sKind = {
   labelPlural: 'Events',
   labelPluralKey: 'Events',
 };
+
+export const ApplicationModel: K8sKind = {
+  label: 'Application',
+  labelPlural: 'Applications',
+  apiVersion: 'v1beta1',
+  apiGroup: 'app.k8s.io',
+  plural: 'applications',
+  abbr: 'APP',
+  namespaced: true,
+  kind: 'Application',
+  crd: true,
+};

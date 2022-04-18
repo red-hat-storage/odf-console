@@ -45,3 +45,59 @@ export type MirrorPeerKind =  K8sResourceCommon & {
     type: string,
   }
 };
+
+export type DRPlacementControlKind = K8sResourceCommon & {
+  spec: {
+      drPolicyRef: {
+          name: string;
+      };
+      placementRef: {
+          kind: string;
+          name: string;
+      };
+      preferredCluster?: string;
+      pvcSelector: {
+          matchLabels: {
+              [key in string]: string;
+          }
+      }
+  };
+  status?: {
+      phase: string;
+  }
+};
+
+export type ACMPlacementRuleKind = K8sResourceCommon & {
+  spec: {
+      clusterReplicas?: number
+      clusterConditions?: {
+          status: string;
+          type: string;
+      }[];
+      clusterSelector?: Selector | null;
+      schedulerName?: string;
+  };
+  status?: {
+      decisions?: {
+          clusterName: string;
+          clusterNamespace: string;
+      }[];
+  };
+};
+
+export type ACMSubscriptionKind = K8sResourceCommon & {
+  spec: {
+      name?: string;
+      placement?: {
+          placementRef?: {
+              kind: string;
+              name: string;
+          };
+      };
+  };
+  status?: {
+      message?: string;
+      phase?: string;
+      statuses?: any;
+  };
+};
