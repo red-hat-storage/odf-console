@@ -1,8 +1,8 @@
 import * as React from 'react';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { Alert, AlertGroup } from '@patternfly/react-core';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import { LoadingInline } from './Loading';
 
 const injectDisabled = (children: React.ReactChild, disabled) => {
@@ -16,7 +16,7 @@ const injectDisabled = (children: React.ReactChild, disabled) => {
 };
 
 const ErrorMessage = ({ message }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <Alert
       isInline

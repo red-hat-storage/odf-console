@@ -5,7 +5,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Button,
@@ -16,6 +15,7 @@ import {
 } from '@patternfly/react-core';
 import { LoadingInline } from '../generic/Loading';
 import { ResourceIcon } from '../resource-link/resource-link';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import { CommonModalProps } from './common';
 import { ModalBody, ModalFooter } from './Modal';
 import { SelectorInput } from './Selector';
@@ -29,7 +29,7 @@ type Patch = {
 const LABELS_PATH = '/metadata/labels';
 
 export const ErrorMessage = ({ message }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <Alert
       isInline
@@ -74,7 +74,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
   const [errorMessage, setErrorMessage] = React.useState();
 
   const createPath = !labels.length;
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const onSubmit = () => {
     setLoading(true);

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
 import { Button } from '@patternfly/react-core';
 import { CloseIcon } from '@patternfly/react-icons';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 type CloseButtonProps = {
   additionalClassName?: string;
@@ -17,7 +17,7 @@ const CloseButton: React.FC<CloseButtonProps> = ({
   dataTestID,
   onClick,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <Button
       aria-label={ariaLabel || t('Close')}

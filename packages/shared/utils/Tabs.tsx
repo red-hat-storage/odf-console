@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   RouteComponentProps,
   useHistory,
@@ -13,6 +12,7 @@ import {
   TabsComponent,
   TabTitleText,
 } from '@patternfly/react-core';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import './tabs.scss';
 
 export type TabPage = {
@@ -36,7 +36,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, isSecondary = false, id }) => {
   const history = useHistory();
   const match = useRouteMatch();
 
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const elements = React.useMemo(() => {
     const temp = tabs.map((tab, i) => (

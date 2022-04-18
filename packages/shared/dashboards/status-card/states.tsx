@@ -19,23 +19,23 @@ export const healthStateMessage = (
     case HealthState.OK:
       return '';
     case HealthState.UNKNOWN:
-      return t('plugin__odf-console~Unknown');
+      return t('Unknown');
     case HealthState.PROGRESS:
-      return t('plugin__odf-console~Pending');
+      return t('Pending');
     case HealthState.UPDATING:
-      return t('plugin__odf-console~Updating');
+      return t('Updating');
     case HealthState.WARNING:
-      return t('plugin__odf-console~Degraded');
+      return t('Degraded');
     case HealthState.ERROR:
-      return t('plugin__odf-console~Degraded');
+      return t('Degraded');
     case HealthState.LOADING:
-      return t('plugin__odf-console~Loading');
+      return t('Loading');
     case HealthState.UPGRADABLE:
-      return t('plugin__odf-console~Upgrade available');
+      return t('Upgrade available');
     case HealthState.NOT_AVAILABLE:
-      return t('plugin__odf-console~Not available');
+      return t('Not available');
     default:
-      return t('plugin__odf-console~Unknown');
+      return t('Unknown');
   }
 };
 

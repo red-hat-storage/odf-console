@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import { useTranslation } from 'react-i18next';
 import { Grid, GridItem } from '@patternfly/react-core';
+import { useCustomTranslation } from '../../useCustomTranslationHook';
 import { TotalCapacityBody } from './breakdown-capacity';
 import { BreakdownChart, LabelPadding } from './breakdown-chart';
 import { BreakdownChartLoading } from './breakdown-loading';
@@ -20,7 +20,7 @@ export const BreakdownCardBody: React.FC<BreakdownBodyProps> = ({
   ocsVersion = '',
   labelPadding,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   if (isLoading && !hasLoadError) {
     return <BreakdownChartLoading />;

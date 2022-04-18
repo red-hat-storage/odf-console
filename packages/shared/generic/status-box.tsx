@@ -6,8 +6,9 @@ import {
 } from '@odf/shared/utils/error/http-error';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation, Trans } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import { Alert, Button } from '@patternfly/react-core';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const Box: React.FC<BoxProps> = ({ children, className }) => (
   <div className={classNames('cos-status-box', className)}>{children}</div>
@@ -19,7 +20,7 @@ export const LoadError: React.FC<LoadErrorProps> = ({
   message,
   canRetry = true,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <Box className={className}>
       <div className="pf-u-text-align-center cos-error-title">
@@ -32,7 +33,7 @@ export const LoadError: React.FC<LoadErrorProps> = ({
       </div>
       {canRetry && (
         <div className="pf-u-text-align-center">
-          <Trans ns="plugin__odf-console">
+          <Trans t={t}>
             Please{' '}
             <Button
               type="button"
@@ -75,7 +76,7 @@ export const LoadingBox: React.FC<LoadingBoxProps> = ({ className, message }) =>
 LoadingBox.displayName = 'LoadingBox';
 
 export const EmptyBox: React.FC<EmptyBoxProps> = ({ label }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <Box>
       <div data-test="empty-message" className="pf-u-text-align-center">
@@ -103,7 +104,7 @@ export const MsgBox: React.FC<MsgBoxProps> = ({ title, detail, className = '' })
 MsgBox.displayName = 'MsgBox';
 
 export const AccessDenied: React.FC<AccessDeniedProps> = ({ message }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <div>
       <Box className="pf-u-text-align-center">
@@ -155,7 +156,7 @@ Data.displayName = 'Data';
 
 export const StatusBox: React.FC<StatusBoxProps> = (props) => {
   const { loadError, loaded, skeleton, data, ...dataProps } = props;
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   if (loadError) {
     const status = _.get(loadError, 'response.status');

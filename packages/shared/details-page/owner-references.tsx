@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { GroupVersionKind, OwnerReference, ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { useTranslation } from 'react-i18next';
 import { K8sResourceKind } from '../types';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import { getReference, groupVersionFor } from '../utils';
 
 export const referenceForGroupVersionKind = (group: string) => (version: string) => (
@@ -16,7 +16,7 @@ export const referenceForOwnerRef = (ownerRef: OwnerReference): GroupVersionKind
 
 
 export const OwnerReferences: React.FC<OwnerReferencesProps> = ({ resource }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const owners = (_.get(resource.metadata, 'ownerReferences') || []).map((o: OwnerReference) => (
     <ResourceLink
       key={o.uid}

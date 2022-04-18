@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '../../useCustomTranslationHook';
 import './storage-efficiency-card.scss';
 
 export const EfficiencyItemBody: React.FC<EfficiencyItemBodyProps> = React.memo(
   ({ stats, title, infoText, isLoading, error, getStats }) => {
-    const { t } = useTranslation();
+    const { t } = useCustomTranslation();
 
     let status: React.ReactElement;
 

@@ -4,6 +4,7 @@ import PageHeading from '@odf/shared/heading/page-heading';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { ODFStorageSystem, CephClusterModel, ClusterServiceVersionModel } from '@odf/shared/models';
 import { K8sResourceKind, ClusterServiceVersionKind, ListKind, StorageSystemKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForGroupVersionKind, referenceForModel, getODFCsv } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
@@ -12,7 +13,6 @@ import {
   useK8sWatchResource
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, match as Match } from 'react-router';
 import {
   Form,
@@ -142,7 +142,7 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({
   schedule,
   setSchedule,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const SyncSchedule = {
     minutes: t('minutes'),
@@ -228,7 +228,7 @@ type ReRouteResourceProps = {
 };
 
 export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({match, history}) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const { url }  = match;
   
   const [policyName, setPolicyName] = React.useState('');

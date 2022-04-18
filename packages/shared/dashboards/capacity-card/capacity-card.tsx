@@ -3,7 +3,6 @@ import PlainResourceName from '@odf/shared/resource-link/plain-resource-link';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Grid,
   GridItem,
@@ -16,6 +15,7 @@ import {
 import { DataUnavailableError } from '../../generic/Error';
 import ResourceLink from '../../resource-link/resource-link';
 import { HumanizeResult } from '../../types';
+import { useCustomTranslation } from '../../useCustomTranslationHook';
 import { getDashboardLink } from '../../utils';
 import { humanizeBinaryBytes } from '../../utils/humanize';
 import './capacity-card.scss';
@@ -79,7 +79,7 @@ type CapacityCardHeaderProps = {
 const CapacityCardHeader: React.FC<CapacityCardHeaderProps> = ({
   showPercentage,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <>
       <GridItem span={2}>

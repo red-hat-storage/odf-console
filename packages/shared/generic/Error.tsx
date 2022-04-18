@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Alert } from '@patternfly/react-core';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const DataUnavailableError: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <div className="centerComponent">
       <div className="text-muted">{t('No data available')}</div>
@@ -12,7 +12,7 @@ export const DataUnavailableError: React.FC = () => {
 };
 
 export const ErrorAlert: React.FC<Props> = ({ message, title }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   return (
     <Alert

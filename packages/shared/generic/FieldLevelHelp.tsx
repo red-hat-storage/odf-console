@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Button, Popover, PopoverProps } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const FieldLevelHelp: React.FC<FieldLevelHelpProps> = React.memo(
   ({ children, popoverHasAutoWidth, testId }) => {
-    const { t } = useTranslation('plugin__odf-console');
+    const { t } = useCustomTranslation();
     if (React.Children.count(children) === 0) {
       return null;
     }

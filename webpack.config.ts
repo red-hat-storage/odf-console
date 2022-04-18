@@ -5,6 +5,10 @@ import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpa
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 import * as webpack from 'webpack';
 
+const LANGUAGES = ['en', 'ja', 'ko', 'zh'];
+const resolveLocale = (dirName: string, ns: string) =>
+  LANGUAGES.reduce((acc, lang) => ([...acc, { from: path.resolve(dirName, `locales/${lang}/plugin__*.json`), to: `locales/${lang}/${ns}.[ext]`}]), []);
+
 const config: webpack.Configuration = {
   mode: 'development',
   entry: {},
@@ -82,10 +86,15 @@ const config: webpack.Configuration = {
   plugins: [
     new ConsoleRemotePlugin(),
     new CopyWebpackPlugin({
-      patterns: [{ from: path.resolve(__dirname, 'locales'), to: 'locales' }],
+      patterns: [
+        ...resolveLocale(__dirname, process.env.I8N_NS)
+      ],
     }),
     new webpack.DefinePlugin({
       'process.env.MODE': JSON.stringify(process.env.MODE),
+    }),
+    new webpack.DefinePlugin({
+      'process.env.I8N_NS': JSON.stringify(process.env.I8N_NS),
     }),
   ],
   devtool: 'cheap-module-source-map',

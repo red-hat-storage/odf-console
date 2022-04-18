@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Select, SelectVariant } from '@patternfly/react-core';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
   onChange,
@@ -9,7 +9,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
   valueLabelMap,
   ...props
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const [isOpen, setOpen] = React.useState(false);
   const onSelect = React.useCallback((event: React.MouseEvent | React.ChangeEvent, selection: string) => {
