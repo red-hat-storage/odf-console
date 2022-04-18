@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { ModalComponentProps } from '@odf/shared/generic/ModalTitle';
-import { HandlePromiseProps } from '@odf/shared/generic/promise-component';
+import { CommonModalProps } from '@odf/shared/modals/Modal';
 import {
   CreateStorageSystemAction,
   WizardState,
@@ -17,10 +16,9 @@ export type KMSConfigureProps = {
   isWizardFlow?: boolean;
 };
 
-export type AdvancedKMSModalProps = {
+export type AdvancedKMSModalProps = CommonModalProps<{
   state: Pick<WizardState['securityAndNetwork'], 'encryption' | 'kms'>;
   dispatch: EncryptionDispatch;
   mode?: string;
   isWizardFlow?: boolean;
-} & HandlePromiseProps &
-  ModalComponentProps;
+}>;
