@@ -1,5 +1,4 @@
 import { StorageClusterResource, ResourceConstraints } from '@odf/shared/types';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 export enum BackingStorageType {
     EXISTING = 'existing',
@@ -24,18 +23,6 @@ export enum ValidationType {
     'INTERNAL_FLEXIBLE_SCALING' = 'INTERNAL_FLEXIBLE_SCALING',
     'ATTACHED_DEVICES_FLEXIBLE_SCALING' = 'ATTACHED_DEVICES_FLEXIBLE_SCALING',
 }
-
-export type StorageSystemKind = K8sResourceCommon & {
-    spec: {
-        kind: string;
-        name: string;
-        namespace: string;
-    };
-    status?: {
-        phase?: string;
-        conditions?: any;
-    };
-};
 
 export type EncryptionType = {
     clusterWide: boolean;

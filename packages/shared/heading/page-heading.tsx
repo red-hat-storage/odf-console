@@ -65,6 +65,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
   return (
     <div
       className={classNames(
+        'odf-title',
         'co-m-nav-title',
         'co-m-nav-title--detail',
         { 'co-m-nav-title--breadcrumbs': showBreadcrumbs },
@@ -84,7 +85,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
           )}
         </Split>
       )}
-      <div className="odf-title">
+      <div className="odf-title-details">
         <h1>
           <div className="co-m-pane__name co-resource-item">
             <span
@@ -100,13 +101,13 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
             </span>
           </div>
         </h1>
-        {showActions && (
+      </div>
+      {showActions && (
           <div className="co-actions" data-test-id="details-actions">
             {actions()}
           </div>
         )}
         {props.children}
-      </div>
     </div>
   );
 };

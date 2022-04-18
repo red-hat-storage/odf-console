@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
+import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
-import { ClusterServiceVersionKind } from '@odf/shared/types';
+import { ClusterServiceVersionKind, StorageSystemKind } from '@odf/shared/types';
 import { getGVK, referenceForModel } from '@odf/shared/utils';
 import {
   HealthState,
@@ -23,9 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
-import { ODF_OPERATOR } from '../../../constants';
 import { OCSStorageClusterModel, ODFStorageSystem } from '../../../models';
-import { StorageSystemKind } from '../../../types';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { STATUS_QUERIES, StorageDashboard } from '../queries';
 import { getOperatorHealthState } from '../utils';

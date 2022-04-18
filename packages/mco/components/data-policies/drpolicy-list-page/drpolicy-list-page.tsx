@@ -56,7 +56,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
   const { launchModal } = rowData;
   const { t } = useTranslation('plugin__odf-console');
   
-  const clusterNames = obj?.spec?.drClusterSet?.map(cluster => <p key={cluster?.name}> {cluster?.name} </p>);
+  const clusterNames = obj?.spec?.drClusters?.map(clusterName => <p key={clusterName}> {clusterName} </p>);
   const condition = obj?.status?.conditions?.find(condition => condition.type === 'Validated');
 
   return (
@@ -133,7 +133,8 @@ const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
           className: tableColumnInfo[4].className,
         },
         id: tableColumnInfo[4].id,
-      }, {
+      },
+      {
         title: '',
         props: {
           className: tableColumnInfo[5].className,

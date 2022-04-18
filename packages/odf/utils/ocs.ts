@@ -1,3 +1,4 @@
+import { CEPH_STORAGE_NAMESPACE } from "@odf/shared/constants";
 import { NamespaceModel } from "@odf/shared/models";
 import { DeviceSet, K8sResourceKind, NodeKind, ResourceConstraints, StorageClassResourceKind, StorageClusterKind, Taint } from "@odf/shared/types";
 import { humanizeCpuCores, convertToBaseValue } from "@odf/shared/utils";
@@ -5,7 +6,7 @@ import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { MatchExpression } from "@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types";
 import * as _ from "lodash";
-import { CEPH_STORAGE_NAMESPACE, HOSTNAME_LABEL_KEY, LABEL_OPERATOR, MINIMUM_NODES, ocsTaint, OCS_PROVISIONERS, RACK_LABEL, ZONE_LABELS } from "../constants";
+import { HOSTNAME_LABEL_KEY, LABEL_OPERATOR, MINIMUM_NODES, ocsTaint, OCS_PROVISIONERS, RACK_LABEL, ZONE_LABELS } from "../constants";
 
 const NODE_ROLE_PREFIX = 'node-role.kubernetes.io/';
 

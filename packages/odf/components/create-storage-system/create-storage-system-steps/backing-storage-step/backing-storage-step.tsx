@@ -1,22 +1,20 @@
 import * as React from 'react';
 import {   
   STORAGE_CLUSTER_SYSTEM_KIND,
-  CEPH_STORAGE_NAMESPACE,
   NO_PROVISIONER,
 } from '@odf/core/constants';
 import { scResource } from '@odf/core/resources';
 import { 
   BackingStorageType,
   DeploymentType,
-  StorageSystemKind,
   ExternalStorage,
 } from '@odf/core/types';
 import {
-  getODFCsv,
   getStorageSystemKind,
   getSupportedVendors,
 } from '@odf/core/utils';
 import DevPreviewBadge  from '@odf/shared/badges/DevPreviewBadge';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
@@ -24,8 +22,8 @@ import {
   StorageClassModel,
 } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import { ListKind, StorageClassResourceKind, ClusterServiceVersionKind } from '@odf/shared/types';
-import { isDefaultClass } from '@odf/shared/utils';
+import { ListKind, StorageClassResourceKind, ClusterServiceVersionKind, StorageSystemKind } from '@odf/shared/types';
+import { isDefaultClass, getODFCsv } from '@odf/shared/utils';
 import { useTranslation } from 'react-i18next';
 import {
   Form,

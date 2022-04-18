@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { NetworkAttachmentDefinitionModel } from '@odf/core/models';
 import TechPreviewBadge from '@odf/shared/badges/TechPreviewBadge';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { ResourcesDropdown } from '@odf/shared/dropdown/ResourceDropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { getName } from '@odf/shared/selectors';
@@ -8,8 +9,7 @@ import { NetworkAttachmentDefinitionKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { useTranslation } from 'react-i18next';
-import { FormGroup, Radio } from '@patternfly/react-core';
-import { CEPH_STORAGE_NAMESPACE} from '../../../../constants'; 
+import { FormGroup, Radio } from '@patternfly/react-core';; 
 import { NetworkType, NADSelectorType} from '../../../../types';
 import './configure.scss';
 

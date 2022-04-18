@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE, CEPH_BRAND_NAME } from '@odf/core/constants';
+import { CEPH_BRAND_NAME } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { getODFVersion } from '@odf/core/utils';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { SubscriptionModel, SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { SecretKind, K8sResourceKind } from '@odf/shared/types';

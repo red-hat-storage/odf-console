@@ -1,10 +1,8 @@
+import { ODF_OPERATOR } from '@odf/shared/constants';
 import { ClusterServiceVersionKind } from '@odf/shared/types';
 import { K8sResourceKind } from '@odf/shared/types';
 import * as _ from 'lodash';
-import { ODF_OPERATOR, ODF_VENDOR_ANNOTATION } from '../constants';
-
-export const getODFCsv = (csvList: ClusterServiceVersionKind[] = []) =>
-  csvList.find((csv) => csv?.metadata.name?.substring(0, ODF_OPERATOR.length) === ODF_OPERATOR);
+import { ODF_VENDOR_ANNOTATION } from '../constants';
 
 export const getSupportedVendors = (csv: ClusterServiceVersionKind): string[] => {
   const annotations = csv?.metadata?.annotations?.[ODF_VENDOR_ANNOTATION];

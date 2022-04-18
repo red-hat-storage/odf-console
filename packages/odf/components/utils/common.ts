@@ -10,6 +10,7 @@ import {
   createDeviceSet,
   shouldDeployAsMinimal,
 } from '@odf/core/utils';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { 
   getLabel,
   getName,
@@ -32,7 +33,6 @@ import {
   OCS_DEVICE_SET_REPLICA,
   ATTACHED_DEVICES_ANNOTATION,
   OCS_INTERNAL_CR_NAME,
-  CEPH_STORAGE_NAMESPACE,
 } from '../../constants';
 import { IBMFlashSystemModel, OCSStorageClusterModel } from '../../models';
 import { SUPPORTED_EXTERNAL_STORAGE } from '../create-storage-system/external-storage';

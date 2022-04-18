@@ -1,4 +1,7 @@
 import * as React from 'react';
+import { referenceForModel } from '@odf/shared/utils';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from "lodash";
 import { useTranslation } from 'react-i18next';
 import {
   DataList,
@@ -19,30 +22,58 @@ import {
   Text,
   Bullseye,
 } from '@patternfly/react-core';
+import { MAX_ALLOWED_CLUSTERS, MANAGED_CLUSTER_REGION_CLAIM } from '../../../constants/dr-policy';
+import { ACMManagedClusterModel } from '../../../models/models';
+import { ACMManagedClusterKind } from '../../../types/types';
 import './select-cluster-list.scss';
-import { MAX_ALLOWED_CLUSTERS } from '../../../constants/dr-policy';
+
 
 export type Cluster = {
   name: string;
   region: string;
-  zone?: string;
-};
+}& ODFInfo;
+
+type ODFInfo = {
+  storageSystem?: string;
+  storageClusterId?: string;
+  odfVersion?: string;
+  isValidODFVersion?: boolean
+  storageSystemLoaded?: boolean;
+  storageClusterIdLoaded?: boolean;
+  csvLoaded?: boolean;
+}
 
 const getFilteredClusters = (
   clusters: Cluster[],
   region: string,
   name: string,
-  zone: string
 ) => {
   let filteredClusters = clusters;
 
   if (region)
     filteredClusters = filteredClusters.filter((c) => c.region === region);
-  if (zone) filteredClusters = filteredClusters.filter((c) => c.zone === zone);
   if (name)
     filteredClusters = filteredClusters.filter((c) => c.name.includes(name));
   return filteredClusters;
 };
+
+const fetchRegion = (cluster: ACMManagedClusterKind): string =>
+    cluster?.status?.clusterClaims?.reduce((region, claim) => region || (claim?.name === MANAGED_CLUSTER_REGION_CLAIM && claim?.value), "");
+
+const filterRegions = (filteredClusters: Cluster[]) => 
+  filteredClusters?.reduce((acc, cluster) => {
+    if (!acc.includes(cluster?.region) && cluster?.region !== "") {
+      acc.push(cluster?.region);
+    };
+    return acc;
+  }, []);
+
+const getManagedClusterInfo = (cluster: ACMManagedClusterKind) =>(
+  {
+    "name": cluster?.metadata?.name,
+    "region": fetchRegion(cluster) ?? ""
+  }
+);
 
 export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   selectedClusters,
@@ -50,33 +81,47 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
 }) => {
   const { t } = useTranslation('plugin__odf-console');
   const [isRegionOpen, setIsRegionOpen] = React.useState(false);
-  const [isZoneOpen, setIsZoneOpen] = React.useState(false);
   const [region, setRegion] = React.useState('');
-  const [zone, setZone] = React.useState('');
   const [nameSearch, setNameSearch] = React.useState('');
-  const [clusters] = React.useState<Cluster[]>([]);
+  const [clusters, setClusters] = React.useState<Cluster[]>([]);
 
-  const onSelect: DataListCheckProps['onChange'] = (checked, event) => {
-    if (checked)
-      setSelectedClusters([
-        ...selectedClusters,
-        {
-          name: event.currentTarget.value,
-          region: event.currentTarget['data-region'],
-        },
-      ]);
-    else {
-      const newClusters = selectedClusters.filter(
-        (c: Cluster) => c.name !== event.currentTarget.value
-      );
-      setSelectedClusters(newClusters);
-    }
-  };
+  const [acmManagedClusters, acmManagedClustersLoaded, acmManagedClustersLoadError] = useK8sWatchResource<ACMManagedClusterKind[]>({
+    kind: referenceForModel(ACMManagedClusterModel),
+    isList: true,
+    namespaced: false,
+  });
+
+  React.useEffect(() => {
+    if(acmManagedClustersLoaded && !acmManagedClustersLoadError) {
+      setClusters(acmManagedClusters?.reduce((obj, acmManagedCluster) => ([...obj, getManagedClusterInfo(acmManagedCluster)]), []));
+    };
+  }, [acmManagedClusters, acmManagedClustersLoaded, acmManagedClustersLoadError]);
 
   const filteredClusters: Cluster[] = React.useMemo(
-    () => getFilteredClusters(clusters, region, nameSearch, zone),
-    [clusters, region, nameSearch, zone]
+    () => getFilteredClusters(clusters, region, nameSearch),
+    [clusters, region, nameSearch]
   );
+
+  const onSelect: DataListCheckProps['onChange'] = (checked, event) => {
+    const name = filteredClusters?.[Number(event.currentTarget.id)]?.name;
+    const region = filteredClusters?.[Number(event.currentTarget.id)]?.region;
+    if (checked)
+      setSelectedClusters((selectedClusters) => ({
+        ...selectedClusters,
+        [name]: {
+          name,
+          region,
+          storageClusterId: "",
+          storageSystem: "",
+          odfVersion: "",
+        },
+      }));
+    else {
+      const sc = _.cloneDeep(selectedClusters);
+      delete sc?.[name]
+      setSelectedClusters(sc);
+    }
+  };
 
   return (
     <div className="mco-select-cluster-list">
@@ -94,24 +139,12 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
               }}
               selections={region}
             >
-              <SelectOption value={t('Region')} isPlaceholder />
-              <SelectOption value="us-east-1" />
-            </Select>
-          </ToolbarItem>
-          <ToolbarItem className="mco-select-cluster-list__filter-toolbar-item">
-            <Select
-              isOpen={isZoneOpen}
-              onToggle={(open) => {
-                setIsZoneOpen(open);
-              }}
-              onSelect={(_, selection, isPlaceholder) => {
-                setZone(isPlaceholder ? '' : (selection as string));
-                setIsZoneOpen(false);
-              }}
-              selections={zone}
-            >
-              <SelectOption value={t('Zone')} isPlaceholder />
-              <SelectOption value="us-east-1a" />
+                <SelectOption value={t('Region')} isPlaceholder />
+                <>
+                  {filterRegions(filteredClusters).map((region) => (
+                    <SelectOption value={region} key={region}/>
+                  ))}
+                </>
             </Select>
           </ToolbarItem>
           <ToolbarItem className="mco-select-cluster-list__search-toolbar-item">
@@ -134,18 +167,17 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
           isCompact
           className="mco-select-cluster-list__data-list"
         >
-          {filteredClusters.map((fc) => (
-            <DataListItem key="">
+          {filteredClusters.map((fc, index) => (
+            <DataListItem key={fc?.name}>
               <DataListItemRow>
                 <DataListCheck
                   aria-labelledby={t('Checkbox to select cluster')}
+                  id={index.toString()}
                   onChange={onSelect}
-                  value={fc.name}
-                  data-region={fc.region}
-                  isChecked={selectedClusters.some((sc) => sc.name === fc.name)}
+                  isChecked={Object.keys(selectedClusters)?.some((scName) => scName === fc.name)}
                   isDisabled={
-                    selectedClusters.length === MAX_ALLOWED_CLUSTERS &&
-                    !selectedClusters.some((sc) => sc.name === fc.name)
+                    Object.keys(selectedClusters ?? [])?.length === MAX_ALLOWED_CLUSTERS &&
+                    !Object.keys(selectedClusters ?? [])?.some((scName) => scName === fc.name)
                   }
                 />
                 <DataListItemCells
@@ -167,7 +199,11 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   );
 };
 
+export type ManagedClusterMapping = {
+  [name in string] : Cluster;
+}
+
 type SelectClusterListProps = {
-  selectedClusters: Cluster[];
-  setSelectedClusters: React.Dispatch<React.SetStateAction<Cluster[]>>;
+  selectedClusters: ManagedClusterMapping;
+  setSelectedClusters: React.Dispatch<React.SetStateAction<ManagedClusterMapping>>;
 };

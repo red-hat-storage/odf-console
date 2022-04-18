@@ -2,7 +2,6 @@
   "name": "odf-console",
   "version": "0.0.0",
   "description": "ODF console",
-  "author": "bipuladh <badhikar@redhat.com>",
   "license": "MIT",
   "private": true,
   "workspaces": [

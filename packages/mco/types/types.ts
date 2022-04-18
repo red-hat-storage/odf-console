@@ -7,18 +7,10 @@ type ClusterStatus = {
   status: string;
 };
 
-export type ManagedCluster = {
-  name: string;
-  region: string;
-  s3profileName: string;
-  cidrs?: string;
-  clusterFence?: string;
-};
-
 export type DRPolicyKind = K8sResourceCommon & {
   spec: {
-    drClusterSet: ManagedCluster[];
-    schedulingInterval?: string;
+    drClusters: string[],
+    schedulingInterval: string;
     replicationClassSelector?: Selector;
   };
   status?: {
@@ -28,4 +20,28 @@ export type DRPolicyKind = K8sResourceCommon & {
     };
     phase: string;
   };
+};
+
+export type ACMManagedClusterKind =  K8sResourceCommon & {
+  status?: {
+    clusterClaims?: {
+      name: string,
+      value: string
+    }[]
+  };
+};
+
+export type MirrorPeerKind =  K8sResourceCommon & {
+  spec?: {
+    items: {
+      clusterName: string,
+      storageClusterRef: {
+        name: string,
+        namespace: string
+      }
+    }[],
+    schedulingIntervals?: string[],
+    manageS3: boolean,
+    type: string,
+  }
 };

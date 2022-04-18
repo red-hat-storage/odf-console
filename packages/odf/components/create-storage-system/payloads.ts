@@ -1,14 +1,14 @@
 import { getOCSRequestData, capacityAndNodesValidate } from '@odf/core/components/utils';
-import { Payload, DeploymentType, StorageSystemKind } from '@odf/core/types';
+import { Payload, DeploymentType } from '@odf/core/types';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { CustomResourceDefinitionModel, NodeModel } from '@odf/shared/models';
-import { K8sResourceKind, Patch } from '@odf/shared/types';
+import { K8sResourceKind, Patch, StorageSystemKind } from '@odf/shared/types';
 import { getAPIVersionForModel, k8sPatchByName } from '@odf/shared/utils';
 import { k8sCreate, k8sGet } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
 import {
   ocsTaint,
-  CEPH_STORAGE_NAMESPACE,
   defaultRequestSize,
   NO_PROVISIONER,
   CEPH_STORAGE_LABEL,

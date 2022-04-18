@@ -1,9 +1,7 @@
 import { Toleration, Taint } from '@odf/shared/types';
 import { TFunction } from 'i18next';
 
-export const CEPH_STORAGE_NAMESPACE = 'openshift-storage';
 export const CEPH_BRAND_NAME = 'Red Hat Ceph Storage';
-export const ODF_OPERATOR = 'odf-operator';
 export const NO_PROVISIONER = 'kubernetes.io/no-provisioner';
 export const STORAGE_CLUSTER_SYSTEM_KIND = 'storagecluster.ocs.openshift.io/v1';
 export const OCS_EXTERNAL_CR_NAME = 'ocs-external-storagecluster';

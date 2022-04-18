@@ -1,11 +1,11 @@
 import {
-  CephClusterModel,
   CephBlockPoolModel,
   OCSStorageClusterModel,
   NooBaaBackingStoreModel,
   NooBaaNamespaceStoreModel,
   LocalVolumeDiscoveryResult,
 } from '@odf/core/models';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import {
   PersistentVolumeModel,
   StorageClassModel,
@@ -13,10 +13,10 @@ import {
   PersistentVolumeClaimModel,
   SecretModel,
   SubscriptionModel,
+  CephClusterModel,
 } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';;
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
-import { CEPH_STORAGE_NAMESPACE } from './constants';
 
 export const cephClusterResource: WatchK8sResource = {
   kind: referenceForModel(CephClusterModel),

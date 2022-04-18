@@ -6,6 +6,7 @@ export const useK8sGet = <R extends K8sResourceCommon = K8sResourceCommon>(
   kind: K8sKind,
   name?: string,
   namespace?: string,
+  cluster?: string,
 ): [R, boolean, any] => {
   const [data, setData] = React.useState<R>();
   const [loaded, setLoaded] = React.useState(false);
@@ -17,7 +18,7 @@ export const useK8sGet = <R extends K8sResourceCommon = K8sResourceCommon>(
         setLoadError(null);
         setLoaded(false);
         setData(null);
-        const resource = await k8sGet({model: kind, name: name, ns: namespace}) as R;
+        const resource = await k8sGet({model: kind, name: name, ns: namespace, cluster: cluster}) as R;
         setData(resource);
       } catch (error) {
         setLoadError(error);
@@ -26,7 +27,7 @@ export const useK8sGet = <R extends K8sResourceCommon = K8sResourceCommon>(
       }
     };
     fetch();
-  }, [kind, name, namespace]);
+  }, [kind, name, namespace, cluster]);
 
   return [data, loaded, loadError];
 };

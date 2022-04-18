@@ -22,4 +22,4 @@ export enum K8sResourceConditionStatus {
     True = 'True',
     False = 'False',
     Unknown = 'Unknown',
-}
+};

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/core/constants';
 import { RGW_FLAG } from '@odf/core/features';
 import {
   OCS_OPERATOR,
@@ -9,6 +8,7 @@ import {
 } from '@odf/ocs/constants';
 import { DATA_CONSUMPTION_QUERIES } from '@odf/ocs/queries';
 import { getRangeVectorStats } from '@odf/shared/charts';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { ClusterServiceVersionModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
