@@ -26,17 +26,23 @@ type KebabProps = {
   isDisabled?: boolean;
 };
 
-const defaultKebabItems = (t: TFunction) => [
-  <DropdownItem key={ModalKeys.EDIT_LABELS} id={ModalKeys.EDIT_LABELS}>
-    {t('plugin__odf-console~Edit Labels')}
-  </DropdownItem>,
-  <DropdownItem key={ModalKeys.EDIT_ANN} id={ModalKeys.EDIT_ANN}>
-    {t('plugin__odf-console~Edit Annotations')}
-  </DropdownItem>,
-  <DropdownItem key={ModalKeys.DELETE} id={ModalKeys.DELETE}>
-    {t('plugin__odf-console~Delete')}
-  </DropdownItem>,
-];
+const defaultKebabItems = (t: TFunction) => ({
+  [ModalKeys.EDIT_LABELS]: (
+    <DropdownItem key={ModalKeys.EDIT_LABELS} id={ModalKeys.EDIT_LABELS}>
+      {t('plugin__odf-console~Edit Labels')}
+    </DropdownItem>
+  ),
+  [ModalKeys.EDIT_ANN]: (
+    <DropdownItem key={ModalKeys.EDIT_ANN} id={ModalKeys.EDIT_ANN}>
+      {t('plugin__odf-console~Edit Annotations')}
+    </DropdownItem>
+  ),
+  [ModalKeys.DELETE]: (
+    <DropdownItem key={ModalKeys.DELETE} id={ModalKeys.DELETE}>
+      {t('plugin__odf-console~Delete')}
+    </DropdownItem>
+  ),
+});
 
 export const Kebab: React.FC<KebabProps> = ({
   launchModal,
@@ -55,17 +61,42 @@ export const Kebab: React.FC<KebabProps> = ({
     launchModal(actionKey, extraProps);
   };
 
-  const drpodownItems = React.useMemo(() => {
-    const customItems = Object.entries(
-      customKebabItems ? customKebabItems(t) : {}
-    ).map(([k, v]) => {
+  const dropdownItems = React.useMemo(() => {
+    const defaultResolved = defaultKebabItems(t);
+    const customResolved = customKebabItems(t);
+    const { overrides, custom } = Object.entries(customResolved).reduce(
+      (acc, [k, v]) => {
+        if (
+          [
+            ModalKeys.EDIT_LABELS,
+            ModalKeys.EDIT_ANN,
+            ModalKeys.DELETE,
+          ].includes(k as ModalKeys)
+        ) {
+          acc['overrides'][k] = (
+            <DropdownItem key={k} id={k}>
+              {v}
+            </DropdownItem>
+          );
+        } else {
+          acc['custom'][k] = v;
+        }
+        return acc;
+      },
+      { overrides: {}, custom: {} }
+    );
+    const deafultItems = Object.values(
+      Object.assign(defaultResolved, overrides)
+    );
+    const customItems = Object.entries(custom).map(([k, v]) => {
       return (
         <DropdownItem key={k} id={k}>
           {v}
         </DropdownItem>
       );
     });
-    return [...customItems, ...defaultKebabItems(t)];
+
+    return [...customItems, ...deafultItems];
   }, [t, customKebabItems]);
 
   const toggle = React.useMemo(() => {
@@ -89,7 +120,7 @@ export const Kebab: React.FC<KebabProps> = ({
       toggle={toggle}
       isOpen={isOpen}
       isPlain={toggleType === 'Kebab' ? true : false}
-      dropdownItems={drpodownItems}
+      dropdownItems={dropdownItems}
       position="right"
     />
   );

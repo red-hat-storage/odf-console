@@ -1,61 +1,73 @@
 import { K8sResourceKind, Patch } from '@odf/shared/types';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
-import { K8sGroupVersionKind, K8sResourceKindReference, OwnerReference, GroupVersionKind } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sGroupVersionKind,
+  K8sResourceKindReference,
+  OwnerReference,
+  GroupVersionKind,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
-import { GetAPIVersionForModel } from  '../types';
+import { GetAPIVersionForModel } from '../types';
 
 const defaultClassAnnotation = 'storageclass.kubernetes.io/is-default-class';
-const betaDefaultStorageClassAnnotation = 'storageclass.beta.kubernetes.io/is-default-class';
+const betaDefaultStorageClassAnnotation =
+  'storageclass.beta.kubernetes.io/is-default-class';
 export const LAST_LANGUAGE_LOCAL_STORAGE_KEY = 'bridge/last-language';
 
 export const getAPIVersionForModel: GetAPIVersionForModel = (model) =>
   !model?.apiGroup ? model.apiVersion : `${model.apiGroup}/${model.apiVersion}`;
 
 export const referenceForModel = (model: K8sKind) =>
-    `${model.apiGroup}~${model.apiVersion}~${model.kind}`;
+  `${model.apiGroup}~${model.apiVersion}~${model.kind}`;
 
-export const referenceFor = (group: string) => (version: string) => (kind: string) => `${group}~${version}~${kind}`;
+export const referenceFor =
+  (group: string) => (version: string) => (kind: string) =>
+    `${group}~${version}~${kind}`;
 
 // Operator uses`<kind>.<apiGroup>/<apiVersion>`
 export const getGVK = (label: string) => {
-    const kind = label.slice(0, label.indexOf('.'));
-    const apiGroup = label.slice(label.indexOf('.') + 1, label.indexOf('/'));
-    const apiVersion = label.slice(label.indexOf('/') + 1, label.length);
-    return { kind, apiGroup, apiVersion };
+  const kind = label.slice(0, label.indexOf('.'));
+  const apiGroup = label.slice(label.indexOf('.') + 1, label.indexOf('/'));
+  const apiVersion = label.slice(label.indexOf('/') + 1, label.length);
+  return { kind, apiGroup, apiVersion };
 };
 
-export const referenceForGroupVersionKind = (group: string) => (version: string) => (
-    kind: string,
-) => [group, version, kind].join('~');
+export const referenceForGroupVersionKind =
+  (group: string) => (version: string) => (kind: string) =>
+    [group, version, kind].join('~');
 
-export const resourcePathFromModel = (model: K8sKind, name?: string, namespace?: string) => {
-    const { plural, namespaced, crd } = model;
-  
-    let url = '/k8s/';
-  
-    if (!namespaced) {
-      url += 'cluster/';
-    }
-  
-    if (namespaced) {
-      url += namespace ? `ns/${namespace}/` : 'all-namespaces/';
-    }
-  
-    if (crd) {
-      url += referenceForModel(model);
-    } else if (plural) {
-      url += plural;
-    }
-  
-    if (name) {
-      // Some resources have a name that needs to be encoded. For instance,
-      // Users can have special characters in the name like `#`.
-      url += `/${encodeURIComponent(name)}`;
-    }
-  
-    return url;
+export const resourcePathFromModel = (
+  model: K8sKind,
+  name?: string,
+  namespace?: string
+) => {
+  const { plural, namespaced, crd } = model;
+
+  let url = '/k8s/';
+
+  if (!namespaced) {
+    url += 'cluster/';
+  }
+
+  if (namespaced) {
+    url += namespace ? `ns/${namespace}/` : 'all-namespaces/';
+  }
+
+  if (crd) {
+    url += referenceForModel(model);
+  } else if (plural) {
+    url += plural;
+  }
+
+  if (name) {
+    // Some resources have a name that needs to be encoded. For instance,
+    // Users can have special characters in the name like `#`.
+    url += `/${encodeURIComponent(name)}`;
+  }
+
+  return url;
 };
 
 export const isDefaultClass = (storageClass: K8sResourceKind) => {
@@ -66,14 +78,20 @@ export const isDefaultClass = (storageClass: K8sResourceKind) => {
   );
 };
 
-export const getLastLanguage = (): string => localStorage.getItem(LAST_LANGUAGE_LOCAL_STORAGE_KEY);
+export const getLastLanguage = (): string =>
+  localStorage.getItem(LAST_LANGUAGE_LOCAL_STORAGE_KEY);
 
 export const k8sPatchByName = <R extends K8sResourceCommon>(
   kind: K8sKind,
   name: string,
   namespace: string,
-  data: Patch[],
-) => k8sPatch({model: kind, resource: { metadata: { name, namespace } }, data: data}) as Promise<R>;
+  data: Patch[]
+) =>
+  k8sPatch({
+    model: kind,
+    resource: { metadata: { name, namespace } },
+    data: data,
+  }) as Promise<R>;
 
 export const groupVersionFor = (apiVersion: string) => ({
   group: apiVersion.split('/').length === 2 ? apiVersion.split('/')[0] : 'core',

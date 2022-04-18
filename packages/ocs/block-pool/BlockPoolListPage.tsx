@@ -4,6 +4,7 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import {
   LaunchModal,
+  ModalKeys,
   useModalLauncher,
 } from '@odf/shared/modals/modalLauncher';
 import { StorageClassModel } from '@odf/shared/models';
@@ -94,6 +95,15 @@ type BlockPoolListProps = {
   loaded: boolean;
   loadError: any;
   rowData: any;
+};
+
+const customActionsMap = {
+  [ModalKeys.DELETE]: React.lazy(
+    () => import('../modals/block-pool/delete-block-pool-modal')
+  ),
+  [ModalKeys.EDIT_RES]: React.lazy(
+    () => import('../modals/block-pool/update-block-pool-modal')
+  ),
 };
 
 const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
@@ -286,16 +296,10 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
         {rawCapacity}
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
-        {mirroringStatus
-          ? t('Enabled')
-          : t('Disabled')}
+        {mirroringStatus ? t('Enabled') : t('Disabled')}
       </TableData>
       <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
-        <Tooltip
-          content={`${t(
-            'Last synced'
-          )} ${formatedDateTime}`}
-        >
+        <Tooltip content={`${t('Last synced')} ${formatedDateTime}`}>
           <StatusIconAndText
             title={mirroringImageHealth}
             icon={healthStateMapping[mirroringImageHealth]?.icon}
@@ -303,9 +307,7 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
         </Tooltip>
       </TableData>
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
-        {compressionStatus
-          ? t('Enabled')
-          : t('Disabled')}
+        {compressionStatus ? t('Enabled') : t('Disabled')}
       </TableData>
       <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
         {compressionStatus ? compressionSavings : '-'}
@@ -315,6 +317,10 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
           launchModal={launchModal}
           extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
           isDisabled={disableMenuAction(obj, cephCluster)}
+          customKebabItems={(t) => ({
+            [ModalKeys.EDIT_RES]: t('Edit resource'),
+            [ModalKeys.DELETE]: t('Delete'),
+          })}
         />
       </TableData>
     </>
@@ -364,7 +370,9 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
   const location = useLocation();
   const listPagePath: string = location.pathname;
 
-  const [ModalComponent, props, launchModal] = useModalLauncher();
+  const [ModalComponent, props, launchModal] = useModalLauncher(
+    customActionsMap as any
+  );
   const response = useK8sWatchResources<WatchType>(resources);
 
   const cephClusters = response.ceph.data;

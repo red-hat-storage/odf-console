@@ -100,6 +100,7 @@ const enum Status {
 }
 const isBound = (pvc: K8sResourceKind) => pvc.status.phase === Status.BOUND;
 const getPVStorageClass = (pv: K8sResourceKind) => pv?.spec?.storageClassName;
+
 export const getStorageClassName = (pvc: K8sResourceKind) =>
   pvc?.spec?.storageClassName ||
   pvc?.metadata?.annotations?.['volume.beta.kubernetes.io/storage-class'];
