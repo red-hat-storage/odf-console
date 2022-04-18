@@ -10,7 +10,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classnames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,6 +24,7 @@ import { LaunchModal, ModalKeys } from '../modals/modalLauncher';
 import { ResourceIcon } from '../resource-link/resource-link';
 import { getName } from '../selectors';
 import { K8sResourceKind } from '../types';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForModel } from '../utils';
 import { getPropertyDescription } from '../utils/swagger';
 import { LabelList } from './label-list';
@@ -180,7 +180,7 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
   valueClassName,
   model,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const hide = hideEmpty && _.isEmpty(_.get(obj, path));
   const popoverContent: string =
     description ?? getPropertyDescription(model, path);
@@ -268,7 +268,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   launchModal,
   resourceModel,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const { metadata } = resource;
   const reference = referenceForModel(resourceModel);
   const [canUpdateAccess] = useAccessReview({

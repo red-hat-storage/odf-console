@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Label } from '@patternfly/react-core';
 import './Badge.scss';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 const DevPreviewBadge: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return <Label className="ocs-preview-badge">{t('Dev preview')}</Label>;
 };
 

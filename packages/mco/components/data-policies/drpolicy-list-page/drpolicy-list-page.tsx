@@ -4,6 +4,7 @@ import {
   LaunchModal,
   useModalLauncher,
 } from '@odf/shared/modals/modalLauncher';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   ListPageHeader,
@@ -20,7 +21,6 @@ import {
  } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { DRPolicyModel } from '../../../models/models';
@@ -54,7 +54,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
   rowData
 }) => {
   const { launchModal } = rowData;
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   
   const clusterNames = obj?.spec?.drClusters?.map(clusterName => <p key={clusterName}> {clusterName} </p>);
   const condition = obj?.status?.conditions?.find(condition => condition.type === 'Validated');
@@ -87,7 +87,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
   };
 
 const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   
   const Header = React.useMemo<
     TableColumn<DRPolicyKind>[]
@@ -171,7 +171,7 @@ type DRPolicyListProps = {
 };
 
 export const DRPolicyListPage: React.FC<RouteComponentProps> = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [ModalComponent, props, launchModal] = useModalLauncher();
   const createProps =`/multicloud/data-services/data-policies/${referenceForModel(DRPolicyModel)}/~new`;
 

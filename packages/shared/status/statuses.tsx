@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
 import { InProgressIcon } from '@patternfly/react-icons';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import GenericStatus from './GenericStatus';
 import { RedExclamationCircleIcon, GreenCheckCircleIcon, BlueInfoCircleIcon } from './icons';
 import { StatusComponentProps } from './types';
@@ -21,7 +21,7 @@ export const ProgressStatus: React.FC<StatusComponentProps> = (props) => (
 ProgressStatus.displayName = 'ProgressStatus';
 
 export const SuccessStatus: React.FC<StatusComponentProps> = (props) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <GenericStatus
       {...props}

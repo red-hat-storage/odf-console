@@ -2,7 +2,6 @@ import * as React from 'react';
 import { CopyToClipboard } from '@odf/shared/utils/copy-to-clipboard';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { Base64 } from 'js-base64';
-import { useTranslation } from 'react-i18next';
 import { Button } from '@patternfly/react-core';
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
 import { EmptyBox } from '../generic/status-box';
@@ -10,6 +9,7 @@ import { SectionHeading } from '../heading/page-heading';
 import { ConfigMapModel, SecretModel } from '../models';
 import { getName, getNamespace } from '../selectors';
 import { ConfigMapKind, K8sResourceKind, SecretKind } from '../types';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 type SecretValueProps = {
   value: string;
@@ -18,7 +18,7 @@ type SecretValueProps = {
 };
 
 export const MaskedData: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   return (
     <>
       <span className="sr-only">{t('Value hidden')}</span>
@@ -28,7 +28,7 @@ export const MaskedData: React.FC<{}> = () => {
 };
 
 export const SecretValue: React.FC<SecretValueProps> = ({ value, reveal, encoded = true }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   if (!value) {
     return <span className="text-muted">{t('No value')}</span>;
   }
@@ -39,7 +39,7 @@ export const SecretValue: React.FC<SecretValueProps> = ({ value, reveal, encoded
 };
 
 export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [reveal, setReveal] = React.useState(false);
 
   const name = getName(obj);

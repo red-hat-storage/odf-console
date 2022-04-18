@@ -1,11 +1,11 @@
 import * as React from 'react';
 import InfoCircleIcon from '@patternfly/react-icons/dist/js/icons/info-circle-icon';
-import { useTranslation } from 'react-i18next';
 import { Label, Tooltip } from '@patternfly/react-core';
 import './Badge.scss';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const AdvancedSubscription: React.FC<AdvancedSubscriptionProps> = ({ prefix }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <>
       {prefix}{' '}

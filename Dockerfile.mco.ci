@@ -1,0 +1,17 @@
+FROM node:15 AS builder
+WORKDIR /app
+COPY . /app
+RUN sed -i "s/\"name\": \"odf-console\"/\"name\": \"odf-multicluster-console\"/" package.json
+RUN yarn install
+RUN yarn build-mco
+
+
+FROM quay.io/ocs-dev/cypress:latest as serverpackage
+RUN yarn global add http-server
+RUN export PATH="$(yarn global bin):$PATH"
+
+FROM serverpackage
+COPY --from=builder /app/dist /app
+COPY --from=builder /app/dist /app/compatibility
+COPY --from=builder /app/http-server.sh .
+ENTRYPOINT [ "./http-server.sh", "./app" ]

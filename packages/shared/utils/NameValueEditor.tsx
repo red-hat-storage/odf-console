@@ -3,13 +3,13 @@ import classNames from 'classnames';
 import * as _ from 'lodash';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useTranslation } from 'react-i18next';
 import { Button, Tooltip } from '@patternfly/react-core';
 import {
   GripVerticalIcon,
   MinusCircleIcon,
   PlusCircleIcon,
 } from '@patternfly/react-icons';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 const withDragDropContext =
   <TProps extends {}>(
@@ -81,7 +81,7 @@ const PairElement: React.FC<PairElementProps> = ({
   valueString,
   alwaysAllowRemove,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const deleteIcon = (
     <>
       <MinusCircleIcon className="pairs-list__side-btn pairs-list__delete-icon" />
@@ -191,7 +191,7 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
       nameString,
       valueString,
     }) => {
-      const { t } = useTranslation('plugin__odf-console');
+      const { t } = useCustomTranslation();
 
       const append = React.useCallback(() => {
         updateParentData({

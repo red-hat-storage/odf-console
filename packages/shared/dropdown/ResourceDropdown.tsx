@@ -8,7 +8,6 @@ import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-t
 import classNames from 'classnames';
 import * as fuzzy from 'fuzzysearch';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Dropdown,
   DropdownItem,
@@ -18,6 +17,7 @@ import {
 import { CaretDownIcon } from '@patternfly/react-icons';
 import { LoadingInline } from '../generic/Loading';
 import { getName, getUID } from '../selectors';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import './resourceDropdown.scss';
 
 const filterName = (searchText: string, resourceName: string) =>
@@ -130,7 +130,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
   const [selectedItem, setSelectedItem] = React.useState(null);
   const [searchText, setSearchText] = React.useState('');
 
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const [resources, loaded, loadError] =
     useK8sWatchResource<T[]>(watchResource);
@@ -278,7 +278,7 @@ export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
   const [selectedItem, setSelectedItem] = React.useState(null);
   const [searchText, setSearchText] = React.useState('');
 
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const resourcesObj: ResourcesObject<T> = useK8sWatchResources(watchResources);
 

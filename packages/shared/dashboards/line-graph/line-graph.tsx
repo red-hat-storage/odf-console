@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Chart,
   ChartAxis,
@@ -11,6 +10,7 @@ import {
 import { Title } from '@patternfly/react-core';
 import useRefWidth from '../../hooks/ref-width';
 import { HumanizeResult } from '../../types';
+import { useCustomTranslation } from '../../useCustomTranslationHook';
 import './line-graph.scss';
 
 type LineDataType = {
@@ -25,7 +25,7 @@ export type LineGraphProps = {
 };
 
 const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [ref, width] = useRefWidth();
   const lineData = data.map((datum, i) => ({
     x: String(i + 1),

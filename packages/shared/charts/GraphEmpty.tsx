@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const GraphEmpty: React.FC<GraphEmptyProps> = ({ height = 180, loading = false }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   return (
     <div

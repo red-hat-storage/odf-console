@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from "lodash";
-import { useTranslation } from 'react-i18next';
 import {
   DataList,
   DataListItem,
@@ -79,7 +79,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   selectedClusters,
   setSelectedClusters,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [isRegionOpen, setIsRegionOpen] = React.useState(false);
   const [region, setRegion] = React.useState('');
   const [nameSearch, setNameSearch] = React.useState('');

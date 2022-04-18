@@ -8,12 +8,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import { Alert, Button, Modal, ModalVariant } from '@patternfly/react-core';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
 import { LoadingInline } from '../generic/Loading';
 import { ClusterServiceVersionModel } from '../models';
 import { ClusterServiceVersionKind } from '../types/console-types';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import { groupVersionFor, referenceForOwnerRef } from '../utils';
 import { ModalBody, ModalFooter, ModalHeader, CommonModalProps } from './Modal';
 
@@ -59,7 +60,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
   isOpen,
   extraProps: { resource, resourceModel },
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -135,7 +136,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
     >
       <ModalBody>
         {isNamespaced ? (
-          <Trans t={t} ns="plugin__odf-console">
+          <Trans t={t}>
             Are you sure you want to delete{' '}
             <strong className="co-break-word">
               {{ resourceName: resource.metadata.name }}
@@ -144,7 +145,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
             <strong>{{ namespace: resource.metadata.namespace }}</strong>?
           </Trans>
         ) : (
-          <Trans t={t} ns="plugin__odf-console">
+          <Trans t={t}>
             Are you sure you want to delete{' '}
             <strong className="co-break-word">
               {{ resourceName: resource.metadata.name }}
@@ -161,7 +162,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
                 checked={!!isChecked}
               />
               {t(
-                'plugin__odf-console~Delete dependent objects of this resource'
+                'Delete dependent objects of this resource'
               )}
             </label>
           </div>
@@ -171,9 +172,9 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
             className="co-alert co-alert--margin-top"
             isInline
             variant="warning"
-            title={t('plugin__odf-console~Managed resource')}
+            title={t('Managed resource')}
           >
-            <Trans t={t} ns="plugin__odf-console">
+            <Trans t={t}>
               This resource is managed by{' '}
               <ResourceLink
                 className="modal__inline-resource-link"

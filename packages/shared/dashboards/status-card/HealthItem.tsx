@@ -2,8 +2,8 @@ import * as React from 'react';
 import SecondaryStatus from '@odf/shared/status/SecondaryStatus';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
 import { Button, Popover, PopoverPosition } from '@patternfly/react-core';
+import { useCustomTranslation } from '../../useCustomTranslationHook';
 import { healthStateMapping, healthStateMessage } from './states';
 
 export type HealthItemProps = {
@@ -39,7 +39,7 @@ const HealthItem: React.FC<HealthItemProps> = React.memo(
     children,
     maxWidth,
   }) => {
-    const { t } = useTranslation('plugin__odf-console');
+    const { t } = useCustomTranslation();
 
     const detailMessage = details || healthStateMessage(state, t);
 

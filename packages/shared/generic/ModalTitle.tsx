@@ -1,8 +1,7 @@
 import * as React from 'react';
-import i18next from 'i18next';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { ActionGroup, Button } from '@patternfly/react-core';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import { ButtonBar } from './ButtonBar';
 import CloseButton from './CloseButton';
 
@@ -62,10 +61,10 @@ export const ModalSubmitFooter: React.SFC<ModalSubmitFooterProps> = ({
   cancelText,
   submitDisabled,
   submitDanger,
-  resetText = i18next.t('plugin__odf-console~Reset'),
+  resetText,
   reset,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const onCancelClick = (e) => {
     e.stopPropagation();
     cancel(e);
@@ -90,7 +89,7 @@ export const ModalSubmitFooter: React.SFC<ModalSubmitFooterProps> = ({
             onClick={onResetClick}
             id="reset-action"
           >
-            {resetText}
+            {resetText || t('Reset')}
           </Button>
         )}
         <Button

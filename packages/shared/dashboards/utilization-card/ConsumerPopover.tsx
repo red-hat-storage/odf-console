@@ -6,7 +6,6 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   PopoverPosition,
@@ -18,6 +17,7 @@ import {
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import { getName, getNamespace } from '../../selectors';
+import { useCustomTranslation } from '../../useCustomTranslationHook';
 import {
   DataPoint,
   getInstantVectorStats,
@@ -46,7 +46,7 @@ const ConsumerPopover: React.FC<ConsumerPopoverProps> = React.memo(
     description,
     children,
   }) => {
-    const { t } = useTranslation();
+    const { t } = useCustomTranslation();
     const [isOpen, setOpen] = React.useState(false);
     const onShow = React.useCallback(() => setOpen(true), []);
     const onHide = React.useCallback(() => setOpen(false), []);
@@ -124,7 +124,7 @@ type ListItemProps = {
 
 export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
   ({ humanize, consumers, namespace, isOpen, description, children }) => {
-    const { t } = useTranslation();
+    const { t } = useCustomTranslation();
     const [currentConsumer, setCurrentConsumer] = React.useState(consumers[0]);
     const [dropdownOpen, setDropdownOpen] = React.useState(false);
     const { query, model, metric, fieldSelector } = currentConsumer;

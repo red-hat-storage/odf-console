@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   onChange,
@@ -22,7 +22,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     onChange(cSelected);
   };
 
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const items: JSX.Element[] = options.map((item) => <SelectOption key={item} value={item} />);
   
