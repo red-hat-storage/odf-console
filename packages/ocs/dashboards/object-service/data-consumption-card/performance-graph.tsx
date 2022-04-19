@@ -37,7 +37,10 @@ const PerformanceGraph: React.FC<PerformanceGraphProps> = ({
   const { t } = useTranslation();
   const [getDataArray, putDataArray] = dataPoints;
   const [containerRef, width] = useRefWidth();
-  const humanize = metricType === Metrics.BANDWIDTH ? humanizeDecimalBytesPerSec : humanizeSeconds;
+  const humanize =
+    metricType === Metrics.BANDWIDTH
+      ? humanizeDecimalBytesPerSec
+      : humanizeSeconds;
   const getData = getDataArray?.[0]?.map(convertNaNToNull);
   const putData = putDataArray?.[0]?.map(convertNaNToNull);
   const PUTLatestValue = humanize(getLatestValue(putData)).string;
@@ -72,9 +75,13 @@ const PerformanceGraph: React.FC<PerformanceGraphProps> = ({
             containerComponent={
               <ChartVoronoiContainer
                 voronoiDimension="x"
-                labelComponent={<ChartTooltip style={{ fontSize: 14, padding: 5 }} />}
+                labelComponent={
+                  <ChartTooltip style={{ fontSize: 14, padding: 5 }} />
+                }
                 labels={({ datum }) =>
-                  `${humanize(datum.y).string} at ${twentyFourHourTime(datum.x)}`
+                  `${humanize(datum.y).string} at ${twentyFourHourTime(
+                    datum.x
+                  )}`
                 }
               />
             }

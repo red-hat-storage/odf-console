@@ -1,20 +1,20 @@
 import { SecretKind } from '@odf/shared/types';
 
 export enum ProviderNames {
-    VAULT = 'vault',
-    HPCS = 'hpcs',
+  VAULT = 'vault',
+  HPCS = 'hpcs',
 }
 
 export enum VaultAuthMethods {
-    TOKEN = 'token',
-    KUBERNETES = 'kubernetes',
+  TOKEN = 'token',
+  KUBERNETES = 'kubernetes',
 }
 
 export enum KmsImplementations {
-    VAULT = 'vault', // used by rook for token-based vault, also used by ceph-csi for service account of same namespace
-    VAULT_TOKENS = 'vaulttokens', // used by ceph-csi for token-based vault
-    VAULT_TENANT_SA = 'vaulttenantsa', // used by ceph-csi for tenant service account
-    IBM_KEY_PROTECT = 'ibmkeyprotect', // used by both rook & ceph-csi
+  VAULT = 'vault', // used by rook for token-based vault, also used by ceph-csi for service account of same namespace
+  VAULT_TOKENS = 'vaulttokens', // used by ceph-csi for token-based vault
+  VAULT_TENANT_SA = 'vaulttenantsa', // used by ceph-csi for tenant service account
+  IBM_KEY_PROTECT = 'ibmkeyprotect', // used by both rook & ceph-csi
 }
 
 export enum KmsCsiConfigKeysMapping {
@@ -53,66 +53,66 @@ export enum KmsEncryptionLevel {
 }
 
 export type KMSConfig = {
-    [ProviderNames.VAULT]: VaultConfig;
-    [ProviderNames.HPCS]: HpcsConfig;
-    provider: ProviderNames;
+  [ProviderNames.VAULT]: VaultConfig;
+  [ProviderNames.HPCS]: HpcsConfig;
+  provider: ProviderNames;
 };
 
 export type VaultConfig = {
-    name: {
-      value: string;
-      valid: boolean;
-    };
-    address: {
-      value: string;
-      valid: boolean;
-    };
-    port: {
-      value: string;
-      valid: boolean;
-    };
-    authValue?: {
-      value: string;
-      valid: boolean;
-    };
-    authMethod: VaultAuthMethods;
-    backend: string;
-    caCert: SecretKind;
-    caCertFile: string;
-    tls: string;
-    clientCert: SecretKind;
-    clientCertFile: string;
-    clientKey: SecretKind;
-    clientKeyFile: string;
-    providerNamespace: string;
-    providerAuthNamespace: string;
-    providerAuthPath: string;
-    hasHandled: boolean;
+  name: {
+    value: string;
+    valid: boolean;
+  };
+  address: {
+    value: string;
+    valid: boolean;
+  };
+  port: {
+    value: string;
+    valid: boolean;
+  };
+  authValue?: {
+    value: string;
+    valid: boolean;
+  };
+  authMethod: VaultAuthMethods;
+  backend: string;
+  caCert: SecretKind;
+  caCertFile: string;
+  tls: string;
+  clientCert: SecretKind;
+  clientCertFile: string;
+  clientKey: SecretKind;
+  clientKeyFile: string;
+  providerNamespace: string;
+  providerAuthNamespace: string;
+  providerAuthPath: string;
+  hasHandled: boolean;
 };
 
 export type HpcsConfig = {
-    name: {
-      value: string;
-      valid: boolean;
-    };
-    instanceId: {
-      value: string;
-      valid: boolean;
-    };
-    apiKey: {
-      value: string;
-      valid: boolean;
-    };
-    rootKey: {
-      value: string;
-      valid: boolean;
-    };
-    baseUrl: {
-      value: string;
-      valid: boolean;
-    };
-    tokenUrl: string;
-    hasHandled: boolean;
+  name: {
+    value: string;
+    valid: boolean;
+  };
+  instanceId: {
+    value: string;
+    valid: boolean;
+  };
+  apiKey: {
+    value: string;
+    valid: boolean;
+  };
+  rootKey: {
+    value: string;
+    valid: boolean;
+  };
+  baseUrl: {
+    value: string;
+    valid: boolean;
+  };
+  tokenUrl: string;
+  hasHandled: boolean;
 };
 
 export enum HPCSParams {
@@ -176,7 +176,10 @@ export const VaultAuthMethodMapping: {
   [VaultAuthMethods.TOKEN]: {
     name: 'Token',
     value: VaultAuthMethods.TOKEN,
-    supportedEncryptionType: [KmsEncryptionLevel.CLUSTER_WIDE, KmsEncryptionLevel.STORAGE_CLASS],
+    supportedEncryptionType: [
+      KmsEncryptionLevel.CLUSTER_WIDE,
+      KmsEncryptionLevel.STORAGE_CLASS,
+    ],
   },
 };
 

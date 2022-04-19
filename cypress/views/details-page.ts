@@ -1,3 +1,3 @@
 export const detailsPage = {
-    getResourceTitle: () => cy.byLegacyTestID('resource-title'),
-}
+  getResourceTitle: () => cy.byLegacyTestID('resource-title'),
+};

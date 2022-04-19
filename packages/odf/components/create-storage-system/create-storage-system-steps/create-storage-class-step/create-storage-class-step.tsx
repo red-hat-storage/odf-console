@@ -35,7 +35,7 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
           value,
         },
       }),
-    [dispatch],
+    [dispatch]
   );
 
   return (

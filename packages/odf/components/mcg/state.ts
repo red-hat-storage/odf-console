@@ -1,4 +1,4 @@
-import { K8sResourceKind } from "@odf/shared/types";
+import { K8sResourceKind } from '@odf/shared/types';
 
 export type State = {
   name: string;
@@ -50,7 +50,10 @@ export const commonReducer = (state: State, action: Action) => {
     case 'setError':
       return Object.assign({}, state, { error: action.message });
     case 'setSize':
-      return Object.assign({}, state, { sizeUnit: action.unit, sizeValue: action.value });
+      return Object.assign({}, state, {
+        sizeUnit: action.unit,
+        sizeValue: action.value,
+      });
     case 'setPayload':
       return Object.assign({}, state, { payload: action.payload });
     case 'setBucketClass':

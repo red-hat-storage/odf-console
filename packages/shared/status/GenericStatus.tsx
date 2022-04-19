@@ -10,7 +10,15 @@ type GenericStatusProps = StatusComponentProps & {
 };
 
 const GenericStatus: React.FC<GenericStatusProps> = (props) => {
-  const { Icon, children, popoverTitle, title, noTooltip, iconOnly, ...restProps } = props;
+  const {
+    Icon,
+    children,
+    popoverTitle,
+    title,
+    noTooltip,
+    iconOnly,
+    ...restProps
+  } = props;
   const renderIcon = iconOnly && !noTooltip ? <Icon title={title} /> : <Icon />;
   const statusBody = (
     <StatusIconAndText
@@ -22,7 +30,11 @@ const GenericStatus: React.FC<GenericStatusProps> = (props) => {
     />
   );
   return React.Children.toArray(children).length ? (
-    <PopoverStatus title={popoverTitle || title} {...restProps} statusBody={statusBody}>
+    <PopoverStatus
+      title={popoverTitle || title}
+      {...restProps}
+      statusBody={statusBody}
+    >
       {children}
     </PopoverStatus>
   ) : (

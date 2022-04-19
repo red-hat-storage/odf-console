@@ -1,6 +1,6 @@
-import { Alert, PrometheusLabels } from "@openshift-console/dynamic-plugin-sdk";
-import * as _ from "lodash";
-import { MonitoringResource } from "./types";
+import { Alert, PrometheusLabels } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash';
+import { MonitoringResource } from './types';
 
 export const AlertResource: MonitoringResource = {
   kind: 'Alert',
@@ -10,8 +10,10 @@ export const AlertResource: MonitoringResource = {
 };
 
 export const labelsToParams = (labels: PrometheusLabels) =>
-  _.map(labels, (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+  _.map(
+    labels,
+    (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+  ).join('&');
 
 export const alertURL = (alert: Alert, ruleID: string) =>
   `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
-

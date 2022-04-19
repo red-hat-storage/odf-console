@@ -7,7 +7,10 @@ import { Checkbox, FormGroup } from '@patternfly/react-core';
 import { KMSEmptyState } from '../../../../constants';
 import { FEATURES } from '../../../../features';
 import { KMSConfigure } from '../../../kms-config/kms-config';
-import { ValidationMessage, ValidationType } from '../../../utils/common-odf-install-el';
+import {
+  ValidationMessage,
+  ValidationType,
+} from '../../../utils/common-odf-install-el';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './encryption.scss';
 
@@ -18,7 +21,10 @@ const EncryptionLabel: React.FC<{ label: string }> = ({ label }) => (
   </div>
 );
 
-const EncryptionLevel: React.FC<EncryptionLevelProps> = ({ encryption, dispatch }) => {
+const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
+  encryption,
+  dispatch,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
 
   const handleClusterWideEncryption = (isChecked: boolean) =>
@@ -49,7 +55,7 @@ const EncryptionLevel: React.FC<EncryptionLevelProps> = ({ encryption, dispatch 
       labelIcon={
         <FieldLevelHelp>
           {t(
-            'The StorageCluster encryption level can be set to include all components under the cluster (including StorageClass and PVs) or to include only StorageClass encryption. PV encryption can use an auth token that will be used with the KMS configuration to allow multi-tenancy.',
+            'The StorageCluster encryption level can be set to include all components under the cluster (including StorageClass and PVs) or to include only StorageClass encryption. PV encryption can use an auth token that will be used with the KMS configuration to allow multi-tenancy.'
           )}
         </FieldLevelHelp>
       }
@@ -70,7 +76,7 @@ const EncryptionLevel: React.FC<EncryptionLevelProps> = ({ encryption, dispatch 
         data-checked-state={encryption.storageClass}
         label={<EncryptionLabel label={t('StorageClass encryption')} />}
         description={t(
-          'An encryption key will be generated for each persistent volume (block) created using an encryption enabled StorageClass.',
+          'An encryption key will be generated for each persistent volume (block) created using an encryption enabled StorageClass.'
         )}
         onChange={handleStorageClassEncryption}
       />
@@ -108,7 +114,7 @@ const KMSConnection: React.FC<EncryptionProps> = ({
         });
       }
     },
-    [dispatch, encryption],
+    [dispatch, encryption]
   );
 
   const label = isMCG ? (
@@ -152,12 +158,16 @@ export const Encryption: React.FC<EncryptionProps> = ({
   const { t } = useTranslation('plugin__odf-console');
   const isKmsSupported = useFlag(FEATURES.OCS_KMS);
   const [encryptionChecked, setEncryptionChecked] = React.useState(
-    encryption.clusterWide || encryption.storageClass,
+    encryption.clusterWide || encryption.storageClass
   );
 
   React.useEffect(() => {
     // To add validation message for encryption
-    if (!encryption.clusterWide && !encryption.storageClass && encryptionChecked) {
+    if (
+      !encryption.clusterWide &&
+      !encryption.storageClass &&
+      encryptionChecked
+    ) {
       dispatch({
         type: 'securityAndNetwork/setEncryption',
         payload: {
@@ -204,7 +214,7 @@ export const Encryption: React.FC<EncryptionProps> = ({
 
   const description = !isMCG
     ? t(
-        'Data encryption for block and file storage. MultiCloud Object Gateway is always encrypted.',
+        'Data encryption for block and file storage. MultiCloud Object Gateway is always encrypted.'
       )
     : t('MultiCloud Object Gateway is always encrypted.');
 
@@ -228,7 +238,12 @@ export const Encryption: React.FC<EncryptionProps> = ({
             isKmsSupported &&
             (isMCG || encryptionChecked) && (
               <>
-                {!isMCG && <EncryptionLevel encryption={encryption} dispatch={dispatch} />}
+                {!isMCG && (
+                  <EncryptionLevel
+                    encryption={encryption}
+                    dispatch={dispatch}
+                  />
+                )}
                 <KMSConnection
                   encryption={encryption}
                   kms={kms}
@@ -241,7 +256,9 @@ export const Encryption: React.FC<EncryptionProps> = ({
           }
         />
       </FormGroup>
-      {!encryption.hasHandled && <ValidationMessage validation={ValidationType.ENCRYPTION} />}
+      {!encryption.hasHandled && (
+        <ValidationMessage validation={ValidationType.ENCRYPTION} />
+      )}
     </>
   );
 };

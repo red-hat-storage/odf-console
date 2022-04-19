@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { calcPVsCapacity } from '@odf/core/utils'
+import { calcPVsCapacity } from '@odf/core/utils';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
 import { humanizeBinaryBytes } from '@odf/shared/utils/humanize';
 import { useTranslation } from 'react-i18next';
@@ -27,13 +27,10 @@ export const PVsAvailableCapacity: React.FC<PVAvaialbleCapacityProps> = ({
     availableCapacity = humanizeBinaryBytes(calcPVsCapacity(pvs)).string;
     availableStatusElement = (
       <div>
-        {t(
-          '{{availableCapacity}} /  {{replica}} replicas',
-          {
-            availableCapacity,
-            replica,
-          }
-        )}
+        {t('{{availableCapacity}} /  {{replica}} replicas', {
+          availableCapacity,
+          replica,
+        })}
       </div>
     );
   } else if (loaded || loadError) {

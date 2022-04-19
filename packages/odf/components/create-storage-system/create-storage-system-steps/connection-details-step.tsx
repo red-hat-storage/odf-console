@@ -22,7 +22,7 @@ export const ConnectionDetails: React.FC<ConnectionDetailsProps> = ({
           value,
         },
       }),
-    [dispatch],
+    [dispatch]
   );
 
   return (

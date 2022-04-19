@@ -64,13 +64,20 @@ export const Loading: React.FC<LoadingProps> = ({ className }) => (
 );
 Loading.displayName = 'Loading';
 
-export const LoadingInline: React.FC<{}> = () => <Loading className="co-m-loader--inline" />;
+export const LoadingInline: React.FC<{}> = () => (
+  <Loading className="co-m-loader--inline" />
+);
 LoadingInline.displayName = 'LoadingInline';
 
-export const LoadingBox: React.FC<LoadingBoxProps> = ({ className, message }) => (
+export const LoadingBox: React.FC<LoadingBoxProps> = ({
+  className,
+  message,
+}) => (
   <Box className={classNames('cos-status-box--loading', className)}>
     <Loading />
-    {message && <div className="cos-status-box__loading-message">{message}</div>}
+    {message && (
+      <div className="cos-status-box__loading-message">{message}</div>
+    )}
   </Box>
 );
 LoadingBox.displayName = 'LoadingBox';
@@ -87,7 +94,11 @@ export const EmptyBox: React.FC<EmptyBoxProps> = ({ label }) => {
 };
 EmptyBox.displayName = 'EmptyBox';
 
-export const MsgBox: React.FC<MsgBoxProps> = ({ title, detail, className = '' }) => (
+export const MsgBox: React.FC<MsgBoxProps> = ({
+  title,
+  detail,
+  className = '',
+}) => (
   <Box className={className}>
     {title && (
       <div className="cos-status-box__title" data-test="msg-box-title">
@@ -95,7 +106,10 @@ export const MsgBox: React.FC<MsgBoxProps> = ({ title, detail, className = '' })
       </div>
     )}
     {detail && (
-      <div className="pf-u-text-align-center cos-status-box__detail" data-test="msg-box-detail">
+      <div
+        className="pf-u-text-align-center cos-status-box__detail"
+        data-test="msg-box-detail"
+      >
         {detail}
       </div>
     )}
@@ -109,16 +123,23 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({ message }) => {
     <div>
       <Box className="pf-u-text-align-center">
         {
-            // (ToDo) Add an icon from PF here, if necessary.
-            // <img className="cos-status-box__access-denied-icon" src={restrictedSignImg} />
+          // (ToDo) Add an icon from PF here, if necessary.
+          // <img className="cos-status-box__access-denied-icon" src={restrictedSignImg} />
         }
         <MsgBox
           title={t('Restricted Access')}
-          detail={t("You don't have access to this section due to cluster policy.")}
+          detail={t(
+            "You don't have access to this section due to cluster policy."
+          )}
         />
       </Box>
       {_.isString(message) && (
-        <Alert isInline className="co-alert" variant="danger" title={t('Error details')}>
+        <Alert
+          isInline
+          className="co-alert"
+          variant="danger"
+          title={t('Error details')}
+        >
           {message}
         </Alert>
       )}
@@ -187,7 +208,7 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
                   style: 'long',
                   type: 'conjunction',
                 }).format(loadError.labels),
-              },
+              }
             )}
           />
           {props.children}
@@ -216,7 +237,11 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
   }
 
   if (!loaded) {
-    return skeleton ? <>{skeleton}</> : <LoadingBox className="loading-box loading-box__loading" />;
+    return skeleton ? (
+      <>{skeleton}</>
+    ) : (
+      <LoadingBox className="loading-box loading-box__loading" />
+    );
   }
   return <Data data={data} {...dataProps} />;
 };

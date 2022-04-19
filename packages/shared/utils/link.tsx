@@ -17,7 +17,7 @@ import { CopyIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
 //
 // And it's ok for users to make assumptions about capturing groups.
 
-const ALL_NAMESPACES_KEY = "#ALL_NS#";
+const ALL_NAMESPACES_KEY = '#ALL_NS#';
 
 export const legalNamePattern = /[a-z0-9](?:[-a-z0-9]*[a-z0-9])?/;
 
@@ -36,7 +36,8 @@ export const namespacedPrefixes = [
   '/status',
 ];
 
-export const stripBasePath = (path: string): string => path.replace(basePathPattern, '/');
+export const stripBasePath = (path: string): string =>
+  path.replace(basePathPattern, '/');
 
 export const getNamespace = (path: string): string => {
   path = stripBasePath(path);
@@ -47,7 +48,11 @@ export const getNamespace = (path: string): string => {
   }
 
   let ns: string;
-  if (split[1] === 'cluster' && ['namespaces', 'projects'].includes(split[2]) && split[3]) {
+  if (
+    split[1] === 'cluster' &&
+    ['namespaces', 'projects'].includes(split[2]) &&
+    split[3]
+  ) {
     ns = split[3];
   } else if (split[1] === 'ns' && split[2]) {
     ns = split[2];
@@ -101,7 +106,9 @@ export const ExternalLinkWithCopy: React.FC<ExternalLinkWithCopyProps> = ({
   const [copied, setCopied] = React.useState(false);
 
   const { t } = useTranslation();
-  const tooltipText = copied ? t('Copied to clipboard') : t('Copy to clipboard');
+  const tooltipText = copied
+    ? t('Copied to clipboard')
+    : t('Copy to clipboard');
   const tooltipContent = [
     <span className="co-nowrap" key="nowrap">
       {tooltipText}
@@ -110,7 +117,12 @@ export const ExternalLinkWithCopy: React.FC<ExternalLinkWithCopyProps> = ({
 
   return (
     <div className={classNames(additionalClassName)}>
-      <a href={link} target="_blank" rel="noopener noreferrer" data-test-id={dataTestID}>
+      <a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-test-id={dataTestID}
+      >
         {text ?? link}
       </a>
       <span className="co-icon-nowrap">
@@ -118,7 +130,11 @@ export const ExternalLinkWithCopy: React.FC<ExternalLinkWithCopyProps> = ({
         <span className="co-external-link-with-copy__icon co-external-link-with-copy__externallinkicon">
           <ExternalLinkAltIcon />
         </span>
-        <Tooltip content={tooltipContent} trigger="click mouseenter focus" exitDelay={1250}>
+        <Tooltip
+          content={tooltipContent}
+          trigger="click mouseenter focus"
+          exitDelay={1250}
+        >
           <CTC text={link} onCopy={() => setCopied(true)}>
             <span
               onMouseEnter={() => setCopied(false)}
@@ -135,8 +151,12 @@ export const ExternalLinkWithCopy: React.FC<ExternalLinkWithCopyProps> = ({
 };
 
 // Open links in a new window and set noopener/noreferrer.
-export const LinkifyExternal: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <Linkify properties={{ target: '_blank', rel: 'noopener noreferrer' }}>{children}</Linkify>
+export const LinkifyExternal: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <Linkify properties={{ target: '_blank', rel: 'noopener noreferrer' }}>
+    {children}
+  </Linkify>
 );
 LinkifyExternal.displayName = 'LinkifyExternal';
 

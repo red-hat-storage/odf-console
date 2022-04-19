@@ -1,11 +1,11 @@
 const configureKms = () => {
   cy.byTestID('storage-class-encryption').check();
   cy.byTestID('kms-service-name-text').type('vault');
-  cy.exec('echo http://$(oc get route vault --no-headers -o custom-columns=HOST:.spec.host)').then(
-    (hostname) => {
-      cy.byTestID('kms-address-text').type(hostname.stdout);
-    },
-  );
+  cy.exec(
+    'echo http://$(oc get route vault --no-headers -o custom-columns=HOST:.spec.host)'
+  ).then((hostname) => {
+    cy.byTestID('kms-address-text').type(hostname.stdout);
+  });
   cy.byTestID('kms-address-port-text').type('80');
   cy.byTestID('kms-advanced-settings-link').click();
   cy.byTestID('kms-service-backend-path').type('secret');
@@ -16,7 +16,11 @@ const configureKms = () => {
   cy.byTestID('kms-connection-dropdown').should('contain', 'vault');
 };
 
-export const createStorageClass = (scName: string, poolName?: string, encrypted?: boolean) => {
+export const createStorageClass = (
+  scName: string,
+  poolName?: string,
+  encrypted?: boolean
+) => {
   cy.clickNavLink(['Storage', 'StorageClasses']);
   cy.byTestID('item-create').click();
   cy.byLegacyTestID('storage-class-form')
@@ -25,8 +29,13 @@ export const createStorageClass = (scName: string, poolName?: string, encrypted?
 
   cy.log('Selecting Ceph RBD provisioner');
   cy.byTestID('storage-class-provisioner-dropdown').click();
-  cy.byLegacyTestID('dropdown-text-filter').type('openshift-storage.rbd.csi.ceph.com');
-  cy.byTestID('dropdown-menu-item-link').should('contain', 'openshift-storage.rbd.csi.ceph.com');
+  cy.byLegacyTestID('dropdown-text-filter').type(
+    'openshift-storage.rbd.csi.ceph.com'
+  );
+  cy.byTestID('dropdown-menu-item-link').should(
+    'contain',
+    'openshift-storage.rbd.csi.ceph.com'
+  );
   cy.byTestID('dropdown-menu-item-link').click();
 
   cy.log('Enable encryption');
@@ -39,9 +48,7 @@ export const createStorageClass = (scName: string, poolName?: string, encrypted?
   cy.log('Creating new StorageClass');
   cy.byTestID('storage-class-volume-binding-mode').click();
   cy.byTestDropDownMenu('Immediate').click();
-  cy.byLegacyTestID('storage-class-form')
-    .get('button#save-changes')
-    .click();
+  cy.byLegacyTestID('storage-class-form').get('button#save-changes').click();
   cy.byLegacyTestID('resource-title').contains(scName);
 };
 

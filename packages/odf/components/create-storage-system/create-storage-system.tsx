@@ -4,13 +4,13 @@ import { InfrastructureModel } from '@odf/shared/models';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { ListKind, StorageSystemKind } from '@odf/shared/types';
 import { useTranslation } from 'react-i18next';
-import { RouteComponentProps, match as RouteMatch, useHistory } from 'react-router';
-import { Wizard, WizardStep } from '@patternfly/react-core';
 import {
-  Steps,
-  StepsName,
-  STORAGE_CLUSTER_SYSTEM_KIND,
-} from '../../constants';
+  RouteComponentProps,
+  useHistory,
+  match as RouteMatch,
+} from 'react-router';
+import { Wizard, WizardStep } from '@patternfly/react-core';
+import { Steps, StepsName, STORAGE_CLUSTER_SYSTEM_KIND } from '../../constants';
 import { createSteps } from './create-steps';
 import { BackingStorage } from './create-storage-system-steps';
 import { CreateStorageSystemFooter } from './footer';
@@ -20,11 +20,16 @@ import { initialState, reducer, WizardReducer } from './reducer';
 const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
   const { t } = useTranslation('plugin__odf-console');
   const history = useHistory();
-  const [state, dispatch] = React.useReducer<WizardReducer>(reducer, initialState);
-  const [ssList, ssLoaded, ssLoadError] = useK8sGet<ListKind<StorageSystemKind>>(
-    ODFStorageSystem,
+  const [state, dispatch] = React.useReducer<WizardReducer>(
+    reducer,
+    initialState
   );
-  const [infra, infraLoaded, infraLoadError] = useK8sGet<any>(InfrastructureModel, 'cluster');
+  const [ssList, ssLoaded, ssLoadError] =
+    useK8sGet<ListKind<StorageSystemKind>>(ODFStorageSystem);
+  const [infra, infraLoaded, infraLoadError] = useK8sGet<any>(
+    InfrastructureModel,
+    'cluster'
+  );
   const infraType = infra?.spec?.platformSpec?.type;
 
   const url = history.location.pathname;
@@ -33,7 +38,9 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
   let hasOCS: boolean = false;
 
   if (ssLoaded && !ssLoadError && infraLoaded && !infraLoadError) {
-    hasOCS = ssList?.items?.some((ss) => ss.spec.kind === STORAGE_CLUSTER_SYSTEM_KIND);
+    hasOCS = ssList?.items?.some(
+      (ss) => ss.spec.kind === STORAGE_CLUSTER_SYSTEM_KIND
+    );
     wizardSteps = createSteps(t, state, dispatch, infraType, hasOCS, history);
   }
 
@@ -67,8 +74,10 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
             state={state}
             hasOCS={hasOCS}
             dispatch={dispatch}
-            disableNext={!ssLoaded || !!ssLoadError || !infraLoaded || !!infraLoadError}
-            history = {history}
+            disableNext={
+              !ssLoaded || !!ssLoadError || !infraLoaded || !!infraLoadError
+            }
+            history={history}
           />
         }
         cancelButtonText={t('Cancel')}

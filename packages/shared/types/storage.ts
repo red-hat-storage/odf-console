@@ -80,13 +80,12 @@ export type ResourceConstraints = {
 
 export type StorageSystemKind = K8sResourceCommon & {
   spec: {
-      kind: string;
-      name: string;
-      namespace: string;
+    kind: string;
+    name: string;
+    namespace: string;
   };
   status?: {
-      phase?: string;
-      conditions?: any;
+    phase?: string;
+    conditions?: any;
   };
 };
-

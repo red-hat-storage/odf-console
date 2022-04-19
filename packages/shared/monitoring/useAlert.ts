@@ -1,4 +1,4 @@
-import { usePrometheusPoll } from "@openshift-console/dynamic-plugin-sdk-internal";
+import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 
 const useAlerts = () => {
   const [alerts, error, loading] = usePrometheusPoll({
@@ -6,6 +6,6 @@ const useAlerts = () => {
     query: 'api/v1/rules',
   });
   return [alerts, !loading, error];
-}
+};
 
 export default useAlerts;

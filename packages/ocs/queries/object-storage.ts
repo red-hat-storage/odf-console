@@ -9,58 +9,66 @@ import {
 } from '../constants';
 
 export enum ObjectServiceDashboardQuery {
-    ACCOUNTS_BY_IOPS = 'ACCOUNTS_BY_IOPS',
-    ACCOUNTS_BY_LOGICAL_USAGE = 'ACCOUNTS_BY_LOGICAL_USAGE',
-    BUCKETS_BY_OTHERS = 'BUCKETS_BY_OTHERS',
-    BUCKETS_BY_USED = 'BUCKETS_BY_USED',
-    BUCKETS_QUERY = 'BUCKETS_QUERY',
-    BUCKETS_TOTAL_USED = 'BUCKETS_TOTAL_USED',
-    BUCKET_CLASS_CAPACITY_USAGE_QUERY = 'BUCKET_CLASS_CAPACITY_USAGE_QUERY',
-    CAPACITY_USAGE_BUCKET_CLASS_QUERY = 'CAPACITY_USAGE_BUCKET_CLASS_QUERY',
-    CAPACITY_USAGE_PROJECT_QUERY = 'CAPACITY_USAGE_PROJECT_QUERY',
-    NOOBAA_TOTAL_USED = 'NOOBAA_TOTAL_USED',
-    NOOBAA_USED = 'NOOBAA_USED',
-    OBJECT_STORAGE_TOTAL_USED = 'OBJECT_STORAGE_TOTAL_USED',
-    PROJECTS_BY_USED = 'PROJECTS_BY_USED',
-    PROJECTS_OTHERS = 'PROJECTS_OTHERS',
-    PROJECTS_QUERY = 'PROJECTS_QUERY',
-    PROJECTS_TOTAL_USED = 'PROJECTS_TOTAL_USED',
-    PROJECT_CAPACITY_USAGE_QUERY = 'PROJECT_CAPACITY_USAGE_QUERY',
-    PROVIDERS_BY_EGRESS = 'PROVIDERS_BY_EGRESS',
-    PROVIDERS_BY_IOPS = 'PROVIDERS_BY_IOPS',
-    PROVIDERS_BY_PHYSICAL_VS_LOGICAL_USAGE = 'PROVIDERS_BY_PHYSICAL_VS_LOGICAL_USAGE',
-    RGW_TOTAL_USED = 'RGW_TOTAL_USED',
-    RGW_USED = 'RGW_USED',
-    // Data Resiliency Query
-    MCG_REBUILD_PROGRESS_QUERY = 'MCG_REBUILD_PROGRESS_QUERY',
-    MCG_REBUILD_TIME_QUERY = 'MCG_REBUILD_TIME_QUERY',
-    RGW_REBUILD_PROGRESS_QUERY = 'RGW_REBUILD_PROGRESS_QUERY',
+  ACCOUNTS_BY_IOPS = 'ACCOUNTS_BY_IOPS',
+  ACCOUNTS_BY_LOGICAL_USAGE = 'ACCOUNTS_BY_LOGICAL_USAGE',
+  BUCKETS_BY_OTHERS = 'BUCKETS_BY_OTHERS',
+  BUCKETS_BY_USED = 'BUCKETS_BY_USED',
+  BUCKETS_QUERY = 'BUCKETS_QUERY',
+  BUCKETS_TOTAL_USED = 'BUCKETS_TOTAL_USED',
+  BUCKET_CLASS_CAPACITY_USAGE_QUERY = 'BUCKET_CLASS_CAPACITY_USAGE_QUERY',
+  CAPACITY_USAGE_BUCKET_CLASS_QUERY = 'CAPACITY_USAGE_BUCKET_CLASS_QUERY',
+  CAPACITY_USAGE_PROJECT_QUERY = 'CAPACITY_USAGE_PROJECT_QUERY',
+  NOOBAA_TOTAL_USED = 'NOOBAA_TOTAL_USED',
+  NOOBAA_USED = 'NOOBAA_USED',
+  OBJECT_STORAGE_TOTAL_USED = 'OBJECT_STORAGE_TOTAL_USED',
+  PROJECTS_BY_USED = 'PROJECTS_BY_USED',
+  PROJECTS_OTHERS = 'PROJECTS_OTHERS',
+  PROJECTS_QUERY = 'PROJECTS_QUERY',
+  PROJECTS_TOTAL_USED = 'PROJECTS_TOTAL_USED',
+  PROJECT_CAPACITY_USAGE_QUERY = 'PROJECT_CAPACITY_USAGE_QUERY',
+  PROVIDERS_BY_EGRESS = 'PROVIDERS_BY_EGRESS',
+  PROVIDERS_BY_IOPS = 'PROVIDERS_BY_IOPS',
+  PROVIDERS_BY_PHYSICAL_VS_LOGICAL_USAGE = 'PROVIDERS_BY_PHYSICAL_VS_LOGICAL_USAGE',
+  RGW_TOTAL_USED = 'RGW_TOTAL_USED',
+  RGW_USED = 'RGW_USED',
+  // Data Resiliency Query
+  MCG_REBUILD_PROGRESS_QUERY = 'MCG_REBUILD_PROGRESS_QUERY',
+  MCG_REBUILD_TIME_QUERY = 'MCG_REBUILD_TIME_QUERY',
+  RGW_REBUILD_PROGRESS_QUERY = 'RGW_REBUILD_PROGRESS_QUERY',
 }
 
 export const dataResiliencyQueryMap = {
-    [ObjectServiceDashboardQuery.MCG_REBUILD_PROGRESS_QUERY]: 'NooBaa_rebuild_progress/100',
-    [ObjectServiceDashboardQuery.MCG_REBUILD_TIME_QUERY]: 'NooBaa_rebuild_time',
-    [ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY]: (rgwPrefix: string = '') =>
-      _.template(
-        'sum(ceph_pool_metadata{name=~"<%= name %>"}*on (job, namespace, pool_id) group_right(name) (ceph_pg_active and ceph_pg_clean)) / sum(ceph_pool_metadata{name=~"<%= name %>"} *on (job, namespace, pool_id) group_right(name) ceph_pg_total)',
-      )({
-        name: rgwPrefix
-          ? `${rgwPrefix}.rgw.*`
-          : '(ocs-storagecluster-cephblockpool)|(ocs-storagecluster-cephfilesystem-data0)',
-      }),
+  [ObjectServiceDashboardQuery.MCG_REBUILD_PROGRESS_QUERY]:
+    'NooBaa_rebuild_progress/100',
+  [ObjectServiceDashboardQuery.MCG_REBUILD_TIME_QUERY]: 'NooBaa_rebuild_time',
+  [ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY]: (
+    rgwPrefix: string = ''
+  ) =>
+    _.template(
+      'sum(ceph_pool_metadata{name=~"<%= name %>"}*on (job, namespace, pool_id) group_right(name) (ceph_pg_active and ceph_pg_clean)) / sum(ceph_pool_metadata{name=~"<%= name %>"} *on (job, namespace, pool_id) group_right(name) ceph_pg_total)'
+    )({
+      name: rgwPrefix
+        ? `${rgwPrefix}.rgw.*`
+        : '(ocs-storagecluster-cephblockpool)|(ocs-storagecluster-cephfilesystem-data0)',
+    }),
 };
 
 export const MCG_CAPACITY_BREAKDOWN_QUERIES = {
-  [ObjectServiceDashboardQuery.PROJECTS_BY_USED]: 'NooBaa_projects_capacity_usage',
-  [ObjectServiceDashboardQuery.BUCKETS_BY_USED]: 'NooBaa_bucket_class_capacity_usage',
-  [ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED]: 'sum(NooBaa_providers_physical_size)',
+  [ObjectServiceDashboardQuery.PROJECTS_BY_USED]:
+    'NooBaa_projects_capacity_usage',
+  [ObjectServiceDashboardQuery.BUCKETS_BY_USED]:
+    'NooBaa_bucket_class_capacity_usage',
+  [ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED]:
+    'sum(NooBaa_providers_physical_size)',
   [ObjectServiceDashboardQuery.RGW_TOTAL_USED]: (rgwPrefix: string = '') =>
     _.template(
-      'sum(ceph_pool_metadata{name=~"<%= name %>rgw.buckets.data"} *on (job, namespace, pool_id) group_right(name) ceph_pool_stored) - max(NooBaa_providers_physical_size{type="S3_COMPATIBLE"} or vector(0))',
+      'sum(ceph_pool_metadata{name=~"<%= name %>rgw.buckets.data"} *on (job, namespace, pool_id) group_right(name) ceph_pool_stored) - max(NooBaa_providers_physical_size{type="S3_COMPATIBLE"} or vector(0))'
     )({ name: rgwPrefix ? `${rgwPrefix}.` : '.*' }),
-  [ObjectServiceDashboardQuery.OBJECT_STORAGE_TOTAL_USED]: (rgwPrefix: string = '') =>
+  [ObjectServiceDashboardQuery.OBJECT_STORAGE_TOTAL_USED]: (
+    rgwPrefix: string = ''
+  ) =>
     _.template(
-      'sum(ceph_pool_metadata{name=~"<%= name %>rgw.buckets.data"} *on (job, namespace, pool_id) group_right(name) ceph_pool_stored) + max(sum(NooBaa_providers_physical_size{type!="S3_COMPATIBLE"}) or vector(0))',
+      'sum(ceph_pool_metadata{name=~"<%= name %>rgw.buckets.data"} *on (job, namespace, pool_id) group_right(name) ceph_pool_stored) + max(sum(NooBaa_providers_physical_size{type!="S3_COMPATIBLE"}) or vector(0))'
     )({
       name: rgwPrefix ? `${rgwPrefix}.` : '.*',
     }),
@@ -73,13 +81,17 @@ export const breakdownQueryMapMCG = {
       metric: '',
       queries: (rgwPrefix: string = '') => ({
         [ObjectServiceDashboardQuery.RGW_TOTAL_USED]: (() =>
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.RGW_TOTAL_USED](rgwPrefix))(),
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.RGW_TOTAL_USED
+          ](rgwPrefix))(),
         [ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED]:
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED],
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED
+          ],
         [ObjectServiceDashboardQuery.OBJECT_STORAGE_TOTAL_USED]: (() =>
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.OBJECT_STORAGE_TOTAL_USED](
-            rgwPrefix,
-          ))(),
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.OBJECT_STORAGE_TOTAL_USED
+          ](rgwPrefix))(),
       }),
     },
   },
@@ -89,10 +101,14 @@ export const breakdownQueryMapMCG = {
       metric: '',
       queries: {
         [ObjectServiceDashboardQuery.NOOBAA_USED]: `sum(${
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED]
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED
+          ]
         })`,
         [ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED]: `sum(${
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED]
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED
+          ]
         })`,
       },
     },
@@ -101,10 +117,14 @@ export const breakdownQueryMapMCG = {
       metric: 'project',
       queries: {
         [ObjectServiceDashboardQuery.PROJECTS_BY_USED]: `sort_desc(topk(5, ${
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.PROJECTS_BY_USED]
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.PROJECTS_BY_USED
+          ]
         }))`,
         [ObjectServiceDashboardQuery.PROJECTS_TOTAL_USED]: `sum(${
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.PROJECTS_BY_USED]
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.PROJECTS_BY_USED
+          ]
         })`,
       },
     },
@@ -113,10 +133,14 @@ export const breakdownQueryMapMCG = {
       metric: 'bucket_class',
       queries: {
         [ObjectServiceDashboardQuery.BUCKETS_BY_USED]: `sort_desc(topk(5, ${
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.BUCKETS_BY_USED]
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.BUCKETS_BY_USED
+          ]
         }))`,
         [ObjectServiceDashboardQuery.BUCKETS_TOTAL_USED]: `sum(${
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.BUCKETS_BY_USED]
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.BUCKETS_BY_USED
+          ]
         })`,
       },
     },
@@ -127,9 +151,13 @@ export const breakdownQueryMapMCG = {
       metric: '',
       queries: (rgwPrefix: string = '') => ({
         [ObjectServiceDashboardQuery.RGW_TOTAL_USED]: (() =>
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.RGW_TOTAL_USED](rgwPrefix))(),
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.RGW_TOTAL_USED
+          ](rgwPrefix))(),
         [ObjectServiceDashboardQuery.RGW_USED]: (() =>
-          MCG_CAPACITY_BREAKDOWN_QUERIES[ObjectServiceDashboardQuery.RGW_TOTAL_USED](rgwPrefix))(),
+          MCG_CAPACITY_BREAKDOWN_QUERIES[
+            ObjectServiceDashboardQuery.RGW_TOTAL_USED
+          ](rgwPrefix))(),
       }),
     },
   },
@@ -192,7 +220,6 @@ export enum StatusCardQueries {
   HEALTH_QUERY = 'NooBaa_health_status',
   MCG_REBUILD_PROGRESS_QUERY = 'NooBaa_rebuild_progress',
 }
-
 
 export enum Health {
   NOOBAA = 'NOOBAA',

@@ -42,22 +42,20 @@ xdescribe('Test block pool deletion under ODF UI', () => {
 
     cy.log('Delete a newly created block pool');
     navigateToBlockPool();
-    cy.byLegacyTestID('kebab-button')
-      .first()
-      .click();
+    cy.byLegacyTestID('kebab-button').first().click();
     cy.byTestActionID('Delete BlockPool').click();
 
     modal.modalTitleShouldContain('Delete BlockPool');
-    cy.byTestID('pool-bound-message').contains(poolMessage[POOL_PROGRESS.BOUNDED]);
+    cy.byTestID('pool-bound-message').contains(
+      poolMessage[POOL_PROGRESS.BOUNDED]
+    );
     cy.byTestID('pool-storage-classes').contains(scName);
     verifyFooterActions(POOL_PROGRESS.BOUNDED);
 
     cy.log('Delete pvc and try pool deletion');
     cy.exec(`oc delete PersistentVolumeClaim ${pvcName} -n openshift-storage`);
 
-    cy.byLegacyTestID('kebab-button')
-      .first()
-      .click();
+    cy.byLegacyTestID('kebab-button').first().click();
     cy.byTestActionID('Delete BlockPool').click();
     verifyFooterActions('delete');
   });
@@ -65,12 +63,12 @@ xdescribe('Test block pool deletion under ODF UI', () => {
   it('Deleting the default block pools should fail', () => {
     navigateToBlockPool();
     cy.log('Click delete kebab action');
-    cy.byLegacyTestID('kebab-button')
-      .last()
-      .click();
+    cy.byLegacyTestID('kebab-button').last().click();
     cy.byTestActionID('Delete BlockPool').click();
     cy.log('Deletion not allowed message is visible');
-    cy.byTestID('empty-state-body').contains(poolMessage[POOL_PROGRESS.NOTALLOWED]);
+    cy.byTestID('empty-state-body').contains(
+      poolMessage[POOL_PROGRESS.NOTALLOWED]
+    );
     verifyFooterActions(POOL_PROGRESS.NOTALLOWED);
   });
 });

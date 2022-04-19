@@ -1,7 +1,12 @@
 import { StorageClassResourceKind } from '@odf/shared/types';
 import { getLastLanguage } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
-import { CheckCircleIcon, DisconnectedIcon, ExclamationCircleIcon, LockIcon } from '@patternfly/react-icons';
+import {
+  CheckCircleIcon,
+  DisconnectedIcon,
+  ExclamationCircleIcon,
+  LockIcon,
+} from '@patternfly/react-icons';
 import { CEPH_EXTERNAL_CR_NAME, POOL_PROGRESS, ROOK_MODEL } from '../constants';
 import { StorageClusterModel } from '../models';
 import { CephClusterKind, StoragePoolKind } from '../types';
@@ -84,12 +89,9 @@ export const PROGRESS_STATUS = (
   {
     name: POOL_PROGRESS.FAILED,
     icon: ExclamationCircleIcon,
-    desc: t(
-      'An error occurred. Pool {{name}} was not created',
-      {
-        name: poolName,
-      }
-    ),
+    desc: t('An error occurred. Pool {{name}} was not created', {
+      name: poolName,
+    }),
     className: 'ceph-block-pool__error-icon',
   },
   {

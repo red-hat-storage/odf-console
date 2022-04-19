@@ -1,17 +1,18 @@
 .odf-capacity-and-nodes__select-nodes {
-    .co-m-pane__body {
-        /* Removes padding from the list page to align the table with rest of the form fields*/
-        padding: 0;
-    } 
+  .co-m-pane__body {
+    /* Removes padding from the list page to align the table with rest of the form fields*/
+    padding: 0;
+  }
 }
 
 .odf-capacity-and-nodes__taint-checkbox {
-    margin-top: calc(var(--pf-global--spacer--md) * -1);
+  margin-top: calc(var(--pf-global--spacer--md) * -1);
 }
 
 .ocs-enable-arbiter-label {
-    display: inline-block;
-    &__title--padding {
-      padding: var(--pf-global--spacer--sm) var(--pf-global--spacer--sm) var(--pf-global--spacer--sm) 0;
-    }
+  display: inline-block;
+  &__title--padding {
+    padding: var(--pf-global--spacer--sm) var(--pf-global--spacer--sm)
+      var(--pf-global--spacer--sm) 0;
+  }
 }

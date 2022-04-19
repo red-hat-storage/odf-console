@@ -51,13 +51,9 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
       ? t('Target blob container')
       : t('Target bucket');
   const credentialField1Label =
-    provider === BC_PROVIDERS.AZURE
-      ? t('Account name')
-      : t('Access key');
+    provider === BC_PROVIDERS.AZURE ? t('Account name') : t('Access key');
   const credentialField2Label =
-    provider === BC_PROVIDERS.AZURE
-      ? t('Account key')
-      : t('Secret key');
+    provider === BC_PROVIDERS.AZURE ? t('Account key') : t('Secret key');
 
   const switchToSecret = () => {
     setShowSecret(true);

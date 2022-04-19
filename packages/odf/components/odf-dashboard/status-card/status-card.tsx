@@ -4,7 +4,10 @@ import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMap } from '@odf/shared/dashboards/status-card/states';
 import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
-import { ClusterServiceVersionKind, StorageSystemKind } from '@odf/shared/types';
+import {
+  ClusterServiceVersionKind,
+  StorageSystemKind,
+} from '@odf/shared/types';
 import { getGVK, referenceForModel } from '@odf/shared/utils';
 import {
   HealthState,

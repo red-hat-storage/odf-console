@@ -9,24 +9,24 @@ import { NetworkAttachmentDefinitionKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { useTranslation } from 'react-i18next';
-import { FormGroup, Radio } from '@patternfly/react-core';; 
-import { NetworkType, NADSelectorType} from '../../../../types';
+import { FormGroup, Radio } from '@patternfly/react-core';
+import { NetworkType, NADSelectorType } from '../../../../types';
 import './configure.scss';
 
 const resources = {
-  "openshift": {
+  openshift: {
     isList: true,
     kind: referenceForModel(NetworkAttachmentDefinitionModel),
     namespace: CEPH_STORAGE_NAMESPACE,
     namespaced: true,
   },
-  "default": {
+  default: {
     isList: true,
     kind: referenceForModel(NetworkAttachmentDefinitionModel),
     namespace: 'default',
     namespaced: true,
   },
-  "multus": {
+  multus: {
     isList: true,
     kind: referenceForModel(NetworkAttachmentDefinitionModel),
     namespace: 'openshift-multus',
@@ -42,12 +42,14 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
   const { t } = useTranslation('plugin__odf-console');
 
   const filterForPublicDevices = React.useCallback(
-    (device: NetworkAttachmentDefinitionKind) => clusterNetwork?.split('/')?.[1] !== getName(device),
-    [clusterNetwork],
+    (device: NetworkAttachmentDefinitionKind) =>
+      clusterNetwork?.split('/')?.[1] !== getName(device),
+    [clusterNetwork]
   );
   const filterForClusterDevices = React.useCallback(
-    (device: NetworkAttachmentDefinitionKind) => publicNetwork?.split('/')?.[1] !== getName(device),
-    [publicNetwork],
+    (device: NetworkAttachmentDefinitionKind) =>
+      publicNetwork?.split('/')?.[1] !== getName(device),
+    [publicNetwork]
   );
 
   return (
@@ -61,7 +63,8 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
           resourceModel={NetworkAttachmentDefinitionModel}
           className="ceph__multus-dropdown"
           onSelect={(selectedResource) =>
-            setNetwork(NADSelectorType.PUBLIC, selectedResource)}
+            setNetwork(NADSelectorType.PUBLIC, selectedResource)
+          }
           secondaryTextGenerator={null}
           filterResource={filterForPublicDevices}
         />
@@ -75,7 +78,8 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
           resourceModel={NetworkAttachmentDefinitionModel}
           className="ceph__multus-dropdown"
           onSelect={(selectedResource) =>
-            setNetwork(NADSelectorType.CLUSTER, selectedResource)}
+            setNetwork(NADSelectorType.CLUSTER, selectedResource)
+          }
           secondaryTextGenerator={null}
           filterResource={filterForClusterDevices}
         />
@@ -108,7 +112,7 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
             {t('Network')}
             <FieldLevelHelp>
               {t(
-                'The default SDN networking uses a single network for all data operations such read/write and also for control plane, such as data replication. Multus allows a network separation between the data operations and the control plane operations.',
+                'The default SDN networking uses a single network for all data operations such read/write and also for control plane, such as data replication. Multus allows a network separation between the data operations and the control plane operations.'
               )}
             </FieldLevelHelp>
           </>

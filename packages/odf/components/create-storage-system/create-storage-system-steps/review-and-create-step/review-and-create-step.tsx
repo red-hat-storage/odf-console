@@ -5,13 +5,23 @@ import {
   getTotalCpu,
   getTotalMemory,
 } from '@odf/core/components/utils';
-import { NetworkTypeLabels, NO_PROVISIONER, OSD_CAPACITY_SIZES } from '@odf/core/constants';
+import {
+  NetworkTypeLabels,
+  NO_PROVISIONER,
+  OSD_CAPACITY_SIZES,
+} from '@odf/core/constants';
 import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
-import { TextContent, Text, TextVariants, List, ListItem } from '@patternfly/react-core';
+import {
+  TextContent,
+  Text,
+  TextVariants,
+  List,
+  ListItem,
+} from '@patternfly/react-core';
 import { FEATURES } from '../../../../features';
 import { WizardState } from '../../reducer';
 import './review-and-create-step.scss';
@@ -25,7 +35,10 @@ export const ReviewItem = ({ children, title }) => (
   </div>
 );
 
-export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({ state, hasOCS }) => {
+export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
+  state,
+  hasOCS,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
   const isMultusSupported = useFlag(FEATURES.OCS_MULTUS);
   const isTaintSupported = useFlag(FEATURES.OCS_TAINT_NODES);
@@ -40,7 +53,8 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({ state, hasOCS 
     createStorageClass,
     nodes,
   } = state;
-  const { capacity, arbiterLocation, enableTaint, enableArbiter } = capacityAndNodes;
+  const { capacity, arbiterLocation, enableTaint, enableArbiter } =
+    capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
   const { deployment, externalStorage, type } = backingStorage;
 
@@ -58,15 +72,12 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({ state, hasOCS 
 
   const hasEncryption = encryption.clusterWide || encryption.storageClass;
 
-  const storagePlatform = externalStorage && getExternalStorage(externalStorage).displayName;
+  const storagePlatform =
+    externalStorage && getExternalStorage(externalStorage).displayName;
 
-  const encryptionStatus = hasEncryption
-    ? t('Enabled')
-    : t('Disabled');
+  const encryptionStatus = hasEncryption ? t('Enabled') : t('Disabled');
 
-  const ocsTaintsStatus = enableTaint
-    ? t('Enabled')
-    : t('Disabled');
+  const ocsTaintsStatus = enableTaint ? t('Enabled') : t('Disabled');
 
   const kmsStatus = encryption.advanced
     ? kms[kms.provider].name.value

@@ -1,19 +1,16 @@
 import * as React from 'react';
-import {   
+import {
   STORAGE_CLUSTER_SYSTEM_KIND,
   NO_PROVISIONER,
 } from '@odf/core/constants';
 import { scResource } from '@odf/core/resources';
-import { 
+import {
   BackingStorageType,
   DeploymentType,
   ExternalStorage,
 } from '@odf/core/types';
-import {
-  getStorageSystemKind,
-  getSupportedVendors,
-} from '@odf/core/utils';
-import DevPreviewBadge  from '@odf/shared/badges/DevPreviewBadge';
+import { getStorageSystemKind, getSupportedVendors } from '@odf/core/utils';
+import DevPreviewBadge from '@odf/shared/badges/DevPreviewBadge';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
@@ -22,7 +19,12 @@ import {
   StorageClassModel,
 } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import { ListKind, StorageClassResourceKind, ClusterServiceVersionKind, StorageSystemKind } from '@odf/shared/types';
+import {
+  ListKind,
+  StorageClassResourceKind,
+  ClusterServiceVersionKind,
+  StorageSystemKind,
+} from '@odf/shared/types';
 import { isDefaultClass, getODFCsv } from '@odf/shared/utils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -34,12 +36,22 @@ import {
   Radio,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
-import { SUPPORTED_EXTERNAL_STORAGE, isStorageProviderDevPreview } from '../../external-storage';
+import {
+  SUPPORTED_EXTERNAL_STORAGE,
+  isStorageProviderDevPreview,
+} from '../../external-storage';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { SelectDeployment } from './select-deployment';
 import './backing-storage-step.scss';
 
-const RHCS_SUPPORTED_INFRA = ['BareMetal', 'None', 'VSphere', 'OpenStack', 'oVirt', 'IBMCloud'];
+const RHCS_SUPPORTED_INFRA = [
+  'BareMetal',
+  'None',
+  'VSphere',
+  'OpenStack',
+  'oVirt',
+  'IBMCloud',
+];
 
 const ExternalSystemSelection: React.FC<ExternalSystemSelectionProps> = ({
   dispatch,
@@ -51,13 +63,14 @@ const ExternalSystemSelection: React.FC<ExternalSystemSelectionProps> = ({
 
   const handleSelection: FormSelectProps['onChange'] = React.useCallback(
     (value: string) => {
-      if (stepIdReached === 2) dispatch({ type: 'wizard/setStepIdReached', payload: 1 });
+      if (stepIdReached === 2)
+        dispatch({ type: 'wizard/setStepIdReached', payload: 1 });
       dispatch({
         type: 'backingStorage/setExternalStorage',
         payload: value,
       });
     },
-    [dispatch, stepIdReached],
+    [dispatch, stepIdReached]
   );
 
   React.useEffect(() => {
@@ -98,22 +111,34 @@ type ExternalSystemSelectionProps = {
 
 const getDescription = (sc: StorageClassResourceKind): string => {
   const descriptionList = [sc.provisioner, sc.parameters?.type];
-  return descriptionList.reduce((description, dl) => {
-      if (dl) return description ? `${description} | ${dl}`: dl;
+  return descriptionList.reduce(
+    (description, dl) => {
+      if (dl) return description ? `${description} | ${dl}` : dl;
       return description;
-  }, isDefaultClass(sc) ? "(default)" : "");
-}
+    },
+    isDefaultClass(sc) ? '(default)' : ''
+  );
+};
 
-const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({ dispatch, selected }) => {
-  const onStorageClassSelect = React.useCallback((sc: StorageClassResourceKind) =>
-    dispatch({
-      type: 'wizard/setStorageClass',
-      payload: { name: sc?.metadata?.name, provisioner: sc?.provisioner },
-    }), [dispatch]);
-  const getInitialSelection = React.useCallback((sces: StorageClassResourceKind[]) => {
-    if (!selected.name) return sces.find((sc) => isDefaultClass(sc));
-    return sces.find((sc) => getName(sc) === selected.name);;
-  }, [selected.name]);
+const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({
+  dispatch,
+  selected,
+}) => {
+  const onStorageClassSelect = React.useCallback(
+    (sc: StorageClassResourceKind) =>
+      dispatch({
+        type: 'wizard/setStorageClass',
+        payload: { name: sc?.metadata?.name, provisioner: sc?.provisioner },
+      }),
+    [dispatch]
+  );
+  const getInitialSelection = React.useCallback(
+    (sces: StorageClassResourceKind[]) => {
+      if (!selected.name) return sces.find((sc) => isDefaultClass(sc));
+      return sces.find((sc) => getName(sc) === selected.name);
+    },
+    [selected.name]
+  );
 
   return (
     <div className="odf-backing-storage__selection--width">
@@ -134,10 +159,12 @@ type StorageClassSelectionProps = {
   selected: WizardState['storageClass'];
 };
 
-const formatStorageSystemList = (storageSystems: StorageSystemKind[] = []): StorageSystemSet =>
+const formatStorageSystemList = (
+  storageSystems: StorageSystemKind[] = []
+): StorageSystemSet =>
   storageSystems.reduce(
     (kinds: StorageSystemSet, ss: StorageSystemKind) => kinds.add(ss.spec.kind),
-    new Set(),
+    new Set()
   );
 
 type StorageSystemSet = Set<StorageSystemKind['spec']['kind']>;
@@ -155,14 +182,11 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   const { type, externalStorage, deployment } = state;
 
   const { t } = useTranslation('plugin__odf-console');
-  const [sc, scLoaded, scLoadError] = useK8sGet<ListKind<StorageClassResourceKind>>(
-    StorageClassModel,
-  );
-  const [csvList, csvListLoaded, csvListLoadError] = useK8sGet<ListKind<ClusterServiceVersionKind>>(
-    ClusterServiceVersionModel,
-    null,
-    CEPH_STORAGE_NAMESPACE,
-  );
+  const [sc, scLoaded, scLoadError] =
+    useK8sGet<ListKind<StorageClassResourceKind>>(StorageClassModel);
+  const [csvList, csvListLoaded, csvListLoadError] = useK8sGet<
+    ListKind<ClusterServiceVersionKind>
+  >(ClusterServiceVersionModel, null, CEPH_STORAGE_NAMESPACE);
 
   const formattedSS: StorageSystemSet = formatStorageSystemList(storageSystems);
   const hasOCS: boolean = formattedSS.has(STORAGE_CLUSTER_SYSTEM_KIND);
@@ -170,13 +194,18 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   const odfCsv = getODFCsv(csvList?.items);
   const supportedODFVendors = getSupportedVendors(odfCsv);
 
-  const enableRhcs = RHCS_SUPPORTED_INFRA.includes(infraType) && deployment === DeploymentType.FULL;
+  const enableRhcs =
+    RHCS_SUPPORTED_INFRA.includes(infraType) &&
+    deployment === DeploymentType.FULL;
 
   const allowedExternalStorage: ExternalStorage[] =
     !enableRhcs || hasOCS
       ? SUPPORTED_EXTERNAL_STORAGE.filter(({ model }) => {
           const kind = getStorageSystemKind(model);
-          return supportedODFVendors.includes(kind) && kind !== STORAGE_CLUSTER_SYSTEM_KIND;
+          return (
+            supportedODFVendors.includes(kind) &&
+            kind !== STORAGE_CLUSTER_SYSTEM_KIND
+          );
         })
       : SUPPORTED_EXTERNAL_STORAGE;
 
@@ -186,7 +215,10 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
      * if an OCS Storage System is already created and no external system is created.
      */
     if (hasOCS && allowedExternalStorage.length) {
-      dispatch({ type: 'backingStorage/setType', payload: BackingStorageType.EXTERNAL });
+      dispatch({
+        type: 'backingStorage/setType',
+        payload: BackingStorageType.EXTERNAL,
+      });
       dispatch({
         type: 'wizard/setStorageClass',
         payload: {
@@ -203,7 +235,10 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
      * if no storage classes present. This is true for a baremetal platform.
      */
     if (sc?.items?.length === 0 && type !== BackingStorageType.EXTERNAL) {
-      dispatch({ type: 'backingStorage/setType', payload: BackingStorageType.LOCAL_DEVICES });
+      dispatch({
+        type: 'backingStorage/setType',
+        payload: BackingStorageType.LOCAL_DEVICES,
+      });
       dispatch({
         type: 'wizard/setStorageClass',
         payload: {
@@ -216,7 +251,8 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
 
   const showExternalStorageSelection =
     type === BackingStorageType.EXTERNAL && allowedExternalStorage.length;
-  const showStorageClassSelection = !hasOCS && type === BackingStorageType.EXISTING;
+  const showStorageClassSelection =
+    !hasOCS && type === BackingStorageType.EXISTING;
 
   const RADIO_GROUP_NAME = 'backing-storage-radio-group';
 
@@ -231,7 +267,9 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
       loaded={loaded && scLoaded && csvListLoaded}
     >
       <Form>
-        {!hasOCS && <SelectDeployment dispatch={dispatch} deployment={deployment} />}
+        {!hasOCS && (
+          <SelectDeployment dispatch={dispatch} deployment={deployment} />
+        )}
         <FormGroup
           label={t('Backing storage type')}
           fieldId={`bs-${BackingStorageType.EXISTING}`}
@@ -239,7 +277,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           <Radio
             label={t('Use an existing StorageClass')}
             description={t(
-              'OpenShift Data Foundation will use an existing StorageClass available on your hosting platform.',
+              'OpenShift Data Foundation will use an existing StorageClass available on your hosting platform.'
             )}
             name={RADIO_GROUP_NAME}
             value={BackingStorageType.EXISTING}
@@ -248,7 +286,10 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
             isDisabled={hasOCS || sc?.items?.length === 0}
             body={
               showStorageClassSelection && (
-                <StorageClassSelection dispatch={dispatch} selected={storageClass} />
+                <StorageClassSelection
+                  dispatch={dispatch}
+                  selected={storageClass}
+                />
               )
             }
             id={`bs-${BackingStorageType.EXISTING}`}
@@ -257,7 +298,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           <Radio
             label={t('Create a new StorageClass using local storage devices')}
             description={t(
-              'OpenShift Data Foundation will use a StorageClass provided by the Local Storage Operator (LSO) on top of your attached drives. This option is available on any platform with devices attached to nodes.',
+              'OpenShift Data Foundation will use a StorageClass provided by the Local Storage Operator (LSO) on top of your attached drives. This option is available on any platform with devices attached to nodes.'
             )}
             name={RADIO_GROUP_NAME}
             value={BackingStorageType.LOCAL_DEVICES}
@@ -270,7 +311,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           <Radio
             label={t('Connect an external storage platform')}
             description={t(
-              'OpenShift Data Foundation will create a dedicated StorageClass.',
+              'OpenShift Data Foundation will create a dedicated StorageClass.'
             )}
             name={RADIO_GROUP_NAME}
             value={BackingStorageType.EXTERNAL}

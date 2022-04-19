@@ -4,7 +4,6 @@ import { Progress, ProgressSize } from '@patternfly/react-core';
 import { useCustomTranslation } from '../../useCustomTranslationHook';
 import { getResiliencyProgress } from '../../utils';
 
-
 export const DataResiliency: React.FC<DataResiliencyProps> = ({ results }) => {
   const { t } = useCustomTranslation();
 

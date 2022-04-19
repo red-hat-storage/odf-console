@@ -40,7 +40,13 @@ export const BreakdownCardBody: React.FC<BreakdownBodyProps> = ({
     );
   }
 
-  const chartData = addAvailable(top5MetricsStats, capacityAvailable, metricTotal, humanize, t);
+  const chartData = addAvailable(
+    top5MetricsStats,
+    capacityAvailable,
+    metricTotal,
+    humanize,
+    t
+  );
 
   const legends = getLegends(chartData);
 

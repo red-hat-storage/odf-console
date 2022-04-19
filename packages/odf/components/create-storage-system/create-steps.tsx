@@ -22,7 +22,7 @@ export const createSteps = (
   dispatch: WizardDispatch,
   infraType: string,
   hasOCS: boolean,
-  history: RouteComponentProps['history'],
+  history: RouteComponentProps['history']
 ): WizardStep[] => {
   const {
     backingStorage,
@@ -55,7 +55,11 @@ export const createSteps = (
     securityAndNetwork: {
       name: StepsName(t)[Steps.SecurityAndNetwork],
       component: (
-        <SecurityAndNetwork state={securityAndNetwork} dispatch={dispatch} infraType={infraType} />
+        <SecurityAndNetwork
+          state={securityAndNetwork}
+          dispatch={dispatch}
+          infraType={infraType}
+        />
       ),
     },
     security: {

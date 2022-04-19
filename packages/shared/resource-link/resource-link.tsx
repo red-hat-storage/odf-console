@@ -17,10 +17,16 @@ type ResourceIconProps = {
   className?: string;
 };
 
-export const ResourceIcon: React.FC<ResourceIconProps> = ({ resourceModel, className}) => (
+export const ResourceIcon: React.FC<ResourceIconProps> = ({
+  resourceModel,
+  className,
+}) => (
   <>
     <span className="sr-only">{resourceModel.abbr.toLocaleUpperCase()}</span>
-    <span className={classNames("co-m-resource-icon", className)} title={resourceModel.kind}>
+    <span
+      className={classNames('co-m-resource-icon', className)}
+      title={resourceModel.kind}
+    >
       {resourceModel.abbr.toLocaleUpperCase()}
     </span>
   </>
@@ -46,19 +52,20 @@ const ResourceLink: React.FC<ResourceLinkProps> = ({
           </span>
         </>
       )}
-      {isExternalLink ?
-      <a
-        className={className}
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {resourceName}
-      </a>
-      :
-      <Link to={link} className={className}>
-        {resourceName}
-      </Link>}
+      {isExternalLink ? (
+        <a
+          className={className}
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {resourceName}
+        </a>
+      ) : (
+        <Link to={link} className={className}>
+          {resourceName}
+        </Link>
+      )}
     </span>
   );
 };

@@ -10,8 +10,11 @@ import { SubscriptionModel } from '@odf/shared/models';
 import { K8sResourceKind, SubscriptionKind } from '@odf/shared/types';
 import { DataPoint, getInstantVectorStats } from '@odf/shared/utils';
 import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
-import { isFunctionThenApply } from '@odf/shared/utils'
-import { useK8sWatchResource, useFlag } from '@openshift-console/dynamic-plugin-sdk';
+import { isFunctionThenApply } from '@odf/shared/utils';
+import {
+  useK8sWatchResource,
+  useFlag,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
@@ -26,7 +29,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
-import { OCS_OPERATOR, ServiceType, CapacityBreakdown } from '../../../constants';
+import {
+  OCS_OPERATOR,
+  ServiceType,
+  CapacityBreakdown,
+} from '../../../constants';
 import { breakdownQueryMapMCG } from '../../../queries';
 import { decodeRGWPrefix, getStackChartStats } from '../../../utils';
 import './capacity-breakdown-card.scss';
@@ -73,7 +80,7 @@ type BreakdownCardBodyProps = ServiceTypeProps & {
   response: DataPointResponse;
   serviceType: ServiceType;
   loading: boolean;
-  error: boolean
+  error: boolean;
 };
 
 const BreakdownCardBody_: React.FC<BreakdownCardBodyProps> = ({
@@ -91,12 +98,12 @@ const BreakdownCardBody_: React.FC<BreakdownCardBodyProps> = ({
   // For charts whose datapoints are composed of multiple queries
   const flattenedResponse = response.reduce(
     (acc, curr, ind) => (ind < response?.length - 1 ? [...acc, ...curr] : acc),
-    [],
+    []
   );
   const top5MetricsStats = getStackChartStats(
     flattenedResponse,
     humanizeBinaryBytes,
-    CapacityBreakdown.serviceMetricMap?.[serviceType]?.[metricType],
+    CapacityBreakdown.serviceMetricMap?.[serviceType]?.[metricType]
   );
   const totalUsed = String(response?.[response?.length - 1]?.[0]?.y);
 
@@ -104,23 +111,25 @@ const BreakdownCardBody_: React.FC<BreakdownCardBodyProps> = ({
   if (ind !== -1) {
     top5MetricsStats[ind].name = t('Cluster-wide');
     top5MetricsStats[ind].link = t(
-      'Any NON Object bucket claims that were created via an S3 client or via the NooBaa UI system.',
+      'Any NON Object bucket claims that were created via an S3 client or via the NooBaa UI system.'
     );
     top5MetricsStats[ind].color = Colors.OTHER;
   }
 
-  return <BreakdownCardBody
-    isLoading={loading}
-    hasLoadError={error}
-    top5MetricsStats={top5MetricsStats}
-    capacityUsed={totalUsed}
-    metricTotal={totalUsed}
-    metricModel={model}
-    humanize={humanizeBinaryBytes}
-    ocsVersion={ocsVersion}
-    labelPadding={labelPadding}
-  />
-}
+  return (
+    <BreakdownCardBody
+      isLoading={loading}
+      hasLoadError={error}
+      top5MetricsStats={top5MetricsStats}
+      capacityUsed={totalUsed}
+      metricTotal={totalUsed}
+      metricModel={model}
+      humanize={humanizeBinaryBytes}
+      ocsVersion={ocsVersion}
+      labelPadding={labelPadding}
+    />
+  );
+};
 
 const ServiceTypeALL: React.FC<ServiceTypeProps> = ({
   metricType,
@@ -130,7 +139,6 @@ const ServiceTypeALL: React.FC<ServiceTypeProps> = ({
   ocsVersion,
   labelPadding,
 }) => {
-
   const [rgw, rgwLoadError, rgwLoading] = usePrometheusPoll({
     query: prometheusQueries?.[0],
     endpoint: 'api/v1/query' as any,
@@ -149,22 +157,28 @@ const ServiceTypeALL: React.FC<ServiceTypeProps> = ({
   const data = !!rgw && !!noobaa && !!object;
   const response: DataPointResponse = React.useMemo(() => {
     return !loading && !error && data
-    ? [getInstantVectorStats(rgw, metric), getInstantVectorStats(noobaa, metric), getInstantVectorStats(object, metric)] 
-    : []
+      ? [
+          getInstantVectorStats(rgw, metric),
+          getInstantVectorStats(noobaa, metric),
+          getInstantVectorStats(object, metric),
+        ]
+      : [];
   }, [rgw, noobaa, object, loading, error, data, metric]);
 
-  return <BreakdownCardBody_
-    response={response}
-    serviceType={ServiceType.ALL}
-    loading={loading}
-    error={error}
-    metricType={metricType}
-    model={model}
-    metric={metric}
-    ocsVersion={ocsVersion}
-    labelPadding={labelPadding}
-  />
-}
+  return (
+    <BreakdownCardBody_
+      response={response}
+      serviceType={ServiceType.ALL}
+      loading={loading}
+      error={error}
+      metricType={metricType}
+      model={model}
+      metric={metric}
+      ocsVersion={ocsVersion}
+      labelPadding={labelPadding}
+    />
+  );
+};
 
 const ServiceTypeMCG: React.FC<ServiceTypeProps> = ({
   metricType,
@@ -174,7 +188,6 @@ const ServiceTypeMCG: React.FC<ServiceTypeProps> = ({
   ocsVersion,
   labelPadding,
 }) => {
-
   const [byUsed, byUsedError, byUsedLoading] = usePrometheusPoll({
     query: prometheusQueries?.[0],
     endpoint: 'api/v1/query' as any,
@@ -189,22 +202,27 @@ const ServiceTypeMCG: React.FC<ServiceTypeProps> = ({
   const data = !!byUsed && !!totalUsed;
   const response: DataPointResponse = React.useMemo(() => {
     return !loading && !error && data
-    ? [getInstantVectorStats(byUsed, metric), getInstantVectorStats(totalUsed, metric)] 
-    : []
+      ? [
+          getInstantVectorStats(byUsed, metric),
+          getInstantVectorStats(totalUsed, metric),
+        ]
+      : [];
   }, [byUsed, totalUsed, loading, error, data, metric]);
 
-  return <BreakdownCardBody_
-    response={response}
-    serviceType={ServiceType.MCG}
-    loading={loading}
-    error={error}
-    metricType={metricType}
-    model={model}
-    metric={metric}
-    ocsVersion={ocsVersion}
-    labelPadding={labelPadding}
-  />
-}
+  return (
+    <BreakdownCardBody_
+      response={response}
+      serviceType={ServiceType.MCG}
+      loading={loading}
+      error={error}
+      metricType={metricType}
+      model={model}
+      metric={metric}
+      ocsVersion={ocsVersion}
+      labelPadding={labelPadding}
+    />
+  );
+};
 
 const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({
   metricType,
@@ -214,7 +232,6 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({
   ocsVersion,
   labelPadding,
 }) => {
-
   const [totalUsed, totalUsedError, totalUsedLoading] = usePrometheusPoll({
     query: prometheusQueries?.[0],
     endpoint: 'api/v1/query' as any,
@@ -229,28 +246,33 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({
   const data = !!totalUsed && !!used;
   const response: DataPointResponse = React.useMemo(() => {
     return !loading && !error && data
-    ? [getInstantVectorStats(used, metric), getInstantVectorStats(totalUsed, metric)] 
-    : []
+      ? [
+          getInstantVectorStats(used, metric),
+          getInstantVectorStats(totalUsed, metric),
+        ]
+      : [];
   }, [used, totalUsed, loading, error, data, metric]);
 
-  return <BreakdownCardBody_
-    response={response}
-    serviceType={ServiceType.RGW}
-    loading={loading}
-    error={error}
-    metricType={metricType}
-    model={model}
-    metric={metric}
-    ocsVersion={ocsVersion}
-    labelPadding={labelPadding}
-  />
-}
+  return (
+    <BreakdownCardBody_
+      response={response}
+      serviceType={ServiceType.RGW}
+      loading={loading}
+      error={error}
+      metricType={metricType}
+      model={model}
+      metric={metric}
+      ocsVersion={ocsVersion}
+      labelPadding={labelPadding}
+    />
+  );
+};
 
 const BreakdownCard: React.FC = () => {
   const { t } = useTranslation();
   const [serviceType, setServiceType] = React.useState(ServiceType.MCG);
   const [metricType, setMetricType] = React.useState(
-    CapacityBreakdown.defaultMetrics[ServiceType.MCG],
+    CapacityBreakdown.defaultMetrics[ServiceType.MCG]
   );
   const [isOpenServiceSelect, setServiceSelect] = React.useState(false);
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
@@ -267,26 +289,39 @@ const BreakdownCard: React.FC = () => {
     }
   }, [isRGWSupported]);
 
-  const [secretData, secretLoaded, secretLoadError] = useK8sWatchResource<K8sResourceKind>(
-    secretResource,
-  );
+  const [secretData, secretLoaded, secretLoadError] =
+    useK8sWatchResource<K8sResourceKind>(secretResource);
   const rgwPrefix = React.useMemo(
-    () => (isRGWSupported && secretLoaded && !secretLoadError ? decodeRGWPrefix(secretData) : ''),
-    [secretData, secretLoaded, secretLoadError, isRGWSupported],
+    () =>
+      isRGWSupported && secretLoaded && !secretLoadError
+        ? decodeRGWPrefix(secretData)
+        : '',
+    [secretData, secretLoaded, secretLoadError, isRGWSupported]
   );
 
   const { queries, model, metric } = React.useMemo(() => {
-    const { queries: q, model: mo, metric: me } =
-    breakdownQueryMapMCG[serviceType][metricType] ??
-    breakdownQueryMapMCG[serviceType][CapacityBreakdown.defaultMetrics[serviceType]];
-    return { queries: isFunctionThenApply(q)(rgwPrefix), model: mo, metric: me };
+    const {
+      queries: q,
+      model: mo,
+      metric: me,
+    } = breakdownQueryMapMCG[serviceType][metricType] ??
+    breakdownQueryMapMCG[serviceType][
+      CapacityBreakdown.defaultMetrics[serviceType]
+    ];
+    return {
+      queries: isFunctionThenApply(q)(rgwPrefix),
+      model: mo,
+      metric: me,
+    };
   }, [serviceType, metricType, rgwPrefix]);
 
-  const prometheusQueries = React.useMemo(() => Object.values(queries) as string[], [queries]);
-
-  const [subscription, loaded, loadError] = useK8sWatchResource<SubscriptionKind>(
-    subscriptionResource,
+  const prometheusQueries = React.useMemo(
+    () => Object.values(queries) as string[],
+    [queries]
   );
+
+  const [subscription, loaded, loadError] =
+    useK8sWatchResource<SubscriptionKind>(subscriptionResource);
 
   const breakdownItems = React.useMemo(
     () => [
@@ -311,7 +346,7 @@ const BreakdownCard: React.FC = () => {
         ],
       },
     ],
-    [serviceType, t],
+    [serviceType, t]
   );
 
   const ServiceItems = [
@@ -340,14 +375,16 @@ const BreakdownCard: React.FC = () => {
   };
 
   const padding =
-    serviceType !== ServiceType.MCG ? { top: 0, bottom: 0, left: 0, right: 50 } : undefined;
+    serviceType !== ServiceType.MCG
+      ? { top: 0, bottom: 0, left: 0, right: 50 }
+      : undefined;
 
   const ocsVersion =
     loaded && !loadError
       ? (() => {
           const operator = _.find(
             subscription,
-            (item) => _.get(item, 'spec.name') === OCS_OPERATOR,
+            (item) => _.get(item, 'spec.name') === OCS_OPERATOR
           );
           return _.get(operator, 'status.installedCSV');
         })()
@@ -360,7 +397,7 @@ const BreakdownCard: React.FC = () => {
           {t('Capacity breakdown')}
           <FieldLevelHelp>
             {t(
-              'This card shows used capacity for different resources. The available capacity is based on cloud services therefore it cannot be shown.',
+              'This card shows used capacity for different resources. The available capacity is based on cloud services therefore it cannot be shown.'
             )}
           </FieldLevelHelp>
         </CardTitle>
@@ -403,30 +440,36 @@ const BreakdownCard: React.FC = () => {
         </div>
       </CardHeader>
       <CardBody className="nb-capacity-breakdown-card__body">
-          {(serviceType === ServiceType.ALL) && <ServiceTypeALL 
+        {serviceType === ServiceType.ALL && (
+          <ServiceTypeALL
             metricType={metricType}
             prometheusQueries={prometheusQueries}
             model={model}
             metric={metric}
             ocsVersion={ocsVersion}
             labelPadding={padding}
-          />}
-          {(serviceType === ServiceType.MCG) && <ServiceTypeMCG 
+          />
+        )}
+        {serviceType === ServiceType.MCG && (
+          <ServiceTypeMCG
             metricType={metricType}
             prometheusQueries={prometheusQueries}
             model={model}
             metric={metric}
             ocsVersion={ocsVersion}
             labelPadding={padding}
-          />}
-          {(serviceType === ServiceType.RGW) && <ServiceTypeRGW 
+          />
+        )}
+        {serviceType === ServiceType.RGW && (
+          <ServiceTypeRGW
             metricType={metricType}
             prometheusQueries={prometheusQueries}
             model={model}
             metric={metric}
             ocsVersion={ocsVersion}
             labelPadding={padding}
-          />}
+          />
+        )}
       </CardBody>
     </Card>
   );

@@ -28,7 +28,7 @@ export const VaultTokenConfigure: React.FC<VaultAuthMethodProps> = ({
       helperTextInvalid={t('plugin__odf-console~This is a required field')}
       validated={isValid(vaultState.authValue?.valid)}
       helperText={t(
-        'plugin__odf-console~Create a secret with the token for every namespace using encrypted PVCs.',
+        'plugin__odf-console~Create a secret with the token for every namespace using encrypted PVCs.'
       )}
       isRequired
     >
@@ -49,7 +49,10 @@ export const VaultTokenConfigure: React.FC<VaultAuthMethodProps> = ({
               : t('plugin__odf-console~Reveal token')
           }
         >
-          <Button variant="control" onClick={() => setRevealToken(!revealToken)}>
+          <Button
+            variant="control"
+            onClick={() => setRevealToken(!revealToken)}
+          >
             {revealToken ? <EyeSlashIcon /> : <EyeIcon />}
           </Button>
         </Tooltip>

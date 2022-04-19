@@ -73,7 +73,9 @@ export const getRangeVectorStats: GetRangeStats = (
   yMutator,
   optionalParser
 ) => {
-  const results = !optionalParser ? response?.data?.result : optionalParser(response);
+  const results = !optionalParser
+    ? response?.data?.result
+    : optionalParser(response);
   return results?.map((r, index) => {
     return r?.values?.map(([x, y]) => {
       return {

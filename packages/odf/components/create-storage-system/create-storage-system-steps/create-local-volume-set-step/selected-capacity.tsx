@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { calculateRadius, createWizardNodeState } from '@odf/core/components/utils';
+import {
+  calculateRadius,
+  createWizardNodeState,
+} from '@odf/core/components/utils';
 import { deviceTypeDropdownItems } from '@odf/core/constants';
 import {
   DISK_TYPES,
@@ -8,7 +11,7 @@ import {
   LocalVolumeDiscoveryResultKind,
 } from '@odf/core/types';
 import { DiscoveredDisk } from '@odf/core/types';
-import { AVAILABLE } from '@odf/shared/constants'
+import { AVAILABLE } from '@odf/shared/constants';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { NodeModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -20,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { ChartDonut, ChartLabel } from '@patternfly/react-charts';
 import { Button } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
-import { SelectedNodesTable } from '../capacity-and-nodes-step/selected-nodes-table'
+import { SelectedNodesTable } from '../capacity-and-nodes-step/selected-nodes-table';
 import { Modal, DiskListModal } from './disk-list-modal';
 import './selected-capacity.scss';
 
@@ -32,10 +35,13 @@ const isAvailableDisk = (disk: DiscoveredDisk): boolean =>
   (disk.type === DiskType.RawDisk || disk.type === DiskType.Partition);
 
 const isValidSize = (disk: DiscoveredDisk, minSize: number, maxSize: number) =>
-  Number(disk.size) >= minSize && (maxSize ? Number(disk.size) <= maxSize : true);
+  Number(disk.size) >= minSize &&
+  (maxSize ? Number(disk.size) <= maxSize : true);
 
-const isValidDiskProperty = (disk: DiscoveredDisk, property: DiskMetadata['property']) =>
-  property ? property === disk.property : true;
+const isValidDiskProperty = (
+  disk: DiscoveredDisk,
+  property: DiskMetadata['property']
+) => (property ? property === disk.property : true);
 
 const isValidDeviceType = (disk: DiscoveredDisk, types: string[]) =>
   types.includes(deviceTypeDropdownItems[disk.type.toUpperCase()]);
@@ -49,7 +55,9 @@ const addNodesOnAvailableDisks = (disks: DiskMetadata[] = [], node: string) =>
     return availableDisks;
   }, []);
 
-const createDiscoveredDiskData = (results: LocalVolumeDiscoveryResultKind[]): DiscoveredDisk[] =>
+const createDiscoveredDiskData = (
+  results: LocalVolumeDiscoveryResultKind[]
+): DiscoveredDisk[] =>
   results?.reduce((discoveredDisk: DiscoveredDisk[], lvdr) => {
     const lvdrDisks = lvdr?.status?.discoveredDevices;
     const lvdrNode = lvdr?.spec?.nodeName;
@@ -76,7 +84,7 @@ export const SelectedCapacity: React.FC<SelectedCapacityProps> = ({
 
   const allDiscoveredDisks: DiscoveredDisk[] = React.useMemo(
     () => createDiscoveredDiskData(lvdResults),
-    [lvdResults],
+    [lvdResults]
   );
 
   const filteredDisks: DiscoveredDisk[] = React.useMemo(
@@ -87,21 +95,33 @@ export const SelectedCapacity: React.FC<SelectedCapacityProps> = ({
               state.isValidDiskSize &&
               isValidSize(disk, minSize, maxSize) &&
               isValidDiskProperty(disk, DISK_TYPES[state.diskType]?.property) &&
-              isValidDeviceType(disk, state.deviceType),
+              isValidDeviceType(disk, state.deviceType)
           )
         : [],
-    [allDiscoveredDisks, maxSize, minSize, state.deviceType, state.diskType, state.isValidDiskSize],
+    [
+      allDiscoveredDisks,
+      maxSize,
+      minSize,
+      state.deviceType,
+      state.diskType,
+      state.isValidDiskSize,
+    ]
   );
 
   const chartDisks = React.useMemo(() => {
-    const selectedNodes = nodes.reduce((data, node) => data.add(node.name), new Set());
-    return filteredDisks.filter((disk: DiscoveredDisk) => selectedNodes.has(disk.node));
+    const selectedNodes = nodes.reduce(
+      (data, node) => data.add(node.name),
+      new Set()
+    );
+    return filteredDisks.filter((disk: DiscoveredDisk) =>
+      selectedNodes.has(disk.node)
+    );
   }, [filteredDisks, nodes]);
 
   React.useEffect(() => {
     const chartNodes: Set<string> = chartDisks.reduce(
       (data: Set<string>, disk: DiscoveredDisk) => data.add(disk.node),
-      new Set(),
+      new Set()
     );
     if (!_.isEqual(chartNodes, state.chartNodes)) {
       dispatch({
@@ -160,14 +180,19 @@ export const SelectedCapacity: React.FC<SelectedCapacityProps> = ({
         width={220}
         radius={radius}
         data={donutData}
-        labels={({ datum }) => `${humanizeBinaryBytes(datum.y).string} ${datum.x}`}
+        labels={({ datum }) =>
+          `${humanizeBinaryBytes(datum.y).string} ${datum.x}`
+        }
         subTitle={t('Out of {{capacity}}', {
           capacity: humanizeBinaryBytes(totalCapacity).string,
         })}
         title={humanizeBinaryBytes(selectedCapacity).string}
         constrainToVisibleArea
         subTitleComponent={
-          <ChartLabel dy={5} style={{ fill: `var(--pf-global--palette--black-500)` }} />
+          <ChartLabel
+            dy={5}
+            style={{ fill: `var(--pf-global--palette--black-500)` }}
+          />
         }
       />
       <DiskListModal
@@ -193,19 +218,30 @@ type SelectedCapacityProps = {
 };
 
 const filterNodes = (nodesData: NodeKind[], filteredNodes: Set<string>) => {
-  const filteredData = nodesData?.filter((node: NodeKind) => filteredNodes.has(getName(node)));
+  const filteredData = nodesData?.filter((node: NodeKind) =>
+    filteredNodes.has(getName(node))
+  );
   return createWizardNodeState(filteredData);
-}
+};
 
-const NodeListModal: React.FC<NodeListModalProps> = ({ filteredNodes, onCancel, showNodeList }) => {
+const NodeListModal: React.FC<NodeListModalProps> = ({
+  filteredNodes,
+  onCancel,
+  showNodeList,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
 
-  const [nodesData, nodesLoaded, nodesLoadError] = useK8sWatchResource<NodeKind[]>({
+  const [nodesData, nodesLoaded, nodesLoadError] = useK8sWatchResource<
+    NodeKind[]
+  >({
     kind: NodeModel.kind,
     namespaced: false,
     isList: true,
   });
-  const filteredData = React.useMemo(() => filterNodes(nodesData, filteredNodes), [nodesData, filteredNodes]);
+  const filteredData = React.useMemo(
+    () => filterNodes(nodesData, filteredNodes),
+    [nodesData, filteredNodes]
+  );
 
   return (
     <Modal
@@ -220,15 +256,12 @@ const NodeListModal: React.FC<NodeListModalProps> = ({ filteredNodes, onCancel, 
       ]}
     >
       <StatusBox
-          skeleton={<div className="loading-skeleton--table" />}
-          data={nodesData}
-          loaded={nodesLoaded}
-          loadError={nodesLoadError}
+        skeleton={<div className="loading-skeleton--table" />}
+        data={nodesData}
+        loaded={nodesLoaded}
+        loadError={nodesLoadError}
       >
-        <SelectedNodesTable
-          data={filteredData}
-          showDetails={false}
-        />
+        <SelectedNodesTable data={filteredData} showDetails={false} />
       </StatusBox>
     </Modal>
   );

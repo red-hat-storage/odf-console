@@ -6,7 +6,11 @@ import {
   FlashSystemConnectionDetails,
   createFlashSystemPayload,
 } from './ibm-flashsystem/index';
-import { rhcsCanGoToNextStep, ConnectionDetails, rhcsPayload } from './red-hat-ceph-storage';
+import {
+  rhcsCanGoToNextStep,
+  ConnectionDetails,
+  rhcsPayload,
+} from './red-hat-ceph-storage';
 
 export const SUPPORTED_EXTERNAL_STORAGE: ExternalStorage[] = [
   {
@@ -35,4 +39,5 @@ export const SUPPORTED_EXTERNAL_STORAGE: ExternalStorage[] = [
   },
 ];
 
-export const isStorageProviderDevPreview = (kind: string) => kind === IBMFlashSystemModel.kind;
+export const isStorageProviderDevPreview = (kind: string) =>
+  kind === IBMFlashSystemModel.kind;

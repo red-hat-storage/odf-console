@@ -1,8 +1,6 @@
 import * as React from 'react';
 import { getRangeVectorStats } from '@odf/shared/charts';
-import {
-  Humanize,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import {
   usePrometheusPoll,
   useUtilizationDuration,
@@ -49,7 +47,7 @@ export const PrometheusMultilineUtilizationItem: React.FC<PrometheusMultilineUti
             firstMetric,
             queryA.desc,
             null,
-            trimSecondsXMutator,
+            trimSecondsXMutator
           )?.[0] || [];
         tempStats = [statsA];
       }
@@ -59,7 +57,7 @@ export const PrometheusMultilineUtilizationItem: React.FC<PrometheusMultilineUti
             secondMetric,
             queryB?.desc,
             null,
-            trimSecondsXMutator,
+            trimSecondsXMutator
           )?.[0] || [];
         tempStats = [...tempStats, statsB];
       }

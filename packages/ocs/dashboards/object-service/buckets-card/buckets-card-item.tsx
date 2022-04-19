@@ -11,7 +11,12 @@ const formatCount = (count: number, t: TFunction) => {
   return `${hCount} ${pluralizeObject}`;
 };
 
-export const BucketsTitle: React.FC<BucketsTitleProps> = ({ objects, link, error, children }) => {
+export const BucketsTitle: React.FC<BucketsTitleProps> = ({
+  objects,
+  link,
+  error,
+  children,
+}) => {
   const { t } = useTranslation();
 
   let objectsBody: JSX.Element;

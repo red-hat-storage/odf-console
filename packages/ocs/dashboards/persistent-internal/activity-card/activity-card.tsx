@@ -64,7 +64,8 @@ export const eventsResource = {
 const RecentEvent: React.FC = () => {
   const [pvcs, pvcLoaded] =
     useK8sWatchResource<PersistentVolumeClaimKind[]>(pvcResource);
-  const [events, eventsLoaded] = useK8sWatchResource<EventKind[]>(eventsResource);
+  const [events, eventsLoaded] =
+    useK8sWatchResource<EventKind[]>(eventsResource);
 
   const validPVC = pvcs
     .filter((obj) =>
@@ -81,13 +82,11 @@ const RecentEvent: React.FC = () => {
   const eventObject = {
     data: events,
     loaded: eventsLoaded && pvcLoaded,
-    kind: "Event",
-    loadError: null
+    kind: 'Event',
+    loadError: null,
   };
 
-  return (
-    <RecentEventsBody events={eventObject} filter={ocsEventsFilter()} />
-  );
+  return <RecentEventsBody events={eventObject} filter={ocsEventsFilter()} />;
 };
 
 export const subscriptionResource = {

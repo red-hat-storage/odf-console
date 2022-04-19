@@ -27,7 +27,7 @@ import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { NodeModel } from '@odf/shared/models';
 import { ListKind, NodeKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
-import { 
+import {
   k8sCreate,
   WatchK8sResource,
   useK8sWatchResource,
@@ -55,7 +55,7 @@ import './create-local-volume-set-step.scss';
 
 const goToLSOInstallationPage = (history) =>
   history.push(
-    '/operatorhub/all-namespaces?details-item=local-storage-operator-redhat-operators-openshift-marketplace',
+    '/operatorhub/all-namespaces?details-item=local-storage-operator-redhat-operators-openshift-marketplace'
   );
 
 const makeLocalVolumeSetCall = (
@@ -66,7 +66,7 @@ const makeLocalVolumeSetCall = (
   ns: string,
   onNext: () => void,
   lvsNodes: WizardState['nodes'],
-  dispatch: WizardDispatch,
+  dispatch: WizardDispatch
 ) => {
   setInProgress(true);
 
@@ -76,9 +76,9 @@ const makeLocalVolumeSetCall = (
     { ...state, storageClassName },
     nodes,
     ns,
-    OCS_TOLERATION,
+    OCS_TOLERATION
   );
-  k8sCreate({model: LocalVolumeSetModel, data: requestData})
+  k8sCreate({ model: LocalVolumeSetModel, data: requestData })
     .then(() => {
       setInProgress(false);
       if (!storageClassName) {
@@ -99,7 +99,7 @@ const initDiskDiscovery = async (
   nodes: WizardNodeState[] = [],
   namespace: string,
   setError: (error: any) => void,
-  setInProgress: (inProgress: boolean) => void,
+  setInProgress: (inProgress: boolean) => void
 ) => {
   setInProgress(true);
   const nodeByHostNames: string[] = nodes.map((node) => node.hostName);
@@ -108,7 +108,11 @@ const initDiskDiscovery = async (
   } catch (loadError) {
     if (loadError?.response?.status === 404) {
       try {
-        await createLocalVolumeDiscovery(nodeByHostNames, namespace, OCS_TOLERATION);
+        await createLocalVolumeDiscovery(
+          nodeByHostNames,
+          namespace,
+          OCS_TOLERATION
+        );
       } catch (createError) {
         setError(createError.message);
       }
@@ -119,7 +123,10 @@ const initDiskDiscovery = async (
   }
 };
 
-const getLvdrResource = (nodes: WizardNodeState[] = [], ns: string): WatchK8sResource => {
+const getLvdrResource = (
+  nodes: WizardNodeState[] = [],
+  ns: string
+): WatchK8sResource => {
   return {
     kind: referenceForModel(LocalVolumeDiscoveryResult),
     namespace: ns,
@@ -148,7 +155,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 }) => {
   const { t } = useTranslation('plugin__odf-console');
   const isArbiterSupported = useFlag(FEATURES.OCS_ARBITER);
-  const { onNext, activeStep } = React.useContext<WizardContextType>(WizardContext);
+  const { onNext, activeStep } =
+    React.useContext<WizardContextType>(WizardContext);
 
   const cancel = () => {
     dispatch({
@@ -176,7 +184,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       ns,
       handleNext,
       nodes,
-      dispatch,
+      dispatch
     );
   };
 
@@ -225,7 +233,10 @@ type ConfirmationModalProps = {
   stepIdReached: WizardState['stepIdReached'];
 };
 
-const RequestErrors: React.FC<RequestErrorsProps> = ({ errorMessage, inProgress }) => (
+const RequestErrors: React.FC<RequestErrorsProps> = ({
+  errorMessage,
+  inProgress,
+}) => (
   <>
     {errorMessage && <ErrorAlert message={errorMessage} />}
     {inProgress && <LoadingInline />}
@@ -234,7 +245,7 @@ const RequestErrors: React.FC<RequestErrorsProps> = ({ errorMessage, inProgress 
 
 type RequestErrorsProps = { errorMessage: string; inProgress: boolean };
 
-export const LSOInstallAlert = ({history}) => {
+export const LSOInstallAlert = ({ history }) => {
   const { t } = useTranslation('plugin__odf-console');
   return (
     <Alert
@@ -244,10 +255,15 @@ export const LSOInstallAlert = ({history}) => {
       isInline
     >
       <Trans t={t as any} ns="plugin__odf-console">
-        Before we can create a StorageSystem, the Local Storage Operator needs to be installed. When
-        installation is finished come back to OpenShift Data Foundation to create a StorageSystem.
+        Before we can create a StorageSystem, the Local Storage Operator needs
+        to be installed. When installation is finished come back to OpenShift
+        Data Foundation to create a StorageSystem.
         <div className="ceph-ocs-install__lso-alert__button">
-          <Button type="button" variant="primary" onClick={() => goToLSOInstallationPage(history)}>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => goToLSOInstallationPage(history)}
+          >
             Install
           </Button>
         </div>
@@ -269,10 +285,11 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   const allNodes = React.useRef([]);
 
   const [csv, csvLoaded, csvLoadError] = useFetchCsv(LSO_OPERATOR);
-  const [rawNodes, rawNodesLoaded, rawNodesLoadError] = useK8sGet<ListKind<NodeKind>>(NodeModel);
-  const [lvdResults, lvdResultsLoaded] = useK8sWatchResource<LocalVolumeDiscoveryResultKind[]>(
-    getLvdrResource(allNodes.current, csv?.metadata?.namespace),
-  );
+  const [rawNodes, rawNodesLoaded, rawNodesLoadError] =
+    useK8sGet<ListKind<NodeKind>>(NodeModel);
+  const [lvdResults, lvdResultsLoaded] = useK8sWatchResource<
+    LocalVolumeDiscoveryResultKind[]
+  >(getLvdrResource(allNodes.current, csv?.metadata?.namespace));
   const [lvdInProgress, setLvdInProgress] = React.useState(false);
   const [lvdError, setLvdError] = React.useState(null);
   const [lvsetInProgress, setLvsetInProgress] = React.useState(false);
@@ -285,7 +302,12 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
 
   React.useEffect(() => {
     if (!csvLoadError && csvLoaded && allNodes.current.length) {
-      initDiskDiscovery(allNodes.current, csv?.metadata.namespace, setLvdError, setLvdInProgress);
+      initDiskDiscovery(
+        allNodes.current,
+        csv?.metadata.namespace,
+        setLvdError,
+        setLvdInProgress
+      );
     }
   }, [csv, csvLoadError, csvLoaded, rawNodes]);
 
@@ -310,7 +332,11 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
           : null
       }
       error={discoveriesLoadError}
-      errorMessage={csvLoadError || csv?.status?.phase !== 'Succeeded' ? <LSOInstallAlert history={history}/> : null}
+      errorMessage={
+        csvLoadError || csv?.status?.phase !== 'Succeeded' ? (
+          <LSOInstallAlert history={history} />
+        ) : null
+      }
     >
       <>
         <Grid>
@@ -323,7 +349,9 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
                 allNodes={allNodes.current}
                 nodes={nodes}
                 defaultVolumeMode={
-                  isMCG ? diskModeDropdownItems.FILESYSTEM : diskModeDropdownItems.BLOCK
+                  isMCG
+                    ? diskModeDropdownItems.FILESYSTEM
+                    : diskModeDropdownItems.BLOCK
                 }
               />
             </Form>
@@ -365,7 +393,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
           >
             {t(
               'A minimum of 3 nodes are required for the initial deployment. Only {{nodes}} node match to the selected filters. Please adjust the filters to include more nodes.',
-              { nodes: state.chartNodes.size },
+              { nodes: state.chartNodes.size }
             )}
           </Alert>
         )}

@@ -29,7 +29,7 @@ import {
 } from '@patternfly/react-core';
 import { CephClusterModel } from '../../../models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
-import { getAlertsFromRules } from  '../../../utils';
+import { getAlertsFromRules } from '../../../utils';
 import { filterCephAlerts } from '../../../utils/metrics';
 import { getCephHealthState, getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';

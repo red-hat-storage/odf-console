@@ -8,7 +8,7 @@ import {
   NO_PROVISIONER,
 } from '@odf/core/constants';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
-import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown'
+import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { NodeKind } from '@odf/shared/types';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash';
@@ -28,9 +28,16 @@ import { LocalVolumeSet, WizardDispatch, WizardState } from '../../reducer';
 import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
 import './body.scss';
 
-const diskModeDropdownOptions: JSX.Element[] = _.map(diskModeDropdownItems, (v, _) => <SelectOption key={v} value={v}/>);
-const diskSizeUnitDropdownOptions: JSX.Element[] = _.map(diskSizeUnitOptions, (v, _) => <SelectOption key={v} value={v}/>);
-const diskTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) => _.map(diskTypeDropdownItems(t), (v, _) => <SelectOption key={v} value={v}/>);
+const diskModeDropdownOptions: JSX.Element[] = _.map(
+  diskModeDropdownItems,
+  (v, _) => <SelectOption key={v} value={v} />
+);
+const diskSizeUnitDropdownOptions: JSX.Element[] = _.map(
+  diskSizeUnitOptions,
+  (v, _) => <SelectOption key={v} value={v} />
+);
+const diskTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
+  _.map(diskTypeDropdownItems(t), (v, _) => <SelectOption key={v} value={v} />);
 
 export enum FilterDiskBy {
   ALL_NODES = 'all-nodes',
@@ -66,9 +73,15 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
   const [activeMaxDiskSize, setMaxActiveState] = React.useState(false);
 
   const formHandler = React.useCallback(
-    (field: keyof LocalVolumeSet, value: LocalVolumeSet[keyof LocalVolumeSet]) =>
-      dispatch({ type: 'wizard/setCreateLocalVolumeSet', payload: { field, value } }),
-    [dispatch],
+    (
+      field: keyof LocalVolumeSet,
+      value: LocalVolumeSet[keyof LocalVolumeSet]
+    ) =>
+      dispatch({
+        type: 'wizard/setCreateLocalVolumeSet',
+        payload: { field, value },
+      }),
+    [dispatch]
   );
 
   React.useEffect(() => {
@@ -95,7 +108,12 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
     Number(state.minDiskSize) > Number(state.maxDiskSize);
 
   React.useEffect(() => {
-    if (!validMinDiskSize || !validMaxDiskSize || !validMaxDiskLimit || invalidMinGreaterThanMax) {
+    if (
+      !validMinDiskSize ||
+      !validMaxDiskSize ||
+      !validMaxDiskLimit ||
+      invalidMinGreaterThanMax
+    ) {
       formHandler('isValidDiskSize', false);
     } else {
       formHandler('isValidDiskSize', true);
@@ -118,7 +136,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
       const nodesData = createWizardNodeState(selectedNodes);
       dispatch({ type: 'wizard/setNodes', payload: nodesData });
     },
-    [dispatch],
+    [dispatch]
   );
 
   const RADIO_GROUP_NAME = 'filter-by-nodes-radio-group';
@@ -138,7 +156,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
         isRequired
         fieldId="create-lvs-volume-set-name"
         helperText={t(
-          'A LocalVolumeSet will be created to allow you to filter a set of disks, group them and create a dedicated StorageClass to consume storage from them.',
+          'A LocalVolumeSet will be created to allow you to filter a set of disks, group them and create a dedicated StorageClass to consume storage from them.'
         )}
       >
         <TextInput
@@ -166,13 +184,16 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           }
         />
       </FormGroup>
-      <Text component={TextVariants.h3} className="odf-create-lvs__filter-volumes-text--margin">
+      <Text
+        component={TextVariants.h3}
+        className="odf-create-lvs__filter-volumes-text--margin"
+      >
         {t('Filter disks by')}
       </Text>
       <Radio
         label={<AllNodesLabel count={allNodes?.length} />}
         description={t(
-          'Uses the available disks that match the selected filters on all nodes.',
+          'Uses the available disks that match the selected filters on all nodes.'
         )}
         name={RADIO_GROUP_NAME}
         value={FilterDiskBy.ALL_NODES}
@@ -184,7 +205,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
       <Radio
         label={t('Disks on selected nodes')}
         description={t(
-          'Uses the available disks that match the selected filters only on selected nodes.',
+          'Uses the available disks that match the selected filters only on selected nodes.'
         )}
         name={RADIO_GROUP_NAME}
         value={FilterDiskBy.SELECTED_NODES}
@@ -229,10 +250,18 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
         >
           <MultiSelectDropdown
             id="create-odf-device-type-dropdown"
-            options={[deviceTypeDropdownItems.DISK, deviceTypeDropdownItems.PART]}
+            options={[
+              deviceTypeDropdownItems.DISK,
+              deviceTypeDropdownItems.PART,
+            ]}
             placeholder={t('Select disk types')}
-            onChange={(selectedValues: string[]) => formHandler('deviceType', selectedValues)}
-            defaultSelected={[deviceTypeDropdownItems.DISK, deviceTypeDropdownItems.PART]}
+            onChange={(selectedValues: string[]) =>
+              formHandler('deviceType', selectedValues)
+            }
+            defaultSelected={[
+              deviceTypeDropdownItems.DISK,
+              deviceTypeDropdownItems.PART,
+            ]}
           />
         </FormGroup>
         <FormGroup
@@ -240,7 +269,10 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           fieldId="create-lvs-disk-size"
           className="odf-create-lvs__disk-size-form-group--margin"
         >
-          <div id="create-lvs-disk-size" className="odf-create-lvs__disk-size-form-group-div">
+          <div
+            id="create-lvs-disk-size"
+            className="odf-create-lvs__disk-size-form-group-div"
+          >
             <FormGroup
               label={t('Minimum')}
               fieldId="create-lvs-min-disk-size"
@@ -251,10 +283,13 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
                   !validMinDiskSize
                     ? diskSizeHelpText
                     : t(
-                        'Please enter a value less than or equal to max disk size',
+                        'Please enter a value less than or equal to max disk size'
                       )
                 }
-                isVisible={!validMinDiskSize || (invalidMinGreaterThanMax && activeMinDiskSize)}
+                isVisible={
+                  !validMinDiskSize ||
+                  (invalidMinGreaterThanMax && activeMinDiskSize)
+                }
                 trigger="manual"
               >
                 <TextInput
@@ -262,7 +297,8 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
                   id="create-lvs-min-disk-size"
                   value={state.minDiskSize}
                   validated={
-                    !validMinDiskSize || (invalidMinGreaterThanMax && activeMinDiskSize)
+                    !validMinDiskSize ||
+                    (invalidMinGreaterThanMax && activeMinDiskSize)
                       ? 'error'
                       : 'default'
                   }
@@ -284,10 +320,13 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
                   !validMaxDiskSize
                     ? diskSizeHelpText
                     : t(
-                        'Please enter a value greater than or equal to min disk size',
+                        'Please enter a value greater than or equal to min disk size'
                       )
                 }
-                isVisible={!validMaxDiskSize || (invalidMinGreaterThanMax && activeMaxDiskSize)}
+                isVisible={
+                  !validMaxDiskSize ||
+                  (invalidMinGreaterThanMax && activeMaxDiskSize)
+                }
                 trigger="manual"
               >
                 <TextInput
@@ -295,7 +334,8 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
                   id="create-lvs-max-disk-size"
                   value={state.maxDiskSize}
                   validated={
-                    !validMaxDiskSize || (invalidMinGreaterThanMax && activeMaxDiskSize)
+                    !validMaxDiskSize ||
+                    (invalidMinGreaterThanMax && activeMaxDiskSize)
                       ? 'error'
                       : 'default'
                   }
@@ -327,10 +367,14 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
         >
           <p className="help-block odf-create-lvs__max-disk-limit-help-text--margin">
             {t(
-              'Disks limit will set the maximum number of PVs to create on a node. If the field is empty we will create PVs for all available disks on the matching nodes.',
+              'Disks limit will set the maximum number of PVs to create on a node. If the field is empty we will create PVs for all available disks on the matching nodes.'
             )}
           </p>
-          <Tooltip content={diskSizeHelpText} isVisible={!validMaxDiskLimit} trigger="manual">
+          <Tooltip
+            content={diskSizeHelpText}
+            isVisible={!validMaxDiskLimit}
+            trigger="manual"
+          >
             <TextInput
               type={TextInputTypes.text}
               id="create-lvs-max-disk-limit"

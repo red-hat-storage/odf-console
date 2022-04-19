@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from "lodash";
+import * as _ from 'lodash';
 import {
   DataList,
   DataListItem,
@@ -22,31 +22,33 @@ import {
   Text,
   Bullseye,
 } from '@patternfly/react-core';
-import { MAX_ALLOWED_CLUSTERS, MANAGED_CLUSTER_REGION_CLAIM } from '../../../constants/dr-policy';
+import {
+  MAX_ALLOWED_CLUSTERS,
+  MANAGED_CLUSTER_REGION_CLAIM,
+} from '../../../constants/dr-policy';
 import { ACMManagedClusterModel } from '../../../models';
 import { ACMManagedClusterKind } from '../../../types';
 import './select-cluster-list.scss';
 
-
 export type Cluster = {
   name: string;
   region: string;
-}& ODFInfo;
+} & ODFInfo;
 
 type ODFInfo = {
   storageSystem?: string;
   storageClusterId?: string;
   odfVersion?: string;
-  isValidODFVersion?: boolean
+  isValidODFVersion?: boolean;
   storageSystemLoaded?: boolean;
   storageClusterIdLoaded?: boolean;
   csvLoaded?: boolean;
-}
+};
 
 const getFilteredClusters = (
   clusters: Cluster[],
   region: string,
-  name: string,
+  name: string
 ) => {
   let filteredClusters = clusters;
 
@@ -58,22 +60,24 @@ const getFilteredClusters = (
 };
 
 const fetchRegion = (cluster: ACMManagedClusterKind): string =>
-    cluster?.status?.clusterClaims?.reduce((region, claim) => region || (claim?.name === MANAGED_CLUSTER_REGION_CLAIM && claim?.value), "");
+  cluster?.status?.clusterClaims?.reduce(
+    (region, claim) =>
+      region || (claim?.name === MANAGED_CLUSTER_REGION_CLAIM && claim?.value),
+    ''
+  );
 
-const filterRegions = (filteredClusters: Cluster[]) => 
+const filterRegions = (filteredClusters: Cluster[]) =>
   filteredClusters?.reduce((acc, cluster) => {
-    if (!acc.includes(cluster?.region) && cluster?.region !== "") {
+    if (!acc.includes(cluster?.region) && cluster?.region !== '') {
       acc.push(cluster?.region);
-    };
+    }
     return acc;
   }, []);
 
-const getManagedClusterInfo = (cluster: ACMManagedClusterKind) =>(
-  {
-    "name": cluster?.metadata?.name,
-    "region": fetchRegion(cluster) ?? ""
-  }
-);
+const getManagedClusterInfo = (cluster: ACMManagedClusterKind) => ({
+  name: cluster?.metadata?.name,
+  region: fetchRegion(cluster) ?? '',
+});
 
 export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   selectedClusters,
@@ -85,17 +89,33 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   const [nameSearch, setNameSearch] = React.useState('');
   const [clusters, setClusters] = React.useState<Cluster[]>([]);
 
-  const [acmManagedClusters, acmManagedClustersLoaded, acmManagedClustersLoadError] = useK8sWatchResource<ACMManagedClusterKind[]>({
+  const [
+    acmManagedClusters,
+    acmManagedClustersLoaded,
+    acmManagedClustersLoadError,
+  ] = useK8sWatchResource<ACMManagedClusterKind[]>({
     kind: referenceForModel(ACMManagedClusterModel),
     isList: true,
     namespaced: false,
   });
 
   React.useEffect(() => {
-    if(acmManagedClustersLoaded && !acmManagedClustersLoadError) {
-      setClusters(acmManagedClusters?.reduce((obj, acmManagedCluster) => ([...obj, getManagedClusterInfo(acmManagedCluster)]), []));
-    };
-  }, [acmManagedClusters, acmManagedClustersLoaded, acmManagedClustersLoadError]);
+    if (acmManagedClustersLoaded && !acmManagedClustersLoadError) {
+      setClusters(
+        acmManagedClusters?.reduce(
+          (obj, acmManagedCluster) => [
+            ...obj,
+            getManagedClusterInfo(acmManagedCluster),
+          ],
+          []
+        )
+      );
+    }
+  }, [
+    acmManagedClusters,
+    acmManagedClustersLoaded,
+    acmManagedClustersLoadError,
+  ]);
 
   const filteredClusters: Cluster[] = React.useMemo(
     () => getFilteredClusters(clusters, region, nameSearch),
@@ -111,14 +131,14 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
         [name]: {
           name,
           region,
-          storageClusterId: "",
-          storageSystem: "",
-          odfVersion: "",
+          storageClusterId: '',
+          storageSystem: '',
+          odfVersion: '',
         },
       }));
     else {
       const sc = _.cloneDeep(selectedClusters);
-      delete sc?.[name]
+      delete sc?.[name];
       setSelectedClusters(sc);
     }
   };
@@ -139,12 +159,12 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
               }}
               selections={region}
             >
-                <SelectOption value={t('Region')} isPlaceholder />
-                <>
-                  {filterRegions(filteredClusters).map((region) => (
-                    <SelectOption value={region} key={region}/>
-                  ))}
-                </>
+              <SelectOption value={t('Region')} isPlaceholder />
+              <>
+                {filterRegions(filteredClusters).map((region) => (
+                  <SelectOption value={region} key={region} />
+                ))}
+              </>
             </Select>
           </ToolbarItem>
           <ToolbarItem className="mco-select-cluster-list__search-toolbar-item">
@@ -174,10 +194,15 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
                   aria-labelledby={t('Checkbox to select cluster')}
                   id={index.toString()}
                   onChange={onSelect}
-                  isChecked={Object.keys(selectedClusters)?.some((scName) => scName === fc.name)}
+                  isChecked={Object.keys(selectedClusters)?.some(
+                    (scName) => scName === fc.name
+                  )}
                   isDisabled={
-                    Object.keys(selectedClusters ?? [])?.length === MAX_ALLOWED_CLUSTERS &&
-                    !Object.keys(selectedClusters ?? [])?.some((scName) => scName === fc.name)
+                    Object.keys(selectedClusters ?? [])?.length ===
+                      MAX_ALLOWED_CLUSTERS &&
+                    !Object.keys(selectedClusters ?? [])?.some(
+                      (scName) => scName === fc.name
+                    )
                   }
                 />
                 <DataListItemCells
@@ -200,10 +225,12 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
 };
 
 export type ManagedClusterMapping = {
-  [name in string] : Cluster;
-}
+  [name in string]: Cluster;
+};
 
 type SelectClusterListProps = {
   selectedClusters: ManagedClusterMapping;
-  setSelectedClusters: React.Dispatch<React.SetStateAction<ManagedClusterMapping>>;
+  setSelectedClusters: React.Dispatch<
+    React.SetStateAction<ManagedClusterMapping>
+  >;
 };

@@ -312,9 +312,7 @@ export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
     <>
       <Modal {...modalProps} />
       <div className="co-m-pane__body">
-        <SectionHeading
-          text={t('Object Bucket Claim Details')}
-        />
+        <SectionHeading text={t('Object Bucket Claim Details')} />
         <div className="row">
           <div className="col-sm-6">
             <ResourceSummary

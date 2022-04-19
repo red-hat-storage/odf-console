@@ -1,4 +1,4 @@
- /* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useState } from 'react';
 import { usePoll } from './poll-hook';
 import { useSafeFetch } from './safe-fetch-hook';

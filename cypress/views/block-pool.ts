@@ -1,6 +1,6 @@
 import { POOL_PROGRESS } from '../constants/storage-pool-const';
 import { NS } from '../utils/consts';
-import { ODFCommon } from "../views/odf-common";
+import { ODFCommon } from '../views/odf-common';
 
 // Pool var
 export const poolName: string = 'example.pool';
@@ -21,7 +21,7 @@ export const poolMessage: {
 export const navigateToBlockPool = () => {
   ODFCommon.visitStorageDashboard();
   cy.byLegacyTestID('horizontal-link-Storage Systems').click();
-  cy.byLegacyTestID('item-filter').type("ocs-storagecluster-storagesystem");
+  cy.byLegacyTestID('item-filter').type('ocs-storagecluster-storagesystem');
   cy.byTestRows('resource-row').get('td a').first().click();
   cy.byLegacyTestID('horizontal-link-BlockPools').click();
 };
@@ -68,22 +68,22 @@ export const verifyFooterActions = (action: string) => {
       break;
     default:
       cy.log(`Invoke ${action} action`);
-      cy.byLegacyTestID('confirm-action')
-        .scrollIntoView()
-        .click();
+      cy.byLegacyTestID('confirm-action').scrollIntoView().click();
   }
 };
 
 export const verifyBlockPoolJSON = (
   compressionEnabled: boolean = true,
-  replica: string = replicaCount,
+  replica: string = replicaCount
 ) =>
   cy.exec(`oc get cephBlockPool ${poolName} -n  ${NS} -o json`).then((res) => {
     const blockPool = JSON.parse(res.stdout);
     expect(blockPool.spec?.replicated?.size).to.equal(Number(replica));
-    expect(blockPool.spec?.compressionMode).to.equal(compressionEnabled ? 'aggressive' : 'none');
+    expect(blockPool.spec?.compressionMode).to.equal(
+      compressionEnabled ? 'aggressive' : 'none'
+    );
     expect(blockPool.spec?.parameters?.compression_mode).to.equal(
-      compressionEnabled ? 'aggressive' : 'none',
+      compressionEnabled ? 'aggressive' : 'none'
     );
     expect(blockPool.spec?.deviceClass).to.equal(volumeType);
   });

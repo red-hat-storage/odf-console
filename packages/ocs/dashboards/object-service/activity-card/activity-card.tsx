@@ -4,7 +4,10 @@ import { secretResource } from '@odf/core/resources';
 import { EventModel } from '@odf/shared/models';
 import { K8sResourceKind } from '@odf/shared/types';
 import { getResiliencyProgress } from '@odf/shared/utils';
-import { useK8sWatchResource, useFlag } from "@openshift-console/dynamic-plugin-sdk";
+import {
+  useK8sWatchResource,
+  useFlag,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActivityBody,
   RecentEventsBody,
@@ -24,71 +27,75 @@ import './activity-card.scss';
 const eventsResource = { isList: true, kind: EventModel.kind };
 
 const RecentEvent: React.FC = () => {
-  const [data, loaded, loadError] = useK8sWatchResource<EventKind[]>(eventsResource);
+  const [data, loaded, loadError] =
+    useK8sWatchResource<EventKind[]>(eventsResource);
   return (
     <RecentEventsBody
-      events={{data, loaded, loadError}}
+      events={{ data, loaded, loadError }}
       filter={isObjectStorageEvent}
     />
   );
-}
+};
 
 const OngoingActivity: React.FC = () => {
-    const [data, loaded, loadError] = useK8sWatchResource<K8sResourceKind>(secretResource);
-    const isRGWSupported = useFlag(RGW_FLAG);
+  const [data, loaded, loadError] =
+    useK8sWatchResource<K8sResourceKind>(secretResource);
+  const isRGWSupported = useFlag(RGW_FLAG);
 
-    const rgwPrefix = React.useMemo(
-      () => (isRGWSupported && loaded && !loadError ? decodeRGWPrefix(data) : ''),
-      [data, loaded, loadError, isRGWSupported],
-    );
-    const rgwResiliencyQuery = dataResiliencyQueryMap[
+  const rgwPrefix = React.useMemo(
+    () => (isRGWSupported && loaded && !loadError ? decodeRGWPrefix(data) : ''),
+    [data, loaded, loadError, isRGWSupported]
+  );
+  const rgwResiliencyQuery =
+    dataResiliencyQueryMap[
       ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY
     ](rgwPrefix);
 
-    const [progress, progressError] = usePrometheusPoll({
-      query: dataResiliencyQueryMap.MCG_REBUILD_PROGRESS_QUERY,
-      endpoint: 'api/v1/query' as any,
+  const [progress, progressError] = usePrometheusPoll({
+    query: dataResiliencyQueryMap.MCG_REBUILD_PROGRESS_QUERY,
+    endpoint: 'api/v1/query' as any,
+  });
+  const [eta] = usePrometheusPoll({
+    query: dataResiliencyQueryMap.MCG_REBUILD_TIME_QUERY,
+    endpoint: 'api/v1/query' as any,
+  });
+  const [rgwProgress, rgwProgressError] = usePrometheusPoll({
+    query: rgwResiliencyQuery,
+    endpoint: 'api/v1/query' as any,
+  });
+
+  const prometheusActivities = [];
+
+  if (getResiliencyProgress(progress) < 1) {
+    prometheusActivities.push({
+      results: [progress, eta],
+      loader: () =>
+        import('./data-resiliency-activity/data-resiliency-activity').then(
+          (m) => m.NoobaaDataResiliency
+        ),
     });
-    const [eta] = usePrometheusPoll({
-      query: dataResiliencyQueryMap.MCG_REBUILD_TIME_QUERY,
-      endpoint: 'api/v1/query' as any,
+  }
+
+  if (isRGWSupported && getResiliencyProgress(rgwProgress) < 1) {
+    prometheusActivities.push({
+      results: [rgwProgress],
+      loader: () =>
+        import('./data-resiliency-activity/data-resiliency-activity').then(
+          (m) => m.NoobaaDataResiliency
+        ),
     });
-    const [rgwProgress, rgwProgressError] = usePrometheusPoll({
-      query: rgwResiliencyQuery,
-      endpoint: 'api/v1/query' as any,
-    });
+  }
 
-    const prometheusActivities = [];
-
-    if (getResiliencyProgress(progress) < 1) {
-      prometheusActivities.push({
-        results: [progress, eta],
-        loader: () =>
-          import('./data-resiliency-activity/data-resiliency-activity').then(
-            (m) => m.NoobaaDataResiliency,
-          ),
-      });
-    }
-
-    if (isRGWSupported && getResiliencyProgress(rgwProgress) < 1) {
-      prometheusActivities.push({
-        results: [rgwProgress],
-        loader: () =>
-          import('./data-resiliency-activity/data-resiliency-activity').then(
-            (m) => m.NoobaaDataResiliency,
-          ),
-      });
-    }
-
-    return (
-      <OngoingActivityBody
-        loaded={
-          (progress || progressError) && (isRGWSupported ? rgwProgress || rgwProgressError : true)
-        }
-        prometheusActivities={prometheusActivities}
-      />
-    );
-}
+  return (
+    <OngoingActivityBody
+      loaded={
+        (progress || progressError) &&
+        (isRGWSupported ? rgwProgress || rgwProgressError : true)
+      }
+      prometheusActivities={prometheusActivities}
+    />
+  );
+};
 
 const ActivityCard: React.FC = () => {
   const { t } = useTranslation();

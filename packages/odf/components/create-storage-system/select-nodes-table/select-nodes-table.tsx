@@ -8,14 +8,11 @@ import {
   getNodeAllocatableMemory,
 } from '@odf/core/utils';
 import { StatusBox } from '@odf/shared/generic/status-box';
-import { useSelectList } from '@odf/shared/hooks/select-list'
-import { useSortList } from '@odf/shared/hooks/sort-list'
+import { useSelectList } from '@odf/shared/hooks/select-list';
+import { useSortList } from '@odf/shared/hooks/sort-list';
 import { NodeModel } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
-import {
-  getName,
-  hasLabel,
-} from '@odf/shared/selectors';
+import { getName, hasLabel } from '@odf/shared/selectors';
 import { NodeKind } from '@odf/shared/types';
 import {
   resourcePathFromModel,
@@ -50,7 +47,7 @@ const getRows = (
   visibleRows,
   setVisibleRows,
   selectedNodes,
-  setSelectedNodes,
+  setSelectedNodes
 ) => {
   const data = nodesData;
 
@@ -62,11 +59,13 @@ const getRows = (
     const memSpec: string = getNodeAllocatableMemory(node);
     const cells: IRow['cells'] = [
       {
-        title: <ResourceLink
-                  link={resourcePathFromModel(NodeModel, getName(node))}
-                  resourceModel={NodeModel}
-                  resourceName={getName(node)}
-               />,
+        title: (
+          <ResourceLink
+            link={resourcePathFromModel(NodeModel, getName(node))}
+            resourceModel={NodeModel}
+            resourceName={getName(node)}
+          />
+        ),
       },
       {
         title: roles.join(', ') ?? '-',
@@ -97,7 +96,9 @@ const getRows = (
   if (!_.isEqual(uids, visibleRows)) {
     setVisibleRows(uids);
     if (!selectedNodes?.size && filteredData.length) {
-      const preSelected = filteredData.filter((row) => hasLabel(row, CEPH_STORAGE_LABEL));
+      const preSelected = filteredData.filter((row) =>
+        hasLabel(row, CEPH_STORAGE_LABEL)
+      );
       setSelectedNodes(preSelected);
     }
   }
@@ -106,38 +107,45 @@ const getRows = (
 };
 
 const nameSort = (a, b, c) => {
-  const negation = c !== "asc";
+  const negation = c !== 'asc';
   const sortVal = a?.metadata.name.localeCompare(b?.metadata.name);
   return negation ? -sortVal : sortVal;
 };
 
-const InternalNodeTable: React.FC<NodeTableProps> =({ nodes, onRowSelected, nodesData }) => {
+const InternalNodeTable: React.FC<NodeTableProps> = ({
+  nodes,
+  onRowSelected,
+  nodesData,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
 
-  const getColumns = React.useMemo(() => [
-    {
-      title: t('Name'),
-      sortFunction: nameSort,
-      transforms: [sortable],
-      props: { className: tableColumnClasses[0] },
-    },
-    {
-      title: t('Role'),
-      props: { className: tableColumnClasses[1] },
-    },
-    {
-      title: t('CPU'),
-      props: { className: tableColumnClasses[2] },
-    },
-    {
-      title: t('Memory'),
-      props: { className: tableColumnClasses[3] },
-    },
-    {
-      title: t('Zone'),
-      props: { className: tableColumnClasses[4] },
-    },
-  ], [t]);
+  const getColumns = React.useMemo(
+    () => [
+      {
+        title: t('Name'),
+        sortFunction: nameSort,
+        transforms: [sortable],
+        props: { className: tableColumnClasses[0] },
+      },
+      {
+        title: t('Role'),
+        props: { className: tableColumnClasses[1] },
+      },
+      {
+        title: t('CPU'),
+        props: { className: tableColumnClasses[2] },
+      },
+      {
+        title: t('Memory'),
+        props: { className: tableColumnClasses[3] },
+      },
+      {
+        title: t('Zone'),
+        props: { className: tableColumnClasses[4] },
+      },
+    ],
+    [t]
+  );
 
   const [visibleRows, setVisibleRows] = React.useState<Set<string>>(nodes);
   const {
@@ -149,7 +157,7 @@ const InternalNodeTable: React.FC<NodeTableProps> =({ nodes, onRowSelected, node
     onSort,
     sortIndex: index,
     sortDirection: direction,
-    sortedData: rowsData
+    sortedData: rowsData,
   } = useSortList<NodeKind>(nodesData, getColumns, true);
 
   return (
@@ -157,16 +165,22 @@ const InternalNodeTable: React.FC<NodeTableProps> =({ nodes, onRowSelected, node
       <Table
         aria-label={t('Node Table')}
         data-test-id="select-nodes-table"
-        variant='compact'
-        rows={getRows(rowsData, visibleRows, setVisibleRows, selectedNodes, setSelectedNodes)}
+        variant="compact"
+        rows={getRows(
+          rowsData,
+          visibleRows,
+          setVisibleRows,
+          selectedNodes,
+          setSelectedNodes
+        )}
         cells={getColumns}
         onSelect={onSelect}
         onSort={onSort}
-        sortBy={{index, direction}}
+        sortBy={{ index, direction }}
       >
-      <TableHeader />
-      <TableBody />
-      </ Table>
+        <TableHeader />
+        <TableBody />
+      </Table>
     </div>
   );
 };
@@ -177,8 +191,13 @@ type NodeTableProps = {
   nodesData: NodeKind[];
 };
 
-export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({ nodes, onRowSelected }) => {
-  const [nodesData, nodesLoaded, nodesLoadError] = useK8sWatchResource<NodeKind[]>({
+export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({
+  nodes,
+  onRowSelected,
+}) => {
+  const [nodesData, nodesLoaded, nodesLoadError] = useK8sWatchResource<
+    NodeKind[]
+  >({
     kind: NodeModel.kind,
     namespaced: false,
     isList: true,
@@ -199,8 +218,8 @@ export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({ nodes, onRowS
           data={filteredData}
           loaded={nodesLoaded}
           loadError={nodesLoadError}
-         >
-          <InternalNodeTable 
+        >
+          <InternalNodeTable
             nodes={new Set(nodes.map(({ uid }) => uid))}
             onRowSelected={onRowSelected}
             nodesData={filteredData as NodeKind[]}

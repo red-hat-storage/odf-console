@@ -98,9 +98,7 @@ export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
           className="nb-create-bc-step-page__danger"
           variant="danger"
           isInline
-          title={t(
-            'An error has occured while fetching backing stores'
-          )}
+          title={t('An error has occured while fetching backing stores')}
         />
       )}
       <Dropdown
@@ -112,9 +110,7 @@ export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
             onToggle={() => setOpen(!isOpen)}
             isDisabled={!!nbsLoadErr}
           >
-            {selectedKey ||
-              nsName ||
-              t('Select a backing store')}
+            {selectedKey || nsName || t('Select a backing store')}
           </DropdownToggle>
         }
         isOpen={isOpen}

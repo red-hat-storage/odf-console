@@ -20,13 +20,18 @@ const messages = {
 };
 
 const checkHCPopover = () => {
-  cy.byStatusID('Storage Cluster-secondary-status', { timeout: 5 * MINUTE }).should('be.visible');
+  cy.byStatusID('Storage Cluster-secondary-status', {
+    timeout: 5 * MINUTE,
+  }).should('be.visible');
   cy.byItemID('Storage Cluster-health-item')
     .contains('Storage Cluster')
     .click();
 };
 
-const verifyMessagesAndRestore = (resources: Deployments[], expectedMessages: string[]) => {
+const verifyMessagesAndRestore = (
+  resources: Deployments[],
+  expectedMessages: string[]
+) => {
   scaleDeployments(resources, 0);
   checkHCPopover();
   expectedMessages.forEach((expectedMessage) => {
@@ -39,7 +44,9 @@ const verifyMessagesAndRestore = (resources: Deployments[], expectedMessages: st
 
 const isStorageClusterHealthy = () => {
   // Check if cluster is in a healthy state (secondary status is not displayed when cluster is healthy).
-  cy.byStatusID('Storage Cluster-secondary-status', { timeout: 5 * MINUTE }).should('not.exist');
+  cy.byStatusID('Storage Cluster-secondary-status', {
+    timeout: 5 * MINUTE,
+  }).should('not.exist');
 };
 
 describe('Test Popover behaviour for different active health check cases.', () => {
@@ -47,10 +54,10 @@ describe('Test Popover behaviour for different active health check cases.', () =
     cy.login();
     cy.visit('/');
     cy.install();
-    ODFCommon.visitStorageDashboard()
-    cy.byLegacyTestID("horizontal-link-Storage Systems").first().click()
-    listPage.searchInList(STORAGE_SYSTEM_NAME)
-    cy.byTestRows("resource-row").contains(STORAGE_SYSTEM_NAME).click()
+    ODFCommon.visitStorageDashboard();
+    cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
+    listPage.searchInList(STORAGE_SYSTEM_NAME);
+    cy.byTestRows('resource-row').contains(STORAGE_SYSTEM_NAME).click();
   });
 
   after(() => {
@@ -59,19 +66,25 @@ describe('Test Popover behaviour for different active health check cases.', () =
 
   beforeEach(() => {
     isStorageClusterHealthy();
-  })
+  });
 
   afterEach(() => {
     isStorageClusterHealthy();
-  })
+  });
 
   it('Popover shows all warnings.', () => {
-    const resources = [Deployments.ROOK_CEPH_MON_A, Deployments.ROOK_CEPH_MGR_A];
+    const resources = [
+      Deployments.ROOK_CEPH_MON_A,
+      Deployments.ROOK_CEPH_MGR_A,
+    ];
     verifyMessagesAndRestore(resources, Object.values(messages.warnings));
   });
 
   it('Popover shows the error.', () => {
-    const resources = [Deployments.ROOK_CEPH_MON_A, Deployments.ROOK_CEPH_MON_B];
+    const resources = [
+      Deployments.ROOK_CEPH_MON_A,
+      Deployments.ROOK_CEPH_MON_B,
+    ];
     verifyMessagesAndRestore(resources, Object.values(messages.errors));
   });
 });

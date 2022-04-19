@@ -7,7 +7,11 @@ import {
 import { ClusterServiceVersionModel } from '@odf/shared/models';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { Status } from '@odf/shared/status/Status';
-import { ClusterServiceVersionKind, HumanizeResult, StorageSystemKind } from '@odf/shared/types';
+import {
+  ClusterServiceVersionKind,
+  HumanizeResult,
+  StorageSystemKind,
+} from '@odf/shared/types';
 import {
   humanizeBinaryBytes,
   humanizeDecimalBytesPerSec,

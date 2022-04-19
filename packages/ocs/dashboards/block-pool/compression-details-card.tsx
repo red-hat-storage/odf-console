@@ -93,23 +93,15 @@ export const CompressionDetailsCard: React.FC = () => {
       </CardHeader>
       <CardBody>
         <DetailsBody>
-          <DetailItem
-            isLoading={!obj}
-            title={t('Compression status')}
-          >
-            {!compressionEnabled
-              ? t('Disabled')
-              : t('Enabled')}
+          <DetailItem isLoading={!obj} title={t('Compression status')}>
+            {!compressionEnabled ? t('Disabled') : t('Enabled')}
           </DetailItem>
         </DetailsBody>
         {compressionEnabled && (
           <DetailsBody>
             <div>
               <DetailsBody>
-                <DetailItem
-                  isLoading={loading}
-                  title={t('Storage efficiency')}
-                >
+                <DetailItem isLoading={loading} title={t('Storage efficiency')}>
                   <EfficiencyItemBody {...compressionEligibilityProps} />
                   <EfficiencyItemBody {...compressionRatioProps} />
                   <EfficiencyItemBody {...compressionSavingsProps} />

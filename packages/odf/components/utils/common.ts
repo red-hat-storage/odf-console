@@ -1,6 +1,10 @@
-import { NodesPerZoneMap, ValidationType, EncryptionType } from '@odf/core/types';
+import {
+  NodesPerZoneMap,
+  ValidationType,
+  EncryptionType,
+} from '@odf/core/types';
 import { MIN_SPEC_RESOURCES, MIN_DEVICESET_RESOURCES } from '@odf/core/types';
-import { 
+import {
   getNodeCPUCapacity,
   getNodeAllocatableMemory,
   getZone,
@@ -12,13 +16,9 @@ import {
 } from '@odf/core/utils';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { OCSStorageClusterModel } from '@odf/shared/models';
-import { 
-  getLabel,
-  getName,
-  getUID,
-} from '@odf/shared/selectors';
+import { getLabel, getName, getUID } from '@odf/shared/selectors';
 import { NodeKind, StorageClusterKind } from '@odf/shared/types';
-import { 
+import {
   referenceForModel,
   humanizeCpuCores,
   convertToBaseValue,
@@ -39,19 +39,28 @@ import { IBMFlashSystemModel } from '../../models';
 import { SUPPORTED_EXTERNAL_STORAGE } from '../create-storage-system/external-storage';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
 
-const pluralize = (count: number, singular: string, plural: string = `${singular}s`): string =>
-  count > 1 ? plural : singular;
+const pluralize = (
+  count: number,
+  singular: string,
+  plural: string = `${singular}s`
+): string => (count > 1 ? plural : singular);
 
 export const getTotalCpu = (nodes: WizardNodeState[]): number =>
-  nodes.reduce((total: number, { cpu }) => total + humanizeCpuCores(Number(cpu)).value, 0);
+  nodes.reduce(
+    (total: number, { cpu }) => total + humanizeCpuCores(Number(cpu)).value,
+    0
+  );
 
 export const getTotalMemory = (nodes: WizardNodeState[]): number =>
-  nodes.reduce((total: number, { memory }) => total + convertToBaseValue(memory), 0);
+  nodes.reduce(
+    (total: number, { memory }) => total + convertToBaseValue(memory),
+    0
+  );
 
 export const getAllZone = (nodes: WizardNodeState[]): Set<string> =>
   nodes.reduce(
     (total: Set<string>, { zone }) => (zone ? total.add(zone) : total),
-    new Set<string>(),
+    new Set<string>()
   );
 
 export const getVendorDashboardLinkFromMetrics = (
@@ -68,10 +77,13 @@ export const getVendorDashboardLinkFromMetrics = (
   }`;
 };
 
-export const getExternalStorage = (id: WizardState['backingStorage']['externalStorage'] = '') =>
-  SUPPORTED_EXTERNAL_STORAGE.find((p) => p.model.kind === id);
+export const getExternalStorage = (
+  id: WizardState['backingStorage']['externalStorage'] = ''
+) => SUPPORTED_EXTERNAL_STORAGE.find((p) => p.model.kind === id);
 
-export const createWizardNodeState = (nodes: NodeKind[] = []): WizardNodeState[] =>
+export const createWizardNodeState = (
+  nodes: NodeKind[] = []
+): WizardNodeState[] =>
   nodes.map((node) => {
     const name = getName(node);
     const hostName = getLabel(node, 'kubernetes.io/hostname', '');
@@ -93,7 +105,7 @@ export const createWizardNodeState = (nodes: NodeKind[] = []): WizardNodeState[]
       labels,
       taints,
     };
-});
+  });
 
 export const calculateRadius = (size: number) => {
   const radius = size / 2;
@@ -116,7 +128,7 @@ export const calculateRadius = (size: number) => {
 export const capacityAndNodesValidate = (
   nodes: WizardNodeState[],
   enableStretchCluster: boolean,
-  isNoProvSC: boolean,
+  isNoProvSC: boolean
 ): ValidationType[] => {
   const validations = [];
 
@@ -124,7 +136,11 @@ export const capacityAndNodesValidate = (
   const totalMemory = getTotalMemory(nodes);
   const zones = getAllZone(nodes);
 
-  if (!enableStretchCluster && isNoProvSC && isFlexibleScaling(nodes.length, zones.size)) {
+  if (
+    !enableStretchCluster &&
+    isNoProvSC &&
+    isFlexibleScaling(nodes.length, zones.size)
+  ) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
   }
   if (shouldDeployAsMinimal(totalCpu, totalMemory, nodes.length)) {
@@ -138,28 +154,32 @@ export const capacityAndNodesValidate = (
 
 export const isValidStretchClusterTopology = (
   nodesPerZoneMap: NodesPerZoneMap,
-  allZones: string[],
+  allZones: string[]
 ): boolean => {
   if (allZones.length >= 3) {
-    const validNodesWithPVPerZone = allZones.filter((zone) => nodesPerZoneMap[zone] >= 2);
+    const validNodesWithPVPerZone = allZones.filter(
+      (zone) => nodesPerZoneMap[zone] >= 2
+    );
     return validNodesWithPVPerZone.length >= 2;
   }
   return false;
 };
 
-export const getPVAssociatedNodesPerZone = (nodes: WizardNodeState[]): NodesPerZoneMap =>
-nodes.reduce((data, { zone }) => {
-  if (data[zone]) data[zone] += 1;
-  else if (zone) data[zone] = 1;
-  return data;
-}, {});
+export const getPVAssociatedNodesPerZone = (
+  nodes: WizardNodeState[]
+): NodesPerZoneMap =>
+  nodes.reduce((data, { zone }) => {
+    if (data[zone]) data[zone] += 1;
+    else if (zone) data[zone] = 1;
+    return data;
+  }, {});
 
 export const getZonesFromNodesKind = (nodes: NodeKind[]) =>
-nodes.reduce((data, node) => {
-  const zone = getZone(node);
-  if (!data.includes(zone)) data.push(zone);
-  return data;
-}, []);
+  nodes.reduce((data, node) => {
+    const zone = getZone(node);
+    if (!data.includes(zone)) data.push(zone);
+    return data;
+  }, []);
 
 export const getIPFamily = (addr: string): IP_FAMILY => {
   const ipPattern = /^[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$/;
@@ -170,7 +190,7 @@ export const checkError = (
   data: string = '{}',
   requiredKeys = [],
   requiresEncodingKeys = [],
-  ipFamily = IP_FAMILY.IPV4,
+  ipFamily = IP_FAMILY.IPV4
 ): string => {
   const parsedData = JSON.parse(data);
   const providedKeys = _.map(parsedData, (item) => item.name);
@@ -191,12 +211,15 @@ export const checkError = (
   });
 
   // Check for missing keys
-  const missingKeys = _.difference(_.concat(requiredKeys, requiresEncodingKeys), providedKeys);
+  const missingKeys = _.difference(
+    _.concat(requiredKeys, requiresEncodingKeys),
+    providedKeys
+  );
   if (missingKeys.length > 0 && providedKeys.length > 0) {
     return `${_.uniq(missingKeys).join(', ')} ${pluralize(
       _.uniq(missingKeys).length,
       'is',
-      'are',
+      'are'
     )} missing.`;
   }
 
@@ -204,23 +227,29 @@ export const checkError = (
     return `${_.uniq(emptyKeys).join(', ')} ${pluralize(
       emptyKeys.length,
       'has',
-      'have',
+      'have'
     )} empty ${pluralize(emptyKeys.length, 'value')}.`;
   }
 
   if (base64ErrorKeys.length > 0) {
     return `${_.uniq(base64ErrorKeys).join(', ')} ${pluralize(
       base64ErrorKeys.length,
-      'key',
-    )} ${pluralize(base64ErrorKeys.length, 'has', 'have')} malformed Base64 encoding ${pluralize(
+      'key'
+    )} ${pluralize(
       base64ErrorKeys.length,
-      'value',
+      'has',
+      'have'
+    )} malformed Base64 encoding ${pluralize(
+      base64ErrorKeys.length,
+      'value'
     )}.`;
   }
 
   // Check IP Compatibility
   const endpoints = _.find(parsedData, { name: 'rook-ceph-mon-endpoints' });
-  const ipAddr = (endpoints as any).data?.data?.split('=')?.[1]?.split(':')?.[0];
+  const ipAddr = (endpoints as any).data?.data
+    ?.split('=')?.[1]
+    ?.split(':')?.[0];
 
   if (ipFamily !== getIPFamily(ipAddr)) {
     return 'The IP Family of the two clusters do not match.';
@@ -230,7 +259,9 @@ export const checkError = (
 };
 
 export const createDownloadFile = (data: string = ''): string =>
-  `data:application/octet-stream;charset=utf-8,${encodeURIComponent(Base64.decode(data))}`;
+  `data:application/octet-stream;charset=utf-8,${encodeURIComponent(
+    Base64.decode(data)
+  )}`;
 
 export const isValidJSON = (fData: string): boolean => {
   try {
@@ -252,7 +283,7 @@ export const prettifyJSON = (data: string) =>
           (item) =>
             (container += `${_.upperCase(item.name ?? 'Unrecognized key')} = ${
               item.data ? JSON.stringify(item.data) : 'Unrecognized value'
-            }\n`),
+            }\n`)
         );
         return container;
       })();
@@ -269,7 +300,7 @@ export const getOCSRequestData = (
   selectedArbiterZone?: string,
   stretchClusterChecked?: boolean,
   availablePvsCount?: number,
-  isMCG?: boolean,
+  isMCG?: boolean
 ): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -326,7 +357,7 @@ export const getOCSRequestData = (
           isPortable,
           deviceSetReplica,
           deviceSetCount,
-          isMinimal ? MIN_DEVICESET_RESOURCES : {},
+          isMinimal ? MIN_DEVICESET_RESOURCES : {}
         ),
       ],
       ...Object.assign(
@@ -335,12 +366,16 @@ export const getOCSRequestData = (
               network: {
                 provider: 'multus',
                 selectors: {
-                  ...Object.assign(publicNetwork ? { public: publicNetwork } : {}),
-                  ...Object.assign(clusterNetwork ? { cluster: clusterNetwork } : {}),
+                  ...Object.assign(
+                    publicNetwork ? { public: publicNetwork } : {}
+                  ),
+                  ...Object.assign(
+                    clusterNetwork ? { cluster: clusterNetwork } : {}
+                  ),
                 },
               },
             }
-          : {},
+          : {}
       ),
     };
   }

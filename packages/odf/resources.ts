@@ -15,7 +15,7 @@ import {
   SubscriptionModel,
   CephClusterModel,
 } from '@odf/shared/models';
-import { referenceForModel } from '@odf/shared/utils';;
+import { referenceForModel } from '@odf/shared/utils';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
 
 export const cephClusterResource: WatchK8sResource = {
@@ -59,7 +59,6 @@ export const cephBlockPoolResource: WatchK8sResource = {
   isList: true,
   namespace: CEPH_STORAGE_NAMESPACE,
 };
-
 
 export const nodeResource: WatchK8sResource = {
   kind: NodeModel.kind,

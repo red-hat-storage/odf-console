@@ -1,19 +1,19 @@
 import * as React from 'react';
-import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown'
+import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { TFunction } from 'i18next';
-import * as _ from "lodash";
+import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { SelectOption } from '@patternfly/react-core';
 import { OCS_DEVICE_SET_REPLICA, OSD_CAPACITY_SIZES } from '../../constants';
 
 const valueLabelMap = (t: TFunction) => {
-    return {
-      // value (stored in redux-state): label (visible on UI)
-      '512Gi': t('0.5 TiB'),
-      '2Ti': t('2 TiB'),
-      '4Ti': t('4 TiB'),
-    } as const;
-}
+  return {
+    // value (stored in redux-state): label (visible on UI)
+    '512Gi': t('0.5 TiB'),
+    '2Ti': t('2 TiB'),
+    '4Ti': t('4 TiB'),
+  } as const;
+};
 
 const labelDescriptionMap = (t: TFunction) => {
   return {
@@ -22,11 +22,16 @@ const labelDescriptionMap = (t: TFunction) => {
     [t('2 TiB')]: t('Standard'),
     [t('4 TiB')]: t('LargeScale'),
   } as const;
-}
+};
 
-const dropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>_.map(valueLabelMap(t), (v, _) => <SelectOption key={v} value={v} description={labelDescriptionMap(t)[v]}/>);
+const dropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
+  _.map(valueLabelMap(t), (v, _) => (
+    <SelectOption key={v} value={v} description={labelDescriptionMap(t)[v]} />
+  ));
 
-export const TotalCapacityText: React.FC<TotalCapacityTextProps> = ({ capacity }) => {
+export const TotalCapacityText: React.FC<TotalCapacityTextProps> = ({
+  capacity,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
 
   return (
@@ -41,7 +46,11 @@ export const TotalCapacityText: React.FC<TotalCapacityTextProps> = ({ capacity }
 
 type TotalCapacityTextProps = { capacity: string };
 
-export const OSDSizeDropdown: React.FC<OSDSizeDropdownProps> = ({ selectedKey, id, onChange }) => {
+export const OSDSizeDropdown: React.FC<OSDSizeDropdownProps> = ({
+  selectedKey,
+  id,
+  onChange,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
 
   return (

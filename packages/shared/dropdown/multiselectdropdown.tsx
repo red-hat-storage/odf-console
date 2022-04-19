@@ -10,8 +10,13 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   defaultSelected = [],
 }) => {
   const [isOpen, setOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<string[]>(defaultSelected || []);
-  const onSelect = (event: React.MouseEvent | React.ChangeEvent, selection: string) => {
+  const [selected, setSelected] = React.useState<string[]>(
+    defaultSelected || []
+  );
+  const onSelect = (
+    event: React.MouseEvent | React.ChangeEvent,
+    selection: string
+  ) => {
     let cSelected: string[] = selected;
     if (selected.includes(selection)) {
       cSelected = selected.filter((item) => item !== selection);
@@ -24,22 +29,24 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   const { t } = useCustomTranslation();
 
-  const items: JSX.Element[] = options.map((item) => <SelectOption key={item} value={item} />);
-  
+  const items: JSX.Element[] = options.map((item) => (
+    <SelectOption key={item} value={item} />
+  ));
+
   return (
-      <Select
-        variant={SelectVariant.typeaheadMulti}
-        aria-label={t('Select input')}
-        onToggle={setOpen}
-        onSelect={onSelect}
-        selections={selected}
-        isOpen={isOpen}
-        placeholderText={placeholder || t('Select options')}
-        aria-labelledby={id}
-        noResultsFoundText={t('No results found')}
-      >
-        {items}
-      </Select>
+    <Select
+      variant={SelectVariant.typeaheadMulti}
+      aria-label={t('Select input')}
+      onToggle={setOpen}
+      onSelect={onSelect}
+      selections={selected}
+      isOpen={isOpen}
+      placeholderText={placeholder || t('Select options')}
+      aria-labelledby={id}
+      noResultsFoundText={t('No results found')}
+    >
+      {items}
+    </Select>
   );
 };
 

@@ -103,11 +103,11 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
         </h1>
       </div>
       {showActions && (
-          <div className="co-actions" data-test-id="details-actions">
-            {actions()}
-          </div>
-        )}
-        {props.children}
+        <div className="co-actions" data-test-id="details-actions">
+          {actions()}
+        </div>
+      )}
+      {props.children}
     </div>
   );
 };

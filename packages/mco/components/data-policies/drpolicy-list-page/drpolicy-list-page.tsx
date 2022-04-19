@@ -18,7 +18,7 @@ import {
   RowProps,
   useActiveColumns,
   TableColumn,
- } from '@openshift-console/dynamic-plugin-sdk';
+} from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash';
 import { RouteComponentProps } from 'react-router';
@@ -53,63 +53,79 @@ const tableColumnInfo = [
 const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
   obj,
   activeColumnIDs,
-  rowData
+  rowData,
 }) => {
   const { launchModal } = rowData;
   const { t } = useCustomTranslation();
-  
-  const clusterNames = obj?.spec?.drClusters?.map(clusterName => <p key={clusterName}> {clusterName} </p>);
-  const condition = obj?.status?.conditions?.find(condition => condition.type === 'Validated');
 
-  const [filteredDRPlacementControl, setFilteredDRPlacementControl] = React.useState<DRPlacementControlKind[]>([]);
-  const [drPlacementControls, drPlacementsControlLoaded, drPlacementsControlLoadError] = useK8sWatchResource<DRPlacementControlKind[]>({
+  const clusterNames = obj?.spec?.drClusters?.map((clusterName) => (
+    <p key={clusterName}> {clusterName} </p>
+  ));
+  const condition = obj?.status?.conditions?.find(
+    (condition) => condition.type === 'Validated'
+  );
+
+  const [filteredDRPlacementControl, setFilteredDRPlacementControl] =
+    React.useState<DRPlacementControlKind[]>([]);
+  const [
+    drPlacementControls,
+    drPlacementsControlLoaded,
+    drPlacementsControlLoadError,
+  ] = useK8sWatchResource<DRPlacementControlKind[]>({
     kind: referenceForModel(DRPlacementControlModel),
     isList: true,
     namespaced: true,
   });
 
   React.useEffect(() => {
-    if(drPlacementsControlLoaded && !drPlacementsControlLoadError){
+    if (drPlacementsControlLoaded && !drPlacementsControlLoadError) {
       setFilteredDRPlacementControl(
-        drPlacementControls?.filter((drPlacementControl) => drPlacementControl?.spec?.drPolicyRef?.name === obj?.metadata?.name) ?? []
+        drPlacementControls?.filter(
+          (drPlacementControl) =>
+            drPlacementControl?.spec?.drPolicyRef?.name === obj?.metadata?.name
+        ) ?? []
       );
-    };
-  }, [drPlacementControls, drPlacementsControlLoaded, drPlacementsControlLoadError,  obj?.metadata?.name]);
-
+    }
+  }, [
+    drPlacementControls,
+    drPlacementsControlLoaded,
+    drPlacementsControlLoadError,
+    obj?.metadata?.name,
+  ]);
 
   return (
-      <>
-        <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
-          {obj?.metadata?.name}
-        </TableData>
-        <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        {condition?.status === "True" ? t('Validated'):t('Not Validated')}
-        </TableData>
-        <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
+    <>
+      <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
+        {obj?.metadata?.name}
+      </TableData>
+      <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
+        {condition?.status === 'True' ? t('Validated') : t('Not Validated')}
+      </TableData>
+      <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
         {clusterNames}
-        </TableData>
-        <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
-          {obj?.spec?.schedulingInterval !== "0m" ? REPLICATION_TYPE(t)['async'] : REPLICATION_TYPE(t)['sync']}
-        </TableData>
-        <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-          {<ApplicationStatus drPlacementControls={filteredDRPlacementControl} />}
-        </TableData>
-        <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
-          <Kebab
-            launchModal={launchModal}
-            extraProps={{ resource: obj, resourceModel: DRPolicyModel}}
-          />
-        </TableData>
-      </>
-    );
-  };
+      </TableData>
+      <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
+        {obj?.spec?.schedulingInterval !== '0m'
+          ? REPLICATION_TYPE(t)['async']
+          : REPLICATION_TYPE(t)['sync']}
+      </TableData>
+      <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
+        {<ApplicationStatus drPlacementControls={filteredDRPlacementControl} />}
+      </TableData>
+      <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
+        <Kebab
+          launchModal={launchModal}
+          extraProps={{ resource: obj, resourceModel: DRPolicyModel }}
+        />
+      </TableData>
+    </>
+  );
+};
 
 const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
   const { t } = useCustomTranslation();
-  
-  const Header = React.useMemo<
-    TableColumn<DRPolicyKind>[]
-  >(
+
+  const Header = React.useMemo<TableColumn<DRPolicyKind>[]>(
     () => [
       {
         title: t('Name'),
@@ -151,7 +167,7 @@ const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
           className: tableColumnInfo[4].className,
         },
         id: tableColumnInfo[4].id,
-      }, 
+      },
       {
         title: '',
         props: {
@@ -168,7 +184,6 @@ const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
     showNamespaceOverride: false,
     columnManagementID: null,
   });
-
 
   return (
     <VirtualizedTable
@@ -191,25 +206,26 @@ type DRPolicyListProps = {
 export const DRPolicyListPage: React.FC<RouteComponentProps> = () => {
   const { t } = useCustomTranslation();
   const [ModalComponent, props, launchModal] = useModalLauncher();
-  const createProps =`/multicloud/data-services/data-policies/${referenceForModel(DRPolicyModel)}/~new`;
+  const createProps = `/multicloud/data-services/data-policies/${referenceForModel(
+    DRPolicyModel
+  )}/~new`;
 
-  const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] = useK8sWatchResource<DRPolicyKind[]>({
-    kind: referenceForModel(DRPolicyModel),
-    isList: true,
-    namespaced: false,
-  });
+  const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
+    useK8sWatchResource<DRPolicyKind[]>({
+      kind: referenceForModel(DRPolicyModel),
+      isList: true,
+      namespaced: false,
+    });
 
-  const [data, filteredData, onFilterChange] =
-    useListPageFilter(drPolicies);
-
+  const [data, filteredData, onFilterChange] = useListPageFilter(drPolicies);
 
   return (
     <>
-    <ModalComponent {...props} />
+      <ModalComponent {...props} />
       <ListPageHeader title={'DRPolicies'}>
-          <ListPageCreateLink to={createProps}>
-            {t('Create DRPolicy')}
-          </ListPageCreateLink>
+        <ListPageCreateLink to={createProps}>
+          {t('Create DRPolicy')}
+        </ListPageCreateLink>
       </ListPageHeader>
       <ListPageBody>
         <ListPageFilter

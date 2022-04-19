@@ -4,14 +4,27 @@ import { RGW_FLAG } from '@odf/core/features';
 import { getODFVersion } from '@odf/core/utils';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
-import { InfrastructureModel, SubscriptionModel, ClusterServiceVersionModel } from '@odf/shared/models';
+import {
+  InfrastructureModel,
+  SubscriptionModel,
+  ClusterServiceVersionModel,
+} from '@odf/shared/models';
 import { K8sResourceKind } from '@odf/shared/types';
-import { referenceForModel, getInfrastructurePlatform } from '@odf/shared/utils';
+import {
+  referenceForModel,
+  getInfrastructurePlatform,
+} from '@odf/shared/utils';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import { getMetric } from '@odf/shared/utils';
 import { ExternalLink } from '@odf/shared/utils/link';
-import { useK8sWatchResource, useFlag } from '@openshift-console/dynamic-plugin-sdk';
-import { DetailsBody, DetailItem } from '@openshift-console/dynamic-plugin-sdk-internal'
+import {
+  useK8sWatchResource,
+  useFlag,
+} from '@openshift-console/dynamic-plugin-sdk';
+import {
+  DetailsBody,
+  DetailItem,
+} from '@openshift-console/dynamic-plugin-sdk-internal';
 import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
@@ -30,12 +43,11 @@ const SubscriptionResource = {
 };
 
 export const ObjectServiceDetailsCard: React.FC<{}> = () => {
-  const [infrastructure, infrastructureLoaded, infrastructureError] = useK8sGet<K8sResourceKind>(
-    InfrastructureModel,
-    'cluster',
-  );
+  const [infrastructure, infrastructureLoaded, infrastructureError] =
+    useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
 
-  const [subscription, subscriptionLoaded] = useK8sWatchResource<K8sResourceKind[]>(SubscriptionResource);
+  const [subscription, subscriptionLoaded] =
+    useK8sWatchResource<K8sResourceKind[]>(SubscriptionResource);
 
   const [systemResult, systemLoadError] = usePrometheusPoll({
     query: NOOBAA_SYSTEM_NAME_QUERY,
@@ -54,7 +66,9 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
 
   const infrastructurePlatform = getInfrastructurePlatform(infrastructure);
 
-  const serviceVersion = !isODF ? getOCSVersion(subscription) : getODFVersion(subscription);
+  const serviceVersion = !isODF
+    ? getOCSVersion(subscription)
+    : getODFVersion(subscription);
 
   const serviceName = isODF
     ? t('OpenShift Data Foundation')
@@ -64,7 +78,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
     serviceVersion,
-    CEPH_STORAGE_NAMESPACE,
+    CEPH_STORAGE_NAMESPACE
   )}`;
   return (
     <Card>
@@ -85,7 +99,12 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
             key="system_name"
             title={t('System name')}
             isLoading={!systemResult || !dashboardLinkResult}
-            error={systemLoadError || dashboardLinkLoadError || !systemName || !systemLink}
+            error={
+              systemLoadError ||
+              dashboardLinkLoadError ||
+              !systemName ||
+              !systemLink
+            }
           >
             <ExternalLink
               href={systemLink}
@@ -104,7 +123,10 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
           <DetailItem
             key="provider"
             title={t('Provider')}
-            error={!!infrastructureError || (infrastructure && !infrastructurePlatform)}
+            error={
+              !!infrastructureError ||
+              (infrastructure && !infrastructurePlatform)
+            }
             isLoading={!infrastructureLoaded}
           >
             {infrastructurePlatform}

@@ -2,7 +2,10 @@ import { Metrics, Breakdown } from '@odf/ocs/constants';
 import { HumanizeResult } from '@odf/shared/types';
 import { humanizeBinaryBytes, humanizeNumber } from '@odf/shared/utils';
 import { getGaugeValue } from '@odf/shared/utils';
-import { Humanize, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Humanize,
+  PrometheusResponse,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash';
 
@@ -32,7 +35,11 @@ export const numberInWords = (unit: string, t: TFunction): string => {
 };
 
 const getMaxVal: GetMaxVal = (response, humanize) => {
-  const result: PrometheusResponse['data']['result'] = _.get(response, 'data.result', []);
+  const result: PrometheusResponse['data']['result'] = _.get(
+    response,
+    'data.result',
+    []
+  );
   let maxVal = { unit: '', value: 0, string: '' };
   if (result.length) {
     maxVal = humanize(_.maxBy(result, (r) => Number(r.value[1])).value[1]);
@@ -40,7 +47,13 @@ const getMaxVal: GetMaxVal = (response, humanize) => {
   return maxVal;
 };
 
-export const getChartData: GetChartData = (response, metric, humanize, unit, name) => {
+export const getChartData: GetChartData = (
+  response,
+  metric,
+  humanize,
+  unit,
+  name
+) => {
   const result = _.get(response, 'data.result', []);
   return result.map((r) => {
     const x = _.get(r, ['metric', metric], '');
@@ -64,7 +77,7 @@ export const getDataConsumptionChartData: GetDataConsumptionChartData = (
   result,
   metric,
   dropdownValue,
-  t,
+  t
 ) => {
   let chartData: ChartData;
   let legendData: LegendData;
@@ -78,8 +91,20 @@ export const getDataConsumptionChartData: GetDataConsumptionChartData = (
       secondBarMax = getMaxVal(result.write, humanizeNumber);
       max = firstBarMax.value > secondBarMax.value ? firstBarMax : secondBarMax;
       chartData = [
-        getChartData(result.read, metric, humanizeNumber, max.unit, 'Total Reads'),
-        getChartData(result.write, metric, humanizeNumber, max.unit, 'Total Writes'),
+        getChartData(
+          result.read,
+          metric,
+          humanizeNumber,
+          max.unit,
+          'Total Reads'
+        ),
+        getChartData(
+          result.write,
+          metric,
+          humanizeNumber,
+          max.unit,
+          'Total Writes'
+        ),
       ];
       legendData = [
         {
@@ -102,13 +127,16 @@ export const getDataConsumptionChartData: GetDataConsumptionChartData = (
           metric,
           humanizeBinaryBytes,
           max.unit,
-          'Total Logical Used Capacity',
+          'Total Logical Used Capacity'
         ),
       ];
       legendData = [
         {
           name: t('Total Logical Used Capacity {{logicalCapacity}}', {
-            logicalCapacity: getLegendData(result.totalLogicalUsage, humanizeBinaryBytes),
+            logicalCapacity: getLegendData(
+              result.totalLogicalUsage,
+              humanizeBinaryBytes
+            ),
           }),
         },
       ];
@@ -123,37 +151,50 @@ export const getDataConsumptionChartData: GetDataConsumptionChartData = (
           metric,
           humanizeBinaryBytes,
           max.unit,
-          'Total Logical Used Capacity',
+          'Total Logical Used Capacity'
         ),
         getChartData(
           result.physicalUsage,
           metric,
           humanizeBinaryBytes,
           max.unit,
-          'Total Physical Used Capacity',
+          'Total Physical Used Capacity'
         ),
       ];
       legendData = [
         {
           name: t('Total Logical Used Capacity {{logicalCapacity}}', {
-            logicalCapacity: getLegendData(result.totalLogicalUsage, humanizeBinaryBytes),
+            logicalCapacity: getLegendData(
+              result.totalLogicalUsage,
+              humanizeBinaryBytes
+            ),
           }),
         },
         {
           name: t('Total Physical Used Capacity {{physicalcapacity}}', {
-            physicalcapacity: getLegendData(result.totalPhysicalUsage, humanizeBinaryBytes),
+            physicalcapacity: getLegendData(
+              result.totalPhysicalUsage,
+              humanizeBinaryBytes
+            ),
           }),
         },
       ];
       break;
     case Metrics.EGRESS:
       max = getMaxVal(result.egress, humanizeBinaryBytes);
-      nonFormattedData = getChartData(result.egress, metric, humanizeBinaryBytes, max.unit);
-      chartData = nonFormattedData.length ? nonFormattedData.map((dataPoint) => [dataPoint]) : [[]];
+      nonFormattedData = getChartData(
+        result.egress,
+        metric,
+        humanizeBinaryBytes,
+        max.unit
+      );
+      chartData = nonFormattedData.length
+        ? nonFormattedData.map((dataPoint) => [dataPoint])
+        : [[]];
       legendData = nonFormattedData.map((dataPoint) => ({
         name: `${dataPoint.x.replace(
           /(^[A-Z]|_[A-Z])([A-Z]+)/g,
-          (_g, g1, g2) => g1 + g2.toLowerCase(),
+          (_g, g1, g2) => g1 + g2.toLowerCase()
         )} ${dataPoint.y} ${max.unit}`,
       }));
       break;
@@ -179,20 +220,26 @@ type GetChartData = (
   metric: string,
   humanize: Humanize,
   maxUnit: string,
-  name?: string,
+  name?: string
 ) => ChartDataPoint[];
 
 type GetDataConsumptionChartData = (
   result: { [key: string]: PrometheusResponse },
   metric: string,
   dropdownValue: Metrics,
-  t: TFunction,
+  t: TFunction
 ) => {
   chartData: ChartData;
   legendData: LegendData;
   max: HumanizeResult;
 };
 
-type GetMaxVal = (response: PrometheusResponse, humanize: Humanize) => HumanizeResult;
+type GetMaxVal = (
+  response: PrometheusResponse,
+  humanize: Humanize
+) => HumanizeResult;
 
-type GetLegendData = (response: PrometheusResponse, humanize: Humanize) => string;
+type GetLegendData = (
+  response: PrometheusResponse,
+  humanize: Humanize
+) => string;

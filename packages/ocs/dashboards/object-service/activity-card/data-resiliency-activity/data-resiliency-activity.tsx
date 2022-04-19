@@ -6,7 +6,9 @@ import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import './data-resiliency-activity.scss';
 
-export const NoobaaDataResiliency: React.FC<DataResiliencyProps> = ({ results }) => {
+export const NoobaaDataResiliency: React.FC<DataResiliencyProps> = ({
+  results,
+}) => {
   const { t } = useTranslation();
 
   const eta = getGaugeValue(results[1]);

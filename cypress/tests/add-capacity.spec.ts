@@ -1,5 +1,11 @@
 import * as _ from 'lodash';
-import { CLUSTER_STATUS, STORAGE_SYSTEM_NAME, STORAGE_CLUSTER_NAME, CLUSTER_NAMESPACE, CEPH_CLUSTER_NAME } from '../consts';
+import {
+  CLUSTER_STATUS,
+  STORAGE_SYSTEM_NAME,
+  STORAGE_CLUSTER_NAME,
+  CLUSTER_NAMESPACE,
+  CEPH_CLUSTER_NAME,
+} from '../consts';
 import {
   createOSDTreeMap,
   getDeviceCount,
@@ -16,7 +22,8 @@ import { listPage } from '../views/list-page';
 import { modal } from '../views/modals';
 import { ODFCommon } from '../views/odf-common';
 
-const ROOK_CONF_PATH = "/var/lib/rook/openshift-storage/openshift-storage.config";
+const ROOK_CONF_PATH =
+  '/var/lib/rook/openshift-storage/openshift-storage.config';
 
 describe('OCS Operator Expansion of Storage Class Test', () => {
   before(() => {
@@ -43,22 +50,26 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       osdIDs: null,
     };
 
-    cy.exec(`oc get storagecluster ${STORAGE_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`).then((res) => {
+    cy.exec(
+      `oc get storagecluster ${STORAGE_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`
+    ).then((res) => {
       const storageCluster = JSON.parse(res.stdout);
       _.set(initialState, 'storageCluster', storageCluster);
     });
-    cy.exec(`oc get cephCluster ${CEPH_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`).then(
-      (res) => {
-        const cephCluster = JSON.parse(res.stdout);
-        _.set(initialState, 'cephCluster', cephCluster);
+    cy.exec(
+      `oc get cephCluster ${CEPH_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`
+    ).then((res) => {
+      const cephCluster = JSON.parse(res.stdout);
+      _.set(initialState, 'cephCluster', cephCluster);
 
-        cy.log('Check if ceph cluster is healthy before expansion');
-        expect(cephCluster.status.ceph.health).not.to.equal(CLUSTER_STATUS.HEALTH_ERROR);
-      },
-    );
+      cy.log('Check if ceph cluster is healthy before expansion');
+      expect(cephCluster.status.ceph.health).not.to.equal(
+        CLUSTER_STATUS.HEALTH_ERROR
+      );
+    });
     cy.exec(
       `oc -n ${CLUSTER_NAMESPACE} rsh $(oc get po -n ${CLUSTER_NAMESPACE} | grep ceph-operator | awk '{print$1}') ceph --conf=${ROOK_CONF_PATH} osd tree --format=json`,
-      { timeout: 120000 },
+      { timeout: 120000 }
     ).then((res) => {
       const osdTree = JSON.parse(res.stdout);
       _.set(initialState, 'osdTree', osdTree);
@@ -85,19 +96,24 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
 
       const initialCapacity =
         SIZE_MAP[
-        initialState.storageCluster?.spec?.storageDeviceSets?.[0]?.dataPVCTemplate?.spec
-          ?.resources?.requests?.storage
+          initialState.storageCluster?.spec?.storageDeviceSets?.[0]
+            ?.dataPVCTemplate?.spec?.resources?.requests?.storage
         ];
-      cy.byLegacyTestID('requestSize').should('have.value', String(initialCapacity));
-      cy.byTestID('provisioned-capacity').contains(
-        `${String((initialCapacity * 3).toFixed(0))} TiB`,
+      cy.byLegacyTestID('requestSize').should(
+        'have.value',
+        String(initialCapacity)
       );
-      cy.byTestID('add-cap-sc-dropdown', { timeout: 10000 }).should('be.visible');
+      cy.byTestID('provisioned-capacity').contains(
+        `${String((initialCapacity * 3).toFixed(0))} TiB`
+      );
+      cy.byTestID('add-cap-sc-dropdown', { timeout: 10000 }).should(
+        'be.visible'
+      );
       modal.submit();
       modal.shouldBeClosed();
 
       cy.clickNavLink(['Operators', 'Installed Operators']);
-      cy.byLegacyTestID('item-filter').type("Openshift Data Foundation");
+      cy.byLegacyTestID('item-filter').type('Openshift Data Foundation');
       cy.byTestRows('resource-row').get('td').first().click();
       cy.byLegacyTestID('horizontal-link-Storage System').click();
       cy.contains(STORAGE_SYSTEM_NAME).click();
@@ -110,22 +126,26 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       cy.wait(10000);
       cy.byTestID('resource-status').contains('Ready', { timeout: 900000 });
     });
-    cy.exec(`oc get storagecluster ${STORAGE_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`).then((res) => {
+    cy.exec(
+      `oc get storagecluster ${STORAGE_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`
+    ).then((res) => {
       const storageCluster = JSON.parse(res.stdout);
       // Assertion of increment of device count
       cy.log('Check cluster device set count has increased');
       expect(getDeviceCount(initialState.storageCluster)).to.equal(
-        getDeviceCount(storageCluster) - 1,
+        getDeviceCount(storageCluster) - 1
       );
     });
-    cy.exec(`oc get cephCluster ${CEPH_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`).then(
-      (res) => {
-        const cephCluster = JSON.parse(res.stdout);
+    cy.exec(
+      `oc get cephCluster ${CEPH_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`
+    ).then((res) => {
+      const cephCluster = JSON.parse(res.stdout);
 
-        cy.log('Check if ceph cluster is healthy after expansion');
-        expect(cephCluster.status.ceph.health).to.not.equal(CLUSTER_STATUS.HEALTH_ERROR);
-      },
-    );
+      cy.log('Check if ceph cluster is healthy after expansion');
+      expect(cephCluster.status.ceph.health).to.not.equal(
+        CLUSTER_STATUS.HEALTH_ERROR
+      );
+    });
     cy.exec(`oc get po -n ${CLUSTER_NAMESPACE} -o json`).then((res) => {
       const pods = JSON.parse(res.stdout);
 
@@ -141,7 +161,7 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
     });
     cy.exec(
       `oc -n ${CLUSTER_NAMESPACE} rsh $(oc get po -n ${CLUSTER_NAMESPACE} | grep ceph-operator | awk '{print$1}') ceph --conf=${ROOK_CONF_PATH} osd tree --format=json`,
-      { timeout: 120000 },
+      { timeout: 120000 }
     ).then((res) => {
       const osdTree = JSON.parse(res.stdout);
       const formattedOSDTree = createOSDTreeMap(osdTree.nodes);
@@ -149,7 +169,8 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
 
       cy.log('New OSDs are added correctly to the right nodes', () => {
         const nodes = getIds(osdTree.nodes, 'host');
-        expect(verifyNodeOSDMapping(nodes, newOSDIds, formattedOSDTree)).to.be.true;
+        expect(verifyNodeOSDMapping(nodes, newOSDIds, formattedOSDTree)).to.be
+          .true;
       });
     });
     cy.exec('oc get nodes -o json').then((res) => {

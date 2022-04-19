@@ -1,21 +1,21 @@
 .odf-StatusCard__items--width {
-    width: 50%;
+  width: 50%;
 }
 
 .odf-status-popup__text--bold {
-    font-weight: var(--pf-global--FontWeight--bold);
+  font-weight: var(--pf-global--FontWeight--bold);
 }
 
 .odf-csv-status-popup__row {
-    display: flex;
-    flex-direction: row;
-    min-width: 4rem;
+  display: flex;
+  flex-direction: row;
+  min-width: 4rem;
 }
 
 .odf-csv-status-popup__icon {
-    margin-right: auto;
+  margin-right: auto;
 }
 
 .odf-csv-status-popup__count {
-    margin-left: auto;
+  margin-left: auto;
 }

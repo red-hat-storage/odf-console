@@ -7,7 +7,10 @@ import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ResourceProvidersBody } from './resource-providers-card-body';
-import { ResourceProvidersItem, ProviderType } from './resource-providers-card-item';
+import {
+  ResourceProvidersItem,
+  ProviderType,
+} from './resource-providers-card-item';
 import './resource-providers-card.scss';
 
 const RESOURCE_PROVIDERS_QUERY = {
@@ -38,18 +41,23 @@ const createProvidersList = (data: PrometheusResponse): ProviderType => {
 const ResourceProviders: React.FC<{}> = () => {
   const { t } = useTranslation();
 
-  const [providersTypesQueryResult, providersTypesQueryResultError] = usePrometheusPoll({
-    query: RESOURCE_PROVIDERS_QUERY.PROVIDERS_TYPES,
-    endpoint: 'api/v1/query' as any,
-  });
-  const [unhealthyProvidersTypesQueryResult, unhealthyProvidersTypesQueryResultError] = usePrometheusPoll({
+  const [providersTypesQueryResult, providersTypesQueryResultError] =
+    usePrometheusPoll({
+      query: RESOURCE_PROVIDERS_QUERY.PROVIDERS_TYPES,
+      endpoint: 'api/v1/query' as any,
+    });
+  const [
+    unhealthyProvidersTypesQueryResult,
+    unhealthyProvidersTypesQueryResultError,
+  ] = usePrometheusPoll({
     query: RESOURCE_PROVIDERS_QUERY.UNHEALTHY_PROVIDERS_TYPES,
     endpoint: 'api/v1/query' as any,
   });
-  const [resourcesLinksResponse, resourcesLinksResponseError] = usePrometheusPoll({
-    query: RESOURCE_PROVIDERS_QUERY.RESOURCES_LINK_QUERY,
-    endpoint: 'api/v1/query' as any,
-  });
+  const [resourcesLinksResponse, resourcesLinksResponseError] =
+    usePrometheusPoll({
+      query: RESOURCE_PROVIDERS_QUERY.RESOURCES_LINK_QUERY,
+      endpoint: 'api/v1/query' as any,
+    });
 
   const error =
     !!providersTypesQueryResultError ||
@@ -59,7 +67,9 @@ const ResourceProviders: React.FC<{}> = () => {
   const noobaaResourcesLink = getMetric(resourcesLinksResponse, 'resources');
 
   const allProviders = createProvidersList(providersTypesQueryResult);
-  const unhealthyProviders = createProvidersList(unhealthyProvidersTypesQueryResult);
+  const unhealthyProviders = createProvidersList(
+    unhealthyProvidersTypesQueryResult
+  );
 
   const providerTypes = filterProviders(allProviders);
 
@@ -69,13 +79,16 @@ const ResourceProviders: React.FC<{}> = () => {
         <CardTitle>{t('Resource Providers')}</CardTitle>
         <FieldLevelHelp>
           {t(
-            "A list of all Multicloud Object Gateway resources that are currently in use. Those resources are used to store data according to the buckets' policies and can be a cloud-based resource or a bare metal resource.",
+            "A list of all Multicloud Object Gateway resources that are currently in use. Those resources are used to store data according to the buckets' policies and can be a cloud-based resource or a bare metal resource."
           )}
         </FieldLevelHelp>
       </CardHeader>
       <CardBody>
         <ResourceProvidersBody
-          isLoading={!error && !(providersTypesQueryResult && unhealthyProvidersTypesQueryResult)}
+          isLoading={
+            !error &&
+            !(providersTypesQueryResult && unhealthyProvidersTypesQueryResult)
+          }
           hasProviders={!_.isEmpty(allProviders)}
           error={error}
         >

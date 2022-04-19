@@ -9,7 +9,7 @@ import {
 } from '@odf/core/types';
 import { SecretModel } from '@odf/shared/models';
 import { SecretKind } from '@odf/shared/types';
-import { getAPIVersionForModel } from '@odf/shared/utils'
+import { getAPIVersionForModel } from '@odf/shared/utils';
 import { useTranslation } from 'react-i18next';
 import {
   FormGroup,
@@ -26,17 +26,18 @@ import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
 const VOLUME_MODES = ['thick', 'thin'];
 const isValidIP = (address) =>
   /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
-    address,
+    address
   );
 
-export const FlashSystemConnectionDetails: React.FC<ExternalComponentProps<FlashSystemState>> = ({
-  setFormState,
-  formState,
-}) => {
+export const FlashSystemConnectionDetails: React.FC<
+  ExternalComponentProps<FlashSystemState>
+> = ({ setFormState, formState }) => {
   const { t } = useTranslation('plugin__odf-console');
   const [isOpen, setIsOpen] = React.useState(false);
   const [reveal, setReveal] = React.useState(false);
-  const [endpointValid, setEndpointValid] = React.useState(ValidatedOptions.default);
+  const [endpointValid, setEndpointValid] = React.useState(
+    ValidatedOptions.default
+  );
 
   const onChange = (value: string) => {
     setFormState('endpoint', value);
@@ -89,13 +90,7 @@ export const FlashSystemConnectionDetails: React.FC<ExternalComponentProps<Flash
             onChange={(value: string) => setFormState('password', value)}
             isRequired
           />
-          <Tooltip
-            content={
-              reveal
-                ? t('Hide password')
-                : t('Reveal password')
-            }
-          >
+          <Tooltip content={reveal ? t('Hide password') : t('Reveal password')}>
             <Button variant="control" onClick={() => setReveal(!reveal)}>
               {reveal ? <EyeSlashIcon /> : <EyeIcon />}
             </Button>
@@ -134,7 +129,7 @@ export const createFlashSystemPayload: CreatePayload<FlashSystemState> = (
   systemName,
   form,
   model,
-  storageClassName,
+  storageClassName
 ) => {
   const namespace = 'openshift-storage';
   const defaultFilesystem = 'ext4';
@@ -197,7 +192,9 @@ export const createFlashSystemPayload: CreatePayload<FlashSystemState> = (
   return [secretPayload, flashSystemPayload];
 };
 
-export const flashSystemCanGoToNextStep: CanGoToNextStep<FlashSystemState> = (state) =>
+export const flashSystemCanGoToNextStep: CanGoToNextStep<FlashSystemState> = (
+  state
+) =>
   !!state.endpoint &&
   isValidIP(state.endpoint) &&
   !!state.username &&

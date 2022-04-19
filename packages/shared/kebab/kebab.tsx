@@ -63,7 +63,7 @@ export const Kebab: React.FC<KebabProps> = ({
 
   const dropdownItems = React.useMemo(() => {
     const defaultResolved = defaultKebabItems(t);
-    const customResolved = customKebabItems ? customKebabItems(t) : {}
+    const customResolved = customKebabItems ? customKebabItems(t) : {};
     const { overrides, custom } = Object.entries(customResolved).reduce(
       (acc, [k, v]) => {
         if (

@@ -1,12 +1,15 @@
 import * as React from 'react';
-import { K8sResourceCommon, k8sGet } from "@openshift-console/dynamic-plugin-sdk";
+import {
+  K8sResourceCommon,
+  k8sGet,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
 export const useK8sGet = <R extends K8sResourceCommon = K8sResourceCommon>(
   kind: K8sKind,
   name?: string,
   namespace?: string,
-  cluster?: string,
+  cluster?: string
 ): [R, boolean, any] => {
   const [data, setData] = React.useState<R>();
   const [loaded, setLoaded] = React.useState(false);
@@ -18,7 +21,12 @@ export const useK8sGet = <R extends K8sResourceCommon = K8sResourceCommon>(
         setLoadError(null);
         setLoaded(false);
         setData(null);
-        const resource = await k8sGet({model: kind, name: name, ns: namespace, cluster: cluster}) as R;
+        const resource = (await k8sGet({
+          model: kind,
+          name: name,
+          ns: namespace,
+          cluster: cluster,
+        })) as R;
         setData(resource);
       } catch (error) {
         setLoadError(error);

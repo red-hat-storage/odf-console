@@ -18,17 +18,20 @@ export const withHandlePromise: WithHandlePromise = (Component) => (props) => {
         onFulfill && onFulfill(res);
       },
       (error) => {
-        const errorMsg = error.message || t('An error occurred. Please try again.');
+        const errorMsg =
+          error.message || t('An error occurred. Please try again.');
         setInProgress(false);
         setErrorMessage(errorMsg);
         onError
           ? onError(errorMsg)
           : // eslint-disable-next-line no-console
             console.error(
-              `handlePromise failed in component ${Component.displayName || Component.name}:`,
-              error,
+              `handlePromise failed in component ${
+                Component.displayName || Component.name
+              }:`,
+              error
             );
-      },
+      }
     );
   };
 
@@ -42,7 +45,10 @@ export const withHandlePromise: WithHandlePromise = (Component) => (props) => {
   );
 };
 
-export class PromiseComponent<P, S extends PromiseComponentState> extends React.Component<P, S> {
+export class PromiseComponent<
+  P,
+  S extends PromiseComponentState
+> extends React.Component<P, S> {
   constructor(props) {
     super(props);
     this.state = {
@@ -57,7 +63,7 @@ export class PromiseComponent<P, S extends PromiseComponentState> extends React.
     });
     return promise.then(
       (res) => this.then(res),
-      (error) => this.catch(error),
+      (error) => this.catch(error)
     );
   }
 
@@ -70,7 +76,8 @@ export class PromiseComponent<P, S extends PromiseComponentState> extends React.
   }
 
   private catch(error) {
-    const errorMessage = error.message || i18next.t('An error occurred. Please try again.');
+    const errorMessage =
+      error.message || i18next.t('An error occurred. Please try again.');
     this.setState({
       inProgress: false,
       errorMessage,
@@ -83,7 +90,7 @@ export type HandlePromiseProps = {
   handlePromise: <T>(
     promise: Promise<T>,
     onFulfill?: (res) => void,
-    onError?: (errorMsg: string) => void,
+    onError?: (errorMsg: string) => void
   ) => void;
   inProgress: boolean;
   errorMessage: string;
@@ -92,7 +99,7 @@ export type HandlePromiseProps = {
 // (ToDo) Return type should be: React.FC<Diff<P, HandlePromiseProps>>;
 // but getting type error: Cannot find name 'Diff'
 export type WithHandlePromise = <P extends HandlePromiseProps>(
-  C: React.ComponentType<P>,
+  C: React.ComponentType<P>
 ) => React.FC<any>;
 
 export type PromiseComponentState = {
