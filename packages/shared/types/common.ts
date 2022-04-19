@@ -22,4 +22,13 @@ export enum K8sResourceConditionStatus {
     True = 'True',
     False = 'False',
     Unknown = 'Unknown',
+}
+
+export type StorageClass = {
+  metadata: object;
+  provisioner: string;
+  parameters: object;
+  reclaimPolicy?: string;
+  volumeBindingMode?: string;
+  allowVolumeExpansion?: boolean;
 };

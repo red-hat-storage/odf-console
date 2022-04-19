@@ -127,7 +127,8 @@
       "ob": "@odf/core/components/mcg/ObjectBucket",
       "ocs": "@odf/ocs/dashboards/odf-system-dashboard",
       "blockPoolDetailsPage": "@odf/ocs/block-pool/BlockPoolDetailsPage",
-      "createBlockPools": "@odf/ocs/block-pool/CreateBlockPool"
+      "createBlockPools": "@odf/ocs/block-pool/CreateBlockPool",
+      "bsCreate": "@odf/core/components/create-bs/create-bs-page"
     }
   }
 }

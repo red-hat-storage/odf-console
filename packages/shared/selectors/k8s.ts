@@ -41,3 +41,6 @@ export const getInfrastructurePlatform = (
   infrastructure && infrastructure.status
     ? infrastructure.status.platform
     : undefined;
+
+export const getAPIVersion = <A extends K8sResourceCommon = K8sResourceCommon>(value: A) =>
+  _.get(value, 'apiVersion') as K8sResourceCommon['apiVersion'];
