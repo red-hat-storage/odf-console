@@ -19,6 +19,10 @@ export const getLabel = <A extends K8sResourceCommon = K8sResourceCommon>(
 ) =>
   _.has(value, 'metadata.labels') ? value.metadata.labels[label] : defaultValue;
 
+export const getLabels = <A extends K8sResourceCommon = K8sResourceCommon>(
+  value: A
+) => _.get(value, 'metadata.labels') as K8sResourceCommon['metadata']['labels'];
+
 export const getNamespace = <A extends K8sResourceCommon = K8sResourceCommon>(
   value: A
 ) =>

@@ -6,9 +6,13 @@ export const CEPH_CLUSTER_NAME = 'ocs-storagecluster-cephcluster';
 export const MANAGED_CLUSTER_REGION_CLAIM = 'region.open-cluster-management.io';
 
 export const MAX_ALLOWED_CLUSTERS = 2;
-export const ODF_OPERATOR = 'odf-operator';
+export const DR_SECHEDULER_NAME = 'ramen';
 
 export const REPLICATION_TYPE = (t: TFunction) => ({
   async: t('Asynchronous'),
   sync: t('Synchronous'),
+});
+
+export const Actions = (t: TFunction) => ({
+  APPLY_DR_POLICY: t('plugin__odf-console~Apply DRPolicy'),
 });

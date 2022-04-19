@@ -1,4 +1,5 @@
 import { K8sResourceCondition } from '@odf/shared/types';
+import { ApplicationKind } from '@odf/shared/types/k8s';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
@@ -99,5 +100,17 @@ export type ACMSubscriptionKind = K8sResourceCommon & {
     message?: string;
     phase?: string;
     statuses?: any;
+  };
+};
+
+export type AppToPlacementRule = {
+  [appUniqueKey: string]: {
+    application: ApplicationKind;
+    placements: {
+      [placementUniqueKey: string]: {
+        placementRules: ACMPlacementRuleKind;
+        subscriptions: ACMSubscriptionKind[];
+      };
+    };
   };
 };

@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
+import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { ApplicationModel } from '@odf/shared/models/common';
-import { ListKind } from '@odf/shared/types';
 import { ApplicationKind } from '@odf/shared/types/k8s';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { referenceForModel } from '@odf/shared/utils';
+import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Modal,
   Button,
@@ -55,6 +56,19 @@ type SubcsriptionMapping = {
 
 type PlacementRuleNameMapping = {
   [namespace in string]: string[];
+};
+
+const resources = {
+  applications: {
+    kind: referenceForModel(ApplicationModel),
+    namespaced: false,
+    isList: true,
+  },
+  subscriptions: {
+    kind: referenceForModel(ACMSubscriptionModel),
+    namespaced: false,
+    isList: true,
+  },
 };
 
 const appFilter = (application: ApplicationKind) =>
@@ -112,7 +126,7 @@ const fetchApplications = (
 };
 
 export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const { drPlacementControls } = props;
 
   const [isModalOpen, setModalOpen] = React.useState(false);
@@ -128,15 +142,23 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
     'asc' | 'desc'
   >();
 
-  const [applications, applicationsLoaded, applicationsLoadError] =
-    useK8sGet<ListKind<ApplicationKind>>(ApplicationModel);
-  const [subscriptions, subscriptionsLoaded, subscriptionsLoadError] =
-    useK8sGet<ListKind<ACMSubscriptionKind>>(ACMSubscriptionModel);
+  const response = useK8sWatchResources(resources);
+  const memoizedResponse = useDeepCompareMemoize(response, true);
 
   React.useEffect(() => {
+    const applicationsLoaded = memoizedResponse?.applications?.loaded;
+    const applicationsLoadError = memoizedResponse?.applications?.loadError;
+    const applications = (memoizedResponse?.applications?.data ??
+      []) as ApplicationKind[];
+
+    const subscriptionsLoaded = memoizedResponse?.subscriptions?.loaded;
+    const subscriptionsLoadError = memoizedResponse?.subscriptions?.loadError;
+    const subscriptions = (memoizedResponse?.subscriptions?.data ??
+      []) as ACMSubscriptionKind[];
+
     if (applicationsLoaded && !applicationsLoadError) {
       // namespace wise application object
-      const appMapping: ApplicationMapping = applications?.items?.reduce(
+      const appMapping: ApplicationMapping = applications?.reduce(
         (arr, application) =>
           appFilter(application)
             ? {
@@ -154,7 +176,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
 
     if (subscriptionsLoaded && !subscriptionsLoadError) {
       // namespace wise subscription object
-      const subsMapping: SubcsriptionMapping = subscriptions?.items?.reduce(
+      const subsMapping: SubcsriptionMapping = subscriptions?.reduce(
         (arr, subscription) =>
           subsFilter(drPlacementControls, subscription)
             ? {
@@ -169,15 +191,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
       );
       setSubscriptionMapping(subsMapping);
     }
-  }, [
-    applications,
-    applicationsLoaded,
-    applicationsLoadError,
-    subscriptions,
-    subscriptionsLoaded,
-    subscriptionsLoadError,
-    drPlacementControls,
-  ]);
+  }, [memoizedResponse, drPlacementControls]);
 
   React.useEffect(() => {
     if (
@@ -241,12 +255,16 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
 
   return (
     <React.Fragment>
-      <Button variant={ButtonVariant.link} onClick={handleModalToggle}>
+      <Button
+        variant={ButtonVariant.link}
+        onClick={handleModalToggle}
+        className="mco-application-status__link"
+      >
         {t('{{ length }} Applications', { length: applicationNames.length })}
       </Button>
       <Modal
         variant={ModalVariant.small}
-        title={t('Connected Applications')}
+        title={t('Connected applications')}
         isOpen={isModalOpen}
         onClose={handleModalToggle}
         hasNoBodyWrapper={true}
@@ -255,7 +273,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
         <ModalBody className="mco-application-status__body">
           <TextContent>
             <Text component={TextVariants.small}>
-              {t('List all the connected Applications under a policy.')}
+              {t('List all the connected applications under a policy.')}
             </Text>
           </TextContent>
           <Toolbar inset={{ default: 'insetNone' }}>
@@ -276,7 +294,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
           <div className="mco-application-status__box">
             {filteredNames.length === 0 ? (
               <Bullseye className="mco-application-status__bullseye">
-                {t('No matching Application found')}
+                {t('No matching application found')}
               </Bullseye>
             ) : (
               <div className="mco-application-status__table">

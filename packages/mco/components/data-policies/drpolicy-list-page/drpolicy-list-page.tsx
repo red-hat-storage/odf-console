@@ -20,12 +20,14 @@ import {
   TableColumn,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
+import { TFunction } from 'i18next';
 import * as _ from 'lodash';
 import { RouteComponentProps } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { REPLICATION_TYPE } from '../../../constants/dr-policy';
+import { REPLICATION_TYPE, Actions } from '../../../constants/dr-policy';
 import { DRPolicyModel, DRPlacementControlModel } from '../../../models';
 import { DRPolicyKind, DRPlacementControlKind } from '../../../types';
+import { DRPolicyActions } from '../drpolicy-actions/policy-actions';
 import { ApplicationStatus } from './application-status';
 
 type CustomData = {
@@ -49,6 +51,10 @@ const tableColumnInfo = [
   },
   { className: 'dropdown-kebab-pf pf-c-table__action', id: '' },
 ];
+
+const kebabActionItems = (t: TFunction) => ({
+  [Actions(t).APPLY_DR_POLICY]: Actions(t).APPLY_DR_POLICY,
+});
 
 const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
   obj,
@@ -116,6 +122,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
         <Kebab
           launchModal={launchModal}
           extraProps={{ resource: obj, resourceModel: DRPolicyModel }}
+          customKebabItems={kebabActionItems}
         />
       </TableData>
     </>
@@ -161,7 +168,7 @@ const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('Applications'),
+        title: t('Connected applications'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[4].className,
@@ -205,7 +212,9 @@ type DRPolicyListProps = {
 
 export const DRPolicyListPage: React.FC<RouteComponentProps> = () => {
   const { t } = useCustomTranslation();
-  const [ModalComponent, props, launchModal] = useModalLauncher();
+  const [ModalComponent, props, launchModal] = useModalLauncher(
+    DRPolicyActions(t)
+  );
   const createProps = `/multicloud/data-services/data-policies/${referenceForModel(
     DRPolicyModel
   )}/~new`;

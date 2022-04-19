@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import {
   healthStateMap,
@@ -6,6 +7,7 @@ import {
 } from '@odf/shared/dashboards/status-card/states';
 import { useURLPoll } from '@odf/shared/hooks/use-url-poll/use-url-poll';
 import { OCSStorageClusterModel } from '@odf/shared/models';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVK } from '@odf/shared/utils';
 import {
   PrometheusResult,
@@ -13,7 +15,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Flex,
   FlexItem,
@@ -22,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
-import { ACM_ENDPOINT, ODF_OPERATOR } from '../../../constants';
+import { ACM_ENDPOINT } from '../../../constants';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import {
   StorageSystemPopup,
@@ -83,7 +84,7 @@ const setHealthData = (
   });
 
 const StorageSystemHealthItem: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const [worstHealth, setWorstHealth] = React.useState<string>('');
   const [sysHealthData, sysHealthError, sysHealthLoading] =
@@ -150,7 +151,7 @@ const setCSVStatusData = (
   );
 
 const CSVStatusHealthItem: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const [worstStatus, setWorstStatus] = React.useState<string>('');
   const [csvData, csvError, csvLoading] = useURLPoll<PrometheusResponse>(
@@ -174,7 +175,7 @@ const CSVStatusHealthItem: React.FC = () => {
 };
 
 export const StatusCard: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   return (
     <Card>
