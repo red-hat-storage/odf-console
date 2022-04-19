@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getNamespace, getName } from '@odf/shared/selectors'
+import { getNamespace, getName } from '@odf/shared/selectors';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { Form } from '@patternfly/react-core';
@@ -16,10 +16,19 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
 }) => {
   const isMultusSupported = useFlag(FEATURES.OCS_MULTUS);
 
-  const { networkType: nwType, clusterNetwork, publicNetwork, encryption, kms } = state;
+  const {
+    networkType: nwType,
+    clusterNetwork,
+    publicNetwork,
+    encryption,
+    kms,
+  } = state;
 
   const setNetworkType = (networkType: NetworkType) => {
-    dispatch({ type: 'securityAndNetwork/setNetworkType', payload: networkType });
+    dispatch({
+      type: 'securityAndNetwork/setNetworkType',
+      payload: networkType,
+    });
     if (networkType === NetworkType.DEFAULT) {
       dispatch({ type: 'securityAndNetwork/setClusterNetwork', payload: '' });
       dispatch({ type: 'securityAndNetwork/setPublicNetwork', payload: '' });
@@ -37,7 +46,12 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
 
   return (
     <Form noValidate={false}>
-      <Encryption encryption={encryption} kms={kms} dispatch={dispatch} infraType={infraType} />
+      <Encryption
+        encryption={encryption}
+        kms={kms}
+        dispatch={dispatch}
+        infraType={infraType}
+      />
       {isMultusSupported && (
         <NetworkFormGroup
           networkType={nwType}

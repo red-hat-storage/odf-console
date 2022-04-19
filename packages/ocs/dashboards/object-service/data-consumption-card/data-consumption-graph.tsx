@@ -1,5 +1,10 @@
 import * as React from 'react';
-import { CHART_LABELS, Breakdown, Metrics, ServiceType } from '@odf/ocs/constants';
+import {
+  CHART_LABELS,
+  Breakdown,
+  Metrics,
+  ServiceType,
+} from '@odf/ocs/constants';
 import { DATA_CONSUMPTION_QUERIES } from '@odf/ocs/queries';
 import { GraphEmpty } from '@odf/shared/charts';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
@@ -15,7 +20,10 @@ import {
   ChartTooltip,
   ChartVoronoiContainer,
 } from '@patternfly/react-charts';
-import { getDataConsumptionChartData, numberInWords } from './data-consumption-card-utils';
+import {
+  getDataConsumptionChartData,
+  numberInWords,
+} from './data-consumption-card-utils';
 import './data-consumption-card.scss';
 
 type DataConsumptionGraphProps = {
@@ -55,7 +63,7 @@ const DataConsumptionGraph: React.FC<DataConsumptionGraphProps> = ({
     resultsWithKeys,
     mcgBreakdown,
     metric,
-    t,
+    t
   );
 
   const emptyData = chartData.some(_.isEmpty);
@@ -63,7 +71,10 @@ const DataConsumptionGraph: React.FC<DataConsumptionGraphProps> = ({
   // chartData = [[],[],[],[],[],[]] or []
   if (!loading && !loadError) {
     padding =
-      chartData[0].length === 2 || (metric === Metrics.EGRESS && chartData.length === 2) ? 125 : 25; // Adjusts spacing between each BarGroup
+      chartData[0].length === 2 ||
+      (metric === Metrics.EGRESS && chartData.length === 2)
+        ? 125
+        : 25; // Adjusts spacing between each BarGroup
     maxVal = max.value;
     maxUnit = max.unit;
     suffixLabel = maxUnit;
@@ -87,7 +98,9 @@ const DataConsumptionGraph: React.FC<DataConsumptionGraphProps> = ({
           ariaTitle={t('Data Consumption Graph')}
           containerComponent={
             <ChartVoronoiContainer
-              labelComponent={<ChartTooltip style={{ fontSize: 8, paddingBottom: 0 }} />}
+              labelComponent={
+                <ChartTooltip style={{ fontSize: 8, paddingBottom: 0 }} />
+              }
               labels={({ datum }) => `${datum.name} ${datum.y} ${maxUnit}`}
             />
           }

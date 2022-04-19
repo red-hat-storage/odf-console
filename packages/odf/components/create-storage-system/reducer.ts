@@ -1,6 +1,11 @@
 import { NodeKind } from '@odf/shared/types';
 import * as _ from 'lodash';
-import { KMSEmptyState, NO_PROVISIONER, deviceTypeDropdownItems, diskModeDropdownItems } from '../../constants';
+import {
+  KMSEmptyState,
+  NO_PROVISIONER,
+  deviceTypeDropdownItems,
+  diskModeDropdownItems,
+} from '../../constants';
 import {
   EncryptionType,
   KMSConfig,
@@ -137,7 +142,9 @@ const setDeployment = (state: WizardState, deploymentType: DeploymentType) => {
     return {
       ...initialState,
       storageClass:
-        type === BackingStorageType.EXISTING ? state.storageClass : initialState.storageClass,
+        type === BackingStorageType.EXISTING
+          ? state.storageClass
+          : initialState.storageClass,
       backingStorage: {
         ...state.backingStorage,
         deployment: deploymentType,
@@ -149,7 +156,10 @@ const setDeployment = (state: WizardState, deploymentType: DeploymentType) => {
   return state;
 };
 
-const setBackingStorageType = (state: WizardState, bsType: BackingStorageType) => {
+const setBackingStorageType = (
+  state: WizardState,
+  bsType: BackingStorageType
+) => {
   /*
    * Wizard state should be reset when a new backing storage type is selected
    * in order to avoid stale state collisions since each backing storage type
@@ -170,7 +180,10 @@ const setBackingStorageType = (state: WizardState, bsType: BackingStorageType) =
   }
 
   /* Update storage class state when existing storage class is not selected. */
-  if (bsType === BackingStorageType.LOCAL_DEVICES || bsType === BackingStorageType.EXTERNAL) {
+  if (
+    bsType === BackingStorageType.LOCAL_DEVICES ||
+    bsType === BackingStorageType.EXTERNAL
+  ) {
     state.storageClass = {
       name: '',
       provisioner: bsType === BackingStorageType.EXTERNAL ? '' : NO_PROVISIONER,
@@ -179,7 +192,8 @@ const setBackingStorageType = (state: WizardState, bsType: BackingStorageType) =
 
   /* Reset external storage when deselected. */
   if (bsType !== BackingStorageType.EXTERNAL) {
-    state.backingStorage.externalStorage = initialState.backingStorage.externalStorage;
+    state.backingStorage.externalStorage =
+      initialState.backingStorage.externalStorage;
   }
 
   state.backingStorage.type = bsType;
@@ -275,7 +289,7 @@ export const reducer: WizardReducer = (prevState, action) => {
 
 export type WizardReducer = (
   prevState: CreateStorageSystemState,
-  action: CreateStorageSystemAction,
+  action: CreateStorageSystemAction
 ) => CreateStorageSystemState;
 
 /* Actions of CreateStorageSystem */
@@ -295,20 +309,32 @@ export type CreateStorageSystemAction =
     }
   | {
       type: 'wizard/setCreateLocalVolumeSet';
-      payload: { field: keyof LocalVolumeSet; value: LocalVolumeSet[keyof LocalVolumeSet] };
+      payload: {
+        field: keyof LocalVolumeSet;
+        value: LocalVolumeSet[keyof LocalVolumeSet];
+      };
     }
   | {
       type: 'backingStorage/setDeployment';
       payload: WizardState['backingStorage']['deployment'];
     }
-  | { type: 'backingStorage/setType'; payload: WizardState['backingStorage']['type'] }
+  | {
+      type: 'backingStorage/setType';
+      payload: WizardState['backingStorage']['type'];
+    }
   | {
       type: 'backingStorage/setExternalStorage';
       payload: WizardState['backingStorage']['externalStorage'];
     }
   | { type: 'wizard/setNodes'; payload: WizardState['nodes'] }
-  | { type: 'capacityAndNodes/capacity'; payload: WizardState['capacityAndNodes']['capacity'] }
-  | { type: 'capacityAndNodes/pvCount'; payload: WizardState['capacityAndNodes']['pvCount'] }
+  | {
+      type: 'capacityAndNodes/capacity';
+      payload: WizardState['capacityAndNodes']['capacity'];
+    }
+  | {
+      type: 'capacityAndNodes/pvCount';
+      payload: WizardState['capacityAndNodes']['pvCount'];
+    }
   | {
       type: 'capacityAndNodes/arbiterLocation';
       payload: WizardState['capacityAndNodes']['arbiterLocation'];

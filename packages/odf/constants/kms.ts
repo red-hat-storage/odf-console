@@ -1,4 +1,10 @@
-import { VaultConfig, HpcsConfig, ProviderNames, KmsImplementations, KMSConfig } from '../types';
+import {
+  VaultConfig,
+  HpcsConfig,
+  ProviderNames,
+  KmsImplementations,
+  KMSConfig,
+} from '../types';
 
 export const KMSMaxFileUploadSize = 4000000;
 export const KMSConfigMapName = 'ocs-kms-connection-details';

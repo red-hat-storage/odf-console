@@ -1,13 +1,19 @@
 import * as React from 'react';
-import { NooBaaObjectBucketClaimModel, NooBaaObjectBucketModel } from '@odf/core/models';
+import {
+  NooBaaObjectBucketClaimModel,
+  NooBaaObjectBucketModel,
+} from '@odf/core/models';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import { getGaugeValue } from '@odf/shared/utils';
-import { useK8sWatchResource, InventoryItem } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useK8sWatchResource,
+  InventoryItem,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal'
+import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { BucketsTitle } from './buckets-card-item';
@@ -35,8 +41,11 @@ const objectBucketResource = {
 const ObjectDashboardBucketsCard: React.FC<{}> = () => {
   const { t } = useTranslation();
 
-  const [obcData, obcLoaded, obcLoadError] = useK8sWatchResource<K8sResourceKind[]>(objectBucketClaimsResource);
-  const [obData, obLoaded, obLoadError] = useK8sWatchResource<K8sResourceKind[]>(objectBucketResource);
+  const [obcData, obcLoaded, obcLoadError] = useK8sWatchResource<
+    K8sResourceKind[]
+  >(objectBucketClaimsResource);
+  const [obData, obLoaded, obLoadError] =
+    useK8sWatchResource<K8sResourceKind[]>(objectBucketResource);
 
   const [noobaaCount, noobaaCountError] = usePrometheusPoll({
     query: BucketsCardQueries.BUCKETS_COUNT,
@@ -46,12 +55,15 @@ const ObjectDashboardBucketsCard: React.FC<{}> = () => {
     query: BucketsCardQueries.BUCKET_OBJECTS_COUNT,
     endpoint: 'api/v1/query' as any,
   });
-  const [unhealthyNoobaaBuckets, unhealthyNoobaaBucketsError] = usePrometheusPoll({
-    query: BucketsCardQueries.UNHEALTHY_BUCKETS,
-    endpoint: 'api/v1/query' as any,
-  });
+  const [unhealthyNoobaaBuckets, unhealthyNoobaaBucketsError] =
+    usePrometheusPoll({
+      query: BucketsCardQueries.UNHEALTHY_BUCKETS,
+      endpoint: 'api/v1/query' as any,
+    });
 
-  const unhealthyNoobaaBucketsCount = Number(getGaugeValue(unhealthyNoobaaBuckets));
+  const unhealthyNoobaaBucketsCount = Number(
+    getGaugeValue(unhealthyNoobaaBuckets)
+  );
 
   return (
     <Card>
@@ -60,7 +72,7 @@ const ObjectDashboardBucketsCard: React.FC<{}> = () => {
           {t('Buckets')}
           <FieldLevelHelp>
             {t(
-              'Buckets card represents the number of S3 buckets managed on Multicloud Object Gateway and the number of ObjectBucketClaims and the ObjectBuckets managed on both Multicloud Object Gateway and RGW (if deployed).',
+              'Buckets card represents the number of S3 buckets managed on Multicloud Object Gateway and the number of ObjectBucketClaims and the ObjectBuckets managed on both Multicloud Object Gateway and RGW (if deployed).'
             )}
           </FieldLevelHelp>
         </CardTitle>
@@ -80,7 +92,7 @@ const ObjectDashboardBucketsCard: React.FC<{}> = () => {
                 {...props}
               />
             ),
-            [noobaaObjectsCount, noobaaObjectsCountError],
+            [noobaaObjectsCount, noobaaObjectsCountError]
           )}
         >
           {unhealthyNoobaaBucketsCount > 0 && (

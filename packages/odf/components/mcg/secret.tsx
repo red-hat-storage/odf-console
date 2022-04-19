@@ -33,23 +33,26 @@ export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
         isList: false,
       },
     ],
-    [name, namespace],
+    [name, namespace]
   );
 
-  const [secretData, secretLoaded, secretLoadError] = useK8sWatchResource<SecretKind>(
-    secretResource,
-  );
+  const [secretData, secretLoaded, secretLoadError] =
+    useK8sWatchResource<SecretKind>(secretResource);
 
-  const [configData, configLoaded, configLoadError] = useK8sWatchResource<ConfigMapKind>(
-    cmResource,
-  );
+  const [configData, configLoaded, configLoadError] =
+    useK8sWatchResource<ConfigMapKind>(cmResource);
   const isLoaded = secretLoaded && configLoaded;
   const error = secretLoadError || configLoadError;
   const bucketName = configData?.data?.BUCKET_NAME;
   const endpoint = `${configData?.data?.BUCKET_HOST}:${configData?.data?.BUCKET_PORT}`;
-  const accessKey = isLoaded && !error ? Base64.decode(secretData?.data?.AWS_ACCESS_KEY_ID) : '';
+  const accessKey =
+    isLoaded && !error
+      ? Base64.decode(secretData?.data?.AWS_ACCESS_KEY_ID)
+      : '';
   const secretKey =
-    isLoaded && !error ? Base64.decode(secretData?.data?.AWS_SECRET_ACCESS_KEY) : '';
+    isLoaded && !error
+      ? Base64.decode(secretData?.data?.AWS_SECRET_ACCESS_KEY)
+      : '';
 
   const secretValues =
     isLoaded && !error
@@ -67,12 +70,12 @@ export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
         acc.push(
           <dt key={`${field}-k`} data-test="secret-data">
             {field}
-          </dt>,
+          </dt>
         );
         acc.push(
           <dd key={`${field}-v`}>
             <SecretValue value={value} reveal={reveal} encoded={false} />
-          </dd>,
+          </dd>
         );
         return acc;
       }, [])

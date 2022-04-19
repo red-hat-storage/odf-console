@@ -22,7 +22,7 @@ module.exports = (on, config) => {
       output: {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'cypress-dist'),
-  },
+      },
     },
   };
   // `on` is used to hook into various events Cypress emits
@@ -64,9 +64,9 @@ module.exports = (on, config) => {
   });
   on('file:preprocessor', wp(options));
   // `config` is the resolved Cypress config
-  config.baseUrl = `${process.env.BRIDGE_BASE_ADDRESS || 'http://localhost:9000'}${(
-    process.env.BRIDGE_BASE_PATH || '/'
-  ).replace(/\/$/, '')}`;
+  config.baseUrl = `${
+    process.env.BRIDGE_BASE_ADDRESS || 'http://localhost:9000'
+  }${(process.env.BRIDGE_BASE_PATH || '/').replace(/\/$/, '')}`;
   config.env.BRIDGE_HTPASSWD_IDP = process.env.BRIDGE_HTPASSWD_IDP;
   config.env.BRIDGE_HTPASSWD_USERNAME = process.env.BRIDGE_HTPASSWD_USERNAME;
   config.env.BRIDGE_HTPASSWD_PASSWORD = process.env.BRIDGE_HTPASSWD_PASSWORD;

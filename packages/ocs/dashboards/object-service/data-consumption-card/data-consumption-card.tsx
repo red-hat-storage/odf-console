@@ -15,7 +15,11 @@ import { getName } from '@odf/shared/selectors';
 import { ClusterServiceVersionKind } from '@odf/shared/types';
 import { DataPoint } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
-import { useK8sWatchResource, PrometheusResponse, useFlag } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useK8sWatchResource,
+  PrometheusResponse,
+  useFlag,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
@@ -49,7 +53,6 @@ const MCGCommonComponent: React.FC<ServiceTypeProps> = ({
   breakdownBy,
   metric,
 }) => {
-
   const [queryA, queryAError, queryALoading] = usePrometheusPoll({
     query: queries?.[0],
     endpoint: 'api/v1/query' as any,
@@ -67,22 +70,24 @@ const MCGCommonComponent: React.FC<ServiceTypeProps> = ({
     endpoint: 'api/v1/query' as any,
   });
 
-  const loading = queryALoading || queryBLoading || queryCLoading || queryDLoading;
-  const error = !!queryAError || !!queryBError || !!queryCError || !!queryDError;
+  const loading =
+    queryALoading || queryBLoading || queryCLoading || queryDLoading;
+  const error =
+    !!queryAError || !!queryBError || !!queryCError || !!queryDError;
   const data = !!queryA && !!queryB && !!queryC && !!queryD;
   const response: Response = React.useMemo(() => {
-    return !loading && !error && data
-    ? [queryA, queryB, queryC, queryD] 
-    : []
+    return !loading && !error && data ? [queryA, queryB, queryC, queryD] : [];
   }, [queryA, queryB, queryC, queryD, loading, error, data]);
 
-  return <DataConsumptionGraph
-    prometheusResponse={response as PrometheusResponse[]}
-    loading={loading}
-    loadError={error}
-    breakdownBy={breakdownBy}
-    metric={metric}
-  />;
+  return (
+    <DataConsumptionGraph
+      prometheusResponse={response as PrometheusResponse[]}
+      loading={loading}
+      loadError={error}
+      breakdownBy={breakdownBy}
+      metric={metric}
+    />
+  );
 };
 
 const AccountsLogical: React.FC<ServiceTypeProps> = ({
@@ -90,7 +95,6 @@ const AccountsLogical: React.FC<ServiceTypeProps> = ({
   breakdownBy,
   metric,
 }) => {
-
   const [usage, usageError, usageLoading] = usePrometheusPoll({
     query: queries?.[0],
     endpoint: 'api/v1/query' as any,
@@ -104,18 +108,18 @@ const AccountsLogical: React.FC<ServiceTypeProps> = ({
   const error = !!usageError || !!totalUsageError;
   const data = !!usage && !!totalUsage;
   const response: Response = React.useMemo(() => {
-    return !loading && !error && data
-    ? [usage, totalUsage] 
-    : []
+    return !loading && !error && data ? [usage, totalUsage] : [];
   }, [usage, totalUsage, loading, error, data]);
 
-  return <DataConsumptionGraph
-    prometheusResponse={response as PrometheusResponse[]}
-    loading={loading}
-    loadError={error}
-    breakdownBy={breakdownBy}
-    metric={metric}
-  />;
+  return (
+    <DataConsumptionGraph
+      prometheusResponse={response as PrometheusResponse[]}
+      loading={loading}
+      loadError={error}
+      breakdownBy={breakdownBy}
+      metric={metric}
+    />
+  );
 };
 
 const ProvidersEgress: React.FC<ServiceTypeProps> = ({
@@ -123,42 +127,71 @@ const ProvidersEgress: React.FC<ServiceTypeProps> = ({
   breakdownBy,
   metric,
 }) => {
-
   const [egress, egressError, egressLoading] = usePrometheusPoll({
     query: queries?.[0],
     endpoint: 'api/v1/query' as any,
   });
 
   const response: Response = React.useMemo(() => {
-    return !egressLoading && !egressError && egress
-    ? [egress] : []
+    return !egressLoading && !egressError && egress ? [egress] : [];
   }, [egress, egressError, egressLoading]);
 
-  return <DataConsumptionGraph
-    prometheusResponse={response as PrometheusResponse[]}
-    loading={egressLoading}
-    loadError={egressError}
-    breakdownBy={breakdownBy}
-    metric={metric}
-  />;
+  return (
+    <DataConsumptionGraph
+      prometheusResponse={response as PrometheusResponse[]}
+      loading={egressLoading}
+      loadError={egressError}
+      breakdownBy={breakdownBy}
+      metric={metric}
+    />
+  );
 };
 
 const MCGBreakdownMetricMap = (queries: string[]) => {
   return {
     [Breakdown.ACCOUNTS]: {
-      [Metrics.IOPS]: <MCGCommonComponent queries={queries} metric={Metrics.IOPS} breakdownBy={Breakdown.ACCOUNTS}/>,
-      [Metrics.LOGICAL]: <AccountsLogical queries={queries} metric={Metrics.LOGICAL} breakdownBy={Breakdown.ACCOUNTS}/>,
+      [Metrics.IOPS]: (
+        <MCGCommonComponent
+          queries={queries}
+          metric={Metrics.IOPS}
+          breakdownBy={Breakdown.ACCOUNTS}
+        />
+      ),
+      [Metrics.LOGICAL]: (
+        <AccountsLogical
+          queries={queries}
+          metric={Metrics.LOGICAL}
+          breakdownBy={Breakdown.ACCOUNTS}
+        />
+      ),
     },
-    [Breakdown.PROVIDERS]:{
-      [Metrics.IOPS]: <MCGCommonComponent queries={queries} metric={Metrics.IOPS} breakdownBy={Breakdown.PROVIDERS}/>,
-      [Metrics.PHY_VS_LOG]: <MCGCommonComponent queries={queries} metric={Metrics.PHY_VS_LOG} breakdownBy={Breakdown.PROVIDERS}/>,
-      [Metrics.EGRESS]: <ProvidersEgress queries={queries} metric={Metrics.EGRESS} breakdownBy={Breakdown.PROVIDERS}/>,
+    [Breakdown.PROVIDERS]: {
+      [Metrics.IOPS]: (
+        <MCGCommonComponent
+          queries={queries}
+          metric={Metrics.IOPS}
+          breakdownBy={Breakdown.PROVIDERS}
+        />
+      ),
+      [Metrics.PHY_VS_LOG]: (
+        <MCGCommonComponent
+          queries={queries}
+          metric={Metrics.PHY_VS_LOG}
+          breakdownBy={Breakdown.PROVIDERS}
+        />
+      ),
+      [Metrics.EGRESS]: (
+        <ProvidersEgress
+          queries={queries}
+          metric={Metrics.EGRESS}
+          breakdownBy={Breakdown.PROVIDERS}
+        />
+      ),
     },
-  }
-}
+  };
+};
 
-const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({queries, metric}) => {
-
+const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({ queries, metric }) => {
   const [get, getError, getLoading] = usePrometheusPoll({
     query: queries?.[0],
     endpoint: 'api/v1/query_range' as any,
@@ -175,17 +208,19 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({queries, metric}) => {
   const data = !!get && !!put;
   const response: Response = React.useMemo(() => {
     return !loading && !error && data
-    ? [...getRangeVectorStats(get), ...getRangeVectorStats(put)] 
-    : []
+      ? [...getRangeVectorStats(get), ...getRangeVectorStats(put)]
+      : [];
   }, [get, put, loading, error, data]);
 
-  return <PerformanceGraph
-    loading={loading}
-    loadError={error}
-    dataPoints={response as DataPoint[][][]}
-    metricType={metric}
-  />
-}
+  return (
+    <PerformanceGraph
+      loading={loading}
+      loadError={error}
+      dataPoints={response as DataPoint[][][]}
+      metricType={metric}
+    />
+  );
+};
 
 const DataConsumptionCard: React.FC = () => {
   const { t } = useTranslation();
@@ -193,9 +228,8 @@ const DataConsumptionCard: React.FC = () => {
   const [metric, setMetric] = React.useState(Metrics.IOPS);
   const [serviceType, setServiceType] = React.useState(ServiceType.MCG);
   const RGW = useFlag(RGW_FLAG);
-  const [csvList, csvLoaded, csvLoadError] = useK8sWatchResource<ClusterServiceVersionKind[]>(
-    csvResource,
-  );
+  const [csvList, csvLoaded, csvLoadError] =
+    useK8sWatchResource<ClusterServiceVersionKind[]>(csvResource);
   const isOCS45 =
     csvLoaded &&
     !csvLoadError &&
@@ -205,11 +239,11 @@ const DataConsumptionCard: React.FC = () => {
     return serviceType === ServiceType.MCG
       ? Object.values(
           DATA_CONSUMPTION_QUERIES[ServiceType.MCG][breakdownBy][metric] ??
-            DATA_CONSUMPTION_QUERIES[ServiceType.MCG][breakdownBy][Metrics.IOPS],
+            DATA_CONSUMPTION_QUERIES[ServiceType.MCG][breakdownBy][Metrics.IOPS]
         )
       : Object.values(
           DATA_CONSUMPTION_QUERIES[ServiceType.RGW][metric] ??
-            DATA_CONSUMPTION_QUERIES[ServiceType.MCG][Metrics.BANDWIDTH],
+            DATA_CONSUMPTION_QUERIES[ServiceType.MCG][Metrics.BANDWIDTH]
         );
   }, [breakdownBy, metric, serviceType]);
 
@@ -220,7 +254,7 @@ const DataConsumptionCard: React.FC = () => {
           {t('Performance')}
           <FieldLevelHelp>
             {t(
-              'Shows an overview of the data consumption per provider or account collected from the day of the entity creation.',
+              'Shows an overview of the data consumption per provider or account collected from the day of the entity creation.'
             )}
           </FieldLevelHelp>
         </CardTitle>
@@ -235,11 +269,11 @@ const DataConsumptionCard: React.FC = () => {
         />
       </CardHeader>
       <CardBody>
-        {(serviceType === ServiceType.MCG) && MCGBreakdownMetricMap(queries)[breakdownBy][metric]}
-        {(serviceType === ServiceType.RGW) && <ServiceTypeRGW
-          queries={queries}
-          metric={metric}
-        />}
+        {serviceType === ServiceType.MCG &&
+          MCGBreakdownMetricMap(queries)[breakdownBy][metric]}
+        {serviceType === ServiceType.RGW && (
+          <ServiceTypeRGW queries={queries} metric={metric} />
+        )}
       </CardBody>
     </Card>
   );

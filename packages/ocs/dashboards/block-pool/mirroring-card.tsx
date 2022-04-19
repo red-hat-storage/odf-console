@@ -26,7 +26,9 @@ import { MirroringCardItem } from './mirroring-card-item';
 import { healthStateMapping, ImageStateLegendMap } from './states';
 import './mirroring-card.scss';
 
-const MirroringImageStatePopover: React.FC<MirroringImageStatePopoverProps> = ({ t }) => {
+const MirroringImageStatePopover: React.FC<MirroringImageStatePopoverProps> = ({
+  t,
+}) => {
   return (
     <Popover
       maxWidth="32rem"
@@ -39,34 +41,39 @@ const MirroringImageStatePopover: React.FC<MirroringImageStatePopoverProps> = ({
           </ListItem>
           <ListItem>
             <Trans t={t} ns="plugin__odf-console">
-              <strong>Starting replay:</strong> Initiating image (PV) replication process.
+              <strong>Starting replay:</strong> Initiating image (PV)
+              replication process.
             </Trans>
           </ListItem>
           <ListItem>
             <Trans t={t} ns="plugin__odf-console">
-              <strong>Replaying:</strong> Image (PV) replication is ongoing or idle between
-              clusters.
+              <strong>Replaying:</strong> Image (PV) replication is ongoing or
+              idle between clusters.
             </Trans>
           </ListItem>
           <ListItem>
             <Trans t={t} ns="plugin__odf-console">
-              <strong>Stopping replay:</strong> Image (PV) replication process is shutting down.
+              <strong>Stopping replay:</strong> Image (PV) replication process
+              is shutting down.
             </Trans>
           </ListItem>
           <ListItem>
             <Trans t={t} ns="plugin__odf-console">
-              <strong>Stopped:</strong> Image (PV) replication process has shut down.
+              <strong>Stopped:</strong> Image (PV) replication process has shut
+              down.
             </Trans>
           </ListItem>
           <ListItem>
             <Trans t={t} ns="plugin__odf-console">
-              <strong>Error:</strong> Image (PV) replication process stopped due to an error.
+              <strong>Error:</strong> Image (PV) replication process stopped due
+              to an error.
             </Trans>
           </ListItem>
           <ListItem>
             <Trans t={t} ns="plugin__odf-console">
-              <strong>Unknown:</strong> Unable to determine image (PV) state due to an error. Check
-              your network connection and remote cluster mirroring daemon.
+              <strong>Unknown:</strong> Unable to determine image (PV) state due
+              to an error. Check your network connection and remote cluster
+              mirroring daemon.
             </Trans>
           </ListItem>
         </List>
@@ -85,9 +92,15 @@ const MirroringImageStatePopover: React.FC<MirroringImageStatePopoverProps> = ({
   );
 };
 
-const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({ t, poolObj }) => {
+const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({
+  t,
+  poolObj,
+}) => {
   const states: any = poolObj.status?.mirroringStatus?.summary?.states ?? {};
-  const totalImageCount = Object.keys(states).reduce((sum, state) => sum + states[state], 0);
+  const totalImageCount = Object.keys(states).reduce(
+    (sum, state) => sum + states[state],
+    0
+  );
 
   if (totalImageCount > 0) {
     const { data, legendData } = Object.keys(states).reduce(
@@ -104,7 +117,7 @@ const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({ t
         });
         return acc;
       },
-      { data: [], legendData: [] },
+      { data: [], legendData: [] }
     );
 
     return (
@@ -135,7 +148,8 @@ export const MirroringCard: React.FC = () => {
   const { obj } = React.useContext(BlockPoolDashboardContext);
 
   const mirroringStatus: boolean = obj.spec?.mirroring?.enabled;
-  const mirroringImageHealth: string = obj.status?.mirroringStatus?.summary?.image_health;
+  const mirroringImageHealth: string =
+    obj.status?.mirroringStatus?.summary?.image_health;
   const lastChecked: string = obj.status?.mirroringStatus?.lastChecked;
   const formatedDateTime = lastChecked
     ? twelveHoursdateTimeNoYear.format(new Date(lastChecked))

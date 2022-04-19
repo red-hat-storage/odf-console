@@ -45,8 +45,8 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
       {
         component: BlockPoolListPage,
         title: t('BlockPools'),
-        href: blockPoolHref
-      }
+        href: blockPoolHref,
+      },
     ],
     [t]
   );

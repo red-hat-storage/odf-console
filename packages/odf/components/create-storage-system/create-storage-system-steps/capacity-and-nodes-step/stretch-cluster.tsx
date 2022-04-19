@@ -17,14 +17,16 @@ import {
 import { WizardState } from '../../reducer';
 import './capacity-and-nodes.scss';
 
-const HelperText: React.FC<{ enableArbiter: boolean }> = ({ enableArbiter }) => {
+const HelperText: React.FC<{ enableArbiter: boolean }> = ({
+  enableArbiter,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
   return (
     <>
       <TextContent>
         <Text component={TextVariants.small}>
           {t(
-            'To support high availability when two data centers can be used, enable arbiter to get a valid quorum between the two data centers.',
+            'To support high availability when two data centers can be used, enable arbiter to get a valid quorum between the two data centers.'
           )}
         </Text>
       </TextContent>
@@ -87,7 +89,7 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
               label={t('Arbiter zone')}
               fieldId="arbiter-zone-selection"
               helperText={t(
-                'An arbiter node will be automatically selected from this zone',
+                'An arbiter node will be automatically selected from this zone'
               )}
             >
               <Select

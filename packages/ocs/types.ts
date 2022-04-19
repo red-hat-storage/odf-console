@@ -1,4 +1,4 @@
-import { K8sResourceCommon } from "@openshift-console/dynamic-plugin-sdk";
+import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 export enum ImageStates {
   STARTING_REPLAY = 'starting_replay',

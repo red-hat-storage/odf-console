@@ -12,8 +12,12 @@ import {
 const prepareStorageClassForm = () => {
   cy.log('Selecting provisioner');
   cy.byTestID('storage-class-provisioner-dropdown').click();
-  cy.byLegacyTestID('dropdown-text-filter').type('openshift-storage.rbd.csi.ceph.com');
-  cy.byTestID('dropdown-menu-item-link').contains('openshift-storage.rbd.csi.ceph.com');
+  cy.byLegacyTestID('dropdown-text-filter').type(
+    'openshift-storage.rbd.csi.ceph.com'
+  );
+  cy.byTestID('dropdown-menu-item-link').contains(
+    'openshift-storage.rbd.csi.ceph.com'
+  );
   cy.byTestID('dropdown-menu-item-link').click();
 
   cy.log('Creating a new block pool');

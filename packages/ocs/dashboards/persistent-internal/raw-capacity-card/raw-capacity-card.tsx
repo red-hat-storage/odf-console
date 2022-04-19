@@ -7,7 +7,10 @@ import {
   CAPACITY_INFO_QUERIES,
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
-import { CapacityCard, CapacityCardProps } from '../../common/capacity-card/capacity-card';
+import {
+  CapacityCard,
+  CapacityCardProps,
+} from '../../common/capacity-card/capacity-card';
 
 // Enchance instantVectorStats to directly parse the values (else loading state won't be accurate)
 const parser = compose((val) => val?.[0]?.y, getInstantVectorStats);

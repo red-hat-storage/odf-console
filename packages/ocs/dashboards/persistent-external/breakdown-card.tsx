@@ -1,10 +1,21 @@
 import * as React from 'react';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { getSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
-import { humanizeBinaryBytes, getInstantVectorStats, sortInstantVectorStats } from '@odf/shared/utils';
+import {
+  humanizeBinaryBytes,
+  getInstantVectorStats,
+  sortInstantVectorStats,
+} from '@odf/shared/utils';
 import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
-import { Select, SelectProps, Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import {
+  Select,
+  SelectProps,
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+} from '@patternfly/react-core';
 import { PROJECTS, STORAGE_CLASSES, PODS } from '../../constants';
 import { breakdownIndependentQueryMap } from '../../queries';
 import { getStackChartStats } from '../../utils/metrics';
@@ -17,13 +28,11 @@ export const BreakdownCard: React.FC = () => {
   const { queries, model, metric } = breakdownIndependentQueryMap[metricType];
   const queryKeys = Object.keys(queries);
 
-  const [byUsed, byUsedError, byUsedLoading] =
-  usePrometheusPoll({
+  const [byUsed, byUsedError, byUsedLoading] = usePrometheusPoll({
     endpoint: 'api/v1/query' as any,
     query: queries[queryKeys[0]],
   });
-  const [totalUsed, totalUsedError, totalUsedLoading] =
-  usePrometheusPoll({
+  const [totalUsed, totalUsedError, totalUsedLoading] = usePrometheusPoll({
     endpoint: 'api/v1/query' as any,
     query: queries[queryKeys[1]],
   });

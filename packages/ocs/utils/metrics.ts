@@ -50,9 +50,10 @@ export const filterCephAlerts = (alerts: Alert[]): Alert[] => {
     : [];
 };
 
-
 export const filterNooBaaAlerts = (alerts: Alert[]): Alert[] =>
-  alerts.filter((alert) => _.get(alert, 'annotations.storage_type') === 'NooBaa');
+  alerts.filter(
+    (alert) => _.get(alert, 'annotations.storage_type') === 'NooBaa'
+  );
 
 export const filterRGWAlerts = (alerts: Alert[]): Alert[] =>
   alerts.filter((alert) => alert?.annotations?.storage_type === 'RGW');

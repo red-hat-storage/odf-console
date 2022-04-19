@@ -161,9 +161,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
                 onChange={() => setIsChecked(!isChecked)}
                 checked={!!isChecked}
               />
-              {t(
-                'Delete dependent objects of this resource'
-              )}
+              {t('Delete dependent objects of this resource')}
             </label>
           </div>
         )}

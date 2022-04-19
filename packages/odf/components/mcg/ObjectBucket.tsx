@@ -166,7 +166,9 @@ const ObjectBucketsList: React.FC<ObjectBucketsListProps> = ({ ...props }) => {
   );
 };
 
-export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (props) => {
+export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
+  props
+) => {
   const { t } = useTranslation();
   const { selector, namespace } = props;
   const [Modal, modalProps, launchModal] = useModalLauncher();
@@ -223,9 +225,7 @@ const OBDetails: DetailsType =
     return (
       <>
         <div className="co-m-pane__body">
-          <SectionHeading
-            text={t('Object Bucket Details')}
-          />
+          <SectionHeading text={t('Object Bucket Details')} />
           <div className="row">
             <div className="col-sm-6">
               <ResourceSummary

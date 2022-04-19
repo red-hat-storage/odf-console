@@ -49,10 +49,7 @@ export const requirementFromString = (string) => {
   if (/^[0-9A-Za-z/\-_.]+\s+in\s+\([0-9A-Za-z/\-_.,\s]+\)$/.test(string)) {
     const parts = string.split(/\s+in\s+/);
     const key = parts[0];
-    const values = parts[1]
-      .slice(1, -1)
-      .split(',')
-      .map(_.trim);
+    const values = parts[1].slice(1, -1).split(',').map(_.trim);
 
     return {
       key,
@@ -65,10 +62,7 @@ export const requirementFromString = (string) => {
   if (/^[0-9A-Za-z/\-_.]+\s+notin\s+\([0-9A-Za-z/\-_.,\s]+\)$/.test(string)) {
     const parts = string.split(/\s+notin\s+/);
     const key = parts[0];
-    const values = parts[1]
-      .slice(1, -1)
-      .split(',')
-      .map(_.trim);
+    const values = parts[1].slice(1, -1).split(',').map(_.trim);
 
     return {
       key,

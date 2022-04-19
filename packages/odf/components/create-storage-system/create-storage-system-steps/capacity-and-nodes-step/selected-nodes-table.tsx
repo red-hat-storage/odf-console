@@ -1,7 +1,11 @@
 import * as React from 'react';
 import { NodeModel } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
-import { resourcePathFromModel, humanizeCpuCores, getConvertedUnits } from '@odf/shared/utils';
+import {
+  resourcePathFromModel,
+  humanizeCpuCores,
+  getConvertedUnits,
+} from '@odf/shared/utils';
 import {
   TableData,
   useActiveColumns,
@@ -14,17 +18,42 @@ import { WizardNodeState } from '../../reducer';
 import { SelectNodesTableFooter } from '../../select-nodes-table/select-nodes-table-footer';
 
 const tableColumnClasses = [
-  {className: classNames('pf-u-w-40-on-sm'), id: 'name'},
-  {className: classNames('pf-m-hidden', 'pf-m-visible-on-sm', 'pf-u-w-10-on-sm'), id: 'roles'},
-  {className: classNames('pf-m-hidden', 'pf-m-visible-on-sm', 'pf-u-w-10-on-sm'), id: 'cpu'},
-  {className: classNames('pf-m-hidden', 'pf-m-visible-on-sm', 'pf-u-w-10-on-sm'), id: 'memory'},
-  {className: classNames('pf-m-hidden', 'pf-m-visible-on-sm', 'pf-u-w-10-on-sm'), id: 'zone'},
+  { className: classNames('pf-u-w-40-on-sm'), id: 'name' },
+  {
+    className: classNames(
+      'pf-m-hidden',
+      'pf-m-visible-on-sm',
+      'pf-u-w-10-on-sm'
+    ),
+    id: 'roles',
+  },
+  {
+    className: classNames(
+      'pf-m-hidden',
+      'pf-m-visible-on-sm',
+      'pf-u-w-10-on-sm'
+    ),
+    id: 'cpu',
+  },
+  {
+    className: classNames(
+      'pf-m-hidden',
+      'pf-m-visible-on-sm',
+      'pf-u-w-10-on-sm'
+    ),
+    id: 'memory',
+  },
+  {
+    className: classNames(
+      'pf-m-hidden',
+      'pf-m-visible-on-sm',
+      'pf-u-w-10-on-sm'
+    ),
+    id: 'zone',
+  },
 ];
 
-const SelectedNodesTableRow = ({
-  obj,
-  activeColumnIDs,
-}) => {
+const SelectedNodesTableRow = ({ obj, activeColumnIDs }) => {
   const { cpu, memory, zone, name, roles } = obj;
   return (
     <>
@@ -51,38 +80,44 @@ const SelectedNodesTableRow = ({
   );
 };
 
-export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({ data, showDetails = true }) => {
+export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({
+  data,
+  showDetails = true,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
 
-  const SelectedNodesTableColumns = React.useMemo(() => [
-    {
-      title: t('Name'),
-      sort: 'name',
-      transforms: [sortable],
-      props: { className: tableColumnClasses[0].className },
-      id: tableColumnClasses[0].id,
-    },
-    {
-      title: t('Role'),
-      props: { className: tableColumnClasses[1].className },
-      id: tableColumnClasses[1].id,
-    },
-    {
-      title: t('CPU'),
-      props: { className: tableColumnClasses[2].className },
-      id: tableColumnClasses[2].id,
-    },
-    {
-      title: t('Memory'),
-      props: { className: tableColumnClasses[3].className },
-      id: tableColumnClasses[3].id,
-    },
-    {
-      title: t('Zone'),
-      props: { className: tableColumnClasses[4].className},
-      id: tableColumnClasses[4].id,
-    },
-  ], [t]);
+  const SelectedNodesTableColumns = React.useMemo(
+    () => [
+      {
+        title: t('Name'),
+        sort: 'name',
+        transforms: [sortable],
+        props: { className: tableColumnClasses[0].className },
+        id: tableColumnClasses[0].id,
+      },
+      {
+        title: t('Role'),
+        props: { className: tableColumnClasses[1].className },
+        id: tableColumnClasses[1].id,
+      },
+      {
+        title: t('CPU'),
+        props: { className: tableColumnClasses[2].className },
+        id: tableColumnClasses[2].id,
+      },
+      {
+        title: t('Memory'),
+        props: { className: tableColumnClasses[3].className },
+        id: tableColumnClasses[3].id,
+      },
+      {
+        title: t('Zone'),
+        props: { className: tableColumnClasses[4].className },
+        id: tableColumnClasses[4].id,
+      },
+    ],
+    [t]
+  );
 
   const [columns] = useActiveColumns({
     columns: SelectedNodesTableColumns,
@@ -101,7 +136,7 @@ export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({ data, sh
         loaded={true}
         loadError={false}
       />
-      {showDetails && (!!data.length && <SelectNodesTableFooter nodes={data} />)}
+      {showDetails && !!data.length && <SelectNodesTableFooter nodes={data} />}
     </>
   );
 };

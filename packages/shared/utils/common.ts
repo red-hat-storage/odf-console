@@ -116,5 +116,9 @@ export const referenceForOwnerRef = (
 export const isFunctionThenApply = (fn: any) => (args: string) =>
   typeof fn === 'function' ? fn(args) : fn;
 
-export const getInfrastructurePlatform = (infrastructure: K8sResourceKind): string =>
-  infrastructure && infrastructure.status ? infrastructure.status.platform : undefined;
+export const getInfrastructurePlatform = (
+  infrastructure: K8sResourceKind
+): string =>
+  infrastructure && infrastructure.status
+    ? infrastructure.status.platform
+    : undefined;

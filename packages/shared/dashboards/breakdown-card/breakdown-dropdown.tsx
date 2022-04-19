@@ -12,7 +12,7 @@ type GroupedSelectItems = {
 }[];
 
 export const getSelectOptions = (
-  selectItems: { name: string; id: string }[],
+  selectItems: { name: string; id: string }[]
 ): React.ReactElement[] =>
   selectItems.map(({ id, name }) => (
     <SelectOption key={id} value={id}>
@@ -21,7 +21,7 @@ export const getSelectOptions = (
   ));
 
 export const getGroupedSelectOptions = (
-  groupedSelectItems: GroupedSelectItems,
+  groupedSelectItems: GroupedSelectItems
 ): React.ReactElement[] =>
   groupedSelectItems.map(({ group, items }) => (
     <SelectGroup key={group} label={group}>
@@ -32,7 +32,7 @@ export const getGroupedSelectOptions = (
 export const getOptionsMenuItems = (
   dropdownItems: GroupedSelectItems,
   selectedItems: string[],
-  onSelect: (e) => void,
+  onSelect: (e) => void
 ) => {
   return dropdownItems.map(({ group, items }) => (
     <OptionsMenuItemGroup

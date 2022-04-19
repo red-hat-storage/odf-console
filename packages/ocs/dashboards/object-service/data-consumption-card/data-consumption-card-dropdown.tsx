@@ -21,7 +21,9 @@ import {
 } from '@patternfly/react-core';
 import './data-consumption-card.scss';
 
-export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (props) => {
+export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
+  props
+) => {
   const {
     selectedService,
     setSelectedService,
@@ -33,7 +35,8 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
   } = props;
   const { t } = useTranslation();
   const [isOpenComboDropdown, setComboDropdown] = React.useState(false);
-  const [isOpenServiceTypeDropdown, setServiceTypeDropdown] = React.useState(false);
+  const [isOpenServiceTypeDropdown, setServiceTypeDropdown] =
+    React.useState(false);
 
   const MCGDropdown = React.useMemo(
     () => [
@@ -62,7 +65,7 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
         ],
       },
     ],
-    [selectedBreakdown, t],
+    [selectedBreakdown, t]
   );
 
   const RGWDropdown = [
@@ -105,7 +108,10 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
     }
   };
 
-  const onSelectServiceDropdown = (_e: React.MouseEvent, selection: ServiceType) => {
+  const onSelectServiceDropdown = (
+    _e: React.MouseEvent,
+    selection: ServiceType
+  ) => {
     setSelectedService(selection);
     setSelectedMetric(DataConsumption.defaultMetrics[selection]);
     if (selection === ServiceType.MCG) {
@@ -117,11 +123,12 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
   };
 
   const comboDropdownItems = (() => {
-    const dropdown = selectedService === ServiceType.MCG ? MCGDropdown : RGWDropdown;
+    const dropdown =
+      selectedService === ServiceType.MCG ? MCGDropdown : RGWDropdown;
     return getOptionsMenuItems(
       dropdown,
       [selectedBreakdown, selectedMetric],
-      onSelectComboDropdown,
+      onSelectComboDropdown
     );
   })();
 

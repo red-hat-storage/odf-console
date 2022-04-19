@@ -1,6 +1,10 @@
 import { getResiliencyProgress } from '@odf/shared/utils';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { PrometheusHealthHandler, ResourceHealthHandler, SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
+import {
+  PrometheusHealthHandler,
+  ResourceHealthHandler,
+  SubsystemHealth,
+} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import { TFunction } from 'i18next';
 import { WatchCephResource } from '../../../utils';
 
@@ -25,7 +29,10 @@ const CephHealthStatus = (status: string, t: TFunction): SubsystemHealth => {
   }
 };
 
-export const getCephHealthState: ResourceHealthHandler<WatchCephResource> = ({ ceph }, t) => {
+export const getCephHealthState: ResourceHealthHandler<WatchCephResource> = (
+  { ceph },
+  t
+) => {
   const { data, loaded, loadError } = ceph;
   const status = data?.[0]?.status?.ceph?.health;
 
@@ -41,7 +48,10 @@ export const getCephHealthState: ResourceHealthHandler<WatchCephResource> = ({ c
   return CephHealthStatus(status, t);
 };
 
-export const getDataResiliencyState: PrometheusHealthHandler = (responses, t) => {
+export const getDataResiliencyState: PrometheusHealthHandler = (
+  responses,
+  t
+) => {
   const progress: number = getResiliencyProgress(responses[0].response);
   if (responses[0].error) {
     return { state: HealthState.NOT_AVAILABLE };

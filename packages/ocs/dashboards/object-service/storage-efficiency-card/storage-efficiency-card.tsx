@@ -10,18 +10,20 @@ import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 const StorageEfficiencyCard: React.FC<{}> = () => {
   const { t } = useTranslation();
 
-  const [compressionQueryResult, compressionQueryResultError] = usePrometheusPoll({
-    query: ObjectStorageEfficiencyQueries.COMPRESSION_RATIO,
-    endpoint: 'api/v1/query' as any,
-  });
+  const [compressionQueryResult, compressionQueryResultError] =
+    usePrometheusPoll({
+      query: ObjectStorageEfficiencyQueries.COMPRESSION_RATIO,
+      endpoint: 'api/v1/query' as any,
+    });
   const [savingsQueryResult, savingsQueryResultError] = usePrometheusPoll({
     query: ObjectStorageEfficiencyQueries.SAVINGS_QUERY,
     endpoint: 'api/v1/query' as any,
   });
-  const [logicalSavingsQueryResult, logicalSavingsQueryResultError] = usePrometheusPoll({
-    query: ObjectStorageEfficiencyQueries.LOGICAL_SAVINGS_QUERY,
-    endpoint: 'api/v1/query' as any,
-  });
+  const [logicalSavingsQueryResult, logicalSavingsQueryResultError] =
+    usePrometheusPoll({
+      query: ObjectStorageEfficiencyQueries.LOGICAL_SAVINGS_QUERY,
+      endpoint: 'api/v1/query' as any,
+    });
 
   const compressionRatio = getGaugeValue(compressionQueryResult);
   const savings = getGaugeValue(savingsQueryResult);
@@ -45,22 +47,31 @@ const StorageEfficiencyCard: React.FC<{}> = () => {
   const compressionRatioProps = {
     stats: Number(compressionRatio),
     isLoading: !compressionQueryResult && !compressionQueryResultError,
-    error: !!compressionQueryResultError || !compressionRatio || Number(compressionRatio) === 1,
+    error:
+      !!compressionQueryResultError ||
+      !compressionRatio ||
+      Number(compressionRatio) === 1,
     title: t('Compression ratio'),
     infoText: t(
-      'OpenShift Data Foundation can be configured to use compression. The efficiency rate reflects the actual compression ratio when using such a configuration.',
+      'OpenShift Data Foundation can be configured to use compression. The efficiency rate reflects the actual compression ratio when using such a configuration.'
     ),
     getStats: compressionStats,
   };
 
   const savingsProps = {
     stats: Number(savings),
-    isLoading: !savingsQueryResult && !logicalSavingsQueryResult && !savingsQueryResultError,
+    isLoading:
+      !savingsQueryResult &&
+      !logicalSavingsQueryResult &&
+      !savingsQueryResultError,
     error:
-      !!savingsQueryResultError || !!logicalSavingsQueryResultError || !savings || !logicalSize,
+      !!savingsQueryResultError ||
+      !!logicalSavingsQueryResultError ||
+      !savings ||
+      !logicalSize,
     title: t('Savings'),
     infoText: t(
-      'Savings shows the uncompressed and non-deduped data that would have been stored without those techniques.',
+      'Savings shows the uncompressed and non-deduped data that would have been stored without those techniques.'
     ),
     getStats: savingStats,
   };

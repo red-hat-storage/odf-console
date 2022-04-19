@@ -10,7 +10,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { match, useHistory } from 'react-router';
 import { Button, Modal } from '@patternfly/react-core';
-import { CEPH_EXTERNAL_CR_NAME, CEPH_NS, COMPRESSION_ON, POOL_STATE } from '../constants';
+import {
+  CEPH_EXTERNAL_CR_NAME,
+  CEPH_NS,
+  COMPRESSION_ON,
+  POOL_STATE,
+} from '../constants';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
 import { CephClusterKind, StoragePoolKind } from '../types';
 import { getErrorMessage } from '../utils';
@@ -36,7 +41,7 @@ export const getPoolKindObj = (state: BlockPoolState): StoragePoolKind => ({
     deviceClass: state.volumeType || '',
     failureDomain: state.failureDomain,
     parameters: {
-      compression_mode: state.isCompressed ? COMPRESSION_ON : 'none', 
+      compression_mode: state.isCompressed ? COMPRESSION_ON : 'none',
     },
     replicated: {
       size: Number(state.replicaSize),

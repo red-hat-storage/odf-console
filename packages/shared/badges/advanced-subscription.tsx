@@ -4,14 +4,16 @@ import { Label, Tooltip } from '@patternfly/react-core';
 import './Badge.scss';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
-export const AdvancedSubscription: React.FC<AdvancedSubscriptionProps> = ({ prefix }) => {
+export const AdvancedSubscription: React.FC<AdvancedSubscriptionProps> = ({
+  prefix,
+}) => {
   const { t } = useCustomTranslation();
   return (
     <>
       {prefix}{' '}
       <Tooltip
         content={t(
-          'This is an Advanced subscription feature. It requires Advanced Edition subscription. Please contact the account team for more information.',
+          'This is an Advanced subscription feature. It requires Advanced Edition subscription. Please contact the account team for more information.'
         )}
       >
         <Label

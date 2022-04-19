@@ -149,7 +149,7 @@ export const DeploymentModel: K8sKind = {
   labelPlural: 'Deployments',
   // t('plugin__odf-console~Deployments')
   labelPluralKey: 'Deployments',
-}
+};
 
 export const EventModel: K8sKind = {
   apiVersion: 'v1',

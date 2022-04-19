@@ -8,8 +8,14 @@ import { getName } from '@odf/shared/selectors';
 import { SecretKind, K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import { ExternalLink } from '@odf/shared/utils/link';
-import { useFlag, useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
-import { DetailItem, DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
+import {
+  useFlag,
+  useK8sWatchResources,
+} from '@openshift-console/dynamic-plugin-sdk';
+import {
+  DetailItem,
+  DetailsBody,
+} from '@openshift-console/dynamic-plugin-sdk-internal';
 import { Base64 } from 'js-base64';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -30,18 +36,18 @@ type ResourcesObject = {
 };
 
 const k8sResources = {
-  "ocs": {
+  ocs: {
     kind: referenceForModel(StorageClusterModel),
     namespaced: true,
     isList: true,
     namespace: 'openshift-storage',
   },
-  "subscription": {
+  subscription: {
     kind: referenceForModel(SubscriptionModel),
     namespaced: false,
     isList: true,
   },
-  "secret": {
+  secret: {
     kind: SecretModel.kind,
     namespace: CEPH_STORAGE_NAMESPACE,
     name: 'rook-ceph-dashboard-link',
@@ -54,15 +60,15 @@ export const DetailsCard: React.FC = () => {
 
   const resourcesObj: ResourcesObject = useK8sWatchResources(k8sResources);
 
-  const ocsName = getName(resourcesObj["ocs"].data?.[0]);
+  const ocsName = getName(resourcesObj['ocs'].data?.[0]);
   const subscriptionVersion = !isODF
-    ? getOCSVersion(resourcesObj["subscription"].data as K8sResourceKind[])
-    : getODFVersion(resourcesObj["subscription"].data as K8sResourceKind[]);
+    ? getOCSVersion(resourcesObj['subscription'].data as K8sResourceKind[])
+    : getODFVersion(resourcesObj['subscription'].data as K8sResourceKind[]);
 
   const serviceName = isODF
     ? t('OpenShift Data Foundation')
     : t('OpenShift Container Storage');
-  const cephLink = getCephLink(resourcesObj["secret"].data as K8sResourceKind);
+  const cephLink = getCephLink(resourcesObj['secret'].data as K8sResourceKind);
 
   return (
     <Card>
@@ -74,23 +80,30 @@ export const DetailsCard: React.FC = () => {
           <DetailItem title={t('Service Name')}>{serviceName}</DetailItem>
           <DetailItem
             title={t('Cluster Name')}
-            error={!!resourcesObj["ocs"].loadError}
-            isLoading={!resourcesObj["ocs"].loaded}
+            error={!!resourcesObj['ocs'].loadError}
+            isLoading={!resourcesObj['ocs'].loaded}
             data-test-id="cluster-name"
           >
             {ocsName}
           </DetailItem>
           <DetailItem
             title={t('Provider')}
-            isLoading={!resourcesObj["secret"].loaded && !resourcesObj["secret"].loadError}
+            isLoading={
+              !resourcesObj['secret'].loaded &&
+              !resourcesObj['secret'].loadError
+            }
           >
-            {cephLink ? <ExternalLink href={cephLink} text={CEPH_BRAND_NAME} /> : CEPH_BRAND_NAME}
+            {cephLink ? (
+              <ExternalLink href={cephLink} text={CEPH_BRAND_NAME} />
+            ) : (
+              CEPH_BRAND_NAME
+            )}
           </DetailItem>
           <DetailItem title={t('Mode')}>External</DetailItem>
           <DetailItem
             title={t('Version')}
-            isLoading={!resourcesObj["subscription"].loaded}
-            error={!!resourcesObj["subscription"].loadError}
+            isLoading={!resourcesObj['subscription'].loaded}
+            error={!!resourcesObj['subscription'].loadError}
             data-test-id="cluster-subscription"
           >
             {subscriptionVersion}

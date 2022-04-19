@@ -26,9 +26,7 @@ xdescribe('Test block pool update under ODF UI', () => {
 
   it('Test editing a non-default block pool is succesfu', () => {
     cy.log('Updating a newly created block pool');
-    cy.byLegacyTestID('kebab-button')
-      .first()
-      .click();
+    cy.byLegacyTestID('kebab-button').first().click();
     cy.byTestActionID('Edit BlockPool').click();
 
     modal.modalTitleShouldContain('Edit BlockPool');
@@ -47,12 +45,12 @@ xdescribe('Test block pool update under ODF UI', () => {
 
   it('Test editing a default block pool is not allowed', () => {
     cy.log('Click edit kebab action');
-    cy.byLegacyTestID('kebab-button')
-      .last()
-      .click();
+    cy.byLegacyTestID('kebab-button').last().click();
     cy.byTestActionID('Edit BlockPool').click();
     cy.log('Editing not allowed message is visible');
-    cy.byTestID('empty-state-body').contains(poolMessage[POOL_PROGRESS.NOTALLOWED]);
+    cy.byTestID('empty-state-body').contains(
+      poolMessage[POOL_PROGRESS.NOTALLOWED]
+    );
     verifyFooterActions(POOL_PROGRESS.NOTALLOWED);
   });
 });

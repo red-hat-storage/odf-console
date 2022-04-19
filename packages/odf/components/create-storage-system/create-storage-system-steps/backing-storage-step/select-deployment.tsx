@@ -16,14 +16,17 @@ const options = [DeploymentType.FULL, DeploymentType.MCG];
 
 const optionsDescription = (t: TFunction) => ({
   [DeploymentType.MCG]: t(
-    'Deploys MultiCloud Object Gateway without block and file services.',
+    'Deploys MultiCloud Object Gateway without block and file services.'
   ),
   [DeploymentType.FULL]: t(
-    'Deploys OpenShift Data Foundation with block, shared fileSystem and object services.',
+    'Deploys OpenShift Data Foundation with block, shared fileSystem and object services.'
   ),
 });
 
-export const SelectDeployment: React.FC<SelectDeploymentProps> = ({ deployment, dispatch }) => {
+export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
+  deployment,
+  dispatch,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
   const [isSelectOpen, setIsSelectOpen] = React.useState(false);
 
@@ -42,7 +45,11 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({ deployment, 
     setIsSelectOpen(isExpanded);
 
   const selectOptions = options.map((option) => (
-    <SelectOption key={option} value={option} description={descriptions[option]} />
+    <SelectOption
+      key={option}
+      value={option}
+      description={descriptions[option]}
+    />
   ));
 
   return (

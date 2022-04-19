@@ -41,7 +41,9 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
   const processedDropdownItems = React.useMemo(
     () =>
       Object.entries(dropdownItems).map(([k, v]) => (
-        <DropdownItem key={k} id={k}>{v}</DropdownItem>
+        <DropdownItem key={k} id={k}>
+          {v}
+        </DropdownItem>
       )),
     [dropdownItems]
   );

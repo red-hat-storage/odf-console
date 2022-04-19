@@ -72,9 +72,13 @@ export const breakdownQueryMapCEPH = {
         CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_BY_USED]
       })))`,
       [StorageDashboardQuery.PROJECTS_TOTAL_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_TOTAL_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[
+          StorageDashboardQuery.PROJECTS_TOTAL_USED
+        ],
       [StorageDashboardQuery.CEPH_CAPACITY_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[
+          StorageDashboardQuery.CEPH_CAPACITY_USED
+        ],
     },
   },
   [STORAGE_CLASSES]: {
@@ -91,7 +95,9 @@ export const breakdownQueryMapCEPH = {
           StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED
         ],
       [StorageDashboardQuery.CEPH_CAPACITY_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[
+          StorageDashboardQuery.CEPH_CAPACITY_USED
+        ],
     },
   },
   [PODS]: {
@@ -104,7 +110,9 @@ export const breakdownQueryMapCEPH = {
       [StorageDashboardQuery.PODS_TOTAL_USED]:
         CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PODS_TOTAL_USED],
       [StorageDashboardQuery.CEPH_CAPACITY_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[
+          StorageDashboardQuery.CEPH_CAPACITY_USED
+        ],
     },
   },
 };
@@ -165,7 +173,9 @@ export const utilizationPopoverQueryMap = [
     model: StorageClassModel,
     metric: 'storageclass',
     query: `(sort_desc(topk(25,(${
-      CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.STORAGE_CLASSES_BY_USED]
+      CEPH_CAPACITY_BREAKDOWN_QUERIES[
+        StorageDashboardQuery.STORAGE_CLASSES_BY_USED
+      ]
     }))))`,
   },
   {
@@ -210,7 +220,9 @@ export const breakdownIndependentQueryMap = {
         CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_BY_USED]
       })))`,
       [StorageDashboardQuery.PROJECTS_TOTAL_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.PROJECTS_TOTAL_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[
+          StorageDashboardQuery.PROJECTS_TOTAL_USED
+        ],
     },
   },
   [STORAGE_CLASSES]: {
@@ -218,10 +230,14 @@ export const breakdownIndependentQueryMap = {
     metric: 'storageclass',
     queries: {
       [StorageDashboardQuery.STORAGE_CLASSES_BY_USED]: `(topk(6,(${
-        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.STORAGE_CLASSES_BY_USED]
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[
+          StorageDashboardQuery.STORAGE_CLASSES_BY_USED
+        ]
       })))`,
       [StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED],
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[
+          StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED
+        ],
     },
   },
   [PODS]: {

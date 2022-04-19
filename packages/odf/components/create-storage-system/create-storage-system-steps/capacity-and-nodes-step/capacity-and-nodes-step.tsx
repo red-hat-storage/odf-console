@@ -6,7 +6,10 @@ import {
   getPVAssociatedNodesPerZone,
   getZonesFromNodesKind,
 } from '@odf/core/components/utils';
-import { OSDSizeDropdown, TotalCapacityText } from '@odf/core/components/utils/osd-size-dropdown';
+import {
+  OSDSizeDropdown,
+  TotalCapacityText,
+} from '@odf/core/components/utils/osd-size-dropdown';
 import {
   NO_PROVISIONER,
   requestedCapacityTooltip,
@@ -17,12 +20,15 @@ import { FEATURES } from '@odf/core/features';
 import { pvResource, nodeResource } from '@odf/core/resources';
 import { NodesPerZoneMap } from '@odf/core/types';
 import { getSCAvailablePVs, getAssociatedNodes } from '@odf/core/utils';
-import  { calcPVsCapacity } from '@odf/core/utils';
+import { calcPVsCapacity } from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { K8sResourceKind, NodeKind } from '@odf/shared/types';
-import { humanizeBinaryBytes } from '@odf/shared/utils'
-import { useK8sWatchResource, useFlag } from '@openshift-console/dynamic-plugin-sdk';
+import { humanizeBinaryBytes } from '@odf/shared/utils';
+import {
+  useK8sWatchResource,
+  useFlag,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { Trans, useTranslation } from 'react-i18next';
 import {
   Checkbox,
@@ -44,27 +50,33 @@ import { SelectedNodesTable } from './selected-nodes-table';
 import { StretchCluster } from './stretch-cluster';
 import './capacity-and-nodes.scss';
 
-const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(({ text }) => {
-  const { t } = useTranslation('plugin__odf-console');
-  const label = 'cluster.ocs.openshift.io/openshift-storage=""';
-  return (
-    <TextContent>
-      <Text>{text}</Text>
-      <Text>
-        <Trans t={t as any} ns="plugin__odf-console">
-          If not labeled, the selected nodes are labeled <Label color="blue">{{ label }}</Label> to
-          make them target hosts for OpenShift Data Foundation
-          {/* eslint-disable react/no-unescaped-entities */}'s components.
-        </Trans>
-      </Text>
-    </TextContent>
-  );
-});
+const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
+  ({ text }) => {
+    const { t } = useTranslation('plugin__odf-console');
+    const label = 'cluster.ocs.openshift.io/openshift-storage=""';
+    return (
+      <TextContent>
+        <Text>{text}</Text>
+        <Text>
+          <Trans t={t as any} ns="plugin__odf-console">
+            If not labeled, the selected nodes are labeled{' '}
+            <Label color="blue">{{ label }}</Label> to make them target hosts
+            for OpenShift Data Foundation
+            {/* eslint-disable react/no-unescaped-entities */}'s components.
+          </Trans>
+        </Text>
+      </TextContent>
+    );
+  }
+);
 SelectNodesText.displayName = 'SelectNodesText';
 
 type SelectNodesTextProps = { text: JSX.Element };
 
-const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({ dispatch, enableTaint }) => {
+const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
+  dispatch,
+  enableTaint,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
   const isTaintSupported = useFlag(FEATURES.OCS_TAINT_NODES);
 
@@ -72,13 +84,18 @@ const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({ dispatch, enableTai
     <Checkbox
       label={t('Taint nodes')}
       description={t(
-        'Selected nodes will be dedicated to OpenShift Data Foundation use only',
+        'Selected nodes will be dedicated to OpenShift Data Foundation use only'
       )}
       className="odf-capacity-and-nodes__taint-checkbox"
       id="taint-nodes"
       data-checked-state={enableTaint}
       isChecked={enableTaint}
-      onChange={() => dispatch({ type: 'capacityAndNodes/enableTaint', payload: !enableTaint })}
+      onChange={() =>
+        dispatch({
+          type: 'capacityAndNodes/enableTaint',
+          payload: !enableTaint,
+        })
+      }
     />
   ) : (
     <></>
@@ -99,7 +116,8 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
   const { t } = useTranslation('plugin__odf-console');
 
   React.useEffect(() => {
-    if (!capacity) dispatch({ type: 'capacityAndNodes/capacity', payload: '2Ti' });
+    if (!capacity)
+      dispatch({ type: 'capacityAndNodes/capacity', payload: '2Ti' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -108,7 +126,7 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
       const nodesData = createWizardNodeState(selectedNodes);
       dispatch({ type: 'wizard/setNodes', payload: nodesData });
     },
-    [dispatch],
+    [dispatch]
   );
 
   return (
@@ -119,7 +137,9 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
       <FormGroup
         fieldId="requested-capacity-dropdown"
         label={t('Requested capacity')}
-        labelIcon={<FieldLevelHelp>{requestedCapacityTooltip(t)}</FieldLevelHelp>}
+        labelIcon={
+          <FieldLevelHelp>{requestedCapacityTooltip(t)}</FieldLevelHelp>
+        }
       >
         <Grid hasGutter>
           <GridItem span={5}>
@@ -127,7 +147,10 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
               id="requested-capacity-dropdown"
               selectedKey={capacity as string}
               onChange={(selectedCapacity: string) =>
-                dispatch({ type: 'capacityAndNodes/capacity', payload: selectedCapacity })
+                dispatch({
+                  type: 'capacityAndNodes/capacity',
+                  payload: selectedCapacity,
+                })
               }
             />
           </GridItem>
@@ -145,7 +168,7 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
         <GridItem span={11}>
           <SelectNodesText
             text={t(
-              'Select at least 3 nodes preferably in 3 different zones. It is recommended to start with at least 14 CPUs and 34 GiB per node.',
+              'Select at least 3 nodes preferably in 3 different zones. It is recommended to start with at least 14 CPUs and 34 GiB per node.'
             )}
           />
         </GridItem>
@@ -175,17 +198,20 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   nodes,
 }) => {
   const { t } = useTranslation('plugin__odf-console');
-  const [pv, pvLoaded, pvLoadError] = useK8sWatchResource<K8sResourceKind[]>(pvResource);
+  const [pv, pvLoaded, pvLoadError] =
+    useK8sWatchResource<K8sResourceKind[]>(pvResource);
   const memoizedPv = useDeepCompareMemoize(pv, true);
-  const [allNodes, allNodeLoaded, allNodeLoadError] = useK8sWatchResource<NodeKind[]>(nodeResource);
+  const [allNodes, allNodeLoaded, allNodeLoadError] =
+    useK8sWatchResource<NodeKind[]>(nodeResource);
   const memoizedAllNodes = useDeepCompareMemoize(allNodes, true);
-  const [hasStrechClusterEnabled, setHasStrechClusterEnabled] = React.useState(false);
+  const [hasStrechClusterEnabled, setHasStrechClusterEnabled] =
+    React.useState(false);
   const [zones, setZones] = React.useState([]);
 
-  const pvBySc = React.useMemo(() => getSCAvailablePVs(memoizedPv, storageClassName), [
-    memoizedPv,
-    storageClassName,
-  ]);
+  const pvBySc = React.useMemo(
+    () => getSCAvailablePVs(memoizedPv, storageClassName),
+    [memoizedPv, storageClassName]
+  );
 
   React.useEffect(() => {
     // Updates selected capacity
@@ -201,9 +227,16 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
 
   React.useEffect(() => {
     // Updates selected nodes
-    if (allNodeLoaded && !allNodeLoadError && memoizedAllNodes.length && pvBySc.length) {
+    if (
+      allNodeLoaded &&
+      !allNodeLoadError &&
+      memoizedAllNodes.length &&
+      pvBySc.length
+    ) {
       const pvNodes = getAssociatedNodes(pvBySc);
-      const filteredNodes = memoizedAllNodes.filter((node) => pvNodes.includes(node.metadata.name));
+      const filteredNodes = memoizedAllNodes.filter((node) =>
+        pvNodes.includes(node.metadata.name)
+      );
       const nodesData = createWizardNodeState(filteredNodes);
       dispatch({ type: 'wizard/setNodes', payload: nodesData });
     }
@@ -213,8 +246,12 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
     // Validates stretch cluster topology
     if (memoizedAllNodes.length && nodes.length) {
       const allZones = getZonesFromNodesKind(memoizedAllNodes);
-      const nodesPerZoneMap: NodesPerZoneMap = getPVAssociatedNodesPerZone(nodes);
-      const isValidStretchCluster = isValidStretchClusterTopology(nodesPerZoneMap, allZones);
+      const nodesPerZoneMap: NodesPerZoneMap =
+        getPVAssociatedNodesPerZone(nodes);
+      const isValidStretchCluster = isValidStretchClusterTopology(
+        nodesPerZoneMap,
+        allZones
+      );
 
       setHasStrechClusterEnabled(isValidStretchCluster);
       setZones(allZones);
@@ -224,13 +261,16 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   const onArbiterChecked = React.useCallback(
     (isChecked: boolean) =>
       dispatch({ type: 'capacityAndNodes/enableArbiter', payload: isChecked }),
-    [dispatch],
+    [dispatch]
   );
 
   const onZonesSelect = React.useCallback(
     (_event, selection: string) =>
-      dispatch({ type: 'capacityAndNodes/arbiterLocation', payload: selection }),
-    [dispatch],
+      dispatch({
+        type: 'capacityAndNodes/arbiterLocation',
+        payload: selection,
+      }),
+    [dispatch]
   );
 
   return (
@@ -238,7 +278,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
       error={pvLoadError}
       loaded={pvLoaded && !!capacity}
       loadingMessage={t(
-        'PersistentVolumes are being provisioned on the selected nodes.',
+        'PersistentVolumes are being provisioned on the selected nodes.'
       )}
       errorMessage={t('Error while loading PersistentVolumes.')}
     >
@@ -260,8 +300,9 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
               <TextContent>
                 <Text component={TextVariants.small}>
                   <Trans ns="plugin__odf-console">
-                    The available capacity is based on all attached disks associated with the
-                    selected {/* eslint-disable-next-line react/no-unescaped-entities */}
+                    The available capacity is based on all attached disks
+                    associated with the selected{' '}
+                    {/* eslint-disable-next-line react/no-unescaped-entities */}
                     StorageClass <b>{{ storageClassName }}</b>
                   </Trans>
                 </Text>
@@ -325,7 +366,11 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   const { capacity, enableArbiter, enableTaint, arbiterLocation } = state;
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
-  const validations = capacityAndNodesValidate(nodes, enableArbiter, isNoProvisioner);
+  const validations = capacityAndNodesValidate(
+    nodes,
+    enableArbiter,
+    isNoProvisioner
+  );
 
   return (
     <Form>

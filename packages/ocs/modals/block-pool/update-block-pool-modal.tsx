@@ -2,10 +2,7 @@ import * as React from 'react';
 import { ModalFooter } from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import {
-  CommonModalProps,
-  ModalBody,
-} from '@odf/shared/modals/Modal';
+import { CommonModalProps, ModalBody } from '@odf/shared/modals/Modal';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sKind,
@@ -41,9 +38,7 @@ const cephClusterResource = {
   isList: true,
 };
 
-const UpdateBlockPoolModal: React.FC<UpdateBlockPoolModalProps> = (
-  props 
-) => {
+const UpdateBlockPoolModal: React.FC<UpdateBlockPoolModalProps> = (props) => {
   const { t } = useTranslation();
   const {
     extraProps: { resource },
@@ -135,47 +130,52 @@ const UpdateBlockPoolModal: React.FC<UpdateBlockPoolModalProps> = (
   };
 
   return (
-    <Modal isOpen={isOpen} title={MODAL_TITLE} variant={ModalVariant.small} onClose={closeModal}>
-        {isLoaded && !loadError ? (
-          <>
-            <ModalBody>
-              <p>{MODAL_DESC}</p>
-              {state.poolStatus ? (
-                <div key="progress-modal">
-                  <BlockPoolStatus
-                    status={state.poolStatus}
-                    name={state.poolName}
-                    error={state.errorMessage}
-                  />
-                </div>
-              ) : (
-                <BlockPoolBody
-                  cephCluster={cephCluster}
-                  state={state}
-                  dispatch={dispatch}
-                  showPoolStatus
-                  isUpdate
+    <Modal
+      isOpen={isOpen}
+      title={MODAL_TITLE}
+      variant={ModalVariant.small}
+      onClose={closeModal}
+    >
+      {isLoaded && !loadError ? (
+        <>
+          <ModalBody>
+            <p>{MODAL_DESC}</p>
+            {state.poolStatus ? (
+              <div key="progress-modal">
+                <BlockPoolStatus
+                  status={state.poolStatus}
+                  name={state.poolName}
+                  error={state.errorMessage}
                 />
-              )}
-            </ModalBody>
-            <ModalFooter inProgress={inProgress}>
-              <BlockPoolModalFooter
+              </div>
+            ) : (
+              <BlockPoolBody
+                cephCluster={cephCluster}
                 state={state}
                 dispatch={dispatch}
-                onSubmit={updatePool}
-                cancel={closeModal}
-                close={closeModal}
-                primaryAction={FooterPrimaryActions(t).UPDATE}
+                showPoolStatus
+                isUpdate
               />
-            </ModalFooter>
-          </>
-        ) : (
-          <StatusBox
-            loadError={loadError}
-            loaded={isLoaded}
-            label={t('BlockPool Update Form')}
-          />
-        )}
+            )}
+          </ModalBody>
+          <ModalFooter inProgress={inProgress}>
+            <BlockPoolModalFooter
+              state={state}
+              dispatch={dispatch}
+              onSubmit={updatePool}
+              cancel={closeModal}
+              close={closeModal}
+              primaryAction={FooterPrimaryActions(t).UPDATE}
+            />
+          </ModalFooter>
+        </>
+      ) : (
+        <StatusBox
+          loadError={loadError}
+          loaded={isLoaded}
+          label={t('BlockPool Update Form')}
+        />
+      )}
     </Modal>
   );
 };

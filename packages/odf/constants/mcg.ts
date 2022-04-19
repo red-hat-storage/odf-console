@@ -28,7 +28,8 @@ export const NOOBAA_TYPE_MAP = {
   [BC_PROVIDERS.FILESYSTEM]: 'nsfs' as const,
 };
 
-export type SpecProvider = typeof PROVIDERS_NOOBAA_MAP[keyof typeof PROVIDERS_NOOBAA_MAP];
+export type SpecProvider =
+  typeof PROVIDERS_NOOBAA_MAP[keyof typeof PROVIDERS_NOOBAA_MAP];
 export type SpecType = typeof NOOBAA_TYPE_MAP[keyof typeof NOOBAA_TYPE_MAP];
 
 export enum StoreType {
@@ -65,4 +66,3 @@ export const AWS_REGIONS = [
   'me-south-1',
   'sa-east-1',
 ];
-

@@ -358,14 +358,14 @@ export type DeploymentKind = {
 } & K8sResourceCommon;
 
 export type ApplicationKind = K8sResourceCommon & {
-    spec: {
-        componentKinds: {
-            group: string;
-            kind: string;
-        }[],
-        selector?: Selector | null;
-    };
-    status?: {
-        phase: string;
-    };
+  spec: {
+    componentKinds: {
+      group: string;
+      kind: string;
+    }[];
+    selector?: Selector | null;
+  };
+  status?: {
+    phase: string;
+  };
 };

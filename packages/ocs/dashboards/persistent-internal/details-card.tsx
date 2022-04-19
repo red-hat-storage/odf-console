@@ -8,12 +8,12 @@ import {
   SubscriptionModel,
 } from '@odf/shared/models';
 import { getInfrastructurePlatform, getName } from '@odf/shared/selectors';
-import {
-  K8sResourceKind,
-  StorageClusterKind,
-} from '@odf/shared/types';
+import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
 import { resourcePathFromModel } from '@odf/shared/utils';
-import { DetailItem, DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
+import {
+  DetailItem,
+  DetailsBody,
+} from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -78,9 +78,7 @@ const DetailsCard: React.FC = () => {
           >
             {infrastructurePlatform}
           </DetailItem>
-          <DetailItem title={t('Mode')}>
-            {t('Internal')}
-          </DetailItem>
+          <DetailItem title={t('Mode')}>{t('Internal')}</DetailItem>
           <DetailItem
             key="version"
             title={t('Version')}

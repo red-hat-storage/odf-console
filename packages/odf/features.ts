@@ -23,7 +23,6 @@ export const CEPH_FLAG = 'CEPH';
 // Based on the existence of StorageCluster
 export const OCS_FLAG = 'OCS';
 
-
 export const MCO_MODE_FLAG = 'MCO';
 
 export const isMCO = process.env.MODE === 'MCO';
@@ -70,7 +69,8 @@ const setOCSFlagsFalse = (setFlag: SetFeatureFlag) => {
 export const setODFFlag = (setFlag: SetFeatureFlag) =>
   setFlag(ODF_MODEL_FLAG, true);
 
-export const setMCOFlag = (setFlag: SetFeatureFlag) => setFlag(MCO_MODE_FLAG, isMCO);
+export const setMCOFlag = (setFlag: SetFeatureFlag) =>
+  setFlag(MCO_MODE_FLAG, isMCO);
 
 export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
   let ocsIntervalId = null;
@@ -80,11 +80,11 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
   const ocsDetector = async () => {
     try {
       const storageClusters: StorageClusterKind[] =
-        await k8sList<K8sResourceCommon>({
+        (await k8sList<K8sResourceCommon>({
           model: OCSStorageClusterModel,
           queryParams: { CEPH_STORAGE_NAMESPACE },
           requestInit: null,
-        }) as StorageClusterKind[];
+        })) as StorageClusterKind[];
       if (storageClusters?.length > 0) {
         const storageCluster = storageClusters.find(
           (sc: StorageClusterKind) => sc.status.phase !== 'Ignored'

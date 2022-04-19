@@ -7,17 +7,27 @@ import {
   prettifyJSON,
 } from '@odf/core/components/utils';
 import { IP_FAMILY } from '@odf/core/constants';
-import { RHCSState, CanGoToNextStep, CreatePayload, ExternalComponentProps } from '@odf/core/types';
+import {
+  RHCSState,
+  CanGoToNextStep,
+  CreatePayload,
+  ExternalComponentProps,
+} from '@odf/core/types';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { PodModel, SecretModel } from '@odf/shared/models';
 import { getAnnotations } from '@odf/shared/selectors';
 import { ListKind, PodKind } from '@odf/shared/types';
-import { getAPIVersionForModel } from '@odf/shared/utils'
-import { K8sKind } from "@openshift-console/dynamic-plugin-sdk/lib/api/common-types";
+import { getAPIVersionForModel } from '@odf/shared/utils';
+import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
 import { Trans, useTranslation } from 'react-i18next';
-import { FormGroup, FileUpload, FileUploadProps, Form } from '@patternfly/react-core';
+import {
+  FormGroup,
+  FileUpload,
+  FileUploadProps,
+  Form,
+} from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
 import { useFetchCsv } from '../../use-fetch-csv';
 import './index.scss';
@@ -26,7 +36,9 @@ const OCS_OPERATOR = 'ocs-operator';
 
 const SCRIPT_NAME = 'ceph-external-cluster-details-exporter.py';
 
-export const getValidationKeys = (rawKeys: string): { plainKeys: string[]; secretKeys: [] } => {
+export const getValidationKeys = (
+  rawKeys: string
+): { plainKeys: string[]; secretKeys: [] } => {
   const { configMaps, secrets, storageClasses } = rawKeys
     ? JSON.parse(rawKeys)
     : { configMaps: [], secrets: [], storageClasses: [] };
@@ -39,29 +51,38 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
   formState,
 }) => {
   const { t } = useTranslation('plugin__odf-console');
-  const [pods, podsLoaded, podsLoadError] = useK8sGet<ListKind<PodKind>>(PodModel);
-  const [csv, csvLoaded, csvLoadError] = useFetchCsv(OCS_OPERATOR, CEPH_STORAGE_NAMESPACE);
+  const [pods, podsLoaded, podsLoadError] =
+    useK8sGet<ListKind<PodKind>>(PodModel);
+  const [csv, csvLoaded, csvLoadError] = useFetchCsv(
+    OCS_OPERATOR,
+    CEPH_STORAGE_NAMESPACE
+  );
 
   const { fileName, fileData, errorMessage, isLoading } = formState;
 
   const annotations = getAnnotations(csv);
 
   const downloadFile = createDownloadFile(
-    annotations?.['external.features.ocs.openshift.io/export-script'],
+    annotations?.['external.features.ocs.openshift.io/export-script']
   );
 
-  const handleFileChange: FileUploadProps['onChange'] = (fData: string, fName) => {
+  const handleFileChange: FileUploadProps['onChange'] = (
+    fData: string,
+    fName
+  ) => {
     if (isValidJSON(fData)) {
       const { plainKeys, secretKeys } = getValidationKeys(
-        annotations?.['external.features.ocs.openshift.io/validation'],
+        annotations?.['external.features.ocs.openshift.io/validation']
       );
       const ipAddress: string = pods.items?.[0]?.status?.podIP;
-      const ipFamily: IP_FAMILY = ipAddress ? getIPFamily(ipAddress) : IP_FAMILY.IPV4;
+      const ipFamily: IP_FAMILY = ipAddress
+        ? getIPFamily(ipAddress)
+        : IP_FAMILY.IPV4;
       const error: string = checkError(fData, plainKeys, secretKeys, ipFamily);
       setFormState('errorMessage', error);
     } else {
       const invalidString: string = t(
-        'The uploaded file is not a valid JSON file',
+        'The uploaded file is not a valid JSON file'
       );
       setFormState('errorMessage', fData ? invalidString : '');
     }
@@ -71,7 +92,10 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
   };
 
   return (
-    <ErrorHandler error={podsLoadError || csvLoadError} loaded={podsLoaded && csvLoaded}>
+    <ErrorHandler
+      error={podsLoadError || csvLoadError}
+      loaded={podsLoaded && csvLoaded}
+    >
       <Form>
         <FormGroup
           label={t('External storage system metadata')}
@@ -80,8 +104,9 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
           helperText={
             <div className="odf-connection-details__helper-text">
               <Trans t={t as any} ns="plugin__odf-console">
-                Download <code>{{ SCRIPT_NAME }}</code> script and run on the RHCS cluster, then
-                upload the results (JSON) in the External storage system metadata field.
+                Download <code>{{ SCRIPT_NAME }}</code> script and run on the
+                RHCS cluster, then upload the results (JSON) in the External
+                storage system metadata field.
               </Trans>{' '}
               {downloadFile && (
                 <a
@@ -125,7 +150,11 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
   );
 };
 
-export const rhcsPayload: CreatePayload<RHCSState> = (systemName, state, model) => {
+export const rhcsPayload: CreatePayload<RHCSState> = (
+  systemName,
+  state,
+  model
+) => {
   const { apiVersion, apiGroup, kind, plural } = SecretModel;
   return [
     {
@@ -172,4 +201,7 @@ export const rhcsPayload: CreatePayload<RHCSState> = (systemName, state, model) 
 };
 
 export const rhcsCanGoToNextStep: CanGoToNextStep<RHCSState> = (state) =>
-  !!state.fileName && !!state.fileData && !state.errorMessage && !state.isLoading;
+  !!state.fileName &&
+  !!state.fileData &&
+  !state.errorMessage &&
+  !state.isLoading;

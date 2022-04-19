@@ -6,7 +6,6 @@ import { Helmet } from 'react-helmet';
 import { RouteComponentProps } from 'react-router';
 import { DRPolicyListPage } from './drpolicy-list-page/drpolicy-list-page';
 
-
 type DataPoliciesListProps = {
   history: RouteComponentProps['history'];
 };

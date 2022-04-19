@@ -10,27 +10,33 @@ const SWAGGER_LOCAL_STORAGE_KEY = `${STORAGE_PREFIX}/swagger-definitions`;
 export const getDefinitionKey = _.memoize(
   (model: K8sKind, definitions: SwaggerDefinitions): string => {
     return _.findKey(definitions, (def: SwaggerDefinition) => {
-      return _.some(def['x-kubernetes-group-version-kind'], ({ group, version, kind }) => {
-        return (
-          (model?.apiGroup ?? '') === (group || '') &&
-          model?.apiVersion === version &&
-          model?.kind === kind
-        );
-      });
+      return _.some(
+        def['x-kubernetes-group-version-kind'],
+        ({ group, version, kind }) => {
+          return (
+            (model?.apiGroup ?? '') === (group || '') &&
+            model?.apiVersion === version &&
+            model?.kind === kind
+          );
+        }
+      );
     });
   },
-  referenceForModel,
+  referenceForModel
 );
 
 let swaggerDefinitions: SwaggerDefinitions;
-export const getSwaggerDefinitions = (): SwaggerDefinitions => swaggerDefinitions;
+export const getSwaggerDefinitions = (): SwaggerDefinitions =>
+  swaggerDefinitions;
 
 export const fetchSwagger = async (): Promise<SwaggerDefinitions> => {
   // Remove any old definitions from `localSotrage`. We rely on the browser cache now.
   // TODO: We should be able to remove this in a future release.
   localStorage.removeItem(SWAGGER_LOCAL_STORAGE_KEY);
   try {
-    const response: SwaggerAPISpec = await consoleFetchJSON('api/kubernetes/openapi/v2');
+    const response: SwaggerAPISpec = await consoleFetchJSON(
+      'api/kubernetes/openapi/v2'
+    );
     if (!response.definitions) {
       // eslint-disable-next-line no-console
       console.error('Definitions missing in OpenAPI response.');
@@ -75,7 +81,7 @@ export const getSwaggerPath = (
   allProperties: SwaggerDefinitions,
   currentPath: string[],
   name: string,
-  followRef: boolean,
+  followRef: boolean
 ): string[] => {
   const nextPath = [...currentPath, 'properties', name];
   const definition = _.get(allProperties, nextPath) as SwaggerDefinition;
@@ -86,7 +92,10 @@ export const getSwaggerPath = (
   return followRef && ref ? [ref] : nextPath;
 };
 
-const findDefinition = (kindObj: K8sKind, propertyPath: string[]): SwaggerDefinition => {
+const findDefinition = (
+  kindObj: K8sKind,
+  propertyPath: string[]
+): SwaggerDefinition => {
   if (!swaggerDefinitions) {
     return null;
   }
@@ -99,9 +108,14 @@ const findDefinition = (kindObj: K8sKind, propertyPath: string[]): SwaggerDefini
       }
       // Don't follow the last reference since the description is not as good.
       const followRef = i !== propertyPath.length - 1;
-      return getSwaggerPath(swaggerDefinitions, currentPath, nextProperty, followRef);
+      return getSwaggerPath(
+        swaggerDefinitions,
+        currentPath,
+        nextProperty,
+        followRef
+      );
     },
-    [rootPath],
+    [rootPath]
   );
 
   return path ? (_.get(swaggerDefinitions, path) as SwaggerDefinition) : null;
@@ -109,7 +123,7 @@ const findDefinition = (kindObj: K8sKind, propertyPath: string[]): SwaggerDefini
 
 export const getPropertyDescription = (
   kindObj: K8sKind,
-  propertyPath: string | string[],
+  propertyPath: string | string[]
 ): string => {
   const path: string[] = _.toPath(propertyPath);
   const definition = findDefinition(kindObj, path);

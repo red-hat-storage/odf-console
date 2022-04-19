@@ -1,5 +1,5 @@
-import * as _ from "lodash";
-import { NodeCondition, NodeKind } from "../types";
+import * as _ from 'lodash';
+import { NodeCondition, NodeKind } from '../types';
 
 export const isNodeReady = (node: NodeKind): boolean => {
   const conditions = _.get(node, 'status.conditions', []);

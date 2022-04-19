@@ -55,11 +55,12 @@ const BreakdownCard: React.FC = () => {
   const [modelTotalUsed, modelTotalError, modalTotalLoading] =
     usePrometheusPoll({
       query: queries[modelByTotalQueryMap[metricType]],
-    endpoint: 'api/v1/query' as any,
+      endpoint: 'api/v1/query' as any,
     });
 
   const [cephUsedMetric, cephError, cephLoading] = usePrometheusPoll({
-    query: CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
+    query:
+      CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
     endpoint: 'api/v1/query' as any,
   });
 

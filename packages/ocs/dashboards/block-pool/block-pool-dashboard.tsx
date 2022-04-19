@@ -15,14 +15,22 @@ const leftCards = [
   { Card: InventoryCard },
   { Card: CompressionDetailsCard },
 ];
-const mainCards = [{ Card: StatusCard }, { Card: RawCapacityCard }, { Card: UtilizationCard }];
+const mainCards = [
+  { Card: StatusCard },
+  { Card: RawCapacityCard },
+  { Card: UtilizationCard },
+];
 const rightCards = [{ Card: MirroringCard }];
 
 export const BlockPoolDashboard: React.FC<PoolDashboardProps> = ({ obj }) => {
   return (
     <BlockPoolDashboardContext.Provider value={{ obj }}>
       <Overview>
-        <OverviewGrid mainCards={mainCards} leftCards={leftCards} rightCards={rightCards} />
+        <OverviewGrid
+          mainCards={mainCards}
+          leftCards={leftCards}
+          rightCards={rightCards}
+        />
       </Overview>
     </BlockPoolDashboardContext.Provider>
   );

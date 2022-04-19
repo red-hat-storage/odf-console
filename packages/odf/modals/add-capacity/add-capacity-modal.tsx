@@ -16,7 +16,7 @@ import {
   NodeKind,
   StorageClusterKind,
   DeviceSet,
-  StorageSystemKind
+  StorageSystemKind,
 } from '@odf/shared/types';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import {

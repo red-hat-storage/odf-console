@@ -43,7 +43,10 @@ export const ErrorHandler: React.FC<WizardStepProps> = ({
     return (
       <Bullseye className="odf-create-storage-system-wizard-body">
         <TextContent>
-          <Text className="odf-create-storage-system-wizard-body__error" component={TextVariants.p}>
+          <Text
+            className="odf-create-storage-system-wizard-body__error"
+            component={TextVariants.p}
+          >
             {errorMessage ||
               t('An error has occurred: {{error}}', { error: error?.message })}
           </Text>

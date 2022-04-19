@@ -47,7 +47,7 @@ export class HttpError extends CustomError {
     message: string,
     public code?: number,
     public response?: Response,
-    public json?: any,
+    public json?: any
   ) {
     super(message);
   }
@@ -65,7 +65,9 @@ export class TimeoutError extends CustomError {
 
 export class IncompleteDataError extends CustomError {
   public constructor(public labels: string[]) {
-    super(`Could not fetch all data. This data are missing: ${labels.join(', ')}.`);
+    super(
+      `Could not fetch all data. This data are missing: ${labels.join(', ')}.`
+    );
   }
 }
 

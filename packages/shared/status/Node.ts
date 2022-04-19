@@ -1,4 +1,5 @@
-import { isNodeReady } from "../selectors";
-import { NodeKind } from "../types";
+import { isNodeReady } from '../selectors';
+import { NodeKind } from '../types';
 
-export const nodeStatus = (node: NodeKind) => (isNodeReady(node) ? 'Ready' : 'Not Ready');
+export const nodeStatus = (node: NodeKind) =>
+  isNodeReady(node) ? 'Ready' : 'Not Ready';

@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
-export const GraphEmpty: React.FC<GraphEmptyProps> = ({ height = 180, loading = false }) => {
+export const GraphEmpty: React.FC<GraphEmptyProps> = ({
+  height = 180,
+  loading = false,
+}) => {
   const { t } = useCustomTranslation();
 
   return (

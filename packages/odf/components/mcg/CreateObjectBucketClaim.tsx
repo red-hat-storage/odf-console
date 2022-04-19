@@ -117,9 +117,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
             pattern="[a-z0-9](?:[-a-z0-9]*[a-z0-9])?"
           />
           <p className="help-block" id="obc-name-help">
-            {t(
-              'If not provided a generic name will be generated.'
-            )}
+            {t('If not provided a generic name will be generated.')}
           </p>
         </div>
         <div className="form-group">
@@ -209,9 +207,7 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
         <title>{t('Create ObjectBucketClaim')}</title>
       </Helmet>
       <h1 className="co-m-pane__heading co-m-pane__heading--baseline">
-        <div className="co-m-pane__name">
-          {t('Create ObjectBucketClaim')}
-        </div>
+        <div className="co-m-pane__name">{t('Create ObjectBucketClaim')}</div>
         <div className="co-m-pane__heading-link">
           <Link
             to={`${resourcePathFromModel(

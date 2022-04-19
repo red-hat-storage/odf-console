@@ -15,11 +15,7 @@ const CreateBackingStoreFormModal: React.FC<
   const { t } = useTranslation();
   const { isOpen, closeModal } = props;
 
-  const Header = (
-    <ModalHeader>
-      {t('Create new BackingStore')}
-    </ModalHeader>
-  );
+  const Header = <ModalHeader>{t('Create new BackingStore')}</ModalHeader>;
   return (
     <Modal isOpen={isOpen} variant={ModalVariant.small} header={Header}>
       <div className="nb-endpoints__modal">
@@ -29,10 +25,7 @@ const CreateBackingStoreFormModal: React.FC<
               'BackingStore represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.'
             )}
           </p>
-          <CreateBackingStoreForm
-            onClose={closeModal}
-            onCancel={closeModal}
-          />
+          <CreateBackingStoreForm onClose={closeModal} onCancel={closeModal} />
         </ModalBody>
       </div>
     </Modal>

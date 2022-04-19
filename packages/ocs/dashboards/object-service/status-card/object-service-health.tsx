@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { StatusType } from '@odf/ocs/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
-import { healthStateMapping } from '@odf/shared/dashboards/status-card/states'
+import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import { Status, StatusPopupSection } from '@odf/shared/popup/status-popup';
 import { getWorstStatus } from '@odf/shared/utils';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
@@ -41,7 +41,12 @@ export const ObjectServiceStatus: React.FC<ObjectServiceStatusProps> = ({
       details={RGWMetrics?.message || MCGMetrics?.message}
     />
   ) : (
-    <HealthItem title={title} state={state} details={message} popupTitle={popupTitle}>
+    <HealthItem
+      title={title}
+      state={state}
+      details={message}
+      popupTitle={popupTitle}
+    >
       <Stack hasGutter>
         <StackItem>
           {statusType === StatusType.HEALTH

@@ -37,9 +37,7 @@ export const generateCASecret = (caCertificate: string) => ({
   apiVersion: SecretModel.apiVersion,
   kind: SecretModel.kind,
   metadata: {
-    name: `ocs-kms-ca-secret-${Math.random()
-      .toString(36)
-      .substring(7)}`,
+    name: `ocs-kms-ca-secret-${Math.random().toString(36).substring(7)}`,
     namespace: CEPH_STORAGE_NAMESPACE,
   },
   stringData: {
@@ -51,9 +49,7 @@ export const generateClientSecret = (clientCertificate: string) => ({
   apiVersion: SecretModel.apiVersion,
   kind: SecretModel.kind,
   metadata: {
-    name: `ocs-kms-client-cert-${Math.random()
-      .toString(36)
-      .substring(7)}`,
+    name: `ocs-kms-client-cert-${Math.random().toString(36).substring(7)}`,
     namespace: CEPH_STORAGE_NAMESPACE,
   },
   stringData: {
@@ -65,9 +61,7 @@ export const generateClientKeySecret = (clientKey: string) => ({
   apiVersion: SecretModel.apiVersion,
   kind: SecretModel.kind,
   metadata: {
-    name: `ocs-kms-client-key-${Math.random()
-      .toString(36)
-      .substring(7)}`,
+    name: `ocs-kms-client-key-${Math.random().toString(36).substring(7)}`,
     namespace: CEPH_STORAGE_NAMESPACE,
   },
   stringData: {
@@ -78,8 +72,11 @@ export const generateClientKeySecret = (clientKey: string) => ({
 const convertCsiKeysToCamelCase = (csiConfigData: KMSConfigMap) => {
   // ceph-csi uses only camelcase in configMap keys.
   const res = Object.keys(csiConfigData).reduce(
-    (obj, key) => Object.assign(obj, { [KmsCsiConfigKeysMapping[key]]: csiConfigData[key] }),
-    {},
+    (obj, key) =>
+      Object.assign(obj, {
+        [KmsCsiConfigKeysMapping[key]]: csiConfigData[key],
+      }),
+    {}
   );
   return res;
 };
@@ -87,14 +84,16 @@ const convertCsiKeysToCamelCase = (csiConfigData: KMSConfigMap) => {
 const generateCsiKmsConfigMap = (
   name: string,
   csiConfigData: KMSConfigMap,
-  convertToCamelCase = true,
+  convertToCamelCase = true
 ) => {
   return {
     apiVersion: ConfigMapModel.apiVersion,
     kind: ConfigMapModel.kind,
     data: {
       [`${name}`]: JSON.stringify(
-        convertToCamelCase ? convertCsiKeysToCamelCase(csiConfigData) : csiConfigData,
+        convertToCamelCase
+          ? convertCsiKeysToCamelCase(csiConfigData)
+          : csiConfigData
       ),
     },
     metadata: {
@@ -119,13 +118,15 @@ const generateOcsKmsConfigMap = (configData: KMSConfigMap) => ({
 const generateConfigMapPatch = (
   name: string,
   csiConfigData: KMSConfigMap,
-  convertToCamelCase = true,
+  convertToCamelCase = true
 ) => {
   return {
     op: 'replace',
     path: `/data/${name}`,
     value: JSON.stringify(
-      convertToCamelCase ? convertCsiKeysToCamelCase(csiConfigData) : csiConfigData,
+      convertToCamelCase
+        ? convertCsiKeysToCamelCase(csiConfigData)
+        : csiConfigData
     ),
   };
 };
@@ -134,9 +135,7 @@ const generateHpcsSecret = (kms: HpcsConfig) => ({
   apiVersion: SecretModel.apiVersion,
   kind: SecretModel.kind,
   metadata: {
-    name: `ibm-kp-kms-${Math.random()
-      .toString(36)
-      .substring(7)}`,
+    name: `ibm-kp-kms-${Math.random().toString(36).substring(7)}`,
     namespace: CEPH_STORAGE_NAMESPACE,
   },
   stringData: {
@@ -159,9 +158,18 @@ const getKmsVaultSecret = (token: string, secretName: string): SecretKind => ({
 
 const createAdvancedVaultResources = (kms: VaultConfig) => {
   const advancedKmsResources: Promise<K8sResourceKind>[] = [];
-  if (kms.caCert) advancedKmsResources.push(k8sCreate({model: SecretModel, data: kms.caCert}));
-  if (kms.clientCert) advancedKmsResources.push(k8sCreate({model: SecretModel, data: kms.clientCert}));
-  if (kms.clientKey) advancedKmsResources.push(k8sCreate({model: SecretModel, data: kms.clientKey}));
+  if (kms.caCert)
+    advancedKmsResources.push(
+      k8sCreate({ model: SecretModel, data: kms.caCert })
+    );
+  if (kms.clientCert)
+    advancedKmsResources.push(
+      k8sCreate({ model: SecretModel, data: kms.clientCert })
+    );
+  if (kms.clientKey)
+    advancedKmsResources.push(
+      k8sCreate({ model: SecretModel, data: kms.clientKey })
+    );
 
   return advancedKmsResources;
 };
@@ -170,13 +178,15 @@ const createCsiVaultResources = (
   kms: VaultConfig,
   csiKmsResources: Promise<K8sResourceKind>[],
   update: boolean,
-  createAdvancedVaultResource: boolean = true,
+  createAdvancedVaultResource: boolean = true
 ) => {
   const parsedAddress = parseURL(kms.address.value);
   let csiConfigData: VaultConfigMap = {
     KMS_PROVIDER: KmsImplementations.VAULT_TOKENS,
     KMS_SERVICE_NAME: kms.name.value,
-    VAULT_ADDR: `${`${parsedAddress.protocol}//${parsedAddress.hostname}`}:${kms.port.value}`,
+    VAULT_ADDR: `${`${parsedAddress.protocol}//${parsedAddress.hostname}`}:${
+      kms.port.value
+    }`,
     VAULT_BACKEND_PATH: kms.backend,
     VAULT_CACERT: kms.caCert?.metadata.name,
     VAULT_TLS_SERVER_NAME: kms.tls,
@@ -199,9 +209,11 @@ const createCsiVaultResources = (
       if (kms.authValue.value) {
         const tokenSecret: SecretKind = getKmsVaultSecret(
           kms.authValue.value,
-          KMSVaultCSISecretName,
+          KMSVaultCSISecretName
         );
-        csiKmsResources.push(k8sCreate({model: SecretModel, data: tokenSecret}));
+        csiKmsResources.push(
+          k8sCreate({ model: SecretModel, data: tokenSecret })
+        );
       }
       break;
     case VaultAuthMethods.KUBERNETES:
@@ -216,7 +228,10 @@ const createCsiVaultResources = (
     default:
   }
 
-  const csiConfigObj: ConfigMapKind = generateCsiKmsConfigMap(kms.name.value, csiConfigData);
+  const csiConfigObj: ConfigMapKind = generateCsiKmsConfigMap(
+    kms.name.value,
+    csiConfigData
+  );
 
   // skip if cluster-wide already taken care
   if (createAdvancedVaultResource) {
@@ -224,9 +239,13 @@ const createCsiVaultResources = (
   }
   if (update) {
     const cmPatch = [generateConfigMapPatch(kms.name.value, csiConfigData)];
-    csiKmsResources.push(k8sPatch({model: ConfigMapModel, resource: csiConfigObj, data: cmPatch}));
+    csiKmsResources.push(
+      k8sPatch({ model: ConfigMapModel, resource: csiConfigObj, data: cmPatch })
+    );
   } else {
-    csiKmsResources.push(k8sCreate({model: ConfigMapModel, data: csiConfigObj}));
+    csiKmsResources.push(
+      k8sCreate({ model: ConfigMapModel, data: csiConfigObj })
+    );
   }
 };
 
@@ -234,14 +253,14 @@ const createCsiHpcsResources = (
   kms: HpcsConfig,
   csiKmsResources: Promise<K8sResourceKind>[],
   update: boolean,
-  secretName = '',
+  secretName = ''
 ) => {
   let keySecret: SecretKind;
   if (!secretName) {
     // not required, while setting up storage cluster.
     // required, while creating new storage class.
     keySecret = generateHpcsSecret(kms);
-    csiKmsResources.push(k8sCreate({model: SecretModel, data: keySecret}));
+    csiKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
   }
 
   const csiConfigData: HpcsConfigMap = {
@@ -252,24 +271,36 @@ const createCsiHpcsResources = (
     IBM_KP_BASE_URL: kms.baseUrl.value,
     IBM_KP_TOKEN_URL: kms.tokenUrl,
   };
-  const csiConfigObj: ConfigMapKind = generateCsiKmsConfigMap(kms.name.value, csiConfigData, false);
+  const csiConfigObj: ConfigMapKind = generateCsiKmsConfigMap(
+    kms.name.value,
+    csiConfigData,
+    false
+  );
   if (update) {
-    const cmPatch = [generateConfigMapPatch(kms.name.value, csiConfigData, false)];
-    csiKmsResources.push(k8sPatch({model: ConfigMapModel, resource: csiConfigObj, data: cmPatch}));
+    const cmPatch = [
+      generateConfigMapPatch(kms.name.value, csiConfigData, false),
+    ];
+    csiKmsResources.push(
+      k8sPatch({ model: ConfigMapModel, resource: csiConfigObj, data: cmPatch })
+    );
   } else {
-    csiKmsResources.push(k8sCreate({model: ConfigMapModel, data: csiConfigObj}));
+    csiKmsResources.push(
+      k8sCreate({ model: ConfigMapModel, data: csiConfigObj })
+    );
   }
 };
 
 const createClusterVaultResources = (
   kms: VaultConfig,
-  clusterKmsResources: Promise<K8sResourceKind>[],
+  clusterKmsResources: Promise<K8sResourceKind>[]
 ) => {
   const parsedAddress = parseURL(kms.address.value);
   let vaultConfigData: VaultConfigMap = {
     KMS_PROVIDER: KmsImplementations.VAULT,
     KMS_SERVICE_NAME: kms.name.value,
-    VAULT_ADDR: `${`${parsedAddress.protocol}//${parsedAddress.hostname}`}:${kms.port.value}`,
+    VAULT_ADDR: `${`${parsedAddress.protocol}//${parsedAddress.hostname}`}:${
+      kms.port.value
+    }`,
     VAULT_BACKEND_PATH: kms.backend,
     VAULT_CACERT: kms.caCert?.metadata.name,
     VAULT_TLS_SERVER_NAME: kms.tls,
@@ -285,7 +316,10 @@ const createClusterVaultResources = (
         VAULT_NAMESPACE: kms.providerNamespace,
       };
       clusterKmsResources.push(
-        k8sCreate({model: SecretModel, data: getKmsVaultSecret(kms.authValue.value, KMSVaultTokenSecretName)}),
+        k8sCreate({
+          model: SecretModel,
+          data: getKmsVaultSecret(kms.authValue.value, KMSVaultTokenSecretName),
+        })
       );
       break;
     case VaultAuthMethods.KUBERNETES:
@@ -299,12 +333,14 @@ const createClusterVaultResources = (
   }
   const configMapObj: ConfigMapKind = generateOcsKmsConfigMap(vaultConfigData);
   clusterKmsResources.push(...createAdvancedVaultResources(kms));
-  clusterKmsResources.push(k8sCreate({model: ConfigMapModel, data: configMapObj}));
+  clusterKmsResources.push(
+    k8sCreate({ model: ConfigMapModel, data: configMapObj })
+  );
 };
 
 const createClusterHpcsResources = (
   kms: HpcsConfig,
-  clusterKmsResources: Promise<K8sResourceKind>[],
+  clusterKmsResources: Promise<K8sResourceKind>[]
 ) => {
   const keySecret: SecretKind = generateHpcsSecret(kms);
 
@@ -318,8 +354,10 @@ const createClusterHpcsResources = (
   };
   const configMapObj: ConfigMapKind = generateOcsKmsConfigMap(configData);
 
-  clusterKmsResources.push(k8sCreate({model: SecretModel, data: keySecret}));
-  clusterKmsResources.push(k8sCreate({model: ConfigMapModel, data: configMapObj}));
+  clusterKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
+  clusterKmsResources.push(
+    k8sCreate({ model: ConfigMapModel, data: configMapObj })
+  );
 
   return keySecret.metadata.name;
 };
@@ -334,7 +372,7 @@ export const getPort = (url: URL) => {
 export const createCsiKmsResources = (
   kms: KMSConfiguration,
   update: boolean,
-  provider = ProviderNames.VAULT,
+  provider = ProviderNames.VAULT
 ) => {
   const csiKmsResources: Promise<K8sResourceKind>[] = [];
   switch (provider) {
@@ -352,7 +390,10 @@ export const createCsiKmsResources = (
   return csiKmsResources;
 };
 
-export const createClusterKmsResources = (kms: KMSConfiguration, provider = ProviderNames.VAULT) => {
+export const createClusterKmsResources = (
+  kms: KMSConfiguration,
+  provider = ProviderNames.VAULT
+) => {
   const clusterKmsResources: Promise<K8sResourceKind>[] = [];
 
   switch (provider) {
@@ -364,19 +405,28 @@ export const createClusterKmsResources = (kms: KMSConfiguration, provider = Prov
       const storageClassSupported: boolean = VaultAuthMethodMapping[
         vaultConfig.authMethod
       ].supportedEncryptionType.includes(KmsEncryptionLevel.STORAGE_CLASS);
-      clusterWideSupported && createClusterVaultResources(kms as VaultConfig, clusterKmsResources);
+      clusterWideSupported &&
+        createClusterVaultResources(kms as VaultConfig, clusterKmsResources);
       storageClassSupported &&
         createCsiVaultResources(
           kms as VaultConfig,
           clusterKmsResources,
           false,
-          !clusterWideSupported,
+          !clusterWideSupported
         );
       break;
     }
     case ProviderNames.HPCS: {
-      const secretName = createClusterHpcsResources(kms as HpcsConfig, clusterKmsResources);
-      createCsiHpcsResources(kms as HpcsConfig, clusterKmsResources, false, secretName);
+      const secretName = createClusterHpcsResources(
+        kms as HpcsConfig,
+        clusterKmsResources
+      );
+      createCsiHpcsResources(
+        kms as HpcsConfig,
+        clusterKmsResources,
+        false,
+        secretName
+      );
       break;
     }
     default:
@@ -385,7 +435,10 @@ export const createClusterKmsResources = (kms: KMSConfiguration, provider = Prov
   return [...clusterKmsResources];
 };
 
-export const kmsConfigValidation = (kms: KMSConfiguration, provider = ProviderNames.VAULT): boolean => {
+export const kmsConfigValidation = (
+  kms: KMSConfiguration,
+  provider = ProviderNames.VAULT
+): boolean => {
   switch (provider) {
     case ProviderNames.VAULT: {
       const kmsObj = kms as VaultConfig;

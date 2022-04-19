@@ -18,63 +18,65 @@ export const MINIMUM_NODES = 3;
 export const SECOND = 1000;
 
 export enum defaultRequestSize {
-    BAREMETAL = '1',
-    NON_BAREMETAL = '2Ti',
+  BAREMETAL = '1',
+  NON_BAREMETAL = '2Ti',
 }
 
 export enum Steps {
-    BackingStorage = 'backing-storage',
-    CreateStorageClass = 'create-storage-class',
-    CreateLocalVolumeSet = 'create-local-volume-set',
-    CapacityAndNodes = 'capacity-and-nodes',
-    SecurityAndNetwork = 'security-and-network',
-    Security = 'security',
-    ConnectionDetails = 'connection-details',
-    ReviewAndCreate = 'review-and-create',
+  BackingStorage = 'backing-storage',
+  CreateStorageClass = 'create-storage-class',
+  CreateLocalVolumeSet = 'create-local-volume-set',
+  CapacityAndNodes = 'capacity-and-nodes',
+  SecurityAndNetwork = 'security-and-network',
+  Security = 'security',
+  ConnectionDetails = 'connection-details',
+  ReviewAndCreate = 'review-and-create',
 }
 
 export enum CreateStepsSC {
-    DISCOVER = 'DISCOVER',
-    STORAGECLASS = 'STORAGECLASS',
-    STORAGEANDNODES = 'STORAGEANDNODES',
-    CONFIGURE = 'CONFIGURE',
-    REVIEWANDCREATE = 'REVIEWANDCREATE',
+  DISCOVER = 'DISCOVER',
+  STORAGECLASS = 'STORAGECLASS',
+  STORAGEANDNODES = 'STORAGEANDNODES',
+  CONFIGURE = 'CONFIGURE',
+  REVIEWANDCREATE = 'REVIEWANDCREATE',
 }
 
 export const OSD_CAPACITY_SIZES = {
-    '512Gi': 0.5,
-    '2Ti': 2,
-    '4Ti': 4,
+  '512Gi': 0.5,
+  '2Ti': 2,
+  '4Ti': 4,
 };
 
 export const ZONE_LABELS = [
-    'topology.kubernetes.io/zone',
-    'failure-domain.beta.kubernetes.io/zone', // deprecated
+  'topology.kubernetes.io/zone',
+  'failure-domain.beta.kubernetes.io/zone', // deprecated
 ];
 
 export const OCS_PROVISIONERS = [
-    'ceph.rook.io/block',
-    'cephfs.csi.ceph.com',
-    'rbd.csi.ceph.com',
-    'noobaa.io/obc',
-    'ceph.rook.io/bucket',
+  'ceph.rook.io/block',
+  'cephfs.csi.ceph.com',
+  'rbd.csi.ceph.com',
+  'noobaa.io/obc',
+  'ceph.rook.io/bucket',
 ];
 
 export const StepsName = (t: TFunction) => ({
-    [Steps.CapacityAndNodes]: t('plugin__odf-console~Capacity and nodes'),
-    [Steps.BackingStorage]: t('plugin__odf-console~Backing storage'),
-    [Steps.CreateStorageClass]: t('plugin__odf-console~Create storage class'),
-    [Steps.CreateLocalVolumeSet]: t('plugin__odf-console~Create local volume set'),
-    [Steps.ReviewAndCreate]: t('plugin__odf-console~Review and create'),
-    [Steps.SecurityAndNetwork]: t('plugin__odf-console~Security and network'),
-    [Steps.Security]: t('plugin__odf-console~Security'),
-    [Steps.ConnectionDetails]: t('plugin__odf-console~Connection details'),
+  [Steps.CapacityAndNodes]: t('plugin__odf-console~Capacity and nodes'),
+  [Steps.BackingStorage]: t('plugin__odf-console~Backing storage'),
+  [Steps.CreateStorageClass]: t('plugin__odf-console~Create storage class'),
+  [Steps.CreateLocalVolumeSet]: t(
+    'plugin__odf-console~Create local volume set'
+  ),
+  [Steps.ReviewAndCreate]: t('plugin__odf-console~Review and create'),
+  [Steps.SecurityAndNetwork]: t('plugin__odf-console~Security and network'),
+  [Steps.Security]: t('plugin__odf-console~Security'),
+  [Steps.ConnectionDetails]: t('plugin__odf-console~Connection details'),
 });
 
 export const ocsTaint: Taint = Object.freeze({
-    key: 'node.ocs.openshift.io/storage',
-    value: 'true',
-    effect: 'NoSchedule',
+  key: 'node.ocs.openshift.io/storage',
+  value: 'true',
+  effect: 'NoSchedule',
 });
 
 export const OCS_TOLERATION: Toleration = { ...ocsTaint, operator: 'Equal' };

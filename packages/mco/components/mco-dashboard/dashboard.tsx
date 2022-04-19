@@ -48,9 +48,7 @@ const MCODashboardPage: React.FC<MCODashboardPageProps> = (props) => {
         <title>{title}</title>
       </Helmet>
       <PageHeading title={title} />
-      <HorizontalNav
-        pages={pages}
-      />
+      <HorizontalNav pages={pages} />
     </>
   );
 };

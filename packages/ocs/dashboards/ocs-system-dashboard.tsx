@@ -96,12 +96,20 @@ const PersistentInternalDashboard: React.FC = () => {
 };
 
 const PersistentExternalDashboard: React.FC = () => {
-  const mainCards: React.ComponentType[] = [ExtStatusCard, ExtBreakdownCard, ExtUtilizationCard];
+  const mainCards: React.ComponentType[] = [
+    ExtStatusCard,
+    ExtBreakdownCard,
+    ExtUtilizationCard,
+  ];
   const leftCards: React.ComponentType[] = [ExtDetailsCard, InventoryCard];
   const rightCards: React.ComponentType[] = [ActivityCard];
 
   return (
-    <CommonDashboardRenderer leftCards={leftCards} mainCards={mainCards} rightCards={rightCards} />
+    <CommonDashboardRenderer
+      leftCards={leftCards}
+      mainCards={mainCards}
+      rightCards={rightCards}
+    />
   );
 };
 
@@ -119,7 +127,11 @@ const ObjectServiceDashboard: React.FC = () => {
   ];
   const rightCards: React.ComponentType[] = [ObjectActivityCard];
   return (
-    <CommonDashboardRenderer leftCards={leftCards} mainCards={mainCards} rightCards={rightCards} />
+    <CommonDashboardRenderer
+      leftCards={leftCards}
+      mainCards={mainCards}
+      rightCards={rightCards}
+    />
   );
 };
 
@@ -128,24 +140,24 @@ const internalPage = (t: TFunction): TabPage => {
     href: BLOCK_FILE,
     title: t('Block and File'),
     component: PersistentInternalDashboard,
-  }
-}
+  };
+};
 
 const externalPage = (t: TFunction): TabPage => {
   return {
     href: BLOCK_FILE,
     title: t('Block and File'),
     component: PersistentExternalDashboard,
-  }
-}
+  };
+};
 
 const objectPage = (t: TFunction): TabPage => {
   return {
     href: OBJECT,
     title: t('Object'),
     component: ObjectServiceDashboard,
-  }
-}
+  };
+};
 
 const OCSSystemDashboard: React.FC<RouteComponentProps> = () => {
   const { t } = useTranslation();

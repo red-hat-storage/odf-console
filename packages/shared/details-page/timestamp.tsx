@@ -45,7 +45,9 @@ export const Timestamp = (props: TimestampProps) => {
   }
 
   return (
-    <div className={classNames('co-timestamp co-icon-and-text', props.className)}>
+    <div
+      className={classNames('co-timestamp co-icon-and-text', props.className)}
+    >
       <GlobeAmericasIcon className="co-icon-and-text__icon" />
       <Tooltip
         content={[

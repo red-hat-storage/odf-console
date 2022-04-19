@@ -8,26 +8,42 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { Modal as PfModal, ModalProps as PfModalProps } from '@patternfly/react-core';
+import {
+  Modal as PfModal,
+  ModalProps as PfModalProps,
+} from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import './disk-list-modal.scss';
 
 const tableColumnClasses = [
-  {className: '', id: 'name'},
-  {className: '', id: 'node'},
-  {className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'), id: 'type'},
-  {className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'), id: 'model'},
-  {className: classNames('pf-m-hidden', 'pf-m-visible-on-lg'), id: 'capacity'},
+  { className: '', id: 'name' },
+  { className: '', id: 'node' },
+  { className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'), id: 'type' },
+  { className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'), id: 'model' },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-lg'),
+    id: 'capacity',
+  },
 ];
 
 const DiskRow = ({ obj, activeColumnIDs }) => {
   return (
     <>
-      <TableData {...tableColumnClasses[0]} activeColumnIDs={activeColumnIDs}>{obj.path}</TableData>
-      <TableData {...tableColumnClasses[1]} activeColumnIDs={activeColumnIDs}>{obj.node}</TableData>
-      <TableData {...tableColumnClasses[2]} activeColumnIDs={activeColumnIDs}>{obj.type || '-'}</TableData>
-      <TableData {...tableColumnClasses[3]} className={classNames(tableColumnClasses[3].className, 'co-break-word')} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumnClasses[0]} activeColumnIDs={activeColumnIDs}>
+        {obj.path}
+      </TableData>
+      <TableData {...tableColumnClasses[1]} activeColumnIDs={activeColumnIDs}>
+        {obj.node}
+      </TableData>
+      <TableData {...tableColumnClasses[2]} activeColumnIDs={activeColumnIDs}>
+        {obj.type || '-'}
+      </TableData>
+      <TableData
+        {...tableColumnClasses[3]}
+        className={classNames(tableColumnClasses[3].className, 'co-break-word')}
+        activeColumnIDs={activeColumnIDs}
+      >
         {obj.model || '-'}
       </TableData>
       <TableData {...tableColumnClasses[4]} activeColumnIDs={activeColumnIDs}>
@@ -37,11 +53,17 @@ const DiskRow = ({ obj, activeColumnIDs }) => {
   );
 };
 
-export const Modal: React.FC<ModalProps> = ({ isFullScreen = false, className, ...props }) => (
+export const Modal: React.FC<ModalProps> = ({
+  isFullScreen = false,
+  className,
+  ...props
+}) => (
   <PfModal
     {...props}
     className={classNames('ocs-modal', className)}
-    appendTo={() => (isFullScreen ? document.body : document.querySelector('#modal-container'))}
+    appendTo={() =>
+      isFullScreen ? document.body : document.querySelector('#modal-container')
+    }
   />
 );
 
@@ -50,7 +72,11 @@ type ModalProps = {
   ref?: React.LegacyRef<PfModal>;
 } & PfModalProps;
 
-export const DiskListModal: React.FC<DiskListModalProps> = ({ showDiskList, onCancel, disks }) => {
+export const DiskListModal: React.FC<DiskListModalProps> = ({
+  showDiskList,
+  onCancel,
+  disks,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
 
   const DiskHeader = React.useMemo(() => {

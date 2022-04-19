@@ -1,10 +1,13 @@
 import * as React from 'react';
-import { useFlag, useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useFlag,
+  useActivePerspective,
+} from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom';
 
-const CAN_GET_NS = "CAN_GET_NS";
+const CAN_GET_NS = 'CAN_GET_NS';
 
 export const getPrometheusExpressionBrowserURL = (url, queries): string => {
   if (!url || _.isEmpty(queries)) {
@@ -35,8 +38,9 @@ export const PrometheusGraphLink: React.FC<PrometheusGraphLinkProps> = ({
   const params = new URLSearchParams();
   queries.forEach((q, index) => params.set(`query${index}`, q));
 
-  // @ts-ignore (typescript error: Property 'SERVER_FLAGS' does not exist on type 'Window & typeof globalThis')
-  const canAccessMonitoring = canGetNs && !!window.SERVER_FLAGS.prometheusBaseURL;
+  const canAccessMonitoring =
+    // @ts-ignore (typescript error: Property 'SERVER_FLAGS' does not exist on type 'Window & typeof globalThis')
+    canGetNs && !!window.SERVER_FLAGS.prometheusBaseURL;
   const url =
     canAccessMonitoring && perspective === 'admin'
       ? `/monitoring/query-browser?${params.toString()}`
@@ -56,11 +60,17 @@ export const PrometheusGraphLink: React.FC<PrometheusGraphLinkProps> = ({
 // eslint-disable-next-line react/display-name
 export const PrometheusGraph: React.FC<PrometheusGraphProps> = React.forwardRef(
   ({ children, className, title }, ref: React.RefObject<HTMLDivElement>) => (
-    <div ref={ref} className={classNames('graph-wrapper graph-wrapper__horizontal-bar', className)}>
+    <div
+      ref={ref}
+      className={classNames(
+        'graph-wrapper graph-wrapper__horizontal-bar',
+        className
+      )}
+    >
       {title && <h5 className="graph-title">{title}</h5>}
       {children}
     </div>
-  ),
+  )
 );
 
 type PrometheusGraphLinkProps = {

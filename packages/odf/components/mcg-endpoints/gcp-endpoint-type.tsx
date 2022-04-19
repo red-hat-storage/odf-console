@@ -156,7 +156,9 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
           <InputGroup>
             <ResourceDropdown<K8sResourceCommon>
               className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
-              onSelect={(e) => dispatch({ type: 'setSecretName', value: e.metadata.name })}
+              onSelect={(e) =>
+                dispatch({ type: 'setSecretName', value: e.metadata.name })
+              }
               resourceModel={SecretModel}
               resource={{
                 namespace,

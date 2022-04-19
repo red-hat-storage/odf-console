@@ -57,8 +57,7 @@ export const InventoryCard: React.FC = () => {
       return pvcMemoized.filter((pvc) =>
         scList.includes(getStorageClassName(pvc))
       );
-    }
-    else return [];
+    } else return [];
   }, [poolSc, pvcMemoized, pvcLoaded, pvcLoadError]);
 
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { consoleFetchJSON} from '@openshift-console/dynamic-plugin-sdk';
+import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 
 export const useSafeFetch = () => {
   const controller = useRef<AbortController>();
@@ -8,5 +8,8 @@ export const useSafeFetch = () => {
     return () => controller.current.abort();
   }, []);
 
-  return (url) => consoleFetchJSON(url, 'get', { signal: controller.current.signal as AbortSignal });
+  return (url) =>
+    consoleFetchJSON(url, 'get', {
+      signal: controller.current.signal as AbortSignal,
+    });
 };

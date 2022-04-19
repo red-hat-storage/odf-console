@@ -1,55 +1,69 @@
-import * as _ from "lodash";
+import * as _ from 'lodash';
 
 export const createOSDTreeMap = (nodes) =>
-    nodes.reduce((acc, curr) => Object.assign(acc, { [curr.id]: curr }), {});
+  nodes.reduce((acc, curr) => Object.assign(acc, { [curr.id]: curr }), {});
 
-export const getDeviceCount = (storageCluster) => storageCluster?.spec?.storageDeviceSets[0].count;
+export const getDeviceCount = (storageCluster) =>
+  storageCluster?.spec?.storageDeviceSets[0].count;
 
 export const getIds = (nodes, type: string): number[] =>
-    nodes.filter((node) => node.type === type).map((node) => node.id);
+  nodes.filter((node) => node.type === type).map((node) => node.id);
 
 export const getNewOSDIds = (nodes, osds: number[]): number[] =>
-    nodes
-        .filter((node) => node.type === 'osd' && osds.indexOf(node.id) === -1)
-        .map((node) => node.id);
+  nodes
+    .filter((node) => node.type === 'osd' && osds.indexOf(node.id) === -1)
+    .map((node) => node.id);
 
-export const verifyZoneOSDMapping = (zones: number[], osds: number[], osdtree): boolean => {
-    let filteredOsds = [...osds];
-    zones.forEach((zone) => {
-        const hostId = osdtree[zone].children[0];
-        const len = osdtree[hostId].children.length;
-        filteredOsds = filteredOsds.filter((osd) => osd !== osdtree[hostId].children[len - 1]);
-    });
+export const verifyZoneOSDMapping = (
+  zones: number[],
+  osds: number[],
+  osdtree
+): boolean => {
+  let filteredOsds = [...osds];
+  zones.forEach((zone) => {
+    const hostId = osdtree[zone].children[0];
+    const len = osdtree[hostId].children.length;
+    filteredOsds = filteredOsds.filter(
+      (osd) => osd !== osdtree[hostId].children[len - 1]
+    );
+  });
 
-    return filteredOsds.length === 0;
+  return filteredOsds.length === 0;
 };
 
 export const getPodName = (pod) => pod.metadata.name;
 
-export const getPodRestartCount = (pod) => pod.status.containerStatuses[0].restartCount;
+export const getPodRestartCount = (pod) =>
+  pod.status.containerStatuses[0].restartCount;
 
 export const getPresentPod = (pods, podName: string) =>
-    pods.items.find((pod) => getPodName(pod) === podName);
+  pods.items.find((pod) => getPodName(pod) === podName);
 
 export const isNodeReady = (node): boolean => {
-    const conditions = node.status?.conditions ?? [];
-    const readyState: any = _.find(conditions, { type: 'Ready' });
+  const conditions = node.status?.conditions ?? [];
+  const readyState: any = _.find(conditions, { type: 'Ready' });
 
-    return readyState && readyState.status === 'True';
+  return readyState && readyState.status === 'True';
 };
 
 export const SIZE_MAP = {
-    '512Gi': 0.5,
-    '2Ti': 2,
-    '4Ti': 4,
+  '512Gi': 0.5,
+  '2Ti': 2,
+  '4Ti': 4,
 };
 
-export const verifyNodeOSDMapping = (nodes: number[], osds: number[], osdtree): boolean => {
-    let filteredOsds = [...osds];
-    nodes.forEach((node) => {
-        const len = osdtree[node].children.length;
-        filteredOsds = filteredOsds.filter((osd) => osd !== osdtree[node].children[len - 1]);
-    });
+export const verifyNodeOSDMapping = (
+  nodes: number[],
+  osds: number[],
+  osdtree
+): boolean => {
+  let filteredOsds = [...osds];
+  nodes.forEach((node) => {
+    const len = osdtree[node].children.length;
+    filteredOsds = filteredOsds.filter(
+      (osd) => osd !== osdtree[node].children[len - 1]
+    );
+  });
 
-    return filteredOsds.length === 0;
+  return filteredOsds.length === 0;
 };

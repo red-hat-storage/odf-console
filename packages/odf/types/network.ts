@@ -1,9 +1,9 @@
 export enum NetworkType {
-    DEFAULT = 'DEFAULT',
-    MULTUS = 'MULTUS',
+  DEFAULT = 'DEFAULT',
+  MULTUS = 'MULTUS',
 }
 
 export enum NADSelectorType {
-    CLUSTER = 'CLUSTER',
-    PUBLIC = 'PUBLIC',
+  CLUSTER = 'CLUSTER',
+  PUBLIC = 'PUBLIC',
 }

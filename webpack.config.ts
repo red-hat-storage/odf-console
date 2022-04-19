@@ -7,7 +7,16 @@ import * as webpack from 'webpack';
 
 const LANGUAGES = ['en', 'ja', 'ko', 'zh'];
 const resolveLocale = (dirName: string, ns: string) =>
-  LANGUAGES.reduce((acc, lang) => ([...acc, { from: path.resolve(dirName, `locales/${lang}/plugin__*.json`), to: `locales/${lang}/${ns}.[ext]`}]), []);
+  LANGUAGES.reduce(
+    (acc, lang) => [
+      ...acc,
+      {
+        from: path.resolve(dirName, `locales/${lang}/plugin__*.json`),
+        to: `locales/${lang}/${ns}.[ext]`,
+      },
+    ],
+    []
+  );
 
 const config: webpack.Configuration = {
   mode: 'development',
@@ -86,9 +95,7 @@ const config: webpack.Configuration = {
   plugins: [
     new ConsoleRemotePlugin(),
     new CopyWebpackPlugin({
-      patterns: [
-        ...resolveLocale(__dirname, process.env.I8N_NS)
-      ],
+      patterns: [...resolveLocale(__dirname, process.env.I8N_NS)],
     }),
     new webpack.DefinePlugin({
       'process.env.MODE': JSON.stringify(process.env.MODE),

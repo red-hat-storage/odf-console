@@ -2,7 +2,7 @@ import {
   Humanize,
   PrometheusResponse,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Alert, PrometheusLabels } from "@openshift-console/dynamic-plugin-sdk";
+import { Alert, PrometheusLabels } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 
 export const getGaugeValue = (response: PrometheusResponse) =>
@@ -86,7 +86,10 @@ export const AlertResource: MonitoringResource = {
 };
 
 export const labelsToParams = (labels: PrometheusLabels) =>
-  _.map(labels, (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+  _.map(
+    labels,
+    (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+  ).join('&');
 
 export const alertURL = (alert: Alert, ruleID: string) =>
   `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;

@@ -1,8 +1,8 @@
 {
-    "name": "@odf/mco",
-    "description": "Hosts the UI for Multicluster Orchestartor Operator and is displayed under `All clusters` perspective of OCP console.",
-    "version": "0.0.0",
-    "dependencies": {
-      "@odf/shared": "0.0.0"
-    }
+  "name": "@odf/mco",
+  "description": "Hosts the UI for Multicluster Orchestartor Operator and is displayed under `All clusters` perspective of OCP console.",
+  "version": "0.0.0",
+  "dependencies": {
+    "@odf/shared": "0.0.0"
   }
+}

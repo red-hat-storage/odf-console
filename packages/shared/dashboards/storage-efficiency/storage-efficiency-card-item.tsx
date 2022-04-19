@@ -10,11 +10,17 @@ export const EfficiencyItemBody: React.FC<EfficiencyItemBodyProps> = React.memo(
     let status: React.ReactElement;
 
     if (isLoading) {
-      status = <div className="skeleton-text ceph-storage-efficiency-card__item-body--loading" />;
+      status = (
+        <div className="skeleton-text ceph-storage-efficiency-card__item-body--loading" />
+      );
     } else if (error || stats <= 0) {
       status = <span className="text-muted">{t('Not available')}</span>;
     } else {
-      status = <span className="ceph-storage-efficiency-card__item-text">{getStats()}</span>;
+      status = (
+        <span className="ceph-storage-efficiency-card__item-text">
+          {getStats()}
+        </span>
+      );
     }
     return (
       <div className="co-inventory-card__item">
@@ -28,7 +34,7 @@ export const EfficiencyItemBody: React.FC<EfficiencyItemBodyProps> = React.memo(
         </div>
       </div>
     );
-  },
+  }
 );
 
 EfficiencyItemBody.displayName = 'EfficiencyItemBody';

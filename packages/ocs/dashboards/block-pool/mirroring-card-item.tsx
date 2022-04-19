@@ -3,7 +3,14 @@ import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 
 export const MirroringCardItem: React.FC<MirroringCardItemProps> = React.memo(
-  ({ title, isLoading = false, children, error = false, valueClassName, errorMessage }) => {
+  ({
+    title,
+    isLoading = false,
+    children,
+    error = false,
+    valueClassName,
+    errorMessage,
+  }) => {
     const { t } = useTranslation();
 
     let status: React.ReactNode;
@@ -30,14 +37,17 @@ export const MirroringCardItem: React.FC<MirroringCardItemProps> = React.memo(
           </dt>
         )}
         <dd
-          className={classNames('odf-block-pool__mirroring-card-item-dd', valueClassName)}
+          className={classNames(
+            'odf-block-pool__mirroring-card-item-dd',
+            valueClassName
+          )}
           data-test="mirroring-card-item-value"
         >
           {status}
         </dd>
       </>
     );
-  },
+  }
 );
 
 MirroringCardItem.displayName = 'MirroringCardItem';

@@ -1,7 +1,11 @@
 import * as React from 'react';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
-import { FormGroup, FormSelect, FormSelectOption } from '@patternfly/react-core';
+import {
+  FormGroup,
+  FormSelect,
+  FormSelectOption,
+} from '@patternfly/react-core';
 import { FEATURES } from '../../features';
 import { ProviderNames } from '../../types';
 import { HpcsConfigure } from './hpcs-config';
@@ -24,11 +28,12 @@ const KMSProviders = [
   },
 ]; // add one more key, if need to disable any component based on the value of "isWizardFlow"
 
-const setKMSProvider = (dispatch: EncryptionDispatch) => (provider: ProviderNames) =>
-  dispatch({
-    type: 'securityAndNetwork/setKmsProvider',
-    payload: provider,
-  });
+const setKMSProvider =
+  (dispatch: EncryptionDispatch) => (provider: ProviderNames) =>
+    dispatch({
+      type: 'securityAndNetwork/setKmsProvider',
+      payload: provider,
+    });
 
 export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   state,
@@ -41,11 +46,16 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
 
   const isHpcsKmsSupported = useFlag(FEATURES.ODF_HPCS_KMS);
   // vault as default KMS
-  const kmsProvider: ProviderNames = state.kms?.['provider'] || ProviderNames.VAULT;
+  const kmsProvider: ProviderNames =
+    state.kms?.['provider'] || ProviderNames.VAULT;
   const allowedKMSProviders = KMSProviders.filter(
-    (provider) => !provider.allowedPlatforms || provider?.allowedPlatforms.includes(infraType),
+    (provider) =>
+      !provider.allowedPlatforms ||
+      provider?.allowedPlatforms.includes(infraType)
   );
-  const { Component } = allowedKMSProviders.find((provider) => provider.value === kmsProvider);
+  const { Component } = allowedKMSProviders.find(
+    (provider) => provider.value === kmsProvider
+  );
 
   return (
     <div className="co-m-pane__form">
@@ -68,7 +78,11 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
           isDisabled={!isHpcsKmsSupported || isLengthUnity(allowedKMSProviders)}
         >
           {allowedKMSProviders.map((provider) => (
-            <FormSelectOption value={provider.value} label={provider.name} key={provider.value} />
+            <FormSelectOption
+              value={provider.value}
+              label={provider.name}
+              key={provider.value}
+            />
           ))}
         </FormSelect>
       </FormGroup>

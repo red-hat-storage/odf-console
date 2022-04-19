@@ -24,7 +24,8 @@
 }
 
 .odf-install_stats--divider {
-  border-right: var(--pf-global--BorderWidth--sm) solid var(--pf-global--Color--light-300);
+  border-right: var(--pf-global--BorderWidth--sm) solid
+    var(--pf-global--Color--light-300);
   height: var(--pf-global--LineHeight--sm);
   margin: 0 var(--pf-global--spacer--sm);
 }

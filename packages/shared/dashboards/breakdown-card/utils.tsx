@@ -12,7 +12,7 @@ const addOthers = (
   stats: StackDataPoint[],
   metricTotal: string,
   humanize: Humanize,
-  t: TFunction,
+  t: TFunction
 ): StackDataPoint => {
   const top5Total = getTotal(stats);
   const others = Number(metricTotal) - top5Total;
@@ -24,7 +24,7 @@ const addOthers = (
     label: humanize(others).string,
     fill: 'rgb(96, 98, 103)',
     link: t(
-      'All other capacity usage that are not a part of the top 5 consumers.',
+      'All other capacity usage that are not a part of the top 5 consumers.'
     ),
     id: 6,
     ns: '',
@@ -37,7 +37,7 @@ export const addAvailable = (
   capacityAvailable: string,
   metricTotal: string,
   humanize: Humanize,
-  t: TFunction,
+  t: TFunction
 ) => {
   let othersData: StackDataPoint;
   let availableData: StackDataPoint;
@@ -87,7 +87,6 @@ export const getBarRadius = (index: number, length: number) => {
   return {};
 };
 
-
 export type StackDataPoint = DataPoint<string> & {
   name: string;
   link: string;
@@ -97,13 +96,17 @@ export type StackDataPoint = DataPoint<string> & {
   ns: string;
 };
 
-export const getCapacityValue = (cephUsed: string, cephTotal: string, humanize: Humanize) => {
+export const getCapacityValue = (
+  cephUsed: string,
+  cephTotal: string,
+  humanize: Humanize
+) => {
   const totalFormatted = humanize(cephTotal || 0);
   const usedFormatted = humanize(cephUsed || 0, null, totalFormatted.unit);
   const available = humanize(
     totalFormatted.value - usedFormatted.value,
     totalFormatted.unit,
-    totalFormatted.unit,
+    totalFormatted.unit
   );
   return available;
 };

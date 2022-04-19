@@ -28,9 +28,7 @@ const CapacityStatusIcon: React.FC<CapacityStatusIconProps> = React.memo(
           <RedExclamationCircleIcon title={t('Error')} />
         )}
         {ratio > WARNING_THRESHOLD && ratio <= DANGER_THRESHOLD && (
-          <YellowExclamationTriangleIcon
-            title={t('Warning')}
-          />
+          <YellowExclamationTriangleIcon title={t('Warning')} />
         )}
       </>
     );
@@ -115,12 +113,8 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
             </div>
             <div className="ceph-raw-usage__item ceph-raw-usage__chart">
               <ChartDonut
-                ariaDesc={t(
-                  'Available versus Used Capacity'
-                )}
-                ariaTitle={t(
-                  'Available versus Used Capacity'
-                )}
+                ariaDesc={t('Available versus Used Capacity')}
+                ariaTitle={t('Available versus Used Capacity')}
                 height={150}
                 width={150}
                 data={donutData}

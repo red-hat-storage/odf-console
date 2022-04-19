@@ -7,7 +7,11 @@ type SecondaryStatusProps = {
   dataStatusID?: string;
 };
 
-const SecondaryStatus: React.FC<SecondaryStatusProps> = ({ status, className, dataStatusID }) => {
+const SecondaryStatus: React.FC<SecondaryStatusProps> = ({
+  status,
+  className,
+  dataStatusID,
+}) => {
   const statusLabel = _.compact(_.concat([], status)).join(', ');
   const cssClassName = className || '';
   if (statusLabel) {

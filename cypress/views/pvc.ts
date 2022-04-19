@@ -3,7 +3,7 @@ export const pvc = {
     name: string,
     size: string,
     storageClass: string,
-    mode: 'Block' | 'Filesystem' = 'Filesystem',
+    mode: 'Block' | 'Filesystem' = 'Filesystem'
   ) => {
     cy.byTestID('item-create').click();
     cy.byTestID('storageclass-dropdown').click();
@@ -19,9 +19,7 @@ export const pvc = {
   expandPVC: (expansionSize) => {
     cy.byLegacyTestID('actions-menu-button').click();
     cy.byTestActionID('Expand PVC').click();
-    cy.byTestID('pvc-expand-size-input')
-      .clear()
-      .type(expansionSize);
+    cy.byTestID('pvc-expand-size-input').clear().type(expansionSize);
     cy.byTestID('confirm-action').click();
   },
 };

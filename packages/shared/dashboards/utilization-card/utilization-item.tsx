@@ -84,12 +84,9 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
 
     const chart = (
       <AreaChart
-        ariaChartLinkLabel={t(
-          'View {{title}} metrics in query browser',
-          {
-            title,
-          }
-        )}
+        ariaChartLinkLabel={t('View {{title}} metrics in query browser', {
+          title,
+        })}
         ariaChartTitle={title}
         data={data}
         loading={!error && isLoading}
@@ -153,9 +150,7 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
               {title}
             </h4>
             {error || (!isLoading && !utilizationData?.length) ? (
-              <div className="text-secondary">
-                {t('Not available')}
-              </div>
+              <div className="text-secondary">{t('Not available')}</div>
             ) : (
               <div className="co-utilization-card__item-section-ceph">
                 {LimitIcon && (
@@ -202,13 +197,10 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
                 )}
                 {!humanLimit && humanMax && (
                   <span>
-                    {t(
-                      '{{humanAvailable}} available of {{humanMax}}',
-                      {
-                        humanAvailable,
-                        humanMax,
-                      }
-                    )}
+                    {t('{{humanAvailable}} available of {{humanMax}}', {
+                      humanAvailable,
+                      humanMax,
+                    })}
                   </span>
                 )}
                 {!humanLimit && !humanMax && (

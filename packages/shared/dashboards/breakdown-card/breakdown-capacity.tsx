@@ -8,7 +8,12 @@ export const TotalCapacityBody: React.FC<TotalCapacityBodyProps> = ({
   className,
 }) => {
   return (
-    <p className={classNames('capacity-breakdown-card__capacity-body', className)}>
+    <p
+      className={classNames(
+        'capacity-breakdown-card__capacity-body',
+        className
+      )}
+    >
       {capacity} {suffix}
     </p>
   );
