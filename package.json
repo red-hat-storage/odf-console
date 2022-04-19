@@ -54,10 +54,10 @@
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^5.9.1",
-    "@openshift-console/dynamic-plugin-sdk": "0.0.6",
+    "@openshift-console/dynamic-plugin-sdk": "0.0.7",
     "@openshift-console/dynamic-plugin-sdk-internal": "0.0.2",
     "@openshift-console/dynamic-plugin-sdk-internal-kubevirt": "^0.0.10",
-    "@openshift-console/dynamic-plugin-sdk-webpack": "0.0.4",
+    "@openshift-console/dynamic-plugin-sdk-webpack": "0.0.6",
     "@types/jest": "^27.0.3",
     "@types/lodash-es": "^4.17.4",
     "@types/node": "^14.14.34",
