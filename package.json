@@ -131,7 +131,8 @@
       "blockPoolDetailsPage": "@odf/ocs/block-pool/BlockPoolDetailsPage",
       "createBlockPools": "@odf/ocs/block-pool/CreateBlockPool",
       "bsCreate": "@odf/core/components/create-bs/create-bs-page",
-      "mcoDashboard": "@odf/mco/components/mco-dashboard/dashboard"
+      "mcoDashboard": "@odf/mco/components/mco-dashboard/dashboard",
+      "nsCreate": "@odf/core/components/namespace-store/create-namespace-store"
     }
   }
 }
