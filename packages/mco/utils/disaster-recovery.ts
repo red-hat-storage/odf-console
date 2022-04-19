@@ -1,7 +1,7 @@
 import { ApplicationKind } from '@odf/shared/types/k8s';
 import { Operator, MatchExpression } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { ODF_MINIMUM_SUPPORT  } from '../constants/dr-policy';
-import { ACMSubscriptionKind } from '../types/types';
+import { ACMSubscriptionKind } from '../types';
 
 export const isMinimumSupportedODFVersion = (odfVersion: string): boolean =>
     odfVersion.localeCompare(ODF_MINIMUM_SUPPORT, undefined, { numeric: true, sensitivity: 'base' }) >= 0 

@@ -7,6 +7,7 @@ type ResourceLinkProps = {
   resourceModel: K8sKind;
   resourceName: string;
   link: string;
+  isExternalLink?: boolean;
   hideIcon?: boolean;
   className?: string;
 };
@@ -29,6 +30,7 @@ const ResourceLink: React.FC<ResourceLinkProps> = ({
   resourceModel,
   resourceName,
   link,
+  isExternalLink,
   hideIcon,
   className,
 }) => {
@@ -44,9 +46,19 @@ const ResourceLink: React.FC<ResourceLinkProps> = ({
           </span>
         </>
       )}
+      {isExternalLink ?
+      <a
+        className={className}
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {resourceName}
+      </a>
+      :
       <Link to={link} className={className}>
         {resourceName}
-      </Link>
+      </Link>}
     </span>
   );
 };

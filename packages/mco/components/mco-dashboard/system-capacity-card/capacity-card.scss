@@ -1,0 +1,40 @@
+@import '../../../../shared/styles/skeleton';
+@import '../../../../shared/dashboards/capacity-card/capacity-card.scss';
+
+.odf {
+  &-capacityCardLoading-body {
+    height: 18rem;
+  }
+
+  &-capacityCardLink--ellipsis {
+    width: 12rem;
+  }
+
+  &-capacityCard--error {
+    align-items: center;
+    display: flex;
+    min-height: 9rem;
+    place-content: center;
+  }
+}
+
+.odf-capacityCard__table--overflow {
+  overflow-y: auto;
+  max-height: 25rem;
+}
+
+.odf-capacityCard__header--width {
+    width: 100%;
+}
+
+.odf-capacityCard__filter--width {
+  width: 12rem;
+}
+
+.odf-capacityCardLoading-body__item--thin {
+  width: 6rem;
+}
+
+.odf-capacityCardLoading-body__item--thick {
+  width: 18rem;
+}

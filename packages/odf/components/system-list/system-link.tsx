@@ -1,7 +1,7 @@
 import * as React from 'react';
+import { ODFStorageSystem } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { Link } from 'react-router-dom';
-import { ODFStorageSystem } from '../../models';
 
 type ODFSystemLinkProps = {
   kind: string;

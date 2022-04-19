@@ -11,6 +11,7 @@ import {
   shouldDeployAsMinimal,
 } from '@odf/core/utils';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { OCSStorageClusterModel } from '@odf/shared/models';
 import { 
   getLabel,
   getName,
@@ -34,7 +35,7 @@ import {
   ATTACHED_DEVICES_ANNOTATION,
   OCS_INTERNAL_CR_NAME,
 } from '../../constants';
-import { IBMFlashSystemModel, OCSStorageClusterModel } from '../../models';
+import { IBMFlashSystemModel } from '../../models';
 import { SUPPORTED_EXTERNAL_STORAGE } from '../create-storage-system/external-storage';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
 

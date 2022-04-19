@@ -11,6 +11,19 @@ import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { InProgressIcon } from '@patternfly/react-icons';
 
+export const healthStateMap = (state: string) => {
+  switch (state) {
+    case '0':
+      return HealthState.OK;
+    case '1':
+      return HealthState.WARNING;
+    case '2':
+      return HealthState.ERROR;
+    default:
+      return HealthState.LOADING;
+  }
+};
+
 export const healthStateMessage = (
   state: keyof typeof HealthState,
   t: TFunction
@@ -93,4 +106,14 @@ export type HealthStateMappingValues = {
   icon: React.ReactNode;
   priority: number;
   health: HealthState;
+};
+
+export const csvStatusMap = (state: string) => {
+  switch (state) {
+    // right now "csv_succeeded" only returns 0/1
+    case '0':
+      return HealthState.ERROR;
+    case '1':
+      return HealthState.OK;
+  }
 };

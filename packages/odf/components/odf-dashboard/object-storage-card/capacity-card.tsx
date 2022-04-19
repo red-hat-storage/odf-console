@@ -1,12 +1,12 @@
 import * as React from 'react';
 import CapacityCard from '@odf/shared/dashboards/capacity-card/capacity-card';
+import { ODFStorageSystem } from '@odf/shared/models';
 import { humanizeBinaryBytes } from '@odf/shared/utils/humanize';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { ODFStorageSystem } from '../../../models';
-import { CAPACITY_QUERIES, StorageDashboard } from '../queries';
+import { StorageDashboard, CAPACITY_QUERIES } from '../queries';
 
 const parseMetricData = (metric: PrometheusResponse) =>
   metric?.data?.result?.map((datum) => ({

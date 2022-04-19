@@ -5,6 +5,7 @@ import {
   useModalLauncher,
 } from '@odf/shared/modals/modalLauncher';
 import { ClusterServiceVersionModel } from '@odf/shared/models';
+import { ODFStorageSystem } from '@odf/shared/models';
 import { Status } from '@odf/shared/status/Status';
 import { ClusterServiceVersionKind, HumanizeResult, StorageSystemKind } from '@odf/shared/types';
 import {
@@ -36,7 +37,6 @@ import classNames from 'classnames';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { ODFStorageSystem } from '../../models';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
 import { OperandStatus } from './status';
 import ODFSystemLink from './system-link';

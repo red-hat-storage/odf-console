@@ -10,6 +10,7 @@ import {
   PersistentVolumeModel,
   StorageClassModel,
 } from '@odf/shared/models';
+import { OCSStorageClusterModel } from '@odf/shared/models';
 import {
   StorageClassResourceKind,
   NodeKind,
@@ -47,7 +48,6 @@ import {
   requestedCapacityTooltip,
   storageClassTooltip,
 } from '../../constants';
-import { OCSStorageClusterModel } from '../../models';
 import { CAPACITY_INFO_QUERIES, StorageDashboardQuery } from '../../queries';
 import {
   checkArbiterCluster,

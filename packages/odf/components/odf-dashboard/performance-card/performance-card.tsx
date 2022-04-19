@@ -3,6 +3,7 @@ import LineGraph, {
   LineGraphProps,
 } from '@odf/shared/dashboards/line-graph/line-graph';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
+import { ODFStorageSystem } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import Table, { Column } from '@odf/shared/table/table';
 import { StorageSystemKind } from '@odf/shared/types';
@@ -29,7 +30,6 @@ import {
   FlexItem,
 } from '@patternfly/react-core';
 import { SortByDirection } from '@patternfly/react-table';
-import { ODFStorageSystem } from '../../../models';
 import { StorageDashboard, UTILIZATION_QUERY } from '../queries';
 import './performance-card.scss';
 import { generateDataFrames } from './utils';

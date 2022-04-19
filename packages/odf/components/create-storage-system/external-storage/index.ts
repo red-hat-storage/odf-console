@@ -1,6 +1,6 @@
 import { IBMFlashSystemModel } from '@odf/core/models';
 import { ExternalStorage } from '@odf/core/types';
-import { OCSStorageClusterModel } from '../../../models';
+import { OCSStorageClusterModel } from '@odf/shared/models';
 import {
   flashSystemCanGoToNextStep,
   FlashSystemConnectionDetails,

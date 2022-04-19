@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { InfrastructureModel } from '@odf/shared/models';
+import { ODFStorageSystem } from '@odf/shared/models';
 import { ListKind, StorageSystemKind } from '@odf/shared/types';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, match as RouteMatch, useHistory } from 'react-router';
@@ -10,7 +11,6 @@ import {
   StepsName,
   STORAGE_CLUSTER_SYSTEM_KIND,
 } from '../../constants';
-import { ODFStorageSystem } from '../../models';
 import { createSteps } from './create-steps';
 import { BackingStorage } from './create-storage-system-steps';
 import { CreateStorageSystemFooter } from './footer';

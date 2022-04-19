@@ -2,6 +2,8 @@ import * as React from 'react';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
+import { healthStateMap } from '@odf/shared/dashboards/status-card/states';
+import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
 import { ClusterServiceVersionKind, StorageSystemKind } from '@odf/shared/types';
 import { getGVK, referenceForModel } from '@odf/shared/utils';
 import {
@@ -24,9 +26,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
-import { OCSStorageClusterModel, ODFStorageSystem } from '../../../models';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
-import { STATUS_QUERIES, StorageDashboard } from '../queries';
+import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import { getOperatorHealthState } from '../utils';
 import StorageSystemPopup from './storage-system-popup';
 
@@ -40,19 +41,6 @@ const storageSystemResource: WatchK8sResource = {
   kind: referenceForModel(ODFStorageSystem),
   namespace: 'openshift-storage',
   isList: true,
-};
-
-const healthStateMap = (state: string) => {
-  switch (state) {
-    case '0':
-      return HealthState.OK;
-    case '1':
-      return HealthState.WARNING;
-    case '2':
-      return HealthState.ERROR;
-    default:
-      return HealthState.LOADING;
-  }
 };
 
 export const StatusCard: React.FC = () => {

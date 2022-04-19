@@ -23,8 +23,8 @@ import {
   Bullseye,
 } from '@patternfly/react-core';
 import { MAX_ALLOWED_CLUSTERS, MANAGED_CLUSTER_REGION_CLAIM } from '../../../constants/dr-policy';
-import { ACMManagedClusterModel } from '../../../models/models';
-import { ACMManagedClusterKind } from '../../../types/types';
+import { ACMManagedClusterModel } from '../../../models';
+import { ACMManagedClusterKind } from '../../../types';
 import './select-cluster-list.scss';
 
 

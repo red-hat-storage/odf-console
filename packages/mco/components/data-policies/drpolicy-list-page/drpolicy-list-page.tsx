@@ -24,10 +24,9 @@ import * as _ from 'lodash';
 import { RouteComponentProps } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { REPLICATION_TYPE } from '../../../constants/dr-policy';
-import { DRPolicyModel, DRPlacementControlModel } from '../../../models/models';
-import { DRPolicyKind, DRPlacementControlKind } from '../../../types/types';
+import { DRPolicyModel, DRPlacementControlModel } from '../../../models';
+import { DRPolicyKind, DRPlacementControlKind } from '../../../types';
 import { ApplicationStatus } from './application-status';
-
 
 type CustomData = {
   launchModal: LaunchModal;
