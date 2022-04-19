@@ -15,4 +15,5 @@ export const REPLICATION_TYPE = (t: TFunction) => ({
 
 export const Actions = (t: TFunction) => ({
   APPLY_DR_POLICY: t('plugin__odf-console~Apply DRPolicy'),
+  DELETE_DR_POLICY: t('plugin__odf-console~Delete DRPolicy'),
 });
