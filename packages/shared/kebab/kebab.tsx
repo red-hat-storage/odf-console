@@ -30,20 +30,20 @@ type KebabProps = {
   isDisabled?: boolean;
 };
 
-const defaultKebabItems = (t: TFunction) => ({
+const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
   [ModalKeys.EDIT_LABELS]: (
     <DropdownItem key={ModalKeys.EDIT_LABELS} id={ModalKeys.EDIT_LABELS}>
-      {t('plugin__odf-console~Edit Labels')}
+      {t('Edit labels')}
     </DropdownItem>
   ),
   [ModalKeys.EDIT_ANN]: (
     <DropdownItem key={ModalKeys.EDIT_ANN} id={ModalKeys.EDIT_ANN}>
-      {t('plugin__odf-console~Edit Annotations')}
+      {t('Edit annotations')}
     </DropdownItem>
   ),
   [ModalKeys.DELETE]: (
     <DropdownItem key={ModalKeys.DELETE} id={ModalKeys.DELETE}>
-      {t('plugin__odf-console~Delete')}
+      {t('Delete {{resourceLabel}}', { resourceLabel })}
     </DropdownItem>
   ),
 });
@@ -59,6 +59,10 @@ export const Kebab: React.FC<KebabProps> = ({
 
   const [isOpen, setOpen] = React.useState(false);
 
+  const { resourceModel } = extraProps;
+
+  const resourceLabel = resourceModel.label;
+
   const onClick = (event?: React.SyntheticEvent<HTMLDivElement>) => {
     setOpen(false);
     const actionKey = event.currentTarget.id;
@@ -66,7 +70,7 @@ export const Kebab: React.FC<KebabProps> = ({
   };
 
   const dropdownItems = React.useMemo(() => {
-    const defaultResolved = defaultKebabItems(t);
+    const defaultResolved = defaultKebabItems(t, resourceLabel);
     const customResolved = customKebabItems ? customKebabItems(t) : {};
     const { overrides, custom } = Object.entries(customResolved).reduce(
       (acc, [k, obj]) => {
@@ -98,7 +102,7 @@ export const Kebab: React.FC<KebabProps> = ({
     const customItems = Object.values(custom) ?? [];
 
     return [...customItems, ...deafultItems];
-  }, [t, customKebabItems]);
+  }, [t, customKebabItems, resourceLabel]);
 
   const toggle = React.useMemo(() => {
     const onToggle = () => setOpen((open) => !open);
