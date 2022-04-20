@@ -6,14 +6,23 @@ import {
   StorageClass,
 } from '@odf/shared/types';
 import { RowFilter } from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'i18next';
 import * as _ from 'lodash';
 import {
   AWS_REGIONS,
   BC_PROVIDERS,
+  BUCKET_LABEL_NOOBAA_MAP,
   NS_PROVIDERS_NOOBAA_MAP,
+  PROVIDERS_NOOBAA_MAP,
   StoreType,
+  TimeUnits,
 } from '../constants';
-import { NamespaceStoreKind } from '../types';
+import {
+  BackingStoreKind,
+  BucketClassKind,
+  NamespaceStoreKind,
+  PlacementPolicy,
+} from '../types';
 
 export const getAttachOBCPatch = (
   obcName: string,
@@ -204,3 +213,62 @@ export const getNSRegion = (ns: NamespaceStoreKind): string => {
   const type = getNamespaceStoreType(ns);
   return ns.spec?.[NS_PROVIDERS_NOOBAA_MAP[type]]?.region;
 };
+
+export const convertTime = (unit: TimeUnits, value: number): number =>
+  unit === TimeUnits.HOUR ? value / 3600000 : value / 60000;
+
+export const getTimeUnitString = (unit: TimeUnits, t: TFunction): string => {
+  return unit === TimeUnits.HOUR ? t('hr') : t('min');
+};
+
+export const validateDuration = (ms: number): boolean =>
+  ms >= 0 && ms <= 86400000;
+
+const bucketClassNameRegex: RegExp = /^[a-z0-9]+[a-z0-9-.]+[a-z0-9]+$/;
+const consecutivePeriodsAndHyphensRegex: RegExp = /(\.\.)|(--)/g;
+
+export const validateBucketClassName = (name: string): boolean =>
+  name.length >= 3 &&
+  name.length <= 63 &&
+  bucketClassNameRegex.test(name) &&
+  !consecutivePeriodsAndHyphensRegex.test(name);
+
+export const getBackingStoreType = (bs: BackingStoreKind): BC_PROVIDERS => {
+  let type: BC_PROVIDERS = null;
+  _.forEach(PROVIDERS_NOOBAA_MAP, (v, k) => {
+    if (bs?.spec?.[v]) {
+      type = k as BC_PROVIDERS;
+    }
+  });
+  return type;
+};
+
+export const getBucketName = (bs: BackingStoreKind): string => {
+  const type = getBackingStoreType(bs);
+  return bs.spec?.[PROVIDERS_NOOBAA_MAP[type]]?.[BUCKET_LABEL_NOOBAA_MAP[type]];
+};
+
+export const getRegion = (bs: BackingStoreKind): string => {
+  const type = getBackingStoreType(bs);
+  return bs.spec?.[PROVIDERS_NOOBAA_MAP[type]]?.region;
+};
+
+export const getBSLabel = (policy: PlacementPolicy, t: TFunction) =>
+  policy === PlacementPolicy.Mirror
+    ? t('Select at least 2 Backing Store resources')
+    : t('Select at least 1 Backing Store resource');
+
+export const getBackingStoreNames = (
+  bc: BucketClassKind,
+  tier: 0 | 1
+): string[] => bc.spec.placementPolicy?.tiers?.[tier]?.backingStores ?? [];
+
+export const getBackingStorePolicy = (
+  bc: BucketClassKind,
+  tier: 0 | 1
+): PlacementPolicy => bc.spec.placementPolicy?.tiers?.[tier]?.placement;
+
+export const convertToMS = ({ unit, value }) =>
+  unit === TimeUnits.HOUR
+    ? parseInt(value, 10) * 3600000
+    : parseInt(value, 10) * 60000;

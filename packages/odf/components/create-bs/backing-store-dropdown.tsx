@@ -129,5 +129,5 @@ type BackingStoreDropdownProps = {
   className?: string;
   selectedKey?: string;
   creatorDisabled?: boolean;
-  launchBackingStoreModal: () => void;
+  launchBackingStoreModal?: () => void;
 };

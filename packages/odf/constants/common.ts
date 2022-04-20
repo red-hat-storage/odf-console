@@ -80,3 +80,8 @@ export const ocsTaint: Taint = Object.freeze({
 });
 
 export const OCS_TOLERATION: Toleration = { ...ocsTaint, operator: 'Equal' };
+
+export enum TimeUnits {
+  HOUR = 'Hour',
+  MIN = 'Min',
+}

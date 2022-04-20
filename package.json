@@ -132,7 +132,8 @@
       "createBlockPools": "@odf/ocs/block-pool/CreateBlockPool",
       "bsCreate": "@odf/core/components/create-bs/create-bs-page",
       "mcoDashboard": "@odf/mco/components/mco-dashboard/dashboard",
-      "nsCreate": "@odf/core/components/namespace-store/create-namespace-store"
+      "nsCreate": "@odf/core/components/namespace-store/create-namespace-store",
+      "bcCreate": "@odf/core/components/bucket-class/create-bc"
     }
   }
 }

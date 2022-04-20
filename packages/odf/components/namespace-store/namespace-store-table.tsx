@@ -2,7 +2,7 @@ import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useSelectList } from '@odf/shared/hooks/select-list';
-import { getName, getNamespace, getUID } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   ListPageBody,
@@ -47,8 +47,9 @@ const RowRenderer: React.FC<RowProps<NamespaceStoreKind, CustomData>> = ({
   activeColumnIDs,
   rowData: { selectedData, onSelect },
 }) => {
-  const isChecked = selectedData.includes(obj.metadata.uid);
-  const onChange = (checked: boolean) => onSelect(obj.metadata.uid, checked);
+  const isChecked = selectedData.has(obj.metadata.uid);
+  const onChange = (checked: boolean) =>
+    onSelect(null, checked, 0, { props: { id: obj.metadata.uid } });
   return (
     <>
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
@@ -133,10 +134,12 @@ const NamespaceStoreList: React.FC<NamespaceStoreListProps> = (props) => {
 
 type NamespaceStoreListWrapperProps = {
   onSelectNamespaceStore: any;
+  preSelected: string[]; // UIDs of preSelected Elements if any
 };
 
 const NamespaceStoreListWrapper: React.FC<NamespaceStoreListWrapperProps> = ({
   onSelectNamespaceStore,
+  preSelected,
 }) => {
   const [nsObjects, loaded, loadError] = useK8sWatchResource<
     NamespaceStoreKind[]
@@ -149,11 +152,10 @@ const NamespaceStoreListWrapper: React.FC<NamespaceStoreListWrapperProps> = ({
 
   const [data, filteredData, onFilterChange] =
     useListPageFilter(memoizedResources);
-  const filteredUIDs = new Set(filteredData.map(getUID));
 
   const { onSelect, selectedRows } = useSelectList<NamespaceStoreKind>(
     data,
-    filteredUIDs,
+    new Set(preSelected),
     onSelectNamespaceStore
   );
   return (
@@ -169,7 +171,7 @@ const NamespaceStoreListWrapper: React.FC<NamespaceStoreListWrapperProps> = ({
         unfilteredData={data}
         loaded={loaded}
         loadError={loadError}
-        rowData={{ selectedRows, onSelect }}
+        rowData={{ selectedData: selectedRows, onSelect }}
       />
     </ListPageBody>
   );

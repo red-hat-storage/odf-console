@@ -1,5 +1,6 @@
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import {
+  NamespacePolicyType,
   NS_NOOBAA_TYPE_MAP,
   NS_PROVIDERS_NOOBAA_MAP,
   SpecProvider,
@@ -37,5 +38,42 @@ export type NamespaceStoreKind = K8sResourceCommon & {
     };
   } & {
     type: nsSpecType;
+  };
+};
+
+export enum PlacementPolicy {
+  Spread = 'Spread',
+  Mirror = 'Mirror',
+}
+
+export enum BucketClassType {
+  STANDARD = 'Standard',
+  NAMESPACE = 'Namespace',
+}
+
+export type BucketClassKind = K8sResourceCommon & {
+  spec: {
+    placementPolicy: {
+      tiers: {
+        backingStores: string[];
+        placement: PlacementPolicy;
+      }[];
+    };
+    namespacePolicy: {
+      type: NamespacePolicyType;
+      single: {
+        resource: string;
+      };
+      multi: {
+        writeResource: string;
+        readResources: string[];
+      };
+      cache: {
+        caching: {
+          ttl: number;
+        };
+        hubResource: string;
+      };
+    };
   };
 };
