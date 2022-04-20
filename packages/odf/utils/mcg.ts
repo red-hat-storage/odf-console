@@ -7,7 +7,13 @@ import {
 } from '@odf/shared/types';
 import { RowFilter } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { AWS_REGIONS, BC_PROVIDERS, StoreType } from '../constants';
+import {
+  AWS_REGIONS,
+  BC_PROVIDERS,
+  NS_PROVIDERS_NOOBAA_MAP,
+  StoreType,
+} from '../constants';
+import { NamespaceStoreKind } from '../types';
 
 export const getAttachOBCPatch = (
   obcName: string,
@@ -183,3 +189,18 @@ export const isObjectSC = (sc: StorageClass) =>
 export const awsRegionItems = _.zipObject(AWS_REGIONS, AWS_REGIONS);
 
 export const endpointsSupported = [BC_PROVIDERS.S3, BC_PROVIDERS.IBM];
+
+export const getNamespaceStoreType = (ns: NamespaceStoreKind): BC_PROVIDERS => {
+  let type: BC_PROVIDERS = null;
+  Object.entries(NS_PROVIDERS_NOOBAA_MAP).forEach(([k, v]) => {
+    if (ns?.spec?.[v]) {
+      type = k as BC_PROVIDERS;
+    }
+  });
+  return type;
+};
+
+export const getNSRegion = (ns: NamespaceStoreKind): string => {
+  const type = getNamespaceStoreType(ns);
+  return ns.spec?.[NS_PROVIDERS_NOOBAA_MAP[type]]?.region;
+};
