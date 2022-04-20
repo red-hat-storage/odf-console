@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
 import classNames from 'classnames';
@@ -15,7 +16,6 @@ import {
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
 import { FEATURES } from '../../features';
-import { advancedVaultModal } from '../../modals/advanced-kms-modal/advanced-vault-modal';
 import {
   VaultConfig,
   ProviderNames,
@@ -23,7 +23,6 @@ import {
   KmsEncryptionLevel,
   VaultAuthMethodMapping,
 } from '../../types';
-import { WizardState } from '../create-storage-system/reducer';
 import { KMSConfigureProps, EncryptionDispatch } from './providers';
 import { parseURL, kmsConfigValidation, isLengthUnity } from './utils';
 import {
@@ -33,6 +32,8 @@ import {
 } from './vault-auth-methods';
 import './kms-config.scss';
 
+const LAUNCH_MODAL_KEY = 'ADVANCED_VAULT';
+
 export const ValutConfigure: React.FC<KMSConfigureProps> = ({
   state,
   dispatch,
@@ -41,11 +42,19 @@ export const ValutConfigure: React.FC<KMSConfigureProps> = ({
 }) => {
   const { t } = useTranslation('plugin__odf-console');
 
+  const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
   const isKmsVaultSASupported = useFlag(FEATURES.ODF_VAULT_SA_KMS);
 
   const vaultState: VaultConfig = state.kms?.[ProviderNames.VAULT];
   const vaultStateClone: VaultConfig = _.cloneDeep(vaultState);
   const { encryption } = state;
+
+  const openAdvancedModal = () =>
+    launchModal(LAUNCH_MODAL_KEY, {
+      state,
+      dispatch,
+      isWizardFlow,
+    });
 
   const updateVaultState = (vaultConfig: VaultConfig) =>
     dispatch({
@@ -99,6 +108,7 @@ export const ValutConfigure: React.FC<KMSConfigureProps> = ({
 
   return (
     <>
+      <Modal {...modalProps} />
       {isKmsVaultSASupported && (
         <FormGroup
           fieldId="authentication-method"
@@ -135,21 +145,28 @@ export const ValutConfigure: React.FC<KMSConfigureProps> = ({
           dispatch,
           updateVaultState,
           setAuthValue,
+          openAdvancedModal,
         }}
       />
     </>
   );
 };
 
+const extraMap = {
+  [LAUNCH_MODAL_KEY]: React.lazy(
+    () => import('../../modals/advanced-kms-modal/advanced-vault-modal')
+  ),
+};
+
 const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
   t,
-  state,
   vaultState,
   className,
   isWizardFlow,
   dispatch,
   updateVaultState,
   setAuthValue,
+  openAdvancedModal,
 }) => {
   const vaultStateClone: VaultConfig = _.cloneDeep(vaultState);
   const Component: React.FC<VaultAuthMethodProps> =
@@ -173,13 +190,6 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
       });
     }
   }, [dispatch, vaultState]);
-
-  const openAdvancedModal = () =>
-    advancedVaultModal({
-      state,
-      dispatch,
-      isWizardFlow,
-    });
 
   // vault state update
   const setServiceName = (name: string) => {
@@ -325,7 +335,6 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
 };
 
 export type ValutConnectionFormProps = {
-  state: Pick<WizardState['securityAndNetwork'], 'encryption' | 'kms'>;
   vaultState: VaultConfig;
   className: string;
   infraType?: string;
@@ -334,4 +343,5 @@ export type ValutConnectionFormProps = {
   dispatch: EncryptionDispatch;
   updateVaultState: (VaultConfig) => void;
   setAuthValue: (string) => void;
+  openAdvancedModal: () => void;
 };
