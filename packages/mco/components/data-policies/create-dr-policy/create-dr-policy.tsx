@@ -38,12 +38,14 @@ import {
   InputGroup,
   ActionGroup,
   Button,
+  ButtonVariant,
   Flex,
   FlexItem,
   Dropdown,
   DropdownItem,
   DropdownToggle,
   Alert,
+  AlertVariant,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import {
@@ -422,11 +424,28 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
             isRequired
           />
         </FormGroup>
-        <FormGroup fieldId="connect-clusters" label={t('Connect clusters')}>
+        <FormGroup
+          fieldId="connect-clusters"
+          label={t('Connect clusters')}
+          helperText={t(
+            'Enables mirroring/replication between the two selected clusters and ensures failover from primary cluster to secondary cluster in the event of an outage.'
+          )}
+          isHelperTextBeforeField
+        >
           <SelectClusterList
             selectedClusters={selectedClusters}
             setSelectedClusters={setSelectedClusters}
           />
+        </FormGroup>
+        <FormGroup fieldId="policy-name">
+          <Alert
+            className="co-alert mco-create-data-policy__alert"
+            title={t(
+              'Data Foundation 4.11 or above must be installed on the managed clusters to setup connection for enabling replication/mirroring'
+            )}
+            variant={AlertVariant.info}
+            isInline
+          ></Alert>
         </FormGroup>
         {!!clustersData.length && (
           <FormGroup fieldId="selected-clusters" label={t('Selected clusters')}>
@@ -476,21 +495,23 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           clustersData?.map((c) =>
             c.csvLoaded && !c?.isValidODFVersion ? (
               <Alert
+                className="co-alert mco-create-data-policy__alert"
                 title={t(
                   '{{ name }} has invalid ODF version, update to ODF {{ version }} or latest version to enable DR protection',
                   { name: c?.name, version: ODF_MINIMUM_SUPPORT }
                 )}
-                variant="danger"
+                variant={AlertVariant.danger}
                 isInline
               />
             ) : (
               c?.storageSystem === '' &&
               c.storageSystemLoaded && (
                 <Alert
+                  className="co-alert mco-create-data-policy__alert"
                   title={t('{{ name }} is not connected to RHCS', {
                     name: c?.name,
                   })}
-                  variant="danger"
+                  variant={AlertVariant.danger}
                   isInline
                 />
               )
@@ -499,14 +520,19 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
         )}
         {errorMessage && (
           <FormGroup fieldId="error-message">
-            <Alert title={t('An error occurred')} variant="danger" isInline>
+            <Alert
+              className="co-alert mco-create-data-policy__alert"
+              title={t('An error occurred')}
+              variant="danger"
+              isInline
+            >
               {errorMessage}
             </Alert>
           </FormGroup>
         )}
         <ActionGroup className="mco-create-data-policy__action-group">
           <Button
-            variant="primary"
+            variant={ButtonVariant.primary}
             onClick={onCreate}
             isDisabled={
               !policyName ||
@@ -516,7 +542,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           >
             {t('Create')}
           </Button>
-          <Button variant="link" onClick={history.goBack}>
+          <Button variant={ButtonVariant.secondary} onClick={history.goBack}>
             {t('Cancel')}
           </Button>
         </ActionGroup>

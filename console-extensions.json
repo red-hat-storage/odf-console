@@ -100,7 +100,7 @@
     "properties": {
       "id": "mco-data-services",
       "perspective": "acm",
-      "name": "Data Services",
+      "name": "%plugin__odf-plugin~Data Services%",
       "insertBefore": "acm-applications"
     },
     "flags": {
@@ -113,7 +113,7 @@
       "id": "mco-data-policies",
       "perspective": "acm",
       "section": "mco-data-services",
-      "name": "Data policies",
+      "name": "%plugin__odf-plugin~Data policies%",
       "href": "/multicloud/data-services/data-policies"
     },
     "flags": {
