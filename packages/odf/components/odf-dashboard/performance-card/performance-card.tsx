@@ -3,6 +3,10 @@ import LineGraph, {
   LineGraphProps,
 } from '@odf/shared/dashboards/line-graph/line-graph';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { ODFStorageSystem } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import Table, { Column } from '@odf/shared/table/table';
@@ -17,7 +21,6 @@ import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   UtilizationDurationDropdown,
-  usePrometheusPoll,
   useUtilizationDuration,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
@@ -126,20 +129,24 @@ const PerformanceCard: React.FC = () => {
     StorageSystemKind[]
   >(storageSystemResource);
   const { duration } = useUtilizationDuration();
-  const [latency, latencyError, latencyLoading] = usePrometheusPoll({
+  const [latency, latencyError, latencyLoading] = useCustomPrometheusPoll({
     query: UTILIZATION_QUERY[StorageDashboard.LATENCY],
     endpoint: 'api/v1/query_range' as any,
     timespan: duration,
+    basePath: usePrometheusBasePath(),
   });
-  const [throughput, throughputError, throughputLoading] = usePrometheusPoll({
-    query: UTILIZATION_QUERY[StorageDashboard.THROUGHPUT],
-    endpoint: 'api/v1/query_range' as any,
-    timespan: duration,
-  });
-  const [iops, iopsError, iopsLoading] = usePrometheusPoll({
+  const [throughput, throughputError, throughputLoading] =
+    useCustomPrometheusPoll({
+      query: UTILIZATION_QUERY[StorageDashboard.THROUGHPUT],
+      endpoint: 'api/v1/query_range' as any,
+      timespan: duration,
+      basePath: usePrometheusBasePath(),
+    });
+  const [iops, iopsError, iopsLoading] = useCustomPrometheusPoll({
     query: UTILIZATION_QUERY[StorageDashboard.IOPS],
     endpoint: 'api/v1/query_range' as any,
     timespan: duration,
+    basePath: usePrometheusBasePath(),
   });
 
   const rawRows = generateDataFrames(systems, latency, throughput, iops);

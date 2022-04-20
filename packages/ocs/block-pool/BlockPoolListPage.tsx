@@ -1,5 +1,9 @@
 import * as React from 'react';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import {
@@ -25,7 +29,6 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
@@ -396,24 +399,26 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
 
   // Metrics
   const [poolRawCapacityMetrics, rawCapLoadError, rawCapLoading] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       endpoint: 'api/v1/query' as any,
       query: getPoolQuery(
         memoizedPoolNames,
         StorageDashboardQuery.POOL_RAW_CAPACITY_USED
       ),
       namespace: CEPH_NS,
+      basePath: usePrometheusBasePath(),
     });
 
   // compression queries
   const [compressionSavings, compressionLoadError, compressionLoading] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       endpoint: 'api/v1/query' as any,
       query: getPoolQuery(
         poolNames,
         StorageDashboardQuery.POOL_COMPRESSION_SAVINGS
       ),
       namespace: CEPH_NS,
+      basePath: usePrometheusBasePath(),
     });
 
   const customData = React.useMemo(() => {

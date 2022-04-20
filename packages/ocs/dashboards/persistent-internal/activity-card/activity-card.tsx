@@ -1,4 +1,8 @@
 import * as React from 'react';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import {
   EventModel,
@@ -17,7 +21,6 @@ import {
   ActivityBody,
   OngoingActivityBody,
   RecentEventsBody,
-  usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import * as _ from 'lodash';
@@ -106,9 +109,10 @@ const OngoingActivity = () => {
     useK8sWatchResource<K8sResourceKind[]>(subscriptionResource);
   const [cluster, clusterLoaded] = useK8sWatchResource(storageClusterResource);
 
-  const [resiliencyMetric, , metricsLoading] = usePrometheusPoll({
+  const [resiliencyMetric, , metricsLoading] = useCustomPrometheusPoll({
     query: DATA_RESILIENCY_QUERY[StorageDashboardQuery.RESILIENCY_PROGRESS],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const ocsSubscription: SubscriptionKind = getOCSSubscription(subscriptions);

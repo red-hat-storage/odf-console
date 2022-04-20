@@ -6,7 +6,7 @@ import {
 import { ACMManagedClusterModel } from '@odf/mco/models';
 import { ACMManagedClusterKind } from '@odf/mco/types';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
-import { useURLPoll } from '@odf/shared/hooks/use-url-poll/use-url-poll';
+import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
 import { ODFStorageSystem } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import Table from '@odf/shared/table/table';
@@ -15,7 +15,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
 import {
   PrometheusResult,
-  PrometheusResponse,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
@@ -220,17 +219,17 @@ const SystemCapacityCard: React.FC = () => {
     });
 
   const [usedCapacity, errorUsedCapacity, loadingUsedCapacity] =
-    useURLPoll<PrometheusResponse>(
-      `${ACM_ENDPOINT}=${
-        CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_FILE_BLOCK]
-      }`
-    );
+    useCustomPrometheusPoll({
+      endpoint: 'api/v1/query' as any,
+      query: CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_FILE_BLOCK],
+      basePath: ACM_ENDPOINT,
+    });
   const [totalCapacity, errorTotalCapacity, loadingTotalCapacity] =
-    useURLPoll<PrometheusResponse>(
-      `${ACM_ENDPOINT}=${
-        CAPACITY_QUERIES[StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK]
-      }`
-    );
+    useCustomPrometheusPoll({
+      endpoint: 'api/v1/query' as any,
+      query: CAPACITY_QUERIES[StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK],
+      basePath: ACM_ENDPOINT,
+    });
 
   React.useEffect(() => {
     const ManagedClusterLink: ManagedClusterLinkMap =

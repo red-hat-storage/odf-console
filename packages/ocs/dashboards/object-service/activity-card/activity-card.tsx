@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { RGW_FLAG } from '@odf/core/features';
 import { secretResource } from '@odf/core/resources';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { EventModel } from '@odf/shared/models';
 import { K8sResourceKind } from '@odf/shared/types';
 import { getResiliencyProgress } from '@odf/shared/utils';
@@ -13,7 +17,6 @@ import {
   RecentEventsBody,
   OngoingActivityBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -51,17 +54,20 @@ const OngoingActivity: React.FC = () => {
       ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY
     ](rgwPrefix);
 
-  const [progress, progressError] = usePrometheusPoll({
+  const [progress, progressError] = useCustomPrometheusPoll({
     query: dataResiliencyQueryMap.MCG_REBUILD_PROGRESS_QUERY,
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [eta] = usePrometheusPoll({
+  const [eta] = useCustomPrometheusPoll({
     query: dataResiliencyQueryMap.MCG_REBUILD_TIME_QUERY,
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [rgwProgress, rgwProgressError] = usePrometheusPoll({
+  const [rgwProgress, rgwProgressError] = useCustomPrometheusPoll({
     query: rgwResiliencyQuery,
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const prometheusActivities = [];

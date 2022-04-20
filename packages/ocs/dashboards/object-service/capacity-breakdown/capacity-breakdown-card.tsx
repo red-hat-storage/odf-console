@@ -6,6 +6,10 @@ import { LabelPadding } from '@odf/shared/dashboards/breakdown-card/breakdown-ch
 import { getGroupedSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import { Colors } from '@odf/shared/dashboards/breakdown-card/consts';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { SubscriptionModel } from '@odf/shared/models';
 import { K8sResourceKind, SubscriptionKind } from '@odf/shared/types';
 import { DataPoint, getInstantVectorStats } from '@odf/shared/utils';
@@ -15,7 +19,6 @@ import {
   useK8sWatchResource,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
@@ -139,17 +142,20 @@ const ServiceTypeALL: React.FC<ServiceTypeProps> = ({
   ocsVersion,
   labelPadding,
 }) => {
-  const [rgw, rgwLoadError, rgwLoading] = usePrometheusPoll({
+  const [rgw, rgwLoadError, rgwLoading] = useCustomPrometheusPoll({
     query: prometheusQueries?.[0],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [noobaa, noobaaLoadError, noobaaLoading] = usePrometheusPoll({
+  const [noobaa, noobaaLoadError, noobaaLoading] = useCustomPrometheusPoll({
     query: prometheusQueries?.[1],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [object, objectLoadError, objectLoading] = usePrometheusPoll({
+  const [object, objectLoadError, objectLoading] = useCustomPrometheusPoll({
     query: prometheusQueries?.[2],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const loading = rgwLoading || noobaaLoading || objectLoading;
@@ -188,14 +194,18 @@ const ServiceTypeMCG: React.FC<ServiceTypeProps> = ({
   ocsVersion,
   labelPadding,
 }) => {
-  const [byUsed, byUsedError, byUsedLoading] = usePrometheusPoll({
+  const [byUsed, byUsedError, byUsedLoading] = useCustomPrometheusPoll({
     query: prometheusQueries?.[0],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [totalUsed, totalUsedError, totalUsedLoading] = usePrometheusPoll({
-    query: prometheusQueries?.[1],
-    endpoint: 'api/v1/query' as any,
-  });
+  const [totalUsed, totalUsedError, totalUsedLoading] = useCustomPrometheusPoll(
+    {
+      query: prometheusQueries?.[1],
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    }
+  );
 
   const loading = byUsedLoading || totalUsedLoading;
   const error = !!byUsedError || !!totalUsedError;
@@ -232,13 +242,17 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({
   ocsVersion,
   labelPadding,
 }) => {
-  const [totalUsed, totalUsedError, totalUsedLoading] = usePrometheusPoll({
-    query: prometheusQueries?.[0],
-    endpoint: 'api/v1/query' as any,
-  });
-  const [used, usedError, usedLoading] = usePrometheusPoll({
+  const [totalUsed, totalUsedError, totalUsedLoading] = useCustomPrometheusPoll(
+    {
+      query: prometheusQueries?.[0],
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    }
+  );
+  const [used, usedError, usedLoading] = useCustomPrometheusPoll({
     query: prometheusQueries?.[1],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const loading = usedLoading || totalUsedLoading;

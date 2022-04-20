@@ -2,6 +2,10 @@ import * as React from 'react';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { LoadingInline } from '@odf/shared/generic/Loading';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
@@ -24,7 +28,6 @@ import {
   WatchK8sResource,
   k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import classNames from 'classnames';
@@ -188,13 +191,15 @@ const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
 }) => {
   const { t } = useTranslation('plugin__odf-console');
 
-  const [cephTotal, totalError, totalLoading] = usePrometheusPoll({
+  const [cephTotal, totalError, totalLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_TOTAL],
+    basePath: usePrometheusBasePath(),
   });
-  const [cephUsed, usedError, usedLoading] = usePrometheusPoll({
+  const [cephUsed, usedError, usedLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_USED],
+    basePath: usePrometheusBasePath(),
   });
   const [values, loading, loadError] = [
     [

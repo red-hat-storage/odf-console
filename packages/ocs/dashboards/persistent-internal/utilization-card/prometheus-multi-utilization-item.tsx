@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { getRangeVectorStats } from '@odf/shared/charts';
-import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  usePrometheusPoll,
-  useUtilizationDuration,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
+import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
+import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { MultilineUtilizationItem } from './multi-utilization-item';
 
@@ -23,17 +24,18 @@ export const PrometheusMultilineUtilizationItem: React.FC<PrometheusMultilineUti
     const [queryA, queryB] = queries;
 
     const [firstMetric, firstMetricError, firstMetricLoading] =
-      usePrometheusPoll({
+      useCustomPrometheusPoll({
         query: queryA.query,
         endpoint: 'api/v1/query_range' as any,
         timespan: duration,
+        basePath: usePrometheusBasePath(),
       });
-
     const [secondMetric, secondMetricError, secondMetricLoading] =
-      usePrometheusPoll({
+      useCustomPrometheusPoll({
         query: queryB?.query,
         endpoint: 'api/v1/query_range' as any,
         timespan: duration,
+        basePath: usePrometheusBasePath(),
       });
 
     const hasError = firstMetricError || secondMetricError;

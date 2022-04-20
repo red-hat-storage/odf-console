@@ -1,11 +1,14 @@
 import * as React from 'react';
 import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
+import {
   Humanize,
   K8sKind,
   K8sResourceCommon,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { Link } from 'react-router-dom';
 import {
   PopoverPosition,
@@ -33,6 +36,7 @@ export type ConsumerPopoverProps = PopoverProps & {
   humanize: any;
   description?: any;
   consumers?: any;
+  basePath?: string;
 };
 
 const ConsumerPopover: React.FC<ConsumerPopoverProps> = React.memo(
@@ -45,6 +49,7 @@ const ConsumerPopover: React.FC<ConsumerPopoverProps> = React.memo(
     position = PopoverPosition.top,
     description,
     children,
+    basePath,
   }) => {
     const { t } = useCustomTranslation();
     const [isOpen, setOpen] = React.useState(false);
@@ -64,6 +69,7 @@ const ConsumerPopover: React.FC<ConsumerPopoverProps> = React.memo(
             namespace={namespace}
             isOpen={isOpen}
             description={description}
+            basePath={basePath}
           >
             {children}
           </PopoverBody>
@@ -98,6 +104,7 @@ type PopoverBodyProps = PopoverProps & {
   error?: boolean;
   isOpen: boolean;
   humanize: Humanize;
+  basePath?: string;
 };
 
 const getResourceToWatch = (
@@ -123,8 +130,17 @@ type ListItemProps = {
 };
 
 export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
-  ({ humanize, consumers, namespace, isOpen, description, children }) => {
+  ({
+    humanize,
+    consumers,
+    namespace,
+    isOpen,
+    description,
+    children,
+    basePath,
+  }) => {
     const { t } = useCustomTranslation();
+    const defaultBasePath = usePrometheusBasePath();
     const [currentConsumer, setCurrentConsumer] = React.useState(consumers[0]);
     const [dropdownOpen, setDropdownOpen] = React.useState(false);
     const { query, model, metric, fieldSelector } = currentConsumer;
@@ -136,10 +152,11 @@ export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
     const [consumerData, consumerLoaded, consumersLoadError] =
       useK8sWatchResource<K8sResourceCommon[]>(k8sResource);
 
-    const [metrics, metricsError, metricsLoading] = usePrometheusPoll({
+    const [metrics, metricsError, metricsLoading] = useCustomPrometheusPoll({
       endpoint: isOpen ? ('api/v1/query' as any) : null,
       query: isOpen ? query : null,
       namespace,
+      basePath: basePath || defaultBasePath,
     });
 
     const top5Data = [];

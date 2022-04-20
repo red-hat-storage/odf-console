@@ -3,6 +3,10 @@ import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { RGW_FLAG } from '@odf/core/features';
 import { getODFVersion } from '@odf/core/utils';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
   InfrastructureModel,
@@ -25,7 +29,6 @@ import {
   DetailsBody,
   DetailItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -49,14 +52,18 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const [subscription, subscriptionLoaded] =
     useK8sWatchResource<K8sResourceKind[]>(SubscriptionResource);
 
-  const [systemResult, systemLoadError] = usePrometheusPoll({
+  const [systemResult, systemLoadError] = useCustomPrometheusPoll({
     query: NOOBAA_SYSTEM_NAME_QUERY,
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
-  const [dashboardLinkResult, dashboardLinkLoadError] = usePrometheusPoll({
-    query: NOOBAA_DASHBOARD_LINK_QUERY,
-    endpoint: 'api/v1/query' as any,
-  });
+  const [dashboardLinkResult, dashboardLinkLoadError] = useCustomPrometheusPoll(
+    {
+      query: NOOBAA_DASHBOARD_LINK_QUERY,
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    }
+  );
 
   const { t } = useTranslation();
   const isODF = useFlag(ODF_MODEL_FLAG);

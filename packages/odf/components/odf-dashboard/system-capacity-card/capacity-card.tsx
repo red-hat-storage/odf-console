@@ -2,6 +2,10 @@ import * as React from 'react';
 import CapacityCard, {
   CapacityMetricDatum,
 } from '@odf/shared/dashboards/capacity-card/capacity-card';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { StorageSystemKind } from '@odf/shared/types';
 import {
@@ -15,7 +19,6 @@ import {
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -42,15 +45,17 @@ const SystemCapacityCard: React.FC = () => {
   >(storageSystemResource);
 
   const [usedCapacity, errorUsedCapacity, loadingUsedCapacity] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_FILE_BLOCK],
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
 
   const [totalCapacity, errorTotalCapacity, loadingTotalCapacity] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: CAPACITY_QUERIES[StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK],
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
 
   const data =

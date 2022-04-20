@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { EfficiencyItemBody } from '@odf/shared/dashboards/storage-efficiency/storage-efficiency-card-item';
 import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
+import {
   getInstantVectorStats,
   humanizeBinaryBytes,
   humanizeNumber,
@@ -9,7 +13,6 @@ import {
 import {
   DetailItem,
   DetailsBody,
-  usePrometheusPoll,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -35,21 +38,25 @@ export const CompressionDetailsCard: React.FC = () => {
   );
 
   const [poolCompressionSavings, savingsError, savingsLoading] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: queries[0],
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
 
   const [poolCompressionEligibility, eligibilityError, eligibilityLoading] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: queries[1],
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
 
-  const [poolCompressionRatio, ratioError, ratioLoading] = usePrometheusPoll({
-    query: queries[2],
-    endpoint: 'api/v1/query' as any,
-  });
+  const [poolCompressionRatio, ratioError, ratioLoading] =
+    useCustomPrometheusPoll({
+      query: queries[2],
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    });
 
   const compressionEligibilityProps = {
     stats: Number(getInstantVectorStats(poolCompressionEligibility)),

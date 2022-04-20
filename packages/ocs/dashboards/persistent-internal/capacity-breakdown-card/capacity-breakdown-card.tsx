@@ -3,11 +3,14 @@ import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdo
 import { getSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
+import {
   getInstantVectorStats,
   humanizeBinaryBytes,
   sortInstantVectorStats,
 } from '@odf/shared/utils';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import {
   Select,
@@ -47,21 +50,23 @@ const BreakdownCard: React.FC = () => {
 
   const { queries, model, metric } = breakdownQueryMapCEPH[metricType];
 
-  const [modelByUsed, modelUsedError, modelUsedLoading] = usePrometheusPoll({
-    query: queries[modelByUsedQueryMap[metricType]],
-    endpoint: 'api/v1/query' as any,
-  });
-
+  const [modelByUsed, modelUsedError, modelUsedLoading] =
+    useCustomPrometheusPoll({
+      query: queries[modelByUsedQueryMap[metricType]],
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    });
   const [modelTotalUsed, modelTotalError, modalTotalLoading] =
-    usePrometheusPoll({
+    useCustomPrometheusPoll({
       query: queries[modelByTotalQueryMap[metricType]],
       endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
     });
-
-  const [cephUsedMetric, cephError, cephLoading] = usePrometheusPoll({
+  const [cephUsedMetric, cephError, cephLoading] = useCustomPrometheusPoll({
     query:
       CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
     endpoint: 'api/v1/query' as any,
+    basePath: usePrometheusBasePath(),
   });
 
   const queriesLoadError = modelUsedError || modelTotalError || cephError;
