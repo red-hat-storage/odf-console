@@ -122,6 +122,7 @@
     "exposedModules": {
       "dashboard": "@odf/core/components/odf-dashboard/dashboard",
       "features": "@odf/core/features",
+      "wizard": "@odf/core/components/create-storage-system/create-storage-system",
       "dataPolicies": "@odf/mco/components/data-policies/data-policies-list",
       "createDataPolicy": "@odf/mco/components/data-policies/create-dr-policy/create-dr-policy",
       "obc": "@odf/core/components/mcg/ObjectBucketClaim",
