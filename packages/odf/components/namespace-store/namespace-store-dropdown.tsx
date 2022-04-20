@@ -23,6 +23,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
   enabledItems,
   namespacePolicy,
   creatorDisabled,
+  launchModal,
 }) => {
   const { t } = useTranslation();
   const [isOpen, setOpen] = React.useState(false);
@@ -74,7 +75,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
               data-test="create-new-namespacestore-button"
               key="first-item"
               component="button"
-              onClick={() => {}}
+              onClick={launchModal}
             >
               {t('Create new NamespaceStore ')}
             </DropdownItem>,
@@ -90,6 +91,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
     namespacePolicy,
     enabledItems,
     onChange,
+    launchModal,
   ]);
 
   return (
@@ -136,4 +138,5 @@ type NamespaceStoreDropdownProps = {
   enabledItems?: string[];
   namespacePolicy?: NamespacePolicyType;
   creatorDisabled?: boolean;
+  launchModal?: () => void;
 };

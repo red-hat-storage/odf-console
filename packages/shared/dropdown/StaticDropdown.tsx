@@ -24,6 +24,7 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
   dropdownItems,
   defaultText = '',
   textGenerator,
+  required,
 }) => {
   const [selectedItem, setSelectedItem] = React.useState(defaultSelection);
   const [isOpen, setOpen] = React.useState(false);
@@ -55,6 +56,7 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
 
   return (
     <Dropdown
+      required={required}
       className={className}
       isOpen={isOpen}
       dropdownItems={processedDropdownItems}

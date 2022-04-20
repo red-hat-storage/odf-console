@@ -2,11 +2,9 @@ import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
 import { referenceForModel } from '@odf/shared/utils';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, useHistory } from 'react-router';
 import { Title } from '@patternfly/react-core';
-import { ODF_MODEL_FLAG } from '../../features';
 import { NooBaaNamespaceStoreModel } from '../../models';
 import NamespaceStoreForm from './namespace-store-form';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
@@ -15,12 +13,10 @@ const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
   match,
 }) => {
   const { t } = useTranslation();
-  const { ns = CEPH_STORAGE_NAMESPACE, appName } = match.params;
+  const { ns = CEPH_STORAGE_NAMESPACE } = match.params;
 
   const history = useHistory();
   const onCancel = () => history.goBack();
-
-  const isODF = useFlag(ODF_MODEL_FLAG);
 
   return (
     <>
@@ -45,11 +41,7 @@ const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
           const resourcePath = `${referenceForModel(
             NooBaaNamespaceStoreModel
           )}/${getName(resources[lastIndex])}`;
-          isODF
-            ? history.push(`/odf/resource/${resourcePath}`)
-            : history.push(
-                `/k8s/ns/${ns}/clusterserviceversions/${appName}/${resourcePath}`
-              );
+          history.push(`/odf/resource/${resourcePath}`);
         }}
         namespace={ns}
         className="nb-endpoints-page-form__short"

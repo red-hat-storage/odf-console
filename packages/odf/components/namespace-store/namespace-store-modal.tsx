@@ -1,21 +1,24 @@
 import * as React from 'react';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody } from '@odf/shared/modals/Modal';
 import { useTranslation } from 'react-i18next';
-import { Modal } from '@patternfly/react-core';
+import { Modal, ModalVariant } from '@patternfly/react-core';
 import NamespaceStoreForm from './namespace-store-form';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 
 const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
   const { t } = useTranslation();
-  const {
-    isOpen,
-    closeModal,
-    extraProps: { namespace },
-  } = props;
+  const { isOpen, closeModal } = props;
 
   return (
-    <Modal isOpen={isOpen} onClose={closeModal}>
+    <Modal
+      isOpen={isOpen}
+      onClose={closeModal}
+      variant={ModalVariant.small}
+      title={t('Create new NamespaceStore')}
+      hasNoBodyWrapper={true}
+    >
       <div className="nb-endpoints__modal">
         <ModalBody>
           <p>
@@ -24,9 +27,9 @@ const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
             )}
           </p>
           <NamespaceStoreForm
-            namespace={namespace}
-            onCancel={() => close()}
-            redirectHandler={() => close()}
+            namespace={CEPH_STORAGE_NAMESPACE}
+            onCancel={closeModal}
+            redirectHandler={closeModal}
           />
         </ModalBody>
       </div>
