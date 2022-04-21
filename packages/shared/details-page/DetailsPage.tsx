@@ -19,6 +19,7 @@ import {
   SplitItem,
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
+import { LoadingBox } from '../generic/status-box';
 import PageHeading from '../heading/page-heading';
 import { LaunchModal, ModalKeys } from '../modals/modalLauncher';
 import { ResourceIcon } from '../resource-link/resource-link';
@@ -26,10 +27,12 @@ import { getName } from '../selectors';
 import { K8sResourceKind } from '../types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForModel } from '../utils';
+import { ErrorPage } from '../utils/Errors';
 import { getPropertyDescription } from '../utils/swagger';
 import { LabelList } from './label-list';
 import { OwnerReferences } from './owner-references';
 import { Timestamp } from './timestamp';
+import './details.scss';
 
 type DetailsPageProps = {
   pages: NavPage[];
@@ -37,6 +40,8 @@ type DetailsPageProps = {
   resource: K8sResourceCommon;
   resourceModel: K8sKind;
   breadcrumbs?: { name: string; path: string }[];
+  loaded?: boolean;
+  loadError?: any;
 };
 
 type DetailsPageTitleProps = {
@@ -60,17 +65,29 @@ const DetailsPage: React.FC<DetailsPageProps> = ({
   actions,
   breadcrumbs,
   resourceModel,
+  loaded = true,
+  loadError = null,
 }) => (
   <>
-    <PageHeading
-      breadcrumbs={breadcrumbs}
-      title={
-        <DetailsPageTitle resource={resource} resourceModel={resourceModel} />
-      }
-      actions={actions}
-      resource={resource}
-    />
-    <HorizontalNav pages={pages} resource={resource} />
+    {!loaded && <LoadingBox />}
+    {loaded && loadError && <ErrorPage message={loadError?.message} />}
+    {loaded && !loadError && (
+      <>
+        <PageHeading
+          breadcrumbs={breadcrumbs}
+          title={
+            <DetailsPageTitle
+              resource={resource}
+              resourceModel={resourceModel}
+            />
+          }
+          actions={actions}
+          resource={resource}
+          className="odf-resource-details"
+        />
+        <HorizontalNav pages={pages} resource={resource} />{' '}
+      </>
+    )}
   </>
 );
 
