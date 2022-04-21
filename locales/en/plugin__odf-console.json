@@ -7,6 +7,8 @@
   "Get a quick recovery in a remote or secondary cluster with a disaster recovery (DR) policy": "Get a quick recovery in a remote or secondary cluster with a disaster recovery (DR) policy",
   "Policy name": "Policy name",
   "Connect clusters": "Connect clusters",
+  "Enables mirroring/replication between the two selected clusters and ensures failover from primary cluster to secondary cluster in the event of an outage.": "Enables mirroring/replication between the two selected clusters and ensures failover from primary cluster to secondary cluster in the event of an outage.",
+  "Data Foundation 4.11 or above must be installed on the managed clusters to setup connection for enabling replication/mirroring": "Data Foundation 4.11 or above must be installed on the managed clusters to setup connection for enabling replication/mirroring",
   "Selected clusters": "Selected clusters",
   "Replication policy": "Replication policy",
   "Sync schedule": "Sync schedule",
