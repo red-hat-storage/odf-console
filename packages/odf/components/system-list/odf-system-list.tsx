@@ -45,7 +45,7 @@ import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
-import { OperandStatus } from './status';
+import { OperandStatus } from '../utils';
 import ODFSystemLink from './system-link';
 
 type SystemMetrics = {

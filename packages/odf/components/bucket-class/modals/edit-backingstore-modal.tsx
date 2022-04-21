@@ -1,21 +1,23 @@
 import * as React from 'react';
 import { LoadingInline } from '@odf/shared/generic/Loading';
+import { LoadingBox } from '@odf/shared/generic/status-box';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import {
   CommonModalProps,
   ModalBody,
   ModalFooter,
 } from '@odf/shared/modals/Modal';
+import { getName } from '@odf/shared/selectors';
 import { k8sUpdate } from '@openshift-console/dynamic-plugin-sdk';
-import { NamespacePolicyType } from 'packages/odf/constants';
-import {
-  getBackingStoreNames,
-  getBackingStorePolicy,
-  validateDuration,
-} from 'packages/odf/utils';
-import { getName } from 'packages/shared/selectors';
 import { useTranslation } from 'react-i18next';
-import { ActionGroup, Alert, Button, Modal } from '@patternfly/react-core';
+import {
+  ActionGroup,
+  Alert,
+  Button,
+  Modal,
+  ModalVariant,
+} from '@patternfly/react-core';
+import { NamespacePolicyType } from '../../../constants';
 import {
   NooBaaBackingStoreModel,
   NooBaaBucketClassModel,
@@ -27,6 +29,11 @@ import {
   NamespaceStoreKind,
   PlacementPolicy,
 } from '../../../types';
+import {
+  getBackingStoreNames,
+  getBackingStorePolicy,
+  validateDuration,
+} from '../../../utils';
 import BackingStoreSelection from '../backingstore-table';
 import { reducer, initialState } from '../state';
 import { CacheNamespaceStorePage } from '../wizard-pages/namespace-store-pages/cache-namespace-store';
@@ -39,7 +46,7 @@ const BucketClassEditModal: React.FC<BucketClassEditModalProps> = (props) => {
   const {
     isOpen,
     closeModal,
-    extraProps: { bucketClass },
+    extraProps: { resource: bucketClass },
   } = props;
   const isNamespaceType = !!bucketClass.spec?.namespacePolicy;
   const [state, dispatch] = React.useReducer(reducer, initialState);
@@ -251,65 +258,75 @@ const BucketClassEditModal: React.FC<BucketClassEditModalProps> = (props) => {
   };
   return (
     <>
-      <Modal title={t('Edit BucketClass Resource')} isOpen={isOpen}>
-        <ModalBody className="nb-bc-modal">
-          <p className="nb-bc-modal__text">
-            {t(
-              '{{storeType}} represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.',
-              {
-                storeType: isNamespaceType
-                  ? t('NamespaceStore')
-                  : t('BackingStore'),
-              }
-            )}
-          </p>
-          {!isNamespaceType ? (
-            <BackingStoreSelection
-              tier1Policy={policyA}
-              tier2Policy={policyB}
-              selectedTierA={state.tier1BackingStore}
-              selectedTierB={state.tier2BackingStore}
-              setSelectedTierA={(selectedA) =>
-                dispatch({ type: 'setBackingStoreTier1', value: selectedA })
-              }
-              setSelectedTierB={(selectedB) =>
-                dispatch({ type: 'setBackingStoreTier2', value: selectedB })
-              }
-              hideCreateBackingStore
-            />
-          ) : (
-            getNamespaceStorePage()
-          )}
-          {error && (
-            <Alert isInline variant="danger" title={t('An error occurred')}>
-              {(error as any)?.message}
-            </Alert>
-          )}
-        </ModalBody>
-        <ModalFooter>
-          <ActionGroup>
-            <Button
-              onClick={closeModal}
-              aria-label={t('Cancel')}
-              variant="secondary"
-            >
-              {t('Cancel')}
-            </Button>
-            {!inProgress ? (
-              <Button
-                onClick={onSubmit}
-                aria-label={t('Save')}
-                type="submit"
-                className="nb-edit-modal__save-btn"
-                isDisabled={isNamespaceType ? !isEnabledNS() : !isEnabled}
-              >
-                {t('Save')}
-              </Button>
-            ) : (
-              <LoadingInline />
-            )}
-          </ActionGroup>
-        </ModalFooter>
+      <Modal
+        title={t('Edit BucketClass Resource')}
+        isOpen={isOpen}
+        variant={ModalVariant.medium}
+      >
+        {nsLoaded && loaded ? (
+          <>
+            <ModalBody className="nb-bc-modal">
+              <p className="nb-bc-modal__text">
+                {t(
+                  '{{storeType}} represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.',
+                  {
+                    storeType: isNamespaceType
+                      ? t('NamespaceStore')
+                      : t('BackingStore'),
+                  }
+                )}
+              </p>
+              {!isNamespaceType ? (
+                <BackingStoreSelection
+                  tier1Policy={policyA}
+                  tier2Policy={policyB}
+                  selectedTierA={state.tier1BackingStore}
+                  selectedTierB={state.tier2BackingStore}
+                  setSelectedTierA={(selectedA) =>
+                    dispatch({ type: 'setBackingStoreTier1', value: selectedA })
+                  }
+                  setSelectedTierB={(selectedB) =>
+                    dispatch({ type: 'setBackingStoreTier2', value: selectedB })
+                  }
+                  hideCreateBackingStore
+                />
+              ) : (
+                getNamespaceStorePage()
+              )}
+              {error && (
+                <Alert isInline variant="danger" title={t('An error occurred')}>
+                  {(error as any)?.message}
+                </Alert>
+              )}
+            </ModalBody>
+            <ModalFooter>
+              <ActionGroup>
+                <Button
+                  onClick={closeModal}
+                  aria-label={t('Cancel')}
+                  variant="secondary"
+                >
+                  {t('Cancel')}
+                </Button>
+                {!inProgress ? (
+                  <Button
+                    onClick={onSubmit}
+                    aria-label={t('Save')}
+                    type="submit"
+                    className="nb-edit-modal__save-btn"
+                    isDisabled={isNamespaceType ? !isEnabledNS() : !isEnabled}
+                  >
+                    {t('Save')}
+                  </Button>
+                ) : (
+                  <LoadingInline />
+                )}
+              </ActionGroup>
+            </ModalFooter>
+          </>
+        ) : (
+          <LoadingBox />
+        )}
       </Modal>
     </>
   );
@@ -318,5 +335,5 @@ const BucketClassEditModal: React.FC<BucketClassEditModalProps> = (props) => {
 export default BucketClassEditModal;
 
 type BucketClassEditModalProps = CommonModalProps<{
-  bucketClass: BucketClassKind;
+  resource: BucketClassKind;
 }>;
