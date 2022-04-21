@@ -7,6 +7,11 @@ import { RouteComponentProps, match as Match } from 'react-router';
 import { useLocation } from 'react-router-dom';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { ODFStorageSystemMock } from '../../models';
+import {
+  BackingStoreListPage,
+  BucketClassListPage,
+  NamespaceStoreListPage,
+} from '../resource-pages/list-page';
 import { StorageSystemListPage } from '../system-list/odf-system-list';
 import ActivityCard from './activity-card/activity-card';
 import ObjectCapacityCard from './object-storage-card/capacity-card';
@@ -62,6 +67,21 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
       href: 'systems',
       name: t('Storage Systems'),
       component: StorageSystemListPage,
+    },
+    {
+      href: 'resource/noobaa.io~v1alpha1~BackingStore',
+      name: t('Backing Store'),
+      component: BackingStoreListPage,
+    },
+    {
+      href: 'resource/noobaa.io~v1alpha1~BucketClass',
+      name: t('Bucket Class'),
+      component: BucketClassListPage,
+    },
+    {
+      href: 'resource/noobaa.io~v1alpha1~NamespaceStore',
+      name: t('Namespace Store'),
+      component: NamespaceStoreListPage,
     },
   ];
   const { history } = props;
