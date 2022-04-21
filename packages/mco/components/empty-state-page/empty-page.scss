@@ -1,0 +1,14 @@
+.mco-empty-page {
+  &__background {
+    width: 100%;
+    height: 100%;
+    background: var(--pf-global--BackgroundColor--light-300);
+    padding: var(--pf-c-page__main-section--PaddingTop)
+      var(--pf-c-page__main-section--PaddingRight)
+      var(--pf-c-page__main-section--PaddingBottom)
+      var(--pf-c-page__main-section--PaddingLeft);
+  }
+  &__icon {
+    width: 50%;
+  }
+}

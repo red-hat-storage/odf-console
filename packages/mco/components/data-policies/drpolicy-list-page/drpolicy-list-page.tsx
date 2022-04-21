@@ -8,7 +8,6 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
-  ListPageHeader,
   ListPageBody,
   ListPageCreateLink,
   VirtualizedTable,
@@ -22,13 +21,16 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { RouteComponentProps } from 'react-router';
+import { Trans } from 'react-i18next';
+import { useHistory } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { REPLICATION_TYPE, Actions } from '../../../constants/dr-policy';
 import { DRPolicyModel, DRPlacementControlModel } from '../../../models';
 import { DRPolicyKind, DRPlacementControlKind } from '../../../types';
+import EmptyPage from '../../empty-state-page/empty-page';
 import { DRPolicyActions } from '../drpolicy-actions/policy-actions';
 import { ApplicationStatus } from './application-status';
+import './drpolicy-list-page.scss';
 
 type CustomData = {
   launchModal: LaunchModal;
@@ -221,8 +223,9 @@ type DRPolicyListProps = {
   rowData?: any;
 };
 
-export const DRPolicyListPage: React.FC<RouteComponentProps> = () => {
+export const DRPolicyListPage: React.FC = () => {
   const { t } = useCustomTranslation();
+  const history = useHistory();
   const [ModalComponent, props, launchModal] = useModalLauncher(
     DRPolicyActions(t)
   );
@@ -241,27 +244,47 @@ export const DRPolicyListPage: React.FC<RouteComponentProps> = () => {
 
   return (
     <>
-      <ModalComponent {...props} />
-      <ListPageHeader title={'DRPolicies'}>
-        <ListPageCreateLink to={createProps}>
-          {t('Create DRPolicy')}
-        </ListPageCreateLink>
-      </ListPageHeader>
-      <ListPageBody>
-        <ListPageFilter
-          data={data}
-          loaded={drPoliciesLoaded}
-          onFilterChange={onFilterChange}
-          hideColumnManagement={true}
-        />
-        <DRPolicyList
-          data={filteredData as DRPolicyKind[]}
-          unfilteredData={drPolicies}
-          loaded={drPoliciesLoaded}
-          loadError={drPoliciesLoadError}
-          rowData={{ launchModal }}
-        />
-      </ListPageBody>
+      {drPoliciesLoaded &&
+        (drPolicies.length === 0 || drPoliciesLoadError ? (
+          <EmptyPage
+            title={t('No disaster recovery policies yet')}
+            buttonText={t('Create DRPolicy')}
+            onClick={() => history.push(createProps)}
+          >
+            <Trans t={t}>
+              Configure recovery to your failover cluster with a disaster
+              recovery policy.
+              <br />
+              Click the <strong>Create DRPolicy</strong> button to get started.
+            </Trans>
+          </EmptyPage>
+        ) : (
+          <>
+            <ModalComponent {...props} />
+            <ListPageBody>
+              <div className="mco-drpolicy-list__header">
+                <ListPageFilter
+                  data={data}
+                  loaded={drPoliciesLoaded}
+                  onFilterChange={onFilterChange}
+                  hideColumnManagement={true}
+                />
+                <div className="mco-drpolicy-list__createlink">
+                  <ListPageCreateLink to={createProps}>
+                    {t('Create DRPolicy')}
+                  </ListPageCreateLink>
+                </div>
+              </div>
+              <DRPolicyList
+                data={filteredData as DRPolicyKind[]}
+                unfilteredData={drPolicies}
+                loaded={drPoliciesLoaded}
+                loadError={drPoliciesLoadError}
+                rowData={{ launchModal }}
+              />
+            </ListPageBody>
+          </>
+        ))}
     </>
   );
 };
