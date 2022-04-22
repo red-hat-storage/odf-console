@@ -3,29 +3,16 @@ import { LoadingBox } from '@odf/shared/generic/status-box';
 import { SecretModel, StorageClassModel } from '@odf/shared/models';
 import { ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
-import { Flex, FlexItem, Title } from '@patternfly/react-core';
+import { Flex, FlexItem } from '@patternfly/react-core';
 import { BC_PROVIDERS, NOOBAA_TYPE_MAP } from '../../constants';
 import { BackingStoreKind } from '../../types';
 import { getRegion } from '../../utils';
+import { DetailsItem } from './CommonDetails';
+import './common-details.scss';
 
 type ProviderDetailsProps = {
   resource: BackingStoreKind;
 };
-
-type DetailsItemProps = {
-  field: string;
-};
-
-const DetailsItem: React.FC<DetailsItemProps> = ({ field, children }) => (
-  <Flex direction={{ default: 'column' }}>
-    <FlexItem>
-      <Title headingLevel="h6" size="md">
-        {field}
-      </Title>
-    </FlexItem>
-    <FlexItem>{children}</FlexItem>
-  </Flex>
-);
 
 const AWSDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   const { t } = useTranslation();
@@ -34,7 +21,7 @@ const AWSDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   const targetBucket = resource.spec.awsS3.targetBucket;
 
   return (
-    <Flex direction={{ default: 'column' }}>
+    <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
         <DetailsItem field={t('Provider')}>{BC_PROVIDERS.AWS}</DetailsItem>
       </FlexItem>
@@ -63,7 +50,7 @@ const AzureBlobDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   const targetBucket = resource.spec.azureBlob.targetBlobContainer;
 
   return (
-    <Flex direction={{ default: 'column' }}>
+    <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
         <DetailsItem field={t('Provider')}>{BC_PROVIDERS.AZURE}</DetailsItem>
       </FlexItem>
@@ -92,7 +79,7 @@ const S3CompatibleDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   const targetBucket = resource.spec.s3Compatible.targetBucket;
 
   return (
-    <Flex direction={{ default: 'column' }}>
+    <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
         <DetailsItem field={t('Provider')}>{BC_PROVIDERS.S3}</DetailsItem>
       </FlexItem>
@@ -122,7 +109,7 @@ const IBMDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   const targetBucket = resource.spec.ibmCos.targetBucket;
 
   return (
-    <Flex direction={{ default: 'column' }}>
+    <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
         <DetailsItem field={t('Provider')}>{BC_PROVIDERS.IBM}</DetailsItem>
       </FlexItem>
@@ -151,7 +138,7 @@ const GCPDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   const targetBucket = resource.spec.googleCloudStorage.targetBucket;
 
   return (
-    <Flex direction={{ default: 'column' }}>
+    <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
         <DetailsItem field={t('Provider')}>{BC_PROVIDERS.IBM}</DetailsItem>
       </FlexItem>
@@ -177,7 +164,7 @@ const PVCDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   const storageClass = resource.spec.pvPool.storageClass;
 
   return (
-    <Flex direction={{ default: 'column' }}>
+    <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
         <DetailsItem field={t('Provider')}>{BC_PROVIDERS.PVC}</DetailsItem>
       </FlexItem>
