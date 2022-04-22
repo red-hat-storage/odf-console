@@ -49,14 +49,23 @@ type PageHeadingProps = {
   className?: string;
   actions?: any;
   resource?: K8sResourceKind;
+  centerText?: boolean;
 };
 
 const getResourceStatus = (resource: K8sResourceKind): string =>
   _.get(resource, ['status', 'phase'], null);
 
 const PageHeading: React.FC<PageHeadingProps> = (props) => {
-  const { title, breadcrumbs, style, badge, className, actions, resource } =
-    props;
+  const {
+    title,
+    breadcrumbs,
+    style,
+    badge,
+    className,
+    actions,
+    resource,
+    centerText,
+  } = props;
   const resourceTitle = title;
   const showBreadcrumbs = !!breadcrumbs;
   const showActions = !!actions;
@@ -86,7 +95,9 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
         </Split>
       )}
       <div className="odf-title-details">
-        <h1>
+        <h1
+          className={classNames({ 'co-m-pane__heading--center': centerText })}
+        >
           <div className="co-m-pane__name co-resource-item">
             <span
               data-test-id="resource-title"
@@ -101,12 +112,12 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
             </span>
           </div>
         </h1>
+        {showActions && (
+          <div className="co-actions" data-test-id="details-actions">
+            {actions()}
+          </div>
+        )}
       </div>
-      {showActions && (
-        <div className="co-actions" data-test-id="details-actions">
-          {actions()}
-        </div>
-      )}
       {props.children}
     </div>
   );

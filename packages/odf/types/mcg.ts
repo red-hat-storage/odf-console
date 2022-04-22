@@ -1,3 +1,4 @@
+import { K8sResourceCondition } from '@odf/shared/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import {
   NamespacePolicyType,
@@ -10,10 +11,13 @@ import {
 export type BackingStoreKind = K8sResourceCommon & {
   spec: {
     [key in SpecProvider]: {
-      [key: string]: string;
+      [key: string]: any;
     };
   } & {
     type: SpecType;
+  };
+  status: {
+    conditions: K8sResourceCondition[];
   };
 };
 
