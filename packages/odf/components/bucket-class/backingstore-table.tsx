@@ -31,7 +31,7 @@ import { PlusCircleIcon } from '@patternfly/react-icons';
 import { NooBaaBackingStoreModel } from '../../models';
 import { BackingStoreKind, PlacementPolicy } from '../../types';
 import {
-  getBackingStoreType,
+  getMCGStoreType,
   getBSLabel,
   getBucketName,
   getRegion,
@@ -92,7 +92,7 @@ const RowRenderer: React.FC<RowProps<BackingStoreKind, CustomData>> = ({
         {getBucketName(obj)}
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        {getBackingStoreType(obj)}
+        {getMCGStoreType(obj)}
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
         {getRegion(obj)}

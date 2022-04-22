@@ -43,6 +43,9 @@ export type NamespaceStoreKind = K8sResourceCommon & {
   } & {
     type: nsSpecType;
   };
+  status: {
+    conditions: K8sResourceCondition[];
+  };
 };
 
 export enum PlacementPolicy {

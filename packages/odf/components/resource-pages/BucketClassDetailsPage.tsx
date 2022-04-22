@@ -1,14 +1,11 @@
 import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
-import DetailsPage, {
-  ResourceSummary,
-} from '@odf/shared/details-page/DetailsPage';
+import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { referenceForModel } from '@odf/shared/utils';
-import { Conditions } from '@odf/shared/utils/Conditions';
 import {
   ResourceYAMLEditor,
   useK8sWatchResource,
@@ -18,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { NooBaaBucketClassModel } from '../../models';
 import { BucketClassKind } from '../../types';
-import { DetailsItem } from './CommonDetails';
+import { CommonDetails, DetailsItem } from './CommonDetails';
 
 type BucketClassDetailsPageProps = {
   match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
@@ -70,40 +67,22 @@ const BCDetails: DetailsType =
       ? t('Placement Policy')
       : t('Namespace Policy');
     return (
-      <>
-        <div className="co-m-pane__body">
-          <SectionHeading text={t('BucketClass overview')} />
-          <div className="row">
-            <div className="col-sm-6">
-              <ResourceSummary
-                resource={obj}
-                launchModal={launchModal}
-                resourceModel={NooBaaBucketClassModel}
-              />
-            </div>
+      <CommonDetails
+        resource={obj}
+        launchModal={launchModal}
+        resourceModel={NooBaaBucketClassModel}
+      >
+        <SectionHeading text={title} />
+        <div className="row">
+          <div className="col-sm-6">
+            {isPlacementPolicyType ? (
+              <PlacementPolicyDetails resource={obj} />
+            ) : (
+              <NamespacePolicyDetails resource={obj} />
+            )}
           </div>
         </div>
-        <div className="co-m-pane__body">
-          <SectionHeading text={title} />
-          <div className="row">
-            <div className="col-sm-6">
-              {isPlacementPolicyType ? (
-                <PlacementPolicyDetails resource={obj} />
-              ) : (
-                <NamespacePolicyDetails resource={obj} />
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="co-m-pane__body">
-          <div className="row">
-            <div className="co-m-pane__body">
-              <SectionHeading text={t('Conditions')} />
-              <Conditions conditions={obj.status.conditions} />
-            </div>
-          </div>
-        </div>
-      </>
+      </CommonDetails>
     );
   };
 
