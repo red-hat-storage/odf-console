@@ -7,52 +7,91 @@ import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
-import { K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import { Conditions } from '@odf/shared/utils/Conditions';
 import {
   ResourceYAMLEditor,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
-import { NooBaaBackingStoreModel } from '../../models';
-import { BackingStoreKind } from '../../types';
-import ProviderDetails from './Providers';
+import { NooBaaBucketClassModel } from '../../models';
+import { BucketClassKind } from '../../types';
+import { DetailsItem } from './CommonDetails';
 
-type BackingStoreDetilsPageProps = {
+type BucketClassDetailsPageProps = {
   match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
 };
 
 type DetailsProps = {
-  obj: BackingStoreKind;
+  obj: BucketClassKind;
 };
 
 type DetailsType = (launchModal: any, t) => React.FC<DetailsProps>;
 
-const BSDetails: DetailsType =
+type PolicyDetailsProps = {
+  resource: BucketClassKind;
+};
+
+const PlacementPolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
+  const { t } = useTranslation();
+  const tiers = resource.spec.placementPolicy.tiers;
+  return (
+    <>
+      <DetailsItem field={t('Tiers')} padChildElement showBorder>
+        {tiers.map((tier) => (
+          <DetailsItem
+            field={t('Placement')}
+            key={`${tier.placement}-placement`}
+            showBorder
+          >
+            {tier.placement || 'Spread'}
+          </DetailsItem>
+        ))}
+      </DetailsItem>
+    </>
+  );
+};
+
+const NamespacePolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
+  const { t } = useTranslation();
+  const type = resource.spec.namespacePolicy.type;
+  return <DetailsItem field={t('Policy type')}>{type}</DetailsItem>;
+};
+
+const BCDetails: DetailsType =
   (launchModal, t) =>
   // eslint-disable-next-line react/display-name
   ({ obj }) => {
+    const isPlacementPolicyType = obj.spec.hasOwnProperty('placementPolicy');
+
+    const title = isPlacementPolicyType
+      ? t('Placement Policy')
+      : t('Namespace Policy');
     return (
       <>
         <div className="co-m-pane__body">
-          <SectionHeading text={t('BackingStore overview')} />
+          <SectionHeading text={t('BucketClass overview')} />
           <div className="row">
             <div className="col-sm-6">
               <ResourceSummary
                 resource={obj}
                 launchModal={launchModal}
-                resourceModel={NooBaaBackingStoreModel}
+                resourceModel={NooBaaBucketClassModel}
               />
             </div>
           </div>
         </div>
         <div className="co-m-pane__body">
-          <SectionHeading text={t('Provider details')} />
+          <SectionHeading text={title} />
           <div className="row">
             <div className="col-sm-6">
-              <ProviderDetails resource={obj} />
+              {isPlacementPolicyType ? (
+                <PlacementPolicyDetails resource={obj} />
+              ) : (
+                <NamespacePolicyDetails resource={obj} />
+              )}
             </div>
           </div>
         </div>
@@ -69,20 +108,20 @@ const BSDetails: DetailsType =
   };
 
 type YAMLEditorWrapped = {
-  obj?: BackingStoreKind;
+  obj?: BucketClassKind;
 };
 
 const YAMLEditorWrapped: React.FC<YAMLEditorWrapped> = ({ obj }) => (
   <ResourceYAMLEditor initialResource={obj} />
 );
 
-const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
+const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
   match,
 }) => {
   const { t } = useTranslation('plugin__odf-console');
   const { resourceName: name } = match.params;
-  const [resource, loaded, loadError] = useK8sWatchResource<K8sResourceKind>({
-    kind: referenceForModel(NooBaaBackingStoreModel),
+  const [resource, loaded, loadError] = useK8sWatchResource<BucketClassKind>({
+    kind: referenceForModel(NooBaaBucketClassModel),
     name,
     namespace: CEPH_STORAGE_NAMESPACE,
     isList: false,
@@ -96,17 +135,17 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
       path: '/odf/overview',
     },
     {
-      name: t('BackingStores'),
-      path: '/odf/resource/noobaa.io~v1alpha1~BackingStore',
+      name: t('BucketClasses'),
+      path: '/odf/resource/noobaa.io~v1alpha1~BucketClass',
     },
     {
-      name: t('BackingStore details'),
+      name: t('BucketClass details'),
       path: '',
     },
   ];
 
   const Details = React.useMemo(
-    () => BSDetails(launchModal, t),
+    () => BCDetails(launchModal, t),
     [launchModal, t]
   );
 
@@ -119,7 +158,7 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
         launchModal={launchModal}
         extraProps={{
           resource: memoizedResource,
-          resourceModel: NooBaaBackingStoreModel,
+          resourceModel: NooBaaBucketClassModel,
         }}
       />
     );
@@ -133,7 +172,7 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
         loadError={loadError}
         breadcrumbs={breadcrumbs}
         actions={actions}
-        resourceModel={NooBaaBackingStoreModel}
+        resourceModel={NooBaaBucketClassModel}
         resource={resource}
         pages={[
           {
@@ -152,4 +191,4 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
   );
 };
 
-export default BackingStoreDetailsPage;
+export default BucketClassDetailsPage;

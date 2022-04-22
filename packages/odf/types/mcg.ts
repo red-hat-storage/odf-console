@@ -80,4 +80,7 @@ export type BucketClassKind = K8sResourceCommon & {
       };
     };
   };
+  status: {
+    conditions: K8sResourceCondition[];
+  };
 };

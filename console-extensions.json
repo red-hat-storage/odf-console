@@ -307,6 +307,16 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": "/odf/resource/noobaa.io~v1alpha1~BucketClass/:resourceName",
+      "exact": false,
+      "component": {
+        "$codeRef": "bcDetails.default"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName",
       "exact": false,
       "component": {

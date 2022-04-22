@@ -135,7 +135,8 @@
       "mcoDashboard": "@odf/mco/components/mco-dashboard/dashboard",
       "nsCreate": "@odf/core/components/namespace-store/create-namespace-store",
       "bcCreate": "@odf/core/components/bucket-class/create-bc",
-      "bsDetails": "@odf/core/components/resource-pages/BackingStoreDetailsPage"
+      "bsDetails": "@odf/core/components/resource-pages/BackingStoreDetailsPage",
+      "bcDetails": "@odf/core/components/resource-pages/BucketClassDetailsPage"
     }
   }
 }
