@@ -5,13 +5,13 @@ import { ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import { BC_PROVIDERS, NOOBAA_TYPE_MAP } from '../../constants';
-import { BackingStoreKind } from '../../types';
+import { BackingStoreKind, NamespaceStoreKind } from '../../types';
 import { getRegion } from '../../utils';
 import { DetailsItem } from './CommonDetails';
 import './common-details.scss';
 
 type ProviderDetailsProps = {
-  resource: BackingStoreKind;
+  resource: BackingStoreKind | NamespaceStoreKind;
 };
 
 const AWSDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
@@ -134,8 +134,9 @@ const IBMDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
 
 const GCPDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   const { t } = useTranslation();
-  const secret = resource.spec.googleCloudStorage.secret;
-  const targetBucket = resource.spec.googleCloudStorage.targetBucket;
+  const secret = (resource as BackingStoreKind).spec.googleCloudStorage.secret;
+  const targetBucket = (resource as BackingStoreKind).spec.googleCloudStorage
+    .targetBucket;
 
   return (
     <Flex direction={{ default: 'column' }} className="details-item--border">
@@ -160,8 +161,8 @@ const GCPDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
 
 const PVCDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   const { t } = useTranslation();
-  const numVolumes = resource.spec.pvPool.numVolumes;
-  const storageClass = resource.spec.pvPool.storageClass;
+  const numVolumes = (resource as BackingStoreKind).spec.pvPool.numVolumes;
+  const storageClass = (resource as BackingStoreKind).spec.pvPool.storageClass;
 
   return (
     <Flex direction={{ default: 'column' }} className="details-item--border">

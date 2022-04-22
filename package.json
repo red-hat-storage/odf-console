@@ -136,7 +136,8 @@
       "nsCreate": "@odf/core/components/namespace-store/create-namespace-store",
       "bcCreate": "@odf/core/components/bucket-class/create-bc",
       "bsDetails": "@odf/core/components/resource-pages/BackingStoreDetailsPage",
-      "bcDetails": "@odf/core/components/resource-pages/BucketClassDetailsPage"
+      "bcDetails": "@odf/core/components/resource-pages/BucketClassDetailsPage",
+      "nsDetails": "@odf/core/components/resource-pages/NamespaceStoreDetailsPage"
     }
   }
 }

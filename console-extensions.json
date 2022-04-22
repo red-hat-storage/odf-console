@@ -317,6 +317,16 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": "/odf/resource/noobaa.io~v1alpha1~NamespaceStore/:resourceName",
+      "exact": false,
+      "component": {
+        "$codeRef": "nsDetails.default"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName",
       "exact": false,
       "component": {

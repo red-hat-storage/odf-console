@@ -5,7 +5,6 @@ import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
-import { K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   ResourceYAMLEditor,
@@ -13,8 +12,8 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
-import { NooBaaBackingStoreModel } from '../../models';
-import { BackingStoreKind } from '../../types';
+import { NooBaaNamespaceStoreModel } from '../../models';
+import { NamespaceStoreKind } from '../../types';
 import { CommonDetails } from './CommonDetails';
 import ProviderDetails from './Providers';
 
@@ -23,20 +22,20 @@ type BackingStoreDetilsPageProps = {
 };
 
 type DetailsProps = {
-  obj: BackingStoreKind;
+  obj: NamespaceStoreKind;
 };
 
 type DetailsType = (launchModal: any, t) => React.FC<DetailsProps>;
 
-const BSDetails: DetailsType =
+const NSDetails: DetailsType =
   (launchModal, t) =>
   // eslint-disable-next-line react/display-name
   ({ obj }) => {
     return (
       <CommonDetails
-        launchModal={launchModal}
-        resourceModel={NooBaaBackingStoreModel}
         resource={obj}
+        launchModal={launchModal}
+        resourceModel={NooBaaNamespaceStoreModel}
       >
         <SectionHeading text={t('Provider details')} />
         <div className="row">
@@ -49,24 +48,26 @@ const BSDetails: DetailsType =
   };
 
 type YAMLEditorWrapped = {
-  obj?: BackingStoreKind;
+  obj?: NamespaceStoreKind;
 };
 
 const YAMLEditorWrapped: React.FC<YAMLEditorWrapped> = ({ obj }) => (
   <ResourceYAMLEditor initialResource={obj} />
 );
 
-const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
+const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
   match,
 }) => {
   const { t } = useTranslation('plugin__odf-console');
   const { resourceName: name } = match.params;
-  const [resource, loaded, loadError] = useK8sWatchResource<K8sResourceKind>({
-    kind: referenceForModel(NooBaaBackingStoreModel),
-    name,
-    namespace: CEPH_STORAGE_NAMESPACE,
-    isList: false,
-  });
+  const [resource, loaded, loadError] = useK8sWatchResource<NamespaceStoreKind>(
+    {
+      kind: referenceForModel(NooBaaNamespaceStoreModel),
+      name,
+      namespace: CEPH_STORAGE_NAMESPACE,
+      isList: false,
+    }
+  );
 
   const [Modal, modalProps, launchModal] = useModalLauncher();
 
@@ -76,17 +77,17 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
       path: '/odf/overview',
     },
     {
-      name: t('BackingStores'),
-      path: '/odf/resource/noobaa.io~v1alpha1~BackingStore',
+      name: t('NamespaceStores'),
+      path: '/odf/resource/noobaa.io~v1alpha1~NamespaceStore',
     },
     {
-      name: t('BackingStore details'),
+      name: t('NamespaceStore details'),
       path: '',
     },
   ];
 
   const Details = React.useMemo(
-    () => BSDetails(launchModal, t),
+    () => NSDetails(launchModal, t),
     [launchModal, t]
   );
 
@@ -99,7 +100,7 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
         launchModal={launchModal}
         extraProps={{
           resource: memoizedResource,
-          resourceModel: NooBaaBackingStoreModel,
+          resourceModel: NooBaaNamespaceStoreModel,
         }}
       />
     );
@@ -113,7 +114,7 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
         loadError={loadError}
         breadcrumbs={breadcrumbs}
         actions={actions}
-        resourceModel={NooBaaBackingStoreModel}
+        resourceModel={NooBaaNamespaceStoreModel}
         resource={resource}
         pages={[
           {
@@ -132,4 +133,4 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
   );
 };
 
-export default BackingStoreDetailsPage;
+export default NamespaceStoreDetailsPage;

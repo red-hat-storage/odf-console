@@ -1,5 +1,14 @@
 import * as React from 'react';
+import { ResourceSummary } from '@odf/shared/details-page/DetailsPage';
+import { SectionHeading } from '@odf/shared/heading/page-heading';
+import { LaunchModal } from '@odf/shared/modals/modalLauncher';
+import { Conditions } from '@odf/shared/utils/Conditions';
+import {
+  K8sModel,
+  K8sResourceCommon,
+} from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
+import { useTranslation } from 'react-i18next';
 import { Flex, FlexItem, Title } from '@patternfly/react-core';
 import './common-details.scss';
 
@@ -33,3 +42,46 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
     </FlexItem>
   </Flex>
 );
+
+type CommonDetailsSectionProps = {
+  resource: K8sResourceCommon;
+  resourceModel: K8sModel;
+  launchModal: LaunchModal;
+};
+
+export const CommonDetails: React.FC<CommonDetailsSectionProps> = ({
+  resource,
+  resourceModel,
+  children,
+  launchModal,
+}) => {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <div className="co-m-pane__body">
+        <SectionHeading
+          text={t('{{resource}} overview', { resource: resourceModel.label })}
+        />
+        <div className="row">
+          <div className="col-sm-6">
+            <ResourceSummary
+              resource={resource}
+              launchModal={launchModal}
+              resourceModel={resourceModel}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="co-m-pane__body">{children}</div>
+      <div className="co-m-pane__body">
+        <div className="row">
+          <div className="co-m-pane__body">
+            <SectionHeading text={t('Conditions')} />
+            <Conditions conditions={(resource as any).status.conditions} />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};

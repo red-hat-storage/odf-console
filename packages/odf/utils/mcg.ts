@@ -233,7 +233,9 @@ export const validateBucketClassName = (name: string): boolean =>
   bucketClassNameRegex.test(name) &&
   !consecutivePeriodsAndHyphensRegex.test(name);
 
-export const getBackingStoreType = (bs: BackingStoreKind): BC_PROVIDERS => {
+export const getMCGStoreType = (
+  bs: BackingStoreKind | NamespaceStoreKind
+): BC_PROVIDERS => {
   let type: BC_PROVIDERS = null;
   _.forEach(PROVIDERS_NOOBAA_MAP, (v, k) => {
     if (bs?.spec?.[v]) {
@@ -244,12 +246,14 @@ export const getBackingStoreType = (bs: BackingStoreKind): BC_PROVIDERS => {
 };
 
 export const getBucketName = (bs: BackingStoreKind): string => {
-  const type = getBackingStoreType(bs);
+  const type = getMCGStoreType(bs);
   return bs.spec?.[PROVIDERS_NOOBAA_MAP[type]]?.[BUCKET_LABEL_NOOBAA_MAP[type]];
 };
 
-export const getRegion = (bs: BackingStoreKind): string => {
-  const type = getBackingStoreType(bs);
+export const getRegion = (
+  bs: BackingStoreKind | NamespaceStoreKind
+): string => {
+  const type = getMCGStoreType(bs);
   return bs.spec?.[PROVIDERS_NOOBAA_MAP[type]]?.region;
 };
 
