@@ -91,3 +91,6 @@ export enum NamespacePolicyType {
   MULTI = 'Multi',
   CACHE = 'Cache',
 }
+
+export const RGW_PROVISIONER = 'openshift-storage.ceph.rook.io/bucket';
+export const NOOBAA_PROVISIONER = 'openshift-storage.noobaa.io/obc';
