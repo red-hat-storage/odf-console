@@ -11,9 +11,6 @@ export const getSupportedVendors = (
   return annotations ? JSON.parse(annotations) : [];
 };
 
-export const getStorageSystemKind = ({ kind, apiVersion, apiGroup }) =>
-  `${kind.toLowerCase()}.${apiGroup}/${apiVersion}`;
-
 export const getExternalSubSystemName = (
   name: string = '',
   storageClassName: string

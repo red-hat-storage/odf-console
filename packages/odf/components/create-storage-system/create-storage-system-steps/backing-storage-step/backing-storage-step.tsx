@@ -9,7 +9,7 @@ import {
   DeploymentType,
   ExternalStorage,
 } from '@odf/core/types';
-import { getStorageSystemKind, getSupportedVendors } from '@odf/core/utils';
+import { getSupportedVendors } from '@odf/core/utils';
 import DevPreviewBadge from '@odf/shared/badges/DevPreviewBadge';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
@@ -25,7 +25,7 @@ import {
   ClusterServiceVersionKind,
   StorageSystemKind,
 } from '@odf/shared/types';
-import { isDefaultClass, getODFCsv } from '@odf/shared/utils';
+import { isDefaultClass, getODFCsv, getGVKLabel } from '@odf/shared/utils';
 import { useTranslation } from 'react-i18next';
 import {
   Form,
@@ -201,7 +201,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   const allowedExternalStorage: ExternalStorage[] =
     !enableRhcs || hasOCS
       ? SUPPORTED_EXTERNAL_STORAGE.filter(({ model }) => {
-          const kind = getStorageSystemKind(model);
+          const kind = getGVKLabel(model);
           return (
             supportedODFVendors.includes(kind) &&
             kind !== STORAGE_CLUSTER_SYSTEM_KIND

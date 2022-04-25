@@ -122,3 +122,6 @@ export const getInfrastructurePlatform = (
   infrastructure && infrastructure.status
     ? infrastructure.status.platform
     : undefined;
+
+export const getGVKLabel = ({ kind, apiVersion, apiGroup }) =>
+  `${kind.toLowerCase()}.${apiGroup}/${apiVersion}`;

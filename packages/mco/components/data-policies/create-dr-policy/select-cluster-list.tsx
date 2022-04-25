@@ -36,7 +36,8 @@ export type Cluster = {
 } & ODFInfo;
 
 type ODFInfo = {
-  storageSystem?: string;
+  storageClusterName?: string;
+  storageSystemName?: string;
   storageClusterId?: string;
   odfVersion?: string;
   isValidODFVersion?: boolean;
@@ -132,7 +133,8 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
           name,
           region,
           storageClusterId: '',
-          storageSystem: '',
+          storageSystemName: '',
+          storageClusterName: '',
           odfVersion: '',
         },
       }));

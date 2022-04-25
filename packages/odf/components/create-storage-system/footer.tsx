@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { OCSStorageClusterModel } from '@odf/shared/models';
+import { getGVKLabel } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
@@ -19,11 +20,7 @@ import {
   OCS_INTERNAL_CR_NAME,
 } from '../../constants';
 import { NetworkType, BackingStorageType, DeploymentType } from '../../types';
-import {
-  getStorageSystemKind,
-  labelOCSNamespace,
-  getExternalSubSystemName,
-} from '../../utils';
+import { labelOCSNamespace, getExternalSubSystemName } from '../../utils';
 import { createClusterKmsResources } from '../kms-config/utils';
 import { getExternalStorage } from '../utils';
 import {
@@ -164,7 +161,7 @@ const handleReviewAndCreateNext = async (
 
       const subSystemName = isRhcs ? OCS_EXTERNAL_CR_NAME : externalSystemName;
       const subSystemState = isRhcs ? connectionDetails : createStorageClass;
-      const subSystemKind = getStorageSystemKind(model);
+      const subSystemKind = getGVKLabel(model);
       const subSystemPayloads = createPayload(
         subSystemName,
         subSystemState,
