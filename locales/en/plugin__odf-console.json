@@ -774,6 +774,7 @@
   "Timed out fetching new data. The data below is stale.": "Timed out fetching new data. The data below is stale.",
   "Edit labels": "Edit labels",
   "Edit annotations": "Edit annotations",
+  "Edit {{resourceLabel}}": "Edit {{resourceLabel}}",
   "Delete {{resourceLabel}}": "Delete {{resourceLabel}}",
   "Delete {{kind}}?": "Delete {{kind}}?",
   "Are you sure you want to delete <2>{{resourceName}}</2> in namespace <6>{{namespace}}</6>?": "Are you sure you want to delete <2>{{resourceName}}</2> in namespace <6>{{namespace}}</6>?",

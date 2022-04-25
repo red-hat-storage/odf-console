@@ -336,5 +336,15 @@
     "flags": {
       "disallowed": ["MCO"]
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/edit/:kind/:name",
+      "exact": true,
+      "component": {
+        "$codeRef": "editPage.default"
+      }
+    }
   }
 ]

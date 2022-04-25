@@ -49,7 +49,7 @@ type DetailsPageTitleProps = {
   resourceModel: K8sKind;
 };
 
-const DetailsPageTitle: React.FC<DetailsPageTitleProps> = ({
+export const DetailsPageTitle: React.FC<DetailsPageTitleProps> = ({
   resource,
   resourceModel,
 }) => (
