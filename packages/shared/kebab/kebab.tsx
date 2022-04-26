@@ -80,12 +80,15 @@ export const Kebab: React.FC<KebabProps> = ({
     setOpen(false);
     const actionKey = event.currentTarget.id;
     if (customActionMap?.[actionKey] || actionKey === ModalKeys.EDIT_RES) {
+      const basePath = resourceModel?.namespaced
+        ? `/k8s/ns/${resource?.metadata?.namespace}`
+        : '/k8s/cluster';
       customActionMap?.[actionKey]
         ? customActionMap[actionKey]?.()
         : history.push(
-            `/odf/edit/${referenceForModel(resourceModel)}/${
-              resource.metadata.name
-            }`
+            `${basePath}/${referenceForModel(resourceModel)}/${
+              resource?.metadata?.name
+            }/yaml`
           );
     } else {
       launchModal(actionKey, extraProps);
