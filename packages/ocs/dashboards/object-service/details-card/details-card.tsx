@@ -20,7 +20,6 @@ import {
 } from '@odf/shared/utils';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import { getMetric } from '@odf/shared/utils';
-import { ExternalLink } from '@odf/shared/utils/link';
 import {
   useK8sWatchResource,
   useFlag,
@@ -110,11 +109,9 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
               !systemLink
             }
           >
-            <ExternalLink
-              href={systemLink}
-              dataTestID="system-name-mcg"
-              text={t('Multicloud Object Gateway')}
-            />
+            <p data-test-id="system-name-mcg">
+              {t('Multicloud Object Gateway')}
+            </p>
             {hasRGW && (
               <p
                 className="ceph-details-card__rgw-system-name--margin"
