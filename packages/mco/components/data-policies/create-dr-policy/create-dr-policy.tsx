@@ -10,14 +10,15 @@ import {
 import {
   K8sResourceKind,
   ClusterServiceVersionKind,
-  ListKind,
   StorageSystemKind,
+  ListKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   referenceForGroupVersionKind,
   referenceForModel,
   getODFCsv,
+  getOCSStorageSystem,
 } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
@@ -51,7 +52,6 @@ import { CaretDownIcon } from '@patternfly/react-icons';
 import {
   MAX_ALLOWED_CLUSTERS,
   REPLICATION_TYPE,
-  STORAGE_SYSTEM_NAME,
   ODF_MINIMUM_SUPPORT,
   CEPH_CLUSTER_NAME,
 } from '../../../constants/dr-policy';
@@ -88,18 +88,12 @@ const SelectedCluster: React.FC<SelectedClusterProps> = ({
   cluster,
   setSelectedClusters,
 }) => {
-  const {
-    name: clusterName,
-    region,
-    storageSystem,
-    odfVersion,
-  } = cluster ?? {};
-  const [ss, ssLoaded, ssLoadError] = useK8sGet<StorageSystemKind>(
-    ODFStorageSystem,
-    STORAGE_SYSTEM_NAME,
-    CEPH_STORAGE_NAMESPACE,
-    clusterName
-  );
+  const { name: clusterName, region, storageSystemName } = cluster ?? {};
+
+  const [ssList, ssLoaded, ssLoadError] = useK8sGet<
+    ListKind<StorageSystemKind>
+  >(ODFStorageSystem, null, CEPH_STORAGE_NAMESPACE, clusterName);
+
   const [cephCluster, cephClusterLoaded, cephClusterLoadError] =
     useK8sGet<K8sResourceKind>(
       CephClusterModel,
@@ -120,14 +114,17 @@ const SelectedCluster: React.FC<SelectedClusterProps> = ({
       !(ssLoadError && cephClusterLoadError && csvListLoadError)
     ) {
       const operator = getODFCsv(csvList?.items);
+      const storageSystem = getOCSStorageSystem(ssList?.items);
+      const odfVersion = operator?.spec?.version ?? '';
       setSelectedClusters((selectedClusters) => ({
         ...selectedClusters,
         [clusterName]: {
           name: clusterName,
           region: region,
           storageClusterId: cephCluster?.status?.ceph?.fsid ?? '',
-          storageSystem: ss?.metadata?.name ?? '',
-          odfVersion: operator?.spec?.version ?? '',
+          storageSystemName: storageSystem?.metadata?.name ?? '',
+          storageClusterName: storageSystem?.spec?.name ?? '',
+          odfVersion: odfVersion,
           isValidODFVersion: isMinimumSupportedODFVersion(odfVersion),
           storageSystemLoaded: true,
           storageClusterIdLoaded: true,
@@ -142,12 +139,11 @@ const SelectedCluster: React.FC<SelectedClusterProps> = ({
     ssLoadError,
     cephClusterLoadError,
     csvListLoadError,
-    ss,
+    ssList,
     cephCluster,
     csvList,
     clusterName,
     region,
-    odfVersion,
     setSelectedClusters,
   ]);
 
@@ -165,7 +161,7 @@ const SelectedCluster: React.FC<SelectedClusterProps> = ({
         <TextContent>
           <Text component={TextVariants.p}>{clusterName}</Text>
           <Text component={TextVariants.small}>{region}</Text>
-          <Text component={TextVariants.small}>{storageSystem}</Text>
+          <Text component={TextVariants.small}>{storageSystemName}</Text>
         </TextContent>
       </FlexItem>
     </Flex>
@@ -291,7 +287,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
       setODFDetected(
         clustersData.every(
           (cluster) =>
-            cluster?.storageSystem !== '' && cluster?.isValidODFVersion
+            cluster?.storageSystemName !== '' && cluster?.isValidODFVersion
         )
       );
       // DR replication type
@@ -372,7 +368,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           items: clustersData?.map((cluster) => ({
             clusterName: cluster?.name,
             storageClusterRef: {
-              name: cluster.storageSystem,
+              name: cluster.storageClusterName,
               namespace: CEPH_STORAGE_NAMESPACE,
             },
           })),
@@ -504,7 +500,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
                 isInline
               />
             ) : (
-              c?.storageSystem === '' &&
+              c?.storageSystemName === '' &&
               c.storageSystemLoaded && (
                 <Alert
                   className="co-alert mco-create-data-policy__alert"
