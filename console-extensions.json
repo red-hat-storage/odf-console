@@ -24,6 +24,38 @@
     }
   },
   {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.detectOCSSupportedFeatures"
+      }
+    }
+  },
+  {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.detectRGW"
+      }
+    }
+  },
+  {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.detectManagedODF"
+      }
+    }
+  },
+  {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.detectComponents"
+      }
+    }
+  },
+  {
     "type": "console.flag/model",
     "properties": {
       "model": {
@@ -32,6 +64,74 @@
         "kind": "DRPolicy"
       },
       "flag": "ODR_MODEL"
+    }
+  },
+  {
+    "type": "console.navigation/resource-cluster",
+    "properties": {
+      "id": "objectbuckets",
+      "section": "storage",
+      "name": "Object Buckets",
+      "model": {
+        "group": "objectbucket.io",
+        "kind": "ObjectBucket",
+        "version": "v1alpha1"
+      }
+    },
+    "flags": {
+      "required": ["MCG"]
+    }
+  },
+  /* Activates when RGW is present without MCG */
+  {
+    "type": "console.navigation/resource-cluster",
+    "properties": {
+      "id": "objectbuckets",
+      "section": "storage",
+      "name": "Object Buckets",
+      "model": {
+        "group": "objectbucket.io",
+        "kind": "ObjectBucket",
+        "version": "v1alpha1"
+      }
+    },
+    "flags": {
+      "required": ["RGW"],
+      "disallowed": ["MCG"]
+    }
+  },
+  {
+    "type": "console.navigation/resource-ns",
+    "properties": {
+      "id": "objectbucketclaims",
+      "section": "storage",
+      "name": "Object Bucket Claims",
+      "model": {
+        "group": "objectbucket.io",
+        "kind": "ObjectBucketClaim",
+        "version": "v1alpha1"
+      }
+    },
+    "flags": {
+      "required": ["MCG"]
+    }
+  },
+  /* Activates when RGW is present without MCG */
+  {
+    "type": "console.navigation/resource-ns",
+    "properties": {
+      "id": "objectbucketclaims",
+      "section": "storage",
+      "name": "Object Bucket Claims",
+      "model": {
+        "group": "objectbucket.io",
+        "kind": "ObjectBucketClaim",
+        "version": "v1alpha1"
+      }
+    },
+    "flags": {
+      "required": ["RGW"],
+      "disallowed": ["MCG"]
     }
   },
   {

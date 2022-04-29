@@ -78,7 +78,7 @@ export const CommonDetails: React.FC<CommonDetailsSectionProps> = ({
         <div className="row">
           <div className="co-m-pane__body">
             <SectionHeading text={t('Conditions')} />
-            <Conditions conditions={(resource as any).status.conditions} />
+            <Conditions conditions={(resource as any)?.status?.conditions} />
           </div>
         </div>
       </div>
