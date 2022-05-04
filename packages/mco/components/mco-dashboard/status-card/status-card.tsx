@@ -184,7 +184,7 @@ export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
 
   return (
-    <Card>
+    <Card data-test="status-card">
       <CardHeader>
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>

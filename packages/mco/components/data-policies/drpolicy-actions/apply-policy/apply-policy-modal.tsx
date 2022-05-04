@@ -402,6 +402,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       </ModalBody>
       <ModalFooter className="mco-apply-policy-modal__body">
         <Button
+          data-test="cancel-button"
           key="cancel"
           variant={ButtonVariant.secondary}
           onClick={closeModal}
@@ -410,6 +411,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
         </Button>
         {!loading ? (
           <Button
+            data-test="apply-button"
             key="apply"
             variant={ButtonVariant.primary}
             onClick={submit}

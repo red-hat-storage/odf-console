@@ -219,8 +219,8 @@ export const ApplicationSelector: React.FC<ApplicationSelectorProps> = (
         <ToolbarContent>
           <ToolbarItem>
             <SearchInput
-              data-test="appSearch"
-              placeholder={t('Application name')}
+              data-test="app-search-input"
+              placeholder={t('Application search')}
               type="text"
               aria-label={t('application name search')}
               value={searchAppName}
@@ -231,11 +231,15 @@ export const ApplicationSelector: React.FC<ApplicationSelectorProps> = (
         </ToolbarContent>
       </Toolbar>
       {Object.keys(filteredOptions)?.length === 0 ? (
-        <Bullseye className="mco-application-selector__bullseye">
+        <Bullseye
+          data-test="no-app-bullseye"
+          className="mco-application-selector__bullseye"
+        >
           {t('No matching application found')}
         </Bullseye>
       ) : (
         <TreeView
+          id="app-tree-view"
           data={mapped}
           onCheck={onCheck}
           hasChecks

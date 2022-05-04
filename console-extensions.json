@@ -204,7 +204,7 @@
       "insertBefore": "acm-applications"
     },
     "flags": {
-      "required": ["MCO", "ODR_MODEL"]
+      "required": ["MCO"]
     }
   },
   {
@@ -217,7 +217,7 @@
       "href": "/multicloud/data-services/data-policies"
     },
     "flags": {
-      "required": ["MCO"]
+      "required": ["MCO", "ODR_MODEL"]
     }
   },
   {
