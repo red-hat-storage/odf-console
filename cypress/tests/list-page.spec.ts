@@ -19,11 +19,16 @@ describe('Tests storage system list page', () => {
   });
 
   it('Test default(OCS) StorageSystem is listed', () => {
+    ODFCommon.visitStorageDashboard();
     ODFCommon.visitStorageSystemList();
     listPage.searchInList(STORAGE_SYSTEM_NAME);
     // Test if the Kebab Menu contains all Items
-    cy.byLegacyTestID('kebab-button').click();
-    cy.byTestActionID('Add Capacity').click();
+    // eslint-disable-next-line cypress/require-data-selectors
+    cy.get('td#kebab-button').within(() => {
+      cy.get('button').click();
+    });
+    // eslint-disable-next-line cypress/require-data-selectors
+    cy.get('a').contains('Add Capacity').click();
     // Check if a modal was opened
     modal.shouldBeOpened();
     cy.byLegacyTestID('modal-cancel-action').click();

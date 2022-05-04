@@ -23,7 +23,7 @@ describe('Tests creation of Namespace Stores', () => {
     // We are deleting above but this command will ensure the resource's complete termination
     cy.exec(
       `oc delete namespacestores ${testName} -n openshift-storage --wait`,
-      { timeout: 5 * MIN, failOnNonZeroExit: false }
+      { timeout: 5 * MIN, failOnNonZeroExit: false } // giving error because of being already deleted above
     );
   });
 
