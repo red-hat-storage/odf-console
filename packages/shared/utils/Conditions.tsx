@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { CamelCaseWrap } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { Timestamp } from '../details-page/timestamp';
 import { K8sResourceCondition } from '../types';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import { LinkifyExternal } from './link';
 
 /**
@@ -24,7 +24,7 @@ export const Conditions: React.FC<ConditionsProps> = ({
   conditions,
   type = ConditionTypes.K8sResource,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const getStatusLabel = (status: string) => {
     switch (status) {

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import * as _ from 'lodash';
 import { Helmet } from 'react-helmet';
-import { useTranslation } from 'react-i18next';
 import PageHeading from '../heading/page-heading';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export type ErrorComponentProps = {
   title: string;
@@ -10,7 +10,7 @@ export type ErrorComponentProps = {
 };
 
 const ErrorComponent: React.SFC<ErrorComponentProps> = ({ title, message }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   return (
     <>
       <PageHeading title={t('Error')} />
@@ -27,7 +27,7 @@ type ErrorPageProps = {
 };
 
 export const ErrorPage: React.FC<ErrorPageProps> = ({ message }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   return (
     <div>
       <Helmet>

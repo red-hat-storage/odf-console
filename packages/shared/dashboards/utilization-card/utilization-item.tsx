@@ -12,7 +12,7 @@ import {
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
 import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '../../useCustomTranslationHook';
 
 enum LIMIT_STATE {
   ERROR = 'ERROR',
@@ -45,7 +45,7 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
     title,
     utilization,
   }) => {
-    const { t } = useTranslation();
+    const { t } = useCustomTranslation();
     const trimSecondsXMutator = (x: number) => {
       const d = new Date(x * 1000);
       d.setSeconds(0, 0);
