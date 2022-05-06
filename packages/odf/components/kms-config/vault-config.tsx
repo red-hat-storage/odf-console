@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
@@ -34,19 +35,27 @@ import './kms-config.scss';
 
 const LAUNCH_MODAL_KEY = 'ADVANCED_VAULT';
 
-export const ValutConfigure: React.FC<KMSConfigureProps> = ({
+export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   state,
   dispatch,
   className,
   isWizardFlow,
+  isMCG,
 }) => {
   const { t } = useTranslation('plugin__odf-console');
 
   const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
   const isKmsVaultSASupported = useFlag(FEATURES.ODF_VAULT_SA_KMS);
 
-  const vaultState: VaultConfig = state.kms?.[ProviderNames.VAULT];
-  const vaultStateClone: VaultConfig = _.cloneDeep(vaultState);
+  const vaultState: VaultConfig = useDeepCompareMemoize(
+    state.kms?.[ProviderNames.VAULT],
+    true
+  );
+  const vaultStateClone: VaultConfig = React.useMemo(
+    () => _.cloneDeep(vaultState),
+    [vaultState]
+  );
+
   const { encryption } = state;
 
   const openAdvancedModal = () =>
@@ -56,55 +65,75 @@ export const ValutConfigure: React.FC<KMSConfigureProps> = ({
       isWizardFlow,
     });
 
-  const updateVaultState = (vaultConfig: VaultConfig) =>
-    dispatch({
-      type: 'securityAndNetwork/setVault',
-      payload: vaultConfig,
-    });
-
-  const setAuthValue = (authValue: string) => {
-    vaultStateClone.authValue.value = authValue;
-    vaultStateClone.authValue.valid = authValue !== '';
-    updateVaultState(vaultStateClone);
-  };
-
-  const setAuthMethod = (authMethod: VaultAuthMethods) => {
-    setAuthValue('');
-    vaultStateClone.authMethod = authMethod;
-    updateVaultState(vaultStateClone);
-  };
-
-  const filteredVaultAuthMethodMapping = Object.values(
-    VaultAuthMethodMapping
-  ).filter(
-    (authMethod) =>
-      (encryption.clusterWide
-        ? authMethod.supportedEncryptionType.includes(
-            KmsEncryptionLevel.CLUSTER_WIDE
-          )
-        : false) ||
-      (encryption.storageClass
-        ? authMethod.supportedEncryptionType.includes(
-            KmsEncryptionLevel.STORAGE_CLASS
-          )
-        : false)
+  const updateVaultState = React.useCallback(
+    (vaultConfig: VaultConfig) =>
+      dispatch({
+        type: 'securityAndNetwork/setVault',
+        payload: vaultConfig,
+      }),
+    [dispatch]
   );
 
-  const vaultAuthMethods = filteredVaultAuthMethodMapping.map(
-    (authMethod) => authMethod.value
+  const setAuthValue = React.useCallback(
+    (authValue: string) => {
+      vaultStateClone.authValue.value = authValue;
+      vaultStateClone.authValue.valid = authValue !== '';
+      updateVaultState(vaultStateClone);
+    },
+    [updateVaultState, vaultStateClone]
   );
-  if (!vaultAuthMethods.includes(vaultState.authMethod)) {
-    if (
-      isKmsVaultSASupported &&
-      vaultAuthMethods.includes(VaultAuthMethods.KUBERNETES)
-    ) {
-      // From 4.10 kubernetes is default auth method
-      setAuthMethod(VaultAuthMethods.KUBERNETES);
-    } else {
-      // upto 4.9 token is the default auth method
-      setAuthMethod(VaultAuthMethods.TOKEN);
+
+  const setAuthMethod = React.useCallback(
+    (authMethod: VaultAuthMethods) => {
+      !!vaultStateClone.authMethod && setAuthValue('');
+      vaultStateClone.authMethod = authMethod;
+      updateVaultState(vaultStateClone);
+    },
+    [setAuthValue, updateVaultState, vaultStateClone]
+  );
+
+  const filteredVaultAuthMethodMapping = React.useMemo(
+    () =>
+      Object.values(VaultAuthMethodMapping).filter(
+        (authMethod) =>
+          (encryption.clusterWide || isMCG
+            ? authMethod.supportedEncryptionType.includes(
+                KmsEncryptionLevel.CLUSTER_WIDE
+              )
+            : false) ||
+          (encryption.storageClass
+            ? authMethod.supportedEncryptionType.includes(
+                KmsEncryptionLevel.STORAGE_CLASS
+              )
+            : false)
+      ),
+    [encryption.clusterWide, encryption.storageClass, isMCG]
+  );
+
+  const vaultAuthMethods = React.useMemo(
+    () => filteredVaultAuthMethodMapping.map((authMethod) => authMethod.value),
+    [filteredVaultAuthMethodMapping]
+  );
+
+  React.useEffect(() => {
+    if (!vaultAuthMethods.includes(vaultState.authMethod)) {
+      if (
+        isKmsVaultSASupported &&
+        vaultAuthMethods.includes(VaultAuthMethods.KUBERNETES)
+      ) {
+        // From 4.10 kubernetes is default auth method
+        setAuthMethod(VaultAuthMethods.KUBERNETES);
+      } else {
+        // upto 4.9 token is the default auth method
+        setAuthMethod(VaultAuthMethods.TOKEN);
+      }
     }
-  }
+  }, [
+    isKmsVaultSASupported,
+    setAuthMethod,
+    vaultAuthMethods,
+    vaultState.authMethod,
+  ]);
 
   return (
     <>
