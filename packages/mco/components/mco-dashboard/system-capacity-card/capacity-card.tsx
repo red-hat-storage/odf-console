@@ -157,6 +157,7 @@ const getRow: GetRow = (
   return [
     <Tooltip key={`${systemName}${index}`} content={systemName}>
       <ResourceLink
+        data-test="storage-system-link"
         link={clusterURL}
         resourceModel={ODFStorageSystem}
         resourceName={systemName}
@@ -166,11 +167,12 @@ const getRow: GetRow = (
     </Tooltip>,
 
     <Tooltip key={`${clusterName}${index}`} content={clusterName}>
-      <div>{clusterName}</div>
+      <div data-test="managed-cluster-name">{clusterName}</div>
     </Tooltip>,
 
     !isPercentage ? (
       <Progress
+        data-test="storage-system-used-capacity-percent"
         value={dataUnavailable ? null : progress}
         label={!dataUnavailable ? `${progress.toFixed(2)} %` : ''}
         size="md"
@@ -187,6 +189,7 @@ const getRow: GetRow = (
         content={!dataUnavailable ? <>{progress.toFixed(2)} %</> : null}
       >
         <Progress
+          data-test="storage-system-used-capacity-percent"
           value={dataUnavailable ? null : progress}
           label={!dataUnavailable ? `${progress.toFixed(2)} %` : ''}
           size="md"
@@ -196,7 +199,12 @@ const getRow: GetRow = (
       </Tooltip>
     ),
 
-    <>{dataUnavailable ? '-' : value}</>,
+    <div
+      data-test="storage-system-used-capacity"
+      key="storage-system-used-capacity"
+    >
+      {dataUnavailable ? '-' : value}
+    </div>,
   ];
 };
 
@@ -319,17 +327,20 @@ const SystemCapacityCard: React.FC = () => {
   };
 
   return (
-    <Card>
+    <Card data-test="capacity-card">
       <CardHeader>
         <Flex
           justifyContent={{ default: 'justifyContentSpaceBetween' }}
           className="odf-capacityCard__header--width"
         >
           <FlexItem>
-            <CardTitle>{t('Storage System capacity')}</CardTitle>
+            <CardTitle data-test="capacity-card-title">
+              {t('Storage System capacity')}
+            </CardTitle>
           </FlexItem>
           <FlexItem>
             <TextInput
+              data-test="cluster-name-text"
               placeholder={t('Search by cluster name...')}
               name="clusterNameText"
               id="clusterNameText"

@@ -78,6 +78,7 @@ const HealthItem: React.FC<HealthItemProps> = React.memo(
                   variant="link"
                   isInline
                   className="co-status-card__popup"
+                  data-test="health-popover-link"
                 >
                   {title}
                 </Button>
