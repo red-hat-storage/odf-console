@@ -150,7 +150,7 @@ const tableColumnInfo = [
     id: 'throughput',
   },
   { className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'), id: 'latency' },
-  { className: 'dropdown-kebab-pf pf-c-table__action', id: '' },
+  { className: 'dropdown-kebab-pf pf-c-table__action', id: 'kebab-button' },
 ];
 
 const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
