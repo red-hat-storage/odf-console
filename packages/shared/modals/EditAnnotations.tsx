@@ -36,13 +36,14 @@ type AnnotationsModalProps = {
   extraProps: {
     resource: K8sResourceKind;
     resourceModel: K8sKind;
+    cluster?: string;
   };
 } & CommonModalProps;
 
 const ANNOTATIONS_PATH = '/metadata/annotations';
 
 export const AnnotationsModal: React.FC<AnnotationsModalProps> = ({
-  extraProps: { resource, resourceModel },
+  extraProps: { resource, resourceModel, cluster },
   closeModal,
   isOpen,
 }) => {
@@ -78,7 +79,12 @@ export const AnnotationsModal: React.FC<AnnotationsModalProps> = ({
         value: _.fromPairs(usedTags),
       },
     ];
-    k8sPatch({ model: resourceModel, resource, data: patch })
+    k8sPatch({
+      model: resourceModel,
+      resource,
+      data: patch,
+      ...(!!cluster ? { cluster } : {}),
+    })
       .then(() => {
         closeModal();
       })
