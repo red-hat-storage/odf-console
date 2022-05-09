@@ -3,7 +3,6 @@ import {
   k8sDelete,
   k8sList,
   K8sResourceCommon,
-  OwnerReference,
   ResourceLink,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
@@ -15,50 +14,19 @@ import { LoadingInline } from '../generic/Loading';
 import { ClusterServiceVersionModel } from '../models';
 import { ClusterServiceVersionKind } from '../types/console-types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
-import { groupVersionFor, referenceForOwnerRef } from '../utils';
+import { referenceForOwnerRef, findOwner } from '../utils';
 import { ModalBody, ModalFooter, ModalHeader, CommonModalProps } from './Modal';
 
 type DeleteModalExtraProps = {
   resource: K8sResourceCommon;
   resourceModel: K8sModel;
-};
-
-const isOwnedByOperator = (
-  csv: ClusterServiceVersionKind,
-  owner: OwnerReference
-) => {
-  const { group } = groupVersionFor(owner.apiVersion);
-  return csv.spec?.customresourcedefinitions?.owned?.some((owned) => {
-    const ownedGroup = owned.name.substring(owned.name.indexOf('.') + 1);
-    return owned.kind === owner.kind && ownedGroup === group;
-  });
-};
-
-const isOwnedByCSV = (
-  csv: ClusterServiceVersionKind,
-  owner: OwnerReference
-) => {
-  const { group } = groupVersionFor(owner.apiVersion);
-  return (
-    group === ClusterServiceVersionModel.apiGroup &&
-    owner.kind === ClusterServiceVersionModel.kind &&
-    csv.metadata.name === owner.name
-  );
-};
-
-export const findOwner = (
-  obj: K8sResourceCommon,
-  csvs: ClusterServiceVersionKind[]
-) => {
-  return obj?.metadata?.ownerReferences?.find((o) =>
-    csvs?.some((csv) => isOwnedByOperator(csv, o) || isOwnedByCSV(csv, o))
-  );
+  cluster?: string;
 };
 
 const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
   closeModal,
   isOpen,
-  extraProps: { resource, resourceModel },
+  extraProps: { resource, resourceModel, cluster },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -98,7 +66,13 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
       ? { kind: 'DeleteOptions', apiVersion: 'v1', propagationPolicy }
       : null;
 
-    k8sDelete({ resource, model: resourceModel, json, requestInit: null })
+    k8sDelete({
+      resource,
+      model: resourceModel,
+      json,
+      requestInit: null,
+      ...(!!cluster ? { cluster } : {}),
+    })
       .then(() => {
         // If we are currently on the deleted resource's page, redirect to the resource list page
         const re = new RegExp(`/${resource.metadata.name}(/|$)`);

@@ -25,7 +25,8 @@ import {
 import {
   MAX_ALLOWED_CLUSTERS,
   MANAGED_CLUSTER_REGION_CLAIM,
-} from '../../../constants/dr-policy';
+  HUB_CLUSTER_NAME,
+} from '../../../constants';
 import { ACMManagedClusterModel } from '../../../models';
 import { ACMManagedClusterKind } from '../../../types';
 import './select-cluster-list.scss';
@@ -98,6 +99,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     kind: referenceForModel(ACMManagedClusterModel),
     isList: true,
     namespaced: false,
+    cluster: HUB_CLUSTER_NAME,
   });
 
   React.useEffect(() => {

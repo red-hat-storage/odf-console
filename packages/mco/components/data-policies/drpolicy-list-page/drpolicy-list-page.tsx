@@ -24,7 +24,11 @@ import * as _ from 'lodash';
 import { Trans } from 'react-i18next';
 import { useHistory } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { REPLICATION_TYPE, Actions } from '../../../constants/dr-policy';
+import {
+  REPLICATION_TYPE,
+  Actions,
+  HUB_CLUSTER_NAME,
+} from '../../../constants';
 import { DRPolicyModel, DRPlacementControlModel } from '../../../models';
 import { DRPolicyKind, DRPlacementControlKind } from '../../../types';
 import EmptyPage from '../../empty-state-page/empty-page';
@@ -79,6 +83,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
     kind: referenceForModel(DRPlacementControlModel),
     isList: true,
     namespaced: true,
+    cluster: HUB_CLUSTER_NAME,
   });
 
   React.useEffect(() => {
@@ -134,7 +139,11 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         <Kebab
           launchModal={launchModal}
-          extraProps={{ resource: obj, resourceModel: DRPolicyModel }}
+          extraProps={{
+            resource: obj,
+            resourceModel: DRPolicyModel,
+            cluster: HUB_CLUSTER_NAME,
+          }}
           customKebabItems={kebabActionItems}
         />
       </TableData>
@@ -238,6 +247,7 @@ export const DRPolicyListPage: React.FC = () => {
       kind: referenceForModel(DRPolicyModel),
       isList: true,
       namespaced: false,
+      cluster: HUB_CLUSTER_NAME,
     });
 
   const [data, filteredData, onFilterChange] = useListPageFilter(drPolicies);
