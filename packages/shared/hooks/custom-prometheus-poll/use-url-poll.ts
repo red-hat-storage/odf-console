@@ -8,6 +8,7 @@ export const URL_POLL_DEFAULT_DELAY = 15000; // 15 seconds
 export const useURLPoll = <R>(
   url: string,
   delay = URL_POLL_DEFAULT_DELAY,
+  cluster?: string,
   ...dependencies: any[]
 ): URLPoll<R> => {
   const [error, setError] = useState();
@@ -16,7 +17,7 @@ export const useURLPoll = <R>(
   const safeFetch = useSafeFetch();
   const tick = useCallback(() => {
     if (url) {
-      safeFetch(url)
+      safeFetch({ url, cluster })
         .then((data) => {
           setResponse(data);
           setError(undefined);
@@ -33,7 +34,7 @@ export const useURLPoll = <R>(
     } else {
       setLoading(false);
     }
-  }, [url]);
+  }, [url, cluster]);
 
   usePoll(tick, delay, ...dependencies);
 

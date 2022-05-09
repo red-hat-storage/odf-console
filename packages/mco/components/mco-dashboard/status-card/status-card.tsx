@@ -23,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
-import { ACM_ENDPOINT } from '../../../constants';
+import { ACM_ENDPOINT, HUB_CLUSTER_NAME } from '../../../constants';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import {
   StorageSystemPopup,
@@ -92,12 +92,14 @@ const StorageSystemHealthItem: React.FC = () => {
       endpoint: 'api/v1/query' as any,
       query: STATUS_QUERIES[StorageDashboard.SYSTEM_HEALTH],
       basePath: ACM_ENDPOINT,
+      cluster: HUB_CLUSTER_NAME,
     });
   const [subSysHealthData, subSysHealthError, subSysHealthLoading] =
     useCustomPrometheusPoll({
       endpoint: 'api/v1/query' as any,
       query: STATUS_QUERIES[StorageDashboard.HEALTH],
       basePath: ACM_ENDPOINT,
+      cluster: HUB_CLUSTER_NAME,
     });
 
   const parsedHealthData = React.useMemo(() => {
@@ -162,6 +164,7 @@ const CSVStatusHealthItem: React.FC = () => {
     endpoint: 'api/v1/query' as any,
     query: STATUS_QUERIES[StorageDashboard.CSV_STATUS],
     basePath: ACM_ENDPOINT,
+    cluster: HUB_CLUSTER_NAME,
   });
 
   const parsedCSVData = React.useMemo(() => {

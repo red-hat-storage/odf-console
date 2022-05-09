@@ -138,7 +138,8 @@
       "bcCreate": "@odf/core/components/bucket-class/create-bc",
       "bsDetails": "@odf/core/components/resource-pages/BackingStoreDetailsPage",
       "bcDetails": "@odf/core/components/resource-pages/BucketClassDetailsPage",
-      "nsDetails": "@odf/core/components/resource-pages/NamespaceStoreDetailsPage"
+      "nsDetails": "@odf/core/components/resource-pages/NamespaceStoreDetailsPage",
+      "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor"
     }
   }
 }
