@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { FormGroup, TextInput, ValidatedOptions } from '@patternfly/react-core';
@@ -16,8 +17,11 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
 }) => {
   const { t } = useTranslation('plugin__odf-console');
 
-  const kms: HpcsConfig = state.kms?.[ProviderNames.HPCS];
-  const kmsObj: HpcsConfig = _.cloneDeep(kms);
+  const kms: HpcsConfig = useDeepCompareMemoize(
+    state.kms?.[ProviderNames.HPCS],
+    true
+  );
+  const kmsObj: HpcsConfig = React.useMemo(() => _.cloneDeep(kms), [kms]);
 
   React.useEffect(() => {
     const hasHandled: boolean = kmsConfigValidation(kms, ProviderNames.HPCS);
