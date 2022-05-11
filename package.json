@@ -32,6 +32,7 @@
     "i18n": "i18next \"packages/**/*.{ts,tsx}\" [-oc] -c i18next-parser.config.js"
   },
   "dependencies": {
+    "@openshift-console/plugin-shared": "^0.0.1",
     "@patternfly/patternfly": "4.103.6",
     "@patternfly/react-charts": "^6.15.3",
     "@patternfly/react-core": "4.175.4",
@@ -56,8 +57,8 @@
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^5.9.1",
-    "@openshift-console/dynamic-plugin-sdk": "0.0.7",
-    "@openshift-console/dynamic-plugin-sdk-internal": "0.0.2",
+    "@openshift-console/dynamic-plugin-sdk": "0.0.10",
+    "@openshift-console/dynamic-plugin-sdk-internal": "0.0.7",
     "@openshift-console/dynamic-plugin-sdk-internal-kubevirt": "^0.0.10",
     "@openshift-console/dynamic-plugin-sdk-webpack": "0.0.6",
     "@types/jest": "^27.0.3",
