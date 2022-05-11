@@ -13,7 +13,7 @@
       "id": "odfdashboard",
       "insertBefore": "persistentvolumes",
       "section": "storage",
-      "name": "OpenShift Data Foundation",
+      "name": "Data Foundation",
       "href": "/odf/cluster"
     },
     "flags": {
