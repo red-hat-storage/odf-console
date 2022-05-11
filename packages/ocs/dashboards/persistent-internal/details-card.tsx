@@ -10,10 +10,8 @@ import {
 import { getInfrastructurePlatform, getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
 import { resourcePathFromModel } from '@odf/shared/utils';
-import {
-  DetailItem,
-  DetailsBody,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -28,7 +26,8 @@ const DetailsCard: React.FC = () => {
     StorageClusterModel,
     CEPH_NS
   );
-  const [subscription, subscriptionLoaded] = useK8sList(SubscriptionModel);
+  const [subscription, subscriptionLoaded, subscriptionError] =
+    useK8sList(SubscriptionModel);
   const infrastructurePlatform = getInfrastructurePlatform(infrastructure);
   const cluster = ocsData?.find(
     (item: StorageClusterKind) => item.status.phase !== 'Ignored'
@@ -53,7 +52,6 @@ const DetailsCard: React.FC = () => {
             key="service_name"
             title={t('Service name')}
             isLoading={false}
-            error={false}
           >
             <Link data-test="ocs-link" to={servicePath}>
               {serviceName}
@@ -62,7 +60,7 @@ const DetailsCard: React.FC = () => {
           <DetailItem
             key="cluster_name"
             title={t('Cluster name')}
-            error={!!ocsError}
+            error={ocsError}
             isLoading={!ocsLoaded}
           >
             {ocsName}
@@ -70,10 +68,7 @@ const DetailsCard: React.FC = () => {
           <DetailItem
             key="provider"
             title={t('Provider')}
-            error={
-              !!infrastructureError ||
-              (infrastructure && !infrastructurePlatform)
-            }
+            error={infrastructureError}
             isLoading={!infrastructureLoaded}
           >
             {infrastructurePlatform}
@@ -83,7 +78,7 @@ const DetailsCard: React.FC = () => {
             key="version"
             title={t('Version')}
             isLoading={!subscriptionLoaded}
-            error={subscriptionLoaded && !serviceVersion}
+            error={subscriptionError}
           >
             {serviceVersion}
           </DetailItem>

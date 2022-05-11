@@ -30,6 +30,7 @@ import {
   ListPageCreateLink,
   ListPageFilter,
   ListPageHeader,
+  PrometheusEndpoint,
   PrometheusResponse,
   RowProps,
   TableColumn,
@@ -39,7 +40,6 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import classNames from 'classnames';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
