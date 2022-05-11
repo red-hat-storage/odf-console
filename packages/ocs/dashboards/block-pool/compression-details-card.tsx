@@ -10,10 +10,8 @@ import {
   humanizeNumber,
   humanizePercentage,
 } from '@odf/shared/utils';
-import {
-  DetailItem,
-  DetailsBody,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';

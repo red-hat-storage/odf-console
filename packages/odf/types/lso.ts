@@ -1,6 +1,8 @@
 import { Toleration } from '@odf/shared/types';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { MatchExpression } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
+import {
+  K8sResourceCommon,
+  MatchExpression,
+} from '@openshift-console/dynamic-plugin-sdk';
 
 export enum DiskType {
   RawDisk = 'disk',
