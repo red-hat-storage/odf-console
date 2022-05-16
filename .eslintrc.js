@@ -18,6 +18,7 @@ module.exports = {
   },
   plugins: ['react', '@typescript-eslint', 'import'],
   rules: {
+    'arrow-parens': 2,
     'import/no-unresolved': 'off',
     'import/extensions': 'off',
     'import/prefer-default-export': 'off',
