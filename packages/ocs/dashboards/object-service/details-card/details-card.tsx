@@ -25,10 +25,8 @@ import {
   useK8sWatchResource,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  DetailsBody,
-  DetailItem,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -49,7 +47,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
 
-  const [subscription, subscriptionLoaded] =
+  const [subscription, subscriptionLoaded, subscriptionLoadError] =
     useK8sWatchResource<K8sResourceKind[]>(SubscriptionResource);
 
   const [systemResult, systemLoadError] = useCustomPrometheusPoll({
@@ -97,7 +95,6 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
           <DetailItem
             key="service_name"
             title={t('Service name')}
-            error={false}
             isLoading={false}
           >
             <Link to={servicePath}>{serviceName}</Link>
@@ -130,10 +127,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
           <DetailItem
             key="provider"
             title={t('Provider')}
-            error={
-              !!infrastructureError ||
-              (infrastructure && !infrastructurePlatform)
-            }
+            error={infrastructureError}
             isLoading={!infrastructureLoaded}
           >
             {infrastructurePlatform}
@@ -142,7 +136,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
             key="version"
             title={t('Version')}
             isLoading={!subscriptionLoaded}
-            error={subscriptionLoaded && !serviceVersion}
+            error={subscriptionLoadError}
           >
             {serviceVersion}
           </DetailItem>
