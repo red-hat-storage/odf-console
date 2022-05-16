@@ -11,8 +11,10 @@ import {
 } from '@odf/shared/types';
 import { humanizeCpuCores, convertToBaseValue } from '@odf/shared/utils';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
-import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
-import { MatchExpression } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
+import {
+  k8sPatch,
+  MatchExpression,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import {
   HOSTNAME_LABEL_KEY,
