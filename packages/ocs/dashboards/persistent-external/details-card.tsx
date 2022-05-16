@@ -12,10 +12,8 @@ import {
   useFlag,
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  DetailItem,
-  DetailsBody,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Base64 } from 'js-base64';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -80,7 +78,7 @@ export const DetailsCard: React.FC = () => {
           <DetailItem title={t('Service Name')}>{serviceName}</DetailItem>
           <DetailItem
             title={t('Cluster Name')}
-            error={!!resourcesObj['ocs'].loadError}
+            error={resourcesObj['ocs'].loadError}
             isLoading={!resourcesObj['ocs'].loaded}
             data-test-id="cluster-name"
           >
@@ -103,7 +101,7 @@ export const DetailsCard: React.FC = () => {
           <DetailItem
             title={t('Version')}
             isLoading={!resourcesObj['subscription'].loaded}
-            error={!!resourcesObj['subscription'].loadError}
+            error={resourcesObj['subscription'].loadError}
             data-test-id="cluster-subscription"
           >
             {subscriptionVersion}

@@ -27,8 +27,8 @@ import {
   useK8sWatchResource,
   WatchK8sResource,
   k8sPatch,
+  PrometheusEndpoint,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
