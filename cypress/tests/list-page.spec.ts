@@ -23,10 +23,7 @@ describe('Tests storage system list page', () => {
     ODFCommon.visitStorageSystemList();
     listPage.searchInList(STORAGE_SYSTEM_NAME);
     // Test if the Kebab Menu contains all Items
-    // eslint-disable-next-line cypress/require-data-selectors
-    cy.get('td#kebab-button').within(() => {
-      cy.get('button').click();
-    });
+    cy.byTestID('kebab-button').click();
     // eslint-disable-next-line cypress/require-data-selectors
     cy.get('a').contains('Add Capacity').click();
     // Check if a modal was opened

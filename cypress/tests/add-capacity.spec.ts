@@ -90,11 +90,9 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       // Todo(bipuladh): Add a proper data-selector once the list page is migrated
       // eslint-disable-next-line cypress/require-data-selectors
       cy.get('a').contains(STORAGE_SYSTEM_NAME).should('exist');
-      // cy.byLegacyTestID('kebab-button').click();
-      // eslint-disable-next-line cypress/require-data-selectors
-      cy.get('td#kebab-button').within(() => {
-        cy.get('button').click();
-      });
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
+      cy.wait(2000);
+      cy.byTestID('kebab-button').click();
       // eslint-disable-next-line cypress/require-data-selectors
       cy.get('a').contains('Add Capacity').click();
       modal.shouldBeOpened();
@@ -126,7 +124,7 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       // Disablng until ocs-operator fixes above issue
       // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(10000);
-      cy.byTestID('resource-status').contains('Ready', { timeout: 900000 }); //fix requried - `resource-status` is not being fetched by cypress
+      cy.byTestID('resource-status').contains('Ready', { timeout: 900000 });
     });
     cy.exec(
       `oc get storagecluster ${STORAGE_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`
