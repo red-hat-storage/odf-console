@@ -49,6 +49,7 @@ import {
   getScNamesUsingPool,
   twelveHoursdateTimeNoYear,
   customActionsMap,
+  isDefaultPool,
 } from '../utils';
 import { PopoverHelper } from './popover-helper';
 
@@ -314,6 +315,9 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[9]} activeColumnIDs={activeColumnIDs}>
         <Kebab
+          hoverMessage={
+            isDefaultPool(obj) ? t('Default pool cannot be deleted.') : ''
+          }
           launchModal={launchModal}
           extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
           isDisabled={disableMenuAction(obj, cephCluster)}
