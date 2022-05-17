@@ -13,7 +13,7 @@ describe('Tests creation of Namespace Stores', () => {
   });
 
   afterEach(() => {
-    cy.byTestID('actions-menu-button').click();
+    cy.byLegacyTestID('actions-menu-button').click();
     cy.log('Deleting namespace store');
     cy.byTestActionID('Delete Namespace Store').click();
     cy.byTestID('confirm-action').click();
