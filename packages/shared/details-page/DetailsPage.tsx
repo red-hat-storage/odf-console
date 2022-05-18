@@ -52,12 +52,27 @@ type DetailsPageTitleProps = {
 export const DetailsPageTitle: React.FC<DetailsPageTitleProps> = ({
   resource,
   resourceModel,
-}) => (
-  <span>
-    <ResourceIcon resourceModel={resourceModel} />
-    {getName(resource)}
-  </span>
-);
+}) => {
+  const { t } = useCustomTranslation();
+
+  const showOwnerRef = resource?.metadata?.ownerReferences;
+  return (
+    <div className="odf-details-title">
+      <div>
+        <ResourceIcon resourceModel={resourceModel} />
+      </div>
+      <div className="odf-title-owner-reference">
+        {getName(resource)}
+        {showOwnerRef && (
+          <h4 className="odf-details-title odf-managed-owner--gap">
+            {t('Managed by')}
+            <OwnerReferences resource={resource} />
+          </h4>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const DetailsPage: React.FC<DetailsPageProps> = ({
   pages,
