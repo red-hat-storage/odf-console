@@ -194,7 +194,7 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
   const resource = React.useMemo(
     () => ({
       kind: referenceForModel(resourceModel),
-      ns: CEPH_STORAGE_NAMESPACE,
+      namespace: CEPH_STORAGE_NAMESPACE,
       isList: true,
     }),
     [resourceModel]
