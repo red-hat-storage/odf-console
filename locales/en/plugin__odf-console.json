@@ -750,6 +750,7 @@
   "{{count}} hour_plural": "{{count}} hour",
   "{{count}} minute": "{{count}} minute",
   "{{count}} minute_plural": "{{count}} minute",
+  "Managed by": "Managed by",
   "Edit": "Edit",
   "Annotations": "Annotations",
   "{{count}} annotation": "{{count}} annotation",
