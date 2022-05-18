@@ -90,11 +90,9 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       // Todo(bipuladh): Add a proper data-selector once the list page is migrated
       // eslint-disable-next-line cypress/require-data-selectors
       cy.get('a').contains(STORAGE_SYSTEM_NAME).should('exist');
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(2000);
       cy.byTestID('kebab-button').click();
       // eslint-disable-next-line cypress/require-data-selectors
-      cy.get('a').contains('Add Capacity').click();
+      cy.contains('Add Capacity').click();
       modal.shouldBeOpened();
 
       const initialCapacity =

@@ -25,7 +25,7 @@ describe('Tests storage system list page', () => {
     // Test if the Kebab Menu contains all Items
     cy.byTestID('kebab-button').click();
     // eslint-disable-next-line cypress/require-data-selectors
-    cy.get('a').contains('Add Capacity').click();
+    cy.contains('Add Capacity').click();
     // Check if a modal was opened
     modal.shouldBeOpened();
     cy.byLegacyTestID('modal-cancel-action').click();
