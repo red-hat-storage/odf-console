@@ -10,7 +10,7 @@ export const commandPoll = (
   cmd: string,
   expected: string,
   failOnNonZeroExit: boolean = true,
-  retry: number = 300,
+  retry: number = 300
 ) => {
   cy.exec(cmd, { failOnNonZeroExit }).then((res) => {
     if (res.stdout === expected) {

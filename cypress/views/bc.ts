@@ -40,7 +40,9 @@ export class StandardBucketClassConfig extends BucketClassConfig {
   private createPVCBackingStore = (storeName: string) => {
     cy.log(`Creating a Backing Store resource named ${storeName}`);
     cy.exec(
-      `echo '${JSON.stringify(bucketStore(storeName))}' | kubectl create -n openshift-storage -f -`,
+      `echo '${JSON.stringify(
+        bucketStore(storeName)
+      )}' | kubectl create -n openshift-storage -f -`
     );
   };
 
@@ -48,7 +50,9 @@ export class StandardBucketClassConfig extends BucketClassConfig {
 
   cleanup = () => {
     cy.log('Deleting backing stores');
-    cy.exec(`oc delete backingstore ${this.resources.join(' ')} -n openshift-storage`);
+    cy.exec(
+      `oc delete backingstore ${this.resources.join(' ')} -n openshift-storage`
+    );
   };
 }
 
@@ -61,27 +65,33 @@ export class NamespaceBucketClassConfig extends BucketClassConfig {
     cy.log(
       `Creating a ${
         type === StoreType.NamespaceStore ? 'Namespace' : 'Backing'
-      } Store resource named ${name}`,
+      } Store resource named ${name}`
     );
 
     cy.exec(
       `echo '${JSON.stringify(
-        namespaceStore(name, type),
-      )}' | kubectl create -n openshift-storage -f -`,
+        namespaceStore(name, type)
+      )}' | kubectl create -n openshift-storage -f -`
     );
   };
 
   setup = () => {
     this.resources.forEach((testResource) =>
-      this.createAWSStore(testResource, StoreType.NamespaceStore),
+      this.createAWSStore(testResource, StoreType.NamespaceStore)
     );
     this.createAWSStore(this.testBackingStore, StoreType.BackingStore);
   };
 
   cleanup = () => {
     cy.log('Deleting namespace stores and backing store');
-    cy.exec(`oc delete namespacestores ${this.resources.join(' ')} -n openshift-storage`);
-    cy.exec(`oc delete backingstore ${this.testBackingStore} -n openshift-storage`);
+    cy.exec(
+      `oc delete namespacestores ${this.resources.join(
+        ' '
+      )} -n openshift-storage`
+    );
+    cy.exec(
+      `oc delete backingstore ${this.testBackingStore} -n openshift-storage`
+    );
   };
 }
 
@@ -97,9 +107,7 @@ const tierLevelToButton = (level: number, tier: Tier) =>
 const setGeneralData = (type: BucketClassType) => {
   // be.visible check added to wait for the page to load
   cy.byTestID(`${type.toLowerCase()}-radio`).click();
-  cy.byTestID('bucket-class-name')
-    .scrollIntoView()
-    .should('be.visible');
+  cy.byTestID('bucket-class-name').scrollIntoView().should('be.visible');
   cy.byTestID('bucket-class-name').type(bcName);
   cy.byTestID('bucket-class-description').type(bcDescription);
 };
@@ -144,26 +152,40 @@ const setBackingStores = (tiers: Tier[]) => {
 };
 
 const selectItemFromStoreDropdown = (name: string, type: StoreType) => {
-  cy.byTestID(`${type === StoreType.NamespaceStore ? 'nns' : 'nbs'}-dropdown-toggle`).click();
+  cy.byTestID(
+    `${type === StoreType.NamespaceStore ? 'nns' : 'nbs'}-dropdown-toggle`
+  ).click();
   cy.byTestID(`${name}-dropdown-item`).click();
 };
 
 const configureNamespaceBucketClass = (
   namespacePolicyType: NamespacePolicyType,
-  config: NamespaceBucketClassConfig,
+  config: NamespaceBucketClassConfig
 ) => {
   switch (namespacePolicyType) {
     case NamespacePolicyType.SINGLE:
-      selectItemFromStoreDropdown(config.resources[0], StoreType.NamespaceStore);
+      selectItemFromStoreDropdown(
+        config.resources[0],
+        StoreType.NamespaceStore
+      );
       break;
     case NamespacePolicyType.MULTI:
       selectStoreFromTable(1, config.resources[0]);
       selectStoreFromTable(1, config.resources[1]);
-      selectItemFromStoreDropdown(config.resources[0], StoreType.NamespaceStore);
+      selectItemFromStoreDropdown(
+        config.resources[0],
+        StoreType.NamespaceStore
+      );
       break;
     case NamespacePolicyType.CACHE:
-      selectItemFromStoreDropdown(config.resources[0], StoreType.NamespaceStore);
-      selectItemFromStoreDropdown(config.testBackingStore, StoreType.BackingStore);
+      selectItemFromStoreDropdown(
+        config.resources[0],
+        StoreType.NamespaceStore
+      );
+      selectItemFromStoreDropdown(
+        config.testBackingStore,
+        StoreType.BackingStore
+      );
       cy.byTestID('time-to-live-input').type('2');
       break;
     default:
@@ -187,7 +209,10 @@ export const createBucketClass = (config: BucketClassConfig) => {
     cy.byTestID(`${namespacePolicyType.toLowerCase()}-radio`).click();
     cy.contains('Next').click();
     cy.log('Select Namespace Store');
-    configureNamespaceBucketClass(namespacePolicyType, config as NamespaceBucketClassConfig);
+    configureNamespaceBucketClass(
+      namespacePolicyType,
+      config as NamespaceBucketClassConfig
+    );
   }
   cy.contains('Next').click();
   cy.log('Create bucket class');
@@ -210,7 +235,9 @@ export const deleteBucketClass = () => {
 export const visitBucketClassPage = () => {
   cy.visit('/');
   commonFlows.navigateToODF();
-  cy.log('Planning to start testing for standard bucket class visitBucketClassPage ....');
+  cy.log(
+    'Planning to start testing for standard bucket class visitBucketClassPage ....'
+  );
   cy.byLegacyTestID('horizontal-link-Bucket Class').click();
   cy.byTestID('item-create').click();
 };
