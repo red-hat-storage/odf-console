@@ -11,8 +11,16 @@ import {
 } from '../views/bc';
 
 describe('Tests creation of Standard Bucket Class', () => {
-  const backingStoreResources = ['test-store1', 'test-store2', 'test-store3', 'test-store4'];
-  const config = new StandardBucketClassConfig(backingStoreResources, BucketClassType.STANDARD);
+  const backingStoreResources = [
+    'test-store1',
+    'test-store2',
+    'test-store3',
+    'test-store4',
+  ];
+  const config = new StandardBucketClassConfig(
+    backingStoreResources,
+    BucketClassType.STANDARD
+  );
   before(() => {
     cy.login();
     cy.visit('/');
@@ -58,7 +66,7 @@ describe('Tests creation of Standard Bucket Class', () => {
 describe('Tests creation of Namespace Bucket Class', () => {
   const config = new NamespaceBucketClassConfig(
     ['ns1', 'ns2', 'ns3', 'ns4'],
-    BucketClassType.NAMESPACE,
+    BucketClassType.NAMESPACE
   );
   before(() => {
     cy.login();
