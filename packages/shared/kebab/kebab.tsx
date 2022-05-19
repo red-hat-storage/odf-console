@@ -178,6 +178,7 @@ export const Kebab: React.FC<KebabProps> = ({
       isOpen={isOpen}
       isPlain={toggleType === 'Kebab' ? true : false}
       dropdownItems={dropdownItems}
+      data-test-id="kebab-button"
       position="right"
     />
   );
