@@ -51,6 +51,7 @@ export const getPoolKindObj = (state: BlockPoolState): StoragePoolKind => ({
 
 export const cephClusterResource = {
   kind: referenceForModel(CephClusterModel),
+  namespace: CEPH_NS,
   isList: true,
 };
 
