@@ -11,3 +11,9 @@
   display: flex;
   flex-direction: row;
 }
+
+.odf-breadcrumbs {
+  padding: var(--pf-c-page__main-breadcrumb--PaddingTop)
+    var(--pf-c-page__main-breadcrumb--PaddingRight)
+    var(--pf-c-page__main-breadcrumb--PaddingBottom) 0;
+}
