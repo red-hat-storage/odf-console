@@ -172,7 +172,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
         else onClose();
       })
       .catch((err) => {
-        setError(err);
+        setError(err.message);
       })
       .finally(() => setProgress(false));
   };
