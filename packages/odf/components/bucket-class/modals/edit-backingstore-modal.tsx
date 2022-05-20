@@ -262,6 +262,7 @@ const BucketClassEditModal: React.FC<BucketClassEditModalProps> = (props) => {
         title={t('Edit BucketClass Resource')}
         isOpen={isOpen}
         variant={ModalVariant.medium}
+        onClose={closeModal}
       >
         {nsLoaded && loaded ? (
           <>
