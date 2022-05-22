@@ -72,6 +72,7 @@
       "id": "objectbuckets",
       "section": "storage",
       "name": "Object Buckets",
+      "insertAfter": "volumesnapshotcontents",
       "model": {
         "group": "objectbucket.io",
         "kind": "ObjectBucket",
@@ -89,6 +90,7 @@
       "id": "objectbuckets",
       "section": "storage",
       "name": "Object Buckets",
+      "insertAfter": "volumesnapshotcontents",
       "model": {
         "group": "objectbucket.io",
         "kind": "ObjectBucket",
@@ -106,6 +108,7 @@
       "id": "objectbucketclaims",
       "section": "storage",
       "name": "Object Bucket Claims",
+      "insertAfter": "volumesnapshotcontents",
       "model": {
         "group": "objectbucket.io",
         "kind": "ObjectBucketClaim",
@@ -123,6 +126,7 @@
       "id": "objectbucketclaims",
       "section": "storage",
       "name": "Object Bucket Claims",
+      "insertAfter": "volumesnapshotcontents",
       "model": {
         "group": "objectbucket.io",
         "kind": "ObjectBucketClaim",
