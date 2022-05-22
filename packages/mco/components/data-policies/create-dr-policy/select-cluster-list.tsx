@@ -63,7 +63,7 @@ const getFilteredClusters = (
 const fetchRegion = (cluster: ACMManagedClusterKind): string =>
   cluster?.status?.clusterClaims?.reduce(
     (region, claim) =>
-      region || (claim?.name === MANAGED_CLUSTER_REGION_CLAIM && claim?.value),
+      claim?.name === MANAGED_CLUSTER_REGION_CLAIM ? claim?.value : region,
     ''
   );
 
