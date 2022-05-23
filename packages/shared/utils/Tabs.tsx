@@ -26,9 +26,15 @@ type TabsProps = {
   tabs: TabPage[];
   isSecondary?: boolean;
   id: string;
+  basePath?: string; // The page that is common to these tabs
 };
 
-const Tabs: React.FC<TabsProps> = ({ tabs, isSecondary = false, id }) => {
+const Tabs: React.FC<TabsProps> = ({
+  tabs,
+  isSecondary = false,
+  id,
+  basePath,
+}) => {
   const offset = isSecondary ? 10 : 1;
   const [activeTab, setActiveTab] = React.useState(0 + offset);
 
@@ -75,7 +81,8 @@ const Tabs: React.FC<TabsProps> = ({ tabs, isSecondary = false, id }) => {
         currentLocation.includes(href)
     );
     const trueActiveTab = hrefToTabMap[firstMatchKey];
-    if (!trueActiveTab) {
+    const isActiveBasePath = currentLocation.endsWith(basePath);
+    if (!trueActiveTab && isActiveBasePath) {
       const activeHref = tabToHrefMap[activeTab];
       const sanitizedPath = location.pathname.endsWith('/')
         ? location.pathname.slice(0, -1)
