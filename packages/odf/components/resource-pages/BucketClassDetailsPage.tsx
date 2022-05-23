@@ -88,6 +88,12 @@ const BCDetails: DetailsType =
     );
   };
 
+const extraMap = {
+  EDIT_BC_RESOURCES: React.lazy(
+    () => import('../bucket-class/modals/edit-backingstore-modal')
+  ),
+};
+
 const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
   match,
 }) => {
@@ -100,7 +106,7 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
     isList: false,
   });
 
-  const [Modal, modalProps, launchModal] = useModalLauncher();
+  const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
 
   const breadcrumbs = [
     {
@@ -133,6 +139,11 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
           resource: memoizedResource,
           resourceModel: NooBaaBucketClassModel,
         }}
+        customKebabItems={(t) => ({
+          EDIT_BC_RESOURCES: {
+            value: t('Edit Bucket Class Resources'),
+          },
+        })}
       />
     );
   }, [launchModal, memoizedResource]);

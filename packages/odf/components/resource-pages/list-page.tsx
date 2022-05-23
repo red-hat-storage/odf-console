@@ -245,7 +245,7 @@ const bcActions = {
 };
 
 const bcKebabActions = (t) => ({
-  [EDIT_BC_RESOURCES]: { value: t('Edit BucketClass Resources') },
+  [EDIT_BC_RESOURCES]: { value: t('Edit Bucket Class Resources') },
 });
 
 export const BucketClassListPage: React.FC = () => (
