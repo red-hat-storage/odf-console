@@ -1,3 +1,18 @@
 .odf-tabs {
   overflow: unset;
+  padding-left: 1.5rem;
+  // The following styles are required to override the PF Tab styles and make it consistent with console
+  span {
+    font: 18px 'RedHatText';
+  }
+
+  .pf-c-tabs__link {
+    margin-right: 2rem;
+    padding: var(--pf-c-tabs__link--PaddingTop) 0
+      var(--pf-c-tabs__link--PaddingBottom) 0;
+  }
+
+  .pf-m-current span {
+    color: var(--pf-global--link--Color);
+  }
 }
