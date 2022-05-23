@@ -101,7 +101,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
           <div className="co-m-pane__name co-resource-item">
             <span
               data-test-id="resource-title"
-              className="co-resource-item__resource-name"
+              className="co-resource-item__resource-name odf-title-status"
             >
               {resourceTitle}
               {resourceStatus && (

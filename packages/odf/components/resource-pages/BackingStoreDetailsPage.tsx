@@ -7,15 +7,16 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
-import {
-  ResourceYAMLEditor,
-  useK8sWatchResource,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { NooBaaBackingStoreModel } from '../../models';
 import { BackingStoreKind } from '../../types';
-import { CommonDetails } from './CommonDetails';
+import {
+  CommonDetails,
+  YAMLEditorWrapped,
+  EventStreamWrapped,
+} from './CommonDetails';
 import ProviderDetails from './Providers';
 
 type BackingStoreDetilsPageProps = {
@@ -47,14 +48,6 @@ const BSDetails: DetailsType =
       </CommonDetails>
     );
   };
-
-type YAMLEditorWrapped = {
-  obj?: BackingStoreKind;
-};
-
-const YAMLEditorWrapped: React.FC<YAMLEditorWrapped> = ({ obj }) => (
-  <ResourceYAMLEditor initialResource={obj} />
-);
 
 const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
   match,
@@ -125,6 +118,11 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
             href: 'yaml',
             name: 'YAML',
             component: YAMLEditorWrapped,
+          },
+          {
+            href: 'events',
+            name: 'Events',
+            component: EventStreamWrapped,
           },
         ]}
       />
