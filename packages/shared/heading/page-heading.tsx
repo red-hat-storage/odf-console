@@ -83,7 +83,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
       style={style}
     >
       {showBreadcrumbs && (
-        <Split style={{ alignItems: 'baseline' }}>
+        <Split style={{ alignItems: 'baseline' }} className="odf-breadcrumbs">
           <SplitItem isFilled>
             <BreadCrumbs breadcrumbs={breadcrumbs} />
           </SplitItem>
