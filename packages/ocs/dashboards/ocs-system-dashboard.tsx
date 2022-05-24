@@ -177,7 +177,7 @@ const OCSSystemDashboard: React.FC<RouteComponentProps> = () => {
   }, [showInternalDashboard, isIndependent, isObjectServiceAvailable, t]);
 
   return pages.length > 0 ? (
-    <Tabs id="odf-dashboard-tab" tabs={pages} />
+    <Tabs id="odf-dashboard-tab" tabs={pages} basePath="overview" />
   ) : (
     <LoadingBox />
   );

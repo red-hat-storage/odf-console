@@ -27,6 +27,7 @@ import {
   NOOBAA_PROVISIONER,
   ODF_MANAGED_LABEL,
   OCS_SUPPORT_ANNOTATION,
+  OCS_DISABLED_ANNOTATION,
 } from './constants';
 import { NooBaaSystemModel } from './models';
 
@@ -83,6 +84,16 @@ export const OCS_FEATURE_FLAGS = {
   [FEATURES.ODF_MCG_STANDALONE]: 'mcg-standalone',
   [FEATURES.ODF_HPCS_KMS]: 'hpcs-kms',
   [FEATURES.ODF_VAULT_SA_KMS]: 'vault-sa-kms',
+};
+
+export const ODF_BLOCK_FLAG = {
+  [FEATURES.SS_LIST]: 'ss-list',
+  [FEATURES.ADD_CAPACITY]: 'add-capacity',
+  [FEATURES.ODF_WIZARD]: 'install-wizard',
+  [FEATURES.BLOCK_POOL]: 'block-pool',
+  [FEATURES.MCG_RESOURCE]: 'mcg-resource',
+  [FEATURES.ODF_DASHBOARD]: 'odf-dashboard',
+  [FEATURES.COMMON_FLAG]: 'common',
 };
 
 const setOCSFlagsFalse = (setFlag: SetFeatureFlag) => {
@@ -277,6 +288,13 @@ const detectFeatures = (
   const support = JSON.parse(getAnnotations(csv)?.[OCS_SUPPORT_ANNOTATION]);
   _.keys(OCS_FEATURE_FLAGS).forEach((feature) => {
     setFlag(feature, support.includes(OCS_FEATURE_FLAGS[feature]));
+  });
+
+  const disabled = JSON.parse(
+    getAnnotations(csv)?.[OCS_DISABLED_ANNOTATION] || '[]'
+  );
+  _.keys(ODF_BLOCK_FLAG).forEach((feature) => {
+    setFlag(feature, disabled.includes(ODF_BLOCK_FLAG[feature]));
   });
 };
 
