@@ -1,9 +1,11 @@
 reviewers:
-  - afreen23
   - cloudbehl
   - bipuladh
+  - SanjalKatiyar
+  - vbnrh
+  - rexagod
 approvers:
-  - afreen23
   - cloudbehl
   - bipuladh
+  - SanjalKatiyar
 component: ODF Console
