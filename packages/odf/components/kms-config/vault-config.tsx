@@ -57,6 +57,7 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   );
 
   const { encryption } = state;
+  const isScEncryption = encryption.storageClass;
 
   const openAdvancedModal = () =>
     launchModal(LAUNCH_MODAL_KEY, {
@@ -167,7 +168,7 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
       <ValutConnectionForm
         {...{
           t,
-          state,
+          isScEncryption,
           vaultState,
           className,
           isWizardFlow,
@@ -189,6 +190,7 @@ const extraMap = {
 
 const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
   t,
+  encryption,
   vaultState,
   className,
   isWizardFlow,
@@ -256,6 +258,8 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
 
   const isValid = (value: boolean) =>
     value ? ValidatedOptions.default : ValidatedOptions.error;
+
+  const isScEncryption = encryption['storageClass'];
 
   return (
     <>
@@ -336,6 +340,7 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
             vaultState,
             setAuthValue,
             isValid,
+            isScEncryption,
           }}
         />
       )}
@@ -364,6 +369,7 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
 };
 
 export type ValutConnectionFormProps = {
+  encryption?: boolean;
   vaultState: VaultConfig;
   className: string;
   infraType?: string;
