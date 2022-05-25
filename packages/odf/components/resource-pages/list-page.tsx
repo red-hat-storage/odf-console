@@ -194,7 +194,7 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
   const resource = React.useMemo(
     () => ({
       kind: referenceForModel(resourceModel),
-      ns: CEPH_STORAGE_NAMESPACE,
+      namespace: CEPH_STORAGE_NAMESPACE,
       isList: true,
     }),
     [resourceModel]
@@ -245,7 +245,7 @@ const bcActions = {
 };
 
 const bcKebabActions = (t) => ({
-  [EDIT_BC_RESOURCES]: { value: t('Edit BucketClass Resources') },
+  [EDIT_BC_RESOURCES]: { value: t('Edit Bucket Class Resources') },
 });
 
 export const BucketClassListPage: React.FC = () => (

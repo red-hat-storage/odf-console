@@ -205,22 +205,28 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({
     <InputGroup>
       <TextInput
         id="sync-schedule"
+        data-test="sync-schedule-text"
         defaultValue="5"
         type="number"
         onChange={(scheduleTime) => setSyncSchedule(scheduleTime)}
         isRequired
       />
       <Dropdown
+        data-test="sync-schedule-dropdown"
         aria-label={t('Select schedule time format in minutes, hours or days')}
         onSelect={onSelect}
         toggle={
-          <DropdownToggle onToggle={(open) => setIsOpen(open)}>
+          <DropdownToggle
+            onToggle={(open) => setIsOpen(open)}
+            data-test="sync-schedule-dropdown-toggle"
+          >
             {selectedFormat}
           </DropdownToggle>
         }
         isOpen={isOpen}
         dropdownItems={[
           <DropdownItem
+            data-test="sync-schedule-minutes-dropdown-item"
             key="minutes"
             value={SyncSchedule.minutes}
             component="button"
@@ -228,13 +234,19 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({
             {SyncSchedule.minutes}
           </DropdownItem>,
           <DropdownItem
+            data-test="sync-schedule-hours-dropdown-item"
             key="hours"
             value={SyncSchedule.hours}
             component="button"
           >
             {SyncSchedule.hours}
           </DropdownItem>,
-          <DropdownItem key="days" value={SyncSchedule.days} component="button">
+          <DropdownItem
+            data-test="sync-schedule-days-dropdown-item"
+            key="days"
+            value={SyncSchedule.days}
+            component="button"
+          >
             {SyncSchedule.days}
           </DropdownItem>,
         ]}
@@ -320,7 +332,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
         key={replType}
         component="button"
         id={replType}
-        data-test-id="replication-dropdown-item"
+        data-test="replication-dropdown-item"
         onClick={() => setReplication(replType)}
       >
         {replType}
@@ -413,6 +425,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
       <Form className="mco-create-data-policy">
         <FormGroup fieldId="policy-name" label={t('Policy name')}>
           <TextInput
+            data-test="policy-name-text"
             id="policy-name"
             value={policyName}
             type="text"
@@ -437,7 +450,8 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           <Alert
             className="co-alert mco-create-data-policy__alert"
             title={t(
-              'Data Foundation 4.11 or above must be installed on the managed clusters to setup connection for enabling replication/mirroring'
+              'Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring',
+              { version: ODF_MINIMUM_SUPPORT }
             )}
             variant={AlertVariant.info}
             isInline
@@ -463,10 +477,12 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
                 label={t('Replication policy')}
               >
                 <Dropdown
+                  data-test="replication-dropdown"
                   className="mco-create-data-policy__dropdown"
                   onSelect={() => setReplicationOpen(false)}
                   toggle={
                     <DropdownToggle
+                      data-test="replication-dropdown-toggle"
                       isDisabled={!isReplicationInputManual}
                       className="mco-create-data-policy__dropdown"
                       id="toggle-id"
@@ -491,6 +507,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           clustersData?.map((c) =>
             c.csvLoaded && !c?.isValidODFVersion ? (
               <Alert
+                data-test="odf-not-found-alert"
                 className="co-alert mco-create-data-policy__alert"
                 title={t(
                   '{{ name }} has invalid ODF version, update to ODF {{ version }} or latest version to enable DR protection',
@@ -503,6 +520,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
               c?.storageSystemName === '' &&
               c.storageSystemLoaded && (
                 <Alert
+                  data-test="rhcs-not-found-alert"
                   className="co-alert mco-create-data-policy__alert"
                   title={t('{{ name }} is not connected to RHCS', {
                     name: c?.name,
@@ -528,6 +546,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
         )}
         <ActionGroup className="mco-create-data-policy__action-group">
           <Button
+            data-test="create-button"
             variant={ButtonVariant.primary}
             onClick={onCreate}
             isDisabled={
@@ -538,7 +557,11 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           >
             {t('Create')}
           </Button>
-          <Button variant={ButtonVariant.secondary} onClick={history.goBack}>
+          <Button
+            data-test="cancel-button"
+            variant={ButtonVariant.secondary}
+            onClick={history.goBack}
+          >
             {t('Cancel')}
           </Button>
         </ActionGroup>

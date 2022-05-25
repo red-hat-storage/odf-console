@@ -1,9 +1,7 @@
 reviewers:
-  - afreen23
   - SanjalKatiyar
   - GowthamShanmugam
 approvers:
-  - afreen23
   - SanjalKatiyar
   - GowthamShanmugam
 component: Multicluster Orchestrator Operator frontend

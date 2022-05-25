@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
 import { NumberInput } from '@patternfly/react-core';
 import StaticDropdown from '../dropdown/StaticDropdown';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 const NumberSpinner: React.FC<NumberSpinnerProps> = ({
   className,
@@ -10,7 +10,7 @@ const NumberSpinner: React.FC<NumberSpinnerProps> = ({
   value,
   ...inputProps
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   return (
     <div className="co-m-number-spinner">

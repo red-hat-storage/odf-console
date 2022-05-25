@@ -63,7 +63,7 @@ const getFilteredClusters = (
 const fetchRegion = (cluster: ACMManagedClusterKind): string =>
   cluster?.status?.clusterClaims?.reduce(
     (region, claim) =>
-      region || (claim?.name === MANAGED_CLUSTER_REGION_CLAIM && claim?.value),
+      claim?.name === MANAGED_CLUSTER_REGION_CLAIM ? claim?.value : region,
     ''
   );
 
@@ -151,6 +151,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
         <ToolbarContent>
           <ToolbarItem className="mco-select-cluster-list__filter-toolbar-item">
             <Select
+              toggleId="region-select"
               isOpen={isRegionOpen}
               onToggle={(open) => {
                 setIsRegionOpen(open);
@@ -161,16 +162,26 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
               }}
               selections={region}
             >
-              <SelectOption value={t('Region')} isPlaceholder />
+              <SelectOption
+                value={t('Region')}
+                isPlaceholder
+                data-test="region-default-select-option"
+              />
               <>
                 {filterRegions(filteredClusters).map((region) => (
-                  <SelectOption value={region} key={region} />
+                  <SelectOption
+                    value={region}
+                    key={region}
+                    data-test="region-select-option"
+                  />
                 ))}
               </>
             </Select>
           </ToolbarItem>
           <ToolbarItem className="mco-select-cluster-list__search-toolbar-item">
             <SearchInput
+              data-test="cluster search"
+              aria-label={t('Cluster search')}
               placeholder={t('Cluster name')}
               onChange={(val) => setNameSearch(val)}
               value={nameSearch}
@@ -180,7 +191,10 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
         </ToolbarContent>
       </Toolbar>
       {filteredClusters.length === 0 ? (
-        <Bullseye className="mco-select-cluster-list__bullseye">
+        <Bullseye
+          data-test="no-cluster-bullseye"
+          className="mco-select-cluster-list__bullseye"
+        >
           {t('No clusters found')}
         </Bullseye>
       ) : (
@@ -193,6 +207,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
             <DataListItem key={fc?.name}>
               <DataListItemRow>
                 <DataListCheck
+                  data-test="managed-cluster-checkbox"
                   aria-labelledby={t('Checkbox to select cluster')}
                   id={index.toString()}
                   onChange={onSelect}

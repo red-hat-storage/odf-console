@@ -48,7 +48,7 @@ export const BlockPoolDetailsPage: React.FC<BlockPoolDetailsPageProps> = ({
     },
     {
       name: t('StorageSystem details'),
-      path: location.pathname.split(`/${poolName}`)[0],
+      path: location.pathname.split(`/${kind}`)[0],
     },
     {
       name: poolName,

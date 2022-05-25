@@ -83,7 +83,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
       style={style}
     >
       {showBreadcrumbs && (
-        <Split style={{ alignItems: 'baseline' }}>
+        <Split style={{ alignItems: 'baseline' }} className="odf-breadcrumbs">
           <SplitItem isFilled>
             <BreadCrumbs breadcrumbs={breadcrumbs} />
           </SplitItem>
@@ -101,7 +101,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
           <div className="co-m-pane__name co-resource-item">
             <span
               data-test-id="resource-title"
-              className="co-resource-item__resource-name"
+              className="co-resource-item__resource-name odf-title-status"
             >
               {resourceTitle}
               {resourceStatus && (

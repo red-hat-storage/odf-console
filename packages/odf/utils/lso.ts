@@ -4,8 +4,8 @@ import {
   k8sGet,
   k8sPatch,
   k8sCreate,
+  MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { MatchExpression } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import * as _ from 'lodash';
 import {
   HOSTNAME_LABEL_KEY,

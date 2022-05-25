@@ -6,16 +6,18 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { referenceForModel } from '@odf/shared/utils';
-import {
-  ResourceYAMLEditor,
-  useK8sWatchResource,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { NooBaaBucketClassModel } from '../../models';
 import { BucketClassKind } from '../../types';
-import { CommonDetails, DetailsItem } from './CommonDetails';
+import {
+  CommonDetails,
+  DetailsItem,
+  YAMLEditorWrapped,
+  EventStreamWrapped,
+} from './CommonDetails';
 
 type BucketClassDetailsPageProps = {
   match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
@@ -86,13 +88,11 @@ const BCDetails: DetailsType =
     );
   };
 
-type YAMLEditorWrapped = {
-  obj?: BucketClassKind;
+const extraMap = {
+  EDIT_BC_RESOURCES: React.lazy(
+    () => import('../bucket-class/modals/edit-backingstore-modal')
+  ),
 };
-
-const YAMLEditorWrapped: React.FC<YAMLEditorWrapped> = ({ obj }) => (
-  <ResourceYAMLEditor initialResource={obj} />
-);
 
 const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
   match,
@@ -106,7 +106,7 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
     isList: false,
   });
 
-  const [Modal, modalProps, launchModal] = useModalLauncher();
+  const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
 
   const breadcrumbs = [
     {
@@ -139,6 +139,11 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
           resource: memoizedResource,
           resourceModel: NooBaaBucketClassModel,
         }}
+        customKebabItems={(t) => ({
+          EDIT_BC_RESOURCES: {
+            value: t('Edit Bucket Class Resources'),
+          },
+        })}
       />
     );
   }, [launchModal, memoizedResource]);
@@ -163,6 +168,11 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
             href: 'yaml',
             name: 'YAML',
             component: YAMLEditorWrapped,
+          },
+          {
+            href: 'events',
+            name: 'Events',
+            component: EventStreamWrapped,
           },
         ]}
       />

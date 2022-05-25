@@ -11,14 +11,14 @@ import { ProviderNames } from '../../types';
 import { HpcsConfigure } from './hpcs-config';
 import { EncryptionDispatch, KMSConfigureProps } from './providers';
 import { isLengthUnity } from './utils';
-import { ValutConfigure } from './vault-config';
+import { VaultConfigure } from './vault-config';
 import './kms-config.scss';
 
 const KMSProviders = [
   {
     name: 'Vault',
     value: ProviderNames.VAULT,
-    Component: ValutConfigure,
+    Component: VaultConfigure,
   },
   {
     name: 'Hyper Protect Crypto Services',
@@ -41,6 +41,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   className,
   infraType,
   isWizardFlow,
+  isMCG,
 }) => {
   const { t } = useTranslation('plugin__odf-console');
 
@@ -91,6 +92,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
         dispatch={dispatch}
         className={className}
         isWizardFlow={isWizardFlow}
+        isMCG={isMCG}
       />
     </div>
   );

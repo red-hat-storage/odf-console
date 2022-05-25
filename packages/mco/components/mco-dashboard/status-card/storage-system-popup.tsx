@@ -51,9 +51,11 @@ const SystemHealthCount: React.FC<SystemHealthCountProps> = ({
 }) => {
   return (
     <Flex spaceItems={{ default: 'spaceItemsXs' }}>
-      <FlexItem>{value}</FlexItem>
-      <FlexItem>{healthStateMapping[health].icon}</FlexItem>
-      <FlexItem>{`(${count})`}</FlexItem>
+      <FlexItem data-test="storage-system-health-value">{value}</FlexItem>
+      <FlexItem data-test="storage-system-health-icon">
+        {healthStateMapping[health].icon}
+      </FlexItem>
+      <FlexItem data-test="storage-system-health-count">{`(${count})`}</FlexItem>
     </Flex>
   );
 };
@@ -70,15 +72,19 @@ export const StorageSystemPopup: React.FC<StorageSystemPopopProps> = ({
 
   return (
     <Flex direction={{ default: 'column' }}>
-      <Title headingLevel="h3" size="md">
+      <Title
+        headingLevel="h3"
+        size="md"
+        data-test="storage-system-status-title"
+      >
         {t('Storage System status')}
       </Title>
-      <Flex>
+      <Flex data-test="storage-system-status-description">
         {t(
           'StorageSystem is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
         )}
       </Flex>
-      <Title headingLevel="h3" size="md">
+      <Title headingLevel="h3" size="md" data-test="storage-system-count">
         {t('Storage System')}
         {` (${systemHealthMap.length})`}
       </Title>
@@ -121,10 +127,18 @@ const getCsvStatusCount = (csvStatusMap: CSVStatusMap[]) =>
 
 const StatusIcon: React.FC<StatusIconProps> = ({ health, count }) => (
   <div className="odf-csv-status-popup__row">
-    <div className="odf-csv-status-popup__icon">
+    <div
+      className="odf-csv-status-popup__icon"
+      data-test="operator-status-icon"
+    >
       {healthStateMapping[health].icon}
     </div>
-    <div className="odf-csv-status-popup__count">{count}</div>
+    <div
+      className="odf-csv-status-popup__count"
+      data-test="operator-status-count"
+    >
+      {count}
+    </div>
   </div>
 );
 
@@ -140,10 +154,10 @@ export const ODFOperatorPopup: React.FC<ODFOperatorPopupProps> = ({
 
   return (
     <Flex direction={{ default: 'column' }}>
-      <Title headingLevel="h3" size="md">
+      <Title headingLevel="h3" size="md" data-test="operator-status-title">
         {t('Data Foundation status')}
       </Title>
-      <Flex>
+      <Flex data-test="operator-status-description">
         {t(
           'The Data Foundation operator is the primary operator of Data Foundation'
         )}

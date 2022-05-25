@@ -151,7 +151,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         redirectHandler(resources);
       })
       .catch((error) => {
-        setError(error);
+        setError(error.message);
       })
       .finally(() => {
         setProgress(false);

@@ -30,6 +30,7 @@ import {
   ListPageCreateLink,
   ListPageFilter,
   ListPageHeader,
+  PrometheusEndpoint,
   PrometheusResponse,
   RowProps,
   TableColumn,
@@ -39,7 +40,6 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import classNames from 'classnames';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
@@ -363,17 +363,20 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
     basePath: usePrometheusBasePath(),
   });
 
-  const [csv, csvLoaded] = useK8sWatchResource<ClusterServiceVersionKind[]>({
+  const [csv, csvLoaded, csvError] = useK8sWatchResource<
+    ClusterServiceVersionKind[]
+  >({
     kind: referenceForModel(ClusterServiceVersionModel),
     isList: true,
     namespace,
     selector,
   });
 
-  const odfCsvName: string = csvLoaded
-    ? csv?.find((item) => item.metadata.name.includes('odf-operator'))?.metadata
-        ?.name
-    : null;
+  const odfCsvName: string =
+    csvLoaded && !csvError
+      ? csv?.find((item) => item?.metadata?.name?.includes('odf-operator'))
+          ?.metadata?.name
+      : null;
 
   const createLink = `/k8s/ns/openshift-storage/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
 

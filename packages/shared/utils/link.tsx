@@ -1,10 +1,10 @@
 import * as React from 'react';
 import classNames from 'classnames';
 import { CopyToClipboard as CTC } from 'react-copy-to-clipboard';
-import { useTranslation } from 'react-i18next';
 import Linkify from 'react-linkify';
 import { Tooltip } from '@patternfly/react-core';
 import { CopyIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 // Kubernetes "dns-friendly" names match
 // [a-z0-9]([-a-z0-9]*[a-z0-9])?  and are 63 or fewer characters
@@ -105,7 +105,7 @@ export const ExternalLinkWithCopy: React.FC<ExternalLinkWithCopyProps> = ({
 }) => {
   const [copied, setCopied] = React.useState(false);
 
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const tooltipText = copied
     ? t('Copied to clipboard')
     : t('Copy to clipboard');

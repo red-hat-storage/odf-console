@@ -31,7 +31,11 @@ const EmptyPage: React.FC<EmptyPageProps> = (props) => {
           {props.title}
         </Title>
         <EmptyStateBody>{props.children}</EmptyStateBody>
-        <Button variant="primary" onClick={props.onClick}>
+        <Button
+          variant="primary"
+          onClick={props.onClick}
+          data-test="create-button"
+        >
           {props.buttonText}
         </Button>
       </EmptyState>

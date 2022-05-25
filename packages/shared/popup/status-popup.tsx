@@ -16,17 +16,24 @@ export const StatusPopupSection: React.FC<StatusPopupSectionProps> = ({
 );
 
 export const Status: React.FC<StatusProps> = ({ value, icon, children }) => (
-  <div className="odf-status-popup__row">
+  <div className="odf-status-popup__row" data-test="operator-status">
     {children}
     {value ? (
       <div className="odf-status-popup__status">
-        <div>{icon}</div>
-        <div className="text-secondary">{value}</div>
+        <div data-test="operator-status-value">{icon}</div>
+        <div className="text-secondary" data-test="operator-status-icon">
+          {value}
+        </div>
       </div>
     ) : (
       icon && (
         <div className="odf-status-popup__status">
-          <div className="odf-status-popup__icon">{icon}</div>
+          <div
+            className="odf-status-popup__icon"
+            data-test="operator-status-icon"
+          >
+            {icon}
+          </div>
         </div>
       )
     )}

@@ -204,7 +204,7 @@
       "insertBefore": "acm-applications"
     },
     "flags": {
-      "required": ["MCO", "ODR_MODEL"]
+      "required": ["MCO"]
     }
   },
   {
@@ -217,7 +217,7 @@
       "href": "/multicloud/data-services/data-policies"
     },
     "flags": {
-      "required": ["MCO"]
+      "required": ["MCO", "ODR_MODEL"]
     }
   },
   {
@@ -340,6 +340,16 @@
   {
     "type": "console.page/route",
     "properties": {
+      "exact": true,
+      "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/create/~new",
+      "component": {
+        "$codeRef": "createBlockPools.default"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/:poolName",
       "exact": false,
       "component": {
@@ -347,20 +357,6 @@
       }
     },
     "flags": {
-      "disallowed": ["MCO"]
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": true,
-      "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/create/~new",
-      "component": {
-        "$codeRef": "createBlockPools.default"
-      }
-    },
-    "flags": {
-      "required": ["OCS"],
       "disallowed": ["MCO"]
     }
   },
