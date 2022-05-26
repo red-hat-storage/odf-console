@@ -54,7 +54,8 @@ import {
   REPLICATION_TYPE,
   ODF_MINIMUM_SUPPORT,
   CEPH_CLUSTER_NAME,
-} from '../../../constants/dr-policy';
+  HUB_CLUSTER_NAME,
+} from '../../../constants';
 import { DRPolicyModel, MirrorPeerModel } from '../../../models';
 import { DRPolicyKind, MirrorPeerKind } from '../../../types';
 import { isMinimumSupportedODFVersion } from '../../../utils/disaster-recovery';
@@ -286,6 +287,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
     kind: referenceForModel(MirrorPeerModel),
     isList: true,
     namespaced: false,
+    cluster: HUB_CLUSTER_NAME,
   });
 
   const clustersData = React.useMemo(
@@ -363,6 +365,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
             model: MirrorPeerModel,
             resource: mirrorPeer,
             data: patch,
+            cluster: HUB_CLUSTER_NAME,
           })
         );
       }
@@ -386,7 +389,13 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           })),
         },
       };
-      promises.push(k8sCreate({ model: MirrorPeerModel, data: payload }));
+      promises.push(
+        k8sCreate({
+          model: MirrorPeerModel,
+          data: payload,
+          cluster: HUB_CLUSTER_NAME,
+        })
+      );
     }
 
     // DRPolicy creation
@@ -400,7 +409,13 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
         drClusters: peerNames,
       },
     };
-    promises.push(k8sCreate({ model: DRPolicyModel, data: payload }));
+    promises.push(
+      k8sCreate({
+        model: DRPolicyModel,
+        data: payload,
+        cluster: HUB_CLUSTER_NAME,
+      })
+    );
     Promise.all(promises)
       .then(() => {
         const { apiGroup, apiVersion, kind } = DRPolicyModel;

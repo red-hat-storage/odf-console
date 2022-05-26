@@ -28,7 +28,7 @@ import {
   TextContent,
   TreeViewDataItem,
 } from '@patternfly/react-core';
-import { DR_SECHEDULER_NAME } from '../../../../constants/dr-policy';
+import { DR_SECHEDULER_NAME, HUB_CLUSTER_NAME } from '../../../../constants';
 import {
   ACMPlacementRuleModel,
   ACMSubscriptionModel,
@@ -73,16 +73,19 @@ const resources = {
     kind: referenceForModel(ApplicationModel),
     namespaced: false,
     isList: true,
+    cluster: HUB_CLUSTER_NAME,
   },
   subscriptions: {
     kind: referenceForModel(ACMSubscriptionModel),
     namespaced: false,
     isList: true,
+    cluster: HUB_CLUSTER_NAME,
   },
   placementRules: {
     kind: referenceForModel(ACMPlacementRuleModel),
     namespaced: false,
     isList: true,
+    cluster: HUB_CLUSTER_NAME,
   },
 };
 
@@ -335,6 +338,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
               model: ACMPlacementRuleModel,
               resource: plsRule,
               data: patch,
+              cluster: HUB_CLUSTER_NAME,
             })
           );
           promises.push(
@@ -345,6 +349,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
                 resource,
                 managedClusterNames
               ),
+              cluster: HUB_CLUSTER_NAME,
             })
           );
         });
