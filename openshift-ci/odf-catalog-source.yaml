@@ -24,7 +24,7 @@ spec:
   icon:
     base64data: ''
     mediatype: ''
-  image: quay.io/rhceph-dev/ocs-registry:latest-stable-4.10.0
+  image: quay.io/rhceph-dev/ocs-registry:latest-stable-4.11.0
   secrets:
     - ocs-secret
   priority: 100
