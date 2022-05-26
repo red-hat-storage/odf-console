@@ -102,7 +102,7 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
         ];
       cy.byTestID('requestSize').should('have.value', String(initialCapacity));
       cy.byTestID('provisioned-capacity').contains(
-        `${(initialCapacity * 3).toFixed(2)} TiB`
+        `${(initialCapacity * 3).toFixed(0)} TiB`
       );
       cy.byTestID('add-cap-sc-dropdown', { timeout: 10000 }).should(
         'be.visible'
@@ -110,7 +110,7 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       modal.submit();
       modal.shouldBeClosed();
 
-      cy.clickNavLink(['Operators', 'Installed Operators']);
+      cy.clickNavLink(['Operators', 'Installed Operators']).first();
       cy.byLegacyTestID('item-filter').type('Openshift Data Foundation');
       cy.byTestRows('resource-row').get('td').first().click();
       cy.byLegacyTestID('horizontal-link-Storage System').click();
