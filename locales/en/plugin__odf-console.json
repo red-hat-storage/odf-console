@@ -790,6 +790,7 @@
   "Labels help you organize and select resources. Adding labels below will let you query for objects that have similar, overlapping or dissimilar labels.": "Labels help you organize and select resources. Adding labels below will let you query for objects that have similar, overlapping or dissimilar labels.",
   "{{description}} for": "{{description}} for",
   "Labels for": "Labels for",
+  "This resource is managed by <2></2> and any modifications may be overwritten. Edit the managing resource to preserve changes.": "This resource is managed by <2></2> and any modifications may be overwritten. Edit the managing resource to preserve changes.",
   "PersistentVolume": "PersistentVolume",
   "PersistentVolumes": "PersistentVolumes",
   "PersistentVolumeClaim": "PersistentVolumeClaim",
@@ -829,5 +830,15 @@
   "Decrement": "Decrement",
   "Increment": "Increment",
   "Value hidden": "Value hidden",
-  "No value": "No value"
+  "No value": "No value",
+  "No \"apiVersion\" field found in YAML.": "No \"apiVersion\" field found in YAML.",
+  "No \"kind\" field found in YAML.": "No \"kind\" field found in YAML.",
+  "No \"metadata\" field found in YAML.": "No \"metadata\" field found in YAML.",
+  "No \"metadata.namespace\" field found in YAML.": "No \"metadata.namespace\" field found in YAML.",
+  "{{newName}} has been updated to version {{version}}": "{{newName}} has been updated to version {{version}}",
+  "Error parsing YAML: {{e}}": "Error parsing YAML: {{e}}",
+  "Cannot change resource name (original: \"{{name}}\", updated: \"{{newName}}\").": "Cannot change resource name (original: \"{{name}}\", updated: \"{{newName}}\").",
+  "Cannot change resource namespace (original: \"{{namespace}}\", updated: \"{{newNamespace}}\").": "Cannot change resource namespace (original: \"{{namespace}}\", updated: \"{{newNamespace}}\").",
+  "Cannot change resource kind (original: \"{{original}}\", updated: \"{{updated}}\").": "Cannot change resource kind (original: \"{{original}}\", updated: \"{{updated}}\").",
+  "Cannot change API group (original: \"{{apiGroup}}\", updated: \"{{newAPIGroup}}\").": "Cannot change API group (original: \"{{apiGroup}}\", updated: \"{{newAPIGroup}}\")."
 }
