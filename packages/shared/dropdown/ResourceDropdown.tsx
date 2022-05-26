@@ -46,6 +46,7 @@ type ResourceDropdownItemProps<T> = {
   showBadge?: boolean;
   secondaryTextGenerator?: (resource: T) => string;
   onClick?: any;
+  'data-test'?: string;
 };
 
 type ResourceDropdownItem = <T>(
@@ -60,9 +61,10 @@ const ResourceDropdownItem: ResourceDropdownItem = ({
   id,
   secondaryTextGenerator,
   onClick,
+  'data-test': dataTest,
 }) => {
   return (
-    <DropdownItem id={id} onClick={onClick}>
+    <DropdownItem data-test={dataTest} id={id} onClick={onClick}>
       <div>
         <span className="co-resource-item">
           {showBadge && <ResourceBadge model={model} />}
@@ -182,10 +184,11 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
               resourceModel={resourceModel}
               showBadge={showBadge}
               resource={curr}
-              id={getUID(curr)}
+              id={`${getName(curr)}-link`}
               propertySelector={propertySelector}
               secondaryTextGenerator={secondaryTextGenerator}
               onClick={onClick}
+              data-test="dropdown-menu-item-link"
             />,
           ];
         }, []);
