@@ -17,6 +17,7 @@ type CustomPrometheusPollProps = {
   timeout?: string;
   timespan?: number;
   basePath?: string;
+  cluster?: string;
 };
 
 type UseCustomPrometheusPoll = (
@@ -33,6 +34,7 @@ export const useCustomPrometheusPoll: UseCustomPrometheusPoll = ({
   timeout,
   timespan = DEFAULT_PROMETHEUS_TIMESPAN,
   basePath,
+  cluster,
 }) => {
   const url = !!basePath
     ? getPrometheusURL(
@@ -49,5 +51,5 @@ export const useCustomPrometheusPoll: UseCustomPrometheusPoll = ({
         timespan,
       });
 
-  return useURLPoll<PrometheusResponse>(url, delay, query, timespan);
+  return useURLPoll<PrometheusResponse>(url, delay, cluster, query, timespan);
 };

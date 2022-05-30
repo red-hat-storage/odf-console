@@ -45,6 +45,7 @@ export const ErrorMessage = ({ message }) => {
 type EditLabelModalExtraProps = {
   resource: K8sResourceCommon;
   resourceModel: K8sModel;
+  cluster?: string;
 };
 
 type EditLabelModalProps = {
@@ -65,7 +66,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
   closeModal,
   labelClassName,
   isOpen,
-  extraProps: { resource, resourceModel },
+  extraProps: { resource, resourceModel, cluster },
 }) => {
   const [labels, setLabels] = React.useState(
     arrayify(_.get(resource, LABELS_PATH.split('/').slice(1)))
@@ -86,7 +87,12 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
       },
     ];
 
-    k8sPatch({ model: resourceModel, resource, data: patch })
+    k8sPatch({
+      model: resourceModel,
+      resource,
+      data: patch,
+      ...(!!cluster ? { cluster } : {}),
+    })
       .then(() => {
         closeModal();
       })
