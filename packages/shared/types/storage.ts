@@ -89,3 +89,19 @@ export type StorageSystemKind = K8sResourceCommon & {
     conditions?: any;
   };
 };
+
+type CephDeviceClass = {
+  name: string;
+};
+
+export type CephClusterKind = K8sResourceCommon & {
+  status?: {
+    storage: {
+      deviceClasses: CephDeviceClass[];
+    };
+    ceph?: {
+      fsid?: string;
+    };
+    phase?: string;
+  };
+};

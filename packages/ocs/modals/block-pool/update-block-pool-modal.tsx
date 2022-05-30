@@ -3,6 +3,7 @@ import { ModalFooter } from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { CommonModalProps, ModalBody } from '@odf/shared/modals/Modal';
+import { CephClusterKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sKind,
@@ -23,7 +24,7 @@ import {
   POOL_PROGRESS,
 } from '../../constants';
 import { CephBlockPoolModel, CephClusterModel } from '../../models';
-import { CephClusterKind, StoragePoolKind } from '../../types';
+import { StoragePoolKind } from '../../types';
 import { isDefaultPool } from '../../utils';
 import { BlockPoolModalFooter, FooterPrimaryActions } from './modal-footer';
 

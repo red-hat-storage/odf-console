@@ -36,16 +36,3 @@ export type StoragePoolKind = K8sResourceCommon & {
     };
   };
 };
-
-type CephDeviceClass = {
-  name: string;
-};
-
-export type CephClusterKind = K8sResourceCommon & {
-  status: {
-    storage: {
-      deviceClasses: CephDeviceClass[];
-    };
-    phase?: string;
-  };
-};
