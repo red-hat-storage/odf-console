@@ -29,23 +29,13 @@ import {
 } from '../../../constants';
 import { ACMManagedClusterModel } from '../../../models';
 import { ACMManagedClusterKind } from '../../../types';
+import {
+  DRPolicyState,
+  DRPolicyAction,
+  DRPolicyActionType,
+  Cluster,
+} from './reducer';
 import './select-cluster-list.scss';
-
-export type Cluster = {
-  name: string;
-  region: string;
-} & ODFInfo;
-
-type ODFInfo = {
-  storageClusterName?: string;
-  storageSystemName?: string;
-  storageClusterId?: string;
-  odfVersion?: string;
-  isValidODFVersion?: boolean;
-  storageSystemLoaded?: boolean;
-  storageClusterIdLoaded?: boolean;
-  csvLoaded?: boolean;
-};
 
 const getFilteredClusters = (
   clusters: Cluster[],
@@ -81,15 +71,25 @@ const getManagedClusterInfo = (cluster: ACMManagedClusterKind) => ({
   region: fetchRegion(cluster) ?? '',
 });
 
+type SelectClusterListProps = {
+  state: DRPolicyState;
+  dispatch: React.Dispatch<DRPolicyAction>;
+};
+
 export const SelectClusterList: React.FC<SelectClusterListProps> = ({
-  selectedClusters,
-  setSelectedClusters,
+  state,
+  dispatch,
 }) => {
   const { t } = useCustomTranslation();
+  const { selectedClusters } = state;
   const [isRegionOpen, setIsRegionOpen] = React.useState(false);
   const [region, setRegion] = React.useState('');
   const [nameSearch, setNameSearch] = React.useState('');
   const [clusters, setClusters] = React.useState<Cluster[]>([]);
+  const selectedClustersNames = React.useMemo(
+    () => Object.keys(selectedClusters),
+    [selectedClusters]
+  );
 
   const [
     acmManagedClusters,
@@ -126,25 +126,24 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   );
 
   const onSelect: DataListCheckProps['onChange'] = (checked, event) => {
-    const name = filteredClusters?.[Number(event.currentTarget.id)]?.name;
-    const region = filteredClusters?.[Number(event.currentTarget.id)]?.region;
-    if (checked)
-      setSelectedClusters((selectedClusters) => ({
-        ...selectedClusters,
-        [name]: {
-          name,
-          region,
-          storageClusterId: '',
-          storageSystemName: '',
-          storageClusterName: '',
-          odfVersion: '',
-        },
-      }));
-    else {
-      const sc = _.cloneDeep(selectedClusters);
-      delete sc?.[name];
-      setSelectedClusters(sc);
+    const { name, region } = filteredClusters?.[Number(event.currentTarget.id)];
+    const selectedClustersClone = _.cloneDeep(selectedClusters);
+    if (checked) {
+      selectedClustersClone[name] = {
+        name,
+        region,
+        cephFSID: '',
+        storageSystemName: '',
+        cephClusterName: '',
+        odfVersion: '',
+      };
+    } else {
+      delete selectedClustersClone?.[name];
     }
+    dispatch({
+      type: DRPolicyActionType.SET_SELECTED_CLUSTERS,
+      payload: selectedClustersClone,
+    });
   };
 
   return (
@@ -213,13 +212,13 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
                   aria-labelledby={t('Checkbox to select cluster')}
                   id={index.toString()}
                   onChange={onSelect}
-                  isChecked={Object.keys(selectedClusters)?.some(
+                  isChecked={selectedClustersNames?.some(
                     (scName) => scName === fc.name
                   )}
                   isDisabled={
-                    Object.keys(selectedClusters ?? [])?.length ===
+                    (selectedClustersNames ?? [])?.length ===
                       MAX_ALLOWED_CLUSTERS &&
-                    !Object.keys(selectedClusters ?? [])?.some(
+                    !(selectedClustersNames ?? [])?.some(
                       (scName) => scName === fc.name
                     )
                   }
@@ -241,15 +240,4 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       )}
     </div>
   );
-};
-
-export type ManagedClusterMapping = {
-  [name in string]: Cluster;
-};
-
-type SelectClusterListProps = {
-  selectedClusters: ManagedClusterMapping;
-  setSelectedClusters: React.Dispatch<
-    React.SetStateAction<ManagedClusterMapping>
-  >;
 };
