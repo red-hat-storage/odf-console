@@ -38,7 +38,11 @@ import {
   FlexItem,
 } from '@patternfly/react-core';
 import { SortByDirection } from '@patternfly/react-table';
-import { ACM_ENDPOINT, CLUSTER_CLAIM_URL_NAME } from '../../../constants';
+import {
+  ACM_ENDPOINT,
+  CLUSTER_CLAIM_URL_NAME,
+  HUB_CLUSTER_NAME,
+} from '../../../constants';
 import './capacity-card.scss';
 
 type CapacityMetricDatum = {
@@ -231,12 +235,14 @@ const SystemCapacityCard: React.FC = () => {
       endpoint: 'api/v1/query' as any,
       query: CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_FILE_BLOCK],
       basePath: ACM_ENDPOINT,
+      cluster: HUB_CLUSTER_NAME,
     });
   const [totalCapacity, errorTotalCapacity, loadingTotalCapacity] =
     useCustomPrometheusPoll({
       endpoint: 'api/v1/query' as any,
       query: CAPACITY_QUERIES[StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK],
       basePath: ACM_ENDPOINT,
+      cluster: HUB_CLUSTER_NAME,
     });
 
   React.useEffect(() => {

@@ -29,6 +29,7 @@ import {
   Thead,
   ThProps,
 } from '@patternfly/react-table';
+import { HUB_CLUSTER_NAME } from '../../../constants';
 import { ACMPlacementRuleModel, ACMSubscriptionModel } from '../../../models';
 import { ACMSubscriptionKind, DRPlacementControlKind } from '../../../types';
 import { matchApplicationsToSubstring } from '../../../utils';
@@ -63,11 +64,13 @@ const resources = {
     kind: referenceForModel(ApplicationModel),
     namespaced: false,
     isList: true,
+    cluster: HUB_CLUSTER_NAME,
   },
   subscriptions: {
     kind: referenceForModel(ACMSubscriptionModel),
     namespaced: false,
     isList: true,
+    cluster: HUB_CLUSTER_NAME,
   },
 };
 
