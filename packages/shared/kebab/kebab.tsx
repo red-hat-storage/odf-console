@@ -150,6 +150,7 @@ export const Kebab: React.FC<KebabProps> = ({
 
   return (
     <Dropdown
+      data-test="kebab-button"
       onSelect={onClick}
       toggle={toggle}
       isOpen={isOpen}

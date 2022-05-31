@@ -1,7 +1,7 @@
-import { scaleDeployments } from '../helpers/active-health-checks';
 import { MINUTE, STORAGE_SYSTEM_NAME } from '../consts';
-import { ODFCommon } from '../views/odf-common';
+import { scaleDeployments } from '../helpers/active-health-checks';
 import { listPage } from '../views/list-page';
+import { ODFCommon } from '../views/odf-common';
 
 const enum Deployments {
   ROOK_CEPH_MON_A = 'rook-ceph-mon-a',

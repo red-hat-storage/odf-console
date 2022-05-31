@@ -1,6 +1,6 @@
 export const commonFlows = {
   navigateToODF: () => {
-    cy.clickNavLink(['Storage', 'OpenShift Data Foundation']);
+    cy.clickNavLink(['Storage', 'Data Foundation']);
     //cy.byTestOperatorRow('OpenShift Data Foundation').click();
   },
   checkAll: () => cy.get('input[name=check-all]'),

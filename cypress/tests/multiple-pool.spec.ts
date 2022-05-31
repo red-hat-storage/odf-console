@@ -1,4 +1,3 @@
-import { modal } from '../views/modals';
 import { POOL_PROGRESS } from '../constants/storage-pool-const';
 import {
   poolName,
@@ -8,6 +7,7 @@ import {
   verifyBlockPoolJSON,
   poolMessage,
 } from '../views/block-pool';
+import { modal } from '../views/modals';
 
 const prepareStorageClassForm = () => {
   cy.log('Selecting provisioner');

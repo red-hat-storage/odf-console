@@ -14,7 +14,7 @@ export const pvc = {
       cy.byTestID('Block-radio-input').click();
     }
     cy.byTestID('create-pvc').click();
-    cy.contains('Bound');
+    cy.byTestID('resource-status').contains('Bound', { timeout: 50000 });
   },
   expandPVC: (expansionSize) => {
     cy.byLegacyTestID('actions-menu-button').click();
