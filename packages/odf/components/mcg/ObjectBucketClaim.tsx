@@ -209,7 +209,6 @@ const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
           '-'
         )}
       </TableData>
-
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         <Kebab
           launchModal={launchModal}
@@ -219,7 +218,9 @@ const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
             namespace,
           }}
           customKebabItems={(t) => ({
-            ATTACH_DEPLOYMENT: t('Attach to Deployment'),
+            ATTACH_DEPLOYMENT: {
+              value: t('Attach to Deployment'),
+            },
           })}
         />
       </TableData>
@@ -396,7 +397,9 @@ export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
           namespace,
         }}
         customKebabItems={(t) => ({
-          ATTACH_DEPLOYMENT: t('Attach to Deployment'),
+          ATTACH_DEPLOYMENT: {
+            value: t('Attach to Deployment'),
+          },
         })}
       />
     );
