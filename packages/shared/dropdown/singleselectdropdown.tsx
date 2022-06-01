@@ -31,20 +31,23 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
   );
 
   return (
-    <Select
-      {...props}
-      variant={SelectVariant.single}
-      aria-label={t('Select input')}
-      onToggle={setOpen}
-      onSelect={onSelect}
-      selections={selectedKey}
-      isOpen={isOpen}
-      placeholderText={props?.placeholderText || t('Select options')}
-      aria-labelledby={props?.id}
-      noResultsFoundText={t('No results found')}
-    >
-      {selectOptions}
-    </Select>
+    // surround select with data-test-id to be able to find it in tests
+    <div className="test" data-test-id={props['data-test-id']}>
+      <Select
+        {...props}
+        variant={SelectVariant.single}
+        aria-label={t('Select input')}
+        onToggle={setOpen}
+        onSelect={onSelect}
+        selections={selectedKey}
+        isOpen={isOpen}
+        placeholderText={props?.placeholderText || t('Select options')}
+        aria-labelledby={props?.id}
+        noResultsFoundText={t('No results found')}
+      >
+        {selectOptions}
+      </Select>
+    </div>
   );
 };
 
@@ -56,4 +59,5 @@ export type SingleSelectDropdownProps = {
   className?: string;
   selectOptions: JSX.Element[];
   onChange: (selected: string) => void;
+  'data-test-id'?: string;
 };
