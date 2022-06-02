@@ -33,6 +33,10 @@ import { sortable } from '@patternfly/react-table';
 import { MCG_FLAG, RGW_FLAG } from '../../features';
 import { NooBaaObjectBucketModel } from '../../models';
 import { getPhase, isBound, obcStatusFilter } from '../../utils';
+import {
+  YAMLEditorWrapped,
+  EventStreamWrapped,
+} from '../resource-pages/CommonDetails';
 import { GetSecret } from './secret';
 
 const tableColumnInfo = [
@@ -424,7 +428,17 @@ export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
             {
               href: '',
               name: 'Details',
-              component: OBCDetails,
+              component: OBCDetails as any,
+            },
+            {
+              href: 'yaml',
+              name: 'YAML',
+              component: YAMLEditorWrapped,
+            },
+            {
+              href: 'events',
+              name: 'Events',
+              component: EventStreamWrapped,
             },
           ]}
         />
