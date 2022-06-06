@@ -45,7 +45,8 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
   const isCephAvailable = useFlag(CEPH_FLAG);
 
   React.useEffect(() => {
-    if (isCephAvailable) {
+    const isBlockPoolAdded = pages.find((page) => page.href === blockPoolHref);
+    if (isCephAvailable && !isBlockPoolAdded) {
       setPages([
         ...pages,
         {
