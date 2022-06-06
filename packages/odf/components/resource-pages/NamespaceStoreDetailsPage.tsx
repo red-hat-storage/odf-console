@@ -6,16 +6,13 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { referenceForModel } from '@odf/shared/utils';
+import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { NooBaaNamespaceStoreModel } from '../../models';
 import { NamespaceStoreKind } from '../../types';
-import {
-  CommonDetails,
-  YAMLEditorWrapped,
-  EventStreamWrapped,
-} from './CommonDetails';
+import { CommonDetails } from './CommonDetails';
 import ProviderDetails from './Providers';
 
 type BackingStoreDetilsPageProps = {

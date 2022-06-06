@@ -6,18 +6,14 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { referenceForModel } from '@odf/shared/utils';
+import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { NooBaaBucketClassModel } from '../../models';
 import { BucketClassKind } from '../../types';
-import {
-  CommonDetails,
-  DetailsItem,
-  YAMLEditorWrapped,
-  EventStreamWrapped,
-} from './CommonDetails';
+import { CommonDetails, DetailsItem } from './CommonDetails';
 
 type BucketClassDetailsPageProps = {
   match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
