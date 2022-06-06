@@ -1,11 +1,16 @@
 import * as React from 'react';
 import PageHeading from '@odf/shared/heading/page-heading';
-import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  HorizontalNav,
+  NavPage,
+  useFlag,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, match as Match } from 'react-router';
 import { useLocation } from 'react-router-dom';
 import { Grid, GridItem } from '@patternfly/react-core';
+import { MCG_FLAG } from '../../features';
 import { ODFStorageSystemMock } from '../../models';
 import {
   BackingStoreListPage,
@@ -56,8 +61,9 @@ export const ODFDashboard: React.FC = () => {
 
 const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
   const { t } = useTranslation('plugin__odf-console');
+  const hasMCG = useFlag(MCG_FLAG);
   const title = t('Data Foundation');
-  const pages = [
+  const [pages, setPages] = React.useState<NavPage[]>([
     {
       href: '',
       name: t('Overview'),
@@ -68,22 +74,38 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
       name: t('Storage Systems'),
       component: StorageSystemListPage,
     },
-    {
-      href: 'resource/noobaa.io~v1alpha1~BackingStore',
-      name: t('Backing Store'),
-      component: BackingStoreListPage,
-    },
-    {
-      href: 'resource/noobaa.io~v1alpha1~BucketClass',
-      name: t('Bucket Class'),
-      component: BucketClassListPage,
-    },
-    {
-      href: 'resource/noobaa.io~v1alpha1~NamespaceStore',
-      name: t('Namespace Store'),
-      component: NamespaceStoreListPage,
-    },
-  ];
+  ]);
+
+  React.useEffect(() => {
+    const newPages = [];
+    if (!pages.find((page) => page.name === t('Backing Store'))) {
+      newPages.push({
+        href: 'resource/noobaa.io~v1alpha1~BackingStore',
+        name: t('Backing Store'),
+        component: BackingStoreListPage,
+      });
+    }
+
+    if (!pages.find((page) => page.name === t('Bucket Class'))) {
+      newPages.push({
+        href: 'resource/noobaa.io~v1alpha1~BucketClass',
+        name: t('Bucket Class'),
+        component: BucketClassListPage,
+      });
+    }
+
+    if (!pages.find((page) => page.name === t('Namespace Store'))) {
+      newPages.push({
+        href: 'resource/noobaa.io~v1alpha1~NamespaceStore',
+        name: t('Namespace Store'),
+        component: NamespaceStoreListPage,
+      });
+    }
+    if (hasMCG) {
+      setPages([...pages, ...newPages]);
+    }
+  }, [hasMCG, pages, t]);
+
   const { history } = props;
   const location = useLocation();
 

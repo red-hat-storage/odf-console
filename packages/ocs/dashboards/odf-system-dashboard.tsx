@@ -3,9 +3,11 @@ import { LoadingBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { referenceForModel } from '@odf/shared/utils';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { match as Match } from 'react-router-dom';
+import { CEPH_FLAG } from '../../odf/features';
 import { BlockPoolListPage } from '../block-pool/BlockPoolListPage';
 import { CephBlockPoolModel } from '../models';
 import OCSSystemDashboard from './ocs-system-dashboard';
@@ -33,27 +35,27 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
     },
   ];
 
-  const [pages, setPages] = React.useState<TabPage[]>([]);
-
-  const overviewPage = React.useMemo(
-    () => [
-      {
-        component: OCSSystemDashboard,
-        title: t('Overview'),
-        href: 'overview',
-      },
-      {
-        component: BlockPoolListPage,
-        title: t('BlockPools'),
-        href: blockPoolHref,
-      },
-    ],
-    [t]
-  );
+  const [pages, setPages] = React.useState<TabPage[]>([
+    {
+      title: t('Overview'),
+      href: 'overview',
+      component: OCSSystemDashboard,
+    },
+  ]);
+  const isCephAvailable = useFlag(CEPH_FLAG);
 
   React.useEffect(() => {
-    setPages(overviewPage);
-  }, [overviewPage]);
+    if (isCephAvailable) {
+      setPages([
+        ...pages,
+        {
+          title: t('BlockPools'),
+          href: blockPoolHref,
+          component: BlockPoolListPage,
+        },
+      ]);
+    }
+  }, [isCephAvailable, pages, t]);
 
   const title = match.params.systemName;
 
