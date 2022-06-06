@@ -1,3 +1,22 @@
+// External dependency variables or mixins that are required/extended by our custom styles (tilde tells Webpack not to use relative path)
+// IMPORTANT: Please put non-variable/mixin external dependency imports in vendor.scss!
+
+@import '~@fortawesome/fontawesome-free/scss/variables';
+
+// Config
+@import './styles/vars';
+
+// Mixins
+@import './styles/mixin/break-word';
+@import './styles/mixin/font-awesome';
+
+// React Components
 @import './styles/common';
 @import './styles/skeleton';
 @import './styles/alerts';
+@import './styles/headers';
+@import './styles/forms';
+@import './styles/icons';
+@import './styles/status-card';
+@import './styles/dashbaord';
+@import './styles/icon-and-text';

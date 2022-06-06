@@ -3,6 +3,7 @@ import { Status } from '@odf/shared/status/Status';
 import { SuccessStatus } from '@odf/shared/status/statuses';
 import { K8sResourceCondition, K8sResourceKind } from '@odf/shared/types';
 import * as _ from 'lodash';
+import '../../style.scss';
 
 type OperandStatusType = {
   type: string;
@@ -59,7 +60,7 @@ export const OperandStatus: React.FC<OperandStatusProps> = ({ operand }) => {
 
   const { type, value } = status;
   return (
-    <span className="co-icon-and-text">
+    <span className="odf-icon-and-text">
       {type}:{' '}
       {value === 'Running' ? (
         <SuccessStatus title={value} />

@@ -65,6 +65,7 @@ import {
   ManagedClusterMapping,
 } from './select-cluster-list';
 import './create-dr-policy.scss';
+import '../../../style.scss';
 
 const fetchMirrorPeer = (
   mirrorPeers: MirrorPeerKind[],
@@ -463,7 +464,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
         </FormGroup>
         <FormGroup fieldId="policy-name">
           <Alert
-            className="co-alert mco-create-data-policy__alert"
+            className="odf-alert mco-create-data-policy__alert"
             title={t(
               'OpenShift Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring.',
               { version: ODF_MINIMUM_SUPPORT }
@@ -523,7 +524,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
             c.csvLoaded && !c?.isValidODFVersion ? (
               <Alert
                 data-test="odf-not-found-alert"
-                className="co-alert mco-create-data-policy__alert"
+                className="odf-alert mco-create-data-policy__alert"
                 title={t(
                   '{{ name }} has either an unsupported ODF version or the ODF operator is missing, install or update to ODF {{ version }} or latest version to enable DR protection.',
                   { name: c?.name, version: ODF_MINIMUM_SUPPORT }
@@ -536,7 +537,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
               c.storageSystemLoaded && (
                 <Alert
                   data-test="rhcs-not-found-alert"
-                  className="co-alert mco-create-data-policy__alert"
+                  className="odf-alert mco-create-data-policy__alert"
                   title={t('{{ name }} is not connected to RHCS', {
                     name: c?.name,
                   })}
@@ -550,7 +551,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
         {errorMessage && (
           <FormGroup fieldId="error-message">
             <Alert
-              className="co-alert mco-create-data-policy__alert"
+              className="odf-alert mco-create-data-policy__alert"
               title={t('An error occurred')}
               variant="danger"
               isInline

@@ -47,7 +47,7 @@ const UpperSection: React.FC = () => (
 export const ODFDashboard: React.FC = () => {
   return (
     <>
-      <div className="co-dashboard-body">
+      <div className="odf-dashboard-body">
         <UpperSection />
       </div>
     </>

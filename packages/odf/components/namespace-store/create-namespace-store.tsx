@@ -8,6 +8,7 @@ import { Title } from '@patternfly/react-core';
 import { NooBaaNamespaceStoreModel } from '../../models';
 import NamespaceStoreForm from './namespace-store-form';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
+import '../../style.scss';
 
 const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
   match,
@@ -20,11 +21,11 @@ const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
 
   return (
     <>
-      <div className="co-create-operand__header">
+      <div className="odf-create-operand__header">
         <Title
           size="2xl"
           headingLevel="h1"
-          className="co-create-operand__header-text"
+          className="odf-create-operand__header-text"
         >
           {t('Create NamespaceStore ')}
         </Title>

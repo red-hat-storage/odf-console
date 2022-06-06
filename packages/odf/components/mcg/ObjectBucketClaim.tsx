@@ -38,6 +38,7 @@ import {
   EventStreamWrapped,
 } from '../resource-pages/CommonDetails';
 import { GetSecret } from './secret';
+import '../../style.scss';
 
 const tableColumnInfo = [
   {
@@ -315,7 +316,7 @@ export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
   return (
     <>
       <Modal {...modalProps} />
-      <div className="co-m-pane__body">
+      <div className="odf-m-pane__body">
         <SectionHeading text={t('Object Bucket Claim Details')} />
         <div className="row">
           <div className="col-sm-6">

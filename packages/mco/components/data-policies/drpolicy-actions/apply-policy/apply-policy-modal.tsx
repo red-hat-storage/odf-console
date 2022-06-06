@@ -44,6 +44,7 @@ import {
 import { matchApplicationsToSubstring } from '../../../../utils';
 import { ApplicationSelector } from './application-selector';
 import './apply-policy-modal.scss';
+import '../../../../style.scss';
 
 type ApplyModalExtraProps = {
   resource: DRPolicyKind;
@@ -387,7 +388,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
           setSelectedNames={setSelectedApps}
         />
         <Alert
-          className="co-alert mco-apply-policy-modal__alert"
+          className="odf-alert mco-apply-policy-modal__alert"
           variant="info"
           title={t(
             'Disaster recovery(DR) protection will be applied for all the persistent volume claims(PVCs) under the selected applications.'
@@ -399,7 +400,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
             isInline
             variant="danger"
             title={t('An error occurred')}
-            className="co-alert mco-apply-policy-modal__alert"
+            className="odf-alert mco-apply-policy-modal__alert"
           >
             {error}
           </Alert>

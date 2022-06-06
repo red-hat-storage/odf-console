@@ -35,6 +35,7 @@ import {
   BlockPoolState,
 } from './reducer';
 import './body.scss';
+import '../style.scss';
 
 export const BlockPoolStatus: React.FC<BlockPoolStatusProps> = ({
   status,
@@ -297,7 +298,7 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
           </div>
           {state.isCompressed && (
             <Alert
-              className="co-alert"
+              className="odf-alert"
               variant="info"
               title={t(
                 'Enabling compression may result in little or no space savings for encrypted or random data. Also, enabling compression may have an impact on I/O performance.'

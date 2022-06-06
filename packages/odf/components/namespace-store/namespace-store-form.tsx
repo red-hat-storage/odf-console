@@ -37,6 +37,7 @@ import {
 import { S3EndPointType } from '../mcg-endpoints/s3-endpoint-type';
 import { initialState, providerDataReducer } from './reducer';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
+import '../../style.scss';
 
 const PROVIDERS = getProviders(StoreType.NS);
 const externalProviders = getExternalProviders(StoreType.NS);
@@ -160,7 +161,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
 
   return (
     <Form
-      className={classNames('nb-endpoints-form', 'co-m-pane__body', className)}
+      className={classNames('nb-endpoints-form', 'odf-m-pane__body', className)}
       onSubmit={onSubmit}
       noValidate={false}
     >

@@ -9,6 +9,7 @@ import * as _ from 'lodash';
 import { Trans } from 'react-i18next';
 import { Alert, Button } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
+import '../style.scss';
 
 export const Box: React.FC<BoxProps> = ({ children, className }) => (
   <div className={classNames('cos-status-box', className)}>{children}</div>
@@ -136,7 +137,7 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({ message }) => {
       {_.isString(message) && (
         <Alert
           isInline
-          className="co-alert"
+          className="odf-alert"
           variant="danger"
           title={t('Error details')}
         >

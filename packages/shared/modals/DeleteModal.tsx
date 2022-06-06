@@ -16,6 +16,7 @@ import { ClusterServiceVersionKind } from '../types/console-types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForOwnerRef, findOwner } from '../utils';
 import { ModalBody, ModalFooter, ModalHeader, CommonModalProps } from './Modal';
+import '../style.scss';
 
 type DeleteModalExtraProps = {
   resource: K8sResourceCommon;
@@ -146,7 +147,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
         )}
         {owner && (
           <Alert
-            className="co-alert co-alert--margin-top"
+            className="odf-alert odf-alert--margin-top"
             isInline
             variant="warning"
             title={t('Managed resource')}

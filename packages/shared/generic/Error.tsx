@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Alert } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
+import '../style.scss';
 
 export const DataUnavailableError: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -17,7 +18,7 @@ export const ErrorAlert: React.FC<Props> = ({ message, title }) => {
   return (
     <Alert
       isInline
-      className="co-alert co-alert--scrollable"
+      className="odf-alert odf-alert--scrollable"
       title={title || t('An error occurred')}
       variant="danger"
     >

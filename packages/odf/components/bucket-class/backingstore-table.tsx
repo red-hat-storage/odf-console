@@ -37,6 +37,7 @@ import {
   getRegion,
 } from '../../utils';
 import './_backingstore-table.scss';
+import './../../style.scss';
 
 const tableColumnInfo = [
   { className: '', id: 'checkbox' },
@@ -251,7 +252,7 @@ const BackingStoreSelection: React.FC<BackingStoreSelectionProps> = (props) => {
       >
         {!!tier2Policy && (
           <Alert
-            className="co-alert"
+            className="odf-alert"
             variant="info"
             title={t(
               'Each BackingStore can be used for one tier at a time. Selecting a BackingStore in one tier will remove the resource from the second tier option and vice versa.'

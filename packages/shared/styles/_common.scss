@@ -10,3 +10,94 @@
 .odf-pre-line {
   white-space: pre-line;
 }
+
+.odf-m-pane__body {
+  margin: $pf-global-gutter--md 0 0;
+  padding: 0 $pf-global-gutter $pf-global-gutter--md;
+  @media (min-width: $pf-global--breakpoint--xl) {
+    padding-left: $pf-global-gutter--md;
+    padding-right: $pf-global-gutter--md;
+  }
+
+  &--full-height {
+    height: 100%;
+  }
+
+  &--no-top-margin {
+    margin-top: 0;
+  }
+
+  &--section-heading {
+    padding-bottom: 0;
+  }
+
+  + .odf-m-pane__body {
+    border-top: 1px solid var(--pf-global--BorderColor--100);
+    margin-top: 0;
+    padding-top: $pf-global-gutter--md;
+  }
+}
+
+.odf-m-pane__body-group {
+  padding: 0 0 30px;
+}
+
+.odf-m-pane__heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: $pf-global-gutter--md !important;
+
+  &--baseline {
+    align-items: baseline;
+  }
+
+  &--center {
+    justify-content: center;
+  }
+
+  &--logo {
+    align-items: center;
+  }
+
+  &--with-help-text {
+    margin-bottom: 0 !important;
+  }
+}
+
+.odf-m-pane__heading-link {
+  font-size: $font-size-base;
+}
+
+// append external-link icon to <a> so that it doesn't wrap without text
+// there must be no white space between the text and the closing </a> tag holding the pseudo element
+.odf-external-link::after {
+  @include font-awesome-free-solid;
+  content: fa-content($fa-var-external-link-alt);
+  font-size: 75%;
+  height: 16px;
+  margin-left: 3px;
+  margin-right: -15px; // width + margin-left
+  position: relative;
+  top: 0;
+  width: 12px;
+
+  .pf-c-dropdown__menu-item & {
+    color: $pf-color-black-600;
+    margin-left: 5px;
+  }
+
+  .pf-c-nav__link & {
+    color: $pf-color-black-500;
+    margin-left: 4px;
+  }
+}
+
+.odf-external-link {
+  display: inline-block;
+  padding-right: $odf-external-link-padding-right;
+}
+
+// Enable break word within co-m-table-grid
+.odf-external-link--block {
+  display: block;
+}

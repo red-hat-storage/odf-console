@@ -56,6 +56,7 @@
     "react-tagsinput": "^3.19.0"
   },
   "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.9.0",
     "@cypress/webpack-preprocessor": "^5.9.1",
     "@openshift-console/dynamic-plugin-sdk": "0.0.10",
     "@openshift-console/dynamic-plugin-sdk-internal": "0.0.7",

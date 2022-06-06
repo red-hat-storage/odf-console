@@ -10,6 +10,7 @@ import { Base64 } from 'js-base64';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@patternfly/react-core';
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
+import '../../style.scss';
 
 export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
   const { t } = useTranslation();
@@ -82,7 +83,7 @@ export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
     : [];
 
   return dl.length ? (
-    <div className="co-m-pane__body">
+    <div className="odf-m-pane__body">
       <SectionHeading text={t('Object Bucket Claim Data')}>
         {secretValues.length ? (
           <Button
@@ -93,12 +94,12 @@ export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
           >
             {reveal ? (
               <>
-                <EyeSlashIcon className="co-icon-space-r" />
+                <EyeSlashIcon className="odf-icon-space-r" />
                 {t('Hide Values')}
               </>
             ) : (
               <>
-                <EyeIcon className="co-icon-space-r" />
+                <EyeIcon className="odf-icon-space-r" />
                 {t('Reveal Values')}
               </>
             )}

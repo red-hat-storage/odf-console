@@ -20,6 +20,7 @@ import {
   BackingStoreProviderDataState,
 } from '../create-bs/reducer';
 import './noobaa-provider-endpoints.scss';
+import '../../style.scss';
 
 type GCPEndPointTypeProps = {
   state: BackingStoreProviderDataState;
@@ -44,7 +45,7 @@ export const ExternalLink: React.FC<ExternalLinkProps> = ({
   stopPropagation,
 }) => (
   <a
-    className={classNames('co-external-link', additionalClassName)}
+    className={classNames('odf-external-link', additionalClassName)}
     href={href}
     target="_blank"
     rel="noopener noreferrer"

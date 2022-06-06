@@ -14,6 +14,7 @@ import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { Flex, FlexItem, Title } from '@patternfly/react-core';
 import './common-details.scss';
+import '../../style.scss';
 
 type DetailsItemProps = {
   field: string;
@@ -62,7 +63,7 @@ export const CommonDetails: React.FC<CommonDetailsSectionProps> = ({
 
   return (
     <>
-      <div className="co-m-pane__body">
+      <div className="odf-m-pane__body">
         <SectionHeading
           text={t('{{resource}} overview', { resource: resourceModel.label })}
         />
@@ -76,10 +77,10 @@ export const CommonDetails: React.FC<CommonDetailsSectionProps> = ({
           </div>
         </div>
       </div>
-      <div className="co-m-pane__body">{children}</div>
-      <div className="co-m-pane__body">
+      <div className="odf-m-pane__body">{children}</div>
+      <div className="odf-m-pane__body">
         <div className="row">
-          <div className="co-m-pane__body">
+          <div className="odf-m-pane__body">
             <SectionHeading text={t('Conditions')} />
             <Conditions conditions={(resource as any)?.status?.conditions} />
           </div>

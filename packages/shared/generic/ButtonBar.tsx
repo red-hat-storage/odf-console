@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import { Alert, AlertGroup } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { LoadingInline } from './Loading';
+import '../style.scss';
 
 const injectDisabled = (children: React.ReactChild, disabled) => {
   return React.Children.map(children, (c) => {
@@ -20,7 +21,7 @@ const ErrorMessage = ({ message }) => {
   return (
     <Alert
       isInline
-      className="co-alert co-alert--scrollable"
+      className="odf-alert odf-alert--scrollable"
       variant="danger"
       title={t('An error occurred')}
     >
@@ -29,10 +30,10 @@ const ErrorMessage = ({ message }) => {
   );
 };
 const InfoMessage = ({ message }) => (
-  <Alert isInline className="co-alert" variant="info" title={message} />
+  <Alert isInline className="odf-alert" variant="info" title={message} />
 );
 const SuccessMessage = ({ message }) => (
-  <Alert isInline className="co-alert" variant="success" title={message} />
+  <Alert isInline className="odf-alert" variant="success" title={message} />
 );
 
 export const ButtonBar: React.FC<ButtonBarProps> = ({

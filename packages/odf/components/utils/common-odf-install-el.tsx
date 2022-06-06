@@ -12,6 +12,7 @@ import {
 import { CreateStepsSC } from '../../constants';
 import { EncryptionType } from '../../types';
 import './odf-install.scss';
+import '../../style.scss';
 
 export type Validation = {
   title: React.ReactNode;
@@ -145,7 +146,7 @@ export const ActionAlert: React.FC<ActionAlertProps> = ({
   <WizardContextConsumer>
     {({ goToStepById }) => (
       <Alert
-        className={classNames('co-alert', className)}
+        className={classNames('odf-alert', className)}
         variant={variant}
         title={title}
         isInline
@@ -184,7 +185,7 @@ export const ValidationMessage: React.FC<ValidationMessageProps> = ({
   } = VALIDATIONS(validation, t);
   return actionLinkStep ? (
     <Alert
-      className={classNames('co-alert', className)}
+      className={classNames('odf-alert', className)}
       variant={variant}
       title={title}
       isInline

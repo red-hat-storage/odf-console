@@ -4,6 +4,7 @@ import { RouteComponentProps, useHistory } from 'react-router';
 import { Alert, AlertActionCloseButton, Title } from '@patternfly/react-core';
 import CreateBackingStoreForm from './create-bs';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
+import '../../style.scss';
 
 const CreateBackingStoreFormPage: React.FC<CreateBackingStoreFormPageProps> = ({
   match,
@@ -20,11 +21,11 @@ const CreateBackingStoreFormPage: React.FC<CreateBackingStoreFormPageProps> = ({
 
   return (
     <>
-      <div className="co-create-operand__header">
+      <div className="odf-create-operand__header">
         <Title
           size="2xl"
           headingLevel="h1"
-          className="co-create-operand__header-text"
+          className="odf-create-operand__header-text"
         >
           {t('Create new BackingStore ')}
         </Title>

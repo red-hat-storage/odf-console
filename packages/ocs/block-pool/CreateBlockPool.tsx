@@ -28,6 +28,7 @@ import {
   BlockPoolState,
 } from './reducer';
 import './create-block-pool.scss';
+import '../style.scss';
 
 export const getPoolKindObj = (state: BlockPoolState): StoragePoolKind => ({
   apiVersion: getAPIVersionForModel(CephBlockPoolModel),
@@ -134,8 +135,8 @@ const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({ match }) => {
 
   return (
     <>
-      <div className="co-create-operand__header">
-        <h1 className="co-create-operand__header-text">
+      <div className="odf-create-operand__header">
+        <h1 className="odf-create-operand__header-text">
           {t('Create BlockPool')}
         </h1>
         <p className="help-block">

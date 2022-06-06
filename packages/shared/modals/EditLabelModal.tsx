@@ -19,6 +19,7 @@ import { useCustomTranslation } from '../useCustomTranslationHook';
 import { CommonModalProps } from './common';
 import { ModalBody, ModalFooter } from './Modal';
 import { SelectorInput } from './Selector';
+import '../style.scss';
 
 type Patch = {
   op: string;
@@ -33,7 +34,7 @@ export const ErrorMessage = ({ message }) => {
   return (
     <Alert
       isInline
-      className="co-alert co-alert--scrollable"
+      className="odf-alert odf-alert--scrollable"
       variant="danger"
       title={t('An error occurred')}
     >
