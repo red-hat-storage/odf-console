@@ -9,6 +9,7 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
+import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
   ListPageBody,
   ListPageFilter,
@@ -30,10 +31,6 @@ import { RouteComponentProps } from 'react-router';
 import { sortable } from '@patternfly/react-table';
 import { NooBaaObjectBucketModel } from '../../models/ocs';
 import { getPhase, obStatusFilter } from '../../utils';
-import {
-  YAMLEditorWrapped,
-  EventStreamWrapped,
-} from '../resource-pages/CommonDetails';
 
 const kind = referenceForModel(NooBaaObjectBucketModel);
 

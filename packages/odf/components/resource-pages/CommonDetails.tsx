@@ -2,12 +2,9 @@ import * as React from 'react';
 import { ResourceSummary } from '@odf/shared/details-page/DetailsPage';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { LaunchModal } from '@odf/shared/modals/modalLauncher';
-import { K8sResourceKind } from '@odf/shared/types';
 import { Conditions } from '@odf/shared/utils/Conditions';
 import {
   K8sModel,
-  ResourceYAMLEditor,
-  ResourceEventStream,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
@@ -88,15 +85,3 @@ export const CommonDetails: React.FC<CommonDetailsSectionProps> = ({
     </>
   );
 };
-
-type WrappedProps = {
-  obj?: K8sResourceKind;
-};
-
-export const YAMLEditorWrapped: React.FC<WrappedProps> = ({ obj }) => (
-  <ResourceYAMLEditor initialResource={obj} />
-);
-
-export const EventStreamWrapped: React.FC<WrappedProps> = ({ obj }) => (
-  <ResourceEventStream resource={obj} />
-);

@@ -10,6 +10,7 @@ import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { Status } from '@odf/shared/status/Status';
 import { K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel, resourcePathFromModel } from '@odf/shared/utils';
+import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
   ListPageBody,
   ListPageCreateLink,
@@ -33,10 +34,6 @@ import { sortable } from '@patternfly/react-table';
 import { MCG_FLAG, RGW_FLAG } from '../../features';
 import { NooBaaObjectBucketModel } from '../../models';
 import { getPhase, isBound, obcStatusFilter } from '../../utils';
-import {
-  YAMLEditorWrapped,
-  EventStreamWrapped,
-} from '../resource-pages/CommonDetails';
 import { GetSecret } from './secret';
 
 const tableColumnInfo = [
