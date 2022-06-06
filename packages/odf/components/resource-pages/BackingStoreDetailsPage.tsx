@@ -7,16 +7,13 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
+import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { NooBaaBackingStoreModel } from '../../models';
 import { BackingStoreKind } from '../../types';
-import {
-  CommonDetails,
-  YAMLEditorWrapped,
-  EventStreamWrapped,
-} from './CommonDetails';
+import { CommonDetails } from './CommonDetails';
 import ProviderDetails from './Providers';
 
 type BackingStoreDetilsPageProps = {
