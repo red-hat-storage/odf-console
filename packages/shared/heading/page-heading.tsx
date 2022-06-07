@@ -12,13 +12,14 @@ import {
 } from '@patternfly/react-core';
 import { K8sResourceKind } from '../types/k8s';
 import './page-heading.scss';
+import '../style.scss';
 
 type BreadCrumbsProps = {
   breadcrumbs: { name: string; path: string }[];
 };
 
 const BreadCrumbs: React.FC<BreadCrumbsProps> = ({ breadcrumbs }) => (
-  <Breadcrumb>
+  <Breadcrumb className="odf-breadcrumbs-link">
     {breadcrumbs.map((crumb, i, { length }) => {
       const isLast = i === length - 1;
 
@@ -75,9 +76,9 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
     <div
       className={classNames(
         'odf-title',
-        'co-m-nav-title',
-        'co-m-nav-title--detail',
-        { 'co-m-nav-title--breadcrumbs': showBreadcrumbs },
+        'odf-m-nav-title',
+        'odf-m-nav-title--detail',
+        { 'odf-m-nav-title--breadcrumbs': showBreadcrumbs },
         className
       )}
       style={style}
@@ -89,19 +90,19 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
           </SplitItem>
           {badge && (
             <SplitItem>
-              <span className="co-m-pane__heading-badge">{badge}</span>
+              <span className="odf-m-pane__heading-badge">{badge}</span>
             </SplitItem>
           )}
         </Split>
       )}
       <div className="odf-title-details">
         <h1
-          className={classNames({ 'co-m-pane__heading--center': centerText })}
+          className={classNames({ 'odf-m-pane__heading--center': centerText })}
         >
-          <div className="co-m-pane__name co-resource-item">
+          <div className="co-m-pane__name odf-resource-item">
             <span
               data-test-id="resource-title"
-              className="co-resource-item__resource-name odf-title-status"
+              className="odf-resource-item__resource-name odf-title-status"
             >
               {resourceTitle}
               {resourceStatus && (
@@ -113,7 +114,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
           </div>
         </h1>
         {showActions && (
-          <div className="co-actions" data-test-id="details-actions">
+          <div className="odf-actions" data-test-id="details-actions">
             {actions()}
           </div>
         )}
@@ -141,7 +142,7 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
   id,
 }) => (
   <h2
-    className="co-section-heading"
+    className="odf-section-heading"
     style={style}
     data-test-section-heading={text}
     id={id}
