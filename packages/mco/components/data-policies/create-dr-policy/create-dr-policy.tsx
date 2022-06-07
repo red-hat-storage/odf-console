@@ -465,7 +465,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           <Alert
             className="co-alert mco-create-data-policy__alert"
             title={t(
-              'Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring',
+              'OpenShift Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring.',
               { version: ODF_MINIMUM_SUPPORT }
             )}
             variant={AlertVariant.info}
@@ -525,7 +525,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
                 data-test="odf-not-found-alert"
                 className="co-alert mco-create-data-policy__alert"
                 title={t(
-                  '{{ name }} has invalid ODF version, update to ODF {{ version }} or latest version to enable DR protection',
+                  '{{ name }} has either an unsupported ODF version or the ODF operator is missing, install or update to ODF {{ version }} or latest version to enable DR protection.',
                   { name: c?.name, version: ODF_MINIMUM_SUPPORT }
                 )}
                 variant={AlertVariant.danger}
