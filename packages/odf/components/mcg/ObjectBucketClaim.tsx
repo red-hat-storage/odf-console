@@ -324,6 +324,8 @@ export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
               launchModal={launchModal}
               resourceModel={NooBaaObjectBucketClaimModel}
             />
+          </div>
+          <div className="col-sm-6">
             {isBound(obj) && (
               <>
                 <dt>{t('Secret')}</dt>
@@ -336,8 +338,6 @@ export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
                 </dd>
               </>
             )}
-          </div>
-          <div className="col-sm-6">
             <dt>{t('Status')}</dt>
             <dd>
               <OBCStatus obc={obj} />
