@@ -1,0 +1,43 @@
+.odf-resource-item {
+  align-items: baseline;
+  display: flex;
+  min-width: 0; // required so odf-break-word works
+  @include odf-break-word;
+
+  &--inline {
+    display: inline-flex;
+    margin: 0 20px 0 0;
+  }
+
+  &--truncate {
+    white-space: nowrap;
+  }
+
+  &__deleting {
+    animation: odf-resource-icon__deleting 1.5s
+      cubic-bezier(0.45, 0.05, 0.55, 0.95) alternate infinite;
+    flex: 0 0 auto;
+    font-size: ($font-size-base - 1);
+    font-weight: var(--pf-global--FontWeight--bold);
+    margin: 0 0 0 15px;
+    overflow: hidden;
+    padding: 0 0 2px;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  &__help-text {
+    margin-left: 3px;
+    white-space: nowrap;
+  }
+
+  &__resource-name {
+    min-width: 0; // required so odf-break-word works
+  }
+}
+
+.odf-resource-item.odf-resource-item__resource-name {
+  line-height: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
