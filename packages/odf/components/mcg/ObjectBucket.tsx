@@ -30,6 +30,10 @@ import { RouteComponentProps } from 'react-router';
 import { sortable } from '@patternfly/react-table';
 import { NooBaaObjectBucketModel } from '../../models/ocs';
 import { getPhase, obStatusFilter } from '../../utils';
+import {
+  YAMLEditorWrapped,
+  EventStreamWrapped,
+} from '../resource-pages/CommonDetails';
 
 const kind = referenceForModel(NooBaaObjectBucketModel);
 
@@ -324,6 +328,16 @@ export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
               href: '',
               name: 'Details',
               component: Details as any,
+            },
+            {
+              href: 'yaml',
+              name: 'YAML',
+              component: YAMLEditorWrapped,
+            },
+            {
+              href: 'events',
+              name: 'Events',
+              component: EventStreamWrapped,
             },
           ]}
         />
