@@ -10,31 +10,31 @@ if [ $# -eq 0 ]
 fi
 
 function generateLogsAndCopyArtifacts {
-  oc cluster-info dump > ${ARTIFACT_DIR}/cluster_info.json
-  oc get secrets -A -o wide > ${ARTIFACT_DIR}/secrets.yaml
-  oc get secrets -A -o yaml >> ${ARTIFACT_DIR}/secrets.yaml
-  oc get catalogsource -A -o wide > ${ARTIFACT_DIR}/catalogsource.yaml
-  oc get catalogsource -A -o yaml >> ${ARTIFACT_DIR}/catalogsource.yaml
-  oc get subscriptions -n openshift-storage -o wide > ${ARTIFACT_DIR}/subscription_details.yaml
-  oc get subscriptions -n openshift-storage -o yaml >> ${ARTIFACT_DIR}/subscription_details.yaml
-  oc get csvs -n openshift-storage -o wide > ${ARTIFACT_DIR}/csvs.yaml
-  oc get csvs -n openshift-storage -o yaml >> ${ARTIFACT_DIR}/csvs.yaml
-  oc get deployments -n openshift-storage -o wide > ${ARTIFACT_DIR}/deployment_details.yaml
-  oc get deployments -n openshift-storage -o yaml >> ${ARTIFACT_DIR}/deployment_details.yaml
-  oc get installplan -n openshift-storage -o wide > ${ARTIFACT_DIR}/installplan.yaml
-  oc get installplan -n openshift-storage -o yaml >> ${ARTIFACT_DIR}/installplan.yaml
-  oc get nodes -o wide > ${ARTIFACT_DIR}/node.yaml
-  oc get nodes -o yaml >> ${ARTIFACT_DIR}/node.yaml
-  oc get pods -n openshift-storage -o wide >> ${ARTIFACT_DIR}/pod_details_openshift-storage.yaml
-  oc get pods -n openshift-storage -o yaml >> ${ARTIFACT_DIR}/pod_details_openshift-storage.yaml
-  oc logs deploy/odf-operator-controller-manager manager -n openshift-storage > ${ARTIFACT_DIR}/odf.logs
-  for pod in `oc get pods -n ${NS} --no-headers -o custom-columns=":metadata.name" | grep "odf-console"`; do
-        echo $pod 
-        oc logs $pod -n ${NS} > ${ARTIFACT_DIR}/${pod}.logs
+  oc cluster-info dump > "${ARTIFACT_DIR}"/cluster_info.json
+  oc get secrets -A -o wide > "${ARTIFACT_DIR}"/secrets.yaml
+  oc get secrets -A -o yaml >> "${ARTIFACT_DIR}"/secrets.yaml
+  oc get catalogsource -A -o wide > "${ARTIFACT_DIR}"/catalogsource.yaml
+  oc get catalogsource -A -o yaml >> "${ARTIFACT_DIR}"/catalogsource.yaml
+  oc get subscriptions -n openshift-storage -o wide > "${ARTIFACT_DIR}"/subscription_details.yaml
+  oc get subscriptions -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/subscription_details.yaml
+  oc get csvs -n openshift-storage -o wide > "${ARTIFACT_DIR}"/csvs.yaml
+  oc get csvs -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/csvs.yaml
+  oc get deployments -n openshift-storage -o wide > "${ARTIFACT_DIR}"/deployment_details.yaml
+  oc get deployments -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/deployment_details.yaml
+  oc get installplan -n openshift-storage -o wide > "${ARTIFACT_DIR}"/installplan.yaml
+  oc get installplan -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/installplan.yaml
+  oc get nodes -o wide > "${ARTIFACT_DIR}"/node.yaml
+  oc get nodes -o yaml >> "${ARTIFACT_DIR}"/node.yaml
+  oc get pods -n openshift-storage -o wide >> "${ARTIFACT_DIR}"/pod_details_openshift-storage.yaml
+  oc get pods -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/pod_details_openshift-storage.yaml
+  oc logs --previous=false deploy/odf-operator-controller-manager manager -n openshift-storage > "${ARTIFACT_DIR}"/odf.logs
+  for pod in $(oc get pods -n "${NS}" --no-headers -o custom-columns=":metadata.name" | grep "odf-console"); do
+        echo "$pod" 
+        oc logs --previous=false "$pod" -n "${NS}" > "${ARTIFACT_DIR}"/"${pod}".logs
   done
-  oc get serviceaccounts -n openshift-storage -o wide > ${ARTIFACT_DIR}/serviceaccount.yaml
-  oc get serviceaccounts -n openshift-storage -o yaml >> ${ARTIFACT_DIR}/serviceaccount.yaml
-  oc get console.v1.operator.openshift.io cluster -o yaml >> ${ARTIFACT_DIR}/cluster.yaml
+  oc get serviceaccounts -n openshift-storage -o wide > "${ARTIFACT_DIR}"/serviceaccount.yaml
+  oc get serviceaccounts -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/serviceaccount.yaml
+  oc get console.v1.operator.openshift.io cluster -o yaml >> "${ARTIFACT_DIR}"/cluster.yaml
   
   if [ -d "$ARTIFACT_DIR" ] && [ -d "$SCREENSHOTS_DIR" ]; then
     if [[ -z "$(ls -A -- "$SCREENSHOTS_DIR")" ]]; then
@@ -61,18 +61,18 @@ SCREENSHOTS_DIR=gui-test-screenshots
 
 
 function createSecret {
-    oc create secret generic ${SECRET_NAME} --from-file=.dockerconfigjson=${PULL_SECRET_PATH} --type=kubernetes.io/dockerconfigjson -n $1
+    oc create secret generic ${SECRET_NAME} --from-file=.dockerconfigjson=${PULL_SECRET_PATH} --type=kubernetes.io/dockerconfigjson -n "$1"
 }
 
 function linkSecrets {
-  for serviceAccount in `oc get serviceaccounts -n ${NS} --no-headers -o custom-columns=":metadata.name" | sed 's/"//g'`; do
+  for serviceAccount in $(oc get serviceaccounts -n ${NS} --no-headers -o custom-columns=":metadata.name" | sed 's/"//g'); do
         echo "Linking ${SECRET_NAME} to ${serviceAccount}"
-        oc secrets link ${serviceAccount} ${SECRET_NAME} -n ${NS} --for=pull
+        oc secrets link "${serviceAccount}" ${SECRET_NAME} -n ${NS} --for=pull
   done
 }
 
 function deleteAllPods {
-  oc delete pods --all -n $1 
+  oc delete pods --all -n "$1" 
 }
 oc patch operatorhub.config.openshift.io/cluster -p='{"spec":{"sources":[{"disabled":true,"name":"redhat-operators"}]}}' --type=merge
 
@@ -124,12 +124,15 @@ export CONSOLE_CONFIG_NAME="cluster"
 export ODF_PLUGIN_NAME="odf-console"
 
 echo "Enabling Console Plugin for ODF Operator"
-oc patch console.v1.operator.openshift.io ${CONSOLE_CONFIG_NAME} --type=json -p="[{'op': 'add', 'path': '/spec/plugins', 'value':["${ODF_PLUGIN_NAME}"]}]"
+oc patch console.v1.operator.openshift.io ${CONSOLE_CONFIG_NAME} --type=json -p="[{'op': 'add', 'path': '/spec/plugins', 'value':[${ODF_PLUGIN_NAME}]}]"
 
 ODF_CONSOLE_IMAGE="$1"
-export ODF_CSV_NAME="$(oc get csv -n openshift-storage -o=jsonpath='{.items[?(@.spec.displayName=="OpenShift Data Foundation")].metadata.name}')"
 
-oc patch csv ${ODF_CSV_NAME} -n openshift-storage --type='json' -p \
+# [SC2155]
+ODF_CSV_NAME="$(oc get csv -n openshift-storage -o=jsonpath='{.items[?(@.spec.displayName=="OpenShift Data Foundation")].metadata.name}')"
+export ODF_CSV_NAME
+
+oc patch csv "${ODF_CSV_NAME}" -n openshift-storage --type='json' -p \
   "[{'op': 'replace', 'path': '/spec/install/spec/deployments/1/spec/template/spec/containers/0/image', 'value': \"${ODF_CONSOLE_IMAGE}\"}]"
 
 # Installation occurs.
