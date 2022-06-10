@@ -211,9 +211,11 @@ export const checkError = (
   });
 
   // Check for missing keys
-  const missingKeys = _.difference(
-    _.concat(requiredKeys, requiresEncodingKeys),
-    providedKeys
+  // example required_key = rook-csi-rbd-node providedKey = rook-csi-rbd-node-vavuthupr10278-rbd
+  const allRequiredKeys = _.concat(requiredKeys, requiresEncodingKeys);
+  const missingKeys = allRequiredKeys?.filter(
+    (requiredKey) =>
+      !providedKeys?.find((providedKey) => providedKey.includes(requiredKey))
   );
   if (missingKeys.length > 0 && providedKeys.length > 0) {
     return `${_.uniq(missingKeys).join(', ')} ${pluralize(
