@@ -155,9 +155,9 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
 
   const onClick = React.useCallback(
     (event: React.SyntheticEvent<HTMLDivElement>) => {
-      const resourceUID = event?.currentTarget?.id;
+      const resourceName = event?.currentTarget?.id;
       const selectedResource = resources.find(
-        (resource) => getUID(resource) === resourceUID
+        (resource) => getName(resource) + '-link' === resourceName
       );
       onSelect(selectedResource);
       setSelectedItem(selectedResource);
