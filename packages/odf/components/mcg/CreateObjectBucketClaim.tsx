@@ -1,5 +1,6 @@
 import * as React from 'react';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
+import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -125,7 +126,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
             {t('StorageClass')}
           </label>
           <div className="form-group">
-            <ResourceDropdown<StorageClassResourceKind>
+            <ResourcesDropdown<StorageClassResourceKind>
               resourceModel={StorageClassModel}
               onSelect={(res) => onScChange(res)}
               filterResource={isObjectSC}
