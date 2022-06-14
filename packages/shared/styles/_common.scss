@@ -10,3 +10,41 @@
 .odf-pre-line {
   white-space: pre-line;
 }
+
+.odf-pre-wrap {
+  white-space: pre-wrap;
+}
+
+.odf-m-pane__heading-badge {
+  @media (min-width: $screen-sm-min) {
+    margin-left: var(--pf-global--spacer--sm);
+  }
+}
+
+.odf-section-heading {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 var(--pf-global--spacer--lg) 0;
+}
+
+.odf-m-pane__heading {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: $pf-global-gutter--md !important;
+
+  &--baseline {
+    align-items: baseline;
+  }
+
+  &--center {
+    justify-content: center;
+  }
+
+  &--logo {
+    align-items: center;
+  }
+
+  &--with-help-text {
+    margin-bottom: 0 !important;
+  }
+}
