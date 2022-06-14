@@ -4,7 +4,7 @@
 }
 
 .odf-title {
-  padding-bottom: 1.5rem;
+  padding-bottom: 1.5rem !important;
 }
 
 .odf-title-status {
@@ -16,4 +16,8 @@
   padding: var(--pf-c-page__main-breadcrumb--PaddingTop)
     var(--pf-c-page__main-breadcrumb--PaddingRight)
     var(--pf-c-page__main-breadcrumb--PaddingBottom) 0;
+}
+
+.odf-breadcrumbs-link {
+  padding-bottom: var(--pf-global--spacer--sm);
 }
