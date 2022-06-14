@@ -4,6 +4,7 @@ import { CopyToClipboard as CTC } from 'react-copy-to-clipboard';
 import { Button, Tooltip } from '@patternfly/react-core';
 import { CopyIcon } from '@patternfly/react-icons';
 import { useCustomTranslation } from '../useCustomTranslationHook';
+import '../style.scss';
 
 export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
   (props) => {
@@ -23,9 +24,9 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
       : props.visibleValue;
 
     return (
-      <div className="co-copy-to-clipboard">
+      <div className="odf-copy-to-clipboard">
         <pre
-          className="co-pre-wrap co-copy-to-clipboard__text"
+          className="odf-pre-wrap odf-copy-to-clipboard__text odf-copy-to-clipboard__pre"
           data-test="copy-to-clipboard"
         >
           {visibleValue}
@@ -39,7 +40,7 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
             <Button
               variant="plain"
               onMouseEnter={() => setCopied(false)}
-              className="co-copy-to-clipboard__btn pf-c-clipboard-copy__group-copy"
+              className="odf-copy-to-clipboard__btn pf-c-clipboard-copy__group-copy"
               type="button"
             >
               <CopyIcon />
