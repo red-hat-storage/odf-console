@@ -47,8 +47,8 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
   React.useEffect(() => {
     const isBlockPoolAdded = pages.find((page) => page.href === blockPoolHref);
     if (isCephAvailable && !isBlockPoolAdded) {
-      setPages([
-        ...pages,
+      setPages((p) => [
+        ...p,
         {
           title: t('BlockPools'),
           href: blockPoolHref,
@@ -56,7 +56,7 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
         },
       ]);
     }
-  }, [isCephAvailable, pages, t]);
+  }, [isCephAvailable, pages, setPages, t]);
 
   const title = match.params.systemName;
 
