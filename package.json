@@ -68,7 +68,6 @@
     "@types/react": "16.8.13",
     "@types/react-helmet": "^6.1.1",
     "@types/react-router-dom": "5.1.2",
-    "@types/webpack-dev-server": "^3.11.5",
     "@typescript-eslint/eslint-plugin": "^4.28.5",
     "@typescript-eslint/parser": "^4.28.5",
     "cache-loader": "1.x",
