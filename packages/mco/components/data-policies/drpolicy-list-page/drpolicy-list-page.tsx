@@ -130,8 +130,8 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
         {obj?.spec?.schedulingInterval !== '0m'
-          ? REPLICATION_TYPE(t)['async']
-          : REPLICATION_TYPE(t)['sync']}
+          ? REPLICATION_TYPE.ASYNC
+          : REPLICATION_TYPE.SYNC}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
         {<ApplicationStatus drPlacementControls={filteredDRPlacementControl} />}

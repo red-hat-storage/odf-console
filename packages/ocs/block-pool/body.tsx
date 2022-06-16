@@ -1,7 +1,11 @@
 import * as React from 'react';
 import { checkArbiterCluster } from '@odf/core/utils';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
-import { ListKind, StorageClusterKind } from '@odf/shared/types';
+import {
+  ListKind,
+  StorageClusterKind,
+  CephClusterKind,
+} from '@odf/shared/types';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +27,6 @@ import {
   POOL_STATE,
 } from '../constants';
 import { StorageClusterModel } from '../models';
-import { CephClusterKind } from '../types';
 import {
   getErrorMessage,
   ProgressStatusProps,
