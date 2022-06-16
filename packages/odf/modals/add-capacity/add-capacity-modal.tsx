@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getStorageClassDescription } from '@odf/core/utils';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { LoadingInline } from '@odf/shared/generic/Loading';
@@ -83,6 +84,7 @@ const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
       resource={scResource}
       resourceModel={StorageClassModel}
       showBadge
+      secondaryTextGenerator={getStorageClassDescription}
       onSelect={onChange}
       initialSelection={initialSelection}
       filterResource={filterSC}
