@@ -1,4 +1,4 @@
-import { StorageClassResourceKind } from '@odf/shared/types';
+import { StorageClassResourceKind, CephClusterKind } from '@odf/shared/types';
 import { getLastLanguage } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import {
@@ -9,7 +9,7 @@ import {
 } from '@patternfly/react-icons';
 import { CEPH_EXTERNAL_CR_NAME, POOL_PROGRESS, ROOK_MODEL } from '../constants';
 import { StorageClusterModel } from '../models';
-import { CephClusterKind, StoragePoolKind } from '../types';
+import { StoragePoolKind } from '../types';
 import { LoadingComponent } from './CustomLoading';
 
 export const twelveHoursdateTimeNoYear = new Intl.DateTimeFormat(

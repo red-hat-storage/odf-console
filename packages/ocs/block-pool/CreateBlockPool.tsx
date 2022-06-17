@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
+import { CephClusterKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
@@ -17,7 +18,7 @@ import {
   POOL_STATE,
 } from '../constants';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
-import { CephClusterKind, StoragePoolKind } from '../types';
+import { StoragePoolKind } from '../types';
 import { getErrorMessage } from '../utils';
 import { BlockPoolBody } from './body';
 import { BlockPoolFooter } from './footer';
