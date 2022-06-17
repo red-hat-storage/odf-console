@@ -10,6 +10,7 @@ import {
   ExternalStorage,
 } from '@odf/core/types';
 import { getSupportedVendors } from '@odf/core/utils';
+import { getStorageClassDescription } from '@odf/core/utils';
 import DevPreviewBadge from '@odf/shared/badges/DevPreviewBadge';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
@@ -109,17 +110,6 @@ type ExternalSystemSelectionProps = {
   selectOptions: ExternalStorage[];
 };
 
-const getDescription = (sc: StorageClassResourceKind): string => {
-  const descriptionList = [sc.provisioner, sc.parameters?.type];
-  return descriptionList.reduce(
-    (description, dl) => {
-      if (dl) return description ? `${description} | ${dl}` : dl;
-      return description;
-    },
-    isDefaultClass(sc) ? '(default)' : ''
-  );
-};
-
 const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({
   dispatch,
   selected,
@@ -146,7 +136,7 @@ const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({
         resource={scResource}
         resourceModel={StorageClassModel}
         onSelect={onStorageClassSelect}
-        secondaryTextGenerator={getDescription}
+        secondaryTextGenerator={getStorageClassDescription}
         initialSelection={getInitialSelection}
         data-test="storage-class-dropdown"
       />
