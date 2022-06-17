@@ -16,6 +16,7 @@ import {
   ListKind,
   PersistentVolumeClaimKind,
   StorageClassResourceKind,
+  CephClusterKind,
 } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import {
@@ -36,7 +37,7 @@ import {
 } from '../../block-pool/reducer';
 import { CEPH_EXTERNAL_CR_NAME, POOL_PROGRESS } from '../../constants';
 import { CephBlockPoolModel, CephClusterModel } from '../../models';
-import { CephClusterKind, StoragePoolKind } from '../../types';
+import { StoragePoolKind } from '../../types';
 import { getStorageClassName } from '../../utils/common';
 import { BlockPoolModalFooter, FooterPrimaryActions } from './modal-footer';
 

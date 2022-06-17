@@ -13,7 +13,11 @@ import {
 } from '@odf/shared/modals/modalLauncher';
 import { StorageClassModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
-import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import {
+  K8sResourceKind,
+  StorageClassResourceKind,
+  CephClusterKind,
+} from '@odf/shared/types';
 import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
 import {
   ListPageBody,
@@ -38,7 +42,7 @@ import { sortable, wrappable } from '@patternfly/react-table';
 import { CEPH_NS, COMPRESSION_ON } from '../constants';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
-import { CephClusterKind, StoragePoolKind } from '../types';
+import { StoragePoolKind } from '../types';
 import {
   disableMenuAction,
   getPerPoolMetrics,
