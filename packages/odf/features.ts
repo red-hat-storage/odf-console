@@ -227,7 +227,7 @@ export const detectManagedODF: FeatureDetector = async (
   try {
     const ns = await k8sGet({
       model: NamespaceModel,
-      ns: CEPH_STORAGE_NAMESPACE,
+      name: CEPH_STORAGE_NAMESPACE,
     });
     if (ns) {
       const isManagedCluster = ns?.metadata?.labels?.[ODF_MANAGED_LABEL];
