@@ -1,4 +1,8 @@
 import * as React from 'react';
+import {
+  ResourceYAMLEditor,
+  ResourceEventStream,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import {
   RouteComponentProps,
@@ -12,6 +16,7 @@ import {
   TabsComponent,
   TabTitleText,
 } from '@patternfly/react-core';
+import { K8sResourceKind } from '../types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import './tabs.scss';
 
@@ -143,5 +148,17 @@ const Tabs: React.FC<TabsProps> = ({
     </PfTabs>
   );
 };
+
+type WrappedProps = {
+  obj?: K8sResourceKind;
+};
+
+export const YAMLEditorWrapped: React.FC<WrappedProps> = ({ obj }) => (
+  <ResourceYAMLEditor initialResource={obj} />
+);
+
+export const EventStreamWrapped: React.FC<WrappedProps> = ({ obj }) => (
+  <ResourceEventStream resource={obj} />
+);
 
 export default Tabs;
