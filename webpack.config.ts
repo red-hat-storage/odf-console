@@ -4,6 +4,7 @@ import * as path from 'path';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 import * as webpack from 'webpack';
+import type { Configuration as DevServerConfiguration } from 'webpack-dev-server';
 
 const LANGUAGES = ['en', 'ja', 'ko', 'zh'];
 const resolveLocale = (dirName: string, ns: string) =>
@@ -18,7 +19,7 @@ const resolveLocale = (dirName: string, ns: string) =>
     []
   );
 
-const config: webpack.Configuration = {
+const config: webpack.Configuration & DevServerConfiguration = {
   mode: 'development',
   entry: {},
   output: {
@@ -30,9 +31,11 @@ const config: webpack.Configuration = {
     ignored: ['node_modules', 'dist'],
   },
   devServer: {
-    contentBase: path.join(__dirname, 'dist'),
     port: 9001,
-    writeToDisk: true,
+    devMiddleware: {
+      writeToDisk: true,
+    },
+    static: ['dist'],
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
