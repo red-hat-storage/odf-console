@@ -39,7 +39,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { CEPH_NS, COMPRESSION_ON } from '../constants';
+import { CEPH_NS } from '../constants';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
 import { StoragePoolKind } from '../types';
@@ -252,8 +252,9 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
   const formatedDateTime = lastChecked
     ? twelveHoursdateTimeNoYear.format(new Date(lastChecked))
     : '-';
+  const compressionMode = obj.spec?.compressionMode;
   const compressionStatus: boolean =
-    obj.spec?.compressionMode === COMPRESSION_ON;
+    !!compressionMode && compressionMode !== 'none';
   const phase = obj?.status?.phase;
 
   // Hooks
