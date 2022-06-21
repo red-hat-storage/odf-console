@@ -67,6 +67,11 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
   const { t } = useTranslation('plugin__odf-console');
   const [isOpen, setIsOpen] = React.useState(false);
 
+  const handleSelection: SelectProps['onSelect'] = (e, selection) => {
+    onSelect(e, selection);
+    setIsOpen(false);
+  };
+
   return (
     <>
       <TextContent>
@@ -97,7 +102,7 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
                 placeholderText={t('Select an arbiter zone')}
                 aria-label={t('Arbiter zone selection')}
                 onToggle={(value: boolean) => setIsOpen(value)}
-                onSelect={onSelect}
+                onSelect={handleSelection}
                 selections={arbiterLocation}
                 isOpen={isOpen}
                 id="arbiter-zone-selection"
