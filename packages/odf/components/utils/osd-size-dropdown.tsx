@@ -26,7 +26,12 @@ const labelDescriptionMap = (t: TFunction) => {
 
 const dropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
   _.map(valueLabelMap(t), (v, _) => (
-    <SelectOption key={v} value={v} description={labelDescriptionMap(t)[v]} />
+    <SelectOption
+      data-test-dropdown-menu={v}
+      key={v}
+      value={v}
+      description={labelDescriptionMap(t)[v]}
+    />
   ));
 
 export const TotalCapacityText: React.FC<TotalCapacityTextProps> = ({
@@ -61,6 +66,7 @@ export const OSDSizeDropdown: React.FC<OSDSizeDropdownProps> = ({
       selectedKey={valueLabelMap(t)[selectedKey]}
       className="dropdown--full-width"
       valueLabelMap={valueLabelMap(t)}
+      data-test-id="dropdown-button"
     />
   );
 };
@@ -69,4 +75,5 @@ type OSDSizeDropdownProps = {
   selectedKey: string;
   id?: string;
   onChange: React.Dispatch<React.SetStateAction<string>>;
+  'data-test-id'?: string;
 };
