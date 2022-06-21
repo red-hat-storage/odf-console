@@ -48,6 +48,7 @@ import {
   getPerPoolMetrics,
   getScNamesUsingPool,
   twelveHoursdateTimeNoYear,
+  customActionsMap,
 } from '../utils';
 import { PopoverHelper } from './popover-helper';
 
@@ -102,15 +103,6 @@ type BlockPoolListProps = {
   loaded: boolean;
   loadError: any;
   rowData: any;
-};
-
-const customActionsMap = {
-  [ModalKeys.DELETE]: React.lazy(
-    () => import('../modals/block-pool/delete-block-pool-modal')
-  ),
-  [ModalKeys.EDIT_RES]: React.lazy(
-    () => import('../modals/block-pool/update-block-pool-modal')
-  ),
 };
 
 const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
@@ -324,10 +316,16 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
           launchModal={launchModal}
           extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
           isDisabled={disableMenuAction(obj, cephCluster)}
-          customKebabItems={(t) => ({
-            [ModalKeys.EDIT_RES]: t('Edit resource'),
-            [ModalKeys.DELETE]: t('Delete'),
-          })}
+          customKebabItems={(t) => [
+            {
+              key: ModalKeys.EDIT_RES,
+              value: t('Edit BlockPool'),
+            },
+            {
+              key: ModalKeys.DELETE,
+              value: t('Delete BlockPool'),
+            },
+          ]}
         />
       </TableData>
     </>
@@ -456,11 +454,8 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
   ]);
 
   const loaded =
-    cephLoaded ||
-    scLoaded ||
-    blockPoolsLoaded ||
-    !compressionLoading ||
-    !rawCapLoading;
+    blockPoolsLoaded &&
+    (cephLoaded || scLoaded || !compressionLoading || !rawCapLoading);
   const error =
     cephError ||
     scError ||

@@ -14,3 +14,7 @@
 .ceph-block-pool__check-icon {
   color: var(--pf-global--success-color--100) !important;
 }
+
+.ceph-block-pool__alert {
+  --pf-global--FontSize--md: 0.8rem;
+}
