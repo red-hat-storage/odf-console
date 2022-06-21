@@ -104,7 +104,8 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
     if (hasMCG) {
       setPages([...pages, ...newPages]);
     }
-  }, [hasMCG, pages, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMCG, JSON.stringify(pages), setPages, t]);
 
   const { history } = props;
   const location = useLocation();
