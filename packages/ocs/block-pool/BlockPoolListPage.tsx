@@ -253,7 +253,7 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
     ? twelveHoursdateTimeNoYear.format(new Date(lastChecked))
     : '-';
   const compressionMode = obj.spec?.compressionMode;
-  const compressionStatus: boolean =
+  const isCompressionEnabled: boolean =
     !!compressionMode && compressionMode !== 'none';
   const phase = obj?.status?.phase;
 
@@ -315,10 +315,10 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
         </Tooltip>
       </TableData>
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
-        {compressionStatus ? t('Enabled') : t('Disabled')}
+        {isCompressionEnabled ? t('Enabled') : t('Disabled')}
       </TableData>
       <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
-        {compressionStatus ? compressionSavings : '-'}
+        {isCompressionEnabled ? compressionSavings : '-'}
       </TableData>
       <TableData {...tableColumnInfo[9]} activeColumnIDs={activeColumnIDs}>
         <Kebab
