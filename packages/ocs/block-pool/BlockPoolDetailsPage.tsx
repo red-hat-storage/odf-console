@@ -2,7 +2,7 @@ import * as React from 'react';
 import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { Kebab } from '@odf/shared/kebab/kebab';
-import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
+import { useModalLauncher, ModalKeys } from '@odf/shared/modals/modalLauncher';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -12,6 +12,7 @@ import { CEPH_NS } from '../constants';
 import { BlockPoolDashboard } from '../dashboards/block-pool/block-pool-dashboard';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
 import { StoragePoolKind } from '../types';
+import { customActionsMap } from '../utils';
 
 type BlockPoolDetailsPageProps = {
   match: RouteComponentProps<{ poolName: string }>['match'];
@@ -33,7 +34,7 @@ export const BlockPoolDetailsPage: React.FC<BlockPoolDetailsPageProps> = ({
   const location = useLocation();
   const kind = referenceForModel(CephBlockPoolModel);
 
-  const [Modal, modalProps, launchModal] = useModalLauncher();
+  const [Modal, modalProps, launchModal] = useModalLauncher(customActionsMap);
 
   const [resource, loaded] = useK8sWatchResource<StoragePoolKind>({
     kind,
@@ -49,7 +50,7 @@ export const BlockPoolDetailsPage: React.FC<BlockPoolDetailsPageProps> = ({
     },
     {
       name: t('StorageSystem details'),
-      path: location.pathname.split(`/${kind}`)[0],
+      path: `${location.pathname.split(`/${kind}`)[0]}/${kind}`,
     },
     {
       name: poolName,
@@ -67,6 +68,16 @@ export const BlockPoolDetailsPage: React.FC<BlockPoolDetailsPageProps> = ({
           resourceModel: CephBlockPoolModel,
           namespace: CEPH_NS,
         }}
+        customKebabItems={(t) => [
+          {
+            key: ModalKeys.EDIT_RES,
+            value: t('Edit BlockPool'),
+          },
+          {
+            key: ModalKeys.DELETE,
+            value: t('Delete BlockPool'),
+          },
+        ]}
       />
     );
   }, [launchModal, resource]);
