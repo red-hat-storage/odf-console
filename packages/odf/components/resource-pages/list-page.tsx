@@ -2,7 +2,7 @@ import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { LabelList } from '@odf/shared/details-page/label-list';
 import { Timestamp } from '@odf/shared/details-page/timestamp';
-import { Kebab } from '@odf/shared/kebab/kebab';
+import { Kebab, CustomKebabItems } from '@odf/shared/kebab/kebab';
 import {
   LaunchModal,
   ModalMap,
@@ -134,7 +134,7 @@ const ResourceTable: React.FC<ResourceTableProps> = (props) => {
 type CustomData = {
   launchModal: LaunchModal;
   resourceModel: K8sModel;
-  kebabActions?: (t: TFunction) => { [key: string]: { value: string } };
+  kebabActions?: (t: TFunction) => CustomKebabItems[];
 };
 
 const RowRenderer: React.FC<RowProps<K8sResourceCommon, CustomData>> = ({
@@ -244,9 +244,9 @@ const bcActions = {
   ),
 };
 
-const bcKebabActions = (t) => ({
-  [EDIT_BC_RESOURCES]: { value: t('Edit Bucket Class Resources') },
-});
+const bcKebabActions = (t) => [
+  { key: 'EDIT_BC_RESOURCES', value: t('Edit Bucket Class Resources') },
+];
 
 export const BucketClassListPage: React.FC = () => (
   <GenericListPage

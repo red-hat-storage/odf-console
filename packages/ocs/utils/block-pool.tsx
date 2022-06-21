@@ -1,3 +1,5 @@
+import * as React from 'react';
+import { ModalKeys } from '@odf/shared/modals/modalLauncher';
 import { StorageClassResourceKind, CephClusterKind } from '@odf/shared/types';
 import { getLastLanguage } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
@@ -128,3 +130,12 @@ export const PROGRESS_STATUS = (
     className: 'ceph-block-pool__error-icon',
   },
 ];
+
+export const customActionsMap = {
+  [ModalKeys.DELETE]: React.lazy(
+    () => import('../modals/block-pool/delete-block-pool-modal')
+  ),
+  [ModalKeys.EDIT_RES]: React.lazy(
+    () => import('../modals/block-pool/update-block-pool-modal')
+  ),
+};

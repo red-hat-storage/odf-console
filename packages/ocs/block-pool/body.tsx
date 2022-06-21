@@ -300,7 +300,7 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
           </div>
           {state.isCompressed && (
             <Alert
-              className="co-alert"
+              className="co-alert ceph-block-pool__alert"
               variant="info"
               title={t(
                 'Enabling compression may result in little or no space savings for encrypted or random data. Also, enabling compression may have an impact on I/O performance.'
