@@ -15,6 +15,16 @@ import { ModalKeys, LaunchModal } from '../modals/modalLauncher';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForModel } from '../utils';
 
+export type CustomKebabItems = {
+  key: string;
+  value: string;
+  props?: DropdownItemProps;
+};
+
+type CustomKebabItemsMap = {
+  [key in string]: CustomKebabItems;
+};
+
 type KebabProps = {
   launchModal: LaunchModal;
   extraProps: {
@@ -22,12 +32,7 @@ type KebabProps = {
     resourceModel: K8sModel;
     [key: string]: any;
   };
-  customKebabItems?: (t: TFunction) => {
-    [key: string]: {
-      value: string;
-      props?: DropdownItemProps;
-    };
-  };
+  customKebabItems?: (t: TFunction) => CustomKebabItems[];
   toggleType?: 'Kebab' | 'Dropdown';
   isDisabled?: boolean;
   customActionMap?: {
@@ -76,23 +81,37 @@ export const Kebab: React.FC<KebabProps> = ({
 
   const history = useHistory();
 
+  const customKebabItemsMap: CustomKebabItemsMap = React.useMemo(
+    () =>
+      customKebabItems
+        ? customKebabItems(t)?.reduce(
+            (acc, item) => ({ ...acc, [item.key]: item }),
+            {}
+          )
+        : {},
+    [customKebabItems, t]
+  );
+
   const onClick = (event?: React.SyntheticEvent<HTMLDivElement>) => {
     setOpen(false);
     const actionKey = event.currentTarget.id;
-    if (customActionMap?.[actionKey] || actionKey === ModalKeys.EDIT_RES) {
+    if (customActionMap?.[actionKey]) {
+      customActionMap[actionKey]?.();
+    } else if (
+      actionKey === ModalKeys.EDIT_RES &&
+      !customKebabItemsMap?.[actionKey]
+    ) {
       const editPrefix = extraProps?.cluster
         ? `/odf/edit/${extraProps?.cluster}`
         : '/k8s';
       let basePath = resourceModel?.namespaced
         ? `${editPrefix}/ns/${resource?.metadata?.namespace}`
         : `${editPrefix}/cluster`;
-      customActionMap?.[actionKey]
-        ? customActionMap[actionKey]?.()
-        : history.push(
-            `${basePath}/${referenceForModel(resourceModel)}/${
-              resource?.metadata?.name
-            }/yaml`
-          );
+      history.push(
+        `${basePath}/${referenceForModel(resourceModel)}/${
+          resource?.metadata?.name
+        }/yaml`
+      );
     } else {
       launchModal(actionKey, extraProps);
     }
@@ -100,7 +119,9 @@ export const Kebab: React.FC<KebabProps> = ({
 
   const dropdownItems = React.useMemo(() => {
     const defaultResolved = defaultKebabItems(t, resourceLabel);
-    const customResolved = customKebabItems ? customKebabItems(t) : {};
+    const customResolved: CustomKebabItemsMap = customKebabItemsMap
+      ? customKebabItemsMap
+      : {};
     const { overrides, custom } = Object.entries(customResolved).reduce(
       (acc, [k, obj]) => {
         const dropdownItem = (
@@ -114,6 +135,7 @@ export const Kebab: React.FC<KebabProps> = ({
             ModalKeys.EDIT_LABELS,
             ModalKeys.EDIT_ANN,
             ModalKeys.DELETE,
+            ModalKeys.EDIT_RES,
           ].includes(k as ModalKeys)
         ) {
           acc['overrides'][k] = dropdownItem;
@@ -131,7 +153,7 @@ export const Kebab: React.FC<KebabProps> = ({
     const customItems = Object.values(custom) ?? [];
 
     return [...customItems, ...deafultItems];
-  }, [t, customKebabItems, resourceLabel]);
+  }, [t, customKebabItemsMap, resourceLabel]);
 
   const toggle = React.useMemo(() => {
     const onToggle = () => setOpen((open) => !open);

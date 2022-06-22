@@ -31,6 +31,7 @@ import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { sortable } from '@patternfly/react-table';
+import { ATTACH_DEPLOYMENT } from '../../constants';
 import { MCG_FLAG, RGW_FLAG } from '../../features';
 import { NooBaaObjectBucketModel } from '../../models';
 import { getPhase, isBound, obcStatusFilter } from '../../utils';
@@ -214,11 +215,12 @@ const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
             resourceModel: NooBaaObjectBucketClaimModel,
             namespace,
           }}
-          customKebabItems={(t) => ({
-            ATTACH_DEPLOYMENT: {
+          customKebabItems={(t) => [
+            {
+              key: ATTACH_DEPLOYMENT,
               value: t('Attach to Deployment'),
             },
-          })}
+          ]}
         />
       </TableData>
     </>
@@ -393,11 +395,12 @@ export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
           resourceModel: NooBaaObjectBucketClaimModel,
           namespace,
         }}
-        customKebabItems={(t) => ({
-          ATTACH_DEPLOYMENT: {
+        customKebabItems={(t) => [
+          {
+            key: ATTACH_DEPLOYMENT,
             value: t('Attach to Deployment'),
           },
-        })}
+        ]}
       />
     );
   }, [launchModal, resource, namespace]);

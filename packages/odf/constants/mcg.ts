@@ -94,3 +94,5 @@ export enum NamespacePolicyType {
 
 export const RGW_PROVISIONER = 'openshift-storage.ceph.rook.io/bucket';
 export const NOOBAA_PROVISIONER = 'openshift-storage.noobaa.io/obc';
+
+export const ATTACH_DEPLOYMENT = 'ATTACH_DEPLOYMENT';

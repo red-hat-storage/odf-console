@@ -102,8 +102,9 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
     obj?.metadata?.name,
   ]);
 
-  const kebabActionItems = () => ({
-    [ModalKeys.DELETE]: {
+  const kebabActionItems = () => [
+    {
+      key: ModalKeys.DELETE,
       value: Actions(t).DELETE_DR_POLICY,
       props: filteredDRPlacementControl?.length
         ? {
@@ -112,10 +113,11 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
           }
         : {},
     },
-    [Actions(t).APPLY_DR_POLICY]: {
+    {
+      key: Actions(t).APPLY_DR_POLICY,
       value: Actions(t).APPLY_DR_POLICY,
     },
-  });
+  ];
 
   return (
     <>
