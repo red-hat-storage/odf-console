@@ -22,7 +22,7 @@ export const CompressionDetailsCard: React.FC = () => {
   const { obj } = React.useContext(BlockPoolDashboardContext);
 
   const compressionMode = obj.spec?.compressionMode;
-  const compressionEnabled = compressionMode !== 'none';
+  const compressionEnabled = !!compressionMode && compressionMode !== 'none';
   const { name } = obj.metadata;
 
   // Compression Metrics
