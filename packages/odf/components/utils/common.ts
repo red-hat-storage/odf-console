@@ -72,8 +72,8 @@ export const getVendorDashboardLinkFromMetrics = (
     systemType === 'OCS'
       ? referenceForModel(OCSStorageClusterModel)
       : referenceForModel(IBMFlashSystemModel);
-  return `/odf/system/${systemKind}/${systemName}${
-    subComponent ? '/overview/' + subComponent : ''
+  return `/odf/system/${systemKind}/${systemName}/overview${
+    subComponent ? '/' + subComponent : ''
   }`;
 };
 

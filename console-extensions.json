@@ -108,7 +108,7 @@
       "id": "objectbucketclaims",
       "section": "storage",
       "name": "Object Bucket Claims",
-      "insertAfter": "volumesnapshotcontents",
+      "insertAfter": "objectbuckets",
       "model": {
         "group": "objectbucket.io",
         "kind": "ObjectBucketClaim",
@@ -126,7 +126,7 @@
       "id": "objectbucketclaims",
       "section": "storage",
       "name": "Object Bucket Claims",
-      "insertAfter": "volumesnapshotcontents",
+      "insertAfter": "objectbuckets",
       "model": {
         "group": "objectbucket.io",
         "kind": "ObjectBucketClaim",
