@@ -135,11 +135,12 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
           resource: memoizedResource,
           resourceModel: NooBaaBucketClassModel,
         }}
-        customKebabItems={(t) => ({
-          EDIT_BC_RESOURCES: {
+        customKebabItems={(t) => [
+          {
+            key: 'EDIT_BC_RESOURCES',
             value: t('Edit Bucket Class Resources'),
           },
-        })}
+        ]}
       />
     );
   }, [launchModal, memoizedResource]);

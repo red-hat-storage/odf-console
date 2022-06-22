@@ -291,11 +291,12 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
         <Kebab
           launchModal={launchModal}
           extraProps={{ resource: obj, resourceModel: ODFStorageSystem }}
-          customKebabItems={(t) => ({
-            ADD_CAPACITY: {
+          customKebabItems={(t) => [
+            {
+              key: 'ADD_CAPACITY',
               value: t('Add Capacity'),
             },
-          })}
+          ]}
         />
       </TableData>
     </>
