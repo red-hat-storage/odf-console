@@ -11,11 +11,10 @@ import {
   referenceFor,
   referenceForModel,
 } from '@odf/shared/utils';
-import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
+import { usePrometheusPoll, WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   UtilizationDurationDropdown,
-  usePrometheusPoll,
   useUtilizationDuration,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';

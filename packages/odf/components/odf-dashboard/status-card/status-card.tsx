@@ -7,11 +7,8 @@ import {
   HealthState,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  HealthBody,
-  usePrometheusPoll,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+import { useK8sWatchResource, usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk';
+import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
 import {

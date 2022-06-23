@@ -22,6 +22,8 @@ import {
   ListPageFilter,
   ListPageHeader,
   PrometheusResponse,
+  usePrometheusPoll,
+  PrometheusEndpoint,
   RowProps,
   TableColumn,
   TableData,
@@ -30,8 +32,6 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import classNames from 'classnames';
 import * as _ from 'lodash';
 import { useTranslation } from 'react-i18next';
