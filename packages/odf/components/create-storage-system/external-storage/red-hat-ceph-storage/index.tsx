@@ -18,10 +18,11 @@ import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { PodModel, SecretModel } from '@odf/shared/models';
 import { getAnnotations } from '@odf/shared/selectors';
 import { ListKind, PodKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getAPIVersionForModel } from '@odf/shared/utils';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import {
   FormGroup,
   FileUpload,
@@ -50,7 +51,7 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
   setFormState,
   formState,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [pods, podsLoaded, podsLoadError] =
     useK8sGet<ListKind<PodKind>>(PodModel);
   const [csv, csvLoaded, csvLoadError] = useFetchCsv(

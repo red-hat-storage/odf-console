@@ -2,13 +2,13 @@ import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody } from '@odf/shared/modals/Modal';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core';
 import NamespaceStoreForm from './namespace-store-form';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 
 const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const { isOpen, closeModal } = props;
 
   return (

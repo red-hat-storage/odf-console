@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { DiskMetadata } from '@odf/core/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import {
   TableData,
@@ -7,7 +8,6 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
 import {
   Modal as PfModal,
   ModalProps as PfModalProps,
@@ -77,7 +77,7 @@ export const DiskListModal: React.FC<DiskListModalProps> = ({
   onCancel,
   disks,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const DiskHeader = React.useMemo(() => {
     return [

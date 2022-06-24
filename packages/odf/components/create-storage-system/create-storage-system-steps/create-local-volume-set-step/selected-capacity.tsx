@@ -16,10 +16,10 @@ import { StatusBox } from '@odf/shared/generic/status-box';
 import { NodeModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { NodeKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { convertToBaseValue, humanizeBinaryBytes } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { ChartDonut, ChartLabel } from '@patternfly/react-charts';
 import { Button } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
@@ -71,7 +71,7 @@ export const SelectedCapacity: React.FC<SelectedCapacityProps> = ({
   lvdResults,
   dispatch,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [showNodeList, setShowNodeList] = React.useState(false);
   const [showDiskList, setShowDiskList] = React.useState(false);
 
@@ -229,7 +229,7 @@ const NodeListModal: React.FC<NodeListModalProps> = ({
   onCancel,
   showNodeList,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const [nodesData, nodesLoaded, nodesLoadError] = useK8sWatchResource<
     NodeKind[]

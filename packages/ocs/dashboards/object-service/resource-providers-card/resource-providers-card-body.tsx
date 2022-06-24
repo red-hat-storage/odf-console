@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { LoadingInline } from '@odf/shared/generic/Loading';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 
 export const ResourceProvidersBody: React.FC<ResourceProvidersBodyProps> = ({
   isLoading,
@@ -8,7 +8,7 @@ export const ResourceProvidersBody: React.FC<ResourceProvidersBodyProps> = ({
   children,
   error,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   let body: React.ReactNode;
 

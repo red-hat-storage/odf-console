@@ -3,10 +3,10 @@ import { StatusType } from '@odf/ocs/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import { Status, StatusPopupSection } from '@odf/shared/popup/status-popup';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getWorstStatus } from '@odf/shared/utils';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
-import { useTranslation } from 'react-i18next';
 import { Stack, StackItem } from '@patternfly/react-core';
 
 type ObjectServiceStatusProps = {
@@ -20,7 +20,7 @@ export const ObjectServiceStatus: React.FC<ObjectServiceStatusProps> = ({
   MCGMetrics,
   statusType,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const isMissing = !(RGWMetrics && MCGMetrics);
   const title =

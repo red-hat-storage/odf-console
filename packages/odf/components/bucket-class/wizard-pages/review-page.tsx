@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { getName } from '@odf/shared/selectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   GreenCheckCircleIcon,
   YellowExclamationTriangleIcon,
   BlueInfoCircleIcon,
   RedExclamationCircleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Title,
@@ -72,7 +72,7 @@ const ReviewListBody: React.FC<ReviewListBodyProps> = ({
   hideIcon = false,
   noValue = undefined,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const alert = VALIDATIONS(validation, t);
   const Icon = noValue
@@ -122,7 +122,7 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
     writeNamespaceStore,
   } = state;
   const { error, isLoading } = state;
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const getReviewForNamespaceStore = () => (
     <>

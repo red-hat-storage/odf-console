@@ -24,12 +24,13 @@ import { calcPVsCapacity } from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { K8sResourceKind, NodeKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import {
   useK8sWatchResource,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import {
   Checkbox,
   Grid,
@@ -52,7 +53,7 @@ import './capacity-and-nodes.scss';
 
 const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
   ({ text }) => {
-    const { t } = useTranslation('plugin__odf-console');
+    const { t } = useCustomTranslation();
     const label = 'cluster.ocs.openshift.io/openshift-storage=""';
     return (
       <TextContent>
@@ -77,7 +78,7 @@ const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
   dispatch,
   enableTaint,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const isTaintSupported = useFlag(FEATURES.OCS_TAINT_NODES);
 
   return isTaintSupported ? (
@@ -113,7 +114,7 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
   nodes,
   enableTaint,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   React.useEffect(() => {
     if (!capacity)
@@ -197,7 +198,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   dispatch,
   nodes,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [pv, pvLoaded, pvLoadError] =
     useK8sWatchResource<K8sResourceKind[]>(pvResource);
   const memoizedPv = useDeepCompareMemoize(pv, true);

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { ActionGroup, Button } from '@patternfly/react-core';
 import { OCS_POOL_MANAGEMENT } from '../constants';
 import { BlockPoolState } from './reducer';
@@ -17,7 +17,7 @@ export const checkRequiredValues = (
 
 export const BlockPoolFooter = (props: BlockPoolFooterProps) => {
   const { state, cancel, onConfirm } = props;
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const isPoolManagementSupported = useFlag(OCS_POOL_MANAGEMENT);
 
   return (

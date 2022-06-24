@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   FormGroup,
   TextInput,
@@ -29,7 +29,7 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
 
   const kms: VaultConfig = state.kms?.[ProviderNames.VAULT];
 
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [backendPath, setBackendPath] = React.useState(kms?.backend || '');
   const [authPath, setAuthPath] = React.useState(kms?.providerAuthPath || '');
   const [authNamespace, setAuthNamespace] = React.useState(

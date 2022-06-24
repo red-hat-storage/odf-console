@@ -1,8 +1,9 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import { ChartPie, ChartThemeColor } from '@patternfly/react-charts';
 import {
   ExpandableSection,
@@ -144,7 +145,7 @@ const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({
 };
 
 export const MirroringCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
 
   const mirroringStatus: boolean = obj.spec?.mirroring?.enabled;

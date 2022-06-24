@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { AdvancedSubscription } from '@odf/shared/badges/advanced-subscription';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { Checkbox, FormGroup } from '@patternfly/react-core';
 import { KMSEmptyState } from '../../../../constants';
 import { FEATURES } from '../../../../features';
@@ -25,7 +25,7 @@ const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
   encryption,
   dispatch,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const handleClusterWideEncryption = (isChecked: boolean) =>
     dispatch({
@@ -96,7 +96,7 @@ const KMSConnection: React.FC<EncryptionProps> = ({
   infraType,
   isMCG,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const handleOnChange = React.useCallback(
     (isChecked: boolean) => {
@@ -156,7 +156,7 @@ export const Encryption: React.FC<EncryptionProps> = ({
   infraType,
   isMCG,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const isKmsSupported = useFlag(FEATURES.OCS_KMS);
   const [encryptionChecked, setEncryptionChecked] = React.useState(
     encryption.clusterWide || encryption.storageClass

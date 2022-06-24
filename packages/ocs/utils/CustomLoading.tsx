@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 
 export const LoadingComponent: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   return (
     <span

@@ -11,10 +11,10 @@ import {
   OSD_CAPACITY_SIZES,
 } from '@odf/core/constants';
 import { BackingStorageType, DeploymentType } from '@odf/core/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   TextContent,
   Text,
@@ -39,7 +39,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   state,
   hasOCS,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const isMultusSupported = useFlag(FEATURES.OCS_MULTUS);
   const isTaintSupported = useFlag(FEATURES.OCS_TAINT_NODES);
 

@@ -4,14 +4,14 @@ import {
   ModalBody,
   ModalHeader,
 } from '@odf/shared/modals/Modal';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, ModalVariant } from '@patternfly/react-core';
 import CreateBackingStoreForm from './create-bs';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 
 const CreateBackingStoreFormModal: React.FC<CreateBackingStoreFormModalProps> =
   (props) => {
-    const { t } = useTranslation();
+    const { t } = useCustomTranslation();
     const { isOpen, closeModal } = props;
 
     const Header = <ModalHeader>{t('Create new BackingStore')}</ModalHeader>;

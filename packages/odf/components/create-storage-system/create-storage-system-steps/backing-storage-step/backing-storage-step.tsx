@@ -26,8 +26,8 @@ import {
   ClusterServiceVersionKind,
   StorageSystemKind,
 } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isDefaultClass, getODFCsv, getGVKLabel } from '@odf/shared/utils';
-import { useTranslation } from 'react-i18next';
 import {
   Form,
   FormGroup,
@@ -60,7 +60,7 @@ const ExternalSystemSelection: React.FC<ExternalSystemSelectionProps> = ({
   selectOptions,
   selectedStorage,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const handleSelection: FormSelectProps['onChange'] = React.useCallback(
     (value: string) => {
@@ -171,7 +171,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
 }) => {
   const { type, externalStorage, deployment } = state;
 
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [sc, scLoaded, scLoadError] =
     useK8sGet<ListKind<StorageClassResourceKind>>(StorageClassModel);
   const [csvList, csvListLoaded, csvListLoadError] = useK8sGet<

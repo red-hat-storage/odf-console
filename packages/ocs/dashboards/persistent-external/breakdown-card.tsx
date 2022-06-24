@@ -5,12 +5,12 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   humanizeBinaryBytes,
   getInstantVectorStats,
   sortInstantVectorStats,
 } from '@odf/shared/utils';
-import { useTranslation } from 'react-i18next';
 import {
   Select,
   SelectProps,
@@ -25,7 +25,7 @@ import { getStackChartStats } from '../../utils/metrics';
 import '../persistent-internal/capacity-breakdown-card/capacity-breakdown-card.scss';
 
 export const BreakdownCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [metricType, setMetricType] = React.useState(PROJECTS);
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const { queries, model, metric } = breakdownIndependentQueryMap[metricType];

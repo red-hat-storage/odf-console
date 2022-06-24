@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { match as Match } from 'react-router-dom';
 import { CEPH_FLAG, OCS_INDEPENDENT_FLAG } from '../../odf/features';
@@ -23,7 +23,7 @@ const blockPoolHref = referenceForModel(CephBlockPoolModel);
 const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
   match,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const breadcrumbs = [
     {
       name: t('StorageSystems'),

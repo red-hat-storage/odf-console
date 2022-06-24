@@ -9,17 +9,17 @@ import {
 } from '@odf/shared/models';
 import { getInfrastructurePlatform, getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { CEPH_NS } from '../../constants';
 import { StorageClusterModel } from '../../models';
 
 const DetailsCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
   const [ocsData, ocsLoaded, ocsError] = useK8sList(
