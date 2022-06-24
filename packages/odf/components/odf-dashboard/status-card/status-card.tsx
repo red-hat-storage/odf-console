@@ -61,7 +61,7 @@ export const StatusCard: React.FC = () => {
     StorageSystemKind[]
   >(storageSystemResource);
 
-  const [healthData, healthError, healthLoading] = usePrometheusPoll({
+  const [healthData, healthLoaded, healthError] = usePrometheusPoll({
     query: STATUS_QUERIES[StorageDashboard.HEALTH],
     endpoint: 'api/v1/query' as any,
   });
@@ -76,7 +76,7 @@ export const StatusCard: React.FC = () => {
 
   const parsedHealthData =
     !healthError &&
-    !healthLoading &&
+    healthLoaded &&
     systemsLoaded &&
     !systemsLoadError &&
     healthData

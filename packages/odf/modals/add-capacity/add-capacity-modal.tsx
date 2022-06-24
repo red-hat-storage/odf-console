@@ -188,11 +188,11 @@ const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
 }) => {
   const { t } = useTranslation('plugin__odf-console');
 
-  const [cephTotal, totalError, totalLoading] = usePrometheusPoll({
+  const [cephTotal, totalLoaded, totalError] = usePrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_TOTAL],
   });
-  const [cephUsed, usedError, usedLoading] = usePrometheusPoll({
+  const [cephUsed, usedLoaded, usedError] = usePrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_USED],
   });
@@ -201,7 +201,7 @@ const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
       cephTotal?.data?.result?.[0]?.value?.[1],
       cephUsed?.data?.result?.[0]?.value?.[1],
     ],
-    totalLoading || usedLoading,
+    !totalLoaded || !usedLoaded,
     totalError || usedError,
   ];
   const [pvData, pvLoaded, pvLoadError] =
