@@ -122,28 +122,28 @@ const BackingStoreList: React.FC<BackingStoreListProps> = (props) => {
         id: tableColumnInfo[0].id,
       },
       {
-        title: t('Name'),
+        title: t('plugin__odf-console~Name'),
         props: {
           className: tableColumnInfo[1].className,
         },
         id: tableColumnInfo[1].id,
       },
       {
-        title: t('BucketName'),
+        title: t('plugin__odf-console~BucketName'),
         props: {
           className: tableColumnInfo[2].className,
         },
         id: tableColumnInfo[2].id,
       },
       {
-        title: t('Type'),
+        title: t('plugin__odf-console~Type'),
         props: {
           className: tableColumnInfo[3].className,
         },
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('Region'),
+        title: t('plugin__odf-console~Region'),
         props: {
           className: tableColumnInfo[3].className,
         },
@@ -156,7 +156,7 @@ const BackingStoreList: React.FC<BackingStoreListProps> = (props) => {
   return (
     <VirtualizedTable
       {...props}
-      aria-label={t('BackingStores')}
+      aria-label={t('plugin__odf-console~BackingStores')}
       columns={columns}
       Row={RowRenderer}
     />
@@ -254,10 +254,10 @@ const BackingStoreSelection: React.FC<BackingStoreSelectionProps> = (props) => {
             className="co-alert"
             variant="info"
             title={t(
-              'Each BackingStore can be used for one tier at a time. Selecting a BackingStore in one tier will remove the resource from the second tier option and vice versa.'
+              'plugin__odf-console~Each BackingStore can be used for one tier at a time. Selecting a BackingStore in one tier will remove the resource from the second tier option and vice versa.'
             )}
             aria-label={t(
-              "Bucket created for OpenShift Data Foundation's Service"
+              "plugin__odf-console~Bucket created for OpenShift Data Foundation's Service"
             )}
             isInline
           />
@@ -269,7 +269,7 @@ const BackingStoreSelection: React.FC<BackingStoreSelectionProps> = (props) => {
         >
           <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
             <Title headingLevel="h3" size="xl">
-              {t('Tier 1 - BackingStores')}{' '}
+              {t('plugin__odf-console~Tier 1 - BackingStores')}{' '}
               {tier1Policy ? `(${tier1Policy})` : ''}
             </Title>
             {!hideCreateBackingStore && (
@@ -279,7 +279,8 @@ const BackingStoreSelection: React.FC<BackingStoreSelectionProps> = (props) => {
                   onClick={launchModal}
                   className="nb-bc-step-page-form__modal-launcher"
                 >
-                  <PlusCircleIcon /> {t('Create BackingStore ')}
+                  <PlusCircleIcon />{' '}
+                  {t('plugin__odf-console~Create BackingStore ')}
                 </Button>
               </FlexItem>
             )}
@@ -309,7 +310,7 @@ const BackingStoreSelection: React.FC<BackingStoreSelectionProps> = (props) => {
       {!!tier2Policy && (
         <Form className="nb-bc-step-page-form">
           <Title headingLevel="h3" size="xl">
-            {t('Tier 2 - BackingStores')}{' '}
+            {t('plugin__odf-console~Tier 2 - BackingStores')}{' '}
             {tier2Policy ? `(${tier2Policy})` : ''}
           </Title>
           <FormGroup

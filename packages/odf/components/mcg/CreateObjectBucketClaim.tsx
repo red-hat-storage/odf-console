@@ -40,7 +40,7 @@ export const isObjectSC = (sc: StorageClassResourceKind) =>
   objectStorageProvisioners.includes(_.get(sc, 'provisioner'));
 
 export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__odf-console');
   const { state, dispatch, namespace } = props;
   const isNoobaa = state.scProvisioner?.includes(NB_PROVISIONER);
 
@@ -172,7 +172,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
 };
 
 export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('plugin__odf-console');
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
   const namespace = props.match.params.ns;
 

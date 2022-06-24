@@ -76,11 +76,11 @@ export const MultiNamespaceStorePage: React.FC<MultiNamespaceStoreProps> =
           >
             <FlexItem>
               <Title size="xl" headingLevel="h2">
-                {t('Read NamespaceStores')}
+                {t('plugin__odf-console~Read NamespaceStores')}
               </Title>
               <p className="nb-create-bc-step-page-form__element--light-text">
                 {t(
-                  'Select a list of NamespaceStores that defines the read targets of the namespace bucket.'
+                  'plugin__odf-console~Select a list of NamespaceStores that defines the read targets of the namespace bucket.'
                 )}
               </p>
             </FlexItem>
@@ -91,7 +91,8 @@ export const MultiNamespaceStorePage: React.FC<MultiNamespaceStoreProps> =
                   onClick={launchModal}
                   className="nb-bc-step-page-form__modal-launcher"
                 >
-                  <PlusCircleIcon /> {t('Create NamespaceStore')}
+                  <PlusCircleIcon />{' '}
+                  {t('plugin__odf-console~Create NamespaceStore')}
                 </Button>
               </FlexItem>
             )}
@@ -114,11 +115,11 @@ export const MultiNamespaceStorePage: React.FC<MultiNamespaceStoreProps> =
               {t(' selected')}
             </p>
             <Title size="xl" headingLevel="h2">
-              {t('Write NamespaceStore')}
+              {t('plugin__odf-console~Write NamespaceStore')}
             </Title>
             <p className="nb-create-bc-step-page-form__element--light-text">
               {t(
-                'Select a single NamespaceStore that defines the write targets of the namespace bucket.'
+                'plugin__odf-console~Select a single NamespaceStore that defines the write targets of the namespace bucket.'
               )}
             </p>
             <FormGroup

@@ -26,11 +26,11 @@ const CreateBackingStoreFormPage: React.FC<CreateBackingStoreFormPageProps> = ({
           headingLevel="h1"
           className="co-create-operand__header-text"
         >
-          {t('Create new BackingStore ')}
+          {t('plugin__odf-console~Create new BackingStore ')}
         </Title>
         <p className="help-block">
           {t(
-            'Storage targets that are used to store chunks of data on Multicloud Object Gateway buckets.'
+            'plugin__odf-console~Storage targets that are used to store chunks of data on Multicloud Object Gateway buckets.'
           )}
         </p>
       </div>
@@ -39,17 +39,17 @@ const CreateBackingStoreFormPage: React.FC<CreateBackingStoreFormPageProps> = ({
           <Alert
             isInline
             variant="info"
-            title={t('What is a BackingStore?')}
+            title={t('plugin__odf-console~What is a BackingStore?')}
             actionClose={
               <AlertActionCloseButton onClose={() => setShowHelp(false)} />
             }
           >
             {t(
-              'A BackingStore represents a storage target to be used as the underlying storage layer in Multicloud Object Gateway buckets.'
+              'plugin__odf-console~A BackingStore represents a storage target to be used as the underlying storage layer in Multicloud Object Gateway buckets.'
             )}
             <br />
             {t(
-              'Multiple types of BackingStores are supported: AWS S3 S3 Compatible Google Cloud Storage Azure Blob PVC.'
+              'plugin__odf-console~Multiple types of BackingStores are supported: AWS S3 S3 Compatible Google Cloud Storage Azure Blob PVC.'
             )}
           </Alert>
         )}

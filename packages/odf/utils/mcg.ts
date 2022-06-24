@@ -80,7 +80,7 @@ const allPhases = ['Pending', 'Bound', 'Lost'];
 
 export const obcStatusFilter = (t): RowFilter<K8sResourceKind> => ({
   type: 'obc-status',
-  filterGroupName: t('Status'),
+  filterGroupName: t('plugin__odf-console~Status'),
   reducer: getPhase,
   items: _.map(allPhases, (phase) => ({
     id: phase,
@@ -101,7 +101,7 @@ export const obcStatusFilter = (t): RowFilter<K8sResourceKind> => ({
 
 export const obStatusFilter = (t): RowFilter<K8sResourceKind> => ({
   type: 'ob-status',
-  filterGroupName: t('Status'),
+  filterGroupName: t('plugin__odf-console~Status'),
   reducer: getPhase,
   items: _.map(allPhases, (phase) => ({
     id: phase,
@@ -218,7 +218,9 @@ export const convertTime = (unit: TimeUnits, value: number): number =>
   unit === TimeUnits.HOUR ? value / 3600000 : value / 60000;
 
 export const getTimeUnitString = (unit: TimeUnits, t: TFunction): string => {
-  return unit === TimeUnits.HOUR ? t('hr') : t('min');
+  return unit === TimeUnits.HOUR
+    ? t('plugin__odf-console~hr')
+    : t('plugin__odf-console~min');
 };
 
 export const validateDuration = (ms: number): boolean =>
@@ -259,8 +261,8 @@ export const getRegion = (
 
 export const getBSLabel = (policy: PlacementPolicy, t: TFunction) =>
   policy === PlacementPolicy.Mirror
-    ? t('Select at least 2 Backing Store resources')
-    : t('Select at least 1 Backing Store resource');
+    ? t('plugin__odf-console~Select at least 2 Backing Store resources')
+    : t('plugin__odf-console~Select at least 1 Backing Store resource');
 
 export const getBackingStoreNames = (
   bc: BucketClassKind,

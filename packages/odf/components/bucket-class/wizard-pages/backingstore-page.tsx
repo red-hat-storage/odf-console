@@ -41,17 +41,17 @@ const BackingStorePage: React.FC<BackingStorePageProps> = React.memo(
             >
               <p>
                 {t(
-                  'BackingStore represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.'
+                  'plugin__odf-console~BackingStore represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.'
                 )}
               </p>
               <p>
                 {t(
-                  'Multiple types of BackingStores are supported: asws-s3 s3-compatible google-cloud-storage azure-blob obc PVC.'
+                  'plugin__odf-console~Multiple types of BackingStores are supported: asws-s3 s3-compatible google-cloud-storage azure-blob obc PVC.'
                 )}
               </p>
               <ExternalLink
                 href="https://github.com/noobaa/noobaa-operator/blob/master/doc/backing-store-crd.md"
-                text={t('Learn More')}
+                text={t('plugin__odf-console~Learn More')}
               />
             </Alert>
           )}

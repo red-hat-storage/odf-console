@@ -14,14 +14,18 @@ const CreateBackingStoreFormModal: React.FC<CreateBackingStoreFormModalProps> =
     const { t } = useTranslation();
     const { isOpen, closeModal } = props;
 
-    const Header = <ModalHeader>{t('Create new BackingStore')}</ModalHeader>;
+    const Header = (
+      <ModalHeader>
+        {t('plugin__odf-console~Create new BackingStore')}
+      </ModalHeader>
+    );
     return (
       <Modal isOpen={isOpen} variant={ModalVariant.small} header={Header}>
         <div className="nb-endpoints__modal">
           <ModalBody>
             <p>
               {t(
-                'BackingStore represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.'
+                'plugin__odf-console~BackingStore represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.'
               )}
             </p>
             <CreateBackingStoreForm

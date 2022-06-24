@@ -48,12 +48,16 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
 
   const targetLabel =
     provider === BC_PROVIDERS.AZURE
-      ? t('Target blob container')
-      : t('Target bucket');
+      ? t('plugin__odf-console~Target blob container')
+      : t('plugin__odf-console~Target bucket');
   const credentialField1Label =
-    provider === BC_PROVIDERS.AZURE ? t('Account name') : t('Access key');
+    provider === BC_PROVIDERS.AZURE
+      ? t('plugin__odf-console~Account name')
+      : t('plugin__odf-console~Access key');
   const credentialField2Label =
-    provider === BC_PROVIDERS.AZURE ? t('Account key') : t('Secret key');
+    provider === BC_PROVIDERS.AZURE
+      ? t('plugin__odf-console~Account key')
+      : t('plugin__odf-console~Secret key');
 
   const switchToSecret = () => {
     setShowSecret(true);
@@ -70,7 +74,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
     <>
       {provider === BC_PROVIDERS.AWS && (
         <FormGroup
-          label={t('Region')}
+          label={t('plugin__odf-console~Region')}
           fieldId="region"
           className="nb-endpoints-form-entry"
           isRequired
@@ -82,14 +86,14 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
             }}
             dropdownItems={awsRegionItems}
             defaultSelection={AWS_REGIONS[0]}
-            aria-label={t('Region Dropdown')}
+            aria-label={t('plugin__odf-console~Region Dropdown')}
           />
         </FormGroup>
       )}
 
       {endpointsSupported.includes(provider) && (
         <FormGroup
-          label={t('Endpoint')}
+          label={t('plugin__odf-console~Endpoint')}
           fieldId="endpoint"
           className="nb-endpoints-form-entry"
           isRequired
@@ -101,14 +105,14 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
             }}
             id="endpoint"
             value={state.endpoint}
-            aria-label={t('Endpoint Address')}
+            aria-label={t('plugin__odf-console~Endpoint Address')}
           />
         </FormGroup>
       )}
 
       {showSecret ? (
         <FormGroup
-          label={t('Secret')}
+          label={t('plugin__odf-console~Secret')}
           fieldId="secret-dropdown"
           className="nb-endpoints-form-entry nb-endpoints-form-entry--full-width"
           isRequired
@@ -131,7 +135,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
               data-test="switch-to-creds"
               onClick={switchToCredentials}
             >
-              {t('Switch to Credentials')}
+              {t('plugin__odf-console~Switch to Credentials')}
             </Button>
           </InputGroup>
         </FormGroup>
@@ -149,7 +153,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
                 aria-label={t('Access Key Field')}
               />
               <Button variant="plain" onClick={switchToSecret}>
-                {t('Switch to Secret')}
+                {t('plugin__odf-console~Switch to Secret')}
               </Button>
             </InputGroup>
           </FormGroup>
@@ -165,7 +169,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
               onChange={(e) => {
                 dispatch({ type: 'setSecretKey', value: e });
               }}
-              aria-label={t('Secret Key Field')}
+              aria-label={t('plugin__odf-console~Secret Key Field')}
               type="password"
             />
           </FormGroup>

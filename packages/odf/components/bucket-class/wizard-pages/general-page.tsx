@@ -26,7 +26,7 @@ export const bucketClassTypeRadios = (t: TFunction) => [
     value: BucketClassType.STANDARD,
     label: t('Standard'),
     description: t(
-      'Data will be consumed by a Multi-cloud object gateway, deduped, compressed, and encrypted. The encrypted chunks would be saved on the selected BackingStores. Best used when the applications would always use the OpenShift Data Foundation endpoints to access the data.'
+      'plugin__odf-console~Data will be consumed by a Multi-cloud object gateway, deduped, compressed, and encrypted. The encrypted chunks would be saved on the selected BackingStores. Best used when the applications would always use the OpenShift Data Foundation endpoints to access the data.'
     ),
   },
   {
@@ -34,7 +34,7 @@ export const bucketClassTypeRadios = (t: TFunction) => [
     value: BucketClassType.NAMESPACE,
     label: t('Namespace'),
     description: t(
-      'Data is stored on the NamespaceStores without performing de-duplication, compression, or encryption. BucketClasses of namespace type allow connecting to existing data and serving from them. These are best used for existing data or when other applications (and cloud-native services) need to access the data from outside OpenShift Data Foundation.'
+      'plugin__odf-console~Data is stored on the NamespaceStores without performing de-duplication, compression, or encryption. BucketClasses of namespace type allow connecting to existing data and serving from them. These are best used for existing data or when other applications (and cloud-native services) need to access the data from outside OpenShift Data Foundation.'
     ),
   },
 ];
@@ -64,7 +64,7 @@ const GeneralPage: React.FC<GeneralPageProps> = ({ dispatch, state }) => {
         <Alert
           isInline
           variant="info"
-          title={t('What is a BucketClass?')}
+          title={t('plugin__odf-console~What is a BucketClass?')}
           className="nb-create-bc-step-page__info"
           actionClose={
             <AlertActionCloseButton onClose={() => setShowHelp(false)} />
@@ -72,12 +72,12 @@ const GeneralPage: React.FC<GeneralPageProps> = ({ dispatch, state }) => {
         >
           <p>
             {t(
-              'A set of policies which would apply to all buckets (OBCs) created with the specific bucket class. These policies include placement, namespace and caching'
+              'plugin__odf-console~A set of policies which would apply to all buckets (OBCs) created with the specific bucket class. These policies include placement, namespace and caching'
             )}
           </p>
           <ExternalLink
             href="https://github.com/noobaa/noobaa-operator/blob/master/doc/bucket-class-crd.md"
-            text={t('Learn More')}
+            text={t('plugin__odf-console~Learn More')}
           />
         </Alert>
       )}
@@ -87,7 +87,7 @@ const GeneralPage: React.FC<GeneralPageProps> = ({ dispatch, state }) => {
             fieldId="bucketclasstype-radio"
             className="nb-create-bc-step-page-form__element nb-bucket-class-type-form__element"
             isRequired
-            label={t('BucketClass type')}
+            label={t('plugin__odf-console~BucketClass type')}
           >
             {bucketClassTypeRadios(t).map((radio) => {
               const checked = radio.value === state.bucketClassType;
@@ -114,23 +114,31 @@ const GeneralPage: React.FC<GeneralPageProps> = ({ dispatch, state }) => {
           labelIcon={
             <FieldLevelHelp>
               <ul>
-                <li>{t('3-63 chars')}</li>
-                <li>{t('Starts and ends with lowercase number or letter')}</li>
+                <li>{t('plugin__odf-console~3-63 chars')}</li>
                 <li>
                   {t(
-                    'Only lowercase letters, numbers, non-consecutive periods or hyphens'
+                    'plugin__odf-console~Starts and ends with lowercase number or letter'
                   )}
                 </li>
-                <li>{t('Avoid using the form of an IP address')}</li>
-                <li>{t('Globally unique name')}</li>
+                <li>
+                  {t(
+                    'plugin__odf-console~Only lowercase letters, numbers, non-consecutive periods or hyphens'
+                  )}
+                </li>
+                <li>
+                  {t(
+                    'plugin__odf-console~Avoid using the form of an IP address'
+                  )}
+                </li>
+                <li>{t('plugin__odf-console~Globally unique name')}</li>
               </ul>
             </FieldLevelHelp>
           }
           className="nb-create-bc-step-page-form__element"
           fieldId="bucketclassname-input"
-          label={t('BucketClass name')}
+          label={t('plugin__odf-console~BucketClass name')}
           helperText={t(
-            'A unique name for the bucket class within the project.'
+            'plugin__odf-console~A unique name for the bucket class within the project.'
           )}
         >
           <TextInput
@@ -147,7 +155,7 @@ const GeneralPage: React.FC<GeneralPageProps> = ({ dispatch, state }) => {
         <FormGroup
           className="nb-create-bc-step-page-form__element"
           fieldId="bc-description"
-          label={t('Description (Optional)')}
+          label={t('plugin__odf-console~Description (Optional)')}
         >
           <TextArea
             data-test="bucket-class-description"
@@ -156,7 +164,7 @@ const GeneralPage: React.FC<GeneralPageProps> = ({ dispatch, state }) => {
             onChange={(data) =>
               dispatch({ type: 'setDescription', value: data })
             }
-            aria-label={t('Description of bucket class')}
+            aria-label={t('plugin__odf-console~Description of bucket class')}
           />
         </FormGroup>
       </Form>

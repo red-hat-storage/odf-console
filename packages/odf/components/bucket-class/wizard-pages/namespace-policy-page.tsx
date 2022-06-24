@@ -16,24 +16,24 @@ export const namespacePolicyTypeRadios = (t: TFunction) => [
   {
     id: NamespacePolicyType.SINGLE,
     value: NamespacePolicyType.SINGLE,
-    label: t('Single NamespaceStore'),
+    label: t('plugin__odf-console~Single NamespaceStore'),
     description:
       'The namespace bucket will read and write its data to a selected namespace store',
   },
   {
     id: NamespacePolicyType.MULTI,
     value: NamespacePolicyType.MULTI,
-    label: t('Multi NamespaceStores'),
+    label: t('plugin__odf-console~Multi NamespaceStores'),
     description: t(
-      'The namespace bucket will serve reads from several selected backing stores, creating a virtual namespace on top of them and will write to one of those as its chosen write target'
+      'plugin__odf-console~The namespace bucket will serve reads from several selected backing stores, creating a virtual namespace on top of them and will write to one of those as its chosen write target'
     ),
   },
   {
     id: NamespacePolicyType.CACHE,
     value: NamespacePolicyType.CACHE,
-    label: t('Cache NamespaceStore'),
+    label: t('plugin__odf-console~Cache NamespaceStore'),
     description: t(
-      'The caching bucket will serve data from a large raw data out of a local caching tiering.'
+      'plugin__odf-console~The caching bucket will serve data from a large raw data out of a local caching tiering.'
     ),
   },
 ];
@@ -51,7 +51,7 @@ export const NamespacePolicyPage: React.FC<NamespacePolicyPageProps> = ({
         <Alert
           isInline
           variant="info"
-          title={t('What is a Namespace Policy?')}
+          title={t('plugin__odf-console~What is a Namespace Policy?')}
           className="nb-create-bc-step-page__info"
           actionClose={
             <AlertActionCloseButton onClose={() => setShowHelp(false)} />
@@ -59,7 +59,7 @@ export const NamespacePolicyPage: React.FC<NamespacePolicyPageProps> = ({
         >
           <p>
             {t(
-              'Namespace policy can be set to one single read and write source, multi read sources or cached policy.'
+              'plugin__odf-console~Namespace policy can be set to one single read and write source, multi read sources or cached policy.'
             )}
           </p>
         </Alert>
@@ -70,7 +70,7 @@ export const NamespacePolicyPage: React.FC<NamespacePolicyPageProps> = ({
           headingLevel="h2"
           className="nb-bc-step-page-form__title"
         >
-          {t('Namespace Policy Type')}
+          {t('plugin__odf-console~Namespace Policy Type')}
         </Title>
         {namespacePolicyTypeRadios(t).map((radio) => {
           const checked = radio.value === state.namespacePolicyType;

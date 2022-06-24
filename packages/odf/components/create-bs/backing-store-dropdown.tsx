@@ -79,7 +79,7 @@ export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
                 component="button"
                 onClick={() => launchBackingStoreModal()}
               >
-                {t('Create new BackingStore ')}
+                {t('plugin__odf-console~Create new BackingStore ')}
               </DropdownItem>,
               <DropdownSeparator key="separator" />,
             ]
@@ -98,7 +98,9 @@ export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
           className="nb-create-bc-step-page__danger"
           variant="danger"
           isInline
-          title={t('An error has occured while fetching backing stores')}
+          title={t(
+            'plugin__odf-console~An error has occured while fetching backing stores'
+          )}
         />
       )}
       <Dropdown

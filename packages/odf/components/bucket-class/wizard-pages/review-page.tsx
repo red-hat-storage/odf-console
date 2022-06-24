@@ -127,12 +127,14 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
   const getReviewForNamespaceStore = () => (
     <>
       <ReviewListBody hideIcon>
-        <span>{t('Namespace Policy: ')}</span>&nbsp;
+        <span>{t('plugin__odf-console~Namespace Policy: ')}</span>&nbsp;
         <span className="text-secondary">{namespacePolicyType}</span>
       </ReviewListBody>
       {namespacePolicyType === NamespacePolicyType.SINGLE && (
         <ReviewListBody hideIcon>
-          <span>{t('Read and write NamespaceStore : ')}</span>
+          <span>
+            {t('plugin__odf-console~Read and write NamespaceStore : ')}
+          </span>
           &nbsp;
           <span className="text-secondary">
             {readNamespaceStore[0]?.metadata.name}
@@ -142,15 +144,15 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
       {namespacePolicyType === NamespacePolicyType.CACHE && (
         <>
           <ReviewListBody hideIcon>
-            <span>{t('Hub namespace store: ')}</span>&nbsp;
+            <span>{t('plugin__odf-console~Hub namespace store: ')}</span>&nbsp;
             <span className="text-secondary">{getName(hubNamespaceStore)}</span>
           </ReviewListBody>
           <ReviewListBody hideIcon>
-            <span>{t('Cache backing store: ')}</span>&nbsp;
+            <span>{t('plugin__odf-console~Cache backing store: ')}</span>&nbsp;
             <span className="text-secondary">{getName(cacheBackingStore)}</span>
           </ReviewListBody>
           <ReviewListBody hideIcon>
-            <span>{t('Time to live: ')}</span>&nbsp;
+            <span>{t('plugin__odf-console~Time to live: ')}</span>&nbsp;
             <span className="text-secondary">{`${pluralize(
               convertTime(timeUnit, timeToLive),
               getTimeUnitString(timeUnit, t)
@@ -160,11 +162,13 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
       )}
       {namespacePolicyType === NamespacePolicyType.MULTI && (
         <ReviewListBody hideIcon>
-          <span>{t('Resources ')}</span>&nbsp;
-          <p>{t('Selected read namespace stores: ')}</p>
+          <span>{t('plugin__odf-console~Resources ')}</span>&nbsp;
+          <p>{t('plugin__odf-console~Selected read namespace stores: ')}</p>
           <StoreCard resources={readNamespaceStore} />
           <br />
-          <span>{t('Selected write namespace store: ')}</span>
+          <span>
+            {t('plugin__odf-console~Selected write namespace store: ')}
+          </span>
           <span className="text-secondary">
             {getName(writeNamespaceStore[0])}
           </span>
@@ -176,15 +180,15 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
   const getReviewForBackingStore = () => (
     <>
       <ReviewListBody hideIcon>
-        <span>{t('Placement policy details ')}</span>&nbsp;
+        <span>{t('plugin__odf-console~Placement policy details ')}</span>&nbsp;
         <br />
         <p data-test="tier1">
           <b>
-            {t('Tier 1: ')}
+            {t('plugin__odf-console~Tier 1: ')}
             {tier1Policy}
           </b>
         </p>
-        <p>{t('Selected BackingStores')}</p>
+        <p>{t('plugin__odf-console~Selected BackingStores')}</p>
         <StoreCard resources={tier1BackingStore} />
       </ReviewListBody>
       <ReviewListBody hideIcon>
@@ -192,11 +196,11 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
           <>
             <p data-test="tier2">
               <b>
-                {t('Tier 2: ')}
+                {t('plugin__odf-console~Tier 2: ')}
                 {tier2Policy}
               </b>
             </p>
-            <p>{t('Selected BackingStores')}</p>
+            <p>{t('plugin__odf-console~Selected BackingStores')}</p>
             <StoreCard resources={tier2BackingStore} />
           </>
         )}
@@ -207,25 +211,25 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
   return (
     <div className="nb-create-bc-step-page">
       <Title size="xl" headingLevel="h2">
-        {t('Review BucketClass')}
+        {t('plugin__odf-console~Review BucketClass')}
       </Title>
       <dl>
-        <ReviewListTitle text={t('General')} />
+        <ReviewListTitle text={t('plugin__odf-console~General')} />
         <br />
         <div className="nb-create-bc-list--indent">
           <ReviewListBody hideIcon>
-            <span>{t('BucketClass type: ')}</span>&nbsp;
+            <span>{t('plugin__odf-console~BucketClass type: ')}</span>&nbsp;
             <span className="text-secondary">{bucketClassType}</span>
           </ReviewListBody>
           <ReviewListBody hideIcon>
-            <span>{t('BucketClass name: ')}</span>&nbsp;
+            <span>{t('plugin__odf-console~BucketClass name: ')}</span>&nbsp;
             <span data-test="bc-name" className="text-secondary">
               {bucketClassName}
             </span>
           </ReviewListBody>
           {!!description && (
             <ReviewListBody hideIcon>
-              <span>{t('Description: ')}</span>&nbsp;
+              <span>{t('plugin__odf-console~Description: ')}</span>&nbsp;
               <span data-test="bc-desc" className="text-secondary">
                 {description}
               </span>

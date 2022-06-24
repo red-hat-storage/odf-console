@@ -69,7 +69,7 @@ const ResourceTable: React.FC<ResourceTableProps> = (props) => {
   const tableColumns = React.useMemo<TableColumn<K8sResourceCommon>[]>(
     () => [
       {
-        title: t('Name'),
+        title: t('plugin__odf-console~Name'),
         sort: 'metadata.name',
         transforms: [sortable],
         props: {
@@ -78,28 +78,28 @@ const ResourceTable: React.FC<ResourceTableProps> = (props) => {
         id: tableColumnInfo[0].id,
       },
       {
-        title: t('Kind'),
+        title: t('plugin__odf-console~Kind'),
         props: {
           className: tableColumnInfo[1].className,
         },
         id: tableColumnInfo[1].id,
       },
       {
-        title: t('Status'),
+        title: t('plugin__odf-console~Status'),
         props: {
           className: tableColumnInfo[2].className,
         },
         id: tableColumnInfo[2].id,
       },
       {
-        title: t('Labels'),
+        title: t('plugin__odf-console~Labels'),
         props: {
           className: tableColumnInfo[3].className,
         },
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('Last Updated'),
+        title: t('plugin__odf-console~Last Updated'),
         props: {
           className: tableColumnInfo[4].className,
         },

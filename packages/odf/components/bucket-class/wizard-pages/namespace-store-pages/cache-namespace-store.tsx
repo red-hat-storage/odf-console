@@ -50,13 +50,13 @@ export const CacheNamespaceStorePage: React.FC<CacheNamespaceStoreProps> =
             <Alert
               isInline
               variant="info"
-              title={t('What is Caching?')}
+              title={t('plugin__odf-console~What is Caching?')}
               actionClose={
                 <AlertActionCloseButton onClose={() => setShowHelp(false)} />
               }
             >
               {t(
-                'Caching is a policy that creates local copies of the data. It saves the copies locally to improve performance for frequently accessed data. Each cached copy has a TTL and is verified against the hub. Each non-read operation (upload, overwrite, delete) is performed on the hub'
+                'plugin__odf-console~Caching is a policy that creates local copies of the data. It saves the copies locally to improve performance for frequently accessed data. Each cached copy has a TTL and is verified against the hub. Each non-read operation (upload, overwrite, delete) is performed on the hub'
               )}
             </Alert>
           )}
@@ -67,16 +67,16 @@ export const CacheNamespaceStorePage: React.FC<CacheNamespaceStoreProps> =
               headingLevel="h3"
               className="nb-bc-step-page-form__title"
             >
-              {t('Hub namespace store ')}
+              {t('plugin__odf-console~Hub namespace store ')}
             </Title>
             <p className="nb-create-bc-step-page-form__element--light-text">
               {t(
-                'A single NamespaceStore that defines the read and write target of the namespace bucket.'
+                'plugin__odf-console~A single NamespaceStore that defines the read and write target of the namespace bucket.'
               )}
             </p>
             <FormGroup
               className="nb-create-bc-step-page-form"
-              label={t('NamespaceStore')}
+              label={t('plugin__odf-console~NamespaceStore')}
               fieldId="namespacestore-input"
             >
               <NamespaceStoreDropdown
@@ -94,16 +94,16 @@ export const CacheNamespaceStorePage: React.FC<CacheNamespaceStoreProps> =
               headingLevel="h3"
               className="nb-bc-step-page-form__title"
             >
-              {t('Cache data settings')}
+              {t('plugin__odf-console~Cache data settings')}
             </Title>
             <p className="nb-create-bc-step-page-form__element--light-text">
               {t(
-                'The data will be temporarily copied on a backing store in order to later access it much more quickly.'
+                'plugin__odf-console~The data will be temporarily copied on a backing store in order to later access it much more quickly.'
               )}
             </p>
             <FormGroup
               className="nb-create-bc-step-page-form"
-              label={t('Backing store')}
+              label={t('plugin__odf-console~Backing store')}
               fieldId="backingstore-input"
             >
               <BackingStoreDropdown
@@ -115,13 +115,13 @@ export const CacheNamespaceStorePage: React.FC<CacheNamespaceStoreProps> =
               />
               <p className="nb-create-bc-step-page-form__element--light-text">
                 {t(
-                  'a local backing store is recommended for better performance'
+                  'plugin__odf-console~a local backing store is recommended for better performance'
                 )}
               </p>
             </FormGroup>
             <FormGroup
               className="nb-create-bc-step-page-form"
-              label={t('Time to live')}
+              label={t('plugin__odf-console~Time to live')}
               fieldId="timetolive-input"
               isRequired
             >
@@ -133,7 +133,7 @@ export const CacheNamespaceStorePage: React.FC<CacheNamespaceStoreProps> =
               />
               <p className="nb-create-bc-step-page-form__element--light-text">
                 {t(
-                  'Time to live is the time that an object is stored in a caching system before it is deleted or refreshed. Default: 0, Max: 24 hrs'
+                  'plugin__odf-console~Time to live is the time that an object is stored in a caching system before it is deleted or refreshed. Default: 0, Max: 24 hrs'
                 )}
               </p>
             </FormGroup>

@@ -160,7 +160,7 @@ const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
   >(
     () => [
       {
-        title: t('Name'),
+        title: t('plugin__odf-console~Name'),
         sort: 'metadata.name',
         transforms: [sortable],
         props: {
@@ -169,7 +169,7 @@ const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
         id: tableColumnInfo[0].id,
       },
       {
-        title: t('Status'),
+        title: t('plugin__odf-console~Status'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[1].className,
@@ -177,7 +177,7 @@ const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
         id: tableColumnInfo[1].id,
       },
       {
-        title: t('Raw Capacity'),
+        title: t('plugin__odf-console~Raw Capacity'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[2].className,
@@ -185,7 +185,7 @@ const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
         id: tableColumnInfo[2].id,
       },
       {
-        title: t('Used capacity'),
+        title: t('plugin__odf-console~Used capacity'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[3].className,
@@ -193,7 +193,7 @@ const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('IOPS'),
+        title: t('plugin__odf-console~IOPS'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[4].className,
@@ -201,7 +201,7 @@ const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
         id: tableColumnInfo[4].id,
       },
       {
-        title: t('Throughput'),
+        title: t('plugin__odf-console~Throughput'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[5].className,
@@ -209,7 +209,7 @@ const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
         id: tableColumnInfo[5].id,
       },
       {
-        title: t('Latency'),
+        title: t('plugin__odf-console~Latency'),
         props: {
           className: tableColumnInfo[6].className,
         },

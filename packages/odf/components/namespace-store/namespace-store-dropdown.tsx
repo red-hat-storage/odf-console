@@ -77,7 +77,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
               component="button"
               onClick={launchModal}
             >
-              {t('Create new NamespaceStore ')}
+              {t('plugin__odf-console~Create new NamespaceStore ')}
             </DropdownItem>,
             <DropdownSeparator key="separator" />,
           ]
@@ -101,7 +101,9 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
           className="nb-create-bc-step-page--danger"
           variant="danger"
           isInline
-          title={t('An error has occurred while fetching namespace stores')}
+          title={t(
+            'plugin__odf-console~An error has occurred while fetching namespace stores'
+          )}
         />
       )}
       <Dropdown
@@ -117,7 +119,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
             data-test="nns-dropdown-toggle"
             onToggle={() => setOpen(!isOpen)}
           >
-            {selectedKey || t('Select a namespace store')}
+            {selectedKey || t('plugin__odf-console~Select a namespace store')}
           </DropdownToggle>
         }
         isOpen={isOpen}

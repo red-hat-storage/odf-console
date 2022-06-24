@@ -80,9 +80,9 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
             history={history}
           />
         }
-        cancelButtonText={t('Cancel')}
-        nextButtonText={t('Next')}
-        backButtonText={t('Back')}
+        cancelButtonText={t('plugin__odf-console~Cancel')}
+        nextButtonText={t('plugin__odf-console~Next')}
+        backButtonText={t('plugin__odf-console~Back')}
       />
     </>
   );

@@ -72,11 +72,11 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
       bodyContent={
         <div>
           {t(
-            'Service account keys are needed for Google Cloud Storage authentication. The keys can be found in the service accounts page in the GCP console.'
+            'plugin__odf-console~Service account keys are needed for Google Cloud Storage authentication. The keys can be found in the service accounts page in the GCP console.'
           )}
           <ExternalLink
             href="https://cloud.google.com/iam/docs/service-accounts#service_account_keys"
-            text={t('Learn more')}
+            text={t('plugin__odf-console~Learn more')}
           />
         </div>
       }
@@ -85,7 +85,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
     >
       <Button variant="link">
         <HelpIcon />
-        {t('Where can I find Google Cloud credentials?')}
+        {t('plugin__odf-console~Where can I find Google Cloud credentials?')}
       </Button>
     </Popover>
   );
@@ -110,11 +110,11 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
         helperText={
           !showSecret
             ? t(
-                'Upload a .json file with the service account keys provided by Google Cloud Storage.'
+                'plugin__odf-console~Upload a .json file with the service account keys provided by Google Cloud Storage.'
               )
             : null
         }
-        label={t('Secret Key')}
+        label={t('plugin__odf-console~Secret Key')}
         fieldId="secret-key"
         isRequired
       >
@@ -124,8 +124,8 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
               isReadOnly
               value={inputData}
               className="nb-endpoints-form-entry__file-name"
-              placeholder={t('Upload JSON')}
-              aria-label={t('Uploaded File Name')}
+              placeholder={t('plugin__odf-console~Upload JSON')}
+              aria-label={t('plugin__odf-console~Uploaded File Name')}
             />
             <div className="inputbtn nb-endpoints-form-entry-upload-btn">
               <Button
@@ -147,9 +147,9 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
             <Button
               variant="plain"
               onClick={toggleShowSecret}
-              aria-label={t('Switch to Secret')}
+              aria-label={t('plugin__odf-console~Switch to Secret')}
             >
-              {t('Switch to Secret')}
+              {t('plugin__odf-console~Switch to Secret')}
             </Button>
           </InputGroup>
         ) : (
@@ -169,9 +169,9 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
             <Button
               variant="plain"
               onClick={toggleShowSecret}
-              aria-label={t('Switch to upload JSON')}
+              aria-label={t('plugin__odf-console~Switch to upload JSON')}
             >
-              {t('Switch to upload JSON')}
+              {t('plugin__odf-console~Switch to upload JSON')}
             </Button>
           </InputGroup>
         )}
@@ -183,7 +183,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
           fieldId="gcp-data"
         >
           <TextArea
-            aria-label={t('Cluster Metadata')}
+            aria-label={t('plugin__odf-console~Cluster Metadata')}
             className="nb-endpoints-form-entry__data-dump"
             value={fileData}
           />
@@ -191,7 +191,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
       )}
       <FormGroup
         className="nb-endpoints-form-entry"
-        label={t('Target Bucket')}
+        label={t('plugin__odf-console~Target Bucket')}
         fieldId="target-bucket"
         isRequired
       >
@@ -200,7 +200,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
           onChange={(e) => {
             dispatch({ type: 'setTarget', value: e });
           }}
-          aria-label={t('Target Bucket')}
+          aria-label={t('plugin__odf-console~Target Bucket')}
         />
       </FormGroup>
     </>

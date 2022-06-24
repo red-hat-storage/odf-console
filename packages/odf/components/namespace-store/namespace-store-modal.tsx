@@ -16,14 +16,14 @@ const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
       isOpen={isOpen}
       onClose={closeModal}
       variant={ModalVariant.small}
-      title={t('Create new NamespaceStore')}
+      title={t('plugin__odf-console~Create new NamespaceStore')}
       hasNoBodyWrapper={true}
     >
       <div className="nb-endpoints__modal">
         <ModalBody>
           <p>
             {t(
-              'Represents an underlying storage to be used as read or write target for the data in the namespace buckets.'
+              'plugin__odf-console~Represents an underlying storage to be used as read or write target for the data in the namespace buckets.'
             )}
           </p>
           <NamespaceStoreForm

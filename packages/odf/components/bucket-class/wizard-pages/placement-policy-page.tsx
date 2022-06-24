@@ -36,7 +36,7 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
         <Alert
           isInline
           variant="info"
-          title={t('What is a Placement Policy?')}
+          title={t('plugin__odf-console~What is a Placement Policy?')}
           className="nb-create-bc-step-page__info"
           actionClose={
             <AlertActionCloseButton onClose={() => setShowHelp(false)} />
@@ -44,23 +44,23 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
         >
           <p>
             {t(
-              'Data placement capabilities are built as a multi-layer structure here are the layers bottom-up:'
+              'plugin__odf-console~Data placement capabilities are built as a multi-layer structure here are the layers bottom-up:'
             )}
           </p>
           <ul>
             <li>
               {t(
-                'Spread Tier - list of BackingStores aggregates the storage of multiple stores.'
+                'plugin__odf-console~Spread Tier - list of BackingStores aggregates the storage of multiple stores.'
               )}
             </li>
             <li>
               {t(
-                'Mirroring Tier - list of spread-layers async-mirroring to all mirrors with locality optimization (will allocate on the closest region to the source endpoint). Mirroring requires at least two BackingStores.'
+                'plugin__odf-console~Mirroring Tier - list of spread-layers async-mirroring to all mirrors with locality optimization (will allocate on the closest region to the source endpoint). Mirroring requires at least two BackingStores.'
               )}
             </li>
           </ul>
           {t(
-            'The number of replicas can be configured via the NooBaa management console.'
+            'plugin__odf-console~The number of replicas can be configured via the NooBaa management console.'
           )}
         </Alert>
       )}
@@ -70,7 +70,7 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
           headingLevel="h2"
           className="nb-bc-step-page-form__title"
         >
-          {t('Tier 1 - Policy Type')}
+          {t('plugin__odf-console~Tier 1 - Policy Type')}
         </Title>
         <Radio
           data-test="placement-policy-spread1"
@@ -78,12 +78,12 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
           isChecked={tier1Policy === PlacementPolicy.Spread}
           onChange={onChange}
           id="radio-1"
-          label={t('Spread')}
+          label={t('plugin__odf-console~Spread')}
           name="placement-policy-1"
         />
         <p className="nb-create-bc-step-page-form__element--light-text">
           {t(
-            'Spreading the data across the chosen resources. By default a replica of one copy is used and does not include failure tolerance in case of resource failure.'
+            'plugin__odf-console~Spreading the data across the chosen resources. By default a replica of one copy is used and does not include failure tolerance in case of resource failure.'
           )}
         </p>
         <Radio
@@ -92,12 +92,12 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
           isChecked={tier1Policy === PlacementPolicy.Mirror}
           onChange={onChange}
           id="radio-2"
-          label={t('Mirror')}
+          label={t('plugin__odf-console~Mirror')}
           name="placement-policy-1"
         />
         <p className="nb-create-bc-step-page-form__element--light-text">
           {t(
-            'Full duplication of the data in each chosen resource. By default a replica of one copy per location is used. Includes failure tolerance in case of resource failure.'
+            'plugin__odf-console~Full duplication of the data in each chosen resource. By default a replica of one copy per location is used. Includes failure tolerance in case of resource failure.'
           )}
         </p>
       </Form>
@@ -115,7 +115,7 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
           data-testid="add-tier-btn"
           data-test="add-tier-btn"
         >
-          {t('Add Tier')}
+          {t('plugin__odf-console~Add Tier')}
         </Button>
       )}
       {showTier2 && (
@@ -125,7 +125,7 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
             size="xl"
             className="nb-bc-step-page-form__title"
           >
-            {t('Tier 2 - Policy type')}
+            {t('plugin__odf-console~Tier 2 - Policy type')}
             <Button
               variant="link"
               icon={<MinusCircleIcon />}
@@ -134,7 +134,7 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
               }
               isInline
             >
-              {t('Remove Tier')}
+              {t('plugin__odf-console~Remove Tier')}
             </Button>
           </Title>
           <Radio
@@ -143,12 +143,12 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
             isChecked={tier2Policy === PlacementPolicy.Spread}
             onChange={onChange}
             id="radio-3"
-            label={t('Spread')}
+            label={t('plugin__odf-console~Spread')}
             name="placement-policy-2"
           />
           <p className="nb-create-bc-step-page-form__element--light-text">
             {t(
-              'Spreading the data across the chosen resources does not include failure tolerance in case of resource failure.'
+              'plugin__odf-console~Spreading the data across the chosen resources does not include failure tolerance in case of resource failure.'
             )}
           </p>
           <Radio
@@ -157,12 +157,12 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
             isChecked={tier2Policy === PlacementPolicy.Mirror}
             onChange={onChange}
             id="radio-4"
-            label={t('Mirror')}
+            label={t('plugin__odf-console~Mirror')}
             name="placement-policy-2"
           />
           <p className="nb-create-bc-step-page-form__element--light-text">
             {t(
-              'Full duplication of the data in each chosen resource includes failure tolerance in cause of resource failure.'
+              'plugin__odf-console~Full duplication of the data in each chosen resource includes failure tolerance in cause of resource failure.'
             )}
           </p>
         </Form>

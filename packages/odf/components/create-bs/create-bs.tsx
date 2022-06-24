@@ -183,14 +183,18 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       onSubmit={onSubmit}
     >
       <FormGroup
-        label={t('BackingStore Name')}
+        label={t('plugin__odf-console~BackingStore Name')}
         fieldId="backingstore-name"
         className="nb-endpoints-form-entry"
-        helperText={t('A unique name for the BackingStore  within the project')}
+        helperText={t(
+          'plugin__odf-console~A unique name for the BackingStore  within the project'
+        )}
         isRequired
       >
         <Tooltip
-          content={t('Name can contain a max of 43 characters')}
+          content={t(
+            'plugin__odf-console~Name can contain a max of 43 characters'
+          )}
           isVisible={bsName.length > 42}
           trigger="manual"
         >
@@ -200,13 +204,13 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
             maxLength={43}
             data-test="backingstore-name"
             placeholder="my-backingstore"
-            aria-label={t('BackingStore Name')}
+            aria-label={t('plugin__odf-console~BackingStore Name')}
           />
         </Tooltip>
       </FormGroup>
 
       <FormGroup
-        label={t('Provider')}
+        label={t('plugin__odf-console~Provider')}
         fieldId="provider-name"
         className="nb-endpoints-form-entry"
         isRequired

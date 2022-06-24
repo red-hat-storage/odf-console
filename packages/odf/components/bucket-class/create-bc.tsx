@@ -267,7 +267,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
   const steps: WizardStep[] = [
     {
       id: CreateStepsBC.GENERAL,
-      name: t('General'),
+      name: t('plugin__odf-console~General'),
       component: <GeneralPage dispatch={dispatch} state={state} />,
       enableNext: validateBucketClassName(state.bucketClassName.trim()),
       get canJumpTo() {
@@ -276,7 +276,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
     },
     {
       id: CreateStepsBC.PLACEMENT,
-      name: t('Placement Policy'),
+      name: t('plugin__odf-console~Placement Policy'),
       component:
         state.bucketClassType === BucketClassType.STANDARD ? (
           <PlacementPolicyPage state={state} dispatch={dispatch} />
@@ -293,7 +293,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
     },
     {
       id: CreateStepsBC.RESOURCES,
-      name: t('Resources'),
+      name: t('plugin__odf-console~Resources'),
       component:
         state.bucketClassType === BucketClassType.STANDARD ? (
           <BackingStorePage
@@ -314,9 +314,9 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
     },
     {
       id: CreateStepsBC.REVIEW,
-      name: t('Review'),
+      name: t('plugin__odf-console~Review'),
       component: <ReviewPage state={state} />,
-      nextButtonText: t('Create BucketClass'),
+      nextButtonText: t('plugin__odf-console~Create BucketClass'),
       enableNext: creationConditionsSatisfied(),
       get canJumpTo() {
         return canJumpToHelper(this);
@@ -333,20 +333,20 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
           headingLevel="h1"
           className="co-create-operand__header-text"
         >
-          {t('Create new BucketClass')}
+          {t('plugin__odf-console~Create new BucketClass')}
         </Title>
         <p className="help-block">
           {t(
-            'BucketClass is a CRD representing a class for buckets that defines tiering policies and data placements for an OBC.'
+            'plugin__odf-console~BucketClass is a CRD representing a class for buckets that defines tiering policies and data placements for an OBC.'
           )}
         </p>
       </div>
       <div className="nb-create-bc-wizard">
         <Wizard
           steps={steps}
-          cancelButtonText={t('Cancel')}
-          nextButtonText={t('Next')}
-          backButtonText={t('Back')}
+          cancelButtonText={t('plugin__odf-console~Cancel')}
+          nextButtonText={t('plugin__odf-console~Next')}
+          backButtonText={t('plugin__odf-console~Back')}
           onSave={finalStep}
           onClose={() => history.goBack()}
           onNext={({ id }) => {

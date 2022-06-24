@@ -26,11 +26,11 @@ const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
           headingLevel="h1"
           className="co-create-operand__header-text"
         >
-          {t('Create NamespaceStore ')}
+          {t('plugin__odf-console~Create NamespaceStore ')}
         </Title>
         <p className="help-block">
           {t(
-            'Represents an underlying storage to be used as read or write target for the data in the namespace buckets.'
+            'plugin__odf-console~Represents an underlying storage to be used as read or write target for the data in the namespace buckets.'
           )}
         </p>
       </div>

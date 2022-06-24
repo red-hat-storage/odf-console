@@ -165,16 +165,18 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
       noValidate={false}
     >
       <FormGroup
-        label={t('Namespace store name')}
+        label={t('plugin__odf-console~Namespace store name')}
         fieldId="namespacestore-name"
         className="nb-endpoints-form-entry"
         helperText={t(
-          'A unique name for the namespace store within the project'
+          'plugin__odf-console~A unique name for the namespace store within the project'
         )}
         isRequired
       >
         <Tooltip
-          content={t('Name can contain a max of 43 characters')}
+          content={t(
+            'plugin__odf-console~Name can contain a max of 43 characters'
+          )}
           isVisible={nsName.length > 42}
           trigger="manual"
         >
@@ -190,7 +192,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
       </FormGroup>
 
       <FormGroup
-        label={t('Provider')}
+        label={t('plugin__odf-console~Provider')}
         fieldId="provider-name"
         className="nb-endpoints-form-entry"
         isRequired
@@ -217,7 +219,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
       {provider === BC_PROVIDERS.FILESYSTEM && (
         <>
           <FormGroup
-            label={t('Persistent volume claim')}
+            label={t('plugin__odf-console~Persistent volume claim')}
             fieldId="pvc-name"
             className="nb-endpoints-form-entry"
             isRequired
@@ -240,11 +242,11 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
             />
           </FormGroup>
           <FormGroup
-            label={t('Folder')}
+            label={t('plugin__odf-console~Folder')}
             fieldId="folder-name"
             className="nb-endpoints-form-entry"
             helperText={t(
-              'If the name you write exists, we will be using the existing folder if not we will create a new folder '
+              'plugin__odf-console~If the name you write exists, we will be using the existing folder if not we will create a new folder '
             )}
             isRequired
           >

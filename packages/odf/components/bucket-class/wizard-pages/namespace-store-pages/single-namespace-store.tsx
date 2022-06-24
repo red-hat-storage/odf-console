@@ -30,11 +30,11 @@ export const SingleNamespaceStorePage: React.FC<SingleNamespaceStoreProps> =
             headingLevel="h2"
             className="nb-bc-step-page-form__title"
           >
-            {t('Read and Write NamespaceStore ')}
+            {t('plugin__odf-console~Read and Write NamespaceStore ')}
           </Title>
           <p className="nb-create-bc-step-page-form__element--light-text">
             {t(
-              'Select one NamespaceStore which defines the read and write targets of the namespace bucket.'
+              'plugin__odf-console~Select one NamespaceStore which defines the read and write targets of the namespace bucket.'
             )}
           </p>
           <Form>
