@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ActivityItem } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useTranslation } from 'react-i18next';
 
 export const ClusterExpandActivity: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   return <ActivityItem>{t('Expanding StorageCluster')}</ActivityItem>;
 };

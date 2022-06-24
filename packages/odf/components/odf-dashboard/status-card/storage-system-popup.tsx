@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import {
@@ -37,7 +37,7 @@ const healthStateToIcon = {
 const StorageSystemPopup: React.FC<StorageSystemPopopProps> = ({
   systemHealthMap,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <StatusPopupSection
       firstColumn={t('Storage System')}

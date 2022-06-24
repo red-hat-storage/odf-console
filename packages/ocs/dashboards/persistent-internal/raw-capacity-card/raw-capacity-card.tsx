@@ -3,8 +3,8 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInstantVectorStats } from '@odf/shared/utils';
-import { useTranslation } from 'react-i18next';
 import { compose } from 'redux';
 import {
   CAPACITY_INFO_QUERIES,
@@ -19,7 +19,7 @@ import {
 const parser = compose((val) => val?.[0]?.y, getInstantVectorStats);
 
 const RawCapacityCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const [totalCapacity, totalError, totalLoading] = useCustomPrometheusPoll({
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_TOTAL],

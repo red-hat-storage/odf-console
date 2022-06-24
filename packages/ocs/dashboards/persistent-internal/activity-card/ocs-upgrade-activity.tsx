@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { SubscriptionKind, SubscriptionState } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ActivityItem } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useTranslation } from 'react-i18next';
 
 type SubscriptionStatus = { status: SubscriptionState; title?: string };
 
@@ -48,7 +48,7 @@ export const isOCSUpgradeActivity = (subscription: SubscriptionKind): boolean =>
   SubscriptionState.SubscriptionStateUpgradePending;
 
 export const OCSUpgradeActivity: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   return (
     <ActivityItem>

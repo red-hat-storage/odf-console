@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { OCSStorageClusterModel } from '@odf/shared/models';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKLabel } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import {
   WizardFooter,
@@ -190,7 +190,7 @@ const handleReviewAndCreateNext = async (
 
 export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps> =
   ({ dispatch, state, disableNext, hasOCS, history }) => {
-    const { t } = useTranslation('plugin__odf-console');
+    const { t } = useCustomTranslation();
     const { activeStep, onNext, onBack } =
       React.useContext<WizardContextType>(WizardContext);
     const [requestInProgress, setRequestInProgress] = React.useState(false);

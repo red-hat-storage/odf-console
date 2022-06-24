@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   FormGroup,
   FormSelect,
@@ -43,7 +43,7 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   isWizardFlow,
   isMCG,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
   const isKmsVaultSASupported = useFlag(FEATURES.ODF_VAULT_SA_KMS);

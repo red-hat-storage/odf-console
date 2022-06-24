@@ -4,6 +4,7 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getInstantVectorStats,
   humanizeBinaryBytes,
@@ -12,13 +13,12 @@ import {
 } from '@odf/shared/utils';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
 export const CompressionDetailsCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
 
   const compressionMode = obj.spec?.compressionMode;

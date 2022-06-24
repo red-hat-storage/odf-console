@@ -3,6 +3,7 @@ import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useSelectList } from '@odf/shared/hooks/select-list';
 import { getName, getNamespace } from '@odf/shared/selectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   ListPageBody,
@@ -17,7 +18,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@patternfly/react-core';
 import { NooBaaNamespaceStoreModel } from '../../models';
 import { NamespaceStoreKind } from '../../types';
@@ -87,7 +87,7 @@ type NamespaceStoreListProps = {
 };
 
 const NamespaceStoreList: React.FC<NamespaceStoreListProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const columns = React.useMemo<TableColumn<NamespaceStoreKind>[]>(
     () => [
       {

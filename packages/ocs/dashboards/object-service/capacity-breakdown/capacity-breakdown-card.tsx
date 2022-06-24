@@ -12,6 +12,7 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { SubscriptionModel } from '@odf/shared/models';
 import { K8sResourceKind, SubscriptionKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint, getInstantVectorStats } from '@odf/shared/utils';
 import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
 import { isFunctionThenApply } from '@odf/shared/utils';
@@ -21,7 +22,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Select,
   SelectGroup,
@@ -96,7 +96,7 @@ const BreakdownCardBody_: React.FC<BreakdownCardBodyProps> = ({
   ocsVersion,
   labelPadding,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   // For charts whose datapoints are composed of multiple queries
   const flattenedResponse = response.reduce(
@@ -283,7 +283,7 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({
 };
 
 const BreakdownCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [serviceType, setServiceType] = React.useState(ServiceType.MCG);
   const [metricType, setMetricType] = React.useState(
     CapacityBreakdown.defaultMetrics[ServiceType.MCG]

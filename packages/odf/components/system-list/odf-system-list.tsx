@@ -16,6 +16,7 @@ import {
   HumanizeResult,
   StorageSystemKind,
 } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   humanizeBinaryBytes,
   humanizeDecimalBytesPerSec,
@@ -42,7 +43,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
 import { OperandStatus } from '../utils';
@@ -154,7 +154,7 @@ const tableColumnInfo = [
 ];
 
 const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const storageSystemTableColumns = React.useMemo<
     TableColumn<StorageSystemKind>[]
   >(
@@ -322,7 +322,7 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
   selector,
   namespace,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const [ModalComponent, props, launchModal] = useModalLauncher(extraMap);
 

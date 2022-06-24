@@ -6,6 +6,7 @@ import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { SubscriptionModel, SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { SecretKind, K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { ExternalLink } from '@odf/shared/utils/link';
 import {
@@ -15,7 +16,6 @@ import {
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Base64 } from 'js-base64';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { StorageClusterModel } from '../../models';
 import { getOCSVersion } from '../../utils';
@@ -53,7 +53,7 @@ const k8sResources = {
 };
 
 export const DetailsCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const isODF = useFlag(ODF_MODEL_FLAG);
 
   const resourcesObj: ResourcesObject = useK8sWatchResources(k8sResources);

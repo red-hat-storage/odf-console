@@ -14,6 +14,7 @@ import { NodeModel } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName, hasLabel } from '@odf/shared/selectors';
 import { NodeKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   resourcePathFromModel,
   getConvertedUnits,
@@ -27,7 +28,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { Table, TableHeader, TableBody } from '@patternfly/react-table';
 import { IRow, sortable } from '@patternfly/react-table';
 import { WizardNodeState } from '../reducer';
@@ -117,7 +117,7 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
   onRowSelected,
   nodesData,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const getColumns = React.useMemo(
     () => [

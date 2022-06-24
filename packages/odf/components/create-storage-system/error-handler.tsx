@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Bullseye,
   Spinner,
@@ -18,7 +18,7 @@ export const ErrorHandler: React.FC<WizardStepProps> = ({
   loadingMessage,
   errorMessage,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   if (!loaded && !error) {
     return (

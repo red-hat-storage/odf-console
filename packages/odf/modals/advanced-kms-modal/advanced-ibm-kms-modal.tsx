@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   FormGroup,
   TextInput,
@@ -24,7 +24,7 @@ const AdvancedHpcsModal = (props: AdvancedKMSModalProps) => {
   } = props;
 
   const kms: HpcsConfig = state.kms?.[ProviderNames.HPCS];
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [baseUrl, setBaseUrl] = React.useState(kms?.baseUrl.value || '');
   const [tokenUrl, setTokenUrl] = React.useState(kms?.tokenUrl || '');
 

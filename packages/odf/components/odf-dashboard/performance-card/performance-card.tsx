@@ -11,6 +11,7 @@ import { ODFStorageSystem } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import Table, { Column } from '@odf/shared/table/table';
 import { StorageSystemKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getDashboardLink,
   getGVK,
@@ -24,7 +25,6 @@ import {
   useUtilizationDuration,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Card,
   CardHeader,
@@ -101,7 +101,7 @@ const metricsSort =
   };
 
 const PerformanceCard: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const headerColumns: Column[] = [
     {
       columnName: t('Name'),

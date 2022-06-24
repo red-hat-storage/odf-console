@@ -8,6 +8,7 @@ import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
@@ -26,7 +27,6 @@ import {
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { sortable } from '@patternfly/react-table';
 import { NooBaaObjectBucketModel } from '../../models/ocs';
@@ -109,7 +109,7 @@ const OBRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
 };
 
 const ObjectBucketsList: React.FC<ObjectBucketsListProps> = ({ ...props }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const objectBucketTableColumns = React.useMemo<
     TableColumn<K8sResourceKind>[]
   >(
@@ -170,7 +170,7 @@ const ObjectBucketsList: React.FC<ObjectBucketsListProps> = ({ ...props }) => {
 export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
   props
 ) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const { selector, namespace } = props;
   const [Modal, modalProps, launchModal] = useModalLauncher();
 
@@ -272,7 +272,7 @@ type ObjectBucketDetailsPageProps = {
 export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
   match,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const { name, plural: kind } = match.params;
   const [resource, loaded] = useK8sWatchResource<K8sResourceKind>({
     kind,

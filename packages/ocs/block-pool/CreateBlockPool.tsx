@@ -2,13 +2,13 @@ import * as React from 'react';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { CephClusterKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
   k8sCreate,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { match, useHistory } from 'react-router';
 import { Button, Modal } from '@patternfly/react-core';
 import {
@@ -58,7 +58,7 @@ export const cephClusterResource = {
 
 const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({ match }) => {
   const { params, url } = match;
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const history = useHistory();
 

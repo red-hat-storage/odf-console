@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import {
   RedExclamationCircleIcon,
@@ -8,7 +9,6 @@ import {
 import { global_danger_color_100 as globalDanger100 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
 import { global_warning_color_100 as globalWarning100 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
 import { ChartDonut, ChartLabel } from '@patternfly/react-charts';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { DANGER_THRESHOLD, WARNING_THRESHOLD } from '../../../constants';
@@ -20,7 +20,7 @@ const dangerColorScale = [globalDanger100.value, '#d6d6d6'];
 
 const CapacityStatusIcon: React.FC<CapacityStatusIconProps> = React.memo(
   ({ ratio }) => {
-    const { t } = useTranslation();
+    const { t } = useCustomTranslation();
     if (ratio < WARNING_THRESHOLD) return null;
     return (
       <>
@@ -47,7 +47,7 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
     loadError,
     loading,
   } = props;
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const totalCapacity = humanizeBinaryBytes(totalCapacityMetric);
   const availableCapacity = humanizeBinaryBytes(
@@ -154,7 +154,7 @@ const LoadingCardBody: React.FC = () => (
 );
 
 const ErrorCardBody: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   return (
     <>
       <div className="ceph-raw-usage--error text-muted">
