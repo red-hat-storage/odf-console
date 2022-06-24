@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { SecretModel, StorageClassModel } from '@odf/shared/models';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import { BC_PROVIDERS, NOOBAA_TYPE_MAP } from '../../constants';
 import { BackingStoreKind, NamespaceStoreKind } from '../../types';
@@ -15,7 +15,7 @@ type ProviderDetailsProps = {
 };
 
 const AWSDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const region = getRegion(resource);
   const secret = resource.spec.awsS3.secret;
   const targetBucket = resource.spec.awsS3.targetBucket;
@@ -45,7 +45,7 @@ const AWSDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
 };
 
 const AzureBlobDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const secret = resource.spec.azureBlob.secret;
   const targetBucket = resource.spec.azureBlob.targetBlobContainer;
 
@@ -73,7 +73,7 @@ const AzureBlobDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
 };
 
 const S3CompatibleDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const secret = resource.spec.s3Compatible.secret;
   const endpoint = resource.spec.s3Compatible.endpoint;
   const targetBucket = resource.spec.s3Compatible.targetBucket;
@@ -103,7 +103,7 @@ const S3CompatibleDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
 };
 
 const IBMDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const secret = resource.spec.ibmCos.secret;
   const endpoint = resource.spec.ibmCos.endpoint;
   const targetBucket = resource.spec.ibmCos.targetBucket;
@@ -133,7 +133,7 @@ const IBMDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
 };
 
 const GCPDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const secret = (resource as BackingStoreKind).spec.googleCloudStorage.secret;
   const targetBucket = (resource as BackingStoreKind).spec.googleCloudStorage
     .targetBucket;
@@ -160,7 +160,7 @@ const GCPDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
 };
 
 const PVCDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const numVolumes = (resource as BackingStoreKind).spec.pvPool.numVolumes;
   const storageClass = (resource as BackingStoreKind).spec.pvPool.storageClass;
 

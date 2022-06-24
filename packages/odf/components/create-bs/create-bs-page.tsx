@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { RouteComponentProps, useHistory } from 'react-router';
 import { Alert, AlertActionCloseButton, Title } from '@patternfly/react-core';
 import CreateBackingStoreForm from './create-bs';
@@ -8,7 +8,7 @@ import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 const CreateBackingStoreFormPage: React.FC<CreateBackingStoreFormPageProps> = ({
   match,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [showHelp, setShowHelp] = React.useState(true);
   const { ns, appName } = match.params;
 

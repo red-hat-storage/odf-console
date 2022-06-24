@@ -14,6 +14,7 @@ import {
   ClusterServiceVersionModel,
 } from '@odf/shared/models';
 import { K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   referenceForModel,
   getInfrastructurePlatform,
@@ -27,7 +28,6 @@ import {
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getOCSVersion } from '../../../utils';
@@ -62,7 +62,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
     }
   );
 
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const isODF = useFlag(ODF_MODEL_FLAG);
 
   const systemName = getMetric(systemResult, 'system_name');

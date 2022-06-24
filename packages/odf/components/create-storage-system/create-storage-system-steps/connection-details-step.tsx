@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Text, TextContent, TextVariants } from '@patternfly/react-core';
 import { ExternalStateValues, ExternalStateKeys } from '../../../types';
 import { getExternalStorage } from '../../utils';
@@ -11,7 +11,7 @@ export const ConnectionDetails: React.FC<ConnectionDetailsProps> = ({
   dispatch,
 }) => {
   const { Component } = getExternalStorage(externalStorage) || {};
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const setForm = React.useCallback(
     (field: ExternalStateKeys, value: ExternalStateValues) =>

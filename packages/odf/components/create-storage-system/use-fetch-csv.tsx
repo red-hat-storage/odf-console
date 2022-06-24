@@ -4,15 +4,15 @@ import {
   SubscriptionModel,
 } from '@odf/shared/models';
 import { ClusterServiceVersionKind, SubscriptionKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 
 export const useFetchCsv = (
   specName: string,
   namespace?: string
 ): UseFetchCsvResult => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [subs, subsLoaded, subsLoadError] = useK8sWatchResource<
     SubscriptionKind[]
   >({

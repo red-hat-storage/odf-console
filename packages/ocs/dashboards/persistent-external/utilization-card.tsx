@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import {
   UtilizationDurationDropdown,
   UtilizationBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
-import { useTranslation } from 'react-i18next';
 import {
   Card,
   CardActions,
@@ -20,7 +20,7 @@ import {
 } from '../../queries';
 
 export const UtilizationCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   return (
     <Card>
       <CardHeader>

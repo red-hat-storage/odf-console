@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getName, getUID } from '@odf/shared/selectors';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Button,
   ButtonVariant,
@@ -26,7 +26,7 @@ export const MultiNamespaceStorePage: React.FC<MultiNamespaceStoreProps> =
       hideCreateNamespaceStore = false,
       launchModal,
     }) => {
-      const { t } = useTranslation();
+      const { t } = useCustomTranslation();
       const [selectedCount, setSelectedCount] = React.useState(
         state.readNamespaceStore.length
       );

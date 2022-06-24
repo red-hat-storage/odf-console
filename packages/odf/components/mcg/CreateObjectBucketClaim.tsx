@@ -5,6 +5,7 @@ import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel, resourcePathFromModel } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
@@ -12,7 +13,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import { Helmet } from 'react-helmet';
-import { useTranslation } from 'react-i18next';
 import { match, useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
 import { ActionGroup, Button } from '@patternfly/react-core';
@@ -40,7 +40,7 @@ export const isObjectSC = (sc: StorageClassResourceKind) =>
   objectStorageProvisioners.includes(_.get(sc, 'provisioner'));
 
 export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const { state, dispatch, namespace } = props;
   const isNoobaa = state.scProvisioner?.includes(NB_PROVISIONER);
 
@@ -172,7 +172,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
 };
 
 export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
   const namespace = props.match.params.ns;
 

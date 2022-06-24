@@ -7,6 +7,7 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { EventModel } from '@odf/shared/models';
 import { K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getResiliencyProgress } from '@odf/shared/utils';
 import {
   useK8sWatchResource,
@@ -18,7 +19,6 @@ import {
   OngoingActivityBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
-import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
 import {
   dataResiliencyQueryMap,
@@ -104,7 +104,7 @@ const OngoingActivity: React.FC = () => {
 };
 
 const ActivityCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   return (
     <Card className="co-overview-card--gradient">

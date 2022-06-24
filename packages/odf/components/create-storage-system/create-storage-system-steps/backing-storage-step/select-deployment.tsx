@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { DeploymentType } from '@odf/core/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
-import { useTranslation } from 'react-i18next';
 import {
   FormGroup,
   Select,
@@ -27,7 +27,7 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
   deployment,
   dispatch,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [isSelectOpen, setIsSelectOpen] = React.useState(false);
 
   const descriptions = optionsDescription(t);

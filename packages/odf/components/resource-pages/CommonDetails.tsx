@@ -2,13 +2,13 @@ import * as React from 'react';
 import { ResourceSummary } from '@odf/shared/details-page/DetailsPage';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { LaunchModal } from '@odf/shared/modals/modalLauncher';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Conditions } from '@odf/shared/utils/Conditions';
 import {
   K8sModel,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
 import { Flex, FlexItem, Title } from '@patternfly/react-core';
 import './common-details.scss';
 
@@ -55,7 +55,7 @@ export const CommonDetails: React.FC<CommonDetailsSectionProps> = ({
   children,
   launchModal,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   return (
     <>

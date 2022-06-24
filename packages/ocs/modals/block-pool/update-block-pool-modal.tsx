@@ -4,13 +4,13 @@ import { StatusBox } from '@odf/shared/generic/status-box';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { CommonModalProps, ModalBody } from '@odf/shared/modals/Modal';
 import { CephClusterKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sKind,
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { Modal, ModalVariant } from '@patternfly/react-core';
 import { BlockPoolBody, BlockPoolStatus } from '../../block-pool/body';
 import {
@@ -40,7 +40,7 @@ const cephClusterResource = {
 };
 
 const UpdateBlockPoolModal: React.FC<UpdateBlockPoolModalProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const {
     extraProps: { resource },
     closeModal,

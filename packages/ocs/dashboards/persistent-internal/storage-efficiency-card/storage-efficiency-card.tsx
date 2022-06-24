@@ -4,8 +4,8 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGaugeValue, humanizeBinaryBytes } from '@odf/shared/utils';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import {
   POOL_STORAGE_EFFICIENCY_QUERIES,
@@ -13,7 +13,7 @@ import {
 } from '../../../queries';
 
 const StorageEfficiencyCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const [poolCapacityRatioResult, poolCapacityRatioResultError] =
     useCustomPrometheusPoll({

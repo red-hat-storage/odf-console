@@ -4,15 +4,15 @@ import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { SecretModel, ConfigMapModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { SecretKind, ConfigMapKind, K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { SecretValue } from '@odf/shared/utils/SecretValue';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { Base64 } from 'js-base64';
-import { useTranslation } from 'react-i18next';
 import { Button } from '@patternfly/react-core';
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
 
 export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [reveal, setReveal] = React.useState(false);
 
   const name = getName(obj);

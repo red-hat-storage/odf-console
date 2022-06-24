@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
-import { useTranslation } from 'react-i18next';
 import {
   Alert,
   AlertActionCloseButton,
@@ -42,7 +42,7 @@ export const NamespacePolicyPage: React.FC<NamespacePolicyPageProps> = ({
   dispatch,
   state,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [showHelp, setShowHelp] = React.useState(true);
 
   return (

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getName } from '@odf/shared/selectors';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Form, FormGroup, Title } from '@patternfly/react-core';
 import { NamespaceStoreKind } from '../../../../types';
 import { NamespaceStoreDropdown } from '../../../namespace-store/namespace-store-dropdown';
@@ -10,7 +10,7 @@ export const SingleNamespaceStorePage: React.FC<SingleNamespaceStoreProps> =
   // eslint-disable-next-line react/display-name
   React.memo(
     ({ dispatch, namespace, state, hideCreateNamespaceStore, launchModal }) => {
-      const { t } = useTranslation();
+      const { t } = useCustomTranslation();
       const handleNSStateChange = (
         selectedNamespaceStore: NamespaceStoreKind
       ) => {
