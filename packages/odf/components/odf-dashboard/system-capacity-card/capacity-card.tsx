@@ -40,20 +40,20 @@ const SystemCapacityCard: React.FC = () => {
     StorageSystemKind[]
   >(storageSystemResource);
 
-  const [usedCapacity, errorUsedCapacity, loadingUsedCapacity] =
+  const [usedCapacity, loadedUsedCapacity, errorUsedCapacity] =
     usePrometheusPoll({
       query: CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_FILE_BLOCK],
       endpoint: 'api/v1/query' as any,
     });
 
-  const [totalCapacity, errorTotalCapacity, loadingTotalCapacity] =
+  const [totalCapacity, loadedTotalCapacity, errorTotalCapacity] =
     usePrometheusPoll({
       query: CAPACITY_QUERIES[StorageDashboard.TOTAL_CAP_FILE_BLOCK],
       endpoint: 'api/v1/query' as any,
     });
 
   const data =
-    systemsLoaded && !loadingUsedCapacity && !loadingTotalCapacity
+    systemsLoaded && loadedUsedCapacity && loadedTotalCapacity
       ? systems.map<CapacityMetricDatum>((system) => {
           const { kind, apiGroup, apiVersion } = getGVK(system.spec.kind);
           const usedMetric = getMetricForSystem(usedCapacity, system);
@@ -77,7 +77,7 @@ const SystemCapacityCard: React.FC = () => {
     !_.isEmpty(errorTotalCapacity) ||
     !_.isEmpty(errorUsedCapacity);
   const isLoading =
-    loadingUsedCapacity && loadingTotalCapacity && !systemsLoaded;
+    !loadedUsedCapacity || !loadedTotalCapacity || !systemsLoaded;
   return (
     <Card className="odf-capacityCard--height">
       <CardHeader>

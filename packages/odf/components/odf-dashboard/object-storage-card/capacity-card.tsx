@@ -15,12 +15,12 @@ const parseMetricData = (metric: PrometheusResponse) =>
 
 const ObjectCapacityCard: React.FC = () => {
   const { t } = useTranslation('plugin__odf-console');
-  const [data, error, loading] = usePrometheusPoll({
+  const [data, loaded, error] = usePrometheusPoll({
     query: CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_OBJECT],
     endpoint: 'api/v1/query' as any,
   });
 
-  const dataFrames = !loading && !error ? parseMetricData(data) : [];
+  const dataFrames = loaded && !error ? parseMetricData(data) : [];
 
   return (
     <Card className="odf-capacityCard--height">

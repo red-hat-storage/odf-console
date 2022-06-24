@@ -125,17 +125,17 @@ const PerformanceCard: React.FC = () => {
     StorageSystemKind[]
   >(storageSystemResource);
   const { duration } = useUtilizationDuration();
-  const [latency, latencyError, latencyLoading] = usePrometheusPoll({
+  const [latency, latencyLoaded, latencyError] = usePrometheusPoll({
     query: UTILIZATION_QUERY[StorageDashboard.LATENCY],
     endpoint: 'api/v1/query_range' as any,
     timespan: duration,
   });
-  const [throughput, throughputError, throughputLoading] = usePrometheusPoll({
+  const [throughput, throughputLoaded, throughputError] = usePrometheusPoll({
     query: UTILIZATION_QUERY[StorageDashboard.THROUGHPUT],
     endpoint: 'api/v1/query_range' as any,
     timespan: duration,
   });
-  const [iops, iopsError, iopsLoading] = usePrometheusPoll({
+  const [iops, iopsLoaded, iopsError] = usePrometheusPoll({
     query: UTILIZATION_QUERY[StorageDashboard.IOPS],
     endpoint: 'api/v1/query_range' as any,
     timespan: duration,
@@ -143,7 +143,7 @@ const PerformanceCard: React.FC = () => {
 
   const rawRows = generateDataFrames(systems, latency, throughput, iops);
   const loading =
-    !systemLoaded || latencyLoading || throughputLoading || iopsLoading;
+    !systemLoaded || !latencyLoaded || !throughputLoaded || !iopsLoaded;
   const error =
     !!systemLoadError || !!throughputError || !!latencyError || !!iopsError;
 

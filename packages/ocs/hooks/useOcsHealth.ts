@@ -56,7 +56,7 @@ export const useGetOCSHealth = () => {
   const [noobaaData, noobaaLoaded, noobaaLoadError] =
     useK8sWatchResource<K8sResourceKind[]>(noobaaResource);
 
-  const [noobaaHealthStatus, noobaaQueryLoadError] = usePrometheusPoll({
+  const [noobaaHealthStatus, ,noobaaQueryLoadError] = usePrometheusPoll({
     query: HEALTH_QUERY[Health.NOOBAA],
     endpoint: 'api/v1/query' as any,
   });
