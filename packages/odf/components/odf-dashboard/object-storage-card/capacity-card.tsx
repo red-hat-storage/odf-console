@@ -1,8 +1,7 @@
 import * as React from 'react';
 import CapacityCard from '@odf/shared/dashboards/capacity-card/capacity-card';
 import { humanizeBinaryBytes } from '@odf/shared/utils/humanize';
-import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { usePrometheusPoll, PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ODFStorageSystem } from '../../../models';

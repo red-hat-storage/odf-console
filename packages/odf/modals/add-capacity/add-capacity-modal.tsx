@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
+import { LoadingInline } from '@odf/shared/generic/Loading';
+import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
+import { CommonModalProps } from '@odf/shared/modals/common';
+import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import {
-  ModalTitle,
-  ModalBody,
-  ModalSubmitFooter,
-} from '@odf/shared/generic/ModalTitle';
-import { NodeModel, PersistentVolumeModel } from '@odf/shared/models';
-import { PVsAvailableCapacity } from '@odf/shared/storage/pvc/pvs-available-capacity';
+  NodeModel,
+  PersistentVolumeModel,
+  StorageClassModel,
+} from '@odf/shared/models';
 import {
   StorageClassResourceKind,
   NodeKind,
@@ -14,23 +16,27 @@ import {
   DeviceSet,
 } from '@odf/shared/types';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
+import ResourceDropdown from '@odf/shared/utils/ResourceDropdown';
 import {
   useK8sWatchResource,
   WatchK8sResource,
   k8sPatch,
+  usePrometheusPoll,
+  PrometheusEndpoint,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
-import {
-  useK8sGet,
-  StorageClassDropdown as ScModule,
-  createModalLauncher,
-} from '@openshift-console/dynamic-plugin-sdk-internal-kubevirt';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
-import { PrometheusEndpoint } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
-import { FormGroup, TextInput, TextContent } from '@patternfly/react-core';
+import {
+  FormGroup,
+  TextInput,
+  TextContent,
+  Button,
+  Modal,
+  Alert,
+  ModalVariant,
+} from '@patternfly/react-core';
 import {
   defaultRequestSize,
   NO_PROVISIONER,
@@ -55,9 +61,38 @@ import {
   isArbiterSC,
   isValidTopology,
 } from '../../utils/ocs';
+import { PVsAvailableCapacity } from './pvs-available-capacity';
 import './add-capacity-modal.scss';
 
-const StorageClassDropdown = (ScModule as any).StorageClassDropdown;
+type StorageClassDropdownProps = {
+  onChange: any;
+  'data-test': string;
+  initialSelection: (args) => any;
+};
+
+const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
+  onChange,
+  'data-test': dataTest,
+  initialSelection,
+}) => {
+  return (
+    <ResourceDropdown<StorageClassResourceKind>
+      resource={scResource}
+      resourceModel={StorageClassModel}
+      showBadge
+      onSelect={onChange}
+      initialSelection={initialSelection}
+      filterResource={filterSC}
+      data-test={dataTest}
+    />
+  );
+};
+
+const scResource: WatchK8sResource = {
+  kind: StorageClassModel.kind,
+  namespaced: false,
+  isList: true,
+};
 
 const pvResource: WatchK8sResource = {
   kind: PersistentVolumeModel.kind,
@@ -122,16 +157,13 @@ type RawCapacityProps = {
   t: TFunction;
 };
 
-type AddSSCapacityModalProps = {
-  storageSystem: StorageSystemKind;
-  close?: () => void;
-  cancel?: () => void;
+type AddSSCapacityModalProps = CommonModalProps & {
+  storageSystem?: StorageSystemKind;
 };
 
 const AddSSCapacityModal: React.FC<AddSSCapacityModalProps> = ({
-  storageSystem,
-  close,
-  cancel,
+  extraProps: { resource: storageSystem },
+  ...props
 }) => {
   const [ocs, ocsLoaded, ocsError] = useK8sGet<StorageClusterKind>(
     OCSStorageClusterModel,
@@ -142,29 +174,35 @@ const AddSSCapacityModal: React.FC<AddSSCapacityModalProps> = ({
     return null;
   }
 
-  return <AddCapacityModal ocsConfig={ocs} close={close} cancel={cancel} />;
+  return <AddCapacityModal storageCluster={ocs} {...props} />;
 };
 
-const AddCapacityModal = (props: AddCapacityModalProps) => {
+type AddCapacityModalProps = {
+  storageCluster: StorageClusterKind;
+} & CommonModalProps;
+
+const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
+  storageCluster: ocsConfig,
+  closeModal,
+  isOpen,
+}) => {
   const { t } = useTranslation('plugin__odf-console');
 
-  const { ocsConfig, close, cancel } = props;
-
-  const [cephTotal, totalError, totalLoaded] = usePrometheusPoll({
+  const [cephTotal, totalError, totalLoading] = usePrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_TOTAL],
   });
-  const [cephUsed, usedError, usedLoaded] = usePrometheusPoll({
+  const [cephUsed, usedError, usedLoading] = usePrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
-    query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_TOTAL],
+    query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_USED],
   });
   const [values, loading, loadError] = [
     [
       cephTotal?.data?.result?.[0]?.value?.[1],
       cephUsed?.data?.result?.[0]?.value?.[1],
     ],
-    !totalLoaded || !usedLoaded,
-    !(totalError || usedError),
+    totalLoading || usedLoading,
+    totalError || usedError,
   ];
   const [pvData, pvLoaded, pvLoadError] =
     useK8sWatchResource<K8sResourceCommon[]>(pvResource);
@@ -199,9 +237,14 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
   const nodesError: boolean =
     nodesLoadError || !(nodesData as []).length || !nodesLoaded;
 
+  const preSelectionFilter = React.useCallback(
+    (storageClasses: StorageClassResourceKind[]) =>
+      storageClasses.find((sc) => sc.metadata.name === installStorageClass),
+    [installStorageClass]
+  );
+
   const validateSC = React.useCallback(() => {
-    if (!selectedSCName)
-      return t('No StorageClass selected');
+    if (!selectedSCName) return t('No StorageClass selected');
     if (!isNoProvionerSC || hasFlexibleScaling) return '';
     if (isArbiterEnabled && !isArbiterSC(selectedSCName, pvData, nodesData)) {
       return t(
@@ -240,9 +283,7 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
       <div className="skeleton-text ceph-add-capacity__current-capacity--loading" />
     );
   } else if (loadError || !totalCapacityMetric || !usedCapacityMetric) {
-    currentCapacity = (
-      <div className="text-muted">{t('Not available')}</div>
-    );
+    currentCapacity = <div className="text-muted">{t('Not available')}</div>;
   } else {
     currentCapacity = (
       <div className="text-muted">
@@ -301,7 +342,7 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
       })
         .then(() => {
           setProgress(false);
-          close();
+          closeModal();
         })
         .catch((err) => {
           setError(err);
@@ -310,91 +351,94 @@ const AddCapacityModal = (props: AddCapacityModalProps) => {
     }
   };
 
+  const Header = <ModalHeader>{t('Add Capacity')}</ModalHeader>;
   return (
-    /** https://bugzilla.redhat.com/show_bug.cgi?id=1968690
-     * The quickest and safest fix for now is to not use <Form> and use a straight <form> instead.
-     */
-    <form onSubmit={submit} name="form">
-      {/** Modal is spanning across entire screen (for small screen sizes)
-       * Wrapped components inside a <div> to fix it.
-       */}
-      <div className="modal-content modal-content--no-inner-scroll">
-        <ModalTitle>{t('Add Capacity')}</ModalTitle>
-        <ModalBody>
-          <Trans t={t as any} ns="plugin__odf-console" values={{ name }}>
-            Adding capacity for <strong>{{ name }}</strong>, may increase your
-            expenses.
-          </Trans>
-          <FormGroup
-            className="pf-u-pt-md pf-u-pb-sm"
-            id="add-cap-sc-dropdown__FormGroup"
-            fieldId="add-capacity-dropdown"
-            label={t('StorageClass')}
-            labelIcon={
-              <FieldLevelHelp>{storageClassTooltip(t)}</FieldLevelHelp>
-            }
-            isRequired
+    <Modal
+      header={Header}
+      isOpen={isOpen}
+      onClose={closeModal}
+      showClose={false}
+      hasNoBodyWrapper={true}
+      variant={ModalVariant.small}
+      className="add-capacity-modal"
+    >
+      <ModalBody className="add-capacity-modal--overflow">
+        <Trans t={t as any} ns="plugin__odf-console" values={{ name }}>
+          Adding capacity for <strong>{{ name }}</strong>, may increase your
+          expenses.
+        </Trans>
+        <FormGroup
+          className="pf-u-pt-md pf-u-pb-sm"
+          id="add-cap-sc-dropdown__FormGroup"
+          fieldId="add-capacity-dropdown"
+          label={t('StorageClass')}
+          labelIcon={<FieldLevelHelp>{storageClassTooltip(t)}</FieldLevelHelp>}
+          isRequired
+        >
+          <div
+            id="add-capacity-dropdown"
+            className="ceph-add-capacity__sc-dropdown"
           >
-            <div
-              id="add-capacity-dropdown"
-              className="ceph-add-capacity__sc-dropdown"
-            >
-              <StorageClassDropdown
-                onChange={(sc: StorageClassResourceKind) => setStorageClass(sc)}
-                noSelection
-                selectedKey={selectedSCName || installStorageClass}
-                filter={filterSC}
-                hideClassName="ceph-add-capacity__sc-dropdown--hide"
-                data-test="add-cap-sc-dropdown"
-              />
-            </div>
-            {!selectedSCName && (
-              <div className="skeleton-text ceph-add-capacity__storage-class-dropdown--loading" />
-            )}
-          </FormGroup>
-          {!!selectedSCName &&
-            (isNoProvionerSC ? (
-              <PVsAvailableCapacity
-                replica={replica}
-                data-test-id="ceph-add-capacity-pvs-available-capacity"
-                storageClass={storageClass}
-                data={pvData}
-                loaded={pvLoaded}
-                loadError={pvLoadError}
-              />
-            ) : (
-              <>
-                {!!osdSizeWithoutUnit && (
-                  <RawCapacity
-                    t={t}
-                    replica={replica}
-                    osdSizeWithoutUnit={osdSizeWithoutUnit}
-                  />
-                )}
-                <TextContent className="pf-u-font-weight-bold pf-u-secondary-color-100 ceph-add-capacity__current-capacity">
-                  {t('Currently Used:')}&nbsp;
-                  {currentCapacity}
-                </TextContent>
-              </>
-            ))}
-        </ModalBody>
-        <ModalSubmitFooter
-          inProgress={inProgress}
-          errorMessage={errorMessage}
-          submitText={t('Add')}
-          cancel={cancel}
-          submitDisabled={isNoProvionerSC && (!availablePvsCount || nodesError)}
-        />
-      </div>
-    </form>
+            <StorageClassDropdown
+              onChange={(sc: StorageClassResourceKind) => setStorageClass(sc)}
+              data-test="add-cap-sc-dropdown"
+              initialSelection={preSelectionFilter}
+            />
+          </div>
+          {!selectedSCName && (
+            <div className="skeleton-text ceph-add-capacity__storage-class-dropdown--loading" />
+          )}
+        </FormGroup>
+        {!!selectedSCName &&
+          (isNoProvionerSC ? (
+            <PVsAvailableCapacity
+              replica={replica}
+              data-test-id="ceph-add-capacity-pvs-available-capacity"
+              storageClass={storageClass}
+              data={pvData}
+              loaded={pvLoaded}
+              loadError={pvLoadError}
+            />
+          ) : (
+            <>
+              {!!osdSizeWithoutUnit && (
+                <RawCapacity
+                  t={t}
+                  replica={replica}
+                  osdSizeWithoutUnit={osdSizeWithoutUnit}
+                />
+              )}
+              <TextContent className="pf-u-font-weight-bold pf-u-secondary-color-100 ceph-add-capacity__current-capacity">
+                {t('Currently Used:')}&nbsp;
+                {currentCapacity}
+              </TextContent>
+            </>
+          ))}
+        {errorMessage && (
+          <Alert isInline variant="danger" title={t('An error occurred')}>
+            {(errorMessage as any)?.message}
+          </Alert>
+        )}
+      </ModalBody>
+      <ModalFooter>
+        <Button key="cancel" variant="secondary" onClick={closeModal}>
+          {t('Cancel')}
+        </Button>
+        {!loading || !inProgress ? (
+          <Button
+            key="Add"
+            variant="primary"
+            onClick={submit}
+            isDisabled={isNoProvionerSC && (!availablePvsCount || nodesError)}
+          >
+            {t('Add')}
+          </Button>
+        ) : (
+          <LoadingInline />
+        )}
+      </ModalFooter>
+    </Modal>
   );
 };
 
-type AddCapacityModalProps = {
-  kind?: any;
-  ocsConfig?: any;
-  cancel?: () => void;
-  close?: () => void;
-};
-
-export const addSSCapacityModal = createModalLauncher(AddSSCapacityModal);
+export default AddSSCapacityModal;

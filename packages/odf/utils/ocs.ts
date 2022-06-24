@@ -1,6 +1,6 @@
 import { DeviceSet, K8sResourceKind, NodeKind, ResourceConstraints, StorageClassResourceKind, StorageClusterKind, Taint } from "@odf/shared/types";
 import { humanizeCpuCores, convertToBaseValue } from "@odf/shared/utils";
-import { MatchExpression } from "@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types";
+import { MatchExpression } from "@openshift-console/dynamic-plugin-sdk/lib/api/common-types";
 import * as _ from "lodash";
 import { getNodeCPUCapacity, getNodeAllocatableMemory, hasNoTaints } from "../components/utils";
 import { HOSTNAME_LABEL_KEY, LABEL_OPERATOR, MINIMUM_NODES, ocsTaint, OCS_PROVISIONERS, RACK_LABEL, ZONE_LABELS } from "../constants";

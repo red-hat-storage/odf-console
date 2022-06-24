@@ -2,11 +2,11 @@ import * as React from 'react';
 import { K8sResourceKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import {
+  usePrometheusPoll,
   HealthState,
   useK8sWatchResource,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { usePrometheusPoll } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useTranslation } from 'react-i18next';
 import {
   CephClusterModel,
