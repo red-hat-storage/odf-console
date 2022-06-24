@@ -438,8 +438,9 @@ const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
         </Button>
         {!loading || !inProgress ? (
           <Button
-            data-test="modal-submit-action"
             key="Add"
+            data-test="modal-submit-action"
+            data-test-id="confirm-action"
             variant="primary"
             onClick={submit}
             isDisabled={isNoProvionerSC && (!availablePvsCount || nodesError)}
