@@ -10,6 +10,7 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { getGaugeValue } from '@odf/shared/utils';
 import {
@@ -17,7 +18,6 @@ import {
   InventoryItem,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { BucketsTitle } from './buckets-card-item';
 import { getObcStatusGroups, getObStatusGroups } from './utils';
@@ -42,7 +42,7 @@ const objectBucketResource = {
 };
 
 const ObjectDashboardBucketsCard: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const [obcData, obcLoaded, obcLoadError] = useK8sWatchResource<
     K8sResourceKind[]

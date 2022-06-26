@@ -7,6 +7,7 @@ import {
 import useAlerts from '@odf/shared/monitoring/useAlert';
 import { alertURL } from '@odf/shared/monitoring/utils';
 import { K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   HealthState,
@@ -20,7 +21,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Gallery,
   GalleryItem,
@@ -65,7 +65,7 @@ const CephHealthCheck: React.FC<CephHealthCheckProps> = ({
   cephHealthState,
   healthCheck,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   return (
     <Flex flexWrap={{ default: 'nowrap' }} direction={{ default: 'row' }}>
       <FlexItem>
@@ -100,7 +100,7 @@ export const cephClusterResource = {
 };
 
 export const StatusCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 

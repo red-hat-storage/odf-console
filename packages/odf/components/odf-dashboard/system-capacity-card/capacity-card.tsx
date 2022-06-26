@@ -8,6 +8,7 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { StorageSystemKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getGVK,
   humanizeBinaryBytes,
@@ -20,7 +21,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { StorageDashboard, CAPACITY_QUERIES } from '../queries';
 
@@ -39,7 +39,7 @@ const getMetricForSystem = (
   );
 
 const SystemCapacityCard: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<
     StorageSystemKind[]
   >(storageSystemResource);

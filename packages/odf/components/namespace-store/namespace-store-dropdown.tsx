@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName } from '@odf/shared/selectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Dropdown,
@@ -25,7 +25,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
   creatorDisabled,
   launchModal,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [isOpen, setOpen] = React.useState(false);
   const [dropdownItems, setDropdownItems] = React.useState<JSX.Element[]>([]);
 

@@ -23,6 +23,7 @@ import {
   DeviceSet,
   StorageSystemKind,
 } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import {
   useK8sWatchResource,
@@ -33,7 +34,7 @@ import {
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import {
   FormGroup,
   TextInput,
@@ -191,7 +192,7 @@ const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   closeModal,
   isOpen,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const [cephTotal, totalError, totalLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,

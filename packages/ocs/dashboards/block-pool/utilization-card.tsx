@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeDecimalBytesPerSec } from '@odf/shared/utils';
 import {
   UtilizationBody,
   UtilizationDurationDropdown,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useTranslation } from 'react-i18next';
 import {
   Card,
   CardActions,
@@ -17,7 +17,7 @@ import { humanizeIOPS } from '../persistent-internal/utilization-card/utils';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
 export const UtilizationCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
   const { name } = obj.metadata;
 

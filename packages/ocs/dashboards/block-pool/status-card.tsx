@@ -1,12 +1,12 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
 export const StatusCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
 
   return (

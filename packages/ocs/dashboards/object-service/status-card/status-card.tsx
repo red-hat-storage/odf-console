@@ -9,6 +9,7 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import useAlerts from '@odf/shared/monitoring/useAlert';
 import { K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { alertURL } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
 import {
@@ -22,7 +23,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Gallery,
   GalleryItem,
@@ -82,7 +82,7 @@ const ObjectStorageAlerts = () => {
 
 const StatusCard: React.FC<{}> = () => {
   const isRGWSupported = useFlag(RGW_FLAG);
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const [secretData, secretLoaded, secretLoadError] =
     useK8sWatchResource<K8sResourceKind>(secretResource);

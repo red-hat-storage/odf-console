@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TextVariants, Text, TextContent } from '@patternfly/react-core';
 import './create-storage-system.scss';
 
 export const CreateStorageSystemHeader: React.FC<CreateStorageSystemHeaderProps> =
   ({ url }) => {
-    const { t } = useTranslation('plugin__odf-console');
+    const { t } = useCustomTranslation();
     return (
       <div className="odf-create-storage-system__header">
         <TextContent>

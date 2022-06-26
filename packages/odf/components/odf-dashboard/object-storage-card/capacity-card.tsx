@@ -5,9 +5,9 @@ import {
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { ODFStorageSystem } from '@odf/shared/models';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils/humanize';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { StorageDashboard, CAPACITY_QUERIES } from '../queries';
 
@@ -18,7 +18,7 @@ const parseMetricData = (metric: PrometheusResponse) =>
   })) || [];
 
 const ObjectCapacityCard: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [data, error, loading] = useCustomPrometheusPoll({
     query: CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_OBJECT],
     endpoint: 'api/v1/query' as any,

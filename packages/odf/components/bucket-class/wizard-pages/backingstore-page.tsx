@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Alert, AlertActionCloseButton } from '@patternfly/react-core';
 import { ExternalLink } from '../../mcg-endpoints/gcp-endpoint-type';
 import BackingStoreSelection from '../backingstore-table';
@@ -19,7 +19,7 @@ const BackingStorePage: React.FC<BackingStorePageProps> = React.memo(
     const { tier2Policy, tier1Policy, tier1BackingStore, tier2BackingStore } =
       state;
     const [showHelp, setShowHelp] = React.useState(true);
-    const { t } = useTranslation();
+    const { t } = useCustomTranslation();
 
     const [Modal, modalProps, launcher] = useModalLauncher(modalMap);
 

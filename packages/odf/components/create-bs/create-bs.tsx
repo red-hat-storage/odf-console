@@ -4,6 +4,7 @@ import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
@@ -11,7 +12,6 @@ import {
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router';
 import {
   ActionGroup,
@@ -48,7 +48,7 @@ const externalProviders = getExternalProviders(StoreType.BS);
 const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
   props
 ) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [bsName, setBsName] = React.useState('');
   const [provider, setProvider] = React.useState(BC_PROVIDERS.AWS);
   const [providerDataState, providerDataDispatch] = React.useReducer(

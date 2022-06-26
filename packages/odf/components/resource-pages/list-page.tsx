@@ -10,6 +10,7 @@ import {
 } from '@odf/shared/modals/modalLauncher';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName } from '@odf/shared/selectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sModel,
@@ -29,7 +30,6 @@ import {
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { sortable } from '@patternfly/react-table';
 import {
   NooBaaBackingStoreModel,
@@ -65,7 +65,7 @@ type ResourceTableProps = {
 };
 
 const ResourceTable: React.FC<ResourceTableProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const tableColumns = React.useMemo<TableColumn<K8sResourceCommon>[]>(
     () => [
       {
@@ -188,7 +188,7 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
   resourceModel,
   kebabActions,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [Modal, modalProps, launchModal] = useModalLauncher(actions);
 
   const resource = React.useMemo(

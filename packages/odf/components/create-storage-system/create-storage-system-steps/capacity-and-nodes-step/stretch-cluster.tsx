@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { arbiterText } from '@odf/core/constants';
 import { AdvancedSubscription } from '@odf/shared/badges/advanced-subscription';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   FormGroup,
   Alert,
@@ -20,7 +20,7 @@ import './capacity-and-nodes.scss';
 const HelperText: React.FC<{ enableArbiter: boolean }> = ({
   enableArbiter,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <>
       <TextContent>
@@ -45,7 +45,7 @@ const HelperText: React.FC<{ enableArbiter: boolean }> = ({
 };
 
 const EnableArbiterLabel: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   return (
     <div className="ocs-enable-arbiter-label">
@@ -64,7 +64,7 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
   enableArbiter,
   arbiterLocation,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
 
   const handleSelection: SelectProps['onSelect'] = (e, selection) => {

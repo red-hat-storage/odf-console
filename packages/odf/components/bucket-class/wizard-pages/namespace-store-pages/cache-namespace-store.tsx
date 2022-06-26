@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getName } from '@odf/shared/selectors';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Alert,
   AlertActionCloseButton,
@@ -19,7 +19,7 @@ import { TimeDurationDropdown } from '../../time-duration-dropdown';
 export const CacheNamespaceStorePage: React.FC<CacheNamespaceStoreProps> =
   React.memo(
     ({ dispatch, namespace, state, hideCreateNamespaceStore, launchModal }) => {
-      const { t } = useTranslation();
+      const { t } = useCustomTranslation();
       const [showHelp, setShowHelp] = React.useState(true);
 
       const handleNSStateChange = (

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, useHistory } from 'react-router';
 import { Title } from '@patternfly/react-core';
 import { NooBaaNamespaceStoreModel } from '../../models';
@@ -12,7 +12,7 @@ import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
   match,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const { ns = CEPH_STORAGE_NAMESPACE } = match.params;
 
   const history = useHistory();

@@ -4,7 +4,7 @@ import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { SecretKind } from '@odf/shared/types';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Button,
   FormGroup,
@@ -41,7 +41,7 @@ type S3EndpointTypeProps = {
 };
 
 export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const [showSecret, setShowSecret] = React.useState(true);
   const { provider, namespace, state, dispatch, type } = props;

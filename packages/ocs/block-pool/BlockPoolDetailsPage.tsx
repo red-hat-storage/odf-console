@@ -3,10 +3,10 @@ import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher, ModalKeys } from '@odf/shared/modals/modalLauncher';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, useLocation } from 'react-router-dom';
 import { CEPH_NS } from '../constants';
 import { BlockPoolDashboard } from '../dashboards/block-pool/block-pool-dashboard';
@@ -28,7 +28,7 @@ export const cephClusterResource = {
 export const BlockPoolDetailsPage: React.FC<BlockPoolDetailsPageProps> = ({
   match,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const { poolName } = match.params;
   const location = useLocation();

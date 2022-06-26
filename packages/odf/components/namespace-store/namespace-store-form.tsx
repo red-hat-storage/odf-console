@@ -4,6 +4,7 @@ import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { PersistentVolumeClaimModel, SecretModel } from '@odf/shared/models';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getAPIVersionForModel,
   k8sCreate,
@@ -11,7 +12,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import { PersistentVolumeClaimKind, SecretKind } from 'packages/shared/types';
-import { useTranslation } from 'react-i18next';
 import {
   ActionGroup,
   Button,
@@ -57,7 +57,7 @@ type NamespaceStoreFormProps = {
 };
 
 const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [nsName, setNsName] = React.useState('');
   const [provider, setProvider] = React.useState(BC_PROVIDERS.AWS);
   const [pvc, setPVC] = React.useState(null);
