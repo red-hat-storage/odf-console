@@ -16,6 +16,7 @@ import {
   ValidatedOptions,
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
+import { VaultEmptyState } from '../../constants';
 import { FEATURES } from '../../features';
 import {
   VaultConfig,
@@ -86,11 +87,13 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
 
   const setAuthMethod = React.useCallback(
     (authMethod: VaultAuthMethods) => {
-      !!vaultStateClone.authMethod && setAuthValue('');
+      if (!!vaultStateClone.authMethod) {
+        vaultStateClone.authValue = VaultEmptyState.authValue;
+      }
       vaultStateClone.authMethod = authMethod;
       updateVaultState(vaultStateClone);
     },
-    [setAuthValue, updateVaultState, vaultStateClone]
+    [updateVaultState, vaultStateClone]
   );
 
   const filteredVaultAuthMethodMapping = React.useMemo(
@@ -190,7 +193,7 @@ const extraMap = {
 
 const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
   t,
-  encryption,
+  isScEncryption,
   vaultState,
   className,
   isWizardFlow,
@@ -205,7 +208,6 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
       ? VaultTokenConfigure
       : VaultServiceAccountConfigure;
 
-  // Webhook
   React.useEffect(() => {
     const hasHandled: boolean =
       vaultState.authValue?.valid &&
@@ -258,8 +260,6 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
 
   const isValid = (value: boolean) =>
     value ? ValidatedOptions.default : ValidatedOptions.error;
-
-  const isScEncryption = encryption['storageClass'];
 
   return (
     <>
@@ -369,7 +369,7 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
 };
 
 export type ValutConnectionFormProps = {
-  encryption?: boolean;
+  isScEncryption?: boolean;
   vaultState: VaultConfig;
   className: string;
   infraType?: string;
