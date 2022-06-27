@@ -6,12 +6,12 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getInstantVectorStats,
   humanizeBinaryBytes,
   sortInstantVectorStats,
 } from '@odf/shared/utils';
-import { useTranslation } from 'react-i18next';
 import {
   Select,
   SelectProps,
@@ -42,7 +42,7 @@ const modelByTotalQueryMap = {
 };
 
 const BreakdownCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [metricType, setMetricType] = React.useState<
     'Projects' | 'Pods' | 'Storage Classes'
   >(PROJECTS);

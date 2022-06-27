@@ -1,12 +1,12 @@
 import * as React from 'react';
 import PageHeading from '@odf/shared/heading/page-heading';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   HorizontalNav,
   NavPage,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, match as Match } from 'react-router';
 import { useLocation } from 'react-router-dom';
 import { Grid, GridItem } from '@patternfly/react-core';
@@ -60,7 +60,7 @@ export const ODFDashboard: React.FC = () => {
 };
 
 const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const hasMCG = useFlag(MCG_FLAG);
   const title = t('Data Foundation');
   const [pages, setPages] = React.useState<NavPage[]>([

@@ -4,10 +4,10 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getMetric } from '@odf/shared/utils';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ResourceProvidersBody } from './resource-providers-card-body';
 import {
@@ -42,7 +42,7 @@ const createProvidersList = (data: PrometheusResponse): ProviderType => {
 };
 
 const ResourceProviders: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const [providersTypesQueryResult, providersTypesQueryResultError] =
     useCustomPrometheusPoll({

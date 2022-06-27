@@ -12,9 +12,9 @@ import {
   getPVStatusGroups,
 } from '@odf/shared/status/Inventory';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { cephStorageLabel } from '../../constants';
 import {
@@ -43,7 +43,7 @@ const watchResources = {
   },
 };
 const InventoryCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const resources = useK8sWatchResources(watchResources);
 

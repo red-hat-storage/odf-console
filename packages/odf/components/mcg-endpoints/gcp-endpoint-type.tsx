@@ -1,10 +1,10 @@
 import * as React from 'react';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { SecretModel } from '@odf/shared/models';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Button,
   FormGroup,
@@ -56,7 +56,7 @@ export const ExternalLink: React.FC<ExternalLinkProps> = ({
 );
 
 export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const [fileData, setFileData] = React.useState('');
   const [inputData, setInputData] = React.useState('');

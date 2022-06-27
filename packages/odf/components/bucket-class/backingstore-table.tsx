@@ -3,6 +3,7 @@ import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useSelectList } from '@odf/shared/hooks/select-list';
 import { getName, getNamespace, getUID } from '@odf/shared/selectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   ListPageBody,
@@ -16,7 +17,6 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Button,
@@ -110,7 +110,7 @@ type BackingStoreListProps = {
 };
 
 const BackingStoreList: React.FC<BackingStoreListProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const columns = React.useMemo<TableColumn<BackingStoreKind>[]>(
     () => [
@@ -237,7 +237,7 @@ const BackingStoreSelection: React.FC<BackingStoreSelectionProps> = (props) => {
     launchModal,
   } = props;
 
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const selectedTierA = props.selectedTierA.map(getUID);
   const selectedTierB = props.selectedTierB.map(getUID);

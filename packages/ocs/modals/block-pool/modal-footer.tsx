@@ -1,7 +1,7 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router';
 import {
   ActionGroup,
@@ -19,7 +19,7 @@ import { OCS_POOL_MANAGEMENT, POOL_PROGRESS } from '../../constants';
 
 export const BlockPoolModalFooter = (props: BlockPoolModalFooterProps) => {
   const { state, dispatch, onSubmit, primaryAction, cancel, close } = props;
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const isPoolManagementSupported = useFlag(OCS_POOL_MANAGEMENT);
 

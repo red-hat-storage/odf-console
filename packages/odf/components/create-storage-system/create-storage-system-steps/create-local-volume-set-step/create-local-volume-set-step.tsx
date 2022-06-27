@@ -26,6 +26,7 @@ import { LoadingInline } from '@odf/shared/generic/Loading';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { NodeModel } from '@odf/shared/models';
 import { ListKind, NodeKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   k8sCreate,
@@ -33,7 +34,7 @@ import {
   useK8sWatchResource,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import {
   Alert,
@@ -153,7 +154,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   ns,
   nodes,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const isArbiterSupported = useFlag(FEATURES.OCS_ARBITER);
   const { onNext, activeStep } =
     React.useContext<WizardContextType>(WizardContext);
@@ -246,7 +247,7 @@ const RequestErrors: React.FC<RequestErrorsProps> = ({
 type RequestErrorsProps = { errorMessage: string; inProgress: boolean };
 
 export const LSOInstallAlert = ({ history }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <Alert
       variant="info"
@@ -281,7 +282,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   isMCG,
   history,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const allNodes = React.useRef([]);
 
   const [csv, csvLoaded, csvLoadError] = useFetchCsv(LSO_OPERATOR);

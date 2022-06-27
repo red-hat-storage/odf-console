@@ -8,6 +8,7 @@
 import * as React from 'react';
 import { OCS_INDEPENDENT_FLAG, MCG_FLAG, CEPH_FLAG } from '@odf/core/features';
 import { LoadingBox } from '@odf/shared/generic/status-box';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import {
   Overview,
@@ -16,7 +17,6 @@ import {
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router-dom';
 import { default as ObjectActivityCard } from './object-service/activity-card/activity-card';
 import { BucketsCard } from './object-service/buckets-card/buckets-card';
@@ -160,7 +160,7 @@ const objectPage = (t: TFunction): TabPage => {
 };
 
 const OCSSystemDashboard: React.FC<RouteComponentProps> = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const isIndependent = useFlag(OCS_INDEPENDENT_FLAG);
   const isObjectServiceAvailable = useFlag(MCG_FLAG);

@@ -1,7 +1,7 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { K8sKind, ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import {
   Button,
   Popover,
@@ -17,7 +17,7 @@ export const PopoverHelper: React.FC<PopoverHelperProps> = ({
   popoverHasAutoWidth,
   testId,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const popOverBody = (
     <List isPlain>

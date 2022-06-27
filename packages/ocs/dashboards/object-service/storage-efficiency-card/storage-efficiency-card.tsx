@@ -5,13 +5,13 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes, humanizePercentage } from '@odf/shared/utils';
 import { getGaugeValue } from '@odf/shared/utils';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 
 const StorageEfficiencyCard: React.FC<{}> = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const [compressionQueryResult, compressionQueryResultError] =
     useCustomPrometheusPoll({

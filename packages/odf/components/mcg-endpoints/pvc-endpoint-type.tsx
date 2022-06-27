@@ -3,8 +3,8 @@ import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { StorageClass } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
-import { useTranslation } from 'react-i18next';
 import { FormGroup, NumberInput } from '@patternfly/react-core';
 import { isObjectSC } from '../../utils';
 import {
@@ -25,7 +25,7 @@ const storageClassResource = {
 };
 
 export const PVCType: React.FC<PVCTypeProps> = ({ state, dispatch }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const [size, setSize] = React.useState('50');
   const [, updateState] = React.useState(null);

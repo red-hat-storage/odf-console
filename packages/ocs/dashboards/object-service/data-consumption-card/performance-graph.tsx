@@ -2,11 +2,11 @@ import * as React from 'react';
 import { GraphEmpty, PrometheusGraph } from '@odf/shared/charts';
 import { twentyFourHourTime } from '@odf/shared/details-page/datetime';
 import useRefWidth from '@odf/shared/hooks/ref-width';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint } from '@odf/shared/utils';
 import { humanizeDecimalBytesPerSec, humanizeSeconds } from '@odf/shared/utils';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Chart,
   ChartVoronoiContainer,
@@ -34,7 +34,7 @@ const PerformanceGraph: React.FC<PerformanceGraphProps> = ({
   loadError,
   metricType,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [getDataArray, putDataArray] = dataPoints;
   const [containerRef, width] = useRefWidth();
   const humanize =

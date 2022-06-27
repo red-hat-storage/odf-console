@@ -7,9 +7,9 @@ import {
 } from '@odf/ocs/constants';
 import { DATA_CONSUMPTION_QUERIES } from '@odf/ocs/queries';
 import { GraphEmpty } from '@odf/shared/charts';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Chart,
   ChartAxis,
@@ -41,7 +41,7 @@ const DataConsumptionGraph: React.FC<DataConsumptionGraphProps> = ({
   loading,
   loadError,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   let padding: number;
   let suffixLabel = '';

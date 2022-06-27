@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import {
   FormGroup,
   FormSelect,
@@ -43,7 +43,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   isWizardFlow,
   isMCG,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const isHpcsKmsSupported = useFlag(FEATURES.ODF_HPCS_KMS);
   // vault as default KMS

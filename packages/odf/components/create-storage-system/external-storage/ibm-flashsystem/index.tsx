@@ -9,8 +9,8 @@ import {
 } from '@odf/core/types';
 import { SecretModel } from '@odf/shared/models';
 import { SecretKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getAPIVersionForModel } from '@odf/shared/utils';
-import { useTranslation } from 'react-i18next';
 import {
   FormGroup,
   TextInput,
@@ -32,7 +32,7 @@ const isValidIP = (address) =>
 export const FlashSystemConnectionDetails: React.FC<
   ExternalComponentProps<FlashSystemState>
 > = ({ setFormState, formState }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
   const [reveal, setReveal] = React.useState(false);
   const [endpointValid, setEndpointValid] = React.useState(

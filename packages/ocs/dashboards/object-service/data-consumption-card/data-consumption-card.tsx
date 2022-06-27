@@ -17,6 +17,7 @@ import {
 import { ClusterServiceVersionModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { ClusterServiceVersionKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
 import {
@@ -25,7 +26,6 @@ import {
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { DataConsumptionDropdown } from './data-consumption-card-dropdown';
 import DataConsumptionGraph from './data-consumption-graph';
@@ -236,7 +236,7 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({ queries, metric }) => {
 };
 
 const DataConsumptionCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [breakdownBy, setBreakdownBy] = React.useState(Breakdown.PROVIDERS);
   const [metric, setMetric] = React.useState(Metrics.IOPS);
   const [serviceType, setServiceType] = React.useState(ServiceType.MCG);

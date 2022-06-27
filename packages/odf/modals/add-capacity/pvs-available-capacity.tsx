@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { calcPVsCapacity } from '@odf/core/utils';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils/humanize';
-import { useTranslation } from 'react-i18next';
 import { getSCAvailablePVs } from '../../utils/ocs';
 import './add-capacity-modal.scss';
 import './pvs-available-capacity.scss';
@@ -14,7 +14,7 @@ export const PVsAvailableCapacity: React.FC<PVAvaialbleCapacityProps> = ({
   loaded,
   loadError,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   let availableCapacity: string = '';
 

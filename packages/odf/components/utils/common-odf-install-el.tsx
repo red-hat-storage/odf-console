@@ -1,7 +1,7 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   Alert,
@@ -172,7 +172,7 @@ export const ValidationMessage: React.FC<ValidationMessageProps> = ({
   className,
   validation,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const {
     variant = AlertVariant.info,
     title,

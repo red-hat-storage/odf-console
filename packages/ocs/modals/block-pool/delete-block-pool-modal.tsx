@@ -18,6 +18,7 @@ import {
   StorageClassResourceKind,
   CephClusterKind,
 } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   k8sDelete,
@@ -25,7 +26,7 @@ import {
   useK8sWatchResource,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import { useHistory, useLocation } from 'react-router';
 import { Modal, ModalVariant } from '@patternfly/react-core';
 import { getScNamesUsingPool, isDefaultPool } from '../..//utils';
@@ -61,7 +62,7 @@ export const toList = (text: string[]): React.ReactNode => (
 );
 
 const DeleteBlockPoolModal: React.FC<DeleteBlockPoolModalProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const {
     extraProps: { resource },
     isOpen,

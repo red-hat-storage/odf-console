@@ -8,8 +8,8 @@ import {
   ModalFooter,
 } from '@odf/shared/modals/Modal';
 import { getName } from '@odf/shared/selectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { k8sUpdate } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import {
   ActionGroup,
   Alert,
@@ -42,7 +42,7 @@ import { SingleNamespaceStorePage } from '../wizard-pages/namespace-store-pages/
 import './_bs-modal.scss';
 
 const BucketClassEditModal: React.FC<BucketClassEditModalProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const {
     isOpen,
     closeModal,

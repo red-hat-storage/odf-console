@@ -6,9 +6,9 @@ import {
   StorageClusterKind,
   CephClusterKind,
 } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Dropdown,
@@ -44,7 +44,7 @@ export const BlockPoolStatus: React.FC<BlockPoolStatusProps> = ({
   name,
   error = '',
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const statusObj: ProgressStatusProps = PROGRESS_STATUS(t, name).find(
     (state) => state.name === status
   );
@@ -67,7 +67,7 @@ export type BlockPoolStatusProps = {
 
 export const BlockPoolBody = (props: BlockPoolBodyPros) => {
   const { cephCluster, state, dispatch, showPoolStatus, isUpdate } = props;
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const isPoolManagementSupported = useFlag(OCS_POOL_MANAGEMENT);
   const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
