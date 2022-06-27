@@ -11,7 +11,7 @@ import {
   getOptionsMenuItems,
   getGroupedSelectOptions,
 } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Select,
   SelectVariant,
@@ -33,7 +33,7 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
     setSelectedMetric,
     isRgwSupported,
   } = props;
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [isOpenComboDropdown, setComboDropdown] = React.useState(false);
   const [isOpenServiceTypeDropdown, setServiceTypeDropdown] =
     React.useState(false);

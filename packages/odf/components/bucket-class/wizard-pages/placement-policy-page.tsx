@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Alert,
   AlertActionCloseButton,
@@ -16,7 +16,7 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
   dispatch,
   state,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const { tier1Policy, tier2Policy } = state;
   const [showHelp, setShowHelp] = React.useState(true);

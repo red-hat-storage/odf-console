@@ -4,13 +4,13 @@ import {
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   HealthState,
   useK8sWatchResource,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import {
   CephClusterModel,
   CephObjectStoreModel,
@@ -50,7 +50,7 @@ const AcceptableHealthStates = [
 ];
 
 export const useGetOCSHealth = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [cephData, cephLoaded, cephLoadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
   const [cephObjData, cephObjLoaded, cephObjLoadError] = useK8sWatchResource<

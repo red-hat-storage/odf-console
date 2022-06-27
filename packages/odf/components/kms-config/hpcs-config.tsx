@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { FormGroup, TextInput, ValidatedOptions } from '@patternfly/react-core';
 import { HpcsConfig, HPCSParams, ProviderNames } from '../../types';
 import { KMSConfigureProps } from './providers';
@@ -15,7 +15,7 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
   dispatch,
   className,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const kms: HpcsConfig = useDeepCompareMemoize(
     state.kms?.[ProviderNames.HPCS],

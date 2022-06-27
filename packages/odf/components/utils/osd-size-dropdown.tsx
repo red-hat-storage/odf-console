@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { SelectOption } from '@patternfly/react-core';
 import { OCS_DEVICE_SET_REPLICA, OSD_CAPACITY_SIZES } from '../../constants';
 
@@ -37,7 +37,7 @@ const dropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
 export const TotalCapacityText: React.FC<TotalCapacityTextProps> = ({
   capacity,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   return (
     <span>
@@ -56,7 +56,7 @@ export const OSDSizeDropdown: React.FC<OSDSizeDropdownProps> = ({
   id,
   onChange,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   return (
     <SingleSelectDropdown

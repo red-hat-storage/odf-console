@@ -6,10 +6,10 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { NooBaaBackingStoreModel } from '../../models';
 import { BackingStoreKind } from '../../types';
@@ -49,7 +49,7 @@ const BSDetails: DetailsType =
 const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
   match,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const { resourceName: name } = match.params;
   const [resource, loaded, loadError] = useK8sWatchResource<K8sResourceKind>({
     kind: referenceForModel(NooBaaBackingStoreModel),

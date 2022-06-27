@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { getExternalStorage } from '@odf/core/components/utils';
 import { ExternalStateValues, ExternalStateKeys } from '@odf/core/types';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Form,
   FormGroup,
@@ -19,7 +19,7 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
   externalStorage,
   dispatch,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const { Component, displayName } = getExternalStorage(externalStorage) || {
     Component: null,

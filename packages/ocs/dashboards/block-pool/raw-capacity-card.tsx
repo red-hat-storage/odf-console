@@ -3,8 +3,8 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInstantVectorStats } from '@odf/shared/utils';
-import { useTranslation } from 'react-i18next';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
 import {
   CapacityCard,
@@ -13,7 +13,7 @@ import {
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
 export const RawCapacityCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
   const { name } = obj.metadata;
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
 
 export const MirroringCardItem: React.FC<MirroringCardItemProps> = React.memo(
   ({
@@ -11,7 +11,7 @@ export const MirroringCardItem: React.FC<MirroringCardItemProps> = React.memo(
     valueClassName,
     errorMessage,
   }) => {
-    const { t } = useTranslation();
+    const { t } = useCustomTranslation();
 
     let status: React.ReactNode;
 

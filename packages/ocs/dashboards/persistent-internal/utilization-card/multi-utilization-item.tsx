@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { AreaChart } from '@odf/shared/dashboards/utilization-card/area-chart';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint } from '@odf/shared/utils';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 
 export const MultilineUtilizationItem: React.FC<MultilineUtilizationItemProps> =
   React.memo(
@@ -15,7 +15,7 @@ export const MultilineUtilizationItem: React.FC<MultilineUtilizationItemProps> =
       error,
       chartType,
     }) => {
-      const { t } = useTranslation();
+      const { t } = useCustomTranslation();
       const currentValue =
         data.length > 1 && data[0].length && data[1].length
           ? humanizeValue(

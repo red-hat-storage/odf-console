@@ -15,6 +15,7 @@ import {
   PersistentVolumeClaimKind,
   SubscriptionKind,
 } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getResiliencyProgress, referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -24,7 +25,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
 import { OCS_OPERATOR, PVC_PROVISIONER_ANNOTATION } from '../../../constants';
 import { StorageClusterModel } from '../../../models';
@@ -158,7 +158,7 @@ const OngoingActivity = () => {
 };
 
 export const ActivityCard: React.FC = React.memo(() => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   return (
     <Card className="co-overview-card--gradient">

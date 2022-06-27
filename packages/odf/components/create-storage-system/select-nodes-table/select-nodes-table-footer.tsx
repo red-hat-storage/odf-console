@@ -4,14 +4,14 @@ import {
   getTotalMemory,
   getAllZone,
 } from '@odf/core/components/utils';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
-import { useTranslation } from 'react-i18next';
 import { TextContent, Text } from '@patternfly/react-core';
 import { WizardNodeState } from '../reducer';
 
 export const SelectNodesTableFooter: React.FC<SelectNodesDetailsProps> =
   React.memo(({ nodes }) => {
-    const { t } = useTranslation('plugin__odf-console');
+    const { t } = useCustomTranslation();
 
     const totalCpu = getTotalCpu(nodes);
     const totalMemory = getTotalMemory(nodes);

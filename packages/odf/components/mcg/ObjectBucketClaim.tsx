@@ -9,6 +9,7 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { Status } from '@odf/shared/status/Status';
 import { K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel, resourcePathFromModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
@@ -28,7 +29,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import { sortable } from '@patternfly/react-table';
 import { ATTACH_DEPLOYMENT } from '../../constants';
@@ -85,7 +85,7 @@ export const OBCStatus: React.FC<OBCStatusProps> = ({ obc }) => (
 const ObjectBucketClaimsList: React.FC<ObjectBucketClaimsListProps> = ({
   ...props
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const objectBucketClaimTableColumns = React.useMemo<
     TableColumn<K8sResourceKind>[]
   >(
@@ -242,7 +242,7 @@ const extraMap = {
   ),
 };
 export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const hasRGW = useFlag(RGW_FLAG);
   const hasMCG = useFlag(MCG_FLAG);
   const hasNone = !hasRGW && !hasMCG;
@@ -309,7 +309,7 @@ type OBCDetailsProps = {
 export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
   obj,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const storageClassName = _.get(obj, 'spec.storageClassName');
   const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
   return (
@@ -374,7 +374,7 @@ export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
   match,
   namespace,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const { name, plural: kind } = match.params;
   const [resource, loaded] = useK8sWatchResource<K8sResourceKind>({
     kind,

@@ -10,10 +10,10 @@ import {
 import { DeploymentModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { DeploymentKind, K8sResourceKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router';
 import { Alert, Button, Modal, ModalVariant } from '@patternfly/react-core';
 import { getAttachOBCPatch } from '../../utils';
@@ -27,7 +27,7 @@ type AttachDeploymentToOBCModalProps = CommonModalProps<{
 const AttachDeploymentToOBCModal: React.FC<AttachDeploymentToOBCModalProps> = (
   props
 ) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [requestDeployment, setRequestedDeployment] =
     React.useState<DeploymentKind>(null);
   const [inProgress, setProgress] = React.useState(false);

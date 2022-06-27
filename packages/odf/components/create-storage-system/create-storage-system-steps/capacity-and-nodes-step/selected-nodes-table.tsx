@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { NodeModel } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   resourcePathFromModel,
   humanizeCpuCores,
@@ -12,7 +13,6 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
 import { sortable } from '@patternfly/react-table';
 import { WizardNodeState } from '../../reducer';
 import { SelectNodesTableFooter } from '../../select-nodes-table/select-nodes-table-footer';
@@ -84,7 +84,7 @@ export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({
   data,
   showDetails = true,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
 
   const SelectedNodesTableColumns = React.useMemo(
     () => [

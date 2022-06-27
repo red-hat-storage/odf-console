@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeNumber, getGaugeValue } from '@odf/shared/utils';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 const formatCount = (count: number, t: TFunction) => {
@@ -17,7 +17,7 @@ export const BucketsTitle: React.FC<BucketsTitleProps> = ({
   error,
   children,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   let objectsBody: JSX.Element;
 

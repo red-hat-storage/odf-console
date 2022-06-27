@@ -3,7 +3,7 @@ import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { InfrastructureModel } from '@odf/shared/models';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { ListKind, StorageSystemKind } from '@odf/shared/types';
-import { useTranslation } from 'react-i18next';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   RouteComponentProps,
   useHistory,
@@ -18,7 +18,7 @@ import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
 
 const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const history = useHistory();
   const [state, dispatch] = React.useReducer<WizardReducer>(
     reducer,

@@ -3,13 +3,13 @@ import * as React from 'react';
 import ConsumerPopover from '@odf/shared/dashboards/utilization-card/ConsumerPopover';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   humanizeBinaryBytes,
   humanizeDecimalBytesPerSec,
 } from '@odf/shared/utils';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
-import { useTranslation } from 'react-i18next';
 import {
   Card,
   CardActions,
@@ -27,7 +27,7 @@ import { PrometheusMultilineUtilizationItem } from './prometheus-multi-utilizati
 import { humanizeIOPS, humanizeLatency } from './utils';
 
 const UtilizationCard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const storagePopover = React.useCallback(
     ({ current }) => (
       <ConsumerPopover

@@ -10,9 +10,9 @@ import {
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { NodeKind } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import { SelectOption } from '@patternfly/react-core';
 import {
   FormGroup,
@@ -45,7 +45,7 @@ export enum FilterDiskBy {
 }
 
 const AllNodesLabel: React.FC<{ count: number }> = ({ count }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   return (
     <>
       {t('Disks on all nodes')}
@@ -67,7 +67,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
   allNodes,
   defaultVolumeMode,
 }) => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [radio, setRadio] = React.useState(FilterDiskBy.ALL_NODES);
   const [activeMinDiskSize, setMinActiveState] = React.useState(false);
   const [activeMaxDiskSize, setMaxActiveState] = React.useState(false);

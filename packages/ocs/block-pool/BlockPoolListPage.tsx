@@ -18,6 +18,7 @@ import {
   StorageClassResourceKind,
   CephClusterKind,
 } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
 import {
   ListPageBody,
@@ -35,7 +36,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
-import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
@@ -106,7 +106,7 @@ type BlockPoolListProps = {
 };
 
 const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const tableColumns = React.useMemo<TableColumn<any>[]>(
     () => [
       {
@@ -223,7 +223,7 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
   activeColumnIDs,
   rowData,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const {
     poolRawCapacity,
@@ -371,7 +371,7 @@ type PoolMetrics = {
 };
 
 export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const location = useLocation();
   const listPagePath: string = location.pathname;

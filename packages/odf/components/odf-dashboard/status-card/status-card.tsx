@@ -12,6 +12,7 @@ import {
   ClusterServiceVersionKind,
   StorageSystemKind,
 } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVK, referenceForModel } from '@odf/shared/utils';
 import {
   HealthState,
@@ -20,7 +21,6 @@ import {
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
 import {
   Gallery,
   GalleryItem,
@@ -48,7 +48,7 @@ const storageSystemResource: WatchK8sResource = {
 };
 
 export const StatusCard: React.FC = () => {
-  const { t } = useTranslation('plugin__odf-console');
+  const { t } = useCustomTranslation();
   const [csvData, csvLoaded, csvLoadError] =
     useK8sWatchResource<ClusterServiceVersionKind[]>(operatorResource);
   const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<

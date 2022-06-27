@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import { useTranslation } from 'react-i18next';
 import {
   Alert,
   AlertActionCloseButton,
@@ -40,7 +40,7 @@ export const bucketClassTypeRadios = (t: TFunction) => [
 ];
 
 const GeneralPage: React.FC<GeneralPageProps> = ({ dispatch, state }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
 
   const [showHelp, setShowHelp] = React.useState(true);
 

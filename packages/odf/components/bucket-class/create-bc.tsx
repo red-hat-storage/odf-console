@@ -2,12 +2,12 @@ import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { getName } from '@odf/shared/selectors';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
   k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useTranslation } from 'react-i18next';
 import { RouteComponentProps, useHistory } from 'react-router';
 import { Title, Wizard, WizardStep } from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../constants';
@@ -41,7 +41,7 @@ const modalMap = {
 };
 
 const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
-  const { t } = useTranslation();
+  const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const { ns = CEPH_STORAGE_NAMESPACE } = match.params;
 
