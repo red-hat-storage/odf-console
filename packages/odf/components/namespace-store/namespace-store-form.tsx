@@ -78,9 +78,10 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
     setProgress(true);
     /** Create a secret if secret ==='' */
     let { secretName } = providerDataState;
+    let m4 = () => Math.floor((1 + Math.random()) * 0x10000).toString(16);
     const promises = [];
     if (!secretName) {
-      secretName = nsName.concat('-secret');
+      secretName = nsName.concat('-' + m4() + m4() + m4());
       const { secretKey, accessKey } = providerDataState;
       const secretPayload = secretPayloadCreator(
         provider,
