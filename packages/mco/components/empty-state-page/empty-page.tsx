@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { TFunction } from 'i18next';
 import {
   Button,
   Title,
@@ -7,6 +8,7 @@ import {
   EmptyStateVariant,
   EmptyStateIcon,
   EmptyStateBody,
+  Tooltip,
 } from '@patternfly/react-core';
 import './empty-page.scss';
 
@@ -23,21 +25,36 @@ const EmptyPageIcon: React.FC = () => {
 };
 
 const EmptyPage: React.FC<EmptyPageProps> = (props) => {
+  const { t, title, children, buttonText, canCreate, onClick } = props;
   return (
     <div className="mco-empty-page__background">
       <EmptyState variant={EmptyStateVariant.large}>
         <EmptyStateIcon icon={EmptyPageIcon} />
         <Title headingLevel="h4" size="lg">
-          {props.title}
+          {title}
         </Title>
-        <EmptyStateBody>{props.children}</EmptyStateBody>
-        <Button
-          variant="primary"
-          onClick={props.onClick}
-          data-test="create-button"
+        <EmptyStateBody>{children}</EmptyStateBody>
+        <Tooltip
+          content={
+            !canCreate &&
+            t(
+              'You are not authorized to complete this action. See your cluster administrator for role-based access control information.'
+            )
+          }
+          trigger={!canCreate ? 'mouseenter' : 'manual'}
+          data-test="authorization-tooltip"
         >
-          {props.buttonText}
-        </Button>
+          {
+            <Button
+              variant="primary"
+              onClick={onClick}
+              isAriaDisabled={!canCreate}
+              data-test="create-button"
+            >
+              {buttonText}
+            </Button>
+          }
+        </Tooltip>
       </EmptyState>
     </div>
   );
@@ -47,6 +64,8 @@ type EmptyPageProps = {
   title: string;
   children?: any;
   buttonText: string;
+  canCreate?: boolean;
+  t: TFunction;
   onClick: () => void;
 };
 
