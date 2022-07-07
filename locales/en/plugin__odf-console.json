@@ -48,6 +48,7 @@
   "No disaster recovery policies yet": "No disaster recovery policies yet",
   "Configure recovery to your failover cluster with a disaster recovery policy.<1></1>Click the <3>Create DRPolicy</3> button to get started.": "Configure recovery to your failover cluster with a disaster recovery policy.<1></1>Click the <3>Create DRPolicy</3> button to get started.",
   "Empty page logo": "Empty page logo",
+  "You are not authorized to complete this action. See your cluster administrator for role-based access control information.": "You are not authorized to complete this action. See your cluster administrator for role-based access control information.",
   "Storage System": "Storage System",
   "Overview": "Overview",
   "Systems": "Systems",
