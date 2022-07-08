@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useAccessReview } from '@odf/shared/hooks/rbac-hook';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import {
   LaunchModal,
@@ -252,51 +253,62 @@ export const DRPolicyListPage: React.FC = () => {
       cluster: HUB_CLUSTER_NAME,
     });
 
+  const [canCreateDRPolicy, isLoading] = useAccessReview(
+    {
+      group: DRPolicyModel?.apiGroup,
+      resource: DRPolicyModel?.plural,
+      namespace: null,
+      verb: 'create',
+    },
+    HUB_CLUSTER_NAME
+  );
+
   const [data, filteredData, onFilterChange] = useListPageFilter(drPolicies);
 
   return (
     <>
-      {drPoliciesLoaded &&
-        (drPolicies.length === 0 || drPoliciesLoadError ? (
-          <EmptyPage
-            title={t('No disaster recovery policies yet')}
-            buttonText={t('Create DRPolicy')}
-            onClick={() => history.push(createProps)}
-          >
-            <Trans t={t}>
-              Configure recovery to your failover cluster with a disaster
-              recovery policy.
-              <br />
-              Click the <strong>Create DRPolicy</strong> button to get started.
-            </Trans>
-          </EmptyPage>
-        ) : (
-          <>
-            <ModalComponent {...props} />
-            <ListPageBody>
-              <div className="mco-drpolicy-list__header">
-                <ListPageFilter
-                  data={data}
-                  loaded={drPoliciesLoaded}
-                  onFilterChange={onFilterChange}
-                  hideColumnManagement={true}
-                />
-                <div className="mco-drpolicy-list__createlink">
-                  <ListPageCreateLink to={createProps}>
-                    {t('Create DRPolicy')}
-                  </ListPageCreateLink>
-                </div>
-              </div>
-              <DRPolicyList
-                data={filteredData as DRPolicyKind[]}
-                unfilteredData={drPolicies}
+      {drPolicies?.length === 0 || (!canCreateDRPolicy && !isLoading) ? (
+        <EmptyPage
+          title={t('No disaster recovery policies yet')}
+          buttonText={t('Create DRPolicy')}
+          canCreate={canCreateDRPolicy}
+          t={t}
+          onClick={() => history.push(createProps)}
+        >
+          <Trans t={t}>
+            Configure recovery to your failover cluster with a disaster recovery
+            policy.
+            <br />
+            Click the <strong>Create DRPolicy</strong> button to get started.
+          </Trans>
+        </EmptyPage>
+      ) : (
+        <>
+          <ModalComponent {...props} />
+          <ListPageBody>
+            <div className="mco-drpolicy-list__header">
+              <ListPageFilter
+                data={data}
                 loaded={drPoliciesLoaded}
-                loadError={drPoliciesLoadError}
-                rowData={{ launchModal }}
+                onFilterChange={onFilterChange}
+                hideColumnManagement={true}
               />
-            </ListPageBody>
-          </>
-        ))}
+              <div className="mco-drpolicy-list__createlink">
+                <ListPageCreateLink to={createProps}>
+                  {t('Create DRPolicy')}
+                </ListPageCreateLink>
+              </div>
+            </div>
+            <DRPolicyList
+              data={filteredData as DRPolicyKind[]}
+              unfilteredData={drPolicies}
+              loaded={drPoliciesLoaded && !isLoading}
+              loadError={drPoliciesLoadError}
+              rowData={{ launchModal }}
+            />
+          </ListPageBody>
+        </>
+      )}
     </>
   );
 };
