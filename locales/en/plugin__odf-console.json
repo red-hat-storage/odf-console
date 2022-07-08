@@ -30,7 +30,7 @@
   "No matching application found": "No matching application found",
   "Apply DRPolicy": "Apply DRPolicy",
   "Select the applications for applying the DRPolicy": "Select the applications for applying the DRPolicy",
-  "Disaster recovery(DR) protection will be applied for all the persistent volume claims(PVCs) under the selected applications.": "Disaster recovery(DR) protection will be applied for all the persistent volume claims(PVCs) under the selected applications.",
+  "All PersistentVolumeClaims matching the placement rules under an application will be DR protected.": "All PersistentVolumeClaims matching the placement rules under an application will be DR protected.",
   "Apply": "Apply",
   "{{ length }} Applications": "{{ length }} Applications",
   "Connected applications": "Connected applications",

@@ -113,7 +113,9 @@ const getDRPlacementControlKindObj = (
       'clusterName'
     ],
     pvcSelector: {
-      matchLabels: {},
+      matchLabels: {
+        placement: getName(plsRule),
+      },
     },
   },
 });
@@ -390,7 +392,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
           className="co-alert mco-apply-policy-modal__alert"
           variant="info"
           title={t(
-            'Disaster recovery(DR) protection will be applied for all the persistent volume claims(PVCs) under the selected applications.'
+            'All PersistentVolumeClaims matching the placement rules under an application will be DR protected.'
           )}
           isInline
         />
