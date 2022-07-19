@@ -30,7 +30,7 @@ describe('Tests creation of Namespace Stores', () => {
   beforeEach(() => {
     cy.visit('/');
     ODFCommon.visitStorageDashboard();
-    cy.byLegacyTestID('horizontal-link-Namespace Store').click();
+    cy.byLegacyTestID('horizontal-link-Namespace Store').first().click();
     cy.byTestID('item-create').click();
   });
 
