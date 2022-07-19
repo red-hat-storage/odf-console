@@ -90,7 +90,10 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       // Todo(bipuladh): Add a proper data-selector once the list page is migrated
       // eslint-disable-next-line cypress/require-data-selectors
       cy.get('a').contains(STORAGE_SYSTEM_NAME).should('exist');
-      cy.byLegacyTestID('kebab-button').click();
+      cy.get('td#kebab-button').within(() => {
+        cy.get('button').click();
+      });
+      cy.contains('Add Capacity').click();
       cy.byTestActionID('Add Capacity').click();
       modal.shouldBeOpened();
 
@@ -99,12 +102,9 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
           initialState.storageCluster?.spec?.storageDeviceSets?.[0]
             ?.dataPVCTemplate?.spec?.resources?.requests?.storage
         ];
-      cy.byLegacyTestID('requestSize').should(
-        'have.value',
-        String(initialCapacity)
-      );
+      cy.byTestID('requestSize').should('have.value', String(initialCapacity));
       cy.byTestID('provisioned-capacity').contains(
-        `${String((initialCapacity * 3).toFixed(0))} TiB`
+        `${(initialCapacity * 3).toFixed(2)} TiB`
       );
       cy.byTestID('add-cap-sc-dropdown', { timeout: 10000 }).should(
         'be.visible'
@@ -112,7 +112,7 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       modal.submit();
       modal.shouldBeClosed();
 
-      cy.clickNavLink(['Operators', 'Installed Operators']);
+      cy.clickNavLink(['Operators', 'Installed Operators']).first();
       cy.byLegacyTestID('item-filter').type('Openshift Data Foundation');
       cy.byTestRows('resource-row').get('td').first().click();
       cy.byLegacyTestID('horizontal-link-Storage System').click();
