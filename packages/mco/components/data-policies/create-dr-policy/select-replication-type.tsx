@@ -162,7 +162,7 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
                     onToggle={() => setReplicationOpen(!isReplicationOpen)}
                     toggleIndicator={CaretDownIcon}
                   >
-                    {state.replication}
+                    {REPLICATION_DISPLAY_TEXT(t)[state.replication]}
                   </DropdownToggle>
                 }
                 isOpen={isReplicationOpen}
