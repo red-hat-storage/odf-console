@@ -7,6 +7,7 @@ export const pvc = {
   ) => {
     cy.byTestID('item-create').click();
     cy.byTestID('storageclass-dropdown').click();
+    cy.wait(5000);
     cy.get(`#${storageClass}-link`).click();
     cy.byTestID('pvc-name').type(name);
     cy.byTestID('pvc-size').type(size);
@@ -14,7 +15,7 @@ export const pvc = {
       cy.byTestID('Block-radio-input').click();
     }
     cy.byTestID('create-pvc').click();
-    cy.contains('Bound');
+    cy.contains('Bound', { timeout: 10000 });
   },
   expandPVC: (expansionSize) => {
     cy.byLegacyTestID('actions-menu-button').click();
