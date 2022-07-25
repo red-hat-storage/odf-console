@@ -148,7 +148,7 @@
       "href": "/odf/cluster"
     },
     "flags": {
-      "required": ["ODF_MODEL"],
+      "required": ["ODF_MODEL", "OCS"],
       "disallowed": ["MCO"]
     }
   },
