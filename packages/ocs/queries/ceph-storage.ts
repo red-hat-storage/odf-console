@@ -134,11 +134,11 @@ export const UTILIZATION_QUERY = {
   [StorageDashboardQuery.CEPH_CAPACITY_USED]:
     'sum(kubelet_volume_stats_used_bytes * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)"}))',
   [StorageDashboardQuery.UTILIZATION_IOPS_READ_QUERY]: {
-    query: 'ceil(sum(rate(ceph_pool_rd[4m])))',
+    query: 'sum(rate(ceph_pool_rd[1m]))',
     desc: 'Reads',
   },
   [StorageDashboardQuery.UTILIZATION_IOPS_WRITE_QUERY]: {
-    query: 'ceil(sum(rate(ceph_pool_wr[4m])))',
+    query: 'sum(rate(ceph_pool_wr[1m]))',
     desc: 'Writes',
   },
   [StorageDashboardQuery.UTILIZATION_LATENCY_READ_QUERY]: {
@@ -150,11 +150,11 @@ export const UTILIZATION_QUERY = {
     desc: 'Writes',
   },
   [StorageDashboardQuery.UTILIZATION_THROUGHPUT_READ_QUERY]: {
-    query: 'sum(rate(ceph_pool_rd_bytes[4m]))',
+    query: 'sum(rate(ceph_pool_rd_bytes[1m]))',
     desc: 'Reads',
   },
   [StorageDashboardQuery.UTILIZATION_THROUGHPUT_WRITE_QUERY]: {
-    query: 'sum(rate(ceph_pool_wr_bytes[4m]))',
+    query: 'sum(rate(ceph_pool_wr_bytes[1m]))',
     desc: 'Writes',
   },
   [StorageDashboardQuery.UTILIZATION_RECOVERY_RATE_QUERY]:
