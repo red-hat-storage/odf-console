@@ -25,14 +25,15 @@ export const getExternalSubSystemName = (
 export const getStorageClassDescription = (
   sc: StorageClassResourceKind
 ): string => {
-  const descriptionList = [sc.provisioner, sc.parameters?.type];
-  return descriptionList.reduce(
-    (description, dl) => {
-      if (dl) return description ? `${description} | ${dl}` : dl;
-      return description;
-    },
-    isDefaultClass(sc) ? '(default)' : ''
-  );
+  const storageClassProperties = [
+    isDefaultClass(sc) ? '(default)' : '',
+    sc.metadata?.annotations?.['description'],
+    sc.metadata?.annotations?.['storage.alpha.openshift.io/access-mode'],
+    sc.provisioner,
+    sc.parameters?.type,
+    sc.parameters?.zone,
+  ];
+  return _.compact(storageClassProperties).join(' | ');
 };
 
 export const getOperatorVersion = (operator: K8sResourceKind): string =>
