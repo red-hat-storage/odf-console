@@ -8,22 +8,16 @@ import type { Configuration as DevServerConfiguration } from 'webpack-dev-server
 
 const LANGUAGES = ['en', 'ja', 'ko', 'zh'];
 const resolveLocale = (dirName: string, ns: string) =>
-  LANGUAGES.reduce(
-    (acc, lang) => [
-      ...acc,
-      {
-        from: path.resolve(dirName, `locales/${lang}/plugin__*.json`),
-        to: `locales/${lang}/${ns}.[ext]`,
-      },
-    ],
-    []
-  );
+  LANGUAGES.map((lang) => ({
+    from: path.resolve(dirName, `locales/${lang}/plugin__*.json`),
+    to: `locales/${lang}/${ns}.[ext]`,
+  }));
 
 const config: webpack.Configuration & DevServerConfiguration = {
   mode: 'development',
   entry: {},
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve('./dist'),
     filename: '[name]-bundle.js',
     chunkFilename: '[name]-chunk.js',
   },
@@ -101,10 +95,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
   plugins: [
     new ConsoleRemotePlugin(),
     new CopyWebpackPlugin({
-      patterns: [...resolveLocale(__dirname, process.env.I8N_NS)],
-    }),
-    new webpack.DefinePlugin({
-      'process.env.MODE': JSON.stringify(process.env.MODE),
+      patterns: [...resolveLocale(__dirname, process.env.I8N_NS || '')],
     }),
     new webpack.DefinePlugin({
       'process.env.I8N_NS': JSON.stringify(process.env.I8N_NS),
