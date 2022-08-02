@@ -45,10 +45,6 @@ export const CEPH_FLAG = 'CEPH';
 // Based on the existence of StorageCluster
 export const OCS_FLAG = 'OCS';
 
-export const MCO_MODE_FLAG = 'MCO';
-
-export const isMCO = process.env.MODE === 'MCO';
-
 export enum FEATURES {
   // Flag names to be prefixed with "OCS_" so as to seperate from console flags
   OCS_MULTUS = 'OCS_MULTUS',
@@ -105,9 +101,6 @@ const setOCSFlagsFalse = (setFlag: SetFeatureFlag) => {
 
 export const setODFFlag = (setFlag: SetFeatureFlag) =>
   setFlag(ODF_MODEL_FLAG, true);
-
-export const setMCOFlag = (setFlag: SetFeatureFlag) =>
-  setFlag(MCO_MODE_FLAG, isMCO);
 
 export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
   let ocsIntervalId = null;

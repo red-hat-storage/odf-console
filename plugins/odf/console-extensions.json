@@ -19,14 +19,6 @@
     "type": "console.flag",
     "properties": {
       "handler": {
-        "$codeRef": "features.setMCOFlag"
-      }
-    }
-  },
-  {
-    "type": "console.flag",
-    "properties": {
-      "handler": {
         "$codeRef": "features.detectOCSSupportedFeatures"
       }
     }
@@ -56,17 +48,6 @@
     }
   },
   {
-    "type": "console.flag/model",
-    "properties": {
-      "model": {
-        "group": "ramendr.openshift.io",
-        "version": "v1alpha1",
-        "kind": "DRPolicy"
-      },
-      "flag": "ODR_MODEL"
-    }
-  },
-  {
     "type": "console.navigation/resource-cluster",
     "properties": {
       "id": "objectbuckets",
@@ -83,7 +64,6 @@
       "required": ["MCG"]
     }
   },
-  /* Activates when RGW is present without MCG */
   {
     "type": "console.navigation/resource-cluster",
     "properties": {
@@ -119,7 +99,6 @@
       "required": ["MCG"]
     }
   },
-  /* Activates when RGW is present without MCG */
   {
     "type": "console.navigation/resource-ns",
     "properties": {
@@ -148,8 +127,7 @@
       "href": "/odf/cluster"
     },
     "flags": {
-      "required": ["ODF_MODEL"],
-      "disallowed": ["MCO"]
+      "required": ["ODF_MODEL"]
     }
   },
   {
@@ -160,8 +138,7 @@
       "component": { "$codeRef": "dashboard.default" }
     },
     "flags": {
-      "required": ["ODF_MODEL"],
-      "disallowed": ["MCO"]
+      "required": ["ODF_MODEL"]
     }
   },
   {
@@ -172,8 +149,7 @@
       "component": { "$codeRef": "dashboard.Reroute" }
     },
     "flags": {
-      "required": ["ODF_MODEL"],
-      "disallowed": ["MCO"]
+      "required": ["ODF_MODEL"]
     }
   },
   {
@@ -184,8 +160,7 @@
       "component": { "$codeRef": "dashboard.RerouteResource" }
     },
     "flags": {
-      "required": ["ODF_MODEL"],
-      "disallowed": ["MCO"]
+      "required": ["ODF_MODEL"]
     }
   },
   {
@@ -200,78 +175,6 @@
     }
   },
   {
-    "type": "console.navigation/section",
-    "properties": {
-      "id": "mco-data-services",
-      "perspective": "acm",
-      "name": "%plugin__odf-plugin~Data Services%",
-      "insertBefore": "acm-applications"
-    },
-    "flags": {
-      "required": ["MCO"]
-    }
-  },
-  {
-    "type": "console.navigation/href",
-    "properties": {
-      "id": "mco-data-policies",
-      "perspective": "acm",
-      "section": "mco-data-services",
-      "name": "%plugin__odf-plugin~Data policies%",
-      "href": "/multicloud/data-services/data-policies"
-    },
-    "flags": {
-      "required": ["MCO", "ODR_MODEL"]
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/multicloud/data-services/data-policies",
-      "exact": true,
-      "component": { "$codeRef": "dataPolicies.DataPoliciesList" }
-    },
-    "flags": {
-      "required": ["MCO"]
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/multicloud/data-services/data-policies/ramendr.openshift.io~v1alpha1~DRPolicy/~new",
-      "exact": true,
-      "component": { "$codeRef": "createDataPolicy.CreateDRPolicy" }
-    },
-    "flags": {
-      "required": ["MCO"]
-    }
-  },
-  {
-    "type": "console.navigation/href",
-    "properties": {
-      "id": "mcodashboard",
-      "perspective": "acm",
-      "insertAfter": "mco-data-policies",
-      "section": "mco-data-services",
-      "name": "%plugin__odf-plugin~Storage System%",
-      "href": "/multicloud/data-services/storagesystem"
-    },
-    "flags": {
-      "required": ["MCO"]
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/multicloud/data-services/storagesystem",
-      "exact": false,
-      "component": { "$codeRef": "mcoDashboard.default" }
-    },
-    "flags": {
-      "required": ["MCO"]
-    }
-  },
-  {
     "type": "console.page/resource/list",
     "properties": {
       "model": {
@@ -280,9 +183,6 @@
         "version": "v1alpha1"
       },
       "component": { "$codeRef": "obc.OBCListPage" }
-    },
-    "flags": {
-      "disallowed": ["MCO"]
     }
   },
   {
@@ -294,9 +194,6 @@
         "version": "v1alpha1"
       },
       "component": { "$codeRef": "obc.OBCDetailsPage" }
-    },
-    "flags": {
-      "disallowed": ["MCO"]
     }
   },
   {
@@ -309,8 +206,7 @@
       }
     },
     "flags": {
-      "required": ["OCS"],
-      "disallowed": ["MCO"]
+      "required": ["OCS"]
     }
   },
   {
@@ -322,9 +218,6 @@
         "version": "v1alpha1"
       },
       "component": { "$codeRef": "ob.OBDetailsPage" }
-    },
-    "flags": {
-      "disallowed": ["MCO"]
     }
   },
   {
@@ -336,9 +229,6 @@
         "version": "v1alpha1"
       },
       "component": { "$codeRef": "ob.ObjectBucketListPage" }
-    },
-    "flags": {
-      "disallowed": ["MCO"]
     }
   },
   {
@@ -359,9 +249,6 @@
       "component": {
         "$codeRef": "blockPoolDetailsPage.default"
       }
-    },
-    "flags": {
-      "disallowed": ["MCO"]
     }
   },
   {
@@ -432,9 +319,6 @@
       "component": {
         "$codeRef": "ocs.default"
       }
-    },
-    "flags": {
-      "disallowed": ["MCO"]
     }
   },
   {
