@@ -1,0 +1,15 @@
+{
+  "name": "odf-multicluster-console",
+  "version": "0.0.0",
+  "displayName": "ODF MCO(ODF Multicluster Orchestartor) Plugin",
+  "description": "Console plugin for ODF and DR",
+  "dependencies": {
+    "@console/pluginAPI": "*"
+  },
+  "exposedModules": {
+    "dataPolicies": "@odf/mco/components/data-policies/data-policies-list",
+    "createDataPolicy": "@odf/mco/components/data-policies/create-dr-policy/create-dr-policy",
+    "mcoDashboard": "@odf/mco/components/mco-dashboard/dashboard",
+    "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor"
+  }
+}
