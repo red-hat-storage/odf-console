@@ -80,7 +80,7 @@ export const StatusCard: React.FC = () => {
           const storageSystem = systems.find(
             (system) => system.metadata.name === systemName
           );
-          const { apiGroup } = getGVK(storageSystem.spec.kind);
+          const { apiGroup } = getGVK(storageSystem?.spec.kind);
           const systemData =
             apiGroup === OCSStorageClusterModel.apiGroup
               ? {
