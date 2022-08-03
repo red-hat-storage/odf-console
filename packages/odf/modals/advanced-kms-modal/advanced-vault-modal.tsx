@@ -221,26 +221,24 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
             name="kms-service-tls"
           />
         </FormGroup>
-        {kms.authMethod === VaultAuthMethods.TOKEN && (
-          <FormGroup
-            fieldId="kms-service-namespace"
-            label={t('Vault Enterprise Namespace')}
-            className="ceph-advanced-kms__form-body"
-            labelIcon={<FieldLevelHelp>{vaultNamespaceTooltip}</FieldLevelHelp>}
-            helperText={t(
-              'The name must be accurate and must match the service namespace'
-            )}
-          >
-            <TextInput
-              value={providerNS}
-              onChange={setProvideNS}
-              type="text"
-              id="kms-service-namespace"
-              name="kms-service-namespace"
-              placeholder="kms-namespace"
-            />
-          </FormGroup>
-        )}
+        <FormGroup
+          fieldId="kms-service-namespace"
+          label={t('Vault Enterprise Namespace')}
+          className="ceph-advanced-kms__form-body"
+          labelIcon={<FieldLevelHelp>{vaultNamespaceTooltip}</FieldLevelHelp>}
+          helperText={t(
+            'The name must be accurate and must match the service namespace'
+          )}
+        >
+          <TextInput
+            value={providerNS}
+            onChange={setProvideNS}
+            type="text"
+            id="kms-service-namespace"
+            name="kms-service-namespace"
+            placeholder="kms-namespace"
+          />
+        </FormGroup>
         <FormGroup
           fieldId="kms-service-ca-cert"
           label={t('CA Certificate')}
