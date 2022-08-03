@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { secretResource } from '@odf/core/resources';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKLabel } from '@odf/shared/utils';
@@ -27,6 +28,7 @@ import {
   createExternalSubSystem,
   createStorageCluster,
   createStorageSystem,
+  deleteSecret,
   labelNodes,
   waitforCRD,
   taintNodes,
@@ -169,6 +171,7 @@ const handleReviewAndCreateNext = async (
         storageClass.name
       );
 
+      await deleteSecret(secretResource.name);
       await createStorageSystem(subSystemName, subSystemKind);
       if (!hasOCS && !isRhcs) {
         await labelNodes(nodes);

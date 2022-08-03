@@ -4,11 +4,19 @@ import {
 } from '@odf/core/components/utils';
 import { Payload, DeploymentType } from '@odf/core/types';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
-import { CustomResourceDefinitionModel, NodeModel } from '@odf/shared/models';
+import {
+  CustomResourceDefinitionModel,
+  NodeModel,
+  SecretModel,
+} from '@odf/shared/models';
 import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
 import { K8sResourceKind, Patch, StorageSystemKind } from '@odf/shared/types';
 import { getAPIVersionForModel, k8sPatchByName } from '@odf/shared/utils';
-import { k8sCreate, k8sGet } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  k8sCreate,
+  k8sGet,
+  k8sDelete,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
 import {
@@ -19,6 +27,26 @@ import {
 } from '../../constants';
 import { ValidationType } from '../utils/common-odf-install-el';
 import { WizardNodeState, WizardState } from './reducer';
+
+export const deleteSecret = async (secretName: string) => {
+  await k8sGet({
+    model: SecretModel,
+    name: secretName,
+    ns: CEPH_STORAGE_NAMESPACE,
+  })
+    .then((resource) => {
+      k8sDelete({
+        model: SecretModel,
+        resource,
+      });
+    })
+    .catch((e) => {
+      // No action required if there is no secret found with same name
+      if (e?.response?.status !== 404) {
+        throw e;
+      }
+    });
+};
 
 export const createStorageSystem = async (
   subSystemName: string,
