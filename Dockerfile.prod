@@ -8,12 +8,12 @@ RUN git fetch origin ${TARGET_BRANCH} && git checkout origin/${TARGET_BRANCH}
 
 RUN yarn install --prod=false
 RUN yarn build
-RUN mv ./dist ../app
+RUN mv ./plugins/odf/dist ../app
 
 RUN git fetch origin ${TARGET_BRANCH}-compatibility && git checkout origin/${TARGET_BRANCH}-compatibility
 RUN yarn install
 RUN yarn build
-RUN mv ./dist ../compatibility
+RUN mv ./plugins/odf/dist ../compatibility
 
 FROM registry.access.redhat.com/ubi8/nginx-118
 ADD default.conf "${NGINX_CONFIGURATION_PATH}"

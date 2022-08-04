@@ -1,0 +1,27 @@
+{
+  "name": "odf-console",
+  "version": "0.0.0",
+  "displayName": "ODF(OpenShift Data Foundation) Plugin",
+  "description": "Console plugin for ODF",
+  "dependencies": {
+    "@console/pluginAPI": "*"
+  },
+  "exposedModules": {
+    "dashboard": "@odf/core/components/odf-dashboard/dashboard",
+    "features": "@odf/core/features",
+    "wizard": "@odf/core/components/create-storage-system/create-storage-system",
+    "obc": "@odf/core/components/mcg/ObjectBucketClaim",
+    "createOBC": "@odf/core/components/mcg/CreateObjectBucketClaim",
+    "ob": "@odf/core/components/mcg/ObjectBucket",
+    "ocs": "@odf/ocs/dashboards/odf-system-dashboard",
+    "blockPoolDetailsPage": "@odf/ocs/block-pool/BlockPoolDetailsPage",
+    "createBlockPools": "@odf/ocs/block-pool/CreateBlockPool",
+    "bsCreate": "@odf/core/components/create-bs/create-bs-page",
+    "nsCreate": "@odf/core/components/namespace-store/create-namespace-store",
+    "bcCreate": "@odf/core/components/bucket-class/create-bc",
+    "bsDetails": "@odf/core/components/resource-pages/BackingStoreDetailsPage",
+    "bcDetails": "@odf/core/components/resource-pages/BucketClassDetailsPage",
+    "nsDetails": "@odf/core/components/resource-pages/NamespaceStoreDetailsPage",
+    "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor"
+  }
+}

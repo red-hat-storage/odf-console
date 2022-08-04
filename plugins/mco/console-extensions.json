@@ -1,0 +1,83 @@
+[
+  {
+    "type": "console.flag/model",
+    "properties": {
+      "model": {
+        "group": "ramendr.openshift.io",
+        "version": "v1alpha1",
+        "kind": "DRPolicy"
+      },
+      "flag": "ODR_MODEL"
+    }
+  },
+  {
+    "type": "console.navigation/section",
+    "properties": {
+      "id": "mco-data-services",
+      "perspective": "acm",
+      "name": "%plugin__odf-multicluster-console~Data Services%",
+      "insertBefore": "acm-applications"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "mco-data-policies",
+      "perspective": "acm",
+      "section": "mco-data-services",
+      "name": "%plugin__odf-multicluster-console~Data policies%",
+      "href": "/multicloud/data-services/data-policies"
+    },
+    "flags": {
+      "required": ["ODR_MODEL"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/multicloud/data-services/data-policies",
+      "exact": true,
+      "component": { "$codeRef": "dataPolicies.DataPoliciesList" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/multicloud/data-services/data-policies/ramendr.openshift.io~v1alpha1~DRPolicy/~new",
+      "exact": true,
+      "component": { "$codeRef": "createDataPolicy.CreateDRPolicy" }
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "mcodashboard",
+      "perspective": "acm",
+      "insertAfter": "mco-data-policies",
+      "section": "mco-data-services",
+      "name": "%plugin__odf-plugin~Storage System%",
+      "href": "/multicloud/data-services/storagesystem"
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/multicloud/data-services/storagesystem",
+      "exact": false,
+      "component": { "$codeRef": "mcoDashboard.default" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": [
+        "/odf/edit/:cluster/ns/:namespace/:kind/:name/yaml",
+        "/odf/edit/:cluster/cluster/:kind/:name/yaml"
+      ],
+      "exact": true,
+      "component": {
+        "$codeRef": "editPage.default"
+      }
+    }
+  }
+]
