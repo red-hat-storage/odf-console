@@ -2,3 +2,9 @@ node_modules
 dist
 .cache-loader
 cypress/cypress-a11y-report.json
+plugins/odf/package.json
+plugins/odf/dist
+plugins/odf/.cache-loader
+plugins/mco/package.json
+plugins/mco/dist
+plugins/mco/.cache-loader

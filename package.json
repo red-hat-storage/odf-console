@@ -1,7 +1,7 @@
 {
-  "name": "odf-console",
+  "name": "odf-plugin",
   "version": "0.0.0",
-  "description": "ODF console",
+  "description": "ODF plugin",
   "license": "MIT",
   "private": true,
   "workspaces": [
@@ -9,17 +9,21 @@
   ],
   "repository": "git@github.com:red-hat-storage/odf-console.git",
   "scripts": {
-    "clean": "rm -rf ./dist",
+    "clean": "yarn clean-mco && yarn clean-odf",
+    "clean-mco": "cd plugins/mco && rm -rf ./dist",
+    "clean-odf": "cd plugins/odf && rm -rf ./dist",
     "cypress-merge": "mochawesome-merge ./gui-test-screenshots/cypress_report*.json > ./gui-test-screenshots/cypress.json",
     "cypress-generate": "marge -o ./gui-test-screenshots/ -f cypress-report -t 'OpenShift Console Cypress Test Results' -p 'OpenShift Cypress Test Results' --showPassed false --assetsDir ./gui-test-screenshots/cypress/assets ./gui-test-screenshots/cypress.json",
     "cypress-postreport": "yarn cypress-merge && yarn cypress-generate",
     "test-cypress": "node_modules/.bin/cypress open --config-file ./cypress/cypress.json --env openshift=true",
     "test-cypress-headless": "node --max-old-space-size=4096 node_modules/.bin/cypress run --config-file ./cypress/cypress.json --env openshift=true --browser ${BRIDGE_E2E_BROWSER_NAME:=chrome} --headless",
-    "build": "yarn clean && NODE_ENV=production I8N_NS=plugin__odf-console yarn ts-node ./node_modules/.bin/webpack",
-    "build-mco": "yarn clean && NODE_ENV=production MODE=MCO I8N_NS=plugin__odf-multicluster-console yarn ts-node ./node_modules/.bin/webpack",
-    "build-dev": "yarn clean && yarn ts-node ./node_modules/.bin/webpack",
-    "dev": "yarn clean &&  I8N_NS=plugin__odf-console yarn ts-node ./node_modules/.bin/webpack serve --progress",
-    "dev-mco": "yarn clean && MODE=MCO I8N_NS=plugin__odf-multicluster-console yarn ts-node ./node_modules/.bin/webpack serve",
+    "build:plugin": "yarn clean-${PLUGIN} && cd plugins/${PLUGIN} && ts-node ../../scripts/generatePluginPackage.ts && NODE_ENV=${NODE_ENV} I8N_NS=${I8N_NS} yarn ts-node ../../node_modules/.bin/webpack -c ../../webpack.config.ts",
+    "build": "NODE_ENV=production PLUGIN=odf I8N_NS=plugin__odf-console yarn build:plugin",
+    "build-mco": "NODE_ENV=production PLUGIN=mco I8N_NS=plugin__odf-multicluster-console yarn build:plugin",
+    "build-dev": "NODE_ENV=development PLUGIN=odf I8N_NS=plugin__odf-console yarn build:plugin",
+    "server:plugin": "yarn clean-${PLUGIN} && cd plugins/${PLUGIN} && ts-node ../../scripts/generatePluginPackage.ts && NODE_ENV=development I8N_NS=${I8N_NS} yarn ts-node ../../node_modules/.bin/webpack serve -c ../../webpack.config.ts --progress",
+    "dev": "PLUGIN=odf I8N_NS=plugin__odf-console yarn server:plugin",
+    "dev-mco": "PLUGIN=mco I8N_NS=plugin__odf-multicluster-console yarn server:plugin",
     "http-server": "./http-server.sh ./dist",
     "ts-node": "ts-node -O '{\"module\":\"commonjs\"}' -I '/node_modules/(?!(@odf)/)/'",
     "lint-css": "yarn stylelint packages/**/**/*.scss",
@@ -113,35 +117,5 @@
     "webpack": "5.64.4",
     "webpack-cli": "4.5.x",
     "webpack-dev-server": "^4.9.2"
-  },
-  "consolePlugin": {
-    "name": "odf-console",
-    "version": "0.0.0",
-    "displayName": "ODF(OpenShift Data Foundation) Plugin",
-    "description": "Console plugin for ODF",
-    "dependencies": {
-      "@console/pluginAPI": "*"
-    },
-    "exposedModules": {
-      "dashboard": "@odf/core/components/odf-dashboard/dashboard",
-      "features": "@odf/core/features",
-      "wizard": "@odf/core/components/create-storage-system/create-storage-system",
-      "dataPolicies": "@odf/mco/components/data-policies/data-policies-list",
-      "createDataPolicy": "@odf/mco/components/data-policies/create-dr-policy/create-dr-policy",
-      "obc": "@odf/core/components/mcg/ObjectBucketClaim",
-      "createOBC": "@odf/core/components/mcg/CreateObjectBucketClaim",
-      "ob": "@odf/core/components/mcg/ObjectBucket",
-      "ocs": "@odf/ocs/dashboards/odf-system-dashboard",
-      "blockPoolDetailsPage": "@odf/ocs/block-pool/BlockPoolDetailsPage",
-      "createBlockPools": "@odf/ocs/block-pool/CreateBlockPool",
-      "bsCreate": "@odf/core/components/create-bs/create-bs-page",
-      "mcoDashboard": "@odf/mco/components/mco-dashboard/dashboard",
-      "nsCreate": "@odf/core/components/namespace-store/create-namespace-store",
-      "bcCreate": "@odf/core/components/bucket-class/create-bc",
-      "bsDetails": "@odf/core/components/resource-pages/BackingStoreDetailsPage",
-      "bcDetails": "@odf/core/components/resource-pages/BucketClassDetailsPage",
-      "nsDetails": "@odf/core/components/resource-pages/NamespaceStoreDetailsPage",
-      "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor"
-    }
   }
 }
