@@ -103,8 +103,8 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
             title={t('System name')}
             isLoading={!systemResult || !dashboardLinkResult}
             error={
-              systemLoadError ||
-              dashboardLinkLoadError ||
+              systemLoadError?.message ||
+              dashboardLinkLoadError?.message ||
               !systemName ||
               !systemLink
             }
@@ -124,7 +124,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
           <DetailItem
             key="provider"
             title={t('Provider')}
-            error={infrastructureError}
+            error={infrastructureError?.message}
             isLoading={!infrastructureLoaded}
           >
             {infrastructurePlatform}
@@ -133,7 +133,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
             key="version"
             title={t('Version')}
             isLoading={!subscriptionLoaded}
-            error={subscriptionLoadError}
+            error={subscriptionLoadError?.message}
           >
             {serviceVersion}
           </DetailItem>

@@ -458,15 +458,8 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
     listPagePath,
   ]);
 
-  const loaded =
-    blockPoolsLoaded &&
-    (cephLoaded || scLoaded || !compressionLoading || !rawCapLoading);
-  const error =
-    cephError ||
-    scError ||
-    blockPoolsError ||
-    compressionLoadError ||
-    rawCapLoadError;
+  const loaded = blockPoolsLoaded && (cephLoaded || scLoaded);
+  const error = cephError || scError || blockPoolsError;
 
   const [data, filteredData, onFilterChange] = useListPageFilter(blockPools);
 
