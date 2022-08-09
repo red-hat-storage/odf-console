@@ -1,7 +1,13 @@
 import { Colors, COLORMAP } from '@odf/shared/dashboards/breakdown-card/consts';
 import { DataPoint } from '@odf/shared/utils';
-import { Alert, Humanize } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Alert,
+  Humanize,
+  PrometheusRule,
+  Rule,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
+import { murmur3 } from 'murmurhash-js';
 
 export const getStackChartStats: GetStackStats = (
   response,
@@ -51,19 +57,52 @@ export const filterCephAlerts = (alerts: Alert[]): Alert[] => {
 };
 
 export const filterNooBaaAlerts = (alerts: Alert[]): Alert[] =>
-  alerts.filter(
+  alerts?.filter(
     (alert) => _.get(alert, 'annotations.storage_type') === 'NooBaa'
   );
 
 export const filterRGWAlerts = (alerts: Alert[]): Alert[] =>
-  alerts.filter((alert) => alert?.annotations?.storage_type === 'RGW');
+  alerts?.filter((alert) => alert?.annotations?.storage_type === 'RGW');
 
-export const getAlertsFromRules = (rules) => {
-  let temp = [];
-  rules.forEach((r) => {
-    r.rules.forEach((rule) => {
-      temp = [...temp, ...(rule.alerts || [])];
-    });
+type Group = {
+  rules: PrometheusRule[];
+  file: string;
+  name: string;
+};
+
+export type PrometheusRulesResponse = {
+  data: {
+    groups: Group[];
+  };
+  status: string;
+};
+
+export const getAlertsAndRules = (
+  data: PrometheusRulesResponse
+): { alerts: Alert[]; rules: Rule[] } => {
+  // Flatten the rules data to make it easier to work with, discard non-alerting rules since those
+  // are the only ones we will be using and add a unique ID to each rule.
+  const groups = data?.data?.groups;
+  const rules = _.flatMap(groups, (g) => {
+    const addID = (r: PrometheusRule): Rule => {
+      const key = [
+        g.file,
+        g.name,
+        r.name,
+        r.duration,
+        r.query,
+        ..._.map(r.labels, (k, v) => `${k}=${v}`),
+      ].join(',');
+      return { ...r, id: String(murmur3(key, 'monitoring-salt')) };
+    };
+
+    return _.filter(g.rules, { type: 'alerting' }).map(addID);
   });
-  return temp;
+
+  // Add `rule` object to each alert
+  const alerts = _.flatMap(rules, (rule) =>
+    rule.alerts.map((a) => ({ rule, ...a }))
+  );
+
+  return { alerts, rules };
 };
