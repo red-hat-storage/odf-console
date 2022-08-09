@@ -32,8 +32,7 @@ import {
 } from '@patternfly/react-core';
 import { CephClusterModel } from '../../../models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
-import { getAlertsFromRules } from '../../../utils';
-import { filterCephAlerts } from '../../../utils/metrics';
+import { filterCephAlerts, getAlertsAndRules } from '../../../utils/metrics';
 import { getCephHealthState, getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
 import './healthchecks.scss';
@@ -43,15 +42,15 @@ const resiliencyProgressQuery =
 
 export const CephAlerts: React.FC = () => {
   const [data, loaded, error] = useAlerts();
-  const alerts = data
-    ? filterCephAlerts(getAlertsFromRules(data?.data?.groups))
-    : [];
+  const { alerts } = getAlertsAndRules(data);
+  const filteredAlerts =
+    loaded && !error && !_.isEmpty(alerts) ? filterCephAlerts(alerts) : [];
 
   return (
     <AlertsBody error={!_.isEmpty(error)}>
       {loaded &&
-        alerts.length > 0 &&
-        alerts.map((alert) => (
+        filteredAlerts.length > 0 &&
+        filteredAlerts?.map((alert) => (
           <AlertItem
             key={alertURL(alert, alert?.rule?.id)}
             alert={alert as any}
