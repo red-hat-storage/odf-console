@@ -38,10 +38,10 @@ import {
   ObjectServiceDashboardQuery,
 } from '../../../queries';
 import {
-  getAlertsFromRules,
   filterNooBaaAlerts,
   filterRGWAlerts,
   decodeRGWPrefix,
+  getAlertsAndRules,
 } from '../../../utils';
 import { ObjectServiceStatus } from './object-service-health';
 import { getNooBaaState, getRGWHealthState } from './statuses';
@@ -59,18 +59,17 @@ const cephObjectStoreResource = {
 
 const ObjectStorageAlerts = () => {
   const [data, loaded, loadError] = useAlerts();
-  const alerts = data
-    ? [
-        ...filterNooBaaAlerts(getAlertsFromRules(data?.data?.groups)),
-        ...filterRGWAlerts(getAlertsFromRules(data?.data?.groups)),
-      ]
-    : [];
+  const { alerts } = getAlertsAndRules(data);
+  const filteredAlerts =
+    loaded && !loadError && !_.isEmpty(alerts)
+      ? [...filterNooBaaAlerts(alerts), ...filterRGWAlerts(alerts)]
+      : [];
 
   return (
     <AlertsBody error={!_.isEmpty(loadError)}>
       {loaded &&
-        alerts.length > 0 &&
-        alerts.map((alert) => (
+        filteredAlerts.length > 0 &&
+        filteredAlerts.map((alert) => (
           <AlertItem
             key={alertURL(alert, alert?.rule?.id)}
             alert={alert as any}
