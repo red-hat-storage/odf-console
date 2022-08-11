@@ -28,8 +28,7 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import * as _ from 'lodash';
-import { useTranslation } from 'react-i18next';
+import * as _ from 'lodash-es';
 import { RouteComponentProps } from 'react-router';
 import { sortable } from '@patternfly/react-table';
 import { ATTACH_DEPLOYMENT } from '../../constants';
@@ -174,8 +173,7 @@ const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
   activeColumnIDs,
   rowData: { launchModal, namespace },
 }) => {
-  const { t } = useTranslation();
-
+  const { t } = useCustomTranslation();
   const storageClassName = _.get(obj, 'spec.storageClassName');
   return (
     <>
@@ -224,7 +222,7 @@ const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
               value: t('Attach to Deployment'),
             },
           ]}
-          hoverMessage={t(
+          terminatingTooltip={t(
             'Disabled because the ObjectBucketClaim is being deleted.'
           )}
         />
