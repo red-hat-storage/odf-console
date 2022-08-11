@@ -4,10 +4,16 @@ const useRefWidth = () => {
   const ref = React.useRef<HTMLDivElement>(null);
   const [width, setWidth] = React.useState<number>();
 
-  const clientWidth = ref?.current?.clientWidth;
+  const setRef = React.useCallback((e: HTMLDivElement) => {
+    const newWidth = e?.clientWidth;
+    newWidth &&
+      ref.current?.clientWidth !== newWidth &&
+      setWidth(e.clientWidth);
+    ref.current = e;
+  }, []);
 
   React.useEffect(() => {
-    const handleResize = () => setWidth(ref?.current?.clientWidth);
+    const handleResize = () => setWidth(ref.current?.clientWidth);
     window.addEventListener('resize', handleResize);
     window.addEventListener('sidebar_toggle', handleResize);
     return () => {
@@ -16,12 +22,13 @@ const useRefWidth = () => {
     };
   }, []);
 
-  React.useEffect(() => {
-    setWidth(clientWidth);
-  }, [clientWidth]);
+  const clientWidth = ref.current?.clientWidth;
 
-  // eslint-disable-next-line no-undef
-  return [ref, width] as [React.MutableRefObject<HTMLDivElement>, number];
+  React.useEffect(() => {
+    width !== clientWidth && setWidth(clientWidth);
+  }, [clientWidth, width]);
+
+  return [setRef, width] as [React.Ref<HTMLDivElement>, number];
 };
 
 export default useRefWidth;
