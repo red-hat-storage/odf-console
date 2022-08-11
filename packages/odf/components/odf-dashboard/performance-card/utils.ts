@@ -17,6 +17,7 @@ type DataFrame = {
   throughputData: LineGraphProps;
   latencyData: LineGraphProps;
   className?: string;
+  width?: number;
 };
 const getDatForSystem = (
   promData: PrometheusResponse,
@@ -39,7 +40,8 @@ export const generateDataFrames = (
   systems: StorageSystemKind[],
   ld: PrometheusResponse,
   td: PrometheusResponse,
-  id: PrometheusResponse
+  id: PrometheusResponse,
+  width?: number
 ): DataFrame[] => {
   if (_.isEmpty(systems) || !ld || !td || !id) {
     return [] as DataFrame[];
@@ -59,6 +61,7 @@ export const generateDataFrames = (
       latencyData: {
         data: getDatForSystem(ld, curr, humanizeLatency),
       },
+      ...(width && { width }),
     };
     acc.push(frame);
     return acc;
