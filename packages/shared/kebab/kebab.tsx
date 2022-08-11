@@ -2,6 +2,7 @@ import * as React from 'react';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { TFunction } from 'i18next';
+import * as _ from 'lodash-es';
 import { useHistory } from 'react-router';
 import {
   Dropdown,
@@ -40,7 +41,7 @@ type KebabProps = {
   customActionMap?: {
     [key: string]: () => void;
   };
-  hoverMessage?: React.ReactNode;
+  terminatingTooltip?: React.ReactNode;
 };
 
 const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
@@ -89,7 +90,7 @@ export const Kebab: React.FC<KebabProps> = ({
   toggleType = 'Kebab',
   isDisabled,
   customActionMap,
-  hoverMessage,
+  terminatingTooltip,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -198,6 +199,8 @@ export const Kebab: React.FC<KebabProps> = ({
     return [...customItems, ...deafultItems];
   }, [t, customKebabItemsMap, resourceLabel]);
 
+  isDisabled = isDisabled ?? _.has(resource.metadata, 'deletionTimestamp');
+
   const toggle = React.useMemo(() => {
     const onToggle = (_, e) => {
       eventRef.current = e;
@@ -216,12 +219,13 @@ export const Kebab: React.FC<KebabProps> = ({
     );
   }, [setOpen, toggleType, isDisabled]);
 
+  const content = _.has(resource.metadata, 'deletionTimestamp')
+    ? terminatingTooltip || t('Resource is being deleted.')
+    : '';
   return (
     <Tooltip
-      content={
-        hoverMessage ? hoverMessage : t('Resource is being deleted.')
-      } /* hoverMessage is only visible when kebab is disabled, i.e., when its associated resource is being deleted */
-      trigger={'mouseenter'}
+      content={content}
+      trigger={isDisabled && content ? 'mouseenter' : 'manual'}
     >
       <Dropdown
         data-test="kebab-button"
