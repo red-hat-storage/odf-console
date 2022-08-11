@@ -314,24 +314,44 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
         {isCompressionEnabled ? compressionSavings : '-'}
       </TableData>
       <TableData {...tableColumnInfo[9]} activeColumnIDs={activeColumnIDs}>
-        <Kebab
-          hoverMessage={
-            isDefaultPool(obj) ? t('Default pool cannot be deleted.') : ''
-          }
-          launchModal={launchModal}
-          extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
-          isDisabled={disableMenuAction(obj, cephCluster)}
-          customKebabItems={(t) => [
-            {
-              key: ModalKeys.EDIT_RES,
-              value: t('Edit BlockPool'),
-            },
-            {
-              key: ModalKeys.DELETE,
-              value: t('Delete BlockPool'),
-            },
-          ]}
-        />
+        {isDefaultPool(obj) ? (
+          <Tooltip
+            content={t('Default pool cannot be deleted.')}
+            trigger={'mouseenter'}
+          >
+            <Kebab
+              launchModal={launchModal}
+              extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
+              isDisabled={disableMenuAction(obj, cephCluster)}
+              customKebabItems={(t) => [
+                {
+                  key: ModalKeys.EDIT_RES,
+                  value: t('Edit BlockPool'),
+                },
+                {
+                  key: ModalKeys.DELETE,
+                  value: t('Delete BlockPool'),
+                },
+              ]}
+            />
+          </Tooltip>
+        ) : (
+          <Kebab
+            launchModal={launchModal}
+            extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
+            isDisabled={disableMenuAction(obj, cephCluster)}
+            customKebabItems={(t) => [
+              {
+                key: ModalKeys.EDIT_RES,
+                value: t('Edit BlockPool'),
+              },
+              {
+                key: ModalKeys.DELETE,
+                value: t('Delete BlockPool'),
+              },
+            ]}
+          />
+        )}
       </TableData>
     </>
   );
