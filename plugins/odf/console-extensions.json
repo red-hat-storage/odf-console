@@ -361,5 +361,14 @@
         "$codeRef": "activityResource.k8sResource"
       }
     }
+  },
+  {
+    "type": "console.storage-provider",
+    "properties": {
+      "name": "ObjectBucketClaim",
+      "Component": {
+        "$codeRef": "storageProvider"
+      }
+    }
   }
 ]
