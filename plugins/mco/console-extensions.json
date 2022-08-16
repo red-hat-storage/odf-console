@@ -88,5 +88,37 @@
         "$codeRef": "dataPoliciesStatusPopover.DataPoliciesStatusPopover"
       }
     }
+  },
+  {
+    "type": "acm.application/action",
+    "properties": {
+      "id": "failover",
+      "title": "%plugin__acm~Failover application%",
+      "model": [
+        {
+          "apiVersion": "app.k8s.io/v1beta1",
+          "kind": "Application"
+        }
+      ],
+      "component": {
+        "$codeRef": "failoverRelocateModal.FailoverModal"
+      }
+    }
+  },
+  {
+    "type": "acm.application/action",
+    "properties": {
+      "id": "relocate",
+      "title": "%plugin__acm~Relocate application%",
+      "model": [
+        {
+          "apiVersion": "app.k8s.io/v1beta1",
+          "kind": "Application"
+        }
+      ],
+      "component": {
+        "$codeRef": "failoverRelocateModal.RelocateModal"
+      }
+    }
   }
 ]

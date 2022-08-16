@@ -6,7 +6,7 @@ import {
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { DR_SECHEDULER_NAME } from '../constants';
-import { ODF_MINIMUM_SUPPORT } from '../constants/dr-policy';
+import { ODF_MINIMUM_SUPPORT, REPLICATION_TYPE } from '../constants/dr-policy';
 import { ACMPlacementRuleModel } from '../models';
 import {
   ACMSubscriptionKind,
@@ -88,8 +88,7 @@ export const getFilteredDRPlacementRuleNames = (
   );
 
 export const isPlacementRuleModel = (subscription: ACMSubscriptionKind) =>
-  subscription?.spec?.placement?.placementRef?.kind ===
-  ACMPlacementRuleModel?.kind;
+  getPlacementKind(subscription) === ACMPlacementRuleModel?.kind;
 
 export const getFilterDRSubscriptions = (
   application: ApplicationKind,
@@ -121,3 +120,15 @@ export const getDRPolicyName = (drpc: DRPlacementControlKind) =>
 
 export const getDRPoliciesCount = (drPolicies: DRPolicyMap) =>
   Object.keys(drPolicies || {})?.length;
+
+export const getReplicationType = (schedulingInterval: string) =>
+  schedulingInterval !== '0m' ? REPLICATION_TYPE.ASYNC : REPLICATION_TYPE.SYNC;
+
+export const getPlacementKind = (subscription: ACMSubscriptionKind) =>
+  subscription?.spec?.placement?.placementRef?.kind;
+
+export const findPeerCondition = (drPolicyControl: DRPlacementControlKind) =>
+  drPolicyControl?.status?.conditions.find(
+    (condition) =>
+      condition?.type === 'PeerReady' && condition?.status === 'True'
+  );

@@ -12,6 +12,18 @@ export const DRPolicyModel: K8sModel = {
   crd: true,
 };
 
+export const DRClusterModel: K8sModel = {
+  label: 'DR Cluster',
+  labelPlural: 'DR Clusters',
+  apiVersion: 'v1alpha1',
+  apiGroup: 'ramendr.openshift.io',
+  plural: 'drclusters',
+  abbr: 'DRC',
+  namespaced: false,
+  kind: 'DRCluster',
+  crd: true,
+};
+
 export const ACMManagedClusterModel: K8sModel = {
   apiVersion: 'v1',
   apiGroup: 'cluster.open-cluster-management.io',
