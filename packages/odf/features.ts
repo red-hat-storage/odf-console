@@ -1,11 +1,13 @@
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import {
+  ODFStorageSystem,
   OCSStorageClusterModel,
   StorageClassModel,
   NamespaceModel,
   CephClusterModel,
   ClusterServiceVersionModel,
 } from '@odf/shared/models';
+import { SelfSubjectAccessReviewModel } from '@odf/shared/models';
 import { getAnnotations, getName } from '@odf/shared/selectors';
 import {
   ListKind,
@@ -17,7 +19,9 @@ import {
   SetFeatureFlag,
   k8sGet,
   k8sList,
+  k8sCreate,
   K8sResourceCommon,
+  SelfSubjectAccessReviewKind,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import {
@@ -31,19 +35,16 @@ import {
 } from './constants';
 import { NooBaaSystemModel } from './models';
 
-export const ODF_MODEL_FLAG = 'ODF_MODEL';
-export const OCS_INDEPENDENT_FLAG = 'OCS_INDEPENDENT';
-export const OCS_CONVERGED_FLAG = 'OCS_CONVERGED';
-export const ODF_MANAGED_FLAG = 'ODF_MANAGED';
-export const LSO_FLAG = 'LSO';
-export const RGW_FLAG = 'RGW';
-export const MCG_STANDALONE = 'MCG_STANDALONE';
-// Based on the existence of NooBaaSystem
-export const MCG_FLAG = 'MCG';
-// Based on the existence of CephCluster
-export const CEPH_FLAG = 'CEPH';
-// Based on the existence of StorageCluster
-export const OCS_FLAG = 'OCS';
+export const ODF_MODEL_FLAG = 'ODF_MODEL'; // Based on the existence of StorageSystem CRD
+export const OCS_INDEPENDENT_FLAG = 'OCS_INDEPENDENT'; // Set to "true" if it is external mode StorageCluster
+export const OCS_CONVERGED_FLAG = 'OCS_CONVERGED'; // Set to "true" if it is internal mode StorageCluster
+export const ODF_MANAGED_FLAG = 'ODF_MANAGED'; // Set to "true" if we are using ODF managed services
+export const RGW_FLAG = 'RGW'; // Based on the existence of StorageClass with RGW provisioner ("openshift-storage.ceph.rook.io/bucket")
+export const MCG_STANDALONE = 'MCG_STANDALONE'; // Based on the existence of NooBaa only system (no Ceph)
+export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaaSystem
+export const CEPH_FLAG = 'CEPH'; // Based on the existence of CephCluster
+export const OCS_FLAG = 'OCS'; // Based on the existence of StorageCluster
+export const ODF_ADMIN = 'ODF_ADMIN'; // Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
 
 export enum FEATURES {
   // Flag names to be prefixed with "OCS_" so as to seperate from console flags
@@ -91,6 +92,19 @@ export const ODF_BLOCK_FLAG = {
   [FEATURES.ODF_DASHBOARD]: 'odf-dashboard',
   [FEATURES.COMMON_FLAG]: 'common',
 };
+
+// Check the user's access to some resources.
+const ssarChecks = [
+  {
+    flag: ODF_ADMIN,
+    resourceAttributes: {
+      group: ODFStorageSystem.apiGroup,
+      resource: ODFStorageSystem.plural,
+      verb: 'list',
+      namespace: CEPH_STORAGE_NAMESPACE,
+    },
+  },
+];
 
 const setOCSFlagsFalse = (setFlag: SetFeatureFlag) => {
   setFlag(OCS_FLAG, false);
@@ -148,7 +162,8 @@ const handleError = (
   res: any,
   flags: string[],
   setFlag: SetFeatureFlag,
-  cb: FeatureDetector
+  cb: FeatureDetector,
+  duration = 15000
 ) => {
   if (res?.response instanceof Response) {
     const status = res?.response?.status;
@@ -158,7 +173,7 @@ const handleError = (
       });
     }
     if (!_.includes([401, 403, 500], status)) {
-      setTimeout(() => cb(setFlag), 15000);
+      setTimeout(() => cb(setFlag), duration);
     }
   } else {
     flags.forEach((feature) => {
@@ -227,8 +242,32 @@ export const detectManagedODF: FeatureDetector = async (
       setFlag(ODF_MANAGED_FLAG, !!isManagedCluster);
     }
   } catch (error) {
-    setFlag(ODF_MANAGED_FLAG, false);
+    handleError(error, [ODF_MANAGED_FLAG], setFlag, detectManagedODF);
   }
+};
+
+export const detectSSAR = (setFlag: SetFeatureFlag) => {
+  const ssar = {
+    apiVersion: 'authorization.k8s.io/v1',
+    kind: 'SelfSubjectAccessReview',
+  };
+  const ssarDetectors: FeatureDetector[] = ssarChecks.map((ssarObj) => {
+    const fn = async (setFlag: SetFeatureFlag) => {
+      try {
+        ssar['spec'] = { resourceAttributes: ssarObj.resourceAttributes };
+        const result: SelfSubjectAccessReviewKind = (await k8sCreate({
+          model: SelfSubjectAccessReviewModel,
+          data: ssar,
+        })) as SelfSubjectAccessReviewKind;
+        result.status?.allowed && setFlag(ssarObj.flag, result.status?.allowed);
+      } catch (error) {
+        handleError(error, [ssarObj.flag], setFlag, fn, 2000);
+      }
+    };
+    return fn;
+  });
+
+  ssarDetectors.forEach((detectorFunc) => detectorFunc(setFlag));
 };
 
 export const detectComponents: FeatureDetector = async (

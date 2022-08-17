@@ -48,6 +48,14 @@
     }
   },
   {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.detectSSAR"
+      }
+    }
+  },
+  {
     "type": "console.navigation/resource-cluster",
     "properties": {
       "id": "objectbuckets",
@@ -127,7 +135,7 @@
       "href": "/odf/cluster"
     },
     "flags": {
-      "required": ["ODF_MODEL"]
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
   },
   {
@@ -138,7 +146,7 @@
       "component": { "$codeRef": "dashboard.default" }
     },
     "flags": {
-      "required": ["ODF_MODEL"]
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
   },
   {
