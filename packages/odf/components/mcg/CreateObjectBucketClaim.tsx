@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getStorageClassDescription } from '@odf/core/utils';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
@@ -134,6 +135,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
               id="sc-dropdown"
               data-test="sc-dropdown"
               resource={storageClassResource}
+              secondaryTextGenerator={getStorageClassDescription}
             />
             <p className="help-block">
               {t(
