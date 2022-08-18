@@ -23,6 +23,7 @@
     "bcDetails": "@odf/core/components/resource-pages/BucketClassDetailsPage",
     "nsDetails": "@odf/core/components/resource-pages/NamespaceStoreDetailsPage",
     "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor",
-    "healthResource": "@odf/core/components/cluster-overview-extensions/HealthOverview"
+    "healthResource": "@odf/core/components/cluster-overview-extensions/HealthOverview",
+    "activityResource": "@odf/core/components/cluster-overview-extensions/ClusterExpansion"
   }
 }
