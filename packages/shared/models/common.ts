@@ -57,3 +57,13 @@ export const StorageClassModel: K8sKind = {
   kind: 'StorageClass',
   id: 'storageclass',
 };
+
+export const SelfSubjectAccessReviewModel: K8sKind = {
+  abbr: 'SSAR',
+  kind: 'SelfSubjectAccessReview',
+  label: 'SelfSubjectAccessReview',
+  labelPlural: 'SelfSubjectAccessReviews',
+  plural: 'selfsubjectaccessreviews',
+  apiVersion: 'v1',
+  apiGroup: 'authorization.k8s.io',
+};
