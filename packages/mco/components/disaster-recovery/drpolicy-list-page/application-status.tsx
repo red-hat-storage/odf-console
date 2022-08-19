@@ -32,7 +32,7 @@ import {
 import { HUB_CLUSTER_NAME } from '../../../constants';
 import { ACMPlacementRuleModel, ACMSubscriptionModel } from '../../../models';
 import { ACMSubscriptionKind, DRPlacementControlKind } from '../../../types';
-import { matchApplicationsToSubstring } from '../../../utils';
+import { matchApplicationToSubscription } from '../../../utils';
 import './application-status.scss';
 
 const reactPropFix = {
@@ -119,7 +119,7 @@ const fetchApplications = (
 
   Object.values(namespcedSubscriptions).forEach((subs) => {
     // applying subscription filter from application
-    const valid = matchApplicationsToSubstring(subs, app);
+    const valid = matchApplicationToSubscription(subs, app);
     if (valid && !appNames.includes(appName)) {
       appNames.push(appName);
     }
@@ -317,7 +317,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
                   <Thead {...reactPropFix}>
                     <Tr {...reactPropFix}>
                       <Th {...reactPropFix} sort={getSortParams(0)}>
-                        Name
+                        {t('Name')}
                       </Th>
                     </Tr>
                   </Thead>

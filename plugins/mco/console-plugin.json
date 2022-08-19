@@ -7,9 +7,10 @@
     "@console/pluginAPI": "*"
   },
   "exposedModules": {
-    "dataPolicies": "@odf/mco/components/data-policies/data-policies-list",
-    "createDataPolicy": "@odf/mco/components/data-policies/create-dr-policy/create-dr-policy",
+    "dataPolicies": "@odf/mco/components/data-policies/data-policies-list/data-policies-list",
+    "createDataPolicy": "@odf/mco/components/disaster-recovery/create-dr-policy/create-dr-policy",
     "mcoDashboard": "@odf/mco/components/mco-dashboard/dashboard",
-    "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor"
+    "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor",
+    "dataPoliciesStatusPopover": "@odf/mco/components/data-policies/app-data-policies-status/data-policies-status-popover"
   }
 }
