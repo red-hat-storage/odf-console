@@ -1,10 +1,12 @@
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import {
+  ODFStorageSystem,
   OCSStorageClusterModel,
   StorageClassModel,
   NamespaceModel,
   CephClusterModel,
   ClusterServiceVersionModel,
+  SelfSubjectAccessReviewModel,
 } from '@odf/shared/models';
 import { getAnnotations, getName } from '@odf/shared/selectors';
 import {
@@ -16,8 +18,10 @@ import {
 import {
   SetFeatureFlag,
   k8sGet,
+  k8sCreate,
   k8sList,
   K8sResourceCommon,
+  SelfSubjectAccessReviewKind,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import {
@@ -44,6 +48,8 @@ export const MCG_FLAG = 'MCG';
 export const CEPH_FLAG = 'CEPH';
 // Based on the existence of StorageCluster
 export const OCS_FLAG = 'OCS';
+// Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
+export const ODF_ADMIN = 'ODF_ADMIN';
 
 export enum FEATURES {
   // Flag names to be prefixed with "OCS_" so as to seperate from console flags
@@ -91,6 +97,19 @@ export const ODF_BLOCK_FLAG = {
   [FEATURES.ODF_DASHBOARD]: 'odf-dashboard',
   [FEATURES.COMMON_FLAG]: 'common',
 };
+
+// Check the user's access to some resources.
+const ssarChecks = [
+  {
+    flag: ODF_ADMIN,
+    resourceAttributes: {
+      group: ODFStorageSystem.apiGroup,
+      resource: ODFStorageSystem.plural,
+      verb: 'list',
+      namespace: CEPH_STORAGE_NAMESPACE,
+    },
+  },
+];
 
 const setOCSFlagsFalse = (setFlag: SetFeatureFlag) => {
   setFlag(OCS_FLAG, false);
@@ -148,7 +167,8 @@ const handleError = (
   res: any,
   flags: string[],
   setFlag: SetFeatureFlag,
-  cb: FeatureDetector
+  cb: FeatureDetector,
+  duration = 15000
 ) => {
   if (res?.response instanceof Response) {
     const status = res?.response?.status;
@@ -158,7 +178,7 @@ const handleError = (
       });
     }
     if (!_.includes([401, 403, 500], status)) {
-      setTimeout(() => cb(setFlag), 15000);
+      setTimeout(() => cb(setFlag), duration);
     }
   } else {
     flags.forEach((feature) => {
@@ -227,8 +247,32 @@ export const detectManagedODF: FeatureDetector = async (
       setFlag(ODF_MANAGED_FLAG, !!isManagedCluster);
     }
   } catch (error) {
-    setFlag(ODF_MANAGED_FLAG, false);
+    handleError(error, [ODF_MANAGED_FLAG], setFlag, detectManagedODF);
   }
+};
+
+export const detectSSAR = (setFlag: SetFeatureFlag) => {
+  const ssar = {
+    apiVersion: 'authorization.k8s.io/v1',
+    kind: 'SelfSubjectAccessReview',
+  };
+  const ssarDetectors: FeatureDetector[] = ssarChecks.map((ssarObj) => {
+    const fn = async (setFlag: SetFeatureFlag) => {
+      try {
+        ssar['spec'] = { resourceAttributes: ssarObj.resourceAttributes };
+        const result: SelfSubjectAccessReviewKind = (await k8sCreate({
+          model: SelfSubjectAccessReviewModel,
+          data: ssar,
+        })) as SelfSubjectAccessReviewKind;
+        result.status?.allowed && setFlag(ssarObj.flag, result.status?.allowed);
+      } catch (error) {
+        handleError(error, [ssarObj.flag], setFlag, fn, 2000);
+      }
+    };
+    return fn;
+  });
+
+  ssarDetectors.forEach((detectorFunc) => detectorFunc(setFlag));
 };
 
 export const detectComponents: FeatureDetector = async (
