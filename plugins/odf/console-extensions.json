@@ -1,5 +1,51 @@
 [
   {
+    "type": "console.alert-action",
+    "properties": {
+      "alert": "CephOSDDiskUnavailable",
+      "text": "%ceph-storage-plugin~Troubleshoot%",
+      "action": {
+        "$codeRef": "alert.getDiskAlertActionPath"
+      }
+    }
+  },
+  {
+    "type": "console.alert-action",
+    "properties": {
+      "alert": "CephOSDDiskNotResponding",
+      "text": "%ceph-storage-plugin~Troubleshoot%",
+      "action": {
+        "$codeRef": "alert.getDiskAlertActionPath"
+      }
+    }
+  },
+  {
+    "type": "console.alert-action",
+    "properties": {
+      "alert": "CephClusterNearFull",
+      "text": "%ceph-storage-plugin~Add Capacity%",
+      "action": {
+        "$codeRef": "alert.launchClusterExpansionModal"
+      }
+    },
+    "flags": {
+      "required": ["OCS"]
+    }
+  },
+  {
+    "type": "console.alert-action",
+    "properties": {
+      "alert": "CephClusterCriticallyFull",
+      "text": "%ceph-storage-plugin~Add Capacity%",
+      "action": {
+        "$codeRef": "alert.launchClusterExpansionModal"
+      }
+    },
+    "flags": {
+      "required": ["OCS"]
+    }
+  },
+  {
     "type": "console.flag",
     "properties": {
       "handler": {
