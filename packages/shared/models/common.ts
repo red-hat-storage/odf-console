@@ -41,3 +41,13 @@ export const NodeModel: K8sKind = {
   // t('plugin__odf-console~Nodes')
   labelPluralKey: 'plugin__odf-console~Nodes',
 };
+
+export const SelfSubjectAccessReviewModel: K8sKind = {
+  abbr: 'SSAR',
+  kind: 'SelfSubjectAccessReview',
+  label: 'SelfSubjectAccessReview',
+  labelPlural: 'SelfSubjectAccessReviews',
+  plural: 'selfsubjectaccessreviews',
+  apiVersion: 'v1',
+  apiGroup: 'authorization.k8s.io',
+};
