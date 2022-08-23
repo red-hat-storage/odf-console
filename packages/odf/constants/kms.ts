@@ -15,9 +15,8 @@ export const KMS_PROVIDER = 'KMS_PROVIDER';
 
 /**
  * Ceph-Csi supports multiple KMS implementations ('vaulttenantsa', 'aws-metadata' etc),
- * all of them are not supported by UI (only 'vaulttokens' and 'ibmkeyprotect' supported right now).
- * "supported" will have a list of all the UI supported implementations for a
- * particular KMS provider (AWS, Vault, IBM etc).
+ * all of them are not supported by UI. "supported" will have a list of all the UI supported
+ * implementations for a particular KMS provider (AWS, Vault, IBM etc).
  */
 export const SupportedProviders = {
   [ProviderNames.VAULT]: {
@@ -94,8 +93,12 @@ export const HpcsEmptyState: HpcsConfig = Object.seal({
   hasHandled: true,
 });
 
-export const KMSEmptyState: KMSConfig = Object.seal({
+export const ProviderStateMap = {
   [ProviderNames.VAULT]: VaultEmptyState,
   [ProviderNames.HPCS]: HpcsEmptyState,
+};
+
+export const KMSEmptyState: KMSConfig = Object.seal({
+  providerState: ProviderStateMap[ProviderNames.VAULT],
   provider: ProviderNames.VAULT,
 });

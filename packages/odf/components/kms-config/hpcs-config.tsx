@@ -17,17 +17,17 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const kms: HpcsConfig = useDeepCompareMemoize(
-    state.kms?.[ProviderNames.HPCS],
+  const kms = useDeepCompareMemoize(
+    state.kms.providerState,
     true
-  );
+  ) as HpcsConfig;
   const kmsObj: HpcsConfig = React.useMemo(() => _.cloneDeep(kms), [kms]);
 
   React.useEffect(() => {
     const hasHandled: boolean = kmsConfigValidation(kms, ProviderNames.HPCS);
     if (kms.hasHandled !== hasHandled)
       dispatch({
-        type: 'securityAndNetwork/setHpcs',
+        type: 'securityAndNetwork/setKmsProviderState',
         payload: {
           ...kms,
           hasHandled,
@@ -45,7 +45,7 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
         kmsObj[param] = value;
       }
       dispatch({
-        type: 'securityAndNetwork/setHpcs',
+        type: 'securityAndNetwork/setKmsProviderState',
         payload: kmsObj,
       });
     };

@@ -53,8 +53,7 @@ export enum KmsEncryptionLevel {
 }
 
 export type KMSConfig = {
-  [ProviderNames.VAULT]: VaultConfig;
-  [ProviderNames.HPCS]: HpcsConfig;
+  providerState: VaultConfig | HpcsConfig;
   provider: ProviderNames;
 };
 

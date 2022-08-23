@@ -17,7 +17,7 @@ import {
   generateClientKeySecret,
 } from '../../components/kms-config/utils';
 import { KMSMaxFileUploadSize } from '../../constants';
-import { VaultConfig, ProviderNames, VaultAuthMethods } from '../../types';
+import { VaultConfig, VaultAuthMethods } from '../../types';
 import './advanced-kms-modal.scss';
 
 const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
@@ -27,7 +27,7 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
     extraProps: { state, dispatch, isWizardFlow },
   } = props;
 
-  const kms: VaultConfig = state.kms?.[ProviderNames.VAULT];
+  const kms = state.kms.providerState as VaultConfig;
 
   const { t } = useCustomTranslation();
   const [backendPath, setBackendPath] = React.useState(kms?.backend || '');
@@ -109,7 +109,10 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
       ? (kmsAdvanced.clientKey = generateClientKeySecret(clientKey))
       : (kmsAdvanced.clientKey = null);
 
-    dispatch({ type: 'securityAndNetwork/setVault', payload: kmsAdvanced });
+    dispatch({
+      type: 'securityAndNetwork/setKmsProviderState',
+      payload: kmsAdvanced,
+    });
     closeModal();
   };
 

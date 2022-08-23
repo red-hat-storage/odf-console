@@ -6,15 +6,16 @@ import {
   FormSelect,
   FormSelectOption,
 } from '@patternfly/react-core';
+import { ProviderStateMap } from '../../constants';
 import { FEATURES } from '../../features';
 import { ProviderNames } from '../../types';
 import { HpcsConfigure } from './hpcs-config';
-import { EncryptionDispatch, KMSConfigureProps } from './providers';
+import { KMSConfigureProps } from './providers';
 import { isLengthUnity } from './utils';
 import { VaultConfigure } from './vault-config';
 import './kms-config.scss';
 
-const KMSProviders = [
+const KMSProviders: KMSProvidersType = [
   {
     name: 'Vault',
     value: ProviderNames.VAULT,
@@ -27,13 +28,6 @@ const KMSProviders = [
     allowedPlatforms: ['IBMCloud'],
   },
 ]; // add one more key, if need to disable any component based on the value of "isWizardFlow"
-
-const setKMSProvider =
-  (dispatch: EncryptionDispatch) => (provider: ProviderNames) =>
-    dispatch({
-      type: 'securityAndNetwork/setKmsProvider',
-      payload: provider,
-    });
 
 export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   state,
@@ -58,6 +52,20 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
     (provider) => provider.value === kmsProvider
   );
 
+  const setKMSProvider = React.useCallback(
+    (provider: ProviderNames) => {
+      dispatch({
+        type: 'securityAndNetwork/setKmsProviderState',
+        payload: ProviderStateMap[provider],
+      });
+      dispatch({
+        type: 'securityAndNetwork/setKmsProvider',
+        payload: provider,
+      });
+    },
+    [dispatch]
+  );
+
   return (
     <div className="co-m-pane__form">
       {!isWizardFlow && (
@@ -72,7 +80,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
       >
         <FormSelect
           value={kmsProvider}
-          onChange={setKMSProvider(dispatch)}
+          onChange={setKMSProvider}
           id="kms-provider"
           name="kms-provider-name"
           aria-label={t('kms-provider-name')}
@@ -97,3 +105,10 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
     </div>
   );
 };
+
+type KMSProvidersType = {
+  name: string;
+  value: ProviderNames;
+  Component: React.FC<KMSConfigureProps>;
+  allowedPlatforms?: string[];
+}[];

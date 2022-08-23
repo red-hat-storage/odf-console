@@ -80,7 +80,7 @@ export const createStorageCluster = async (state: WizardState) => {
     isFlexibleScaling,
     publicNetwork,
     clusterNetwork,
-    kms[kms.provider].hasHandled && encryption.advanced,
+    kms.providerState.hasHandled && encryption.advanced,
     arbiterLocation,
     enableArbiter,
     pvCount,

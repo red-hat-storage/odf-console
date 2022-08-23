@@ -48,10 +48,10 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
   const isKmsVaultSASupported = useFlag(FEATURES.ODF_VAULT_SA_KMS);
 
-  const vaultState: VaultConfig = useDeepCompareMemoize(
-    state.kms?.[ProviderNames.VAULT],
+  const vaultState = useDeepCompareMemoize(
+    state.kms.providerState,
     true
-  );
+  ) as VaultConfig;
   const vaultStateClone: VaultConfig = React.useMemo(
     () => _.cloneDeep(vaultState),
     [vaultState]
@@ -70,7 +70,7 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   const updateVaultState = React.useCallback(
     (vaultConfig: VaultConfig) =>
       dispatch({
-        type: 'securityAndNetwork/setVault',
+        type: 'securityAndNetwork/setKmsProviderState',
         payload: vaultConfig,
       }),
     [dispatch]
@@ -215,7 +215,7 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
       kmsConfigValidation(vaultState, ProviderNames.VAULT);
     if (vaultState.hasHandled !== hasHandled) {
       dispatch({
-        type: 'securityAndNetwork/setVault',
+        type: 'securityAndNetwork/setKmsProviderState',
         payload: {
           ...vaultState,
           hasHandled,
