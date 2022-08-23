@@ -8,6 +8,14 @@
     }
   },
   {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.detectSSAR"
+      }
+    }
+  },
+  {
     "type": "console.navigation/href",
     "properties": {
       "id": "odfdashboard",
@@ -17,7 +25,7 @@
       "href": "/odf/cluster"
     },
     "flags": {
-      "required": ["ODF_MODEL"],
+      "required": ["ODF_MODEL", "ODF_ADMIN"],
       "disallowed": ["ODF_MANAGED"]
     }
   },
@@ -29,7 +37,7 @@
       "component": { "$codeRef": "dashboard.default" }
     },
     "flags": {
-      "required": ["ODF_MODEL"],
+      "required": ["ODF_MODEL", "ODF_ADMIN"],
       "disallowed": ["ODF_MANAGED"]
     }
   },
