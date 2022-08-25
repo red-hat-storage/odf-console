@@ -11,6 +11,7 @@ import { FEATURES } from '../../features';
 import { ProviderNames } from '../../types';
 import { HpcsConfigure } from './hpcs-config';
 import { KMSConfigureProps } from './providers';
+import { ThalesConfigure } from './thales-config';
 import { isLengthUnity } from './utils';
 import { VaultConfigure } from './vault-config';
 import './kms-config.scss';
@@ -27,7 +28,12 @@ const KMSProviders: KMSProvidersType = [
     Component: HpcsConfigure,
     allowedPlatforms: ['IBMCloud'],
   },
-]; // add one more key, if need to disable any component based on the value of "isWizardFlow"
+  {
+    name: 'Thales (using KMIP)',
+    value: ProviderNames.THALES,
+    Component: ThalesConfigure,
+  },
+];
 
 export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   state,

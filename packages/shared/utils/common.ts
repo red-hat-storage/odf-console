@@ -125,3 +125,5 @@ export const getInfrastructurePlatform = (
 
 export const getGVKLabel = ({ kind, apiVersion, apiGroup }) =>
   `${kind.toLowerCase()}.${apiGroup}/${apiVersion}`;
+
+export const getRandomChars = () => Math.random().toString(36).substring(7);
