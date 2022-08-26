@@ -13,7 +13,8 @@ export const modal = {
   cancel: (force: boolean = false) =>
     cy.byLegacyTestID('modal-cancel-action').click({ force }),
   // eslint-disable-next-line cypress/require-data-selectors,cypress/no-force
-  submit: (force: boolean = false) => cy.get(submitButton).click({ force }),
+  submit: (force: boolean = false) =>
+    cy.get('button').contains('Add').click({ force }),
   modalTitleShouldContain: (modalTitle: string) =>
     cy.byLegacyTestID('modal-title').should('contain.text', modalTitle),
 };

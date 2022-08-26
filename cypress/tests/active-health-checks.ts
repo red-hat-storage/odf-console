@@ -11,8 +11,7 @@ const enum Deployments {
 
 const messages = {
   warnings: {
-    MON_DOWN: '1/3 mons down, quorum b,c',
-    MGR_DOWN: 'no active mgr',
+    MON_DOWN: '1/3 mons down, quorum a,b',
   },
   errors: {
     ERROR: 'failed to get status. . timed out: exit status 1',
