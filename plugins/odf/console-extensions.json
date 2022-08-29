@@ -341,5 +341,15 @@
         "$codeRef": "editPage.default"
       }
     }
+  },
+  {
+    "type": "console.dashboards/overview/health/resource",
+    "properties": {
+      "title": "Storage",
+      "resources": { "$codeRef": "healthResource.healthResource" },
+      "healthHandler": { "$codeRef": "healthResource.healthHandler" },
+      "popupComponent": { "$codeRef": "healthResource.StoragePopover" },
+      "popupTitle": "Storage"
+    }
   }
 ]
