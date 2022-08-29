@@ -178,7 +178,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           items: clustersData?.map((cluster) => ({
             clusterName: cluster?.name,
             storageClusterRef: {
-              name: cluster.cephClusterName,
+              name: cluster.storageClusterName,
               namespace: CEPH_STORAGE_NAMESPACE,
             },
           })),

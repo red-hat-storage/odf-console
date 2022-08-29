@@ -3,6 +3,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
+import { isMinimumSupportedODFVersion } from 'packages/mco/utils';
 import {
   DataList,
   DataListItem,
@@ -26,6 +27,7 @@ import {
   MAX_ALLOWED_CLUSTERS,
   MANAGED_CLUSTER_REGION_CLAIM,
   HUB_CLUSTER_NAME,
+  ClusterClaimTypes,
 } from '../../../constants';
 import { ACMManagedClusterModel } from '../../../models';
 import { ACMManagedClusterKind } from '../../../types';
@@ -34,6 +36,7 @@ import {
   DRPolicyAction,
   DRPolicyActionType,
   Cluster,
+  ODFInfo,
 } from './reducer';
 import './select-cluster-list.scss';
 
@@ -58,6 +61,28 @@ const fetchRegion = (cluster: ACMManagedClusterKind): string =>
     ''
   );
 
+const fetchODFInfo = (cluster: ACMManagedClusterKind): ODFInfo => {
+  const odfVersionClaim = cluster?.status?.clusterClaims?.find(
+    (claim) => claim.name === ClusterClaimTypes.ODF_VERSION
+  );
+  const storageClusterNameClaim = cluster?.status?.clusterClaims?.find(
+    (claim) => claim.name === ClusterClaimTypes.STORAGE_CLUSTER_NAME
+  );
+  const storageSystemNameClaim = cluster?.status?.clusterClaims?.find(
+    (claim) => claim.name === ClusterClaimTypes.STORAGE_SYSTEM_NAME
+  );
+  const cephFsidClaim = cluster?.status?.clusterClaims?.find(
+    (claim) => claim.name === ClusterClaimTypes.CEPH_FSID
+  );
+  return {
+    odfVersion: odfVersionClaim?.value,
+    storageSystemName: storageSystemNameClaim?.value,
+    storageClusterName: storageClusterNameClaim?.value,
+    cephFSID: cephFsidClaim?.value,
+    isValidODFVersion: isMinimumSupportedODFVersion(odfVersionClaim?.value),
+  };
+};
+
 const filterRegions = (filteredClusters: Cluster[]) =>
   filteredClusters?.reduce((acc, cluster) => {
     if (!acc.includes(cluster?.region) && cluster?.region !== '') {
@@ -66,9 +91,10 @@ const filterRegions = (filteredClusters: Cluster[]) =>
     return acc;
   }, []);
 
-const getManagedClusterInfo = (cluster: ACMManagedClusterKind) => ({
+const getManagedClusterInfo = (cluster: ACMManagedClusterKind): Cluster => ({
   name: cluster?.metadata?.name,
   region: fetchRegion(cluster) ?? '',
+  ...fetchODFInfo(cluster),
 });
 
 type SelectClusterListProps = {
@@ -126,16 +152,23 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   );
 
   const onSelect: DataListCheckProps['onChange'] = (checked, event) => {
-    const { name, region } = filteredClusters?.[Number(event.currentTarget.id)];
+    const {
+      name,
+      region,
+      odfVersion,
+      storageClusterName,
+      storageSystemName,
+      cephFSID,
+    } = filteredClusters?.[Number(event.currentTarget.id)];
     const selectedClustersClone = _.cloneDeep(selectedClusters);
     if (checked) {
       selectedClustersClone[name] = {
         name,
         region,
-        cephFSID: '',
-        storageSystemName: '',
-        cephClusterName: '',
-        odfVersion: '',
+        cephFSID,
+        storageSystemName,
+        storageClusterName,
+        odfVersion,
       };
     } else {
       delete selectedClustersClone?.[name];
