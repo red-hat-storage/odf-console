@@ -1,12 +1,9 @@
-type ODFInfo = {
-  cephClusterName?: string;
+export type ODFInfo = {
+  storageClusterName?: string;
   storageSystemName?: string;
   cephFSID?: string;
   odfVersion?: string;
   isValidODFVersion?: boolean;
-  storageSystemLoaded?: boolean;
-  cephClusterLoaded?: boolean;
-  subscriptionLoaded?: boolean;
 };
 
 export type Cluster = {
@@ -57,10 +54,6 @@ export type DRPolicyAction =
       type: DRPolicyActionType.SET_SELECTED_CLUSTERS;
       payload: ManagedClusterMapping;
     }
-  | {
-      type: DRPolicyActionType.UPDATE_SELECTED_CLUSTERS;
-      payload: Cluster;
-    }
   | { type: DRPolicyActionType.SET_IS_ODF_DETECTED; payload: boolean }
   | {
       type: DRPolicyActionType.SET_IS_REPLICATION_INPUT_MANUAL;
@@ -95,15 +88,6 @@ export const drPolicyReducer = (
       return {
         ...state,
         selectedClusters: action.payload,
-      };
-    }
-    case DRPolicyActionType.UPDATE_SELECTED_CLUSTERS: {
-      return {
-        ...state,
-        selectedClusters: {
-          ...state.selectedClusters,
-          [action.payload.name]: action.payload,
-        },
       };
     }
     case DRPolicyActionType.SET_IS_ODF_DETECTED: {

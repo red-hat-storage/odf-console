@@ -10,6 +10,14 @@ export enum REPLICATION_TYPE {
   SYNC = 'sync',
 }
 
+// Please refer to clusterclaims.go in github.com/red-hat-storage/ocs-operator before changing anything here
+export enum ClusterClaimTypes {
+  ODF_VERSION = 'version.odf.openshift.io',
+  STORAGE_CLUSTER_NAME = 'storageclustername.odf.openshift.io',
+  STORAGE_SYSTEM_NAME = 'storagesystemname.odf.openshift.io',
+  CEPH_FSID = 'cephfsid.odf.openshift.io',
+}
+
 export const REPLICATION_DISPLAY_TEXT = (
   t: TFunction
 ): { [key in REPLICATION_TYPE]: string } => ({
