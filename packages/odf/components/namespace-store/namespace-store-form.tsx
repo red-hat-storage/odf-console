@@ -4,6 +4,7 @@ import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { PersistentVolumeClaimModel, SecretModel } from '@odf/shared/models';
+import { PersistentVolumeClaimKind, SecretKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getAPIVersionForModel,
@@ -11,7 +12,6 @@ import {
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import { PersistentVolumeClaimKind, SecretKind } from 'packages/shared/types';
 import {
   ActionGroup,
   Button,
