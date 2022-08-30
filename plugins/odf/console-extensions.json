@@ -351,5 +351,15 @@
       "popupComponent": { "$codeRef": "healthResource.StoragePopover" },
       "popupTitle": "Storage"
     }
+  },
+  {
+    "type": "console.dashboards/overview/activity/resource",
+    "properties": {
+      "component": { "$codeRef": "activityResource.ClusterExpandActivity" },
+      "isActivity": { "$codeRef": "activityResource.isClusterExpandActivity" },
+      "k8sResource": {
+        "$codeRef": "activityResource.k8sResource"
+      }
+    }
   }
 ]
