@@ -24,6 +24,7 @@
     "nsDetails": "@odf/core/components/resource-pages/NamespaceStoreDetailsPage",
     "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor",
     "healthResource": "@odf/core/components/cluster-overview-extensions/HealthOverview",
-    "activityResource": "@odf/core/components/cluster-overview-extensions/ClusterExpansion"
+    "activityResource": "@odf/core/components/cluster-overview-extensions/ClusterExpansion",
+    "storageProvider": "@odf/core/components/attach-obc/AttachOBC"
   }
 }
