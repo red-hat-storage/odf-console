@@ -17,17 +17,17 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const kms: HpcsConfig = useDeepCompareMemoize(
-    state.kms?.[ProviderNames.HPCS],
+  const kms = useDeepCompareMemoize(
+    state.kms.providerState,
     true
-  );
+  ) as HpcsConfig;
   const kmsObj: HpcsConfig = React.useMemo(() => _.cloneDeep(kms), [kms]);
 
   React.useEffect(() => {
     const hasHandled: boolean = kmsConfigValidation(kms, ProviderNames.HPCS);
     if (kms.hasHandled !== hasHandled)
       dispatch({
-        type: 'securityAndNetwork/setHpcs',
+        type: 'securityAndNetwork/setKmsProviderState',
         payload: {
           ...kms,
           hasHandled,
@@ -45,7 +45,7 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
         kmsObj[param] = value;
       }
       dispatch({
-        type: 'securityAndNetwork/setHpcs',
+        type: 'securityAndNetwork/setKmsProviderState',
         payload: kmsObj,
       });
     };
@@ -62,7 +62,7 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
         helperTextInvalid={t('This is a required field')}
         validated={isValid(kms.name?.valid)}
         helperText={t(
-          'A unique name for the key management service within the project.'
+          'An unique name for the key management service within the project.'
         )}
         isRequired
       >
@@ -136,7 +136,7 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
       </FormGroup>
       <FormGroup
         fieldId="kms-base-url"
-        label={t('IBM Base URL')}
+        label={t('IBM base URL')}
         className={`${className}__form-body`}
         helperTextInvalid={t('This is a required field')}
         validated={isValid(kms.baseUrl?.valid)}
@@ -155,7 +155,7 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
       </FormGroup>
       <FormGroup
         fieldId="kms-token-url"
-        label={t('IBM Token URL')}
+        label={t('IBM token URL')}
         className={`${className}__form-body`}
       >
         <TextInput

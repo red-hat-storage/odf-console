@@ -80,7 +80,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   const ocsTaintsStatus = enableTaint ? t('Enabled') : t('Disabled');
 
   const kmsStatus = encryption.advanced
-    ? kms[kms.provider].name.value
+    ? kms.providerState.name.value
     : t('Not connected');
 
   const totalCpu = getTotalCpu(nodes);

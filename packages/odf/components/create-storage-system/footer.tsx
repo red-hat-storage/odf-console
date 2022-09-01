@@ -97,11 +97,11 @@ const canJumpToNextStep = (name: string, state: WizardState, t: TFunction) => {
     case StepsName(t)[Steps.SecurityAndNetwork]:
       return (
         encryption.hasHandled &&
-        kms[kms.provider].hasHandled &&
+        kms.providerState.hasHandled &&
         hasConfiguredNetwork
       );
     case StepsName(t)[Steps.Security]:
-      return encryption.hasHandled && kms[kms.provider].hasHandled;
+      return encryption.hasHandled && kms.providerState.hasHandled;
     case StepsName(t)[Steps.ReviewAndCreate]:
       return true;
     default:
@@ -132,7 +132,7 @@ const handleReviewAndCreateNext = async (
     if (isMCG) {
       if (encryption.advanced)
         await Promise.all(
-          createClusterKmsResources(kms[kms.provider], kms.provider)
+          createClusterKmsResources(kms.providerState, kms.provider)
         );
       await createStorageCluster(state);
     } else if (
@@ -143,7 +143,7 @@ const handleReviewAndCreateNext = async (
       if (capacityAndNodes.enableTaint) await taintNodes(nodes);
       if (encryption.advanced)
         await Promise.all(
-          createClusterKmsResources(kms[kms.provider], kms.provider)
+          createClusterKmsResources(kms.providerState, kms.provider)
         );
       await createStorageSystem(
         OCS_INTERNAL_CR_NAME,
@@ -175,7 +175,7 @@ const handleReviewAndCreateNext = async (
         if (capacityAndNodes.enableTaint) await taintNodes(nodes);
         if (encryption.advanced)
           await Promise.all(
-            createClusterKmsResources(kms[kms.provider], kms.provider)
+            createClusterKmsResources(kms.providerState, kms.provider)
           );
         await createStorageCluster(state);
       }

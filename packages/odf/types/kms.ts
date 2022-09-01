@@ -3,6 +3,7 @@ import { SecretKind } from '@odf/shared/types';
 export enum ProviderNames {
   VAULT = 'vault',
   HPCS = 'hpcs',
+  THALES = 'thales',
 }
 
 export enum VaultAuthMethods {
@@ -15,8 +16,11 @@ export enum KmsImplementations {
   VAULT_TOKENS = 'vaulttokens', // used by ceph-csi for token-based vault
   VAULT_TENANT_SA = 'vaulttenantsa', // used by ceph-csi for tenant service account
   IBM_KEY_PROTECT = 'ibmkeyprotect', // used by both rook & ceph-csi
+  KMIP = 'kmip', // used by both rook & ceph-csi
 }
 
+// for Vault, ceph-csi uses camelCase format and other operators uses CAPITAL_UNDERSCORE format
+// for HPCS and Thales, all operators uses CAPITAL_UNDERSCORE format
 export enum KmsCsiConfigKeysMapping {
   KMS_PROVIDER = 'encryptionKMSType',
 
@@ -37,12 +41,6 @@ export enum KmsCsiConfigKeysMapping {
   VAULT_CLIENT_KEY_FILE = 'vaultClientCertKeyFileName',
   VAULT_CLIENT_CERT_FILE = 'vaultClientCertFileName',
 
-  // ibm hpcs
-  IBM_KP_SERVICE_INSTANCE_ID = 'ibmKPServiceInstanceID',
-  IBM_KP_SECRET_NAME = 'ibmKPKMSKey',
-  IBM_KP_BASE_URL = 'ibmKPBaseURL',
-  IBM_KP_TOKEN_URL = 'ibmKPTokenURL',
-
   // ui specific
   KMS_SERVICE_NAME = 'kmsServiceName',
 }
@@ -51,12 +49,6 @@ export enum KmsEncryptionLevel {
   CLUSTER_WIDE = 'cluster_wide',
   STORAGE_CLASS = 'storage_class',
 }
-
-export type KMSConfig = {
-  [ProviderNames.VAULT]: VaultConfig;
-  [ProviderNames.HPCS]: HpcsConfig;
-  provider: ProviderNames;
-};
 
 export type VaultConfig = {
   name: {
@@ -115,6 +107,49 @@ export type HpcsConfig = {
   hasHandled: boolean;
 };
 
+export type ThalesConfig = {
+  name: {
+    value: string;
+    valid: boolean;
+  };
+  address: {
+    value: string;
+    valid: boolean;
+  };
+  port: {
+    value: string;
+    valid: boolean;
+  };
+  clientCert: {
+    value: string;
+    fileName: string;
+    error: string;
+  };
+  caCert: {
+    value: string;
+    fileName: string;
+    error: string;
+  };
+  clientKey: {
+    value: string;
+    fileName: string;
+    error: string;
+  };
+  uniqueId?: {
+    value: string;
+    valid: boolean;
+  };
+  tls: string;
+  hasHandled: boolean;
+};
+
+export type KMSConfiguration = VaultConfig | HpcsConfig | ThalesConfig;
+
+export type KMSConfig = {
+  providerState: KMSConfiguration;
+  provider: ProviderNames;
+};
+
 export enum HPCSParams {
   NAME = 'name',
   INSTANCE_ID = 'instanceId',
@@ -123,6 +158,7 @@ export enum HPCSParams {
   BASE_URL = 'baseUrl',
   TOKEN_URL = 'tokenUrl',
 }
+
 export type VaultCommonConfigMap = {
   KMS_PROVIDER: string;
   KMS_SERVICE_NAME: string;
@@ -161,6 +197,14 @@ export type HpcsConfigMap = {
   IBM_KP_TOKEN_URL: string;
 };
 
+export type ThalesConfigMap = {
+  KMS_PROVIDER: string;
+  KMS_SERVICE_NAME: string;
+  KMIP_ENDPOINT: string;
+  KMIP_SECRET_NAME: string;
+  TLS_SERVER_NAME: string;
+};
+
 export const VaultAuthMethodMapping: {
   [keys in VaultAuthMethods]: {
     name: string;
@@ -183,6 +227,4 @@ export const VaultAuthMethodMapping: {
   },
 };
 
-export type KMSConfigMap = VaultConfigMap | HpcsConfigMap;
-
-export type KMSConfiguration = VaultConfig | HpcsConfig;
+export type KMSConfigMap = VaultConfigMap | HpcsConfigMap | ThalesConfigMap;

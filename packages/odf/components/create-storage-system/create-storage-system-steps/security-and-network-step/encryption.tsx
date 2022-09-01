@@ -3,7 +3,7 @@ import { AdvancedSubscription } from '@odf/shared/badges/advanced-subscription';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
-import { Checkbox, FormGroup } from '@patternfly/react-core';
+import { Checkbox, FormGroup, Form } from '@patternfly/react-core';
 import { KMSEmptyState } from '../../../../constants';
 import { FEATURES } from '../../../../features';
 import { KMSConfigure } from '../../../kms-config/kms-config';
@@ -264,6 +264,26 @@ export const Encryption: React.FC<EncryptionProps> = ({
   );
 };
 
+export const EncryptionForm: React.FC<EncryptionProps> = ({
+  encryption,
+  kms,
+  dispatch,
+  infraType,
+  isMCG,
+}) => {
+  // enclosed in a "Form" so that child components can use default pf classes
+  return (
+    <Form>
+      <Encryption
+        infraType={infraType}
+        encryption={encryption}
+        kms={kms}
+        dispatch={dispatch}
+        isMCG
+      />
+    </Form>
+  );
+};
 type EncryptionProps = {
   encryption: WizardState['securityAndNetwork']['encryption'];
   kms: WizardState['securityAndNetwork']['kms'];

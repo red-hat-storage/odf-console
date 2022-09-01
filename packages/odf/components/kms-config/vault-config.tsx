@@ -4,19 +4,16 @@ import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
-import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash';
 import {
   FormGroup,
   FormSelect,
   FormSelectOption,
-  TextInput,
   Button,
-  ValidatedOptions,
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
-import { VaultEmptyState } from '../../constants';
+import { ProviderStateMap } from '../../constants';
 import { FEATURES } from '../../features';
 import {
   VaultConfig,
@@ -25,8 +22,9 @@ import {
   KmsEncryptionLevel,
   VaultAuthMethodMapping,
 } from '../../types';
+import { NameAddrPort, isValid } from './name-address-port';
 import { KMSConfigureProps, EncryptionDispatch } from './providers';
-import { parseURL, kmsConfigValidation, isLengthUnity } from './utils';
+import { kmsConfigValidation, isLengthUnity } from './utils';
 import {
   VaultTokenConfigure,
   VaultServiceAccountConfigure,
@@ -48,10 +46,10 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
   const isKmsVaultSASupported = useFlag(FEATURES.ODF_VAULT_SA_KMS);
 
-  const vaultState: VaultConfig = useDeepCompareMemoize(
-    state.kms?.[ProviderNames.VAULT],
+  const vaultState = useDeepCompareMemoize(
+    state.kms.providerState,
     true
-  );
+  ) as VaultConfig;
   const vaultStateClone: VaultConfig = React.useMemo(
     () => _.cloneDeep(vaultState),
     [vaultState]
@@ -70,7 +68,7 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   const updateVaultState = React.useCallback(
     (vaultConfig: VaultConfig) =>
       dispatch({
-        type: 'securityAndNetwork/setVault',
+        type: 'securityAndNetwork/setKmsProviderState',
         payload: vaultConfig,
       }),
     [dispatch]
@@ -88,7 +86,8 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   const setAuthMethod = React.useCallback(
     (authMethod: VaultAuthMethods) => {
       if (!!vaultStateClone.authMethod) {
-        vaultStateClone.authValue = VaultEmptyState.authValue;
+        vaultStateClone.authValue =
+          ProviderStateMap[ProviderNames.VAULT].authValue;
       }
       vaultStateClone.authMethod = authMethod;
       updateVaultState(vaultStateClone);
@@ -215,7 +214,7 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
       kmsConfigValidation(vaultState, ProviderNames.VAULT);
     if (vaultState.hasHandled !== hasHandled) {
       dispatch({
-        type: 'securityAndNetwork/setVault',
+        type: 'securityAndNetwork/setKmsProviderState',
         payload: {
           ...vaultState,
           hasHandled,
@@ -224,114 +223,14 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
     }
   }, [dispatch, vaultState]);
 
-  // vault state update
-  const setServiceName = (name: string) => {
-    vaultStateClone.name.value = name;
-    vaultStateClone.name.valid = name !== '';
-    updateVaultState(vaultStateClone);
-  };
-
-  const setAddress = (address: string) => {
-    vaultStateClone.address.value = address;
-    vaultStateClone.address.valid =
-      address !== '' && parseURL(address.trim()) != null;
-    updateVaultState(vaultStateClone);
-  };
-
-  const setAddressPort = (port: string) => {
-    vaultStateClone.port.value = port;
-    vaultStateClone.port.valid =
-      port !== '' &&
-      !_.isNaN(Number(port)) &&
-      Number(port) > 0 &&
-      Number(port) < 65536;
-    updateVaultState(vaultStateClone);
-  };
-
-  const validateAddressMessage = () =>
-    vaultState.address.value === ''
-      ? t('This is a required field')
-      : t('Please enter a URL');
-
-  const validatePortMessage = () =>
-    vaultState.port.value === ''
-      ? t('This is a required field')
-      : t('Please enter a valid port');
-
-  const isValid = (value: boolean) =>
-    value ? ValidatedOptions.default : ValidatedOptions.error;
-
   return (
     <>
-      <FormGroup
-        fieldId="kms-service-name"
-        label={t('Connection name')}
-        className={`${className}__form-body`}
-        helperTextInvalid={t('This is a required field')}
-        validated={isValid(vaultState.name?.valid)}
-        helperText={t(
-          'A unique name for the key management service within the project.'
-        )}
-        isRequired
-      >
-        <TextInput
-          value={vaultState.name?.value}
-          onChange={setServiceName}
-          type="text"
-          id="kms-service-name"
-          name="kms-service-name"
-          isRequired
-          validated={isValid(vaultState.name?.valid)}
-          data-test="kms-service-name-text"
-        />
-      </FormGroup>
-      <div className="ocs-install-kms__form-url">
-        <FormGroup
-          fieldId="kms-address"
-          label={t('Address')}
-          className={classNames(
-            'ocs-install-kms__form-address',
-            `${className}__form-body`
-          )}
-          helperTextInvalid={validateAddressMessage()}
-          validated={isValid(vaultState.address?.valid)}
-          isRequired
-        >
-          <TextInput
-            value={vaultState.address?.value}
-            onChange={setAddress}
-            className="ocs-install-kms__form-address--padding"
-            type="url"
-            id="kms-address"
-            name="kms-address"
-            isRequired
-            validated={isValid(vaultState.address?.valid)}
-            data-test="kms-address-text"
-          />
-        </FormGroup>
-        <FormGroup
-          fieldId="kms-address-port"
-          label={t('Port')}
-          className={classNames(
-            'ocs-install-kms__form-port',
-            `${className}__form-body--small-padding`
-          )}
-          helperTextInvalid={validatePortMessage()}
-          validated={isValid(vaultState.port?.valid)}
-          isRequired
-        >
-          <TextInput
-            value={vaultState.port?.value}
-            onChange={setAddressPort}
-            type="text"
-            id="kms-address-port"
-            name="kms-address-port"
-            isRequired
-            validated={isValid(vaultState.port?.valid)}
-            data-test="kms-address-port-text"
-          />
-        </FormGroup>
-      </div>
+      <NameAddrPort
+        className={className}
+        kmsState={vaultState}
+        kmsStateClone={vaultStateClone}
+        updateKmsState={updateVaultState}
+      />
       {isWizardFlow && (
         <Component
           {...{
