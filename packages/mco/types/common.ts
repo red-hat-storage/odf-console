@@ -59,9 +59,10 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     preferredCluster?: string;
     pvcSelector: {
       matchLabels: {
-        [key in string]: string;
+        [key: string]: string;
       };
     };
+    action?: string;
   };
   status?: {
     phase: string;

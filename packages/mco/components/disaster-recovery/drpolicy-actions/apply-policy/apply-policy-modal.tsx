@@ -41,7 +41,7 @@ import {
   DRPlacementControlKind,
   AppToPlacementRule,
 } from '../../../../types';
-import { matchApplicationsToSubstring } from '../../../../utils';
+import { matchApplicationToSubscription } from '../../../../utils';
 import { ApplicationSelector } from './application-selector';
 import './apply-policy-modal.scss';
 
@@ -248,7 +248,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
 
       Object.values(namespcedSubscriptions).forEach((subs) => {
         // applying subscription filter from application
-        const valid = matchApplicationsToSubstring(subs, app);
+        const valid = matchApplicationToSubscription(subs, app);
         if (valid) {
           // fetch placement rule using subscriptions
           const plsRule =

@@ -1,11 +1,26 @@
-import { getLabel, hasLabel } from '@odf/shared/selectors';
+import { getLabel, hasLabel, getName } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types/k8s';
+import { ObjectReference } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Operator,
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { DR_SECHEDULER_NAME } from '../constants';
 import { ODF_MINIMUM_SUPPORT } from '../constants/dr-policy';
-import { ACMSubscriptionKind } from '../types';
+import { ACMPlacementRuleModel } from '../models';
+import {
+  ACMSubscriptionKind,
+  ACMPlacementRuleKind,
+  DRPlacementControlKind,
+} from '../types';
+
+export type SubscriptionMap = {
+  [placementRuleName: string]: string[];
+};
+
+export type DRPolicyMap = {
+  [policyName: string]: DRPlacementControlKind[];
+};
 
 export const isMinimumSupportedODFVersion = (odfVersion: string): boolean =>
   odfVersion.localeCompare(ODF_MINIMUM_SUPPORT, undefined, {
@@ -33,7 +48,7 @@ const isApplicationInSubscription = (
     : !hasLabel(subscription?.metadata?.labels, expr?.key) &&
       !Array.isArray(expr?.values);
 
-export const matchApplicationsToSubstring = (
+export const matchApplicationToSubscription = (
   subscription: ACMSubscriptionKind,
   application: ApplicationKind
 ): boolean => {
@@ -55,3 +70,54 @@ export const matchApplicationsToSubstring = (
   });
   return valid;
 };
+
+export const isObjectRefMatching = (
+  objectRef: ObjectReference,
+  objectRefList: string[]
+): boolean => objectRefList?.includes(objectRef?.name);
+
+export const getFilteredDRPlacementRuleNames = (
+  placementRules: ACMPlacementRuleKind[]
+): string[] =>
+  placementRules?.reduce(
+    (acc, placementRule) =>
+      placementRule?.spec?.schedulerName === DR_SECHEDULER_NAME
+        ? [...acc, getName(placementRule)]
+        : acc,
+    []
+  );
+
+export const isPlacementRuleModel = (subscription: ACMSubscriptionKind) =>
+  subscription?.spec?.placement?.placementRef?.kind ===
+  ACMPlacementRuleModel?.kind;
+
+export const getFilterDRSubscriptions = (
+  application: ApplicationKind,
+  subscriptions: ACMSubscriptionKind[],
+  drPlacementRules: string[]
+): SubscriptionMap =>
+  subscriptions?.reduce((acc, subscription) => {
+    const placementRuleName = subscription?.spec?.placement?.placementRef?.name;
+    const subsMap =
+      isPlacementRuleModel(subscription) &&
+      isObjectRefMatching(
+        subscription?.spec?.placement?.placementRef,
+        drPlacementRules
+      ) &&
+      matchApplicationToSubscription(subscription, application)
+        ? {
+            ...acc,
+            [placementRuleName]: [
+              ...(acc[placementRuleName] || []),
+              getName(subscription),
+            ],
+          }
+        : acc;
+    return subsMap;
+  }, {});
+
+export const getDRPolicyName = (drpc: DRPlacementControlKind) =>
+  drpc?.spec?.drPolicyRef?.name;
+
+export const getDRPoliciesCount = (drPolicies: DRPolicyMap) =>
+  Object.keys(drPolicies || {})?.length;

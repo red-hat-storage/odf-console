@@ -1,0 +1,7 @@
+.mco-data-policies-status-popover {
+  &__header {
+    border-bottom: var(--pf-global--BorderWidth--sm) solid
+      var(--pf-global--BorderColor--100);
+    padding-bottom: var(--pf-global--spacer--md);
+  }
+}

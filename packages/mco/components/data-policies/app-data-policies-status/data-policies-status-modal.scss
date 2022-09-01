@@ -1,0 +1,13 @@
+.mco-data-policies-status-modal {
+  &__nav {
+    border-bottom: var(--pf-global--BorderWidth--sm) solid
+      var(--pf-global--BorderColor--100);
+    margin-right: var(--pf-global--spacer--md);
+  }
+  &__body {
+    margin: var(--pf-global--spacer--lg) var(--pf-global--spacer--md);
+  }
+  &__footer {
+    margin-left: var(--pf-global--spacer--md);
+  }
+}
