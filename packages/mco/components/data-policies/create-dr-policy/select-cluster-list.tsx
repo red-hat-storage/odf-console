@@ -1,9 +1,9 @@
 import * as React from 'react';
+import { isMinimumSupportedODFVersion } from '@odf/mco/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { isMinimumSupportedODFVersion } from 'packages/mco/utils';
 import {
   DataList,
   DataListItem,
