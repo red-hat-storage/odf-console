@@ -75,9 +75,9 @@ export const DetailsCard: React.FC = () => {
       </CardHeader>
       <CardBody>
         <DetailsBody>
-          <DetailItem title={t('Service Name')}>{serviceName}</DetailItem>
+          <DetailItem title={t('Service name')}>{serviceName}</DetailItem>
           <DetailItem
-            title={t('Cluster Name')}
+            title={t('Cluster name')}
             error={resourcesObj['ocs'].loadError}
             isLoading={!resourcesObj['ocs'].loaded}
             data-test-id="cluster-name"
