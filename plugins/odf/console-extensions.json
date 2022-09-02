@@ -370,5 +370,12 @@
         "$codeRef": "storageProvider"
       }
     }
+  },
+  {
+    "type": "console.dashboards/overview/inventory/item",
+    "properties": {
+      "mapper": { "$codeRef": "obcStatus.getObcStatusGroups" },
+      "model": { "$codeRef": "models.NooBaaObjectBucketClaimModel" }
+    }
   }
 ]
