@@ -215,9 +215,11 @@ export const Encryption: React.FC<EncryptionProps> = ({
 
   const description = !isMCG
     ? t(
-        'Data encryption for block and file storage. MultiCloud Object Gateway is always encrypted.'
+        'Data encryption for block and file storage. MultiCloud Object Gateway supports encryption for objects by default.'
       )
-    : t('MultiCloud Object Gateway is always encrypted.');
+    : t(
+        'MultiCloud Object Gateway supports encryption for objects by default.'
+      );
 
   const encryptionLabel = !isMCG
     ? t('Enable data encryption for block and file storage')
