@@ -179,14 +179,14 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
       ) : (
         !state.errorMessage &&
         Object.values(state.selectedClusters)?.map((c) =>
-          !c?.isValidODFVersion
+          !c.isValidODFVersion
             ? errorMessage(
                 t(
                   '{{ name }} has either an unsupported ODF version or the ODF operator is missing, install or update to ODF {{ version }} or latest version to enable DR protection.',
                   { name: c?.name, version: ODF_MINIMUM_SUPPORT }
                 )
               )
-            : !c?.cephFSID &&
+            : c.cephFSID === '' &&
               errorMessage(
                 t('{{ name }} is not connected to RHCS', {
                   name: c?.name,

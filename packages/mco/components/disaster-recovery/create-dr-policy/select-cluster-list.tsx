@@ -75,11 +75,13 @@ const fetchODFInfo = (cluster: ACMManagedClusterKind): ODFInfo => {
     (claim) => claim.name === ClusterClaimTypes.CEPH_FSID
   );
   return {
-    odfVersion: odfVersionClaim?.value,
-    storageSystemName: storageSystemNameClaim?.value,
-    storageClusterName: storageClusterNameClaim?.value,
-    cephFSID: cephFsidClaim?.value,
-    isValidODFVersion: isMinimumSupportedODFVersion(odfVersionClaim?.value),
+    odfVersion: odfVersionClaim?.value || '',
+    storageSystemName: storageSystemNameClaim?.value || '',
+    storageClusterName: storageClusterNameClaim?.value || '',
+    cephFSID: cephFsidClaim?.value || '',
+    isValidODFVersion: isMinimumSupportedODFVersion(
+      odfVersionClaim?.value || ''
+    ),
   };
 };
 
@@ -159,6 +161,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       storageClusterName,
       storageSystemName,
       cephFSID,
+      isValidODFVersion,
     } = filteredClusters?.[Number(event.currentTarget.id)];
     const selectedClustersClone = _.cloneDeep(selectedClusters);
     if (checked) {
@@ -169,6 +172,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
         storageSystemName,
         storageClusterName,
         odfVersion,
+        isValidODFVersion,
       };
     } else {
       delete selectedClustersClone?.[name];

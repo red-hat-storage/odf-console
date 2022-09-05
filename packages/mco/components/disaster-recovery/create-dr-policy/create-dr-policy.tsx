@@ -90,8 +90,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
       dispatch({
         type: DRPolicyActionType.SET_IS_ODF_DETECTED,
         payload: clustersData.every(
-          (cluster) =>
-            cluster?.storageSystemName !== '' && cluster?.isValidODFVersion
+          (cluster) => cluster?.cephFSID !== '' && cluster?.isValidODFVersion
         ),
       });
 

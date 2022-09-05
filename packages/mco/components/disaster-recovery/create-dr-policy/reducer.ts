@@ -1,10 +1,10 @@
-export type ODFInfo = {
-  storageClusterName?: string;
-  storageSystemName?: string;
-  cephFSID?: string;
-  odfVersion?: string;
-  isValidODFVersion?: boolean;
-};
+export type ODFInfo = Partial<{
+  storageClusterName: string;
+  storageSystemName: string;
+  cephFSID: string;
+  odfVersion: string;
+  isValidODFVersion: boolean;
+}>;
 
 export type Cluster = {
   name: string;
