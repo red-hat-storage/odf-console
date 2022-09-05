@@ -52,6 +52,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
         test: /\.scss$/,
         include: [
           /node_modules\/@openshift-console\/plugin-shared/,
+          /node_modules\/@openshift-console\/dynamic-plugin-sdk/,
           /packages/,
         ],
         use: [
