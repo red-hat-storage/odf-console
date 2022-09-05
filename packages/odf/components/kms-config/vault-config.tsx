@@ -208,10 +208,12 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
       : VaultServiceAccountConfigure;
 
   React.useEffect(() => {
+    // only need to pass authValue for wizard flow
+    const validAuthValue: boolean = isWizardFlow
+      ? vaultState.authValue?.valid && vaultState.authValue?.value !== ''
+      : true;
     const hasHandled: boolean =
-      vaultState.authValue?.valid &&
-      vaultState.authValue?.value !== '' &&
-      kmsConfigValidation(vaultState, ProviderNames.VAULT);
+      validAuthValue && kmsConfigValidation(vaultState, ProviderNames.VAULT);
     if (vaultState.hasHandled !== hasHandled) {
       dispatch({
         type: 'securityAndNetwork/setKmsProviderState',
@@ -221,7 +223,7 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
         },
       });
     }
-  }, [dispatch, vaultState]);
+  }, [dispatch, vaultState, isWizardFlow]);
 
   return (
     <>

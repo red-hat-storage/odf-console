@@ -7,7 +7,6 @@ import { KMSConfigure } from '@odf/core/components/kms-config/kms-config';
 import {
   isLengthUnity,
   createCsiKmsResources,
-  kmsConfigValidation,
 } from '@odf/core/components/kms-config/utils';
 import {
   OCS_INTERNAL_CR_NAME,
@@ -566,18 +565,18 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
       : [];
     if (
       (allServiceNames.length &&
-        allServiceNames.indexOf(kms[provider].name.value) === -1) ||
+        allServiceNames.indexOf(kms.providerState.name.value) === -1) ||
       !csiKmsDetails
     ) {
       try {
         const promises: Promise<K8sResourceKind>[] = createCsiKmsResources(
-          kms[provider],
+          kms.providerState,
           !!csiKmsDetails,
           provider
         );
         await Promise.all(promises).then(() => {
           setIsExistingKms(true);
-          setEncryptionId(kms[provider].name.value);
+          setEncryptionId(kms.providerState.name.value);
         });
         setErrorMessage('');
       } catch (error) {
@@ -586,7 +585,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
     } else {
       setErrorMessage(
         t('KMS service {{value}} already exist', {
-          value: kms[provider].name.value,
+          value: kms.providerState.name.value,
         })
       );
     }
@@ -648,9 +647,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
                     <Button
                       variant="secondary"
                       onClick={updateKMS}
-                      isDisabled={
-                        !kmsConfigValidation(kms.providerState, provider)
-                      }
+                      isDisabled={!kms.providerState.hasHandled}
                       data-test="save-action"
                     >
                       {t('Save')}
