@@ -39,3 +39,10 @@ export const OCS_DEVICE_REPLICA = Object.freeze({
 });
 
 export const OCS_POOL_MANAGEMENT = 'OCS_POOL_MANAGEMENT';
+
+export enum CLUSTER_STATUS {
+  READY = 'Ready',
+  PROGRESSING = 'Progressing',
+}
+
+export const CEPH_INTERNAL_CR_NAME = 'ocs-storagecluster-cephcluster';

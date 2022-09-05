@@ -4,3 +4,4 @@ dist
 locales
 .husky
 .vscode
+*.scss
