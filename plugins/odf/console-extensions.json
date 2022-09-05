@@ -548,5 +548,45 @@
         }
       }
     }
+  },
+  {
+    "type": "console.alert-action",
+    "properties": {
+      "alert": "CephOSDDiskUnavailable",
+      "text": "Troubleshoot",
+      "action": {
+        "$codeRef": "alert.getDiskAlertActionPath"
+      }
+    }
+  },
+  {
+    "type": "console.alert-action",
+    "properties": {
+      "alert": "CephOSDDiskNotResponding",
+      "text": "Troubleshoot",
+      "action": {
+        "$codeRef": "alert.getDiskAlertActionPath"
+      }
+    }
+  },
+  {
+    "type": "console.alert-action",
+    "properties": {
+      "alert": "CephClusterNearFull",
+      "text": "Add Capacity",
+      "action": {
+        "$codeRef": "alert.launchClusterExpansionModal"
+      }
+    }
+  },
+  {
+    "type": "console.alert-action",
+    "properties": {
+      "alert": "CephClusterCriticallyFull",
+      "text": "Add Capacity",
+      "action": {
+        "$codeRef": "alert.launchClusterExpansionModal"
+      }
+    }
   }
 ]
