@@ -236,7 +236,7 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
   );
 };
 
-const EDIT_BC_RESOURCES = 'EDIT_BC_RESOURCE_MODAL_KEY';
+const EDIT_BC_RESOURCES = 'EDIT_BC_RESOURCES';
 
 const bcActions = {
   [EDIT_BC_RESOURCES]: React.lazy(
