@@ -31,6 +31,7 @@
     "storageProvisioners": "@odf/ocs/storage-class/provisioners",
     "storageProvisionerComponents": "@odf/ocs/storage-class/sc-form",
     "thickProvisioner": "@odf/ocs/storage-class/thick-provisioner",
-    "alert": "@odf/core/components/alerts/alert-action-path"
+    "alert": "@odf/core/components/alerts/alert-action-path",
+    "actions": "@odf/core/components/actions/csv-actions"
   }
 }

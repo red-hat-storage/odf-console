@@ -588,5 +588,12 @@
         "$codeRef": "alert.launchClusterExpansionModal"
       }
     }
+  },
+  {
+    "type": "console.action/provider",
+    "properties": {
+      "contextId": "csv-actions",
+      "provider": { "$codeRef": "actions.useCsvActions" }
+    }
   }
 ]

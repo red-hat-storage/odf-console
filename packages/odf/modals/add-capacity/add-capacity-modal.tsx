@@ -369,6 +369,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
       hasNoBodyWrapper={true}
       variant={ModalVariant.small}
       className="add-capacity-modal"
+      aria-label="Add Capacity"
     >
       <ModalBody className="add-capacity-modal--overflow">
         <Trans t={t as any} ns="plugin__odf-console" values={{ name }}>

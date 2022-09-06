@@ -12,13 +12,13 @@ export const getODFCsv = (csvList: ClusterServiceVersionKind[] = []) =>
       csv?.metadata.name?.substring(0, ODF_OPERATOR.length) === ODF_OPERATOR
   );
 
+export const isOCSStorageSystem = (storageSystem: StorageSystemKind) =>
+  storageSystem?.spec?.kind ===
+  getGVKLabel({
+    kind: OCSStorageClusterModel.kind,
+    apiVersion: OCSStorageClusterModel.apiVersion,
+    apiGroup: OCSStorageClusterModel.apiGroup,
+  });
+
 export const getOCSStorageSystem = (ssList: StorageSystemKind[] = []) =>
-  ssList.find(
-    (ss) =>
-      ss?.spec?.kind ===
-      getGVKLabel({
-        kind: OCSStorageClusterModel.kind,
-        apiVersion: OCSStorageClusterModel.apiVersion,
-        apiGroup: OCSStorageClusterModel.apiGroup,
-      })
-  );
+  ssList.find((ss) => isOCSStorageSystem(ss));
