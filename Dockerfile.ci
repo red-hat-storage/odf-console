@@ -15,7 +15,7 @@ COPY --from=builder /app/plugins/odf/dist /app/compatibility
 COPY --from=builder /app/http-server.sh .
 
 ENV TLS_CERT=/var/serving-cert/tls.crt
-ENV TLS_KEY=/var/serving-cert/tls.keyW
+ENV TLS_KEY=/var/serving-cert/tls.key
 ENV ENABLE_TLS=true
 
 ENTRYPOINT [ "./http-server.sh", "./app" ]
