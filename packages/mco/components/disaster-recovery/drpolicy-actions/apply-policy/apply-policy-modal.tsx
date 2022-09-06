@@ -41,7 +41,10 @@ import {
   DRPlacementControlKind,
   AppToPlacementRule,
 } from '../../../../types';
-import { matchApplicationToSubscription } from '../../../../utils';
+import {
+  matchApplicationToSubscription,
+  getPlacementKind,
+} from '../../../../utils';
 import { ApplicationSelector } from './application-selector';
 import './apply-policy-modal.scss';
 
@@ -202,8 +205,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
 
     if (subscriptionsLoaded && !subscriptionsLoadError) {
       const isPlacementRuleModel = (subscription: ACMSubscriptionKind) =>
-        subscription?.spec?.placement?.placementRef?.kind ===
-        ACMPlacementRuleModel?.kind;
+        getPlacementKind(subscription) === ACMPlacementRuleModel?.kind;
       // namespace wise subscription object
       const subsMap: SubcsriptionMap = subscriptions?.reduce(
         (arr, subscription) =>
@@ -256,7 +258,6 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
               subs?.spec?.placement?.placementRef?.name
             ];
           const plsRuleName = getName(plsRule);
-
           // generating application to placement rule map
           const matchedCluster = clusterMatch(plsRule, managedClusterNames);
           if (

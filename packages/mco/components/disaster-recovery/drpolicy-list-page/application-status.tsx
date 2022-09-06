@@ -32,7 +32,10 @@ import {
 import { HUB_CLUSTER_NAME } from '../../../constants';
 import { ACMPlacementRuleModel, ACMSubscriptionModel } from '../../../models';
 import { ACMSubscriptionKind, DRPlacementControlKind } from '../../../types';
-import { matchApplicationToSubscription } from '../../../utils';
+import {
+  matchApplicationToSubscription,
+  getPlacementKind,
+} from '../../../utils';
 import './application-status.scss';
 
 const reactPropFix = {
@@ -100,8 +103,7 @@ const subsFilter = (
       {}
     );
   return (
-    subscription?.spec?.placement?.placementRef?.kind ===
-      ACMPlacementRuleModel?.kind &&
+    getPlacementKind(subscription) === ACMPlacementRuleModel?.kind &&
     placementRuleNameMapping?.[subscription?.metadata?.namespace]?.includes(
       subscription?.spec?.placement?.placementRef?.name
     )

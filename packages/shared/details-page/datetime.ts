@@ -79,6 +79,22 @@ export const utcDateTimeFormatter = new Intl.DateTimeFormat(
   }
 );
 
+export const utcDateTimeFormatterWithTimZone = new Intl.DateTimeFormat(
+  getLastLanguage() || undefined,
+  {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true,
+    timeZone: 'UTC',
+    timeZoneName: 'short',
+  }
+);
+
 export const relativeTimeFormatter = (Intl as any).RelativeTimeFormat
   ? new (Intl as any).RelativeTimeFormat(getLastLanguage() || undefined)
   : null;

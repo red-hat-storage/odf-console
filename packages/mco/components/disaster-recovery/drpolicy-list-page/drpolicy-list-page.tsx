@@ -25,13 +25,10 @@ import * as _ from 'lodash';
 import { Trans } from 'react-i18next';
 import { useHistory } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';
-import {
-  REPLICATION_TYPE,
-  Actions,
-  HUB_CLUSTER_NAME,
-} from '../../../constants';
+import { Actions, HUB_CLUSTER_NAME } from '../../../constants';
 import { DRPolicyModel, DRPlacementControlModel } from '../../../models';
 import { DRPolicyKind, DRPlacementControlKind } from '../../../types';
+import { getReplicationType } from '../../../utils';
 import EmptyPage from '../../empty-state-page/empty-page';
 import { DRPolicyActions } from '../drpolicy-actions/policy-actions';
 import { ApplicationStatus } from './application-status';
@@ -132,9 +129,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
         {clusterNames}
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
-        {obj?.spec?.schedulingInterval !== '0m'
-          ? REPLICATION_TYPE.ASYNC
-          : REPLICATION_TYPE.SYNC}
+        {getReplicationType(obj?.spec?.schedulingInterval)}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
         {<ApplicationStatus drPlacementControls={filteredDRPlacementControl} />}

@@ -11,6 +11,7 @@
     "createDataPolicy": "@odf/mco/components/disaster-recovery/create-dr-policy/create-dr-policy",
     "mcoDashboard": "@odf/mco/components/mco-dashboard/dashboard",
     "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor",
-    "dataPoliciesStatusPopover": "@odf/mco/components/data-policies/app-data-policies-status/data-policies-status-popover"
+    "dataPoliciesStatusPopover": "@odf/mco/components/data-policies/app-data-policies-status/data-policies-status-popover",
+    "failoverRelocateModal": "@odf/mco/components/disaster-recovery/app-failover-relocate/failover-relocate-modal"
   }
 }

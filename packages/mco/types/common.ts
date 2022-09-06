@@ -1,6 +1,8 @@
-import { K8sResourceCondition } from '@odf/shared/types';
-import { ApplicationKind } from '@odf/shared/types/k8s';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import { K8sResourceCondition, ApplicationKind } from '@odf/shared/types';
+import {
+  K8sResourceCommon,
+  ObjectReference,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
 type ClusterStatus = {
@@ -9,7 +11,7 @@ type ClusterStatus = {
 };
 
 export type DRPolicyKind = K8sResourceCommon & {
-  spec: {
+  spec?: {
     drClusters: string[];
     schedulingInterval: string;
     replicationClassSelector?: Selector;
@@ -23,12 +25,26 @@ export type DRPolicyKind = K8sResourceCommon & {
   };
 };
 
+export type DRClusterKind = K8sResourceCommon & {
+  spec?: {
+    cidrs?: string[];
+    clusterFence?: string;
+    region?: string;
+    S3ProfileName: string;
+  };
+  status?: {
+    conditions?: K8sResourceCondition[];
+    phase: string;
+  };
+};
+
 export type ACMManagedClusterKind = K8sResourceCommon & {
   status?: {
     clusterClaims?: {
       name: string;
       value: string;
     }[];
+    conditions?: K8sResourceCondition[];
   };
 };
 
@@ -49,13 +65,8 @@ export type MirrorPeerKind = K8sResourceCommon & {
 
 export type DRPlacementControlKind = K8sResourceCommon & {
   spec: {
-    drPolicyRef: {
-      name: string;
-    };
-    placementRef: {
-      kind: string;
-      name: string;
-    };
+    drPolicyRef: ObjectReference;
+    placementRef: ObjectReference;
     preferredCluster?: string;
     failoverCluster?: string;
     pvcSelector: {
@@ -66,6 +77,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     action?: string;
   };
   status?: {
+    conditions?: K8sResourceCondition[];
     phase: string;
   };
 };
@@ -92,10 +104,7 @@ export type ACMSubscriptionKind = K8sResourceCommon & {
   spec: {
     name?: string;
     placement?: {
-      placementRef?: {
-        kind: string;
-        name: string;
-      };
+      placementRef?: ObjectReference;
     };
   };
   status?: {
