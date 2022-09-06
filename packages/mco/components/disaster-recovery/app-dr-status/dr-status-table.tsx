@@ -1,12 +1,18 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { GreenCheckCircleIcon } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  GreenCheckCircleIcon,
+  StatusIconAndText,
+} from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'i18next';
+import * as _ from 'lodash';
 import {
   Flex,
   FlexItem,
   Text,
   TextContent,
   TextVariants,
+  Tooltip,
 } from '@patternfly/react-core';
 import { InProgressIcon } from '@patternfly/react-icons';
 import {
@@ -36,19 +42,51 @@ const getCurrentStatus = (drpcList: DRPlacementControlKind[]): string =>
       : prevStatus || newStatus;
   }, '');
 
-const getDRStatus = (currentStatus: string) => {
+const getTargetClusters = (
+  currentStatus: string,
+  drpcList: DRPlacementControlKind[]
+) => {
+  const targetClusters = drpcList.reduce((acc, drpc) => {
+    const status = DRPC_STATUS[drpc?.status?.phase] || '';
+    return status === currentStatus
+      ? ([DRPC_STATUS.Relocating, DRPC_STATUS.Relocated].includes(status) &&
+          acc.add(drpc?.spec?.preferredCluster)) ||
+          ([DRPC_STATUS.FailingOver, DRPC_STATUS.FailedOver].includes(status) &&
+            acc.add(drpc?.spec?.failoverCluster))
+      : acc;
+  }, new Set());
+  return [...targetClusters].join(',');
+};
+
+const getDRStatus = (
+  currentStatus: string,
+  targetClusters: string,
+  t: TFunction
+) => {
   switch (currentStatus) {
     case DRPC_STATUS.Relocating:
     case DRPC_STATUS.FailingOver:
       return {
         text: currentStatus,
         icon: <InProgressIcon />,
+        toolTip: (
+          <>
+            <h4>{t('Target cluster')}</h4>
+            <p>{t('In use: {{targetClusters}}', { targetClusters })}</p>
+          </>
+        ),
       };
     case DRPC_STATUS.Relocated:
     case DRPC_STATUS.FailedOver:
       return {
         text: currentStatus,
         icon: <GreenCheckCircleIcon />,
+        toolTip: (
+          <>
+            <h4>{t('Target cluster')}</h4>
+            <p>{t('Used: {{targetClusters}}', { targetClusters })}</p>
+          </>
+        ),
       };
     default:
       return {};
@@ -89,13 +127,17 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
     React.useState<SortByDirection>();
   const drCurrentStatus: DRCurrentStatusType[] = React.useMemo(
     () =>
-      Object.entries(drPolicies).map(([policyName, drpcList]) => ({
-        drPolicyName: policyName,
-        // TODO:Gowtham Once it is available on DRPC CR
-        lastSync: '',
-        currentStatus: getDRStatus(getCurrentStatus(drpcList)),
-      })),
-    [drPolicies]
+      _.map(drPolicies, (drpcList, policyName) => {
+        const currentStatus = getCurrentStatus(drpcList);
+        const targetClusters = getTargetClusters(currentStatus, drpcList);
+        return {
+          drPolicyName: policyName,
+          // TODO:Gowtham Once it is available on DRPC CR
+          lastSync: '',
+          currentStatus: getDRStatus(currentStatus, targetClusters, t),
+        };
+      }),
+    [drPolicies, t]
   );
 
   const sortedDRStatus = React.useMemo(
@@ -133,7 +175,7 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
         <TextContent>
           <Text component={TextVariants.small}>
             {t(
-              'View the status of the ongoing activities associated to the policies that are being used with applications.'
+              'Track the status of ongoing activities associated with the policy in use with your application.'
             )}
           </Text>
         </TextContent>
@@ -185,18 +227,12 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
                   {...reactPropFix}
                   data-test={`activity-status-row-${rowIndex}`}
                 >
-                  <Flex spaceItems={{ default: 'spaceItemsXs' }}>
-                    <FlexItem
-                      data-test={`activity-status-row-${rowIndex}-icon`}
-                    >
-                      {drstatus?.currentStatus?.icon}
-                    </FlexItem>
-                    <FlexItem
-                      data-test={`activity-status-row-${rowIndex}-text`}
-                    >
-                      {drstatus?.currentStatus?.text}
-                    </FlexItem>
-                  </Flex>
+                  <Tooltip content={drstatus?.currentStatus?.toolTip}>
+                    <StatusIconAndText
+                      title={drstatus?.currentStatus?.text}
+                      icon={drstatus?.currentStatus?.icon}
+                    />
+                  </Tooltip>
                 </Td>
               </Tr>
             ))}
@@ -217,5 +253,6 @@ type DRCurrentStatusType = {
   currentStatus: {
     text?: string;
     icon?: JSX.Element;
+    toolTip?: React.ReactNode;
   };
 };

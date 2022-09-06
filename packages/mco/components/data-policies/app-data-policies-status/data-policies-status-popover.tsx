@@ -30,7 +30,7 @@ import {
   getDRPolicyName,
   getDRPoliciesCount,
 } from '../../../utils';
-import { DRStatusCard } from '../../disaster-recovery/application-dr-status/dr-status-card';
+import { DRStatusCard } from '../../disaster-recovery/app-dr-status/dr-status-card';
 import { DataPoliciesStatusType } from './data-policies-status-modal';
 import './data-policies-status-popover.scss';
 

@@ -57,6 +57,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
       name: string;
     };
     preferredCluster?: string;
+    failoverCluster?: string;
     pvcSelector: {
       matchLabels: {
         [key: string]: string;

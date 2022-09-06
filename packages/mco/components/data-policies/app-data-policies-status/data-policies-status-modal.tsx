@@ -3,7 +3,7 @@ import { CommonModalProps } from '@odf/shared/modals/common';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, Button, Nav, NavList, NavItem } from '@patternfly/react-core';
 import { DRPolicyMap, getDRPoliciesCount } from '../../../utils';
-import { DRPoliciesStatusTable } from '../../disaster-recovery/application-dr-status/dr-status-table';
+import { DRPoliciesStatusTable } from '../../disaster-recovery/app-dr-status/dr-status-table';
 import './data-policies-status-modal.scss';
 
 const DataPoliciesStatusModal: React.FC<CommonModalProps> = ({
