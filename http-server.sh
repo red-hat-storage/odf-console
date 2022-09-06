@@ -3,7 +3,5 @@
 set -u
 
 public_path="$1"
-shift
-server_opts="$@"
 
-http-server $public_path -p 9001
+http-server $public_path -p 9001 -S "$ENABLE_TLS" -C "$TLS_CERT" -K "$TLS_KEY" -c-1
