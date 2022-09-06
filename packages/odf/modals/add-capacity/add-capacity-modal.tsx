@@ -187,7 +187,7 @@ type AddCapacityModalProps = {
   storageCluster: StorageClusterKind;
 } & CommonModalProps;
 
-const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
+export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   storageCluster: ocsConfig,
   closeModal,
   isOpen,
