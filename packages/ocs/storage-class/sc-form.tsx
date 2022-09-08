@@ -40,6 +40,7 @@ import {
   StorageClassResourceKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getInfrastructurePlatform } from '@odf/shared/utils';
 import {
   WatchK8sResource,
   ProvisionerProps,
@@ -519,7 +520,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
   );
   const [csiConfigMap, csiConfigMapLoaded, csiConfigMapLoadError] =
     useK8sWatchResource<ConfigMapKind>(csiCMWatchResource);
-  const infraType = infra?.spec?.platformSpec?.type;
+  const infraType = getInfrastructurePlatform(infra);
   const memoizedCsiConfigMap = useDeepCompareMemoize(csiConfigMap, true);
 
   const setEncryptionId = React.useCallback(

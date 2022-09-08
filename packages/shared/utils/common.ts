@@ -119,9 +119,7 @@ export const isFunctionThenApply = (fn: any) => (args: string) =>
 export const getInfrastructurePlatform = (
   infrastructure: K8sResourceKind
 ): string =>
-  infrastructure && infrastructure.status
-    ? infrastructure.status.platform
-    : undefined;
+  infrastructure?.spec?.platformSpec?.type || infrastructure?.status?.platform;
 
 export const getGVKLabel = ({ kind, apiVersion, apiGroup }) =>
   `${kind.toLowerCase()}.${apiGroup}/${apiVersion}`;
