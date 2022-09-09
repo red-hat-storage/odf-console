@@ -127,8 +127,8 @@ export const getReplicationType = (schedulingInterval: string) =>
 export const getPlacementKind = (subscription: ACMSubscriptionKind) =>
   subscription?.spec?.placement?.placementRef?.kind;
 
-export const findPeerCondition = (drPolicyControl: DRPlacementControlKind) =>
-  drPolicyControl?.status?.conditions.find(
+export const isPeerReady = (drPolicyControl: DRPlacementControlKind) =>
+  !!drPolicyControl?.status?.conditions.find(
     (condition) =>
       condition?.type === 'PeerReady' && condition?.status === 'True'
   );

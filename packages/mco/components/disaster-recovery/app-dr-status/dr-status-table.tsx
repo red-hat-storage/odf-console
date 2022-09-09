@@ -42,18 +42,23 @@ const getCurrentStatus = (drpcList: DRPlacementControlKind[]): string =>
       : prevStatus || newStatus;
   }, '');
 
+const isRelocating = (status: DRPC_STATUS) =>
+  [DRPC_STATUS.Relocating, DRPC_STATUS.Relocated].includes(status);
+
+const isFailingOver = (status: DRPC_STATUS) =>
+  [DRPC_STATUS.FailingOver, DRPC_STATUS.FailedOver].includes(status);
+
 const getTargetClusters = (
   currentStatus: string,
   drpcList: DRPlacementControlKind[]
 ) => {
   const targetClusters = drpcList.reduce((acc, drpc) => {
     const status = DRPC_STATUS[drpc?.status?.phase] || '';
-    return status === currentStatus
-      ? ([DRPC_STATUS.Relocating, DRPC_STATUS.Relocated].includes(status) &&
-          acc.add(drpc?.spec?.preferredCluster)) ||
-          ([DRPC_STATUS.FailingOver, DRPC_STATUS.FailedOver].includes(status) &&
-            acc.add(drpc?.spec?.failoverCluster))
-      : acc;
+    if (status === currentStatus) {
+      (isRelocating(status) && acc.add(drpc?.spec?.preferredCluster)) ||
+        (isFailingOver(status) && acc.add(drpc?.spec?.failoverCluster));
+    }
+    return acc;
   }, new Set());
   return [...targetClusters].join(',');
 };
