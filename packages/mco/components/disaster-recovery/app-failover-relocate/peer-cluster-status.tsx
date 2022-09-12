@@ -9,7 +9,7 @@ import {
 import { TFunction } from 'i18next';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
-import { findPeerCondition } from '../../../utils';
+import { isPeerReady } from '../../../utils';
 import {
   ACTION_TYPE,
   FailoverAndRelocateState,
@@ -18,24 +18,24 @@ import {
   DRPolicyControlState,
 } from './reducer';
 
-export const PEER_READINESS = {
-  UNKNOWN: 'Unknown',
-  PEER_READY: 'Peer ready',
-  PEER_NOT_READY: 'Peer not ready',
-};
+export const PEER_READINESS = (t: TFunction) => ({
+  UNKNOWN: t('Unknown'),
+  PEER_READY: t('Ready'),
+  PEER_NOT_READY: t('Not ready'),
+});
 
 const initalPeerStatus = (t: TFunction) => ({
   peerReadiness: {
     icon: <UnknownIcon />,
-    text: t('Unknown'),
+    text: PEER_READINESS(t).UNKNOWN,
   },
   lastHealthCheck: {
     icon: <UnknownIcon />,
-    text: t('Unknown'),
+    text: PEER_READINESS(t).UNKNOWN,
   },
   lastSnapshotTakenOn: {
     icon: <UnknownIcon />,
-    text: t('Unknown'),
+    text: PEER_READINESS(t).UNKNOWN,
   },
 });
 
@@ -44,14 +44,14 @@ const getPeerReadiness = (
   drpcState: DRPolicyControlState,
   t: TFunction
 ): StatusProps =>
-  obj.peerReadiness.text !== PEER_READINESS.PEER_NOT_READY
-    ? findPeerCondition(drpcState?.drPolicyControl)
+  obj.peerReadiness.text !== PEER_READINESS(t).PEER_NOT_READY
+    ? isPeerReady(drpcState?.drPolicyControl)
       ? {
-          text: t('Peer ready'),
+          text: PEER_READINESS(t).PEER_READY,
           icon: <GreenCheckCircleIcon />,
         }
       : {
-          text: t('Peer not ready'),
+          text: PEER_READINESS(t).PEER_NOT_READY,
           icon: <RedExclamationCircleIcon />,
         }
     : obj.peerReadiness;
@@ -112,7 +112,7 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
         state?.selectedSubsGroups,
         t
       );
-      peerCurrentStatus.peerReadiness.text === PEER_READINESS.PEER_NOT_READY
+      peerCurrentStatus.peerReadiness.text === PEER_READINESS(t).PEER_NOT_READY
         ? setErrorMessage(
             t(
               '{{actionType}} cannot be initiated becuase peer is not in ready state.',

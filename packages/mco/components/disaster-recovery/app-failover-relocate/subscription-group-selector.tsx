@@ -10,7 +10,7 @@ import {
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
-import { findPeerCondition } from '../../../utils';
+import { isPeerReady } from '../../../utils';
 import {
   FailoverAndRelocateState,
   FailoverAndRelocateAction,
@@ -32,6 +32,24 @@ const validateTargetCluster = (
 ) =>
   drPolicyControlState.drPolicyControl?.spec?.preferredCluster !==
   targetClusterName;
+
+const getValidOptions = (
+  option: React.ReactElement,
+  validOptions: React.ReactElement[],
+  isValidTargetCluster: boolean,
+  isValidPeerStatus: boolean
+) =>
+  isValidTargetCluster
+    ? isValidPeerStatus
+      ? [option, ...validOptions]
+      : [...validOptions, option]
+    : validOptions;
+
+const getInValidOptions = (
+  option: React.ReactElement,
+  inValidOptions: React.ReactElement[],
+  isValidTargetCluster: boolean
+) => (isValidTargetCluster ? inValidOptions : [option, ...inValidOptions]);
 
 const getOptions = (
   drPolicyControlState: DRPolicyControlState,
@@ -57,7 +75,7 @@ const getOptions = (
       </HelperTextItem>
       <HelperTextItem variant="indeterminate">
         <i>
-          {findPeerCondition(drPolicyControlState?.drPolicyControl)
+          {isPeerReady(drPolicyControlState?.drPolicyControl)
             ? t('Peer ready')
             : t('Peer not ready')}
         </i>
@@ -72,7 +90,7 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
     const selectedTargetCluster = state.selectedTargetCluster;
     const selectedDRPolicy = state.selectedDRPolicy;
     const [isOpen, setOpen] = React.useState(false);
-    const [options, setOptions] = React.useState([]);
+    const [options, setOptions] = React.useState<React.ReactElement[]>([]);
     const memoizedDRPCState = useDeepCompareMemoize(
       state.drPolicyControlState,
       true
@@ -110,25 +128,49 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
         selectedTargetCluster?.isClusterAvailable
       ) {
         const validState: string[] = [];
-        const generatedOptions = memoizedDRPCState.reduce((acc, drpcState) => {
-          if (validateDRPolicy(drpcState, selectedDRPolicy?.policyName)) {
-            const isValidTargetCluster = validateTargetCluster(
-              drpcState,
-              selectedTargetCluster?.clusterName
-            );
-            isValidTargetCluster &&
-              validState.push(getName(drpcState.drPolicyControl));
-            const formattedOptions = isValidTargetCluster
-              ? [getOptions(drpcState, isValidTargetCluster, t), ...acc]
-              : [...acc, getOptions(drpcState, isValidTargetCluster, t)];
-            return formattedOptions;
-          } else {
-            return acc;
+        const generatedOptions = memoizedDRPCState.reduce(
+          (acc, drpcState) => {
+            if (validateDRPolicy(drpcState, selectedDRPolicy?.policyName)) {
+              const isValidTargetCluster = validateTargetCluster(
+                drpcState,
+                selectedTargetCluster?.clusterName
+              );
+              const isValidPeerStatus = isPeerReady(drpcState?.drPolicyControl);
+              isValidTargetCluster &&
+                isValidPeerStatus &&
+                validState.push(getName(drpcState.drPolicyControl));
+              const option = getOptions(drpcState, isValidTargetCluster, t);
+              return {
+                validOptions: getValidOptions(
+                  option,
+                  acc.validOptions,
+                  isValidTargetCluster,
+                  isValidPeerStatus
+                ),
+                inValidOptions: getInValidOptions(
+                  option,
+                  acc.inValidOptions,
+                  isValidTargetCluster
+                ),
+              };
+            } else {
+              return acc;
+            }
+          },
+          {
+            validOptions: [],
+            inValidOptions: [],
           }
-        }, []);
-        if (!!generatedOptions.length) {
+        );
+        if (
+          !!generatedOptions.validOptions.length ||
+          !!generatedOptions.inValidOptions.length
+        ) {
           setSelected(validState);
-          setOptions(generatedOptions);
+          setOptions([
+            ...generatedOptions.validOptions,
+            ...generatedOptions.inValidOptions,
+          ]);
           setErrorMessage('');
         } else {
           setOptions([]);
