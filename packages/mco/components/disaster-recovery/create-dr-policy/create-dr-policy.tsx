@@ -263,7 +263,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           fieldId="connect-clusters"
           label={t('Connect clusters')}
           helperText={t(
-            'Enables mirroring/replication between the two selected clusters and ensures failover from primary cluster to secondary cluster in the event of an outage.'
+            'Enables mirroring/replication between two selected clusters, ensuring failover or relocation between the two clusters in the event of an outage or planned maintenance.'
           )}
           isHelperTextBeforeField
         >
