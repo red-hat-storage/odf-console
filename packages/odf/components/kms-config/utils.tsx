@@ -2,7 +2,7 @@ import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { ConfigMapModel, SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, ConfigMapKind, SecretKind } from '@odf/shared/types';
-import { getRandomChars } from '@odf/shared/utils';
+import { getRandomChars, isValidIP } from '@odf/shared/utils';
 import { k8sCreate, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import {
@@ -28,12 +28,26 @@ import {
   KmsEncryptionLevel,
 } from '../../types';
 
+// will accept protocol in URL as well
+// do not accept IP address
 export const parseURL = (url: string) => {
   try {
     return new URL(url);
   } catch (e) {
     return null;
   }
+};
+
+// will treat protocol as an optional
+// will accept IP address directly as well
+export const isValidEndpoint = (url: string) => {
+  const validURL =
+    // eslint-disable-next-line no-useless-escape
+    /^(http(s?):\/\/)?(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/.test(
+      url
+    );
+  const validIP = isValidIP(url);
+  return validURL || validIP;
 };
 
 export const isLengthUnity = (items) => items.length === 1;
@@ -336,7 +350,7 @@ const getCsiThalesResources = (
   const csiConfigData: ThalesConfigMap = {
     KMS_PROVIDER: KmsImplementations.KMIP,
     KMS_SERVICE_NAME: kms.name.value,
-    KMIP_ENDPOINT: getKmsEndpoint(kms.address.value, kms.port.value),
+    KMIP_ENDPOINT: `${kms.address.value}:${kms.port.value}`,
     KMIP_SECRET_NAME: secretName || getName(keySecret),
     TLS_SERVER_NAME: kms.tls,
   };
@@ -444,7 +458,7 @@ const getClusterThalesResources = (
   const configData: ThalesConfigMap = {
     KMS_PROVIDER: KmsImplementations.KMIP,
     KMS_SERVICE_NAME: kms.name.value,
-    KMIP_ENDPOINT: getKmsEndpoint(kms.address.value, kms.port.value),
+    KMIP_ENDPOINT: `${kms.address.value}:${kms.port.value}`,
     KMIP_SECRET_NAME: secretName,
     TLS_SERVER_NAME: kms.tls,
   };

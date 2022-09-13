@@ -127,3 +127,8 @@ export const getGVKLabel = ({ kind, apiVersion, apiGroup }) =>
 export const getRandomChars = () => Math.random().toString(36).substring(7);
 
 export const getErrorMessage = (error: Error) => error?.message;
+
+export const isValidIP = (address) =>
+  /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+    address
+  );

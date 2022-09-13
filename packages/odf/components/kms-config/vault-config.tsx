@@ -232,6 +232,7 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
         kmsState={vaultState}
         kmsStateClone={vaultStateClone}
         updateKmsState={updateVaultState}
+        canAcceptIP={false}
       />
       {isWizardFlow && (
         <Component

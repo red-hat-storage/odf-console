@@ -11,6 +11,7 @@ import { SecretModel } from '@odf/shared/models';
 import { SecretKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getAPIVersionForModel } from '@odf/shared/utils';
+import { isValidIP } from '@odf/shared/utils';
 import {
   FormGroup,
   TextInput,
@@ -24,10 +25,6 @@ import {
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
 
 const VOLUME_MODES = ['thick', 'thin'];
-const isValidIP = (address) =>
-  /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
-    address
-  );
 
 export const FlashSystemConnectionDetails: React.FC<
   ExternalComponentProps<FlashSystemState>

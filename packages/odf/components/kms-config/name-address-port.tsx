@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import * as _ from 'lodash';
 import { FormGroup, TextInput, ValidatedOptions } from '@patternfly/react-core';
 import { VaultConfig, ThalesConfig } from '../../types';
-import { parseURL } from './utils';
+import { parseURL, isValidEndpoint } from './utils';
 
 export const isValid = (value: boolean) =>
   value ? ValidatedOptions.default : ValidatedOptions.error;
@@ -14,6 +14,7 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
   kmsState,
   kmsStateClone,
   updateKmsState,
+  canAcceptIP,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -24,9 +25,12 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
   };
 
   const setAddress = (address: string) => {
-    kmsStateClone.address.value = address;
-    kmsStateClone.address.valid =
-      address !== '' && parseURL(address.trim()) != null;
+    const trimAddress = address.trim();
+    const validAddress: boolean = canAcceptIP
+      ? isValidEndpoint(trimAddress)
+      : parseURL(trimAddress) != null;
+    kmsStateClone.address.value = trimAddress;
+    kmsStateClone.address.valid = address !== '' && validAddress;
     updateKmsState(kmsStateClone);
   };
 
@@ -43,6 +47,8 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
   const validateAddressMessage = () =>
     kmsState.address.value === ''
       ? t('This is a required field')
+      : canAcceptIP
+      ? t('Please enter a valid address')
       : t('Please enter a URL');
 
   const validatePortMessage = () =>
@@ -130,4 +136,5 @@ export type NameAddrPortProps = {
   className: string;
   kmsStateClone: VaultConfig | ThalesConfig;
   updateKmsState: (kmsConfig: VaultConfig | ThalesConfig) => void;
+  canAcceptIP: boolean;
 };

@@ -169,6 +169,7 @@ export const ThalesConfigure: React.FC<KMSConfigureProps> = ({
         kmsState={thalesState}
         kmsStateClone={thalesStateClone}
         updateKmsState={updateThalesState}
+        canAcceptIP
       />
       {uploadInputItems(t).map((uploadItem: UploadInputItem) => (
         <FileUploadInput

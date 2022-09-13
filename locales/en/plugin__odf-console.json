@@ -619,6 +619,7 @@
   "Connect to a Key Management Service": "Connect to a Key Management Service",
   "Key management service provider": "Key management service provider",
   "kms-provider-name": "kms-provider-name",
+  "Please enter a valid address": "Please enter a valid address",
   "Please enter a URL": "Please enter a URL",
   "Please enter a valid port": "Please enter a valid port",
   "Address": "Address",
