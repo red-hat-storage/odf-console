@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants/common';
 import PageHeading from '@odf/shared/heading/page-heading';
-import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   referenceForGroupVersionKind,
@@ -132,98 +131,92 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
     }
   }, [clustersData, t, dispatch]);
 
-  const onCreate = () => {
-    const promises: Promise<K8sResourceKind>[] = [];
-    const peerNames = clustersData?.map((cluster) => cluster?.name) ?? [];
-    const mirrorPeer: MirrorPeerKind =
-      fetchMirrorPeer(mirrorPeers, peerNames) ?? {};
-    if (Object.keys(mirrorPeer).length > 0) {
-      // MirrorPeer update
-      if (state.replication === REPLICATION_TYPE.ASYNC) {
-        const patch = [
-          {
-            op: 'replace',
-            path: '/spec/schedulingIntervals',
-            value: [
-              ...new Set([
-                ...mirrorPeer?.spec?.schedulingIntervals,
-                state.syncTime,
-              ]),
-            ],
-          },
-        ];
-        promises.push(
-          k8sPatch({
+  const onCreate = async () => {
+    try {
+      const peerNames = clustersData?.map((cluster) => cluster?.name) ?? [];
+      const mirrorPeer: MirrorPeerKind =
+        fetchMirrorPeer(mirrorPeers, peerNames) ?? {};
+
+      // DRPolicy creation
+      const payload: DRPolicyKind = {
+        apiVersion: getAPIVersionForModel(DRPolicyModel),
+        kind: DRPolicyModel.kind,
+        metadata: { name: state.policyName },
+        spec: {
+          schedulingInterval:
+            state.replication === REPLICATION_TYPE.ASYNC
+              ? state.syncTime
+              : '0m',
+          drClusters: peerNames,
+        },
+      };
+      await k8sCreate({
+        model: DRPolicyModel,
+        data: payload,
+        cluster: HUB_CLUSTER_NAME,
+      });
+
+      if (Object.keys(mirrorPeer).length > 0) {
+        // MirrorPeer update
+        if (state.replication === REPLICATION_TYPE.ASYNC) {
+          const patch = [
+            {
+              op: 'replace',
+              path: '/spec/schedulingIntervals',
+              value: [
+                ...new Set([
+                  ...mirrorPeer?.spec?.schedulingIntervals,
+                  state.syncTime,
+                ]),
+              ],
+            },
+          ];
+          await k8sPatch({
             model: MirrorPeerModel,
             resource: mirrorPeer,
             data: patch,
             cluster: HUB_CLUSTER_NAME,
-          })
-        );
-      }
-    } else {
-      // MirrorPeer creation
-      const payload: MirrorPeerKind = {
-        apiVersion: getAPIVersionForModel(MirrorPeerModel),
-        kind: MirrorPeerModel.kind,
-        metadata: { generateName: 'mirror-peer-' },
-        spec: {
-          manageS3: true,
-          type: state.replication,
-          schedulingIntervals:
-            state.replication === REPLICATION_TYPE.ASYNC
-              ? [state.syncTime]
-              : [],
-          items: clustersData?.map((cluster) => ({
-            clusterName: cluster?.name,
-            storageClusterRef: {
-              name: cluster.storageClusterName,
-              namespace: CEPH_STORAGE_NAMESPACE,
-            },
-          })),
-        },
-      };
-      promises.push(
-        k8sCreate({
+          });
+        }
+      } else {
+        // MirrorPeer creation
+        const payload: MirrorPeerKind = {
+          apiVersion: getAPIVersionForModel(MirrorPeerModel),
+          kind: MirrorPeerModel.kind,
+          metadata: { generateName: 'mirror-peer-' },
+          spec: {
+            manageS3: true,
+            type: state.replication,
+            schedulingIntervals:
+              state.replication === REPLICATION_TYPE.ASYNC
+                ? [state.syncTime]
+                : [],
+            items: clustersData?.map((cluster) => ({
+              clusterName: cluster?.name,
+              storageClusterRef: {
+                name: cluster.storageClusterName,
+                namespace: CEPH_STORAGE_NAMESPACE,
+              },
+            })),
+          },
+        };
+        await k8sCreate({
           model: MirrorPeerModel,
           data: payload,
           cluster: HUB_CLUSTER_NAME,
-        })
-      );
+        });
+      }
+
+      const { apiGroup, apiVersion, kind } = DRPolicyModel;
+      const drPolicyKind =
+        referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
+      history.push(url.replace(`${drPolicyKind}/~new`, ''));
+    } catch (error) {
+      dispatch({
+        type: DRPolicyActionType.SET_ERROR_MESSAGE,
+        payload: error?.message,
+      });
     }
-
-    // DRPolicy creation
-    const payload: DRPolicyKind = {
-      apiVersion: getAPIVersionForModel(DRPolicyModel),
-      kind: DRPolicyModel.kind,
-      metadata: { name: state.policyName },
-      spec: {
-        schedulingInterval:
-          state.replication === REPLICATION_TYPE.ASYNC ? state.syncTime : '0m',
-        drClusters: peerNames,
-      },
-    };
-    promises.push(
-      k8sCreate({
-        model: DRPolicyModel,
-        data: payload,
-        cluster: HUB_CLUSTER_NAME,
-      })
-    );
-
-    Promise.all(promises)
-      .then(() => {
-        const { apiGroup, apiVersion, kind } = DRPolicyModel;
-        const drPolicyKind =
-          referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
-        history.push(url.replace(`${drPolicyKind}/~new`, ''));
-      })
-      .catch((error) =>
-        dispatch({
-          type: DRPolicyActionType.SET_ERROR_MESSAGE,
-          payload: error?.message,
-        })
-      );
   };
 
   const setPolicyName = (strVal: string) =>
