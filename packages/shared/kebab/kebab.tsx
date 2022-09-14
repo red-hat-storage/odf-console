@@ -9,12 +9,12 @@ import {
   DropdownToggle,
   KebabToggle,
   DropdownItemProps,
-  Tooltip,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import { ModalKeys, LaunchModal } from '../modals/modalLauncher';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForModel } from '../utils';
+import './test.scss';
 
 export type CustomKebabItems = {
   key: string;
@@ -174,22 +174,20 @@ export const Kebab: React.FC<KebabProps> = ({
   }, [setOpen, toggleType, isDisabled]);
 
   return (
-    <Tooltip
-      content={
-        hoverMessage ? hoverMessage : t('Resource is being deleted.')
-      } /* hoverMessage is only visible when kebab is disabled, i.e., when its associated resource is being deleted */
-      trigger={'mouseenter'}
-    >
-      <Dropdown
-        data-test="kebab-button"
-        onSelect={onClick}
-        toggle={toggle}
-        isOpen={isOpen}
-        isPlain={toggleType === 'Kebab' ? true : false}
-        dropdownItems={dropdownItems}
-        data-test-id="kebab-button"
-        position="right"
-      />
-    </Tooltip>
+    <Dropdown
+      data-test="kebab-button"
+      id="kebab-button"
+      className="test"
+      onSelect={onClick}
+      toggle={toggle}
+      isOpen={isOpen}
+      isPlain={toggleType === 'Kebab' ? true : false}
+      dropdownItems={dropdownItems}
+      data-test-id="kebab-button"
+      // position="right"
+      position="left"
+      menuAppendTo="parent"
+      isFlipEnabled
+    />
   );
 };
