@@ -61,7 +61,10 @@ const fetchRegion = (cluster: ACMManagedClusterKind): string =>
     ''
   );
 
-const fetchODFInfo = (cluster: ACMManagedClusterKind): ODFInfo => {
+const fetchODFInfo = (
+  cluster: ACMManagedClusterKind,
+  requiredODFVersion: string
+): ODFInfo => {
   const odfVersionClaim = cluster?.status?.clusterClaims?.find(
     (claim) => claim.name === ClusterClaimTypes.ODF_VERSION
   );
@@ -80,7 +83,8 @@ const fetchODFInfo = (cluster: ACMManagedClusterKind): ODFInfo => {
     storageClusterName: storageClusterNameClaim?.value || '',
     cephFSID: cephFsidClaim?.value || '',
     isValidODFVersion: isMinimumSupportedODFVersion(
-      odfVersionClaim?.value || ''
+      odfVersionClaim?.value || '',
+      requiredODFVersion
     ),
   };
 };
@@ -93,19 +97,24 @@ const filterRegions = (filteredClusters: Cluster[]) =>
     return acc;
   }, []);
 
-const getManagedClusterInfo = (cluster: ACMManagedClusterKind): Cluster => ({
+const getManagedClusterInfo = (
+  cluster: ACMManagedClusterKind,
+  requiredODFVersion: string
+): Cluster => ({
   name: cluster?.metadata?.name,
   region: fetchRegion(cluster) ?? '',
-  ...fetchODFInfo(cluster),
+  ...fetchODFInfo(cluster, requiredODFVersion),
 });
 
 type SelectClusterListProps = {
   state: DRPolicyState;
+  requiredODFVersion: string;
   dispatch: React.Dispatch<DRPolicyAction>;
 };
 
 export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   state,
+  requiredODFVersion,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
@@ -114,10 +123,6 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   const [region, setRegion] = React.useState('');
   const [nameSearch, setNameSearch] = React.useState('');
   const [clusters, setClusters] = React.useState<Cluster[]>([]);
-  const selectedClustersNames = React.useMemo(
-    () => Object.keys(selectedClusters),
-    [selectedClusters]
-  );
 
   const [
     acmManagedClusters,
@@ -131,12 +136,16 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   });
 
   React.useEffect(() => {
-    if (acmManagedClustersLoaded && !acmManagedClustersLoadError) {
+    if (
+      acmManagedClustersLoaded &&
+      !!requiredODFVersion &&
+      !acmManagedClustersLoadError
+    ) {
       setClusters(
         acmManagedClusters?.reduce(
           (obj, acmManagedCluster) => [
             ...obj,
-            getManagedClusterInfo(acmManagedCluster),
+            getManagedClusterInfo(acmManagedCluster, requiredODFVersion),
           ],
           []
         )
@@ -146,6 +155,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     acmManagedClusters,
     acmManagedClustersLoaded,
     acmManagedClustersLoadError,
+    requiredODFVersion,
   ]);
 
   const filteredClusters: Cluster[] = React.useMemo(
@@ -163,23 +173,23 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       cephFSID,
       isValidODFVersion,
     } = filteredClusters?.[Number(event.currentTarget.id)];
-    const selectedClustersClone = _.cloneDeep(selectedClusters);
-    if (checked) {
-      selectedClustersClone[name] = {
-        name,
-        region,
-        cephFSID,
-        storageSystemName,
-        storageClusterName,
-        odfVersion,
-        isValidODFVersion,
-      };
-    } else {
-      delete selectedClustersClone?.[name];
-    }
+    const selectedClusterList = checked
+      ? [
+          ...selectedClusters,
+          {
+            name,
+            region,
+            cephFSID,
+            storageSystemName,
+            storageClusterName,
+            odfVersion,
+            isValidODFVersion,
+          },
+        ]
+      : selectedClusters.filter((cluster) => cluster?.name !== name);
     dispatch({
       type: DRPolicyActionType.SET_SELECTED_CLUSTERS,
-      payload: selectedClustersClone,
+      payload: selectedClusterList,
     });
   };
 
@@ -249,14 +259,13 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
                   aria-labelledby={t('Checkbox to select cluster')}
                   id={index.toString()}
                   onChange={onSelect}
-                  isChecked={selectedClustersNames?.some(
-                    (scName) => scName === fc.name
+                  isChecked={selectedClusters?.some(
+                    (cluster) => cluster?.name === fc.name
                   )}
                   isDisabled={
-                    (selectedClustersNames ?? [])?.length ===
-                      MAX_ALLOWED_CLUSTERS &&
-                    !(selectedClustersNames ?? [])?.some(
-                      (scName) => scName === fc.name
+                    (selectedClusters ?? []).length === MAX_ALLOWED_CLUSTERS &&
+                    !(selectedClusters ?? []).some(
+                      (cluster) => cluster?.name === fc.name
                     )
                   }
                 />

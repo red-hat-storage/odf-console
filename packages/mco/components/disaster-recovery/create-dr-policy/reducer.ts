@@ -11,15 +11,11 @@ export type Cluster = {
   region: string;
 } & ODFInfo;
 
-export type ManagedClusterMapping = {
-  [name in string]: Cluster;
-};
-
 export type DRPolicyState = {
   policyName: string;
   replication: string;
   syncTime: string;
-  selectedClusters: ManagedClusterMapping;
+  selectedClusters: Cluster[];
   isODFDetected: boolean;
   isReplicationInputManual: boolean;
   errorMessage: string;
@@ -40,7 +36,7 @@ export const drPolicyInitialState: DRPolicyState = {
   policyName: '',
   replication: '',
   syncTime: '5m',
-  selectedClusters: {},
+  selectedClusters: [],
   isODFDetected: false,
   isReplicationInputManual: false,
   errorMessage: '',
@@ -52,7 +48,7 @@ export type DRPolicyAction =
   | { type: DRPolicyActionType.SET_SYNC_TIME; payload: string }
   | {
       type: DRPolicyActionType.SET_SELECTED_CLUSTERS;
-      payload: ManagedClusterMapping;
+      payload: Cluster[];
     }
   | { type: DRPolicyActionType.SET_IS_ODF_DETECTED; payload: boolean }
   | {

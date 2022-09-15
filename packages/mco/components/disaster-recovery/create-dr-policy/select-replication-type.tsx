@@ -11,11 +11,7 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
-import {
-  ODF_MINIMUM_SUPPORT,
-  REPLICATION_TYPE,
-  REPLICATION_DISPLAY_TEXT,
-} from '../../../constants';
+import { REPLICATION_TYPE, REPLICATION_DISPLAY_TEXT } from '../../../constants';
 import { DRPolicyState, DRPolicyAction, DRPolicyActionType } from './reducer';
 
 type SyncScheduleProps = {
@@ -98,11 +94,13 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({ state, dispatch }) => {
 
 type DRReplicationTypeProps = {
   state: DRPolicyState;
+  requiredODFVersion: string;
   dispatch: React.Dispatch<DRPolicyAction>;
 };
 
 export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
   state,
+  requiredODFVersion,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
@@ -178,12 +176,12 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
         </>
       ) : (
         !state.errorMessage &&
-        Object.values(state.selectedClusters)?.map((c) =>
+        state.selectedClusters?.map((c) =>
           !c.isValidODFVersion
             ? errorMessage(
                 t(
                   '{{ name }} has either an unsupported ODF version or the ODF operator is missing, install or update to ODF {{ version }} or latest version to enable DR protection.',
-                  { name: c?.name, version: ODF_MINIMUM_SUPPORT }
+                  { name: c?.name, version: requiredODFVersion }
                 )
               )
             : c.cephFSID === '' &&
