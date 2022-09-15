@@ -11,6 +11,8 @@ import {
   ProgressVariant,
   Title,
   Tooltip,
+  Button,
+  Popover,
 } from '@patternfly/react-core';
 import { DataUnavailableError } from '../../generic/Error';
 import ResourceLink from '../../resource-link/resource-link';
@@ -135,6 +137,7 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   largestValue,
   resourceModel,
 }) => {
+  const { t } = useCustomTranslation();
   const progress =
     (!isPercentage && isRelative) || (isPercentage && !isRelative)
       ? getProgress(data, isRelative, largestValue)
@@ -203,6 +206,21 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
       </GridItem>
       <GridItem span={3} key={`${data?.name}~value`}>
         {dataUnavailable ? '-' : value}
+        {!dataUnavailable && !isPercentage && (
+          <span>
+            &nbsp; / &nbsp;
+            <Popover
+              position="right"
+              bodyContent={t(
+                'For standalone MCG clusters, there is no set limit.'
+              )}
+            >
+              <Button variant="plain" className="details-item__popover-button">
+                {t('No Limit')}
+              </Button>
+            </Popover>
+          </span>
+        )}
       </GridItem>
     </>
   );
