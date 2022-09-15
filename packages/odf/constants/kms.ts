@@ -1,3 +1,4 @@
+import { SecretKind } from '@odf/shared/types';
 import {
   VaultConfig,
   HpcsConfig,
@@ -5,6 +6,8 @@ import {
   ProviderNames,
   KmsImplementations,
   KMSConfig,
+  KMSConfigMap,
+  ThalesConfigMap,
 } from '../types';
 
 export const KMSMaxFileUploadSize = 4000000;
@@ -14,12 +17,21 @@ export const KMSVaultTokenSecretName = 'ocs-kms-token';
 export const KMSVaultCSISecretName = 'ceph-csi-kms-token';
 export const KMS_PROVIDER = 'KMS_PROVIDER';
 
+type SupportedProvidersProps = {
+  [key: string]: {
+    group: string;
+    supported: KmsImplementations[];
+    allowedPlatforms?: string[];
+    filter?: (kms: KMSConfigMap, secretsList: SecretKind[]) => boolean;
+  };
+};
+
 /**
  * Ceph-Csi supports multiple KMS implementations ('vaulttenantsa', 'aws-metadata' etc),
  * all of them are not supported by UI. "supported" will have a list of all the UI supported
  * implementations for a particular KMS provider (AWS, Vault, IBM etc).
  */
-export const SupportedProviders = {
+export const SupportedProviders: SupportedProvidersProps = {
   [ProviderNames.VAULT]: {
     group: 'Vault',
     supported: [KmsImplementations.VAULT_TOKENS],
@@ -32,6 +44,15 @@ export const SupportedProviders = {
   [ProviderNames.THALES]: {
     group: 'Thales (using KMIP)',
     supported: [KmsImplementations.KMIP],
+    filter: (kms: ThalesConfigMap, secretsList: SecretKind[]) => {
+      const kmsSecret = secretsList?.find(
+        (secret: SecretKind) =>
+          secret?.metadata?.name === kms?.['KMIP_SECRET_NAME']
+      );
+      // if "UNIQUE_IDENTIFIER" is empty, means we need to filter this out
+      // "UNIQUE_IDENTIFIER" is required for ceph-csi, not required for rook/noobaa
+      return !kmsSecret?.data?.['UNIQUE_IDENTIFIER'];
+    },
   },
 };
 

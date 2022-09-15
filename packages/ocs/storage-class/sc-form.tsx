@@ -21,7 +21,11 @@ import {
   cephBlockPoolResource,
   cephClusterResource,
 } from '@odf/core/resources';
-import { ProviderNames, KmsCsiConfigKeysMapping } from '@odf/core/types';
+import {
+  ProviderNames,
+  KmsCsiConfigKeysMapping,
+  KMSConfigMap,
+} from '@odf/core/types';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox } from '@odf/shared/generic/status-box';
@@ -31,12 +35,14 @@ import {
   ConfigMapModel,
   InfrastructureModel,
   StorageClassModel,
+  SecretModel,
 } from '@odf/shared/models';
 import {
   CephClusterKind,
   ConfigMapKind,
   K8sResourceKind,
   StorageClassResourceKind,
+  SecretKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
@@ -339,6 +345,7 @@ const ExistingKMSDropDown: React.FC<ExistingKMSDropDownProps> = ({
   serviceName,
   kmsProvider,
   infraType,
+  secrets,
   setEncryptionId,
 }) => {
   const { t } = useCustomTranslation();
@@ -392,16 +399,20 @@ const ExistingKMSDropDown: React.FC<ExistingKMSDropDownProps> = ({
           try {
             // removing any object having syntax error
             // or, which are not supported by UI.
-            const kmsData = JSON.parse(connectionDetails);
+            const kmsData: KMSConfigMap = JSON.parse(connectionDetails);
 
             // Todo: will remove this once we we completly moved to camelcase
             const kmsProviderName =
               kmsData?.[KMS_PROVIDER] ??
               kmsData?.[KmsCsiConfigKeysMapping[KMS_PROVIDER]];
             const kmsDescriptionKey = DescriptionKey[kmsProviderName];
+            const filterFunction = SupportedProviders[provider]?.filter;
 
             if (
-              SupportedProviders[provider].supported.includes(kmsProviderName)
+              SupportedProviders[provider].supported.includes(
+                kmsProviderName
+              ) &&
+              (!filterFunction || !filterFunction(kmsData, secrets))
             ) {
               res.push(
                 <DropdownItem
@@ -428,7 +439,7 @@ const ExistingKMSDropDown: React.FC<ExistingKMSDropDownProps> = ({
         []
       )
     );
-  }, [provider, csiConfigMap, setEncryptionId]);
+  }, [provider, csiConfigMap, secrets, setEncryptionId]);
 
   return (
     <div className="ocs-storage-class-encryption__form-dropdown--padding">
@@ -481,6 +492,20 @@ const ExistingKMSDropDown: React.FC<ExistingKMSDropDownProps> = ({
   );
 };
 
+const csiCMWatchResource: WatchK8sResource = {
+  kind: ConfigMapModel.kind,
+  namespaced: true,
+  isList: false,
+  namespace: CEPH_STORAGE_NAMESPACE,
+  name: KMSConfigMapCSIName,
+};
+
+const secretResource: WatchK8sResource = {
+  isList: true,
+  kind: SecretModel.kind,
+  namespace: CEPH_STORAGE_NAMESPACE,
+};
+
 export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
   parameterKey,
   onParamChange,
@@ -506,19 +531,15 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
     });
   }
 
-  const csiCMWatchResource: WatchK8sResource = {
-    kind: ConfigMapModel.kind,
-    namespaced: true,
-    isList: false,
-    namespace: CEPH_STORAGE_NAMESPACE,
-    name: KMSConfigMapCSIName,
-  };
   const [infra, infraLoaded, infraLoadError] = useK8sGet<any>(
     InfrastructureModel,
     'cluster'
   );
   const [csiConfigMap, csiConfigMapLoaded, csiConfigMapLoadError] =
     useK8sWatchResource<ConfigMapKind>(csiCMWatchResource);
+  const [secrets, secretsLoaded, secretsLoadError] =
+    useK8sWatchResource<SecretKind[]>(secretResource);
+
   const infraType = getInfrastructurePlatform(infra);
   const memoizedCsiConfigMap = useDeepCompareMemoize(csiConfigMap, true);
 
@@ -596,12 +617,14 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
   if (
     (!csiConfigMapLoaded && !csiConfigMapLoadError) ||
     !infraLoaded ||
-    infraLoadError
+    infraLoadError ||
+    !secretsLoaded ||
+    secretsLoadError
   ) {
     return (
       <StatusBox
-        loadError={infraLoadError || csiConfigMapLoadError}
-        loaded={infraLoaded && csiConfigMapLoaded}
+        loadError={infraLoadError || csiConfigMapLoadError || secretsLoadError}
+        loaded={infraLoaded && csiConfigMapLoaded && secretsLoaded}
       />
     );
   }
@@ -623,6 +646,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
               serviceName={serviceName}
               kmsProvider={provider}
               infraType={infraType}
+              secrets={secrets}
               setEncryptionId={setEncryptionId}
             />
           )}
@@ -677,5 +701,6 @@ type ExistingKMSDropDownProps = {
   serviceName: string;
   kmsProvider: ProviderNames;
   infraType: string;
+  secrets: SecretKind[];
   setEncryptionId: (encryptionId: string) => void;
 };
