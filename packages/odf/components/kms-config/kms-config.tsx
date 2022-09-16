@@ -29,7 +29,7 @@ const KMSProviders: KMSProvidersType = [
     allowedPlatforms: ['IBMCloud'],
   },
   {
-    name: 'Thales (using KMIP)',
+    name: 'Thales CipherTrust Manager (using KMIP)',
     value: ProviderNames.THALES,
     Component: ThalesConfigure,
   },

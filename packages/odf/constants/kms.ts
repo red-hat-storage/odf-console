@@ -42,7 +42,7 @@ export const SupportedProviders: SupportedProvidersProps = {
     allowedPlatforms: ['IBMCloud'],
   },
   [ProviderNames.THALES]: {
-    group: 'Thales (using KMIP)',
+    group: 'Thales CipherTrust Manager (using KMIP)',
     supported: [KmsImplementations.KMIP],
     filter: (kms: ThalesConfigMap, secretsList: SecretKind[]) => {
       const kmsSecret = secretsList?.find(
