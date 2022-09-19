@@ -177,7 +177,7 @@ export const Kebab: React.FC<KebabProps> = ({
     <Dropdown
       data-test="kebab-button"
       id="kebab-button"
-      className="test"
+      // className="test"
       onSelect={onClick}
       toggle={toggle}
       isOpen={isOpen}
