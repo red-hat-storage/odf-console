@@ -24,6 +24,7 @@ import {
 import { ErrorAlert } from '@odf/shared/generic/Error';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
+import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { NodeModel } from '@odf/shared/models';
 import { ListKind, NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -49,7 +50,6 @@ import {
 import { FEATURES } from '../../../../features';
 import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';
-import { useFetchCsv } from '../../use-fetch-csv';
 import { LocalVolumeSetBody } from './body';
 import { SelectedCapacity } from './selected-capacity';
 import './create-local-volume-set-step.scss';
@@ -285,7 +285,9 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   const { t } = useCustomTranslation();
   const allNodes = React.useRef([]);
 
-  const [csv, csvLoaded, csvLoadError] = useFetchCsv(LSO_OPERATOR);
+  const [csv, csvLoaded, csvLoadError] = useFetchCsv({
+    specName: LSO_OPERATOR,
+  });
   const [rawNodes, rawNodesLoaded, rawNodesLoadError] =
     useK8sGet<ListKind<NodeKind>>(NodeModel);
   const [lvdResults, lvdResultsLoaded] = useK8sWatchResource<

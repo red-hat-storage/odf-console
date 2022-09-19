@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants/common';
 import PageHeading from '@odf/shared/heading/page-heading';
+import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   referenceForGroupVersionKind,
@@ -30,7 +31,7 @@ import {
 import {
   MAX_ALLOWED_CLUSTERS,
   REPLICATION_TYPE,
-  ODF_MINIMUM_SUPPORT,
+  ODFMCO_OPERATOR,
   HUB_CLUSTER_NAME,
 } from '../../../constants';
 import { DRPolicyModel, MirrorPeerModel } from '../../../models';
@@ -70,11 +71,6 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
     drPolicyReducer,
     drPolicyInitialState
   );
-  const clustersData = React.useMemo(
-    () => Object.values(state.selectedClusters),
-    [state.selectedClusters]
-  );
-
   // odfmco mirrorpeer info
   const [mirrorPeers] = useK8sWatchResource<MirrorPeerKind[]>({
     kind: referenceForModel(MirrorPeerModel),
@@ -82,22 +78,31 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
     namespaced: false,
     cluster: HUB_CLUSTER_NAME,
   });
+  const [csv] = useFetchCsv({
+    specName: ODFMCO_OPERATOR,
+    cluster: HUB_CLUSTER_NAME,
+  });
+  const odfMCOVersion = React.useMemo(() => {
+    const version = csv?.spec?.version;
+    // converting z-stream release version to main release version
+    return version ? version.substring(0, version.lastIndexOf('.')) + '.0' : '';
+  }, [csv]);
 
   React.useEffect(() => {
-    if (clustersData.length === 2) {
+    if (state.selectedClusters.length === 2) {
       // ODF detection
       dispatch({
         type: DRPolicyActionType.SET_IS_ODF_DETECTED,
-        payload: clustersData.every(
+        payload: state.selectedClusters.every(
           (cluster) => cluster?.cephFSID !== '' && cluster?.isValidODFVersion
         ),
       });
 
       // DR replication type
-      const isReplicationAutoDetectable = clustersData?.every(
+      const isReplicationAutoDetectable = state.selectedClusters.every(
         (cluster) => cluster?.cephFSID !== ''
       );
-      const cephFSIDs = clustersData?.reduce((ids, cluster) => {
+      const cephFSIDs = state.selectedClusters.reduce((ids, cluster) => {
         if (cluster?.cephFSID !== '') {
           ids.add(cluster?.cephFSID);
         }
@@ -129,11 +134,11 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
         payload: '',
       });
     }
-  }, [clustersData, t, dispatch]);
+  }, [state.selectedClusters, t, dispatch]);
 
   const onCreate = async () => {
     try {
-      const peerNames = clustersData?.map((cluster) => cluster?.name) ?? [];
+      const peerNames = state.selectedClusters.map((cluster) => cluster?.name);
       const mirrorPeer: MirrorPeerKind =
         fetchMirrorPeer(mirrorPeers, peerNames) ?? {};
 
@@ -191,7 +196,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
               state.replication === REPLICATION_TYPE.ASYNC
                 ? [state.syncTime]
                 : [],
-            items: clustersData?.map((cluster) => ({
+            items: state.selectedClusters.map((cluster) => ({
               clusterName: cluster?.name,
               storageClusterRef: {
                 name: cluster.storageClusterName,
@@ -260,22 +265,28 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           )}
           isHelperTextBeforeField
         >
-          <SelectClusterList state={state} dispatch={dispatch} />
+          <SelectClusterList
+            state={state}
+            requiredODFVersion={odfMCOVersion}
+            dispatch={dispatch}
+          />
         </FormGroup>
-        <FormGroup fieldId="policy-name">
-          <Alert
-            className="co-alert mco-create-data-policy__alert"
-            title={t(
-              'OpenShift Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring.',
-              { version: ODF_MINIMUM_SUPPORT }
-            )}
-            variant={AlertVariant.info}
-            isInline
-          ></Alert>
-        </FormGroup>
-        {!!clustersData.length && (
+        {!!odfMCOVersion && (
+          <FormGroup fieldId="policy-name">
+            <Alert
+              className="co-alert mco-create-data-policy__alert"
+              title={t(
+                'OpenShift Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring.',
+                { version: odfMCOVersion }
+              )}
+              variant={AlertVariant.info}
+              isInline
+            />
+          </FormGroup>
+        )}
+        {!!state.selectedClusters.length && (
           <FormGroup fieldId="selected-clusters" label={t('Selected clusters')}>
-            {clustersData?.map((c, i) => (
+            {state.selectedClusters.map((c, i) => (
               <SelectedCluster
                 key={c.name}
                 id={i + 1}
@@ -285,7 +296,11 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
             ))}
           </FormGroup>
         )}
-        <DRReplicationType state={state} dispatch={dispatch} />
+        <DRReplicationType
+          state={state}
+          requiredODFVersion={odfMCOVersion}
+          dispatch={dispatch}
+        />
         {state.errorMessage && (
           <FormGroup fieldId="error-message">
             <Alert

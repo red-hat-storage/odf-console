@@ -8,10 +8,11 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 
-export const useFetchCsv = (
-  specName: string,
-  namespace?: string
-): UseFetchCsvResult => {
+export const useFetchCsv = ({
+  specName,
+  namespace,
+  cluster,
+}: UseFetchCsvProps): UseFetchCsvResult => {
   const { t } = useCustomTranslation();
   const [subs, subsLoaded, subsLoadError] = useK8sWatchResource<
     SubscriptionKind[]
@@ -19,6 +20,7 @@ export const useFetchCsv = (
     isList: true,
     kind: referenceForModel(SubscriptionModel),
     namespace,
+    cluster: cluster,
   });
   const csvName = React.useRef<string>(null);
   const csvNamespace = React.useRef<string>(null);
@@ -38,6 +40,7 @@ export const useFetchCsv = (
       namespaced: true,
       namespace: csvNamespace.current,
       isList: false,
+      cluster: cluster,
     });
 
   if (csvName.current === null || csvNamespace.current === null) {
@@ -52,3 +55,8 @@ export const useFetchCsv = (
 };
 
 type UseFetchCsvResult = [ClusterServiceVersionKind, boolean, any];
+type UseFetchCsvProps = {
+  specName: string;
+  namespace?: string;
+  cluster?: string;
+};

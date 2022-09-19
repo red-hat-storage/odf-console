@@ -6,7 +6,7 @@ import {
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { DR_SECHEDULER_NAME } from '../constants';
-import { ODF_MINIMUM_SUPPORT, REPLICATION_TYPE } from '../constants/dr-policy';
+import { REPLICATION_TYPE } from '../constants/dr-policy';
 import { ACMPlacementRuleModel } from '../models';
 import {
   ACMSubscriptionKind,
@@ -22,8 +22,11 @@ export type DRPolicyMap = {
   [policyName: string]: DRPlacementControlKind[];
 };
 
-export const isMinimumSupportedODFVersion = (odfVersion: string): boolean =>
-  odfVersion.localeCompare(ODF_MINIMUM_SUPPORT, undefined, {
+export const isMinimumSupportedODFVersion = (
+  odfVersion: string,
+  requiredODFVersion: string
+): boolean =>
+  odfVersion.localeCompare(requiredODFVersion, undefined, {
     numeric: true,
     sensitivity: 'base',
   }) >= 0;

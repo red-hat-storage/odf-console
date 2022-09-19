@@ -15,6 +15,7 @@ import {
 } from '@odf/core/types';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
+import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { PodModel, SecretModel } from '@odf/shared/models';
 import { getAnnotations } from '@odf/shared/selectors';
 import { ListKind, PodKind } from '@odf/shared/types';
@@ -30,7 +31,6 @@ import {
   Form,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
-import { useFetchCsv } from '../../use-fetch-csv';
 import './index.scss';
 
 const OCS_OPERATOR = 'ocs-operator';
@@ -54,10 +54,10 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
   const { t } = useCustomTranslation();
   const [pods, podsLoaded, podsLoadError] =
     useK8sGet<ListKind<PodKind>>(PodModel);
-  const [csv, csvLoaded, csvLoadError] = useFetchCsv(
-    OCS_OPERATOR,
-    CEPH_STORAGE_NAMESPACE
-  );
+  const [csv, csvLoaded, csvLoadError] = useFetchCsv({
+    specName: OCS_OPERATOR,
+    namespace: CEPH_STORAGE_NAMESPACE,
+  });
 
   const { fileName, fileData, errorMessage, isLoading } = formState;
 
