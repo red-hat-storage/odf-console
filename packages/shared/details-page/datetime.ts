@@ -79,7 +79,7 @@ export const utcDateTimeFormatter = new Intl.DateTimeFormat(
   }
 );
 
-export const utcDateTimeFormatterWithTimZone = new Intl.DateTimeFormat(
+export const utcDateTimeFormatterWithTimeZone = new Intl.DateTimeFormat(
   getLastLanguage() || undefined,
   {
     weekday: 'long',
@@ -231,3 +231,6 @@ export const twentyFourHourTime = (
   const seconds = showSeconds ? `:${zeroPad(date.getSeconds() ?? 0)}` : '';
   return `${hours}${minutes}${seconds}`;
 };
+
+export const getLatestDate = (dates: string[]) =>
+  dates.reduce((a, b) => (new Date(a) > new Date(b) ? a : b));

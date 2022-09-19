@@ -79,6 +79,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
   status?: {
     conditions?: K8sResourceCondition[];
     phase: string;
+    LastGroupSyncTime?: string;
   };
 };
 
