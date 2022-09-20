@@ -53,7 +53,7 @@ type EditLabelModalProps = {
 } & CommonModalProps<EditLabelModalExtraProps>;
 
 const arrayify = (obj) => _.map(obj, (v, k) => (v ? `${k}=${v}` : k));
-const objectify = (arr) => {
+export const objectify = (arr) => {
   const result = {};
   _.each(arr, (item) => {
     const [key, value = null] = item.split('=');
