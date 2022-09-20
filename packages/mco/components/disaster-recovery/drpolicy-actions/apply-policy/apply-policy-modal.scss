@@ -15,7 +15,10 @@
 
   &__alert {
     margin-bottom: var(--pf-global--spacer--xs);
-    margin-top: var(--pf-global--spacer--md);
     --pf-global--FontSize--md: 13px;
+  }
+
+  &__pvcselector {
+    margin-top: var(--pf-global--spacer--md);
   }
 }
