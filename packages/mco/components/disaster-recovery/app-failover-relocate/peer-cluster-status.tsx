@@ -1,4 +1,8 @@
 import * as React from 'react';
+import {
+  getLatestDate,
+  utcDateTimeFormatterWithTimeZone,
+} from '@odf/shared/details-page/datetime';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -29,22 +33,18 @@ const initalPeerStatus = (t: TFunction) => ({
     icon: <UnknownIcon />,
     text: PEER_READINESS(t).UNKNOWN,
   },
-  lastHealthCheck: {
-    icon: <UnknownIcon />,
-    text: PEER_READINESS(t).UNKNOWN,
-  },
-  lastSnapshotTakenOn: {
+  dataLastSyncedOn: {
     icon: <UnknownIcon />,
     text: PEER_READINESS(t).UNKNOWN,
   },
 });
 
 const getPeerReadiness = (
-  obj: StatusType,
+  peerReadiness: StatusProps,
   drpcState: DRPolicyControlState,
   t: TFunction
 ): StatusProps =>
-  obj.peerReadiness.text !== PEER_READINESS(t).PEER_NOT_READY
+  peerReadiness.text !== 'Not ready'
     ? isPeerReady(drpcState?.drPolicyControl)
       ? {
           text: PEER_READINESS(t).PEER_READY,
@@ -54,7 +54,28 @@ const getPeerReadiness = (
           text: PEER_READINESS(t).PEER_NOT_READY,
           icon: <RedExclamationCircleIcon />,
         }
-    : obj.peerReadiness;
+    : peerReadiness;
+
+const getDataLastSyncTime = (
+  dataLastSyncStatus: StatusProps,
+  drpcState: DRPolicyControlState
+): StatusProps => {
+  const lastSyncTime = drpcState?.drPolicyControl?.status?.LastGroupSyncTime;
+  return !!lastSyncTime
+    ? dataLastSyncStatus.text !== 'Unknown'
+      ? {
+          text: getLatestDate([dataLastSyncStatus.text, lastSyncTime]),
+        }
+      : {
+          text: lastSyncTime,
+        }
+    : dataLastSyncStatus;
+};
+
+const getFormatedDateTime = (dateTime: string) =>
+  dateTime !== 'Unknown'
+    ? utcDateTimeFormatterWithTimeZone.format(new Date(dateTime))
+    : dateTime;
 
 const getPeerStatusSummary = (
   drpcStateList: DRPolicyControlState[],
@@ -67,21 +88,24 @@ const getPeerStatusSummary = (
       subsGroups.includes(getName(drpcState?.drPolicyControl))
         ? {
             ...acc,
-            peerReadiness: getPeerReadiness(acc, drpcState, t),
+            peerReadiness: getPeerReadiness(acc.peerReadiness, drpcState, t),
+            dataLastSyncedOn: getDataLastSyncTime(
+              acc.dataLastSyncedOn,
+              drpcState
+            ),
           }
         : acc,
     initalPeerStatus(t)
   );
 
 type StatusProps = {
-  icon: JSX.Element;
+  icon?: JSX.Element;
   text: string;
 };
 
 type StatusType = {
   peerReadiness: StatusProps;
-  lastHealthCheck: StatusProps;
-  lastSnapshotTakenOn: StatusProps;
+  dataLastSyncedOn: StatusProps;
 };
 
 export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
@@ -150,23 +174,12 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
       </Flex>
       <Flex>
         <FlexItem>
-          <strong> {t('Last HealthCheck:')} </strong>
-        </FlexItem>
-        <FlexItem>
-          <StatusIconAndText
-            title={peerStatus?.lastHealthCheck?.text}
-            icon={peerStatus?.lastHealthCheck?.icon}
-          />
-        </FlexItem>
-      </Flex>
-      <Flex>
-        <FlexItem>
           <strong> {t('Data last synced on:')} </strong>
         </FlexItem>
         <FlexItem>
           <StatusIconAndText
-            title={peerStatus?.lastSnapshotTakenOn?.text}
-            icon={peerStatus?.lastSnapshotTakenOn?.icon}
+            title={getFormatedDateTime(peerStatus?.dataLastSyncedOn?.text)}
+            icon={peerStatus?.dataLastSyncedOn?.icon}
           />
         </FlexItem>
       </Flex>

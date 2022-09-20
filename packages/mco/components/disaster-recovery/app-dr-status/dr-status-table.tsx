@@ -1,4 +1,9 @@
 import * as React from 'react';
+import {
+  getLatestDate,
+  utcDateTimeFormatterWithTimeZone,
+  fromNow,
+} from '@odf/shared/details-page/datetime';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   GreenCheckCircleIcon,
@@ -41,6 +46,9 @@ const getCurrentStatus = (drpcList: DRPlacementControlKind[]): string =>
       ? newStatus
       : prevStatus || newStatus;
   }, '');
+
+const getLastDataSyncTime = (drpcList: DRPlacementControlKind[]): string =>
+  getLatestDate(drpcList?.map((drpc) => drpc?.status?.LastGroupSyncTime));
 
 const isRelocating = (status: DRPC_STATUS) =>
   [DRPC_STATUS.Relocating, DRPC_STATUS.Relocated].includes(status);
@@ -98,9 +106,17 @@ const getDRStatus = (
   }
 };
 
+const getSyncStatus = (syncTime: string) =>
+  !!syncTime
+    ? {
+        text: fromNow(syncTime),
+        toolTip: utcDateTimeFormatterWithTimeZone.format(new Date(syncTime)),
+      }
+    : {};
+
 const getSortableRowValues = (drStatus: DRCurrentStatusType): string[] => [
   drStatus?.drPolicyName,
-  drStatus?.lastSync,
+  drStatus?.lastSync?.text,
   drStatus?.currentStatus?.text,
 ];
 
@@ -135,10 +151,10 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
       _.map(drPolicies, (drpcList, policyName) => {
         const currentStatus = getCurrentStatus(drpcList);
         const targetClusters = getTargetClusters(currentStatus, drpcList);
+        const lastSyncTime = getLastDataSyncTime(drpcList);
         return {
           drPolicyName: policyName,
-          // TODO:Gowtham Once it is available on DRPC CR
-          lastSync: '',
+          lastSync: getSyncStatus(lastSyncTime),
           currentStatus: getDRStatus(currentStatus, targetClusters, t),
         };
       }),
@@ -226,7 +242,9 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
                   {drstatus?.drPolicyName}
                 </Td>
                 <Td {...reactPropFix} data-test={`last-sync-row-${rowIndex}`}>
-                  {drstatus?.lastSync}
+                  <Tooltip content={drstatus?.lastSync?.toolTip}>
+                    <StatusIconAndText title={drstatus?.lastSync?.text} />
+                  </Tooltip>
                 </Td>
                 <Td
                   {...reactPropFix}
@@ -252,12 +270,13 @@ type DRPoliciesStatusTableProps = {
   drPolicies: DRPolicyMap;
 };
 
+type Status = {
+  text?: string;
+  icon?: JSX.Element;
+  toolTip?: React.ReactNode;
+};
 type DRCurrentStatusType = {
   drPolicyName: string;
-  lastSync: string;
-  currentStatus: {
-    text?: string;
-    icon?: JSX.Element;
-    toolTip?: React.ReactNode;
-  };
+  lastSync: Status;
+  currentStatus: Status;
 };

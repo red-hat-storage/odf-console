@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { utcDateTimeFormatterWithTimZone } from '@odf/shared/details-page/datetime';
+import { utcDateTimeFormatterWithTimeZone } from '@odf/shared/details-page/datetime';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -47,7 +47,7 @@ export const getRelicationTypeUsingDRClusters = (
 const getLastUpdatedTime = (lastAvailableTime: string, t: TFunction) => {
   return lastAvailableTime ? (
     <span>
-      {utcDateTimeFormatterWithTimZone.format(new Date(lastAvailableTime))}
+      {utcDateTimeFormatterWithTimeZone.format(new Date(lastAvailableTime))}
     </span>
   ) : (
     <span>

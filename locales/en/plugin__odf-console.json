@@ -45,7 +45,6 @@
   "Not ready": "Not ready",
   "{{actionType}} cannot be initiated becuase peer is not in ready state.": "{{actionType}} cannot be initiated becuase peer is not in ready state.",
   "{{action}} readiness:": "{{action}} readiness:",
-  "Last HealthCheck:": "Last HealthCheck:",
   "Data last synced on:": "Data last synced on:",
   "Placed: {{cluster}}": "Placed: {{cluster}}",
   "Peer ready": "Peer ready",
