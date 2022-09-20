@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
+import { objectify } from '@odf/shared/modals/EditLabelModal';
 import {
   ModalBody,
   ModalFooter,
   CommonModalProps,
 } from '@odf/shared/modals/Modal';
+import { SelectorInput } from '@odf/shared/modals/Selector';
 import { ApplicationModel } from '@odf/shared/models/common';
 import { getName, getNamespace, getLabels } from '@odf/shared/selectors';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -27,6 +29,9 @@ import {
   TextVariants,
   TextContent,
   TreeViewDataItem,
+  Form,
+  FormGroup,
+  Checkbox,
 } from '@patternfly/react-core';
 import { DR_SECHEDULER_NAME, HUB_CLUSTER_NAME } from '../../../../constants';
 import {
@@ -91,8 +96,9 @@ const resources = {
 
 const getDRPlacementControlKindObj = (
   plsRule: ACMPlacementRuleKind,
-  resource,
-  managedClusterNames
+  resource: DRPolicyKind,
+  managedClusterNames: string[],
+  pvcSelectors: string[]
 ): DRPlacementControlKind => ({
   apiVersion: getAPIVersionForModel(DRPlacementControlModel),
   kind: DRPlacementControlModel.kind,
@@ -113,9 +119,7 @@ const getDRPlacementControlKindObj = (
       'clusterName'
     ],
     pvcSelector: {
-      matchLabels: {
-        placement: getName(plsRule),
-      },
+      matchLabels: objectify(pvcSelectors),
     },
   },
 });
@@ -130,6 +134,17 @@ const clusterMatch = (
       managedClusterNames?.includes(decision?.clusterNamespace)
   ) || {};
 
+const appFilter = (application: ApplicationKind) =>
+  application?.spec?.componentKinds?.some(
+    (componentKind) =>
+      componentKind?.group === ACMSubscriptionModel?.apiGroup &&
+      componentKind?.kind === ACMSubscriptionModel?.kind
+  );
+
+const getSelectedPlacementRules = (
+  selectedApps: TreeViewDataItem[]
+): TreeViewDataItem[] => selectedApps.filter((app) => !app.children);
+
 const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
   props
 ) => {
@@ -141,6 +156,8 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
     [resource?.spec?.drClusters]
   );
 
+  const [labels, setLabels] = React.useState<string[]>([]);
+  const [isProtectAllPVCChecked, setProtectAllPVC] = React.useState(false);
   const [error, setError] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [selectedApps, setSelectedApps] = React.useState<{
@@ -158,13 +175,6 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
     React.useState<AppToPlacementRule>({});
 
   const response = useK8sWatchResources(resources);
-
-  const appFilter = (application: ApplicationKind) =>
-    application?.spec?.componentKinds?.some(
-      (componentKind) =>
-        componentKind?.group === ACMSubscriptionModel?.apiGroup &&
-        componentKind?.kind === ACMSubscriptionModel?.kind
-    );
   const memoizedResponse = useDeepCompareMemoize(response, true);
 
   React.useEffect(() => {
@@ -318,6 +328,11 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
     }
   }, [applicationMap, subscriptionMap, placementRuleMap, managedClusterNames]);
 
+  const selectedPlacementRules = React.useMemo(
+    () => getSelectedPlacementRules(selectedApps.checkedItems),
+    [selectedApps]
+  );
+
   const submit = (event: React.FormEvent<EventTarget>) => {
     event.preventDefault();
     setLoading(true);
@@ -349,7 +364,8 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
               data: getDRPlacementControlKindObj(
                 plsRule,
                 resource,
-                managedClusterNames
+                managedClusterNames,
+                selectedPlacementRules?.length <= 1 ? labels : []
               ),
               cluster: HUB_CLUSTER_NAME,
             })
@@ -388,14 +404,44 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
           selectedNames={selectedApps}
           setSelectedNames={setSelectedApps}
         />
-        <Alert
-          className="co-alert mco-apply-policy-modal__alert"
-          variant="info"
-          title={t(
-            'All PersistentVolumeClaims matching the placement rules under an application will be DR protected.'
+        <Form className="mco-apply-policy-modal__pvcselector">
+          {selectedPlacementRules?.length <= 1 ? (
+            <FormGroup
+              fieldId="pvc-selector"
+              label={t('PVC label')}
+              helperText={t(
+                'A selector label to DR protect only specific PVCs within an application.'
+              )}
+              isRequired
+            >
+              <SelectorInput onChange={(l) => setLabels(l)} tags={labels} />
+            </FormGroup>
+          ) : (
+            <>
+              <Alert
+                className="co-alert mco-apply-policy-modal__alert"
+                variant="warning"
+                title={t(
+                  "When multiple applications are selected, DR protection will be applied for all the PVCs under the application's namespace."
+                )}
+                isInline
+              />
+              <FormGroup fieldId="all-pvc">
+                <Checkbox
+                  id="user-agreement"
+                  label={
+                    <>
+                      {t("Protect all PVCs within the application's namespace")}
+                      <span className="pf-c-form__label-required">*</span>
+                    </>
+                  }
+                  isChecked={isProtectAllPVCChecked}
+                  onChange={() => setProtectAllPVC(!isProtectAllPVCChecked)}
+                />
+              </FormGroup>
+            </>
           )}
-          isInline
-        />
+        </Form>
         {error && (
           <Alert
             isInline
@@ -422,7 +468,13 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
             key="apply"
             variant={ButtonVariant.primary}
             onClick={submit}
-            isDisabled={!selectedApps?.checkedItems?.length}
+            isDisabled={
+              !!selectedPlacementRules?.length
+                ? selectedPlacementRules?.length <= 1
+                  ? !labels.length
+                  : !isProtectAllPVCChecked
+                : true
+            }
           >
             {t('Apply')}
           </Button>
