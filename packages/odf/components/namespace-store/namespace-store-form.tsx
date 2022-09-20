@@ -35,7 +35,12 @@ import {
   secretPayloadCreator,
 } from '../../utils';
 import { S3EndPointType } from '../mcg-endpoints/s3-endpoint-type';
-import { initialState, providerDataReducer } from './reducer';
+import {
+  initialState,
+  providerDataReducer,
+  ProviderDataState,
+  StoreAction,
+} from './reducer';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 
 const PROVIDERS = getProviders(StoreType.NS);
@@ -56,6 +61,48 @@ type NamespaceStoreFormProps = {
   onCancel: () => void;
 };
 
+const createSecret = async (
+  dataSourceName: string,
+  namespace: string,
+  provider: BC_PROVIDERS,
+  providerDataState: ProviderDataState,
+  providerDataDispatch: React.Dispatch<StoreAction>
+) => {
+  const { secretKey, accessKey } = providerDataState;
+  let createdSecret: SecretKind;
+  let secretName = dataSourceName.concat('-secret');
+  const secretPayload = secretPayloadCreator(
+    provider,
+    namespace,
+    secretName,
+    accessKey,
+    secretKey
+  );
+  try {
+    createdSecret = (await k8sCreate({
+      model: SecretModel,
+      data: secretPayload,
+    })) as SecretKind;
+  } catch {
+    secretName = dataSourceName.concat('-');
+    const newSecretPayload = {
+      ...secretPayload,
+      metadata: {
+        generateName: secretName,
+        namespace: secretPayload.metadata.namespace,
+      },
+    };
+    createdSecret = (await k8sCreate({
+      model: SecretModel,
+      data: newSecretPayload,
+    })) as SecretKind;
+  } finally {
+    secretName = createdSecret?.metadata?.name;
+    providerDataDispatch({ type: 'setSecretName', value: secretName });
+  }
+  return secretName;
+};
+
 const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   const { t } = useCustomTranslation();
   const [nsName, setNsName] = React.useState('');
@@ -73,89 +120,84 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   const handleNsNameTextInputChange = (strVal: string) => setNsName(strVal);
   const { onCancel, className, redirectHandler, namespace } = props;
 
-  const onSubmit = (event) => {
+  const onSubmit = async (event) => {
     event.preventDefault();
     setProgress(true);
-    /** Create a secret if secret ==='' */
-    let { secretName } = providerDataState;
-    const promises = [];
-    if (!secretName) {
-      secretName = nsName.concat('-secret');
-      const { secretKey, accessKey } = providerDataState;
-      const secretPayload = secretPayloadCreator(
-        provider,
-        namespace,
-        secretName,
-        accessKey,
-        secretKey
-      );
-      providerDataDispatch({ type: 'setSecretName', value: secretName });
-      promises.push(k8sCreate({ model: SecretModel, data: secretPayload }));
-    }
-    /** Payload for ns */
-    const nsPayload: Payload = {
-      apiVersion: getAPIVersionForModel(NooBaaNamespaceStoreModel as any),
-      kind: NooBaaNamespaceStoreModel.kind,
-      metadata: {
-        namespace,
-        name: nsName,
-      },
-      spec: {
-        type: NOOBAA_TYPE_MAP[provider],
-        ssl: false,
-      },
-    };
-    if (externalProviders.includes(provider)) {
-      nsPayload.spec = {
-        ...nsPayload.spec,
-        [PROVIDERS_NOOBAA_MAP[provider]]: {
-          [BUCKET_LABEL_NOOBAA_MAP[provider]]: providerDataState.target,
-          secret: {
-            name: secretName,
-            namespace,
-          },
+    try {
+      let { secretName } = providerDataState;
+      if (!secretName) {
+        /** Create a secret if secret ==='' */
+        secretName = await createSecret(
+          nsName,
+          namespace,
+          provider,
+          providerDataState,
+          providerDataDispatch
+        );
+      }
+      /** Payload for nss */
+      const nsPayload: Payload = {
+        apiVersion: getAPIVersionForModel(NooBaaNamespaceStoreModel as any),
+        kind: NooBaaNamespaceStoreModel.kind,
+        metadata: {
+          namespace,
+          name: nsName,
+        },
+        spec: {
+          type: NOOBAA_TYPE_MAP[provider],
+          ssl: false,
         },
       };
-    }
-    if (provider === BC_PROVIDERS.S3) {
-      nsPayload.spec.s3Compatible = {
-        ...nsPayload.spec.s3Compatible,
-        endpoint: providerDataState.endpoint,
-      };
-    } else if (provider === BC_PROVIDERS.IBM) {
-      nsPayload.spec.ibmCos = {
-        ...nsPayload.spec.ibmCos,
-        endpoint: providerDataState.endpoint,
-      };
-    }
-    // Add region in the end
-    if (provider === BC_PROVIDERS.AWS) {
-      nsPayload.spec.awsS3 = {
-        ...nsPayload.spec.awsS3,
-        region: providerDataState.region,
-      };
-    }
-    if (provider === BC_PROVIDERS.FILESYSTEM) {
-      nsPayload.spec.nsfs = {
-        ...nsPayload.spec.nsfs,
-        pvcName: pvc,
-        subPath: folderName,
-      };
-    }
-    promises.push(
-      k8sCreate({ model: NooBaaNamespaceStoreModel, data: nsPayload })
-    );
+      if (externalProviders.includes(provider)) {
+        nsPayload.spec = {
+          ...nsPayload.spec,
+          [PROVIDERS_NOOBAA_MAP[provider]]: {
+            [BUCKET_LABEL_NOOBAA_MAP[provider]]: providerDataState.target,
+            secret: {
+              name: secretName,
+              namespace,
+            },
+          },
+        };
+      }
+      switch (provider) {
+        case BC_PROVIDERS.S3:
+          nsPayload.spec.s3Compatible = {
+            ...nsPayload.spec.s3Compatible,
+            endpoint: providerDataState.endpoint,
+          };
+          break;
+        case BC_PROVIDERS.IBM:
+          nsPayload.spec.ibmCos = {
+            ...nsPayload.spec.ibmCos,
+            endpoint: providerDataState.endpoint,
+          };
+          break;
+        case BC_PROVIDERS.AWS:
+          nsPayload.spec.awsS3 = {
+            ...nsPayload.spec.awsS3,
+            region: providerDataState.region,
+          };
+          break;
+        case BC_PROVIDERS.FILESYSTEM:
+          nsPayload.spec.nsfs = {
+            ...nsPayload.spec.nsfs,
+            pvcName: pvc,
+            subPath: folderName,
+          };
+          break;
+      }
 
-    Promise.all(promises)
-      .then((resources: (NamespaceStoreKind | SecretKind)[]) => {
-        redirectHandler(resources);
-      })
-      .catch((error) => {
-        setError(error.message);
-      })
-      .finally(() => {
-        setProgress(false);
+      const resources = await k8sCreate({
+        model: NooBaaNamespaceStoreModel,
+        data: nsPayload,
       });
+      redirectHandler([resources]);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setProgress(false);
+    }
   };
 
   return (
