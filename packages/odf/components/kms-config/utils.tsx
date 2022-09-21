@@ -50,6 +50,8 @@ export const isValidEndpoint = (url: string) => {
   return validURL || validIP;
 };
 
+export const isValidName = (name: string) => /^[a-zA-Z0-9_.-]*$/.test(name);
+
 export const isLengthUnity = (items) => items.length === 1;
 
 export const generateCASecret = (caCertificate: string) => ({

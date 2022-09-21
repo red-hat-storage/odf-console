@@ -190,7 +190,7 @@ export const ThalesConfigure: React.FC<KMSConfigureProps> = ({
           helperTextInvalid={t('This is a required field')}
           validated={isValid(thalesState.uniqueId.valid)}
           helperText={t(
-            'Unique ID of the key used for encrypting/decrypting. This applies to encrpyted PVCs.'
+            'Unique ID of the key used for encrypting/decrypting. This only applies to encrpyted PVCs.'
           )}
           isRequired
         >

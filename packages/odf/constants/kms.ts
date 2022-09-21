@@ -1,4 +1,5 @@
 import { SecretKind } from '@odf/shared/types';
+import { TFunction } from 'i18next';
 import {
   VaultConfig,
   HpcsConfig,
@@ -166,3 +167,10 @@ export const KMSEmptyState: KMSConfig = Object.seal({
   providerState: ProviderStateMap[ProviderNames.VAULT],
   provider: ProviderNames.VAULT,
 });
+
+export const validateConnectionName = (name: string, t: TFunction) =>
+  name === ''
+    ? t('This is a required field')
+    : t(
+        'Invalid name. Name must only include alphanumeric characters, "-", "_" or "."'
+      );

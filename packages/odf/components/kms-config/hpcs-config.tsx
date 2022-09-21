@@ -3,9 +3,10 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import * as _ from 'lodash';
 import { FormGroup, TextInput, ValidatedOptions } from '@patternfly/react-core';
+import { validateConnectionName } from '../../constants';
 import { HpcsConfig, HPCSParams, ProviderNames } from '../../types';
 import { KMSConfigureProps } from './providers';
-import { kmsConfigValidation } from './utils';
+import { kmsConfigValidation, isValidName } from './utils';
 import './kms-config.scss';
 
 const IBM_TOKEN_URL = 'https://iam.cloud.ibm.com/oidc/token';
@@ -39,8 +40,10 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
     (param: string, isRequired: boolean = true) =>
     (value: string) => {
       if (isRequired) {
+        const validParam: boolean =
+          param === HPCSParams.NAME ? isValidName(value) : true;
         kmsObj[param].value = value;
-        kmsObj[param].valid = value !== '';
+        kmsObj[param].valid = validParam && value !== '';
       } else {
         kmsObj[param] = value;
       }
@@ -59,21 +62,21 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
         fieldId="kms-service-name"
         label={t('Connection name')}
         className={`${className}__form-body`}
-        helperTextInvalid={t('This is a required field')}
-        validated={isValid(kms.name?.valid)}
+        helperTextInvalid={validateConnectionName(kms.name.value, t)}
+        validated={isValid(kms.name.valid)}
         helperText={t(
-          'An unique name for the key management service within the project.'
+          'An unique name for the key management service within the project. Name must only include alphanumeric characters, "-", "_" or "."'
         )}
         isRequired
       >
         <TextInput
-          value={kms.name?.value}
+          value={kms.name.value}
           onChange={setParams(HPCSParams.NAME)}
           type="text"
           id="kms-service-name"
           name="kms-service-name"
           isRequired
-          validated={isValid(kms.name?.valid)}
+          validated={isValid(kms.name.valid)}
           data-test="kms-service-name-text"
         />
       </FormGroup>
@@ -82,17 +85,17 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
         label={t('Service instance ID')}
         className={`${className}__form-body`}
         helperTextInvalid={t('This is a required field')}
-        validated={isValid(kms.instanceId?.valid)}
+        validated={isValid(kms.instanceId.valid)}
         isRequired
       >
         <TextInput
-          value={kms.instanceId?.value}
+          value={kms.instanceId.value}
           onChange={setParams(HPCSParams.INSTANCE_ID)}
           type="text"
           id="kms-instance-id"
           name="kms-instance-id"
           isRequired
-          validated={isValid(kms.instanceId?.valid)}
+          validated={isValid(kms.instanceId.valid)}
           data-test="kms-instance-id-text"
         />
       </FormGroup>
@@ -101,17 +104,17 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
         label={t('Service API key')}
         className={`${className}__form-body`}
         helperTextInvalid={t('This is a required field')}
-        validated={isValid(kms.apiKey?.valid)}
+        validated={isValid(kms.apiKey.valid)}
         isRequired
       >
         <TextInput
-          value={kms.apiKey?.value}
+          value={kms.apiKey.value}
           onChange={setParams(HPCSParams.API_KEY)}
           type="text"
           id="kms-api-key"
           name="kms-api-key"
           isRequired
-          validated={isValid(kms.apiKey?.valid)}
+          validated={isValid(kms.apiKey.valid)}
           data-test="kms-api-key-text"
         />
       </FormGroup>
@@ -120,17 +123,17 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
         label={t('Customer root key')}
         className={`${className}__form-body`}
         helperTextInvalid={t('This is a required field')}
-        validated={isValid(kms.rootKey?.valid)}
+        validated={isValid(kms.rootKey.valid)}
         isRequired
       >
         <TextInput
-          value={kms.rootKey?.value}
+          value={kms.rootKey.value}
           onChange={setParams(HPCSParams.ROOT_KEY)}
           type="text"
           id="kms-root-key"
           name="kms-root-key"
           isRequired
-          validated={isValid(kms.rootKey?.valid)}
+          validated={isValid(kms.rootKey.valid)}
           data-test="kms-root-key-text"
         />
       </FormGroup>
@@ -139,17 +142,17 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
         label={t('IBM base URL')}
         className={`${className}__form-body`}
         helperTextInvalid={t('This is a required field')}
-        validated={isValid(kms.baseUrl?.valid)}
+        validated={isValid(kms.baseUrl.valid)}
         isRequired
       >
         <TextInput
-          value={kms.baseUrl?.value}
+          value={kms.baseUrl.value}
           onChange={setParams(HPCSParams.BASE_URL)}
           type="text"
           id="kms-base-url"
           name="kms-base-url"
           isRequired
-          validated={isValid(kms.baseUrl?.valid)}
+          validated={isValid(kms.baseUrl.valid)}
           data-test="kms-base-url"
         />
       </FormGroup>
