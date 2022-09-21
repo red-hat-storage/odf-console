@@ -155,18 +155,18 @@ const generateConfigMapPatch = (
   };
 };
 
-const generateThalesSecret = (kms: ThalesConfig) => ({
+const generateThalesSecret = (kms: ThalesConfig, isCSISecret: boolean) => ({
   apiVersion: SecretModel.apiVersion,
   kind: SecretModel.kind,
   metadata: {
-    name: `thales-kmip-kms-${getRandomChars()}`,
+    name: `thales-kmip-${isCSISecret ? 'csi' : 'ocs'}-${getRandomChars()}`,
     namespace: CEPH_STORAGE_NAMESPACE,
   },
   stringData: {
     CA_CERT: kms.caCert.value,
     CLIENT_CERT: kms.clientCert.value,
     CLIENT_KEY: kms.clientKey.value,
-    UNIQUE_IDENTIFIER: kms.uniqueId.value,
+    ...(isCSISecret && { UNIQUE_IDENTIFIER: kms.uniqueId.value }),
   },
 });
 
@@ -332,26 +332,17 @@ const getCsiHpcsResources = (
   return csiKmsResources;
 };
 
-const getCsiThalesResources = (
-  kms: ThalesConfig,
-  update: boolean,
-  secretName = ''
-) => {
+const getCsiThalesResources = (kms: ThalesConfig, update: boolean) => {
   const csiKmsResources: Promise<K8sResourceKind>[] = [];
 
-  let keySecret: SecretKind;
-  if (!secretName) {
-    // not required, while setting up storage cluster.
-    // required, while creating new storage class.
-    keySecret = generateThalesSecret(kms);
-    csiKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
-  }
+  const keySecret = generateThalesSecret(kms, true);
+  csiKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
 
   const csiConfigData: ThalesConfigMap = {
     KMS_PROVIDER: KmsImplementations.KMIP,
     KMS_SERVICE_NAME: kms.name.value,
     KMIP_ENDPOINT: `${kms.address.value}:${kms.port.value}`,
-    KMIP_SECRET_NAME: secretName || getName(keySecret),
+    KMIP_SECRET_NAME: getName(keySecret),
     TLS_SERVER_NAME: kms.tls,
   };
   const csiConfigObj: ConfigMapKind = generateCsiKmsConfigMap(
@@ -449,27 +440,25 @@ const getClusterHpcsResources = (
 
 const getClusterThalesResources = (
   kms: ThalesConfig
-): [string, Promise<K8sResourceKind>[]] => {
+): Promise<K8sResourceKind>[] => {
   const clusterKmsResources: Promise<K8sResourceKind>[] = [];
 
-  const keySecret: SecretKind = generateThalesSecret(kms);
-  const secretName: string = getName(keySecret);
+  const keySecret: SecretKind = generateThalesSecret(kms, false);
+  clusterKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
 
   const configData: ThalesConfigMap = {
     KMS_PROVIDER: KmsImplementations.KMIP,
     KMS_SERVICE_NAME: kms.name.value,
     KMIP_ENDPOINT: `${kms.address.value}:${kms.port.value}`,
-    KMIP_SECRET_NAME: secretName,
+    KMIP_SECRET_NAME: getName(keySecret),
     TLS_SERVER_NAME: kms.tls,
   };
   const configMapObj: ConfigMapKind = generateOcsKmsConfigMap(configData);
-
-  clusterKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
   clusterKmsResources.push(
     k8sCreate({ model: ConfigMapModel, data: configMapObj })
   );
 
-  return [secretName, clusterKmsResources];
+  return clusterKmsResources;
 };
 
 export const getPort = (url: URL) => {
@@ -533,14 +522,10 @@ export const createClusterKmsResources = (
       return [...clusterKmsResources, ...csiKmsResources];
     }
     case ProviderNames.THALES: {
-      const [secretName, clusterKmsResources] = getClusterThalesResources(
+      const clusterKmsResources = getClusterThalesResources(
         kms as ThalesConfig
       );
-      const csiKmsResources = getCsiThalesResources(
-        kms as ThalesConfig,
-        false,
-        secretName
-      );
+      const csiKmsResources = getCsiThalesResources(kms as ThalesConfig, false);
 
       return [...clusterKmsResources, ...csiKmsResources];
     }
