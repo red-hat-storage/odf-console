@@ -156,7 +156,7 @@ export const ApplicationSelector: React.FC<ApplicationSelectorProps> = (
               key={getName(placementRules)}
             />
           ),
-          id: placementUniqueName,
+          id: `${appUniqueName}:${placementUniqueName}`,
           checkProps: { checked: false },
         });
       });

@@ -324,38 +324,41 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
     setLoading(true);
     const promises: Promise<K8sResourceKind>[] = [];
     selectedApps?.checkedItems?.forEach((app) => {
-      if (Object.keys(appToPlacementRuleMap).includes(app?.id)) {
-        app?.children?.forEach((placement) => {
-          const appToPlsRuleMap = appToPlacementRuleMap?.[app?.id];
-          const plsRule =
-            appToPlsRuleMap?.placements?.[placement?.id]?.placementRules;
-          const patch = [
-            {
-              op: 'replace',
-              path: '/spec/schedulerName',
-              value: DR_SECHEDULER_NAME,
-            },
-          ];
-          promises.push(
-            k8sPatch({
-              model: ACMPlacementRuleModel,
-              resource: plsRule,
-              data: patch,
-              cluster: HUB_CLUSTER_NAME,
-            })
-          );
-          promises.push(
-            k8sCreate({
-              model: DRPlacementControlModel,
-              data: getDRPlacementControlKindObj(
-                plsRule,
-                resource,
-                managedClusterNames
-              ),
-              cluster: HUB_CLUSTER_NAME,
-            })
-          );
-        });
+      const appId = app.id.split(':')[0];
+      if (
+        Object.keys(appToPlacementRuleMap).includes(appId) &&
+        !app?.children
+      ) {
+        const placementRuleId = app.id.split(':')[1];
+        const appToPlsRuleMap = appToPlacementRuleMap?.[appId];
+        const plsRule =
+          appToPlsRuleMap?.placements?.[placementRuleId]?.placementRules;
+        const patch = [
+          {
+            op: 'replace',
+            path: '/spec/schedulerName',
+            value: DR_SECHEDULER_NAME,
+          },
+        ];
+        promises.push(
+          k8sPatch({
+            model: ACMPlacementRuleModel,
+            resource: plsRule,
+            data: patch,
+            cluster: HUB_CLUSTER_NAME,
+          })
+        );
+        promises.push(
+          k8sCreate({
+            model: DRPlacementControlModel,
+            data: getDRPlacementControlKindObj(
+              plsRule,
+              resource,
+              managedClusterNames
+            ),
+            cluster: HUB_CLUSTER_NAME,
+          })
+        );
       }
     });
     Promise.all(promises)
