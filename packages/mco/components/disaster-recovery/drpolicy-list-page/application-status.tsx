@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { ApplicationModel } from '@odf/shared/models/common';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types/k8s';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -110,24 +111,17 @@ const subsFilter = (
   );
 };
 
-const fetchApplications = (
+const isAppDRProtected = (
   subscriptionMapping: SubcsriptionMapping,
   app: ApplicationKind
-): string[] => {
-  let appNames: string[] = [];
-  const appName = app?.metadata?.name;
-  const appNamespace = app?.metadata?.namespace;
+): boolean => {
+  const appNamespace = getNamespace(app);
   const namespcedSubscriptions = subscriptionMapping[appNamespace] ?? {};
 
-  Object.values(namespcedSubscriptions).forEach((subs) => {
+  return Object.values(namespcedSubscriptions).some((subs) =>
     // applying subscription filter from application
-    const valid = matchApplicationToSubscription(subs, app);
-    if (valid && !appNames.includes(appName)) {
-      appNames.push(appName);
-    }
-  });
-
-  return appNames;
+    matchApplicationToSubscription(subs, app)
+  );
 };
 
 export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
@@ -139,8 +133,10 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
     React.useState<ApplicationMapping>({});
   const [subscriptionMapping, setSubscriptionMapping] =
     React.useState<SubcsriptionMapping>({});
-  const [applicationNames, setApplicationNames] = React.useState<string[]>([]);
-  const [filteredNames, setFilteredNames] = React.useState<string[]>([]);
+  const [applications, setApplications] = React.useState<ApplicationKind[]>([]);
+  const [filteredApplications, setFilteredApplications] = React.useState<
+    ApplicationKind[]
+  >([]);
   const [searchAppName, setSearchAppName] = React.useState('');
   const [activeSortIndex, setActiveSortIndex] = React.useState<number>();
   const [activeSortDirection, setActiveSortDirection] = React.useState<
@@ -203,21 +199,20 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
       Object.keys(applicationMapping).length !== 0 &&
       Object.keys(subscriptionMapping).length !== 0
     ) {
-      let appNames: string[] = [];
+      let apps: ApplicationKind[] = [];
 
       Object.keys(applicationMapping).forEach((namespace) => {
         Object.keys(applicationMapping[namespace]).forEach((name) => {
-          appNames = [
-            ...appNames,
-            ...fetchApplications(
-              subscriptionMapping,
-              applicationMapping[namespace][name]
-            ),
-          ];
+          const application = applicationMapping[namespace][name];
+          const appDRProtected = isAppDRProtected(
+            subscriptionMapping,
+            application
+          );
+          apps = appDRProtected ? [...apps, application] : apps;
         });
       });
-      setApplicationNames(appNames);
-      setFilteredNames(appNames);
+      setApplications(apps);
+      setFilteredApplications(apps);
     }
   }, [applicationMapping, subscriptionMapping]);
 
@@ -227,7 +222,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
 
   const onClear = () => {
     setSearchAppName('');
-    setFilteredNames(applicationNames);
+    setFilteredApplications(applications);
   };
 
   const onSearch = (searchValue: string) => {
@@ -235,19 +230,21 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
       onClear();
     } else {
       setSearchAppName(searchValue);
-      setFilteredNames(
-        applicationNames.filter((name) => filterItems(name, searchValue))
+      setFilteredApplications(
+        applications.filter((app) => filterItems(getName(app), searchValue))
       );
     }
   };
 
-  let sortedRepositories = filteredNames;
+  let sortedRepositories = filteredApplications;
   if (activeSortIndex !== null && sortedRepositories?.length) {
-    sortedRepositories = filteredNames.sort((a, b) => {
+    sortedRepositories = filteredApplications.sort((a, b) => {
+      const name1 = getName(a);
+      const name2 = getName(b);
       if (activeSortDirection === 'asc') {
-        return a.localeCompare(b);
+        return name1.localeCompare(name2);
       }
-      return b.localeCompare(a);
+      return name2.localeCompare(name1);
     });
   }
 
@@ -270,7 +267,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
         onClick={handleModalToggle}
         className="mco-application-status__link"
       >
-        {t('{{ length }} Applications', { length: applicationNames.length })}
+        {t('{{ length }} Applications', { length: applications.length })}
       </Button>
       <Modal
         variant={ModalVariant.small}
@@ -302,7 +299,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
             </ToolbarContent>
           </Toolbar>
           <div className="mco-application-status__box">
-            {filteredNames.length === 0 ? (
+            {filteredApplications.length === 0 ? (
               <Bullseye className="mco-application-status__bullseye">
                 {t('No matching application found')}
               </Bullseye>
@@ -321,12 +318,16 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
                       <Th {...reactPropFix} sort={getSortParams(0)}>
                         {t('Name')}
                       </Th>
+                      <Th {...reactPropFix} sort={getSortParams(1)}>
+                        {t('Namespace')}
+                      </Th>
                     </Tr>
                   </Thead>
                   <Tbody {...reactPropFix}>
-                    {sortedRepositories.map((appName, rowIndex) => (
+                    {sortedRepositories.map((app, rowIndex) => (
                       <Tr {...reactPropFix} key={rowIndex}>
-                        <Td {...reactPropFix}>{appName}</Td>
+                        <Td {...reactPropFix}>{getName(app)}</Td>
+                        <Td {...reactPropFix}>{getNamespace(app)}</Td>
                       </Tr>
                     ))}
                   </Tbody>
