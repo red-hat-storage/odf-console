@@ -242,6 +242,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
           onSelect={setProvider as any}
           dropdownItems={PROVIDERS}
           defaultSelection={provider}
+          data-test="namespacestore-provider"
         />
       </FormGroup>
       {(provider === BC_PROVIDERS.AWS ||

@@ -35,6 +35,7 @@ Cypress.Commands.add('install', () => {
       cy.byTestRows('resource-row').get('td').first().click();
       cy.byLegacyTestID('horizontal-link-Storage System').click();
       cy.byTestID('item-create').click();
+
       // Wait for the StorageSystem page to load.
       cy.contains('Create StorageSystem', { timeout: 10 * 1000 }).should(
         'be.visible'
@@ -52,6 +53,14 @@ Cypress.Commands.add('install', () => {
       cy.get('@Create StorageSystem Button', { timeout: 10 * 1000 }).should(
         'not.exist'
       );
+
+      // Safety step, labels are required by NS (for ODF 4.12 onwards).
+      // In case not present, will add again.
+      cy.exec(
+        'oc label --overwrite ns openshift-storage pod-security.kubernetes.io/enforce=privileged pod-security.kubernetes.io/warn=baseline pod-security.kubernetes.io/audit=baseline',
+        { failOnNonZeroExit: false }
+      );
+
       cy.log('Check if storage system was created');
       cy.clickNavLink(['Operators', 'Installed Operators']);
       cy.byLegacyTestID('item-filter').type('Openshift Data Foundation');
@@ -61,12 +70,14 @@ Cypress.Commands.add('install', () => {
       cy.get('td[role="gridcell"]', { timeout: 5 * 60000 }).contains(
         'Available'
       );
+
       // Verify that ODF SS list page shows the SS.
       cy.log('Check if storage system is listed as expected.');
       cy.clickNavLink(['Storage', 'Data Foundation']);
       cy.byLegacyTestID('horizontal-link-Storage Systems').click();
       cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
       cy.get('a').contains(STORAGE_SYSTEM_NAME);
+
       // Verify that the OCS SC is in READY state.
       cy.exec(OCS_SC_STATE, { timeout: 25 * 60000 });
     } else {

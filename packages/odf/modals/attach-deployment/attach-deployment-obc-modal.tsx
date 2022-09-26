@@ -103,6 +103,7 @@ const AttachDeploymentToOBCModal: React.FC<AttachDeploymentToOBCModalProps> = (
           resource={deploymentResource}
           resourceModel={DeploymentModel}
           onSelect={(resource) => setRequestedDeployment(resource)}
+          data-test="dropdown-selectbox"
         />
         {errorMessage && (
           <Alert isInline variant="danger" title={t('An error occurred')}>
@@ -115,7 +116,12 @@ const AttachDeploymentToOBCModal: React.FC<AttachDeploymentToOBCModalProps> = (
           {t('Cancel')}
         </Button>
         {!inProgress ? (
-          <Button key="Attach" variant="primary" onClick={submit}>
+          <Button
+            key="Attach"
+            variant="primary"
+            onClick={submit}
+            data-test="attach-action"
+          >
             {t('Attach')}
           </Button>
         ) : (
