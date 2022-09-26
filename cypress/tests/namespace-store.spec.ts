@@ -13,18 +13,18 @@ describe('Tests creation of Namespace Stores', () => {
   });
 
   afterEach(() => {
-    cy.byLegacyTestID('actions-menu-button').click();
+    cy.byTestID('kebab-button').click();
     cy.log('Deleting namespace store');
     cy.byTestActionID('Delete Namespace Store').click();
-    cy.byTestID('confirm-action').click();
-    cy.log('Deleting secrets');
-    cy.exec(`oc delete secrets ${testName}-secret -n openshift-storage --wait`);
+    cy.byTestID('delete-action').click();
 
     // We are deleting above but this command will ensure the resource's complete termination
     cy.exec(
       `oc delete namespacestores ${testName} -n openshift-storage --wait`,
       { timeout: 5 * MIN, failOnNonZeroExit: false }
     );
+    cy.log('Deleting secrets');
+    cy.exec(`oc delete secrets ${testName}-secret -n openshift-storage --wait`);
   });
 
   beforeEach(() => {

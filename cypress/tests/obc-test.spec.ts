@@ -111,9 +111,10 @@ describe('Test Object Bucket Claim resource', () => {
     cy.clickNavLink(['Storage', 'Object Bucket Claims']);
     listPage.rows.shouldBeLoaded();
     listPage.rows.clickKebabAction(OBC_NAME, 'Attach to Deployment');
+    cy.byTestID('loading-indicator').should('not.exist');
     cy.byTestID('dropdown-selectbox').click();
     cy.contains(deployment.metadata.name).click();
-    cy.byTestID('confirm-action').click();
+    cy.byTestID('attach-action').click();
     cy.log(deployment.metadata.name);
     cy.exec(
       `echo '${JSON.stringify(
