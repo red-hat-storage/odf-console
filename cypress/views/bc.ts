@@ -221,14 +221,14 @@ export const createBucketClass = (config: BucketClassConfig) => {
 
 export const verifyBucketClass = () => {
   cy.log('Verifying bucket class');
-  cy.byLegacyTestID('resource-title').contains(bcName);
+  cy.byTestSelector('details-item-value__Name').contains(bcName);
 };
 
 export const deleteBucketClass = () => {
   cy.log('Deleting bucket class');
-  cy.byLegacyTestID('actions-menu-button').click();
+  cy.byTestID('kebab-button').click();
   cy.byTestActionID('Delete Bucket Class').click();
-  cy.byTestID('confirm-action').click();
+  cy.byTestID('delete-action').click();
   cy.byTestID('item-create').should('be.visible');
 };
 

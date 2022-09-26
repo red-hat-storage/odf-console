@@ -56,6 +56,7 @@ const Tabs: React.FC<TabsProps> = ({
         title={<TabTitleText>{tab.title}</TabTitleText>}
         translate={t}
         key={tab.title}
+        data-test={`horizontal-link-${tab.title}`}
       >
         <tab.component match={match} history={history} />
       </Tab>

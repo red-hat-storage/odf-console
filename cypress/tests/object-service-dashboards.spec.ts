@@ -15,7 +15,7 @@ describe('Tests Buckets, Status, Object Storage Efficiency, and Resource Provide
       .type('ocs-storagecluster-storagesystem')
       .wait(5000);
     cy.byTestRows('resource-row').get('td a').first().click();
-    cy.byLegacyTestID('horizontal-link-Object').click();
+    cy.byTestID('horizontal-link-Object').click();
   });
 
   it('Tests Buckets Cards', () => {
