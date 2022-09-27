@@ -3,6 +3,7 @@
 import * as path from 'path';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
+import { ForkTsCheckerWebpackPlugin } from 'fork-ts-checker-webpack-plugin/lib/plugin';
 import * as webpack from 'webpack';
 import type { Configuration as DevServerConfiguration } from 'webpack-dev-server';
 
@@ -13,7 +14,10 @@ const resolveLocale = (dirName: string, ns: string) =>
     to: `locales/${lang}/${ns}.[ext]`,
   }));
 
+const NODE_ENV = process.env.NODE_ENV;
+
 const config: webpack.Configuration & DevServerConfiguration = {
+  context: __dirname,
   mode: 'development',
   entry: {},
   output: {
@@ -42,9 +46,17 @@ const config: webpack.Configuration & DevServerConfiguration = {
         exclude: /node_modules/,
         use: [
           {
+            loader: 'thread-loader',
+            options: {
+              ...(NODE_ENV === 'development' ? { poolTimeout: Infinity } : {}),
+            },
+          },
+          {
             loader: 'ts-loader',
             options: {
               configFile: path.resolve(__dirname, 'tsconfig.json'),
+              transpileOnly: true,
+              happyPackMode: true,
             },
           },
         ],
@@ -58,7 +70,12 @@ const config: webpack.Configuration & DevServerConfiguration = {
         ],
         use: [
           { loader: 'cache-loader' },
-          { loader: 'thread-loader' },
+          {
+            loader: 'thread-loader',
+            options: {
+              ...(NODE_ENV === 'development' ? { poolTimeout: Infinity } : {}),
+            },
+          },
           { loader: 'style-loader' },
           {
             loader: 'css-loader',
@@ -104,6 +121,14 @@ const config: webpack.Configuration & DevServerConfiguration = {
     }),
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
+    }),
+    new ForkTsCheckerWebpackPlugin({
+      typescript: {
+        diagnosticOptions: {
+          semantic: true,
+          syntactic: true,
+        },
+      },
     }),
   ],
   devtool: 'cheap-module-source-map',
