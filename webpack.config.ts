@@ -21,6 +21,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
     filename: '[name]-bundle.js',
     chunkFilename: '[name]-chunk.js',
   },
+  ignoreWarnings: [(warning) => !!warning?.file?.includes('shared module')],
   watchOptions: {
     ignored: ['node_modules', 'dist'],
   },
@@ -100,6 +101,9 @@ const config: webpack.Configuration & DevServerConfiguration = {
     }),
     new webpack.DefinePlugin({
       'process.env.I8N_NS': JSON.stringify(process.env.I8N_NS),
+    }),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
     }),
   ],
   devtool: 'cheap-module-source-map',
