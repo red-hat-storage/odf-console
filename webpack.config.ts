@@ -21,6 +21,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
     filename: '[name]-bundle.js',
     chunkFilename: '[name]-chunk.js',
   },
+  ignoreWarnings: [(warning) => !!warning?.file?.includes('shared module')],
   watchOptions: {
     ignored: ['node_modules', 'dist'],
   },
