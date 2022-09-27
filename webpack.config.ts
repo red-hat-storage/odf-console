@@ -102,6 +102,9 @@ const config: webpack.Configuration & DevServerConfiguration = {
     new webpack.DefinePlugin({
       'process.env.I8N_NS': JSON.stringify(process.env.I8N_NS),
     }),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    }),
   ],
   devtool: 'cheap-module-source-map',
   optimization: {
