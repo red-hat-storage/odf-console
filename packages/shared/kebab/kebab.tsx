@@ -10,6 +10,7 @@ import {
   KebabToggle,
   DropdownItemProps,
   Tooltip,
+  DropdownDirection,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import { ModalKeys, LaunchModal } from '../modals/modalLauncher';
@@ -76,6 +77,9 @@ export const Kebab: React.FC<KebabProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
+  const eventRef = React.useRef(undefined);
+  const [toggleDirection, setToggleDirection] =
+    React.useState<DropdownDirection>(DropdownDirection.down);
   const [isOpen, setOpen] = React.useState(false);
 
   const { resourceModel, resource } = extraProps;
@@ -83,6 +87,21 @@ export const Kebab: React.FC<KebabProps> = ({
   const resourceLabel = resourceModel.label;
 
   const history = useHistory();
+
+  React.useLayoutEffect(() => {
+    const e = eventRef.current;
+    if (toggleType === 'Kebab' && !!e) {
+      const clientY = e?.clientY; // y-coordinate of kebab button onclick
+      const clientHeight = e?.target?.nextSibling?.clientHeight; // height of popper menu, which is a sibling of kebab button
+      const windowHeight =
+        document.getElementsByTagName('body')[0].clientHeight; // height of viewport
+
+      if (clientY + clientHeight >= windowHeight)
+        setToggleDirection(DropdownDirection.up);
+      else setToggleDirection(DropdownDirection.down);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventRef.current, toggleType]);
 
   const customKebabItemsMap: CustomKebabItemsMap = React.useMemo(
     () =>
@@ -159,7 +178,10 @@ export const Kebab: React.FC<KebabProps> = ({
   }, [t, customKebabItemsMap, resourceLabel]);
 
   const toggle = React.useMemo(() => {
-    const onToggle = () => setOpen((open) => !open);
+    const onToggle = (_, e) => {
+      eventRef.current = e;
+      return setOpen((open) => !open);
+    };
     return toggleType === 'Kebab' ? (
       <KebabToggle onToggle={onToggle} isDisabled={isDisabled} />
     ) : (
@@ -189,6 +211,7 @@ export const Kebab: React.FC<KebabProps> = ({
         dropdownItems={dropdownItems}
         data-test-id="kebab-button"
         position="right"
+        direction={toggleDirection}
       />
     </Tooltip>
   );
