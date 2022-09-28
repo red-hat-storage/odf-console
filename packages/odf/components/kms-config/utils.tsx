@@ -399,6 +399,7 @@ const getClusterVaultResources = (kms: VaultConfig) => {
     case VaultAuthMethods.KUBERNETES:
       vaultConfigData = {
         ...vaultConfigData,
+        VAULT_NAMESPACE: kms.providerNamespace,
         VAULT_AUTH_KUBERNETES_ROLE: kms.authValue.value,
         VAULT_AUTH_MOUNT_PATH: kms.providerAuthPath,
       };
