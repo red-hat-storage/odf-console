@@ -8,6 +8,7 @@ import {
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash';
 import { Trans } from 'react-i18next';
+import { useHistory } from 'react-router-dom';
 import { Alert, Button, Modal, ModalVariant } from '@patternfly/react-core';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
 import { LoadingInline } from '../generic/Loading';
@@ -29,6 +30,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
   extraProps: { resource, resourceModel, cluster },
 }) => {
   const { t } = useCustomTranslation();
+  const history = useHistory();
 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -76,8 +78,9 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
       .then(() => {
         // If we are currently on the deleted resource's page, redirect to the resource list page
         const re = new RegExp(`/${resource.metadata.name}(/|$)`);
-        if (re.test(window.location.pathname)) {
-          history.replaceState('/', '');
+        const pathName = window.location.pathname;
+        if (re.test(pathName)) {
+          history.push(pathName.replace(re, ''));
         } else {
           closeModal();
         }
