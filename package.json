@@ -22,6 +22,9 @@
     "build-mco": "NODE_ENV=production PLUGIN=mco I8N_NS=plugin__odf-multicluster-console yarn build:plugin",
     "build-dev": "NODE_ENV=development PLUGIN=odf I8N_NS=plugin__odf-console yarn build:plugin",
     "server:plugin": "yarn clean-${PLUGIN} && cd plugins/${PLUGIN} && ts-node ../../scripts/generatePluginPackage.ts && NODE_ENV=development I8N_NS=${I8N_NS} yarn ts-node ../../node_modules/.bin/webpack serve -c ../../webpack.config.ts --progress",
+    "analyze-common": "yarn clean-${PLUGIN} && cd plugins/${PLUGIN} && ts-node ../../scripts/generatePluginPackage.ts && NODE_ENV=production I8N_NS=${I8N_NS} ANALYZE_BUNDLE=true yarn ts-node ../../node_modules/.bin/webpack -c ../../webpack.config.ts",
+    "analyze-odf": "PLUGIN=odf yarn analyze-common && PLUGIN=odf yarn ts-node ./analyzeTest.ts",
+    "analyze-mco": "PLUGIN=mco yarn analyze-common && PLUGIN=mco yarn ts-node ./analyzeTest.ts",
     "dev": "PLUGIN=odf I8N_NS=plugin__odf-console yarn server:plugin",
     "dev-mco": "PLUGIN=mco I8N_NS=plugin__odf-multicluster-console yarn server:plugin",
     "http-server": "./http-server.sh ./dist",
@@ -124,6 +127,7 @@
     "ts-node": "5.0.1",
     "typescript": "3.8.3",
     "webpack": "5.64.4",
+    "webpack-bundle-analyzer": "^4.6.1",
     "webpack-cli": "4.5.x",
     "webpack-dev-server": "^4.9.2"
   }

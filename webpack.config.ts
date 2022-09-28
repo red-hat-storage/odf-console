@@ -5,6 +5,7 @@ import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpa
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 import { ForkTsCheckerWebpackPlugin } from 'fork-ts-checker-webpack-plugin/lib/plugin';
 import * as webpack from 'webpack';
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import type { Configuration as DevServerConfiguration } from 'webpack-dev-server';
 
 const LANGUAGES = ['en', 'ja', 'ko', 'zh'];
@@ -137,5 +138,15 @@ const config: webpack.Configuration & DevServerConfiguration = {
     minimize: false,
   },
 };
+
+if (process.env.ANALYZE_BUNDLE === 'true') {
+  config.plugins?.push(
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      generateStatsFile: true,
+      openAnalyzer: false,
+    })
+  );
+}
 
 export default config;

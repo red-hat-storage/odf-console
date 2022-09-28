@@ -6,17 +6,17 @@ on:
     branches: [master]
 
 jobs:
-  build:
-    name: build-test
+  build-test:
+    name: resolve-dependencies
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: '14'
           cache: 'yarn'
-      - run: yarn install
+      - run: yarn --frozen-lockfile
+      - run: yarn build
       - run: yarn lint
       - run: yarn format-test
-      - run: yarn build
+      - run: yarn analyze-odf

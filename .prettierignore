@@ -5,3 +5,4 @@ locales
 .husky
 .vscode
 *.scss
+plugins/**/package.json
