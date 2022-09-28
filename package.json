@@ -131,6 +131,9 @@
     "webpack-cli": "4.5.x",
     "webpack-dev-server": "^4.9.2"
   },
+  "engines": {
+    "node": ">=14.16.0"
+  },
   "lint-staged": {
     "*.{ts,tsx}": "eslint --cache --fix",
     "*.css": "stylelint --fix",
