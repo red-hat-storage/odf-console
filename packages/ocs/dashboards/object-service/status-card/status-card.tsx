@@ -41,7 +41,6 @@ import {
   filterNooBaaAlerts,
   filterRGWAlerts,
   decodeRGWPrefix,
-  getAlertsAndRules,
 } from '../../../utils';
 import { ObjectServiceStatus } from './object-service-health';
 import { getNooBaaState, getRGWHealthState } from './statuses';
@@ -58,8 +57,7 @@ const cephObjectStoreResource = {
 };
 
 const ObjectStorageAlerts = () => {
-  const [data, loaded, loadError] = useAlerts();
-  const { alerts } = getAlertsAndRules(data);
+  const [alerts, loaded, loadError] = useAlerts();
   const filteredAlerts =
     loaded && !loadError && !_.isEmpty(alerts)
       ? [...filterNooBaaAlerts(alerts), ...filterRGWAlerts(alerts)]
