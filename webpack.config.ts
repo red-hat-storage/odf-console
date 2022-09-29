@@ -93,8 +93,11 @@ const config: webpack.Configuration & DevServerConfiguration = {
           {
             loader: 'sass-loader',
             options: {
+              sassOptions: {
+                outputStyle: 'compressed',
+                quietDeps: true,
+              },
               sourceMap: true,
-              outputStyle: 'compressed',
             },
           },
         ],
