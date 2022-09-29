@@ -15,7 +15,12 @@ export const pvc = {
       cy.byTestID('Block-radio-input').click();
     }
     cy.byTestID('create-pvc').click();
-    cy.contains('Bound', { timeout: 10000 });
+    cy.contains('Bound', { timeout: 30000 });
+  },
+  deleteIfExists: (pvcName: string, namespace: string) => {
+    cy.exec(`oc delete pvcs ${pvcName} -n ${namespace} --wait`, {
+      failOnNonZeroExit: false,
+    });
   },
   expandPVC: (expansionSize) => {
     cy.byLegacyTestID('actions-menu-button').click();
