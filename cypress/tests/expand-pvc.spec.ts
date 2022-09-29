@@ -17,13 +17,17 @@ describe('Tests Expansion of a PVC', () => {
   });
 
   it('Test expansion of a CephFS PVC', () => {
-    pvc.createPVC('testpvcfs', '5', 'ocs-storagecluster-cephfs');
+    const cephPvcName = 'testpvcfs';
+    pvc.deleteIfExists(cephPvcName, 'default');
+    pvc.createPVC(cephPvcName, '5', 'ocs-storagecluster-cephfs');
     pvc.expandPVC('10');
     cy.byTestID('pvc-requested-capacity').contains('10 GiB');
   });
 
   it('Test expansion of a RBD PVC', () => {
-    pvc.createPVC('testpvcrbd', '5', 'ocs-storagecluster-ceph-rbd', 'Block');
+    const rbdPvcName = 'testpvcrbd';
+    pvc.deleteIfExists(rbdPvcName, 'default');
+    pvc.createPVC(rbdPvcName, '5', 'ocs-storagecluster-ceph-rbd', 'Block');
     pvc.expandPVC('10');
     cy.byTestID('pvc-requested-capacity').contains('10 GiB');
   });
