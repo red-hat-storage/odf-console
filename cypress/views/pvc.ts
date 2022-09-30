@@ -18,7 +18,7 @@ export const pvc = {
     cy.contains('Bound', { timeout: 30000 });
   },
   deleteIfExists: (pvcName: string, namespace: string) => {
-    cy.exec(`oc delete pvcs ${pvcName} -n ${namespace} --wait`, {
+    cy.exec(`oc delete pvc ${pvcName} -n ${namespace} --wait`, {
       failOnNonZeroExit: false,
     });
   },
