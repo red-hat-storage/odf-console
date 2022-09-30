@@ -39,7 +39,6 @@ const createBlockPool = (poolCreationAction: string) => {
   verifyBlockPoolJSON();
 };
 
-/** @depricated testcases are moved to odf-console */
 describe('Test Ceph pool creation', () => {
   before(() => {
     cy.login();

@@ -22,6 +22,7 @@ export class CreateOBCHandler {
     cy.contains(this.namespace);
     cy.byTestID('item-create').click();
     cy.byTestID('obc-name').type(this.name);
+    cy.byTestID('loading-indicator').should('not.exist');
     cy.byTestID('sc-dropdown').should('be.visible').click();
     cy.contains('openshift-storage.noobaa.io').click();
     cy.get('button').contains('Create').click();
@@ -40,17 +41,9 @@ export class CreateOBCHandler {
 
   deleteBucketClaim() {
     cy.byTestID('loading-indicator').should('not.exist');
-    cy.byLegacyTestID('details-actions')
-      .byLegacyTestID('actions-menu-button')
-      .should('be.visible')
-      .click();
-    cy.byLegacyTestID('details-actions')
-      .byLegacyTestID('action-items')
-      .should('be.visible');
-    cy.byTestActionID('Delete Object Bucket Claim')
-      .should('be.visible')
-      .should('be.enabled')
-      .click();
-    cy.byTestID('confirm-action').should('be.visible').click();
+    cy.log('Deleting Object Bucket Claim');
+    cy.byTestID('kebab-button').click();
+    cy.byTestActionID('Delete Object Bucket Claim').click();
+    cy.byTestID('delete-action').click();
   }
 }
