@@ -135,7 +135,7 @@
     "node": ">=14.16.0"
   },
   "lint-staged": {
-    "*.{ts,tsx}": "eslint --cache --fix",
+    "*.{ts,tsx}": "eslint --cache --fix -c ./.eslintrc.js",
     "*.css": "stylelint --fix",
     "*.{js,css,md,json}": "prettier --write"
   }
