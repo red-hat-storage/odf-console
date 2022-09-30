@@ -15,11 +15,10 @@ const resolveLocale = (dirName: string, ns: string) =>
     to: `locales/${lang}/${ns}.[ext]`,
   }));
 
-const NODE_ENV = process.env.NODE_ENV;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const config: webpack.Configuration & DevServerConfiguration = {
   context: __dirname,
-  mode: 'development',
   entry: {},
   output: {
     path: path.resolve('./dist'),
@@ -138,7 +137,6 @@ const config: webpack.Configuration & DevServerConfiguration = {
   devtool: 'cheap-module-source-map',
   optimization: {
     chunkIds: 'named',
-    minimize: false,
   },
 };
 
