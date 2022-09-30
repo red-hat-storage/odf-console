@@ -83,6 +83,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
             dropdownItems={awsRegionItems}
             defaultSelection={AWS_REGIONS[0]}
             aria-label={t('Region Dropdown')}
+            data-test="aws-region-dropdown"
           />
         </FormGroup>
       )}

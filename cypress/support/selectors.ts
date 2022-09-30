@@ -18,13 +18,16 @@ declare global {
       byTestOperandLink(selector: string): Chainable<Element>;
       byTestRows(selector: string): Chainable<Element>;
       clickNavLink(path: [string, string?]): Chainable<Element>;
-      byTestDropDownMenu(selector: string): Chainable<Element>;
       byTestOperatorRow(
         selector: string,
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
       ): Chainable<Element>;
       byItemID(selector: string): Chainable<Element>;
       byStatusID(
+        selector: string,
+        options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
+      ): Chainable<Element>;
+      byTestSelector(
         selector: string,
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
       ): Chainable<Element>;
@@ -59,6 +62,7 @@ Cypress.Commands.add('byTestRows', (selector: string) =>
 Cypress.Commands.add('byTestActionID', (selector: string) =>
   cy.get(`[data-test-action="${selector}"]:not(.pf-m-disabled)`)
 );
+
 Cypress.Commands.add(
   'byTestOperatorRow',
   (selector: string, options?: object) =>
@@ -81,13 +85,23 @@ Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
     cy.get('#page-sidebar').contains(path[1]).click();
   }
 });
+
 Cypress.Commands.add('byItemID', (selector: string) =>
   cy.get(`[data-item-id="${selector}"]`)
 );
+
 Cypress.Commands.add(
   'byStatusID',
   (
     selector: string,
     options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
   ) => cy.get(`[data-status-id="${selector}"]`, options)
+);
+
+Cypress.Commands.add(
+  'byTestSelector',
+  (
+    selector: string,
+    options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
+  ) => cy.get(`[data-test-selector="${selector}"]`, options)
 );
