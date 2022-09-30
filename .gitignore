@@ -1,6 +1,7 @@
 node_modules
 dist
 .cache-loader
+.eslintcache
 cypress/cypress-a11y-report.json
 plugins/odf/package.json
 plugins/odf/dist
