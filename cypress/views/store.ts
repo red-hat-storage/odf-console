@@ -27,7 +27,7 @@ const setupProvider = (provider: Providers, storeType: StoreType) => {
   cy.byTestDropDownMenu(provider).click();
   switch (provider) {
     case Providers.AWS:
-      cy.byTestID(`${storeType}-aws-region-dropdown`).click();
+      cy.byTestID('aws-region-dropdown').click();
       cy.byTestDropDownMenu('us-east-1').click();
       break;
     case Providers.S3:
