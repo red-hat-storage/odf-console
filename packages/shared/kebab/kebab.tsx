@@ -45,22 +45,38 @@ type KebabProps = {
 
 const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
   [ModalKeys.EDIT_LABELS]: (
-    <DropdownItem key={ModalKeys.EDIT_LABELS} id={ModalKeys.EDIT_LABELS}>
+    <DropdownItem
+      key={ModalKeys.EDIT_LABELS}
+      id={ModalKeys.EDIT_LABELS}
+      data-test-action="Edit labels"
+    >
       {t('Edit labels')}
     </DropdownItem>
   ),
   [ModalKeys.EDIT_ANN]: (
-    <DropdownItem key={ModalKeys.EDIT_ANN} id={ModalKeys.EDIT_ANN}>
+    <DropdownItem
+      key={ModalKeys.EDIT_ANN}
+      id={ModalKeys.EDIT_ANN}
+      data-test-action="Edit annotations"
+    >
       {t('Edit annotations')}
     </DropdownItem>
   ),
   [ModalKeys.EDIT_RES]: (
-    <DropdownItem key={ModalKeys.EDIT_RES} id={ModalKeys.EDIT_RES}>
+    <DropdownItem
+      key={ModalKeys.EDIT_RES}
+      id={ModalKeys.EDIT_RES}
+      data-test-action={`Edit ${resourceLabel}`}
+    >
       {t('Edit {{resourceLabel}}', { resourceLabel })}
     </DropdownItem>
   ),
   [ModalKeys.DELETE]: (
-    <DropdownItem key={ModalKeys.DELETE} id={ModalKeys.DELETE}>
+    <DropdownItem
+      key={ModalKeys.DELETE}
+      id={ModalKeys.DELETE}
+      data-test-action={`Delete ${resourceLabel}`}
+    >
       {t('Delete {{resourceLabel}}', { resourceLabel })}
     </DropdownItem>
   ),
@@ -147,7 +163,12 @@ export const Kebab: React.FC<KebabProps> = ({
     const { overrides, custom } = Object.entries(customResolved).reduce(
       (acc, [k, obj]) => {
         const dropdownItem = (
-          <DropdownItem key={k} id={k} {...obj?.props}>
+          <DropdownItem
+            key={k}
+            id={k}
+            {...obj?.props}
+            data-test-action={obj?.value}
+          >
             {obj?.value}
           </DropdownItem>
         );

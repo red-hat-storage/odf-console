@@ -26,7 +26,7 @@ describe('Tests creation of Backing Stores', () => {
 
   it('Test creation of AWS backing store', () => {
     createStore(Providers.AWS);
-    cy.byLegacyTestID('resource-title').contains(testName);
+    cy.byTestSelector('details-item-value__Name').contains(testName);
     cy.exec(`oc delete secrets ${testName}-secret -n openshift-storage`);
   });
 });

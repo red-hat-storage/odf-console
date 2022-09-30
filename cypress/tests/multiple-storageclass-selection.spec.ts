@@ -43,7 +43,6 @@ describe('Add capacity using multiple storage classes', () => {
         );
       });
     });
-    //commonFlows.navigateToODF();
     cy.clickNavLink(['Storage', 'Data Foundation']);
     cy.byLegacyTestID('horizontal-link-Storage Systems').click();
   });
@@ -92,7 +91,6 @@ describe('Add capacity using multiple storage classes', () => {
     const { deviceSets } = beforeCapacityAddition;
     const index = getCurrentDeviceSetIndex(deviceSets, scName);
     cy.log('Count is:', index.toString());
-    //cy.log(deviceSets[index].count.toString());
     beforeCapacityAddition.portability = deviceSets[index].portable;
     beforeCapacityAddition.devicesCount = deviceSets[index].count;
     addCapacity(beforeCapacityAddition.uid, scName);

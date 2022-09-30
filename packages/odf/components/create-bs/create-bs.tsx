@@ -216,6 +216,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
           onSelect={(key) => setProvider(key as BC_PROVIDERS)}
           dropdownItems={PROVIDERS}
           defaultSelection={BC_PROVIDERS.AWS}
+          data-test="backingstore-provider"
         />
       </FormGroup>
       {provider === BC_PROVIDERS.GCP && (
