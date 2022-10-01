@@ -56,10 +56,10 @@ Cypress.Commands.add('install', () => {
 
       // Safety step, labels are required by NS (for ODF 4.12 onwards).
       // In case not present, will add again.
-      cy.exec(
+      /* cy.exec(
         'oc label --overwrite ns openshift-storage pod-security.kubernetes.io/enforce=privileged pod-security.kubernetes.io/warn=baseline pod-security.kubernetes.io/audit=baseline',
         { failOnNonZeroExit: false }
-      );
+      ); */
 
       cy.log('Check if storage system was created');
       cy.clickNavLink(['Operators', 'Installed Operators']);
