@@ -146,6 +146,7 @@
   "Last synced": "Last synced",
   "Default pool cannot be deleted.": "Default pool cannot be deleted.",
   "Create BlockPool": "Create BlockPool",
+  "Data loss may occur, only recommended for small clusters or when backups are available or data loss is acceptable": "Data loss may occur, only recommended for small clusters or when backups are available or data loss is acceptable",
   "{{replica}} Replication": "{{replica}} Replication",
   "Pool name": "Pool name",
   "my-block-pool": "my-block-pool",
