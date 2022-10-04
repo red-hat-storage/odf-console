@@ -29,7 +29,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
-import * as _ from 'lodash';
 import { sortable } from '@patternfly/react-table';
 import {
   NooBaaBackingStoreModel,

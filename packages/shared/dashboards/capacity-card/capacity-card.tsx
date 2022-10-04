@@ -2,7 +2,7 @@ import * as React from 'react';
 import PlainResourceName from '@odf/shared/resource-link/plain-resource-link';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import classNames from 'classnames';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   Grid,
   GridItem,

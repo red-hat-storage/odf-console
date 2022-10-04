@@ -12,7 +12,7 @@ import {
   getAPIVersionForModel,
   k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { match, useHistory } from 'react-router';
 import { Link } from 'react-router-dom';

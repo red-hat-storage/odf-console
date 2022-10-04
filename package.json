@@ -51,11 +51,16 @@
     "@patternfly/react-core": "4.175.4",
     "@patternfly/react-icons": "^4.11.0",
     "@patternfly/react-table": "4.104.7",
+    "@patternfly/react-tokens": "^4.12.0",
     "@types/react-dnd-html5-backend": "^3.0.2",
     "classnames": "^2.3.1",
     "eslint-config-airbnb": "18.2.1",
     "fuzzysearch": "^1.0.3",
+    "history": "^4.9.0",
+    "i18next": "^20.2.1",
     "i18next-conv": "^10.1.0",
+    "js-base64": "^2.1.9",
+    "js-yaml": "^3.13.1",
     "lodash-es": "^4.17.21",
     "murmurhash-js": "^1.0.0",
     "react": "^17.0.1",
@@ -69,7 +74,9 @@
     "react-redux": "^7.2.6",
     "react-router": "5.2.0",
     "react-router-dom": "5.2.0",
-    "react-tagsinput": "^3.19.0"
+    "react-tagsinput": "^3.19.0",
+    "redux": "^4.0.0",
+    "victory-core": "^35.4.4"
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^5.9.1",

@@ -7,7 +7,7 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getMetric } from '@odf/shared/utils';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ResourceProvidersBody } from './resource-providers-card-body';
 import {

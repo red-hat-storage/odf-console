@@ -3,7 +3,7 @@ import {
   PrometheusResult,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { chart_color_orange_300 as requestedColor } from '@patternfly/react-tokens/dist/js/chart_color_orange_300';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { DataPoint, getType } from '../utils';
 
 const log = (x: number, y: number) => {

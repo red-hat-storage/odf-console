@@ -6,7 +6,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint } from '@odf/shared/utils';
 import { humanizeDecimalBytesPerSec, humanizeSeconds } from '@odf/shared/utils';
 import classNames from 'classnames';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   Chart,
   ChartVoronoiContainer,

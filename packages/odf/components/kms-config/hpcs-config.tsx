@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { FormGroup, TextInput, ValidatedOptions } from '@patternfly/react-core';
 import { validateConnectionName } from '../../constants';
 import { HpcsConfig, HPCSParams, ProviderNames } from '../../types';

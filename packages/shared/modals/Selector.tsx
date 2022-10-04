@@ -5,7 +5,7 @@ import {
   Selector,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import classNames from 'classnames';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import * as TagsInput from 'react-tagsinput';
 import * as k8sSelectorRequirement from './selector-requirement';
 import { createEquals, requirementFromString } from './selector-requirement';

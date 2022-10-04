@@ -7,7 +7,7 @@ import {
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import classNames from 'classnames';
 import * as fuzzy from 'fuzzysearch';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   Dropdown,
   DropdownItem,

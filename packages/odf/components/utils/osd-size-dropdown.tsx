@@ -2,7 +2,7 @@ import * as React from 'react';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { SelectOption } from '@patternfly/react-core';
 import { OCS_DEVICE_SET_REPLICA, OSD_CAPACITY_SIZES } from '../../constants';
 

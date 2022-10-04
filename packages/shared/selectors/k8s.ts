@@ -1,5 +1,5 @@
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 
 type GetStringProperty<T = K8sResourceCommon> = (resource: T) => string;
 

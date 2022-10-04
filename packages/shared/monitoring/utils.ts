@@ -1,5 +1,5 @@
 import { Alert, PrometheusLabels } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { MonitoringResource } from './types';
 
 export const AlertResource: MonitoringResource = {

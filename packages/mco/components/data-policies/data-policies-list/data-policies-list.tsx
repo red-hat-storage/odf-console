@@ -10,7 +10,7 @@ type DataPoliciesListProps = {
   history: RouteComponentProps['history'];
 };
 
-export const DataPoliciesList: React.FC<DataPoliciesListProps> = (props) => {
+export const DataPoliciesList: React.FC<DataPoliciesListProps> = () => {
   const { t } = useCustomTranslation();
   const title = t('Data policies');
   const pages = [

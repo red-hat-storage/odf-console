@@ -3,7 +3,7 @@ import {
   PrometheusResponse,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert, PrometheusLabels } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 
 export const getGaugeValue = (response: PrometheusResponse) =>
   response?.data?.result?.[0]?.value?.[1];

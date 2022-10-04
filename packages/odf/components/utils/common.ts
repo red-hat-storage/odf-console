@@ -24,7 +24,7 @@ import {
   convertToBaseValue,
 } from '@odf/shared/utils';
 import { Base64 } from 'js-base64';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   MINIMUM_NODES,
   IP_FAMILY,

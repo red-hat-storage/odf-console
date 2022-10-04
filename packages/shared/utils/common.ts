@@ -8,7 +8,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { GetAPIVersionForModel } from '../types';
 
 const defaultClassAnnotation = 'storageclass.kubernetes.io/is-default-class';

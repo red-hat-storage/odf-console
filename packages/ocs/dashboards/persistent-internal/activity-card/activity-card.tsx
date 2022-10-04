@@ -24,7 +24,7 @@ import {
   RecentEventsBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
 import { OCS_OPERATOR, PVC_PROVISIONER_ANNOTATION } from '../../../constants';
 import { StorageClusterModel } from '../../../models';

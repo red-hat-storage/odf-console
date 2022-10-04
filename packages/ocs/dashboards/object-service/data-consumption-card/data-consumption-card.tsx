@@ -25,7 +25,7 @@ import {
   PrometheusResponse,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { DataConsumptionDropdown } from './data-consumption-card-dropdown';
 import DataConsumptionGraph from './data-consumption-graph';

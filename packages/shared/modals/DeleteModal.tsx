@@ -6,7 +6,6 @@ import {
   ResourceLink,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import * as _ from 'lodash';
 import { Trans } from 'react-i18next';
 import { useHistory } from 'react-router-dom';
 import { Alert, Button, Modal, ModalVariant } from '@patternfly/react-core';

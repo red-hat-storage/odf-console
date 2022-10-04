@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 
 const ResourceProvidersItemStatus: React.FC<ResourceProvidersRowStatusProps> =
   // eslint-disable-next-line react/display-name

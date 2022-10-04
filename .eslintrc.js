@@ -57,7 +57,10 @@ module.exports = {
     'default-case': 'off',
     'global-require': 'off',
     'implicit-arrow-linebreak': 'off',
-    'import/no-extraneous-dependencies': 'off',
+    'import/no-extraneous-dependencies': [
+      'error',
+      { packageDir: ['.', './packages/odf'] },
+    ],
     'jsx-a11y/anchor-is-valid': 'off',
     'jsx-a11y/click-events-have-key-events': 'off',
     'jsx-a11y/label-has-associated-control': 'off',
@@ -92,7 +95,7 @@ module.exports = {
     'react/no-unused-state': 'off',
     'react/sort-comp': 'off',
     'no-unused-vars': 'off',
-    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     'react/function-component-definition': [
       2,
       {

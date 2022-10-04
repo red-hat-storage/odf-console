@@ -4,7 +4,7 @@ import {
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   Alert,
   Button,

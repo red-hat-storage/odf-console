@@ -31,7 +31,7 @@ export const MCODashboard: React.FC = () => {
   );
 };
 
-const MCODashboardPage: React.FC<MCODashboardPageProps> = (props) => {
+const MCODashboardPage: React.FC<MCODashboardPageProps> = () => {
   const { t } = useCustomTranslation();
   const title = t('Storage System');
   const pages = [

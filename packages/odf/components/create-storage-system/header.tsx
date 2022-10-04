@@ -4,7 +4,7 @@ import { TextVariants, Text, TextContent } from '@patternfly/react-core';
 import './create-storage-system.scss';
 
 export const CreateStorageSystemHeader: React.FC<CreateStorageSystemHeaderProps> =
-  ({ url }) => {
+  () => {
     const { t } = useCustomTranslation();
     return (
       <div className="odf-create-storage-system__header">

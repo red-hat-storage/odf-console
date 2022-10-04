@@ -271,7 +271,7 @@ export const EncryptionForm: React.FC<EncryptionProps> = ({
   kms,
   dispatch,
   infraType,
-  isMCG,
+  isMCG, // eslint-disable-line @typescript-eslint/no-unused-vars
 }) => {
   // enclosed in a "Form" so that child components can use default pf classes
   return (

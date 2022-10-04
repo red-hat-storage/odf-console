@@ -5,7 +5,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
 import { TFunction } from 'i18next';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   FormGroup,
   FormSelect,

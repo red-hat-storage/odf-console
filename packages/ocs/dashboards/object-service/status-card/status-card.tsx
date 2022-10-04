@@ -22,7 +22,7 @@ import {
   HealthBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   Gallery,
   GalleryItem,

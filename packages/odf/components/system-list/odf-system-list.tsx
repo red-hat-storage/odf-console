@@ -42,7 +42,7 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
 import { OperandStatus } from '../utils';

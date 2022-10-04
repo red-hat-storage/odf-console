@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as _ from 'lodash';
 import { ActionGroup, Button } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { ButtonBar } from './ButtonBar';

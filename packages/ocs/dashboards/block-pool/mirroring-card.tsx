@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import { ChartPie, ChartThemeColor } from '@patternfly/react-charts';
 import {

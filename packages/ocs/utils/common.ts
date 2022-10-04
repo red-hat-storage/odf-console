@@ -16,7 +16,7 @@ import {
 } from '@odf/shared/types';
 import { DataPoint, humanizePercentage } from '@odf/shared/utils';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { cephStorageLabel, CEPH_NS } from '../constants';
 
 const OCS_OPERATOR = 'ocs-operator';

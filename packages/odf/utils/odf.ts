@@ -3,7 +3,7 @@ import { ClusterServiceVersionKind } from '@odf/shared/types';
 import { K8sResourceKind } from '@odf/shared/types';
 import { StorageClassResourceKind } from '@odf/shared/types';
 import { isDefaultClass } from '@odf/shared/utils';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { ODF_VENDOR_ANNOTATION } from '../constants';
 
 export const getSupportedVendors = (

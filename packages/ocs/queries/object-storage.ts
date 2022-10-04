@@ -1,6 +1,6 @@
 import { NooBaaBucketClassModel } from '@odf/core/models';
 import { ProjectModel } from '@odf/shared/models';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   CapacityBreakdown,
   ServiceType,

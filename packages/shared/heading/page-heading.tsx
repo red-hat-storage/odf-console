@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ResourceStatus } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom';
 import {
   Breadcrumb,

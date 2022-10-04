@@ -6,7 +6,7 @@ import {
   AccessReviewResourceAttributes,
   useSafetyFirst,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { ProjectModel, SelfSubjectAccessReviewModel } from '../models';
 
 /**

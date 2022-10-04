@@ -27,7 +27,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
-import * as _ from 'lodash';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getOCSVersion } from '../../../utils';

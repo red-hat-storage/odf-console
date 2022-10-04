@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import classNames from 'classnames';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { FormGroup, TextInput, ValidatedOptions } from '@patternfly/react-core';
 import { validateConnectionName } from '../../constants';
 import { VaultConfig, ThalesConfig } from '../../types';

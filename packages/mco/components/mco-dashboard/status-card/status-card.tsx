@@ -14,7 +14,6 @@ import {
   PrometheusResponse,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
-import * as _ from 'lodash';
 import {
   Flex,
   FlexItem,
