@@ -75,8 +75,11 @@ export const verifyFooterActions = (action: string) => {
 export const verifyBlockPoolJSON = (
   compressionEnabled: boolean = true,
   replica: string = replicaCount
-) =>
-  cy.exec(`oc get cephBlockPool ${poolName} -n  ${NS} -o json`).then((res) => {
+) => {
+  cy.wait(5000);
+  cy.exec(`oc get cephBlockPool ${poolName} -n  ${NS} -o json`, {
+    timeout: 30000,
+  }).then((res) => {
     const blockPool = JSON.parse(res.stdout);
     expect(blockPool.spec?.replicated?.size).to.equal(Number(replica));
     expect(blockPool.spec?.compressionMode).to.equal(
@@ -87,6 +90,7 @@ export const verifyBlockPoolJSON = (
     );
     expect(blockPool.spec?.deviceClass).to.equal(volumeType);
   });
+};
 
 export const createBlockPool = () => {
   navigateToBlockPool();

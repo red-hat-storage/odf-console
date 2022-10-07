@@ -103,7 +103,7 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
         ];
       cy.byTestID('requestSize').should('have.value', String(initialCapacity));
       cy.byTestID('provisioned-capacity').contains(
-        `${(initialCapacity * 3).toFixed(0)} TiB`
+        `${(initialCapacity * 3).toFixed(2)} TiB`
       );
       cy.byTestID('add-cap-sc-dropdown', { timeout: 10000 }).should(
         'be.visible'

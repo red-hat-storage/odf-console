@@ -10,6 +10,7 @@ type StaticDropdownProps = {
   dropdownItems: {
     [key: string]: JSX.Element | string;
   };
+  'data-test'?: string;
   defaultText?: string;
   textGenerator?: (
     key: string,
@@ -25,6 +26,7 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
   defaultText = '',
   textGenerator,
   required,
+  'data-test': dataTest,
 }) => {
   const [selectedItem, setSelectedItem] = React.useState(defaultSelection);
   const [isOpen, setOpen] = React.useState(false);
@@ -42,7 +44,7 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
   const processedDropdownItems = React.useMemo(
     () =>
       Object.entries(dropdownItems).map(([k, v]) => (
-        <DropdownItem key={k} id={k}>
+        <DropdownItem key={k} id={k} data-test-dropdown-menu={v}>
           {v}
         </DropdownItem>
       )),
@@ -56,6 +58,7 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
 
   return (
     <Dropdown
+      data-test={dataTest}
       required={required}
       className={className}
       isOpen={isOpen}
