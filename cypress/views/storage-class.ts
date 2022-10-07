@@ -11,9 +11,9 @@ const configureKms = () => {
   cy.byTestID('kms-service-backend-path').type('secret');
 
   // save
-  cy.byTestID('confirm-action').click();
+  cy.byTestID('save-kms-action').click();
   cy.byTestID('save-action').click();
-  cy.byTestID('kms-connection-dropdown').should('contain', 'vault');
+  cy.byTestID('kms-service-dropdown-toggle').should('contain', 'vault');
 };
 
 export const createStorageClass = (
@@ -51,10 +51,10 @@ export const createStorageClass = (
   cy.byTestID('storage-class-volume-binding-mode').click();
   cy.byTestDropDownMenu('Immediate').click();
   cy.byLegacyTestID('storage-class-form').get('button#save-changes').click();
-  cy.byLegacyTestID('resource-title').contains(scName);
+  cy.byTestSelector('details-item-value__Name').contains(scName);
 };
 
-export const deleteStorageClassFromCli = (scName: string) => {
+export const deleteStorageClassFromCLI = (scName: string, ns = 'default') => {
   cy.log('Deleting a storage class');
-  cy.exec(`oc delete StorageClass ${scName}`);
+  cy.exec(`oc delete StorageClass ${scName} -n ${ns}`);
 };

@@ -1,7 +1,11 @@
 import { getPVCJSON } from '../helpers/pvc';
 import { ODFCommon } from '../views/odf-common';
+import { deletePVCFromCLI } from '../views/pvc';
 
 describe('Check Persistent Dashboard', () => {
+  let initialPVC;
+  let initialPV;
+
   before(() => {
     cy.login();
     cy.visit('/');
@@ -9,6 +13,7 @@ describe('Check Persistent Dashboard', () => {
   });
 
   after(() => {
+    deletePVCFromCLI('dummy-pvc', 'openshift-storage');
     cy.logout();
   });
 
@@ -58,24 +63,30 @@ describe('Check Persistent Dashboard', () => {
       .invoke('text')
       .then((pvcText) => {
         const [numberPVC] = pvcText.split(' ');
-        const initialPVC = Number(numberPVC);
-        cy.exec(
-          ` echo '${JSON.stringify(
-            getPVCJSON(
-              'dummy-pvc',
-              'openshift-storage',
-              'ocs-storagecluster-ceph-rbd',
-              '5Gi'
-            )
-          )}' | oc create -f -`
-        ).then(() => {
-          cy.byTestID('inventory-pvc').contains(
-            `${(initialPVC + 1).toString()} PersistentVolumeClaims`
-          );
-          cy.byTestID('inventory-pv').contains(
-            `${(initialPVC + 1).toString()} PersistentVolumes`
-          );
-        });
+        initialPVC = Number(numberPVC);
       });
+    cy.byTestID('inventory-pv')
+      .invoke('text')
+      .then((pvText) => {
+        const [numberPV] = pvText.split(' ');
+        initialPV = Number(numberPV);
+      });
+    cy.exec(
+      ` echo '${JSON.stringify(
+        getPVCJSON(
+          'dummy-pvc',
+          'openshift-storage',
+          'ocs-storagecluster-ceph-rbd',
+          '5Gi'
+        )
+      )}' | oc create -f -`
+    ).then(() => {
+      cy.byTestID('inventory-pvc').contains(
+        `${(initialPVC + 1).toString()} PersistentVolumeClaims`
+      );
+      cy.byTestID('inventory-pv').contains(
+        `${(initialPV + 1).toString()} PersistentVolumes`
+      );
+    });
   });
 });
