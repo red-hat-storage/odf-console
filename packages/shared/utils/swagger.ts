@@ -1,6 +1,6 @@
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { referenceForModel } from './common';
 
 export const STORAGE_PREFIX = 'bridge';

@@ -6,7 +6,7 @@ import {
   k8sCreate,
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   HOSTNAME_LABEL_KEY,
   DISCOVERY_CR_NAME,

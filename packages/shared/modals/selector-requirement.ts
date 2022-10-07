@@ -1,5 +1,5 @@
 import { MatchExpression } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 
 export const createEquals = (key: string, value: string): MatchExpression => ({
   key,

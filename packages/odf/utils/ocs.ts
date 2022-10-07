@@ -15,7 +15,7 @@ import {
   k8sPatch,
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   HOSTNAME_LABEL_KEY,
   LABEL_OPERATOR,

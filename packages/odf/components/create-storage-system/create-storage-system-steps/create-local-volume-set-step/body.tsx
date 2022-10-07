@@ -12,7 +12,7 @@ import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown'
 import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { SelectOption } from '@patternfly/react-core';
 import {
   FormGroup,

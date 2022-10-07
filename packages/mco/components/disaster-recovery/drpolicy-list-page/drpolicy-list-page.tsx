@@ -21,7 +21,6 @@ import {
   TableColumn,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import * as _ from 'lodash';
 import { Trans } from 'react-i18next';
 import { useHistory } from 'react-router';
 import { sortable, wrappable } from '@patternfly/react-table';

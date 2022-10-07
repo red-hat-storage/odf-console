@@ -6,7 +6,7 @@ import {
   PrometheusRule,
   Rule,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
 
 export const getStackChartStats: GetStackStats = (

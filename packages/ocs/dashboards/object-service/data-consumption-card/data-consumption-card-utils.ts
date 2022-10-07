@@ -7,7 +7,7 @@ import {
   PrometheusResponse,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 
 export const DataConsumersValue = {
   [Breakdown.PROVIDERS]: 'PROVIDERS_',

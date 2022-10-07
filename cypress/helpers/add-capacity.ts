@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 
 export const createOSDTreeMap = (nodes) =>
   nodes.reduce((acc, curr) => Object.assign(acc, { [curr.id]: curr }), {});

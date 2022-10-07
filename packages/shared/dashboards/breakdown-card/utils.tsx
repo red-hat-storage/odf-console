@@ -2,7 +2,6 @@ import { DataPoint } from '@odf/shared/utils';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_black_400 as globalBlack400 } from '@patternfly/react-tokens/dist/js/global_palette_black_400';
 import { TFunction } from 'i18next';
-import * as _ from 'lodash';
 import { Colors } from './consts';
 
 const getTotal = (stats: StackDataPoint[]) =>

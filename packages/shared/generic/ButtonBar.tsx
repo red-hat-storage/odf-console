@@ -1,6 +1,6 @@
 import * as React from 'react';
 import classNames from 'classnames';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Alert, AlertGroup } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { LoadingInline } from './Loading';

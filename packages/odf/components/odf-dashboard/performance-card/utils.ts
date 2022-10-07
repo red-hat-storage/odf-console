@@ -6,7 +6,7 @@ import {
   humanizeDecimalBytesPerSec,
 } from '@odf/shared/utils/humanize';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 
 type DataFrame = {
   systemName: string;

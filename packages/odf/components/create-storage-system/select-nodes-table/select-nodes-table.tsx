@@ -27,7 +27,7 @@ import {
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Table, TableHeader, TableBody } from '@patternfly/react-table';
 import { IRow, sortable } from '@patternfly/react-table';
 import { WizardNodeState } from '../reducer';

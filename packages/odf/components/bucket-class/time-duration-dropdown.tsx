@@ -9,7 +9,7 @@ import {
 import { TimeUnits } from '../../constants';
 
 export const TimeDurationDropdown: React.FC<TimeDurationDropdownProps> = ({
-  id,
+  id, // eslint-disable-line @typescript-eslint/no-unused-vars
   inputClassName,
   onChange,
   required,

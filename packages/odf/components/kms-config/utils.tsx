@@ -4,7 +4,6 @@ import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, ConfigMapKind, SecretKind } from '@odf/shared/types';
 import { getRandomChars, isValidIP } from '@odf/shared/utils';
 import { k8sCreate, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
 import {
   KMSConfigMapName,
   KMSVaultTokenSecretName,

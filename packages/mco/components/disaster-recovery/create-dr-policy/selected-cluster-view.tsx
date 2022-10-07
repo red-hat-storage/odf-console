@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as _ from 'lodash';
 import {
   Text,
   Badge,
@@ -20,7 +19,7 @@ type SelectedClusterProps = {
 export const SelectedCluster: React.FC<SelectedClusterProps> = ({
   id,
   cluster,
-  dispatch,
+  dispatch, // eslint-disable-line @typescript-eslint/no-unused-vars
 }) => {
   const { name, region, storageSystemName } = cluster;
   return (

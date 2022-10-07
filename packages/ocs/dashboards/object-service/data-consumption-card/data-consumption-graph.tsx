@@ -9,7 +9,7 @@ import { DATA_CONSUMPTION_QUERIES } from '@odf/ocs/queries';
 import { GraphEmpty } from '@odf/shared/charts';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   Chart,
   ChartAxis,

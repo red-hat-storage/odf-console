@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as _ from 'lodash';
 import { Helmet } from 'react-helmet';
 import PageHeading from '../heading/page-heading';
 import { useCustomTranslation } from '../useCustomTranslationHook';

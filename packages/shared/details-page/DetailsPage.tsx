@@ -9,7 +9,7 @@ import {
   useAccessReview,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classnames from 'classnames';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -289,14 +289,14 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   children,
   resource,
   customPathName,
-  showPodSelector = false,
-  showNodeSelector = false,
+  showPodSelector = false, // eslint-disable-line @typescript-eslint/no-unused-vars
+  showNodeSelector = false, // eslint-disable-line @typescript-eslint/no-unused-vars
   showAnnotations = true,
-  showTolerations = false,
+  showTolerations = false, // eslint-disable-line @typescript-eslint/no-unused-vars
   showLabelEditor = true,
   canUpdateResource = true,
-  podSelector = 'spec.selector',
-  nodeSelector = 'spec.template.spec.nodeSelector',
+  podSelector = 'spec.selector', // eslint-disable-line @typescript-eslint/no-unused-vars
+  nodeSelector = 'spec.template.spec.nodeSelector', // eslint-disable-line @typescript-eslint/no-unused-vars
   launchModal,
   resourceModel,
 }) => {

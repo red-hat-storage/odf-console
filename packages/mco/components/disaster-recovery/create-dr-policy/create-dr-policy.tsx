@@ -13,7 +13,6 @@ import {
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
 import { RouteComponentProps, match as Match } from 'react-router';
 import {
   Form,

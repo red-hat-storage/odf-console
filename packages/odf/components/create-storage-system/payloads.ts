@@ -10,7 +10,7 @@ import { K8sResourceKind, Patch, StorageSystemKind } from '@odf/shared/types';
 import { getAPIVersionForModel, k8sPatchByName } from '@odf/shared/utils';
 import { k8sCreate, k8sGet } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import {
   ocsTaint,
   defaultRequestSize,

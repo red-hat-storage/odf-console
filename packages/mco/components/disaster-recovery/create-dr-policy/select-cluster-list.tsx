@@ -3,7 +3,6 @@ import { isMinimumSupportedODFVersion } from '@odf/mco/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
 import {
   DataList,
   DataListItem,
@@ -233,7 +232,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
               placeholder={t('Cluster name')}
               onChange={(val) => setNameSearch(val)}
               value={nameSearch}
-              onClear={(e) => setNameSearch('')}
+              onClear={() => setNameSearch('')}
             />
           </ToolbarItem>
         </ToolbarContent>

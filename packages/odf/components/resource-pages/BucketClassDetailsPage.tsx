@@ -9,7 +9,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash';
 import { RouteComponentProps } from 'react-router';
 import { NooBaaBucketClassModel } from '../../models';
 import { BucketClassKind } from '../../types';

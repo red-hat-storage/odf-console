@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { FormGroup, TextInput, FileUpload } from '@patternfly/react-core';
 import { KMSMaxFileUploadSize } from '../../constants';
 import { ThalesConfig, ProviderNames } from '../../types';

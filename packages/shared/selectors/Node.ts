@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { NodeCondition, NodeKind } from '../types';
 
 export const isNodeReady = (node: NodeKind): boolean => {

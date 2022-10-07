@@ -5,7 +5,7 @@ import {
   TimeoutError,
 } from '@odf/shared/utils/error/http-error';
 import classNames from 'classnames';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import { Alert, Button } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';

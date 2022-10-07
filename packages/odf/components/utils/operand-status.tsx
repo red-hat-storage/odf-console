@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Status } from '@odf/shared/status/Status';
 import { SuccessStatus } from '@odf/shared/status/statuses';
 import { K8sResourceCondition, K8sResourceKind } from '@odf/shared/types';
-import * as _ from 'lodash';
+import * as _ from 'lodash-es';
 
 type OperandStatusType = {
   type: string;

@@ -6,7 +6,6 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
-import * as _ from 'lodash';
 import { MultilineUtilizationItem } from './multi-utilization-item';
 
 export const PrometheusMultilineUtilizationItem: React.FC<PrometheusMultilineUtilizationItemProps> =
