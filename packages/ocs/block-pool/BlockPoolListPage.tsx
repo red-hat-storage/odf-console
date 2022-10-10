@@ -50,6 +50,7 @@ import {
   twelveHoursdateTimeNoYear,
   customActionsMap,
   isDefaultPool,
+  PoolMetrics,
 } from '../utils';
 import { PopoverHelper } from './popover-helper';
 
@@ -368,10 +369,6 @@ type WatchType = {
   sc: StorageClassResourceKind[];
   ceph: K8sResourceKind[];
   blockPools: StoragePoolKind[];
-};
-
-type PoolMetrics = {
-  [poolName: string]: string;
 };
 
 export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
