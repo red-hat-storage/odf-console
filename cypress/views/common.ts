@@ -11,10 +11,14 @@ export const commandPoll = (
   cmd: string,
   expected: string,
   failOnNonZeroExit: boolean = true,
-  retry: number = 300
+  retry: number = 300,
+  expectedCode?: number
 ) => {
   cy.exec(cmd, { failOnNonZeroExit }).then((res) => {
-    if (res.stdout === expected) {
+    if (
+      (res.stdout === expected || expectedCode === res.code) &&
+      res.stderr === ''
+    ) {
       assert(true);
       return;
     }
@@ -23,6 +27,6 @@ export const commandPoll = (
       return;
     }
 
-    commandPoll(cmd, expected, failOnNonZeroExit, retry - 1);
+    commandPoll(cmd, expected, failOnNonZeroExit, retry - 1, expectedCode);
   });
 };
