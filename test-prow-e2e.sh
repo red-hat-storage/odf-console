@@ -27,6 +27,8 @@ function generateLogsAndCopyArtifacts {
   oc get nodes -o yaml >> "${ARTIFACT_DIR}"/node.yaml
   oc get pods -n openshift-storage -o wide >> "${ARTIFACT_DIR}"/pod_details_openshift-storage.yaml
   oc get pods -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/pod_details_openshift-storage.yaml
+  oc get StorageCluster --ignore-not-found=true -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/storage-cluster.yaml
+  oc get NooBaa --ignore-not-found=true -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/noobaa.yaml
   oc logs --previous=false deploy/odf-operator-controller-manager manager -n openshift-storage > "${ARTIFACT_DIR}"/odf.logs
   for pod in $(oc get pods -n "${NS}" --no-headers -o custom-columns=":metadata.name" | grep "odf-console"); do
         echo "$pod" 
@@ -46,78 +48,37 @@ function generateLogsAndCopyArtifacts {
   fi
 }
 
-
-
 trap generateLogsAndCopyArtifacts EXIT
 trap generateLogsAndCopyArtifacts ERR
 
-PULL_SECRET_PATH="/var/run/operator-secret/dockerconfig" 
-NAMESPACE="openshift-marketplace"
-SECRET_NAME="ocs-secret"
 NS="openshift-storage"
 ARTIFACT_DIR=${ARTIFACT_DIR:=/tmp/artifacts}
 SCREENSHOTS_DIR=gui-test-screenshots
 
-
-
-function createSecret {
-    oc create secret generic ${SECRET_NAME} --from-file=.dockerconfigjson=${PULL_SECRET_PATH} --type=kubernetes.io/dockerconfigjson -n "$1"
-}
-
-function linkSecrets {
-  for serviceAccount in $(oc get serviceaccounts -n ${NS} --no-headers -o custom-columns=":metadata.name" | sed 's/"//g'); do
-        echo "Linking ${SECRET_NAME} to ${serviceAccount}"
-        oc secrets link "${serviceAccount}" ${SECRET_NAME} -n ${NS} --for=pull
-  done
-}
-
-function deleteAllPods {
-  oc delete pods --all -n "$1" 
-}
 oc patch operatorhub.config.openshift.io/cluster -p='{"spec":{"sources":[{"disabled":true,"name":"redhat-operators"}]}}' --type=merge
 
-echo "Creating secret for CI builds in ${NAMESPACE}"
+function patchPullSecret {
+  oc get -n openshift-config secret/pull-secret -ojson | jq -r '.data.".dockerconfigjson"' | base64 -d | jq '.' > secret.json
+  jq -c '.auths."quay.io".auth = "'${PULL_SECRET}'"' secret.json > temp-auth.json
+  jq '.auths."quay.io".email |=""' temp-auth.json > temp-secret.json
+  oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=temp-secret.json
 
-createSecret ${NAMESPACE}
+  rm temp-secret.json temp-auth.json secret.json
+
+  echo "Added Pull Secret"
+}
+
+echo "Updating the pull secret"
+patchPullSecret
 
 oc apply -f openshift-ci/odf-catalog-source.yaml ;
 
 echo "Waiting for CatalogSource to be Ready"
-# Have to sleep here for atleast 1 min to ensure catalog source is in stable READY state
-sleep 60 
-
-echo "Creating secret for linking pods"
-createSecret ${NS}
-
-echo "Adding secret to all service accounts in ${NS} namespace"
-linkSecrets
-
-echo "Restarting pods for secret update"
-deleteAllPods ${NS}
-
-sleep 30
-
-echo "Adding secret to all service accounts in ${NS} namespace"
-linkSecrets
-
-echo "Restarting pods for secret update"
-deleteAllPods ${NS}
-
-sleep 120
-
-echo "Adding secret to all service accounts in ${NS} namespace"
-linkSecrets
-
-echo "Restarting pods for secret update"
-deleteAllPods ${NS}
-
-echo "Adding secret to all service accounts in ${NS} namespace"
-linkSecrets
-
-echo "Restarting pods for secret update"
-deleteAllPods ${NS}
-
-sleep 120
+timeout 10m bash <<-'EOF'
+until [ "$(oc -n openshift-marketplace get catalogsource -o=jsonpath="{.items[?(@.metadata.name==\"redhat-operators\")].status.connectionState.lastObservedState}")" == "READY" ]; do
+  sleep 1
+done
+EOF
 
 # Enable console plugin for ODF-Console
 export CONSOLE_CONFIG_NAME="cluster"
@@ -127,6 +88,13 @@ echo "Enabling Console Plugin for ODF Operator"
 oc patch console.v1.operator.openshift.io ${CONSOLE_CONFIG_NAME} --type=json -p="[{'op': 'add', 'path': '/spec/plugins', 'value':[${ODF_PLUGIN_NAME}]}]"
 
 ODF_CONSOLE_IMAGE="$1"
+
+echo "Waiting for CSV to exist"
+timeout 5m bash <<-'EOF'
+until [ ! -z "$(oc get csv -n openshift-storage -o=jsonpath='{.items[?(@.spec.displayName=="OpenShift Data Foundation")].metadata.name}')" ]; do
+  sleep 1
+done
+EOF
 
 # [SC2155]
 ODF_CSV_NAME="$(oc get csv -n openshift-storage -o=jsonpath='{.items[?(@.spec.displayName=="OpenShift Data Foundation")].metadata.name}')"

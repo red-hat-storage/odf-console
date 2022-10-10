@@ -29,8 +29,6 @@ spec:
     base64data: ''
     mediatype: ''
   image: quay.io/rhceph-dev/ocs-registry:latest-stable-4.12.0
-  secrets:
-    - ocs-secret
   priority: 100
   publisher: Red Hat
   sourceType: grpc
