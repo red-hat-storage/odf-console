@@ -9,6 +9,7 @@ describe('Tests creation of Namespace Stores', () => {
   });
 
   after(() => {
+    cy.visit('/');
     cy.logout();
   });
 
@@ -17,7 +18,6 @@ describe('Tests creation of Namespace Stores', () => {
     cy.log('Deleting namespace store');
     cy.byTestActionID('Delete Namespace Store').click();
     cy.byTestID('delete-action').click();
-
     // We are deleting above but this command will ensure the resource's complete termination
     cy.exec(
       `oc delete namespacestores ${testName} -n openshift-storage --wait`,
