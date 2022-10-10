@@ -3,10 +3,12 @@ export const app = {
     cy.document().its('readyState').should('eq', 'complete');
   },
   waitForLoad: (timeout: number = 160000) => {
+    /* eslint-disable cypress/require-data-selectors */
     cy.get('.co-m-loader', { timeout }).should('not.exist');
     cy.get('.pf-c-spinner', { timeout }).should('not.exist');
     cy.get('.skeleton-catalog--grid', { timeout }).should('not.exist');
     cy.get('.loading-skeleton--table', { timeout }).should('not.exist');
+    /* eslint-enable cypress/require-data-selectors */
     cy.byTestID('skeleton-detail-view', { timeout }).should('not.exist');
     app.waitForDocumentLoad();
   },
@@ -19,7 +21,7 @@ export const projectNameSpace = {
 
   enterProjectName: (projectName: string) => {
     cy.byLegacyTestID('modal-cancel-action').should('be.visible');
-    cy.get('#input-name').type(projectName);
+    cy.get('#input-name').type(projectName); // eslint-disable-line cypress/require-data-selectors
   },
 
   selectOrCreateProject: (projectName: string) => {

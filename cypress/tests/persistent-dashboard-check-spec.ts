@@ -40,7 +40,7 @@ describe('Check Persistent Dashboard', () => {
 
   it('Check Inventory card is correct', () => {
     cy.log('Check the total number of OCS nodes');
-    cy.get('.skeleton-activity').should('not.exist');
+    cy.get('.skeleton-activity').should('not.exist'); // eslint-disable-line cypress/require-data-selectors
     cy.byTestID('inventory-nodes')
       .invoke('text')
       .then((text) => {

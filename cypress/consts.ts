@@ -11,7 +11,7 @@ export const CEPH_CLUSTER_NAME = `${STORAGE_CLUSTER_NAME}-cephcluster`;
  * storage cluster's status.
  */
 const CLUSTER_PHASE_QUERY = (name: string) => {
-  return `{range .items[*]}{.metadata.name==${name}\"}{.status.phase}{\"\\n\"}{end}`;
+  return `{range .items[*]}{.metadata.name==${name}"}{.status.phase}{"\\n"}{end}`;
 };
 const STORAGECLUSTER_PHASE = `"$(oc get storageclusters -n openshift-storage -o=jsonpath='${CLUSTER_PHASE_QUERY(
   STORAGE_CLUSTER_NAME

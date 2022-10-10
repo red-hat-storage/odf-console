@@ -1,7 +1,4 @@
 import { expect } from 'chai';
-import { testName } from '../utils/consts';
-import { detailsPage } from '../views/details-page';
-import { listPage } from '../views/list-page';
 import { deployment } from '../mocks/deploymentData';
 import {
   ACCESS_KEY,
@@ -14,7 +11,10 @@ import {
   OBC_STORAGE_CLASS,
   OBC_STORAGE_CLASS_EXACT,
   SECRET_KEY,
+  testName,
 } from '../utils/consts';
+import { detailsPage } from '../views/details-page';
+import { listPage } from '../views/list-page';
 import { CreateOBCHandler } from '../views/obcPage';
 
 describe('Test Object Bucket Claim resource', () => {
@@ -34,7 +34,7 @@ describe('Test Object Bucket Claim resource', () => {
 
   after(() => {
     cy.visit(obcUrl);
-    obcHandler.deleteBucketClaim();
+    CreateOBCHandler.deleteBucketClaim();
     cy.logout();
   });
 
@@ -57,7 +57,7 @@ describe('Test Object Bucket Claim resource', () => {
     });
 
     cy.log('Test if secret data can be revealed');
-    obcHandler.revealHiddenValues();
+    CreateOBCHandler.revealHiddenValues();
     cy.byTestID('secret-data').should(($h) => {
       expect($h[0].innerText).to.equal('Endpoint');
       expect($h[2].innerText).to.equal('Access Key');
@@ -70,7 +70,7 @@ describe('Test Object Bucket Claim resource', () => {
     });
 
     cy.log('Test if secret data can be hidden again');
-    obcHandler.hideValues();
+    CreateOBCHandler.hideValues();
     cy.byTestID('copy-to-clipboard').as('secrets');
     cy.get('@secrets').should(($el) => {
       const childCount = $el.length;

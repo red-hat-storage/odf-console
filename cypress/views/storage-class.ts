@@ -38,8 +38,10 @@ export const createStorageClass = (
   );
   cy.byTestID('dropdown-menu-item-link').click();
 
-  cy.log('Enable encryption');
-  encrypted && configureKms();
+  if (encrypted) {
+    cy.log('Enabling encryption');
+    configureKms();
+  }
 
   cy.log(`Selecting block pool ${poolName}`);
   cy.byTestID('pool-dropdown-toggle').click();

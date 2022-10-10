@@ -53,7 +53,7 @@ const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
       variant: ButtonVariant.primary,
       isLoading: true,
       isDisabled: true,
-      onClick: () => {},
+      onClick: () => null,
     },
     {
       id: 'modal-cancel-action',
