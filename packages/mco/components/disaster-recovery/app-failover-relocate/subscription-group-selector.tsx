@@ -10,6 +10,7 @@ import {
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
+import { PlacementDecision } from '../../../types';
 import { isPeerReady } from '../../../utils';
 import {
   FailoverAndRelocateState,
@@ -28,10 +29,15 @@ const validateDRPolicy = (
 
 const validateTargetCluster = (
   drPolicyControlState: DRPolicyControlState,
-  targetClusterName: string
-) =>
-  drPolicyControlState.drPolicyControl?.spec?.preferredCluster !==
-  targetClusterName;
+  targetCluster: PlacementDecision
+) => {
+  const preferredCluster =
+    drPolicyControlState.drPolicyControl?.spec?.preferredCluster;
+  return (
+    preferredCluster !== targetCluster?.clusterName &&
+    preferredCluster !== targetCluster?.clusterNamespace
+  );
+};
 
 const getValidOptions = (
   option: React.ReactElement,
@@ -87,8 +93,7 @@ const getOptions = (
 export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps> =
   ({ state, dispatch }) => {
     const { t } = useCustomTranslation();
-    const selectedTargetCluster = state.selectedTargetCluster;
-    const selectedDRPolicy = state.selectedDRPolicy;
+    const { selectedTargetCluster, selectedDRPolicy } = state;
     const [isOpen, setOpen] = React.useState(false);
     const [options, setOptions] = React.useState<React.ReactElement[]>([]);
     const memoizedDRPCState = useDeepCompareMemoize(
@@ -133,7 +138,7 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
             if (validateDRPolicy(drpcState, selectedDRPolicy?.policyName)) {
               const isValidTargetCluster = validateTargetCluster(
                 drpcState,
-                selectedTargetCluster?.clusterName
+                selectedTargetCluster?.clusterInfo
               );
               const isValidPeerStatus = isPeerReady(drpcState?.drPolicyControl);
               isValidTargetCluster &&
