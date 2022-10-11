@@ -96,7 +96,6 @@
     "@typescript-eslint/parser": "^4.28.5",
     "buffer": "^6.0.3",
     "cache-loader": "1.x",
-    "chai": "^4.3.6",
     "comment-json": "4.x",
     "copy-webpack-plugin": "^6.4.1",
     "css-loader": "0.28.x",

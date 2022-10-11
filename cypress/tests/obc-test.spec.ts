@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { deployment } from '../mocks/deploymentData';
 import {
   ACCESS_KEY,
