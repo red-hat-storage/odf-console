@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { utcDateTimeFormatterWithTimeZone } from '@odf/shared/details-page/datetime';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import { getName } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
@@ -223,7 +223,10 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
       });
     }
     setSelected({
-      clusterName: getName(managedCluster),
+      clusterInfo: {
+        clusterName: getName(managedCluster),
+        clusterNamespace: getNamespace(managedCluster),
+      },
       isClusterAvailable: isClusterAvailable && isClusterFenced,
       lastAvailableTime: condition?.lastTransitionTime,
     });
@@ -252,7 +255,9 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
                 className="mco-dr-action-body__toggle-text"
                 justifyContent={{ default: 'justifyContentSpaceBetween' }}
               >
-                <FlexItem>{state.selectedTargetCluster?.clusterName}</FlexItem>
+                <FlexItem>
+                  {state.selectedTargetCluster?.clusterInfo?.clusterName}
+                </FlexItem>
                 <FlexItem className="mco-dr-action-body__status-icon">
                   <TargetClusterStatus
                     isClusterAvailable={
