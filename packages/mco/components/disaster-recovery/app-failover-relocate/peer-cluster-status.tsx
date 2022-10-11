@@ -60,7 +60,7 @@ const getDataLastSyncTime = (
   dataLastSyncStatus: StatusProps,
   drpcState: DRPolicyControlState
 ): StatusProps => {
-  const lastSyncTime = drpcState?.drPolicyControl?.status?.LastGroupSyncTime;
+  const lastSyncTime = drpcState?.drPolicyControl?.status?.lastGroupSyncTime;
   return !!lastSyncTime
     ? dataLastSyncStatus.text !== 'Unknown'
       ? {
