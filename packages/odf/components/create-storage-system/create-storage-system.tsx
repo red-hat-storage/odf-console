@@ -17,6 +17,7 @@ import { BackingStorage } from './create-storage-system-steps';
 import { CreateStorageSystemFooter } from './footer';
 import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
+import './create-storage-system.scss';
 
 const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
   const { t } = useCustomTranslation();

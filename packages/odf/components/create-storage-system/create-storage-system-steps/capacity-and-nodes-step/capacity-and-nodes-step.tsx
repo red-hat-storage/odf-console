@@ -374,7 +374,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   );
 
   return (
-    <Form className="odf-capacity-and-node-form">
+    <Form>
       {isNoProvisioner ? (
         <SelectedCapacityAndNodes
           storageClassName={storageClass.name || volumeSetName}
