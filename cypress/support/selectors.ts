@@ -7,7 +7,7 @@ import Shadow = Cypress.Shadow;
 export {};
 declare global {
   namespace Cypress {
-    interface Chainable<Subject> {
+    interface Chainable {
       byTestID(
         selector: string,
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
@@ -77,12 +77,12 @@ Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
   cy.byTestID('nav')
     .contains(path[0], { timeout: 10 * 1000 })
     .should((el) => {
-      if ($(el).attr('aria-expanded') == 'false') {
+      if ($(el).attr('aria-expanded') === 'false') {
         $(el).click();
       }
     });
   if (path.length > 1) {
-    cy.get('#page-sidebar').contains(path[1]).click();
+    cy.get('#page-sidebar').contains(path[1]).click(); // eslint-disable-line cypress/require-data-selectors
   }
 });
 

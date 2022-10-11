@@ -1,9 +1,9 @@
+import { K8sResourceKind, getCurrentDeviceSetIndex } from '../mocks/ksm';
 import {
   testEbsSC,
   testNoProvisionerSC,
   getPVJSON,
 } from '../mocks/storageclass';
-import { K8sResourceKind, getCurrentDeviceSetIndex } from '../mocks/ksm';
 import {
   withJSONResult,
   fetchStorageClusterJson,

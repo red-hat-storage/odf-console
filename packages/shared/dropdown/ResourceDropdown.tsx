@@ -217,7 +217,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
       className={classNames('odf-resourceDropdown__container', className)}
       toggle={
         <DropdownToggle
-          onToggle={loaded && !loadError ? onToggle : () => {}}
+          onToggle={loaded && !loadError ? onToggle : () => null}
           toggleIndicator={CaretDownIcon}
           data-test={dataTest}
         >

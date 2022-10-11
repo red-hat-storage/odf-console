@@ -1,6 +1,6 @@
 import { createBlockPool, deleteBlockPoolFromCli } from '../views/block-pool';
 
-/** @depricated testcases are moved to odf-console */
+/** @deprecated testcases are moved to odf-console */
 xdescribe('Test block pool creation under ODF UI', () => {
   before(() => {
     cy.login();

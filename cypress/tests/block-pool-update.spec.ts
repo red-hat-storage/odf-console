@@ -1,6 +1,4 @@
-import { modal } from '../views/modals';
 import { POOL_PROGRESS } from '../constants/storage-pool-const';
-
 import {
   createBlockPool,
   deleteBlockPoolFromCli,
@@ -8,8 +6,9 @@ import {
   verifyBlockPoolJSON,
   poolMessage,
 } from '../views/block-pool';
+import { modal } from '../views/modals';
 
-/** @depricated testcases are moved to odf-console */
+/** @deprecated testcases are moved to odf-console */
 xdescribe('Test block pool update under ODF UI', () => {
   before(() => {
     cy.login();

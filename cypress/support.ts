@@ -5,7 +5,7 @@ import './support/login';
 
 declare global {
   namespace Cypress {
-    interface Chainable<Subject> {
+    interface Chainable {
       install(encrypted?: boolean): Chainable<Element>;
     }
   }

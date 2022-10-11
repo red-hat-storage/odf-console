@@ -30,10 +30,11 @@ const setupProvider = (provider: Providers, storeType: StoreType) => {
       cy.byTestID('aws-region-dropdown').click();
       cy.byTestDropDownMenu('us-east-1').click();
       break;
-    case Providers.S3:
+    case Providers.S3: {
       const ENDPOINT = 'http://test-endpoint.com';
       cy.byTestID(`${storeType}-s3-endpoint`).type(ENDPOINT);
       break;
+    }
     default:
       break;
   }

@@ -3,7 +3,7 @@ import { submitButton, masthead } from './views';
 
 declare global {
   namespace Cypress {
-    interface Chainable<Subject> {
+    interface Chainable {
       login(
         providerName?: string,
         username?: string,
@@ -33,16 +33,19 @@ Cypress.Commands.add(
       const idp = provider || KUBEADMIN_IDP;
       cy.task('log', `  Logging in as ${username || KUBEADMIN_USERNAME}`);
       cy.byLegacyTestID('login').should('be.visible');
+      // eslint-disable-next-line cypress/require-data-selectors
       cy.get('body').then(($body) => {
         if ($body.text().includes(idp)) {
           cy.contains(idp).should('be.visible').click();
         }
       });
+      /* eslint-disable cypress/require-data-selectors */
       cy.get('#inputUsername').type(username || KUBEADMIN_USERNAME);
       cy.get('#inputPassword').type(
         password || Cypress.env('BRIDGE_KUBEADMIN_PASSWORD')
       );
       cy.get(submitButton).click();
+      /* eslint-enable cypress/require-data-selectors */
       masthead.username.shouldBeVisible();
     });
   }
@@ -61,7 +64,7 @@ Cypress.Commands.add('logout', () => {
     cy.task('log', '  Logging out');
     cy.byTestID('user-dropdown').click();
     cy.byTestID('log-out').should('be.visible');
-    cy.byTestID('log-out').click({ force: true });
+    cy.byTestID('log-out').click({ force: true }); // eslint-disable-line cypress/no-force
     cy.byLegacyTestID('login').should('be.visible');
   });
 });

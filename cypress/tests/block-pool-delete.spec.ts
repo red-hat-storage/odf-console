@@ -1,5 +1,3 @@
-import { modal } from '../views/modals';
-
 import { POOL_PROGRESS } from '../constants/storage-pool-const';
 import {
   poolName,
@@ -8,12 +6,13 @@ import {
   verifyFooterActions,
   poolMessage,
 } from '../views/block-pool';
+import { modal } from '../views/modals';
 import { pvc } from '../views/pvc';
 import { createStorageClass } from '../views/storage-class';
 
 const pvcName: string = 'testing-pvc';
 
-/** @depricated testcases are moved to odf-console */
+/** @deprecated testcases are moved to odf-console */
 xdescribe('Test block pool deletion under ODF UI', () => {
   before(() => {
     cy.login();
