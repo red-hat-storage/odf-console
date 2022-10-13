@@ -70,6 +70,7 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
     <>
       <CreateStorageSystemHeader url={url} />
       <Wizard
+        className="odf-create-storage-system-wizard"
         steps={steps}
         footer={
           <CreateStorageSystemFooter
