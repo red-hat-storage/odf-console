@@ -48,7 +48,7 @@ const getCurrentStatus = (drpcList: DRPlacementControlKind[]): string =>
   }, '');
 
 const getLastDataSyncTime = (drpcList: DRPlacementControlKind[]): string =>
-  getLatestDate(drpcList?.map((drpc) => drpc?.status?.LastGroupSyncTime));
+  getLatestDate(drpcList?.map((drpc) => drpc?.status?.lastGroupSyncTime));
 
 const isRelocating = (status: DRPC_STATUS) =>
   [DRPC_STATUS.Relocating, DRPC_STATUS.Relocated].includes(status);
