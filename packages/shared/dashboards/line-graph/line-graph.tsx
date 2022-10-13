@@ -74,6 +74,9 @@ const LineGraph: React.FC<LineGraphProps> = ({ data }) => {
             tickFormat={(tick, _index, _ticks) => {
               return `${tick} ${unit}`;
             }}
+            tickValues={
+              mappedLineData.length === 1 ? [mappedLineData[0].y] : undefined
+            }
           />
           <ChartGroup>
             <ChartLine data={mappedLineData} />
