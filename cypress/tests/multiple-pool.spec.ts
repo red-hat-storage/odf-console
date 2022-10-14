@@ -3,7 +3,7 @@ import {
   poolName,
   populateBlockPoolForm,
   verifyFooterActions,
-  deleteBlockPoolFromCli,
+  deleteBlockPoolFromCLI,
   verifyBlockPoolJSON,
   poolMessage,
 } from '../views/block-pool';
@@ -63,6 +63,6 @@ describe('Test Ceph pool creation', () => {
     prepareStorageClassForm();
     createBlockPool(POOL_PROGRESS.FAILED);
 
-    deleteBlockPoolFromCli();
+    deleteBlockPoolFromCLI();
   });
 });

@@ -14,7 +14,7 @@ export const poolMessage: {
   [POOL_PROGRESS.FAILED]: `Pool "${poolName}" already exists`,
   [POOL_PROGRESS.CREATED]: `Pool ${poolName} was successfully created`,
   [POOL_PROGRESS.NOTALLOWED]:
-    "Pool management tasks are not supported for default pool and OpenShift Container Storage's external mode.",
+    "Pool management tasks are not supported for default pool and ODF's external mode.",
   [POOL_PROGRESS.BOUNDED]: `${poolName} cannot be deleted. When a pool is bounded to PVC it cannot be deleted. Please detach all the resources from StorageClass(es):`,
 };
 
@@ -23,7 +23,7 @@ export const navigateToBlockPool = () => {
   cy.byLegacyTestID('horizontal-link-Storage Systems').click();
   cy.byLegacyTestID('item-filter').type('ocs-storagecluster-storagesystem');
   cy.byTestRows('resource-row').get('td a').first().click();
-  cy.byLegacyTestID('horizontal-link-BlockPools').click();
+  cy.byTestID('horizontal-link-BlockPools').click();
 };
 
 export const populateBlockPoolForm = () => {
@@ -89,17 +89,24 @@ export const verifyBlockPoolJSON = (
   });
 
 export const createBlockPool = () => {
-  navigateToBlockPool();
   cy.byTestID('item-create').click();
   populateBlockPoolForm();
   verifyFooterActions('create');
   cy.log('Verify a new block pool creation');
   cy.byTestID('status-text').contains('Ready');
   verifyBlockPoolJSON();
-  cy.byLegacyTestID('breadcrumb-link-1').click();
 };
 
-export const deleteBlockPoolFromCli = () => {
+export const deleteBlockPoolFromCLI = () => {
   cy.log('Deleting a pool');
   cy.exec(`oc delete CephBlockPool ${poolName} -n ${NS}`);
+};
+
+export const openBlockPoolKebab = (poolName: string, isDefaultPool = false) => {
+  cy.byLegacyTestID('item-filter').clear().type(poolName);
+  cy.log('Only one resource should be present after filtering');
+  cy.byTestID('kebab-button').should('have.length', 1);
+  if (isDefaultPool)
+    cy.byTestID('kebab-button').first().find('button').should('be.disabled');
+  else cy.byTestID('kebab-button').first().click();
 };
