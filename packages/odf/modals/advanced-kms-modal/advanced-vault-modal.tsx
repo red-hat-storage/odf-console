@@ -313,6 +313,7 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
         <Button
           key="Save"
           variant="primary"
+          data-test="save-kms-action"
           onClick={submit}
           isDisabled={!!error}
         >

@@ -27,3 +27,8 @@ export const pvc = {
     cy.byTestID('confirm-action').click();
   },
 };
+
+export const deletePVCFromCLI = (pvcName: string, ns = 'default') => {
+  cy.log('Deleting a PVC');
+  cy.exec(`oc delete pvc ${pvcName} -n ${ns}`);
+};
