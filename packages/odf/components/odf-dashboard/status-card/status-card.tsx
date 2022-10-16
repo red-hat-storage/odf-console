@@ -33,6 +33,7 @@ import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import { getOperatorHealthState } from '../utils';
 import StorageSystemPopup from './storage-system-popup';
+import './status-card.scss';
 
 const operatorResource: WatchK8sResource = {
   kind: 'operators.coreos.com~v1alpha1~ClusterServiceVersion',
@@ -129,7 +130,7 @@ export const StatusCard: React.FC = () => {
       </CardHeader>
       <CardBody>
         <HealthBody>
-          <Gallery className="co-overview-status__health" hasGutter>
+          <Gallery className="odf-overview-status__health" hasGutter>
             <GalleryItem>
               <HealthItem
                 title={t('Data Foundation')}
