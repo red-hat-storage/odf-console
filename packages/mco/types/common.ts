@@ -10,6 +10,11 @@ type ClusterStatus = {
   status: string;
 };
 
+export type PlacementDecision = {
+  clusterName?: string;
+  clusterNamespace?: string;
+};
+
 export type DRPolicyKind = K8sResourceCommon & {
   spec?: {
     drClusters: string[];
@@ -79,7 +84,8 @@ export type DRPlacementControlKind = K8sResourceCommon & {
   status?: {
     conditions?: K8sResourceCondition[];
     phase: string;
-    LastGroupSyncTime?: string;
+    lastGroupSyncTime?: string;
+    preferredDecision?: PlacementDecision;
   };
 };
 
@@ -94,10 +100,7 @@ export type ACMPlacementRuleKind = K8sResourceCommon & {
     schedulerName?: string;
   };
   status?: {
-    decisions?: {
-      clusterName: string;
-      clusterNamespace: string;
-    }[];
+    decisions?: PlacementDecision[];
   };
 };
 
