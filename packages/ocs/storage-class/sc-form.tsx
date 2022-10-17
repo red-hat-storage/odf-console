@@ -683,14 +683,6 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
             </Card>
           )}
         </div>
-        <Alert
-          className="co-alert"
-          variant="warning"
-          title={t(
-            'PV expansion operation is not supported for encrypted PVs.'
-          )}
-          isInline
-        />
       </FormGroup>
     </Form>
   );
