@@ -1,4 +1,4 @@
-import { DRPlacementControlKind } from '../../../types';
+import { DRPlacementControlKind, PlacementDecision } from '../../../types';
 
 export enum ACTION_TYPE {
   FAILOVER = 'Failover',
@@ -23,7 +23,7 @@ export type DRPolicyType = Partial<{
 }>;
 
 export type TargetClusterType = Partial<{
-  clusterName: string;
+  clusterInfo: PlacementDecision;
   isClusterAvailable: boolean;
   lastAvailableTime: string;
 }>;
