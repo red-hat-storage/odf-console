@@ -206,7 +206,7 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
       </GridItem>
       <GridItem span={3} key={`${data?.name}~value`}>
         {dataUnavailable ? '-' : value}
-        {!dataUnavailable && !isPercentage && (
+        {value && !dataUnavailable && !isPercentage && (
           <span>
             &nbsp; / &nbsp;
             <Popover
