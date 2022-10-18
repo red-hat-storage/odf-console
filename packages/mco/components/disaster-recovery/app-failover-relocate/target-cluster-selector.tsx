@@ -32,11 +32,18 @@ import {
   ModalFooterStatus,
 } from './reducer';
 
+const getAvailableCondition = (managedCluster: ACMManagedClusterKind) =>
+  managedCluster?.status?.conditions?.find(
+    (condition) =>
+      condition?.type === 'ManagedClusterConditionAvailable' &&
+      condition.status === 'True'
+  );
+
 export const getRelicationTypeUsingDRClusters = (
   targetClusters: DRClusterKind[]
 ) => {
   const cephFSIDs = targetClusters?.reduce((acc, cluster) => {
-    if (cluster?.spec?.region !== '') {
+    if (!!cluster?.spec?.region) {
       acc.add(cluster?.spec?.region);
     }
     return acc;
@@ -149,6 +156,26 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
     ]
   );
 
+  React.useLayoutEffect(() => {
+    if (
+      state.actionType === ACTION_TYPE.RELOCATE &&
+      !!managedClusterList.length
+    ) {
+      const areBothClustersUp = managedClusterList.every(
+        (managedCluster) => !!getAvailableCondition(managedCluster)
+      );
+      !areBothClustersUp &&
+        dispatch({
+          type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
+          payload: {
+            managedClustersErrorMessage: t(
+              'Attempting to relocate is not possible, one or more managed clusters are down.'
+            ),
+          },
+        });
+    }
+  }, [managedClusterList, state.actionType, dispatch, t]);
+
   const setErrorMessage = (errorMessage: string) => {
     dispatch({
       type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
@@ -189,11 +216,7 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
     // Select a target cluster to intiate failover or relocate
     const managedCluster = managedClusterList?.[e.currentTarget.id];
     // Check ACM managed cluster is available or not
-    const condition = managedCluster?.status?.conditions?.find(
-      (condition) =>
-        condition?.type === 'ManagedClusterConditionAvailable' &&
-        condition.status === 'True'
-    );
+    const condition = getAvailableCondition(managedCluster);
     let isClusterAvailable = !!condition;
     let isClusterFenced = true;
     let errorMessage = '';
@@ -246,7 +269,8 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
             isDisabled={
               !drClusterList.length ||
               !managedClusterList.length ||
-              state.modalFooterStatus === ModalFooterStatus.FINISHED
+              state.modalFooterStatus === ModalFooterStatus.FINISHED ||
+              !!state.errorMessage.managedClustersErrorMessage
             }
             onToggle={onToggle}
           >
