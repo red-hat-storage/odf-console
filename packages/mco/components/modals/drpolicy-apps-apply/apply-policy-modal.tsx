@@ -52,6 +52,7 @@ import {
 } from '../../../utils';
 import { ApplicationSelector } from './application-selector';
 import './apply-policy-modal.scss';
+import '../../../../style.scss';
 
 type ApplyModalExtraProps = {
   resource: DRPolicyKind;
@@ -422,7 +423,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
           ) : (
             <>
               <Alert
-                className="co-alert mco-apply-policy-modal__alert"
+                className="odf-alert mco-apply-policy-modal__alert"
                 variant="warning"
                 title={t(
                   "When multiple applications are selected, DR protection will be applied for all the PVCs under the application's namespace."
@@ -450,7 +451,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
             isInline
             variant="danger"
             title={t('An error occurred')}
-            className="co-alert mco-apply-policy-modal__alert"
+            className="odf-alert mco-apply-policy-modal__alert"
           >
             {error}
           </Alert>

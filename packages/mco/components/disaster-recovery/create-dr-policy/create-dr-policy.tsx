@@ -44,6 +44,7 @@ import { SelectClusterList } from './select-cluster-list';
 import { DRReplicationType } from './select-replication-type';
 import { SelectedCluster } from './selected-cluster-view';
 import './create-dr-policy.scss';
+import '../../../style.scss';
 
 const fetchMirrorPeer = (
   mirrorPeers: MirrorPeerKind[],
@@ -273,7 +274,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
         {!!odfMCOVersion && (
           <FormGroup fieldId="policy-name">
             <Alert
-              className="co-alert mco-create-data-policy__alert"
+              className="odf-alert mco-create-data-policy__alert"
               title={t(
                 'OpenShift Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring.',
                 { version: odfMCOVersion }
@@ -303,7 +304,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
         {state.errorMessage && (
           <FormGroup fieldId="error-message">
             <Alert
-              className="co-alert mco-create-data-policy__alert"
+              className="odf-alert mco-create-data-policy__alert"
               title={t('An error occurred')}
               variant="danger"
               isInline
