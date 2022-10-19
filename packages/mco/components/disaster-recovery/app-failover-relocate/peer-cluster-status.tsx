@@ -15,7 +15,6 @@ import { Flex, FlexItem } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
 import { isPeerReady } from '../../../utils';
 import {
-  ACTION_TYPE,
   FailoverAndRelocateState,
   FailoverAndRelocateAction,
   FailoverAndRelocateType,
@@ -109,7 +108,6 @@ type StatusType = {
 };
 
 export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
-  action,
   state,
   dispatch,
 }) => {
@@ -140,7 +138,7 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
         ? setErrorMessage(
             t(
               '{{actionType}} cannot be initiated becuase peer is not in ready state.',
-              { actionType: action }
+              { actionType: state.actionType }
             )
           )
         : setErrorMessage('');
@@ -152,7 +150,7 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
   }, [
     state.selectedSubsGroups,
     state.drPolicyControlState,
-    action,
+    state.actionType,
     t,
     setPeerStatus,
     setErrorMessage,
@@ -163,7 +161,12 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
     <>
       <Flex>
         <FlexItem>
-          <strong> {t('{{action}} readiness:', { action })} </strong>
+          <strong>
+            {' '}
+            {t('{{actionType}} readiness:', {
+              actionType: state.actionType,
+            })}{' '}
+          </strong>
         </FlexItem>
         <FlexItem>
           <StatusIconAndText
@@ -189,6 +192,5 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
 
 type PeerClusterStatusProps = {
   state: FailoverAndRelocateState;
-  action: ACTION_TYPE;
   dispatch: React.Dispatch<FailoverAndRelocateAction>;
 };

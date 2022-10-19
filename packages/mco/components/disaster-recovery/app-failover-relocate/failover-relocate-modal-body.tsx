@@ -44,7 +44,7 @@ export const findErrorMessage = (
 ) =>
   [
     errorMessage.drPolicyControlStateErrorMessage,
-    errorMessage.failoverAndRelocateActionErrorMessage,
+    errorMessage.managedClustersErrorMessage,
     errorMessage.targetClusterErrorMessage,
     errorMessage.subscriptionGroupErrorMessage,
     errorMessage.peerStatusErrorMessage,
@@ -254,7 +254,7 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
             <TargetClusterSelector state={state} dispatch={dispatch} />
           </FlexItem>
         </Flex>
-        <PeerClusterStatus state={state} dispatch={dispatch} action={action} />
+        <PeerClusterStatus state={state} dispatch={dispatch} />
         <Flex
           grow={{ default: 'grow' }}
           direction={{ default: 'column' }}
