@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   FormGroup,
-  TextInput,
+  NumberInput,
   Dropdown,
   DropdownItem,
   DropdownToggle,
@@ -18,6 +18,10 @@ type SyncScheduleProps = {
   state: DRPolicyState;
   dispatch: React.Dispatch<DRPolicyAction>;
 };
+
+const minSyncTime = 1;
+const getSyncTime = (timeWithFormat: string) =>
+  Number(timeWithFormat.match(/\d+/g)[0]);
 
 const SyncSchedule: React.FC<SyncScheduleProps> = ({ state, dispatch }) => {
   const { t } = useCustomTranslation();
@@ -38,18 +42,25 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({ state, dispatch }) => {
     SyncSchedule.minutes
   );
 
-  const setSyncSchedule = (time: string, format?: string) =>
+  const setSyncSchedule = (time: number, format?: string) =>
     dispatch({
       type: DRPolicyActionType.SET_SYNC_TIME,
       payload: `${time}${SCHEDULE_FORMAT[format ?? selectedFormat]}`,
     });
 
   const onSelect = (event) => {
-    const scheduleTime = state.syncTime.match(/\d+/g)[0];
+    const scheduleTime = getSyncTime(state.syncTime);
     const newScheduleFormat = event.target.value;
     setIsOpen(false);
     setSelectedFormat(newScheduleFormat);
     setSyncSchedule(scheduleTime, newScheduleFormat);
+  };
+
+  const onChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const target = event.target as HTMLInputElement;
+    const syncTime = isNaN(+target.value) ? minSyncTime : Number(target.value);
+    const normalizedSyncTime = syncTime < minSyncTime ? minSyncTime : syncTime;
+    setSyncSchedule(normalizedSyncTime);
   };
 
   const SyncScheduleDropdownItems = Object.values(SyncSchedule).map((sync) => (
@@ -65,13 +76,14 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({ state, dispatch }) => {
 
   return (
     <InputGroup>
-      <TextInput
+      <NumberInput
         id="sync-schedule"
         data-test="sync-schedule-text"
-        defaultValue="5"
-        type="number"
-        onChange={(scheduleTime) => setSyncSchedule(scheduleTime)}
-        isRequired
+        value={getSyncTime(state.syncTime)}
+        min={minSyncTime}
+        onMinus={() => setSyncSchedule(getSyncTime(state.syncTime) - 1)}
+        onPlus={() => setSyncSchedule(getSyncTime(state.syncTime) + 1)}
+        onChange={onChange}
       />
       <Dropdown
         data-test="sync-schedule-dropdown"
