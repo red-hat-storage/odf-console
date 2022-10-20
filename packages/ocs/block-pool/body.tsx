@@ -172,24 +172,33 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
       (!state.isArbiterCluster && replica !== '4')
   );
 
-  const replicaDropdownItems = replicaList.map((replica) => (
-    <DropdownItem
-      key={`replica-${OCS_DEVICE_REPLICA[replica]}`}
-      component="button"
-      id={replica}
-      data-test-id="replica-dropdown-item"
-      onClick={(e) =>
-        dispatch({
-          type: BlockPoolActionType.SET_POOL_REPLICA_SIZE,
-          payload: e.currentTarget.id,
-        })
-      }
-    >
-      {t('{{replica}} Replication', {
-        replica: OCS_DEVICE_REPLICA[replica],
-      })}
-    </DropdownItem>
-  ));
+  const replicaDropdownItems = replicaList.map((replica) => {
+    let warning = '';
+    if (replica === '2') {
+      warning = t(
+        'Data loss may occur, only recommended for small clusters or when backups are available or data loss is acceptable'
+      );
+    }
+    return (
+      <DropdownItem
+        key={`replica-${OCS_DEVICE_REPLICA[replica]}`}
+        component="button"
+        id={replica}
+        data-test-id="replica-dropdown-item"
+        description={warning}
+        onClick={(e) =>
+          dispatch({
+            type: BlockPoolActionType.SET_POOL_REPLICA_SIZE,
+            payload: e.currentTarget.id,
+          })
+        }
+      >
+        {t('{{replica}} Replication', {
+          replica: OCS_DEVICE_REPLICA[replica],
+        })}
+      </DropdownItem>
+    );
+  });
 
   return (
     <>
