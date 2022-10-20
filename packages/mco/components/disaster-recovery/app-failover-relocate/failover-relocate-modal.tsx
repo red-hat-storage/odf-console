@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { getName } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -26,9 +27,17 @@ import {
   FailoverAndRelocateType,
   ACTION_TYPE,
 } from './reducer';
+import './failover-relocate-modal-body.scss';
 
 const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
   [ModalFooterStatus.INITIAL]: [
+    {
+      id: 'modal-cancel-action',
+      label: props.t('Cancel'),
+      type: ButtonType.button,
+      variant: ButtonVariant.link,
+      onClick: props.close,
+    },
     {
       id: 'modal-intiate-action',
       label: props.t('Initiate'),
@@ -37,6 +46,8 @@ const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
       isDisabled: props?.isDisable,
       onClick: props?.Onclick,
     },
+  ],
+  [ModalFooterStatus.INPROGRESS]: [
     {
       id: 'modal-cancel-action',
       label: props.t('Cancel'),
@@ -44,8 +55,6 @@ const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
       variant: ButtonVariant.link,
       onClick: props.close,
     },
-  ],
-  [ModalFooterStatus.INPROGRESS]: [
     {
       id: 'modal-intiating-action',
       label: props.t('Intiating'),
@@ -54,13 +63,6 @@ const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
       isLoading: true,
       isDisabled: true,
       onClick: () => {},
-    },
-    {
-      id: 'modal-cancel-action',
-      label: props.t('Cancel'),
-      type: ButtonType.button,
-      variant: ButtonVariant.link,
-      onClick: props.close,
     },
   ],
   [ModalFooterStatus.FINISHED]: [
@@ -150,34 +152,37 @@ const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (props) => {
       isOpen={isOpen}
       onClose={close}
       variant={ModalVariant.medium}
-      hasNoBodyWrapper
-      actions={generatefooterButtons({
-        t,
-        close,
-        isDisable: !canInitiate(),
-        Onclick: onClick,
-      })[state.modalFooterStatus].map((buttonProp) => (
-        <Button
-          key={buttonProp.id}
-          data-test={buttonProp.id}
-          type={buttonProp.type}
-          variant={buttonProp.variant}
-          isDisabled={buttonProp.isDisabled}
-          id={buttonProp.id}
-          data-test-id={buttonProp.id}
-          onClick={buttonProp.onClick}
-          isLoading={buttonProp.isLoading}
-        >
-          {buttonProp.label}
-        </Button>
-      ))}
     >
-      <FailoverRelocateModalBody
-        application={resource}
-        action={action}
-        state={state}
-        dispatch={dispatch}
-      />
+      <ModalBody>
+        <FailoverRelocateModalBody
+          application={resource}
+          action={action}
+          state={state}
+          dispatch={dispatch}
+        />
+      </ModalBody>
+      <ModalFooter>
+        {generatefooterButtons({
+          t,
+          close,
+          isDisable: !canInitiate(),
+          Onclick: onClick,
+        })[state.modalFooterStatus].map((buttonProp) => (
+          <Button
+            key={buttonProp.id}
+            data-test={buttonProp.id}
+            type={buttonProp.type}
+            variant={buttonProp.variant}
+            isDisabled={buttonProp.isDisabled}
+            id={buttonProp.id}
+            data-test-id={buttonProp.id}
+            onClick={buttonProp.onClick}
+            isLoading={buttonProp.isLoading}
+          >
+            {buttonProp.label}
+          </Button>
+        ))}
+      </ModalFooter>
     </Modal>
   );
 };

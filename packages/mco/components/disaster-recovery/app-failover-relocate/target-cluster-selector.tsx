@@ -260,11 +260,11 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
   return (
     <>
       <Dropdown
-        className="mco-dr-action-body__dropdown-width"
+        className="mco-dr-action-body__dropdown--width"
         onSelect={onSelect}
         toggle={
           <DropdownToggle
-            className="mco-dr-action-body__dropdown-width mco-dr-action-body__dropdown"
+            className="mco-dr-action-body__dropdown--width"
             data-test="target-cluster-dropdown-toggle"
             isDisabled={
               !drClusterList.length ||
@@ -275,14 +275,11 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
             onToggle={onToggle}
           >
             {!!Object.keys(state.selectedTargetCluster).length ? (
-              <Flex
-                className="mco-dr-action-body__toggle-text"
-                justifyContent={{ default: 'justifyContentSpaceBetween' }}
-              >
-                <FlexItem>
+              <Flex>
+                <FlexItem className="mco-dr-action__target-cluster--width">
                   {state.selectedTargetCluster?.clusterInfo?.clusterName}
                 </FlexItem>
-                <FlexItem className="mco-dr-action-body__status-icon">
+                <FlexItem>
                   <TargetClusterStatus
                     isClusterAvailable={
                       state.selectedTargetCluster?.isClusterAvailable

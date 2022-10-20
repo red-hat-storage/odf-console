@@ -234,8 +234,6 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
           }
           aria-labelledby={t('subscription-selector')}
           onClear={clearSelection}
-          maxHeight="12rem"
-          className="mco-dr-action-body__dropdown-width"
           data-test="subs-group-selector-options"
         >
           {options}
