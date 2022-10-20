@@ -196,7 +196,7 @@ export const FailoverModal: React.FC<ModalProps> = (props) => {
       {...props}
       title={t('Failover application')}
       description={t(
-        'All system workloads and their available resources will be transferred to the recovery (failover) cluster.'
+        'Failing over force stops active replication and deploys your application on the selected target cluster. Recommended only when the primary cluster is down.'
       )}
       action={ACTION_TYPE.FAILOVER}
     />
@@ -212,7 +212,7 @@ export const RelocateModal: React.FC<ModalProps> = (props) => {
       {...props}
       title={t('Relocate application')}
       description={t(
-        'All changes in system workloads and their available resources will be transferred back to the origin (primary) cluster.'
+        'Relocating terminates your application on its current cluster, syncs its most recent snapshot to the selected target cluster, and then brings up your application.'
       )}
       action={ACTION_TYPE.RELOCATE}
     />
