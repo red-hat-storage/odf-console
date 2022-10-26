@@ -3,9 +3,11 @@ dist
 .cache-loader
 .eslintcache
 cypress/cypress-a11y-report.json
+gui-test-screenshots
 plugins/odf/package.json
 plugins/odf/dist
 plugins/odf/.cache-loader
 plugins/mco/package.json
 plugins/mco/dist
 plugins/mco/.cache-loader
+yarn-error.log
