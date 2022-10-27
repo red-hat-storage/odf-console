@@ -47,31 +47,32 @@ Cypress.Commands.add(
   }
 );
 
-Cypress.Commands.add('byLegacyTestID', (selector: string) =>
-  cy.get(`[data-test-id="${selector}"]`)
-);
+Cypress.Commands.add('byLegacyTestID', (selector: string) => {
+  cy.get(`[data-test-id="${selector}"]`);
+});
 
-Cypress.Commands.add('byTestOperandLink', (selector: string) =>
-  cy.get(`[data-test-operand-link="${selector}"]`)
-);
+Cypress.Commands.add('byTestOperandLink', (selector: string) => {
+  cy.get(`[data-test-operand-link="${selector}"]`);
+});
 
-Cypress.Commands.add('byTestRows', (selector: string) =>
-  cy.get(`[data-test-rows="${selector}"]`)
-);
+Cypress.Commands.add('byTestRows', (selector: string) => {
+  cy.get(`[data-test-rows="${selector}"]`);
+});
 
-Cypress.Commands.add('byTestActionID', (selector: string) =>
-  cy.get(`[data-test-action="${selector}"]:not(.pf-m-disabled)`)
-);
+Cypress.Commands.add('byTestActionID', (selector: string) => {
+  cy.get(`[data-test-action="${selector}"]:not(.pf-m-disabled)`);
+});
 
 Cypress.Commands.add(
   'byTestOperatorRow',
-  (selector: string, options?: object) =>
-    cy.get(`[data-test-operator-row="${selector}"]`, options)
+  (selector: string, options?: object) => {
+    cy.get(`[data-test-operator-row="${selector}"]`, options);
+  }
 );
 
-Cypress.Commands.add('byTestDropDownMenu', (selector: string) =>
-  cy.get(`[data-test-dropdown-menu="${selector}"]`)
-);
+Cypress.Commands.add('byTestDropDownMenu', (selector: string) => {
+  cy.get(`[data-test-dropdown-menu="${selector}"]`);
+});
 
 Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
   cy.byTestID('nav')
@@ -86,16 +87,18 @@ Cypress.Commands.add('clickNavLink', (path: [string, string?]) => {
   }
 });
 
-Cypress.Commands.add('byItemID', (selector: string) =>
-  cy.get(`[data-item-id="${selector}"]`)
-);
+Cypress.Commands.add('byItemID', (selector: string) => {
+  cy.get(`[data-item-id="${selector}"]`);
+});
 
 Cypress.Commands.add(
   'byStatusID',
   (
     selector: string,
     options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
-  ) => cy.get(`[data-status-id="${selector}"]`, options)
+  ) => {
+    cy.get(`[data-status-id="${selector}"]`, options);
+  }
 );
 
 Cypress.Commands.add(
@@ -103,5 +106,7 @@ Cypress.Commands.add(
   (
     selector: string,
     options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
-  ) => cy.get(`[data-test-selector="${selector}"]`, options)
+  ) => {
+    cy.get(`[data-test-selector="${selector}"]`, options);
+  }
 );
