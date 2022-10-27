@@ -1,4 +1,4 @@
-FROM node:15 AS builder
+FROM docker.io/library/node:14.17.3 AS builder
 WORKDIR /app
 COPY . /app
 RUN yarn install
