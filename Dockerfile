@@ -1,11 +1,11 @@
-FROM node:15 AS builder
+FROM docker.io/library/node:14.17.3 AS builder
 WORKDIR /app
 COPY . /app
 RUN yarn install
 RUN yarn build
 
 
-FROM node:15 as serverpackage
+FROM docker.io/library/node:14.17.3 as serverpackage
 RUN yarn global add http-server
 RUN export PATH="$(yarn global bin):$PATH"
 
