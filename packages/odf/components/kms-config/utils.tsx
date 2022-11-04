@@ -491,7 +491,8 @@ export const createCsiKmsResources = (
 
 export const createClusterKmsResources = (
   kms: KMSConfiguration,
-  provider = ProviderNames.VAULT
+  provider = ProviderNames.VAULT,
+  isMCGStandalone = false
 ): Promise<K8sResourceKind>[] => {
   switch (provider) {
     case ProviderNames.VAULT: {
@@ -506,9 +507,14 @@ export const createClusterKmsResources = (
       const clusterKmsResources = clusterWideSupported
         ? getClusterVaultResources(kms as VaultConfig)
         : [];
-      const csiKmsResources = storageClassSupported
-        ? getCsiVaultResources(kms as VaultConfig, false, !clusterWideSupported)
-        : [];
+      const csiKmsResources =
+        !isMCGStandalone && storageClassSupported
+          ? getCsiVaultResources(
+              kms as VaultConfig,
+              false,
+              !clusterWideSupported
+            )
+          : [];
 
       return [...clusterKmsResources, ...csiKmsResources];
     }
@@ -516,11 +522,9 @@ export const createClusterKmsResources = (
       const [secretName, clusterKmsResources] = getClusterHpcsResources(
         kms as HpcsConfig
       );
-      const csiKmsResources = getCsiHpcsResources(
-        kms as HpcsConfig,
-        false,
-        secretName
-      );
+      const csiKmsResources = !isMCGStandalone
+        ? getCsiHpcsResources(kms as HpcsConfig, false, secretName)
+        : [];
 
       return [...clusterKmsResources, ...csiKmsResources];
     }
@@ -528,8 +532,9 @@ export const createClusterKmsResources = (
       const clusterKmsResources = getClusterThalesResources(
         kms as ThalesConfig
       );
-      const csiKmsResources = getCsiThalesResources(kms as ThalesConfig, false);
-
+      const csiKmsResources = !isMCGStandalone
+        ? getCsiThalesResources(kms as ThalesConfig, false)
+        : [];
       return [...clusterKmsResources, ...csiKmsResources];
     }
   }
