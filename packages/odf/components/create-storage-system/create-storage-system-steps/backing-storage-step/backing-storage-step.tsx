@@ -11,7 +11,6 @@ import {
 } from '@odf/core/types';
 import { getSupportedVendors } from '@odf/core/utils';
 import { getStorageClassDescription } from '@odf/core/utils';
-import DevPreviewBadge from '@odf/shared/badges/DevPreviewBadge';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
@@ -37,10 +36,7 @@ import {
   Radio,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
-import {
-  SUPPORTED_EXTERNAL_STORAGE,
-  isStorageProviderDevPreview,
-} from '../../external-storage';
+import { SUPPORTED_EXTERNAL_STORAGE } from '../../external-storage';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { SelectDeployment } from './select-deployment';
 import './backing-storage-step.scss';
@@ -98,7 +94,6 @@ const ExternalSystemSelection: React.FC<ExternalSystemSelectionProps> = ({
           <FormSelectOption key={kind} value={kind} label={displayName} />
         ))}
       </FormSelect>
-      {isStorageProviderDevPreview(selectedStorage) && <DevPreviewBadge />}
     </FormGroup>
   );
 };
