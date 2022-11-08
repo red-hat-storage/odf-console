@@ -36,7 +36,6 @@ import {
 } from './reducer';
 import { SubscriptionGroupSelector } from './subscription-group-selector';
 import { TargetClusterSelector } from './target-cluster-selector';
-import './failover-relocate-modal-body.scss';
 
 export const findErrorMessage = (
   errorMessage: ErrorMessage,
@@ -221,7 +220,6 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
       <Flex
         direction={{ default: 'column' }}
         spaceItems={{ default: 'spaceItemsSm' }}
-        className="mco-dr-action-body__line mco-dr-action-body__flex"
       >
         <Flex>
           <FlexItem>
@@ -263,7 +261,7 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
           <FlexItem>
             <strong> {t('Select subscriptions group')} </strong>
           </FlexItem>
-          <FlexItem>
+          <FlexItem className="mco-dr-action-body__dropdown--width">
             <SubscriptionGroupSelector state={state} dispatch={dispatch} />
           </FlexItem>
         </Flex>

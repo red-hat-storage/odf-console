@@ -104,13 +104,13 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
   return (
     <>
       <Dropdown
-        className="mco-dr-action-body__dropdown-wide"
+        className="mco-dr-action-body__dropdown--width"
         onSelect={onSelect}
         toggle={
           <DropdownToggle
             id="drPolicy-selection"
             data-test="dr-policy-dropdown-toggle"
-            className="mco-dr-action-body__dropdown-wide"
+            className="mco-dr-action-body__dropdown--width"
             isDisabled={
               !drPolicyList.length ||
               state.modalFooterStatus === ModalFooterStatus.FINISHED

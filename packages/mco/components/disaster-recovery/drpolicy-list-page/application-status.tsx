@@ -274,10 +274,9 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
         title={t('Connected applications')}
         isOpen={isModalOpen}
         onClose={handleModalToggle}
-        hasNoBodyWrapper={true}
         className="mco-application-status__form"
       >
-        <ModalBody className="mco-application-status__body">
+        <ModalBody>
           <TextContent>
             <Text component={TextVariants.small}>
               {t('List all the connected applications under a policy.')}
@@ -336,7 +335,7 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
             )}
           </div>
         </ModalBody>
-        <ModalFooter className="mco-application-status__body">
+        <ModalFooter>
           <Button
             key="close"
             variant={ButtonVariant.primary}
