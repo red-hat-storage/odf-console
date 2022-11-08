@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { CommonModalProps } from '@odf/shared/modals/common';
+import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Modal, Button, Nav, NavList, NavItem } from '@patternfly/react-core';
 import { DRPolicyMap, getDRPoliciesCount } from '../../../utils';
@@ -22,27 +23,33 @@ const DataPoliciesStatusModal: React.FC<CommonModalProps> = ({
         variant="medium"
         isOpen={isOpen}
         onClose={closeModal}
-        actions={[
-          <Button
-            key="close"
-            variant="primary"
-            onClick={closeModal}
-            className="mco-data-policies-status-modal__footer"
-          >
-            {t('Close')}
-          </Button>,
-        ]}
       >
-        <Nav variant="tertiary" className="mco-data-policies-status-modal__nav">
-          <NavList>
-            <NavItem key="disaster_recover" isActive={true} data-test="dr-tab">
-              {t('Disaster Recovery ({{count}})', { count: policiesCount })}
-            </NavItem>
-          </NavList>
-        </Nav>
-        <div className="mco-data-policies-status-modal__body">
-          <DRPoliciesStatusTable drPolicies={dataPoliciesStatus?.drPolicies} />
-        </div>
+        <ModalBody>
+          <Nav
+            variant="tertiary"
+            className="mco-data-policies-status-modal__nav"
+          >
+            <NavList>
+              <NavItem
+                key="disaster_recover"
+                isActive={true}
+                data-test="dr-tab"
+              >
+                {t('Disaster Recovery ({{count}})', { count: policiesCount })}
+              </NavItem>
+            </NavList>
+          </Nav>
+          <div className="mco-data-policies-status-modal__body">
+            <DRPoliciesStatusTable
+              drPolicies={dataPoliciesStatus?.drPolicies}
+            />
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button key="close" variant="primary" onClick={closeModal}>
+            {t('Close')}
+          </Button>
+        </ModalFooter>
       </Modal>
     </>
   );

@@ -394,10 +394,9 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       title={t('Apply DRPolicy')}
       isOpen={isOpen}
       onClose={closeModal}
-      hasNoBodyWrapper={true}
       className="mco-apply-policy-modal__form"
     >
-      <ModalBody className="mco-apply-policy-modal__body">
+      <ModalBody>
         <TextContent className="mco-apply-policy-modal__description">
           <Text component={TextVariants.small}>
             {t('Select the applications for applying the DRPolicy')}
@@ -457,7 +456,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
           </Alert>
         )}
       </ModalBody>
-      <ModalFooter className="mco-apply-policy-modal__body">
+      <ModalFooter>
         <Button
           data-test="cancel-button"
           key="cancel"
