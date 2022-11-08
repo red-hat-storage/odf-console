@@ -1,19 +1,13 @@
 .mco-dr-action-body {
-  &__flex {
-    padding: var(--pf-global--spacer--md) var(--pf-global--spacer--lg);
-  }
-  &__line {
-    margin-top: var(--pf-global--spacer--md);
-  }
-
   &__alert {
     margin-top: var(--pf-global--spacer--sm);
     margin-bottom: var(--pf-global--spacer--xs);
   }
-  &__dropdown-wide {
-    width: 18rem;
+  &__dropdown--width {
+    width: 25rem;
   }
-  &__toggle-text {
-    width: 14rem;
-  }
+}
+
+.mco-dr-action__target-cluster--width {
+  min-width: 19rem;
 }
