@@ -13,7 +13,7 @@ import {
 import { TFunction } from 'i18next';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
-import { isPeerReady } from '../../../utils';
+import { isPeerReadyAndAvailable } from '../../../utils';
 import {
   FailoverAndRelocateState,
   FailoverAndRelocateAction,
@@ -44,7 +44,7 @@ const getPeerReadiness = (
   t: TFunction
 ): StatusProps =>
   peerReadiness.text !== 'Not ready'
-    ? isPeerReady(drpcState?.drPolicyControl)
+    ? isPeerReadyAndAvailable(drpcState?.drPolicyControl)
       ? {
           text: PEER_READINESS(t).PEER_READY,
           icon: <GreenCheckCircleIcon />,
