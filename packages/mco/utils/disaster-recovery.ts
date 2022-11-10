@@ -130,8 +130,18 @@ export const getReplicationType = (schedulingInterval: string) =>
 export const getPlacementKind = (subscription: ACMSubscriptionKind) =>
   subscription?.spec?.placement?.placementRef?.kind;
 
-export const isPeerReady = (drPolicyControl: DRPlacementControlKind) =>
-  !!drPolicyControl?.status?.conditions.find(
-    (condition) =>
-      condition?.type === 'PeerReady' && condition?.status === 'True'
-  );
+export const isPeerReadyAndAvailable = (
+  drPolicyControl: DRPlacementControlKind
+) => {
+  let isPeerReady = false;
+  let isAvailable = false;
+  drPolicyControl?.status?.conditions.forEach((condition) => {
+    condition?.type === 'PeerReady' &&
+      condition?.status === 'True' &&
+      (isPeerReady = true);
+    condition?.type === 'Available' &&
+      condition?.status === 'True' &&
+      (isAvailable = true);
+  });
+  return isPeerReady && isAvailable;
+};

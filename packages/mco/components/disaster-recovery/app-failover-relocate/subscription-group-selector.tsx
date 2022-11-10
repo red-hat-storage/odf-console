@@ -11,7 +11,7 @@ import {
   HelperTextItem,
 } from '@patternfly/react-core';
 import { PlacementDecision } from '../../../types';
-import { isPeerReady } from '../../../utils';
+import { isPeerReadyAndAvailable } from '../../../utils';
 import {
   FailoverAndRelocateState,
   FailoverAndRelocateAction,
@@ -81,7 +81,7 @@ const getOptions = (
       </HelperTextItem>
       <HelperTextItem variant="indeterminate">
         <i>
-          {isPeerReady(drPolicyControlState?.drPolicyControl)
+          {isPeerReadyAndAvailable(drPolicyControlState?.drPolicyControl)
             ? t('Peer ready')
             : t('Peer not ready')}
         </i>
@@ -140,7 +140,9 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
                 drpcState,
                 selectedTargetCluster?.clusterInfo
               );
-              const isValidPeerStatus = isPeerReady(drpcState?.drPolicyControl);
+              const isValidPeerStatus = isPeerReadyAndAvailable(
+                drpcState?.drPolicyControl
+              );
               isValidTargetCluster &&
                 isValidPeerStatus &&
                 validState.push(getName(drpcState.drPolicyControl));
