@@ -132,7 +132,7 @@ const handleReviewAndCreateNext = async (
     if (isMCG) {
       if (encryption.advanced)
         await Promise.all(
-          createClusterKmsResources(kms.providerState, kms.provider)
+          createClusterKmsResources(kms.providerState, kms.provider, isMCG)
         );
       await createStorageCluster(state);
     } else if (
