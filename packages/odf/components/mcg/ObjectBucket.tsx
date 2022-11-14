@@ -75,6 +75,7 @@ const OBRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
   activeColumnIDs,
   rowData: { launchModal },
 }) => {
+  const { t } = useCustomTranslation();
   const storageClassName = _.get(obj, 'spec.storageClassName');
   return (
     <>
@@ -102,6 +103,9 @@ const OBRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
             resource: obj,
             resourceModel: NooBaaObjectBucketModel,
           }}
+          terminatingTooltip={t(
+            'The corresponding ObjectBucketClaim must be deleted first.'
+          )}
         />
       </TableData>
     </>
