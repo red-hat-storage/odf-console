@@ -66,6 +66,7 @@ export enum FEATURES {
   MCG_RESOURCE = 'MCG_RESOURCE',
   ODF_DASHBOARD = 'ODF_DASHBOARD',
   COMMON_FLAG = 'COMMON_FLAG',
+  DASHBOARD_RESOURCES = 'ODF_DASHBOARD_RESOURCES',
 }
 
 export const OCS_FEATURE_FLAGS = {
@@ -91,6 +92,7 @@ export const ODF_BLOCK_FLAG = {
   [FEATURES.MCG_RESOURCE]: 'mcg-resource',
   [FEATURES.ODF_DASHBOARD]: 'odf-dashboard',
   [FEATURES.COMMON_FLAG]: 'common',
+  [FEATURES.DASHBOARD_RESOURCES]: 'dashboard-resources',
 };
 
 // Check the user's access to some resources.
