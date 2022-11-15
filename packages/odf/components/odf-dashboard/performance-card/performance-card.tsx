@@ -7,6 +7,7 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import useRefWidth from '@odf/shared/hooks/ref-width';
 import { ODFStorageSystem } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import Table, { Column } from '@odf/shared/table/table';
@@ -46,6 +47,7 @@ type RowProps = {
   throughputData: LineGraphProps;
   latencyData: LineGraphProps;
   className?: string;
+  width?: number;
 };
 
 type GetRow = (
@@ -58,6 +60,7 @@ const getRow: GetRow = ({
   iopsData,
   throughputData,
   latencyData,
+  width,
 }) => {
   const { apiGroup, apiVersion, kind } = getGVK(managedSystemKind);
   const refKind = referenceFor(apiGroup)(apiVersion)(kind);
@@ -68,11 +71,26 @@ const getRow: GetRow = ({
       resourceModel={ODFStorageSystem}
       resourceName={systemName}
     />,
-    <LineGraph key={`${systemName}_IOPS`} {...iopsData} />,
+    <LineGraph
+      key={`${systemName}_IOPS`}
+      {...iopsData}
+      width={width}
+      divideBy={3}
+    />,
 
-    <LineGraph key={`${systemName}_LAT`} {...latencyData} />,
+    <LineGraph
+      key={`${systemName}_LAT`}
+      {...latencyData}
+      width={width}
+      divideBy={3}
+    />,
 
-    <LineGraph key={`${systemName}_THR`} {...throughputData} />,
+    <LineGraph
+      key={`${systemName}_THR`}
+      {...throughputData}
+      width={width}
+      divideBy={3}
+    />,
   ];
 };
 
@@ -102,28 +120,34 @@ const metricsSort =
 
 const PerformanceCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const headerColumns: Column[] = [
-    {
-      columnName: t('Name'),
-      className: 'pf-u-w-10 performanceCard--verticalAlign',
-      sortFunction: nameSort,
-    },
-    {
-      columnName: t('IOPS'),
-      className: 'pf-u-w-30',
-      sortFunction: metricsSort('iopsData'),
-    },
-    {
-      columnName: t('Latency'),
-      className: 'pf-u-w-30',
-      sortFunction: metricsSort('latencyData'),
-    },
-    {
-      columnName: t('Throughput'),
-      className: 'pf-u-w-30',
-      sortFunction: metricsSort('throughputData'),
-    },
-  ];
+
+  const [ref, width] = useRefWidth();
+
+  const headerColumns: Column[] = React.useMemo(
+    () => [
+      {
+        columnName: t('Name'),
+        className: 'pf-u-w-10 performanceCard--verticalAlign',
+        sortFunction: nameSort,
+      },
+      {
+        columnName: t('IOPS'),
+        className: 'pf-u-w-30',
+        sortFunction: metricsSort('iopsData'),
+      },
+      {
+        columnName: t('Latency'),
+        className: 'pf-u-w-30',
+        sortFunction: metricsSort('latencyData'),
+      },
+      {
+        columnName: t('Throughput'),
+        className: 'pf-u-w-30',
+        sortFunction: metricsSort('throughputData'),
+      },
+    ],
+    [t]
+  );
 
   const [systems, systemLoaded, systemLoadError] = useK8sWatchResource<
     StorageSystemKind[]
@@ -149,7 +173,8 @@ const PerformanceCard: React.FC = () => {
     basePath: usePrometheusBasePath(),
   });
 
-  const rawRows = generateDataFrames(systems, latency, throughput, iops);
+  const rawRows = generateDataFrames(systems, latency, throughput, iops, width);
+
   const loading =
     !systemLoaded || latencyLoading || throughputLoading || iopsLoading;
   const error =
@@ -157,33 +182,35 @@ const PerformanceCard: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <Flex
-          justifyContent={{ default: 'justifyContentSpaceBetween' }}
-          className="odf-performanceCard__header--width"
-        >
-          <FlexItem>
-            <CardTitle>{t('Performance')}</CardTitle>
-          </FlexItem>
-          <FlexItem>
-            <UtilizationDurationDropdown />
-          </FlexItem>
-        </Flex>
-      </CardHeader>
-      {!error && !loading && (
-        <Table
-          columns={headerColumns}
-          rawData={rawRows as []}
-          rowRenderer={getRow as any}
-          ariaLabel={t('Performance Card')}
-        />
-      )}
-      {loading && !error && <PerformanceCardLoading />}
-      {(error || (!error && !loading && _.isEmpty(rawRows))) && (
-        <div className="performanceCard--error">
-          <DataUnavailableError />{' '}
-        </div>
-      )}
+      <div ref={ref}>
+        <CardHeader>
+          <Flex
+            justifyContent={{ default: 'justifyContentSpaceBetween' }}
+            className="odf-performanceCard__header--width"
+          >
+            <FlexItem>
+              <CardTitle>{t('Performance')}</CardTitle>
+            </FlexItem>
+            <FlexItem>
+              <UtilizationDurationDropdown />
+            </FlexItem>
+          </Flex>
+        </CardHeader>
+        {!error && !loading && (
+          <Table
+            columns={headerColumns}
+            rawData={rawRows as []}
+            rowRenderer={getRow as any}
+            ariaLabel={t('Performance Card')}
+          />
+        )}
+        {loading && !error && <PerformanceCardLoading />}
+        {(error || (!error && !loading && _.isEmpty(rawRows))) && (
+          <div className="performanceCard--error">
+            <DataUnavailableError />{' '}
+          </div>
+        )}
+      </div>
     </Card>
   );
 };
