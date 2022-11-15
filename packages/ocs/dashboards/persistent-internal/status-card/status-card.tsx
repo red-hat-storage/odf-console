@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ODF_MANAGED_FLAG } from '@odf/core/features';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -10,8 +11,10 @@ import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
+  Alert,
   HealthState,
   useK8sWatchResource,
+  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   AlertItem,
@@ -40,11 +43,29 @@ import './healthchecks.scss';
 const resiliencyProgressQuery =
   DATA_RESILIENCY_QUERY[StorageDashboardQuery.RESILIENCY_PROGRESS];
 
+const generateDocumentationLink = (alert: Alert): string => {
+  return `https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.12/html-single/troubleshooting_openshift_data_foundation/index#${_.toLower(
+    alert?.labels?.alertname
+  )}_rhodf`;
+};
+
+const isCephBasedAlert = (alert: Alert): boolean => {
+  return alert?.annotations?.storage_type === 'ceph';
+};
+
+const getDocumentationLink = (alert: Alert): string => {
+  if (isCephBasedAlert(alert)) {
+    return generateDocumentationLink(alert);
+  }
+  return null;
+};
+
 export const CephAlerts: React.FC = () => {
   const [data, loaded, error] = useAlerts();
   const { alerts } = getAlertsAndRules(data);
   const filteredAlerts =
     loaded && !error && !_.isEmpty(alerts) ? filterCephAlerts(alerts) : [];
+  const isOdfManaged = useFlag(ODF_MANAGED_FLAG);
 
   return (
     <AlertsBody error={!_.isEmpty(error)}>
@@ -54,6 +75,10 @@ export const CephAlerts: React.FC = () => {
           <AlertItem
             key={alertURL(alert, alert?.rule?.id)}
             alert={alert as any}
+            // @ts-ignore
+            documentationLink={
+              !isOdfManaged ? getDocumentationLink(alert) : null
+            }
           />
         ))}
     </AlertsBody>
