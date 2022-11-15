@@ -13,6 +13,7 @@ import {
 import { Link } from 'react-router-dom';
 import { Stack, StackItem } from '@patternfly/react-core';
 import { ODF_MANAGED_FLAG } from '../../features';
+import '@odf/shared/popup/status-popup.scss';
 
 export const StoragePopover: React.FC<StoragePopoverProps> = ({ ceph }) => {
   const { t } = useCustomTranslation();
@@ -34,13 +35,14 @@ export const StoragePopover: React.FC<StoragePopoverProps> = ({ ceph }) => {
           firstColumn={t('Provider')}
           secondColumn={t('Health')}
         >
-          <Status key="ocs" status={value}>
+          <div className="odf-status-popup__row">
             {!isOdfManaged ? (
               <Link to="/odf">{operatorName}</Link>
             ) : (
               operatorName
             )}
-          </Status>
+            <Status key="ocs" status={value} />
+          </div>
         </StatusPopupSection>
       </StackItem>
     </Stack>
