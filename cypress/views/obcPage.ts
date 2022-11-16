@@ -1,4 +1,5 @@
 import { projectNameSpace } from '../support/pages/app';
+import { app } from '../support/pages/app';
 import { DEPLOYMENT_REPLICAS_STATUS, MINUTE } from '../utils/consts';
 
 export class CreateOBCHandler {
@@ -15,6 +16,8 @@ export class CreateOBCHandler {
   }
 
   createBucketClaim() {
+    app.waitForLoad();
+    cy.get('#page-sidebar').contains('Data Foundation'); // eslint-disable-line cypress/require-data-selectors
     cy.clickNavLink(['Storage', 'Object Bucket Claims']);
     projectNameSpace.selectOrCreateProject(this.namespace);
     cy.clickNavLink(['Storage', 'Object Bucket Claims']);
@@ -25,20 +28,24 @@ export class CreateOBCHandler {
     cy.byTestID('loading-indicator').should('not.exist');
     cy.byTestID('sc-dropdown').should('be.visible').click();
     cy.contains('openshift-storage.noobaa.io').click();
+    // eslint-disable-next-line cypress/require-data-selectors
     cy.get('button').contains('Create').click();
     cy.byLegacyTestID('resource-title').contains(this.name, {
       timeout: MINUTE,
     });
   }
 
+  // eslint-disable-next-line class-methods-use-this
   revealHiddenValues() {
     cy.contains('Reveal Values').click();
   }
 
+  // eslint-disable-next-line class-methods-use-this
   hideValues() {
     cy.contains('Hide Values').click();
   }
 
+  // eslint-disable-next-line class-methods-use-this
   deleteBucketClaim() {
     cy.byTestID('loading-indicator').should('not.exist');
     cy.log('Deleting Object Bucket Claim');
