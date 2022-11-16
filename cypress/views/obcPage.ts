@@ -1,4 +1,5 @@
 import { projectNameSpace } from '../support/pages/app';
+import { app } from '../support/pages/app';
 import { MINUTE } from '../utils/consts';
 
 export class CreateOBCHandler {
@@ -15,6 +16,7 @@ export class CreateOBCHandler {
   }
 
   createBucketClaim() {
+    app.waitForLoad();
     cy.clickNavLink(['Storage', 'Object Bucket Claims']);
     projectNameSpace.selectOrCreateProject(this.namespace);
     cy.clickNavLink(['Storage', 'Object Bucket Claims']);
