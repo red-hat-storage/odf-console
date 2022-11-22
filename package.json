@@ -146,6 +146,6 @@
   "lint-staged": {
     "*.{ts,tsx}": "eslint --cache --fix -c ./.eslintrc.js",
     "*.css": "stylelint --fix",
-    "*.{js,css,md,json,yml}": "prettier --write"
+    "*": "prettier --ignore-unknown --write"
   }
 }
