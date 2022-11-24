@@ -39,11 +39,15 @@ import { IBMFlashSystemModel } from '../../models';
 import { SUPPORTED_EXTERNAL_STORAGE } from '../create-storage-system/external-storage';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
 
-const pluralize = (
+export const pluralize = (
   count: number,
   singular: string,
-  plural: string = `${singular}s`
-): string => (count > 1 ? plural : singular);
+  plural: string = `${singular}s`,
+  includeCount: boolean = true
+) => {
+  const pluralized = `${count === 1 ? singular : plural}`;
+  return includeCount ? `${count || 0} ${pluralized}` : pluralized;
+};
 
 export const getTotalCpu = (nodes: WizardNodeState[]): number =>
   nodes.reduce(

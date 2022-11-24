@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { pluralize } from '@odf/core/components/utils';
 import {
   NooBaaObjectBucketClaimModel,
   NooBaaObjectBucketModel,
@@ -16,6 +17,8 @@ import { getGaugeValue } from '@odf/shared/utils';
 import {
   useK8sWatchResource,
   InventoryItem,
+  InventoryItemLoading,
+  InventoryItemBody,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -39,6 +42,51 @@ const objectBucketResource = {
   kind: referenceForModel(NooBaaObjectBucketModel),
   namespaced: false,
   isList: true,
+};
+
+type ObjectInventoryItemProps = {
+  isLoading: boolean;
+  title: string;
+  titlePlural?: string;
+  count: number;
+  children?: React.ReactNode;
+  error?: boolean;
+  TitleComponent?: React.ComponentType<{}>;
+  dataTest?: string;
+};
+
+const ObjectInventoryItem: React.FC<ObjectInventoryItemProps> = ({
+  isLoading,
+  title,
+  titlePlural,
+  count,
+  children,
+  error = false,
+  TitleComponent,
+  dataTest,
+}) => {
+  const titleMessage = pluralize(
+    count,
+    title,
+    titlePlural,
+    !isLoading && !error
+  );
+  return (
+    <InventoryItem>
+      <div
+        className="co-inventory-card__item-title"
+        data-test={!TitleComponent ? dataTest : null}
+      >
+        {isLoading && !error && <InventoryItemLoading />}
+        {TitleComponent ? (
+          <TitleComponent>{titleMessage}</TitleComponent>
+        ) : (
+          titleMessage
+        )}
+      </div>
+      <InventoryItemBody error={error}>{children}</InventoryItemBody>
+    </InventoryItem>
+  );
 };
 
 const ObjectDashboardBucketsCard: React.FC<{}> = () => {
@@ -86,8 +134,7 @@ const ObjectDashboardBucketsCard: React.FC<{}> = () => {
         </CardTitle>
       </CardHeader>
       <CardBody>
-        <InventoryItem
-          // @ts-ignore (exposed type of this component is React.FC<{}>, hence giving error on passing props)
+        <ObjectInventoryItem
           isLoading={!(noobaaCount && unhealthyNoobaaBuckets)}
           error={!!(noobaaCountError || unhealthyNoobaaBucketsError)}
           title={t('NooBaa Bucket')}
@@ -111,7 +158,7 @@ const ObjectDashboardBucketsCard: React.FC<{}> = () => {
               </span>
             </>
           )}
-        </InventoryItem>
+        </ObjectInventoryItem>
         <ResourceInventoryItem
           isLoading={!obLoaded}
           error={!!obLoadError}
