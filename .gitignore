@@ -2,6 +2,7 @@ node_modules
 dist
 .cache-loader
 .eslintcache
+coverage
 cypress/cypress-a11y-report.json
 gui-test-screenshots
 plugins/odf/package.json

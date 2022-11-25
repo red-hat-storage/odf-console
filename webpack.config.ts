@@ -126,6 +126,9 @@ const config: webpack.Configuration & DevServerConfiguration = {
       Buffer: ['buffer', 'Buffer'],
     }),
     new ForkTsCheckerWebpackPlugin({
+      issue: {
+        exclude: [{ file: '**/node_modules/**/*' }],
+      },
       typescript: {
         diagnosticOptions: {
           semantic: true,

@@ -80,7 +80,7 @@ const Table: React.FC<TableProps> = React.memo(
     return (
       <TableComposable aria-label={ariaLabel} translate={null}>
         <Thead translate={null}>
-          <Tr translate={null}>{...headerColumns}</Tr>
+          <Tr translate={null}>{headerColumns}</Tr>
         </Thead>
         <Tbody translate={null}>
           {rowData?.map((row, index) => (
