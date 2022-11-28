@@ -9,6 +9,17 @@ module.exports = {
     'plugin:react-hooks/recommended',
     'airbnb',
   ],
+  overrides: [
+    {
+      files: 'packages/**/*.spec.{ts,tsx}',
+      plugins: ['jest', 'jest-dom'],
+      extends: [
+        'plugin:jest/recommended',
+        'plugin:jest/style',
+        'plugin:jest-dom/recommended',
+      ],
+    },
+  ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaFeatures: {

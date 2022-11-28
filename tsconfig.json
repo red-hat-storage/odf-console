@@ -12,5 +12,6 @@
     "sourceMap": true,
     "noEmitOnError": false
   },
+  "exclude": ["**/*.spec.ts", "**/*.spec.tsx"],
   "include": ["packages"]
 }

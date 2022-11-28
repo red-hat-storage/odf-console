@@ -22,4 +22,5 @@ jobs:
       - run: yarn build
       - run: yarn lint
       - run: yarn format-test
+      - run: yarn test-coverage
       - run: yarn analyze-odf
