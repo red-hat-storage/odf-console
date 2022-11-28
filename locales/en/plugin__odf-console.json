@@ -678,6 +678,7 @@
   "BucketClass": "BucketClass",
   "Create ObjectBucketClaim": "Create ObjectBucketClaim",
   "Edit YAML": "Edit YAML",
+  "The corresponding ObjectBucketClaim must be deleted first.": "The corresponding ObjectBucketClaim must be deleted first.",
   "ObjectBuckets": "ObjectBuckets",
   "Object Bucket Details": "Object Bucket Details",
   "Object Bucket Claim": "Object Bucket Claim",
