@@ -17,6 +17,7 @@ export class CreateOBCHandler {
 
   createBucketClaim() {
     app.waitForLoad();
+    cy.get('#page-sidebar').contains('Data Foundation'); // eslint-disable-line cypress/require-data-selectors
     cy.clickNavLink(['Storage', 'Object Bucket Claims']);
     projectNameSpace.selectOrCreateProject(this.namespace);
     cy.clickNavLink(['Storage', 'Object Bucket Claims']);
