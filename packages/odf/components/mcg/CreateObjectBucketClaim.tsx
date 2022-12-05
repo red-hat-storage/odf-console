@@ -23,6 +23,7 @@ import {
 } from '../../models';
 import { Action, commonReducer, defaultState, State } from './state';
 import './create-obc.scss';
+import '../../style.scss';
 
 type CreateOBCFormProps = {
   state: State;
@@ -146,7 +147,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
         </div>
         {isNoobaa && (
           <div className="form-group">
-            <label className="control-label co-required" htmlFor="obc-name">
+            <label className="control-label odf-required" htmlFor="obc-name">
               {t('BucketClass')}
             </label>
             <div className="form-group">
@@ -205,13 +206,13 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
   };
 
   return (
-    <div className="co-m-pane__body co-m-pane__form">
+    <div className="odf-m-pane__body odf-m-pane__form">
       <Helmet>
         <title>{t('Create ObjectBucketClaim')}</title>
       </Helmet>
-      <h1 className="co-m-pane__heading co-m-pane__heading--baseline">
-        <div className="co-m-pane__name">{t('Create ObjectBucketClaim')}</div>
-        <div className="co-m-pane__heading-link">
+      <h1 className="odf-m-pane__heading odf-m-pane__heading--baseline">
+        <div>{t('Create ObjectBucketClaim')}</div>
+        <div className="odf-m-pane__heading--link">
           <Link
             to={`${resourcePathFromModel(
               NooBaaObjectBucketClaimModel,
@@ -224,7 +225,7 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
           </Link>
         </div>
       </h1>
-      <form className="co-m-pane__body-group" onSubmit={save}>
+      <form className="odf-m-pane__body-group" onSubmit={save}>
         <CreateOBCForm
           state={state}
           dispatch={dispatch}

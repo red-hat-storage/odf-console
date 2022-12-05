@@ -31,6 +31,7 @@ import { RouteComponentProps } from 'react-router';
 import { sortable } from '@patternfly/react-table';
 import { NooBaaObjectBucketModel } from '../../models/ocs';
 import { getPhase, obStatusFilter } from '../../utils';
+import '../../style.scss';
 
 const kind = referenceForModel(NooBaaObjectBucketModel);
 
@@ -229,7 +230,7 @@ const OBDetails: DetailsType =
 
     return (
       <>
-        <div className="co-m-pane__body">
+        <div className="odf-m-pane__body">
           <SectionHeading text={t('Object Bucket Details')} />
           <div className="row">
             <div className="col-sm-6">
