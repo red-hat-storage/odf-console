@@ -128,8 +128,8 @@ const sortDRStatus = (
   let sortedDRStatus = drCurrentStatus;
   if (activeSortIndex !== null && sortedDRStatus?.length) {
     sortedDRStatus = drCurrentStatus.sort((a, b) => {
-      const aValue = getSortableRowValues(a)[activeSortIndex];
-      const bValue = getSortableRowValues(b)[activeSortIndex];
+      const aValue = getSortableRowValues(a)[activeSortIndex] || '';
+      const bValue = getSortableRowValues(b)[activeSortIndex] || '';
       if (activeSortDirection === SortByDirection.asc) {
         return aValue.localeCompare(bValue);
       }
@@ -228,7 +228,7 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
               </Th>
               <Th
                 {...reactPropFix}
-                sort={getSortParams(1)}
+                sort={getSortParams(2)}
                 data-test="activity-status-column"
               >
                 {t('Activity status')}
