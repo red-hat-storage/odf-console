@@ -35,7 +35,7 @@ import {
 } from '@patternfly/react-core';
 import { CephClusterModel } from '../../../models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
-import { filterCephAlerts, getAlertsAndRules } from '../../../utils/metrics';
+import { filterCephAlerts } from '../../../utils/metrics';
 import { getCephHealthState, getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
 import './healthchecks.scss';
@@ -61,8 +61,7 @@ const getDocumentationLink = (alert: Alert): string => {
 };
 
 export const CephAlerts: React.FC = () => {
-  const [data, loaded, error] = useAlerts();
-  const { alerts } = getAlertsAndRules(data);
+  const [alerts, loaded, error] = useAlerts();
   const filteredAlerts =
     loaded && !error && !_.isEmpty(alerts) ? filterCephAlerts(alerts) : [];
   const isOdfManaged = useFlag(ODF_MANAGED_FLAG);
