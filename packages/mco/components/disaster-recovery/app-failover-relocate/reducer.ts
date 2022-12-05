@@ -1,4 +1,5 @@
-import { DRPlacementControlKind, PlacementDecision } from '../../../types';
+import { PlacementDecision } from '../../../types';
+import { ApplicationDRInfo } from '../../../utils';
 
 export enum ACTION_TYPE {
   FAILOVER = 'Failover',
@@ -12,10 +13,7 @@ export enum ModalFooterStatus {
   ERROR = 'error',
 }
 
-export type DRPolicyControlState = Partial<{
-  drPolicyControl: DRPlacementControlKind;
-  subscriptions: string[];
-}>;
+export type DRPolicyControlState = ApplicationDRInfo;
 
 export type DRPolicyType = Partial<{
   policyName: string;

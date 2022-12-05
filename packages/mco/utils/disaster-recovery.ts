@@ -14,8 +14,18 @@ import {
   DRPlacementControlKind,
 } from '../types';
 
+export type PlacementRuleMap = {
+  [placementRuleName: string]: string;
+};
+
 export type SubscriptionMap = {
   [placementRuleName: string]: string[];
+};
+
+export type ApplicationDRInfo = {
+  drPolicyControl: DRPlacementControlKind;
+  subscriptions: string[];
+  clusterName: string; // current placement cluster
 };
 
 export type DRPolicyMap = {
@@ -79,24 +89,28 @@ export const isObjectRefMatching = (
   objectRefList: string[]
 ): boolean => objectRefList?.includes(objectRef?.name);
 
-export const getFilteredDRPlacementRuleNames = (
+export const filterDRPlacementRuleNames = (
   placementRules: ACMPlacementRuleKind[]
-): string[] =>
+): PlacementRuleMap =>
   placementRules?.reduce(
     (acc, placementRule) =>
       placementRule?.spec?.schedulerName === DR_SECHEDULER_NAME
-        ? [...acc, getName(placementRule)]
+        ? {
+            ...acc,
+            [getName(placementRule)]:
+              placementRule?.status?.decisions?.[0].clusterName || '',
+          }
         : acc,
-    []
+    {}
   );
 
 export const isPlacementRuleModel = (subscription: ACMSubscriptionKind) =>
   getPlacementKind(subscription) === ACMPlacementRuleModel?.kind;
 
-export const getFilterDRSubscriptions = (
+export const filterDRSubscriptions = (
   application: ApplicationKind,
   subscriptions: ACMSubscriptionKind[],
-  drPlacementRules: string[]
+  placementRuleMap: PlacementRuleMap
 ): SubscriptionMap =>
   subscriptions?.reduce((acc, subscription) => {
     const placementRuleName = subscription?.spec?.placement?.placementRef?.name;
@@ -104,7 +118,7 @@ export const getFilterDRSubscriptions = (
       isPlacementRuleModel(subscription) &&
       isObjectRefMatching(
         subscription?.spec?.placement?.placementRef,
-        drPlacementRules
+        Object.keys(placementRuleMap) || []
       ) &&
       matchApplicationToSubscription(subscription, application)
         ? {
@@ -117,6 +131,38 @@ export const getFilterDRSubscriptions = (
         : acc;
     return subsMap;
   }, {});
+
+export const getAppDRInfo = (
+  drPlacementControls: DRPlacementControlKind[],
+  subscriptionMap: SubscriptionMap,
+  placementRuleMap: PlacementRuleMap
+): ApplicationDRInfo[] =>
+  drPlacementControls?.reduce(
+    (acc, drPlacementControl) =>
+      isObjectRefMatching(
+        drPlacementControl?.spec?.placementRef,
+        Object.keys(subscriptionMap)
+      )
+        ? [
+            ...acc,
+            {
+              drPolicyControl: drPlacementControl,
+              subscriptions:
+                subscriptionMap?.[drPlacementControl?.spec?.placementRef?.name],
+              clusterName: getPlacementClusterName(
+                placementRuleMap,
+                drPlacementControl
+              ),
+            },
+          ]
+        : acc,
+    []
+  );
+
+export const getPlacementClusterName = (
+  placementRuleMap: PlacementRuleMap,
+  drpc: DRPlacementControlKind
+) => placementRuleMap?.[drpc?.spec?.placementRef?.name] || '';
 
 export const getDRPolicyName = (drpc: DRPlacementControlKind) =>
   drpc?.spec?.drPolicyRef?.name;
