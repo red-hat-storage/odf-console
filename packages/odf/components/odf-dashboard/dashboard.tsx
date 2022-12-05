@@ -23,7 +23,7 @@ import ObjectCapacityCard from './object-storage-card/capacity-card';
 import PerformanceCard from './performance-card/performance-card';
 import { StatusCard } from './status-card/status-card';
 import SystemCapacityCard from './system-capacity-card/capacity-card';
-import '../../style.scss';
+import './dashboard.scss';
 
 type ODFDashboardPageProps = {
   history: RouteComponentProps['history'];
@@ -52,7 +52,7 @@ const UpperSection: React.FC = () => (
 export const ODFDashboard: React.FC = () => {
   return (
     <>
-      <div className="co-dashboard-body">
+      <div className="odf-dashboard-body">
         <UpperSection />
       </div>
     </>
