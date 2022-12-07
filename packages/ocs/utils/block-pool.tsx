@@ -139,3 +139,7 @@ export const customActionsMap = {
     () => import('../modals/block-pool/update-block-pool-modal')
   ),
 };
+
+export type PoolMetrics = {
+  [poolName: string]: string;
+};

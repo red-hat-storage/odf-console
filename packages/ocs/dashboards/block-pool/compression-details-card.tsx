@@ -8,13 +8,14 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getInstantVectorStats,
   humanizeBinaryBytes,
-  humanizeNumber,
   humanizePercentage,
+  getGaugeValue,
 } from '@odf/shared/utils';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
+import { getPerPoolMetrics, PoolMetrics } from '../../utils';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
 export const CompressionDetailsCard: React.FC = () => {
@@ -41,6 +42,11 @@ export const CompressionDetailsCard: React.FC = () => {
       endpoint: 'api/v1/query' as any,
       basePath: usePrometheusBasePath(),
     });
+  const compressionSavings: PoolMetrics = getPerPoolMetrics(
+    poolCompressionSavings,
+    savingsError,
+    savingsLoading
+  );
 
   const [poolCompressionEligibility, eligibilityError, eligibilityLoading] =
     useCustomPrometheusPoll({
@@ -48,6 +54,11 @@ export const CompressionDetailsCard: React.FC = () => {
       endpoint: 'api/v1/query' as any,
       basePath: usePrometheusBasePath(),
     });
+  const compressionEligibility: PoolMetrics = getPerPoolMetrics(
+    poolCompressionEligibility,
+    eligibilityError,
+    eligibilityLoading
+  );
 
   const [poolCompressionRatio, ratioError, ratioLoading] =
     useCustomPrometheusPoll({
@@ -55,35 +66,39 @@ export const CompressionDetailsCard: React.FC = () => {
       endpoint: 'api/v1/query' as any,
       basePath: usePrometheusBasePath(),
     });
+  const compressionRatio = getGaugeValue(poolCompressionRatio);
+  const capacityRatio = Number(compressionRatio);
 
   const compressionEligibilityProps = {
     stats: Number(getInstantVectorStats(poolCompressionEligibility)),
     isLoading: eligibilityLoading,
     error: eligibilityError || !poolCompressionEligibility,
     title: t('Compression eligibility'),
-    getStats: () => humanizePercentage(poolCompressionEligibility).string,
+    getStats: () => humanizePercentage(compressionEligibility?.[name])?.string,
     infoText: t(
       'Compression eligibility indicates the percentage of incoming data that is compressible'
     ),
   };
-
   const compressionSavingsProps = {
     stats: Number(getInstantVectorStats(poolCompressionSavings)),
     isLoading: savingsLoading,
     error: savingsError || !poolCompressionSavings,
     title: t('Compression savings'),
-    getStats: () => humanizeBinaryBytes(poolCompressionSavings).string,
+    getStats: () => humanizeBinaryBytes(compressionSavings?.[name])?.string,
     infoText: t(
       'Compression savings indicates the total savings gained from compression for this pool, including replicas'
     ),
   };
 
   const compressionRatioProps = {
-    stats: Number(getInstantVectorStats(poolCompressionRatio)),
+    stats: Number(compressionRatio),
     isLoading: ratioLoading,
-    error: ratioError || !poolCompressionRatio,
+    error: ratioError || !capacityRatio,
     title: t('Compression ratio'),
-    getStats: () => `${humanizeNumber(poolCompressionRatio).string}:1`,
+    getStats: () =>
+      t('{{capacityRatio, number}}:1', {
+        capacityRatio: Math.round(capacityRatio),
+      }),
     infoText: t(
       'Compression ratio indicates the achieved compression on eligible data for this pool'
     ),

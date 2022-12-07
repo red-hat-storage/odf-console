@@ -28,7 +28,7 @@ const StorageEfficiencyCard: React.FC = () => {
   const [poolSavedResult, poolSavedResultError] = useCustomPrometheusPoll({
     query:
       POOL_STORAGE_EFFICIENCY_QUERIES[
-        StorageDashboardQuery.POOL_CAPACITY_RATIO
+        StorageDashboardQuery.POOL_SAVED_CAPACITY
       ],
     endpoint: 'api/v1/query' as any,
     basePath: usePrometheusBasePath(),
