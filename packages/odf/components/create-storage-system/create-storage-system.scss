@@ -21,3 +21,7 @@
     color: var(--pf-global--danger-color--200);
   }
 }
+
+.odf-create-storage-system-wizard > div > div {
+  max-height: 66vh;
+}
