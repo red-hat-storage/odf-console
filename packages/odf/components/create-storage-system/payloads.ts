@@ -77,6 +77,7 @@ export const createStorageCluster = async (state: WizardState) => {
     storage,
     encryption,
     isMinimal,
+    nodes,
     isFlexibleScaling,
     publicNetwork,
     clusterNetwork,
