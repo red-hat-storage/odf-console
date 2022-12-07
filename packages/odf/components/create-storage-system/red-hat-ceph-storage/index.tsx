@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ErrorHandler } from '@odf/core/components/create-storage-system/error-handler';
 import {
   checkError,
   createDownloadFile,
@@ -7,16 +8,18 @@ import {
   prettifyJSON,
 } from '@odf/core/components/utils';
 import { IP_FAMILY } from '@odf/core/constants';
+import { RHCSState } from '@odf/core/types';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import {
-  RHCSState,
   CanGoToNextStep,
   CreatePayload,
-  ExternalComponentProps,
-} from '@odf/core/types';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+  StorageClassComponentProps as ExternalComponentProps,
+  StorageClassWizardStepProps as ExternalStorage,
+} from '@odf/shared/custom-extensions/properties/StorageClassWizardStepProps';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { PodModel, SecretModel } from '@odf/shared/models';
+import { OCSStorageClusterModel } from '@odf/shared/models';
 import { getAnnotations } from '@odf/shared/selectors';
 import { ListKind, PodKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -30,7 +33,6 @@ import {
   FileUploadProps,
   Form,
 } from '@patternfly/react-core';
-import { ErrorHandler } from '../../error-handler';
 import './index.scss';
 
 const OCS_OPERATOR = 'ocs-operator';
@@ -206,3 +208,18 @@ export const rhcsCanGoToNextStep: CanGoToNextStep<RHCSState> = (state) =>
   !!state.fileData &&
   !state.errorMessage &&
   !state.isLoading;
+
+export const EXTERNAL_CEPH_STORAGE: ExternalStorage[] = [
+  {
+    displayName: 'Red Hat Ceph Storage',
+    model: {
+      apiGroup: OCSStorageClusterModel.apiGroup,
+      apiVersion: OCSStorageClusterModel.apiVersion,
+      kind: OCSStorageClusterModel.kind,
+      plural: OCSStorageClusterModel.plural,
+    },
+    component: ConnectionDetails,
+    createPayload: rhcsPayload,
+    canGoToNextStep: rhcsCanGoToNextStep,
+  },
+];

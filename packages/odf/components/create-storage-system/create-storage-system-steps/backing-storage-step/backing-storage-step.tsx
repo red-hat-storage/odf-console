@@ -4,14 +4,11 @@ import {
   NO_PROVISIONER,
 } from '@odf/core/constants';
 import { scResource } from '@odf/core/resources';
-import {
-  BackingStorageType,
-  DeploymentType,
-  ExternalStorage,
-} from '@odf/core/types';
+import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { getSupportedVendors } from '@odf/core/utils';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { StorageClassWizardStepProps as ExternalStorage } from '@odf/shared/custom-extensions/properties/StorageClassWizardStepProps';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
@@ -36,7 +33,6 @@ import {
   Radio,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
-import { SUPPORTED_EXTERNAL_STORAGE } from '../../external-storage';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { SelectDeployment } from './select-deployment';
 import './backing-storage-step.scss';
@@ -156,6 +152,7 @@ type StorageSystemSet = Set<StorageSystemKind['spec']['kind']>;
 
 export const BackingStorage: React.FC<BackingStorageProps> = ({
   state,
+  supportedExternalStorage,
   storageClass,
   dispatch,
   storageSystems,
@@ -185,14 +182,14 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
 
   const allowedExternalStorage: ExternalStorage[] =
     !enableRhcs || hasOCS
-      ? SUPPORTED_EXTERNAL_STORAGE.filter(({ model }) => {
+      ? supportedExternalStorage.filter(({ model }) => {
           const kind = getGVKLabel(model);
           return (
             supportedODFVendors.includes(kind) &&
             kind !== STORAGE_CLUSTER_SYSTEM_KIND
           );
         })
-      : SUPPORTED_EXTERNAL_STORAGE;
+      : supportedExternalStorage;
 
   React.useEffect(() => {
     /*
@@ -325,6 +322,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
 type BackingStorageProps = {
   dispatch: WizardDispatch;
   state: WizardState['backingStorage'];
+  supportedExternalStorage: ExternalStorage[];
   storageSystems: StorageSystemKind[];
   storageClass: WizardState['storageClass'];
   stepIdReached: WizardState['stepIdReached'];

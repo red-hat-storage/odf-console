@@ -1,17 +1,15 @@
 import * as React from 'react';
-import { IBMFlashSystemModel } from '@odf/core/models';
 import {
-  FlashSystemState,
-  IBMFlashSystemKind,
   CreatePayload,
-  ExternalComponentProps,
+  StorageClassComponentProps as ExternalComponentProps,
   CanGoToNextStep,
-} from '@odf/core/types';
-import { SecretModel } from '@odf/shared/models';
-import { SecretKind } from '@odf/shared/types';
+} from '@odf/shared/custom-extensions/properties/StorageClassWizardStepProps';
+import { SecretModel, CustomResourceDefinitionModel } from '@odf/shared/models';
+import { SecretKind, K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getAPIVersionForModel } from '@odf/shared/utils';
 import { isValidIP } from '@odf/shared/utils';
+import { k8sGet } from '@openshift-console/dynamic-plugin-sdk';
 import {
   FormGroup,
   TextInput,
@@ -23,6 +21,8 @@ import {
   SelectOption,
 } from '@patternfly/react-core';
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
+import { IBMFlashSystemModel } from './system-models';
+import { FlashSystemState, IBMFlashSystemKind } from './system-types';
 
 const VOLUME_MODES = ['thick', 'thin'];
 
@@ -197,3 +197,42 @@ export const flashSystemCanGoToNextStep: CanGoToNextStep<FlashSystemState> = (
   !!state.username &&
   !!state.password &&
   !!state.poolname;
+
+/**
+ * The crd status field should be available to proceed with CR creation.
+ */
+const isCRDAvailable = (crd: K8sResourceKind, plural: string) =>
+  crd?.status?.acceptedNames?.plural === plural;
+
+export const waitforCRD = async (model, maxAttempts = 30) => {
+  const crdName = [model.plural, model.apiGroup].join('.');
+  const POLLING_INTERVAL = 5000;
+  let attempts = 0;
+  /**
+   * This will poll the CRD for an interval of 5s.
+   * This times out after 150s.
+   */
+  const pollCRD = async (resolve, reject) => {
+    try {
+      attempts++;
+      const crd = await k8sGet({
+        model: CustomResourceDefinitionModel,
+        name: crdName,
+      });
+      return isCRDAvailable(crd, model.plural)
+        ? resolve()
+        : setTimeout(pollCRD, POLLING_INTERVAL, resolve, reject);
+    } catch (err) {
+      if (err?.response?.status === 404) {
+        if (attempts === maxAttempts)
+          return reject(
+            new Error(`CustomResourceDefintion '${crdName}' not found.`)
+          );
+        return setTimeout(pollCRD, POLLING_INTERVAL, resolve, reject);
+      }
+      return reject(err);
+    }
+  };
+
+  return new Promise(pollCRD);
+};

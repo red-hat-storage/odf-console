@@ -592,5 +592,27 @@
       "contextId": "csv-actions",
       "provider": { "$codeRef": "actions.useCsvActions" }
     }
+  },
+  {
+    "type": "odf.wizard/storageclass",
+    "properties": {
+      "displayName": "IBM FlashSystem Storage",
+      "model": {
+        "apiGroup": "odf.ibm.com",
+        "apiVersion": "v1alpha1",
+        "kind": "FlashSystemCluster",
+        "plural": "flashsystemclusters"
+      },
+      "component": {
+        "$codeRef": "externalStorage.FlashSystemConnectionDetails"
+      },
+      "createPayload": {
+        "$codeRef": "externalStorage.createFlashSystemPayload"
+      },
+      "canGoToNextStep": {
+        "$codeRef": "externalStorage.flashSystemCanGoToNextStep"
+      },
+      "waitToCreate": { "$codeRef": "externalStorage.waitforCRD" }
+    }
   }
 ]

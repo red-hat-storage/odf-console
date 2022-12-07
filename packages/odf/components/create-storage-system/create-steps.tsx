@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { StorageClassWizardStepProps as ExternalStorage } from '@odf/shared/custom-extensions/properties/StorageClassWizardStepProps';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { TFunction } from 'i18next';
 import { RouteComponentProps } from 'react-router';
@@ -22,7 +23,8 @@ export const createSteps = (
   dispatch: WizardDispatch,
   infraType: string,
   hasOCS: boolean,
-  history: RouteComponentProps['history']
+  history: RouteComponentProps['history'],
+  supportedExternalStorage: ExternalStorage[]
 ): WizardStep[] => {
   const {
     backingStorage,
@@ -76,7 +78,13 @@ export const createSteps = (
     },
     reviewAndCreate: {
       name: StepsName(t)[Steps.ReviewAndCreate],
-      component: <ReviewAndCreate state={state} hasOCS={hasOCS} />,
+      component: (
+        <ReviewAndCreate
+          state={state}
+          hasOCS={hasOCS}
+          supportedExternalStorage={supportedExternalStorage}
+        />
+      ),
     },
   };
 
@@ -88,6 +96,7 @@ export const createSteps = (
       component: (
         <ConnectionDetails
           state={state.connectionDetails}
+          supportedExternalStorage={supportedExternalStorage}
           dispatch={dispatch}
           externalStorage={externalStorage}
         />
@@ -108,6 +117,7 @@ export const createSteps = (
     component: (
       <CreateStorageClass
         state={createStorageClass}
+        supportedExternalStorage={supportedExternalStorage}
         externalStorage={externalStorage}
         dispatch={dispatch}
         storageClass={storageClass}

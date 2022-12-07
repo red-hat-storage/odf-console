@@ -1,24 +1,21 @@
 import { K8sResourceKind } from '@odf/shared/types';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 /**
  *  Configures a new external storage vendor to the Storage System Creation wizard.
  */
-export type ExternalStorage = {
+export type StorageClassWizardStepProps = {
   /** Display name of the external storage vendor. */
   displayName: string;
-
   /** The model referring the `apiGroup`,`apiVersion`, `plural` and `kind` of the external storage vendor's CRD. */
   model: Model;
-
   /** A React Functional Component to input the connection details of the external storage vendor. */
-  Component: React.FunctionComponent<ExternalComponentProps<{}>>;
-
+  component: React.FunctionComponent<StorageClassComponentProps<{}>>;
   /**  Handler function to create external storage storage vendor CR or resources. */
   createPayload: CreatePayload<{}>;
-
   /**  Handler function to validate the storage class page in order to move to the next step of wizard */
   canGoToNextStep: CanGoToNextStep<{}>;
+  /** A function returing a promise, resolving any resources which should be created (if any) before creation of external sub-system */
+  waitToCreate?: (model: Model) => Promise<any>;
 };
 
 /** The model referring the `apiGroup`,`apiVersion`, `plural` and `kind` of the external storage vendor's CRD. */
@@ -26,23 +23,19 @@ export type ExternalStorage = {
 type Model = {
   /* apiGroup of the external provider CRD */
   apiGroup: string;
-
   /* apiVersion of the external provider CRD */
   apiVersion: string;
-
   /* kind of the external provider CRD */
   kind: string;
-
   /* plural of the external provider CRD */
   plural: string;
 };
 
-/** Props for `ExternalStorage.Component` to input the connection details of the external storage vendor. */
-export type ExternalComponentProps<S extends ExternalState> = {
-  /** The state of the `ExternalStorage.Component`. */
+/** Props for `StorageClassWizardStepProps.component` to input the connection details of the external storage vendor. */
+export type StorageClassComponentProps<S extends ExternalState> = {
+  /** The state of the `StorageClassWizardStepProps.component`. */
   formState: S;
-
-  /** The callback for setting the state of `ExternalStorage.Component` */
+  /** The callback for setting the state of `StorageClassWizardStepProps.component` */
   setFormState: (field: keyof S, value: S[keyof S]) => void;
 };
 
@@ -88,64 +81,4 @@ export type CanGoToNextStep<S extends ExternalState> = (
   storageClassName: string
 ) => boolean;
 
-/**
- * State for external components
- */
-export type ExternalState = RHCSState | FlashSystemState | {};
-
-export type ExternalStateValues = ValuesOfUnion<ExternalState>;
-
-export type ExternalStateKeys = KeysOfUnion<ExternalState>;
-
-type ValuesOfUnion<T> = T extends T ? T[keyof T] : never;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-
-/* External Stoarge State */
-
-export type RHCSState = {
-  fileData: string;
-  errorMessage: boolean;
-  isLoading: boolean;
-  fileName: string;
-};
-
-export type IBMFlashSystemStatus = {
-  capacity?: {
-    maxCapacity: string;
-    usedCapacity: string;
-  };
-  id?: string;
-  state?: string;
-  phase?: string;
-  version?: string;
-};
-
-export type IBMFlashSystemSpec = {
-  name?: string;
-  defaultPool?: {
-    fsType: string;
-    poolName: string;
-    spaceEfficiency: string;
-    storageclassName: string;
-    volumeNamePrefix: string;
-  };
-  insecureSkipVerify: boolean;
-  secret?: {
-    name?: string;
-    namespace?: string;
-  };
-};
-
-export type IBMFlashSystemKind = {
-  spec: IBMFlashSystemSpec;
-  status?: IBMFlashSystemStatus;
-} & K8sResourceCommon;
-
-export type FlashSystemState = {
-  username: string;
-  password: string;
-  endpoint: string;
-  poolname: string;
-  volmode: string;
-};
+export type ExternalState = {};

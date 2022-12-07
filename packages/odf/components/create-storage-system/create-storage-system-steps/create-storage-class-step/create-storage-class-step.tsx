@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getExternalStorage } from '@odf/core/components/utils';
-import { ExternalStateValues, ExternalStateKeys } from '@odf/core/types';
+import { StorageClassWizardStepProps as ExternalStorage } from '@odf/shared/custom-extensions/properties/StorageClassWizardStepProps';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Form,
@@ -15,19 +15,23 @@ import './create-storage-class-step.scss';
 
 export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
   state,
+  supportedExternalStorage,
   storageClass,
   externalStorage,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
 
-  const { Component, displayName } = getExternalStorage(externalStorage) || {
+  const { component: Component, displayName } = getExternalStorage(
+    externalStorage,
+    supportedExternalStorage
+  ) || {
     Component: null,
     displayName: '',
   };
 
   const setForm = React.useCallback(
-    (field: ExternalStateKeys, value: ExternalStateValues) =>
+    (field, value) =>
       dispatch({
         type: 'wizard/setCreateStorageClass',
         payload: {
@@ -67,6 +71,7 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
 
 type CreateStorageClassProps = {
   state: WizardState['createStorageClass'];
+  supportedExternalStorage: ExternalStorage[];
   externalStorage: WizardState['backingStorage']['externalStorage'];
   storageClass: WizardState['storageClass'];
   dispatch: WizardDispatch;
