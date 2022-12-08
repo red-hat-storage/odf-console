@@ -2,7 +2,7 @@
 
 set -exuo pipefail
 
-source ./i18n-scripts/languages.sh
+source ./scripts/i18n/languages.sh
 
 for f in locales/en/* ; do
   for i in "${LANGUAGES[@]}"

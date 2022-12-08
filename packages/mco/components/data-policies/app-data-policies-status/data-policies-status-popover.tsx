@@ -5,6 +5,7 @@ import { ApplicationKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import {
   Popover,
   Button,
@@ -23,31 +24,24 @@ import {
   ACMSubscriptionKind,
 } from '../../../types';
 import {
-  getFilteredDRPlacementRuleNames,
-  getFilterDRSubscriptions,
+  filterDRPlacementRuleNames,
+  filterDRSubscriptions,
   SubscriptionMap,
-  isObjectRefMatching,
   getDRPolicyName,
   getDRPoliciesCount,
+  PlacementRuleMap,
+  getAppDRInfo,
+  ApplicationDRInfo,
+  DRPolicyMap,
 } from '../../../utils';
 import { DRStatusCard } from '../../disaster-recovery/app-dr-status/dr-status-card';
 import { DataPoliciesStatusType } from './data-policies-status-modal';
 import './data-policies-status-popover.scss';
 
-const filterDRPlacementControls = (
-  drPlacementControls: DRPlacementControlKind[],
-  subscriptionMap: SubscriptionMap
-): DRPlacementControlKind[] =>
-  drPlacementControls?.filter((drPlacementControl) =>
-    isObjectRefMatching(
-      drPlacementControl?.spec?.placementRef,
-      Object.keys(subscriptionMap)
-    )
-  );
-
-const getDRPolicies = (drPlacementControls: DRPlacementControlKind[]) =>
-  drPlacementControls.reduce((obj, drpc) => {
-    const drPolicyName = getDRPolicyName(drpc);
+const getDRPolicies = (appDRInfoList: ApplicationDRInfo[]): DRPolicyMap =>
+  appDRInfoList.reduce((obj, appDRInfo) => {
+    const drPolicyName = getDRPolicyName(appDRInfo?.drPolicyControl);
+    const drpc = appDRInfo?.drPolicyControl;
     return {
       ...obj,
       [drPolicyName]: obj.hasOwnProperty(drPolicyName)
@@ -120,54 +114,47 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
       loadError: drPlacementControlsLoadError,
     } = memoizedDRPlacementControls;
 
-    const drPlacementRules: string[] = React.useMemo(
-      () =>
-        (placementRulesLoaded &&
-          !placementRulesLoadError &&
-          getFilteredDRPlacementRuleNames(placementRules)) ||
-        [],
-      [placementRules, placementRulesLoaded, placementRulesLoadError]
+    const plsRuleLoaded = placementRulesLoaded && !placementRulesLoadError;
+    const subsLoaded = subscriptionsLoaded && !subscriptionsLoadError;
+    const drpcLoaded =
+      drPlacementControlsLoaded && !drPlacementControlsLoadError;
+
+    const placementRuleMap: PlacementRuleMap = React.useMemo(
+      () => (plsRuleLoaded && filterDRPlacementRuleNames(placementRules)) || {},
+      [placementRules, plsRuleLoaded]
     );
 
     const subscriptionMap: SubscriptionMap = React.useMemo(
       () =>
-        (subscriptionsLoaded &&
-          !subscriptionsLoadError &&
-          getFilterDRSubscriptions(
-            resource,
-            subscriptions,
-            drPlacementRules
-          )) ||
+        (subsLoaded &&
+          !_.isEmpty(placementRuleMap) &&
+          filterDRSubscriptions(resource, subscriptions, placementRuleMap)) ||
         {},
-      [
-        subscriptions,
-        subscriptionsLoaded,
-        subscriptionsLoadError,
-        drPlacementRules,
-        resource,
-      ]
+      [subscriptions, subsLoaded, placementRuleMap, resource]
     );
 
     const [dataPoliciesStatus, count]: [DataPoliciesStatusType, number] =
       React.useMemo(() => {
-        const activeDRPC: DRPlacementControlKind[] =
-          (drPlacementControlsLoaded &&
-            !drPlacementControlsLoadError &&
-            filterDRPlacementControls(drPlacementControls, subscriptionMap)) ||
-          [];
-        const drPolicies = getDRPolicies(activeDRPC);
-        return [
-          {
-            drPolicies,
-          },
-          getDRPoliciesCount(drPolicies),
-        ];
-      }, [
-        drPlacementControls,
-        drPlacementControlsLoaded,
-        drPlacementControlsLoadError,
-        subscriptionMap,
-      ]);
+        if (
+          drpcLoaded &&
+          !_.isEmpty(placementRuleMap) &&
+          !_.isEmpty(subscriptionMap)
+        ) {
+          const appDRInfoList: ApplicationDRInfo[] = getAppDRInfo(
+            drPlacementControls,
+            subscriptionMap,
+            placementRuleMap
+          );
+          const drPolicies = getDRPolicies(appDRInfoList);
+          return [
+            {
+              drPolicies,
+            },
+            getDRPoliciesCount(drPolicies),
+          ];
+        }
+        return [{ drPolicies: {} }, 0];
+      }, [drPlacementControls, drpcLoaded, subscriptionMap, placementRuleMap]);
 
     const [Modal, modalProps, launcher] = useModalLauncher(modalMap);
     const launchModal = React.useCallback(
