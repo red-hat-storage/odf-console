@@ -6,6 +6,7 @@ import { ApplicationKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import { Flex, FlexItem, Alert, AlertVariant } from '@patternfly/react-core';
 import {
   ACMPlacementRuleModel,
@@ -18,10 +19,11 @@ import {
   DRPlacementControlKind,
 } from '../../../types';
 import {
-  isObjectRefMatching,
-  getFilterDRSubscriptions,
-  getFilteredDRPlacementRuleNames,
+  filterDRSubscriptions,
+  filterDRPlacementRuleNames,
   SubscriptionMap,
+  getAppDRInfo,
+  PlacementRuleMap,
 } from '../../../utils';
 import { DRPolicySelector } from './dr-policy-selector';
 import { PeerClusterStatus } from './peer-cluster-status';
@@ -51,28 +53,6 @@ export const findErrorMessage = (
   ]
     .filter(Boolean)
     .find((errorMessage) => errorMessage);
-
-const getDRPolicyControlState = (
-  drPlacementControls: DRPlacementControlKind[],
-  subscriptionMap: SubscriptionMap
-): DRPolicyControlState[] =>
-  drPlacementControls?.reduce(
-    (acc, drPlacementControl) =>
-      isObjectRefMatching(
-        drPlacementControl?.spec?.placementRef,
-        Object.keys(subscriptionMap)
-      )
-        ? [
-            ...acc,
-            {
-              drPolicyControl: drPlacementControl,
-              subscriptions:
-                subscriptionMap?.[drPlacementControl?.spec?.placementRef?.name],
-            },
-          ]
-        : acc,
-    []
-  );
 
 const resources = (namespace: string) => ({
   subscriptions: {
@@ -147,46 +127,36 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
       loadError: drPlacementControlsLoadError,
     } = memoizedDRPlacementControls;
 
-    const drPlacementRules: string[] = React.useMemo(
-      () =>
-        placementRulesLoaded && !placementRulesLoadError
-          ? getFilteredDRPlacementRuleNames(placementRules)
-          : [],
-      [placementRules, placementRulesLoaded, placementRulesLoadError]
+    const plsRuleLoaded = placementRulesLoaded && !placementRulesLoadError;
+    const subsLoaded = subscriptionsLoaded && !subscriptionsLoadError;
+    const drpcLoaded =
+      drPlacementControlsLoaded && !drPlacementControlsLoadError;
+
+    const placementRuleMap: PlacementRuleMap = React.useMemo(
+      () => (plsRuleLoaded ? filterDRPlacementRuleNames(placementRules) : {}),
+      [placementRules, plsRuleLoaded]
     );
 
     const subscriptionMap: SubscriptionMap = React.useMemo(
       () =>
         // Filtering subscription using DR placementRules and application selectors
-        subscriptionsLoaded && !subscriptionsLoadError
-          ? getFilterDRSubscriptions(
-              application,
-              subscriptions,
-              drPlacementRules
-            )
+        subsLoaded && !_.isEmpty(placementRuleMap)
+          ? filterDRSubscriptions(application, subscriptions, placementRuleMap)
           : {},
-      [
-        subscriptions,
-        subscriptionsLoaded,
-        subscriptionsLoadError,
-        drPlacementRules,
-        application,
-      ]
+      [subscriptions, subsLoaded, placementRuleMap, application]
     );
 
     React.useEffect(() => {
       // Grouping ACM subscriptions using DR placement controls
       if (
-        drPlacementControlsLoaded &&
-        placementRulesLoaded &&
-        subscriptionsLoaded &&
-        !drPlacementControlsLoadError &&
-        !placementRulesLoadError &&
-        !subscriptionsLoadError
+        drpcLoaded &&
+        !_.isEmpty(subscriptionMap) &&
+        !_.isEmpty(placementRuleMap)
       ) {
-        const drPolicyControlState = getDRPolicyControlState(
+        const drPolicyControlState: DRPolicyControlState[] = getAppDRInfo(
           drPlacementControls,
-          subscriptionMap
+          subscriptionMap,
+          placementRuleMap
         );
         !!drPolicyControlState.length
           ? dispatch({
@@ -203,14 +173,10 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
             });
       }
     }, [
+      drpcLoaded,
       drPlacementControls,
-      drPlacementControlsLoaded,
-      placementRulesLoaded,
-      subscriptionsLoaded,
-      drPlacementControlsLoadError,
-      placementRulesLoadError,
-      subscriptionsLoadError,
       subscriptionMap,
+      placementRuleMap,
       action,
       dispatch,
       t,
