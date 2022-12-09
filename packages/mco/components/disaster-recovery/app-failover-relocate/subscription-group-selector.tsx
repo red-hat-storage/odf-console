@@ -31,11 +31,10 @@ const validateTargetCluster = (
   drPolicyControlState: DRPolicyControlState,
   targetCluster: PlacementDecision
 ) => {
-  const preferredCluster =
-    drPolicyControlState.drPolicyControl?.spec?.preferredCluster;
+  const currentDeploymentCluster = drPolicyControlState?.clusterName;
   return (
-    preferredCluster !== targetCluster?.clusterName &&
-    preferredCluster !== targetCluster?.clusterNamespace
+    currentDeploymentCluster !== targetCluster?.clusterName &&
+    currentDeploymentCluster !== targetCluster?.clusterNamespace
   );
 };
 
@@ -75,8 +74,7 @@ const getOptions = (
     <HelperText>
       <HelperTextItem variant={isValid ? 'default' : 'indeterminate'}>
         {t('Placed: {{cluster}}', {
-          cluster:
-            drPolicyControlState?.drPolicyControl?.spec?.preferredCluster,
+          cluster: drPolicyControlState?.clusterName,
         })}
       </HelperTextItem>
       <HelperTextItem variant="indeterminate">
