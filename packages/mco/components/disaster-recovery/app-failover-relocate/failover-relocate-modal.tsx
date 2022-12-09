@@ -110,7 +110,7 @@ const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (props) => {
             path: '/spec/action',
             value: action,
           },
-          {
+          state.actionType === ACTION_TYPE.RELOCATE && {
             op: 'replace',
             path: '/spec/preferredCluster',
             value: state.selectedTargetCluster.clusterInfo.clusterName,
