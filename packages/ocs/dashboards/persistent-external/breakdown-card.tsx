@@ -95,7 +95,7 @@ export const BreakdownCard: React.FC = () => {
       </CardHeader>
       <CardBody className="ceph-capacity-breakdown-card__body">
         <BreakdownCardBody
-          isLoading={queriesDataLoaded}
+          isLoading={!queriesDataLoaded}
           hasLoadError={queriesLoadError}
           metricTotal={metricTotal}
           capacityUsed={metricTotal}
