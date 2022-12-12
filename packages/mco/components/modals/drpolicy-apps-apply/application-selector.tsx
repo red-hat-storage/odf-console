@@ -13,7 +13,7 @@ import {
   SearchInput,
   Bullseye,
 } from '@patternfly/react-core';
-import { AppToPlacementRule } from '../../../../types';
+import { AppToPlacementRule } from '../../../types';
 import './application-selector.scss';
 
 type TreeViewDataItemMap = {

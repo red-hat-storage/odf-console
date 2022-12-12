@@ -1,8 +1,6 @@
 import { TFunction } from 'i18next';
 
-export const ODFMCO_OPERATOR = 'odf-multicluster-orchestrator';
 export const MANAGED_CLUSTER_REGION_CLAIM = 'region.open-cluster-management.io';
-export const MAX_ALLOWED_CLUSTERS = 2;
 export const DR_SECHEDULER_NAME = 'ramen';
 
 export enum REPLICATION_TYPE {

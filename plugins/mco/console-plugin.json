@@ -7,11 +7,11 @@
     "@console/pluginAPI": "*"
   },
   "exposedModules": {
-    "dataPolicies": "@odf/mco/components/data-policies/data-policies-list/data-policies-list",
+    "dataPolicies": "@odf/mco/components/data-policies/data-policies-page",
     "createDataPolicy": "@odf/mco/components/disaster-recovery/create-dr-policy/create-dr-policy",
-    "mcoDashboard": "@odf/mco/components/mco-dashboard/dashboard",
+    "mcoDashboard": "@odf/mco/components/mco-dashboard/storage-system/dashboard",
     "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor",
-    "dataPoliciesStatusPopover": "@odf/mco/components/data-policies/app-data-policies-status/data-policies-status-popover",
-    "failoverRelocateModal": "@odf/mco/components/disaster-recovery/app-failover-relocate/failover-relocate-modal"
+    "dataPoliciesStatusPopover": "@odf/mco/components/modals/app-data-policies-status/data-policies-status-popover",
+    "failoverRelocateModal": "@odf/mco/components/modals/app-failover-relocate/failover-relocate-modal"
   }
 }

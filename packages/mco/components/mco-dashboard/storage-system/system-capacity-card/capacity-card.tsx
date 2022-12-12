@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   StorageDashboard,
   CAPACITY_QUERIES,
-} from '@odf/mco/components/mco-dashboard/queries';
+} from '@odf/mco/components/mco-dashboard/storage-system/queries';
 import { ACMManagedClusterModel } from '@odf/mco/models';
 import { ACMManagedClusterKind } from '@odf/mco/types';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
@@ -42,7 +42,7 @@ import {
   ACM_ENDPOINT,
   CLUSTER_CLAIM_URL_NAME,
   HUB_CLUSTER_NAME,
-} from '../../../constants';
+} from '../../../../constants';
 import './capacity-card.scss';
 
 type CapacityMetricDatum = {
