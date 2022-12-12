@@ -38,6 +38,3 @@ export const SUPPORTED_EXTERNAL_STORAGE: ExternalStorage[] = [
     canGoToNextStep: flashSystemCanGoToNextStep,
   },
 ];
-
-export const isStorageProviderDevPreview = (kind: string) =>
-  kind === IBMFlashSystemModel.kind;
