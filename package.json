@@ -43,11 +43,11 @@
     "format-test": "yarn prettier -c .",
     "prepare": "husky install",
     "i18n": "i18next \"packages/**/*.{ts,tsx}\" [-oc] -c i18next-parser.config.js",
-    "i18n-to-po": "node ./i18n-scripts/i18n-to-po.js",
-    "po-to-i18n": "node ./i18n-scripts/po-to-i18n.js",
-    "export-pos": "./i18n-scripts/export-pos.sh",
-    "memsource-upload": "./i18n-scripts/memsource-upload.sh",
-    "memsource-download": "./i18n-scripts/memsource-download.sh"
+    "i18n-to-po": "node ./scripts/i18n/i18n-to-po.js",
+    "po-to-i18n": "node ./scripts/i18n/po-to-i18n.js",
+    "export-pos": "./scripts/i18n/export-pos.sh",
+    "memsource-upload": "./scripts/i18n/memsource-upload.sh",
+    "memsource-download": "./scripts/i18n/memsource-download.sh"
   },
   "dependencies": {
     "@openshift-console/plugin-shared": "^0.0.1",

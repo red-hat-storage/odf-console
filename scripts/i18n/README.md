@@ -1,4 +1,4 @@
-This i18n-scripts directory contains all the required scripts for i18n automation. Also, the list of languages we are currently supporting are stored in `languages.sh`.
+This i18n directory contains all the required scripts for i18n automation. Also, the list of languages we are currently supporting are stored in `languages.sh`.
 
 ## Steps
 
