@@ -5,6 +5,6 @@ import { Actions } from '../../../constants/dr-policy';
 
 export const DRPolicyActions = (t: TFunction): ModalMap => ({
   [Actions(t).APPLY_DR_POLICY]: React.lazy(
-    () => import('./apply-policy/apply-policy-modal')
+    () => import('../../modals/drpolicy-apps-apply/apply-policy-modal')
   ),
 });

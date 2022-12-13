@@ -33,23 +33,23 @@ import {
   FormGroup,
   Checkbox,
 } from '@patternfly/react-core';
-import { DR_SECHEDULER_NAME, HUB_CLUSTER_NAME } from '../../../../constants';
+import { DR_SECHEDULER_NAME, HUB_CLUSTER_NAME } from '../../../constants';
 import {
   ACMPlacementRuleModel,
   ACMSubscriptionModel,
   DRPlacementControlModel,
-} from '../../../../models';
+} from '../../../models';
 import {
   DRPolicyKind,
   ACMPlacementRuleKind,
   ACMSubscriptionKind,
   DRPlacementControlKind,
   AppToPlacementRule,
-} from '../../../../types';
+} from '../../../types';
 import {
   matchApplicationToSubscription,
   getPlacementKind,
-} from '../../../../utils';
+} from '../../../utils';
 import { ApplicationSelector } from './application-selector';
 import './apply-policy-modal.scss';
 

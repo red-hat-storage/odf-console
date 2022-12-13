@@ -4,13 +4,13 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { RouteComponentProps } from 'react-router';
-import { DRPolicyListPage } from '../../disaster-recovery/drpolicy-list-page/drpolicy-list-page';
+import { DRPolicyListPage } from '../disaster-recovery/drpolicy-list-page/drpolicy-list-page';
 
-type DataPoliciesListProps = {
+type DataPoliciesPageProps = {
   history: RouteComponentProps['history'];
 };
 
-export const DataPoliciesList: React.FC<DataPoliciesListProps> = () => {
+export const DataPoliciesPage: React.FC<DataPoliciesPageProps> = () => {
   const { t } = useCustomTranslation();
   const title = t('Data policies');
   const pages = [

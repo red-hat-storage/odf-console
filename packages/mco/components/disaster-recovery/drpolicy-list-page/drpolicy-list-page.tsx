@@ -29,8 +29,8 @@ import { DRPolicyModel, DRPlacementControlModel } from '../../../models';
 import { DRPolicyKind, DRPlacementControlKind } from '../../../types';
 import { getReplicationType } from '../../../utils';
 import EmptyPage from '../../empty-state-page/empty-page';
-import { DRPolicyActions } from '../drpolicy-actions/policy-actions';
-import { ApplicationStatus } from './application-status';
+import { ApplicationStatus } from '../../modals/drpolicy-apps-status/application-status';
+import { DRPolicyActions } from './drpolicy-list-page-actions';
 import './drpolicy-list-page.scss';
 
 type CustomData = {

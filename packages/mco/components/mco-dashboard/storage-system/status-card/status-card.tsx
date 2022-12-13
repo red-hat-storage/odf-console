@@ -22,8 +22,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
-import { ACM_ENDPOINT, HUB_CLUSTER_NAME } from '../../../constants';
-import { StorageDashboard, STATUS_QUERIES } from '../queries';
+import { ACM_ENDPOINT, HUB_CLUSTER_NAME } from '../../../../constants';
+import { StorageDashboard, STATUS_QUERIES } from '../../storage-system/queries';
 import {
   StorageSystemPopup,
   ODFOperatorPopup,

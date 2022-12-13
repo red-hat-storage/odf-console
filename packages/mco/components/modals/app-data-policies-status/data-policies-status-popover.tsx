@@ -34,8 +34,8 @@ import {
   ApplicationDRInfo,
   DRPolicyMap,
 } from '../../../utils';
-import { DRStatusCard } from '../../disaster-recovery/app-dr-status/dr-status-card';
 import { DataPoliciesStatusType } from './data-policies-status-modal';
+import { DRStatusCard } from './dr-status-card';
 import './data-policies-status-popover.scss';
 
 const getDRPolicies = (appDRInfoList: ApplicationDRInfo[]): DRPolicyMap =>

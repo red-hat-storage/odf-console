@@ -37,7 +37,7 @@
     "properties": {
       "path": "/multicloud/data-services/data-policies",
       "exact": true,
-      "component": { "$codeRef": "dataPolicies.DataPoliciesList" }
+      "component": { "$codeRef": "dataPolicies.DataPoliciesPage" }
     }
   },
   {
