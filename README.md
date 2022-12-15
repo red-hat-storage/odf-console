@@ -18,3 +18,33 @@ After the OCP console is set as required by ODF Console. Performs the following 
 3. Clone this repo.
 4. Pull all required dependencies by running `yarn install`.
 5. Run the development mode of odf-console using `yarn run dev`. This runs a webserver in port 9001.
+
+### Unit Tests
+
+Run all unit tests:
+
+```
+yarn test
+# Run them with coverage:
+yarn test-coverage
+```
+
+### E2E Tests
+
+E2E tests are written in [Cypress](https://www.cypress.io/).
+
+Launch Cypress test runner:
+
+```
+yarn test-cypress
+```
+
+This will launch the Cypress Test Runner UI, where you can run one or all cypress tests after choosing the required browser.
+
+It is also possible to run the Cypress tests in headless mode:
+
+```
+yarn test-cypress-headless
+```
+
+By default, it will look for Chrome in the system and use it, but if you want to use Firefox instead, set BRIDGE_E2E_BROWSER_NAME environment variable in your shell with the value firefox.
