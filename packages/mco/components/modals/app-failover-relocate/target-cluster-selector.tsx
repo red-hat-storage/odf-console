@@ -63,18 +63,18 @@ const getLastUpdatedTime = (lastAvailableTime: string, t: TFunction) => {
   );
 };
 
-const validClusterStatus = (t: TFunction, targetClusterName: string) => ({
+const validClusterStatus = (t: TFunction, originClusterName: string) => ({
   [ACTION_TYPE.FAILOVER]: {
     status: ['Fenced'],
-    errorMessage: t('Target cluster {{cluster}} is not fenced.', {
-      cluster: targetClusterName,
+    errorMessage: t('Primary cluster {{cluster}} is not fenced.', {
+      cluster: originClusterName,
     }),
   },
   [ACTION_TYPE.RELOCATE]: {
     status: ['Unfenced', 'Available'],
     errorMessage: t(
-      'Target cluster {{cluster}} is unavailable or not unfenced.',
-      { cluster: targetClusterName }
+      'Primary cluster {{cluster}} is unavailable or not unfenced.',
+      { cluster: originClusterName }
     ),
   },
 });
@@ -221,18 +221,21 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
     let isClusterFenced = true;
     let errorMessage = '';
 
+    // Check the target gluster status
     if (isClusterAvailable) {
       // Check DR fencing status for origin cluster
       const drClusters = drClusterList.map((drCluster) => drCluster);
+      // Get the origin/primary cluster from the fence list
+      const originCluster = drClusters.find(
+        (drCluster) => getName(drCluster) !== getName(managedCluster)
+      );
       const replicationType = getRelicationTypeUsingDRClusters(drClusters);
       if (replicationType === REPLICATION_TYPE.SYNC) {
+        // Validate origin cluster and its availablity
         const requiredClusterStatus = validClusterStatus(
           t,
-          getName(managedCluster)
+          getName(originCluster)
         )[state.actionType];
-        const originCluster = drClusters.find(
-          (drCluster) => getName(drCluster) !== getName(managedCluster)
-        );
         isClusterAvailable = requiredClusterStatus.status.includes(
           originCluster?.status?.phase
         );
