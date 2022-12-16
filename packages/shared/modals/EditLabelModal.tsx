@@ -6,13 +6,14 @@ import {
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash-es';
 import {
-  Alert,
   Button,
   Modal,
   ModalVariant,
   Title,
   TitleSizes,
+  AlertProps,
 } from '@patternfly/react-core';
+import FormAlertInline from '../generic/FormAlertInline';
 import { LoadingInline } from '../generic/Loading';
 import { ResourceIcon } from '../resource-link/resource-link';
 import { useCustomTranslation } from '../useCustomTranslationHook';
@@ -27,20 +28,6 @@ type Patch = {
 };
 
 const LABELS_PATH = '/metadata/labels';
-
-export const ErrorMessage = ({ message }) => {
-  const { t } = useCustomTranslation();
-  return (
-    <Alert
-      isInline
-      className="co-alert co-alert--scrollable"
-      variant="danger"
-      title={t('An error occurred')}
-    >
-      <div className="co-pre-line">{message}</div>
-    </Alert>
-  );
-};
 
 type EditLabelModalExtraProps = {
   resource: K8sResourceCommon;
@@ -73,6 +60,9 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
   );
   const [loading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState();
+  const [errorTitle, setErrorTitle] = React.useState();
+  const [errorVariant, setErrorVariant] =
+    React.useState<AlertProps['variant']>();
 
   const createPath = !labels.length;
   const { t } = useCustomTranslation();
@@ -97,7 +87,9 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
         closeModal();
       })
       .catch((err) => {
+        setErrorTitle(t('An error occurred'));
         setErrorMessage(err.message);
+        setErrorVariant('danger');
       })
       .finally(() => {
         setLoading(false);
@@ -113,6 +105,23 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
         : t('Edit labels')}
     </Title>
   );
+
+  const handleSelectorInputErrorMessage = (isValid: boolean) => {
+    if (isValid) {
+      setErrorTitle(undefined);
+      setErrorMessage(undefined);
+      setErrorVariant(undefined);
+    } else {
+      setErrorTitle(t('Invalid label name'));
+      setErrorMessage(
+        t(
+          'Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers and non-consecutive dots (.), and hyphens (-), forward slash (/), underscore(_) and equal to (=)'
+        )
+      );
+      setErrorVariant('warning');
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -142,10 +151,15 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
               tags={labels}
               labelClassName={labelClassName || `co-text-${resourceModel.id}`}
               autoFocus
+              setErrorMessage={handleSelectorInputErrorMessage}
             />
           </div>
         </div>
-        <div>{errorMessage && <ErrorMessage message={errorMessage} />}</div>
+        <FormAlertInline
+          title={errorTitle}
+          message={errorMessage}
+          variant={errorVariant}
+        />
       </ModalBody>
       <ModalFooter>
         <Button

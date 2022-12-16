@@ -9,13 +9,13 @@ import {
   Title,
   TitleSizes,
 } from '@patternfly/react-core';
+import FormAlertInline from '../generic/FormAlertInline';
 import { LoadingInline } from '../generic/Loading';
 import { getAnnotations } from '../selectors';
 import { K8sResourceKind } from '../types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { AsyncLoader } from '../utils/AsyncLoader';
 import { NameValueEditorPair } from '../utils/NameValueEditor';
-import { ErrorMessage } from './EditLabelModal';
 import { CommonModalProps, ModalBody, ModalFooter } from './Modal';
 
 /**
@@ -116,7 +116,10 @@ export const AnnotationsModal: React.FC<AnnotationsModalProps> = ({
             setTags(nameValuePairs);
           }}
         />
-        <div>{errorMessage && <ErrorMessage message={errorMessage} />}</div>
+        <FormAlertInline
+          title={t('An error occurred')}
+          message={errorMessage}
+        />
       </ModalBody>
       <ModalFooter>
         <Button

@@ -188,18 +188,21 @@ export class SelectorInput extends React.Component<any, SelectorInputState> {
     // If the user deletes an existing inputValue, set isInputValid back to true
     if (inputValue === '') {
       this.setState({ inputValue, isInputValid: true });
+      this.props.setErrorMessage(true);
       return;
     }
-
-    this.setState({ inputValue, isInputValid: this.isTagValid(inputValue) });
+    const isInputValid = this.isTagValid(inputValue);
+    this.props.setErrorMessage(isInputValid);
+    this.setState({ inputValue, isInputValid });
   }
 
   handleChange(tags, changed) {
     // The way we use TagsInput, there should only ever be one new tag in changed
     const newTag = changed[0];
-
-    if (!this.isTagValid(newTag)) {
-      this.setState({ isInputValid: false });
+    const isInputValid = this.isTagValid(newTag);
+    this.props.setErrorMessage(isInputValid);
+    if (!isInputValid) {
+      this.setState({ isInputValid });
       return;
     }
 
