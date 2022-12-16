@@ -29,9 +29,7 @@ import {
   MINIMUM_NODES,
   IP_FAMILY,
   NO_PROVISIONER,
-  OCS_DEVICE_SET_ARBITER_REPLICA,
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
-  OCS_DEVICE_SET_REPLICA,
   ATTACHED_DEVICES_ANNOTATION,
   OCS_INTERNAL_CR_NAME,
 } from '../../constants';
@@ -294,11 +292,36 @@ export const prettifyJSON = (data: string) =>
         return container;
       })();
 
+export const getUniqueZonesSet = (nodes: WizardNodeState[]): Set<string> => {
+  const uniqueZonesSet: Set<string> = nodes.reduce((acc, curr) => {
+    acc.add(curr.zone);
+    return acc;
+  }, new Set<string>());
+  return uniqueZonesSet;
+};
+
+export const getDeviceSetReplica = (
+  isStretchCluster: boolean,
+  isFlexibleScaling: boolean,
+  nodes: WizardNodeState[]
+) => {
+  const uniqueZonesSet: Set<string> = getUniqueZonesSet(nodes);
+  if (isFlexibleScaling) {
+    return OCS_DEVICE_SET_FLEXIBLE_REPLICA;
+  }
+  if (isStretchCluster) {
+    return uniqueZonesSet.size + 1;
+  }
+
+  return uniqueZonesSet.size;
+};
+
 export const getOCSRequestData = (
   storageClass: WizardState['storageClass'],
   storage: string,
   encryption: EncryptionType,
   isMinimal: boolean,
+  nodes: WizardNodeState[],
   flexibleScaling = false,
   publicNetwork?: string,
   clusterNetwork?: string,
@@ -311,11 +334,12 @@ export const getOCSRequestData = (
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
   const isPortable: boolean = flexibleScaling ? false : !isNoProvisioner;
-  const deviceSetReplica: number = stretchClusterChecked
-    ? OCS_DEVICE_SET_ARBITER_REPLICA
-    : flexibleScaling
-    ? OCS_DEVICE_SET_FLEXIBLE_REPLICA
-    : OCS_DEVICE_SET_REPLICA;
+  const deviceSetReplica: number = getDeviceSetReplica(
+    stretchClusterChecked,
+    flexibleScaling,
+    nodes
+  );
+
   const deviceSetCount = getDeviceSetCount(availablePvsCount, deviceSetReplica);
 
   const requestData: StorageClusterKind = {

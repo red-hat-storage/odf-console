@@ -4,7 +4,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { SelectOption } from '@patternfly/react-core';
-import { OCS_DEVICE_SET_REPLICA, OSD_CAPACITY_SIZES } from '../../constants';
+import { OSD_CAPACITY_SIZES } from '../../constants';
 
 const valueLabelMap = (t: TFunction) => {
   return {
@@ -36,20 +36,21 @@ const dropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
 
 export const TotalCapacityText: React.FC<TotalCapacityTextProps> = ({
   capacity,
+  replica,
 }) => {
   const { t } = useCustomTranslation();
 
   return (
     <span>
       {t('x {{replica}} replicas = {{osdSize, number}} TiB', {
-        replica: OCS_DEVICE_SET_REPLICA,
-        osdSize: OSD_CAPACITY_SIZES[capacity] * 3,
+        replica,
+        osdSize: OSD_CAPACITY_SIZES[capacity] * replica,
       })}
     </span>
   );
 };
 
-type TotalCapacityTextProps = { capacity: string };
+type TotalCapacityTextProps = { capacity: string; replica: number };
 
 export const OSDSizeDropdown: React.FC<OSDSizeDropdownProps> = ({
   selectedKey,

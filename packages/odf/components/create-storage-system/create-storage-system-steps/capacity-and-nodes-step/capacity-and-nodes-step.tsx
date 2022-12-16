@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { createWizardNodeState } from '@odf/core/components/utils';
+import {
+  createWizardNodeState,
+  getUniqueZonesSet,
+} from '@odf/core/components/utils';
 import {
   capacityAndNodesValidate,
   isValidStretchClusterTopology,
@@ -108,6 +111,13 @@ type EnableTaintNodesProps = {
   enableTaint: WizardState['capacityAndNodes']['enableTaint'];
 };
 
+type SelectCapacityAndNodesProps = {
+  dispatch: WizardDispatch;
+  capacity: WizardState['capacityAndNodes']['capacity'];
+  nodes: WizardState['nodes'];
+  enableTaint: WizardState['capacityAndNodes']['enableTaint'];
+};
+
 const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
   dispatch,
   capacity,
@@ -129,6 +139,10 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
     },
     [dispatch]
   );
+
+  const zones = getUniqueZonesSet(nodes);
+  // When there are more than 3 zones we create one OSD for each zone
+  const replicas = zones.size < 3 ? 3 : zones.size;
 
   return (
     <>
@@ -156,7 +170,10 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
             />
           </GridItem>
           <GridItem span={7}>
-            <TotalCapacityText capacity={capacity as string} />
+            <TotalCapacityText
+              capacity={capacity as string}
+              replica={replicas}
+            />
           </GridItem>
         </Grid>
       </FormGroup>
@@ -180,13 +197,6 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
       <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
     </>
   );
-};
-
-type SelectCapacityAndNodesProps = {
-  dispatch: WizardDispatch;
-  capacity: WizardState['capacityAndNodes']['capacity'];
-  nodes: WizardState['nodes'];
-  enableTaint: WizardState['capacityAndNodes']['enableTaint'];
 };
 
 const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({

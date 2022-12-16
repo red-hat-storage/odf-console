@@ -45,10 +45,12 @@ import {
   ModalVariant,
 } from '@patternfly/react-core';
 import {
+  createWizardNodeState,
+  getDeviceSetReplica,
+} from '../../components/utils';
+import {
   defaultRequestSize,
   NO_PROVISIONER,
-  OCS_DEVICE_SET_ARBITER_REPLICA,
-  OCS_DEVICE_SET_REPLICA,
   OSD_CAPACITY_SIZES,
   requestedCapacityTooltip,
   storageClassTooltip,
@@ -231,9 +233,11 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   );
   const hasFlexibleScaling = checkFlexibleScaling(ocsConfig);
   const isArbiterEnabled: boolean = checkArbiterCluster(ocsConfig);
-  const replica = isArbiterEnabled
-    ? OCS_DEVICE_SET_ARBITER_REPLICA
-    : OCS_DEVICE_SET_REPLICA;
+  const replica = getDeviceSetReplica(
+    isArbiterEnabled,
+    hasFlexibleScaling,
+    createWizardNodeState(nodesData)
+  );
   const name = ocsConfig?.metadata?.name;
   const totalCapacityMetric = values?.[0];
   const usedCapacityMetric = values?.[1];
@@ -317,7 +321,6 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
 
     if (hasFlexibleScaling) {
       portable = false;
-      deviceSetReplica = 1;
     }
     if (isNoProvionerSC)
       deviceSetCount = getDeviceSetCount(availablePvsCount, deviceSetReplica);
