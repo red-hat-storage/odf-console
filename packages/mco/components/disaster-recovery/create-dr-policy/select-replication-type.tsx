@@ -13,6 +13,7 @@ import {
 import { CaretDownIcon } from '@patternfly/react-icons';
 import { REPLICATION_TYPE, REPLICATION_DISPLAY_TEXT } from '../../../constants';
 import { DRPolicyState, DRPolicyAction, DRPolicyActionType } from './reducer';
+import '../../../style.scss';
 
 type SyncScheduleProps = {
   state: DRPolicyState;
@@ -143,7 +144,7 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
   const errorMessage = (message: string) => (
     <Alert
       data-test="odf-not-found-alert"
-      className="co-alert mco-create-data-policy__alert"
+      className="odf-alert mco-create-data-policy__alert"
       title={message}
       variant={AlertVariant.danger}
       isInline

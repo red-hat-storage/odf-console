@@ -7,6 +7,7 @@ import { RouteComponentProps } from 'react-router';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { StatusCard } from './status-card/status-card';
 import SystemCapacityCard from './system-capacity-card/capacity-card';
+import '../../style.scss';
 
 type MCODashboardPageProps = {
   history: RouteComponentProps['history'];
@@ -25,7 +26,7 @@ const UpperSection: React.FC = () => (
 
 export const MCODashboard: React.FC = () => {
   return (
-    <div className="co-dashboard-body">
+    <div className="odf-dashboard-body">
       <UpperSection />
     </div>
   );
