@@ -52,7 +52,7 @@ import {
 } from '../../../utils';
 import { ApplicationSelector } from './application-selector';
 import './apply-policy-modal.scss';
-import '../../../../style.scss';
+import '../../../style.scss';
 
 type ApplyModalExtraProps = {
   resource: DRPolicyKind;

@@ -7,7 +7,7 @@ import { RouteComponentProps } from 'react-router';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { StatusCard } from './status-card/status-card';
 import SystemCapacityCard from './system-capacity-card/capacity-card';
-import '../../style.scss';
+import '../../../style.scss';
 
 type MCODashboardPageProps = {
   history: RouteComponentProps['history'];
