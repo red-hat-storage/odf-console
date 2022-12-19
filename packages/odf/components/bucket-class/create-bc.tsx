@@ -24,6 +24,7 @@ import { SingleNamespaceStorePage } from './wizard-pages/namespace-store-pages/s
 import PlacementPolicyPage from './wizard-pages/placement-policy-page';
 import ReviewPage from './wizard-pages/review-page';
 import './create-bc.scss';
+import '../../style.scss';
 
 enum CreateStepsBC {
   GENERAL = 'GENERAL',
@@ -327,11 +328,11 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
   return (
     <>
       <Modal {...modalProps} />
-      <div className="co-create-operand__header">
+      <div className="odf-create-operand__header">
         <Title
           size="2xl"
           headingLevel="h1"
-          className="co-create-operand__header-text"
+          className="odf-create-operand__header-text"
         >
           {t('Create new BucketClass')}
         </Title>
