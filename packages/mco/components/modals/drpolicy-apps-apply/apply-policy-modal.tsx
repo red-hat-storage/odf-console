@@ -149,6 +149,27 @@ const getSelectedPlacementRules = (
   selectedApps: TreeViewDataItem[]
 ): TreeViewDataItem[] => selectedApps.filter((app) => !app.children);
 
+const filterSelectedPlacementRules = (
+  checkedItems: TreeViewDataItem[],
+  appToPlacementRuleMap: AppToPlacementRule
+): ACMPlacementRuleKind[] => {
+  // Remove duplicate placement rules when it is used under more than one apps
+  const placementRules: ACMPlacementRuleKind[] = [];
+  checkedItems?.forEach((app) => {
+    const appId = app.id.split(':')[0];
+    if (Object.keys(appToPlacementRuleMap).includes(appId) && !app?.children) {
+      const placementRuleId = app.id.split(':')[1];
+      const appToPlsRuleMap = appToPlacementRuleMap?.[appId];
+      const plsRule =
+        appToPlsRuleMap?.placements?.[placementRuleId]?.placementRules;
+      if (!placementRules.includes(plsRule)) {
+        placementRules.push(plsRule);
+      }
+    }
+  });
+  return placementRules;
+};
+
 const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
   props
 ) => {
@@ -338,45 +359,40 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
   const submit = (event: React.FormEvent<EventTarget>) => {
     event.preventDefault();
     setLoading(true);
+    const selectedPlsRule: ACMPlacementRuleKind[] =
+      filterSelectedPlacementRules(
+        selectedApps?.checkedItems,
+        appToPlacementRuleMap
+      );
     const promises: Promise<K8sResourceKind>[] = [];
-    selectedApps?.checkedItems?.forEach((app) => {
-      const appId = app.id.split(':')[0];
-      if (
-        Object.keys(appToPlacementRuleMap).includes(appId) &&
-        !app?.children
-      ) {
-        const placementRuleId = app.id.split(':')[1];
-        const appToPlsRuleMap = appToPlacementRuleMap?.[appId];
-        const plsRule =
-          appToPlsRuleMap?.placements?.[placementRuleId]?.placementRules;
-        const patch = [
-          {
-            op: 'replace',
-            path: '/spec/schedulerName',
-            value: DR_SECHEDULER_NAME,
-          },
-        ];
-        promises.push(
-          k8sPatch({
-            model: ACMPlacementRuleModel,
-            resource: plsRule,
-            data: patch,
-            cluster: HUB_CLUSTER_NAME,
-          })
-        );
-        promises.push(
-          k8sCreate({
-            model: DRPlacementControlModel,
-            data: getDRPlacementControlKindObj(
-              plsRule,
-              resource,
-              managedClusterNames,
-              selectedPlacementRules?.length <= 1 ? labels : []
-            ),
-            cluster: HUB_CLUSTER_NAME,
-          })
-        );
-      }
+    selectedPlsRule?.forEach((plsRule) => {
+      const patch = [
+        {
+          op: 'replace',
+          path: '/spec/schedulerName',
+          value: DR_SECHEDULER_NAME,
+        },
+      ];
+      promises.push(
+        k8sPatch({
+          model: ACMPlacementRuleModel,
+          resource: plsRule,
+          data: patch,
+          cluster: HUB_CLUSTER_NAME,
+        })
+      );
+      promises.push(
+        k8sCreate({
+          model: DRPlacementControlModel,
+          data: getDRPlacementControlKindObj(
+            plsRule,
+            resource,
+            managedClusterNames,
+            selectedPlacementRules?.length <= 1 ? labels : []
+          ),
+          cluster: HUB_CLUSTER_NAME,
+        })
+      );
     });
     Promise.all(promises)
       .then(() => {
