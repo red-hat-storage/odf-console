@@ -27,6 +27,7 @@ import { getAttachOBCPatch } from '../../utils';
 import { CreateOBCForm } from '../mcg/CreateObjectBucketClaim';
 import { commonReducer, defaultState } from '../mcg/state';
 import './AttachOBC.scss';
+import '../../style.scss';
 
 const AttachStorage: React.FC<AttachStorageProps> = (props) => {
   const { t } = useCustomTranslation();
@@ -76,7 +77,10 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
   const onRadioToggle = () => setCreateOBC((val) => !val);
 
   return (
-    <Form onSubmit={onSubmit} className="co-m-pane__body-group co-m-pane__form">
+    <Form
+      onSubmit={onSubmit}
+      className="odf-m-pane__body-group odf-m-pane__form"
+    >
       <FormGroup fieldId="exists" label={t('ObjectBucketClaim')} isRequired>
         <Radio
           label={t('Use existing claim')}
