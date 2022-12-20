@@ -90,3 +90,19 @@ export enum TimeUnits {
   HOUR = 'Hour',
   MIN = 'Min',
 }
+
+export enum createFormAction {
+  SET_NAME = 'setName',
+  SET_PROVIDER = 'setProvider',
+  SET_SECRET_NAME = 'setSecretName',
+  SET_SECRET_KEY = 'setSecretKey',
+  SET_ACCESS_KEY = 'setAccessKey',
+  SET_REGION = 'setRegion',
+  SET_TARGET = 'setTarget',
+  SET_END_POINT = 'setEndpoint',
+  SET_PVC = 'setPVC',
+  SET_GCP_JSON = 'setGcpJSON',
+  SET_PVC_VOLUME_SIZE = 'setVolumeSize',
+  SET_PVC_VOLUME = 'setVolumes',
+  SET_PVC_STORAGE_CLASS = 'setStorageClass',
+}

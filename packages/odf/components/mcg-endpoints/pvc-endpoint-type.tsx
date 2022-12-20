@@ -6,6 +6,7 @@ import { StorageClass } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
 import { FormGroup, NumberInput } from '@patternfly/react-core';
+import { createFormAction } from '../../constants';
 import { isObjectSC } from '../../utils';
 import {
   BackingStoreProviderDataState,
@@ -51,7 +52,7 @@ export const PVCType: React.FC<PVCTypeProps> = ({ state, dispatch }) => {
     const { value, unit } = event;
     const input = `${value}${unitConverter[unit]}`;
     setSize(value);
-    dispatch({ type: 'setVolumeSize', value: input });
+    dispatch({ type: createFormAction.SET_PVC_VOLUME_SIZE, value: input });
   };
 
   const onlyPvcSCs = React.useCallback(
@@ -60,7 +61,10 @@ export const PVCType: React.FC<PVCTypeProps> = ({ state, dispatch }) => {
   );
 
   const onVolumeChange = (event) =>
-    dispatch({ type: 'setVolumes', value: Number(event.target.value) });
+    dispatch({
+      type: createFormAction.SET_PVC_VOLUME,
+      value: Number(event.target.value),
+    });
 
   return (
     <>
@@ -74,10 +78,16 @@ export const PVCType: React.FC<PVCTypeProps> = ({ state, dispatch }) => {
           value={state.numVolumes}
           onChange={onVolumeChange}
           onMinus={() =>
-            dispatch({ type: 'setVolumes', value: state.numVolumes - 1 })
+            dispatch({
+              type: createFormAction.SET_PVC_VOLUME,
+              value: state.numVolumes - 1,
+            })
           }
           onPlus={() =>
-            dispatch({ type: 'setVolumes', value: state.numVolumes + 1 })
+            dispatch({
+              type: createFormAction.SET_PVC_VOLUME,
+              value: state.numVolumes + 1,
+            })
           }
           inputName="volume-input"
           inputAriaLabel="volumes-input"
@@ -108,7 +118,10 @@ export const PVCType: React.FC<PVCTypeProps> = ({ state, dispatch }) => {
         <ResourceDropdown<StorageClass>
           resourceModel={StorageClassModel}
           onSelect={(sc) =>
-            dispatch({ type: 'setStorageClass', value: getName(sc) })
+            dispatch({
+              type: createFormAction.SET_PVC_STORAGE_CLASS,
+              value: getName(sc),
+            })
           }
           filterResource={onlyPvcSCs}
           className="odf-mcg__resource-dropdown"

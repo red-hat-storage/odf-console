@@ -22,12 +22,12 @@ export type ProviderDataState = {
 };
 
 export type StoreAction =
-  | { type: 'setSecretName'; value: string }
-  | { type: 'setSecretKey'; value: string }
-  | { type: 'setAccessKey'; value: string }
-  | { type: 'setRegion'; value: string }
-  | { type: 'setTarget'; value: string }
-  | { type: 'setEndpoint'; value: string };
+  | { type: createFormAction.SET_SECRET_NAME; value: string }
+  | { type: createFormAction.SET_SECRET_KEY; value: string }
+  | { type: createFormAction.SET_ACCESS_KEY; value: string }
+  | { type: createFormAction.SET_REGION; value: string }
+  | { type: createFormAction.SET_TARGET; value: string }
+  | { type: createFormAction.SET_END_POINT; value: string };
 
 type S3EndpointTypeProps = {
   type: StoreType;
@@ -65,13 +65,13 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
 
   const switchToSecret = () => {
     setShowSecret(true);
-    dispatch({ type: 'setAccessKey', value: '' });
-    dispatch({ type: 'setSecretKey', value: '' });
+    dispatch({ type: createFormAction.SET_ACCESS_KEY, value: '' });
+    dispatch({ type: createFormAction.SET_SECRET_KEY, value: '' });
   };
 
   const switchToCredentials = () => {
     setShowSecret(false);
-    dispatch({ type: 'setSecretName', value: '' });
+    dispatch({ type: createFormAction.SET_SECRET_NAME, value: '' });
   };
 
   return (

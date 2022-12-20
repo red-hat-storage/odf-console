@@ -27,6 +27,7 @@ import { ActionGroup, Alert, Button, Form } from '@patternfly/react-core';
 import {
   BC_PROVIDERS,
   BUCKET_LABEL_NOOBAA_MAP,
+  createFormAction,
   NOOBAA_TYPE_MAP,
   PROVIDERS_NOOBAA_MAP,
   StoreType,
@@ -44,11 +45,135 @@ import validationRegEx from '../../utils/validation';
 import { GCPEndpointType } from '../mcg-endpoints/gcp-endpoint-type';
 import { PVCType } from '../mcg-endpoints/pvc-endpoint-type';
 import { S3EndPointType } from '../mcg-endpoints/s3-endpoint-type';
-import { providerDataReducer, initialState } from './reducer';
+import {
+  providerDataReducer,
+  initialState,
+  BackingStoreProviderDataState,
+} from './reducer';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 
 const PROVIDERS = getProviders(StoreType.BS);
 const externalProviders = getExternalProviders(StoreType.BS);
+
+const isFormValid = (form: BackingStoreProviderDataState): boolean => {
+  const {
+    name,
+    provider,
+    accessKey,
+    secretKey,
+    secretName,
+    region,
+    endpoint,
+    target,
+    numVolumes,
+    volumeSize,
+    storageClass,
+    gcpJSON,
+  } = form;
+  const secretValid = !!(secretName || (secretKey && accessKey));
+  const nameValid = !!name?.trim() && name.length <= 42;
+  switch (provider) {
+    case BC_PROVIDERS.AWS: {
+      return nameValid && !!region && secretValid && !!target;
+    }
+    case BC_PROVIDERS.IBM:
+    case BC_PROVIDERS.S3: {
+      return nameValid && !!endpoint && secretValid && !!target;
+    }
+    case BC_PROVIDERS.AZURE: {
+      return nameValid && secretValid && !!target;
+    }
+    case BC_PROVIDERS.PVC: {
+      return nameValid && numVolumes >= 1 && !!storageClass && !!volumeSize;
+    }
+    case BC_PROVIDERS.GCP: {
+      return nameValid && !!target && (!!secretName || !!gcpJSON);
+    }
+    default: {
+      return false;
+    }
+  }
+};
+
+const providerSelection = (provider, formDataDispatch) => {
+  formDataDispatch({
+    type: 'setProvider',
+    value: PROVIDERS[provider],
+  });
+  if (provider === BC_PROVIDERS.AWS) {
+    formDataDispatch({
+      type: 'setRegion',
+      value: initialState.region,
+    });
+  } else {
+    formDataDispatch({
+      type: 'setRegion',
+      value: '',
+    });
+  }
+  if (provider !== BC_PROVIDERS.S3 && provider !== BC_PROVIDERS.IBM) {
+    formDataDispatch({
+      type: 'setEndpoint',
+      value: '',
+    });
+  }
+  if (provider === BC_PROVIDERS.GCP) {
+    formDataDispatch({
+      type: 'setGcpJSON',
+      value: initialState.gcpJSON,
+    });
+  } else {
+    formDataDispatch({
+      type: 'setGcpJSON',
+      value: '',
+    });
+  }
+  if (provider === BC_PROVIDERS.PVC) {
+    formDataDispatch({
+      type: 'setVolumes',
+      value: initialState.numVolumes,
+    });
+    formDataDispatch({
+      type: 'setVolumeSize',
+      value: initialState.volumeSize,
+    });
+    formDataDispatch({
+      type: 'setStorageClass',
+      value: initialState.storageClass,
+    });
+    formDataDispatch({
+      type: 'setTarget',
+      value: initialState.target,
+    });
+  } else {
+    formDataDispatch({
+      type: 'setVolumes',
+      value: '',
+    });
+    formDataDispatch({
+      type: 'setVolumeSize',
+      value: '',
+    });
+    formDataDispatch({
+      type: 'setStorageClass',
+      value: '',
+    });
+  }
+  if (provider === BC_PROVIDERS.GCP || provider === BC_PROVIDERS.PVC) {
+    formDataDispatch({
+      type: 'setSecretName',
+      value: initialState.secretName,
+    });
+    formDataDispatch({
+      type: 'setAccessKey',
+      value: initialState.accessKey,
+    });
+    formDataDispatch({
+      type: 'setSecretKey',
+      value: initialState.secretKey,
+    });
+  }
+};
 
 const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
   props
@@ -75,6 +200,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
     onCancel,
     onClose,
   } = props;
+  const { provider } = providerDataState;
 
   const [data, loaded, loadError] = useK8sList<BackingStoreKind>(
     NooBaaBackingStoreModel,
@@ -133,12 +259,11 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
   const onSubmit = (values, event) => {
     event.preventDefault();
     setProgress(true);
-    const bsName = values['backingstore-name'];
     /** Create a secret if secret ==='' */
-    let { secretName } = providerDataState;
+    let { secretName, name } = providerDataState;
     const promises = [];
     if (!secretName && provider !== BC_PROVIDERS.PVC) {
-      secretName = bsName.concat('-secret');
+      secretName = providerDataState.name.concat('-secret');
       const { secretKey, accessKey, gcpJSON } = providerDataState;
       const secretPayload = secretPayloadCreator(
         provider,
@@ -147,7 +272,10 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
         accessKey || gcpJSON,
         secretKey
       );
-      providerDataDispatch({ type: 'setSecretName', value: secretName });
+      providerDataDispatch({
+        type: createFormAction.SET_SECRET_NAME,
+        value: secretName,
+      });
       promises.push(k8sCreate({ model: SecretModel, data: secretPayload }));
     }
     /** Payload for bs */
@@ -156,7 +284,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       kind: NooBaaBackingStoreModel.kind,
       metadata: {
         namespace,
-        name: bsName,
+        name,
       },
       spec: {
         type: NOOBAA_TYPE_MAP[provider],
@@ -266,10 +394,10 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
           className: 'nb-endpoints-form-entry',
           isRequired: true,
         }}
-        render={({ value, onChange, onBlur }) => (
+        render={({ value, onBlur }) => (
           <StaticDropdown
             className="nb-endpoints-form-entry__dropdown"
-            onSelect={onChange}
+            onSelect={providerSelection}
             onBlur={onBlur}
             dropdownItems={PROVIDERS}
             defaultSelection={value}
@@ -313,9 +441,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       <ButtonBar errorMessage={error} inProgress={inProgress}>
         <ActionGroup>
           <Button
-            isDisabled={
-              provider === BC_PROVIDERS.PVC && providerDataState.numVolumes < 1
-            }
+            isDisabled={!isFormValid(providerDataState)}
             type="submit"
             data-test="backingstore-create-button"
             variant="primary"

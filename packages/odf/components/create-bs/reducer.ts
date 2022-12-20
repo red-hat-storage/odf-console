@@ -1,6 +1,8 @@
-import { AWS_REGIONS } from '../../constants';
+import { AWS_REGIONS, BC_PROVIDERS, createFormAction } from '../../constants';
 
 export type ProviderDataState = {
+  name: string;
+  provider: BC_PROVIDERS;
   secretName: string;
   secretKey: string;
   accessKey: string;
@@ -10,12 +12,14 @@ export type ProviderDataState = {
 };
 
 export type StoreAction =
-  | { type: 'setSecretName'; value: string }
-  | { type: 'setSecretKey'; value: string }
-  | { type: 'setAccessKey'; value: string }
-  | { type: 'setRegion'; value: string }
-  | { type: 'setTarget'; value: string }
-  | { type: 'setEndpoint'; value: string };
+  | { type: createFormAction.SET_NAME; value: string }
+  | { type: createFormAction.SET_PROVIDER; value: string }
+  | { type: createFormAction.SET_SECRET_NAME; value: string }
+  | { type: createFormAction.SET_SECRET_KEY; value: string }
+  | { type: createFormAction.SET_ACCESS_KEY; value: string }
+  | { type: createFormAction.SET_REGION; value: string }
+  | { type: createFormAction.SET_TARGET; value: string }
+  | { type: createFormAction.SET_END_POINT; value: string };
 
 export type BackingStoreProviderDataState = ProviderDataState & {
   numVolumes: number;
@@ -26,12 +30,14 @@ export type BackingStoreProviderDataState = ProviderDataState & {
 
 export type BackingStoreAction =
   | StoreAction
-  | { type: 'setGcpJSON'; value: string }
-  | { type: 'setVolumes'; value: number }
-  | { type: 'setVolumeSize'; value: string }
-  | { type: 'setStorageClass'; value: string };
+  | { type: createFormAction.SET_GCP_JSON; value: string }
+  | { type: createFormAction.SET_PVC_VOLUME; value: number }
+  | { type: createFormAction.SET_PVC_VOLUME_SIZE; value: string }
+  | { type: createFormAction.SET_PVC_STORAGE_CLASS; value: string };
 
 export const initialState: BackingStoreProviderDataState = {
+  name: '',
+  provider: BC_PROVIDERS.AWS,
   secretName: '',
   secretKey: '',
   accessKey: '',
@@ -50,25 +56,29 @@ export const providerDataReducer = (
 ) => {
   const { value } = action;
   switch (action.type) {
-    case 'setSecretName':
+    case createFormAction.SET_NAME:
+      return Object.assign({}, state, { name: value });
+    case createFormAction.SET_PROVIDER:
+      return Object.assign({}, state, { provider: value });
+    case createFormAction.SET_SECRET_NAME:
       return Object.assign({}, state, { secretName: value });
-    case 'setSecretKey':
+    case createFormAction.SET_SECRET_KEY:
       return Object.assign({}, state, { secretKey: value });
-    case 'setAccessKey':
+    case createFormAction.SET_ACCESS_KEY:
       return Object.assign({}, state, { accessKey: value });
-    case 'setRegion':
+    case createFormAction.SET_REGION:
       return Object.assign({}, state, { region: value });
-    case 'setGcpJSON':
+    case createFormAction.SET_GCP_JSON:
       return Object.assign({}, state, { gcpJSON: value });
-    case 'setTarget':
+    case createFormAction.SET_TARGET:
       return Object.assign({}, state, { target: value });
-    case 'setEndpoint':
+    case createFormAction.SET_END_POINT:
       return Object.assign({}, state, { endpoint: value });
-    case 'setVolumes':
+    case createFormAction.SET_PVC_VOLUME:
       return Object.assign({}, state, { numVolumes: value });
-    case 'setVolumeSize':
+    case createFormAction.SET_PVC_VOLUME_SIZE:
       return Object.assign({}, state, { volumeSize: value });
-    case 'setStorageClass':
+    case createFormAction.SET_PVC_STORAGE_CLASS:
       return Object.assign({}, state, { storageClass: value });
     default:
       return initialState;

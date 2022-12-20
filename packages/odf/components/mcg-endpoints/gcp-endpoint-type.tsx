@@ -17,6 +17,7 @@ import {
   Popover,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
+import { createFormAction } from '../../constants';
 import {
   BackingStoreAction,
   BackingStoreProviderDataState,
@@ -100,7 +101,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
       const data = _.get(ev, 'target.result');
       setFileData(data);
       setInputData(file.name);
-      dispatch({ type: 'setGcpJSON', value: data });
+      dispatch({ type: createFormAction.SET_GCP_JSON, value: data });
     };
     reader.readAsText(file);
   };
