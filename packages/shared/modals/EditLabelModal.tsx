@@ -39,7 +39,7 @@ type EditLabelModalProps = {
   labelClassName?: string;
 } & CommonModalProps<EditLabelModalExtraProps>;
 
-const arrayify = (obj) => _.map(obj, (v, k) => (v ? `${k}=${v}` : k));
+export const arrayify = (obj) => _.map(obj, (v, k) => (v ? `${k}=${v}` : k));
 export const objectify = (arr) => {
   const result = {};
   _.each(arr, (item) => {

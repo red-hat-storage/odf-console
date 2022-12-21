@@ -1,8 +1,8 @@
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
 export const ACMPlacementRuleModel: K8sModel = {
-  label: 'Placement Rule',
-  labelPlural: 'Placement Rules',
+  label: 'PlacementRule',
+  labelPlural: 'PlacementRules',
   apiVersion: 'v1',
   apiGroup: 'apps.open-cluster-management.io',
   plural: 'placementrules',
@@ -29,8 +29,8 @@ export const ACMManagedClusterModel: K8sModel = {
   apiGroup: 'clusterview.open-cluster-management.io',
   kind: 'ManagedCluster',
   plural: 'managedclusters',
-  label: 'Managed Cluster',
-  labelPlural: 'Managed Clusters',
+  label: 'ManagedCluster',
+  labelPlural: 'ManagedClusters',
   crd: true,
   abbr: 'MCL',
   namespaced: false,
@@ -55,7 +55,7 @@ export const ACMPlacementModel: K8sModel = {
   apiVersion: 'v1beta1',
   apiGroup: 'cluster.open-cluster-management.io',
   plural: 'placements',
-  abbr: 'PLC',
+  abbr: 'PL',
   namespaced: true,
   kind: 'Placement',
   crd: true,

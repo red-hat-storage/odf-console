@@ -1,8 +1,8 @@
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
 export const DRPolicyModel: K8sModel = {
-  label: 'DR Policy',
-  labelPlural: 'DR Policies',
+  label: 'DRPolicy',
+  labelPlural: 'DRPolicies',
   apiVersion: 'v1alpha1',
   apiGroup: 'ramendr.openshift.io',
   plural: 'drpolicies',
@@ -13,8 +13,8 @@ export const DRPolicyModel: K8sModel = {
 };
 
 export const DRClusterModel: K8sModel = {
-  label: 'DR Cluster',
-  labelPlural: 'DR Clusters',
+  label: 'DRCluster',
+  labelPlural: 'DRClusters',
   apiVersion: 'v1alpha1',
   apiGroup: 'ramendr.openshift.io',
   plural: 'drclusters',
@@ -25,8 +25,8 @@ export const DRClusterModel: K8sModel = {
 };
 
 export const DRPlacementControlModel: K8sModel = {
-  label: 'DR Placement Control',
-  labelPlural: 'DR Placement Controls',
+  label: 'DRPlacementControl',
+  labelPlural: 'DRPlacementControls',
   apiVersion: 'v1alpha1',
   apiGroup: 'ramendr.openshift.io',
   plural: 'drplacementcontrols',
