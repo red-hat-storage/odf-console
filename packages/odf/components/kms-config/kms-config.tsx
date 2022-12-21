@@ -15,6 +15,7 @@ import { ThalesConfigure } from './thales-config';
 import { isLengthUnity } from './utils';
 import { VaultConfigure } from './vault-config';
 import './kms-config.scss';
+import '../../style.scss';
 
 const KMSProviders: KMSProvidersType = [
   {
@@ -73,7 +74,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   );
 
   return (
-    <div className="co-m-pane__form">
+    <div className="odf-m-pane__form">
       {!isWizardFlow && (
         <h3 className="ocs-install-kms__heading">
           {t('Connect to a Key Management Service')}
