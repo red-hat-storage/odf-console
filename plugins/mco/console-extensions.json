@@ -107,12 +107,12 @@
       "title": "%plugin__acm~Failover application%",
       "model": [
         {
-          "apiVersion": "app.k8s.io/v1beta1",
-          "kind": "Application"
+          "apiVersion": "argoproj.io/v1alpha1",
+          "kind": "ApplicationSet"
         }
       ],
       "component": {
-        "$codeRef": "failoverRelocateModal.FailoverModal"
+        "$codeRef": "appFailoverRelocate.ApplicationFailover"
       }
     }
   },
@@ -123,12 +123,12 @@
       "title": "%plugin__acm~Relocate application%",
       "model": [
         {
-          "apiVersion": "app.k8s.io/v1beta1",
-          "kind": "Application"
+          "apiVersion": "argoproj.io/v1alpha1",
+          "kind": "ApplicationSet"
         }
       ],
       "component": {
-        "$codeRef": "failoverRelocateModal.RelocateModal"
+        "$codeRef": "appFailoverRelocate.ApplicationRelocate"
       }
     }
   }

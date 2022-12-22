@@ -4,7 +4,6 @@ import {
   ObjectReference,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import { PlacementDecision } from './acm';
 
 type ClusterStatus = {
   name: string;
@@ -56,6 +55,9 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     conditions?: K8sResourceCondition[];
     phase: string;
     lastGroupSyncTime?: string;
-    preferredDecision?: PlacementDecision;
+    preferredDecision?: {
+      clusterName?: string;
+      clusterNamespace?: string;
+    };
   };
 };
