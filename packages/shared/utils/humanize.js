@@ -267,7 +267,7 @@ validate.split = (value) => {
     number = value.slice(0, index);
     unit = value.slice(index);
   }
-  return [parseFloat(number, 10), unit];
+  return [parseFloat(number), unit];
 };
 
 const baseUnitedValidation = (value) => {
@@ -280,10 +280,11 @@ const baseUnitedValidation = (value) => {
 };
 
 const validateNumber = (float = '') => {
-  if (float < 0) {
+  const number = Number(float);
+  if (number < 0) {
     return 'must be positive';
   }
-  if (!isFinite(float)) {
+  if (!isFinite(number)) {
     return 'must be a number';
   }
 };
