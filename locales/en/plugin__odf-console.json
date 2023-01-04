@@ -340,7 +340,7 @@
   "An error occurred. Pool {{name}} was not created": "An error occurred. Pool {{name}} was not created",
   "Pool {{name}} creation timed out. Please check if odf operator and rook operator are running": "Pool {{name}} creation timed out. Please check if odf operator and rook operator are running",
   "The creation of a StorageCluster is still in progress or has failed. Try again after the StorageCuster is ready to use.": "The creation of a StorageCluster is still in progress or has failed. Try again after the StorageCuster is ready to use.",
-  "Pool management tasks are not supported for default pool and OpenShift Container Storage's external mode.": "Pool management tasks are not supported for default pool and OpenShift Container Storage's external mode.",
+  "Pool management tasks are not supported for default pool and OpenShift Data Foundation's external mode.": "Pool management tasks are not supported for default pool and OpenShift Data Foundation's external mode.",
   "Pool {{name}} was created with errors.": "Pool {{name}} was created with errors.",
   "Loading...": "Loading...",
   "ObjectBucketClaim": "ObjectBucketClaim",
