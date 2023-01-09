@@ -113,6 +113,11 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
     {
       key: Actions(t).APPLY_DR_POLICY,
       value: Actions(t).APPLY_DR_POLICY,
+      props: {
+        isDisabled: !(
+          drPlacementsControlLoaded && !drPlacementsControlLoadError
+        ),
+      },
     },
   ];
 
@@ -252,7 +257,7 @@ export const DRPolicyListPage: React.FC = () => {
       group: DRPolicyModel?.apiGroup,
       resource: DRPolicyModel?.plural,
       namespace: null,
-      verb: 'create',
+      verb: 'list',
     },
     HUB_CLUSTER_NAME
   );
@@ -288,7 +293,12 @@ export const DRPolicyListPage: React.FC = () => {
                 hideColumnManagement={true}
               />
               <div className="mco-drpolicy-list__createlink">
-                <ListPageCreateLink to={createProps}>
+                <ListPageCreateLink
+                  to={createProps}
+                  createAccessReview={{
+                    groupVersionKind: referenceForModel(DRPolicyModel),
+                  }}
+                >
                   {t('Create DRPolicy')}
                 </ListPageCreateLink>
               </div>
