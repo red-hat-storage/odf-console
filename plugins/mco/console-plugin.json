@@ -7,6 +7,7 @@
     "@console/pluginAPI": "*"
   },
   "exposedModules": {
+    "features": "@odf/mco/features",
     "dataPolicies": "@odf/mco/components/data-policies/data-policies-page",
     "createDataPolicy": "@odf/mco/components/disaster-recovery/create-dr-policy/create-dr-policy",
     "mcoDashboard": "@odf/mco/components/mco-dashboard/storage-system/dashboard",

@@ -60,3 +60,9 @@ export type AppToPlacementRule = {
     };
   };
 };
+
+export type ACMMultiClusterObservability = K8sResourceCommon & {
+  status?: {
+    conditions: K8sResourceCondition[];
+  };
+};

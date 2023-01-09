@@ -1,5 +1,13 @@
 [
   {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.setFeatureFlag"
+      }
+    }
+  },
+  {
     "type": "console.flag/model",
     "properties": {
       "model": {
@@ -57,6 +65,9 @@
       "section": "mco-data-services",
       "name": "%plugin__odf-plugin~Storage System%",
       "href": "/multicloud/data-services/storagesystem"
+    },
+    "flags": {
+      "required": ["ACM_MCO"]
     }
   },
   {
