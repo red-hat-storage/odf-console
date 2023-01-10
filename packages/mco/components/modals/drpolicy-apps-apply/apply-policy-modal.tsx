@@ -217,6 +217,13 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
     const placementRulesLoadError = memoizedResponse?.placementRules?.loadError;
     const placementRules = (memoizedResponse?.placementRules?.data ??
       []) as ACMPlacementRuleKind[];
+
+    const errorMessage =
+      applicationsLoadError ||
+      subscriptionsLoadError ||
+      placementRulesLoadError;
+    setError(!!errorMessage ? errorMessage?.message : '');
+
     if (applicationsLoaded && !applicationsLoadError) {
       // namespace wise application object
       const appMap: ApplicationMap = applications?.reduce(
@@ -269,7 +276,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       );
       setPlacementRuleMap(plRuleMap);
     }
-  }, [memoizedResponse]);
+  }, [memoizedResponse, setError]);
 
   React.useEffect(() => {
     const generateApplicationToPlacementRuleMap = (
