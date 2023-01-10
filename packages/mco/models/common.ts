@@ -26,7 +26,7 @@ export const DRClusterModel: K8sModel = {
 
 export const ACMManagedClusterModel: K8sModel = {
   apiVersion: 'v1',
-  apiGroup: 'cluster.open-cluster-management.io',
+  apiGroup: 'clusterview.open-cluster-management.io',
   kind: 'ManagedCluster',
   plural: 'managedclusters',
   label: 'Managed Cluster',
