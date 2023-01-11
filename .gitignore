@@ -5,10 +5,8 @@ dist
 coverage
 cypress/cypress-a11y-report.json
 gui-test-screenshots
-plugins/odf/package.json
-plugins/odf/dist
-plugins/odf/.cache-loader
-plugins/mco/package.json
-plugins/mco/dist
-plugins/mco/.cache-loader
+plugins/**/package.json
+plugins/**/dist
+plugins/**/.cache-loader
+plugins/**/cypress.config.ts
 yarn-error.log

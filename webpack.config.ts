@@ -15,10 +15,19 @@ const resolveLocale = (dirName: string, ns: string) =>
     to: `locales/${lang}/${ns}.[ext]`,
   }));
 
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const NODE_ENV = (process.env.NODE_ENV ||
+  'development') as webpack.Configuration['mode'];
+const PLUGIN = process.env.PLUGIN;
+
+if (PLUGIN === undefined) {
+  process.exit(1);
+}
+const processPath = path.resolve(__dirname, `plugins/${PLUGIN}`);
+process.chdir(processPath);
 
 const config: webpack.Configuration & DevServerConfiguration = {
   context: __dirname,
+  mode: NODE_ENV,
   entry: {},
   output: {
     path: path.resolve('./dist'),
