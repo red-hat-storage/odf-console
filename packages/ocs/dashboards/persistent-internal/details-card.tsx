@@ -7,10 +7,13 @@ import {
   InfrastructureModel,
   SubscriptionModel,
 } from '@odf/shared/models';
-import { getInfrastructurePlatform, getName } from '@odf/shared/selectors';
+import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { resourcePathFromModel } from '@odf/shared/utils';
+import {
+  getInfrastructurePlatform,
+  resourcePathFromModel,
+} from '@odf/shared/utils';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Link } from 'react-router-dom';
