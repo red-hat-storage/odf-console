@@ -11,7 +11,8 @@
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "noEmitOnError": false
+    "noEmitOnError": false,
+    "outDir": "./dist"
   },
   "exclude": ["**/*.spec.ts", "**/*.spec.tsx"],
   "include": ["packages"]
