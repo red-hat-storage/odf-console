@@ -26,6 +26,7 @@ import {
   PlacementRuleMap,
 } from '../../../utils';
 import { DRPolicySelector } from './dr-policy-selector';
+import { ErrorMessages, ErrorMessageType, MessageKind } from './error-messages';
 import { PeerClusterStatus } from './peer-cluster-status';
 import {
   FailoverAndRelocateState,
@@ -39,17 +40,13 @@ import {
 import { SubscriptionGroupSelector } from './subscription-group-selector';
 import { TargetClusterSelector } from './target-cluster-selector';
 
-export const findErrorMessage = (
-  errorMessage: ErrorMessage,
-  includeUpdateError: boolean = true
-) =>
+export const findErrorMessage = (errorMessage: ErrorMessage) =>
   [
     errorMessage.drPolicyControlStateErrorMessage,
     errorMessage.managedClustersErrorMessage,
     errorMessage.targetClusterErrorMessage,
     errorMessage.subscriptionGroupErrorMessage,
     errorMessage.peerStatusErrorMessage,
-    includeUpdateError && errorMessage.failoverAndRelocateActionErrorMessage,
   ]
     .filter(Boolean)
     .find((errorMessage) => errorMessage);
@@ -75,15 +72,17 @@ const resources = (namespace: string) => ({
   },
 });
 
-const MessageStatus: React.FC<MessageStatus> = ({ message, variant }) => (
+const MessageStatus: React.FC<MessageKind> = ({ title, variant, message }) => (
   <Flex>
     <FlexItem fullWidth={{ default: 'fullWidth' }}>
       <Alert
         className="mco-dr-action-body__alert"
-        title={message}
+        title={title}
         variant={variant}
         isInline
-      />
+      >
+        {message}
+      </Alert>
     </FlexItem>
   </Flex>
 );
@@ -166,9 +165,10 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
           : dispatch({
               type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
               payload: {
-                drPolicyControlStateErrorMessage: t(
-                  'Cannot initiate {{actionType}} as DR is not enabled, apply DRPolicy to the application to proceed.'
-                ),
+                drPolicyControlStateErrorMessage:
+                  action === ACTION_TYPE.FAILOVER
+                    ? ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER
+                    : ErrorMessageType.DR_IS_NOT_ENABLED_RELOCATE,
               },
             });
       }
@@ -233,16 +233,22 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
         </Flex>
         {(state.modalFooterStatus === ModalFooterStatus.FINISHED && (
           <MessageStatus
-            message={t('{{actionType}} initiated', {
-              actionType: state.actionType,
-            })}
-            variant={AlertVariant.success}
+            {...(action === ACTION_TYPE.FAILOVER
+              ? {
+                  title: t('Failover initiated'),
+                  variant: AlertVariant.success,
+                }
+              : {
+                  title: t('Relocate initiated'),
+                  variant: AlertVariant.success,
+                })}
           />
         )) ||
-          (!!findErrorMessage(state.errorMessage) && (
+          ((!!findErrorMessage(state.errorMessage) ||
+            !_.isEmpty(state.actionErrorMessage)) && (
             <MessageStatus
-              message={findErrorMessage(state.errorMessage)}
-              variant={AlertVariant.danger}
+              {...(ErrorMessages(t)[findErrorMessage(state.errorMessage)] ||
+                state.actionErrorMessage)}
             />
           ))}
       </Flex>
@@ -260,9 +266,4 @@ type DRActionWatchResourceType = {
   placementRules: ACMPlacementRuleKind[];
   subscriptions: ACMSubscriptionKind[];
   drPlacementControls: DRPlacementControlKind[];
-};
-
-type MessageStatus = {
-  message: string;
-  variant: AlertVariant;
 };

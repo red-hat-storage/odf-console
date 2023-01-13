@@ -12,6 +12,7 @@ import {
 } from '@patternfly/react-core';
 import { PlacementDecision } from '../../../types';
 import { isPeerReadyAndAvailable } from '../../../utils';
+import { ErrorMessageType } from './error-messages';
 import {
   FailoverAndRelocateState,
   FailoverAndRelocateAction,
@@ -113,7 +114,7 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
     );
 
     const setErrorMessage = React.useCallback(
-      (errorMessage: string) => {
+      (errorMessage: ErrorMessageType) => {
         dispatch({
           type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
           payload: {
@@ -176,11 +177,11 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
             ...generatedOptions.validOptions,
             ...generatedOptions.inValidOptions,
           ]);
-          setErrorMessage('');
+          setErrorMessage(null);
         } else {
           setOptions([]);
           setSelected([]);
-          setErrorMessage(t('No subscription groups are found'));
+          setErrorMessage(ErrorMessageType.NO_SUBSCRIPTION_GROUP_FOUND);
         }
       } else {
         setSelected([]);

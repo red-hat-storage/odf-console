@@ -14,11 +14,13 @@ import { TFunction } from 'i18next';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
 import { isPeerReadyAndAvailable } from '../../../utils';
+import { ErrorMessageType } from './error-messages';
 import {
   FailoverAndRelocateState,
   FailoverAndRelocateAction,
   FailoverAndRelocateType,
   DRPolicyControlState,
+  ACTION_TYPE,
 } from './reducer';
 
 export const PEER_READINESS = (t: TFunction) => ({
@@ -116,7 +118,7 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
     initalPeerStatus(t)
   );
   const setErrorMessage = React.useCallback(
-    (errorMessage: string) => {
+    (errorMessage: ErrorMessageType) => {
       dispatch({
         type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
         payload: {
@@ -136,12 +138,11 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
       );
       peerCurrentStatus.peerReadiness.text === PEER_READINESS(t).PEER_NOT_READY
         ? setErrorMessage(
-            t(
-              '{{actionType}} cannot be initiated becuase peer is not in ready state.',
-              { actionType: state.actionType }
-            )
+            state.actionType === ACTION_TYPE.FAILOVER
+              ? ErrorMessageType.PEER_IS_NOT_READY_FAILOVER
+              : ErrorMessageType.PEER_IS_NOT_READY_RELOCATE
           )
-        : setErrorMessage('');
+        : setErrorMessage(null);
       setPeerStatus(peerCurrentStatus);
     } else {
       // Default peer status is Unknown
