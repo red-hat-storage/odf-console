@@ -2,7 +2,7 @@
 
 set -exuo pipefail
 
-source ./i18n-scripts/languages.sh
+source ./scripts/i18n/languages.sh
 
 while getopts v:s: flag
 do
