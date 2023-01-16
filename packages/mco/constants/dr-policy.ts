@@ -2,6 +2,8 @@ import { TFunction } from 'i18next';
 
 export const MANAGED_CLUSTER_REGION_CLAIM = 'region.open-cluster-management.io';
 export const DR_SECHEDULER_NAME = 'ramen';
+export const PLACEMENT_REF_LABEL =
+  'cluster.open-cluster-management.io/placement';
 
 export enum REPLICATION_TYPE {
   ASYNC = 'async',

@@ -1,5 +1,11 @@
-import { getLabel, hasLabel, getName } from '@odf/shared/selectors';
+import {
+  getLabel,
+  hasLabel,
+  getName,
+  getNamespace,
+} from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types/k8s';
+import { referenceForModel } from '@odf/shared/utils';
 import { ObjectReference } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Operator,
@@ -7,12 +13,18 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { DR_SECHEDULER_NAME } from '../constants';
 import { REPLICATION_TYPE } from '../constants/dr-policy';
-import { ACMPlacementRuleModel } from '../models';
+import { DisasterRecoveryResourceKind } from '../hooks';
+import { ACMPlacementRuleModel, DRPolicyModel } from '../models';
 import {
   ACMSubscriptionKind,
   ACMPlacementRuleKind,
   DRPlacementControlKind,
+  ACMPlacementKind,
+  DRPolicyKind,
+  DRClusterKind,
+  ACMManagedClusterKind,
 } from '../types';
+import { getGVKFromK8Resource, getGVKFromObjectRef } from './common';
 
 export type PlacementRuleMap = {
   [placementRuleName: string]: string;
@@ -190,4 +202,48 @@ export const isPeerReadyAndAvailable = (
       (isAvailable = true);
   });
   return isPeerReady && isAvailable;
+};
+
+export const findDRResourceUsingPlacement = (
+  placement: ACMPlacementKind,
+  drResources: DisasterRecoveryResourceKind[]
+): DisasterRecoveryResourceKind =>
+  drResources?.find((drResource) => {
+    const placementRef = drResource?.drPlacementControl?.spec?.placementRef;
+    return (
+      getGVKFromObjectRef(placementRef) === getGVKFromK8Resource(placement) &&
+      placementRef?.name === getName(placement) &&
+      getNamespace(drResource?.drPlacementControl) === getNamespace(placement)
+    );
+  });
+
+export const filerManagedClusterUsingDRClusters = (
+  drClusters: DRClusterKind[],
+  managedClusters: ACMManagedClusterKind[]
+) =>
+  managedClusters?.filter(
+    (managedCluster) =>
+      !!drClusters?.find(
+        (drCluster) => getName(managedCluster) === getName(drCluster)
+      )
+  );
+
+export const filerDRClustersUsingDRPolicy = (
+  drPolicy: DRPolicyKind,
+  drClusters: DRClusterKind[]
+) =>
+  drClusters?.filter((drCluster) =>
+    drPolicy?.spec?.drClusters?.includes(getName(drCluster))
+  );
+
+export const findDRPolicyUsingDRPC = (
+  drpc: DRPlacementControlKind,
+  drPolicies: DRPolicyKind[]
+): DRPolicyKind => {
+  return drPolicies?.find(
+    (drPolicy) =>
+      drpc?.spec?.drPolicyRef?.name === getName(drPolicy) &&
+      referenceForModel(DRPolicyModel) ===
+        getGVKFromObjectRef(drpc?.spec?.drPolicyRef)
+  );
 };

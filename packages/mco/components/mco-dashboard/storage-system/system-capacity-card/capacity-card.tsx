@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   StorageDashboard,
   CAPACITY_QUERIES,
-} from '@odf/mco/components/mco-dashboard/storage-system/queries';
+} from '@odf/mco/components/mco-dashboard/queries';
 import { ACMManagedClusterModel } from '@odf/mco/models';
 import { ACMManagedClusterKind } from '@odf/mco/types';
 import { DataUnavailableError } from '@odf/shared/generic/Error';

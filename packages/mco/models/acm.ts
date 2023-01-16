@@ -48,3 +48,27 @@ export const AcmMultiClusterObservabilityModel: K8sModel = {
   id: 'acmobservability',
   crd: true,
 };
+
+export const ACMPlacementModel: K8sModel = {
+  label: 'Placement',
+  labelPlural: 'Placements',
+  apiVersion: 'v1beta1',
+  apiGroup: 'cluster.open-cluster-management.io',
+  plural: 'placements',
+  abbr: 'PLC',
+  namespaced: true,
+  kind: 'Placement',
+  crd: true,
+};
+
+export const ACMPlacementDecisionModel: K8sModel = {
+  label: 'PlacementDecision',
+  labelPlural: 'PlacementDecisions',
+  apiVersion: 'v1beta1',
+  apiGroup: 'cluster.open-cluster-management.io',
+  plural: 'placementdecisions',
+  abbr: 'PLD',
+  namespaced: true,
+  kind: 'PlacementDecision',
+  crd: true,
+};
