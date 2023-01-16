@@ -1,33 +1,36 @@
 import * as React from 'react';
+import {
+  DashboardTab,
+  DashboardTabExtensionProps as UnresolvedTabProps,
+  isDashboardTab,
+} from '@odf/odf-plugin-sdk/extensions';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   HorizontalNav,
-  NavPage,
-  useFlag,
+  useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { ResolvedCodeRefProperties } from '@openshift-console/dynamic-plugin-sdk/lib/types';
+import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
-import { RouteComponentProps, match as Match } from 'react-router';
+import { RouteComponentProps } from 'react-router';
 import { useLocation } from 'react-router-dom';
 import { Grid, GridItem } from '@patternfly/react-core';
-import { MCG_FLAG } from '../../features';
 import { ODFStorageSystemMock } from '../../models';
-import {
-  BackingStoreListPage,
-  BucketClassListPage,
-  NamespaceStoreListPage,
-} from '../resource-pages/list-page';
 import { StorageSystemListPage } from '../system-list/odf-system-list';
 import ActivityCard from './activity-card/activity-card';
 import ObjectCapacityCard from './object-storage-card/capacity-card';
 import PerformanceCard from './performance-card/performance-card';
 import { StatusCard } from './status-card/status-card';
 import SystemCapacityCard from './system-capacity-card/capacity-card';
+import { convertDashboardTabToNav } from './utils';
 import './dashboard.scss';
 
 type ODFDashboardPageProps = {
   history: RouteComponentProps['history'];
 };
+
+type DashboardTabProps = ResolvedCodeRefProperties<UnresolvedTabProps>;
 
 const UpperSection: React.FC = () => (
   <Grid hasGutter>
@@ -61,51 +64,52 @@ export const ODFDashboard: React.FC = () => {
 
 const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
   const { t } = useCustomTranslation();
-  const hasMCG = useFlag(MCG_FLAG);
   const title = t('Data Foundation');
-  const [pages, setPages] = React.useState<NavPage[]>([
+  const [pages, setPages] = React.useState<DashboardTabProps[]>([
     {
+      id: 'overview',
       href: '',
       name: t('Overview'),
       component: ODFDashboard,
     },
     {
+      id: 'systems',
       href: 'systems',
       name: t('Storage Systems'),
       component: StorageSystemListPage,
     },
   ]);
 
+  const [extensions, isLoaded, error] =
+    useResolvedExtensions<DashboardTab>(isDashboardTab);
+
   React.useEffect(() => {
-    const newPages = [];
-    if (!pages.find((page) => page.name === t('Backing Store'))) {
-      newPages.push({
-        href: 'resource/noobaa.io~v1alpha1~BackingStore',
-        name: t('Backing Store'),
-        component: BackingStoreListPage,
+    const updatedPages = [...pages];
+    if (isLoaded && _.isEmpty(error)) {
+      extensions.forEach((extension) => {
+        const page: DashboardTabProps = {
+          id: extension.properties.id,
+          href: extension.properties.href,
+          name: extension.properties.name,
+          component: extension.properties.component,
+        };
+        const indexId =
+          extension.properties.before || extension.properties.after;
+        let pushLocation = updatedPages.findIndex((pg) => pg.id === indexId);
+        if (extension.properties.before && updatedPages.length > 0) {
+          pushLocation -= 1;
+        }
+        if (updatedPages.length > 0) {
+          updatedPages.splice(pushLocation, 0, page);
+        } else {
+          updatedPages.push(page);
+        }
       });
+      if (!_.isEqual(updatedPages, pages)) {
+        setPages(updatedPages);
+      }
     }
-
-    if (!pages.find((page) => page.name === t('Bucket Class'))) {
-      newPages.push({
-        href: 'resource/noobaa.io~v1alpha1~BucketClass',
-        name: t('Bucket Class'),
-        component: BucketClassListPage,
-      });
-    }
-
-    if (!pages.find((page) => page.name === t('Namespace Store'))) {
-      newPages.push({
-        href: 'resource/noobaa.io~v1alpha1~NamespaceStore',
-        name: t('Namespace Store'),
-        component: NamespaceStoreListPage,
-      });
-    }
-    if (hasMCG) {
-      setPages([...pages, ...newPages]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasMCG, JSON.stringify(pages), setPages, t]);
+  }, [extensions, isLoaded, error, pages, setPages]);
 
   const { history } = props;
   const location = useLocation();
@@ -122,8 +126,9 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
         <title>{title}</title>
       </Helmet>
       <PageHeading title={title} />
+      {/** Todo(bipuladh): Move to usage of common PF Tabs component */}
       <HorizontalNav
-        pages={pages}
+        pages={convertDashboardTabToNav(pages)}
         resource={{
           kind: ODFStorageSystemMock.kind,
           apiVersion: `${ODFStorageSystemMock.apiGroup}/${ODFStorageSystemMock.apiVersion}`,
@@ -131,37 +136,6 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
       />
     </>
   );
-};
-
-/**
- * To support legacy /odf routes.
- * Todo(fix): Remove from console in 4.10.
- */
-export const Reroute: React.FC<ODFDashboardPageProps> = ({ history }) => {
-  React.useEffect(() => {
-    history.push(`/odf/cluster`);
-  }, [history]);
-
-  return null;
-};
-
-type ReRouteResourceProps = {
-  history: RouteComponentProps['history'];
-  match: Match<{ kind: string }>;
-};
-
-/**
- * To support legacy /odf/resource/:kind Routes
- * Todo(fix): Remove from console in 4.10.
- */
-export const RerouteResource: React.FC<ReRouteResourceProps> = ({
-  match,
-  history,
-}) => {
-  React.useEffect(() => {
-    history.push(`/odf/cluster/resource/${match.params.kind}`);
-  }, [history, match]);
-  return null;
 };
 
 export default ODFDashboardPage;

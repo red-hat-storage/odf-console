@@ -1,3 +1,7 @@
+import { NavPage } from '@openshift-console/dynamic-plugin-sdk';
+import { ResolvedCodeRefProperties } from '@openshift-console/dynamic-plugin-sdk/lib/types';
+import { DashboardTabExtensionProps } from 'packages/odf-plugin-sdk/extensions';
+
 enum HealthState {
   OK = 'OK',
   ERROR = 'ERROR',
@@ -30,3 +34,12 @@ export const getOperatorHealthState = (
   }
   return { state: HealthState.ERROR };
 };
+
+export const convertDashboardTabToNav = (
+  dashboardTabs: ResolvedCodeRefProperties<DashboardTabExtensionProps>[]
+): NavPage[] =>
+  dashboardTabs.map((tab) => ({
+    name: tab.name,
+    href: tab.href,
+    component: tab.component,
+  }));
