@@ -4,6 +4,7 @@ import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { PersistentVolumeClaimModel, SecretModel } from '@odf/shared/models';
+import { getName } from '@odf/shared/selectors';
 import { PersistentVolumeClaimKind, SecretKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -107,7 +108,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   const { t } = useCustomTranslation();
   const [nsName, setNsName] = React.useState('');
   const [provider, setProvider] = React.useState(BC_PROVIDERS.AWS);
-  const [pvc, setPVC] = React.useState(null);
+  const [pvc, setPVC] = React.useState<PersistentVolumeClaimKind>(null);
   const [folderName, setFolderName] = React.useState('');
   const [providerDataState, providerDataDispatch] = React.useReducer(
     providerDataReducer,
@@ -182,7 +183,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         case BC_PROVIDERS.FILESYSTEM:
           nsPayload.spec.nsfs = {
             ...nsPayload.spec.nsfs,
-            pvcName: pvc,
+            pvcName: getName(pvc),
             subPath: folderName,
           };
           break;
