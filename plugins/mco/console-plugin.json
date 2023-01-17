@@ -10,7 +10,7 @@
     "features": "@odf/mco/features",
     "dataPolicies": "@odf/mco/components/data-policies/data-policies-page",
     "createDataPolicy": "@odf/mco/components/disaster-recovery/create-dr-policy/create-dr-policy",
-    "mcoDashboard": "@odf/mco/components/mco-dashboard/storage-system/dashboard",
+    "systemDashboard": "@odf/mco/components/mco-dashboard/storage-system/system-dashboard",
     "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor",
     "dataPoliciesStatusPopover": "@odf/mco/components/modals/app-data-policies-status/data-policies-status-popover",
     "failoverRelocateModal": "@odf/mco/components/modals/app-failover-relocate/failover-relocate-modal"

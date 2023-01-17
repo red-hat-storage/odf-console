@@ -9,6 +9,7 @@ export enum StorageDashboard {
   TOTAL_CAPACITY_FILE_BLOCK = 'TOTAL_CAPACITY_FILE_BLOCK',
   SYSTEM_HEALTH = 'SYSTEM_HEALTH',
   CSV_STATUS = 'CSV_STATUS',
+  CSV_STATUS_ALL_WHITELISTED = 'CSV_STATUS_ALL_WHITELISTED',
   HEALTH = 'HEALTH',
 }
 
@@ -22,4 +23,5 @@ export const STATUS_QUERIES = {
   [StorageDashboard.HEALTH]: SYSTEM_HEALTH_METRIC,
   [StorageDashboard.CSV_STATUS]:
     'csv_succeeded{exported_namespace="openshift-storage"}',
+  [StorageDashboard.CSV_STATUS_ALL_WHITELISTED]: 'csv_succeeded',
 };

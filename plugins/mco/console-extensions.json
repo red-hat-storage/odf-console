@@ -43,23 +43,23 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/multicloud/data-services/data-policies",
-      "exact": true,
-      "component": { "$codeRef": "dataPolicies.DataPoliciesPage" }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
       "path": "/multicloud/data-services/data-policies/ramendr.openshift.io~v1alpha1~DRPolicy/~new",
       "exact": true,
       "component": { "$codeRef": "createDataPolicy.CreateDRPolicy" }
     }
   },
   {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/multicloud/data-services/data-policies",
+      "exact": false,
+      "component": { "$codeRef": "dataPolicies.DataPoliciesPage" }
+    }
+  },
+  {
     "type": "console.navigation/href",
     "properties": {
-      "id": "mcodashboard",
+      "id": "systemDashboard",
       "perspective": "acm",
       "insertAfter": "mco-data-policies",
       "section": "mco-data-services",
@@ -75,7 +75,7 @@
     "properties": {
       "path": "/multicloud/data-services/storagesystem",
       "exact": false,
-      "component": { "$codeRef": "mcoDashboard.default" }
+      "component": { "$codeRef": "systemDashboard.default" }
     }
   },
   {

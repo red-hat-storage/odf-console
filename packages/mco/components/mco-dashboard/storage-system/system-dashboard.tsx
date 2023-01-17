@@ -9,7 +9,7 @@ import { StatusCard } from './status-card/status-card';
 import SystemCapacityCard from './system-capacity-card/capacity-card';
 import '../../../style.scss';
 
-type MCODashboardPageProps = {
+type SystemDashboardProps = {
   history: RouteComponentProps['history'];
 };
 
@@ -32,7 +32,7 @@ export const MCODashboard: React.FC = () => {
   );
 };
 
-const MCODashboardPage: React.FC<MCODashboardPageProps> = () => {
+const SystemDashboard: React.FC<SystemDashboardProps> = () => {
   const { t } = useCustomTranslation();
   const title = t('Storage System');
   const pages = [
@@ -54,4 +54,4 @@ const MCODashboardPage: React.FC<MCODashboardPageProps> = () => {
   );
 };
 
-export default MCODashboardPage;
+export default SystemDashboard;

@@ -66,3 +66,32 @@ export type ACMMultiClusterObservability = K8sResourceCommon & {
     conditions: K8sResourceCondition[];
   };
 };
+
+export type ACMPlacementKind = K8sResourceCommon & {
+  spec: {
+    numberOfClusters?: number;
+    clusterSets?: string[];
+    predicates?: {
+      requiredClusterSelector: {
+        labelSelector?: Selector;
+        claimSelector?: Selector;
+      };
+      clusterName?: string;
+    }[];
+    clusterSelector?: Selector | null;
+  };
+  status?: {
+    conditions: K8sResourceCondition[];
+    numberOfSelectedClusters?: number;
+  };
+};
+
+export type ACMPlacementDecisionKind = K8sResourceCommon & {
+  status: {
+    decisions: {
+      // ClusterDecision represents a decision from a placement
+      clusterName: string;
+      reason: string;
+    }[];
+  };
+};
