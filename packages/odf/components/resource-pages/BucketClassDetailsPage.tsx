@@ -106,7 +106,7 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
 
   const breadcrumbs = [
     {
-      name: t('OpenShift Data Foundation'),
+      name: t('Data Foundation'),
       path: '/odf/overview',
     },
     {
