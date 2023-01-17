@@ -81,7 +81,7 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
   );
 
   const vaultTLSTooltip = t(
-    `The name to use as the SNI host when OpenShift Data Foundation connecting via TLS to the Vault server`
+    `The name to use as the SNI host when Data Foundation connecting via TLS to the Vault server`
   );
 
   const submit = (event: React.FormEvent<EventTarget>) => {

@@ -34,7 +34,7 @@ describe('Check Persistent Dashboard', () => {
 
   it('Check Details card is correct', () => {
     cy.byTestID('ocs-link')
-      .contains('OpenShift Data Foundation')
+      .contains('Data Foundation')
       .scrollIntoView()
       .should('be.visible');
     cy.byTestID('detail-item-value')

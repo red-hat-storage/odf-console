@@ -9,7 +9,7 @@ export const requestedCapacityTooltip = (t: TFunction) =>
 
 export const storageClassTooltip = (t: TFunction) =>
   t(
-    'plugin__odf-console~The StorageClass used by OpenShift Data Foundation to write its data and metadata.'
+    'plugin__odf-console~The StorageClass used by Data Foundation to write its data and metadata.'
   );
 
 export const arbiterText = (t: TFunction) =>

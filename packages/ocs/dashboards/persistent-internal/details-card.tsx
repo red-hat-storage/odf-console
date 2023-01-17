@@ -43,7 +43,7 @@ const DetailsCard: React.FC = () => {
     serviceVersion,
     CEPH_NS
   )}`;
-  const serviceName = t('OpenShift Data Foundation');
+  const serviceName = t('Data Foundation');
   return (
     <Card>
       <CardHeader>

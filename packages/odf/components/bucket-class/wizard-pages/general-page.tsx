@@ -26,7 +26,7 @@ export const bucketClassTypeRadios = (t: TFunction) => [
     value: BucketClassType.STANDARD,
     label: t('Standard'),
     description: t(
-      'Data will be consumed by a Multi-cloud object gateway, deduped, compressed, and encrypted. The encrypted chunks would be saved on the selected BackingStores. Best used when the applications would always use the OpenShift Data Foundation endpoints to access the data.'
+      'Data will be consumed by a Multi-cloud object gateway, deduped, compressed, and encrypted. The encrypted chunks would be saved on the selected BackingStores. Best used when the applications would always use the Data Foundation endpoints to access the data.'
     ),
   },
   {
@@ -34,7 +34,7 @@ export const bucketClassTypeRadios = (t: TFunction) => [
     value: BucketClassType.NAMESPACE,
     label: t('Namespace'),
     description: t(
-      'Data is stored on the NamespaceStores without performing de-duplication, compression, or encryption. BucketClasses of namespace type allow connecting to existing data and serving from them. These are best used for existing data or when other applications (and cloud-native services) need to access the data from outside OpenShift Data Foundation.'
+      'Data is stored on the NamespaceStores without performing de-duplication, compression, or encryption. BucketClasses of namespace type allow connecting to existing data and serving from them. These are best used for existing data or when other applications (and cloud-native services) need to access the data from outside Data Foundation.'
     ),
   },
 ];

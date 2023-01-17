@@ -262,7 +262,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           <Radio
             label={t('Use an existing StorageClass')}
             description={t(
-              'OpenShift Data Foundation will use an existing StorageClass available on your hosting platform.'
+              'Data Foundation will use an existing StorageClass available on your hosting platform.'
             )}
             name={RADIO_GROUP_NAME}
             value={BackingStorageType.EXISTING}
@@ -283,7 +283,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           <Radio
             label={t('Create a new StorageClass using local storage devices')}
             description={t(
-              'OpenShift Data Foundation will use a StorageClass provided by the Local Storage Operator (LSO) on top of your attached drives. This option is available on any platform with devices attached to nodes.'
+              'Data Foundation will use a StorageClass provided by the Local Storage Operator (LSO) on top of your attached drives. This option is available on any platform with devices attached to nodes.'
             )}
             name={RADIO_GROUP_NAME}
             value={BackingStorageType.LOCAL_DEVICES}
@@ -296,7 +296,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           <Radio
             label={t('Connect an external storage platform')}
             description={t(
-              'OpenShift Data Foundation will create a dedicated StorageClass.'
+              'Data Foundation will create a dedicated StorageClass.'
             )}
             name={RADIO_GROUP_NAME}
             value={BackingStorageType.EXTERNAL}

@@ -50,7 +50,7 @@ export const VALIDATIONS = (
           </div>
         ),
         text: t(
-          "The selected nodes do not match OpenShift Data Foundation's StorageCluster requirement of an aggregated 30 CPUs and 72 GiB of RAM. If the selection cannot be modified a minimal cluster will be deployed."
+          "The selected nodes do not match Data Foundation's StorageCluster requirement of an aggregated 30 CPUs and 72 GiB of RAM. If the selection cannot be modified a minimal cluster will be deployed."
         ),
         actionLinkStep: CreateStepsSC.STORAGEANDNODES,
         actionLinkText: t('Back to nodes selection'),
@@ -60,7 +60,7 @@ export const VALIDATIONS = (
         variant: AlertVariant.danger,
         title: t('Select a StorageClass to continue'),
         text: t(
-          'This is a required field. The StorageClass will be used to request storage from the underlying infrastructure to create the backing PersistentVolumes that will be used to provide the OpenShift Data Foundation service.'
+          'This is a required field. The StorageClass will be used to request storage from the underlying infrastructure to create the backing PersistentVolumes that will be used to provide the Data Foundation service.'
         ),
         link: '/k8s/cluster/storageclasses/~new/form',
         linkText: t('Create new StorageClass'),
@@ -70,7 +70,7 @@ export const VALIDATIONS = (
         variant: AlertVariant.danger,
         title: t('Select a StorageClass to continue'),
         text: t(
-          'This is a required field. The StorageClass will be used to request storage from the underlying infrastructure to create the backing persistent volumes that will be used to provide the OpenShift Data Foundation service.'
+          'This is a required field. The StorageClass will be used to request storage from the underlying infrastructure to create the backing persistent volumes that will be used to provide the Data Foundation service.'
         ),
       };
     case ValidationType.ALLREQUIREDFIELDS:

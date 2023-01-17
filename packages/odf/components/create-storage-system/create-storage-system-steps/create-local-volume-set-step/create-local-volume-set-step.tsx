@@ -257,8 +257,8 @@ export const LSOInstallAlert = ({ history }) => {
     >
       <Trans t={t as any} ns="plugin__odf-console">
         Before we can create a StorageSystem, the Local Storage Operator needs
-        to be installed. When installation is finished come back to OpenShift
-        Data Foundation to create a StorageSystem.
+        to be installed. When installation is finished come back to Data
+        Foundation to create a StorageSystem.
         <div className="ceph-ocs-install__lso-alert__button">
           <Button
             type="button"

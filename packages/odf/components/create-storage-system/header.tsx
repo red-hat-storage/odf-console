@@ -12,7 +12,7 @@ export const CreateStorageSystemHeader: React.FC<CreateStorageSystemHeaderProps>
           <Text component={TextVariants.h1}>{t('Create StorageSystem')}</Text>
           <Text component={TextVariants.small}>
             {t(
-              'Create a StorageSystem to represent your OpenShift Data Foundation system and all its required storage and computing resources.'
+              'Create a StorageSystem to represent your Data Foundation system and all its required storage and computing resources.'
             )}
           </Text>
         </TextContent>
