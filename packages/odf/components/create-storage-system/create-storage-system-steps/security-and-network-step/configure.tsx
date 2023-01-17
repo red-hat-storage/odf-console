@@ -107,22 +107,22 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
     <>
       <FormGroup
         fieldId="configure-networking"
-        label={
-          <>
-            {t('Network')}
-            <FieldLevelHelp>
-              {t(
-                'The default SDN networking uses a single network for all data operations such read/write and also for control plane, such as data replication. Multus allows a network separation between the data operations and the control plane operations.'
-              )}
-            </FieldLevelHelp>
-          </>
-        }
+        label={t('Network')}
         className="ceph__install-radio--inline"
       >
         <Radio
           isChecked={networkType === NetworkType.DEFAULT}
           name="default-network"
-          label={t('Default (SDN)')}
+          label={
+            <>
+              {t('Default (SDN)')}
+              <FieldLevelHelp>
+                {t(
+                  'The default SDN uses a single network for all data operations such as read/write and also for control planes, such as data replication.'
+                )}
+              </FieldLevelHelp>
+            </>
+          }
           onChange={() => setNetworkType(NetworkType.DEFAULT)}
           value={NetworkType.DEFAULT}
           id={NetworkType.DEFAULT}
@@ -130,7 +130,16 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
         <Radio
           isChecked={networkType === NetworkType.MULTUS}
           name="custom-network"
-          label={t('Custom (Multus)')}
+          label={
+            <>
+              {t('Custom (Multus)')}
+              <FieldLevelHelp>
+                {t(
+                  'Multus allows a network seperation between the data operations and the control plane operations.'
+                )}
+              </FieldLevelHelp>
+            </>
+          }
           onChange={() => setNetworkType(NetworkType.MULTUS)}
           value={NetworkType.MULTUS}
           id={NetworkType.MULTUS}
