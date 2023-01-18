@@ -23,6 +23,7 @@ import { UnknownIcon } from '@patternfly/react-icons';
 import { REPLICATION_TYPE } from '../../../constants';
 import { ACMManagedClusterModel, DRClusterModel } from '../../../models';
 import { ACMManagedClusterKind, DRClusterKind } from '../../../types';
+import { ErrorMessageType } from './error-messages';
 import {
   FailoverAndRelocateState,
   FailoverAndRelocateAction,
@@ -32,6 +33,12 @@ import {
   ModalFooterStatus,
 } from './reducer';
 
+export enum DRClusterStatus {
+  FENCED = 'Fenced',
+  UNFENCED = 'Unfenced',
+  AVAILABLE = 'Available',
+}
+
 const getAvailableCondition = (managedCluster: ACMManagedClusterKind) =>
   managedCluster?.status?.conditions?.find(
     (condition) =>
@@ -39,17 +46,15 @@ const getAvailableCondition = (managedCluster: ACMManagedClusterKind) =>
       condition.status === 'True'
   );
 
-export const getRelicationTypeUsingDRClusters = (
+export const getReplicationTypeUsingDRClusters = (
   targetClusters: DRClusterKind[]
-) => {
-  const cephFSIDs = targetClusters?.reduce((acc, cluster) => {
-    if (!!cluster?.spec?.region) {
-      acc.add(cluster?.spec?.region);
-    }
-    return acc;
-  }, new Set());
-  return cephFSIDs?.size === 1 ? REPLICATION_TYPE.SYNC : REPLICATION_TYPE.ASYNC;
-};
+) =>
+  targetClusters?.every(
+    (drClusterInfo) =>
+      drClusterInfo?.spec?.region === targetClusters?.[0]?.spec?.region
+  )
+    ? REPLICATION_TYPE.SYNC
+    : REPLICATION_TYPE.ASYNC;
 
 const getLastUpdatedTime = (lastAvailableTime: string, t: TFunction) => {
   return lastAvailableTime ? (
@@ -62,22 +67,6 @@ const getLastUpdatedTime = (lastAvailableTime: string, t: TFunction) => {
     </span>
   );
 };
-
-const validClusterStatus = (t: TFunction, targetClusterName: string) => ({
-  [ACTION_TYPE.FAILOVER]: {
-    status: ['Fenced'],
-    errorMessage: t('Target cluster {{cluster}} is not fenced.', {
-      cluster: targetClusterName,
-    }),
-  },
-  [ACTION_TYPE.RELOCATE]: {
-    status: ['Unfenced', 'Available'],
-    errorMessage: t(
-      'Target cluster {{cluster}} is unavailable or not unfenced.',
-      { cluster: targetClusterName }
-    ),
-  },
-});
 
 const TargetClusterStatus: React.FC<TargetClusterStatusProps> = ({
   isClusterAvailable,
@@ -168,15 +157,14 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
         dispatch({
           type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
           payload: {
-            managedClustersErrorMessage: t(
-              'Attempting to relocate is not possible, one or more managed clusters are down.'
-            ),
+            managedClustersErrorMessage:
+              ErrorMessageType.MANAGED_CLUSTERS_ARE_DOWN,
           },
         });
     }
   }, [managedClusterList, state.actionType, dispatch, t]);
 
-  const setErrorMessage = (errorMessage: string) => {
+  const setErrorMessage = (errorMessage: ErrorMessageType) => {
     dispatch({
       type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
       payload: {
@@ -215,35 +203,50 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
   const onSelect = (e) => {
     // Select a target cluster to intiate failover or relocate
     const managedCluster = managedClusterList?.[e.currentTarget.id];
+
     // Check ACM managed cluster is available or not
     const condition = getAvailableCondition(managedCluster);
     let isClusterAvailable = !!condition;
     let isClusterFenced = true;
-    let errorMessage = '';
+    let errorMessage = 0;
 
     if (isClusterAvailable) {
       // Check DR fencing status for origin cluster
-      const drClusters = drClusterList.map((drCluster) => drCluster);
-      const replicationType = getRelicationTypeUsingDRClusters(drClusters);
+      const targetCluster = drClusterList.find(
+        (drCluster) => getName(drCluster) === getName(managedCluster)
+      );
+      const originCluster = drClusterList.find(
+        (drCluster) => getName(drCluster) !== getName(managedCluster)
+      );
+      const replicationType = getReplicationTypeUsingDRClusters(drClusterList);
       if (replicationType === REPLICATION_TYPE.SYNC) {
-        const requiredClusterStatus = validClusterStatus(
-          t,
-          getName(managedCluster)
-        )[state.actionType];
-        const originCluster = drClusters.find(
-          (drCluster) => getName(drCluster) !== getName(managedCluster)
-        );
-        isClusterAvailable = requiredClusterStatus.status.includes(
-          originCluster?.status?.phase
-        );
-        errorMessage = !isClusterAvailable
-          ? requiredClusterStatus.errorMessage
-          : '';
+        if (state.actionType === ACTION_TYPE.RELOCATE) {
+          // Ensure origin and target both clusters are unfenced
+          const isClustersUnfenced = drClusterList.every(
+            (drCluster) =>
+              DRClusterStatus.FENCED !==
+              (drCluster?.status?.phase as DRClusterStatus)
+          );
+          errorMessage =
+            !isClustersUnfenced && ErrorMessageType.SOME_CLUSTERS_ARE_FENCED;
+        } else {
+          // Ensure origin cluster is fenced
+          const isClustersFenced =
+            DRClusterStatus.FENCED ===
+            (originCluster?.status?.phase as DRClusterStatus);
+          const fencedErrorMessage =
+            !isClustersFenced && ErrorMessageType.PRIMARY_CLUSTER_IS_NOT_FENCED;
+          // Ensure target cluster is unfenced
+          const isClusterUnFenced =
+            DRClusterStatus.FENCED !==
+            (targetCluster?.status?.phase as DRClusterStatus);
+          const unFencedErrorMessage =
+            !isClusterUnFenced && ErrorMessageType.TARGET_CLUSTER_IS_FENCED;
+          errorMessage = fencedErrorMessage || unFencedErrorMessage;
+        }
       }
     } else {
-      errorMessage = t('Target cluster {{cluster}} is not available.', {
-        cluster: getName(managedCluster),
-      });
+      errorMessage = ErrorMessageType.TARGET_CLUSTER_IS_NOT_AVAILABLE;
     }
     setSelected({
       clusterInfo: {
