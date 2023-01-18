@@ -592,5 +592,50 @@
       "contextId": "csv-actions",
       "provider": { "$codeRef": "actions.useCsvActions" }
     }
+  },
+  {
+    "type": "odf.dashboard/tab",
+    "properties": {
+      "id": "backing-store",
+      "name": "Backing Store",
+      "after": "systems",
+      "href": "resource/noobaa.io~v1alpha1~BackingStore",
+      "component": {
+        "$codeRef": "resourcePages.BackingStoreListPage"
+      }
+    },
+    "flags": {
+      "required": ["MCG"]
+    }
+  },
+  {
+    "type": "odf.dashboard/tab",
+    "properties": {
+      "id": "bucket-class",
+      "name": "Bucket Class",
+      "after": "backing-store",
+      "href": "resource/noobaa.io~v1alpha1~BucketClass",
+      "component": {
+        "$codeRef": "resourcePages.BucketClassListPage"
+      }
+    },
+    "flags": {
+      "required": ["MCG"]
+    }
+  },
+  {
+    "type": "odf.dashboard/tab",
+    "properties": {
+      "id": "namespace-store",
+      "name": "Namespace Store",
+      "after": "bucket-class",
+      "href": "resource/noobaa.io~v1alpha1~NamespaceStore",
+      "component": {
+        "$codeRef": "resourcePages.NamespaceStoreListPage"
+      }
+    },
+    "flags": {
+      "required": ["MCG"]
+    }
   }
 ]
