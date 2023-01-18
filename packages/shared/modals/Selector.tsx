@@ -133,13 +133,27 @@ export const selectorToString = (selector: Selector): string => {
 const cleanSelectorStr = (tag) => selectorToString(selectorFromString(tag));
 const cleanTags = (tags) => split(cleanSelectorStr(tags.join(',')));
 
+type SelectorProps = {
+  setErrorMessage?: (isValid: boolean) => void;
+  placeholder?: string;
+  options?: any;
+  autoFocus?: boolean;
+  inputProps?: any;
+  labelClassName?: string;
+  tags: string[];
+  onChange: (value: string[]) => void;
+};
+
 type SelectorInputState = {
   inputValue: string;
   isInputValid: boolean;
   tags: any;
 };
 
-export class SelectorInput extends React.Component<any, SelectorInputState> {
+export class SelectorInput extends React.Component<
+  SelectorProps,
+  SelectorInputState
+> {
   isBasic: boolean;
   setRef: (ref: any) => any;
   ref_: any;
@@ -188,11 +202,11 @@ export class SelectorInput extends React.Component<any, SelectorInputState> {
     // If the user deletes an existing inputValue, set isInputValid back to true
     if (inputValue === '') {
       this.setState({ inputValue, isInputValid: true });
-      this.props.setErrorMessage && this.props.setErrorMessage(true);
+      this.props.setErrorMessage?.(true);
       return;
     }
     const isInputValid = this.isTagValid(inputValue);
-    this.props.setErrorMessage && this.props.setErrorMessage(isInputValid);
+    this.props.setErrorMessage?.(isInputValid);
     this.setState({ inputValue, isInputValid });
   }
 
@@ -200,7 +214,7 @@ export class SelectorInput extends React.Component<any, SelectorInputState> {
     // The way we use TagsInput, there should only ever be one new tag in changed
     const newTag = changed[0];
     const isInputValid = this.isTagValid(newTag);
-    this.props.setErrorMessage && this.props.setErrorMessage(isInputValid);
+    this.props.setErrorMessage?.(isInputValid);
     if (!isInputValid) {
       this.setState({ isInputValid });
       return;
