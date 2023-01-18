@@ -3,7 +3,6 @@ import CheckCircleIcon from '@patternfly/react-icons/dist/esm/icons/check-circle
 import ExclamationTriangleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-triangle-icon';
 import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
 import cn from 'classnames';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { useController, Control, FieldValues } from 'react-hook-form';
 import {
   FormGroup,
@@ -19,12 +18,13 @@ import {
   Icon,
 } from '@patternfly/react-core';
 import useFieldRequirements from './useFieldRequirements';
+import './TextInputWithFieldRequirements.scss';
 
 export type TextInputWithFieldRequirementsProps = {
   fieldRequirements: string[];
   control: Control<FieldValues>;
   formGroupProps: FormGroupProps;
-  textInputProps: TextInputProps;
+  textInputProps: TextInputProps & { ['data-test']: string };
 };
 
 export type ValidationIconProp = {
@@ -32,7 +32,7 @@ export type ValidationIconProp = {
 };
 
 export const ValidationIcon: React.FC<ValidationIconProp> = ({ status }) => {
-  const getStatusIcon = () => {
+  const getStatusIcon = React.useCallback(() => {
     switch (status) {
       case 'error':
         return <ExclamationTriangleIcon />;
@@ -42,9 +42,9 @@ export const ValidationIcon: React.FC<ValidationIconProp> = ({ status }) => {
       default:
         return <InfoCircleIcon />;
     }
-  };
+  }, [status]);
 
-  const getVariant = () => {
+  const getVariant = React.useCallback(() => {
     switch (status) {
       case 'error':
         return 'danger';
@@ -53,7 +53,8 @@ export const ValidationIcon: React.FC<ValidationIconProp> = ({ status }) => {
       default:
         return 'info';
     }
-  };
+  }, [status]);
+
   return <Icon status={getVariant()}>{getStatusIcon()}</Icon>;
 };
 

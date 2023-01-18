@@ -1,12 +1,18 @@
-import { useReducer, useEffect, useState, Reducer } from 'react';
+import * as React from 'react';
 import { HelperTextItemProps } from '@patternfly/react-core';
 
+export type Status = HelperTextItemProps['variant'];
+
+export type ActionType = Status | 'reset';
+
 export type State = {
-  fieldRequirements: Record<string, HelperTextItemProps['variant']>;
+  fieldRequirements: Record<string, Status>;
 };
 
+export type Dispatch = React.Dispatch<Action>;
+
 export type Action = {
-  type: HelperTextItemProps['variant'] | 'reset';
+  type: ActionType;
   payload?: string;
   resetType?: 'success' | 'indeterminate';
 };
@@ -26,7 +32,7 @@ export const reducer = (
 });
 
 export const init = (fields: string[]): State => ({
-  fieldRequirements: fields.reduce((acc, curr) => {
+  fieldRequirements: fields?.reduce((acc, curr) => {
     return { ...acc, [curr]: 'indeterminate' };
   }, {}),
 });
@@ -35,10 +41,7 @@ const initialState: State = {
   fieldRequirements: {},
 };
 
-export const resetState = (
-  isDirty: boolean,
-  dispatch: (action: Action) => void
-) => {
+export const resetState = (isDirty: boolean, dispatch: Dispatch) => {
   dispatch({ type: 'reset', resetType: isDirty ? 'success' : 'indeterminate' });
   return [];
 };
@@ -46,7 +49,7 @@ export const resetState = (
 export const dispatchErrors = (
   formErrors: string[],
   dispatchedErrors: string[],
-  dispatch: (action: Action) => void
+  dispatch: Dispatch
 ) => {
   formErrors?.forEach((err) => {
     if (!dispatchedErrors?.includes(err)) {
@@ -60,27 +63,29 @@ export const dispatchErrors = (
 export const dispatchSuccess = (
   formErrors: string[],
   dispatchedErrors: string[],
-  dispatch: (action: Action) => void
+  dispatch: Dispatch
 ) => {
-  dispatchedErrors?.forEach((err, index) => {
+  const remainingErrors = dispatchedErrors.slice();
+  dispatchedErrors?.forEach((err: string) => {
     if (!formErrors.includes(err)) {
-      dispatchedErrors.splice(index, 1);
+      const index = remainingErrors.findIndex((x) => x === err);
+      remainingErrors.splice(index, 1);
       dispatch({ type: 'success', payload: err });
     }
   });
-  return dispatchedErrors;
+  return remainingErrors;
 };
 
 export const checkErrors = (
   errorMessages: Record<string, any> = {},
-  stack: string[],
+  errorsDispatched: string[],
   isDirty: boolean,
-  dispatch: (action: Action) => void
+  dispatch: Dispatch
 ) => {
   const formErrors = Object.keys(errorMessages);
-  const dispatchedErrors = stack.slice();
+  const dispatchedErrors = errorsDispatched.slice();
 
-  if (!formErrors.length) resetState(isDirty, dispatch);
+  if (!formErrors.length) return resetState(isDirty, dispatch);
 
   return dispatchSuccess(
     formErrors,
@@ -89,21 +94,20 @@ export const checkErrors = (
   );
 };
 
-const useFieldRequirements = (
+const useFieldRequirements = <TError>(
   fieldRequirements: string[],
   isDirty: boolean,
-  error: any
+  error?: TError
 ) => {
-  const [state, dispatch] = useReducer<Reducer<State, Action>, State>(
-    reducer,
-    initialState,
-    () => init(fieldRequirements)
-  );
-  const [, setErrorStack] = useState<string[]>([]);
+  const [state, dispatch] = React.useReducer<
+    React.Reducer<State, Action>,
+    State
+  >(reducer, initialState, () => init(fieldRequirements));
+  const [, setErrorStack] = React.useState<string[]>([]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setErrorStack((prevState) => {
-      return checkErrors(error?.messages, prevState, isDirty, dispatch);
+      return checkErrors(error?.['messages'], prevState, isDirty, dispatch);
     });
   }, [dispatch, error, isDirty]);
 
