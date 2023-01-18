@@ -33,6 +33,7 @@
     "thickProvisioner": "@odf/ocs/storage-class/thick-provisioner",
     "alert": "@odf/core/components/alerts/alert-action-path",
     "actions": "@odf/core/components/actions/csv-actions",
-    "resourcePages": "@odf/core/components/resource-pages/list-page"
+    "resourcePages": "@odf/core/components/resource-pages/list-page",
+    "topology": "@odf/core/components/topology/Topology"
   }
 }

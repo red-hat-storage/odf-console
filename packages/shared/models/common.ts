@@ -203,3 +203,48 @@ export const MachineModel: K8sModel = {
   id: 'machine',
   crd: true,
 };
+
+export const ReplicaSetModel: K8sKind = {
+  label: 'ReplicaSet',
+  labelKey: 'ReplicaSet',
+  apiVersion: 'v1',
+  apiGroup: 'apps',
+  plural: 'replicasets',
+  abbr: 'RS',
+  namespaced: true,
+  propagationPolicy: 'Foreground',
+  kind: 'ReplicaSet',
+  id: 'replicaset',
+  labelPlural: 'ReplicaSets',
+  labelPluralKey: 'ReplicaSets',
+};
+
+export const StatefulSetModel: K8sKind = {
+  label: 'StatefulSet',
+  labelKey: 'StatefulSet',
+  apiGroup: 'apps',
+  apiVersion: 'v1',
+  plural: 'statefulsets',
+  abbr: 'SS',
+  namespaced: true,
+  propagationPolicy: 'Foreground',
+  kind: 'StatefulSet',
+  id: 'statefulset',
+  labelPlural: 'StatefulSets',
+  labelPluralKey: 'StatefulSets',
+};
+
+export const DaemonSetModel: K8sKind = {
+  label: 'DaemonSet',
+  labelKey: 'DaemonSet',
+  apiGroup: 'apps',
+  plural: 'daemonsets',
+  apiVersion: 'v1',
+  abbr: 'DS',
+  namespaced: true,
+  propagationPolicy: 'Foreground',
+  kind: 'DaemonSet',
+  id: 'daemonset',
+  labelPlural: 'DaemonSets',
+  labelPluralKey: 'DaemonSets',
+};

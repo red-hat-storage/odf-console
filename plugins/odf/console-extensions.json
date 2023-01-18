@@ -637,5 +637,20 @@
     "flags": {
       "required": ["MCG"]
     }
+  },
+  {
+    "type": "odf.dashboard/tab",
+    "properties": {
+      "id": "topology",
+      "name": "Topology",
+      "before": "overview",
+      "href": "topology",
+      "component": {
+        "$codeRef": "topology.default"
+      }
+    },
+    "flags": {
+      "required": ["DEV_GUARD"]
+    }
   }
 ]

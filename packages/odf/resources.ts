@@ -14,6 +14,12 @@ import {
   SecretModel,
   SubscriptionModel,
   CephClusterModel,
+  ODFStorageSystem,
+  PodModel,
+  DeploymentModel,
+  StatefulSetModel,
+  ReplicaSetModel,
+  DaemonSetModel,
 } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -76,6 +82,48 @@ export const storageClusterResource: WatchK8sResource = {
   isList: true,
   kind: referenceForModel(OCSStorageClusterModel),
   namespaced: false,
+};
+
+export const odfPodsResource: WatchK8sResource = {
+  isList: true,
+  kind: referenceForModel(PodModel),
+  namespaced: true,
+  namespace: 'openshift-storage',
+};
+
+export const odfDeploymentsResource: WatchK8sResource = {
+  isList: true,
+  kind: referenceForModel(DeploymentModel),
+  namespaced: true,
+  namespace: 'openshift-storage',
+};
+
+export const odfStatefulSetResource: WatchK8sResource = {
+  isList: true,
+  kind: referenceForModel(StatefulSetModel),
+  namespaced: true,
+  namespace: 'openshift-storage',
+};
+
+export const odfReplicaSetResource: WatchK8sResource = {
+  isList: true,
+  kind: referenceForModel(ReplicaSetModel),
+  namespaced: true,
+  namespace: 'openshift-storage',
+};
+
+export const odfDaemonSetResource: WatchK8sResource = {
+  isList: true,
+  kind: referenceForModel(DaemonSetModel),
+  namespaced: true,
+  namespace: 'openshift-storage',
+};
+
+export const odfSystemResource: WatchK8sResource = {
+  isList: false,
+  kind: referenceForModel(ODFStorageSystem),
+  namespace: 'openshift-storage',
+  name: 'ocs-storagecluster-storagesystem',
 };
 
 export const secretResource: WatchK8sResource = {

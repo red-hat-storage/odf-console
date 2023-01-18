@@ -98,6 +98,8 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
             href: extension.properties.href,
             name: extension.properties.name,
             component: extension.properties.component,
+            before: extension.properties.before,
+            after: extension.properties.after,
           };
           updatedPages.push(page);
         }
