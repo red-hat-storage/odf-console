@@ -53,6 +53,17 @@ export type DRPlacementControlKind = K8sResourceCommon & {
   };
   status?: {
     conditions?: K8sResourceCondition[];
+    resourceConditions?: {
+      properties?: {
+        resourceMeta?: {
+          properties?: {
+            protectedpvcs?: {
+              items?: string[];
+            };
+          };
+        };
+      };
+    };
     phase: string;
     lastGroupSyncTime?: string;
     preferredDecision?: {

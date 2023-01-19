@@ -1,9 +1,8 @@
 .odf-status-popup__status {
-  align-items: center;
+  align-items: flex-end;
   display: flex;
   flex-direction: column;
   flex-grow: 0.3;
-  justify-items: center;
   white-space: nowrap;
 }
 

@@ -9,6 +9,8 @@ export const PROTECTED_APP_ANNOTATION =
 // "~1" is used to represent a "/", else any "patch" call will treat prefix as a path
 export const PROTECTED_APP_ANNOTATION_WO_SLASH =
   'cluster.open-cluster-management.io~1experimental-scheduling-disable';
+export const ALL_APPS = 'All applications';
+export const ALL_APPS_ITEM_ID = 'all-applications-itemid';
 
 export enum DRPlacementControlStatus {
   FailedOver = 'FailedOver',
@@ -50,4 +52,11 @@ export const Actions = (t: TFunction) => ({
 
 export enum APPLICATION_TYPE {
   APPSET = 'ApplicationSet',
+}
+
+export enum DRPC_STATUS {
+  FailedOver = 'FailedOver',
+  Relocating = 'Relocating',
+  FailingOver = 'FailingOver',
+  Relocated = 'Relocated',
 }

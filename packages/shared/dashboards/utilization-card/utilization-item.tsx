@@ -30,6 +30,12 @@ const chartStatusColors = {
   [AreaChartStatus.WARNING]: warningColor.value,
 };
 
+export const trimSecondsXMutator = (x: number) => {
+  const d = new Date(x * 1000);
+  d.setSeconds(0, 0);
+  return d;
+};
+
 export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
   ({
     TopConsumerPopover,
@@ -46,11 +52,6 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
     utilization,
   }) => {
     const { t } = useCustomTranslation();
-    const trimSecondsXMutator = (x: number) => {
-      const d = new Date(x * 1000);
-      d.setSeconds(0, 0);
-      return d;
-    };
     const { data, chartStyle } = mapLimitsRequests(
       utilization,
       limit,
