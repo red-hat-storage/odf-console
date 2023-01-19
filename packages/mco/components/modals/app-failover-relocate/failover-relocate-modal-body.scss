@@ -3,11 +3,10 @@
     margin-top: var(--pf-global--spacer--sm);
     margin-bottom: var(--pf-global--spacer--xs);
   }
-  &__dropdown--width {
-    width: 25rem;
+  &__target-cluster--width {
+    width: 35rem;
   }
-}
-
-.mco-dr-action__target-cluster--width {
-  min-width: 19rem;
+  &__unknown {
+    display: inline-block;
+  }
 }

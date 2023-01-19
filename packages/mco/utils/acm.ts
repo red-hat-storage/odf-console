@@ -2,6 +2,7 @@ import { getName, getNamespace } from '@odf/shared/selectors';
 import { PLACEMENT_REF_LABEL } from '../constants';
 import {
   ArgoApplicationSetKind,
+  ACMManagedClusterKind,
   ACMPlacementDecisionKind,
   ACMPlacementKind,
 } from '../types';
@@ -12,6 +13,33 @@ export const findPlacementNameFromAppSet = (
 ): string =>
   application?.spec?.generators[0]?.clusterDecisionResource?.labelSelector
     ?.matchLabels?.[PLACEMENT_REF_LABEL] || '';
+
+export const findPlacementDecisionUsingPlacement = (
+  placement: ACMPlacementKind,
+  placementDecisions: ACMPlacementDecisionKind[]
+) =>
+  placementDecisions.find((placementDecision) =>
+    placementDecision?.metadata?.ownerReferences?.find(
+      (ownerReference) =>
+        placement?.metadata?.uid === ownerReference?.uid &&
+        getNamespace(placementDecision) === getNamespace(placement)
+    )
+  );
+
+export const findDeploymentClusterName = (
+  placementDecision: ACMPlacementDecisionKind
+): string => {
+  return placementDecision?.status?.decisions?.[0]?.clusterName || '';
+};
+
+export const getManagedClusterAvailableCondition = (
+  managedCluster: ACMManagedClusterKind
+) =>
+  managedCluster?.status?.conditions?.find(
+    (condition) =>
+      condition?.type === 'ManagedClusterConditionAvailable' &&
+      condition.status === 'True'
+  );
 
 export const findSiblingArgoAppSetsFromPlacement = (
   appName: String,
@@ -33,16 +61,4 @@ export const findPlacementFromArgoAppSet = (
     (placement) =>
       getNamespace(placement) === getNamespace(application) &&
       findPlacementNameFromAppSet(application) === getName(placement)
-  );
-
-export const findPlacementDecisionUsingPlacement = (
-  placement: ACMPlacementKind,
-  placementDecisions: ACMPlacementDecisionKind[]
-) =>
-  placementDecisions.find((placementDecision) =>
-    placementDecision?.metadata?.ownerReferences?.find(
-      (ownerReference) =>
-        placement?.metadata?.uid === ownerReference?.uid &&
-        getNamespace(placementDecision) === getNamespace(placement)
-    )
   );

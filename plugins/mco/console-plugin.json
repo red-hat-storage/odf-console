@@ -13,6 +13,6 @@
     "systemDashboard": "@odf/mco/components/mco-dashboard/storage-system/system-dashboard",
     "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor",
     "dataPoliciesStatusPopover": "@odf/mco/components/modals/app-data-policies-status/data-policies-status-popover",
-    "failoverRelocateModal": "@odf/mco/components/modals/app-failover-relocate/failover-relocate-modal"
+    "appFailoverRelocate": "@odf/mco/components/modals/app-failover-relocate/acm-action-callback"
   }
 }

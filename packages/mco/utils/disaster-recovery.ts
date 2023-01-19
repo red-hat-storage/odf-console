@@ -6,13 +6,16 @@ import {
 } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types/k8s';
 import { referenceForModel } from '@odf/shared/utils';
-import { ObjectReference } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sResourceCommon,
+  ObjectReference,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   Operator,
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { DR_SECHEDULER_NAME } from '../constants';
-import { REPLICATION_TYPE } from '../constants/dr-policy';
+import { REPLICATION_TYPE } from '../constants/disaster-recovery';
 import { DisasterRecoveryResourceKind } from '../hooks';
 import { ACMPlacementRuleModel, DRPolicyModel } from '../models';
 import {
@@ -204,6 +207,24 @@ export const isPeerReadyAndAvailable = (
   return isPeerReady && isAvailable;
 };
 
+export const findCluster = (
+  clusters: K8sResourceCommon[],
+  deploymentClusterName: string,
+  isDeploymentCluster = false
+) =>
+  clusters?.find((cluster) =>
+    isDeploymentCluster
+      ? getName(cluster) === deploymentClusterName
+      : getName(cluster) !== deploymentClusterName
+  );
+
+export const findDRType = (drClusters: DRClusterKind[]) =>
+  drClusters?.every(
+    (drCluster) => drCluster?.spec?.region === drClusters?.[0]?.spec?.region
+  )
+    ? REPLICATION_TYPE.SYNC
+    : REPLICATION_TYPE.ASYNC;
+
 export const findDRResourceUsingPlacement = (
   placement: ACMPlacementKind,
   drResources: DisasterRecoveryResourceKind[]
@@ -247,3 +268,6 @@ export const findDRPolicyUsingDRPC = (
         getGVKFromObjectRef(drpc?.spec?.drPolicyRef)
   );
 };
+
+export const isDRClusterFenced = (cluster: DRClusterKind) =>
+  cluster?.status?.phase === 'Fenced';

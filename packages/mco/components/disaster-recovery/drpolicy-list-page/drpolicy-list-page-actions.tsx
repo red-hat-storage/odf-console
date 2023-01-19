@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ModalMap } from '@odf/shared/modals/modalLauncher';
 import { TFunction } from 'i18next';
-import { Actions } from '../../../constants/dr-policy';
+import { Actions } from '../../../constants/disaster-recovery';
 
 export const DRPolicyActions = (t: TFunction): ModalMap => ({
   [Actions(t).APPLY_DR_POLICY]: React.lazy(

@@ -5,6 +5,18 @@ export const DR_SECHEDULER_NAME = 'ramen';
 export const PLACEMENT_REF_LABEL =
   'cluster.open-cluster-management.io/placement';
 
+export enum DRPlacementControlStatus {
+  FailedOver = 'FailedOver',
+  Relocating = 'Relocating',
+  FailingOver = 'FailingOver',
+  Relocated = 'Relocated',
+}
+
+export enum DRActionType {
+  FAILOVER = 'Failover',
+  RELOCATE = 'Relocate',
+}
+
 export enum REPLICATION_TYPE {
   ASYNC = 'async',
   SYNC = 'sync',
