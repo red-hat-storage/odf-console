@@ -105,7 +105,7 @@ const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({ match }) => {
       dispatch({
         type: BlockPoolActionType.SET_ERROR_MESSAGE,
         payload: t(
-          "OpenShift Data Foundation's StorageCluster is not available. Try again after the StorageCluster is ready to use."
+          "Data Foundation's StorageCluster is not available. Try again after the StorageCluster is ready to use."
         ),
       });
   };
@@ -126,7 +126,7 @@ const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({ match }) => {
       >
         <strong>
           {t(
-            "Pool creation is not supported for OpenShift Data Foundation's external RHCS StorageSystem."
+            "Pool creation is not supported for Data Foundation's external RHCS StorageSystem."
           )}
         </strong>
       </Modal>

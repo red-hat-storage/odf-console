@@ -51,8 +51,6 @@ export const OCSUpgradeActivity: React.FC = () => {
   const { t } = useCustomTranslation();
 
   return (
-    <ActivityItem>
-      {t("Upgrading OpenShift Data Foundation's Operator")}
-    </ActivityItem>
+    <ActivityItem>{t("Upgrading Data Foundation's Operator")}</ActivityItem>
   );
 };

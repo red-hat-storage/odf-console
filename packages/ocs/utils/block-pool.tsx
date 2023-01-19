@@ -117,7 +117,7 @@ export const PROGRESS_STATUS = (
     name: POOL_PROGRESS.NOTALLOWED,
     icon: LockIcon,
     desc: t(
-      "Pool management tasks are not supported for default pool and OpenShift Data Foundation's external mode."
+      "Pool management tasks are not supported for default pool and Data Foundation's external mode."
     ),
     className: '',
   },

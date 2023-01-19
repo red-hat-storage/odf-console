@@ -1,8 +1,8 @@
 {
   "name": "odf-console",
   "version": "0.0.0",
-  "displayName": "ODF(OpenShift Data Foundation) Plugin",
-  "description": "Console plugin for ODF",
+  "displayName": "Data Foundation Plugin",
+  "description": "Console plugin for Data Foundation",
   "dependencies": {
     "@console/pluginAPI": "*"
   },
