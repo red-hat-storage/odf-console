@@ -271,3 +271,11 @@ export const findDRPolicyUsingDRPC = (
 
 export const isDRClusterFenced = (cluster: DRClusterKind) =>
   cluster?.status?.phase === 'Fenced';
+
+export const matchClusters = (
+  drClusterNames: string[],
+  decisionClusters: string[]
+): string =>
+  drClusterNames?.find((drClusterName: string) =>
+    decisionClusters?.includes(drClusterName)
+  );

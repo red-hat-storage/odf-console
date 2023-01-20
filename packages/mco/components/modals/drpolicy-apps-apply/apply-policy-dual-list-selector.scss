@@ -1,0 +1,10 @@
+.mco-apply-policy-dual-selector {
+    &__listItem {
+        display: flex;
+        flex-direction: column;
+        text-align: start;
+    }
+    &__ItemDescription--color {
+        color: var(--pf-global--Color--200);
+    }
+  }

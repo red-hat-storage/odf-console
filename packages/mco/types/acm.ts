@@ -96,3 +96,25 @@ export type ACMMultiClusterObservability = K8sResourceCommon & {
 };
 
 export type ACMApplicationKind = ArgoApplicationSetKind;
+
+export type PlacementToAppSets = {
+  namespace: string;
+  placement: string;
+  havePlacementAnnotations: boolean;
+  isAlreadyProtected: boolean;
+  appSetName: string;
+  placementDecision: string;
+  decisionClusters: string[];
+  selected: boolean;
+  isVisible: boolean;
+};
+
+export type PlacementToDrpcMap = {
+  [namespace: string]: {
+    [placement: string]: {
+      drpcName: string;
+      existingLabels: string[];
+      updateLabels: string[];
+    };
+  };
+};
