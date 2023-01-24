@@ -32,6 +32,7 @@ type TabsProps = {
   isSecondary?: boolean;
   id: string;
   basePath?: string; // The page that is common to these tabs
+  updatePathOnSelect?: boolean;
 };
 
 const Tabs: React.FC<TabsProps> = ({
@@ -39,6 +40,7 @@ const Tabs: React.FC<TabsProps> = ({
   isSecondary = false,
   id,
   basePath,
+  updatePathOnSelect = true,
 }) => {
   const offset = isSecondary ? 10 : 1;
   const [activeTab, setActiveTab] = React.useState(0 + offset);
@@ -105,17 +107,27 @@ const Tabs: React.FC<TabsProps> = ({
     const currentLocation = location.pathname;
     const firstMatchKey = Object.keys(hrefToTabMap).find(
       (href) =>
+        history.location.hash === href ||
         currentLocation.endsWith(href) ||
         currentLocation.endsWith(`${href}/`) ||
         currentLocation.includes(href)
     );
     const trueActiveTab = hrefToTabMap[firstMatchKey];
-    if (trueActiveTab !== activeTab) {
+    if (trueActiveTab && trueActiveTab !== activeTab) {
       setActiveTab(trueActiveTab);
     }
-  }, [activeTab, history, hrefToTabMap, location.pathname, tabToHrefMap]);
+  }, [
+    activeTab,
+    history.location,
+    hrefToTabMap,
+    location.pathname,
+    tabToHrefMap,
+  ]);
 
-  const onClick = (event, tabIndex) => {
+  const onSelect = (event, tabIndex) => {
+    if (!updatePathOnSelect) {
+      return setActiveTab(tabIndex);
+    }
     // Update the href only and let useEffect handle tabChange
     const isActive = tabIndex === activeTab;
     if (!isActive) {
@@ -130,7 +142,9 @@ const Tabs: React.FC<TabsProps> = ({
       _.times(updateDepth + 1, () => {
         currentPath.pop();
       });
-      const updatedPath = [...currentPath, requiredHref].join('/');
+      const updatedPath = [...currentPath, requiredHref]
+        .join('/')
+        .replace('/#', '#');
       history.push(updatedPath);
     }
   };
@@ -141,7 +155,7 @@ const Tabs: React.FC<TabsProps> = ({
       className="odf-tabs"
       unmountOnExit={true}
       activeKey={activeTab}
-      onSelect={onClick}
+      onSelect={onSelect}
       isSecondary={isSecondary}
       component={TabsComponent.nav}
     >
