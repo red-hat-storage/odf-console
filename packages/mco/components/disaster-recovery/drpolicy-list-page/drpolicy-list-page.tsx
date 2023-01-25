@@ -105,10 +105,19 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
       value: Actions(t).DELETE_DR_POLICY,
       props: filteredDRPlacementControl?.length
         ? {
-            description: t('Cannot delete while connected to an application'),
+            description: t('Cannot delete while connected to an application.'),
             isDisabled: true,
           }
         : {},
+    },
+    {
+      key: Actions(t).MANAGE_DR_POLICY,
+      value: Actions(t).MANAGE_DR_POLICY,
+      props: {
+        isDisabled: !(
+          drPlacementsControlLoaded && !drPlacementsControlLoadError
+        ),
+      },
     },
     {
       key: Actions(t).APPLY_DR_POLICY,
@@ -117,6 +126,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
         isDisabled: !(
           drPlacementsControlLoaded && !drPlacementsControlLoadError
         ),
+        description: t('Only for subscription application.'),
       },
     },
   ];
