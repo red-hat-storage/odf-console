@@ -95,7 +95,7 @@ export type ACMMultiClusterObservability = K8sResourceCommon & {
   };
 };
 
-export type ACMApplicationKind = ArgoApplicationSetKind;
+export type ACMApplicationKind = ArgoApplicationSetKind | ApplicationKind;
 
 export type PlacementToAppSets = {
   namespace: string;
