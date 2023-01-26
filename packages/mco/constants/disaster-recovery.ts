@@ -43,6 +43,7 @@ export const REPLICATION_DISPLAY_TEXT = (
 });
 
 export const Actions = (t: TFunction) => ({
+  MANAGE_DR_POLICY: t('Manage DRPolicy'),
   APPLY_DR_POLICY: t('Apply DRPolicy'),
   DELETE_DR_POLICY: t('Delete DRPolicy'),
 });

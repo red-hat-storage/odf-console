@@ -1,0 +1,13 @@
+.mco-subs-dr-action-body {
+  &__alert {
+    margin-top: var(--pf-global--spacer--sm);
+    margin-bottom: var(--pf-global--spacer--xs);
+  }
+  &__dropdown--width {
+    width: 25rem;
+  }
+}
+
+.mco-subs-dr-action__target-cluster--width {
+  min-width: 19rem;
+}

@@ -7,7 +7,7 @@ export const ODF_DOC_VERSION = '4.13';
 export const ODF_DOC_HOME = `https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/${ODF_DOC_VERSION}`;
 export const ODF_DOC_BASE_PATH = `${ODF_DOC_HOME}/html-single`;
 
-export const ACM_DOC_VERSION = '2.8';
+export const ACM_DOC_VERSION = '2.7';
 export const ACM_DOC_HOME = `https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/${ACM_DOC_VERSION}`;
 export const ACM_DOC_BASE_PATH = `${ACM_DOC_HOME}/html-single`;
 
