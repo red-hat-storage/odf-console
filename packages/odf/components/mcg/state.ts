@@ -1,4 +1,10 @@
+import { BucketClassKind, ObjectBucketClaimKind } from '@odf/core/types';
 import { K8sResourceKind } from '@odf/shared/types';
+
+export type ReplicationResources = {
+  bucketClass: BucketClassKind;
+  objectBucketClaim: ObjectBucketClaimKind;
+};
 
 export type State = {
   name: string;
@@ -10,8 +16,29 @@ export type State = {
   error: string;
   payload: K8sResourceKind;
   bucketClass: string;
+  replicationRuleFormData: ReplicationRuleFormData[];
 };
 
+export type ReplicationPolicy = {
+  rules: OBCReplicationRules[];
+};
+
+// This is the actual format of replication rules in an OBC CRD
+export type OBCReplicationRules = {
+  ruleId: string;
+  obName: string;
+  filter: {
+    prefix: string;
+  };
+};
+
+// Structure for the form in OBC creation page
+export type ReplicationRuleFormData = {
+  // Keeping it ruleNumber here instead of rule id since we are counting the rules in UI instead of any random string
+  ruleNumber?: number;
+  namespaceStore: string;
+  prefix?: string;
+};
 export const defaultState = {
   name: '',
   scName: '',
@@ -22,6 +49,7 @@ export const defaultState = {
   sizeUnit: 'GiB',
   sizeValue: '',
   bucketClass: 'noobaa-default-bucket-class',
+  replicationRuleFormData: [],
 };
 
 export type Action =
@@ -33,7 +61,11 @@ export type Action =
   | { type: 'setError'; message: string }
   | { type: 'setPayload'; payload: {} }
   | { type: 'setSize'; unit: string; value: string }
-  | { type: 'setBucketClass'; name: string };
+  | { type: 'setBucketClass'; name: string }
+  | {
+      type: 'setReplicationRuleFormData';
+      data: Array<ReplicationRuleFormData>;
+    };
 
 export const commonReducer = (state: State, action: Action) => {
   switch (action.type) {
@@ -58,6 +90,8 @@ export const commonReducer = (state: State, action: Action) => {
       return Object.assign({}, state, { payload: action.payload });
     case 'setBucketClass':
       return Object.assign({}, state, { bucketClass: action.name });
+    case 'setReplicationRuleFormData':
+      return Object.assign({}, state, { replicationRuleFormData: action.data });
     default:
       return defaultState;
   }

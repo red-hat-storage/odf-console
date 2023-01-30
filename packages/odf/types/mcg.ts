@@ -48,6 +48,17 @@ export type NamespaceStoreKind = K8sResourceCommon & {
   };
 };
 
+export type ObjectBucketClaimKind = K8sResourceCommon & {
+  spec: {
+    generateBucketName: string;
+    storageClassName: string;
+    additionalConfig: {
+      bucketclass: string;
+      'replication-policy': string;
+    };
+  };
+};
+
 export enum PlacementPolicy {
   Spread = 'Spread',
   Mirror = 'Mirror',

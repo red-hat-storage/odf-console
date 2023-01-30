@@ -5,18 +5,26 @@ import {
   K8sResourceKind,
   StorageClass,
 } from '@odf/shared/types';
-import { RowFilter } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  getAPIVersionForModel,
+  RowFilter,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import {
   AWS_REGIONS,
   BC_PROVIDERS,
   BUCKET_LABEL_NOOBAA_MAP,
+  NamespacePolicyType,
   NS_PROVIDERS_NOOBAA_MAP,
   PROVIDERS_NOOBAA_MAP,
   StoreType,
   TimeUnits,
 } from '../constants';
+import {
+  NooBaaBucketClassModel,
+  NooBaaObjectBucketClaimModel,
+} from '../models';
 import {
   BackingStoreKind,
   BucketClassKind,
@@ -276,3 +284,55 @@ export const convertToMS = ({ unit, value }) =>
   unit === TimeUnits.HOUR
     ? parseInt(value, 10) * 3600000
     : parseInt(value, 10) * 60000;
+
+export const generateGenericName = (name: string, prefix: string): string => {
+  const base64Encoded = btoa(name).substring(0, 10);
+  return `${prefix}-${name}-${base64Encoded}`.toLowerCase();
+};
+
+export const createNewSingleNamespaceBucketClass = (
+  name: string,
+  namespace: string,
+  namespaceStoreName: string
+): K8sResourceKind => {
+  return {
+    apiVersion: getAPIVersionForModel(NooBaaBucketClassModel),
+    kind: NooBaaBucketClassModel.kind,
+    metadata: {
+      name,
+      namespace,
+    },
+    spec: {
+      namespacePolicy: {
+        type: NamespacePolicyType.SINGLE,
+        single: {
+          resource: namespaceStoreName,
+        },
+      },
+    },
+  };
+};
+
+export const createNewObjectBucketClaim = (
+  name: string,
+  namespace: string,
+  bucketClassName: string,
+  storageClassName: string
+): K8sResourceKind => {
+  return {
+    apiVersion: getAPIVersionForModel(NooBaaObjectBucketClaimModel),
+    kind: NooBaaObjectBucketClaimModel.kind,
+    metadata: {
+      name,
+      namespace,
+    },
+    spec: {
+      ssl: false,
+      storageClassName,
+      generateBucketName: name,
+      additionalConfig: {
+        bucketClass: bucketClassName,
+      },
+    },
+  };
+};
