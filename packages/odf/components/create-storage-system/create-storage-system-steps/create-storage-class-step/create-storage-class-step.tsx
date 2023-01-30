@@ -1,13 +1,17 @@
 import * as React from 'react';
 import { getExternalStorage } from '@odf/core/components/utils';
 import { ExternalStateValues, ExternalStateKeys } from '@odf/core/types';
-import fieldRequirementsTranslations from '@odf/shared/constants/fieldRequirements';
+import {
+  fieldRequirementsTranslations,
+  formSettings,
+} from '@odf/shared/constants';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { isValidIP } from '@odf/shared/utils';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -72,26 +76,28 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
           fieldRequirements[3],
           (value: string) => !existingNames.includes(value)
         ),
+      'endpoint-input': Yup.string()
+        .required()
+        .test(
+          'ip-address',
+          t('The endpoint is not a valid IP address'),
+          (value: string) => isValidIP(value)
+        ),
+      'username-input': Yup.string().required(),
+      'password-input': Yup.string().required(),
+      'poolname-input': Yup.string().required(),
     });
 
     return { schema, fieldRequirements };
-  }, [loaded, loadError, data, t]);
-
+  }, [data, loadError, loaded, t]);
   const resolver = useYupValidationResolver(schema);
   const {
     control,
     watch,
     formState: { isValid },
   } = useForm({
-    mode: 'onBlur',
-    reValidateMode: 'onChange',
+    ...formSettings,
     resolver,
-    context: undefined,
-    criteriaMode: 'firstError',
-    shouldFocusError: true,
-    shouldUnregister: false,
-    shouldUseNativeValidation: false,
-    delayError: undefined,
   });
 
   const storageClassName: string = watch('storage-class-name');
@@ -130,7 +136,9 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
           {t('{{displayName}} connection details', { displayName })}
         </Text>
       </TextContent>
-      {Component && <Component setFormState={setForm} formState={state} />}
+      {Component && (
+        <Component control={control} setFormState={setForm} formState={state} />
+      )}
     </Form>
   );
 };

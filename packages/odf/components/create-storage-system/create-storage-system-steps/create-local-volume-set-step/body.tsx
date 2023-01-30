@@ -7,7 +7,10 @@ import {
   diskTypeDropdownItems,
   NO_PROVISIONER,
 } from '@odf/core/constants';
-import fieldRequirementsTranslations from '@odf/shared/constants/fieldRequirements';
+import {
+  fieldRequirementsTranslations,
+  formSettings,
+} from '@odf/shared/constants';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
@@ -201,15 +204,8 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
     watch,
     formState: { isValid },
   } = useForm({
-    mode: 'onBlur',
-    reValidateMode: 'onChange',
+    ...formSettings,
     resolver,
-    context: undefined,
-    criteriaMode: 'firstError',
-    shouldFocusError: true,
-    shouldUnregister: false,
-    shouldUseNativeValidation: false,
-    delayError: undefined,
   });
 
   const createLvsStorageClassName: string = watch(

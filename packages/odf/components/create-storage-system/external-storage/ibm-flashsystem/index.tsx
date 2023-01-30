@@ -7,18 +7,18 @@ import {
   ExternalComponentProps,
   CanGoToNextStep,
 } from '@odf/core/types';
+import { FormGroupController } from '@odf/shared/form-group-controller';
 import { SecretModel } from '@odf/shared/models';
 import { SecretKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getAPIVersionForModel } from '@odf/shared/utils';
 import { isValidIP } from '@odf/shared/utils';
+import { getAPIVersionForModel } from '@odf/shared/utils';
 import {
   FormGroup,
   TextInput,
   InputGroup,
   Button,
   Tooltip,
-  ValidatedOptions,
   Select,
   SelectOption,
 } from '@patternfly/react-core';
@@ -28,20 +28,10 @@ const VOLUME_MODES = ['thick', 'thin'];
 
 export const FlashSystemConnectionDetails: React.FC<
   ExternalComponentProps<FlashSystemState>
-> = ({ setFormState, formState }) => {
+> = ({ setFormState, formState, control }) => {
   const { t } = useCustomTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
   const [reveal, setReveal] = React.useState(false);
-  const [endpointValid, setEndpointValid] = React.useState(
-    ValidatedOptions.default
-  );
-
-  const onChange = (value: string) => {
-    setFormState('endpoint', value);
-    value && isValidIP(value)
-      ? setEndpointValid(ValidatedOptions.success)
-      : setEndpointValid(ValidatedOptions.error);
-  };
 
   const onToggle = () => setIsOpen(!isOpen);
 
@@ -53,56 +43,105 @@ export const FlashSystemConnectionDetails: React.FC<
 
   return (
     <>
-      <FormGroup
-        label={t('IP address')}
-        fieldId="endpoint-input"
-        isRequired
-        validated={endpointValid}
-        helperText={t('Rest API IP address of IBM FlashSystem.')}
-        helperTextInvalid={t('The endpoint is not a valid IP address')}
-      >
-        <TextInput
-          id="endpoint-input"
-          value={formState.endpoint}
-          type="text"
-          onChange={onChange}
-          isRequired
-        />
-      </FormGroup>
-      <FormGroup label={t('Username')} isRequired fieldId="username-input">
-        <TextInput
-          id="username-input"
-          value={formState.username}
-          type="text"
-          onChange={(value: string) => setFormState('username', value)}
-          isRequired
-        />
-      </FormGroup>
-      <FormGroup label={t('Password')} isRequired fieldId="password-input">
-        <InputGroup>
+      <FormGroupController
+        control={control}
+        name="endpoint-input"
+        formGroupProps={{
+          label: t('IP address'),
+          fieldId: 'endpoint-input',
+          isRequired: true,
+          helperText: t('Rest API IP address of IBM FlashSystem.'),
+        }}
+        render={({ value, onChange, onBlur }) => (
           <TextInput
-            id="password-input"
-            value={formState.password}
-            type={reveal ? 'text' : 'password'}
-            onChange={(value: string) => setFormState('password', value)}
+            id="endpoint-input"
+            type="text"
+            value={value}
+            onChange={(value: string) => {
+              onChange(value);
+              setFormState('endpoint', value);
+            }}
+            onBlur={onBlur}
             isRequired
           />
-          <Tooltip content={reveal ? t('Hide password') : t('Reveal password')}>
-            <Button variant="control" onClick={() => setReveal(!reveal)}>
-              {reveal ? <EyeSlashIcon /> : <EyeIcon />}
-            </Button>
-          </Tooltip>
-        </InputGroup>
-      </FormGroup>
-      <FormGroup label={t('Pool name')} isRequired fieldId="poolname-input">
-        <TextInput
-          id="poolname-input"
-          value={formState.poolname}
-          type="text"
-          onChange={(value: string) => setFormState('poolname', value)}
-          isRequired
-        />
-      </FormGroup>
+        )}
+      />
+      <FormGroupController
+        name="username-input"
+        control={control}
+        formGroupProps={{
+          label: t('Username'),
+          isRequired: true,
+          fieldId: 'username-input',
+        }}
+        render={({ onChange, onBlur }) => (
+          <TextInput
+            id="username-input"
+            value={formState.username}
+            type="text"
+            onChange={(value: string) => {
+              onChange(value);
+              setFormState('username', value);
+            }}
+            onBlur={onBlur}
+            isRequired
+          />
+        )}
+      />
+      <FormGroupController
+        name="password-input"
+        control={control}
+        formGroupProps={{
+          label: t('Password'),
+          isRequired: true,
+          fieldId: 'password-input',
+        }}
+        render={({ onChange, onBlur }) => (
+          <InputGroup>
+            <TextInput
+              id="password-input"
+              value={formState.password}
+              type={reveal ? 'text' : 'password'}
+              onChange={(value: string) => {
+                onChange(value);
+                setFormState('password', value);
+              }}
+              onBlur={onBlur}
+              isRequired
+            />
+            <Tooltip
+              content={reveal ? t('Hide password') : t('Reveal password')}
+            >
+              <Button variant="control" onClick={() => setReveal(!reveal)}>
+                {reveal ? <EyeSlashIcon /> : <EyeIcon />}
+              </Button>
+            </Tooltip>
+          </InputGroup>
+        )}
+      />
+
+      <FormGroupController
+        name="poolname-input"
+        control={control}
+        formGroupProps={{
+          label: t('Pool name'),
+          isRequired: true,
+          fieldId: 'poolname-input',
+        }}
+        render={({ onChange, onBlur }) => (
+          <TextInput
+            id="poolname-input"
+            value={formState.poolname}
+            type="text"
+            onChange={(value: string) => {
+              onChange(value);
+              setFormState('poolname', value);
+            }}
+            onBlur={onBlur}
+            isRequired
+          />
+        )}
+      />
       <FormGroup label={t('Volume mode')} fieldId="volume-mode-input">
         <Select
           onSelect={onModeSelect}

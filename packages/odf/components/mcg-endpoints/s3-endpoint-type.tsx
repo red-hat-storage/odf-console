@@ -1,16 +1,13 @@
 import * as React from 'react';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
+import { FormGroupController } from '@odf/shared/form-group-controller';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { SecretKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  Button,
-  FormGroup,
-  TextInput,
-  InputGroup,
-} from '@patternfly/react-core';
+import { Control } from 'react-hook-form';
+import { Button, TextInput, InputGroup } from '@patternfly/react-core';
 import { AWS_REGIONS, BC_PROVIDERS, StoreType } from '../../constants';
 import './noobaa-provider-endpoints.scss';
 import { awsRegionItems, endpointsSupported } from '../../utils';
@@ -38,13 +35,24 @@ type S3EndpointTypeProps = {
   dispatch: React.Dispatch<StoreAction>;
   provider: BC_PROVIDERS;
   namespace: string;
+  control: Control;
+  showSecret: boolean;
+  setShowSecret: (showSecret: boolean) => void;
 };
 
 export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
   const { t } = useCustomTranslation();
 
-  const [showSecret, setShowSecret] = React.useState(true);
-  const { provider, namespace, state, dispatch, type } = props;
+  const {
+    provider,
+    namespace,
+    state,
+    dispatch,
+    type,
+    control,
+    showSecret,
+    setShowSecret,
+  } = props;
 
   const targetLabel =
     provider === BC_PROVIDERS.AZURE
@@ -69,123 +77,177 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
   return (
     <>
       {provider === BC_PROVIDERS.AWS && (
-        <FormGroup
-          label={t('Region')}
-          fieldId="region"
-          className="nb-endpoints-form-entry"
-          isRequired
-        >
-          <StaticDropdown
-            className="nb-endpoints-form-entry__dropdown"
-            onSelect={(key) => {
-              dispatch({ type: 'setRegion', value: key });
-            }}
-            dropdownItems={awsRegionItems}
-            defaultSelection={AWS_REGIONS[0]}
-            aria-label={t('Region Dropdown')}
-            data-test="aws-region-dropdown"
-          />
-        </FormGroup>
+        <FormGroupController
+          name="aws-region"
+          control={control}
+          formGroupProps={{
+            label: t('Region'),
+            fieldId: 'region',
+            className: 'nb-endpoints-form-entry',
+            isRequired: true,
+          }}
+          defaultValue={AWS_REGIONS[0]}
+          render={({ value, onChange, onBlur }) => (
+            <StaticDropdown
+              className="nb-endpoints-form-entry__dropdown"
+              onSelect={(key) => {
+                onChange(key);
+                dispatch({ type: 'setRegion', value: key });
+              }}
+              onBlur={onBlur}
+              dropdownItems={awsRegionItems}
+              defaultSelection={value}
+              aria-label={t('Region Dropdown')}
+              data-test="aws-region-dropdown"
+            />
+          )}
+        />
       )}
 
       {endpointsSupported.includes(provider) && (
-        <FormGroup
-          label={t('Endpoint')}
-          fieldId="endpoint"
-          className="nb-endpoints-form-entry"
-          isRequired
-        >
-          <TextInput
-            data-test={`${type.toLowerCase()}-s3-endpoint`}
-            onChange={(e) => {
-              dispatch({ type: 'setEndpoint', value: e });
-            }}
-            id="endpoint"
-            value={state.endpoint}
-            aria-label={t('Endpoint Address')}
-          />
-        </FormGroup>
+        <FormGroupController
+          name="endpoint"
+          control={control}
+          formGroupProps={{
+            label: t('Endpoint'),
+            fieldId: 'endpoint',
+            className: 'nb-endpoints-form-entry',
+            isRequired: true,
+          }}
+          defaultValue={state.endpoint}
+          render={({ value, onChange, onBlur }) => (
+            <TextInput
+              data-test={`${type.toLowerCase()}-s3-endpoint`}
+              onChange={(e) => {
+                onChange(e);
+                dispatch({ type: 'setEndpoint', value: e });
+              }}
+              onBlur={onBlur}
+              id="endpoint"
+              value={value}
+              aria-label={t('Endpoint Address')}
+            />
+          )}
+        />
       )}
 
       {showSecret ? (
-        <FormGroup
-          label={t('Secret')}
-          fieldId="secret-dropdown"
-          className="nb-endpoints-form-entry nb-endpoints-form-entry--full-width"
-          isRequired
-        >
-          <InputGroup>
-            <ResourceDropdown<SecretKind>
-              className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
-              onSelect={(res) =>
-                dispatch({ type: 'setSecretName', value: getName(res) })
-              }
-              resource={{
-                kind: SecretModel.kind,
-                isList: true,
-                namespace,
-              }}
-              resourceModel={SecretModel}
-            />
-            <Button
-              variant="plain"
-              data-test="switch-to-creds"
-              onClick={switchToCredentials}
-            >
-              {t('Switch to Credentials')}
-            </Button>
-          </InputGroup>
-        </FormGroup>
-      ) : (
-        <>
-          <FormGroup label={credentialField1Label} fieldId="access-key">
+        <FormGroupController
+          name="secret"
+          control={control}
+          formGroupProps={{
+            label: t('Secret'),
+            fieldId: 'secret-dropdown',
+            className:
+              'nb-endpoints-form-entry nb-endpoints-form-entry--full-width',
+            isRequired: true,
+          }}
+          render={({ onChange, onBlur }) => (
             <InputGroup>
-              <TextInput
-                id="access-key"
-                data-test={`${type.toLowerCase()}-access-key`}
-                value={state.accessKey}
-                onChange={(e) => {
-                  dispatch({ type: 'setAccessKey', value: e });
+              <ResourceDropdown<SecretKind>
+                className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
+                onSelect={(res) => {
+                  const value = getName(res);
+                  onChange(value);
+                  dispatch({ type: 'setSecretName', value });
                 }}
-                aria-label={t('Access Key Field')}
+                onBlur={onBlur}
+                resource={{
+                  kind: SecretModel.kind,
+                  isList: true,
+                  namespace,
+                }}
+                resourceModel={SecretModel}
               />
-              <Button variant="plain" onClick={switchToSecret}>
-                {t('Switch to Secret')}
+              <Button
+                variant="plain"
+                data-test="switch-to-creds"
+                onClick={switchToCredentials}
+              >
+                {t('Switch to Credentials')}
               </Button>
             </InputGroup>
-          </FormGroup>
-          <FormGroup
-            className="nb-endpoints-form-entry"
-            label={credentialField2Label}
-            fieldId="secret-key"
-          >
-            <TextInput
-              value={state.secretKey}
-              id="secret-key"
-              data-test={`${type.toLowerCase()}-secret-key`}
-              onChange={(e) => {
-                dispatch({ type: 'setSecretKey', value: e });
-              }}
-              aria-label={t('Secret Key Field')}
-              type="password"
-            />
-          </FormGroup>
+          )}
+        />
+      ) : (
+        <>
+          <FormGroupController
+            name="access-key"
+            control={control}
+            defaultValue={state.accessKey}
+            formGroupProps={{
+              label: credentialField1Label,
+              fieldId: 'access-key',
+            }}
+            render={({ value, onChange, onBlur }) => (
+              <InputGroup>
+                <TextInput
+                  id="access-key"
+                  data-test={`${type.toLowerCase()}-access-key`}
+                  value={value}
+                  onChange={(e) => {
+                    onChange(e);
+                    dispatch({ type: 'setAccessKey', value: e });
+                  }}
+                  onBlur={onBlur}
+                  aria-label={t('Access Key Field')}
+                />
+                <Button variant="plain" onClick={switchToSecret}>
+                  {t('Switch to Secret')}
+                </Button>
+              </InputGroup>
+            )}
+          />
+          <FormGroupController
+            name="secret-key"
+            control={control}
+            defaultValue={state.secretKey}
+            formGroupProps={{
+              className: 'nb-endpoints-form-entry',
+              label: credentialField2Label,
+              fieldId: 'secret-key',
+            }}
+            render={({ value, onChange, onBlur }) => (
+              <TextInput
+                value={value}
+                id="secret-key"
+                data-test={`${type.toLowerCase()}-secret-key`}
+                onChange={(e) => {
+                  onChange(e);
+                  dispatch({ type: 'setSecretKey', value: e });
+                }}
+                onBlur={onBlur}
+                aria-label={t('Secret Key Field')}
+                type="password"
+              />
+            )}
+          />
         </>
       )}
-      <FormGroup
-        label={targetLabel}
-        fieldId="target-bucket"
-        className="nb-endpoints-form-entry"
-        isRequired
-      >
-        <TextInput
-          id="target-bucket"
-          value={state.target}
-          data-test={`${type.toLowerCase()}-target-bucket`}
-          onChange={(e) => dispatch({ type: 'setTarget', value: e })}
-          aria-label={targetLabel}
-        />
-      </FormGroup>
+      <FormGroupController
+        name="target-bucket"
+        control={control}
+        defaultValue={state.target}
+        formGroupProps={{
+          label: targetLabel,
+          fieldId: 'target-bucket',
+          className: 'nb-endpoints-form-entry',
+          isRequired: true,
+        }}
+        render={({ value, onChange, onBlur }) => (
+          <TextInput
+            id="target-bucket"
+            value={value}
+            data-test={`${type.toLowerCase()}-target-bucket`}
+            onChange={(e) => {
+              onChange(e);
+              dispatch({ type: 'setTarget', value: e });
+            }}
+            onBlur={onBlur}
+            aria-label={targetLabel}
+          />
+        )}
+      />
     </>
   );
 };

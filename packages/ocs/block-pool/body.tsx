@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { checkArbiterCluster } from '@odf/core/utils';
-import fieldRequirementsTranslations from '@odf/shared/constants/fieldRequirements';
+import {
+  fieldRequirementsTranslations,
+  formSettings,
+} from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
@@ -124,15 +127,8 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
 
   const resolver = useYupValidationResolver(schema);
   const { control, watch } = useForm({
-    mode: 'onBlur',
-    reValidateMode: 'onChange',
+    ...formSettings,
     resolver,
-    context: undefined,
-    criteriaMode: 'firstError',
-    shouldFocusError: true,
-    shouldUnregister: false,
-    shouldUseNativeValidation: false,
-    delayError: undefined,
   });
 
   const poolName: string = watch('newPoolName');

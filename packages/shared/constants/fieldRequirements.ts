@@ -14,7 +14,7 @@ export const cannotBeUsedBefore = (t: TFunction) => t('Cannot be used before');
 export const uniqueName = (t: TFunction, fieldName: string) =>
   t(`A unique name for the ${fieldName} within the project`);
 
-export default {
+export const fieldRequirementsTranslations = {
   maxChars,
   startAndEndName,
   alphaNumericPeriodAdnHyphen,

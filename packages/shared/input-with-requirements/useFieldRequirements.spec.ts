@@ -13,7 +13,7 @@ import useFieldRequirements, {
 //#region test helpers
 
 const fieldRequirements = {
-  bic: ['This field is required', 'Numbers only', 'Maximum of 5 characters'],
+  bic: ['This is a required field', 'Numbers only', 'Maximum of 5 characters'],
 };
 
 const expectedState = (state: State, status: any, message?: string) => ({
@@ -65,7 +65,7 @@ describe('hook', () => {
     const formErrors = {
       messages: {
         ['unique name']: {},
-        ['This field is required']: {},
+        ['This is a required field']: {},
       },
     };
     const isDirty = true;
@@ -73,7 +73,7 @@ describe('hook', () => {
       useFieldRequirements(fieldRequirements.bic, isDirty, formErrors)
     );
 
-    const expected = withState('error', 'This field is required');
+    const expected = withState('error', 'This is a required field');
     const actual = result.current;
     expect(actual).toMatchObject(expected);
   });
@@ -181,7 +181,7 @@ describe('checkErrors', () => {
 
   it('should add error to dispatchedErrors local state', () => {
     const formErrors = {
-      ['This field is required']: {},
+      ['This is a required field']: {},
       ['Unique name']: {},
       ['Minimum 200 characters']: {},
     };
@@ -189,7 +189,7 @@ describe('checkErrors', () => {
     const isDirty = false;
     const dispatch = jest.fn();
     const expected = [
-      'This field is required',
+      'This is a required field',
       'Unique name',
       'Minimum 200 characters',
     ];
@@ -200,13 +200,13 @@ describe('checkErrors', () => {
 
   it('should add new error to the dispatchedErrors local state', () => {
     const formErrors = {
-      ['This field is required']: {},
+      ['This is a required field']: {},
       ['Numbers only']: {},
     };
-    const dispatchedErrors = ['This field is required'];
+    const dispatchedErrors = ['This is a required field'];
     const isDirty = false;
     const dispatch = jest.fn();
-    const expected = ['This field is required', 'Numbers only'];
+    const expected = ['This is a required field', 'Numbers only'];
     const actual = checkErrors(formErrors, dispatchedErrors, isDirty, dispatch);
     expect(actual).toEqual(expected);
     expect(dispatch).toHaveBeenCalledTimes(1);
@@ -216,7 +216,7 @@ describe('checkErrors', () => {
     const formErrors = {
       ['Numbers only']: {},
     };
-    const dispatchedErrors = ['This field is required', 'Numbers only'];
+    const dispatchedErrors = ['This is a required field', 'Numbers only'];
     const isDirty = false;
     const dispatch = jest.fn();
     const expected = ['Numbers only'];
@@ -227,7 +227,7 @@ describe('checkErrors', () => {
 
   it('should clear dispatchedErrors local state if formErrors is empty', () => {
     const formErrors = {};
-    const dispatchedErrors = ['This field is required', 'Numbers only'];
+    const dispatchedErrors = ['This is a required field', 'Numbers only'];
     const isDirty = false;
     const dispatch = jest.fn();
     const expected = [];
@@ -267,20 +267,20 @@ describe('resetState', () => {
 
 describe('dispatchErrors', () => {
   it('should dispatch errors', () => {
-    const formErrors = ['This field is required', 'Numbers only'];
+    const formErrors = ['This is a required field', 'Numbers only'];
     const dispatchedErrors = [];
     const dispatch = jest.fn();
-    const expected = ['This field is required', 'Numbers only'];
+    const expected = ['This is a required field', 'Numbers only'];
     const actual = dispatchErrors(formErrors, dispatchedErrors, dispatch);
     expect(actual).toEqual(expected);
     expect(dispatch).toHaveBeenCalledTimes(2);
   });
 
   it('should dispatch only new errors', () => {
-    const formErrors = ['This field is required', 'Numbers only'];
+    const formErrors = ['This is a required field', 'Numbers only'];
     const dispatchedErrors = ['Numbers only'];
     const dispatch = jest.fn();
-    const expected = ['Numbers only', 'This field is required'];
+    const expected = ['Numbers only', 'This is a required field'];
     const actual = dispatchErrors(formErrors, dispatchedErrors, dispatch);
     expect(actual).toEqual(expected);
     expect(dispatch).toHaveBeenCalledTimes(1);
@@ -297,10 +297,10 @@ describe('dispatchErrors', () => {
   });
 
   it('should not dispatch errors already dispatched errors', () => {
-    const formErrors = ['This field is required', 'Numbers only'];
-    const dispatchedErrors = ['This field is required', 'Numbers only'];
+    const formErrors = ['This is a required field', 'Numbers only'];
+    const dispatchedErrors = ['This is a required field', 'Numbers only'];
     const dispatch = jest.fn();
-    const expected = ['This field is required', 'Numbers only'];
+    const expected = ['This is a required field', 'Numbers only'];
     const actual = dispatchErrors(formErrors, dispatchedErrors, dispatch);
     expect(actual).toEqual(expected);
     expect(dispatch).not.toHaveBeenCalled();
@@ -310,7 +310,7 @@ describe('dispatchErrors', () => {
 describe('dispatchSuccess', () => {
   it('should dispatch success when formErrors is empty', () => {
     const formErrors = [];
-    const dispatchedErrors = ['This field is required', 'Numbers only'];
+    const dispatchedErrors = ['This is a required field', 'Numbers only'];
     const dispatch = jest.fn();
     const expected = [];
     const actual = dispatchSuccess(formErrors, dispatchedErrors, dispatch);
@@ -339,10 +339,10 @@ describe('dispatchSuccess', () => {
   });
 
   it('should not dispatch success while formErrors reports same dispatched errors', () => {
-    const formErrors = ['This field is required', 'Numbers only'];
-    const dispatchedErrors = ['This field is required', 'Numbers only'];
+    const formErrors = ['This is a required field', 'Numbers only'];
+    const dispatchedErrors = ['This is a required field', 'Numbers only'];
     const dispatch = jest.fn();
-    const expected = ['This field is required', 'Numbers only'];
+    const expected = ['This is a required field', 'Numbers only'];
     const actual = dispatchSuccess(formErrors, dispatchedErrors, dispatch);
     expect(actual).toEqual(expected);
     expect(dispatch).not.toHaveBeenCalled();
