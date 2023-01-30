@@ -1,5 +1,11 @@
 import * as React from 'react';
-import { getStorageClassDescription } from '@odf/core/utils';
+import { BucketClassKind, ObjectBucketClaimKind } from '@odf/core/types';
+import {
+  createNewObjectBucketClaim,
+  createNewSingleNamespaceBucketClass,
+  generateGenericName,
+  getStorageClassDescription,
+} from '@odf/core/utils';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
@@ -16,12 +22,27 @@ import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { match, useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
-import { ActionGroup, Button } from '@patternfly/react-core';
+import {
+  ActionGroup,
+  Button,
+  Checkbox,
+  TextVariants,
+  Text,
+} from '@patternfly/react-core';
 import {
   NooBaaObjectBucketClaimModel,
   NooBaaBucketClassModel,
 } from '../../models';
-import { Action, commonReducer, defaultState, State } from './state';
+import { ReplicationPolicyForm, Rule } from './replication-policy-form';
+import {
+  Action,
+  commonReducer,
+  defaultState,
+  OBCReplicationRules,
+  ReplicationResources,
+  ReplicationRuleFormData,
+  State,
+} from './state';
 import './create-obc.scss';
 import '../../style.scss';
 
@@ -41,6 +62,47 @@ const objectStorageProvisioners = [
 export const isObjectSC = (sc: StorageClassResourceKind) =>
   objectStorageProvisioners.includes(_.get(sc, 'provisioner'));
 
+const createReplicationRulesAndStringify = (
+  data: ReplicationRuleFormData[],
+  namespace: string
+): string => {
+  const rules: Array<OBCReplicationRules> = data.map((rule) => ({
+    ruleId: `rule-${rule.ruleNumber}`,
+    obName: `obc-${namespace}-${generateGenericName(
+      rule.namespaceStore,
+      'destination-bucket'
+    )}`,
+    filter: {
+      prefix: rule.prefix,
+    },
+  }));
+  return rules ? JSON.stringify(rules) : '';
+};
+
+const generateAdditionalReplicationResources = (
+  state: State,
+  namespace: string
+): Array<ReplicationResources> => {
+  return state.replicationRuleFormData.map((rule) => {
+    const bc = createNewSingleNamespaceBucketClass(
+      generateGenericName(rule.namespaceStore, 'generic-bucketclass'),
+      namespace,
+      rule.namespaceStore
+    );
+    const obc = createNewObjectBucketClaim(
+      generateGenericName(rule.namespaceStore, 'destination-bucket'),
+      namespace,
+      getName(bc),
+      state.scName
+    );
+    const res: ReplicationResources = {
+      bucketClass: bc as BucketClassKind,
+      objectBucketClaim: obc as ObjectBucketClaimKind,
+    };
+    return res;
+  });
+};
+
 export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   const { t } = useCustomTranslation();
   const { state, dispatch, namespace } = props;
@@ -49,6 +111,20 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   const onScChange = (sc) => {
     dispatch({ type: 'setStorage', name: getName(sc) });
     dispatch({ type: 'setProvisioner', name: sc?.provisioner });
+  };
+
+  const [replicationEnabled, toggleReplication] = React.useState(false);
+  const updateReplicationPolicy = (rules: Rule[]) => {
+    let rulesFormData: Array<ReplicationRuleFormData> = [];
+    rules.forEach((rule) => {
+      if (rule.namespaceStore)
+        rulesFormData.push({
+          ruleNumber: rule.id,
+          namespaceStore: rule.namespaceStore,
+          prefix: rule.prefix,
+        });
+    });
+    dispatch({ type: 'setReplicationRuleFormData', data: rulesFormData });
   };
 
   React.useEffect(() => {
@@ -73,7 +149,17 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       obj.spec.generateBucketName = 'bucket-';
     }
     if (state.bucketClass && isNoobaa) {
-      obj.spec.additionalConfig = { bucketclass: state.bucketClass };
+      if (!!state.replicationRuleFormData.length) {
+        const replicationPolicy = createReplicationRulesAndStringify(
+          state.replicationRuleFormData,
+          namespace
+        );
+        obj.spec.additionalConfig = { 'replication-policy': replicationPolicy };
+      }
+      obj.spec.additionalConfig = {
+        ...obj.spec.additionalConfig,
+        bucketclass: state.bucketClass,
+      };
     }
     dispatch({ type: 'setPayload', payload: obj });
   }, [
@@ -83,6 +169,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     state.bucketClass,
     isNoobaa,
     dispatch,
+    state.replicationRuleFormData,
   ]);
 
   const storageClassResource = {
@@ -167,6 +254,34 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
                 resourceModel={NooBaaBucketClassModel}
               />
             </div>
+            <div className="form-group">
+              <Text component={TextVariants.h1}>{t('Replication Policy')}</Text>
+              <p className="help-block">
+                {t(
+                  'For higher resiliency, set a replication configuration for objects which are stored in NooBaa namespace buckets'
+                )}
+              </p>
+            </div>
+            <div className="form-group">
+              <Checkbox
+                id="enable-replication"
+                label="Enable replication"
+                isChecked={replicationEnabled}
+                onChange={() => {
+                  // if this checkbox is disabled, then on this point we purge the contents of replication form data
+                  if (replicationEnabled)
+                    dispatch({ type: 'setReplicationRuleFormData', data: [] });
+                  toggleReplication(!replicationEnabled);
+                }}
+              />
+            </div>
+            {replicationEnabled && (
+              <ReplicationPolicyForm
+                className="form-group"
+                namespace={namespace}
+                updateParentState={updateReplicationPolicy}
+              />
+            )}
           </div>
         )}
       </div>
@@ -184,20 +299,50 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
   const save = (e: React.FormEvent<EventTarget>) => {
     e.preventDefault();
     dispatch({ type: 'setProgress' });
-    k8sCreate<K8sResourceKind>({
-      model: NooBaaObjectBucketClaimModel,
-      data: state.payload,
-    })
-      .then((resource) => {
-        dispatch({ type: 'unsetProgress' });
+    const promises: Promise<K8sResourceKind>[] = [];
+    if (!!state.replicationRuleFormData.length) {
+      const additionalResources = generateAdditionalReplicationResources(
+        state,
+        namespace
+      );
 
-        history.push(
-          `${resourcePathFromModel(
-            NooBaaObjectBucketClaimModel,
-            resource.metadata.name,
-            resource.metadata.namespace
-          )}`
+      additionalResources.forEach((res) => {
+        promises.push(
+          k8sCreate<K8sResourceKind>({
+            model: NooBaaBucketClassModel,
+            data: res.bucketClass,
+          })
         );
+
+        promises.push(
+          k8sCreate<K8sResourceKind>({
+            model: NooBaaObjectBucketClaimModel,
+            data: res.objectBucketClaim,
+          })
+        );
+      });
+    }
+    Promise.all(promises)
+      .then(() => {
+        k8sCreate<K8sResourceKind>({
+          model: NooBaaObjectBucketClaimModel,
+          data: state.payload,
+        })
+          .then((resource) => {
+            dispatch({ type: 'unsetProgress' });
+
+            history.push(
+              `${resourcePathFromModel(
+                NooBaaObjectBucketClaimModel,
+                resource.metadata.name,
+                resource.metadata.namespace
+              )}`
+            );
+          })
+          .catch((err) => {
+            dispatch({ type: 'setError', message: err.message });
+            dispatch({ type: 'unsetProgress' });
+          });
       })
       .catch((err) => {
         dispatch({ type: 'setError', message: err.message });

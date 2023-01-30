@@ -204,7 +204,6 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   return (
     <Form
       className={classNames('nb-endpoints-form', 'co-m-pane__body', className)}
-      onSubmit={onSubmit}
       noValidate={false}
     >
       <FormGroup
@@ -308,6 +307,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
             type="submit"
             data-test="namespacestore-create-button"
             variant="primary"
+            onClick={onSubmit}
           >
             {t('Create')}
           </Button>

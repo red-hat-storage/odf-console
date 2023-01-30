@@ -1,3 +1,16 @@
-.odf-mcg__resource-dropdown {
-  width: 100%;
+.odf-mcg {
+  &__resource-dropdown {
+    width: 100%;
+  }
+  &__namespacestore-dropdown {
+    margin-bottom: var(--pf-global--spacer--md);
+  }
+  
+  &__remove-button {
+   margin-top: var(--pf-global--spacer--xl)
+  }
+  
+  &__form {
+    margin-left: var(--pf-global--spacer--xl)
+  }
 }
