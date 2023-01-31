@@ -421,5 +421,14 @@ export const getOCSRequestData = (
     };
   }
 
+  if (encryption.clusterWide && !kmsEnable) {
+    requestData.spec.security = {
+      kms: {
+        enableKeyRotation: true,
+        schedule: '@weekly',
+      },
+    };
+  }
+
   return requestData;
 };

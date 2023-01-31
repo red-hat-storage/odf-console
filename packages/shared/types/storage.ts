@@ -34,6 +34,12 @@ export type StorageClusterKind = K8sResourceCommon & {
       dbStorageClassName: string;
     };
     externalStorage?: {};
+    security?: {
+      kms?: {
+        enableKeyRotation: boolean;
+        schedule: string;
+      };
+    };
   };
   status?: {
     phase: string;
