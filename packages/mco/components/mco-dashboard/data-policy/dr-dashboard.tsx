@@ -3,7 +3,11 @@ import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-pol
 import { getName } from '@odf/shared/selectors';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { ACM_ENDPOINT, HUB_CLUSTER_NAME } from '../../../constants';
-import { useArgoApplicationSetResourceWatch } from '../../../hooks';
+import {
+  DisasterRecoveryResourceKind,
+  useArgoApplicationSetResourceWatch,
+  useDisasterRecoveryResourceWatch,
+} from '../../../hooks';
 import {
   DRClusterKind,
   ACMManagedClusterKind,
@@ -17,6 +21,18 @@ import { StatusCard } from './status-card/status-card';
 import { SummaryCard } from './summary-card/summary-card';
 import '../mco-common.scss';
 import '../../../style.scss';
+
+const getApplicationSetResources = (
+  drResources: DisasterRecoveryResourceKind,
+  drLoaded: boolean,
+  drLoadError: any
+) => ({
+  drResources: {
+    data: drResources,
+    loaded: drLoaded,
+    loadError: drLoadError,
+  },
+});
 
 const UpperSection: React.FC = () => (
   <Grid hasGutter>
@@ -42,20 +58,19 @@ export const DRDashboard: React.FC = () => {
     basePath: ACM_ENDPOINT,
     cluster: HUB_CLUSTER_NAME,
   });
-  const [argoApplicationSetResources, resourcesLoaded, resourcesError] =
-    useArgoApplicationSetResourceWatch();
 
-  /**
-   * FIX THIS
-   * ToDo(Sanjal): Rebase once updated "useArgoApplicationSetResourceWatch" hook PR is merged
-   */
-  const drClusters: DRClusterKind[] = [];
-  const managedClusters: ACMManagedClusterKind[] = [];
-  const managedClustersLoaded = true;
-  const managedClustersError = '';
+  const [drResources, drLoaded, drLoadError] =
+    useDisasterRecoveryResourceWatch();
+  const [argoApplicationSetResources, loaded, loadError] =
+    useArgoApplicationSetResourceWatch(
+      getApplicationSetResources(drResources, drLoaded, drLoadError)
+    );
 
-  const loaded = managedClustersLoaded && resourcesLoaded;
-  const loadError = managedClustersError || resourcesError;
+  const drClusters: DRClusterKind[] = drResources?.drClusters;
+  const managedClusters: ACMManagedClusterKind[] =
+    argoApplicationSetResources?.managedClusters;
+  const fomratedArgoAppSetResources =
+    argoApplicationSetResources?.formattedResources;
 
   const drClusterAppsMap: DrClusterAppsMap = React.useMemo(() => {
     if (loaded && !loadError) {
@@ -75,7 +90,7 @@ export const DRDashboard: React.FC = () => {
       );
 
       // DRCluster to its ApplicationSets (total and protected) mapping
-      argoApplicationSetResources.forEach((argoApplicationSetResource) => {
+      fomratedArgoAppSetResources.forEach((argoApplicationSetResource) => {
         argoApplicationSetResource.placementDecision?.status?.decisions?.forEach(
           (decision) => {
             const decisionCluster = decision?.clusterName;
@@ -106,7 +121,7 @@ export const DRDashboard: React.FC = () => {
   }, [
     drClusters,
     managedClusters,
-    argoApplicationSetResources,
+    fomratedArgoAppSetResources,
     loaded,
     loadError,
   ]);

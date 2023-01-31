@@ -153,7 +153,7 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           </li>
           <li>
             To unfence your cluster, refer to the documentation{' '}
-            <ViewDocumentation doclink={DOC_LINKS.UNFENCING} />.
+            <ViewDocumentation doclink={DOC_LINKS.MDR_RELOCATE} />.
           </li>
         </ul>
       </Trans>
@@ -171,7 +171,7 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           </li>
           <li>
             To fence your cluster, follow the instructions in the documentation{' '}
-            <ViewDocumentation doclink={DOC_LINKS.FENCING} />.
+            <ViewDocumentation doclink={DOC_LINKS.MDR_FAILOVER} />.
           </li>
         </ul>
       </Trans>
@@ -189,7 +189,8 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           </li>
           <li>
             To unfence your cluster, follow the instructions in the
-            documentation <ViewDocumentation doclink={DOC_LINKS.UNFENCING} />.
+            documentation <ViewDocumentation doclink={DOC_LINKS.MDR_FAILOVER} />
+            .
           </li>
         </ul>
       </Trans>

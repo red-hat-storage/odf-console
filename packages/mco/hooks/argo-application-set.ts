@@ -1,19 +1,18 @@
 import * as React from 'react';
 import { getName } from '@odf/shared/selectors';
-import { referenceForModel } from '@odf/shared/utils';
-import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
-import { HUB_CLUSTER_NAME } from '../constants';
 import {
-  ACMPlacementModel,
-  ACMPlacementDecisionModel,
-  ArgoApplicationSetModel,
-  ACMManagedClusterModel,
-} from '../models';
+  useK8sWatchResources,
+  WatchK8sResource,
+  WatchK8sResultsObject,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   ArgoApplicationSetKind,
   ACMPlacementDecisionKind,
   ACMPlacementKind,
   ACMManagedClusterKind,
+  DRPlacementControlKind,
+  DRPolicyKind,
+  DRClusterKind,
 } from '../types';
 import {
   findSiblingArgoAppSetsFromPlacement,
@@ -22,78 +21,60 @@ import {
   findDRResourceUsingPlacement,
   filerManagedClusterUsingDRClusters,
 } from '../utils';
+import { DisasterRecoveryResourceKind } from './disaster-recovery';
 import {
-  useDisasterRecoveryResourceWatch,
-  DisasterRecoveryResourceKind,
-} from './disaster-recovery';
+  getApplicationSetResourceObj,
+  getManagedClusterResourceObj,
+  getPlacementDecisionsResourceObj,
+  getPlacementResourceObj,
+} from './mco-resources';
 
-const resources = (namespace?: string) => ({
-  applications: {
-    ...(!!namespace ? { namespace } : {}),
-    kind: referenceForModel(ArgoApplicationSetModel),
-    isList: true,
-    namespaced: !!namespace,
-    optional: true,
-    cluster: HUB_CLUSTER_NAME,
-  },
-  placements: {
-    ...(!!namespace ? { namespace } : {}),
-    kind: referenceForModel(ACMPlacementModel),
-    isList: true,
-    namespaced: !!namespace,
-    optional: true,
-    cluster: HUB_CLUSTER_NAME,
-  },
-  placementDecisions: {
-    ...(!!namespace ? { namespace } : {}),
-    kind: referenceForModel(ACMPlacementDecisionModel),
-    isList: true,
-    namespaced: !!namespace,
-    optional: true,
-    cluster: HUB_CLUSTER_NAME,
-  },
-  managedClusters: {
-    kind: referenceForModel(ACMManagedClusterModel),
-    isList: true,
-    optional: true,
-    namespaced: false,
-    cluster: HUB_CLUSTER_NAME,
-  },
+const getResources = () => ({
+  managedClusters: getManagedClusterResourceObj(),
+  applications: getApplicationSetResourceObj(),
+  placements: getPlacementResourceObj(),
+  placementDecisions: getPlacementDecisionsResourceObj(),
 });
 
 export const useArgoApplicationSetResourceWatch: UseArgoApplicationSetResourceWatch =
   (resource) => {
-    const [drResources, drLoaded, drLoadError] =
-      useDisasterRecoveryResourceWatch(resource);
     const response = useK8sWatchResources<WatchResourceType>(
-      resources(resource?.namespace)
+      resource?.resources || getResources()
     );
 
     const {
       data: placements,
       loaded: placementsLoaded,
       loadError: placementsLoadError,
-    } = response?.placements;
+    } = response?.placements || resource?.overrides?.placements || {};
 
     const {
       data: placementDecisions,
       loaded: placementDecisionsLoaded,
       loadError: placementDecisionsLoadError,
-    } = response?.placementDecisions;
+    } = response?.placementDecisions ||
+    resource?.overrides?.placementDecisions ||
+    {};
 
     const {
       data: applications,
       loaded: applicationsLoaded,
       loadError: applicationsLoadError,
-    } = response?.applications;
+    } = response?.applications || resource?.overrides?.applications || {};
 
     const {
       data: managedClusters,
       loaded: managedClustersLoaded,
       loadError: managedClustersLoadedError,
-    } = response?.managedClusters;
+    } = response?.managedClusters || resource?.overrides?.managedClusters || {};
 
-    const appName = resource?.name;
+    const {
+      data: drResources,
+      loaded: drLoaded,
+      loadError: drLoadError,
+    } = resource?.drResources || {};
+
+    const filterByAppName = resource?.conditions?.filterByAppName;
 
     const loaded =
       placementsLoaded &&
@@ -110,38 +91,57 @@ export const useArgoApplicationSetResourceWatch: UseArgoApplicationSetResourceWa
       drLoadError;
 
     return React.useMemo(() => {
-      const argoApplicationSetResources: ArgoApplicationSetResourceKind[] = [];
+      let argoApplicationSetResources: ArgoApplicationSetResourceKind = {};
+      const argoApplicationSetFormatted: ArgoApplicationSetFormattedKind[] = [];
       if (loaded && !loadError) {
-        applications.forEach((application) => {
-          if (!appName || getName(application) === appName) {
+        const appList = Array.isArray(applications)
+          ? applications
+          : [applications];
+        const placementList = Array.isArray(placements)
+          ? placements
+          : [placements];
+        const placementDecisionList = Array.isArray(placementDecisions)
+          ? placementDecisions
+          : [placementDecisions];
+        const managedClusterList = Array.isArray(managedClusters)
+          ? managedClusters
+          : [managedClusters];
+        appList.forEach((application) => {
+          if (!filterByAppName || getName(application) === filterByAppName) {
             const placement = findPlacementFromArgoAppSet(
-              placements,
+              placementList,
               application
             );
             const drResource = findDRResourceUsingPlacement(
               placement,
-              drResources
+              drResources?.formattedResources
             );
-            argoApplicationSetResources.push({
+            argoApplicationSetFormatted.push({
               application,
               placement,
               siblingApplications: findSiblingArgoAppSetsFromPlacement(
-                appName,
+                filterByAppName,
                 placement,
-                applications
+                appList
               ),
               placementDecision: findPlacementDecisionUsingPlacement(
                 placement,
-                placementDecisions
+                placementDecisionList
               ),
               managedClusters: filerManagedClusterUsingDRClusters(
                 drResource?.drClusters,
-                managedClusters
+                managedClusterList
               ),
-              ...drResource,
+              drPolicy: drResource?.drPolicy,
+              drClusters: drResource?.drClusters,
+              drPlacementControl: drResource?.drPlacementControls?.[0],
             });
           }
         });
+        argoApplicationSetResources = {
+          formattedResources: argoApplicationSetFormatted,
+          managedClusters: managedClusterList,
+        };
       }
 
       return [argoApplicationSetResources, loaded, loadError];
@@ -151,30 +151,58 @@ export const useArgoApplicationSetResourceWatch: UseArgoApplicationSetResourceWa
       placementDecisions,
       drResources,
       managedClusters,
-      appName,
+      filterByAppName,
       loaded,
       loadError,
     ]);
   };
 
 type WatchResourceType = {
-  applications: ArgoApplicationSetKind[];
-  placements: ACMPlacementKind[];
-  placementDecisions: ACMPlacementDecisionKind[];
-  managedClusters: ACMManagedClusterKind[];
+  applications?: ArgoApplicationSetKind | ArgoApplicationSetKind[];
+  placements?: ACMPlacementKind | ACMPlacementKind[];
+  placementDecisions?: ACMPlacementDecisionKind | ACMPlacementDecisionKind[];
+  managedClusters?: ACMManagedClusterKind | ACMManagedClusterKind[];
+};
+
+type WatchResources = {
+  resources?: {
+    applications?: WatchK8sResource;
+    placements?: WatchK8sResource;
+    placementDecisions?: WatchK8sResource;
+    managedClusters?: WatchK8sResource;
+  };
+  conditions?: {
+    filterByAppName: string;
+  };
+  overrides?: {
+    applications?: WatchK8sResultsObject<ArgoApplicationSetKind>;
+    placements?: WatchK8sResultsObject<ACMPlacementKind>;
+    placementDecisions?: WatchK8sResultsObject<ACMPlacementDecisionKind>;
+    managedClusters?: WatchK8sResultsObject<ACMManagedClusterKind>;
+  };
+  drResources?: {
+    data: DisasterRecoveryResourceKind;
+    loaded: boolean;
+    loadError: any;
+  };
 };
 
 export type UseArgoApplicationSetResourceWatch = (
-  resource?: {
-    name?: string;
-    namespace?: string;
-  } | null
-) => [ArgoApplicationSetResourceKind[], boolean, any];
+  resource?: WatchResources
+) => [ArgoApplicationSetResourceKind, boolean, any];
 
-export type ArgoApplicationSetResourceKind = DisasterRecoveryResourceKind & {
+export type ArgoApplicationSetFormattedKind = {
   application: ArgoApplicationSetKind;
   siblingApplications: ArgoApplicationSetKind[];
   placement: ACMPlacementKind;
   placementDecision: ACMPlacementDecisionKind;
   managedClusters: ACMManagedClusterKind[];
+  drPlacementControl: DRPlacementControlKind;
+  drPolicy: DRPolicyKind;
+  drClusters: DRClusterKind[];
+};
+
+export type ArgoApplicationSetResourceKind = {
+  formattedResources?: ArgoApplicationSetFormattedKind[];
+  managedClusters?: ACMManagedClusterKind[];
 };

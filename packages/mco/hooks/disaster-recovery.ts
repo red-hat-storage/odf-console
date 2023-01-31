@@ -1,63 +1,48 @@
 import * as React from 'react';
-import { referenceForModel } from '@odf/shared/utils';
-import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
-import { HUB_CLUSTER_NAME } from '../constants';
 import {
-  DRPolicyModel,
-  DRClusterModel,
-  DRPlacementControlModel,
-} from '../models';
+  useK8sWatchResources,
+  WatchK8sResource,
+  WatchK8sResultsObject,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { DRPolicyKind, DRClusterKind, DRPlacementControlKind } from '../types';
-import { filerDRClustersUsingDRPolicy, findDRPolicyUsingDRPC } from '../utils';
+import { filerDRClustersUsingDRPolicy, findDRPCUsingDRPolicy } from '../utils';
+import {
+  getDRClusterResourceObj,
+  getDRPlacementControlResourceObj,
+  getDRPolicyResourceObj,
+} from './mco-resources';
 
-const resources = (namespace?: string) => ({
-  drPolicies: {
-    kind: referenceForModel(DRPolicyModel),
-    namespaced: false,
-    isList: true,
-    optional: true,
-    cluster: HUB_CLUSTER_NAME,
-  },
-  drPlacementControls: {
-    ...(!!namespace ? { namespace } : {}),
-    kind: referenceForModel(DRPlacementControlModel),
-    namespaced: !!namespace,
-    isList: true,
-    optional: true,
-    cluster: HUB_CLUSTER_NAME,
-  },
-  drClusters: {
-    kind: referenceForModel(DRClusterModel),
-    namespaced: false,
-    isList: true,
-    optional: true,
-    cluster: HUB_CLUSTER_NAME,
-  },
+const getResources = () => ({
+  drClusters: getDRClusterResourceObj(),
+  drPolicies: getDRPolicyResourceObj(),
+  drPlacementControls: getDRPlacementControlResourceObj(),
 });
 
 export const useDisasterRecoveryResourceWatch: UseDisasterRecoveryResourceWatch =
   (resource) => {
     const response = useK8sWatchResources<WatchResourceType>(
-      resources(resource?.namespace)
+      resource?.resources || getResources()
     );
 
     const {
       data: drPolicies,
       loaded: drPoliciesLoaded,
       loadError: drPoliciesLoadError,
-    } = response?.drPolicies;
+    } = response?.drPolicies || resource?.overrides?.drPolicies || {};
 
     const {
       data: drClusters,
       loaded: drClustersLoaded,
       loadError: drClustersLoadError,
-    } = response?.drClusters;
+    } = response?.drClusters || resource?.overrides?.drClusters || {};
 
     const {
       data: drPlacementControls,
       loaded: drPlacementControlsLoaded,
       loadError: drPlacementControlsLoadError,
-    } = response?.drPlacementControls;
+    } = response?.drPlacementControls ||
+    resource?.overrides?.drPlacementControls ||
+    {};
 
     const loaded =
       drPoliciesLoaded && drClustersLoaded && drPlacementControlsLoaded;
@@ -67,42 +52,73 @@ export const useDisasterRecoveryResourceWatch: UseDisasterRecoveryResourceWatch 
       drPlacementControlsLoadError;
 
     return React.useMemo(() => {
-      const disasterRecoveryResources: DisasterRecoveryResourceKind[] = [];
+      let disasterRecoveryResources: DisasterRecoveryResourceKind = {};
+      const disasterRecoveryFormatted: DisasterRecoveryFormatted[] = [];
       if (loaded && !loadError) {
-        drPlacementControls.forEach((drPlacementControl) => {
-          const drPolicy = findDRPolicyUsingDRPC(
-            drPlacementControl,
-            drPolicies
-          );
+        const drPolicyList = Array.isArray(drPolicies)
+          ? drPolicies
+          : [drPolicies];
+        const drClusterList = Array.isArray(drClusters)
+          ? drClusters
+          : [drClusters];
+        const drpcList = Array.isArray(drPlacementControls)
+          ? drPlacementControls
+          : [drPlacementControls];
+        drPolicyList.forEach((drPolicy) => {
+          const drpcs = findDRPCUsingDRPolicy(drpcList, drPolicy);
           const filtereDRClusters = filerDRClustersUsingDRPolicy(
             drPolicy,
-            drClusters
+            drClusterList
           );
-          disasterRecoveryResources.push({
+          disasterRecoveryFormatted.push({
             drClusters: filtereDRClusters,
             drPolicy: drPolicy,
-            drPlacementControl,
+            drPlacementControls: drpcs,
           });
         });
+        disasterRecoveryResources = {
+          formattedResources: disasterRecoveryFormatted,
+          drClusters: drClusterList,
+          drPolicies: drPolicyList,
+          drPlacementControls: drpcList,
+        };
       }
       return [disasterRecoveryResources, loaded, loadError];
     }, [drPolicies, drClusters, drPlacementControls, loaded, loadError]);
   };
 
 type WatchResourceType = {
-  drPolicies: DRPolicyKind[];
-  drClusters: DRClusterKind[];
-  drPlacementControls: DRPlacementControlKind[];
+  drPolicies?: DRPolicyKind | DRPolicyKind[];
+  drClusters?: DRClusterKind | DRClusterKind[];
+  drPlacementControls?: DRPlacementControlKind | DRPlacementControlKind[];
+};
+
+type WatchResources = {
+  resources?: {
+    drPolicies?: WatchK8sResource;
+    drClusters?: WatchK8sResource;
+    drPlacementControls?: WatchK8sResource;
+  };
+  overrides?: {
+    drPolicies?: WatchK8sResultsObject<DRPolicyKind>;
+    drClusters?: WatchK8sResultsObject<DRClusterKind>;
+    drPlacementControls?: WatchK8sResultsObject<DRPlacementControlKind>;
+  };
 };
 
 export type UseDisasterRecoveryResourceWatch = (
-  resource?: {
-    namespace?: string;
-  } | null
-) => [DisasterRecoveryResourceKind[], boolean, any];
+  resource?: WatchResources
+) => [DisasterRecoveryResourceKind, boolean, any];
+
+export type DisasterRecoveryFormatted = {
+  drPlacementControls?: DRPlacementControlKind[];
+  drPolicy?: DRPolicyKind;
+  drClusters?: DRClusterKind[];
+};
 
 export type DisasterRecoveryResourceKind = {
-  drPlacementControl: DRPlacementControlKind;
-  drPolicy: DRPolicyKind;
-  drClusters: DRClusterKind[];
+  formattedResources?: DisasterRecoveryFormatted[];
+  drPolicies?: DRPolicyKind[];
+  drClusters?: DRClusterKind[];
+  drPlacementControls?: DRPlacementControlKind[];
 };

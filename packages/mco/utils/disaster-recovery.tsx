@@ -21,7 +21,7 @@ import { TFunction } from 'i18next';
 import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
 import { SLA_STATUS, DR_SECHEDULER_NAME, DRPC_STATUS } from '../constants';
 import { REPLICATION_TYPE } from '../constants/disaster-recovery';
-import { DisasterRecoveryResourceKind } from '../hooks';
+import { DisasterRecoveryFormatted } from '../hooks';
 import { ACMPlacementRuleModel, DRPolicyModel } from '../models';
 import {
   ACMSubscriptionKind,
@@ -202,7 +202,7 @@ export const isPeerReadyAndAvailable = (
 ) => {
   let isPeerReady = false;
   let isAvailable = false;
-  drPolicyControl?.status?.conditions.forEach((condition) => {
+  drPolicyControl?.status?.conditions?.forEach((condition) => {
     condition?.type === 'PeerReady' &&
       condition?.status === 'True' &&
       (isPeerReady = true);
@@ -233,16 +233,30 @@ export const findDRType = (drClusters: DRClusterKind[]) =>
 
 export const findDRResourceUsingPlacement = (
   placement: ACMPlacementKind,
-  drResources: DisasterRecoveryResourceKind[]
-): DisasterRecoveryResourceKind =>
+  drResources: DisasterRecoveryFormatted[]
+): DisasterRecoveryFormatted => {
+  let result: DisasterRecoveryFormatted = {};
   drResources?.find((drResource) => {
-    const placementRef = drResource?.drPlacementControl?.spec?.placementRef;
-    return (
-      getGVKFromObjectRef(placementRef) === getGVKFromK8Resource(placement) &&
-      placementRef?.name === getName(placement) &&
-      getNamespace(drResource?.drPlacementControl) === getNamespace(placement)
-    );
+    const drpc = drResource?.drPlacementControls?.find((drpc) => {
+      const placementRef = drpc.spec?.placementRef;
+      return (
+        getGVKFromObjectRef(placementRef) === getGVKFromK8Resource(placement) &&
+        placementRef?.name === getName(placement) &&
+        getNamespace(drpc) === getNamespace(placement)
+      );
+    });
+    if (!!drpc) {
+      result = {
+        drPolicy: drResource?.drPolicy,
+        drClusters: drResource?.drClusters,
+        drPlacementControls: [drpc],
+      };
+      return true;
+    }
+    return false;
   });
+  return result;
+};
 
 export const filerManagedClusterUsingDRClusters = (
   drClusters: DRClusterKind[],
@@ -263,12 +277,12 @@ export const filerDRClustersUsingDRPolicy = (
     drPolicy?.spec?.drClusters?.includes(getName(drCluster))
   );
 
-export const findDRPolicyUsingDRPC = (
-  drpc: DRPlacementControlKind,
-  drPolicies: DRPolicyKind[]
-): DRPolicyKind => {
-  return drPolicies?.find(
-    (drPolicy) =>
+export const findDRPCUsingDRPolicy = (
+  drpcs: DRPlacementControlKind[],
+  drPolicy: DRPolicyKind
+): DRPlacementControlKind[] => {
+  return drpcs?.filter(
+    (drpc) =>
       drpc?.spec?.drPolicyRef?.name === getName(drPolicy) &&
       referenceForModel(DRPolicyModel) ===
         getGVKFromObjectRef(drpc?.spec?.drPolicyRef)
