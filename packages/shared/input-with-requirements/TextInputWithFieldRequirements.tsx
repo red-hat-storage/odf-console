@@ -1,6 +1,6 @@
 import * as React from 'react';
 import CheckCircleIcon from '@patternfly/react-icons/dist/esm/icons/check-circle-icon';
-import ExclamationTriangleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-triangle-icon';
+import ExclamationCircleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon';
 import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
 import cn from 'classnames';
 import { useController, Control, FieldValues } from 'react-hook-form';
@@ -10,6 +10,7 @@ import {
   InputGroup,
   TextInput,
   Popover,
+  PopoverProps,
   PopoverPosition,
   HelperText,
   HelperTextItem,
@@ -23,49 +24,58 @@ import './TextInputWithFieldRequirements.scss';
 export type TextInputWithFieldRequirementsProps = {
   fieldRequirements: string[];
   control: Control<FieldValues>;
+  defaultValue?: any;
   formGroupProps: FormGroupProps;
-  textInputProps: TextInputProps & { ['data-test']: string };
+  textInputProps: TextInputProps & {
+    'data-test': string;
+    disabled?: boolean;
+  };
+  popoverProps: Omit<PopoverProps, 'bodyContent'>;
 };
 
 export type ValidationIconProp = {
   status: FormGroupProps['validated'];
 };
 
-export const ValidationIcon: React.FC<ValidationIconProp> = ({ status }) => {
-  const getStatusIcon = React.useCallback(() => {
-    switch (status) {
-      case 'error':
-        return <ExclamationTriangleIcon />;
-      case 'success':
-        return <CheckCircleIcon />;
+export const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'error':
+      return <ExclamationCircleIcon />;
+    case 'success':
+      return <CheckCircleIcon />;
 
-      default:
-        return <InfoCircleIcon />;
-    }
-  }, [status]);
+    default:
+      return <InfoCircleIcon />;
+  }
+};
 
-  const getVariant = React.useCallback(() => {
-    switch (status) {
-      case 'error':
-        return 'danger';
-      case 'success':
-        return 'success';
-      default:
-        return 'info';
-    }
-  }, [status]);
-
-  return <Icon status={getVariant()}>{getStatusIcon()}</Icon>;
+const getVariant = (status: string) => {
+  switch (status) {
+    case 'error':
+      return 'danger';
+    case 'success':
+      return 'success';
+    default:
+      return 'info';
+  }
 };
 
 const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsProps> =
-  ({ fieldRequirements, control, formGroupProps, textInputProps }) => {
+  ({
+    fieldRequirements,
+    control,
+    formGroupProps,
+    textInputProps,
+    popoverProps,
+    defaultValue = '',
+  }) => {
     const {
       field: { name, value, onChange },
       fieldState: { error, isDirty },
     } = useController({
       name: textInputProps.name || 'name',
       control,
+      defaultValue: defaultValue,
     });
     const state = useFieldRequirements(fieldRequirements, isDirty, error);
     const [isVisible, setIsVisible] = React.useState(false);
@@ -81,6 +91,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
       event: React.FormEvent<HTMLInputElement>
     ) => {
       if (!isVisible) setIsVisible(true);
+      textInputProps?.onChange?.(value, event);
       onChange(value, event);
     };
 
@@ -109,13 +120,12 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
             isVisible={isVisible}
             shouldOpen={() => setIsVisible(true)}
             shouldClose={() => setIsVisible(false)}
-            headerContent={'Field requirements'}
             bodyContent={
               <HelperText component="ul">
                 {Object.keys(state.fieldRequirements).map((rule) => {
                   return (
                     <HelperTextItem
-                      hasIcon
+                      isDynamic
                       variant={state.fieldRequirements[rule]}
                       component="li"
                       key={rule}
@@ -126,9 +136,12 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
                 })}
               </HelperText>
             }
+            {...popoverProps}
           >
             <Button variant="plain" aria-label="Validation" tabIndex={-1}>
-              <ValidationIcon status={validated} />
+              <Icon status={getVariant(validated)}>
+                {getStatusIcon(validated)}
+              </Icon>
             </Button>
           </Popover>
         </InputGroup>
