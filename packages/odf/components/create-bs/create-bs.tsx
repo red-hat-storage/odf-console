@@ -1,26 +1,25 @@
 import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import fieldRequirementsTranslations from '@odf/shared/constants/fieldRequirements';
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
+import { useK8sList } from '@odf/shared/hooks/useK8sList';
+import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
+import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   getAPIVersionForModel,
   k8sCreate,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
+import { useForm } from 'react-hook-form';
 import { useHistory } from 'react-router';
-import {
-  ActionGroup,
-  Button,
-  FormGroup,
-  Form,
-  TextInput,
-  Tooltip,
-} from '@patternfly/react-core';
+import * as Yup from 'yup';
+import { ActionGroup, Button, FormGroup, Form } from '@patternfly/react-core';
 import {
   BC_PROVIDERS,
   BUCKET_LABEL_NOOBAA_MAP,
@@ -30,12 +29,13 @@ import {
 } from '../../constants';
 import { ODF_MODEL_FLAG } from '../../features';
 import { NooBaaBackingStoreModel } from '../../models';
-import { MCGPayload } from '../../types';
+import { BackingStoreKind, MCGPayload } from '../../types';
 import {
   getExternalProviders,
   getProviders,
   secretPayloadCreator,
 } from '../../utils';
+import validationRegEx from '../../utils/validation';
 import { GCPEndpointType } from '../mcg-endpoints/gcp-endpoint-type';
 import { PVCType } from '../mcg-endpoints/pvc-endpoint-type';
 import { S3EndPointType } from '../mcg-endpoints/s3-endpoint-type';
@@ -49,7 +49,6 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
   props
 ) => {
   const { t } = useCustomTranslation();
-  const [bsName, setBsName] = React.useState('');
   const [provider, setProvider] = React.useState(BC_PROVIDERS.AWS);
   const [providerDataState, providerDataDispatch] = React.useReducer(
     providerDataReducer,
@@ -63,12 +62,6 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
 
   const history = useHistory();
 
-  const handleBsNameTextInputChange = (strVal: string) => {
-    if (strVal.length <= 43) {
-      setBsName(strVal);
-    }
-  };
-
   const {
     className,
     isPage,
@@ -78,9 +71,62 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
     onClose,
   } = props;
 
-  const onSubmit = (event) => {
+  const [data, loaded, loadError] = useK8sList<BackingStoreKind>(
+    NooBaaBackingStoreModel,
+    namespace
+  );
+
+  const { schema, fieldRequirements } = React.useMemo(() => {
+    const existingNames =
+      loaded && !loadError ? data?.map((data) => getName(data)) : [];
+
+    const fieldRequirements = [
+      fieldRequirementsTranslations.maxChars(t, 43),
+      fieldRequirementsTranslations.startAndEndName(t),
+      fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
+      fieldRequirementsTranslations.uniqueName(t, 'BackingStore'),
+    ];
+
+    const schema = Yup.object({
+      'backingstore-name': Yup.string()
+        .required()
+        .max(43, fieldRequirements[0])
+        .matches(
+          validationRegEx.startAndEndsWithAlphanumerics,
+          fieldRequirements[1]
+        )
+        .matches(
+          validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
+          fieldRequirements[2]
+        )
+        .test(
+          'unique-name',
+          fieldRequirements[3],
+          (value: string) => !existingNames.includes(value)
+        ),
+    });
+
+    return { schema, fieldRequirements };
+  }, [data, loadError, loaded, t]);
+
+  const resolver = useYupValidationResolver(schema);
+
+  const { control, handleSubmit } = useForm({
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    resolver,
+    context: undefined,
+    criteriaMode: 'firstError',
+    shouldFocusError: true,
+    shouldUnregister: false,
+    shouldUseNativeValidation: false,
+    delayError: undefined,
+  });
+
+  const onSubmit = (values, event) => {
     event.preventDefault();
     setProgress(true);
+    const bsName = values['backingstore-name'];
     /** Create a secret if secret ==='' */
     let { secretName } = providerDataState;
     const promises = [];
@@ -180,30 +226,31 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
   return (
     <Form
       className={classNames('nb-endpoints-form', className)}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit(onSubmit)}
     >
-      <FormGroup
-        label={t('BackingStore Name')}
-        fieldId="backingstore-name"
-        className="nb-endpoints-form-entry"
-        helperText={t('A unique name for the BackingStore  within the project')}
-        isRequired
-      >
-        <Tooltip
-          content={t('Name can contain a max of 43 characters')}
-          isVisible={bsName.length > 42}
-          trigger="manual"
-        >
-          <TextInput
-            onChange={handleBsNameTextInputChange}
-            value={bsName}
-            maxLength={43}
-            data-test="backingstore-name"
-            placeholder="my-backingstore"
-            aria-label={t('BackingStore Name')}
-          />
-        </Tooltip>
-      </FormGroup>
+      <TextInputWithFieldRequirements
+        control={control}
+        fieldRequirements={fieldRequirements}
+        popoverProps={{
+          headerContent: t('Name requirements'),
+          footerContent: `${t('Example')}: my-backingstore`,
+        }}
+        formGroupProps={{
+          label: t('BackingStore Name'),
+          fieldId: 'backingstore-name',
+          className: 'nb-endpoints-form-entry',
+          helperText: t(
+            'A unique name for the BackingStore  within the project'
+          ),
+          isRequired: true,
+        }}
+        textInputProps={{
+          name: 'backingstore-name',
+          placeholder: 'my-backingstore',
+          'data-test': 'backingstore-name',
+          'aria-label': t('BackingStore Name'),
+        }}
+      />
 
       <FormGroup
         label={t('Provider')}
