@@ -70,7 +70,7 @@ module.exports = {
     'implicit-arrow-linebreak': 'off',
     'import/no-extraneous-dependencies': [
       'error',
-      { packageDir: ['.', './packages/odf'] },
+      { packageDir: ['.', './packages/odf', './packages/shared'] },
     ],
     'jsx-a11y/anchor-is-valid': 'off',
     'jsx-a11y/click-events-have-key-events': 'off',

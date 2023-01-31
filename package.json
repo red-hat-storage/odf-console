@@ -54,7 +54,7 @@
     "@openshift-console/plugin-shared": "^0.0.1",
     "@patternfly/patternfly": "4.103.6",
     "@patternfly/react-charts": "^6.15.3",
-    "@patternfly/react-core": "4.239.0",
+    "@patternfly/react-core": "^4.267.6",
     "@patternfly/react-icons": "^4.11.0",
     "@patternfly/react-table": "4.104.7",
     "@patternfly/react-tokens": "^4.12.0",
@@ -75,6 +75,7 @@
     "react-dnd-html5-backend": "^15.1.2",
     "react-dom": "^17.0.1",
     "react-helmet": "^6.1.0",
+    "react-hook-form": "^7.42.1",
     "react-i18next": "^11.11.4",
     "react-linkify": "^0.2.2",
     "react-redux": "^7.2.6",
@@ -82,7 +83,8 @@
     "react-router-dom": "5.2.0",
     "react-tagsinput": "^3.19.0",
     "redux": "^4.0.0",
-    "victory-core": "^35.4.4"
+    "victory-core": "^35.4.4",
+    "yup": "^0.32.11"
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^5.9.1",
@@ -94,6 +96,7 @@
     "@swc/jest": "^0.2.23",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^12",
+    "@testing-library/react-hooks": "^8.0.1",
     "@types/jest": "29.2.2",
     "@types/lodash-es": "^4.17.4",
     "@types/node": "^14.14.34",
