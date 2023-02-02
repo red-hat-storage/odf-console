@@ -25,7 +25,7 @@ const EmptyPageIcon: React.FC = () => {
 };
 
 const EmptyPage: React.FC<EmptyPageProps> = (props) => {
-  const { t, title, children, buttonText, canCreate, onClick } = props;
+  const { t, title, children, buttonText, canAccess, onClick } = props;
   return (
     <div className="mco-empty-page__background">
       <EmptyState variant={EmptyStateVariant.large}>
@@ -36,19 +36,19 @@ const EmptyPage: React.FC<EmptyPageProps> = (props) => {
         <EmptyStateBody>{children}</EmptyStateBody>
         <Tooltip
           content={
-            !canCreate &&
+            !canAccess &&
             t(
               'You are not authorized to complete this action. See your cluster administrator for role-based access control information.'
             )
           }
-          trigger={!canCreate ? 'mouseenter' : 'manual'}
+          trigger={!canAccess ? 'mouseenter' : 'manual'}
           data-test="authorization-tooltip"
         >
           {
             <Button
               variant="primary"
               onClick={onClick}
-              isAriaDisabled={!canCreate}
+              isAriaDisabled={!canAccess}
               data-test="create-button"
             >
               {buttonText}
@@ -64,7 +64,7 @@ type EmptyPageProps = {
   title: string;
   children?: any;
   buttonText: string;
-  canCreate?: boolean;
+  canAccess?: boolean;
   t: TFunction;
   onClick: () => void;
 };

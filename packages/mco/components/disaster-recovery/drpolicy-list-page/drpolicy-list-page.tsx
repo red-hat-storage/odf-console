@@ -1,10 +1,10 @@
 import * as React from 'react';
+import { pluralize } from '@odf/core/components/utils';
 import { useAccessReview } from '@odf/shared/hooks/rbac-hook';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import {
   LaunchModal,
   useModalLauncher,
-  ModalKeys,
 } from '@odf/shared/modals/modalLauncher';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -12,56 +12,55 @@ import {
   ListPageBody,
   ListPageCreateLink,
   VirtualizedTable,
-  useK8sWatchResource,
   useListPageFilter,
   ListPageFilter,
   TableData,
   RowProps,
   useActiveColumns,
   TableColumn,
+  useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import classNames from 'classnames';
 import { Trans } from 'react-i18next';
 import { useHistory } from 'react-router';
-import { sortable, wrappable } from '@patternfly/react-table';
-import { Actions, HUB_CLUSTER_NAME } from '../../../constants';
-import { DRPolicyModel, DRPlacementControlModel } from '../../../models';
-import { DRPolicyKind, DRPlacementControlKind } from '../../../types';
-import { getReplicationType } from '../../../utils';
+import { HUB_CLUSTER_NAME } from '../../../constants';
+import {
+  ApplicationRefKind,
+  getDRPolicyResourceObj,
+  useApplicationsWatch,
+} from '../../../hooks';
+import { DRPolicyModel } from '../../../models';
+import { DRPolicyKind } from '../../../types';
+import { getReplicationType, findAppsUsingDRPolicy } from '../../../utils';
 import EmptyPage from '../../empty-state-page/empty-page';
-import { ApplicationStatus } from '../../modals/drpolicy-apps-status/application-status';
-import { DRPolicyActions } from './drpolicy-list-page-actions';
+import { ConnectedApplicationsModal } from '../../modals/connected-apps-modal/connected-apps-modal';
+import {
+  DRPolicyActions,
+  Header,
+  kebabActionItems,
+  tableColumnInfo,
+} from './helper';
 import './drpolicy-list-page.scss';
 
-type CustomData = {
-  launchModal: LaunchModal;
-};
+export const DATA_POLICIES_PATH = '/multicloud/data-services/data-policies';
+export const DR_POLICY_CREATE_PATH = `${DATA_POLICIES_PATH}/${referenceForModel(
+  DRPolicyModel
+)}/~new`;
 
-const tableColumnInfo = [
-  { className: '', id: 'name' },
-  { className: '', id: 'status' },
-  {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-sm'),
-    id: 'clusters',
-  },
-  {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-md'),
-    id: 'replicationPolicy',
-  },
-  {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-lg'),
-    id: 'applications',
-  },
-  { className: 'dropdown-kebab-pf pf-c-table__action', id: '' },
-];
-
-const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
+const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
   obj,
   activeColumnIDs,
   rowData,
 }) => {
-  const { launchModal } = rowData;
   const { t } = useCustomTranslation();
+  const {
+    canDeleteDRPolicy,
+    appsLoadError,
+    appsLoaded,
+    setLinkedApps,
+    applicationRefs,
+    launchModal,
+    openModal,
+  } = rowData;
 
   const clusterNames = obj?.spec?.drClusters?.map((clusterName) => (
     <p key={clusterName}> {clusterName} </p>
@@ -69,67 +68,13 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
   const condition = obj?.status?.conditions?.find(
     (condition) => condition.type === 'Validated'
   );
+  const filteredApps = findAppsUsingDRPolicy(applicationRefs, obj);
+  const appCount = filteredApps?.length;
 
-  const [filteredDRPlacementControl, setFilteredDRPlacementControl] =
-    React.useState<DRPlacementControlKind[]>([]);
-  const [
-    drPlacementControls,
-    drPlacementsControlLoaded,
-    drPlacementsControlLoadError,
-  ] = useK8sWatchResource<DRPlacementControlKind[]>({
-    kind: referenceForModel(DRPlacementControlModel),
-    isList: true,
-    namespaced: true,
-    cluster: HUB_CLUSTER_NAME,
-  });
-
-  React.useEffect(() => {
-    if (drPlacementsControlLoaded && !drPlacementsControlLoadError) {
-      setFilteredDRPlacementControl(
-        drPlacementControls?.filter(
-          (drPlacementControl) =>
-            drPlacementControl?.spec?.drPolicyRef?.name === obj?.metadata?.name
-        ) ?? []
-      );
-    }
-  }, [
-    drPlacementControls,
-    drPlacementsControlLoaded,
-    drPlacementsControlLoadError,
-    obj?.metadata?.name,
-  ]);
-
-  const kebabActionItems = () => [
-    {
-      key: ModalKeys.DELETE,
-      value: Actions(t).DELETE_DR_POLICY,
-      props: filteredDRPlacementControl?.length
-        ? {
-            description: t('Cannot delete while connected to an application.'),
-            isDisabled: true,
-          }
-        : {},
-    },
-    {
-      key: Actions(t).MANAGE_DR_POLICY,
-      value: Actions(t).MANAGE_DR_POLICY,
-      props: {
-        isDisabled: !(
-          drPlacementsControlLoaded && !drPlacementsControlLoadError
-        ),
-      },
-    },
-    {
-      key: Actions(t).APPLY_DR_POLICY,
-      value: Actions(t).APPLY_DR_POLICY,
-      props: {
-        isDisabled: !(
-          drPlacementsControlLoaded && !drPlacementsControlLoadError
-        ),
-        description: t('Only for subscription application.'),
-      },
-    },
-  ];
+  const onClick = () => {
+    openModal(true);
+    setLinkedApps(filteredApps);
+  };
 
   return (
     <>
@@ -143,10 +88,14 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
         {clusterNames}
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
-        {getReplicationType(obj?.spec?.schedulingInterval)}
+        {getReplicationType(obj?.spec?.schedulingInterval, t)}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-        {<ApplicationStatus drPlacementControls={filteredDRPlacementControl} />}
+        {
+          <a onClick={onClick}>
+            {pluralize(appCount, t('Application'), t('Applications'), true)}
+          </a>
+        }
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         <Kebab
@@ -156,7 +105,12 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
             resourceModel: DRPolicyModel,
             cluster: HUB_CLUSTER_NAME,
           }}
-          customKebabItems={kebabActionItems}
+          customKebabItems={kebabActionItems(
+            canDeleteDRPolicy,
+            appCount,
+            appsLoaded,
+            appsLoadError
+          )}
         />
       </TableData>
     </>
@@ -165,63 +119,8 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, CustomData>> = ({
 
 const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
   const { t } = useCustomTranslation();
-
-  const Header = React.useMemo<TableColumn<DRPolicyKind>[]>(
-    () => [
-      {
-        title: t('Name'),
-        sort: 'metadata.name',
-        transforms: [sortable],
-        props: {
-          className: tableColumnInfo[0].className,
-        },
-        id: tableColumnInfo[0].id,
-      },
-      {
-        title: t('Status'),
-        transforms: [wrappable],
-        props: {
-          className: tableColumnInfo[1].className,
-        },
-        id: tableColumnInfo[1].id,
-      },
-      {
-        title: t('Clusters'),
-        transforms: [wrappable],
-        props: {
-          className: tableColumnInfo[2].className,
-        },
-        id: tableColumnInfo[2].id,
-      },
-      {
-        title: t('Replication policy'),
-        transforms: [wrappable],
-        props: {
-          className: tableColumnInfo[3].className,
-        },
-        id: tableColumnInfo[3].id,
-      },
-      {
-        title: t('Connected applications'),
-        transforms: [wrappable],
-        props: {
-          className: tableColumnInfo[4].className,
-        },
-        id: tableColumnInfo[4].id,
-      },
-      {
-        title: '',
-        props: {
-          className: tableColumnInfo[5].className,
-        },
-        id: tableColumnInfo[5].id,
-      },
-    ],
-    [t]
-  );
-
   const [columns] = useActiveColumns({
-    columns: Header,
+    columns: React.useMemo<TableColumn<DRPolicyKind>[]>(() => Header(t), [t]),
     showNamespaceOverride: false,
     columnManagementID: null,
   });
@@ -236,53 +135,45 @@ const DRPolicyList: React.FC<DRPolicyListProps> = (props) => {
   );
 };
 
-type DRPolicyListProps = {
-  data: DRPolicyKind[];
-  unfilteredData: DRPolicyKind[];
-  loaded: boolean;
-  loadError: any;
-  rowData?: any;
-};
-
 export const DRPolicyListPage: React.FC = () => {
   const { t } = useCustomTranslation();
-  const history = useHistory();
-  const [ModalComponent, props, launchModal] = useModalLauncher(
-    DRPolicyActions(t)
-  );
-  const createProps = `/multicloud/data-services/data-policies/${referenceForModel(
-    DRPolicyModel
-  )}/~new`;
-
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
-    useK8sWatchResource<DRPolicyKind[]>({
-      kind: referenceForModel(DRPolicyModel),
-      isList: true,
-      namespaced: false,
-      cluster: HUB_CLUSTER_NAME,
-    });
-
-  const [canCreateDRPolicy, isLoading] = useAccessReview(
+    useK8sWatchResource<DRPolicyKind[]>(getDRPolicyResourceObj());
+  const [applicationRefs, appsLoaded, appsLoadError] = useApplicationsWatch();
+  const [ModalComponent, props, launchModal] =
+    useModalLauncher(DRPolicyActions);
+  const [isModalOpen, setConnectedAppsModalOpen] = React.useState(false);
+  const [linkedApps, setLinkedApps] = React.useState<ApplicationRefKind[]>([]);
+  const [canDeleteDRPolicy] = useAccessReview(
     {
       group: DRPolicyModel?.apiGroup,
       resource: DRPolicyModel?.plural,
       namespace: null,
-      verb: 'list',
+      verb: 'delete',
     },
     HUB_CLUSTER_NAME
   );
-
   const [data, filteredData, onFilterChange] = useListPageFilter(drPolicies);
+  const history = useHistory();
+
+  const openModal = () => setConnectedAppsModalOpen(true);
+  const closeModal = () => setConnectedAppsModalOpen(false);
 
   return (
     <>
-      {drPolicies?.length === 0 || (!canCreateDRPolicy && !isLoading) ? (
+      <ModalComponent {...props} />
+      <ConnectedApplicationsModal
+        applicationRefs={linkedApps}
+        onClose={closeModal}
+        isOpen={isModalOpen}
+      />
+      {drPolicies?.length === 0 ? (
         <EmptyPage
           title={t('No disaster recovery policies yet')}
           buttonText={t('Create DRPolicy')}
-          canCreate={canCreateDRPolicy}
+          canAccess={!drPoliciesLoadError && drPoliciesLoaded}
           t={t}
-          onClick={() => history.push(createProps)}
+          onClick={() => history.push(DR_POLICY_CREATE_PATH)}
         >
           <Trans t={t}>
             Configure recovery to your failover cluster with a disaster recovery
@@ -293,18 +184,17 @@ export const DRPolicyListPage: React.FC = () => {
         </EmptyPage>
       ) : (
         <>
-          <ModalComponent {...props} />
           <ListPageBody>
             <div className="mco-drpolicy-list__header">
               <ListPageFilter
                 data={data}
-                loaded={drPoliciesLoaded}
+                loaded={!!drPolicies?.length}
                 onFilterChange={onFilterChange}
                 hideColumnManagement={true}
               />
               <div className="mco-drpolicy-list__createlink">
                 <ListPageCreateLink
-                  to={createProps}
+                  to={DR_POLICY_CREATE_PATH}
                   createAccessReview={{
                     groupVersionKind: referenceForModel(DRPolicyModel),
                   }}
@@ -314,15 +204,41 @@ export const DRPolicyListPage: React.FC = () => {
               </div>
             </div>
             <DRPolicyList
-              data={filteredData as DRPolicyKind[]}
+              data={filteredData}
               unfilteredData={drPolicies}
-              loaded={drPoliciesLoaded && !isLoading}
+              loaded={drPoliciesLoaded}
               loadError={drPoliciesLoadError}
-              rowData={{ launchModal }}
+              rowData={{
+                canDeleteDRPolicy,
+                appsLoaded,
+                appsLoadError,
+                applicationRefs,
+                launchModal,
+                setLinkedApps,
+                openModal,
+              }}
             />
           </ListPageBody>
         </>
       )}
     </>
   );
+};
+
+type RowData = {
+  canDeleteDRPolicy: boolean;
+  appsLoaded: boolean;
+  appsLoadError: any;
+  applicationRefs: ApplicationRefKind[];
+  launchModal: LaunchModal;
+  setLinkedApps: React.Dispatch<React.SetStateAction<ApplicationRefKind[]>>;
+  openModal: (boolean) => void;
+};
+
+type DRPolicyListProps = {
+  data: DRPolicyKind[];
+  unfilteredData: DRPolicyKind[];
+  loaded: boolean;
+  loadError: any;
+  rowData?: RowData;
 };
