@@ -12,7 +12,9 @@ const config = {
   transform: {
     '\\.[jt]sx?$': '@swc/jest',
   },
-  transformIgnorePatterns: ['<rootDir>/node_modules/(?!(@openshift-console)/)'],
+  transformIgnorePatterns: [
+    '<rootDir>/node_modules/(?!(@openshift-console)/ | ?!(@patternfly/react-core/dist))/',
+  ],
   testRegex: '.*\\.spec\\.tsx?$',
 };
 
