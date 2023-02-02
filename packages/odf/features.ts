@@ -44,6 +44,7 @@ export const MCG_STANDALONE = 'MCG_STANDALONE'; // Based on the existence of Noo
 export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaaSystem
 export const CEPH_FLAG = 'CEPH'; // Based on the existence of CephCluster
 export const OCS_FLAG = 'OCS'; // Based on the existence of StorageCluster
+export const OCS_NFS_ENABLED = 'NFS'; // Based on the enablement of NFS from StorageCluster spec
 export const ODF_ADMIN = 'ODF_ADMIN'; // Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
 
 export enum FEATURES {
@@ -113,6 +114,7 @@ const setOCSFlagsFalse = (setFlag: SetFeatureFlag) => {
   setFlag(OCS_CONVERGED_FLAG, false);
   setFlag(OCS_INDEPENDENT_FLAG, false);
   setFlag(MCG_STANDALONE, false);
+  setFlag(OCS_NFS_ENABLED, false);
 };
 
 export const setODFFlag = (setFlag: SetFeatureFlag) =>
@@ -144,6 +146,7 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
           storageCluster?.spec?.multiCloudGateway?.reconcileStrategy ===
             'standalone'
         );
+        setFlag(OCS_NFS_ENABLED, storageCluster?.spec?.nfs?.enable === true);
         clearInterval(ocsIntervalId);
       } else if (setFlagFalse) {
         setFlagFalse = false;
