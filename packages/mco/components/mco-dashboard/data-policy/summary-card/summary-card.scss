@@ -1,0 +1,9 @@
+.mco-summary {
+    &__divider--width {
+        width: 50%;
+    }
+
+    &__item-padding {
+        padding-bottom: var(--pf-global--spacer--sm);
+    }
+}
