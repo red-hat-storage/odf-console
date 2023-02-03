@@ -10,5 +10,13 @@ export type ArgoApplicationSetKind = K8sResourceCommon & {
         requeueAfterSeconds?: number;
       };
     }[];
+    template?: {
+      spec?: {
+        destination?: {
+          namespace?: string;
+          server?: string;
+        };
+      };
+    };
   };
 };

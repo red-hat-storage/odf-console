@@ -1,0 +1,36 @@
+@import '../../../shared/styles/skeleton';
+
+.mco-dashboard {
+    &__title {
+        font-weight: var(--pf-c-card__title--FontWeight);
+        margin-bottom: var(--pf-global--spacer--xs);
+    }
+
+    &__contentRow {
+        display: flex;
+        flex-direction: row;
+    }
+  
+    &__contentColumn {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__centerComponent {
+        align-items: center;
+        display: flex;
+        height: 100%;
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+.mco-dashboard-loading {
+    &__singleBlock {
+        animation: $skeleton-animation;
+        background: $skeleton-color;
+        height: 35rem;
+        width: 93rem;
+        margin: 2rem;
+    }
+}

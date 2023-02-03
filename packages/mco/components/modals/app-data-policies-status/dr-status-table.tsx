@@ -5,11 +5,7 @@ import {
   fromNow,
 } from '@odf/shared/details-page/datetime';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  GreenCheckCircleIcon,
-  StatusIconAndText,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
+import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
   Flex,
@@ -19,7 +15,6 @@ import {
   TextVariants,
   Tooltip,
 } from '@patternfly/react-core';
-import { InProgressIcon } from '@patternfly/react-icons';
 import {
   TableComposable,
   Tbody,
@@ -30,22 +25,19 @@ import {
   ThProps,
   SortByDirection,
 } from '@patternfly/react-table';
+import { DRPC_STATUS } from '../../../constants';
 import { DRPlacementControlKind } from '../../../types';
-import { DRPolicyMap, getDRPoliciesCount } from '../../../utils';
-import { DRPC_STATUS } from './dr-status-card';
+import {
+  DRPolicyMap,
+  getDRPoliciesCount,
+  getCurrentStatus,
+  getDRStatus,
+} from '../../../utils';
 import './dr-status-table.scss';
 
 const reactPropFix = {
   translate: 'yes',
 };
-
-const getCurrentStatus = (drpcList: DRPlacementControlKind[]): string =>
-  drpcList.reduce((prevStatus, drpc) => {
-    const newStatus = DRPC_STATUS[drpc?.status?.phase] || '';
-    return [DRPC_STATUS.Relocating, DRPC_STATUS.FailingOver].includes(newStatus)
-      ? newStatus
-      : prevStatus || newStatus;
-  }, '');
 
 const getLastDataSyncTime = (drpcList: DRPlacementControlKind[]): string =>
   getLatestDate(drpcList?.map((drpc) => drpc?.status?.lastGroupSyncTime));
@@ -69,41 +61,6 @@ const getTargetClusters = (
     return acc;
   }, new Set());
   return [...targetClusters].join(',');
-};
-
-const getDRStatus = (
-  currentStatus: string,
-  targetClusters: string,
-  t: TFunction
-) => {
-  switch (currentStatus) {
-    case DRPC_STATUS.Relocating:
-    case DRPC_STATUS.FailingOver:
-      return {
-        text: currentStatus,
-        icon: <InProgressIcon />,
-        toolTip: (
-          <>
-            <h4>{t('Target cluster')}</h4>
-            <p>{t('In use: {{targetClusters}}', { targetClusters })}</p>
-          </>
-        ),
-      };
-    case DRPC_STATUS.Relocated:
-    case DRPC_STATUS.FailedOver:
-      return {
-        text: currentStatus,
-        icon: <GreenCheckCircleIcon />,
-        toolTip: (
-          <>
-            <h4>{t('Target cluster')}</h4>
-            <p>{t('Used: {{targetClusters}}', { targetClusters })}</p>
-          </>
-        ),
-      };
-    default:
-      return {};
-  }
 };
 
 const getSyncStatus = (syncTime: string) =>

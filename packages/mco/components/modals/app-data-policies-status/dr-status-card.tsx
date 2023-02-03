@@ -9,15 +9,9 @@ import {
   HelperTextItem,
 } from '@patternfly/react-core';
 import { InProgressIcon } from '@patternfly/react-icons';
+import { DRPC_STATUS } from '../../../constants';
 import { DRPlacementControlKind } from '../../../types';
 import { getDRPoliciesCount, DRPolicyMap } from '../../../utils';
-
-export enum DRPC_STATUS {
-  FailedOver = 'FailedOver',
-  Relocating = 'Relocating',
-  FailingOver = 'FailingOver',
-  Relocated = 'Relocated',
-}
 
 const updateStatusSummary = (
   currentStatus: string,

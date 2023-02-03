@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { ArgoApplicationSetResourceKind } from '../../../hooks';
+import { DrClusterAppsMap } from '../../../types';
 
 export const CSVStatusesContext = React.createContext<CSVStatusesContextType>(
   {} as CSVStatusesContextType
@@ -17,7 +17,7 @@ type CSVStatusesContextType = {
 };
 
 type DRResourcesContextType = {
-  argoApplicationSetResources: ArgoApplicationSetResourceKind[];
+  drClusterAppsMap: DrClusterAppsMap;
   loaded: boolean;
   loadError: any;
 };

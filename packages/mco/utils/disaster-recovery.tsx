@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
   getLabel,
   hasLabel,
@@ -9,12 +10,16 @@ import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
   ObjectReference,
+  PrometheusResult,
+  GreenCheckCircleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Operator,
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import { DR_SECHEDULER_NAME } from '../constants';
+import { TFunction } from 'i18next';
+import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
+import { SLA_STATUS, DR_SECHEDULER_NAME, DRPC_STATUS } from '../constants';
 import { REPLICATION_TYPE } from '../constants/disaster-recovery';
 import { DisasterRecoveryResourceKind } from '../hooks';
 import { ACMPlacementRuleModel, DRPolicyModel } from '../models';
@@ -26,6 +31,7 @@ import {
   DRPolicyKind,
   DRClusterKind,
   ACMManagedClusterKind,
+  ArgoApplicationSetKind,
 } from '../types';
 import { getGVKFromK8Resource, getGVKFromObjectRef } from './common';
 
@@ -279,3 +285,78 @@ export const matchClusters = (
   drClusterNames?.find((drClusterName: string) =>
     decisionClusters?.includes(drClusterName)
   );
+
+const THRESHOLD = 2;
+export const getSLAStatus = (item: PrometheusResult): [SLA_STATUS, number] => {
+  const currentTime = new Date().getTime();
+  const lastSnapshotTime = new Date(item?.value[1]).getTime();
+  const timeTaken = currentTime - lastSnapshotTime;
+  /**
+   * FIX THIS
+   * "timeTaken" is in milliseconds, need to add a function to convert syncInterval to milliseconds as well
+   * current usage of "Number()"" is wrong, added it as a placeholder only
+   * */
+  const syncInterval = Number(item?.metric?.sync_interval);
+  const slaDiff = timeTaken / syncInterval || 0;
+  if (slaDiff >= THRESHOLD) return [SLA_STATUS.CRITICAL, slaDiff];
+  else if (slaDiff > syncInterval && slaDiff < THRESHOLD)
+    return [SLA_STATUS.WARNING, slaDiff];
+  else return [SLA_STATUS.HEALTHY, slaDiff];
+};
+
+export const getRemoteNSFromAppSet = (
+  application: ArgoApplicationSetKind
+): string => application?.spec?.template?.spec?.destination?.namespace;
+
+export const getProtectedPVCsFromDRPC = (
+  drpc: DRPlacementControlKind
+): string[] =>
+  drpc?.status?.resourceConditions?.properties?.resourceMeta?.properties
+    ?.protectedpvcs?.items || [];
+
+export const getCurrentStatus = (drpcList: DRPlacementControlKind[]): string =>
+  drpcList.reduce((prevStatus, drpc) => {
+    const newStatus = DRPC_STATUS[drpc?.status?.phase] || '';
+    return [DRPC_STATUS.Relocating, DRPC_STATUS.FailingOver].includes(newStatus)
+      ? newStatus
+      : prevStatus || newStatus;
+  }, '');
+
+export const getDRStatus = (
+  currentStatus: string,
+  targetClusters: string,
+  t: TFunction
+) => {
+  switch (currentStatus) {
+    case DRPC_STATUS.Relocating:
+    case DRPC_STATUS.FailingOver:
+      return {
+        text: currentStatus,
+        icon: <InProgressIcon />,
+        toolTip: (
+          <>
+            <h4>{t('Target cluster')}</h4>
+            <p>{t('In use: {{targetClusters}}', { targetClusters })}</p>
+          </>
+        ),
+      };
+    case DRPC_STATUS.Relocated:
+    case DRPC_STATUS.FailedOver:
+      return {
+        text: currentStatus,
+        icon: <GreenCheckCircleIcon />,
+        toolTip: (
+          <>
+            <h4>{t('Target cluster')}</h4>
+            <p>{t('Used: {{targetClusters}}', { targetClusters })}</p>
+          </>
+        ),
+      };
+    default:
+      return {
+        text: t('Unknown'),
+        icon: <UnknownIcon />,
+        toolTip: t('Unknown'),
+      };
+  }
+};
