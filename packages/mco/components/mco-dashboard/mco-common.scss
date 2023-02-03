@@ -33,4 +33,12 @@
         width: 93rem;
         margin: 2rem;
     }
+
+    &__singleBlockSmall {
+        animation: $skeleton-animation;
+        background: $skeleton-color;
+        height: 10rem;
+        width: 8rem;
+        // margin: 2rem;
+    }
 }

@@ -13,7 +13,11 @@ import {
   StorageSystemKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getGVK, referenceForModel } from '@odf/shared/utils';
+import {
+  getGVK,
+  referenceForModel,
+  getOperatorHealthState,
+} from '@odf/shared/utils';
 import {
   HealthState,
   WatchK8sResource,
@@ -31,7 +35,6 @@ import {
 } from '@patternfly/react-core';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
-import { getOperatorHealthState } from '../utils';
 import StorageSystemPopup from './storage-system-popup';
 import './status-card.scss';
 
