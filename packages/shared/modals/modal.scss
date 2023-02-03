@@ -14,12 +14,18 @@
 .modalBody tags-input .tags {
   background-color: rgba(255, 255, 255, 0.5);
   background-image: none;
+  border: 1px solid #e9e9e9;
+  border-bottom: 1px solid #b2afaf;
   border-radius: 4px;
   color: rgb(85, 85, 85);
   cursor: text;
   line-height: 20px;
   margin-bottom: 1rem;
   min-height: 120px;
+}
+
+.modalBody tags-input .tags:hover {
+  border-bottom: 1px solid rgb(0, 132, 255);
 }
 
 .modal--overflow {
