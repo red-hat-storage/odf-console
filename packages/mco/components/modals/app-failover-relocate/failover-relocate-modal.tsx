@@ -48,7 +48,7 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
 
   const { t } = useCustomTranslation();
   const modalText = getModalText(t)[action];
-  const [errorMessage, setErrorMessage] = React.useState(loadError || '');
+  const [errorMessage, setErrorMessage] = React.useState('');
   const [footerStatus, setFooterStatus] = React.useState(
     ModalFooterStatus.INITIAL
   );
@@ -105,8 +105,12 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
           setCanInitiate={setCanInitiate}
           setPlacement={setPlacement}
         />
-        {!!errorMessage && (
-          <Alert title={errorMessage} variant={AlertVariant.danger} isInline />
+        {(!!errorMessage || !!loadError) && (
+          <Alert
+            title={errorMessage || getErrorMessage(loadError)}
+            variant={AlertVariant.danger}
+            isInline
+          />
         )}
       </ModalBody>
       <ModalFooter>

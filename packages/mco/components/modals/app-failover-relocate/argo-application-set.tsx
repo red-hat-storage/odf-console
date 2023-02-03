@@ -1,7 +1,18 @@
 import * as React from 'react';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { DRActionType } from '../../../constants';
-import { useArgoApplicationSetResourceWatch } from '../../../hooks';
+import {
+  DisasterRecoveryResourceKind,
+  getApplicationSetResourceObj,
+  getDRClusterResourceObj,
+  getDRPlacementControlResourceObj,
+  getDRPolicyResourceObj,
+  getManagedClusterResourceObj,
+  getPlacementDecisionsResourceObj,
+  getPlacementResourceObj,
+  useArgoApplicationSetResourceWatch,
+  useDisasterRecoveryResourceWatch,
+} from '../../../hooks';
 import { ArgoApplicationSetKind } from '../../../types';
 import {
   findCluster,
@@ -10,21 +21,69 @@ import {
   getManagedClusterAvailableCondition,
   findDRType,
   isDRClusterFenced,
+  findPlacementNameFromAppSet,
 } from '../../../utils';
 import { FailoverRelocateModal } from './failover-relocate-modal';
 import { PlacementProps } from './failover-relocate-modal-body';
+
+const getDRResources = (namespace: string) => ({
+  resources: {
+    drClusters: getDRClusterResourceObj(),
+    drPolicies: getDRPolicyResourceObj(),
+    drPlacementControls: getDRPlacementControlResourceObj({
+      namespace: namespace,
+    }),
+  },
+});
+
+const getApplicationSetResources = (
+  namespace: string,
+  appName: string,
+  placementName: string,
+  drResources: DisasterRecoveryResourceKind,
+  drLoaded: boolean,
+  drLoadError: any
+) => ({
+  resources: {
+    managedClusters: getManagedClusterResourceObj(),
+    applications: getApplicationSetResourceObj({ namespace: namespace }),
+    placements: getPlacementResourceObj({
+      name: placementName,
+      namespace: namespace,
+    }),
+    placementDecisions: getPlacementDecisionsResourceObj({
+      namespace: namespace,
+    }),
+  },
+  drResources: {
+    data: drResources,
+    loaded: drLoaded,
+    loadError: drLoadError,
+  },
+  conditions: {
+    filterByAppName: appName,
+  },
+});
 
 export const ArogoApplicationSetModal = (
   props: ArogoApplicationSetModalProps
 ) => {
   const { application, action, isOpen, close } = props;
-
+  const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
+    getDRResources(getNamespace(application))
+  );
   const [aroAppSetResources, loaded, loadError] =
-    useArgoApplicationSetResourceWatch({
-      name: getName(application),
-      namespace: getNamespace(application),
-    });
-  const aroAppSetResource = aroAppSetResources?.[0];
+    useArgoApplicationSetResourceWatch(
+      getApplicationSetResources(
+        getNamespace(application),
+        getName(application),
+        findPlacementNameFromAppSet(application),
+        drResources,
+        drLoaded,
+        drLoadError
+      )
+    );
+  const aroAppSetResource = aroAppSetResources?.formattedResources?.[0];
   const placements: PlacementProps[] = React.useMemo(() => {
     const {
       drClusters,
