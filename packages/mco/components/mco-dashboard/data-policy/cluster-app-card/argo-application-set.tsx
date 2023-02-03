@@ -140,7 +140,7 @@ export const ActivitySection: React.FC<CommonProps> = ({ selectedAppSet }) => {
     <div className="mco-dashboard__contentColumn">
       <div className="mco-dashboard__title">{t('Activity')}</div>
       <div className="mco-dashboard__contentRow">
-        {getDRStatus(currentStatus, null, t).icon}
+        {getDRStatus({ currentStatus, t }).icon}
         <div className="text-muted mco-cluster-app__text--padding-left">
           {!currentStatus
             ? t('Unknown')

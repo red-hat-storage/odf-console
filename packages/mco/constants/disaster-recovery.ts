@@ -12,13 +12,6 @@ export const PROTECTED_APP_ANNOTATION_WO_SLASH =
 export const ALL_APPS = 'All applications';
 export const ALL_APPS_ITEM_ID = 'all-applications-itemid';
 
-export enum DRPlacementControlStatus {
-  FailedOver = 'FailedOver',
-  Relocating = 'Relocating',
-  FailingOver = 'FailingOver',
-  Relocated = 'Relocated',
-}
-
 export enum DRActionType {
   FAILOVER = 'Failover',
   RELOCATE = 'Relocate',

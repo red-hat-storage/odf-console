@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { pluralize } from '@odf/core/components/utils';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
+import { getNamespace } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -17,12 +19,12 @@ import {
   ACMSubscriptionModel,
   ACMPlacementRuleModel,
   DRPlacementControlModel,
-} from '../../../models';
+} from '../../../../models';
 import {
   DRPlacementControlKind,
   ACMPlacementRuleKind,
   ACMSubscriptionKind,
-} from '../../../types';
+} from '../../../../types';
 import {
   filterDRPlacementRuleNames,
   filterDRSubscriptions,
@@ -33,7 +35,7 @@ import {
   getAppDRInfo,
   ApplicationDRInfo,
   DRPolicyMap,
-} from '../../../utils';
+} from '../../../../utils';
 import { DataPoliciesStatusType } from './data-policies-status-modal';
 import { DRStatusCard } from './dr-status-card';
 import './data-policies-status-popover.scss';
@@ -78,10 +80,10 @@ const modalMap = {
 };
 
 export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps> =
-  ({ resource }) => {
+  ({ application }) => {
     const { t } = useCustomTranslation();
     const response = useK8sWatchResources<DataPoliciesResourceType>(
-      drResources(resource?.metadata?.namespace)
+      drResources(getNamespace(application))
     );
     const memoizedPlacementRule = useDeepCompareMemoize(
       response.placementRules,
@@ -128,9 +130,13 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
       () =>
         (subsLoaded &&
           !_.isEmpty(placementRuleMap) &&
-          filterDRSubscriptions(resource, subscriptions, placementRuleMap)) ||
+          filterDRSubscriptions(
+            application,
+            subscriptions,
+            placementRuleMap
+          )) ||
         {},
-      [subscriptions, subsLoaded, placementRuleMap, resource]
+      [subscriptions, subsLoaded, placementRuleMap, application]
     );
 
     const [dataPoliciesStatus, count]: [DataPoliciesStatusType, number] =
@@ -167,6 +173,14 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
       hide();
     };
 
+    const headerText = pluralize(
+      count,
+      t('Data policy ({{count}})', { count }),
+      t('Data policies ({{count}})', { count }),
+      false
+    );
+    const linkText = pluralize(count, t('policy'), t('policies'), true);
+
     return (
       <>
         <Modal {...modalProps} />
@@ -175,10 +189,10 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
           position="bottom"
           headerContent={
             <h4
-              className="mco-data-policies-status-popover__header"
+              className="mco-data-policies-subs-status-popover__header"
               data-test="popover-header"
             >
-              {t('Data policies ({{count}})', { count })}
+              {headerText}
             </h4>
           }
           bodyContent={
@@ -203,18 +217,14 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
             </Flex>
           )}
         >
-          {!!count && (
-            <Button variant={ButtonVariant.link} data-test="popover-link">
-              {t('{{count}} policies', { count })}
-            </Button>
-          )}
+          {!!count && <a data-test="subs-popover-link">{linkText}</a>}
         </Popover>
       </>
     );
   };
 
 type DataPoliciesStatusPopoverProps = {
-  resource?: ApplicationKind;
+  application?: ApplicationKind;
 };
 
 type DataPoliciesResourceType = {

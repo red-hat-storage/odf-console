@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { pluralize } from '@odf/core/components/utils';
 import { GreenCheckCircleIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
@@ -9,9 +10,9 @@ import {
   HelperTextItem,
 } from '@patternfly/react-core';
 import { InProgressIcon } from '@patternfly/react-icons';
-import { DRPC_STATUS } from '../../../constants';
-import { DRPlacementControlKind } from '../../../types';
-import { getDRPoliciesCount, DRPolicyMap } from '../../../utils';
+import { DRPC_STATUS } from '../../../../constants';
+import { DRPlacementControlKind } from '../../../../types';
+import { getDRPoliciesCount, DRPolicyMap } from '../../../../utils';
 
 const updateStatusSummary = (
   currentStatus: string,
@@ -111,16 +112,19 @@ export const DRStatusCard: React.FC<DRStatusCardProps> = ({ drPolicies }) => {
       ),
     [drPolicies]
   );
+  const count = getDRPoliciesCount(drPolicies);
+  const title = pluralize(
+    count,
+    t('Disaster recovery: {{count}} policy', { count }),
+    t('Disaster recovery: {{count}} policies', { count }),
+    false
+  );
 
   return (
     <>
       <Flex>
         <FlexItem>
-          <strong>
-            {t('Disaster recovery: {{count}} policies', {
-              count: getDRPoliciesCount(drPolicies),
-            })}
-          </strong>
+          <strong>{title}</strong>
         </FlexItem>
       </Flex>
       <StatusSummary

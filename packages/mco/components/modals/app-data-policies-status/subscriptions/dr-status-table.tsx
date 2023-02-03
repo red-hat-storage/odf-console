@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { pluralize } from '@odf/core/components/utils';
 import {
   getLatestDate,
   utcDateTimeFormatterWithTimeZone,
@@ -25,14 +26,14 @@ import {
   ThProps,
   SortByDirection,
 } from '@patternfly/react-table';
-import { DRPC_STATUS } from '../../../constants';
-import { DRPlacementControlKind } from '../../../types';
+import { DRPC_STATUS } from '../../../../constants';
+import { DRPlacementControlKind } from '../../../../types';
 import {
   DRPolicyMap,
   getDRPoliciesCount,
   getCurrentStatus,
   getDRStatus,
-} from '../../../utils';
+} from '../../../../utils';
 import './dr-status-table.scss';
 
 const reactPropFix = {
@@ -112,7 +113,7 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
         return {
           drPolicyName: policyName,
           lastSync: getSyncStatus(lastSyncTime),
-          currentStatus: getDRStatus(currentStatus, targetClusters, t),
+          currentStatus: getDRStatus({ currentStatus, targetClusters, t }),
         };
       }),
     [drPolicies, t]
@@ -135,6 +136,14 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
     columnIndex,
   });
 
+  const count = getDRPoliciesCount(drPolicies);
+  const title = pluralize(
+    count,
+    t('Disaster recovery policy'),
+    t('Disaster recovery policies'),
+    true
+  );
+
   return (
     <Flex
       direction={{ default: 'column' }}
@@ -143,9 +152,7 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
       <FlexItem>
         <TextContent>
           <Text component={TextVariants.h4} data-test="dr-policies-count">
-            {t('{{count}} Disaster recovery policies ', {
-              count: getDRPoliciesCount(drPolicies),
-            })}
+            {title}
           </Text>
         </TextContent>
       </FlexItem>
@@ -158,7 +165,7 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
           </Text>
         </TextContent>
       </FlexItem>
-      <FlexItem className="mco-dr-status-status-table__box">
+      <FlexItem className="mco-dr-subs-status-table__box">
         <TableComposable
           {...reactPropFix}
           variant="compact"
