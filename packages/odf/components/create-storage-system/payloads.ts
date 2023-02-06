@@ -2,7 +2,7 @@ import {
   getOCSRequestData,
   capacityAndNodesValidate,
 } from '@odf/core/components/utils';
-import { Payload, DeploymentType } from '@odf/core/types';
+import { Payload, DeploymentType, BackingStorageType } from '@odf/core/types';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { CustomResourceDefinitionModel, NodeModel } from '@odf/shared/models';
 import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
@@ -51,6 +51,7 @@ export const createStorageCluster = async (state: WizardState) => {
   const { capacity, enableArbiter, arbiterLocation, pvCount } =
     capacityAndNodes;
   const { encryption, publicNetwork, clusterNetwork, kms } = securityAndNetwork;
+  const { type, enableNFS, deployment } = backingStorage;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
 
@@ -70,7 +71,11 @@ export const createStorageCluster = async (state: WizardState) => {
     ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING
   );
 
-  const isMCG = backingStorage.deployment === DeploymentType.MCG;
+  const isMCG = deployment === DeploymentType.MCG;
+  const isNFSEnabled =
+    enableNFS &&
+    deployment === DeploymentType.FULL &&
+    type !== BackingStorageType.EXTERNAL;
 
   const payload = getOCSRequestData(
     storageClass,
@@ -85,7 +90,8 @@ export const createStorageCluster = async (state: WizardState) => {
     arbiterLocation,
     enableArbiter,
     pvCount,
-    isMCG
+    isMCG,
+    isNFSEnabled
   );
   return k8sCreate({ model: OCSStorageClusterModel, data: payload });
 };

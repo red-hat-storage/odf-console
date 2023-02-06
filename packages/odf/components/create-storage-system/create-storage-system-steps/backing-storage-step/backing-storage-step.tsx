@@ -38,6 +38,7 @@ import {
 import { ErrorHandler } from '../../error-handler';
 import { SUPPORTED_EXTERNAL_STORAGE } from '../../external-storage';
 import { WizardState, WizardDispatch } from '../../reducer';
+import { EnableNFS } from './enable-nfs';
 import { SelectDeployment } from './select-deployment';
 import './backing-storage-step.scss';
 
@@ -164,7 +165,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   loaded,
   stepIdReached,
 }) => {
-  const { type, externalStorage, deployment } = state;
+  const { type, enableNFS, externalStorage, deployment } = state;
 
   const { t } = useCustomTranslation();
   const [sc, scLoaded, scLoadError] =
@@ -179,9 +180,9 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   const odfCsv = getODFCsv(csvList?.items);
   const supportedODFVendors = getSupportedVendors(odfCsv);
 
+  const isFullDeployment = deployment === DeploymentType.FULL;
   const enableRhcs =
-    RHCS_SUPPORTED_INFRA.includes(infraType) &&
-    deployment === DeploymentType.FULL;
+    RHCS_SUPPORTED_INFRA.includes(infraType) && isFullDeployment;
 
   const allowedExternalStorage: ExternalStorage[] =
     !enableRhcs || hasOCS
@@ -254,6 +255,13 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
       <Form>
         {!hasOCS && (
           <SelectDeployment dispatch={dispatch} deployment={deployment} />
+        )}
+        {isFullDeployment && !hasOCS && (
+          <EnableNFS
+            dispatch={dispatch}
+            nfsEnabled={enableNFS}
+            backingStorageType={type}
+          />
         )}
         <FormGroup
           label={t('Backing storage type')}

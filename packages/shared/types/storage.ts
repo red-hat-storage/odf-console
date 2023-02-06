@@ -9,6 +9,9 @@ export type StorageClusterKind = K8sResourceCommon & {
         private?: string;
       };
     };
+    nfs?: {
+      enable?: boolean;
+    };
     manageNodes?: boolean;
     storageDeviceSets?: DeviceSet[];
     resources?: StorageClusterResource;

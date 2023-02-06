@@ -329,7 +329,8 @@ export const getOCSRequestData = (
   selectedArbiterZone?: string,
   stretchClusterChecked?: boolean,
   availablePvsCount?: number,
-  isMCG?: boolean
+  isMCG?: boolean,
+  isNFSEnabled?: boolean
 ): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -427,6 +428,13 @@ export const getOCSRequestData = (
         enableKeyRotation: true,
         schedule: '@weekly',
       },
+    };
+  }
+
+  if (isNFSEnabled) {
+    // for NFS, supported only for full deployment and non-external mode
+    requestData.spec.nfs = {
+      enable: true,
     };
   }
 

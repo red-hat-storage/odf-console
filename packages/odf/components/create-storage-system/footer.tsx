@@ -37,12 +37,12 @@ const validateBackingStorageStep = (
   backingStorage: WizardState['backingStorage'],
   sc: WizardState['storageClass']
 ) => {
-  const { type, externalStorage, deployment } = backingStorage;
+  const { type, enableNFS, externalStorage, deployment } = backingStorage;
   switch (type) {
     case BackingStorageType.EXISTING:
       return !!sc.name && !!deployment;
     case BackingStorageType.EXTERNAL:
-      return !!externalStorage;
+      return !!externalStorage && !enableNFS;
     case BackingStorageType.LOCAL_DEVICES:
       return !!deployment;
     default:
