@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { getODFVersion } from '@odf/core/utils';
+import { getOperatorVersion } from '@odf/core/utils';
+import { ODF_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
+import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import {
   ClusterServiceVersionModel,
   InfrastructureModel,
-  SubscriptionModel,
 } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
@@ -29,15 +30,14 @@ const DetailsCard: React.FC = () => {
     StorageClusterModel,
     CEPH_NS
   );
-  const [subscription, subscriptionLoaded, subscriptionError] =
-    useK8sList(SubscriptionModel);
+  const [csv, csvLoaded, csvError] = useFetchCsv({ specName: ODF_OPERATOR });
   const infrastructurePlatform = getInfrastructurePlatform(infrastructure);
   const cluster = ocsData?.find(
     (item: StorageClusterKind) => item.status.phase !== 'Ignored'
   );
   const ocsName = getName(cluster);
 
-  const serviceVersion = getODFVersion(subscription);
+  const serviceVersion = getOperatorVersion(csv);
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
     serviceVersion,
@@ -80,8 +80,8 @@ const DetailsCard: React.FC = () => {
           <DetailItem
             key="version"
             title={t('Version')}
-            isLoading={!subscriptionLoaded}
-            error={subscriptionError}
+            isLoading={!csvLoaded}
+            error={csvError}
           >
             {serviceVersion}
           </DetailItem>

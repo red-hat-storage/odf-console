@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { CEPH_BRAND_NAME } from '@odf/core/constants';
+import { CEPH_BRAND_NAME, OCS_OPERATOR } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
-import { getODFVersion } from '@odf/core/utils';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
-import { SubscriptionModel, SecretModel } from '@odf/shared/models';
+import { getOperatorVersion } from '@odf/core/utils';
+import { CEPH_STORAGE_NAMESPACE, ODF_OPERATOR } from '@odf/shared/constants';
+import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
+import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { SecretKind, K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -18,7 +19,6 @@ import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shar
 import { Base64 } from 'js-base64';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { StorageClusterModel } from '../../models';
-import { getOCSVersion } from '../../utils';
 
 const getCephLink = (secret: SecretKind): string => {
   const data = secret?.data?.userKey;
@@ -40,11 +40,6 @@ const k8sResources = {
     isList: true,
     namespace: 'openshift-storage',
   },
-  subscription: {
-    kind: referenceForModel(SubscriptionModel),
-    namespaced: false,
-    isList: true,
-  },
   secret: {
     kind: SecretModel.kind,
     namespace: CEPH_STORAGE_NAMESPACE,
@@ -59,9 +54,12 @@ export const DetailsCard: React.FC = () => {
   const resourcesObj: ResourcesObject = useK8sWatchResources(k8sResources);
 
   const ocsName = getName(resourcesObj['ocs'].data?.[0]);
-  const subscriptionVersion = !isODF
-    ? getOCSVersion(resourcesObj['subscription'].data as K8sResourceKind[])
-    : getODFVersion(resourcesObj['subscription'].data as K8sResourceKind[]);
+
+  const [csv, csvLoaded, csvError] = useFetchCsv({
+    specName: !isODF ? OCS_OPERATOR : ODF_OPERATOR,
+  });
+
+  const subscriptionVersion = getOperatorVersion(csv);
 
   const serviceName = isODF
     ? t('Data Foundation')
@@ -100,8 +98,8 @@ export const DetailsCard: React.FC = () => {
           <DetailItem title={t('Mode')}>External</DetailItem>
           <DetailItem
             title={t('Version')}
-            isLoading={!resourcesObj['subscription'].loaded}
-            error={resourcesObj['subscription'].loadError}
+            isLoading={!csvLoaded}
+            error={csvError}
             data-test-id="cluster-subscription"
           >
             {subscriptionVersion}
