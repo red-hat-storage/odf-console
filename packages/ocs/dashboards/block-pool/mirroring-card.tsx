@@ -24,6 +24,7 @@ import { calcPercentage } from '../../utils/common';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 import { MirroringCardBody } from './mirroring-card-body';
 import { MirroringCardItem } from './mirroring-card-item';
+import { getColor } from './states';
 import { healthStateMapping, ImageStateLegendMap } from './states';
 import './mirroring-card.scss';
 
@@ -104,27 +105,29 @@ const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({
   );
 
   if (totalImageCount > 0) {
-    const { data, legendData } = Object.keys(states).reduce(
+    const { data, legendData, colorScale } = Object.keys(states).reduce(
       (acc, state) => {
         const percentage = calcPercentage(states[state], totalImageCount);
+        const status = ImageStateLegendMap(t)[state];
         acc.data.push({
-          x: ImageStateLegendMap(t)[state],
+          x: status,
           y: percentage.value,
         });
         acc.legendData.push({
-          name: `${ImageStateLegendMap(t)[state]}: ${
-            calcPercentage(states[state], totalImageCount).string
-          }`,
+          name: `${status}: ${percentage.string}`,
+          symbol: { fill: getColor(state) },
         });
+        acc.colorScale.push(getColor(state));
         return acc;
       },
-      { data: [], legendData: [] }
+      { data: [], legendData: [], colorScale: [] }
     );
 
     return (
       <div style={{ maxHeight: '210px', maxWidth: '300px' }}>
         <ChartPie
           ariaTitle={t('Image States')}
+          colorScale={colorScale}
           constrainToVisibleArea
           data={data}
           labels={({ datum }) => `${datum.x}: ${datum.y}`}
