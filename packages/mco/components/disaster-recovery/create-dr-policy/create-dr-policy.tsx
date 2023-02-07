@@ -276,7 +276,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
             <Alert
               className="co-alert mco-create-data-policy__alert"
               title={t(
-                'OpenShift Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring.',
+                'Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring.',
                 { version: odfMCOVersion }
               )}
               variant={AlertVariant.info}

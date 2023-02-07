@@ -75,7 +75,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
     : getODFVersion(subscription);
 
   const serviceName = isODF
-    ? t('OpenShift Data Foundation')
+    ? t('Data Foundation')
     : t('OpenShift Container Storage');
 
   const hasRGW = useFlag(RGW_FLAG);

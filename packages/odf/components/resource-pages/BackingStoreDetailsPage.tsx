@@ -62,7 +62,7 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
 
   const breadcrumbs = [
     {
-      name: t('OpenShift Data Foundation'),
+      name: t('Data Foundation'),
       path: '/odf/overview',
     },
     {

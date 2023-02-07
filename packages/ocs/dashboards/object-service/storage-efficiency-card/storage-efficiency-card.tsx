@@ -61,7 +61,7 @@ const StorageEfficiencyCard: React.FC<{}> = () => {
       Number(compressionRatio) === 1,
     title: t('Compression ratio'),
     infoText: t(
-      'OpenShift Data Foundation can be configured to use compression. The efficiency rate reflects the actual compression ratio when using such a configuration.'
+      'Data Foundation can be configured to use compression. The efficiency rate reflects the actual compression ratio when using such a configuration.'
     ),
     getStats: compressionStats,
   };
