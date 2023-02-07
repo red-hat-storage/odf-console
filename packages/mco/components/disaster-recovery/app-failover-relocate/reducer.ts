@@ -1,5 +1,6 @@
 import { PlacementDecision } from '../../../types';
 import { ApplicationDRInfo } from '../../../utils';
+import { MessageKind } from './error-messages';
 
 export enum ACTION_TYPE {
   FAILOVER = 'Failover',
@@ -27,12 +28,11 @@ export type TargetClusterType = Partial<{
 }>;
 
 export type ErrorMessage = Partial<{
-  drPolicyControlStateErrorMessage: string;
-  managedClustersErrorMessage: string;
-  targetClusterErrorMessage: string;
-  subscriptionGroupErrorMessage: string;
-  peerStatusErrorMessage: string;
-  failoverAndRelocateActionErrorMessage: string;
+  drPolicyControlStateErrorMessage: number;
+  managedClustersErrorMessage: number;
+  targetClusterErrorMessage: number;
+  subscriptionGroupErrorMessage: number;
+  peerStatusErrorMessage: number;
 }>;
 
 export type FailoverAndRelocateState = {
@@ -43,6 +43,7 @@ export type FailoverAndRelocateState = {
   modalFooterStatus: ModalFooterStatus;
   selectedSubsGroups: string[];
   errorMessage: ErrorMessage;
+  actionErrorMessage: MessageKind;
 };
 
 export enum FailoverAndRelocateType {
@@ -53,6 +54,7 @@ export enum FailoverAndRelocateType {
   SET_MODAL_FOOTER_STATUS = 'SET_MODAL_FOOTER_STATUS',
   SET_SELECTED_SUBS_GROUP = 'SET_SELECTED_SUBS_GROUP',
   SET_ERROR_MESSAGE = 'SET_ERROR_MESSAGE',
+  SET_ACTION_ERROR_MESSAGE = 'SET_ACTION_ERROR_MESSAGE',
 }
 
 export const failoverAndRelocateState = (
@@ -65,13 +67,13 @@ export const failoverAndRelocateState = (
   modalFooterStatus: ModalFooterStatus.INITIAL,
   selectedSubsGroups: [],
   errorMessage: {
-    drPolicyControlStateErrorMessage: '',
-    managedClustersErrorMessage: '',
-    targetClusterErrorMessage: '',
-    subscriptionGroupErrorMessage: '',
-    peerStatusErrorMessage: '',
-    failoverAndRelocateActionErrorMessage: '',
+    drPolicyControlStateErrorMessage: 0,
+    managedClustersErrorMessage: 0,
+    targetClusterErrorMessage: 0,
+    subscriptionGroupErrorMessage: 0,
+    peerStatusErrorMessage: 0,
   },
+  actionErrorMessage: {},
 });
 
 export type FailoverAndRelocateAction =
@@ -102,7 +104,11 @@ export type FailoverAndRelocateAction =
         isUpdate: boolean;
       };
     }
-  | { type: FailoverAndRelocateType.SET_ERROR_MESSAGE; payload: ErrorMessage };
+  | { type: FailoverAndRelocateType.SET_ERROR_MESSAGE; payload: ErrorMessage }
+  | {
+      type: FailoverAndRelocateType.SET_ACTION_ERROR_MESSAGE;
+      payload: MessageKind;
+    };
 
 export const failoverAndRelocateReducer = (
   state: FailoverAndRelocateState,
@@ -165,6 +171,17 @@ export const failoverAndRelocateReducer = (
           }),
           {}
         ),
+      };
+    }
+    case FailoverAndRelocateType.SET_ACTION_ERROR_MESSAGE: {
+      const { title, variant, message } = action.payload || {};
+      return {
+        ...state,
+        actionErrorMessage: {
+          title,
+          variant,
+          message,
+        },
       };
     }
     default:
