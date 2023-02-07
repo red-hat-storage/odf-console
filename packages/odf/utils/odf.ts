@@ -1,4 +1,3 @@
-import { ODF_OPERATOR } from '@odf/shared/constants';
 import { ClusterServiceVersionKind } from '@odf/shared/types';
 import { K8sResourceKind } from '@odf/shared/types';
 import { StorageClassResourceKind } from '@odf/shared/types';
@@ -37,12 +36,4 @@ export const getStorageClassDescription = (
 };
 
 export const getOperatorVersion = (operator: K8sResourceKind): string =>
-  operator?.status?.installedCSV;
-
-export const getODFVersion = (items: K8sResourceKind[]): string => {
-  const operator: K8sResourceKind = _.find(
-    items,
-    (item) => item?.spec?.name === ODF_OPERATOR
-  );
-  return getOperatorVersion(operator);
-};
+  operator?.spec?.version;
