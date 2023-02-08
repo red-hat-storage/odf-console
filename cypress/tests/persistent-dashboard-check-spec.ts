@@ -29,7 +29,7 @@ describe('Check Persistent Dashboard', () => {
 
   it('Check Details card is correct', () => {
     cy.byTestID('ocs-link')
-      .contains('OpenShift Data Foundation')
+      .contains('Data Foundation')
       .scrollIntoView()
       .should('be.visible');
     cy.byTestID('detail-item-value')
@@ -40,6 +40,7 @@ describe('Check Persistent Dashboard', () => {
 
   it('Check Inventory card is correct', () => {
     cy.log('Check the total number of OCS nodes');
+    // eslint-disable-next-line cypress/require-data-selectors
     cy.get('.skeleton-activity').should('not.exist');
     cy.byTestID('inventory-nodes')
       .invoke('text')
