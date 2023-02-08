@@ -1,53 +1,38 @@
 import * as React from 'react';
+import { OCS_OPERATOR } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { RGW_FLAG } from '@odf/core/features';
-import { getODFVersion } from '@odf/core/utils';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { getOperatorVersion } from '@odf/core/utils';
+import { CEPH_STORAGE_NAMESPACE, ODF_OPERATOR } from '@odf/shared/constants';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
+import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import {
   InfrastructureModel,
-  SubscriptionModel,
   ClusterServiceVersionModel,
 } from '@odf/shared/models';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  referenceForModel,
-  getInfrastructurePlatform,
-} from '@odf/shared/utils';
+import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import { getMetric } from '@odf/shared/utils';
-import {
-  useK8sWatchResource,
-  useFlag,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import * as _ from 'lodash';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { getOCSVersion } from '../../../utils';
 import './details-card.scss';
 
 const NOOBAA_SYSTEM_NAME_QUERY = 'NooBaa_system_info';
 const NOOBAA_DASHBOARD_LINK_QUERY = 'NooBaa_system_links';
 
-const SubscriptionResource = {
-  kind: referenceForModel(SubscriptionModel),
-  namespaced: false,
-  isList: true,
-};
-
 export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
-
-  const [subscription, subscriptionLoaded, subscriptionLoadError] =
-    useK8sWatchResource<K8sResourceKind[]>(SubscriptionResource);
 
   const [systemResult, systemLoadError] = useCustomPrometheusPoll({
     query: NOOBAA_SYSTEM_NAME_QUERY,
@@ -70,9 +55,11 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
 
   const infrastructurePlatform = getInfrastructurePlatform(infrastructure);
 
-  const serviceVersion = !isODF
-    ? getOCSVersion(subscription)
-    : getODFVersion(subscription);
+  const [csv, csvLoaded, csvLoadError] = useFetchCsv({
+    specName: !isODF ? OCS_OPERATOR : ODF_OPERATOR,
+  });
+
+  const serviceVersion = getOperatorVersion(csv);
 
   const serviceName = isODF
     ? t('Data Foundation')
@@ -132,8 +119,8 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
           <DetailItem
             key="version"
             title={t('Version')}
-            isLoading={!subscriptionLoaded}
-            error={subscriptionLoadError}
+            isLoading={!csvLoaded}
+            error={csvLoadError}
           >
             {serviceVersion}
           </DetailItem>

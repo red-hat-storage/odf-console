@@ -19,8 +19,6 @@ import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/ap
 import * as _ from 'lodash';
 import { cephStorageLabel, CEPH_NS } from '../constants';
 
-const OCS_OPERATOR = 'ocs-operator';
-
 export const cephStorageProvisioners = [
   'ceph.rook.io/block',
   'cephfs.csi.ceph.com',
@@ -64,15 +62,7 @@ export const isPersistentStorageEvent =
   };
 
 export const getOperatorVersion = (operator: K8sResourceKind): string =>
-  operator?.status?.installedCSV;
-
-export const getOCSVersion = (items: K8sResourceKind[]): string => {
-  const operator: K8sResourceKind = _.find(
-    items,
-    (item) => item?.spec?.name === OCS_OPERATOR
-  );
-  return getOperatorVersion(operator);
-};
+  operator?.spec?.version;
 
 export const getCephSC = (
   scData: StorageClassResourceKind[]
