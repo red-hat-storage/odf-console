@@ -21,13 +21,13 @@ export const StoragePopover: React.FC<StoragePopoverProps> = ({ ceph }) => {
   const health = getCephHealthState({ ceph }, t);
   const value = health.message || healthStateMessage(health.state, t);
   const isOdfManaged = useFlag(ODF_MANAGED_FLAG);
-  const operatorName = t('OpenShift Data Foundation');
+  const operatorName = t('Data Foundation');
 
   return (
     <Stack hasGutter>
       <StackItem>
         {t(
-          "Storage status represents the health status of OpenShift Data Foundation's StorageCluster."
+          "Storage status represents the health status of Data Foundation's StorageCluster."
         )}
       </StackItem>
       <StackItem>

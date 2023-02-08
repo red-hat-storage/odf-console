@@ -62,7 +62,7 @@ const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
           <Trans t={t as any} ns="plugin__odf-console">
             If not labeled, the selected nodes are labeled{' '}
             <Label color="blue">{{ label }}</Label> to make them target hosts
-            for OpenShift Data Foundation
+            for Data Foundation
             {/* eslint-disable react/no-unescaped-entities */}'s components.
           </Trans>
         </Text>
@@ -85,7 +85,7 @@ const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
     <Checkbox
       label={t('Taint nodes')}
       description={t(
-        'Selected nodes will be dedicated to OpenShift Data Foundation use only'
+        'Selected nodes will be dedicated to Data Foundation use only'
       )}
       className="odf-capacity-and-nodes__taint-checkbox"
       id="taint-nodes"

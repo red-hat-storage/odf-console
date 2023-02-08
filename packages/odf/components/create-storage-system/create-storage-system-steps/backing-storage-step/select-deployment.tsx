@@ -19,7 +19,7 @@ const optionsDescription = (t: TFunction) => ({
     'Deploys MultiCloud Object Gateway without block and file services.'
   ),
   [DeploymentType.FULL]: t(
-    'Deploys OpenShift Data Foundation with block, shared fileSystem and object services.'
+    'Deploys Data Foundation with block, shared fileSystem and object services.'
   ),
 });
 

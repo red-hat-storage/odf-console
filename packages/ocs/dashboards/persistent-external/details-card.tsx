@@ -62,7 +62,7 @@ export const DetailsCard: React.FC = () => {
   const subscriptionVersion = getOperatorVersion(csv);
 
   const serviceName = isODF
-    ? t('OpenShift Data Foundation')
+    ? t('Data Foundation')
     : t('OpenShift Container Storage');
   const cephLink = getCephLink(resourcesObj['secret'].data as K8sResourceKind);
 
