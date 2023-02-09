@@ -32,6 +32,7 @@ export const initialState: CreateStorageSystemState = {
   nodes: [],
   backingStorage: {
     type: BackingStorageType.EXISTING,
+    enableNFS: false,
     externalStorage: '',
     deployment: DeploymentType.FULL,
   },
@@ -78,6 +79,7 @@ type CreateStorageSystemState = {
   nodes: WizardNodeState[];
   backingStorage: {
     type: BackingStorageType;
+    enableNFS: boolean;
     externalStorage: string;
     deployment: DeploymentType;
   };
@@ -153,6 +155,7 @@ const setDeployment = (state: WizardState, deploymentType: DeploymentType) => {
   }
 
   state.backingStorage.deployment = deploymentType;
+  state.backingStorage.enableNFS = initialState.backingStorage.enableNFS;
   return state;
 };
 
@@ -236,6 +239,9 @@ export const reducer: WizardReducer = (prevState, action) => {
       break;
     case 'backingStorage/setType':
       return setBackingStorageType(newState, action.payload);
+    case 'backingStorage/enableNFS':
+      newState.backingStorage.enableNFS = action.payload;
+      break;
     case 'backingStorage/setDeployment':
       return setDeployment(newState, action.payload);
     case 'backingStorage/setExternalStorage':
@@ -318,6 +324,10 @@ export type CreateStorageSystemAction =
   | {
       type: 'backingStorage/setType';
       payload: WizardState['backingStorage']['type'];
+    }
+  | {
+      type: 'backingStorage/enableNFS';
+      payload: WizardState['backingStorage']['enableNFS'];
     }
   | {
       type: 'backingStorage/setExternalStorage';

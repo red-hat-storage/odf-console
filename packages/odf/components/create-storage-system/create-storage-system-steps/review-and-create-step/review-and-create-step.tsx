@@ -56,7 +56,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   const { capacity, arbiterLocation, enableTaint, enableArbiter } =
     capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
-  const { deployment, externalStorage, type } = backingStorage;
+  const { deployment, externalStorage, type, enableNFS } = backingStorage;
 
   // NooBaa standalone deployment
   const isMCG = deployment === DeploymentType.MCG;
@@ -76,8 +76,8 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     externalStorage && getExternalStorage(externalStorage).displayName;
 
   const encryptionStatus = hasEncryption ? t('Enabled') : t('Disabled');
-
   const ocsTaintsStatus = enableTaint ? t('Enabled') : t('Disabled');
+  const nfsStatus = enableNFS ? t('Enabled') : t('Disabled');
 
   const kmsStatus = encryption.advanced
     ? kms.providerState.name.value
@@ -97,6 +97,14 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             })}
           </ListItem>
         )}
+        {deployment === DeploymentType.FULL &&
+          type !== BackingStorageType.EXTERNAL && (
+            <ListItem>
+              {t('Network file system: {{nfsStatus}}', {
+                nfsStatus,
+              })}
+            </ListItem>
+          )}
         {!isRhcs && (
           <ListItem>
             {t('Backing storage type: {{name}}', {
