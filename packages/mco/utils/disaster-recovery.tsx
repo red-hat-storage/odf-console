@@ -293,10 +293,10 @@ export const findDRPolicyUsingDRPC = (
 
 export const findDRPCUsingDRPolicy = (
   drpcs: DRPlacementControlKind[],
-  drPolicy: DRPolicyKind
+  drPolicyName: string
 ): DRPlacementControlKind[] => {
   return drpcs?.filter(
-    (drpc) => drpc?.spec?.drPolicyRef?.name === getName(drPolicy)
+    (drpc) => drpc?.spec?.drPolicyRef?.name === drPolicyName
   );
 };
 

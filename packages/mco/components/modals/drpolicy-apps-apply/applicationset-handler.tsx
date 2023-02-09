@@ -53,7 +53,7 @@ const getPlsDecisionAndClusters = (
 const getDRPlacementControl = (
   pl: ACMPlacementKind,
   drplcontrols: DRPlacementControlKind[]
-): [string, string[]] => {
+): [string, string, string[]] => {
   const plDrpc = drplcontrols.find(
     (drplcontrol) =>
       getNamespace(drplcontrol) === getNamespace(pl) &&
@@ -61,7 +61,11 @@ const getDRPlacementControl = (
       referenceForModel(ACMPlacementModel) ===
         getGVKFromObjectRef(drplcontrol?.spec?.placementRef)
   );
-  return [getName(plDrpc), arrayify(plDrpc?.spec?.pvcSelector?.matchLabels)];
+  return [
+    getName(plDrpc),
+    plDrpc?.spec?.drPolicyRef?.name,
+    arrayify(plDrpc?.spec?.pvcSelector?.matchLabels),
+  ];
 };
 
 const setDrpcPvcLabels = (
@@ -70,12 +74,16 @@ const setDrpcPvcLabels = (
   drpcPvcLabels: PlacementToDrpcMap
 ): void =>
   pls.forEach((pl: ACMPlacementKind) => {
-    const [drpcName, existingLabels] = getDRPlacementControl(pl, drplcontrols);
+    const [drpcName, drPolicyName, existingLabels] = getDRPlacementControl(
+      pl,
+      drplcontrols
+    );
     if (!!drpcName) {
       !drpcPvcLabels.hasOwnProperty(getNamespace(pl)) &&
         (drpcPvcLabels[pl?.metadata.namespace] = {});
       drpcPvcLabels[getNamespace(pl)][getName(pl)] = {
         drpcName,
+        drPolicyName,
         existingLabels,
         updateLabels: existingLabels,
       };
@@ -87,6 +95,7 @@ const getProtectedAndAvailableResources = (
   pls: ACMPlacementKind[],
   plsDecisions: ACMPlacementDecisionKind[],
   drClusterNames: string[],
+  drPolicyName: string,
   drpcPvcLabels: PlacementToDrpcMap
 ) => {
   const protectedResources: PlacementToAppSets[] = [];
@@ -97,9 +106,18 @@ const getProtectedAndAvailableResources = (
       pl,
       plsDecisions
     );
+
     const isAlreadyProtected: boolean =
       !!drpcPvcLabels[getNamespace(pl)]?.[getName(pl)]?.drpcName;
-    if (!!matchClusters(drClusterNames, decisionClusters)) {
+    const drPolicyRefName =
+      drpcPvcLabels[getNamespace(pl)]?.[getName(pl)]?.drPolicyName;
+    const isDRPolicyMatching = isAlreadyProtected
+      ? drPolicyRefName === drPolicyName
+      : true;
+    if (
+      !!matchClusters(drClusterNames, decisionClusters) &&
+      isDRPolicyMatching
+    ) {
       const resourcesMapRef: PlacementToAppSets[] = isAlreadyProtected
         ? protectedResources
         : availableResources;
@@ -126,6 +144,7 @@ const getProtectedAndAvailableResources = (
 export const useAppSetTypeResources = (
   drplcontrols: DRPlacementControlKind[],
   drClusterNames: string[],
+  drPolicyName: string,
   dispatch: React.Dispatch<ApplyPolicyAction>
 ) => {
   const [applicationSets, applicationSetsLoaded, applicationSetsError] =
@@ -177,6 +196,7 @@ export const useAppSetTypeResources = (
           pls,
           plsDecisions,
           drClusterNames,
+          drPolicyName,
           drpcPvcLabels
         );
       dispatch({
@@ -194,6 +214,7 @@ export const useAppSetTypeResources = (
     placements,
     placementDecisions,
     drClusterNames,
+    drPolicyName,
     dispatch,
   ]);
 

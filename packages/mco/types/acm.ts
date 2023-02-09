@@ -113,6 +113,7 @@ export type PlacementToDrpcMap = {
   [namespace: string]: {
     [placement: string]: {
       drpcName: string;
+      drPolicyName?: string;
       existingLabels: string[];
       updateLabels: string[];
     };
