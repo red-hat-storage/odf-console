@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getOperatorVersion } from '@odf/core/utils';
-import { ODF_OPERATOR } from '@odf/shared/constants';
+import { CEPH_STORAGE_NAMESPACE, ODF_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
@@ -30,7 +30,10 @@ const DetailsCard: React.FC = () => {
     StorageClusterModel,
     CEPH_NS
   );
-  const [csv, csvLoaded, csvError] = useFetchCsv({ specName: ODF_OPERATOR });
+  const [csv, csvLoaded, csvError] = useFetchCsv({
+    specName: ODF_OPERATOR,
+    namespace: CEPH_STORAGE_NAMESPACE,
+  });
   const infrastructurePlatform = getInfrastructurePlatform(infrastructure);
   const cluster = ocsData?.find(
     (item: StorageClusterKind) => item.status.phase !== 'Ignored'
@@ -40,7 +43,7 @@ const DetailsCard: React.FC = () => {
   const serviceVersion = getOperatorVersion(csv);
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
-    serviceVersion,
+    getName(csv),
     CEPH_NS
   )}`;
   const serviceName = t('Data Foundation');
@@ -51,14 +54,14 @@ const DetailsCard: React.FC = () => {
       </CardHeader>
       <CardBody>
         <DetailsBody>
-          <DetailItem
-            key="service_name"
-            title={t('Service name')}
-            isLoading={false}
-          >
-            <Link data-test="ocs-link" to={servicePath}>
-              {serviceName}
-            </Link>
+          <DetailItem key="service_name" title={t('Service name')}>
+            {csvLoaded && !csvError ? (
+              <Link data-test="ocs-link" to={servicePath}>
+                {serviceName}
+              </Link>
+            ) : (
+              serviceName
+            )}
           </DetailItem>
           <DetailItem
             key="cluster_name"
