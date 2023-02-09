@@ -14,6 +14,7 @@ import {
   ButtonProps,
   ButtonType,
   ButtonVariant,
+  AlertVariant,
 } from '@patternfly/react-core';
 import { DRPlacementControlModel } from '../../../models';
 import {
@@ -92,8 +93,7 @@ const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (props) => {
     });
 
   const canInitiate = () =>
-    !findErrorMessage(state.errorMessage, false) &&
-    !!state.selectedSubsGroups.length;
+    !findErrorMessage(state.errorMessage) && !!state.selectedSubsGroups.length;
 
   const onClick = () => {
     updateModalStatus(ModalFooterStatus.INPROGRESS);
@@ -137,9 +137,10 @@ const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (props) => {
       .catch((error) => {
         updateModalStatus(ModalFooterStatus.INITIAL);
         dispatch({
-          type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
+          type: FailoverAndRelocateType.SET_ACTION_ERROR_MESSAGE,
           payload: {
-            failoverAndRelocateActionErrorMessage: getErrorMessage(error),
+            title: getErrorMessage(error),
+            variant: AlertVariant.danger,
           },
         });
       });
