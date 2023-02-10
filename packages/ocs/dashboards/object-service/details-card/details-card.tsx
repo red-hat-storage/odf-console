@@ -14,6 +14,7 @@ import {
   InfrastructureModel,
   ClusterServiceVersionModel,
 } from '@odf/shared/models';
+import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
@@ -57,6 +58,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
 
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: !isODF ? OCS_OPERATOR : ODF_OPERATOR,
+    namespace: CEPH_STORAGE_NAMESPACE,
   });
 
   const serviceVersion = getOperatorVersion(csv);
@@ -68,7 +70,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const hasRGW = useFlag(RGW_FLAG);
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
-    serviceVersion,
+    getName(csv),
     CEPH_STORAGE_NAMESPACE
   )}`;
   return (
@@ -78,12 +80,12 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
       </CardHeader>
       <CardBody>
         <DetailsBody>
-          <DetailItem
-            key="service_name"
-            title={t('Service name')}
-            isLoading={false}
-          >
-            <Link to={servicePath}>{serviceName}</Link>
+          <DetailItem key="service_name" title={t('Service name')}>
+            {csvLoaded && !csvLoadError ? (
+              <Link to={servicePath}>{serviceName}</Link>
+            ) : (
+              serviceName
+            )}
           </DetailItem>
           <DetailItem
             key="system_name"
