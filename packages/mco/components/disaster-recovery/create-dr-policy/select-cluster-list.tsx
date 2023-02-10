@@ -192,6 +192,18 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     });
   };
 
+  // **Note: PatternFly change the fn signature
+  // From: (value: string, event: React.FormEvent<HTMLInputElement>) => void
+  // To: (_event: React.FormEvent<HTMLInputElement>, value: string) => void
+  // both cases need to be handled for backwards compatibility
+  const onChange = (input: any) => {
+    const searchValue =
+      typeof input === 'string'
+        ? input
+        : (input.target as HTMLInputElement)?.value;
+    setNameSearch(searchValue);
+  };
+
   return (
     <div className="mco-select-cluster-list">
       <Toolbar isSticky>
@@ -230,7 +242,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
               data-test="cluster search"
               aria-label={t('Cluster search')}
               placeholder={t('Cluster name')}
-              onChange={(val) => setNameSearch(val)}
+              onChange={onChange}
               value={nameSearch}
               onClear={() => setNameSearch('')}
             />

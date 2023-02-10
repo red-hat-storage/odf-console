@@ -88,7 +88,15 @@ export const CustomDualListSelector = ({
 
   // builds a search input - used in each dual list selector pane
   const buildSearchInput = (isAvailable: boolean) => {
-    const onChange = (value: string) => {
+    // **Note: PatternFly change the fn signature
+    // From: (value: string, event: React.FormEvent<HTMLInputElement>) => void
+    // To: (_event: React.FormEvent<HTMLInputElement>, value: string) => void
+    // both cases need to be handled for backwards compatibility
+    const onChange = (input: any) => {
+      const value =
+        typeof input === 'string'
+          ? input
+          : (input.target as HTMLInputElement).value;
       isAvailable ? setAvailableFilter(value) : setChosenFilter(value);
       const toFilter = isAvailable ? [...availableOptions] : [...chosenOptions];
       toFilter.forEach((option) => {
