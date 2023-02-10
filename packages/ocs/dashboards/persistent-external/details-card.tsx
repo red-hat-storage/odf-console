@@ -57,6 +57,7 @@ export const DetailsCard: React.FC = () => {
 
   const [csv, csvLoaded, csvError] = useFetchCsv({
     specName: !isODF ? OCS_OPERATOR : ODF_OPERATOR,
+    namespace: CEPH_STORAGE_NAMESPACE,
   });
 
   const subscriptionVersion = getOperatorVersion(csv);
