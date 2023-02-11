@@ -4,6 +4,7 @@ import { InfrastructureModel } from '@odf/shared/models';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { ListKind, StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getInfrastructurePlatform } from '@odf/shared/utils';
 import {
   RouteComponentProps,
   useHistory,
@@ -30,7 +31,7 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
     InfrastructureModel,
     'cluster'
   );
-  const infraType = infra?.spec?.platformSpec?.type;
+  const infraType = getInfrastructurePlatform(infra);
 
   const url = history.location.pathname;
 
