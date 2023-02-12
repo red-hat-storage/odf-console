@@ -52,13 +52,13 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
     utilization,
   }) => {
     const { t } = useCustomTranslation();
-    const { data, chartStyle } = mapLimitsRequests(
+    const { data, chartStyle } = mapLimitsRequests({
       utilization,
       limit,
       requested,
-      trimSecondsXMutator,
-      t
-    );
+      xMutator: trimSecondsXMutator,
+      t,
+    });
     const [utilizationData, limitData, requestedData] = data;
     const current = utilizationData?.length
       ? utilizationData[utilizationData.length - 1].y

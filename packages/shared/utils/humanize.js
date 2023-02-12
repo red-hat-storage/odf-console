@@ -253,6 +253,46 @@ export const humanizePercentage = (value) => {
   };
 };
 
+const unitMeasures = {
+  sec: 1,
+  min: 60,
+  hour: 3600,
+  day: 86400,
+  week: 604800,
+  month: 2629800,
+  year: 31557600,
+};
+
+export const humanizeDuration = (
+  durationInSeconds,
+  preferredUnit,
+  customUnitText
+) => {
+  const val = round(durationInSeconds / unitMeasures[preferredUnit], 1);
+  const unit = customUnitText || preferredUnit;
+  return {
+    string: `${val} ${unit}`,
+    unit: unit,
+    value: val,
+  };
+};
+
+export const humanizeRPO = (rpoInSeconds) => {
+  let unit = 'sec';
+  let val = rpoInSeconds;
+  Object.entries(unitMeasures).forEach(([u, v]) => {
+    if (Math.floor(rpoInSeconds / v) > 0) {
+      unit = u;
+      val = round(rpoInSeconds / v, 1);
+    }
+  });
+  return {
+    string: `${val} ${unit}`,
+    unit: unit,
+    value: val,
+  };
+};
+
 units.dehumanize = (value, typeName) => {
   const type = getType(typeName);
   return convertValueWithUnitsToBaseValue(value, type.units, type.divisor);

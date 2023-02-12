@@ -20,7 +20,6 @@
     &__dropdown--padding {
         padding-right: var(--pf-global--spacer--xs);
     }
-
     &__text--padding-left {
         padding-left: var(--pf-global--spacer--sm);
     }
@@ -28,14 +27,13 @@
     &__text--margin-top {
         margin-top: var(--pf-global--spacer--lg);
     }
+    &__text--divider {
+        border-bottom: var(--pf-global--BorderWidth--sm) solid var(--pf-global--BorderColor--100);
+        margin-bottom: var(--pf-global--spacer--lg);
+    }
 }
 
 .cluster-health-section {
     width: auto;
     height: auto;
-}
-
-.volume-summary-section {
-    width: 75rem;
-    height: 16rem;
 }

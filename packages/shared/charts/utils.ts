@@ -3,6 +3,7 @@ import {
   PrometheusResult,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { chart_color_orange_300 as requestedColor } from '@patternfly/react-tokens/dist/js/chart_color_orange_300';
+import { chart_color_orange_300 as thresholdColor } from '@patternfly/react-tokens/dist/js/chart_color_orange_300';
 import * as _ from 'lodash-es';
 import { DataPoint, getType } from '../utils';
 
@@ -62,7 +63,8 @@ export type GetRangeStats = (
   symbol?: { fill?: string; type?: string },
   xMutator?: XMutator,
   yMutator?: YMutator,
-  optionalParser?: (datum: PrometheusResponse) => PrometheusResult[]
+  optionalParser?: (datum: PrometheusResponse) => PrometheusResult[],
+  threshold?: number
 ) => DataPoint<Date>[][];
 
 export const getRangeVectorStats: GetRangeStats = (
@@ -71,7 +73,8 @@ export const getRangeVectorStats: GetRangeStats = (
   symbol,
   xMutator,
   yMutator,
-  optionalParser
+  optionalParser,
+  threshold
 ) => {
   const results = !optionalParser
     ? response?.data?.result
@@ -80,7 +83,7 @@ export const getRangeVectorStats: GetRangeStats = (
     return r?.values?.map(([x, y]) => {
       return {
         x: xMutator?.(x) ?? defaultXMutator(x),
-        y: yMutator?.(y) ?? defaultYMutator(y),
+        y: threshold ? threshold : yMutator?.(y) ?? defaultYMutator(y),
         description: _.isFunction(description)
           ? description(r, index)
           : description,
@@ -90,16 +93,32 @@ export const getRangeVectorStats: GetRangeStats = (
   });
 };
 
-export const mapLimitsRequests = (
-  utilization: PrometheusResponse,
-  limit: PrometheusResponse,
-  requested: PrometheusResponse,
-  xMutator?: XMutator,
-  t?: any
-): { data: DataPoint[][]; chartStyle: object[] } => {
+export type MapLimitsRequest = {
+  utilization: PrometheusResponse;
+  limit?: PrometheusResponse;
+  requested?: PrometheusResponse;
+  threshold?: number;
+  xMutator?: XMutator;
+  description?: string | ((result: PrometheusResult, index: number) => string);
+  thresholdDescription?:
+    | string
+    | ((result: PrometheusResult, index: number) => string);
+  t?: any;
+};
+
+export const mapLimitsRequests = ({
+  utilization,
+  description = 'usage',
+  limit,
+  requested,
+  threshold,
+  thresholdDescription,
+  xMutator,
+  t,
+}: MapLimitsRequest): { data: DataPoint[][]; chartStyle: object[] } => {
   const utilizationData = getRangeVectorStats(
     utilization,
-    'usage',
+    description,
     null,
     xMutator
   );
@@ -134,6 +153,32 @@ export const mapLimitsRequests = (
       chartStyle.push({
         data: {
           stroke: requestedColor.value,
+          strokeDasharray: '3,3',
+          fillOpacity: 0,
+        },
+      });
+    }
+  }
+
+  if (threshold) {
+    const reqData =
+      getRangeVectorStats(
+        utilization,
+        thresholdDescription,
+        {
+          type: 'dash',
+          fill: thresholdColor.value,
+        },
+        xMutator,
+        null,
+        null,
+        threshold
+      ) || [];
+    data.push(...reqData);
+    if (reqData.length) {
+      chartStyle.push({
+        data: {
+          stroke: thresholdColor.value,
           strokeDasharray: '3,3',
           fillOpacity: 0,
         },

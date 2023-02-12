@@ -1,9 +1,10 @@
-import { K8sResourceCondition } from '@odf/shared/types';
+import { K8sResourceCondition, MatchLabels } from '@odf/shared/types';
 import {
   K8sResourceCommon,
   ObjectReference,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { DRActionType, DR_REPLICATION_STATE } from '../constants';
 
 type ClusterStatus = {
   name: string;
@@ -45,23 +46,15 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     preferredCluster?: string;
     failoverCluster?: string;
     pvcSelector: {
-      matchLabels: {
-        [key: string]: string;
-      };
+      matchLabels: MatchLabels;
     };
-    action?: string;
+    action?: DRActionType;
   };
   status?: {
     conditions?: K8sResourceCondition[];
     resourceConditions?: {
-      properties?: {
-        resourceMeta?: {
-          properties?: {
-            protectedpvcs?: {
-              items?: string[];
-            };
-          };
-        };
+      resourceMeta?: {
+        protectedpvcs?: string[];
       };
     };
     phase: string;
@@ -70,5 +63,39 @@ export type DRPlacementControlKind = K8sResourceCommon & {
       clusterName?: string;
       clusterNamespace?: string;
     };
+  };
+};
+
+export type DRVolumeReplicationGroupKind = K8sResourceCommon & {
+  spec: {
+    action?: DRActionType;
+    async?: {
+      schedulingInterval?: string;
+    };
+  };
+  status?: {
+    state?: DR_REPLICATION_STATE;
+    protectedPVCs?: {
+      name?: string;
+      protectedByVolSync?: boolean;
+      storageClassName?: string;
+      labels?: MatchLabels;
+      accessModes?: string[];
+      resources?: any;
+      conditions?: K8sResourceCondition[];
+      lastSyncTime?: string;
+    }[];
+    conditions?: K8sResourceCondition[];
+    observedGeneration?: number;
+    lastUpdateTime: string;
+    kubeObjectProtection?: {
+      captureToRecoverFrom?: {
+        number: number;
+        startTime: string;
+      };
+    };
+    prepareForFinalSyncComplete?: boolean;
+    finalSyncComplete?: boolean;
+    lastGroupSyncTime?: string;
   };
 };

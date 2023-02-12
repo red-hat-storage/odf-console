@@ -10,6 +10,10 @@
   padding-left: var(--pf-global--spacer--xs);
 }
 
+.odf-status-popup__text {
+  padding-left: var(--pf-global--spacer--sm);
+}
+
 .odf-status-popup__row {
   display: flex;
   flex-grow: 1;

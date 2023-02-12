@@ -108,6 +108,7 @@ export const useArgoApplicationSetResourceWatch: UseArgoApplicationSetResourceWa
           : [managedClusters];
         appList.forEach((application) => {
           if (!filterByAppName || getName(application) === filterByAppName) {
+            // For now ACM is supporting one placement per ApplicationSet
             const placement = findPlacementFromArgoAppSet(
               placementList,
               application
@@ -119,23 +120,27 @@ export const useArgoApplicationSetResourceWatch: UseArgoApplicationSetResourceWa
             );
             argoApplicationSetFormatted.push({
               application,
-              placement,
+              placements: [
+                {
+                  placement,
+                  placementDecision: findPlacementDecisionUsingPlacement(
+                    placement,
+                    placementDecisionList
+                  ),
+                  drPolicy: drResource?.drPolicy,
+                  drClusters: drResource?.drClusters,
+                  drPlacementControl: drResource?.drPlacementControls?.[0],
+                },
+              ],
               siblingApplications: findSiblingArgoAppSetsFromPlacement(
                 filterByAppName,
                 placement,
                 appList
               ),
-              placementDecision: findPlacementDecisionUsingPlacement(
-                placement,
-                placementDecisionList
-              ),
               managedClusters: filerManagedClusterUsingDRClusters(
                 drResource?.drClusters,
                 managedClusterList
               ),
-              drPolicy: drResource?.drPolicy,
-              drClusters: drResource?.drClusters,
-              drPlacementControl: drResource?.drPlacementControls?.[0],
             });
           }
         });
@@ -194,13 +199,15 @@ export type UseArgoApplicationSetResourceWatch = (
 
 export type ArgoApplicationSetFormattedKind = {
   application: ArgoApplicationSetKind;
+  placements: {
+    placement: ACMPlacementKind;
+    placementDecision: ACMPlacementDecisionKind;
+    drPlacementControl: DRPlacementControlKind;
+    drPolicy: DRPolicyKind;
+    drClusters: DRClusterKind[];
+  }[];
   siblingApplications: ArgoApplicationSetKind[];
-  placement: ACMPlacementKind;
-  placementDecision: ACMPlacementDecisionKind;
   managedClusters: ACMManagedClusterKind[];
-  drPlacementControl: DRPlacementControlKind;
-  drPolicy: DRPolicyKind;
-  drClusters: DRClusterKind[];
 };
 
 export type ArgoApplicationSetResourceKind = {

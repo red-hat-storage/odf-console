@@ -8,18 +8,13 @@ import {
   DrClusterAppsMap,
   ProtectedAppSetsMap,
   AppSetObj,
+  ProtectedPVCData,
+  PlacementInfo,
 } from '@odf/mco/types';
-import {
-  getSLAStatus,
-  getRemoteNSFromAppSet,
-  getProtectedPVCsFromDRPC,
-} from '@odf/mco/utils';
-import { getName, getNamespace } from '@odf/shared/selectors';
+import { getSLAStatus } from '@odf/mco/utils';
+import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
+import { URL_POLL_DEFAULT_DELAY } from '@odf/shared/hooks/custom-prometheus-poll/use-url-poll';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  PrometheusResponse,
-  PrometheusResult,
-} from '@openshift-console/dynamic-plugin-sdk';
 import {
   Select as SelectNext,
   SelectOption as SelectOptionNext,
@@ -50,59 +45,89 @@ const getNSAndNameFromId = (itemId: string): string[] => {
 };
 
 export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
-  pvcSLAData,
+  protectedPVCData,
   selectedAppSet,
 }) => {
   const { t } = useCustomTranslation();
+  const [summary, setSummary] = React.useState({
+    critical: 0,
+    warning: 0,
+    healthy: 0,
+  });
+  const clearSetIntervalId = React.useRef<NodeJS.Timeout>();
 
-  const { critical, warning, healthy } = React.useMemo(() => {
+  const updateSummary = React.useCallback(() => {
     const slaStatus = { critical: 0, warning: 0, healthy: 0 };
-    const selectedAppSetPVCsList: string[] = getProtectedPVCsFromDRPC(
-      selectedAppSet?.drPlacementControl
-    );
-    const remoteNS: string = getRemoteNSFromAppSet(selectedAppSet?.application);
-
-    pvcSLAData?.data?.result?.forEach((item: PrometheusResult) => {
-      /** FIX THIS */
+    const placementInfo: PlacementInfo = selectedAppSet?.placementInfo?.[0];
+    protectedPVCData?.forEach((pvcData) => {
+      const status = getSLAStatus(
+        getTimeDifferenceInSeconds(pvcData?.lastSyncTime),
+        pvcData?.schedulingInterval
+      )[0];
       if (!!selectedAppSet) {
-        item?.metric?.pvc_namespace === remoteNS &&
-          selectedAppSetPVCsList.includes(item?.metric?.pvc_name) &&
-          slaStatus[getSLAStatus(item)[0]]++;
+        pvcData?.drpcName === placementInfo?.drpcName &&
+          pvcData?.drpcNamespace === placementInfo?.drpcNamespace &&
+          slaStatus[status]++;
       } else {
-        slaStatus[getSLAStatus(item)[0]]++;
+        slaStatus[status]++;
       }
     });
+    setSummary(slaStatus);
+  }, [selectedAppSet, protectedPVCData, setSummary]);
 
-    return slaStatus;
-  }, [pvcSLAData, selectedAppSet]);
+  React.useEffect(() => {
+    updateSummary();
+    clearSetIntervalId.current = setInterval(
+      updateSummary,
+      URL_POLL_DEFAULT_DELAY
+    );
+    return () => clearInterval(clearSetIntervalId.current);
+  }, [updateSummary]);
 
   return (
-    <div className="volume-summary-section mco-dashboard__contentColumn">
+    <div className="mco-dashboard__contentColumn">
       <div className="mco-dashboard__title">
         {t('Volume replication summary')}
       </div>
-      <ChartDonut
-        ariaDesc="SLAs summary"
-        ariaTitle="SLAs status"
-        constrainToVisibleArea
-        data={[
-          { x: 'Critical', y: critical },
-          { x: 'Warning', y: warning },
-          { x: 'Healthy', y: healthy },
-        ]}
-        labels={({ datum }) => `${datum.x}: ${datum.y}`}
-        legendData={[
-          { name: `Critical: ${critical}`, symbol: { fill: colorScale[0] } },
-          { name: `Warning: ${warning}`, symbol: { fill: colorScale[1] } },
-          { name: `Healthy: ${healthy}`, symbol: { fill: colorScale[2] } },
-        ]}
-        legendOrientation="vertical"
-        legendPosition="right"
-        name="Volume Summary"
-        subTitle={t('SLAs')}
-        colorScale={colorScale}
-        title={`${critical + warning + healthy}`}
-      />
+      <div style={{ height: '180px', width: '350px' }}>
+        <ChartDonut
+          ariaDesc="SLAs summary"
+          ariaTitle="SLAs status"
+          constrainToVisibleArea={true}
+          data={[
+            { x: 'Critical', y: summary.critical },
+            { x: 'Warning', y: summary.warning },
+            { x: 'Healthy', y: summary.healthy },
+          ]}
+          labels={({ datum }) => `${datum.x}: ${datum.y}`}
+          legendData={[
+            {
+              name: `Critical: ${summary.critical}`,
+              symbol: { fill: colorScale[0] },
+            },
+            {
+              name: `Warning: ${summary.warning}`,
+              symbol: { fill: colorScale[1] },
+            },
+            {
+              name: `Healthy: ${summary.healthy}`,
+              symbol: { fill: colorScale[2] },
+            },
+          ]}
+          legendOrientation="vertical"
+          legendPosition="right"
+          padding={{
+            bottom: 0,
+            left: 0,
+            right: 200,
+            top: 0,
+          }}
+          subTitle={t('SLAs')}
+          colorScale={colorScale}
+          title={`${summary.critical + summary.warning + summary.healthy}`}
+          width={350}
+        />
+      </div>
     </div>
   );
 };
@@ -111,6 +136,7 @@ const ClusterDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
   clusterResources,
   clusterName,
   setCluster,
+  setAppSet,
   className,
 }) => {
   const { t } = useCustomTranslation();
@@ -141,6 +167,10 @@ const ClusterDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
     selection: string
   ) => {
     setCluster(selection);
+    setAppSet({
+      namespace: undefined,
+      name: ALL_APPS,
+    });
     setIsOpen(false);
   };
   const customFilter = (
@@ -196,10 +226,10 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
     () =>
       clusterResources[clusterName]?.protectedAppSets?.reduce(
         (acc, protectedAppSet) => {
-          const appName = getName(protectedAppSet?.application);
-          const appNs = getNamespace(protectedAppSet?.application);
+          const appName = protectedAppSet?.appName;
+          const appNs = protectedAppSet?.appNamespace;
           if (!acc.hasOwnProperty(appNs)) acc[appNs] = [appName];
-          else acc[appNs] = acc[appNs].push(appName);
+          else acc[appNs].push(appName);
           return acc;
         },
         {}
@@ -279,6 +309,7 @@ export const ClusterAppDropdown: React.FC<ClusterAppDropdownProps> = ({
           clusterResources={clusterResources}
           clusterName={clusterName}
           setCluster={setCluster}
+          setAppSet={setAppSet}
           className="mco-cluster-app__dropdown--padding"
         />
       </FlexItem>
@@ -295,8 +326,7 @@ export const ClusterAppDropdown: React.FC<ClusterAppDropdownProps> = ({
 };
 
 type VolumeSummarySectionProps = {
-  clusterResources?: DrClusterAppsMap;
-  pvcSLAData: PrometheusResponse;
+  protectedPVCData: ProtectedPVCData[];
   selectedAppSet?: ProtectedAppSetsMap;
 };
 

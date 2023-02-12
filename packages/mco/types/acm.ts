@@ -119,3 +119,17 @@ export type PlacementToDrpcMap = {
     };
   };
 };
+
+export type ACMManagedClusterViewKind = K8sResourceCommon & {
+  spec?: {
+    scope: {
+      resource: string;
+      name: string;
+      namespace?: string;
+    };
+  };
+  status?: {
+    conditions?: K8sResourceCondition[];
+    result?: K8sResourceCommon;
+  };
+};
