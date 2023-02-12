@@ -38,6 +38,7 @@ import {
   ACMPlacementRuleModel,
   ACMSubscriptionModel,
   DRPlacementControlModel,
+  DRPolicyModel,
 } from '../../../../models';
 import {
   DRPolicyKind,
@@ -114,10 +115,14 @@ const getDRPlacementControlKindObj = (
   spec: {
     drPolicyRef: {
       name: getName(resource),
+      kind: DRPolicyModel.kind,
+      apiVersion: getAPIVersionForModel(DRPolicyModel),
     },
     placementRef: {
       name: getName(plsRule),
       kind: plsRule?.kind,
+      namespace: getNamespace(plsRule),
+      apiVersion: getAPIVersionForModel(ACMPlacementRuleModel),
     },
     preferredCluster: clusterMatch(plsRule, managedClusterNames)?.[
       'clusterName'

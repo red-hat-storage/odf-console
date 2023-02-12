@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getName } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   useK8sWatchResources,
   WatchK8sResource,
@@ -113,7 +113,8 @@ export const useArgoApplicationSetResourceWatch: UseArgoApplicationSetResourceWa
               application
             );
             const drResource = findDRResourceUsingPlacement(
-              placement,
+              getName(placement),
+              getNamespace(placement),
               drResources?.formattedResources
             );
             argoApplicationSetFormatted.push({

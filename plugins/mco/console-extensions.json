@@ -96,7 +96,7 @@
     "properties": {
       "header": "Data policy",
       "cell": {
-        "$codeRef": "dataPoliciesStatusPopover.DataPoliciesStatusPopover"
+        "$codeRef": "dataPolicyStatusPopover.default"
       }
     }
   },

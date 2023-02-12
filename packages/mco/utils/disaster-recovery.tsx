@@ -6,7 +6,6 @@ import {
   getNamespace,
 } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types/k8s';
-import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
   ObjectReference,
@@ -22,18 +21,20 @@ import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
 import { SLA_STATUS, DR_SECHEDULER_NAME, DRPC_STATUS } from '../constants';
 import { REPLICATION_TYPE } from '../constants/disaster-recovery';
 import { DisasterRecoveryFormatted } from '../hooks';
-import { ACMPlacementRuleModel, DRPolicyModel } from '../models';
+import {
+  ACMPlacementModel,
+  ACMPlacementRuleModel,
+  DRPolicyModel,
+} from '../models';
 import {
   ACMSubscriptionKind,
   ACMPlacementRuleKind,
   DRPlacementControlKind,
-  ACMPlacementKind,
   DRPolicyKind,
   DRClusterKind,
   ACMManagedClusterKind,
   ArgoApplicationSetKind,
 } from '../types';
-import { getGVKFromK8Resource, getGVKFromObjectRef } from './common';
 
 export type PlacementRuleMap = {
   [placementRuleName: string]: string;
@@ -232,17 +233,18 @@ export const findDRType = (drClusters: DRClusterKind[]) =>
     : REPLICATION_TYPE.ASYNC;
 
 export const findDRResourceUsingPlacement = (
-  placement: ACMPlacementKind,
+  placementName: string,
+  workloadNamespace: string,
   drResources: DisasterRecoveryFormatted[]
 ): DisasterRecoveryFormatted => {
   let result: DisasterRecoveryFormatted = {};
-  drResources?.find((drResource) => {
+  drResources?.forEach((drResource) => {
     const drpc = drResource?.drPlacementControls?.find((drpc) => {
       const placementRef = drpc.spec?.placementRef;
       return (
-        getGVKFromObjectRef(placementRef) === getGVKFromK8Resource(placement) &&
-        placementRef?.name === getName(placement) &&
-        getNamespace(drpc) === getNamespace(placement)
+        placementRef?.kind === ACMPlacementModel.kind &&
+        placementRef?.name === placementName &&
+        getNamespace(drpc) === workloadNamespace
       );
     });
     if (!!drpc) {
@@ -284,8 +286,7 @@ export const findDRPCUsingDRPolicy = (
   return drpcs?.filter(
     (drpc) =>
       drpc?.spec?.drPolicyRef?.name === getName(drPolicy) &&
-      referenceForModel(DRPolicyModel) ===
-        getGVKFromObjectRef(drpc?.spec?.drPolicyRef)
+      drpc?.spec?.drPolicyRef?.kind === DRPolicyModel.kind
   );
 };
 
@@ -336,16 +337,22 @@ export const getCurrentStatus = (drpcList: DRPlacementControlKind[]): string =>
       : prevStatus || newStatus;
   }, '');
 
-export const getDRStatus = (
-  currentStatus: string,
-  targetClusters: string,
-  t: TFunction
-) => {
+export const getDRStatus = ({
+  currentStatus,
+  targetClusters,
+  customText,
+  t,
+}: {
+  currentStatus: string;
+  targetClusters?: string;
+  customText?: string;
+  t: TFunction;
+}) => {
   switch (currentStatus) {
     case DRPC_STATUS.Relocating:
     case DRPC_STATUS.FailingOver:
       return {
-        text: currentStatus,
+        text: customText || currentStatus,
         icon: <InProgressIcon />,
         toolTip: (
           <>
@@ -357,7 +364,7 @@ export const getDRStatus = (
     case DRPC_STATUS.Relocated:
     case DRPC_STATUS.FailedOver:
       return {
-        text: currentStatus,
+        text: customText || currentStatus,
         icon: <GreenCheckCircleIcon />,
         toolTip: (
           <>
