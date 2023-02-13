@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sResourceCommon,
+  K8sVerb,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
@@ -14,6 +17,7 @@ import {
   DropdownDirection,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
+import { useAccessReview } from '../hooks/rbac-hook';
 import { ModalKeys, LaunchModal } from '../modals/modalLauncher';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForModel } from '../utils';
@@ -22,6 +26,13 @@ export type CustomKebabItems = {
   key: string;
   value: string;
   props?: DropdownItemProps;
+};
+
+type UserAccess = {
+  edit: boolean;
+  update: boolean;
+  delete: boolean;
+  loading: boolean;
 };
 
 type CustomKebabItemsMap = {
@@ -44,42 +55,88 @@ type KebabProps = {
   terminatingTooltip?: React.ReactNode;
 };
 
-const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
+const defaultKebabItems = (
+  t: TFunction,
+  resourceLabel: string,
+  access: UserAccess
+) => ({
   [ModalKeys.EDIT_LABELS]: (
-    <DropdownItem
-      key={ModalKeys.EDIT_LABELS}
-      id={ModalKeys.EDIT_LABELS}
-      data-test-action="Edit labels"
+    // Added this workaround patterfly not working properly for tooltips for dropdownitem
+    // This workaround suggested by PF https://github.com/patternfly/patternfly-react/issues/4581
+    <Tooltip
+      content={
+        !access.edit || access.loading
+          ? t('You do not have permission to perform this action')
+          : ''
+      }
     >
-      {t('Edit labels')}
-    </DropdownItem>
+      <DropdownItem
+        key={ModalKeys.EDIT_LABELS}
+        id={ModalKeys.EDIT_LABELS}
+        isDisabled={!access.edit || access.loading}
+        tooltipProps={{ position: 'top' }}
+        data-test-action="Edit labels"
+      >
+        {t('Edit labels')}
+      </DropdownItem>
+    </Tooltip>
   ),
   [ModalKeys.EDIT_ANN]: (
-    <DropdownItem
-      key={ModalKeys.EDIT_ANN}
-      id={ModalKeys.EDIT_ANN}
-      data-test-action="Edit annotations"
+    <Tooltip
+      content={
+        !access.edit || access.loading
+          ? t('You do not have permission to perform this action')
+          : ''
+      }
     >
-      {t('Edit annotations')}
-    </DropdownItem>
+      <DropdownItem
+        key={ModalKeys.EDIT_ANN}
+        id={ModalKeys.EDIT_ANN}
+        isDisabled={!access.edit || access.loading}
+        tooltipProps={{ position: 'top' }}
+        data-test-action="Edit annotations"
+      >
+        {t('Edit annotations')}
+      </DropdownItem>
+    </Tooltip>
   ),
   [ModalKeys.EDIT_RES]: (
-    <DropdownItem
-      key={ModalKeys.EDIT_RES}
-      id={ModalKeys.EDIT_RES}
-      data-test-action={`Edit ${resourceLabel}`}
+    <Tooltip
+      content={
+        !access.update || access.loading
+          ? t('You do not have permission to perform this action')
+          : ''
+      }
     >
-      {t('Edit {{resourceLabel}}', { resourceLabel })}
-    </DropdownItem>
+      <DropdownItem
+        key={ModalKeys.EDIT_RES}
+        id={ModalKeys.EDIT_RES}
+        isDisabled={!access.update || access.loading}
+        tooltipProps={{ position: 'top' }}
+        data-test-action={`Edit ${resourceLabel}`}
+      >
+        {t('Edit {{resourceLabel}}', { resourceLabel })}
+      </DropdownItem>
+    </Tooltip>
   ),
   [ModalKeys.DELETE]: (
-    <DropdownItem
-      key={ModalKeys.DELETE}
-      id={ModalKeys.DELETE}
-      data-test-action={`Delete ${resourceLabel}`}
+    <Tooltip
+      content={
+        !access.delete || access.loading
+          ? t('You do not have permission to perform this action')
+          : ''
+      }
     >
-      {t('Delete {{resourceLabel}}', { resourceLabel })}
-    </DropdownItem>
+      <DropdownItem
+        key={ModalKeys.DELETE}
+        id={ModalKeys.DELETE}
+        isDisabled={!access.delete || access.loading}
+        tooltipProps={{ position: 'top' }}
+        data-test-action={`Delete ${resourceLabel}`}
+      >
+        {t('Delete {{resourceLabel}}', { resourceLabel })}
+      </DropdownItem>
+    </Tooltip>
   ),
 });
 
@@ -104,6 +161,24 @@ export const Kebab: React.FC<KebabProps> = ({
   const resourceLabel = resourceModel.label;
 
   const history = useHistory();
+
+  const getResource = (cmd: K8sVerb) => ({
+    group: resourceModel?.apiGroup,
+    resource: resourceModel?.plural,
+    namespace: null,
+    verb: cmd,
+  });
+
+  const [canEdit] = useAccessReview(getResource('patch'));
+  const [canUpdate] = useAccessReview(getResource('update'));
+  const [canDelete, deleteLoading] = useAccessReview(getResource('delete'));
+
+  const access = {
+    edit: canEdit,
+    update: canUpdate,
+    delete: canDelete,
+    loading: deleteLoading,
+  };
 
   React.useLayoutEffect(() => {
     const e = eventRef.current;
@@ -157,7 +232,7 @@ export const Kebab: React.FC<KebabProps> = ({
   };
 
   const dropdownItems = React.useMemo(() => {
-    const defaultResolved = defaultKebabItems(t, resourceLabel);
+    const defaultResolved = defaultKebabItems(t, resourceLabel, access);
     const customResolved: CustomKebabItemsMap = customKebabItemsMap
       ? customKebabItemsMap
       : {};
