@@ -14,6 +14,7 @@ import {
   DropdownDirection,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
+import { useAccessReview } from '../hooks/rbac-hook';
 import { ModalKeys, LaunchModal } from '../modals/modalLauncher';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForModel } from '../utils';
@@ -44,7 +45,11 @@ type KebabProps = {
   terminatingTooltip?: React.ReactNode;
 };
 
-const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
+const defaultKebabItems = (
+  t: TFunction,
+  resourceLabel: string,
+  access: boolean
+) => ({
   [ModalKeys.EDIT_LABELS]: (
     <DropdownItem
       key={ModalKeys.EDIT_LABELS}
@@ -67,6 +72,7 @@ const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
     <DropdownItem
       key={ModalKeys.EDIT_RES}
       id={ModalKeys.EDIT_RES}
+      isDisabled={!access}
       data-test-action={`Edit ${resourceLabel}`}
     >
       {t('Edit {{resourceLabel}}', { resourceLabel })}
@@ -104,6 +110,13 @@ export const Kebab: React.FC<KebabProps> = ({
   const resourceLabel = resourceModel.label;
 
   const history = useHistory();
+
+  const isAllowed = useAccessReview({
+    group: resourceModel?.apiGroup,
+    resource: resourceModel?.plural,
+    namespace: null,
+    verb: 'update',
+  });
 
   React.useLayoutEffect(() => {
     const e = eventRef.current;
@@ -157,7 +170,7 @@ export const Kebab: React.FC<KebabProps> = ({
   };
 
   const dropdownItems = React.useMemo(() => {
-    const defaultResolved = defaultKebabItems(t, resourceLabel);
+    const defaultResolved = defaultKebabItems(t, resourceLabel, isAllowed[0]);
     const customResolved: CustomKebabItemsMap = customKebabItemsMap
       ? customKebabItemsMap
       : {};
