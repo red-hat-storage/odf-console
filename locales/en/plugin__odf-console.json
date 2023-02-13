@@ -989,6 +989,7 @@
   "Edit {{resourceLabel}}": "Edit {{resourceLabel}}",
   "Delete {{resourceLabel}}": "Delete {{resourceLabel}}",
   "Resource is being deleted.": "Resource is being deleted.",
+  "You do not have permission to perform this action": "You do not have permission to perform this action",
   "Delete {{kind}}?": "Delete {{kind}}?",
   "Are you sure you want to delete <2>{{resourceName}}</2> in namespace <6>{{namespace}}</6>?": "Are you sure you want to delete <2>{{resourceName}}</2> in namespace <6>{{namespace}}</6>?",
   "Are you sure you want to delete <2>{{resourceName}}</2>?": "Are you sure you want to delete <2>{{resourceName}}</2>?",
