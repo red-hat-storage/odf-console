@@ -37,11 +37,11 @@ export const REPLICATION_DISPLAY_TEXT = (
   sync: t('Synchronous'),
 });
 
-export const Actions = (t: TFunction) => ({
-  MANAGE_DR_POLICY: t('Manage DRPolicy'),
-  APPLY_DR_POLICY: t('Apply DRPolicy'),
-  DELETE_DR_POLICY: t('Delete DRPolicy'),
-});
+export const Actions = {
+  MANAGE_DR_POLICY: 'Manage DRPolicy',
+  APPLY_DR_POLICY: 'Apply DRPolicy',
+  DELETE_DR_POLICY: 'Delete DRPolicy',
+};
 
 export enum APPLICATION_TYPE {
   APPSET = 'ApplicationSet',

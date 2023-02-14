@@ -1,9 +1,11 @@
+import { ApplicationModel } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
 import { HUB_CLUSTER_NAME } from '../constants';
 import {
   ACMManagedClusterModel,
   ACMPlacementDecisionModel,
   ACMPlacementModel,
+  ACMSubscriptionModel,
   ArgoApplicationSetModel,
   DRClusterModel,
   DRPlacementControlModel,
@@ -78,6 +80,26 @@ export const getPlacementDecisionsResourceObj = (
   ...(!!props?.name ? { name: props?.name } : {}),
   ...(!!props?.namespace ? { namespace: props?.namespace } : {}),
   kind: referenceForModel(ACMPlacementDecisionModel),
+  ...(!props?.name ? { isList: true } : {}),
+  namespaced: !!props?.namespace ? true : false,
+  optional: true,
+});
+
+export const getSubscriptionResourceObj = (props?: NamespacedObjectType) => ({
+  cluster: HUB_CLUSTER_NAME,
+  ...(!!props?.name ? { name: props?.name } : {}),
+  ...(!!props?.namespace ? { namespace: props?.namespace } : {}),
+  kind: referenceForModel(ACMSubscriptionModel),
+  ...(!props?.name ? { isList: true } : {}),
+  namespaced: !!props?.namespace ? true : false,
+  optional: true,
+});
+
+export const getApplicationResourceObj = (props?: NamespacedObjectType) => ({
+  cluster: HUB_CLUSTER_NAME,
+  ...(!!props?.name ? { name: props?.name } : {}),
+  ...(!!props?.namespace ? { namespace: props?.namespace } : {}),
+  kind: referenceForModel(ApplicationModel),
   ...(!props?.name ? { isList: true } : {}),
   namespaced: !!props?.namespace ? true : false,
   optional: true,

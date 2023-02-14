@@ -20,12 +20,8 @@ import { TFunction } from 'i18next';
 import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
 import { SLA_STATUS, DR_SECHEDULER_NAME, DRPC_STATUS } from '../constants';
 import { REPLICATION_TYPE } from '../constants/disaster-recovery';
-import { DisasterRecoveryFormatted } from '../hooks';
-import {
-  ACMPlacementModel,
-  ACMPlacementRuleModel,
-  DRPolicyModel,
-} from '../models';
+import { DisasterRecoveryFormatted, ApplicationRefKind } from '../hooks';
+import { ACMPlacementModel, ACMPlacementRuleModel } from '../models';
 import {
   ACMSubscriptionKind,
   ACMPlacementRuleKind,
@@ -35,6 +31,8 @@ import {
   ACMManagedClusterKind,
   ArgoApplicationSetKind,
 } from '../types';
+
+const THRESHOLD = 2;
 
 export type PlacementRuleMap = {
   [placementRuleName: string]: string;
@@ -192,8 +190,13 @@ export const getDRPolicyName = (drpc: DRPlacementControlKind) =>
 export const getDRPoliciesCount = (drPolicies: DRPolicyMap) =>
   Object.keys(drPolicies || {})?.length;
 
-export const getReplicationType = (schedulingInterval: string) =>
-  schedulingInterval !== '0m' ? REPLICATION_TYPE.ASYNC : REPLICATION_TYPE.SYNC;
+export const getReplicationType = (interval: string, t: TFunction) =>
+  interval !== '0m'
+    ? t('{{async}}, interval: {{interval}}', {
+        async: REPLICATION_TYPE.ASYNC,
+        interval,
+      })
+    : REPLICATION_TYPE.SYNC;
 
 export const getPlacementKind = (subscription: ACMSubscriptionKind) =>
   subscription?.spec?.placement?.placementRef?.kind;
@@ -279,14 +282,21 @@ export const filerDRClustersUsingDRPolicy = (
     drPolicy?.spec?.drClusters?.includes(getName(drCluster))
   );
 
+export const findDRPolicyUsingDRPC = (
+  drpc: DRPlacementControlKind,
+  drPolicies: DRPolicyKind[]
+): DRPolicyKind => {
+  return drPolicies?.find(
+    (drPolicy) => drpc?.spec?.drPolicyRef?.name === getName(drPolicy)
+  );
+};
+
 export const findDRPCUsingDRPolicy = (
   drpcs: DRPlacementControlKind[],
   drPolicy: DRPolicyKind
 ): DRPlacementControlKind[] => {
   return drpcs?.filter(
-    (drpc) =>
-      drpc?.spec?.drPolicyRef?.name === getName(drPolicy) &&
-      drpc?.spec?.drPolicyRef?.kind === DRPolicyModel.kind
+    (drpc) => drpc?.spec?.drPolicyRef?.name === getName(drPolicy)
   );
 };
 
@@ -301,7 +311,6 @@ export const matchClusters = (
     decisionClusters?.includes(drClusterName)
   );
 
-const THRESHOLD = 2;
 export const getSLAStatus = (item: PrometheusResult): [SLA_STATUS, number] => {
   const currentTime = new Date().getTime();
   const lastSnapshotTime = new Date(item?.value[1]).getTime();
@@ -381,3 +390,11 @@ export const getDRStatus = ({
       };
   }
 };
+
+export const findAppsUsingDRPolicy = (
+  appsRefs: ApplicationRefKind[],
+  drPolicy: DRPolicyKind
+) =>
+  appsRefs?.filter((appsRef) =>
+    appsRef?.drPolicyRefs?.includes(getName(drPolicy))
+  );
