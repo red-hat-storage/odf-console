@@ -225,7 +225,15 @@ export const ApplicationStatus: React.FC<ApplicationStatusPros> = (props) => {
     setFilteredApplications(applications);
   };
 
-  const onSearch = (searchValue: string) => {
+  // **Note: PatternFly change the fn signature
+  // From: (value: string, event: React.FormEvent<HTMLInputElement>) => void
+  // To: (_event: React.FormEvent<HTMLInputElement>, value: string) => void
+  // both cases need to be handled for backwards compatibility
+  const onSearch = (input: any) => {
+    const searchValue =
+      typeof input === 'string'
+        ? input
+        : (input.target as HTMLInputElement)?.value;
     if (searchValue === '') {
       onClear();
     } else {
