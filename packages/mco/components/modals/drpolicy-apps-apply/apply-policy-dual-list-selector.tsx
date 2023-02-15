@@ -179,6 +179,7 @@ const DualListSelectorChosenListItem: React.FC<DualListSelectorChosenListItemPro
           isExpanded={isExpanded}
         >
           <FormGroup
+            className="modalBody"
             fieldId="pvc-selector"
             label={t('Add label')}
             onChange={(e) => e.stopPropagation()}
