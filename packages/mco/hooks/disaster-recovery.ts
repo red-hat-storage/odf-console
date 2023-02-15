@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getName } from '@odf/shared/selectors';
 import {
   useK8sWatchResources,
   WatchK8sResource,
@@ -65,7 +66,7 @@ export const useDisasterRecoveryResourceWatch: UseDisasterRecoveryResourceWatch 
           ? drPlacementControls
           : [drPlacementControls];
         drPolicyList.forEach((drPolicy) => {
-          const drpcs = findDRPCUsingDRPolicy(drpcList, drPolicy);
+          const drpcs = findDRPCUsingDRPolicy(drpcList, getName(drPolicy));
           const filtereDRClusters = filerDRClustersUsingDRPolicy(
             drPolicy,
             drClusterList

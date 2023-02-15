@@ -102,7 +102,16 @@ const DualListSelectorAvailablePane: React.FC<DualListSelectorAvailablePaneProps
                 translate={false}
               >
                 <div className="mco-apply-policy-dual-selector__listItem">
-                  {option.appSetName}
+                  <div>
+                    {option.appSetName}
+                    {option.isAlreadyProtected && (
+                      <span>
+                        <Label isCompact color="green">
+                          {t('Protected')}
+                        </Label>
+                      </span>
+                    )}
+                  </div>
                   <div className="mco-apply-policy-dual-selector__ItemDescription--color">
                     {option.namespace}
                   </div>
@@ -177,6 +186,7 @@ const DualListSelectorChosenListItem: React.FC<DualListSelectorChosenListItemPro
           }
           onToggle={onToggle}
           isExpanded={isExpanded}
+          isIndented
         >
           <FormGroup
             fieldId="pvc-selector"
@@ -184,7 +194,11 @@ const DualListSelectorChosenListItem: React.FC<DualListSelectorChosenListItemPro
             onChange={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
-            <SelectorInput onChange={(l) => setLabels(l)} tags={labels} />
+            <SelectorInput
+              onChange={(l) => setLabels(l)}
+              tags={labels}
+              disabled={option.isAlreadyProtected}
+            />
           </FormGroup>
         </ExpandableSection>
       </DualListSelectorListItem>

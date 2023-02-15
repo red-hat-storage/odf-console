@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { StatusBox } from '@odf/shared/generic/status-box';
+import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
   ModalBody,
@@ -59,9 +60,8 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
   const { resource } = extraProps;
 
   const drPolicyName = getName(resource);
-  const drClusterNames = React.useMemo(
-    () => resource?.spec?.drClusters ?? [],
-    [resource?.spec?.drClusters]
+  const drClusterNames = useDeepCompareMemoize(
+    resource?.spec?.drClusters ?? []
   );
 
   const [state, dispatch] = React.useReducer(
@@ -76,6 +76,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
   const [appSetResourcesLoaded, appSetResourcesError] = useAppSetTypeResources(
     drpcs?.items,
     drClusterNames,
+    drPolicyName,
     dispatch
   );
 

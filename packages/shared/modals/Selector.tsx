@@ -141,6 +141,7 @@ type SelectorProps = {
   inputProps?: any;
   labelClassName?: string;
   tags: string[];
+  disabled?: boolean;
   onChange: (value: string[]) => void;
 };
 
@@ -293,6 +294,7 @@ export class SelectorInput extends React.Component<
             inputProps={inputProps}
             renderTag={renderTag}
             onChange={this.handleChange.bind(this)}
+            disabled={this.props.disabled}
             addOnBlur
           />
         </tags-input>
