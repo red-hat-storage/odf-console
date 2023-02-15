@@ -425,7 +425,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       onClose={closeModal}
       className="mco-subs-apply-policy-modal__form"
     >
-      <ModalBody>
+      <ModalBody className="modalBody modalInput--lowHeight">
         <TextContent className="mco-subs-apply-policy-modal__description">
           <Text component={TextVariants.small}>
             {t('Select the applications for applying the DRPolicy')}
