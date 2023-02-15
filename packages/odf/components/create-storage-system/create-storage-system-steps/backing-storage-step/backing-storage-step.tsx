@@ -256,13 +256,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
         {!hasOCS && (
           <SelectDeployment dispatch={dispatch} deployment={deployment} />
         )}
-        {isFullDeployment && !hasOCS && (
-          <EnableNFS
-            dispatch={dispatch}
-            nfsEnabled={enableNFS}
-            backingStorageType={type}
-          />
-        )}
         <FormGroup
           label={t('Backing storage type')}
           fieldId={`bs-${BackingStorageType.EXISTING}`}
@@ -325,6 +318,13 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
             className="odf-backing-store__radio--margin-bottom"
           />
         </FormGroup>
+        {isFullDeployment && !hasOCS && (
+          <EnableNFS
+            dispatch={dispatch}
+            nfsEnabled={enableNFS}
+            backingStorageType={type}
+          />
+        )}
       </Form>
     </ErrorHandler>
   );
