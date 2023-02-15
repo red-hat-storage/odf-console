@@ -94,6 +94,8 @@ export const labelsToParams = (labels: PrometheusLabels) =>
 export const alertURL = (alert: Alert, ruleID: string) =>
   `${AlertResource.plural}/${ruleID}?${labelsToParams(alert.labels)}`;
 
+export const getAlertSeverity = (alert: Alert) => alert?.labels?.severity;
+
 export const defaultXMutator: XMutator = (x) => new Date(x * 1000);
 export const defaultYMutator: YMutator = (y) => parseFloat(y);
 

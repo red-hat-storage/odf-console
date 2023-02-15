@@ -1,4 +1,7 @@
-import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import {
+  K8sKind,
+  K8sModel,
+} from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
 export const PersistentVolumeModel: K8sKind = {
   label: 'PersistentVolume',
@@ -184,4 +187,19 @@ export const SelfSubjectAccessReviewModel: K8sKind = {
   plural: 'selfsubjectaccessreviews',
   apiVersion: 'v1',
   apiGroup: 'authorization.k8s.io',
+};
+
+export const MachineModel: K8sModel = {
+  label: 'Machine',
+  labelKey: 'Machine',
+  labelPlural: 'Machines',
+  labelPluralKey: 'Machines',
+  apiVersion: 'v1beta1',
+  apiGroup: 'machine.openshift.io',
+  plural: 'machines',
+  abbr: 'M',
+  namespaced: true,
+  kind: 'Machine',
+  id: 'machine',
+  crd: true,
 };

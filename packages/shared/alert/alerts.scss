@@ -1,0 +1,64 @@
+.odf-alerts__panel {
+  .co-status-card__alerts-body {
+    border-top: unset;
+    max-height: unset;
+  }
+
+  .odf-alerts-panel__badge-text {
+    margin-left: 0.5rem;
+    margin-right: 1.5rem;
+  }
+
+  .odf-alerts-panel__badge {
+    border: 1.5px solid;
+  }
+
+  .odf-alerts-panel__badge-critical {
+    background-color: var(--pf-global--palette--red-50);
+    border-color: var(--pf-global--danger-color--200);
+    color: var(--pf-global--danger-color--200);
+  }
+
+  .odf-alerts-panel__badge-warning {
+    background-color: var(--pf-global--palette--gold-50);
+    border-color: var(--pf-global--warning-color--200);
+    color: var(--pf-global--warning-color--200);
+  }
+
+  .odf-alerts-panel__badge-info {
+    background-color: var(--pf-global--info-color--50);
+    border-color: var(--pf-global--info-color--100);
+    color: var(--pf-global--info-color--100);
+  }
+
+  .odf-alerts-panel__divider {
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+  }
+
+  // Override the PF Accordion properties that don't fit the design.
+  /* stylelint-disable max-nesting-depth, selector-max-compound-selectors */
+  .pf-c-accordion {
+    .pf-m-expanded {
+      --pf-c-accordion__toggle--before--BackgroundColor: transparent;
+      --pf-c-accordion__expanded-content-body--before--BackgroundColor: transparent;
+    }
+
+    .pf-c-accordion__toggle .pf-c-accordion__toggle-text {
+      color: unset;
+      font-size: 15px;
+      font-weight: 50;
+    }
+
+    .pf-c-accordion__toggle:focus .pf-c-accordion__toggle-text {
+      color: unset;
+      font-size: 15px;
+      font-weight: 50;
+    }
+
+    .pf-c-accordion__expanded-content {
+      color: unset;
+    }
+  }
+  /* stylelint-enable max-nesting-depth, selector-max-compound-selectors */
+}

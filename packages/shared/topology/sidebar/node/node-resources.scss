@@ -1,0 +1,14 @@
+.topology-sidebar-tab-observe {
+  font-size: var(--pf-global--FontSize--sm);
+
+  .list-group-item {
+    margin-bottom: var(--pf-global--spacer--sm);
+  }
+  .odf-sidebar-pod-list__item-header {
+    color: var(--pf-global--Color--dark-200);
+    display: block;
+  }
+  .odf-sidebar-pod-list__item-content {
+    font-weight: var(--pf-global--FontWeight--semi-bold);
+  }
+}

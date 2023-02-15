@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { resourceStatus as getDefaultResourceStatus } from '@odf/shared/status/Resource';
 import { ResourceStatus } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
-import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom';
 import {
   Breadcrumb,
@@ -50,11 +50,9 @@ type PageHeadingProps = {
   className?: string;
   actions?: any;
   resource?: K8sResourceKind;
+  getResourceStatus?: (resource: K8sResourceKind) => string;
   centerText?: boolean;
 };
-
-const getResourceStatus = (resource: K8sResourceKind): string =>
-  _.get(resource, ['status', 'phase'], null);
 
 const PageHeading: React.FC<PageHeadingProps> = (props) => {
   const {
@@ -65,13 +63,18 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
     className,
     actions,
     resource,
+    getResourceStatus,
     centerText,
   } = props;
   const resourceTitle = title;
   const showBreadcrumbs = !!breadcrumbs;
   const showActions = !!actions;
 
-  const resourceStatus = resource ? getResourceStatus(resource) : null;
+  const resourceStatus = resource
+    ? getResourceStatus
+      ? getResourceStatus(resource)
+      : getDefaultResourceStatus(resource)
+    : null;
   return (
     <div
       className={classNames(
