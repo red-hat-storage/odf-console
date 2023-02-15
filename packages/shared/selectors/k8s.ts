@@ -1,6 +1,5 @@
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
-import { K8sResourceKind } from '../types';
 
 type GetStringProperty<T = K8sResourceCommon> = (resource: T) => string;
 
@@ -38,13 +37,6 @@ export const getAnnotations = <A extends K8sResourceCommon = K8sResourceCommon>(
   _.has(value, 'metadata.annotations')
     ? value.metadata.annotations
     : defaultValue;
-
-export const getInfrastructurePlatform = (
-  infrastructure: K8sResourceKind
-): string =>
-  infrastructure && infrastructure.status
-    ? infrastructure.status.platform
-    : undefined;
 
 export const getAPIVersion = <A extends K8sResourceCommon = K8sResourceCommon>(
   value: A
