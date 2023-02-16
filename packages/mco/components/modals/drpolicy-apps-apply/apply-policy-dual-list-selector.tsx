@@ -13,6 +13,7 @@ import {
   Label,
   ExpandableSection,
   FormGroup,
+  Form,
 } from '@patternfly/react-core';
 import { LockIcon } from '@patternfly/react-icons';
 import { PlacementToAppSets, PlacementToDrpcMap } from '../../../types';
@@ -188,19 +189,22 @@ const DualListSelectorChosenListItem: React.FC<DualListSelectorChosenListItemPro
           isExpanded={isExpanded}
           isIndented
         >
-          <FormGroup
-            className="modalBody modalInput--lowHeight"
-            fieldId="pvc-selector"
-            label={t('Add label')}
-            onChange={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SelectorInput
-              onChange={(l) => setLabels(l)}
-              tags={labels}
-              disabled={option.isAlreadyProtected}
-            />
-          </FormGroup>
+          <Form>
+            <FormGroup
+              className="modalBody modalInput--lowHeight"
+              fieldId="pvc-selector"
+              label={t('Add label')}
+              isRequired
+              onChange={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <SelectorInput
+                onChange={(l) => setLabels(l)}
+                tags={labels}
+                disabled={option.isAlreadyProtected}
+              />
+            </FormGroup>
+          </Form>
         </ExpandableSection>
       </DualListSelectorListItem>
     );

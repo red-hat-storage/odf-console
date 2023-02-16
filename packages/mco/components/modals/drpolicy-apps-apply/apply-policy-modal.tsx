@@ -38,12 +38,7 @@ import {
   applyPolicyInitialState,
   ApplyPolicyType,
 } from './reducer';
-import {
-  getAvailablePanelPromises,
-  getProtectedPanelPromises,
-  areLabelsDifferent,
-  getUpdatedDRPCPromise,
-} from './utils';
+import { getAvailablePanelPromises, getProtectedPanelPromises } from './utils';
 import './apply-policy-modal.scss';
 import '../../../style.scss';
 
@@ -81,7 +76,6 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
   );
 
   const isSubmitDisabled: boolean = React.useMemo(() => {
-    let disableSubmit = false;
     const availableResources: PlacementToAppSets[] =
       state.availableResources[state.appType];
     const protectedResources: PlacementToAppSets[] =
@@ -90,12 +84,38 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       state.drpcPvcLabels[state.appType];
 
     // if any protected resource present on available panel => we need to delete DRPC, enable "Save changes" in this case
-    disableSubmit = !availableResources.some(
+    const applicationsToDisable = availableResources.some(
       (availableResource: PlacementToAppSets) =>
         availableResource.isAlreadyProtected
     );
 
-    if (!state.message.text && !disableSubmit)
+    // if any non-protected resource present on protected panel => we need to create DRPC, enable "Save" in this
+    const [applicationsToEnable, isLablesAreNotEmpty] =
+      protectedResources.reduce(
+        (acc, protectedResource: PlacementToAppSets) => {
+          const [applications, isLabelFound] = acc;
+          const updateLabels =
+            drpcPvcLabels?.[protectedResource.namespace]?.[
+              protectedResource.placement
+            ]?.updateLabels || [];
+          acc = !protectedResource.isAlreadyProtected
+            ? [
+                [...applications, protectedResource],
+                isLabelFound && !!updateLabels.length,
+              ]
+            : acc;
+          return acc;
+        },
+        [[], true]
+      );
+
+    const changesFoundOnRightSide = !!applicationsToEnable.length;
+    const noIssuesFoundOnRightSide = isLablesAreNotEmpty;
+    const changesFoundOnLeftSide = !!applicationsToDisable;
+    // we dont have any left side check, By default keeping it as true
+    const noIssuesFoundOnLeftSide = true;
+
+    if (!state.message.text && !!changesFoundOnLeftSide)
       dispatch({
         type: ApplyPolicyType.SET_MESSAGE,
         payload: {
@@ -105,28 +125,12 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
           type: AlertVariant.warning,
         },
       });
-    if (disableSubmit === false) return disableSubmit;
 
-    // if any non-protected resource present on protected panel => we need to create DRPC, enable "Save changes" in this case
-    // if any new PVC label added to any resource => we need to update DRPC, enable "Save changes" in this case
-    disableSubmit = !protectedResources.some(
-      (protectedResource: PlacementToAppSets) => {
-        const existingLabels =
-          drpcPvcLabels?.[protectedResource.namespace]?.[
-            protectedResource.placement
-          ]?.existingLabels || [];
-        const updateLabels =
-          drpcPvcLabels?.[protectedResource.namespace]?.[
-            protectedResource.placement
-          ]?.updateLabels || [];
-        return (
-          !protectedResource.isAlreadyProtected ||
-          areLabelsDifferent(existingLabels, updateLabels)
-        );
-      }
+    return !(
+      (changesFoundOnRightSide || changesFoundOnLeftSide) &&
+      noIssuesFoundOnRightSide &&
+      noIssuesFoundOnLeftSide
     );
-
-    return disableSubmit;
   }, [state, dispatch, t]);
 
   const allLoaded = drpcsLoaded && appSetResourcesLoaded;
@@ -199,7 +203,8 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
           );
         }
 
-        // 2. updating PVC labels only if: DRPC is neither deleted nor created in previous steps
+        // TODO: Allow PVC selector update when the ramen is supporting
+        /* // 2. updating PVC labels only if: DRPC is neither deleted nor created in previous steps
         if (
           protectedResource.isAlreadyProtected &&
           !placementsSet.has(
@@ -219,7 +224,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
             promises.push(
               ...getUpdatedDRPCPromise(protectedResource, drpcPvcLabels)
             );
-        }
+        } */
       });
     });
 
