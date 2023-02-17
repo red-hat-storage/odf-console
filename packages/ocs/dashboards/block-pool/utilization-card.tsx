@@ -2,11 +2,9 @@ import * as React from 'react';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeDecimalBytesPerSec } from '@odf/shared/utils';
+import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import {
-  UtilizationBody,
-  UtilizationDurationDropdown,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
-import {
+  Grid,
   Card,
   CardActions,
   CardHeader,
@@ -29,7 +27,7 @@ export const UtilizationCard: React.FC = () => {
           <UtilizationDurationDropdown />
         </CardActions>
       </CardHeader>
-      <UtilizationBody>
+      <Grid className="co-utilization-card__body">
         <PrometheusUtilizationItem
           title={t('IOPS')}
           utilizationQuery={getPoolQuery(
@@ -46,7 +44,7 @@ export const UtilizationCard: React.FC = () => {
           )}
           humanizeValue={humanizeDecimalBytesPerSec}
         />
-      </UtilizationBody>
+      </Grid>
     </Card>
   );
 };
