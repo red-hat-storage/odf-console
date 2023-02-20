@@ -1,6 +1,8 @@
 const configureKms = () => {
   cy.byTestID('storage-class-encryption').check();
+  cy.byTestID('sc-form-new-kms-radio').click();
   cy.byTestID('kms-service-name-text').type('vault');
+  cy.byTestID('vault-config-auth-method').select('token');
   cy.exec(
     'echo http://$(oc get route vault --no-headers -o custom-columns=HOST:.spec.host)'
   ).then((hostname) => {

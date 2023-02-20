@@ -657,6 +657,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
             className="ocs-storage-class-encryption__form-radio"
             onClick={() => setIsExistingKms(false)}
             checked={!isExistingKms}
+            data-test={`sc-form-new-kms-radio`}
           />
           {!isExistingKms && (
             <Card isFlat className="ocs-storage-class-encryption__card">

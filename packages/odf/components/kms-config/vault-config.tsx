@@ -156,6 +156,7 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
             name="authentication-method"
             aria-label={t('authentication-method')}
             isDisabled={isLengthUnity(vaultAuthMethods)}
+            data-test="vault-config-auth-method"
           >
             {filteredVaultAuthMethodMapping.map((authMethod) => (
               <FormSelectOption
