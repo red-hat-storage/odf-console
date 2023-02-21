@@ -215,7 +215,10 @@ export const VaultAuthMethodMapping: {
   [VaultAuthMethods.KUBERNETES]: {
     name: 'Kubernetes',
     value: VaultAuthMethods.KUBERNETES,
-    supportedEncryptionType: [KmsEncryptionLevel.CLUSTER_WIDE],
+    supportedEncryptionType: [
+      KmsEncryptionLevel.CLUSTER_WIDE,
+      KmsEncryptionLevel.STORAGE_CLASS,
+    ],
   },
   [VaultAuthMethods.TOKEN]: {
     name: 'Token',
