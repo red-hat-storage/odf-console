@@ -27,6 +27,7 @@ import {
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isDefaultClass, getODFCsv, getGVKLabel } from '@odf/shared/utils';
+import * as _ from 'lodash-es';
 import {
   Form,
   FormGroup,
@@ -34,6 +35,8 @@ import {
   FormSelectOption,
   FormSelectProps,
   Radio,
+  Alert,
+  AlertVariant,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
 import { SUPPORTED_EXTERNAL_STORAGE } from '../../external-storage';
@@ -110,6 +113,8 @@ const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({
   dispatch,
   selected,
 }) => {
+  const { t } = useCustomTranslation();
+
   const onStorageClassSelect = React.useCallback(
     (sc: StorageClassResourceKind) =>
       dispatch({
@@ -135,7 +140,21 @@ const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({
         secondaryTextGenerator={getStorageClassDescription}
         initialSelection={getInitialSelection}
         data-test="storage-class-dropdown"
-      />
+      >
+        {(loaded, loadError, resources) =>
+          loaded && !loadError && _.isEmpty(resources) ? (
+            <Alert
+              variant={AlertVariant.warning}
+              isInline
+              isPlain
+              className="odf-backing-store__dropdown--margin-top"
+              title={t(
+                'No existing StorageClass found, refer to the documentation to create a StorageClass.'
+              )}
+            />
+          ) : null
+        }
+      </ResourceDropdown>
     </div>
   );
 };
