@@ -12,6 +12,10 @@ import {
   StatefulSetModel,
 } from '@odf/shared/models';
 import { POD_QUERIES, PodMetrics } from '@odf/shared/queries/pod';
+import {
+  PodsOverviewList,
+  PodWithMetricsKind,
+} from '@odf/shared/topology/sidebar/common/PodList';
 import { DeploymentKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -24,8 +28,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { isPodInDeployment } from '../../utils/resource';
-import { PodsOverviewList, PodWithMetricsKind } from '../common/PodList';
-import './node-resources.scss';
+import '@odf/shared/topology/sidebar/common/resources-tab.scss';
 
 export const odfStatefulSetResource: WatchK8sResource = {
   isList: true,
@@ -144,7 +147,7 @@ export const DeploymentResources: React.FC<DeploymentResourceProps> = ({
   }
 
   return (
-    <div className="odf-m-pane__body topology-sidebar-tab-observe">
+    <div className="odf-m-pane__body topology-sidebar-tab__resources">
       <h3>
         {t('Pods')} ({filteredPods.length})
       </h3>

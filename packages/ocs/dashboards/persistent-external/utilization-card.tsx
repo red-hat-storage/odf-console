@@ -19,6 +19,33 @@ import {
   INDEPENDENT_UTILIZATION_QUERIES,
 } from '../../queries';
 
+export const UtilizationContent: React.FC = () => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <UtilizationBody>
+      <PrometheusUtilizationItem
+        title={t('Used capacity')}
+        utilizationQuery={
+          INDEPENDENT_UTILIZATION_QUERIES[StorageDashboardQuery.USED_CAPACITY]
+        }
+        humanizeValue={humanizeBinaryBytes}
+        byteDataType={ByteDataTypes.BinaryBytes}
+      />
+      <PrometheusUtilizationItem
+        title={t('Requested capacity')}
+        utilizationQuery={
+          INDEPENDENT_UTILIZATION_QUERIES[
+            StorageDashboardQuery.REQUESTED_CAPACITY
+          ]
+        }
+        humanizeValue={humanizeBinaryBytes}
+        byteDataType={ByteDataTypes.BinaryBytes}
+      />
+    </UtilizationBody>
+  );
+};
+
 export const UtilizationCard: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
@@ -30,28 +57,7 @@ export const UtilizationCard: React.FC = () => {
         </CardActions>
       </CardHeader>
       <CardBody>
-        <UtilizationBody>
-          <PrometheusUtilizationItem
-            title={t('Used Capacity')}
-            utilizationQuery={
-              INDEPENDENT_UTILIZATION_QUERIES[
-                StorageDashboardQuery.USED_CAPACITY
-              ]
-            }
-            humanizeValue={humanizeBinaryBytes}
-            byteDataType={ByteDataTypes.BinaryBytes}
-          />
-          <PrometheusUtilizationItem
-            title={t('Requested capacity')}
-            utilizationQuery={
-              INDEPENDENT_UTILIZATION_QUERIES[
-                StorageDashboardQuery.REQUESTED_CAPACITY
-              ]
-            }
-            humanizeValue={humanizeBinaryBytes}
-            byteDataType={ByteDataTypes.BinaryBytes}
-          />
-        </UtilizationBody>
+        <UtilizationContent />
       </CardBody>
     </Card>
   );

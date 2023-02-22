@@ -24,7 +24,7 @@ export type NodeDetailsProps = {
   node: NodeKind;
 };
 
-const NodeDetails: React.FC<NodeDetailsProps> = ({ node }) => {
+export const NodeDetails: React.FC<NodeDetailsProps> = ({ node }) => {
   const machine = getNodeMachineNameAndNamespace(node);
   const roles = getNodeRoles(node).sort();
   const { t } = useCustomTranslation();
@@ -113,5 +113,3 @@ const NodeDetails: React.FC<NodeDetailsProps> = ({ node }) => {
     </div>
   );
 };
-
-export default NodeDetails;

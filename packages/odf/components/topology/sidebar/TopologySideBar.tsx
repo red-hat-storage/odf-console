@@ -1,14 +1,14 @@
 import * as React from 'react';
+import CloseButton from '@odf/shared/generic/CloseButton';
+import { AlertsResponse } from '@odf/shared/topology/sidebar/types';
+import { K8sResourceKind } from '@odf/shared/types';
 import {
   Drawer,
   DrawerContent,
   DrawerPanelContent,
 } from '@patternfly/react-core';
 import { TopologySideBar as PFTopologySideBar } from '@patternfly/react-topology';
-import CloseButton from '../../generic/CloseButton';
-import { K8sResourceKind } from '../../types';
 import TopologySideBarContent from './TopologySideBarContent';
-import { AlertsResponse } from './types';
 import './topology-sidebar.scss';
 
 type TopologySideBarProps = {
