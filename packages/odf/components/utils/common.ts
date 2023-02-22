@@ -8,7 +8,6 @@ import {
   getNodeCPUCapacity,
   getNodeAllocatableMemory,
   getZone,
-  getNodeRoles,
   isFlexibleScaling,
   getDeviceSetCount,
   createDeviceSet,
@@ -19,6 +18,7 @@ import { OCSStorageClusterModel } from '@odf/shared/models';
 import { getLabel, getName, getUID } from '@odf/shared/selectors';
 import { NodeKind, StorageClusterKind } from '@odf/shared/types';
 import {
+  getNodeRoles,
   referenceForModel,
   humanizeCpuCores,
   convertToBaseValue,

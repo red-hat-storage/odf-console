@@ -3,7 +3,6 @@ import { CEPH_STORAGE_LABEL } from '@odf/core/constants';
 import {
   getZone,
   nodesWithoutTaints,
-  getNodeRoles,
   getNodeCPUCapacity,
   getNodeAllocatableMemory,
 } from '@odf/core/utils';
@@ -15,6 +14,7 @@ import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName, hasLabel } from '@odf/shared/selectors';
 import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getNodeRoles } from '@odf/shared/utils';
 import {
   resourcePathFromModel,
   getConvertedUnits,

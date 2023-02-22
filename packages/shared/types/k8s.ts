@@ -47,6 +47,7 @@ export type NodeKind = {
     unschedulable?: boolean;
   };
   status?: {
+    addresses?: NodeAddress[];
     capacity?: {
       [key: string]: string;
     };
@@ -61,6 +62,22 @@ export type NodeKind = {
     };
   };
 } & K8sResourceCommon;
+
+export type CloudProviderNodeKind = {
+  spec: {
+    providerID: string;
+  };
+};
+
+export type NodeAddress = {
+  type: string;
+  address: string;
+};
+
+export type NodeMachineAndNamespace = {
+  name: string;
+  namespace: string;
+};
 
 export type SecretKind = {
   data?: { [key: string]: string };

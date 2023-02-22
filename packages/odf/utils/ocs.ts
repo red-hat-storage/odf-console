@@ -26,8 +26,6 @@ import {
   ZONE_LABELS,
 } from '../constants';
 
-const NODE_ROLE_PREFIX = 'node-role.kubernetes.io/';
-
 const getPVStorageClass = (pv) => pv?.spec?.storageClassName;
 
 const getSelectedNodes = (
@@ -138,23 +136,6 @@ export const getNodeAllocatableMemory = (node: NodeKind): string =>
 
 export const hasNoTaints = (node: NodeKind) => {
   return _.isEmpty(node.spec?.taints);
-};
-
-export const getNodeRole = (node: NodeKind): string =>
-  getNodeRoles(node).includes('master') ? 'master' : 'worker';
-
-export const getNodeRoles = (node: NodeKind): string[] => {
-  const labels = _.get(node, 'metadata.labels');
-  return _.reduce(
-    labels,
-    (acc: string[], v: string, k: string) => {
-      if (k.startsWith(NODE_ROLE_PREFIX)) {
-        acc.push(k.slice(NODE_ROLE_PREFIX.length));
-      }
-      return acc;
-    },
-    []
-  );
 };
 
 export const checkArbiterCluster = (
