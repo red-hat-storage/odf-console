@@ -120,7 +120,7 @@ export type ResourceSummaryProps = {
   nodeSelector?: string;
   children?: React.ReactNode;
   customPathName?: string;
-  launchModal: LaunchModal;
+  launchModal?: LaunchModal;
   resourceModel: K8sKind;
 };
 
@@ -341,7 +341,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
         onEdit={() =>
           launchModal(ModalKeys.EDIT_LABELS, { resource, resourceModel })
         }
-        canEdit={showLabelEditor && canUpdate}
+        canEdit={showLabelEditor && canUpdate && !!launchModal}
         editAsGroup
       >
         <LabelList kind={reference} labels={metadata.labels} />
@@ -352,7 +352,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
           obj={resource}
           path="metadata.annotations"
         >
-          {canUpdate ? (
+          {canUpdate && !!launchModal ? (
             <Button
               data-test="edit-annotations"
               type="button"

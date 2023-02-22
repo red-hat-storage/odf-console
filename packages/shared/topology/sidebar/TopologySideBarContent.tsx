@@ -3,7 +3,7 @@ import AlertsPanel from '@odf/shared/alert/AlertsPanel';
 import { DetailsPageTitle } from '@odf/shared/details-page/DetailsPage';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
-import { NodeModel } from '@odf/shared/models';
+import { DeploymentModel, NodeModel } from '@odf/shared/models';
 import { nodeStatus } from '@odf/shared/status/Node';
 import { NodeKind } from '@odf/shared/types';
 import { getGVKofResource } from '@odf/shared/utils';
@@ -15,11 +15,16 @@ import {
 import * as _ from 'lodash-es';
 import { useCustomTranslation } from '../../useCustomTranslationHook';
 import Tabs, { TabPage } from '../../utils/Tabs';
+import {
+  DeploymentDetails,
+  DeploymentObserve,
+  DeploymentResources,
+} from './deployments';
 import NodeDetails from './node/NodeDetails';
 import NodeObserve from './node/NodeObserve';
 import NodeResources from './node/NodeResources';
-import './topology-sidebar-content.scss';
 import { AlertsResponse } from './types';
+import './topology-sidebar-content.scss';
 
 type TopologySideBarContentProps = {
   alertsResponse: AlertsResponse;
@@ -56,6 +61,10 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
           resourcesTab = <NodeResources node={resource as NodeKind} />;
           observeTab = <NodeObserve node={resource as NodeKind} />;
           break;
+        case DeploymentModel.kind:
+          detailsTab = <DeploymentDetails resource={resource as any} />;
+          resourcesTab = <DeploymentResources deployment={resource as any} />;
+          observeTab = <DeploymentObserve deployment={resource as any} />;
       }
       const alertsTab = (
         <AlertsPanel

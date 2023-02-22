@@ -1,27 +1,9 @@
-import { DeploymentModel } from '@odf/shared/models';
-import { getName, getUID } from '@odf/shared/selectors';
+import { getName } from '@odf/shared/selectors';
 import { NodeDeploymentMap } from '@odf/shared/topology';
+import { resolveResourceUntilDeployment } from '@odf/shared/topology/utils/resource';
 import { NodeKind, PodKind } from '@odf/shared/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { getZone } from '../../utils';
-
-const resolveResourceUntilDeployment = (
-  ownerUID: string,
-  ...resources: K8sResourceCommon[]
-) => {
-  const owner = resources.find((res) => getUID(res) === ownerUID);
-  if (!owner) {
-    return null;
-  }
-  if (owner.kind === DeploymentModel.kind) {
-    return owner;
-  } else {
-    return resolveResourceUntilDeployment(
-      owner.metadata.ownerReferences[0].uid,
-      ...resources
-    );
-  }
-};
 
 export const generateNodeDeploymentsMap = (
   nodes: NodeKind[],
