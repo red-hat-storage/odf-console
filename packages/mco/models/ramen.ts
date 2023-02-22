@@ -35,3 +35,15 @@ export const DRPlacementControlModel: K8sModel = {
   kind: 'DRPlacementControl',
   crd: true,
 };
+
+export const DRVolumeReplicationGroup: K8sModel = {
+  label: 'VolumeReplicationGroup',
+  labelPlural: 'VolumeReplicationGroups',
+  apiVersion: 'v1alpha1',
+  apiGroup: 'ramendr.openshift.io',
+  plural: 'volumereplicationgroups',
+  abbr: 'VRG',
+  namespaced: true,
+  kind: 'VolumeReplicationGroup',
+  crd: true,
+};

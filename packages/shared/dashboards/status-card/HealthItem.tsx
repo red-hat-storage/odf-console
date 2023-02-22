@@ -15,6 +15,7 @@ export type HealthItemProps = {
   noIcon?: boolean;
   icon?: React.ReactNode;
   maxWidth?: string;
+  disableDetails?: boolean;
 };
 
 const HealthItemIcon: React.FC<HealthItemIconProps> = ({ state, dataTest }) => (
@@ -38,10 +39,13 @@ const HealthItem: React.FC<HealthItemProps> = React.memo(
     icon,
     children,
     maxWidth,
+    disableDetails = false,
   }) => {
     const { t } = useCustomTranslation();
 
-    const detailMessage = details || healthStateMessage(state, t);
+    const detailMessage = !disableDetails
+      ? details || healthStateMessage(state, t)
+      : '';
 
     return (
       <div

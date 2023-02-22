@@ -4,11 +4,16 @@ import {
   DrClusterAppsMap,
   AppSetObj,
   ProtectedAppSetsMap,
+  ACMManagedClusterViewKind,
+  ProtectedPVCData,
 } from '@odf/mco/types';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
-import { getName, getNamespace } from '@odf/shared/selectors';
-import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+import { referenceForModel } from '@odf/shared/utils';
+import {
+  PrometheusResponse,
+  useK8sWatchResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   Card,
   CardBody,
@@ -17,7 +22,12 @@ import {
   Grid,
   GridItem,
 } from '@patternfly/react-core';
-import { getPvcSlaPerClusterQuery } from '../../queries';
+import { ACMManagedClusterViewModel } from '../../../../models';
+import {
+  getProtectedPVCFromVRG,
+  filterPVCDataUsingAppsets,
+} from '../../../../utils';
+import { getLastSyncPerClusterQuery } from '../../queries';
 import {
   CSVStatusesContext,
   DRResourcesContext,
@@ -40,77 +50,76 @@ import './cluster-app-card.scss';
 
 export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
   clusterName,
-  pvcSLAData,
+  lastSyncTimeData,
+  protectedPVCData,
   csvData,
   clusterResources,
 }) => {
   return (
     <Grid hasGutter>
-      <GridItem lg={6} rowSpan={4} sm={12}>
+      <GridItem lg={3} rowSpan={8} sm={12}>
         <HealthSection
           clusterResources={clusterResources}
           csvData={csvData}
           clusterName={clusterName}
         />
       </GridItem>
-      <GridItem lg={6} rowSpan={4} sm={12}>
+      <GridItem lg={9} rowSpan={8} sm={12}>
         <PeerConnectionSection clusterName={clusterName} />
       </GridItem>
-      <GridItem lg={6} rowSpan={4} sm={12}>
+      <GridItem lg={3} rowSpan={8} sm={12}>
         <ApplicationsSection
           clusterResources={clusterResources}
           clusterName={clusterName}
-          pvcSLAData={pvcSLAData}
+          lastSyncTimeData={lastSyncTimeData}
         />
       </GridItem>
-      <GridItem lg={6} rowSpan={4} sm={12}>
+      <GridItem lg={9} rowSpan={8} sm={12}>
         <PVCsSection
-          clusterResources={clusterResources}
+          protectedPVCData={protectedPVCData}
           clusterName={clusterName}
         />
       </GridItem>
-      <GridItem rowSpan={4} sm={12}>
-        <VolumeSummarySection pvcSLAData={pvcSLAData} />
+      <GridItem lg={12} rowSpan={8} sm={12}>
+        <VolumeSummarySection protectedPVCData={protectedPVCData} />
       </GridItem>
     </Grid>
   );
 };
 
 export const AppWiseCard: React.FC<AppWiseCardProps> = ({
-  clusterName,
-  pvcSLAData,
+  lastSyncTimeData,
+  protectedPVCData,
   selectedAppSet,
 }) => {
   return (
     <Grid hasGutter>
-      <GridItem lg={6} rowSpan={2} sm={12}>
+      <GridItem lg={3} rowSpan={6} sm={12}>
         <ProtectedPVCsSection
-          clusterName={clusterName}
-          pvcSLAData={pvcSLAData}
+          protectedPVCData={protectedPVCData}
           selectedAppSet={selectedAppSet}
         />
       </GridItem>
-      <GridItem lg={6} rowSpan={2} sm={12}>
-        <RPOSection selectedAppSet={selectedAppSet} />
+      <GridItem lg={9} rowSpan={6} sm={12}>
+        <RPOSection
+          selectedAppSet={selectedAppSet}
+          lastSyncTimeData={lastSyncTimeData}
+        />
       </GridItem>
-      <GridItem lg={6} rowSpan={2} sm={12}>
+      <GridItem lg={3} rowSpan={6} sm={12}>
         <ActivitySection selectedAppSet={selectedAppSet} />
       </GridItem>
-      <GridItem lg={6} rowSpan={2} sm={12}>
+      <GridItem lg={9} rowSpan={6} sm={12}>
         <SnapshotSection selectedAppSet={selectedAppSet} />
       </GridItem>
-      <GridItem lg={12} rowSpan={3} sm={12}>
+      <GridItem lg={12} rowSpan={6} sm={12}>
         <VolumeSummarySection
-          pvcSLAData={pvcSLAData}
+          protectedPVCData={protectedPVCData}
           selectedAppSet={selectedAppSet}
         />
       </GridItem>
-      <GridItem lg={12} rowSpan={5} sm={12}>
-        <ReplicationHistorySection
-          clusterName={clusterName}
-          selectedAppSet={selectedAppSet}
-          pvcSLAData={pvcSLAData}
-        />
+      <GridItem lg={12} rowSpan={3} sm={12}>
+        <ReplicationHistorySection selectedAppSet={selectedAppSet} />
       </GridItem>
     </Grid>
   );
@@ -122,37 +131,64 @@ export const ClusterAppCard: React.FC = () => {
     namespace: undefined,
     name: ALL_APPS,
   });
-  const [pvcSLAData, pvcSLAError, pvcSLALoading] = useCustomPrometheusPoll({
-    endpoint: 'api/v1/query' as any,
-    query: !!cluster ? getPvcSlaPerClusterQuery(cluster) : null,
-    basePath: ACM_ENDPOINT,
+  const [mcvs, mcvsLoaded, mcvsLoadError] = useK8sWatchResource<
+    ACMManagedClusterViewKind[]
+  >({
+    kind: referenceForModel(ACMManagedClusterViewModel),
+    isList: true,
+    namespace: cluster,
+    namespaced: true,
+    optional: true,
     cluster: HUB_CLUSTER_NAME,
   });
+  const [lastSyncTimeData, lastSyncTimeError, lastSyncTimeLoading] =
+    useCustomPrometheusPoll({
+      endpoint: 'api/v1/query' as any,
+      query: !!cluster ? getLastSyncPerClusterQuery() : null,
+      basePath: ACM_ENDPOINT,
+      cluster: HUB_CLUSTER_NAME,
+    });
 
   const { csvData, csvError, csvLoading } =
     React.useContext(CSVStatusesContext);
   const { drClusterAppsMap, loaded, loadError } =
     React.useContext(DRResourcesContext);
 
-  const allLoaded = loaded && !csvLoading && !pvcSLALoading;
-  const anyError = pvcSLAError || csvError || loadError;
+  const allLoaded = loaded && !csvLoading && !lastSyncTimeLoading && mcvsLoaded;
+  const anyError = lastSyncTimeError || csvError || loadError || mcvsLoadError;
 
   const selectedAppSet: ProtectedAppSetsMap = React.useMemo(() => {
     const { name, namespace } = appSet || {};
     return !!namespace && name !== ALL_APPS
       ? drClusterAppsMap[cluster]?.protectedAppSets?.find(
           (protectedAppSet) =>
-            getName(protectedAppSet?.application) === name &&
-            getNamespace(protectedAppSet?.application) === namespace
+            protectedAppSet?.appName === name &&
+            protectedAppSet?.appNamespace === namespace
         )
       : undefined;
   }, [appSet, drClusterAppsMap, cluster]);
+
+  const protectedPVCData: ProtectedPVCData[] = React.useMemo(() => {
+    const pvcsData =
+      (mcvsLoaded && !mcvsLoadError && getProtectedPVCFromVRG(mcvs)) || [];
+    const protectedAppSets = !!selectedAppSet
+      ? [selectedAppSet]
+      : drClusterAppsMap[cluster]?.protectedAppSets;
+    return filterPVCDataUsingAppsets(pvcsData, protectedAppSets);
+  }, [
+    drClusterAppsMap,
+    selectedAppSet,
+    cluster,
+    mcvs,
+    mcvsLoaded,
+    mcvsLoadError,
+  ]);
 
   return (
     <Card data-test="cluster-app-card">
       {allLoaded && !anyError && (
         <>
-          <CardHeader>
+          <CardHeader className="mco-cluster-app__text--divider ">
             <div className="mco-dashboard__contentColumn">
               <ClusterAppDropdown
                 clusterResources={drClusterAppsMap}
@@ -161,7 +197,7 @@ export const ClusterAppCard: React.FC = () => {
                 setCluster={setCluster}
                 setAppSet={setAppSet}
               />
-              <CardTitle className="mco-cluster-app__text--margin-top">
+              <CardTitle className="mco-cluster-app__text--margin-top mco-dashboard__subtitle--size">
                 {cluster}
               </CardTitle>
             </div>
@@ -170,14 +206,15 @@ export const ClusterAppCard: React.FC = () => {
             {!appSet.namespace && appSet.name === ALL_APPS ? (
               <ClusterWiseCard
                 clusterName={cluster}
-                pvcSLAData={pvcSLAData}
+                lastSyncTimeData={lastSyncTimeData}
+                protectedPVCData={protectedPVCData}
                 csvData={csvData}
                 clusterResources={drClusterAppsMap}
               />
             ) : (
               <AppWiseCard
-                clusterName={cluster}
-                pvcSLAData={pvcSLAData}
+                lastSyncTimeData={lastSyncTimeData}
+                protectedPVCData={protectedPVCData}
                 selectedAppSet={selectedAppSet}
               />
             )}
@@ -198,13 +235,14 @@ export const ClusterAppCard: React.FC = () => {
 
 type ClusterWiseCardProps = {
   clusterName: string;
-  pvcSLAData: PrometheusResponse;
+  lastSyncTimeData: PrometheusResponse;
+  protectedPVCData: ProtectedPVCData[];
   csvData: PrometheusResponse;
   clusterResources: DrClusterAppsMap;
 };
 
 type AppWiseCardProps = {
-  clusterName: string;
-  pvcSLAData: PrometheusResponse;
+  lastSyncTimeData: PrometheusResponse;
+  protectedPVCData: ProtectedPVCData[];
   selectedAppSet: ProtectedAppSetsMap;
 };

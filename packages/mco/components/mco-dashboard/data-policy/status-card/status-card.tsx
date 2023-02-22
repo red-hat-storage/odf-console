@@ -17,6 +17,7 @@ import {
   HealthState,
   WatchK8sResource,
   useK8sWatchResource,
+  PrometheusResponse,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Card,
@@ -26,6 +27,7 @@ import {
   Gallery,
   GalleryItem,
 } from '@patternfly/react-core';
+import { DrClusterAppsMap } from '../../../../types';
 import {
   CSVStatusesContext,
   DRResourcesContext,
@@ -57,6 +59,31 @@ const getDRCombinedStatus = (
   return getOperatorHealthState(worstPhase, !csvHubLoaded, csvHubError);
 };
 
+const getClustersOperatorHealth = (
+  csvManagedData: PrometheusResponse,
+  drClusterAppsMap: DrClusterAppsMap
+) => {
+  const drClusters = Object.keys(drClusterAppsMap);
+  const clusterWiseHealth: ClusterWiseHealth =
+    csvManagedData?.data?.result?.reduce((acc, item) => {
+      const cluster = item?.metric.cluster;
+      let count = acc?.[cluster] || 0;
+      acc =
+        drClusters.includes(cluster) &&
+        !!clusterOperators.find((operator: string) =>
+          item?.metric.name.startsWith(operator)
+        )
+          ? { ...acc, [cluster]: item?.value[1] !== '1' ? count : count + 1 }
+          : acc;
+      return acc;
+    }, {});
+  return drClusters?.every(
+    (cluster) => clusterWiseHealth?.[cluster] === clusterOperators.length
+  )
+    ? HealthState.OK
+    : HealthState.ERROR;
+};
+
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [csvHubData, csvHubLoaded, csvHubError] =
@@ -82,15 +109,7 @@ export const StatusCard: React.FC = () => {
   const clusterOperatorHealthStatus = React.useMemo(() => {
     if (!allManagedLoaded && !anyManagedError) return HealthState.LOADING;
     if (anyManagedError) return HealthState.NOT_AVAILABLE;
-    const isAnyUnhealthy: boolean = !!csvManagedData?.data?.result?.find(
-      (item) =>
-        drClusterAppsMap.hasOwnProperty(item?.metric.cluster) &&
-        !!clusterOperators.find((operator: string) =>
-          item?.metric.name.startsWith(operator)
-        ) &&
-        item?.value[1] !== '1'
-    );
-    return isAnyUnhealthy ? HealthState.ERROR : HealthState.OK;
+    return getClustersOperatorHealth(csvManagedData, drClusterAppsMap);
   }, [csvManagedData, drClusterAppsMap, allManagedLoaded, anyManagedError]);
 
   return (
@@ -116,4 +135,8 @@ export const StatusCard: React.FC = () => {
       </CardBody>
     </Card>
   );
+};
+
+type ClusterWiseHealth = {
+  [name in string]: number;
 };

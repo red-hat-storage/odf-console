@@ -11,7 +11,11 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
-import { REPLICATION_TYPE, REPLICATION_DISPLAY_TEXT } from '../../../constants';
+import {
+  REPLICATION_TYPE,
+  REPLICATION_DISPLAY_TEXT,
+  TIME_UNITS,
+} from '../../../constants';
 import { DRPolicyState, DRPolicyAction, DRPolicyActionType } from './reducer';
 import '../../../style.scss';
 
@@ -33,9 +37,9 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({ state, dispatch }) => {
     days: t('days'),
   };
   const SCHEDULE_FORMAT = {
-    [SyncSchedule.minutes]: 'm',
-    [SyncSchedule.hours]: 'h',
-    [SyncSchedule.days]: 'd',
+    [SyncSchedule.minutes]: TIME_UNITS.Minutes,
+    [SyncSchedule.hours]: TIME_UNITS.Hours,
+    [SyncSchedule.days]: TIME_UNITS.Days,
   };
 
   const [isOpen, setIsOpen] = React.useState(false);

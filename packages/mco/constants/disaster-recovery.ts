@@ -11,6 +11,11 @@ export const PROTECTED_APP_ANNOTATION_WO_SLASH =
   'cluster.open-cluster-management.io~1experimental-scheduling-disable';
 export const ALL_APPS = 'All applications';
 export const ALL_APPS_ITEM_ID = 'all-applications-itemid';
+export const THRESHOLD = 2;
+export const DRPC_NAME_ANNOTATION =
+  'drplacementcontrol.ramendr.openshift.io/drpc-name';
+export const DRPC_NAMESPACE_ANNOTATION =
+  'drplacementcontrol.ramendr.openshift.io/drpc-namespace';
 
 export enum DRActionType {
   FAILOVER = 'Failover',
@@ -52,4 +57,16 @@ export enum DRPC_STATUS {
   Relocating = 'Relocating',
   FailingOver = 'FailingOver',
   Relocated = 'Relocated',
+}
+
+export enum DR_REPLICATION_STATE {
+  PrimaryState = 'Primary',
+  SecondaryState = 'Secondary',
+  UnknownState = 'Unknown',
+}
+
+export enum TIME_UNITS {
+  Minutes = 'm',
+  Hours = 'h',
+  Days = 'd',
 }

@@ -78,7 +78,7 @@ export const SummaryCard: React.FC = () => {
               <div className="text-muted mco-summary__item-padding">
                 {t('Clusters')}
               </div>
-              <div className="mco-dashboard__title mco-summary__item-padding">
+              <div className="mco-dashboard__title mco-summary__item-padding mco-dashboard__title--size">
                 {summaryMap.clusters.totalCount}
               </div>
               <Divider className="mco-summary__divider--width mco-summary__item-padding" />
@@ -87,6 +87,7 @@ export const SummaryCard: React.FC = () => {
                   healthy: healthyClusters,
                 })}
                 state={HealthState.OK}
+                disableDetails={true}
                 className="mco-summary__item-padding"
               />
               <HealthItem
@@ -94,6 +95,7 @@ export const SummaryCard: React.FC = () => {
                   issues: summaryMap.clusters.withIssuesCount,
                 })}
                 state={HealthState.ERROR}
+                disableDetails={true}
                 className="mco-summary__item-padding"
               />
             </GalleryItem>
@@ -101,7 +103,7 @@ export const SummaryCard: React.FC = () => {
               <div className="text-muted mco-summary__item-padding">
                 {t('Applications')}
               </div>
-              <div className="mco-dashboard__title mco-summary__item-padding">
+              <div className="mco-dashboard__title mco-summary__item-padding mco-dashboard__title--size">
                 {summaryMap.applications.totalCount}
               </div>
               <Divider className="mco-summary__divider--width mco-summary__item-padding" />

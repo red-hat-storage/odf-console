@@ -20,9 +20,14 @@ export const Status: React.FC<StatusProps> = ({ value, icon, children }) => (
     {children}
     {value ? (
       <div className="odf-status-popup__status">
-        <div data-test="operator-status-value">{icon}</div>
-        <div className="text-secondary" data-test="operator-status-icon">
-          {value}
+        <div>
+          <span data-test="operator-status-value">{icon}</span>
+          <span
+            className="text-secondary odf-status-popup__text"
+            data-test="operator-status-icon"
+          >
+            {value}
+          </span>
         </div>
       </div>
     ) : (

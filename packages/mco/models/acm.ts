@@ -72,3 +72,15 @@ export const ACMPlacementDecisionModel: K8sModel = {
   kind: 'PlacementDecision',
   crd: true,
 };
+
+export const ACMManagedClusterViewModel: K8sModel = {
+  label: 'ManagedClusterView',
+  labelPlural: 'ManagedClusterViews',
+  apiVersion: 'v1beta1',
+  apiGroup: 'view.open-cluster-management.io',
+  plural: 'managedclusterviews',
+  abbr: 'MCV',
+  namespaced: true,
+  kind: 'ManagedClusterView',
+  crd: true,
+};

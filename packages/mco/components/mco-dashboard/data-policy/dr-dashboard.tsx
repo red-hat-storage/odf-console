@@ -1,8 +1,14 @@
 import * as React from 'react';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
-import { getName } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
+import * as _ from 'lodash-es';
 import { Grid, GridItem } from '@patternfly/react-core';
-import { ACM_ENDPOINT, HUB_CLUSTER_NAME } from '../../../constants';
+import {
+  ACM_ENDPOINT,
+  APPLICATION_TYPE,
+  DRPC_STATUS,
+  HUB_CLUSTER_NAME,
+} from '../../../constants';
 import {
   DisasterRecoveryResourceKind,
   useArgoApplicationSetResourceWatch,
@@ -13,6 +19,11 @@ import {
   ACMManagedClusterKind,
   DrClusterAppsMap,
 } from '../../../types';
+import {
+  findDRType,
+  getProtectedPVCsFromDRPC,
+  getRemoteNSFromAppSet,
+} from '../../../utils';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import { AlertsCard } from './alert-card/alert-card';
 import { ClusterAppCard } from './cluster-app-card/cluster-app-card';
@@ -91,29 +102,40 @@ export const DRDashboard: React.FC = () => {
 
       // DRCluster to its ApplicationSets (total and protected) mapping
       fomratedArgoAppSetResources.forEach((argoApplicationSetResource) => {
-        argoApplicationSetResource.placementDecision?.status?.decisions?.forEach(
-          (decision) => {
-            const decisionCluster = decision?.clusterName;
-            if (drClusterAppsMap.hasOwnProperty(decisionCluster)) {
-              drClusterAppsMap[decisionCluster].totalAppSetsCount =
-                drClusterAppsMap[decisionCluster].totalAppSetsCount + 1;
-              if (!!argoApplicationSetResource?.drPlacementControl) {
-                drClusterAppsMap[decisionCluster].protectedAppSets.push({
-                  application: argoApplicationSetResource.application,
-                  /**
-                   * FIX THIS
-                   * convert "syncInterval" to proper unit and use that at all the places
-                   */
-                  syncInterval:
-                    argoApplicationSetResource.drPolicy?.spec
-                      ?.schedulingInterval,
-                  drPlacementControl:
-                    argoApplicationSetResource.drPlacementControl,
-                });
-              }
+        const { application } = argoApplicationSetResource || {};
+        const { drClusters, drPlacementControl, drPolicy, placementDecision } =
+          argoApplicationSetResource?.placements?.[0] || {};
+        placementDecision?.status?.decisions?.forEach((decision) => {
+          const decisionCluster = decision?.clusterName;
+          if (drClusterAppsMap.hasOwnProperty(decisionCluster)) {
+            drClusterAppsMap[decisionCluster].totalAppSetsCount =
+              drClusterAppsMap[decisionCluster].totalAppSetsCount + 1;
+            if (!_.isEmpty(drPlacementControl)) {
+              drClusterAppsMap[decisionCluster].protectedAppSets.push({
+                appName: getName(application),
+                appNamespace: getNamespace(application),
+                appType: APPLICATION_TYPE.APPSET,
+                placementInfo: [
+                  {
+                    deploymentClusterName: decisionCluster,
+                    drpcName: getName(drPlacementControl),
+                    drpcNamespace: getNamespace(drPlacementControl),
+                    protectedPVCs: getProtectedPVCsFromDRPC(drPlacementControl),
+                    replicationType: findDRType(drClusters),
+                    syncInterval: drPolicy?.spec?.schedulingInterval,
+                    workloadNamespace: getRemoteNSFromAppSet(application),
+                    failoverCluster: drPlacementControl?.spec?.failoverCluster,
+                    preferredCluster:
+                      drPlacementControl?.spec?.preferredCluster,
+                    lastGroupSyncTime:
+                      drPlacementControl?.status?.lastGroupSyncTime,
+                    status: drPlacementControl?.status?.phase as DRPC_STATUS,
+                  },
+                ],
+              });
             }
           }
-        );
+        });
       });
       return drClusterAppsMap;
     }

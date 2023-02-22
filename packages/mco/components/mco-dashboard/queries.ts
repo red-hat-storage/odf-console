@@ -3,6 +3,7 @@ import {
   USED_CAPACITY_FILE_BLOCK_METRIC,
   SYSTEM_HEALTH_METRIC,
 } from '@odf/shared/queries';
+import { HUB_CLUSTER_NAME } from '../../constants';
 
 export enum StorageDashboard {
   USED_CAPACITY_FILE_BLOCK = 'USED_CAPACITY_FILE_BLOCK',
@@ -15,17 +16,18 @@ export enum StorageDashboard {
 
 // "recording_rules" added in "observability-metrics-custom-allowlist" ConfigMap
 export const TOTAL_PVC_COUNT_QUERY = 'count_persistentvolumeclaim_total';
+export const getTotalPVCCountPerClusterQuery = (clusterName: string) =>
+  `${TOTAL_PVC_COUNT_QUERY}{cluster="${clusterName}"}`;
 
-/** FIX THIS */
-export const PVC_SLA_QUERY = 'dr_pvc_sla';
-export const getPvcSlaPerClusterQuery = (clusterName: string) =>
-  `${PVC_SLA_QUERY}{cluster=~'${clusterName}'}`;
-export const getPvcSlaPerPVCQuery = (
-  clusterName: string,
-  remoteNS: string,
-  pvcName: string
+export const LAST_SYNC_TIME_QUERY = 'ramen_last_sync_timestamp_seconds';
+export const getLastSyncPerClusterQuery = () =>
+  `time() - ${LAST_SYNC_TIME_QUERY}{cluster="${HUB_CLUSTER_NAME}"}`;
+
+export const getLastSyncTimeDRPCQuery = (
+  drpcNamespace: string,
+  drpcName: string
 ) =>
-  `${PVC_SLA_QUERY}{cluster=~'${clusterName}',pvc_namespace=~'${remoteNS}',pvc_name=~'${pvcName}'}`;
+  `time() - ${LAST_SYNC_TIME_QUERY}{resource_type="drpc",name="${drpcName}",namespace="${drpcNamespace}",cluster="${HUB_CLUSTER_NAME}"}`;
 
 export const CAPACITY_QUERIES = {
   [StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system) ${TOTAL_CAPACITY_FILE_BLOCK_METRIC}`,
