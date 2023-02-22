@@ -189,6 +189,7 @@ const DualListSelectorChosenListItem: React.FC<DualListSelectorChosenListItemPro
           isIndented
         >
           <FormGroup
+            className="modalBody modalInput--lowHeight"
             fieldId="pvc-selector"
             label={t('Add label')}
             onChange={(e) => e.stopPropagation()}

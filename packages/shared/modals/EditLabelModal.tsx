@@ -129,7 +129,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
       variant={ModalVariant.small}
       showClose={false}
     >
-      <ModalBody className="modalBody">
+      <ModalBody className="modalBody modalInput--defaultHeight">
         <div className="row co-m-form-row">
           <div className="col-sm-12">
             {t(

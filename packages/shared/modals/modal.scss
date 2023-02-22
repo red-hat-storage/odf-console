@@ -11,6 +11,14 @@
   justify-content: flex-end;
 }
 
+.modalInput--lowHeight tags-input .tags {
+  min-height: 36px;
+}
+
+.modalInput--defaultHeight tags-input .tags {
+  min-height: 120px;
+}
+
 .modalBody tags-input .tags {
   background-color: rgba(255, 255, 255, 0.5);
   background-image: none;
@@ -21,7 +29,6 @@
   cursor: text;
   line-height: 20px;
   margin-bottom: 1rem;
-  min-height: 120px;
 }
 
 .modalBody tags-input .tags:hover {
