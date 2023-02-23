@@ -6,6 +6,7 @@ import PageHeading from '@odf/shared/heading/page-heading';
 import { NodeModel } from '@odf/shared/models';
 import { nodeStatus } from '@odf/shared/status/Node';
 import { NodeKind } from '@odf/shared/types';
+import { getGVKofResource } from '@odf/shared/utils';
 import {
   Alert,
   K8sResourceCommon,
@@ -31,7 +32,8 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const getResourceStatus = resource.kind === 'Node' ? nodeStatus : null;
-  const [model, inFlight] = useK8sModel(resource.kind);
+  const reference = getGVKofResource(resource);
+  const [model, inFlight] = useK8sModel(reference);
   const [alertsTab, detailsTab, resourcesTab, observeTab]: JSX.Element[] =
     React.useMemo(() => {
       const defaultAlertsFilter = (alert: Alert) =>

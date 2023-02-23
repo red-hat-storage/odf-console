@@ -3,6 +3,7 @@ import {
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import {
+  Alert,
   PrometheusEndpoint,
   PrometheusRule,
   Rule,
@@ -23,7 +24,7 @@ type PrometheusRulesResponse = {
   status: string;
 };
 
-const useAlerts = (basePath = '') => {
+const useAlerts = (basePath = ''): [Alert[], boolean, any] => {
   const defaultBasePath = usePrometheusBasePath();
 
   const [data, error, loading] = useCustomPrometheusPoll({

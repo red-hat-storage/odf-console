@@ -1,0 +1,18 @@
+.odf__topology-view {
+    height: 66.5vh;
+    width: 100%;
+
+    &--longer {
+        height: 66.5vh;
+    }
+
+}
+
+@media (min-width: 768px) {
+    .odf__topology-view {
+        .pf-topology-container__with-sidebar.pf-topology-container__with-sidebar--open .pf-topology-content {
+            width: 180px;
+            min-width: 100%;
+        }
+    }
+}

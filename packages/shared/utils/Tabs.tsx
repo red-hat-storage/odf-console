@@ -21,6 +21,7 @@ import { useCustomTranslation } from '../useCustomTranslationHook';
 import './tabs.scss';
 
 export type TabPage = {
+  id?: string;
   component: React.ComponentType<any>;
   href: string;
   title: string;
