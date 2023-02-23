@@ -648,9 +648,6 @@
       "component": {
         "$codeRef": "topology.default"
       }
-    },
-    "flags": {
-      "required": ["DEV_GUARD"]
     }
   }
 ]
