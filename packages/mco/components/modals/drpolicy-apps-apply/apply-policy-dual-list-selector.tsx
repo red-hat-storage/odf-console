@@ -2,6 +2,8 @@ import * as React from 'react';
 import { CustomDualListSelector } from '@odf/shared/generic/custom-dual-list-selector';
 import { SelectorInput } from '@odf/shared/modals/Selector';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import AngleRightIcon from '@patternfly/react-icons/dist/esm/icons/angle-right-icon';
+import classNames from 'classnames';
 import {
   DualListSelectorPane,
   DualListSelectorList,
@@ -11,7 +13,6 @@ import {
   EmptyStateBody,
   Title,
   Label,
-  ExpandableSection,
   FormGroup,
   Form,
 } from '@patternfly/react-core';
@@ -54,6 +55,14 @@ type DualListSelectorChosenListItemProps = {
   drpcPvcLabels: PlacementToDrpcMap;
   setDrpcPvcLabels: (options: PlacementToDrpcMap) => void;
 } & Pick<DualListSelectorAvailablePaneProps, 'onOptionSelect'>;
+
+type DualListSelectorExpandListItemProps = {
+  id: string;
+  appName: string;
+  appNamespace: string;
+  isAlreadyProtected: boolean;
+  children: React.ReactNode;
+};
 
 const defaultLabelsState = {
   drpcName: undefined,
@@ -102,9 +111,11 @@ const DualListSelectorAvailablePane: React.FC<DualListSelectorAvailablePaneProps
                 onOptionSelect={(e) => onOptionSelect(e, optionIndex, false)}
                 translate={false}
               >
-                <div className="mco-apply-policy-dual-selector__listItem">
-                  <div>
-                    {option.appSetName}
+                <div className="mco-apply-policy-dual-selector__listRow">
+                  <div className="mco-apply-policy-dual-selector__listItem">
+                    <span className="mco-apply-policy-dual-selector__listItem--text">
+                      {option.appSetName}
+                    </span>
                     {option.isAlreadyProtected && (
                       <span>
                         <Label isCompact color="green">
@@ -125,6 +136,73 @@ const DualListSelectorAvailablePane: React.FC<DualListSelectorAvailablePaneProps
     );
   };
 
+const DualListSelectorExpandListItem: React.FunctionComponent<DualListSelectorExpandListItemProps> =
+  ({
+    children,
+    id,
+    appName,
+    appNamespace,
+    isAlreadyProtected,
+    ...props
+  }: DualListSelectorExpandListItemProps) => {
+    const { t } = useCustomTranslation();
+    const [isExpanded, setIsExpanded] = React.useState(false);
+
+    return (
+      <li
+        className={classNames(
+          'pf-c-expandable-section',
+          isExpanded && 'pf-m-expanded',
+          'pf-m-indented',
+          { ...(isExpanded && { 'aria-expanded': 'true' }) }
+        )}
+        {...props}
+      >
+        <div className="pf-c-expandable-section__toggle mco-apply-policy-dual-selector__listItem">
+          <button
+            type="button"
+            className="mco-apply-policy-dual-selector__button"
+            aria-expanded={isExpanded}
+            onClick={(e) => {
+              setIsExpanded(!isExpanded);
+              e.stopPropagation();
+            }}
+            onKeyDown={(e: React.KeyboardEvent) => {
+              if (e.key === ' ' || e.key === 'Enter') {
+                setIsExpanded(!isExpanded);
+                e.preventDefault();
+              }
+            }}
+          >
+            <span className="pf-c-expandable-section__toggle-icon">
+              <AngleRightIcon aria-hidden />
+            </span>
+          </button>
+          <span className="pf-c-expandable-section__toggle-text mco-apply-policy-dual-selector__listItem--text">
+            {appName}
+          </span>
+          <span>
+            {isAlreadyProtected && (
+              <Label isCompact color="green">
+                {t('Protected')}
+              </Label>
+            )}
+          </span>
+        </div>
+        <div className="mco-apply-policy-dual-selector__ItemDescription--color mco-apply-policy-dual-selector__ExpandItem--indent">
+          {appNamespace}
+        </div>
+        <div
+          className="pf-c-expandable-section__content"
+          hidden={!isExpanded}
+          id={id}
+        >
+          {children}
+        </div>
+      </li>
+    );
+  };
+
 const DualListSelectorChosenListItem: React.FC<DualListSelectorChosenListItemProps> =
   ({
     option,
@@ -134,14 +212,8 @@ const DualListSelectorChosenListItem: React.FC<DualListSelectorChosenListItemPro
     setDrpcPvcLabels,
   }) => {
     const { t } = useCustomTranslation();
-    const [isExpanded, setIsExpanded] = React.useState(false);
-
     const labels: string[] =
       drpcPvcLabels?.[option.namespace]?.[option.placement]?.updateLabels || [];
-
-    const onToggle = (isExpanded: boolean) => {
-      setIsExpanded(isExpanded);
-    };
 
     const setLabels = (l: string[]) => {
       const options: PlacementToDrpcMap = { ...drpcPvcLabels };
@@ -167,34 +239,17 @@ const DualListSelectorChosenListItem: React.FC<DualListSelectorChosenListItemPro
         onOptionSelect={(e) => onOptionSelect(e, optionIndex, true)}
         translate={false}
       >
-        <ExpandableSection
-          toggleContent={
-            <div className="mco-apply-policy-dual-selector__listItem">
-              <div>
-                {option.appSetName}
-                {option.isAlreadyProtected && (
-                  <span>
-                    <Label isCompact color="green">
-                      {t('Protected')}
-                    </Label>
-                  </span>
-                )}
-              </div>
-              <div className="mco-apply-policy-dual-selector__ItemDescription--color">
-                {option.namespace}
-              </div>
-            </div>
-          }
-          onToggle={onToggle}
-          isExpanded={isExpanded}
-          isIndented
+        <DualListSelectorExpandListItem
+          id={`chosen-expand-option-${optionIndex}`}
+          appName={option.appSetName}
+          appNamespace={option.namespace}
+          isAlreadyProtected={option.isAlreadyProtected}
         >
           <Form>
             <FormGroup
               className="modalBody modalInput--lowHeight"
               fieldId="pvc-selector"
               label={t('Add label')}
-              isRequired
               onChange={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
             >
@@ -205,7 +260,7 @@ const DualListSelectorChosenListItem: React.FC<DualListSelectorChosenListItemPro
               />
             </FormGroup>
           </Form>
-        </ExpandableSection>
+        </DualListSelectorExpandListItem>
       </DualListSelectorListItem>
     );
   };
