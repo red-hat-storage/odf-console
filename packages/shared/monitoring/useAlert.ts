@@ -24,13 +24,14 @@ type PrometheusRulesResponse = {
   status: string;
 };
 
-const useAlerts = (basePath = ''): [Alert[], boolean, any] => {
+const useAlerts = (basePath = '', cluster = ''): [Alert[], boolean, any] => {
   const defaultBasePath = usePrometheusBasePath();
 
   const [data, error, loading] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.RULES as any,
     query: PrometheusEndpoint.RULES,
     basePath: basePath || defaultBasePath,
+    ...(!!cluster ? { cluster } : {}),
   });
 
   // Flatten the rules data to make it easier to work with, discard non-alerting rules since those

@@ -18,6 +18,8 @@ export type PlacementInfo = Partial<{
 export type ProtectedAppSetsMap = {
   appName: string;
   appNamespace: string;
+  appKind: string;
+  appAPIVersion: string;
   appType: APPLICATION_TYPE;
   placementInfo: PlacementInfo[];
 };

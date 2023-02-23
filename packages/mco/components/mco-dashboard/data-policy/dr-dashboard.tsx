@@ -114,6 +114,8 @@ export const DRDashboard: React.FC = () => {
               drClusterAppsMap[decisionCluster].protectedAppSets.push({
                 appName: getName(application),
                 appNamespace: getNamespace(application),
+                appKind: application?.kind,
+                appAPIVersion: application?.apiVersion,
                 appType: APPLICATION_TYPE.APPSET,
                 placementInfo: [
                   {

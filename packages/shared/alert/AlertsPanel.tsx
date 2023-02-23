@@ -22,6 +22,8 @@ import {
   AccordionToggle,
   Badge,
   Title,
+  Button,
+  ButtonVariant,
 } from '@patternfly/react-core';
 import { Divider } from '@patternfly/react-core';
 import { InfoCircleIcon } from '@patternfly/react-icons';
@@ -31,12 +33,14 @@ type AlertBadgeProps = {
   alerts: Alert[];
   alertSeverity: AlertSeverity;
   key?: number;
+  onToggle: Function;
 };
 
 const AlertBadge: React.FC<AlertBadgeProps> = ({
   alerts,
   alertSeverity,
   key,
+  onToggle,
 }) => {
   let icon: JSX.Element;
   switch (alertSeverity) {
@@ -49,13 +53,22 @@ const AlertBadge: React.FC<AlertBadgeProps> = ({
     default:
       icon = <InfoCircleIcon />;
   }
+
+  const onClick = () => onToggle(`alert-toggle-${alertSeverity}`);
+
   return (
     <>
       <Badge
         key={key}
         className={`odf-alerts-panel__badge odf-alerts-panel__badge-${alertSeverity}`}
       >
-        <StatusIconAndText title={alerts.length.toString()} icon={icon} />
+        <Button
+          variant={ButtonVariant.plain}
+          onClick={onClick}
+          className="odf-alerts-panel__button"
+        >
+          <StatusIconAndText title={alerts.length.toString()} icon={icon} />
+        </Button>
       </Badge>
       <span className="odf-alerts-panel__badge-text">
         {_.startCase(alertSeverity)}
@@ -81,6 +94,7 @@ const AlertAccordionItem: React.FC<AlertAccordionItemProps> = ({
   loadError,
   onToggle,
 }) => {
+  const { t } = useCustomTranslation();
   const alertToggleId = `alert-toggle-${alertSeverity}`;
   const alertExpandId = `alert-expand-${alertSeverity}`;
   return (
@@ -90,22 +104,30 @@ const AlertAccordionItem: React.FC<AlertAccordionItemProps> = ({
         isExpanded={expanded === alertToggleId}
         id={alertToggleId}
       >
-        {`${_.startCase(alertSeverity)} alerts ${alerts.length}`}
+        {`${_.startCase(alertSeverity)} alerts`}
       </AccordionToggle>
       <AccordionContent
         id={alertExpandId}
         isHidden={expanded !== alertToggleId}
       >
-        <AlertsBody error={!_.isEmpty(loadError)}>
-          {loaded &&
-            alerts.length > 0 &&
-            alerts.map((alert) => (
-              <AlertItem
-                key={alert?.rule?.id}
-                alert={alert as unknown as InternalAlert}
-              />
-            ))}
-        </AlertsBody>
+        {alerts.length === 0 && !loadError ? (
+          <div className="centerComponent">
+            <div className="text-muted">
+              {t('No {{alertSeverity}} alerts found', { alertSeverity })}
+            </div>
+          </div>
+        ) : (
+          <AlertsBody error={!_.isEmpty(loadError)}>
+            {loaded &&
+              alerts.length > 0 &&
+              alerts.map((alert) => (
+                <AlertItem
+                  key={alert?.rule?.id}
+                  alert={alert as unknown as InternalAlert}
+                />
+              ))}
+          </AlertsBody>
+        )}
       </AccordionContent>
     </AccordionItem>
   );
@@ -167,12 +189,18 @@ const AlertsPanel: React.FC<AlertsProps> = ({
         <AlertBadge
           alerts={criticalAlerts}
           alertSeverity={AlertSeverity.Critical}
+          onToggle={onToggle}
         />
         <AlertBadge
           alerts={warningAlerts}
           alertSeverity={AlertSeverity.Warning}
+          onToggle={onToggle}
         />
-        <AlertBadge alerts={infoAlerts} alertSeverity={AlertSeverity.Info} />
+        <AlertBadge
+          alerts={infoAlerts}
+          alertSeverity={AlertSeverity.Info}
+          onToggle={onToggle}
+        />
         <Divider className="odf-alerts-panel__divider" />
         <Accordion asDefinitionList={false}>
           <AlertAccordionItem

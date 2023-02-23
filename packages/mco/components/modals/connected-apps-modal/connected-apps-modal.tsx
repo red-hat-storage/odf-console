@@ -151,12 +151,8 @@ export const ConnectedApplicationsModal: React.FC<ConnectedApplicationsModalProp
                       <Th {...reactPropFix} sort={getSortParams(0)}>
                         {t('Name')}
                       </Th>
-                      <Th {...reactPropFix} sort={getSortParams(1)}>
-                        {t('Namespace')}
-                      </Th>
-                      <Th {...reactPropFix} sort={getSortParams(2)}>
-                        {t('Type')}
-                      </Th>
+                      <Th {...reactPropFix}>{t('Namespace')}</Th>
+                      <Th {...reactPropFix}>{t('Type')}</Th>
                     </Tr>
                   </Thead>
                   <Tbody {...reactPropFix}>
