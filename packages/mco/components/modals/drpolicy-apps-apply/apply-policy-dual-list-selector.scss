@@ -1,10 +1,31 @@
 .mco-apply-policy-dual-selector {
-    &__listItem {
+    &__listRow{
         display: flex;
         flex-direction: column;
         text-align: start;
     }
+    &__listItem{
+        display: flex;
+        padding: 0;
+    }
+    
     &__ItemDescription--color {
         color: var(--pf-global--Color--200);
+    }
+    &__button {
+        padding: 0;
+        display: flex;
+        background-color: transparent;
+        border: none;
+    }
+    &__listItem--text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex-grow: 1;
+        color: var(--pf-c-dual-list-selector__item-text--Color);
+    }
+    &__ExpandItem--indent {
+        padding-left: var(--pf-global--spacer--lg);
     }
   }
