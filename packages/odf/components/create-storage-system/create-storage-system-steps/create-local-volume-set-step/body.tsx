@@ -7,12 +7,21 @@ import {
   diskTypeDropdownItems,
   NO_PROVISIONER,
 } from '@odf/core/constants';
+import fieldRequirementsTranslations from '@odf/shared/constants/fieldRequirements';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
+import { useK8sList } from '@odf/shared/hooks/useK8sList';
+import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
+import { StorageClassModel } from '@odf/shared/models';
+import { getName } from '@odf/shared/selectors';
 import { NodeKind } from '@odf/shared/types';
+import { StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { SelectOption } from '@patternfly/react-core';
 import {
   FormGroup,
@@ -24,6 +33,7 @@ import {
   TextVariants,
   Tooltip,
 } from '@patternfly/react-core';
+import validationRegEx from '../../../../utils/validation';
 import { LocalVolumeSet, WizardDispatch, WizardState } from '../../reducer';
 import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
 import './body.scss';
@@ -149,6 +159,73 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
     setRadio(value);
   };
 
+  const [data, loaded, loadError] =
+    useK8sList<StorageSystemKind>(StorageClassModel);
+
+  const { schema, fieldRequirements } = React.useMemo(() => {
+    const existingNames =
+      loaded && !loadError ? data?.map((data) => getName(data)) : [];
+
+    const fieldRequirements = [
+      fieldRequirementsTranslations.maxChars(t, 253),
+      fieldRequirementsTranslations.startAndEndName(t),
+      fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
+      fieldRequirementsTranslations.cannotBeUsedBefore(t),
+    ];
+
+    const schema = Yup.object({
+      'create-lvs-storage-class-name': Yup.string()
+        .required()
+        .max(253, fieldRequirements[0])
+        .matches(
+          validationRegEx.startAndEndsWithAlphanumerics,
+          fieldRequirements[1]
+        )
+        .matches(
+          validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
+          fieldRequirements[2]
+        )
+        .test(
+          'unique-name',
+          fieldRequirements[3],
+          (value: string) => !existingNames.includes(value)
+        ),
+    });
+
+    return { schema, fieldRequirements };
+  }, [data, loadError, loaded, t]);
+
+  const resolver = useYupValidationResolver(schema);
+  const {
+    control,
+    watch,
+    formState: { isValid },
+  } = useForm({
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    resolver,
+    context: undefined,
+    criteriaMode: 'firstError',
+    shouldFocusError: true,
+    shouldUnregister: false,
+    shouldUseNativeValidation: false,
+    delayError: undefined,
+  });
+
+  const createLvsStorageClassName: string = watch(
+    'create-lvs-storage-class-name'
+  );
+
+  React.useEffect(() => {
+    dispatch({
+      type: 'wizard/setStorageClass',
+      payload: {
+        name: isValid ? createLvsStorageClassName : '',
+        provisioner: NO_PROVISIONER,
+      },
+    });
+  }, [createLvsStorageClassName, dispatch, isValid]);
+
   return (
     <>
       <FormGroup
@@ -167,23 +244,27 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           isRequired
         />
       </FormGroup>
-      <FormGroup
-        label={t('StorageClass name')}
-        fieldId="create-lvs-storage-class-name"
-      >
-        <TextInput
-          type={TextInputTypes.text}
-          id="create-lvs-storage-class-name"
-          value={storageClassName}
-          placeholder={state.volumeSetName}
-          onChange={(name: string) =>
-            dispatch({
-              type: 'wizard/setStorageClass',
-              payload: { name, provisioner: NO_PROVISIONER },
-            })
-          }
-        />
-      </FormGroup>
+      <TextInputWithFieldRequirements
+        control={control}
+        fieldRequirements={fieldRequirements}
+        defaultValue={storageClassName}
+        popoverProps={{
+          headerContent: t('Name requirements'),
+          footerContent: `${t('Example')}: my-storage-class`,
+        }}
+        formGroupProps={{
+          label: t('StorageClass name'),
+          fieldId: 'create-lvs-storage-class-name',
+        }}
+        textInputProps={{
+          id: 'create-lvs-storage-class-name',
+          name: 'create-lvs-storage-class-name',
+          type: TextInputTypes.text,
+          value: storageClassName,
+          placeholder: state.volumeSetName,
+          'data-test': 'create-lvs-storage-class-name',
+        }}
+      />
       <Text
         component={TextVariants.h3}
         className="odf-create-lvs__filter-volumes-text--margin"

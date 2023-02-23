@@ -269,7 +269,9 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
     {
       id: CreateStepsBC.GENERAL,
       name: t('General'),
-      component: <GeneralPage dispatch={dispatch} state={state} />,
+      component: (
+        <GeneralPage dispatch={dispatch} state={state} namespace={ns} />
+      ),
       enableNext: validateBucketClassName(state.bucketClassName.trim()),
       get canJumpTo() {
         return canJumpToHelper(this);

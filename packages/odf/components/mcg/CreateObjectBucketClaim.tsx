@@ -6,22 +6,28 @@ import {
   generateGenericName,
   getStorageClassDescription,
 } from '@odf/core/utils';
+import fieldRequirementsTranslations from '@odf/shared/constants/fieldRequirements';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
+import { useK8sList } from '@odf/shared/hooks/useK8sList';
+import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel, resourcePathFromModel } from '@odf/shared/utils';
+import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   getAPIVersionForModel,
   k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
+import { useForm } from 'react-hook-form';
 import { match, useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
+import * as Yup from 'yup';
 import {
   ActionGroup,
   Button,
@@ -33,6 +39,7 @@ import {
   NooBaaObjectBucketClaimModel,
   NooBaaBucketClassModel,
 } from '../../models';
+import validationRegEx from '../../utils/validation';
 import { ReplicationPolicyForm, Rule } from './replication-policy-form';
 import {
   Action,
@@ -185,31 +192,95 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     namespace: 'openshift-storage',
   };
 
+  const [data, loaded, loadError] = useK8sList(
+    NooBaaObjectBucketClaimModel,
+    namespace
+  );
+
+  const { schema, fieldRequirements } = React.useMemo(() => {
+    const existingNames =
+      loaded && !loadError ? data?.map((data) => getName(data)) : [];
+
+    const fieldRequirements = [
+      fieldRequirementsTranslations.maxChars(t, 253),
+      fieldRequirementsTranslations.startAndEndName(t),
+      fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
+      fieldRequirementsTranslations.cannotBeUsedBefore(t),
+    ];
+
+    const schema = Yup.object({
+      obcName: Yup.string()
+        .max(253, fieldRequirements[0])
+        .matches(
+          validationRegEx.startAndEndsWithAlphanumerics,
+          fieldRequirements[1]
+        )
+        .matches(
+          validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
+          fieldRequirements[2]
+        )
+        .test(
+          'unique-name',
+          fieldRequirements[3],
+          (value: string) => !existingNames.includes(value)
+        )
+        .notRequired()
+        .transform((value: string) => (!!value ? value : undefined)),
+    });
+
+    return { schema, fieldRequirements };
+  }, [data, loadError, loaded, t]);
+
+  const resolver = useYupValidationResolver(schema);
+
+  const {
+    control,
+    watch,
+    formState: { isValid },
+  } = useForm({
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    resolver,
+    context: undefined,
+    criteriaMode: 'firstError',
+    shouldFocusError: true,
+    shouldUnregister: false,
+    shouldUseNativeValidation: false,
+    delayError: undefined,
+  });
+
+  const obcName: string = watch('obcName');
+
+  React.useEffect(() => {
+    dispatch({ type: 'setName', name: isValid ? obcName : '' });
+  }, [obcName, dispatch, isValid]);
+
   return (
     <div>
       <div className="form-group">
-        <label className="control-label" htmlFor="obc-name">
-          {t('ObjectBucketClaim Name')}
-        </label>
-        <div className="form-group">
-          <input
-            className="pf-c-form-control"
-            type="text"
-            onChange={(e) =>
-              dispatch({ type: 'setName', name: e.currentTarget.value.trim() })
-            }
-            value={state.name}
-            placeholder={t('my-object-bucket')}
-            aria-describedby="obc-name-help"
-            id="obc-name"
-            data-test="obc-name"
-            name="obcName"
-            pattern="[a-z0-9](?:[-a-z0-9]*[a-z0-9])?"
-          />
-          <p className="help-block" id="obc-name-help">
-            {t('If not provided a generic name will be generated.')}
-          </p>
-        </div>
+        <TextInputWithFieldRequirements
+          control={control}
+          fieldRequirements={fieldRequirements}
+          popoverProps={{
+            headerContent: t('Name requirements'),
+            footerContent: `${t('Example')}: my-object-bucket`,
+          }}
+          formGroupProps={{
+            label: t('ObjectBucketClaim Name'),
+            fieldId: 'obc-name',
+            className: 'control-label',
+            helperText: t('If not provided a generic name will be generated.'),
+          }}
+          textInputProps={{
+            id: 'obc-name',
+            name: 'obcName',
+            className: 'pf-c-form-control',
+            type: 'text',
+            placeholder: t('my-object-bucket'),
+            'aria-describedby': 'obc-name-help',
+            'data-test': 'obc-name',
+          }}
+        />
         <div className="form-group">
           <label className="control-label" htmlFor="sc-dropdown">
             {t('StorageClass')}
