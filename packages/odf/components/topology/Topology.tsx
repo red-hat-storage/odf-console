@@ -237,7 +237,9 @@ const TopologyViewComponent: React.FC = () => {
     }
     // Handle update of Resources
     filtererdGraphNodes.forEach((node) => {
-      const resource = inViewResources.find((n) => n.metadata.uid === node.id);
+      const resource = inViewResources.find(
+        (n) => n.metadata.uid === getUID(node?.data?.resource)
+      );
       if (!_.isEqual(node.data.resource, resource)) {
         requiresUpdate = true;
         node.data.resource = resource;

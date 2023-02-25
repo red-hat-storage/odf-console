@@ -271,6 +271,7 @@ const StyleNode: React.FunctionComponent<StyleNodeProps> = ({
             detailsLevel === ScaleDetailsLevel.high &&
             passedData.showStatusDecorator
           }
+          onStatusDecoratorClick={() => null}
           onContextMenu={data.showContextMenu ? onContextMenu : undefined}
           contextMenuOpen={contextMenuOpen}
           onShowCreateConnector={null}
