@@ -26,7 +26,7 @@ import './utilization-card.scss';
 import { PrometheusMultilineUtilizationItem } from './prometheus-multi-utilization-item';
 import { humanizeIOPS, humanizeLatency } from './utils';
 
-const UtilizationCard: React.FC = () => {
+export const UtilizationContent: React.FC = () => {
   const { t } = useCustomTranslation();
   const storagePopover = React.useCallback(
     ({ current }) => (
@@ -39,6 +39,68 @@ const UtilizationCard: React.FC = () => {
     ),
     [t]
   );
+
+  return (
+    <Grid className="co-utilization-card__body">
+      <PrometheusUtilizationItem
+        title={t('Used capacity')}
+        utilizationQuery={
+          UTILIZATION_QUERY[StorageDashboardQuery.CEPH_CAPACITY_USED]
+        }
+        humanizeValue={humanizeBinaryBytes}
+        byteDataType={ByteDataTypes.BinaryBytes}
+        TopConsumerPopover={storagePopover}
+      />
+      <PrometheusMultilineUtilizationItem
+        title={t('IOPS')}
+        queries={[
+          UTILIZATION_QUERY[StorageDashboardQuery.UTILIZATION_IOPS_READ_QUERY],
+          UTILIZATION_QUERY[StorageDashboardQuery.UTILIZATION_IOPS_WRITE_QUERY],
+        ]}
+        humanizeValue={humanizeIOPS}
+        chartType="stacked-area"
+      />
+      <PrometheusMultilineUtilizationItem
+        title={t('Throughput')}
+        queries={[
+          UTILIZATION_QUERY[
+            StorageDashboardQuery.UTILIZATION_THROUGHPUT_READ_QUERY
+          ],
+          UTILIZATION_QUERY[
+            StorageDashboardQuery.UTILIZATION_THROUGHPUT_WRITE_QUERY
+          ],
+        ]}
+        humanizeValue={humanizeDecimalBytesPerSec}
+        chartType="stacked-area"
+      />
+      <PrometheusMultilineUtilizationItem
+        title={t('Latency')}
+        queries={[
+          UTILIZATION_QUERY[
+            StorageDashboardQuery.UTILIZATION_LATENCY_READ_QUERY
+          ],
+          UTILIZATION_QUERY[
+            StorageDashboardQuery.UTILIZATION_LATENCY_WRITE_QUERY
+          ],
+        ]}
+        humanizeValue={humanizeLatency}
+        chartType="grouped-line"
+      />
+      <PrometheusUtilizationItem
+        title={t('Recovery')}
+        utilizationQuery={
+          UTILIZATION_QUERY[
+            StorageDashboardQuery.UTILIZATION_RECOVERY_RATE_QUERY
+          ]
+        }
+        humanizeValue={humanizeDecimalBytesPerSec}
+      />
+    </Grid>
+  );
+};
+
+const UtilizationCard: React.FC = () => {
+  const { t } = useCustomTranslation();
 
   return (
     <Card>
@@ -55,65 +117,7 @@ const UtilizationCard: React.FC = () => {
           <UtilizationDurationDropdown />
         </CardActions>
       </CardHeader>
-      <Grid className="co-utilization-card__body">
-        <PrometheusUtilizationItem
-          title={t('Used Capacity')}
-          utilizationQuery={
-            UTILIZATION_QUERY[StorageDashboardQuery.CEPH_CAPACITY_USED]
-          }
-          humanizeValue={humanizeBinaryBytes}
-          byteDataType={ByteDataTypes.BinaryBytes}
-          TopConsumerPopover={storagePopover}
-        />
-        <PrometheusMultilineUtilizationItem
-          title={t('IOPS')}
-          queries={[
-            UTILIZATION_QUERY[
-              StorageDashboardQuery.UTILIZATION_IOPS_READ_QUERY
-            ],
-            UTILIZATION_QUERY[
-              StorageDashboardQuery.UTILIZATION_IOPS_WRITE_QUERY
-            ],
-          ]}
-          humanizeValue={humanizeIOPS}
-          chartType="stacked-area"
-        />
-        <PrometheusMultilineUtilizationItem
-          title={t('Throughput')}
-          queries={[
-            UTILIZATION_QUERY[
-              StorageDashboardQuery.UTILIZATION_THROUGHPUT_READ_QUERY
-            ],
-            UTILIZATION_QUERY[
-              StorageDashboardQuery.UTILIZATION_THROUGHPUT_WRITE_QUERY
-            ],
-          ]}
-          humanizeValue={humanizeDecimalBytesPerSec}
-          chartType="stacked-area"
-        />
-        <PrometheusMultilineUtilizationItem
-          title={t('Latency')}
-          queries={[
-            UTILIZATION_QUERY[
-              StorageDashboardQuery.UTILIZATION_LATENCY_READ_QUERY
-            ],
-            UTILIZATION_QUERY[
-              StorageDashboardQuery.UTILIZATION_LATENCY_WRITE_QUERY
-            ],
-          ]}
-          humanizeValue={humanizeLatency}
-          chartType="grouped-line"
-        />
-        <PrometheusUtilizationItem
-          title={t('Recovery')}
-          utilizationQuery={
-            UTILIZATION_QUERY[
-              StorageDashboardQuery.UTILIZATION_RECOVERY_RATE_QUERY
-            ]
-          }
-          humanizeValue={humanizeDecimalBytesPerSec}
-        />
-      </Grid>
+      <UtilizationContent />
     </Card>
   );
 };

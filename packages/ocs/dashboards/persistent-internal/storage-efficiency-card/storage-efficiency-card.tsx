@@ -12,7 +12,7 @@ import {
   StorageDashboardQuery,
 } from '../../../queries';
 
-const StorageEfficiencyCard: React.FC = () => {
+export const StorageEfficiencyContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
   const [poolCapacityRatioResult, poolCapacityRatioResultError] =
@@ -70,15 +70,23 @@ const StorageEfficiencyCard: React.FC = () => {
     ),
     getStats: savingStats,
   };
+  return (
+    <>
+      <EfficiencyItemBody {...compressionRatioProps} />
+      <EfficiencyItemBody {...savingsProps} />
+    </>
+  );
+};
 
+const StorageEfficiencyCard: React.FC = () => {
+  const { t } = useCustomTranslation();
   return (
     <Card>
       <CardHeader>
         <CardTitle>{t('Storage Efficiency')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <EfficiencyItemBody {...compressionRatioProps} />
-        <EfficiencyItemBody {...savingsProps} />
+        <StorageEfficiencyContent />
       </CardBody>
     </Card>
   );

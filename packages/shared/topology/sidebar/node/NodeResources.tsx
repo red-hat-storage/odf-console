@@ -1,97 +1,25 @@
 import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { DataUnavailableError } from '@odf/shared/generic/Error';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { PodModel } from '@odf/shared/models';
 import { POD_QUERIES, PodMetrics } from '@odf/shared/queries/pod';
-import ResourceLink from '@odf/shared/resource-link/resource-link';
-import { getUID } from '@odf/shared/selectors';
-import { resourceStatus } from '@odf/shared/status/Resource';
-import { Status } from '@odf/shared/status/Status';
+import {
+  PodsOverviewList,
+  PodWithMetricsKind,
+} from '@odf/shared/topology/sidebar/common/PodList';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  formatBytesAsMiB,
-  formatCores,
-  resourcePathFromModel,
-} from '@odf/shared/utils';
-import {
   PrometheusResponse,
-  ResourceStatus,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { NodeKind, PodKind } from 'packages/shared/types';
-import './node-resources.scss';
-
-type PodOverviewItemProps = {
-  pod: PodWithMetricsKind;
-};
-
-const PodOverviewItem: React.FC<PodOverviewItemProps> = ({ pod }) => {
-  const { t } = useCustomTranslation();
-  const {
-    metadata: { name, namespace },
-    metrics: { cpu, memory },
-  } = pod;
-  const formattedCores = isNaN(cpu) ? 'N/A' : `${formatCores(cpu)} cores`;
-  const formattedMemory = isNaN(memory)
-    ? 'N/A'
-    : `${formatBytesAsMiB(memory)} MiB`;
-
-  return (
-    <li className="list-group-item container-fluid">
-      <div className="row">
-        <span className="col-xs-5">
-          <ResourceLink
-            link={resourcePathFromModel(PodModel, name, namespace)}
-            resourceModel={PodModel}
-            resourceName={name}
-          />
-        </span>
-        <span className="col-xs-3">
-          <ResourceStatus additionalClassNames="hidden-xs">
-            <Status status={resourceStatus(pod)} />
-          </ResourceStatus>
-        </span>
-        <span className="col-xs-2">
-          <span className="odf-sidebar-pod-list__item-header">
-            {t('Memory')}
-          </span>
-          <span className="odf-sidebar-pod-list__item-content">
-            {formattedMemory}
-          </span>
-        </span>
-        <span className="col-xs-2">
-          <span className="odf-sidebar-pod-list__item-header">{t('CPU')}</span>
-          <span className="odf-sidebar-pod-list__item-content">
-            {formattedCores}
-          </span>
-        </span>
-      </div>
-    </li>
-  );
-};
-
-type PodOverviewListProps = {
-  pods: PodWithMetricsKind[];
-};
-
-const PodsOverviewList: React.FC<PodOverviewListProps> = ({ pods }) => (
-  <ul className="list-group">
-    {_.map(pods, (pod) => (
-      <PodOverviewItem key={getUID(pod)} pod={pod} />
-    ))}
-  </ul>
-);
-
-type PodWithMetricsKind = PodKind & {
-  metrics: {
-    cpu: number;
-    memory: number;
-  };
-};
+import { Title } from '@patternfly/react-core';
+import '@odf/shared/topology/sidebar/common/resources-tab.scss';
 
 const getPodMetric = (
   metrics: PrometheusResponse['data']['result'],
@@ -108,7 +36,7 @@ type NodeResourcesProps = {
   node: NodeKind;
 };
 
-const NodeResources: React.FC<NodeResourcesProps> = ({ node }) => {
+export const NodeResources: React.FC<NodeResourcesProps> = ({ node }) => {
   const { t } = useCustomTranslation();
   const [pods, loaded, loadError] = useK8sWatchResource<PodWithMetricsKind[]>({
     kind: PodModel.kind,
@@ -155,17 +83,17 @@ const NodeResources: React.FC<NodeResourcesProps> = ({ node }) => {
   }
 
   return (
-    <div className="co-m-pane__body topology-sidebar-tab-observe">
-      <h3>
-        {t('Pods')} ({filteredPods.length})
-      </h3>
-      {filteredPods.length > 0 && (
+    <div className="odf-m-pane__body topology-sidebar-tab__resources">
+      {loaded && _.isEmpty(loadError) ? (
         <>
-          <PodsOverviewList pods={filteredPods}></PodsOverviewList>
+          <Title headingLevel="h3">
+            {t('Pods')} ({filteredPods.length})
+          </Title>
+          {filteredPods.length > 0 && <PodsOverviewList pods={filteredPods} />}
         </>
+      ) : (
+        <DataUnavailableError />
       )}
     </div>
   );
 };
-
-export default NodeResources;

@@ -12,7 +12,6 @@ import {
   TopologySearchContext,
   TopologyViewLevel,
 } from '@odf/shared/topology';
-import TopologySideBar from '@odf/shared/topology/sidebar/TopologySideBar';
 import {
   DeploymentKind,
   NodeKind,
@@ -61,6 +60,7 @@ import {
   generateNodesInZone,
   generateStorageClusterGroup,
 } from './NodeGenerator';
+import TopologySideBar from './sidebar/TopologySideBar';
 import { TopologyTopBar } from './TopBar';
 import { generateNodeDeploymentsMap, groupNodesByZones } from './utils';
 import './topology.scss';
@@ -142,6 +142,7 @@ const TopologyViewComponent: React.FC = () => {
     };
     controller.fromModel(model);
     // To handle initial render only, keeping array empty
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {

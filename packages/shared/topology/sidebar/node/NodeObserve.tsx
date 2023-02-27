@@ -21,7 +21,7 @@ type NodeObserveProps = {
   node: NodeKind;
 };
 
-const NodeObserve: React.FC<NodeObserveProps> = ({ node }) => {
+export const NodeObserve: React.FC<NodeObserveProps> = ({ node }) => {
   const { t } = useCustomTranslation();
 
   const nodeName = node.metadata.name;
@@ -67,5 +67,3 @@ const NodeObserve: React.FC<NodeObserveProps> = ({ node }) => {
     </Card>
   );
 };
-
-export default NodeObserve;

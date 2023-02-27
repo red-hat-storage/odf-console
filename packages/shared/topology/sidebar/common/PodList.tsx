@@ -13,7 +13,6 @@ import {
 import { ResourceStatus } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { PodKind } from 'packages/shared/types';
-import './node-resources.scss';
 
 type PodOverviewItemProps = {
   pod: PodWithMetricsKind;
