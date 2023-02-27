@@ -2,7 +2,6 @@ import * as React from 'react';
 import HandleErrorAndLoading from '@odf/shared/error-handler/ErrorStateHandler';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { DeploymentModel, NodeModel } from '@odf/shared/models';
-import useAlerts from '@odf/shared/monitoring/useAlert';
 import { getName, getUID } from '@odf/shared/selectors';
 import {
   createNode,
@@ -75,10 +74,8 @@ const Sidebar: React.FC<SideBarProps> = ({ element, onClose, isExpanded }) => {
   const data = element?.getData();
   const resource = data?.resource;
 
-  const [alerts, loaded, loadError] = useAlerts();
   return (
     <TopologySideBar
-      alertsResponse={{ alerts, loaded, loadError }}
       resource={resource}
       onClose={onClose}
       isExpanded={isExpanded}
