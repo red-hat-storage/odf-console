@@ -58,17 +58,21 @@ export type ExternalComponentProps<S extends ExternalState> = {
  *    @param {ExtensionK8sModel} model
  *    The model referring the `apiGroup`,`apiVersion` and `kind` of the external storage vendor's CRD.
  *
- *    @param {string} storageClassName
- *    The name of the of the storage class.
+ *    optional @param {storageClassName} string
+ *    applicable for IBM Flash Storage type
+ *
+ *    optional @param {inTransitStatus} string
+ *    applicable for RHCS storage type where the network encryption is enabled or not.
  *
  *    @returns {Payload} An array of payloads of `Payload` type.
  */
-export type CreatePayload<S extends ExternalState> = (
-  systemName: string,
-  state: S,
-  model: Model,
-  storageClassName: string
-) => Payload[];
+export type CreatePayload<S extends ExternalState> = (payloadOptions: {
+  systemName: string;
+  state: S;
+  model: Model;
+  storageClassName?: string;
+  inTransitStatus?: boolean;
+}) => Payload[];
 
 export type Payload = { model: Model; payload: K8sResourceKind };
 

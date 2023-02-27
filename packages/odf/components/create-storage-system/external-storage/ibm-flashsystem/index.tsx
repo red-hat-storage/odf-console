@@ -122,12 +122,12 @@ export const FlashSystemConnectionDetails: React.FC<
   );
 };
 
-export const createFlashSystemPayload: CreatePayload<FlashSystemState> = (
+export const createFlashSystemPayload: CreatePayload<FlashSystemState> = ({
   systemName,
-  form,
+  state,
   model,
-  storageClassName
-) => {
+  storageClassName,
+}) => {
   const namespace = 'openshift-storage';
   const defaultFilesystem = 'ext4';
   const defaultVolumeMode = 'thick';
@@ -148,9 +148,9 @@ export const createFlashSystemPayload: CreatePayload<FlashSystemState> = (
         namespace,
       },
       defaultPool: {
-        poolName: form.poolname,
+        poolName: state.poolname,
         storageclassName: storageClassName,
-        spaceEfficiency: form.volmode ? form.volmode : defaultVolumeMode,
+        spaceEfficiency: state.volmode ? state.volmode : defaultVolumeMode,
         fsType: defaultFilesystem,
         volumeNamePrefix: defaultVolumePrefix,
       },
@@ -164,9 +164,9 @@ export const createFlashSystemPayload: CreatePayload<FlashSystemState> = (
   const storageSecretTemplate: SecretKind = {
     apiVersion: getAPIVersionForModel(SecretModel),
     stringData: {
-      management_address: form.endpoint,
-      password: form.password,
-      username: form.username,
+      management_address: state.endpoint,
+      password: state.password,
+      username: state.username,
     },
     kind: 'Secret',
     metadata: {

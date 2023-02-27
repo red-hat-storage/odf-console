@@ -13,6 +13,7 @@ import {
   HumanizeResult,
   K8sResourceKind,
   StorageClassResourceKind,
+  StorageClusterKind,
 } from '@odf/shared/types';
 import { DataPoint, humanizePercentage } from '@odf/shared/utils';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
@@ -141,3 +142,6 @@ export const getLatestValue = (stats: DataPoint[] = []) =>
 
 export const calcPercentage = (value: number, total: number): HumanizeResult =>
   humanizePercentage((value * 100) / total);
+
+export const getNetworkEncryption = (cluster: StorageClusterKind) =>
+  cluster?.spec?.network?.connections?.encryption?.enabled || false;

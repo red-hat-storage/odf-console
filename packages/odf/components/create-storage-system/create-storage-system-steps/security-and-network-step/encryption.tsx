@@ -155,6 +155,7 @@ export const Encryption: React.FC<EncryptionProps> = ({
   dispatch,
   infraType,
   isMCG,
+  isExternal,
 }) => {
   const { t } = useCustomTranslation();
   const isKmsSupported = useFlag(FEATURES.OCS_KMS);
@@ -213,6 +214,17 @@ export const Encryption: React.FC<EncryptionProps> = ({
     setEncryptionChecked(checked);
   };
 
+  const handleInTransitEncryptionOnChange = (checked: boolean) => {
+    const payload = {
+      ...encryption,
+      inTransit: checked,
+    };
+    dispatch({
+      type: 'securityAndNetwork/setEncryption',
+      payload,
+    });
+  };
+
   const description = !isMCG
     ? t(
         'Data encryption for block and file storage. MultiCloud Object Gateway supports encryption for objects by default.'
@@ -228,35 +240,49 @@ export const Encryption: React.FC<EncryptionProps> = ({
   return (
     <>
       <FormGroup fieldId="configure-encryption" label={t('Encryption')}>
-        <Checkbox
-          data-test="encryption-checkbox"
-          id="configure-encryption"
-          isChecked={isMCG || encryptionChecked}
-          data-checked-state={isMCG || encryptionChecked}
-          isDisabled={isMCG}
-          label={encryptionLabel}
-          description={description}
-          onChange={handleEncryptionOnChange}
-          body={
-            isKmsSupported &&
-            (isMCG || encryptionChecked) && (
-              <>
-                {!isMCG && (
-                  <EncryptionLevel
+        {!isExternal && (
+          <Checkbox
+            data-test="encryption-checkbox"
+            id="configure-encryption"
+            isChecked={isMCG || encryptionChecked}
+            data-checked-state={isMCG || encryptionChecked}
+            isDisabled={isMCG}
+            label={encryptionLabel}
+            description={description}
+            onChange={handleEncryptionOnChange}
+            body={
+              isKmsSupported &&
+              (isMCG || encryptionChecked) && (
+                <>
+                  {!isMCG && (
+                    <EncryptionLevel
+                      encryption={encryption}
+                      dispatch={dispatch}
+                    />
+                  )}
+                  <KMSConnection
                     encryption={encryption}
+                    kms={kms}
                     dispatch={dispatch}
+                    infraType={infraType}
+                    isMCG={!!isMCG}
                   />
-                )}
-                <KMSConnection
-                  encryption={encryption}
-                  kms={kms}
-                  dispatch={dispatch}
-                  infraType={infraType}
-                  isMCG={!!isMCG}
-                />
-              </>
-            )
-          }
+                </>
+              )
+            }
+          />
+        )}
+        <Checkbox
+          className="odf-in-transit-encryption"
+          data-test="in-transit-encryption-checkbox"
+          id="in-transit-encryption"
+          isChecked={encryption.inTransit}
+          data-checked-state={encryption.inTransit}
+          label={t('In-transit encryption')}
+          description={t(
+            'A secure mode that encrypts all data passing over the network'
+          )}
+          onChange={handleInTransitEncryptionOnChange}
         />
       </FormGroup>
       {!encryption.hasHandled && (
@@ -292,4 +318,5 @@ type EncryptionProps = {
   dispatch: WizardDispatch;
   infraType: string;
   isMCG?: boolean;
+  isExternal?: boolean;
 };

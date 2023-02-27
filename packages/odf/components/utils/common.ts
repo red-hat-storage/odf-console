@@ -392,21 +392,7 @@ export const getOCSRequestData = (
         ),
       ],
       ...Object.assign(
-        publicNetwork || clusterNetwork
-          ? {
-              network: {
-                provider: 'multus',
-                selectors: {
-                  ...Object.assign(
-                    publicNetwork ? { public: publicNetwork } : {}
-                  ),
-                  ...Object.assign(
-                    clusterNetwork ? { cluster: clusterNetwork } : {}
-                  ),
-                },
-              },
-            }
-          : {}
+        getNetworkField(publicNetwork, clusterNetwork, encryption.inTransit)
       ),
     };
   }
@@ -439,4 +425,31 @@ export const getOCSRequestData = (
   }
 
   return requestData;
+};
+
+const getNetworkField = (
+  publicNetwork: string,
+  clusterNetwork: string,
+  inTransitEncryption: boolean
+) => {
+  const multusNetwork =
+    publicNetwork || clusterNetwork
+      ? {
+          provider: 'multus',
+          selectors: {
+            ...Object.assign(publicNetwork ? { public: publicNetwork } : {}),
+            ...Object.assign(clusterNetwork ? { cluster: clusterNetwork } : {}),
+          },
+        }
+      : {};
+  return {
+    network: {
+      ...multusNetwork,
+      connections: {
+        encryption: {
+          enabled: inTransitEncryption,
+        },
+      },
+    },
+  };
 };

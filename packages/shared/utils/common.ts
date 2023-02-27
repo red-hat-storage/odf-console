@@ -28,9 +28,9 @@ export const referenceFor =
 
 // Operator uses`<kind>.<apiGroup>/<apiVersion>`
 export const getGVK = (label: string) => {
-  const kind = label.slice(0, label.indexOf('.'));
-  const apiGroup = label.slice(label.indexOf('.') + 1, label.indexOf('/'));
-  const apiVersion = label.slice(label.indexOf('/') + 1, label.length);
+  const kind = label?.slice(0, label.indexOf('.'));
+  const apiGroup = label?.slice(label.indexOf('.') + 1, label.indexOf('/'));
+  const apiVersion = label?.slice(label.indexOf('/') + 1, label.length);
   return { kind, apiGroup, apiVersion };
 };
 
