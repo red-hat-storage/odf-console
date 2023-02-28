@@ -14,7 +14,7 @@ import { TFunction } from 'i18next';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
 import { DRActionType } from '../../../../constants';
-import { isPeerReadyAndAvailable } from '../../../../utils';
+import { checkDRActionReadiness } from '../../../../utils';
 import { ErrorMessageType } from './error-messages';
 import {
   FailoverAndRelocateState,
@@ -43,10 +43,11 @@ const initalPeerStatus = (t: TFunction) => ({
 const getPeerReadiness = (
   peerReadiness: StatusProps,
   drpcState: DRPolicyControlState,
+  actionType: DRActionType,
   t: TFunction
 ): StatusProps =>
   peerReadiness.text !== 'Not ready'
-    ? isPeerReadyAndAvailable(drpcState?.drPolicyControl)
+    ? checkDRActionReadiness(drpcState?.drPolicyControl, actionType)
       ? {
           text: PEER_READINESS(t).PEER_READY,
           icon: <GreenCheckCircleIcon />,
@@ -81,6 +82,7 @@ const getFormatedDateTime = (dateTime: string) =>
 const getPeerStatusSummary = (
   drpcStateList: DRPolicyControlState[],
   subsGroups: string[],
+  actionType: DRActionType,
   t: TFunction
 ) =>
   // Verify all DRPC has Peer ready status
@@ -89,7 +91,12 @@ const getPeerStatusSummary = (
       subsGroups.includes(getName(drpcState?.drPolicyControl))
         ? {
             ...acc,
-            peerReadiness: getPeerReadiness(acc.peerReadiness, drpcState, t),
+            peerReadiness: getPeerReadiness(
+              acc.peerReadiness,
+              drpcState,
+              actionType,
+              t
+            ),
             dataLastSyncedOn: getDataLastSyncTime(
               acc.dataLastSyncedOn,
               drpcState
@@ -114,6 +121,7 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
+  const { drPolicyControlState, selectedSubsGroups, actionType } = state;
   const [peerStatus, setPeerStatus] = React.useState<StatusType>(
     initalPeerStatus(t)
   );
@@ -130,18 +138,16 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
   );
 
   React.useEffect(() => {
-    if (!!state.selectedSubsGroups.length) {
+    if (!!selectedSubsGroups.length) {
       const peerCurrentStatus = getPeerStatusSummary(
-        state?.drPolicyControlState,
-        state?.selectedSubsGroups,
+        drPolicyControlState,
+        selectedSubsGroups,
+        actionType,
         t
       );
+      actionType === DRActionType.RELOCATE &&
       peerCurrentStatus.peerReadiness.text === PEER_READINESS(t).PEER_NOT_READY
-        ? setErrorMessage(
-            state.actionType === DRActionType.FAILOVER
-              ? ErrorMessageType.PEER_IS_NOT_READY_FAILOVER
-              : ErrorMessageType.PEER_IS_NOT_READY_RELOCATE
-          )
+        ? setErrorMessage(ErrorMessageType.PEER_IS_NOT_READY_RELOCATE)
         : setErrorMessage(0);
       setPeerStatus(peerCurrentStatus);
     } else {
@@ -150,9 +156,9 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
       setErrorMessage(0);
     }
   }, [
-    state.selectedSubsGroups,
-    state.drPolicyControlState,
-    state.actionType,
+    selectedSubsGroups,
+    drPolicyControlState,
+    actionType,
     t,
     setPeerStatus,
     setErrorMessage,

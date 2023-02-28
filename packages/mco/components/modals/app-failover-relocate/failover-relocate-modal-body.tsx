@@ -75,11 +75,9 @@ const validatePlacement = (
     return isFailoverAction
       ? ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER
       : ErrorMessageType.DR_IS_NOT_ENABLED_RELOCATE;
-  } else if (!placement?.isPeerReady) {
+  } else if (!placement?.isPeerReady && !isFailoverAction) {
     // Peer is not ready for DR action
-    return isFailoverAction
-      ? ErrorMessageType.PEER_IS_NOT_READY_FAILOVER
-      : ErrorMessageType.PEER_IS_NOT_READY_RELOCATE;
+    return ErrorMessageType.PEER_IS_NOT_READY_RELOCATE;
   } else {
     const errorMessage = isFailoverAction
       ? failoverPreCheck(placement)

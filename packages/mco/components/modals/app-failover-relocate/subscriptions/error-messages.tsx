@@ -8,7 +8,6 @@ export enum ErrorMessageType {
   // Priority wise error messages
   DR_IS_NOT_ENABLED_FAILOVER = 1,
   DR_IS_NOT_ENABLED_RELOCATE,
-  PEER_IS_NOT_READY_FAILOVER,
   PEER_IS_NOT_READY_RELOCATE,
   MANAGED_CLUSTERS_ARE_DOWN,
   TARGET_CLUSTER_IS_NOT_AVAILABLE,
@@ -63,23 +62,6 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
             <ViewDocumentation doclink={DOC_LINKS.APPLY_POLICY} />
           </li>
         </ul>
-      </Trans>
-    ),
-    variant: AlertVariant.danger,
-  },
-  [ErrorMessageType.PEER_IS_NOT_READY_FAILOVER]: {
-    title: t('Cannot failover.'),
-    message: (
-      <Trans t={t}>
-        <p>
-          Peer is not in ready state. Wait a few minutes and try again. If it
-          still is not ready, refer to the
-          <ViewDocumentation
-            doclink={DOC_LINKS.DR_RELEASE_NOTES}
-            text="release notes"
-          />
-          documentation of known issues linked to disaster recovery.
-        </p>
       </Trans>
     ),
     variant: AlertVariant.danger,

@@ -17,7 +17,7 @@ import { ArgoApplicationSetKind } from '../../../types';
 import {
   findCluster,
   findDeploymentClusterName,
-  isPeerReadyAndAvailable,
+  checkDRActionReadiness,
   getManagedClusterAvailableCondition,
   findDRType,
   isDRClusterFenced,
@@ -122,7 +122,7 @@ export const ArogoApplicationSetModal = (
             targetClusterAvailableTime:
               targetClusterCondition?.lastTransitionTime,
             isPrimaryClusterAvailable: !!primaryClusterCondition,
-            isPeerReady: isPeerReadyAndAvailable(drPlacementControl),
+            isPeerReady: checkDRActionReadiness(drPlacementControl, action),
             snapshotTakenTime: drPlacementControl?.status?.lastGroupSyncTime,
             preferredCluster: drPlacementControl?.spec?.preferredCluster,
             failoverCluster: drPlacementControl?.spec?.failoverCluster,
@@ -133,7 +133,7 @@ export const ArogoApplicationSetModal = (
           },
         ]
       : [];
-  }, [aroAppSetResource, loaded, loadError]);
+  }, [aroAppSetResource, action, loaded, loadError]);
 
   return (
     <FailoverRelocateModal

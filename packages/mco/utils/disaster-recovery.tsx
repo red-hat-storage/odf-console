@@ -30,6 +30,7 @@ import {
   THRESHOLD,
 } from '../constants';
 import {
+  DRActionType,
   DRPC_NAMESPACE_ANNOTATION,
   DRPC_NAME_ANNOTATION,
   REPLICATION_TYPE,
@@ -237,6 +238,14 @@ export const isPeerReadyAndAvailable = (
   });
   return isPeerReady && isAvailable;
 };
+
+export const checkDRActionReadiness = (
+  drPolicyControl: DRPlacementControlKind,
+  drAction: DRActionType
+) =>
+  drAction === DRActionType.FAILOVER
+    ? true
+    : isPeerReadyAndAvailable(drPolicyControl);
 
 export const findCluster = (
   clusters: K8sResourceCommon[],
