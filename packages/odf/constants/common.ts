@@ -31,7 +31,6 @@ export enum Steps {
   CapacityAndNodes = 'capacity-and-nodes',
   SecurityAndNetwork = 'security-and-network',
   Security = 'security',
-  ConnectionDetails = 'connection-details',
   ReviewAndCreate = 'review-and-create',
 }
 
@@ -72,7 +71,6 @@ export const StepsName = (t: TFunction) => ({
   [Steps.ReviewAndCreate]: t('plugin__odf-console~Review and create'),
   [Steps.SecurityAndNetwork]: t('plugin__odf-console~Security and network'),
   [Steps.Security]: t('plugin__odf-console~Security'),
-  [Steps.ConnectionDetails]: t('plugin__odf-console~Connection details'),
 });
 
 export const ocsTaint: Taint = Object.freeze({

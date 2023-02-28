@@ -8,7 +8,6 @@ import { BackingStorageType, DeploymentType } from '../../types';
 import {
   CapacityAndNodes,
   CreateStorageClass,
-  ConnectionDetails,
   ReviewAndCreate,
   CreateLocalVolumeSet,
   SecurityAndNetwork,
@@ -33,6 +32,7 @@ export const createSteps = (
     securityAndNetwork,
     nodes,
     createLocalVolumeSet,
+    connectionDetails,
   } = state;
   const { externalStorage, deployment } = backingStorage;
   const { encryption, kms } = securityAndNetwork;
@@ -56,7 +56,7 @@ export const createSteps = (
       name: StepsName(t)[Steps.SecurityAndNetwork],
       component: (
         <SecurityAndNetwork
-          state={securityAndNetwork}
+          securityAndNetworkState={securityAndNetwork}
           dispatch={dispatch}
           infraType={infraType}
         />
@@ -82,13 +82,16 @@ export const createSteps = (
 
   const rhcsExternalProviderSteps: WizardStep[] = [
     {
-      name: StepsName(t)[Steps.ConnectionDetails],
+      name: StepsName(t)[Steps.SecurityAndNetwork],
       canJumpTo: stepIdReached >= 2,
       id: 2,
       component: (
-        <ConnectionDetails
-          state={state.connectionDetails}
+        <SecurityAndNetwork
+          securityAndNetworkState={securityAndNetwork}
           dispatch={dispatch}
+          infraType={infraType}
+          isExternal={backingStorage.type === BackingStorageType.EXTERNAL}
+          connectionDetailState={connectionDetails}
           externalStorage={externalStorage}
         />
       ),
@@ -121,7 +124,7 @@ export const createSteps = (
     id: 2,
     component: (
       <CreateLocalVolumeSet
-        state={state.createLocalVolumeSet}
+        state={createLocalVolumeSet}
         dispatch={dispatch}
         storageClass={storageClass}
         nodes={nodes}

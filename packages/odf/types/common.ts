@@ -25,6 +25,7 @@ export enum ValidationType {
 }
 
 export type EncryptionType = {
+  inTransit: boolean;
   clusterWide: boolean;
   storageClass: boolean;
   advanced: boolean;

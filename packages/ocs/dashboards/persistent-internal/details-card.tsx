@@ -21,12 +21,13 @@ import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { CEPH_NS } from '../../constants';
 import { StorageClusterModel } from '../../models';
+import { getNetworkEncryption } from '../../utils';
 
 const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
-  const [ocsData, ocsLoaded, ocsError] = useK8sList(
+  const [ocsData, ocsLoaded, ocsError] = useK8sList<StorageClusterKind>(
     StorageClusterModel,
     CEPH_NS
   );
@@ -35,10 +36,13 @@ const DetailsCard: React.FC = () => {
     namespace: CEPH_STORAGE_NAMESPACE,
   });
   const infrastructurePlatform = getInfrastructurePlatform(infrastructure);
-  const cluster = ocsData?.find(
+  const cluster: StorageClusterKind = ocsData?.find(
     (item: StorageClusterKind) => item.status.phase !== 'Ignored'
   );
   const ocsName = getName(cluster);
+  const inTransitEncryptionStatus = getNetworkEncryption(cluster)
+    ? t('Enabled')
+    : t('Disabled');
 
   const serviceVersion = getOperatorVersion(csv);
   const servicePath = `${resourcePathFromModel(
@@ -87,6 +91,14 @@ const DetailsCard: React.FC = () => {
             error={csvError}
           >
             {serviceVersion}
+          </DetailItem>
+          <DetailItem
+            key="inTransitEncryption"
+            title={t('In-transit encryption')}
+            isLoading={!ocsLoaded}
+            error={ocsError}
+          >
+            {inTransitEncryptionStatus}
           </DetailItem>
         </DetailsBody>
       </CardBody>

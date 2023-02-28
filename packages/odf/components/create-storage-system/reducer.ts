@@ -61,6 +61,7 @@ export const initialState: CreateStorageSystemState = {
   },
   securityAndNetwork: {
     encryption: {
+      inTransit: false,
       clusterWide: false,
       storageClass: false,
       advanced: false,

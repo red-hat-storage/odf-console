@@ -61,7 +61,7 @@ const canJumpToNextStep = (name: string, state: WizardState, t: TFunction) => {
     connectionDetails,
     nodes,
   } = state;
-  const { externalStorage } = backingStorage;
+  const { type, externalStorage } = backingStorage;
   const { capacity } = capacityAndNodes;
   const { chartNodes, volumeSetName, isValidDiskSize } = createLocalVolumeSet;
   const { encryption, kms, networkType, publicNetwork, clusterNetwork } =
@@ -82,10 +82,6 @@ const canJumpToNextStep = (name: string, state: WizardState, t: TFunction) => {
         canGoToNextStep &&
         canGoToNextStep(createStorageClass, storageClass.name)
       );
-    case StepsName(t)[Steps.ConnectionDetails]:
-      return (
-        canGoToNextStep && canGoToNextStep(connectionDetails, storageClass.name)
-      );
     case StepsName(t)[Steps.CreateLocalVolumeSet]:
       return (
         chartNodes.size >= MINIMUM_NODES &&
@@ -95,6 +91,9 @@ const canJumpToNextStep = (name: string, state: WizardState, t: TFunction) => {
     case StepsName(t)[Steps.CapacityAndNodes]:
       return nodes.length >= MINIMUM_NODES && capacity;
     case StepsName(t)[Steps.SecurityAndNetwork]:
+      if (type === BackingStorageType.EXTERNAL) {
+        return canGoToNextStep(connectionDetails, storageClass.name);
+      }
       return (
         encryption.hasHandled &&
         kms.providerState.hasHandled &&
@@ -123,6 +122,7 @@ const handleReviewAndCreateNext = async (
     capacityAndNodes,
   } = state;
   const { externalStorage, deployment, type } = state.backingStorage;
+  const inTransitChecked = state.securityAndNetwork.encryption.inTransit;
   const { encryption, kms } = state.securityAndNetwork;
   const isRhcs: boolean = externalStorage === OCSStorageClusterModel.kind;
   const isMCG: boolean = deployment === DeploymentType.MCG;
@@ -162,12 +162,14 @@ const handleReviewAndCreateNext = async (
       const subSystemName = isRhcs ? OCS_EXTERNAL_CR_NAME : externalSystemName;
       const subSystemState = isRhcs ? connectionDetails : createStorageClass;
       const subSystemKind = getGVKLabel(model);
-      const subSystemPayloads = createPayload(
-        subSystemName,
-        subSystemState,
+
+      const subSystemPayloads = createPayload({
+        systemName: subSystemName,
+        state: subSystemState,
         model,
-        storageClass.name
-      );
+        storageClassName: storageClass.name,
+        inTransitStatus: inTransitChecked,
+      });
 
       await createStorageSystem(subSystemName, subSystemKind);
       if (!hasOCS && !isRhcs) {

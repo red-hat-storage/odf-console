@@ -71,6 +71,9 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     : humanizeBinaryBytes(capacity).string;
 
   const hasEncryption = encryption.clusterWide || encryption.storageClass;
+  const hasInTransitEncryption = encryption.inTransit
+    ? t('Enabled')
+    : t('Disabled');
 
   const storagePlatform =
     externalStorage && getExternalStorage(externalStorage).displayName;
@@ -177,6 +180,11 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             <ListItem>
               {t('Encryption: {{encryptionStatus}}', { encryptionStatus })}
             </ListItem>
+            <ListItem>
+              {t('In-transit encryption: {{hasInTransitEncryption}}', {
+                hasInTransitEncryption,
+              })}
+            </ListItem>
             {hasEncryption && (
               <ListItem>
                 {t('External key management service: {{kmsStatus}}', {
@@ -193,6 +201,15 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             )}
           </ReviewItem>
         ))}
+      {isRhcs && (
+        <ReviewItem title={t('Security and network')}>
+          <ListItem>
+            {t('In-transit encryption: {{hasInTransitEncryption}}', {
+              hasInTransitEncryption,
+            })}
+          </ListItem>
+        </ReviewItem>
+      )}
     </>
   );
 };

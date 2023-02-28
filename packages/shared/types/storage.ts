@@ -3,8 +3,13 @@ import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 export type StorageClusterKind = K8sResourceCommon & {
   spec: {
     network?: {
-      provider: string;
-      selectors: {
+      connections?: {
+        encryption: {
+          enabled: boolean;
+        };
+      };
+      provider?: string;
+      selectors?: {
         public: string;
         private?: string;
       };

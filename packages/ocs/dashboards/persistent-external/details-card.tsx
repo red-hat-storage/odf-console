@@ -19,6 +19,7 @@ import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shar
 import { Base64 } from 'js-base64';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { StorageClusterModel } from '../../models';
+import { getNetworkEncryption } from '../../utils';
 
 const getCephLink = (secret: SecretKind): string => {
   const data = secret?.data?.userKey;
@@ -52,6 +53,11 @@ export const DetailsCard: React.FC = () => {
   const isODF = useFlag(ODF_MODEL_FLAG);
 
   const resourcesObj: ResourcesObject = useK8sWatchResources(k8sResources);
+  const inTransitEncryptionStatus = getNetworkEncryption(
+    resourcesObj['ocs'].data?.[0]
+  )
+    ? t('Enabled')
+    : t('Disabled');
 
   const ocsName = getName(resourcesObj['ocs'].data?.[0]);
 
@@ -104,6 +110,14 @@ export const DetailsCard: React.FC = () => {
             data-test-id="cluster-subscription"
           >
             {subscriptionVersion}
+          </DetailItem>
+          <DetailItem
+            key="inTransitEncryption"
+            title={t('In-transit encryption')}
+            isLoading={!resourcesObj['ocs'].loaded}
+            error={resourcesObj['ocs'].loadError}
+          >
+            {inTransitEncryptionStatus}
           </DetailItem>
         </DetailsBody>
       </CardBody>
