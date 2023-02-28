@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { StorageClusterModel } from '@odf/ocs/models';
-import AlertsPanel from '@odf/shared/alert/AlertsPanel';
 import { DetailsPageTitle } from '@odf/shared/details-page/DetailsPage';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { DeploymentModel, NodeModel } from '@odf/shared/models';
 import { nodeStatus } from '@odf/shared/status/Node';
+import AlertsDetails from '@odf/shared/topology/sidebar/alerts/AlertsDetails';
 import {
   DeploymentDetails,
   DeploymentObserve,
@@ -17,7 +17,6 @@ import {
   NodeObserve,
   NodeResources,
 } from '@odf/shared/topology/sidebar/node';
-import { AlertsResponse } from '@odf/shared/topology/sidebar/types';
 import { NodeKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKofResource } from '@odf/shared/utils';
@@ -36,12 +35,10 @@ import {
 import './topology-sidebar-content.scss';
 
 type TopologySideBarContentProps = {
-  alertsResponse: AlertsResponse;
   resource: K8sResourceCommon;
 };
 
 const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
-  alertsResponse,
   resource,
 }) => {
   const { t } = useCustomTranslation();
@@ -89,20 +86,13 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
       if (!alertsFilter) {
         alertsFilter = defaultAlertsFilter;
       }
-      const alertsTab = (
-        <AlertsPanel
-          alerts={alertsResponse.alerts}
-          loaded={alertsResponse.loaded}
-          loadError={alertsResponse.loadError}
-          alertsFilter={alertsFilter}
-        />
-      );
+      const alertsTab = <AlertsDetails alertsFilter={alertsFilter} />;
       return [alertsTab, detailsTab, resourcesTab, observeTab];
-    }, [resource, alertsResponse]);
+    }, [resource]);
 
   const tabs: TabPage[] = React.useMemo(
     () =>
-      !inFlight && alertsResponse.loaded && _.isEmpty(alertsResponse.loadError)
+      !inFlight
         ? [
             {
               title: t('Alerts'),
@@ -126,15 +116,7 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
             },
           ]
         : [],
-    [
-      t,
-      inFlight,
-      alertsResponse,
-      alertsTab,
-      detailsTab,
-      resourcesTab,
-      observeTab,
-    ]
+    [t, inFlight, alertsTab, detailsTab, resourcesTab, observeTab]
   );
 
   const title = <DetailsPageTitle resource={resource} resourceModel={model} />;

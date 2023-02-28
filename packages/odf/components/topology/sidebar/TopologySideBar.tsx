@@ -1,6 +1,5 @@
 import * as React from 'react';
 import CloseButton from '@odf/shared/generic/CloseButton';
-import { AlertsResponse } from '@odf/shared/topology/sidebar/types';
 import { K8sResourceKind } from '@odf/shared/types';
 import {
   Drawer,
@@ -12,7 +11,6 @@ import TopologySideBarContent from './TopologySideBarContent';
 import './topology-sidebar.scss';
 
 type TopologySideBarProps = {
-  alertsResponse: AlertsResponse;
   onClose: () => void;
   isExpanded?: boolean;
   onExpand?: () => void;
@@ -44,7 +42,6 @@ const TopologyDrawerPanelContent: React.FC<TopologyDrawerPanelContentProps> = ({
 };
 
 const TopologySideBar: React.FC<TopologySideBarProps> = ({
-  alertsResponse,
   isExpanded,
   onExpand,
   resource,
@@ -52,10 +49,7 @@ const TopologySideBar: React.FC<TopologySideBarProps> = ({
 }) => {
   const panelContent = (
     <TopologyDrawerPanelContent onClose={onClose}>
-      <TopologySideBarContent
-        alertsResponse={alertsResponse}
-        resource={resource}
-      />
+      <TopologySideBarContent resource={resource} />
     </TopologyDrawerPanelContent>
   );
 
