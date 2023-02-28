@@ -127,6 +127,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
   filterResource,
   'data-test': dataTest,
   id,
+  children,
 }) => {
   const [isOpen, setOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState(null);
@@ -212,41 +213,48 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
   };
 
   return (
-    <Dropdown
-      id={id}
-      className={classNames('odf-resourceDropdown__container', className)}
-      toggle={
-        <DropdownToggle
-          onToggle={loaded && !loadError ? onToggle : () => null}
-          toggleIndicator={CaretDownIcon}
-          data-test={dataTest}
-        >
-          {!loaded && <LoadingInline />}
-          {loaded && !loadError && (
-            <ResourceDropdownText
-              text={selectedItem ? propertySelector(selectedItem) : ''}
-              resourceModel={resourceModel}
-              showBadge={showBadge}
-            />
-          )}
-          {loaded && loadError && (
-            <span className="odf-resourceDropdownContainer__toggle--error">
-              {t('Error Loading')}
-            </span>
-          )}
-        </DropdownToggle>
-      }
-      isOpen={isOpen}
-    >
-      <TextInput
-        id="search-bar"
-        iconVariant="search"
-        value={searchText}
-        onChange={(val) => setSearchText(val)}
-        autoComplete="off"
-      />
-      {dropdownItems}
-    </Dropdown>
+    <>
+      <Dropdown
+        id={id}
+        className={classNames('odf-resourceDropdown__container', className)}
+        toggle={
+          <DropdownToggle
+            onToggle={loaded && !loadError ? onToggle : () => null}
+            toggleIndicator={CaretDownIcon}
+            data-test={dataTest}
+          >
+            {!loaded && <LoadingInline />}
+            {loaded &&
+              !loadError &&
+              (_.isEmpty(resources) ? (
+                <span>{t('No resources available')}</span>
+              ) : (
+                <ResourceDropdownText
+                  text={selectedItem ? propertySelector(selectedItem) : ''}
+                  resourceModel={resourceModel}
+                  showBadge={showBadge}
+                />
+              ))}
+            {loaded && loadError && (
+              <span className="odf-resourceDropdownContainer__toggle--error">
+                {t('Error Loading')}
+              </span>
+            )}
+          </DropdownToggle>
+        }
+        isOpen={isOpen}
+      >
+        <TextInput
+          id="search-bar"
+          iconVariant="search"
+          value={searchText}
+          onChange={(val) => setSearchText(val)}
+          autoComplete="off"
+        />
+        {dropdownItems}
+      </Dropdown>
+      {children?.(loaded, loadError, resources)}
+    </>
   );
 };
 
