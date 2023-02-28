@@ -1,10 +1,12 @@
 import * as React from 'react';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
+import { FormGroupController } from '@odf/shared/form-group-controller';
 import { SecretModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
+import { Control } from 'react-hook-form';
 import {
   Button,
   FormGroup,
@@ -25,6 +27,7 @@ type GCPEndPointTypeProps = {
   state: BackingStoreProviderDataState;
   dispatch: React.Dispatch<BackingStoreAction>;
   namespace: string;
+  control: Control;
 };
 
 type ExternalLinkProps = {
@@ -59,9 +62,8 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
   const { t } = useCustomTranslation();
 
   const [fileData, setFileData] = React.useState('');
-  const [inputData, setInputData] = React.useState('');
   const [showSecret, setShowSecret] = React.useState(false);
-  const { state, dispatch, namespace } = props;
+  const { dispatch, namespace, control } = props;
 
   const toggleShowSecret = () => setShowSecret((isShown) => !isShown);
 
@@ -90,7 +92,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
     </Popover>
   );
 
-  const onUpload = (event) => {
+  const onUpload = (event, setInputData) => {
     event.preventDefault();
     const file = event.target.files[0];
     const reader = new FileReader();
@@ -105,77 +107,82 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
 
   return (
     <>
-      <FormGroup
-        className="nb-endpoints-form-entry"
-        helperText={
-          !showSecret
+      <FormGroupController
+        name="secret-key"
+        control={control}
+        formGroupProps={{
+          className: 'nb-endpoints-form-entry',
+          helperText: !showSecret
             ? t(
                 'Upload a .json file with the service account keys provided by Google Cloud Storage.'
               )
-            : null
-        }
-        label={t('Secret Key')}
-        fieldId="secret-key"
-        isRequired
-      >
-        {!showSecret ? (
-          <InputGroup>
-            <TextInput
-              isReadOnly
-              value={inputData}
-              className="nb-endpoints-form-entry__file-name"
-              placeholder={t('Upload JSON')}
-              aria-label={t('Uploaded File Name')}
-            />
-            <div className="inputbtn nb-endpoints-form-entry-upload-btn">
-              <Button
-                href="#"
-                variant="secondary"
-                className="custom-input-btn nb-endpoints-form-entry-upload-btn__button"
-                aria-label={t('Upload File')}
-              >
-                {t('Browse')}
-              </Button>
-              <input
-                type="file"
-                id="inputButton"
-                className="nb-endpoints-form-entry-upload-btn__input"
-                onChange={onUpload}
-                aria-label={t('Upload File')}
+            : null,
+          label: t('Secret Key'),
+          fieldId: 'secret-key',
+          isRequired: true,
+        }}
+        render={({ value, onChange, onBlur }) =>
+          !showSecret ? (
+            <InputGroup>
+              <TextInput
+                readOnly
+                value={value}
+                className="nb-endpoints-form-entry__file-name"
+                placeholder={t('Upload JSON')}
+                aria-label={t('Uploaded File Name')}
               />
-            </div>
-            <Button
-              variant="plain"
-              onClick={toggleShowSecret}
-              aria-label={t('Switch to Secret')}
-            >
-              {t('Switch to Secret')}
-            </Button>
-          </InputGroup>
-        ) : (
-          <InputGroup>
-            <ResourceDropdown<K8sResourceCommon>
-              className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
-              onSelect={(e) =>
-                dispatch({ type: 'setSecretName', value: e.metadata.name })
-              }
-              resourceModel={SecretModel}
-              resource={{
-                namespace,
-                kind: SecretModel.kind,
-                isList: true,
-              }}
-            />
-            <Button
-              variant="plain"
-              onClick={toggleShowSecret}
-              aria-label={t('Switch to upload JSON')}
-            >
-              {t('Switch to upload JSON')}
-            </Button>
-          </InputGroup>
-        )}
-      </FormGroup>
+              <div className="inputbtn nb-endpoints-form-entry-upload-btn">
+                <Button
+                  href="#"
+                  variant="secondary"
+                  className="custom-input-btn nb-endpoints-form-entry-upload-btn__button"
+                  aria-label={t('Upload File')}
+                >
+                  {t('Browse')}
+                </Button>
+                <input
+                  type="file"
+                  id="inputButton"
+                  className="nb-endpoints-form-entry-upload-btn__input"
+                  onChange={(ev) => onUpload(ev, onChange)}
+                  onBlur={onBlur}
+                  aria-label={t('Upload File')}
+                />
+              </div>
+              <Button
+                variant="plain"
+                onClick={toggleShowSecret}
+                aria-label={t('Switch to Secret')}
+              >
+                {t('Switch to Secret')}
+              </Button>
+            </InputGroup>
+          ) : (
+            <InputGroup>
+              <ResourceDropdown<K8sResourceCommon>
+                className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
+                onSelect={(e) => {
+                  onChange(e.metadata.name);
+                  dispatch({ type: 'setSecretName', value: e.metadata.name });
+                }}
+                resourceModel={SecretModel}
+                resource={{
+                  namespace,
+                  kind: SecretModel.kind,
+                  isList: true,
+                }}
+              />
+              <Button
+                variant="plain"
+                onClick={toggleShowSecret}
+                aria-label={t('Switch to upload JSON')}
+              >
+                {t('Switch to upload JSON')}
+              </Button>
+            </InputGroup>
+          )
+        }
+      />
       {!showSecret && (
         <FormGroup
           className="nb-endpoints-form-entry"
@@ -189,20 +196,27 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
           />
         </FormGroup>
       )}
-      <FormGroup
-        className="nb-endpoints-form-entry"
-        label={t('Target Bucket')}
-        fieldId="target-bucket"
-        isRequired
-      >
-        <TextInput
-          value={state.target}
-          onChange={(e) => {
-            dispatch({ type: 'setTarget', value: e });
-          }}
-          aria-label={t('Target Bucket')}
-        />
-      </FormGroup>
+      <FormGroupController
+        name="target-bucket"
+        control={control}
+        formGroupProps={{
+          className: 'nb-endpoints-form-entry',
+          label: t('Target Bucket'),
+          fieldId: 'target-bucket',
+          isRequired: true,
+        }}
+        render={({ value, onChange, onBlur }) => (
+          <TextInput
+            value={value}
+            onChange={(e) => {
+              onChange(e);
+              dispatch({ type: 'setTarget', value: e });
+            }}
+            onBlur={onBlur}
+            aria-label={t('Target Bucket')}
+          />
+        )}
+      />
     </>
   );
 };

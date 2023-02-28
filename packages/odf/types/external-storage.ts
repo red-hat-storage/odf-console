@@ -1,5 +1,6 @@
 import { K8sResourceKind } from '@odf/shared/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import { Control } from 'react-hook-form';
 
 /**
  *  Configures a new external storage vendor to the Storage System Creation wizard.
@@ -44,6 +45,9 @@ export type ExternalComponentProps<S extends ExternalState> = {
 
   /** The callback for setting the state of `ExternalStorage.Component` */
   setFormState: (field: keyof S, value: S[keyof S]) => void;
+
+  /**  react-hook-form control used to watch and validate input value*/
+  control?: Control;
 };
 
 /**

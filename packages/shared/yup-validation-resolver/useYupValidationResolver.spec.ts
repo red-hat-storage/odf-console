@@ -45,9 +45,9 @@ describe('useYupValidationResolver tests', () => {
       values: {},
       errors: {
         name: {
-          message: 'name is a required field',
+          message: 'Required',
           messages: {
-            ['name is a required field']: {
+            ['Required']: {
               field: 'name',
               type: 'required',
             },
@@ -99,9 +99,7 @@ describe('useYupValidationResolver tests', () => {
     });
 
     expect(actual?.values).toMatchObject({});
-    expect(actual?.errors['name'].messages).toHaveProperty(
-      'name is a required field'
-    );
+    expect(actual?.errors['name'].messages).toHaveProperty('Required');
     expect(typeof result.current).toBe('function');
     expect(validateSpy).toHaveBeenCalledTimes(1);
   });

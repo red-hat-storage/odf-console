@@ -1,7 +1,11 @@
 import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
-import fieldRequirementsTranslations from '@odf/shared/constants/fieldRequirements';
+import {
+  fieldRequirementsTranslations,
+  formSettings,
+} from '@odf/shared/constants';
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
+import { FormGroupController } from '@odf/shared/form-group-controller';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
@@ -19,13 +23,14 @@ import classNames from 'classnames';
 import { useForm } from 'react-hook-form';
 import { useHistory } from 'react-router';
 import * as Yup from 'yup';
-import { ActionGroup, Button, FormGroup, Form } from '@patternfly/react-core';
+import { ActionGroup, Alert, Button, Form } from '@patternfly/react-core';
 import {
   BC_PROVIDERS,
   BUCKET_LABEL_NOOBAA_MAP,
   NOOBAA_TYPE_MAP,
   PROVIDERS_NOOBAA_MAP,
   StoreType,
+  providerSchema,
 } from '../../constants';
 import { ODF_MODEL_FLAG } from '../../features';
 import { NooBaaBackingStoreModel } from '../../models';
@@ -49,7 +54,6 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
   props
 ) => {
   const { t } = useCustomTranslation();
-  const [provider, setProvider] = React.useState(BC_PROVIDERS.AWS);
   const [providerDataState, providerDataDispatch] = React.useReducer(
     providerDataReducer,
     initialState
@@ -57,6 +61,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
 
   const [inProgress, setProgress] = React.useState(false);
   const [error, setError] = React.useState('');
+  const [showSecret, setShowSecret] = React.useState(true);
 
   const isODF = useFlag(ODF_MODEL_FLAG);
 
@@ -87,7 +92,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       fieldRequirementsTranslations.uniqueName(t, 'BackingStore'),
     ];
 
-    const schema = Yup.object({
+    const baseSchema = Yup.object({
       'backingstore-name': Yup.string()
         .required()
         .max(43, fieldRequirements[0])
@@ -106,22 +111,24 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
         ),
     });
 
+    const schema = baseSchema.concat(providerSchema(showSecret));
+
     return { schema, fieldRequirements };
-  }, [data, loadError, loaded, t]);
+  }, [data, loadError, loaded, showSecret, t]);
 
   const resolver = useYupValidationResolver(schema);
 
-  const { control, handleSubmit } = useForm({
-    mode: 'onBlur',
-    reValidateMode: 'onChange',
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { isValid, isSubmitted },
+  } = useForm({
+    ...formSettings,
     resolver,
-    context: undefined,
-    criteriaMode: 'firstError',
-    shouldFocusError: true,
-    shouldUnregister: false,
-    shouldUseNativeValidation: false,
-    delayError: undefined,
   });
+
+  const provider = watch('provider-name');
 
   const onSubmit = (values, event) => {
     event.preventDefault();
@@ -239,9 +246,6 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
           label: t('BackingStore Name'),
           fieldId: 'backingstore-name',
           className: 'nb-endpoints-form-entry',
-          helperText: t(
-            'A unique name for the BackingStore  within the project'
-          ),
           isRequired: true,
         }}
         textInputProps={{
@@ -252,22 +256,30 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
         }}
       />
 
-      <FormGroup
-        label={t('Provider')}
-        fieldId="provider-name"
-        className="nb-endpoints-form-entry"
-        isRequired
-      >
-        <StaticDropdown
-          className="nb-endpoints-form-entry__dropdown"
-          onSelect={(key) => setProvider(key as BC_PROVIDERS)}
-          dropdownItems={PROVIDERS}
-          defaultSelection={BC_PROVIDERS.AWS}
-          data-test="backingstore-provider"
-        />
-      </FormGroup>
+      <FormGroupController
+        name="provider-name"
+        control={control}
+        defaultValue={BC_PROVIDERS.AWS}
+        formGroupProps={{
+          label: t('Provider'),
+          fieldId: 'provider-name',
+          className: 'nb-endpoints-form-entry',
+          isRequired: true,
+        }}
+        render={({ value, onChange, onBlur }) => (
+          <StaticDropdown
+            className="nb-endpoints-form-entry__dropdown"
+            onSelect={onChange}
+            onBlur={onBlur}
+            dropdownItems={PROVIDERS}
+            defaultSelection={value}
+            data-test="backingstore-provider"
+          />
+        )}
+      />
       {provider === BC_PROVIDERS.GCP && (
         <GCPEndpointType
+          control={control}
           state={providerDataState}
           dispatch={providerDataDispatch}
           namespace={CEPH_STORAGE_NAMESPACE}
@@ -278,6 +290,9 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
         provider === BC_PROVIDERS.IBM ||
         provider === BC_PROVIDERS.AZURE) && (
         <S3EndPointType
+          showSecret={showSecret}
+          setShowSecret={setShowSecret}
+          control={control}
           type={StoreType.BS}
           provider={provider}
           namespace={CEPH_STORAGE_NAMESPACE}
@@ -287,6 +302,13 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       )}
       {provider === BC_PROVIDERS.PVC && (
         <PVCType state={providerDataState} dispatch={providerDataDispatch} />
+      )}
+      {!isValid && isSubmitted && (
+        <Alert
+          variant="danger"
+          isInline
+          title={t('Address form errors to proceed')}
+        />
       )}
       <ButtonBar errorMessage={error} inProgress={inProgress}>
         <ActionGroup>

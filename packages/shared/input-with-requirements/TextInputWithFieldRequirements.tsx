@@ -71,20 +71,31 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
   }) => {
     const {
       field: { name, value, onChange, onBlur },
-      fieldState: { error, isDirty },
+      fieldState: { error, isDirty, isTouched },
+      formState: { isSubmitted },
     } = useController({
       name: textInputProps.name || 'name',
       control,
       defaultValue: defaultValue,
     });
-    const state = useFieldRequirements(fieldRequirements, isDirty, error);
+    const state = useFieldRequirements(
+      fieldRequirements,
+      isDirty || isSubmitted,
+      error
+    );
     const [isVisible, setIsVisible] = React.useState(false);
     const [validated, setValidated] =
       React.useState<FormGroupProps['validated']>('default');
 
     React.useEffect(() => {
-      setValidated(!isDirty ? 'default' : error ? 'error' : 'success');
-    }, [error, isDirty]);
+      setValidated(
+        isDirty || isTouched || isSubmitted
+          ? error
+            ? 'error'
+            : 'success'
+          : 'default'
+      );
+    }, [error, isDirty, isTouched, isSubmitted]);
 
     const handleInputChange = React.useCallback(
       (value: string, event: React.FormEvent<HTMLInputElement>) => {
@@ -110,7 +121,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
           className={cn(
             'rich-input__group',
             error && 'rich-input__group--invalid',
-            !error && isDirty && 'rich-input__group--success'
+            !error && (isDirty || isSubmitted) && 'rich-input__group--success'
           )}
         >
           <TextInput

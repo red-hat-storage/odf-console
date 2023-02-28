@@ -46,6 +46,7 @@ type ResourceDropdownItemProps<T> = {
   showBadge?: boolean;
   secondaryTextGenerator?: (resource: T) => string;
   onClick?: any;
+  onBlur?: () => void;
   'data-test'?: string;
 };
 
@@ -101,6 +102,7 @@ type ResourceDropdownProps<T> = {
   resource: WatchK8sResource;
   resourceModel: K8sModel;
   onSelect: (resource: T) => void;
+  onBlur?: () => void;
   secondaryTextGenerator?: (resource: T) => string;
   propertySelector?: (resource: T) => string;
   showBadge?: boolean;
@@ -121,6 +123,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
   showBadge,
   propertySelector = getName,
   onSelect,
+  onBlur,
   secondaryTextGenerator,
   className,
   initialSelection,
@@ -189,6 +192,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
               propertySelector={propertySelector}
               secondaryTextGenerator={secondaryTextGenerator}
               onClick={onClick}
+              onBlur={onBlur}
               data-test="dropdown-menu-item-link"
             />,
           ];
@@ -203,6 +207,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
     propertySelector,
     secondaryTextGenerator,
     onClick,
+    onBlur,
     searchText,
     filterResource,
   ]);

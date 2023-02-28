@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { formSettings } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
+import { FormGroupController } from '@odf/shared/form-group-controller';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
@@ -8,14 +10,18 @@ import { getName, getNamespace } from '@odf/shared/selectors';
 import { DeploymentKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel, resourcePathFromModel } from '@odf/shared/utils';
+import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   k8sCreate,
   K8sKind,
   k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { History } from 'history';
+import { useForm } from 'react-hook-form';
 import { match as Match } from 'react-router';
+import * as Yup from 'yup';
 import {
+  Alert,
   Form,
   FormGroup,
   Radio,
@@ -28,6 +34,7 @@ import { CreateOBCForm } from '../mcg/CreateObjectBucketClaim';
 import { commonReducer, defaultState } from '../mcg/state';
 import './AttachOBC.scss';
 import '../../style.scss';
+import useObcNameSchema from '../mcg/useObcNameSchema';
 
 const AttachStorage: React.FC<AttachStorageProps> = (props) => {
   const { t } = useCustomTranslation();
@@ -41,6 +48,20 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
     resourceName,
     namespace
   );
+
+  const { obcNameSchema, fieldRequirements } = useObcNameSchema(namespace);
+
+  const schema = Yup.object({
+    exists: Yup.string().required(),
+  }).concat(obcNameSchema);
+
+  const resolver = useYupValidationResolver(schema);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { isValid, isSubmitted },
+  } = useForm({ ...formSettings, resolver });
 
   const onSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -78,34 +99,49 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
 
   return (
     <Form
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       className="odf-m-pane__body-group odf-m-pane__form"
     >
-      <FormGroup fieldId="exists" label={t('ObjectBucketClaim')} isRequired>
-        <Radio
-          label={t('Use existing claim')}
-          value="exists"
-          key="exists"
-          onChange={onRadioToggle}
-          id="exists"
-          name="exists"
-          isChecked={!createOBC}
-        />
-        {!createOBC && (
-          <div className="odf-attach-obc__subgroup">
-            <ResourceDropdown
-              resourceModel={NooBaaObjectBucketClaimModel}
-              resource={{
-                kind: referenceForModel(NooBaaObjectBucketClaimModel),
-                namespace,
-                namespaced: true,
-                isList: true,
+      <FormGroupController
+        control={control}
+        name="exists"
+        formGroupProps={{
+          fieldId: 'exists',
+          label: t('ObjectBucketClaim'),
+          isRequired: true,
+        }}
+        render={({ onChange, onBlur }) => (
+          <>
+            <Radio
+              label={t('Use existing claim')}
+              value="exists"
+              key="exists"
+              onChange={(checked: boolean) => {
+                onRadioToggle();
+                onChange(checked);
               }}
-              onSelect={(item) => setSelectedOBC(item)}
+              onBlur={onBlur}
+              id="exists"
+              name="exists"
+              isChecked={!createOBC}
             />
-          </div>
+            {!createOBC && (
+              <div className="odf-attach-obc__subgroup">
+                <ResourceDropdown
+                  resourceModel={NooBaaObjectBucketClaimModel}
+                  resource={{
+                    kind: referenceForModel(NooBaaObjectBucketClaimModel),
+                    namespace,
+                    namespaced: true,
+                    isList: true,
+                  }}
+                  onSelect={(item) => setSelectedOBC(item)}
+                />
+              </div>
+            )}
+          </>
         )}
-      </FormGroup>
+      />
       <FormGroup fieldId="create">
         <Radio
           label={t('Create new claim')}
@@ -122,10 +158,19 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
               state={state}
               dispatch={dispatch}
               namespace={namespace}
+              control={control}
+              fieldRequirements={fieldRequirements}
             />
           </div>
         )}
       </FormGroup>
+      {!isValid && isSubmitted && (
+        <Alert
+          variant="danger"
+          isInline
+          title={t('Address form errors to proceed')}
+        />
+      )}
       <ButtonBar
         errorMessage={state.error || loadError?.message}
         inProgress={state.progress}

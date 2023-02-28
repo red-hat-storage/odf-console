@@ -3,6 +3,7 @@ import { Dropdown, DropdownItem, DropdownToggle } from '@patternfly/react-core';
 
 type StaticDropdownProps = {
   onSelect: (selectedItem: string) => void;
+  onBlur?: () => void;
   className?: string;
   required?: boolean;
   ariaLabel?: string;
@@ -20,6 +21,7 @@ type StaticDropdownProps = {
 
 const StaticDropdown: React.FC<StaticDropdownProps> = ({
   onSelect,
+  onBlur,
   className,
   defaultSelection = '',
   dropdownItems,
@@ -69,6 +71,8 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
       }
       autoFocus={false}
       onSelect={onChange}
+      onBlur={onBlur}
+      onClick={onBlur}
       data-test={dataTest}
     />
   );

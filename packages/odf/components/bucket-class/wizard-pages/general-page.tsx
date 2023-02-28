@@ -1,9 +1,13 @@
 import * as React from 'react';
-import fieldRequirementsTranslations from '@odf/shared/constants/fieldRequirements';
+import {
+  fieldRequirementsTranslations,
+  formSettings,
+} from '@odf/shared/constants';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { isValidIP } from '@odf/shared/utils';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
@@ -68,7 +72,8 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
       t('3-63 characters'),
       fieldRequirementsTranslations.startAndEndName(t),
       fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
-      t('Globally unique name'),
+      t('Avoid using the form of an IP address'),
+      fieldRequirementsTranslations.cannotBeUsedBefore(t),
     ];
 
     const schema = Yup.object({
@@ -85,8 +90,13 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
           fieldRequirements[2]
         )
         .test(
-          'unique-name',
+          'avoid-ip-address',
           fieldRequirements[3],
+          (value: string) => !isValidIP(value)
+        )
+        .test(
+          'unique-name',
+          fieldRequirements[4],
           (value: string) => !existingNames.includes(value)
         ),
     });
@@ -100,15 +110,8 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
     formState: { isValid },
     watch,
   } = useForm({
-    mode: 'onBlur',
-    reValidateMode: 'onChange',
+    ...formSettings,
     resolver,
-    context: undefined,
-    criteriaMode: 'firstError',
-    shouldFocusError: true,
-    shouldUnregister: false,
-    shouldUseNativeValidation: false,
-    delayError: undefined,
   });
 
   const bucketClassName: string = watch('bucketclassname-input');
@@ -184,9 +187,6 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
             className: 'nb-create-bc-step-page-form__element',
             fieldId: 'bucketclassname-input',
             label: t('BucketClass name'),
-            helperText: t(
-              'A unique name for the BucketClass within the project.'
-            ),
             isRequired: true,
           }}
           textInputProps={{
