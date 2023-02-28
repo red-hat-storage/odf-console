@@ -643,7 +643,7 @@
     "properties": {
       "id": "topology",
       "name": "Topology",
-      "before": "overview",
+      "after": "overview",
       "href": "topology",
       "component": {
         "$codeRef": "topology.default"
