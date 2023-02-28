@@ -419,18 +419,20 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
   return (
     <Modal
       width="650px"
-      description={getName(resource)}
-      title={t('Apply DRPolicy')}
+      description={
+        <TextContent className="mco-subs-apply-policy-modal__description">
+          <Text component={TextVariants.small}>
+            {t('Select the applications for assigning the DRPolicy')}
+          </Text>
+          <Text component={TextVariants.h6}>{getName(resource)}</Text>
+        </TextContent>
+      }
+      title={t('Assign policy to Subscriptions')}
       isOpen={isOpen}
       onClose={closeModal}
       className="mco-subs-apply-policy-modal__form"
     >
       <ModalBody className="modalBody modalInput--lowHeight">
-        <TextContent className="mco-subs-apply-policy-modal__description">
-          <Text component={TextVariants.small}>
-            {t('Select the applications for applying the DRPolicy')}
-          </Text>
-        </TextContent>
         <ApplicationSelector
           applicationToPlacementRuleMap={appToPlacementRuleMap}
           selectedNames={selectedApps}
@@ -508,7 +510,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
                 : true
             }
           >
-            {t('Apply')}
+            {t('Assign')}
           </Button>
         ) : (
           <LoadingInline />

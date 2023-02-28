@@ -94,7 +94,7 @@ export const kebabActionItems =
         value: Actions.DELETE_DR_POLICY,
         props: {
           description: !!appsCount
-            ? t('Cannot delete while connected to an application')
+            ? t('Cannot delete while connected to an application.')
             : '',
           isDisabled: !(
             canDeleteDRPolicy &&
@@ -106,10 +106,18 @@ export const kebabActionItems =
       },
       {
         key: Actions.MANAGE_DR_POLICY,
-        value: Actions.MANAGE_DR_POLICY,
+        value: t('Manage policy for ApplicationSets'),
+        props: {
+          description: t(
+            'Assign and unassign policy for apps using applicationSets.'
+          ),
+        },
       },
       {
         key: Actions.APPLY_DR_POLICY,
-        value: Actions.APPLY_DR_POLICY,
+        value: t('Assign policy to Subscriptions'),
+        props: {
+          description: t('Use for apps using Subscriptions.'),
+        },
       },
     ];

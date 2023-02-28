@@ -1,5 +1,10 @@
 import * as React from 'react';
-import { ACM_ENDPOINT, HUB_CLUSTER_NAME, ALL_APPS } from '@odf/mco/constants';
+import {
+  ACM_ENDPOINT,
+  HUB_CLUSTER_NAME,
+  ALL_APPS,
+  applicationDetails,
+} from '@odf/mco/constants';
 import {
   DrClusterAppsMap,
   AppSetObj,
@@ -14,6 +19,7 @@ import {
   PrometheusResponse,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Link } from 'react-router-dom';
 import {
   Card,
   CardBody,
@@ -94,25 +100,25 @@ export const AppWiseCard: React.FC<AppWiseCardProps> = ({
 }) => {
   return (
     <Grid hasGutter>
-      <GridItem lg={3} rowSpan={6} sm={12}>
+      <GridItem lg={3} rowSpan={8} sm={12}>
         <ProtectedPVCsSection
           protectedPVCData={protectedPVCData}
           selectedAppSet={selectedAppSet}
         />
       </GridItem>
-      <GridItem lg={9} rowSpan={6} sm={12}>
+      <GridItem lg={9} rowSpan={8} sm={12}>
         <RPOSection
           selectedAppSet={selectedAppSet}
           lastSyncTimeData={lastSyncTimeData}
         />
       </GridItem>
-      <GridItem lg={3} rowSpan={6} sm={12}>
+      <GridItem lg={3} rowSpan={8} sm={12}>
         <ActivitySection selectedAppSet={selectedAppSet} />
       </GridItem>
-      <GridItem lg={9} rowSpan={6} sm={12}>
+      <GridItem lg={9} rowSpan={8} sm={12}>
         <SnapshotSection selectedAppSet={selectedAppSet} />
       </GridItem>
-      <GridItem lg={12} rowSpan={6} sm={12}>
+      <GridItem lg={12} rowSpan={8} sm={12}>
         <VolumeSummarySection
           protectedPVCData={protectedPVCData}
           selectedAppSet={selectedAppSet}
@@ -183,6 +189,15 @@ export const ClusterAppCard: React.FC = () => {
     mcvsLoaded,
     mcvsLoadError,
   ]);
+  const apiVersion = `${selectedAppSet?.appKind?.toLowerCase()}.${
+    selectedAppSet?.appAPIVersion?.split('/')[0]
+  }`;
+  const applicationDetailsPath =
+    applicationDetails
+      .replace(':namespace', appSet.namespace)
+      .replace(':name', appSet.name) +
+    '?apiVersion=' +
+    apiVersion;
 
   return (
     <Card data-test="cluster-app-card">
@@ -198,7 +213,16 @@ export const ClusterAppCard: React.FC = () => {
                 setAppSet={setAppSet}
               />
               <CardTitle className="mco-cluster-app__text--margin-top mco-dashboard__subtitle--size">
-                {cluster}
+                {!!appSet.namespace ? (
+                  <Link
+                    id="app-search-argo-apps-link"
+                    to={applicationDetailsPath}
+                  >
+                    {appSet.name}
+                  </Link>
+                ) : (
+                  cluster
+                )}
               </CardTitle>
             </div>
           </CardHeader>

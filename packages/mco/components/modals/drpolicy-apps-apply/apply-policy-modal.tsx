@@ -235,8 +235,17 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
 
   return (
     <Modal
-      description={drPolicyName}
-      title={t('Apply DRPolicy')}
+      description={
+        <TextContent>
+          <Text component={TextVariants.small}>
+            {t(
+              'Assign policy to protect critical applications and ensure quick recovery. Unassign policy from an application when they no longer require to be managed.'
+            )}
+          </Text>
+          <Text component={TextVariants.h6}>{drPolicyName}</Text>
+        </TextContent>
+      }
+      title={t('Manage policy for ApplicationSets')}
       isOpen={isOpen}
       onClose={closeModal}
       className="mco-apply-policy-modal__modal"
@@ -246,11 +255,6 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       ) : (
         <>
           <ModalBody>
-            <TextContent>
-              <Text component={TextVariants.small}>
-                {t('Select apps and create labels to apply the policy')}
-              </Text>
-            </TextContent>
             <ApplyPolicyDualListSelector state={state} dispatch={dispatch} />
             {!!state.message.text && (
               <Alert
@@ -278,7 +282,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
                 onClick={submit}
                 isDisabled={isSubmitDisabled}
               >
-                {t('Save changes')}
+                {t('Save')}
               </Button>
             ) : (
               <LoadingInline />
