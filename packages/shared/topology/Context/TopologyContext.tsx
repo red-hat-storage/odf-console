@@ -19,6 +19,8 @@ type DefaultContext = {
   visualizationLevel: TopologyViewLevel;
   activeNode?: string;
   setActiveNode?: (node: string) => void;
+  expandedAlertSeverity?: string;
+  setExpandedAlertSeverity?: (id: string) => void;
 };
 
 const defaultContext: DefaultContext = {
@@ -30,6 +32,8 @@ const defaultContext: DefaultContext = {
   activeNode: null,
   setActiveNode: null,
   nodeDeploymentMap: {},
+  expandedAlertSeverity: null,
+  setExpandedAlertSeverity: null,
 };
 
 export const TopologyDataContext =

@@ -391,6 +391,8 @@ const Topology: React.FC = () => {
   const [activeItemsUID, setActiveItemsUID] = React.useState<string[]>([]);
   const [activeItem, setActiveItem] = React.useState<string>('');
   const [activeNode, setActiveNode] = React.useState('');
+  const [expandedAlertSeverity, setExpandedAlertSeverity] =
+    React.useState<string>('');
 
   const [nodes, nodesLoaded, nodesError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);
@@ -491,6 +493,8 @@ const Topology: React.FC = () => {
         activeNode,
         setActiveNode,
         nodeDeploymentMap,
+        expandedAlertSeverity,
+        setExpandedAlertSeverity,
       }}
     >
       <TopologySearchContext.Provider

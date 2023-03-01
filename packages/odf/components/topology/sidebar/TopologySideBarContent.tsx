@@ -6,7 +6,7 @@ import { LoadingBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { DeploymentModel, NodeModel } from '@odf/shared/models';
 import { nodeStatus } from '@odf/shared/status/Node';
-import AlertsDetails from '@odf/shared/topology/sidebar/alerts/AlertsDetails';
+import TopologyAlerts from '@odf/shared/topology/sidebar/alerts/TopologyAlerts';
 import {
   DeploymentDetails,
   DeploymentObserve,
@@ -22,11 +22,9 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKofResource } from '@odf/shared/utils';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import {
-  Alert,
   K8sResourceCommon,
   useK8sModel,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
 import {
   StorageClusterDetails,
   StorageClusterObserve,
@@ -48,22 +46,11 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
   const [model, inFlight] = useK8sModel(reference);
   const [alertsTab, detailsTab, resourcesTab, observeTab]: JSX.Element[] =
     React.useMemo(() => {
-      const defaultAlertsFilter = (alert: Alert) =>
-        _.get(alert, 'annotations.description', '').includes(
-          resource.metadata.name
-        ) ||
-        _.get(alert, 'annotations.message', '').includes(
-          resource.metadata.name
-        );
-      let alertsFilter = defaultAlertsFilter;
       let [detailsTab, resourcesTab, observeTab] = Array(3)
         .fill(null)
         .map(() => <DataUnavailableError />);
       switch (resource.kind) {
         case NodeModel.kind:
-          alertsFilter = (alert: Alert) =>
-            alert?.labels?.node === resource.metadata.name ||
-            defaultAlertsFilter(alert);
           detailsTab = <NodeDetails node={resource as NodeKind} />;
           resourcesTab = <NodeResources node={resource as NodeKind} />;
           observeTab = <NodeObserve node={resource as NodeKind} />;
@@ -83,10 +70,7 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
           observeTab = <StorageClusterObserve />;
           break;
       }
-      if (!alertsFilter) {
-        alertsFilter = defaultAlertsFilter;
-      }
-      const alertsTab = <AlertsDetails alertsFilter={alertsFilter} />;
+      const alertsTab = <TopologyAlerts resource={resource} />;
       return [alertsTab, detailsTab, resourcesTab, observeTab];
     }, [resource]);
 

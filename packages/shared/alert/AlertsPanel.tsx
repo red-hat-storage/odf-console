@@ -133,28 +133,38 @@ const AlertAccordionItem: React.FC<AlertAccordionItemProps> = ({
   );
 };
 
-type AlertsProps = {
+type AlertsPanelProps = {
   alerts: Alert[];
   alertsFilter?: (alert: Alert) => boolean;
+  expandedAlertSeverity?: string;
+  setExpandedAlertSeverity?: (id: string) => void;
   className?: string;
   loaded: boolean;
   loadError: object;
 };
 
-const AlertsPanel: React.FC<AlertsProps> = ({
+const AlertsPanel: React.FC<AlertsPanelProps> = ({
   alerts,
   alertsFilter,
+  expandedAlertSeverity,
+  setExpandedAlertSeverity,
   className,
   loaded,
   loadError,
 }) => {
   const { t } = useCustomTranslation();
-  const [expanded, setExpanded] = React.useState('');
+  const [expanded, setExpanded] = React.useState<string>('');
+  let expandedSeverity = expanded;
+  let setExpandedSeverity = setExpanded;
+  if (_.isString(expandedAlertSeverity) && !!setExpandedAlertSeverity) {
+    expandedSeverity = expandedAlertSeverity;
+    setExpandedSeverity = setExpandedAlertSeverity;
+  }
   const onToggle = (id: string) => {
-    if (id === expanded) {
-      setExpanded('');
+    if (id === expandedSeverity) {
+      setExpandedSeverity('');
     } else {
-      setExpanded(id);
+      setExpandedSeverity(id);
     }
   };
   const filteredAlerts =
@@ -207,7 +217,7 @@ const AlertsPanel: React.FC<AlertsProps> = ({
             alerts={criticalAlerts}
             alertSeverity={AlertSeverity.Critical}
             onToggle={onToggle}
-            expanded={expanded}
+            expanded={expandedSeverity}
             loaded={loaded}
             loadError={loadError}
           />
@@ -215,7 +225,7 @@ const AlertsPanel: React.FC<AlertsProps> = ({
             alerts={warningAlerts}
             alertSeverity={AlertSeverity.Warning}
             onToggle={onToggle}
-            expanded={expanded}
+            expanded={expandedSeverity}
             loaded={loaded}
             loadError={loadError}
           />
@@ -223,7 +233,7 @@ const AlertsPanel: React.FC<AlertsProps> = ({
             alerts={infoAlerts}
             alertSeverity={AlertSeverity.Info}
             onToggle={onToggle}
-            expanded={expanded}
+            expanded={expandedSeverity}
             loaded={loaded}
             loadError={loadError}
           />
