@@ -15,13 +15,19 @@ import {
   FormGroup,
   TextInput,
   Text,
+  Checkbox,
 } from '@patternfly/react-core';
 import { PlusCircleIcon, MinusCircleIcon } from '@patternfly/react-icons';
 import { NamespaceStoreDropdown } from '../namespace-store/namespace-store-dropdown';
+import { LogReplicationInfoForm } from './log-replication-info-form';
+import { LogReplicationInfo } from './state';
 
 type ReplicationFormProps = {
   namespace: string;
-  updateParentState: (rules: Rule[]) => void;
+  updateParentState: (
+    rules: Rule[],
+    logReplicationInfo?: LogReplicationInfo
+  ) => void;
   className?: string;
   // For limiting the number of rules that can be added using add rule
   ruleCountLimit?: number;
@@ -31,6 +37,7 @@ export type Rule = {
   id: number;
   namespaceStore: string;
   prefix: string;
+  syncDeletion?: boolean;
 };
 
 export const NS_STORE_MODAL_KEY = 'BC_CREATE_WIZARD_NS_STORE_CREATE_MODAL';
@@ -50,6 +57,13 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
   const [rules, setRules] = React.useState<Rule[]>([
     { id: 1, namespaceStore: '', prefix: '' },
   ]);
+
+  const [logReplicationInfo, setLogReplicationInfo] =
+    React.useState<LogReplicationInfo>({
+      logLocation: '',
+      logPrefix: '',
+    });
+
   const { t } = useCustomTranslation();
 
   const [Modal, modalProps, launcher] = useModalLauncher(modalMap);
@@ -75,6 +89,19 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
     updateParentState(rules);
   };
 
+  const handleSyncDeletion = (value: boolean, ruleId: number) => {
+    const newRules = [...rules];
+    const index = newRules.findIndex((rule) => rule.id === ruleId);
+    newRules[index].syncDeletion = value;
+    setRules(newRules);
+    let temp = { ...logReplicationInfo };
+    if (!newRules.some((rule) => rule.syncDeletion)) {
+      temp = { logLocation: null, logPrefix: null };
+      setLogReplicationInfo(temp);
+    }
+    updateParentState(rules, temp);
+  };
+
   const handleAddRule = () => {
     setRules([
       ...rules,
@@ -82,6 +109,17 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
     ]);
   };
 
+  const handleLogPrefixChange = (prefix: string) => {
+    const repInfo = { ...logReplicationInfo, logPrefix: prefix };
+    setLogReplicationInfo(repInfo);
+    updateParentState(rules, repInfo);
+  };
+
+  const handleLogLocationChange = (logLocation: string) => {
+    const repInfo = { ...logReplicationInfo, logLocation: logLocation };
+    setLogReplicationInfo(repInfo);
+    updateParentState(rules, repInfo);
+  };
   const handleRemoveRule = () => {
     let newRules = [...rules];
 
@@ -90,6 +128,8 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
     setRules(newRules);
     updateParentState(rules);
   };
+
+  const hasSyncDeletion = rules.some((rule) => rule.syncDeletion);
   return (
     <div className={className}>
       <Modal {...modalProps} />
@@ -98,7 +138,7 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
         alignItems={{ default: 'alignItemsCenter' }}
       >
         <FlexItem>
-          <Text component={TextVariants.h2}>{t('Replication rules ')}</Text>
+          <Text component={TextVariants.h3}>{t('Replication rules ')}</Text>
         </FlexItem>
         <FlexItem>
           <Button
@@ -113,7 +153,7 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
 
       <Form>
         {rules.map((rule, index) => (
-          <Grid hasGutter md={4} className="odf-mcg__form">
+          <Grid hasGutter md={3} className="odf-mcg__form">
             <RuleForm
               namespace={namespace}
               rule={rule}
@@ -121,6 +161,9 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
                 handleNSChange(ns, rule.id)
               }
               onPrefixChange={(val: string) => handlePrefixChange(val, rule.id)}
+              onSyncDeletions={(val: boolean) =>
+                handleSyncDeletion(val, rule.id)
+              }
             />
             {rules.length === index + 1 && (
               <GridItem>
@@ -151,6 +194,15 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
             </Button>
           </FormGroup>
         )}
+
+        {hasSyncDeletion && (
+          <LogReplicationInfoForm
+            location={logReplicationInfo.logLocation}
+            prefix={logReplicationInfo.logPrefix}
+            onLogLocationChange={handleLogLocationChange}
+            onPrefixChange={handleLogPrefixChange}
+          />
+        )}
       </Form>
     </div>
   );
@@ -161,6 +213,7 @@ type RuleFormProps = {
   rule: Rule;
   onNSChange: (ns: NamespaceStoreKind) => void;
   onPrefixChange: (val: string) => void;
+  onSyncDeletions: (val: boolean) => void;
 };
 
 export const RuleForm: React.FC<RuleFormProps> = ({
@@ -168,6 +221,7 @@ export const RuleForm: React.FC<RuleFormProps> = ({
   rule,
   onNSChange,
   onPrefixChange,
+  onSyncDeletions,
 }) => {
   const { t } = useCustomTranslation();
   return (
@@ -198,6 +252,21 @@ export const RuleForm: React.FC<RuleFormProps> = ({
             value={rule.prefix}
             onChange={onPrefixChange}
             aria-label={t('Prefix')}
+          />
+        </FormGroup>
+      </GridItem>
+      <GridItem>
+        <FormGroup
+          fieldId="sync-deletions-checkbox"
+          className="odf-mcg__rule-checkbox"
+        >
+          <Checkbox
+            data-test="sync-deletion"
+            id="sync-deletions-checkbox"
+            isChecked={rule.syncDeletion}
+            onChange={onSyncDeletions}
+            aria-label={t('sync deletion')}
+            label={t('Sync deletion')}
           />
         </FormGroup>
       </GridItem>

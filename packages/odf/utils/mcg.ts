@@ -286,8 +286,7 @@ export const convertToMS = ({ unit, value }) =>
     : parseInt(value, 10) * 60000;
 
 export const generateGenericName = (name: string, prefix: string): string => {
-  const base64Encoded = btoa(name).substring(0, 10);
-  return `${prefix}-${name}-${base64Encoded}`.toLowerCase();
+  return `${prefix}-${name}`.toLowerCase();
 };
 
 export const createNewSingleNamespaceBucketClass = (
