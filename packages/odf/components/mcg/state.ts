@@ -6,6 +6,11 @@ export type ReplicationResources = {
   objectBucketClaim: ObjectBucketClaimKind;
 };
 
+export type LogReplicationInfo = {
+  logLocation: string;
+  logPrefix: string;
+};
+
 export type State = {
   name: string;
   scName: string;
@@ -17,19 +22,30 @@ export type State = {
   payload: K8sResourceKind;
   bucketClass: string;
   replicationRuleFormData: ReplicationRuleFormData[];
+  logReplicationInfo: LogReplicationInfo;
 };
 
 export type ReplicationPolicy = {
   rules: OBCReplicationRules[];
+  log_replication_info?: OBCLogReplicationInfo;
 };
 
+// Actual format of LogReplicationInfo in replication policy
+// https://github.com/MeridianExplorer/noobaa-core/blob/log-replication-bg-worker/src/api/bucket_api.js#L1401
+export type OBCLogReplicationInfo = {
+  logs_location: {
+    logs_bucket: string;
+    prefix: string;
+  };
+};
 // This is the actual format of replication rules in an OBC CRD
 export type OBCReplicationRules = {
   ruleId: string;
-  obName: string;
-  filter: {
+  destination_bucket: string;
+  filter?: {
     prefix: string;
   };
+  sync_deletions?: boolean;
 };
 
 // Structure for the form in OBC creation page
@@ -38,7 +54,9 @@ export type ReplicationRuleFormData = {
   ruleNumber?: number;
   namespaceStore: string;
   prefix?: string;
+  syncDeletion?: boolean;
 };
+
 export const defaultState = {
   name: '',
   scName: '',
@@ -50,6 +68,7 @@ export const defaultState = {
   sizeValue: '',
   bucketClass: 'noobaa-default-bucket-class',
   replicationRuleFormData: [],
+  logReplicationInfo: { logLocation: '', logPrefix: '' },
 };
 
 export type Action =
@@ -65,6 +84,10 @@ export type Action =
   | {
       type: 'setReplicationRuleFormData';
       data: Array<ReplicationRuleFormData>;
+    }
+  | {
+      type: 'setLogReplicationInfo';
+      data: LogReplicationInfo;
     };
 
 export const commonReducer = (state: State, action: Action) => {
@@ -92,6 +115,8 @@ export const commonReducer = (state: State, action: Action) => {
       return Object.assign({}, state, { bucketClass: action.name });
     case 'setReplicationRuleFormData':
       return Object.assign({}, state, { replicationRuleFormData: action.data });
+    case 'setLogReplicationInfo':
+      return Object.assign({}, state, { logReplicationInfo: action.data });
     default:
       return defaultState;
   }

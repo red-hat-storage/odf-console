@@ -51,6 +51,8 @@ import {
   ReplicationResources,
   ReplicationRuleFormData,
   State,
+  LogReplicationInfo,
+  OBCLogReplicationInfo,
 } from './state';
 import './create-obc.scss';
 import '../../style.scss';
@@ -76,19 +78,35 @@ export const isObjectSC = (sc: StorageClassResourceKind) =>
 
 const createReplicationRulesAndStringify = (
   data: ReplicationRuleFormData[],
-  namespace: string
+  namespace: string,
+  logReplicationInfo: LogReplicationInfo
 ): string => {
   const rules: Array<OBCReplicationRules> = data.map((rule) => ({
     ruleId: `rule-${rule.ruleNumber}`,
-    obName: `obc-${namespace}-${generateGenericName(
+    destination_bucket: `obc-${namespace}-${generateGenericName(
       rule.namespaceStore,
       'destination-bucket'
     )}`,
     filter: {
       prefix: rule.prefix,
     },
+    sync_deletions: rule.syncDeletion,
   }));
-  return rules ? JSON.stringify(rules) : '';
+
+  const log_replication_info: OBCLogReplicationInfo = !_.isEmpty(
+    logReplicationInfo
+  )
+    ? {
+        logs_location: {
+          logs_bucket: logReplicationInfo.logLocation,
+          prefix: logReplicationInfo.logPrefix,
+        },
+      }
+    : { logs_location: { logs_bucket: null, prefix: null } };
+
+  return rules
+    ? JSON.stringify({ rules: [...rules], log_replication_info })
+    : '';
 };
 
 const generateAdditionalReplicationResources = (
@@ -128,7 +146,10 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   };
 
   const [replicationEnabled, toggleReplication] = React.useState(false);
-  const updateReplicationPolicy = (rules: Rule[]) => {
+  const updateReplicationPolicy = (
+    rules: Rule[],
+    logReplicationInfo?: LogReplicationInfo
+  ) => {
     let rulesFormData: Array<ReplicationRuleFormData> = [];
     rules.forEach((rule) => {
       if (rule.namespaceStore)
@@ -136,9 +157,19 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
           ruleNumber: rule.id,
           namespaceStore: rule.namespaceStore,
           prefix: rule.prefix,
+          syncDeletion: rule.syncDeletion,
         });
     });
     dispatch({ type: 'setReplicationRuleFormData', data: rulesFormData });
+    if (
+      !_.isEmpty(logReplicationInfo) ||
+      !rules.some((rule) => rule.syncDeletion)
+    ) {
+      dispatch({
+        type: 'setLogReplicationInfo',
+        data: { ...logReplicationInfo },
+      });
+    }
   };
 
   React.useEffect(() => {
@@ -166,9 +197,10 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       if (!!state.replicationRuleFormData.length) {
         const replicationPolicy = createReplicationRulesAndStringify(
           state.replicationRuleFormData,
-          namespace
+          namespace,
+          state.logReplicationInfo
         );
-        obj.spec.additionalConfig = { 'replication-policy': replicationPolicy };
+        obj.spec.additionalConfig = { replication_policy: replicationPolicy };
       }
       obj.spec.additionalConfig = {
         ...obj.spec.additionalConfig,
@@ -184,6 +216,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     isNoobaa,
     dispatch,
     state.replicationRuleFormData,
+    state.logReplicationInfo,
   ]);
 
   const storageClassResource = {
@@ -282,7 +315,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
             )}
           />
           <FormGroup>
-            <Text component={TextVariants.h1}>{t('Replication Policy')}</Text>
+            <Text component={TextVariants.h2}>{t('Replication policy')}</Text>
             <p className="help-block">
               {t(
                 'For higher resiliency, set a replication configuration for objects which are stored in NooBaa namespace buckets'
@@ -319,6 +352,7 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
   const namespace = props.match.params.ns;
+  const submitBtnId = 'obc-submit-btn';
   const history = useHistory();
   const { obcNameSchema, fieldRequirements } = useObcNameSchema(namespace);
 
@@ -348,8 +382,15 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
     dispatch({ type: 'setName', name: obcName });
   }, [obcName, dispatch]);
 
-  const save = (_: any, e: React.FormEvent<EventTarget>) => {
+  const save = (
+    _: any,
+    e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>
+  ) => {
     e.preventDefault();
+
+    // NamespaceStore modal's submit is triggering this form as well, added this check to prevent that
+    if (e.nativeEvent.submitter.id !== submitBtnId) return;
+
     dispatch({ type: 'setProgress' });
     const promises: Promise<K8sResourceKind>[] = [];
     if (!!state.replicationRuleFormData.length) {
@@ -439,7 +480,12 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
         )}
         <ButtonBar errorMessage={state.error} inProgress={state.progress}>
           <ActionGroup className="pf-c-form">
-            <Button type="submit" variant="primary" data-test="obc-create">
+            <Button
+              id={submitBtnId}
+              type="submit"
+              variant="primary"
+              data-test="obc-create"
+            >
               {t('Create')}
             </Button>
             <Button onClick={history.goBack} type="button" variant="secondary">
