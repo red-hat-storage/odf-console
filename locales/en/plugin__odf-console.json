@@ -828,6 +828,8 @@
   "Search...": "Search...",
   "Expand to fullscreen": "Expand to fullscreen",
   "Exit fullscreen": "Exit fullscreen",
+  "No StorageCluster found": "No StorageCluster found",
+  "Set up a storage cluster to view the topology": "Set up a storage cluster to view the topology",
   "A minimal cluster deployment will be performed.": "A minimal cluster deployment will be performed.",
   "The selected nodes do not match Data Foundation's StorageCluster requirement of an aggregated 30 CPUs and 72 GiB of RAM. If the selection cannot be modified a minimal cluster will be deployed.": "The selected nodes do not match Data Foundation's StorageCluster requirement of an aggregated 30 CPUs and 72 GiB of RAM. If the selection cannot be modified a minimal cluster will be deployed.",
   "Back to nodes selection": "Back to nodes selection",

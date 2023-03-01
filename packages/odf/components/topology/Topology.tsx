@@ -1,7 +1,12 @@
 import * as React from 'react';
+import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import HandleErrorAndLoading from '@odf/shared/error-handler/ErrorStateHandler';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import { DeploymentModel, NodeModel } from '@odf/shared/models';
+import {
+  ClusterServiceVersionModel,
+  DeploymentModel,
+  NodeModel,
+} from '@odf/shared/models';
 import { getName, getUID } from '@odf/shared/selectors';
 import {
   createNode,
@@ -12,17 +17,29 @@ import {
   TopologyViewLevel,
 } from '@odf/shared/topology';
 import {
+  ClusterServiceVersionKind,
   DeploymentKind,
   NodeKind,
   PodKind,
   StorageClusterKind,
 } from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
+  useFlag,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
+import { Link } from 'react-router-dom';
+import {
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateIcon,
+  Title,
+} from '@patternfly/react-core';
+import { TopologyIcon } from '@patternfly/react-icons';
 import {
   useVisualizationController,
   TopologyView,
@@ -38,6 +55,7 @@ import {
   GraphElement,
 } from '@patternfly/react-topology';
 import { CEPH_STORAGE_LABEL } from '../../constants';
+import { CEPH_FLAG, MCG_STANDALONE } from '../../features';
 import {
   nodeResource,
   odfDaemonSetResource,
@@ -526,4 +544,45 @@ const Topology: React.FC = () => {
   );
 };
 
-export default Topology;
+const TopologyViewEmptyState: React.FC = () => {
+  const { t } = useCustomTranslation();
+  const [csv, csvLoaded, csvError] = useK8sWatchResource<
+    ClusterServiceVersionKind[]
+  >({
+    kind: referenceForModel(ClusterServiceVersionModel),
+    isList: true,
+    namespace: CEPH_STORAGE_NAMESPACE,
+  });
+
+  const odfCsvName: string =
+    csvLoaded && !csvError
+      ? csv?.find((item) => item?.metadata?.name?.includes('odf-operator'))
+          ?.metadata?.name
+      : null;
+
+  const createLink = `/k8s/ns/openshift-storage/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
+
+  return (
+    <EmptyState>
+      <EmptyStateIcon icon={TopologyIcon} />
+      <Title headingLevel="h4" size="lg">
+        {t('No StorageCluster found')}
+      </Title>
+      <EmptyStateBody>
+        {t('Set up a storage cluster to view the topology')}
+      </EmptyStateBody>
+      <Link to={createLink}>{t('Create StorageSystem')} </Link>
+    </EmptyState>
+  );
+};
+
+const TopologyWithErrorHandler: React.FC = () => {
+  const isCephAvailable = useFlag(CEPH_FLAG);
+  const isMCGAvailable = useFlag(MCG_STANDALONE);
+
+  const showDashboard = isCephAvailable || isMCGAvailable;
+
+  return showDashboard ? <Topology /> : <TopologyViewEmptyState />;
+};
+
+export default TopologyWithErrorHandler;
