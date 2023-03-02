@@ -9,7 +9,6 @@ export type MirrorPeerKind = K8sResourceCommon & {
         namespace: string;
       };
     }[];
-    schedulingIntervals?: string[];
     manageS3: boolean;
     type: string;
   };
