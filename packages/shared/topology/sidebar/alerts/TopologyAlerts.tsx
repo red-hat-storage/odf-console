@@ -2,7 +2,6 @@ import * as React from 'react';
 import AlertsPanel from '@odf/shared/alert/AlertsPanel';
 import { NodeModel } from '@odf/shared/models';
 import useAlerts from '@odf/shared/monitoring/useAlert';
-import { TopologyDataContext } from '@odf/shared/topology';
 import { K8sResourceKind } from '@odf/shared/types';
 import { Alert } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -35,8 +34,6 @@ type TopologyAlertsProps = {
 };
 
 const TopologyAlerts: React.FC<TopologyAlertsProps> = ({ resource }) => {
-  const { expandedAlertSeverity, setExpandedAlertSeverity } =
-    React.useContext(TopologyDataContext);
   const [alerts, loaded, loadError] = useAlerts();
   const alertsFilter = getAlertsFilter(resource);
 
@@ -44,8 +41,6 @@ const TopologyAlerts: React.FC<TopologyAlertsProps> = ({ resource }) => {
     <AlertsPanel
       alerts={alerts}
       alertsFilter={alertsFilter}
-      expandedAlertSeverity={expandedAlertSeverity}
-      setExpandedAlertSeverity={setExpandedAlertSeverity}
       loaded={loaded}
       loadError={loadError}
     />

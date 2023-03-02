@@ -93,6 +93,18 @@ const TopologyViewComponent: React.FC = () => {
   const lastNode = React.useRef<string>();
 
   const [isSideBarOpen, setSideBarOpen] = React.useState(false);
+  const sidebar = React.useMemo(() => {
+    return (
+      <Sidebar
+        onClose={() => {
+          setSideBarOpen(false);
+          setSelectedIds([]);
+        }}
+        element={selectedElement}
+        isExpanded={isSideBarOpen}
+      />
+    );
+  }, [selectedElement, isSideBarOpen]);
   const {
     nodes,
     storageCluster,
@@ -365,16 +377,7 @@ const TopologyViewComponent: React.FC = () => {
           })}
         />
       }
-      sideBar={
-        <Sidebar
-          onClose={() => {
-            setSideBarOpen(false);
-            setSelectedIds([]);
-          }}
-          element={selectedElement}
-          isExpanded={isSideBarOpen}
-        />
-      }
+      sideBar={sidebar}
       sideBarOpen={isSideBarOpen}
     >
       <VisualizationSurface state={{ selectedIds }} />
@@ -391,8 +394,6 @@ const Topology: React.FC = () => {
   const [activeItemsUID, setActiveItemsUID] = React.useState<string[]>([]);
   const [activeItem, setActiveItem] = React.useState<string>('');
   const [activeNode, setActiveNode] = React.useState('');
-  const [expandedAlertSeverity, setExpandedAlertSeverity] =
-    React.useState<string>('');
 
   const [nodes, nodesLoaded, nodesError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);
@@ -493,8 +494,6 @@ const Topology: React.FC = () => {
         activeNode,
         setActiveNode,
         nodeDeploymentMap,
-        expandedAlertSeverity,
-        setExpandedAlertSeverity,
       }}
     >
       <TopologySearchContext.Provider
