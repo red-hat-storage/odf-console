@@ -42,6 +42,11 @@ export enum CreateStepsSC {
   REVIEWANDCREATE = 'REVIEWANDCREATE',
 }
 
+export const SIZE_IN_TB = {
+  Gi: 1024,
+  Ti: 1,
+};
+
 export const OSD_CAPACITY_SIZES = {
   '512Gi': 0.5,
   '2Ti': 2,
