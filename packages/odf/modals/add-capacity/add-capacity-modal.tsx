@@ -51,7 +51,7 @@ import {
 import {
   defaultRequestSize,
   NO_PROVISIONER,
-  OSD_CAPACITY_SIZES,
+  SIZE_IN_TB,
   requestedCapacityTooltip,
   storageClassTooltip,
 } from '../../constants';
@@ -224,7 +224,9 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
 
   const deviceSets: DeviceSet[] = ocsConfig?.spec?.storageDeviceSets || [];
   const osdSizeWithUnit = getRequestedPVCSize(deviceSets?.[0]?.dataPVCTemplate);
-  const osdSizeWithoutUnit: number = OSD_CAPACITY_SIZES[osdSizeWithUnit];
+  // ODF support Gi and Ti for any custome size
+  const [osdSize, unit] = osdSizeWithUnit.split(/(\d+)/).filter(Boolean);
+  const osdSizeWithoutUnit: number = +osdSize / SIZE_IN_TB[unit];
   const isNoProvionerSC: boolean = storageClass?.provisioner === NO_PROVISIONER;
   const selectedSCName: string = storageClass?.metadata?.name;
   const deviceSetIndex: number = getCurrentDeviceSetIndex(
