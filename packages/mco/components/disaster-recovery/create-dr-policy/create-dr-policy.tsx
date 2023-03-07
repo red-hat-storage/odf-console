@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getMajorVersion } from '@odf/mco/utils';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants/common';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
@@ -82,11 +83,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
     specName: ODFMCO_OPERATOR,
     cluster: HUB_CLUSTER_NAME,
   });
-  const odfMCOVersion = React.useMemo(() => {
-    const version = csv?.spec?.version;
-    // converting z-stream release version to main release version
-    return version ? version.substring(0, version.lastIndexOf('.')) + '.0' : '';
-  }, [csv]);
+  const odfMCOVersion = getMajorVersion(csv?.spec?.version);
 
   React.useEffect(() => {
     if (state.selectedClusters.length === 2) {
