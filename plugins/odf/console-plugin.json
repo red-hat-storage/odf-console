@@ -34,6 +34,7 @@
     "alert": "@odf/core/components/alerts/alert-action-path",
     "actions": "@odf/core/components/actions/csv-actions",
     "resourcePages": "@odf/core/components/resource-pages/list-page",
-    "topology": "@odf/core/components/topology/Topology"
+    "topology": "@odf/core/components/topology/Topology",
+    "ibmStorage": "@odf/ibm/system-connection-details"
   }
 }

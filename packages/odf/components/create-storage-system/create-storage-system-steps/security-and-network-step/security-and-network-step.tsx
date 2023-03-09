@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { getNamespace, getName } from '@odf/shared/selectors';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
@@ -17,6 +18,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
   isExternal,
   connectionDetailState,
   externalStorage,
+  supportedExternalStorage,
 }) => {
   const isMultusSupported = useFlag(FEATURES.OCS_MULTUS);
 
@@ -71,6 +73,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
           state={connectionDetailState}
           dispatch={dispatch}
           externalStorage={externalStorage}
+          supportedExternalStorage={supportedExternalStorage}
         />
       )}
     </Form>
@@ -84,4 +87,5 @@ type SecurityAndNetworkProps = {
   isExternal?: boolean;
   connectionDetailState?: WizardState['connectionDetails'];
   externalStorage?: WizardState['backingStorage']['externalStorage'];
+  supportedExternalStorage?: ExternalStorage[];
 };

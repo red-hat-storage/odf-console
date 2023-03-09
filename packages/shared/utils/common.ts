@@ -1,3 +1,4 @@
+import { Model } from '@odf/odf-plugin-sdk/extensions';
 import { K8sResourceKind, Patch } from '@odf/shared/types';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -127,7 +128,7 @@ export const getInfrastructurePlatform = (
 ): string =>
   infrastructure?.spec?.platformSpec?.type || infrastructure?.status?.platform;
 
-export const getGVKLabel = ({ kind, apiVersion, apiGroup }) =>
+export const getGVKLabel = ({ kind, apiGroup, apiVersion }: Model) =>
   `${kind.toLowerCase()}.${apiGroup}/${apiVersion}`;
 
 export const getRandomChars = () => Math.random().toString(36).substring(7);
