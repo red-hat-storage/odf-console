@@ -408,15 +408,6 @@ export const getOCSRequestData = (
     };
   }
 
-  if (encryption.clusterWide && !kmsEnable) {
-    requestData.spec.security = {
-      kms: {
-        enableKeyRotation: true,
-        schedule: '@weekly',
-      },
-    };
-  }
-
   if (isNFSEnabled) {
     // for NFS, supported only for full deployment and non-external mode
     requestData.spec.nfs = {
