@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKLabel } from '@odf/shared/utils';
@@ -28,7 +29,6 @@ import {
   createStorageCluster,
   createStorageSystem,
   labelNodes,
-  waitforCRD,
   taintNodes,
 } from './payloads';
 import { WizardCommonProps, WizardState } from './reducer';
@@ -50,7 +50,12 @@ const validateBackingStorageStep = (
   }
 };
 
-const canJumpToNextStep = (name: string, state: WizardState, t: TFunction) => {
+const canJumpToNextStep = (
+  name: string,
+  state: WizardState,
+  t: TFunction,
+  supportedExternalStorage: ExternalStorage[]
+) => {
   const {
     storageClass,
     backingStorage,
@@ -68,7 +73,8 @@ const canJumpToNextStep = (name: string, state: WizardState, t: TFunction) => {
   const { chartNodes, volumeSetName, isValidDiskSize } = createLocalVolumeSet;
   const { encryption, kms, networkType, publicNetwork, clusterNetwork } =
     securityAndNetwork;
-  const { canGoToNextStep } = getExternalStorage(externalStorage) || {};
+  const { canGoToNextStep } =
+    getExternalStorage(externalStorage, supportedExternalStorage) || {};
 
   const hasConfiguredNetwork =
     networkType === NetworkType.MULTUS
@@ -114,7 +120,8 @@ const handleReviewAndCreateNext = async (
   state: WizardState,
   hasOCS: boolean,
   handleError: (err: string, showError: boolean) => void,
-  history: RouteComponentProps['history']
+  history: RouteComponentProps['history'],
+  supportedExternalStorage: ExternalStorage[]
 ) => {
   const {
     connectionDetails,
@@ -153,8 +160,8 @@ const handleReviewAndCreateNext = async (
       );
       await createStorageCluster(state);
     } else if (type === BackingStorageType.EXTERNAL) {
-      const { createPayload, model, displayName } =
-        getExternalStorage(externalStorage) || {};
+      const { createPayload, model, displayName, waitToCreate } =
+        getExternalStorage(externalStorage, supportedExternalStorage) || {};
 
       const externalSystemName = getExternalSubSystemName(
         displayName,
@@ -183,7 +190,7 @@ const handleReviewAndCreateNext = async (
           );
         await createStorageCluster(state);
       }
-      if (!isRhcs) await waitforCRD(model);
+      if (!isRhcs && !!waitToCreate) await waitToCreate(model);
       await createExternalSubSystem(subSystemPayloads);
     }
     history.push('/odf/systems');
@@ -193,7 +200,14 @@ const handleReviewAndCreateNext = async (
 };
 
 export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps> =
-  ({ dispatch, state, disableNext, hasOCS, history }) => {
+  ({
+    dispatch,
+    state,
+    disableNext,
+    hasOCS,
+    history,
+    supportedExternalStorage,
+  }) => {
     const { t } = useCustomTranslation();
     const { activeStep, onNext, onBack } =
       React.useContext<WizardContextType>(WizardContext);
@@ -204,7 +218,12 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
     const stepId = activeStep.id as number;
     const stepName = activeStep.name as string;
 
-    const jumpToNextStep = canJumpToNextStep(stepName, state, t);
+    const jumpToNextStep = canJumpToNextStep(
+      stepName,
+      state,
+      t,
+      supportedExternalStorage
+    );
 
     const moveToNextStep = () => {
       dispatch({
@@ -230,7 +249,13 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
           break;
         case StepsName(t)[Steps.ReviewAndCreate]:
           setRequestInProgress(true);
-          await handleReviewAndCreateNext(state, hasOCS, handleError, history);
+          await handleReviewAndCreateNext(
+            state,
+            hasOCS,
+            handleError,
+            history,
+            supportedExternalStorage
+          );
           setRequestInProgress(false);
           break;
         default:
@@ -292,4 +317,5 @@ type CreateStorageSystemFooterProps = WizardCommonProps & {
   disableNext: boolean;
   hasOCS: boolean;
   history: RouteComponentProps['history'];
+  supportedExternalStorage: ExternalStorage[];
 };

@@ -1,3 +1,4 @@
+import { Model } from '@odf/odf-plugin-sdk/extensions';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import {
   ClusterServiceVersionKind,
@@ -18,7 +19,7 @@ export const isOCSStorageSystem = (storageSystem: StorageSystemKind) =>
     kind: OCSStorageClusterModel.kind,
     apiVersion: OCSStorageClusterModel.apiVersion,
     apiGroup: OCSStorageClusterModel.apiGroup,
-  });
+  } as Model);
 
 export const getOCSStorageSystem = (ssList: StorageSystemKind[] = []) =>
   ssList.find((ss) => isOCSStorageSystem(ss));
