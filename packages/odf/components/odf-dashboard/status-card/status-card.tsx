@@ -16,6 +16,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getGVK,
   referenceForModel,
+  referenceForGroupVersionKind,
   getOperatorHealthState,
 } from '@odf/shared/utils';
 import {
@@ -83,7 +84,11 @@ export const StatusCard: React.FC = () => {
           const storageSystem = systems.find(
             (system) => system.metadata.name === systemName
           );
-          const { apiGroup } = getGVK(storageSystem?.spec.kind);
+          const { apiGroup, apiVersion, kind } = getGVK(
+            storageSystem?.spec.kind
+          );
+          const systemKind =
+            referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
           const systemData =
             apiGroup === OCSStorageClusterModel.apiGroup
               ? {
@@ -91,7 +96,7 @@ export const StatusCard: React.FC = () => {
                   rawHealthData: ocsHealthStatus.rawHealthState,
                   healthState: healthStateMap(ocsHealthStatus.rawHealthState),
                   link: getVendorDashboardLinkFromMetrics(
-                    curr.metric.system_type,
+                    systemKind,
                     systemName,
                     ocsHealthStatus.errorComponent
                   ),
@@ -105,7 +110,7 @@ export const StatusCard: React.FC = () => {
                   rawHealthData: curr.value[1],
                   healthState: healthStateMap(curr.value[1]),
                   link: getVendorDashboardLinkFromMetrics(
-                    curr.metric.system_type,
+                    systemKind,
                     systemName
                   ),
                 };
