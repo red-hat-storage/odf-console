@@ -24,3 +24,5 @@ jobs:
       - run: yarn format-test
       - run: yarn test-coverage
       - run: yarn analyze-odf
+      - run: yarn build-mco
+      - run: yarn analyze-mco
