@@ -18,11 +18,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
-      - run: yarn --frozen-lockfile
+      - run: yarn install --prod --frozen-lockfile
       - run: yarn build
+      - run: yarn build-mco
+      - run: yarn install # Install dev. deps.
       - run: yarn lint
       - run: yarn format-test
       - run: yarn test-coverage
       - run: yarn analyze-odf
-      - run: yarn build-mco
       - run: yarn analyze-mco
