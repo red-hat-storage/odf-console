@@ -63,11 +63,11 @@ const getPodMetric = (
 };
 
 type DeploymentResourceProps = {
-  deployment: DeploymentKind;
+  resource: DeploymentKind;
 };
 
 export const DeploymentResources: React.FC<DeploymentResourceProps> = ({
-  deployment,
+  resource: deployment,
 }) => {
   const { t } = useCustomTranslation();
   const [pods, podsLoaded, podsLoadError] = useK8sWatchResource<

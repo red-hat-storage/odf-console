@@ -33,10 +33,12 @@ const getPodMetric = (
 };
 
 type NodeResourcesProps = {
-  node: NodeKind;
+  resource: NodeKind;
 };
 
-export const NodeResources: React.FC<NodeResourcesProps> = ({ node }) => {
+export const NodeResources: React.FC<NodeResourcesProps> = ({
+  resource: node,
+}) => {
   const { t } = useCustomTranslation();
   const [pods, loaded, loadError] = useK8sWatchResource<PodWithMetricsKind[]>({
     kind: PodModel.kind,
