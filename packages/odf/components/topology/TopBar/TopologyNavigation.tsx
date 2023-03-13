@@ -8,7 +8,7 @@ import {
   OptionsMenuItem,
   OptionsMenuToggle,
 } from '@patternfly/react-core';
-import { GreaterThanIcon } from '@patternfly/react-icons';
+import { AngleRightIcon } from '@patternfly/react-icons';
 import { useVisualizationController } from '@patternfly/react-topology';
 import './TopologyNavigation.scss';
 
@@ -113,7 +113,7 @@ const TopologyNavigationBarGroup: React.FC = ({ children }) => {
             <>
               {child}
               <TopologyNavigationItem key={i}>
-                <GreaterThanIcon />
+                <AngleRightIcon />
               </TopologyNavigationItem>
             </>
           );
