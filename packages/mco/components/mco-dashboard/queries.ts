@@ -19,15 +19,15 @@ export const TOTAL_PVC_COUNT_QUERY = 'count_persistentvolumeclaim_total';
 export const getTotalPVCCountPerClusterQuery = (clusterName: string) =>
   `${TOTAL_PVC_COUNT_QUERY}{cluster="${clusterName}"}`;
 
-export const LAST_SYNC_TIME_QUERY = 'ramen_last_sync_timestamp_seconds';
+export const LAST_SYNC_TIME_QUERY = 'ramen_sync_duration_seconds';
 export const getLastSyncPerClusterQuery = () =>
-  `time() - ${LAST_SYNC_TIME_QUERY}{cluster="${HUB_CLUSTER_NAME}"}`;
+  `${LAST_SYNC_TIME_QUERY}{cluster="${HUB_CLUSTER_NAME}"}`;
 
 export const getLastSyncTimeDRPCQuery = (
   drpcNamespace: string,
   drpcName: string
 ) =>
-  `time() - ${LAST_SYNC_TIME_QUERY}{resource_type="drpc",name="${drpcName}",namespace="${drpcNamespace}",cluster="${HUB_CLUSTER_NAME}"}`;
+  `${LAST_SYNC_TIME_QUERY}{resource_type="drpc",name="${drpcName}",namespace="${drpcNamespace}",cluster="${HUB_CLUSTER_NAME}"}`;
 
 export const CAPACITY_QUERIES = {
   [StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system) ${TOTAL_CAPACITY_FILE_BLOCK_METRIC}`,
