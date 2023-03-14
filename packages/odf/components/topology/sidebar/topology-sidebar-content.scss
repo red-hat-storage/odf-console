@@ -1,3 +1,12 @@
 .odf-topology-sidebar-heading h1 {
   font-size: var(--pf-global--FontSize--lg);
 }
+
+.odf-topology-sidebar-heading {
+  padding-right: var(--pf-global--spacer--2xl);
+}
+
+.odf-topology-sidebar__tab.pf-c-tab-content{
+  max-height: 450px;
+  overflow-y: auto;
+}
