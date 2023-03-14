@@ -1,0 +1,30 @@
+name: Backport to Release Branches
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  backport:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Determine Target Branches
+        id: determine_target_branches
+        run: |
+          if [[ ${{ github.event.pull_request.base.ref }} == "master" && ${{ github.event.pull_request.labels.*.name }} =~ "backport-4.13" ]]; then
+            echo "::set-output name=target_branches::release-4.13 release-4.13-compatibility"
+          fi
+
+      - name: Cherry-pick to Release Branches
+        if: steps.determine_target_branches.outputs.target_branches
+        run: |
+          for target_branch in ${{ steps.determine_target_branches.outputs.target_branches }}; do
+            git checkout $target_branch
+            git cherry-pick ${{ github.event.pull_request.merge_commit_sha }}
+            git push origin $target_branch
+          done
