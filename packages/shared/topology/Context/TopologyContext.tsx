@@ -4,6 +4,7 @@ import {
   NodeKind,
   StorageClusterKind,
 } from '@odf/shared/types';
+import { GraphElement } from '@patternfly/react-topology';
 import { TopologyViewLevel } from '../types';
 
 export type NodeDeploymentMap = {
@@ -19,6 +20,8 @@ type DefaultContext = {
   visualizationLevel: TopologyViewLevel;
   activeNode?: string;
   setActiveNode?: (node: string) => void;
+  selectedElement: GraphElement;
+  setSelectedElement: (node: GraphElement) => void;
 };
 
 const defaultContext: DefaultContext = {
@@ -30,6 +33,8 @@ const defaultContext: DefaultContext = {
   activeNode: null,
   setActiveNode: null,
   nodeDeploymentMap: {},
+  selectedElement: null,
+  setSelectedElement: () => null,
 };
 
 export const TopologyDataContext =

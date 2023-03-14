@@ -4,7 +4,7 @@ import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { MachineModel } from '@odf/shared/models';
 import { nodeStatus } from '@odf/shared/status/Node';
 import { Status } from '@odf/shared/status/Status';
-import { NodeKind, CloudProviderNodeKind } from '@odf/shared/types';
+import { CloudProviderNodeKind, NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getCloudProviderID,
@@ -21,10 +21,10 @@ import * as _ from 'lodash-es';
 import NodeIPList from './NodeIPList';
 
 export type NodeDetailsProps = {
-  node: NodeKind;
+  resource: NodeKind;
 };
 
-export const NodeDetails: React.FC<NodeDetailsProps> = ({ node }) => {
+export const NodeDetails: React.FC<NodeDetailsProps> = ({ resource: node }) => {
   const machine = getNodeMachineNameAndNamespace(node);
   const roles = getNodeRoles(node).sort();
   const { t } = useCustomTranslation();

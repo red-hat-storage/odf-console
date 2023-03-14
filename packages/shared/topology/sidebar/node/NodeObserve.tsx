@@ -18,10 +18,10 @@ import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
 import './node-observe.scss';
 
 type NodeObserveProps = {
-  node: NodeKind;
+  resource: NodeKind;
 };
 
-export const NodeObserve: React.FC<NodeObserveProps> = ({ node }) => {
+export const NodeObserve: React.FC<NodeObserveProps> = ({ resource: node }) => {
   const { t } = useCustomTranslation();
 
   const nodeName = node.metadata.name;

@@ -51,11 +51,11 @@ const resiliencyProgressQuery =
   DATA_RESILIENCY_QUERY[StorageDashboardQuery.RESILIENCY_PROGRESS];
 
 export type StorageClusterDetailsProps = {
-  storageCluster: StorageClusterKind;
+  resource: StorageClusterKind;
 };
 
 export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
-  storageCluster,
+  resource: storageCluster,
 }) => {
   const { t } = useCustomTranslation();
   const [infrastructure, infrastructureLoaded, infrastructureError] =

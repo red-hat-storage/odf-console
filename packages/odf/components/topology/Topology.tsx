@@ -83,12 +83,12 @@ import { generateNodeDeploymentsMap, groupNodesByZones } from './utils';
 import './topology.scss';
 
 type SideBarProps = {
-  element: GraphElement;
   onClose: any;
   isExpanded: boolean;
 };
 
-const Sidebar: React.FC<SideBarProps> = ({ element, onClose, isExpanded }) => {
+const Sidebar: React.FC<SideBarProps> = ({ onClose, isExpanded }) => {
+  const { selectedElement: element } = React.useContext(TopologyDataContext);
   const data = element?.getData();
   const resource = data?.resource;
 
@@ -104,8 +104,6 @@ const Sidebar: React.FC<SideBarProps> = ({ element, onClose, isExpanded }) => {
 const TopologyViewComponent: React.FC = () => {
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [currentView, setCurrentView] = React.useState(TopologyViewLevel.NODES);
-  const [selectedElement, setSelectedElement] =
-    React.useState<GraphElement>(null);
   const controller = useVisualizationController();
 
   const lastNode = React.useRef<string>();
@@ -118,6 +116,7 @@ const TopologyViewComponent: React.FC = () => {
     visualizationLevel,
     activeNode,
     nodeDeploymentMap,
+    setSelectedElement,
   } = React.useContext(TopologyDataContext);
 
   React.useEffect(() => {
@@ -133,7 +132,7 @@ const TopologyViewComponent: React.FC = () => {
     return () => {
       controller.removeEventListener(SELECTION_EVENT, selectionHandler);
     };
-  }, [controller]);
+  }, [controller, setSelectedElement]);
 
   React.useEffect(() => {
     const groupedNodes = groupNodesByZones(nodes);
@@ -389,10 +388,11 @@ const TopologyViewComponent: React.FC = () => {
             setSideBarOpen(false);
             setSelectedIds([]);
           }}
-          element={selectedElement}
           isExpanded={isSideBarOpen}
         />
       }
+      sideBarResizable={true}
+      minSideBarSize="400px"
       sideBarOpen={isSideBarOpen}
     >
       <VisualizationSurface state={{ selectedIds }} />
@@ -409,6 +409,8 @@ const Topology: React.FC = () => {
   const [activeItemsUID, setActiveItemsUID] = React.useState<string[]>([]);
   const [activeItem, setActiveItem] = React.useState<string>('');
   const [activeNode, setActiveNode] = React.useState('');
+  const [selectedElement, setSelectedElement] =
+    React.useState<GraphElement>(null);
 
   const [nodes, nodesLoaded, nodesError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);
@@ -509,6 +511,8 @@ const Topology: React.FC = () => {
         activeNode,
         setActiveNode,
         nodeDeploymentMap,
+        selectedElement,
+        setSelectedElement,
       }}
     >
       <TopologySearchContext.Provider
