@@ -10,6 +10,7 @@ import { Status } from '@odf/shared/status/Status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import {
+  K8sResourceCommon,
   ResourceStatus,
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -127,7 +128,9 @@ const DeploymentOverviewList: React.FC<DeploymentOverviewListProps> = ({
   </ul>
 );
 
-export const StorageClusterResources: React.FC = () => {
+export const StorageClusterResources: React.FC<{
+  resource?: K8sResourceCommon;
+}> = () => {
   const { t } = useCustomTranslation();
   const clusterResources = useK8sWatchResources(watchResources);
 

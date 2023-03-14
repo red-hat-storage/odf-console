@@ -16,11 +16,11 @@ import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
 import '../node/node-observe.scss';
 
 type NodeObserveProps = {
-  deployment: DeploymentKind;
+  resource: DeploymentKind;
 };
 
 export const DeploymentObserve: React.FC<NodeObserveProps> = ({
-  deployment,
+  resource: deployment,
 }) => {
   const { t } = useCustomTranslation();
 
