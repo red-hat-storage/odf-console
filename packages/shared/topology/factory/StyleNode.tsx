@@ -207,9 +207,9 @@ const StyleNode: React.FunctionComponent<StyleNodeProps> = ({
     } else {
       const availabilityStatus = (
         resource as DeploymentKind
-      ).status.conditions.find(
-        (condition) => condition.type === 'Available'
-      ).status;
+      )?.status?.conditions?.find(
+        (condition) => condition?.type === 'Available'
+      )?.status;
       return availabilityStatus === 'True'
         ? NodeStatus.success
         : NodeStatus.danger;
