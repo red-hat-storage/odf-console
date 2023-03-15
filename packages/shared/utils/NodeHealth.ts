@@ -23,8 +23,8 @@ const isMonitoredCondition = (condition: Condition): boolean =>
   ].includes(condition);
 
 const getDegradedStates = (node: NodeKind): Condition[] => {
-  return node.status.conditions
-    .filter(
+  return node?.status?.conditions
+    ?.filter(
       ({ status, type }) =>
         status === 'True' && isMonitoredCondition(type as Condition)
     )
@@ -36,7 +36,7 @@ export const getNodeStatus = (
   deployments: DeploymentKind[]
 ) => {
   // Check node is ready and no pressure in node
-  const isDegraded: boolean = getDegradedStates(node).length > 0;
+  const isDegraded: boolean = getDegradedStates(node)?.length > 0;
   const isNodeUp: boolean = isNodeReady(node);
 
   const nonAvailableDeployments = deployments?.filter((deployment) => {
