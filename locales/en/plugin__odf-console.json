@@ -758,7 +758,6 @@
   "StorageClass": "StorageClass",
   "Defines the object-store service and the bucket provisioner.": "Defines the object-store service and the bucket provisioner.",
   "BucketClass": "BucketClass",
-  "Replication Policy": "Replication Policy",
   "For higher resiliency, set a replication configuration for objects which are stored in NooBaa namespace buckets": "For higher resiliency, set a replication configuration for objects which are stored in NooBaa namespace buckets",
   "Create ObjectBucketClaim": "Create ObjectBucketClaim",
   "Edit YAML": "Edit YAML",
