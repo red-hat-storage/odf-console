@@ -18,6 +18,7 @@ const resolveLocale = (dirName: string, ns: string) =>
 const NODE_ENV = (process.env.NODE_ENV ||
   'development') as webpack.Configuration['mode'];
 const PLUGIN = process.env.PLUGIN;
+const OPENSHIFT_CI = process.env.OPENSHIFT_CI;
 
 if (PLUGIN === undefined) {
   process.exit(1);
@@ -57,7 +58,14 @@ const config: webpack.Configuration & DevServerConfiguration = {
           {
             loader: 'thread-loader',
             options: {
-              ...(NODE_ENV === 'development' ? { poolTimeout: Infinity } : {}),
+              ...(NODE_ENV === 'development'
+                ? { poolTimeout: Infinity, poolRespawn: false }
+                : OPENSHIFT_CI
+                ? {
+                    workers: 2,
+                    workerNodeArgs: ['--max-old-space-size=1024'],
+                  }
+                : {}),
             },
           },
           {
@@ -82,7 +90,14 @@ const config: webpack.Configuration & DevServerConfiguration = {
           {
             loader: 'thread-loader',
             options: {
-              ...(NODE_ENV === 'development' ? { poolTimeout: Infinity } : {}),
+              ...(NODE_ENV === 'development'
+                ? { poolTimeout: Infinity, poolRespawn: false }
+                : OPENSHIFT_CI
+                ? {
+                    workers: 4,
+                    workerNodeArgs: ['--max-old-space-size=1024'],
+                  }
+                : {}),
             },
           },
           { loader: 'style-loader' },
