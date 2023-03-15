@@ -1,6 +1,7 @@
 import { projectNameSpace } from '../support/pages/app';
 import { app } from '../support/pages/app';
 import { MINUTE } from '../utils/consts';
+import { listPage } from './list-page';
 
 export class CreateOBCHandler {
   name: string;
@@ -28,6 +29,7 @@ export class CreateOBCHandler {
     cy.byTestID('loading-indicator').should('not.exist');
     cy.byTestID('sc-dropdown').should('be.visible').click();
     cy.contains('openshift-storage.noobaa.io').click();
+    app.waitForLoad();
     cy.byTestID('obc-create').click();
     cy.byLegacyTestID('resource-title').contains(this.name, {
       timeout: MINUTE,
@@ -42,11 +44,11 @@ export class CreateOBCHandler {
     cy.contains('Hide Values').click();
   }
 
-  static deleteBucketClaim() {
+  deleteBucketClaim() {
+    cy.clickNavLink(['Storage', 'Object Bucket Claims']);
     cy.byTestID('loading-indicator').should('not.exist');
     cy.log('Deleting Object Bucket Claim');
-    cy.byTestID('kebab-button').click();
-    cy.byTestActionID('Delete Object Bucket Claim').click();
+    listPage.rows.clickKebabAction(this.name, 'Delete Object Bucket Claim');
     cy.byTestID('delete-action').click();
   }
 }
