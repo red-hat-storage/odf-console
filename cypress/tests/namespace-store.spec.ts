@@ -1,5 +1,12 @@
+import { fieldValidationOnFormsTests } from '../helpers/formValidations';
 import { MIN, ODFCommon } from '../views/odf-common';
-import { createStore, Providers, StoreType, testName } from '../views/store';
+import {
+  createStore,
+  Providers,
+  setupProvider,
+  StoreType,
+  testName,
+} from '../views/store';
 
 describe('Tests creation of Namespace Stores', () => {
   before(() => {
@@ -59,5 +66,26 @@ describe('Tests creation of Namespace Stores', () => {
     createStore(Providers.S3, StoreType.NamespaceStore);
     cy.byLegacyTestID('resource-title').contains(testName);
     checkSecret(testName);
+  });
+});
+
+describe('Tests form validations on Namespace Stores', () => {
+  const nameFieldTestId: string = `${StoreType.NamespaceStore}-name`;
+
+  before(() => {
+    cy.login();
+    cy.visit('/');
+    cy.install();
+  });
+
+  beforeEach(() => {
+    cy.visit('/');
+    ODFCommon.visitStorageDashboard();
+    cy.byLegacyTestID('horizontal-link-Namespace Store').first().click();
+    cy.byTestID('item-create').click();
+  });
+
+  fieldValidationOnFormsTests(nameFieldTestId, 'Create', () => {
+    setupProvider(Providers.AWS, StoreType.NamespaceStore);
   });
 });

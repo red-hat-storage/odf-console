@@ -21,7 +21,7 @@ const inputCustomSecrets = (storeType: StoreType) => {
   cy.byTestID(`${storeType}-target-bucket`).type('my_dummy_target');
 };
 
-const setupProvider = (provider: Providers, storeType: StoreType) => {
+export const setupProvider = (provider: Providers, storeType: StoreType) => {
   cy.log(`Setting up ${provider} provider`);
   cy.byTestID(`${storeType}-provider`).click();
   cy.byTestDropDownMenu(provider).click();

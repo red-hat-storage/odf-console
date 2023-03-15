@@ -2,6 +2,7 @@ import {
   POOL_PROGRESS,
   CEPH_DEFAULT_BLOCK_POOL_NAME,
 } from '../constants/storage-pool-const';
+import { fieldValidationOnWizardFormsTests } from '../helpers/formValidations';
 import {
   poolName,
   scName,
@@ -11,6 +12,7 @@ import {
   verifyBlockPoolJSON,
   poolMessage,
   openBlockPoolKebab,
+  populateBlockPoolForm,
 } from '../views/block-pool';
 import { pvc } from '../views/pvc';
 import { createStorageClass } from '../views/storage-class';
@@ -92,4 +94,32 @@ describe('Test block pool under ODF UI', () => {
     cy.byTestActionID('Delete BlockPool').click();
     verifyFooterActions('delete');
   });
+});
+
+describe('Tests form validations on BlockPool', () => {
+  const nameFieldTestId: string = 'new-pool-name-textbox';
+  before(() => {
+    cy.login();
+    cy.visit('/');
+    cy.install();
+  });
+
+  after(() => {
+    cy.logout();
+  });
+
+  beforeEach(() => {
+    navigateToBlockPool();
+  });
+
+  beforeEach(() => {
+    navigateToBlockPool();
+    cy.byTestID('item-create').click();
+  });
+
+  fieldValidationOnWizardFormsTests(
+    nameFieldTestId,
+    'Create',
+    populateBlockPoolForm
+  );
 });
