@@ -39,7 +39,7 @@ import {
   EmptyStateIcon,
   Title,
 } from '@patternfly/react-core';
-import { TopologyIcon } from '@patternfly/react-icons';
+import { ArrowCircleLeftIcon, TopologyIcon } from '@patternfly/react-icons';
 import {
   useVisualizationController,
   TopologyView,
@@ -65,7 +65,6 @@ import {
   odfStatefulSetResource,
   storageClusterResource,
 } from '../../resources';
-import { getZone } from '../../utils';
 import {
   STEP_INTO_EVENT,
   STEP_TO_CLUSTER,
@@ -79,7 +78,11 @@ import {
 } from './NodeGenerator';
 import TopologySideBar from './sidebar/TopologySideBar';
 import { TopologyTopBar } from './TopBar';
-import { generateNodeDeploymentsMap, groupNodesByZones } from './utils';
+import {
+  generateNodeDeploymentsMap,
+  getTopologyDomain,
+  groupNodesByZones,
+} from './utils';
 import './topology.scss';
 
 type SideBarProps = {
@@ -98,6 +101,19 @@ const Sidebar: React.FC<SideBarProps> = ({ onClose, isExpanded }) => {
       onClose={onClose}
       isExpanded={isExpanded}
     />
+  );
+};
+
+type BackButtonProps = {
+  onClick: () => void;
+};
+
+const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
+  const { t } = useCustomTranslation();
+  return (
+    <div className="odf-topology__back-button" onClick={onClick}>
+      <ArrowCircleLeftIcon /> {t('Back to main view')}
+    </div>
   );
 };
 
@@ -282,7 +298,7 @@ const TopologyViewComponent: React.FC = () => {
       (acc, node) => {
         const newZonesArray = acc[0];
         const oldZonesArray = acc[1];
-        if (existingZones.includes(getZone(node))) {
+        if (existingZones.includes(getTopologyDomain(node))) {
           oldZonesArray.push(node);
         } else {
           newZonesArray.push(node);
@@ -312,7 +328,7 @@ const TopologyViewComponent: React.FC = () => {
         });
         addedNodes.push(nodeModel);
         filtererdGraphNodes.forEach((n) =>
-          n.group && n.data.zone === getZone(nodeResource)
+          n.group && n.data.zone === getTopologyDomain(nodeResource)
             ? n.children.push(nodeModel.id)
             : _.noop
         );
@@ -358,6 +374,11 @@ const TopologyViewComponent: React.FC = () => {
     }
   }, [controller, nodes, deployments, nodeDeploymentMap, storageCluster]);
 
+  const toggleVisualizationLevel = React.useCallback(
+    () => controller.fireEvent(STEP_TO_CLUSTER),
+    [controller]
+  );
+
   return (
     <TopologyView
       controlBar={
@@ -365,12 +386,14 @@ const TopologyViewComponent: React.FC = () => {
           data-test="topology-control-bar"
           controlButtons={createTopologyControlButtons({
             ...defaultControlButtonsOptions,
-            fitToScreen: false,
             zoomInCallback: () => {
               controller && controller.getGraph().scaleBy(ZOOM_IN);
             },
             zoomOutCallback: () => {
               controller && controller.getGraph().scaleBy(ZOOM_OUT);
+            },
+            fitToScreenCallback: () => {
+              controller && controller.getGraph().fit(100);
             },
             resetViewCallback: () => {
               if (controller) {
@@ -395,6 +418,9 @@ const TopologyViewComponent: React.FC = () => {
       minSideBarSize="400px"
       sideBarOpen={isSideBarOpen}
     >
+      {currentView === TopologyViewLevel.DEPLOYMENTS && (
+        <BackButton onClick={toggleVisualizationLevel} />
+      )}
       <VisualizationSurface state={{ selectedIds }} />
     </TopologyView>
   );
@@ -498,7 +524,7 @@ const Topology: React.FC = () => {
     !replicaSetsLoaded ||
     !daemonSetsLoaded;
 
-  const zones = memoizedNodes.map(getZone);
+  const zones = memoizedNodes.map(getTopologyDomain);
 
   return (
     <TopologyDataContext.Provider
