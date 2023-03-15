@@ -33,3 +33,9 @@ export const createRefFromK8Resource = (
   kind: resource?.kind,
   uid: getUID(resource),
 });
+
+export const getMajorVersion = (version: string): string => {
+  return !!version
+    ? version.split('.')[0] + '.' + version.split('.')[1] + '.0'
+    : '';
+};

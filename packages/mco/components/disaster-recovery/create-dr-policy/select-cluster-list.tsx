@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { isMinimumSupportedODFVersion } from '@odf/mco/utils';
+import { getMajorVersion, isMinimumSupportedODFVersion } from '@odf/mco/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -82,7 +82,7 @@ const fetchODFInfo = (
     storageClusterName: storageClusterNameClaim?.value || '',
     cephFSID: cephFsidClaim?.value || '',
     isValidODFVersion: isMinimumSupportedODFVersion(
-      odfVersionClaim?.value || '',
+      getMajorVersion(odfVersionClaim?.value),
       requiredODFVersion
     ),
   };
