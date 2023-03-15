@@ -18,7 +18,6 @@ import { CreateOBCHandler } from '../views/obcPage';
 
 describe('Test Object Bucket Claim resource', () => {
   let obcHandler;
-  let obcUrl;
 
   before(() => {
     cy.login();
@@ -26,14 +25,10 @@ describe('Test Object Bucket Claim resource', () => {
     cy.install();
     obcHandler = new CreateOBCHandler(OBC_NAME, testName, OBC_STORAGE_CLASS);
     obcHandler.createBucketClaim();
-    cy.url().then((url) => {
-      obcUrl = url;
-    });
   });
 
   after(() => {
-    cy.visit(obcUrl);
-    CreateOBCHandler.deleteBucketClaim();
+    obcHandler.deleteBucketClaim();
     cy.logout();
   });
 
