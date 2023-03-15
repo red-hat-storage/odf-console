@@ -37,6 +37,18 @@ type TopologySideBarContentProps = {
   resource: K8sResourceCommon;
 };
 
+const storageClusterAlertFilter =
+  () =>
+  (alert: Alert): boolean => {
+    const rookRegex = /.*rook.*/;
+    return (
+      alert?.annotations?.storage_type === 'ceph' ||
+      Object.values(alert?.labels)?.some((item) => rookRegex.test(item)) ||
+      _.get(alert, 'annotations.storage_type') === 'NooBaa' ||
+      alert?.annotations?.storage_type === 'RGW'
+    );
+  };
+
 const filterFactory = (kind: string) => {
   const commonFilter =
     (name: string) =>
@@ -48,6 +60,10 @@ const filterFactory = (kind: string) => {
     };
   const nodeFilter = (name: string) => (alert: Alert) =>
     alert?.labels?.node === name || commonFilter(name)(alert);
+
+  if (kind === StorageClusterModel.kind) {
+    return storageClusterAlertFilter;
+  }
 
   if (kind === NodeModel.kind) {
     return nodeFilter;

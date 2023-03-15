@@ -1,12 +1,15 @@
 import * as React from 'react';
+import {
+  BlueInfoCircleIcon,
+  GreenCheckCircleIcon,
+  K8sResourceCommon,
+  RedExclamationCircleIcon,
+  useK8sModel,
+  YellowExclamationTriangleIcon,
+} from '@openshift-console/dynamic-plugin-sdk';
 import useDetailsLevel from '@patternfly/react-topology/dist/esm/hooks/useDetailsLevel';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import {
-  ErrorCircleOIcon,
-  ExclamationCircleIcon,
-  InfoCircleIcon,
-} from '@patternfly/react-icons';
 import {
   DefaultGroup,
   Node,
@@ -17,6 +20,7 @@ import {
   WithDragNodeProps,
   WithSelectionProps,
 } from '@patternfly/react-topology';
+import { getGVKofResource } from '../../utils';
 import useMonitoring, {
   AlertFiringComponent,
   MonitoringResponseInternals,
@@ -33,21 +37,29 @@ type StyleGroupProps = {
   collapsedShadowOffset?: number; // defaults to 10
 } & Partial<WithContextMenuProps & WithDragNodeProps & WithSelectionProps>;
 
-const getLabel = (alerts: MonitoringResponseInternals) => {
+const getLabel = (
+  alerts: MonitoringResponseInternals,
+  resource: K8sResourceCommon
+) => {
   const isCritical = alerts?.critical?.length > 0;
   const isWarning = alerts?.warning?.length > 0;
   const isInfo = alerts?.info?.length > 0;
 
+  // Zones have no alerts
+  if (!resource) {
+    return null;
+  }
+
   if (isCritical) {
-    return <ErrorCircleOIcon />;
+    return <RedExclamationCircleIcon />;
   }
   if (isWarning) {
-    return <ExclamationCircleIcon />;
+    return <YellowExclamationTriangleIcon />;
   }
   if (isInfo) {
-    return <InfoCircleIcon />;
+    return <BlueInfoCircleIcon />;
   }
-  return null;
+  return <GreenCheckCircleIcon />;
 };
 
 const StyleGroup: React.FunctionComponent<StyleGroupProps> = ({
@@ -61,9 +73,18 @@ const StyleGroup: React.FunctionComponent<StyleGroupProps> = ({
 
   const component = data.component as AlertFiringComponent;
 
+  const resource = data?.resource;
+  const reference = resource ? getGVKofResource(resource) : '';
+  const [model] = useK8sModel(reference);
+
+  const badge = model?.abbr;
+
   const [alerts] = useMonitoring(component);
 
-  const label = React.useMemo(() => getLabel(alerts), [alerts]);
+  const label = React.useMemo(
+    () => getLabel(alerts, resource),
+    [alerts, resource]
+  );
 
   const classes = React.useMemo(
     () =>
@@ -88,6 +109,7 @@ const StyleGroup: React.FunctionComponent<StyleGroupProps> = ({
   return (
     <DefaultGroup
       className={classes}
+      badge={badge}
       labelIcon={label}
       onContextMenu={data.showContextMenu ? onContextMenu : undefined}
       contextMenuOpen={contextMenuOpen}
