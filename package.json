@@ -21,7 +21,7 @@
     "test-cypress": "node_modules/.bin/cypress open --e2e --config-file ./cypress/cypress.config.ts --env openshift=true",
     "test-cypress-headless": "node --max-old-space-size=4096 node_modules/.bin/cypress run --e2e --config-file ./cypress/cypress.config.ts --env openshift=true --browser ${BRIDGE_E2E_BROWSER_NAME:=chrome} --headless",
     "build:generate": "yarn clean-${PLUGIN} && tsm ./scripts/generatePluginPackage.mts --plugin ${PLUGIN}",
-    "build:plugin": "yarn build:generate && yarn ts-node node_modules/.bin/webpack -c ./webpack.config.ts",
+    "build:plugin": "yarn build:generate && node --max-old-space-size=4096 node_modules/.bin/ts-node node_modules/.bin/webpack -c ./webpack.config.ts",
     "build": "NODE_ENV=production PLUGIN=odf I8N_NS=plugin__odf-console yarn build:plugin",
     "build-mco": "NODE_ENV=production PLUGIN=mco I8N_NS=plugin__odf-multicluster-console yarn build:plugin",
     "build-dev": "NODE_ENV=development PLUGIN=odf I8N_NS=plugin__odf-console yarn build:plugin",
