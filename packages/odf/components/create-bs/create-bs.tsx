@@ -95,86 +95,6 @@ const isFormValid = (form: BackingStoreProviderDataState): boolean => {
   }
 };
 
-const providerSelection = (provider, formDataDispatch) => {
-  formDataDispatch({
-    type: 'setProvider',
-    value: PROVIDERS[provider],
-  });
-  if (provider === BC_PROVIDERS.AWS) {
-    formDataDispatch({
-      type: 'setRegion',
-      value: initialState.region,
-    });
-  } else {
-    formDataDispatch({
-      type: 'setRegion',
-      value: '',
-    });
-  }
-  if (provider !== BC_PROVIDERS.S3 && provider !== BC_PROVIDERS.IBM) {
-    formDataDispatch({
-      type: 'setEndpoint',
-      value: '',
-    });
-  }
-  if (provider === BC_PROVIDERS.GCP) {
-    formDataDispatch({
-      type: 'setGcpJSON',
-      value: initialState.gcpJSON,
-    });
-  } else {
-    formDataDispatch({
-      type: 'setGcpJSON',
-      value: '',
-    });
-  }
-  if (provider === BC_PROVIDERS.PVC) {
-    formDataDispatch({
-      type: 'setVolumes',
-      value: initialState.numVolumes,
-    });
-    formDataDispatch({
-      type: 'setVolumeSize',
-      value: initialState.volumeSize,
-    });
-    formDataDispatch({
-      type: 'setStorageClass',
-      value: initialState.storageClass,
-    });
-    formDataDispatch({
-      type: 'setTarget',
-      value: initialState.target,
-    });
-  } else {
-    formDataDispatch({
-      type: 'setVolumes',
-      value: '',
-    });
-    formDataDispatch({
-      type: 'setVolumeSize',
-      value: '',
-    });
-    formDataDispatch({
-      type: 'setStorageClass',
-      value: '',
-    });
-  }
-  if (provider === BC_PROVIDERS.GCP || provider === BC_PROVIDERS.PVC) {
-    formDataDispatch({
-      type: 'setSecretName',
-      value: initialState.secretName,
-    });
-    formDataDispatch({
-      type: 'setAccessKey',
-      value: initialState.accessKey,
-    });
-    formDataDispatch({
-      type: 'setSecretKey',
-      value: initialState.secretKey,
-    });
-  }
-};
-
 const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
   props
 ) => {
@@ -200,7 +120,85 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
     onCancel,
     onClose,
   } = props;
-  const { provider } = providerDataState;
+  const providerSelection = (provider: string) => {
+    providerDataDispatch({
+      type: createFormAction.SET_PROVIDER,
+      value: PROVIDERS[provider],
+    });
+    if (provider === BC_PROVIDERS.AWS) {
+      providerDataDispatch({
+        type: createFormAction.SET_REGION,
+        value: initialState.region,
+      });
+    } else {
+      providerDataDispatch({
+        type: createFormAction.SET_REGION,
+        value: '',
+      });
+    }
+    if (provider !== BC_PROVIDERS.S3 && provider !== BC_PROVIDERS.IBM) {
+      providerDataDispatch({
+        type: createFormAction.SET_END_POINT,
+        value: '',
+      });
+    }
+    if (provider === BC_PROVIDERS.GCP) {
+      providerDataDispatch({
+        type: createFormAction.SET_GCP_JSON,
+        value: initialState.gcpJSON,
+      });
+    } else {
+      providerDataDispatch({
+        type: createFormAction.SET_GCP_JSON,
+        value: '',
+      });
+    }
+    if (provider === BC_PROVIDERS.PVC) {
+      providerDataDispatch({
+        type: createFormAction.SET_PVC_VOLUME,
+        value: initialState.numVolumes,
+      });
+      providerDataDispatch({
+        type: createFormAction.SET_PVC_VOLUME_SIZE,
+        value: initialState.volumeSize,
+      });
+      providerDataDispatch({
+        type: createFormAction.SET_PVC_STORAGE_CLASS,
+        value: initialState.storageClass,
+      });
+      providerDataDispatch({
+        type: createFormAction.SET_TARGET,
+        value: initialState.target,
+      });
+    } else {
+      providerDataDispatch({
+        type: createFormAction.SET_PVC_VOLUME,
+        value: 0,
+      });
+      providerDataDispatch({
+        type: createFormAction.SET_PVC_VOLUME_SIZE,
+        value: '',
+      });
+      providerDataDispatch({
+        type: createFormAction.SET_PVC_STORAGE_CLASS,
+        value: '',
+      });
+    }
+    if (provider === BC_PROVIDERS.GCP || provider === BC_PROVIDERS.PVC) {
+      providerDataDispatch({
+        type: createFormAction.SET_SECRET_NAME,
+        value: initialState.secretName,
+      });
+      providerDataDispatch({
+        type: createFormAction.SET_ACCESS_KEY,
+        value: initialState.accessKey,
+      });
+      providerDataDispatch({
+        type: createFormAction.SET_SECRET_KEY,
+        value: initialState.secretKey,
+      });
+    }
+  };
 
   const [data, loaded, loadError] = useK8sList<BackingStoreKind>(
     NooBaaBackingStoreModel,

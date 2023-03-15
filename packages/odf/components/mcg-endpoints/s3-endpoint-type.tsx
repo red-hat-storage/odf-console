@@ -8,7 +8,12 @@ import { SecretKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Control } from 'react-hook-form';
 import { Button, TextInput, InputGroup } from '@patternfly/react-core';
-import { AWS_REGIONS, BC_PROVIDERS, StoreType } from '../../constants';
+import {
+  AWS_REGIONS,
+  BC_PROVIDERS,
+  createFormAction,
+  StoreType,
+} from '../../constants';
 import './noobaa-provider-endpoints.scss';
 import { awsRegionItems, endpointsSupported } from '../../utils';
 
@@ -92,7 +97,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
               className="nb-endpoints-form-entry__dropdown"
               onSelect={(key) => {
                 onChange(key);
-                dispatch({ type: 'setRegion', value: key });
+                dispatch({ type: createFormAction.SET_REGION, value: key });
               }}
               onBlur={onBlur}
               dropdownItems={awsRegionItems}
@@ -120,7 +125,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
               data-test={`${type.toLowerCase()}-s3-endpoint`}
               onChange={(e) => {
                 onChange(e);
-                dispatch({ type: 'setEndpoint', value: e });
+                dispatch({ type: createFormAction.SET_END_POINT, value: e });
               }}
               onBlur={onBlur}
               id="endpoint"
@@ -149,7 +154,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
                 onSelect={(res) => {
                   const value = getName(res);
                   onChange(value);
-                  dispatch({ type: 'setSecretName', value });
+                  dispatch({ type: createFormAction.SET_SECRET_NAME, value });
                 }}
                 onBlur={onBlur}
                 resource={{
@@ -187,7 +192,10 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
                   value={value}
                   onChange={(e) => {
                     onChange(e);
-                    dispatch({ type: 'setAccessKey', value: e });
+                    dispatch({
+                      type: createFormAction.SET_ACCESS_KEY,
+                      value: e,
+                    });
                   }}
                   onBlur={onBlur}
                   aria-label={t('Access Key Field')}
@@ -214,7 +222,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
                 data-test={`${type.toLowerCase()}-secret-key`}
                 onChange={(e) => {
                   onChange(e);
-                  dispatch({ type: 'setSecretKey', value: e });
+                  dispatch({ type: createFormAction.SET_SECRET_KEY, value: e });
                 }}
                 onBlur={onBlur}
                 aria-label={t('Secret Key Field')}
@@ -241,7 +249,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
             data-test={`${type.toLowerCase()}-target-bucket`}
             onChange={(e) => {
               onChange(e);
-              dispatch({ type: 'setTarget', value: e });
+              dispatch({ type: createFormAction.SET_TARGET, value: e });
             }}
             onBlur={onBlur}
             aria-label={targetLabel}

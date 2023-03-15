@@ -164,7 +164,10 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
                 className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
                 onSelect={(e) => {
                   onChange(e.metadata.name);
-                  dispatch({ type: 'setSecretName', value: e.metadata.name });
+                  dispatch({
+                    type: createFormAction.SET_SECRET_NAME,
+                    value: e.metadata.name,
+                  });
                 }}
                 resourceModel={SecretModel}
                 resource={{
@@ -211,7 +214,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
             value={value}
             onChange={(e) => {
               onChange(e);
-              dispatch({ type: 'setTarget', value: e });
+              dispatch({ type: createFormAction.SET_TARGET, value: e });
             }}
             onBlur={onBlur}
             aria-label={t('Target Bucket')}
