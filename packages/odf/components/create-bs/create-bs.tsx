@@ -55,9 +55,11 @@ import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 const PROVIDERS = getProviders(StoreType.BS);
 const externalProviders = getExternalProviders(StoreType.BS);
 
-const isFormValid = (form: BackingStoreProviderDataState): boolean => {
+const isFormValid = (
+  form: BackingStoreProviderDataState,
+  isNameValid: boolean
+): boolean => {
   const {
-    name,
     provider,
     accessKey,
     secretKey,
@@ -71,23 +73,22 @@ const isFormValid = (form: BackingStoreProviderDataState): boolean => {
     gcpJSON,
   } = form;
   const secretValid = !!(secretName || (secretKey && accessKey));
-  const nameValid = !!name?.trim() && name.length <= 42;
   switch (provider) {
     case BC_PROVIDERS.AWS: {
-      return nameValid && !!region && secretValid && !!target;
+      return isNameValid && !!region && secretValid && !!target;
     }
     case BC_PROVIDERS.IBM:
     case BC_PROVIDERS.S3: {
-      return nameValid && !!endpoint && secretValid && !!target;
+      return isNameValid && !!endpoint && secretValid && !!target;
     }
     case BC_PROVIDERS.AZURE: {
-      return nameValid && secretValid && !!target;
+      return isNameValid && secretValid && !!target;
     }
     case BC_PROVIDERS.PVC: {
-      return nameValid && numVolumes >= 1 && !!storageClass && !!volumeSize;
+      return isNameValid && numVolumes >= 1 && !!storageClass && !!volumeSize;
     }
     case BC_PROVIDERS.GCP: {
-      return nameValid && !!target && (!!secretName || !!gcpJSON);
+      return isNameValid && !!target && (!!secretName || !!gcpJSON);
     }
     default: {
       return false;
@@ -439,7 +440,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       <ButtonBar errorMessage={error} inProgress={inProgress}>
         <ActionGroup>
           <Button
-            isDisabled={!isFormValid(providerDataState)}
+            isDisabled={!isFormValid(providerDataState, isValid)}
             type="submit"
             data-test="backingstore-create-button"
             variant="primary"
