@@ -104,6 +104,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
     providerDataReducer,
     initialState
   );
+  const [isNameValid, setIsNameValid] = React.useState(false);
 
   const [inProgress, setProgress] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -126,79 +127,10 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       type: createFormAction.SET_PROVIDER,
       value: PROVIDERS[provider],
     });
-    if (provider === BC_PROVIDERS.AWS) {
-      providerDataDispatch({
-        type: createFormAction.SET_REGION,
-        value: initialState.region,
-      });
-    } else {
-      providerDataDispatch({
-        type: createFormAction.SET_REGION,
-        value: '',
-      });
-    }
-    if (provider !== BC_PROVIDERS.S3 && provider !== BC_PROVIDERS.IBM) {
-      providerDataDispatch({
-        type: createFormAction.SET_END_POINT,
-        value: '',
-      });
-    }
-    if (provider === BC_PROVIDERS.GCP) {
-      providerDataDispatch({
-        type: createFormAction.SET_GCP_JSON,
-        value: initialState.gcpJSON,
-      });
-    } else {
-      providerDataDispatch({
-        type: createFormAction.SET_GCP_JSON,
-        value: '',
-      });
-    }
-    if (provider === BC_PROVIDERS.PVC) {
-      providerDataDispatch({
-        type: createFormAction.SET_PVC_VOLUME,
-        value: initialState.numVolumes,
-      });
-      providerDataDispatch({
-        type: createFormAction.SET_PVC_VOLUME_SIZE,
-        value: initialState.volumeSize,
-      });
-      providerDataDispatch({
-        type: createFormAction.SET_PVC_STORAGE_CLASS,
-        value: initialState.storageClass,
-      });
-      providerDataDispatch({
-        type: createFormAction.SET_TARGET,
-        value: initialState.target,
-      });
-    } else {
-      providerDataDispatch({
-        type: createFormAction.SET_PVC_VOLUME,
-        value: 0,
-      });
-      providerDataDispatch({
-        type: createFormAction.SET_PVC_VOLUME_SIZE,
-        value: '',
-      });
-      providerDataDispatch({
-        type: createFormAction.SET_PVC_STORAGE_CLASS,
-        value: '',
-      });
-    }
-    if (provider === BC_PROVIDERS.GCP || provider === BC_PROVIDERS.PVC) {
-      providerDataDispatch({
-        type: createFormAction.SET_SECRET_NAME,
-        value: initialState.secretName,
-      });
-      providerDataDispatch({
-        type: createFormAction.SET_ACCESS_KEY,
-        value: initialState.accessKey,
-      });
-      providerDataDispatch({
-        type: createFormAction.SET_SECRET_KEY,
-        value: initialState.secretKey,
-      });
-    }
+    providerDataDispatch({
+      type: createFormAction.SET_SECRET_NAME,
+      value: initialState.secretName,
+    });
   };
 
   const [data, loaded, loadError] = useK8sList<BackingStoreKind>(
@@ -246,14 +178,12 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
   const {
     control,
     handleSubmit,
-    watch,
     formState: { isValid, isSubmitted },
   } = useForm({
     ...formSettings,
     resolver,
   });
-
-  const provider = watch('provider-name');
+  const provider = providerDataState.provider;
 
   const onSubmit = (values, event) => {
     event.preventDefault();
@@ -381,6 +311,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
           'data-test': 'backingstore-name',
           'aria-label': t('BackingStore Name'),
         }}
+        dispatch={setIsNameValid}
       />
 
       <FormGroupController
@@ -440,7 +371,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       <ButtonBar errorMessage={error} inProgress={inProgress}>
         <ActionGroup>
           <Button
-            isDisabled={!isFormValid(providerDataState, isValid)}
+            isDisabled={!isFormValid(providerDataState, isNameValid)}
             type="submit"
             data-test="backingstore-create-button"
             variant="primary"

@@ -31,6 +31,7 @@ export type TextInputWithFieldRequirementsProps = {
     disabled?: boolean;
   };
   popoverProps: Omit<PopoverProps, 'bodyContent'>;
+  dispatch?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export type ValidationIconProp = {
@@ -68,6 +69,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
     textInputProps,
     popoverProps,
     defaultValue = '',
+    dispatch,
   }) => {
     const {
       field: { name, value, onChange, onBlur },
@@ -95,7 +97,8 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
             : 'success'
           : 'default'
       );
-    }, [error, isDirty, isTouched, isSubmitted]);
+      dispatch(['default', 'error'].indexOf(validated) === -1);
+    }, [error, isDirty, isTouched, isSubmitted, dispatch, validated]);
 
     const handleInputChange = React.useCallback(
       (value: string, event: React.FormEvent<HTMLInputElement>) => {
