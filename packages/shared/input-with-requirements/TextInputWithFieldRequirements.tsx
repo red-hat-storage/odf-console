@@ -118,6 +118,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
     return (
       <FormGroup {...formGroupProps} validated={validated}>
         <InputGroup
+          data-test="field-requirements-input-group"
           className={cn(
             'rich-input__group',
             error && 'rich-input__group--invalid',
@@ -135,7 +136,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
             onChange={handleInputChange}
           />
           <Popover
-            aria-label="popover example"
+            data-test="field-requirements-popover"
             position={PopoverPosition.top}
             isVisible={isVisible}
             shouldOpen={() => setIsVisible(true)}

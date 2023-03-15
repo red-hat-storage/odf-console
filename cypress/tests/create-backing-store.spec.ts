@@ -1,5 +1,12 @@
+import { fieldValidationOnFormsTests } from '../helpers/formValidations';
 import { ODFCommon } from '../views/odf-common';
-import { createStore, Providers, testName } from '../views/store';
+import {
+  createStore,
+  Providers,
+  StoreType,
+  testName,
+  setupProvider,
+} from '../views/store';
 
 describe('Tests creation of Backing Stores', () => {
   before(() => {
@@ -27,5 +34,26 @@ describe('Tests creation of Backing Stores', () => {
     createStore(Providers.AWS);
     cy.byTestSelector('details-item-value__Name').contains(testName);
     cy.exec(`oc delete secrets ${testName}-secret -n openshift-storage`);
+  });
+});
+
+describe('Tests form validations on Backing Stores', () => {
+  const nameFieldTestId: string = `${StoreType.BackingStore}-name`;
+
+  before(() => {
+    cy.login();
+    cy.visit('/');
+    cy.install();
+  });
+
+  beforeEach(() => {
+    cy.visit('/');
+    ODFCommon.visitStorageDashboard();
+    cy.byLegacyTestID('horizontal-link-Backing Store').first().click();
+    cy.byTestID('item-create').click();
+  });
+
+  fieldValidationOnFormsTests(nameFieldTestId, 'Create', () => {
+    setupProvider(Providers.AWS, StoreType.BackingStore);
   });
 });
