@@ -1,4 +1,5 @@
 import * as _ from 'lodash-es';
+import { getDuration } from '../details-page/datetime';
 
 export const units = {};
 export const validate = {};
@@ -253,43 +254,36 @@ export const humanizePercentage = (value) => {
   };
 };
 
-const unitMeasures = {
-  sec: 1,
-  min: 60,
-  hour: 3600,
-  day: 86400,
-  week: 604800,
-  month: 2629800,
-  year: 31557600,
-};
-
-export const humanizeDuration = (
-  durationInSeconds,
-  preferredUnit,
-  customUnitText
-) => {
-  const val = round(durationInSeconds / unitMeasures[preferredUnit], 1);
-  const unit = customUnitText || preferredUnit;
+export const humanizeMinutes = (seconds, customUnitUnit) => {
+  const val = Number(seconds);
+  const { minutes } = getDuration(val * 1000);
+  const unit = customUnitUnit || 'm';
   return {
-    string: `${val} ${unit}`,
+    string: `${minutes} ${unit}`,
     unit: unit,
-    value: val,
+    value: minutes,
   };
 };
 
-export const humanizeRPO = (rpoInSeconds) => {
-  let unit = 'sec';
-  let val = rpoInSeconds;
-  Object.entries(unitMeasures).forEach(([u, v]) => {
-    if (Math.floor(rpoInSeconds / v) > 0) {
-      unit = u;
-      val = round(rpoInSeconds / v, 1);
-    }
-  });
+export const humanizeHours = (seconds, customUnitUnit) => {
+  const val = Number(seconds);
+  const { hours } = getDuration(val * 1000);
+  const unit = customUnitUnit || 'h';
   return {
-    string: `${val} ${unit}`,
+    string: `${hours} ${unit}`,
     unit: unit,
-    value: val,
+    value: hours,
+  };
+};
+
+export const humanizeDays = (seconds, customUnitUnit) => {
+  const val = Number(seconds);
+  const { days } = getDuration(val * 1000);
+  const unit = customUnitUnit || 'd';
+  return {
+    string: `${days} ${unit}`,
+    unit: unit,
+    value: days,
   };
 };
 
