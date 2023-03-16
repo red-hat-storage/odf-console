@@ -10,6 +10,8 @@ import {
   HUB_CLUSTER_NAME,
   ACM_ENDPOINT,
   SLA_STATUS,
+  OBJECT_NAMESPACE,
+  OBJECT_NAME,
 } from '@odf/mco/constants';
 import { MirrorPeerModel } from '@odf/mco/models';
 import {
@@ -200,8 +202,9 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
             protectedAppSetsMap?.placementInfo?.[0];
           const hasIssue = !!lastSyncTimeData?.data?.result?.find(
             (item: PrometheusResult) =>
-              item?.metric?.namesapce === placementInfo?.drpcNamespace &&
-              item?.metric?.name === placementInfo?.drpcNamespace &&
+              item?.metric?.[OBJECT_NAMESPACE] ===
+                placementInfo?.drpcNamespace &&
+              item?.metric?.[OBJECT_NAME] === placementInfo?.drpcName &&
               getSLAStatus(
                 Number(item?.value[1]) || 0,
                 placementInfo?.syncInterval

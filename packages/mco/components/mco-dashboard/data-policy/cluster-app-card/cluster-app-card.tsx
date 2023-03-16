@@ -94,7 +94,6 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
 };
 
 export const AppWiseCard: React.FC<AppWiseCardProps> = ({
-  lastSyncTimeData,
   protectedPVCData,
   selectedAppSet,
 }) => {
@@ -107,10 +106,7 @@ export const AppWiseCard: React.FC<AppWiseCardProps> = ({
         />
       </GridItem>
       <GridItem lg={9} rowSpan={8} sm={12}>
-        <RPOSection
-          selectedAppSet={selectedAppSet}
-          lastSyncTimeData={lastSyncTimeData}
-        />
+        <RPOSection selectedAppSet={selectedAppSet} />
       </GridItem>
       <GridItem lg={3} rowSpan={8} sm={12}>
         <ActivitySection selectedAppSet={selectedAppSet} />
@@ -237,7 +233,6 @@ export const ClusterAppCard: React.FC = () => {
               />
             ) : (
               <AppWiseCard
-                lastSyncTimeData={lastSyncTimeData}
                 protectedPVCData={protectedPVCData}
                 selectedAppSet={selectedAppSet}
               />
@@ -266,7 +261,6 @@ type ClusterWiseCardProps = {
 };
 
 type AppWiseCardProps = {
-  lastSyncTimeData: PrometheusResponse;
   protectedPVCData: ProtectedPVCData[];
   selectedAppSet: ProtectedAppSetsMap;
 };
