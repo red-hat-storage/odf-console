@@ -293,7 +293,11 @@ export class SelectorInput extends React.Component<
             removeKeys={removeKeys}
             inputProps={inputProps}
             renderTag={renderTag}
-            onChange={this.handleChange.bind(this)}
+            onChange={
+              !this.props.disabled
+                ? this.handleChange.bind(this)
+                : () => undefined
+            }
             disabled={this.props.disabled}
             addOnBlur
           />
