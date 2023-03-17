@@ -170,12 +170,11 @@ export class SelectorInput extends React.Component<
     };
   }
 
-  static getDerivedStateFromProps(props, state) {
-    if (!_.isEqual(props.tags, state.tags)) {
-      return { ...state, tags: props.tags };
+  componentDidUpdate = (prevProps) => {
+    if (!_.isEqual(prevProps.tags, this.props.tags)) {
+      this.setState({ tags: this.props.tags });
     }
-    return state;
-  }
+  };
 
   static arrayify(obj) {
     return _.map(obj, (v, k) => (v ? `${k}=${v}` : k));
