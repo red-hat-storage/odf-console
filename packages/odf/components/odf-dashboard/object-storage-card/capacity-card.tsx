@@ -30,7 +30,7 @@ const ObjectCapacityCard: React.FC = () => {
   return (
     <Card className="odf-capacityCard--height">
       <CardHeader>
-        <CardTitle>{t('External Object Provider Used Capacity')}</CardTitle>
+        <CardTitle>{t('External object provider used capacity')}</CardTitle>
       </CardHeader>
       <CardBody>
         <CapacityCard

@@ -82,7 +82,7 @@ const ResourceProviders: React.FC<{}> = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('Resource Providers')}</CardTitle>
+        <CardTitle>{t('Resource providers')}</CardTitle>
         <FieldLevelHelp>
           {t(
             "A list of all Multicloud Object Gateway resources that are currently in use. Those resources are used to store data according to the buckets' policies and can be a cloud-based resource or a bare metal resource."
