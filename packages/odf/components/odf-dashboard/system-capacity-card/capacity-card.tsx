@@ -87,7 +87,7 @@ const SystemCapacityCard: React.FC = () => {
   return (
     <Card className="odf-capacityCard--height">
       <CardHeader>
-        <CardTitle>{t('System Capacity')}</CardTitle>
+        <CardTitle>{t('System capacity')}</CardTitle>
       </CardHeader>
       <CardBody>
         {!error ? (
