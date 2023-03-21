@@ -12,7 +12,13 @@ import ResourceLink from '@odf/shared/resource-link/resource-link';
 import Table from '@odf/shared/table/table';
 import { HumanizeResult } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
+import {
+  getGVK,
+  humanizeBinaryBytes,
+  referenceForGroupVersionKind,
+  referenceForModel,
+  getDashboardLink,
+} from '@odf/shared/utils';
 import {
   PrometheusResult,
   useK8sWatchResource,
@@ -47,6 +53,7 @@ import './capacity-card.scss';
 
 type CapacityMetricDatum = {
   systemName: string;
+  targetKind: string;
   clusterName: string;
   totalValue: HumanizeResult;
   usedValue: HumanizeResult;
@@ -137,9 +144,12 @@ const headerColumns = (t: TFunction) => [
 ];
 
 const getRow: GetRow = (
-  { systemName, clusterName, totalValue, usedValue, clusterURL },
+  { systemName, targetKind, clusterName, totalValue, usedValue, clusterURL },
   index
 ) => {
+  const { apiGroup, apiVersion, kind } = getGVK(targetKind);
+  const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
+  const systemPath = getDashboardLink(systemKind, systemName);
   const isPercentage = !!totalValue;
   const progress = isPercentage ? getPercentage(usedValue, totalValue) : 100;
   const value = isPercentage
@@ -162,7 +172,7 @@ const getRow: GetRow = (
     <Tooltip key={`${systemName}${index}`} content={systemName}>
       <ResourceLink
         data-test="storage-system-link"
-        link={clusterURL}
+        link={`${clusterURL}/${systemPath}`}
         resourceModel={ODFStorageSystem}
         resourceName={systemName}
         className="odf-capacityCardLink--ellipsis"
@@ -264,12 +274,14 @@ const SystemCapacityCard: React.FC = () => {
         ? usedCapacity?.data?.result?.reduce(
             (acc: CapacityMetricDatumMap, usedMetric: PrometheusResult) => {
               const systemName = usedMetric?.metric?.storage_system;
+              const targetKind = usedMetric?.metric?.target_kind;
               const clusterName = usedMetric?.metric?.cluster;
               const clusterURL = ManagedClusterLink.hasOwnProperty(clusterName)
                 ? ManagedClusterLink[clusterName]
                 : undefined;
               acc[systemName + clusterName] = {
                 systemName,
+                targetKind,
                 clusterName,
                 usedValue: humanizeBinaryBytes(usedMetric?.value?.[1]),
                 totalValue: undefined,
