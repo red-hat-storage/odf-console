@@ -30,8 +30,8 @@ export const getLastSyncTimeDRPCQuery = (
   `time() - ${LAST_SYNC_TIME_QUERY}{resource_type="drpc",name="${drpcName}",namespace="${drpcNamespace}",cluster="${HUB_CLUSTER_NAME}"}`;
 
 export const CAPACITY_QUERIES = {
-  [StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system) ${TOTAL_CAPACITY_FILE_BLOCK_METRIC}`,
-  [StorageDashboard.USED_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system) ${USED_CAPACITY_FILE_BLOCK_METRIC}`,
+  [StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${TOTAL_CAPACITY_FILE_BLOCK_METRIC}`,
+  [StorageDashboard.USED_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${USED_CAPACITY_FILE_BLOCK_METRIC}`,
 };
 
 export const STATUS_QUERIES = {
