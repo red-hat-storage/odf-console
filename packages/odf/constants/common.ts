@@ -16,6 +16,7 @@ export const CEPH_STORAGE_LABEL = 'cluster.ocs.openshift.io/openshift-storage';
 export const ODF_MANAGED_LABEL = 'odf-managed-service';
 export const OCS_OPERATOR = 'ocs-operator';
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
+export const OCS_DEVICE_SET_MINIMUM_REPLICAS = 3;
 export const MINIMUM_NODES = 3;
 export const SECOND = 1000;
 
