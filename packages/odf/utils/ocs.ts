@@ -75,7 +75,7 @@ const countNodesPerZone = (nodes: NodeKind[]) =>
     return acc;
   }, {});
 
-const getRack = (node: NodeKind) => node.metadata.labels?.[RACK_LABEL];
+export const getRack = (node: NodeKind) => node.metadata.labels?.[RACK_LABEL];
 
 const getTopologyInfo = (nodes: NodeKind[]) =>
   nodes.reduce(
