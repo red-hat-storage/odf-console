@@ -104,7 +104,7 @@ const BreakdownCard: React.FC = () => {
     <Card>
       <CardHeader className="ceph-capacity-breakdown-card__header">
         <CardTitle>
-          {t('Used Capacity Breakdown')}
+          {t('Used capacity breakdown')}
           <FieldLevelHelp>
             {t(
               'This card shows the used capacity for different Kubernetes resources. The figures shown represent the Usable storage, meaning that data replication is not taken into consideration.'
