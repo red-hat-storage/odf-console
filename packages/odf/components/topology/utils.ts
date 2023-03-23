@@ -3,7 +3,7 @@ import { NodeDeploymentMap } from '@odf/shared/topology';
 import { resolveResourceUntilDeployment } from '@odf/shared/topology/utils/resource';
 import { NodeKind, PodKind } from '@odf/shared/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { getZone } from '../../utils';
+import { getRack, getZone } from '../../utils';
 
 export const generateNodeDeploymentsMap = (
   nodes: NodeKind[],
@@ -27,9 +27,12 @@ export const generateNodeDeploymentsMap = (
   }, {});
 };
 
+export const getTopologyDomain = (node: NodeKind) =>
+  getZone(node) || getRack(node);
+
 export const groupNodesByZones = (nodes: NodeKind[]): NodeKind[][] => {
   const groupedNodes = nodes.reduce((acc, curr) => {
-    const zone = getZone(curr);
+    const zone = getTopologyDomain(curr);
     acc[zone] = [...(acc[zone] || []), curr];
     return acc;
   }, {});

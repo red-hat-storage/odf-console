@@ -1,4 +1,3 @@
-import { getZone } from '@odf/core/utils';
 import { DeploymentModel, NodeModel as MachineModel } from '@odf/shared/models';
 import { getName, getUID } from '@odf/shared/selectors';
 import {
@@ -13,6 +12,7 @@ import {
   NodeShape,
   NodeStatus,
 } from '@patternfly/react-topology';
+import { getTopologyDomain } from './utils';
 
 export const generateDeploymentsInNodes = (
   node: NodeKind,
@@ -56,7 +56,7 @@ export const generateDeploymentsInNodes = (
  * Generate a NodeModel from Nodes of a particular Zone
  */
 export const generateNodesInZone = (nodes: NodeKind[]): NodeModel[] => {
-  const zone = getZone(nodes[0]);
+  const zone = getTopologyDomain(nodes[0]);
 
   const group: NodeModel = {
     id: zone,
