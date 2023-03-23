@@ -354,12 +354,13 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
   const namespace = props.match.params.ns;
   const submitBtnId = 'obc-submit-btn';
   const history = useHistory();
+  const isNoobaa = state.scProvisioner?.includes(NB_PROVISIONER);
   const { obcNameSchema, fieldRequirements } = useObcNameSchema(namespace);
 
   const schema = Yup.object({
     'sc-dropdown': Yup.string().required(),
     bucketclass: Yup.string().when('sc-dropdown', {
-      is: (value: string) => !!value,
+      is: (value: string) => !!value && isNoobaa,
       then: (schema: Yup.StringSchema) => schema.required(),
     }),
   }).concat(obcNameSchema);
