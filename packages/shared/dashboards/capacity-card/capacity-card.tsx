@@ -91,7 +91,7 @@ const CapacityCardHeader: React.FC<CapacityCardHeaderProps> = ({
       </GridItem>
       <GridItem span={7}>
         <Title headingLevel="h3" size="md">
-          {t('Used Capacity')} {showPercentage && <>%</>}
+          {t('Used capacity')} {showPercentage && <>%</>}
         </Title>
       </GridItem>
       <GridItem span={3}>

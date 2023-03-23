@@ -83,7 +83,7 @@ const StorageEfficiencyCard: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('Storage Efficiency')}</CardTitle>
+        <CardTitle>{t('Storage efficiency')}</CardTitle>
       </CardHeader>
       <CardBody>
         <StorageEfficiencyContent />
