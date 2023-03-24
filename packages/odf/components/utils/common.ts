@@ -8,6 +8,7 @@ import {
   getNodeCPUCapacity,
   getNodeAllocatableMemory,
   getZone,
+  getRack,
   isFlexibleScaling,
   getDeviceSetCount,
   createDeviceSet,
@@ -30,6 +31,7 @@ import {
   IP_FAMILY,
   NO_PROVISIONER,
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
+  OCS_DEVICE_SET_MINIMUM_REPLICAS,
   ATTACHED_DEVICES_ANNOTATION,
   OCS_INTERNAL_CR_NAME,
 } from '../../constants';
@@ -92,6 +94,7 @@ export const createWizardNodeState = (
     const cpu = getNodeCPUCapacity(node);
     const memory = getNodeAllocatableMemory(node);
     const zone = getZone(node);
+    const rack = getRack(node);
     const uid = getUID(node);
     const roles = getNodeRoles(node).sort();
     const labels = node?.metadata?.labels;
@@ -102,6 +105,7 @@ export const createWizardNodeState = (
       cpu,
       memory,
       zone,
+      rack,
       uid,
       roles,
       labels,
@@ -292,12 +296,35 @@ export const prettifyJSON = (data: string) =>
         return container;
       })();
 
-export const getUniqueZonesSet = (nodes: WizardNodeState[]): Set<string> => {
-  const uniqueZonesSet: Set<string> = nodes.reduce((acc, curr) => {
+const getUniqueZonesSet = (nodes: WizardNodeState[]): Set<string> => {
+  return nodes.reduce((acc, curr) => {
     acc.add(curr.zone);
     return acc;
   }, new Set<string>());
-  return uniqueZonesSet;
+};
+
+const getUniqueRacksSet = (nodes: WizardNodeState[]): Set<string> => {
+  return nodes.reduce((acc, curr) => {
+    acc.add(curr.rack);
+    return acc;
+  }, new Set<string>());
+};
+
+export const getReplicasFromSelectedNodes = (
+  nodes: WizardNodeState[]
+): number => {
+  const zones = getUniqueZonesSet(nodes);
+  let replicas = zones.size;
+  // If there are no zones, look for racks.
+  if (replicas === 1 && zones.has(undefined)) {
+    const racks = getUniqueRacksSet(nodes);
+    replicas = racks.size;
+  }
+  // When there are not enough zones/racks, we set the minimum replicas.
+  // When there are more than 3 zones/racks, we set one OSD for each zone/rack.
+  return replicas < OCS_DEVICE_SET_MINIMUM_REPLICAS
+    ? OCS_DEVICE_SET_MINIMUM_REPLICAS
+    : replicas;
 };
 
 export const getDeviceSetReplica = (
@@ -305,15 +332,15 @@ export const getDeviceSetReplica = (
   isFlexibleScaling: boolean,
   nodes: WizardNodeState[]
 ) => {
-  const uniqueZonesSet: Set<string> = getUniqueZonesSet(nodes);
   if (isFlexibleScaling) {
     return OCS_DEVICE_SET_FLEXIBLE_REPLICA;
   }
+  const replicas = getReplicasFromSelectedNodes(nodes);
   if (isStretchCluster) {
-    return uniqueZonesSet.size + 1;
+    return replicas + 1;
   }
 
-  return uniqueZonesSet.size;
+  return replicas;
 };
 
 export const getOCSRequestData = (
