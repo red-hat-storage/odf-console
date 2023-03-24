@@ -11,3 +11,5 @@ export const enum SLA_STATUS {
   WARNING = 'warning',
   HEALTHY = 'healthy',
 }
+export const ACM_OBSERVABILITY_FLAG = 'ACM_OBSERVABILITY';
+export const ADMIN_FLAG = 'ADMIN';
