@@ -67,6 +67,8 @@ export const AWS_REGIONS = [
   'ap-south-1',
   'me-south-1',
   'sa-east-1',
+  'us-gov-west-1',
+  'us-gov-east-1',
 ];
 
 export const NS_PROVIDERS_NOOBAA_MAP = _.pick(
