@@ -10,11 +10,9 @@ import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-interna
 import * as fuzzy from 'fuzzysearch';
 import { SearchInput } from '@patternfly/react-core';
 import { useVisualizationController } from '@patternfly/react-topology';
-import { STEP_INTO_EVENT } from '../constants';
+import { STEP_INTO_EVENT, STEP_TO_CLUSTER } from '../constants';
 
 const useTopologySearch = () => {
-  const [searchInput, setSearchInput] = React.useState('');
-
   const { visualizationLevel, nodes, deployments } =
     React.useContext(TopologyDataContext);
 
@@ -26,7 +24,6 @@ const useTopologySearch = () => {
 
   const performSearch = React.useCallback(
     (input) => {
-      setSearchInput(input);
       let resourcesInScope: K8sResourceCommon[] = nodes;
       if (visualizationLevel === TopologyViewLevel.DEPLOYMENTS) {
         const visibleElements = controller.getElements();
@@ -40,7 +37,7 @@ const useTopologySearch = () => {
       const filteredItems = resourcesInScope
         .filter((item) => {
           const itemName = getName(item);
-          if (fuzzy(searchInput, itemName)) {
+          if (fuzzy(input, itemName)) {
             return true;
           }
           return false;
@@ -49,14 +46,7 @@ const useTopologySearch = () => {
       setActiveItemsUID(filteredItems);
       return filteredItems;
     },
-    [
-      nodes,
-      visualizationLevel,
-      setActiveItemsUID,
-      controller,
-      deployments,
-      searchInput,
-    ]
+    [nodes, visualizationLevel, setActiveItemsUID, controller, deployments]
   );
 
   return { performSearch, activeItemsUID };
@@ -109,8 +99,10 @@ const SearchBar: React.FC = () => {
 
   React.useEffect(() => {
     controller.addEventListener(STEP_INTO_EVENT, onClear);
+    controller.addEventListener(STEP_TO_CLUSTER, onClear);
     return () => {
       controller.removeEventListener(STEP_INTO_EVENT, onClear);
+      controller.removeEventListener(STEP_TO_CLUSTER, onClear);
     };
   }, [controller, onClear]);
 
