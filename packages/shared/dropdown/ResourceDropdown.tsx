@@ -85,14 +85,16 @@ type ResourceDropdownTextProps = {
   showBadge?: boolean;
   resourceModel?: K8sModel;
   text: string;
+  className?: string;
 };
 
 const ResourceDropdownText: React.FC<ResourceDropdownTextProps> = ({
   showBadge = true,
   resourceModel,
   text,
+  className,
 }) => (
-  <span>
+  <span className={className}>
     {text && showBadge && <ResourceBadge model={resourceModel} />}
     {text}
   </span>
@@ -235,9 +237,16 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
                 <span>{t('No resources available')}</span>
               ) : (
                 <ResourceDropdownText
-                  text={selectedItem ? propertySelector(selectedItem) : ''}
+                  text={
+                    selectedItem
+                      ? propertySelector(selectedItem)
+                      : t('Select {{resourceLabel}}', {
+                          resourceLabel: resourceModel.label,
+                        })
+                  }
                   resourceModel={resourceModel}
-                  showBadge={showBadge}
+                  showBadge={selectedItem && showBadge}
+                  className={!selectedItem && 'text-muted'}
                 />
               ))}
             {loaded && loadError && (
@@ -402,9 +411,16 @@ export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
           {!loaded && <LoadingInline />}
           {loaded && !loadError && (
             <ResourceDropdownText
-              text={selectedItem ? propertySelector(selectedItem) : ''}
+              text={
+                selectedItem
+                  ? propertySelector(selectedItem)
+                  : t('Select {{resourceLabel}}', {
+                      resourceLabel: resourceModel.label,
+                    })
+              }
               resourceModel={resourceModel}
-              showBadge={showBadge}
+              showBadge={selectedItem && showBadge}
+              className={!selectedItem && 'text-muted'}
             />
           )}
           {loaded && loadError && (

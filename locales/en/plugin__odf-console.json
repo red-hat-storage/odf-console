@@ -962,6 +962,7 @@
   "Select options": "Select options",
   "No results found": "No results found",
   "No resources available": "No resources available",
+  "Select {{resourceLabel}}": "Select {{resourceLabel}}",
   "Error Loading": "Error Loading",
   "Reset": "Reset",
   "An error occurred. Please try again.": "An error occurred. Please try again.",
