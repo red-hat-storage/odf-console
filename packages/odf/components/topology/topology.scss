@@ -1,11 +1,8 @@
 .odf__topology-view {
-    height: 66.5vh;
     width: 100%;
-
-    &--longer {
-        height: 66.5vh;
-    }
-
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
 }
 
 @media (min-width: 768px) {
