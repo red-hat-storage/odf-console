@@ -1,11 +1,11 @@
 FROM docker.io/library/node:14.17.3 AS builder
 WORKDIR /app
 COPY . /app
-RUN yarn install
+RUN yarn install --prod --frozen-lockfile
 RUN NODE_OPTIONS="--max-old-space-size=1024" yarn build
 
 
-FROM quay.io/ocs-dev/cypress:latest as serverpackage
+FROM docker.io/library/node:14.17.3 as serverpackage
 RUN yarn global add http-server
 RUN export PATH="$(yarn global bin):$PATH"
 
