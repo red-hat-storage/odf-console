@@ -2,7 +2,7 @@ FROM docker.io/library/node:14.17.3 AS builder
 WORKDIR /app
 COPY . /app
 RUN yarn install
-RUN NODE_OPTIONS="--max-old-space-size=1000" yarn build-mco
+RUN NODE_OPTIONS="--max-old-space-size=1024" yarn build-mco
 
 
 FROM quay.io/ocs-dev/cypress:latest as serverpackage
