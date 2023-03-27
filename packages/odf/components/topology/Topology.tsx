@@ -30,7 +30,6 @@ import {
   useFlag,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom';
 import {
@@ -545,12 +544,7 @@ const Topology: React.FC = () => {
         value={{ activeItemsUID, setActiveItemsUID, activeItem, setActiveItem }}
       >
         <VisualizationProvider controller={controller}>
-          <div
-            className={classNames('odf__topology-view', {
-              'odf__topology-view--longer': !activeNode,
-            })}
-            id="odf-topology"
-          >
+          <div className="odf__topology-view" id="odf-topology">
             <TopologyTopBar />
             <HandleErrorAndLoading
               loading={loading}
