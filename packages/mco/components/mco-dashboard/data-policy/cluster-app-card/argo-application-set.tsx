@@ -23,34 +23,23 @@ import {
 import { mapLimitsRequests } from '@odf/shared/charts';
 import { AreaChart } from '@odf/shared/dashboards/utilization-card/area-chart';
 import { trimSecondsXMutator } from '@odf/shared/dashboards/utilization-card/utilization-item';
-import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
+import {
+  fromNow,
+  getTimeDifferenceInSeconds,
+} from '@odf/shared/details-page/datetime';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
 import { URL_POLL_DEFAULT_DELAY } from '@odf/shared/hooks/custom-prometheus-poll/use-url-poll';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { humanizeDuration, humanizeRPO } from '@odf/shared/utils';
 import {
-  PrometheusResponse,
-  PrometheusResult,
-} from '@openshift-console/dynamic-plugin-sdk';
+  humanizeMinutes,
+  humanizeHours,
+  humanizeDays,
+} from '@odf/shared/utils';
+import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { TFunction } from 'i18next';
 import { getLastSyncTimeDRPCQuery } from '../../queries';
-
-const humanizeMinutesSLA = (value) => {
-  const val = Number(value);
-  return humanizeDuration(val, 'min', 'm');
-};
-
-const humanizeHourSLA = (value) => {
-  const val = Number(value);
-  return humanizeDuration(val, 'hour', 'h');
-};
-
-const humanizeDaysSLA = (value) => {
-  const val = Number(value);
-  return humanizeDuration(val, 'day', 'd');
-};
 
 const getCurrentActivity = (
   currentStatus: string,
@@ -131,22 +120,21 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
   );
 };
 
-export const RPOSection: React.FC<CommonProps> = ({
-  selectedAppSet,
-  lastSyncTimeData,
-}) => {
+export const RPOSection: React.FC<CommonProps> = ({ selectedAppSet }) => {
   const { t } = useCustomTranslation();
+  const [rpo, setRPO] = React.useState('N/A');
+  const lastGroupSyncTime =
+    selectedAppSet?.placementInfo?.[0]?.lastGroupSyncTime;
+  const clearSetIntervalId = React.useRef<NodeJS.Timeout>();
+  const updateRPO = React.useCallback(() => {
+    setRPO(fromNow(lastGroupSyncTime) || 'N/A');
+  }, [lastGroupSyncTime]);
 
-  const rpo = React.useMemo(() => {
-    const placementInfo = selectedAppSet?.placementInfo?.[0];
-    const item = lastSyncTimeData?.data?.result?.find(
-      (item: PrometheusResult) =>
-        item?.metric?.namespace === placementInfo?.drpcNamespace &&
-        item?.metric?.name === placementInfo?.drpcName
-    );
-    const rpo = Number(item?.value[1]);
-    return !!rpo ? humanizeRPO(rpo)?.string : 'N/A';
-  }, [selectedAppSet, lastSyncTimeData]);
+  React.useEffect(() => {
+    updateRPO();
+    clearSetIntervalId.current = setInterval(updateRPO, URL_POLL_DEFAULT_DELAY);
+    return () => clearInterval(clearSetIntervalId.current);
+  }, [updateRPO]);
 
   return (
     <div className="mco-dashboard__contentColumn">
@@ -205,15 +193,14 @@ export const ReplicationHistorySection: React.FC<ReplicationHistorySectionProps>
     const [threshold, initialUnit] = convertSyncIntervalToSeconds(
       placementInfo?.syncInterval
     );
-    const drpcName = placementInfo?.drpcNamespace;
-    const drpcNamespace = placementInfo?.drpcName;
-
+    const drpcName = placementInfo?.drpcName;
+    const drpcNamespace = placementInfo?.drpcNamespace;
     const [pvcsSLARangeData, pvcsSLARangeError, pvcsSLARangeLoading] =
       useCustomPrometheusPoll({
         endpoint: 'api/v1/query_range' as any,
         query:
           !!drpcNamespace && !!drpcName
-            ? getLastSyncTimeDRPCQuery(drpcNamespace, drpcName)
+            ? getLastSyncTimeDRPCQuery(drpcName, drpcNamespace)
             : null,
         timespan: duration,
         basePath: ACM_ENDPOINT,
@@ -243,9 +230,9 @@ export const ReplicationHistorySection: React.FC<ReplicationHistorySectionProps>
           data={data}
           loading={!pvcsSLARangeError && pvcsSLARangeLoading}
           humanize={
-            (initialUnit === TIME_UNITS.Days && humanizeDaysSLA) ||
-            (initialUnit === TIME_UNITS.Hours && humanizeHourSLA) ||
-            (initialUnit === TIME_UNITS.Minutes && humanizeMinutesSLA)
+            (initialUnit === TIME_UNITS.Days && humanizeDays) ||
+            (initialUnit === TIME_UNITS.Hours && humanizeHours) ||
+            (initialUnit === TIME_UNITS.Minutes && humanizeMinutes)
           }
           chartStyle={chartStyle}
           mainDataName="SLA"

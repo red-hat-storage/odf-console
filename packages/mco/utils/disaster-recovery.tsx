@@ -365,7 +365,7 @@ export const getSLAStatus = (
   );
   const slaDiff = slaTakenInSeconds / syncIntervalInSeconds || 0;
   if (slaDiff >= THRESHOLD) return [SLA_STATUS.CRITICAL, slaDiff];
-  else if (slaDiff > 1 && slaDiff < THRESHOLD)
+  else if (slaDiff > THRESHOLD - 1 && slaDiff < THRESHOLD)
     return [SLA_STATUS.WARNING, slaDiff];
   else return [SLA_STATUS.HEALTHY, slaDiff];
 };
