@@ -48,3 +48,11 @@ yarn test-cypress-headless
 ```
 
 By default, it will look for Chrome in the system and use it, but if you want to use Firefox instead, set BRIDGE_E2E_BROWSER_NAME environment variable in your shell with the value firefox.
+
+#### Build the CI runner image:
+
+- Build examples:
+
+```
+docker build -t quay.io/<dev-repository>/odf-console-ci-runner:4.13 -f Dockerfile.ci.runner .
+```
