@@ -1,0 +1,21 @@
+name: Build and Push Base Image for odf-console
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'Dockerfile.ci.runner'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Login to Quay Registry
+        run: echo ${{ secrets.QUAY_SECRET }} | docker login quay.io -u ${{ secrets.QUAY_UNAME }} --password-stdin
+      - name: Build and push Docker image
+        run: |
+          docker build -t quay.io/ocs-dev/odf-console-base:latest . --file Dockerfile.ci.runner
+          docker push quay.io/ocs-dev/odf-console-base:latest
