@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
   createWizardNodeState,
-  getUniqueZonesSet,
+  getReplicasFromSelectedNodes,
 } from '@odf/core/components/utils';
 import {
   capacityAndNodesValidate,
@@ -140,9 +140,7 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
     [dispatch]
   );
 
-  const zones = getUniqueZonesSet(nodes);
-  // When there are more than 3 zones we create one OSD for each zone
-  const replicas = zones.size < 3 ? 3 : zones.size;
+  const replicas = getReplicasFromSelectedNodes(nodes);
 
   return (
     <>

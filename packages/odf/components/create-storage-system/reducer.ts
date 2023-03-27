@@ -111,6 +111,7 @@ export type WizardNodeState = {
   cpu: string;
   memory: string;
   zone: string;
+  rack: string;
   uid: string;
   roles: string[];
   labels: NodeKind['metadata']['labels'];
