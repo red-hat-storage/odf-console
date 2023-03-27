@@ -62,6 +62,8 @@ const canJumpToNextStep = (name: string, state: WizardState, t: TFunction) => {
     nodes,
   } = state;
   const { type, externalStorage } = backingStorage;
+  const isExternal: boolean = type === BackingStorageType.EXTERNAL;
+  const isRHCS: boolean = externalStorage === OCSStorageClusterModel.kind;
   const { capacity } = capacityAndNodes;
   const { chartNodes, volumeSetName, isValidDiskSize } = createLocalVolumeSet;
   const { encryption, kms, networkType, publicNetwork, clusterNetwork } =
@@ -91,7 +93,7 @@ const canJumpToNextStep = (name: string, state: WizardState, t: TFunction) => {
     case StepsName(t)[Steps.CapacityAndNodes]:
       return nodes.length >= MINIMUM_NODES && capacity;
     case StepsName(t)[Steps.SecurityAndNetwork]:
-      if (type === BackingStorageType.EXTERNAL) {
+      if (isExternal && isRHCS) {
         return canGoToNextStep(connectionDetails, storageClass.name);
       }
       return (
