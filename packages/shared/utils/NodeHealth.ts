@@ -43,7 +43,7 @@ export const getNodeStatus = (
     const deploymentAvailabilityCondition =
       deployment?.status?.conditions?.find(
         (condition) => condition.type === 'Available'
-      ).status;
+      )?.status;
     return deploymentAvailabilityCondition !== 'True';
   });
 
