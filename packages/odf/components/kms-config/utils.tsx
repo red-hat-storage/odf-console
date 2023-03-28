@@ -261,6 +261,7 @@ const getCsiVaultResources = (
         ...csiConfigData,
         VAULT_AUTH_PATH: kms.providerAuthPath,
         VAULT_AUTH_NAMESPACE: kms.providerAuthNamespace,
+        VAULT_NAMESPACE: kms.providerNamespace,
       };
       break;
     default:
