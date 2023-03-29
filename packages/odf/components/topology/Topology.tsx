@@ -134,6 +134,11 @@ const TopologyViewComponent: React.FC = () => {
     setSelectedElement,
   } = React.useContext(TopologyDataContext);
 
+  const onCloseSideBar = React.useCallback(() => {
+    setSideBarOpen(false);
+    setSelectedIds([]);
+  }, []);
+
   React.useEffect(() => {
     const selectionHandler = (ids: string[]) => {
       const element = controller.getElementById(ids[0]);
@@ -144,10 +149,14 @@ const TopologyViewComponent: React.FC = () => {
       }
     };
     controller.addEventListener(SELECTION_EVENT, selectionHandler);
+    controller.addEventListener(STEP_INTO_EVENT, onCloseSideBar);
+    controller.addEventListener(STEP_TO_CLUSTER, onCloseSideBar);
     return () => {
       controller.removeEventListener(SELECTION_EVENT, selectionHandler);
+      controller.removeEventListener(STEP_INTO_EVENT, onCloseSideBar);
+      controller.removeEventListener(STEP_TO_CLUSTER, onCloseSideBar);
     };
-  }, [controller, setSelectedElement]);
+  }, [controller, setSelectedElement, onCloseSideBar]);
 
   React.useEffect(() => {
     const groupedNodes = groupNodesByZones(nodes);
@@ -404,15 +413,7 @@ const TopologyViewComponent: React.FC = () => {
           })}
         />
       }
-      sideBar={
-        <Sidebar
-          onClose={() => {
-            setSideBarOpen(false);
-            setSelectedIds([]);
-          }}
-          isExpanded={isSideBarOpen}
-        />
-      }
+      sideBar={<Sidebar onClose={onCloseSideBar} isExpanded={isSideBarOpen} />}
       sideBarResizable={true}
       minSideBarSize="400px"
       sideBarOpen={isSideBarOpen}
