@@ -11,9 +11,7 @@ const TopologySearchBar: React.FC = () => {
   // Handles for when user exits full screen via `Esc` button
   React.useEffect(() => {
     const handler = () => {
-      if (window.screenTop && window.screenY && isFullScreen) {
-        setFullScreen(false);
-      }
+      setFullScreen(!isFullScreen);
     };
     document.addEventListener('fullscreenchange', handler);
     return () => {
@@ -27,17 +25,11 @@ const TopologySearchBar: React.FC = () => {
     if (!isFullScreen) {
       element
         .requestFullscreen()
-        .then(() => {
-          setFullScreen(true);
-        })
         // eslint-disable-next-line no-console
         .catch((e) => console.error(e));
     } else {
       document
         .exitFullscreen()
-        .then(() => {
-          setFullScreen(false);
-        })
         // eslint-disable-next-line no-console
         .catch((e) => console.error(e));
     }
@@ -47,10 +39,7 @@ const TopologySearchBar: React.FC = () => {
       <span className="odf-topology-search-bar__search">
         <SearchBar />
       </span>
-      <span
-        className="odf-topology-search-bar__expand"
-        onClick={toggleFullScreen}
-      >
+      <span className="odf-topology-search-bar__expand">
         <a onClick={toggleFullScreen}>
           <ExpandIcon className="odf-topology-search-bar__expand-icon" />
           {!isFullScreen ? t('Expand to fullscreen') : t('Exit fullscreen')}
