@@ -10,6 +10,7 @@ import {
 } from '@patternfly/react-core';
 import { AngleRightIcon } from '@patternfly/react-icons';
 import { useVisualizationController } from '@patternfly/react-topology';
+import { STEP_INTO_EVENT, STEP_TO_CLUSTER } from '../constants';
 import './TopologyNavigation.scss';
 
 const TopologyNavigationItem: React.FC = ({ children }) => {
@@ -36,6 +37,7 @@ const TopologyNavigationBar: React.FC<TopologyNavigationBarProps> = ({
       const id = event.currentTarget.id;
       setSelected(id);
       updateCurrentNode(id);
+      controller.fireEvent(STEP_INTO_EVENT, { label: id });
     },
     [updateCurrentNode]
   );
@@ -75,7 +77,7 @@ const TopologyNavigationBar: React.FC<TopologyNavigationBarProps> = ({
 
   const onStorageClusterClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.stopPropagation();
-    controller.fireEvent('STEP_TO_CLUSTER');
+    controller.fireEvent(STEP_TO_CLUSTER);
   };
 
   return (
