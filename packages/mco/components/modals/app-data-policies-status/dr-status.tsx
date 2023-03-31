@@ -1,21 +1,33 @@
 import * as React from 'react';
 import { REPLICATION_TYPE, DRPC_STATUS } from '@odf/mco/constants';
+import { fromNow } from '@odf/shared/details-page/datetime';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  Flex,
-  FlexItem,
+  DescriptionList,
+  DescriptionListTerm,
+  DescriptionListGroup,
+  DescriptionListDescription,
   HelperText,
   HelperTextItem,
+  Text,
 } from '@patternfly/react-core';
 import { getDRStatus } from '../../../utils';
 
 const failOverStatus = [DRPC_STATUS.FailedOver, DRPC_STATUS.FailingOver];
 const relocateStatus = [DRPC_STATUS.Relocating, DRPC_STATUS.Relocated];
 
-export const DRCurrentActivity: React.FC<DRStatusProps> = (props) => {
-  const { status, dataLastSyncedOn, targetCluster, replicationType } = props;
+export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
   const { t } = useCustomTranslation();
+  const drStatus: DRStatusProps = disasterRecoveryStatus?.[0];
+  const {
+    replicationType,
+    dataLastSyncedOn,
+    policyName,
+    schedulingInterval,
+    status,
+    targetCluster,
+  } = drStatus || {};
   const customText: string = [
     DRPC_STATUS.FailedOver,
     DRPC_STATUS.Relocated,
@@ -23,59 +35,64 @@ export const DRCurrentActivity: React.FC<DRStatusProps> = (props) => {
     ? t('Completed')
     : t('In Progress');
   const statusAndText = getDRStatus({ currentStatus: status, customText, t });
+  const lastSync = !!dataLastSyncedOn
+    ? t('Last synced {{lastSync}}', { lastSync: fromNow(dataLastSyncedOn) })
+    : '';
   return (
-    <Flex
-      direction={{ default: 'column' }}
-      spaceItems={{ default: 'spaceItemsSm' }}
+    <DescriptionList
+      isCompact
+      isHorizontal
+      horizontalTermWidthModifier={{
+        default: '8rem',
+        sm: '8rem',
+        md: '8rem',
+        lg: '8rem',
+        xl: '8rem',
+        '2xl': '8rem',
+      }}
     >
-      <FlexItem>
-        {
-          <StatusIconAndText
-            title={statusAndText?.text}
-            icon={statusAndText?.icon}
-          />
-        }
-      </FlexItem>
-      <FlexItem>
-        {t('Target cluster: {{targetCluster}}', {
-          targetCluster: targetCluster,
-        })}
-      </FlexItem>
-      {replicationType === REPLICATION_TYPE.ASYNC && (
-        <FlexItem>
-          {t('Last sync: {{lastSync}}', { lastSync: dataLastSyncedOn })}
-        </FlexItem>
-      )}
-    </Flex>
-  );
-};
+      <DescriptionListGroup>
+        <DescriptionListTerm>{t('Disaster recovery')}</DescriptionListTerm>
+        <DescriptionListDescription>
+          {replicationType === REPLICATION_TYPE.ASYNC ? (
+            <>
+              <Text>
+                {t('{{drPolicy}}, sync every {{syncInterval}}', {
+                  drPolicy: policyName,
+                  syncInterval: schedulingInterval,
+                })}
+              </Text>
+              <Text>{t('Sync status: {{lastSync}}', { lastSync })}</Text>
+            </>
+          ) : (
+            <Text>{policyName}</Text>
+          )}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <HelperText>
+          <HelperTextItem
+            variant={
+              failOverStatus.includes(status) ? 'default' : 'indeterminate'
+            }
+          >
+            {t('Failover status')}
+          </HelperTextItem>
+        </HelperText>
 
-export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
-  const { t } = useCustomTranslation();
-  const drStatus = disasterRecoveryStatus?.[0];
-  return (
-    <Flex
-      direction={{ default: 'column' }}
-      spaceItems={{ default: 'spaceItemsSm' }}
-    >
-      <Flex>
-        <FlexItem>
-          <strong> {t('Disaster recovery')} </strong>
-        </FlexItem>
-        <FlexItem>
-          {drStatus?.replicationType === REPLICATION_TYPE.ASYNC
-            ? t('{{drPolicy}}, sync every {{syncInterval}}', {
-                drPolicy: drStatus?.policyName,
-                syncInterval: drStatus?.schedulingInterval,
-              })
-            : drStatus?.policyName}
-        </FlexItem>
-      </Flex>
-      <Flex>
-        <FlexItem>{t('Failover status')}</FlexItem>
-        <FlexItem>
-          {failOverStatus.includes(drStatus?.status) ? (
-            <DRCurrentActivity {...drStatus} />
+        <DescriptionListDescription>
+          {failOverStatus.includes(status) ? (
+            <>
+              <StatusIconAndText
+                title={statusAndText?.text}
+                icon={statusAndText?.icon}
+              />
+              <Text>
+                {t('Target cluster: {{targetCluster}}', {
+                  targetCluster: targetCluster,
+                })}
+              </Text>
+            </>
           ) : (
             <HelperText>
               <HelperTextItem variant="indeterminate">
@@ -83,13 +100,31 @@ export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
               </HelperTextItem>
             </HelperText>
           )}
-        </FlexItem>
-      </Flex>
-      <Flex>
-        <FlexItem>{t('Relocate status')}</FlexItem>
-        <FlexItem>
-          {relocateStatus.includes(drStatus?.status) ? (
-            <DRCurrentActivity {...drStatus} />
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+      <DescriptionListGroup>
+        <HelperText>
+          <HelperTextItem
+            variant={
+              relocateStatus.includes(status) ? 'default' : 'indeterminate'
+            }
+          >
+            {t('Relocate status')}
+          </HelperTextItem>
+        </HelperText>
+        <DescriptionListDescription>
+          {relocateStatus.includes(status) ? (
+            <>
+              <StatusIconAndText
+                title={statusAndText?.text}
+                icon={statusAndText?.icon}
+              />
+              <Text>
+                {t('Target cluster: {{targetCluster}}', {
+                  targetCluster: targetCluster,
+                })}
+              </Text>
+            </>
           ) : (
             <HelperText>
               <HelperTextItem variant="indeterminate">
@@ -97,9 +132,9 @@ export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
               </HelperTextItem>
             </HelperText>
           )}
-        </FlexItem>
-      </Flex>
-    </Flex>
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+    </DescriptionList>
   );
 };
 

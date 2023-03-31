@@ -250,6 +250,7 @@ const DualListSelectorChosenListItem: React.FC<DualListSelectorChosenListItemPro
               className="modalBody modalInput--lowHeight"
               fieldId="pvc-selector"
               label={t('Add label')}
+              isRequired
               onChange={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
             >
