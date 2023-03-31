@@ -152,14 +152,14 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
       const areBothClustersUp = managedClusterList.every(
         (managedCluster) => !!getAvailableCondition(managedCluster)
       );
-      !areBothClustersUp;
-      dispatch({
-        type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
-        payload: {
-          managedClustersErrorMessage:
-            ErrorMessageType.MANAGED_CLUSTERS_ARE_DOWN,
-        },
-      });
+      !areBothClustersUp &&
+        dispatch({
+          type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
+          payload: {
+            managedClustersErrorMessage:
+              ErrorMessageType.MANAGED_CLUSTERS_ARE_DOWN,
+          },
+        });
     }
   }, [managedClusterList, state.actionType, dispatch, t]);
 
