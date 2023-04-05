@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { getExternalStorage } from '@odf/core/components/utils';
-import { ExternalStateValues, ExternalStateKeys } from '@odf/core/types';
+import {
+  StorageClassWizardStepExtensionProps as ExternalStorage,
+  ExternalStateValues,
+} from '@odf/odf-plugin-sdk/extensions';
 import {
   fieldRequirementsTranslations,
   formSettings,
@@ -25,16 +28,20 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
   storageClass,
   externalStorage,
   dispatch,
+  supportedExternalStorage,
 }) => {
   const { t } = useCustomTranslation();
 
-  const { Component, displayName } = getExternalStorage(externalStorage) || {
+  const { component: Component, displayName } = getExternalStorage(
+    externalStorage,
+    supportedExternalStorage
+  ) || {
     Component: null,
     displayName: '',
   };
 
   const setForm = React.useCallback(
-    (field: ExternalStateKeys, value: ExternalStateValues) =>
+    (field: string, value: ExternalStateValues) =>
       dispatch({
         type: 'wizard/setCreateStorageClass',
         payload: {
@@ -148,4 +155,5 @@ type CreateStorageClassProps = {
   externalStorage: WizardState['backingStorage']['externalStorage'];
   storageClass: WizardState['storageClass'];
   dispatch: WizardDispatch;
+  supportedExternalStorage: ExternalStorage[];
 };

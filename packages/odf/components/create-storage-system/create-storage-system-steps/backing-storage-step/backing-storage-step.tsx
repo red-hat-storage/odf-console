@@ -4,13 +4,10 @@ import {
   NO_PROVISIONER,
 } from '@odf/core/constants';
 import { scResource } from '@odf/core/resources';
-import {
-  BackingStorageType,
-  DeploymentType,
-  ExternalStorage,
-} from '@odf/core/types';
+import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { getSupportedVendors } from '@odf/core/utils';
 import { getStorageClassDescription } from '@odf/core/utils';
+import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
@@ -39,7 +36,6 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
-import { SUPPORTED_EXTERNAL_STORAGE } from '../../external-storage';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from './enable-nfs';
 import { SelectDeployment } from './select-deployment';
@@ -183,6 +179,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   error,
   loaded,
   stepIdReached,
+  supportedExternalStorage,
 }) => {
   const { type, enableNFS, externalStorage, deployment } = state;
 
@@ -205,14 +202,14 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
 
   const allowedExternalStorage: ExternalStorage[] =
     !enableRhcs || hasOCS
-      ? SUPPORTED_EXTERNAL_STORAGE.filter(({ model }) => {
+      ? supportedExternalStorage.filter(({ model }) => {
           const kind = getGVKLabel(model);
           return (
             supportedODFVendors.includes(kind) &&
             kind !== STORAGE_CLUSTER_SYSTEM_KIND
           );
         })
-      : SUPPORTED_EXTERNAL_STORAGE;
+      : supportedExternalStorage;
 
   React.useEffect(() => {
     /*
@@ -358,4 +355,5 @@ type BackingStorageProps = {
   infraType: string;
   error: any;
   loaded: boolean;
+  supportedExternalStorage: ExternalStorage[];
 };

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ErrorHandler } from '@odf/core/components/create-storage-system/error-handler';
 import {
   checkError,
   createDownloadFile,
@@ -7,16 +8,21 @@ import {
   prettifyJSON,
 } from '@odf/core/components/utils';
 import { IP_FAMILY } from '@odf/core/constants';
+import { RHCSState } from '@odf/core/types';
 import {
-  RHCSState,
   CanGoToNextStep,
   CreatePayload,
-  ExternalComponentProps,
-} from '@odf/core/types';
+  StorageClassComponentProps as ExternalComponentProps,
+  StorageClassWizardStepExtensionProps as ExternalStorage,
+} from '@odf/odf-plugin-sdk/extensions';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
-import { PodModel, SecretModel } from '@odf/shared/models';
+import {
+  PodModel,
+  SecretModel,
+  OCSStorageClusterModel,
+} from '@odf/shared/models';
 import { getAnnotations } from '@odf/shared/selectors';
 import { ListKind, PodKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -30,8 +36,7 @@ import {
   FileUploadProps,
   Form,
 } from '@patternfly/react-core';
-import { ErrorHandler } from '../../error-handler';
-import './index.scss';
+import './system-connection-details.scss';
 
 const OCS_OPERATOR = 'ocs-operator';
 
@@ -157,15 +162,9 @@ export const rhcsPayload: CreatePayload<RHCSState> = ({
   model,
   inTransitStatus,
 }) => {
-  const { apiVersion, apiGroup, kind, plural } = SecretModel;
   return [
     {
-      model: {
-        apiGroup,
-        apiVersion,
-        kind,
-        plural,
-      },
+      model: SecretModel,
       payload: {
         apiVersion: SecretModel.apiVersion,
         kind: SecretModel.kind,
@@ -214,3 +213,18 @@ export const rhcsCanGoToNextStep: CanGoToNextStep<RHCSState> = (state) =>
   !!state.fileData &&
   !state.errorMessage &&
   !state.isLoading;
+
+export const EXTERNAL_CEPH_STORAGE: ExternalStorage[] = [
+  {
+    displayName: 'Red Hat Ceph Storage',
+    model: {
+      apiGroup: OCSStorageClusterModel.apiGroup,
+      apiVersion: OCSStorageClusterModel.apiVersion,
+      kind: OCSStorageClusterModel.kind,
+      plural: OCSStorageClusterModel.plural,
+    },
+    component: ConnectionDetails,
+    createPayload: rhcsPayload,
+    canGoToNextStep: rhcsCanGoToNextStep,
+  },
+];
