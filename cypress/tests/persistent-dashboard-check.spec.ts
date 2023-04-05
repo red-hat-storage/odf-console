@@ -41,9 +41,19 @@ describe('Check Persistent Dashboard', () => {
       .contains('ocs-storagecluster')
       .scrollIntoView()
       .should('be.visible');
+    cy.log('Check redirect link goes to operator details page');
+    cy.byTestID('ocs-link').click();
+    cy.url().should(
+      'include',
+      'k8s/ns/openshift-storage/operators.coreos.com~v1alpha1~ClusterServiceVersion/odf-operator'
+    );
   });
 
   it('Check Inventory card is correct', () => {
+    ODFCommon.visitStorageDashboard();
+    cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
+    cy.byLegacyTestID('item-filter').type('ocs-storagecluster-storagesystem');
+    cy.byTestRows('resource-row').get('td a').first().click();
     cy.log('Check the total number of OCS nodes');
     cy.get('.skeleton-activity').should('not.exist'); // eslint-disable-line cypress/require-data-selectors
     cy.byTestID('inventory-nodes')
