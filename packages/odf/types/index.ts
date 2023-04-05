@@ -1,5 +1,5 @@
 export * from './common';
-export * from './external-storage';
+export * from './external-ceph-storage';
 export * from './kms';
 export * from './lso';
 export * from './network';

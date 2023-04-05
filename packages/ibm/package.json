@@ -1,6 +1,6 @@
 {
-  "name": "@odf/core",
-  "description": "Core ODF components",
+  "name": "@odf/ibm",
+  "description": "IBM External Storage Platform",
   "version": "0.0.0",
   "dependencies": {
     "@odf/shared": "0.0.0",

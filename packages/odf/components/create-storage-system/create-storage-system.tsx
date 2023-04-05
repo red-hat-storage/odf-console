@@ -1,10 +1,15 @@
 import * as React from 'react';
+import {
+  StorageClassWizardStepExtensionProps as ExternalStorage,
+  isStorageClassWizardStep,
+} from '@odf/odf-plugin-sdk/extensions';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { InfrastructureModel } from '@odf/shared/models';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { ListKind, StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
+import { useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
 import {
   RouteComponentProps,
   useHistory,
@@ -14,6 +19,7 @@ import { Wizard, WizardStep } from '@patternfly/react-core';
 import { Steps, StepsName, STORAGE_CLUSTER_SYSTEM_KIND } from '../../constants';
 import { createSteps } from './create-steps';
 import { BackingStorage } from './create-storage-system-steps';
+import { EXTERNAL_CEPH_STORAGE } from './external-ceph-storage/system-connection-details';
 import { CreateStorageSystemFooter } from './footer';
 import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
@@ -32,18 +38,41 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
     InfrastructureModel,
     'cluster'
   );
-  const infraType = getInfrastructurePlatform(infra);
+  const [extensions, extensionsResloved] = useResolvedExtensions(
+    isStorageClassWizardStep
+  );
 
+  const infraType = getInfrastructurePlatform(infra);
   const url = history.location.pathname;
 
   let wizardSteps: WizardStep[] = [];
   let hasOCS: boolean = false;
 
+  const supportedExternalStorage: ExternalStorage[] = React.useMemo(() => {
+    if (extensionsResloved) {
+      return [
+        ...EXTERNAL_CEPH_STORAGE,
+        ...(extensions?.map(
+          (vendor) => vendor.properties
+        ) as ExternalStorage[]),
+      ];
+    }
+    return EXTERNAL_CEPH_STORAGE;
+  }, [extensions, extensionsResloved]);
+
   if (ssLoaded && !ssLoadError && infraLoaded && !infraLoadError) {
     hasOCS = ssList?.items?.some(
       (ss) => ss.spec.kind === STORAGE_CLUSTER_SYSTEM_KIND
     );
-    wizardSteps = createSteps(t, state, dispatch, infraType, hasOCS, history);
+    wizardSteps = createSteps(
+      t,
+      state,
+      dispatch,
+      infraType,
+      hasOCS,
+      history,
+      supportedExternalStorage
+    );
   }
 
   const steps: WizardStep[] = [
@@ -60,6 +89,7 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
           infraType={infraType}
           error={ssLoadError || infraLoadError}
           loaded={ssLoaded && infraLoaded}
+          supportedExternalStorage={supportedExternalStorage}
         />
       ),
     },
@@ -81,6 +111,7 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
               !ssLoaded || !!ssLoadError || !infraLoaded || !!infraLoadError
             }
             history={history}
+            supportedExternalStorage={supportedExternalStorage}
           />
         }
         cancelButtonText={t('Cancel')}

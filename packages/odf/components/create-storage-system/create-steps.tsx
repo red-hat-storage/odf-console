@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { TFunction } from 'i18next';
 import { RouteComponentProps } from 'react-router';
@@ -21,7 +22,8 @@ export const createSteps = (
   dispatch: WizardDispatch,
   infraType: string,
   hasOCS: boolean,
-  history: RouteComponentProps['history']
+  history: RouteComponentProps['history'],
+  supportedExternalStorage: ExternalStorage[]
 ): WizardStep[] => {
   const {
     backingStorage,
@@ -76,7 +78,13 @@ export const createSteps = (
     },
     reviewAndCreate: {
       name: StepsName(t)[Steps.ReviewAndCreate],
-      component: <ReviewAndCreate state={state} hasOCS={hasOCS} />,
+      component: (
+        <ReviewAndCreate
+          state={state}
+          hasOCS={hasOCS}
+          supportedExternalStorage={supportedExternalStorage}
+        />
+      ),
     },
   };
 
@@ -93,6 +101,7 @@ export const createSteps = (
           isExternal={backingStorage.type === BackingStorageType.EXTERNAL}
           connectionDetailState={connectionDetails}
           externalStorage={externalStorage}
+          supportedExternalStorage={supportedExternalStorage}
         />
       ),
     },
@@ -114,6 +123,7 @@ export const createSteps = (
         externalStorage={externalStorage}
         dispatch={dispatch}
         storageClass={storageClass}
+        supportedExternalStorage={supportedExternalStorage}
       />
     ),
   };

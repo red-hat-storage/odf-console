@@ -2,13 +2,17 @@ import {
   getOCSRequestData,
   capacityAndNodesValidate,
 } from '@odf/core/components/utils';
-import { Payload, DeploymentType, BackingStorageType } from '@odf/core/types';
+import { DeploymentType, BackingStorageType } from '@odf/core/types';
+import { Payload } from '@odf/odf-plugin-sdk/extensions';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
-import { CustomResourceDefinitionModel, NodeModel } from '@odf/shared/models';
-import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
-import { K8sResourceKind, Patch, StorageSystemKind } from '@odf/shared/types';
+import {
+  OCSStorageClusterModel,
+  ODFStorageSystem,
+  NodeModel,
+} from '@odf/shared/models';
+import { Patch, StorageSystemKind } from '@odf/shared/types';
 import { getAPIVersionForModel, k8sPatchByName } from '@odf/shared/utils';
-import { k8sCreate, k8sGet } from '@openshift-console/dynamic-plugin-sdk';
+import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash-es';
 import {
@@ -146,43 +150,4 @@ export const createExternalSubSystem = async (subSystemPayloads: Payload[]) => {
   } catch (err) {
     throw err;
   }
-};
-
-/**
- * The crd status field should be available to proceed with CR creation.
- */
-const isCRDAvailable = (crd: K8sResourceKind, plural: string) =>
-  crd?.status?.acceptedNames?.plural === plural;
-
-export const waitforCRD = async (model, maxAttempts = 30) => {
-  const crdName = [model.plural, model.apiGroup].join('.');
-  const POLLING_INTERVAL = 5000;
-  let attempts = 0;
-  /**
-   * This will poll the CRD for an interval of 5s.
-   * This times out after 150s.
-   */
-  const pollCRD = async (resolve, reject) => {
-    try {
-      attempts++;
-      const crd = await k8sGet({
-        model: CustomResourceDefinitionModel,
-        name: crdName,
-      });
-      return isCRDAvailable(crd, model.plural)
-        ? resolve()
-        : setTimeout(pollCRD, POLLING_INTERVAL, resolve, reject);
-    } catch (err) {
-      if (err?.response?.status === 404) {
-        if (attempts === maxAttempts)
-          return reject(
-            new Error(`CustomResourceDefintion '${crdName}' not found.`)
-          );
-        return setTimeout(pollCRD, POLLING_INTERVAL, resolve, reject);
-      }
-      return reject(err);
-    }
-  };
-
-  return new Promise(pollCRD);
 };

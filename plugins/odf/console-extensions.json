@@ -649,5 +649,27 @@
         "$codeRef": "topology.default"
       }
     }
+  },
+  {
+    "type": "odf.wizard/storageclass",
+    "properties": {
+      "displayName": "IBM FlashSystem Storage",
+      "model": {
+        "apiGroup": "odf.ibm.com",
+        "apiVersion": "v1alpha1",
+        "kind": "FlashSystemCluster",
+        "plural": "flashsystemclusters"
+      },
+      "component": {
+        "$codeRef": "ibmStorage.FlashSystemConnectionDetails"
+      },
+      "createPayload": {
+        "$codeRef": "ibmStorage.createFlashSystemPayload"
+      },
+      "canGoToNextStep": {
+        "$codeRef": "ibmStorage.flashSystemCanGoToNextStep"
+      },
+      "waitToCreate": { "$codeRef": "ibmStorage.waitforCRD" }
+    }
   }
 ]

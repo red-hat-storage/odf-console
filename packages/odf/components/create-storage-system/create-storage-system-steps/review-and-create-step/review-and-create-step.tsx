@@ -11,6 +11,7 @@ import {
   OSD_CAPACITY_SIZES,
 } from '@odf/core/constants';
 import { BackingStorageType, DeploymentType } from '@odf/core/types';
+import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
@@ -38,6 +39,7 @@ export const ReviewItem = ({ children, title }) => (
 export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   state,
   hasOCS,
+  supportedExternalStorage,
 }) => {
   const { t } = useCustomTranslation();
   const isMultusSupported = useFlag(FEATURES.OCS_MULTUS);
@@ -76,7 +78,8 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     : t('Disabled');
 
   const storagePlatform =
-    externalStorage && getExternalStorage(externalStorage).displayName;
+    externalStorage &&
+    getExternalStorage(externalStorage, supportedExternalStorage).displayName;
 
   const encryptionStatus = hasEncryption ? t('Enabled') : t('Disabled');
   const ocsTaintsStatus = enableTaint ? t('Enabled') : t('Disabled');
@@ -216,4 +219,5 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
 type ReviewAndCreateProps = {
   state: WizardState;
   hasOCS: boolean;
+  supportedExternalStorage: ExternalStorage[];
 };
