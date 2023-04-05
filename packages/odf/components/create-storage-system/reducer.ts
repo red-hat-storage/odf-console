@@ -1,3 +1,12 @@
+import {
+  ExternalCephState,
+  ExternalCephStateValues,
+  ExternalCephStateKeys,
+} from '@odf/core/types';
+import {
+  ExternalStateValues,
+  ExternalState,
+} from '@odf/odf-plugin-sdk/extensions';
 import { NodeKind } from '@odf/shared/types';
 import * as _ from 'lodash-es';
 import {
@@ -12,9 +21,6 @@ import {
   NetworkType,
   BackingStorageType,
   DeploymentType,
-  ExternalState,
-  ExternalStateKeys,
-  ExternalStateValues,
 } from '../../types';
 
 export type WizardState = CreateStorageSystemState;
@@ -85,7 +91,7 @@ type CreateStorageSystemState = {
     deployment: DeploymentType;
   };
   createStorageClass: ExternalState;
-  connectionDetails: ExternalState;
+  connectionDetails: ExternalCephState;
   capacityAndNodes: {
     enableArbiter: boolean;
     enableTaint: boolean;
@@ -306,11 +312,11 @@ export type CreateStorageSystemAction =
     }
   | {
       type: 'wizard/setCreateStorageClass';
-      payload: { field: ExternalStateKeys; value: ExternalStateValues };
+      payload: { field: string; value: ExternalStateValues };
     }
   | {
       type: 'wizard/setConnectionDetails';
-      payload: { field: ExternalStateKeys; value: ExternalStateValues };
+      payload: { field: ExternalCephStateKeys; value: ExternalCephStateValues };
     }
   | {
       type: 'wizard/setCreateLocalVolumeSet';

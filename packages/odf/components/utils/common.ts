@@ -14,13 +14,12 @@ import {
   createDeviceSet,
   shouldDeployAsMinimal,
 } from '@odf/core/utils';
+import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
-import { OCSStorageClusterModel } from '@odf/shared/models';
 import { getLabel, getName, getUID } from '@odf/shared/selectors';
 import { NodeKind, StorageClusterKind } from '@odf/shared/types';
 import {
   getNodeRoles,
-  referenceForModel,
   humanizeCpuCores,
   convertToBaseValue,
 } from '@odf/shared/utils';
@@ -35,8 +34,6 @@ import {
   ATTACHED_DEVICES_ANNOTATION,
   OCS_INTERNAL_CR_NAME,
 } from '../../constants';
-import { IBMFlashSystemModel } from '../../models';
-import { SUPPORTED_EXTERNAL_STORAGE } from '../create-storage-system/external-storage';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
 
 export const pluralize = (
@@ -68,22 +65,18 @@ export const getAllZone = (nodes: WizardNodeState[]): Set<string> =>
   );
 
 export const getVendorDashboardLinkFromMetrics = (
-  systemType: string,
+  systemKind: string,
   systemName: string,
   subComponent?: string
-) => {
-  const systemKind =
-    systemType === 'OCS'
-      ? referenceForModel(OCSStorageClusterModel)
-      : referenceForModel(IBMFlashSystemModel);
-  return `/odf/system/${systemKind}/${systemName}/overview${
+) =>
+  `/odf/system/${systemKind}/${systemName}/overview${
     subComponent ? '/' + subComponent : ''
   }`;
-};
 
 export const getExternalStorage = (
-  id: WizardState['backingStorage']['externalStorage'] = ''
-) => SUPPORTED_EXTERNAL_STORAGE.find((p) => p.model.kind === id);
+  id: WizardState['backingStorage']['externalStorage'] = '',
+  supportedExternalStorage: ExternalStorage[]
+) => supportedExternalStorage.find((p) => p.model.kind === id);
 
 export const createWizardNodeState = (
   nodes: NodeKind[] = []
