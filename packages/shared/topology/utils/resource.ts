@@ -1,7 +1,7 @@
 import { DeploymentModel } from '@odf/shared/models';
 import { getUID } from '@odf/shared/selectors';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { DeploymentKind, PodKind } from 'packages/shared/types';
+import { DeploymentKind, PodKind } from '../../types';
 
 export const resolveResourceUntilDeployment = (
   ownerUID: string,
