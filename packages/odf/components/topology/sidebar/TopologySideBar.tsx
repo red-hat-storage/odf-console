@@ -8,15 +8,17 @@ type TopologySideBarProps = {
   isExpanded?: boolean;
   onExpand?: () => void;
   resource: K8sResourceKind;
+  className?: string;
 };
 
 const TopologySideBar: React.FC<TopologySideBarProps> = ({
   resource,
   onClose,
+  className,
 }) => {
   return (
     <PFTopologySideBar onClose={onClose} resizable>
-      <TopologySideBarContent resource={resource} />
+      <TopologySideBarContent resource={resource} className={className} />
     </PFTopologySideBar>
   );
 };
