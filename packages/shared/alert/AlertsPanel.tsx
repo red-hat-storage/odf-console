@@ -57,14 +57,13 @@ const AlertBadge: React.FC<AlertBadgeProps> = ({
   const onClick = () => onToggle(`alert-toggle-${alertSeverity}`);
 
   return (
-    <>
+    <span onClick={onClick}>
       <Badge
         key={key}
         className={`odf-alerts-panel__badge odf-alerts-panel__badge-${alertSeverity}`}
       >
         <Button
           variant={ButtonVariant.plain}
-          onClick={onClick}
           className="odf-alerts-panel__button"
         >
           <StatusIconAndText title={alerts.length.toString()} icon={icon} />
@@ -73,7 +72,7 @@ const AlertBadge: React.FC<AlertBadgeProps> = ({
       <span className="odf-alerts-panel__badge-text">
         {_.startCase(alertSeverity)}
       </span>
-    </>
+    </span>
   );
 };
 
