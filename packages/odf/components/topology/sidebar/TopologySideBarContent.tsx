@@ -19,12 +19,11 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKofResource } from '@odf/shared/utils';
 import {
-  Alert,
   K8sResourceCommon,
   useK8sModel,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
 import { Tab, Tabs, TabTitleText } from '@patternfly/react-core';
+import { filterFactory } from '../utils';
 import {
   StorageClusterDetails,
   StorageClusterObserve,
@@ -35,40 +34,7 @@ import '@odf/shared/utils/tabs.scss';
 
 type TopologySideBarContentProps = {
   resource: K8sResourceCommon;
-};
-
-const storageClusterAlertFilter =
-  () =>
-  (alert: Alert): boolean => {
-    const rookRegex = /.*rook.*/;
-    return (
-      alert?.annotations?.storage_type === 'ceph' ||
-      Object.values(alert?.labels)?.some((item) => rookRegex.test(item)) ||
-      _.get(alert, 'annotations.storage_type') === 'NooBaa' ||
-      alert?.annotations?.storage_type === 'RGW'
-    );
-  };
-
-const filterFactory = (kind: string) => {
-  const commonFilter =
-    (name: string) =>
-    (alert: Alert): boolean => {
-      return (
-        _.get(alert, 'annotations.description', '').includes(name) ||
-        _.get(alert, 'annotations.message', '').includes(name)
-      );
-    };
-  const nodeFilter = (name: string) => (alert: Alert) =>
-    alert?.labels?.node === name || commonFilter(name)(alert);
-
-  if (kind === StorageClusterModel.kind) {
-    return storageClusterAlertFilter;
-  }
-
-  if (kind === NodeModel.kind) {
-    return nodeFilter;
-  }
-  return commonFilter;
+  className?: string;
 };
 
 const AlertsTabComponent: React.FC<TopologySideBarContentProps> = ({
@@ -141,6 +107,7 @@ const ObserveTabComponent: React.FC<GenericTabComponentProps> = ({
 
 const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
   resource,
+  className,
 }) => {
   const [activeTab, setActiveTab] = React.useState(0);
   const { t } = useCustomTranslation();
@@ -160,7 +127,7 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
   const title = <DetailsPageTitle resource={resource} resourceModel={model} />;
 
   return !inFlight ? (
-    <>
+    <div className={className}>
       <PageHeading
         title={title}
         resource={resource}
@@ -206,7 +173,7 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
           <ObserveTabComponent resource={resource} />
         </Tab>
       </Tabs>
-    </>
+    </div>
   ) : (
     <LoadingBox />
   );
