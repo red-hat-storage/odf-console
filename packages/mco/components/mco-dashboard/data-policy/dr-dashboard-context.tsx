@@ -10,14 +10,46 @@ export const DRResourcesContext = React.createContext<DRResourcesContextType>(
   {} as DRResourcesContextType
 );
 
-type CSVStatusesContextType = {
+export type CSVStatusesContextType = {
   csvData: PrometheusResponse;
   csvError: any;
   csvLoading: boolean;
 };
 
-type DRResourcesContextType = {
+export type DRResourcesContextType = {
   drClusterAppsMap: DrClusterAppsMap;
   loaded: boolean;
   loadError: any;
 };
+
+interface ContextProps<P> {
+  context: React.Provider<P>;
+  value: P;
+}
+
+export type DRContext =
+  | ContextProps<CSVStatusesContextType>
+  | ContextProps<DRResourcesContextType>;
+
+export const combineComponents = (components): React.FC => {
+  return components.reduce(
+    (AccumulatedComponents, { context: CurrentComponent, value }) => {
+      console.log('context: -----------------------------');
+      console.log(CurrentComponent);
+      console.log('Value: ---------------------');
+      console.log(value);
+      return ({ children }: React.ComponentProps<React.FC>): JSX.Element => {
+        return (
+          <AccumulatedComponents>
+            <CurrentComponent value={value}>{children}</CurrentComponent>
+          </AccumulatedComponents>
+        );
+      };
+    },
+    ({ children }) => <>{children}</>
+  );
+};
+
+export const AppContextProvider = (input: DRContext[]) => (
+  <>{combineComponents(input)}</>
+);

@@ -27,7 +27,14 @@ import {
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import { AlertsCard } from './alert-card/alert-card';
 import { ClusterAppCard } from './cluster-app-card/cluster-app-card';
-import { CSVStatusesContext, DRResourcesContext } from './dr-dashboard-context';
+import {
+  AppContextProvider,
+  CSVStatusesContext,
+  CSVStatusesContextType,
+  DRContext,
+  DRResourcesContext,
+  DRResourcesContextType,
+} from './dr-dashboard-context';
 import { StatusCard } from './status-card/status-card';
 import { SummaryCard } from './summary-card/summary-card';
 import '../mco-common.scss';
@@ -150,21 +157,29 @@ export const DRDashboard: React.FC = () => {
     loadError,
   ]);
 
-  const dRResourcesContext = {
+  const csvStatusesContext: CSVStatusesContextType = {
+    csvData,
+    csvError,
+    csvLoading,
+  };
+  const dRResourcesContext: DRResourcesContextType = {
     drClusterAppsMap,
     loaded,
     loadError,
   };
 
+  const providers: DRContext[] = [
+    { context: CSVStatusesContext.Provider, value: csvStatusesContext },
+    { context: DRResourcesContext.Provider, value: dRResourcesContext },
+  ];
+
   // ToDo(Sanjal): combime multiple Context together to make it scalable
   // refer: https://javascript.plainenglish.io/how-to-combine-context-providers-for-cleaner-react-code-9ed24f20225e
   return (
     <div className="odf-dashboard-body">
-      <CSVStatusesContext.Provider value={{ csvData, csvError, csvLoading }}>
-        <DRResourcesContext.Provider value={dRResourcesContext}>
-          <UpperSection />
-        </DRResourcesContext.Provider>
-      </CSVStatusesContext.Provider>
+      <AppContextProvider {...providers}>
+        <UpperSection />
+      </AppContextProvider>
     </div>
   );
 };

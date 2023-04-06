@@ -525,7 +525,7 @@ const Topology: React.FC = () => {
     !daemonSetsLoaded;
 
   const zones = memoizedNodes.map(getTopologyDomain);
-
+  console.log('********************* TOPO ******************************');
   return (
     <TopologyDataContext.Provider
       value={{
