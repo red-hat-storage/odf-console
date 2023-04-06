@@ -24,6 +24,7 @@ jobs:
       - run: yarn install # Install dev. deps.
       - run: yarn lint
       - run: yarn format-test
+      - run: yarn i18n-test
       - run: yarn test-coverage
       - run: yarn analyze-odf
       - run: yarn analyze-mco
