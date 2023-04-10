@@ -29,7 +29,7 @@ function removeValues(i18nFile, filePath) {
 function consolidateWithExistingTranslations(filePath, fileName, language) {
   const englishFile = require(filePath);
   const englishKeys = Object.keys(englishFile);
-  let existingTranslationsPath = `./../locales/${language}/${fileName}.json`;
+  let existingTranslationsPath = `../../locales/${language}/${fileName}.json`;
   if (fs.existsSync(path.join(__dirname, existingTranslationsPath))) {
     const existingTranslationsFile = require(path.join(
       __dirname,
@@ -50,20 +50,22 @@ function consolidateWithExistingTranslations(filePath, fileName, language) {
 
 function processFile(fileName, language) {
   let tmpFile;
-  const i18nFile = path.join(__dirname, `./../locales/en/${fileName}.json`);
+  const i18nFile = path.join(__dirname, `../../locales/en/${fileName}.json`);
+
+  console.log(`Current dirname: ${__dirname}`);
 
   try {
     if (fs.existsSync(i18nFile)) {
-      fs.mkdirSync(path.join(__dirname, './../locales/tmp'), {
+      fs.mkdirSync(path.join(__dirname, '../../locales/tmp'), {
         recursive: true,
       });
 
-      tmpFile = path.join(__dirname, `./../locales/tmp/${fileName}.json`);
+      tmpFile = path.join(__dirname, `../../locales/tmp/${fileName}.json`);
 
       removeValues(i18nFile, tmpFile);
       consolidateWithExistingTranslations(tmpFile, fileName, language);
 
-      fs.mkdirSync(path.join(__dirname, `./../po-files/${language}`), {
+      fs.mkdirSync(path.join(__dirname, `../../po-files/${language}`), {
         recursive: true,
       });
       i18nextToPo(language, fs.readFileSync(tmpFile), {
@@ -75,7 +77,7 @@ function processFile(fileName, language) {
           save(
             path.join(
               __dirname,
-              `./../po-files/${language}/${path.basename(fileName)}.po`
+              `../../po-files/${language}/${path.basename(fileName)}.po`
             ),
             language
           )
