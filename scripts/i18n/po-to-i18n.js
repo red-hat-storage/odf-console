@@ -16,14 +16,14 @@ function processFile(fileName, language) {
   let newFilePath;
   const newFileName = path.basename(fileName, '.po');
 
-  if (!fs.existsSync(path.join(__dirname, `../locales/${language}/`))) {
-    fs.mkdirSync(path.join(__dirname, `../locales/${language}/`), {
+  if (!fs.existsSync(path.join(__dirname, `../../locales/${language}/`))) {
+    fs.mkdirSync(path.join(__dirname, `../../locales/${language}/`), {
       recursive: true,
     });
   }
   newFilePath = path.join(
     __dirname,
-    `../locales/${language}/${newFileName}.json`
+    `../../locales/${language}/${newFileName}.json`
   );
   console.log(`Saving locales/${language}/${newFileName}.json`);
 
