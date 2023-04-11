@@ -1,6 +1,7 @@
 // TODO (@rexagod): https://github.com/openshift/console/pull/10470#discussion_r766453369
 import * as React from 'react';
 import ConsumerPopover from '@odf/shared/dashboards/utilization-card/ConsumerPopover';
+import { PrometheusMultilineUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-multi-utilization-item';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -22,9 +23,8 @@ import {
   utilizationPopoverQueryMap,
   UTILIZATION_QUERY,
 } from '../../../queries';
-import './utilization-card.scss';
-import { PrometheusMultilineUtilizationItem } from './prometheus-multi-utilization-item';
 import { humanizeIOPS, humanizeLatency } from './utils';
+import '../../../../shared/dashboards/utilization-card/utilization-card.scss';
 
 export const UtilizationContent: React.FC = () => {
   const { t } = useCustomTranslation();

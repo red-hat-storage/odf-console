@@ -6,7 +6,12 @@
  */
 
 import * as React from 'react';
-import { OCS_INDEPENDENT_FLAG, MCG_FLAG, CEPH_FLAG } from '@odf/core/features';
+import {
+  OCS_INDEPENDENT_FLAG,
+  MCG_FLAG,
+  CEPH_FLAG,
+  OCS_NFS_ENABLED,
+} from '@odf/core/features';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
@@ -18,6 +23,9 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { RouteComponentProps } from 'react-router-dom';
+import { StatusCard as NFSStatusCard } from './network-file-system/status-card/status-card';
+import { ThroughputCard } from './network-file-system/throughput-card/throughput-card';
+import { TopClientsCard } from './network-file-system/top-clients-card/top-clients-card';
 import { default as ObjectActivityCard } from './object-service/activity-card/activity-card';
 import { BucketsCard } from './object-service/buckets-card/buckets-card';
 import { default as ObjectBreakdownCard } from './object-service/capacity-breakdown/capacity-breakdown-card';
@@ -45,10 +53,11 @@ const convertToCard = (Card: React.ComponentType): OverviewGridCard => ({
 
 export const BLOCK_FILE = 'block-file';
 export const OBJECT = 'object';
+export const NFS = 'network-file-system';
 
 type CommonDashboardRendererProps = {
-  leftCards: React.ComponentType[];
-  rightCards: React.ComponentType[];
+  leftCards?: React.ComponentType[];
+  rightCards?: React.ComponentType[];
   mainCards: React.ComponentType[];
 };
 
@@ -58,8 +67,8 @@ const CommonDashboardRenderer: React.FC<CommonDashboardRendererProps> = ({
   mainCards,
 }) => {
   const mainGridCards: OverviewGridCard[] = mainCards.map(convertToCard);
-  const leftGridCards: OverviewGridCard[] = leftCards.map(convertToCard);
-  const rightGridCards: OverviewGridCard[] = rightCards.map(convertToCard);
+  const leftGridCards: OverviewGridCard[] = leftCards?.map(convertToCard);
+  const rightGridCards: OverviewGridCard[] = rightCards?.map(convertToCard);
 
   return (
     <Overview>
@@ -135,6 +144,15 @@ const ObjectServiceDashboard: React.FC = () => {
   );
 };
 
+const NFSDashboard: React.FC = () => {
+  const mainCards: React.ComponentType[] = [
+    NFSStatusCard,
+    ThroughputCard,
+    TopClientsCard,
+  ];
+  return <CommonDashboardRenderer mainCards={mainCards} />;
+};
+
 const internalPage = (t: TFunction): TabPage => {
   return {
     href: BLOCK_FILE,
@@ -159,22 +177,39 @@ const objectPage = (t: TFunction): TabPage => {
   };
 };
 
+const nfsPage = (t: TFunction): TabPage => {
+  return {
+    href: NFS,
+    title: t('Network file system'),
+    component: NFSDashboard,
+  };
+};
+
 const OCSSystemDashboard: React.FC<RouteComponentProps> = () => {
   const { t } = useCustomTranslation();
 
   const isIndependent = useFlag(OCS_INDEPENDENT_FLAG);
   const isObjectServiceAvailable = useFlag(MCG_FLAG);
   const isCephAvailable = useFlag(CEPH_FLAG);
+  const isNFSEnabled = useFlag(OCS_NFS_ENABLED);
 
   const showInternalDashboard = !isIndependent && isCephAvailable;
+  const showNFSDashboard = !isIndependent && isNFSEnabled;
 
   const pages = React.useMemo(() => {
     const tempPages = [];
     showInternalDashboard && tempPages.push(internalPage(t));
     isIndependent && tempPages.push(externalPage(t));
+    showNFSDashboard && tempPages.push(nfsPage(t));
     isObjectServiceAvailable && tempPages.push(objectPage(t));
     return tempPages;
-  }, [showInternalDashboard, isIndependent, isObjectServiceAvailable, t]);
+  }, [
+    showInternalDashboard,
+    isIndependent,
+    showNFSDashboard,
+    isObjectServiceAvailable,
+    t,
+  ]);
 
   return pages.length > 0 ? (
     <Tabs id="odf-dashboard-tab" tabs={pages} basePath="overview" />
