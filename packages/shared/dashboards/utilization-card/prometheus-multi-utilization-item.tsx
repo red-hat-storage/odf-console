@@ -7,17 +7,17 @@ import {
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { MultilineUtilizationItem } from './multi-utilization-item';
+import './utilization-card.scss';
+
+const trimSecondsXMutator = (x: number) => {
+  const d = new Date(x * 1000);
+  d.setSeconds(0, 0);
+  return d;
+};
 
 export const PrometheusMultilineUtilizationItem: React.FC<PrometheusMultilineUtilizationItemProps> =
   ({ queries, chartType, title, humanizeValue }) => {
     const { duration } = useUtilizationDuration();
-    // eslint-disable-next-line consistent-return
-    const trimSecondsXMutator = (x: number) => {
-      const d = new Date(x * 1000);
-      d.setSeconds(0, 0);
-      return d;
-    };
-
     const [stats, setStats] = React.useState([]);
 
     const [queryA, queryB] = queries;
