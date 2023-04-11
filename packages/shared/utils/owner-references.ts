@@ -4,7 +4,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ClusterServiceVersionModel } from '../models';
 import { ClusterServiceVersionKind } from '../types/console-types';
-import { groupVersionFor } from '.';
+import { groupVersionFor } from './common';
 
 const isOwnedByOperator = (
   csv: ClusterServiceVersionKind,

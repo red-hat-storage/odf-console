@@ -2,6 +2,7 @@
 
 import * as path from 'path';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
+import * as CircularDependencyPlugin from 'circular-dependency-plugin';
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 import { ForkTsCheckerWebpackPlugin } from 'fork-ts-checker-webpack-plugin/lib/plugin';
 import * as webpack from 'webpack';
@@ -159,6 +160,12 @@ const config: webpack.Configuration & DevServerConfiguration = {
           syntactic: true,
         },
       },
+    }),
+    new CircularDependencyPlugin({
+      exclude: /cypress|plugins|scripts|node_modules/,
+      failOnError: true,
+      allowAsyncCycles: false,
+      cwd: process.cwd(),
     }),
   ],
   devtool: 'cheap-module-source-map',
