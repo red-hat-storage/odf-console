@@ -70,6 +70,7 @@
     "copy-webpack-plugin": "^6.4.1",
     "css-loader": "0.28.x",
     "classnames": "^2.3.1",
+    "circular-dependency-plugin": "5.x",
     "eslint-config-airbnb": "18.2.1",
     "file-loader": "1.x",
     "fork-ts-checker-webpack-plugin": "^7.2.13",
