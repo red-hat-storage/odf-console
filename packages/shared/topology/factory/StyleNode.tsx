@@ -39,7 +39,7 @@ import {
 import { DeploymentKind, NodeKind } from '../../types';
 import { getNodeStatus } from '../../utils/NodeHealth';
 import { TopologyDataContext } from '../Context';
-import { TopologySearchContext } from '../Context/SearchContext';
+import { TopologySearchContext } from '../Context/TopologySearchContext';
 import './StyleNode.scss';
 
 const getResourceModel = (resource: K8sResourceCommon): K8sKind => {

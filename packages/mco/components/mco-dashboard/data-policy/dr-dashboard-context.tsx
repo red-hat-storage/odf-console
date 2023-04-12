@@ -34,10 +34,6 @@ export type DRContext =
 export const combineComponents = (components): React.FC => {
   return components.reduce(
     (AccumulatedComponents, { context: CurrentComponent, value }) => {
-      console.log('context: -----------------------------');
-      console.log(CurrentComponent);
-      console.log('Value: ---------------------');
-      console.log(value);
       return ({ children }: React.ComponentProps<React.FC>): JSX.Element => {
         return (
           <AccumulatedComponents>

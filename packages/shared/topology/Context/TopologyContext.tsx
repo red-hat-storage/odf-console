@@ -1,41 +1,31 @@
 import * as React from 'react';
-import {
-  DeploymentKind,
-  NodeKind,
-  StorageClusterKind,
-} from '@odf/shared/types';
-import { GraphElement } from '@patternfly/react-topology';
-import { TopologyViewLevel } from '../types';
+import { TopologyDataContextType } from './TopologyDataContext';
+import { TopologySearchContextType } from './TopologySearchContext';
 
-export type NodeDeploymentMap = {
-  [nodeName: string]: DeploymentKind[];
+interface ContextProps<P> {
+  context: React.Provider<P>;
+  value: P;
+}
+
+const combineComponents = (components): React.FC => {
+  return components.reduce(
+    (AccumulatedComponents, { context: CurrentComponent, value }) => {
+      return ({ children }: React.ComponentProps<React.FC>): JSX.Element => {
+        return (
+          <AccumulatedComponents>
+            <CurrentComponent value={value}>{children}</CurrentComponent>
+          </AccumulatedComponents>
+        );
+      };
+    },
+    ({ children }) => <>{children}</>
+  );
 };
 
-type DefaultContext = {
-  zones: string[];
-  nodes: NodeKind[];
-  storageCluster: StorageClusterKind;
-  deployments: DeploymentKind[];
-  nodeDeploymentMap: NodeDeploymentMap;
-  visualizationLevel: TopologyViewLevel;
-  activeNode?: string;
-  setActiveNode?: (node: string) => void;
-  selectedElement: GraphElement;
-  setSelectedElement: (node: GraphElement) => void;
-};
+export type TopologyContext =
+  | ContextProps<TopologyDataContextType>
+  | ContextProps<TopologySearchContextType>;
 
-const defaultContext: DefaultContext = {
-  nodes: [],
-  zones: [],
-  storageCluster: null,
-  deployments: null,
-  visualizationLevel: TopologyViewLevel.NODES,
-  activeNode: null,
-  setActiveNode: null,
-  nodeDeploymentMap: {},
-  selectedElement: null,
-  setSelectedElement: () => null,
-};
-
-export const TopologyDataContext =
-  React.createContext<DefaultContext>(defaultContext);
+export const TopologyContextProvider = (input: TopologyContext[]) => (
+  <>{combineComponents(input)}</>
+);

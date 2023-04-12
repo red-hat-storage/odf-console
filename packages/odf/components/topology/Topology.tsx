@@ -12,8 +12,12 @@ import {
   createNode,
   defaultLayoutFactory,
   stylesComponentFactory,
+  TopologyContext,
+  TopologyContextProvider,
   TopologyDataContext,
+  TopologyDataContextType,
   TopologySearchContext,
+  TopologySearchContextType,
   TopologyViewLevel,
 } from '@odf/shared/topology';
 import {
@@ -525,47 +529,57 @@ const Topology: React.FC = () => {
     !daemonSetsLoaded;
 
   const zones = memoizedNodes.map(getTopologyDomain);
-  console.log('********************* TOPO ******************************');
+
+  const topologyDataContextValue: TopologyDataContextType = {
+    nodes: memoizedNodes,
+    storageCluster: storageCluster[0],
+    zones,
+    deployments: memoizedDeployments,
+    visualizationLevel: visualizationLevel,
+    activeNode,
+    setActiveNode,
+    nodeDeploymentMap,
+    selectedElement,
+    setSelectedElement,
+  };
+  const topologySearchContextValue: TopologySearchContextType = {
+    activeItemsUID,
+    setActiveItemsUID,
+    activeItem,
+    setActiveItem,
+  };
+
+  const providers: TopologyContext[] = [
+    { context: TopologyDataContext.Provider, value: topologyDataContextValue },
+    {
+      context: TopologySearchContext.Provider,
+      value: topologySearchContextValue,
+    },
+  ];
+
   return (
-    <TopologyDataContext.Provider
-      value={{
-        nodes: memoizedNodes,
-        storageCluster: storageCluster[0],
-        zones,
-        deployments: memoizedDeployments,
-        visualizationLevel: visualizationLevel,
-        activeNode,
-        setActiveNode,
-        nodeDeploymentMap,
-        selectedElement,
-        setSelectedElement,
-      }}
-    >
-      <TopologySearchContext.Provider
-        value={{ activeItemsUID, setActiveItemsUID, activeItem, setActiveItem }}
-      >
-        <VisualizationProvider controller={controller}>
-          <div className="odf__topology-view" id="odf-topology">
-            <TopologyTopBar />
-            <HandleErrorAndLoading
-              loading={loading}
-              error={
-                storageClusterError ||
-                nodesError ||
-                deploymentsError ||
-                podsError ||
-                replicaSetsError ||
-                daemonSetError ||
-                statefulSetError
-              }
-              ErrorMessage={Error}
-            >
-              <TopologyViewComponent />
-            </HandleErrorAndLoading>
-          </div>
-        </VisualizationProvider>
-      </TopologySearchContext.Provider>
-    </TopologyDataContext.Provider>
+    <TopologyContextProvider {...providers}>
+      <VisualizationProvider controller={controller}>
+        <div className="odf__topology-view" id="odf-topology">
+          <TopologyTopBar />
+          <HandleErrorAndLoading
+            loading={loading}
+            error={
+              storageClusterError ||
+              nodesError ||
+              deploymentsError ||
+              podsError ||
+              replicaSetsError ||
+              daemonSetError ||
+              statefulSetError
+            }
+            ErrorMessage={Error}
+          >
+            <TopologyViewComponent />
+          </HandleErrorAndLoading>
+        </div>
+      </VisualizationProvider>
+    </TopologyContextProvider>
   );
 };
 

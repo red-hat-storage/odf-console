@@ -1,13 +1,13 @@
 import * as React from 'react';
 
-type DefaultSearchContext = {
+export type TopologySearchContextType = {
   activeItemsUID: string[];
   setActiveItemsUID: React.Dispatch<React.SetStateAction<string[]>>;
   activeItem: string;
   setActiveItem: React.Dispatch<React.SetStateAction<string>>;
 };
 
-const defaultContext: DefaultSearchContext = {
+const defaultContext: TopologySearchContextType = {
   activeItemsUID: [],
   setActiveItemsUID: null,
   activeItem: '',
@@ -15,4 +15,4 @@ const defaultContext: DefaultSearchContext = {
 };
 
 export const TopologySearchContext =
-  React.createContext<DefaultSearchContext>(defaultContext);
+  React.createContext<TopologySearchContextType>(defaultContext);
