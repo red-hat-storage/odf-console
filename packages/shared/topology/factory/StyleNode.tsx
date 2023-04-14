@@ -1,13 +1,12 @@
 import * as React from 'react';
 import { DeploymentModel, NodeModel } from '@odf/shared/models';
-import { getName, getUID } from '@odf/shared/selectors';
+import { getUID } from '@odf/shared/selectors';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { SVGIconProps } from '@patternfly/react-icons/dist/esm/createIcon';
 import DefaultIcon from '@patternfly/react-icons/dist/esm/icons/builder-image-icon';
 import useDetailsLevel from '@patternfly/react-topology/dist/esm/hooks/useDetailsLevel';
 import classNames from 'classnames';
-import * as _ from 'lodash-es';
 import { Tooltip } from '@patternfly/react-core';
 import {
   ContainerNodeIcon,
@@ -36,10 +35,11 @@ import {
   useVisualizationController,
   NodeStatus,
 } from '@patternfly/react-topology';
-import { DeploymentKind, NodeKind } from '../../types';
-import { getNodeStatus } from '../../utils/NodeHealth';
+import useAlerts from '../../monitoring/useAlert';
+import { useCustomTranslation } from '../../useCustomTranslationHook';
 import { TopologyDataContext } from '../Context';
 import { TopologySearchContext } from '../Context/SearchContext';
+import { getStatusWithDescriptors } from '../utils';
 import './StyleNode.scss';
 
 const getResourceModel = (resource: K8sResourceCommon): K8sKind => {
@@ -187,34 +187,31 @@ const StyleNode: React.FunctionComponent<StyleNodeProps> = ({
   const detailsLevel = useDetailsLevel();
   const [hover, hoverRef] = useHover();
 
+  const { t } = useCustomTranslation();
+
   const { activeItemsUID, activeItem } = React.useContext(
     TopologySearchContext
   );
-
   const { nodeDeploymentMap } = React.useContext(TopologyDataContext);
   // Change this to search query instead
-  const isSearchActive = activeItemsUID.length > 0;
+
+  const [alerts] = useAlerts();
 
   const resource: K8sResourceCommon = data.resource;
   const resourceModel = getResourceModel(resource);
-  const status = React.useMemo(() => {
-    if (!resource) return NodeStatus.default;
-    if (_.isEqual(resourceModel, NodeModel)) {
-      return getNodeStatus(
-        resource as NodeKind,
-        nodeDeploymentMap[getName(resource)]
-      );
-    } else {
-      const availabilityStatus = (
-        resource as DeploymentKind
-      )?.status?.conditions?.find(
-        (condition) => condition?.type === 'Available'
-      )?.status;
-      return availabilityStatus === 'True'
-        ? NodeStatus.success
-        : NodeStatus.danger;
-    }
-  }, [resourceModel, resource, nodeDeploymentMap]);
+
+  const isSearchActive = activeItemsUID.length > 0;
+
+  const { status, message } = React.useMemo(() => {
+    if (!resource) return { status: NodeStatus.default, message: '' };
+    return getStatusWithDescriptors(
+      resourceModel,
+      nodeDeploymentMap,
+      resource,
+      alerts,
+      t
+    );
+  }, [resource, resourceModel, nodeDeploymentMap, alerts, t]);
   const resourceUID = getUID(resource);
   const isElementActive = activeItemsUID.includes(resourceUID);
   const highlightNode = activeItem === resourceUID;
@@ -283,6 +280,7 @@ const StyleNode: React.FunctionComponent<StyleNodeProps> = ({
           }
           {...(highlightNode ? { selected: true } : {})}
           nodeStatus={status}
+          statusDecoratorTooltip={message}
         >
           {(hover || detailsLevel !== ScaleDetailsLevel.low) &&
             renderIcon(passedData, element)}

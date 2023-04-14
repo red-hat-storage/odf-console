@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   BlueInfoCircleIcon,
   GreenCheckCircleIcon,
-  K8sResourceCommon,
+  K8sModel,
   RedExclamationCircleIcon,
   useK8sModel,
   YellowExclamationTriangleIcon,
@@ -13,6 +13,7 @@ import * as _ from 'lodash-es';
 import {
   DefaultGroup,
   Node,
+  NodeStatus,
   observer,
   ScaleDetailsLevel,
   ShapeProps,
@@ -20,11 +21,12 @@ import {
   WithDragNodeProps,
   WithSelectionProps,
 } from '@patternfly/react-topology';
+import { DeploymentModel, NodeModel } from '../../models';
+import { getName } from '../../selectors';
 import { getGVKofResource } from '../../utils';
-import useMonitoring, {
-  AlertFiringComponent,
-  MonitoringResponseInternals,
-} from '../utils/Monitoring';
+import { TopologyDataContext } from '../Context';
+import { getStatus } from '../utils';
+import useMonitoring, { AlertFiringComponent } from '../utils/Monitoring';
 import './StyleGroup.scss';
 
 type StyleGroupProps = {
@@ -37,29 +39,31 @@ type StyleGroupProps = {
   collapsedShadowOffset?: number; // defaults to 10
 } & Partial<WithContextMenuProps & WithDragNodeProps & WithSelectionProps>;
 
-const getLabel = (
-  alerts: MonitoringResponseInternals,
-  resource: K8sResourceCommon
-) => {
-  const isCritical = alerts?.critical?.length > 0;
-  const isWarning = alerts?.warning?.length > 0;
-  const isInfo = alerts?.info?.length > 0;
-
-  // Zones have no alerts
-  if (!resource) {
-    return null;
-  }
-
-  if (isCritical) {
+const deriveLabelFromStatus = (status: NodeStatus) => {
+  if (status === NodeStatus.danger) {
     return <RedExclamationCircleIcon />;
   }
-  if (isWarning) {
+
+  if (status === NodeStatus.warning) {
     return <YellowExclamationTriangleIcon />;
   }
-  if (isInfo) {
+
+  if (status === NodeStatus.info) {
     return <BlueInfoCircleIcon />;
   }
-  return <GreenCheckCircleIcon />;
+
+  if (status === NodeStatus.success) {
+    return <GreenCheckCircleIcon />;
+  }
+};
+
+const modelFactory = (model: K8sModel) => {
+  if (model.kind === 'Node') {
+    return NodeModel;
+  }
+  if (model.kind === 'Deployment') {
+    return DeploymentModel;
+  }
 };
 
 const StyleGroup: React.FunctionComponent<StyleGroupProps> = ({
@@ -73,27 +77,38 @@ const StyleGroup: React.FunctionComponent<StyleGroupProps> = ({
 
   const component = data.component as AlertFiringComponent;
 
+  const { nodeDeploymentMap } = React.useContext(TopologyDataContext);
+
   const resource = data?.resource;
   const reference = resource ? getGVKofResource(resource) : '';
   const [model] = useK8sModel(reference);
 
   const badge = model?.abbr;
 
-  const [alerts] = useMonitoring(component);
+  const [alerts, loaded, error] = useMonitoring(component, getName(resource));
 
-  const label = React.useMemo(
-    () => getLabel(alerts, resource),
-    [alerts, resource]
-  );
+  const status: NodeStatus = React.useMemo(() => {
+    if (!resource || !loaded || error) {
+      return null;
+    }
+    return getStatus(modelFactory(model), nodeDeploymentMap, resource, alerts);
+  }, [alerts, model, nodeDeploymentMap, resource, loaded, error]);
+
+  const label = React.useMemo(() => {
+    if (!resource) {
+      return null;
+    }
+    return deriveLabelFromStatus(status);
+  }, [resource, status]);
 
   const classes = React.useMemo(
     () =>
       classNames('odf-topology__group', {
         'odf-topology__group--zone': _.has(data, 'zone'),
-        'odf-topology__group-state--warning': alerts?.warning?.length > 0,
-        'odf-topology__group-state--error': alerts?.critical?.length > 0,
+        'odf-topology__group-state--warning': NodeStatus.warning === status,
+        'odf-topology__group-state--error': NodeStatus.danger === status,
       }),
-    [alerts?.critical?.length, alerts?.warning?.length, data]
+    [data, status]
   );
 
   const passedData = React.useMemo(() => {
