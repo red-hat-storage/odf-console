@@ -28,6 +28,7 @@ import {
   DR_SECHEDULER_NAME,
   DRPC_STATUS,
   THRESHOLD,
+  DRActionType,
 } from '../constants';
 import {
   DRPC_NAMESPACE_ANNOTATION,
@@ -222,21 +223,24 @@ export const getReplicationType = (interval: string, t: TFunction) =>
 export const getPlacementKind = (subscription: ACMSubscriptionKind) =>
   subscription?.spec?.placement?.placementRef?.kind;
 
-export const isPeerReadyAndAvailable = (
-  drPolicyControl: DRPlacementControlKind
-) => {
-  let isPeerReady = false;
-  let isAvailable = false;
-  drPolicyControl?.status?.conditions?.forEach((condition) => {
-    condition?.type === 'PeerReady' &&
-      condition?.status === 'True' &&
-      (isPeerReady = true);
-    condition?.type === 'Available' &&
-      condition?.status === 'True' &&
-      (isAvailable = true);
-  });
-  return isPeerReady && isAvailable;
-};
+export const isPeerReady = (drpc: DRPlacementControlKind) =>
+  !!drpc?.status?.conditions?.some(
+    (condition) =>
+      condition?.type === 'PeerReady' && condition?.status === 'True'
+  );
+
+export const isDRPCAvailable = (drpc: DRPlacementControlKind) =>
+  !!drpc?.status?.conditions?.some(
+    (condition) =>
+      condition?.type === 'Available' && condition?.status === 'True'
+  );
+
+export const checkDRActionReadiness = (
+  drpc: DRPlacementControlKind,
+  drAction: DRActionType
+) =>
+  isPeerReady(drpc) &&
+  (drAction === DRActionType.RELOCATE ? isDRPCAvailable(drpc) : true);
 
 export const findCluster = (
   clusters: K8sResourceCommon[],

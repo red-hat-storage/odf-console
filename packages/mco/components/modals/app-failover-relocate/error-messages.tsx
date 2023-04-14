@@ -8,8 +8,8 @@ export enum ErrorMessageType {
   // Priority wise error messages
   DR_IS_NOT_ENABLED_FAILOVER,
   DR_IS_NOT_ENABLED_RELOCATE,
-  PEER_IS_NOT_READY_FAILOVER,
-  PEER_IS_NOT_READY_RELOCATE,
+  FAILOVER_READINESS_CHECK_FAILED,
+  RELOCATE_READINESS_CHECK_FAILED,
   MANAGED_CLUSTERS_ARE_DOWN,
   TARGET_CLUSTER_IS_NOT_AVAILABLE,
   SOME_CLUSTERS_ARE_FENCED,
@@ -69,35 +69,33 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
     ),
     variant: AlertVariant.danger,
   },
-  [ErrorMessageType.PEER_IS_NOT_READY_FAILOVER]: {
+  [ErrorMessageType.FAILOVER_READINESS_CHECK_FAILED]: {
     title: t('Cannot failover.'),
     message: (
       <Trans t={t}>
         <p>
-          Peer is not in ready state. Wait a few minutes and try again. If it
-          still is not ready, refer to the
+          Failover cannot be initiated as the readiness checks are failing.
+          Refer to workaround mentioned in known issues section of
           <ViewDocumentation
             doclink={DOC_LINKS.DR_RELEASE_NOTES}
             text="release notes"
           />{' '}
-          documentation of known issues linked to disaster recovery.
         </p>
       </Trans>
     ),
     variant: AlertVariant.danger,
   },
-  [ErrorMessageType.PEER_IS_NOT_READY_RELOCATE]: {
+  [ErrorMessageType.RELOCATE_READINESS_CHECK_FAILED]: {
     title: t('Cannot relocate.'),
     message: (
       <Trans t={t}>
         <p>
-          Peer is not in ready state. Wait a few minutes and try again. If it
-          still is not ready, refer to the
+          Relocation cannot be initiated as the readiness checks are failing.
+          Refer to workaround mentioned in known issues section of
           <ViewDocumentation
             doclink={DOC_LINKS.DR_RELEASE_NOTES}
             text="release notes"
           />{' '}
-          documentation of known issues linked to disaster recovery.
         </p>
       </Trans>
     ),
