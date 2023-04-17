@@ -2,9 +2,15 @@ import { AlertVariant } from '@patternfly/react-core';
 import { APPLICATION_TYPE } from '../../../constants';
 import { PlacementToAppSets, PlacementToDrpcMap } from '../../../types';
 
+export enum MessageType {
+  UNSUPPORTED_OPERATION,
+}
+
 type Message = {
   text: string;
-  type: AlertVariant;
+  description?: string;
+  type?: MessageType;
+  variant: AlertVariant;
 };
 
 export enum ApplyPolicyType {
@@ -45,7 +51,7 @@ export const applyPolicyInitialState: ApplyPolicyInitialState = {
   loading: false,
   message: {
     text: '',
-    type: AlertVariant.info,
+    variant: AlertVariant.info,
   },
 };
 
