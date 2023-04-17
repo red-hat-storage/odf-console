@@ -81,7 +81,11 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
   );
 
   const vaultTLSTooltip = t(
-    `The name to use as the SNI host when Data Foundation connecting via TLS to the Vault server`
+    `The name to use as the SNI host when Data Foundation connecting via TLS to the Vault server.`
+  );
+
+  const vaultAuthNamespace = t(
+    `The Vault namespace where kubernetes auth method is enabled.`
   );
 
   const submit = (event: React.FormEvent<EventTarget>) => {
@@ -198,6 +202,7 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
               fieldId="kms-auth-namespace"
               label={t('Authentication Namespace')}
               className="ceph-advanced-kms__form-body"
+              labelIcon={<FieldLevelHelp>{vaultAuthNamespace}</FieldLevelHelp>}
             >
               <TextInput
                 value={authNamespace}
