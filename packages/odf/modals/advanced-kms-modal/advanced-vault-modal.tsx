@@ -88,6 +88,14 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
     `The Vault namespace where kubernetes auth method is enabled.`
   );
 
+  const vaultAuthPath = t(
+    `The path where kubernetes auth method is enabled in Vault. The default path is kubernetes. If the auth method is enabled in a different path other than kubernetes, this variable needs to be set as "/v1/auth/<path>/login".`
+  );
+
+  const vaultBackendPath = t(
+    `The backend path in Vault where the encryption keys will be stored.`
+  );
+
   const submit = (event: React.FormEvent<EventTarget>) => {
     event.preventDefault();
 
@@ -167,6 +175,7 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
           fieldId="kms-service-backend-path"
           label={t('Backend Path')}
           className="ceph-advanced-kms__form-body"
+          labelIcon={<FieldLevelHelp>{vaultBackendPath}</FieldLevelHelp>}
         >
           <TextInput
             value={backendPath}
@@ -183,6 +192,7 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
             fieldId="kms-auth-path"
             label={t('Authentication Path')}
             className="ceph-advanced-kms__form-body"
+            labelIcon={<FieldLevelHelp>{vaultAuthPath}</FieldLevelHelp>}
           >
             <TextInput
               value={authPath}
