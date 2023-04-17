@@ -6,7 +6,11 @@
   padding-right: var(--pf-global--spacer--2xl);
 }
 
-.odf-topology-sidebar__tab.pf-c-tab-content{
-  max-height: 450px;
+.odf-topology-sidebar__tab.pf-c-tab-content {
+  max-height: 460px;
   overflow-y: auto;
+}
+
+.odf-topology-sidebar--longer .odf-topology-sidebar__tab.pf-c-tab-content {
+  max-height: 492px;
 }
