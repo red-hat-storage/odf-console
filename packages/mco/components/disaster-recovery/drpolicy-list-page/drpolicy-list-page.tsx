@@ -21,7 +21,7 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import { HUB_CLUSTER_NAME } from '../../../constants';
 import {
   ApplicationRefKind,
@@ -40,11 +40,6 @@ import {
   tableColumnInfo,
 } from './helper';
 import './drpolicy-list-page.scss';
-
-export const DATA_POLICIES_PATH = '/multicloud/data-services/data-policies';
-export const DR_POLICY_CREATE_PATH = `${DATA_POLICIES_PATH}/${referenceForModel(
-  DRPolicyModel
-)}/~new`;
 
 const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
   obj,
@@ -144,6 +139,13 @@ export const DRPolicyListPage: React.FC = () => {
     useModalLauncher(DRPolicyActions);
   const [isModalOpen, setConnectedAppsModalOpen] = React.useState(false);
   const [linkedApps, setLinkedApps] = React.useState<ApplicationRefKind[]>([]);
+
+  const location = useLocation();
+  const drPolicyListPagePath = location.pathname.replace(/\/$/, '');
+  const drPolicyCreatePagePath = `${drPolicyListPagePath}/${referenceForModel(
+    DRPolicyModel
+  )}/~new`;
+
   const [canDeleteDRPolicy] = useAccessReview(
     {
       group: DRPolicyModel?.apiGroup,
@@ -173,7 +175,7 @@ export const DRPolicyListPage: React.FC = () => {
           buttonText={t('Create DRPolicy')}
           canAccess={!drPoliciesLoadError && drPoliciesLoaded}
           t={t}
-          onClick={() => history.push(DR_POLICY_CREATE_PATH)}
+          onClick={() => history.push(drPolicyCreatePagePath)}
         >
           <Trans t={t}>
             Configure recovery to your failover cluster with a disaster recovery
@@ -194,7 +196,7 @@ export const DRPolicyListPage: React.FC = () => {
               />
               <div className="mco-drpolicy-list__createlink">
                 <ListPageCreateLink
-                  to={DR_POLICY_CREATE_PATH}
+                  to={drPolicyCreatePagePath}
                   createAccessReview={{
                     groupVersionKind: referenceForModel(DRPolicyModel),
                   }}
