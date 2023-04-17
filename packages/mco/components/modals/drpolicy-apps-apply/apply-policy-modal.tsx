@@ -37,6 +37,7 @@ import {
   ApplyPolicyReducer,
   applyPolicyInitialState,
   ApplyPolicyType,
+  MessageType,
 } from './reducer';
 import { getAvailablePanelPromises, getProtectedPanelPromises } from './utils';
 import './apply-policy-modal.scss';
@@ -119,15 +120,29 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       dispatch({
         type: ApplyPolicyType.SET_MESSAGE,
         payload: {
-          text: t(
-            'Disabling DR protection for applications will no longer protect the underlying PVCs. You must reapply the policy in order to enable DR protection for your application.'
+          text: t('Cannot unassign the policy'),
+          description: t(
+            'You cannot unassign the policy as this action is not yet supported.'
           ),
-          type: AlertVariant.warning,
+          variant: AlertVariant.info,
+          type: MessageType.UNSUPPORTED_OPERATION,
+        },
+      });
+    else if (
+      state.message.type === MessageType.UNSUPPORTED_OPERATION &&
+      !changesFoundOnLeftSide
+    )
+      dispatch({
+        type: ApplyPolicyType.SET_MESSAGE,
+        payload: {
+          text: '',
+          variant: AlertVariant.info,
         },
       });
 
     return !(
-      (changesFoundOnRightSide || changesFoundOnLeftSide) &&
+      changesFoundOnRightSide &&
+      !changesFoundOnLeftSide &&
       noIssuesFoundOnRightSide &&
       noIssuesFoundOnLeftSide
     );
@@ -146,7 +161,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       type: ApplyPolicyType.SET_MESSAGE,
       payload: {
         text: errorMsg,
-        type: AlertVariant.danger,
+        variant: AlertVariant.danger,
       },
     });
 
@@ -264,10 +279,12 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
             {!!state.message.text && (
               <Alert
                 isInline
-                variant={state.message.type}
+                variant={state.message.variant}
                 title={state.message.text}
                 className="odf-alert odf-alert--margin-top"
-              />
+              >
+                {state.message?.description}
+              </Alert>
             )}
           </ModalBody>
           <ModalFooter>
