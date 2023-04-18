@@ -1,0 +1,62 @@
+@import '~@patternfly/patternfly/sass-utilities/colors';
+
+$mco-icon-and-text-icon-lg: 1.2rem;
+
+.mco-status-card__alerts-body {
+  border-top: var(--pf-global--BorderWidth--sm) solid var(--pf-global--BorderColor--100);
+  max-height: 19rem;
+  min-height: 6rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  .pf-c-empty-state {
+    --pf-c-empty-state__icon--MarginBottom: 0 !important;
+  }
+}
+
+.mco-status-card__alert-item {
+  display: flex;
+  padding-bottom: 0.5rem;
+  padding-left: var(--pf-c-card--child--PaddingLeft);
+  padding-right: var(--pf-c-card--child--PaddingRight);
+}
+
+.mco-status-card__alert-item-icon {
+  display: flex;
+}
+
+.mco-status-card__alert-item-message {
+  display: flex;
+  flex-direction: column;
+}
+
+.mco-status-card__alert-item-text {
+  display: flex;
+  font-size: small;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.mco-status-card__alert-item-header {
+  color: var(--pf-global--Color--black);
+  font-weight: bold;
+  margin-left: 1rem;
+}
+
+.mco-health-card__alert-item-timestamp {
+  font-size: smaller;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+}
+
+.mco-status-card__health-item-text {
+  display: block;
+  margin-left: 1rem;
+  overflow-wrap: break-word;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+.mco-dashboard-icon {
+  font-size: $mco-icon-and-text-icon-lg;
+}
