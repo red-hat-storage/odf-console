@@ -86,11 +86,13 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
         {getReplicationType(obj?.spec?.schedulingInterval, t)}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-        {
+        {appCount > 0 ? (
           <a onClick={onClick}>
             {pluralize(appCount, t('Application'), t('Applications'), true)}
           </a>
-        }
+        ) : (
+          '-'
+        )}
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         <Kebab
