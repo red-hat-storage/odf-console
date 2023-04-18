@@ -112,6 +112,21 @@ until [ "$(oc -n openshift-storage get csv -o=jsonpath="{.items[?(@.metadata.nam
 done
 EOF
 
+# Check the status of the odf-console container. Sometimes even if the csv has succeeded (and the odf-console pod status phase is 'Running'),
+# the odf-console container can have an unhealthy status (so the E2E tests will fail).
+odf_console_container_status=""
+for pod in $(oc get pods -n "${NS}" --no-headers -o custom-columns=":metadata.name" | grep "odf-console"); do
+  odf_console_container_status="$(oc -n openshift-storage get pod -o jsonpath='{.status.containerStatuses[0].state}' ${pod} | jq -r 'keys'[0])"
+  echo "${pod} container status: ${odf_console_container_status}"
+  if [[ "${odf_console_container_status}" == "running" ]]; then
+    break;
+  fi
+done
+if [[ "${odf_console_container_status}" != "running" ]]; then
+  echo "ERROR: odf-console container is not running."
+  exit 1
+fi
+
 INSTALLER_DIR=${INSTALLER_DIR:=${ARTIFACT_DIR}/installer}
 
 BRIDGE_KUBEADMIN_PASSWORD="$(cat "${KUBEADMIN_PASSWORD_FILE:-${INSTALLER_DIR}/auth/kubeadmin-password}")"
