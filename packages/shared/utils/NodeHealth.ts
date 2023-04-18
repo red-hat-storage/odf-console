@@ -1,4 +1,5 @@
 import { DeploymentKind, NodeCondition, NodeKind } from '@odf/shared/types';
+import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { NodeStatus } from '@patternfly/react-topology';
 
@@ -31,10 +32,11 @@ const getDegradedStates = (node: NodeKind): Condition[] => {
     .map(({ type }) => type as Condition);
 };
 
-export const getNodeStatus = (
+export const getNodeStatusWithDescriptors = (
   node: NodeKind,
-  deployments: DeploymentKind[]
-) => {
+  deployments: DeploymentKind[],
+  t: TFunction
+): { status: NodeStatus; message: string } => {
   // Check node is ready and no pressure in node
   const isDegraded: boolean = getDegradedStates(node).length > 0;
   const isNodeUp: boolean = isNodeReady(node);
@@ -48,10 +50,19 @@ export const getNodeStatus = (
   });
 
   if (isDegraded || !isNodeUp) {
-    return NodeStatus.danger;
+    return { status: NodeStatus.danger, message: t('Node is degraded') };
   }
   if (nonAvailableDeployments.length > 0) {
-    return NodeStatus.warning;
+    return {
+      status: NodeStatus.warning,
+      message: t('Node has unavailable deployments'),
+    };
   }
-  return NodeStatus.success;
+  return { status: NodeStatus.success, message: '' };
 };
+
+export const getNodeStatus = (
+  node: NodeKind,
+  deployments: DeploymentKind[]
+): NodeStatus =>
+  getNodeStatusWithDescriptors(node, deployments, _.identity).status;

@@ -39,7 +39,7 @@ const TopologyNavigationBar: React.FC<TopologyNavigationBarProps> = ({
       updateCurrentNode(id);
       controller.fireEvent(STEP_INTO_EVENT, { label: id });
     },
-    [updateCurrentNode]
+    [controller, updateCurrentNode]
   );
 
   const menuItems = React.useMemo(
