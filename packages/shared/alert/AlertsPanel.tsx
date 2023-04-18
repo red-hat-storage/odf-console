@@ -12,7 +12,6 @@ import {
   AlertItem,
   AlertsBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { Alert as InternalAlert } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/common-types';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import {
@@ -77,12 +76,13 @@ const AlertBadge: React.FC<AlertBadgeProps> = ({
 };
 
 type AlertAccordionItemProps = {
-  alerts: Alert[];
+  alerts: React.ComponentProps<typeof AlertItem>['alert'][];
   alertSeverity: AlertSeverity;
   expanded: string;
   loaded: boolean;
   loadError: object;
   onToggle: Function;
+  AlertItemComponent?: React.FC<React.ComponentProps<typeof AlertItem>>;
 };
 
 const AlertAccordionItem: React.FC<AlertAccordionItemProps> = ({
@@ -92,6 +92,7 @@ const AlertAccordionItem: React.FC<AlertAccordionItemProps> = ({
   loaded,
   loadError,
   onToggle,
+  AlertItemComponent = AlertItem,
 }) => {
   const { t } = useCustomTranslation();
   const alertToggleId = `alert-toggle-${alertSeverity}`;
@@ -120,10 +121,7 @@ const AlertAccordionItem: React.FC<AlertAccordionItemProps> = ({
             {loaded &&
               alerts.length > 0 &&
               alerts.map((alert) => (
-                <AlertItem
-                  key={alert?.rule?.id}
-                  alert={alert as unknown as InternalAlert}
-                />
+                <AlertItemComponent key={alert?.rule?.id} alert={alert} />
               ))}
           </AlertsBody>
         )}
@@ -136,6 +134,7 @@ type AlertsProps = {
   alerts: Alert[];
   alertsFilter?: (alert: Alert) => boolean;
   className?: string;
+  AlertItemComponent?: React.FC<React.ComponentProps<typeof AlertItem>>;
   loaded: boolean;
   loadError: object;
 };
@@ -144,6 +143,7 @@ const AlertsPanel: React.FC<AlertsProps> = ({
   alerts,
   alertsFilter,
   className,
+  AlertItemComponent,
   loaded,
   loadError,
 }) => {
@@ -209,6 +209,7 @@ const AlertsPanel: React.FC<AlertsProps> = ({
             expanded={expanded}
             loaded={loaded}
             loadError={loadError}
+            AlertItemComponent={AlertItemComponent}
           />
           <AlertAccordionItem
             alerts={warningAlerts}
@@ -217,6 +218,7 @@ const AlertsPanel: React.FC<AlertsProps> = ({
             expanded={expanded}
             loaded={loaded}
             loadError={loadError}
+            AlertItemComponent={AlertItemComponent}
           />
           <AlertAccordionItem
             alerts={infoAlerts}
@@ -225,6 +227,7 @@ const AlertsPanel: React.FC<AlertsProps> = ({
             expanded={expanded}
             loaded={loaded}
             loadError={loadError}
+            AlertItemComponent={AlertItemComponent}
           />
         </Accordion>
       </>
