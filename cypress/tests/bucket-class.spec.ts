@@ -1,3 +1,4 @@
+import { fieldValidationOnWizardFormsTests } from '../helpers/formValidations';
 import {
   createBucketClass,
   Tier,
@@ -103,4 +104,20 @@ describe('Tests creation of Namespace Bucket Class', () => {
     config.namespacePolicyType = NamespacePolicyType.CACHE;
     createBucketClass(config);
   });
+});
+
+describe('Tests form validations on Bucket Class', () => {
+  const nameFieldTestId: string = 'bucket-class-name';
+
+  before(() => {
+    cy.login();
+    cy.visit('/');
+    cy.install();
+  });
+
+  beforeEach(() => {
+    visitBucketClassPage();
+  });
+
+  fieldValidationOnWizardFormsTests(nameFieldTestId, 'Next');
 });

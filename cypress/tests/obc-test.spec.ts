@@ -1,4 +1,6 @@
+import { fieldValidationOnFormsTests } from '../helpers/formValidations';
 import { deployment } from '../mocks/deploymentData';
+import { app } from '../support/pages/app';
 import {
   ACCESS_KEY,
   BOUND,
@@ -15,6 +17,7 @@ import {
 import { detailsPage } from '../views/details-page';
 import { listPage } from '../views/list-page';
 import { CreateOBCHandler } from '../views/obcPage';
+import { ODFCommon } from '../views/odf-common';
 
 describe('Test Object Bucket Claim resource', () => {
   let obcHandler;
@@ -114,6 +117,44 @@ describe('Test Object Bucket Claim resource', () => {
       `echo '${JSON.stringify(
         deployment
       )}' | kubectl delete -n ${testName} -f -`
+    );
+  });
+});
+
+describe('Tests form validations on Object Bucket Claim', () => {
+  const nameFieldTestId: string = 'obc-name';
+  const populateObcForm = () => {
+    app.waitForLoad();
+    cy.byTestID('sc-dropdown').should('be.visible').click();
+    cy.contains('openshift-storage.noobaa.io').click();
+  };
+
+  before(() => {
+    cy.login();
+    cy.visit('/');
+    cy.install();
+  });
+
+  beforeEach(() => {
+    cy.visit('/');
+    ODFCommon.visitStorageDashboard();
+    cy.clickNavLink(['Storage', 'Object Bucket Claims']);
+    cy.byTestID('item-create').click();
+  });
+
+  fieldValidationOnFormsTests(nameFieldTestId, 'Create', populateObcForm);
+
+  it('Should not display error alert on empty obc name and valid required fields submit', () => {
+    cy.byTestID(nameFieldTestId).click().blur();
+    populateObcForm();
+    cy.contains('button', 'Create').click();
+  });
+
+  it('Should highlight name field with success style on empty obc name input', () => {
+    cy.byTestID(nameFieldTestId).click().blur();
+    cy.byTestID('field-requirements-input-group').should(
+      'not.have.class',
+      'rich-input__group--invalid'
     );
   });
 });
