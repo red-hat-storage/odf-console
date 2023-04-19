@@ -671,5 +671,20 @@
       },
       "waitToCreate": { "$codeRef": "ibmStorage.waitforCRD" }
     }
+  },
+  {
+    "type": "console.redux-reducer",
+    "properties": {
+      "scope": "odfConsole",
+      "reducer": { "$codeRef": "storageClusterReducer" }
+    }
+  },
+  {
+    "type": "console.flag/hookProvider",
+    "properties": {
+      "handler": {
+        "$codeRef": "storageClusterReducer.useSetStorageClusterName"
+      }
+    }
   }
 ]

@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { ODF_MANAGED_FLAG } from '@odf/core/features';
+import { useStorageClusterNameDispatch } from '@odf/core/redux-store-reducer/actions/dispathchers';
+import { useStorageClusterNameSelector } from '@odf/core/redux-store-reducer/reducers/selectors';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -124,6 +126,10 @@ export const cephClusterResource = {
 
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
+
+  const dispatch = useStorageClusterNameDispatch();
+  useStorageClusterNameSelector();
+
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
@@ -191,6 +197,7 @@ export const StatusCard: React.FC = () => {
         </Gallery>
       </HealthBody>
       <CephAlerts />
+      <button onClick={() => dispatch('test-name')}>TEST DISPATCH</button>
     </Card>
   );
 };
