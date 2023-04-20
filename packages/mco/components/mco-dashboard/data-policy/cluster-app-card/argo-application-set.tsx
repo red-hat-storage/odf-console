@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import {
-  SLA_STATUS,
+  VOLUME_REPLICATION_HEALTH,
   DRPC_STATUS,
   ACM_ENDPOINT,
   HUB_CLUSTER_NAME,
@@ -16,7 +16,7 @@ import {
   ProtectedPVCData,
 } from '@odf/mco/types';
 import {
-  getSLAStatus,
+  getVolumeReplicationHealth,
   getDRStatus,
   convertSyncIntervalToSeconds,
 } from '@odf/mco/utils';
@@ -86,10 +86,10 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
         if (
           protectedPVC?.drpcName === placementInfo?.drpcName &&
           protectedPVC?.drpcNamespace === placementInfo?.drpcNamespace &&
-          getSLAStatus(
+          getVolumeReplicationHealth(
             getTimeDifferenceInSeconds(protectedPVC?.lastSyncTime),
             protectedPVC?.schedulingInterval
-          )[0] !== SLA_STATUS.HEALTHY
+          )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
         )
           return acc + 1;
         else return acc;
@@ -211,8 +211,8 @@ export const ReplicationHistorySection: React.FC<ReplicationHistorySectionProps>
       utilization: pvcsSLARangeData,
       xMutator: trimSecondsXMutator,
       threshold,
-      description: t('Actual SLA'),
-      thresholdDescription: t('Scheduled SLA'),
+      description: t('Measured interval'),
+      thresholdDescription: t('Scheduled interval'),
       t,
     });
 
@@ -235,7 +235,7 @@ export const ReplicationHistorySection: React.FC<ReplicationHistorySectionProps>
             (initialUnit === TIME_UNITS.Minutes && humanizeMinutes)
           }
           chartStyle={chartStyle}
-          mainDataName="SLA"
+          mainDataName="Replication interval"
         />
       </div>
     );

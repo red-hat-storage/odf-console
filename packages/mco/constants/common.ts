@@ -6,7 +6,7 @@ export const VOL_SYNC = 'volsync';
 export const MAX_ALLOWED_CLUSTERS = 2;
 export const SECOND = 1000;
 export const DEFAULT_SYNC_TIME = 15;
-export const enum SLA_STATUS {
+export const enum VOLUME_REPLICATION_HEALTH {
   CRITICAL = 'critical',
   WARNING = 'warning',
   HEALTHY = 'healthy',

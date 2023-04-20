@@ -257,7 +257,7 @@ export const humanizePercentage = (value) => {
 export const humanizeMinutes = (seconds, customUnitUnit) => {
   const val = Number(seconds);
   const { minutes } = getDuration(val * 1000);
-  const unit = customUnitUnit || 'm';
+  const unit = customUnitUnit || 'min';
   return {
     string: `${minutes} ${unit}`,
     unit: unit,
@@ -268,7 +268,7 @@ export const humanizeMinutes = (seconds, customUnitUnit) => {
 export const humanizeHours = (seconds, customUnitUnit) => {
   const val = Number(seconds);
   const { hours } = getDuration(val * 1000);
-  const unit = customUnitUnit || 'h';
+  const unit = customUnitUnit || 'hr';
   return {
     string: `${hours} ${unit}`,
     unit: unit,
@@ -279,7 +279,7 @@ export const humanizeHours = (seconds, customUnitUnit) => {
 export const humanizeDays = (seconds, customUnitUnit) => {
   const val = Number(seconds);
   const { days } = getDuration(val * 1000);
-  const unit = customUnitUnit || 'd';
+  const unit = customUnitUnit || 'days';
   return {
     string: `${days} ${unit}`,
     unit: unit,
