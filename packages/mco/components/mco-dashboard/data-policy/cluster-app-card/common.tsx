@@ -11,7 +11,7 @@ import {
   ProtectedPVCData,
   PlacementInfo,
 } from '@odf/mco/types';
-import { getSLAStatus } from '@odf/mco/utils';
+import { getVolumeReplicationHealth } from '@odf/mco/utils';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { URL_POLL_DEFAULT_DELAY } from '@odf/shared/hooks/custom-prometheus-poll/use-url-poll';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -57,22 +57,22 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
   const clearSetIntervalId = React.useRef<NodeJS.Timeout>();
 
   const updateSummary = React.useCallback(() => {
-    const slaStatus = { critical: 0, warning: 0, healthy: 0 };
+    const volumeHealth = { critical: 0, warning: 0, healthy: 0 };
     const placementInfo: PlacementInfo = selectedAppSet?.placementInfo?.[0];
     protectedPVCData?.forEach((pvcData) => {
-      const status = getSLAStatus(
+      const health = getVolumeReplicationHealth(
         getTimeDifferenceInSeconds(pvcData?.lastSyncTime),
         pvcData?.schedulingInterval
       )[0];
       if (!!selectedAppSet) {
         pvcData?.drpcName === placementInfo?.drpcName &&
           pvcData?.drpcNamespace === placementInfo?.drpcNamespace &&
-          slaStatus[status]++;
+          volumeHealth[health]++;
       } else {
-        slaStatus[status]++;
+        volumeHealth[health]++;
       }
     });
-    setSummary(slaStatus);
+    setSummary(volumeHealth);
   }, [selectedAppSet, protectedPVCData, setSummary]);
 
   React.useEffect(() => {
@@ -87,12 +87,11 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
   return (
     <div className="mco-dashboard__contentColumn">
       <div className="mco-dashboard__title">
-        {t('Volume replication summary')}
+        {t('Volume replication health')}
       </div>
       <div style={{ height: '180px', width: '350px' }}>
         <ChartDonut
-          ariaDesc="SLAs summary"
-          ariaTitle="SLAs status"
+          ariaDesc="Volume replication health"
           constrainToVisibleArea={true}
           data={[
             { x: 'Critical', y: summary.critical },
@@ -122,7 +121,7 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
             right: 200,
             top: 0,
           }}
-          subTitle={t('SLAs')}
+          subTitle={t('Volumes')}
           colorScale={colorScale}
           title={`${summary.critical + summary.warning + summary.healthy}`}
           width={350}
