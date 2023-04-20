@@ -270,8 +270,8 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       onClose={closeModal}
       className="mco-apply-policy-modal__modal"
     >
-      {!allLoaded || anyError ? (
-        <StatusBox loadError={anyError} loaded={allLoaded} />
+      {!allLoaded && !anyError ? (
+        <StatusBox loaded={false} />
       ) : (
         <>
           <ModalBody>

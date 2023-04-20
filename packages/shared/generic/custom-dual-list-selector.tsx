@@ -117,6 +117,7 @@ export const CustomDualListSelector = ({
     <DualListSelector>
       <DualListSelectorAvailablePane
         availableOptions={availableOptions}
+        chosenOptions={chosenOptions}
         buildSearchInput={buildSearchInput}
         onOptionSelect={onOptionSelect}
         state={state}
