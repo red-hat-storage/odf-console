@@ -24,7 +24,7 @@ import {
 import { TFunction } from 'i18next';
 import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
 import {
-  SLA_STATUS,
+  VOLUME_REPLICATION_HEALTH,
   DR_SECHEDULER_NAME,
   DRPC_STATUS,
   THRESHOLD,
@@ -356,18 +356,19 @@ export const convertSyncIntervalToSeconds = (
   return [threshold, unit];
 };
 
-export const getSLAStatus = (
+export const getVolumeReplicationHealth = (
   slaTakenInSeconds: number,
   scheduledSyncInterval: string
-): [SLA_STATUS, number] => {
+): [VOLUME_REPLICATION_HEALTH, number] => {
   const [syncIntervalInSeconds] = convertSyncIntervalToSeconds(
     scheduledSyncInterval
   );
   const slaDiff = slaTakenInSeconds / syncIntervalInSeconds || 0;
-  if (slaDiff >= THRESHOLD) return [SLA_STATUS.CRITICAL, slaDiff];
+  if (slaDiff >= THRESHOLD)
+    return [VOLUME_REPLICATION_HEALTH.CRITICAL, slaDiff];
   else if (slaDiff > THRESHOLD - 1 && slaDiff < THRESHOLD)
-    return [SLA_STATUS.WARNING, slaDiff];
-  else return [SLA_STATUS.HEALTHY, slaDiff];
+    return [VOLUME_REPLICATION_HEALTH.WARNING, slaDiff];
+  else return [VOLUME_REPLICATION_HEALTH.HEALTHY, slaDiff];
 };
 
 export const getRemoteNSFromAppSet = (
