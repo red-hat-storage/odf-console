@@ -75,11 +75,12 @@ const validatePlacement = (
     return isFailoverAction
       ? ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER
       : ErrorMessageType.DR_IS_NOT_ENABLED_RELOCATE;
-  } else if (!placement?.isPeerReady) {
-    // Peer is not ready for DR action
+  } else if (!placement?.isDRActionReady) {
+    // Either Peer is not ready for DR failover
+    // Or, Peer is not ready/available for DR relocate
     return isFailoverAction
-      ? ErrorMessageType.PEER_IS_NOT_READY_FAILOVER
-      : ErrorMessageType.PEER_IS_NOT_READY_RELOCATE;
+      ? ErrorMessageType.FAILOVER_READINESS_CHECK_FAILED
+      : ErrorMessageType.RELOCATE_READINESS_CHECK_FAILED;
   } else {
     const errorMessage = isFailoverAction
       ? failoverPreCheck(placement)
@@ -155,12 +156,16 @@ const DateTimeFormat = ({
   );
 };
 
-const PeerReadiness = ({ isPeerReady }: { isPeerReady: boolean }) => {
+const DRActionReadiness = ({
+  isDRActionReady,
+}: {
+  isDRActionReady: boolean;
+}) => {
   const { t } = useCustomTranslation();
   return (
     <>
-      {isPeerReady !== undefined ? (
-        isPeerReady ? (
+      {isDRActionReady !== undefined ? (
+        isDRActionReady ? (
           <StatusIconAndText
             title={t('Ready')}
             icon={<GreenCheckCircleIcon />}
@@ -271,7 +276,7 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
             </strong>
           </FlexItem>
           <FlexItem>
-            <PeerReadiness isPeerReady={placement?.isPeerReady} />
+            <DRActionReadiness isDRActionReady={placement?.isDRActionReady} />
           </FlexItem>
         </Flex>
         {placement?.replicationType === REPLICATION_TYPE.ASYNC && (
@@ -309,7 +314,7 @@ export type PlacementProps = Partial<{
   preferredCluster: string;
   isTargetClusterAvailable: boolean;
   isPrimaryClusterAvailable: boolean;
-  isPeerReady: boolean;
+  isDRActionReady: boolean;
   replicationType: REPLICATION_TYPE;
   isTargetClusterFenced: boolean;
   isPrimaryClusterFenced: boolean;
