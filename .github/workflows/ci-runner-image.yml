@@ -1,0 +1,20 @@
+name: Push the CI runner image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - Dockerfile.ci.runner
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Login to Quay Registry
+        run: echo ${{ secrets.QUAY_SECRET }} | docker login quay.io -u ${{ secrets.QUAY_UNAME }} --password-stdin
+      - name: Build the CI runner image
+        run: docker build . --file Dockerfile.ci.runner --tag quay.io/ocs-dev/odf-console-ci:current
+      - name: Push the CI runner image to ocs-dev
+        run: docker push quay.io/ocs-dev/odf-console-ci-runner:current
