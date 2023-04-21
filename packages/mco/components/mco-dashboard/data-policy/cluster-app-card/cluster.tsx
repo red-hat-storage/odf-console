@@ -9,7 +9,7 @@ import {
   VOL_SYNC,
   HUB_CLUSTER_NAME,
   ACM_ENDPOINT,
-  SLA_STATUS,
+  VOLUME_REPLICATION_HEALTH,
   OBJECT_NAMESPACE,
   OBJECT_NAME,
 } from '@odf/mco/constants';
@@ -21,7 +21,7 @@ import {
   ProtectedPVCData,
 } from '@odf/mco/types';
 import {
-  getSLAStatus,
+  getVolumeReplicationHealth,
   getManagedClusterAvailableCondition,
 } from '@odf/mco/utils';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
@@ -35,6 +35,7 @@ import {
   PrometheusResponse,
   PrometheusResult,
   useK8sWatchResource,
+  StatusIconAndText,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Flex, Title } from '@patternfly/react-core';
 import { ConnectedIcon } from '@patternfly/react-icons';
@@ -178,10 +179,12 @@ export const PeerConnectionSection: React.FC<PeerConnectionSectionProps> = ({
     <div className="mco-dashboard__contentColumn">
       <div className="mco-dashboard__title">{t('Peer connection')}</div>
       <div className="mco-dashboard__contentRow">
-        <ConnectedIcon />
-        <div className="mco-cluster-app__text--padding-left">
-          {t(' {{ peerConnectedCount }} Connected', { peerConnectedCount })}
-        </div>
+        <StatusIconAndText
+          title={t(' {{ peerConnectedCount }} Connected', {
+            peerConnectedCount,
+          })}
+          icon={<ConnectedIcon />}
+        />
       </div>
     </div>
   );
@@ -205,10 +208,10 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
               item?.metric?.[OBJECT_NAMESPACE] ===
                 placementInfo?.drpcNamespace &&
               item?.metric?.[OBJECT_NAME] === placementInfo?.drpcName &&
-              getSLAStatus(
+              getVolumeReplicationHealth(
                 Number(item?.value[1]) || 0,
                 placementInfo?.syncInterval
-              )[0] !== SLA_STATUS.HEALTHY
+              )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
           );
           return hasIssue ? acc + 1 : acc;
         },
