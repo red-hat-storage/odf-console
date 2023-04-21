@@ -10,7 +10,7 @@ import {
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
-import { isPeerReadyAndAvailable } from '../../../../utils';
+import { checkDRActionReadiness } from '../../../../utils';
 import { ErrorMessageType } from './error-messages';
 import { PlacementDecision } from './reducer';
 import {
@@ -43,10 +43,10 @@ const getValidOptions = (
   option: React.ReactElement,
   validOptions: React.ReactElement[],
   isValidTargetCluster: boolean,
-  isValidPeerStatus: boolean
+  isDRReady: boolean
 ) =>
   isValidTargetCluster
-    ? isValidPeerStatus
+    ? isDRReady
       ? [option, ...validOptions]
       : [...validOptions, option]
     : validOptions;
@@ -78,13 +78,6 @@ const getOptions = (
           cluster: drPolicyControlState?.clusterName,
         })}
       </HelperTextItem>
-      <HelperTextItem variant="indeterminate">
-        <i>
-          {isPeerReadyAndAvailable(drPolicyControlState?.drPolicyControl)
-            ? t('Peer ready')
-            : t('Peer not ready')}
-        </i>
-      </HelperTextItem>
     </HelperText>
   </SelectOption>
 );
@@ -92,7 +85,7 @@ const getOptions = (
 export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps> =
   ({ state, dispatch }) => {
     const { t } = useCustomTranslation();
-    const { selectedTargetCluster, selectedDRPolicy } = state;
+    const { selectedTargetCluster, selectedDRPolicy, actionType } = state;
     const [isOpen, setOpen] = React.useState(false);
     const [options, setOptions] = React.useState<React.ReactElement[]>([]);
     const memoizedDRPCState = useDeepCompareMemoize(
@@ -139,11 +132,12 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
                 drpcState,
                 selectedTargetCluster?.clusterInfo
               );
-              const isValidPeerStatus = isPeerReadyAndAvailable(
-                drpcState?.drPolicyControl
+              const isDRActionReady = checkDRActionReadiness(
+                drpcState?.drPolicyControl,
+                actionType
               );
               isValidTargetCluster &&
-                isValidPeerStatus &&
+                isDRActionReady &&
                 validState.push(getName(drpcState.drPolicyControl));
               const option = getOptions(drpcState, isValidTargetCluster, t);
               return {
@@ -151,7 +145,7 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
                   option,
                   acc.validOptions,
                   isValidTargetCluster,
-                  isValidPeerStatus
+                  isDRActionReady
                 ),
                 inValidOptions: getInValidOptions(
                   option,
@@ -188,6 +182,7 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
         setOptions([]);
       }
     }, [
+      actionType,
       memoizedDRPCState,
       selectedDRPolicy,
       selectedTargetCluster,
