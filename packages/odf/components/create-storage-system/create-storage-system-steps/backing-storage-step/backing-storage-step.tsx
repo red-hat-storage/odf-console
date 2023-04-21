@@ -41,6 +41,8 @@ import { EnableNFS } from './enable-nfs';
 import { SelectDeployment } from './select-deployment';
 import './backing-storage-step.scss';
 
+import { PluginDataContext } from '@odf/core/context-provider/storage-cluster-context';
+
 const RHCS_SUPPORTED_INFRA = [
   'BareMetal',
   'None',
@@ -262,6 +264,13 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
     const newType = event.target.value;
     dispatch({ type: 'backingStorage/setType', payload: newType });
   };
+
+  const { storageClusterName } = React.useContext(PluginDataContext);
+  console.log('storageClusterName');
+  console.log('storageClusterName');
+  console.log(storageClusterName);
+  console.log('storageClusterName');
+  console.log('storageClusterName');
 
   return (
     <ErrorHandler

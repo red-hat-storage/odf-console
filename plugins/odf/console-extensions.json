@@ -671,5 +671,12 @@
       },
       "waitToCreate": { "$codeRef": "ibmStorage.waitforCRD" }
     }
+  },
+  {
+    "type": "console.context-provider",
+    "properties": {
+      "provider": { "$codeRef": "contextProvider.PluginDataContextProvider" },
+      "useValueHook": { "$codeRef": "context.usePluginDataContextValue" }
+    }
   }
 ]

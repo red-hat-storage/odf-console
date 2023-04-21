@@ -163,8 +163,6 @@
     "node": ">=14.17.0"
   },
   "lint-staged": {
-    "*.{ts,tsx,mts}": "eslint --cache --fix -c ./.eslintrc.js",
-    "*.css": "stylelint --fix",
     "*": "prettier --ignore-unknown --write"
   }
 }

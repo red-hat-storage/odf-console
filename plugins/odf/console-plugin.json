@@ -35,6 +35,8 @@
     "actions": "@odf/core/components/actions/csv-actions",
     "resourcePages": "@odf/core/components/resource-pages/list-page",
     "topology": "@odf/core/components/topology/Topology",
-    "ibmStorage": "@odf/ibm/system-connection-details"
+    "ibmStorage": "@odf/ibm/system-connection-details",
+    "context": "@odf/core/context-provider/storage-cluster-context.tsx",
+    "contextProvider": "@odf/core/context-provider/storage-cluster-context-provider.tsx"
   }
 }

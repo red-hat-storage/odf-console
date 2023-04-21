@@ -33,6 +33,8 @@ import {
 } from './payloads';
 import { WizardCommonProps, WizardState } from './reducer';
 
+import { PluginDataContext } from '@odf/core/context-provider/storage-cluster-context';
+
 const validateBackingStorageStep = (
   backingStorage: WizardState['backingStorage'],
   sc: WizardState['storageClass']
@@ -248,6 +250,7 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
           });
           break;
         case StepsName(t)[Steps.ReviewAndCreate]:
+          setStorageClusterName('test');
           setRequestInProgress(true);
           await handleReviewAndCreateNext(
             state,
@@ -262,6 +265,8 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
           moveToNextStep();
       }
     };
+
+    const { setStorageClusterName } = React.useContext(PluginDataContext);
 
     return (
       <>
