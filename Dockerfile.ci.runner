@@ -1,8 +1,30 @@
-FROM quay.io/coreos/tectonic-console-builder:v24
-ENV NODE_VERSION="v14.17.3"
-RUN cd /tmp \
-  && wget --quiet -O /tmp/node.tar.gz http://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.gz \
-  && tar xf node.tar.gz && rm -f /tmp/node.tar.gz && cd node-* && cp -r lib/node_modules /usr/local/lib/node_modules \
-  && cp bin/node /usr/local/bin && ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
-RUN chmod 777 /usr/local/lib/node_modules
-RUN rm -rf /tmp/node-v*
+# cypress/factory: not used due to this issue with our required NODE_VERSION :(
+# https://github.com/cypress-io/cypress-docker-images/issues/851
+# cypress/browsers: not used as they don't have a published image with our required NODE_VERSION.
+# cypress/included: same as cypress/browser + we don't need cypress preinstalled as we use our devDep. version.
+# cypress/base: used as it contains all the system dependencies required by cypress (but not cypress itself).
+FROM cypress/base:18.12.1
+
+# Yarn requires the home dir to be writable by any container user.
+ENV HOME /opt/home
+RUN mkdir -p ${HOME}
+RUN chmod 777 -R ${HOME}
+
+# Meet the CI operator requirements:
+# https://docs.ci.openshift.org/docs/architecture/ci-operator/#build-root-image
+RUN apt update && apt install -yq --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+RUN mkdir /go && chmod 777 -R /go
+
+# Install E2E script dependencies (also kubectl as it's invoked in some E2E tests).
+RUN apt update && apt install -yq --no-install-recommends ca-certificates curl gnupg2 jq \
+    && rm -rf /var/lib/apt/lists/*
+RUN cd /usr/local/bin \
+    && curl -LSso oc.tar.gz "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz" \
+    && tar -f oc.tar.gz -x oc && mv oc kubectl && rm oc.tar.gz
+
+# Install Google Chrome.
+RUN curl -LSs https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list' \
+    && apt update && apt install -yq --no-install-recommends google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
