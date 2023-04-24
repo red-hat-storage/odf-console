@@ -36,6 +36,8 @@ type CapacityCardProps = {
   loading?: boolean;
   resourceModel?: K8sKind;
   showPercentage?: boolean;
+  hideVarient?: boolean;
+  externalCard?: boolean;
 };
 
 const getPercentage = (item: CapacityMetricDatum) =>
@@ -76,29 +78,33 @@ const sortMetrics = (
 
 type CapacityCardHeaderProps = {
   showPercentage: boolean;
+  externalCard: boolean;
 };
 
 const CapacityCardHeader: React.FC<CapacityCardHeaderProps> = ({
   showPercentage,
+  externalCard,
 }) => {
   const { t } = useCustomTranslation();
   return (
     <>
-      <GridItem span={2}>
+      <GridItem md={(externalCard && 5) || 3} span={2}>
         <Title headingLevel="h3" size="md">
           {t('Name')}
         </Title>
       </GridItem>
-      <GridItem span={7}>
+      <GridItem md={(externalCard && 7) || 6} span={7}>
         <Title headingLevel="h3" size="md">
           {t('Used capacity')} {showPercentage && <>%</>}
         </Title>
       </GridItem>
-      <GridItem span={3}>
-        <Title headingLevel="h3" size="md">
-          {t('Used / Total')}
-        </Title>
-      </GridItem>
+      {!externalCard && (
+        <GridItem span={3}>
+          <Title headingLevel="h3" size="md">
+            {t('Used / Total')}
+          </Title>
+        </GridItem>
+      )}
     </>
   );
 };
@@ -109,6 +115,8 @@ type CapacityCardRowProps = {
   isPercentage?: boolean;
   largestValue?: HumanizeResult;
   resourceModel?: K8sKind;
+  hideVarient?: boolean;
+  externalCard?: boolean;
 };
 
 const getProgress = (
@@ -136,6 +144,8 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   isRelative,
   largestValue,
   resourceModel,
+  hideVarient,
+  externalCard,
 }) => {
   const { t } = useCustomTranslation();
   const progress =
@@ -148,6 +158,9 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
     ? `${data?.usedValue?.string} / ${data?.totalValue?.string}`
     : data?.usedValue?.string;
   const variant = (() => {
+    if (hideVarient) {
+      return null;
+    }
     if (!isPercentage) {
       return null;
     }
@@ -159,10 +172,26 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
     }
   })();
 
+  const odfVariant = (() => {
+    if (!isPercentage) {
+      return '';
+    }
+    if (progress >= 80) {
+      return 'danger';
+    }
+    if (progress >= 75) {
+      return 'warning';
+    }
+  })();
+
   const dataUnavailable = _.isNaN(progress);
   return (
     <>
-      <GridItem key={`${data?.name}~name`} span={2}>
+      <GridItem
+        key={`${data?.name}~name`}
+        md={(externalCard && 5) || 3}
+        span={2}
+      >
         {data?.managedSystemKind ? (
           <Tooltip content={data?.name}>
             <ResourceLink
@@ -177,36 +206,41 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
           <PlainResourceName resourceName={data?.name} />
         )}
       </GridItem>
-      <GridItem key={`${data?.name}~progress`} span={7}>
-        {isRelative || !isPercentage ? (
-          <Progress
-            value={dataUnavailable ? 0 : progress}
-            label={!dataUnavailable ? `${progress.toFixed(2)} %` : ''}
-            size="md"
-            measureLocation={
-              !isPercentage
-                ? ProgressMeasureLocation.none
-                : ProgressMeasureLocation.outside
-            }
-            variant={variant}
-          />
-        ) : (
-          <Tooltip
-            content={!dataUnavailable ? <>{progress.toFixed(2)} %</> : null}
-          >
+      {!externalCard && (
+        <GridItem key={`${data?.name}~progress`} md={6} span={7}>
+          {isRelative || !isPercentage ? (
             <Progress
-              value={dataUnavailable ? null : progress}
+              value={dataUnavailable ? 0 : progress}
               label={!dataUnavailable ? `${progress.toFixed(2)} %` : ''}
               size="md"
-              measureLocation={ProgressMeasureLocation.outside}
+              measureLocation={
+                !isPercentage
+                  ? ProgressMeasureLocation.none
+                  : ProgressMeasureLocation.outside
+              }
               variant={variant}
             />
-          </Tooltip>
-        )}
-      </GridItem>
+          ) : (
+            <Tooltip
+              content={!dataUnavailable ? <>{progress.toFixed(2)} %</> : null}
+            >
+              <div className="odf-capacity">
+                <Progress
+                  className={odfVariant}
+                  value={dataUnavailable ? null : progress}
+                  label={!dataUnavailable ? `${progress.toFixed(2)} %` : ''}
+                  size="md"
+                  measureLocation={ProgressMeasureLocation.outside}
+                  variant={variant}
+                />
+              </div>
+            </Tooltip>
+          )}
+        </GridItem>
+      )}
       <GridItem span={3} key={`${data?.name}~value`}>
         {dataUnavailable ? '-' : value}
-        {value && !dataUnavailable && !isPercentage && (
+        {!externalCard && value && !dataUnavailable && !isPercentage && (
           <span>
             &nbsp; / &nbsp;
             <Popover
@@ -267,6 +301,8 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
   loading,
   resourceModel,
   showPercentage,
+  hideVarient,
+  externalCard,
 }) => {
   const safeData = data.every(
     (item) => item.totalValue !== undefined && item.usedValue !== undefined
@@ -281,7 +317,10 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
     >
       {!error && !loading && (
         <Grid hasGutter>
-          <CapacityCardHeader showPercentage={showPercentage} />
+          <CapacityCardHeader
+            showPercentage={showPercentage}
+            externalCard={externalCard}
+          />
           {sortedMetrics?.map((item) => {
             const isPercentage = !!item?.totalValue;
             return (
@@ -292,6 +331,8 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
                 isRelative={relative}
                 largestValue={sortedMetrics?.[0]?.usedValue}
                 resourceModel={resourceModel}
+                hideVarient={hideVarient}
+                externalCard={externalCard}
               />
             );
           })}

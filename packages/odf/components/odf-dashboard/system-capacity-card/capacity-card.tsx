@@ -2,6 +2,7 @@ import * as React from 'react';
 import CapacityCard, {
   CapacityMetricDatum,
 } from '@odf/shared/dashboards/capacity-card/capacity-card';
+import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -22,6 +23,7 @@ import {
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { storageCapacityTooltip } from '../../../constants';
 import { StorageDashboard, CAPACITY_QUERIES } from '../queries';
 
 const storageSystemResource: WatchK8sResource = {
@@ -60,23 +62,28 @@ const SystemCapacityCard: React.FC = () => {
 
   const data =
     systemsLoaded && !loadingUsedCapacity && !loadingTotalCapacity
-      ? systems.map<CapacityMetricDatum>((system) => {
-          const { kind, apiGroup, apiVersion } = getGVK(system.spec.kind);
-          const usedMetric = getMetricForSystem(usedCapacity, system);
-          const totalMetric = getMetricForSystem(totalCapacity, system);
-          const datum = {
-            name: system.metadata.name,
-            managedSystemName: system.spec.name,
-            managedSystemKind: referenceFor(apiGroup)(apiVersion)(kind),
-            usedValue: usedMetric
-              ? humanizeBinaryBytes(usedMetric?.value?.[1])
-              : undefined,
-            totalValue: !!totalMetric?.value?.[1]
-              ? humanizeBinaryBytes(totalMetric?.value?.[1])
-              : undefined,
-          };
-          return datum;
-        })
+      ? systems
+          .map<CapacityMetricDatum>((system) => {
+            const { kind, apiGroup, apiVersion } = getGVK(system.spec.kind);
+            const usedMetric = getMetricForSystem(usedCapacity, system);
+            const totalMetric = getMetricForSystem(totalCapacity, system);
+
+            // Check if totalValue is empty, undefined, or not found
+            if (!totalMetric?.value?.[1]) {
+              return null;
+            }
+            const datum = {
+              name: system.metadata.name,
+              managedSystemName: system.spec.name,
+              managedSystemKind: referenceFor(apiGroup)(apiVersion)(kind),
+              usedValue: usedMetric
+                ? humanizeBinaryBytes(usedMetric?.value?.[1])
+                : undefined,
+              totalValue: humanizeBinaryBytes(totalMetric?.value?.[1]),
+            };
+            return datum;
+          })
+          .filter((item) => item !== null) // Remove null values from the array
       : [];
   const error =
     !_.isEmpty(systemsLoadError) ||
@@ -87,7 +94,8 @@ const SystemCapacityCard: React.FC = () => {
   return (
     <Card className="odf-capacityCard--height">
       <CardHeader>
-        <CardTitle>{t('System capacity')}</CardTitle>
+        <CardTitle>{t('System raw capacity')}</CardTitle>
+        <FieldLevelHelp>{storageCapacityTooltip(t)}</FieldLevelHelp>
       </CardHeader>
       <CardBody>
         {!error ? (
@@ -95,6 +103,8 @@ const SystemCapacityCard: React.FC = () => {
             data={data}
             loading={isLoading}
             resourceModel={ODFStorageSystem}
+            showPercentage={true}
+            hideVarient={true}
           />
         ) : (
           <>{t('No data available')}</>

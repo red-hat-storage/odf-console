@@ -61,3 +61,11 @@
 .odf-capacityCardLoading-body__item--thin--thick {
   width: 80px;
 }
+
+.odf-capacity .warning .pf-c-progress__indicator{
+  background-color: var(--pf-global--warning-color--100);
+}
+
+.odf-capacity .danger .pf-c-progress__indicator{
+  background-color: var(--pf-global--danger-color--100);
+}

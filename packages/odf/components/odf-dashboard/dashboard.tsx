@@ -42,10 +42,10 @@ const UpperSection: React.FC = () => (
     <GridItem md={4} rowSpan={2} sm={12}>
       <ActivityCard />
     </GridItem>
-    <GridItem md={4} sm={12}>
+    <GridItem md={5} sm={12}>
       <SystemCapacityCard />
     </GridItem>
-    <GridItem md={4} sm={12}>
+    <GridItem md={3} sm={12}>
       <ObjectCapacityCard />
     </GridItem>
     <GridItem md={12} sm={12}>

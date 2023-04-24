@@ -7,6 +7,11 @@ export const requestedCapacityTooltip = (t: TFunction) =>
     'plugin__odf-console~The amount of capacity that would be dynamically allocated on the selected StorageClass.'
   );
 
+export const storageCapacityTooltip = (t: TFunction) =>
+  t(
+    'plugin__odf-console~Raw capacity is the absolute total disk space available to the array subsystem.'
+  );
+
 export const storageClassTooltip = (t: TFunction) =>
   t(
     'plugin__odf-console~The StorageClass used by Data Foundation to write its data and metadata.'

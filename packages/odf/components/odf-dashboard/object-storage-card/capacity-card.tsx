@@ -38,6 +38,7 @@ const ObjectCapacityCard: React.FC = () => {
           relative
           showPercentage={false}
           resourceModel={ODFStorageSystem}
+          externalCard={true}
         />
       </CardBody>
     </Card>
