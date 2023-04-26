@@ -32,6 +32,8 @@ import {
   MenuToggleElement,
   Flex,
   FlexItem,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 
 const colorScale = [globalDanger100.value, globalWarning100.value, '#0166cc'];
@@ -42,6 +44,14 @@ const getNSAndNameFromId = (itemId: string): string[] => {
   } else {
     return [undefined, ALL_APPS];
   }
+};
+
+export const StatusText: React.FC<StatusTextProps> = ({ children }) => {
+  return (
+    <Text className="mco-dashboard__statusText--size mco-dashboard__statusText--margin mco-dashboard__statusText--weight">
+      {children}
+    </Text>
+  );
 };
 
 export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
@@ -86,10 +96,8 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <div className="mco-dashboard__title">
-        {t('Volume replication health')}
-      </div>
-      <div style={{ height: '180px', width: '350px' }}>
+      <Text component={TextVariants.h3}>{t('Volume replication health')}</Text>
+      <div className="mco-cluster-app__donut-chart">
         <ChartDonut
           ariaDesc="Volume replication health"
           constrainToVisibleArea={true}
@@ -190,7 +198,7 @@ const ClusterDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
       onSelect={onSelect}
       onClear={clearSelection}
       onFilter={customFilter}
-      selections={clusterName}
+      selections={t('Cluster: {{clusterName}}', { clusterName })}
       isOpen={isOpen}
       placeholderText={t('Select a cluster')}
       className={className}
@@ -253,7 +261,7 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
     const [namespace, name] = getNSAndNameFromId(selected);
     return (
       <MenuToggle ref={toggleRef} onClick={onToggleClick} isExpanded={isOpen}>
-        {!!namespace ? `${name} (${namespace})` : name}
+        {t('Application:')} {!!namespace ? `${name} (${namespace})` : name}
       </MenuToggle>
     );
   };
@@ -343,4 +351,8 @@ type ClusterAppDropdownProps = {
 
 type AppOptions = {
   [namespace: string]: string[];
+};
+
+type StatusTextProps = {
+  children: React.ReactNode;
 };
