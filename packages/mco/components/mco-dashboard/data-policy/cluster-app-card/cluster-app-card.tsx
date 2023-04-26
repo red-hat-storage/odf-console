@@ -40,7 +40,6 @@ import {
 } from '../dr-dashboard-context';
 import {
   ProtectedPVCsSection,
-  RPOSection,
   ActivitySection,
   SnapshotSection,
   ReplicationHistorySection,
@@ -80,7 +79,7 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
           lastSyncTimeData={lastSyncTimeData}
         />
       </GridItem>
-      <GridItem lg={9} rowSpan={8} sm={12}>
+      <GridItem lg={9} rowSpan={10} sm={12}>
         <PVCsSection
           protectedPVCData={protectedPVCData}
           clusterName={clusterName}
@@ -99,14 +98,11 @@ export const AppWiseCard: React.FC<AppWiseCardProps> = ({
 }) => {
   return (
     <Grid hasGutter>
-      <GridItem lg={3} rowSpan={8} sm={12}>
+      <GridItem lg={12} rowSpan={8} sm={12}>
         <ProtectedPVCsSection
           protectedPVCData={protectedPVCData}
           selectedAppSet={selectedAppSet}
         />
-      </GridItem>
-      <GridItem lg={9} rowSpan={8} sm={12}>
-        <RPOSection selectedAppSet={selectedAppSet} />
       </GridItem>
       <GridItem lg={3} rowSpan={8} sm={12}>
         <ActivitySection selectedAppSet={selectedAppSet} />
@@ -199,7 +195,7 @@ export const ClusterAppCard: React.FC = () => {
     <Card data-test="cluster-app-card">
       {allLoaded && !anyError && (
         <>
-          <CardHeader className="mco-cluster-app__text--divider ">
+          <CardHeader className="mco-cluster-app__text--divider">
             <div className="mco-dashboard__contentColumn">
               <ClusterAppDropdown
                 clusterResources={drClusterAppsMap}
@@ -208,7 +204,7 @@ export const ClusterAppCard: React.FC = () => {
                 setCluster={setCluster}
                 setAppSet={setAppSet}
               />
-              <CardTitle className="mco-cluster-app__text--margin-top mco-dashboard__subtitle--size">
+              <CardTitle className="mco-cluster-app__text--margin-top mco-cluster-app__headerText--size">
                 {!!appSet.namespace ? (
                   <Link
                     id="app-search-argo-apps-link"

@@ -30,7 +30,7 @@ import { ClusterAppCard } from './cluster-app-card/cluster-app-card';
 import { CSVStatusesContext, DRResourcesContext } from './dr-dashboard-context';
 import { StatusCard } from './status-card/status-card';
 import { SummaryCard } from './summary-card/summary-card';
-import '../mco-common.scss';
+import '../mco-dashboard.scss';
 import '../../../style.scss';
 
 const getApplicationSetResources = (
