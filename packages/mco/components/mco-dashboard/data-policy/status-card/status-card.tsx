@@ -26,12 +26,15 @@ import {
   CardTitle,
   Gallery,
   GalleryItem,
+  TextVariants,
+  Text,
 } from '@patternfly/react-core';
 import { DrClusterAppsMap } from '../../../../types';
 import {
   CSVStatusesContext,
   DRResourcesContext,
 } from '../dr-dashboard-context';
+import './status-card.scss';
 
 const operatorResource: WatchK8sResource = {
   kind: 'operators.coreos.com~v1alpha1~ClusterServiceVersion',
@@ -114,8 +117,10 @@ export const StatusCard: React.FC = () => {
 
   return (
     <Card data-test="operator-status-card">
-      <CardHeader>
-        <CardTitle>{t('Operator status')}</CardTitle>
+      <CardHeader className="mco-status__text--divider">
+        <CardTitle>
+          <Text component={TextVariants.h3}>{t('Operator status')}</Text>
+        </CardTitle>
       </CardHeader>
       <CardBody>
         <Gallery hasGutter>
@@ -123,12 +128,14 @@ export const StatusCard: React.FC = () => {
             <HealthItem
               title={t('Disaster recovery')}
               state={drOperatorsHealthStatus}
+              className="mco-dashboard__statusText--size"
             />
           </GalleryItem>
           <GalleryItem>
             <HealthItem
               title={t('Cluster operator')}
               state={clusterOperatorHealthStatus}
+              className="mco-dashboard__statusText--size"
             />
           </GalleryItem>
         </Gallery>

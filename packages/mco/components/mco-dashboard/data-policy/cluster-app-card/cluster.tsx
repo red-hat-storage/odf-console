@@ -37,8 +37,9 @@ import {
   useK8sWatchResource,
   StatusIconAndText,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Flex, Title } from '@patternfly/react-core';
+import { Flex, Text, TextVariants } from '@patternfly/react-core';
 import { ConnectedIcon } from '@patternfly/react-icons';
+import { StatusText } from './common';
 
 const OperatorsHealthPopUp: React.FC<OperatorsHealthPopUpProps> = ({
   clusterCSVStatus,
@@ -47,9 +48,7 @@ const OperatorsHealthPopUp: React.FC<OperatorsHealthPopUpProps> = ({
 
   return (
     <Flex direction={{ default: 'column' }}>
-      <Title headingLevel="h3" size="md" data-test="operator-health-title">
-        {t('Operator health')}
-      </Title>
+      <StatusText>{t('Operator health')}</StatusText>
       <Flex data-test="operator-health-description">
         {t(
           'Operators are responsible for maintaining and reconciling the state of the cluster.'
@@ -117,8 +116,8 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
   );
 
   return (
-    <div className="cluster-health-section">
-      <div className="mco-dashboard__title">{t('Health')}</div>
+    <div className="mco-cluster-app__cluster-health-section">
+      <StatusText>{t('Health')}</StatusText>
       <HealthItem
         title={t('Cluster health')}
         state={
@@ -128,7 +127,7 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
             ? HealthState.OK
             : HealthState.ERROR
         }
-      ></HealthItem>
+      />
       <HealthItem
         title={t('Operators health')}
         // for csv status metrics, '1' means healthy
@@ -177,15 +176,14 @@ export const PeerConnectionSection: React.FC<PeerConnectionSectionProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <div className="mco-dashboard__title">{t('Peer connection')}</div>
-      <div className="mco-dashboard__contentRow">
-        <StatusIconAndText
-          title={t(' {{ peerConnectedCount }} Connected', {
-            peerConnectedCount,
-          })}
-          icon={<ConnectedIcon />}
-        />
-      </div>
+      <StatusText>{t('Peer connection')}</StatusText>
+      <StatusIconAndText
+        title={t(' {{ peerConnectedCount }} Connected', {
+          peerConnectedCount,
+        })}
+        icon={<ConnectedIcon />}
+        className="text-muted"
+      />
     </div>
   );
 };
@@ -225,21 +223,19 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
     clusterResources[clusterName]?.protectedAppSets?.length;
   return (
     <div className="mco-dashboard__contentColumn">
-      <div className="mco-dashboard__title mco-dashboard__subtitle--size">
-        {totalAppSetsCount || 0}
-      </div>
-      <div className="mco-dashboard__title">{t('Total applications')}</div>
-      <div className="text-muted">
+      <Text component={TextVariants.h1}>{totalAppSetsCount || 0}</Text>
+      <StatusText>{t('Total applications')}</StatusText>
+      <Text className="text-muted mco-dashboard__statusText--margin">
         {t(' {{ protectedAppSetsCount }} protected apps', {
           protectedAppSetsCount,
         })}
-      </div>
-      <div className="text-muted">
+      </Text>
+      <Text className="text-muted">
         {t(
           ' {{ appsWithIssues }} of {{ protectedAppSetsCount }} apps with issues',
           { appsWithIssues, protectedAppSetsCount }
         )}
-      </div>
+      </Text>
     </div>
   );
 };
@@ -260,15 +256,13 @@ export const PVCsSection: React.FC<PVCsSectionProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <div className="mco-dashboard__title mco-dashboard__subtitle--size">
-        {totalPVCsCount}
-      </div>
-      <div className="mco-dashboard__title">{t('PVCs')}</div>
-      <div className="text-muted">
+      <Text component={TextVariants.h1}>{totalPVCsCount}</Text>
+      <StatusText>{t('PVCs')}</StatusText>
+      <Text className="text-muted">
         {t(' {{ protectedPVCsCount }} protected', {
           protectedPVCsCount,
         })}
-      </div>
+      </Text>
     </div>
   );
 };

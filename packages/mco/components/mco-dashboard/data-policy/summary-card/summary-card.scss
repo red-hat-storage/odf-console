@@ -2,8 +2,7 @@
     &__divider--width {
         width: 50%;
     }
-
-    &__item-padding {
-        padding-bottom: var(--pf-global--spacer--sm);
+    &__countText--size {
+        font-size: var(--pf-global--FontSize--4xl);
     }
 }
