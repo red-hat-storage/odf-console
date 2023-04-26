@@ -1,5 +1,4 @@
 import * as _ from 'lodash-es';
-import { getDuration } from '../details-page/datetime';
 
 export const units = {};
 export const validate = {};
@@ -256,7 +255,7 @@ export const humanizePercentage = (value) => {
 
 export const humanizeMinutes = (seconds, customUnitUnit) => {
   const val = Number(seconds);
-  const { minutes } = getDuration(val * 1000);
+  const minutes = Math.floor(val / 60);
   const unit = customUnitUnit || 'min';
   return {
     string: `${minutes} ${unit}`,
@@ -267,7 +266,7 @@ export const humanizeMinutes = (seconds, customUnitUnit) => {
 
 export const humanizeHours = (seconds, customUnitUnit) => {
   const val = Number(seconds);
-  const { hours } = getDuration(val * 1000);
+  const hours = Math.floor(val / (60 * 60));
   const unit = customUnitUnit || 'hr';
   return {
     string: `${hours} ${unit}`,
@@ -278,7 +277,7 @@ export const humanizeHours = (seconds, customUnitUnit) => {
 
 export const humanizeDays = (seconds, customUnitUnit) => {
   const val = Number(seconds);
-  const { days } = getDuration(val * 1000);
+  const days = Math.floor(val / (60 * 60 * 24));
   const unit = customUnitUnit || 'days';
   return {
     string: `${days} ${unit}`,
