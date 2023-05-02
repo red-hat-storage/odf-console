@@ -11,6 +11,7 @@ import {
   Gallery,
   GalleryItem,
   Divider,
+  Text,
 } from '@patternfly/react-core';
 import { DRResourcesContext } from '../dr-dashboard-context';
 import './summary-card.scss';
@@ -75,20 +76,20 @@ export const SummaryCard: React.FC = () => {
         {loaded && !loadError && (
           <Gallery hasGutter>
             <GalleryItem className="mco-dashboard__contentColumn">
-              <div className="text-muted mco-summary__item-padding">
+              <Text className="text-muted mco-dashboard__statusText--margin mco-dashboard__statusText--size">
                 {t('Clusters')}
-              </div>
-              <div className="mco-dashboard__title mco-summary__item-padding mco-dashboard__title--size">
+              </Text>
+              <Text className="mco-dashboard__statusText--margin mco-summary__countText--size mco-dashboard__statusText--weight">
                 {summaryMap.clusters.totalCount}
-              </div>
-              <Divider className="mco-summary__divider--width mco-summary__item-padding" />
+              </Text>
+              <Divider className="mco-summary__divider--width mco-dashboard__statusText--margin" />
               <HealthItem
                 title={t('{{ healthy }} healthy', {
                   healthy: healthyClusters,
                 })}
                 state={HealthState.OK}
                 disableDetails={true}
-                className="mco-summary__item-padding"
+                className="text-muted mco-dashboard__statusText--margin"
               />
               <HealthItem
                 title={t('{{ issues }} with issues', {
@@ -96,22 +97,22 @@ export const SummaryCard: React.FC = () => {
                 })}
                 state={HealthState.ERROR}
                 disableDetails={true}
-                className="mco-summary__item-padding"
+                className="text-muted"
               />
             </GalleryItem>
             <GalleryItem className="mco-dashboard__contentColumn">
-              <div className="text-muted mco-summary__item-padding">
+              <Text className="text-muted mco-dashboard__statusText--margin mco-dashboard__statusText--size">
                 {t('Applications')}
-              </div>
-              <div className="mco-dashboard__title mco-summary__item-padding mco-dashboard__title--size">
+              </Text>
+              <Text className="mco-dashboard__statusText--margin mco-summary__countText--size mco-dashboard__statusText--weight">
                 {summaryMap.applications.totalCount}
-              </div>
-              <Divider className="mco-summary__divider--width mco-summary__item-padding" />
-              <div className="text-muted">
+              </Text>
+              <Divider className="mco-summary__divider--width mco-dashboard__statusText--margin" />
+              <Text className="text-muted">
                 {t('{{ protected }} DR protected', {
                   protected: summaryMap.applications.protectedCount,
                 })}
-              </div>
+              </Text>
             </GalleryItem>
           </Gallery>
         )}
