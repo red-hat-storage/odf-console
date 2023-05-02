@@ -3,7 +3,6 @@ import {
   PrometheusResult,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { chart_color_orange_300 as requestedColor } from '@patternfly/react-tokens/dist/js/chart_color_orange_300';
-import { chart_color_orange_300 as thresholdColor } from '@patternfly/react-tokens/dist/js/chart_color_orange_300';
 import * as _ from 'lodash-es';
 import { DataPoint, getType } from '../utils';
 
@@ -73,8 +72,7 @@ export const getRangeVectorStats: GetRangeStats = (
   symbol,
   xMutator,
   yMutator,
-  optionalParser,
-  threshold
+  optionalParser
 ) => {
   const results = !optionalParser
     ? response?.data?.result
@@ -83,7 +81,7 @@ export const getRangeVectorStats: GetRangeStats = (
     return r?.values?.map(([x, y]) => {
       return {
         x: xMutator?.(x) ?? defaultXMutator(x),
-        y: threshold ? threshold : yMutator?.(y) ?? defaultYMutator(y),
+        y: yMutator?.(y) ?? defaultYMutator(y),
         description: _.isFunction(description)
           ? description(r, index)
           : description,
@@ -97,92 +95,85 @@ export type MapLimitsRequest = {
   utilization: PrometheusResponse;
   limit?: PrometheusResponse;
   requested?: PrometheusResponse;
-  threshold?: number;
   xMutator?: XMutator;
-  description?: string | ((result: PrometheusResult, index: number) => string);
-  thresholdDescription?:
-    | string
-    | ((result: PrometheusResult, index: number) => string);
+  utilizationDescription?: string;
+  utilizationSymbol?: any;
+  utilizationChartStyle?: any;
+  limitDescription?: string;
+  limitSymbol?: any;
+  limitChartStyle?: any;
+  requestDescription?: string;
+  requestChartStyle?: any;
+  requestSymbol?: any;
   t?: any;
 };
 
 export const mapLimitsRequests = ({
   utilization,
-  description = 'usage',
   limit,
   requested,
-  threshold,
-  thresholdDescription,
   xMutator,
+  utilizationDescription,
+  utilizationSymbol,
+  utilizationChartStyle,
+  limitDescription,
+  limitSymbol,
+  limitChartStyle,
+  requestDescription,
+  requestChartStyle,
+  requestSymbol,
   t,
 }: MapLimitsRequest): { data: DataPoint[][]; chartStyle: object[] } => {
   const utilizationData = getRangeVectorStats(
     utilization,
-    description,
-    null,
+    utilizationDescription || t('usage'),
+    utilizationSymbol || null,
     xMutator
   );
   const data = utilizationData ? [...utilizationData] : [];
-  const chartStyle = [null];
+  const chartStyle =
+    utilizationData?.map(() => utilizationChartStyle || null) || [];
   if (limit) {
     const limitData = getRangeVectorStats(
       limit,
-      t('total limit'),
-      { type: 'dash' },
+      limitDescription || t('total limit'),
+      limitSymbol || { type: 'dash' },
       xMutator
     );
-    data.push(...limitData);
     if (limitData.length) {
-      chartStyle.push({
-        data: { strokeDasharray: '3,3', fillOpacity: 0 },
-      });
+      data.push(...limitData);
+      limitData.forEach(() =>
+        chartStyle.push(
+          limitChartStyle || {
+            data: { strokeDasharray: '3,3', fillOpacity: 0 },
+          }
+        )
+      );
     }
   }
   if (requested) {
     const reqData = getRangeVectorStats(
       requested,
-      t('total requested'),
-      {
+      requestDescription || t('total requested'),
+      requestSymbol || {
         type: 'dash',
         fill: requestedColor.value,
       },
       xMutator
     );
-    data.push(...reqData);
     if (reqData.length) {
-      chartStyle.push({
-        data: {
-          stroke: requestedColor.value,
-          strokeDasharray: '3,3',
-          fillOpacity: 0,
-        },
-      });
-    }
-  }
-
-  if (threshold) {
-    const reqData =
-      getRangeVectorStats(
-        utilization,
-        thresholdDescription,
-        {
-          type: 'dash',
-          fill: thresholdColor.value,
-        },
-        xMutator,
-        null,
-        null,
-        threshold
-      ) || [];
-    data.push(...reqData);
-    if (reqData.length) {
-      chartStyle.push({
-        data: {
-          stroke: thresholdColor.value,
-          strokeDasharray: '3,3',
-          fillOpacity: 0,
-        },
-      });
+      data.push(...reqData);
+      reqData.forEach(() =>
+        chartStyle.push(
+          requestChartStyle || {
+            data: {
+              stroke: requestedColor.value,
+              strokeDasharray: '3,3',
+              fillOpacity: 0,
+            },
+          }
+        )
+      );
     }
   }
 

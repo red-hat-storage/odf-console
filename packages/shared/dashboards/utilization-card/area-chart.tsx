@@ -72,11 +72,19 @@ export const AreaChart: React.FC<AreaChartProps> = ({
     [humanize, unit, formatDate]
   );
 
-  const legendData = processedData.map((d) => ({
-    childName: d[0].description,
-    name: d[0].description,
-    symbol: d[0].symbol,
-  }));
+  const legendData = React.useMemo(() => {
+    const legendDataWithDuplicate = processedData.map((d) => ({
+      childName: d[0].description,
+      name: d[0].description,
+      symbol: d[0].symbol,
+    }));
+    const uniqueIds = new Set();
+    return legendDataWithDuplicate?.filter((d) => {
+      const isDuplicate = uniqueIds.has(d.childName);
+      uniqueIds.add(d.childName);
+      return !isDuplicate;
+    });
+  }, [processedData]);
 
   const container = React.useMemo(() => {
     if (processedData?.length > 1) {

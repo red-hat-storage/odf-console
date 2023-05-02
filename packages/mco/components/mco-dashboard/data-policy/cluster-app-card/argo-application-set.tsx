@@ -42,9 +42,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { chart_color_orange_300 as limitColor } from '@patternfly/react-tokens/dist/js/chart_color_orange_300';
 import { TFunction } from 'i18next';
 import { TextVariants, Text } from '@patternfly/react-core';
-import { getLastSyncTimeDRPCQuery } from '../../queries';
+import {
+  getLastSyncTimeDRPCQuery,
+  getScheduledIntervalDRPolicyQuery,
+} from '../../queries';
 import { StatusText } from './common';
 
 const getCurrentActivity = (
@@ -190,11 +194,12 @@ export const ReplicationHistorySection: React.FC<ReplicationHistorySectionProps>
     const { duration } = useUtilizationDuration();
 
     const placementInfo = selectedAppSet?.placementInfo?.[0];
-    const [threshold, initialUnit] = convertSyncIntervalToSeconds(
+    const [_, initialUnit] = convertSyncIntervalToSeconds(
       placementInfo?.syncInterval
     );
     const drpcName = placementInfo?.drpcName;
     const drpcNamespace = placementInfo?.drpcNamespace;
+    const drPolicyName = placementInfo?.drPolicyName;
     const [pvcsSLARangeData, pvcsSLARangeError, pvcsSLARangeLoading] =
       useCustomPrometheusPoll({
         endpoint: 'api/v1/query_range' as any,
@@ -206,14 +211,31 @@ export const ReplicationHistorySection: React.FC<ReplicationHistorySectionProps>
         basePath: ACM_ENDPOINT,
         cluster: HUB_CLUSTER_NAME,
       });
+    const [
+      scheduledIntervalData,
+      scheduledIntervalRangeError,
+      scheduledIntervalRangeLoading,
+    ] = useCustomPrometheusPoll({
+      endpoint: 'api/v1/query_range' as any,
+      query: !!drPolicyName
+        ? getScheduledIntervalDRPolicyQuery(drPolicyName)
+        : null,
+      timespan: duration,
+      basePath: ACM_ENDPOINT,
+      cluster: HUB_CLUSTER_NAME,
+    });
 
     const { data, chartStyle } = mapLimitsRequests({
       utilization: pvcsSLARangeData,
+      limit: scheduledIntervalData,
       xMutator: trimSecondsXMutator,
-      threshold,
-      description: t('Measured interval'),
-      thresholdDescription: t('Scheduled interval'),
-      t,
+      utilizationDescription: t('Measured interval'),
+      limitDescription: t('Scheduled interval'),
+      limitSymbol: { type: 'dash', fill: limitColor.value },
+      limitChartStyle: {
+        data: { strokeDasharray: '3,3', fillOpacity: 0, stroke: limitColor.value }
+      },
+      t
     });
 
     return (
@@ -231,7 +253,12 @@ export const ReplicationHistorySection: React.FC<ReplicationHistorySectionProps>
         </div>
         <AreaChart
           data={data}
-          loading={!pvcsSLARangeError && pvcsSLARangeLoading}
+          loading={
+            !pvcsSLARangeError &&
+            !scheduledIntervalRangeError &&
+            pvcsSLARangeLoading &&
+            scheduledIntervalRangeLoading
+          }
           humanize={
             (initialUnit === TIME_UNITS.Days && humanizeDays) ||
             (initialUnit === TIME_UNITS.Hours && humanizeHours) ||

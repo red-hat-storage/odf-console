@@ -124,6 +124,7 @@ export const DRDashboard: React.FC = () => {
                     drpcNamespace: getNamespace(drPlacementControl),
                     protectedPVCs: getProtectedPVCsFromDRPC(drPlacementControl),
                     replicationType: findDRType(drClusters),
+                    drPolicyName: getName(drPolicy),
                     syncInterval: drPolicy?.spec?.schedulingInterval,
                     workloadNamespace: getRemoteNSFromAppSet(application),
                     failoverCluster: drPlacementControl?.spec?.failoverCluster,

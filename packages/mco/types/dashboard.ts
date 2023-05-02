@@ -6,6 +6,7 @@ export type PlacementInfo = Partial<{
   drpcNamespace: string;
   workloadNamespace: string;
   replicationType: REPLICATION_TYPE;
+  drPolicyName: string;
   syncInterval: string;
   deploymentClusterName: string;
   failoverCluster: string;
