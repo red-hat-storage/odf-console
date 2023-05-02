@@ -31,9 +31,17 @@
         border-bottom: var(--pf-global--BorderWidth--sm) solid var(--pf-global--BorderColor--100);
         margin-bottom: var(--pf-global--spacer--lg);
     }
+    &__headerText--size {
+        font-size: var(--pf-global--FontSize--xl);
+    }
 }
 
-.cluster-health-section {
+.mco-cluster-app__cluster-health-section {
     width: auto;
     height: auto;
+}
+
+.mco-cluster-app__donut-chart {
+    width: 350px;
+    height: 220px; 
 }

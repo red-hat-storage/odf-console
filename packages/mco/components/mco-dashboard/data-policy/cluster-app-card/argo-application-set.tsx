@@ -23,6 +23,7 @@ import {
 import { mapLimitsRequests } from '@odf/shared/charts';
 import { AreaChart } from '@odf/shared/dashboards/utilization-card/area-chart';
 import { trimSecondsXMutator } from '@odf/shared/dashboards/utilization-card/utilization-item';
+import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
 import {
   fromNow,
   getTimeDifferenceInSeconds,
@@ -35,11 +36,16 @@ import {
   humanizeHours,
   humanizeDays,
 } from '@odf/shared/utils';
-import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  PrometheusResponse,
+  StatusIconAndText,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { TFunction } from 'i18next';
+import { TextVariants, Text } from '@patternfly/react-core';
 import { getLastSyncTimeDRPCQuery } from '../../queries';
+import { StatusText } from './common';
 
 const getCurrentActivity = (
   currentStatus: string,
@@ -109,37 +115,11 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <div className="mco-dashboard__title mco-dashboard__subtitle--size">
-        {protectedPVCsCount}
-      </div>
-      <div className="mco-dashboard__title">{t('Protected PVCs')}</div>
-      <div className="text-muted">
+      <Text component={TextVariants.h1}>{protectedPVCsCount}</Text>
+      <StatusText>{t('Protected PVCs')}</StatusText>
+      <Text className="text-muted">
         {t('{{ pvcsWithIssueCount }} with issues', { pvcsWithIssueCount })}
-      </div>
-    </div>
-  );
-};
-
-export const RPOSection: React.FC<CommonProps> = ({ selectedAppSet }) => {
-  const { t } = useCustomTranslation();
-  const [rpo, setRPO] = React.useState('N/A');
-  const lastGroupSyncTime =
-    selectedAppSet?.placementInfo?.[0]?.lastGroupSyncTime;
-  const clearSetIntervalId = React.useRef<NodeJS.Timeout>();
-  const updateRPO = React.useCallback(() => {
-    setRPO(fromNow(lastGroupSyncTime) || 'N/A');
-  }, [lastGroupSyncTime]);
-
-  React.useEffect(() => {
-    updateRPO();
-    clearSetIntervalId.current = setInterval(updateRPO, URL_POLL_DEFAULT_DELAY);
-    return () => clearInterval(clearSetIntervalId.current);
-  }, [updateRPO]);
-
-  return (
-    <div className="mco-dashboard__contentColumn">
-      <div className="mco-dashboard__title">{rpo}</div>
-      <div className="mco-dashboard__title">{t('RPO')}</div>
+      </Text>
     </div>
   );
 };
@@ -153,33 +133,53 @@ export const ActivitySection: React.FC<CommonProps> = ({ selectedAppSet }) => {
   const preferredCluster = placementInfo?.preferredCluster;
   return (
     <div className="mco-dashboard__contentColumn">
-      <div className="mco-dashboard__title">{t('Activity')}</div>
-      <div className="mco-dashboard__contentRow">
-        {getDRStatus({ currentStatus, t }).icon}
-        <div className="text-muted mco-cluster-app__text--padding-left">
-          {getCurrentActivity(
-            currentStatus,
-            failoverCluster,
-            preferredCluster,
-            t
-          )}
-        </div>
-      </div>
+      <StatusText>{t('Activity')}</StatusText>
+      <StatusIconAndText
+        icon={getDRStatus({ currentStatus, t }).icon}
+        title={getCurrentActivity(
+          currentStatus,
+          failoverCluster,
+          preferredCluster,
+          t
+        )}
+        className="text-muted"
+      />
     </div>
   );
 };
 
 export const SnapshotSection: React.FC<CommonProps> = ({ selectedAppSet }) => {
   const { t } = useCustomTranslation();
+  const [lastSyncTime, setLastSyncTime] = React.useState('N/A');
+  const lastGroupSyncTime =
+    selectedAppSet?.placementInfo?.[0]?.lastGroupSyncTime;
+  const clearSetIntervalId = React.useRef<NodeJS.Timeout>();
+  const updateSyncTime = React.useCallback(() => {
+    if (!!lastGroupSyncTime) {
+      const dateTime = utcDateTimeFormatter.format(new Date(lastGroupSyncTime));
+      setLastSyncTime(`${dateTime} (${fromNow(lastGroupSyncTime)})`);
+    } else {
+      setLastSyncTime('N/A');
+    }
+  }, [lastGroupSyncTime]);
 
-  const lastSyncTime =
-    selectedAppSet?.placementInfo?.[0]?.lastGroupSyncTime || 'N/A';
+  React.useEffect(() => {
+    updateSyncTime();
+    clearSetIntervalId.current = setInterval(
+      updateSyncTime,
+      URL_POLL_DEFAULT_DELAY
+    );
+    return () => clearInterval(clearSetIntervalId.current);
+  }, [updateSyncTime]);
+
   return (
     <div className="mco-dashboard__contentColumn">
-      <div className="mco-dashboard__title">{t('Snapshot')}</div>
-      <div className="text-muted">
-        {t('Last on: {{ lastSyncTime }}', { lastSyncTime })}
-      </div>
+      <StatusText>{t('Snapshot')}</StatusText>
+      <Text className="text-muted">
+        {t('Last on: {{ lastSyncTime }}', {
+          lastSyncTime: lastSyncTime,
+        })}
+      </Text>
     </div>
   );
 };
@@ -219,9 +219,12 @@ export const ReplicationHistorySection: React.FC<ReplicationHistorySectionProps>
     return (
       <div className="mco-dashboard__contentColumn">
         <div className="mco-dashboard__contentRow mco-cluster-app__contentRow--spaceBetween">
-          <div className="mco-dashboard__title mco-cluster-app__contentRow--flexStart">
+          <Text
+            component={TextVariants.h3}
+            className="mco-cluster-app__contentRow--flexStart"
+          >
             {t('Replication history')}
-          </div>
+          </Text>
           <div className="mco-dashboard__contentRow mco-cluster-app__contentRow--flexEnd">
             <UtilizationDurationDropdown />
           </div>
