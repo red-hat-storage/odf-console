@@ -4,7 +4,7 @@ import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { MachineModel } from '@odf/shared/models';
 import { nodeStatus } from '@odf/shared/status/Node';
 import { Status } from '@odf/shared/status/Status';
-import { CloudProviderNodeKind, NodeKind } from '@odf/shared/types';
+import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getCloudProviderID,
@@ -98,11 +98,7 @@ export const NodeDetails: React.FC<NodeDetailsProps> = ({ resource: node }) => {
             <dt>{t('Kubelet version')}</dt>
             <dd>{_.get(node, 'status.nodeInfo.kubeletVersion', '-')}</dd>
             <dt>{t('Provider ID')}</dt>
-            <dd>
-              {getCloudProviderNames([
-                getCloudProviderID(node as CloudProviderNodeKind),
-              ])}
-            </dd>
+            <dd>{getCloudProviderNames([getCloudProviderID(node)])}</dd>
             <dt>{t('Created')}</dt>
             <dd>
               <Timestamp timestamp={node.metadata.creationTimestamp} />
