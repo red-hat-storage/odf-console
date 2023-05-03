@@ -1,5 +1,4 @@
 import {
-  CloudProviderNodeKind,
   NodeAddress,
   NodeKind,
   NodeMachineAndNamespace,
@@ -8,8 +7,8 @@ import * as _ from 'lodash-es';
 
 const NODE_ROLE_PREFIX = 'node-role.kubernetes.io/';
 
-export const getCloudProviderID = (node: CloudProviderNodeKind) =>
-  node.spec.providerID.split('://')?.[0] || '';
+export const getCloudProviderID = (node: NodeKind) =>
+  node.spec.providerID?.split('://')?.[0] || '';
 
 export const getCloudProviderNames = (providerNames) => {
   if (providerNames.length) {
