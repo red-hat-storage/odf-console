@@ -43,6 +43,7 @@ export type MatchLabels = {
 
 export type NodeKind = {
   spec: {
+    providerID?: string;
     taints?: Taint[];
     unschedulable?: boolean;
   };
@@ -62,12 +63,6 @@ export type NodeKind = {
     };
   };
 } & K8sResourceCommon;
-
-export type CloudProviderNodeKind = {
-  spec: {
-    providerID: string;
-  };
-};
 
 export type NodeAddress = {
   type: string;
