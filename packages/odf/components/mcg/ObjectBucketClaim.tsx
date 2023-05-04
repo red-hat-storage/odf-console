@@ -380,9 +380,9 @@ export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
   namespace,
 }) => {
   const { t } = useCustomTranslation();
-  const { name, plural: kind } = match.params;
+  const { name, plural: resourceKind } = match.params;
   const [resource, loaded] = useK8sWatchResource<K8sResourceKind>({
-    kind,
+    kind: resourceKind,
     name,
     namespace,
     isList: false,

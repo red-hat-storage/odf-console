@@ -49,7 +49,7 @@ export const findErrorMessage = (errorMessage: ErrorMessage) =>
     errorMessage.peerStatusErrorMessage,
   ]
     .filter(Boolean)
-    .find((errorMessage) => errorMessage);
+    .find((errorMessageItem) => errorMessageItem);
 
 const resources = (namespace: string) => ({
   subscriptions: {

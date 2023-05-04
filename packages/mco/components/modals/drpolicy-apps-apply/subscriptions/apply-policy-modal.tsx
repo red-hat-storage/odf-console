@@ -410,8 +410,8 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       .then(() => {
         closeModal();
       })
-      .catch((error) => {
-        setError(error?.message);
+      .catch((resourceError) => {
+        setError(resourceError?.message);
         setLoading(false);
       });
   };

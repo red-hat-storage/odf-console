@@ -31,20 +31,20 @@ const getSyncTime = (timeWithFormat: string) =>
 const SyncSchedule: React.FC<SyncScheduleProps> = ({ state, dispatch }) => {
   const { t } = useCustomTranslation();
 
-  const SyncSchedule = {
+  const SyncScheduleFormat = {
     minutes: t('minutes'),
     hours: t('hours'),
     days: t('days'),
   };
   const SCHEDULE_FORMAT = {
-    [SyncSchedule.minutes]: TIME_UNITS.Minutes,
-    [SyncSchedule.hours]: TIME_UNITS.Hours,
-    [SyncSchedule.days]: TIME_UNITS.Days,
+    [SyncScheduleFormat.minutes]: TIME_UNITS.Minutes,
+    [SyncScheduleFormat.hours]: TIME_UNITS.Hours,
+    [SyncScheduleFormat.days]: TIME_UNITS.Days,
   };
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedFormat, setSelectedFormat] = React.useState(
-    SyncSchedule.minutes
+    SyncScheduleFormat.minutes
   );
 
   const setSyncSchedule = (time: number, format?: string) =>
@@ -68,16 +68,18 @@ const SyncSchedule: React.FC<SyncScheduleProps> = ({ state, dispatch }) => {
     setSyncSchedule(normalizedSyncTime);
   };
 
-  const SyncScheduleDropdownItems = Object.values(SyncSchedule).map((sync) => (
-    <DropdownItem
-      data-test-id={`sync-schedule-dropdown-item-${sync}`}
-      key={`sync-schedule-dropdown-item-${sync}`}
-      value={sync}
-      component="button"
-    >
-      {sync}
-    </DropdownItem>
-  ));
+  const SyncScheduleDropdownItems = Object.values(SyncScheduleFormat).map(
+    (sync) => (
+      <DropdownItem
+        data-test-id={`sync-schedule-dropdown-item-${sync}`}
+        key={`sync-schedule-dropdown-item-${sync}`}
+        value={sync}
+        component="button"
+      >
+        {sync}
+      </DropdownItem>
+    )
+  );
 
   return (
     <InputGroup>

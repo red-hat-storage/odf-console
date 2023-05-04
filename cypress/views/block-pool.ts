@@ -102,8 +102,11 @@ export const deleteBlockPoolFromCLI = () => {
   cy.exec(`oc delete CephBlockPool ${poolName} -n ${NS}`);
 };
 
-export const openBlockPoolKebab = (poolName: string, isDefaultPool = false) => {
-  cy.byLegacyTestID('item-filter').clear().type(poolName);
+export const openBlockPoolKebab = (
+  targetPoolName: string,
+  isDefaultPool = false
+) => {
+  cy.byLegacyTestID('item-filter').clear().type(targetPoolName);
   cy.log('Only one resource should be present after filtering');
   cy.byTestID('kebab-button').should('have.length', 1);
   if (isDefaultPool)

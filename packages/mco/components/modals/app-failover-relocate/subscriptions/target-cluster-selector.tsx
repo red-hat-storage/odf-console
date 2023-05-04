@@ -179,8 +179,8 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
     });
   };
 
-  const onToggle = (isOpen: boolean) => {
-    setOpen(isOpen);
+  const onToggle = (isOpenFlag: boolean) => {
+    setOpen(isOpenFlag);
   };
 
   const dropdownItems = React.useMemo(
