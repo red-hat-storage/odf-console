@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "dependencies": {
     "@odf/shared": "0.0.0",
-    "@odf/odf-plugin-sdk": "0.0.0"
+    "@odf/odf-plugin-sdk": "0.0.0",
+    "@odf/ibm": "0.0.0"
   }
 }
