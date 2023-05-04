@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { getExternalStorage } from '@odf/core/components/utils';
+import { IBMFlashSystemModel } from "@odf/ibm/system-models";
+import { IBMFlashSystemKind } from "@odf/ibm/system-types";
 import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   ExternalStateValues,
@@ -10,11 +12,11 @@ import {
 } from '@odf/shared/constants';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
-import { StorageClassModel } from '@odf/shared/models';
-import { getName } from '@odf/shared/selectors';
-import { StorageSystemKind } from '@odf/shared/types';
+import { SecretModel, StorageClassModel } from '@odf/shared/models';
+import { getFlashSystemSecretName, getName, getSecretManagementAddress } from '@odf/shared/selectors';
+import { SecretKind, StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { isValidIP } from '@odf/shared/utils';
+import { isIPRegistered, isValidIP } from '@odf/shared/utils';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -55,9 +57,24 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
   const [data, loaded, loadError] =
     useK8sList<StorageSystemKind>(StorageClassModel);
 
+  const [secretData, secretLoaded, secretLoadError] =
+    useK8sList<SecretKind>(SecretModel);
+
+  const [flashSystemData, flashSystemLoaded, flashSystemLoadError] =
+    useK8sList<IBMFlashSystemKind>(IBMFlashSystemModel);
+
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =
       loaded && !loadError ? data?.map((data) => getName(data)) : [];
+
+    const existingFlashSystemSecretNames =
+        flashSystemLoaded && !flashSystemLoadError ? flashSystemData?.map((data) => getFlashSystemSecretName(data)) : [];
+
+    const existingSecretManagementAddresses =
+        existingFlashSystemSecretNames.map((secretName) => {
+            const secret = secretData.find((secret) => secret.metadata.name === secretName);
+            return atob(getSecretManagementAddress(secret));
+        });
 
     const fieldRequirements = [
       fieldRequirementsTranslations.maxChars(t, 253),
@@ -89,6 +106,11 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
           'ip-address',
           t('The endpoint is not a valid IP address'),
           (value: string) => isValidIP(value)
+        )
+        .test(
+          'unique-ip-address',
+          t('The IP address is already registered'),
+            (value: string) => !isIPRegistered(value, existingSecretManagementAddresses)
         ),
       'username-input': Yup.string().required(),
       'password-input': Yup.string().required(),
@@ -96,7 +118,7 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
     });
 
     return { schema, fieldRequirements };
-  }, [data, loadError, loaded, t]);
+  }, [loaded, loadError, data, flashSystemLoaded, flashSystemLoadError, flashSystemData, t, secretData]);
   const resolver = useYupValidationResolver(schema);
   const {
     control,
