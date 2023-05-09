@@ -127,7 +127,8 @@ export const findAndUpdateApplicationRef = (
         (plsRef) =>
           drpc?.spec?.placementRef?.kind === plsRef?.kind &&
           drpc?.spec?.placementRef?.name === plsRef?.name &&
-          drpc?.spec?.placementRef?.namespace === plsRef?.namespace
+          (drpc?.spec?.placementRef?.namespace === plsRef?.namespace ||
+            appRef?.applicationNamespace === plsRef?.namespace)
       )
     );
     if (!!filteredDRPCs?.length) {
