@@ -9,7 +9,6 @@ export enum MessageType {
 type Message = {
   text: string;
   description?: string;
-  type?: MessageType;
   variant: AlertVariant;
 };
 

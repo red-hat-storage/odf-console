@@ -37,7 +37,6 @@ import {
   ApplyPolicyReducer,
   applyPolicyInitialState,
   ApplyPolicyType,
-  MessageType,
 } from './reducer';
 import { getAvailablePanelPromises, getProtectedPanelPromises } from './utils';
 import './apply-policy-modal.scss';
@@ -120,29 +119,15 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       dispatch({
         type: ApplyPolicyType.SET_MESSAGE,
         payload: {
-          text: t('Cannot unassign the policy'),
-          description: t(
-            'You cannot unassign the policy as this action is not yet supported.'
+          text: t(
+            'Disabling DR protection for applications will no longer protect the underlying PVCs. You must reapply the policy in order to enable DR protection for your application.'
           ),
-          variant: AlertVariant.info,
-          type: MessageType.UNSUPPORTED_OPERATION,
-        },
-      });
-    else if (
-      state.message.type === MessageType.UNSUPPORTED_OPERATION &&
-      !changesFoundOnLeftSide
-    )
-      dispatch({
-        type: ApplyPolicyType.SET_MESSAGE,
-        payload: {
-          text: '',
-          variant: AlertVariant.info,
+          variant: AlertVariant.warning,
         },
       });
 
     return !(
-      changesFoundOnRightSide &&
-      !changesFoundOnLeftSide &&
+      (changesFoundOnRightSide || changesFoundOnLeftSide) &&
       noIssuesFoundOnRightSide &&
       noIssuesFoundOnLeftSide
     );
@@ -290,6 +275,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
           <ModalFooter>
             <Button
               data-test="cancel-button"
+              data-testid="cancel-button"
               key="cancel"
               variant={ButtonVariant.secondary}
               onClick={closeModal}
