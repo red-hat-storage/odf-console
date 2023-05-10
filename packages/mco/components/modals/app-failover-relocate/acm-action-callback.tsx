@@ -7,6 +7,7 @@ import { ArgoApplicationSetModel } from '../../../models';
 import { ACMApplicationKind, ArgoApplicationSetKind } from '../../../types';
 import { getGVKFromK8Resource } from '../../../utils';
 import { ArogoApplicationSetModal } from './argo-application-set';
+import { DisableDrPolicyModal } from './subscriptions/disable-drpolicy';
 import { SubscriptionFailoverRelocateModal } from './subscriptions/failover-relocate-modal';
 
 export const ApplicationFailover = (props: ModalProps) => {
@@ -55,6 +56,33 @@ export const ApplicationRelocate = (props: ModalProps) => {
           resource={resource as ApplicationKind}
           isOpen={isOpen}
           close={close}
+        />
+      )}
+      {gvk === referenceForModel(ApplicationModel) && (
+        <SubscriptionFailoverRelocateModal
+          action={DRActionType.DISABLEPOLICY}
+          resource={resource as ApplicationKind}
+          isOpen={isOpen}
+          close={close}
+        />
+      )}
+    </>
+  );
+};
+
+export const DisableDrPolicy = (props: ModalProps) => {
+  const { resource, close, isOpen } = props;
+  const gvk = getGVKFromK8Resource(resource);
+
+  return (
+    <>
+      {gvk === referenceForModel(ApplicationModel) && (
+        <DisableDrPolicyModal
+          isOpen={isOpen}
+          extraProps={{
+            resource: resource,
+          }}
+          closeModal={close}
         />
       )}
     </>

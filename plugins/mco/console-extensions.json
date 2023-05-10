@@ -169,5 +169,21 @@
         "$codeRef": "appFailoverRelocate.ApplicationRelocate"
       }
     }
+  },
+  {
+    "type": "acm.application/action",
+    "properties": {
+      "id": "disablepolicy",
+      "title": "%plugin__acm~Disable Policy%",
+      "model": [
+        {
+          "apiVersion": "app.k8s.io/v1beta1",
+          "kind": "Application"
+        }
+      ],
+      "component": {
+        "$codeRef": "appDRPolicy.DisableDrPolicy"
+      }
+    }
   }
 ]

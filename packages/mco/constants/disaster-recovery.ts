@@ -20,6 +20,7 @@ export const DRPC_NAMESPACE_ANNOTATION =
 export enum DRActionType {
   FAILOVER = 'Failover',
   RELOCATE = 'Relocate',
+  DISABLEPOLICY = 'Disable Policy',
 }
 
 export enum REPLICATION_TYPE {
