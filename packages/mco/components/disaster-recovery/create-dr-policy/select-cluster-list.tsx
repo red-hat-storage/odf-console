@@ -165,7 +165,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   const onSelect: DataListCheckProps['onChange'] = (checked, event) => {
     const {
       name,
-      region,
+      region: clusterRegion,
       odfVersion,
       storageClusterName,
       storageSystemName,
@@ -177,7 +177,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
           ...selectedClusters,
           {
             name,
-            region,
+            region: clusterRegion,
             cephFSID,
             storageSystemName,
             storageClusterName,
@@ -227,10 +227,10 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
                 data-test="region-default-select-option"
               />
               <>
-                {filterRegions(filteredClusters).map((region) => (
+                {filterRegions(filteredClusters).map((clusterRegion) => (
                   <SelectOption
-                    value={region}
-                    key={region}
+                    value={clusterRegion}
+                    key={clusterRegion}
                     data-test="region-select-option"
                   />
                 ))}

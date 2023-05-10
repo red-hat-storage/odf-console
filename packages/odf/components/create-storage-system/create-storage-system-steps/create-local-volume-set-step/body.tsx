@@ -43,14 +43,16 @@ import './body.scss';
 
 const diskModeDropdownOptions: JSX.Element[] = _.map(
   diskModeDropdownItems,
-  (v, _) => <SelectOption key={v} value={v} />
+  (v, _unused) => <SelectOption key={v} value={v} />
 );
 const diskSizeUnitDropdownOptions: JSX.Element[] = _.map(
   diskSizeUnitOptions,
-  (v, _) => <SelectOption key={v} value={v} />
+  (v, _unused) => <SelectOption key={v} value={v} />
 );
 const diskTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
-  _.map(diskTypeDropdownItems(t), (v, _) => <SelectOption key={v} value={v} />);
+  _.map(diskTypeDropdownItems(t), (v, _unused) => (
+    <SelectOption key={v} value={v} />
+  ));
 
 export enum FilterDiskBy {
   ALL_NODES = 'all-nodes',
@@ -154,7 +156,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
 
   const RADIO_GROUP_NAME = 'filter-by-nodes-radio-group';
 
-  const onRadioSelect = (_, event) => {
+  const onRadioSelect = (_unused, event) => {
     const { value } = event.target || { value: '' };
     value === FilterDiskBy.ALL_NODES
       ? dispatch({ type: 'wizard/setNodes', payload: allNodes })
@@ -167,7 +169,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
 
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =
-      loaded && !loadError ? data?.map((data) => getName(data)) : [];
+      loaded && !loadError ? data?.map((dataItem) => getName(dataItem)) : [];
 
     const fieldRequirements = [
       fieldRequirementsTranslations.maxChars(t, 253),

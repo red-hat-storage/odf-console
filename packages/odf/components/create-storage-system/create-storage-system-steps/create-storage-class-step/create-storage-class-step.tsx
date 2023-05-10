@@ -57,7 +57,7 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
 
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =
-      loaded && !loadError ? data?.map((data) => getName(data)) : [];
+      loaded && !loadError ? data?.map((dataItem) => getName(dataItem)) : [];
 
     const fieldRequirements = [
       fieldRequirementsTranslations.maxChars(t, 253),

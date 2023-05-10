@@ -384,7 +384,7 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
   }, [obcName, dispatch]);
 
   const save = (
-    _: any,
+    _unused: any,
     e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>
   ) => {
     e.preventDefault();

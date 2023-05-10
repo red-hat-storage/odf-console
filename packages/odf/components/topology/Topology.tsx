@@ -329,20 +329,20 @@ const TopologyViewComponent: React.FC = () => {
     const addedNodes = [];
     if (newNodesInExistingZones.length > 0) {
       requiresUpdate = true;
-      newNodesInExistingZones.forEach((nodeResource) => {
+      newNodesInExistingZones.forEach((newNode) => {
         const nodeModel = createNode({
-          id: getUID(nodeResource),
-          label: getName(nodeResource),
+          id: getUID(newNode),
+          label: getName(newNode),
           labelPosition: LabelPosition.bottom,
           badge: NodeModel.abbr,
           shape: NodeShape.ellipse,
           showStatusDecorator: true,
           showDecorators: true,
-          resource: nodeResource,
+          resource: newNode,
         });
         addedNodes.push(nodeModel);
         filtererdGraphNodes.forEach((n) =>
-          n.group && n.data.zone === getTopologyDomain(nodeResource)
+          n.group && n.data.zone === getTopologyDomain(newNode)
             ? n.children.push(nodeModel.id)
             : _.noop
         );
@@ -364,9 +364,9 @@ const TopologyViewComponent: React.FC = () => {
     if (newDeploymentNodes.length > 0) {
       requiresUpdate = true;
       newDeployments.forEach((deployment) => {
-        Object.entries(nodeDeploymentMap).forEach(([node, deployments]) => {
+        Object.entries(nodeDeploymentMap).forEach(([node, nodeDeployments]) => {
           const hasDeployment = !_.isUndefined(
-            deployments.find((d) => getUID(d) === getUID(deployment))
+            nodeDeployments.find((d) => getUID(d) === getUID(deployment))
           );
           if (hasDeployment) {
             filtererdGraphNodes.forEach((gNode) => {

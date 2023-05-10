@@ -322,10 +322,10 @@ export const getReplicasFromSelectedNodes = (
 
 export const getDeviceSetReplica = (
   isStretchCluster: boolean,
-  isFlexibleScaling: boolean,
+  isFlexibleReplicaScaling: boolean,
   nodes: WizardNodeState[]
 ) => {
-  if (isFlexibleScaling) {
+  if (isFlexibleReplicaScaling) {
     return OCS_DEVICE_SET_FLEXIBLE_REPLICA;
   }
   const replicas = getReplicasFromSelectedNodes(nodes);

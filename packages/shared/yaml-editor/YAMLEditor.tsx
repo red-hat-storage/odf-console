@@ -92,10 +92,10 @@ const YAMLEditor: React.FC<YAMLEditorProps> = ({
     setOpen(false);
   };
 
-  const updateYAML = (obj, model, newNamespace, newName) => {
+  const updateYAML = (obj, k8sModel, newNamespace, newName) => {
     setState({ ...state, success: null, errors: null });
     k8sUpdate({
-      model,
+      model: k8sModel,
       name: newName,
       ns: newNamespace,
       data: obj,

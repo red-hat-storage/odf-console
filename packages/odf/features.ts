@@ -257,16 +257,17 @@ export const detectSSAR = (setFlag: SetFeatureFlag) => {
     kind: 'SelfSubjectAccessReview',
   };
   const ssarDetectors: FeatureDetector[] = ssarChecks.map((ssarObj) => {
-    const fn = async (setFlag: SetFeatureFlag) => {
+    const fn = async (setFeatureFlag: SetFeatureFlag) => {
       try {
         ssar['spec'] = { resourceAttributes: ssarObj.resourceAttributes };
         const result: SelfSubjectAccessReviewKind = (await k8sCreate({
           model: SelfSubjectAccessReviewModel,
           data: ssar,
         })) as SelfSubjectAccessReviewKind;
-        result.status?.allowed && setFlag(ssarObj.flag, result.status?.allowed);
+        result.status?.allowed &&
+          setFeatureFlag(ssarObj.flag, result.status?.allowed);
       } catch (error) {
-        handleError(error, [ssarObj.flag], setFlag, fn, 2000);
+        handleError(error, [ssarObj.flag], setFeatureFlag, fn, 2000);
       }
     };
     return fn;

@@ -314,7 +314,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
       path: '',
       value: null,
     };
-    const osdSize = isNoProvionerSC
+    const osdSizeRequest = isNoProvionerSC
       ? defaultRequestSize.BAREMETAL
       : osdSizeWithUnit;
     let portable = !isNoProvionerSC;
@@ -332,7 +332,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
       patch.path = `/spec/storageDeviceSets/-`;
       patch.value = createDeviceSet(
         selectedSCName,
-        osdSize,
+        osdSizeRequest,
         portable,
         deviceSetReplica,
         deviceSetCount

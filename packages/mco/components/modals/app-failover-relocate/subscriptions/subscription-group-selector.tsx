@@ -171,7 +171,7 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
             ...generatedOptions.validOptions,
             ...generatedOptions.inValidOptions,
           ]);
-          setErrorMessage(0);
+          setErrorMessage(0 as ErrorMessageType);
         } else {
           setOptions([]);
           setSelected([]);
@@ -193,8 +193,8 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
       t,
     ]);
 
-    const onToggle = (isOpen) => {
-      setOpen(isOpen);
+    const onToggle = (isOpenFlag: boolean) => {
+      setOpen(isOpenFlag);
     };
 
     const onSelect = (_, selection) =>

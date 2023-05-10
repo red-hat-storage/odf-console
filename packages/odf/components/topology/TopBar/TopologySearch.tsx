@@ -26,12 +26,12 @@ const TopologySearchBar: React.FC = () => {
       element
         .requestFullscreen()
         // eslint-disable-next-line no-console
-        .catch((e) => console.error(e));
+        .catch((error) => console.error(error));
     } else {
       document
         .exitFullscreen()
         // eslint-disable-next-line no-console
-        .catch((e) => console.error(e));
+        .catch((error) => console.error(error));
     }
   };
   return (

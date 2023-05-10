@@ -66,7 +66,7 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
 
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =
-      loaded && !loadError ? data?.map((data) => getName(data)) : [];
+      loaded && !loadError ? data?.map((dataItem) => getName(dataItem)) : [];
 
     const fieldRequirements = [
       t('3-63 characters'),
@@ -208,8 +208,8 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
             data-test="bucket-class-description"
             id="bc-description"
             value={state.description}
-            onChange={(data) =>
-              dispatch({ type: 'setDescription', value: data })
+            onChange={(description) =>
+              dispatch({ type: 'setDescription', value: description })
             }
             aria-label={t('Description of bucket class')}
           />
