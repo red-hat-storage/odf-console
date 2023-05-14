@@ -5,6 +5,7 @@ import {
   ACMManagedClusterKind,
   ACMPlacementDecisionKind,
   ACMPlacementKind,
+  ACMPlacementRuleKind,
 } from '../types';
 
 // Finding placement from application generators
@@ -26,10 +27,14 @@ export const findPlacementDecisionUsingPlacement = (
     )
   );
 
-export const findDeploymentClusterName = (
+export const findDeploymentClusterNames = (
   placementDecision: ACMPlacementDecisionKind
-): string => {
-  return placementDecision?.status?.decisions?.[0]?.clusterName || '';
+): string[] => {
+  return (
+    placementDecision?.status?.decisions?.map(
+      (decision) => decision?.clusterName
+    ) || []
+  );
 };
 
 export const getManagedClusterAvailableCondition = (
@@ -62,3 +67,17 @@ export const findPlacementFromArgoAppSet = (
       getNamespace(placement) === getNamespace(application) &&
       findPlacementNameFromAppSet(application) === getName(placement)
   );
+
+export const getClusterNamesFromPlsRule = (plsRule: ACMPlacementRuleKind) =>
+  plsRule?.status?.decisions?.map((decision) => decision?.clusterName) || [];
+
+export const getClusterNamesFromPlacement = (
+  placement: ACMPlacementKind,
+  plsDecisions: ACMPlacementDecisionKind[]
+): string[] => {
+  const plsDecision = findPlacementDecisionUsingPlacement(
+    placement,
+    plsDecisions
+  );
+  return findDeploymentClusterNames(plsDecision);
+};

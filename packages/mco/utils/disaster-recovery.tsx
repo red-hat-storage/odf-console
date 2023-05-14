@@ -22,6 +22,7 @@ import {
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { TFunction } from 'i18next';
+import * as _ from 'lodash-es';
 import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
 import {
   VOLUME_REPLICATION_HEALTH,
@@ -54,14 +55,15 @@ import {
   DRVolumeReplicationGroupKind,
   ProtectedPVCData,
   ProtectedAppSetsMap,
+  ACMPlacementDecisionKind,
 } from '../types';
 
-export type PlacementRuleMap = {
-  [placementRuleName: string]: string;
+export type PlacementMap = {
+  [uniqueId: string]: string;
 };
 
 export type SubscriptionMap = {
-  [placementRuleName: string]: string[];
+  [uniqueId: string]: string[];
 };
 
 export type ApplicationDRInfo = {
@@ -131,20 +133,45 @@ export const isObjectRefMatching = (
   objectRefList: string[]
 ): boolean => objectRefList?.includes(objectRef?.name);
 
-export const filterDRPlacementRuleNames = (
+export const getPlacementUniqueId = (name: string, namespace: string, kind) =>
+  `${name}%${namespace}%${kind}`;
+
+export const getPlacementRuleNameMap = (
   placementRules: ACMPlacementRuleKind[]
-): PlacementRuleMap =>
+): PlacementMap =>
   placementRules?.reduce(
     (acc, placementRule) =>
       placementRule?.spec?.schedulerName === DR_SECHEDULER_NAME
         ? {
             ...acc,
-            [getName(placementRule)]:
-              placementRule?.status?.decisions?.[0].clusterName || '',
+            [getPlacementUniqueId(
+              getName(placementRule),
+              getNamespace(placementRule),
+              placementRule?.kind
+            )]: placementRule?.status?.decisions?.[0].clusterName || '',
           }
         : acc,
     {}
   );
+
+export const getPlacementNameMap = (
+  placementDecisions: ACMPlacementDecisionKind[]
+): PlacementMap =>
+  placementDecisions?.reduce((acc, plsDecision) => {
+    const ownerRef = plsDecision?.metadata?.ownerReferences?.find(
+      (ownerRef) => ownerRef?.kind === ACMPlacementModel?.kind
+    );
+    return !_.isEmpty(ownerRef)
+      ? {
+          ...acc,
+          [getPlacementUniqueId(
+            ownerRef?.name,
+            getNamespace(plsDecision),
+            ACMPlacementModel?.kind
+          )]: plsDecision?.status?.decisions?.[0].clusterName || '',
+        }
+      : acc;
+  }, {});
 
 export const isPlacementRuleModel = (subscription: ACMSubscriptionKind) =>
   getPlacementKind(subscription) === ACMPlacementRuleModel?.kind;
@@ -152,7 +179,7 @@ export const isPlacementRuleModel = (subscription: ACMSubscriptionKind) =>
 export const filterDRSubscriptions = (
   application: ApplicationKind,
   subscriptions: ACMSubscriptionKind[],
-  placementRuleMap: PlacementRuleMap
+  placementMap: PlacementMap
 ): SubscriptionMap =>
   subscriptions?.reduce((acc, subscription) => {
     const placementRuleName = subscription?.spec?.placement?.placementRef?.name;
@@ -160,7 +187,7 @@ export const filterDRSubscriptions = (
       isPlacementRuleModel(subscription) &&
       isObjectRefMatching(
         subscription?.spec?.placement?.placementRef,
-        Object.keys(placementRuleMap) || []
+        Object.keys(placementMap) || []
       ) &&
       matchApplicationToSubscription(subscription, application)
         ? {
@@ -177,7 +204,7 @@ export const filterDRSubscriptions = (
 export const getAppDRInfo = (
   drPlacementControls: DRPlacementControlKind[],
   subscriptionMap: SubscriptionMap,
-  placementRuleMap: PlacementRuleMap
+  placementMap: PlacementMap
 ): ApplicationDRInfo[] =>
   drPlacementControls?.reduce(
     (acc, drPlacementControl) =>
@@ -192,7 +219,7 @@ export const getAppDRInfo = (
               subscriptions:
                 subscriptionMap?.[drPlacementControl?.spec?.placementRef?.name],
               clusterName: getPlacementClusterName(
-                placementRuleMap,
+                placementMap,
                 drPlacementControl
               ),
             },
@@ -202,9 +229,9 @@ export const getAppDRInfo = (
   );
 
 export const getPlacementClusterName = (
-  placementRuleMap: PlacementRuleMap,
+  placementMap: PlacementMap,
   drpc: DRPlacementControlKind
-) => placementRuleMap?.[drpc?.spec?.placementRef?.name] || '';
+) => placementMap?.[drpc?.spec?.placementRef?.name] || '';
 
 export const getDRPolicyName = (drpc: DRPlacementControlKind) =>
   drpc?.spec?.drPolicyRef?.name;

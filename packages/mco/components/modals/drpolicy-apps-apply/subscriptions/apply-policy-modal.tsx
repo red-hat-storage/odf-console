@@ -1,25 +1,22 @@
 import * as React from 'react';
 import { LoadingInline } from '@odf/shared/generic/Loading';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import { objectify } from '@odf/shared/modals/EditLabelModal';
 import {
   ModalBody,
   ModalFooter,
   CommonModalProps,
 } from '@odf/shared/modals/Modal';
 import { SelectorInput } from '@odf/shared/modals/Selector';
-import { ApplicationModel } from '@odf/shared/models/common';
-import { getName, getNamespace, getLabels } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { K8sResourceKind } from '@odf/shared/types';
 import { ApplicationKind } from '@odf/shared/types/k8s';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getAPIVersionForModel, referenceForModel } from '@odf/shared/utils';
 import {
   k8sPatch,
   k8sCreate,
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import * as _ from 'lodash-es';
 import {
   Alert,
   Text,
@@ -33,146 +30,109 @@ import {
   FormGroup,
   Checkbox,
 } from '@patternfly/react-core';
-import { DR_SECHEDULER_NAME, HUB_CLUSTER_NAME } from '../../../../constants';
 import {
-  ACMPlacementRuleModel,
-  ACMSubscriptionModel,
-  DRPlacementControlModel,
-  DRPolicyModel,
-} from '../../../../models';
+  getApplicationResourceObj,
+  useSubscriptionAppInfoParser,
+  useDisasterRecoveryinfoParser,
+  PlacementInfoType,
+  SubscriptionInfoType,
+  getSubscriptionResourceObj,
+  getPlacementResourceObj,
+  getPlacementDecisionsResourceObj,
+  getPlacementRuleResourceObj,
+  getDRPlacementControlResourceObj,
+} from '../../../../hooks';
 import {
   DRPolicyKind,
   ACMPlacementRuleKind,
   ACMSubscriptionKind,
   DRPlacementControlKind,
-  AppToPlacementRule,
+  AppToPlacementMap,
+  ACMPlacementKind,
+  ACMPlacementDecisionKind,
+  PlacementToSubscriptionInfo,
 } from '../../../../types';
-import {
-  matchApplicationToSubscription,
-  getPlacementKind,
-} from '../../../../utils';
+import { getPlacementUniqueId } from '../../../../utils';
 import { ApplicationSelector } from './application-selector';
+import { getDRPCCrateObject, getPlacementPatchObj } from './utils';
 import './apply-policy-modal.scss';
 import '../../../../style.scss';
 
-type ApplyModalExtraProps = {
-  resource: DRPolicyKind;
-  resourceModel: K8sModel;
-};
-
-type ApplicationMap = {
-  [namespace in string]: {
-    [app in string]: ApplicationKind;
-  };
-};
-
-type SubcsriptionMap = {
-  [namespace in string]: {
-    [sub in string]: ACMSubscriptionKind;
-  };
-};
-
-type PlacementRuleMap = {
-  [namespace in string]: {
-    [plsRule in string]: ACMPlacementRuleKind;
-  };
-};
-
 const resources = {
-  applications: {
-    kind: referenceForModel(ApplicationModel),
-    namespaced: false,
-    isList: true,
-    cluster: HUB_CLUSTER_NAME,
-  },
-  subscriptions: {
-    kind: referenceForModel(ACMSubscriptionModel),
-    namespaced: false,
-    isList: true,
-    cluster: HUB_CLUSTER_NAME,
-  },
-  placementRules: {
-    kind: referenceForModel(ACMPlacementRuleModel),
-    namespaced: false,
-    isList: true,
-    cluster: HUB_CLUSTER_NAME,
-  },
+  applications: getApplicationResourceObj(),
+  subscriptions: getSubscriptionResourceObj(),
+  placementRules: getPlacementRuleResourceObj(),
+  placements: getPlacementResourceObj(),
+  placementDecisions: getPlacementDecisionsResourceObj(),
+  drPlacementControls: getDRPlacementControlResourceObj(),
 };
 
-const getDRPlacementControlKindObj = (
-  plsRule: ACMPlacementRuleKind,
-  resource: DRPolicyKind,
-  managedClusterNames: string[],
-  pvcSelectors: string[]
-): DRPlacementControlKind => ({
-  apiVersion: getAPIVersionForModel(DRPlacementControlModel),
-  kind: DRPlacementControlModel.kind,
-  metadata: {
-    name: `${getName(plsRule)}-drpc`,
-    namespace: getNamespace(plsRule),
-    labels: getLabels(plsRule),
-  },
-  spec: {
-    drPolicyRef: {
-      name: getName(resource),
-      kind: DRPolicyModel.kind,
-      apiVersion: getAPIVersionForModel(DRPolicyModel),
-    },
-    placementRef: {
-      name: getName(plsRule),
-      kind: plsRule?.kind,
-      namespace: getNamespace(plsRule),
-      apiVersion: getAPIVersionForModel(ACMPlacementRuleModel),
-    },
-    preferredCluster: clusterMatch(plsRule, managedClusterNames)?.[
-      'clusterName'
-    ],
-    pvcSelector: {
-      matchLabels: objectify(pvcSelectors),
-    },
-  },
-});
-
-const clusterMatch = (
-  plsRule: ACMPlacementRuleKind,
-  managedClusterNames: string[]
+const getDeploymentClusterName = (
+  placementInfo: PlacementInfoType,
+  drClusters: string[]
 ) =>
-  plsRule?.status?.decisions.find(
-    (decision) =>
-      managedClusterNames?.includes(decision?.clusterName) &&
-      managedClusterNames?.includes(decision?.clusterNamespace)
-  ) || {};
-
-const appFilter = (application: ApplicationKind) =>
-  application?.spec?.componentKinds?.some(
-    (componentKind) =>
-      componentKind?.group === ACMSubscriptionModel?.apiGroup &&
-      componentKind?.kind === ACMSubscriptionModel?.kind
+  placementInfo?.deploymentClusters?.find((clusterName) =>
+    drClusters?.includes(clusterName)
   );
 
-const getSelectedPlacementRules = (
+const getSelectedPlacements = (
   selectedApps: TreeViewDataItem[]
 ): TreeViewDataItem[] => selectedApps.filter((app) => !app.children);
 
-const filterSelectedPlacementRules = (
+const filterSelectedPlacements = (
   checkedItems: TreeViewDataItem[],
-  appToPlacementRuleMap: AppToPlacementRule
-): ACMPlacementRuleKind[] => {
-  // Remove duplicate placement rules when it is used under more than one apps
-  const placementRules: ACMPlacementRuleKind[] = [];
+  appToPlacementMap: AppToPlacementMap
+): PlacementToSubscriptionInfo => {
+  // Remove duplicate placement when it is used under more than one apps
+  const placements: PlacementToSubscriptionInfo = {};
   checkedItems?.forEach((app) => {
     const appId = app.id.split(':')[0];
-    if (Object.keys(appToPlacementRuleMap).includes(appId) && !app?.children) {
-      const placementRuleId = app.id.split(':')[1];
-      const appToPlsRuleMap = appToPlacementRuleMap?.[appId];
-      const plsRule =
-        appToPlsRuleMap?.placements?.[placementRuleId]?.placementRules;
-      if (!placementRules.includes(plsRule)) {
-        placementRules.push(plsRule);
+    if (Object.keys(appToPlacementMap).includes(appId) && !app?.children) {
+      const placementId = app.id.split(':')[1];
+      if (!Object.keys(placements).includes(placementId)) {
+        const appToPlsMap = appToPlacementMap?.[appId];
+        const placementInfo = appToPlsMap?.placements?.[placementId];
+        placements[placementId] = placementInfo;
       }
     }
   });
-  return placementRules;
+  return placements;
+};
+
+const updateAppToPlsMap = (
+  appName: string,
+  appNamespace: string,
+  subscriptionInfo: SubscriptionInfoType,
+  appToPlsMap: AppToPlacementMap,
+  isClusterMatched: boolean,
+  isDRProtected: boolean
+) => {
+  if (isClusterMatched && !isDRProtected) {
+    const { placementInfo } = subscriptionInfo;
+    // appUniqueName will handle the corner case of same app name used across namespaces.
+    const appUniqueName = `${appName}%${appNamespace}`;
+    // placementUniqueName is used to group the multiple subscription set under the same app.
+    const placementUniqueName = `${appUniqueName}%${getPlacementUniqueId(
+      getName(placementInfo),
+      getNamespace(placementInfo),
+      placementInfo?.kind
+    )}`;
+    if (appUniqueName in appToPlsMap) {
+      let placements = appToPlsMap[appUniqueName]?.placements;
+      placements[placementUniqueName] = subscriptionInfo;
+    } else {
+      // app to placement rule map
+      appToPlsMap[appUniqueName] = {
+        application: {
+          appName,
+          appNamespace,
+        },
+        placements: {
+          [placementUniqueName]: subscriptionInfo,
+        },
+      };
+    }
+  }
 };
 
 const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
@@ -181,10 +141,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
   const { t } = useCustomTranslation();
   const { closeModal, isOpen, extraProps } = props;
   const { resource } = extraProps;
-  const managedClusterNames = React.useMemo(
-    () => resource?.spec?.drClusters ?? [],
-    [resource?.spec?.drClusters]
-  );
+  const { drClusters } = resource?.spec;
 
   const [labels, setLabels] = React.useState<string[]>([]);
   const [isProtectAllPVCChecked, setProtectAllPVC] = React.useState(false);
@@ -193,217 +150,129 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
   const [selectedApps, setSelectedApps] = React.useState<{
     checkedItems: TreeViewDataItem[];
   }>({ checkedItems: [] });
-  const [applicationMap, setApplicationMap] = React.useState<ApplicationMap>(
-    {}
-  );
-  const [subscriptionMap, setSubscriptionMap] = React.useState<SubcsriptionMap>(
-    {}
-  );
-  const [placementRuleMap, setPlacementRuleMap] =
-    React.useState<PlacementRuleMap>({});
-  const [appToPlacementRuleMap, setAppToPlacementRuleMap] =
-    React.useState<AppToPlacementRule>({});
 
-  const response = useK8sWatchResources(resources);
-  const memoizedResponse = useDeepCompareMemoize(response, true);
-
-  React.useEffect(() => {
-    const applicationsLoaded = memoizedResponse?.applications?.loaded;
-    const applicationsLoadError = memoizedResponse?.applications?.loadError;
-    const applications = (memoizedResponse?.applications?.data ??
-      []) as ApplicationKind[];
-
-    const subscriptionsLoaded = memoizedResponse?.subscriptions?.loaded;
-    const subscriptionsLoadError = memoizedResponse?.subscriptions?.loadError;
-    const subscriptions = (memoizedResponse?.subscriptions?.data ??
-      []) as ACMSubscriptionKind[];
-
-    const placementRulesLoaded = memoizedResponse?.placementRules?.loaded;
-    const placementRulesLoadError = memoizedResponse?.placementRules?.loadError;
-    const placementRules = (memoizedResponse?.placementRules?.data ??
-      []) as ACMPlacementRuleKind[];
-
-    const errorMessage =
-      applicationsLoadError ||
-      subscriptionsLoadError ||
-      placementRulesLoadError;
-    setError(!!errorMessage ? errorMessage?.message : '');
-
-    if (applicationsLoaded && !applicationsLoadError) {
-      // namespace wise application object
-      const appMap: ApplicationMap = applications?.reduce(
-        (arr, application) =>
-          appFilter(application)
-            ? {
-                ...arr,
-                [getNamespace(application)]: {
-                  ...arr[getNamespace(application)],
-                  [getName(application)]: application,
-                },
-              }
-            : arr,
-        {}
-      );
-      setApplicationMap(appMap);
-    }
-
-    if (subscriptionsLoaded && !subscriptionsLoadError) {
-      const isPlacementRuleModel = (subscription: ACMSubscriptionKind) =>
-        getPlacementKind(subscription) === ACMPlacementRuleModel?.kind;
-      // namespace wise subscription object
-      const subsMap: SubcsriptionMap = subscriptions?.reduce(
-        (arr, subscription) =>
-          isPlacementRuleModel(subscription)
-            ? {
-                ...arr,
-                [getNamespace(subscription)]: {
-                  ...arr[getNamespace(subscription)],
-                  [getName(subscription)]: subscription,
-                },
-              }
-            : arr,
-        {}
-      );
-      setSubscriptionMap(subsMap);
-    }
-
-    if (placementRulesLoaded && !placementRulesLoadError) {
-      // namespace wise placementrule object
-      const plRuleMap: PlacementRuleMap = placementRules?.reduce(
-        (arr, placementRule) => ({
-          ...arr,
-          [getNamespace(placementRule)]: {
-            ...arr[getNamespace(placementRule)],
-            [getName(placementRule)]: placementRule,
-          },
-        }),
-        {}
-      );
-      setPlacementRuleMap(plRuleMap);
-    }
-  }, [memoizedResponse, setError]);
-
-  React.useEffect(() => {
-    const generateApplicationToPlacementRuleMap = (
-      app: ApplicationKind
-    ): AppToPlacementRule => {
-      let appToPlsRuleMap: AppToPlacementRule = {};
-      const appName = getName(app);
-      const appNamespace = getNamespace(app);
-      const namespcedSubscriptions = subscriptionMap?.[appNamespace] ?? {};
-
-      Object.values(namespcedSubscriptions).forEach((subs) => {
-        // applying subscription filter from application
-        const valid = matchApplicationToSubscription(subs, app);
-        if (valid) {
-          // fetch placement rule using subscriptions
-          const plsRule =
-            placementRuleMap?.[appNamespace]?.[
-              subs?.spec?.placement?.placementRef?.name
-            ];
-          const plsRuleName = getName(plsRule);
-          // generating application to placement rule map
-          const matchedCluster = clusterMatch(plsRule, managedClusterNames);
-          if (
-            Object.keys(matchedCluster).length &&
-            plsRule?.spec?.schedulerName !== DR_SECHEDULER_NAME
-          ) {
-            // placementUniqueName is used to group the multiple subscription set under the same app.
-            const placementUniqueName = `${appName}-${appNamespace}-${plsRuleName}`;
-            // appUniqueName will handle the corner case of same app name used across namespaces.
-            const appUniqueName = `${appName}-${appNamespace}`;
-            const placement = {
-              [placementUniqueName]: {
-                placementRules: plsRule,
-                subscriptions: [subs],
-              },
-            };
-            if (appUniqueName in appToPlsRuleMap) {
-              let placements = appToPlsRuleMap[appUniqueName]?.placements;
-              if (
-                placementUniqueName in appToPlsRuleMap[appUniqueName].placements
-              ) {
-                // same placement rule is present for more than on subscription
-                placements?.[placementUniqueName]?.subscriptions.push(subs);
-              } else {
-                placements[placementUniqueName] =
-                  placement[placementUniqueName];
-              }
-            } else {
-              // app to placement rule map
-              appToPlsRuleMap[appUniqueName] = {
-                application: app,
-                placements: placement,
-              };
-            }
-          }
-        }
-      });
-
-      return appToPlsRuleMap;
-    };
-
-    if (
-      Object.keys(applicationMap).length > 0 &&
-      Object.keys(subscriptionMap).length > 0 &&
-      Object.keys(placementRuleMap).length > 0
-    ) {
-      let appToPlsRuleMap: AppToPlacementRule = {};
-      Object.keys(applicationMap).forEach((namespace) => {
-        Object.keys(applicationMap[namespace]).forEach((name) => {
-          appToPlsRuleMap = {
-            ...appToPlsRuleMap,
-            ...generateApplicationToPlacementRuleMap(
-              applicationMap[namespace][name]
-            ),
-          };
+  const response =
+    useK8sWatchResources<ApplicationWatchResourceType>(resources);
+  const {
+    data: apps,
+    loaded: appsLoaded,
+    loadError: appsLoadError,
+  } = response?.applications;
+  const {
+    data: subs,
+    loaded: subsLoaded,
+    loadError: subsLoadError,
+  } = response?.subscriptions;
+  const {
+    data: plsRules,
+    loaded: plsRulesLoaded,
+    loadError: plsRulesLoadError,
+  } = response?.placementRules;
+  const {
+    data: pls,
+    loaded: plsLoaded,
+    loadError: plsLoadError,
+  } = response?.placements;
+  const {
+    data: plsDecisions,
+    loaded: plsDecisionLoaded,
+    loadError: plsDecisionLoadError,
+  } = response?.placementDecisions;
+  const {
+    data: drpcs,
+    loaded: drpcsLoaded,
+    loadError: drpcsLoadError,
+  } = response?.drPlacementControls;
+  const loaded =
+    appsLoaded &&
+    subsLoaded &&
+    plsRulesLoaded &&
+    plsLoaded &&
+    plsDecisionLoaded &&
+    drpcsLoaded;
+  const loadError =
+    appsLoadError ||
+    subsLoadError ||
+    plsRulesLoadError ||
+    plsLoadError ||
+    plsDecisionLoadError ||
+    drpcsLoadError;
+  const disasterRecoveryInfo = useDisasterRecoveryinfoParser({
+    drPlacementControls: drpcs,
+    loaded: drpcsLoaded,
+    loadError: drpcsLoadError,
+  });
+  const subscriptionAppInfo = useSubscriptionAppInfoParser({
+    applications: apps,
+    subscriptions: subs,
+    placementRules: plsRules,
+    placements: pls,
+    placementDecisions: plsDecisions,
+    disasterRecoveryInfo,
+    loaded:
+      appsLoaded &&
+      subsLoaded &&
+      plsRulesLoaded &&
+      plsLoaded &&
+      plsDecisionLoaded &&
+      drpcsLoaded,
+    loadError:
+      appsLoadError ||
+      subsLoadError ||
+      plsRulesLoadError ||
+      plsLoadError ||
+      plsDecisionLoadError ||
+      drpcsLoadError,
+  });
+  const appToPlsMap: AppToPlacementMap = React.useMemo(() => {
+    let appToPlsMap: AppToPlacementMap = {};
+    if (loaded && !loadError) {
+      subscriptionAppInfo?.forEach((appInfo) => {
+        appInfo?.subscriptionInfo?.forEach((subsInfo) => {
+          const isClusterMatched = !!getDeploymentClusterName(
+            subsInfo?.placementInfo,
+            drClusters
+          );
+          const isDREnabled = !_.isEmpty(subsInfo?.disasterRecoveryInfo);
+          updateAppToPlsMap(
+            getName(appInfo?.applicationInfo),
+            getNamespace(appInfo?.applicationInfo),
+            subsInfo,
+            appToPlsMap,
+            isClusterMatched,
+            isDREnabled
+          );
         });
       });
-      setAppToPlacementRuleMap(appToPlsRuleMap);
+    } else {
+      !!loadError && setError(loadError?.message);
     }
-  }, [applicationMap, subscriptionMap, placementRuleMap, managedClusterNames]);
+    return appToPlsMap;
+  }, [subscriptionAppInfo, drClusters, loaded, loadError, setError]);
 
-  const selectedPlacementRules = React.useMemo(
-    () => getSelectedPlacementRules(selectedApps.checkedItems),
+  const selectedPlacements = React.useMemo(
+    () => getSelectedPlacements(selectedApps.checkedItems),
     [selectedApps]
   );
 
   const submit = (event: React.FormEvent<EventTarget>) => {
     event.preventDefault();
     setLoading(true);
-    const selectedPlsRule: ACMPlacementRuleKind[] =
-      filterSelectedPlacementRules(
-        selectedApps?.checkedItems,
-        appToPlacementRuleMap
-      );
+    const filteredPlacements: PlacementToSubscriptionInfo =
+      filterSelectedPlacements(selectedApps?.checkedItems, appToPlsMap);
     const promises: Promise<K8sResourceKind>[] = [];
-    selectedPlsRule?.forEach((plsRule) => {
-      const patch = [
-        {
-          op: 'replace',
-          path: '/spec/schedulerName',
-          value: DR_SECHEDULER_NAME,
-        },
-      ];
+    Object.values(filteredPlacements)?.forEach((plsInfo) => {
+      const placement = plsInfo?.placementInfo;
+      promises.push(k8sPatch(getPlacementPatchObj(placement)));
       promises.push(
-        k8sPatch({
-          model: ACMPlacementRuleModel,
-          resource: plsRule,
-          data: patch,
-          cluster: HUB_CLUSTER_NAME,
-        })
-      );
-      promises.push(
-        k8sCreate({
-          model: DRPlacementControlModel,
-          data: getDRPlacementControlKindObj(
-            plsRule,
-            resource,
-            managedClusterNames,
-            selectedPlacementRules?.length <= 1 ? labels : []
-          ),
-          cluster: HUB_CLUSTER_NAME,
-        })
+        k8sCreate(
+          getDRPCCrateObject(
+            placement,
+            getDeploymentClusterName(placement, drClusters),
+            getName(resource),
+            Object.keys(filteredPlacements)?.length <= 1 ? labels : []
+          )
+        )
       );
     });
     Promise.all(promises)
@@ -434,12 +303,12 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
     >
       <ModalBody className="modalBody modalInput--lowHeight">
         <ApplicationSelector
-          applicationToPlacementRuleMap={appToPlacementRuleMap}
+          appToPlacementMap={appToPlsMap}
           selectedNames={selectedApps}
           setSelectedNames={setSelectedApps}
         />
         <Form className="mco-subs-apply-policy-modal__pvcselector">
-          {selectedPlacementRules?.length <= 1 ? (
+          {selectedPlacements?.length <= 1 ? (
             <FormGroup
               fieldId="pvc-selector"
               label={t('PVC label')}
@@ -503,8 +372,8 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
             variant={ButtonVariant.primary}
             onClick={submit}
             isDisabled={
-              !!selectedPlacementRules?.length
-                ? selectedPlacementRules?.length <= 1
+              !!selectedPlacements?.length
+                ? selectedPlacements?.length <= 1
                   ? !labels.length
                   : !isProtectAllPVCChecked
                 : true
@@ -518,6 +387,20 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
       </ModalFooter>
     </Modal>
   );
+};
+
+type ApplicationWatchResourceType = {
+  applications: ApplicationKind[];
+  subscriptions: ACMSubscriptionKind[];
+  placementRules: ACMPlacementRuleKind[];
+  placements: ACMPlacementKind[];
+  placementDecisions: ACMPlacementDecisionKind[];
+  drPlacementControls: DRPlacementControlKind[];
+};
+
+type ApplyModalExtraProps = {
+  resource: DRPolicyKind;
+  resourceModel: K8sModel;
 };
 
 export default ApplyDRPolicyModal;

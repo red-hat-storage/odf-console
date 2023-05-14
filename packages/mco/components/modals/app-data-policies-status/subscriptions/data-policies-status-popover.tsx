@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { getNamespace } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
@@ -16,22 +14,25 @@ import {
   FlexItem,
 } from '@patternfly/react-core';
 import {
-  ACMSubscriptionModel,
-  ACMPlacementRuleModel,
-  DRPlacementControlModel,
-} from '../../../../models';
+  getDRPlacementControlResourceObj,
+  getPlacementDecisionsResourceObj,
+  getPlacementRuleResourceObj,
+  getSubscriptionResourceObj,
+} from '../../../../hooks';
 import {
   DRPlacementControlKind,
   ACMPlacementRuleKind,
   ACMSubscriptionKind,
+  ACMPlacementDecisionKind,
 } from '../../../../types';
 import {
-  filterDRPlacementRuleNames,
+  getPlacementRuleNameMap,
+  getPlacementNameMap,
   filterDRSubscriptions,
   SubscriptionMap,
   getDRPolicyName,
   getDRPoliciesCount,
-  PlacementRuleMap,
+  PlacementMap,
   getAppDRInfo,
   ApplicationDRInfo,
   DRPolicyMap,
@@ -53,24 +54,10 @@ const getDRPolicies = (appDRInfoList: ApplicationDRInfo[]): DRPolicyMap =>
   }, {});
 
 const drResources = (namespace: string) => ({
-  subscriptions: {
-    kind: referenceForModel(ACMSubscriptionModel),
-    namespaced: true,
-    namespace,
-    isList: true,
-  },
-  placementRules: {
-    kind: referenceForModel(ACMPlacementRuleModel),
-    namespaced: true,
-    namespace,
-    isList: true,
-  },
-  drPlacementControls: {
-    kind: referenceForModel(DRPlacementControlModel),
-    namespaced: true,
-    namespace,
-    isList: true,
-  },
+  subscriptions: getSubscriptionResourceObj({ namespace }),
+  placementRules: getPlacementRuleResourceObj({ namespace }),
+  placementDecisions: getPlacementDecisionsResourceObj({ namespace }),
+  drPlacementControls: getDRPlacementControlResourceObj({ namespace }),
 });
 
 export const STATUS_MODAL = 'STATUS_MODAL';
@@ -85,71 +72,68 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
     const response = useK8sWatchResources<DataPoliciesResourceType>(
       drResources(getNamespace(application))
     );
-    const memoizedPlacementRule = useDeepCompareMemoize(
-      response.placementRules,
-      true
-    );
-    const memoizedSubscriptions = useDeepCompareMemoize(
-      response.subscriptions,
-      true
-    );
-    const memoizedDRPlacementControls = useDeepCompareMemoize(
-      response.drPlacementControls,
-      true
-    );
 
     const {
       data: placementRules,
       loaded: placementRulesLoaded,
       loadError: placementRulesLoadError,
-    } = memoizedPlacementRule;
+    } = response?.placementRules;
 
     const {
       data: subscriptions,
       loaded: subscriptionsLoaded,
       loadError: subscriptionsLoadError,
-    } = memoizedSubscriptions;
+    } = response?.subscriptions;
 
     const {
       data: drPlacementControls,
       loaded: drPlacementControlsLoaded,
       loadError: drPlacementControlsLoadError,
-    } = memoizedDRPlacementControls;
+    } = response?.drPlacementControls;
+
+    const {
+      data: placementDecisions,
+      loaded: placementDecisionsLoaded,
+      loadError: placementDecisionsLoadError,
+    } = response?.placementDecisions;
 
     const plsRuleLoaded = placementRulesLoaded && !placementRulesLoadError;
     const subsLoaded = subscriptionsLoaded && !subscriptionsLoadError;
     const drpcLoaded =
       drPlacementControlsLoaded && !drPlacementControlsLoadError;
+    const plsDecisionLoaded =
+      placementDecisionsLoaded && !placementDecisionsLoadError;
 
-    const placementRuleMap: PlacementRuleMap = React.useMemo(
-      () => (plsRuleLoaded && filterDRPlacementRuleNames(placementRules)) || {},
-      [placementRules, plsRuleLoaded]
-    );
+    const placementMap: PlacementMap = React.useMemo(() => {
+      const placementRuleMap = plsRuleLoaded
+        ? getPlacementRuleNameMap(placementRules)
+        : {};
+      const placementDecisionMap = plsDecisionLoaded
+        ? getPlacementNameMap(placementDecisions)
+        : {};
+      return { ...placementRuleMap, ...placementDecisionMap };
+    }, [placementRules, plsRuleLoaded, placementDecisions, plsDecisionLoaded]);
 
     const subscriptionMap: SubscriptionMap = React.useMemo(
       () =>
         (subsLoaded &&
-          !_.isEmpty(placementRuleMap) &&
-          filterDRSubscriptions(
-            application,
-            subscriptions,
-            placementRuleMap
-          )) ||
+          !_.isEmpty(placementMap) &&
+          filterDRSubscriptions(application, subscriptions, placementMap)) ||
         {},
-      [subscriptions, subsLoaded, placementRuleMap, application]
+      [subscriptions, subsLoaded, placementMap, application]
     );
 
     const [dataPoliciesStatus, count]: [DataPoliciesStatusType, number] =
       React.useMemo(() => {
         if (
           drpcLoaded &&
-          !_.isEmpty(placementRuleMap) &&
+          !_.isEmpty(placementMap) &&
           !_.isEmpty(subscriptionMap)
         ) {
           const appDRInfoList: ApplicationDRInfo[] = getAppDRInfo(
             drPlacementControls,
             subscriptionMap,
-            placementRuleMap
+            placementMap
           );
           const drPolicies = getDRPolicies(appDRInfoList);
           return [
@@ -160,7 +144,7 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
           ];
         }
         return [{ drPolicies: {} }, 0];
-      }, [drPlacementControls, drpcLoaded, subscriptionMap, placementRuleMap]);
+      }, [drPlacementControls, drpcLoaded, subscriptionMap, placementMap]);
 
     const [Modal, modalProps, launcher] = useModalLauncher(modalMap);
     const launchModal = React.useCallback(
@@ -231,4 +215,5 @@ type DataPoliciesResourceType = {
   placementRules: ACMPlacementRuleKind[];
   subscriptions: ACMSubscriptionKind[];
   drPlacementControls: DRPlacementControlKind[];
+  placementDecisions: ACMPlacementDecisionKind[];
 };

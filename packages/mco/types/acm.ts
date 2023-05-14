@@ -4,6 +4,7 @@ import {
   ObjectReference,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { SubscriptionInfoType } from '../hooks';
 import { ArgoApplicationSetKind } from './argo-cd';
 
 export type ACMManagedClusterKind = K8sResourceCommon & {
@@ -77,15 +78,17 @@ export type ACMPlacementDecisionKind = K8sResourceCommon & {
   };
 };
 
-export type AppToPlacementRule = {
+export type PlacementToSubscriptionInfo = {
+  [uniqueId in string]: SubscriptionInfoType;
+};
+
+export type AppToPlacementMap = {
   [appUniqueKey: string]: {
-    application: ApplicationKind;
-    placements: {
-      [placementUniqueKey: string]: {
-        placementRules: ACMPlacementRuleKind;
-        subscriptions: ACMSubscriptionKind[];
-      };
+    application?: {
+      appName?: string;
+      appNamespace?: string;
     };
+    placements?: PlacementToSubscriptionInfo;
   };
 };
 
