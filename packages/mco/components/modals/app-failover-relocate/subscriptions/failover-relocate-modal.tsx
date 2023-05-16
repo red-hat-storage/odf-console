@@ -118,7 +118,7 @@ export const SubscriptionFailoverRelocateModal: React.FC<FailoverRelocateModalPr
       state.drPolicyControlState.forEach((acmToDRState) => {
         if (
           state.selectedSubsGroups.includes(
-            getName(acmToDRState?.drPolicyControl)
+            getName(acmToDRState?.drPlacementControl)
           )
         ) {
           const patch = [
@@ -141,7 +141,7 @@ export const SubscriptionFailoverRelocateModal: React.FC<FailoverRelocateModalPr
           promises.push(
             k8sPatch({
               model: DRPlacementControlModel,
-              resource: acmToDRState?.drPolicyControl,
+              resource: acmToDRState?.drPlacementControl,
               data: patch,
             })
           );

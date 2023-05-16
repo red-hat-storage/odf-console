@@ -77,15 +77,20 @@ export type ACMPlacementDecisionKind = K8sResourceCommon & {
   };
 };
 
-export type AppToPlacementRule = {
+export type ACMPlacementType = ACMPlacementRuleKind | ACMPlacementKind;
+
+export type PlacementInfoType = {
+  [placementUniqueKey: string]: {
+    placement: ACMPlacementType;
+    subscriptions: ACMSubscriptionKind[];
+    deploymentClusterName: string;
+  };
+};
+
+export type AppToPlacementType = {
   [appUniqueKey: string]: {
     application: ApplicationKind;
-    placements: {
-      [placementUniqueKey: string]: {
-        placementRules: ACMPlacementRuleKind;
-        subscriptions: ACMSubscriptionKind[];
-      };
-    };
+    placements: PlacementInfoType;
   };
 };
 
