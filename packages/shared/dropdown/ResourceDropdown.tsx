@@ -113,6 +113,7 @@ type ResourceDropdownProps<T> = {
   filterResource?: (resource: T) => boolean;
   'data-test'?: string;
   id?: string;
+  selectedResource?: T;
 };
 
 type ResourceDropdown = <T>(
@@ -246,7 +247,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
                   }
                   resourceModel={resourceModel}
                   showBadge={selectedItem && showBadge}
-                  className={!selectedItem && 'text-muted'}
+                  className={!selectedItem ? 'text-muted' : undefined}
                 />
               ))}
             {loaded && loadError && (
@@ -297,6 +298,7 @@ export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
   secondaryTextGenerator,
   className,
   initialSelection,
+  selectedResource,
   filterResource,
 }) => {
   const [isOpen, setOpen] = React.useState(false);
@@ -345,11 +347,11 @@ export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
   const onClick = React.useCallback(
     (event: React.SyntheticEvent<HTMLDivElement>) => {
       const resourceUID = event?.currentTarget?.id;
-      const selectedResource = data.find(
+      const selectedObject = data.find(
         (resource) => getUID(resource) === resourceUID
       );
-      onSelect(selectedResource);
-      setSelectedItem(selectedResource);
+      onSelect(selectedObject);
+      setSelectedItem(selectedObject);
       setOpen(false);
     },
     [onSelect, setSelectedItem, data]
@@ -398,6 +400,12 @@ export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
     setOpen((o) => !o);
     setSearchText('');
   };
+
+  React.useEffect(() => {
+    if (selectedResource && !_.isEqual(selectedItem, selectedResource)) {
+      setSelectedItem(selectedResource);
+    }
+  }, [setSelectedItem, selectedResource, selectedItem]);
 
   return (
     <Dropdown
