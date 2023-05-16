@@ -9,11 +9,11 @@ import {
   hasLabel,
   getName,
   getNamespace,
+  getAnnotations,
 } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types/k8s';
 import {
   K8sResourceCommon,
-  ObjectReference,
   GreenCheckCircleIcon,
   Alert,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -35,6 +35,7 @@ import {
   DRPC_NAME_ANNOTATION,
   REPLICATION_TYPE,
   TIME_UNITS,
+  PROTECTED_APP_ANNOTATION,
 } from '../constants/disaster-recovery';
 import { DisasterRecoveryFormatted, ApplicationRefKind } from '../hooks';
 import {
@@ -55,18 +56,20 @@ import {
   ProtectedPVCData,
   ProtectedAppSetsMap,
   ACMPlacementDecisionKind,
+  ACMPlacementKind,
 } from '../types';
+import { findPlacementDecisionUsingPlacement } from './acm';
 
-export type PlacementRuleMap = {
-  [placementRuleName: string]: string;
+export type PlacementMap = {
+  [placementUniqueId: string]: string;
 };
 
 export type SubscriptionMap = {
-  [placementRuleName: string]: string[];
+  [placementUniqueId: string]: string[];
 };
 
 export type ApplicationDRInfo = {
-  drPolicyControl: DRPlacementControlKind;
+  drPlacementControl: DRPlacementControlKind;
   subscriptions: string[];
   clusterName: string; // current placement cluster
 };
@@ -119,7 +122,6 @@ export const matchApplicationToSubscription = (
         return isApplicationInSubscription(subscription, expr, true);
       case Operator.DoesNotExist:
         return isApplicationInSubscription(subscription, expr, false);
-        break;
       default:
         return false;
     }
@@ -127,49 +129,71 @@ export const matchApplicationToSubscription = (
   return valid;
 };
 
-export const isObjectRefMatching = (
-  objectRef: ObjectReference,
-  objectRefList: string[]
-): boolean => objectRefList?.includes(objectRef?.name);
+export const getPlacementUniqueId = (name: string, namespace: string, kind) =>
+  `${name}%${namespace}%${kind}`;
 
-export const filterDRPlacementRuleNames = (
-  placementRules: ACMPlacementRuleKind[]
-): PlacementRuleMap =>
-  placementRules?.reduce(
-    (acc, placementRule) =>
-      placementRule?.spec?.schedulerName === DR_SECHEDULER_NAME
+export const generateUniquePlacementMap = (
+  placementRules: ACMPlacementRuleKind[],
+  placements: ACMPlacementKind[],
+  placementDecisions: ACMPlacementDecisionKind[]
+): PlacementMap => {
+  let placementMap: PlacementMap = placementRules?.reduce(
+    (acc, plsRule) =>
+      plsRule?.spec?.schedulerName === DR_SECHEDULER_NAME
         ? {
             ...acc,
-            [getName(placementRule)]:
-              placementRule?.status?.decisions?.[0].clusterName || '',
+            [getPlacementUniqueId(
+              getName(plsRule),
+              getNamespace(plsRule),
+              plsRule?.kind
+            )]: plsRule?.status?.decisions?.[0]?.clusterName || '',
           }
         : acc,
     {}
   );
 
-export const isPlacementRuleModel = (subscription: ACMSubscriptionKind) =>
-  getPlacementKind(subscription) === ACMPlacementRuleModel?.kind;
+  placementMap = placements?.reduce((acc, pls) => {
+    const placementDecision = findPlacementDecisionUsingPlacement(
+      pls,
+      placementDecisions
+    );
+    acc = !!getAnnotations(pls)?.[PROTECTED_APP_ANNOTATION]
+      ? {
+          ...acc,
+          [getPlacementUniqueId(getName(pls), getNamespace(pls), pls?.kind)]:
+            placementDecision?.status?.decisions?.[0]?.clusterName || '',
+        }
+      : acc;
+    return acc;
+  }, placementMap);
+
+  return placementMap;
+};
+
+export const isPlacementModel = (subscription: ACMSubscriptionKind) =>
+  [ACMPlacementRuleModel?.kind, ACMPlacementModel?.kind].includes(
+    getPlacementKind(subscription)
+  );
 
 export const filterDRSubscriptions = (
   application: ApplicationKind,
   subscriptions: ACMSubscriptionKind[],
-  placementRuleMap: PlacementRuleMap
+  placementMap: PlacementMap
 ): SubscriptionMap =>
   subscriptions?.reduce((acc, subscription) => {
-    const placementRuleName = subscription?.spec?.placement?.placementRef?.name;
+    const placementRef = subscription?.spec?.placement?.placementRef;
+    const uniqueId = getPlacementUniqueId(
+      placementRef?.name,
+      placementRef?.namespace || getNamespace(application),
+      placementRef?.kind
+    );
     const subsMap =
-      isPlacementRuleModel(subscription) &&
-      isObjectRefMatching(
-        subscription?.spec?.placement?.placementRef,
-        Object.keys(placementRuleMap) || []
-      ) &&
+      isPlacementModel(subscription) &&
+      placementMap?.hasOwnProperty(uniqueId) &&
       matchApplicationToSubscription(subscription, application)
         ? {
             ...acc,
-            [placementRuleName]: [
-              ...(acc[placementRuleName] || []),
-              getName(subscription),
-            ],
+            [uniqueId]: [...(acc[uniqueId] || []), getName(subscription)],
           }
         : acc;
     return subsMap;
@@ -178,34 +202,26 @@ export const filterDRSubscriptions = (
 export const getAppDRInfo = (
   drPlacementControls: DRPlacementControlKind[],
   subscriptionMap: SubscriptionMap,
-  placementRuleMap: PlacementRuleMap
+  placementMap: PlacementMap
 ): ApplicationDRInfo[] =>
-  drPlacementControls?.reduce(
-    (acc, drPlacementControl) =>
-      isObjectRefMatching(
-        drPlacementControl?.spec?.placementRef,
-        Object.keys(subscriptionMap)
-      )
-        ? [
-            ...acc,
-            {
-              drPolicyControl: drPlacementControl,
-              subscriptions:
-                subscriptionMap?.[drPlacementControl?.spec?.placementRef?.name],
-              clusterName: getPlacementClusterName(
-                placementRuleMap,
-                drPlacementControl
-              ),
-            },
-          ]
-        : acc,
-    []
-  );
-
-export const getPlacementClusterName = (
-  placementRuleMap: PlacementRuleMap,
-  drpc: DRPlacementControlKind
-) => placementRuleMap?.[drpc?.spec?.placementRef?.name] || '';
+  drPlacementControls?.reduce((acc, drPlacementControl) => {
+    const placementRef = drPlacementControl?.spec?.placementRef;
+    const uniqueId = getPlacementUniqueId(
+      placementRef?.name,
+      placementRef?.namespace || getNamespace(drPlacementControl),
+      placementRef?.kind
+    );
+    return subscriptionMap?.hasOwnProperty(uniqueId)
+      ? [
+          ...acc,
+          {
+            drPlacementControl: drPlacementControl,
+            subscriptions: subscriptionMap?.[uniqueId],
+            clusterName: placementMap?.[uniqueId] || '',
+          },
+        ]
+      : acc;
+  }, []);
 
 export const getDRPolicyName = (drpc: DRPlacementControlKind) =>
   drpc?.spec?.drPolicyRef?.name;

@@ -5,7 +5,7 @@ import {
   ObjectReference,
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { ACMPlacementModel, ACMPlacementRuleModel } from '../models';
+import { ACMPlacementModel } from '../models';
 import {
   ACMSubscriptionKind,
   ArgoApplicationSetKind,
@@ -63,20 +63,19 @@ const createSubsApplicationReferences = (
     applications?.forEach((application) => {
       const namespace = getNamespace(application);
       const filteredSubs = filterSubsUsingApplication(subsMapping, application);
-      const placementRuleRefs: ObjectReference[] = filteredSubs?.map((sub) => ({
-        apiVersion: `${ACMPlacementRuleModel.apiGroup}/${ACMPlacementRuleModel.apiVersion}`,
-        kind: ACMPlacementRuleModel.kind,
+      const placementRefs: ObjectReference[] = filteredSubs?.map((sub) => ({
+        kind: sub?.spec?.placement?.placementRef?.kind,
         name: sub?.spec?.placement?.placementRef?.name,
         namespace,
       }));
-      applicationRefs = !!placementRuleRefs?.length
+      applicationRefs = !!placementRefs?.length
         ? [
             ...applicationRefs,
             {
               applicationName: getName(application),
               applicationNamespace: namespace,
               applicationType: SubscriptionType,
-              placementRef: placementRuleRefs,
+              placementRef: placementRefs,
               workLoadNamespace: namespace,
             },
           ]
@@ -102,7 +101,6 @@ const createApplicationSetReferences = (
           applicationType: ApplicaitonSetType,
           placementRef: [
             {
-              apiVersion: `${ACMPlacementModel.apiGroup}/${ACMPlacementModel.apiVersion}`,
               kind: ACMPlacementModel.kind,
               name: findPlacementNameFromAppSet(application),
               namespace,

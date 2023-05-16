@@ -13,7 +13,7 @@ import {
   SearchInput,
   Bullseye,
 } from '@patternfly/react-core';
-import { AppToPlacementRule } from '../../../../types';
+import { AppToPlacementType } from '../../../../types';
 import './application-selector.scss';
 
 type TreeViewDataItemMap = {
@@ -26,7 +26,7 @@ type BadgeProps = {
 };
 
 type ApplicationSelectorProps = {
-  applicationToPlacementRuleMap: AppToPlacementRule;
+  applicationToPlacementMap: AppToPlacementType;
   selectedNames: TreeViewDataItemMap;
   setSelectedNames: React.Dispatch<React.SetStateAction<TreeViewDataItemMap>>;
 };
@@ -125,8 +125,7 @@ const filterOptions = (option: TreeViewDataItem, searchValue: string) =>
 export const ApplicationSelector: React.FC<ApplicationSelectorProps> = (
   props
 ) => {
-  const { applicationToPlacementRuleMap, selectedNames, setSelectedNames } =
-    props;
+  const { applicationToPlacementMap, selectedNames, setSelectedNames } = props;
 
   const { t } = useCustomTranslation();
   const [options, setOptions] = React.useState<TreeViewDataItem[]>([]);
@@ -137,33 +136,31 @@ export const ApplicationSelector: React.FC<ApplicationSelectorProps> = (
 
   React.useEffect(() => {
     const tempItem: TreeViewDataItem[] = [];
-    Object.keys(applicationToPlacementRuleMap).forEach((appUniqueName) => {
+    Object.keys(applicationToPlacementMap).forEach((appUniqueName) => {
       const childerns: TreeViewDataItem[] = [];
-      Object.keys(
-        applicationToPlacementRuleMap[appUniqueName]?.placements
-      ).forEach((placementUniqueName) => {
-        const placementName =
-          applicationToPlacementRuleMap[appUniqueName].placements[
-            placementUniqueName
-          ];
-        const { subscriptions, placementRules } = placementName || {};
-        const subNames = subscriptions?.map(getName);
-        childerns.push({
-          name: (
-            <Badge
-              subNames={subNames}
-              plsRule={getName(placementRules)}
-              key={getName(placementRules)}
-            />
-          ),
-          id: `${appUniqueName}:${placementUniqueName}`,
-          checkProps: { checked: false },
-        });
-      });
+      Object.keys(applicationToPlacementMap[appUniqueName]?.placements).forEach(
+        (placementUniqueName) => {
+          const placementName =
+            applicationToPlacementMap[appUniqueName].placements[
+              placementUniqueName
+            ];
+          const { subscriptions, placement } = placementName || {};
+          const subNames = subscriptions?.map(getName);
+          childerns.push({
+            name: (
+              <Badge
+                subNames={subNames}
+                plsRule={getName(placement)}
+                key={getName(placement)}
+              />
+            ),
+            id: `${appUniqueName}:${placementUniqueName}`,
+            checkProps: { checked: false },
+          });
+        }
+      );
       tempItem.push({
-        name: getName(
-          applicationToPlacementRuleMap?.[appUniqueName]?.application
-        ),
+        name: getName(applicationToPlacementMap?.[appUniqueName]?.application),
         id: appUniqueName,
         checkProps: { checked: false },
         children: childerns,
@@ -171,7 +168,7 @@ export const ApplicationSelector: React.FC<ApplicationSelectorProps> = (
       });
       setOptions(tempItem);
     });
-  }, [applicationToPlacementRuleMap]);
+  }, [applicationToPlacementMap]);
 
   React.useEffect(() => {
     searchAppName === '' && setFilteredOptions(options);

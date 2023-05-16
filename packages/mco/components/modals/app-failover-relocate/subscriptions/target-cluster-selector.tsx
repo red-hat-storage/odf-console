@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { utcDateTimeFormatterWithTimeZone } from '@odf/shared/details-page/datetime';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
 import {
   GreenCheckCircleIcon,
   RedExclamationCircleIcon,
@@ -21,7 +19,10 @@ import {
 } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
 import { DRActionType, REPLICATION_TYPE } from '../../../../constants';
-import { ACMManagedClusterModel, DRClusterModel } from '../../../../models';
+import {
+  getDRClusterResourceObj,
+  getManagedClusterResourceObj,
+} from '../../../../hooks';
 import { ACMManagedClusterKind, DRClusterKind } from '../../../../types';
 import { ErrorMessageType } from './error-messages';
 import {
@@ -78,16 +79,8 @@ const TargetClusterStatus: React.FC<TargetClusterStatusProps> = ({
 };
 
 const resources = {
-  drClusters: {
-    kind: referenceForModel(DRClusterModel),
-    namespaced: false,
-    isList: true,
-  },
-  managedClusters: {
-    kind: referenceForModel(ACMManagedClusterModel),
-    namespaced: false,
-    isList: true,
-  },
+  drClusters: getDRClusterResourceObj(),
+  managedClusters: getManagedClusterResourceObj(),
 };
 
 export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
@@ -98,24 +91,19 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
   const response =
     useK8sWatchResources<TargetClusterWatchResourceType>(resources);
 
-  const memoizedDRClusters = useDeepCompareMemoize(response.drClusters, true);
-  const memoizedManagedClusters = useDeepCompareMemoize(
-    response.managedClusters,
-    true
-  );
-  const selectdDRPolicy = state.selectedDRPolicy;
+  const { selectedDRPolicy } = state;
 
   const {
     data: drClusters,
     loaded: drClustersLoaded,
     loadError: drClustersLoadError,
-  } = memoizedDRClusters;
+  } = response?.drClusters;
 
   const {
     data: managedClusters,
     loaded: managedClustersLoaded,
     loadError: managedClustersLoadError,
-  } = memoizedManagedClusters;
+  } = response?.managedClusters;
 
   const [isOpen, setOpen] = React.useState(false);
 
@@ -123,24 +111,24 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
     () =>
       drClustersLoaded && !drClustersLoadError
         ? drClusters?.filter((drCluster) =>
-            selectdDRPolicy?.drClusters?.includes(getName(drCluster))
+            selectedDRPolicy?.drClusters?.includes(getName(drCluster))
           )
         : [],
-    [drClusters, drClustersLoaded, drClustersLoadError, selectdDRPolicy]
+    [drClusters, drClustersLoaded, drClustersLoadError, selectedDRPolicy]
   );
 
   const managedClusterList = React.useMemo(
     () =>
       managedClustersLoaded && !managedClustersLoadError
         ? managedClusters?.filter((managedCluster) =>
-            selectdDRPolicy?.drClusters?.includes(getName(managedCluster))
+            selectedDRPolicy?.drClusters?.includes(getName(managedCluster))
           )
         : [],
     [
       managedClusters,
       managedClustersLoaded,
       managedClustersLoadError,
-      selectdDRPolicy,
+      selectedDRPolicy,
     ]
   );
 

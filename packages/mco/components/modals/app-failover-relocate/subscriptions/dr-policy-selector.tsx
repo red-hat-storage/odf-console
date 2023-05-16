@@ -2,10 +2,9 @@ import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName, getUID } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
-import { DRPolicyModel } from '../../../../models';
+import { getDRPolicyResourceObj } from '../../../../hooks';
 import { DRPolicyKind } from '../../../../types';
 import {
   DRPolicyControlState,
@@ -20,7 +19,7 @@ const getDRPolicyNames = (drpcState: DRPolicyControlState[]): string[] => [
   ...new Set(
     drpcState.map(
       (currentDrpcState) =>
-        currentDrpcState?.drPolicyControl?.spec?.drPolicyRef?.name
+        currentDrpcState?.drPlacementControl?.spec?.drPolicyRef?.name
     )
   ),
 ];
@@ -37,11 +36,7 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
-    useK8sWatchResource<DRPolicyKind[]>({
-      kind: referenceForModel(DRPolicyModel),
-      isList: true,
-    });
-  const memoizedDRPolicies = useDeepCompareMemoize(drPolicies, true);
+    useK8sWatchResource<DRPolicyKind[]>(getDRPolicyResourceObj());
   const memoizedDRPCState = useDeepCompareMemoize(
     state.drPolicyControlState,
     true
@@ -60,18 +55,10 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
       drPoliciesLoaded &&
       !drPoliciesLoadError &&
       !!memoizedDRPCState.length &&
-      !!memoizedDRPolicies.length
-        ? getDRPolicyList(
-            getDRPolicyNames(memoizedDRPCState),
-            memoizedDRPolicies
-          )
+      !!drPolicies.length
+        ? getDRPolicyList(getDRPolicyNames(memoizedDRPCState), drPolicies)
         : [],
-    [
-      memoizedDRPCState,
-      memoizedDRPolicies,
-      drPoliciesLoaded,
-      drPoliciesLoadError,
-    ]
+    [memoizedDRPCState, drPolicies, drPoliciesLoaded, drPoliciesLoadError]
   );
 
   const dropdownItems = React.useMemo(
