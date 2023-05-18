@@ -295,14 +295,14 @@ export const prettifyJSON = (data: string) =>
 
 const getUniqueZonesSet = (nodes: WizardNodeState[]): Set<string> => {
   return nodes.reduce((acc, curr) => {
-    acc.add(curr.zone);
+    !!curr.zone && acc.add(curr.zone);
     return acc;
   }, new Set<string>());
 };
 
 const getUniqueRacksSet = (nodes: WizardNodeState[]): Set<string> => {
   return nodes.reduce((acc, curr) => {
-    acc.add(curr.rack);
+    !!curr.rack && acc.add(curr.rack);
     return acc;
   }, new Set<string>());
 };
@@ -313,7 +313,7 @@ export const getReplicasFromSelectedNodes = (
   const zones = getUniqueZonesSet(nodes);
   let replicas = zones.size;
   // If there are no zones, look for racks.
-  if (replicas === 1 && zones.has(undefined)) {
+  if (!replicas) {
     const racks = getUniqueRacksSet(nodes);
     replicas = racks.size;
   }
