@@ -30,6 +30,7 @@ import { getName } from '@odf/shared/selectors';
 import { getNodeStatusGroups } from '@odf/shared/status/Inventory';
 import { resourceStatus } from '@odf/shared/status/Resource';
 import { Status } from '@odf/shared/status/Status';
+import { NodeKind } from '@odf/shared/types';
 import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -105,7 +106,7 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
   const serviceName = t('Data Foundation');
 
   const [nodesData, nodesLoaded, nodesLoadError] =
-    useK8sWatchResource(nodeResource);
+    useK8sWatchResource<NodeKind[]>(nodeResource);
   const ocsNodesHref = `/search?kind=${NodeModel.kind}&q=${CEPH_STORAGE_LABEL}`;
 
   return (
@@ -138,7 +139,7 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
                 isLoading={!nodesLoaded}
                 error={!!nodesLoadError}
                 kind={NodeModel as any}
-                resources={getCephNodes(nodesData as K8sResourceKind[])}
+                resources={getCephNodes(nodesData)}
                 mapper={getNodeStatusGroups}
                 basePath={ocsNodesHref}
               />
