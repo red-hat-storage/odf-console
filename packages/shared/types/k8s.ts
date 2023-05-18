@@ -127,7 +127,13 @@ enum ImagePullPolicy {
 }
 
 // https://github.com/kubernetes/api/blob/release-1.16/core/v1/types.go#L2411-L2432
-type PodPhase = 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Unknown';
+export enum PodPhase {
+  Pending = 'Pending',
+  Failed = 'Failed',
+  Running = 'Running',
+  Succeeded = 'Succeeded',
+  Unknown = 'Unknown',
+}
 
 type VolumeMount = {
   mountPath: string;
@@ -281,7 +287,7 @@ type PodCondition = {
 } & K8sResourceCondition;
 
 type PodStatus = {
-  phase: PodPhase;
+  phase: keyof typeof PodPhase;
   conditions?: PodCondition[];
   message?: string;
   reason?: string;
