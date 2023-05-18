@@ -1,3 +1,4 @@
+import { PersistentVolumeClaimKind } from 'packages/shared/types';
 import * as Yup from 'yup';
 import { BC_PROVIDERS } from './mcg';
 
@@ -39,9 +40,10 @@ export const providerSchema = (shouldValidateSecret: boolean) =>
         ].includes(value as BC_PROVIDERS),
       then: (schema: Yup.StringSchema) => schema.required(),
     }),
-    'pvc-name': Yup.string().when('provider-name', {
+    'pvc-name': Yup.object().when('provider-name', {
       is: BC_PROVIDERS.FILESYSTEM,
-      then: (schema: Yup.StringSchema) => schema.required(),
+      then: (schema: Yup.SchemaOf<PersistentVolumeClaimKind>) =>
+        schema.required(),
     }),
     'folder-name': Yup.string().when('provider-name', {
       is: BC_PROVIDERS.FILESYSTEM,
