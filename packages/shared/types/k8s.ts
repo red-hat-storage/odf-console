@@ -126,7 +126,7 @@ enum ImagePullPolicy {
   IfNotPresent = 'IfNotPresent',
 }
 
-// https://github.com/kubernetes/api/blob/release-1.16/core/v1/types.go#L2411-L2432
+// https://github.com/kubernetes/api/blob/release-1.27/core/v1/types.go#LL2733C1-L2751C2
 type PodPhase = 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Unknown';
 
 type VolumeMount = {

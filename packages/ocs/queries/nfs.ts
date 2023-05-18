@@ -12,10 +12,6 @@ export enum NFSOperation {
   WRITE = 'write',
 }
 
-export const NFS_STATUS_QUERY = {
-  [NFSDashboardQuery.WORKER_THREADS_TOTAL]: 'worker_threads{label="total"}',
-};
-
 // only single server/host in 4.13
 export const NFS_HOST_THROUGHPUT_TOTAL = {
   [NFSDashboardQuery.HOST_READ_TOTAL]: {

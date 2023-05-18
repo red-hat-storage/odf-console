@@ -10,7 +10,7 @@ type OperandStatusType = {
   value: string;
 };
 
-const getOperandStatus = (obj: K8sResourceKind): OperandStatusType => {
+export const getOperandStatus = (obj: K8sResourceKind): OperandStatusType => {
   const { phase, status, state, conditions } = obj?.status || {};
 
   if (phase && _.isString(phase)) {
