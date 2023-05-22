@@ -1,7 +1,11 @@
 import useAlerts from '@odf/shared/monitoring/useAlert';
 import { AlertSeverity } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
+import {
+  filterCephAlerts,
+  filterNooBaaAlerts,
+  filterRGWAlerts,
+} from '../../utils';
 import { getFilteredAlerts, nodeFilter } from './AlertFilters';
 
 export enum AlertFiringComponent {
@@ -19,25 +23,6 @@ const alertFilterGenerator = (severity: AlertSeverity) => (alert: Alert) =>
 
 export const isCriticalAlert = alertFilterGenerator(AlertSeverity.Critical);
 export const isWarningAlert = alertFilterGenerator(AlertSeverity.Warning);
-
-const filterCephAlerts = (alerts: Alert[]): Alert[] => {
-  const rookRegex = /.*rook.*/;
-  return alerts
-    ? alerts?.filter(
-        (alert) =>
-          alert?.annotations?.storage_type === 'ceph' ||
-          Object.values(alert?.labels)?.some((item) => rookRegex.test(item))
-      )
-    : [];
-};
-
-const filterNooBaaAlerts = (alerts: Alert[]): Alert[] =>
-  alerts?.filter(
-    (alert) => _.get(alert, 'annotations.storage_type') === 'NooBaa'
-  );
-
-const filterRGWAlerts = (alerts: Alert[]): Alert[] =>
-  alerts?.filter((alert) => alert?.annotations?.storage_type === 'RGW');
 
 const useMonitoring = (
   component: AlertFiringComponent,
