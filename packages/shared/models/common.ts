@@ -248,3 +248,16 @@ export const DaemonSetModel: K8sKind = {
   labelPlural: 'DaemonSets',
   labelPluralKey: 'DaemonSets',
 };
+
+export const StorageClusterModel: K8sKind = {
+  label: 'Storage Cluster',
+  labelPlural: 'Storage Clusters',
+  apiVersion: 'v1',
+  apiGroup: 'ocs.openshift.io',
+  plural: 'storageclusters',
+  abbr: 'OCS',
+  namespaced: true,
+  kind: 'StorageCluster',
+  id: 'ocscluster',
+  crd: true,
+};
