@@ -200,10 +200,10 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
 
     React.useEffect(() => {
       if (loaded && !loadError) {
-        const errorMessage = validatePlacement(placement, action);
-        setErrorMessage(errorMessage);
+        const placementErrorMessage = validatePlacement(placement, action);
+        setErrorMessage(placementErrorMessage);
         setPlacement(placement);
-        setCanInitiate(evaluateErrorMessage(errorMessage) < 0);
+        setCanInitiate(evaluateErrorMessage(placementErrorMessage) < 0);
       }
     }, [
       placement,

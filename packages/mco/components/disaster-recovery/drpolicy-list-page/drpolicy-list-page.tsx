@@ -61,7 +61,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
     <p key={clusterName}> {clusterName} </p>
   ));
   const condition = obj?.status?.conditions?.find(
-    (condition) => condition.type === 'Validated'
+    (statusCondition) => statusCondition.type === 'Validated'
   );
   const filteredApps = findAppsUsingDRPolicy(applicationRefs, obj);
   const appCount = filteredApps?.length;

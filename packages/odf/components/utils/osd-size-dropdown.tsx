@@ -25,7 +25,7 @@ const labelDescriptionMap = (t: TFunction) => {
 };
 
 const dropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
-  _.map(valueLabelMap(t), (v, _) => (
+  _.map(valueLabelMap(t), (v, _unused) => (
     <SelectOption
       data-test-dropdown-menu={v}
       key={v}

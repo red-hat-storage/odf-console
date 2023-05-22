@@ -58,9 +58,9 @@ export const FlashSystemConnectionDetails: React.FC<
             id="endpoint-input"
             type="text"
             value={value}
-            onChange={(value: string) => {
-              onChange(value);
-              setFormState('endpoint', value);
+            onChange={(newValue: string) => {
+              onChange(newValue);
+              setFormState('endpoint', newValue);
             }}
             onBlur={onBlur}
             isRequired

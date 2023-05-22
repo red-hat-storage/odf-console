@@ -16,8 +16,12 @@ import {
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
-import { getLabel, getName, getUID } from '@odf/shared/selectors';
-import { NodeKind, StorageClusterKind } from '@odf/shared/types';
+import { getLabel, getName, getNamespace, getUID } from '@odf/shared/selectors';
+import {
+  NetworkAttachmentDefinitionKind,
+  NodeKind,
+  StorageClusterKind,
+} from '@odf/shared/types';
 import {
   getNodeRoles,
   humanizeCpuCores,
@@ -322,10 +326,10 @@ export const getReplicasFromSelectedNodes = (
 
 export const getDeviceSetReplica = (
   isStretchCluster: boolean,
-  isFlexibleScaling: boolean,
+  isFlexibleReplicaScaling: boolean,
   nodes: WizardNodeState[]
 ) => {
-  if (isFlexibleScaling) {
+  if (isFlexibleReplicaScaling) {
     return OCS_DEVICE_SET_FLEXIBLE_REPLICA;
   }
   const replicas = getReplicasFromSelectedNodes(nodes);
@@ -336,6 +340,9 @@ export const getDeviceSetReplica = (
   return replicas;
 };
 
+const generateNetworkCardName = (resource: NetworkAttachmentDefinitionKind) =>
+  `${getNamespace(resource)}/${getName(resource)}`;
+
 export const getOCSRequestData = (
   storageClass: WizardState['storageClass'],
   storage: string,
@@ -343,8 +350,8 @@ export const getOCSRequestData = (
   isMinimal: boolean,
   nodes: WizardNodeState[],
   flexibleScaling = false,
-  publicNetwork?: string,
-  clusterNetwork?: string,
+  publicNetwork?: NetworkAttachmentDefinitionKind,
+  clusterNetwork?: NetworkAttachmentDefinitionKind,
   kmsEnable?: boolean,
   selectedArbiterZone?: string,
   stretchClusterChecked?: boolean,
@@ -439,17 +446,23 @@ export const getOCSRequestData = (
 };
 
 const getNetworkField = (
-  publicNetwork: string,
-  clusterNetwork: string,
+  publicNetwork: NetworkAttachmentDefinitionKind,
+  clusterNetwork: NetworkAttachmentDefinitionKind,
   inTransitEncryption: boolean
 ) => {
+  const publicNetworkString = generateNetworkCardName(publicNetwork);
+  const privateNetworkString = generateNetworkCardName(clusterNetwork);
   const multusNetwork =
-    publicNetwork || clusterNetwork
+    !_.isEmpty(publicNetwork) || !_.isEmpty(clusterNetwork)
       ? {
           provider: 'multus',
           selectors: {
-            ...Object.assign(publicNetwork ? { public: publicNetwork } : {}),
-            ...Object.assign(clusterNetwork ? { cluster: clusterNetwork } : {}),
+            ...Object.assign(
+              publicNetwork ? { public: publicNetworkString } : {}
+            ),
+            ...Object.assign(
+              clusterNetwork ? { cluster: privateNetworkString } : {}
+            ),
           },
         }
       : {};

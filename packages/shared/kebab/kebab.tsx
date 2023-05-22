@@ -217,7 +217,7 @@ export const Kebab: React.FC<KebabProps> = ({
     isDisabled || _.has(resource.metadata, 'deletionTimestamp') || !canCreate;
 
   const toggle = React.useMemo(() => {
-    const onToggle = (_, e) => {
+    const onToggle = (_unused, e) => {
       eventRef.current = e;
       return setOpen((open) => !open);
     };

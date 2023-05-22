@@ -40,9 +40,9 @@ export const useModalLauncher = (modals?: ModalMap) => {
   );
 
   const launchModal: LaunchModal = React.useCallback(
-    (key: string, extraProps: any = {}) => {
+    (key: string, modalExtraProps: any = {}) => {
       setModalKey(key);
-      setExtraProps(extraProps);
+      setExtraProps(modalExtraProps);
       setOpen(true);
     },
     [setOpen, setModalKey]

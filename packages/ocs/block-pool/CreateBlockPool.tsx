@@ -56,8 +56,10 @@ export const cephClusterResource = {
   isList: true,
 };
 
-const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({ match }) => {
-  const { params, url } = match;
+const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({
+  match: blockPoolMatch,
+}) => {
+  const { params, url } = blockPoolMatch;
   const { t } = useCustomTranslation();
 
   const history = useHistory();

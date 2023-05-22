@@ -84,8 +84,8 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
           closeModal();
         }
       })
-      .catch((error) => {
-        setError(error);
+      .catch((deleteError) => {
+        setError(deleteError);
         setLoading(false);
       });
   };

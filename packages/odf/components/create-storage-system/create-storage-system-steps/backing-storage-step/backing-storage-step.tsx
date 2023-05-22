@@ -258,7 +258,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
 
   const RADIO_GROUP_NAME = 'backing-storage-radio-group';
 
-  const onRadioSelect = (_, event) => {
+  const onRadioSelect = (_unused, event) => {
     const newType = event.target.value;
     dispatch({ type: 'backingStorage/setType', payload: newType });
   };

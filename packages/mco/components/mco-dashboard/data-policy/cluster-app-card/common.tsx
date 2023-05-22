@@ -164,7 +164,7 @@ const ClusterDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
     }
   }, [options, clusterName, setCluster]);
 
-  const onToggle = (isOpen: boolean) => setIsOpen(isOpen);
+  const onToggle = (isOpenFlag: boolean) => setIsOpen(isOpenFlag);
   const clearSelection = () => {
     setCluster(null);
     setIsOpen(false);
@@ -252,16 +252,19 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
     _event: React.MouseEvent<Element, MouseEvent> | undefined,
     itemId: string
   ) => {
-    const [namespace, name] = getNSAndNameFromId(itemId);
-    setAppSet({ namespace, name });
+    const [itemNamespace, itemName] = getNSAndNameFromId(itemId);
+    setAppSet({ namespace: itemNamespace, name: itemName });
     setIsOpen(false);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => {
-    const [namespace, name] = getNSAndNameFromId(selected);
+    const [selectedNamespace, selectedName] = getNSAndNameFromId(selected);
     return (
       <MenuToggle ref={toggleRef} onClick={onToggleClick} isExpanded={isOpen}>
-        {t('Application:')} {!!namespace ? `${name} (${namespace})` : name}
+        {t('Application:')}{' '}
+        {!!selectedNamespace
+          ? `${selectedName} (${selectedNamespace})`
+          : selectedName}
       </MenuToggle>
     );
   };
@@ -273,7 +276,7 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
       isOpen={isOpen}
       selected={selected}
       onSelect={onSelect}
-      onOpenChange={(isOpen) => setIsOpen(isOpen)}
+      onOpenChange={(isOpenFlag) => setIsOpen(isOpenFlag)}
       toggle={toggle}
       className={className}
     >
