@@ -1,6 +1,7 @@
 import { Alert, K8sModel } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { NodeModel } from '../../models';
+import { NodeModel, StorageClusterModel } from '../../models';
+import { cephFilter, noobaaFilter, rgwFilter } from '../../utils';
 
 export const commonFilter =
   (name: string) =>
@@ -10,6 +11,7 @@ export const commonFilter =
       _.get(alert, 'annotations.message', '').includes(name)
     );
   };
+
 export const nodeFilter = (name: string) => (alert: Alert) =>
   alert?.labels?.node === name || commonFilter(name)(alert);
 
@@ -22,6 +24,10 @@ export const filterRelevantAlerts = (
   let filter = commonFilter(resourceName);
   if (_.isEqual(resourceModel, NodeModel)) {
     filter = nodeFilter(resourceName);
+  }
+  if (_.isEqual(StorageClusterModel, resourceModel)) {
+    filter = (alert: Alert) =>
+      rgwFilter(alert) || noobaaFilter(alert) || cephFilter(alert);
   }
   return alerts.filter(filter);
 };
