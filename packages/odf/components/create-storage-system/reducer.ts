@@ -7,7 +7,7 @@ import {
   ExternalStateValues,
   ExternalState,
 } from '@odf/odf-plugin-sdk/extensions';
-import { NodeKind } from '@odf/shared/types';
+import { NetworkAttachmentDefinitionKind, NodeKind } from '@odf/shared/types';
 import * as _ from 'lodash-es';
 import {
   KMSEmptyState,
@@ -104,8 +104,8 @@ type CreateStorageSystemState = {
   securityAndNetwork: {
     encryption: EncryptionType;
     kms: KMSConfig;
-    publicNetwork: string;
-    clusterNetwork: string;
+    publicNetwork: NetworkAttachmentDefinitionKind;
+    clusterNetwork: NetworkAttachmentDefinitionKind;
     networkType: NetworkType;
   };
   createLocalVolumeSet: LocalVolumeSet;
