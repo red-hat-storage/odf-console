@@ -97,7 +97,11 @@ export const ArogoApplicationSetModal = (
       placementDecision,
       placement,
     } = resourcePlacements?.[0] || {};
-    const deploymentClusterName = findDeploymentClusterName(placementDecision);
+    let deploymentClusterName = findDeploymentClusterName(
+      placementDecision,
+      drPlacementControl,
+      drClusters
+    );
     const targetCluster = findCluster(managedClusters, deploymentClusterName);
     const primaryCluster = findCluster(
       managedClusters,
