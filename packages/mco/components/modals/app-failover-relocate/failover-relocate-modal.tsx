@@ -102,6 +102,7 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
       <ModalBody>
         <FailoverRelocateModalBody
           {...props}
+          canInitiate={canInitiate}
           setCanInitiate={setCanInitiate}
           setPlacement={setPlacement}
         />
