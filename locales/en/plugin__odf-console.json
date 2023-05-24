@@ -640,6 +640,7 @@
   "Selected versus Available Capacity": "Selected versus Available Capacity",
   "Out of {{capacity}}": "Out of {{capacity}}",
   "The endpoint is not a valid IP address": "The endpoint is not a valid IP address",
+  "The IP address is already registered": "The IP address is already registered",
   "{{displayName}} connection details": "{{displayName}} connection details",
   "Not connected": "Not connected",
   "Backing storage": "Backing storage",
