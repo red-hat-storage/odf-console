@@ -1,5 +1,10 @@
 /* eslint-disable cypress/require-data-selectors */
-import { CLUSTER_NAMESPACE, STORAGE_SYSTEM_NAME, OCS_SC_STATE } from './consts';
+import {
+  CLUSTER_NAMESPACE,
+  STORAGE_SYSTEM_NAME,
+  OCS_SC_STATE,
+  ODF_OPERATOR_NAME,
+} from './consts';
 import './support/selectors';
 import './support/login';
 
@@ -31,8 +36,9 @@ Cypress.Commands.add('install', () => {
   ).then(({ code }) => {
     if (code !== 0) {
       cy.clickNavLink(['Operators', 'Installed Operators']);
-      cy.byLegacyTestID('item-filter').type('Openshift Data Foundation');
-      cy.byTestRows('resource-row').get('td').first().click();
+      cy.byLegacyTestID('item-filter').type(ODF_OPERATOR_NAME);
+      // data-test-operator-row="OpenShift Data Foundation"
+      cy.byTestOperatorRow(ODF_OPERATOR_NAME).click();
       cy.byLegacyTestID('horizontal-link-Storage System').click();
       cy.byTestID('item-create').click();
 
