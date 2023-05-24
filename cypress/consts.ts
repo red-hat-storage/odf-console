@@ -1,6 +1,7 @@
 export const KUBEADMIN_USERNAME = 'kubeadmin';
 export const KUBEADMIN_IDP = 'kube:admin';
 
+export const ODF_OPERATOR_NAME = 'OpenShift Data Foundation';
 export const CLUSTER_NAMESPACE = 'openshift-storage';
 export const STORAGE_SYSTEM_NAME = 'ocs-storagecluster-storagesystem';
 export const STORAGE_CLUSTER_NAME = 'ocs-storagecluster';
