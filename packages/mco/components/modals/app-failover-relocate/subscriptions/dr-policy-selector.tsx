@@ -19,7 +19,8 @@ import {
 const getDRPolicyNames = (drpcState: DRPolicyControlState[]): string[] => [
   ...new Set(
     drpcState.map(
-      (drpcState) => drpcState?.drPolicyControl?.spec?.drPolicyRef?.name
+      (currentDrpcState) =>
+        currentDrpcState?.drPolicyControl?.spec?.drPolicyRef?.name
     )
   ),
 ];
@@ -89,7 +90,7 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
     [drPolicyList]
   );
 
-  const onToggle = (isOpen: boolean) => setOpen(isOpen);
+  const onToggle = (isOpenFlag: boolean) => setOpen(isOpenFlag);
 
   const onSelect = (e: React.SyntheticEvent<HTMLDivElement>) => {
     // Selecting a DRPolicy to intiate failover or relocate

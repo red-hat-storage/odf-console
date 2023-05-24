@@ -98,10 +98,10 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
     }, [error, isDirty, isTouched, isSubmitted]);
 
     const handleInputChange = React.useCallback(
-      (value: string, event: React.FormEvent<HTMLInputElement>) => {
+      (newValue: string, event: React.FormEvent<HTMLInputElement>) => {
         if (!isVisible) setIsVisible(true);
-        textInputProps?.onChange?.(value, event);
-        onChange(value, event);
+        textInputProps?.onChange?.(newValue, event);
+        onChange(newValue, event);
       },
       [isVisible, onChange, textInputProps]
     );

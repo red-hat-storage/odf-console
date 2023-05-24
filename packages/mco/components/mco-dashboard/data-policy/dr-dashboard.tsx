@@ -80,7 +80,7 @@ export const DRDashboard: React.FC = () => {
   const drClusters: DRClusterKind[] = drResources?.drClusters;
   const managedClusters: ACMManagedClusterKind[] =
     argoApplicationSetResources?.managedClusters;
-  const fomratedArgoAppSetResources =
+  const formattedArgoAppSetResources =
     argoApplicationSetResources?.formattedResources;
 
   const drClusterAppsMap: DrClusterAppsMap = React.useMemo(() => {
@@ -101,10 +101,14 @@ export const DRDashboard: React.FC = () => {
       );
 
       // DRCluster to its ApplicationSets (total and protected) mapping
-      fomratedArgoAppSetResources.forEach((argoApplicationSetResource) => {
+      formattedArgoAppSetResources.forEach((argoApplicationSetResource) => {
         const { application } = argoApplicationSetResource || {};
-        const { drClusters, drPlacementControl, drPolicy, placementDecision } =
-          argoApplicationSetResource?.placements?.[0] || {};
+        const {
+          drClusters: currentDrClusters,
+          drPlacementControl,
+          drPolicy,
+          placementDecision,
+        } = argoApplicationSetResource?.placements?.[0] || {};
         placementDecision?.status?.decisions?.forEach((decision) => {
           const decisionCluster = decision?.clusterName;
           if (drClusterAppsMap.hasOwnProperty(decisionCluster)) {
@@ -123,7 +127,7 @@ export const DRDashboard: React.FC = () => {
                     drpcName: getName(drPlacementControl),
                     drpcNamespace: getNamespace(drPlacementControl),
                     protectedPVCs: getProtectedPVCsFromDRPC(drPlacementControl),
-                    replicationType: findDRType(drClusters),
+                    replicationType: findDRType(currentDrClusters),
                     syncInterval: drPolicy?.spec?.schedulingInterval,
                     workloadNamespace: getRemoteNSFromAppSet(application),
                     failoverCluster: drPlacementControl?.spec?.failoverCluster,
@@ -145,7 +149,7 @@ export const DRDashboard: React.FC = () => {
   }, [
     drClusters,
     managedClusters,
-    fomratedArgoAppSetResources,
+    formattedArgoAppSetResources,
     loaded,
     loadError,
   ]);

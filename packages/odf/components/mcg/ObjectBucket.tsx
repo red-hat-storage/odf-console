@@ -278,9 +278,9 @@ export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
   match,
 }) => {
   const { t } = useCustomTranslation();
-  const { name, plural: kind } = match.params;
+  const { name, plural: resourceKind } = match.params;
   const [resource, loaded] = useK8sWatchResource<K8sResourceKind>({
-    kind,
+    kind: resourceKind,
     name,
     isList: false,
   });
@@ -290,7 +290,7 @@ export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
   const breadcrumbs = [
     {
       name: t('ObjectBuckets'),
-      path: `/k8s/cluster/${kind}`,
+      path: `/k8s/cluster/${resourceKind}`,
     },
     {
       name: t('ObjectBucket details'),

@@ -94,35 +94,38 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
 
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =
-      loaded && !loadError ? data?.map((data) => getName(data)) : [];
+      loaded && !loadError ? data?.map((dataItem) => getName(dataItem)) : [];
 
-    const fieldRequirements = [
+    const translationFieldRequirements = [
       fieldRequirementsTranslations.maxChars(t, 253),
       fieldRequirementsTranslations.startAndEndName(t),
       fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
       fieldRequirementsTranslations.cannotBeUsedBefore(t),
     ];
 
-    const schema = Yup.object({
+    const validationSchema = Yup.object({
       newPoolName: Yup.string()
         .required()
-        .max(253, fieldRequirements[0])
+        .max(253, translationFieldRequirements[0])
         .matches(
           validationRegEx.startAndEndsWithAlphanumerics,
-          fieldRequirements[1]
+          translationFieldRequirements[1]
         )
         .matches(
           validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
-          fieldRequirements[2]
+          translationFieldRequirements[2]
         )
         .test(
           'unique-name',
-          fieldRequirements[3],
+          translationFieldRequirements[3],
           (value: string) => !existingNames.includes(value)
         ),
     });
 
-    return { schema, fieldRequirements };
+    return {
+      schema: validationSchema,
+      fieldRequirements: translationFieldRequirements,
+    };
   }, [data, loadError, loaded, t]);
 
   const resolver = useYupValidationResolver(schema);

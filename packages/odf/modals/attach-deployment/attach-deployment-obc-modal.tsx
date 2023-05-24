@@ -101,7 +101,9 @@ const AttachDeploymentToOBCModal: React.FC<AttachDeploymentToOBCModalProps> = (
           id="dropdown-selectbox"
           resource={deploymentResource}
           resourceModel={DeploymentModel}
-          onSelect={(resource) => setRequestedDeployment(resource)}
+          onSelect={(selectedResource) =>
+            setRequestedDeployment(selectedResource)
+          }
           data-test="dropdown-selectbox"
         />
         {errorMessage && (

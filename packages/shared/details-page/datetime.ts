@@ -235,15 +235,16 @@ export const twentyFourHourTime = (
 export const getLatestDate = (dates: string[]) =>
   dates.reduce((a, b) => (new Date(a) > new Date(b) ? a : b));
 
-export const minutesToSeconds = (m: number) => Math.floor(m * 60);
+export const minutesToSeconds = (minutes: number) => Math.floor(minutes * 60);
 
-export const hoursToSeconds = (h: number) =>
-  Math.floor(minutesToSeconds(h) * 60);
+export const hoursToSeconds = (hours: number) =>
+  Math.floor(minutesToSeconds(hours) * 60);
 
-export const daysToSeconds = (d: number) => Math.floor(hoursToSeconds(d) * 24);
+export const daysToSeconds = (days: number) =>
+  Math.floor(hoursToSeconds(days) * 24);
 
-export const getTimeDifferenceInSeconds = (d: string) => {
-  const timeInSeconds = new Date(d).getTime() / 1000;
+export const getTimeDifferenceInSeconds = (date: string) => {
+  const timeInSeconds = new Date(date).getTime() / 1000;
   const currentTimeInSeconds = new Date().getTime() / 1000;
   return currentTimeInSeconds - timeInSeconds;
 };

@@ -90,6 +90,10 @@ module.exports = {
     'no-restricted-syntax': 'off',
     'no-return-assign': 'off',
     'no-shadow': 'off',
+    '@typescript-eslint/no-shadow': [
+      'error',
+      { ignoreOnInitialization: true, allow: ['t'] },
+    ],
     'no-tabs': 'off',
     'no-undef': 'off',
     'no-underscore-dangle': 'off',

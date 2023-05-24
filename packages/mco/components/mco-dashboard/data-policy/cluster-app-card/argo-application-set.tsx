@@ -88,13 +88,13 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
   const updateProtectedPVC = React.useCallback(() => {
     const placementInfo = selectedAppSet?.placementInfo?.[0];
     const issueCount =
-      protectedPVCData?.reduce((acc, protectedPVC) => {
+      protectedPVCData?.reduce((acc, protectedPVCItem) => {
         if (
-          protectedPVC?.drpcName === placementInfo?.drpcName &&
-          protectedPVC?.drpcNamespace === placementInfo?.drpcNamespace &&
+          protectedPVCItem?.drpcName === placementInfo?.drpcName &&
+          protectedPVCItem?.drpcNamespace === placementInfo?.drpcNamespace &&
           getVolumeReplicationHealth(
-            getTimeDifferenceInSeconds(protectedPVC?.lastSyncTime),
-            protectedPVC?.schedulingInterval
+            getTimeDifferenceInSeconds(protectedPVCItem?.lastSyncTime),
+            protectedPVCItem?.schedulingInterval
           )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
         )
           return acc + 1;

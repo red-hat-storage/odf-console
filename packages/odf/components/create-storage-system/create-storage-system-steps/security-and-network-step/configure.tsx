@@ -4,11 +4,11 @@ import TechPreviewBadge from '@odf/shared/badges/TechPreviewBadge';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { ResourcesDropdown } from '@odf/shared/dropdown/ResourceDropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
-import { getName } from '@odf/shared/selectors';
 import { NetworkAttachmentDefinitionKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
+import * as _ from 'lodash-es';
 import { FormGroup, Radio } from '@patternfly/react-core';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import './configure.scss';
@@ -35,21 +35,19 @@ const resources = {
 };
 
 export const MultusDropdown: React.FC<MultusDropdownProps> = ({
-  publicNetwork,
-  clusterNetwork,
   setNetwork,
+  clusterNetwork,
 }) => {
   const { t } = useCustomTranslation();
 
-  const filterForPublicDevices = React.useCallback(
-    (device: NetworkAttachmentDefinitionKind) =>
-      clusterNetwork?.split('/')?.[1] !== getName(device),
-    [clusterNetwork]
-  );
-  const filterForClusterDevices = React.useCallback(
-    (device: NetworkAttachmentDefinitionKind) =>
-      publicNetwork?.split('/')?.[1] !== getName(device),
-    [publicNetwork]
+  const onSelectPublicNetwork = React.useCallback(
+    (nad: NetworkAttachmentDefinitionKind) => {
+      setNetwork(NADSelectorType.PUBLIC, nad);
+      if (_.isEmpty(clusterNetwork)) {
+        setNetwork(NADSelectorType.CLUSTER, nad);
+      }
+    },
+    [clusterNetwork, setNetwork]
   );
 
   return (
@@ -58,30 +56,27 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
         fieldId="configure-multus-public"
         label={t('Public Network Interface')}
       >
-        <ResourcesDropdown
+        <ResourcesDropdown<NetworkAttachmentDefinitionKind>
           resources={resources}
           resourceModel={NetworkAttachmentDefinitionModel}
           className="ceph__multus-dropdown"
-          onSelect={(selectedResource) =>
-            setNetwork(NADSelectorType.PUBLIC, selectedResource)
-          }
+          onSelect={onSelectPublicNetwork}
           secondaryTextGenerator={null}
-          filterResource={filterForPublicDevices}
         />
       </FormGroup>
       <FormGroup
         fieldId="configure-multus-cluster"
         label={t('Cluster Network Interface')}
       >
-        <ResourcesDropdown
+        <ResourcesDropdown<NetworkAttachmentDefinitionKind>
           resources={resources}
           resourceModel={NetworkAttachmentDefinitionModel}
           className="ceph__multus-dropdown"
           onSelect={(selectedResource) =>
             setNetwork(NADSelectorType.CLUSTER, selectedResource)
           }
+          selectedResource={clusterNetwork}
           secondaryTextGenerator={null}
-          filterResource={filterForClusterDevices}
         />
       </FormGroup>
     </>
@@ -89,17 +84,17 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
 };
 
 type MultusDropdownProps = {
-  publicNetwork: string;
-  clusterNetwork: string;
   setNetwork: (type: NADSelectorType, resource: K8sResourceCommon) => void;
+  clusterNetwork: NetworkAttachmentDefinitionKind;
+  publicNetwork: NetworkAttachmentDefinitionKind;
 };
 
 export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   setNetworkType,
   networkType,
-  publicNetwork,
-  clusterNetwork,
   setNetwork,
+  clusterNetwork,
+  publicNetwork,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -150,9 +145,9 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
       </FormGroup>
       {networkType === NetworkType.MULTUS && (
         <MultusDropdown
-          publicNetwork={publicNetwork}
-          clusterNetwork={clusterNetwork}
           setNetwork={setNetwork}
+          clusterNetwork={clusterNetwork}
+          publicNetwork={publicNetwork}
         />
       )}
     </>
@@ -162,7 +157,7 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
 type NetworkFormGroupProps = {
   setNetworkType: any;
   networkType: NetworkType;
-  publicNetwork: string;
-  clusterNetwork: string;
   setNetwork: (type: NADSelectorType, resource: K8sResourceCommon) => void;
+  clusterNetwork: NetworkAttachmentDefinitionKind;
+  publicNetwork: NetworkAttachmentDefinitionKind;
 };

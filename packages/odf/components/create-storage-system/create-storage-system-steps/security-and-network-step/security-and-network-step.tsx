@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
-import { getNamespace, getName } from '@odf/shared/selectors';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { Form } from '@patternfly/react-core';
@@ -36,19 +35,22 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
       payload: networkType,
     });
     if (networkType === NetworkType.DEFAULT) {
-      dispatch({ type: 'securityAndNetwork/setClusterNetwork', payload: '' });
-      dispatch({ type: 'securityAndNetwork/setPublicNetwork', payload: '' });
+      dispatch({ type: 'securityAndNetwork/setClusterNetwork', payload: null });
+      dispatch({ type: 'securityAndNetwork/setPublicNetwork', payload: null });
     }
   };
 
-  const setNetwork = (network: NADSelectorType, resource: K8sResourceCommon) =>
-    dispatch({
-      type:
-        network === NADSelectorType.CLUSTER
-          ? 'securityAndNetwork/setClusterNetwork'
-          : 'securityAndNetwork/setPublicNetwork',
-      payload: `${getNamespace(resource)}/${getName(resource)}`,
-    });
+  const setNetwork = React.useCallback(
+    (network: NADSelectorType, resource: K8sResourceCommon) =>
+      dispatch({
+        type:
+          network === NADSelectorType.CLUSTER
+            ? 'securityAndNetwork/setClusterNetwork'
+            : 'securityAndNetwork/setPublicNetwork',
+        payload: resource,
+      }),
+    [dispatch]
+  );
 
   return (
     <Form noValidate={false}>
@@ -64,8 +66,8 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
           networkType={nwType}
           setNetworkType={setNetworkType}
           setNetwork={setNetwork}
-          publicNetwork={publicNetwork}
           clusterNetwork={clusterNetwork}
+          publicNetwork={publicNetwork}
         />
       )}
       {isExternal && (

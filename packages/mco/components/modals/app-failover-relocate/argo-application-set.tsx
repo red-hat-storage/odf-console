@@ -85,15 +85,18 @@ export const ArogoApplicationSetModal = (
     );
   const aroAppSetResource = aroAppSetResources?.formattedResources?.[0];
   const placements: PlacementProps[] = React.useMemo(() => {
-    const { managedClusters, siblingApplications, placements } =
-      aroAppSetResource || {};
+    const {
+      managedClusters,
+      siblingApplications,
+      placements: resourcePlacements,
+    } = aroAppSetResource || {};
     const {
       drClusters,
       drPlacementControl,
       drPolicy,
       placementDecision,
       placement,
-    } = placements?.[0] || {};
+    } = resourcePlacements?.[0] || {};
     const deploymentClusterName = findDeploymentClusterName(placementDecision);
     const targetCluster = findCluster(managedClusters, deploymentClusterName);
     const primaryCluster = findCluster(

@@ -132,7 +132,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
 
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =
-      loaded && !loadError ? data?.map((data) => getName(data)) : [];
+      loaded && !loadError ? data?.map((dataItem) => getName(dataItem)) : [];
 
     const fieldRequirements = [
       fieldRequirementsTranslations.maxChars(t, 43),
@@ -254,8 +254,8 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         data: nsPayload,
       });
       redirectHandler([resources]);
-    } catch (error) {
-      setError(error.message);
+    } catch (submitError) {
+      setError(submitError.message);
     } finally {
       setProgress(false);
     }
