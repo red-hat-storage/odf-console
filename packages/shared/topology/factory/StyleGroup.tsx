@@ -21,7 +21,7 @@ import {
   WithDragNodeProps,
   WithSelectionProps,
 } from '@patternfly/react-topology';
-import { DeploymentModel, NodeModel } from '../../models';
+import { DeploymentModel, NodeModel, StorageClusterModel } from '../../models';
 import { getName } from '../../selectors';
 import { getGVKofResource } from '../../utils';
 import { TopologyDataContext } from '../Context';
@@ -63,6 +63,9 @@ const modelFactory = (model: K8sModel) => {
   }
   if (model.kind === 'Deployment') {
     return DeploymentModel;
+  }
+  if (model.kind === 'StorageCluster') {
+    return StorageClusterModel;
   }
 };
 
