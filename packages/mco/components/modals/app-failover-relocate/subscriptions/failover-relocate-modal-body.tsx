@@ -1,30 +1,32 @@
 import * as React from 'react';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { ApplicationModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { ApplicationKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Flex, FlexItem, Alert, AlertVariant } from '@patternfly/react-core';
 import { DRActionType } from '../../../../constants';
 import {
-  ACMPlacementRuleModel,
-  ACMSubscriptionModel,
-  DRPlacementControlModel,
-} from '../../../../models';
+  getDRPlacementControlResourceObj,
+  getPlacementDecisionsResourceObj,
+  getPlacementResourceObj,
+  getPlacementRuleResourceObj,
+  getSubscriptionResourceObj,
+} from '../../../../hooks';
 import {
   ACMSubscriptionKind,
   ACMPlacementRuleKind,
   DRPlacementControlKind,
+  ACMPlacementDecisionKind,
+  ACMPlacementKind,
 } from '../../../../types';
 import {
   filterDRSubscriptions,
-  filterDRPlacementRuleNames,
+  generateUniquePlacementMap,
   SubscriptionMap,
   getAppDRInfo,
-  PlacementRuleMap,
+  PlacementMap,
 } from '../../../../utils';
 import { DRPolicySelector } from './dr-policy-selector';
 import { ErrorMessages, ErrorMessageType, MessageKind } from './error-messages';
@@ -52,24 +54,11 @@ export const findErrorMessage = (errorMessage: ErrorMessage) =>
     .find((errorMessageItem) => errorMessageItem);
 
 const resources = (namespace: string) => ({
-  subscriptions: {
-    kind: referenceForModel(ACMSubscriptionModel),
-    namespaced: true,
-    namespace,
-    isList: true,
-  },
-  placementRules: {
-    kind: referenceForModel(ACMPlacementRuleModel),
-    namespaced: true,
-    namespace,
-    isList: true,
-  },
-  drPlacementControls: {
-    kind: referenceForModel(DRPlacementControlModel),
-    namespaced: true,
-    namespace,
-    isList: true,
-  },
+  subscriptions: getSubscriptionResourceObj({ namespace }),
+  placementRules: getPlacementRuleResourceObj({ namespace }),
+  placements: getPlacementResourceObj({ namespace }),
+  placementDecisions: getPlacementDecisionsResourceObj({ namespace }),
+  drPlacementControls: getDRPlacementControlResourceObj({ namespace }),
 });
 
 const MessageStatus: React.FC<MessageKind> = ({ title, variant, message }) => (
@@ -95,54 +84,69 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
     const response = useK8sWatchResources<DRActionWatchResourceType>(
       resources(application?.metadata?.namespace)
     );
-    const memoizedPlacementRule = useDeepCompareMemoize(
-      response.placementRules,
-      true
-    );
-    const memoizedSubscriptions = useDeepCompareMemoize(
-      response.subscriptions,
-      true
-    );
-    const memoizedDRPlacementControls = useDeepCompareMemoize(
-      response.drPlacementControls,
-      true
-    );
 
     const {
       data: placementRules,
       loaded: placementRulesLoaded,
       loadError: placementRulesLoadError,
-    } = memoizedPlacementRule;
+    } = response?.placementRules;
 
     const {
       data: subscriptions,
       loaded: subscriptionsLoaded,
       loadError: subscriptionsLoadError,
-    } = memoizedSubscriptions;
+    } = response?.subscriptions;
 
     const {
       data: drPlacementControls,
       loaded: drPlacementControlsLoaded,
       loadError: drPlacementControlsLoadError,
-    } = memoizedDRPlacementControls;
+    } = response?.drPlacementControls;
 
-    const plsRuleLoaded = placementRulesLoaded && !placementRulesLoadError;
+    const {
+      data: placements,
+      loaded: placementsLoaded,
+      loadError: placementsLoadError,
+    } = response?.placements;
+
+    const {
+      data: placementDecisions,
+      loaded: placementDecisionsLoaded,
+      loadError: placementDecisionsLoadError,
+    } = response?.placementDecisions;
+
+    const placementLoaded =
+      placementRulesLoaded &&
+      placementDecisionsLoaded &&
+      placementsLoaded &&
+      !(
+        placementRulesLoadError ||
+        placementsLoadError ||
+        placementDecisionsLoadError
+      );
     const subsLoaded = subscriptionsLoaded && !subscriptionsLoadError;
     const drpcLoaded =
       drPlacementControlsLoaded && !drPlacementControlsLoadError;
 
-    const placementRuleMap: PlacementRuleMap = React.useMemo(
-      () => (plsRuleLoaded ? filterDRPlacementRuleNames(placementRules) : {}),
-      [placementRules, plsRuleLoaded]
+    const placementMap: PlacementMap = React.useMemo(
+      () =>
+        placementLoaded
+          ? generateUniquePlacementMap(
+              placementRules,
+              placements,
+              placementDecisions
+            )
+          : {},
+      [placementRules, placements, placementDecisions, placementLoaded]
     );
 
     const subscriptionMap: SubscriptionMap = React.useMemo(
       () =>
-        // Filtering subscription using DR placementRules and application selectors
-        subsLoaded && !_.isEmpty(placementRuleMap)
-          ? filterDRSubscriptions(application, subscriptions, placementRuleMap)
+        // Filtering subscription using DR placementRules/placements and application selectors
+        subsLoaded && !_.isEmpty(placementMap)
+          ? filterDRSubscriptions(application, subscriptions, placementMap)
           : {},
-      [subscriptions, subsLoaded, placementRuleMap, application]
+      [subscriptions, subsLoaded, placementMap, application]
     );
 
     React.useEffect(() => {
@@ -151,7 +155,7 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
         const drPolicyControlState: DRPolicyControlState[] = getAppDRInfo(
           drPlacementControls,
           subscriptionMap,
-          placementRuleMap
+          placementMap
         );
         !!drPolicyControlState.length
           ? dispatch({
@@ -172,7 +176,7 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
       drpcLoaded,
       drPlacementControls,
       subscriptionMap,
-      placementRuleMap,
+      placementMap,
       action,
       dispatch,
       t,
@@ -262,4 +266,6 @@ type DRActionWatchResourceType = {
   placementRules: ACMPlacementRuleKind[];
   subscriptions: ACMSubscriptionKind[];
   drPlacementControls: DRPlacementControlKind[];
+  placements: ACMPlacementKind[];
+  placementDecisions: ACMPlacementDecisionKind[];
 };

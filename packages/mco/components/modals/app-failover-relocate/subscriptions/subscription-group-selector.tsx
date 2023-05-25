@@ -25,7 +25,7 @@ const validateDRPolicy = (
   drPolicyControlState: DRPolicyControlState,
   drPolicyName: string
 ) =>
-  drPolicyControlState.drPolicyControl?.spec?.drPolicyRef?.name ===
+  drPolicyControlState.drPlacementControl?.spec?.drPolicyRef?.name ===
   drPolicyName;
 
 const validateTargetCluster = (
@@ -63,11 +63,11 @@ const getOptions = (
   t: TFunction
 ) => (
   <SelectOption
-    key={getUID(drPolicyControlState?.drPolicyControl)}
-    value={getName(drPolicyControlState?.drPolicyControl)}
+    key={getUID(drPolicyControlState?.drPlacementControl)}
+    value={getName(drPolicyControlState?.drPlacementControl)}
     isChecked={isValid}
     isDisabled={!isValid}
-    data-test={`option-${getName(drPolicyControlState?.drPolicyControl)}`}
+    data-test={`option-${getName(drPolicyControlState?.drPlacementControl)}`}
   >
     {drPolicyControlState?.subscriptions.map((subName) => (
       <p key={subName}> {subName} </p>
@@ -133,12 +133,12 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
                 selectedTargetCluster?.clusterInfo
               );
               const isDRActionReady = checkDRActionReadiness(
-                drpcState?.drPolicyControl,
+                drpcState?.drPlacementControl,
                 actionType
               );
               isValidTargetCluster &&
                 isDRActionReady &&
-                validState.push(getName(drpcState.drPolicyControl));
+                validState.push(getName(drpcState.drPlacementControl));
               const option = getOptions(drpcState, isValidTargetCluster, t);
               return {
                 validOptions: getValidOptions(
