@@ -156,28 +156,17 @@ const DateTimeFormat = ({
   );
 };
 
-const DRActionReadiness = ({
-  isDRActionReady,
-}: {
-  isDRActionReady: boolean;
-}) => {
+const DRActionReadiness = ({ canInitiate }: { canInitiate: boolean }) => {
   const { t } = useCustomTranslation();
   return (
     <>
-      {isDRActionReady !== undefined ? (
-        isDRActionReady ? (
-          <StatusIconAndText
-            title={t('Ready')}
-            icon={<GreenCheckCircleIcon />}
-          />
-        ) : (
-          <StatusIconAndText
-            title={t('Not ready')}
-            icon={<RedExclamationCircleIcon />}
-          />
-        )
+      {canInitiate ? (
+        <StatusIconAndText title={t('Ready')} icon={<GreenCheckCircleIcon />} />
       ) : (
-        <StatusIconAndText title={t('Unknown')} icon={<UnknownIcon />} />
+        <StatusIconAndText
+          title={t('Not ready')}
+          icon={<RedExclamationCircleIcon />}
+        />
       )}
     </>
   );
@@ -189,6 +178,7 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
     const {
       action,
       applicationName,
+      canInitiate,
       setCanInitiate,
       setPlacement,
       placements,
@@ -276,7 +266,7 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
             </strong>
           </FlexItem>
           <FlexItem>
-            <DRActionReadiness isDRActionReady={placement?.isDRActionReady} />
+            <DRActionReadiness canInitiate={canInitiate} />
           </FlexItem>
         </Flex>
         {placement?.replicationType === REPLICATION_TYPE.ASYNC && (
@@ -331,6 +321,7 @@ export type ApplicationProps = {
 };
 
 export type FailoverRelocateModalBodyProps = ApplicationProps & {
+  canInitiate: boolean;
   setCanInitiate: React.Dispatch<React.SetStateAction<boolean>>;
   setPlacement: React.Dispatch<React.SetStateAction<PlacementProps>>;
 };
