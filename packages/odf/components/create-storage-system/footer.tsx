@@ -71,12 +71,15 @@ const canJumpToNextStep = (
   const isRHCS: boolean = externalStorage === OCSStorageClusterModel.kind;
   const { capacity } = capacityAndNodes;
   const { chartNodes, volumeSetName, isValidDiskSize } = createLocalVolumeSet;
-  const { encryption, kms, networkType, publicNetwork } = securityAndNetwork;
+  const { encryption, kms, networkType, publicNetwork, clusterNetwork } =
+    securityAndNetwork;
   const { canGoToNextStep } =
     getExternalStorage(externalStorage, supportedExternalStorage) || {};
 
   const hasConfiguredNetwork =
-    networkType === NetworkType.MULTUS ? !!publicNetwork : true;
+    networkType === NetworkType.MULTUS
+      ? !!(publicNetwork || clusterNetwork)
+      : true;
 
   switch (name) {
     case StepsName(t)[Steps.BackingStorage]:
