@@ -1,4 +1,4 @@
-import { getName, getNamespace } from '@odf/shared/selectors';
+import { getLabel, getName, getNamespace } from '@odf/shared/selectors';
 import { PLACEMENT_REF_LABEL } from '../constants';
 import {
   ArgoApplicationSetKind,
@@ -18,19 +18,12 @@ export const findPlacementDecisionUsingPlacement = (
   placement: ACMPlacementKind,
   placementDecisions: ACMPlacementDecisionKind[]
 ) =>
-  placementDecisions?.find((placementDecision) =>
-    placementDecision?.metadata?.ownerReferences?.find(
-      (ownerReference) =>
-        placement?.metadata?.uid === ownerReference?.uid &&
-        getNamespace(placementDecision) === getNamespace(placement)
-    )
+  placementDecisions?.find(
+    (placementDecision) =>
+      getLabel(placementDecision, PLACEMENT_REF_LABEL, '') ===
+        getName(placement) &&
+      getNamespace(placementDecision) === getNamespace(placement)
   );
-
-export const findDeploymentClusterName = (
-  placementDecision: ACMPlacementDecisionKind
-): string => {
-  return placementDecision?.status?.decisions?.[0]?.clusterName || '';
-};
 
 export const getManagedClusterAvailableCondition = (
   managedCluster: ACMManagedClusterKind
