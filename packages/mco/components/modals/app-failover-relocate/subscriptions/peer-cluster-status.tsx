@@ -47,7 +47,7 @@ const getPeerReadiness = (
   t: TFunction
 ): StatusProps =>
   peerReadiness.text !== 'Not ready'
-    ? checkDRActionReadiness(drpcState?.drPolicyControl, actionType)
+    ? checkDRActionReadiness(drpcState?.drPlacementControl, actionType)
       ? {
           text: PEER_READINESS(t).PEER_READY,
           icon: <GreenCheckCircleIcon />,
@@ -62,7 +62,7 @@ const getDataLastSyncTime = (
   dataLastSyncStatus: StatusProps,
   drpcState: DRPolicyControlState
 ): StatusProps => {
-  const lastSyncTime = drpcState?.drPolicyControl?.status?.lastGroupSyncTime;
+  const lastSyncTime = drpcState?.drPlacementControl?.status?.lastGroupSyncTime;
   return !!lastSyncTime
     ? dataLastSyncStatus.text !== 'Unknown'
       ? {
@@ -88,7 +88,7 @@ const getPeerStatusSummary = (
   // Verify all DRPC has Peer ready status
   drpcStateList?.reduce(
     (acc, drpcState) =>
-      subsGroups.includes(getName(drpcState?.drPolicyControl))
+      subsGroups.includes(getName(drpcState?.drPlacementControl))
         ? {
             ...acc,
             peerReadiness: getPeerReadiness(
@@ -151,12 +151,12 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
               ? ErrorMessageType.FAILOVER_READINESS_CHECK_FAILED
               : ErrorMessageType.RELOCATE_READINESS_CHECK_FAILED
           )
-        : setErrorMessage(0);
+        : setErrorMessage(0 as ErrorMessageType);
       setPeerStatus(peerCurrentStatus);
     } else {
       // Default peer status is Unknown
       setPeerStatus(initalPeerStatus(t));
-      setErrorMessage(0);
+      setErrorMessage(0 as ErrorMessageType);
     }
   }, [
     selectedSubsGroups,
