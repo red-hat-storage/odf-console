@@ -664,6 +664,7 @@
   "In-transit encryption: {{hasInTransitEncryption}}": "In-transit encryption: {{hasInTransitEncryption}}",
   "Network: {{networkType}}": "Network: {{networkType}}",
   "Public Network Interface": "Public Network Interface",
+  "Select NetworkAttachmentDefinition": "Select NetworkAttachmentDefinition",
   "Cluster Network Interface": "Cluster Network Interface",
   "Network": "Network",
   "Default (SDN)": "Default (SDN)",
