@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { getStorageClassDescription } from '@odf/core/utils';
+import { getCephNodes } from '@odf/ocs/utils/common';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { LoadingInline } from '@odf/shared/generic/Loading';
@@ -114,15 +115,18 @@ const nodeResource: WatchK8sResource = {
   isList: true,
 };
 
-const getProvisionedCapacity = (value: number) =>
-  value % 1 ? (value * 3).toFixed(2) : value * 3;
+const getProvisionedCapacity = (value: number, replica: number) =>
+  value % 1 ? (value * replica).toFixed(2) : value * replica;
 
 const RawCapacity: React.FC<RawCapacityProps> = ({
   t,
   osdSizeWithoutUnit,
   replica,
 }) => {
-  const provisionedCapacity = getProvisionedCapacity(osdSizeWithoutUnit);
+  const provisionedCapacity = getProvisionedCapacity(
+    osdSizeWithoutUnit,
+    replica
+  );
   return (
     <>
       <FormGroup
@@ -238,7 +242,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   const replica = getDeviceSetReplica(
     isArbiterEnabled,
     hasFlexibleScaling,
-    createWizardNodeState(nodesData)
+    createWizardNodeState(getCephNodes(nodesData))
   );
   const name = ocsConfig?.metadata?.name;
   const totalCapacityMetric = values?.[0];

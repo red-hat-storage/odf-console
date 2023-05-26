@@ -10,6 +10,7 @@ import {
 } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
 import {
+  NodeKind,
   HumanizeResult,
   K8sResourceKind,
   StorageClassResourceKind,
@@ -74,9 +75,7 @@ export const getCephSC = (
     );
   });
 
-export const getCephNodes = (
-  nodesData: K8sResourceKind[] = []
-): K8sResourceKind[] =>
+export const getCephNodes = (nodesData: NodeKind[] = []): NodeKind[] =>
   nodesData.filter((node) =>
     Object.keys(node?.metadata?.labels).includes(cephStorageLabel)
   );
