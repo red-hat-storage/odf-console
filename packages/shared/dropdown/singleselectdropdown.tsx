@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Select, SelectVariant } from '@patternfly/react-core';
+import { Select, SelectProps, SelectVariant } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
@@ -60,4 +60,6 @@ export type SingleSelectDropdownProps = {
   selectOptions: JSX.Element[];
   onChange: (selected: string) => void;
   'data-test-id'?: string;
+  onFilter?: SelectProps['onFilter'];
+  hasInlineFilter?: SelectProps['hasInlineFilter'];
 };
