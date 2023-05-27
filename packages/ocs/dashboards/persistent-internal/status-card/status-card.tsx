@@ -9,7 +9,7 @@ import useAlerts from '@odf/shared/monitoring/useAlert';
 import { alertURL } from '@odf/shared/monitoring/utils';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
+import { filterCephAlerts, referenceForModel } from '@odf/shared/utils';
 import {
   Alert,
   HealthState,
@@ -35,7 +35,6 @@ import {
 } from '@patternfly/react-core';
 import { CephClusterModel } from '../../../models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
-import { filterCephAlerts } from '../../../utils/metrics';
 import { getCephHealthState, getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
 import './healthchecks.scss';

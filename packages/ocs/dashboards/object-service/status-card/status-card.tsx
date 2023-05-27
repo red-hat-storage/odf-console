@@ -10,7 +10,11 @@ import {
 import useAlerts from '@odf/shared/monitoring/useAlert';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { alertURL } from '@odf/shared/utils';
+import {
+  alertURL,
+  filterNooBaaAlerts,
+  filterRGWAlerts,
+} from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   useK8sWatchResource,
@@ -37,11 +41,7 @@ import {
   dataResiliencyQueryMap,
   ObjectServiceDashboardQuery,
 } from '../../../queries';
-import {
-  filterNooBaaAlerts,
-  filterRGWAlerts,
-  decodeRGWPrefix,
-} from '../../../utils';
+import { decodeRGWPrefix } from '../../../utils';
 import { ObjectServiceStatus } from './object-service-health';
 import { getNooBaaState, getRGWHealthState } from './statuses';
 import './status-card.scss';
