@@ -12,6 +12,7 @@ import {
   getPVStatusGroups,
 } from '@odf/shared/status/Inventory';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
@@ -49,7 +50,7 @@ const InventoryCard: React.FC = () => {
 
   const nodesLoaded = resources?.nodes?.loaded;
   const nodesLoadError = resources?.nodes?.loadError;
-  const nodesData = (resources?.nodes?.data ?? []) as K8sResourceKind[];
+  const nodesData = (resources?.nodes?.data ?? []) as NodeKind[];
 
   const pvcsLoaded = resources?.pvcs?.loaded;
   const pvcsLoadError = resources?.pvcs?.loadError;
