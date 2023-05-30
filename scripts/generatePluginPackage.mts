@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const SUPPORTED_PLUGINS = ['odf', 'mco'];
+const defaultVer = '0.0.0';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -26,6 +27,9 @@ const pluginDir = `${__dirname}/../plugins/${pluginToBeProcessed}`;
 const frontendPackage = JSON.parse(
   fs.readFileSync(`${__dirname}/../package.json`, { encoding: 'utf-8' })
 );
+
+const version = process.env['PLUGIN_VERSION'] || defaultVer;
+frontendPackage.version = version;
 frontendPackage.consolePlugin = JSON.parse(
   fs.readFileSync(`${pluginDir}/console-plugin.json`, {
     encoding: 'utf-8',
