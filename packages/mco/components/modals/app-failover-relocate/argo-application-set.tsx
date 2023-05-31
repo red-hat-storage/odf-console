@@ -1,19 +1,23 @@
 import * as React from 'react';
 import { getName, getNamespace } from '@odf/shared/selectors';
+import {
+  useK8sWatchResources,
+  useK8sWatchResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { DRActionType } from '../../../constants';
 import {
-  DisasterRecoveryResourceKind,
-  getApplicationSetResourceObj,
-  getDRClusterResourceObj,
-  getDRPlacementControlResourceObj,
-  getDRPolicyResourceObj,
   getManagedClusterResourceObj,
-  getPlacementDecisionsResourceObj,
-  getPlacementResourceObj,
-  useArgoApplicationSetResourceWatch,
-  useDisasterRecoveryResourceWatch,
+  useArgoAppSetResourceParser,
+  useDRResourceParser,
+  getDRResources,
+  getArgoAppSetResources,
 } from '../../../hooks';
-import { ArgoApplicationSetKind } from '../../../types';
+import {
+  ACMManagedClusterKind,
+  ArgoApplicationSetKind,
+  WatchArgoAppSetResourceType,
+  WatchDRResourceType,
+} from '../../../types';
 import {
   findCluster,
   findDeploymentClusterName,
@@ -26,77 +30,43 @@ import {
 import { FailoverRelocateModal } from './failover-relocate-modal';
 import { PlacementProps } from './failover-relocate-modal-body';
 
-const getDRResources = (namespace: string) => ({
-  resources: {
-    drClusters: getDRClusterResourceObj(),
-    drPolicies: getDRPolicyResourceObj(),
-    drPlacementControls: getDRPlacementControlResourceObj({
-      namespace: namespace,
-    }),
-  },
-});
-
-const getApplicationSetResources = (
-  namespace: string,
-  appName: string,
-  placementName: string,
-  drResources: DisasterRecoveryResourceKind,
-  drLoaded: boolean,
-  drLoadError: any
-) => ({
-  resources: {
-    managedClusters: getManagedClusterResourceObj(),
-    applications: getApplicationSetResourceObj({ namespace: namespace }),
-    placements: getPlacementResourceObj({
-      name: placementName,
-      namespace: namespace,
-    }),
-    placementDecisions: getPlacementDecisionsResourceObj({
-      namespace: namespace,
-    }),
-  },
-  drResources: {
-    data: drResources,
-    loaded: drLoaded,
-    loadError: drLoadError,
-  },
-  conditions: {
-    filterByAppName: appName,
-  },
-});
-
 export const ArogoApplicationSetModal = (
   props: ArogoApplicationSetModalProps
 ) => {
   const { application, action, isOpen, close } = props;
-  const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
-    getDRResources(getNamespace(application))
+  const appNamespace = getNamespace(application);
+  const drResources = useK8sWatchResources<WatchDRResourceType>(
+    getDRResources(appNamespace)
   );
-  const [aroAppSetResources, loaded, loadError] =
-    useArgoApplicationSetResourceWatch(
-      getApplicationSetResources(
-        getNamespace(application),
-        getName(application),
-        findPlacementNameFromAppSet(application),
-        drResources,
-        drLoaded,
-        drLoadError
-      )
+  const appResources = useK8sWatchResources<WatchArgoAppSetResourceType>(
+    getArgoAppSetResources(
+      appNamespace,
+      findPlacementNameFromAppSet(application)
+    )
+  );
+  const [managedClusters, managedClusterLoaded, ManagedClusterLoadError] =
+    useK8sWatchResource<ACMManagedClusterKind[]>(
+      getManagedClusterResourceObj()
     );
-  const aroAppSetResource = aroAppSetResources?.formattedResources?.[0];
+  const drParserResult = useDRResourceParser({ resources: drResources });
+  const appParserResult = useArgoAppSetResourceParser({
+    resources: { ...appResources, drResources: drParserResult },
+    conditions: { filterByAppName: getName(application) },
+  });
+  const {
+    data: aroAppSetResources,
+    loaded: resourceLoaded,
+    loadError: resourceLoadedError,
+  } = appParserResult;
+  const loaded = resourceLoaded && managedClusterLoaded;
+  const loadError = resourceLoadedError || ManagedClusterLoadError;
+  const aroAppSetResource = aroAppSetResources?.[0];
   const placements: PlacementProps[] = React.useMemo(() => {
-    const {
-      managedClusters,
-      siblingApplications,
-      placements: resourcePlacements,
-    } = aroAppSetResource || {};
-    const {
-      drClusters,
-      drPlacementControl,
-      drPolicy,
-      placementDecision,
-      placement,
-    } = resourcePlacements?.[0] || {};
+    const { siblingApplications, applicationInfo } = aroAppSetResource || {};
+    const { drInfo, placementInfo } =
+      applicationInfo?.deploymentInfo?.[0] || {};
+    const { drClusters, drPlacementControl, drPolicy } = drInfo || {};
+    const { placement, placementDecision } = placementInfo || {};
     let deploymentClusterName = findDeploymentClusterName(
       placementDecision,
       drPlacementControl,
@@ -140,7 +110,7 @@ export const ArogoApplicationSetModal = (
           },
         ]
       : [];
-  }, [aroAppSetResource, loaded, loadError, action]);
+  }, [aroAppSetResource, managedClusters, loaded, loadError, action]);
 
   return (
     <FailoverRelocateModal

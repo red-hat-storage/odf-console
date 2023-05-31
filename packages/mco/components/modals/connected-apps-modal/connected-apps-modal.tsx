@@ -24,7 +24,7 @@ import {
   Thead,
   ThProps,
 } from '@patternfly/react-table';
-import { ApplicationRefKind } from '../../../hooks/applications-hook';
+import { ApplicationRefKind } from '../../../types';
 import './connected-apps-modal.scss';
 
 const reactPropFix = {

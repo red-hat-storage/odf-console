@@ -10,6 +10,7 @@ import {
   ACMSubscriptionKind,
   ArgoApplicationSetKind,
   DRPlacementControlKind,
+  ApplicationRefKind,
 } from '../types';
 import {
   matchApplicationToSubscription,
@@ -221,13 +222,4 @@ type UseApplicationsWatch = () => [ApplicationRefKind[], boolean, any];
 
 type SubcsriptionMapping = {
   [namespace in string]: ACMSubscriptionKind[];
-};
-
-export type ApplicationRefKind = {
-  applicationName: string;
-  applicationNamespace: string;
-  applicationType: string;
-  workLoadNamespace: string;
-  drPolicyRefs?: string[];
-  placementRef?: ObjectReference[];
 };

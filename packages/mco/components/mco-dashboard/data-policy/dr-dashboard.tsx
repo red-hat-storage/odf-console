@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
 import { getName, getNamespace } from '@odf/shared/selectors';
+import {
+  useK8sWatchResource,
+  useK8sWatchResources,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
@@ -10,14 +14,18 @@ import {
   HUB_CLUSTER_NAME,
 } from '../../../constants';
 import {
-  DisasterRecoveryResourceKind,
-  useArgoApplicationSetResourceWatch,
-  useDisasterRecoveryResourceWatch,
+  useDRResourceParser,
+  useArgoAppSetResourceParser,
+  getManagedClusterResourceObj,
+  getDRResources,
+  getArgoAppSetResources,
 } from '../../../hooks';
 import {
-  DRClusterKind,
   ACMManagedClusterKind,
   DrClusterAppsMap,
+  WatchDRResourceType,
+  WatchArgoAppSetResourceType,
+  ArgoApplicationSetKind,
 } from '../../../types';
 import {
   findDRType,
@@ -32,18 +40,6 @@ import { StatusCard } from './status-card/status-card';
 import { SummaryCard } from './summary-card/summary-card';
 import '../mco-dashboard.scss';
 import '../../../style.scss';
-
-const getApplicationSetResources = (
-  drResources: DisasterRecoveryResourceKind,
-  drLoaded: boolean,
-  drLoadError: any
-) => ({
-  drResources: {
-    data: drResources,
-    loaded: drLoaded,
-    loadError: drLoadError,
-  },
-});
 
 const UpperSection: React.FC = () => (
   <Grid hasGutter>
@@ -69,19 +65,28 @@ export const DRDashboard: React.FC = () => {
     basePath: ACM_ENDPOINT,
     cluster: HUB_CLUSTER_NAME,
   });
-
-  const [drResources, drLoaded, drLoadError] =
-    useDisasterRecoveryResourceWatch();
-  const [argoApplicationSetResources, loaded, loadError] =
-    useArgoApplicationSetResourceWatch(
-      getApplicationSetResources(drResources, drLoaded, drLoadError)
+  const drResources = useK8sWatchResources<WatchDRResourceType>(
+    getDRResources()
+  );
+  const appResources = useK8sWatchResources<WatchArgoAppSetResourceType>(
+    getArgoAppSetResources()
+  );
+  const [managedClusters, managedClusterLoaded, ManagedClusterLoadError] =
+    useK8sWatchResource<ACMManagedClusterKind[]>(
+      getManagedClusterResourceObj()
     );
-
-  const drClusters: DRClusterKind[] = drResources?.drClusters;
-  const managedClusters: ACMManagedClusterKind[] =
-    argoApplicationSetResources?.managedClusters;
-  const formattedArgoAppSetResources =
-    argoApplicationSetResources?.formattedResources;
+  const drParserResult = useDRResourceParser({ resources: drResources });
+  const appParserResult = useArgoAppSetResourceParser({
+    resources: { ...appResources, drResources: drParserResult },
+  });
+  const {
+    data: aroAppSetResources,
+    loaded: resourceLoaded,
+    loadError: resourceLoadedError,
+  } = appParserResult;
+  const loaded = resourceLoaded && managedClusterLoaded;
+  const loadError = resourceLoadedError || ManagedClusterLoadError;
+  const { data: drClusters } = drResources?.drClusters || {};
 
   const drClusterAppsMap: DrClusterAppsMap = React.useMemo(() => {
     if (loaded && !loadError) {
@@ -101,14 +106,17 @@ export const DRDashboard: React.FC = () => {
       );
 
       // DRCluster to its ApplicationSets (total and protected) mapping
-      formattedArgoAppSetResources.forEach((argoApplicationSetResource) => {
-        const { application } = argoApplicationSetResource || {};
+      aroAppSetResources.forEach((argoApplicationSetResource) => {
+        const { applicationInfo } = argoApplicationSetResource || {};
+        const { application } = applicationInfo || {};
+        const { drInfo, placementInfo } =
+          applicationInfo?.deploymentInfo?.[0] || {};
+        const { placementDecision } = placementInfo || {};
         const {
           drClusters: currentDrClusters,
           drPlacementControl,
           drPolicy,
-          placementDecision,
-        } = argoApplicationSetResource?.placements?.[0] || {};
+        } = drInfo || {};
         placementDecision?.status?.decisions?.forEach((decision) => {
           const decisionCluster = decision?.clusterName;
           if (drClusterAppsMap.hasOwnProperty(decisionCluster)) {
@@ -129,7 +137,9 @@ export const DRDashboard: React.FC = () => {
                     protectedPVCs: getProtectedPVCsFromDRPC(drPlacementControl),
                     replicationType: findDRType(currentDrClusters),
                     syncInterval: drPolicy?.spec?.schedulingInterval,
-                    workloadNamespace: getRemoteNSFromAppSet(application),
+                    workloadNamespace: getRemoteNSFromAppSet(
+                      application as ArgoApplicationSetKind
+                    ),
                     failoverCluster: drPlacementControl?.spec?.failoverCluster,
                     preferredCluster:
                       drPlacementControl?.spec?.preferredCluster,
@@ -146,13 +156,7 @@ export const DRDashboard: React.FC = () => {
       return drClusterAppsMap;
     }
     return {};
-  }, [
-    drClusters,
-    managedClusters,
-    formattedArgoAppSetResources,
-    loaded,
-    loadError,
-  ]);
+  }, [drClusters, managedClusters, aroAppSetResources, loaded, loadError]);
 
   const dRResourcesContext = {
     drClusterAppsMap,

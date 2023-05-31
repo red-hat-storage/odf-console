@@ -37,7 +37,6 @@ import {
   TIME_UNITS,
   PROTECTED_APP_ANNOTATION,
 } from '../constants/disaster-recovery';
-import { DisasterRecoveryFormatted, ApplicationRefKind } from '../hooks';
 import {
   ACMPlacementModel,
   ACMPlacementRuleModel,
@@ -57,6 +56,8 @@ import {
   ProtectedAppSetsMap,
   ACMPlacementDecisionKind,
   ACMPlacementKind,
+  ApplicationRefKind,
+  DRResourceType,
 } from '../types';
 import { findPlacementDecisionUsingPlacement } from './acm';
 
@@ -280,9 +281,9 @@ export const findDRType = (drClusters: DRClusterKind[]) =>
 export const findDRResourceUsingPlacement = (
   placementName: string,
   workloadNamespace: string,
-  drResources: DisasterRecoveryFormatted[]
-): DisasterRecoveryFormatted => {
-  let result: DisasterRecoveryFormatted = {};
+  drResources: DRResourceType[]
+): DRResourceType => {
+  let result: DRResourceType = {};
   drResources?.forEach((drResource) => {
     const drpc = drResource?.drPlacementControls?.find((drpc) => {
       const placementRef = drpc.spec?.placementRef;

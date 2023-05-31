@@ -23,13 +23,9 @@ import {
 import { Trans } from 'react-i18next';
 import { useHistory, useLocation } from 'react-router';
 import { HUB_CLUSTER_NAME } from '../../../constants';
-import {
-  ApplicationRefKind,
-  getDRPolicyResourceObj,
-  useApplicationsWatch,
-} from '../../../hooks';
+import { getDRPolicyResourceObj, useApplicationsWatch } from '../../../hooks';
 import { DRPolicyModel } from '../../../models';
-import { DRPolicyKind } from '../../../types';
+import { DRPolicyKind, ApplicationRefKind } from '../../../types';
 import { getReplicationType, findAppsUsingDRPolicy } from '../../../utils';
 import EmptyPage from '../../empty-state-page/empty-page';
 import { ConnectedApplicationsModal } from '../../modals/connected-apps-modal/connected-apps-modal';

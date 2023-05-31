@@ -1,14 +1,10 @@
 import * as React from 'react';
 import { getNamespace, getName } from '@odf/shared/selectors';
+import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { DRPC_STATUS } from '../../../constants';
-import {
-  getDRClusterResourceObj,
-  getDRPlacementControlResourceObj,
-  getDRPolicyResourceObj,
-  useDisasterRecoveryResourceWatch,
-} from '../../../hooks';
-import { ArgoApplicationSetKind } from '../../../types';
+import { useDRResourceParser, getDRResources } from '../../../hooks';
+import { ArgoApplicationSetKind, WatchDRResourceType } from '../../../types';
 import {
   findPlacementNameFromAppSet,
   findDRResourceUsingPlacement,
@@ -17,51 +13,47 @@ import {
 import { DRStatusProps } from './dr-status';
 import { StatusPopover } from './status-popover';
 
-const getResources = (namespace: string) => ({
-  resources: {
-    drClusters: getDRClusterResourceObj(),
-    drPolicies: getDRPolicyResourceObj(),
-    drPlacementControls: getDRPlacementControlResourceObj({ namespace }),
-  },
-});
-
 export const ArogoApplicationSetStatus: React.FC<ArogoApplicationSetStatusProps> =
   ({ application }) => {
-    const [drResources] = useDisasterRecoveryResourceWatch(
-      getResources(getNamespace(application))
+    const appNamespace = getNamespace(application);
+    const drResources = useK8sWatchResources<WatchDRResourceType>(
+      getDRResources(appNamespace)
     );
+    const drParserResult = useDRResourceParser({ resources: drResources });
+    const { data: drResult, loaded, loadError } = drParserResult || {};
+    const placementName = findPlacementNameFromAppSet(application);
 
     const drStatus: DRStatusProps[] = React.useMemo(() => {
-      const placementName = findPlacementNameFromAppSet(application);
-      // TODO change to appset remote workload namespace
-      const drResource = findDRResourceUsingPlacement(
-        placementName,
-        getNamespace(application),
-        drResources?.formattedResources
-      );
-      if (!_.isEmpty(drResource)) {
-        const drpc = drResource?.drPlacementControls?.[0];
-        const drPolicy = drResource?.drPolicy;
-        const status = drpc?.status?.phase as DRPC_STATUS;
-        const targetCluster = [
-          DRPC_STATUS.FailedOver,
-          DRPC_STATUS.FailingOver,
-        ].includes(status)
-          ? drpc?.spec?.failoverCluster
-          : drpc?.spec?.preferredCluster;
-        return [
-          {
-            policyName: getName(drPolicy),
-            status: status,
-            dataLastSyncedOn: drpc?.status?.lastGroupSyncTime,
-            schedulingInterval: drPolicy?.spec?.schedulingInterval,
-            targetCluster: targetCluster,
-            replicationType: findDRType(drResource?.drClusters),
-          },
-        ];
+      if (loaded && !loadError) {
+        const drResource = findDRResourceUsingPlacement(
+          placementName,
+          appNamespace,
+          drResult
+        );
+        if (!_.isEmpty(drResource)) {
+          const drpc = drResource?.drPlacementControls?.[0];
+          const drPolicy = drResource?.drPolicy;
+          const status = drpc?.status?.phase as DRPC_STATUS;
+          const targetCluster = [
+            DRPC_STATUS.FailedOver,
+            DRPC_STATUS.FailingOver,
+          ].includes(status)
+            ? drpc?.spec?.failoverCluster
+            : drpc?.spec?.preferredCluster;
+          return [
+            {
+              policyName: getName(drPolicy),
+              status: status,
+              dataLastSyncedOn: drpc?.status?.lastGroupSyncTime,
+              schedulingInterval: drPolicy?.spec?.schedulingInterval,
+              targetCluster: targetCluster,
+              replicationType: findDRType(drResource?.drClusters),
+            },
+          ];
+        }
       }
       return [];
-    }, [drResources, application]);
+    }, [placementName, appNamespace, drResult, loaded, loadError]);
 
     return <StatusPopover disasterRecoveryStatus={drStatus} />;
   };
