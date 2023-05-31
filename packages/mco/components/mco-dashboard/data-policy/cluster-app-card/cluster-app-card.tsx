@@ -42,7 +42,6 @@ import {
   ProtectedPVCsSection,
   ActivitySection,
   SnapshotSection,
-  ReplicationHistorySection,
 } from './argo-application-set';
 import {
   HealthSection,
@@ -115,9 +114,6 @@ export const AppWiseCard: React.FC<AppWiseCardProps> = ({
           protectedPVCData={protectedPVCData}
           selectedAppSet={selectedAppSet}
         />
-      </GridItem>
-      <GridItem lg={12} rowSpan={3} sm={12}>
-        <ReplicationHistorySection selectedAppSet={selectedAppSet} />
       </GridItem>
     </Grid>
   );
