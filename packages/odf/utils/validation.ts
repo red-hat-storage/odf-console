@@ -2,7 +2,7 @@
  * Starts and ends with a lowercase letter or number
  */
 export const startAndEndsWithAlphanumerics =
-  /^(?![-.])([a-z0-9]|[\W]*([a-z0-9]))+(?![-.])$/;
+  /^(?![\W])([a-z0-9]|[\W]*([a-z0-9]))+(?![\W])$/;
 
 /**
  * Only lowercase letters, numbers, non-consecutive periods, or hyphens
