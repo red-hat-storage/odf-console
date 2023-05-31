@@ -6,8 +6,6 @@ import {
 import {
   DRPC_OBJECT_TYPE,
   HUB_CLUSTER_NAME,
-  OBJECT_NAME,
-  OBJECT_NAMESPACE,
   RAMEN_HUB_OPERATOR_METRICS_SERVICE,
 } from '../../constants';
 
@@ -28,12 +26,6 @@ export const getTotalPVCCountPerClusterQuery = (clusterName: string) =>
 export const LAST_SYNC_TIME_QUERY = 'ramen_sync_duration_seconds';
 export const getLastSyncPerClusterQuery = () =>
   `${LAST_SYNC_TIME_QUERY}{${DRPC_OBJECT_TYPE}, ${RAMEN_HUB_OPERATOR_METRICS_SERVICE}, cluster="${HUB_CLUSTER_NAME}"}`;
-
-export const getLastSyncTimeDRPCQuery = (
-  drpcName: string,
-  drpcNamespace: string
-) =>
-  `${LAST_SYNC_TIME_QUERY}{${OBJECT_NAME}="${drpcName}",${OBJECT_NAMESPACE}="${drpcNamespace}", ${DRPC_OBJECT_TYPE}, ${RAMEN_HUB_OPERATOR_METRICS_SERVICE}, cluster="${HUB_CLUSTER_NAME}"}`;
 
 export const CAPACITY_QUERIES = {
   [StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${TOTAL_CAPACITY_FILE_BLOCK_METRIC}`,
