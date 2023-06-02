@@ -4,6 +4,7 @@ import { SelectorInput } from '@odf/shared/modals/Selector';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import AngleRightIcon from '@patternfly/react-icons/dist/esm/icons/angle-right-icon';
 import classNames from 'classnames';
+import { Trans } from 'react-i18next';
 import {
   DualListSelectorPane,
   DualListSelectorList,
@@ -16,7 +17,11 @@ import {
   FormGroup,
   Form,
 } from '@patternfly/react-core';
-import { LockIcon } from '@patternfly/react-icons';
+import {
+  ExclamationTriangleIcon,
+  LockIcon,
+  CheckCircleIcon,
+} from '@patternfly/react-icons';
 import { PlacementToAppSets, PlacementToDrpcMap } from '../../../types';
 import {
   ApplyPolicyInitialState,
@@ -32,6 +37,7 @@ type ApplyPolicyDualListSelectorProps = {
 
 type DualListSelectorAvailablePaneProps = {
   availableOptions: PlacementToAppSets[];
+  chosenOptions: PlacementToAppSets[];
   buildSearchInput: (isAvailable: boolean) => JSX.Element;
   onOptionSelect: (
     _event: React.MouseEvent | React.ChangeEvent | React.KeyboardEvent,
@@ -70,25 +76,70 @@ const defaultLabelsState = {
   updateLabels: [],
 };
 
-const EmptyChosenState: React.FC = () => {
+type EmptyPaneProp = {
+  title: string;
+  children?: React.ReactNode;
+  icon: React.ComponentClass;
+};
+
+type PaneMessageProps = {
+  totalChosenOptions: number;
+  leftPane?: boolean;
+};
+
+const PaneMessage: React.FC<PaneMessageProps> = ({
+  leftPane,
+  totalChosenOptions,
+}) => {
   const { t } = useCustomTranslation();
+  const title = leftPane
+    ? !totalChosenOptions
+      ? t('There are no applications under Available list.')
+      : t('There are no more applications under Available list to protect.')
+    : t('No protected applications');
+  const icon = leftPane
+    ? !totalChosenOptions
+      ? ExclamationTriangleIcon
+      : CheckCircleIcon
+    : LockIcon;
+  const message = leftPane ? (
+    <Trans t={t}>
+      You can create applications from the{' '}
+      <strong> Create application set </strong> page.
+    </Trans>
+  ) : (
+    t(
+      'There are no applications under the Protected list. Move applications from the available list to assign DR policy.'
+    )
+  );
 
   return (
+    <EmptyPane title={title} icon={icon}>
+      {message}
+    </EmptyPane>
+  );
+};
+
+const EmptyPane: React.FC<EmptyPaneProp> = ({ title, children, icon }) => {
+  return (
     <EmptyState>
-      <EmptyStateIcon icon={LockIcon} />
-      <Title headingLevel="h4">{t('No protected applications')}</Title>
-      <EmptyStateBody data-test="empty-state-body">
-        {t(
-          'There are currently no applications under DR protection. Move applications from the available list to apply DR policy.'
-        )}
-      </EmptyStateBody>
+      <EmptyStateIcon icon={icon} />
+      <Title headingLevel="h4">{title}</Title>
+      <EmptyStateBody data-test="empty-state-body">{children}</EmptyStateBody>
     </EmptyState>
   );
 };
 
 const DualListSelectorAvailablePane: React.FC<DualListSelectorAvailablePaneProps> =
-  ({ availableOptions, buildSearchInput, onOptionSelect }) => {
+  ({ availableOptions, chosenOptions, buildSearchInput, onOptionSelect }) => {
     const { t } = useCustomTranslation();
+
+    const totalAvailableOptions: number = availableOptions.filter(
+      (option) => option.isVisible
+    ).length;
+    const totalChosenOptions: number = chosenOptions.filter(
+      (option) => option.isVisible
+    ).length;
 
     return (
       <DualListSelectorPane
@@ -102,34 +153,41 @@ const DualListSelectorAvailablePane: React.FC<DualListSelectorAvailablePaneProps
         searchInput={buildSearchInput(true)}
       >
         <DualListSelectorList>
-          {availableOptions.map((option, optionIndex) =>
-            option.isVisible ? (
-              <DualListSelectorListItem
-                key={optionIndex}
-                isSelected={option.selected}
-                id={`available-option-${optionIndex}`}
-                onOptionSelect={(e) => onOptionSelect(e, optionIndex, false)}
-                translate={false}
-              >
-                <div className="mco-apply-policy-dual-selector__listRow">
-                  <div className="mco-apply-policy-dual-selector__listItem">
-                    <span className="mco-apply-policy-dual-selector__listItem--text">
-                      {option.appSetName}
-                    </span>
-                    {option.isAlreadyProtected && (
-                      <span>
-                        <Label isCompact color="green">
-                          {t('Protected')}
-                        </Label>
+          {!totalAvailableOptions ? (
+            <PaneMessage
+              leftPane={true}
+              totalChosenOptions={totalChosenOptions}
+            />
+          ) : (
+            availableOptions.map((option, optionIndex) =>
+              option.isVisible ? (
+                <DualListSelectorListItem
+                  key={optionIndex}
+                  isSelected={option.selected}
+                  id={`available-option-${optionIndex}`}
+                  onOptionSelect={(e) => onOptionSelect(e, optionIndex, false)}
+                  translate={false}
+                >
+                  <div className="mco-apply-policy-dual-selector__listRow">
+                    <div className="mco-apply-policy-dual-selector__listItem">
+                      <span className="mco-apply-policy-dual-selector__listItem--text">
+                        {option.appSetName}
                       </span>
-                    )}
+                      {option.isAlreadyProtected && (
+                        <span>
+                          <Label isCompact color="green">
+                            {t('Protected')}
+                          </Label>
+                        </span>
+                      )}
+                    </div>
+                    <div className="mco-apply-policy-dual-selector__ItemDescription--color">
+                      {option.namespace}
+                    </div>
                   </div>
-                  <div className="mco-apply-policy-dual-selector__ItemDescription--color">
-                    {option.namespace}
-                  </div>
-                </div>
-              </DualListSelectorListItem>
-            ) : null
+                </DualListSelectorListItem>
+              ) : null
+            )
           )}
         </DualListSelectorList>
       </DualListSelectorPane>
@@ -300,7 +358,7 @@ const DualListSelectorChosenPane: React.FC<DualListSelectorChosenPaneProps> = ({
     >
       <DualListSelectorList>
         {!totalChosenOptions ? (
-          <EmptyChosenState />
+          <PaneMessage totalChosenOptions={totalChosenOptions} />
         ) : (
           chosenOptions.map((option, optionIndex) =>
             option.isVisible ? (
