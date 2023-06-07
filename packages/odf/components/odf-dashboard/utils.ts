@@ -1,10 +1,10 @@
 import { NavPage } from '@openshift-console/dynamic-plugin-sdk';
 import { ResolvedCodeRefProperties } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import * as _ from 'lodash-es';
-import { DashboardTabExtensionProps } from 'packages/odf-plugin-sdk/extensions';
+import { HorizontalNavTabExtensionProps } from 'packages/odf-plugin-sdk/extensions';
 
 export const sortPages = (
-  dashboardTabs: ResolvedCodeRefProperties<DashboardTabExtensionProps>[]
+  dashboardTabs: ResolvedCodeRefProperties<HorizontalNavTabExtensionProps>[]
 ): void => {
   for (let i = 0; i < dashboardTabs.length; i++) {
     const element = dashboardTabs[i];
@@ -50,7 +50,7 @@ export const sortPages = (
 };
 
 export const convertDashboardTabToNav = (
-  dashboardTabs: ResolvedCodeRefProperties<DashboardTabExtensionProps>[]
+  dashboardTabs: ResolvedCodeRefProperties<HorizontalNavTabExtensionProps>[]
 ): NavPage[] =>
   dashboardTabs.map((tab) => ({
     name: tab.name,
