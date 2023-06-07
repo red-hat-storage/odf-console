@@ -13,3 +13,4 @@ export const enum VOLUME_REPLICATION_HEALTH {
 }
 export const ACM_OBSERVABILITY_FLAG = 'ACM_OBSERVABILITY';
 export const ADMIN_FLAG = 'ADMIN';
+export const ODFMCO_OPERATOR_NAMESPACE = 'openshift-operators';

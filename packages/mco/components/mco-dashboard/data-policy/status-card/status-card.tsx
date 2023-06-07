@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
   HUB_CLUSTER_NAME,
   ODFMCO_OPERATOR,
+  ODFMCO_OPERATOR_NAMESPACE,
   ODR_CLUSTER_OPERATOR,
   ODR_HUB_OPERATOR,
   VOL_SYNC,
@@ -38,7 +39,7 @@ import './status-card.scss';
 
 const operatorResource: WatchK8sResource = {
   kind: 'operators.coreos.com~v1alpha1~ClusterServiceVersion',
-  namespace: 'openshift-storage',
+  namespace: ODFMCO_OPERATOR_NAMESPACE,
   isList: true,
   cluster: HUB_CLUSTER_NAME,
 };
