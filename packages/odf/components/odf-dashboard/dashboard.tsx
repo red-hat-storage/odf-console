@@ -1,8 +1,8 @@
 import * as React from 'react';
 import {
-  DashboardTab,
-  DashboardTabExtensionProps as UnresolvedTabProps,
-  isDashboardTab,
+  HorizontalNavTab,
+  HorizontalNavTabExtensionProps as UnresolvedTabProps,
+  isHorizontalNavTab,
 } from '@odf/odf-plugin-sdk/extensions';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -25,6 +25,8 @@ import { StatusCard } from './status-card/status-card';
 import SystemCapacityCard from './system-capacity-card/capacity-card';
 import { convertDashboardTabToNav, sortPages } from './utils';
 import './dashboard.scss';
+
+const CONTEXT_ID = 'odf-dashboard';
 
 type ODFDashboardPageProps = {
   history: RouteComponentProps['history'];
@@ -71,17 +73,21 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
       href: '',
       name: t('Overview'),
       component: ODFDashboard,
+      contextId: CONTEXT_ID,
     },
     {
       id: 'systems',
       href: 'systems',
       name: t('Storage Systems'),
       component: StorageSystemListPage,
+      contextId: CONTEXT_ID,
     },
   ]);
 
+  const isTab = React.useMemo(() => isHorizontalNavTab(CONTEXT_ID), []);
+
   const [extensions, isLoaded, error] =
-    useResolvedExtensions<DashboardTab>(isDashboardTab);
+    useResolvedExtensions<HorizontalNavTab>(isTab);
 
   React.useEffect(() => {
     const updatedPages = [...pages];
@@ -98,6 +104,7 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
             href: extension.properties.href,
             name: extension.properties.name,
             component: extension.properties.component,
+            contextId: extension.properties.contextId,
             before: extension.properties.before,
             after: extension.properties.after,
           };

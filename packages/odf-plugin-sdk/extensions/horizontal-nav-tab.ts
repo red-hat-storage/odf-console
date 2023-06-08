@@ -6,11 +6,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import { RouteComponentProps } from 'react-router';
 
-export type DashboardTabExtensionProps = {
+export type HorizontalNavTabExtensionProps = {
   /** Unique string to identify the tab */
   id: string;
   /** Name of the tab */
   name: string;
+  /** Context ID according to which tab will be injected to a particular page. */
+  contextId: string;
   /** ID of the tab before which this should be placed */
   before?: string;
   /** ID of the tab after which this should be placecd */
@@ -21,10 +23,12 @@ export type DashboardTabExtensionProps = {
   component: CodeRef<React.ComponentType<RouteComponentProps>>;
 };
 
-export type DashboardTab = ExtensionDeclaration<
-  'odf.dashboard/tab',
-  DashboardTabExtensionProps
+export type HorizontalNavTab = ExtensionDeclaration<
+  'odf.horizontalNav/tab',
+  HorizontalNavTabExtensionProps
 >;
 
-export const isDashboardTab = (e: Extension): e is DashboardTab =>
-  e.type === 'odf.dashboard/tab';
+export const isHorizontalNavTab =
+  (contextId: string) =>
+  (e: Extension): e is HorizontalNavTab =>
+    e.type === 'odf.horizontalNav/tab' && e.properties.contextId === contextId;

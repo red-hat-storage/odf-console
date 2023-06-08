@@ -594,10 +594,11 @@
     }
   },
   {
-    "type": "odf.dashboard/tab",
+    "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "backing-store",
       "name": "Backing Store",
+      "contextId": "odf-dashboard",
       "after": "systems",
       "href": "resource/noobaa.io~v1alpha1~BackingStore",
       "component": {
@@ -609,10 +610,11 @@
     }
   },
   {
-    "type": "odf.dashboard/tab",
+    "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "bucket-class",
       "name": "Bucket Class",
+      "contextId": "odf-dashboard",
       "after": "backing-store",
       "href": "resource/noobaa.io~v1alpha1~BucketClass",
       "component": {
@@ -624,10 +626,11 @@
     }
   },
   {
-    "type": "odf.dashboard/tab",
+    "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "namespace-store",
       "name": "Namespace Store",
+      "contextId": "odf-dashboard",
       "after": "bucket-class",
       "href": "resource/noobaa.io~v1alpha1~NamespaceStore",
       "component": {
@@ -639,10 +642,11 @@
     }
   },
   {
-    "type": "odf.dashboard/tab",
+    "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "topology",
       "name": "Topology",
+      "contextId": "odf-dashboard",
       "before": "systems",
       "href": "topology",
       "component": {
