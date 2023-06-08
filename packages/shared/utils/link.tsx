@@ -17,7 +17,7 @@ import { useCustomTranslation } from '../useCustomTranslationHook';
 //
 // And it's ok for users to make assumptions about capturing groups.
 
-const ALL_NAMESPACES_KEY = '#ALL_NS#';
+export const ALL_NAMESPACES_KEY = '#ALL_NS#';
 
 export const legalNamePattern = /[a-z0-9](?:[-a-z0-9]*[a-z0-9])?/;
 

@@ -105,12 +105,12 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
 
   const breadcrumbs = [
     {
-      name: t('Data Foundation'),
-      path: '/odf/overview',
+      name: t('Object Service'),
+      path: '/odf/object-storage',
     },
     {
       name: t('BucketClasses'),
-      path: '/odf/resource/noobaa.io~v1alpha1~BucketClass',
+      path: '/odf/object-storage/resource/noobaa.io~v1alpha1~BucketClass',
     },
     {
       name: t('BucketClass details'),

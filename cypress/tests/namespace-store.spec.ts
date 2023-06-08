@@ -1,5 +1,6 @@
 import { fieldValidationOnFormsTests } from '../helpers/formValidations';
-import { MIN, ODFCommon } from '../views/odf-common';
+import { commonFlows } from '../views/common';
+import { MIN } from '../views/odf-common';
 import {
   createStore,
   Providers,
@@ -36,7 +37,7 @@ describe('Tests creation of Namespace Stores', () => {
 
   beforeEach(() => {
     cy.visit('/');
-    ODFCommon.visitStorageDashboard();
+    commonFlows.navigateToObjectStorage();
     cy.byLegacyTestID('horizontal-link-Namespace Store').first().click();
     cy.byTestID('item-create').click();
   });
@@ -80,7 +81,7 @@ describe('Tests form validations on Namespace Stores', () => {
 
   beforeEach(() => {
     cy.visit('/');
-    ODFCommon.visitStorageDashboard();
+    commonFlows.navigateToObjectStorage();
     cy.byLegacyTestID('horizontal-link-Namespace Store').first().click();
     cy.byTestID('item-create').click();
   });

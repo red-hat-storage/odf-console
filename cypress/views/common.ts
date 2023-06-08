@@ -2,6 +2,9 @@ export const commonFlows = {
   navigateToODF: () => {
     cy.clickNavLink(['Storage', 'Data Foundation']);
   },
+  navigateToObjectStorage: () => {
+    cy.clickNavLink(['Storage', 'Object Storage']);
+  },
 };
 
 export const commandPoll = (

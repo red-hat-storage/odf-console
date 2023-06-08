@@ -56,76 +56,6 @@
     }
   },
   {
-    "type": "console.navigation/resource-cluster",
-    "properties": {
-      "id": "objectbuckets",
-      "section": "storage",
-      "name": "Object Buckets",
-      "insertAfter": "volumesnapshotcontents",
-      "model": {
-        "group": "objectbucket.io",
-        "kind": "ObjectBucket",
-        "version": "v1alpha1"
-      }
-    },
-    "flags": {
-      "required": ["MCG"]
-    }
-  },
-  {
-    "type": "console.navigation/resource-cluster",
-    "properties": {
-      "id": "objectbuckets",
-      "section": "storage",
-      "name": "Object Buckets",
-      "insertAfter": "volumesnapshotcontents",
-      "model": {
-        "group": "objectbucket.io",
-        "kind": "ObjectBucket",
-        "version": "v1alpha1"
-      }
-    },
-    "flags": {
-      "required": ["RGW"],
-      "disallowed": ["MCG"]
-    }
-  },
-  {
-    "type": "console.navigation/resource-ns",
-    "properties": {
-      "id": "objectbucketclaims",
-      "section": "storage",
-      "name": "Object Bucket Claims",
-      "insertAfter": "objectbuckets",
-      "model": {
-        "group": "objectbucket.io",
-        "kind": "ObjectBucketClaim",
-        "version": "v1alpha1"
-      }
-    },
-    "flags": {
-      "required": ["MCG"]
-    }
-  },
-  {
-    "type": "console.navigation/resource-ns",
-    "properties": {
-      "id": "objectbucketclaims",
-      "section": "storage",
-      "name": "Object Bucket Claims",
-      "insertAfter": "objectbuckets",
-      "model": {
-        "group": "objectbucket.io",
-        "kind": "ObjectBucketClaim",
-        "version": "v1alpha1"
-      }
-    },
-    "flags": {
-      "required": ["RGW"],
-      "disallowed": ["MCG"]
-    }
-  },
-  {
     "type": "console.navigation/href",
     "properties": {
       "id": "odfdashboard",
@@ -163,9 +93,9 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/resource/:kind",
+      "path": ["/odf/resource/:kind", "/odf/resource/ns/:namespace/:kind"],
       "exact": true,
-      "component": { "$codeRef": "dashboard.RerouteResource" }
+      "component": { "$codeRef": "objectService.RerouteResource" }
     },
     "flags": {
       "required": ["ODF_MODEL"]
@@ -183,57 +113,13 @@
     }
   },
   {
-    "type": "console.page/resource/list",
-    "properties": {
-      "model": {
-        "group": "objectbucket.io",
-        "kind": "ObjectBucketClaim",
-        "version": "v1alpha1"
-      },
-      "component": { "$codeRef": "obc.OBCListPage" }
-    }
-  },
-  {
-    "type": "console.page/resource/details",
-    "properties": {
-      "model": {
-        "group": "objectbucket.io",
-        "kind": "ObjectBucketClaim",
-        "version": "v1alpha1"
-      },
-      "component": { "$codeRef": "obc.OBCDetailsPage" }
-    }
-  },
-  {
     "type": "console.page/route",
     "properties": {
-      "exact": false,
-      "path": "/k8s/ns/:ns/objectbucket.io~v1alpha1~ObjectBucketClaim/~new/form",
+      "exact": true,
+      "path": "/odf/resource/objectbucket.io~v1alpha1~ObjectBucketClaim/create/~new",
       "component": {
         "$codeRef": "createOBC.CreateOBCPage"
       }
-    }
-  },
-  {
-    "type": "console.page/resource/details",
-    "properties": {
-      "model": {
-        "group": "objectbucket.io",
-        "kind": "ObjectBucket",
-        "version": "v1alpha1"
-      },
-      "component": { "$codeRef": "ob.OBDetailsPage" }
-    }
-  },
-  {
-    "type": "console.page/resource/list",
-    "properties": {
-      "model": {
-        "group": "objectbucket.io",
-        "kind": "ObjectBucket",
-        "version": "v1alpha1"
-      },
-      "component": { "$codeRef": "ob.ObjectBucketListPage" }
     }
   },
   {
@@ -596,54 +482,6 @@
   {
     "type": "odf.horizontalNav/tab",
     "properties": {
-      "id": "backing-store",
-      "name": "Backing Store",
-      "contextId": "odf-dashboard",
-      "after": "systems",
-      "href": "resource/noobaa.io~v1alpha1~BackingStore",
-      "component": {
-        "$codeRef": "resourcePages.BackingStoreListPage"
-      }
-    },
-    "flags": {
-      "required": ["MCG"]
-    }
-  },
-  {
-    "type": "odf.horizontalNav/tab",
-    "properties": {
-      "id": "bucket-class",
-      "name": "Bucket Class",
-      "contextId": "odf-dashboard",
-      "after": "backing-store",
-      "href": "resource/noobaa.io~v1alpha1~BucketClass",
-      "component": {
-        "$codeRef": "resourcePages.BucketClassListPage"
-      }
-    },
-    "flags": {
-      "required": ["MCG"]
-    }
-  },
-  {
-    "type": "odf.horizontalNav/tab",
-    "properties": {
-      "id": "namespace-store",
-      "name": "Namespace Store",
-      "contextId": "odf-dashboard",
-      "after": "bucket-class",
-      "href": "resource/noobaa.io~v1alpha1~NamespaceStore",
-      "component": {
-        "$codeRef": "resourcePages.NamespaceStoreListPage"
-      }
-    },
-    "flags": {
-      "required": ["MCG"]
-    }
-  },
-  {
-    "type": "odf.horizontalNav/tab",
-    "properties": {
       "id": "topology",
       "name": "Topology",
       "contextId": "odf-dashboard",
@@ -674,6 +512,179 @@
         "$codeRef": "ibmStorage.flashSystemCanGoToNextStep"
       },
       "waitToCreate": { "$codeRef": "ibmStorage.waitforCRD" }
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "odfobjectservice",
+      "insertBefore": "persistentvolumes",
+      "insertAfter": "odfdashboard",
+      "section": "storage",
+      "name": "Object Storage",
+      "href": "/odf/object-storage"
+    },
+    "flags": {
+      "required": ["MCG"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "odfobjectservice",
+      "insertBefore": "persistentvolumes",
+      "insertAfter": "odfdashboard",
+      "section": "storage",
+      "name": "Object Storage",
+      "href": "/odf/object-storage"
+    },
+    "flags": {
+      "required": ["RGW"],
+      "disallowed": ["MCG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/odf/object-storage"],
+      "exact": false,
+      "component": { "$codeRef": "objectService.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "backing-store",
+      "name": "Backing Store",
+      "contextId": "odf-object-service",
+      "href": "resource/noobaa.io~v1alpha1~BackingStore",
+      "component": {
+        "$codeRef": "resourcePages.BackingStoreListPage"
+      }
+    },
+    "flags": {
+      "required": ["MCG", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "bucket-class",
+      "name": "Bucket Class",
+      "contextId": "odf-object-service",
+      "after": "backing-store",
+      "href": "resource/noobaa.io~v1alpha1~BucketClass",
+      "component": {
+        "$codeRef": "resourcePages.BucketClassListPage"
+      }
+    },
+    "flags": {
+      "required": ["MCG", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "namespace-store",
+      "name": "Namespace Store",
+      "contextId": "odf-object-service",
+      "after": "bucket-class",
+      "href": "resource/noobaa.io~v1alpha1~NamespaceStore",
+      "component": {
+        "$codeRef": "resourcePages.NamespaceStoreListPage"
+      }
+    },
+    "flags": {
+      "required": ["MCG", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "objectbuckets",
+      "name": "Object Buckets",
+      "contextId": "odf-object-service",
+      "after": "namespace-store",
+      "href": "resource/objectbucket.io~v1alpha1~ObjectBucket",
+      "component": {
+        "$codeRef": "ob.ObjectBucketListPage"
+      }
+    },
+    "flags": {
+      "required": ["MCG"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "objectbuckets",
+      "name": "Object Buckets",
+      "contextId": "odf-object-service",
+      "after": "namespace-store",
+      "href": "resource/objectbucket.io~v1alpha1~ObjectBucket",
+      "component": {
+        "$codeRef": "ob.ObjectBucketListPage"
+      }
+    },
+    "flags": {
+      "required": ["RGW"],
+      "disallowed": ["MCG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/resource/objectbucket.io~v1alpha1~ObjectBucket/:resourceName",
+      "exact": false,
+      "component": {
+        "$codeRef": "ob.OBDetailsPage"
+      }
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "objectbucketclaims",
+      "name": "Object Bucket Claims",
+      "contextId": "odf-object-service",
+      "after": "objectbuckets",
+      "href": "resource/objectbucket.io~v1alpha1~ObjectBucketClaim",
+      "component": {
+        "$codeRef": "obc.OBCListPage"
+      }
+    },
+    "flags": {
+      "required": ["MCG"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "objectbucketclaims",
+      "name": "Object Bucket Claims",
+      "contextId": "odf-object-service",
+      "after": "objectbuckets",
+      "href": "resource/objectbucket.io~v1alpha1~ObjectBucketClaim",
+      "component": {
+        "$codeRef": "obc.OBCListPage"
+      }
+    },
+    "flags": {
+      "required": ["RGW"],
+      "disallowed": ["MCG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/resource/ns/:namespace/objectbucket.io~v1alpha1~ObjectBucketClaim/:resourceName",
+      "exact": false,
+      "component": {
+        "$codeRef": "obc.OBCDetailsPage"
+      }
     }
   }
 ]

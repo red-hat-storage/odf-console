@@ -16,8 +16,7 @@ import {
 } from '../utils/consts';
 import { detailsPage } from '../views/details-page';
 import { listPage } from '../views/list-page';
-import { CreateOBCHandler } from '../views/obcPage';
-import { ODFCommon } from '../views/odf-common';
+import { CreateOBCHandler, obcNavigate } from '../views/obcPage';
 
 describe('Test Object Bucket Claim resource', () => {
   let obcHandler;
@@ -105,7 +104,7 @@ describe('Test Object Bucket Claim resource', () => {
         deployment
       )}' | kubectl create -n ${testName} -f -`
     );
-    cy.clickNavLink(['Storage', 'Object Bucket Claims']);
+    obcNavigate.navigateToOBC();
     listPage.rows.shouldBeLoaded();
     listPage.rows.clickKebabAction(OBC_NAME, 'Attach to Deployment');
     cy.byTestID('loading-indicator').should('not.exist');
@@ -137,8 +136,7 @@ describe('Tests form validations on Object Bucket Claim', () => {
 
   beforeEach(() => {
     cy.visit('/');
-    ODFCommon.visitStorageDashboard();
-    cy.clickNavLink(['Storage', 'Object Bucket Claims']);
+    obcNavigate.navigateToOBC();
     cy.byTestID('item-create').click();
   });
 

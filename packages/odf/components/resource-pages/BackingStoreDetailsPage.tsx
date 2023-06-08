@@ -62,12 +62,12 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
 
   const breadcrumbs = [
     {
-      name: t('Data Foundation'),
-      path: '/odf/overview',
+      name: t('Object Service'),
+      path: '/odf/object-storage',
     },
     {
       name: t('BackingStores'),
-      path: '/odf/resource/noobaa.io~v1alpha1~BackingStore',
+      path: '/odf/object-storage/resource/noobaa.io~v1alpha1~BackingStore',
     },
     {
       name: t('BackingStore details'),

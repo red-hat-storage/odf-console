@@ -1,7 +1,15 @@
 import { projectNameSpace } from '../support/pages/app';
 import { app } from '../support/pages/app';
 import { MINUTE } from '../utils/consts';
+import { commonFlows } from './common';
 import { listPage } from './list-page';
+
+export const obcNavigate = {
+  navigateToOBC: () => {
+    commonFlows.navigateToObjectStorage();
+    cy.byLegacyTestID('horizontal-link-Object Bucket Claims').click();
+  },
+};
 
 export class CreateOBCHandler {
   name: string;
@@ -19,9 +27,9 @@ export class CreateOBCHandler {
   createBucketClaim() {
     app.waitForLoad();
     cy.get('#page-sidebar').contains('Data Foundation'); // eslint-disable-line cypress/require-data-selectors
-    cy.clickNavLink(['Storage', 'Object Bucket Claims']);
+    obcNavigate.navigateToOBC();
     projectNameSpace.selectOrCreateProject(this.namespace);
-    cy.clickNavLink(['Storage', 'Object Bucket Claims']);
+    obcNavigate.navigateToOBC();
     cy.byLegacyTestID('namespace-bar-dropdown').contains('Project').click();
     cy.contains(this.namespace);
     cy.byTestID('item-create').click();
@@ -45,7 +53,7 @@ export class CreateOBCHandler {
   }
 
   deleteBucketClaim() {
-    cy.clickNavLink(['Storage', 'Object Bucket Claims']);
+    obcNavigate.navigateToOBC();
     cy.byTestID('loading-indicator').should('not.exist');
     cy.log('Deleting Object Bucket Claim');
     listPage.rows.clickKebabAction(this.name, 'Delete Object Bucket Claim');

@@ -234,7 +234,7 @@ export const deleteBucketClass = () => {
 
 export const visitBucketClassPage = () => {
   cy.visit('/');
-  commonFlows.navigateToODF();
+  commonFlows.navigateToObjectStorage();
   cy.log(
     'Planning to start testing for standard bucket class visitBucketClassPage ....'
   );
