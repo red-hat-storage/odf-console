@@ -155,6 +155,7 @@ const NamespaceStoreListWrapper: React.FC<NamespaceStoreListWrapperProps> = ({
   const { onSelect, selectedRows } = useSelectList<NamespaceStoreKind>(
     data,
     new Set(preSelected),
+    true,
     onSelectNamespaceStore
   );
   return (

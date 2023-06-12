@@ -30,7 +30,11 @@ import {
 } from '../../../hooks';
 import { DRPolicyModel } from '../../../models';
 import { DRPolicyKind } from '../../../types';
-import { getReplicationType, findAppsUsingDRPolicy } from '../../../utils';
+import {
+  getReplicationType,
+  findAppsUsingDRPolicy,
+  isDRPolicyValidated,
+} from '../../../utils';
 import EmptyPage from '../../empty-state-page/empty-page';
 import { ConnectedApplicationsModal } from '../../modals/connected-apps-modal/connected-apps-modal';
 import {
@@ -60,9 +64,6 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
   const clusterNames = obj?.spec?.drClusters?.map((clusterName) => (
     <p key={clusterName}> {clusterName} </p>
   ));
-  const condition = obj?.status?.conditions?.find(
-    (statusCondition) => statusCondition.type === 'Validated'
-  );
   const filteredApps = findAppsUsingDRPolicy(applicationRefs, obj);
   const appCount = filteredApps?.length;
 
@@ -77,7 +78,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
         {obj?.metadata?.name}
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        {condition?.status === 'True' ? t('Validated') : t('Not Validated')}
+        {isDRPolicyValidated(obj) ? t('Validated') : t('Not Validated')}
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
         {clusterNames}

@@ -115,6 +115,10 @@
         {
           "apiVersion": "argoproj.io/v1alpha1",
           "kind": "ApplicationSet"
+        },
+        {
+          "apiVersion": "app.k8s.io/v1beta1",
+          "kind": "Application"
         }
       ],
       "component": {
@@ -131,6 +135,10 @@
         {
           "apiVersion": "argoproj.io/v1alpha1",
           "kind": "ApplicationSet"
+        },
+        {
+          "apiVersion": "app.k8s.io/v1beta1",
+          "kind": "Application"
         }
       ],
       "component": {
@@ -141,32 +149,16 @@
   {
     "type": "acm.application/action",
     "properties": {
-      "id": "failover",
-      "title": "%plugin__acm~Failover application%",
+      "id": "appManagePolicy",
+      "title": "%plugin__acm~Manage data policy%",
       "model": [
         {
-          "apiVersion": "app.k8s.io/v1beta1",
-          "kind": "Application"
+          "apiVersion": "argoproj.io/v1alpha1",
+          "kind": "ApplicationSet"
         }
       ],
       "component": {
-        "$codeRef": "appFailoverRelocate.ApplicationFailover"
-      }
-    }
-  },
-  {
-    "type": "acm.application/action",
-    "properties": {
-      "id": "relocate",
-      "title": "%plugin__acm~Relocate application%",
-      "model": [
-        {
-          "apiVersion": "app.k8s.io/v1beta1",
-          "kind": "Application"
-        }
-      ],
-      "component": {
-        "$codeRef": "appFailoverRelocate.ApplicationRelocate"
+        "$codeRef": "appManagePolicy.AppManageDataPolicy"
       }
     }
   }

@@ -152,7 +152,7 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
     onSelect,
     selectedRows: selectedNodes,
     updateSelectedRows: setSelectedNodes,
-  } = useSelectList<NodeKind>(nodesData, visibleRows, onRowSelected);
+  } = useSelectList<NodeKind>(nodesData, visibleRows, true, onRowSelected);
   const {
     onSort,
     sortIndex: index,

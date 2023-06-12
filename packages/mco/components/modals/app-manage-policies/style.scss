@@ -1,0 +1,14 @@
+.mco-manage-policies {
+    &__listViewTable--padding {
+        padding: 0 0 var(--pf-global--spacer--md) 0;
+    }
+    &__col-padding {
+        padding: 0 var(--pf-global--spacer--md) 0 var(--pf-global--spacer--md);
+    }
+    &__header{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0 var(--pf-global--spacer--md) 0 var(--pf-global--spacer--md);
+    }
+}

@@ -55,3 +55,14 @@ export const findPlacementFromArgoAppSet = (
       getNamespace(placement) === getNamespace(application) &&
       findPlacementNameFromAppSet(application) === getName(placement)
   );
+
+export const getClustersFromPlacementDecision = (
+  placementDecision: ACMPlacementDecisionKind
+): string[] =>
+  placementDecision?.status?.decisions?.map(
+    (decision) => decision?.clusterName
+  );
+
+export const getRemoteNamespaceFromAppSet = (
+  application: ArgoApplicationSetKind
+): string => application?.spec?.template?.spec?.destination?.namespace;
