@@ -93,7 +93,7 @@ export const createBlockPool = () => {
   populateBlockPoolForm();
   verifyFooterActions('create');
   cy.log('Verify a new block pool creation');
-  cy.byTestID('status-text').contains('Ready');
+  cy.byTestID('status-text').should('contain', 'Ready');
   verifyBlockPoolJSON();
 };
 
