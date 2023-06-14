@@ -5,6 +5,7 @@ import { Modal, ModalVariant } from '@patternfly/react-core';
 import { PolicyListView } from './policy-list-view';
 import {
   ManagePolicyStateType,
+  MessageType,
   ModalActionContext,
   ModalViewContext,
   initialPolicyState,
@@ -39,12 +40,13 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
       payload: modalViewContext,
     });
 
-  const setError = (error: string) =>
+  const setMessage = (message: MessageType) => {
     dispatch({
-      type: ManagePolicyStateType.SET_ERROR,
+      type: ManagePolicyStateType.SET_MESSAGE,
       context: state.modalViewContext,
-      payload: error,
+      payload: message,
     });
+  };
 
   return (
     <Modal
@@ -66,7 +68,7 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
             dispatch={dispatch}
             setModalContext={setModalContext}
             setModalActionContext={setModalActionContext}
-            setError={setError}
+            setMessage={setMessage}
           />
         )
       ) : (

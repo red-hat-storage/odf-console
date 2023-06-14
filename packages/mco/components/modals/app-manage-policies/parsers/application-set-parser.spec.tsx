@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { screen, render, fireEvent } from '@testing-library/react';
+import { screen, render, fireEvent, waitFor } from '@testing-library/react';
 import { PLACEMENT_REF_LABEL } from '../../../../constants';
 import { ArgoApplicationSetResourceKind } from '../../../../hooks';
 import { DisasterRecoveryResourceKind } from '../../../../hooks/disaster-recovery';
@@ -191,6 +191,9 @@ jest.mock('@odf/mco/hooks/argo-application-set', () => ({
   __esModule: true,
   useArgoApplicationSetResourceWatch: () => [appResources, true, ''],
 }));
+jest.mock('../utils/k8s-utils', () => ({
+  unAssignPromises: jest.fn(() => [Promise.resolve({ data: {} })]),
+}));
 
 describe('ApplicationSet manage data policy modal', () => {
   beforeEach(async () => {
@@ -247,5 +250,33 @@ describe('ApplicationSet manage data policy modal', () => {
     fireEvent.change(searchBox, { target: { value: 'invalid policy' } });
     expect(screen.getByText('Not found')).toBeInTheDocument();
     fireEvent.change(searchBox, { target: { value: '' } });
+  });
+
+  test('Bulk unassign policy action test', async () => {
+    // Select all policy
+    fireEvent.click(screen.getByLabelText('Select all rows'));
+    // Check primary action is disabled
+    expect(screen.getByText('Assign policy')).toBeDisabled();
+    // Check secondary action is enabled
+    expect(screen.getByLabelText('Select input')).toBeEnabled();
+    // Trigger bulk unassign
+    fireEvent.click(screen.getByLabelText('Select input'));
+    fireEvent.click(screen.getByText('Unassign policy'));
+    expect(
+      screen.getByText(
+        'Selected policies ({{ count }}) will be removed for your application. This may have some affect on other applications sharing the placement.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+    expect(screen.getByText('Confirm unassign')).toBeInTheDocument();
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Confirm unassign'));
+    });
+    // Confirm unassign is successful
+    expect(
+      screen.getByText(
+        'Selected policies ({{ count }}) unassigned for the application.'
+      )
+    ).toBeInTheDocument();
   });
 });
