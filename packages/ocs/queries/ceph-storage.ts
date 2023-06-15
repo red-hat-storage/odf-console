@@ -1,5 +1,8 @@
 import { StorageClassModel, PodModel, ProjectModel } from '@odf/shared/models';
-import { PROJECTS, STORAGE_CLASSES, PODS } from '../constants';
+import {
+  BreakdownCardFields,
+  BreakdownCardQueryMap,
+} from '@odf/shared/queries';
 
 export enum StorageDashboardQuery {
   PROJECTS_BY_USED = 'PROJECTS_BY_USED',
@@ -65,8 +68,8 @@ export const CEPH_CAPACITY_BREAKDOWN_QUERIES = {
     'max(ceph_pool_max_avail * on (pool_id) group_left(name)ceph_pool_metadata{name=~"(.*file.*)|(.*block.*)"})',
 };
 
-export const breakdownQueryMapCEPH = {
-  [PROJECTS]: {
+export const breakdownQueryMapCEPH: BreakdownCardQueryMap = {
+  [BreakdownCardFields.PROJECTS]: {
     model: ProjectModel,
     metric: 'namespace',
     queries: {
@@ -83,7 +86,7 @@ export const breakdownQueryMapCEPH = {
         ],
     },
   },
-  [STORAGE_CLASSES]: {
+  [BreakdownCardFields.STORAGE_CLASSES]: {
     model: StorageClassModel,
     metric: 'storageclass',
     queries: {
@@ -102,7 +105,7 @@ export const breakdownQueryMapCEPH = {
         ],
     },
   },
-  [PODS]: {
+  [BreakdownCardFields.PODS]: {
     model: PodModel,
     metric: 'pod',
     queries: {
@@ -221,8 +224,8 @@ export const INDEPENDENT_UTILIZATION_QUERIES = {
     'sum((topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_right() kube_pod_spec_volumes_persistentvolumeclaims_info) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)"}))',
 };
 
-export const breakdownIndependentQueryMap = {
-  [PROJECTS]: {
+export const breakdownIndependentQueryMap: BreakdownCardQueryMap = {
+  [BreakdownCardFields.PROJECTS]: {
     model: ProjectModel,
     metric: 'namespace',
     queries: {
@@ -235,7 +238,7 @@ export const breakdownIndependentQueryMap = {
         ],
     },
   },
-  [STORAGE_CLASSES]: {
+  [BreakdownCardFields.STORAGE_CLASSES]: {
     model: StorageClassModel,
     metric: 'storageclass',
     queries: {
@@ -250,7 +253,7 @@ export const breakdownIndependentQueryMap = {
         ],
     },
   },
-  [PODS]: {
+  [BreakdownCardFields.PODS]: {
     model: PodModel,
     metric: 'pod',
     queries: {

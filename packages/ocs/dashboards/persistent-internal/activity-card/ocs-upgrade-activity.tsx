@@ -43,7 +43,9 @@ const getSubscriptionStatus = (
   }
 };
 
-export const isOCSUpgradeActivity = (subscription: SubscriptionKind): boolean =>
+export const isSubscriptionUpgradeActivity = (
+  subscription: SubscriptionKind
+): boolean =>
   getSubscriptionStatus(subscription).status ===
   SubscriptionState.SubscriptionStateUpgradePending;
 

@@ -41,7 +41,7 @@ import {
   ClusterExpandActivity,
 } from './cluster-expand-activity';
 import {
-  isOCSUpgradeActivity,
+  isSubscriptionUpgradeActivity,
   OCSUpgradeActivity,
 } from './ocs-upgrade-activity';
 import './activity-card.scss';
@@ -132,7 +132,7 @@ const OngoingActivity = () => {
     });
   }
 
-  if (isOCSUpgradeActivity(ocsSubscription)) {
+  if (isSubscriptionUpgradeActivity(ocsSubscription)) {
     resourceActivities.push({
       resource: ocsSubscription,
       timestamp: ocsSubscription?.status?.lastUpdated,

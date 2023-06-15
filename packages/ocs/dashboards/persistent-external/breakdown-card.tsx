@@ -5,6 +5,7 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { BreakdownCardFields } from '@odf/shared/queries';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   humanizeBinaryBytes,
@@ -19,14 +20,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
-import { PROJECTS, STORAGE_CLASSES, PODS } from '../../constants';
 import { breakdownIndependentQueryMap } from '../../queries';
 import { getStackChartStats } from '../../utils/metrics';
 import '../persistent-internal/capacity-breakdown-card/capacity-breakdown-card.scss';
 
 export const BreakdownCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const [metricType, setMetricType] = React.useState(PROJECTS);
+  const [metricType, setMetricType] = React.useState<BreakdownCardFields>(
+    BreakdownCardFields.PROJECTS
+  );
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const { queries, model, metric } = breakdownIndependentQueryMap[metricType];
   const queryKeys = Object.keys(queries);
@@ -54,22 +56,22 @@ export const BreakdownCard: React.FC = () => {
   const metricTotal = totalUsed?.data?.result[0]?.value[1];
 
   const handleMetricsChange: SelectProps['onSelect'] = (_e, breakdown) => {
-    setMetricType(breakdown as string);
+    setMetricType(breakdown as BreakdownCardFields);
     setBreakdownSelect(!isOpenBreakdownSelect);
   };
 
   const dropdownOptions = [
     {
       name: t('Projects'),
-      id: PROJECTS,
+      id: BreakdownCardFields.PROJECTS,
     },
     {
       name: t('Storage Classes'),
-      id: STORAGE_CLASSES,
+      id: BreakdownCardFields.STORAGE_CLASSES,
     },
     {
       name: t('Pods'),
-      id: PODS,
+      id: BreakdownCardFields.PODS,
     },
   ];
 

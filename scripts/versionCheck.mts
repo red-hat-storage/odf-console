@@ -3,7 +3,7 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import * as semver from 'semver';
 
-const SUPPORTED_PLUGINS = ['odf', 'mco'];
+const SUPPORTED_PLUGINS = ['odf', 'mco', 'client'];
 const defaultVer = '0.0.0';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
