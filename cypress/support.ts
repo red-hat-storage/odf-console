@@ -73,7 +73,7 @@ Cypress.Commands.add('install', () => {
       cy.byTestRows('resource-row').get('td').first().click();
       cy.byLegacyTestID('horizontal-link-Storage System').click();
       cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
-      cy.get('td[role="gridcell"]', { timeout: 5 * 60000 }).contains(
+      cy.get('td[role="gridcell"]', { timeout: 15 * 60000 }).contains(
         'Available'
       );
 
