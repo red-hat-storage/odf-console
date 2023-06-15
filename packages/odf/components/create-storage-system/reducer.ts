@@ -44,6 +44,7 @@ export const initialState: CreateStorageSystemState = {
   },
   capacityAndNodes: {
     enableArbiter: false,
+    enableSingleReplicaPool: false,
     enableTaint: false,
     arbiterLocation: '',
     capacity: null,
@@ -94,6 +95,7 @@ type CreateStorageSystemState = {
   connectionDetails: ExternalCephState;
   capacityAndNodes: {
     enableArbiter: boolean;
+    enableSingleReplicaPool: boolean;
     enableTaint: boolean;
     arbiterLocation: string;
     // @TODO: Remove union types and use "number" as type.
@@ -270,6 +272,9 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'capacityAndNodes/enableTaint':
       newState.capacityAndNodes.enableTaint = action.payload;
       break;
+    case 'capacityAndNodes/enableSingleReplicaPool':
+      newState.capacityAndNodes.enableSingleReplicaPool = action.payload;
+      break;
     case 'securityAndNetwork/setKms':
       newState.securityAndNetwork.kms = action.payload;
       break;
@@ -361,6 +366,10 @@ export type CreateStorageSystemAction =
   | {
       type: 'capacityAndNodes/enableTaint';
       payload: WizardState['capacityAndNodes']['enableTaint'];
+    }
+  | {
+      type: 'capacityAndNodes/enableSingleReplicaPool';
+      payload: WizardState['capacityAndNodes']['enableSingleReplicaPool'];
     }
   | {
       type: 'securityAndNetwork/setKms';

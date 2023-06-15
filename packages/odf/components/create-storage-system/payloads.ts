@@ -52,8 +52,13 @@ export const createStorageCluster = async (state: WizardState) => {
     nodes,
     backingStorage,
   } = state;
-  const { capacity, enableArbiter, arbiterLocation, pvCount } =
-    capacityAndNodes;
+  const {
+    capacity,
+    enableArbiter,
+    arbiterLocation,
+    pvCount,
+    enableSingleReplicaPool,
+  } = capacityAndNodes;
   const { encryption, publicNetwork, clusterNetwork, kms } = securityAndNetwork;
   const { type, enableNFS, deployment } = backingStorage;
 
@@ -95,7 +100,8 @@ export const createStorageCluster = async (state: WizardState) => {
     enableArbiter,
     pvCount,
     isMCG,
-    isNFSEnabled
+    isNFSEnabled,
+    enableSingleReplicaPool
   );
   return k8sCreate({ model: OCSStorageClusterModel, data: payload });
 };

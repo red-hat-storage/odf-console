@@ -357,7 +357,8 @@ export const getOCSRequestData = (
   stretchClusterChecked?: boolean,
   availablePvsCount?: number,
   isMCG?: boolean,
-  isNFSEnabled?: boolean
+  isNFSEnabled?: boolean,
+  isSingleReplicaPoolEnabled?: boolean
 ): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -421,6 +422,9 @@ export const getOCSRequestData = (
       ...Object.assign(
         getNetworkField(publicNetwork, clusterNetwork, encryption.inTransit)
       ),
+      managedResources: {
+        cephNonResilientPools: { enable: isSingleReplicaPoolEnabled },
+      },
     };
   }
 
