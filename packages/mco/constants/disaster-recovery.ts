@@ -70,3 +70,11 @@ export enum TIME_UNITS {
   Hours = 'h',
   Days = 'd',
 }
+
+export const SYNC_SCHEDULE_DISPLAY_TEXT = (
+  t: TFunction
+): { [key in TIME_UNITS]: string } => ({
+  [TIME_UNITS.Minutes]: t('minutes'),
+  [TIME_UNITS.Hours]: t('hours'),
+  [TIME_UNITS.Days]: t('days'),
+});

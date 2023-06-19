@@ -15,6 +15,7 @@ import {
   REPLICATION_TYPE,
   REPLICATION_DISPLAY_TEXT,
   TIME_UNITS,
+  SYNC_SCHEDULE_DISPLAY_TEXT,
 } from '../../../constants';
 import { DRPolicyState, DRPolicyAction, DRPolicyActionType } from './reducer';
 import '../../../style.scss';
@@ -28,23 +29,23 @@ const minSyncTime = 1;
 const getSyncTime = (timeWithFormat: string) =>
   Number(timeWithFormat.match(/\d+/g)[0]);
 
+const getSyncScheduleFormat = (
+  SyncScheduleFormat: { [key in TIME_UNITS]: string }
+) => ({
+  [SyncScheduleFormat.m]: TIME_UNITS.Minutes,
+  [SyncScheduleFormat.h]: TIME_UNITS.Hours,
+  [SyncScheduleFormat.d]: TIME_UNITS.Days,
+});
+
 const SyncSchedule: React.FC<SyncScheduleProps> = ({ state, dispatch }) => {
   const { t } = useCustomTranslation();
 
-  const SyncScheduleFormat = {
-    minutes: t('minutes'),
-    hours: t('hours'),
-    days: t('days'),
-  };
-  const SCHEDULE_FORMAT = {
-    [SyncScheduleFormat.minutes]: TIME_UNITS.Minutes,
-    [SyncScheduleFormat.hours]: TIME_UNITS.Hours,
-    [SyncScheduleFormat.days]: TIME_UNITS.Days,
-  };
+  const SyncScheduleFormat = SYNC_SCHEDULE_DISPLAY_TEXT(t);
+  const SCHEDULE_FORMAT = getSyncScheduleFormat(SyncScheduleFormat);
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedFormat, setSelectedFormat] = React.useState(
-    SyncScheduleFormat.minutes
+    SyncScheduleFormat.m
   );
 
   const setSyncSchedule = (time: number, format?: string) =>

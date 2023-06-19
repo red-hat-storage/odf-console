@@ -6,16 +6,16 @@ import {
   Button,
   ButtonVariant,
 } from '@patternfly/react-core';
-import { ModalActionContext, PolicyListViewState } from '../utils/reducer';
+import { CommonViewState, ModalActionContext } from '../utils/reducer';
 import '../../../../style.scss';
 
-const hasActionFailedOrSuceeded = (modalActionContext: ModalActionContext) =>
+const hasActionTriggered = (modalActionContext: ModalActionContext) =>
   [
     ModalActionContext.UN_ASSIGN_POLICIES_SUCCEEDED,
     ModalActionContext.UN_ASSIGN_POLICIES_FAILED,
   ].includes(modalActionContext);
 
-const AlertMessage: React.FC<AlertMessageType> = ({
+const AlertMessage: React.FC<AlertMessageProps> = ({
   title,
   variant,
   children,
@@ -34,7 +34,7 @@ const AlertMessage: React.FC<AlertMessageType> = ({
   );
 };
 
-export const ListViewMessages: React.FC<ListViewMessagesProps> = ({
+export const Messages: React.FC<MessagesProps> = ({
   state,
   OnCancel,
   OnConfirm,
@@ -56,7 +56,7 @@ export const ListViewMessages: React.FC<ListViewMessagesProps> = ({
           </Button>
         </AlertMessage>
       )) ||
-        (hasActionFailedOrSuceeded(modalActionContext) && (
+        (hasActionTriggered(modalActionContext) && (
           <AlertMessage
             title={message.title}
             variant={message?.variant || AlertVariant.info}
@@ -68,13 +68,13 @@ export const ListViewMessages: React.FC<ListViewMessagesProps> = ({
   );
 };
 
-export type ListViewMessagesProps = {
-  state: PolicyListViewState;
-  OnCancel: () => void;
-  OnConfirm: () => void;
+export type MessagesProps = {
+  state: CommonViewState;
+  OnCancel?: () => void;
+  OnConfirm?: () => void;
 };
 
-type AlertMessageType = {
+type AlertMessageProps = {
   title: string;
   variant: AlertVariant;
   children?: React.ReactNode;

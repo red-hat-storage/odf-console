@@ -4,17 +4,13 @@ import { DataPolicyType } from './types';
 export enum ModalViewContext {
   POLICY_LIST_VIEW = 'policyListView',
   ASSIGN_POLICY_VIEW = 'assignPolicyView',
-  UNASSIGN_POLICY_VIEW = 'unAssignPolicyView',
   POLICY_CONFIGURATON_VIEW = 'policyConfigurationView',
 }
 
 export enum ModalActionContext {
   UN_ASSIGNING_POLICIES = 'UN_ASSIGNING_POLICIES',
-  UN_ASSIGNING_POLICY = 'UN_ASSIGNING_POLICY',
   UN_ASSIGN_POLICIES_SUCCEEDED = 'UN_ASSIGN_POLICIES_SUCCEEDED',
-  UN_ASSIGN_POLICY_SUCCEEDED = 'UN_ASSIGN_POLICY_SUCCEEDED',
   UN_ASSIGN_POLICIES_FAILED = 'UN_ASSIGN_POLICIES_FAILED',
-  UN_ASSIGN_POLICY_FAILED = 'UN_ASSIGN_POLICY_FAILED',
 }
 
 export type MessageType = {
@@ -23,12 +19,12 @@ export type MessageType = {
   variant?: AlertVariant;
 };
 
-export type commonViewState = {
+export type CommonViewState = {
   modalActionContext: ModalActionContext;
   message: MessageType;
 };
 
-export type PolicyListViewState = commonViewState & {
+export type PolicyListViewState = CommonViewState & {
   policies: DataPolicyType[];
 };
 
@@ -36,14 +32,9 @@ export type PolicyConfigViewState = {
   policy: DataPolicyType;
 };
 
-export type UnAssignPolicyViewState = commonViewState & {
-  policy: DataPolicyType;
-};
-
 export type ManagePolicyState = {
   modalViewContext: ModalViewContext;
   [ModalViewContext.POLICY_LIST_VIEW]: PolicyListViewState;
-  [ModalViewContext.UNASSIGN_POLICY_VIEW]: UnAssignPolicyViewState;
   [ModalViewContext.POLICY_CONFIGURATON_VIEW]: PolicyConfigViewState;
 };
 
@@ -64,15 +55,8 @@ export const initialPolicyState: ManagePolicyState = {
       title: '',
     },
   },
-  [ModalViewContext.UNASSIGN_POLICY_VIEW]: {
-    policy: {},
-    modalActionContext: null,
-    message: {
-      title: '',
-    },
-  },
   [ModalViewContext.POLICY_CONFIGURATON_VIEW]: {
-    policy: {},
+    policy: null,
   },
 };
 

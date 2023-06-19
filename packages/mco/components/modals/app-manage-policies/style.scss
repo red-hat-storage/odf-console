@@ -1,5 +1,5 @@
 .mco-manage-policies {
-    &__listViewTable--padding {
+    &__row--padding {
         padding: 0 0 var(--pf-global--spacer--md) 0;
     }
     &__col-padding {
@@ -10,5 +10,8 @@
         flex-direction: row;
         justify-content: space-between;
         padding: 0 var(--pf-global--spacer--md) 0 var(--pf-global--spacer--md);
+    }
+    &__dropdown--wide {
+        min-width: 15rem;
     }
 }
