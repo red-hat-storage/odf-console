@@ -1,5 +1,6 @@
 import { ApplicationModel } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
+import { Selector } from '@openshift-console/dynamic-plugin-sdk';
 import { HUB_CLUSTER_NAME } from '../constants';
 import {
   ACMManagedClusterModel,
@@ -83,6 +84,7 @@ export const getPlacementDecisionsResourceObj = (
   kind: referenceForModel(ACMPlacementDecisionModel),
   ...(!props?.name ? { isList: true } : {}),
   namespaced: !!props?.namespace ? true : false,
+  ...(!!props?.selector ? { selector: props?.selector } : {}),
   optional: true,
 });
 
@@ -118,6 +120,7 @@ export const getApplicationResourceObj = (props?: NamespacedObjectType) => ({
 
 type ClusterScopeObjectType = {
   name?: string;
+  selector?: Selector;
 };
 
 type NamespacedObjectType = ClusterScopeObjectType & {

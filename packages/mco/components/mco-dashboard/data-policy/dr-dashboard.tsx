@@ -22,7 +22,7 @@ import {
 import {
   findDRType,
   getProtectedPVCsFromDRPC,
-  getRemoteNSFromAppSet,
+  getRemoteNamespaceFromAppSet,
 } from '../../../utils';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import { AlertsCard } from './alert-card/alert-card';
@@ -129,7 +129,8 @@ export const DRDashboard: React.FC = () => {
                     protectedPVCs: getProtectedPVCsFromDRPC(drPlacementControl),
                     replicationType: findDRType(currentDrClusters),
                     syncInterval: drPolicy?.spec?.schedulingInterval,
-                    workloadNamespace: getRemoteNSFromAppSet(application),
+                    workloadNamespace:
+                      getRemoteNamespaceFromAppSet(application),
                     failoverCluster: drPlacementControl?.spec?.failoverCluster,
                     preferredCluster:
                       drPlacementControl?.spec?.preferredCluster,

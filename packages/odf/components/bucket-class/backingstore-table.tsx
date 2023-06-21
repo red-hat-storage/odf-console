@@ -193,6 +193,7 @@ const BackingStoreListWrapper: React.FC<BackingStoreListWrapperProps> = ({
   const { onSelect, selectedRows } = useSelectList<BackingStoreKind>(
     data,
     new Set(preSelectedResources),
+    true,
     onSelectBackingStore
   );
 

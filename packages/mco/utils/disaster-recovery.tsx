@@ -50,7 +50,6 @@ import {
   DRPolicyKind,
   DRClusterKind,
   ACMManagedClusterKind,
-  ArgoApplicationSetKind,
   ACMManagedClusterViewKind,
   DRVolumeReplicationGroupKind,
   ProtectedPVCData,
@@ -392,10 +391,6 @@ export const getVolumeReplicationHealth = (
   else return [VOLUME_REPLICATION_HEALTH.HEALTHY, slaDiff];
 };
 
-export const getRemoteNSFromAppSet = (
-  application: ArgoApplicationSetKind
-): string => application?.spec?.template?.spec?.destination?.namespace;
-
 export const getProtectedPVCsFromDRPC = (
   drpc: DRPlacementControlKind
 ): string[] =>
@@ -530,3 +525,9 @@ export const findDeploymentClusterName = (
   }
   return deploymentClusterName;
 };
+
+export const isDRPolicyValidated = (drPolicy: DRPolicyKind) =>
+  drPolicy?.status?.conditions?.some(
+    (condition) =>
+      condition?.type === 'Validated' && condition?.status === 'True'
+  );
