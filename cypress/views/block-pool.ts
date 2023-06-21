@@ -1,4 +1,5 @@
 import { POOL_PROGRESS } from '../constants/storage-pool-const';
+import { app } from '../support/pages/app';
 import { NS } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
 
@@ -92,8 +93,9 @@ export const createBlockPool = () => {
   cy.byTestID('item-create').click();
   populateBlockPoolForm();
   verifyFooterActions('create');
+  app.waitForLoad();
   cy.log('Verify a new block pool creation');
-  cy.byTestID('status-text').contains('Ready');
+  cy.byTestID('status-text').should('contain', 'Ready', { timeout: 2 * 60000 });
   verifyBlockPoolJSON();
 };
 
