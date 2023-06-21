@@ -1,5 +1,5 @@
 import { fieldValidationOnFormsTests } from '../helpers/formValidations';
-import { ODFCommon } from '../views/odf-common';
+import { commonFlows } from '../views/common';
 import {
   createStore,
   Providers,
@@ -25,7 +25,7 @@ describe('Tests creation of Backing Stores', () => {
 
   beforeEach(() => {
     cy.visit('/');
-    ODFCommon.visitStorageDashboard();
+    commonFlows.navigateToObjectStorage();
     cy.byLegacyTestID('horizontal-link-Backing Store').first().click();
     cy.byTestID('item-create').click();
   });
@@ -48,7 +48,7 @@ describe('Tests form validations on Backing Stores', () => {
 
   beforeEach(() => {
     cy.visit('/');
-    ODFCommon.visitStorageDashboard();
+    commonFlows.navigateToObjectStorage();
     cy.byLegacyTestID('horizontal-link-Backing Store').first().click();
     cy.byTestID('item-create').click();
   });

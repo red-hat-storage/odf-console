@@ -28,7 +28,5 @@ export type HorizontalNavTab = ExtensionDeclaration<
   HorizontalNavTabExtensionProps
 >;
 
-export const isHorizontalNavTab =
-  (contextId: string) =>
-  (e: Extension): e is HorizontalNavTab =>
-    e.type === 'odf.horizontalNav/tab' && e.properties.contextId === contextId;
+export const isHorizontalNavTab = (e: Extension): e is HorizontalNavTab =>
+  e?.type === 'odf.horizontalNav/tab';

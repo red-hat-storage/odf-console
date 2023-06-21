@@ -6,7 +6,7 @@ import {
   generateGenericName,
   getStorageClassDescription,
 } from '@odf/core/utils';
-import { formSettings } from '@odf/shared/constants';
+import { formSettings, DEFAULT_NS } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
@@ -16,17 +16,18 @@ import { StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel, resourcePathFromModel } from '@odf/shared/utils';
+import { referenceForModel, ALL_NAMESPACES_KEY } from '@odf/shared/utils';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   getAPIVersionForModel,
   k8sCreate,
+  NamespaceBar,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { Control, useForm } from 'react-hook-form';
 import { match, useHistory } from 'react-router';
-import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 import {
   ActionGroup,
@@ -348,10 +349,14 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   );
 };
 
-export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
+export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
-  const namespace = props.match.params.ns;
+  const [namespace, setNamespace] = useActiveNamespace();
+  const isAllProjectsInitially = React.useRef<boolean>(
+    namespace === ALL_NAMESPACES_KEY
+  );
+  const initialNamespace = React.useRef<string>(namespace);
   const submitBtnId = 'obc-submit-btn';
   const history = useHistory();
   const isNoobaa = state.scProvisioner?.includes(NB_PROVISIONER);
@@ -382,6 +387,25 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
   React.useEffect(() => {
     dispatch({ type: 'setName', name: obcName });
   }, [obcName, dispatch]);
+
+  /**
+   * In OCP, for any creation page: on changing the project from the dropdown,
+   * user is redirected back to the list page, added "history.goBack" to maintain that consistency.
+   * Also, if initial selection is "All Projects", it automatically re-selects "default" as the initial project.
+   */
+  React.useEffect(() => {
+    if (isAllProjectsInitially.current) {
+      setNamespace(DEFAULT_NS);
+      initialNamespace.current = DEFAULT_NS;
+      isAllProjectsInitially.current = false;
+    } else if (initialNamespace.current !== namespace) {
+      history.push(
+        `/odf/object-storage/resource/${referenceForModel(
+          NooBaaObjectBucketClaimModel
+        )}`
+      );
+    }
+  }, [history, namespace, setNamespace]);
 
   const save = (
     _unused: any,
@@ -424,13 +448,11 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
         })
           .then((resource) => {
             dispatch({ type: 'unsetProgress' });
-
+            const resourcePath = `${referenceForModel(
+              NooBaaObjectBucketClaimModel
+            )}/${resource.metadata.name}`;
             history.push(
-              `${resourcePathFromModel(
-                NooBaaObjectBucketClaimModel,
-                resource.metadata.name,
-                resource.metadata.namespace
-              )}`
+              `/odf/resource/ns/${resource.metadata.namespace}/${resourcePath}`
             );
           })
           .catch((err) => {
@@ -445,57 +467,52 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = (props) => {
   };
 
   return (
-    <div className="odf-m-pane__body odf-m-pane__form">
-      <Helmet>
-        <title>{t('Create ObjectBucketClaim')}</title>
-      </Helmet>
-      <h1 className="odf-m-pane__heading odf-m-pane__heading--baseline">
-        <div>{t('Create ObjectBucketClaim')}</div>
-        <div className="odf-m-pane__heading--link">
-          <Link
-            to={`${resourcePathFromModel(
-              NooBaaObjectBucketClaimModel,
-              null,
-              namespace
-            )}/~new`}
-            replace
-          >
-            {t('Edit YAML')}
-          </Link>
-        </div>
-      </h1>
-      <Form onSubmit={handleSubmit(save)}>
-        <CreateOBCForm
-          state={state}
-          dispatch={dispatch}
-          namespace={namespace}
-          control={control}
-          fieldRequirements={fieldRequirements}
-        />
-        {!isValid && isSubmitted && (
-          <Alert
-            variant="danger"
-            isInline
-            title={t('Address form errors to proceed')}
+    <>
+      <NamespaceBar />
+      <div className="odf-m-pane__body odf-m-pane__form">
+        <Helmet>
+          <title>{t('Create ObjectBucketClaim')}</title>
+        </Helmet>
+        <h1 className="odf-m-pane__heading odf-m-pane__heading--baseline">
+          <div>{t('Create ObjectBucketClaim')}</div>
+        </h1>
+        <Form onSubmit={handleSubmit(save)}>
+          <CreateOBCForm
+            state={state}
+            dispatch={dispatch}
+            namespace={namespace}
+            control={control}
+            fieldRequirements={fieldRequirements}
           />
-        )}
-        <ButtonBar errorMessage={state.error} inProgress={state.progress}>
-          <ActionGroup className="pf-c-form">
-            <Button
-              id={submitBtnId}
-              type="submit"
-              variant="primary"
-              data-test="obc-create"
-            >
-              {t('Create')}
-            </Button>
-            <Button onClick={history.goBack} type="button" variant="secondary">
-              {t('Cancel')}
-            </Button>
-          </ActionGroup>
-        </ButtonBar>
-      </Form>
-    </div>
+          {!isValid && isSubmitted && (
+            <Alert
+              variant="danger"
+              isInline
+              title={t('Address form errors to proceed')}
+            />
+          )}
+          <ButtonBar errorMessage={state.error} inProgress={state.progress}>
+            <ActionGroup className="pf-c-form">
+              <Button
+                id={submitBtnId}
+                type="submit"
+                variant="primary"
+                data-test="obc-create"
+              >
+                {t('Create')}
+              </Button>
+              <Button
+                onClick={history.goBack}
+                type="button"
+                variant="secondary"
+              >
+                {t('Cancel')}
+              </Button>
+            </ActionGroup>
+          </ButtonBar>
+        </Form>
+      </div>
+    </>
   );
 };
 

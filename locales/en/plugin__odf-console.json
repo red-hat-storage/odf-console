@@ -784,7 +784,6 @@
   "BucketClass": "BucketClass",
   "For higher resiliency, set a replication configuration for objects which are stored in NooBaa namespace buckets": "For higher resiliency, set a replication configuration for objects which are stored in NooBaa namespace buckets",
   "Create ObjectBucketClaim": "Create ObjectBucketClaim",
-  "Edit YAML": "Edit YAML",
   "Event log bucket": "Event log bucket",
   "Provide your s3 bucket name for logging events": "Provide your s3 bucket name for logging events",
   "Enter a bucket name": "Enter a bucket name",

@@ -7,17 +7,18 @@ import { LoadingBox } from '@odf/shared/generic/status-box';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
+import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { Status } from '@odf/shared/status/Status';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel, resourcePathFromModel } from '@odf/shared/utils';
+import { referenceForModel, ALL_NAMESPACES_KEY } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
   ListPageBody,
   ListPageCreateLink,
   ListPageFilter,
   ListPageHeader,
-  ResourceLink,
+  ResourceLink as ResourceLinkWithKind,
   RowProps,
   TableColumn,
   TableData,
@@ -27,6 +28,7 @@ import {
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk-internal';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { RouteComponentProps } from 'react-router';
@@ -167,33 +169,34 @@ type CustomData = {
   namespace: string;
 };
 
-const kind = referenceForModel(NooBaaObjectBucketClaimModel);
-
 const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
   obj,
   activeColumnIDs,
-  rowData: { launchModal, namespace },
+  rowData: { launchModal },
 }) => {
   const { t } = useCustomTranslation();
   const storageClassName = _.get(obj, 'spec.storageClassName');
+  const path = `/odf/resource/ns/${obj.metadata.namespace}/${referenceForModel(
+    NooBaaObjectBucketClaimModel
+  )}/${obj.metadata.name}`;
   return (
     <>
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
         <ResourceLink
-          kind={kind}
-          name={obj.metadata.name}
-          namespace={obj.metadata.namespace}
+          resourceModel={NooBaaObjectBucketClaimModel}
+          resourceName={obj.metadata.name}
+          link={path}
         />
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        <ResourceLink kind="Namespace" name={obj.metadata.namespace} />
+        <ResourceLinkWithKind kind="Namespace" name={obj.metadata.namespace} />
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
         <OBCStatus obc={obj} />
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
         {isBound(obj) ? (
-          <ResourceLink
+          <ResourceLinkWithKind
             kind="Secret"
             name={obj.metadata.name}
             namespace={obj.metadata.namespace}
@@ -204,7 +207,7 @@ const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
         {storageClassName ? (
-          <ResourceLink kind="StorageClass" name={storageClassName} />
+          <ResourceLinkWithKind kind="StorageClass" name={storageClassName} />
         ) : (
           '-'
         )}
@@ -215,7 +218,7 @@ const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
           extraProps={{
             resource: obj,
             resourceModel: NooBaaObjectBucketClaimModel,
-            namespace,
+            namespace: obj.metadata.namespace,
           }}
           customKebabItems={(t) => [
             {
@@ -246,13 +249,15 @@ const extraMap = {
     () => import('../../modals/attach-deployment/attach-deployment-obc-modal')
   ),
 };
+
 export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
   const { t } = useCustomTranslation();
   const hasRGW = useFlag(RGW_FLAG);
   const hasMCG = useFlag(MCG_FLAG);
   const hasNone = !hasRGW && !hasMCG;
 
-  const { selector, namespace } = props;
+  const [namespace] = useActiveNamespace();
+  const { selector } = props;
 
   const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
 
@@ -260,22 +265,19 @@ export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
     kind: referenceForModel(NooBaaObjectBucketClaimModel),
     isList: true,
     selector,
-    namespace,
+    ...(namespace !== ALL_NAMESPACES_KEY ? { namespace } : {}),
   });
 
   const [data, filteredData, onFilterChange] = useListPageFilter(obc);
 
-  const createLink = `${resourcePathFromModel(
-    NooBaaObjectBucketClaimModel,
-    null,
-    namespace || 'default'
-  )}/~new/form`;
+  const createLink =
+    '/odf/resource/objectbucket.io~v1alpha1~ObjectBucketClaim/create/~new';
 
   const rowFilters = [obcStatusFilter(t)];
   return (
     <>
       <Modal {...modalProps} />
-      <ListPageHeader title={t('ObjectBucketClaims')}>
+      <ListPageHeader title="">
         {!hasNone ? (
           <ListPageCreateLink to={createLink}>
             {t('Create ObjectBucketClaim')}
@@ -295,7 +297,7 @@ export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
           unfilteredData={obc}
           loaded={loaded}
           loadError={loadError}
-          rowData={{ launchModal, namespace }}
+          rowData={{ launchModal }}
         />
       </ListPageBody>
     </>
@@ -303,8 +305,10 @@ export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
 };
 
 type ObjectBucketClaimDetailsPageProps = {
-  match: RouteComponentProps<{ name: string; plural: string }>['match'];
-  namespace: string;
+  match: RouteComponentProps<{
+    resourceName: string;
+    namespace: string;
+  }>['match'];
 };
 
 type OBCDetailsProps = {
@@ -335,7 +339,7 @@ export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
               <>
                 <dt>{t('Secret')}</dt>
                 <dd>
-                  <ResourceLink
+                  <ResourceLinkWithKind
                     kind="Secret"
                     name={obj.metadata.name}
                     namespace={obj.metadata.namespace}
@@ -350,7 +354,10 @@ export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
             <dt>{t('StorageClass')}</dt>
             <dd>
               {storageClassName ? (
-                <ResourceLink kind="StorageClass" name={storageClassName} />
+                <ResourceLinkWithKind
+                  kind="StorageClass"
+                  name={storageClassName}
+                />
               ) : (
                 '-'
               )}
@@ -359,7 +366,7 @@ export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
               <>
                 <dt>{t('Object Bucket')}</dt>
                 <dd>
-                  <ResourceLink
+                  <ResourceLinkWithKind
                     dataTest="ob-link"
                     kind={referenceForModel(NooBaaObjectBucketModel)}
                     name={obj.spec.objectBucketName}
@@ -377,12 +384,11 @@ export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
 
 export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
   match,
-  namespace,
 }) => {
   const { t } = useCustomTranslation();
-  const { name, plural: resourceKind } = match.params;
+  const { resourceName: name, namespace } = match.params;
   const [resource, loaded] = useK8sWatchResource<K8sResourceKind>({
-    kind: resourceKind,
+    kind: referenceForModel(NooBaaObjectBucketClaimModel),
     name,
     namespace,
     isList: false,
@@ -412,10 +418,12 @@ export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
 
   const breadcrumbs = [
     {
+      name: t('Object Service'),
+      path: '/odf/object-storage',
+    },
+    {
       name: t('ObjectBucketClaims'),
-      path: `/k8s/ns/${namespace}/${referenceForModel(
-        NooBaaObjectBucketClaimModel
-      )}/`,
+      path: `/odf/object-storage/resource/objectbucket.io~v1alpha1~ObjectBucketClaim`,
     },
     {
       name: t('ObjectBucketClaim details'),

@@ -7,6 +7,7 @@ import { LoadingBox } from '@odf/shared/generic/status-box';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
+import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -14,8 +15,7 @@ import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
   ListPageBody,
   ListPageFilter,
-  ListPageHeader,
-  ResourceLink,
+  ResourceLink as ResourceLinkWithKind,
   RowProps,
   TableColumn,
   TableData,
@@ -32,8 +32,6 @@ import { sortable } from '@patternfly/react-table';
 import { NooBaaObjectBucketModel } from '../../models/ocs';
 import { getPhase, obStatusFilter } from '../../utils';
 import '../../style.scss';
-
-const kind = referenceForModel(NooBaaObjectBucketModel);
 
 type OBStatusProps = {
   ob: K8sResourceKind;
@@ -78,13 +76,16 @@ const OBRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
 }) => {
   const { t } = useCustomTranslation();
   const storageClassName = _.get(obj, 'spec.storageClassName');
+  const path = `/odf/resource/${referenceForModel(NooBaaObjectBucketModel)}/${
+    obj.metadata.name
+  }`;
   return (
     <>
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
         <ResourceLink
-          kind={kind}
-          name={obj.metadata.name}
-          namespace={obj.metadata.namespace}
+          resourceModel={NooBaaObjectBucketModel}
+          resourceName={obj.metadata.name}
+          link={path}
         />
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
@@ -92,7 +93,7 @@ const OBRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
         {storageClassName ? (
-          <ResourceLink kind="StorageClass" name={storageClassName} />
+          <ResourceLinkWithKind kind="StorageClass" name={storageClassName} />
         ) : (
           '-'
         )}
@@ -191,7 +192,6 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
   return (
     <>
       <Modal {...modalProps} />
-      <ListPageHeader title={t('ObjectBuckets')} />
       <ListPageBody>
         <ListPageFilter
           data={data}
@@ -249,14 +249,17 @@ const OBDetails: DetailsType =
                 <dt>{t('StorageClass')}</dt>
                 <dd>
                   {storageClassName ? (
-                    <ResourceLink kind="StorageClass" name={storageClassName} />
+                    <ResourceLinkWithKind
+                      kind="StorageClass"
+                      name={storageClassName}
+                    />
                   ) : (
                     '-'
                   )}
                 </dd>
                 <dt>{t('Object Bucket Claim')}</dt>
                 <dd>
-                  <ResourceLink
+                  <ResourceLinkWithKind
                     kind={referenceForModel(NooBaaObjectBucketClaimModel)}
                     name={OBCName}
                     namespace={OBCNamespace}
@@ -271,16 +274,16 @@ const OBDetails: DetailsType =
   };
 
 type ObjectBucketDetailsPageProps = {
-  match: RouteComponentProps<{ name: string; plural: string }>['match'];
+  match: RouteComponentProps<{ resourceName: string }>['match'];
 };
 
 export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
   match,
 }) => {
   const { t } = useCustomTranslation();
-  const { name, plural: resourceKind } = match.params;
+  const { resourceName: name } = match.params;
   const [resource, loaded] = useK8sWatchResource<K8sResourceKind>({
-    kind: resourceKind,
+    kind: referenceForModel(NooBaaObjectBucketModel),
     name,
     isList: false,
   });
@@ -289,8 +292,12 @@ export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
 
   const breadcrumbs = [
     {
+      name: t('Object Service'),
+      path: '/odf/object-storage',
+    },
+    {
       name: t('ObjectBuckets'),
-      path: `/k8s/cluster/${resourceKind}`,
+      path: `/odf/object-storage/resource/objectbucket.io~v1alpha1~ObjectBucket`,
     },
     {
       name: t('ObjectBucket details'),
