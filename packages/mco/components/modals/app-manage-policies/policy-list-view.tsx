@@ -3,7 +3,7 @@ import { ActionDropdown } from '@odf/shared/dropdown/action-dropdown';
 import { ModalBody } from '@odf/shared/modals/Modal';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'i18next';
+import { getErrorMessage } from '@odf/shared/utils';
 import {
   Button,
   Pagination,
@@ -13,16 +13,20 @@ import {
   ToolbarContent,
   ToolbarItem,
   Text,
+  AlertVariant,
 } from '@patternfly/react-core';
+import { ListViewMessages } from './helper/messages';
 import { PolicyListViewTable } from './helper/policy-list-view-table';
+import { unAssignPromises } from './utils/k8s-utils';
 import {
   ManagePolicyStateType,
+  MessageType,
   ModalActionContext,
   ModalViewContext,
   PolicyListViewState,
 } from './utils/reducer';
 import { ManagePolicyStateAction } from './utils/reducer';
-import { DataPolicyType } from './utils/types';
+import { DataPolicyType, DRPlacementControlType } from './utils/types';
 import './style.scss';
 
 const INITIAL_PAGE_NUMBER = 1;
@@ -40,12 +44,14 @@ const filterPolicies = (dataPolicyInfo: DataPolicyType[], searchText: string) =>
   );
 
 export const PolicyListViewToolBar: React.FC<PolicyListViewToolBarProps> = ({
+  selectedPolicyCount,
   searchText,
   isActionDisabled,
   onSearchChange,
   setModalActionContext,
-  t,
+  setMessage,
 }) => {
+  const { t } = useCustomTranslation();
   return (
     <Toolbar>
       <ToolbarContent>
@@ -64,7 +70,15 @@ export const PolicyListViewToolBar: React.FC<PolicyListViewToolBarProps> = ({
             text={t('Actions')}
             toggleVariant={'primary'}
             isDisabled={isActionDisabled}
-            onSelect={(id: ModalActionContext) => setModalActionContext(id)}
+            onSelect={(id: ModalActionContext) => {
+              setModalActionContext(id);
+              setMessage({
+                title: t(
+                  'Selected policies ({{ count }}) will be removed for your application. This may have some affect on other applications sharing the placement.',
+                  { count: selectedPolicyCount }
+                ),
+              });
+            }}
             dropdownItems={[
               {
                 id: ModalActionContext.UN_ASSIGNING_POLICIES,
@@ -84,6 +98,7 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
   dispatch,
   setModalContext,
   setModalActionContext,
+  setMessage,
 }) => {
   const { t } = useCustomTranslation();
   const [page, setPage] = React.useState(INITIAL_PAGE_NUMBER);
@@ -110,6 +125,41 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
       payload: policy,
     });
 
+  const unAssignPolicies = () => {
+    // unassign DRPolicy
+    const drpcs: DRPlacementControlType[] = state.policies?.reduce(
+      (acc, policy) => [...acc, ...policy?.placementControInfo],
+      []
+    );
+    const promises = unAssignPromises(drpcs);
+    Promise.all(promises)
+      .then(() => {
+        setMessage({
+          title: t(
+            'Selected policies ({{ count }}) unassigned for the application.',
+            { count: state.policies.length }
+          ),
+          variant: AlertVariant.success,
+        });
+        dispatch({
+          type: ManagePolicyStateType.SET_SELECTED_POLICIES,
+          context: ModalViewContext.POLICY_LIST_VIEW,
+          payload: [],
+        });
+        setModalActionContext(ModalActionContext.UN_ASSIGN_POLICIES_SUCCEEDED);
+      })
+      .catch((error) => {
+        setMessage({
+          title: t(
+            'Unable to unassign all selected policies for the application.'
+          ),
+          description: getErrorMessage(error),
+          variant: AlertVariant.danger,
+        });
+        setModalActionContext(ModalActionContext.UN_ASSIGN_POLICIES_FAILED);
+      });
+  };
+
   return (
     <ModalBody>
       <div className="mco-manage-policies__header">
@@ -124,17 +174,24 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
         </Button>
       </div>
       <PolicyListViewToolBar
+        selectedPolicyCount={state.policies.length}
         searchText={searchText}
         isActionDisabled={!state.policies.length}
         onSearchChange={onSearchChange}
         setModalActionContext={setModalActionContext}
-        t={t}
+        setMessage={setMessage}
       />
       <div className="mco-manage-policies__col-padding">
+        <ListViewMessages
+          state={state}
+          OnCancel={() => setModalActionContext(null)}
+          OnConfirm={unAssignPolicies}
+        />
         <PolicyListViewTable
           policies={paginatedPolicies}
           selectedPolicies={state.policies}
           modalActionContext={state.modalActionContext}
+          isActionDisabled={!!state.policies.length}
           setModalActionContext={setModalActionContext}
           setModalContext={setModalContext}
           setPolicies={setPolicies}
@@ -167,13 +224,14 @@ type PolicyListViewProps = {
   dispatch: React.Dispatch<ManagePolicyStateAction>;
   setModalContext: (modalViewContext: ModalViewContext) => void;
   setModalActionContext: (modalActionContext: ModalActionContext) => void;
-  setError: (error: string) => void;
+  setMessage: (error: MessageType) => void;
 };
 
 type PolicyListViewToolBarProps = {
+  selectedPolicyCount: number;
   searchText: string;
   isActionDisabled: boolean;
   onSearchChange: React.Dispatch<React.SetStateAction<string>>;
   setModalActionContext: (modalActionContext: ModalActionContext) => void;
-  t: TFunction;
+  setMessage: (error: MessageType) => void;
 };

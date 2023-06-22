@@ -1,3 +1,4 @@
+import { AlertVariant } from '@patternfly/react-core';
 import { DataPolicyType } from './types';
 
 export enum ModalViewContext {
@@ -12,11 +13,19 @@ export enum ModalActionContext {
   UN_ASSIGNING_POLICY = 'UN_ASSIGNING_POLICY',
   UN_ASSIGN_POLICIES_SUCCEEDED = 'UN_ASSIGN_POLICIES_SUCCEEDED',
   UN_ASSIGN_POLICY_SUCCEEDED = 'UN_ASSIGN_POLICY_SUCCEEDED',
+  UN_ASSIGN_POLICIES_FAILED = 'UN_ASSIGN_POLICIES_FAILED',
+  UN_ASSIGN_POLICY_FAILED = 'UN_ASSIGN_POLICY_FAILED',
 }
+
+export type MessageType = {
+  title: string;
+  description?: string;
+  variant?: AlertVariant;
+};
 
 export type commonViewState = {
   modalActionContext: ModalActionContext;
-  error: string;
+  message: MessageType;
 };
 
 export type PolicyListViewState = commonViewState & {
@@ -29,8 +38,6 @@ export type PolicyConfigViewState = {
 
 export type UnAssignPolicyViewState = commonViewState & {
   policy: DataPolicyType;
-  modalActionContext: ModalActionContext;
-  error: string;
 };
 
 export type ManagePolicyState = {
@@ -45,7 +52,7 @@ export enum ManagePolicyStateType {
   SET_MODAL_ACTION_CONTEXT = 'SET_MODAL_ACTION_CONTEXT',
   SET_SELECTED_POLICIES = 'SET_SELECTED_POLICIES',
   SET_SELECTED_POLICY = 'SET_SELECTED_POLICY',
-  SET_ERROR = 'SET_ERROR',
+  SET_MESSAGE = 'SET_MESSAGE',
 }
 
 export const initialPolicyState: ManagePolicyState = {
@@ -53,12 +60,16 @@ export const initialPolicyState: ManagePolicyState = {
   [ModalViewContext.POLICY_LIST_VIEW]: {
     policies: [],
     modalActionContext: null,
-    error: '',
+    message: {
+      title: '',
+    },
   },
   [ModalViewContext.UNASSIGN_POLICY_VIEW]: {
     policy: {},
     modalActionContext: null,
-    error: '',
+    message: {
+      title: '',
+    },
   },
   [ModalViewContext.POLICY_CONFIGURATON_VIEW]: {
     policy: {},
@@ -86,9 +97,9 @@ export type ManagePolicyStateAction =
       payload: DataPolicyType;
     }
   | {
-      type: ManagePolicyStateType.SET_ERROR;
+      type: ManagePolicyStateType.SET_MESSAGE;
       context: ModalViewContext;
-      payload: string;
+      payload: MessageType;
     };
 
 export const managePolicyStateReducer = (
@@ -129,12 +140,12 @@ export const managePolicyStateReducer = (
         },
       };
     }
-    case ManagePolicyStateType.SET_ERROR: {
+    case ManagePolicyStateType.SET_MESSAGE: {
       return {
         ...state,
         [action.context]: {
           ...state[action.context],
-          error: action.payload,
+          message: action.payload,
         },
       };
     }

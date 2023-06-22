@@ -52,7 +52,8 @@ const PolicyListViewTableRow: React.FC<RowComponentType<DataPolicyType>> = ({
   const { t } = useCustomTranslation();
   const columnNames = getColumnNames(t);
   const { kind, isValidated, activity, assignedOn } = policy;
-  const { setPolicy, setModalContext }: RowExtraProps = extraProps;
+  const { isActionDisabled, setPolicy, setModalContext }: RowExtraProps =
+    extraProps;
   const status = isValidated ? t('Validated') : t('Not Validated');
   const assignedDateStr = utcDateTimeFormatter.format(new Date(assignedOn));
 
@@ -104,7 +105,7 @@ const PolicyListViewTableRow: React.FC<RowComponentType<DataPolicyType>> = ({
       <Td translate={null} isActionCell>
         <ActionsColumn
           items={RowActions(t)}
-          isDisabled={!!policy?.metadata?.deletionTimestamp}
+          isDisabled={!!policy?.metadata?.deletionTimestamp || isActionDisabled}
         />
       </Td>
     </>
@@ -115,6 +116,7 @@ export const PolicyListViewTable: React.FC<PolicyListViewTableProps> = ({
   policies,
   selectedPolicies,
   modalActionContext,
+  isActionDisabled,
   setPolicy,
   setPolicies,
   setModalContext,
@@ -163,6 +165,7 @@ export const PolicyListViewTable: React.FC<PolicyListViewTableProps> = ({
         selectedRows={selectedPolicies}
         setSelectedRows={setSelectedRowList}
         extraProps={{
+          isActionDisabled,
           setPolicy,
           setModalContext,
         }}
@@ -172,6 +175,7 @@ export const PolicyListViewTable: React.FC<PolicyListViewTableProps> = ({
 };
 
 type RowExtraProps = {
+  isActionDisabled: boolean;
   setModalContext: (modalViewContext: ModalViewContext) => void;
   setPolicy: (
     policies: DataPolicyType,
