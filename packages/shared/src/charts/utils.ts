@@ -57,6 +57,22 @@ type YMutator = (y: any) => number;
 export const defaultXMutator: XMutator = (x) => new Date(x * 1000);
 export const defaultYMutator: YMutator = (y) => parseFloat(y);
 
+export const getMax = (
+  result: PrometheusResponse['data']['result']
+): number => {
+  const resourceValues = _.flatMap(result, (resource) => resource.values);
+  const maxValue = _.maxBy(resourceValues, (value) => Number(value[1]));
+  return maxValue ? Number(maxValue[1]) : NaN;
+};
+
+export const getMin = (
+  result: PrometheusResponse['data']['result']
+): number => {
+  const resourceValues = _.flatMap(result, (resource) => resource.values);
+  const minValue = _.minBy(resourceValues, (value) => Number(value[1]));
+  return minValue ? Number(minValue[1]) : NaN;
+};
+
 export type GetRangeStats = (
   response: PrometheusResponse,
   description?: string | ((result: PrometheusResult, index: number) => string),

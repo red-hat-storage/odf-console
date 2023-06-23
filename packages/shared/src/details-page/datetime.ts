@@ -95,6 +95,18 @@ export const utcDateTimeFormatterWithTimeZone = new Intl.DateTimeFormat(
   }
 );
 
+export const dateTimeFormatterWithWeekDay = new Intl.DateTimeFormat(
+  getLastLanguage() || undefined,
+  {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  }
+);
+
 export const relativeTimeFormatter = (Intl as any).RelativeTimeFormat
   ? new (Intl as any).RelativeTimeFormat(getLastLanguage() || undefined)
   : null;

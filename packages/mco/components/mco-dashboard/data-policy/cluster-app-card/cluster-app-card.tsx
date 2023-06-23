@@ -11,10 +11,20 @@ import {
   ProtectedAppSetsMap,
   ACMManagedClusterViewKind,
   ProtectedPVCData,
+  MirrorPeerKind,
 } from '@odf/mco/types';
+import { getClusterNamesFromMirrorPeers } from '@odf/mco/utils';
+import { getMax, getMin } from '@odf/shared/charts';
+import { CustomUtilizationSummaryProps } from '@odf/shared/dashboards/utilization-card/utilization-item';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
-import { referenceForModel } from '@odf/shared/utils';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import {
+  humanizeBinaryBytes,
+  humanizeDecimalBytesPerSec,
+  humanizeNumber,
+  referenceForModel,
+} from '@odf/shared/utils';
 import {
   PrometheusResponse,
   useK8sWatchResource,
@@ -28,12 +38,15 @@ import {
   Grid,
   GridItem,
 } from '@patternfly/react-core';
-import { ACMManagedClusterViewModel } from '../../../../models';
+import {
+  ACMManagedClusterViewModel,
+  MirrorPeerModel,
+} from '../../../../models';
 import {
   getProtectedPVCFromVRG,
   filterPVCDataUsingAppsets,
 } from '../../../../utils';
-import { getLastSyncPerClusterQuery } from '../../queries';
+import { DRDashboard, getLastSyncPerClusterQuery } from '../../queries';
 import {
   CSVStatusesContext,
   DRResourcesContext,
@@ -48,9 +61,42 @@ import {
   PeerConnectionSection,
   ApplicationsSection,
   PVCsSection,
+  SnapshotUtilizationCard,
 } from './cluster';
 import { ClusterAppDropdown, VolumeSummarySection } from './common';
 import './cluster-app-card.scss';
+
+const CustomUtilizationSummary: React.FC<CustomUtilizationSummaryProps> = ({
+  currentHumanized,
+  utilizationData,
+}) => {
+  const { t } = useCustomTranslation();
+  const maxVal = getMax(utilizationData);
+  const minVal = getMin(utilizationData);
+  const humanizedMax = !!maxVal ? humanizeBinaryBytes(maxVal).string : null;
+  const humanizedMin = !!minVal ? humanizeBinaryBytes(minVal).string : null;
+
+  return (
+    <div className="co-utilization-card__item-value co-utilization-card__item-summary">
+      <div>
+        <span>{t('Current value: ')}</span>
+        <span className="bold">{currentHumanized}</span>
+      </div>
+      {!!utilizationData?.length && (
+        <>
+          <div>
+            <span>{t('Max value: ')}</span>
+            <span className="bold">{humanizedMax}</span>
+          </div>
+          <div>
+            <span>{t('Min value: ')}</span>
+            <span className="bold">{humanizedMin}</span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
   clusterName,
@@ -59,6 +105,17 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
   csvData,
   clusterResources,
 }) => {
+  const { t } = useCustomTranslation();
+  const [mirrorPeers] = useK8sWatchResource<MirrorPeerKind[]>({
+    kind: referenceForModel(MirrorPeerModel),
+    isList: true,
+    namespaced: false,
+    cluster: HUB_CLUSTER_NAME,
+  });
+  const peerClusters = getClusterNamesFromMirrorPeers(
+    mirrorPeers || [],
+    clusterName
+  );
   return (
     <Grid hasGutter>
       <GridItem lg={3} rowSpan={8} sm={12}>
@@ -69,7 +126,7 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
         />
       </GridItem>
       <GridItem lg={9} rowSpan={8} sm={12}>
-        <PeerConnectionSection clusterName={clusterName} />
+        <PeerConnectionSection peerClusters={peerClusters} />
       </GridItem>
       <GridItem lg={3} rowSpan={8} sm={12}>
         <ApplicationsSection
@@ -86,6 +143,23 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
       </GridItem>
       <GridItem lg={12} rowSpan={8} sm={12}>
         <VolumeSummarySection protectedPVCData={protectedPVCData} />
+      </GridItem>
+      <GridItem lg={12} rowSpan={8} sm={12}>
+        <SnapshotUtilizationCard
+          clusters={peerClusters}
+          title={t('Snapshots synced')}
+          queryType={DRDashboard.RBD_SNAPSHOT_SNAPSHOTS}
+          humanizeValue={humanizeNumber}
+        />
+      </GridItem>
+      <GridItem lg={12} rowSpan={8} sm={12}>
+        <SnapshotUtilizationCard
+          clusters={[clusterName]}
+          title={t('Replication throughput')}
+          queryType={DRDashboard.RBD_SNAPSHOTS_SYNC_BYTES}
+          humanizeValue={humanizeDecimalBytesPerSec}
+          CustomUtilizationSummary={CustomUtilizationSummary}
+        />
       </GridItem>
     </Grid>
   );

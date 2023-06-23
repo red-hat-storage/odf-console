@@ -18,6 +18,11 @@ export enum StorageDashboard {
   HEALTH = 'HEALTH',
 }
 
+export enum DRDashboard {
+  RBD_SNAPSHOTS_SYNC_BYTES = 'RBD_SNAPSHOTS_SYNC_BYTES',
+  RBD_SNAPSHOT_SNAPSHOTS = 'RBD_SNAPSHOT_SNAPSHOTS',
+}
+
 // "recording_rules" added in "observability-metrics-custom-allowlist" ConfigMap
 export const TOTAL_PVC_COUNT_QUERY = 'count_persistentvolumeclaim_total';
 export const getTotalPVCCountPerClusterQuery = (clusterName: string) =>
@@ -30,6 +35,18 @@ export const getLastSyncPerClusterQuery = () =>
 export const CAPACITY_QUERIES = {
   [StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${TOTAL_CAPACITY_FILE_BLOCK_METRIC}`,
   [StorageDashboard.USED_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${USED_CAPACITY_FILE_BLOCK_METRIC}`,
+};
+
+export const getRBDSnapshotUtilizationQuery = (
+  clusterNames: string[],
+  queryName: DRDashboard
+) => {
+  const names = clusterNames.join('|');
+  const queries = {
+    [DRDashboard.RBD_SNAPSHOT_SNAPSHOTS]: `idelta(ceph_rbd_mirror_snapshot_snapshots{cluster=~"${names}"}[5m])`,
+    [DRDashboard.RBD_SNAPSHOTS_SYNC_BYTES]: `idelta(ceph_rbd_mirror_snapshot_sync_bytes{cluster=~"${names}"}[5m])`,
+  };
+  return queries[queryName];
 };
 
 export const STATUS_QUERIES = {

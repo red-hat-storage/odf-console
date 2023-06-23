@@ -60,6 +60,7 @@ import {
   ProtectedAppSetsMap,
   ACMPlacementDecisionKind,
   ACMPlacementKind,
+  MirrorPeerKind,
 } from '../types';
 import { findPlacementDecisionUsingPlacement } from './acm';
 
@@ -242,6 +243,20 @@ export const getReplicationType = (interval: string, t: TFunction) =>
 
 export const getPlacementKind = (subscription: ACMSubscriptionKind) =>
   subscription?.spec?.placement?.placementRef?.kind;
+
+export const getClusterNamesFromMirrorPeers = (
+  mirrorPeers: MirrorPeerKind[],
+  clusterName: string
+): string[] => {
+  const peerClusters = mirrorPeers.reduce((acc, mirrorPeer) => {
+    const clusters = mirrorPeer.spec.items?.map(
+      ({ clusterName: peerClusterName }) => peerClusterName
+    );
+    return clusters.includes(clusterName) ? [...acc, ...clusters] : acc;
+  }, []);
+
+  return Array.from(new Set(peerClusters));
+};
 
 export const isPeerReady = (drpc: DRPlacementControlKind) =>
   !!drpc?.status?.conditions?.some(
