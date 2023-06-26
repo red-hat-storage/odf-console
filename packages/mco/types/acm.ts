@@ -138,3 +138,28 @@ export type ACMManagedClusterViewKind = K8sResourceCommon & {
     result?: K8sResourceCommon;
   };
 };
+
+export type SearchQuery = {
+  operationName: string;
+  variables: {
+    input: {
+      filters: { property: string; values: string[] | string }[];
+      relatedKinds?: string[];
+      limit?: number;
+    }[];
+  };
+  query: string;
+};
+
+export type SearchResult = {
+  data: {
+    searchResult: {
+      items?: any;
+      count?: number;
+      related?: {
+        count: number;
+        kind: string;
+      }[];
+    }[];
+  };
+};

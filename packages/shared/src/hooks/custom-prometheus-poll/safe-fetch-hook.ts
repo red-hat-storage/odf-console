@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 
-type SafeFetchProps = {
+export type SafeFetchProps = {
   url: string;
   method?: string;
   options?: RequestInit;

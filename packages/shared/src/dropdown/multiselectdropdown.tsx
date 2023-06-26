@@ -7,14 +7,13 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   placeholder,
   id,
   options,
-  defaultSelected = [],
+  selected = [],
+  variant,
 }) => {
   const [isOpen, setOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<string[]>(
-    defaultSelected || []
-  );
+
   const onSelect = (
-    event: React.MouseEvent | React.ChangeEvent,
+    _event: React.MouseEvent | React.ChangeEvent,
     selection: string
   ) => {
     let cSelected: string[] = selected;
@@ -23,7 +22,6 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     } else {
       cSelected = [...selected, selection];
     }
-    setSelected(cSelected);
     onChange(cSelected);
   };
 
@@ -35,7 +33,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   return (
     <Select
-      variant={SelectVariant.typeaheadMulti}
+      variant={variant || SelectVariant.typeaheadMulti}
       aria-label={t('Select input')}
       onToggle={setOpen}
       onSelect={onSelect}
@@ -44,6 +42,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
       placeholderText={placeholder || t('Select options')}
       aria-labelledby={id}
       noResultsFoundText={t('No results found')}
+      isCheckboxSelectionBadgeHidden
     >
       {items}
     </Select>
@@ -52,8 +51,9 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
 export type MultiSelectDropdownProps = {
   id?: string;
+  selected: string[];
   options?: string[];
-  defaultSelected?: string[];
   placeholder?: string;
+  variant?: SelectVariant;
   onChange: (selected: string[]) => void;
 };

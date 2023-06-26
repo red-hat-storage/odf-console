@@ -3,11 +3,11 @@ import {
   USED_CAPACITY_FILE_BLOCK_METRIC,
   SYSTEM_HEALTH_METRIC,
 } from '@odf/shared/queries';
-import {
-  DRPC_OBJECT_TYPE,
-  HUB_CLUSTER_NAME,
-  RAMEN_HUB_OPERATOR_METRICS_SERVICE,
-} from '../../constants';
+import { HUB_CLUSTER_NAME } from '../../constants';
+
+export const RAMEN_HUB_OPERATOR_METRICS_SERVICE =
+  'job="ramen-hub-operator-metrics-service"';
+export const DRPC_OBJECT_TYPE = 'obj_type="DRPlacementControl"';
 
 export enum StorageDashboard {
   USED_CAPACITY_FILE_BLOCK = 'USED_CAPACITY_FILE_BLOCK',

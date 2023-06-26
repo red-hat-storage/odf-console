@@ -329,6 +329,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
         >
           <MultiSelectDropdown
             id="create-odf-device-type-dropdown"
+            selected={state.deviceType}
             options={[
               deviceTypeDropdownItems.DISK,
               deviceTypeDropdownItems.PART,
@@ -337,10 +338,6 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
             onChange={(selectedValues: string[]) =>
               formHandler('deviceType', selectedValues)
             }
-            defaultSelected={[
-              deviceTypeDropdownItems.DISK,
-              deviceTypeDropdownItems.PART,
-            ]}
           />
         </FormGroup>
         <FormGroup

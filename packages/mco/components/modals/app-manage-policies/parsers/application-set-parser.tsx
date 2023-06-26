@@ -24,11 +24,14 @@ import {
   generateDRPlacementControlInfo,
   generateDRPolicyInfo,
   generatePlacementInfo,
+  getMatchingDRPolicies,
 } from '../utils/parser-utils';
 import {
   ApplicationInfoType,
+  ApplicationType,
   DRPlacementControlType,
   DRPolicyType,
+  DataPolicyType,
 } from '../utils/types';
 
 const getDRResources = (namespace: string) => ({
@@ -99,6 +102,7 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       )
     );
   const appSetResource = appSetResources?.formattedResources?.[0];
+  const formattedDRResources = drResources?.formattedResources;
 
   const applicationInfo: ApplicationInfoType = React.useMemo(() => {
     let applicationInfo: ApplicationInfoType = {};
@@ -112,32 +116,44 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         drPlacementControl,
         drPolicy,
         drClusters,
-      } = appSetResource?.placements?.[0] || {};
+      } = appSetResource.placements[0];
       const placementInfo = generatePlacementInfo(placement, placementDecision);
       const drpcInfo: DRPlacementControlType[] = generateDRPlacementControlInfo(
         drPlacementControl,
         placementInfo
       );
       const drPolicyInfo: DRPolicyType[] = generateDRPolicyInfo(
-        t,
         drPolicy,
         drClusters,
-        drpcInfo
+        drpcInfo,
+        t
       );
       applicationInfo = generateApplicationInfo(
-        appSetResource?.application,
-        getRemoteNamespaceFromAppSet(appSetResource?.application),
+        application,
+        getRemoteNamespaceFromAppSet(application),
         // Skip placement if it already DR protected
         _.isEmpty(drpcInfo) ? [placementInfo] : [],
         drPolicyInfo
       );
     }
     return applicationInfo;
-  }, [appSetResource, loaded, loadError, t]);
+  }, [application, appSetResource, loaded, loadError, t]);
+
+  const matchingPolicies: DataPolicyType[] = React.useMemo(
+    () =>
+      !_.isEmpty(applicationInfo)
+        ? getMatchingDRPolicies(
+            applicationInfo as ApplicationType,
+            formattedDRResources
+          )
+        : [],
+    [applicationInfo, formattedDRResources]
+  );
 
   return (
     <AppManagePoliciesModal
       applicaitonInfo={applicationInfo}
+      matchingPolicies={matchingPolicies}
       loaded={loaded}
       loadError={loadError}
       isOpen={isOpen}

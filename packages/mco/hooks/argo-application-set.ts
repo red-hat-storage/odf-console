@@ -202,12 +202,12 @@ export type ArgoApplicationSetFormattedKind = {
   placements: {
     placement: ACMPlacementKind;
     placementDecision: ACMPlacementDecisionKind;
-    drPlacementControl: DRPlacementControlKind;
-    drPolicy: DRPolicyKind;
-    drClusters: DRClusterKind[];
+    drPlacementControl?: DRPlacementControlKind;
+    drPolicy?: DRPolicyKind;
+    drClusters?: DRClusterKind[];
   }[];
-  siblingApplications: ArgoApplicationSetKind[];
-  managedClusters: ACMManagedClusterKind[];
+  siblingApplications?: ArgoApplicationSetKind[];
+  managedClusters?: ACMManagedClusterKind[];
 };
 
 export type ArgoApplicationSetResourceKind = {

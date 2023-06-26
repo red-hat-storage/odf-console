@@ -93,14 +93,15 @@ const DescriptionListItem: React.FC<DescriptionListItemProps> = ({
 export const PolicyConfigViewer: React.FC<PolicyConfigViewerProps> = ({
   policy,
   disableSelector,
+  hideSelector,
 }) => {
   const { t } = useCustomTranslation();
   const defaultSelectionText = t('All placements');
   const [selected, setSelected] = React.useState(defaultSelectionText);
   const isDefaultSelected = selected === defaultSelectionText;
   const placementControlMap: PlacementControlMap = React.useMemo(
-    () => getPlacementControlMap(policy?.placementControInfo),
-    [policy?.placementControInfo]
+    () => getPlacementControlMap(policy?.placementControlInfo),
+    [policy?.placementControlInfo]
   );
   const labels = React.useMemo(
     () => getLabels(placementControlMap, selected, isDefaultSelected),
@@ -123,7 +124,7 @@ export const PolicyConfigViewer: React.FC<PolicyConfigViewerProps> = ({
     <>
       <div className="mco-manage-policies__header">
         <Text component="h3"> {t('Policy configuration details')} </Text>
-        {!!Object.keys(placementControlMap).length && (
+        {!!Object.keys(placementControlMap).length && !hideSelector && (
           <SingleSelectDropdown
             id="placement-control-view-dropdown"
             selectedKey={selected}
@@ -223,4 +224,5 @@ type PlacementControlMap = {
 type PolicyConfigViewerProps = {
   policy: DataPolicyType;
   disableSelector?: boolean;
+  hideSelector?: boolean;
 };
