@@ -8,6 +8,8 @@ export enum StorageDashboardQuery {
   CEPH_CAPACITY_USED = 'CEPH_CAPACITY_USED',
   STORAGE_CLASSES_TOTAL_USED = 'STORAGE_CLASSES_TOTAL_USED',
   STORAGE_CLASSES_BY_USED = 'STORAGE_CLASSES_BY_USED',
+  PVC_NAMESPACES_BY_USED = 'PVC_NAMESPACES_BY_USED',
+  PVC_NAMESPACES_TOTAL_USED = 'PVC_NAMESPACES_TOTAL_USED',
   PODS_BY_USED = 'PODS_BY_USED',
   PODS_TOTAL_USED = 'PODS_TOTAL_USED',
   CEPH_CAPACITY_TOTAL = 'CEPH_CAPACITY_TOATL',
@@ -186,6 +188,14 @@ export const utilizationPopoverQueryMap = [
     }))))`,
   },
 ];
+
+export const getPVCNamespaceQuery = (namespace: string) => {
+  const queries = {
+    [StorageDashboardQuery.PVC_NAMESPACES_BY_USED]: `sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)"}))`,
+    [StorageDashboardQuery.PVC_NAMESPACES_TOTAL_USED]: `sum(sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)"})))`,
+  };
+  return queries;
+};
 
 export const getPoolQuery = (
   poolNames: string[],
