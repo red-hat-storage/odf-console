@@ -1,3 +1,5 @@
+import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+
 export type HumanizeResult = {
   value: number;
   unit: string;
@@ -24,8 +26,7 @@ export enum K8sResourceConditionStatus {
   Unknown = 'Unknown',
 }
 
-export type StorageClass = {
-  metadata: object;
+export type StorageClass = K8sResourceCommon & {
   provisioner: string;
   parameters: object;
   reclaimPolicy?: string;
