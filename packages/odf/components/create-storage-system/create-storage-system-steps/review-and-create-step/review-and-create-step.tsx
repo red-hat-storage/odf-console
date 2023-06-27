@@ -55,8 +55,13 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     createStorageClass,
     nodes,
   } = state;
-  const { capacity, arbiterLocation, enableTaint, enableArbiter } =
-    capacityAndNodes;
+  const {
+    capacity,
+    arbiterLocation,
+    enableTaint,
+    enableArbiter,
+    enableSingleReplicaPool,
+  } = capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
   const { deployment, externalStorage, type, enableNFS } = backingStorage;
 
@@ -83,6 +88,9 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
 
   const encryptionStatus = hasEncryption ? t('Enabled') : t('Disabled');
   const ocsTaintsStatus = enableTaint ? t('Enabled') : t('Disabled');
+  const singleReplicaPoolStatus = enableSingleReplicaPool
+    ? t('Enabled')
+    : t('Disabled');
   const nfsStatus = enableNFS ? t('Enabled') : t('Disabled');
 
   const kmsStatus = encryption.advanced
@@ -165,6 +173,11 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
               })}
             </ListItem>
           )}
+          <ListItem>
+            {t('Replica-1 pool: {{singleReplicaPoolStatus}}', {
+              singleReplicaPoolStatus,
+            })}
+          </ListItem>
         </ReviewItem>
       )}
       {!isRhcs &&
