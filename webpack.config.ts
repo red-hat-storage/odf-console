@@ -49,6 +49,9 @@ const config: webpack.Configuration & DevServerConfiguration = {
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    alias: {
+      '@odf/shared': path.resolve(__dirname, './packages/shared/src/'),
+    },
   },
   module: {
     rules: [
