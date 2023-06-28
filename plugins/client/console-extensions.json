@@ -1,0 +1,20 @@
+[
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "odfdashboard",
+      "insertBefore": "persistentvolumes",
+      "section": "storage",
+      "name": "Data Foundation",
+      "href": "/odf/cluster"
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/odf/cluster"],
+      "exact": false,
+      "component": { "$codeRef": "dashboard.default" }
+    }
+  }
+]

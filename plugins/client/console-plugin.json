@@ -1,0 +1,12 @@
+{
+  "name": "odf-client-console",
+  "version": "0.0.0",
+  "displayName": "ODF Client Operator Plugin",
+  "description": "Console plugin for ODF Client operator",
+  "dependencies": {
+    "@console/pluginAPI": "*"
+  },
+  "exposedModules": {
+    "dashboard": "@odf/client/src/components/dashboards/client-dashboard"
+  }
+}

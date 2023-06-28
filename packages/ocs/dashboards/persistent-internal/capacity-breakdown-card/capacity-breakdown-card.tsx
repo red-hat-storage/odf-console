@@ -6,6 +6,7 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { BreakdownCardFields } from '@odf/shared/queries';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getInstantVectorStats,
@@ -20,7 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
-import { PROJECTS, PODS, STORAGE_CLASSES } from '../../../constants';
 import {
   breakdownQueryMapCEPH,
   CEPH_CAPACITY_BREAKDOWN_QUERIES,
@@ -30,22 +30,24 @@ import { getStackChartStats } from '../../../utils/metrics';
 import './capacity-breakdown-card.scss';
 
 const modelByUsedQueryMap = {
-  [PROJECTS]: StorageDashboardQuery.PROJECTS_BY_USED,
-  [PODS]: StorageDashboardQuery.PODS_BY_USED,
-  [STORAGE_CLASSES]: StorageDashboardQuery.STORAGE_CLASSES_BY_USED,
+  [BreakdownCardFields.PROJECTS]: StorageDashboardQuery.PROJECTS_BY_USED,
+  [BreakdownCardFields.PODS]: StorageDashboardQuery.PODS_BY_USED,
+  [BreakdownCardFields.STORAGE_CLASSES]:
+    StorageDashboardQuery.STORAGE_CLASSES_BY_USED,
 };
 
 const modelByTotalQueryMap = {
-  [PROJECTS]: StorageDashboardQuery.PROJECTS_TOTAL_USED,
-  [PODS]: StorageDashboardQuery.PODS_TOTAL_USED,
-  [STORAGE_CLASSES]: StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED,
+  [BreakdownCardFields.PROJECTS]: StorageDashboardQuery.PROJECTS_TOTAL_USED,
+  [BreakdownCardFields.PODS]: StorageDashboardQuery.PODS_TOTAL_USED,
+  [BreakdownCardFields.STORAGE_CLASSES]:
+    StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED,
 };
 
 const BreakdownCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const [metricType, setMetricType] = React.useState<
-    'Projects' | 'Pods' | 'Storage Classes'
-  >(PROJECTS);
+  const [metricType, setMetricType] = React.useState<BreakdownCardFields>(
+    BreakdownCardFields.PROJECTS
+  );
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
 
   const { queries, model, metric } = breakdownQueryMapCEPH[metricType];
@@ -87,15 +89,15 @@ const BreakdownCard: React.FC = () => {
   const dropdownOptions = [
     {
       name: t('Projects'),
-      id: PROJECTS,
+      id: BreakdownCardFields.PROJECTS,
     },
     {
       name: t('Storage Classes'),
-      id: STORAGE_CLASSES,
+      id: BreakdownCardFields.STORAGE_CLASSES,
     },
     {
       name: t('Pods'),
-      id: PODS,
+      id: BreakdownCardFields.PODS,
     },
   ];
   const breakdownSelectItems = getSelectOptions(dropdownOptions);

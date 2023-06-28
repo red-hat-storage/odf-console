@@ -12,6 +12,7 @@
     "clean": "yarn clean-mco && yarn clean-odf",
     "clean-mco": "cd plugins/mco && rm -rf ./dist",
     "clean-odf": "cd plugins/odf && rm -rf ./dist",
+    "clean-client": "cd plugins/client && rm -rf ./dist",
     "cypress-merge": "mochawesome-merge ./gui-test-screenshots/cypress_report*.json > ./gui-test-screenshots/cypress.json",
     "cypress-generate": "marge -o ./gui-test-screenshots/ -f cypress-report -t 'OpenShift Console Cypress Test Results' -p 'OpenShift Cypress Test Results' --showPassed false --assetsDir ./gui-test-screenshots/cypress/assets ./gui-test-screenshots/cypress.json",
     "cypress-postreport": "yarn cypress-merge && yarn cypress-generate",
