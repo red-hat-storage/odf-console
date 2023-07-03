@@ -5,14 +5,43 @@
 }
 
 .ceph-capacity-breakdown-card__header {
+  border-bottom: var(--pf-global--BorderWidth--sm) solid var(--pf-global--BorderColor--100);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .ceph-capacity-breakdown-card-header__dropdown {
-  max-width: 12em;
+  max-width: 30em;
   @media screen and (min-width: $pf-global--breakpoint--lg) {
     min-width: 12em;
   }
+}
+
+.odf-capacity-breakdown-card-pvc-namespace {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    padding: var(--pf-global--spacer--md) var(--pf-global--spacer--lg) 0;
+  }
+  &__dropdown {
+    width: -webkit-fill-available;
+    max-width: 30em;
+  }
+  &__dropdown > div {
+    max-height: 300px;
+    @media screen and (min-width: $pf-global--breakpoint--lg) {
+      min-width: 12em;
+    }
+    max-width: 30em;
+    overflow: auto;
+  }
+  &__title {
+    padding-right: var(--pf-global--spacer--lg);
+  }
+}
+
+.odf-capacity-breakdown-card-pvc-description {
+  font-size: var(--pf-global--FontSize--xs);
 }
