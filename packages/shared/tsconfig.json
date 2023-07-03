@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationDir": "build",
+    "outDir": "build"
+  },
+  "exclude": ["node_modules", "build", "**/*.spec.ts", "**/*.spec.tsx"],
+  "include": ["src"]
+}

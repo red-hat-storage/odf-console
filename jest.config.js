@@ -3,6 +3,7 @@ const config = {
   collectCoverageFrom: ['<rootDir>/packages/**/*.{ts,tsx}'],
   moduleNameMapper: {
     '^@console': 'identity-obj-proxy',
+    '^@odf/shared/(.*)': '<rootDir>/packages/shared/src/$1',
     '^lodash-es$': 'lodash',
     '\\.(css|scss)$': 'identity-obj-proxy',
   },

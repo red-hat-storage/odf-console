@@ -24,7 +24,7 @@ import {
   UTILIZATION_QUERY,
 } from '../../../queries';
 import { humanizeIOPS, humanizeLatency } from './utils';
-import '../../../../shared/dashboards/utilization-card/utilization-card.scss';
+import '@odf/shared/dashboards/utilization-card/utilization-card.scss';
 
 export const UtilizationContent: React.FC = () => {
   const { t } = useCustomTranslation();
