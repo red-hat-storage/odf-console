@@ -55,7 +55,11 @@ import {
   GraphElement,
 } from '@patternfly/react-topology';
 import { CEPH_STORAGE_LABEL } from '../../constants';
-import { CEPH_FLAG, MCG_STANDALONE } from '../../features';
+import {
+  CEPH_FLAG,
+  MCG_STANDALONE,
+  OCS_INDEPENDENT_FLAG,
+} from '../../features';
 import {
   nodeResource,
   odfDaemonSetResource,
@@ -575,7 +579,13 @@ const Topology: React.FC = () => {
   );
 };
 
-const TopologyViewEmptyState: React.FC = () => {
+type TopologyViewErrorMessageProps = {
+  isExternalMode?: boolean;
+};
+
+const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
+  isExternalMode,
+}) => {
   const { t } = useCustomTranslation();
   const [csv, csvLoaded, csvError] = useK8sWatchResource<
     ClusterServiceVersionKind[]
@@ -597,12 +607,16 @@ const TopologyViewEmptyState: React.FC = () => {
     <EmptyState>
       <EmptyStateIcon icon={TopologyIcon} />
       <Title headingLevel="h4" size="lg">
-        {t('No StorageCluster found')}
+        {isExternalMode
+          ? t('Topology view is not supported for External Mode')
+          : t('No StorageCluster found')}
       </Title>
       <EmptyStateBody>
-        {t('Set up a storage cluster to view the topology')}
+        {!isExternalMode && t('Set up a storage cluster to view the topology')}
       </EmptyStateBody>
-      <Link to={createLink}>{t('Create StorageSystem')} </Link>
+      {!isExternalMode && (
+        <Link to={createLink}>{t('Create StorageSystem')} </Link>
+      )}
     </EmptyState>
   );
 };
@@ -610,10 +624,15 @@ const TopologyViewEmptyState: React.FC = () => {
 const TopologyWithErrorHandler: React.FC = () => {
   const isCephAvailable = useFlag(CEPH_FLAG);
   const isMCGAvailable = useFlag(MCG_STANDALONE);
+  const isExternalMode = useFlag(OCS_INDEPENDENT_FLAG);
 
-  const showDashboard = isCephAvailable || isMCGAvailable;
+  const showDashboard = (isCephAvailable || isMCGAvailable) && !isExternalMode;
 
-  return showDashboard ? <Topology /> : <TopologyViewEmptyState />;
+  return showDashboard ? (
+    <Topology />
+  ) : (
+    <TopologyViewErrorMessage isExternalMode={isExternalMode} />
+  );
 };
 
 export default TopologyWithErrorHandler;
