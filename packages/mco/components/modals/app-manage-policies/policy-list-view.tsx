@@ -47,6 +47,7 @@ export const PolicyListViewToolBar: React.FC<PolicyListViewToolBarProps> = ({
   selectedPolicyCount,
   searchText,
   isActionDisabled,
+  isActionHidden,
   onSearchChange,
   setModalActionContext,
   setMessage,
@@ -64,28 +65,30 @@ export const PolicyListViewToolBar: React.FC<PolicyListViewToolBarProps> = ({
           />
         </ToolbarItem>
         <ToolbarItem>
-          <ActionDropdown
-            id="secondary-actions"
-            aria-label={t('Secondary actions')}
-            text={t('Actions')}
-            toggleVariant={'primary'}
-            isDisabled={isActionDisabled}
-            onSelect={(id: ModalActionContext) => {
-              setModalActionContext(id);
-              setMessage({
-                title: t(
-                  'Selected policies ({{ count }}) will be removed for your application. This may have some affect on other applications sharing the placement.',
-                  { count: selectedPolicyCount }
-                ),
-              });
-            }}
-            dropdownItems={[
-              {
-                id: ModalActionContext.UN_ASSIGNING_POLICIES,
-                text: t('Unassign policy'),
-              },
-            ]}
-          />
+          {!isActionHidden && (
+            <ActionDropdown
+              id="secondary-actions"
+              aria-label={t('Secondary actions')}
+              text={t('Actions')}
+              toggleVariant={'primary'}
+              isDisabled={isActionDisabled}
+              onSelect={(id: ModalActionContext) => {
+                setModalActionContext(id);
+                setMessage({
+                  title: t(
+                    'Selected policies ({{ count }}) will be removed for your application. This may have some affect on other applications sharing the placement.',
+                    { count: selectedPolicyCount }
+                  ),
+                });
+              }}
+              dropdownItems={[
+                {
+                  id: ModalActionContext.UN_ASSIGNING_POLICIES,
+                  text: t('Unassign policy'),
+                },
+              ]}
+            />
+          )}
         </ToolbarItem>
       </ToolbarContent>
     </Toolbar>
@@ -180,6 +183,7 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
         onSearchChange={onSearchChange}
         setModalActionContext={setModalActionContext}
         setMessage={setMessage}
+        isActionHidden
       />
       <div className="mco-manage-policies__col-padding">
         <ListViewMessages
@@ -231,6 +235,8 @@ type PolicyListViewToolBarProps = {
   selectedPolicyCount: number;
   searchText: string;
   isActionDisabled: boolean;
+  // A temporary prop for MCO to hide disable DR
+  isActionHidden?: boolean;
   onSearchChange: React.Dispatch<React.SetStateAction<string>>;
   setModalActionContext: (modalActionContext: ModalActionContext) => void;
   setMessage: (error: MessageType) => void;

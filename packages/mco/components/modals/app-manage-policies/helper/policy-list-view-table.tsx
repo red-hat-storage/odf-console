@@ -164,6 +164,7 @@ export const PolicyListViewTable: React.FC<PolicyListViewTableProps> = ({
         RowComponent={PolicyListViewTableRow}
         selectedRows={selectedPolicies}
         setSelectedRows={setSelectedRowList}
+        isSelectableHidden
         extraProps={{
           isActionDisabled,
           setPolicy,

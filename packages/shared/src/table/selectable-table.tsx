@@ -48,6 +48,7 @@ export const SelectableTable: SelectableTableProps = <
     rows,
     RowComponent,
     extraProps,
+    isSelectableHidden,
   } = props;
   const { t } = useCustomTranslation();
   const {
@@ -87,10 +88,17 @@ export const SelectableTable: SelectableTableProps = <
         <Tr translate={null}>
           <Th
             translate={null}
-            select={{
-              onSelect: onSelect,
-              isSelected: areAllRowsSelected(selectableRows, selectedRows),
-            }}
+            {...(!isSelectableHidden
+              ? {
+                  select: {
+                    onSelect: onSelect,
+                    isSelected: areAllRowsSelected(
+                      selectableRows,
+                      selectedRows
+                    ),
+                  },
+                }
+              : {})}
           />
           {columns?.map((col, index) => (
             <Th
@@ -108,15 +116,19 @@ export const SelectableTable: SelectableTableProps = <
           <Tr translate={null} key={getUID(row)}>
             <Td
               translate={null}
-              select={{
-                rowIndex,
-                onSelect: onSelect,
-                isSelected: isRowSelected(getUID(row), selectedRows),
-                disable: !isRowSelectable(row),
-                props: {
-                  id: getUID(row),
-                },
-              }}
+              {...(!isSelectableHidden
+                ? {
+                    select: {
+                      rowIndex,
+                      onSelect: onSelect,
+                      isSelected: isRowSelected(getUID(row), selectedRows),
+                      disable: !isRowSelectable(row),
+                      props: {
+                        id: getUID(row),
+                      },
+                    },
+                  }
+                : {})}
             />
             <RowComponent row={row} extraProps={extraProps} />
           </Tr>
@@ -144,6 +156,8 @@ export type TableProps<T extends K8sResourceCommon> = {
   selectedRows: T[];
   setSelectedRows: (selectedRows: T[]) => void;
   extraProps?: any;
+  // A temporary prop for MCO to hide disable DR
+  isSelectableHidden?: boolean;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(
