@@ -4,8 +4,10 @@ import './breakdown-card.scss';
 
 export const TotalCapacityBody: React.FC<TotalCapacityBodyProps> = ({
   capacity,
+  prefix,
   suffix,
   className,
+  styleCapacityAsBold,
 }) => {
   return (
     <p
@@ -14,13 +16,16 @@ export const TotalCapacityBody: React.FC<TotalCapacityBodyProps> = ({
         className
       )}
     >
-      {capacity} {suffix}
+      {prefix} {styleCapacityAsBold ? <strong>{capacity}</strong> : capacity}{' '}
+      {suffix}
     </p>
   );
 };
 
 type TotalCapacityBodyProps = {
   capacity: string;
-  suffix: string;
+  prefix?: string;
+  suffix?: string;
   className?: string;
+  styleCapacityAsBold?: boolean;
 };

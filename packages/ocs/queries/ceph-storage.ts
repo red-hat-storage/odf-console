@@ -1,6 +1,13 @@
-import { StorageClassModel, PodModel, ProjectModel } from '@odf/shared/models';
+import {
+  StorageClassModel,
+  PodModel,
+  ProjectModel,
+  PersistentVolumeClaimModel,
+} from '@odf/shared/models';
 import {
   BreakdownCardFields,
+  BreakdownCardFieldsValues,
+  BreakdownCardFieldsWithParams,
   BreakdownCardQueryMap,
 } from '@odf/shared/queries';
 
@@ -122,6 +129,20 @@ export const breakdownQueryMapCEPH: BreakdownCardQueryMap = {
   },
 };
 
+export const getBreakdownMetricsQuery = (
+  metricType: BreakdownCardFieldsWithParams | BreakdownCardFields,
+  namespace?: string
+): BreakdownCardFieldsValues => {
+  if (metricType === BreakdownCardFieldsWithParams.PVCS) {
+    return {
+      model: PersistentVolumeClaimModel,
+      metric: 'persistentvolumeclaim',
+      queries: getPVCNamespaceQuery(namespace),
+    };
+  }
+  return breakdownQueryMapCEPH[metricType];
+};
+
 export const CAPACITY_INFO_QUERIES = {
   [StorageDashboardQuery.RAW_CAPACITY_TOTAL]: 'ceph_cluster_total_bytes',
   [StorageDashboardQuery.RAW_CAPACITY_USED]:
@@ -192,7 +213,7 @@ export const utilizationPopoverQueryMap = [
   },
 ];
 
-export const getPVCNamespaceQuery = (namespace: string) => {
+export const getPVCNamespaceQuery = (namespace: string = '') => {
   const queries = {
     [StorageDashboardQuery.PVC_NAMESPACES_BY_USED]: `sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)"}))`,
     [StorageDashboardQuery.PVC_NAMESPACES_TOTAL_USED]: `sum(sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)"})))`,

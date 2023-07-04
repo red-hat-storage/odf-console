@@ -6,6 +6,10 @@ export enum BreakdownCardFields {
   PODS = 'Pods',
 }
 
+export enum BreakdownCardFieldsWithParams {
+  PVCS = 'PVCs',
+}
+
 export type BreakdownCardQueryMap = {
   [key in BreakdownCardFields]: {
     model: K8sModel;
@@ -13,5 +17,13 @@ export type BreakdownCardQueryMap = {
     queries: {
       [key: string]: string;
     };
+  };
+};
+
+export type BreakdownCardFieldsValues = {
+  model: K8sModel;
+  metric: string;
+  queries: {
+    [key: string]: string;
   };
 };

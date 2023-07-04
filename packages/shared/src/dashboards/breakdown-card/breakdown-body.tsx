@@ -19,6 +19,7 @@ export const BreakdownCardBody: React.FC<BreakdownBodyProps> = ({
   hasLoadError,
   ocsVersion = '',
   labelPadding,
+  isPersistentInternal,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -59,8 +60,10 @@ export const BreakdownCardBody: React.FC<BreakdownBodyProps> = ({
     <Grid>
       <GridItem span={4}>
         <TotalCapacityBody
-          capacity={humanize(capacityUsed).string}
-          suffix={t('used')}
+          prefix={isPersistentInternal && t('Total requests: ')}
+          capacity={humanize(metricTotal).string}
+          suffix={!isPersistentInternal && t('used')}
+          styleCapacityAsBold={isPersistentInternal}
         />
       </GridItem>
       <GridItem span={4} />
@@ -68,7 +71,7 @@ export const BreakdownCardBody: React.FC<BreakdownBodyProps> = ({
         {capacityAvailable && (
           <TotalCapacityBody
             capacity={humanize(capacityAvailable).string}
-            suffix={t('available')}
+            suffix={!isPersistentInternal && t('available')}
             className="capacity-breakdown-card__available-body text-secondary"
           />
         )}
@@ -97,4 +100,5 @@ export type BreakdownBodyProps = {
   humanize: Humanize;
   ocsVersion?: string;
   labelPadding?: LabelPadding;
+  isPersistentInternal?: boolean;
 };
