@@ -840,6 +840,7 @@
   "Expand to fullscreen": "Expand to fullscreen",
   "Exit fullscreen": "Exit fullscreen",
   "Back to main view": "Back to main view",
+  "Topology view is not supported for External Mode": "Topology view is not supported for External Mode",
   "No StorageCluster found": "No StorageCluster found",
   "Set up a storage cluster to view the topology": "Set up a storage cluster to view the topology",
   "A minimal cluster deployment will be performed.": "A minimal cluster deployment will be performed.",
