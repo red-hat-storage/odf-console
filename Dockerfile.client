@@ -1,0 +1,27 @@
+FROM registry-proxy.engineering.redhat.com/rh-osbs/rhacm2-yarn-builder:v2.5.0_18-11 AS builder
+ARG TARGET_BRANCH=master
+
+RUN dnf install -y git
+RUN git clone https://github.com/red-hat-storage/odf-console.git
+WORKDIR /odf-console
+RUN git fetch origin ${TARGET_BRANCH} && git checkout origin/${TARGET_BRANCH}
+
+RUN yarn install --prod --frozen-lockfile
+
+WORKDIR /odf-console/packages/client
+RUN yarn build
+
+WORKDIR /odf-console
+RUN mv ./plugins/client/dist ../app
+
+FROM registry.redhat.io/ubi9/nginx-120
+COPY --from=builder /app .
+CMD /usr/libexec/s2i/run
+
+LABEL maintainer=""
+LABEL name="odf-client-console"
+LABEL version="4.14"
+LABEL description="OpenShift Data Foundation Client Console container"
+LABEL summary="Provides the latest console for OpenShift Data Foundation client operator"
+LABEL io.k8s.display-name="ODF Client Operator Console"
+LABEL io.openshift.tags="odf"
