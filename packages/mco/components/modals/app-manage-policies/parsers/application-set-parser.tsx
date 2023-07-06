@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DRPC_STATUS, PLACEMENT_REF_LABEL } from '@odf/mco/constants';
+import { PLACEMENT_REF_LABEL } from '@odf/mco/constants';
 import {
   DisasterRecoveryResourceKind,
   getDRClusterResourceObj,
@@ -10,115 +10,26 @@ import {
   useArgoApplicationSetResourceWatch,
   useDisasterRecoveryResourceWatch,
 } from '@odf/mco/hooks';
+import { ArgoApplicationSetKind } from '@odf/mco/types';
 import {
-  ACMPlacementDecisionKind,
-  ACMPlacementKind,
-  ArgoApplicationSetKind,
-  DRClusterKind,
-  DRPlacementControlKind,
-  DRPolicyKind,
-} from '@odf/mco/types';
-import {
-  getClustersFromPlacementDecision,
-  findDRType,
   findPlacementNameFromAppSet,
   getRemoteNamespaceFromAppSet,
-  isDRPolicyValidated,
 } from '@odf/mco/utils';
 import { getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { AppManagePoliciesModal } from '../app-manage-policies-modal';
 import {
-  ApplicationType,
+  generateApplicationInfo,
+  generateDRPlacementControlInfo,
+  generateDRPolicyInfo,
+  generatePlacementInfo,
+} from '../utils/parser-utils';
+import {
+  ApplicationInfoType,
   DRPlacementControlType,
   DRPolicyType,
-  PlacementType,
 } from '../utils/types';
-
-const getCurrentActivity = (currentStatus: string, t: TFunction) => {
-  let status = '';
-  if (currentStatus === DRPC_STATUS.Relocating) {
-    status = t('Relocate in progress');
-  } else if (currentStatus === DRPC_STATUS.FailingOver) {
-    status = t('Failover in progress');
-  }
-  return status;
-};
-
-const generateDRPolicyInfo = (
-  t: TFunction,
-  drPolicy: DRPolicyKind,
-  drClusters: DRClusterKind[],
-  drpcInfo?: DRPlacementControlType[]
-): DRPolicyType[] =>
-  !_.isEmpty(drPolicy)
-    ? [
-        {
-          apiVersion: drPolicy.apiVersion,
-          kind: drPolicy.kind,
-          metadata: drPolicy.metadata,
-          // TODO: For multiple DRPC find least recently created
-          assignedOn: drpcInfo?.[0]?.metadata?.creationTimestamp,
-          // TODO: For multiple DRPC summarize the activity
-          activity: getCurrentActivity(drpcInfo?.[0]?.status, t),
-          isValidated: isDRPolicyValidated(drPolicy),
-          schedulingInterval: drPolicy.spec.schedulingInterval,
-          replicationType: findDRType(drClusters),
-          drClusters: drPolicy.spec.drClusters,
-          placementControInfo: drpcInfo,
-        },
-      ]
-    : [];
-
-const generatePlacementInfo = (
-  placement: ACMPlacementKind,
-  placementDecision: ACMPlacementDecisionKind
-): PlacementType =>
-  !_.isEmpty(placement)
-    ? {
-        apiVersion: placement.apiVersion,
-        kind: placement.kind,
-        metadata: placement.metadata,
-        deploymentClusters: getClustersFromPlacementDecision(placementDecision),
-      }
-    : {};
-
-const generateDRPlacementControlInfo = (
-  drpc: DRPlacementControlKind,
-  plsInfo: PlacementType
-): DRPlacementControlType[] =>
-  !_.isEmpty(drpc)
-    ? [
-        {
-          apiVersion: drpc.apiVersion,
-          kind: drpc.kind,
-          metadata: drpc.metadata,
-          drPolicyRef: drpc.spec.drPolicyRef,
-          placementInfo: plsInfo,
-          pvcSelector: drpc.spec?.pvcSelector,
-          lastGroupSyncTime: drpc?.status?.lastGroupSyncTime,
-          status: drpc?.status?.phase,
-        },
-      ]
-    : [];
-
-const generateApplicationInfo = (
-  application: ArgoApplicationSetKind,
-  plsInfo: PlacementType[],
-  drPolicyInfo: DRPolicyType[]
-): ApplicationType =>
-  !_.isEmpty(application)
-    ? {
-        apiVersion: application.apiVersion,
-        kind: application.kind,
-        metadata: application.metadata,
-        workloadNamespace: getRemoteNamespaceFromAppSet(application),
-        placements: plsInfo,
-        dataPolicies: drPolicyInfo,
-      }
-    : {};
 
 const getDRResources = (namespace: string) => ({
   resources: {
@@ -189,8 +100,8 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
     );
   const appSetResource = appSetResources?.formattedResources?.[0];
 
-  const applicationInfo: ApplicationType = React.useMemo(() => {
-    let applicationInfo: ApplicationType = {};
+  const applicationInfo: ApplicationInfoType = React.useMemo(() => {
+    let applicationInfo: ApplicationInfoType = {};
     if (loaded && !loadError) {
       // Today appset support maximum one placement, DRPC, DRPolicy per app.
       // When it support multi placement, need to change logic to,
@@ -215,6 +126,7 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       );
       applicationInfo = generateApplicationInfo(
         appSetResource?.application,
+        getRemoteNamespaceFromAppSet(appSetResource?.application),
         // Skip placement if it already DR protected
         _.isEmpty(drpcInfo) ? [placementInfo] : [],
         drPolicyInfo

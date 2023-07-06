@@ -13,6 +13,7 @@ export * from './heading';
 export * from './hooks';
 export * from './input-with-requirements';
 export * from './kebab';
+export * from './labels';
 export * as modals from './modals';
 export * from './models';
 export * from './monitoring';

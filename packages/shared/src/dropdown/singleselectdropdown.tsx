@@ -62,4 +62,5 @@ export type SingleSelectDropdownProps = {
   'data-test-id'?: string;
   onFilter?: SelectProps['onFilter'];
   hasInlineFilter?: SelectProps['hasInlineFilter'];
+  isDisabled?: boolean;
 };

@@ -15,7 +15,7 @@ import {
   Text,
   AlertVariant,
 } from '@patternfly/react-core';
-import { ListViewMessages } from './helper/messages';
+import { Messages } from './helper/messages';
 import { PolicyListViewTable } from './helper/policy-list-view-table';
 import { unAssignPromises } from './utils/k8s-utils';
 import {
@@ -39,8 +39,8 @@ const getRange = (currentPage: number, perPage: number) => {
 };
 
 const filterPolicies = (dataPolicyInfo: DataPolicyType[], searchText: string) =>
-  dataPolicyInfo?.filter((policy) =>
-    getName(policy)?.toLowerCase()?.includes(searchText)
+  dataPolicyInfo.filter((policy) =>
+    getName(policy).toLowerCase().includes(searchText)
   );
 
 export const PolicyListViewToolBar: React.FC<PolicyListViewToolBarProps> = ({
@@ -108,8 +108,8 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
   const [perPage, setPerPage] = React.useState(COUNT_PER_PAGE_NUMBER);
   const [searchText, onSearchChange] = React.useState('');
   const [start, end] = getRange(page, perPage);
-  const policies = filterPolicies(dataPolicyInfo, searchText);
-  const paginatedPolicies = policies?.slice(start, end);
+  const policies = filterPolicies(dataPolicyInfo, searchText) || [];
+  const paginatedPolicies = policies.slice(start, end);
 
   const setPolicies = (selectedPolicies: DataPolicyType[]) =>
     dispatch({
@@ -130,7 +130,7 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
 
   const unAssignPolicies = () => {
     // unassign DRPolicy
-    const drpcs: DRPlacementControlType[] = state.policies?.reduce(
+    const drpcs: DRPlacementControlType[] = state.policies.reduce(
       (acc, policy) => [...acc, ...policy?.placementControInfo],
       []
     );
@@ -186,7 +186,7 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
         isActionHidden
       />
       <div className="mco-manage-policies__col-padding">
-        <ListViewMessages
+        <Messages
           state={state}
           OnCancel={() => setModalActionContext(null)}
           OnConfirm={unAssignPolicies}

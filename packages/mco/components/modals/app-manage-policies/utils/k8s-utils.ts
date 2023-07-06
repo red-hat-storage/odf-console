@@ -8,30 +8,33 @@ import { K8sResourceKind } from '@odf/shared/types';
 import { k8sDelete, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { DRPlacementControlType } from './types';
 
-export const unAssignPromises = (drpcs: DRPlacementControlType[]) => {
-  const promises: Promise<K8sResourceKind>[] = [];
+export const placementUnAssignPromise = (drpc: DRPlacementControlType) => {
   const patch = [
     {
       op: 'remove',
       path: `/metadata/annotations/${PROTECTED_APP_ANNOTATION_WO_SLASH}`,
     },
   ];
+  return k8sPatch({
+    model: ACMPlacementModel,
+    resource: {
+      metadata: {
+        name: getName(drpc?.placementInfo),
+        namespace: getNamespace(drpc?.placementInfo),
+      },
+    },
+    data: patch,
+    cluster: HUB_CLUSTER_NAME,
+  });
+};
+
+export const unAssignPromises = (drpcs: DRPlacementControlType[]) => {
+  const promises: Promise<K8sResourceKind>[] = [];
 
   drpcs?.forEach((drpc) => {
-    promises.push(
-      k8sPatch({
-        model: ACMPlacementModel,
-        resource: {
-          metadata: {
-            name: getName(drpc?.placementInfo),
-            namespace: getNamespace(drpc?.placementInfo),
-          },
-        },
-        data: patch,
-        cluster: HUB_CLUSTER_NAME,
-      })
-    );
-
+    if (drpc?.placementInfo?.kind === ACMPlacementModel.kind) {
+      promises.push(placementUnAssignPromise(drpc));
+    }
     promises.push(
       k8sDelete({
         model: DRPlacementControlModel,

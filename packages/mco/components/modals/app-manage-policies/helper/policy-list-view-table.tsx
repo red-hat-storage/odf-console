@@ -2,16 +2,11 @@ import * as React from 'react';
 import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
 import { getName } from '@odf/shared/selectors';
 import {
-  GreenCheckCircleIcon,
-  RedExclamationCircleIcon,
-} from '@odf/shared/status/icons';
-import {
   RowComponentType,
   SelectableTable,
   TableColumnProps,
 } from '@odf/shared/table/selectable-table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { Text } from '@patternfly/react-core';
 import {
@@ -23,6 +18,7 @@ import { Td } from '@patternfly/react-table';
 import { ModalActionContext, ModalViewContext } from '../utils/reducer';
 import { DataPolicyType } from '../utils/types';
 import '../style.scss';
+import { DataPolicyStatus } from './policy-config-viewer';
 
 const sortRows = (
   a: DataPolicyType,
@@ -54,7 +50,6 @@ const PolicyListViewTableRow: React.FC<RowComponentType<DataPolicyType>> = ({
   const { kind, isValidated, activity, assignedOn } = policy;
   const { isActionDisabled, setPolicy, setModalContext }: RowExtraProps =
     extraProps;
-  const status = isValidated ? t('Validated') : t('Not Validated');
   const assignedDateStr = utcDateTimeFormatter.format(new Date(assignedOn));
 
   const RowActions = (t: TFunction): IAction[] => [
@@ -63,13 +58,6 @@ const PolicyListViewTableRow: React.FC<RowComponentType<DataPolicyType>> = ({
       onClick: () => {
         setPolicy(policy, ModalViewContext.POLICY_CONFIGURATON_VIEW);
         setModalContext(ModalViewContext.POLICY_CONFIGURATON_VIEW);
-      },
-    },
-    {
-      title: t('Unassign policy'),
-      onClick: () => {
-        setPolicy(policy, ModalViewContext.UNASSIGN_POLICY_VIEW);
-        setModalContext(ModalViewContext.UNASSIGN_POLICY_VIEW);
       },
     },
   ];
@@ -83,16 +71,7 @@ const PolicyListViewTableRow: React.FC<RowComponentType<DataPolicyType>> = ({
         {kind}
       </Td>
       <Td translate={null} dataLabel={columnNames[2]}>
-        <StatusIconAndText
-          title={status}
-          icon={
-            isValidated ? (
-              <GreenCheckCircleIcon />
-            ) : (
-              <RedExclamationCircleIcon />
-            )
-          }
-        />
+        <DataPolicyStatus isValidated={isValidated} t={t} />
       </Td>
       <Td translate={null} dataLabel={columnNames[3]}>
         <Text className={!activity ? 'text-muted' : ''}>
@@ -105,7 +84,7 @@ const PolicyListViewTableRow: React.FC<RowComponentType<DataPolicyType>> = ({
       <Td translate={null} isActionCell>
         <ActionsColumn
           items={RowActions(t)}
-          isDisabled={!!policy?.metadata?.deletionTimestamp || isActionDisabled}
+          isDisabled={!!policy.metadata?.deletionTimestamp || isActionDisabled}
         />
       </Td>
     </>
@@ -157,7 +136,7 @@ export const PolicyListViewTable: React.FC<PolicyListViewTableProps> = ({
   }, [t]);
 
   return (
-    <div className="mco-manage-policies__listViewTable--padding">
+    <div className="mco-manage-policies__row--padding">
       <SelectableTable<DataPolicyType>
         columns={columns}
         rows={policies}

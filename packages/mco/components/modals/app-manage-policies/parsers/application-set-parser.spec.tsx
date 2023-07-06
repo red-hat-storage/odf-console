@@ -210,7 +210,7 @@ describe('ApplicationSet manage data policy modal', () => {
     const searchBox = screen.getByPlaceholderText('Search');
 
     // Modal headers
-    expect(screen.getByText('Manage Policy')).toBeInTheDocument();
+    expect(screen.getByText('Manage data policy')).toBeInTheDocument();
     expect(
       screen.getByText(
         'Assign policy to protect the application and ensure quick recovery. Unassign policy from an application when they no longer require to be managed.'
@@ -243,7 +243,6 @@ describe('ApplicationSet manage data policy modal', () => {
       })
     );
     expect(screen.getByText('View configurations')).toBeInTheDocument();
-    expect(screen.getByText('Unassign policy')).toBeInTheDocument();
     // 2) Search using invalid policy
     fireEvent.change(searchBox, { target: { value: 'invalid policy' } });
     expect(screen.getByText('Not found')).toBeInTheDocument();
@@ -277,5 +276,52 @@ describe('ApplicationSet manage data policy modal', () => {
         'Selected policies ({{ count }}) unassigned for the application.'
       )
     ).toBeInTheDocument();
+  });
+
+  test('Policy configuration view test', async () => {
+    // Row actions
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Actions',
+      })
+    );
+    // Policy config view
+    fireEvent.click(screen.getByText('View configurations'));
+    // Title
+    expect(
+      screen.getByText('Policy configuration details')
+    ).toBeInTheDocument();
+    // All placement view
+    expect(screen.getByText('All placements')).toBeInTheDocument();
+    // Headers
+    expect(screen.getByText('Policy name')).toBeInTheDocument();
+    expect(screen.getByText('Replication type')).toBeInTheDocument();
+    expect(screen.getByText('Sync interval')).toBeInTheDocument();
+    expect(screen.getByText('Status')).toBeInTheDocument();
+    expect(screen.getByText('Cluster')).toBeInTheDocument();
+    expect(
+      screen.getByText('Application resources protected')
+    ).toBeInTheDocument();
+    expect(screen.getByText('PVC label selector')).toBeInTheDocument();
+    // Values
+    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+    expect(screen.getByText('Asynchronous')).toBeInTheDocument();
+    expect(screen.getByText('5 minutes')).toBeInTheDocument();
+    expect(screen.getByText('Validated')).toBeInTheDocument();
+    expect(screen.getByText('east-1')).toBeInTheDocument();
+    expect(screen.getByText('west-1')).toBeInTheDocument();
+    expect(screen.getByText('1 placement')).toBeInTheDocument();
+    expect(screen.getByText('pvc=pvc1')).toBeInTheDocument();
+    // Placement view
+    fireEvent.click(screen.getByLabelText('Options menu'));
+    fireEvent.click(screen.getByText('mock-placement-1'));
+    // Added headers
+    expect(screen.getByText('Replication status')).toBeInTheDocument();
+    // Added values
+    expect(screen.getAllByText('mock-placement-1').length === 2).toBeTruthy();
+    // Footer
+    fireEvent.click(screen.getByText('Back'));
+    // Make sure context is switched to list view
+    expect(screen.getByText('My policies')).toBeInTheDocument();
   });
 });
