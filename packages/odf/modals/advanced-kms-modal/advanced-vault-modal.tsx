@@ -65,7 +65,7 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
   );
 
   const KMSFileSizeErrorMsg = t(
-    'Maximum file size exceeded. File limit is 4MB.'
+    'Invalid file: File size exceeds 4MB limit or incorrect file extension (only .pem files allowed).'
   );
 
   const vaultCACertTooltip = t(
