@@ -147,6 +147,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   };
 
   const [replicationEnabled, toggleReplication] = React.useState(false);
+
   const updateReplicationPolicy = (
     rules: Rule[],
     logReplicationInfo?: LogReplicationInfo
@@ -233,6 +234,16 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     namespace: 'openshift-storage',
   };
 
+  const onChangeReplication = React.useCallback(() => {
+    // if this checkbox is disabled, then on this point we purge the contents of replication form data
+    if (replicationEnabled)
+      dispatch({
+        type: 'setReplicationRuleFormData',
+        data: [],
+      });
+    toggleReplication(!replicationEnabled);
+  }, [replicationEnabled, dispatch]);
+
   return (
     <>
       <TextInputWithFieldRequirements
@@ -315,33 +326,34 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
               />
             )}
           />
-          <FormGroup>
-            <Text component={TextVariants.h2}>{t('Replication policy')}</Text>
-            <p className="help-block">
-              {t(
-                'For higher resiliency, set a replication configuration for objects which are stored in NooBaa namespace buckets'
-              )}
-            </p>
-          </FormGroup>
-          <FormGroup>
-            <Checkbox
-              id="enable-replication"
-              label="Enable replication"
-              isChecked={replicationEnabled}
-              onChange={() => {
-                // if this checkbox is disabled, then on this point we purge the contents of replication form data
-                if (replicationEnabled)
-                  dispatch({ type: 'setReplicationRuleFormData', data: [] });
-                toggleReplication(!replicationEnabled);
-              }}
-            />
-          </FormGroup>
+          {isNoobaa && (
+            <>
+              <FormGroup>
+                <Checkbox
+                  id="enable-replication"
+                  label={t('Enable replication')}
+                  isChecked={replicationEnabled}
+                  description={t(
+                    'This option provides higher resiliency of objects stored in NooBaa buckets'
+                  )}
+                  onChange={onChangeReplication}
+                />
+              </FormGroup>
+            </>
+          )}
           {replicationEnabled && (
-            <ReplicationPolicyForm
-              className="form-group"
-              namespace={namespace}
-              updateParentState={updateReplicationPolicy}
-            />
+            <>
+              <FormGroup>
+                <Text component={TextVariants.h2}>
+                  {t('Replication policy')}
+                </Text>
+              </FormGroup>
+              <ReplicationPolicyForm
+                className="form-group"
+                namespace={namespace}
+                updateParentState={updateReplicationPolicy}
+              />
+            </>
           )}
         </>
       )}

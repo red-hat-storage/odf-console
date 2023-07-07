@@ -10,12 +10,14 @@ import {
   Button,
   ButtonVariant,
   Form,
-  Grid,
-  GridItem,
   FormGroup,
   TextInput,
   Text,
   Checkbox,
+  Split,
+  SplitItem,
+  Stack,
+  StackItem,
 } from '@patternfly/react-core';
 import { PlusCircleIcon, MinusCircleIcon } from '@patternfly/react-icons';
 import { NamespaceStoreDropdown } from '../namespace-store/namespace-store-dropdown';
@@ -67,6 +69,7 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
   const { t } = useCustomTranslation();
 
   const [Modal, modalProps, launcher] = useModalLauncher(modalMap);
+  const [eventLogsEnabled, toggleEventLogs] = React.useState(false);
 
   const launchModal = React.useCallback(
     () => launcher(NS_STORE_MODAL_KEY, null),
@@ -92,7 +95,7 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
   const handleSyncDeletion = (value: boolean, ruleId: number) => {
     const newRules = [...rules];
     const index = newRules.findIndex((rule) => rule.id === ruleId);
-    newRules[index].syncDeletion = value;
+    newRules[index].syncDeletion = eventLogsEnabled ? value : false;
     setRules(newRules);
     let temp = { ...logReplicationInfo };
     if (!newRules.some((rule) => rule.syncDeletion)) {
@@ -129,80 +132,119 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
     updateParentState(rules);
   };
 
-  const hasSyncDeletion = rules.some((rule) => rule.syncDeletion);
+  const disableSyncDeletions = React.useCallback(
+    (isEventLogEnabled: boolean) => {
+      const newRules: Array<Rule> = rules.map((rule) => ({
+        ...rule,
+        syncDeletion: isEventLogEnabled ? rule.syncDeletion : false,
+      }));
+      setRules(newRules);
+      updateParentState(newRules);
+    },
+    [rules, updateParentState]
+  );
+
+  const onChangeEventLogs = (isEventLogEnabled: boolean) => {
+    toggleEventLogs(isEventLogEnabled);
+    disableSyncDeletions(isEventLogEnabled);
+  };
+
   return (
     <div className={className}>
       <Modal {...modalProps} />
-      <Flex
-        justifyContent={{ default: 'justifyContentSpaceBetween' }}
-        alignItems={{ default: 'alignItemsCenter' }}
-      >
-        <FlexItem>
-          <Text component={TextVariants.h3}>{t('Replication rules ')}</Text>
-        </FlexItem>
-        <FlexItem>
-          <Button
-            variant={ButtonVariant.link}
-            className="nb-bc-step-page-form__modal-launcher"
-            onClick={launchModal}
-          >
-            <PlusCircleIcon /> {t('Create new NamespaceStore')}
-          </Button>
-        </FlexItem>
-      </Flex>
-
       <Form>
-        {rules.map((rule, index) => (
-          <Grid hasGutter md={3} className="odf-mcg__form">
-            <RuleForm
-              namespace={namespace}
-              rule={rule}
-              onNSChange={(ns: NamespaceStoreKind) =>
-                handleNSChange(ns, rule.id)
-              }
-              onPrefixChange={(val: string) => handlePrefixChange(val, rule.id)}
-              onSyncDeletions={(val: boolean) =>
-                handleSyncDeletion(val, rule.id)
-              }
-            />
-            {rules.length === index + 1 && (
-              <GridItem>
-                <Button
-                  variant="link"
-                  icon={<MinusCircleIcon />}
-                  onClick={handleRemoveRule}
-                  data-testid="remove-rule-btn"
-                  data-test="remove-rule-btn"
-                  className="odf-mcg__remove-button"
-                ></Button>
-              </GridItem>
+        <FormGroup>
+          <Checkbox
+            id="enable-event-logs"
+            label={t('Optimize replication using event logs')}
+            isChecked={eventLogsEnabled}
+            description={t(
+              'You must enable and configure object logging in the cloud environment of your choice'
             )}
-          </Grid>
-        ))}
-
-        {rules.length < ruleCountLimit && (
-          <FormGroup fieldId="add-rule-btn">
-            <Button
-              variant="link"
-              icon={<PlusCircleIcon />}
-              onClick={handleAddRule}
-              isInline
-              data-testid="add-rule-btn"
-              data-test="add-rule-btn"
-            >
-              {t('Add rule')}
-            </Button>
-          </FormGroup>
-        )}
-
-        {hasSyncDeletion && (
-          <LogReplicationInfoForm
-            location={logReplicationInfo.logLocation}
-            prefix={logReplicationInfo.logPrefix}
-            onLogLocationChange={handleLogLocationChange}
-            onPrefixChange={handleLogPrefixChange}
+            onChange={onChangeEventLogs}
           />
-        )}
+        </FormGroup>
+        <FormGroup>
+          {eventLogsEnabled && (
+            <LogReplicationInfoForm
+              location={logReplicationInfo.logLocation}
+              prefix={logReplicationInfo.logPrefix}
+              onLogLocationChange={handleLogLocationChange}
+              onPrefixChange={handleLogPrefixChange}
+            />
+          )}
+        </FormGroup>
+
+        <Flex
+          justifyContent={{ default: 'justifyContentSpaceBetween' }}
+          alignItems={{ default: 'alignItemsCenter' }}
+        >
+          <FlexItem>
+            <Text component={TextVariants.h3}>{t('Replication rules ')}</Text>
+          </FlexItem>
+          <FlexItem>
+            <Button
+              variant={ButtonVariant.link}
+              className="nb-bc-step-page-form__modal-launcher"
+              onClick={launchModal}
+            >
+              <PlusCircleIcon /> {t('Create new NamespaceStore')}
+            </Button>
+          </FlexItem>
+        </Flex>
+        <Stack hasGutter className="odf-mcg__form">
+          {rules.map((rule, index) => (
+            <StackItem key={rule.id}>
+              <Split hasGutter>
+                <SplitItem className="odf-mcg__rule">
+                  <RuleForm
+                    index={index}
+                    namespace={namespace}
+                    rule={rule}
+                    onNSChange={(ns: NamespaceStoreKind) =>
+                      handleNSChange(ns, rule.id)
+                    }
+                    onPrefixChange={(val: string) =>
+                      handlePrefixChange(val, rule.id)
+                    }
+                    onSyncDeletions={(val: boolean) =>
+                      handleSyncDeletion(val, rule.id)
+                    }
+                    isSyncDeletionDisabled={!eventLogsEnabled}
+                  />
+                </SplitItem>
+
+                <SplitItem>
+                  {rules.length === index + 1 && (
+                    <Button
+                      variant="link"
+                      icon={<MinusCircleIcon />}
+                      onClick={handleRemoveRule}
+                      data-testid="remove-rule-btn"
+                      data-test="remove-rule-btn"
+                      className="odf-mcg__remove-button"
+                    />
+                  )}
+                </SplitItem>
+              </Split>
+            </StackItem>
+          ))}
+          {rules.length < ruleCountLimit && (
+            <StackItem>
+              <Button
+                id="add-rule-btn"
+                variant="link"
+                icon={<PlusCircleIcon />}
+                onClick={handleAddRule}
+                isInline
+                data-testid="add-rule-btn"
+                data-test="add-rule-btn"
+              >
+                {t('Add rule')}
+              </Button>
+            </StackItem>
+          )}
+        </Stack>
       </Form>
     </div>
   );
@@ -214,6 +256,8 @@ type RuleFormProps = {
   onNSChange: (ns: NamespaceStoreKind) => void;
   onPrefixChange: (val: string) => void;
   onSyncDeletions: (val: boolean) => void;
+  isSyncDeletionDisabled: boolean;
+  index?: number;
 };
 
 export const RuleForm: React.FC<RuleFormProps> = ({
@@ -222,54 +266,67 @@ export const RuleForm: React.FC<RuleFormProps> = ({
   onNSChange,
   onPrefixChange,
   onSyncDeletions,
+  isSyncDeletionDisabled,
+  index,
 }) => {
   const { t } = useCustomTranslation();
   return (
     <>
-      <GridItem>
-        <FormGroup
-          fieldId="namespace-store-dropdown-field"
-          label={t('NamespaceStore')}
-          className="odf-mcg__namespacestore-dropdown"
-          isRequired
-        >
-          <NamespaceStoreDropdown
-            onChange={onNSChange}
-            id="ns-dropdown"
-            selectedKey={rule.namespaceStore}
-            creatorDisabled={true}
-            namespace={namespace}
-          />
-        </FormGroup>
-      </GridItem>
-      <GridItem>
-        <FormGroup fieldId="prefix-input-field" label={t('Prefix')}>
-          <TextInput
-            data-test="prefix-input"
-            placeholder={t('Enter a prefix')}
-            type="text"
-            id="prefix-input"
-            value={rule.prefix}
-            onChange={onPrefixChange}
-            aria-label={t('Prefix')}
-          />
-        </FormGroup>
-      </GridItem>
-      <GridItem>
-        <FormGroup
-          fieldId="sync-deletions-checkbox"
-          className="odf-mcg__rule-checkbox"
-        >
-          <Checkbox
-            data-test="sync-deletion"
-            id="sync-deletions-checkbox"
-            isChecked={rule.syncDeletion}
-            onChange={onSyncDeletions}
-            aria-label={t('sync deletion')}
-            label={t('Sync deletion')}
-          />
-        </FormGroup>
-      </GridItem>
+      <Stack className="odf-mcg__stack-item">
+        <StackItem>
+          <Split hasGutter>
+            <SplitItem isFilled>
+              <FormGroup
+                fieldId="namespace-store-dropdown-field"
+                label={t('NamespaceStore')}
+                className="odf-mcg__namespacestore-dropdown"
+                isRequired
+              >
+                <NamespaceStoreDropdown
+                  onChange={onNSChange}
+                  id="ns-dropdown"
+                  selectedKey={rule.namespaceStore}
+                  creatorDisabled={true}
+                  namespace={namespace}
+                />
+              </FormGroup>
+            </SplitItem>
+            <SplitItem isFilled>
+              <FormGroup fieldId="prefix-input-field" label={t('Prefix')}>
+                <TextInput
+                  data-test="prefix-input"
+                  placeholder={t('Enter a prefix')}
+                  type="text"
+                  id="prefix-input"
+                  value={rule.prefix}
+                  onChange={onPrefixChange}
+                  aria-label={t('Prefix')}
+                />
+              </FormGroup>
+            </SplitItem>
+          </Split>
+        </StackItem>
+        <StackItem>
+          <FormGroup fieldId="sync-deletions-checkbox">
+            <Checkbox
+              data-test="sync-deletion"
+              id="sync-deletions-checkbox"
+              isChecked={rule.syncDeletion}
+              isDisabled={isSyncDeletionDisabled}
+              onChange={onSyncDeletions}
+              description={
+                index === 0
+                  ? t(
+                      'Sync deletion syncs the delete operation. If you delete data from bucket 1, the same data gets deleted from bucket 2'
+                    )
+                  : ''
+              }
+              aria-label={t('sync deletion')}
+              label={t('Sync deletion')}
+            />
+          </FormGroup>
+        </StackItem>
+      </Stack>
     </>
   );
 };
