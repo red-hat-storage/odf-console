@@ -19,11 +19,7 @@ export const LogReplicationInfoForm: React.FC<LogReplicationInfoFormProps> = ({
   return (
     <Stack hasGutter className="odf-mcg__form">
       <StackItem>
-        <FormGroup
-          fieldId="logs-location"
-          label={t('Event log bucket')}
-          helperText={t('Provide your s3 bucket name for logging events')}
-        >
+        <FormGroup fieldId="logs-location" label={t('Event log bucket')}>
           <TextInput
             data-test="logs-location-input"
             placeholder={t('Enter a bucket name')}
@@ -42,7 +38,7 @@ export const LogReplicationInfoForm: React.FC<LogReplicationInfoFormProps> = ({
           fieldId="log-prefix-input-field"
           label={t('Prefix')}
           helperText={t(
-            'Use prefix for syncing deletion on specific objects/files'
+            'Object names starting with given prefix gets synchronised with the target bucket'
           )}
         >
           <TextInput
