@@ -13,6 +13,7 @@ import {
 import { ArgoApplicationSetKind } from '@odf/mco/types';
 import {
   findPlacementNameFromAppSet,
+  getClustersFromDecisions,
   getRemoteNamespaceFromAppSet,
 } from '@odf/mco/utils';
 import { getNamespace } from '@odf/shared/selectors';
@@ -117,7 +118,10 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         drPolicy,
         drClusters,
       } = appSetResource.placements[0];
-      const placementInfo = generatePlacementInfo(placement, placementDecision);
+      const placementInfo = generatePlacementInfo(
+        placement,
+        getClustersFromDecisions(placementDecision)
+      );
       const drpcInfo: DRPlacementControlType[] = generateDRPlacementControlInfo(
         drPlacementControl,
         placementInfo

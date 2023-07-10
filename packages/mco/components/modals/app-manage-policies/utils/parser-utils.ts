@@ -2,18 +2,13 @@ import { DRPC_STATUS } from '@odf/mco/constants';
 import { DisasterRecoveryFormatted } from '@odf/mco/hooks';
 import {
   ACMApplicationKind,
-  ACMPlacementDecisionKind,
-  ACMPlacementKind,
+  ACMPlacementType,
   DRClusterKind,
   DRPlacementControlKind,
   DRPolicyKind,
 } from '@odf/mco/types';
-import {
-  findDRType,
-  getClustersFromPlacementDecision,
-  isDRPolicyValidated,
-  matchClusters,
-} from '@odf/mco/utils';
+import { findDRType, isDRPolicyValidated, matchClusters } from '@odf/mco/utils';
+import { getLatestDate } from '@odf/shared/details-page/datetime';
 import { arrayify } from '@odf/shared/modals/EditLabelModal';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
@@ -34,6 +29,14 @@ export const getCurrentActivity = (currentStatus: string, t: TFunction) => {
   return status;
 };
 
+export const getCurrentStatus = (drpcList: DRPlacementControlType[]): string =>
+  drpcList.reduce((acc, drpc) => {
+    const status = DRPC_STATUS[drpc.status] || '';
+    return [DRPC_STATUS.Relocating, DRPC_STATUS.FailingOver].includes(status)
+      ? status
+      : acc || status;
+  }, '');
+
 export const generateDRPolicyInfo = (
   drPolicy: DRPolicyKind,
   drClusters: DRClusterKind[],
@@ -46,10 +49,13 @@ export const generateDRPolicyInfo = (
           apiVersion: drPolicy.apiVersion,
           kind: drPolicy.kind,
           metadata: drPolicy.metadata,
-          // TODO: For multiple DRPC find least recently created
-          assignedOn: drpcInfo?.[0]?.metadata?.creationTimestamp,
-          // TODO: For multiple DRPC summarize the activity
-          activity: getCurrentActivity(drpcInfo?.[0]?.status, t),
+          assignedOn:
+            !!drpcInfo &&
+            getLatestDate(
+              drpcInfo.map((drpc) => drpc.metadata?.creationTimestamp)
+            ),
+          activity:
+            !!drpcInfo && getCurrentActivity(getCurrentStatus(drpcInfo), t),
           isValidated: isDRPolicyValidated(drPolicy),
           schedulingInterval: drPolicy.spec.schedulingInterval,
           replicationType: findDRType(drClusters),
@@ -60,13 +66,13 @@ export const generateDRPolicyInfo = (
     : [];
 
 export const generatePlacementInfo = (
-  placement: ACMPlacementKind,
-  placementDecision: ACMPlacementDecisionKind
+  placement: ACMPlacementType,
+  deploymentClusters: string[]
 ): PlacementType => ({
   apiVersion: placement.apiVersion,
   kind: placement.kind,
   metadata: placement.metadata,
-  deploymentClusters: getClustersFromPlacementDecision(placementDecision),
+  deploymentClusters: deploymentClusters,
 });
 
 export const generateDRPlacementControlInfo = (
