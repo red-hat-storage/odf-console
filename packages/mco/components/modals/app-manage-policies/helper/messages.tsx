@@ -13,6 +13,8 @@ const hasActionTriggered = (modalActionContext: ModalActionContext) =>
   [
     ModalActionContext.UN_ASSIGN_POLICIES_SUCCEEDED,
     ModalActionContext.UN_ASSIGN_POLICIES_FAILED,
+    ModalActionContext.ASSIGN_POLICY_SUCCEEDED,
+    ModalActionContext.ASSIGN_POLICY_FAILED,
   ].includes(modalActionContext);
 
 const AlertMessage: React.FC<AlertMessageProps> = ({

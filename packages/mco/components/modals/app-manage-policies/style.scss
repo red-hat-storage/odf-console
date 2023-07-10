@@ -14,4 +14,10 @@
     &__dropdown--wide {
         min-width: 15rem;
     }
+    &__form--width {
+        width: 50%;
+    }
+    &__alert--margin-bottom {
+        margin-bottom: var(--pf-global--spacer--xs) !important;
+    }
 }

@@ -13,7 +13,7 @@ export type DRPlacementControlType = K8sResourceCommon & {
   placementInfo: PlacementType;
   pvcSelector?: string[];
   lastGroupSyncTime?: string;
-  status: string;
+  status?: string;
 };
 
 export type PolicyType = K8sResourceCommon & {
@@ -26,7 +26,7 @@ export type DRPolicyType = PolicyType & {
   schedulingInterval: string;
   replicationType: REPLICATION_TYPE;
   drClusters: string[];
-  placementControInfo?: DRPlacementControlType[];
+  placementControlInfo?: DRPlacementControlType[];
 };
 
 export type DataPolicyType = DRPolicyType;

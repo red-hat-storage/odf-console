@@ -1,3 +1,4 @@
+import { getDRPCKindObj } from '@odf/mco/utils';
 import { objectify } from '@odf/shared/modals/EditLabelModal';
 import { K8sResourceKind } from '@odf/shared/types';
 import { getAPIVersionForModel } from '@odf/shared/utils';
@@ -10,50 +11,8 @@ import {
   HUB_CLUSTER_NAME,
   PROTECTED_APP_ANNOTATION_WO_SLASH,
 } from '../../../constants';
-import {
-  DRPlacementControlModel,
-  ACMPlacementModel,
-  DRPolicyModel,
-} from '../../../models';
-import {
-  DRPlacementControlKind,
-  PlacementToDrpcMap,
-  PlacementToAppSets,
-} from '../../../types';
-import { matchClusters } from '../../../utils';
-
-export const getDRPCKindObj = (
-  plsName: string,
-  plsNamespace: string,
-  drPolicyName: string,
-  drClusterNames: string[],
-  decisionClusters: string[],
-  pvcSelectors: string[]
-): DRPlacementControlKind => ({
-  apiVersion: getAPIVersionForModel(DRPlacementControlModel),
-  kind: DRPlacementControlModel.kind,
-  metadata: {
-    name: `${plsName}-drpc`,
-    namespace: plsNamespace,
-  },
-  spec: {
-    drPolicyRef: {
-      name: drPolicyName,
-      apiVersion: getAPIVersionForModel(DRPolicyModel),
-      kind: DRPolicyModel.kind,
-    },
-    placementRef: {
-      name: plsName,
-      namespace: plsNamespace,
-      apiVersion: getAPIVersionForModel(ACMPlacementModel),
-      kind: ACMPlacementModel.kind,
-    },
-    preferredCluster: matchClusters(drClusterNames, decisionClusters),
-    pvcSelector: {
-      matchLabels: objectify(pvcSelectors),
-    },
-  },
-});
+import { DRPlacementControlModel, ACMPlacementModel } from '../../../models';
+import { PlacementToDrpcMap, PlacementToAppSets } from '../../../types';
 
 export const areLabelsDifferent = (
   existingLabels: string[],
@@ -158,6 +117,8 @@ export const getProtectedPanelPromises = (
         data: getDRPCKindObj(
           protectedResource.placement,
           protectedResource.namespace,
+          ACMPlacementModel.kind,
+          getAPIVersionForModel(ACMPlacementModel),
           drPolicyName,
           drClusterNames,
           protectedResource.decisionClusters,

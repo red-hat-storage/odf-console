@@ -1,8 +1,9 @@
 import { DRPC_STATUS } from '@odf/mco/constants';
+import { DisasterRecoveryFormatted } from '@odf/mco/hooks';
 import {
+  ACMApplicationKind,
   ACMPlacementDecisionKind,
   ACMPlacementKind,
-  ArgoApplicationSetKind,
   DRClusterKind,
   DRPlacementControlKind,
   DRPolicyKind,
@@ -11,6 +12,7 @@ import {
   findDRType,
   getClustersFromPlacementDecision,
   isDRPolicyValidated,
+  matchClusters,
 } from '@odf/mco/utils';
 import { arrayify } from '@odf/shared/modals/EditLabelModal';
 import { TFunction } from 'i18next';
@@ -33,10 +35,10 @@ export const getCurrentActivity = (currentStatus: string, t: TFunction) => {
 };
 
 export const generateDRPolicyInfo = (
-  t: TFunction,
   drPolicy: DRPolicyKind,
   drClusters: DRClusterKind[],
-  drpcInfo?: DRPlacementControlType[]
+  drpcInfo?: DRPlacementControlType[],
+  t?: TFunction
 ): DRPolicyType[] =>
   !_.isEmpty(drPolicy)
     ? [
@@ -52,7 +54,7 @@ export const generateDRPolicyInfo = (
           schedulingInterval: drPolicy.spec.schedulingInterval,
           replicationType: findDRType(drClusters),
           drClusters: drPolicy.spec.drClusters,
-          placementControInfo: drpcInfo,
+          placementControlInfo: drpcInfo,
         },
       ]
     : [];
@@ -87,7 +89,7 @@ export const generateDRPlacementControlInfo = (
     : [];
 
 export const generateApplicationInfo = (
-  application: ArgoApplicationSetKind,
+  application: ACMApplicationKind,
   workloadNamespace: string,
   plsInfo: PlacementType[],
   drPolicyInfo: DRPolicyType[]
@@ -99,3 +101,31 @@ export const generateApplicationInfo = (
   placements: plsInfo,
   dataPolicies: drPolicyInfo,
 });
+
+export const getClusterNamesFromPlacements = (placements: PlacementType[]) =>
+  placements?.reduce(
+    (acc, placemnt) => [...acc, ...placemnt?.deploymentClusters],
+    []
+  );
+
+export const getMatchingDRPolicies = (
+  appInfo: ApplicationType,
+  formattedDRResources: DisasterRecoveryFormatted[]
+) => {
+  const deploymentClusters: string[] = getClusterNamesFromPlacements(
+    appInfo.placements
+  );
+
+  return (
+    // Filter all matching policies
+    formattedDRResources?.reduce((acc, resource) => {
+      const { drPolicy } = resource;
+      return matchClusters(drPolicy?.spec?.drClusters, deploymentClusters)
+        ? [
+            ...acc,
+            ...generateDRPolicyInfo(resource?.drPolicy, resource?.drClusters),
+          ]
+        : acc;
+    }, []) || []
+  );
+};

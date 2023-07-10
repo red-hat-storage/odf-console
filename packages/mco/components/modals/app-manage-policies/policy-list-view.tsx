@@ -131,7 +131,7 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
   const unAssignPolicies = () => {
     // unassign DRPolicy
     const drpcs: DRPlacementControlType[] = state.policies.reduce(
-      (acc, policy) => [...acc, ...policy?.placementControInfo],
+      (acc, policy) => [...acc, ...policy?.placementControlInfo],
       []
     );
     const promises = unAssignPromises(drpcs);

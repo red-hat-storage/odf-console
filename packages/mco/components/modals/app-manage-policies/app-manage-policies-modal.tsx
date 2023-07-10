@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { TFunction } from 'i18next';
 import { Modal, ModalVariant } from '@patternfly/react-core';
+import { AssignPolicyView } from './assign-policy-view';
 import { PolicyConfigView } from './policy-config-view';
 import { PolicyListView } from './policy-list-view';
 import {
@@ -14,11 +16,34 @@ import {
   managePolicyStateReducer,
   ManagePolicyState,
 } from './utils/reducer';
-import { ApplicationInfoType, ApplicationType } from './utils/types';
+import {
+  ApplicationInfoType,
+  ApplicationType,
+  DataPolicyType,
+} from './utils/types';
+
+const getModalTitle = (modalViewContext: ModalViewContext, t: TFunction) => {
+  if (modalViewContext === ModalViewContext.ASSIGN_POLICY_VIEW) {
+    return {
+      title: t('Assign policy'),
+      description: t(
+        'Secure your application by assigning a policy from the available policy templates.'
+      ),
+    };
+  } else {
+    return {
+      title: t('Manage data policy'),
+      description: t(
+        'Assign policy to protect the application and ensure quick recovery. Unassign policy from an application when they no longer require to be managed.'
+      ),
+    };
+  }
+};
 
 export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
   applicaitonInfo,
   state,
+  matchingPolicies,
   dispatch,
 }) => {
   const setModalContext = React.useCallback(
@@ -71,12 +96,24 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
           setModalContext={setModalContext}
         />
       )}
+      {state.modalViewContext === ModalViewContext.ASSIGN_POLICY_VIEW && (
+        <AssignPolicyView
+          applicaitonInfo={applicaitonInfo}
+          matchingPolicies={matchingPolicies}
+          state={state.assignPolicyView}
+          dispatch={dispatch}
+          setModalContext={setModalContext}
+          setModalActionContext={setModalActionContext}
+          setMessage={setMessage}
+        />
+      )}
     </>
   );
 };
 
 export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
   applicaitonInfo,
+  matchingPolicies,
   loaded,
   loadError,
   isOpen,
@@ -87,13 +124,12 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
     initialPolicyState
   );
   const { t } = useCustomTranslation();
+  const modalTitle = getModalTitle(state.modalViewContext, t);
 
   return (
     <Modal
-      title={t('Manage data policy')}
-      description={t(
-        'Assign policy to protect the application and ensure quick recovery. Unassign policy from an application when they no longer require to be managed.'
-      )}
+      title={modalTitle.title}
+      description={modalTitle.description}
       variant={ModalVariant.large}
       isOpen={isOpen}
       aria-label="Manage policy modal"
@@ -103,6 +139,7 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
       {loaded && !loadError ? (
         <ModalContextViewer
           applicaitonInfo={applicaitonInfo as ApplicationType}
+          matchingPolicies={matchingPolicies}
           state={state}
           dispatch={dispatch}
         />
@@ -115,6 +152,7 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
 
 type AppManagePoliciesModalProps = {
   applicaitonInfo: ApplicationInfoType;
+  matchingPolicies: DataPolicyType[];
   loaded: boolean;
   loadError: any;
   isOpen: boolean;
@@ -124,5 +162,6 @@ type AppManagePoliciesModalProps = {
 type ModalContextViewerProps = {
   state: ManagePolicyState;
   applicaitonInfo: ApplicationType;
+  matchingPolicies: DataPolicyType[];
   dispatch: React.Dispatch<ManagePolicyStateAction>;
 };

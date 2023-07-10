@@ -10,6 +10,18 @@ import {
   PlusCircleIcon,
 } from '@patternfly/react-icons';
 import { useCustomTranslation } from '../useCustomTranslationHook';
+import { AsyncLoader } from './AsyncLoader';
+
+/**
+ * Set up an AsyncComponent to wrap the name-value-editor to allow on demand loading to reduce the
+ * vendor footprint size.
+ */
+export const LazyNameValueEditor = (props) => (
+  <AsyncLoader
+    loader={() => import('./NameValueEditor').then((c) => c.NameValueEditor)}
+    {...props}
+  />
+);
 
 const withDragDropContext =
   <TProps extends {}>(
@@ -36,7 +48,10 @@ type NameValueEditorProps = {
   secrets: {};
   addConfigMapSecret: boolean;
   toolTip: string;
+  PairElementComponent: React.FC<PairElementProps>;
   onLastItemRemoved: () => void;
+  extraProps?: any;
+  isAddDisabled?: boolean;
 };
 
 export const enum NameValueEditorPair {
@@ -45,7 +60,7 @@ export const enum NameValueEditorPair {
   Index,
 }
 
-type PairElementProps = {
+export type PairElementProps = {
   nameString: string;
   valueString: string;
   readOnly?: boolean;
@@ -63,6 +78,7 @@ type PairElementProps = {
   onRemove?: any;
   isEmpty: boolean;
   disableReorder: boolean;
+  extraProps?: any;
 };
 
 const PairElement: React.FC<PairElementProps> = ({
@@ -190,6 +206,9 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
       toolTip,
       nameString,
       valueString,
+      extraProps,
+      isAddDisabled,
+      PairElementComponent = PairElement,
     }) => {
       const { t } = useCustomTranslation();
 
@@ -263,7 +282,7 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
           nameValuePairs.length === 1 &&
           nameValuePairs[0].every((value) => !value);
         return (
-          <PairElement
+          <PairElementComponent
             onChange={change}
             index={i}
             nameString={nameStringUpdated}
@@ -278,6 +297,7 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
             isEmpty={isEmpty}
             disableReorder={nameValuePairs.length === 1}
             toolTip={toolTip}
+            extraProps={extraProps}
           />
         );
       });
@@ -302,6 +322,7 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
                     onClick={append}
                     type="button"
                     variant="link"
+                    isDisabled={isAddDisabled}
                   >
                     <PlusCircleIcon
                       data-test-id="pairs-list__add-icon"

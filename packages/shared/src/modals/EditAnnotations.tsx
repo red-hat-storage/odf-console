@@ -14,22 +14,12 @@ import { LoadingInline } from '../generic/Loading';
 import { getAnnotations } from '../selectors';
 import { K8sResourceKind } from '../types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
-import { AsyncLoader } from '../utils/AsyncLoader';
-import { NameValueEditorPair } from '../utils/NameValueEditor';
+import {
+  LazyNameValueEditor,
+  NameValueEditorPair,
+} from '../utils/NameValueEditor';
 import { CommonModalProps, ModalBody, ModalFooter } from './Modal';
 
-/**
- * Set up an AsyncComponent to wrap the name-value-editor to allow on demand loading to reduce the
- * vendor footprint size.
- */
-const NameValueEditorComponent = (props) => (
-  <AsyncLoader
-    loader={() =>
-      import('../utils/NameValueEditor').then((c) => c.NameValueEditor)
-    }
-    {...props}
-  />
-);
 type AnnotationsModalProps = {
   titleKey: string;
   errorMessage: string;
@@ -109,7 +99,7 @@ export const AnnotationsModal: React.FC<AnnotationsModalProps> = ({
       showClose={false}
     >
       <ModalBody className="modalBody">
-        <NameValueEditorComponent
+        <LazyNameValueEditor
           nameValuePairs={tags}
           submit={onSubmit}
           updateParentData={({ nameValuePairs }) => {

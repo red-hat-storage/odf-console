@@ -1,5 +1,5 @@
 import { AlertVariant } from '@patternfly/react-core';
-import { DataPolicyType } from './types';
+import { DRPlacementControlType, DataPolicyType } from './types';
 
 export enum ModalViewContext {
   POLICY_LIST_VIEW = 'policyListView',
@@ -11,6 +11,8 @@ export enum ModalActionContext {
   UN_ASSIGNING_POLICIES = 'UN_ASSIGNING_POLICIES',
   UN_ASSIGN_POLICIES_SUCCEEDED = 'UN_ASSIGN_POLICIES_SUCCEEDED',
   UN_ASSIGN_POLICIES_FAILED = 'UN_ASSIGN_POLICIES_FAILED',
+  ASSIGN_POLICY_SUCCEEDED = 'ASSIGN_POLICY_SUCCEEDED',
+  ASSIGN_POLICY_FAILED = 'ASSIGN_POLICY_FAILED',
 }
 
 export type MessageType = {
@@ -32,10 +34,15 @@ export type PolicyConfigViewState = {
   policy: DataPolicyType;
 };
 
+export type AssignPolicyViewState = CommonViewState & {
+  policy: DataPolicyType;
+};
+
 export type ManagePolicyState = {
   modalViewContext: ModalViewContext;
   [ModalViewContext.POLICY_LIST_VIEW]: PolicyListViewState;
   [ModalViewContext.POLICY_CONFIGURATON_VIEW]: PolicyConfigViewState;
+  [ModalViewContext.ASSIGN_POLICY_VIEW]: AssignPolicyViewState;
 };
 
 export enum ManagePolicyStateType {
@@ -44,6 +51,7 @@ export enum ManagePolicyStateType {
   SET_SELECTED_POLICIES = 'SET_SELECTED_POLICIES',
   SET_SELECTED_POLICY = 'SET_SELECTED_POLICY',
   SET_MESSAGE = 'SET_MESSAGE',
+  SET_PLACEMENT_CONTROLS = 'SET_PLACEMENT_CONTROLS',
 }
 
 export const initialPolicyState: ManagePolicyState = {
@@ -57,6 +65,13 @@ export const initialPolicyState: ManagePolicyState = {
   },
   [ModalViewContext.POLICY_CONFIGURATON_VIEW]: {
     policy: null,
+  },
+  [ModalViewContext.ASSIGN_POLICY_VIEW]: {
+    policy: null,
+    modalActionContext: null,
+    message: {
+      title: '',
+    },
   },
 };
 
@@ -84,6 +99,11 @@ export type ManagePolicyStateAction =
       type: ManagePolicyStateType.SET_MESSAGE;
       context: ModalViewContext;
       payload: MessageType;
+    }
+  | {
+      type: ManagePolicyStateType.SET_PLACEMENT_CONTROLS;
+      context: ModalViewContext;
+      payload: DRPlacementControlType[];
     };
 
 export const managePolicyStateReducer = (
@@ -130,6 +150,18 @@ export const managePolicyStateReducer = (
         [action.context]: {
           ...state[action.context],
           message: action.payload,
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_PLACEMENT_CONTROLS: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          policy: {
+            ...state[action.context]['policy'],
+            placementControlInfo: action.payload,
+          },
         },
       };
     }
