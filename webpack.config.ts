@@ -57,7 +57,8 @@ const config: webpack.Configuration & DevServerConfiguration = {
     rules: [
       {
         test: /(\.jsx?)|(\.tsx?)$/,
-        exclude: /node_modules/,
+        include: /packages/,
+        exclude: /(build|dist)/, // Ignore shared build folder.
         use: [
           {
             loader: 'thread-loader',
@@ -89,6 +90,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
           /node_modules\/@openshift-console\/dynamic-plugin-sdk/,
           /packages/,
         ],
+        exclude: /(build|dist)/, // Ignore shared build folder.
         use: [
           { loader: 'cache-loader' },
           {

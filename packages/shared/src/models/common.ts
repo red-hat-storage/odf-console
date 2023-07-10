@@ -5,7 +5,7 @@ import {
 
 export const PersistentVolumeModel: K8sKind = {
   label: 'PersistentVolume',
-  // t('plugin__odf-console~PersistentVolume')
+  // t('PersistentVolume')
   labelKey: 'PersistentVolume',
   apiVersion: 'v1',
   plural: 'persistentvolumes',
@@ -13,13 +13,13 @@ export const PersistentVolumeModel: K8sKind = {
   kind: 'PersistentVolume',
   id: 'persistentvolume',
   labelPlural: 'PersistentVolumes',
-  // t('plugin__odf-console~PersistentVolumes')
+  // t('PersistentVolumes')
   labelPluralKey: 'PersistentVolumes',
 };
 
 export const PersistentVolumeClaimModel: K8sKind = {
   label: 'PersistentVolumeClaim',
-  // t('plugin__odf-console~PersistentVolumeClaim')
+  // t('PersistentVolumeClaim')
   labelKey: 'PersistentVolumeClaim',
   apiVersion: 'v1',
   plural: 'persistentvolumeclaims',
@@ -28,42 +28,42 @@ export const PersistentVolumeClaimModel: K8sKind = {
   kind: 'PersistentVolumeClaim',
   id: 'persistentvolumeclaim',
   labelPlural: 'PersistentVolumeClaims',
-  // t('plugin__odf-console~PersistentVolumeClaims')
+  // t('PersistentVolumeClaims')
   labelPluralKey: 'PersistentVolumeClaims',
 };
 
 export const NodeModel: K8sKind = {
   apiVersion: 'v1',
   label: 'Node',
-  // t('plugin__odf-console~Node')
+  // t('Node')
   labelKey: 'Node',
   plural: 'nodes',
   abbr: 'N',
   kind: 'Node',
   id: 'node',
   labelPlural: 'Nodes',
-  // t('plugin__odf-console~Nodes')
+  // t('Nodes')
   labelPluralKey: 'Nodes',
 };
 
 export const NamespaceModel: K8sKind = {
   apiVersion: 'v1',
   label: 'Namespace',
-  // t('plugin__odf-console~Namespace')
+  // t('Namespace')
   labelKey: 'Namespace',
   plural: 'namespaces',
   abbr: 'NS',
   kind: 'Namespace',
   id: 'namespace',
   labelPlural: 'Namespaces',
-  // t('plugin__odf-console~Namespaces')
+  // t('Namespaces')
   labelPluralKey: 'Namespaces',
 };
 
 export const ConfigMapModel: K8sKind = {
   apiVersion: 'v1',
   label: 'ConfigMap',
-  // t('plugin__odf-console~ConfigMap')
+  // t('ConfigMap')
   labelKey: 'ConfigMap',
   plural: 'configmaps',
   abbr: 'CM',
@@ -71,14 +71,14 @@ export const ConfigMapModel: K8sKind = {
   kind: 'ConfigMap',
   id: 'configmap',
   labelPlural: 'ConfigMaps',
-  // t('plugin__odf-console~ConfigMaps')
+  // t('ConfigMaps')
   labelPluralKey: 'ConfigMaps',
 };
 
 export const SecretModel: K8sKind = {
   apiVersion: 'v1',
   label: 'Secret',
-  // t('plugin__odf-console~Secret')
+  // t('Secret')
   labelKey: 'Secret',
   plural: 'secrets',
   abbr: 'S',
@@ -86,16 +86,16 @@ export const SecretModel: K8sKind = {
   kind: 'Secret',
   id: 'secret',
   labelPlural: 'Secrets',
-  // t('plugin__odf-console~Secrets')
+  // t('Secrets')
   labelPluralKey: 'Secrets',
 };
 
 export const StorageClassModel: K8sKind = {
   label: 'StorageClass',
-  // t('plugin__odf-console~StorageClass')
+  // t('StorageClass')
   labelKey: 'StorageClass',
   labelPlural: 'StorageClasses',
-  // t('plugin__odf-console~StorageClasses')
+  // t('StorageClasses')
   labelPluralKey: 'StorageClasses',
   apiVersion: 'v1',
   apiGroup: 'storage.k8s.io',
@@ -109,7 +109,7 @@ export const StorageClassModel: K8sKind = {
 export const PodModel: K8sKind = {
   apiVersion: 'v1',
   label: 'Pod',
-  // t('plugin__odf-console~Pod')
+  // t('Pod')
   labelKey: 'Pod',
   plural: 'pods',
   abbr: 'P',
@@ -117,13 +117,13 @@ export const PodModel: K8sKind = {
   kind: 'Pod',
   id: 'pod',
   labelPlural: 'Pods',
-  // t('plugin__odf-console~Pods')
+  // t('Pods')
   labelPluralKey: 'Pods',
 };
 
 export const CustomResourceDefinitionModel: K8sKind = {
   label: 'CustomResourceDefinition',
-  // t('plugin__odf-console~CustomResourceDefinition')
+  // t('CustomResourceDefinition')
   labelKey: 'CustomResourceDefinition',
   apiGroup: 'apiextensions.k8s.io',
   apiVersion: 'v1',
@@ -133,7 +133,7 @@ export const CustomResourceDefinitionModel: K8sKind = {
   kind: 'CustomResourceDefinition',
   id: 'customresourcedefinition',
   labelPlural: 'CustomResourceDefinitions',
-  // t('plugin__odf-console~CustomResourceDefinitions')
+  // t('CustomResourceDefinitions')
   labelPluralKey: 'CustomResourceDefinitions',
 };
 
@@ -150,7 +150,7 @@ export const DeploymentModel: K8sKind = {
   kind: 'Deployment',
   id: 'deployment',
   labelPlural: 'Deployments',
-  // t('plugin__odf-console~Deployments')
+  // t('Deployments')
   labelPluralKey: 'Deployments',
 };
 

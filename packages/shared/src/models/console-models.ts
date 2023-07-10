@@ -16,10 +16,10 @@ export const ClusterServiceVersionModel: K8sKind = {
 
 export const InfrastructureModel: K8sKind = {
   label: 'Infrastructure',
-  // t('plugin__odf-console~Infrastructure')
+  // t('Infrastructure')
   labelKey: 'Infrastructure',
   labelPlural: 'Infrastructures',
-  // t('plugin__odf-console~Infrastructures')
+  // t('Infrastructures')
   labelPluralKey: 'Infrastructures',
   apiVersion: 'v1',
   apiGroup: 'config.openshift.io',
@@ -34,10 +34,10 @@ export const InfrastructureModel: K8sKind = {
 export const SubscriptionModel: K8sKind = {
   kind: 'Subscription',
   label: 'Subscription',
-  // t('plugin__odf-console~Subscription')
+  // t('Subscription')
   labelKey: 'Subscription',
   labelPlural: 'Subscriptions',
-  // t('plugin__odf-console~Subscriptions')
+  // t('Subscriptions')
   labelPluralKey: 'Subscriptions',
   apiGroup: 'operators.coreos.com',
   apiVersion: 'v1alpha1',
@@ -52,13 +52,13 @@ export const ProjectModel: K8sKind = {
   apiVersion: 'v1',
   apiGroup: 'project.openshift.io',
   label: 'Project',
-  // t('plugin__odf-console~Project')
-  labelKey: 'plugin__odf-console~Project',
+  // t('Project')
+  labelKey: 'Project',
   plural: 'projects',
   abbr: 'PR',
   kind: 'Project',
   id: 'project',
   labelPlural: 'Projects',
-  // t('plugin__odf-console~Projects')
-  labelPluralKey: 'plugin__odf-console~Projects',
+  // t('Projects')
+  labelPluralKey: 'Projects',
 };
