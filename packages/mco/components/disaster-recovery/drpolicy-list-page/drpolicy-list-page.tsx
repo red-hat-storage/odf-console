@@ -37,12 +37,7 @@ import {
 } from '../../../utils';
 import EmptyPage from '../../empty-state-page/empty-page';
 import { ConnectedApplicationsModal } from '../../modals/connected-apps-modal/connected-apps-modal';
-import {
-  DRPolicyActions,
-  Header,
-  kebabActionItems,
-  tableColumnInfo,
-} from './helper';
+import { Header, kebabActionItems, tableColumnInfo } from './helper';
 import './drpolicy-list-page.scss';
 
 const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
@@ -138,8 +133,7 @@ export const DRPolicyListPage: React.FC = () => {
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
     useK8sWatchResource<DRPolicyKind[]>(getDRPolicyResourceObj());
   const [applicationRefs, appsLoaded, appsLoadError] = useApplicationsWatch();
-  const [ModalComponent, props, launchModal] =
-    useModalLauncher(DRPolicyActions);
+  const [ModalComponent, props, launchModal] = useModalLauncher();
   const [isModalOpen, setConnectedAppsModalOpen] = React.useState(false);
   const [linkedApps, setLinkedApps] = React.useState<ApplicationRefKind[]>([]);
 
