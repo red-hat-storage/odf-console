@@ -11,8 +11,6 @@ export const MAX_ALLOWED_CLUSTERS = 2;
 
 // DRPolicy actions
 export const Actions = {
-  MANAGE_DR_POLICY: 'Manage DRPolicy',
-  APPLY_DR_POLICY: 'Apply DRPolicy',
   DELETE_DR_POLICY: 'Delete DRPolicy',
 };
 

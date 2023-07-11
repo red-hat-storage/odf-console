@@ -1,21 +1,8 @@
-import * as React from 'react';
 import { ModalKeys } from '@odf/shared/modals/modalLauncher';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { Actions } from '../../../constants';
-
-export const DRPolicyActions = {
-  [Actions.MANAGE_DR_POLICY]: React.lazy(
-    () => import('../../modals/drpolicy-apps-apply/apply-policy-modal')
-  ),
-  [Actions.APPLY_DR_POLICY]: React.lazy(
-    () =>
-      import(
-        '../../modals/drpolicy-apps-apply/subscriptions/apply-policy-modal'
-      )
-  ),
-};
 
 export const Header = (t: TFunction) => [
   {
@@ -102,22 +89,6 @@ export const kebabActionItems =
             !appsLoadedError &&
             !appsCount
           ),
-        },
-      },
-      {
-        key: Actions.MANAGE_DR_POLICY,
-        value: t('Manage policy for ApplicationSets'),
-        props: {
-          description: t(
-            'Assign and unassign policy for apps using applicationSets.'
-          ),
-        },
-      },
-      {
-        key: Actions.APPLY_DR_POLICY,
-        value: t('Assign policy to Subscriptions'),
-        props: {
-          description: t('Use for apps using Subscriptions.'),
         },
       },
     ];
