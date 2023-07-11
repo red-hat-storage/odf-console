@@ -283,14 +283,15 @@ export const findDRType = (drClusters: DRClusterKind[]) =>
 export const findDRResourceUsingPlacement = (
   placementName: string,
   workloadNamespace: string,
-  drResources: DisasterRecoveryFormatted[]
+  drResources: DisasterRecoveryFormatted[],
+  placementKind: string = ACMPlacementModel.kind
 ): DisasterRecoveryFormatted => {
   let result: DisasterRecoveryFormatted = {};
   drResources?.forEach((drResource) => {
     const drpc = drResource?.drPlacementControls?.find((drpc) => {
       const placementRef = drpc.spec?.placementRef;
       return (
-        placementRef?.kind === ACMPlacementModel.kind &&
+        placementRef?.kind === placementKind &&
         placementRef?.name === placementName &&
         getNamespace(drpc) === workloadNamespace
       );

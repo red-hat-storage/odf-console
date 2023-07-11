@@ -5,6 +5,7 @@ import {
   ACMManagedClusterKind,
   ACMPlacementDecisionKind,
   ACMPlacementKind,
+  ACMPlacementRuleKind,
 } from '../types';
 
 // Finding placement from application generators
@@ -56,12 +57,10 @@ export const findPlacementFromArgoAppSet = (
       findPlacementNameFromAppSet(application) === getName(placement)
   );
 
-export const getClustersFromPlacementDecision = (
-  placementDecision: ACMPlacementDecisionKind
+export const getClustersFromDecisions = (
+  placement: ACMPlacementDecisionKind | ACMPlacementRuleKind
 ): string[] =>
-  placementDecision?.status?.decisions?.map(
-    (decision) => decision?.clusterName
-  );
+  placement?.status?.decisions.map((decision) => decision?.clusterName);
 
 export const getRemoteNamespaceFromAppSet = (
   application: ArgoApplicationSetKind

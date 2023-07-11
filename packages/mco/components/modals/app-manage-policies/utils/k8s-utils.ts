@@ -1,5 +1,10 @@
-import { ACMPlacementModel, DRPlacementControlModel } from '@odf/mco//models';
 import {
+  ACMPlacementModel,
+  ACMPlacementRuleModel,
+  DRPlacementControlModel,
+} from '@odf/mco//models';
+import {
+  DR_SECHEDULER_NAME,
   HUB_CLUSTER_NAME,
   PROTECTED_APP_ANNOTATION_WO_SLASH,
 } from '@odf/mco/constants';
@@ -92,12 +97,34 @@ const placementAssignPromise = (drpc: DRPlacementControlType) => {
   });
 };
 
+const placementRuleAssignPromise = (drpc: DRPlacementControlType) => {
+  return k8sPatch({
+    model: ACMPlacementRuleModel,
+    resource: {
+      metadata: {
+        name: getName(drpc.placementInfo),
+        namespace: getNamespace(drpc.placementInfo),
+      },
+    },
+    data: [
+      {
+        op: 'replace',
+        path: '/spec/schedulerName',
+        value: DR_SECHEDULER_NAME,
+      },
+    ],
+    cluster: HUB_CLUSTER_NAME,
+  });
+};
+
 export const assignPromises = (dataPolicy: DataPolicyType) => {
   const promises: Promise<K8sResourceKind>[] = [];
   const drpcs: DRPlacementControlType[] = dataPolicy.placementControlInfo;
   drpcs?.forEach((drpc) => {
     if (drpc.placementInfo.kind === ACMPlacementModel.kind) {
       promises.push(placementAssignPromise(drpc));
+    } else {
+      promises.push(placementRuleAssignPromise(drpc));
     }
     promises.push(
       k8sCreate({

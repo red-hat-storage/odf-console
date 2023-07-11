@@ -155,6 +155,10 @@
         {
           "apiVersion": "argoproj.io/v1alpha1",
           "kind": "ApplicationSet"
+        },
+        {
+          "apiVersion": "app.k8s.io/v1beta1",
+          "kind": "Application"
         }
       ],
       "component": {
