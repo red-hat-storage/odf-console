@@ -365,6 +365,9 @@
             "Component": { "$codeRef": "thickProvisioner.ThickProvision" },
             "visible": true
           }
+        },
+        "mutator": {
+          "$codeRef": "mutators.addKubevirtAnnotations"
         }
       }
     }
