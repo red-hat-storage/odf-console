@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import { ThInfoType } from '@patternfly/react-table/src/components/Table/base';
 import { Bullseye } from '@patternfly/react-core';
 import {
   SortByDirection,
@@ -102,6 +103,7 @@ export const SelectableTable: SelectableTableProps = <
           />
           {columns?.map((col, index) => (
             <Th
+              {...(!!col.info ? { info: col.info } : {})}
               {...(!!col?.sortFunction ? { sort: getSortParams(index) } : {})}
               translate={null}
               key={col?.columnName}
@@ -142,6 +144,7 @@ export type TableColumnProps = {
   columnName: string;
   className?: string;
   sortFunction?: (a: any, b: any, c: SortByDirection) => any;
+  info?: ThInfoType;
 };
 
 export type RowComponentType<T extends K8sResourceCommon> = {
