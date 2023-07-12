@@ -984,10 +984,8 @@
     rimraf "^3.0.2"
 
 "@odf/shared@file:packages/shared":
-  version "0.0.0-beta1"
+  version "0.0.0-beta2"
   dependencies:
-    "@openshift-console/dynamic-plugin-sdk" "^0.0.19"
-    "@openshift-console/dynamic-plugin-sdk-internal" "^0.0.7"
     "@patternfly/patternfly" "4.103.6"
     "@patternfly/react-charts" "^6.15.3"
     "@patternfly/react-core" "4.267.5"
@@ -1004,23 +1002,17 @@
     buffer "^6.0.3"
     classnames "^2.3.1"
     fuzzysearch "^1.0.3"
-    i18next "^20.2.1"
     i18next-parser "^6.5.0"
     js-base64 "^2.1.9"
     js-yaml "^3.13.1"
     lodash-es "^4.17.21"
     murmurhash-js "^1.0.0"
-    react "^17.0.1"
     react-copy-to-clipboard "5.x"
     react-dnd "^15.1.1"
     react-dnd-html5-backend "^15.1.2"
-    react-dom "^17.0.1"
     react-helmet "^6.1.0"
     react-hook-form "^7.42.1"
-    react-i18next "^11.11.4"
     react-linkify "^0.2.2"
-    react-router "5.2.0"
-    react-router-dom "5.2.0"
     react-tagsinput "^3.19.0"
     resolve-url-loader "^5.0.0"
     sass "^1.55.0"
@@ -1028,7 +1020,7 @@
     victory-core "^35.4.4"
     yup "^0.32.11"
 
-"@openshift-console/dynamic-plugin-sdk-internal@0.0.7", "@openshift-console/dynamic-plugin-sdk-internal@^0.0.7":
+"@openshift-console/dynamic-plugin-sdk-internal@0.0.7":
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk-internal/-/dynamic-plugin-sdk-internal-0.0.7.tgz#b1b1db65510a0c6b24825d10fdf58b87669bf9a3"
   integrity sha512-/tU7LAT6JGoccjpOw8xAimoQ6lvJJiFHgdel9KKA7btzL55/8Mb3Fvtgvbyao+d7cMIzLsD5O2TXi09twXu1dg==
@@ -1058,7 +1050,7 @@
     semver "6.x"
     webpack "^5.68.0"
 
-"@openshift-console/dynamic-plugin-sdk@0.0.19", "@openshift-console/dynamic-plugin-sdk@^0.0.19":
+"@openshift-console/dynamic-plugin-sdk@0.0.19":
   version "0.0.19"
   resolved "https://registry.yarnpkg.com/@openshift-console/dynamic-plugin-sdk/-/dynamic-plugin-sdk-0.0.19.tgz#96c373603bc68703459c2a21afe230dc73c19001"
   integrity sha512-q9URuloSyvZRAMUkhDqiZGV76j7YP96cOqmp/jXAfdnNHYshssr4HaqV2MZj1lx2DeIv+BHtqlq8z8xcsyNWvg==
