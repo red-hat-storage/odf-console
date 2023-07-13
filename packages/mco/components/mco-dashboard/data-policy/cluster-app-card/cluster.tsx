@@ -3,7 +3,11 @@
  */
 
 import * as React from 'react';
-import { getTotalPVCCountPerClusterQuery } from '@odf/mco/components/mco-dashboard/queries';
+import {
+  DRDashboard,
+  getRBDSnapshotUtilizationQuery,
+  getTotalPVCCountPerClusterQuery,
+} from '@odf/mco/components/mco-dashboard/queries';
 import {
   ODR_CLUSTER_OPERATOR,
   VOL_SYNC,
@@ -13,10 +17,8 @@ import {
   OBJECT_NAMESPACE,
   OBJECT_NAME,
 } from '@odf/mco/constants';
-import { MirrorPeerModel } from '@odf/mco/models';
 import {
   DrClusterAppsMap,
-  MirrorPeerKind,
   PlacementInfo,
   ProtectedPVCData,
 } from '@odf/mco/types';
@@ -26,20 +28,24 @@ import {
 } from '@odf/mco/utils';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
+import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
+import { CustomUtilizationSummaryProps } from '@odf/shared/dashboards/utilization-card/utilization-item';
+import { dateTimeFormatterWithWeekDay } from '@odf/shared/details-page/datetime';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
 import {
   HealthState,
   PrometheusResponse,
   PrometheusResult,
-  useK8sWatchResource,
   StatusIconAndText,
+  Humanize,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { Flex, Text, TextVariants } from '@patternfly/react-core';
 import { ConnectedIcon } from '@patternfly/react-icons';
 import { StatusText } from './common';
+import './cluster-app-card.scss';
 
 const OperatorsHealthPopUp: React.FC<OperatorsHealthPopUpProps> = ({
   clusterCSVStatus,
@@ -145,35 +151,13 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
 };
 
 export const PeerConnectionSection: React.FC<PeerConnectionSectionProps> = ({
-  clusterName,
+  peerClusters,
 }) => {
   const { t } = useCustomTranslation();
-  const [mirrorPeers, mirrorPeersLoaded, mirrorPeersError] =
-    useK8sWatchResource<MirrorPeerKind[]>({
-      kind: referenceForModel(MirrorPeerModel),
-      isList: true,
-      namespaced: false,
-      cluster: HUB_CLUSTER_NAME,
-    });
-
-  const peerConnectedCount = React.useMemo(() => {
-    if (mirrorPeersLoaded && !mirrorPeersError) {
-      return (
-        mirrorPeers.reduce((acc, mirrorPeer: MirrorPeerKind) => {
-          if (
-            !!mirrorPeer?.spec?.items?.find(
-              (item) => item?.clusterName === clusterName
-            )
-          ) {
-            return acc + 1;
-          }
-          return acc;
-        }, 0) || 0
-      );
-    }
-    return 0;
-  }, [clusterName, mirrorPeers, mirrorPeersLoaded, mirrorPeersError]);
-
+  // Exclude the selected cluster
+  const peerConnectedCount = !!peerClusters.length
+    ? peerClusters.length - 1
+    : 0;
   return (
     <div className="mco-dashboard__contentColumn">
       <StatusText>{t('Peer connection')}</StatusText>
@@ -267,6 +251,37 @@ export const PVCsSection: React.FC<PVCsSectionProps> = ({
   );
 };
 
+const getDescription = (result: PrometheusResult, _index: number) =>
+  // Returning cluster name as a description
+  result.metric?.['cluster'] || '';
+
+export const SnapshotUtilizationCard: React.FC<SnapshotUtilizationCardProps> =
+  ({ title, queryType, humanizeValue, clusters, CustomUtilizationSummary }) => {
+    return (
+      <>
+        <div className="mco-dashboard__contentRow mco-cluster-app__contentRow--flexEnd">
+          <UtilizationDurationDropdown />
+        </div>
+        <PrometheusUtilizationItem
+          title={title}
+          utilizationQuery={
+            !!clusters.length &&
+            getRBDSnapshotUtilizationQuery(clusters, queryType)
+          }
+          humanizeValue={humanizeValue}
+          basePath={ACM_ENDPOINT}
+          chartType="grouped-line"
+          description={getDescription}
+          customDateTimeFormatter={dateTimeFormatterWithWeekDay.format}
+          hideCurrentHumanized
+          hideHorizontalBorder
+          showLegend
+          CustomUtilizationSummary={CustomUtilizationSummary}
+        />
+      </>
+    );
+  };
+
 type ClusterCSVStatus = {
   [ODR_CLUSTER_OPERATOR]: string;
   [VOL_SYNC]: string;
@@ -283,7 +298,7 @@ type HealthSectionProps = {
 };
 
 type PeerConnectionSectionProps = {
-  clusterName: string;
+  peerClusters: string[];
 };
 
 type ApplicationsSectionProps = {
@@ -295,4 +310,13 @@ type ApplicationsSectionProps = {
 type PVCsSectionProps = {
   protectedPVCData: ProtectedPVCData[];
   clusterName: string;
+};
+
+type SnapshotUtilizationCardProps = {
+  title: string;
+  queryType: DRDashboard;
+  humanizeValue: Humanize;
+  chartLabel?: string;
+  clusters?: string[];
+  CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
 };

@@ -1,12 +1,16 @@
 import * as React from 'react';
-import { UtilizationItem } from '@odf/shared/dashboards/utilization-card/utilization-item';
+import { getMax } from '@odf/shared/charts';
+import {
+  CustomUtilizationSummaryProps,
+  UtilizationItem,
+} from '@odf/shared/dashboards/utilization-card/utilization-item';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import {
   Humanize,
-  PrometheusResponse,
+  PrometheusResult,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
 import {
@@ -21,12 +25,6 @@ enum LIMIT_STATE {
   OK = 'OK',
 }
 
-const getMax = (result: PrometheusResponse['data']['result']): number => {
-  const resourceValues = _.flatMap(result, (resource) => resource.values);
-  const maxValue = _.maxBy(resourceValues, (value) => Number(value[1]));
-  return maxValue ? Number(maxValue[1]) : NaN;
-};
-
 export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps> =
   ({
     utilizationQuery,
@@ -37,6 +35,13 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
     TopConsumerPopover,
     setLimitReqState,
     basePath,
+    chartType,
+    customDateTimeFormatter,
+    description,
+    hideCurrentHumanized,
+    hideHorizontalBorder,
+    showLegend,
+    CustomUtilizationSummary,
   }) => {
     const { duration } = useUtilizationDuration();
     const defaultBasePath = usePrometheusBasePath();
@@ -79,6 +84,13 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
         setLimitReqState={setLimitReqState}
         title={title}
         utilization={utilization}
+        chartType={chartType}
+        description={description}
+        customDateTimeFormatter={customDateTimeFormatter}
+        hideCurrentHumanized={hideCurrentHumanized}
+        hideHorizontalBorder={hideHorizontalBorder}
+        showLegend={showLegend}
+        CustomUtilizationSummary={CustomUtilizationSummary}
       />
     );
   };
@@ -151,4 +163,11 @@ type PrometheusUtilizationItemProps = PrometheusCommonProps & {
   TopConsumerPopover?: React.ComponentType<TopConsumerPopoverProp>;
   setLimitReqState?: (state: LimitRequested) => void;
   basePath?: string;
+  chartType?: 'stacked-area' | 'grouped-line';
+  description?: string | ((result: PrometheusResult, index: number) => string);
+  customDateTimeFormatter?: (date: Date) => string;
+  hideCurrentHumanized?: boolean;
+  hideHorizontalBorder?: boolean;
+  showLegend?: boolean;
+  CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
 };

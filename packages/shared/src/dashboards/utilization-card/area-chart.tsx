@@ -40,6 +40,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({
   chartType,
   tickCount = 4,
   height = 200,
+  showLegend,
 }) => {
   const [containerRef, width] = useRefWidth();
 
@@ -79,7 +80,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({
   }));
 
   const container = React.useMemo(() => {
-    if (processedData?.length > 1) {
+    if (processedData?.length > 1 || showLegend) {
       return (
         <CursorVoronoiContainer
           activateData={false}
@@ -106,7 +107,14 @@ export const AreaChart: React.FC<AreaChartProps> = ({
         activateData={false}
       />
     );
-  }, [formatDate, getLabel, legendData, mainDataName, processedData]);
+  }, [
+    formatDate,
+    getLabel,
+    legendData,
+    showLegend,
+    mainDataName,
+    processedData,
+  ]);
 
   let CustomChartGroup = ChartGroup;
   let CustomChartArea = ChartArea;
@@ -185,4 +193,5 @@ export type AreaChartProps = {
   chartType?: 'stacked-area' | 'grouped-line';
   tickCount?: number;
   height?: number;
+  showLegend?: boolean;
 };

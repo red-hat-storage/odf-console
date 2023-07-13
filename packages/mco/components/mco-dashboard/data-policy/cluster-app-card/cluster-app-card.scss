@@ -45,3 +45,11 @@
     width: 350px;
     height: 220px; 
 }
+
+.co-utilization-card__item-summary {
+    margin-left: var(--pf-global--spacer--3xl);
+}
+
+  .co-utilization-card__item-summary .bold {
+    font-weight: bold;
+}

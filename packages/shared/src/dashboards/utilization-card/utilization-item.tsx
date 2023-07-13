@@ -5,6 +5,7 @@ import {
   ColoredIconProps,
   Humanize,
   PrometheusResponse,
+  PrometheusResult,
   RedExclamationCircleIcon,
   TopConsumerPopoverProps,
   YellowExclamationTriangleIcon,
@@ -50,6 +51,13 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
     setLimitReqState,
     title,
     utilization,
+    chartType,
+    customDateTimeFormatter,
+    description,
+    hideCurrentHumanized,
+    hideHorizontalBorder,
+    showLegend,
+    CustomUtilizationSummary,
   }) => {
     const { t } = useCustomTranslation();
     const { data, chartStyle } = mapLimitsRequests({
@@ -58,6 +66,7 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
       requested,
       xMutator: trimSecondsXMutator,
       t,
+      description: description,
     });
     const [utilizationData, limitData, requestedData] = data;
     const current = utilizationData?.length
@@ -96,7 +105,10 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
         humanize={humanizeValue as Humanize}
         byteDataType={byteDataType}
         chartStyle={chartStyle}
+        chartType={chartType}
         mainDataName="usage"
+        showLegend={showLegend}
+        formatDate={customDateTimeFormatter}
       />
     );
 
@@ -138,7 +150,8 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
       }
     }
 
-    const currentHumanized = current ? humanizeValue(current).string : null;
+    const currentHumanized =
+      !hideCurrentHumanized && current ? humanizeValue(current).string : null;
 
     return (
       <div
@@ -216,13 +229,27 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
           )}
         </div>
         <div className="co-utilization-card__item-chart">{chart}</div>
-        <hr style={{ border: '1px lightgray solid', margin: '0px' }} />
+
+        {!!CustomUtilizationSummary && (
+          <CustomUtilizationSummary
+            currentHumanized={humanizeValue(current).string}
+            utilizationData={utilization?.data?.result}
+          />
+        )}
+        {!hideHorizontalBorder && (
+          <hr style={{ border: '1px lightgray solid', margin: '0px' }} />
+        )}
       </div>
     );
   }
 );
 
 UtilizationItem.displayName = 'UtilizationItem';
+
+export type CustomUtilizationSummaryProps = {
+  currentHumanized: string;
+  utilizationData: PrometheusResult[];
+};
 
 type UtilizationItemProps = {
   title: string;
@@ -241,4 +268,11 @@ type UtilizationItemProps = {
     limit: LIMIT_STATE;
     requested: LIMIT_STATE;
   }) => void;
+  chartType?: 'stacked-area' | 'grouped-line';
+  customDateTimeFormatter?: (date: Date) => string;
+  description?: string | ((result: PrometheusResult, index: number) => string);
+  hideCurrentHumanized?: boolean;
+  showLegend?: boolean;
+  hideHorizontalBorder?: boolean;
+  CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
 };
