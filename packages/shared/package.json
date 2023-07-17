@@ -1,7 +1,7 @@
 {
   "name": "@odf-console/shared",
   "description": "ODF console shared code.",
-  "version": "0.0.0-beta2",
+  "version": "0.0.0-beta4",
   "license": "Apache-2.0",
   "private": false,
   "main": "src/index.ts",
@@ -16,7 +16,8 @@
     "library"
   ],
   "scripts": {
-    "build": "rm -rf build && mkdir build && cp -r src package.json LICENSE build"
+    "build": "rm -rf build && mkdir build && cp -r src package.json LICENSE build",
+    "publish-new": "scripts/publish-new.sh"
   },
   "dependencies": {
     "@patternfly/patternfly": "4.103.6",
