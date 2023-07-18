@@ -179,7 +179,7 @@ const PairElement: React.FC<PairElementProps> = ({
       <div className="col-xs-5 pairs-list__value-field">
         <MultiSelectDropdown
           id="labels-selection-dropdown"
-          selected={selectedLabels}
+          selections={selectedLabels}
           onChange={onChangeValue}
           options={
             // Display labels only after placement is selected

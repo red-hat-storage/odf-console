@@ -1,14 +1,20 @@
 import * as React from 'react';
-import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
+import {
+  Select,
+  SelectOption,
+  SelectVariant,
+  SelectProps,
+} from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   onChange,
-  placeholder,
+  placeholderText,
   id,
   options,
-  selected = [],
+  selections = [],
   variant,
+  ...rest
 }) => {
   const [isOpen, setOpen] = React.useState(false);
 
@@ -16,11 +22,12 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     _event: React.MouseEvent | React.ChangeEvent,
     selection: string
   ) => {
-    let cSelected: string[] = selected;
-    if (selected.includes(selection)) {
-      cSelected = selected.filter((item) => item !== selection);
+    const prevSelection = selections as string[];
+    let cSelected = prevSelection;
+    if (prevSelection.includes(selection)) {
+      cSelected = prevSelection.filter((item) => item !== selection);
     } else {
-      cSelected = [...selected, selection];
+      cSelected = [...prevSelection, selection];
     }
     onChange(cSelected);
   };
@@ -37,23 +44,24 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
       aria-label={t('Select input')}
       onToggle={setOpen}
       onSelect={onSelect}
-      selections={selected}
+      selections={selections}
       isOpen={isOpen}
-      placeholderText={placeholder || t('Select options')}
+      placeholderText={placeholderText || t('Select options')}
       aria-labelledby={id}
       noResultsFoundText={t('No results found')}
       isCheckboxSelectionBadgeHidden
+      {...rest}
     >
       {items}
     </Select>
   );
 };
 
-export type MultiSelectDropdownProps = {
+export type MultiSelectDropdownProps = Omit<
+  SelectProps,
+  'onChange' | 'onToggle'
+> & {
   id?: string;
-  selected: string[];
   options?: string[];
-  placeholder?: string;
-  variant?: SelectVariant;
   onChange: (selected: string[]) => void;
 };
