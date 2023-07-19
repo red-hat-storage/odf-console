@@ -77,6 +77,7 @@ describe('ApplicationSet manage data policy modal', () => {
         rows={getRow()}
         setSelectedRows={mockFuncton}
         selectedRows={selectedRows}
+        loaded={true}
       />
     );
 
@@ -122,6 +123,7 @@ describe('ApplicationSet manage data policy modal', () => {
         rows={getRow()}
         setSelectedRows={mockFuncton}
         selectedRows={[]}
+        loaded={true}
       />
     );
     // Select all rows
@@ -142,6 +144,7 @@ describe('ApplicationSet manage data policy modal', () => {
         rows={getRow()}
         setSelectedRows={mockFuncton}
         selectedRows={[]}
+        loaded={true}
       />
     );
     // Select all rows
@@ -158,8 +161,27 @@ describe('ApplicationSet manage data policy modal', () => {
         rows={[]}
         setSelectedRows={jest.fn()}
         selectedRows={[]}
+        loaded={true}
       />
     );
     expect(screen.getByText('Not found')).toBeInTheDocument();
+  });
+  test('Load error test', async () => {
+    render(
+      <SelectableTable<K8sResourceCommon>
+        RowComponent={MockRowComponent}
+        columns={getColumns()}
+        rows={[]}
+        setSelectedRows={jest.fn()}
+        selectedRows={[]}
+        loaded={true}
+        loadError={{
+          response: {
+            status: 404,
+          },
+        }}
+      />
+    );
+    expect(screen.getByText('404: Not Found')).toBeInTheDocument();
   });
 });
