@@ -17,8 +17,8 @@ import { ImageStates } from '../../types';
 export const ImageStateLegendMap = (
   t: TFunction
 ): { [state in ImageStates]: string } => ({
-  [ImageStates.STARTING_REPLAY]: t('Start replay'),
-  [ImageStates.STOPPING_REPLAY]: t('Stop reply'),
+  [ImageStates.STARTING_REPLAY]: t('Starting replay'),
+  [ImageStates.STOPPING_REPLAY]: t('Stopping replay'),
   [ImageStates.REPLAYING]: t('Replaying'),
   [ImageStates.STOPPED]: t('Stopped'),
   [ImageStates.ERROR]: t('Error'),
