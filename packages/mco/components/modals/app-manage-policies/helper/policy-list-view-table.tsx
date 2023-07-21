@@ -5,33 +5,17 @@ import {
   RowComponentType,
   SelectableTable,
   TableColumnProps,
+  sortRows,
 } from '@odf/shared/table/selectable-table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
 import { Text } from '@patternfly/react-core';
-import {
-  ActionsColumn,
-  IAction,
-  SortByDirection,
-} from '@patternfly/react-table';
+import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { Td } from '@patternfly/react-table';
 import { ModalActionContext, ModalViewContext } from '../utils/reducer';
 import { DataPolicyType } from '../utils/types';
 import '../style.scss';
 import { DataPolicyStatus } from './policy-config-viewer';
-
-const sortRows = (
-  a: DataPolicyType,
-  b: DataPolicyType,
-  c: SortByDirection,
-  sortField: string
-) => {
-  const negation = c !== SortByDirection.asc;
-  const aValue = a?.[sortField] || '';
-  const bValue = b?.[sortField] || '';
-  const sortVal = (aValue as string).localeCompare(bValue as string);
-  return negation ? -sortVal : sortVal;
-};
 
 const getColumnNames = (t: TFunction) => [
   t('Policy name'),
@@ -149,6 +133,7 @@ export const PolicyListViewTable: React.FC<PolicyListViewTableProps> = ({
           setPolicy,
           setModalContext,
         }}
+        loaded={true}
       />
     </div>
   );

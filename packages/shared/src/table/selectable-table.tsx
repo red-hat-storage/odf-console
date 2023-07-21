@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { StatusBox } from '@odf/shared/generic/status-box';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { ThInfoType } from '@patternfly/react-table/src/components/Table/base';
 import { Bullseye } from '@patternfly/react-core';
 import {
   SortByDirection,
@@ -16,6 +16,19 @@ import { useSelectList } from '../hooks/select-list';
 import { useSortList } from '../hooks/sort-list';
 import { getUID } from '../selectors';
 import { useCustomTranslation } from '../useCustomTranslationHook';
+
+export const sortRows = (
+  a: any,
+  b: any,
+  c: SortByDirection,
+  sortField: string
+) => {
+  const negation = c !== SortByDirection.asc;
+  const aValue = a?.[sortField] || '';
+  const bValue = b?.[sortField] || '';
+  const sortVal = (aValue as string).localeCompare(bValue as string);
+  return negation ? -sortVal : sortVal;
+};
 
 const isRowSelectable = <T extends K8sResourceCommon>(row: T) =>
   !row?.metadata?.deletionTimestamp;
@@ -50,6 +63,8 @@ export const SelectableTable: SelectableTableProps = <
     RowComponent,
     extraProps,
     isSelectableHidden,
+    loaded,
+    loadError,
   } = props;
   const { t } = useCustomTranslation();
   const {
@@ -59,11 +74,15 @@ export const SelectableTable: SelectableTableProps = <
     sortedData: sortedRows,
   } = useSortList<T>(rows, columns, true);
 
-  const selectableRows = sortedRows?.filter(isRowSelectable) || [];
+  const [selectableRows, rowIds] = React.useMemo(() => {
+    const selectableRows = sortedRows?.filter(isRowSelectable) || [];
+    const rowIds = new Set(selectableRows?.map(getUID));
+    return [selectableRows, rowIds];
+  }, [sortedRows]);
 
   const { onSelect } = useSelectList<T>(
     selectableRows,
-    new Set(selectableRows?.map(getUID)),
+    rowIds,
     false,
     setSelectedRows
   );
@@ -77,74 +96,81 @@ export const SelectableTable: SelectableTableProps = <
     columnIndex,
   });
 
-  return sortedRows?.length === 0 ? (
-    <Bullseye>{t('Not found')}</Bullseye>
-  ) : (
-    <TableComposable
-      translate={null}
-      aria-label="Selectable table"
-      variant="compact"
-    >
-      <Thead translate={null}>
-        <Tr translate={null}>
-          <Th
-            translate={null}
-            {...(!isSelectableHidden
-              ? {
-                  select: {
-                    onSelect: onSelect,
-                    isSelected: areAllRowsSelected(
-                      selectableRows,
-                      selectedRows
-                    ),
-                  },
-                }
-              : {})}
-          />
-          {columns?.map((col, index) => (
+  return loaded && !loadError ? (
+    sortedRows?.length === 0 ? (
+      <Bullseye>{t('Not found')}</Bullseye>
+    ) : (
+      <TableComposable
+        translate={null}
+        aria-label="Selectable table"
+        variant="compact"
+      >
+        <Thead translate={null}>
+          <Tr translate={null}>
             <Th
-              {...(!!col.info ? { info: col.info } : {})}
-              {...(!!col?.sortFunction ? { sort: getSortParams(index) } : {})}
-              translate={null}
-              key={col?.columnName}
-            >
-              {col?.columnName}
-            </Th>
-          ))}
-        </Tr>
-      </Thead>
-      <Tbody translate={null}>
-        {sortedRows.map((row, rowIndex) => (
-          <Tr translate={null} key={getUID(row)}>
-            <Td
               translate={null}
               {...(!isSelectableHidden
                 ? {
                     select: {
-                      rowIndex,
                       onSelect: onSelect,
-                      isSelected: isRowSelected(getUID(row), selectedRows),
-                      disable: !isRowSelectable(row),
-                      props: {
-                        id: getUID(row),
-                      },
+                      isSelected: areAllRowsSelected(
+                        selectableRows,
+                        selectedRows
+                      ),
                     },
                   }
                 : {})}
             />
-            <RowComponent row={row} extraProps={extraProps} />
+            {columns?.map((col, index) => (
+              <Th
+                {...(!!col?.thProps ? col.thProps : {})}
+                {...(!!col?.sortFunction ? { sort: getSortParams(index) } : {})}
+                translate={null}
+                key={col?.columnName}
+              >
+                {col?.columnName}
+              </Th>
+            ))}
           </Tr>
-        ))}
-      </Tbody>
-    </TableComposable>
+        </Thead>
+        <Tbody translate={null}>
+          {sortedRows.map((row, rowIndex) => (
+            <Tr translate={null} key={getUID(row)}>
+              <Td
+                translate={null}
+                {...(!isSelectableHidden
+                  ? {
+                      select: {
+                        rowIndex,
+                        onSelect: onSelect,
+                        isSelected: isRowSelected(getUID(row), selectedRows),
+                        disable: !isRowSelectable(row),
+                        props: {
+                          id: getUID(row),
+                        },
+                      },
+                    }
+                  : {})}
+              />
+              <RowComponent row={row} extraProps={extraProps} />
+            </Tr>
+          ))}
+        </Tbody>
+      </TableComposable>
+    )
+  ) : (
+    <StatusBox loadError={loadError} loaded={loaded} />
   );
 };
 
-export type TableColumnProps = {
+// Omit ref to resolve incompatible issue
+// sort is replaced by sortFunction
+type TableThProps = Omit<ThProps, 'sort' | 'ref'>;
+
+export type TableColumnProps = ThProps & {
+  thProps?: TableThProps;
   columnName: string;
-  className?: string;
   sortFunction?: (a: any, b: any, c: SortByDirection) => any;
-  info?: ThInfoType;
 };
 
 export type RowComponentType<T extends K8sResourceCommon> = {
@@ -161,6 +187,8 @@ export type TableProps<T extends K8sResourceCommon> = {
   extraProps?: any;
   // A temporary prop for MCO to hide disable DR
   isSelectableHidden?: boolean;
+  loaded: boolean;
+  loadError?: any;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(
