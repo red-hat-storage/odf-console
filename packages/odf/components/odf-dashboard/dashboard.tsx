@@ -3,6 +3,7 @@ import {
   HorizontalNavTab,
   isHorizontalNavTab,
 } from '@odf/odf-plugin-sdk/extensions';
+import { StatusBox } from '@odf/shared/generic';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -114,6 +115,8 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
     }
   }, [location, history]);
 
+  const navItems = convertDashboardTabToNav(sortedPages);
+
   return (
     <>
       <Helmet>
@@ -121,13 +124,19 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
       </Helmet>
       <PageHeading title={title} />
       {/** Todo(bipuladh): Move to usage of common PF Tabs component */}
-      <HorizontalNav
-        pages={convertDashboardTabToNav(sortedPages)}
-        resource={{
-          kind: ODFStorageSystemMock.kind,
-          apiVersion: `${ODFStorageSystemMock.apiGroup}/${ODFStorageSystemMock.apiVersion}`,
-        }}
-      />
+      <StatusBox
+        loaded={isLoaded}
+        loadError={!_.isEmpty(error)}
+        data={navItems}
+      >
+        <HorizontalNav
+          pages={navItems}
+          resource={{
+            kind: ODFStorageSystemMock.kind,
+            apiVersion: `${ODFStorageSystemMock.apiGroup}/${ODFStorageSystemMock.apiVersion}`,
+          }}
+        />
+      </StatusBox>
     </>
   );
 };
