@@ -41,7 +41,7 @@ export const addAvailable = (
   let othersData: StackDataPoint;
   let availableData: StackDataPoint;
   let newChartData: StackDataPoint[] = [...stats];
-  if (stats.length === 5) {
+  if (stats.length > 5) {
     othersData = addOthers(stats, metricTotal, humanize, t);
     newChartData = [...stats, othersData] as StackDataPoint[];
   }
