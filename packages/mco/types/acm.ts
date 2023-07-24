@@ -68,7 +68,7 @@ export type ACMPlacementKind = K8sResourceCommon & {
 };
 
 export type ACMPlacementDecisionKind = K8sResourceCommon & {
-  status: {
+  status?: {
     decisions: {
       // ClusterDecision represents a decision from a placement
       clusterName: string;
