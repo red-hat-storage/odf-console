@@ -14,17 +14,9 @@ import {
   MirrorPeerKind,
 } from '@odf/mco/types';
 import { getClusterNamesFromMirrorPeers } from '@odf/mco/utils';
-import { getMax, getMin } from '@odf/shared/charts';
-import { CustomUtilizationSummaryProps } from '@odf/shared/dashboards/utilization-card/utilization-item';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
-import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  humanizeBinaryBytes,
-  humanizeDecimalBytesPerSec,
-  humanizeNumber,
-  referenceForModel,
-} from '@odf/shared/utils';
+import { referenceForModel } from '@odf/shared/utils';
 import {
   PrometheusResponse,
   useK8sWatchResource,
@@ -46,7 +38,7 @@ import {
   getProtectedPVCFromVRG,
   filterPVCDataUsingAppsets,
 } from '../../../../utils';
-import { DRDashboard, getLastSyncPerClusterQuery } from '../../queries';
+import { getLastSyncPerClusterQuery } from '../../queries';
 import {
   CSVStatusesContext,
   DRResourcesContext,
@@ -61,42 +53,10 @@ import {
   PeerConnectionSection,
   ApplicationsSection,
   PVCsSection,
-  SnapshotUtilizationCard,
+  UtilizationCard,
 } from './cluster';
 import { ClusterAppDropdown, VolumeSummarySection } from './common';
 import './cluster-app-card.scss';
-
-const CustomUtilizationSummary: React.FC<CustomUtilizationSummaryProps> = ({
-  currentHumanized,
-  utilizationData,
-}) => {
-  const { t } = useCustomTranslation();
-  const maxVal = getMax(utilizationData);
-  const minVal = getMin(utilizationData);
-  const humanizedMax = !!maxVal ? humanizeBinaryBytes(maxVal).string : null;
-  const humanizedMin = !!minVal ? humanizeBinaryBytes(minVal).string : null;
-
-  return (
-    <div className="co-utilization-card__item-value co-utilization-card__item-summary">
-      <div>
-        <span>{t('Current value: ')}</span>
-        <span className="bold">{currentHumanized}</span>
-      </div>
-      {!!utilizationData?.length && (
-        <>
-          <div>
-            <span>{t('Max value: ')}</span>
-            <span className="bold">{humanizedMax}</span>
-          </div>
-          <div>
-            <span>{t('Min value: ')}</span>
-            <span className="bold">{humanizedMin}</span>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
 
 export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
   clusterName,
@@ -105,7 +65,6 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
   csvData,
   clusterResources,
 }) => {
-  const { t } = useCustomTranslation();
   const [mirrorPeers] = useK8sWatchResource<MirrorPeerKind[]>({
     kind: referenceForModel(MirrorPeerModel),
     isList: true,
@@ -145,26 +104,9 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
         <VolumeSummarySection protectedPVCData={protectedPVCData} />
       </GridItem>
       <GridItem lg={12} rowSpan={8} sm={12}>
-        <SnapshotUtilizationCard
-          clusters={peerClusters}
-          title={t('Snapshots synced')}
-          queryType={DRDashboard.RBD_SNAPSHOT_SNAPSHOTS}
-          titleToolTip={t(
-            'The y-axis shows the number of snapshots taken. It represents the rate of difference in snapshot creation count during a failover.'
-          )}
-          humanizeValue={humanizeNumber}
-        />
-      </GridItem>
-      <GridItem lg={12} rowSpan={8} sm={12}>
-        <SnapshotUtilizationCard
-          clusters={[clusterName]}
-          title={t('Replication throughput')}
-          queryType={DRDashboard.RBD_SNAPSHOTS_SYNC_BYTES}
-          titleToolTip={t(
-            'The y-axis shows the average throughput for syncing snapshot bytes from the primary to the secondary cluster.'
-          )}
-          humanizeValue={humanizeDecimalBytesPerSec}
-          CustomUtilizationSummary={CustomUtilizationSummary}
+        <UtilizationCard
+          clusterName={clusterName}
+          peerClusters={peerClusters}
         />
       </GridItem>
     </Grid>
