@@ -5,6 +5,7 @@ import { SortByDirection } from '@patternfly/react-table';
 export const useSortList = <R extends K8sResourceCommon>(
   data: R[],
   columns: any[],
+  // True indicate the column index is starting from 1
   onSelect: boolean
 ): {
   onSort: (

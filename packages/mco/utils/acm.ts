@@ -60,7 +60,7 @@ export const findPlacementFromArgoAppSet = (
 export const getClustersFromDecisions = (
   placement: ACMPlacementDecisionKind | ACMPlacementRuleKind
 ): string[] =>
-  placement?.status?.decisions.map((decision) => decision?.clusterName);
+  placement?.status?.decisions.map((decision) => decision?.clusterName) || [];
 
 export const getRemoteNamespaceFromAppSet = (
   application: ArgoApplicationSetKind

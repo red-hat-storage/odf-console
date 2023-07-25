@@ -187,7 +187,7 @@ const PairElement: React.FC<PairElementProps> = ({
               ? getLabelsDropdownOptions(labels, tags, index)
               : []
           }
-          placeholder={
+          placeholderText={
             !!selectedLabels?.length
               ? t('{{count}} selected', { count: selectedLabels?.length })
               : t('Select labels')
