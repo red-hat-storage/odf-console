@@ -149,6 +149,9 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
           clusters={peerClusters}
           title={t('Snapshots synced')}
           queryType={DRDashboard.RBD_SNAPSHOT_SNAPSHOTS}
+          titleToolTip={t(
+            'The y-axis shows the number of snapshots taken. It represents the rate of difference in snapshot creation count during a failover.'
+          )}
           humanizeValue={humanizeNumber}
         />
       </GridItem>
@@ -157,6 +160,9 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
           clusters={[clusterName]}
           title={t('Replication throughput')}
           queryType={DRDashboard.RBD_SNAPSHOTS_SYNC_BYTES}
+          titleToolTip={t(
+            'The y-axis shows the average throughput for syncing snapshot bytes from the primary to the secondary cluster.'
+          )}
           humanizeValue={humanizeDecimalBytesPerSec}
           CustomUtilizationSummary={CustomUtilizationSummary}
         />
