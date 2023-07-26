@@ -11,4 +11,7 @@
   &__icon {
     width: 50%;
   }
+  &__skeleton {
+    margin: var(--pf-global--spacer--lg) var(--pf-global--spacer--lg)
+  }
 }

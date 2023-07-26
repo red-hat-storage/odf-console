@@ -5,6 +5,7 @@ import {
   ObjectReference,
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { APPLICATION_TYPE } from '../constants';
 import { ACMPlacementModel } from '../models';
 import {
   ACMSubscriptionKind,
@@ -21,9 +22,6 @@ import {
   getDRPlacementControlResourceObj,
   getSubscriptionResourceObj,
 } from './mco-resources';
-
-const SubscriptionType = 'Subscription';
-const ApplicaitonSetType = 'ApplicationSet';
 
 const getResources = () => ({
   argoApplicationSets: getApplicationSetResourceObj(),
@@ -74,7 +72,7 @@ const createSubsApplicationReferences = (
             {
               applicationName: getName(application),
               applicationNamespace: namespace,
-              applicationType: SubscriptionType,
+              applicationType: APPLICATION_TYPE.SUBSCRIPTION,
               placementRef: placementRefs,
               workLoadNamespace: namespace,
             },
@@ -98,7 +96,7 @@ const createApplicationSetReferences = (
         {
           applicationName: getName(application),
           applicationNamespace: namespace,
-          applicationType: ApplicaitonSetType,
+          applicationType: APPLICATION_TYPE.SUBSCRIPTION,
           placementRef: [
             {
               kind: ACMPlacementModel.kind,
@@ -226,7 +224,7 @@ type SubcsriptionMapping = {
 export type ApplicationRefKind = {
   applicationName: string;
   applicationNamespace: string;
-  applicationType: string;
+  applicationType: APPLICATION_TYPE;
   workLoadNamespace: string;
   drPolicyRefs?: string[];
   placementRef?: ObjectReference[];

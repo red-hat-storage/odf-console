@@ -25,8 +25,14 @@ const EmptyPageIcon: React.FC = () => {
 };
 
 const EmptyPage: React.FC<EmptyPageProps> = (props) => {
-  const { t, title, children, buttonText, canAccess, onClick } = props;
-  return (
+  const { t, title, children, buttonText, canAccess, isLoaded, onClick } =
+    props;
+  return !isLoaded ? (
+    <div
+      className="loading-skeleton--table mco-empty-page__skeleton"
+      aria-label={t('Loading Empty Page')}
+    />
+  ) : (
     <div className="mco-empty-page__background">
       <EmptyState variant={EmptyStateVariant.large}>
         <EmptyStateIcon icon={EmptyPageIcon} />
@@ -43,6 +49,7 @@ const EmptyPage: React.FC<EmptyPageProps> = (props) => {
           }
           trigger={!canAccess ? 'mouseenter' : 'manual'}
           data-test="authorization-tooltip"
+          aria-label={t('Not Authorized')}
         >
           {
             <Button
@@ -50,6 +57,7 @@ const EmptyPage: React.FC<EmptyPageProps> = (props) => {
               onClick={onClick}
               isAriaDisabled={!canAccess}
               data-test="create-button"
+              aria-label="Create DRPolicy"
             >
               {buttonText}
             </Button>
@@ -65,6 +73,7 @@ type EmptyPageProps = {
   children?: any;
   buttonText: string;
   canAccess?: boolean;
+  isLoaded?: boolean;
   t: TFunction;
   onClick: () => void;
 };
