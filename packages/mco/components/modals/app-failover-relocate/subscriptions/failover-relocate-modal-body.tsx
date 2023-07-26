@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { StatusBox } from '@odf/shared/generic';
 import { ApplicationModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { ApplicationKind } from '@odf/shared/types';
@@ -116,42 +117,58 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
     } = response?.placementDecisions;
 
     const placementLoaded =
-      placementRulesLoaded &&
-      placementDecisionsLoaded &&
-      placementsLoaded &&
-      !(
-        placementRulesLoadError ||
-        placementsLoadError ||
-        placementDecisionsLoadError
-      );
-    const subsLoaded = subscriptionsLoaded && !subscriptionsLoadError;
-    const drpcLoaded =
-      drPlacementControlsLoaded && !drPlacementControlsLoadError;
+      placementRulesLoaded && placementDecisionsLoaded && placementsLoaded;
+
+    const placementLoadError =
+      placementRulesLoadError ||
+      placementsLoadError ||
+      placementDecisionsLoadError;
+
+    const loaded =
+      subscriptionsLoaded && placementLoaded && drPlacementControlsLoaded;
+    const loadError =
+      subscriptionsLoadError ||
+      placementDecisionsLoadError ||
+      drPlacementControlsLoadError;
 
     const placementMap: PlacementMap = React.useMemo(
       () =>
-        placementLoaded
+        placementLoaded && !placementLoadError
           ? generateUniquePlacementMap(
               placementRules,
               placements,
               placementDecisions
             )
           : {},
-      [placementRules, placements, placementDecisions, placementLoaded]
+      [
+        placementRules,
+        placements,
+        placementDecisions,
+        placementLoaded,
+        placementLoadError,
+      ]
     );
 
     const subscriptionMap: SubscriptionMap = React.useMemo(
       () =>
         // Filtering subscription using DR placementRules/placements and application selectors
-        subsLoaded && !_.isEmpty(placementMap)
+        subscriptionsLoaded &&
+        !subscriptionsLoadError &&
+        !_.isEmpty(placementMap)
           ? filterDRSubscriptions(application, subscriptions, placementMap)
           : {},
-      [subscriptions, subsLoaded, placementMap, application]
+      [
+        subscriptions,
+        subscriptionsLoaded,
+        subscriptionsLoadError,
+        placementMap,
+        application,
+      ]
     );
 
     React.useEffect(() => {
       // Grouping ACM subscriptions using DR placement controls
-      if (drpcLoaded) {
+      if (drPlacementControlsLoaded && !drPlacementControlsLoadError) {
         const drPolicyControlState: DRPolicyControlState[] = getAppDRInfo(
           drPlacementControls,
           subscriptionMap,
@@ -173,7 +190,8 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
             });
       }
     }, [
-      drpcLoaded,
+      drPlacementControlsLoaded,
+      drPlacementControlsLoadError,
       drPlacementControls,
       subscriptionMap,
       placementMap,
@@ -182,7 +200,7 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
       t,
     ]);
 
-    return (
+    return loaded && !loadError ? (
       <Flex
         direction={{ default: 'column' }}
         spaceItems={{ default: 'spaceItemsSm' }}
@@ -252,6 +270,8 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
             />
           ))}
       </Flex>
+    ) : (
+      <StatusBox loaded={loaded} loadError={loadError} />
     );
   };
 

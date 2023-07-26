@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { StatusBox } from '@odf/shared/generic';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
@@ -44,7 +45,8 @@ const getModalText = (t: TFunction) => ({
 export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
   props
 ) => {
-  const { applicationNamespace, action, isOpen, loadError, close } = props;
+  const { applicationNamespace, action, isOpen, loaded, loadError, close } =
+    props;
 
   const { t } = useCustomTranslation();
   const modalText = getModalText(t)[action];
@@ -100,18 +102,24 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
       variant={ModalVariant.medium}
     >
       <ModalBody>
-        <FailoverRelocateModalBody
-          {...props}
-          canInitiate={canInitiate}
-          setCanInitiate={setCanInitiate}
-          setPlacement={setPlacement}
-        />
-        {(!!errorMessage || !!loadError) && (
-          <Alert
-            title={errorMessage || getErrorMessage(loadError)}
-            variant={AlertVariant.danger}
-            isInline
-          />
+        {loaded && !loadError ? (
+          <>
+            <FailoverRelocateModalBody
+              {...props}
+              canInitiate={canInitiate}
+              setCanInitiate={setCanInitiate}
+              setPlacement={setPlacement}
+            />
+            {(!!errorMessage || !!loadError) && (
+              <Alert
+                title={errorMessage || getErrorMessage(loadError)}
+                variant={AlertVariant.danger}
+                isInline
+              />
+            )}
+          </>
+        ) : (
+          <StatusBox loaded={loaded} loadError={loadError} />
         )}
       </ModalBody>
       <ModalFooter>
