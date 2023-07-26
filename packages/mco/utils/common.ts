@@ -1,4 +1,3 @@
-import { utcDateTimeFormatterWithTimeZone } from '@odf/shared/details-page/datetime';
 import {
   getAPIVersion,
   getName,
@@ -10,9 +9,6 @@ import {
   ObjectReference,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
-
-export const formatDateTime = (lastAvailableTime: string) =>
-  utcDateTimeFormatterWithTimeZone.format(new Date(lastAvailableTime));
 
 export const getGVKFromObjectRef = (objectRef: ObjectReference) => {
   const { group, version } = groupVersionFor(objectRef?.apiVersion || '');

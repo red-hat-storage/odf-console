@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
 import { ApplicationModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -16,7 +17,6 @@ import {
 } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
 import { DRActionType, REPLICATION_TYPE } from '../../../constants';
-import { formatDateTime } from '../../../utils';
 import {
   ErrorMessageType,
   evaluateErrorMessage,
@@ -133,7 +133,7 @@ const TargetClusterStatus = ({
   );
 };
 
-const DateTimeFormat = ({
+export const DateTimeFormat = ({
   dateTime,
   className,
 }: {
@@ -144,7 +144,7 @@ const DateTimeFormat = ({
   return (
     <>
       {!!dateTime ? (
-        formatDateTime(dateTime)
+        utcDateTimeFormatter.format(new Date(dateTime))
       ) : (
         <StatusIconAndText
           title={t('Unknown')}

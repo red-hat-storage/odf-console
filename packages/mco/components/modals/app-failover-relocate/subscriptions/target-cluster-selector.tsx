@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { utcDateTimeFormatterWithTimeZone } from '@odf/shared/details-page/datetime';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -7,7 +6,6 @@ import {
   RedExclamationCircleIcon,
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
 import {
   Dropdown,
   DropdownToggle,
@@ -17,13 +15,13 @@ import {
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
-import { UnknownIcon } from '@patternfly/react-icons';
 import { DRActionType, REPLICATION_TYPE } from '../../../../constants';
 import {
   getDRClusterResourceObj,
   getManagedClusterResourceObj,
 } from '../../../../hooks';
 import { ACMManagedClusterKind, DRClusterKind } from '../../../../types';
+import { DateTimeFormat } from '../failover-relocate-modal-body';
 import { ErrorMessageType } from './error-messages';
 import {
   FailoverAndRelocateState,
@@ -55,18 +53,6 @@ export const getReplicationTypeUsingDRClusters = (
   )
     ? REPLICATION_TYPE.SYNC
     : REPLICATION_TYPE.ASYNC;
-
-const getLastUpdatedTime = (lastAvailableTime: string, t: TFunction) => {
-  return lastAvailableTime ? (
-    <span>
-      {utcDateTimeFormatterWithTimeZone.format(new Date(lastAvailableTime))}
-    </span>
-  ) : (
-    <span>
-      <UnknownIcon /> {t('Unknown')}
-    </span>
-  );
-};
 
 const TargetClusterStatus: React.FC<TargetClusterStatusProps> = ({
   isClusterAvailable,
@@ -288,10 +274,10 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
       <HelperText>
         <HelperTextItem variant="indeterminate">
           {t('Last available: ')}
-          {getLastUpdatedTime(
-            state.selectedTargetCluster?.lastAvailableTime,
-            t
-          )}
+          <DateTimeFormat
+            dateTime={state.selectedTargetCluster?.lastAvailableTime}
+            className="pf-u-display-inline-block pf-u-ml-sm"
+          />
         </HelperTextItem>
       </HelperText>
     </>

@@ -2,8 +2,8 @@ import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
 import {
   getLatestDate,
-  utcDateTimeFormatterWithTimeZone,
   fromNow,
+  utcDateTimeFormatter,
 } from '@odf/shared/details-page/datetime';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
@@ -68,7 +68,7 @@ const getSyncStatus = (syncTime: string) =>
   !!syncTime
     ? {
         text: fromNow(syncTime),
-        toolTip: utcDateTimeFormatterWithTimeZone.format(new Date(syncTime)),
+        toolTip: utcDateTimeFormatter.format(new Date(syncTime)),
       }
     : {};
 
