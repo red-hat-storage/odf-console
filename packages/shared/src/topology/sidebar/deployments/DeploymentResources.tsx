@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { StatusBox } from '@odf/shared/generic';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import {
   DaemonSetModel,
   PodModel,
@@ -20,14 +20,12 @@ import { DeploymentKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
-  K8sResourceCommon,
   PrometheusResponse,
   PrometheusResult,
   useK8sWatchResource,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { isPodInDeployment } from '../../utils/resource';
 import '@odf/shared/topology/sidebar/common/resources-tab.scss';
 
 export const odfStatefulSetResource: WatchK8sResource = {
@@ -70,6 +68,7 @@ export const DeploymentResources: React.FC<DeploymentResourceProps> = ({
   resource: deployment,
 }) => {
   const { t } = useCustomTranslation();
+  const podSelector = deployment.spec.selector;
   const [pods, podsLoaded, podsLoadError] = useK8sWatchResource<
     PodWithMetricsKind[]
   >({
@@ -77,44 +76,8 @@ export const DeploymentResources: React.FC<DeploymentResourceProps> = ({
     isList: true,
     namespaced: true,
     namespace: CEPH_STORAGE_NAMESPACE,
+    selector: podSelector,
   });
-
-  const [statefulSets, statefulSetLoaded, statefulSetError] =
-    useK8sWatchResource<K8sResourceCommon[]>(odfStatefulSetResource);
-
-  const [replicaSets, replicaSetsLoaded, replicaSetsError] =
-    useK8sWatchResource<K8sResourceCommon[]>(odfReplicaSetResource);
-
-  const [daemonSets, daemonSetsLoaded, daemonSetError] =
-    useK8sWatchResource<K8sResourceCommon[]>(odfDaemonSetResource);
-
-  const memoizedStatefulSets = useDeepCompareMemoize(statefulSets, true);
-  const memoizedReplicaSets = useDeepCompareMemoize(replicaSets, true);
-  const memoizedDaemonSets = useDeepCompareMemoize(daemonSets, true);
-
-  const loaded =
-    statefulSetLoaded && replicaSetsLoaded && daemonSetsLoaded && podsLoaded;
-  const loadError =
-    statefulSetError || replicaSetsError || daemonSetError || podsLoadError;
-  const filteredPods = React.useMemo(() => {
-    const resources = [
-      ...memoizedReplicaSets,
-      ...memoizedDaemonSets,
-      ...memoizedStatefulSets,
-      deployment,
-    ];
-    return loaded && !loadError && !_.isEmpty(pods)
-      ? pods.filter((pod) => isPodInDeployment(pod, ...resources))
-      : [];
-  }, [
-    deployment,
-    loadError,
-    loaded,
-    memoizedDaemonSets,
-    memoizedReplicaSets,
-    memoizedStatefulSets,
-    pods,
-  ]);
 
   const basePath = usePrometheusBasePath();
   const [usedCpu, errorUsedCpu, loadingUsedCpu] = useCustomPrometheusPoll({
@@ -129,33 +92,35 @@ export const DeploymentResources: React.FC<DeploymentResourceProps> = ({
       basePath: basePath,
     });
 
-  for (let podIndex = 0; podIndex < filteredPods.length; podIndex++) {
-    filteredPods[podIndex].metrics = { cpu: NaN, memory: NaN };
+  for (let podIndex = 0; podIndex < pods.length; podIndex++) {
+    pods[podIndex].metrics = { cpu: NaN, memory: NaN };
 
     if (usedCpu && _.isEmpty(errorUsedCpu) && !loadingUsedCpu) {
-      filteredPods[podIndex].metrics.cpu = getPodMetric(
+      pods[podIndex].metrics.cpu = getPodMetric(
         usedCpu.data.result,
-        filteredPods[podIndex].metadata.name
+        pods[podIndex].metadata.name
       );
     }
     if (usedMemory && _.isEmpty(errorUsedMemory) && !loadingUsedMemory) {
-      filteredPods[podIndex].metrics.memory = getPodMetric(
+      pods[podIndex].metrics.memory = getPodMetric(
         usedMemory.data.result,
-        filteredPods[podIndex].metadata.name
+        pods[podIndex].metadata.name
       );
     }
   }
 
+  const loaded = podsLoaded && !loadingUsedCpu && !loadingUsedMemory;
+
+  const loadError = !!(podsLoadError || errorUsedCpu || errorUsedMemory);
+
   return (
     <div className="odf-m-pane__body topology-sidebar-tab__resources">
       <h3>
-        {t('Pods')} ({filteredPods.length})
+        {t('Pods')} ({pods.length})
       </h3>
-      {filteredPods.length > 0 && (
-        <>
-          <PodsOverviewList pods={filteredPods} />
-        </>
-      )}
+      <StatusBox loaded={loaded} loadError={loadError} data={pods}>
+        <PodsOverviewList pods={pods} />
+      </StatusBox>
     </div>
   );
 };
