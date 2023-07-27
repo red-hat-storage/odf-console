@@ -45,6 +45,9 @@ const config: webpack.Configuration & DevServerConfiguration = {
     devMiddleware: {
       writeToDisk: true,
     },
+    headers: {
+      'Cache-Control': 'no-store',
+    },
     static: ['dist'],
   },
   resolve: {
