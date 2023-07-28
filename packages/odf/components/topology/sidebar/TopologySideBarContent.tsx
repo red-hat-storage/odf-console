@@ -3,6 +3,7 @@ import { StorageClusterModel } from '@odf/ocs/models';
 import { DetailsPageTitle } from '@odf/shared/details-page/DetailsPage';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
+import useAutoExpand from '@odf/shared/hooks/useAutoExpand';
 import { DeploymentModel, NodeModel } from '@odf/shared/models';
 import { nodeStatus } from '@odf/shared/status/Node';
 import AlertsDetails from '@odf/shared/topology/sidebar/alerts/AlertsDetails';
@@ -34,7 +35,6 @@ import '@odf/shared/utils/tabs.scss';
 
 type TopologySideBarContentProps = {
   resource: K8sResourceCommon;
-  className?: string;
 };
 
 const AlertsTabComponent: React.FC<TopologySideBarContentProps> = ({
@@ -107,7 +107,6 @@ const ObserveTabComponent: React.FC<GenericTabComponentProps> = ({
 
 const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
   resource,
-  className,
 }) => {
   const [activeTab, setActiveTab] = React.useState(0);
   const { t } = useCustomTranslation();
@@ -126,8 +125,14 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
 
   const title = <DetailsPageTitle resource={resource} resourceModel={model} />;
 
+  const { ref, height } = useAutoExpand();
+
   return !inFlight ? (
-    <div className={className}>
+    <div
+      className="odf-topology__sidebar"
+      ref={ref}
+      style={{ height: `${height}px` }}
+    >
       <PageHeading
         title={title}
         resource={resource}
