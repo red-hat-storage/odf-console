@@ -457,7 +457,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
           ))}
         {errorMessage && (
           <Alert isInline variant="danger" title={t('An error occurred')}>
-            {(errorMessage as any)?.message}
+            {(errorMessage as any)?.message || errorMessage}
           </Alert>
         )}
       </ModalBody>
