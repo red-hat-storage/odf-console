@@ -36,7 +36,6 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
     setLimitReqState,
     basePath,
     chartType,
-    customDateTimeFormatter,
     description,
     hideCurrentHumanized,
     hideHorizontalBorder,
@@ -86,7 +85,6 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
         utilization={utilization}
         chartType={chartType}
         description={description}
-        customDateTimeFormatter={customDateTimeFormatter}
         hideCurrentHumanized={hideCurrentHumanized}
         hideHorizontalBorder={hideHorizontalBorder}
         showLegend={showLegend}
@@ -165,7 +163,6 @@ type PrometheusUtilizationItemProps = PrometheusCommonProps & {
   basePath?: string;
   chartType?: 'stacked-area' | 'grouped-line';
   description?: string | ((result: PrometheusResult, index: number) => string);
-  customDateTimeFormatter?: (date: Date) => string;
   hideCurrentHumanized?: boolean;
   hideHorizontalBorder?: boolean;
   showLegend?: boolean;
