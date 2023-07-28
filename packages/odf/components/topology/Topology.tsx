@@ -30,7 +30,6 @@ import {
   useFlag,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom';
 import {
@@ -95,17 +94,12 @@ type SideBarProps = {
 };
 
 const Sidebar: React.FC<SideBarProps> = ({ onClose, isExpanded }) => {
-  const { selectedElement: element, visualizationLevel } =
-    React.useContext(TopologyDataContext);
+  const { selectedElement: element } = React.useContext(TopologyDataContext);
   const data = element?.getData();
   const resource = data?.resource;
 
   return (
     <TopologySideBar
-      className={classNames({
-        'odf-topology-sidebar--longer':
-          visualizationLevel === TopologyViewLevel.NODES,
-      })}
       resource={resource}
       onClose={onClose}
       isExpanded={isExpanded}
