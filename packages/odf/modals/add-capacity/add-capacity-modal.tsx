@@ -17,6 +17,7 @@ import {
   StorageClassModel,
 } from '@odf/shared/models';
 import { OCSStorageClusterModel } from '@odf/shared/models';
+import { getName } from '@odf/shared/selectors';
 import {
   StorageClassResourceKind,
   NodeKind,
@@ -36,6 +37,7 @@ import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-interna
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
+import { compose } from 'redux';
 import {
   FormGroup,
   TextInput,
@@ -76,12 +78,14 @@ type StorageClassDropdownProps = {
   onChange: any;
   'data-test': string;
   initialSelection: (args) => any;
+  filter: (resource: StorageClassResourceKind) => boolean;
 };
 
 const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
   onChange,
   'data-test': dataTest,
   initialSelection,
+  filter,
 }) => {
   return (
     <ResourceDropdown<StorageClassResourceKind>
@@ -91,7 +95,7 @@ const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
       secondaryTextGenerator={getStorageClassDescription}
       onSelect={onChange}
       initialSelection={initialSelection}
-      filterResource={filterSC}
+      filterResource={compose(filterSC, filter)}
       data-test={dataTest}
     />
   );
@@ -222,6 +226,8 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
     useK8sWatchResource<K8sResourceCommon[]>(pvResource);
   const [nodesData, nodesLoaded, nodesLoadError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);
+  const [scResources, scResourcesLoaded, scResourcesLoadError] =
+    useK8sWatchResource<StorageClassResourceKind[]>(scResource);
   const [storageClass, setStorageClass] = React.useState(null);
   const [inProgress, setProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState('');
@@ -257,8 +263,24 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
 
   const preSelectionFilter = React.useCallback(
     (storageClasses: StorageClassResourceKind[]) =>
-      storageClasses.find((sc) => sc.metadata.name === installStorageClass),
+      storageClasses.find((sc) => getName(sc) === installStorageClass),
     [installStorageClass]
+  );
+
+  // Stops users from moving from no-prov SC to prov SC. (Bug 2213183)
+  const storageClassFilter = React.useCallback(
+    (sc: StorageClassResourceKind) => {
+      if (scResourcesLoaded && !scResourcesLoadError) {
+        const initialSC = scResources?.find(
+          (item) => getName(item) === installStorageClass
+        );
+        if (initialSC?.provisioner === NO_PROVISIONER) {
+          return sc.provisioner === NO_PROVISIONER;
+        }
+      }
+      return true;
+    },
+    [installStorageClass, scResources, scResourcesLoadError, scResourcesLoaded]
   );
 
   const validateSC = React.useCallback(() => {
@@ -401,6 +423,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
               onChange={(sc: StorageClassResourceKind) => setStorageClass(sc)}
               data-test="add-cap-sc-dropdown"
               initialSelection={preSelectionFilter}
+              filter={storageClassFilter}
             />
           </div>
           {!selectedSCName && (
