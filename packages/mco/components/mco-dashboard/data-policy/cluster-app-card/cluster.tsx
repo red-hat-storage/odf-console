@@ -30,7 +30,6 @@ import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { CustomUtilizationSummaryProps } from '@odf/shared/dashboards/utilization-card/utilization-item';
-import { dateTimeFormatterWithWeekDay } from '@odf/shared/details-page/datetime';
 import { FieldLevelHelp } from '@odf/shared/generic';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
@@ -286,7 +285,6 @@ export const SnapshotUtilizationCard: React.FC<SnapshotUtilizationCardProps> =
           basePath={ACM_ENDPOINT}
           chartType="grouped-line"
           description={getDescription}
-          customDateTimeFormatter={dateTimeFormatterWithWeekDay.format}
           hideCurrentHumanized
           hideHorizontalBorder
           showLegend
