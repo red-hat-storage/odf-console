@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import { Bullseye } from '@patternfly/react-core';
 import {
   SortByDirection,
@@ -24,9 +25,9 @@ export const sortRows = (
   sortField: string
 ) => {
   const negation = c !== SortByDirection.asc;
-  const aValue = a?.[sortField] || '';
-  const bValue = b?.[sortField] || '';
-  const sortVal = (aValue as string).localeCompare(bValue as string);
+  const aValue = _.get(a, sortField, '').toString();
+  const bValue = _.get(b, sortField, '');
+  const sortVal = String(aValue).localeCompare(String(bValue));
   return negation ? -sortVal : sortVal;
 };
 
@@ -72,7 +73,7 @@ export const SelectableTable: SelectableTableProps = <
     sortIndex: activeSortIndex,
     sortDirection: activeSortDirection,
     sortedData: sortedRows,
-  } = useSortList<T>(rows, columns, true);
+  } = useSortList<T>(rows, columns, false);
 
   const [selectableRows, rowIds] = React.useMemo(() => {
     const selectableRows = sortedRows?.filter(isRowSelectable) || [];

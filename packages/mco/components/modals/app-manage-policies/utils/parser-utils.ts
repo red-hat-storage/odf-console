@@ -110,7 +110,7 @@ export const generateApplicationInfo = (
 
 export const getClusterNamesFromPlacements = (placements: PlacementType[]) =>
   placements?.reduce(
-    (acc, placemnt) => [...acc, ...placemnt?.deploymentClusters],
+    (acc, placement) => [...acc, ...placement?.deploymentClusters],
     []
   );
 
