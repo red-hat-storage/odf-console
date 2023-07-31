@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
+import { Timestamp } from '@odf/shared/details-page/timestamp';
 import { getName } from '@odf/shared/selectors';
 import {
   RowComponentType,
@@ -34,7 +34,6 @@ const PolicyListViewTableRow: React.FC<RowComponentType<DataPolicyType>> = ({
   const { kind, isValidated, activity, assignedOn } = policy;
   const { isActionDisabled, setPolicy, setModalContext }: RowExtraProps =
     extraProps;
-  const assignedDateStr = utcDateTimeFormatter.format(new Date(assignedOn));
 
   const RowActions = (t: TFunction): IAction[] => [
     {
@@ -63,7 +62,7 @@ const PolicyListViewTableRow: React.FC<RowComponentType<DataPolicyType>> = ({
         </Text>
       </Td>
       <Td translate={null} dataLabel={columnNames[4]}>
-        {assignedDateStr}
+        <Timestamp timestamp={assignedOn} />
       </Td>
       <Td translate={null} isActionCell>
         <ActionsColumn

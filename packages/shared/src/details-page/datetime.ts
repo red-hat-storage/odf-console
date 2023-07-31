@@ -79,22 +79,6 @@ export const utcDateTimeFormatter = new Intl.DateTimeFormat(
   }
 );
 
-export const utcDateTimeFormatterWithTimeZone = new Intl.DateTimeFormat(
-  getLastLanguage() || undefined,
-  {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    hour12: true,
-    timeZone: 'UTC',
-    timeZoneName: 'short',
-  }
-);
-
 export const dateTimeFormatterWithWeekDay = new Intl.DateTimeFormat(
   getLastLanguage() || undefined,
   {

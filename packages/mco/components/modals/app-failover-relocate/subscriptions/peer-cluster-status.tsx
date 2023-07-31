@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-  getLatestDate,
-  utcDateTimeFormatterWithTimeZone,
-} from '@odf/shared/details-page/datetime';
+import { getLatestDate } from '@odf/shared/details-page/datetime';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -15,6 +12,7 @@ import { Flex, FlexItem } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
 import { DRActionType } from '../../../../constants';
 import { checkDRActionReadiness } from '../../../../utils';
+import { DateTimeFormat } from '../failover-relocate-modal-body';
 import { ErrorMessageType } from './error-messages';
 import {
   FailoverAndRelocateState,
@@ -35,8 +33,7 @@ const initalPeerStatus = (t: TFunction) => ({
     text: PEER_READINESS(t).UNKNOWN,
   },
   dataLastSyncedOn: {
-    icon: <UnknownIcon />,
-    text: PEER_READINESS(t).UNKNOWN,
+    text: '',
   },
 });
 
@@ -64,7 +61,7 @@ const getDataLastSyncTime = (
 ): StatusProps => {
   const lastSyncTime = drpcState?.drPlacementControl?.status?.lastGroupSyncTime;
   return !!lastSyncTime
-    ? dataLastSyncStatus.text !== 'Unknown'
+    ? !!dataLastSyncStatus.text
       ? {
           text: getLatestDate([dataLastSyncStatus.text, lastSyncTime]),
         }
@@ -73,11 +70,6 @@ const getDataLastSyncTime = (
         }
     : dataLastSyncStatus;
 };
-
-const getFormatedDateTime = (dateTime: string) =>
-  dateTime !== 'Unknown'
-    ? utcDateTimeFormatterWithTimeZone.format(new Date(dateTime))
-    : dateTime;
 
 const getPeerStatusSummary = (
   drpcStateList: DRPolicyControlState[],
@@ -191,9 +183,9 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
           <strong> {t('Data last synced on:')} </strong>
         </FlexItem>
         <FlexItem>
-          <StatusIconAndText
-            title={getFormatedDateTime(peerStatus?.dataLastSyncedOn?.text)}
-            icon={peerStatus?.dataLastSyncedOn?.icon}
+          <DateTimeFormat
+            dateTime={peerStatus?.dataLastSyncedOn?.text}
+            className=""
           />
         </FlexItem>
       </Flex>
