@@ -39,6 +39,7 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
     description,
     hideCurrentHumanized,
     hideHorizontalBorder,
+    disableGraphLink,
     showLegend,
     CustomUtilizationSummary,
   }) => {
@@ -87,6 +88,7 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
         description={description}
         hideCurrentHumanized={hideCurrentHumanized}
         hideHorizontalBorder={hideHorizontalBorder}
+        disableGraphLink={disableGraphLink}
         showLegend={showLegend}
         CustomUtilizationSummary={CustomUtilizationSummary}
       />
@@ -165,6 +167,7 @@ type PrometheusUtilizationItemProps = PrometheusCommonProps & {
   description?: string | ((result: PrometheusResult, index: number) => string);
   hideCurrentHumanized?: boolean;
   hideHorizontalBorder?: boolean;
+  disableGraphLink?: boolean;
   showLegend?: boolean;
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
 };
