@@ -275,6 +275,7 @@ export const SnapshotUtilizationCard: React.FC<SnapshotUtilizationCardProps> =
           customDateTimeFormatter={dateTimeFormatterWithWeekDay.format}
           hideCurrentHumanized
           hideHorizontalBorder
+          disableGraphLink
           showLegend
           CustomUtilizationSummary={CustomUtilizationSummary}
         />

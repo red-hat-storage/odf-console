@@ -56,6 +56,7 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
     description,
     hideCurrentHumanized,
     hideHorizontalBorder,
+    disableGraphLink,
     showLegend,
     CustomUtilizationSummary,
   }) => {
@@ -100,7 +101,7 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
         ariaChartTitle={title}
         data={data}
         loading={!error && isLoading}
-        query={query}
+        query={!disableGraphLink && query}
         // Todo(bipuladh): Make humanize type Humanize once unit.js is converted
         humanize={humanizeValue as Humanize}
         byteDataType={byteDataType}
@@ -272,6 +273,7 @@ type UtilizationItemProps = {
   customDateTimeFormatter?: (date: Date) => string;
   description?: string | ((result: PrometheusResult, index: number) => string);
   hideCurrentHumanized?: boolean;
+  disableGraphLink?: boolean;
   showLegend?: boolean;
   hideHorizontalBorder?: boolean;
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;

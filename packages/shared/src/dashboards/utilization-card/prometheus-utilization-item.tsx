@@ -40,6 +40,7 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
     description,
     hideCurrentHumanized,
     hideHorizontalBorder,
+    disableGraphLink,
     showLegend,
     CustomUtilizationSummary,
   }) => {
@@ -89,6 +90,7 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
         customDateTimeFormatter={customDateTimeFormatter}
         hideCurrentHumanized={hideCurrentHumanized}
         hideHorizontalBorder={hideHorizontalBorder}
+        disableGraphLink={disableGraphLink}
         showLegend={showLegend}
         CustomUtilizationSummary={CustomUtilizationSummary}
       />
@@ -168,6 +170,7 @@ type PrometheusUtilizationItemProps = PrometheusCommonProps & {
   customDateTimeFormatter?: (date: Date) => string;
   hideCurrentHumanized?: boolean;
   hideHorizontalBorder?: boolean;
+  disableGraphLink?: boolean;
   showLegend?: boolean;
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
 };
