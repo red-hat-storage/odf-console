@@ -35,13 +35,13 @@ export const findPlacementDecisionUsingPlacement = (
       getNamespace(placementDecision) === getNamespace(placement)
   );
 
-export const getManagedClusterAvailableCondition = (
-  managedCluster: ACMManagedClusterKind
+export const getManagedClusterCondition = (
+  managedCluster: ACMManagedClusterKind,
+  conditionType: string
 ) =>
   managedCluster?.status?.conditions?.find(
     (condition) =>
-      condition?.type === 'ManagedClusterConditionAvailable' &&
-      condition.status === 'True'
+      condition?.type === conditionType && condition.status === 'True'
   );
 
 export const findSiblingArgoAppSetsFromPlacement = (

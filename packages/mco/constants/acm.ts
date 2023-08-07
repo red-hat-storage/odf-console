@@ -28,3 +28,8 @@ export enum ClusterClaimTypes {
   STORAGE_SYSTEM_NAME = 'storagesystemname.odf.openshift.io',
   CEPH_FSID = 'cephfsid.odf.openshift.io',
 }
+
+// Managed cluster status conditions
+export const MANAGED_CLUSTER_CONDITION_AVAILABLE =
+  'ManagedClusterConditionAvailable';
+export const MANAGED_CLUSTER_JOINED = 'ManagedClusterJoined';

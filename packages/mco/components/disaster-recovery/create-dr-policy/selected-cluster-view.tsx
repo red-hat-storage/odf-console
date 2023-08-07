@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { RedExclamationCircleIcon } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Text,
   Badge,
@@ -21,7 +23,20 @@ export const SelectedCluster: React.FC<SelectedClusterProps> = ({
   cluster,
   dispatch, // eslint-disable-line @typescript-eslint/no-unused-vars
 }) => {
-  const { name, region, storageSystemName } = cluster;
+  const {
+    name,
+    region,
+    storageSystemName,
+    isManagedClusterAvailable,
+    isValidODFVersion,
+    cephFSID,
+  } = cluster;
+  const { t } = useCustomTranslation();
+  const anyError =
+    !isManagedClusterAvailable ||
+    !isValidODFVersion ||
+    !storageSystemName ||
+    !cephFSID;
   return (
     <Flex
       display={{ default: 'inlineFlex' }}
@@ -34,9 +49,20 @@ export const SelectedCluster: React.FC<SelectedClusterProps> = ({
       </FlexItem>
       <FlexItem>
         <TextContent>
-          <Text component={TextVariants.p}>{name}</Text>
-          <Text component={TextVariants.small}>{region}</Text>
-          <Text component={TextVariants.small}>{storageSystemName}</Text>
+          <Text component={TextVariants.p}>
+            <span> {name} </span> &nbsp;
+            {!!anyError && <RedExclamationCircleIcon />}
+          </Text>
+          {!!storageSystemName ? (
+            <>
+              <Text component={TextVariants.small}>{region}</Text>
+              <Text component={TextVariants.small}>{storageSystemName}</Text>
+            </>
+          ) : (
+            <Text component={TextVariants.small}>
+              {t('Information unavailable')}
+            </Text>
+          )}
         </TextContent>
       </FlexItem>
     </Flex>
