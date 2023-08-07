@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { getMajorVersion, isMinimumSupportedODFVersion } from '@odf/mco/utils';
+import {
+  getMajorVersion,
+  getManagedClusterCondition,
+  isMinimumSupportedODFVersion,
+} from '@odf/mco/utils';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -27,6 +31,8 @@ import {
   MANAGED_CLUSTER_REGION_CLAIM,
   HUB_CLUSTER_NAME,
   ClusterClaimTypes,
+  MANAGED_CLUSTER_JOINED,
+  MANAGED_CLUSTER_CONDITION_AVAILABLE,
 } from '../../../constants';
 import { ACMManagedClusterModel } from '../../../models';
 import { ACMManagedClusterKind } from '../../../types';
@@ -81,6 +87,10 @@ const fetchODFInfo = (
     storageSystemName: storageSystemNameClaim?.value || '',
     storageClusterName: storageClusterNameClaim?.value || '',
     cephFSID: cephFsidClaim?.value || '',
+    isManagedClusterAvailable: !!getManagedClusterCondition(
+      cluster,
+      MANAGED_CLUSTER_CONDITION_AVAILABLE
+    ),
     isValidODFVersion: isMinimumSupportedODFVersion(
       getMajorVersion(odfVersionClaim?.value),
       requiredODFVersion
@@ -140,15 +150,15 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       !!requiredODFVersion &&
       !acmManagedClustersLoadError
     ) {
-      setClusters(
-        acmManagedClusters?.reduce(
-          (obj, acmManagedCluster) => [
-            ...obj,
-            getManagedClusterInfo(acmManagedCluster, requiredODFVersion),
-          ],
-          []
-        )
+      const managedClusterInfoList = acmManagedClusters?.reduce(
+        (acc, cluster) =>
+          !!getManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED)
+            ? [...acc, getManagedClusterInfo(cluster, requiredODFVersion)]
+            : acc,
+        []
       );
+
+      setClusters(managedClusterInfoList);
     }
   }, [
     acmManagedClusters,
@@ -163,29 +173,13 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   );
 
   const onSelect: DataListCheckProps['onChange'] = (checked, event) => {
-    const {
-      name,
-      region: clusterRegion,
-      odfVersion,
-      storageClusterName,
-      storageSystemName,
-      cephFSID,
-      isValidODFVersion,
-    } = filteredClusters?.[Number(event.currentTarget.id)];
+    const selectedClusterInfo =
+      filteredClusters?.[Number(event.currentTarget.id)];
     const selectedClusterList = checked
-      ? [
-          ...selectedClusters,
-          {
-            name,
-            region: clusterRegion,
-            cephFSID,
-            storageSystemName,
-            storageClusterName,
-            odfVersion,
-            isValidODFVersion,
-          },
-        ]
-      : selectedClusters.filter((cluster) => cluster?.name !== name);
+      ? [...selectedClusters, selectedClusterInfo]
+      : selectedClusters.filter(
+          (cluster) => cluster?.name !== selectedClusterInfo.name
+        );
     dispatch({
       type: DRPolicyActionType.SET_SELECTED_CLUSTERS,
       payload: selectedClusterList,
