@@ -17,7 +17,12 @@ import {
   TIME_UNITS,
   SYNC_SCHEDULE_DISPLAY_TEXT,
 } from '../../../constants';
-import { DRPolicyState, DRPolicyAction, DRPolicyActionType } from './reducer';
+import {
+  DRPolicyState,
+  DRPolicyAction,
+  DRPolicyActionType,
+  Cluster,
+} from './reducer';
 import '../../../style.scss';
 
 type SyncScheduleProps = {
@@ -118,6 +123,84 @@ type DRReplicationTypeProps = {
   dispatch: React.Dispatch<DRPolicyAction>;
 };
 
+type ErrorMessageType = {
+  message: string;
+  description?: string;
+};
+
+type ClusterErrorType = {
+  unAvailableClusters: string[];
+  clustersWithUnSupportedODF: string[];
+  clustersWithoutODF: string[];
+  clustersWithUnSuccessfulODF: string[];
+};
+
+const getClusterErrorInfo = (selectedClusters: Cluster[]): ClusterErrorType =>
+  selectedClusters.reduce(
+    (acc, cluster) => {
+      if (!cluster.isManagedClusterAvailable) {
+        acc.unAvailableClusters.push(cluster.name);
+      }
+      if (!cluster.storageSystemName) {
+        acc.clustersWithUnSupportedODF.push(cluster.name);
+      }
+      if (!cluster.isValidODFVersion) {
+        acc.clustersWithoutODF.push(cluster.name);
+      }
+      if (cluster.cephFSID === '') {
+        acc.clustersWithUnSuccessfulODF.push(cluster.name);
+      }
+      return acc;
+    },
+    {
+      unAvailableClusters: [],
+      clustersWithUnSupportedODF: [],
+      clustersWithoutODF: [],
+      clustersWithUnSuccessfulODF: [],
+    }
+  );
+
+const getErrorMessage = (
+  selectedClusters: Cluster[],
+  requiredODFVersion: string,
+  t
+): ErrorMessageType => {
+  const clusterErrorInfo = getClusterErrorInfo(selectedClusters);
+  if (!!clusterErrorInfo.unAvailableClusters.length) {
+    return {
+      message: t('1 or more managed clusters are offline'),
+      description: t(
+        'The status for both the managed clusters must be available for creating a DR policy. To restore a cluster to an available state, refer to the instructions in the ACM documentation.'
+      ),
+    };
+  } else if (!!clusterErrorInfo.clustersWithUnSupportedODF.length) {
+    return {
+      message: t('Cannot proceed with one or more selected clusters'),
+      description: t(
+        'We could not retrieve any information about the managed cluster {{names}}. Check the documentation for potential causes and follow the steps mentioned and try again.',
+        { names: clusterErrorInfo.clustersWithUnSupportedODF.join(' & ') }
+      ),
+    };
+  } else if (!!clusterErrorInfo.clustersWithoutODF.length) {
+    return {
+      message: t(
+        '{{ names }} has either an unsupported ODF version or the ODF operator is missing, install or update to ODF {{ version }} or the latest version to enable DR protection.',
+        {
+          names: clusterErrorInfo.clustersWithoutODF.join(' & '),
+          version: requiredODFVersion,
+        }
+      ),
+    };
+  } else if (!!clusterErrorInfo.clustersWithUnSuccessfulODF.length) {
+    return {
+      message: t('{{ names }} is not connected to RHCS', {
+        names: clusterErrorInfo.clustersWithUnSuccessfulODF.join(' & '),
+      }),
+    };
+  }
+  return null;
+};
+
 export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
   state,
   requiredODFVersion,
@@ -125,6 +208,10 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const [isReplicationOpen, setReplicationOpen] = React.useState(false);
+  const errorMessage = React.useMemo(
+    () => getErrorMessage(state.selectedClusters, requiredODFVersion, t),
+    [state.selectedClusters, requiredODFVersion, t]
+  );
 
   const replicationDropdownItems = React.useMemo(
     () =>
@@ -148,19 +235,19 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
     [state.isReplicationInputManual, dispatch, t]
   );
 
-  const errorMessage = (message: string) => (
-    <Alert
-      data-test="odf-not-found-alert"
-      className="odf-alert mco-create-data-policy__alert"
-      title={message}
-      variant={AlertVariant.danger}
-      isInline
-    />
-  );
-
   return (
     <>
-      {state.isODFDetected ? (
+      {!!errorMessage ? (
+        <Alert
+          data-test="odf-not-found-alert"
+          className="odf-alert mco-create-data-policy__alert"
+          title={errorMessage.message}
+          variant={AlertVariant.danger}
+          isInline
+        >
+          {errorMessage?.description}
+        </Alert>
+      ) : (
         <>
           {state.replication && (
             <FormGroup
@@ -194,23 +281,6 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
             </FormGroup>
           )}
         </>
-      ) : (
-        !state.errorMessage &&
-        state.selectedClusters?.map((c) =>
-          !c.isValidODFVersion
-            ? errorMessage(
-                t(
-                  '{{ name }} has either an unsupported ODF version or the ODF operator is missing, install or update to ODF {{ version }} or latest version to enable DR protection.',
-                  { name: c?.name, version: requiredODFVersion }
-                )
-              )
-            : c.cephFSID === '' &&
-              errorMessage(
-                t('{{ name }} is not connected to RHCS', {
-                  name: c?.name,
-                })
-              )
-        )
       )}
     </>
   );

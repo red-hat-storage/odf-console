@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { getName, getNamespace } from '@odf/shared/selectors';
-import { DRActionType } from '../../../constants';
+import {
+  DRActionType,
+  MANAGED_CLUSTER_CONDITION_AVAILABLE,
+} from '../../../constants';
 import {
   DisasterRecoveryResourceKind,
   getApplicationSetResourceObj,
@@ -18,7 +21,7 @@ import {
   findCluster,
   findDeploymentClusters,
   checkDRActionReadiness,
-  getManagedClusterAvailableCondition,
+  getManagedClusterCondition,
   findDRType,
   isDRClusterFenced,
   findPlacementNameFromAppSet,
@@ -114,10 +117,14 @@ export const ArogoApplicationSetModal = (
       deploymentClusterName,
       true
     );
-    const primaryClusterCondition =
-      getManagedClusterAvailableCondition(primaryCluster);
-    const targetClusterCondition =
-      getManagedClusterAvailableCondition(targetCluster);
+    const primaryClusterCondition = getManagedClusterCondition(
+      primaryCluster,
+      MANAGED_CLUSTER_CONDITION_AVAILABLE
+    );
+    const targetClusterCondition = getManagedClusterCondition(
+      targetCluster,
+      MANAGED_CLUSTER_CONDITION_AVAILABLE
+    );
     return loaded && !loadError
       ? [
           {
