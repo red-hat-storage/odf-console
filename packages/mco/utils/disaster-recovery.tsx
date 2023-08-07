@@ -426,11 +426,13 @@ export const getCurrentStatus = (drpcList: DRPlacementControlKind[]): string =>
 
 export const getDRStatus = ({
   currentStatus,
+  progression,
   targetClusters,
   customText,
   t,
 }: {
   currentStatus: string;
+  progression?: string;
   targetClusters?: string;
   customText?: string;
   t: TFunction;
@@ -439,7 +441,9 @@ export const getDRStatus = ({
     case DRPC_STATUS.Relocating:
     case DRPC_STATUS.FailingOver:
       return {
-        text: customText || currentStatus,
+        text:
+          (customText || currentStatus) +
+          (progression ? ` ${progression}` : ''),
         icon: <InProgressIcon />,
         toolTip: (
           <>

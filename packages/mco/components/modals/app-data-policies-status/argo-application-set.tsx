@@ -43,6 +43,7 @@ export const ArogoApplicationSetStatus: React.FC<ArogoApplicationSetStatusProps>
         const drpc = drResource?.drPlacementControls?.[0];
         const drPolicy = drResource?.drPolicy;
         const status = drpc?.status?.phase as DRPC_STATUS;
+        const progression = drpc?.status?.progression;
         const targetCluster = [
           DRPC_STATUS.FailedOver,
           DRPC_STATUS.FailingOver,
@@ -53,6 +54,7 @@ export const ArogoApplicationSetStatus: React.FC<ArogoApplicationSetStatusProps>
           {
             policyName: getName(drPolicy),
             status: status,
+            progression: progression,
             dataLastSyncedOn: drpc?.status?.lastGroupSyncTime,
             schedulingInterval: drPolicy?.spec?.schedulingInterval,
             targetCluster: targetCluster,

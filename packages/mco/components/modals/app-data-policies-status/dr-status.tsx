@@ -26,6 +26,7 @@ export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
     policyName,
     schedulingInterval,
     status,
+    progression,
     targetCluster,
   } = drStatus || {};
   const customText: string = [
@@ -34,7 +35,12 @@ export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
   ].includes(status)
     ? t('Completed')
     : t('In Progress');
-  const statusAndText = getDRStatus({ currentStatus: status, customText, t });
+  const statusAndText = getDRStatus({
+    currentStatus: status,
+    progression: progression,
+    customText,
+    t,
+  });
   const lastSync = !!dataLastSyncedOn
     ? t('Last synced {{lastSync}}', { lastSync: fromNow(dataLastSyncedOn) })
     : '';
@@ -141,6 +147,7 @@ export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
 export type DRStatusProps = {
   policyName: string;
   status: DRPC_STATUS;
+  progression: string;
   targetCluster: string;
   replicationType: REPLICATION_TYPE;
   dataLastSyncedOn: string;
