@@ -16,7 +16,7 @@ import {
 import { ArgoApplicationSetKind } from '../../../types';
 import {
   findCluster,
-  findDeploymentClusterName,
+  findDeploymentClusters,
   checkDRActionReadiness,
   getManagedClusterAvailableCondition,
   findDRType,
@@ -97,11 +97,11 @@ export const ArogoApplicationSetModal = (
       placementDecision,
       placement,
     } = resourcePlacements?.[0] || {};
-    let deploymentClusterName = findDeploymentClusterName(
+    const deploymentClusters = findDeploymentClusters(
       placementDecision,
-      drPlacementControl,
-      drClusters
+      drPlacementControl
     );
+    const deploymentClusterName = deploymentClusters?.[0] || '';
     const targetCluster = findCluster(managedClusters, deploymentClusterName);
     const primaryCluster = findCluster(
       managedClusters,

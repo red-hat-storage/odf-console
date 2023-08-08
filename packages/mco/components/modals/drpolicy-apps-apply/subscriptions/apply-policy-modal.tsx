@@ -381,7 +381,7 @@ const ApplyDRPolicyModal: React.FC<CommonModalProps<ApplyModalExtraProps>> = (
             plDecision,
           ],
         }),
-        {}
+        {} as PlacementDecisionMap
       );
 
       if (

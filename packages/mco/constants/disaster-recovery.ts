@@ -6,6 +6,10 @@ export const DRPC_NAME_ANNOTATION =
 export const DRPC_NAMESPACE_ANNOTATION =
   'drplacementcontrol.ramendr.openshift.io/drpc-namespace';
 
+// DRPC annotations
+export const LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION =
+  'drplacementcontrol.ramendr.openshift.io/last-app-deployment-cluster';
+
 // Maximum cluster per DRPolicy
 export const MAX_ALLOWED_CLUSTERS = 2;
 

@@ -21,6 +21,7 @@ import {
 } from '../../../types';
 import {
   findDRType,
+  findDeploymentClusters,
   getProtectedPVCsFromDRPC,
   getRemoteNamespaceFromAppSet,
 } from '../../../utils';
@@ -109,8 +110,11 @@ export const DRDashboard: React.FC = () => {
           drPolicy,
           placementDecision,
         } = argoApplicationSetResource?.placements?.[0] || {};
-        placementDecision?.status?.decisions?.forEach((decision) => {
-          const decisionCluster = decision?.clusterName;
+        const deploymentClusters = findDeploymentClusters(
+          placementDecision,
+          drPlacementControl
+        );
+        deploymentClusters.forEach((decisionCluster) => {
           if (drClusterAppsMap.hasOwnProperty(decisionCluster)) {
             drClusterAppsMap[decisionCluster].totalAppSetsCount =
               drClusterAppsMap[decisionCluster].totalAppSetsCount + 1;
