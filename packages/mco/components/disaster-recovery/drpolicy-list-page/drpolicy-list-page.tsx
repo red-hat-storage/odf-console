@@ -167,11 +167,15 @@ export const DRPolicyListPage: React.FC = () => {
         isOpen={isModalOpen}
       />
       {drPolicies?.length === 0 ? (
+        // All length 0 cases are handled by EmptyPage
         <EmptyPage
           title={t('No disaster recovery policies yet')}
           buttonText={t('Create DRPolicy')}
           canAccess={!drPoliciesLoadError && drPoliciesLoaded}
           t={t}
+          // Stop loading when DRPolicy read is success or any error occured
+          // For DRPolicy read permission issue, loaded is always false and error is non empty
+          isLoaded={drPoliciesLoaded || !!drPoliciesLoadError}
           onClick={() => history.push(drPolicyCreatePagePath)}
         >
           <Trans t={t}>
