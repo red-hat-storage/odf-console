@@ -62,7 +62,10 @@ import {
   ACMPlacementKind,
   MirrorPeerKind,
 } from '../types';
-import { findPlacementDecisionUsingPlacement } from './acm';
+import {
+  findPlacementDecisionUsingPlacement,
+  getLastAppDeploymentClusterName,
+} from './acm';
 
 export type PlacementMap = {
   [placementUniqueId: string]: string;
@@ -221,7 +224,9 @@ export const getAppDRInfo = (
           {
             drPlacementControl: drPlacementControl,
             subscriptions: subscriptionMap?.[uniqueId],
-            clusterName: placementMap?.[uniqueId] || '',
+            clusterName:
+              placementMap?.[uniqueId] ||
+              getLastAppDeploymentClusterName(drPlacementControl),
           },
         ]
       : acc;
@@ -520,31 +525,6 @@ export const filterPVCDataUsingAppsets = (
 
 export const filterDRAlerts = (alert: Alert) =>
   alert?.annotations?.alert_type === 'DisasterRecovery';
-
-export const findDeploymentClusterName = (
-  plsDecision: ACMPlacementDecisionKind,
-  drpc: DRPlacementControlKind,
-  drClusters: DRClusterKind[]
-): string => {
-  let deploymentClusterName =
-    plsDecision?.status?.decisions?.[0]?.clusterName || '';
-  // During failover/relocating ramen removing cluser name from placement decision
-  if (!deploymentClusterName) {
-    const currStatus: DRPC_STATUS = drpc?.status?.phase as DRPC_STATUS;
-    if (currStatus === DRPC_STATUS.Relocating) {
-      // While relocating, preferredCluster spec is the target cluster
-      // Find deployment cluster from drclusters using target cluster
-      const cluster = findCluster(drClusters, drpc?.spec?.preferredCluster);
-      deploymentClusterName = getName(cluster);
-    } else if (currStatus === DRPC_STATUS.FailingOver) {
-      // While failover, failoverCluster spec is the target cluster
-      // Find deployment cluster from drclusters using target cluster
-      const cluster = findCluster(drClusters, drpc?.spec?.failoverCluster);
-      deploymentClusterName = getName(cluster);
-    }
-  }
-  return deploymentClusterName;
-};
 
 export const isDRPolicyValidated = (drPolicy: DRPolicyKind) =>
   drPolicy?.status?.conditions?.some(
