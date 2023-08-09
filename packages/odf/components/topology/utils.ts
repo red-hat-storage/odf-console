@@ -8,12 +8,13 @@ import {
 } from '@odf/shared/topology';
 import { resolveResourceUntilDeployment } from '@odf/shared/topology/utils/resource';
 import { NodeKind, PodKind } from '@odf/shared/types';
+import { getRack } from '@odf/shared/utils';
 import {
   Alert,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { getRack, getZone } from '../../utils';
+import { getZone } from '../../utils';
 
 export const generateNodeDeploymentsMap = (
   nodes: NodeKind[],

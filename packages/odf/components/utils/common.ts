@@ -8,7 +8,6 @@ import {
   getNodeCPUCapacity,
   getNodeAllocatableMemory,
   getZone,
-  getRack,
   isFlexibleScaling,
   getDeviceSetCount,
   createDeviceSet,
@@ -26,6 +25,7 @@ import {
   getNodeRoles,
   humanizeCpuCores,
   convertToBaseValue,
+  getRack,
 } from '@odf/shared/utils';
 import { Base64 } from 'js-base64';
 import * as _ from 'lodash-es';

@@ -4,6 +4,7 @@ import {
   NodeMachineAndNamespace,
 } from '@odf/shared/types';
 import * as _ from 'lodash-es';
+import { RACK_LABEL } from '../constants';
 
 const NODE_ROLE_PREFIX = 'node-role.kubernetes.io/';
 
@@ -55,3 +56,5 @@ export const getNodeRoles = (node: NodeKind): string[] => {
 
 export const getNodeZone = (node: NodeKind): string =>
   node.metadata.labels?.['topology.kubernetes.io/zone'];
+
+export const getRack = (node: NodeKind) => node.metadata.labels?.[RACK_LABEL];
