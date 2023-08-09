@@ -1,11 +1,20 @@
-import { getLabel, getName, getNamespace } from '@odf/shared/selectors';
-import { PLACEMENT_REF_LABEL } from '../constants';
+import {
+  getAnnotations,
+  getLabel,
+  getName,
+  getNamespace,
+} from '@odf/shared/selectors';
+import {
+  LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
+  PLACEMENT_REF_LABEL,
+} from '../constants';
 import {
   ArgoApplicationSetKind,
   ACMManagedClusterKind,
   ACMPlacementDecisionKind,
   ACMPlacementKind,
   ACMPlacementRuleKind,
+  DRPlacementControlKind,
 } from '../types';
 
 // Finding placement from application generators
@@ -65,3 +74,23 @@ export const getClustersFromDecisions = (
 export const getRemoteNamespaceFromAppSet = (
   application: ArgoApplicationSetKind
 ): string => application?.spec?.template?.spec?.destination?.namespace;
+
+export const getLastAppDeploymentClusterName = (
+  drPlacementControl: DRPlacementControlKind
+) =>
+  getAnnotations(drPlacementControl)?.[
+    LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION
+  ] || '';
+
+export const findDeploymentClusters = (
+  placementDecision: ACMPlacementDecisionKind,
+  drPlacementControl: DRPlacementControlKind
+): string[] => {
+  if ((placementDecision ?? {}).status?.decisions?.length > 0) {
+    return getClustersFromDecisions(placementDecision);
+  } else {
+    const lastDeploymentClusterName =
+      getLastAppDeploymentClusterName(drPlacementControl);
+    return !!lastDeploymentClusterName ? [lastDeploymentClusterName] : [];
+  }
+};
