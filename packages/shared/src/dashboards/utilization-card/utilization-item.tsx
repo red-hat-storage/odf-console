@@ -52,7 +52,6 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
     title,
     utilization,
     chartType,
-    customDateTimeFormatter,
     description,
     hideCurrentHumanized,
     hideHorizontalBorder,
@@ -108,7 +107,6 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
         chartType={chartType}
         mainDataName="usage"
         showLegend={showLegend}
-        formatDate={customDateTimeFormatter}
       />
     );
 
@@ -269,7 +267,6 @@ type UtilizationItemProps = {
     requested: LIMIT_STATE;
   }) => void;
   chartType?: 'stacked-area' | 'grouped-line';
-  customDateTimeFormatter?: (date: Date) => string;
   description?: string | ((result: PrometheusResult, index: number) => string);
   hideCurrentHumanized?: boolean;
   showLegend?: boolean;
