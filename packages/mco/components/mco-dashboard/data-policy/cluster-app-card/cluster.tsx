@@ -31,6 +31,7 @@ import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { CustomUtilizationSummaryProps } from '@odf/shared/dashboards/utilization-card/utilization-item';
 import { dateTimeFormatterWithWeekDay } from '@odf/shared/details-page/datetime';
+import { FieldLevelHelp } from '@odf/shared/generic';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -256,14 +257,27 @@ const getDescription = (result: PrometheusResult, _index: number) =>
   result.metric?.['cluster'] || '';
 
 export const SnapshotUtilizationCard: React.FC<SnapshotUtilizationCardProps> =
-  ({ title, queryType, humanizeValue, clusters, CustomUtilizationSummary }) => {
+  ({
+    title,
+    titleToolTip,
+    queryType,
+    humanizeValue,
+    clusters,
+    CustomUtilizationSummary,
+  }) => {
     return (
       <>
         <div className="mco-dashboard__contentRow mco-cluster-app__contentRow--flexEnd">
           <UtilizationDurationDropdown />
         </div>
+        <div>
+          <StatusText>
+            {title}
+            {!!titleToolTip && <FieldLevelHelp>{titleToolTip}</FieldLevelHelp>}
+          </StatusText>
+        </div>
         <PrometheusUtilizationItem
-          title={title}
+          title={''}
           utilizationQuery={
             !!clusters.length &&
             getRBDSnapshotUtilizationQuery(clusters, queryType)
@@ -318,5 +332,6 @@ type SnapshotUtilizationCardProps = {
   humanizeValue: Humanize;
   chartLabel?: string;
   clusters?: string[];
+  titleToolTip: string;
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
 };
