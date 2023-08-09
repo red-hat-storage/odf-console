@@ -268,12 +268,15 @@ export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
     ...(namespace !== ALL_NAMESPACES_KEY ? { namespace } : {}),
   });
 
-  const [data, filteredData, onFilterChange] = useListPageFilter(obc);
+  const rowFilters = React.useMemo(() => [obcStatusFilter(t)], [t]);
+  const [data, filteredData, onFilterChange] = useListPageFilter(
+    obc,
+    rowFilters
+  );
 
   const createLink =
     '/odf/resource/objectbucket.io~v1alpha1~ObjectBucketClaim/create/~new';
 
-  const rowFilters = [obcStatusFilter(t)];
   return (
     <>
       <Modal {...modalProps} />

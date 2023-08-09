@@ -186,9 +186,12 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
     selector,
   });
 
-  const [data, filteredData, onFilterChange] = useListPageFilter(obc);
+  const rowFilters = React.useMemo(() => [obStatusFilter(t)], [t]);
+  const [data, filteredData, onFilterChange] = useListPageFilter(
+    obc,
+    rowFilters
+  );
 
-  const rowFilters = [obStatusFilter(t)];
   return (
     <>
       <Modal {...modalProps} />
