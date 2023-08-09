@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { getMajorVersion, isMinimumSupportedODFVersion } from '@odf/mco/utils';
+import { StatusBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -20,7 +21,6 @@ import {
   TextContent,
   TextVariants,
   Text,
-  Bullseye,
 } from '@patternfly/react-core';
 import {
   MAX_ALLOWED_CLUSTERS,
@@ -249,14 +249,11 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
           </ToolbarItem>
         </ToolbarContent>
       </Toolbar>
-      {filteredClusters.length === 0 ? (
-        <Bullseye
-          data-test="no-cluster-bullseye"
-          className="mco-select-cluster-list__bullseye"
-        >
-          {t('No clusters found')}
-        </Bullseye>
-      ) : (
+      <StatusBox
+        data={!!nameSearch ? filteredClusters : acmManagedClusters}
+        loadError={acmManagedClustersLoadError}
+        loaded={acmManagedClustersLoaded}
+      >
         <DataList
           aria-label={t('Select cluster list')}
           isCompact
@@ -294,7 +291,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
             </DataListItem>
           ))}
         </DataList>
-      )}
+      </StatusBox>
     </div>
   );
 };

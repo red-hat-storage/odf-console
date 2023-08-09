@@ -3,13 +3,10 @@
   margin-top: var(--pf-global--spacer--md);
 }
 
-.mco-select-cluster-list__bullseye {
-  min-height: 200px;
-}
-
 .mco-select-cluster-list__data-list {
   --pf-c-data-list__item--BorderBottomWidth: 0;
   max-height: 300px;
+  min-height: 200px;
   overflow-y: auto;
   padding: var(--pf-global--spacer--md) var(--pf-global--spacer--md)
     var(--pf-global--spacer--md) 0;
