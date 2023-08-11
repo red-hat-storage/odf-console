@@ -35,7 +35,7 @@ const isObjectServiceTab = (e: Extension) =>
 
 const ObjectServicePage: React.FC = () => {
   const { t } = useCustomTranslation();
-  const title = t('Object Service');
+  const title = t('Object Storage');
 
   const [extensions, isLoaded, error] = useResolvedExtensions<HorizontalNavTab>(
     isObjectServiceTab as ExtensionTypeGuard<HorizontalNavTab>
