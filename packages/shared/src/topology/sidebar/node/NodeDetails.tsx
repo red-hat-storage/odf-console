@@ -15,6 +15,7 @@ import {
   getNodeMachineNameAndNamespace,
   getNodeInstanceType,
   referenceForModel,
+  getRack,
 } from '@odf/shared/utils';
 import { ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -28,6 +29,8 @@ export const NodeDetails: React.FC<NodeDetailsProps> = ({ resource: node }) => {
   const machine = getNodeMachineNameAndNamespace(node);
   const roles = getNodeRoles(node).sort();
   const { t } = useCustomTranslation();
+  const availableZone = getNodeZone(node);
+  const availableRack = getRack(node);
 
   return (
     <div className="odf-m-pane__body">
@@ -41,8 +44,18 @@ export const NodeDetails: React.FC<NodeDetailsProps> = ({ resource: node }) => {
             <dd>{roles}</dd>
             <dt>{t('Instance type')}</dt>
             <dd>{getNodeInstanceType(node)}</dd>
-            <dt>{t('Zone')}</dt>
-            <dd>{getNodeZone(node)}</dd>
+            {availableZone && (
+              <>
+                <dt>{t('Zone')}</dt>
+                <dd>{availableZone}</dd>
+              </>
+            )}
+            {availableRack && (
+              <>
+                <dt>{t('Rack')}</dt>
+                <dd>{availableRack}</dd>
+              </>
+            )}
             <dt>{t('External ID')}</dt>
             <dd>{_.get(node, 'spec.externalID', '-')}</dd>
             <dt>{t('Node addresses')}</dt>
