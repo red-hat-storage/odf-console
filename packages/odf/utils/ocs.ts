@@ -9,7 +9,11 @@ import {
   StorageClusterKind,
   Taint,
 } from '@odf/shared/types';
-import { humanizeCpuCores, convertToBaseValue } from '@odf/shared/utils';
+import {
+  humanizeCpuCores,
+  convertToBaseValue,
+  getRack,
+} from '@odf/shared/utils';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import {
   k8sPatch,
@@ -22,7 +26,6 @@ import {
   MINIMUM_NODES,
   ocsTaint,
   OCS_PROVISIONERS,
-  RACK_LABEL,
   ZONE_LABELS,
 } from '../constants';
 
@@ -74,8 +77,6 @@ const countNodesPerZone = (nodes: NodeKind[]) =>
     acc.hasOwnProperty(zone) ? (acc[zone] += 1) : (acc[zone] = 1);
     return acc;
   }, {});
-
-export const getRack = (node: NodeKind) => node.metadata.labels?.[RACK_LABEL];
 
 const getTopologyInfo = (nodes: NodeKind[]) =>
   nodes.reduce(
