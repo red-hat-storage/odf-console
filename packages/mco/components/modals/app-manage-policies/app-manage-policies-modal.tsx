@@ -25,7 +25,7 @@ import {
 const getModalTitle = (modalViewContext: ModalViewContext, t: TFunction) => {
   if (modalViewContext === ModalViewContext.ASSIGN_POLICY_VIEW) {
     return {
-      title: t('Assign policy'),
+      title: t('Assign data policy'),
       description: t(
         'Secure your application by assigning a policy from the available policy templates.'
       ),
@@ -34,7 +34,7 @@ const getModalTitle = (modalViewContext: ModalViewContext, t: TFunction) => {
     return {
       title: t('Manage data policy'),
       description: t(
-        'Assign policy to protect the application and ensure quick recovery. Unassign policy from an application when they no longer require to be managed.'
+        'Assign a policy to protect the application and to ensure a quick recovery.'
       ),
     };
   }
