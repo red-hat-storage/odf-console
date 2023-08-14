@@ -7,3 +7,4 @@ export const ONE_MINUTE = 60 * ONE_SECOND;
 export const ONE_HOUR = 60 * ONE_MINUTE;
 export const ALL_NAMESPACES = 'all-namespaces';
 export const DEFAULT_NS = 'default';
+export const RACK_LABEL = 'topology.rook.io/rack';

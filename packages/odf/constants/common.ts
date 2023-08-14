@@ -8,7 +8,6 @@ export const OCS_EXTERNAL_CR_NAME = 'ocs-external-storagecluster';
 export const OCS_INTERNAL_CR_NAME = 'ocs-storagecluster';
 export const HOSTNAME_LABEL_KEY = 'kubernetes.io/hostname';
 export const LABEL_OPERATOR = 'In';
-export const RACK_LABEL = 'topology.rook.io/rack';
 export const OCS_SUPPORT_ANNOTATION = 'features.ocs.openshift.io/enabled';
 export const OCS_DISABLED_ANNOTATION = 'features.ocs.openshift.io/disabled';
 export const ODF_VENDOR_ANNOTATION = 'vendors.odf.openshift.io/kind';
