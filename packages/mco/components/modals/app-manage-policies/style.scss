@@ -20,4 +20,7 @@
     &__alert--margin-bottom {
         margin-bottom: var(--pf-global--spacer--xs) !important;
     }
+    &__emptyState---margin-bottom {
+        margin-bottom: var(--pf-global--spacer--lg);
+    }
 }
