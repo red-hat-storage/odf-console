@@ -22,6 +22,8 @@ import {
 import { createRefFromK8Resource } from '../../../../utils';
 import { ApplicationSetParser } from './application-set-parser';
 
+let testCase = 1;
+
 const mockApplicationSet1: ArgoApplicationSetKind = {
   apiVersion: `${ArgoApplicationSetModel.apiGroup}/${ArgoApplicationSetModel.apiVersion}`,
   kind: ArgoApplicationSetModel.kind,
@@ -51,12 +53,51 @@ const mockApplicationSet1: ArgoApplicationSetKind = {
   },
 };
 
+const mockApplicationSet2: ArgoApplicationSetKind = {
+  apiVersion: `${ArgoApplicationSetModel.apiGroup}/${ArgoApplicationSetModel.apiVersion}`,
+  kind: ArgoApplicationSetModel.kind,
+  metadata: {
+    name: 'mock-appset-2',
+    namespace: 'mock-appset-2',
+  },
+  spec: {
+    generators: [
+      {
+        clusterDecisionResource: {
+          labelSelector: {
+            matchLabels: {
+              [PLACEMENT_REF_LABEL]: 'mock-placement-2',
+            },
+          },
+        },
+      },
+    ],
+    template: {
+      spec: {
+        destination: {
+          namespace: 'mock-appset-2',
+        },
+      },
+    },
+  },
+};
+
 const mockPlacement1: ACMPlacementKind = {
   apiVersion: `${ACMPlacementModel.apiGroup}/${ACMPlacementModel.apiVersion}`,
   kind: ACMPlacementModel.kind,
   metadata: {
     name: 'mock-placement-1',
     namespace: 'mock-appset-1',
+  },
+  spec: {},
+};
+
+const mockPlacement2: ACMPlacementKind = {
+  apiVersion: `${ACMPlacementModel.apiGroup}/${ACMPlacementModel.apiVersion}`,
+  kind: ACMPlacementModel.kind,
+  metadata: {
+    name: 'mock-placement-2',
+    namespace: 'mock-appset-2',
   },
   spec: {},
 };
@@ -69,6 +110,26 @@ const mockPlacementDecision1: ACMPlacementDecisionKind = {
     namespace: 'mock-appset-1',
     labels: {
       [PLACEMENT_REF_LABEL]: 'mock-placement-1',
+    },
+  },
+  status: {
+    decisions: [
+      {
+        clusterName: 'east-1',
+        reason: '',
+      },
+    ],
+  },
+};
+
+const mockPlacementDecision2: ACMPlacementDecisionKind = {
+  apiVersion: `${ACMPlacementDecisionModel.apiGroup}/${ACMPlacementDecisionModel.apiVersion}`,
+  kind: ACMPlacementDecisionModel.kind,
+  metadata: {
+    name: 'mock-placement-decision-2',
+    namespace: 'mock-appset-2',
+    labels: {
+      [PLACEMENT_REF_LABEL]: 'mock-placement-2',
     },
   },
   status: {
@@ -150,7 +211,7 @@ const mockDRPC1: DRPlacementControlKind = {
   },
 };
 
-const drResources: DisasterRecoveryResourceKind = {
+const drResources1: DisasterRecoveryResourceKind = {
   drClusters: [mockDRClusterEast1, mockDRClusterWest1],
   drPolicies: [mockDRPolicy1],
   drPlacementControls: [mockDRPC1],
@@ -163,7 +224,20 @@ const drResources: DisasterRecoveryResourceKind = {
   ],
 };
 
-const appResources: ArgoApplicationSetResourceKind = {
+const drResources2: DisasterRecoveryResourceKind = {
+  drClusters: [],
+  drPolicies: [],
+  drPlacementControls: [],
+  formattedResources: [
+    {
+      drClusters: [],
+      drPolicy: {},
+      drPlacementControls: [],
+    },
+  ],
+};
+
+const appResources1: ArgoApplicationSetResourceKind = {
   formattedResources: [
     {
       application: mockApplicationSet1,
@@ -182,21 +256,70 @@ const appResources: ArgoApplicationSetResourceKind = {
   ],
 };
 
+const appResources2: ArgoApplicationSetResourceKind = {
+  formattedResources: [
+    {
+      application: mockApplicationSet2,
+      placements: [
+        {
+          placement: mockPlacement2,
+          placementDecision: mockPlacementDecision2,
+        },
+      ],
+      managedClusters: [],
+      siblingApplications: [],
+    },
+  ],
+};
+
 const onClose = jest.fn();
 jest.mock('@odf/mco/hooks/disaster-recovery', () => ({
   __esModule: true,
-  useDisasterRecoveryResourceWatch: () => [drResources, true, ''],
+  useDisasterRecoveryResourceWatch: jest.fn(() => {
+    if ([1].includes(testCase)) {
+      return [drResources2, true, ''];
+    } else {
+      return [drResources1, true, ''];
+    }
+  }),
 }));
 jest.mock('@odf/mco/hooks/argo-application-set', () => ({
   __esModule: true,
-  useArgoApplicationSetResourceWatch: () => [appResources, true, ''],
+  useArgoApplicationSetResourceWatch: jest.fn(() => {
+    if ([1].includes(testCase)) {
+      return [appResources2, true, ''];
+    } else {
+      return [appResources1, true, ''];
+    }
+  }),
 }));
 jest.mock('../utils/k8s-utils', () => ({
   unAssignPromises: jest.fn(() => [Promise.resolve({ data: {} })]),
 }));
 
 describe('ApplicationSet manage data policy modal', () => {
-  beforeEach(async () => {
+  test('Empty list page test', async () => {
+    testCase = 1;
+    render(
+      <ApplicationSetParser
+        application={mockApplicationSet2}
+        close={onClose}
+        isOpen={true}
+      />
+    );
+    // Ensure empty state
+    expect(
+      screen.getByText('No assigned data policy found')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "You haven't set a data policy for your application yet. To protect your application, click the 'Assign data policy' button and select a policy from the available templates."
+      )
+    ).toBeInTheDocument();
+  });
+
+  test('manage data policy list view test', async () => {
+    testCase = 2;
     render(
       <ApplicationSetParser
         application={mockApplicationSet1}
@@ -204,22 +327,20 @@ describe('ApplicationSet manage data policy modal', () => {
         isOpen={true}
       />
     );
-  });
 
-  test('manage data policy list view test', async () => {
     const searchBox = screen.getByPlaceholderText('Search');
 
     // Modal headers
     expect(screen.getByText('Manage data policy')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Assign policy to protect the application and ensure quick recovery. Unassign policy from an application when they no longer require to be managed.'
+        'Assign a policy to protect the application and to ensure a quick recovery.'
       )
     ).toBeInTheDocument();
-    expect(screen.getByText('My policies')).toBeInTheDocument();
+    expect(screen.getByText('My assigned policies')).toBeInTheDocument();
 
     // Check primary action is enabled
-    expect(screen.getByText('Assign policy')).toBeEnabled();
+    expect(screen.getByText('Assign data policy')).toBeEnabled();
 
     // Policy list table
     expect(screen.getByLabelText('Selectable table')).toBeInTheDocument();
@@ -245,7 +366,9 @@ describe('ApplicationSet manage data policy modal', () => {
     expect(screen.getByText('View configurations')).toBeInTheDocument();
     // 2) Search using invalid policy
     fireEvent.change(searchBox, { target: { value: 'invalid policy' } });
-    expect(screen.getByText('Not found')).toBeInTheDocument();
+    expect(
+      screen.getByText('No assigned data policy found')
+    ).toBeInTheDocument();
     fireEvent.change(searchBox, { target: { value: '' } });
   });
 
@@ -254,7 +377,7 @@ describe('ApplicationSet manage data policy modal', () => {
     // Select all policy
     fireEvent.click(screen.getByLabelText('Select all rows'));
     // Check primary action is disabled
-    expect(screen.getByText('Assign policy')).toBeDisabled();
+    expect(screen.getByText('Assign data policy')).toBeDisabled();
     // Check secondary action is enabled
     expect(screen.getByLabelText('Select input')).toBeEnabled();
     // Trigger bulk unassign
@@ -279,6 +402,14 @@ describe('ApplicationSet manage data policy modal', () => {
   });
 
   test('Policy configuration view test', async () => {
+    testCase = 3;
+    render(
+      <ApplicationSetParser
+        application={mockApplicationSet1}
+        close={onClose}
+        isOpen={true}
+      />
+    );
     // Row actions
     fireEvent.click(
       screen.getByRole('button', {
@@ -322,6 +453,6 @@ describe('ApplicationSet manage data policy modal', () => {
     // Footer
     fireEvent.click(screen.getByText('Back'));
     // Make sure context is switched to list view
-    expect(screen.getByText('My policies')).toBeInTheDocument();
+    expect(screen.getByText('My assigned policies')).toBeInTheDocument();
   });
 });
