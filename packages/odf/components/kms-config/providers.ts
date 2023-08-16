@@ -17,9 +17,9 @@ export type KMSConfigureProps = {
   isMCG?: boolean;
 };
 
-export type AdvancedKMSModalProps = CommonModalProps<{
+export type AdvancedKMSModalProps = CommonModalProps & {
   state: Pick<WizardState['securityAndNetwork'], 'encryption' | 'kms'>;
   dispatch: EncryptionDispatch;
   mode?: string;
   isWizardFlow?: boolean;
-}>;
+};

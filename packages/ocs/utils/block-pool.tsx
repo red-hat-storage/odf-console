@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ModalKeys } from '@odf/shared/modals/modalLauncher';
+import { ModalKeys } from '@odf/shared/modals/types';
 import { StorageClassResourceKind, CephClusterKind } from '@odf/shared/types';
 import { getLastLanguage } from '@odf/shared/utils';
 import { TFunction } from 'i18next';

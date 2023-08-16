@@ -4,7 +4,6 @@ import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
-import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
@@ -21,29 +20,21 @@ type BackingStoreDetilsPageProps = {
 
 type DetailsProps = {
   obj: NamespaceStoreKind;
-};
+} & RouteComponentProps;
 
-type DetailsType = (launchModal: any, t) => React.FC<DetailsProps>;
-
-const NSDetails: DetailsType =
-  (launchModal, t) =>
-  // eslint-disable-next-line react/display-name
-  ({ obj }) => {
-    return (
-      <CommonDetails
-        resource={obj}
-        launchModal={launchModal}
-        resourceModel={NooBaaNamespaceStoreModel}
-      >
-        <SectionHeading text={t('Provider details')} />
-        <div className="row">
-          <div className="col-sm-6">
-            <ProviderDetails resource={obj} />
-          </div>
+const NSDetails: React.FC<DetailsProps> = ({ obj }) => {
+  const { t } = useCustomTranslation();
+  return (
+    <CommonDetails resource={obj} resourceModel={NooBaaNamespaceStoreModel}>
+      <SectionHeading text={t('Provider details')} />
+      <div className="row">
+        <div className="col-sm-6">
+          <ProviderDetails resource={obj} />
         </div>
-      </CommonDetails>
-    );
-  };
+      </div>
+    </CommonDetails>
+  );
+};
 
 const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
   match,
@@ -58,8 +49,6 @@ const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
       isList: false,
     }
   );
-
-  const [Modal, modalProps, launchModal] = useModalLauncher();
 
   const breadcrumbs = [
     {
@@ -76,29 +65,22 @@ const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
     },
   ];
 
-  const Details = React.useMemo(
-    () => NSDetails(launchModal, t),
-    [launchModal, t]
-  );
-
   const memoizedResource = useDeepCompareMemoize(resource, true);
 
   const actions = React.useCallback(() => {
     return (
       <Kebab
         toggleType="Dropdown"
-        launchModal={launchModal}
         extraProps={{
           resource: memoizedResource,
           resourceModel: NooBaaNamespaceStoreModel,
         }}
       />
     );
-  }, [launchModal, memoizedResource]);
+  }, [memoizedResource]);
 
   return (
     <>
-      <Modal {...modalProps} />
       <DetailsPage
         loaded={loaded}
         loadError={loadError}
@@ -110,7 +92,7 @@ const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
           {
             href: '',
             name: 'Details',
-            component: Details as any,
+            component: NSDetails,
           },
           {
             href: 'yaml',

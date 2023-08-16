@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
+import { useFlag, useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
@@ -32,7 +31,9 @@ import {
 } from './vault-auth-methods';
 import './kms-config.scss';
 
-const LAUNCH_MODAL_KEY = 'ADVANCED_VAULT';
+const AdvancedVaultModal = React.lazy(
+  () => import('../../modals/advanced-kms-modal/advanced-vault-modal')
+);
 
 export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   state,
@@ -43,7 +44,8 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
+  const launchModal = useModal();
+
   const isKmsVaultSASupported = useFlag(FEATURES.ODF_VAULT_SA_KMS);
 
   const vaultState = useDeepCompareMemoize(
@@ -59,7 +61,8 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   const isScEncryption = encryption.storageClass;
 
   const openAdvancedModal = () =>
-    launchModal(LAUNCH_MODAL_KEY, {
+    launchModal(AdvancedVaultModal, {
+      isOpen: true,
       state,
       dispatch,
       isWizardFlow,
@@ -140,7 +143,6 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
 
   return (
     <>
-      <Modal {...modalProps} />
       {isKmsVaultSASupported && (
         <FormGroup
           fieldId="authentication-method"
@@ -183,12 +185,6 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
       />
     </>
   );
-};
-
-const extraMap = {
-  [LAUNCH_MODAL_KEY]: React.lazy(
-    () => import('../../modals/advanced-kms-modal/advanced-vault-modal')
-  ),
 };
 
 const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({

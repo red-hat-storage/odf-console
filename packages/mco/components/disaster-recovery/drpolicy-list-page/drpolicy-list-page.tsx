@@ -2,10 +2,6 @@ import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
 import { useAccessReview } from '@odf/shared/hooks/rbac-hook';
 import { Kebab } from '@odf/shared/kebab/kebab';
-import {
-  LaunchModal,
-  useModalLauncher,
-} from '@odf/shared/modals/modalLauncher';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
@@ -52,7 +48,6 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
     appsLoaded,
     setLinkedApps,
     applicationRefs,
-    launchModal,
     openModal,
   } = rowData;
 
@@ -92,7 +87,6 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         <Kebab
-          launchModal={launchModal}
           extraProps={{
             resource: obj,
             resourceModel: DRPolicyModel,
@@ -102,7 +96,8 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
             canDeleteDRPolicy,
             appCount,
             appsLoaded,
-            appsLoadError
+            appsLoadError,
+            t
           )}
         />
       </TableData>
@@ -133,7 +128,6 @@ export const DRPolicyListPage: React.FC = () => {
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
     useK8sWatchResource<DRPolicyKind[]>(getDRPolicyResourceObj());
   const [applicationRefs, appsLoaded, appsLoadError] = useApplicationsWatch();
-  const [ModalComponent, props, launchModal] = useModalLauncher();
   const [isModalOpen, setConnectedAppsModalOpen] = React.useState(false);
   const [linkedApps, setLinkedApps] = React.useState<ApplicationRefKind[]>([]);
 
@@ -160,7 +154,6 @@ export const DRPolicyListPage: React.FC = () => {
 
   return (
     <>
-      <ModalComponent {...props} />
       <ConnectedApplicationsModal
         applicationRefs={linkedApps}
         onClose={closeModal}
@@ -216,7 +209,6 @@ export const DRPolicyListPage: React.FC = () => {
                 appsLoaded,
                 appsLoadError,
                 applicationRefs,
-                launchModal,
                 setLinkedApps,
                 openModal,
               }}
@@ -233,7 +225,6 @@ type RowData = {
   appsLoaded: boolean;
   appsLoadError: any;
   applicationRefs: ApplicationRefKind[];
-  launchModal: LaunchModal;
   setLinkedApps: React.Dispatch<React.SetStateAction<ApplicationRefKind[]>>;
   openModal: (boolean) => void;
 };

@@ -167,7 +167,7 @@ const Tabs: React.FC<TabsProps> = ({
 
 type WrappedProps = {
   obj?: K8sResourceKind;
-};
+} & RouteComponentProps;
 
 export const YAMLEditorWrapped: React.FC<WrappedProps> = ({ obj }) => (
   <ResourceYAMLEditor initialResource={obj} />

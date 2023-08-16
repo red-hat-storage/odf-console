@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
-import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
   k8sCreate,
+  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { RouteComponentProps, useHistory } from 'react-router';
 import { Title, Wizard, WizardStep } from '@patternfly/react-core';
@@ -35,23 +35,21 @@ enum CreateStepsBC {
 
 export const NS_STORE_MODAL_KEY = 'BC_CREATE_WIZARD_NS_STORE_CREATE_MODAL';
 
-const modalMap = {
-  [NS_STORE_MODAL_KEY]: React.lazy(
-    () => import('../namespace-store/namespace-store-modal')
-  ),
-};
+const NamespaceStoreCreateModal = React.lazy(
+  () => import('../namespace-store/namespace-store-modal')
+);
 
 const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const { ns = CEPH_STORAGE_NAMESPACE } = match.params;
 
-  const [Modal, modalProps, launcher] = useModalLauncher(modalMap);
+  const launcher = useModal();
 
   const history = useHistory();
 
   const launchModal = React.useCallback(
-    () => launcher(NS_STORE_MODAL_KEY, null),
+    () => launcher(NamespaceStoreCreateModal, { isOpen: true }),
     [launcher]
   );
 
@@ -329,7 +327,6 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
 
   return (
     <>
-      <Modal {...modalProps} />
       <div className="odf-create-operand__header">
         <Title
           size="2xl"
