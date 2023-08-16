@@ -50,7 +50,9 @@
     "po-to-i18n": "node ./scripts/i18n/po-to-i18n.js",
     "export-pos": "./scripts/i18n/export-pos.sh",
     "memsource-upload": "./scripts/i18n/memsource-upload.sh",
-    "memsource-download": "./scripts/i18n/memsource-download.sh"
+    "memsource-download": "./scripts/i18n/memsource-download.sh",
+    "ocp-console": "./scripts/start-ocp-console.sh",
+    "dev:c": "yarn ocp-console & PLUGIN=${PLUGIN} I8N_NS=${I8N_NS} yarn server:plugin & wait"
   },
   "dependencies": {
     "@openshift-console/dynamic-plugin-sdk": "0.0.19",
