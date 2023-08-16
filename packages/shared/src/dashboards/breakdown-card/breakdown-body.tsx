@@ -60,9 +60,9 @@ export const BreakdownCardBody: React.FC<BreakdownBodyProps> = ({
     <Grid>
       <GridItem span={4}>
         <TotalCapacityBody
-          prefix={isPersistentInternal && t('Total requests: ')}
+          {...(isPersistentInternal ? { prefix: t('Total requests: ') } : {})}
           capacity={humanize(metricTotal).string}
-          suffix={!isPersistentInternal && t('used')}
+          {...(!isPersistentInternal ? { suffix: t('used') } : {})}
           styleCapacityAsBold={isPersistentInternal}
         />
       </GridItem>
@@ -71,7 +71,7 @@ export const BreakdownCardBody: React.FC<BreakdownBodyProps> = ({
         {capacityAvailable && (
           <TotalCapacityBody
             capacity={humanize(capacityAvailable).string}
-            suffix={!isPersistentInternal && t('available')}
+            {...(!isPersistentInternal ? { suffix: t('available') } : {})}
             className="capacity-breakdown-card__available-body text-secondary"
           />
         )}

@@ -17,6 +17,14 @@ const config = {
     '<rootDir>/node_modules/(?!(@openshift-console)/ | ?!(@patternfly/react-core/dist))/',
   ],
   testRegex: '.*\\.spec\\.tsx?$',
+  coverageThreshold: {
+    global: {
+      branches: 0,
+      functions: 0,
+      lines: 0,
+      statements: 0,
+    },
+  },
 };
 
 module.exports = config;
