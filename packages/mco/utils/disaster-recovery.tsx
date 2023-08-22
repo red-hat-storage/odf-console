@@ -18,6 +18,7 @@ import {
   K8sResourceCommon,
   GreenCheckCircleIcon,
   Alert,
+  AlertStates,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Operator,
@@ -524,7 +525,8 @@ export const filterPVCDataUsingAppsets = (
   );
 
 export const filterDRAlerts = (alert: Alert) =>
-  alert?.annotations?.alert_type === 'DisasterRecovery';
+  alert?.annotations?.alert_type === 'DisasterRecovery' &&
+  alert.state === AlertStates.Firing;
 
 export const isDRPolicyValidated = (drPolicy: DRPolicyKind) =>
   drPolicy?.status?.conditions?.some(
