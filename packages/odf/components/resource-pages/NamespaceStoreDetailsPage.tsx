@@ -63,7 +63,7 @@ const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
 
   const breadcrumbs = [
     {
-      name: t('Object Service'),
+      name: t('Object Storage'),
       path: '/odf/object-storage',
     },
     {
