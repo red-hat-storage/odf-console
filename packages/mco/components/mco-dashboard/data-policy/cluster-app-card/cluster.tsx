@@ -26,6 +26,7 @@ import {
   getVolumeReplicationHealth,
   getManagedClusterAvailableCondition,
 } from '@odf/mco/utils';
+import { getMax, getMin } from '@odf/shared/charts';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
@@ -34,6 +35,7 @@ import { FieldLevelHelp } from '@odf/shared/generic';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { humanizeDecimalBytesPerSec, humanizeNumber } from '@odf/shared/utils';
 import {
   HealthState,
   PrometheusResponse,
@@ -266,9 +268,6 @@ export const SnapshotUtilizationCard: React.FC<SnapshotUtilizationCardProps> =
   }) => {
     return (
       <>
-        <div className="mco-dashboard__contentRow mco-cluster-app__contentRow--flexEnd">
-          <UtilizationDurationDropdown />
-        </div>
         <div>
           <StatusText>
             {title}
@@ -293,6 +292,88 @@ export const SnapshotUtilizationCard: React.FC<SnapshotUtilizationCardProps> =
       </>
     );
   };
+
+const CustomUtilizationSummary: React.FC<CustomUtilizationSummaryProps> = ({
+  currentHumanized,
+  utilizationData,
+}) => {
+  const { t } = useCustomTranslation();
+  const maxVal = getMax(utilizationData);
+  const minVal = getMin(utilizationData);
+  const humanizedMax = !!maxVal
+    ? humanizeDecimalBytesPerSec(maxVal).string
+    : null;
+  const humanizedMin = !!minVal
+    ? humanizeDecimalBytesPerSec(minVal).string
+    : null;
+
+  return (
+    <div className="co-utilization-card__item-value co-utilization-card__item-summary">
+      <div>
+        <span>{t('Current value: ')}</span>
+        <span className="bold">{currentHumanized}</span>
+      </div>
+      {!!utilizationData?.length && (
+        <>
+          <div>
+            <span>{t('Max value: ')}</span>
+            <span className="bold">{humanizedMax}</span>
+          </div>
+          <div>
+            <span>{t('Min value: ')}</span>
+            <span className="bold">{humanizedMin}</span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export const UtilizationCard: React.FC<UtilizationCardProps> = ({
+  clusterName,
+  peerClusters,
+}) => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <div className="mco-dashboard__contentColumn">
+      <div className="mco-dashboard__contentRow mco-cluster-app__contentRow--spaceBetween">
+        <Text
+          component={TextVariants.h3}
+          className="mco-cluster-app__contentRow--flexStart"
+        >
+          {t('Utilization')}
+        </Text>
+        <div className="mco-dashboard__contentRow mco-cluster-app__contentRow--flexEnd">
+          <UtilizationDurationDropdown />
+        </div>
+      </div>
+      <div className="mco-cluster-app__graph--margin-bottom">
+        <SnapshotUtilizationCard
+          clusters={peerClusters}
+          title={t('Snapshots synced')}
+          queryType={DRDashboard.RBD_SNAPSHOT_SNAPSHOTS}
+          titleToolTip={t(
+            'The y-axis shows the number of snapshots taken. It represents the rate of difference in snapshot creation count during a failover.'
+          )}
+          humanizeValue={humanizeNumber}
+        />
+      </div>
+      <div className="mco-cluster-app__graph--margin-bottom">
+        <SnapshotUtilizationCard
+          clusters={[clusterName]}
+          title={t('Replication throughput')}
+          queryType={DRDashboard.RBD_SNAPSHOTS_SYNC_BYTES}
+          humanizeValue={humanizeDecimalBytesPerSec}
+          titleToolTip={t(
+            'The y-axis shows the average throughput for syncing snapshot bytes from the primary to the secondary cluster.'
+          )}
+          CustomUtilizationSummary={CustomUtilizationSummary}
+        />
+      </div>
+    </div>
+  );
+};
 
 type ClusterCSVStatus = {
   [ODR_CLUSTER_OPERATOR]: string;
@@ -332,4 +413,9 @@ type SnapshotUtilizationCardProps = {
   clusters?: string[];
   titleToolTip: string;
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
+};
+
+type UtilizationCardProps = {
+  clusterName: string;
+  peerClusters: string[];
 };

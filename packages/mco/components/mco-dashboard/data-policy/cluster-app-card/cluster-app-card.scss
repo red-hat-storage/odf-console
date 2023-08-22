@@ -41,6 +41,10 @@
     height: auto;
 }
 
+.mco-cluster-app__graph--margin-bottom {
+     margin-bottom: var(--pf-global--spacer--xl);
+}
+
 .mco-cluster-app__donut-chart {
     width: 350px;
     height: 220px; 
