@@ -50,6 +50,18 @@ const filterPolicies = (dataPolicyInfo: DataPolicyType[], searchText: string) =>
     getName(policy).toLowerCase().includes(searchText)
   );
 
+// **Note: PatternFly change the fn signature
+// From: (value: string, event: React.FormEvent<HTMLInputElement>) => void
+// To: (_event: React.FormEvent<HTMLInputElement>, value: string) => void
+// both cases need to be handled for backwards compatibility
+const onChange = (input: string | React.FormEvent<HTMLInputElement>) => {
+  const searchValue =
+    typeof input === 'string'
+      ? input
+      : (input.target as HTMLInputElement)?.value;
+  return searchValue;
+};
+
 export const PolicyListViewToolBar: React.FC<PolicyListViewToolBarProps> = ({
   selectedPolicyCount,
   searchText,
@@ -70,7 +82,7 @@ export const PolicyListViewToolBar: React.FC<PolicyListViewToolBarProps> = ({
               placeholder={t('Search')}
               aria-label={t('Search input')}
               value={searchText}
-              onChange={(value) => onSearchChange(value)}
+              onChange={(value) => onSearchChange(onChange(value))}
               onClear={() => onSearchChange('')}
             />
           )}
