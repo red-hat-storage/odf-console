@@ -16,3 +16,9 @@ jest.mock('react-i18next', () => ({
     };
   },
 }));
+
+jest.mock('@odf/shared/useCustomTranslationHook', () => ({
+  useCustomTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
