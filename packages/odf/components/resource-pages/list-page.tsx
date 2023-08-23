@@ -2,12 +2,7 @@ import * as React from 'react';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { LabelList } from '@odf/shared/details-page/label-list';
 import { Timestamp } from '@odf/shared/details-page/timestamp';
-import { Kebab, CustomKebabItems } from '@odf/shared/kebab/kebab';
-import {
-  LaunchModal,
-  ModalMap,
-  useModalLauncher,
-} from '@odf/shared/modals/modalLauncher';
+import { Kebab, CustomKebabItem } from '@odf/shared/kebab/kebab';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -131,9 +126,8 @@ const ResourceTable: React.FC<ResourceTableProps> = (props) => {
 };
 
 type CustomData = {
-  launchModal: LaunchModal;
   resourceModel: K8sModel;
-  kebabActions?: (t: TFunction) => CustomKebabItems[];
+  kebabActions?: CustomKebabItem[];
 };
 
 const RowRenderer: React.FC<RowProps<K8sResourceCommon, CustomData>> = ({
@@ -141,7 +135,7 @@ const RowRenderer: React.FC<RowProps<K8sResourceCommon, CustomData>> = ({
   activeColumnIDs,
   rowData,
 }) => {
-  const { resourceModel, launchModal, kebabActions } = rowData;
+  const { resourceModel, kebabActions } = rowData;
   const name = getName(obj);
   const path = `/odf/resource/${referenceForModel(resourceModel)}/${name}`;
   return (
@@ -167,7 +161,6 @@ const RowRenderer: React.FC<RowProps<K8sResourceCommon, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         <Kebab
-          launchModal={launchModal}
           extraProps={{ resource: obj, resourceModel: resourceModel }}
           customKebabItems={kebabActions}
         />
@@ -177,19 +170,15 @@ const RowRenderer: React.FC<RowProps<K8sResourceCommon, CustomData>> = ({
 };
 
 type GenericListPageProps = {
-  actions?: ModalMap;
   resourceModel: K8sModel;
   kebabActions?: CustomData['kebabActions'];
 };
 
 const GenericListPage: React.FC<GenericListPageProps> = ({
-  actions,
   resourceModel,
   kebabActions,
 }) => {
   const { t } = useCustomTranslation();
-  const [Modal, modalProps, launchModal] = useModalLauncher(actions);
-
   const resource = React.useMemo(
     () => ({
       kind: referenceForModel(resourceModel),
@@ -210,7 +199,6 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
 
   return (
     <>
-      <Modal {...modalProps} />
       <ListPageHeader title={null}>
         <ListPageCreateLink to={createLink}>
           {t('Create')} {resourceModel.label}
@@ -228,7 +216,7 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
           unfilteredData={data}
           loaded={loaded}
           loadError={loadError}
-          rowData={{ launchModal, resourceModel, kebabActions }}
+          rowData={{ resourceModel, kebabActions }}
         />
       </ListPageBody>
     </>
@@ -237,23 +225,25 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
 
 const EDIT_BC_RESOURCES = 'EDIT_BC_RESOURCES';
 
-const bcActions = {
-  [EDIT_BC_RESOURCES]: React.lazy(
-    () => import('../bucket-class/modals/edit-backingstore-modal')
-  ),
-};
-
-const bcKebabActions = (t) => [
-  { key: 'EDIT_BC_RESOURCES', value: t('Edit Bucket Class Resources') },
+const bcKebabActions = (t: TFunction) => [
+  {
+    key: EDIT_BC_RESOURCES,
+    value: t('Edit Bucket Class Resources'),
+    component: React.lazy(
+      () => import('../bucket-class/modals/edit-backingstore-modal')
+    ),
+  },
 ];
 
-export const BucketClassListPage: React.FC = () => (
-  <GenericListPage
-    resourceModel={NooBaaBucketClassModel}
-    actions={bcActions}
-    kebabActions={bcKebabActions}
-  />
-);
+export const BucketClassListPage: React.FC = () => {
+  const { t } = useCustomTranslation();
+  return (
+    <GenericListPage
+      resourceModel={NooBaaBucketClassModel}
+      kebabActions={bcKebabActions(t)}
+    />
+  );
+};
 
 export const NamespaceStoreListPage: React.FC = () => (
   <GenericListPage resourceModel={NooBaaNamespaceStoreModel} />

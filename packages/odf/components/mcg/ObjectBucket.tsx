@@ -6,7 +6,6 @@ import DetailsPage, {
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { Kebab } from '@odf/shared/kebab/kebab';
-import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -72,7 +71,6 @@ type CustomData = {
 const OBRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
   obj,
   activeColumnIDs,
-  rowData: { launchModal },
 }) => {
   const { t } = useCustomTranslation();
   const storageClassName = _.get(obj, 'spec.storageClassName');
@@ -100,7 +98,6 @@ const OBRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
         <Kebab
-          launchModal={launchModal}
           extraProps={{
             resource: obj,
             resourceModel: NooBaaObjectBucketModel,
@@ -178,7 +175,6 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
 ) => {
   const { t } = useCustomTranslation();
   const { selector, namespace } = props;
-  const [Modal, modalProps, launchModal] = useModalLauncher();
 
   const [obc, loaded, loadError] = useK8sWatchResource<K8sResourceKind[]>({
     kind: referenceForModel(NooBaaObjectBucketModel),
@@ -194,7 +190,6 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
 
   return (
     <>
-      <Modal {...modalProps} />
       <ListPageBody>
         <ListPageFilter
           data={data}
@@ -208,7 +203,7 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
           unfilteredData={obc}
           loaded={loaded}
           loadError={loadError}
-          rowData={{ launchModal, namespace }}
+          rowData={{ namespace }}
         />
       </ListPageBody>
     </>
@@ -217,64 +212,59 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
 
 type DetailsProps = {
   obj: K8sResourceKind;
-};
+} & RouteComponentProps;
 
-type DetailsType = (launchModal: any, t) => React.FC<DetailsProps>;
+const OBDetails: React.FC<DetailsProps> = ({ obj }) => {
+  const { t } = useCustomTranslation();
+  const storageClassName = _.get(obj, 'spec.storageClassName');
+  const [OBCName, OBCNamespace] = [
+    _.get(obj, 'spec.claimRef.name'),
+    _.get(obj, 'spec.claimRef.namespace'),
+  ];
 
-const OBDetails: DetailsType =
-  (launchModal, t) =>
-  // eslint-disable-next-line react/display-name
-  ({ obj }) => {
-    const storageClassName = _.get(obj, 'spec.storageClassName');
-    const [OBCName, OBCNamespace] = [
-      _.get(obj, 'spec.claimRef.name'),
-      _.get(obj, 'spec.claimRef.namespace'),
-    ];
-
-    return (
-      <>
-        <div className="odf-m-pane__body">
-          <SectionHeading text={t('Object Bucket Details')} />
-          <div className="row">
-            <div className="col-sm-6">
-              <ResourceSummary
-                resource={obj}
-                launchModal={launchModal}
-                resourceModel={NooBaaObjectBucketModel}
-              />
-            </div>
-            <div className="col-sm-6">
-              <dl>
-                <dt>{t('Status')}</dt>
-                <dd>
-                  <OBStatus ob={obj} />
-                </dd>
-                <dt>{t('StorageClass')}</dt>
-                <dd>
-                  {storageClassName ? (
-                    <ResourceLinkWithKind
-                      kind="StorageClass"
-                      name={storageClassName}
-                    />
-                  ) : (
-                    '-'
-                  )}
-                </dd>
-                <dt>{t('Object Bucket Claim')}</dt>
-                <dd>
+  return (
+    <>
+      <div className="odf-m-pane__body">
+        <SectionHeading text={t('Object Bucket Details')} />
+        <div className="row">
+          <div className="col-sm-6">
+            <ResourceSummary
+              resource={obj}
+              resourceModel={NooBaaObjectBucketModel}
+            />
+          </div>
+          <div className="col-sm-6">
+            <dl>
+              <dt>{t('Status')}</dt>
+              <dd>
+                <OBStatus ob={obj} />
+              </dd>
+              <dt>{t('StorageClass')}</dt>
+              <dd>
+                {storageClassName ? (
                   <ResourceLinkWithKind
-                    kind={referenceForModel(NooBaaObjectBucketClaimModel)}
-                    name={OBCName}
-                    namespace={OBCNamespace}
+                    kind="StorageClass"
+                    name={storageClassName}
                   />
-                </dd>
-              </dl>
-            </div>
+                ) : (
+                  '-'
+                )}
+              </dd>
+              <dt>{t('Object Bucket Claim')}</dt>
+              <dd>
+                <ResourceLinkWithKind
+                  kind={referenceForModel(NooBaaObjectBucketClaimModel)}
+                  name={OBCName}
+                  namespace={OBCNamespace}
+                />
+              </dd>
+            </dl>
           </div>
         </div>
-      </>
-    );
-  };
+      </div>
+    </>
+  );
+};
 
 type ObjectBucketDetailsPageProps = {
   match: RouteComponentProps<{ resourceName: string }>['match'];
@@ -290,8 +280,6 @@ export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
     name,
     isList: false,
   });
-
-  const [Modal, modalProps, launchModal] = useModalLauncher();
 
   const breadcrumbs = [
     {
@@ -312,23 +300,16 @@ export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
     return (
       <Kebab
         toggleType="Dropdown"
-        launchModal={launchModal}
         extraProps={{
           resource,
           resourceModel: NooBaaObjectBucketModel,
         }}
       />
     );
-  }, [launchModal, resource]);
-
-  const Details = React.useMemo(
-    () => OBDetails(launchModal, t),
-    [launchModal, t]
-  );
+  }, [resource]);
 
   return (
     <>
-      <Modal {...modalProps} />
       {loaded ? (
         <DetailsPage
           breadcrumbs={breadcrumbs}
@@ -339,7 +320,7 @@ export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
             {
               href: '',
               name: 'Details',
-              component: Details as any,
+              component: OBDetails,
             },
             {
               href: 'yaml',

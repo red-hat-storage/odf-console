@@ -1,16 +1,14 @@
 import * as React from 'react';
-import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert, AlertActionCloseButton } from '@patternfly/react-core';
 import { ExternalLink } from '../../mcg-endpoints/gcp-endpoint-type';
 import BackingStoreSelection from '../backingstore-table';
 import { Action, State } from '../state';
 
-const BS_MODAL_KEY = 'BUCKETCLASS_WIZARD_BS_CREATE_MODAL';
-
-const modalMap = {
-  [BS_MODAL_KEY]: React.lazy(() => import('../../create-bs/create-bs-modal')),
-};
+const CreateBackingStoreModal = React.lazy(
+  () => import('../../create-bs/create-bs-modal')
+);
 
 const BackingStorePage: React.FC<BackingStorePageProps> = React.memo(
   ({ dispatcher, state }) => {
@@ -20,14 +18,13 @@ const BackingStorePage: React.FC<BackingStorePageProps> = React.memo(
       state;
     const [showHelp, setShowHelp] = React.useState(true);
     const { t } = useCustomTranslation();
+    const launcher = useModal();
 
-    const [Modal, modalProps, launcher] = useModalLauncher(modalMap);
-
-    const launchModal = () => launcher(BS_MODAL_KEY, null);
+    const launchModal = () =>
+      launcher(CreateBackingStoreModal, { isOpen: true });
 
     return (
       <>
-        <Modal {...modalProps} />
         <div className="nb-create-bc-step-page">
           {showHelp && (
             <Alert

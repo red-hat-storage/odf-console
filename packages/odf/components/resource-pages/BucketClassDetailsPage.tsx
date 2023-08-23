@@ -4,7 +4,6 @@ import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
-import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
@@ -20,9 +19,7 @@ type BucketClassDetailsPageProps = {
 
 type DetailsProps = {
   obj: BucketClassKind;
-};
-
-type DetailsType = (launchModal: any, t) => React.FC<DetailsProps>;
+} & RouteComponentProps;
 
 type PolicyDetailsProps = {
   resource: BucketClassKind;
@@ -54,39 +51,27 @@ const NamespacePolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
   return <DetailsItem field={t('Policy type')}>{type}</DetailsItem>;
 };
 
-const BCDetails: DetailsType =
-  (launchModal, t) =>
-  // eslint-disable-next-line react/display-name
-  ({ obj }) => {
-    const isPlacementPolicyType = obj.spec.hasOwnProperty('placementPolicy');
+const BCDetails: React.FC<DetailsProps> = ({ obj }) => {
+  const { t } = useCustomTranslation();
+  const isPlacementPolicyType = obj.spec.hasOwnProperty('placementPolicy');
 
-    const title = isPlacementPolicyType
-      ? t('Placement Policy')
-      : t('Namespace Policy');
-    return (
-      <CommonDetails
-        resource={obj}
-        launchModal={launchModal}
-        resourceModel={NooBaaBucketClassModel}
-      >
-        <SectionHeading text={title} />
-        <div className="row">
-          <div className="col-sm-6">
-            {isPlacementPolicyType ? (
-              <PlacementPolicyDetails resource={obj} />
-            ) : (
-              <NamespacePolicyDetails resource={obj} />
-            )}
-          </div>
+  const title = isPlacementPolicyType
+    ? t('Placement Policy')
+    : t('Namespace Policy');
+  return (
+    <CommonDetails resource={obj} resourceModel={NooBaaBucketClassModel}>
+      <SectionHeading text={title} />
+      <div className="row">
+        <div className="col-sm-6">
+          {isPlacementPolicyType ? (
+            <PlacementPolicyDetails resource={obj} />
+          ) : (
+            <NamespacePolicyDetails resource={obj} />
+          )}
         </div>
-      </CommonDetails>
-    );
-  };
-
-const extraMap = {
-  EDIT_BC_RESOURCES: React.lazy(
-    () => import('../bucket-class/modals/edit-backingstore-modal')
-  ),
+      </div>
+    </CommonDetails>
+  );
 };
 
 const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
@@ -100,8 +85,6 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
     namespace: CEPH_STORAGE_NAMESPACE,
     isList: false,
   });
-
-  const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
 
   const breadcrumbs = [
     {
@@ -118,35 +101,31 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
     },
   ];
 
-  const Details = React.useMemo(
-    () => BCDetails(launchModal, t),
-    [launchModal, t]
-  );
-
   const memoizedResource = useDeepCompareMemoize(resource, true);
 
   const actions = React.useCallback(() => {
     return (
       <Kebab
         toggleType="Dropdown"
-        launchModal={launchModal}
         extraProps={{
           resource: memoizedResource,
           resourceModel: NooBaaBucketClassModel,
         }}
-        customKebabItems={(t) => [
+        customKebabItems={[
           {
             key: 'EDIT_BC_RESOURCES',
             value: t('Edit Bucket Class Resources'),
+            component: React.lazy(
+              () => import('../bucket-class/modals/edit-backingstore-modal')
+            ),
           },
         ]}
       />
     );
-  }, [launchModal, memoizedResource]);
+  }, [memoizedResource, t]);
 
   return (
     <>
-      <Modal {...modalProps} />
       <DetailsPage
         loaded={loaded}
         loadError={loadError}
@@ -158,7 +137,7 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
           {
             href: '',
             name: 'Details',
-            component: Details as any,
+            component: BCDetails,
           },
           {
             href: 'yaml',

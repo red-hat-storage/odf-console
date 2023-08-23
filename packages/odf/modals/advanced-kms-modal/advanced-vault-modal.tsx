@@ -21,11 +21,7 @@ import { VaultConfig, VaultAuthMethods } from '../../types';
 import './advanced-kms-modal.scss';
 
 const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
-  const {
-    closeModal,
-    isOpen,
-    extraProps: { state, dispatch, isWizardFlow },
-  } = props;
+  const { closeModal, isOpen, state, dispatch, isWizardFlow } = props;
 
   const kms = state.kms.providerState as VaultConfig;
 

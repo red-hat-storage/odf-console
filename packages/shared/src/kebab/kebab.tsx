@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { getNamespace, getName } from '@odf/shared/selectors';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sResourceCommon,
+  useModal,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
@@ -10,34 +13,32 @@ import {
   DropdownItem,
   DropdownToggle,
   KebabToggle,
-  DropdownItemProps,
   Tooltip,
   DropdownDirection,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import { useAccessReview } from '../hooks/rbac-hook';
-import { ModalKeys, LaunchModal } from '../modals/modalLauncher';
+import { ModalKeys, defaultModalMap } from '../modals/types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForModel } from '../utils';
 
-export type CustomKebabItems = {
+export type CustomKebabItem = {
   key: string;
   value: string;
-  props?: DropdownItemProps;
+  component?: React.LazyExoticComponent<any>;
 };
 
 type CustomKebabItemsMap = {
-  [key in string]: CustomKebabItems;
+  [key in string]: CustomKebabItem;
 };
 
 type KebabProps = {
-  launchModal: LaunchModal;
   extraProps: {
     resource: K8sResourceCommon;
     resourceModel: K8sModel;
     [key: string]: any;
   };
-  customKebabItems?: (t: TFunction) => CustomKebabItems[];
+  customKebabItems?: CustomKebabItem[];
   toggleType?: 'Kebab' | 'Dropdown';
   isDisabled?: boolean;
   customActionMap?: {
@@ -86,15 +87,15 @@ const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
 });
 
 export const Kebab: React.FC<KebabProps> = ({
-  launchModal,
   extraProps,
   customKebabItems,
   toggleType = 'Kebab',
   isDisabled,
-  customActionMap,
   terminatingTooltip,
 }) => {
   const { t } = useCustomTranslation();
+
+  const launchModal = useModal();
 
   const eventRef = React.useRef(undefined);
   const [toggleDirection, setToggleDirection] =
@@ -137,23 +138,21 @@ export const Kebab: React.FC<KebabProps> = ({
   const customKebabItemsMap: CustomKebabItemsMap = React.useMemo(
     () =>
       customKebabItems
-        ? customKebabItems(t)?.reduce(
+        ? customKebabItems?.reduce(
             (acc, item) => ({ ...acc, [item.key]: item }),
             {}
           )
         : {},
-    [customKebabItems, t]
+    [customKebabItems]
   );
 
   const onClick = (event?: React.SyntheticEvent<HTMLDivElement>) => {
     setOpen(false);
+    const modalComponentProps = { extraProps, isOpen: true };
     const actionKey = event.currentTarget.id;
-    if (customActionMap?.[actionKey]) {
-      customActionMap[actionKey]?.();
-    } else if (
-      actionKey === ModalKeys.EDIT_RES &&
-      !customKebabItemsMap?.[actionKey]
-    ) {
+    const modalComponent =
+      customKebabItemsMap[actionKey]?.component || defaultModalMap[actionKey];
+    if (actionKey === ModalKeys.EDIT_RES && !customKebabItemsMap?.[actionKey]) {
       const editPrefix = extraProps?.cluster
         ? `/odf/edit/${extraProps?.cluster}`
         : '/k8s';
@@ -166,7 +165,7 @@ export const Kebab: React.FC<KebabProps> = ({
         }/yaml`
       );
     } else {
-      launchModal(actionKey, extraProps);
+      launchModal(modalComponent, modalComponentProps);
     }
   };
 
@@ -178,12 +177,7 @@ export const Kebab: React.FC<KebabProps> = ({
     const { overrides, custom } = Object.entries(customResolved).reduce(
       (acc, [k, obj]) => {
         const dropdownItem = (
-          <DropdownItem
-            key={k}
-            id={k}
-            {...obj?.props}
-            data-test-action={obj?.value}
-          >
+          <DropdownItem key={k} id={k} data-test-action={obj?.value}>
             {obj?.value}
           </DropdownItem>
         );

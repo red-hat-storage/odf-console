@@ -7,6 +7,7 @@ import {
   NavPage,
   ResourceLink,
   useAccessReview,
+  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classnames from 'classnames';
 import * as _ from 'lodash-es';
@@ -21,7 +22,8 @@ import {
 import { PencilAltIcon } from '@patternfly/react-icons';
 import { LoadingBox } from '../generic/status-box';
 import PageHeading from '../heading/page-heading';
-import { LaunchModal, ModalKeys } from '../modals/modalLauncher';
+import { EditLabelModal } from '../modals';
+import AnnotationsModal from '../modals/EditAnnotations';
 import { ResourceIcon } from '../resource-link/resource-link';
 import { getName } from '../selectors';
 import { K8sResourceKind } from '../types';
@@ -120,7 +122,6 @@ export type ResourceSummaryProps = {
   nodeSelector?: string;
   children?: React.ReactNode;
   customPathName?: string;
-  launchModal?: LaunchModal;
   resourceModel: K8sKind;
 };
 
@@ -297,7 +298,6 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   canUpdateResource = true,
   podSelector = 'spec.selector', // eslint-disable-line @typescript-eslint/no-unused-vars
   nodeSelector = 'spec.template.spec.nodeSelector', // eslint-disable-line @typescript-eslint/no-unused-vars
-  launchModal,
   resourceModel,
 }) => {
   const { t } = useCustomTranslation();
@@ -311,6 +311,8 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
     namespace: metadata.namespace,
   });
   const canUpdate = canUpdateAccess && canUpdateResource;
+
+  const launchModal = useModal();
 
   return (
     <dl data-test-id="resource-summary" className="co-m-pane__details">
@@ -339,7 +341,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
         path="metadata.labels"
         valueClassName="details-item__value--labels"
         onEdit={() =>
-          launchModal(ModalKeys.EDIT_LABELS, { resource, resourceModel })
+          launchModal(EditLabelModal, { resource, resourceModel, isOpen: true })
         }
         canEdit={showLabelEditor && canUpdate && !!launchModal}
         editAsGroup
@@ -358,9 +360,10 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
               type="button"
               isInline
               onClick={() =>
-                launchModal(ModalKeys.EDIT_ANN, {
+                launchModal(AnnotationsModal, {
                   resource,
                   resourceModel,
+                  isOpen: true,
                 })
               }
               variant="link"

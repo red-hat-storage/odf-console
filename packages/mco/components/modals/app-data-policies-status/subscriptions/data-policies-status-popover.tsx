@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { getNamespace } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useK8sWatchResources,
+  useModal,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
   Popover,
@@ -65,13 +67,14 @@ const drResources = (namespace: string) => ({
 
 export const STATUS_MODAL = 'STATUS_MODAL';
 
-const modalMap = {
-  [STATUS_MODAL]: React.lazy(() => import('./data-policies-status-modal')),
-};
+const DataPoliciesStatusModal = React.lazy(
+  () => import('./data-policies-status-modal')
+);
 
 export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps> =
   ({ application }) => {
     const { t } = useCustomTranslation();
+    const launcher = useModal();
     const response = useK8sWatchResources<DataPoliciesResourceType>(
       drResources(getNamespace(application))
     );
@@ -175,9 +178,12 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
         return [{ drPolicies: {} }, 0];
       }, [drPlacementControls, drpcLoaded, subscriptionMap, placementMap]);
 
-    const [Modal, modalProps, launcher] = useModalLauncher(modalMap);
     const launchModal = React.useCallback(
-      () => launcher(STATUS_MODAL, dataPoliciesStatus),
+      () =>
+        launcher(DataPoliciesStatusModal, {
+          ...dataPoliciesStatus,
+          isOpen: true,
+        }),
       [launcher, dataPoliciesStatus]
     );
 
@@ -196,7 +202,6 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
 
     return (
       <>
-        <Modal {...modalProps} />
         <Popover
           aria-label={t('Data policies popover')}
           position="bottom"

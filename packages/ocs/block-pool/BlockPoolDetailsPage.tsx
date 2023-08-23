@@ -2,7 +2,7 @@ import * as React from 'react';
 import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { Kebab } from '@odf/shared/kebab/kebab';
-import { useModalLauncher, ModalKeys } from '@odf/shared/modals/modalLauncher';
+import { ModalKeys } from '@odf/shared/modals/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
@@ -12,7 +12,6 @@ import { CEPH_NS } from '../constants';
 import { BlockPoolDashboard } from '../dashboards/block-pool/block-pool-dashboard';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
 import { StoragePoolKind } from '../types';
-import { customActionsMap } from '../utils';
 
 type BlockPoolDetailsPageProps = {
   match: RouteComponentProps<{ poolName: string }>['match'];
@@ -33,8 +32,6 @@ export const BlockPoolDetailsPage: React.FC<BlockPoolDetailsPageProps> = ({
   const { poolName } = match.params;
   const location = useLocation();
   const kind = referenceForModel(CephBlockPoolModel);
-
-  const [Modal, modalProps, launchModal] = useModalLauncher(customActionsMap);
 
   const [resource, loaded] = useK8sWatchResource<StoragePoolKind>({
     kind,
@@ -62,57 +59,57 @@ export const BlockPoolDetailsPage: React.FC<BlockPoolDetailsPageProps> = ({
     return (
       <Kebab
         toggleType="Dropdown"
-        launchModal={launchModal}
         extraProps={{
           resource,
           resourceModel: CephBlockPoolModel,
           namespace: CEPH_NS,
         }}
-        customKebabItems={(t) => [
+        customKebabItems={[
           {
             key: ModalKeys.EDIT_RES,
             value: t('Edit BlockPool'),
+            component: React.lazy(
+              () => import('../modals/block-pool/update-block-pool-modal')
+            ),
           },
           {
             key: ModalKeys.DELETE,
             value: t('Delete BlockPool'),
+            component: React.lazy(
+              () => import('../modals/block-pool/delete-block-pool-modal')
+            ),
           },
         ]}
       />
     );
-  }, [launchModal, resource]);
+  }, [resource, t]);
 
-  return (
-    <>
-      <Modal {...modalProps} />
-      {!loaded ? (
-        <LoadingBox />
-      ) : (
-        <DetailsPage
-          breadcrumbs={breadcrumbs}
-          actions={actions}
-          resourceModel={CephBlockPoolModel}
-          resource={resource}
-          pages={[
-            {
-              href: '',
-              name: 'Details',
-              component: BlockPoolDashboard as any,
-            },
-            {
-              href: 'yaml',
-              name: 'YAML',
-              component: YAMLEditorWrapped,
-            },
-            {
-              href: 'events',
-              name: 'Events',
-              component: EventStreamWrapped,
-            },
-          ]}
-        />
-      )}
-    </>
+  return !loaded ? (
+    <LoadingBox />
+  ) : (
+    <DetailsPage
+      breadcrumbs={breadcrumbs}
+      actions={actions}
+      resourceModel={CephBlockPoolModel}
+      resource={resource}
+      pages={[
+        {
+          href: '',
+          name: 'Details',
+          component: BlockPoolDashboard as any,
+        },
+        {
+          href: 'yaml',
+          name: 'YAML',
+          component: YAMLEditorWrapped,
+        },
+        {
+          href: 'events',
+          name: 'Events',
+          component: EventStreamWrapped,
+        },
+      ]}
+    />
   );
 };
 

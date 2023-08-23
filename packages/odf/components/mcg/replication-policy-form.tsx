@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { NamespaceStoreKind } from '@odf/core/types';
-import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Flex,
   FlexItem,
@@ -42,13 +42,9 @@ export type Rule = {
   syncDeletion?: boolean;
 };
 
-export const NS_STORE_MODAL_KEY = 'BC_CREATE_WIZARD_NS_STORE_CREATE_MODAL';
-
-const modalMap = {
-  [NS_STORE_MODAL_KEY]: React.lazy(
-    () => import('../namespace-store/namespace-store-modal')
-  ),
-};
+const ModalComponent = React.lazy(
+  () => import('../namespace-store/namespace-store-modal')
+);
 
 export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
   namespace,
@@ -68,13 +64,9 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
 
   const { t } = useCustomTranslation();
 
-  const [Modal, modalProps, launcher] = useModalLauncher(modalMap);
-  const [eventLogsEnabled, toggleEventLogs] = React.useState(false);
+  const launchModal = useModal();
 
-  const launchModal = React.useCallback(
-    () => launcher(NS_STORE_MODAL_KEY, null),
-    [launcher]
-  );
+  const [eventLogsEnabled, toggleEventLogs] = React.useState(false);
 
   const handleNSChange = (ns: NamespaceStoreKind, ruleId: number) => {
     const newRules = [...rules];
@@ -149,9 +141,11 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
     disableSyncDeletions(isEventLogEnabled);
   };
 
+  const onClick = () =>
+    launchModal(ModalComponent, { isOpen: true, namespace });
+
   return (
     <div className={className}>
-      <Modal {...modalProps} />
       <Form>
         <FormGroup>
           <Checkbox
@@ -186,7 +180,7 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
             <Button
               variant={ButtonVariant.link}
               className="nb-bc-step-page-form__modal-launcher"
-              onClick={launchModal}
+              onClick={onClick}
             >
               <PlusCircleIcon /> {t('Create new NamespaceStore')}
             </Button>

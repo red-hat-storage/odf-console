@@ -1,4 +1,4 @@
-import { ModalKeys } from '@odf/shared/modals/modalLauncher';
+import { ModalKeys } from '@odf/shared/modals/types';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import { sortable, wrappable } from '@patternfly/react-table';
@@ -73,22 +73,26 @@ export const tableColumnInfo = [
   { className: 'dropdown-kebab-pf pf-c-table__action', id: '' },
 ];
 
-export const kebabActionItems =
-  (canDeleteDRPolicy, appsCount, appsLoaded, appsLoadedError) => (t) =>
-    [
-      {
-        key: ModalKeys.DELETE,
-        value: Actions.DELETE_DR_POLICY,
-        props: {
-          description: !!appsCount
-            ? t('Cannot delete while connected to an application.')
-            : '',
-          isDisabled: !(
-            canDeleteDRPolicy &&
-            appsLoaded &&
-            !appsLoadedError &&
-            !appsCount
-          ),
-        },
-      },
-    ];
+export const kebabActionItems = (
+  canDeleteDRPolicy,
+  appsCount,
+  appsLoaded,
+  appsLoadedError,
+  t
+) => [
+  {
+    key: ModalKeys.DELETE,
+    value: Actions.DELETE_DR_POLICY,
+    props: {
+      description: !!appsCount
+        ? t('Cannot delete while connected to an application.')
+        : '',
+      isDisabled: !(
+        canDeleteDRPolicy &&
+        appsLoaded &&
+        !appsLoadedError &&
+        !appsCount
+      ),
+    },
+  },
+];

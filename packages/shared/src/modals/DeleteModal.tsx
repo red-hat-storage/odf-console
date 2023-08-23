@@ -80,9 +80,8 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
         const pathName = window.location.pathname;
         if (re.test(pathName)) {
           history.push(pathName.replace(re, ''));
-        } else {
-          closeModal();
         }
+        closeModal();
       })
       .catch((deleteError) => {
         setError(deleteError);

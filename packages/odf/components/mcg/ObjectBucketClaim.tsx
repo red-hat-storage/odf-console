@@ -6,7 +6,6 @@ import DetailsPage, {
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { Kebab } from '@odf/shared/kebab/kebab';
-import { useModalLauncher } from '@odf/shared/modals/modalLauncher';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { Status } from '@odf/shared/status/Status';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -74,7 +73,7 @@ type ObjectBucketClaimsListProps = {
   unfilteredData: K8sResourceKind[];
   loaded: boolean;
   loadError: any;
-  rowData: any;
+  rowData?: any;
 };
 
 type OBCStatusProps = {
@@ -165,14 +164,12 @@ const ObjectBucketClaimsList: React.FC<ObjectBucketClaimsListProps> = ({
 };
 
 type CustomData = {
-  launchModal: any;
   namespace: string;
 };
 
 const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
   obj,
   activeColumnIDs,
-  rowData: { launchModal },
 }) => {
   const { t } = useCustomTranslation();
   const storageClassName = _.get(obj, 'spec.storageClassName');
@@ -214,16 +211,21 @@ const OBCRow: React.FC<RowProps<K8sResourceKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         <Kebab
-          launchModal={launchModal}
           extraProps={{
             resource: obj,
             resourceModel: NooBaaObjectBucketClaimModel,
             namespace: obj.metadata.namespace,
           }}
-          customKebabItems={(t) => [
+          customKebabItems={[
             {
               key: ATTACH_DEPLOYMENT,
               value: t('Attach to Deployment'),
+              component: React.lazy(
+                () =>
+                  import(
+                    '../../modals/attach-deployment/attach-deployment-obc-modal'
+                  )
+              ),
             },
           ]}
           terminatingTooltip={t(
@@ -244,12 +246,6 @@ type ObjectBucketClaimsPageProps = {
   hideColumnManagement?: boolean;
 };
 
-const extraMap = {
-  ATTACH_DEPLOYMENT: React.lazy(
-    () => import('../../modals/attach-deployment/attach-deployment-obc-modal')
-  ),
-};
-
 export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
   const { t } = useCustomTranslation();
   const hasRGW = useFlag(RGW_FLAG);
@@ -258,8 +254,6 @@ export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
 
   const [namespace] = useActiveNamespace();
   const { selector } = props;
-
-  const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
 
   const [obc, loaded, loadError] = useK8sWatchResource<K8sResourceKind[]>({
     kind: referenceForModel(NooBaaObjectBucketClaimModel),
@@ -279,7 +273,6 @@ export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
 
   return (
     <>
-      <Modal {...modalProps} />
       <ListPageHeader title="">
         {!hasNone ? (
           <ListPageCreateLink to={createLink}>
@@ -300,7 +293,6 @@ export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
           unfilteredData={obc}
           loaded={loaded}
           loadError={loadError}
-          rowData={{ launchModal }}
         />
       </ListPageBody>
     </>
@@ -323,17 +315,14 @@ export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const storageClassName = _.get(obj, 'spec.storageClassName');
-  const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
   return (
     <>
-      <Modal {...modalProps} />
       <div className="odf-m-pane__body">
         <SectionHeading text={t('Object Bucket Claim Details')} />
         <div className="row">
           <div className="col-sm-6">
             <ResourceSummary
               resource={obj}
-              launchModal={launchModal}
               resourceModel={NooBaaObjectBucketClaimModel}
             />
           </div>
@@ -397,27 +386,30 @@ export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
     isList: false,
   });
 
-  const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
-
   const actions = React.useCallback(() => {
     return (
       <Kebab
         toggleType="Dropdown"
-        launchModal={launchModal}
         extraProps={{
           resource,
           resourceModel: NooBaaObjectBucketClaimModel,
           namespace,
         }}
-        customKebabItems={(t) => [
+        customKebabItems={[
           {
             key: ATTACH_DEPLOYMENT,
             value: t('Attach to Deployment'),
+            component: React.lazy(
+              () =>
+                import(
+                  '../../modals/attach-deployment/attach-deployment-obc-modal'
+                )
+            ),
           },
         ]}
       />
     );
-  }, [launchModal, resource, namespace]);
+  }, [resource, namespace, t]);
 
   const breadcrumbs = [
     {
@@ -434,36 +426,31 @@ export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
     },
   ];
 
-  return (
-    <>
-      <Modal {...modalProps} />
-      {loaded ? (
-        <DetailsPage
-          breadcrumbs={breadcrumbs}
-          actions={actions}
-          resourceModel={NooBaaObjectBucketClaimModel}
-          resource={resource}
-          pages={[
-            {
-              href: '',
-              name: 'Details',
-              component: OBCDetails as any,
-            },
-            {
-              href: 'yaml',
-              name: 'YAML',
-              component: YAMLEditorWrapped,
-            },
-            {
-              href: 'events',
-              name: 'Events',
-              component: EventStreamWrapped,
-            },
-          ]}
-        />
-      ) : (
-        <LoadingBox />
-      )}
-    </>
+  return loaded ? (
+    <DetailsPage
+      breadcrumbs={breadcrumbs}
+      actions={actions}
+      resourceModel={NooBaaObjectBucketClaimModel}
+      resource={resource}
+      pages={[
+        {
+          href: '',
+          name: 'Details',
+          component: OBCDetails as any,
+        },
+        {
+          href: 'yaml',
+          name: 'YAML',
+          component: YAMLEditorWrapped,
+        },
+        {
+          href: 'events',
+          name: 'Events',
+          component: EventStreamWrapped,
+        },
+      ]}
+    />
+  ) : (
+    <LoadingBox />
   );
 };

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { ResourceSummary } from '@odf/shared/details-page/DetailsPage';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
-import { LaunchModal } from '@odf/shared/modals/modalLauncher';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Conditions } from '@odf/shared/utils/Conditions';
 import {
@@ -47,14 +46,12 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
 type CommonDetailsSectionProps = {
   resource: K8sResourceCommon;
   resourceModel: K8sModel;
-  launchModal: LaunchModal;
 };
 
 export const CommonDetails: React.FC<CommonDetailsSectionProps> = ({
   resource,
   resourceModel,
   children,
-  launchModal,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -68,7 +65,6 @@ export const CommonDetails: React.FC<CommonDetailsSectionProps> = ({
           <div className="col-sm-6">
             <ResourceSummary
               resource={resource}
-              launchModal={launchModal}
               resourceModel={resourceModel}
             />
           </div>

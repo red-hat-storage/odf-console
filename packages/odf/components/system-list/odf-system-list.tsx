@@ -4,10 +4,6 @@ import {
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { Kebab } from '@odf/shared/kebab/kebab';
-import {
-  LaunchModal,
-  useModalLauncher,
-} from '@odf/shared/modals/modalLauncher';
 import { ClusterServiceVersionModel } from '@odf/shared/models';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { Status } from '@odf/shared/status/Status';
@@ -119,7 +115,6 @@ export const normalizeMetrics: MetricNormalize = (
 
 type CustomData = {
   normalizedMetrics: ReturnType<typeof normalizeMetrics>;
-  launchModal: LaunchModal;
 };
 
 type StorageSystemNewPageProps = {
@@ -247,10 +242,11 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   activeColumnIDs,
   rowData,
 }) => {
+  const { t } = useCustomTranslation();
   const { apiGroup, apiVersion, kind } = getGVK(obj.spec.kind);
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
   const systemName = obj?.metadata?.name;
-  const { normalizedMetrics, launchModal } = rowData;
+  const { normalizedMetrics } = rowData;
 
   const metrics = normalizedMetrics?.normalizedMetrics?.[systemName];
 
@@ -289,12 +285,14 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
         <Kebab
-          launchModal={launchModal}
           extraProps={{ resource: obj, resourceModel: ODFStorageSystem }}
-          customKebabItems={(t) => [
+          customKebabItems={[
             {
               key: 'ADD_CAPACITY',
               value: t('Add Capacity'),
+              component: React.lazy(
+                () => import('./../../modals/add-capacity/add-capacity-modal')
+              ),
             },
           ]}
         />
@@ -312,19 +310,11 @@ type StorageSystemListPageProps = {
   hideColumnManagement?: boolean;
 };
 
-const extraMap = {
-  ADD_CAPACITY: React.lazy(
-    () => import('../../modals/add-capacity/add-capacity-modal')
-  ),
-};
-
 export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
   selector,
   namespace,
 }) => {
   const { t } = useCustomTranslation();
-
-  const [ModalComponent, props, launchModal] = useModalLauncher(extraMap);
 
   const [storageSystems, loaded, loadError] = useK8sWatchResource<
     StorageSystemKind[]
@@ -397,7 +387,6 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
 
   return (
     <>
-      <ModalComponent {...props} />
       <ListPageHeader title={t('StorageSystems')}>
         {odfCsvName && (
           <ListPageCreateLink to={createLink}>
@@ -417,7 +406,7 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
           unfilteredData={storageSystems}
           loaded={loaded}
           loadError={loadError}
-          rowData={{ normalizedMetrics, launchModal }}
+          rowData={{ normalizedMetrics }}
         />
       </ListPageBody>
     </>

@@ -6,11 +6,7 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { Kebab } from '@odf/shared/kebab/kebab';
-import {
-  LaunchModal,
-  ModalKeys,
-  useModalLauncher,
-} from '@odf/shared/modals/modalLauncher';
+import { ModalKeys } from '@odf/shared/modals/types';
 import { StorageClassModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import {
@@ -48,7 +44,6 @@ import {
   getPerPoolMetrics,
   getScNamesUsingPool,
   twelveHoursdateTimeNoYear,
-  customActionsMap,
   isDefaultPool,
   PoolMetrics,
 } from '../utils';
@@ -216,7 +211,6 @@ type CustomData = {
   };
   storageClasses: StorageClassResourceKind[];
   listPagePath: string;
-  launchModal: LaunchModal;
   cephCluster: CephClusterKind;
 };
 
@@ -233,7 +227,6 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
     storageClasses,
     listPagePath,
     cephCluster,
-    launchModal,
   } = rowData;
 
   const { name } = obj.metadata;
@@ -321,34 +314,44 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
             trigger={'mouseenter'}
           >
             <Kebab
-              launchModal={launchModal}
               extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
               isDisabled={disableMenuAction(obj, cephCluster)}
-              customKebabItems={(t) => [
+              customKebabItems={[
                 {
                   key: ModalKeys.EDIT_RES,
                   value: t('Edit BlockPool'),
+                  component: React.lazy(
+                    () => import('../modals/block-pool/update-block-pool-modal')
+                  ),
                 },
                 {
                   key: ModalKeys.DELETE,
                   value: t('Delete BlockPool'),
+                  component: React.lazy(
+                    () => import('../modals/block-pool/delete-block-pool-modal')
+                  ),
                 },
               ]}
             />
           </Tooltip>
         ) : (
           <Kebab
-            launchModal={launchModal}
             extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
             isDisabled={disableMenuAction(obj, cephCluster)}
-            customKebabItems={(t) => [
+            customKebabItems={[
               {
                 key: ModalKeys.EDIT_RES,
                 value: t('Edit BlockPool'),
+                component: React.lazy(
+                  () => import('../modals/block-pool/update-block-pool-modal')
+                ),
               },
               {
                 key: ModalKeys.DELETE,
                 value: t('Delete BlockPool'),
+                component: React.lazy(
+                  () => import('../modals/block-pool/delete-block-pool-modal')
+                ),
               },
             ]}
           />
@@ -397,9 +400,6 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
   const location = useLocation();
   const listPagePath: string = location.pathname;
 
-  const [ModalComponent, props, launchModal] = useModalLauncher(
-    customActionsMap as any
-  );
   const response = useK8sWatchResources<WatchType>(resources);
 
   const cephClusters = response.ceph.data;
@@ -490,7 +490,6 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
   const createPath = `${listPagePath}/create/~new`;
   return (
     <>
-      <ModalComponent {...props} />
       <ListPageHeader title={t('BlockPools')}>
         <ListPageCreateLink to={createPath}>
           {t('Create BlockPool')}
@@ -508,7 +507,7 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
           unfilteredData={data}
           loaded={loaded}
           loadError={error}
-          rowData={{ ...customData, launchModal }}
+          rowData={{ ...customData }}
         />
       </ListPageBody>
     </>
