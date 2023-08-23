@@ -286,6 +286,7 @@ export const SnapshotUtilizationCard: React.FC<SnapshotUtilizationCardProps> =
           description={getDescription}
           hideCurrentHumanized
           hideHorizontalBorder
+          disableGraphLink
           showLegend
           CustomUtilizationSummary={CustomUtilizationSummary}
         />
