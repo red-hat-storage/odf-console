@@ -16,6 +16,12 @@ import { useSelectList } from '../hooks/select-list';
 import { useSortList } from '../hooks/sort-list';
 import { getUID } from '../selectors';
 
+export type TableColumnProps = ThProps & {
+  thProps?: TableThProps;
+  columnName: string;
+  sortFunction?: <T>(a: T, b: T, c: SortByDirection) => number;
+};
+
 export const sortRows = (
   a: any,
   b: any,
@@ -49,6 +55,11 @@ const isRowSelected = <T extends K8sResourceCommon>(
   selectedRows: T[]
 ) => selectedRows.some((row) => getUID(row) === rowId);
 
+const canApplyInitialSort = (
+  columns: TableColumnProps[],
+  initialSortIndex: number
+): boolean => !!columns[initialSortIndex]?.sortFunction;
+
 export const SelectableTable: SelectableTableProps = <
   T extends K8sResourceCommon
 >(
@@ -65,13 +76,21 @@ export const SelectableTable: SelectableTableProps = <
     loaded,
     loadError,
     emptyRowMessage,
+    initialSortColumnIndex,
   } = props;
   const {
     onSort,
     sortIndex: activeSortIndex,
     sortDirection: activeSortDirection,
     sortedData: sortedRows,
-  } = useSortList<T>(rows, columns, false);
+  } = useSortList<T>(
+    rows,
+    columns,
+    false,
+    canApplyInitialSort(columns, initialSortColumnIndex)
+      ? initialSortColumnIndex
+      : -1
+  );
 
   const [selectableRows, rowIds] = React.useMemo(() => {
     const selectableRows = sortedRows?.filter(isRowSelectable) || [];
@@ -101,6 +120,7 @@ export const SelectableTable: SelectableTableProps = <
       loaded={loaded}
       EmptyMsg={emptyRowMessage}
       data={sortedRows}
+      skeleton={<div className="loading-skeleton--table" />}
     >
       <TableComposable
         translate={null}
@@ -167,12 +187,6 @@ export const SelectableTable: SelectableTableProps = <
 // sort is replaced by sortFunction
 type TableThProps = Omit<ThProps, 'sort' | 'ref'>;
 
-export type TableColumnProps = ThProps & {
-  thProps?: TableThProps;
-  columnName: string;
-  sortFunction?: (a: any, b: any, c: SortByDirection) => any;
-};
-
 export type RowComponentType<T extends K8sResourceCommon> = {
   row: T;
   extraProps?: any;
@@ -190,6 +204,7 @@ export type TableProps<T extends K8sResourceCommon> = {
   loaded: boolean;
   loadError?: any;
   emptyRowMessage?: React.FC;
+  initialSortColumnIndex?: number;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(

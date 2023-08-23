@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
+import * as _ from 'lodash-es';
 import { SortByDirection } from '@patternfly/react-table';
 
 export const useSortList = <R extends K8sResourceCommon>(
   data: R[],
   columns: any[],
   // True indicate the column index is starting from 1
-  onSelect: boolean
+  onSelect: boolean,
+  initialSortIndex?: number
 ): {
   onSort: (
     event: React.MouseEvent,
@@ -17,7 +19,9 @@ export const useSortList = <R extends K8sResourceCommon>(
   sortDirection: SortByDirection;
   sortedData: R[];
 } => {
-  const [sortIndex, setSortIndex] = React.useState(-1);
+  const [sortIndex, setSortIndex] = React.useState(
+    _.isInteger(initialSortIndex) ? initialSortIndex : -1
+  );
   const [sortDirection, setSortDirection] = React.useState<SortByDirection>(
     SortByDirection.asc
   );
