@@ -295,7 +295,7 @@ export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
 
   const breadcrumbs = [
     {
-      name: t('Object Service'),
+      name: t('Object Storage'),
       path: '/odf/object-storage',
     },
     {
