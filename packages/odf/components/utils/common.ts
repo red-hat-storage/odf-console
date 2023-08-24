@@ -15,7 +15,13 @@ import {
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
-import { getLabel, getName, getNamespace, getUID } from '@odf/shared/selectors';
+import {
+  getLabel,
+  getName,
+  getNamespace,
+  getUID,
+  getAnnotations,
+} from '@odf/shared/selectors';
 import {
   NetworkAttachmentDefinitionKind,
   NodeKind,
@@ -37,6 +43,7 @@ import {
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
   ATTACHED_DEVICES_ANNOTATION,
   OCS_INTERNAL_CR_NAME,
+  DISASTER_RECOVERY_TARGET_ANNOTATION,
 } from '../../constants';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
 
@@ -358,7 +365,8 @@ export const getOCSRequestData = (
   availablePvsCount?: number,
   isMCG?: boolean,
   isNFSEnabled?: boolean,
-  isSingleReplicaPoolEnabled?: boolean
+  isSingleReplicaPoolEnabled?: boolean,
+  enableRDRPreparation?: boolean
 ): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -426,6 +434,13 @@ export const getOCSRequestData = (
         cephNonResilientPools: { enable: isSingleReplicaPoolEnabled },
       },
     };
+
+    if (enableRDRPreparation) {
+      requestData.metadata.annotations = {
+        ...getAnnotations(requestData, {}),
+        [DISASTER_RECOVERY_TARGET_ANNOTATION]: 'true',
+      };
+    }
   }
 
   if (encryption) {
