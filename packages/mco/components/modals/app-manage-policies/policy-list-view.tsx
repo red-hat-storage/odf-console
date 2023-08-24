@@ -4,6 +4,7 @@ import { ModalBody } from '@odf/shared/modals/Modal';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
+import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
 import {
   Button,
   Pagination,
@@ -14,7 +15,13 @@ import {
   ToolbarItem,
   Text,
   AlertVariant,
+  EmptyState,
+  EmptyStateVariant,
+  EmptyStateIcon,
+  EmptyStateBody,
+  Title,
 } from '@patternfly/react-core';
+import { InfoCircleIcon } from '@patternfly/react-icons';
 import { Messages } from './helper/messages';
 import { PolicyListViewTable } from './helper/policy-list-view-table';
 import { unAssignPromises } from './utils/k8s-utils';
@@ -48,6 +55,7 @@ export const PolicyListViewToolBar: React.FC<PolicyListViewToolBarProps> = ({
   searchText,
   isActionDisabled,
   isActionHidden,
+  isSearchHidden,
   onSearchChange,
   setModalActionContext,
   setMessage,
@@ -57,12 +65,15 @@ export const PolicyListViewToolBar: React.FC<PolicyListViewToolBarProps> = ({
     <Toolbar>
       <ToolbarContent>
         <ToolbarItem>
-          <SearchInput
-            placeholder={t('Search')}
-            aria-label={t('Search input')}
-            value={searchText}
-            onChange={(value) => onSearchChange(value)}
-          />
+          {!isSearchHidden && (
+            <SearchInput
+              placeholder={t('Search')}
+              aria-label={t('Search input')}
+              value={searchText}
+              onChange={(value) => onSearchChange(value)}
+              onClear={() => onSearchChange('')}
+            />
+          )}
         </ToolbarItem>
         <ToolbarItem>
           {!isActionHidden && (
@@ -110,6 +121,7 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
   const [start, end] = getRange(page, perPage);
   const policies = filterPolicies(dataPolicyInfo, searchText) || [];
   const paginatedPolicies = policies.slice(start, end);
+  const unFilteredAssignedPolicyLength = dataPolicyInfo.length;
 
   const setPolicies = (selectedPolicies: DataPolicyType[]) =>
     dispatch({
@@ -166,14 +178,14 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
   return (
     <ModalBody>
       <div className="mco-manage-policies__header">
-        <Text component="h3"> {t('My policies')} </Text>
+        <Text component="h3"> {t('My assigned policies')} </Text>
         <Button
           variant="primary"
           id="primary-action"
           isDisabled={!!state.policies.length}
           onClick={() => setModalContext(ModalViewContext.ASSIGN_POLICY_VIEW)}
         >
-          {t('Assign policy')}
+          {t('Assign data policy')}
         </Button>
       </div>
       <PolicyListViewToolBar
@@ -184,39 +196,59 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
         setModalActionContext={setModalActionContext}
         setMessage={setMessage}
         isActionHidden
+        isSearchHidden={!unFilteredAssignedPolicyLength}
       />
       <div className="mco-manage-policies__col-padding">
-        <Messages
-          state={state}
-          OnCancel={() => setModalActionContext(null)}
-          OnConfirm={unAssignPolicies}
-        />
-        <PolicyListViewTable
-          policies={paginatedPolicies}
-          selectedPolicies={state.policies}
-          modalActionContext={state.modalActionContext}
-          isActionDisabled={!!state.policies.length}
-          setModalActionContext={setModalActionContext}
-          setModalContext={setModalContext}
-          setPolicies={setPolicies}
-          setPolicy={setPolicy}
-        />
-        <Pagination
-          perPageComponent="button"
-          itemCount={policies?.length || 0}
-          widgetId="data-policy-list"
-          perPage={perPage}
-          page={page}
-          variant={PaginationVariant.bottom}
-          dropDirection="up"
-          perPageOptions={[]}
-          isStatic
-          onSetPage={(_event, newPage) => setPage(newPage)}
-          onPerPageSelect={(_event, newPerPage, newPage) => {
-            setPerPage(newPerPage);
-            setPage(newPage);
-          }}
-        />
+        {unFilteredAssignedPolicyLength === 0 ? (
+          <EmptyState
+            variant={EmptyStateVariant.large}
+            className="mco-manage-policies__emptyState---margin-bottom"
+          >
+            <EmptyStateIcon icon={InfoCircleIcon} color={blueInfoColor.value} />
+            <Title headingLevel="h3" size="lg">
+              {t('No assigned data policy found')}
+            </Title>
+            <EmptyStateBody>
+              {t(
+                "You haven't set a data policy for your application yet. To protect your application, click the 'Assign data policy' button and select a policy from the available templates."
+              )}
+            </EmptyStateBody>
+          </EmptyState>
+        ) : (
+          <>
+            <Messages
+              state={state}
+              OnCancel={() => setModalActionContext(null)}
+              OnConfirm={unAssignPolicies}
+            />
+            <PolicyListViewTable
+              policies={paginatedPolicies}
+              selectedPolicies={state.policies}
+              modalActionContext={state.modalActionContext}
+              isActionDisabled={!!state.policies.length}
+              setModalActionContext={setModalActionContext}
+              setModalContext={setModalContext}
+              setPolicies={setPolicies}
+              setPolicy={setPolicy}
+            />
+            <Pagination
+              perPageComponent="button"
+              itemCount={policies?.length || 0}
+              widgetId="data-policy-list"
+              perPage={perPage}
+              page={page}
+              variant={PaginationVariant.bottom}
+              dropDirection="up"
+              perPageOptions={[]}
+              isStatic
+              onSetPage={(_event, newPage) => setPage(newPage)}
+              onPerPageSelect={(_event, newPerPage, newPage) => {
+                setPerPage(newPerPage);
+                setPage(newPage);
+              }}
+            />
+          </>
+        )}
       </div>
     </ModalBody>
   );
@@ -237,6 +269,7 @@ type PolicyListViewToolBarProps = {
   isActionDisabled: boolean;
   // A temporary prop for MCO to hide disable DR
   isActionHidden?: boolean;
+  isSearchHidden?: boolean;
   onSearchChange: React.Dispatch<React.SetStateAction<string>>;
   setModalActionContext: (modalActionContext: ModalActionContext) => void;
   setMessage: (error: MessageType) => void;

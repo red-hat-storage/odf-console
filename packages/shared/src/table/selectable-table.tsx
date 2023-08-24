@@ -2,7 +2,6 @@ import * as React from 'react';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { Bullseye } from '@patternfly/react-core';
 import {
   SortByDirection,
   TableComposable,
@@ -16,7 +15,6 @@ import {
 import { useSelectList } from '../hooks/select-list';
 import { useSortList } from '../hooks/sort-list';
 import { getUID } from '../selectors';
-import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const sortRows = (
   a: any,
@@ -66,8 +64,8 @@ export const SelectableTable: SelectableTableProps = <
     isSelectableHidden,
     loaded,
     loadError,
+    emptyRowMessage,
   } = props;
-  const { t } = useCustomTranslation();
   const {
     onSort,
     sortIndex: activeSortIndex,
@@ -97,10 +95,13 @@ export const SelectableTable: SelectableTableProps = <
     columnIndex,
   });
 
-  return loaded && !loadError ? (
-    sortedRows?.length === 0 ? (
-      <Bullseye>{t('Not found')}</Bullseye>
-    ) : (
+  return (
+    <StatusBox
+      loadError={loadError}
+      loaded={loaded}
+      EmptyMsg={emptyRowMessage}
+      data={sortedRows}
+    >
       <TableComposable
         translate={null}
         aria-label="Selectable table"
@@ -158,9 +159,7 @@ export const SelectableTable: SelectableTableProps = <
           ))}
         </Tbody>
       </TableComposable>
-    )
-  ) : (
-    <StatusBox loadError={loadError} loaded={loaded} />
+    </StatusBox>
   );
 };
 
@@ -190,6 +189,7 @@ export type TableProps<T extends K8sResourceCommon> = {
   isSelectableHidden?: boolean;
   loaded: boolean;
   loadError?: any;
+  emptyRowMessage?: React.FC;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(
