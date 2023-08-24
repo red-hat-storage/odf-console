@@ -51,6 +51,7 @@ export const createStorageCluster = async (state: WizardState) => {
     securityAndNetwork,
     nodes,
     backingStorage,
+    dataProtection,
   } = state;
   const {
     capacity,
@@ -61,6 +62,7 @@ export const createStorageCluster = async (state: WizardState) => {
   } = capacityAndNodes;
   const { encryption, publicNetwork, clusterNetwork, kms } = securityAndNetwork;
   const { type, enableNFS, deployment } = backingStorage;
+  const { enableRDRPreparation } = dataProtection;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
 
@@ -101,7 +103,8 @@ export const createStorageCluster = async (state: WizardState) => {
     pvCount,
     isMCG,
     isNFSEnabled,
-    enableSingleReplicaPool
+    enableSingleReplicaPool,
+    enableRDRPreparation
   );
   return k8sCreate({ model: OCSStorageClusterModel, data: payload });
 };

@@ -79,6 +79,9 @@ export const initialState: CreateStorageSystemState = {
     clusterNetwork: null,
     networkType: NetworkType.DEFAULT,
   },
+  dataProtection: {
+    enableRDRPreparation: false,
+  },
 };
 
 type CreateStorageSystemState = {
@@ -111,6 +114,9 @@ type CreateStorageSystemState = {
     networkType: NetworkType;
   };
   createLocalVolumeSet: LocalVolumeSet;
+  dataProtection: {
+    enableRDRPreparation: boolean;
+  };
 };
 
 export type WizardNodeState = {
@@ -296,7 +302,9 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'securityAndNetwork/setNetworkType':
       newState.securityAndNetwork.networkType = action.payload;
       break;
-
+    case 'dataProtection/enableRDRPreparation':
+      newState.dataProtection.enableRDRPreparation = action.payload;
+      break;
     default:
       throw new TypeError(`${action} is not a valid reducer action`);
   }
@@ -398,4 +406,8 @@ export type CreateStorageSystemAction =
   | {
       type: 'securityAndNetwork/setNetworkType';
       payload: WizardState['securityAndNetwork']['networkType'];
+    }
+  | {
+      type: 'dataProtection/enableRDRPreparation';
+      payload: WizardState['dataProtection']['enableRDRPreparation'];
     };
