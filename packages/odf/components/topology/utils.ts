@@ -7,7 +7,7 @@ import {
   nodeFilter,
 } from '@odf/shared/topology';
 import { resolveResourceUntilDeployment } from '@odf/shared/topology/utils/resource';
-import { NodeKind, PodKind } from '@odf/shared/types';
+import { DeploymentKind, NodeKind, PodKind } from '@odf/shared/types';
 import { getRack } from '@odf/shared/utils';
 import {
   Alert,
@@ -19,11 +19,20 @@ import { getZone } from '../../utils';
 export const generateNodeDeploymentsMap = (
   nodes: NodeKind[],
   pods: PodKind[],
+  deployments: DeploymentKind[],
   ...resources: K8sResourceCommon[]
 ): NodeDeploymentMap => {
   return nodes.reduce<NodeDeploymentMap>((map, node) => {
+    const allNames = deployments.map(
+      (deployment) =>
+        deployment.metadata.labels?.['app'] ||
+        deployment.metadata.labels?.['app.kubernetes.io/component'] ||
+        deployment.spec.selector.matchLabels?.['app']
+    );
     const podsInNode = pods.filter(
-      (pod) => pod.spec.nodeName === getName(node)
+      (pod) =>
+        pod.spec.nodeName === getName(node) &&
+        allNames.includes(pod.metadata.labels['app'])
     );
     const deploymentsInNode = podsInNode
       .map((pod) =>
