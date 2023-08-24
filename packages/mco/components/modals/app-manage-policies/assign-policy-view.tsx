@@ -41,7 +41,7 @@ export const createSteps = (
 ): WizardStep[] => [
   {
     id: 1,
-    name: t('Select policy'),
+    name: t('Policy'),
     component: (
       <SelectPolicyWizardContent
         matchingPolicies={matchingPolicies}
@@ -53,7 +53,7 @@ export const createSteps = (
   },
   {
     id: 2,
-    name: t('PVC details'),
+    name: t('PersistentVolumeClaim'),
     component: (
       <PVCDetailsWizardContent
         placementControInfo={state.policy?.placementControlInfo}

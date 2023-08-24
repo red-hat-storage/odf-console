@@ -20,7 +20,7 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
       <Form className="mco-manage-policies__form--width">
         <FormGroup
           fieldId="policy-type-selector"
-          label={t('Policy')}
+          label={t('Policy name')}
           isRequired
         >
           <SingleSelectDropdown

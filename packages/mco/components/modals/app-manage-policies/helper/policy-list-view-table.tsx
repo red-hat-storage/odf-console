@@ -9,7 +9,7 @@ import {
 } from '@odf/shared/table/selectable-table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
-import { Text } from '@patternfly/react-core';
+import { Text, Bullseye } from '@patternfly/react-core';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { Td } from '@patternfly/react-table';
 import { ModalActionContext, ModalViewContext } from '../utils/reducer';
@@ -133,6 +133,9 @@ export const PolicyListViewTable: React.FC<PolicyListViewTableProps> = ({
           setModalContext,
         }}
         loaded={true}
+        emptyRowMessage={() => (
+          <Bullseye> {t('No assigned data policy found')} </Bullseye>
+        )}
       />
     </div>
   );
