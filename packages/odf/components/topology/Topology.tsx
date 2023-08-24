@@ -479,6 +479,7 @@ const Topology: React.FC = () => {
       generateNodeDeploymentsMap(
         memoizedNodes,
         memoizedPods,
+        memoizedDeployments,
         ...memoizedReplicaSets,
         ...memoizedDaemonSets,
         ...memoizedStatefulSets,
