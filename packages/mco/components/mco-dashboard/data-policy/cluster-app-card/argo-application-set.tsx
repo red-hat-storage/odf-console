@@ -154,7 +154,7 @@ export const SnapshotSection: React.FC<CommonProps> = ({ selectedAppSet }) => {
     <div className="mco-dashboard__contentColumn">
       <StatusText>{t('Snapshot')}</StatusText>
       <Text className="text-muted">
-        {t('Last on: {{ lastSyncTime }}', {
+        {t('Last replicated on: {{ lastSyncTime }}', {
           lastSyncTime: lastSyncTime,
         })}
       </Text>
