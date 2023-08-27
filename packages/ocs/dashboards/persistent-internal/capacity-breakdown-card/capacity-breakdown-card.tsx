@@ -34,7 +34,7 @@ import {
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
 import { getStackChartStats } from '../../../utils/metrics';
-import './capacity-breakdown-card.scss';
+import '../../breakdown-card.scss';
 
 const modelByUsedQueryMap = {
   [BreakdownCardFields.PROJECTS]: StorageDashboardQuery.PROJECTS_BY_USED,
