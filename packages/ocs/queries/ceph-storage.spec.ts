@@ -8,6 +8,7 @@ import {
   breakdownQueryMapCEPH,
   getPVCNamespaceQuery,
   StorageDashboardQuery,
+  breakdownIndependentQueryMap,
 } from './ceph-storage';
 
 describe('tests for get breakdown metrics query', () => {
@@ -28,6 +29,27 @@ describe('tests for get breakdown metrics query', () => {
     const result = getBreakdownMetricsQuery(metricType);
 
     expect(result).toEqual(breakdownQueryMapCEPH[metricType]);
+  });
+
+  it('should return correct query for PVCS for external mode', () => {
+    const metricType = BreakdownCardFieldsWithParams.PVCS;
+    const isExternal = true;
+    const namespace = 'example-namespace';
+    const result = getBreakdownMetricsQuery(metricType, namespace, isExternal);
+
+    expect(result).toEqual({
+      model: PersistentVolumeClaimModel,
+      metric: 'persistentvolumeclaim',
+      queries: getPVCNamespaceQuery(namespace),
+    });
+  });
+
+  it('should return correct query for external metric types', () => {
+    const metricType = BreakdownCardFields.PODS;
+    const isExternal = true;
+    const result = getBreakdownMetricsQuery(metricType, undefined, isExternal);
+
+    expect(result).toEqual(breakdownIndependentQueryMap[metricType]);
   });
 });
 
