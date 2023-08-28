@@ -28,6 +28,7 @@ import * as _ from 'lodash-es';
 import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
 import { CLIENT_OPERATOR } from '../../../constants';
 import './activity-card.scss';
+import './../../../../style.scss';
 
 const ClientOperatorUpgradeActivity: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -112,7 +113,7 @@ export const ActivityCard: React.FC = React.memo(() => {
   const { t } = useCustomTranslation();
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Activity')}</CardTitle>
       </CardHeader>

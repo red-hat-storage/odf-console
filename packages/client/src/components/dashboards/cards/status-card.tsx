@@ -20,6 +20,7 @@ import {
 } from '@patternfly/react-core';
 import { StorageClientModel } from '../../../models';
 import { StorageClient } from '../../../types';
+import './../../../../style.scss';
 
 const clientResource: WatchK8sResource = {
   kind: referenceForModel(StorageClientModel),
@@ -65,13 +66,12 @@ export const StatusCard: React.FC = () => {
   const cephHealth = getStorageClientHealth(data?.[0], loaded, loadError);
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <HealthBody>
-        {/** Remove usage of `co-` className */}
-        <Gallery className="co-overview-status__health" hasGutter>
+        <Gallery className="odf-overview-status__health" hasGutter>
           <GalleryItem>
             <HealthItem
               title={t('Storage Client')}
