@@ -25,6 +25,7 @@ import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { BucketsTitle } from './buckets-card-item';
 import { getObcStatusGroups, getObStatusGroups } from './utils';
 import './buckets-card.scss';
+import './../../../style.scss';
 
 enum BucketsCardQueries {
   BUCKETS_COUNT = 'NooBaa_num_buckets',
@@ -74,7 +75,7 @@ const ObjectInventoryItem: React.FC<ObjectInventoryItemProps> = ({
   return (
     <InventoryItem>
       <div
-        className="co-inventory-card__item-title"
+        className="odf-inventory-card__item-title"
         data-test={!TitleComponent ? dataTest : null}
       >
         {isLoading && !error && <InventoryItemLoading />}

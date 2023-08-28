@@ -1,0 +1,11 @@
+.odf-required > * {
+  display: inline-block;
+}
+
+.odf-required:after {
+  color: $pf-color-red-200;
+  content: '*';
+  font-size: $font-size-base;
+  padding-left: 3px;
+  vertical-align: top;
+}

@@ -1,3 +1,5 @@
+$odf-icon-and-text-icon-lg: 1.2rem;
+
 .odf-icon-space-r {
   margin-right: 0.25em;
 }
@@ -10,4 +12,8 @@
   .pf-c-label__icon & {
     display: block;
   }
+}
+
+.odf-dashboard-icon {
+  font-size: $odf-icon-and-text-icon-lg;
 }

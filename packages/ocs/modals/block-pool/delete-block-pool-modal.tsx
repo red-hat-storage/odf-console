@@ -41,6 +41,7 @@ import { CephBlockPoolModel, CephClusterModel } from '../../models';
 import { StoragePoolKind } from '../../types';
 import { getStorageClassName } from '../../utils/common';
 import { BlockPoolModalFooter, FooterPrimaryActions } from './modal-footer';
+import '../../style.scss';
 
 const cephClusterResource = {
   kind: referenceForModel(CephClusterModel),
@@ -160,7 +161,7 @@ const DeleteBlockPoolModal: React.FC<DeleteBlockPoolModalProps> = (props) => {
 
   const MODAL_TITLE = (
     <ModalHeader>
-      <YellowExclamationTriangleIcon className="co-icon-space-r" />{' '}
+      <YellowExclamationTriangleIcon className="odf-icon-space-r" />{' '}
       {t('Delete BlockPool')}
     </ModalHeader>
   );

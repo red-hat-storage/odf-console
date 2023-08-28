@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import * as _ from 'lodash-es';
+import '../../../style.scss';
 
 const ResourceProvidersItemStatus: React.FC<ResourceProvidersRowStatusProps> =
   // eslint-disable-next-line react/display-name
@@ -13,7 +14,7 @@ const ResourceProvidersItemStatus: React.FC<ResourceProvidersRowStatusProps> =
           target="_blank"
           rel="noopener noreferrer"
         >
-          <RedExclamationCircleIcon className="co-dashboard-icon nb-resource-providers-card__status-icon" />
+          <RedExclamationCircleIcon className="odf-dashboard-icon nb-resource-providers-card__status-icon" />
           <span className="nb-resource-providers-card__row-status-item-text">
             {status}
           </span>
@@ -25,7 +26,7 @@ const ResourceProvidersItemStatus: React.FC<ResourceProvidersRowStatusProps> =
 export const ResourceProvidersItem: React.FC<ResourceProvidersRowProps> =
   // eslint-disable-next-line react/display-name
   React.memo(({ title, count, unhealthyProviders, link }) => (
-    <div className="co-inventory-card__item">
+    <div className="odf-inventory-card__item">
       <div
         className="nb-resource-providers-card__row-title"
         data-test="nb-resource-providers-card"

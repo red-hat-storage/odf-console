@@ -41,7 +41,7 @@ export const UtilizationContent: React.FC = () => {
   );
 
   return (
-    <Grid className="co-utilization-card__body">
+    <Grid className="odf-utilization-card__body">
       <PrometheusUtilizationItem
         title={t('Used capacity')}
         utilizationQuery={
@@ -105,7 +105,7 @@ const UtilizationCard: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="co-utilization-card__title">
+        <CardTitle className="odf-utilization-card__title">
           {t('Utilization')}
           <FieldLevelHelp>
             {t(

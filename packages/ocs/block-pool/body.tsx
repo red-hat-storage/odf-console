@@ -49,6 +49,7 @@ import {
   BlockPoolState,
 } from './reducer';
 import './body.scss';
+import '../style.scss';
 
 export const BlockPoolStatus: React.FC<BlockPoolStatusProps> = ({
   status,
@@ -293,7 +294,7 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
           />
           <div className="form-group ceph-block-pool-body__input">
             <label
-              className="control-label co-required"
+              className="control-label odf-required"
               htmlFor="pool-replica-size"
             >
               {t('Data protection policy')}
@@ -324,7 +325,7 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
           {isPoolManagementSupported && (
             <div className="form-group ceph-block-pool-body__input">
               <label
-                className="control-label co-required"
+                className="control-label odf-required"
                 htmlFor="pool-volume-type"
               >
                 {t('Volume type')}
@@ -373,7 +374,7 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
           </div>
           {state.isCompressed && (
             <Alert
-              className="co-alert ceph-block-pool__alert"
+              className="odf-alert ceph-block-pool__alert"
               variant="info"
               title={t(
                 'Enabling compression may result in little or no space savings for encrypted or random data. Also, enabling compression may have an impact on I/O performance.'

@@ -26,6 +26,7 @@ import {
 } from '../../../queries';
 import { isObjectStorageEvent, decodeRGWPrefix } from '../../../utils';
 import './activity-card.scss';
+import './../../../style.scss';
 
 const eventsResource = { isList: true, kind: EventModel.kind };
 
@@ -107,7 +108,7 @@ const ActivityCard: React.FC = () => {
   const { t } = useCustomTranslation();
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Activity')}</CardTitle>
       </CardHeader>

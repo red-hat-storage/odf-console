@@ -78,6 +78,7 @@ import {
 import { CreateBlockPoolModal } from '../modals/block-pool/create-block-pool-modal';
 import { StoragePoolKind } from '../types';
 import './sc-form.scss';
+import '../style.scss';
 
 export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
   parameterKey,
@@ -107,7 +108,7 @@ export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
   if (scLoaded && !scLoadError) {
     return (
       <div className="form-group">
-        <label htmlFor="filesystem-name" className="co-required">
+        <label htmlFor="filesystem-name" className="odf-required">
           {t('Filesystem name')}
         </label>
         <input
@@ -217,7 +218,7 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
       <>
         {!poolDataLoadError && cephClusters && (
           <div className="form-group">
-            <label className="co-required" htmlFor="ocs-storage-pool">
+            <label className="odf-required" htmlFor="ocs-storage-pool">
               {t('Storage Pool')}
             </label>
             <Dropdown
@@ -244,7 +245,7 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
         )}
         {(poolDataLoadError || cephClusterLoadError) && (
           <Alert
-            className="co-alert"
+            className="odf-alert"
             variant="danger"
             title={t('Error retrieving Parameters')}
             isInline
@@ -256,7 +257,7 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
   if (cephClusters[0]?.metadata.name === CEPH_EXTERNAL_CR_NAME) {
     return (
       <div className="form-group">
-        <label className="co-required" htmlFor="ocs-storage-pool">
+        <label className="odf-required" htmlFor="ocs-storage-pool">
           {t('Storage Pool')}
         </label>
         <input

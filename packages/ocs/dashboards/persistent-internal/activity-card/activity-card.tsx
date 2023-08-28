@@ -45,6 +45,7 @@ import {
   OCSUpgradeActivity,
 } from './ocs-upgrade-activity';
 import './activity-card.scss';
+import '../../../style.scss';
 
 export const getOCSSubscription = (
   subscriptions: K8sResourceKind[]
@@ -161,7 +162,7 @@ export const ActivityCard: React.FC = React.memo(() => {
   const { t } = useCustomTranslation();
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Activity')}</CardTitle>
       </CardHeader>

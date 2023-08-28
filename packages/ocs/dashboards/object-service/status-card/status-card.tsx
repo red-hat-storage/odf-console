@@ -45,6 +45,7 @@ import { decodeRGWPrefix } from '../../../utils';
 import { ObjectServiceStatus } from './object-service-health';
 import { getNooBaaState, getRGWHealthState } from './statuses';
 import './status-card.scss';
+import '../../../style.scss';
 
 const noobaaResource = {
   kind: referenceForModel(NooBaaSystemModel),
@@ -142,7 +143,7 @@ const StatusCard: React.FC<{}> = () => {
   );
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>

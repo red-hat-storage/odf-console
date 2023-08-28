@@ -40,6 +40,7 @@ import {
 import { breakdownQueryMapMCG } from '../../../queries';
 import { decodeRGWPrefix, getStackChartStats } from '../../../utils';
 import './capacity-breakdown-card.scss';
+import './../../../style.scss';
 
 const subscriptionResource = {
   kind: referenceForModel(SubscriptionModel),
@@ -58,7 +59,11 @@ type DropdownItems = {
 
 const getDisableableSelectOptions = (dropdownItems: DropdownItems) => {
   return dropdownItems.map(({ group, items }) => (
-    <SelectGroup key={group} label={group} className="co-filter-dropdown-group">
+    <SelectGroup
+      key={group}
+      label={group}
+      className="odf-filter-dropdown-group"
+    >
       {items.map(({ name, id, disabled }) => (
         <SelectOption key={id} value={id} disabled={disabled}>
           {name}

@@ -38,6 +38,7 @@ import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
 import { getCephHealthState, getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
 import './healthchecks.scss';
+import '../../../style.scss';
 
 const resiliencyProgressQuery =
   DATA_RESILIENCY_QUERY[StorageDashboardQuery.RESILIENCY_PROGRESS];
@@ -158,12 +159,12 @@ export const StatusCard: React.FC = () => {
   }
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <HealthBody>
-        <Gallery className="co-overview-status__health" hasGutter>
+        <Gallery className="odf-overview-status__health" hasGutter>
           <GalleryItem>
             <HealthItem
               title={t('Storage Cluster')}
