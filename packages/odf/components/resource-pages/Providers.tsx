@@ -181,6 +181,28 @@ const PVCDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   );
 };
 
+const FilesystemDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
+  const { t } = useCustomTranslation();
+  const pvcName = resource.spec.nsfs.pvcName;
+  const subpath = resource.spec.nsfs.subPath;
+
+  return (
+    <Flex direction={{ default: 'column' }} className="details-item--border">
+      <FlexItem>
+        <DetailsItem field={t('Provider')}>
+          {BC_PROVIDERS.FILESYSTEM}
+        </DetailsItem>
+      </FlexItem>
+      <FlexItem>
+        <DetailsItem field={t('PersistentVolumeClaim')}>{pvcName}</DetailsItem>
+      </FlexItem>
+      <FlexItem>
+        <DetailsItem field={t('Folder')}>{subpath}</DetailsItem>
+      </FlexItem>
+    </Flex>
+  );
+};
+
 const ProviderDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   const type = resource.spec.type;
 
@@ -198,6 +220,8 @@ const ProviderDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
         return PVCDetails;
       case NOOBAA_TYPE_MAP[BC_PROVIDERS.GCP]:
         return GCPDetails;
+      case NOOBAA_TYPE_MAP[BC_PROVIDERS.FILESYSTEM]:
+        return FilesystemDetails;
       default:
         return LoadingBox;
     }
