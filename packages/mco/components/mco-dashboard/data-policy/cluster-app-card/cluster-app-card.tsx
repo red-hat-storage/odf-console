@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  ACM_ENDPOINT,
   HUB_CLUSTER_NAME,
   ALL_APPS,
   applicationDetails,
@@ -15,7 +14,10 @@ import {
 } from '@odf/mco/types';
 import { getClusterNamesFromMirrorPeers } from '@odf/mco/utils';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
-import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
+import {
+  useCustomPrometheusPoll,
+  usePrometheusBasePath,
+} from '@odf/shared/hooks/custom-prometheus-poll';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   PrometheusResponse,
@@ -161,8 +163,7 @@ export const ClusterAppCard: React.FC = () => {
     useCustomPrometheusPoll({
       endpoint: 'api/v1/query' as any,
       query: !!cluster ? getLastSyncPerClusterQuery() : null,
-      basePath: ACM_ENDPOINT,
-      cluster: HUB_CLUSTER_NAME,
+      basePath: usePrometheusBasePath(),
     });
 
   const { csvData, csvError, csvLoading } =
