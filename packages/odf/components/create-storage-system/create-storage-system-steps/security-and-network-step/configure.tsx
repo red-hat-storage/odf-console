@@ -215,10 +215,10 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           name="default-network"
           label={
             <>
-              {t('Default (SDN)')}
+              {t('Default (OVN)')}
               <FieldLevelHelp>
                 {t(
-                  'The default SDN uses a single network for all data operations such as read/write and also for control planes, such as data replication.'
+                  'The default OVN uses a single network for all data operations such as read/write and also for control planes, such as data replication.'
                 )}
               </FieldLevelHelp>
             </>
