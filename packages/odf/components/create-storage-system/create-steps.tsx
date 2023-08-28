@@ -13,6 +13,7 @@ import {
   CreateLocalVolumeSet,
   SecurityAndNetwork,
   Security,
+  DataProtection,
 } from './create-storage-system-steps';
 import { WizardDispatch, WizardState } from './reducer';
 
@@ -35,6 +36,7 @@ export const createSteps = (
     nodes,
     createLocalVolumeSet,
     connectionDetails,
+    dataProtection,
   } = state;
   const { externalStorage, deployment } = backingStorage;
   const { encryption, kms } = securityAndNetwork;
@@ -145,6 +147,14 @@ export const createSteps = (
     ),
   };
 
+  // Internal specific step
+  const rhcsInternalProviderSteps: WizardStep = {
+    name: StepsName(t)[Steps.DataProtection],
+    component: (
+      <DataProtection dataProtection={dataProtection} dispatch={dispatch} />
+    ),
+  };
+
   switch (backingStorage.type) {
     case BackingStorageType.EXISTING:
       return isMCG
@@ -174,6 +184,11 @@ export const createSteps = (
             {
               id: 4,
               canJumpTo: stepIdReached >= 4,
+              ...rhcsInternalProviderSteps,
+            },
+            {
+              id: 5,
+              canJumpTo: stepIdReached >= 5,
               ...commonSteps.reviewAndCreate,
             },
           ];
@@ -206,10 +221,15 @@ export const createSteps = (
               id: 4,
             },
             {
+              id: 5,
               canJumpTo: stepIdReached >= 5,
+              ...rhcsInternalProviderSteps,
+            },
+            {
+              canJumpTo: stepIdReached >= 6,
               name: StepsName(t)[Steps.ReviewAndCreate],
               ...commonSteps.reviewAndCreate,
-              id: 5,
+              id: 6,
             },
           ];
     case BackingStorageType.EXTERNAL:
