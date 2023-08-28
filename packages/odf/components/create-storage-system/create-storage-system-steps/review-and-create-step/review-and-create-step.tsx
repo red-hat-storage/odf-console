@@ -54,6 +54,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     connectionDetails,
     createStorageClass,
     nodes,
+    dataProtection,
   } = state;
   const {
     capacity,
@@ -100,6 +101,9 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   const totalCpu = getTotalCpu(nodes);
   const totalMemory = getTotalMemory(nodes);
   const zones = getAllZone(nodes);
+  const isRDRPreparationEnabled = dataProtection.enableRDRPreparation
+    ? t('Enabled')
+    : t('Disabled');
 
   return (
     <>
@@ -222,6 +226,15 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
           <ListItem>
             {t('In-transit encryption: {{hasInTransitEncryption}}', {
               hasInTransitEncryption,
+            })}
+          </ListItem>
+        </ReviewItem>
+      )}
+      {!isMCG && !isRhcs && !isStandaloneExternal && (
+        <ReviewItem title={t('Data protection')}>
+          <ListItem>
+            {t('Regional-DR preparation: {{isRDRPreparationEnabled}}', {
+              isRDRPreparationEnabled,
             })}
           </ListItem>
         </ReviewItem>
