@@ -62,7 +62,7 @@
   "Protected PVCs": "Protected PVCs",
   "{{ pvcsWithIssueCount }} with issues": "{{ pvcsWithIssueCount }} with issues",
   "Snapshot": "Snapshot",
-  "Last on: {{ lastSyncTime }}": "Last on: {{ lastSyncTime }}",
+  "Last replicated on: {{ lastSyncTime }}": "Last replicated on: {{ lastSyncTime }}",
   "Operator health": "Operator health",
   "Operators are responsible for maintaining and reconciling the state of the cluster.": "Operators are responsible for maintaining and reconciling the state of the cluster.",
   "Degraded": "Degraded",
