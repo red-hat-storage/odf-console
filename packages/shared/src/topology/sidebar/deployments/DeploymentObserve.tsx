@@ -55,7 +55,7 @@ export const DeploymentObserve: React.FC<NodeObserveProps> = ({
           utilizationQuery={
             utilizationQueries[DeploymentQueries.RECEIVE_BANDWIDTH]
           }
-          byteDataType={ByteDataTypes.DecimalBytes}
+          byteDataType={ByteDataTypes.BinaryBytes}
         />
       </UtilizationBody>
     </Card>
