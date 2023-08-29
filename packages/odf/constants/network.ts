@@ -6,6 +6,6 @@ export enum IP_FAMILY {
 }
 
 export const NetworkTypeLabels = {
-  [NetworkType.DEFAULT]: 'Default (SDN)',
+  [NetworkType.DEFAULT]: 'Default (OVN)',
   [NetworkType.MULTUS]: 'Custom (Multus)',
 };
