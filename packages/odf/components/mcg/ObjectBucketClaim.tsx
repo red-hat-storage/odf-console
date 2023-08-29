@@ -435,17 +435,17 @@ export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
       pages={[
         {
           href: '',
-          name: 'Details',
+          name: t('Details'),
           component: OBCDetails as any,
         },
         {
           href: 'yaml',
-          name: 'YAML',
+          name: t('YAML'),
           component: YAMLEditorWrapped,
         },
         {
           href: 'events',
-          name: 'Events',
+          name: t('Events'),
           component: EventStreamWrapped,
         },
       ]}

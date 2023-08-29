@@ -136,17 +136,17 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
         pages={[
           {
             href: '',
-            name: 'Details',
+            name: t('Details'),
             component: BCDetails,
           },
           {
             href: 'yaml',
-            name: 'YAML',
+            name: t('YAML'),
             component: YAMLEditorWrapped,
           },
           {
             href: 'events',
-            name: 'Events',
+            name: t('Events'),
             component: EventStreamWrapped,
           },
         ]}
