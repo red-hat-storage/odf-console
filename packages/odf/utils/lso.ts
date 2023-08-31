@@ -22,7 +22,7 @@ import {
 } from '../types';
 
 const getDeviceTypes = (deviceType: string[]) => {
-  const { DISK, PART } = deviceTypeDropdownItems;
+  const { DISK, PART, MPATH } = deviceTypeDropdownItems;
   if (
     (deviceType.includes(DISK) && deviceType.includes(PART)) ||
     deviceType.length === 0
@@ -32,7 +32,36 @@ const getDeviceTypes = (deviceType: string[]) => {
   if (deviceType.includes(PART)) {
     return [DiskType.Partition];
   }
+  if (deviceType.includes(MPATH)) {
+    return [DiskType.Multipath];
+  }
   return [DiskType.RawDisk];
+};
+
+/**
+ * Updates the "selectedValues" based on allowed combinations
+ * @param selectedValues list of all the current selected values (including the combinations which are not allowed)
+ * @param prevSelection previously selected list of values (before we got current updated "selectedValues")
+ * @returns list of all the allowed values, filtered from "selectedValues" and whether device types are valid or not
+ */
+export const getValidatedDeviceTypes = (
+  selectedValues: string[],
+  prevSelection: string[]
+): [string[], boolean] => {
+  /**
+   * Allowed combinations are "disk", "part", "disk + part" and "mpath".
+   * If any of "disk" or "part" is/are already selected and then "mpath" is selected as well >> auto-remove "disk" and "part".
+   * If "mpath" is only the selected item and then any other item is selected >> display error message and disable "Next" button.
+   * If none are selected >> disable "Next" button.
+   * "disk" + "part" are the default.
+   */
+  const { MPATH } = deviceTypeDropdownItems;
+  if (!prevSelection.includes(MPATH) && selectedValues.includes(MPATH))
+    return [[MPATH], true];
+  if (selectedValues.includes(MPATH) && selectedValues.length !== 1)
+    return [selectedValues, false];
+  if (selectedValues.length === 0) return [selectedValues, false];
+  return [selectedValues, true];
 };
 
 export const getLocalVolumeSetRequestData = (
