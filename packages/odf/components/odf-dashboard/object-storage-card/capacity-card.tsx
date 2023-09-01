@@ -34,6 +34,7 @@ const ObjectCapacityCard: React.FC = () => {
       </CardHeader>
       <CardBody>
         <CapacityCard
+          isExternalObjectCapacityCard
           data={dataFrames}
           relative
           showPercentage={false}
