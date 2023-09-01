@@ -35,6 +35,7 @@ import {
   useK8sWatchResource,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import { RouteComponentProps } from 'react-router';
 import {
@@ -273,6 +274,30 @@ export const LSOInstallAlert = ({ history }) => {
   );
 };
 
+const getLVSStepValidationErrors = (
+  state: WizardState['createLocalVolumeSet'],
+  t: TFunction
+) => {
+  const validationErrors: { title: string; description: string }[] = [];
+  if (state.chartNodes.size < MINIMUM_NODES)
+    validationErrors.push({
+      title: t('Minimum Node Requirement'),
+      description: t(
+        'A minimum of 3 nodes are required for the initial deployment. Only {{nodes}} node match to the selected filters. Please adjust the filters to include more nodes.',
+        { nodes: state.chartNodes.size }
+      ),
+    });
+  if (!state.isValidDeviceType && state.deviceType.length !== 0)
+    validationErrors.push({
+      title: t('Cannot proceed with selected device types'),
+      description: t(
+        'Choose a different device type or combination, or select only mpath to proceed.'
+      ),
+    });
+
+  return validationErrors;
+};
+
 export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   state,
   storageClass,
@@ -323,6 +348,8 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
 
   const discoveriesLoadError = csvLoadError || rawNodesLoadError || lvdError;
   const ns = csv?.metadata?.namespace;
+
+  const lvsStepValidationErrors = getLVSStepValidationErrors(state, t);
 
   return (
     <ErrorHandler
@@ -387,19 +414,17 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
           storageClassName={storageClass.name}
           stepIdReached={stepIdReached}
         />
-        {state.chartNodes.size < MINIMUM_NODES && (
-          <Alert
-            className="odf-create-lvs__alert"
-            variant="danger"
-            title={t('Minimum Node Requirement')}
-            isInline
-          >
-            {t(
-              'A minimum of 3 nodes are required for the initial deployment. Only {{nodes}} node match to the selected filters. Please adjust the filters to include more nodes.',
-              { nodes: state.chartNodes.size }
-            )}
-          </Alert>
-        )}
+        {!!lvsStepValidationErrors.length &&
+          lvsStepValidationErrors.map((lvsStepValidationError) => (
+            <Alert
+              className="odf-create-lvs__alert"
+              variant="danger"
+              title={lvsStepValidationError.title}
+              isInline
+            >
+              {lvsStepValidationError.description}
+            </Alert>
+          ))}
         <RequestErrors errorMessage={lvsetError} inProgress={lvsetInProgress} />
       </>
     </ErrorHandler>

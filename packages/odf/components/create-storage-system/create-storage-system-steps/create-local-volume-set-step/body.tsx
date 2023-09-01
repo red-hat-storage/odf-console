@@ -36,6 +36,7 @@ import {
   TextVariants,
   Tooltip,
 } from '@patternfly/react-core';
+import { getValidatedDeviceTypes } from '../../../../utils';
 import validationRegEx from '../../../../utils/validation';
 import { LocalVolumeSet, WizardDispatch, WizardState } from '../../reducer';
 import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
@@ -45,10 +46,27 @@ const diskModeDropdownOptions: JSX.Element[] = _.map(
   diskModeDropdownItems,
   (v, _unused) => <SelectOption key={v} value={v} />
 );
+
 const diskSizeUnitDropdownOptions: JSX.Element[] = _.map(
   diskSizeUnitOptions,
   (v, _unused) => <SelectOption key={v} value={v} />
 );
+
+const deviceTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
+  _.map(deviceTypeDropdownItems, (v) => (
+    <SelectOption
+      key={v}
+      value={v}
+      {...(v === deviceTypeDropdownItems.MPATH
+        ? {
+            description: t(
+              'This selection is exclusive and cannot be used with other device types.'
+            ),
+          }
+        : {})}
+    />
+  ));
+
 const diskTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
   _.map(diskTypeDropdownItems(t), (v, _unused) => (
     <SelectOption key={v} value={v} />
@@ -330,14 +348,15 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           <MultiSelectDropdown
             id="create-odf-device-type-dropdown"
             selections={state.deviceType}
-            options={[
-              deviceTypeDropdownItems.DISK,
-              deviceTypeDropdownItems.PART,
-            ]}
+            selectOptions={deviceTypeDropdownOptions(t)}
             placeholderText={t('Select disk types')}
-            onChange={(selectedValues: string[]) =>
-              formHandler('deviceType', selectedValues)
-            }
+            validated={!state.isValidDeviceType ? 'error' : 'default'}
+            onChange={(selectedValues: string[]) => {
+              const [deviceType, deviceTypeValidation] =
+                getValidatedDeviceTypes(selectedValues, state.deviceType);
+              formHandler('deviceType', deviceType);
+              formHandler('isValidDeviceType', deviceTypeValidation);
+            }}
           />
         </FormGroup>
         <FormGroup

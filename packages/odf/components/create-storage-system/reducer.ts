@@ -58,6 +58,7 @@ export const initialState: CreateStorageSystemState = {
     diskType: 'All',
     diskMode: diskModeDropdownItems.BLOCK,
     deviceType: [deviceTypeDropdownItems.DISK, deviceTypeDropdownItems.PART],
+    isValidDeviceType: true,
     maxDiskLimit: '',
     minDiskSize: '1',
     maxDiskSize: '',
@@ -138,6 +139,7 @@ export type LocalVolumeSet = {
   diskType: string;
   diskMode: string;
   deviceType: string[];
+  isValidDeviceType: boolean;
   maxDiskLimit: string;
   minDiskSize: string;
   maxDiskSize: string;
