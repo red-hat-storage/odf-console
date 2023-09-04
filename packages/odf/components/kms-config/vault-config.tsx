@@ -62,7 +62,6 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
 
   const openAdvancedModal = () =>
     launchModal(AdvancedVaultModal, {
-      isOpen: true,
       state,
       dispatch,
       isWizardFlow,

@@ -4,6 +4,7 @@ import {
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import * as _ from 'lodash-es';
 import {
   Button,
@@ -17,7 +18,6 @@ import FormAlertInline from '../generic/FormAlertInline';
 import { LoadingInline } from '../generic/Loading';
 import { ResourceIcon } from '../resource-link/resource-link';
 import { useCustomTranslation } from '../useCustomTranslationHook';
-import { CommonModalProps } from './common';
 import { ModalBody, ModalFooter } from './Modal';
 import { SelectorInput } from './Selector';
 
@@ -29,15 +29,12 @@ type Patch = {
 
 const LABELS_PATH = '/metadata/labels';
 
-type EditLabelModalExtraProps = {
+type EditLabelModalProps = {
+  labelClassName?: string;
   resource: K8sResourceCommon;
   resourceModel: K8sModel;
   cluster?: string;
 };
-
-type EditLabelModalProps = {
-  labelClassName?: string;
-} & CommonModalProps<EditLabelModalExtraProps>;
 
 export const arrayify = (obj) => _.map(obj, (v, k) => (v ? `${k}=${v}` : k));
 export const objectify = (arr) => {
@@ -49,11 +46,12 @@ export const objectify = (arr) => {
   return result;
 };
 
-export const EditLabelModal: React.FC<EditLabelModalProps> = ({
+export const EditLabelModal: ModalComponent<EditLabelModalProps> = ({
   closeModal,
   labelClassName,
-  isOpen,
-  extraProps: { resource, resourceModel, cluster },
+  resource,
+  resourceModel,
+  cluster,
 }) => {
   const [labels, setLabels] = React.useState(
     arrayify(_.get(resource, LABELS_PATH.split('/').slice(1)))
@@ -124,7 +122,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
 
   return (
     <Modal
-      isOpen={isOpen}
+      isOpen
       header={header}
       variant={ModalVariant.small}
       showClose={false}

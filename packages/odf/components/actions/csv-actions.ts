@@ -49,7 +49,7 @@ export const AddCapacityStorageSystem = (
     label: 'Add Capacity',
     insertBefore: 'edit-csv',
     cta: () => {
-      launchModal(AddSSCapacityModal, {
+      launchModal(AddSSCapacityModal as any, {
         extraProps: { resource },
         isOpen: true,
       });
