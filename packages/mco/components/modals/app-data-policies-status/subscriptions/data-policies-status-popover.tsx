@@ -181,7 +181,7 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
     const launchModal = React.useCallback(
       () =>
         launcher(DataPoliciesStatusModal, {
-          ...dataPoliciesStatus,
+          extraProps: dataPoliciesStatus,
           isOpen: true,
         }),
       [launcher, dataPoliciesStatus]
