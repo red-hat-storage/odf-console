@@ -8,19 +8,7 @@ import { RACK_LABEL } from '../constants';
 
 const NODE_ROLE_PREFIX = 'node-role.kubernetes.io/';
 
-export const getCloudProviderID = (node: NodeKind) =>
-  node.spec.providerID?.split('://')?.[0] || '';
-
-export const getCloudProviderNames = (providerNames) => {
-  if (providerNames.length) {
-    const displayNames =
-      providerNames.length === 1
-        ? providerNames[0]
-        : `Hybrid (${providerNames.join(' , ')})`;
-    return displayNames.replace(/aws/i, 'Amazon Web Services');
-  }
-  return '';
-};
+export const getProviderID = (node: NodeKind) => node.spec.providerID || '';
 
 export const getNodeAddresses = (node: NodeKind): NodeAddress[] =>
   node?.status?.addresses || [];
