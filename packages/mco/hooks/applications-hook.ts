@@ -96,7 +96,7 @@ const createApplicationSetReferences = (
         {
           applicationName: getName(application),
           applicationNamespace: namespace,
-          applicationType: APPLICATION_TYPE.SUBSCRIPTION,
+          applicationType: APPLICATION_TYPE.APPSET,
           placementRef: [
             {
               kind: ACMPlacementModel.kind,
