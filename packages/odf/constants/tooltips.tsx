@@ -35,3 +35,12 @@ export const attachDevicesWithArbiter = (t: TFunction, scName: string) => {
     </Trans>
   );
 };
+
+export const storageCapacityTooltip = (t: TFunction) => {
+  return (
+    <Trans t={t} ns="plugin__odf-console">
+      Raw capacity is the absolute total disk space available to the array
+      subsystem.
+    </Trans>
+  );
+};
