@@ -5,7 +5,10 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import { BreakdownCardFields } from '@odf/shared/queries';
+import {
+  BreakdownCardFields,
+  BreakdownCardFieldsWithParams,
+} from '@odf/shared/queries';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   humanizeBinaryBytes,
@@ -20,17 +23,28 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
-import { breakdownIndependentQueryMap } from '../../queries';
+import { getBreakdownMetricsQuery } from '../../queries';
 import { getStackChartStats } from '../../utils/metrics';
+import {
+  NamespaceDropdown,
+  DescriptionText,
+  TitleWithHelp,
+} from '../persistent-internal/capacity-breakdown-card/capacity-breakdown-card';
 import '../persistent-internal/capacity-breakdown-card/capacity-breakdown-card.scss';
 
 export const BreakdownCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const [metricType, setMetricType] = React.useState<BreakdownCardFields>(
-    BreakdownCardFields.PROJECTS
-  );
+  const [metricType, setMetricType] = React.useState<
+    BreakdownCardFields | BreakdownCardFieldsWithParams
+  >(BreakdownCardFields.PROJECTS);
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
-  const { queries, model, metric } = breakdownIndependentQueryMap[metricType];
+  const [pvcNamespace, setPVCNamespace] = React.useState('');
+
+  const { queries, model, metric } = getBreakdownMetricsQuery(
+    metricType,
+    pvcNamespace,
+    true
+  );
   const queryKeys = Object.keys(queries);
 
   const [byUsed, byUsedError, byUsedLoading] = useCustomPrometheusPoll({
@@ -73,6 +87,10 @@ export const BreakdownCard: React.FC = () => {
       name: t('Pods'),
       id: BreakdownCardFields.PODS,
     },
+    {
+      name: t('PersistentVolumeClaims'),
+      id: BreakdownCardFieldsWithParams.PVCS,
+    },
   ];
 
   const breakdownSelectItems = getSelectOptions(dropdownOptions);
@@ -80,7 +98,9 @@ export const BreakdownCard: React.FC = () => {
   return (
     <Card>
       <CardHeader className="ceph-capacity-breakdown-card__header">
-        <CardTitle>{t('Capacity breakdown')}</CardTitle>
+        <CardTitle>
+          <TitleWithHelp />
+        </CardTitle>
         <Select
           className="ceph-capacity-breakdown-card-header__dropdown"
           autoFocus={false}
@@ -95,6 +115,9 @@ export const BreakdownCard: React.FC = () => {
           {breakdownSelectItems}
         </Select>
       </CardHeader>
+      {metricType === BreakdownCardFieldsWithParams.PVCS && (
+        <NamespaceDropdown setPVCNamespace={setPVCNamespace} />
+      )}
       <CardBody className="ceph-capacity-breakdown-card__body">
         <BreakdownCardBody
           isLoading={!queriesDataLoaded}
@@ -105,6 +128,9 @@ export const BreakdownCard: React.FC = () => {
           metricModel={model}
           humanize={humanize}
         />
+        {metricType === BreakdownCardFieldsWithParams.PVCS &&
+          !queriesLoadError &&
+          top5MetricsStats.length > 0 && <DescriptionText />}
       </CardBody>
     </Card>
   );
