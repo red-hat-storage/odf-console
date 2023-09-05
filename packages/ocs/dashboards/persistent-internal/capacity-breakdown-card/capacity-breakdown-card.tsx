@@ -13,6 +13,7 @@ import {
   BreakdownCardFields,
   BreakdownCardFieldsWithParams,
 } from '@odf/shared/queries';
+import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getInstantVectorStats,
@@ -54,6 +55,72 @@ const modelByTotalQueryMap = {
     StorageDashboardQuery.PVC_NAMESPACES_TOTAL_USED,
 };
 
+const getInitialSortedNs = (
+  allResources: K8sResourceCommon[]
+): K8sResourceCommon =>
+  allResources?.sort((a, b) => getName(a).localeCompare(getName(b)))[0];
+
+export const NamespaceDropdown: React.FC<{
+  setPVCNamespace: React.Dispatch<React.SetStateAction<string>>;
+}> = ({ setPVCNamespace }) => {
+  const { t } = useCustomTranslation();
+
+  const initialSelection = React.useCallback(
+    (allResources: K8sResourceCommon[]): K8sResourceCommon => {
+      const initialResource = getInitialSortedNs(allResources);
+      setPVCNamespace(getName(initialResource));
+      return initialResource;
+    },
+    [setPVCNamespace]
+  );
+
+  return (
+    <div className="odf-capacity-breakdown-card-pvc-namespace__header">
+      <div
+        id="odf-capacity-breakdown-card-pvc-namespace-title"
+        className="odf-capacity-breakdown-card-pvc-namespace__title"
+      >
+        {t('Select a namespace:')}
+      </div>
+      <ResourceDropdown<K8sResourceCommon>
+        className="odf-capacity-breakdown-card-pvc-namespace__dropdown"
+        resource={namespaceResource}
+        resourceModel={NamespaceModel}
+        initialSelection={initialSelection}
+        onSelect={(ns) => {
+          setPVCNamespace(getName(ns));
+        }}
+        data-test="odf-capacity-breakdown-card-pvc-namespace-dropdown"
+      />
+    </div>
+  );
+};
+
+export const DescriptionText: React.FC = () => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <div className="odf-capacity-breakdown-card-pvc-description">
+      {t('Only showing PVCs that are being mounted on an active pod')}
+    </div>
+  );
+};
+
+export const TitleWithHelp: React.FC = () => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <>
+      {t('Requested capacity')}
+      <FieldLevelHelp testId="breakdown-card-helper-text">
+        {t(
+          'This card shows the requested capacity for different Kubernetes resources. The figures shown represent the usable storage, meaning that data replication is not taken into consideration.'
+        )}
+      </FieldLevelHelp>
+    </>
+  );
+};
+
 const BreakdownCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [metricType, setMetricType] = React.useState<
@@ -62,20 +129,9 @@ const BreakdownCard: React.FC = () => {
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const [pvcNamespace, setPVCNamespace] = React.useState('');
 
-  const initialSelection = React.useCallback(
-    (allNamespace: K8sResourceCommon[]): K8sResourceCommon => {
-      const initialResource = allNamespace?.sort((a, b) =>
-        a.metadata.name.localeCompare(b.metadata.name)
-      )[0];
-      setPVCNamespace(initialResource?.metadata.name || '');
-      return initialResource;
-    },
-    []
-  );
-
-  const { queries, model, metric } = React.useMemo(
-    () => getBreakdownMetricsQuery(metricType, pvcNamespace),
-    [metricType, pvcNamespace]
+  const { queries, model, metric } = getBreakdownMetricsQuery(
+    metricType,
+    pvcNamespace
   );
 
   const [modelByUsed, modelUsedError, modelUsedLoading] =
@@ -136,12 +192,7 @@ const BreakdownCard: React.FC = () => {
     <Card>
       <CardHeader className="ceph-capacity-breakdown-card__header">
         <CardTitle id="breakdown-card-title">
-          {t('Requested capacity')}
-          <FieldLevelHelp testId="breakdown-card-helper-text">
-            {t(
-              'This card shows the used capacity for different Kubernetes resources. The figures shown represent the Usable storage, meaning that data replication is not taken into consideration.'
-            )}
-          </FieldLevelHelp>
+          <TitleWithHelp />
         </CardTitle>
         <Select
           className="ceph-capacity-breakdown-card-header__dropdown"
@@ -161,24 +212,7 @@ const BreakdownCard: React.FC = () => {
         </Select>
       </CardHeader>
       {metricType === BreakdownCardFieldsWithParams.PVCS && (
-        <div className="odf-capacity-breakdown-card-pvc-namespace__header">
-          <div
-            id="odf-capacity-breakdown-card-pvc-namespace-title"
-            className="odf-capacity-breakdown-card-pvc-namespace__title"
-          >
-            {t('Select a namespace:')}
-          </div>
-          <ResourceDropdown<K8sResourceCommon>
-            className="odf-capacity-breakdown-card-pvc-namespace__dropdown"
-            resource={namespaceResource}
-            resourceModel={NamespaceModel}
-            initialSelection={initialSelection}
-            onSelect={(ns) => {
-              setPVCNamespace(ns?.metadata.name);
-            }}
-            data-test="odf-capacity-breakdown-card-pvc-namespace-dropdown"
-          />
-        </div>
+        <NamespaceDropdown setPVCNamespace={setPVCNamespace} />
       )}
       <CardBody className="ceph-capacity-breakdown-card__body">
         <BreakdownCardBody
@@ -191,15 +225,11 @@ const BreakdownCard: React.FC = () => {
           humanize={humanize}
           isPersistentInternal={true}
         />
+        {metricType === BreakdownCardFieldsWithParams.PVCS &&
+          !queriesLoadError &&
+          top5MetricsStats.length > 0 &&
+          cephUsed && <DescriptionText />}
       </CardBody>
-      {metricType === BreakdownCardFieldsWithParams.PVCS &&
-        !queriesLoadError &&
-        top5MetricsStats.length > 0 &&
-        cephUsed && (
-          <CardBody className="odf-capacity-breakdown-card-pvc-description">
-            {t('Only showing PVCs that are being mounted on an active pod')}
-          </CardBody>
-        )}
     </Card>
   );
 };
