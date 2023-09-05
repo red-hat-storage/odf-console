@@ -12,6 +12,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   placeholderText,
   id,
   options,
+  selectOptions,
   selections = [],
   variant,
   ...rest
@@ -29,12 +30,12 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     } else {
       cSelected = [...prevSelection, selection];
     }
-    onChange(cSelected);
+    onChange(cSelected, selection);
   };
 
   const { t } = useCustomTranslation();
 
-  const items: JSX.Element[] = options.map((item) => (
+  const items: JSX.Element[] = options?.map((item) => (
     <SelectOption key={item} value={item} />
   ));
 
@@ -52,7 +53,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
       isCheckboxSelectionBadgeHidden
       {...rest}
     >
-      {items}
+      {selectOptions || items}
     </Select>
   );
 };
@@ -63,5 +64,6 @@ export type MultiSelectDropdownProps = Omit<
 > & {
   id?: string;
   options?: string[];
-  onChange: (selected: string[]) => void;
+  selectOptions?: JSX.Element[];
+  onChange: (selected: string[], selection?: string) => void;
 };
