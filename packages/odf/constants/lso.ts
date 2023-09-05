@@ -14,6 +14,7 @@ export const diskModeDropdownItems = Object.freeze({
 export const deviceTypeDropdownItems = Object.freeze({
   DISK: 'Disk',
   PART: 'Part',
+  MPATH: 'Mpath',
 });
 
 export const diskTypeDropdownItems = (t: TFunction) =>
