@@ -36,6 +36,7 @@ type CapacityCardProps = {
   loading?: boolean;
   resourceModel?: K8sKind;
   showPercentage?: boolean;
+  isExternalObjectCapacityCard?: boolean;
 };
 
 const getPercentage = (item: CapacityMetricDatum) =>
@@ -76,13 +77,15 @@ const sortMetrics = (
 
 type CapacityCardHeaderProps = {
   showPercentage: boolean;
+  isExternalObjectCapacityCard: boolean;
 };
 
 const CapacityCardHeader: React.FC<CapacityCardHeaderProps> = ({
   showPercentage,
+  isExternalObjectCapacityCard,
 }) => {
   const { t } = useCustomTranslation();
-  return (
+  return !isExternalObjectCapacityCard ? (
     <>
       <GridItem span={2}>
         <Title headingLevel="h3" size="md">
@@ -100,6 +103,19 @@ const CapacityCardHeader: React.FC<CapacityCardHeaderProps> = ({
         </Title>
       </GridItem>
     </>
+  ) : (
+    <Grid>
+      <GridItem span={5}>
+        <Title headingLevel="h3" size="md">
+          {t('Name')}
+        </Title>
+      </GridItem>
+      <GridItem span={5}>
+        <Title headingLevel="h3" size="md">
+          {t('Used capacity')}
+        </Title>
+      </GridItem>
+    </Grid>
   );
 };
 
@@ -109,6 +125,7 @@ type CapacityCardRowProps = {
   isPercentage?: boolean;
   largestValue?: HumanizeResult;
   resourceModel?: K8sKind;
+  isExternalObjectCapacityCard?: boolean;
 };
 
 const getProgress = (
@@ -136,6 +153,7 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   isRelative,
   largestValue,
   resourceModel,
+  isExternalObjectCapacityCard,
 }) => {
   const { t } = useCustomTranslation();
   const progress =
@@ -160,7 +178,7 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
   })();
 
   const dataUnavailable = _.isNaN(progress);
-  return (
+  return !isExternalObjectCapacityCard ? (
     <>
       <GridItem key={`${data?.name}~name`} span={2}>
         {data?.managedSystemKind ? (
@@ -223,6 +241,15 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
         )}
       </GridItem>
     </>
+  ) : (
+    <Grid>
+      <GridItem key={`${data?.name}~name`} span={5}>
+        <PlainResourceName resourceName={data?.name} />
+      </GridItem>
+      <GridItem span={5} key={`${data?.name}~value`}>
+        {dataUnavailable ? '-' : value}
+      </GridItem>
+    </Grid>
   );
 };
 
@@ -267,6 +294,7 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
   loading,
   resourceModel,
   showPercentage,
+  isExternalObjectCapacityCard,
 }) => {
   const safeData = data.every(
     (item) => item.totalValue !== undefined && item.usedValue !== undefined
@@ -281,7 +309,10 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
     >
       {!error && !loading && (
         <Grid hasGutter>
-          <CapacityCardHeader showPercentage={showPercentage} />
+          <CapacityCardHeader
+            showPercentage={showPercentage}
+            isExternalObjectCapacityCard={isExternalObjectCapacityCard}
+          />
           {sortedMetrics?.map((item) => {
             const isPercentage = !!item?.totalValue;
             return (
@@ -292,6 +323,7 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
                 isRelative={relative}
                 largestValue={sortedMetrics?.[0]?.usedValue}
                 resourceModel={resourceModel}
+                isExternalObjectCapacityCard={isExternalObjectCapacityCard}
               />
             );
           })}
