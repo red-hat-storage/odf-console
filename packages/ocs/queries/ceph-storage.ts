@@ -131,7 +131,8 @@ export const breakdownQueryMapCEPH: BreakdownCardQueryMap = {
 
 export const getBreakdownMetricsQuery = (
   metricType: BreakdownCardFieldsWithParams | BreakdownCardFields,
-  namespace?: string
+  namespace?: string,
+  isExternal?: boolean
 ): BreakdownCardFieldsValues => {
   if (metricType === BreakdownCardFieldsWithParams.PVCS) {
     return {
@@ -140,7 +141,9 @@ export const getBreakdownMetricsQuery = (
       queries: getPVCNamespaceQuery(namespace),
     };
   }
-  return breakdownQueryMapCEPH[metricType];
+  return !isExternal
+    ? breakdownQueryMapCEPH[metricType]
+    : breakdownIndependentQueryMap[metricType];
 };
 
 export const CAPACITY_INFO_QUERIES = {
