@@ -70,7 +70,8 @@ const canJumpToNextStep = (
   const isExternal: boolean = type === BackingStorageType.EXTERNAL;
   const isRHCS: boolean = externalStorage === OCSStorageClusterModel.kind;
   const { capacity } = capacityAndNodes;
-  const { chartNodes, volumeSetName, isValidDiskSize } = createLocalVolumeSet;
+  const { chartNodes, volumeSetName, isValidDiskSize, isValidDeviceType } =
+    createLocalVolumeSet;
   const { encryption, kms, networkType, publicNetwork, clusterNetwork } =
     securityAndNetwork;
   const { canGoToNextStep } =
@@ -94,7 +95,8 @@ const canJumpToNextStep = (
       return (
         chartNodes.size >= MINIMUM_NODES &&
         volumeSetName.trim().length &&
-        isValidDiskSize
+        isValidDiskSize &&
+        isValidDeviceType
       );
     case StepsName(t)[Steps.CapacityAndNodes]:
       return nodes.length >= MINIMUM_NODES && capacity;

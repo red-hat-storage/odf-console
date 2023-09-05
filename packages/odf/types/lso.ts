@@ -7,6 +7,7 @@ import {
 export enum DiskType {
   RawDisk = 'disk',
   Partition = 'part',
+  Multipath = 'mpath',
 }
 
 export enum DiskMechanicalProperties {
