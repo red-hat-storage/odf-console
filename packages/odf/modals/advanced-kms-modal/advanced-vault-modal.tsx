@@ -2,6 +2,7 @@ import * as React from 'react';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import {
   FormGroup,
   TextInput,
@@ -20,8 +21,8 @@ import { KMSMaxFileUploadSize } from '../../constants';
 import { VaultConfig, VaultAuthMethods } from '../../types';
 import './advanced-kms-modal.scss';
 
-const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
-  const { closeModal, isOpen, state, dispatch, isWizardFlow } = props;
+const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
+  const { closeModal, state, dispatch, isWizardFlow } = props;
 
   const kms = state.kms.providerState as VaultConfig;
 
@@ -159,7 +160,7 @@ const AdvancedVaultModal = (props: AdvancedKMSModalProps) => {
   return (
     <Modal
       header={Header}
-      isOpen={isOpen}
+      isOpen
       onClose={closeModal}
       showClose={false}
       hasNoBodyWrapper={true}

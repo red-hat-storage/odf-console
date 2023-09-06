@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { CommonModalProps } from '@odf/shared/modals/Modal';
 import {
   CreateStorageSystemAction,
   WizardState,
@@ -17,7 +16,7 @@ export type KMSConfigureProps = {
   isMCG?: boolean;
 };
 
-export type AdvancedKMSModalProps = CommonModalProps & {
+export type AdvancedKMSModalProps = {
   state: Pick<WizardState['securityAndNetwork'], 'encryption' | 'kms'>;
   dispatch: EncryptionDispatch;
   mode?: string;

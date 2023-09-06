@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import * as _ from 'lodash-es';
 import {
   Button,
@@ -18,24 +19,21 @@ import {
   LazyNameValueEditor,
   NameValueEditorPair,
 } from '../utils/NameValueEditor';
-import { CommonModalProps, ModalBody, ModalFooter } from './Modal';
+import { ModalBody, ModalFooter } from './Modal';
 
-type AnnotationsModalProps = {
-  titleKey: string;
-  errorMessage: string;
-  extraProps: {
-    resource: K8sResourceKind;
-    resourceModel: K8sKind;
-    cluster?: string;
-  };
-} & CommonModalProps;
+type AnnotationsModalProps = ModalComponent<{
+  resource: K8sResourceKind;
+  resourceModel: K8sKind;
+  cluster?: string;
+}>;
 
 const ANNOTATIONS_PATH = '/metadata/annotations';
 
-export const AnnotationsModal: React.FC<AnnotationsModalProps> = ({
-  extraProps: { resource, resourceModel, cluster },
+export const AnnotationsModal: AnnotationsModalProps = ({
+  resource,
+  resourceModel,
+  cluster,
   closeModal,
-  isOpen,
 }) => {
   const [inProgress, setProgress] = React.useState(false);
   const [tags, setTags] = React.useState(() =>
@@ -93,7 +91,7 @@ export const AnnotationsModal: React.FC<AnnotationsModalProps> = ({
   );
   return (
     <Modal
-      isOpen={isOpen}
+      isOpen
       header={header}
       variant={ModalVariant.small}
       showClose={false}

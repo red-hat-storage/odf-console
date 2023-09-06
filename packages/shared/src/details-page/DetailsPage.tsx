@@ -7,6 +7,7 @@ import {
   NavPage,
   ResourceLink,
   useAccessReview,
+  useAnnotationsModal,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classnames from 'classnames';
@@ -23,7 +24,6 @@ import { PencilAltIcon } from '@patternfly/react-icons';
 import { LoadingBox } from '../generic/status-box';
 import PageHeading from '../heading/page-heading';
 import { EditLabelModal } from '../modals';
-import AnnotationsModal from '../modals/EditAnnotations';
 import { ResourceIcon } from '../resource-link/resource-link';
 import { getName } from '../selectors';
 import { K8sResourceKind } from '../types';
@@ -314,6 +314,8 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
 
   const launchModal = useModal();
 
+  const launchAnnotationsModal = useAnnotationsModal(resource);
+
   return (
     <dl data-test-id="resource-summary" className="co-m-pane__details">
       <DetailsItem
@@ -340,9 +342,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
         obj={resource}
         path="metadata.labels"
         valueClassName="details-item__value--labels"
-        onEdit={() =>
-          launchModal(EditLabelModal, { resource, resourceModel, isOpen: true })
-        }
+        onEdit={() => launchModal(EditLabelModal, { resource, resourceModel })}
         canEdit={showLabelEditor && canUpdate && !!launchModal}
         editAsGroup
       >
@@ -354,18 +354,12 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
           obj={resource}
           path="metadata.annotations"
         >
-          {canUpdate && !!launchModal ? (
+          {canUpdate ? (
             <Button
               data-test="edit-annotations"
               type="button"
               isInline
-              onClick={() =>
-                launchModal(AnnotationsModal, {
-                  resource,
-                  resourceModel,
-                  isOpen: true,
-                })
-              }
+              onClick={launchAnnotationsModal}
               variant="link"
             >
               {t('{{count}} annotation', {
