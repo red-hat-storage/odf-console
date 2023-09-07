@@ -35,3 +35,6 @@ export const getMajorVersion = (version: string): string => {
     ? version.split('.')[0] + '.' + version.split('.')[1] + '.0'
     : '';
 };
+
+export const getValidatedProp = (error: boolean) =>
+  error ? 'error' : 'default';

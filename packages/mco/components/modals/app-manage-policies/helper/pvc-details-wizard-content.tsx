@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useACMSafeFetch } from '@odf/mco/hooks/acm-safe-fetch';
 import { DRPlacementControlModel } from '@odf/mco/models';
 import { SearchResult } from '@odf/mco/types';
+import { getValidatedProp } from '@odf/mco/utils';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { getName, getNamespace } from '@odf/shared/selectors';
@@ -14,8 +15,6 @@ import {
 import { ObjectReference } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
-  Alert,
-  AlertVariant,
   Button,
   Form,
   FormGroup,
@@ -38,7 +37,9 @@ const findPlacement = (placements: PlacementType[], name: string) =>
 
 const getPlacementTags = (drpcs: DRPlacementControlType[]) =>
   !!drpcs.length
-    ? drpcs.map((drpc) => [getName(drpc.placementInfo), drpc?.pvcSelector])
+    ? drpcs.map((drpc) =>
+        !!drpc ? [getName(drpc.placementInfo), drpc?.pvcSelector] : []
+      )
     : [[]];
 
 const getLabelsFromSearchResult = (searchResult: SearchResult): string[] => {
@@ -124,8 +125,11 @@ const PairElement: React.FC<PairElementProps> = ({
     placementNames,
     labels,
     tags,
-    createPlacementControlInfo,
+    isValidationEnabled,
+    placementControInfo,
+    setPlacementControlInfo,
     updatePlacementControlInfo,
+    unSetPlacementControlInfo,
   }: extraProps = extraProps;
   const selectedPlacement = pair[NameValueEditorPair.Name];
   const selectedLabels = pair[NameValueEditorPair.Value];
@@ -136,6 +140,11 @@ const PairElement: React.FC<PairElementProps> = ({
     </>
   );
 
+  React.useEffect(() => {
+    // Initialize the placementControInfo for the index with empty object
+    !placementControInfo?.[index] && setPlacementControlInfo('', index);
+  }, [placementControInfo, index, setPlacementControlInfo]);
+
   const onChangePlacement = React.useCallback(
     (placement: string) => {
       onChange(
@@ -143,9 +152,9 @@ const PairElement: React.FC<PairElementProps> = ({
         index,
         NameValueEditorPair.Name
       );
-      createPlacementControlInfo(placement, index);
+      setPlacementControlInfo(placement, index);
     },
-    [index, onChange, createPlacementControlInfo]
+    [index, onChange, setPlacementControlInfo]
   );
 
   const onChangeValue = React.useCallback(
@@ -158,12 +167,18 @@ const PairElement: React.FC<PairElementProps> = ({
 
   const onRemove = React.useCallback(() => {
     onRemoveProp(index);
-    createPlacementControlInfo('', index);
-  }, [index, onRemoveProp, createPlacementControlInfo]);
+    unSetPlacementControlInfo(index);
+  }, [index, onRemoveProp, unSetPlacementControlInfo]);
 
   return (
-    <div className="row pairs-list__row" data-test="pairs-list-row">
-      <div className="col-xs-5 pairs-list__name-field">
+    <div className="row" data-test="pairs-list-row">
+      <FormGroup
+        className="col-xs-5 pairs-list__name-field"
+        hasNoPaddingTop
+        isRequired
+        validated={getValidatedProp(isValidationEnabled && !selectedPlacement)}
+        helperTextInvalid={t('Required')}
+      >
         <SingleSelectDropdown
           id="placement-selection-dropdown"
           selectedKey={selectedPlacement}
@@ -174,9 +189,21 @@ const PairElement: React.FC<PairElementProps> = ({
           )}
           placeholderText={t('Select a placement')}
           onChange={onChangePlacement}
+          required
+          validated={getValidatedProp(
+            isValidationEnabled && !selectedPlacement
+          )}
         />
-      </div>
-      <div className="col-xs-5 pairs-list__value-field">
+      </FormGroup>
+      <FormGroup
+        className="col-xs-5 pairs-list__value-field"
+        hasNoPaddingTop
+        isRequired
+        validated={getValidatedProp(
+          isValidationEnabled && !selectedLabels?.length
+        )}
+        helperTextInvalid={t('Required')}
+      >
         <MultiSelectDropdown
           id="labels-selection-dropdown"
           selections={selectedLabels}
@@ -193,9 +220,13 @@ const PairElement: React.FC<PairElementProps> = ({
               : t('Select labels')
           }
           variant={SelectVariant.checkbox}
+          required
+          validated={getValidatedProp(
+            isValidationEnabled && !selectedLabels?.length
+          )}
         />
-      </div>
-      <div className="col-xs-1 pairs-list__action">
+      </FormGroup>
+      <FormGroup className="col-xs-1 pairs-list__action" hasNoPaddingTop>
         <Button
           type="button"
           data-test="delete-button"
@@ -205,7 +236,7 @@ const PairElement: React.FC<PairElementProps> = ({
         >
           {deleteIcon}
         </Button>
-      </div>
+      </FormGroup>
     </div>
   );
 };
@@ -216,6 +247,7 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
     unProtectedPlacements,
     policyRef,
     workloadNamespace,
+    isValidationEnabled,
     setDRPlacementControls,
   }) => {
     const { t } = useCustomTranslation();
@@ -251,20 +283,15 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
       [unProtectedPlacements]
     );
 
-    const createPlacementControlInfo = React.useCallback(
+    const setPlacementControlInfo = React.useCallback(
       (placementName: string, index: number) => {
-        if (!placementName) {
-          // unselect
-          selectedPlacementControls.splice(index, 1);
-        } else {
-          // select
-          const placement = findPlacement(unProtectedPlacements, placementName);
-          const drPlacementControlObj = createDRPlacementControlObj(
-            placement,
-            policyRef
-          );
-          selectedPlacementControls[index] = drPlacementControlObj;
-        }
+        // select
+        const placement = findPlacement(unProtectedPlacements, placementName);
+        const drPlacementControlObj = createDRPlacementControlObj(
+          placement,
+          policyRef
+        );
+        selectedPlacementControls[index] = drPlacementControlObj;
         setDRPlacementControls(selectedPlacementControls);
       },
       [
@@ -286,6 +313,14 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
       [selectedPlacementControls, setDRPlacementControls]
     );
 
+    const unSetPlacementControlInfo = React.useCallback(
+      (index: number) => {
+        selectedPlacementControls.splice(index, 1);
+        setDRPlacementControls(selectedPlacementControls);
+      },
+      [selectedPlacementControls, setDRPlacementControls]
+    );
+
     return (
       <Form>
         <FormGroup>
@@ -295,34 +330,25 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
             )}
           </Text>
         </FormGroup>
-        <FormGroup>
-          <Alert
-            title={t(
-              'If no label is provided, all PVCs will be protected. Define your preferences to protect specific resources.'
-            )}
-            variant={AlertVariant.info}
-            isInline
-            className="odf-alert mco-manage-policies__alert--margin-bottom"
-          />
-        </FormGroup>
-        <FormGroup>
-          <LazyNameValueEditor
-            nameValuePairs={tags}
-            updateParentData={({ nameValuePairs }) => setTags(nameValuePairs)}
-            PairElementComponent={PairElement}
-            nameString={t('Application resource')}
-            valueString={t('PVC label selector')}
-            addString={t('Add application resource')}
-            isAddDisabled={tags.length !== selectedPlacementControls.length}
-            extraProps={{
-              placementNames,
-              labels,
-              tags,
-              createPlacementControlInfo,
-              updatePlacementControlInfo,
-            }}
-          />
-        </FormGroup>
+        <LazyNameValueEditor
+          nameValuePairs={tags}
+          updateParentData={({ nameValuePairs }) => setTags(nameValuePairs)}
+          PairElementComponent={PairElement}
+          nameString={t('Application resource')}
+          valueString={t('PVC label selector')}
+          addString={t('Add application resource')}
+          extraProps={{
+            placementNames,
+            labels,
+            tags,
+            isValidationEnabled,
+            placementControInfo,
+            setPlacementControlInfo,
+            updatePlacementControlInfo,
+            unSetPlacementControlInfo,
+          }}
+          className="co-required mco-manage-policies__nameValue--weight"
+        />
       </Form>
     );
   };
@@ -333,8 +359,11 @@ type extraProps = {
   placementNames: string[];
   labels: string[];
   tags: TagsType;
-  createPlacementControlInfo: (placementName: string, index: number) => void;
+  isValidationEnabled: boolean;
+  placementControInfo: DRPlacementControlType[];
+  setPlacementControlInfo: (placementName: string, index: number) => void;
   updatePlacementControlInfo: (labels: string[], index: number) => void;
+  unSetPlacementControlInfo: (index: number) => void;
 };
 
 type PVCDetailsWizardContentProps = {
@@ -342,6 +371,7 @@ type PVCDetailsWizardContentProps = {
   unProtectedPlacements: PlacementType[];
   policyRef: ObjectReference;
   workloadNamespace: string;
+  isValidationEnabled: boolean;
   setDRPlacementControls: (
     drPlacementControls: DRPlacementControlType[]
   ) => void;

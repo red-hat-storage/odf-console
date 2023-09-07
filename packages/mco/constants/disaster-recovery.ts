@@ -67,3 +67,15 @@ export const SYNC_SCHEDULE_DISPLAY_TEXT = (
   [TIME_UNITS.Hours]: t('hours'),
   [TIME_UNITS.Days]: t('days'),
 });
+
+// Asisgn policy wizard steps
+export enum AssignPolicySteps {
+  Policy = 'policy',
+  PersistentVolumeClaim = 'persistent-volume-claim',
+  ReviewAndAssign = 'review-and-assign',
+}
+export const AssignPolicyStepsNames = (t: TFunction) => ({
+  [AssignPolicySteps.Policy]: t('Policy'),
+  [AssignPolicySteps.PersistentVolumeClaim]: t('PersistentVolumeClaim'),
+  [AssignPolicySteps.ReviewAndAssign]: t('Review and assign'),
+});
