@@ -128,52 +128,30 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
       subscriptionsLoaded && placementLoaded && drPlacementControlsLoaded;
     const loadError =
       subscriptionsLoadError ||
-      placementDecisionsLoadError ||
+      placementLoadError ||
       drPlacementControlsLoadError;
 
-    const placementMap: PlacementMap = React.useMemo(
-      () =>
-        placementLoaded && !placementLoadError
-          ? generateUniquePlacementMap(
-              placementRules,
-              placements,
-              placementDecisions
-            )
-          : {},
-      [
-        placementRules,
-        placements,
-        placementDecisions,
-        placementLoaded,
-        placementLoadError,
-      ]
-    );
-
-    const subscriptionMap: SubscriptionMap = React.useMemo(
-      () =>
-        // Filtering subscription using DR placementRules/placements and application selectors
-        subscriptionsLoaded &&
-        !subscriptionsLoadError &&
-        !_.isEmpty(placementMap)
-          ? filterDRSubscriptions(application, subscriptions, placementMap)
-          : {},
-      [
-        subscriptions,
-        subscriptionsLoaded,
-        subscriptionsLoadError,
-        placementMap,
-        application,
-      ]
-    );
-
     React.useEffect(() => {
-      // Grouping ACM subscriptions using DR placement controls
-      if (drPlacementControlsLoaded && !drPlacementControlsLoadError) {
-        const drPolicyControlState: DRPolicyControlState[] = getAppDRInfo(
-          drPlacementControls,
-          subscriptionMap,
-          placementMap
+      if (loaded && !loadError) {
+        // Creating unique placement map using name, namespace and kind of placementRule/placement
+        const placementMap: PlacementMap = generateUniquePlacementMap(
+          placementRules,
+          placements,
+          placementDecisions
         );
+
+        const subscriptionMap: SubscriptionMap =
+          // Filtering subscription using DR placementRules/placements and application selectors
+          !_.isEmpty(placementMap)
+            ? filterDRSubscriptions(application, subscriptions, placementMap)
+            : {};
+
+        // Grouping ACM subscriptions using DR placement controls
+        const drPolicyControlState: DRPolicyControlState[] = !_.isEmpty(
+          subscriptionMap
+        )
+          ? getAppDRInfo(drPlacementControls, subscriptionMap, placementMap)
+          : [];
         !!drPolicyControlState.length
           ? dispatch({
               type: FailoverAndRelocateType.SET_DR_POLICY_CONTROL_STATE,
@@ -190,11 +168,14 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
             });
       }
     }, [
-      drPlacementControlsLoaded,
-      drPlacementControlsLoadError,
+      loaded,
+      loadError,
+      application,
       drPlacementControls,
-      subscriptionMap,
-      placementMap,
+      subscriptions,
+      placementRules,
+      placements,
+      placementDecisions,
       action,
       dispatch,
       t,
