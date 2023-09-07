@@ -17,10 +17,13 @@
     &__form--width {
         width: 50%;
     }
-    &__alert--margin-bottom {
-        margin-bottom: var(--pf-global--spacer--xs) !important;
-    }
     &__emptyState---margin-bottom {
         margin-bottom: var(--pf-global--spacer--lg);
+    }
+    &__nameValue--weight {
+        font-weight: var(--pf-global--FontWeight--bold)
+    }
+    &__alert--margin-left {
+        margin-left: var(--pf-global--spacer--lg);
     }
 }
