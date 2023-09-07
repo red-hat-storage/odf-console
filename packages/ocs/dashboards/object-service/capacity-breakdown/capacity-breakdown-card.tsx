@@ -285,7 +285,7 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({
 const BreakdownCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [serviceType, setServiceType] = React.useState(ServiceType.MCG);
-  const [metricType, setMetricType] = React.useState(
+  const [metricType, setMetricType] = React.useState<CapacityBreakdown.Metrics>(
     CapacityBreakdown.defaultMetrics[ServiceType.MCG]
   );
   const [isOpenServiceSelect, setServiceSelect] = React.useState(false);
