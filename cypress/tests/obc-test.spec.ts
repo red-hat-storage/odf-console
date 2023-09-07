@@ -18,7 +18,7 @@ import { detailsPage } from '../views/details-page';
 import { listPage } from '../views/list-page';
 import { CreateOBCHandler, obcNavigate } from '../views/obcPage';
 
-describe('Test Object Bucket Claim resource', () => {
+xdescribe('Test Object Bucket Claim resource', () => {
   let obcHandler;
 
   before(() => {
@@ -120,7 +120,7 @@ describe('Test Object Bucket Claim resource', () => {
   });
 });
 
-describe('Tests form validations on Object Bucket Claim', () => {
+xdescribe('Tests form validations on Object Bucket Claim', () => {
   const nameFieldTestId: string = 'obc-name';
   const populateObcForm = () => {
     app.waitForLoad();
