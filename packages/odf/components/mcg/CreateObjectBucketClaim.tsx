@@ -22,8 +22,8 @@ import {
   getAPIVersionForModel,
   k8sCreate,
   NamespaceBar,
+  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { Control, useForm } from 'react-hook-form';
