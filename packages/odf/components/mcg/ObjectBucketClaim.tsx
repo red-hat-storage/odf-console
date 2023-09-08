@@ -27,8 +27,8 @@ import {
   useK8sWatchResource,
   useListPageFilter,
   VirtualizedTable,
+  useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useActiveNamespace } from '@openshift-console/dynamic-plugin-sdk-internal';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { RouteComponentProps } from 'react-router';
