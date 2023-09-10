@@ -240,6 +240,11 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
             dispatch={dispatch}
           />
         </FormGroup>
+        <FormGroup
+          helperText={t(
+            "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation."
+          )}
+        />
         {!!odfMCOVersion && (
           <FormGroup fieldId="policy-name">
             <Alert

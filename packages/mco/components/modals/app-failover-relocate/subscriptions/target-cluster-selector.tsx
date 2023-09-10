@@ -15,7 +15,11 @@ import {
   HelperText,
   HelperTextItem,
 } from '@patternfly/react-core';
-import { DRActionType, REPLICATION_TYPE } from '../../../../constants';
+import {
+  DRActionType,
+  MANAGED_CLUSTER_CONDITION_AVAILABLE,
+  REPLICATION_TYPE,
+} from '../../../../constants';
 import {
   getDRClusterResourceObj,
   getManagedClusterResourceObj,
@@ -40,7 +44,7 @@ export enum DRClusterStatus {
 const getAvailableCondition = (managedCluster: ACMManagedClusterKind) =>
   managedCluster?.status?.conditions?.find(
     (condition) =>
-      condition?.type === 'ManagedClusterConditionAvailable' &&
+      condition?.type === MANAGED_CLUSTER_CONDITION_AVAILABLE &&
       condition.status === 'True'
   );
 

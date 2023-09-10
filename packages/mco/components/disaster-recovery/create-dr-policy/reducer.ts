@@ -4,6 +4,7 @@ export type ODFInfo = Partial<{
   cephFSID: string;
   odfVersion: string;
   isValidODFVersion: boolean;
+  isManagedClusterAvailable: boolean;
 }>;
 
 export type Cluster = {
