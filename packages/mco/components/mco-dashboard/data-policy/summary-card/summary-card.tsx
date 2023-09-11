@@ -1,6 +1,7 @@
 import * as React from 'react';
+import { MANAGED_CLUSTER_CONDITION_AVAILABLE } from '@odf/mco/constants';
 import { DrClusterAppsMap } from '@odf/mco/types';
-import { getManagedClusterAvailableCondition } from '@odf/mco/utils';
+import { getManagedClusterCondition } from '@odf/mco/utils';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -46,8 +47,9 @@ const getClusterSummary = (
       summaryMap.applications.protectedCount =
         summaryMap.applications.protectedCount +
         drClusterAppsMap[cluster].protectedAppSets.length;
-      const isClusterHealthy = !!getManagedClusterAvailableCondition(
-        drClusterAppsMap[cluster]?.managedCluster
+      const isClusterHealthy = !!getManagedClusterCondition(
+        drClusterAppsMap[cluster]?.managedCluster,
+        MANAGED_CLUSTER_CONDITION_AVAILABLE
       );
       if (!isClusterHealthy) {
         summaryMap.clusters.withIssuesCount =
