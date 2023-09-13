@@ -52,6 +52,7 @@ type NameValueEditorProps = {
   onLastItemRemoved: () => void;
   extraProps?: any;
   isAddDisabled?: boolean;
+  className?: string;
 };
 
 export const enum NameValueEditorPair {
@@ -208,6 +209,7 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
       valueString,
       extraProps,
       isAddDisabled,
+      className,
       PairElementComponent = PairElement,
     }) => {
       const { t } = useCustomTranslation();
@@ -307,8 +309,12 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
             {!readOnly && allowSorting && (
               <div className="col-xs-1 co-empty__header" />
             )}
-            <div className="col-xs-5">{nameStringUpdated}</div>
-            <div className="col-xs-5">{valueStringUpdated}</div>
+            <div className={classNames('col-xs-5', className)}>
+              {nameStringUpdated}
+            </div>
+            <div className={classNames('col-xs-5', className)}>
+              {valueStringUpdated}
+            </div>
             <div className="col-xs-1 co-empty__header" />
           </div>
           {pairElems}
