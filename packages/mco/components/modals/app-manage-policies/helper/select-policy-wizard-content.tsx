@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getValidatedProp } from '@odf/mco/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -14,23 +15,27 @@ const findPolicy = (name: string, dataPolicies: DRPolicyType[]) =>
   dataPolicies.find((policy) => getName(policy) === name);
 
 export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps> =
-  ({ policy, matchingPolicies, setPolicy }) => {
+  ({ policy, matchingPolicies, isValidationEnabled, setPolicy }) => {
     const { t } = useCustomTranslation();
+    const name = getName(policy);
     return (
       <Form className="mco-manage-policies__form--width">
         <FormGroup
           fieldId="policy-type-selector"
           label={t('Policy name')}
           isRequired
+          validated={getValidatedProp(isValidationEnabled && !name)}
+          helperTextInvalid={t('Required')}
         >
           <SingleSelectDropdown
             placeholderText={t('Select a policy')}
             selectOptions={getDropdownOptions(matchingPolicies)}
             id="policy-selection-dropdown"
-            selectedKey={getName(policy)}
-            isDisabled={!matchingPolicies?.length}
+            selectedKey={name}
+            validated={getValidatedProp(isValidationEnabled && !name)}
+            required
             onChange={(value: string) => {
-              if (getName(policy) !== value) {
+              if (name !== value) {
                 setPolicy(findPolicy(value, matchingPolicies));
               }
             }}
@@ -43,5 +48,6 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
 type SelectPolicyWizardContentProps = {
   policy: DataPolicyType;
   matchingPolicies: DRPolicyType[];
+  isValidationEnabled: boolean;
   setPolicy: (policy: DataPolicyType) => void;
 };

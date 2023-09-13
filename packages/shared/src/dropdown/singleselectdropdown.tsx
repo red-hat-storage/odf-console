@@ -63,4 +63,6 @@ export type SingleSelectDropdownProps = {
   onFilter?: SelectProps['onFilter'];
   hasInlineFilter?: SelectProps['hasInlineFilter'];
   isDisabled?: boolean;
+  validated?: 'success' | 'warning' | 'error' | 'default';
+  required?: boolean;
 };
