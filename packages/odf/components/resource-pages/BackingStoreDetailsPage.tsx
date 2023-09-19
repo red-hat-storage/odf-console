@@ -90,17 +90,17 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
         pages={[
           {
             href: '',
-            name: 'Details',
+            name: t('Details'),
             component: BSDetails,
           },
           {
             href: 'yaml',
-            name: 'YAML',
+            name: t('YAML'),
             component: YAMLEditorWrapped,
           },
           {
             href: 'events',
-            name: 'Events',
+            name: t('Events'),
             component: EventStreamWrapped,
           },
         ]}

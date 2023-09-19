@@ -95,17 +95,17 @@ export const BlockPoolDetailsPage: React.FC<BlockPoolDetailsPageProps> = ({
       pages={[
         {
           href: '',
-          name: 'Details',
+          name: t('Details'),
           component: BlockPoolDashboard as any,
         },
         {
           href: 'yaml',
-          name: 'YAML',
+          name: t('YAML'),
           component: YAMLEditorWrapped,
         },
         {
           href: 'events',
-          name: 'Events',
+          name: t('Events'),
           component: EventStreamWrapped,
         },
       ]}

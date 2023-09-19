@@ -61,7 +61,7 @@
       "id": "odfdashboard",
       "insertBefore": "persistentvolumes",
       "section": "storage",
-      "name": "Data Foundation",
+      "name": "%plugin__odf-console~Data Foundation%",
       "href": "/odf/cluster"
     },
     "flags": {
@@ -486,7 +486,7 @@
     "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "topology",
-      "name": "Topology",
+      "name": "%plugin__odf-console~Topology%",
       "contextId": "odf-dashboard",
       "before": "systems",
       "href": "topology",
@@ -538,7 +538,7 @@
       "insertBefore": "persistentvolumes",
       "insertAfter": "odfdashboard",
       "section": "storage",
-      "name": "Object Storage",
+      "name": "%plugin__odf-console~Object Storage%",
       "href": "/odf/object-storage"
     },
     "flags": {
@@ -561,7 +561,7 @@
     "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "backing-store",
-      "name": "Backing Store",
+      "name": "%plugin__odf-console~Backing Store%",
       "contextId": "odf-object-service",
       "href": "resource/noobaa.io~v1alpha1~BackingStore",
       "component": {
@@ -576,7 +576,7 @@
     "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "bucket-class",
-      "name": "Bucket Class",
+      "name": "%plugin__odf-console~Bucket Class%",
       "contextId": "odf-object-service",
       "after": "backing-store",
       "href": "resource/noobaa.io~v1alpha1~BucketClass",
@@ -592,7 +592,7 @@
     "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "namespace-store",
-      "name": "Namespace Store",
+      "name": "%plugin__odf-console~Namespace Store%",
       "contextId": "odf-object-service",
       "after": "bucket-class",
       "href": "resource/noobaa.io~v1alpha1~NamespaceStore",
@@ -608,7 +608,7 @@
     "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "objectbuckets",
-      "name": "Object Buckets",
+      "name": "%plugin__odf-console~Object Buckets%",
       "contextId": "odf-object-service",
       "after": "namespace-store",
       "href": "resource/objectbucket.io~v1alpha1~ObjectBucket",
@@ -624,7 +624,7 @@
     "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "objectbuckets",
-      "name": "Object Buckets",
+      "name": "%plugin__odf-console~Object Buckets%",
       "contextId": "odf-object-service",
       "after": "namespace-store",
       "href": "resource/objectbucket.io~v1alpha1~ObjectBucket",
@@ -651,7 +651,7 @@
     "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "objectbucketclaims",
-      "name": "Object Bucket Claims",
+      "name": "%plugin__odf-console~Object Bucket Claims%",
       "contextId": "odf-object-service",
       "after": "objectbuckets",
       "href": "resource/objectbucket.io~v1alpha1~ObjectBucketClaim",
@@ -667,7 +667,7 @@
     "type": "odf.horizontalNav/tab",
     "properties": {
       "id": "objectbucketclaims",
-      "name": "Object Bucket Claims",
+      "name": "%plugin__odf-console~Object Bucket Claims%",
       "contextId": "odf-object-service",
       "after": "objectbuckets",
       "href": "resource/objectbucket.io~v1alpha1~ObjectBucketClaim",
