@@ -49,6 +49,11 @@ const getCurrentActivity = (
       currentStatus,
       failoverCluster,
     });
+  } else if ([DRPC_STATUS.Deployed].includes(currentStatus as DRPC_STATUS)) {
+    return t('{{ currentStatus }} to {{ preferredCluster }}', {
+      currentStatus,
+      preferredCluster,
+    });
   } else {
     return t('Unknown');
   }

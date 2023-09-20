@@ -36,6 +36,7 @@ export enum DRPC_STATUS {
   Relocating = 'Relocating',
   FailingOver = 'FailingOver',
   Relocated = 'Relocated',
+  Deployed = 'Deployed',
 }
 
 // DR cluster type

@@ -466,6 +466,17 @@ export const getDRStatus = ({
           </>
         ),
       };
+    case DRPC_STATUS.Deployed:
+      return {
+        text: customText || DRPC_STATUS.Deployed,
+        icon: <GreenCheckCircleIcon />,
+        toolTip: (
+          <>
+            <h4>{t('Target cluster')}</h4>
+            <p>{t('Used: {{targetClusters}}', { targetClusters })}</p>
+          </>
+        ),
+      };
     default:
       return {
         text: t('Unknown'),
