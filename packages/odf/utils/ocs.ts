@@ -195,6 +195,7 @@ export const getDeviceSetCount = (pvCount: number, replica: number): number =>
   Math.floor(pvCount / replica) || 1;
 
 export const filterSC = (sc: StorageClassResourceKind) =>
+  !!sc &&
   !OCS_PROVISIONERS.some((ocsProvisioner: string) =>
     sc?.provisioner?.includes(ocsProvisioner)
   );
