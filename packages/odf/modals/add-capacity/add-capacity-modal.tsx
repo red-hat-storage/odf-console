@@ -78,7 +78,7 @@ type StorageClassDropdownProps = {
   onChange: any;
   'data-test': string;
   initialSelection: (args) => any;
-  filter: (resource: StorageClassResourceKind) => boolean;
+  filter: (resource: StorageClassResourceKind) => StorageClassResourceKind;
 };
 
 const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
@@ -275,10 +275,10 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
           (item) => getName(item) === installStorageClass
         );
         if (initialSC?.provisioner === NO_PROVISIONER) {
-          return sc.provisioner === NO_PROVISIONER;
+          return sc.provisioner === NO_PROVISIONER ? sc : undefined;
         }
       }
-      return true;
+      return sc;
     },
     [installStorageClass, scResources, scResourcesLoadError, scResourcesLoaded]
   );
