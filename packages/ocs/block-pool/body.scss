@@ -18,3 +18,7 @@
 .ceph-block-pool__alert {
   --pf-global--FontSize--md: 0.8rem;
 }
+
+.ceph-block-pool__dropdown-description > div {
+  white-space: pre-line;
+}
