@@ -16,7 +16,6 @@ export enum BlockPoolActionType {
   SET_POOL_REPLICA_SIZE = 'SET_POOL_REPLICA_SIZE',
   SET_POOL_COMPRESSED = 'SET_POOL_COMPRESSED',
   SET_POOL_ARBITER = 'SET_POOL_ARBITER',
-  SET_POOL_VOLUME_TYPE = 'SET_POOL_VOLUME_TYPE',
   SET_FAILURE_DOMAIN = 'SET_FAILURE_DOMAIN',
   SET_INPROGRESS = 'SET_INPROGRESS',
   SET_ERROR_MESSAGE = 'SET_ERROR_MESSAGE',
@@ -28,7 +27,8 @@ export const blockPoolInitialState: BlockPoolState = {
   replicaSize: '',
   isCompressed: false,
   isArbiterCluster: false,
-  volumeType: '',
+  // this should always be set to 'ssd' (https://bugzilla.redhat.com/show_bug.cgi?id=2239622)
+  volumeType: 'ssd',
   failureDomain: '',
   inProgress: false,
   errorMessage: '',
@@ -40,7 +40,6 @@ export type BlockPoolAction =
   | { type: BlockPoolActionType.SET_POOL_REPLICA_SIZE; payload: string }
   | { type: BlockPoolActionType.SET_POOL_COMPRESSED; payload: boolean }
   | { type: BlockPoolActionType.SET_POOL_ARBITER; payload: boolean }
-  | { type: BlockPoolActionType.SET_POOL_VOLUME_TYPE; payload: string }
   | { type: BlockPoolActionType.SET_FAILURE_DOMAIN; payload: string }
   | { type: BlockPoolActionType.SET_INPROGRESS; payload: boolean }
   | { type: BlockPoolActionType.SET_ERROR_MESSAGE; payload: string };
@@ -78,12 +77,6 @@ export const blockPoolReducer = (
       return {
         ...state,
         isArbiterCluster: action.payload,
-      };
-    }
-    case BlockPoolActionType.SET_POOL_VOLUME_TYPE: {
-      return {
-        ...state,
-        volumeType: action.payload,
       };
     }
     case BlockPoolActionType.SET_FAILURE_DOMAIN: {

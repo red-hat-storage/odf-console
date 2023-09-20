@@ -33,10 +33,6 @@ export const populateBlockPoolForm = () => {
   cy.byLegacyTestID('replica-dropdown-item')
     .contains(`${replicaCount}-way Replication`)
     .click();
-  cy.byTestID('volume-type-dropdown').click();
-  cy.byTestID('volume-type-dropdown-item')
-    .contains(volumeType.toLocaleUpperCase())
-    .click();
   cy.byTestID('compression-checkbox').check();
 };
 
