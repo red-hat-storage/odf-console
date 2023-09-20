@@ -359,7 +359,7 @@
   "Mirroring": "Mirroring",
   "Show image states": "Show image states",
   "Last checked": "Last checked",
-  "Raw Capacity shows the total physical capacity from all storage media within the storage subsystem": "Raw Capacity shows the total physical capacity from all storage media within the storage subsystem",
+  "Raw capacity shows the total physical capacity from all the storage pools in the StorageSystem.": "Raw capacity shows the total physical capacity from all the storage pools in the StorageSystem.",
   "Starting replay": "Starting replay",
   "Stopping replay": "Stopping replay",
   "Replaying": "Replaying",
