@@ -57,7 +57,7 @@ export const RawCapacityCard: React.FC = () => {
   const availableCapacityMetric = getInstantVectorStats(availableData)?.[0]?.y;
   const totalCapacityMetric = usedCapacityMetric + availableCapacityMetric;
   const description = t(
-    'Raw Capacity shows the total physical capacity from all storage media within the storage subsystem'
+    'Raw capacity shows the total physical capacity from all the storage pools in the StorageSystem.'
   );
 
   const loading = usedCapacityLoading || availableLoading;
