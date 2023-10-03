@@ -45,19 +45,18 @@ import {
   CSVStatusesContext,
   DRResourcesContext,
 } from '../dr-dashboard-context';
-import {
-  ProtectedPVCsSection,
-  ActivitySection,
-  SnapshotSection,
-} from './argo-application-set';
+import { ActivitySection, SnapshotSection } from './argo-application-set';
 import {
   HealthSection,
   PeerConnectionSection,
   ApplicationsSection,
-  PVCsSection,
   UtilizationCard,
 } from './cluster';
-import { ClusterAppDropdown, VolumeSummarySection } from './common';
+import {
+  ClusterAppDropdown,
+  ProtectedPVCsSection,
+  VolumeSummarySection,
+} from './common';
 import './cluster-app-card.scss';
 
 export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
@@ -97,10 +96,7 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
         />
       </GridItem>
       <GridItem lg={9} rowSpan={10} sm={12}>
-        <PVCsSection
-          protectedPVCData={protectedPVCData}
-          clusterName={clusterName}
-        />
+        <ProtectedPVCsSection protectedPVCData={protectedPVCData} />
       </GridItem>
       <GridItem lg={12} rowSpan={8} sm={12}>
         <VolumeSummarySection protectedPVCData={protectedPVCData} />
