@@ -80,6 +80,16 @@ until [ "$(oc -n openshift-marketplace get catalogsource -o=jsonpath="{.items[?(
 done
 EOF
 
+echo "Waiting for Catalog image's pod to be running"
+timeout 5m bash <<-'EOF'
+until [ "$(oc get pod -n openshift-storage rhceph-dev-icsp -o=jsonpath="{.status.phase}")" == "Running" ]; do
+  sleep 1
+done
+EOF
+
+echo "Creating ImageContentSourcePolicy rules needed for ODF"
+oc exec -it --namespace openshift-storage rhceph-dev-icsp -- cat /icsp.yaml | oc apply -f -
+
 # Enable console plugin for ODF-Console
 export CONSOLE_CONFIG_NAME="cluster"
 export ODF_PLUGIN_NAME="odf-console"
