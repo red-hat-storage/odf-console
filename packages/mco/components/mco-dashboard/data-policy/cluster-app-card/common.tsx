@@ -3,7 +3,11 @@
  */
 
 import * as React from 'react';
-import { ALL_APPS, ALL_APPS_ITEM_ID } from '@odf/mco/constants';
+import {
+  ALL_APPS,
+  ALL_APPS_ITEM_ID,
+  VOLUME_REPLICATION_HEALTH,
+} from '@odf/mco/constants';
 import {
   DrClusterAppsMap,
   ProtectedAppSetsMap,
@@ -96,7 +100,9 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <Text component={TextVariants.h3}>{t('Volume replication health')}</Text>
+      <Text component={TextVariants.h3}>
+        {t('Volume replication health (ApplicationSet)')}
+      </Text>
       <div className="mco-cluster-app__donut-chart">
         <ChartDonut
           ariaDesc="Volume replication health"
@@ -333,6 +339,60 @@ export const ClusterAppDropdown: React.FC<ClusterAppDropdownProps> = ({
       </FlexItem>
     </Flex>
   );
+};
+
+export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
+  protectedPVCData,
+  selectedAppSet,
+}) => {
+  const { t } = useCustomTranslation();
+  const clearSetIntervalId = React.useRef<NodeJS.Timeout>();
+  const [protectedPVC, setProtectedPVC] = React.useState([0, 0]);
+  const [protectedPVCsCount, pvcsWithIssueCount] = protectedPVC;
+
+  const updateProtectedPVC = React.useCallback(() => {
+    const placementInfo = selectedAppSet?.placementInfo?.[0];
+    const issueCount =
+      protectedPVCData?.reduce((acc, protectedPVCItem) => {
+        const replicationHealth = getVolumeReplicationHealth(
+          getTimeDifferenceInSeconds(protectedPVCItem?.lastSyncTime),
+          protectedPVCItem?.schedulingInterval
+        )[0];
+
+        (!!selectedAppSet
+          ? protectedPVCItem?.drpcName === placementInfo?.drpcName &&
+            protectedPVCItem?.drpcNamespace === placementInfo?.drpcNamespace &&
+            replicationHealth !== VOLUME_REPLICATION_HEALTH.HEALTHY
+          : replicationHealth !== VOLUME_REPLICATION_HEALTH.HEALTHY) && acc++;
+
+        return acc;
+      }, 0) || 0;
+    setProtectedPVC([protectedPVCData?.length || 0, issueCount]);
+  }, [selectedAppSet, protectedPVCData, setProtectedPVC]);
+
+  React.useEffect(() => {
+    updateProtectedPVC();
+    clearSetIntervalId.current = setInterval(
+      updateProtectedPVC,
+      URL_POLL_DEFAULT_DELAY
+    );
+    return () => clearInterval(clearSetIntervalId.current);
+  }, [updateProtectedPVC]);
+
+  return (
+    <div className="mco-dashboard__contentColumn">
+      <Text component={TextVariants.h1}>{protectedPVCsCount}</Text>
+      <StatusText>{t('Protected PVCs (ApplicationSet)')}</StatusText>
+      <Text className="text-muted">
+        {t('{{ pvcsWithIssueCount }} with issues', { pvcsWithIssueCount })}
+      </Text>
+    </div>
+  );
+};
+
+type ProtectedPVCsSectionProps = {
+  protectedPVCData: ProtectedPVCData[];
+  selectedAppSet?: ProtectedAppSetsMap;
 };
 
 type VolumeSummarySectionProps = {
