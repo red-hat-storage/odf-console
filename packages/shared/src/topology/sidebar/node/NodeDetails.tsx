@@ -40,7 +40,7 @@ export const NodeDetails: React.FC<NodeDetailsProps> = ({ resource: node }) => {
             <dt>{t('Name')}</dt>
             <dd>{node.metadata.name || '-'}</dd>
             <dt>{t('Role')}</dt>
-            <dd>{roles}</dd>
+            <dd>{roles.join(', ')}</dd>
             <dt>{t('Instance type')}</dt>
             <dd>{getNodeInstanceType(node)}</dd>
             {availableZone && (
