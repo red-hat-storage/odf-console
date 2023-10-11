@@ -6,23 +6,17 @@ import * as React from 'react';
 import {
   DRDashboard,
   getRBDSnapshotUtilizationQuery,
-  getTotalPVCCountPerClusterQuery,
 } from '@odf/mco/components/mco-dashboard/queries';
 import {
   ODR_CLUSTER_OPERATOR,
   VOL_SYNC,
-  HUB_CLUSTER_NAME,
   ACM_ENDPOINT,
   VOLUME_REPLICATION_HEALTH,
   OBJECT_NAMESPACE,
   OBJECT_NAME,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
 } from '@odf/mco/constants';
-import {
-  DrClusterAppsMap,
-  PlacementInfo,
-  ProtectedPVCData,
-} from '@odf/mco/types';
+import { DrClusterAppsMap, PlacementInfo } from '@odf/mco/types';
 import {
   getVolumeReplicationHealth,
   getManagedClusterCondition,
@@ -33,7 +27,6 @@ import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { CustomUtilizationSummaryProps } from '@odf/shared/dashboards/utilization-card/utilization-item';
 import { FieldLevelHelp } from '@odf/shared/generic';
-import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeDecimalBytesPerSec, humanizeNumber } from '@odf/shared/utils';
@@ -212,7 +205,7 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
   return (
     <div className="mco-dashboard__contentColumn">
       <Text component={TextVariants.h1}>{totalAppSetsCount || 0}</Text>
-      <StatusText>{t('Total applications')}</StatusText>
+      <StatusText>{t('Total applications (ApplicationSet)')}</StatusText>
       <Text className="text-muted mco-dashboard__statusText--margin">
         {t(' {{ protectedAppSetsCount }} protected apps', {
           protectedAppSetsCount,
@@ -223,33 +216,6 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
           ' {{ appsWithIssues }} of {{ protectedAppSetsCount }} apps with issues',
           { appsWithIssues, protectedAppSetsCount }
         )}
-      </Text>
-    </div>
-  );
-};
-
-export const PVCsSection: React.FC<PVCsSectionProps> = ({
-  protectedPVCData,
-  clusterName,
-}) => {
-  const { t } = useCustomTranslation();
-  const [pvcsCount] = useCustomPrometheusPoll({
-    endpoint: 'api/v1/query' as any,
-    query: !!clusterName ? getTotalPVCCountPerClusterQuery(clusterName) : null,
-    basePath: ACM_ENDPOINT,
-    cluster: HUB_CLUSTER_NAME,
-  });
-  let totalPVCsCount = pvcsCount?.data?.result?.[0]?.value?.[1] || '0';
-  let protectedPVCsCount = protectedPVCData?.length || 0;
-
-  return (
-    <div className="mco-dashboard__contentColumn">
-      <Text component={TextVariants.h1}>{totalPVCsCount}</Text>
-      <StatusText>{t('PVCs')}</StatusText>
-      <Text className="text-muted">
-        {t(' {{ protectedPVCsCount }} protected', {
-          protectedPVCsCount,
-        })}
       </Text>
     </div>
   );
@@ -354,10 +320,10 @@ export const UtilizationCard: React.FC<UtilizationCardProps> = ({
       <div className="mco-cluster-app__graph--margin-bottom">
         <SnapshotUtilizationCard
           clusters={peerClusters}
-          title={t('Snapshots synced')}
+          title={t('Block volumes snapshots synced')}
           queryType={DRDashboard.RBD_SNAPSHOT_SNAPSHOTS}
           titleToolTip={t(
-            'The y-axis shows the number of snapshots taken. It represents the rate of difference in snapshot creation count during a failover.'
+            'The graph displays the total number of block volumes inbound snapshots, by cluster, from all ApplicationSet and Subscription type applications. Applications that use file volumes are excluded in the total snapshot count.'
           )}
           humanizeValue={humanizeNumber}
         />
@@ -365,11 +331,11 @@ export const UtilizationCard: React.FC<UtilizationCardProps> = ({
       <div className="mco-cluster-app__graph--margin-bottom">
         <SnapshotUtilizationCard
           clusters={[clusterName]}
-          title={t('Replication throughput')}
+          title={t('Block volumes replication throughput')}
           queryType={DRDashboard.RBD_SNAPSHOTS_SYNC_BYTES}
           humanizeValue={humanizeDecimalBytesPerSec}
           titleToolTip={t(
-            'The y-axis shows the average throughput for syncing snapshot bytes from the primary to the secondary cluster.'
+            'The graph displays the average replication throughput inbound, by cluster, from all ApplicationSet and Subscription type applications. Applications that use file volumes are excluded in the replication throughput.'
           )}
           CustomUtilizationSummary={CustomUtilizationSummary}
         />
@@ -403,18 +369,13 @@ type ApplicationsSectionProps = {
   lastSyncTimeData: PrometheusResponse;
 };
 
-type PVCsSectionProps = {
-  protectedPVCData: ProtectedPVCData[];
-  clusterName: string;
-};
-
 type SnapshotUtilizationCardProps = {
   title: string;
   queryType: DRDashboard;
   humanizeValue: Humanize;
   chartLabel?: string;
   clusters?: string[];
-  titleToolTip: string;
+  titleToolTip: JSX.Element;
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
 };
 
