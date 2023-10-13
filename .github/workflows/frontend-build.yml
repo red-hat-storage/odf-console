@@ -3,7 +3,7 @@ on:
   push:
     branches: [master]
   pull_request:
-    branches: [master, release-4.13, release-4.13-compatibility]
+    branches: [master, release-4.14, release-4.14-compatibility]
 
 jobs:
   build-test:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14, 16, 18]
+        node-version: [14, 16, 18.17.1]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3

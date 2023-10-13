@@ -22,11 +22,6 @@ export enum DRDashboard {
   RBD_SNAPSHOT_SNAPSHOTS = 'RBD_SNAPSHOT_SNAPSHOTS',
 }
 
-// "recording_rules" added in "observability-metrics-custom-allowlist" ConfigMap
-export const TOTAL_PVC_COUNT_QUERY = 'count_persistentvolumeclaim_total';
-export const getTotalPVCCountPerClusterQuery = (clusterName: string) =>
-  `${TOTAL_PVC_COUNT_QUERY}{cluster="${clusterName}"}`;
-
 export const LAST_SYNC_TIME_QUERY = 'ramen_sync_duration_seconds';
 export const getLastSyncPerClusterQuery = () =>
   `${LAST_SYNC_TIME_QUERY}{${DRPC_OBJECT_TYPE}, ${RAMEN_HUB_OPERATOR_METRICS_SERVICE}}`;

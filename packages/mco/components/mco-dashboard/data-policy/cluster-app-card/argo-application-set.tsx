@@ -3,18 +3,11 @@
  */
 
 import * as React from 'react';
-import { VOLUME_REPLICATION_HEALTH, DRPC_STATUS } from '@odf/mco/constants';
-import {
-  PlacementInfo,
-  ProtectedAppSetsMap,
-  ProtectedPVCData,
-} from '@odf/mco/types';
-import { getVolumeReplicationHealth, getDRStatus } from '@odf/mco/utils';
+import { DRPC_STATUS } from '@odf/mco/constants';
+import { PlacementInfo, ProtectedAppSetsMap } from '@odf/mco/types';
+import { getDRStatus } from '@odf/mco/utils';
 import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
-import {
-  fromNow,
-  getTimeDifferenceInSeconds,
-} from '@odf/shared/details-page/datetime';
+import { fromNow } from '@odf/shared/details-page/datetime';
 import { URL_POLL_DEFAULT_DELAY } from '@odf/shared/hooks/custom-prometheus-poll/use-url-poll';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -22,7 +15,7 @@ import {
   StatusIconAndText,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import { TextVariants, Text } from '@patternfly/react-core';
+import { Text } from '@patternfly/react-core';
 import { StatusText } from './common';
 
 const getCurrentActivity = (
@@ -52,54 +45,6 @@ const getCurrentActivity = (
   } else {
     return t('Unknown');
   }
-};
-
-export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
-  protectedPVCData,
-  selectedAppSet,
-}) => {
-  const { t } = useCustomTranslation();
-  const clearSetIntervalId = React.useRef<NodeJS.Timeout>();
-  const [protectedPVC, setProtectedPVC] = React.useState([0, 0]);
-  const [protectedPVCsCount, pvcsWithIssueCount] = protectedPVC;
-
-  const updateProtectedPVC = React.useCallback(() => {
-    const placementInfo = selectedAppSet?.placementInfo?.[0];
-    const issueCount =
-      protectedPVCData?.reduce((acc, protectedPVCItem) => {
-        if (
-          protectedPVCItem?.drpcName === placementInfo?.drpcName &&
-          protectedPVCItem?.drpcNamespace === placementInfo?.drpcNamespace &&
-          getVolumeReplicationHealth(
-            getTimeDifferenceInSeconds(protectedPVCItem?.lastSyncTime),
-            protectedPVCItem?.schedulingInterval
-          )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
-        )
-          return acc + 1;
-        else return acc;
-      }, 0) || 0;
-
-    setProtectedPVC([protectedPVCData?.length || 0, issueCount]);
-  }, [selectedAppSet, protectedPVCData, setProtectedPVC]);
-
-  React.useEffect(() => {
-    updateProtectedPVC();
-    clearSetIntervalId.current = setInterval(
-      updateProtectedPVC,
-      URL_POLL_DEFAULT_DELAY
-    );
-    return () => clearInterval(clearSetIntervalId.current);
-  }, [updateProtectedPVC]);
-
-  return (
-    <div className="mco-dashboard__contentColumn">
-      <Text component={TextVariants.h1}>{protectedPVCsCount}</Text>
-      <StatusText>{t('Protected PVCs')}</StatusText>
-      <Text className="text-muted">
-        {t('{{ pvcsWithIssueCount }} with issues', { pvcsWithIssueCount })}
-      </Text>
-    </div>
-  );
 };
 
 export const ActivitySection: React.FC<CommonProps> = ({ selectedAppSet }) => {
@@ -160,11 +105,6 @@ export const SnapshotSection: React.FC<CommonProps> = ({ selectedAppSet }) => {
       </Text>
     </div>
   );
-};
-
-type ProtectedPVCsSectionProps = {
-  protectedPVCData: ProtectedPVCData[];
-  selectedAppSet: ProtectedAppSetsMap;
 };
 
 type CommonProps = {

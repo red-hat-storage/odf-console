@@ -3,9 +3,11 @@ import { MANAGED_CLUSTER_CONDITION_AVAILABLE } from '@odf/mco/constants';
 import { DrClusterAppsMap } from '@odf/mco/types';
 import { getManagedClusterCondition } from '@odf/mco/utils';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
+import { FieldLevelHelp } from '@odf/shared/generic';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
+import { Trans } from 'react-i18next';
 import {
   Card,
   CardBody,
@@ -105,13 +107,20 @@ export const SummaryCard: React.FC = () => {
             <GalleryItem className="mco-dashboard__contentColumn">
               <Text className="text-muted mco-dashboard__statusText--margin mco-dashboard__statusText--size">
                 {t('Applications')}
+                <FieldLevelHelp>
+                  <Trans t={t}>
+                    The applications count displays the total number of{' '}
+                    <b>ApplicationSet</b> type applications in all disaster
+                    recovery configured clusters.
+                  </Trans>
+                </FieldLevelHelp>
               </Text>
               <Text className="mco-dashboard__statusText--margin mco-summary__countText--size mco-dashboard__statusText--weight">
                 {summaryMap.applications.totalCount}
               </Text>
               <Divider className="mco-summary__divider--width mco-dashboard__statusText--margin" />
               <Text className="text-muted">
-                {t('{{ protected }} DR protected', {
+                {t('{{ protected }} protected', {
                   protected: summaryMap.applications.protectedCount,
                 })}
               </Text>
