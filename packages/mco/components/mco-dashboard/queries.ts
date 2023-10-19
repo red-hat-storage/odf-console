@@ -37,8 +37,8 @@ export const getRBDSnapshotUtilizationQuery = (
 ) => {
   const names = clusterNames.join('|');
   const queries = {
-    [DRDashboard.RBD_SNAPSHOT_SNAPSHOTS]: `idelta(ceph_rbd_mirror_snapshot_snapshots{cluster=~"${names}"}[5m])`,
-    [DRDashboard.RBD_SNAPSHOTS_SYNC_BYTES]: `idelta(ceph_rbd_mirror_snapshot_sync_bytes{cluster=~"${names}"}[5m])`,
+    [DRDashboard.RBD_SNAPSHOT_SNAPSHOTS]: `idelta(ceph_rbd_mirror_snapshot_snapshots{cluster=~"${names}"}[15m])`,
+    [DRDashboard.RBD_SNAPSHOTS_SYNC_BYTES]: `idelta(ceph_rbd_mirror_snapshot_sync_bytes{cluster=~"${names}"}[15m])`,
   };
   return queries[queryName];
 };
