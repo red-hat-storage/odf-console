@@ -32,7 +32,9 @@ const getTotalCapacity = (disks: DiscoveredDisk[]): number =>
 
 const isAvailableDisk = (disk: DiscoveredDisk): boolean =>
   disk?.status?.state === AVAILABLE &&
-  (disk.type === DiskType.RawDisk || disk.type === DiskType.Partition);
+  (disk.type === DiskType.RawDisk ||
+    disk.type === DiskType.Partition ||
+    disk.type === DiskType.Multipath);
 
 const isValidSize = (disk: DiscoveredDisk, minSize: number, maxSize: number) =>
   Number(disk.size) >= minSize &&
