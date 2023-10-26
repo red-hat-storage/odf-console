@@ -18,21 +18,21 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
 import { useHistory, useLocation } from 'react-router';
-import { HUB_CLUSTER_NAME } from '../../../constants';
+import { HUB_CLUSTER_NAME } from '../../constants';
 import {
   ApplicationRefKind,
   getDRPolicyResourceObj,
   useApplicationsWatch,
-} from '../../../hooks';
-import { DRPolicyModel } from '../../../models';
-import { DRPolicyKind } from '../../../types';
+} from '../../hooks';
+import { DRPolicyModel } from '../../models';
+import { DRPolicyKind } from '../../types';
 import {
   getReplicationType,
   findAppsUsingDRPolicy,
   isDRPolicyValidated,
-} from '../../../utils';
-import EmptyPage from '../../empty-state-page/empty-page';
-import { ConnectedApplicationsModal } from '../../modals/connected-apps-modal/connected-apps-modal';
+} from '../../utils';
+import EmptyPage from '../empty-state-page/empty-page';
+import { ConnectedApplicationsModal } from '../modals/connected-apps-modal/connected-apps-modal';
 import { Header, kebabActionItems, tableColumnInfo } from './helper';
 import './drpolicy-list-page.scss';
 

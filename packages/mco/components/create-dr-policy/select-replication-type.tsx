@@ -16,14 +16,14 @@ import {
   REPLICATION_DISPLAY_TEXT,
   TIME_UNITS,
   SYNC_SCHEDULE_DISPLAY_TEXT,
-} from '../../../constants';
+} from '../../constants';
 import {
   DRPolicyState,
   DRPolicyAction,
   DRPolicyActionType,
   Cluster,
 } from './reducer';
-import '../../../style.scss';
+import '../../style.scss';
 
 type SyncScheduleProps = {
   state: DRPolicyState;
