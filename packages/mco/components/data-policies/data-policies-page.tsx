@@ -5,7 +5,7 @@ import { HorizontalNav, useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { RouteComponentProps } from 'react-router';
 import { ACM_OBSERVABILITY_FLAG, ADMIN_FLAG } from '../../constants';
-import { DRPolicyListPage } from '../disaster-recovery/drpolicy-list-page/drpolicy-list-page';
+import { DRPolicyListPage } from '../drpolicy-list-page/drpolicy-list-page';
 import DRDashboard from '../mco-dashboard/data-policy/dr-dashboard';
 
 type DataPoliciesPageProps = {

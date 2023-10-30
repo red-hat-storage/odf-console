@@ -33,9 +33,9 @@ import {
   ClusterClaimTypes,
   MANAGED_CLUSTER_JOINED,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
-} from '../../../constants';
-import { ACMManagedClusterModel } from '../../../models';
-import { ACMManagedClusterKind } from '../../../types';
+} from '../../constants';
+import { ACMManagedClusterModel } from '../../models';
+import { ACMManagedClusterKind } from '../../types';
 import {
   DRPolicyState,
   DRPolicyAction,
