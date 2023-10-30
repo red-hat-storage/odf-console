@@ -79,12 +79,16 @@ import { CreateBlockPoolModal } from '../modals/block-pool/create-block-pool-mod
 import { StoragePoolKind } from '../types';
 import './sc-form.scss';
 
+type OnParamChange = (id: string, paramName: string, checkbox: boolean) => void;
+
 export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
   parameterKey,
   parameterValue,
   onParamChange,
 }) => {
   const { t } = useCustomTranslation();
+  const onParamChangeRef = React.useRef<OnParamChange>();
+  onParamChangeRef.current = onParamChange;
 
   const isExternal = useFlag(OCS_INDEPENDENT_FLAG);
   const scName = `${
@@ -99,10 +103,10 @@ export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
     if (scLoaded && !scLoadError) {
       const fsName = sc?.parameters?.fsName;
       if (fsName) {
-        onParamChange(parameterKey, fsName, false);
+        onParamChangeRef.current(parameterKey, fsName, false);
       }
     }
-  }, [sc, scLoaded, scLoadError, parameterKey, onParamChange]);
+  }, [sc, scLoaded, scLoadError, parameterKey]);
 
   if (scLoaded && !scLoadError) {
     return (
@@ -511,6 +515,8 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
   onParamChange,
 }) => {
   const { t } = useCustomTranslation();
+  const onParamChangeRef = React.useRef<OnParamChange>();
+  onParamChangeRef.current = onParamChange;
 
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [isExistingKms, setIsExistingKms] = React.useState<boolean>(true);
@@ -546,18 +552,21 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
   const setEncryptionId = React.useCallback(
     (encryptionId: string) => {
       setServiceName(encryptionId);
-      onParamChange(parameterKey, encryptionId, false);
+      onParamChangeRef.current(parameterKey, encryptionId, false);
     },
-    [onParamChange, parameterKey]
+    [parameterKey]
   );
 
-  /** When user selects a connection from the dropdown, but, then un-checks the encryption checkbox,
-   *  and checks it back again. Component will be re-mounted, still Redux state will still
-   *  have previously selected parameterValue. This useEffect is to clean that up.
-   */
-  React.useEffect(() => {
+  // ToDo (Sanjal): "StorageClassForm" got refactored to a FC (https://github.com/openshift/console/pull/13036).
+  // If any "parameter" specific "Component" in un-mounting, it do not have access to latest "onParamChange" (having latest "newStorageClass" object).
+  // Talk to OCP team, maybe we can pass "onParamChange" as a "useRef" object, which can resolve this issue.
+
+  // When user selects a connection from the dropdown, but, then un-checks the encryption checkbox,
+  // and checks it back again. Component will be re-mounted, still Redux state will still
+  // have previously selected parameterValue. This useEffect is to clean that up.
+  /* React.useEffect(() => {
     return () => setEncryptionId('');
-  }, [setEncryptionId]);
+  }, [setEncryptionId]); */
 
   /** When csiConfigMap is deleted from another tab, "csiConfigMapLoadError" == true (404 Not Found), but,
    * "csiConfigMap" still contains same old object that was present before the deletion of the configMap.
