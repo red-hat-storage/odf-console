@@ -8,7 +8,6 @@ import { parseSyncInterval } from '@odf/mco/utils';
 import { fromNow } from '@odf/shared/details-page/datetime';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { Labels } from '@odf/shared/labels';
-import { getName } from '@odf/shared/selectors';
 import {
   GreenCheckCircleIcon,
   RedExclamationCircleIcon,
@@ -24,7 +23,6 @@ import {
   SelectOption,
   Text,
 } from '@patternfly/react-core';
-import { DRPlacementControlType, DataPolicyType } from '../utils/types';
 import '../style.scss';
 
 const getDropdownOptions = (
@@ -38,29 +36,18 @@ const getDropdownOptions = (
 ];
 
 const getLabels = (
-  placementControlInfo: PlacementControlMap,
+  placementControlMap: PlacementControlMap,
   selected: string,
   isDefaultSelected: boolean
 ): string[] =>
   isDefaultSelected
     ? // Aggregate all labels
-      Object.values(placementControlInfo).reduce(
+      Object.values(placementControlMap).reduce(
         (acc, drpc) => [...acc, ...drpc?.pvcSelector],
         []
       ) || []
     : // Get all labels from selected placement control info
-      [...placementControlInfo?.[selected]?.pvcSelector];
-
-const getPlacementControlMap = (
-  placementControls: DRPlacementControlType[]
-): PlacementControlMap =>
-  placementControls?.reduce(
-    (acc, drpc) => ({
-      ...acc,
-      [getName(drpc.placementInfo)]: drpc,
-    }),
-    {}
-  ) || {};
+      [...placementControlMap?.[selected]?.pvcSelector];
 
 export const DataPolicyStatus: React.FC<DataPolicyStatusProps> = ({
   isValidated,
@@ -78,7 +65,7 @@ export const DataPolicyStatus: React.FC<DataPolicyStatusProps> = ({
   );
 };
 
-const DescriptionListItem: React.FC<DescriptionListItemProps> = ({
+export const DescriptionListItem: React.FC<DescriptionListItemProps> = ({
   term,
   description,
 }) => {
@@ -90,8 +77,45 @@ const DescriptionListItem: React.FC<DescriptionListItemProps> = ({
   );
 };
 
+export const PolicyInfo: React.FC<PolicyInfoProps> = ({
+  policyName,
+  clusters,
+  replicationType,
+  isValidated,
+  schedulingInterval,
+}) => {
+  const { t } = useCustomTranslation();
+  const [unit, interval] = parseSyncInterval(schedulingInterval);
+  return (
+    <>
+      <DescriptionListItem term={t('Name')} description={policyName} />
+      <DescriptionListItem
+        term={t('Replication type')}
+        description={REPLICATION_DISPLAY_TEXT(t)[replicationType]}
+      />
+      <DescriptionListItem
+        term={t('Sync interval')}
+        description={`${interval} ${SYNC_SCHEDULE_DISPLAY_TEXT(t)[unit]}`}
+      />
+      <DescriptionListItem
+        term={t('Status')}
+        description={<DataPolicyStatus isValidated={isValidated} t={t} />}
+      />
+      <DescriptionListItem
+        term={t('Cluster')}
+        description={clusters.join(', ')}
+      />
+    </>
+  );
+};
+
 export const PolicyConfigViewer: React.FC<PolicyConfigViewerProps> = ({
-  policy,
+  policyName,
+  replicationType,
+  schedulingInterval,
+  clusters,
+  isValidated,
+  placementControlMap,
   disableSelector,
   hideSelector,
 }) => {
@@ -99,10 +123,6 @@ export const PolicyConfigViewer: React.FC<PolicyConfigViewerProps> = ({
   const defaultSelectionText = t('All placements');
   const [selected, setSelected] = React.useState(defaultSelectionText);
   const isDefaultSelected = selected === defaultSelectionText;
-  const placementControlMap: PlacementControlMap = React.useMemo(
-    () => getPlacementControlMap(policy?.placementControlInfo),
-    [policy?.placementControlInfo]
-  );
   const labels = React.useMemo(
     () => getLabels(placementControlMap, selected, isDefaultSelected),
     [selected, isDefaultSelected, placementControlMap]
@@ -115,7 +135,6 @@ export const PolicyConfigViewer: React.FC<PolicyConfigViewerProps> = ({
       ),
     [placementControlMap, defaultSelectionText]
   );
-  const [unit, interval] = parseSyncInterval(policy.schedulingInterval);
   const onChange = (value: string) => {
     setSelected(value);
   };
@@ -148,29 +167,12 @@ export const PolicyConfigViewer: React.FC<PolicyConfigViewerProps> = ({
             '2xl': '20rem',
           }}
         >
-          <DescriptionListItem
-            term={t('Policy name')}
-            description={getName(policy)}
-          />
-          <DescriptionListItem
-            term={t('Replication type')}
-            description={REPLICATION_DISPLAY_TEXT(t)[policy.replicationType]}
-          />
-          <DescriptionListItem
-            term={t('Sync interval')}
-            description={`${interval} ${SYNC_SCHEDULE_DISPLAY_TEXT(t)[unit]}`}
-          />
-          <DescriptionListItem
-            term={t('Status')}
-            description={
-              <DataPolicyStatus isValidated={policy.isValidated} t={t} />
-            }
-          />
-          <DescriptionListItem
-            term={t('Cluster')}
-            description={policy?.drClusters.map((clusterName) => (
-              <p key={clusterName}> {clusterName} </p>
-            ))}
+          <PolicyInfo
+            policyName={policyName}
+            replicationType={replicationType}
+            schedulingInterval={schedulingInterval}
+            clusters={clusters}
+            isValidated={isValidated}
           />
           {!isDefaultSelected ? (
             <>
@@ -217,12 +219,23 @@ type DataPolicyStatusProps = {
   t: TFunction;
 };
 
-type PlacementControlMap = {
-  [placementName: string]: DRPlacementControlType;
+export type PlacementControlMap = {
+  [placementName: string]: {
+    pvcSelector: string[];
+    lastGroupSyncTime?: string;
+  };
 };
 
-type PolicyConfigViewerProps = {
-  policy: DataPolicyType;
+type PolicyInfoProps = {
+  policyName: string;
+  replicationType: string;
+  schedulingInterval: string;
+  isValidated: boolean;
+  clusters: string[];
+};
+
+type PolicyConfigViewerProps = PolicyInfoProps & {
+  placementControlMap: PlacementControlMap;
   disableSelector?: boolean;
   hideSelector?: boolean;
 };

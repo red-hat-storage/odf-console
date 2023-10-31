@@ -19,6 +19,7 @@ export const PLACEMENT_REF_LABEL =
 export enum APPLICATION_TYPE {
   APPSET = 'ApplicationSet',
   SUBSCRIPTION = 'Subscription',
+  OPENSHIFT = 'OpenShift',
 }
 
 // Please refer to clusterclaims.go in github.com/red-hat-storage/ocs-operator before changing anything here

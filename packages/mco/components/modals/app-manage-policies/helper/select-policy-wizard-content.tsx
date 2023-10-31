@@ -3,8 +3,20 @@ import { getValidatedProp } from '@odf/mco/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Form, FormGroup, SelectOption } from '@patternfly/react-core';
+import {
+  Form,
+  FormGroup,
+  SelectOption,
+  DescriptionList,
+} from '@patternfly/react-core';
+import {
+  ManagePolicyStateAction,
+  ManagePolicyStateType,
+  ModalViewContext,
+} from '../utils/reducer';
 import { DRPolicyType, DataPolicyType } from '../utils/types';
+import { PolicyInfo } from './policy-config-viewer';
+import '../style.scss';
 
 const getDropdownOptions = (dataPolicies: DRPolicyType[]) =>
   dataPolicies.map((policy) => (
@@ -15,9 +27,10 @@ const findPolicy = (name: string, dataPolicies: DRPolicyType[]) =>
   dataPolicies.find((policy) => getName(policy) === name);
 
 export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps> =
-  ({ policy, matchingPolicies, isValidationEnabled, setPolicy }) => {
+  ({ policy, matchingPolicies, isValidationEnabled, dispatch }) => {
     const { t } = useCustomTranslation();
     const name = getName(policy);
+
     return (
       <Form className="mco-manage-policies__form--width">
         <FormGroup
@@ -36,11 +49,28 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
             required
             onChange={(value: string) => {
               if (name !== value) {
-                setPolicy(findPolicy(value, matchingPolicies));
+                dispatch({
+                  type: ManagePolicyStateType.SET_SELECTED_POLICY,
+                  context: ModalViewContext.ASSIGN_POLICY_VIEW,
+                  payload: findPolicy(value, matchingPolicies),
+                });
               }
             }}
           />
         </FormGroup>
+        {!!policy && (
+          <FormGroup>
+            <DescriptionList isHorizontal isCompact>
+              <PolicyInfo
+                policyName={getName(policy)}
+                replicationType={policy.replicationType}
+                schedulingInterval={policy.schedulingInterval}
+                clusters={policy.drClusters}
+                isValidated={policy.isValidated}
+              />
+            </DescriptionList>
+          </FormGroup>
+        )}
       </Form>
     );
   };
@@ -49,5 +79,5 @@ type SelectPolicyWizardContentProps = {
   policy: DataPolicyType;
   matchingPolicies: DRPolicyType[];
   isValidationEnabled: boolean;
-  setPolicy: (policy: DataPolicyType) => void;
+  dispatch: React.Dispatch<ManagePolicyStateAction>;
 };

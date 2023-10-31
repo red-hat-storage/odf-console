@@ -2,7 +2,7 @@ import {
   K8sResourceCommon,
   ObjectReference,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { REPLICATION_TYPE } from '../../../../constants';
+import { APPLICATION_TYPE, REPLICATION_TYPE } from '../../../../constants';
 
 export type PlacementType = K8sResourceCommon & {
   deploymentClusters: string[];
@@ -32,6 +32,7 @@ export type DRPolicyType = PolicyType & {
 export type DataPolicyType = DRPolicyType;
 
 export type ApplicationType = K8sResourceCommon & {
+  type: APPLICATION_TYPE;
   workloadNamespace: string;
   placements: PlacementType[];
   dataPolicies?: DataPolicyType[];

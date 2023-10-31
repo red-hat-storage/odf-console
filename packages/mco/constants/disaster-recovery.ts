@@ -71,11 +71,15 @@ export const SYNC_SCHEDULE_DISPLAY_TEXT = (
 // Asisgn policy wizard steps
 export enum AssignPolicySteps {
   Policy = 'policy',
+  PolicyRule = 'policy-rule',
   PersistentVolumeClaim = 'persistent-volume-claim',
   ReviewAndAssign = 'review-and-assign',
+  DynamicObjects = 'dynamic-objects',
 }
 export const AssignPolicyStepsNames = (t: TFunction) => ({
   [AssignPolicySteps.Policy]: t('Policy'),
+  [AssignPolicySteps.PolicyRule]: t('Policy rule'),
   [AssignPolicySteps.PersistentVolumeClaim]: t('PersistentVolumeClaim'),
   [AssignPolicySteps.ReviewAndAssign]: t('Review and assign'),
+  [AssignPolicySteps.DynamicObjects]: t('Dynamic objects'),
 });

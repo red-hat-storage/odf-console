@@ -1,5 +1,5 @@
 import { AlertVariant } from '@patternfly/react-core';
-import { DRPlacementControlType, DataPolicyType } from './types';
+import { DataPolicyType } from './types';
 
 export enum ModalViewContext {
   POLICY_LIST_VIEW = 'policyListView',
@@ -21,6 +21,8 @@ export type MessageType = {
   variant?: AlertVariant;
 };
 
+export type PVCSelectorType = (string | string[])[][];
+
 export type CommonViewState = {
   modalActionContext: ModalActionContext;
   message: MessageType;
@@ -36,6 +38,9 @@ export type PolicyConfigViewState = {
 
 export type AssignPolicyViewState = CommonViewState & {
   policy: DataPolicyType;
+  persistentVolumeClaim: {
+    pvcSelectors: PVCSelectorType
+  };
 };
 
 export type ManagePolicyState = {
@@ -51,7 +56,8 @@ export enum ManagePolicyStateType {
   SET_SELECTED_POLICIES = 'SET_SELECTED_POLICIES',
   SET_SELECTED_POLICY = 'SET_SELECTED_POLICY',
   SET_MESSAGE = 'SET_MESSAGE',
-  SET_PLACEMENT_CONTROLS = 'SET_PLACEMENT_CONTROLS',
+  SET_PVC_SELECTORS = 'SET_PVC_SELECTORS',
+  RESET_ASSIGN_POLICY_STATE = 'RESET_ASSIGN_POLICY_STATE',
 }
 
 export const initialPolicyState: ManagePolicyState = {
@@ -68,6 +74,9 @@ export const initialPolicyState: ManagePolicyState = {
   },
   [ModalViewContext.ASSIGN_POLICY_VIEW]: {
     policy: null,
+    persistentVolumeClaim: {
+      pvcSelectors: []
+    },
     modalActionContext: null,
     message: {
       title: '',
@@ -101,9 +110,13 @@ export type ManagePolicyStateAction =
       payload: MessageType;
     }
   | {
-      type: ManagePolicyStateType.SET_PLACEMENT_CONTROLS;
+      type: ManagePolicyStateType.SET_PVC_SELECTORS;
       context: ModalViewContext;
-      payload: DRPlacementControlType[];
+      payload: PVCSelectorType;
+    }
+  | {
+      type: ManagePolicyStateType.RESET_ASSIGN_POLICY_STATE;
+      context: ModalViewContext;
     };
 
 export const managePolicyStateReducer = (
@@ -153,15 +166,23 @@ export const managePolicyStateReducer = (
         },
       };
     }
-    case ManagePolicyStateType.SET_PLACEMENT_CONTROLS: {
+    case ManagePolicyStateType.SET_PVC_SELECTORS: {
       return {
         ...state,
         [action.context]: {
           ...state[action.context],
-          policy: {
-            ...state[action.context]['policy'],
-            placementControlInfo: action.payload,
-          },
+          persistentVolumeClaim: {
+            pvcSelectors: action.payload,
+          }
+        },
+      };
+    }
+    case ManagePolicyStateType.RESET_ASSIGN_POLICY_STATE: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          ...initialPolicyState[action.context],
         },
       };
     }

@@ -1,19 +1,16 @@
 import * as React from 'react';
 import { useACMSafeFetch } from '@odf/mco/hooks/acm-safe-fetch';
-import { DRPlacementControlModel } from '@odf/mco/models';
 import { SearchResult } from '@odf/mco/types';
 import { getValidatedProp } from '@odf/mco/utils';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
-import { getName, getNamespace } from '@odf/shared/selectors';
+import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   PairElementProps,
   LazyNameValueEditor,
   NameValueEditorPair,
 } from '@odf/shared/utils/NameValueEditor';
-import { ObjectReference } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
 import {
   Button,
   Form,
@@ -25,22 +22,18 @@ import {
 import { MinusCircleIcon } from '@patternfly/react-icons';
 import { queryAppWorkloadPVCs } from '../utils/acm-search-quries';
 import { getClusterNamesFromPlacements } from '../utils/parser-utils';
-import { PlacementType, DRPlacementControlType } from '../utils/types';
+import {
+  ManagePolicyStateAction,
+  ManagePolicyStateType,
+  ModalViewContext,
+  PVCSelectorType,
+} from '../utils/reducer';
+import { PlacementType } from '../utils/types';
 import '../../../../style.scss';
 import '../style.scss';
 
 const LABEL = 'label';
 const SPLIT_CHAR = '; ';
-
-const findPlacement = (placements: PlacementType[], name: string) =>
-  placements.find((placement) => getName(placement) === name);
-
-const getPlacementTags = (drpcs: DRPlacementControlType[]) =>
-  !!drpcs.length
-    ? drpcs.map((drpc) =>
-        !!drpc ? [getName(drpc.placementInfo), drpc?.pvcSelector] : []
-      )
-    : [[]];
 
 const getLabelsFromSearchResult = (searchResult: SearchResult): string[] => {
   const pvcLabels =
@@ -51,13 +44,19 @@ const getLabelsFromSearchResult = (searchResult: SearchResult): string[] => {
   return Array.from(new Set(pvcLabels));
 };
 
-const getLabelsFromTags = (tags: TagsType, currIndex: number): string[] =>
+const getLabelsFromTags = (
+  tags: PVCSelectorType,
+  currIndex: number
+): string[] =>
   tags.reduce((acc, tag, index) => {
     const labels: string[] = (tag?.[1] || []) as string[];
     return currIndex !== index ? [...acc, ...labels] : acc;
   }, []) as string[];
 
-const getPlacementsFromTags = (tags: TagsType, currIndex: number): string[] =>
+const getPlacementsFromTags = (
+  tags: PVCSelectorType,
+  currIndex: number
+): string[] =>
   tags.reduce((acc, tag, index) => {
     const placement: string = tag?.[0] as string;
     return currIndex !== index ? [...acc, placement] : acc;
@@ -65,7 +64,7 @@ const getPlacementsFromTags = (tags: TagsType, currIndex: number): string[] =>
 
 const getPlacementDropdownOptions = (
   placementNames: string[],
-  tags: TagsType,
+  tags: PVCSelectorType,
   currIndex: number
 ) => {
   // Display placement names except selected from other indexes
@@ -80,36 +79,13 @@ const getPlacementDropdownOptions = (
 
 const getLabelsDropdownOptions = (
   labels: string[],
-  tags: TagsType,
+  tags: PVCSelectorType,
   currIndex: number
 ) => {
   // Display labels names except selected from other indexes
   const selectedLabels = getLabelsFromTags(tags, currIndex);
   return labels.filter((name) => !selectedLabels.includes(name));
 };
-
-const createDRPlacementControlObj = (
-  placement: PlacementType,
-  dataPolicyRef: ObjectReference
-): DRPlacementControlType => ({
-  apiVersion: DRPlacementControlModel.apiVersion,
-  kind: DRPlacementControlModel.kind,
-  metadata: {
-    name: `${getName(placement)}-drpc`,
-    namespace: getNamespace(placement),
-  },
-  drPolicyRef: dataPolicyRef,
-  placementInfo: placement,
-  pvcSelector: [],
-});
-
-const updateLabels = (
-  drPlacementControl: DRPlacementControlType,
-  labels: string[]
-): DRPlacementControlType => ({
-  ...drPlacementControl,
-  pvcSelector: labels,
-});
 
 const PairElement: React.FC<PairElementProps> = ({
   index,
@@ -121,16 +97,8 @@ const PairElement: React.FC<PairElementProps> = ({
   extraProps,
 }) => {
   const { t } = useCustomTranslation();
-  const {
-    placementNames,
-    labels,
-    tags,
-    isValidationEnabled,
-    placementControInfo,
-    setPlacementControlInfo,
-    updatePlacementControlInfo,
-    unSetPlacementControlInfo,
-  }: extraProps = extraProps;
+  const { placementNames, labels, tags, isValidationEnabled }: extraProps =
+    extraProps;
   const selectedPlacement = pair[NameValueEditorPair.Name];
   const selectedLabels = pair[NameValueEditorPair.Value];
   const deleteIcon = (
@@ -140,11 +108,6 @@ const PairElement: React.FC<PairElementProps> = ({
     </>
   );
 
-  React.useEffect(() => {
-    // Initialize the placementControInfo for the index with empty object
-    !placementControInfo?.[index] && setPlacementControlInfo('', index);
-  }, [placementControInfo, index, setPlacementControlInfo]);
-
   const onChangePlacement = React.useCallback(
     (placement: string) => {
       onChange(
@@ -152,23 +115,20 @@ const PairElement: React.FC<PairElementProps> = ({
         index,
         NameValueEditorPair.Name
       );
-      setPlacementControlInfo(placement, index);
     },
-    [index, onChange, setPlacementControlInfo]
+    [index, onChange]
   );
 
   const onChangeValue = React.useCallback(
     (values: string[]) => {
       onChange({ target: { value: values } }, index, NameValueEditorPair.Value);
-      updatePlacementControlInfo(values, index);
     },
-    [index, onChange, updatePlacementControlInfo]
+    [index, onChange]
   );
 
   const onRemove = React.useCallback(() => {
     onRemoveProp(index);
-    unSetPlacementControlInfo(index);
-  }, [index, onRemoveProp, unSetPlacementControlInfo]);
+  }, [index, onRemoveProp]);
 
   return (
     <div className="row" data-test="pairs-list-row">
@@ -243,25 +203,16 @@ const PairElement: React.FC<PairElementProps> = ({
 
 export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
   ({
-    placementControInfo,
+    pvcSelectors,
     unProtectedPlacements,
-    policyRef,
     workloadNamespace,
     isValidationEnabled,
-    setDRPlacementControls,
+    dispatch,
   }) => {
     const { t } = useCustomTranslation();
 
-    // To update placement and label info
-    const selectedPlacementControls = React.useMemo(
-      () => _.cloneDeep(placementControInfo) || [],
-      [placementControInfo]
-    );
-
     // Selected placement and labels
-    const [tags, setTags] = React.useState<TagsType>(
-      getPlacementTags(selectedPlacementControls)
-    );
+    const [tags, setTags] = React.useState<PVCSelectorType>(pvcSelectors);
 
     // ACM search proxy api call
     const [searchResult] = useACMSafeFetch(
@@ -283,44 +234,6 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
       [unProtectedPlacements]
     );
 
-    const setPlacementControlInfo = React.useCallback(
-      (placementName: string, index: number) => {
-        // select
-        const placement = findPlacement(unProtectedPlacements, placementName);
-        const drPlacementControlObj = createDRPlacementControlObj(
-          placement,
-          policyRef
-        );
-        selectedPlacementControls[index] = drPlacementControlObj;
-        setDRPlacementControls(selectedPlacementControls);
-      },
-      [
-        selectedPlacementControls,
-        unProtectedPlacements,
-        policyRef,
-        setDRPlacementControls,
-      ]
-    );
-
-    const updatePlacementControlInfo = React.useCallback(
-      (pvcLabels: string[], index: number) => {
-        selectedPlacementControls[index] = updateLabels(
-          selectedPlacementControls[index],
-          pvcLabels
-        );
-        setDRPlacementControls(selectedPlacementControls);
-      },
-      [selectedPlacementControls, setDRPlacementControls]
-    );
-
-    const unSetPlacementControlInfo = React.useCallback(
-      (index: number) => {
-        selectedPlacementControls.splice(index, 1);
-        setDRPlacementControls(selectedPlacementControls);
-      },
-      [selectedPlacementControls, setDRPlacementControls]
-    );
-
     return (
       <Form>
         <FormGroup>
@@ -332,7 +245,14 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
         </FormGroup>
         <LazyNameValueEditor
           nameValuePairs={tags}
-          updateParentData={({ nameValuePairs }) => setTags(nameValuePairs)}
+          updateParentData={({ nameValuePairs }) => {
+            setTags(nameValuePairs);
+            dispatch({
+              type: ManagePolicyStateType.SET_PVC_SELECTORS,
+              context: ModalViewContext.ASSIGN_POLICY_VIEW,
+              payload: nameValuePairs,
+            });
+          }}
           PairElementComponent={PairElement}
           nameString={t('Application resource')}
           valueString={t('PVC label selector')}
@@ -342,10 +262,6 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
             labels,
             tags,
             isValidationEnabled,
-            placementControInfo,
-            setPlacementControlInfo,
-            updatePlacementControlInfo,
-            unSetPlacementControlInfo,
           }}
           className="co-required mco-manage-policies__nameValue--weight"
         />
@@ -353,26 +269,17 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
     );
   };
 
-type TagsType = (string | string[])[][];
-
 type extraProps = {
   placementNames: string[];
   labels: string[];
-  tags: TagsType;
+  tags: PVCSelectorType;
   isValidationEnabled: boolean;
-  placementControInfo: DRPlacementControlType[];
-  setPlacementControlInfo: (placementName: string, index: number) => void;
-  updatePlacementControlInfo: (labels: string[], index: number) => void;
-  unSetPlacementControlInfo: (index: number) => void;
 };
 
 type PVCDetailsWizardContentProps = {
-  placementControInfo: DRPlacementControlType[];
+  pvcSelectors: PVCSelectorType;
   unProtectedPlacements: PlacementType[];
-  policyRef: ObjectReference;
   workloadNamespace: string;
   isValidationEnabled: boolean;
-  setDRPlacementControls: (
-    drPlacementControls: DRPlacementControlType[]
-  ) => void;
+  dispatch: React.Dispatch<ManagePolicyStateAction>;
 };
