@@ -6,6 +6,7 @@ import * as React from 'react';
 import {
   ALL_APPS,
   ALL_APPS_ITEM_ID,
+  LEAST_SECONDS_IN_PROMETHEUS,
   VOLUME_REPLICATION_HEALTH,
 } from '@odf/mco/constants';
 import {
@@ -74,8 +75,11 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
     const volumeHealth = { critical: 0, warning: 0, healthy: 0 };
     const placementInfo: PlacementInfo = selectedAppSet?.placementInfo?.[0];
     protectedPVCData?.forEach((pvcData) => {
+      const pvcLastSyncTime = pvcData?.lastSyncTime;
       const health = getVolumeReplicationHealth(
-        getTimeDifferenceInSeconds(pvcData?.lastSyncTime),
+        !!pvcLastSyncTime
+          ? getTimeDifferenceInSeconds(pvcLastSyncTime)
+          : LEAST_SECONDS_IN_PROMETHEUS,
         pvcData?.schedulingInterval
       )[0];
       if (!!selectedAppSet) {
@@ -354,8 +358,11 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
     const placementInfo = selectedAppSet?.placementInfo?.[0];
     const issueCount =
       protectedPVCData?.reduce((acc, protectedPVCItem) => {
+        const pvcLastSyncTime = protectedPVCItem?.lastSyncTime;
         const replicationHealth = getVolumeReplicationHealth(
-          getTimeDifferenceInSeconds(protectedPVCItem?.lastSyncTime),
+          !!pvcLastSyncTime
+            ? getTimeDifferenceInSeconds(pvcLastSyncTime)
+            : LEAST_SECONDS_IN_PROMETHEUS,
           protectedPVCItem?.schedulingInterval
         )[0];
 
