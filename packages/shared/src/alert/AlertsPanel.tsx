@@ -27,6 +27,7 @@ import {
 import { Divider } from '@patternfly/react-core';
 import { InfoCircleIcon } from '@patternfly/react-icons';
 import './alerts.scss';
+import { FieldLevelHelp } from '../generic';
 
 type AlertBadgeProps = {
   alerts: Alert[];
@@ -135,6 +136,7 @@ type AlertsProps = {
   alertsFilter?: (alert: Alert) => boolean;
   className?: string;
   AlertItemComponent?: React.FC<React.ComponentProps<typeof AlertItem>>;
+  titleToolTip?: JSX.Element | string;
   loaded: boolean;
   loadError: object;
 };
@@ -144,6 +146,7 @@ const AlertsPanel: React.FC<AlertsProps> = ({
   alertsFilter,
   className,
   AlertItemComponent,
+  titleToolTip,
   loaded,
   loadError,
 }) => {
@@ -182,6 +185,7 @@ const AlertsPanel: React.FC<AlertsProps> = ({
     >
       <Title headingLevel="h3">
         {t('Alerts')} ({filteredAlerts.length})
+        {!!titleToolTip && <FieldLevelHelp>{titleToolTip}</FieldLevelHelp>}
       </Title>
       <>
         <Divider className="odf-alerts-panel__divider" />

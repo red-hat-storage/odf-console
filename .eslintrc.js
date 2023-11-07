@@ -70,7 +70,27 @@ module.exports = {
     'implicit-arrow-linebreak': 'off',
     'import/no-extraneous-dependencies': [
       'error',
-      { packageDir: ['.', './packages/odf', './packages/shared'] },
+      {
+        packageDir: [
+          '.',
+          './packages/client',
+          './packages/ibm',
+          './packages/mco',
+          './packages/ocs',
+          './packages/odf',
+          './packages/odf-plugin-sdk',
+          './packages/shared',
+        ],
+        devDependencies: [
+          '**/*.spec.ts',
+          '**/*.spec.tsx',
+          './setupJest.ts',
+          './cypress/**',
+        ],
+        optionalDependencies: false,
+        peerDependencies: false,
+        bundledDependencies: false,
+      },
     ],
     'jsx-a11y/anchor-is-valid': 'off',
     'jsx-a11y/click-events-have-key-events': 'off',
