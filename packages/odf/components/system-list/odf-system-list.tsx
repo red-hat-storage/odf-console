@@ -295,6 +295,16 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
                 () => import('./../../modals/add-capacity/add-capacity-modal')
               ),
             },
+            {
+              key: 'CONFIGURE_PERFORMANCE',
+              value: t('Configure performance'),
+              component: React.lazy(
+                () =>
+                  import(
+                    '@odf/core/modals/configure-performance/configure-performance-modal'
+                  )
+              ),
+            },
           ]}
         />
       </TableData>

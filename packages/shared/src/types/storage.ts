@@ -1,3 +1,4 @@
+import { ResourceProfile } from '@odf/core/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 export type StorageClusterKind = K8sResourceCommon & {
@@ -19,6 +20,7 @@ export type StorageClusterKind = K8sResourceCommon & {
     };
     manageNodes?: boolean;
     storageDeviceSets?: DeviceSet[];
+    resourceProfile?: ResourceProfile;
     resources?: StorageClusterResource;
     arbiter?: {
       enable: boolean;

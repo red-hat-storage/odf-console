@@ -1,4 +1,13 @@
 import * as React from 'react';
+import {
+  CreateStepsSC,
+  RESOURCE_PROFILE_REQUIREMENTS_MAP,
+} from '@odf/core/constants';
+import {
+  EncryptionType,
+  ResourceProfile,
+  ValidationType,
+} from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
@@ -9,8 +18,6 @@ import {
   AlertActionLink,
   WizardContextConsumer,
 } from '@patternfly/react-core';
-import { CreateStepsSC } from '../../constants';
-import { EncryptionType } from '../../types';
 import './odf-install.scss';
 
 export type Validation = {
@@ -23,23 +30,12 @@ export type Validation = {
   actionLinkStep?: string;
 };
 
-export enum ValidationType {
-  'MINIMAL' = 'MINIMAL',
-  'INTERNALSTORAGECLASS' = 'INTERNALSTORAGECLASS',
-  'BAREMETALSTORAGECLASS' = 'BAREMETALSTORAGECLASS',
-  'ALLREQUIREDFIELDS' = 'ALLREQUIREDFIELDS',
-  'MINIMUMNODES' = 'MINIMUMNODES',
-  'ENCRYPTION' = 'ENCRYPTION',
-  'REQUIRED_FIELD_KMS' = 'REQUIRED_FIELD_KMS',
-  'NETWORK' = 'NETWORK',
-  'INTERNAL_FLEXIBLE_SCALING' = 'INTERNAL_FLEXIBLE_SCALING',
-  'ATTACHED_DEVICES_FLEXIBLE_SCALING' = 'ATTACHED_DEVICES_FLEXIBLE_SCALING',
-}
-
 export const VALIDATIONS = (
   type: keyof typeof ValidationType,
   t: TFunction
 ): Validation => {
+  const { minCpu, minMem } =
+    RESOURCE_PROFILE_REQUIREMENTS_MAP[ResourceProfile.Balanced];
   switch (type) {
     case ValidationType.MINIMAL:
       return {
@@ -50,7 +46,19 @@ export const VALIDATIONS = (
           </div>
         ),
         text: t(
-          "The selected nodes do not match Data Foundation's StorageCluster requirement of an aggregated 30 CPUs and 72 GiB of RAM. If the selection cannot be modified a minimal cluster will be deployed."
+          `The selected nodes do not match Data Foundation's StorageCluster requirement of an aggregated ${minCpu} CPUs and ${minMem} GiB of RAM. If the selection cannot be modified a minimal cluster will be deployed.`
+        ),
+        actionLinkStep: CreateStepsSC.STORAGEANDNODES,
+        actionLinkText: t('Back to nodes selection'),
+      };
+    case ValidationType.RESOURCE_PROFILE:
+      return {
+        variant: AlertVariant.danger,
+        title: t(
+          'Aggregate resource requirements for the selected performance profile not met.'
+        ),
+        text: t(
+          'Select nodes with sufficient CPU and memory that meet the specified minimum requirements, and try again, or choose a different performance profile to proceed.'
         ),
         actionLinkStep: CreateStepsSC.STORAGEANDNODES,
         actionLinkText: t('Back to nodes selection'),
