@@ -71,7 +71,7 @@ export const DataPolicyStatus: React.FC<DataPolicyStatusProps> = ({
       {...(isValidated
         ? { title: t('Validated'), icon: <GreenCheckCircleIcon /> }
         : {
-            title: t('Not Validated'),
+            title: t('Not validated'),
             icon: <RedExclamationCircleIcon />,
           })}
     />
@@ -199,7 +199,7 @@ export const PolicyConfigViewer: React.FC<PolicyConfigViewerProps> = ({
           )}
           <DescriptionListItem
             term={t('PVC label selector')}
-            description={<Labels numLabels={3} labels={labels} />}
+            description={<Labels numLabels={5} labels={labels} />}
           />
         </DescriptionList>
       </div>

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { PLACEMENT_REF_LABEL } from '@odf/mco/constants';
+import { APPLICATION_TYPE, PLACEMENT_REF_LABEL } from '@odf/mco/constants';
 import {
   DisasterRecoveryResourceKind,
   getDRClusterResourceObj,
@@ -133,6 +133,7 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         t
       );
       applicationInfo = generateApplicationInfo(
+        APPLICATION_TYPE.APPSET,
         application,
         getRemoteNamespaceFromAppSet(application),
         // Skip placement if it already DR protected

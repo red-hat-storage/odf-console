@@ -238,13 +238,8 @@ export const getDRPolicyName = (drpc: DRPlacementControlKind) =>
 export const getDRPoliciesCount = (drPolicies: DRPolicyMap) =>
   Object.keys(drPolicies || {})?.length;
 
-export const getReplicationType = (interval: string, t: TFunction) =>
-  interval !== '0m'
-    ? t('{{async}}, interval: {{interval}}', {
-        async: REPLICATION_TYPE.ASYNC,
-        interval,
-      })
-    : REPLICATION_TYPE.SYNC;
+export const getReplicationType = (interval: string) =>
+  interval !== '0m' ? REPLICATION_TYPE.ASYNC : REPLICATION_TYPE.SYNC;
 
 export const getPlacementKind = (subscription: ACMSubscriptionKind) =>
   subscription?.spec?.placement?.placementRef?.kind;
@@ -636,3 +631,6 @@ export const findDeploymentClusters = (
     return !!lastDeploymentClusterName ? [lastDeploymentClusterName] : [];
   }
 };
+
+export const getDRPolicyStatus = (isValidated, t) =>
+  isValidated ? t('Validated') : t('Not validated');
