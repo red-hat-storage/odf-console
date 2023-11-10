@@ -33,6 +33,7 @@ import {
 } from '@patternfly/react-core';
 import { CephClusterModel } from '../../../models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
+import { OSDMigrationProgress } from './osd-migration/osd-migration-progress';
 import { getCephHealthState, getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
 import './healthchecks.scss';
@@ -183,6 +184,7 @@ export const StatusCard: React.FC = () => {
           </GalleryItem>
         </Gallery>
       </HealthBody>
+      <OSDMigrationProgress cephData={data?.[0]} />
       <CephAlerts />
     </Card>
   );

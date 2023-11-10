@@ -104,7 +104,13 @@ type CephDeviceClass = {
 
 export type CephClusterKind = K8sResourceCommon & {
   status?: {
-    storage: {
+    storage?: {
+      osd?: {
+        storeType?: {
+          bluestore?: number;
+          'bluestore-rdr'?: number;
+        };
+      };
       deviceClasses: CephDeviceClass[];
     };
     ceph?: {
