@@ -61,7 +61,8 @@ export const createStorageCluster = async (state: WizardState) => {
     enableSingleReplicaPool,
   } = capacityAndNodes;
   const { encryption, publicNetwork, clusterNetwork, kms } = securityAndNetwork;
-  const { type, enableNFS, deployment } = backingStorage;
+  const { type, enableNFS, isRBDStorageClassDefault, deployment } =
+    backingStorage;
   const { enableRDRPreparation } = dataProtection;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
@@ -88,24 +89,28 @@ export const createStorageCluster = async (state: WizardState) => {
     deployment === DeploymentType.FULL &&
     type !== BackingStorageType.EXTERNAL;
 
-  const payload = getOCSRequestData(
+  const shouldSetCephRBDAsDefault =
+    isRBDStorageClassDefault && deployment === DeploymentType.FULL;
+
+  const payload = getOCSRequestData({
     storageClass,
     storage,
     encryption,
     isMinimal,
     nodes,
-    isFlexibleScaling,
+    flexibleScaling: isFlexibleScaling,
     publicNetwork,
     clusterNetwork,
-    kms.providerState.hasHandled && encryption.advanced,
-    arbiterLocation,
-    enableArbiter,
-    pvCount,
+    kmsEnable: kms.providerState.hasHandled && encryption.advanced,
+    selectedArbiterZone: arbiterLocation,
+    stretchClusterChecked: enableArbiter,
+    availablePvsCount: pvCount,
     isMCG,
     isNFSEnabled,
-    enableSingleReplicaPool,
-    enableRDRPreparation
-  );
+    shouldSetCephRBDAsDefault,
+    isSingleReplicaPoolEnabled: enableSingleReplicaPool,
+    enableRDRPreparation,
+  });
   return k8sCreate({ model: OCSStorageClusterModel, data: payload });
 };
 
