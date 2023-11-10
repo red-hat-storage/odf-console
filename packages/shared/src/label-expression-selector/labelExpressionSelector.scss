@@ -1,0 +1,11 @@
+.odf-label-expression-selector {
+    &__selector--font-size {
+        font-size: var(--pf-global--FontSize--sm);
+        .pf-c-check__label  {
+            font-size: var(--pf-global--FontSize--sm) !important;
+        }
+    }
+    &__button--margin-top {
+        margin-top: var(--pf-global--spacer--md);
+    }
+}
