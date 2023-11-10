@@ -30,9 +30,9 @@ import {
   REPLICATION_TYPE,
   ODFMCO_OPERATOR,
   HUB_CLUSTER_NAME,
-} from '../../../constants';
-import { DRPolicyModel, MirrorPeerModel } from '../../../models';
-import { DRPolicyKind, MirrorPeerKind } from '../../../types';
+} from '../../constants';
+import { DRPolicyModel, MirrorPeerModel } from '../../models';
+import { DRPolicyKind, MirrorPeerKind } from '../../types';
 import {
   drPolicyReducer,
   drPolicyInitialState,
@@ -42,7 +42,7 @@ import { SelectClusterList } from './select-cluster-list';
 import { DRReplicationType } from './select-replication-type';
 import { SelectedCluster } from './selected-cluster-view';
 import './create-dr-policy.scss';
-import '../../../style.scss';
+import '../../style.scss';
 
 const fetchMirrorPeer = (
   mirrorPeers: MirrorPeerKind[],

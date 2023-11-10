@@ -52,7 +52,7 @@ jest.mock('react-router', () => ({
   useHistory: jest.fn(() => []),
 }));
 
-jest.doMock('../../../assets/EmptyPageIcon.png', () => '');
+jest.doMock('../../assets/EmptyPageIcon.png', () => '');
 
 jest.mock('react-i18next', () => ({
   useTranslation: (_ns: string) => ({ t: (children: any) => children }),

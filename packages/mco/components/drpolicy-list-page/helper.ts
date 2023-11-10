@@ -2,7 +2,7 @@ import { ModalKeys } from '@odf/shared/modals/types';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { Actions } from '../../../constants';
+import { Actions } from '../../constants';
 
 export const Header = (t: TFunction) => [
   {
