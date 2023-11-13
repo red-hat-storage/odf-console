@@ -1,7 +1,7 @@
 import * as React from 'react';
+import { useSafeK8sWatchResources } from '@odf/core/hooks';
 import { NetworkAttachmentDefinitionModel } from '@odf/core/models';
 import TechPreviewBadge from '@odf/shared/badges/TechPreviewBadge';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
@@ -12,7 +12,6 @@ import { referenceForModel } from '@odf/shared/utils';
 import {
   ResourceIcon,
   WatchK8sResults,
-  useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import * as _ from 'lodash-es';
@@ -20,11 +19,11 @@ import { FormGroup, Radio, SelectOption } from '@patternfly/react-core';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import './configure.scss';
 
-const resources = {
+const resources = (ns: string) => ({
   openshift: {
     isList: true,
     kind: referenceForModel(NetworkAttachmentDefinitionModel),
-    namespace: CEPH_STORAGE_NAMESPACE,
+    namespace: ns,
     namespaced: true,
   },
   default: {
@@ -39,7 +38,7 @@ const resources = {
     namespace: 'openshift-multus',
     namespaced: true,
   },
-};
+});
 
 type MultusWatchResourcesObject = {
   multus: NetworkAttachmentDefinitionKind[];
@@ -86,8 +85,7 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
   const clusterNetworkUID = getUID(clusterNetwork);
   const publicNetworkUID = getUID(publicNetwork);
 
-  const networkResources =
-    useK8sWatchResources<MultusWatchResourcesObject>(resources);
+  const networkResources = useSafeK8sWatchResources(resources);
 
   const networkDevices: K8sResourceCommon[] = React.useMemo(() => {
     const { loaded: resourcesLoaded, error: resourcesLoadError } =

@@ -1,4 +1,3 @@
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { NamespaceModel } from '@odf/shared/models';
 import {
   DeviceSet,
@@ -232,12 +231,12 @@ export const isValidTopology = (
   return zones.size >= MINIMUM_NODES || racks.size >= MINIMUM_NODES;
 };
 
-export const labelOCSNamespace = (): Promise<any> =>
+export const labelOCSNamespace = (ns: string): Promise<any> =>
   k8sPatch({
     model: NamespaceModel,
     resource: {
       metadata: {
-        name: CEPH_STORAGE_NAMESPACE,
+        name: ns,
       },
     },
     data: [

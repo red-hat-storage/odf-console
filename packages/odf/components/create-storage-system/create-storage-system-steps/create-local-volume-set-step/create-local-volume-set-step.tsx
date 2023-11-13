@@ -33,7 +33,6 @@ import {
   k8sCreate,
   WatchK8sResource,
   useK8sWatchResource,
-  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
@@ -48,7 +47,6 @@ import {
   WizardContext,
   WizardContextType,
 } from '@patternfly/react-core';
-import { FEATURES } from '../../../../features';
 import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';
 import { LocalVolumeSetBody } from './body';
@@ -156,7 +154,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   nodes,
 }) => {
   const { t } = useCustomTranslation();
-  const isArbiterSupported = useFlag(FEATURES.OCS_ARBITER);
   const { onNext, activeStep } =
     React.useContext<WizardContextType>(WizardContext);
 
@@ -195,12 +192,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <span>
         {t("After the LocalVolumeSet is created you won't be able to edit it.")}
       </span>
-      {isArbiterSupported && (
-        <p className="pf-u-pt-sm">
-          <strong>{t('Note:')} </strong>
-          {arbiterText(t)}
-        </p>
-      )}
+      <p className="pf-u-pt-sm">
+        <strong>{t('Note:')} </strong>
+        {arbiterText(t)}
+      </p>
     </>
   );
   return (

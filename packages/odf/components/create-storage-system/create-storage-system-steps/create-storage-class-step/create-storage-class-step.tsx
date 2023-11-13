@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { getExternalStorage } from '@odf/core/components/utils';
+import { useSafeK8sList } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { IBMFlashSystemModel } from '@odf/ibm/system-models';
 import { IBMFlashSystemKind } from '@odf/ibm/system-types';
 import {
@@ -12,7 +14,6 @@ import {
   ExternalStateValues,
 } from '@odf/odf-plugin-sdk/extensions';
 import {
-  CEPH_STORAGE_NAMESPACE,
   fieldRequirementsTranslations,
   formSettings,
 } from '@odf/shared/constants';
@@ -40,6 +41,8 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
+  const { odfNamespace } = useODFNamespaceSelector();
+
   const { component: Component, displayName } = getExternalStorage(
     externalStorage,
     supportedExternalStorage
@@ -63,10 +66,8 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
   const [scData, scLoaded, scLoadError] =
     useK8sList<StorageClassResourceKind>(StorageClassModel);
 
-  const [secretData, secretLoaded, secretLoadError] = useK8sList<SecretKind>(
-    SecretModel,
-    CEPH_STORAGE_NAMESPACE
-  );
+  const [secretData, secretLoaded, secretLoadError] =
+    useSafeK8sList<SecretKind>(SecretModel, odfNamespace);
   const [flashSystemData, flashSystemLoaded, flashSystemLoadError] =
     useK8sList<IBMFlashSystemKind>(IBMFlashSystemModel);
 
@@ -87,7 +88,7 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
         const secret = secretData?.find(
           (secret) =>
             secret.metadata.name === secretName &&
-            secret.metadata.namespace === CEPH_STORAGE_NAMESPACE
+            secret.metadata.namespace === odfNamespace
         );
         return atob(getSecretManagementAddress(secret));
       });
@@ -144,6 +145,7 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
     dataLoadError,
     flashSystemData,
     secretData,
+    odfNamespace,
   ]);
   const resolver = useYupValidationResolver(schema);
   const {

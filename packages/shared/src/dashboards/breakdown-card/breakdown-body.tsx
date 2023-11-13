@@ -20,6 +20,7 @@ export const BreakdownCardBody: React.FC<BreakdownBodyProps> = ({
   ocsVersion = '',
   labelPadding,
   isPersistentInternal,
+  odfNamespace,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -83,6 +84,7 @@ export const BreakdownCardBody: React.FC<BreakdownBodyProps> = ({
           metricModel={metricModel}
           ocsVersion={ocsVersion}
           labelPadding={labelPadding}
+          odfNamespace={odfNamespace}
         />
       </GridItem>
     </Grid>
@@ -101,4 +103,5 @@ export type BreakdownBodyProps = {
   ocsVersion?: string;
   labelPadding?: LabelPadding;
   isPersistentInternal?: boolean;
+  odfNamespace?: string;
 };

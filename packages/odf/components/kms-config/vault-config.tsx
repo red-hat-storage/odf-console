@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useFlag, useModal } from '@openshift-console/dynamic-plugin-sdk';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
@@ -13,7 +13,6 @@ import {
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
 import { ProviderStateMap } from '../../constants';
-import { FEATURES } from '../../features';
 import {
   VaultConfig,
   ProviderNames,
@@ -45,8 +44,6 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   const { t } = useCustomTranslation();
 
   const launchModal = useModal();
-
-  const isKmsVaultSASupported = useFlag(FEATURES.ODF_VAULT_SA_KMS);
 
   const vaultState = useDeepCompareMemoize(
     state.kms.providerState,
@@ -122,10 +119,7 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
 
   React.useEffect(() => {
     if (!vaultAuthMethods.includes(vaultState.authMethod)) {
-      if (
-        isKmsVaultSASupported &&
-        vaultAuthMethods.includes(VaultAuthMethods.KUBERNETES)
-      ) {
+      if (vaultAuthMethods.includes(VaultAuthMethods.KUBERNETES)) {
         // From 4.10 kubernetes is default auth method
         setAuthMethod(VaultAuthMethods.KUBERNETES);
       } else {
@@ -133,42 +127,35 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
         setAuthMethod(VaultAuthMethods.TOKEN);
       }
     }
-  }, [
-    isKmsVaultSASupported,
-    setAuthMethod,
-    vaultAuthMethods,
-    vaultState.authMethod,
-  ]);
+  }, [setAuthMethod, vaultAuthMethods, vaultState.authMethod]);
 
   return (
     <>
-      {isKmsVaultSASupported && (
-        <FormGroup
-          fieldId="authentication-method"
-          label={t('Authentication method')}
-          className={`${className}__form-body`}
-          helperTextInvalid={t('This is a required field')}
-          isRequired
+      <FormGroup
+        fieldId="authentication-method"
+        label={t('Authentication method')}
+        className={`${className}__form-body`}
+        helperTextInvalid={t('This is a required field')}
+        isRequired
+      >
+        <FormSelect
+          value={vaultState.authMethod}
+          onChange={setAuthMethod}
+          id="authentication-method"
+          name="authentication-method"
+          aria-label={t('authentication-method')}
+          isDisabled={isLengthUnity(vaultAuthMethods)}
+          data-test="vault-config-auth-method"
         >
-          <FormSelect
-            value={vaultState.authMethod}
-            onChange={setAuthMethod}
-            id="authentication-method"
-            name="authentication-method"
-            aria-label={t('authentication-method')}
-            isDisabled={isLengthUnity(vaultAuthMethods)}
-            data-test="vault-config-auth-method"
-          >
-            {filteredVaultAuthMethodMapping.map((authMethod) => (
-              <FormSelectOption
-                value={authMethod.value}
-                label={authMethod.name}
-                key={authMethod.name}
-              />
-            ))}
-          </FormSelect>
-        </FormGroup>
-      )}
+          {filteredVaultAuthMethodMapping.map((authMethod) => (
+            <FormSelectOption
+              value={authMethod.value}
+              label={authMethod.name}
+              key={authMethod.name}
+            />
+          ))}
+        </FormSelect>
+      </FormGroup>
       <ValutConnectionForm
         {...{
           t,

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LoadingBox } from '@odf/shared/generic/status-box';
+import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -63,15 +63,14 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
   }, [isExternal, isCephAvailable, pages, setPages, t]);
 
   const title = match.params.systemName;
+  const arePagesLoaded = pages.length > 0;
 
   return (
     <>
       <PageHeading title={title} breadcrumbs={breadcrumbs} />
-      {pages.length > 0 ? (
+      <NamespaceSafetyBox areResourcesLoaded={arePagesLoaded}>
         <Tabs id="odf-tab" match={match} tabs={pages} />
-      ) : (
-        <LoadingBox />
-      )}
+      </NamespaceSafetyBox>
     </>
   );
 };

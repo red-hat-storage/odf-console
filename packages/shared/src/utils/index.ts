@@ -9,3 +9,4 @@ export * from './node';
 export * from './pod-health';
 export * from './AlertFilters';
 export * from './link';
+export * from './valid-k8s-resources';

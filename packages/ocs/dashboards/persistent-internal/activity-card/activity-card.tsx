@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -65,6 +66,8 @@ export const eventsResource = {
 };
 
 const RecentEvent: React.FC = () => {
+  const { odfNamespace } = useODFNamespaceSelector();
+
   const [pvcs, pvcLoaded] =
     useK8sWatchResource<PersistentVolumeClaimKind[]>(pvcResource);
   const [events, eventsLoaded] =
@@ -78,8 +81,8 @@ const RecentEvent: React.FC = () => {
   const memoizedPVCNames = useDeepCompareMemoize(validPVC, true);
 
   const ocsEventsFilter = React.useCallback(
-    () => isPersistentStorageEvent(memoizedPVCNames),
-    [memoizedPVCNames]
+    () => isPersistentStorageEvent(memoizedPVCNames, odfNamespace),
+    [memoizedPVCNames, odfNamespace]
   );
 
   const eventObject = {

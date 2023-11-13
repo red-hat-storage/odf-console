@@ -14,7 +14,6 @@ import {
   shouldDeployAsMinimal,
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import {
   getLabel,
   getName,
@@ -368,6 +367,7 @@ type OCSRequestData = {
   shouldSetCephRBDAsDefault?: boolean;
   isSingleReplicaPoolEnabled?: boolean;
   enableRDRPreparation?: boolean;
+  odfNamespace: string;
 };
 
 export const getOCSRequestData = ({
@@ -388,6 +388,7 @@ export const getOCSRequestData = ({
   shouldSetCephRBDAsDefault,
   isSingleReplicaPoolEnabled,
   enableRDRPreparation,
+  odfNamespace,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -405,7 +406,7 @@ export const getOCSRequestData = ({
     kind: 'StorageCluster',
     metadata: {
       name: OCS_INTERNAL_CR_NAME,
-      namespace: CEPH_STORAGE_NAMESPACE,
+      namespace: odfNamespace,
     },
     spec: {},
   };

@@ -3,9 +3,7 @@ export enum PodMetrics {
   MEMORY = 'MEMORY',
 }
 
-export const POD_QUERIES = {
-  [PodMetrics.CPU]:
-    'pod:container_cpu_usage:sum{namespace="openshift-storage"}',
-  [PodMetrics.MEMORY]:
-    'sum(container_memory_working_set_bytes{namespace="openshift-storage", container=""}) BY (pod, namespace)',
-};
+export const POD_QUERIES = (ns: string) => ({
+  [PodMetrics.CPU]: `pod:container_cpu_usage:sum{namespace="${ns}"}`,
+  [PodMetrics.MEMORY]: `sum(container_memory_working_set_bytes{namespace="${ns}", container=""}) BY (pod, namespace)`,
+});

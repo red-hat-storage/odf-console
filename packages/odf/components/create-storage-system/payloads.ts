@@ -4,7 +4,6 @@ import {
 } from '@odf/core/components/utils';
 import { DeploymentType, BackingStorageType } from '@odf/core/types';
 import { Payload } from '@odf/odf-plugin-sdk/extensions';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import {
   OCSStorageClusterModel,
   ODFStorageSystem,
@@ -19,32 +18,36 @@ import {
   ocsTaint,
   defaultRequestSize,
   NO_PROVISIONER,
-  CEPH_STORAGE_LABEL,
+  cephStorageLabel,
 } from '../../constants';
 import { ValidationType } from '../utils/common-odf-install-el';
 import { WizardNodeState, WizardState } from './reducer';
 
 export const createStorageSystem = async (
   subSystemName: string,
-  subSystemKind: string
+  subSystemKind: string,
+  odfNamespace: string
 ) => {
   const payload: StorageSystemKind = {
     apiVersion: getAPIVersionForModel(ODFStorageSystem),
     kind: ODFStorageSystem.kind,
     metadata: {
       name: `${subSystemName}-storagesystem`,
-      namespace: CEPH_STORAGE_NAMESPACE,
+      namespace: odfNamespace,
     },
     spec: {
       name: subSystemName,
       kind: subSystemKind,
-      namespace: CEPH_STORAGE_NAMESPACE,
+      namespace: odfNamespace,
     },
   };
   return k8sCreate({ model: ODFStorageSystem, data: payload });
 };
 
-export const createStorageCluster = async (state: WizardState) => {
+export const createStorageCluster = async (
+  state: WizardState,
+  odfNamespace: string
+) => {
   const {
     storageClass,
     capacityAndNodes,
@@ -110,21 +113,27 @@ export const createStorageCluster = async (state: WizardState) => {
     shouldSetCephRBDAsDefault,
     isSingleReplicaPoolEnabled: enableSingleReplicaPool,
     enableRDRPreparation,
+    odfNamespace,
   });
   return k8sCreate({ model: OCSStorageClusterModel, data: payload });
 };
 
-export const labelNodes = async (nodes: WizardNodeState[]) => {
+export const labelNodes = async (
+  nodes: WizardNodeState[],
+  odfNamespace: string
+) => {
+  const labelPath = `/metadata/labels/cluster.ocs.openshift.io~1${odfNamespace}`;
+  const storageLabel = cephStorageLabel(odfNamespace);
   const patch: Patch[] = [
     {
       op: 'add',
-      path: '/metadata/labels/cluster.ocs.openshift.io~1openshift-storage',
+      path: labelPath,
       value: '',
     },
   ];
   const requests: Promise<K8sKind>[] = [];
   nodes.forEach((node) => {
-    if (!node.labels?.[CEPH_STORAGE_LABEL])
+    if (!node.labels?.[storageLabel])
       requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
   });
   try {

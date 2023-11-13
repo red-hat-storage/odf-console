@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { getSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import {
@@ -39,6 +40,8 @@ export const BreakdownCard: React.FC = () => {
   >(BreakdownCardFields.PROJECTS);
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const [pvcNamespace, setPVCNamespace] = React.useState('');
+
+  const { odfNamespace } = useODFNamespaceSelector();
 
   const { queries, model, metric } = getBreakdownMetricsQuery(
     metricType,
@@ -127,6 +130,7 @@ export const BreakdownCard: React.FC = () => {
           top5MetricsStats={top5MetricsStats}
           metricModel={model}
           humanize={humanize}
+          odfNamespace={odfNamespace}
         />
         {metricType === BreakdownCardFieldsWithParams.PVCS &&
           !queriesLoadError &&

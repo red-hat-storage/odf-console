@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -14,7 +14,11 @@ const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
   match,
 }) => {
   const { t } = useCustomTranslation();
-  const { ns = CEPH_STORAGE_NAMESPACE } = match.params;
+
+  const { odfNamespace } = useODFNamespaceSelector();
+
+  const { ns } = match.params;
+  const namespace = ns || odfNamespace;
 
   const history = useHistory();
   const onCancel = () => history.goBack();
@@ -44,7 +48,7 @@ const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
           )}/${getName(resources[lastIndex])}`;
           history.push(`/odf/resource/${resourcePath}`);
         }}
-        namespace={ns}
+        namespace={namespace}
         className="nb-endpoints-page-form__short"
       />
     </>

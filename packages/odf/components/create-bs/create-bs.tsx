@@ -1,5 +1,7 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
+import { useSafeK8sList } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   fieldRequirementsTranslations,
   formSettings,
@@ -7,7 +9,6 @@ import {
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
-import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -59,6 +60,8 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
     initialState
   );
 
+  const { odfNamespace } = useODFNamespaceSelector();
+
   const [inProgress, setProgress] = React.useState(false);
   const [error, setError] = React.useState('');
   const [showSecret, setShowSecret] = React.useState(true);
@@ -67,18 +70,12 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
 
   const history = useHistory();
 
-  const {
-    className,
-    isPage,
-    appName,
-    namespace = CEPH_STORAGE_NAMESPACE,
-    onCancel,
-    onClose,
-  } = props;
+  const { className, isPage, appName, namespace, onCancel, onClose } = props;
+  const ns = namespace || odfNamespace;
 
-  const [data, loaded, loadError] = useK8sList<BackingStoreKind>(
+  const [data, loaded, loadError] = useSafeK8sList<BackingStoreKind>(
     NooBaaBackingStoreModel,
-    namespace
+    ns
   );
 
   const { schema, fieldRequirements } = React.useMemo(() => {
@@ -142,7 +139,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       const { secretKey, accessKey, gcpJSON } = providerDataState;
       const secretPayload = secretPayloadCreator(
         provider,
-        namespace,
+        ns,
         secretName,
         accessKey || gcpJSON,
         secretKey
@@ -155,7 +152,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       apiVersion: getAPIVersionForModel(NooBaaBackingStoreModel),
       kind: NooBaaBackingStoreModel.kind,
       metadata: {
-        namespace,
+        namespace: ns,
         name: bsName,
       },
       spec: {
@@ -181,7 +178,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
           [BUCKET_LABEL_NOOBAA_MAP[provider]]: providerDataState.target,
           secret: {
             name: secretName,
-            namespace,
+            namespace: ns,
           },
         },
       };
@@ -220,7 +217,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
           isODF
             ? history.push(`/odf/resource/${resourcePath}`)
             : history.push(
-                `/k8s/ns/${namespace}/clusterserviceversions/${appName}/${resourcePath}`
+                `/k8s/ns/${ns}/clusterserviceversions/${appName}/${resourcePath}`
               );
         else onClose();
       })
@@ -231,103 +228,106 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
   };
 
   return (
-    <Form
-      className={classNames('nb-endpoints-form', className)}
-      onSubmit={handleSubmit(onSubmit)}
-    >
-      <TextInputWithFieldRequirements
-        control={control}
-        fieldRequirements={fieldRequirements}
-        popoverProps={{
-          headerContent: t('Name requirements'),
-          footerContent: `${t('Example')}: my-backingstore`,
-        }}
-        formGroupProps={{
-          label: t('BackingStore Name'),
-          fieldId: 'backingstore-name',
-          className: 'nb-endpoints-form-entry',
-          isRequired: true,
-        }}
-        textInputProps={{
-          name: 'backingstore-name',
-          placeholder: 'my-backingstore',
-          'data-test': 'backingstore-name',
-          'aria-label': t('BackingStore Name'),
-        }}
-      />
+    <NamespaceSafetyBox>
+      <Form
+        className={classNames('nb-endpoints-form', className)}
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <TextInputWithFieldRequirements
+          control={control}
+          fieldRequirements={fieldRequirements}
+          popoverProps={{
+            headerContent: t('Name requirements'),
+            footerContent: `${t('Example')}: my-backingstore`,
+          }}
+          formGroupProps={{
+            label: t('BackingStore Name'),
+            fieldId: 'backingstore-name',
+            className: 'nb-endpoints-form-entry',
+            isRequired: true,
+          }}
+          textInputProps={{
+            name: 'backingstore-name',
+            placeholder: 'my-backingstore',
+            'data-test': 'backingstore-name',
+            'aria-label': t('BackingStore Name'),
+          }}
+        />
 
-      <FormGroupController
-        name="provider-name"
-        control={control}
-        defaultValue={BC_PROVIDERS.AWS}
-        formGroupProps={{
-          label: t('Provider'),
-          fieldId: 'provider-name',
-          className: 'nb-endpoints-form-entry',
-          isRequired: true,
-        }}
-        render={({ value, onChange, onBlur }) => (
-          <StaticDropdown
-            className="nb-endpoints-form-entry__dropdown"
-            onSelect={onChange}
-            onBlur={onBlur}
-            dropdownItems={PROVIDERS}
-            defaultSelection={value}
-            data-test="backingstore-provider"
+        <FormGroupController
+          name="provider-name"
+          control={control}
+          defaultValue={BC_PROVIDERS.AWS}
+          formGroupProps={{
+            label: t('Provider'),
+            fieldId: 'provider-name',
+            className: 'nb-endpoints-form-entry',
+            isRequired: true,
+          }}
+          render={({ value, onChange, onBlur }) => (
+            <StaticDropdown
+              className="nb-endpoints-form-entry__dropdown"
+              onSelect={onChange}
+              onBlur={onBlur}
+              dropdownItems={PROVIDERS}
+              defaultSelection={value}
+              data-test="backingstore-provider"
+            />
+          )}
+        />
+        {provider === BC_PROVIDERS.GCP && (
+          <GCPEndpointType
+            control={control}
+            state={providerDataState}
+            dispatch={providerDataDispatch}
+            namespace={ns}
           />
         )}
-      />
-      {provider === BC_PROVIDERS.GCP && (
-        <GCPEndpointType
-          control={control}
-          state={providerDataState}
-          dispatch={providerDataDispatch}
-          namespace={CEPH_STORAGE_NAMESPACE}
-        />
-      )}
-      {(provider === BC_PROVIDERS.AWS ||
-        provider === BC_PROVIDERS.S3 ||
-        provider === BC_PROVIDERS.IBM ||
-        provider === BC_PROVIDERS.AZURE) && (
-        <S3EndPointType
-          showSecret={showSecret}
-          setShowSecret={setShowSecret}
-          control={control}
-          type={StoreType.BS}
-          provider={provider}
-          namespace={CEPH_STORAGE_NAMESPACE}
-          state={providerDataState}
-          dispatch={providerDataDispatch}
-        />
-      )}
-      {provider === BC_PROVIDERS.PVC && (
-        <PVCType state={providerDataState} dispatch={providerDataDispatch} />
-      )}
-      {!isValid && isSubmitted && (
-        <Alert
-          variant="danger"
-          isInline
-          title={t('Address form errors to proceed')}
-        />
-      )}
-      <ButtonBar errorMessage={error} inProgress={inProgress}>
-        <ActionGroup>
-          <Button
-            isDisabled={
-              provider === BC_PROVIDERS.PVC && providerDataState.numVolumes < 1
-            }
-            type="submit"
-            data-test="backingstore-create-button"
-            variant="primary"
-          >
-            {t('Create BackingStore')}
-          </Button>
-          <Button onClick={onCancel} variant="secondary">
-            {t('Cancel')}
-          </Button>
-        </ActionGroup>
-      </ButtonBar>
-    </Form>
+        {(provider === BC_PROVIDERS.AWS ||
+          provider === BC_PROVIDERS.S3 ||
+          provider === BC_PROVIDERS.IBM ||
+          provider === BC_PROVIDERS.AZURE) && (
+          <S3EndPointType
+            showSecret={showSecret}
+            setShowSecret={setShowSecret}
+            control={control}
+            type={StoreType.BS}
+            provider={provider}
+            namespace={ns}
+            state={providerDataState}
+            dispatch={providerDataDispatch}
+          />
+        )}
+        {provider === BC_PROVIDERS.PVC && (
+          <PVCType state={providerDataState} dispatch={providerDataDispatch} />
+        )}
+        {!isValid && isSubmitted && (
+          <Alert
+            variant="danger"
+            isInline
+            title={t('Address form errors to proceed')}
+          />
+        )}
+        <ButtonBar errorMessage={error} inProgress={inProgress}>
+          <ActionGroup>
+            <Button
+              isDisabled={
+                provider === BC_PROVIDERS.PVC &&
+                providerDataState.numVolumes < 1
+              }
+              type="submit"
+              data-test="backingstore-create-button"
+              variant="primary"
+            >
+              {t('Create BackingStore')}
+            </Button>
+            <Button onClick={onCancel} variant="secondary">
+              {t('Cancel')}
+            </Button>
+          </ActionGroup>
+        </ButtonBar>
+      </Form>
+    </NamespaceSafetyBox>
   );
 };
 

@@ -1,4 +1,6 @@
 import * as React from 'react';
+import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { getCephNodes } from '@odf/ocs/utils/common';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
@@ -204,6 +206,8 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
+  const { odfNamespace } = useODFNamespaceSelector();
+
   const [cephTotal, totalError, totalLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
     query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_TOTAL],
@@ -248,7 +252,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   const replica = getDeviceSetReplica(
     isArbiterEnabled,
     hasFlexibleScaling,
-    createWizardNodeState(getCephNodes(nodesData))
+    createWizardNodeState(getCephNodes(nodesData, odfNamespace))
   );
   const name = ocsConfig?.metadata?.name;
   const totalCapacityMetric = values?.[0];
@@ -402,89 +406,93 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
       className="add-capacity-modal"
       aria-label="Add Capacity"
     >
-      <ModalBody className="add-capacity-modal--overflow">
-        <Trans t={t as any} ns="plugin__odf-console" values={{ name }}>
-          Adding capacity for <strong>{{ name }}</strong>, may increase your
-          expenses.
-        </Trans>
-        <FormGroup
-          className="pf-u-pt-md pf-u-pb-sm"
-          id="add-cap-sc-dropdown__FormGroup"
-          fieldId="add-capacity-dropdown"
-          label={t('StorageClass')}
-          labelIcon={<FieldLevelHelp>{storageClassTooltip(t)}</FieldLevelHelp>}
-          isRequired
-        >
-          <div
-            id="add-capacity-dropdown"
-            className="ceph-add-capacity__sc-dropdown"
+      <NamespaceSafetyBox>
+        <ModalBody className="add-capacity-modal--overflow">
+          <Trans t={t as any} ns="plugin__odf-console" values={{ name }}>
+            Adding capacity for <strong>{{ name }}</strong>, may increase your
+            expenses.
+          </Trans>
+          <FormGroup
+            className="pf-u-pt-md pf-u-pb-sm"
+            id="add-cap-sc-dropdown__FormGroup"
+            fieldId="add-capacity-dropdown"
+            label={t('StorageClass')}
+            labelIcon={
+              <FieldLevelHelp>{storageClassTooltip(t)}</FieldLevelHelp>
+            }
+            isRequired
           >
-            <StorageClassDropdown
-              onChange={(sc: StorageClassResourceKind) => setStorageClass(sc)}
-              data-test="add-cap-sc-dropdown"
-              initialSelection={preSelectionFilter}
-              filter={storageClassFilter}
-            />
-          </div>
-          {!selectedSCName && (
-            <div className="skeleton-text ceph-add-capacity__storage-class-dropdown--loading" />
+            <div
+              id="add-capacity-dropdown"
+              className="ceph-add-capacity__sc-dropdown"
+            >
+              <StorageClassDropdown
+                onChange={(sc: StorageClassResourceKind) => setStorageClass(sc)}
+                data-test="add-cap-sc-dropdown"
+                initialSelection={preSelectionFilter}
+                filter={storageClassFilter}
+              />
+            </div>
+            {!selectedSCName && (
+              <div className="skeleton-text ceph-add-capacity__storage-class-dropdown--loading" />
+            )}
+          </FormGroup>
+          {!!selectedSCName &&
+            (isNoProvionerSC ? (
+              <PVsAvailableCapacity
+                replica={replica}
+                data-test-id="ceph-add-capacity-pvs-available-capacity"
+                storageClass={storageClass}
+                data={pvData}
+                loaded={pvLoaded}
+                loadError={pvLoadError}
+              />
+            ) : (
+              <>
+                {!!osdSizeWithoutUnit && (
+                  <RawCapacity
+                    t={t}
+                    replica={replica}
+                    osdSizeWithoutUnit={osdSizeWithoutUnit}
+                  />
+                )}
+                <TextContent className="pf-u-font-weight-bold pf-u-secondary-color-100 ceph-add-capacity__current-capacity">
+                  {t('Currently Used:')}&nbsp;
+                  {currentCapacity}
+                </TextContent>
+              </>
+            ))}
+          {errorMessage && (
+            <Alert isInline variant="danger" title={t('An error occurred')}>
+              {(errorMessage as any)?.message || errorMessage}
+            </Alert>
           )}
-        </FormGroup>
-        {!!selectedSCName &&
-          (isNoProvionerSC ? (
-            <PVsAvailableCapacity
-              replica={replica}
-              data-test-id="ceph-add-capacity-pvs-available-capacity"
-              storageClass={storageClass}
-              data={pvData}
-              loaded={pvLoaded}
-              loadError={pvLoadError}
-            />
-          ) : (
-            <>
-              {!!osdSizeWithoutUnit && (
-                <RawCapacity
-                  t={t}
-                  replica={replica}
-                  osdSizeWithoutUnit={osdSizeWithoutUnit}
-                />
-              )}
-              <TextContent className="pf-u-font-weight-bold pf-u-secondary-color-100 ceph-add-capacity__current-capacity">
-                {t('Currently Used:')}&nbsp;
-                {currentCapacity}
-              </TextContent>
-            </>
-          ))}
-        {errorMessage && (
-          <Alert isInline variant="danger" title={t('An error occurred')}>
-            {(errorMessage as any)?.message || errorMessage}
-          </Alert>
-        )}
-      </ModalBody>
-      <ModalFooter>
-        <Button
-          key="cancel"
-          variant="secondary"
-          onClick={closeModal}
-          data-test-id="modal-cancel-action"
-        >
-          {t('Cancel')}
-        </Button>
-        {!loading || !inProgress ? (
+        </ModalBody>
+        <ModalFooter>
           <Button
-            key="Add"
-            data-test="modal-submit-action"
-            data-test-id="confirm-action"
-            variant="primary"
-            onClick={submit}
-            isDisabled={isNoProvionerSC && (!availablePvsCount || nodesError)}
+            key="cancel"
+            variant="secondary"
+            onClick={closeModal}
+            data-test-id="modal-cancel-action"
           >
-            {t('Add')}
+            {t('Cancel')}
           </Button>
-        ) : (
-          <LoadingInline />
-        )}
-      </ModalFooter>
+          {!loading || !inProgress ? (
+            <Button
+              key="Add"
+              data-test="modal-submit-action"
+              data-test-id="confirm-action"
+              variant="primary"
+              onClick={submit}
+              isDisabled={isNoProvionerSC && (!availablePvsCount || nodesError)}
+            >
+              {t('Add')}
+            </Button>
+          ) : (
+            <LoadingInline />
+          )}
+        </ModalFooter>
+      </NamespaceSafetyBox>
     </Modal>
   );
 };

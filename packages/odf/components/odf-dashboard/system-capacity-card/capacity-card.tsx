@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { K8sResourceObj } from '@odf/core/types';
 import CapacityCard, {
   CapacityMetricDatum,
 } from '@odf/shared/dashboards/capacity-card/capacity-card';
@@ -16,27 +18,23 @@ import {
   referenceFor,
   referenceForModel,
 } from '@odf/shared/utils';
-import {
-  PrometheusResponse,
-  WatchK8sResource,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { storageCapacityTooltip } from '../../../constants';
 import { StorageDashboard, CAPACITY_QUERIES } from '../queries';
 
-const storageSystemResource: WatchK8sResource = {
+const storageSystemResource: K8sResourceObj = (ns) => ({
   kind: referenceForModel(ODFStorageSystem),
-  namespace: 'openshift-storage',
+  namespace: ns,
   isList: true,
-};
+});
 
-const storageClusterResource: WatchK8sResource = {
+const storageClusterResource: K8sResourceObj = (ns) => ({
   kind: referenceForModel(OCSStorageClusterModel),
-  namespace: 'openshift-storage',
+  namespace: ns,
   isList: true,
-};
+});
 
 const getMetricForSystem = (
   metric: PrometheusResponse,
@@ -48,12 +46,12 @@ const getMetricForSystem = (
 
 const SystemCapacityCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<
+  const [systems, systemsLoaded, systemsLoadError] = useSafeK8sWatchResource<
     StorageSystemKind[]
   >(storageSystemResource);
 
   const [storageClusters, storageClustersLoaded, storageClustersLoadError] =
-    useK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
+    useSafeK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
 
   const [usedCapacity, errorUsedCapacity, loadingUsedCapacity] =
     useCustomPrometheusPoll({

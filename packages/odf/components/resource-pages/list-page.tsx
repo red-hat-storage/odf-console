@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { LabelList } from '@odf/shared/details-page/label-list';
 import { Timestamp } from '@odf/shared/details-page/timestamp';
 import { Kebab, CustomKebabItem } from '@odf/shared/kebab/kebab';
@@ -18,7 +19,6 @@ import {
   TableColumn,
   TableData,
   useActiveColumns,
-  useK8sWatchResource,
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -179,17 +179,16 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
   kebabActions,
 }) => {
   const { t } = useCustomTranslation();
-  const resource = React.useMemo(
-    () => ({
-      kind: referenceForModel(resourceModel),
-      namespace: CEPH_STORAGE_NAMESPACE,
-      isList: true,
-    }),
-    [resourceModel]
-  );
 
-  const [resources, loaded, loadError] =
-    useK8sWatchResource<K8sResourceCommon[]>(resource);
+  const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
+
+  const [resources, loaded, loadError] = useSafeK8sWatchResource<
+    K8sResourceCommon[]
+  >((ns: string) => ({
+    kind: referenceForModel(resourceModel),
+    namespace: ns,
+    isList: true,
+  }));
 
   const [data, filteredData, onFilterChange] = useListPageFilter(resources);
 
@@ -207,15 +206,15 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
       <ListPageBody>
         <ListPageFilter
           data={data}
-          loaded={loaded}
+          loaded={loaded && isODFNsLoaded}
           onFilterChange={onFilterChange}
           hideColumnManagement={true}
         />
         <ResourceTable
           data={filteredData}
           unfilteredData={data}
-          loaded={loaded}
-          loadError={loadError}
+          loaded={loaded && isODFNsLoaded}
+          loadError={loadError || odfNsLoadError}
           rowData={{ resourceModel, kebabActions }}
         />
       </ListPageBody>

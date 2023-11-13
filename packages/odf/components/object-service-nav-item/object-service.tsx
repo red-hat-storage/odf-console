@@ -12,6 +12,7 @@ import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
+// import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   HorizontalNav,
   useResolvedExtensions,
@@ -36,6 +37,8 @@ const isObjectServiceTab = (e: Extension) =>
 const ObjectServicePage: React.FC = () => {
   const { t } = useCustomTranslation();
   const title = t('Object Storage');
+
+  // const { isODFNsLoaded, odfNsLoadError, isNsSafe } = useODFNamespaceSelector();
 
   const [extensions, isLoaded, error] = useResolvedExtensions<HorizontalNavTab>(
     isObjectServiceTab as ExtensionTypeGuard<HorizontalNavTab>

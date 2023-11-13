@@ -273,6 +273,7 @@ const appResources2: ArgoApplicationSetResourceKind = {
 };
 
 const onClose = jest.fn();
+
 jest.mock('@odf/mco/hooks/disaster-recovery', () => ({
   __esModule: true,
   useDisasterRecoveryResourceWatch: jest.fn(() => {
@@ -283,6 +284,7 @@ jest.mock('@odf/mco/hooks/disaster-recovery', () => ({
     }
   }),
 }));
+
 jest.mock('@odf/mco/hooks/argo-application-set', () => ({
   __esModule: true,
   useArgoApplicationSetResourceWatch: jest.fn(() => {
@@ -293,6 +295,7 @@ jest.mock('@odf/mco/hooks/argo-application-set', () => ({
     }
   }),
 }));
+
 jest.mock('../utils/k8s-utils', () => ({
   unAssignPromises: jest.fn(() => [Promise.resolve({ data: {} })]),
 }));

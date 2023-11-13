@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { CEPH_BRAND_NAME, OCS_OPERATOR } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
+import { useSafeK8sWatchResources } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getOperatorVersion } from '@odf/core/utils';
-import { CEPH_STORAGE_NAMESPACE, ODF_OPERATOR } from '@odf/shared/constants';
+import { ODF_OPERATOR } from '@odf/shared/constants';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -10,10 +12,7 @@ import { SecretKind, K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { ExternalLink } from '@odf/shared/utils/link';
-import {
-  useFlag,
-  useK8sWatchResources,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Base64 } from 'js-base64';
@@ -34,25 +33,27 @@ type ResourcesObject = {
   };
 };
 
-const k8sResources = {
+const k8sResources = (ns: string) => ({
   ocs: {
     kind: referenceForModel(StorageClusterModel),
     namespaced: true,
     isList: true,
-    namespace: 'openshift-storage',
+    namespace: ns,
   },
   secret: {
     kind: SecretModel.kind,
-    namespace: CEPH_STORAGE_NAMESPACE,
+    namespace: ns,
     name: 'rook-ceph-dashboard-link',
   },
-};
+});
 
 export const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const isODF = useFlag(ODF_MODEL_FLAG);
 
-  const resourcesObj: ResourcesObject = useK8sWatchResources(k8sResources);
+  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+
+  const resourcesObj: ResourcesObject = useSafeK8sWatchResources(k8sResources);
   const inTransitEncryptionStatus = getNetworkEncryption(
     resourcesObj['ocs'].data?.[0]
   )
@@ -63,7 +64,8 @@ export const DetailsCard: React.FC = () => {
 
   const [csv, csvLoaded, csvError] = useFetchCsv({
     specName: !isODF ? OCS_OPERATOR : ODF_OPERATOR,
-    namespace: CEPH_STORAGE_NAMESPACE,
+    namespace: odfNamespace,
+    startPollingInstantly: isNsSafe,
   });
 
   const subscriptionVersion = getOperatorVersion(csv);

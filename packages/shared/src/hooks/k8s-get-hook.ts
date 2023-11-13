@@ -34,7 +34,8 @@ export const useK8sGet = <R extends K8sResourceCommon = K8sResourceCommon>(
         setLoaded(true);
       }
     };
-    fetch();
+    if (kind) fetch();
+    else setLoaded(true);
   }, [kind, name, namespace, cluster]);
 
   return [data, loaded, loadError];

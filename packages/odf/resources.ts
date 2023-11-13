@@ -4,7 +4,7 @@ import {
   NooBaaNamespaceStoreModel,
   LocalVolumeDiscoveryResult,
 } from '@odf/core/models';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { K8sResourceObj } from '@odf/core/types';
 import {
   PersistentVolumeModel,
   StorageClassModel,
@@ -14,7 +14,6 @@ import {
   SecretModel,
   SubscriptionModel,
   CephClusterModel,
-  ODFStorageSystem,
   PodModel,
   DeploymentModel,
   StatefulSetModel,
@@ -60,12 +59,12 @@ export const subscriptionResource: WatchK8sResource = {
   namespaced: false,
 };
 
-export const cephBlockPoolResource: WatchK8sResource = {
+export const cephBlockPoolResource: K8sResourceObj = (ns) => ({
   kind: referenceForModel(CephBlockPoolModel),
   namespaced: true,
   isList: true,
-  namespace: CEPH_STORAGE_NAMESPACE,
-};
+  namespace: ns,
+});
 
 export const nodeResource: WatchK8sResource = {
   kind: NodeModel.kind,
@@ -85,66 +84,59 @@ export const storageClusterResource: WatchK8sResource = {
   namespaced: false,
 };
 
-export const odfPodsResource: WatchK8sResource = {
+export const odfPodsResource: K8sResourceObj = (ns) => ({
   isList: true,
   kind: referenceForModel(PodModel),
   namespaced: true,
-  namespace: 'openshift-storage',
-};
+  namespace: ns,
+});
 
-export const odfDeploymentsResource: WatchK8sResource = {
+export const odfDeploymentsResource: K8sResourceObj = (ns) => ({
   isList: true,
   kind: referenceForModel(DeploymentModel),
   namespaced: true,
-  namespace: 'openshift-storage',
-};
+  namespace: ns,
+});
 
-export const odfStatefulSetResource: WatchK8sResource = {
+export const odfStatefulSetResource: K8sResourceObj = (ns) => ({
   isList: true,
   kind: referenceForModel(StatefulSetModel),
   namespaced: true,
-  namespace: 'openshift-storage',
-};
+  namespace: ns,
+});
 
-export const odfReplicaSetResource: WatchK8sResource = {
+export const odfReplicaSetResource: K8sResourceObj = (ns) => ({
   isList: true,
   kind: referenceForModel(ReplicaSetModel),
   namespaced: true,
-  namespace: 'openshift-storage',
-};
+  namespace: ns,
+});
 
-export const odfDaemonSetResource: WatchK8sResource = {
+export const odfDaemonSetResource: K8sResourceObj = (ns) => ({
   isList: true,
   kind: referenceForModel(DaemonSetModel),
   namespaced: true,
-  namespace: 'openshift-storage',
-};
+  namespace: ns,
+});
 
-export const odfSystemResource: WatchK8sResource = {
-  isList: false,
-  kind: referenceForModel(ODFStorageSystem),
-  namespace: 'openshift-storage',
-  name: 'ocs-storagecluster-storagesystem',
-};
-
-export const secretResource: WatchK8sResource = {
+export const secretResource: K8sResourceObj = (ns) => ({
   isList: false,
   kind: SecretModel.kind,
-  namespace: CEPH_STORAGE_NAMESPACE,
+  namespace: ns,
   name: 'rook-ceph-external-cluster-details',
-};
+});
 
-export const backingStoreResource = {
+export const backingStoreResource: K8sResourceObj = (ns) => ({
   kind: referenceForModel(NooBaaBackingStoreModel),
   isList: true,
-  namespace: CEPH_STORAGE_NAMESPACE,
-};
+  namespace: ns,
+});
 
-export const namespaceStoreResource = {
+export const namespaceStoreResource: K8sResourceObj = (ns) => ({
   kind: referenceForModel(NooBaaNamespaceStoreModel),
   isList: true,
-  namespace: CEPH_STORAGE_NAMESPACE,
-};
+  namespace: ns,
+});
 
 export const namespaceResource = {
   kind: referenceForModel(NamespaceModel),

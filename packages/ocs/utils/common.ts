@@ -1,3 +1,4 @@
+import { cephStorageLabel } from '@odf/core/constants';
 import {
   CephObjectStoreModel,
   NooBaaBackingStoreModel,
@@ -19,7 +20,6 @@ import {
 import { DataPoint, humanizePercentage } from '@odf/shared/utils';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import * as _ from 'lodash-es';
-import { cephStorageLabel, CEPH_NS } from '../constants';
 
 export const cephStorageProvisioners = [
   'ceph.rook.io/block',
@@ -52,7 +52,7 @@ export const isObjectStorageEvent = (event: EventKind): boolean => {
 };
 
 export const isPersistentStorageEvent =
-  (pvcs: string[]) =>
+  (pvcs: string[], ns: string) =>
   (event: EventKind): boolean => {
     if (isObjectStorageEvent(event)) return false;
     const eventKind = event?.involvedObject?.kind;
@@ -60,7 +60,7 @@ export const isPersistentStorageEvent =
     const eventObjectName = event?.involvedObject?.name;
     return eventKind === PersistentVolumeClaimModel.kind
       ? pvcs.includes(eventObjectName)
-      : eventNamespace === CEPH_NS;
+      : eventNamespace === ns;
   };
 
 export const getOperatorVersion = (operator: K8sResourceKind): string =>
@@ -75,10 +75,15 @@ export const getCephSC = (
     );
   });
 
-export const getCephNodes = (nodesData: NodeKind[] = []): NodeKind[] =>
-  nodesData.filter((node) =>
-    Object.keys(node?.metadata?.labels).includes(cephStorageLabel)
+export const getCephNodes = (
+  nodesData: NodeKind[] = [],
+  ns: string
+): NodeKind[] => {
+  const storageLabel = cephStorageLabel(ns);
+  return nodesData.filter((node) =>
+    Object.keys(node?.metadata?.labels).includes(storageLabel)
   );
+};
 
 export const getCephPVs = (
   pvsData: K8sResourceKind[] = []

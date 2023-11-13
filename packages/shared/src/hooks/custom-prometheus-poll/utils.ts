@@ -1,8 +1,8 @@
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 
-const ODF_MANAGED = 'ODF_MANAGED';
-const ODF_MANAGED_PROXY_ENDPOINT =
-  '/api/proxy/plugin/odf-console/odf-managed-service-prom';
+const ROSA_FLAG = 'ROSA';
+// ToDo: Add ROSA proxy endpoint here
+const ROSA_PROXY_ENDPOINT = '/api/proxy/plugin/odf-console/rosa';
 
 export const usePrometheusBasePath = () =>
-  useFlag(ODF_MANAGED) ? ODF_MANAGED_PROXY_ENDPOINT : '';
+  useFlag(ROSA_FLAG) ? ROSA_PROXY_ENDPOINT : '';

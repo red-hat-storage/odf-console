@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { CephClusterKind } from '@odf/shared/types';
@@ -7,13 +9,11 @@ import { referenceForModel } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
   k8sCreate,
-  useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { match, useHistory } from 'react-router';
 import { Button, Modal } from '@patternfly/react-core';
 import {
   CEPH_EXTERNAL_CR_NAME,
-  CEPH_NS,
   COMPRESSION_ON,
   POOL_STATE,
 } from '../constants';
@@ -30,12 +30,15 @@ import {
 } from './reducer';
 import './create-block-pool.scss';
 
-export const getPoolKindObj = (state: BlockPoolState): StoragePoolKind => ({
+export const getPoolKindObj = (
+  state: BlockPoolState,
+  ns: string
+): StoragePoolKind => ({
   apiVersion: getAPIVersionForModel(CephBlockPoolModel),
   kind: CephBlockPoolModel.kind,
   metadata: {
     name: state.poolName,
-    namespace: CEPH_NS,
+    namespace: ns,
   },
   spec: {
     compressionMode: state.isCompressed ? COMPRESSION_ON : 'none',
@@ -50,11 +53,11 @@ export const getPoolKindObj = (state: BlockPoolState): StoragePoolKind => ({
   },
 });
 
-export const cephClusterResource = {
+export const cephClusterResource = (ns: string) => ({
   kind: referenceForModel(CephClusterModel),
-  namespace: CEPH_NS,
+  namespace: ns,
   isList: true,
-};
+});
 
 const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({
   match: blockPoolMatch,
@@ -69,12 +72,15 @@ const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({
     blockPoolInitialState
   );
   const [cephClusters, isLoaded, loadError] =
-    useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
+    useSafeK8sWatchResource<CephClusterKind[]>(cephClusterResource);
 
   const cephCluster: CephClusterKind = useDeepCompareMemoize(
     cephClusters[0],
     true
   );
+
+  const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
+    useODFNamespaceSelector();
 
   // OCS create pool page url ends with ~new, ODF create pool page ends with /create/~new
   const blockPoolPageUrl = params?.appName
@@ -88,7 +94,7 @@ const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({
   // Create new pool
   const createPool = () => {
     if (cephCluster?.status?.phase === POOL_STATE.READY) {
-      const poolObj: StoragePoolKind = getPoolKindObj(state);
+      const poolObj: StoragePoolKind = getPoolKindObj(state, odfNamespace);
 
       dispatch({ type: BlockPoolActionType.SET_INPROGRESS, payload: true });
       k8sCreate({ model: CephBlockPoolModel, data: poolObj })
@@ -148,7 +154,7 @@ const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({
         </p>
       </div>
       <div className="ceph-create-block-pool__form">
-        {isLoaded && !loadError ? (
+        {isLoaded && isODFNsLoaded && !loadError && !odfNsLoadError ? (
           <>
             <BlockPoolBody
               cephCluster={cephCluster}
@@ -164,8 +170,8 @@ const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({
           </>
         ) : (
           <StatusBox
-            loadError={loadError}
-            loaded={isLoaded}
+            loadError={loadError || odfNsLoadError}
+            loaded={isLoaded && isODFNsLoaded}
             label={t('BlockPool Creation Form')}
           />
         )}

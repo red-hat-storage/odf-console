@@ -1,11 +1,10 @@
 import * as React from 'react';
+import { useSafeK8sGet, useSafeK8sList } from '@odf/core/hooks';
 import { checkArbiterCluster } from '@odf/core/utils';
 import {
   fieldRequirementsTranslations,
   formSettings,
 } from '@odf/shared/constants';
-import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
-import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { getName } from '@odf/shared/selectors';
 import {
@@ -29,12 +28,7 @@ import {
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import validationRegEx from '../../odf/utils/validation';
-import {
-  CEPH_NS,
-  OCS_DEVICE_REPLICA,
-  POOL_PROGRESS,
-  POOL_STATE,
-} from '../constants';
+import { OCS_DEVICE_REPLICA, POOL_PROGRESS, POOL_STATE } from '../constants';
 import { StorageClusterModel, CephBlockPoolModel } from '../models';
 import {
   getErrorMessage,
@@ -79,11 +73,11 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
   const { t } = useCustomTranslation();
 
   const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
-    useK8sGet<ListKind<StorageClusterKind>>(StorageClusterModel, null, CEPH_NS);
+    useSafeK8sGet<ListKind<StorageClusterKind>>(StorageClusterModel, null);
 
   const [isReplicaOpen, setReplicaOpen] = React.useState(false);
 
-  const [data, loaded, loadError] = useK8sList(CephBlockPoolModel, CEPH_NS);
+  const [data, loaded, loadError] = useSafeK8sList(CephBlockPoolModel);
 
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =

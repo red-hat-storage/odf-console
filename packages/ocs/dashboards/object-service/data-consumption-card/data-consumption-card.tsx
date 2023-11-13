@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { RGW_FLAG } from '@odf/core/features';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { K8sResourceObj } from '@odf/core/types';
 import {
   OCS_OPERATOR,
   Breakdown,
@@ -8,7 +10,6 @@ import {
 } from '@odf/ocs/constants';
 import { DATA_CONSUMPTION_QUERIES } from '@odf/ocs/queries';
 import { getRangeVectorStats } from '@odf/shared/charts';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
   useCustomPrometheusPoll,
@@ -21,7 +22,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
 import {
-  useK8sWatchResource,
   PrometheusResponse,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -37,11 +37,11 @@ const timeSpan = {
   [ServiceType.MCG]: null,
 };
 
-const csvResource = {
+const csvResource: K8sResourceObj = (ns) => ({
   isList: true,
-  namespace: CEPH_STORAGE_NAMESPACE,
+  namespace: ns,
   kind: referenceForModel(ClusterServiceVersionModel),
-};
+});
 
 type ServiceTypeProps = {
   queries: string[];
@@ -242,7 +242,7 @@ const DataConsumptionCard: React.FC = () => {
   const [serviceType, setServiceType] = React.useState(ServiceType.MCG);
   const RGW = useFlag(RGW_FLAG);
   const [csvList, csvLoaded, csvLoadError] =
-    useK8sWatchResource<ClusterServiceVersionKind[]>(csvResource);
+    useSafeK8sWatchResource<ClusterServiceVersionKind[]>(csvResource);
   const isOCS45 =
     csvLoaded &&
     !csvLoadError &&

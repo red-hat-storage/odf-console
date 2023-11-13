@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { K8sResourceObj } from '@odf/core/types';
 import LineGraph, {
   LineGraphProps,
 } from '@odf/shared/dashboards/line-graph/line-graph';
@@ -19,8 +21,6 @@ import {
   referenceFor,
   referenceForModel,
 } from '@odf/shared/utils';
-import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   UtilizationDurationDropdown,
   useUtilizationDuration,
@@ -94,11 +94,11 @@ const getRow: GetRow = ({
   ];
 };
 
-const storageSystemResource: WatchK8sResource = {
+const storageSystemResource: K8sResourceObj = (ns) => ({
   kind: referenceForModel(ODFStorageSystem),
-  namespace: 'openshift-storage',
+  namespace: ns,
   isList: true,
-};
+});
 
 const nameSort = (a: RowProps, b: RowProps, c: SortByDirection) => {
   const negation = c !== SortByDirection.asc;
@@ -149,7 +149,7 @@ const PerformanceCard: React.FC = () => {
     [t]
   );
 
-  const [systems, systemLoaded, systemLoadError] = useK8sWatchResource<
+  const [systems, systemLoaded, systemLoadError] = useSafeK8sWatchResource<
     StorageSystemKind[]
   >(storageSystemResource);
   const { duration } = useUtilizationDuration();
