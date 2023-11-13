@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { APPLICATION_TYPE } from '@odf/mco/constants';
 import {
   DisasterRecoveryResourceKind,
   getDRClusterResourceObj,
@@ -119,6 +120,7 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
           generateDRPolicyInfo(drPolicy, drClusters, drPlacementControls, t)[0]
       );
       applicationInfo = generateApplicationInfo(
+        APPLICATION_TYPE.SUBSCRIPTION,
         application,
         getNamespace(application),
         unProtectedPlacements,

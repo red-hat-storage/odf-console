@@ -1,4 +1,4 @@
-import { DRPC_STATUS } from '@odf/mco/constants';
+import { APPLICATION_TYPE, DRPC_STATUS } from '@odf/mco/constants';
 import { DisasterRecoveryFormatted } from '@odf/mco/hooks';
 import {
   ACMApplicationKind,
@@ -95,11 +95,13 @@ export const generateDRPlacementControlInfo = (
     : [];
 
 export const generateApplicationInfo = (
+  appType: APPLICATION_TYPE,
   application: ACMApplicationKind,
   workloadNamespace: string,
   plsInfo: PlacementType[],
   drPolicyInfo: DRPolicyType[]
 ): ApplicationType => ({
+  type: appType,
   apiVersion: application.apiVersion,
   kind: application.kind,
   metadata: application.metadata,

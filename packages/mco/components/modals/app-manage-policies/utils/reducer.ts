@@ -1,5 +1,5 @@
 import { AlertVariant } from '@patternfly/react-core';
-import { DRPlacementControlType, DataPolicyType } from './types';
+import { DataPolicyType } from './types';
 
 export enum ModalViewContext {
   POLICY_LIST_VIEW = 'policyListView',
@@ -14,6 +14,21 @@ export enum ModalActionContext {
   ASSIGN_POLICY_SUCCEEDED = 'ASSIGN_POLICY_SUCCEEDED',
   ASSIGN_POLICY_FAILED = 'ASSIGN_POLICY_FAILED',
 }
+
+export enum ManagePolicyStateType {
+  SET_MODAL_VIEW_CONTEXT = 'SET_MODAL_VIEW_CONTEXT',
+  SET_MODAL_ACTION_CONTEXT = 'SET_MODAL_ACTION_CONTEXT',
+  SET_SELECTED_POLICIES = 'SET_SELECTED_POLICIES',
+  SET_SELECTED_POLICY = 'SET_SELECTED_POLICY',
+  SET_MESSAGE = 'SET_MESSAGE',
+  SET_PVC_SELECTORS = 'SET_PVC_SELECTORS',
+  RESET_ASSIGN_POLICY_STATE = 'RESET_ASSIGN_POLICY_STATE',
+}
+
+export type PVCSelectorType = {
+  placementName: string;
+  labels: string[];
+};
 
 export type MessageType = {
   title: string;
@@ -36,6 +51,9 @@ export type PolicyConfigViewState = {
 
 export type AssignPolicyViewState = CommonViewState & {
   policy: DataPolicyType;
+  persistentVolumeClaim: {
+    pvcSelectors: PVCSelectorType[];
+  };
 };
 
 export type ManagePolicyState = {
@@ -45,30 +63,24 @@ export type ManagePolicyState = {
   [ModalViewContext.ASSIGN_POLICY_VIEW]: AssignPolicyViewState;
 };
 
-export enum ManagePolicyStateType {
-  SET_MODAL_VIEW_CONTEXT = 'SET_MODAL_VIEW_CONTEXT',
-  SET_MODAL_ACTION_CONTEXT = 'SET_MODAL_ACTION_CONTEXT',
-  SET_SELECTED_POLICIES = 'SET_SELECTED_POLICIES',
-  SET_SELECTED_POLICY = 'SET_SELECTED_POLICY',
-  SET_MESSAGE = 'SET_MESSAGE',
-  SET_PLACEMENT_CONTROLS = 'SET_PLACEMENT_CONTROLS',
-}
-
 export const initialPolicyState: ManagePolicyState = {
   modalViewContext: ModalViewContext.POLICY_LIST_VIEW,
   [ModalViewContext.POLICY_LIST_VIEW]: {
     policies: [],
-    modalActionContext: null,
+    modalActionContext: undefined,
     message: {
       title: '',
     },
   },
   [ModalViewContext.POLICY_CONFIGURATON_VIEW]: {
-    policy: null,
+    policy: undefined,
   },
   [ModalViewContext.ASSIGN_POLICY_VIEW]: {
-    policy: null,
-    modalActionContext: null,
+    policy: undefined,
+    persistentVolumeClaim: {
+      pvcSelectors: [],
+    },
+    modalActionContext: undefined,
     message: {
       title: '',
     },
@@ -101,9 +113,13 @@ export type ManagePolicyStateAction =
       payload: MessageType;
     }
   | {
-      type: ManagePolicyStateType.SET_PLACEMENT_CONTROLS;
+      type: ManagePolicyStateType.SET_PVC_SELECTORS;
       context: ModalViewContext;
-      payload: DRPlacementControlType[];
+      payload: PVCSelectorType[];
+    }
+  | {
+      type: ManagePolicyStateType.RESET_ASSIGN_POLICY_STATE;
+      context: ModalViewContext;
     };
 
 export const managePolicyStateReducer = (
@@ -153,15 +169,24 @@ export const managePolicyStateReducer = (
         },
       };
     }
-    case ManagePolicyStateType.SET_PLACEMENT_CONTROLS: {
+    case ManagePolicyStateType.SET_PVC_SELECTORS: {
       return {
         ...state,
         [action.context]: {
           ...state[action.context],
-          policy: {
-            ...state[action.context]['policy'],
-            placementControlInfo: action.payload,
+          persistentVolumeClaim: {
+            ...state[action.context]['persistentVolumeClaim'],
+            pvcSelectors: action.payload,
           },
+        },
+      };
+    }
+    case ManagePolicyStateType.RESET_ASSIGN_POLICY_STATE: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          ...initialPolicyState[action.context],
         },
       };
     }

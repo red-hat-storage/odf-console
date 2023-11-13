@@ -636,3 +636,6 @@ export const findDeploymentClusters = (
     return !!lastDeploymentClusterName ? [lastDeploymentClusterName] : [];
   }
 };
+
+export const getDRPolicyStatus = (isValidated, t) =>
+  isValidated ? t('Validated') : t('Not Validated');
