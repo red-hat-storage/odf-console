@@ -1,6 +1,7 @@
 import * as React from 'react';
+import { LABEL, LABEL_SPLIT_CHAR } from '@odf/mco/constants';
 import { useACMSafeFetch } from '@odf/mco/hooks/acm-safe-fetch';
-import { SearchResult } from '@odf/mco/types';
+import { getValueFromSearchResult } from '@odf/mco/utils';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { getName } from '@odf/shared/selectors';
@@ -21,8 +22,7 @@ import {
   Text,
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
-import { queryAppWorkloadPVCs } from '../utils/acm-search-quries';
-import { getClusterNamesFromPlacements } from '../utils/parser-utils';
+import { queryResourceKind } from '../utils/acm-search-quries';
 import {
   ManagePolicyStateAction,
   ManagePolicyStateType,
@@ -33,24 +33,12 @@ import { PlacementType } from '../utils/types';
 import '../../../../style.scss';
 import '../style.scss';
 
-const LABEL = 'label';
-const SPLIT_CHAR = '; ';
-
 const getPlacementTags = (pvcSelectors: PVCSelectorType[]) =>
   !!pvcSelectors.length
     ? pvcSelectors.map((pvcSelector) =>
         !!pvcSelector ? [pvcSelector.placementName, pvcSelector.labels] : []
       )
     : [[]];
-
-const getLabelsFromSearchResult = (searchResult: SearchResult): string[] => {
-  const pvcLabels =
-    searchResult?.data.searchResult?.[0]?.items.reduce(
-      (acc, item) => [...acc, ...(item[LABEL]?.split(SPLIT_CHAR) || [])],
-      []
-    ) || [];
-  return Array.from(new Set(pvcLabels));
-};
 
 const getLabelsFromTags = (tags: TagsType, currIndex: number): string[] =>
   tags.reduce((acc, tag, index) => {
@@ -216,6 +204,7 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
     pvcSelectors,
     unProtectedPlacements,
     workloadNamespace,
+    clusterNames,
     isValidationEnabled,
     dispatch,
   }) => {
@@ -235,17 +224,18 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
     // ACM search proxy api call
     const searchQuery = React.useMemo(
       () =>
-        queryAppWorkloadPVCs(
+        queryResourceKind(
+          'persistentvolumeclaim',
           workloadNamespace,
-          getClusterNamesFromPlacements(unProtectedPlacements)
+          clusterNames
         ),
-      [unProtectedPlacements, workloadNamespace]
+      [clusterNames, workloadNamespace]
     );
     const [searchResult] = useACMSafeFetch(searchQuery);
 
     // All labels
     const labels: string[] = React.useMemo(
-      () => getLabelsFromSearchResult(searchResult),
+      () => getValueFromSearchResult(searchResult, LABEL, LABEL_SPLIT_CHAR),
       [searchResult]
     );
 
@@ -303,6 +293,7 @@ type PVCDetailsWizardContentProps = {
   pvcSelectors: PVCSelectorType[];
   unProtectedPlacements: PlacementType[];
   workloadNamespace: string;
+  clusterNames: string[];
   isValidationEnabled: boolean;
   dispatch: React.Dispatch<ManagePolicyStateAction>;
 };

@@ -113,7 +113,8 @@
     "webpack": "5.74.0",
     "webpack-bundle-analyzer": "^4.6.1",
     "webpack-cli": "4.5.x",
-    "yup": "^0.32.11"
+    "yup": "^0.32.11",
+    "sha1": "1.1.1"
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "^5.9.1",

@@ -5,6 +5,11 @@
             font-size: var(--pf-global--FontSize--sm) !important;
         }
     }
+    &__expandBody--padding-top {
+        .pf-c-form__field-group-body  {
+            padding-top: var(--pf-global--spacer--sm) !important;
+        }
+    }
     &__button--margin-top {
         margin-top: var(--pf-global--spacer--md);
     }

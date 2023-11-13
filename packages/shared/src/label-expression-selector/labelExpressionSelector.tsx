@@ -271,6 +271,7 @@ const ArrayInput: React.FC<ArrayInputProps> = ({
       <Divider />
       <Form>
         <FormFieldGroupExpandable
+          className="odf-label-expression-selector__expandBody--padding-top"
           key={expandSectionName}
           data-test={expandSectionName}
           toggleAriaLabel={expandSectionName}
@@ -390,14 +391,14 @@ export const LabelExpressionSelector: React.FC<LabelExpressionSelectorProps> =
 
 // Values has to be mapped with key/label.
 // Maintaining the key & values props are in object type to scale.
+type OptionProps = {
+  text: string;
+};
+
 export type OptionType = {
   [key in string]: {
-    key: {
-      text: string;
-    };
-    values: {
-      text: string;
-    }[];
+    key: OptionProps;
+    values: OptionProps[];
   };
 };
 

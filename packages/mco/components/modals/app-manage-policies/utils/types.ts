@@ -39,3 +39,9 @@ export type ApplicationType = K8sResourceCommon & {
 };
 
 export type ApplicationInfoType = ApplicationType | {};
+
+export type ViewResponse<T extends K8sResourceCommon> = {
+  processing: string;
+  reason: string;
+  result: T;
+};

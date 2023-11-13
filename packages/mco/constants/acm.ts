@@ -19,6 +19,7 @@ export const PLACEMENT_REF_LABEL =
 export enum APPLICATION_TYPE {
   APPSET = 'ApplicationSet',
   SUBSCRIPTION = 'Subscription',
+  OPENSHIFT = 'Openshift',
 }
 
 // Please refer to clusterclaims.go in github.com/red-hat-storage/ocs-operator before changing anything here
@@ -33,3 +34,8 @@ export enum ClusterClaimTypes {
 export const MANAGED_CLUSTER_CONDITION_AVAILABLE =
   'ManagedClusterConditionAvailable';
 export const MANAGED_CLUSTER_JOINED = 'ManagedClusterJoined';
+
+// Search query
+export const LABEL = 'label';
+export const NAME = 'name';
+export const LABEL_SPLIT_CHAR = '; ';

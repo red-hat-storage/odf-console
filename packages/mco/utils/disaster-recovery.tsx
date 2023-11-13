@@ -32,6 +32,8 @@ import {
   DRPC_STATUS,
   THRESHOLD,
   DRActionType,
+  APPLICATION_TYPE,
+  LABEL_SPLIT_CHAR,
 } from '../constants';
 import {
   DRPC_NAMESPACE_ANNOTATION,
@@ -65,6 +67,7 @@ import {
   ACMPlacementKind,
   MirrorPeerKind,
   ArgoApplicationSetKind,
+  SearchResult,
 } from '../types';
 
 export type PlacementMap = {
@@ -525,6 +528,7 @@ export const isDRPolicyValidated = (drPolicy: DRPolicyKind) =>
   );
 
 export const getDRPCKindObj = (
+  appType: APPLICATION_TYPE,
   plsName: string,
   plsNamespace: string,
   plsKind: string,
@@ -532,12 +536,15 @@ export const getDRPCKindObj = (
   drPolicyName: string,
   drClusterNames: string[],
   decisionClusters: string[],
-  pvcSelectors: string[]
+  pvcSelectors: string[],
+  captureInterval?: string,
+  recipeName?: string,
+  recipeNamespace?: string
 ): DRPlacementControlKind => ({
   apiVersion: getAPIVersionForModel(DRPlacementControlModel),
   kind: DRPlacementControlModel.kind,
   metadata: {
-    name: `${plsName}-drpc`,
+    name: `${plsName}-drpc`.substr(0, 63),
     namespace: plsNamespace,
   },
   spec: {
@@ -556,6 +563,17 @@ export const getDRPCKindObj = (
     pvcSelector: {
       matchLabels: objectify(pvcSelectors),
     },
+    ...(appType === APPLICATION_TYPE.OPENSHIFT
+      ? {
+          kubeObjectProtection: {
+            captureInterval,
+            recipeRef: {
+              name: recipeName,
+              namespace: recipeNamespace,
+            },
+          },
+        }
+      : {}),
   },
 });
 
@@ -639,3 +657,16 @@ export const findDeploymentClusters = (
 
 export const getDRPolicyStatus = (isValidated, t) =>
   isValidated ? t('Validated') : t('Not Validated');
+
+export const getValueFromSearchResult = (
+  searchResult: SearchResult,
+  searchKey: string,
+  splitChar: string = LABEL_SPLIT_CHAR
+): string[] => {
+  const labels =
+    searchResult?.data.searchResult?.[0]?.items.reduce(
+      (acc, item) => [...acc, ...(item[searchKey]?.split(splitChar) || [])],
+      []
+    ) || [];
+  return Array.from(new Set(labels));
+};

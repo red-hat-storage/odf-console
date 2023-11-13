@@ -5,15 +5,19 @@ import {
   AssignPolicyStepsNames,
 } from '@odf/mco/constants';
 import { ModalBody } from '@odf/shared/modals';
+import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import { Wizard, WizardStep, AlertVariant } from '@patternfly/react-core';
 import { AssignPolicyViewFooter } from './helper/assign-policy-view-footer';
+import { DynamicObjectWizardContent } from './helper/dynamic-object-wizard-content';
+import { PolicyRuleWizardContent } from './helper/policy-rule-wizard-content';
 import { PVCDetailsWizardContent } from './helper/pvc-details-wizard-content';
 import { ReviewAndAssign } from './helper/review-and-assign';
 import { SelectPolicyWizardContent } from './helper/select-policy-wizard-content';
 import { assignPromises } from './utils/k8s-utils';
+import { getClusterNamesFromPlacements } from './utils/parser-utils';
 import {
   AssignPolicyViewState,
   ManagePolicyStateAction,
@@ -30,8 +34,10 @@ import {
 } from './utils/types';
 
 export const createSteps = (
+  appName: string,
   appType: APPLICATION_TYPE,
   workloadNamespace: string,
+  clusterNames: string[],
   unProtectedPlacements: PlacementType[],
   matchingPolicies: DRPolicyType[],
   state: AssignPolicyViewState,
@@ -59,6 +65,7 @@ export const createSteps = (
           pvcSelectors={state.persistentVolumeClaim.pvcSelectors}
           unProtectedPlacements={unProtectedPlacements}
           workloadNamespace={workloadNamespace}
+          clusterNames={clusterNames}
           isValidationEnabled={isValidationEnabled}
           dispatch={dispatch}
         />
@@ -66,7 +73,39 @@ export const createSteps = (
     },
     reviewAndAssign: {
       name: AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign],
-      component: <ReviewAndAssign state={state} />,
+      component: (
+        <ReviewAndAssign
+          state={state}
+          workloadNamespace={workloadNamespace}
+          appType={appType}
+        />
+      ),
+    },
+  };
+
+  const imperativeApplicationSteps = {
+    policyRule: {
+      name: AssignPolicyStepsNames(t)[AssignPolicySteps.PolicyRule],
+      component: (
+        <PolicyRuleWizardContent
+          policyRule={state.policyRule}
+          dispatch={dispatch}
+        />
+      ),
+    },
+    dynamicObjects: {
+      name: AssignPolicyStepsNames(t)[AssignPolicySteps.DynamicObjects],
+      component: (
+        <DynamicObjectWizardContent
+          appName={appName}
+          workLoadNamespace={workloadNamespace}
+          clusterNames={clusterNames}
+          policyRule={state.policyRule}
+          dynamicObjects={state.dynamicObjects}
+          isValidationEnabled={isValidationEnabled}
+          dispatch={dispatch}
+        />
+      ),
     },
   };
 
@@ -90,6 +129,34 @@ export const createSteps = (
           canJumpTo: stepIdReached >= 3,
         },
       ];
+    case APPLICATION_TYPE.OPENSHIFT:
+      return [
+        {
+          id: 1,
+          ...imperativeApplicationSteps.policyRule,
+          canJumpTo: stepIdReached >= 1,
+        },
+        {
+          id: 2,
+          ...commonSteps.policy,
+          canJumpTo: stepIdReached >= 2,
+        },
+        {
+          id: 3,
+          ...commonSteps.persistentVolumeClaim,
+          canJumpTo: stepIdReached >= 3,
+        },
+        {
+          id: 4,
+          ...imperativeApplicationSteps.dynamicObjects,
+          canJumpTo: stepIdReached >= 4,
+        },
+        {
+          id: 5,
+          ...commonSteps.reviewAndAssign,
+          canJumpTo: stepIdReached >= 5,
+        },
+      ];
     default:
       return [];
   }
@@ -107,8 +174,11 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
   const { t } = useCustomTranslation();
   const [stepIdReached, setStepIdReached] = React.useState(1);
   const [isValidationEnabled, setIsValidationEnabled] = React.useState(false);
-
   const { type: appType, workloadNamespace, placements } = applicaitonInfo;
+  const clusterNames = React.useMemo(
+    () => getClusterNamesFromPlacements(placements),
+    [placements]
+  );
 
   const resetAssignState = () =>
     dispatch({
@@ -139,7 +209,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
       resetAssignState();
     };
     // assign DRPolicy
-    const promises = assignPromises(state, applicaitonInfo.placements);
+    const promises = assignPromises(state, appType, applicaitonInfo.placements);
     await Promise.all(promises)
       .then(() => {
         updateContext(
@@ -171,8 +241,10 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
         navAriaLabel={t('Assign policy nav')}
         mainAriaLabel={t('Assign policy content')}
         steps={createSteps(
+          getName(applicaitonInfo),
           appType,
           workloadNamespace,
+          clusterNames,
           placements,
           matchingPolicies,
           state,
@@ -184,7 +256,6 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
         footer={
           <AssignPolicyViewFooter
             state={state}
-            appType={appType}
             stepIdReached={stepIdReached}
             isValidationEnabled={isValidationEnabled}
             setStepIdReached={setStepIdReached}

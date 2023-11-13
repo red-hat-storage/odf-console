@@ -1,13 +1,16 @@
 import {
+  ACMManagedClusterViewModel,
   ACMPlacementModel,
   ACMPlacementRuleModel,
   DRPlacementControlModel,
 } from '@odf/mco//models';
 import {
+  APPLICATION_TYPE,
   DR_SECHEDULER_NAME,
   HUB_CLUSTER_NAME,
   PROTECTED_APP_ANNOTATION_WO_SLASH,
 } from '@odf/mco/constants';
+import { ACMManagedClusterViewKind } from '@odf/mco/types';
 import { getDRPCKindObj } from '@odf/mco/utils';
 import {
   getAPIVersion,
@@ -20,10 +23,13 @@ import {
   k8sDelete,
   k8sPatch,
   k8sCreate,
+  k8sGet,
+  K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { AssignPolicyViewState } from './reducer';
-import { DRPlacementControlType, PlacementType } from './types';
+import { DRPlacementControlType, PlacementType, ViewResponse } from './types';
 
 export const placementUnAssignPromise = (drpc: DRPlacementControlType) => {
   const patch = [
@@ -123,9 +129,11 @@ const getPlacement = (placementName: string, placements: PlacementType[]) =>
 
 export const assignPromises = (
   state: AssignPolicyViewState,
+  appType: APPLICATION_TYPE,
   placements: PlacementType[]
 ) => {
-  const { policy, persistentVolumeClaim } = state;
+  const { policy, persistentVolumeClaim, dynamicObjects } = state;
+  const { recipeInfo, captureInterval } = dynamicObjects;
   const { pvcSelectors } = persistentVolumeClaim;
   const promises: Promise<K8sResourceKind>[] = [];
   pvcSelectors?.forEach((pvcSelector) => {
@@ -140,6 +148,7 @@ export const assignPromises = (
       k8sCreate({
         model: DRPlacementControlModel,
         data: getDRPCKindObj(
+          appType,
           getName(placement),
           getNamespace(placement),
           placement.kind,
@@ -147,7 +156,10 @@ export const assignPromises = (
           getName(policy),
           policy.drClusters,
           placement.deploymentClusters,
-          labels
+          labels,
+          captureInterval,
+          recipeInfo?.name,
+          recipeInfo?.namespace
         ),
         cluster: HUB_CLUSTER_NAME,
       })
@@ -155,4 +167,67 @@ export const assignPromises = (
   });
 
   return promises;
+};
+
+export const pollManagedClusterView = <T extends K8sResourceCommon>(
+  viewName: string,
+  clusterName: string,
+  t: TFunction
+): Promise<ViewResponse<T>> => {
+  let retries = 20;
+  const poll = async (resolve: any, reject: any) => {
+    const response: ACMManagedClusterViewKind = await k8sGet({
+      model: ACMManagedClusterViewModel,
+      name: viewName,
+      ns: clusterName,
+      cluster: HUB_CLUSTER_NAME,
+    });
+    if (response?.status) {
+      const condition = response.status?.conditions?.[0];
+      const { type: isProcessing, reason, message } = condition || {};
+      if (isProcessing === 'Processing') {
+        reason === 'GetResourceProcessing'
+          ? resolve({
+              processing: isProcessing,
+              reason: reason,
+              result: response.status?.result,
+            })
+          : // Reading is failed
+            reject({
+              message: message,
+            });
+
+        // Delete MCV after reading
+        k8sDelete({
+          resource: response,
+          model: ACMManagedClusterViewModel,
+          requestInit: null,
+          cluster: HUB_CLUSTER_NAME,
+        });
+      } else {
+        // ACM unale to process the MCV
+        reject({
+          message: t('There was an error while getting the managed resource.'),
+        });
+      }
+    } else if (retries-- > 0) {
+      // eslint-disable-next-line no-console
+      console.debug('MCV poll - retries left: ', retries);
+      setTimeout(poll, 100, resolve, reject);
+    } else {
+      k8sDelete({
+        resource: response,
+        model: ACMManagedClusterViewModel,
+        requestInit: null,
+        cluster: HUB_CLUSTER_NAME,
+      });
+      reject({
+        message: t(
+          'Request for ManagedClusterView: {{viewName}} on cluster: {{clusterName}} failed.',
+          { viewName, clusterName }
+        ),
+      });
+    }
+  };
+  return new Promise(poll);
 };

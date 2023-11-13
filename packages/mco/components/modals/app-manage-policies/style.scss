@@ -26,4 +26,25 @@
     &__alert--margin-left {
         margin-left: var(--pf-global--spacer--lg);
     }
+    &__radioBody--width {
+        .pf-c-radio__body {
+            width: 100% !important;
+        }
+    }
+    &__selector--font-size {
+        font-size: var(--pf-global--FontSize--sm);
+        .pf-c-check__label  {
+            font-size: var(--pf-global--FontSize--sm) !important;
+        }
+    }
+    &__codeblock--height {
+        max-height: 11rem;
+        overflow-y: auto;
+    }
+    &__recipe--dropdown-wide {
+        width: 15rem;
+    }
+    &__dynamicObject--padding {
+        padding: 0 0 var(--pf-global--spacer--md) 0;
+    }
 }

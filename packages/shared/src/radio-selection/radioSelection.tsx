@@ -13,10 +13,11 @@ import '../style.scss';
 import './radioSelection.scss';
 
 export const RadioSelection: React.FC<RadioSelectionProps> = (props) => {
-  const { title, description, alertProps, selected, radioProps } = props;
+  const { title, description, alertProps, selected, radioProps, className } =
+    props;
 
   return (
-    <>
+    <div className={className}>
       {!!alertProps && (
         <Alert
           {...alertProps}
@@ -34,7 +35,7 @@ export const RadioSelection: React.FC<RadioSelectionProps> = (props) => {
           helperText={description}
           isHelperTextBeforeField
         >
-          <div className="odf-radio-selection__padding-left">
+          <div className="odf-radio-selection__padding">
             {radioProps.map((radioProp, index) => (
               <Radio
                 {...radioProp}
@@ -57,7 +58,7 @@ export const RadioSelection: React.FC<RadioSelectionProps> = (props) => {
           </div>
         </FormGroup>
       </Form>
-    </>
+    </div>
   );
 };
 
@@ -75,4 +76,5 @@ export type RadioSelectionProps = {
   selected: string;
   radioProps: RadioType[];
   alertProps?: AlertType;
+  className?: string;
 };

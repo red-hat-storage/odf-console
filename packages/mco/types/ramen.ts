@@ -49,6 +49,13 @@ export type DRPlacementControlKind = K8sResourceCommon & {
       matchLabels: MatchLabels;
     };
     action?: DRActionType;
+    kubeObjectProtection?: {
+      captureInterval?: string;
+      recipeRef?: {
+        name?: string;
+        namespace?: string;
+      };
+    };
   };
   status?: {
     conditions?: K8sResourceCondition[];

@@ -73,9 +73,13 @@ export enum AssignPolicySteps {
   Policy = 'policy',
   PersistentVolumeClaim = 'persistent-volume-claim',
   ReviewAndAssign = 'review-and-assign',
+  PolicyRule = 'policy-rule',
+  DynamicObjects = 'dynamic-objects',
 }
 export const AssignPolicyStepsNames = (t: TFunction) => ({
   [AssignPolicySteps.Policy]: t('Policy'),
   [AssignPolicySteps.PersistentVolumeClaim]: t('PersistentVolumeClaim'),
   [AssignPolicySteps.ReviewAndAssign]: t('Review and assign'),
+  [AssignPolicySteps.PolicyRule]: t('Policy rule'),
+  [AssignPolicySteps.DynamicObjects]: t('Dynamic objects'),
 });

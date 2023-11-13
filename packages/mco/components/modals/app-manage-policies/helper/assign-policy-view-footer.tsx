@@ -1,9 +1,6 @@
 import * as React from 'react';
-import {
-  APPLICATION_TYPE,
-  AssignPolicySteps,
-  AssignPolicyStepsNames,
-} from '@odf/mco/constants';
+import { AssignPolicySteps, AssignPolicyStepsNames } from '@odf/mco/constants';
+import { isLabelOnlyOperator } from '@odf/shared/label-expression-selector';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
@@ -15,7 +12,12 @@ import {
   Alert,
   AlertVariant,
 } from '@patternfly/react-core';
-import { AssignPolicyViewState, PVCSelectorType } from '../utils/reducer';
+import {
+  AssignPolicyViewState,
+  PVCSelectorType,
+  DynamicObjectType,
+  ObjectProtectionMethod,
+} from '../utils/reducer';
 import { DRPolicyType } from '../utils/types';
 import '../../../../style.scss';
 import '../style.scss';
@@ -25,6 +27,20 @@ const isPVCSelectorFound = (pvcSelectors: PVCSelectorType[]) =>
   !!pvcSelectors.every((pvcSelector) => !!pvcSelector?.labels?.length);
 
 const isDRPolicySelected = (dataPolicy: DRPolicyType) => !!getName(dataPolicy);
+
+const isValidKubeObjectProtection = ({
+  captureInterval,
+  objectProtectionMethod,
+  recipeInfo,
+  appResourceSelector,
+}: DynamicObjectType) =>
+  !!captureInterval && objectProtectionMethod === ObjectProtectionMethod.Recipe
+    ? !!recipeInfo
+    : appResourceSelector.every((selector) =>
+        isLabelOnlyOperator(selector.operator)
+          ? !!selector.key
+          : !!selector.key && !!selector.values.length
+      );
 
 const canJumpToNextStep = (
   stepName: string,
@@ -36,6 +52,10 @@ const canJumpToNextStep = (
       return isDRPolicySelected(state.policy);
     case AssignPolicyStepsNames(t)[AssignPolicySteps.PersistentVolumeClaim]:
       return isPVCSelectorFound(state.persistentVolumeClaim.pvcSelectors);
+    case AssignPolicyStepsNames(t)[AssignPolicySteps.PolicyRule]:
+      return !!state.policyRule;
+    case AssignPolicyStepsNames(t)[AssignPolicySteps.DynamicObjects]:
+      return isValidKubeObjectProtection(state.dynamicObjects);
     default:
       return false;
   }
@@ -60,6 +80,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
 
   const canJumpToNext = canJumpToNextStep(stepName, state, t);
   const validationError = isValidationEnabled && !canJumpToNext;
+  const assignPolicyStepsNames = AssignPolicyStepsNames(t);
 
   const moveToNextStep = () => {
     if (canJumpToNext) {
@@ -73,7 +94,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
 
   const handleNext = async () => {
     switch (stepName) {
-      case AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign]:
+      case assignPolicyStepsNames[AssignPolicySteps.ReviewAndAssign]:
         setRequestInProgress(true);
         await onSubmit();
         setRequestInProgress(false);
@@ -104,7 +125,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
           onClick={handleNext}
         >
           {stepName ===
-          AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign]
+          assignPolicyStepsNames[AssignPolicySteps.ReviewAndAssign]
             ? t('Assign')
             : t('Next')}
         </Button>
@@ -112,10 +133,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
         <Button
           variant="secondary"
           onClick={onBack}
-          isDisabled={
-            stepName === AssignPolicyStepsNames(t)[AssignPolicySteps.Policy] ||
-            requestInProgress
-          }
+          isDisabled={stepId === 1 || requestInProgress}
         >
           {t('Back')}
         </Button>
@@ -133,7 +151,6 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
 
 type AssignPolicyViewFooterProps = {
   state: AssignPolicyViewState;
-  appType: APPLICATION_TYPE;
   stepIdReached: number;
   isValidationEnabled: boolean;
   setStepIdReached: React.Dispatch<React.SetStateAction<number>>;

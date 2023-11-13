@@ -47,3 +47,15 @@ export const DRVolumeReplicationGroup: K8sModel = {
   kind: 'VolumeReplicationGroup',
   crd: true,
 };
+
+export const DRRecipeModel: K8sModel = {
+  label: 'Recipe',
+  labelPlural: 'Recipes',
+  apiVersion: 'v1alpha1',
+  apiGroup: 'ramendr.openshift.io',
+  plural: 'recipes',
+  abbr: 'RECIPE',
+  namespaced: true,
+  kind: 'Recipe',
+  crd: true,
+};
