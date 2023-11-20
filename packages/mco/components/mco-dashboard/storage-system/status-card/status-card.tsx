@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import {
   healthStateMap,
@@ -36,6 +35,9 @@ type SubSystemMap = {
   [key: string]: string;
 };
 
+const getUniqueKey = (namespace: string, clusterName: string) =>
+  `${namespace}-${clusterName}`;
+
 const getWorstHealth = (healthData: SystemHealthMap[]) =>
   healthData.reduce(
     (acc: string, item: SystemHealthMap) =>
@@ -58,7 +60,9 @@ const setSubSystemMap = (
     (item: PrometheusResult) =>
       !item?.metric.managedBy &&
       item?.metric.system_type === 'OCS' &&
-      (subSystemMap[item?.metric.cluster] = item?.value[1])
+      (subSystemMap[
+        getUniqueKey(item?.metric.target_namespace, item?.metric.cluster)
+      ] = item?.value[1])
   );
 
 const setHealthData = (
@@ -71,7 +75,9 @@ const setHealthData = (
     const healthVal = item?.value[1];
     const unifiedHealthVal = getUnifiedHealthValue(
       healthVal,
-      subSystemMap[item?.metric.cluster]
+      subSystemMap[
+        getUniqueKey(item?.metric.target_namespace, item?.metric.cluster)
+      ]
     );
     healthData.push({
       systemName: item?.metric?.storage_system,
@@ -147,12 +153,10 @@ const setCSVStatusData = (
   csvData: PrometheusResponse,
   csvStatusData: CSVStatusMap[]
 ) =>
-  csvData?.data?.result?.forEach(
-    (item: PrometheusResult) =>
-      item?.metric.name.startsWith(ODF_OPERATOR) &&
-      csvStatusData.push({
-        rawCSVData: item?.value[1],
-      })
+  csvData?.data?.result?.forEach((item: PrometheusResult) =>
+    csvStatusData.push({
+      rawCSVData: item?.value[1],
+    })
   );
 
 const CSVStatusHealthItem: React.FC = () => {

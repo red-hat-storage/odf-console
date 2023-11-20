@@ -1,3 +1,4 @@
+import { ODF_OPERATOR } from '@odf/shared/constants';
 import {
   TOTAL_CAPACITY_FILE_BLOCK_METRIC,
   USED_CAPACITY_FILE_BLOCK_METRIC,
@@ -28,8 +29,9 @@ export const getLastSyncPerClusterQuery = () =>
 
 // ToDo (epic 4422): Need to update as per updates in the metrics
 export const CAPACITY_QUERIES = {
-  [StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${TOTAL_CAPACITY_FILE_BLOCK_METRIC}`,
-  [StorageDashboard.USED_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${USED_CAPACITY_FILE_BLOCK_METRIC}`,
+  // ToDo (epic 4422): For 4.15, Assuming "managedBy" is unique for each StorageSystem. Need to add "target_namesapce" as an another key.
+  [StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map, "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind, target_namespace) ${TOTAL_CAPACITY_FILE_BLOCK_METRIC}`,
+  [StorageDashboard.USED_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map, "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind, target_namespace) ${USED_CAPACITY_FILE_BLOCK_METRIC}`,
 };
 
 export const getRBDSnapshotUtilizationQuery = (
@@ -46,9 +48,9 @@ export const getRBDSnapshotUtilizationQuery = (
 
 // ToDo (epic 4422): Need to update as per updates in the metrics
 export const STATUS_QUERIES = {
-  [StorageDashboard.SYSTEM_HEALTH]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${SYSTEM_HEALTH_METRIC}`,
+  // ToDo (epic 4422): For 4.15, Assuming "managedBy" is unique for each StorageSystem. Need to add "target_namesapce" as an another key.
+  [StorageDashboard.SYSTEM_HEALTH]: `(label_replace(odf_system_map, "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind, target_namespace) ${SYSTEM_HEALTH_METRIC}`,
   [StorageDashboard.HEALTH]: SYSTEM_HEALTH_METRIC,
-  [StorageDashboard.CSV_STATUS]:
-    'csv_succeeded{exported_namespace="openshift-storage"}',
+  [StorageDashboard.CSV_STATUS]: `csv_succeeded{name=~"${ODF_OPERATOR}.*"}`,
   [StorageDashboard.CSV_STATUS_ALL_WHITELISTED]: 'csv_succeeded',
 };
