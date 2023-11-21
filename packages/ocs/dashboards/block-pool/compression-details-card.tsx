@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { EfficiencyItemBody } from '@odf/shared/dashboards/storage-efficiency/storage-efficiency-card-item';
 import {
   useCustomPrometheusPoll,
@@ -13,8 +14,10 @@ import {
 } from '@odf/shared/utils';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
+import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
+import { ODFSystemParams } from '../../types';
 import { getPerPoolMetrics, PoolMetrics } from '../../utils';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
@@ -22,18 +25,33 @@ export const CompressionDetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
 
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+
   const compressionMode = obj.spec?.compressionMode;
   const compressionEnabled = !!compressionMode && compressionMode !== 'none';
   const { name } = obj.metadata;
 
-  // Compression Metrics
   const queries = React.useMemo(
     () => [
-      getPoolQuery([name], StorageDashboardQuery.POOL_COMPRESSION_SAVINGS),
-      getPoolQuery([name], StorageDashboardQuery.POOL_COMPRESSION_ELIGIBILITY),
-      getPoolQuery([name], StorageDashboardQuery.POOL_COMPRESSION_RATIO),
+      getPoolQuery(
+        [name],
+        StorageDashboardQuery.POOL_COMPRESSION_SAVINGS,
+        managedByOCS
+      ),
+      getPoolQuery(
+        [name],
+        StorageDashboardQuery.POOL_COMPRESSION_ELIGIBILITY,
+        managedByOCS
+      ),
+      getPoolQuery(
+        [name],
+        StorageDashboardQuery.POOL_COMPRESSION_RATIO,
+        managedByOCS
+      ),
     ],
-    [name]
+    [name, managedByOCS]
   );
 
   const [poolCompressionSavings, savingsError, savingsLoading] =

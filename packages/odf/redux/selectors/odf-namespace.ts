@@ -1,8 +1,8 @@
+import { reduxReducerScope } from '@odf/core/redux/constants';
 import { useSelector } from 'react-redux';
 import { nsPayload } from '../actions';
 
 export const odfNamespaceReducerName = 'odfInstallNs';
-export const reduxReducerScope = 'odfConsoleRedux';
 
 const getODFNamespace = (state): nsPayload =>
   state.plugins?.[reduxReducerScope]?.[odfNamespaceReducerName] || {};

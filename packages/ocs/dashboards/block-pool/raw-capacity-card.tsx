@@ -1,11 +1,14 @@
 import * as React from 'react';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInstantVectorStats } from '@odf/shared/utils';
+import { useParams } from 'react-router-dom-v5-compat';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
+import { ODFSystemParams } from '../../types';
 import {
   CapacityCard,
   CapacityCardProps,
@@ -17,13 +20,24 @@ export const RawCapacityCard: React.FC = () => {
   const { obj } = React.useContext(BlockPoolDashboardContext);
   const { name } = obj.metadata;
 
-  // Metrics
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+
   const queries = React.useMemo(
     () => [
-      getPoolQuery([name], StorageDashboardQuery.POOL_RAW_CAPACITY_USED),
-      getPoolQuery([name], StorageDashboardQuery.POOL_MAX_CAPACITY_AVAILABLE),
+      getPoolQuery(
+        [name],
+        StorageDashboardQuery.POOL_RAW_CAPACITY_USED,
+        managedByOCS
+      ),
+      getPoolQuery(
+        [name],
+        StorageDashboardQuery.POOL_MAX_CAPACITY_AVAILABLE,
+        managedByOCS
+      ),
     ],
-    [name]
+    [name, managedByOCS]
   );
 
   const [usedCapacityData, usedCapacityLoading, usedCapacityLoadError] =

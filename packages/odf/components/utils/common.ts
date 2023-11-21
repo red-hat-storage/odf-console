@@ -46,7 +46,6 @@ import {
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
   ATTACHED_DEVICES_ANNOTATION,
-  OCS_INTERNAL_CR_NAME,
   DISASTER_RECOVERY_TARGET_ANNOTATION,
 } from '../../constants';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
@@ -85,9 +84,10 @@ export const getAllZone = (nodes: WizardNodeState[]): Set<string> =>
 export const getVendorDashboardLinkFromMetrics = (
   systemKind: string,
   systemName: string,
+  systemNamespace: string,
   subComponent?: string
 ) =>
-  `/odf/system/${systemKind}/${systemName}/overview${
+  `/odf/system/ns/${systemNamespace}/${systemKind}/${systemName}/overview${
     subComponent ? '/' + subComponent : ''
   }`;
 
@@ -383,10 +383,11 @@ type OCSRequestData = {
   shouldSetCephRBDAsDefault?: boolean;
   isSingleReplicaPoolEnabled?: boolean;
   enableRDRPreparation?: boolean;
-  odfNamespace: string;
+  storageClusterNamespace: string;
   useExternalPostgres?: boolean;
   allowNoobaaPostgresSelfSignedCerts?: boolean;
   enableNoobaaClientSideCerts?: boolean;
+  storageClusterName: string;
 };
 
 export const getOCSRequestData = ({
@@ -407,10 +408,11 @@ export const getOCSRequestData = ({
   shouldSetCephRBDAsDefault,
   isSingleReplicaPoolEnabled,
   enableRDRPreparation,
-  odfNamespace,
+  storageClusterNamespace,
   useExternalPostgres,
   allowNoobaaPostgresSelfSignedCerts,
   enableNoobaaClientSideCerts,
+  storageClusterName,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -427,8 +429,8 @@ export const getOCSRequestData = ({
     apiVersion: 'ocs.openshift.io/v1',
     kind: 'StorageCluster',
     metadata: {
-      name: OCS_INTERNAL_CR_NAME,
-      namespace: odfNamespace,
+      name: storageClusterName,
+      namespace: storageClusterNamespace,
     },
     spec: {},
   };

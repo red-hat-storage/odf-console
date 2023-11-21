@@ -9,50 +9,55 @@ import {
   createCsiKmsResources,
 } from '@odf/core/components/kms-config/utils';
 import {
-  OCS_INTERNAL_CR_NAME,
-  OCS_EXTERNAL_CR_NAME,
   KMS_PROVIDER,
   KMSConfigMapCSIName,
   SupportedProviders,
   DescriptionKey,
 } from '@odf/core/constants';
-import { OCS_INDEPENDENT_FLAG } from '@odf/core/features';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
-import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
-  cephBlockPoolResource,
-  cephClusterResource,
-} from '@odf/core/resources';
+  useODFNamespaceSelector,
+  useODFSystemFlagsSelector,
+} from '@odf/core/redux';
+import { cephClusterResource } from '@odf/core/resources';
 import {
   ProviderNames,
   KmsCsiConfigKeysMapping,
   KMSConfigMap,
   K8sResourceObj,
 } from '@odf/core/types';
+import { getResourceInNs } from '@odf/core/utils';
+import { CephBlockPoolModel } from '@odf/ocs/models';
+import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
+import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import {
   ConfigMapModel,
   InfrastructureModel,
   StorageClassModel,
   SecretModel,
+  ODFStorageSystem,
 } from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   CephClusterKind,
   ConfigMapKind,
   K8sResourceKind,
   StorageClassResourceKind,
   SecretKind,
+  StorageSystemKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { isOCSStorageSystem, referenceForModel } from '@odf/shared/utils';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import {
   ProvisionerProps,
-  useFlag,
   useK8sWatchResource,
   useModal,
+  WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
@@ -71,8 +76,6 @@ import {
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import {
-  CEPH_EXTERNAL_CR_NAME,
-  CEPH_INTERNAL_CR_NAME,
   CLUSTER_STATUS,
   POOL_STATE,
   CEPH_NS_SESSION_STORAGE,
@@ -83,101 +86,36 @@ import './sc-form.scss';
 
 type OnParamChange = (id: string, paramName: string, checkbox: boolean) => void;
 
-export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
-  parameterKey,
-  parameterValue,
-  onParamChange,
-}) => {
-  const { t } = useCustomTranslation();
-  const onParamChangeRef = React.useRef<OnParamChange>();
-  onParamChangeRef.current = onParamChange;
-
-  const isExternal = useFlag(OCS_INDEPENDENT_FLAG);
-  const scName = `${
-    isExternal ? OCS_EXTERNAL_CR_NAME : OCS_INTERNAL_CR_NAME
-  }-cephfs`;
-  const [sc, scLoaded, scLoadError] = useK8sGet<StorageClassResourceKind>(
-    StorageClassModel,
-    scName
-  );
-
-  React.useEffect(() => {
-    if (scLoaded && !scLoadError) {
-      const fsName = sc?.parameters?.fsName;
-      if (fsName) {
-        onParamChangeRef.current(parameterKey, fsName, false);
-      }
-    }
-  }, [sc, scLoaded, scLoadError, parameterKey]);
-
-  // ToDo (epic 4422): Need to pass the namespace where ceph cluster is deployed (remove from here, add dropdown)
-  React.useEffect(() => {
-    sessionStorage.setItem(CEPH_NS_SESSION_STORAGE, 'openshift-storage');
-  }, []);
-
-  if (scLoaded && !scLoadError) {
-    return (
-      <div className="form-group">
-        <label htmlFor="filesystem-name" className="co-required">
-          {t('Filesystem name')}
-        </label>
-        <input
-          className="pf-c-form-control"
-          type="text"
-          value={parameterValue}
-          disabled={!isExternal}
-          onChange={(e) =>
-            onParamChange(parameterKey, e.currentTarget.value, false)
-          }
-          placeholder={t('Enter filesystem name')}
-          id="filesystem-name"
-          required
-        />
-        <span className="help-block">
-          {t('CephFS filesystem name into which the volume shall be created')}
-        </span>
-      </div>
-    );
-  }
-  return <StatusBox loadError={scLoadError} loaded={scLoaded} />;
+const storageSystemResource: WatchK8sResource = {
+  kind: referenceForModel(ODFStorageSystem),
+  isList: true,
 };
 
-export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
-  parameterKey,
-  onParamChange,
-}) => {
-  const { t } = useCustomTranslation();
+const cephBlockPoolResource: WatchK8sResource = {
+  kind: referenceForModel(CephBlockPoolModel),
+  isList: true,
+};
 
-  const launchModal = useModal();
+const filterOCSStorageSystems = (resource) =>
+  isOCSStorageSystem(resource as StorageSystemKind);
 
-  const { isODFNsLoaded, odfNsLoadError, isNsSafe } = useODFNamespaceSelector();
+const setSessionValueAgain = (systemNamespace: string) => {
+  // session value will get removed after clicking "Create" (check "mutators.ts"),
+  // so in case of any error (after clicking "Create") form persists but session gets removed.
+  const sessionNsValue = sessionStorage.getItem(CEPH_NS_SESSION_STORAGE);
+  if (!sessionNsValue && !!systemNamespace)
+    sessionStorage.setItem(CEPH_NS_SESSION_STORAGE, systemNamespace);
+};
 
-  const [poolData, poolDataLoaded, poolDataLoadError] = useSafeK8sWatchResource<
-    StoragePoolKind[]
-  >(cephBlockPoolResource);
-
-  const [cephClusters, cephClusterLoaded, cephClusterLoadError] =
-    useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
-
-  const [isOpen, setOpen] = React.useState(false);
-  const [poolName, setPoolName] = React.useState('');
-
-  const handleDropdownChange = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    setPoolName(e.currentTarget.id);
-    onParamChange(parameterKey, e.currentTarget.id, false);
-  };
-
-  const onPoolCreation = (name: string) => {
-    setPoolName(name);
-    onParamChange(parameterKey, name, false);
-  };
-
-  const onPoolInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPoolName(e.currentTarget.value);
-    onParamChange(parameterKey, e.currentTarget.value, false);
-  };
-
-  const poolDropdownItems = _.reduce(
+const getPoolDropdownItems = (
+  poolData,
+  cephCluster,
+  handleDropdownChange,
+  onPoolCreation,
+  launchModal,
+  t
+) =>
+  _.reduce(
     poolData,
     (res, pool: StoragePoolKind) => {
       const compressionText =
@@ -187,7 +125,7 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
           : t('with compression');
       if (
         pool?.status?.phase === POOL_STATE.READY &&
-        cephClusters[0]?.status?.phase === CLUSTER_STATUS.READY
+        cephCluster?.status?.phase === CLUSTER_STATUS.READY
       ) {
         res.push(
           <DropdownItem
@@ -214,7 +152,7 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
         component="button"
         onClick={() =>
           launchModal(CreateBlockPoolModal, {
-            cephClusters,
+            cephCluster,
             onPoolCreation,
           })
         }
@@ -225,42 +163,227 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
     ]
   );
 
-  // ToDo (epic 4422): Need to pass the namespace where ceph cluster is deployed (remove from here, add dropdown)
-  React.useEffect(() => {
-    sessionStorage.setItem(CEPH_NS_SESSION_STORAGE, 'openshift-storage');
-  }, []);
+const StorageSystemDropdown: React.FC<{
+  onSelect: (resource: K8sResourceKind) => void;
+  systemNamespace: string;
+}> = ({ onSelect, systemNamespace }) => {
+  const { t } = useCustomTranslation();
 
-  if (isNsSafe && cephClusters[0]?.metadata.name === CEPH_INTERNAL_CR_NAME) {
+  const initialSSSelection = React.useCallback(
+    (resources) => {
+      return !systemNamespace
+        ? resources?.[0]
+        : resources?.find((system) => getNamespace(system) === systemNamespace);
+    },
+    [systemNamespace]
+  );
+
+  return (
+    <div className="form-group">
+      <label htmlFor="system-name" className="co-required">
+        {t('Storage system')}
+      </label>
+      <ResourceDropdown<K8sResourceKind>
+        className="pf-c-dropdown dropdown--full-width"
+        onSelect={onSelect}
+        initialSelection={initialSSSelection}
+        filterResource={filterOCSStorageSystems}
+        id="system-name"
+        data-test="storage-system-dropdown"
+        resource={storageSystemResource}
+        resourceModel={ODFStorageSystem}
+      />
+      <span className="help-block">
+        {t('StorageSystem which will be used for storage needs')}
+      </span>
+    </div>
+  );
+};
+
+export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
+  parameterKey,
+  parameterValue,
+  onParamChange,
+}) => {
+  const { t } = useCustomTranslation();
+  const [systemNamespace, setSystemNamespace] = React.useState<string>();
+  const onParamChangeRef = React.useRef<OnParamChange>();
+  // refernce of "onParamChange" changes on each re-render, hence storing in a "useRef"
+  onParamChangeRef.current = onParamChange;
+
+  const { systemFlags, areFlagsLoaded, flagsLoadError } =
+    useODFSystemFlagsSelector();
+  const isExternal = systemFlags[systemNamespace]?.isExternalMode;
+  const ocsName = systemFlags[systemNamespace]?.ocsClusterName;
+  const scName = `${ocsName}-cephfs`;
+
+  const [sces, scLoaded, scLoadError] =
+    useK8sList<StorageClassResourceKind>(StorageClassModel);
+  const sc = sces?.find((item) => getName(item) === scName);
+
+  React.useEffect(() => {
+    if (!!sc && scLoaded && !scLoadError) {
+      const fsName = sc?.parameters?.fsName;
+      if (fsName) {
+        onParamChangeRef.current(parameterKey, fsName, false);
+      }
+    }
+
+    return () => onParamChangeRef.current(parameterKey, '', false);
+  }, [sc, scLoaded, scLoadError, parameterKey]);
+
+  const onSelect = React.useCallback(
+    (resource: K8sResourceKind) => {
+      const ns = getNamespace(resource);
+      sessionStorage.setItem(CEPH_NS_SESSION_STORAGE, ns);
+      setSystemNamespace(ns);
+    },
+    [setSystemNamespace]
+  );
+
+  setSessionValueAgain(systemNamespace);
+
+  if (scLoaded && areFlagsLoaded && !scLoadError && !flagsLoadError) {
     return (
       <>
-        {!poolDataLoadError && !odfNsLoadError && cephClusters && (
-          <div className="form-group">
-            <label className="co-required" htmlFor="ocs-storage-pool">
-              {t('Storage Pool')}
-            </label>
-            <Dropdown
-              className="dropdown--full-width"
-              toggle={
-                <DropdownToggle
-                  id="pool-dropdown-id"
-                  data-test="pool-dropdown-toggle"
-                  onToggle={() => setOpen(!isOpen)}
-                  toggleIndicator={CaretDownIcon}
-                >
-                  {poolName || t('Select a Pool')}
-                </DropdownToggle>
-              }
-              isOpen={isOpen}
-              dropdownItems={poolDropdownItems}
-              onSelect={() => setOpen(false)}
-              id="ocs-storage-pool"
+        <StorageSystemDropdown
+          onSelect={onSelect}
+          systemNamespace={systemNamespace}
+        />
+        <div className="form-group">
+          <label htmlFor="filesystem-name" className="co-required">
+            {t('Filesystem name')}
+          </label>
+          <input
+            className="pf-c-form-control"
+            type="text"
+            value={parameterValue}
+            disabled={!isExternal}
+            onChange={(e) =>
+              onParamChange(parameterKey, e.currentTarget.value, false)
+            }
+            placeholder={t('Enter filesystem name')}
+            id="filesystem-name"
+            required
+          />
+          <span className="help-block">
+            {t('CephFS filesystem name into which the volume shall be created')}
+          </span>
+        </div>
+      </>
+    );
+  }
+  return (
+    <StatusBox
+      loadError={scLoadError || flagsLoadError}
+      loaded={scLoaded && areFlagsLoaded}
+    />
+  );
+};
+
+export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
+  parameterKey,
+  onParamChange,
+}) => {
+  const { t } = useCustomTranslation();
+  const onParamChangeRef = React.useRef<OnParamChange>();
+  // refernce of "onParamChange" changes on each re-render, hence storing in a "useRef"
+  onParamChangeRef.current = onParamChange;
+
+  const launchModal = useModal();
+
+  const [poolsData, poolDataLoaded, poolDataLoadError] = useK8sWatchResource<
+    StoragePoolKind[]
+  >(cephBlockPoolResource);
+
+  const [cephClusters, cephClusterLoaded, cephClusterLoadError] =
+    useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
+
+  const [isOpen, setOpen] = React.useState(false);
+  const [poolName, setPoolName] = React.useState('');
+  const [systemNamespace, setSystemNamespace] = React.useState<string>();
+
+  const poolData = poolsData.filter(
+    (pool) => getNamespace(pool) === systemNamespace
+  );
+  const cephCluster = getResourceInNs(cephClusters, systemNamespace);
+
+  const { systemFlags, areFlagsLoaded, flagsLoadError, areFlagsSafe } =
+    useODFSystemFlagsSelector();
+  const isExternal = systemFlags[systemNamespace]?.isExternalMode;
+
+  const handleDropdownChange = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    setPoolName(e.currentTarget.id);
+    onParamChange(parameterKey, e.currentTarget.id, false);
+  };
+
+  const onPoolCreation = (name: string) => {
+    setPoolName(name);
+    onParamChange(parameterKey, name, false);
+  };
+
+  const onPoolInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPoolName(e.currentTarget.value);
+    onParamChange(parameterKey, e.currentTarget.value, false);
+  };
+
+  const onSelect = React.useCallback(
+    (resource: K8sResourceKind) => {
+      const ns = getNamespace(resource);
+      sessionStorage.setItem(CEPH_NS_SESSION_STORAGE, ns);
+      setSystemNamespace(ns);
+      setPoolName('');
+      onParamChangeRef.current(parameterKey, '', false);
+    },
+    [setSystemNamespace, setPoolName, parameterKey]
+  );
+
+  setSessionValueAgain(systemNamespace);
+
+  if (areFlagsSafe && !isExternal) {
+    return (
+      <>
+        {!poolDataLoadError && !flagsLoadError && (
+          <>
+            <StorageSystemDropdown
+              onSelect={onSelect}
+              systemNamespace={systemNamespace}
             />
-            <span className="help-block">
-              {t('Storage pool into which volume data shall be stored')}
-            </span>
-          </div>
+            <div className="form-group">
+              <label className="co-required" htmlFor="ocs-storage-pool">
+                {t('Storage Pool')}
+              </label>
+              <Dropdown
+                className="dropdown--full-width"
+                toggle={
+                  <DropdownToggle
+                    id="pool-dropdown-id"
+                    data-test="pool-dropdown-toggle"
+                    onToggle={() => setOpen(!isOpen)}
+                    toggleIndicator={CaretDownIcon}
+                  >
+                    {poolName || t('Select a Pool')}
+                  </DropdownToggle>
+                }
+                isOpen={isOpen}
+                dropdownItems={getPoolDropdownItems(
+                  poolData,
+                  cephCluster,
+                  handleDropdownChange,
+                  onPoolCreation,
+                  launchModal,
+                  t
+                )}
+                onSelect={() => setOpen(false)}
+                id="ocs-storage-pool"
+              />
+              <span className="help-block">
+                {t('Storage pool into which volume data shall be stored')}
+              </span>
+            </div>
+          </>
         )}
-        {(poolDataLoadError || cephClusterLoadError || odfNsLoadError) && (
+        {(poolDataLoadError || cephClusterLoadError || flagsLoadError) && (
           <Alert
             className="co-alert"
             variant="danger"
@@ -271,32 +394,39 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
       </>
     );
   }
-  if (isNsSafe && cephClusters[0]?.metadata.name === CEPH_EXTERNAL_CR_NAME) {
+  if (areFlagsSafe && isExternal) {
     return (
-      <div className="form-group">
-        <label className="co-required" htmlFor="ocs-storage-pool">
-          {t('Storage Pool')}
-        </label>
-        <input
-          className="pf-c-form-control"
-          type="text"
-          onChange={onPoolInput}
-          placeholder={t('my-storage-pool')}
-          aria-describedby={t('pool-name-help')}
-          id="pool-name"
-          name="newPoolName"
-          required
+      <>
+        <StorageSystemDropdown
+          onSelect={onSelect}
+          systemNamespace={systemNamespace}
         />
-        <span className="help-block">
-          {t('Storage pool into which volume data shall be stored')}
-        </span>
-      </div>
+        <div className="form-group">
+          <label className="co-required" htmlFor="ocs-storage-pool">
+            {t('Storage Pool')}
+          </label>
+          <input
+            className="pf-c-form-control"
+            type="text"
+            onChange={onPoolInput}
+            value={poolName}
+            placeholder={t('my-storage-pool')}
+            aria-describedby={t('pool-name-help')}
+            id="pool-name"
+            name="newPoolName"
+            required
+          />
+          <span className="help-block">
+            {t('Storage pool into which volume data shall be stored')}
+          </span>
+        </div>
+      </>
     );
   }
   return (
     <StatusBox
-      loadError={cephClusterLoadError || poolDataLoadError || odfNsLoadError}
-      loaded={cephClusterLoaded && poolDataLoaded && isODFNsLoaded}
+      loadError={cephClusterLoadError || poolDataLoadError || flagsLoadError}
+      loaded={cephClusterLoaded && poolDataLoaded && areFlagsLoaded}
     />
   );
 };
@@ -524,6 +654,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const onParamChangeRef = React.useRef<OnParamChange>();
+  // refernce of "onParamChange" changes on each re-render, hence storing in a "useRef"
   onParamChangeRef.current = onParamChange;
 
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
@@ -568,20 +699,9 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
     [parameterKey]
   );
 
-  // ToDo (Sanjal): "StorageClassForm" got refactored to a FC (https://github.com/openshift/console/pull/13036).
-  // If any "parameter" specific "Component" in un-mounting, it do not have access to latest "onParamChange" (having latest "newStorageClass" object).
-  // Talk to OCP team, maybe we can pass "onParamChange" as a "useRef" object, which can resolve this issue.
-
-  // When user selects a connection from the dropdown, but, then un-checks the encryption checkbox,
-  // and checks it back again. Component will be re-mounted, still Redux state will still
-  // have previously selected parameterValue. This useEffect is to clean that up.
-  /* React.useEffect(() => {
-    return () => setEncryptionId('');
-  }, [setEncryptionId]); */
-
   /** When csiConfigMap is deleted from another tab, "csiConfigMapLoadError" == true (404 Not Found), but,
    * "csiConfigMap" still contains same old object that was present before the deletion of the configMap.
-   * Hence, dropdown was not updating dynamically. Used csiKmsDetails to handle that.
+   * Hence, dropdown was not updating dynamically. Used "csiKmsDetails" to handle that.
    */
   const [csiKmsDetails, setCsiKmsDetails] = React.useState<ConfigMapKind>(null);
   React.useEffect(() => {
@@ -695,6 +815,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
                 state={state.securityAndNetwork}
                 dispatch={dispatch}
                 infraType={infraType}
+                systemNamespace={odfNamespace}
                 className="ocs-storage-class-encryption"
               />
               <div className="ocs-install-kms__save-button">

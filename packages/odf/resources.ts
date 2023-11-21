@@ -26,7 +26,6 @@ import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
 
 export const cephClusterResource: WatchK8sResource = {
   kind: referenceForModel(CephClusterModel),
-  namespaced: false,
   isList: true,
 };
 
@@ -81,7 +80,6 @@ export const nodesDiscoveriesResource: WatchK8sResource = {
 export const storageClusterResource: WatchK8sResource = {
   isList: true,
   kind: referenceForModel(OCSStorageClusterModel),
-  namespaced: false,
 };
 
 export const odfPodsResource: K8sResourceObj = (ns) => ({

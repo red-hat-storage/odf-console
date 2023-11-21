@@ -1,12 +1,11 @@
 import * as React from 'react';
-import { useSafeK8sWatchResource } from '@odf/core/hooks';
-import { useODFNamespaceSelector } from '@odf/core/redux';
 import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { ModalKeys } from '@odf/shared/modals/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams, useLocation } from 'react-router-dom-v5-compat';
 import { BlockPoolDashboard } from '../dashboards/block-pool/block-pool-dashboard';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
@@ -21,20 +20,16 @@ export const cephClusterResource = {
 export const BlockPoolDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
-  const { poolName } = useParams();
+  const { poolName, namespace: poolNs } = useParams();
   const location = useLocation();
   const kind = referenceForModel(CephBlockPoolModel);
 
-  const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
-    useODFNamespaceSelector();
-
-  const [resource, loaded, loadError] =
-    useSafeK8sWatchResource<StoragePoolKind>((ns: string) => ({
-      kind,
-      name: poolName,
-      namespace: ns,
-      isList: false,
-    }));
+  const [resource, loaded, loadError] = useK8sWatchResource<StoragePoolKind>({
+    kind,
+    name: poolName,
+    namespace: poolNs,
+    isList: false,
+  });
 
   const breadcrumbs = [
     {
@@ -58,7 +53,7 @@ export const BlockPoolDetailsPage: React.FC<{}> = () => {
         extraProps={{
           resource,
           resourceModel: CephBlockPoolModel,
-          namespace: odfNamespace,
+          namespace: poolNs,
         }}
         customKebabItems={[
           {
@@ -78,12 +73,12 @@ export const BlockPoolDetailsPage: React.FC<{}> = () => {
         ]}
       />
     );
-  }, [resource, odfNamespace, t]);
+  }, [resource, poolNs, t]);
 
   return (
     <DetailsPage
-      loaded={loaded && isODFNsLoaded}
-      loadError={loadError || odfNsLoadError}
+      loaded={loaded}
+      loadError={loadError}
       breadcrumbs={breadcrumbs}
       actions={actions}
       resourceModel={CephBlockPoolModel}

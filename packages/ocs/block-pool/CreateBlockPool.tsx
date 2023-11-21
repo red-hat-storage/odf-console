@@ -1,14 +1,14 @@
 import * as React from 'react';
-import { useSafeK8sWatchResource } from '@odf/core/hooks';
-import { useODFNamespaceSelector } from '@odf/core/redux';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { StatusBox } from '@odf/shared/generic/status-box';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   getAPIVersionForModel,
   k8sCreate,
+  useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   useParams,
@@ -16,11 +16,7 @@ import {
   useNavigate,
 } from 'react-router-dom-v5-compat';
 import { Button, Modal } from '@patternfly/react-core';
-import {
-  CEPH_EXTERNAL_CR_NAME,
-  COMPRESSION_ON,
-  POOL_STATE,
-} from '../constants';
+import { COMPRESSION_ON, POOL_STATE } from '../constants';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
 import { StoragePoolKind } from '../types';
 import { getErrorMessage } from '../utils';
@@ -57,11 +53,10 @@ export const getPoolKindObj = (
   },
 });
 
-export const cephClusterResource = (ns: string) => ({
+export const cephClusterResource = {
   kind: referenceForModel(CephClusterModel),
-  namespace: ns,
   isList: true,
-});
+};
 
 const CreateBlockPool: React.FC<{}> = ({}) => {
   const { pathname: url } = useLocation();
@@ -69,21 +64,24 @@ const CreateBlockPool: React.FC<{}> = ({}) => {
   const { t } = useCustomTranslation();
 
   const navigate = useNavigate();
+  const poolNs = params?.namespace;
 
   const [state, dispatch] = React.useReducer(
     blockPoolReducer,
     blockPoolInitialState
   );
+
   const [cephClusters, isLoaded, loadError] =
-    useSafeK8sWatchResource<CephClusterKind[]>(cephClusterResource);
+    useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
+  // only single cluster per Namespace
+  const cephCluster = getCephClusterInNs(
+    cephClusters,
+    poolNs
+  ) as CephClusterKind;
 
-  const cephCluster: CephClusterKind = useDeepCompareMemoize(
-    cephClusters[0],
-    true
-  );
-
-  const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
-    useODFNamespaceSelector();
+  const { systemFlags, areFlagsLoaded, flagsLoadError } =
+    useODFSystemFlagsSelector();
+  const isExternalStorageSystem = systemFlags[poolNs]?.isExternalMode;
 
   // OCS create pool page url ends with ~new, ODF create pool page ends with /create/~new
   const blockPoolPageUrl = params?.appName
@@ -97,7 +95,7 @@ const CreateBlockPool: React.FC<{}> = ({}) => {
   // Create new pool
   const createPool = () => {
     if (cephCluster?.status?.phase === POOL_STATE.READY) {
-      const poolObj: StoragePoolKind = getPoolKindObj(state, odfNamespace);
+      const poolObj: StoragePoolKind = getPoolKindObj(state, poolNs);
 
       dispatch({ type: BlockPoolActionType.SET_INPROGRESS, payload: true });
       k8sCreate({ model: CephBlockPoolModel, data: poolObj })
@@ -121,7 +119,7 @@ const CreateBlockPool: React.FC<{}> = ({}) => {
       });
   };
 
-  if (cephCluster?.metadata.name === CEPH_EXTERNAL_CR_NAME) {
+  if (isExternalStorageSystem) {
     return (
       <Modal
         title={t('Create BlockPool')}
@@ -157,7 +155,7 @@ const CreateBlockPool: React.FC<{}> = ({}) => {
         </p>
       </div>
       <div className="ceph-create-block-pool__form">
-        {isLoaded && isODFNsLoaded && !loadError && !odfNsLoadError ? (
+        {isLoaded && areFlagsLoaded && !loadError && !flagsLoadError ? (
           <>
             <BlockPoolBody
               cephCluster={cephCluster}
@@ -173,8 +171,8 @@ const CreateBlockPool: React.FC<{}> = ({}) => {
           </>
         ) : (
           <StatusBox
-            loadError={loadError || odfNsLoadError}
-            loaded={isLoaded && isODFNsLoaded}
+            loadError={loadError || flagsLoadError}
+            loaded={isLoaded && areFlagsLoaded}
             label={t('BlockPool Creation Form')}
           />
         )}

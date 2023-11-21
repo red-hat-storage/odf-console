@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { RGW_FLAG } from '@odf/core/features';
-import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { ODFSystemFlagsPayload } from '@odf/core/redux/actions';
 import { secretResource } from '@odf/core/resources';
 import {
   useCustomPrometheusPoll,
@@ -10,50 +10,63 @@ import { EventModel } from '@odf/shared/models';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getResiliencyProgress } from '@odf/shared/utils';
-import {
-  useK8sWatchResource,
-  useFlag,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActivityBody,
   RecentEventsBody,
   OngoingActivityBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
+import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
 import {
   dataResiliencyQueryMap,
   ObjectServiceDashboardQuery,
 } from '../../../queries';
+import { ODFSystemParams } from '../../../types';
 import { isObjectStorageEvent, decodeRGWPrefix } from '../../../utils';
 import './activity-card.scss';
 
 const eventsResource = { isList: true, kind: EventModel.kind };
 
-const RecentEvent: React.FC = () => {
+type ActivityProps = {
+  systemFlags: ODFSystemFlagsPayload['systemFlags'];
+  clusterNs: string;
+};
+
+const RecentEvent: React.FC<ActivityProps> = ({ systemFlags, clusterNs }) => {
+  const isRGWSupported = systemFlags[clusterNs]?.isRGWAvailable;
+  const isMCGSupported = systemFlags[clusterNs]?.isNoobaaAvailable;
+
   const [data, loaded, loadError] =
     useK8sWatchResource<EventKind[]>(eventsResource);
   return (
     <RecentEventsBody
       events={{ data, loaded, loadError }}
-      filter={isObjectStorageEvent}
+      filter={isObjectStorageEvent(isRGWSupported, isMCGSupported)}
     />
   );
 };
 
-const OngoingActivity: React.FC = () => {
-  const [data, loaded, loadError] =
-    useSafeK8sWatchResource<K8sResourceKind>(secretResource);
-  const isRGWSupported = useFlag(RGW_FLAG);
+const OngoingActivity: React.FC<ActivityProps> = ({
+  systemFlags,
+  clusterNs,
+}) => {
+  const isRGWSupported = systemFlags[clusterNs]?.isRGWAvailable;
+  const isMCGSupported = systemFlags[clusterNs]?.isNoobaaAvailable;
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+
+  const [data, loaded, loadError] = useK8sWatchResource<K8sResourceKind>(
+    secretResource(clusterNs)
+  );
 
   const rgwPrefix = React.useMemo(
     () => (isRGWSupported && loaded && !loadError ? decodeRGWPrefix(data) : ''),
     [data, loaded, loadError, isRGWSupported]
   );
-  const rgwResiliencyQuery =
-    dataResiliencyQueryMap[
-      ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY
-    ](rgwPrefix);
+  const rgwResiliencyQuery = dataResiliencyQueryMap[
+    ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY
+  ](rgwPrefix, managedByOCS);
 
   const [progress, progressError] = useCustomPrometheusPoll({
     query: dataResiliencyQueryMap.MCG_REBUILD_PROGRESS_QUERY,
@@ -73,7 +86,7 @@ const OngoingActivity: React.FC = () => {
 
   const prometheusActivities = [];
 
-  if (getResiliencyProgress(progress) < 1) {
+  if (isMCGSupported && getResiliencyProgress(progress) < 1) {
     prometheusActivities.push({
       results: [progress, eta],
       loader: () =>
@@ -96,7 +109,7 @@ const OngoingActivity: React.FC = () => {
   return (
     <OngoingActivityBody
       loaded={
-        (progress || progressError) &&
+        (isMCGSupported ? progress || progressError : true) &&
         (isRGWSupported ? rgwProgress || rgwProgressError : true)
       }
       prometheusActivities={prometheusActivities}
@@ -107,14 +120,17 @@ const OngoingActivity: React.FC = () => {
 const ActivityCard: React.FC = () => {
   const { t } = useCustomTranslation();
 
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+
   return (
     <Card className="co-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Activity')}</CardTitle>
       </CardHeader>
       <ActivityBody className="nb-activity-card__body">
-        <OngoingActivity />
-        <RecentEvent />
+        <OngoingActivity systemFlags={systemFlags} clusterNs={clusterNs} />
+        <RecentEvent systemFlags={systemFlags} clusterNs={clusterNs} />
       </ActivityBody>
     </Card>
   );

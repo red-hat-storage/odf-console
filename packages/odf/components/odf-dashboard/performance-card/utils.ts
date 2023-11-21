@@ -10,6 +10,7 @@ import * as _ from 'lodash-es';
 
 type DataFrame = {
   systemName: string;
+  systemNamespace: string;
   managedSystemKind: string;
   managedSystemName: string;
   currentLocation: string;
@@ -25,6 +26,9 @@ const getDatForSystem = (
   humanizer: Function
 ) => {
   const systemName = system.spec.name;
+  // ToDo (epic 4422): This equality check should work (for now) as "managedBy" will be unique,
+  // but moving forward add a label to metric for StorageSystem namespace as well and use that instead (update query as well).
+  // Equality check should be updated as well with "&&" condition on StorageSystem namespace.
   const relatedMetrics = promData?.data?.result?.find(
     (value) => value.metric.managedBy === systemName
   );
@@ -51,6 +55,7 @@ export const generateDataFrames = (
       managedSystemKind: curr.spec.kind,
       managedSystemName: curr.spec.name,
       systemName: curr.metadata.name,
+      systemNamespace: curr.metadata.namespace,
       currentLocation: '/',
       iopsData: {
         data: getDatForSystem(id, curr, humanizeIOPS),

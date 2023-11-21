@@ -39,6 +39,7 @@ export const initialState: CreateStorageSystemState = {
   nodes: [],
   backingStorage: {
     type: BackingStorageType.EXISTING,
+    systemNamespace: '',
     enableNFS: false,
     isRBDStorageClassDefault: false,
     externalStorage: '',
@@ -111,6 +112,7 @@ type CreateStorageSystemState = {
   nodes: WizardNodeState[];
   backingStorage: {
     type: BackingStorageType;
+    systemNamespace: string;
     enableNFS: boolean;
     isRBDStorageClassDefault: boolean;
     externalStorage: string;
@@ -301,6 +303,9 @@ export const reducer: WizardReducer = (prevState, action) => {
       break;
     case 'backingStorage/setType':
       return setBackingStorageType(newState, action.payload);
+    case 'backingStorage/setSystemNamespace':
+      newState.backingStorage.systemNamespace = action.payload;
+      break;
     case 'backingStorage/enableNFS':
       newState.backingStorage.enableNFS = action.payload;
       break;
@@ -436,6 +441,10 @@ export type CreateStorageSystemAction =
   | {
       type: 'backingStorage/setType';
       payload: WizardState['backingStorage']['type'];
+    }
+  | {
+      type: 'backingStorage/setSystemNamespace';
+      payload: WizardState['backingStorage']['systemNamespace'];
     }
   | {
       type: 'backingStorage/enableNFS';

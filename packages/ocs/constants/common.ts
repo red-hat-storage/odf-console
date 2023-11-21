@@ -2,7 +2,6 @@ export const PVC_PROVISIONER_ANNOTATION =
   'volume.beta.kubernetes.io/storage-provisioner';
 export const OCS_OPERATOR = 'ocs-operator';
 export const COMPRESSION_ON = 'aggressive';
-export const CEPH_EXTERNAL_CR_NAME = 'ocs-external-storagecluster-cephcluster';
 
 export enum POOL_STATE {
   READY = 'Ready',
@@ -33,8 +32,6 @@ export enum CLUSTER_STATUS {
   READY = 'Ready',
   PROGRESSING = 'Progressing',
 }
-
-export const CEPH_INTERNAL_CR_NAME = 'ocs-storagecluster-cephcluster';
 
 export const CLUSTER_ID = 'clusterID';
 export const PROV_SECRET_NS = 'csi.storage.k8s.io/provisioner-secret-namespace';

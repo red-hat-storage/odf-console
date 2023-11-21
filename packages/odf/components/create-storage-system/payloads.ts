@@ -17,6 +17,7 @@ import {
   OCSStorageClusterModel,
   ODFStorageSystem,
   NodeModel,
+  NamespaceModel,
 } from '@odf/shared/models';
 import { Patch, StorageSystemKind } from '@odf/shared/types';
 import { getAPIVersionForModel, k8sPatchByName } from '@odf/shared/utils';
@@ -37,19 +38,19 @@ import { WizardNodeState, WizardState } from './reducer';
 export const createStorageSystem = async (
   subSystemName: string,
   subSystemKind: string,
-  odfNamespace: string
+  systemNamespace: string
 ) => {
   const payload: StorageSystemKind = {
     apiVersion: getAPIVersionForModel(ODFStorageSystem),
     kind: ODFStorageSystem.kind,
     metadata: {
       name: `${subSystemName}-storagesystem`,
-      namespace: odfNamespace,
+      namespace: systemNamespace,
     },
     spec: {
       name: subSystemName,
       kind: subSystemKind,
-      namespace: odfNamespace,
+      namespace: systemNamespace,
     },
   };
   return k8sCreate({ model: ODFStorageSystem, data: payload });
@@ -142,7 +143,8 @@ export const createNoobaaExternalPostgresResources = (
 
 export const createStorageCluster = async (
   state: WizardState,
-  odfNamespace: string
+  storageClusterNamespace: string,
+  storageClusterName: string
 ) => {
   const {
     storageClass,
@@ -214,11 +216,12 @@ export const createStorageCluster = async (
     shouldSetCephRBDAsDefault,
     isSingleReplicaPoolEnabled: enableSingleReplicaPool,
     enableRDRPreparation,
-    odfNamespace,
+    storageClusterNamespace,
     enableNoobaaClientSideCerts: externalPostgres.tls.enableClientSideCerts,
     useExternalPostgres: useExternalPostgres,
     allowNoobaaPostgresSelfSignedCerts:
       externalPostgres.tls.allowSelfSignedCerts,
+    storageClusterName,
   });
 
   return k8sCreate({ model: OCSStorageClusterModel, data: payload });
@@ -226,10 +229,10 @@ export const createStorageCluster = async (
 
 export const labelNodes = async (
   nodes: WizardNodeState[],
-  odfNamespace: string
+  namespace: string
 ) => {
-  const labelPath = `/metadata/labels/cluster.ocs.openshift.io~1${odfNamespace}`;
-  const storageLabel = cephStorageLabel(odfNamespace);
+  const labelPath = `/metadata/labels/cluster.ocs.openshift.io~1${namespace}`;
+  const storageLabel = cephStorageLabel(namespace);
   const patch: Patch[] = [
     {
       op: 'add',
@@ -280,3 +283,14 @@ export const createExternalSubSystem = async (subSystemPayloads: Payload[]) => {
     throw err;
   }
 };
+
+export const createMultiClusterNs = async (systemNamespace: string) =>
+  k8sCreate({
+    model: NamespaceModel,
+    data: {
+      metadata: {
+        name: systemNamespace,
+        labels: { 'openshift.io/cluster-monitoring': 'true' },
+      },
+    },
+  });

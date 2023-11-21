@@ -4,6 +4,7 @@ import {
   NooBaaObjectBucketClaimModel,
   NooBaaObjectBucketModel,
 } from '@odf/core/models';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
   useCustomPrometheusPoll,
@@ -21,7 +22,9 @@ import {
   InventoryItemBody,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { ODFSystemParams } from '../../../types';
 import { BucketsTitle } from './buckets-card-item';
 import { getObcStatusGroups, getObStatusGroups } from './utils';
 import './buckets-card.scss';
@@ -89,14 +92,8 @@ const ObjectInventoryItem: React.FC<ObjectInventoryItemProps> = ({
   );
 };
 
-const ObjectDashboardBucketsCard: React.FC<{}> = () => {
+const ObjectInventoryItem_: React.FC = () => {
   const { t } = useCustomTranslation();
-
-  const [obcData, obcLoaded, obcLoadError] = useK8sWatchResource<
-    K8sResourceKind[]
-  >(objectBucketClaimsResource);
-  const [obData, obLoaded, obLoadError] =
-    useK8sWatchResource<K8sResourceKind[]>(objectBucketResource);
 
   const [noobaaCount, noobaaCountError] = useCustomPrometheusPoll({
     query: BucketsCardQueries.BUCKETS_COUNT,
@@ -122,6 +119,48 @@ const ObjectDashboardBucketsCard: React.FC<{}> = () => {
   );
 
   return (
+    <ObjectInventoryItem
+      isLoading={!(noobaaCount && unhealthyNoobaaBuckets)}
+      error={!!(noobaaCountError || unhealthyNoobaaBucketsError)}
+      title={t('NooBaa Bucket')}
+      count={Number(getGaugeValue(noobaaCount))}
+      TitleComponent={React.useCallback(
+        (props) => (
+          <BucketsTitle
+            objects={noobaaObjectsCount}
+            error={!!noobaaObjectsCountError}
+            {...props}
+          />
+        ),
+        [noobaaObjectsCount, noobaaObjectsCountError]
+      )}
+    >
+      {unhealthyNoobaaBucketsCount > 0 && (
+        <>
+          <RedExclamationCircleIcon />
+          <span className="nb-buckets-card__buckets-failure-status-count">
+            {unhealthyNoobaaBucketsCount}
+          </span>
+        </>
+      )}
+    </ObjectInventoryItem>
+  );
+};
+
+const ObjectDashboardBucketsCard: React.FC<{}> = () => {
+  const { t } = useCustomTranslation();
+
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const isMCGSupported = systemFlags[clusterNs]?.isNoobaaAvailable;
+
+  const [obcData, obcLoaded, obcLoadError] = useK8sWatchResource<
+    K8sResourceKind[]
+  >(objectBucketClaimsResource);
+  const [obData, obLoaded, obLoadError] =
+    useK8sWatchResource<K8sResourceKind[]>(objectBucketResource);
+
+  return (
     <Card>
       <CardHeader>
         <CardTitle>
@@ -134,31 +173,7 @@ const ObjectDashboardBucketsCard: React.FC<{}> = () => {
         </CardTitle>
       </CardHeader>
       <CardBody>
-        <ObjectInventoryItem
-          isLoading={!(noobaaCount && unhealthyNoobaaBuckets)}
-          error={!!(noobaaCountError || unhealthyNoobaaBucketsError)}
-          title={t('NooBaa Bucket')}
-          count={Number(getGaugeValue(noobaaCount))}
-          TitleComponent={React.useCallback(
-            (props) => (
-              <BucketsTitle
-                objects={noobaaObjectsCount}
-                error={!!noobaaObjectsCountError}
-                {...props}
-              />
-            ),
-            [noobaaObjectsCount, noobaaObjectsCountError]
-          )}
-        >
-          {unhealthyNoobaaBucketsCount > 0 && (
-            <>
-              <RedExclamationCircleIcon />
-              <span className="nb-buckets-card__buckets-failure-status-count">
-                {unhealthyNoobaaBucketsCount}
-              </span>
-            </>
-          )}
-        </ObjectInventoryItem>
+        {isMCGSupported && <ObjectInventoryItem_ />}
         <ResourceInventoryItem
           isLoading={!obLoaded}
           error={!!obLoadError}

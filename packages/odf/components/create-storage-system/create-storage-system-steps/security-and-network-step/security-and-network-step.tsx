@@ -16,6 +16,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
   connectionDetailState,
   externalStorage,
   supportedExternalStorage,
+  systemNamespace,
 }) => {
   const {
     networkType: nwType,
@@ -56,6 +57,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
         dispatch={dispatch}
         infraType={infraType}
         isExternal={isExternal}
+        systemNamespace={systemNamespace}
       />
       {!isExternal && (
         <NetworkFormGroup
@@ -64,6 +66,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
           setNetwork={setNetwork}
           clusterNetwork={clusterNetwork}
           publicNetwork={publicNetwork}
+          systemNamespace={systemNamespace}
         />
       )}
       {isExternal && (
@@ -86,4 +89,5 @@ type SecurityAndNetworkProps = {
   connectionDetailState?: WizardState['connectionDetails'];
   externalStorage?: WizardState['backingStorage']['externalStorage'];
   supportedExternalStorage?: ExternalStorage[];
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

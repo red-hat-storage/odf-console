@@ -32,6 +32,7 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
     selectedMetric,
     setSelectedMetric,
     isRgwSupported,
+    isMcgSupported,
   } = props;
   const { t } = useCustomTranslation();
   const [isOpenComboDropdown, setComboDropdown] = React.useState(false);
@@ -136,7 +137,7 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
 
   return (
     <div className="nb-data-consumption-card__dropdown">
-      {isRgwSupported && (
+      {isRgwSupported && isMcgSupported && (
         <Select
           variant={SelectVariant.single}
           className="nb-data-consumption-card__dropdown-item nb-data-consumption-card__dropdown-item--margin"
@@ -188,4 +189,5 @@ type DataConsumptionDropdownProps = {
   selectedMetric: Metrics;
   setSelectedMetric: React.Dispatch<React.SetStateAction<Metrics>>;
   isRgwSupported: boolean;
+  isMcgSupported: boolean;
 };

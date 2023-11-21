@@ -1,7 +1,4 @@
 import * as React from 'react';
-import { useSafeK8sWatchResource } from '@odf/core/hooks';
-import { useODFNamespaceSelector } from '@odf/core/redux';
-import { K8sResourceObj } from '@odf/core/types';
 import { ONE_SECOND } from '@odf/shared/constants';
 import { ModalTitle, ModalFooter } from '@odf/shared/generic/ModalTitle';
 import {
@@ -9,10 +6,18 @@ import {
   withHandlePromise,
 } from '@odf/shared/generic/promise-component';
 import { ModalBody } from '@odf/shared/modals/Modal';
+import { getNamespace } from '@odf/shared/selectors';
 import { CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
-import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  referenceForModel,
+  getValidWatchK8sResourceObj,
+} from '@odf/shared/utils';
+import {
+  k8sCreate,
+  useK8sWatchResource,
+  WatchK8sResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Modal } from '@patternfly/react-core';
 import { BlockPoolStatus, BlockPoolBody } from '../../block-pool/body';
@@ -28,12 +33,20 @@ import { StoragePoolKind } from '../../types';
 import { BlockPoolModalFooter, FooterPrimaryActions } from './modal-footer';
 import './create-block-pool-modal.scss';
 
+const poolResource = (poolName: string, ns: string): WatchK8sResource => ({
+  kind: referenceForModel(CephBlockPoolModel),
+  namespaced: true,
+  isList: false,
+  name: poolName,
+  namespace: ns,
+});
+
 export const CreateBlockPoolModal = withHandlePromise(
   (props: CreateBlockPoolModalProps) => {
-    const { cephClusters, onPoolCreation, handlePromise, errorMessage } = props;
+    const { cephCluster, onPoolCreation, handlePromise, errorMessage } = props;
     const { t } = useCustomTranslation();
 
-    const { odfNamespace } = useODFNamespaceSelector();
+    const poolNs = getNamespace(cephCluster);
 
     const [state, dispatch] = React.useReducer(
       blockPoolReducer,
@@ -42,25 +55,21 @@ export const CreateBlockPoolModal = withHandlePromise(
     const [isSubmit, setIsSubmit] = React.useState(false);
     const [timer, setTimer] = React.useState<NodeJS.Timer>(null);
 
+    const poolName = state.poolName;
+
     const MODAL_DESC = t(
       'A BlockPool is a logical entity providing elastic capacity to applications and workloads. Pools provide a means of supporting policies for access data resilience and storage efficiency.'
     );
     const MODAL_TITLE = t('Create BlockPool');
 
     // Watch newly created pool after submit
-    const poolResource: K8sResourceObj = React.useCallback(
-      (ns) => ({
-        kind: referenceForModel(CephBlockPoolModel),
-        namespaced: true,
-        isList: false,
-        name: state.poolName,
-        namespace: ns,
-      }),
-      [state.poolName]
-    );
-
     const [newPool, newPoolLoaded, newPoolLoadError] =
-      useSafeK8sWatchResource<StoragePoolKind>(poolResource);
+      useK8sWatchResource<StoragePoolKind>(
+        getValidWatchK8sResourceObj(
+          poolResource(poolName, poolNs),
+          isSubmit && !!poolName
+        )
+      );
 
     React.useEffect(() => {
       if (isSubmit) {
@@ -75,7 +84,7 @@ export const CreateBlockPoolModal = withHandlePromise(
           });
           setIsSubmit(false);
           clearTimeout(timer);
-          onPoolCreation(state.poolName);
+          onPoolCreation(poolName);
         } else if (
           newPoolLoaded &&
           (newPool?.status?.phase === POOL_STATE.RECONCILE_FAILED ||
@@ -106,7 +115,7 @@ export const CreateBlockPoolModal = withHandlePromise(
       newPoolLoadError,
       newPoolLoaded,
       onPoolCreation,
-      state.poolName,
+      poolName,
       timer,
     ]);
 
@@ -117,7 +126,7 @@ export const CreateBlockPoolModal = withHandlePromise(
           type: BlockPoolActionType.SET_POOL_STATUS,
           payload: POOL_PROGRESS.PROGRESS,
         });
-        const poolObj: StoragePoolKind = getPoolKindObj(state, odfNamespace);
+        const poolObj: StoragePoolKind = getPoolKindObj(state, poolNs);
 
         handlePromise(
           k8sCreate({ model: CephBlockPoolModel, data: poolObj }),
@@ -157,13 +166,13 @@ export const CreateBlockPoolModal = withHandlePromise(
             <div key="progress-modal">
               <BlockPoolStatus
                 status={state.poolStatus}
-                name={state.poolName}
+                name={poolName}
                 error={errorMessage}
               />
             </div>
           ) : (
             <BlockPoolBody
-              cephCluster={cephClusters[0]}
+              cephCluster={cephCluster}
               state={state}
               dispatch={dispatch}
               showPoolStatus
@@ -186,7 +195,7 @@ export const CreateBlockPoolModal = withHandlePromise(
 );
 
 export type CreateBlockPoolModalProps = {
-  cephClusters?: CephClusterKind[];
+  cephCluster?: CephClusterKind;
   onPoolCreation: (name: string) => void;
 } & React.ComponentProps<ModalComponent> &
   HandlePromiseProps;

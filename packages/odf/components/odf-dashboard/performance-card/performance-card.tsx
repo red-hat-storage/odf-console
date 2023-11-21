@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { useSafeK8sWatchResource } from '@odf/core/hooks';
-import { K8sResourceObj } from '@odf/core/types';
 import LineGraph, {
   LineGraphProps,
 } from '@odf/shared/dashboards/line-graph/line-graph';
@@ -21,6 +19,7 @@ import {
   referenceFor,
   referenceForModel,
 } from '@odf/shared/utils';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   UtilizationDurationDropdown,
   useUtilizationDuration,
@@ -40,6 +39,7 @@ import { generateDataFrames } from './utils';
 
 type RowProps = {
   systemName: string;
+  systemNamespace: string;
   managedSystemKind: string;
   managedSystemName: string;
   currentLocation: string;
@@ -57,6 +57,7 @@ type GetRow = (
 const getRow: GetRow = ({
   managedSystemKind,
   systemName,
+  systemNamespace,
   iopsData,
   throughputData,
   latencyData,
@@ -67,7 +68,7 @@ const getRow: GetRow = ({
   return [
     <ResourceLink
       key={systemName}
-      link={getDashboardLink(refKind, systemName)}
+      link={getDashboardLink(refKind, systemName, systemNamespace)}
       resourceModel={ODFStorageSystem}
       resourceName={systemName}
     />,
@@ -94,11 +95,10 @@ const getRow: GetRow = ({
   ];
 };
 
-const storageSystemResource: K8sResourceObj = (ns) => ({
+const storageSystemResource = {
   kind: referenceForModel(ODFStorageSystem),
-  namespace: ns,
   isList: true,
-});
+};
 
 const nameSort = (a: RowProps, b: RowProps, c: SortByDirection) => {
   const negation = c !== SortByDirection.asc;
@@ -149,7 +149,7 @@ const PerformanceCard: React.FC = () => {
     [t]
   );
 
-  const [systems, systemLoaded, systemLoadError] = useSafeK8sWatchResource<
+  const [systems, systemLoaded, systemLoadError] = useK8sWatchResource<
     StorageSystemKind[]
   >(storageSystemResource);
   const { duration } = useUtilizationDuration();

@@ -29,9 +29,10 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
   const [isOpen, setOpen] = React.useState(false);
   const [dropdownItems, setDropdownItems] = React.useState<JSX.Element[]>([]);
 
-  // Operator install namespace is determined using Subscriptions, which non-admin can not access (yet).
+  // Operator install namespace is determined using Subscriptions, which non-admin can not access.
   // Using "true" in "useSafeK8sWatchResource" so that they can default to "openshift-storage" (if case of access issues),
   // which is current use case as well (as we do not officially support UI if ODF is installed in any other Namespace).
+  // ToDo (Sanjal): Update the non-admin "Role" to a "ClusterRole", then read list of NamespaceStores across all namespaces.
   const [nnsData, , nnsLoadErr] = useSafeK8sWatchResource<NamespaceStoreKind[]>(
     namespaceStoreResource,
     true

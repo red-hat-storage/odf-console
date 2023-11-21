@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { DataUnavailableError } from '@odf/shared/generic';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
   useCustomPrometheusPoll,
@@ -8,7 +10,9 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getMetric } from '@odf/shared/utils';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
+import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { ODFSystemParams } from '../../../types';
 import { ResourceProvidersBody } from './resource-providers-card-body';
 import {
   ResourceProvidersItem,
@@ -41,9 +45,7 @@ const createProvidersList = (data: PrometheusResponse): ProviderType => {
   return providersList;
 };
 
-const ResourceProviders: React.FC<{}> = () => {
-  const { t } = useCustomTranslation();
-
+const ResourceProvidersBody_: React.FC = () => {
   const [providersTypesQueryResult, providersTypesQueryResultError] =
     useCustomPrometheusPoll({
       query: RESOURCE_PROVIDERS_QUERY.PROVIDERS_TYPES,
@@ -80,6 +82,35 @@ const ResourceProviders: React.FC<{}> = () => {
   const providerTypes = filterProviders(allProviders);
 
   return (
+    <ResourceProvidersBody
+      isLoading={
+        !error &&
+        !(providersTypesQueryResult && unhealthyProvidersTypesQueryResult)
+      }
+      hasProviders={!_.isEmpty(allProviders)}
+      error={error}
+    >
+      {providerTypes.map((provider) => (
+        <ResourceProvidersItem
+          count={allProviders[provider]}
+          key={provider}
+          link={noobaaResourcesLink}
+          title={provider}
+          unhealthyProviders={unhealthyProviders}
+        />
+      ))}
+    </ResourceProvidersBody>
+  );
+};
+
+const ResourceProviders: React.FC<{}> = () => {
+  const { t } = useCustomTranslation();
+
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const hasMCG = systemFlags[clusterNs]?.isNoobaaAvailable;
+
+  return (
     <Card>
       <CardHeader>
         <CardTitle>{t('Resource providers')}</CardTitle>
@@ -90,24 +121,7 @@ const ResourceProviders: React.FC<{}> = () => {
         </FieldLevelHelp>
       </CardHeader>
       <CardBody>
-        <ResourceProvidersBody
-          isLoading={
-            !error &&
-            !(providersTypesQueryResult && unhealthyProvidersTypesQueryResult)
-          }
-          hasProviders={!_.isEmpty(allProviders)}
-          error={error}
-        >
-          {providerTypes.map((provider) => (
-            <ResourceProvidersItem
-              count={allProviders[provider]}
-              key={provider}
-              link={noobaaResourcesLink}
-              title={provider}
-              unhealthyProviders={unhealthyProviders}
-            />
-          ))}
-        </ResourceProvidersBody>
+        {hasMCG ? <ResourceProvidersBody_ /> : <DataUnavailableError />}
       </CardBody>
     </Card>
   );

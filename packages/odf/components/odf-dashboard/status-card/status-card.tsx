@@ -11,6 +11,7 @@ import {
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   ClusterServiceVersionKind,
   StorageSystemKind,
@@ -28,7 +29,7 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Gallery,
   GalleryItem,
@@ -52,17 +53,16 @@ const operatorResource: K8sResourceObj = (ns) => ({
   isList: true,
 });
 
-const storageSystemResource: K8sResourceObj = (ns) => ({
+const storageSystemResource = {
   kind: referenceForModel(ODFStorageSystem),
-  namespace: ns,
   isList: true,
-});
+};
 
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [csvData, csvLoaded, csvLoadError] =
     useSafeK8sWatchResource<ClusterServiceVersionKind[]>(operatorResource);
-  const [systems, systemsLoaded, systemsLoadError] = useSafeK8sWatchResource<
+  const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<
     StorageSystemKind[]
   >(storageSystemResource);
 
@@ -78,7 +78,7 @@ export const StatusCard: React.FC = () => {
   const operatorStatus = operator?.status?.phase;
 
   // Todo(bipuladh): In 4.11 this should come in from an extension point
-  const ocsHealthStatus = useGetOCSHealth();
+  const ocsHealthStatuses = useGetOCSHealth(systems);
 
   const parsedHealthData =
     !healthError &&
@@ -88,9 +88,15 @@ export const StatusCard: React.FC = () => {
     healthData
       ? healthData?.data?.result?.reduce((acc, curr) => {
           const systemName = curr.metric.storage_system;
+          // ToDo (epic 4422): This equality check should work (for now) as "storage_system" will be unique,
+          // but moving forward add a label to metric for StorageSystem namespace as well and use that instead (update query as well).
+          // Equality check should be updated as well with "&&" condition on StorageSystem namespace.
           const storageSystem = systems.find(
-            (system) => system.metadata.name === systemName
+            (system) => getName(system) === systemName
           );
+          const systemNamespace = getNamespace(storageSystem);
+          const ocsHealthStatus =
+            ocsHealthStatuses[`${systemName}${systemNamespace}`];
           const { apiGroup, apiVersion, kind } = getGVK(
             storageSystem?.spec.kind
           );
@@ -105,6 +111,7 @@ export const StatusCard: React.FC = () => {
                   link: getVendorDashboardLinkFromMetrics(
                     systemKind,
                     systemName,
+                    systemNamespace,
                     ocsHealthStatus.errorComponent
                   ),
 
@@ -118,7 +125,8 @@ export const StatusCard: React.FC = () => {
                   healthState: healthStateMap(curr.value[1]),
                   link: getVendorDashboardLinkFromMetrics(
                     systemKind,
-                    systemName
+                    systemName,
+                    systemNamespace
                   ),
                 };
           return [...acc, systemData];
@@ -149,11 +157,11 @@ export const StatusCard: React.FC = () => {
 
   const clientAggregateHealth = getAggregateClientHealthState(clients);
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const redirectToListPage = React.useCallback(() => {
-    history.push('/odf/storage-clients');
-  }, [history]);
+    navigate('/odf/storage-clients');
+  }, [navigate]);
 
   return (
     <Card className="odfDashboard-card--height">

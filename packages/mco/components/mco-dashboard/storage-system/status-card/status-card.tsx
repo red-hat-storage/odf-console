@@ -56,6 +56,8 @@ const setSubSystemMap = (
   subSysHealthData: PrometheusResponse,
   subSystemMap: SubSystemMap
 ) =>
+  // ToDo (epic 4422): Assuming "namespace" in "odf_system.*"" metrics (except "odf_system_map" which is pushed by ODF opr and already has "target_namespace")
+  // is where system is deployed (update query if needed).
   subSysHealthData?.data?.result?.forEach(
     (item: PrometheusResult) =>
       !item?.metric.managedBy &&
@@ -70,6 +72,8 @@ const setHealthData = (
   healthData: SystemHealthMap[],
   subSystemMap: SubSystemMap
 ) =>
+  // ToDo (epic 4422): Assuming "namespace" in "odf_system.*"" metrics (except "odf_system_map" which is pushed by ODF opr and already has "target_namespace")
+  // is where system is deployed (update query if needed).
   sysHealthData?.data?.result?.forEach((item: PrometheusResult) => {
     const { apiGroup } = getGVK(item?.metric.target_kind);
     const healthVal = item?.value[1];

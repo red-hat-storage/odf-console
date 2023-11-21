@@ -208,14 +208,21 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
 
   const { odfNamespace } = useODFNamespaceSelector();
 
+  const ocsClusterName = getName(ocsConfig);
   const [cephTotal, totalError, totalLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
-    query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_TOTAL],
+    query:
+      CAPACITY_INFO_QUERIES(ocsClusterName)[
+        StorageDashboardQuery.RAW_CAPACITY_TOTAL
+      ],
     basePath: usePrometheusBasePath(),
   });
   const [cephUsed, usedError, usedLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
-    query: CAPACITY_INFO_QUERIES[StorageDashboardQuery.RAW_CAPACITY_USED],
+    query:
+      CAPACITY_INFO_QUERIES(ocsClusterName)[
+        StorageDashboardQuery.RAW_CAPACITY_USED
+      ],
     basePath: usePrometheusBasePath(),
   });
   const [values, loading, loadError] = [
@@ -242,7 +249,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   const [osdSize, unit] = osdSizeWithUnit.split(/(\d+)/).filter(Boolean);
   const osdSizeWithoutUnit: number = +osdSize / SIZE_IN_TB[unit];
   const isNoProvionerSC: boolean = storageClass?.provisioner === NO_PROVISIONER;
-  const selectedSCName: string = storageClass?.metadata?.name;
+  const selectedSCName: string = getName(storageClass);
   const deviceSetIndex: number = getCurrentDeviceSetIndex(
     deviceSets,
     selectedSCName
@@ -254,7 +261,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
     hasFlexibleScaling,
     createWizardNodeState(getCephNodes(nodesData, odfNamespace))
   );
-  const name = ocsConfig?.metadata?.name;
+
   const totalCapacityMetric = values?.[0];
   const usedCapacityMetric = values?.[1];
   const usedCapacity = humanizeBinaryBytes(usedCapacityMetric);
@@ -408,9 +415,13 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
     >
       <NamespaceSafetyBox>
         <ModalBody className="add-capacity-modal--overflow">
-          <Trans t={t as any} ns="plugin__odf-console" values={{ name }}>
-            Adding capacity for <strong>{{ name }}</strong>, may increase your
-            expenses.
+          <Trans
+            t={t as any}
+            ns="plugin__odf-console"
+            values={{ ocsClusterName }}
+          >
+            Adding capacity for <strong>{{ ocsClusterName }}</strong>, may
+            increase your expenses.
           </Trans>
           <FormGroup
             className="pf-u-pt-md pf-u-pb-sm"

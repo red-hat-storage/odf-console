@@ -41,7 +41,7 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
   const [errorMessage, setErrorMessage] = React.useState('');
   const [inProgress, setProgress] = React.useState(false);
 
-  //Todo(bipuladh): Update it to use information from the alert<RHSTOR-4422>
+  // ToDo (epic 4422) (bipuladh): Update it to use information from the alert.
   const [storageCluster, storageClusterLoaded, storageCluserLoadError] =
     useSafeK8sGet(StorageClusterModel, null, odfNamespace);
   const [nodes, nodesLoaded, nodesLoadError] = useK8sList<NodeKind>(NodeModel);

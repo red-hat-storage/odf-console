@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { EfficiencyItemBody } from '@odf/shared/dashboards/storage-efficiency/storage-efficiency-card-item';
 import {
   useCustomPrometheusPoll,
@@ -6,19 +7,25 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGaugeValue, humanizeBinaryBytes } from '@odf/shared/utils';
+import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import {
   POOL_STORAGE_EFFICIENCY_QUERIES,
   StorageDashboardQuery,
 } from '../../../queries';
+import { ODFSystemParams } from '../../../types';
 
 export const StorageEfficiencyContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+
   const [poolCapacityRatioResult, poolCapacityRatioResultError] =
     useCustomPrometheusPoll({
       query:
-        POOL_STORAGE_EFFICIENCY_QUERIES[
+        POOL_STORAGE_EFFICIENCY_QUERIES(managedByOCS)[
           StorageDashboardQuery.POOL_CAPACITY_RATIO
         ],
       endpoint: 'api/v1/query' as any,
@@ -27,7 +34,7 @@ export const StorageEfficiencyContent: React.FC = () => {
 
   const [poolSavedResult, poolSavedResultError] = useCustomPrometheusPoll({
     query:
-      POOL_STORAGE_EFFICIENCY_QUERIES[
+      POOL_STORAGE_EFFICIENCY_QUERIES(managedByOCS)[
         StorageDashboardQuery.POOL_SAVED_CAPACITY
       ],
     endpoint: 'api/v1/query' as any,

@@ -1,25 +1,28 @@
 import * as React from 'react';
 import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams } from 'react-router-dom-v5-compat';
-import {
-  CEPH_FLAG,
-  OCS_INDEPENDENT_FLAG,
-  PROVIDER_MODE,
-} from '../../odf/features';
+import { PROVIDER_MODE } from '../../odf/features';
 import { BlockPoolListPage } from '../block-pool/BlockPoolListPage';
 import { CephBlockPoolModel } from '../models';
+import { ODFSystemParams } from '../types';
 import OCSSystemDashboard from './ocs-system-dashboard';
 
 const blockPoolHref = referenceForModel(CephBlockPoolModel);
 
 const ODFSystemDashboard: React.FC<{}> = ({}) => {
-  const { systemName: title } = useParams();
   const { t } = useCustomTranslation();
+
+  const { systemName: title, namespace: clusterNs } =
+    useParams<ODFSystemParams>();
+  const { systemFlags, areFlagsLoaded, flagsLoadError } =
+    useODFSystemFlagsSelector();
+
   const breadcrumbs = [
     {
       name: t('StorageSystems'),
@@ -38,9 +41,9 @@ const ODFSystemDashboard: React.FC<{}> = ({}) => {
       component: OCSSystemDashboard,
     },
   ]);
-  const isCephAvailable = useFlag(CEPH_FLAG);
-  const isExternal = useFlag(OCS_INDEPENDENT_FLAG);
   const isProviderMode = useFlag(PROVIDER_MODE);
+  const isCephAvailable = systemFlags[clusterNs]?.isCephAvailable;
+  const isExternal = systemFlags[clusterNs]?.isExternalMode;
 
   React.useEffect(() => {
     const isBlockPoolAdded = pages.find((page) => page.href === blockPoolHref);
@@ -64,12 +67,15 @@ const ODFSystemDashboard: React.FC<{}> = ({}) => {
     }
   }, [isExternal, isCephAvailable, isProviderMode, pages, setPages, t]);
 
-  const arePagesLoaded = pages.length > 0;
+  const loaded = pages.length > 0 && areFlagsLoaded;
 
   return (
     <>
       <PageHeading title={title} breadcrumbs={breadcrumbs} />
-      <NamespaceSafetyBox areResourcesLoaded={arePagesLoaded}>
+      <NamespaceSafetyBox
+        areResourcesLoaded={loaded}
+        resourcesError={flagsLoadError}
+      >
         <Tabs id="odf-tab" tabs={pages} />
       </NamespaceSafetyBox>
     </>

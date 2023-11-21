@@ -91,6 +91,7 @@ const KMSConnection: React.FC<EncryptionProps> = ({
   dispatch,
   infraType,
   isMCG,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -136,6 +137,7 @@ const KMSConnection: React.FC<EncryptionProps> = ({
               infraType={infraType}
               className="odf-security-kms-connection"
               isMCG={isMCG}
+              systemNamespace={systemNamespace}
               isWizardFlow
             />
           )
@@ -152,6 +154,7 @@ export const Encryption: React.FC<EncryptionProps> = ({
   infraType,
   isMCG,
   isExternal,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
   const [encryptionChecked, setEncryptionChecked] = React.useState(
@@ -260,6 +263,7 @@ export const Encryption: React.FC<EncryptionProps> = ({
                     dispatch={dispatch}
                     infraType={infraType}
                     isMCG={!!isMCG}
+                    systemNamespace={systemNamespace}
                   />
                 </>
               )
@@ -291,7 +295,8 @@ export const EncryptionForm: React.FC<EncryptionProps> = ({
   kms,
   dispatch,
   infraType,
-  isMCG, // eslint-disable-line @typescript-eslint/no-unused-vars
+  isMCG,
+  systemNamespace,
 }) => {
   // enclosed in a "Form" so that child components can use default pf classes
   return (
@@ -301,7 +306,8 @@ export const EncryptionForm: React.FC<EncryptionProps> = ({
         encryption={encryption}
         kms={kms}
         dispatch={dispatch}
-        isMCG
+        isMCG={isMCG}
+        systemNamespace={systemNamespace}
       />
     </Form>
   );
@@ -313,4 +319,5 @@ type EncryptionProps = {
   infraType: string;
   isMCG?: boolean;
   isExternal?: boolean;
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

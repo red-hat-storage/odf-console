@@ -16,11 +16,7 @@ import {
 } from '@patternfly/react-core';
 import { Steps, StepsName, STORAGE_CLUSTER_SYSTEM_KIND } from '../../constants';
 import './create-storage-system.scss';
-import {
-  MINIMUM_NODES,
-  OCS_EXTERNAL_CR_NAME,
-  OCS_INTERNAL_CR_NAME,
-} from '../../constants';
+import { MINIMUM_NODES } from '../../constants';
 import { NetworkType, BackingStorageType, DeploymentType } from '../../types';
 import {
   labelOCSNamespace,
@@ -36,8 +32,12 @@ import {
   createStorageSystem,
   labelNodes,
   taintNodes,
+  createMultiClusterNs,
 } from './payloads';
 import { WizardCommonProps, WizardState } from './reducer';
+
+const OCS_INTERNAL_CR_NAME = 'ocs-storagecluster';
+const OCS_EXTERNAL_CR_NAME = 'ocs-external-storagecluster';
 
 const validateBackingStorageStep = (
   backingStorage: WizardState['backingStorage'],
@@ -183,6 +183,7 @@ const handleReviewAndCreateNext = async (
     capacityAndNodes,
   } = state;
   const {
+    systemNamespace,
     externalStorage,
     deployment,
     type,
@@ -194,19 +195,7 @@ const handleReviewAndCreateNext = async (
   const isRhcs: boolean = externalStorage === OCSStorageClusterModel.kind;
   const isMCG: boolean = deployment === DeploymentType.MCG;
 
-  const createAdditionalFeatureResources = async () => {
-    if (capacityAndNodes.enableTaint && !isMCG) await taintNodes(nodes);
-
-    if (encryption.advanced)
-      await Promise.all(
-        createClusterKmsResources(
-          kms.providerState,
-          odfNamespace,
-          kms.provider,
-          isMCG
-        )
-      );
-
+  const createNooBaaResources = async () => {
     if (useExternalPostgres) {
       let keyTexts = { private: '', public: '' };
       if (externalPostgres.tls.enableClientSideCerts) {
@@ -217,7 +206,7 @@ const handleReviewAndCreateNext = async (
       }
       await Promise.all(
         createNoobaaExternalPostgresResources(
-          odfNamespace,
+          systemNamespace,
           externalPostgres,
           keyTexts
         )
@@ -225,23 +214,51 @@ const handleReviewAndCreateNext = async (
     }
   };
 
+  const createAdditionalFeatureResources = async () => {
+    if (capacityAndNodes.enableTaint && !isMCG) await taintNodes(nodes);
+
+    /**
+     * CSI KMS ConfigMap and Secrets always needs to be created in ODF install namespace (that is, where Rook is deployed),
+     * whereas OCS KMS ConfigMap and Secrets needs to be created in the namespace where Ceph is being deployed (StorageSystem namespace).
+     * ToDo: External mode do not support KMS and only single Internal mode is allowed, so it should work for now,
+     * but in future, if need arises, first check whether CSI ConfigMap already exists or not before creating KMS related resources for multiple clusters.
+     * Also, change name of "ceph-csi-kms-token" token Secret (if need to create multiple in Rook namespace).
+     */
+    if (encryption.advanced)
+      // as currently only one internal cluster is allowed, "systemNamespace" (where intenal cluster is being created) and "odfNamespace" (where ODF is installed) will be same
+      await Promise.all(
+        createClusterKmsResources(
+          kms.providerState,
+          systemNamespace,
+          odfNamespace,
+          kms.provider,
+          isMCG
+        )
+      );
+
+    await createNooBaaResources();
+  };
+
   try {
-    await labelOCSNamespace(odfNamespace);
+    systemNamespace === odfNamespace
+      ? await labelOCSNamespace(systemNamespace)
+      : await createMultiClusterNs(systemNamespace);
+
     if (isMCG) {
       await createAdditionalFeatureResources();
-      await createStorageCluster(state, odfNamespace);
+      await createStorageCluster(state, systemNamespace, OCS_INTERNAL_CR_NAME);
     } else if (
       type === BackingStorageType.EXISTING ||
       type === BackingStorageType.LOCAL_DEVICES
     ) {
-      await labelNodes(nodes, odfNamespace);
+      await labelNodes(nodes, systemNamespace);
       await createAdditionalFeatureResources();
       await createStorageSystem(
         OCS_INTERNAL_CR_NAME,
         STORAGE_CLUSTER_SYSTEM_KIND,
-        odfNamespace
+        systemNamespace
       );
-      await createStorageCluster(state, odfNamespace);
+      await createStorageCluster(state, systemNamespace, OCS_INTERNAL_CR_NAME);
     } else if (type === BackingStorageType.EXTERNAL) {
       const { createPayload, model, displayName, waitToCreate } =
         getExternalStorage(externalStorage, supportedExternalStorage) || {};
@@ -259,17 +276,24 @@ const handleReviewAndCreateNext = async (
         systemName: subSystemName,
         state: subSystemState,
         model,
-        namespace: odfNamespace,
+        namespace: systemNamespace,
         storageClassName: storageClass.name,
         inTransitStatus: inTransitChecked,
       });
 
-      await createStorageSystem(subSystemName, subSystemKind, odfNamespace);
+      await createStorageSystem(subSystemName, subSystemKind, systemNamespace);
+      // create internal mode cluster along with Non-RHCS StorageSystem (if any Ceph cluster already does not exists)
       if (!hasOCS && !isRhcs) {
-        await labelNodes(nodes, odfNamespace);
+        await labelNodes(nodes, systemNamespace);
         await createAdditionalFeatureResources();
-        await createStorageCluster(state, odfNamespace);
+        await createStorageCluster(
+          state,
+          systemNamespace,
+          OCS_INTERNAL_CR_NAME
+        );
       }
+      // create additional NooBaa resources for external RHCS cluster (if opted via checkbox)
+      if (!hasOCS && isRhcs) await createNooBaaResources();
       if (!isRhcs && !!waitToCreate) await waitToCreate(model);
       await createExternalSubSystem(subSystemPayloads);
     }

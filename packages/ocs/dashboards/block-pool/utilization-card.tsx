@@ -1,8 +1,10 @@
 import * as React from 'react';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeDecimalBytesPerSec } from '@odf/shared/utils';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { useParams } from 'react-router-dom-v5-compat';
 import {
   Grid,
   Card,
@@ -11,6 +13,7 @@ import {
   CardTitle,
 } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
+import { ODFSystemParams } from '../../types';
 import { humanizeIOPS } from '../persistent-internal/utilization-card/utils';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
@@ -18,6 +21,10 @@ export const UtilizationCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
   const { name } = obj.metadata;
+
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 
   return (
     <Card>
@@ -32,7 +39,8 @@ export const UtilizationCard: React.FC = () => {
           title={t('IOPS')}
           utilizationQuery={getPoolQuery(
             [name],
-            StorageDashboardQuery.POOL_UTILIZATION_IOPS_QUERY
+            StorageDashboardQuery.POOL_UTILIZATION_IOPS_QUERY,
+            managedByOCS
           )}
           humanizeValue={humanizeIOPS}
         />
@@ -40,7 +48,8 @@ export const UtilizationCard: React.FC = () => {
           title={t('Throughput')}
           utilizationQuery={getPoolQuery(
             [name],
-            StorageDashboardQuery.POOL_UTILIZATION_THROUGHPUT_QUERY
+            StorageDashboardQuery.POOL_UTILIZATION_THROUGHPUT_QUERY,
+            managedByOCS
           )}
           humanizeValue={humanizeDecimalBytesPerSec}
         />

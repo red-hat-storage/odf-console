@@ -3,6 +3,7 @@ import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, ConfigMapKind, SecretKind } from '@odf/shared/types';
 import { getRandomChars, isValidIP } from '@odf/shared/utils';
 import { k8sCreate, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import {
   KMSConfigMapName,
   KMSVaultTokenSecretName,
@@ -52,11 +53,18 @@ export const isValidName = (name: string) => /^[a-zA-Z0-9_.-]*$/.test(name);
 
 export const isLengthUnity = (items) => items.length === 1;
 
+const getCASecretName = (isCSISecret = false) =>
+  `${isCSISecret ? 'csi' : 'ocs'}-kms-ca-secret-${getRandomChars()}`;
+const getClientSecretName = (isCSISecret = false) =>
+  `${isCSISecret ? 'csi' : 'ocs'}-kms-client-cert-${getRandomChars()}`;
+const getClientKeySecretName = (isCSISecret = false) =>
+  `${isCSISecret ? 'csi' : 'ocs'}-kms-client-key-${getRandomChars()}`;
+
 export const generateCASecret = (caCertificate: string, ns: string) => ({
   apiVersion: SecretModel.apiVersion,
   kind: SecretModel.kind,
   metadata: {
-    name: `ocs-kms-ca-secret-${getRandomChars()}`,
+    name: getCASecretName(),
     namespace: ns,
   },
   stringData: {
@@ -71,7 +79,7 @@ export const generateClientSecret = (
   apiVersion: SecretModel.apiVersion,
   kind: SecretModel.kind,
   metadata: {
-    name: `ocs-kms-client-cert-${getRandomChars()}`,
+    name: getClientSecretName(),
     namespace: ns,
   },
   stringData: {
@@ -83,7 +91,7 @@ export const generateClientKeySecret = (clientKey: string, ns: string) => ({
   apiVersion: SecretModel.apiVersion,
   kind: SecretModel.kind,
   metadata: {
-    name: `ocs-kms-client-key-${getRandomChars()}`,
+    name: getClientKeySecretName(),
     namespace: ns,
   },
   stringData: {
@@ -229,36 +237,54 @@ const getCsiVaultResources = (
   kms: VaultConfig,
   update: boolean,
   ns: string,
+  updateNameAndNamespace: boolean = false,
   createAdvancedVaultResource: boolean = true
 ) => {
   const csiKmsResources: Promise<K8sResourceKind>[] = [];
 
+  const kmsObj = _.cloneDeep(kms);
+  // needed during initial deployment, to make sure CSI and OCS resources are decoupled
+  if (updateNameAndNamespace) {
+    if (kmsObj.caCert) {
+      kmsObj.caCert.metadata.name = getCASecretName(true);
+      kmsObj.caCert.metadata.namespace = ns;
+    }
+    if (kmsObj.clientCert) {
+      kmsObj.clientCert.metadata.name = getClientSecretName(true);
+      kmsObj.clientCert.metadata.namespace = ns;
+    }
+    if (kmsObj.clientKey) {
+      kmsObj.clientKey.metadata.name = getClientKeySecretName(true);
+      kmsObj.clientKey.metadata.namespace = ns;
+    }
+  }
+
   let csiConfigData: VaultConfigMap = {
     KMS_PROVIDER: KmsImplementations.VAULT_TOKENS,
-    KMS_SERVICE_NAME: kms.name.value,
-    VAULT_ADDR: getKmsEndpoint(kms.address.value, kms.port.value),
-    VAULT_BACKEND_PATH: kms.backend,
-    VAULT_CACERT: kms.caCert?.metadata.name,
-    VAULT_TLS_SERVER_NAME: kms.tls,
-    VAULT_CLIENT_CERT: kms.clientCert?.metadata.name,
-    VAULT_CLIENT_KEY: kms.clientKey?.metadata.name,
-    VAULT_CACERT_FILE: kms.caCertFile,
-    VAULT_CLIENT_CERT_FILE: kms.clientCertFile,
-    VAULT_CLIENT_KEY_FILE: kms.clientKeyFile,
-    VAULT_AUTH_METHOD: kms.authMethod,
+    KMS_SERVICE_NAME: kmsObj.name.value,
+    VAULT_ADDR: getKmsEndpoint(kmsObj.address.value, kmsObj.port.value),
+    VAULT_BACKEND_PATH: kmsObj.backend,
+    VAULT_CACERT: kmsObj.caCert?.metadata.name,
+    VAULT_TLS_SERVER_NAME: kmsObj.tls,
+    VAULT_CLIENT_CERT: kmsObj.clientCert?.metadata.name,
+    VAULT_CLIENT_KEY: kmsObj.clientKey?.metadata.name,
+    VAULT_CACERT_FILE: kmsObj.caCertFile,
+    VAULT_CLIENT_CERT_FILE: kmsObj.clientCertFile,
+    VAULT_CLIENT_KEY_FILE: kmsObj.clientKeyFile,
+    VAULT_AUTH_METHOD: kmsObj.authMethod,
   };
 
-  switch (kms.authMethod) {
+  switch (kmsObj.authMethod) {
     case VaultAuthMethods.TOKEN:
       csiConfigData = {
         ...csiConfigData,
         VAULT_TOKEN_NAME: KMSVaultCSISecretName,
-        VAULT_NAMESPACE: kms.providerNamespace,
+        VAULT_NAMESPACE: kmsObj.providerNamespace,
       };
       // token creation on ceph-csi deployment namespace from installation flow
-      if (kms.authValue.value) {
+      if (kmsObj.authValue.value) {
         const tokenSecret: SecretKind = getKmsVaultSecret(
-          kms.authValue.value,
+          kmsObj.authValue.value,
           KMSVaultCSISecretName,
           ns
         );
@@ -272,26 +298,25 @@ const getCsiVaultResources = (
       csiConfigData.KMS_PROVIDER = KmsImplementations.VAULT_TENANT_SA;
       csiConfigData = {
         ...csiConfigData,
-        VAULT_AUTH_PATH: kms.providerAuthPath,
-        VAULT_AUTH_NAMESPACE: kms.providerAuthNamespace,
-        VAULT_NAMESPACE: kms.providerNamespace,
+        VAULT_AUTH_PATH: kmsObj.providerAuthPath,
+        VAULT_AUTH_NAMESPACE: kmsObj.providerAuthNamespace,
+        VAULT_NAMESPACE: kmsObj.providerNamespace,
       };
       break;
     default:
   }
 
   const csiConfigObj: ConfigMapKind = generateCsiKmsConfigMap(
-    kms.name.value,
+    kmsObj.name.value,
     csiConfigData,
     ns
   );
 
-  // skip if cluster-wide already taken care
   if (createAdvancedVaultResource) {
-    csiKmsResources.push(...createAdvancedVaultResources(kms));
+    csiKmsResources.push(...createAdvancedVaultResources(kmsObj));
   }
   if (update) {
-    const cmPatch = [generateConfigMapPatch(kms.name.value, csiConfigData)];
+    const cmPatch = [generateConfigMapPatch(kmsObj.name.value, csiConfigData)];
     csiKmsResources.push(
       k8sPatch({ model: ConfigMapModel, resource: csiConfigObj, data: cmPatch })
     );
@@ -314,8 +339,6 @@ const getCsiHpcsResources = (
 
   let keySecret: SecretKind;
   if (!secretName) {
-    // not required, while setting up storage cluster.
-    // required, while creating new storage class.
     keySecret = generateHpcsSecret(kms, ns);
     csiKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
   }
@@ -446,7 +469,7 @@ const getClusterVaultResources = (kms: VaultConfig, ns: string) => {
 const getClusterHpcsResources = (
   kms: HpcsConfig,
   ns: string
-): [string, Promise<K8sResourceKind>[]] => {
+): Promise<K8sResourceKind>[] => {
   const clusterKmsResources: Promise<K8sResourceKind>[] = [];
 
   const keySecret: SecretKind = generateHpcsSecret(kms, ns);
@@ -467,7 +490,7 @@ const getClusterHpcsResources = (
     k8sCreate({ model: ConfigMapModel, data: configMapObj })
   );
 
-  return [secretName, clusterKmsResources];
+  return clusterKmsResources;
 };
 
 const getClusterThalesResources = (
@@ -501,28 +524,32 @@ export const getPort = (url: URL) => {
   return url.port;
 };
 
+// CSI KMS ConfigMap and Secrets always needs to be created in ODF install namespace (that is, where Rook is deployed)
 export const createCsiKmsResources = (
   kms: KMSConfiguration,
   update: boolean,
-  ns: string,
+  odfNamespace: string,
   provider = ProviderNames.VAULT
 ): Promise<K8sResourceKind>[] => {
   switch (provider) {
     case ProviderNames.VAULT: {
-      return getCsiVaultResources(kms as VaultConfig, update, ns);
+      return getCsiVaultResources(kms as VaultConfig, update, odfNamespace);
     }
     case ProviderNames.HPCS: {
-      return getCsiHpcsResources(kms as HpcsConfig, update, ns);
+      return getCsiHpcsResources(kms as HpcsConfig, update, odfNamespace);
     }
     case ProviderNames.THALES: {
-      return getCsiThalesResources(kms as ThalesConfig, update, ns);
+      return getCsiThalesResources(kms as ThalesConfig, update, odfNamespace);
     }
   }
 };
 
+// CSI KMS ConfigMap and Secrets always needs to be created in ODF install namespace (that is, where Rook is deployed)
+// OCS KMS ConfigMap and Secrets needs to be created in the namespace where Ceph is being deployed (StorageSystem namespace)
 export const createClusterKmsResources = (
   kms: KMSConfiguration,
-  ns: string,
+  storageClusterNs: string,
+  odfNamespace: string,
   provider = ProviderNames.VAULT,
   isMCGStandalone = false
 ): Promise<K8sResourceKind>[] => {
@@ -537,27 +564,22 @@ export const createClusterKmsResources = (
       ].supportedEncryptionType.includes(KmsEncryptionLevel.STORAGE_CLASS);
 
       const clusterKmsResources = clusterWideSupported
-        ? getClusterVaultResources(kms as VaultConfig, ns)
+        ? getClusterVaultResources(kms as VaultConfig, storageClusterNs)
         : [];
       const csiKmsResources =
         !isMCGStandalone && storageClassSupported
-          ? getCsiVaultResources(
-              kms as VaultConfig,
-              false,
-              ns,
-              !clusterWideSupported
-            )
+          ? getCsiVaultResources(kms as VaultConfig, false, odfNamespace, true)
           : [];
 
       return [...clusterKmsResources, ...csiKmsResources];
     }
     case ProviderNames.HPCS: {
-      const [secretName, clusterKmsResources] = getClusterHpcsResources(
+      const clusterKmsResources = getClusterHpcsResources(
         kms as HpcsConfig,
-        ns
+        storageClusterNs
       );
       const csiKmsResources = !isMCGStandalone
-        ? getCsiHpcsResources(kms as HpcsConfig, false, ns, secretName)
+        ? getCsiHpcsResources(kms as HpcsConfig, false, odfNamespace)
         : [];
 
       return [...clusterKmsResources, ...csiKmsResources];
@@ -565,10 +587,10 @@ export const createClusterKmsResources = (
     case ProviderNames.THALES: {
       const clusterKmsResources = getClusterThalesResources(
         kms as ThalesConfig,
-        ns
+        storageClusterNs
       );
       const csiKmsResources = !isMCGStandalone
-        ? getCsiThalesResources(kms as ThalesConfig, false, ns)
+        ? getCsiThalesResources(kms as ThalesConfig, false, odfNamespace)
         : [];
       return [...clusterKmsResources, ...csiKmsResources];
     }
