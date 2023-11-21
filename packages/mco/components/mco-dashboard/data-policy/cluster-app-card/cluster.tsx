@@ -205,7 +205,7 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
   return (
     <div className="mco-dashboard__contentColumn">
       <Text component={TextVariants.h1}>{totalAppSetsCount || 0}</Text>
-      <StatusText>{t('Total applications (ApplicationSet)')}</StatusText>
+      <StatusText>{t('Total applications')}</StatusText>
       <Text className="text-muted mco-dashboard__statusText--margin">
         {t(' {{ protectedAppSetsCount }} protected apps', {
           protectedAppSetsCount,
