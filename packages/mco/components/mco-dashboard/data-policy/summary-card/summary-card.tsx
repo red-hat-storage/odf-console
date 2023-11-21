@@ -109,9 +109,9 @@ export const SummaryCard: React.FC = () => {
                 {t('Applications')}
                 <FieldLevelHelp>
                   <Trans t={t}>
-                    The applications count displays the total number of{' '}
-                    <b>ApplicationSet</b> type applications in all disaster
-                    recovery configured clusters.
+                    The applications count displays the total number of
+                    ApplicationSet and Subscription type applications in all
+                    disaster recovery configured clusters.
                   </Trans>
                 </FieldLevelHelp>
               </Text>
