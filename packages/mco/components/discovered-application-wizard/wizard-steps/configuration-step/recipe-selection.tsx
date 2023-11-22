@@ -8,7 +8,14 @@ import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { FormGroup, SelectOption, Text } from '@patternfly/react-core';
+import { SelectOption } from '@patternfly/react-core/deprecated';
+import {
+  FormGroup,
+  Text,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+} from '@patternfly/react-core';
 import {
   EnrollDiscoveredApplicationAction,
   EnrollDiscoveredApplicationStateType,
@@ -82,15 +89,12 @@ export const RecipeSelection: React.FC<RecipeSelectionProps> = ({
 
   return (
     <>
+      {/* todo(bipuladh): Add form validation again */}
       {searchLoaded && !searchError ? (
         <FormGroup
           label={t('Recipe list')}
           fieldId="recipe-selection"
-          helperTextInvalid={
-            !recipeOptions.length ? t('No recipe found') : t('Required')
-          }
           isRequired
-          validated={recipeValidated}
         >
           <Text>
             {t(
@@ -108,6 +112,13 @@ export const RecipeSelection: React.FC<RecipeSelectionProps> = ({
             validated={recipeValidated}
             isDisabled={!recipeOptions.length}
           />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant={recipeValidated}>
+                {!recipeOptions.length ? t('No recipe found') : t('Required')}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
         </FormGroup>
       ) : (
         <StatusBox loaded={searchLoaded} loadError={searchError} />

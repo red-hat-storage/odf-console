@@ -7,7 +7,12 @@ import { getName } from '@odf/shared/selectors';
 import { SecretKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Control } from 'react-hook-form';
-import { Button, TextInput, InputGroup } from '@patternfly/react-core';
+import {
+  Button,
+  TextInput,
+  InputGroup,
+  InputGroupItem,
+} from '@patternfly/react-core';
 import { AWS_REGIONS, BC_PROVIDERS, StoreType } from '../../constants';
 import './noobaa-provider-endpoints.scss';
 import { awsRegionItems, endpointsSupported } from '../../utils';
@@ -118,9 +123,9 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
           render={({ value, onChange, onBlur }) => (
             <TextInput
               data-test={`${type.toLowerCase()}-s3-endpoint`}
-              onChange={(e) => {
+              onChange={(e, val) => {
                 onChange(e);
-                dispatch({ type: 'setEndpoint', value: e });
+                dispatch({ type: 'setEndpoint', value: val });
               }}
               onBlur={onBlur}
               id="endpoint"
@@ -143,29 +148,33 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
             isRequired: true,
           }}
           render={({ onChange, onBlur }) => (
-            <InputGroup>
-              <ResourceDropdown<SecretKind>
-                className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
-                onSelect={(res) => {
-                  const value = getName(res);
-                  onChange(value);
-                  dispatch({ type: 'setSecretName', value });
-                }}
-                onBlur={onBlur}
-                resource={{
-                  kind: SecretModel.kind,
-                  isList: true,
-                  namespace,
-                }}
-                resourceModel={SecretModel}
-              />
-              <Button
-                variant="plain"
-                data-test="switch-to-creds"
-                onClick={switchToCredentials}
-              >
-                {t('Switch to Credentials')}
-              </Button>
+            <InputGroup translate={undefined}>
+              <InputGroupItem>
+                <ResourceDropdown<SecretKind>
+                  className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
+                  onSelect={(res) => {
+                    const value = getName(res);
+                    onChange(value);
+                    dispatch({ type: 'setSecretName', value });
+                  }}
+                  onBlur={onBlur}
+                  resource={{
+                    kind: SecretModel.kind,
+                    isList: true,
+                    namespace,
+                  }}
+                  resourceModel={SecretModel}
+                />
+              </InputGroupItem>
+              <InputGroupItem>
+                <Button
+                  variant="plain"
+                  data-test="switch-to-creds"
+                  onClick={switchToCredentials}
+                >
+                  {t('Switch to Credentials')}
+                </Button>
+              </InputGroupItem>
             </InputGroup>
           )}
         />
@@ -180,21 +189,25 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
               fieldId: 'access-key',
             }}
             render={({ value, onChange, onBlur }) => (
-              <InputGroup>
-                <TextInput
-                  id="access-key"
-                  data-test={`${type.toLowerCase()}-access-key`}
-                  value={value}
-                  onChange={(e) => {
-                    onChange(e);
-                    dispatch({ type: 'setAccessKey', value: e });
-                  }}
-                  onBlur={onBlur}
-                  aria-label={t('Access Key Field')}
-                />
-                <Button variant="plain" onClick={switchToSecret}>
-                  {t('Switch to Secret')}
-                </Button>
+              <InputGroup translate={undefined}>
+                <InputGroupItem isFill>
+                  <TextInput
+                    id="access-key"
+                    data-test={`${type.toLowerCase()}-access-key`}
+                    value={value}
+                    onChange={(e, val) => {
+                      onChange(e);
+                      dispatch({ type: 'setAccessKey', value: val });
+                    }}
+                    onBlur={onBlur}
+                    aria-label={t('Access Key Field')}
+                  />
+                </InputGroupItem>
+                <InputGroupItem>
+                  <Button variant="plain" onClick={switchToSecret}>
+                    {t('Switch to Secret')}
+                  </Button>
+                </InputGroupItem>
               </InputGroup>
             )}
           />
@@ -212,9 +225,9 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
                 value={value}
                 id="secret-key"
                 data-test={`${type.toLowerCase()}-secret-key`}
-                onChange={(e) => {
+                onChange={(e, val) => {
                   onChange(e);
-                  dispatch({ type: 'setSecretKey', value: e });
+                  dispatch({ type: 'setSecretKey', value: val });
                 }}
                 onBlur={onBlur}
                 aria-label={t('Secret Key Field')}
@@ -239,9 +252,9 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
             id="target-bucket"
             value={value}
             data-test={`${type.toLowerCase()}-target-bucket`}
-            onChange={(e) => {
+            onChange={(e, val) => {
               onChange(e);
-              dispatch({ type: 'setTarget', value: e });
+              dispatch({ type: 'setTarget', value: val });
             }}
             onBlur={onBlur}
             aria-label={targetLabel}

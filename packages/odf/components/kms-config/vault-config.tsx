@@ -10,6 +10,11 @@ import {
   FormSelect,
   FormSelectOption,
   Button,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  ValidatedOptions,
+  Icon,
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
 import { ProviderStateMap } from '../../constants';
@@ -137,12 +142,11 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
         fieldId="authentication-method"
         label={t('Authentication method')}
         className={`${className}__form-body`}
-        helperTextInvalid={t('This is a required field')}
         isRequired
       >
         <FormSelect
           value={vaultState.authMethod}
-          onChange={setAuthMethod}
+          onChange={(_ev, value) => setAuthMethod(value as VaultAuthMethods)}
           id="authentication-method"
           name="authentication-method"
           aria-label={t('authentication-method')}
@@ -157,6 +161,14 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
             />
           ))}
         </FormSelect>
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem variant={isValid(!!vaultState.authMethod)}>
+              {isValid(!!vaultState.authMethod) === ValidatedOptions.error &&
+                t('This is a required field')}
+            </HelperTextItem>
+          </HelperText>
+        </FormHelperText>
       </FormGroup>
       <ValutConnectionForm
         {...{
@@ -244,11 +256,9 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
           vaultState.clientCert ||
           vaultState.clientKey ||
           vaultState.providerNamespace) && (
-          <PencilAltIcon
-            data-test="edit-icon"
-            size="sm"
-            color={blueInfoColor.value}
-          />
+          <Icon size="sm">
+            <PencilAltIcon data-test="edit-icon" color={blueInfoColor.value} />
+          </Icon>
         )}
       </Button>
     </>

@@ -67,7 +67,9 @@ export const Configuration: React.FC<ConfigurationProps> = ({
                 value={ProtectionMethodType.RECIPE}
                 description={t('Secure namespaces as per recipe definition.')}
                 label={<strong>{t('Recipe')}</strong>}
-                onChange={setProtectionMethod}
+                onChange={(event, _unUsed) =>
+                  setProtectionMethod(_unUsed, event)
+                }
                 checked={protectionMethod === ProtectionMethodType.RECIPE}
               />
             </GridItem>
@@ -80,7 +82,9 @@ export const Configuration: React.FC<ConfigurationProps> = ({
                   'Secure selected namespace by defining resource label expressions.'
                 )}
                 label={<strong>{t('Resource label')} </strong>}
-                onChange={setProtectionMethod}
+                onChange={(event, _unUsed) =>
+                  setProtectionMethod(_unUsed, event)
+                }
                 checked={
                   protectionMethod === ProtectionMethodType.RESOURCE_LABEL
                 }

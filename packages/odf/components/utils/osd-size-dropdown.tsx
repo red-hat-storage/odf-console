@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { SelectOption } from '@patternfly/react-core';
 import { OSD_CAPACITY_SIZES } from '../../constants';
 import '../../style.scss';
 

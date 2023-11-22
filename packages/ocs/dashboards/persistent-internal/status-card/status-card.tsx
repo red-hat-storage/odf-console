@@ -20,7 +20,6 @@ import {
 import {
   AlertItem,
   AlertsBody,
-  HealthBody,
   HealthItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
@@ -174,33 +173,31 @@ export const StatusCard: React.FC = () => {
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <HealthBody>
-          <Gallery className="odf-overview-status__health" hasGutter>
-            <GalleryItem>
-              <HealthItem
-                title={t('Storage Cluster')}
-                state={cephHealthState.state}
-                details={cephHealthState.message}
-                popupTitle={healthChecks ? t('Active health checks') : null}
-              >
-                {healthChecks?.map((healthCheck: CephHealthCheckType, i) => (
-                  <CephHealthCheck
-                    key={`${i}`}
-                    cephHealthState={cephHealthState}
-                    healthCheck={healthCheck}
-                  />
-                ))}
-              </HealthItem>
-            </GalleryItem>
-            <GalleryItem>
-              <HealthItem
-                title={t('Data Resiliency')}
-                state={dataResiliencyState.state}
-                details={dataResiliencyState.message}
-              />
-            </GalleryItem>
-          </Gallery>
-        </HealthBody>
+        <Gallery className="odf-overview-status__health" hasGutter>
+          <GalleryItem>
+            <HealthItem
+              title={t('Storage Cluster')}
+              state={cephHealthState.state}
+              details={cephHealthState.message}
+              popupTitle={healthChecks ? t('Active health checks') : null}
+            >
+              {healthChecks?.map((healthCheck: CephHealthCheckType, i) => (
+                <CephHealthCheck
+                  key={`${i}`}
+                  cephHealthState={cephHealthState}
+                  healthCheck={healthCheck}
+                />
+              ))}
+            </HealthItem>
+          </GalleryItem>
+          <GalleryItem>
+            <HealthItem
+              title={t('Data Resiliency')}
+              state={dataResiliencyState.state}
+              details={dataResiliencyState.message}
+            />
+          </GalleryItem>
+        </Gallery>
         <OSDMigrationProgress
           cephData={cephCluster}
           dataLoaded={loaded}

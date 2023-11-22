@@ -3,7 +3,7 @@
 .mco-dashboard {
     &__title {
         font-weight: var(--pf-c-card__title--FontWeight);
-        margin-bottom: var(--pf-global--spacer--xs);
+        margin-bottom: var(--pf-v5-global--spacer--xs);
     }
 
     &__contentRow {
@@ -24,13 +24,13 @@
         width: 100%;
     }
     &__statusText--weight {
-        font-weight: var(--pf-global--FontWeight--bold)
+        font-weight: var(--pf-v5-global--FontWeight--bold)
     }
     &__statusText--size {
-        font-size: var(--pf-global--FontSize--md);
+        font-size: var(--pf-v5-global--FontSize--md);
     }
     &__statusText--margin {
-        margin-bottom: var(--pf-global--spacer--sm);
+        margin-bottom: var(--pf-v5-global--spacer--sm);
     }
 }
 

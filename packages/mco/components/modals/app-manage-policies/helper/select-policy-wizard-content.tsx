@@ -5,8 +5,15 @@ import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown'
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
-import { Form, FormGroup, SelectOption } from '@patternfly/react-core';
+import {
+  Form,
+  FormGroup,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+} from '@patternfly/react-core';
 import {
   ManagePolicyStateAction,
   ManagePolicyStateType,
@@ -50,14 +57,6 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
           fieldId="policy-type-selector"
           label={t('Policy name')}
           isRequired
-          validated={getValidatedProp(isValidationEnabled && !name)}
-          helperTextInvalid={t('Required')}
-          helperText={
-            !!policy &&
-            t('Status: {{status}}', {
-              status: getDRPolicyStatus(policy.isValidated, t),
-            })
-          }
         >
           <SingleSelectDropdown
             placeholderText={t('Select a policy')}
@@ -76,6 +75,21 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
               }
             }}
           />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>
+                {!!policy &&
+                  t('Status: {{status}}', {
+                    status: getDRPolicyStatus(policy.isValidated, t),
+                  })}
+              </HelperTextItem>
+              <HelperTextItem
+                variant={getValidatedProp(isValidationEnabled && !name)}
+              >
+                {t('Required')}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
         </FormGroup>
       </Form>
     );

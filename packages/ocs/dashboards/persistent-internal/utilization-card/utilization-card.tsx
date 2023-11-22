@@ -13,13 +13,7 @@ import {
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import { useParams } from 'react-router-dom-v5-compat';
-import {
-  Card,
-  CardActions,
-  CardHeader,
-  CardTitle,
-  Grid,
-} from '@patternfly/react-core';
+import { Card, CardHeader, CardTitle, Grid } from '@patternfly/react-core';
 import {
   StorageDashboardQuery,
   utilizationPopoverQueryMap,
@@ -120,8 +114,18 @@ const UtilizationCard: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>
+      <CardHeader
+        actions={{
+          actions: (
+            <>
+              <UtilizationDurationDropdown />
+            </>
+          ),
+          hasNoOffset: false,
+          className: undefined,
+        }}
+      >
+        <CardTitle className="co-utilization-card__title">
           {t('Utilization')}
           <FieldLevelHelp>
             {t(
@@ -129,9 +133,6 @@ const UtilizationCard: React.FC = () => {
             )}
           </FieldLevelHelp>
         </CardTitle>
-        <CardActions>
-          <UtilizationDurationDropdown />
-        </CardActions>
       </CardHeader>
       <UtilizationContent />
     </Card>

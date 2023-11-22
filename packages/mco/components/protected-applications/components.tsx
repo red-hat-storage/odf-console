@@ -26,7 +26,6 @@ import {
 import {
   InProgressIcon,
   OutlinedQuestionCircleIcon,
-  IconSize,
 } from '@patternfly/react-icons';
 import { ENROLLED_APP_QUERY_PARAMS_KEY } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
@@ -137,10 +136,7 @@ export const EnrollApplicationButton: React.FC<{ isNoDataMessage?: boolean }> =
                 'pf-u-mt-md': isNoDataMessage,
               })}
             >
-              <OutlinedQuestionCircleIcon
-                size={IconSize.sm}
-                className="pf-u-mr-sm"
-              />
+              <OutlinedQuestionCircleIcon className="pf-u-mr-sm" />
               {t('Application types and their enrollment processes')}
             </div>
           }
@@ -330,7 +326,7 @@ export const EventsDetails: React.FC<ExpandableComponentProps> = ({
   ];
   const status = [
     <>
-      <InProgressIcon size={IconSize.sm} /> {t('In progress')}
+      <InProgressIcon /> {t('In progress')}
     </>,
   ];
   return (

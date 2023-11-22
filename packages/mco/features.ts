@@ -102,7 +102,6 @@ export const detectSSAR = async (
         kind: 'SelfSubjectAccessReview',
         spec: { resourceAttributes: ssarChecks[flagKey] },
       },
-      cluster: HUB_CLUSTER_NAME,
     })) as SelfSubjectAccessReviewKind;
     const isAllowed = result?.status?.allowed;
     setFlag(flagKey, isAllowed);

@@ -19,18 +19,15 @@ import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
 import { isFunctionThenApply } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import * as _ from 'lodash-es';
-import { useParams } from 'react-router-dom-v5-compat';
 import {
   Select,
   SelectGroup,
   SelectOption,
   SelectProps,
-  Card,
-  CardBody,
-  CardHeader,
-  CardTitle,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
+import * as _ from 'lodash-es';
+import { useParams } from 'react-router-dom-v5-compat';
+import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import {
   OCS_OPERATOR,
   ServiceType,

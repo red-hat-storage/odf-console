@@ -1,5 +1,12 @@
 // Mostly just a copy-paste from patternfly.
 import * as React from 'react';
+import { ChartLegendTooltipStyles } from '@patternfly/react-charts/dist/js/components/ChartTheme/ChartStyles';
+import {
+  getLegendTooltipSize,
+  getLegendTooltipDataProps,
+  getLegendTooltipVisibleData,
+  getLegendTooltipVisibleText,
+} from '@patternfly/react-charts/dist/js/components/ChartUtils/chart-tooltip';
 import { defaults } from 'lodash-es';
 //@ts-ignore
 import { Helpers } from 'victory-core';
@@ -7,16 +14,11 @@ import {
   ChartLegend,
   ChartLabel,
   getTheme,
-  getLegendTooltipDataProps,
-  getLegendTooltipVisibleData,
-  ChartLegendTooltipStyles,
-  getLegendTooltipSize,
-  getLegendTooltipVisibleText,
   ChartLegendTooltipContentProps,
-  ChartLegendLabelProps,
   ChartLegendTooltipProps,
   ChartCursorTooltip,
   ChartTooltip,
+  ChartLegendTooltipLabelProps,
 } from '@patternfly/react-charts';
 import { DataPoint } from '../utils';
 
@@ -38,14 +40,13 @@ export const ChartLegendTooltipContent: React.FunctionComponent<
   legendData,
   text,
   themeColor,
-  themeVariant,
   title,
   titleComponent = <ChartLabel />,
   width,
   stack,
   mainDataName,
   // destructure last
-  theme = getTheme(themeColor, themeVariant),
+  theme = getTheme(themeColor),
   ...rest
 }) => {
   const pointerLength = theme?.tooltip
@@ -183,7 +184,7 @@ export const ChartLegendTooltipContent: React.FunctionComponent<
 };
 ChartLegendTooltipContent.displayName = 'ChartLegendTooltipContent';
 
-export const ChartLegendTooltipLabel: React.FunctionComponent<ChartLegendLabelProps> =
+export const ChartLegendTooltipLabel: React.FunctionComponent<ChartLegendTooltipLabelProps> =
   ({
     index = 0,
     legendData,
@@ -195,7 +196,7 @@ export const ChartLegendTooltipLabel: React.FunctionComponent<ChartLegendLabelPr
 
     // destructure last
     ...rest
-  }: ChartLegendLabelProps) => {
+  }: ChartLegendTooltipLabelProps) => {
     const getStyle = (styles: any) => {
       const applyDefaultStyle = (customStyle: React.CSSProperties) =>
         defaults(
@@ -249,14 +250,13 @@ export const ChartLegendTooltip: React.FunctionComponent<
   legendData,
   text,
   themeColor,
-  themeVariant,
   width,
   stack,
   formatDate,
   getLabel,
 
   // destructure last
-  theme = getTheme(themeColor, themeVariant),
+  theme = getTheme(themeColor),
   ...rest
 }) => {
   const title = (d) => {

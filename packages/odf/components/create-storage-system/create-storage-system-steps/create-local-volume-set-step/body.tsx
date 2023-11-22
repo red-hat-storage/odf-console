@@ -21,11 +21,11 @@ import { NodeKind } from '@odf/shared/types';
 import { StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { SelectOption } from '@patternfly/react-core';
 import {
   FormGroup,
   TextInput,
@@ -35,6 +35,9 @@ import {
   Text,
   TextVariants,
   Tooltip,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
 } from '@patternfly/react-core';
 import { getValidatedDeviceTypes } from '../../../../utils';
 import validationRegEx from '../../../../utils/validation';
@@ -250,17 +253,25 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
         label={t('LocalVolumeSet name')}
         isRequired
         fieldId="create-lvs-volume-set-name"
-        helperText={t(
-          'A LocalVolumeSet will be created to allow you to filter a set of disks, group them and create a dedicated StorageClass to consume storage from them.'
-        )}
       >
         <TextInput
           type={TextInputTypes.text}
           id="create-lvs-volume-set-name"
           value={state.volumeSetName}
-          onChange={(name: string) => formHandler('volumeSetName', name)}
+          onChange={(_event, name: string) =>
+            formHandler('volumeSetName', name)
+          }
           isRequired
         />
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem>
+              {t(
+                'A LocalVolumeSet will be created to allow you to filter a set of disks, group them and create a dedicated StorageClass to consume storage from them.'
+              )}
+            </HelperTextItem>
+          </HelperText>
+        </FormHelperText>
       </FormGroup>
       <TextInputWithFieldRequirements
         control={control}
@@ -297,7 +308,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
         name={RADIO_GROUP_NAME}
         value={FilterDiskBy.ALL_NODES}
         isChecked={radio === FilterDiskBy.ALL_NODES}
-        onChange={onRadioSelect}
+        onChange={(event, _unused) => onRadioSelect(_unused, event)}
         id="create-lvs-radio-all-nodes"
         className="odf-create-lvs__all-nodes-radio--padding"
       />
@@ -309,7 +320,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
         name={RADIO_GROUP_NAME}
         value={FilterDiskBy.SELECTED_NODES}
         isChecked={radio === FilterDiskBy.SELECTED_NODES}
-        onChange={onRadioSelect}
+        onChange={(event, _unused) => onRadioSelect(_unused, event)}
         id="create-lvs-radio-select-nodes"
       />
       {radio === FilterDiskBy.SELECTED_NODES && (
@@ -406,7 +417,9 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
                   className="odf-create-lvs__disk-input"
                   onFocus={() => setMinActiveState(true)}
                   onBlur={() => setMinActiveState(false)}
-                  onChange={(size: string) => formHandler('minDiskSize', size)}
+                  onChange={(_event, size: string) =>
+                    formHandler('minDiskSize', size)
+                  }
                 />
               </Tooltip>
             </FormGroup>
@@ -443,7 +456,9 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
                   className="odf-create-lvs__disk-input"
                   onFocus={() => setMaxActiveState(true)}
                   onBlur={() => setMaxActiveState(false)}
-                  onChange={(value) => formHandler('maxDiskSize', value)}
+                  onChange={(_event, value) =>
+                    formHandler('maxDiskSize', value)
+                  }
                 />
               </Tooltip>
             </FormGroup>
@@ -482,7 +497,9 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
               value={state.maxDiskLimit}
               validated={validMaxDiskLimit ? 'default' : 'error'}
               className="odf-create-lvs__disk-input"
-              onChange={(maxLimit) => formHandler('maxDiskLimit', maxLimit)}
+              onChange={(_event, maxLimit) =>
+                formHandler('maxDiskLimit', maxLimit)
+              }
               placeholder={t('All')}
             />
           </Tooltip>

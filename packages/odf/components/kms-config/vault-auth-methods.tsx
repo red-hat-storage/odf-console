@@ -7,6 +7,10 @@ import {
   Button,
   ValidatedOptions,
   Tooltip,
+  InputGroupItem,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
 } from '@patternfly/react-core';
 import { EyeIcon, EyeSlashIcon } from '@patternfly/react-icons';
 import { VaultConfig } from '../../types';
@@ -24,43 +28,51 @@ export const VaultTokenConfigure: React.FC<VaultAuthMethodProps> = ({
   return (
     <FormGroup
       fieldId="vault-token"
-      label={t('plugin__odf-console~Token')}
+      label={t('Token')}
       className={className}
-      helperTextInvalid={t('plugin__odf-console~This is a required field')}
-      validated={isValid(vaultState.authValue?.valid)}
-      helperText={
-        isScEncryption &&
-        t(
-          'plugin__odf-console~Create a secret with the token for every namespace using encrypted PVCs.'
-        )
-      }
       isRequired
     >
-      <InputGroup className="ocs-install-kms__form-token">
-        <TextInput
-          value={vaultState.authValue?.value}
-          onChange={setAuthValue}
-          type={revealToken ? 'text' : 'password'}
-          id="vault-token"
-          name="vault-token"
-          isRequired
-          validated={isValid(vaultState.authValue?.valid)}
-        />
-        <Tooltip
-          content={
-            revealToken
-              ? t('plugin__odf-console~Hide token')
-              : t('plugin__odf-console~Reveal token')
-          }
-        >
-          <Button
-            variant="control"
-            onClick={() => setRevealToken(!revealToken)}
+      <InputGroup className="ocs-install-kms__form-token" translate={t}>
+        <InputGroupItem isFill>
+          <TextInput
+            value={vaultState.authValue?.value}
+            onChange={setAuthValue}
+            type={revealToken ? 'text' : 'password'}
+            id="vault-token"
+            name="vault-token"
+            isRequired
+            validated={isValid(vaultState.authValue?.valid)}
+          />
+        </InputGroupItem>
+        <InputGroupItem>
+          <Tooltip
+            content={
+              revealToken
+                ? t('plugin__odf-console~Hide token')
+                : t('plugin__odf-console~Reveal token')
+            }
           >
-            {revealToken ? <EyeSlashIcon /> : <EyeIcon />}
-          </Button>
-        </Tooltip>
+            <Button
+              variant="control"
+              onClick={() => setRevealToken(!revealToken)}
+            >
+              {revealToken ? <EyeSlashIcon /> : <EyeIcon />}
+            </Button>
+          </Tooltip>
+        </InputGroupItem>
       </InputGroup>
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem variant={isValid(vaultState.authValue.valid)}>
+            {isValid(vaultState.authValue.valid) === ValidatedOptions.default
+              ? isScEncryption &&
+                t(
+                  'Create a secret with the token for every namespace using encrypted PVCs.'
+                )
+              : t('This is a required field')}
+          </HelperTextItem>
+        </HelperText>
+      </FormHelperText>
     </FormGroup>
   );
 };
@@ -77,8 +89,6 @@ export const VaultServiceAccountConfigure: React.FC<VaultAuthMethodProps> = ({
       fieldId="vault-sa-role"
       label={t('plugin__odf-console~Role')}
       className={className}
-      helperTextInvalid={t('plugin__odf-console~This is a required field')}
-      validated={isValid(vaultState.authValue?.valid)}
       isRequired
     >
       <TextInput
@@ -90,6 +100,14 @@ export const VaultServiceAccountConfigure: React.FC<VaultAuthMethodProps> = ({
         isRequired
         validated={isValid(vaultState.authValue?.valid)}
       />
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem variant={isValid(vaultState.authValue?.valid)}>
+            {isValid(vaultState.authValue?.valid) === ValidatedOptions.error &&
+              t('This is a required field')}
+          </HelperTextItem>
+        </HelperText>
+      </FormHelperText>
     </FormGroup>
   );
 };

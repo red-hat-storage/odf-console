@@ -26,9 +26,13 @@ import {
   ListPageFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+} from '@patternfly/react-table/deprecated';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { Table, TableHeader, TableBody } from '@patternfly/react-table';
 import { IRow, sortable } from '@patternfly/react-table';
 import { WizardNodeState, WizardState } from '../reducer';
 import { SelectNodesTableFooter } from './select-nodes-table-footer';

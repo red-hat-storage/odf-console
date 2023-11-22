@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { OCSStorageClusterModel } from '@odf/shared/models';
+import { WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
-import { WizardStep } from '@patternfly/react-core';
 import { Steps, StepsName } from '../../constants';
 import { BackingStorageType, DeploymentType } from '../../types';
 import {

@@ -201,7 +201,7 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
             data-test="bucket-class-description"
             id="bc-description"
             value={state.description}
-            onChange={(description) =>
+            onChange={(_event, description) =>
               dispatch({ type: 'setDescription', value: description })
             }
             aria-label={t('Description of bucket class')}

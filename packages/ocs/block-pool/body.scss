@@ -1,22 +1,22 @@
 .ceph-block-pool-body__input {
-  margin: var(--pf-global--spacer--lg) 0 !important;
+  margin: var(--pf-v5-global--spacer--lg) 0 !important;
 }
 
 .ceph-block-pool__switch {
-  --pf-c-switch--FontSize: var(--pf-global--FontSize--xs) !important;
+  --pf-c-switch--FontSize: var(--pf-v5-global--FontSize--xs) !important;
   --pf-c-switch__input--focus__toggle--OutlineWidth: 0 !important; // To disable the switch focus border
 }
 
 .ceph-block-pool__error-icon {
-  color: var(--pf-global--danger-color--100) !important;
+  color: var(--pf-v5-global--danger-color--100) !important;
 }
 
 .ceph-block-pool__check-icon {
-  color: var(--pf-global--success-color--100) !important;
+  color: var(--pf-v5-global--success-color--100) !important;
 }
 
 .ceph-block-pool__alert {
-  --pf-global--FontSize--md: 0.8rem;
+  --pf-v5-global--FontSize--md: 0.8rem;
 }
 
 .ceph-block-pool__dropdown-description > div {

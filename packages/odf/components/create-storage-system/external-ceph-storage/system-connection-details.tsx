@@ -35,6 +35,9 @@ import {
   FileUpload,
   FileUploadProps,
   Form,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
 } from '@patternfly/react-core';
 import './system-connection-details.scss';
 
@@ -76,9 +79,9 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
     annotations?.['external.features.ocs.openshift.io/export-script']
   );
 
-  const handleFileChange: FileUploadProps['onChange'] = (
-    fData: string,
-    fName
+  const handleDataChange: FileUploadProps['onDataChange'] = (
+    _event,
+    fData: string
   ) => {
     if (isValidJSON(fData)) {
       const { plainKeys, secretKeys } = getValidationKeys(
@@ -96,9 +99,15 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
       );
       setFormState('errorMessage', fData ? invalidString : '');
     }
-
-    setFormState('fileName', fName);
     setFormState('fileData', fData);
+  };
+
+  const handleFileChange: FileUploadProps['onFileInputChange'] = (
+    event,
+    file: File
+  ) => {
+    const fName = file.name;
+    setFormState('fileName', fName);
   };
 
   return (
@@ -111,29 +120,34 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
           label={t('External storage system metadata')}
           fieldId="external-storage-system-metadata"
           className="odf-connection-details__form-group"
-          helperText={
-            <div className="odf-connection-details__helper-text">
-              <Trans t={t as any} ns="plugin__odf-console">
-                Download <code>{{ SCRIPT_NAME }}</code> script and run on the
-                RHCS cluster, then upload the results (JSON) in the External
-                storage system metadata field.
-              </Trans>{' '}
-              {downloadFile && (
-                <a
-                  id="downloadAnchorElem"
-                  href={downloadFile}
-                  download="ceph-external-cluster-details-exporter.py"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t('Download script')}
-                </a>
-              )}
-            </div>
-          }
-          helperTextInvalid={errorMessage}
-          validated={errorMessage ? 'error' : 'default'}
         >
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>
+                <div className="odf-connection-details__helper-text">
+                  <Trans t={t as any} ns="plugin__odf-console">
+                    Download <code>{{ SCRIPT_NAME }}</code> script and run on
+                    the RHCS cluster, then upload the results (JSON) in the
+                    External storage system metadata field.
+                  </Trans>{' '}
+                  {downloadFile && (
+                    <a
+                      id="downloadAnchorElem"
+                      href={downloadFile}
+                      download="ceph-external-cluster-details-exporter.py"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t('Download script')}
+                    </a>
+                  )}
+                </div>
+              </HelperTextItem>
+              {errorMessage && (
+                <HelperTextItem variant="error">{errorMessage}</HelperTextItem>
+              )}
+            </HelperText>
+          </FormHelperText>
           <FileUpload
             id="external-storage-system-metadata"
             className="odf-connection-details__file-upload"
@@ -145,9 +159,10 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
             isLoading={isLoading}
             validated={errorMessage ? 'error' : 'default'}
             dropzoneProps={{
-              accept: '.json',
+              accept: { 'text/json': ['.json'] },
             }}
-            onChange={handleFileChange}
+            onFileInputChange={handleFileChange}
+            onDataChange={handleDataChange}
             onReadStarted={() => setFormState('isLoading', true)}
             onReadFinished={() => setFormState('isLoading', false)}
             browseButtonText={t('Browse')}

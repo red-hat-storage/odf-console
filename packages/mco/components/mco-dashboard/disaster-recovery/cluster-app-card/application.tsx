@@ -295,7 +295,6 @@ export const SubscriptionDetailsTable: React.FC<SubscriptionDetailsTableProps> =
             loadError=""
           />
           <Pagination
-            perPageComponent="button"
             itemCount={numberOfRows}
             widgetId="subscription-table"
             perPage={perPage}

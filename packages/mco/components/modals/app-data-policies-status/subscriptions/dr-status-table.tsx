@@ -7,6 +7,7 @@ import {
 } from '@odf/shared/details-page/datetime';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
+import { Table } from '@patternfly/react-table/deprecated';
 import * as _ from 'lodash-es';
 import {
   Flex,
@@ -17,7 +18,6 @@ import {
   Tooltip,
 } from '@patternfly/react-core';
 import {
-  TableComposable,
   Tbody,
   Tr,
   Td,
@@ -166,7 +166,7 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
         </TextContent>
       </FlexItem>
       <FlexItem className="mco-dr-subs-status-table__box">
-        <TableComposable
+        <Table
           {...reactPropFix}
           variant="compact"
           aria-label={t('Application list')}
@@ -224,7 +224,7 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
               </Tr>
             ))}
           </Tbody>
-        </TableComposable>
+        </Table>
       </FlexItem>
     </Flex>
   );

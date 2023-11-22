@@ -120,7 +120,7 @@ export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({
   );
 
   const [columns] = useActiveColumns({
-    columns: SelectedNodesTableColumns,
+    columns: SelectedNodesTableColumns as any, // Todo(bipuladh): Update once sdk is updated
     showNamespaceOverride: false,
     columnManagementID: 'SELECTED_NODES',
   });

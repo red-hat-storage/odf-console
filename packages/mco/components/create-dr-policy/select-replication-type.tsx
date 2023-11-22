@@ -3,9 +3,13 @@ import { parseSyncInterval } from '@odf/mco/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
-import { SelectOption } from '@patternfly/react-core/next';
 import { TFunction } from 'i18next';
-import { FormGroup, Alert, AlertVariant } from '@patternfly/react-core';
+import {
+  FormGroup,
+  Alert,
+  AlertVariant,
+  SelectOption,
+} from '@patternfly/react-core';
 import {
   REPLICATION_TYPE,
   REPLICATION_DISPLAY_TEXT,

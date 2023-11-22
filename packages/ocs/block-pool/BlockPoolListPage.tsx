@@ -93,7 +93,7 @@ const tableColumnInfo = [
     className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
     id: 'compressionSavings',
   },
-  { className: 'dropdown-kebab-pf pf-c-table__action', id: '' },
+  { className: Kebab.columnClass, id: '' },
 ];
 
 type BlockPoolListProps = {

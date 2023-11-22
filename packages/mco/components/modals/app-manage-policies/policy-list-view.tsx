@@ -20,7 +20,7 @@ import {
   EmptyStateVariant,
   EmptyStateIcon,
   EmptyStateBody,
-  Title,
+  EmptyStateHeader,
 } from '@patternfly/react-core';
 import { InfoCircleIcon } from '@patternfly/react-icons';
 import { Messages } from './helper/messages';
@@ -208,13 +208,19 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
       <div className="mco-manage-policies__col-padding">
         {unFilteredAssignedPolicyLength === 0 ? (
           <EmptyState
-            variant={EmptyStateVariant.large}
+            variant={EmptyStateVariant.lg}
             className="mco-manage-policies__emptyState---margin-bottom"
           >
-            <EmptyStateIcon icon={InfoCircleIcon} color={blueInfoColor.value} />
-            <Title headingLevel="h3" size="lg">
-              {t('No assigned data policy found')}
-            </Title>
+            <EmptyStateHeader
+              titleText={<>{t('No assigned data policy found')}</>}
+              icon={
+                <EmptyStateIcon
+                  icon={InfoCircleIcon}
+                  color={blueInfoColor.value}
+                />
+              }
+              headingLevel="h3"
+            />
             <EmptyStateBody>
               {t(
                 "You haven't set a data policy for your application yet. To protect your application, click the 'Assign data policy' button and select a policy from the available templates."
@@ -239,7 +245,6 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
               setPolicy={setPolicy}
             />
             <Pagination
-              perPageComponent="button"
               itemCount={policies?.length || 0}
               widgetId="data-policy-list"
               perPage={perPage}

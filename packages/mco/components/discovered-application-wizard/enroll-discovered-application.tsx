@@ -5,14 +5,9 @@ import {
 } from '@odf/mco/constants';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
-import {
-  Text,
-  TextContent,
-  TextVariants,
-  Wizard,
-  WizardStep,
-} from '@patternfly/react-core';
+import { Text, TextContent, TextVariants } from '@patternfly/react-core';
 import { EnrollDiscoveredApplicationFooter } from './footer';
 import {
   EnrollDiscoveredApplicationState,

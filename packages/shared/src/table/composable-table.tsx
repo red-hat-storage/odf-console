@@ -3,7 +3,7 @@ import { StatusBox } from '@odf/shared/generic/status-box';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import {
   SortByDirection,
-  TableComposable,
+  Table,
   Tbody,
   Th,
   ThProps,
@@ -63,11 +63,7 @@ export const ComposableTable: ComposableTableProps = <
       NoDataEmptyMsg={noDataMsg}
       skeleton={<div className="loading-skeleton--table pf-u-mt-lg" />}
     >
-      <TableComposable
-        translate={null}
-        aria-label="Composable table"
-        variant="compact"
-      >
+      <Table translate={null} aria-label="Composable table" variant="compact">
         <Thead translate={null}>
           <Tr translate={null}>
             {columns?.map((col, index) => (
@@ -91,7 +87,7 @@ export const ComposableTable: ComposableTableProps = <
             />
           ))}
         </Tbody>
-      </TableComposable>
+      </Table>
     </StatusBox>
   );
 };

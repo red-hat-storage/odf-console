@@ -5,7 +5,6 @@ import {
 } from '@odf/mco//models';
 import {
   DR_SECHEDULER_NAME,
-  HUB_CLUSTER_NAME,
   PROTECTED_APP_ANNOTATION_WO_SLASH,
 } from '@odf/mco/constants';
 import { getDRPCKindObj } from '@odf/mco/utils';
@@ -41,7 +40,6 @@ export const placementUnAssignPromise = (drpc: DRPlacementControlType) => {
       },
     },
     data: patch,
-    cluster: HUB_CLUSTER_NAME,
   });
 };
 
@@ -63,7 +61,6 @@ export const unAssignPromises = (drpcs: DRPlacementControlType[]) => {
         },
         requestInit: null,
         json: null,
-        cluster: HUB_CLUSTER_NAME,
       })
     );
   });
@@ -94,7 +91,6 @@ const placementAssignPromise = (placement: PlacementType) => {
       },
     },
     data: patch,
-    cluster: HUB_CLUSTER_NAME,
   });
 };
 
@@ -114,7 +110,6 @@ const placementRuleAssignPromise = (placement: PlacementType) => {
         value: DR_SECHEDULER_NAME,
       },
     ],
-    cluster: HUB_CLUSTER_NAME,
   });
 };
 
@@ -149,7 +144,6 @@ export const assignPromises = (
           placement.deploymentClusters,
           labels
         ),
-        cluster: HUB_CLUSTER_NAME,
       })
     );
   });

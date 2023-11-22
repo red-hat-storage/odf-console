@@ -4,7 +4,7 @@ import {
   SelectOption,
   SelectVariant,
   SelectProps,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
@@ -43,7 +43,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     <Select
       variant={variant || SelectVariant.typeaheadMulti}
       aria-label={t('Select input')}
-      onToggle={setOpen}
+      onToggle={() => setOpen((o) => !o)}
       onSelect={onSelect}
       selections={selections}
       isOpen={isOpen}

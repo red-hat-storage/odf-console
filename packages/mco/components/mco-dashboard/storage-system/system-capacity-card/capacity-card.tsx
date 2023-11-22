@@ -389,7 +389,7 @@ const SystemCapacityCard: React.FC = () => {
               type="text"
               className="odf-capacityCard__filter--width"
               aria-label={t('cluster name search')}
-              onChange={onChange}
+              onChange={(_event, searchValue: string) => onChange(searchValue)}
             />
             <Button
               variant={ButtonVariant.control}

@@ -120,7 +120,7 @@ export const DiskListModal: React.FC<DiskListModalProps> = ({
   }, [t]);
 
   const [columns] = useActiveColumns({
-    columns: DiskHeader,
+    columns: DiskHeader as any, // Todo(bipuldh): Remove any after SDK update
     showNamespaceOverride: false,
     columnManagementID: 'DISKS_LIST',
   });

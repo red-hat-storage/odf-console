@@ -4,14 +4,16 @@ import {
   EnrollDiscoveredApplicationSteps,
 } from '@odf/mco/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import {
+  WizardContextType,
+  WizardContext,
+  WizardFooter,
+} from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import {
   Button,
   ButtonVariant,
   ButtonType,
-  WizardContextType,
-  WizardContext,
-  WizardFooter,
   Alert,
   AlertVariant,
 } from '@patternfly/react-core';

@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { Select, SelectProps, SelectVariant } from '@patternfly/react-core';
+import {
+  Select,
+  SelectProps,
+  SelectVariant,
+} from '@patternfly/react-core/deprecated';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
@@ -37,7 +41,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
         {...props}
         variant={SelectVariant.single}
         aria-label={t('Select input')}
-        onToggle={setOpen}
+        onToggle={() => setOpen((o) => !o)}
         onSelect={onSelect}
         selections={selectedKey}
         isOpen={isOpen}

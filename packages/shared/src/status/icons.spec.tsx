@@ -79,14 +79,11 @@ describe('GreenCheckCircleIcon', () => {
     expect(icon).toHaveAttribute('color', '#3e8635');
   });
 
-  it('renders a green check circle icon with custom size, classnames and title', () => {
-    render(
-      <GreenCheckCircleIcon size="lg" title="custom" className="custom" />
-    );
+  it('renders a green check circle icon with custom classnames and title', () => {
+    render(<GreenCheckCircleIcon title="custom" className="custom" />);
 
     expect(mockCheckCircleIcon).toHaveBeenCalledWith(
       expect.objectContaining({
-        size: 'lg',
         title: 'custom',
         className: 'custom',
       })
@@ -113,14 +110,11 @@ describe('RedExclamationCircleIcon', () => {
     expect(icon).toHaveAttribute('color', '#c9190b');
   });
 
-  it('renders a red exclamation circle icon with custom size, classnames and title', () => {
-    render(
-      <RedExclamationCircleIcon size="lg" title="custom" className="custom" />
-    );
+  it('renders a red exclamation circle icon with custom classnames and title', () => {
+    render(<RedExclamationCircleIcon title="custom" className="custom" />);
 
     expect(mockExclamationCircleIcon).toHaveBeenCalledWith(
       expect.objectContaining({
-        size: 'lg',
         title: 'custom',
         className: 'custom',
       })
@@ -147,18 +141,11 @@ describe('YellowExclamationTriangleIcon', () => {
     expect(icon).toHaveAttribute('color', '#f0ab00');
   });
 
-  it('renders a yellow exclamation triangle icon with custom size, classnames and title', () => {
-    render(
-      <YellowExclamationTriangleIcon
-        size="lg"
-        title="custom"
-        className="custom"
-      />
-    );
+  it('renders a yellow exclamation triangle icon with custom classnames and title', () => {
+    render(<YellowExclamationTriangleIcon title="custom" className="custom" />);
 
     expect(mockExclamationTriangleIcon).toHaveBeenCalledWith(
       expect.objectContaining({
-        size: 'lg',
         title: 'custom',
         className: 'custom',
       })
@@ -337,7 +324,7 @@ describe('BlueArrowCircleUpIcon', () => {
     const { getByTestId } = render(<BlueArrowCircleUpIcon />);
     const icon = getByTestId('mock-arrow-circle-up-icon');
 
-    expect(icon).toHaveAttribute('color', '#009596');
+    expect(icon).toHaveAttribute('color', '#2b9af3');
   });
 
   it('renders a blue arrow circle up icon with custom size, classnames and title', () => {

@@ -25,7 +25,6 @@ export const useK8sGet = <R extends K8sResourceCommon = K8sResourceCommon>(
           model: kind,
           name: name,
           ns: namespace,
-          cluster: cluster,
         })) as R;
         setData(resource);
       } catch (error) {

@@ -3,7 +3,15 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { FormGroup, TextInput, FileUpload } from '@patternfly/react-core';
+import {
+  FormGroup,
+  TextInput,
+  FileUpload,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  ValidatedOptions,
+} from '@patternfly/react-core';
 import { KMSMaxFileUploadSize } from '../../constants';
 import { ThalesConfig, ProviderNames } from '../../types';
 import { NameAddrPort, isValid } from './name-address-port';
@@ -88,8 +96,6 @@ const FileUploadInput: React.FC<FileUploadInputProps> = ({
       key={`thales-${id}`}
       fieldId={id}
       label={inputName}
-      helperTextInvalid={thalesState[id].error}
-      validated={isValid(!thalesState[id].error)}
       className={`${className}__form-body`}
       isRequired
     >
@@ -97,16 +103,26 @@ const FileUploadInput: React.FC<FileUploadInputProps> = ({
         id={id}
         value={thalesState[id].value}
         filename={thalesState[id].fileName}
-        onChange={updateCertificate}
+        onFileInputChange={(_event, file) => updateCertificate(file, file.name)}
         hideDefaultPreview
         filenamePlaceholder={t('Upload a .PEM file here...')}
         dropzoneProps={{
-          accept: '.pem',
+          accept: {
+            'text/plain': ['.pem'],
+          },
           maxSize: KMSMaxFileUploadSize,
           onDropRejected: () => setError(KMSFileSizeErrorMsg),
         }}
         data-test={id}
       />
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem variant={isValid(!thalesState[id].error)}>
+            {isValid(thalesState[id].error) === ValidatedOptions.default &&
+              thalesState[id].error}
+          </HelperTextItem>
+        </HelperText>
+      </FormHelperText>
     </FormGroup>
   );
 };
@@ -187,16 +203,11 @@ export const ThalesConfigure: React.FC<KMSConfigureProps> = ({
           fieldId="kms-unique-id"
           label={t('Unique identifier')}
           className={`${className}__form-body`}
-          helperTextInvalid={t('This is a required field')}
-          validated={isValid(thalesState.uniqueId.valid)}
-          helperText={t(
-            'Unique ID of the key used for encrypting/decrypting. This only applies to encrpyted PVCs.'
-          )}
           isRequired
         >
           <TextInput
             value={thalesState.uniqueId.value}
-            onChange={setUniqueID}
+            onChange={(_event, id: string) => setUniqueID(id)}
             type="text"
             id="kms-unique-id"
             name="kms-unique-id"
@@ -204,24 +215,42 @@ export const ThalesConfigure: React.FC<KMSConfigureProps> = ({
             validated={isValid(thalesState.uniqueId.valid)}
             data-test="kms-unique-id"
           />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant={isValid(thalesState.uniqueId.valid)}>
+                {isValid(thalesState.uniqueId.valid) ===
+                ValidatedOptions.default
+                  ? t(
+                      'Unique ID of the key used for encrypting/decrypting. This only applies to encrpyted PVCs.'
+                    )
+                  : t('This is a required field')}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
         </FormGroup>
       )}
       <FormGroup
         fieldId="kms-tls-server"
         label={t('TLS server name')}
         className={`${className}__form-body`}
-        helperText={t(
-          'The endpoint server name. Useful when the KMIP endpoint does not have a DNS entry.'
-        )}
       >
         <TextInput
           value={thalesState.tls}
-          onChange={setTLSServer}
+          onChange={(_event, serverName: string) => setTLSServer(serverName)}
           type="text"
           id="kms-tls-server"
           name="kms-tls-server"
           data-test="kms-tls-server"
         />
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem>
+              {t(
+                'The endpoint server name. Useful when the KMIP endpoint does not have a DNS entry.'
+              )}
+            </HelperTextItem>
+          </HelperText>
+        </FormHelperText>
       </FormGroup>
     </>
   );

@@ -85,7 +85,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
       >
         <FormSelect
           value={kmsProvider}
-          onChange={setKMSProvider}
+          onChange={(_event, value) => setKMSProvider(value as ProviderNames)}
           id="kms-provider"
           name="kms-provider-name"
           aria-label={t('kms-provider-name')}

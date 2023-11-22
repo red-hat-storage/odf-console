@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  HUB_CLUSTER_NAME,
   ALL_APPS,
   applicationDetails,
   APPLICATION_TYPE,
@@ -134,7 +133,6 @@ const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
     kind: referenceForModel(MirrorPeerModel),
     isList: true,
     namespaced: false,
-    cluster: HUB_CLUSTER_NAME,
   });
   const peerClusters = getClusterNamesFromMirrorPeers(
     mirrorPeers || [],
@@ -234,7 +232,6 @@ export const ClusterAppCard: React.FC = () => {
     namespace: cluster,
     namespaced: true,
     optional: true,
-    cluster: HUB_CLUSTER_NAME,
   });
   const [lastSyncTimeData, lastSyncTimeError, lastSyncTimeLoading] =
     useCustomPrometheusPoll({

@@ -4,12 +4,12 @@ import { backingStoreResource } from '@odf/core/resources';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  Alert,
   Dropdown,
   DropdownItem,
   DropdownSeparator,
   DropdownToggle,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
+import { Alert } from '@patternfly/react-core';
 import { BackingStoreKind } from '../../types';
 import '../../style.scss';
 

@@ -3,24 +3,24 @@
 }
 
 .rich-input__group {
-  border-color: var(--pf-global--BorderColor--300)
-    var(--pf-global--BorderColor--300) var(--pf-global--info-color--100)
-    var(--pf-global--BorderColor--300);
-  border-width: var(--pf-global--BorderWidth--sm);
-  border-bottom-width: var(--pf-global--BorderWidth--md);
+  border-color: var(--pf-v5-global--BorderColor--300)
+    var(--pf-v5-global--BorderColor--300) var(--pf-v5-global--info-color--100)
+    var(--pf-v5-global--BorderColor--300);
+  border-width: var(--pf-v5-global--BorderWidth--sm);
+  border-bottom-width: var(--pf-v5-global--BorderWidth--md);
   border-style: solid;
 }
 
 .rich-input__group--success {
-  border-bottom-color: var(--pf-global--success-color--100);
-  border-width: var(--pf-global--BorderWidth--sm);
-  border-bottom-width: var(--pf-global--BorderWidth--md);
+  border-bottom-color: var(--pf-v5-global--success-color--100);
+  border-width: var(--pf-v5-global--BorderWidth--sm);
+  border-bottom-width: var(--pf-v5-global--BorderWidth--md);
 }
 
 .rich-input__group--invalid {
-  border-bottom-color: var(--pf-global--danger-color--100);
-  border-width: var(--pf-global--BorderWidth--sm);
-  border-bottom-width: var(--pf-global--BorderWidth--md);
+  border-bottom-color: var(--pf-v5-global--danger-color--100);
+  border-width: var(--pf-v5-global--BorderWidth--sm);
+  border-bottom-width: var(--pf-v5-global--BorderWidth--md);
 }
 
 .rich-input__text {

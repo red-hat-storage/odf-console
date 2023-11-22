@@ -17,16 +17,15 @@ import {
   LazyNameValueEditor,
   NameValueEditorPair,
 } from '@odf/shared/utils/NameValueEditor';
+import { SelectOption, SelectVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import {
   Button,
   Form,
   FormGroup,
+  Text,
   Grid,
   GridItem,
-  SelectOption,
-  SelectVariant,
-  Text,
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
 import { queryAppWorkloadPVCs } from '../../../../utils/acm-search-quries';
@@ -153,14 +152,8 @@ const PairElement: React.FC<PairElementProps> = ({
   return (
     <Grid hasGutter>
       <GridItem lg={5} sm={5}>
-        <FormGroup
-          hasNoPaddingTop
-          isRequired
-          validated={getValidatedProp(
-            isValidationEnabled && !selectedPlacement
-          )}
-          helperTextInvalid={t('Required')}
-        >
+        <FormGroup hasNoPaddingTop isRequired>
+          {/* Add validation */}
           <SingleSelectDropdown
             id="placement-selection-dropdown"
             selectedKey={selectedPlacement}
@@ -178,15 +171,10 @@ const PairElement: React.FC<PairElementProps> = ({
           />
         </FormGroup>
       </GridItem>
+
       <GridItem lg={5} sm={5}>
-        <FormGroup
-          hasNoPaddingTop
-          isRequired
-          validated={getValidatedProp(
-            isValidationEnabled && !selectedLabels?.length
-          )}
-          helperTextInvalid={t('Required')}
-        >
+        <FormGroup hasNoPaddingTop isRequired>
+          {/* Add validation */}
           <MultiSelectDropdown
             id="labels-selection-dropdown"
             selections={selectedLabels}
