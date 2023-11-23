@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useSelectList } from '@odf/shared/hooks/select-list';
 import { getName, getNamespace } from '@odf/shared/selectors';
@@ -12,7 +13,6 @@ import {
   RowProps,
   TableColumn,
   TableData,
-  useK8sWatchResource,
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -140,13 +140,15 @@ const NamespaceStoreListWrapper: React.FC<NamespaceStoreListWrapperProps> = ({
   onSelectNamespaceStore,
   preSelected,
 }) => {
-  const [nsObjects, loaded, loadError] = useK8sWatchResource<
+  const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
+
+  const [nsObjects, loaded, loadError] = useSafeK8sWatchResource<
     NamespaceStoreKind[]
-  >({
+  >((ns: string) => ({
     kind: referenceForModel(NooBaaNamespaceStoreModel),
     isList: true,
-    namespace: CEPH_STORAGE_NAMESPACE,
-  });
+    namespace: ns,
+  }));
   const memoizedResources = useDeepCompareMemoize(nsObjects, true);
 
   const [data, filteredData, onFilterChange] =
@@ -162,15 +164,15 @@ const NamespaceStoreListWrapper: React.FC<NamespaceStoreListWrapperProps> = ({
     <ListPageBody>
       <ListPageFilter
         data={data}
-        loaded={loaded}
+        loaded={loaded && isODFNsLoaded}
         onFilterChange={onFilterChange}
         hideColumnManagement={true}
       />
       <NamespaceStoreList
         data={filteredData}
         unfilteredData={data}
-        loaded={loaded}
-        loadError={loadError}
+        loaded={loaded && isODFNsLoaded}
+        loadError={loadError || odfNsLoadError}
         rowData={{ selectedData: selectedRows, onSelect }}
       />
     </ListPageBody>

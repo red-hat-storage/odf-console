@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { namespaceResource } from '@odf/core/resources';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { getSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
@@ -134,6 +135,8 @@ const BreakdownCard: React.FC = () => {
     pvcNamespace
   );
 
+  const { odfNamespace } = useODFNamespaceSelector();
+
   const [modelByUsed, modelUsedError, modelUsedLoading] =
     useCustomPrometheusPoll({
       query: queries[modelByUsedQueryMap[metricType]],
@@ -224,6 +227,7 @@ const BreakdownCard: React.FC = () => {
           metricModel={model}
           humanize={humanize}
           isPersistentInternal={true}
+          odfNamespace={odfNamespace}
         />
         {metricType === BreakdownCardFieldsWithParams.PVCS &&
           !queriesLoadError &&

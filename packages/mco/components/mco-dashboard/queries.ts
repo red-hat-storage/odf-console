@@ -26,6 +26,7 @@ export const LAST_SYNC_TIME_QUERY = 'ramen_sync_duration_seconds';
 export const getLastSyncPerClusterQuery = () =>
   `${LAST_SYNC_TIME_QUERY}{${DRPC_OBJECT_TYPE}, ${RAMEN_HUB_OPERATOR_METRICS_SERVICE}}`;
 
+// ToDo (epic 4422): Need to update as per updates in the metrics
 export const CAPACITY_QUERIES = {
   [StorageDashboard.TOTAL_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${TOTAL_CAPACITY_FILE_BLOCK_METRIC}`,
   [StorageDashboard.USED_CAPACITY_FILE_BLOCK]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${USED_CAPACITY_FILE_BLOCK_METRIC}`,
@@ -43,6 +44,7 @@ export const getRBDSnapshotUtilizationQuery = (
   return queries[queryName];
 };
 
+// ToDo (epic 4422): Need to update as per updates in the metrics
 export const STATUS_QUERIES = {
   [StorageDashboard.SYSTEM_HEALTH]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy, cluster) group_right(storage_system, target_kind) ${SYSTEM_HEALTH_METRIC}`,
   [StorageDashboard.HEALTH]: SYSTEM_HEALTH_METRIC,

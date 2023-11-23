@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import {
   useCustomPrometheusPoll,
@@ -11,13 +10,13 @@ import {
   PodsOverviewList,
   PodWithMetricsKind,
 } from '@odf/shared/topology/sidebar/common/PodList';
+import { NodeKind, PodKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   PrometheusResponse,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { NodeKind, PodKind } from 'packages/shared/types';
 import { Title } from '@patternfly/react-core';
 import '@odf/shared/topology/sidebar/common/resources-tab.scss';
 
@@ -34,17 +33,19 @@ const getPodMetric = (
 
 type NodeResourcesProps = {
   resource: NodeKind;
+  odfNamespace: string;
 };
 
 export const NodeResources: React.FC<NodeResourcesProps> = ({
   resource: node,
+  odfNamespace,
 }) => {
   const { t } = useCustomTranslation();
   const [pods, loaded, loadError] = useK8sWatchResource<PodWithMetricsKind[]>({
     kind: PodModel.kind,
     isList: true,
     namespaced: true,
-    namespace: CEPH_STORAGE_NAMESPACE,
+    namespace: odfNamespace,
   });
 
   const filteredPods =
@@ -57,13 +58,13 @@ export const NodeResources: React.FC<NodeResourcesProps> = ({
   const basePath = usePrometheusBasePath();
   const [usedCpu, errorUsedCpu, loadingUsedCpu] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as any,
-    query: POD_QUERIES[PodMetrics.CPU],
+    query: POD_QUERIES(odfNamespace)[PodMetrics.CPU],
     basePath: basePath,
   });
   const [usedMemory, errorUsedMemory, loadingUsedMemory] =
     useCustomPrometheusPoll({
       endpoint: 'api/v1/query' as any,
-      query: POD_QUERIES[PodMetrics.MEMORY],
+      query: POD_QUERIES(odfNamespace)[PodMetrics.MEMORY],
       basePath: basePath,
     });
 

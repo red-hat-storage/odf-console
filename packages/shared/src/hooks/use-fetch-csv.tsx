@@ -5,49 +5,68 @@ import {
 } from '@odf/shared/models';
 import { ClusterServiceVersionKind, SubscriptionKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
+import {
+  referenceForModel,
+  getValidWatchK8sResourceObj,
+} from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 
 export const useFetchCsv = ({
   specName,
   namespace,
   cluster,
+  startPollingInstantly = true,
 }: UseFetchCsvProps): UseFetchCsvResult => {
   const { t } = useCustomTranslation();
   const [subs, subsLoaded, subsLoadError] = useK8sWatchResource<
     SubscriptionKind[]
-  >({
-    isList: true,
-    kind: referenceForModel(SubscriptionModel),
-    namespace,
-    cluster: cluster,
+  >(
+    getValidWatchK8sResourceObj(
+      {
+        isList: true,
+        kind: referenceForModel(SubscriptionModel),
+        namespace,
+        cluster: cluster,
+      },
+      startPollingInstantly
+    )
+  );
+  const [csvDetails, setCSVDetails] = React.useState({
+    csvName: null,
+    csvNamespace: null,
   });
-  const csvName = React.useRef<string>(null);
-  const csvNamespace = React.useRef<string>(null);
 
   React.useEffect(() => {
-    if (subsLoaded && !subsLoadError && subs.length) {
+    const alreadyHaveDetails =
+      !!csvDetails.csvName && !!csvDetails.csvNamespace;
+    if (subsLoaded && !subsLoadError && subs?.length && !alreadyHaveDetails) {
       const sub = subs.find((s) => s.spec.name === specName);
-      csvName.current = sub?.status?.installedCSV;
-      csvNamespace.current = sub?.metadata?.namespace;
+      const csvName = sub?.status?.installedCSV;
+      const csvNamespace = sub?.metadata?.namespace;
+      setCSVDetails({ csvName, csvNamespace });
     }
-  }, [specName, subs, subsLoadError, subsLoaded]);
+  }, [specName, subs, subsLoadError, subsLoaded, csvDetails, setCSVDetails]);
 
   const [csv, csvLoaded, csvLoadError] =
-    useK8sWatchResource<ClusterServiceVersionKind>({
-      kind: referenceForModel(ClusterServiceVersionModel),
-      name: csvName.current,
-      namespaced: true,
-      namespace: csvNamespace.current,
-      isList: false,
-      cluster: cluster,
-    });
+    useK8sWatchResource<ClusterServiceVersionKind>(
+      getValidWatchK8sResourceObj(
+        {
+          kind: referenceForModel(ClusterServiceVersionModel),
+          name: csvDetails.csvName,
+          namespaced: true,
+          namespace: csvDetails.csvNamespace,
+          isList: false,
+          cluster: cluster,
+        },
+        csvDetails.csvName !== null && csvDetails.csvNamespace !== null
+      )
+    );
 
-  if (csvName.current === null || csvNamespace.current === null) {
+  if (csvDetails.csvName === null || csvDetails.csvNamespace === null) {
     return [undefined, false, undefined];
   }
 
-  if (!csvName.current || !csvNamespace.current) {
+  if (!csvDetails.csvName || !csvDetails.csvNamespace) {
     return [undefined, true, new Error(t('Not found'))];
   }
 
@@ -59,4 +78,5 @@ type UseFetchCsvProps = {
   specName: string;
   namespace?: string;
   cluster?: string;
+  startPollingInstantly?: boolean;
 };

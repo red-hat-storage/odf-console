@@ -23,6 +23,14 @@ jest.mock(
   })
 );
 
+jest.mock('@odf/core/hooks', () => ({
+  useSafeK8sWatchResource: () => [true, false, false],
+}));
+
+jest.mock('@odf/core/redux', () => ({
+  useODFNamespaceSelector: () => ({ odfNamespace: '' }),
+}));
+
 describe('Capacity Breakdown Card', () => {
   it('renders the Capacity Breakdown Card', () => {
     render(<BreakdownCard />);

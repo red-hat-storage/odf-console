@@ -1,9 +1,10 @@
 import * as React from 'react';
+import { useSafeK8sList } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getOperatorVersion } from '@odf/core/utils';
-import { CEPH_STORAGE_NAMESPACE, ODF_OPERATOR } from '@odf/shared/constants';
+import { ODF_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
-import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import {
   ClusterServiceVersionModel,
   InfrastructureModel,
@@ -19,21 +20,24 @@ import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { CEPH_NS } from '../../constants';
 import { StorageClusterModel } from '../../models';
 import { getNetworkEncryption } from '../../utils';
 
 const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
+
+  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
-  const [ocsData, ocsLoaded, ocsError] = useK8sList<StorageClusterKind>(
+  const [ocsData, ocsLoaded, ocsError] = useSafeK8sList<StorageClusterKind>(
     StorageClusterModel,
-    CEPH_NS
+    odfNamespace
   );
   const [csv, csvLoaded, csvError] = useFetchCsv({
     specName: ODF_OPERATOR,
-    namespace: CEPH_STORAGE_NAMESPACE,
+    namespace: odfNamespace,
+    startPollingInstantly: isNsSafe,
   });
   const infrastructurePlatform = getInfrastructurePlatform(infrastructure);
   const cluster: StorageClusterKind = ocsData?.find(
@@ -48,7 +52,7 @@ const DetailsCard: React.FC = () => {
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
     getName(csv),
-    CEPH_NS
+    odfNamespace
   )}`;
   const serviceName = t('Data Foundation');
   return (
@@ -59,7 +63,7 @@ const DetailsCard: React.FC = () => {
       <CardBody>
         <DetailsBody>
           <DetailItem key="service_name" title={t('Service name')}>
-            {csvLoaded && !csvError ? (
+            {isNsSafe && csvLoaded && !csvError ? (
               <Link data-test="ocs-link" to={servicePath}>
                 {serviceName}
               </Link>
@@ -70,7 +74,7 @@ const DetailsCard: React.FC = () => {
           <DetailItem
             key="cluster_name"
             title={t('Cluster name')}
-            error={ocsError}
+            error={ocsError as any}
             isLoading={!ocsLoaded}
           >
             {ocsName}
@@ -96,7 +100,7 @@ const DetailsCard: React.FC = () => {
             key="inTransitEncryption"
             title={t('In-transit encryption')}
             isLoading={!ocsLoaded}
-            error={ocsError}
+            error={ocsError as any}
           >
             {inTransitEncryptionStatus}
           </DetailItem>

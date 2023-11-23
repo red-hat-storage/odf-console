@@ -12,6 +12,8 @@ export const launchClusterExpansionModal = async (alert, launchModal) => {
     const storageCluster = await k8sGet({
       model: StorageClusterModel,
       name: OCS_INTERNAL_CR_NAME,
+      // ToDo (epic 4422): Get StorageCluster name and namespace from the alert object
+      // else add a wrapper around "AddCapacityModal" and poll for revelant SC there.
       ns: CEPH_STORAGE_NAMESPACE,
     });
     launchModal(AddCapacityModal, { isOpen: true, storageCluster });

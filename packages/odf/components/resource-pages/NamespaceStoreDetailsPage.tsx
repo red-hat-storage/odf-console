@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
@@ -7,7 +8,6 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { RouteComponentProps } from 'react-router';
 import { NooBaaNamespaceStoreModel } from '../../models';
 import { NamespaceStoreKind } from '../../types';
@@ -41,14 +41,16 @@ const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const { resourceName: name } = match.params;
-  const [resource, loaded, loadError] = useK8sWatchResource<NamespaceStoreKind>(
-    {
+
+  const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
+
+  const [resource, loaded, loadError] =
+    useSafeK8sWatchResource<NamespaceStoreKind>((ns: string) => ({
       kind: referenceForModel(NooBaaNamespaceStoreModel),
       name,
-      namespace: CEPH_STORAGE_NAMESPACE,
+      namespace: ns,
       isList: false,
-    }
-  );
+    }));
 
   const breadcrumbs = [
     {
@@ -82,8 +84,8 @@ const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
   return (
     <>
       <DetailsPage
-        loaded={loaded}
-        loadError={loadError}
+        loaded={loaded && isODFNsLoaded}
+        loadError={loadError || odfNsLoadError}
         breadcrumbs={breadcrumbs}
         actions={actions}
         resourceModel={NooBaaNamespaceStoreModel}

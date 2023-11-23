@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { CEPH_STORAGE_LABEL } from '@odf/core/constants';
+import { cephStorageLabel } from '@odf/core/constants';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   getZone,
   nodesWithoutTaints,
@@ -47,9 +48,11 @@ const getRows = (
   visibleRows,
   setVisibleRows,
   selectedNodes,
-  setSelectedNodes
+  setSelectedNodes,
+  ns
 ) => {
   const data = nodesData;
+  const storageLabel = cephStorageLabel(ns);
 
   const filteredData = nodesWithoutTaints(data);
 
@@ -84,7 +87,7 @@ const getRows = (
       cells,
       selected: selectedNodes
         ? selectedNodes.has(node.metadata.uid)
-        : hasLabel(node, CEPH_STORAGE_LABEL),
+        : hasLabel(node, storageLabel),
       props: {
         id: node.metadata.uid,
       },
@@ -97,7 +100,7 @@ const getRows = (
     setVisibleRows(uids);
     if (!selectedNodes?.size && filteredData.length) {
       const preSelected = filteredData.filter((row) =>
-        hasLabel(row, CEPH_STORAGE_LABEL)
+        hasLabel(row, storageLabel)
       );
       setSelectedNodes(preSelected);
     }
@@ -118,6 +121,8 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
   nodesData,
 }) => {
   const { t } = useCustomTranslation();
+
+  const { odfNamespace } = useODFNamespaceSelector();
 
   const getColumns = React.useMemo(
     () => [
@@ -171,7 +176,8 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
           visibleRows,
           setVisibleRows,
           selectedNodes,
-          setSelectedNodes
+          setSelectedNodes,
+          odfNamespace
         )}
         cells={getColumns}
         onSelect={onSelect}

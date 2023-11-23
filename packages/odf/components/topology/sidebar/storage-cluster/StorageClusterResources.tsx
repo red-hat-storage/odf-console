@@ -1,38 +1,40 @@
 import * as React from 'react';
-import { CEPH_STORAGE_LABEL } from '@odf/core/constants';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { cephStorageLabel } from '@odf/core/constants';
+import { useSafeK8sWatchResources } from '@odf/core/hooks';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { DeploymentModel, NodeModel } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getUID } from '@odf/shared/selectors';
 import { nodeStatus } from '@odf/shared/status/Node';
 import { Status } from '@odf/shared/status/Status';
+import { DeploymentKind, NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
   ResourceStatus,
-  useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { DeploymentKind, NodeKind } from 'packages/shared/types';
 import { Title } from '@patternfly/react-core';
 import '@odf/shared/topology/sidebar/common/resources-tab.scss';
 
-const watchResources = {
-  nodes: {
-    isList: true,
-    kind: NodeModel.kind,
-    selector: {
-      matchLabels: { [CEPH_STORAGE_LABEL]: '' },
+const watchResources = (ns: string) => {
+  const storageLabel = cephStorageLabel(ns);
+  return {
+    nodes: {
+      isList: true,
+      kind: NodeModel.kind,
+      selector: {
+        matchLabels: { [storageLabel]: '' },
+      },
     },
-  },
-  deployments: {
-    isList: true,
-    kind: DeploymentModel.kind,
-    namespace: CEPH_STORAGE_NAMESPACE,
-    namespaced: true,
-  },
+    deployments: {
+      isList: true,
+      kind: DeploymentModel.kind,
+      namespace: ns,
+      namespaced: true,
+    },
+  };
 };
 
 type NodeOverviewItemProps = {
@@ -130,9 +132,10 @@ const DeploymentOverviewList: React.FC<DeploymentOverviewListProps> = ({
 
 export const StorageClusterResources: React.FC<{
   resource?: K8sResourceCommon;
+  odfNamespace?: string;
 }> = () => {
   const { t } = useCustomTranslation();
-  const clusterResources = useK8sWatchResources(watchResources);
+  const clusterResources = useSafeK8sWatchResources(watchResources);
 
   const nodes = (clusterResources?.nodes?.data ?? []) as NodeKind[];
   const nodesLoaded = clusterResources?.nodes?.loaded;

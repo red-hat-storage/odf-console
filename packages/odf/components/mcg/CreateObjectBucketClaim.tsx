@@ -39,10 +39,13 @@ import {
   FormGroup,
   Alert,
 } from '@patternfly/react-core';
+import NamespaceSafetyBox from '../../components/utils/safety-box';
 import {
   NooBaaObjectBucketClaimModel,
   NooBaaBucketClassModel,
 } from '../../models';
+import { useODFNamespaceSelector } from '../../redux';
+import { isObjectSC } from '../../utils';
 import { ReplicationPolicyForm, Rule } from './replication-policy-form';
 import {
   Action,
@@ -59,6 +62,19 @@ import './create-obc.scss';
 import '../../style.scss';
 import useObcNameSchema from './useObcNameSchema';
 
+const storageClassResource = {
+  kind: StorageClassModel.kind,
+  namespaced: false,
+  isList: true,
+};
+
+const bucketClassResource = (ns: string) => ({
+  kind: referenceForModel(NooBaaBucketClassModel),
+  namespaced: true,
+  isList: true,
+  namespace: ns,
+});
+
 type CreateOBCFormProps = {
   state: State;
   dispatch: React.Dispatch<Action>;
@@ -68,14 +84,6 @@ type CreateOBCFormProps = {
 };
 
 export const NB_PROVISIONER = 'noobaa.io/obc';
-
-const objectStorageProvisioners = [
-  'openshift-storage.noobaa.io/obc',
-  'openshift-storage.ceph.rook.io/bucket',
-];
-
-export const isObjectSC = (sc: StorageClassResourceKind) =>
-  objectStorageProvisioners.includes(_.get(sc, 'provisioner'));
 
 const createReplicationRulesAndStringify = (
   data: ReplicationRuleFormData[],
@@ -138,6 +146,8 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   const { t } = useCustomTranslation();
   const { state, dispatch, namespace, control, fieldRequirements } = props;
   const isNoobaa = state.scProvisioner?.includes(NB_PROVISIONER);
+
+  const { odfNamespace } = useODFNamespaceSelector();
 
   const onScChange = (sc, setScName: (value: string) => void) => {
     const scName = getName(sc);
@@ -221,19 +231,6 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
     state.logReplicationInfo,
   ]);
 
-  const storageClassResource = {
-    kind: StorageClassModel.kind,
-    namespaced: false,
-    isList: true,
-  };
-
-  const bucketClassResource = {
-    kind: referenceForModel(NooBaaBucketClassModel),
-    namespaced: true,
-    isList: true,
-    namespace: 'openshift-storage',
-  };
-
   const onChangeReplication = React.useCallback(() => {
     // if this checkbox is disabled, then on this point we purge the contents of replication form data
     if (replicationEnabled)
@@ -243,6 +240,11 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       });
     toggleReplication(!replicationEnabled);
   }, [replicationEnabled, dispatch]);
+
+  const filterResource = React.useCallback(
+    (sc: StorageClassResourceKind) => isObjectSC(sc, odfNamespace),
+    [odfNamespace]
+  );
 
   return (
     <>
@@ -285,7 +287,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
             resourceModel={StorageClassModel}
             onSelect={(res) => onScChange(res, onChange)}
             onBlur={onBlur}
-            filterResource={isObjectSC}
+            filterResource={filterResource}
             className="odf-mcg__resource-dropdown"
             id="sc-dropdown"
             data-test="sc-dropdown"
@@ -321,7 +323,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
                 }
                 id="bc-dropdown"
                 data-test="bc-dropdown"
-                resource={bucketClassResource}
+                resource={bucketClassResource(odfNamespace)}
                 resourceModel={NooBaaBucketClassModel}
               />
             )}
@@ -478,6 +480,9 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
       });
   };
 
+  // Operator install namespace is determined using Subscriptions, which non-admin can not access (yet).
+  // Using "allowFallback" in "NamespaceSafetyBox" so that they can default to "openshift-storage" (if case of access issues),
+  // which is current use case as well (as we do not officially support UI if ODF is installed in any other Namespace).
   return (
     <>
       <NamespaceBar />
@@ -488,41 +493,43 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
         <h1 className="odf-m-pane__heading odf-m-pane__heading--baseline">
           <div>{t('Create ObjectBucketClaim')}</div>
         </h1>
-        <Form onSubmit={handleSubmit(save)}>
-          <CreateOBCForm
-            state={state}
-            dispatch={dispatch}
-            namespace={namespace}
-            control={control}
-            fieldRequirements={fieldRequirements}
-          />
-          {!isValid && isSubmitted && (
-            <Alert
-              variant="danger"
-              isInline
-              title={t('Address form errors to proceed')}
+        <NamespaceSafetyBox allowFallback>
+          <Form onSubmit={handleSubmit(save)}>
+            <CreateOBCForm
+              state={state}
+              dispatch={dispatch}
+              namespace={namespace}
+              control={control}
+              fieldRequirements={fieldRequirements}
             />
-          )}
-          <ButtonBar errorMessage={state.error} inProgress={state.progress}>
-            <ActionGroup className="pf-c-form">
-              <Button
-                id={submitBtnId}
-                type="submit"
-                variant="primary"
-                data-test="obc-create"
-              >
-                {t('Create')}
-              </Button>
-              <Button
-                onClick={history.goBack}
-                type="button"
-                variant="secondary"
-              >
-                {t('Cancel')}
-              </Button>
-            </ActionGroup>
-          </ButtonBar>
-        </Form>
+            {!isValid && isSubmitted && (
+              <Alert
+                variant="danger"
+                isInline
+                title={t('Address form errors to proceed')}
+              />
+            )}
+            <ButtonBar errorMessage={state.error} inProgress={state.progress}>
+              <ActionGroup className="pf-c-form">
+                <Button
+                  id={submitBtnId}
+                  type="submit"
+                  variant="primary"
+                  data-test="obc-create"
+                >
+                  {t('Create')}
+                </Button>
+                <Button
+                  onClick={history.goBack}
+                  type="button"
+                  variant="secondary"
+                >
+                  {t('Cancel')}
+                </Button>
+              </ActionGroup>
+            </ButtonBar>
+          </Form>
+        </NamespaceSafetyBox>
       </div>
     </>
   );

@@ -1,4 +1,4 @@
-import { PersistentVolumeClaimKind } from 'packages/shared/types';
+import { PersistentVolumeClaimKind } from '@odf/shared/types';
 import * as Yup from 'yup';
 import { BC_PROVIDERS } from './mcg';
 

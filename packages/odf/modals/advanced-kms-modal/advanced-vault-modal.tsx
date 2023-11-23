@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -27,6 +28,9 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
   const kms = state.kms.providerState as VaultConfig;
 
   const { t } = useCustomTranslation();
+
+  const { odfNamespace } = useODFNamespaceSelector();
+
   const [backendPath, setBackendPath] = React.useState(kms?.backend || '');
   const [authPath, setAuthPath] = React.useState(kms?.providerAuthPath || '');
   const [authNamespace, setAuthNamespace] = React.useState(
@@ -109,13 +113,19 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
     };
 
     caCertificate && caCertificate !== ''
-      ? (kmsAdvanced.caCert = generateCASecret(caCertificate))
+      ? (kmsAdvanced.caCert = generateCASecret(caCertificate, odfNamespace))
       : (kmsAdvanced.caCert = null);
     clientCertificate && clientCertificate !== ''
-      ? (kmsAdvanced.clientCert = generateClientSecret(clientCertificate))
+      ? (kmsAdvanced.clientCert = generateClientSecret(
+          clientCertificate,
+          odfNamespace
+        ))
       : (kmsAdvanced.clientCert = null);
     clientKey && clientCertificate !== ''
-      ? (kmsAdvanced.clientKey = generateClientKeySecret(clientKey))
+      ? (kmsAdvanced.clientKey = generateClientKeySecret(
+          clientKey,
+          odfNamespace
+        ))
       : (kmsAdvanced.clientKey = null);
 
     dispatch({

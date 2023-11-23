@@ -25,8 +25,36 @@ jest.mock('@odf/shared/hooks/useK8sList', () => ({
   ],
 }));
 
+jest.mock('@odf/core/hooks', () => ({
+  __esModule: true,
+  useSafeK8sList: () => [
+    [
+      {
+        metadata: {
+          name: 'existing-ns-name',
+        },
+      },
+    ],
+    true,
+    undefined,
+  ],
+}));
+
+jest.mock('@odf/core/redux', () => ({
+  useODFNamespaceSelector: () => ({
+    odfNamespace: 'test-ns',
+    isODFNsLoaded: true,
+    odfNsLoadError: null,
+    isNsSafe: true,
+    isFallbackSafe: true,
+  }),
+}));
+
+const MockResourceDropdown = (): React.ReactElement => {
+  return <></>;
+};
 jest.mock('@odf/shared/dropdown/ResourceDropdown', () => () => {
-  return <mock-ResourceDropdown />;
+  return <MockResourceDropdown />;
 });
 
 describe('NamespaceStoreForm', () => {

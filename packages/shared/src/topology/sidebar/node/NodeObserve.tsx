@@ -19,6 +19,7 @@ import './node-observe.scss';
 
 type NodeObserveProps = {
   resource: NodeKind;
+  odfNamespace?: string;
 };
 
 export const NodeObserve: React.FC<NodeObserveProps> = ({ resource: node }) => {

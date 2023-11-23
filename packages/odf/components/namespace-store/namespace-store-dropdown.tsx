@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Alert,
   Dropdown,
@@ -29,8 +29,12 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
   const [isOpen, setOpen] = React.useState(false);
   const [dropdownItems, setDropdownItems] = React.useState<JSX.Element[]>([]);
 
-  const [nnsData, , nnsLoadErr] = useK8sWatchResource<NamespaceStoreKind[]>(
-    namespaceStoreResource
+  // Operator install namespace is determined using Subscriptions, which non-admin can not access (yet).
+  // Using "true" in "useSafeK8sWatchResource" so that they can default to "openshift-storage" (if case of access issues),
+  // which is current use case as well (as we do not officially support UI if ODF is installed in any other Namespace).
+  const [nnsData, , nnsLoadErr] = useSafeK8sWatchResource<NamespaceStoreKind[]>(
+    namespaceStoreResource,
+    true
   );
   const noobaaNamespaceStores: NamespaceStoreKind[] = useDeepCompareMemoize(
     nnsData,

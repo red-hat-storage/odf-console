@@ -9,7 +9,6 @@ import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isValidIP } from '@odf/shared/utils';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -21,7 +20,6 @@ import {
   Radio,
   TextArea,
 } from '@patternfly/react-core';
-import { FEATURES } from '../../../features';
 import { NooBaaBucketClassModel } from '../../../models';
 import { BucketClassKind, BucketClassType } from '../../../types';
 import validationRegEx from '../../../utils/validation';
@@ -56,8 +54,6 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
   const { t } = useCustomTranslation();
 
   const [showHelp, setShowHelp] = React.useState(true);
-
-  const isNamespaceStoreSupported = useFlag(FEATURES.OCS_NAMESPACE_STORE);
 
   const [data, loaded, loadError] = useK8sList<BucketClassKind>(
     NooBaaBucketClassModel,
@@ -147,35 +143,32 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
         </Alert>
       )}
       <Form className="nb-create-bc-step-page-form">
-        {isNamespaceStoreSupported && (
-          <FormGroup
-            fieldId="bucketclasstype-radio"
-            className="nb-create-bc-step-page-form__element nb-bucket-class-type-form__element"
-            isRequired
-            label={t('BucketClass type')}
-          >
-            {bucketClassTypeRadios(t).map((radio) => {
-              const checked = radio.value === state.bucketClassType;
-              return (
-                <Radio
-                  key={radio.id}
-                  {...radio}
-                  data-test={`${radio.value.toLowerCase()}-radio`}
-                  onChange={() => {
-                    dispatch({
-                      type: 'setBucketClassType',
-                      value: radio.value,
-                    });
-                  }}
-                  checked={checked}
-                  className="nb-create-bc-step-page-form__radio"
-                  name="bucketclasstype"
-                />
-              );
-            })}
-          </FormGroup>
-        )}
-
+        <FormGroup
+          fieldId="bucketclasstype-radio"
+          className="nb-create-bc-step-page-form__element nb-bucket-class-type-form__element"
+          isRequired
+          label={t('BucketClass type')}
+        >
+          {bucketClassTypeRadios(t).map((radio) => {
+            const checked = radio.value === state.bucketClassType;
+            return (
+              <Radio
+                key={radio.id}
+                {...radio}
+                data-test={`${radio.value.toLowerCase()}-radio`}
+                onChange={() => {
+                  dispatch({
+                    type: 'setBucketClassType',
+                    value: radio.value,
+                  });
+                }}
+                checked={checked}
+                className="nb-create-bc-step-page-form__radio"
+                name="bucketclasstype"
+              />
+            );
+          })}
+        </FormGroup>
         <TextInputWithFieldRequirements
           control={control}
           fieldRequirements={fieldRequirements}

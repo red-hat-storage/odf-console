@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { PVC_PROVISIONER_ANNOTATION } from '@odf/ocs/constants';
 import {
   eventsResource,
@@ -48,6 +49,8 @@ const getClientOperatorSubscription = (
   ) as SubscriptionKind;
 
 const RecentEvent: React.FC = () => {
+  const { odfNamespace } = useODFNamespaceSelector();
+
   const [pvcs, pvcLoaded, pvcLoadError] =
     useK8sWatchResource<PersistentVolumeClaimKind[]>(pvcResource);
   const [events, eventsLoaded, eventsLoadError] =
@@ -61,8 +64,8 @@ const RecentEvent: React.FC = () => {
   const memoizedPVCNames = useDeepCompareMemoize(validPVC, true);
 
   const clientEventsFilter = React.useCallback(
-    () => isPersistentStorageEvent(memoizedPVCNames),
-    [memoizedPVCNames]
+    () => isPersistentStorageEvent(memoizedPVCNames, odfNamespace),
+    [memoizedPVCNames, odfNamespace]
   );
 
   const eventObject = {

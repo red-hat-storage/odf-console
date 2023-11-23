@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { backingStoreResource } from '@odf/core/resources';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Alert,
   Dropdown,
@@ -11,14 +10,7 @@ import {
   DropdownSeparator,
   DropdownToggle,
 } from '@patternfly/react-core';
-import { NooBaaBackingStoreModel } from '../../models';
 import { BackingStoreKind } from '../../types';
-
-export const backingStoreResource = {
-  kind: referenceForModel(NooBaaBackingStoreModel),
-  isList: true,
-  namespace: CEPH_STORAGE_NAMESPACE,
-};
 
 export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
   id,
@@ -32,7 +24,7 @@ export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
   const [isOpen, setOpen] = React.useState(false);
 
   const [nbsData, , nbsLoadErr] =
-    useK8sWatchResource<BackingStoreKind[]>(backingStoreResource);
+    useSafeK8sWatchResource<BackingStoreKind[]>(backingStoreResource);
   const noobaaBackingStores: BackingStoreKind[] = useDeepCompareMemoize(
     nbsData,
     true

@@ -41,6 +41,7 @@ import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
+import { useODFNamespaceSelector } from '../../redux';
 import { OperandStatus } from '../utils';
 import ODFSystemLink from './system-link';
 
@@ -316,6 +317,9 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
+  const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
+    useODFNamespaceSelector();
+
   const [storageSystems, loaded, loadError] = useK8sWatchResource<
     StorageSystemKind[]
   >({
@@ -369,7 +373,7 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
           ?.metadata?.name
       : null;
 
-  const createLink = `/k8s/ns/openshift-storage/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
+  const createLink = `/k8s/ns/${odfNamespace}/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
 
   const normalizedMetrics = React.useMemo(
     () => ({
@@ -388,7 +392,7 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
   return (
     <>
       <ListPageHeader title={t('StorageSystems')}>
-        {odfCsvName && (
+        {odfCsvName && odfNamespace && (
           <ListPageCreateLink to={createLink}>
             {t('Create StorageSystem')}
           </ListPageCreateLink>
@@ -397,15 +401,15 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
       <ListPageBody>
         <ListPageFilter
           data={data}
-          loaded={loaded}
+          loaded={loaded && isODFNsLoaded}
           onFilterChange={onFilterChange}
           hideColumnManagement={true}
         />
         <StorageSystemList
           data={filteredData as StorageSystemKind[]}
           unfilteredData={storageSystems}
-          loaded={loaded}
-          loadError={loadError}
+          loaded={loaded && isODFNsLoaded}
+          loadError={loadError || odfNsLoadError}
           rowData={{ normalizedMetrics }}
         />
       </ListPageBody>

@@ -1,4 +1,7 @@
 import { StorageClusterResource, ResourceConstraints } from '@odf/shared/types';
+import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
+
+export type K8sResourceObj = (ns: string) => WatchK8sResource;
 
 export enum BackingStorageType {
   EXISTING = 'existing',

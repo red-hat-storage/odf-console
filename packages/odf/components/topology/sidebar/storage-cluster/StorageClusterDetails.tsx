@@ -1,18 +1,15 @@
 import * as React from 'react';
-import { CEPH_STORAGE_LABEL } from '@odf/core/constants';
+import { cephStorageLabel } from '@odf/core/constants';
 import { CEPH_FLAG, OCS_INDEPENDENT_FLAG } from '@odf/core/features';
+import { useSafeK8sList } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { nodeResource } from '@odf/core/resources';
-import { CEPH_NS } from '@odf/ocs/constants';
 import { getDataResiliencyState } from '@odf/ocs/dashboards/persistent-internal/status-card/utils';
 import { StorageEfficiencyContent } from '@odf/ocs/dashboards/persistent-internal/storage-efficiency-card/storage-efficiency-card';
 import { StorageClusterModel } from '@odf/ocs/models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '@odf/ocs/queries';
 import { getCephNodes, getOperatorVersion } from '@odf/ocs/utils';
-import {
-  CEPH_STORAGE_NAMESPACE,
-  DASH,
-  ODF_OPERATOR,
-} from '@odf/shared/constants';
+import { DASH, ODF_OPERATOR } from '@odf/shared/constants';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import {
   useCustomPrometheusPoll,
@@ -20,7 +17,6 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
-import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import {
   ClusterServiceVersionModel,
   InfrastructureModel,
@@ -59,11 +55,14 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
   resource: storageCluster,
 }) => {
   const { t } = useCustomTranslation();
+
+  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
-  const [ocsData, ocsLoaded, ocsError] = useK8sList(
+  const [ocsData, ocsLoaded, ocsError] = useSafeK8sList(
     StorageClusterModel,
-    CEPH_NS
+    odfNamespace
   );
   const cluster = ocsData?.find(
     (item: StorageClusterKind) => item.status.phase !== 'Ignored'
@@ -94,20 +93,22 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
 
   const [csv, csvLoaded, csvError] = useFetchCsv({
     specName: ODF_OPERATOR,
-    namespace: CEPH_STORAGE_NAMESPACE,
+    namespace: odfNamespace,
+    startPollingInstantly: isNsSafe,
   });
   const serviceVersion =
     csvLoaded && _.isEmpty(csvError) ? getOperatorVersion(csv) : DASH;
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
     getName(csv),
-    CEPH_NS
+    odfNamespace
   )}`;
   const serviceName = t('Data Foundation');
 
   const [nodesData, nodesLoaded, nodesLoadError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);
-  const ocsNodesHref = `/search?kind=${NodeModel.kind}&q=${CEPH_STORAGE_LABEL}`;
+  const storageLabel = cephStorageLabel(odfNamespace);
+  const ocsNodesHref = `/search?kind=${NodeModel.kind}&q=${storageLabel}`;
 
   return (
     <div className="odf-m-pane__body">
@@ -139,7 +140,7 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
                 isLoading={!nodesLoaded}
                 error={!!nodesLoadError}
                 kind={NodeModel as any}
-                resources={getCephNodes(nodesData)}
+                resources={getCephNodes(nodesData, odfNamespace)}
                 mapper={getNodeStatusGroups}
                 basePath={ocsNodesHref}
               />
@@ -154,7 +155,7 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
             </dd>
             <dt>{t('Service name')}</dt>
             <dd className="text-capitalize">
-              {csvLoaded && !csvError ? (
+              {isNsSafe && csvLoaded && !csvError ? (
                 <Link data-test="ocs-link" to={servicePath}>
                   {serviceName}
                 </Link>

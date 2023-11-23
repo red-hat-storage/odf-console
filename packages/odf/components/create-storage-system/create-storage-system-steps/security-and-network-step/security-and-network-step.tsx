@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { Form } from '@patternfly/react-core';
-import { FEATURES } from '../../../../features';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import { WizardDispatch, WizardState } from '../../reducer';
 import { ConnectionDetails } from '../connection-details-step';
@@ -19,8 +17,6 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
   externalStorage,
   supportedExternalStorage,
 }) => {
-  const isMultusSupported = useFlag(FEATURES.OCS_MULTUS);
-
   const {
     networkType: nwType,
     clusterNetwork,
@@ -61,7 +57,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
         infraType={infraType}
         isExternal={isExternal}
       />
-      {!isExternal && isMultusSupported && (
+      {!isExternal && (
         <NetworkFormGroup
           networkType={nwType}
           setNetworkType={setNetworkType}

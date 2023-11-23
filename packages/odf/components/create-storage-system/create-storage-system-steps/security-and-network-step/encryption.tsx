@@ -2,10 +2,8 @@ import * as React from 'react';
 import { AdvancedSubscription } from '@odf/shared/badges/advanced-subscription';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { Checkbox, FormGroup, Form } from '@patternfly/react-core';
 import { KMSEmptyState } from '../../../../constants';
-import { FEATURES } from '../../../../features';
 import { KMSConfigure } from '../../../kms-config/kms-config';
 import {
   ValidationMessage,
@@ -158,7 +156,6 @@ export const Encryption: React.FC<EncryptionProps> = ({
   isExternal,
 }) => {
   const { t } = useCustomTranslation();
-  const isKmsSupported = useFlag(FEATURES.OCS_KMS);
   const [encryptionChecked, setEncryptionChecked] = React.useState(
     encryption.clusterWide || encryption.storageClass
   );
@@ -251,7 +248,6 @@ export const Encryption: React.FC<EncryptionProps> = ({
             description={description}
             onChange={handleEncryptionOnChange}
             body={
-              isKmsSupported &&
               (isMCG || encryptionChecked) && (
                 <>
                   {!isMCG && (

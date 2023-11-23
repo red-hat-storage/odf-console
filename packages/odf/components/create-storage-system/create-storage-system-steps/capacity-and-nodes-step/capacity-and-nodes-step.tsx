@@ -19,7 +19,6 @@ import {
   attachDevices,
   attachDevicesWithArbiter,
 } from '@odf/core/constants';
-import { FEATURES } from '@odf/core/features';
 import { pvResource, nodeResource } from '@odf/core/resources';
 import { NodesPerZoneMap } from '@odf/core/types';
 import { getSCAvailablePVs, getAssociatedNodes } from '@odf/core/utils';
@@ -29,10 +28,7 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { K8sResourceKind, NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
-import {
-  useK8sWatchResource,
-  useFlag,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
 import {
   Checkbox,
@@ -46,6 +42,7 @@ import {
   TextContent,
   TextInput,
 } from '@patternfly/react-core';
+import { useODFNamespaceSelector } from '../../../../redux';
 import { ValidationMessage } from '../../../utils/common-odf-install-el';
 import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';
@@ -57,7 +54,10 @@ import './capacity-and-nodes.scss';
 const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
   ({ text }) => {
     const { t } = useCustomTranslation();
-    const label = 'cluster.ocs.openshift.io/openshift-storage=""';
+
+    const { odfNamespace } = useODFNamespaceSelector();
+
+    const label = `cluster.ocs.openshift.io/${odfNamespace}=""`;
     return (
       <TextContent>
         <Text>{text}</Text>
@@ -82,9 +82,8 @@ const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
   enableTaint,
 }) => {
   const { t } = useCustomTranslation();
-  const isTaintSupported = useFlag(FEATURES.OCS_TAINT_NODES);
 
-  return isTaintSupported ? (
+  return (
     <Checkbox
       label={t('Taint nodes')}
       description={t(
@@ -101,8 +100,6 @@ const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
         })
       }
     />
-  ) : (
-    <></>
   );
 };
 

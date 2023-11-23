@@ -19,7 +19,7 @@ import './breakdown-card.scss';
 
 export const LinkableLegend: React.FC<LinkableLegendProps> = React.memo(
   (props: LinkableLegendProps) => {
-    const { metricModel, datum, ocsVersion } = props;
+    const { metricModel, datum, ocsVersion, odfNamespace } = props;
     let href: string = metricModel
       ? resourcePathFromModel(metricModel, datum.link, datum.ns)
       : '';
@@ -43,8 +43,8 @@ export const LinkableLegend: React.FC<LinkableLegendProps> = React.memo(
       return customLegend;
     }
     if (metricModel.kind === BUCKETCLASSKIND) {
-      if (ocsVersion) {
-        href = `/k8s/ns/openshift-storage/clusterserviceversions/${ocsVersion}/${referenceForModel(
+      if (ocsVersion && odfNamespace) {
+        href = `/k8s/ns/${odfNamespace}/clusterserviceversions/${ocsVersion}/${referenceForModel(
           metricModel
         )}/${datum.link}`;
       } else {
@@ -67,6 +67,7 @@ export const BreakdownChart: React.FC<BreakdownChartProps> = ({
   metricModel,
   ocsVersion,
   labelPadding,
+  odfNamespace,
 }) => (
   <>
     <Chart
@@ -77,7 +78,11 @@ export const BreakdownChart: React.FC<BreakdownChartProps> = ({
           data={legends}
           y={40}
           labelComponent={
-            <LinkableLegend metricModel={metricModel} ocsVersion={ocsVersion} />
+            <LinkableLegend
+              metricModel={metricModel}
+              ocsVersion={ocsVersion}
+              odfNamespace={odfNamespace}
+            />
           }
           orientation="horizontal"
           symbolSpacer={7}
@@ -137,6 +142,7 @@ export type BreakdownChartProps = {
   metricModel: K8sKind;
   ocsVersion?: string;
   labelPadding?: LabelPadding;
+  odfNamespace?: string;
 };
 
 export type LabelPadding = {
@@ -152,4 +158,5 @@ export type LinkableLegendProps = {
     [key: string]: any;
   };
   ocsVersion?: string;
+  odfNamespace?: string;
 };

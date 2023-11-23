@@ -166,9 +166,9 @@ export const createFlashSystemPayload: CreatePayload<FlashSystemState> = ({
   systemName,
   state,
   model,
+  namespace,
   storageClassName,
 }) => {
-  const namespace = 'openshift-storage';
   const defaultFilesystem = 'ext4';
   const defaultVolumeMode = 'thick';
   const defaultVolumePrefix = 'odf';

@@ -37,7 +37,7 @@ export const getScNamesUsingPool = (
 export const getPerPoolMetrics = (metrics, error, isLoading) =>
   // {"pool-1" : size_bytes, "pool-2" : size_bytes, ...}
   !error && !isLoading
-    ? metrics.data?.result?.reduce(
+    ? metrics?.data?.result?.reduce(
         (arr, obj) => ({ ...arr, [obj.metric?.name]: obj.value[1] }),
         {}
       )

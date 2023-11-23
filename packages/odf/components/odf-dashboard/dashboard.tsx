@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   HorizontalNavTab,
   isHorizontalNavTab,
@@ -95,6 +96,8 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
     [t]
   );
 
+  const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
+
   const [extensions, isLoaded, error] = useResolvedExtensions<HorizontalNavTab>(
     isDashboardTab as ExtensionTypeGuard<HorizontalNavTab>
   );
@@ -125,8 +128,8 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
       <PageHeading title={title} />
       {/** Todo(bipuladh): Move to usage of common PF Tabs component */}
       <StatusBox
-        loaded={isLoaded}
-        loadError={!_.isEmpty(error)}
+        loaded={isLoaded && isODFNsLoaded}
+        loadError={!_.isEmpty(error) || odfNsLoadError}
         data={navItems}
       >
         <HorizontalNav

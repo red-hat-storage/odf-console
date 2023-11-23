@@ -8,6 +8,7 @@ import {
   prettifyJSON,
 } from '@odf/core/components/utils';
 import { IP_FAMILY } from '@odf/core/constants';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { RHCSState } from '@odf/core/types';
 import {
   CanGoToNextStep,
@@ -15,7 +16,6 @@ import {
   StorageClassComponentProps as ExternalComponentProps,
   StorageClassWizardStepExtensionProps as ExternalStorage,
 } from '@odf/odf-plugin-sdk/extensions';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import {
@@ -57,11 +57,15 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
   formState,
 }) => {
   const { t } = useCustomTranslation();
+
+  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+
   const [pods, podsLoaded, podsLoadError] =
     useK8sGet<ListKind<PodKind>>(PodModel);
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: OCS_OPERATOR,
-    namespace: CEPH_STORAGE_NAMESPACE,
+    namespace: odfNamespace,
+    startPollingInstantly: isNsSafe,
   });
 
   const { fileName, fileData, errorMessage, isLoading } = formState;
@@ -160,6 +164,7 @@ export const rhcsPayload: CreatePayload<RHCSState> = ({
   systemName,
   state,
   model,
+  namespace,
   inTransitStatus,
 }) => {
   return [
@@ -170,7 +175,7 @@ export const rhcsPayload: CreatePayload<RHCSState> = ({
         kind: SecretModel.kind,
         metadata: {
           name: 'rook-ceph-external-cluster-details',
-          namespace: CEPH_STORAGE_NAMESPACE,
+          namespace: namespace,
         },
         stringData: {
           external_cluster_details: state.fileData,
@@ -186,7 +191,7 @@ export const rhcsPayload: CreatePayload<RHCSState> = ({
         kind: model.kind,
         metadata: {
           name: systemName,
-          namespace: CEPH_STORAGE_NAMESPACE,
+          namespace: namespace,
         },
         spec: {
           network: {

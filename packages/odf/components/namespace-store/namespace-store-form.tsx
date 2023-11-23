@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE, formSettings } from '@odf/shared/constants';
+import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
+import { useSafeK8sList } from '@odf/core/hooks';
+import { formSettings } from '@odf/shared/constants';
 import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
-import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { PersistentVolumeClaimModel, SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -125,7 +126,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
 
   const { onCancel, className, redirectHandler, namespace } = props;
 
-  const [data, loaded, loadError] = useK8sList<NamespaceStoreKind>(
+  const [data, loaded, loadError] = useSafeK8sList<NamespaceStoreKind>(
     NooBaaNamespaceStoreModel,
     namespace
   );
@@ -262,146 +263,152 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
   };
 
   return (
-    <Form
-      className={classNames('nb-endpoints-form', 'co-m-pane__body', className)}
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate={false}
-    >
-      <TextInputWithFieldRequirements
-        control={control}
-        fieldRequirements={fieldRequirements}
-        popoverProps={{
-          headerContent: t('Name requirements'),
-          footerContent: `${t('Example')}: my-namespacestore`,
-        }}
-        formGroupProps={{
-          label: t('Namespace store name'),
-          fieldId: 'namespacestore-name',
-          className: 'nb-endpoints-form-entry',
-          isRequired: true,
-        }}
-        textInputProps={{
-          id: 'ns-name',
-          name: 'ns-name',
-          'data-test': 'namespacestore-name',
-          placeholder: 'my-namespacestore',
-        }}
-      />
+    <NamespaceSafetyBox>
+      <Form
+        className={classNames(
+          'nb-endpoints-form',
+          'co-m-pane__body',
+          className
+        )}
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate={false}
+      >
+        <TextInputWithFieldRequirements
+          control={control}
+          fieldRequirements={fieldRequirements}
+          popoverProps={{
+            headerContent: t('Name requirements'),
+            footerContent: `${t('Example')}: my-namespacestore`,
+          }}
+          formGroupProps={{
+            label: t('Namespace store name'),
+            fieldId: 'namespacestore-name',
+            className: 'nb-endpoints-form-entry',
+            isRequired: true,
+          }}
+          textInputProps={{
+            id: 'ns-name',
+            name: 'ns-name',
+            'data-test': 'namespacestore-name',
+            placeholder: 'my-namespacestore',
+          }}
+        />
 
-      <FormGroupController
-        name="provider-name"
-        control={control}
-        defaultValue={BC_PROVIDERS.AWS}
-        formGroupProps={{
-          label: t('Provider'),
-          fieldId: 'provider-name',
-          className: 'nb-endpoints-form-entry',
-          isRequired: true,
-        }}
-        render={({ value, onChange, onBlur }) => (
-          <StaticDropdown
-            className="nb-endpoints-form-entry__dropdown"
-            onSelect={onChange}
-            onBlur={onBlur}
-            dropdownItems={PROVIDERS}
-            defaultSelection={value}
-            data-test="namespacestore-provider"
+        <FormGroupController
+          name="provider-name"
+          control={control}
+          defaultValue={BC_PROVIDERS.AWS}
+          formGroupProps={{
+            label: t('Provider'),
+            fieldId: 'provider-name',
+            className: 'nb-endpoints-form-entry',
+            isRequired: true,
+          }}
+          render={({ value, onChange, onBlur }) => (
+            <StaticDropdown
+              className="nb-endpoints-form-entry__dropdown"
+              onSelect={onChange}
+              onBlur={onBlur}
+              dropdownItems={PROVIDERS}
+              defaultSelection={value}
+              data-test="namespacestore-provider"
+            />
+          )}
+        />
+        {(provider === BC_PROVIDERS.AWS ||
+          provider === BC_PROVIDERS.S3 ||
+          provider === BC_PROVIDERS.IBM ||
+          provider === BC_PROVIDERS.AZURE) && (
+          <S3EndPointType
+            showSecret={showSecret}
+            setShowSecret={setShowSecret}
+            control={control}
+            type={StoreType.NS}
+            provider={provider}
+            namespace={namespace}
+            state={providerDataState}
+            dispatch={providerDataDispatch}
           />
         )}
-      />
-      {(provider === BC_PROVIDERS.AWS ||
-        provider === BC_PROVIDERS.S3 ||
-        provider === BC_PROVIDERS.IBM ||
-        provider === BC_PROVIDERS.AZURE) && (
-        <S3EndPointType
-          showSecret={showSecret}
-          setShowSecret={setShowSecret}
-          control={control}
-          type={StoreType.NS}
-          provider={provider}
-          namespace={CEPH_STORAGE_NAMESPACE}
-          state={providerDataState}
-          dispatch={providerDataDispatch}
-        />
-      )}
-      {provider === BC_PROVIDERS.FILESYSTEM && (
-        <>
-          <FormGroupController
-            name="pvc-name"
-            control={control}
-            formGroupProps={{
-              label: t('Persistent volume claim'),
-              fieldId: 'pvc-name',
-              className: 'nb-endpoints-form-entry',
-              isRequired: true,
-            }}
-            render={({ onChange, onBlur }) => (
-              <ResourceDropdown<PersistentVolumeClaimKind>
-                id="pvc-name"
-                resourceModel={PersistentVolumeClaimModel}
-                resource={{
-                  kind: PersistentVolumeClaimModel.kind,
-                  isList: true,
-                  namespace,
-                }}
-                onSelect={onChange}
-                onBlur={onBlur}
-                filterResource={(pvcObj: PersistentVolumeClaimKind) =>
-                  pvcObj?.status?.phase === 'Bound' &&
-                  pvcObj?.spec?.accessModes.some(
-                    (mode) => mode === 'ReadWriteMany'
-                  )
-                }
-              />
-            )}
+        {provider === BC_PROVIDERS.FILESYSTEM && (
+          <>
+            <FormGroupController
+              name="pvc-name"
+              control={control}
+              formGroupProps={{
+                label: t('Persistent volume claim'),
+                fieldId: 'pvc-name',
+                className: 'nb-endpoints-form-entry',
+                isRequired: true,
+              }}
+              render={({ onChange, onBlur }) => (
+                <ResourceDropdown<PersistentVolumeClaimKind>
+                  id="pvc-name"
+                  resourceModel={PersistentVolumeClaimModel}
+                  resource={{
+                    kind: PersistentVolumeClaimModel.kind,
+                    isList: true,
+                    namespace,
+                  }}
+                  onSelect={onChange}
+                  onBlur={onBlur}
+                  filterResource={(pvcObj: PersistentVolumeClaimKind) =>
+                    pvcObj?.status?.phase === 'Bound' &&
+                    pvcObj?.spec?.accessModes.some(
+                      (mode) => mode === 'ReadWriteMany'
+                    )
+                  }
+                />
+              )}
+            />
+            <FormGroupController
+              name="folder-name"
+              control={control}
+              formGroupProps={{
+                label: t('Folder'),
+                fieldId: 'folder-name',
+                helperText: t(
+                  'If the name you write exists, we will be using the existing folder if not we will create a new folder '
+                ),
+                className: 'nb-endpoints-form-entry',
+                isRequired: true,
+              }}
+              render={({ value, onChange, onBlur }) => (
+                <TextInput
+                  id="folder-name"
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  value={value}
+                  data-test="folder-name"
+                  placeholder="Please enter the folder name"
+                />
+              )}
+            />
+          </>
+        )}
+        {!isValid && isSubmitted && (
+          <Alert
+            variant="danger"
+            isInline
+            title={t('Address form errors to proceed')}
           />
-          <FormGroupController
-            name="folder-name"
-            control={control}
-            formGroupProps={{
-              label: t('Folder'),
-              fieldId: 'folder-name',
-              helperText: t(
-                'If the name you write exists, we will be using the existing folder if not we will create a new folder '
-              ),
-              className: 'nb-endpoints-form-entry',
-              isRequired: true,
-            }}
-            render={({ value, onChange, onBlur }) => (
-              <TextInput
-                id="folder-name"
-                onChange={onChange}
-                onBlur={onBlur}
-                value={value}
-                data-test="folder-name"
-                placeholder="Please enter the folder name"
-              />
-            )}
-          />
-        </>
-      )}
-      {!isValid && isSubmitted && (
-        <Alert
-          variant="danger"
-          isInline
-          title={t('Address form errors to proceed')}
-        />
-      )}
-      <ButtonBar errorMessage={error} inProgress={inProgress}>
-        <ActionGroup>
-          <Button
-            type="submit"
-            data-test="namespacestore-create-button"
-            variant="primary"
-          >
-            {t('Create')}
-          </Button>
-          <Button onClick={onCancel} variant="secondary">
-            {t('Cancel')}
-          </Button>
-        </ActionGroup>
-      </ButtonBar>
-    </Form>
+        )}
+        <ButtonBar errorMessage={error} inProgress={inProgress}>
+          <ActionGroup>
+            <Button
+              type="submit"
+              data-test="namespacestore-create-button"
+              variant="primary"
+            >
+              {t('Create')}
+            </Button>
+            <Button onClick={onCancel} variant="secondary">
+              {t('Cancel')}
+            </Button>
+          </ActionGroup>
+        </ButtonBar>
+      </Form>
+    </NamespaceSafetyBox>
   );
 };
 

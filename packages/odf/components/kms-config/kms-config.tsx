@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import {
   FormGroup,
   FormSelect,
   FormSelectOption,
 } from '@patternfly/react-core';
 import { ProviderStateMap } from '../../constants';
-import { FEATURES } from '../../features';
 import { ProviderNames } from '../../types';
 import { HpcsConfigure } from './hpcs-config';
 import { KMSConfigureProps } from './providers';
@@ -46,7 +44,6 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const isHpcsKmsSupported = useFlag(FEATURES.ODF_HPCS_KMS);
   // vault as default KMS
   const kmsProvider: ProviderNames =
     state.kms?.['provider'] || ProviderNames.VAULT;
@@ -91,7 +88,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
           id="kms-provider"
           name="kms-provider-name"
           aria-label={t('kms-provider-name')}
-          isDisabled={!isHpcsKmsSupported || isLengthUnity(allowedKMSProviders)}
+          isDisabled={isLengthUnity(allowedKMSProviders)}
         >
           {allowedKMSProviders.map((provider) => (
             <FormSelectOption

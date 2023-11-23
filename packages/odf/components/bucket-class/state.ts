@@ -7,7 +7,6 @@ import {
 } from '../../types';
 
 export const initialState = {
-  namespace: 'openshift-storage',
   bucketClassName: '',
   bucketClassType: BucketClassType.STANDARD,
   namespacePolicyType: NamespacePolicyType.SINGLE,
@@ -27,7 +26,6 @@ export const initialState = {
 };
 
 export type State = {
-  namespace: string;
   bucketClassName: string;
   description: string;
   bucketClassType: BucketClassType;
@@ -47,7 +45,6 @@ export type State = {
 };
 
 export type Action =
-  | { type: 'setNamespace'; name: string }
   | { type: 'setBucketClassName'; name: string }
   | { type: 'setBucketClassType'; value: BucketClassType }
   | { type: 'setNamespacePolicyType'; value: NamespacePolicyType }
@@ -67,8 +64,6 @@ export type Action =
 
 export const reducer = (state: State, action: Action) => {
   switch (action.type) {
-    case 'setNamespace':
-      return Object.assign({}, state, { namespace: action.name });
     case 'setBucketClassName':
       return Object.assign({}, state, { bucketClassName: action.name });
     case 'setBucketClassType':
