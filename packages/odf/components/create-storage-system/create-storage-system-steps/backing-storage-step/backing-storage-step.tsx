@@ -39,6 +39,7 @@ import { ErrorHandler } from '../../error-handler';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from './enable-nfs';
 import { SelectDeployment } from './select-deployment';
+import { SetCephRBDStorageClassDefault } from './set-rbd-sc-default';
 import './backing-storage-step.scss';
 
 const RHCS_SUPPORTED_INFRA = [
@@ -181,7 +182,13 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   stepIdReached,
   supportedExternalStorage,
 }) => {
-  const { type, enableNFS, externalStorage, deployment } = state;
+  const {
+    type,
+    enableNFS,
+    isRBDStorageClassDefault,
+    externalStorage,
+    deployment,
+  } = state;
 
   const { t } = useCustomTranslation();
   const [sc, scLoaded, scLoadError] =
@@ -263,6 +270,10 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
     dispatch({ type: 'backingStorage/setType', payload: newType });
   };
 
+  const doesDefaultSCAlreadyExists = sc?.items?.some((item) =>
+    isDefaultClass(item)
+  );
+
   return (
     <ErrorHandler
       error={error || scLoadError || csvListLoadError}
@@ -335,11 +346,18 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           />
         </FormGroup>
         {isFullDeployment && !hasOCS && (
-          <EnableNFS
-            dispatch={dispatch}
-            nfsEnabled={enableNFS}
-            backingStorageType={type}
-          />
+          <>
+            <EnableNFS
+              dispatch={dispatch}
+              nfsEnabled={enableNFS}
+              backingStorageType={type}
+            />
+            <SetCephRBDStorageClassDefault
+              dispatch={dispatch}
+              isRBDStorageClassDefault={isRBDStorageClassDefault}
+              doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
+            />
+          </>
         )}
       </Form>
     </ErrorHandler>

@@ -64,7 +64,13 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     enableSingleReplicaPool,
   } = capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
-  const { deployment, externalStorage, type, enableNFS } = backingStorage;
+  const {
+    deployment,
+    externalStorage,
+    type,
+    enableNFS,
+    isRBDStorageClassDefault,
+  } = backingStorage;
 
   // NooBaa standalone deployment
   const isMCG = deployment === DeploymentType.MCG;
@@ -93,6 +99,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     ? t('Enabled')
     : t('Disabled');
   const nfsStatus = enableNFS ? t('Enabled') : t('Disabled');
+  const isCephRBDSetAsDefault = isRBDStorageClassDefault ? t('Yes') : t('No');
 
   const kmsStatus = encryption.advanced
     ? kms.providerState.name.value
@@ -123,6 +130,16 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
               })}
             </ListItem>
           )}
+        {deployment === DeploymentType.FULL && !hasOCS && (
+          <ListItem>
+            {t(
+              'Set Ceph RBD as the default StorageClass: {{isCephRBDSetAsDefault}}',
+              {
+                isCephRBDSetAsDefault,
+              }
+            )}
+          </ListItem>
+        )}
         {!isRhcs && (
           <ListItem>
             {t('Backing storage type: {{name}}', {

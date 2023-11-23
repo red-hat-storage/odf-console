@@ -350,24 +350,45 @@ export const getDeviceSetReplica = (
 const generateNetworkCardName = (resource: NetworkAttachmentDefinitionKind) =>
   `${getNamespace(resource)}/${getName(resource)}`;
 
-export const getOCSRequestData = (
-  storageClass: WizardState['storageClass'],
-  storage: string,
-  encryption: EncryptionType,
-  isMinimal: boolean,
-  nodes: WizardNodeState[],
-  flexibleScaling = false,
-  publicNetwork?: NetworkAttachmentDefinitionKind,
-  clusterNetwork?: NetworkAttachmentDefinitionKind,
-  kmsEnable?: boolean,
-  selectedArbiterZone?: string,
-  stretchClusterChecked?: boolean,
-  availablePvsCount?: number,
-  isMCG?: boolean,
-  isNFSEnabled?: boolean,
-  isSingleReplicaPoolEnabled?: boolean,
-  enableRDRPreparation?: boolean
-): StorageClusterKind => {
+type OCSRequestData = {
+  storageClass: WizardState['storageClass'];
+  storage: string;
+  encryption: EncryptionType;
+  isMinimal: boolean;
+  nodes: WizardNodeState[];
+  flexibleScaling: boolean;
+  publicNetwork?: NetworkAttachmentDefinitionKind;
+  clusterNetwork?: NetworkAttachmentDefinitionKind;
+  kmsEnable?: boolean;
+  selectedArbiterZone?: string;
+  stretchClusterChecked?: boolean;
+  availablePvsCount?: number;
+  isMCG?: boolean;
+  isNFSEnabled?: boolean;
+  shouldSetCephRBDAsDefault?: boolean;
+  isSingleReplicaPoolEnabled?: boolean;
+  enableRDRPreparation?: boolean;
+};
+
+export const getOCSRequestData = ({
+  storageClass,
+  storage,
+  encryption,
+  isMinimal,
+  nodes,
+  flexibleScaling,
+  publicNetwork,
+  clusterNetwork,
+  kmsEnable,
+  selectedArbiterZone,
+  stretchClusterChecked,
+  availablePvsCount,
+  isMCG,
+  isNFSEnabled,
+  shouldSetCephRBDAsDefault,
+  isSingleReplicaPoolEnabled,
+  enableRDRPreparation,
+}: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
   const isPortable: boolean = flexibleScaling ? false : !isNoProvisioner;
@@ -432,6 +453,7 @@ export const getOCSRequestData = (
       ),
       managedResources: {
         cephNonResilientPools: { enable: isSingleReplicaPoolEnabled },
+        cephBlockPools: { defaultStorageClass: shouldSetCephRBDAsDefault },
       },
     };
 
