@@ -53,6 +53,7 @@ import './capacity-card.scss';
 
 type CapacityMetricDatum = {
   systemName: string;
+  namespace: string;
   targetKind: string;
   clusterName: string;
   totalValue: HumanizeResult;
@@ -70,6 +71,12 @@ type CapacityMetricDatumMap = { string: CapacityMetricDatum };
 type ManagedClusterLinkMap = { string: string };
 
 type ClusterClaimObject = { name: string; value: string };
+
+const getUniqueKey = (
+  systemName: string,
+  namespace: string,
+  clusterName: string
+) => `${systemName}-${namespace}-${clusterName}`;
 
 const getClusterURL = (clusterClaimsList: ClusterClaimObject[]) =>
   clusterClaimsList?.find(
@@ -274,13 +281,15 @@ const SystemCapacityCard: React.FC = () => {
         ? usedCapacity?.data?.result?.reduce(
             (acc: CapacityMetricDatumMap, usedMetric: PrometheusResult) => {
               const systemName = usedMetric?.metric?.storage_system;
+              const namespace = usedMetric?.metric?.target_namespace;
               const targetKind = usedMetric?.metric?.target_kind;
               const clusterName = usedMetric?.metric?.cluster;
               const clusterURL = ManagedClusterLink.hasOwnProperty(clusterName)
                 ? ManagedClusterLink[clusterName]
                 : undefined;
-              acc[systemName + clusterName] = {
+              acc[getUniqueKey(systemName, namespace, clusterName)] = {
                 systemName,
+                namespace,
                 targetKind,
                 clusterName,
                 usedValue: humanizeBinaryBytes(usedMetric?.value?.[1]),
@@ -296,8 +305,11 @@ const SystemCapacityCard: React.FC = () => {
     !loadingTotalCapacity &&
       !errorTotalCapacity &&
       totalCapacity?.data?.result?.forEach((totalMetric: PrometheusResult) => {
-        const dataMapKey =
-          totalMetric?.metric?.storage_system + totalMetric?.metric?.cluster;
+        const dataMapKey = getUniqueKey(
+          totalMetric?.metric?.storage_system,
+          totalMetric?.metric?.target_namespace,
+          totalMetric?.metric?.cluster
+        );
         dataMap.hasOwnProperty(dataMapKey) &&
           (dataMap[dataMapKey].totalValue = !!totalMetric?.value?.[1]
             ? humanizeBinaryBytes(totalMetric?.value?.[1])
