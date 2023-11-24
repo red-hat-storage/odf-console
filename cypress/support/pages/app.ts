@@ -38,9 +38,7 @@ export const projectNameSpace = {
       .then(() =>
         cy.byTestID('dropdown-text-filter').should('have.value', projectName)
       );
-    cy.get(
-      '[data-test-id="namespace-bar-dropdown"] span.pf-c-menu-toggle__text'
-    )
+    cy.get('[data-test-id="namespace-bar-dropdown"] span')
       .first()
       .as('projectNameSpaceDropdown');
     app.waitForDocumentLoad();
