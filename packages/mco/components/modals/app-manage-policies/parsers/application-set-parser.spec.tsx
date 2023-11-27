@@ -18,6 +18,7 @@ import {
   DRClusterKind,
   DRPlacementControlKind,
   DRPolicyKind,
+  SearchResult,
 } from '../../../../types';
 import { createRefFromK8Resource } from '../../../../utils';
 import { ApplicationSetParser } from './application-set-parser';
@@ -211,6 +212,36 @@ const mockDRPC1: DRPlacementControlKind = {
   },
 };
 
+const searchResult: SearchResult = {
+  data: {
+    searchResult: [
+      {
+        items: [
+          {
+            accessMode: 'readwriteonce',
+            apiversion: 'v1',
+            capacity: '5Gi',
+            cluster: 'local-cluster',
+            created: '2023-07-04T17:14:10Z',
+            kind: 'PersistentVolumeClaim',
+            kind_plural: 'persistentvolumeclaims',
+            label: 'app=mock-appset-2',
+            name: 'busybox-pvc',
+            namespace: 'appset1',
+            request: '5Gi',
+            status: 'Bound',
+            storageClassName: 'ocs-storagecluster-ceph-rbd',
+            volumeName: 'pvc-683b0a87-85bf-4743-96d2-565863752e53',
+            _clusterNamespace: '',
+            _hubClusterResource: 'true',
+            _uid: 'local-cluster/683b0a87-85bf-4743-96d2-565863752e53',
+          },
+        ],
+      },
+    ],
+  },
+};
+
 const drResources1: DisasterRecoveryResourceKind = {
   drClusters: [mockDRClusterEast1, mockDRClusterWest1],
   drPolicies: [mockDRPolicy1],
@@ -232,6 +263,19 @@ const drResources2: DisasterRecoveryResourceKind = {
     {
       drClusters: [],
       drPolicy: {},
+      drPlacementControls: [],
+    },
+  ],
+};
+
+const drResources3: DisasterRecoveryResourceKind = {
+  drClusters: [mockDRClusterEast1, mockDRClusterWest1],
+  drPolicies: [mockDRPolicy1],
+  drPlacementControls: [],
+  formattedResources: [
+    {
+      drClusters: [mockDRClusterEast1, mockDRClusterWest1],
+      drPolicy: mockDRPolicy1,
       drPlacementControls: [],
     },
   ],
@@ -279,6 +323,9 @@ jest.mock('@odf/mco/hooks/disaster-recovery', () => ({
   useDisasterRecoveryResourceWatch: jest.fn(() => {
     if ([1].includes(testCase)) {
       return [drResources2, true, ''];
+    }
+    if ([4].includes(testCase)) {
+      return [drResources3, true, ''];
     } else {
       return [drResources1, true, ''];
     }
@@ -288,7 +335,7 @@ jest.mock('@odf/mco/hooks/disaster-recovery', () => ({
 jest.mock('@odf/mco/hooks/argo-application-set', () => ({
   __esModule: true,
   useArgoApplicationSetResourceWatch: jest.fn(() => {
-    if ([1].includes(testCase)) {
+    if ([1, 4].includes(testCase)) {
       return [appResources2, true, ''];
     } else {
       return [appResources1, true, ''];
@@ -298,6 +345,13 @@ jest.mock('@odf/mco/hooks/argo-application-set', () => ({
 
 jest.mock('../utils/k8s-utils', () => ({
   unAssignPromises: jest.fn(() => [Promise.resolve({ data: {} })]),
+  assignPromises: jest.fn(() => [Promise.resolve({ data: {} })]),
+}));
+jest.mock('@odf/mco/hooks/acm-safe-fetch', () => ({
+  __esModule: true,
+  useACMSafeFetch: jest.fn(() => {
+    return [searchResult, ''];
+  }),
 }));
 
 describe('ApplicationSet manage data policy modal', () => {
@@ -457,5 +511,79 @@ describe('ApplicationSet manage data policy modal', () => {
     fireEvent.click(screen.getByText('Back'));
     // Make sure context is switched to list view
     expect(screen.getByText('My assigned policies')).toBeInTheDocument();
+  });
+
+  test('Assign policy action test', async () => {
+    testCase = 4;
+    render(
+      <ApplicationSetParser
+        application={mockApplicationSet2}
+        close={onClose}
+        isOpen={true}
+      />
+    );
+    // Open assign policy wizard
+    fireEvent.click(screen.getByText('Assign data policy'));
+
+    // Step 1 - select a policy
+    // Buttons
+    expect(screen.getByText('Next')).toBeEnabled();
+    expect(screen.getByText('Back')).toBeDisabled();
+    // Policy selector
+    expect(screen.getByText('Select a policy')).toBeEnabled();
+    fireEvent.click(screen.getByText('Select a policy'));
+    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('mock-policy-1'));
+    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Next'));
+
+    // Step 2 - select a placement and labels
+    // Buttons
+    expect(screen.getByText('Next')).toBeEnabled();
+    expect(screen.getByText('Back')).toBeEnabled();
+    // PVC selector
+    screen.getByText(
+      'Use PVC label selectors to effortlessly specify the application resources that need protection.'
+    );
+    await waitFor(() => {
+      expect(screen.getByText('Application resource')).toBeInTheDocument();
+      expect(screen.getByText('PVC label selector')).toBeInTheDocument();
+      expect(screen.getByText('Select a placement')).toBeInTheDocument();
+      expect(screen.getByText('Select labels')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('Select a placement'));
+    expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('mock-placement-2'));
+    expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Select labels'));
+    screen.getByText('app=mock-appset-2');
+    fireEvent.click(screen.getByText('app=mock-appset-2'));
+    expect(screen.getByText('app=mock-appset-2')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Next'));
+
+    // Step 3 - review and assign
+    // Buttons
+    expect(screen.getByText('Assign')).toBeEnabled();
+    expect(screen.getByText('Back')).toBeEnabled();
+    expect(screen.getByText('Cancel')).toBeEnabled();
+
+    // Headers
+    expect(screen.getByText('Data policy')).toBeInTheDocument();
+    expect(screen.getByText('Data policy')).toBeInTheDocument();
+    // Labels
+    expect(screen.getByText('Policy name:')).toBeInTheDocument();
+    expect(screen.getByText('Clusters:')).toBeInTheDocument();
+    expect(screen.getByText('Replication type:')).toBeInTheDocument();
+    expect(screen.getByText('Sync interval:')).toBeInTheDocument();
+    expect(screen.getByText('Application resource:')).toBeInTheDocument();
+    expect(screen.getByText('PVC label selector:')).toBeInTheDocument();
+    // Values
+    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+    expect(screen.getByText('east-1, west-1')).toBeInTheDocument();
+    expect(screen.getByText('Asynchronous')).toBeInTheDocument();
+    expect(screen.getByText('5 minutes')).toBeInTheDocument();
+    expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
+    expect(screen.getByText('app=mock-appset-2')).toBeInTheDocument();
   });
 });
