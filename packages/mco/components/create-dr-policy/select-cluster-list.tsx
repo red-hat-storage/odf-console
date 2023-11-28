@@ -1,13 +1,19 @@
 import * as React from 'react';
 import {
+  getManagedClusterResourceObj,
+  getManagedClusterViewResourceObj,
+} from '@odf/mco/hooks';
+import {
   getMajorVersion,
   getManagedClusterCondition,
+  getValueFromClusterClaim,
   isMinimumSupportedODFVersion,
 } from '@odf/mco/utils';
 import { StatusBox } from '@odf/shared/generic/status-box';
+import { getName, getNamespace } from '@odf/shared/selectors';
+import { ConfigMapKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import {
   DataList,
   DataListItem,
@@ -25,28 +31,43 @@ import {
   TextContent,
   TextVariants,
   Text,
+  Tooltip,
 } from '@patternfly/react-core';
 import {
   MAX_ALLOWED_CLUSTERS,
   MANAGED_CLUSTER_REGION_CLAIM,
-  HUB_CLUSTER_NAME,
-  ClusterClaimTypes,
   MANAGED_CLUSTER_JOINED,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
+  ODF_CONFIG_MCV_REF_LABEL,
 } from '../../constants';
-import { ACMManagedClusterModel } from '../../models';
-import { ACMManagedClusterKind } from '../../types';
 import {
-  DRPolicyState,
+  ACMManagedClusterKind,
+  ACMManagedClusterViewKind,
+  ODFConfigKind,
+} from '../../types';
+import {
   DRPolicyAction,
   DRPolicyActionType,
-  Cluster,
-  ODFInfo,
+  ManagedClusterInfoType,
 } from './reducer';
 import './select-cluster-list.scss';
 
+const getClusterWiseODFInfo = (
+  managedClusterViews: ACMManagedClusterViewKind[]
+): ClusterWiseODFConfigType =>
+  managedClusterViews?.reduce((acc, mcv) => {
+    const configMap: ConfigMapKind = mcv?.status?.result;
+    return {
+      ...acc,
+      [getNamespace(mcv)]: [
+        ...(acc[getNamespace(mcv)] || []),
+        configMap?.data as ODFConfigKind,
+      ],
+    };
+  }, {} as ClusterWiseODFConfigType);
+
 const getFilteredClusters = (
-  clusters: Cluster[],
+  clusters: ManagedClusterInfoType[],
   region: string,
   name: string
 ) => {
@@ -59,46 +80,7 @@ const getFilteredClusters = (
   return filteredClusters;
 };
 
-const fetchRegion = (cluster: ACMManagedClusterKind): string =>
-  cluster?.status?.clusterClaims?.reduce(
-    (region, claim) =>
-      claim?.name === MANAGED_CLUSTER_REGION_CLAIM ? claim?.value : region,
-    ''
-  );
-
-const fetchODFInfo = (
-  cluster: ACMManagedClusterKind,
-  requiredODFVersion: string
-): ODFInfo => {
-  const odfVersionClaim = cluster?.status?.clusterClaims?.find(
-    (claim) => claim.name === ClusterClaimTypes.ODF_VERSION
-  );
-  const storageClusterNameClaim = cluster?.status?.clusterClaims?.find(
-    (claim) => claim.name === ClusterClaimTypes.STORAGE_CLUSTER_NAME
-  );
-  const storageSystemNameClaim = cluster?.status?.clusterClaims?.find(
-    (claim) => claim.name === ClusterClaimTypes.STORAGE_SYSTEM_NAME
-  );
-  const cephFsidClaim = cluster?.status?.clusterClaims?.find(
-    (claim) => claim.name === ClusterClaimTypes.CEPH_FSID
-  );
-  return {
-    odfVersion: odfVersionClaim?.value || '',
-    storageSystemName: storageSystemNameClaim?.value || '',
-    storageClusterName: storageClusterNameClaim?.value || '',
-    cephFSID: cephFsidClaim?.value || '',
-    isManagedClusterAvailable: !!getManagedClusterCondition(
-      cluster,
-      MANAGED_CLUSTER_CONDITION_AVAILABLE
-    ),
-    isValidODFVersion: isMinimumSupportedODFVersion(
-      getMajorVersion(odfVersionClaim?.value),
-      requiredODFVersion
-    ),
-  };
-};
-
-const filterRegions = (filteredClusters: Cluster[]) =>
+const filterRegions = (filteredClusters: ManagedClusterInfoType[]) =>
   filteredClusters?.reduce((acc, cluster) => {
     if (!acc.includes(cluster?.region) && cluster?.region !== '') {
       acc.push(cluster?.region);
@@ -108,66 +90,92 @@ const filterRegions = (filteredClusters: Cluster[]) =>
 
 const getManagedClusterInfo = (
   cluster: ACMManagedClusterKind,
-  requiredODFVersion: string
-): Cluster => ({
-  name: cluster?.metadata?.name,
-  region: fetchRegion(cluster) ?? '',
-  ...fetchODFInfo(cluster, requiredODFVersion),
+  requiredODFVersion: string,
+  odfConfigInfo: ODFConfigKind[]
+): ManagedClusterInfoType => ({
+  name: getName(cluster),
+  namesapce: getNamespace(cluster),
+  region: getValueFromClusterClaim(cluster, MANAGED_CLUSTER_REGION_CLAIM),
+  isManagedClusterAvailable: !!getManagedClusterCondition(
+    cluster,
+    MANAGED_CLUSTER_CONDITION_AVAILABLE
+  ),
+  ...(!!odfConfigInfo
+    ? {
+        odfInfo: {
+          odfConfigInfo,
+          odfVersion: odfConfigInfo[0].ODFVersion,
+          isValidODFVersion: isMinimumSupportedODFVersion(
+            getMajorVersion(odfConfigInfo[0].ODFVersion),
+            requiredODFVersion
+          ),
+        },
+      }
+    : {}),
 });
 
-type SelectClusterListProps = {
-  state: DRPolicyState;
-  requiredODFVersion: string;
-  dispatch: React.Dispatch<DRPolicyAction>;
-};
+const getResources = () => ({
+  managedClusters: getManagedClusterResourceObj(),
+  managedClusterViews: getManagedClusterViewResourceObj({
+    selector: { matchLabels: { [ODF_CONFIG_MCV_REF_LABEL]: 'true' } },
+  }),
+});
 
 export const SelectClusterList: React.FC<SelectClusterListProps> = ({
-  state,
+  selectedClusters,
   requiredODFVersion,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
-  const { selectedClusters } = state;
   const [isRegionOpen, setIsRegionOpen] = React.useState(false);
   const [region, setRegion] = React.useState('');
   const [nameSearch, setNameSearch] = React.useState('');
-  const [clusters, setClusters] = React.useState<Cluster[]>([]);
 
-  const [
-    acmManagedClusters,
-    acmManagedClustersLoaded,
-    acmManagedClustersLoadError,
-  ] = useK8sWatchResource<ACMManagedClusterKind[]>({
-    kind: referenceForModel(ACMManagedClusterModel),
-    isList: true,
-    namespaced: false,
-    cluster: HUB_CLUSTER_NAME,
-  });
+  const response = useK8sWatchResources<WatchResourceType>(getResources());
 
-  React.useEffect(() => {
-    if (
-      acmManagedClustersLoaded &&
-      !!requiredODFVersion &&
-      !acmManagedClustersLoadError
-    ) {
-      const managedClusterInfoList = acmManagedClusters?.reduce(
+  const {
+    data: managedClusters,
+    loaded: managedClustersLoaded,
+    loadError: managedClustersLoadError,
+  } = response.managedClusters;
+
+  const {
+    data: managedClusterViews,
+    loaded: managedClusterViewsLoaded,
+    loadError: managedClusterViewsLoadError,
+  } = response.managedClusterViews;
+
+  const loaded = managedClustersLoaded && managedClusterViewsLoaded;
+  const loadError = managedClustersLoadError || managedClusterViewsLoadError;
+
+  const clusters: ManagedClusterInfoType[] = React.useMemo(() => {
+    if (!!requiredODFVersion && loaded && !loadError) {
+      const clusterWiseODFInfo = getClusterWiseODFInfo(managedClusterViews);
+      return managedClusters?.reduce(
         (acc, cluster) =>
           !!getManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED)
-            ? [...acc, getManagedClusterInfo(cluster, requiredODFVersion)]
+            ? [
+                ...acc,
+                getManagedClusterInfo(
+                  cluster,
+                  requiredODFVersion,
+                  clusterWiseODFInfo?.[getName(cluster)]
+                ),
+              ]
             : acc,
         []
       );
-
-      setClusters(managedClusterInfoList);
     }
+    return [];
   }, [
-    acmManagedClusters,
-    acmManagedClustersLoaded,
-    acmManagedClustersLoadError,
     requiredODFVersion,
+    managedClusters,
+    managedClusterViews,
+    loaded,
+    loadError,
   ]);
 
-  const filteredClusters: Cluster[] = React.useMemo(
+  const filteredClusters: ManagedClusterInfoType[] = React.useMemo(
     () => getFilteredClusters(clusters, region, nameSearch),
     [clusters, region, nameSearch]
   );
@@ -244,9 +252,9 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
         </ToolbarContent>
       </Toolbar>
       <StatusBox
-        data={!!nameSearch ? filteredClusters : acmManagedClusters}
-        loadError={acmManagedClustersLoadError}
-        loaded={acmManagedClustersLoaded}
+        data={!!nameSearch ? filteredClusters : managedClusters}
+        loadError={loadError}
+        loaded={loaded ? !!clusters.length : loaded}
       >
         <DataList
           aria-label={t('Select cluster list')}
@@ -256,31 +264,48 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
           {filteredClusters.map((fc, index) => (
             <DataListItem key={fc?.name}>
               <DataListItemRow>
-                <DataListCheck
-                  data-test="managed-cluster-checkbox"
-                  aria-labelledby={t('Checkbox to select cluster')}
-                  id={index.toString()}
-                  onChange={onSelect}
-                  isChecked={selectedClusters?.some(
-                    (cluster) => cluster?.name === fc.name
+                <Tooltip
+                  content={t(
+                    'Cannot be selected as it has multiple storage instances.'
                   )}
-                  isDisabled={
-                    (selectedClusters ?? []).length === MAX_ALLOWED_CLUSTERS &&
-                    !(selectedClusters ?? []).some(
-                      (cluster) => cluster?.name === fc.name
-                    )
+                  trigger={
+                    fc?.odfInfo?.odfConfigInfo.length > 1
+                      ? 'mouseenter'
+                      : 'manual'
                   }
-                />
-                <DataListItemCells
-                  dataListCells={[
-                    <DataListCell key={fc.name}>
-                      <TextContent>
-                        <Text component={TextVariants.p}>{fc.name}</Text>
-                        <Text component={TextVariants.small}>{fc.region}</Text>
-                      </TextContent>
-                    </DataListCell>,
-                  ]}
-                />
+                >
+                  <>
+                    <DataListCheck
+                      data-testid={fc.name}
+                      data-test="managed-cluster-checkbox"
+                      aria-labelledby={t('Checkbox to select cluster')}
+                      id={index.toString()}
+                      onChange={onSelect}
+                      isChecked={selectedClusters?.some(
+                        (cluster) => cluster?.name === fc.name
+                      )}
+                      isDisabled={
+                        (selectedClusters.length === MAX_ALLOWED_CLUSTERS &&
+                          !selectedClusters.some(
+                            (cluster) => cluster?.name === fc.name
+                          )) ||
+                        fc?.odfInfo?.odfConfigInfo.length > 1
+                      }
+                    />
+                    <DataListItemCells
+                      dataListCells={[
+                        <DataListCell key={fc.name}>
+                          <TextContent>
+                            <Text component={TextVariants.p}>{fc.name}</Text>
+                            <Text component={TextVariants.small}>
+                              {fc.region}
+                            </Text>
+                          </TextContent>
+                        </DataListCell>,
+                      ]}
+                    />
+                  </>
+                </Tooltip>
               </DataListItemRow>
             </DataListItem>
           ))}
@@ -288,4 +313,19 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       </StatusBox>
     </div>
   );
+};
+
+type SelectClusterListProps = {
+  selectedClusters: ManagedClusterInfoType[];
+  requiredODFVersion: string;
+  dispatch: React.Dispatch<DRPolicyAction>;
+};
+
+type WatchResourceType = {
+  managedClusters: ACMManagedClusterKind[];
+  managedClusterViews: ACMManagedClusterViewKind[];
+};
+
+type ClusterWiseODFConfigType = {
+  [name in string]: ODFConfigKind[];
 };

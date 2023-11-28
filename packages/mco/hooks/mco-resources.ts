@@ -4,6 +4,7 @@ import { Selector } from '@openshift-console/dynamic-plugin-sdk';
 import { HUB_CLUSTER_NAME } from '../constants';
 import {
   ACMManagedClusterModel,
+  ACMManagedClusterViewModel,
   ACMPlacementDecisionModel,
   ACMPlacementModel,
   ACMPlacementRuleModel,
@@ -40,6 +41,19 @@ export const getManagedClusterResourceObj = (
   kind: referenceForModel(ACMManagedClusterModel),
   ...(!props?.name ? { isList: true } : {}),
   namespaced: false,
+  optional: true,
+});
+
+export const getManagedClusterViewResourceObj = (
+  props?: NamespacedObjectType
+) => ({
+  cluster: HUB_CLUSTER_NAME,
+  ...(!!props?.name ? { name: props?.name } : {}),
+  ...(!!props?.namespace ? { namespace: props?.namespace } : {}),
+  kind: referenceForModel(ACMManagedClusterViewModel),
+  ...(!props?.name ? { isList: true } : {}),
+  namespaced: !!props?.namespace ? false : true,
+  ...(!!props?.selector ? { selector: props?.selector } : {}),
   optional: true,
 });
 

@@ -1,6 +1,7 @@
 import * as React from 'react';
+import { parseNamespaceName } from '@odf/mco/utils';
+import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { RedExclamationCircleIcon } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Text,
   Badge,
@@ -9,33 +10,28 @@ import {
   Flex,
   FlexItem,
 } from '@patternfly/react-core';
-import { Cluster, DRPolicyAction } from './reducer';
+import { ManagedClusterInfoType } from './reducer';
 import './create-dr-policy.scss';
 
 type SelectedClusterProps = {
   id: number;
-  cluster: Cluster;
-  dispatch: React.Dispatch<DRPolicyAction>;
+  cluster: ManagedClusterInfoType;
 };
 
 export const SelectedCluster: React.FC<SelectedClusterProps> = ({
   id,
   cluster,
-  dispatch, // eslint-disable-line @typescript-eslint/no-unused-vars
 }) => {
-  const {
-    name,
-    region,
-    storageSystemName,
-    isManagedClusterAvailable,
-    isValidODFVersion,
-    cephFSID,
-  } = cluster;
+  const { name, region, isManagedClusterAvailable, odfInfo } = cluster;
   const { t } = useCustomTranslation();
+  const { cephFSID, storageSystem } = odfInfo?.odfConfigInfo?.[0] || {};
+  const [storageSystemName] = !!storageSystem
+    ? parseNamespaceName(storageSystem)
+    : [];
   const anyError =
     !isManagedClusterAvailable ||
-    !isValidODFVersion ||
-    !storageSystemName ||
+    !odfInfo?.isValidODFVersion ||
+    !storageSystem ||
     !cephFSID;
   return (
     <Flex

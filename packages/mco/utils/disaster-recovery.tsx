@@ -634,3 +634,15 @@ export const findDeploymentClusters = (
 
 export const getDRPolicyStatus = (isValidated, t) =>
   isValidated ? t('Validated') : t('Not validated');
+
+export const getValueFromClusterClaim = (
+  cluster: ACMManagedClusterKind,
+  claimName: string
+): string =>
+  cluster?.status?.clusterClaims?.reduce(
+    (acc, claim) => (claim?.name === claimName ? claim?.value : acc),
+    ''
+  ) || '';
+
+export const parseNamespaceName = (namespaceName: string) =>
+  namespaceName.split('/');
