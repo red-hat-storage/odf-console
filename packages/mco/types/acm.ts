@@ -6,12 +6,14 @@ import {
 import { Selector } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { ArgoApplicationSetKind } from './argo-cd';
 
+export type ClusterClaim = {
+  name: string;
+  value: string;
+};
+
 export type ACMManagedClusterKind = K8sResourceCommon & {
   status?: {
-    clusterClaims?: {
-      name: string;
-      value: string;
-    }[];
+    clusterClaims?: ClusterClaim[];
     conditions?: K8sResourceCondition[];
   };
 };

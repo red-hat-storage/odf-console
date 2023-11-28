@@ -51,6 +51,7 @@ export const RequestSizeInput: React.FC<RequestSizeInputProps> = ({
   placeholder,
   required,
   testID,
+  unitText,
 }) => {
   const parsedRequestSizeValue = parseInt(defaultRequestSizeValue, 10);
   const defaultValue = Number.isFinite(parsedRequestSizeValue)
@@ -102,7 +103,9 @@ export const RequestSizeInput: React.FC<RequestSizeInputProps> = ({
           className="request-size-input__unit"
           dropdownItems={dropdownUnits}
           onSelect={onUnitChange}
-          textGenerator={(key, map) => `${map[key]} Unit`}
+          textGenerator={(key, map) =>
+            !!unitText ? `${map[key]} ${unitText}` : map[key]
+          }
           defaultSelection={defaultRequestSizeUnit}
         />
       </div>
@@ -125,4 +128,5 @@ export type RequestSizeInputProps = {
   inputID?: string;
   testID?: string;
   isInputDisabled?: boolean;
+  unitText?: string;
 };

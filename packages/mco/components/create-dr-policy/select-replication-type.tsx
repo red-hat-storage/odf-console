@@ -1,184 +1,76 @@
 import * as React from 'react';
+import { parseSyncInterval } from '@odf/mco/utils';
+import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  FormGroup,
-  NumberInput,
-  Dropdown,
-  DropdownItem,
-  DropdownToggle,
-  InputGroup,
-  Alert,
-  AlertVariant,
-} from '@patternfly/react-core';
-import { CaretDownIcon } from '@patternfly/react-icons';
+import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
+import { SelectOption } from '@patternfly/react-core/next';
+import { FormGroup, Alert, AlertVariant } from '@patternfly/react-core';
 import {
   REPLICATION_TYPE,
   REPLICATION_DISPLAY_TEXT,
-  TIME_UNITS,
   SYNC_SCHEDULE_DISPLAY_TEXT,
 } from '../../constants';
 import {
-  DRPolicyState,
   DRPolicyAction,
   DRPolicyActionType,
-  Cluster,
+  ManagedClusterInfoType,
 } from './reducer';
 import '../../style.scss';
 
-type SyncScheduleProps = {
-  state: DRPolicyState;
-  dispatch: React.Dispatch<DRPolicyAction>;
+const MIN_VALUE = 1;
+
+const normalizeSyncTimeValue = (value: number) => {
+  const syncTimeValue = isNaN(Number(value)) ? MIN_VALUE : Number(value);
+  return syncTimeValue < MIN_VALUE ? MIN_VALUE : syncTimeValue;
 };
 
-const minSyncTime = 1;
-const getSyncTime = (timeWithFormat: string) =>
-  Number(timeWithFormat.match(/\d+/g)[0]);
-
-const getSyncScheduleFormat = (
-  SyncScheduleFormat: { [key in TIME_UNITS]: string }
-) => ({
-  [SyncScheduleFormat.m]: TIME_UNITS.Minutes,
-  [SyncScheduleFormat.h]: TIME_UNITS.Hours,
-  [SyncScheduleFormat.d]: TIME_UNITS.Days,
-});
-
-const SyncSchedule: React.FC<SyncScheduleProps> = ({ state, dispatch }) => {
-  const { t } = useCustomTranslation();
-
-  const SyncScheduleFormat = SYNC_SCHEDULE_DISPLAY_TEXT(t);
-  const SCHEDULE_FORMAT = getSyncScheduleFormat(SyncScheduleFormat);
-
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [selectedFormat, setSelectedFormat] = React.useState(
-    SyncScheduleFormat.m
-  );
-
-  const setSyncSchedule = (time: number, format?: string) =>
-    dispatch({
-      type: DRPolicyActionType.SET_SYNC_TIME,
-      payload: `${time}${SCHEDULE_FORMAT[format ?? selectedFormat]}`,
-    });
-
-  const onSelect = (event) => {
-    const scheduleTime = getSyncTime(state.syncTime);
-    const newScheduleFormat = event.target.value;
-    setIsOpen(false);
-    setSelectedFormat(newScheduleFormat);
-    setSyncSchedule(scheduleTime, newScheduleFormat);
-  };
-
-  const onChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.target as HTMLInputElement;
-    const syncTime = isNaN(+target.value) ? minSyncTime : Number(target.value);
-    const normalizedSyncTime = syncTime < minSyncTime ? minSyncTime : syncTime;
-    setSyncSchedule(normalizedSyncTime);
-  };
-
-  const SyncScheduleDropdownItems = Object.values(SyncScheduleFormat).map(
-    (sync) => (
-      <DropdownItem
-        data-test-id={`sync-schedule-dropdown-item-${sync}`}
-        key={`sync-schedule-dropdown-item-${sync}`}
-        value={sync}
-        component="button"
-      >
-        {sync}
-      </DropdownItem>
-    )
-  );
-
-  return (
-    <InputGroup>
-      <NumberInput
-        id="sync-schedule"
-        data-test="sync-schedule-text"
-        value={getSyncTime(state.syncTime)}
-        min={minSyncTime}
-        onMinus={() => setSyncSchedule(getSyncTime(state.syncTime) - 1)}
-        onPlus={() => setSyncSchedule(getSyncTime(state.syncTime) + 1)}
-        onChange={onChange}
-      />
-      <Dropdown
-        data-test="sync-schedule-dropdown"
-        aria-label={t('Select schedule time format in minutes, hours or days')}
-        onSelect={onSelect}
-        toggle={
-          <DropdownToggle
-            onToggle={(open) => setIsOpen(open)}
-            data-test-id="sync-schedule-dropdown-toggle"
-          >
-            {selectedFormat}
-          </DropdownToggle>
-        }
-        isOpen={isOpen}
-        dropdownItems={SyncScheduleDropdownItems}
-      />
-    </InputGroup>
-  );
-};
-
-type DRReplicationTypeProps = {
-  state: DRPolicyState;
-  requiredODFVersion: string;
-  dispatch: React.Dispatch<DRPolicyAction>;
-};
-
-type ErrorMessageType = {
-  message: string;
-  description?: string;
-};
-
-type ClusterErrorType = {
-  unAvailableClusters: string[];
-  clustersWithUnSupportedODF: string[];
-  clustersWithoutODF: string[];
-  clustersWithUnSuccessfulODF: string[];
-};
-
-const getClusterErrorInfo = (selectedClusters: Cluster[]): ClusterErrorType =>
+const getClusterErrorInfo = (
+  selectedClusters: ManagedClusterInfoType[]
+): ClusterErrorType =>
   selectedClusters.reduce(
     (acc, cluster) => {
+      const { isValidODFVersion, storageClusterInfo } = cluster?.odfInfo || {};
       if (!cluster.isManagedClusterAvailable) {
-        acc.unAvailableClusters.push(cluster.name);
+        acc.unavailableClusters.push(cluster.name);
       }
-      if (!cluster.storageSystemName) {
-        acc.clustersWithUnSupportedODF.push(cluster.name);
+      if (!storageClusterInfo?.storageSystemNamespacedName) {
+        acc.clustersWithUnsupportedODF.push(cluster.name);
       }
-      if (!cluster.isValidODFVersion) {
+      if (!isValidODFVersion) {
         acc.clustersWithoutODF.push(cluster.name);
       }
-      if (cluster.cephFSID === '') {
-        acc.clustersWithUnSuccessfulODF.push(cluster.name);
+      if (!storageClusterInfo?.cephFSID) {
+        acc.clustersWithUnsuccessfulODF.push(cluster.name);
       }
       return acc;
     },
     {
-      unAvailableClusters: [],
-      clustersWithUnSupportedODF: [],
+      unavailableClusters: [],
+      clustersWithUnsupportedODF: [],
       clustersWithoutODF: [],
-      clustersWithUnSuccessfulODF: [],
+      clustersWithUnsuccessfulODF: [],
     }
   );
 
 const getErrorMessage = (
-  selectedClusters: Cluster[],
+  selectedClusters: ManagedClusterInfoType[],
   requiredODFVersion: string,
   t
 ): ErrorMessageType => {
   const clusterErrorInfo = getClusterErrorInfo(selectedClusters);
-  if (!!clusterErrorInfo.unAvailableClusters.length) {
+  if (!!clusterErrorInfo.unavailableClusters.length) {
     return {
       message: t('1 or more managed clusters are offline'),
       description: t(
         'The status for both the managed clusters must be available for creating a DR policy. To restore a cluster to an available state, refer to the instructions in the ACM documentation.'
       ),
     };
-  } else if (!!clusterErrorInfo.clustersWithUnSupportedODF.length) {
+  } else if (!!clusterErrorInfo.clustersWithUnsupportedODF.length) {
     return {
       message: t('Cannot proceed with one or more selected clusters'),
       description: t(
         'We could not retrieve any information about the managed cluster {{names}}. Check the documentation for potential causes and follow the steps mentioned and try again.',
-        { names: clusterErrorInfo.clustersWithUnSupportedODF.join(' & ') }
+        { names: clusterErrorInfo.clustersWithUnsupportedODF.join(' & ') }
       ),
     };
   } else if (!!clusterErrorInfo.clustersWithoutODF.length) {
@@ -191,49 +83,94 @@ const getErrorMessage = (
         }
       ),
     };
-  } else if (!!clusterErrorInfo.clustersWithUnSuccessfulODF.length) {
+  } else if (!!clusterErrorInfo.clustersWithUnsuccessfulODF.length) {
     return {
       message: t('{{ names }} is not connected to RHCS', {
-        names: clusterErrorInfo.clustersWithUnSuccessfulODF.join(' & '),
+        names: clusterErrorInfo.clustersWithUnsuccessfulODF.join(' & '),
       }),
     };
   }
   return null;
 };
 
+const SyncSchedule: React.FC<SyncScheduleProps> = ({
+  syncIntervalTime,
+  dispatch,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const SyncScheduleFormat = SYNC_SCHEDULE_DISPLAY_TEXT(t);
+  const [unitVal, interval] = parseSyncInterval(syncIntervalTime);
+
+  const onChange = (event) => {
+    const { value, unit } = event;
+    dispatch({
+      type: DRPolicyActionType.SET_SYNC_INTERVAL_TIME,
+      payload: `${normalizeSyncTimeValue(value)}${unit}`,
+    });
+  };
+
+  return (
+    <RequestSizeInput
+      name={t('Sync schedule')}
+      onChange={onChange}
+      dropdownUnits={SyncScheduleFormat}
+      defaultRequestSizeUnit={unitVal}
+      defaultRequestSizeValue={interval.toString()}
+      minValue={MIN_VALUE}
+    />
+  );
+};
+
 export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
-  state,
+  selectedClusters,
+  syncIntervalTime,
+  replicationType,
   requiredODFVersion,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
-  const [isReplicationOpen, setReplicationOpen] = React.useState(false);
-  const errorMessage = React.useMemo(
-    () => getErrorMessage(state.selectedClusters, requiredODFVersion, t),
-    [state.selectedClusters, requiredODFVersion, t]
-  );
+  const errorMessage = getErrorMessage(selectedClusters, requiredODFVersion, t);
 
-  const replicationDropdownItems = React.useMemo(
-    () =>
-      Object.keys(REPLICATION_DISPLAY_TEXT(t)).map((replType) => (
-        <DropdownItem
-          isDisabled={!state.isReplicationInputManual}
-          key={replType}
-          component="button"
-          id={replType}
-          data-test="replication-dropdown-item"
-          onClick={() =>
-            dispatch({
-              type: DRPolicyActionType.SET_REPLICATION,
-              payload: replType,
-            })
-          }
-        >
-          {REPLICATION_DISPLAY_TEXT(t)[replType]}
-        </DropdownItem>
-      )),
-    [state.isReplicationInputManual, dispatch, t]
-  );
+  React.useEffect(() => {
+    if (selectedClusters.length === 2) {
+      // DR replication type
+      const cephFSIDs = selectedClusters.reduce((acc, cluster) => {
+        const { storageClusterInfo } = cluster?.odfInfo || {};
+        if (storageClusterInfo?.cephFSID !== '') {
+          acc.add(storageClusterInfo?.cephFSID);
+        }
+        return acc;
+      }, new Set());
+      dispatch({
+        type: DRPolicyActionType.SET_REPLICATION_TYPE,
+        payload:
+          cephFSIDs.size <= 1 ? REPLICATION_TYPE.SYNC : REPLICATION_TYPE.ASYNC,
+      });
+    } else {
+      dispatch({
+        type: DRPolicyActionType.SET_REPLICATION_TYPE,
+        payload: null,
+      });
+    }
+  }, [selectedClusters, dispatch]);
+
+  const replicationDropdownItems = Object.entries(
+    REPLICATION_DISPLAY_TEXT(t)
+  ).map((key, value) => (
+    <SelectOption
+      key={key}
+      id={key}
+      data-test="replication-dropdown-item"
+      value={value}
+    />
+  ));
+
+  const onChange = (replType: REPLICATION_TYPE) =>
+    dispatch({
+      type: DRPolicyActionType.SET_REPLICATION_TYPE,
+      payload: replType,
+    });
 
   return (
     <>
@@ -249,39 +186,56 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
         </Alert>
       ) : (
         <>
-          {state.replication && (
+          {replicationType && (
             <FormGroup
               fieldId="replication-policy"
               label={t('Replication policy')}
+              className="mco-create-data-policy__dropdown"
             >
-              <Dropdown
-                data-test="replication-dropdown"
-                className="mco-create-data-policy__dropdown"
-                onSelect={() => setReplicationOpen(false)}
-                toggle={
-                  <DropdownToggle
-                    data-test="replication-dropdown-toggle"
-                    isDisabled={!state.isReplicationInputManual}
-                    className="mco-create-data-policy__dropdown"
-                    id="toggle-id"
-                    onToggle={() => setReplicationOpen(!isReplicationOpen)}
-                    toggleIndicator={CaretDownIcon}
-                  >
-                    {REPLICATION_DISPLAY_TEXT(t)[state.replication]}
-                  </DropdownToggle>
-                }
-                isOpen={isReplicationOpen}
-                dropdownItems={replicationDropdownItems}
+              <SingleSelectDropdown
+                id="replication-type-dropdown"
+                selectedKey={REPLICATION_DISPLAY_TEXT(t)[replicationType]}
+                isDisabled={true}
+                selectOptions={replicationDropdownItems}
+                onChange={onChange}
               />
             </FormGroup>
           )}
-          {state.replication === REPLICATION_TYPE.ASYNC && (
-            <FormGroup fieldId="sync-schedule" label={t('Sync schedule')}>
-              <SyncSchedule state={state} dispatch={dispatch} />
+          {replicationType === REPLICATION_TYPE.ASYNC && (
+            <FormGroup label={t('Sync schedule')}>
+              <SyncSchedule
+                syncIntervalTime={syncIntervalTime}
+                dispatch={dispatch}
+              />
             </FormGroup>
           )}
         </>
       )}
     </>
   );
+};
+
+type SyncScheduleProps = {
+  syncIntervalTime: string;
+  dispatch: React.Dispatch<DRPolicyAction>;
+};
+
+type DRReplicationTypeProps = {
+  selectedClusters: ManagedClusterInfoType[];
+  syncIntervalTime: string;
+  replicationType: REPLICATION_TYPE;
+  requiredODFVersion: string;
+  dispatch: React.Dispatch<DRPolicyAction>;
+};
+
+type ClusterErrorType = {
+  unavailableClusters: string[];
+  clustersWithUnsupportedODF: string[];
+  clustersWithoutODF: string[];
+  clustersWithUnsuccessfulODF: string[];
+};
+
+type ErrorMessageType = {
+  message?: string;
+  description?: string;
 };
