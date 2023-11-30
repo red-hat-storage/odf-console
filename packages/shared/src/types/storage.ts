@@ -38,8 +38,13 @@ export type StorageClusterKind = K8sResourceCommon & {
     flexibleScaling?: boolean;
     monDataDirHostPath?: string;
     multiCloudGateway?: {
-      reconcileStrategy: string;
-      dbStorageClassName: string;
+      reconcileStrategy?: string;
+      dbStorageClassName?: string;
+      externalPGConfig?: {
+        pgSecretName?: string;
+        allowSelfSignedCerts?: boolean;
+        tlsSecretName?: string;
+      };
     };
     externalStorage?: {};
   };

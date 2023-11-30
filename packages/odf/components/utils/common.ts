@@ -15,6 +15,10 @@ import {
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import {
+  NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
+  NOOBA_EXTERNAL_PG_SECRET_NAME,
+} from '@odf/shared/constants';
+import {
   getLabel,
   getName,
   getNamespace,
@@ -368,6 +372,9 @@ type OCSRequestData = {
   isSingleReplicaPoolEnabled?: boolean;
   enableRDRPreparation?: boolean;
   odfNamespace: string;
+  useExternalPostgres?: boolean;
+  allowNoobaaPostgresSelfSignedCerts?: boolean;
+  enableNoobaaClientSideCerts?: boolean;
 };
 
 export const getOCSRequestData = ({
@@ -389,6 +396,9 @@ export const getOCSRequestData = ({
   isSingleReplicaPoolEnabled,
   enableRDRPreparation,
   odfNamespace,
+  useExternalPostgres,
+  allowNoobaaPostgresSelfSignedCerts,
+  enableNoobaaClientSideCerts,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -482,6 +492,22 @@ export const getOCSRequestData = ({
     requestData.spec.nfs = {
       enable: true,
     };
+  }
+
+  if (useExternalPostgres) {
+    requestData.spec = {
+      multiCloudGateway: {
+        externalPGConfig: {
+          pgSecretName: NOOBA_EXTERNAL_PG_SECRET_NAME,
+          allowSelfSignedCerts: allowNoobaaPostgresSelfSignedCerts,
+        },
+      },
+    };
+    if (enableNoobaaClientSideCerts) {
+      requestData.spec.multiCloudGateway.externalPGConfig = {
+        tlsSecretName: NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
+      };
+    }
   }
 
   return requestData;

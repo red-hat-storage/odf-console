@@ -4,6 +4,11 @@ import {
 } from '@odf/core/components/utils';
 import { DeploymentType, BackingStorageType } from '@odf/core/types';
 import { Payload } from '@odf/odf-plugin-sdk/extensions';
+import { SecretModel, getAPIVersion } from '@odf/shared';
+import {
+  NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
+  NOOBA_EXTERNAL_PG_SECRET_NAME,
+} from '@odf/shared/constants';
 import {
   OCSStorageClusterModel,
   ODFStorageSystem,
@@ -11,7 +16,10 @@ import {
 } from '@odf/shared/models';
 import { Patch, StorageSystemKind } from '@odf/shared/types';
 import { getAPIVersionForModel, k8sPatchByName } from '@odf/shared/utils';
-import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sResourceKind,
+  k8sCreate,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash-es';
 import {
@@ -44,6 +52,91 @@ export const createStorageSystem = async (
   return k8sCreate({ model: ODFStorageSystem, data: payload });
 };
 
+export const createSecretPayload = (
+  name: string,
+  namespace: string,
+  type: string,
+  data?: { [key: string]: string },
+  stringData?: { [key: string]: string }
+): K8sResourceKind => {
+  const secretPayload = {
+    apiVersion: getAPIVersion(SecretModel),
+    kind: SecretModel.kind,
+    metadata: {
+      name: name,
+      namespace: namespace,
+    },
+    type: type,
+    data: data,
+    stringData: stringData,
+  };
+
+  return secretPayload;
+};
+
+export const createNoobaaExternalPostgresResources = (
+  namespace: string,
+  externalPostgresDetails: {
+    username: string;
+    password: string;
+    serverName: string;
+    port: string;
+    databaseName: string;
+    tls: {
+      allowSelfSignedCerts: boolean;
+      enableClientSideCerts: boolean;
+    };
+  },
+  keys?: { private: string; public: string }
+): Promise<K8sResourceKind>[] => {
+  let secretResources: Promise<K8sResourceKind>[] = [];
+  const stringData = {
+    db_url: `postgres://${externalPostgresDetails.username}:${externalPostgresDetails.password}@${externalPostgresDetails.serverName}.namespace.svc:${externalPostgresDetails.port}/${externalPostgresDetails.databaseName}`,
+  };
+  const noobaaExternalPostgresSecretPayload = createSecretPayload(
+    NOOBA_EXTERNAL_PG_SECRET_NAME,
+    namespace,
+    'Opaque',
+    null,
+    stringData
+  );
+
+  secretResources.push(
+    k8sCreate({
+      model: SecretModel,
+      data: noobaaExternalPostgresSecretPayload,
+    })
+  );
+
+  if (externalPostgresDetails.tls.enableClientSideCerts) {
+    const privateKeyData = keys.private;
+    const publicKeyData = keys.public;
+    let data = {};
+    if (privateKeyData) {
+      data = { ...data, 'tls.key': btoa(privateKeyData) };
+    }
+    if (publicKeyData) {
+      data = { ...data, 'tls.crt': btoa(publicKeyData) };
+    }
+
+    const noobaaExternalPostgresTLSSecretPayload = createSecretPayload(
+      NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
+      namespace,
+      'kubernetes.io/tls',
+      data
+    );
+
+    secretResources.push(
+      k8sCreate({
+        model: SecretModel,
+        data: noobaaExternalPostgresTLSSecretPayload,
+      })
+    );
+  }
+
+  return secretResources;
+};
+
 export const createStorageCluster = async (
   state: WizardState,
   odfNamespace: string
@@ -64,8 +157,14 @@ export const createStorageCluster = async (
     enableSingleReplicaPool,
   } = capacityAndNodes;
   const { encryption, publicNetwork, clusterNetwork, kms } = securityAndNetwork;
-  const { type, enableNFS, isRBDStorageClassDefault, deployment } =
-    backingStorage;
+  const {
+    type,
+    enableNFS,
+    deployment,
+    isRBDStorageClassDefault,
+    useExternalPostgres,
+    externalPostgres,
+  } = backingStorage;
   const { enableRDRPreparation } = dataProtection;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
@@ -114,7 +213,12 @@ export const createStorageCluster = async (
     isSingleReplicaPoolEnabled: enableSingleReplicaPool,
     enableRDRPreparation,
     odfNamespace,
+    enableNoobaaClientSideCerts: externalPostgres.tls.enableClientSideCerts,
+    useExternalPostgres: useExternalPostgres,
+    allowNoobaaPostgresSelfSignedCerts:
+      externalPostgres.tls.allowSelfSignedCerts,
   });
+
   return k8sCreate({ model: OCSStorageClusterModel, data: payload });
 };
 

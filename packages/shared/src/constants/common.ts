@@ -8,3 +8,5 @@ export const ONE_HOUR = 60 * ONE_MINUTE;
 export const ALL_NAMESPACES = 'all-namespaces';
 export const DEFAULT_NS = 'default';
 export const RACK_LABEL = 'topology.rook.io/rack';
+export const NOOBA_EXTERNAL_PG_SECRET_NAME = 'noobaa-external-pg';
+export const NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME = 'noobaa-external-pg-tls';
