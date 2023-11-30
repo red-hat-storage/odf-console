@@ -1,4 +1,5 @@
 export * from './dashboard';
+export * from './doc-utils';
 export * from './humanize';
 export * from './common';
 export * from './metrics';

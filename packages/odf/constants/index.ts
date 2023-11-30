@@ -5,4 +5,4 @@ export * from './network';
 export * from './tooltips';
 export * from './mcg';
 export * from './providerSchema';
-export * from './dataProtection';
+export * from './data-protection';

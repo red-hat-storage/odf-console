@@ -1,8 +1,9 @@
 import * as React from 'react';
+import { DOC_LINKS } from '@odf/mco/constants/doc';
+import { ViewDocumentation } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import { AlertVariant } from '@patternfly/react-core';
-import { ViewDocumentation, DOC_LINKS } from '../../../utils';
 
 export enum ErrorMessageType {
   // Priority wise error messages
