@@ -184,7 +184,9 @@ type WatchResources = {
     applications?: WatchK8sResultsObject<ArgoApplicationSetKind>;
     placements?: WatchK8sResultsObject<ACMPlacementKind>;
     placementDecisions?: WatchK8sResultsObject<ACMPlacementDecisionKind>;
-    managedClusters?: WatchK8sResultsObject<ACMManagedClusterKind>;
+    managedClusters?: WatchK8sResultsObject<
+      ACMManagedClusterKind | ACMManagedClusterKind[]
+    >;
   };
   drResources?: {
     data: DisasterRecoveryResourceKind;

@@ -7,6 +7,10 @@ import {
   getDRPolicyResourceObj,
   useSubscriptionResourceWatch,
   useDisasterRecoveryResourceWatch,
+  getPlacementResourceObj,
+  getPlacementDecisionsResourceObj,
+  getSubscriptionResourceObj,
+  getPlacementRuleResourceObj,
 } from '@odf/mco/hooks';
 import { ACMPlacementModel } from '@odf/mco/models';
 import {
@@ -48,16 +52,37 @@ const getDRResources = (namespace: string) => ({
 
 const getSubscriptionResources = (
   appResource: ApplicationKind,
+  namespace: string,
   drResources: DisasterRecoveryResourceKind,
   drLoaded: boolean,
   drLoadError: any
 ) => ({
+  resources: {
+    subscriptions: getSubscriptionResourceObj({
+      namespace,
+    }),
+    placementRules: getPlacementRuleResourceObj({
+      namespace,
+    }),
+    placements: getPlacementResourceObj({
+      namespace,
+    }),
+    placementDecisions: getPlacementDecisionsResourceObj({
+      namespace,
+    }),
+  },
   drResources: {
     data: drResources,
     loaded: drLoaded,
     loadError: drLoadError,
   },
-  application: appResource,
+  overrides: {
+    applications: {
+      data: appResource,
+      loaded: true,
+      loadError: '',
+    },
+  },
 });
 
 export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
@@ -69,25 +94,27 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
     getDRResources(getNamespace(application))
   );
-  const [subscriptionResources, loaded, loadError] =
+  const [subscriptionResourceList, loaded, loadError] =
     useSubscriptionResourceWatch(
-      getSubscriptionResources(application, drResources, drLoaded, drLoadError)
+      getSubscriptionResources(
+        application,
+        getNamespace(application),
+        drResources,
+        drLoaded,
+        drLoadError
+      )
     );
   const formattedDRResources = drResources?.formattedResources;
+  const subscriptionResources = subscriptionResourceList?.[0];
 
   const applicationInfo: ApplicationInfoType = React.useMemo(() => {
     let applicationInfo: ApplicationInfoType = {};
     if (loaded && !loadError) {
       const unProtectedPlacements: PlacementType[] = [];
       const drPolicyToDPRCMap: DRPolicyToDRPCMap = {};
-      subscriptionResources.forEach(
-        ({
-          placement,
-          drClusters,
-          drPlacementControl,
-          drPolicy,
-          placementDecision,
-        }) => {
+      subscriptionResources?.subscriptionGroupInfo?.forEach(
+        ({ placement, placementDecision, drInfo }) => {
+          const { drClusters, drPlacementControl, drPolicy } = drInfo || {};
           const deploymentClusters: string[] =
             placement.kind === ACMPlacementModel.kind
               ? getClustersFromDecisions(placementDecision)

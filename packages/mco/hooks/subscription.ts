@@ -1,8 +1,17 @@
 import * as React from 'react';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
-import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
-import { ACMPlacementModel, ACMPlacementRuleModel } from '../models';
+import {
+  WatchK8sResource,
+  WatchK8sResultsObject,
+  useK8sWatchResources,
+} from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
+import {
+  ACMPlacementModel,
+  ACMPlacementRuleModel,
+  ACMSubscriptionModel,
+} from '../models';
 import {
   ACMPlacementDecisionKind,
   ACMPlacementKind,
@@ -25,43 +34,100 @@ import {
   DisasterRecoveryResourceKind,
 } from './disaster-recovery';
 import {
+  getApplicationResourceObj,
   getPlacementDecisionsResourceObj,
   getPlacementResourceObj,
   getPlacementRuleResourceObj,
   getSubscriptionResourceObj,
 } from './mco-resources';
 
-const getResources = (namespace: string) => ({
-  placements: getPlacementResourceObj({ namespace }),
-  placementDecisions: getPlacementDecisionsResourceObj({ namespace }),
-  placementRules: getPlacementRuleResourceObj({ namespace }),
-  subscriptions: getSubscriptionResourceObj({ namespace }),
+const getResources = () => ({
+  applications: getApplicationResourceObj(),
+  placements: getPlacementResourceObj(),
+  placementDecisions: getPlacementDecisionsResourceObj(),
+  placementRules: getPlacementRuleResourceObj(),
+  subscriptions: getSubscriptionResourceObj(),
 });
 
-const getPlacementMap = (placements: ACMPlacementType[]) => {
-  return (
-    placements.reduce(
-      (arr, placement) => ({
-        ...arr,
-        [getName(placement)]: placement,
-      }),
-      {}
-    ) || {}
+const appFilter = (application: ApplicationKind) =>
+  application?.spec?.componentKinds?.some(
+    (componentKind) =>
+      componentKind.group === ACMSubscriptionModel.apiGroup &&
+      componentKind.kind === ACMSubscriptionModel.kind
   );
-};
 
-const getPlacements = (
+const getNamespaceWiseApplications = (
+  applications: ApplicationKind[]
+): NamespaceWiseMapping =>
+  applications.reduce(
+    (acc, application) =>
+      appFilter(application)
+        ? {
+            ...acc,
+            [getNamespace(application)]: [
+              ...(acc[getNamespace(application)] || []),
+              application,
+            ],
+          }
+        : acc,
+    {}
+  );
+
+const getNamespaceWiseSubscriptions = (
+  subscriptions: ACMSubscriptionKind[]
+): NamespaceWiseMapping =>
+  subscriptions.reduce(
+    (acc, subscription) =>
+      isPlacementModel(subscription)
+        ? {
+            ...acc,
+            [getNamespace(subscription)]: [
+              ...(acc[getNamespace(subscription)] || []),
+              subscription,
+            ],
+          }
+        : acc,
+    {}
+  );
+
+const getNamespaceWisePlacementDecisions = (
+  placementDecisions: ACMPlacementDecisionKind[]
+): NamespaceWiseMapping =>
+  placementDecisions.reduce(
+    (acc, placementDecision) => ({
+      ...acc,
+      [getNamespace(placementDecision)]: [
+        ...(acc[getNamespace(placementDecision)] || []),
+        placementDecision,
+      ],
+    }),
+    {} as any
+  );
+
+const getNamespaceWisePlacements = (
+  placements: ACMPlacementType[]
+): NamespaceToNameMapping =>
+  placements?.reduce(
+    (acc, placement) => ({
+      ...acc,
+      [getNamespace(placement)]: {
+        ...(acc[getNamespace(placement)] || []),
+        [getName(placement)]: placement,
+      },
+    }),
+    {}
+  );
+
+const generateSubscriptionGroupInfo = (
   application: ApplicationKind,
   subscriptions: ACMSubscriptionKind[],
-  placements: ACMPlacementKind[],
-  placementRules: ACMPlacementRuleKind[],
+  placementMap: ACMPlacementMap,
+  placementRuleMap: ACMPlacementMap,
   placementDecisions: ACMPlacementDecisionKind[],
   drResources: DisasterRecoveryFormatted[]
-): ApplicationDeploymentInfo[] => {
-  const placementRuleMap = getPlacementMap(placementRules);
-  const placementMap = getPlacementMap(placements);
+): SubscriptionGroupType[] => {
   const placementToAppDeploymentMap: PlacementToAppDeploymentMap = {};
-  subscriptions.forEach((subscription) => {
+  subscriptions?.forEach((subscription) => {
     // applying subscription filter from application
     if (
       isPlacementModel(subscription) &&
@@ -95,12 +161,23 @@ const getPlacements = (
               )
             : null;
         placementToAppDeploymentMap[placementUniqueId] = {
+          subscriptions: [subscription],
           placement,
           placementDecision,
-          drClusters: drResource?.drClusters,
-          drPolicy: drResource?.drPolicy,
-          drPlacementControl: drResource?.drPlacementControls?.[0],
+          ...(!_.isEmpty(drResource)
+            ? {
+                drInfo: {
+                  drClusters: drResource.drClusters,
+                  drPolicy: drResource.drPolicy,
+                  drPlacementControl: drResource.drPlacementControls?.[0],
+                },
+              }
+            : {}),
         };
+      } else {
+        placementToAppDeploymentMap[placementUniqueId].subscriptions.push(
+          subscription
+        );
       }
     }
   });
@@ -108,13 +185,18 @@ const getPlacements = (
   return Object.values(placementToAppDeploymentMap) || [];
 };
 
-export const useSubscriptionResourceWatch: UseSubscriptionResourceWatch = ({
-  application,
-  drResources,
-}) => {
+export const useSubscriptionResourceWatch: UseSubscriptionResourceWatch = (
+  resource
+) => {
   const response = useK8sWatchResources<WatchResourceType>(
-    getResources(getNamespace(application))
+    resource?.resources || getResources()
   );
+
+  const {
+    data: applications,
+    loaded: applicationsLoaded,
+    loadError: applicationsLoadError,
+  } = response?.applications || resource?.overrides?.applications || {};
 
   const {
     data: placements,
@@ -144,9 +226,10 @@ export const useSubscriptionResourceWatch: UseSubscriptionResourceWatch = ({
     data: drResourceList,
     loaded: drLoaded,
     loadError: drLoadError,
-  } = drResources || {};
+  } = resource?.drResources || {};
 
   const loaded =
+    applicationsLoaded &&
     placementsLoaded &&
     placementDecisionsLoaded &&
     placementRulesLoaded &&
@@ -154,6 +237,7 @@ export const useSubscriptionResourceWatch: UseSubscriptionResourceWatch = ({
     drLoaded;
 
   const loadError =
+    applicationsLoadError ||
     placementsLoadError ||
     placementDecisionsLoadError ||
     placementRulesLoadError ||
@@ -161,21 +245,43 @@ export const useSubscriptionResourceWatch: UseSubscriptionResourceWatch = ({
     drLoadError;
 
   return React.useMemo(() => {
-    const subscriptionResources: SubscriptionResourceKind =
-      loaded && !loadError
-        ? getPlacements(
+    const applicationDeploymentInfo: ApplicationDeploymentInfo[] = [];
+    if (loaded && !loadError) {
+      const applicationList = Array.isArray(applications)
+        ? applications
+        : [applications];
+      const namespaceToApplicationMap =
+        getNamespaceWiseApplications(applicationList);
+      const namespaceToSubscriptionMap =
+        getNamespaceWiseSubscriptions(subscriptions);
+      const namespaceToPlacementRuleMap =
+        getNamespaceWisePlacements(placementRules);
+      const namespaceToPlacementMap = getNamespaceWisePlacements(placements);
+      const namespaceToPlacementDecisionMap =
+        getNamespaceWisePlacementDecisions(placementDecisions);
+      Object.keys(namespaceToApplicationMap).forEach((namespace) => {
+        namespaceToApplicationMap[namespace].forEach((application) => {
+          const subscriptionGroupInfo = generateSubscriptionGroupInfo(
             application,
-            subscriptions,
-            placements,
-            placementRules,
-            placementDecisions,
+            namespaceToSubscriptionMap?.[namespace] as ACMSubscriptionKind[],
+            namespaceToPlacementMap?.[namespace] || {},
+            namespaceToPlacementRuleMap?.[namespace] || {},
+            namespaceToPlacementDecisionMap?.[
+              namespace
+            ] as ACMPlacementDecisionKind[],
             drResourceList?.formattedResources
-          )
-        : [];
+          );
 
-    return [subscriptionResources, loaded, loadError];
+          applicationDeploymentInfo.push({
+            application,
+            subscriptionGroupInfo,
+          });
+        });
+      });
+    }
+    return [applicationDeploymentInfo, loaded, loadError];
   }, [
-    application,
+    applications,
     placements,
     placementDecisions,
     placementRules,
@@ -187,10 +293,11 @@ export const useSubscriptionResourceWatch: UseSubscriptionResourceWatch = ({
 };
 
 type PlacementToAppDeploymentMap = {
-  [uniqueName: string]: ApplicationDeploymentInfo;
+  [uniqueName: string]: SubscriptionGroupType;
 };
 
 type WatchResourceType = {
+  applications?: ApplicationKind | ApplicationKind[];
   placements: ACMPlacementKind[];
   placementDecisions: ACMPlacementDecisionKind[];
   placementRules: ACMPlacementRuleKind[];
@@ -198,20 +305,32 @@ type WatchResourceType = {
 };
 
 type WatchResources = {
+  resources?: {
+    applications?: WatchK8sResource;
+    placements: WatchK8sResource;
+    placementDecisions: WatchK8sResource;
+    placementRules: WatchK8sResource;
+    subscriptions: WatchK8sResource;
+  };
   drResources?: {
     data: DisasterRecoveryResourceKind;
     loaded: boolean;
     loadError: any;
   };
-  application: ApplicationKind;
+  overrides?: {
+    applications?: WatchK8sResultsObject<ApplicationKind>;
+  };
 };
 
-type ApplicationDeploymentInfo = {
-  placement: ACMPlacementType;
-  placementDecision?: ACMPlacementDecisionKind;
+type DRInfoType = {
   drPlacementControl?: DRPlacementControlKind;
   drPolicy?: DRPolicyKind;
   drClusters?: DRClusterKind[];
+};
+
+type ApplicationDeploymentInfo = {
+  application: ApplicationKind;
+  subscriptionGroupInfo: SubscriptionGroupType[];
 };
 
 type SubscriptionResourceKind = ApplicationDeploymentInfo[];
@@ -219,3 +338,25 @@ type SubscriptionResourceKind = ApplicationDeploymentInfo[];
 type UseSubscriptionResourceWatch = (
   resource?: WatchResources
 ) => [SubscriptionResourceKind, boolean, any];
+
+type NamespaceWiseMapping = {
+  [namespace in string]:
+    | ApplicationKind[]
+    | ACMSubscriptionKind[]
+    | ACMPlacementDecisionKind[];
+};
+
+type ACMPlacementMap = {
+  [name in string]: ACMPlacementRuleKind | ACMPlacementKind;
+};
+
+type NamespaceToNameMapping = {
+  [namespace in string]: ACMPlacementMap;
+};
+
+export type SubscriptionGroupType = {
+  subscriptions: ACMSubscriptionKind[];
+  placement?: ACMPlacementType;
+  placementDecision?: ACMPlacementDecisionKind;
+  drInfo?: DRInfoType;
+};

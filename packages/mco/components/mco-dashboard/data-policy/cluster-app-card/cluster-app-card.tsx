@@ -5,9 +5,9 @@ import {
   applicationDetails,
 } from '@odf/mco/constants';
 import {
-  DrClusterAppsMap,
-  AppSetObj,
-  ProtectedAppSetsMap,
+  DRClusterAppsMap,
+  ApplicationObj,
+  ProtectedAppsMap,
   ACMManagedClusterViewKind,
   ProtectedPVCData,
   MirrorPeerKind,
@@ -38,14 +38,14 @@ import {
 } from '../../../../models';
 import {
   getProtectedPVCFromVRG,
-  filterPVCDataUsingAppsets,
+  filterPVCDataUsingApps,
 } from '../../../../utils';
 import { getLastSyncPerClusterQuery } from '../../queries';
 import {
   CSVStatusesContext,
   DRResourcesContext,
 } from '../dr-dashboard-context';
-import { ActivitySection, SnapshotSection } from './argo-application-set';
+import { ActivitySection, SnapshotSection } from './application';
 import {
   HealthSection,
   PeerConnectionSection,
@@ -113,26 +113,26 @@ export const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
 
 export const AppWiseCard: React.FC<AppWiseCardProps> = ({
   protectedPVCData,
-  selectedAppSet,
+  selectedApplication,
 }) => {
   return (
     <Grid hasGutter>
       <GridItem lg={12} rowSpan={8} sm={12}>
         <ProtectedPVCsSection
           protectedPVCData={protectedPVCData}
-          selectedAppSet={selectedAppSet}
+          selectedApplication={selectedApplication}
         />
       </GridItem>
       <GridItem lg={3} rowSpan={8} sm={12}>
-        <ActivitySection selectedAppSet={selectedAppSet} />
+        <ActivitySection selectedApplication={selectedApplication} />
       </GridItem>
       <GridItem lg={9} rowSpan={8} sm={12}>
-        <SnapshotSection selectedAppSet={selectedAppSet} />
+        <SnapshotSection selectedApplication={selectedApplication} />
       </GridItem>
       <GridItem lg={12} rowSpan={8} sm={12}>
         <VolumeSummarySection
           protectedPVCData={protectedPVCData}
-          selectedAppSet={selectedAppSet}
+          selectedApplication={selectedApplication}
         />
       </GridItem>
     </Grid>
@@ -141,7 +141,7 @@ export const AppWiseCard: React.FC<AppWiseCardProps> = ({
 
 export const ClusterAppCard: React.FC = () => {
   const [cluster, setCluster] = React.useState<string>();
-  const [appSet, setAppSet] = React.useState<AppSetObj>({
+  const [application, setApplication] = React.useState<ApplicationObj>({
     namespace: undefined,
     name: ALL_APPS,
   });
@@ -170,39 +170,39 @@ export const ClusterAppCard: React.FC = () => {
   const allLoaded = loaded && !csvLoading && !lastSyncTimeLoading && mcvsLoaded;
   const anyError = lastSyncTimeError || csvError || loadError || mcvsLoadError;
 
-  const selectedAppSet: ProtectedAppSetsMap = React.useMemo(() => {
-    const { name, namespace } = appSet || {};
+  const selectedApplication: ProtectedAppsMap = React.useMemo(() => {
+    const { name, namespace } = application || {};
     return !!namespace && name !== ALL_APPS
-      ? drClusterAppsMap[cluster]?.protectedAppSets?.find(
-          (protectedAppSet) =>
-            protectedAppSet?.appName === name &&
-            protectedAppSet?.appNamespace === namespace
+      ? drClusterAppsMap[cluster]?.protectedApps?.find(
+          (protectedApp) =>
+            protectedApp?.appName === name &&
+            protectedApp?.appNamespace === namespace
         )
       : undefined;
-  }, [appSet, drClusterAppsMap, cluster]);
+  }, [application, drClusterAppsMap, cluster]);
 
   const protectedPVCData: ProtectedPVCData[] = React.useMemo(() => {
     const pvcsData =
       (mcvsLoaded && !mcvsLoadError && getProtectedPVCFromVRG(mcvs)) || [];
-    const protectedAppSets = !!selectedAppSet
-      ? [selectedAppSet]
-      : drClusterAppsMap[cluster]?.protectedAppSets;
-    return filterPVCDataUsingAppsets(pvcsData, protectedAppSets);
+    const protectedApps = !!selectedApplication
+      ? [selectedApplication]
+      : drClusterAppsMap[cluster]?.protectedApps;
+    return filterPVCDataUsingApps(pvcsData, protectedApps);
   }, [
     drClusterAppsMap,
-    selectedAppSet,
+    selectedApplication,
     cluster,
     mcvs,
     mcvsLoaded,
     mcvsLoadError,
   ]);
-  const apiVersion = `${selectedAppSet?.appKind?.toLowerCase()}.${
-    selectedAppSet?.appAPIVersion?.split('/')[0]
+  const apiVersion = `${selectedApplication?.appKind?.toLowerCase()}.${
+    selectedApplication?.appAPIVersion?.split('/')[0]
   }`;
   const applicationDetailsPath =
     applicationDetails
-      .replace(':namespace', appSet.namespace)
-      .replace(':name', appSet.name) +
+      .replace(':namespace', application.namespace)
+      .replace(':name', application.name) +
     '?apiVersion=' +
     apiVersion;
 
@@ -215,17 +215,14 @@ export const ClusterAppCard: React.FC = () => {
               <ClusterAppDropdown
                 clusterResources={drClusterAppsMap}
                 clusterName={cluster}
-                appSet={appSet}
+                application={application}
                 setCluster={setCluster}
-                setAppSet={setAppSet}
+                setApplication={setApplication}
               />
               <CardTitle className="mco-cluster-app__text--margin-top mco-cluster-app__headerText--size">
-                {!!appSet.namespace ? (
-                  <Link
-                    id="app-search-argo-apps-link"
-                    to={applicationDetailsPath}
-                  >
-                    {appSet.name}
+                {!!application.namespace ? (
+                  <Link id="app-overview-link" to={applicationDetailsPath}>
+                    {application.name}
                   </Link>
                 ) : (
                   cluster
@@ -234,7 +231,7 @@ export const ClusterAppCard: React.FC = () => {
             </div>
           </CardHeader>
           <CardBody>
-            {!appSet.namespace && appSet.name === ALL_APPS ? (
+            {!application.namespace && application.name === ALL_APPS ? (
               <ClusterWiseCard
                 clusterName={cluster}
                 lastSyncTimeData={lastSyncTimeData}
@@ -245,7 +242,7 @@ export const ClusterAppCard: React.FC = () => {
             ) : (
               <AppWiseCard
                 protectedPVCData={protectedPVCData}
-                selectedAppSet={selectedAppSet}
+                selectedApplication={selectedApplication}
               />
             )}
           </CardBody>
@@ -268,10 +265,10 @@ type ClusterWiseCardProps = {
   lastSyncTimeData: PrometheusResponse;
   protectedPVCData: ProtectedPVCData[];
   csvData: PrometheusResponse;
-  clusterResources: DrClusterAppsMap;
+  clusterResources: DRClusterAppsMap;
 };
 
 type AppWiseCardProps = {
   protectedPVCData: ProtectedPVCData[];
-  selectedAppSet: ProtectedAppSetsMap;
+  selectedApplication: ProtectedAppsMap;
 };

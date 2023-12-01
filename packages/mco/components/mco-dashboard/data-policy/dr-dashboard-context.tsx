@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { DRClusterAppsMap } from '@odf/mco/types';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { DrClusterAppsMap } from '../../../types';
 
 export const CSVStatusesContext = React.createContext<CSVStatusesContextType>(
   {} as CSVStatusesContextType
@@ -17,7 +17,7 @@ type CSVStatusesContextType = {
 };
 
 type DRResourcesContextType = {
-  drClusterAppsMap: DrClusterAppsMap;
+  drClusterAppsMap: DRClusterAppsMap;
   loaded: boolean;
   loadError: any;
 };

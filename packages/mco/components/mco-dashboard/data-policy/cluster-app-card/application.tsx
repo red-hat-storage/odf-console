@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import { DRPC_STATUS } from '@odf/mco/constants';
-import { PlacementInfo, ProtectedAppSetsMap } from '@odf/mco/types';
+import { PlacementInfo, ProtectedAppsMap } from '@odf/mco/types';
 import { getDRStatus } from '@odf/mco/utils';
 import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
 import { fromNow } from '@odf/shared/details-page/datetime';
@@ -47,10 +47,12 @@ const getCurrentActivity = (
   }
 };
 
-export const ActivitySection: React.FC<CommonProps> = ({ selectedAppSet }) => {
+export const ActivitySection: React.FC<CommonProps> = ({
+  selectedApplication,
+}) => {
   const { t } = useCustomTranslation();
 
-  const placementInfo: PlacementInfo = selectedAppSet?.placementInfo?.[0];
+  const placementInfo: PlacementInfo = selectedApplication?.placementInfo?.[0];
   const currentStatus = placementInfo?.status;
   const failoverCluster = placementInfo?.failoverCluster;
   const preferredCluster = placementInfo?.preferredCluster;
@@ -71,11 +73,13 @@ export const ActivitySection: React.FC<CommonProps> = ({ selectedAppSet }) => {
   );
 };
 
-export const SnapshotSection: React.FC<CommonProps> = ({ selectedAppSet }) => {
+export const SnapshotSection: React.FC<CommonProps> = ({
+  selectedApplication,
+}) => {
   const { t } = useCustomTranslation();
   const [lastSyncTime, setLastSyncTime] = React.useState('N/A');
   const lastGroupSyncTime =
-    selectedAppSet?.placementInfo?.[0]?.lastGroupSyncTime;
+    selectedApplication?.placementInfo?.[0]?.lastGroupSyncTime;
   const clearSetIntervalId = React.useRef<NodeJS.Timeout>();
   const updateSyncTime = React.useCallback(() => {
     if (!!lastGroupSyncTime) {
@@ -108,6 +112,6 @@ export const SnapshotSection: React.FC<CommonProps> = ({ selectedAppSet }) => {
 };
 
 type CommonProps = {
-  selectedAppSet: ProtectedAppSetsMap;
+  selectedApplication: ProtectedAppsMap;
   lastSyncTimeData?: PrometheusResponse;
 };
