@@ -60,7 +60,7 @@ import {
   ACMManagedClusterViewKind,
   DRVolumeReplicationGroupKind,
   ProtectedPVCData,
-  ProtectedAppSetsMap,
+  ProtectedAppsMap,
   ACMPlacementDecisionKind,
   ACMPlacementKind,
   MirrorPeerKind,
@@ -495,18 +495,19 @@ export const getProtectedPVCFromVRG = (
   }, []);
 };
 
-export const filterPVCDataUsingAppsets = (
+export const filterPVCDataUsingApps = (
   pvcsData: ProtectedPVCData[],
-  protectedAppsets: ProtectedAppSetsMap[]
+  protectedApps: ProtectedAppsMap[]
 ) =>
   pvcsData?.filter(
     (pvcData) =>
-      !!protectedAppsets?.find((appSet) => {
-        const placementInfo = appSet?.placementInfo?.[0];
-        const result =
-          placementInfo?.drpcName === pvcData?.drpcName &&
-          placementInfo?.drpcNamespace === pvcData?.drpcNamespace;
-        return result;
+      !!protectedApps?.find((application) => {
+        return application.placementInfo?.map((placementInfo) => {
+          const result =
+            placementInfo.drpcName === pvcData.drpcName &&
+            placementInfo.drpcNamespace === pvcData.drpcNamespace;
+          return result;
+        });
       })
   );
 

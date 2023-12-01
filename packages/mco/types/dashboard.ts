@@ -15,7 +15,7 @@ export type PlacementInfo = Partial<{
   protectedPVCs: string[];
 }>;
 
-export type ProtectedAppSetsMap = {
+export type ProtectedAppsMap = {
   appName: string;
   appNamespace: string;
   appKind: string;
@@ -24,16 +24,16 @@ export type ProtectedAppSetsMap = {
   placementInfo: PlacementInfo[];
 };
 
-export type AppSetObj = {
+export type ApplicationObj = {
   namespace: string;
   name: string;
 };
 
-export type DrClusterAppsMap = {
+export type DRClusterAppsMap = {
   [drClusterName: string]: {
     managedCluster: ACMManagedClusterKind;
-    totalAppSetsCount: number;
-    protectedAppSets: ProtectedAppSetsMap[];
+    totalAppCount: number;
+    protectedApps: ProtectedAppsMap[];
   };
 };
 

@@ -16,7 +16,7 @@ import {
   OBJECT_NAME,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
 } from '@odf/mco/constants';
-import { DrClusterAppsMap, PlacementInfo } from '@odf/mco/types';
+import { DRClusterAppsMap, PlacementInfo } from '@odf/mco/types';
 import {
   getVolumeReplicationHealth,
   ValidateManagedClusterCondition,
@@ -178,10 +178,10 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
 
   const appsWithIssues = React.useMemo(
     () =>
-      clusterResources[clusterName]?.protectedAppSets?.reduce(
-        (acc, protectedAppSetsMap) => {
+      clusterResources[clusterName]?.protectedApps?.reduce(
+        (acc, protectedAppsMap) => {
           const placementInfo: PlacementInfo =
-            protectedAppSetsMap?.placementInfo?.[0];
+            protectedAppsMap?.placementInfo?.[0];
           const hasIssue = !!lastSyncTimeData?.data?.result?.find(
             (item: PrometheusResult) =>
               item?.metric?.[OBJECT_NAMESPACE] ===
@@ -192,6 +192,7 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
                 placementInfo?.syncInterval
               )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
           );
+
           return hasIssue ? acc + 1 : acc;
         },
         0
@@ -199,22 +200,22 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
     [clusterResources, clusterName, lastSyncTimeData]
   );
 
-  const totalAppSetsCount = clusterResources[clusterName]?.totalAppSetsCount;
-  const protectedAppSetsCount =
-    clusterResources[clusterName]?.protectedAppSets?.length;
+  const totalAppSetsCount = clusterResources[clusterName]?.totalAppCount;
+  const protectedAppCount =
+    clusterResources[clusterName]?.protectedApps?.length;
   return (
     <div className="mco-dashboard__contentColumn">
       <Text component={TextVariants.h1}>{totalAppSetsCount || 0}</Text>
       <StatusText>{t('Total applications')}</StatusText>
       <Text className="text-muted mco-dashboard__statusText--margin">
-        {t(' {{ protectedAppSetsCount }} protected apps', {
-          protectedAppSetsCount,
+        {t(' {{ protectedAppCount }} protected apps', {
+          protectedAppCount,
         })}
       </Text>
       <Text className="text-muted">
         {t(
-          ' {{ appsWithIssues }} of {{ protectedAppSetsCount }} apps with issues',
-          { appsWithIssues, protectedAppSetsCount }
+          ' {{ appsWithIssues }} of {{ protectedAppCount }} apps with issues',
+          { appsWithIssues, protectedAppCount }
         )}
       </Text>
     </div>
@@ -354,7 +355,7 @@ type OperatorsHealthPopUpProps = {
 };
 
 type HealthSectionProps = {
-  clusterResources: DrClusterAppsMap;
+  clusterResources: DRClusterAppsMap;
   csvData: PrometheusResponse;
   clusterName: string;
 };
@@ -364,7 +365,7 @@ type PeerConnectionSectionProps = {
 };
 
 type ApplicationsSectionProps = {
-  clusterResources: DrClusterAppsMap;
+  clusterResources: DRClusterAppsMap;
   clusterName: string;
   lastSyncTimeData: PrometheusResponse;
 };
