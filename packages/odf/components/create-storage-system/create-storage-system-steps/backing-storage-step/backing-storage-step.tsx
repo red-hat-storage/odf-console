@@ -35,10 +35,12 @@ import {
   Radio,
   Alert,
   AlertVariant,
+  Checkbox,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from './enable-nfs';
+import { PostgresConnectionDetails } from './noobaa-external-postgres/postgres-connection-details';
 import { SelectDeployment } from './select-deployment';
 import { SetCephRBDStorageClassDefault } from './set-rbd-sc-default';
 import './backing-storage-step.scss';
@@ -189,6 +191,8 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
     isRBDStorageClassDefault,
     externalStorage,
     deployment,
+    externalPostgres,
+    useExternalPostgres,
   } = state;
 
   const { t } = useCustomTranslation();
@@ -363,6 +367,38 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
               doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
             />
           </>
+        )}
+        <Checkbox
+          id="use-external-postgress"
+          label={t('Use external PostgreSQL')}
+          description={t(
+            'Allow Noobaa to connect to an external postgres server'
+          )}
+          isChecked={useExternalPostgres}
+          onChange={() =>
+            dispatch({
+              type: 'backingStorage/useExternalPostgres',
+              payload: !useExternalPostgres,
+            })
+          }
+          className="odf-backing-store__radio--margin-bottom"
+        />
+        {useExternalPostgres && (
+          <PostgresConnectionDetails
+            dispatch={dispatch}
+            tlsFiles={[
+              externalPostgres.tls.keys.private,
+              externalPostgres.tls.keys.public,
+            ]}
+            tlsEnabled={externalPostgres.tls.enabled}
+            allowSelfSignedCerts={externalPostgres.tls.allowSelfSignedCerts}
+            username={externalPostgres.username}
+            password={externalPostgres.password}
+            serverName={externalPostgres.serverName}
+            databaseName={externalPostgres.databaseName}
+            port={externalPostgres.port}
+            enableClientSideCerts={externalPostgres.tls.enableClientSideCerts}
+          />
         )}
       </Form>
     </ErrorHandler>

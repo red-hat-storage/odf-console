@@ -27,6 +27,7 @@ import { createClusterKmsResources } from '../kms-config/utils';
 import { getExternalStorage } from '../utils';
 import {
   createExternalSubSystem,
+  createNoobaaExternalPostgresResources,
   createStorageCluster,
   createStorageSystem,
   labelNodes,
@@ -39,13 +40,46 @@ const validateBackingStorageStep = (
   sc: WizardState['storageClass']
 ) => {
   const { type, enableNFS, externalStorage, deployment } = backingStorage;
+
+  const { useExternalPostgres, externalPostgres } = backingStorage;
+
+  const {
+    username,
+    password,
+    serverName,
+    port,
+    databaseName,
+    tls: { enableClientSideCerts, keys },
+  } = externalPostgres;
+
+  const hasPGEnabledButNoFields =
+    useExternalPostgres &&
+    (!username || !password || !serverName || !port || !databaseName);
+
+  const hasClientCertsEnabledButNoKeys =
+    enableClientSideCerts && (!keys.private || !keys.public);
+
   switch (type) {
     case BackingStorageType.EXISTING:
-      return !!sc.name && !!deployment;
+      return (
+        !!sc.name &&
+        !!deployment &&
+        !hasPGEnabledButNoFields &&
+        !hasClientCertsEnabledButNoKeys
+      );
     case BackingStorageType.EXTERNAL:
-      return !!externalStorage && !enableNFS;
+      return (
+        !!externalStorage &&
+        !enableNFS &&
+        !hasPGEnabledButNoFields &&
+        !hasClientCertsEnabledButNoKeys
+      );
     case BackingStorageType.LOCAL_DEVICES:
-      return !!deployment;
+      return (
+        !!deployment &&
+        !hasPGEnabledButNoFields &&
+        !hasClientCertsEnabledButNoKeys
+      );
     default:
       return false;
   }
@@ -136,39 +170,60 @@ const handleReviewAndCreateNext = async (
     nodes,
     capacityAndNodes,
   } = state;
-  const { externalStorage, deployment, type } = state.backingStorage;
+  const {
+    externalStorage,
+    deployment,
+    type,
+    useExternalPostgres,
+    externalPostgres,
+  } = state.backingStorage;
   const inTransitChecked = state.securityAndNetwork.encryption.inTransit;
   const { encryption, kms } = state.securityAndNetwork;
   const isRhcs: boolean = externalStorage === OCSStorageClusterModel.kind;
   const isMCG: boolean = deployment === DeploymentType.MCG;
 
+  const createAdditionalFeatureResources = async () => {
+    if (capacityAndNodes.enableTaint && !isMCG) await taintNodes(nodes);
+
+    if (encryption.advanced)
+      await Promise.all(
+        createClusterKmsResources(
+          kms.providerState,
+          odfNamespace,
+          kms.provider,
+          isMCG
+        )
+      );
+
+    if (useExternalPostgres) {
+      let keyTexts = { private: '', public: '' };
+      if (externalPostgres.tls.enableClientSideCerts) {
+        const keys = externalPostgres.tls.keys;
+        const privateKey = await keys.private.text();
+        const publicKey = await keys.public.text();
+        keyTexts = { private: privateKey, public: publicKey };
+      }
+      await Promise.all(
+        createNoobaaExternalPostgresResources(
+          odfNamespace,
+          externalPostgres,
+          keyTexts
+        )
+      );
+    }
+  };
+
   try {
     await labelOCSNamespace(odfNamespace);
     if (isMCG) {
-      if (encryption.advanced)
-        await Promise.all(
-          createClusterKmsResources(
-            kms.providerState,
-            odfNamespace,
-            kms.provider,
-            isMCG
-          )
-        );
+      await createAdditionalFeatureResources();
       await createStorageCluster(state, odfNamespace);
     } else if (
       type === BackingStorageType.EXISTING ||
       type === BackingStorageType.LOCAL_DEVICES
     ) {
       await labelNodes(nodes, odfNamespace);
-      if (capacityAndNodes.enableTaint) await taintNodes(nodes);
-      if (encryption.advanced)
-        await Promise.all(
-          createClusterKmsResources(
-            kms.providerState,
-            odfNamespace,
-            kms.provider
-          )
-        );
+      await createAdditionalFeatureResources();
       await createStorageSystem(
         OCS_INTERNAL_CR_NAME,
         STORAGE_CLUSTER_SYSTEM_KIND,
@@ -200,15 +255,7 @@ const handleReviewAndCreateNext = async (
       await createStorageSystem(subSystemName, subSystemKind, odfNamespace);
       if (!hasOCS && !isRhcs) {
         await labelNodes(nodes, odfNamespace);
-        if (capacityAndNodes.enableTaint) await taintNodes(nodes);
-        if (encryption.advanced)
-          await Promise.all(
-            createClusterKmsResources(
-              kms.providerState,
-              odfNamespace,
-              kms.provider
-            )
-          );
+        await createAdditionalFeatureResources();
         await createStorageCluster(state, odfNamespace);
       }
       if (!isRhcs && !!waitToCreate) await waitToCreate(model);
