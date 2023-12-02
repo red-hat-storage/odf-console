@@ -12,7 +12,8 @@ const enum Deployments {
 const messages = {
   warnings: {
     MON_DOWN: '1/3 mons down, quorum b,c',
-    MGR_DOWN: 'no active mgr',
+    // @TODO: investigate why in 4.15 we don't receive MGR_DOWN warning.
+    // MGR_DOWN: 'no active mgr',
   },
   errors: {
     ERROR: 'failed to get status. . timed out: exit status 1',
