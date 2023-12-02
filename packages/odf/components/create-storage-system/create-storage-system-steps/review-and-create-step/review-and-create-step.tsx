@@ -171,6 +171,11 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             })}
           </ListItem>
           <ListItem>
+            {t('Performance profile: {{resourceProfile}}', {
+              resourceProfile: _.capitalize(capacityAndNodes.resourceProfile),
+            })}
+          </ListItem>
+          <ListItem>
             {t('Zone: {{zoneCount, number}} zone', {
               zoneCount: zones.size,
               count: zones.size,

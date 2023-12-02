@@ -2,7 +2,11 @@ import {
   getOCSRequestData,
   capacityAndNodesValidate,
 } from '@odf/core/components/utils';
-import { DeploymentType, BackingStorageType } from '@odf/core/types';
+import {
+  DeploymentType,
+  BackingStorageType,
+  ValidationType,
+} from '@odf/core/types';
 import { Payload } from '@odf/odf-plugin-sdk/extensions';
 import { SecretModel, getAPIVersion } from '@odf/shared';
 import {
@@ -28,7 +32,6 @@ import {
   NO_PROVISIONER,
   cephStorageLabel,
 } from '../../constants';
-import { ValidationType } from '../utils/common-odf-install-el';
 import { WizardNodeState, WizardState } from './reducer';
 
 export const createStorageSystem = async (
@@ -176,10 +179,9 @@ export const createStorageCluster = async (
   const validations = capacityAndNodesValidate(
     nodes,
     enableArbiter,
-    isNoProvisioner
+    isNoProvisioner,
+    capacityAndNodes.resourceProfile
   );
-
-  const isMinimal = validations.includes(ValidationType.MINIMAL);
 
   const isFlexibleScaling = validations.includes(
     ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING
@@ -198,7 +200,7 @@ export const createStorageCluster = async (
     storageClass,
     storage,
     encryption,
-    isMinimal,
+    resourceProfile: capacityAndNodes.resourceProfile,
     nodes,
     flexibleScaling: isFlexibleScaling,
     publicNetwork,

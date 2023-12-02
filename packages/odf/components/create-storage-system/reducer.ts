@@ -2,6 +2,7 @@ import {
   ExternalCephState,
   ExternalCephStateValues,
   ExternalCephStateKeys,
+  ResourceProfile,
 } from '@odf/core/types';
 import {
   ExternalStateValues,
@@ -67,6 +68,7 @@ export const initialState: CreateStorageSystemState = {
     arbiterLocation: '',
     capacity: null,
     pvCount: 0,
+    resourceProfile: ResourceProfile.Balanced,
   },
   createStorageClass: {},
   connectionDetails: {},
@@ -142,6 +144,7 @@ type CreateStorageSystemState = {
     // Requires refactoring osd size dropdown.
     capacity: string | number;
     pvCount: number;
+    resourceProfile: ResourceProfile;
   };
   securityAndNetwork: {
     encryption: EncryptionType;
@@ -293,6 +296,9 @@ export const reducer: WizardReducer = (prevState, action) => {
         [action.payload.field]: action.payload.value,
       };
       break;
+    case 'wizard/setResourceProfile':
+      newState.capacityAndNodes.resourceProfile = action.payload;
+      break;
     case 'backingStorage/setType':
       return setBackingStorageType(newState, action.payload);
     case 'backingStorage/enableNFS':
@@ -418,6 +424,10 @@ export type CreateStorageSystemAction =
         field: keyof LocalVolumeSet;
         value: LocalVolumeSet[keyof LocalVolumeSet];
       };
+    }
+  | {
+      type: 'wizard/setResourceProfile';
+      payload: WizardState['capacityAndNodes']['resourceProfile'];
     }
   | {
       type: 'backingStorage/setDeployment';

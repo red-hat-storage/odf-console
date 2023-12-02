@@ -53,6 +53,7 @@ export const createSteps = (
           storageClass={storageClass}
           volumeSetName={createLocalVolumeSet.volumeSetName}
           nodes={nodes}
+          resourceProfile={capacityAndNodes.resourceProfile}
         />
       ),
     },

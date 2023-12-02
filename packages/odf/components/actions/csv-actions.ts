@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import AddSSCapacityModal from '@odf/core/modals/add-capacity/add-capacity-modal';
+import ConfigureSSPerformanceModal from '@odf/core/modals/configure-performance/configure-performance-modal';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { StorageSystemKind } from '@odf/shared/types';
 import {
@@ -14,7 +16,6 @@ import {
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import AddSSCapacityModal from '../../modals/add-capacity/add-capacity-modal';
 
 export const useCsvActions = ({
   resource,
@@ -31,7 +32,16 @@ export const useCsvActions = ({
     () =>
       referenceForModel(k8sModel) === referenceForModel(ODFStorageSystem) &&
       isOCSStorageSystem(resource as StorageSystemKind)
-        ? [AddCapacityStorageSystem(resource as StorageSystemKind, launchModal)]
+        ? [
+            AddCapacityStorageSystem(
+              resource as StorageSystemKind,
+              launchModal
+            ),
+            ConfigurePerformanceStorageSystem(
+              resource as StorageSystemKind,
+              launchModal
+            ),
+          ]
         : [],
 
     [k8sModel, resource, launchModal]
@@ -40,7 +50,7 @@ export const useCsvActions = ({
   return useMemo(() => [actions, !inFlight, undefined], [actions, inFlight]);
 };
 
-export const AddCapacityStorageSystem = (
+const AddCapacityStorageSystem = (
   resource: StorageSystemKind,
   launchModal: LaunchModal
 ): Action => {
@@ -50,6 +60,23 @@ export const AddCapacityStorageSystem = (
     insertBefore: 'edit-csv',
     cta: () => {
       launchModal(AddSSCapacityModal as any, {
+        extraProps: { resource },
+        isOpen: true,
+      });
+    },
+  };
+};
+
+const ConfigurePerformanceStorageSystem = (
+  resource: StorageSystemKind,
+  launchModal: LaunchModal
+): Action => {
+  return {
+    id: 'configure-performance-storage-system',
+    label: 'Configure performance',
+    insertAfter: 'add-capacity-storage-system',
+    cta: () => {
+      launchModal(ConfigureSSPerformanceModal as any, {
         extraProps: { resource },
         isOpen: true,
       });

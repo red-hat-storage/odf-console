@@ -24,7 +24,7 @@ export const SelectNodesTableFooter: React.FC<SelectNodesDetailsProps> =
             nodeCount: nodes.length,
             count: nodes.length,
           })}{' '}
-          {t('selected ({{cpu}} CPU and {{memory}} on ', {
+          {t('selected ({{cpu}} CPUs and {{memory}} on ', {
             cpu: totalCpu,
             memory: humanizeBinaryBytes(totalMemory).string,
           })}

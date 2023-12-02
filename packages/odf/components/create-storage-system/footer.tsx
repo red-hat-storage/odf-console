@@ -22,9 +22,13 @@ import {
   OCS_INTERNAL_CR_NAME,
 } from '../../constants';
 import { NetworkType, BackingStorageType, DeploymentType } from '../../types';
-import { labelOCSNamespace, getExternalSubSystemName } from '../../utils';
+import {
+  labelOCSNamespace,
+  getExternalSubSystemName,
+  isResourceProfileAllowed,
+} from '../../utils';
 import { createClusterKmsResources } from '../kms-config/utils';
-import { getExternalStorage } from '../utils';
+import { getExternalStorage, getTotalCpu, getTotalMemoryInGiB } from '../utils';
 import {
   createExternalSubSystem,
   createNoobaaExternalPostgresResources,
@@ -134,7 +138,15 @@ const canJumpToNextStep = (
         isValidDeviceType
       );
     case StepsName(t)[Steps.CapacityAndNodes]:
-      return nodes.length >= MINIMUM_NODES && capacity;
+      return (
+        nodes.length >= MINIMUM_NODES &&
+        capacity &&
+        isResourceProfileAllowed(
+          capacityAndNodes.resourceProfile,
+          getTotalCpu(nodes),
+          getTotalMemoryInGiB(nodes)
+        )
+      );
     case StepsName(t)[Steps.SecurityAndNetwork]:
       if (isExternal && isRHCS) {
         return canGoToNextStep(connectionDetails, storageClass.name);
