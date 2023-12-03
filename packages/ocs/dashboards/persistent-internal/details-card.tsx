@@ -2,15 +2,21 @@ import * as React from 'react';
 import { useSafeK8sList } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getOperatorVersion } from '@odf/core/utils';
+import { OSDMigrationDetails } from '@odf/ocs/modals/osd-migration/osd-migration-details';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import {
+  CephClusterModel,
   ClusterServiceVersionModel,
   InfrastructureModel,
 } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
+import {
+  CephClusterKind,
+  K8sResourceKind,
+  StorageClusterKind,
+} from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getInfrastructurePlatform,
@@ -34,6 +40,12 @@ const DetailsCard: React.FC = () => {
     StorageClusterModel,
     odfNamespace
   );
+
+  const [cephData, cephLoaded, cephLoadError] = useSafeK8sList<CephClusterKind>(
+    CephClusterModel,
+    odfNamespace
+  );
+
   const [csv, csvLoaded, csvError] = useFetchCsv({
     specName: ODF_OPERATOR,
     namespace: odfNamespace,
@@ -103,6 +115,14 @@ const DetailsCard: React.FC = () => {
             error={ocsError as any}
           >
             {inTransitEncryptionStatus}
+          </DetailItem>
+          <DetailItem
+            key="osd_migration"
+            title={t('Disaster recovery optimisation')}
+            isLoading={!cephLoaded}
+            error={cephLoadError as any}
+          >
+            <OSDMigrationDetails cephData={cephData?.[0]} ocsData={cluster} />
           </DetailItem>
         </DetailsBody>
       </CardBody>
