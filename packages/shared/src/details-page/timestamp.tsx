@@ -4,14 +4,19 @@ import { Tooltip } from '@patternfly/react-core';
 import { GlobeAmericasIcon } from '@patternfly/react-icons';
 import * as dateTime from './datetime';
 
-const timestampFor = (mdate: Date, now: Date, omitSuffix: boolean) => {
+const timestampFor = (
+  mdate: Date,
+  now: Date,
+  omitSuffix: boolean,
+  simple?: boolean
+) => {
   if (!dateTime.isValid(mdate)) {
     return '-';
   }
 
   const timeDifference = now.getTime() - mdate.getTime();
-  if (omitSuffix) {
-    return dateTime.fromNow(mdate, undefined, { omitSuffix: true });
+  if (omitSuffix || simple) {
+    return dateTime.fromNow(mdate, undefined, { omitSuffix });
   }
 
   // Show a relative time if within 10.5 minutes in the past from the current time.
@@ -34,7 +39,7 @@ export const Timestamp = (props: TimestampProps) => {
     ? new Date((props.timestamp as number) * 1000)
     : new Date(props.timestamp);
 
-  const timestamp = timestampFor(mdate, new Date(now), props.omitSuffix);
+  const timestamp = timestampFor(mdate, new Date(now), props.simple);
 
   if (!dateTime.isValid(mdate)) {
     return <div className="co-timestamp">-</div>;
