@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { K8sResourceObj } from '@odf/core/types';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
+import { StorageConsumerKind } from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMap } from '@odf/shared/dashboards/status-card/states';
@@ -21,8 +22,13 @@ import {
   referenceForGroupVersionKind,
   getOperatorHealthState,
 } from '@odf/shared/utils';
-import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  HealthState,
+  useFlag,
+  useK8sWatchResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { useHistory } from 'react-router';
 import {
   Gallery,
   GalleryItem,
@@ -32,9 +38,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
+import { PROVIDER_MODE } from '../../../features';
+import { StorageConsumerModel } from '../../../models';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
-import StorageSystemPopup from './storage-system-popup';
+import StatusCardPopover from './status-card-popover';
+import { getAggregateClientHealthState, getClientText } from './utils';
 import './status-card.scss';
 
 const operatorResource: K8sResourceObj = (ns) => ({
@@ -129,6 +138,23 @@ export const StatusCard: React.FC = () => {
     csvLoadError
   );
 
+  const isProviderMode = useFlag(PROVIDER_MODE);
+
+  const [clients, clientsLoaded, clientsLoadError] = useK8sWatchResource<
+    StorageConsumerKind[]
+  >({
+    kind: referenceForModel(StorageConsumerModel),
+    isList: true,
+  });
+
+  const clientAggregateHealth = getAggregateClientHealthState(clients);
+
+  const history = useHistory();
+
+  const redirectToListPage = React.useCallback(() => {
+    history.push('/odf/storage-clients');
+  }, [history]);
+
   return (
     <Card className="odfDashboard-card--height">
       <CardHeader>
@@ -149,7 +175,11 @@ export const StatusCard: React.FC = () => {
                   title={pluralize(healthySystems.length, 'Storage System')}
                   state={HealthState.OK}
                 >
-                  <StorageSystemPopup systemHealthMap={healthySystems} />
+                  <StatusCardPopover
+                    resourceHealthMap={healthySystems}
+                    firstColumnName={t('Storage System')}
+                    secondColumnName={t('Health')}
+                  />
                 </HealthItem>
               </GalleryItem>
             )}
@@ -160,8 +190,22 @@ export const StatusCard: React.FC = () => {
                   state={HealthState.ERROR}
                   maxWidth="35rem"
                 >
-                  <StorageSystemPopup systemHealthMap={unHealthySystems} />
+                  <StatusCardPopover
+                    resourceHealthMap={unHealthySystems}
+                    firstColumnName={t('Storage System')}
+                    secondColumnName={t('Health')}
+                  />
                 </HealthItem>
+              </GalleryItem>
+            )}
+            {isProviderMode && clientsLoaded && !clientsLoadError && (
+              <GalleryItem>
+                <HealthItem
+                  title={t('Storage Clients')}
+                  state={clientAggregateHealth}
+                  onClick={redirectToListPage}
+                  details={getClientText(clients, t)}
+                />
               </GalleryItem>
             )}
           </Gallery>

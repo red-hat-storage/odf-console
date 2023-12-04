@@ -1,4 +1,7 @@
-import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import {
+  K8sKind,
+  K8sModel,
+} from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
 export const CephBlockPoolModel: K8sKind = {
   label: 'BlockPool',
@@ -108,4 +111,18 @@ export const NooBaaObjectBucketModel: K8sKind = {
   id: 'objectbucket',
   crd: true,
   legacyPluralURL: true,
+};
+
+export const StorageConsumerModel: K8sModel = {
+  abbr: 'SC',
+  kind: 'StorageConsumer',
+  label: 'Storage Consumer',
+  labelPlural: 'Storage Consumers',
+  plural: 'storageconsumers',
+  apiVersion: 'v1alpha1',
+  apiGroup: 'ocs.openshift.io',
+  namespaced: true,
+  crd: true,
+  verbs: ['get', 'list', 'watch', 'create', 'update', 'patch', 'delete'],
+  shortNames: ['sc'],
 };

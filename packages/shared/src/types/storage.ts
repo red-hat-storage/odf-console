@@ -49,6 +49,7 @@ export type StorageClusterKind = K8sResourceCommon & {
       };
     };
     externalStorage?: {};
+    allowRemoteStorageConsumers?: boolean;
   };
   status?: {
     phase: string;
@@ -125,4 +126,40 @@ export type CephClusterKind = K8sResourceCommon & {
     };
     phase?: string;
   };
+};
+
+export enum StorageConsumerState {
+  Ready = 'Ready',
+  Configuring = 'Configuring',
+  Deleting = 'Deleting',
+  Failed = 'Failed',
+  Disabled = 'Disabled',
+}
+
+type StorageConsumerSpec = {
+  enable?: boolean;
+};
+
+type CephResourcesSpec = {
+  kind?: string;
+  name?: string;
+  status?: string;
+  cephClients?: Record<string, string>;
+};
+
+type StorageConsumerStatus = {
+  state?: StorageConsumerState;
+  cephResources?: CephResourcesSpec[];
+  lastHeartbeat?: string; // Assuming metav1.Time is a string
+  client?: ClientStatus;
+};
+
+type ClientStatus = {
+  platformVersion: string;
+  operatorVersion: string;
+};
+
+export type StorageConsumerKind = K8sResourceCommon & {
+  spec?: StorageConsumerSpec;
+  status: StorageConsumerStatus;
 };
