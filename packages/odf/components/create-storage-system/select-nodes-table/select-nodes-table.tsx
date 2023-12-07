@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { CEPH_STORAGE_LABEL } from '@odf/core/constants';
+import { cephStorageLabel } from '@odf/core/constants';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   getZone,
   nodesWithoutTaints,
@@ -47,9 +48,12 @@ const getRows = (
   visibleRows,
   setVisibleRows,
   selectedNodes,
-  setSelectedNodes
+  setSelectedNodes,
+  ns,
+  disableLabeledNodes
 ) => {
   const data = nodesData;
+  const storageLabel = cephStorageLabel(ns);
 
   const filteredData = nodesWithoutTaints(data);
 
@@ -82,9 +86,10 @@ const getRows = (
     ];
     return {
       cells,
+      disableSelection: disableLabeledNodes && hasLabel(node, storageLabel),
       selected: selectedNodes
         ? selectedNodes.has(node.metadata.uid)
-        : hasLabel(node, CEPH_STORAGE_LABEL),
+        : hasLabel(node, storageLabel),
       props: {
         id: node.metadata.uid,
       },
@@ -97,7 +102,7 @@ const getRows = (
     setVisibleRows(uids);
     if (!selectedNodes?.size && filteredData.length) {
       const preSelected = filteredData.filter((row) =>
-        hasLabel(row, CEPH_STORAGE_LABEL)
+        hasLabel(row, storageLabel)
       );
       setSelectedNodes(preSelected);
     }
@@ -116,8 +121,11 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
   nodes,
   onRowSelected,
   nodesData,
+  disableLabeledNodes,
 }) => {
   const { t } = useCustomTranslation();
+
+  const { odfNamespace } = useODFNamespaceSelector();
 
   const getColumns = React.useMemo(
     () => [
@@ -160,6 +168,10 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
     sortedData: rowsData,
   } = useSortList<NodeKind>(nodesData, getColumns, true);
 
+  /* Prevent the deselection of the labeled nodes (when that protection is enabled)
+     through the "Select/Unselect All" checkbox. */
+  const canSelectAll = !disableLabeledNodes;
+
   return (
     <div className="ceph-odf-install__select-nodes-table">
       <Table
@@ -171,12 +183,15 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
           visibleRows,
           setVisibleRows,
           selectedNodes,
-          setSelectedNodes
+          setSelectedNodes,
+          odfNamespace,
+          disableLabeledNodes
         )}
         cells={getColumns}
         onSelect={onSelect}
         onSort={onSort}
         sortBy={{ index, direction }}
+        canSelectAll={canSelectAll}
       >
         <TableHeader />
         <TableBody />
@@ -189,11 +204,13 @@ type NodeTableProps = {
   nodes: Set<string>;
   onRowSelected: (selectedNodes: NodeKind[]) => void;
   nodesData: NodeKind[];
+  disableLabeledNodes: boolean;
 };
 
 export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({
   nodes,
   onRowSelected,
+  disableLabeledNodes = false,
 }) => {
   const [nodesData, nodesLoaded, nodesLoadError] = useK8sWatchResource<
     NodeKind[]
@@ -223,6 +240,7 @@ export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({
             nodes={new Set(nodes.map(({ uid }) => uid))}
             onRowSelected={onRowSelected}
             nodesData={filteredData as NodeKind[]}
+            disableLabeledNodes={disableLabeledNodes}
           />
         </StatusBox>
       </ListPageBody>
@@ -234,4 +252,5 @@ export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({
 type NodeSelectTableProps = {
   nodes: WizardNodeState[];
   onRowSelected: (selectedNodes: NodeKind[]) => void;
+  disableLabeledNodes?: boolean;
 };

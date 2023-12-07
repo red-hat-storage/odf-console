@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { AssignPolicySteps, AssignPolicyStepsNames } from '@odf/mco/constants';
+import {
+  APPLICATION_TYPE,
+  AssignPolicySteps,
+  AssignPolicyStepsNames,
+} from '@odf/mco/constants';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
@@ -11,33 +15,34 @@ import {
   Alert,
   AlertVariant,
 } from '@patternfly/react-core';
-import { DRPolicyType, DataPolicyType } from '../utils/types';
+import { AssignPolicyViewState, PVCSelectorType } from '../utils/reducer';
+import { DRPolicyType } from '../utils/types';
 import '../../../../style.scss';
 import '../style.scss';
 
-const isPVCSelectorFound = (dataPolicy: DRPolicyType) =>
-  !!dataPolicy?.placementControlInfo?.length &&
-  !!dataPolicy.placementControlInfo.every((drpc) => !!drpc.pvcSelector?.length);
+const isPVCSelectorFound = (pvcSelectors: PVCSelectorType[]) =>
+  !!pvcSelectors.length &&
+  !!pvcSelectors.every((pvcSelector) => !!pvcSelector.labels?.length);
 
 const isDRPolicySelected = (dataPolicy: DRPolicyType) => !!getName(dataPolicy);
 
 const canJumpToNextStep = (
   stepName: string,
-  dataPolicy: DataPolicyType,
+  state: AssignPolicyViewState,
   t: TFunction
 ) => {
   switch (stepName) {
     case AssignPolicyStepsNames(t)[AssignPolicySteps.Policy]:
-      return isDRPolicySelected(dataPolicy);
+      return isDRPolicySelected(state.policy);
     case AssignPolicyStepsNames(t)[AssignPolicySteps.PersistentVolumeClaim]:
-      return isPVCSelectorFound(dataPolicy);
+      return isPVCSelectorFound(state.persistentVolumeClaim.pvcSelectors);
     default:
       return false;
   }
 };
 
 export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
-  dataPolicy,
+  state,
   stepIdReached,
   isValidationEnabled,
   setStepIdReached,
@@ -53,7 +58,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
   const stepId = activeStep.id as number;
   const stepName = activeStep.name as string;
 
-  const canJumpToNext = canJumpToNextStep(stepName, dataPolicy, t);
+  const canJumpToNext = canJumpToNextStep(stepName, state, t);
   const validationError = isValidationEnabled && !canJumpToNext;
 
   const moveToNextStep = () => {
@@ -127,7 +132,8 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
 };
 
 type AssignPolicyViewFooterProps = {
-  dataPolicy: DataPolicyType;
+  state: AssignPolicyViewState;
+  appType: APPLICATION_TYPE;
   stepIdReached: number;
   isValidationEnabled: boolean;
   setStepIdReached: React.Dispatch<React.SetStateAction<number>>;

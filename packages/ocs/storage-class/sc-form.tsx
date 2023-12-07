@@ -16,7 +16,9 @@ import {
   SupportedProviders,
   DescriptionKey,
 } from '@odf/core/constants';
-import { OCS_INDEPENDENT_FLAG, FEATURES } from '@odf/core/features';
+import { OCS_INDEPENDENT_FLAG } from '@odf/core/features';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   cephBlockPoolResource,
   cephClusterResource,
@@ -25,8 +27,8 @@ import {
   ProviderNames,
   KmsCsiConfigKeysMapping,
   KMSConfigMap,
+  K8sResourceObj,
 } from '@odf/core/types';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
@@ -47,7 +49,6 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import {
-  WatchK8sResource,
   ProvisionerProps,
   useFlag,
   useK8sWatchResource,
@@ -74,6 +75,7 @@ import {
   CEPH_INTERNAL_CR_NAME,
   CLUSTER_STATUS,
   POOL_STATE,
+  CEPH_NS_SESSION_STORAGE,
 } from '../constants';
 import { CreateBlockPoolModal } from '../modals/block-pool/create-block-pool-modal';
 import { StoragePoolKind } from '../types';
@@ -107,6 +109,11 @@ export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
       }
     }
   }, [sc, scLoaded, scLoadError, parameterKey]);
+
+  // ToDo (epic 4422): Need to pass the namespace where ceph cluster is deployed (remove from here, add dropdown)
+  React.useEffect(() => {
+    sessionStorage.setItem(CEPH_NS_SESSION_STORAGE, 'openshift-storage');
+  }, []);
 
   if (scLoaded && !scLoadError) {
     return (
@@ -143,7 +150,9 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
 
   const launchModal = useModal();
 
-  const [poolData, poolDataLoaded, poolDataLoadError] = useK8sWatchResource<
+  const { isODFNsLoaded, odfNsLoadError, isNsSafe } = useODFNamespaceSelector();
+
+  const [poolData, poolDataLoaded, poolDataLoadError] = useSafeK8sWatchResource<
     StoragePoolKind[]
   >(cephBlockPoolResource);
 
@@ -216,10 +225,15 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
     ]
   );
 
-  if (cephClusters[0]?.metadata.name === CEPH_INTERNAL_CR_NAME) {
+  // ToDo (epic 4422): Need to pass the namespace where ceph cluster is deployed (remove from here, add dropdown)
+  React.useEffect(() => {
+    sessionStorage.setItem(CEPH_NS_SESSION_STORAGE, 'openshift-storage');
+  }, []);
+
+  if (isNsSafe && cephClusters[0]?.metadata.name === CEPH_INTERNAL_CR_NAME) {
     return (
       <>
-        {!poolDataLoadError && cephClusters && (
+        {!poolDataLoadError && !odfNsLoadError && cephClusters && (
           <div className="form-group">
             <label className="co-required" htmlFor="ocs-storage-pool">
               {t('Storage Pool')}
@@ -246,7 +260,7 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
             </span>
           </div>
         )}
-        {(poolDataLoadError || cephClusterLoadError) && (
+        {(poolDataLoadError || cephClusterLoadError || odfNsLoadError) && (
           <Alert
             className="co-alert"
             variant="danger"
@@ -257,7 +271,7 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
       </>
     );
   }
-  if (cephClusters[0]?.metadata.name === CEPH_EXTERNAL_CR_NAME) {
+  if (isNsSafe && cephClusters[0]?.metadata.name === CEPH_EXTERNAL_CR_NAME) {
     return (
       <div className="form-group">
         <label className="co-required" htmlFor="ocs-storage-pool">
@@ -281,8 +295,8 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
   }
   return (
     <StatusBox
-      loadError={cephClusterLoadError && poolDataLoadError}
-      loaded={cephClusterLoaded && poolDataLoaded}
+      loadError={cephClusterLoadError || poolDataLoadError || odfNsLoadError}
+      loaded={cephClusterLoaded && poolDataLoaded && isODFNsLoaded}
     />
   );
 };
@@ -305,7 +319,6 @@ export const StorageClassEncryption: React.FC<ProvisionerProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const isKmsSupported = useFlag(FEATURES.OCS_KMS);
   const [checked, isChecked] = React.useState(false);
 
   const setChecked = (value: boolean) => {
@@ -314,33 +327,31 @@ export const StorageClassEncryption: React.FC<ProvisionerProps> = ({
   };
 
   return (
-    isKmsSupported && (
-      <div className="ocs-storage-class__form">
-        <Form>
-          <FormGroup
-            fieldId="storage-class-encryption"
-            helperTextInvalid={t('This is a required field')}
-            isRequired
-          >
-            <Checkbox
-              id="storage-class-encryption"
-              isChecked={checked}
-              data-checked-state={checked}
-              label={<StorageClassEncryptionLabel />}
-              aria-label={t('StorageClass encryption')}
-              onChange={setChecked}
-              className="ocs-storage-class-encryption__form-checkbox"
-              data-test="storage-class-encryption"
-            />
-            <span className="help-block">
-              {t(
-                'An encryption key will be generated for each PersistentVolume created using this StorageClass.'
-              )}
-            </span>
-          </FormGroup>
-        </Form>
-      </div>
-    )
+    <div className="ocs-storage-class__form">
+      <Form>
+        <FormGroup
+          fieldId="storage-class-encryption"
+          helperTextInvalid={t('This is a required field')}
+          isRequired
+        >
+          <Checkbox
+            id="storage-class-encryption"
+            isChecked={checked}
+            data-checked-state={checked}
+            label={<StorageClassEncryptionLabel />}
+            aria-label={t('StorageClass encryption')}
+            onChange={setChecked}
+            className="ocs-storage-class-encryption__form-checkbox"
+            data-test="storage-class-encryption"
+          />
+          <span className="help-block">
+            {t(
+              'An encryption key will be generated for each PersistentVolume created using this StorageClass.'
+            )}
+          </span>
+        </FormGroup>
+      </Form>
+    </div>
   );
 };
 
@@ -353,7 +364,6 @@ const ExistingKMSDropDown: React.FC<ExistingKMSDropDownProps> = ({
   setEncryptionId,
 }) => {
   const { t } = useCustomTranslation();
-  const isHpcsKmsSupported = useFlag(FEATURES.ODF_HPCS_KMS);
 
   const [isProviderOpen, setProviderOpen] = React.useState(false);
   const [isServiceOpen, setServiceOpen] = React.useState(false);
@@ -457,9 +467,7 @@ const ExistingKMSDropDown: React.FC<ExistingKMSDropDownProps> = ({
               data-test="kms-provider-dropdown-toggle"
               onToggle={() => setProviderOpen(!isProviderOpen)}
               toggleIndicator={CaretDownIcon}
-              isDisabled={
-                !isHpcsKmsSupported || isLengthUnity(kmsProviderDropdownItems)
-              }
+              isDisabled={isLengthUnity(kmsProviderDropdownItems)}
             >
               {SupportedProviders[provider].group}
             </DropdownToggle>
@@ -496,19 +504,19 @@ const ExistingKMSDropDown: React.FC<ExistingKMSDropDownProps> = ({
   );
 };
 
-const csiCMWatchResource: WatchK8sResource = {
+const csiCMWatchResource: K8sResourceObj = (ns: string) => ({
   kind: ConfigMapModel.kind,
   namespaced: true,
   isList: false,
-  namespace: CEPH_STORAGE_NAMESPACE,
+  namespace: ns,
   name: KMSConfigMapCSIName,
-};
+});
 
-const secretResource: WatchK8sResource = {
+const secretResource: K8sResourceObj = (ns: string) => ({
   isList: true,
   kind: SecretModel.kind,
-  namespace: CEPH_STORAGE_NAMESPACE,
-};
+  namespace: ns,
+});
 
 export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
   parameterKey,
@@ -517,6 +525,9 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
   const { t } = useCustomTranslation();
   const onParamChangeRef = React.useRef<OnParamChange>();
   onParamChangeRef.current = onParamChange;
+
+  const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
+    useODFNamespaceSelector();
 
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [isExistingKms, setIsExistingKms] = React.useState<boolean>(true);
@@ -542,9 +553,9 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
     'cluster'
   );
   const [csiConfigMap, csiConfigMapLoaded, csiConfigMapLoadError] =
-    useK8sWatchResource<ConfigMapKind>(csiCMWatchResource);
+    useSafeK8sWatchResource<ConfigMapKind>(csiCMWatchResource);
   const [secrets, secretsLoaded, secretsLoadError] =
-    useK8sWatchResource<SecretKind[]>(secretResource);
+    useSafeK8sWatchResource<SecretKind[]>(secretResource);
 
   const infraType = getInfrastructurePlatform(infra);
   const memoizedCsiConfigMap = useDeepCompareMemoize(csiConfigMap, true);
@@ -603,6 +614,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
         const promises: Promise<K8sResourceKind>[] = createCsiKmsResources(
           kms.providerState,
           !!csiKmsDetails,
+          odfNamespace,
           provider
         );
         await Promise.all(promises).then(() => {
@@ -628,12 +640,21 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
     !infraLoaded ||
     infraLoadError ||
     !secretsLoaded ||
-    secretsLoadError
+    secretsLoadError ||
+    !isODFNsLoaded ||
+    odfNsLoadError
   ) {
     return (
       <StatusBox
-        loadError={infraLoadError || csiConfigMapLoadError || secretsLoadError}
-        loaded={infraLoaded && csiConfigMapLoaded && secretsLoaded}
+        loadError={
+          infraLoadError ||
+          csiConfigMapLoadError ||
+          secretsLoadError ||
+          odfNsLoadError
+        }
+        loaded={
+          infraLoaded && csiConfigMapLoaded && secretsLoaded && isODFNsLoaded
+        }
       />
     );
   }

@@ -19,9 +19,8 @@ import {
   attachDevices,
   attachDevicesWithArbiter,
 } from '@odf/core/constants';
-import { FEATURES } from '@odf/core/features';
 import { pvResource, nodeResource } from '@odf/core/resources';
-import { NodesPerZoneMap } from '@odf/core/types';
+import { NodesPerZoneMap, ResourceProfile } from '@odf/core/types';
 import { getSCAvailablePVs, getAssociatedNodes } from '@odf/core/utils';
 import { calcPVsCapacity } from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
@@ -29,10 +28,8 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { K8sResourceKind, NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
-import {
-  useK8sWatchResource,
-  useFlag,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import {
   Checkbox,
@@ -46,18 +43,35 @@ import {
   TextContent,
   TextInput,
 } from '@patternfly/react-core';
+import { useODFNamespaceSelector } from '../../../../redux';
 import { ValidationMessage } from '../../../utils/common-odf-install-el';
 import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';
 import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
+import ConfigurePerformance, {
+  PerformanceHeaderText,
+  ProfileRequirementsText,
+} from './configure-performance';
 import { SelectedNodesTable } from './selected-nodes-table';
 import { StretchCluster } from './stretch-cluster';
 import './capacity-and-nodes.scss';
 
+const onResourceProfileChange = _.curry(
+  (dispatch: WizardDispatch, newProfile: ResourceProfile): void => {
+    dispatch({
+      type: 'wizard/setResourceProfile',
+      payload: newProfile,
+    });
+  }
+);
+
 const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
   ({ text }) => {
     const { t } = useCustomTranslation();
-    const label = 'cluster.ocs.openshift.io/openshift-storage=""';
+
+    const { odfNamespace } = useODFNamespaceSelector();
+
+    const label = `cluster.ocs.openshift.io/${odfNamespace}=""`;
     return (
       <TextContent>
         <Text>{text}</Text>
@@ -82,9 +96,8 @@ const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
   enableTaint,
 }) => {
   const { t } = useCustomTranslation();
-  const isTaintSupported = useFlag(FEATURES.OCS_TAINT_NODES);
 
-  return isTaintSupported ? (
+  return (
     <Checkbox
       label={t('Taint nodes')}
       description={t(
@@ -101,8 +114,6 @@ const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
         })
       }
     />
-  ) : (
-    <></>
   );
 };
 
@@ -145,6 +156,7 @@ type SelectCapacityAndNodesProps = {
   nodes: WizardState['nodes'];
   enableTaint: WizardState['capacityAndNodes']['enableTaint'];
   enableSingleReplicaPool: WizardState['capacityAndNodes']['enableSingleReplicaPool'];
+  resourceProfile: WizardState['capacityAndNodes']['resourceProfile'];
 };
 
 const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
@@ -153,6 +165,7 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
   nodes,
   enableTaint,
   enableSingleReplicaPool,
+  resourceProfile,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -167,6 +180,10 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
       const nodesData = createWizardNodeState(selectedNodes);
       dispatch({ type: 'wizard/setNodes', payload: nodesData });
     },
+    [dispatch]
+  );
+  const onProfileChange = React.useCallback(
+    (profile) => onResourceProfileChange(dispatch)(profile),
     [dispatch]
   );
 
@@ -222,6 +239,13 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
           <SelectNodesTable nodes={nodes} onRowSelected={onRowSelected} />
         </GridItem>
       </Grid>
+      <ConfigurePerformance
+        onResourceProfileChange={onProfileChange}
+        resourceProfile={resourceProfile}
+        headerText={PerformanceHeaderText}
+        profileRequirementsText={ProfileRequirementsText}
+        selectedNodes={nodes}
+      />
       <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
       <EnableSingleReplicaPool
         dispatch={dispatch}
@@ -240,6 +264,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   dispatch,
   nodes,
   enableSingleReplicaPool,
+  resourceProfile,
 }) => {
   const { t } = useCustomTranslation();
   const [pv, pvLoaded, pvLoadError] =
@@ -316,6 +341,10 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
       }),
     [dispatch]
   );
+  const onProfileChange = React.useCallback(
+    (profile) => onResourceProfileChange(dispatch)(profile),
+    [dispatch]
+  );
 
   return (
     <ErrorHandler
@@ -384,6 +413,13 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
             <SelectedNodesTable data={nodes} />
           </GridItem>
         </Grid>
+        <ConfigurePerformance
+          onResourceProfileChange={onProfileChange}
+          resourceProfile={resourceProfile}
+          headerText={PerformanceHeaderText}
+          profileRequirementsText={ProfileRequirementsText}
+          selectedNodes={nodes}
+        />
         <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
         <EnableSingleReplicaPool
           dispatch={dispatch}
@@ -403,6 +439,7 @@ type SelectedCapacityAndNodesProps = {
   arbiterLocation: WizardState['capacityAndNodes']['arbiterLocation'];
   dispatch: WizardDispatch;
   nodes: WizardNodeState[];
+  resourceProfile: WizardState['capacityAndNodes']['resourceProfile'];
 };
 
 export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
@@ -411,6 +448,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   storageClass,
   volumeSetName,
   nodes,
+  resourceProfile,
 }) => {
   const {
     capacity,
@@ -424,7 +462,8 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   const validations = capacityAndNodesValidate(
     nodes,
     enableArbiter,
-    isNoProvisioner
+    isNoProvisioner,
+    resourceProfile
   );
 
   return (
@@ -439,6 +478,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           nodes={nodes}
           capacity={capacity}
           enableSingleReplicaPool={enableSingleReplicaPool}
+          resourceProfile={resourceProfile}
         />
       ) : (
         <SelectCapacityAndNodes
@@ -447,6 +487,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           capacity={capacity}
           nodes={nodes}
           enableSingleReplicaPool={enableSingleReplicaPool}
+          resourceProfile={resourceProfile}
         />
       )}
       {!!validations.length &&
@@ -462,6 +503,7 @@ type CapacityAndNodesProps = {
   state: WizardState['capacityAndNodes'];
   storageClass: WizardState['storageClass'];
   nodes: WizardState['nodes'];
+  resourceProfile: WizardState['capacityAndNodes']['resourceProfile'];
   volumeSetName: WizardState['createLocalVolumeSet']['volumeSetName'];
   dispatch: WizardDispatch;
 };

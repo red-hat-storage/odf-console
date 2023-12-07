@@ -19,14 +19,6 @@
     "type": "console.flag",
     "properties": {
       "handler": {
-        "$codeRef": "features.detectOCSSupportedFeatures"
-      }
-    }
-  },
-  {
-    "type": "console.flag",
-    "properties": {
-      "handler": {
         "$codeRef": "features.detectRGW"
       }
     }
@@ -35,7 +27,7 @@
     "type": "console.flag",
     "properties": {
       "handler": {
-        "$codeRef": "features.detectManagedODF"
+        "$codeRef": "features.detectROSA"
       }
     }
   },
@@ -52,6 +44,21 @@
     "properties": {
       "handler": {
         "$codeRef": "features.detectSSAR"
+      }
+    }
+  },
+  {
+    "type": "console.redux-reducer",
+    "properties": {
+      "scope": "odfConsoleRedux",
+      "reducer": { "$codeRef": "odfReduxReducers" }
+    }
+  },
+  {
+    "type": "console.flag/hookProvider",
+    "properties": {
+      "handler": {
+        "$codeRef": "odfReduxReducers.useODFNamespace"
       }
     }
   },
@@ -269,12 +276,6 @@
         "provisioner": "rbd.csi.ceph.com",
         "allowVolumeExpansion": true,
         "parameters": {
-          "clusterID": {
-            "name": "Cluster ID",
-            "hintText": "The namespace where Ceph is deployed",
-            "value": "openshift-storage",
-            "visible": false
-          },
           "pool": {
             "name": "Storage Pool",
             "hintText": "Storage pool into which volume data shall be stored",
@@ -302,22 +303,10 @@
             "value": "rook-csi-rbd-provisioner",
             "visible": false
           },
-          "csi.storage.k8s.io/provisioner-secret-namespace": {
-            "name": "Provisioner Secret Namespace",
-            "hintText": "The namespace where provisioner secret is created",
-            "value": "openshift-storage",
-            "visible": false
-          },
           "csi.storage.k8s.io/node-stage-secret-name": {
             "name": "Node Stage Secret Name",
             "hintText": "The name of Node Stage secret",
             "value": "rook-csi-rbd-node",
-            "visible": false
-          },
-          "csi.storage.k8s.io/node-stage-secret-namespace": {
-            "name": "Node Stage Secret Namespace",
-            "hintText": "The namespace where provisioner secret is created",
-            "value": "openshift-storage",
             "visible": false
           },
           "csi.storage.k8s.io/fstype": {
@@ -330,12 +319,6 @@
             "name": "Expand Secret Name",
             "hintText": "The namespace where provisioner secret is created",
             "value": "rook-csi-rbd-provisioner",
-            "visible": false
-          },
-          "csi.storage.k8s.io/controller-expand-secret-namespace": {
-            "name": "Expand Secret Namespace",
-            "hintText": "The namespace where provisioner secret is created",
-            "value": "openshift-storage",
             "visible": false
           },
           "encrypted": {
@@ -380,12 +363,6 @@
         "provisioner": "cephfs.csi.ceph.com",
         "allowVolumeExpansion": true,
         "parameters": {
-          "clusterID": {
-            "name": "Cluster ID",
-            "hintText": "The namespace where Ceph is deployed",
-            "value": "openshift-storage",
-            "visible": false
-          },
           "fsName": {
             "name": "Filesystem Name",
             "hintText": "CephFS filesystem name into which the volume shall be created",
@@ -401,22 +378,10 @@
             "value": "rook-csi-cephfs-provisioner",
             "visible": false
           },
-          "csi.storage.k8s.io/provisioner-secret-namespace": {
-            "name": "Provisioner Secret Namespace",
-            "hintText": "The namespace where provisioner secret is created",
-            "value": "openshift-storage",
-            "visible": false
-          },
           "csi.storage.k8s.io/node-stage-secret-name": {
             "name": "Node Stage Secret Name",
             "hintText": "The name of Node Stage secret",
             "value": "rook-csi-cephfs-node",
-            "visible": false
-          },
-          "csi.storage.k8s.io/node-stage-secret-namespace": {
-            "name": "Node Stage Secret Namespace",
-            "hintText": "The namespace where provisioner secret is created",
-            "value": "openshift-storage",
             "visible": false
           },
           "csi.storage.k8s.io/controller-expand-secret-name": {
@@ -424,13 +389,10 @@
             "hintText": "The namespace where provisioner secret is created",
             "value": "rook-csi-cephfs-provisioner",
             "visible": false
-          },
-          "csi.storage.k8s.io/controller-expand-secret-namespace": {
-            "name": "Expand Secret Namespace",
-            "hintText": "The namespace where provisioner secret is created",
-            "value": "openshift-storage",
-            "visible": false
           }
+        },
+        "mutator": {
+          "$codeRef": "mutators.addClusterParams"
         }
       }
     }

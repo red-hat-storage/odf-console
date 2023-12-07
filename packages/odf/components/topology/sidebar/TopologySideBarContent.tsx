@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { StorageClusterModel } from '@odf/ocs/models';
 import { DetailsPageTitle } from '@odf/shared/details-page/DetailsPage';
 import { LoadingBox } from '@odf/shared/generic/status-box';
@@ -72,6 +73,8 @@ const DetailsTabComponent: React.FC<GenericTabComponentProps> = ({
 const ResourceTabComponent: React.FC<GenericTabComponentProps> = ({
   resource,
 }) => {
+  const { odfNamespace } = useODFNamespaceSelector();
+
   const kind = React.useMemo(() => resource?.kind, [resource?.kind]);
   const Component = React.useMemo(() => {
     switch (kind) {
@@ -84,12 +87,14 @@ const ResourceTabComponent: React.FC<GenericTabComponentProps> = ({
     }
   }, [kind]);
 
-  return <Component resource={resource as any} />;
+  return <Component resource={resource as any} odfNamespace={odfNamespace} />;
 };
 
 const ObserveTabComponent: React.FC<GenericTabComponentProps> = ({
   resource,
 }) => {
+  const { odfNamespace } = useODFNamespaceSelector();
+
   const kind = React.useMemo(() => resource?.kind, [resource?.kind]);
   const Component = React.useMemo(() => {
     switch (kind) {
@@ -102,7 +107,7 @@ const ObserveTabComponent: React.FC<GenericTabComponentProps> = ({
     }
   }, [kind]);
 
-  return <Component resource={resource as any} />;
+  return <Component resource={resource as any} odfNamespace={odfNamespace} />;
 };
 
 const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({

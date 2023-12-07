@@ -33,7 +33,8 @@ export const useK8sList = <R extends K8sResourceCommon = K8sResourceCommon>(
         setLoaded(true);
       }
     };
-    fetch();
+    if (kind) fetch();
+    else setLoaded(true);
   }, [kind, namespace]);
 
   return [data, loaded, loadError];

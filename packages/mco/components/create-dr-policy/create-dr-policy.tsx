@@ -167,6 +167,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
             clusterName: cluster?.name,
             storageClusterRef: {
               name: cluster.storageClusterName,
+              // ToDo (epic 4422): Need to update this as per ConfigMap/ClusterClaim (whichever us decided) JSON output
               namespace: CEPH_STORAGE_NAMESPACE,
             },
           })),

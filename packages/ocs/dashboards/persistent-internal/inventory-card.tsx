@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { cephStorageLabel } from '@odf/core/constants';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   NodeModel,
   PersistentVolumeClaimModel,
@@ -17,7 +19,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { cephStorageLabel } from '../../constants';
 import {
   getCephNodes,
   getCephPVCs,
@@ -45,6 +46,8 @@ const watchResources = {
 };
 const InventoryCard: React.FC = () => {
   const { t } = useCustomTranslation();
+
+  const { odfNamespace } = useODFNamespaceSelector();
 
   const resources = useK8sWatchResources(watchResources);
 
@@ -76,7 +79,7 @@ const InventoryCard: React.FC = () => {
           isLoading={!nodesLoaded}
           error={!!nodesLoadError}
           kind={NodeModel as any}
-          resources={getCephNodes(nodesData)}
+          resources={getCephNodes(nodesData, odfNamespace)}
           mapper={getNodeStatusGroups}
           basePath={ocsNodesHref}
         />

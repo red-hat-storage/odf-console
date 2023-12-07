@@ -14,7 +14,6 @@ import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
   TextContent,
@@ -23,7 +22,6 @@ import {
   List,
   ListItem,
 } from '@patternfly/react-core';
-import { FEATURES } from '../../../../features';
 import { WizardState } from '../../reducer';
 import './review-and-create-step.scss';
 
@@ -42,8 +40,6 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   supportedExternalStorage,
 }) => {
   const { t } = useCustomTranslation();
-  const isMultusSupported = useFlag(FEATURES.OCS_MULTUS);
-  const isTaintSupported = useFlag(FEATURES.OCS_TAINT_NODES);
 
   const {
     storageClass,
@@ -175,6 +171,11 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             })}
           </ListItem>
           <ListItem>
+            {t('Performance profile: {{resourceProfile}}', {
+              resourceProfile: _.capitalize(capacityAndNodes.resourceProfile),
+            })}
+          </ListItem>
+          <ListItem>
             {t('Zone: {{zoneCount, number}} zone', {
               zoneCount: zones.size,
               count: zones.size,
@@ -187,13 +188,11 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
               })}
             </ListItem>
           )}
-          {isTaintSupported && (
-            <ListItem>
-              {t('Taint nodes: {{ocsTaintsStatus}}', {
-                ocsTaintsStatus,
-              })}
-            </ListItem>
-          )}
+          <ListItem>
+            {t('Taint nodes: {{ocsTaintsStatus}}', {
+              ocsTaintsStatus,
+            })}
+          </ListItem>
           <ListItem>
             {t('Replica-1 pool: {{singleReplicaPoolStatus}}', {
               singleReplicaPoolStatus,
@@ -229,13 +228,11 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
                 })}
               </ListItem>
             )}
-            {isMultusSupported && (
-              <ListItem>
-                {t('Network: {{networkType}}', {
-                  networkType: NetworkTypeLabels[networkType],
-                })}
-              </ListItem>
-            )}
+            <ListItem>
+              {t('Network: {{networkType}}', {
+                networkType: NetworkTypeLabels[networkType],
+              })}
+            </ListItem>
           </ReviewItem>
         ))}
       {isRhcs && (

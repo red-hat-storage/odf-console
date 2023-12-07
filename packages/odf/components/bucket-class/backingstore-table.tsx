@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useSelectList } from '@odf/shared/hooks/select-list';
 import { getName, getNamespace, getUID } from '@odf/shared/selectors';
@@ -12,7 +13,6 @@ import {
   RowProps,
   TableColumn,
   TableData,
-  useK8sWatchResource,
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -175,13 +175,15 @@ const BackingStoreListWrapper: React.FC<BackingStoreListWrapperProps> = ({
   unSelectableResources = [],
   preSelectedResources,
 }) => {
-  const [resources, loaded, loadError] = useK8sWatchResource<
+  const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
+
+  const [resources, loaded, loadError] = useSafeK8sWatchResource<
     BackingStoreKind[]
-  >({
+  >((ns: string) => ({
     kind: referenceForModel(NooBaaBackingStoreModel),
     isList: true,
-    namespace: CEPH_STORAGE_NAMESPACE,
-  });
+    namespace: ns,
+  }));
 
   const memoizedResources = useDeepCompareMemoize(resources, true);
   const availableData = memoizedResources.filter(
@@ -202,15 +204,15 @@ const BackingStoreListWrapper: React.FC<BackingStoreListWrapperProps> = ({
       <ListPageBody>
         <ListPageFilter
           data={data}
-          loaded={loaded}
+          loaded={loaded && isODFNsLoaded}
           onFilterChange={onFilterChange}
           hideColumnManagement
         />
         <BackingStoreList
           data={filteredData}
           unfilteredData={data}
-          loaded={loaded}
-          loadError={loadError}
+          loaded={loaded && isODFNsLoaded}
+          loadError={loadError || odfNsLoadError}
           rowData={{ selectedData: selectedRows, onSelect }}
         />
       </ListPageBody>

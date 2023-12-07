@@ -1,14 +1,17 @@
 import * as React from 'react';
-import { AssignPolicySteps, AssignPolicyStepsNames } from '@odf/mco/constants';
-import { createRefFromK8Resource } from '@odf/mco/utils';
-import { ModalBody } from '@odf/shared/modals/Modal';
+import {
+  APPLICATION_TYPE,
+  AssignPolicySteps,
+  AssignPolicyStepsNames,
+} from '@odf/mco/constants';
+import { ModalBody } from '@odf/shared/modals';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import { Wizard, WizardStep, AlertVariant } from '@patternfly/react-core';
 import { AssignPolicyViewFooter } from './helper/assign-policy-view-footer';
-import { PolicyConfigViewer } from './helper/policy-config-viewer';
 import { PVCDetailsWizardContent } from './helper/pvc-details-wizard-content';
+import { ReviewAndAssign } from './helper/review-and-assign';
 import { SelectPolicyWizardContent } from './helper/select-policy-wizard-content';
 import { assignPromises } from './utils/k8s-utils';
 import {
@@ -21,13 +24,13 @@ import {
 } from './utils/reducer';
 import {
   ApplicationType,
-  DRPlacementControlType,
   DRPolicyType,
   DataPolicyType,
   PlacementType,
 } from './utils/types';
 
 export const createSteps = (
+  appType: APPLICATION_TYPE,
   workloadNamespace: string,
   unProtectedPlacements: PlacementType[],
   matchingPolicies: DRPolicyType[],
@@ -35,45 +38,62 @@ export const createSteps = (
   stepIdReached: number,
   isValidationEnabled: boolean,
   t: TFunction,
-  setPolicy: (policy?: DataPolicyType) => void,
-  setDRPlacementControls: (
-    drPlacementControls: DRPlacementControlType[]
-  ) => void
-): WizardStep[] => [
-  {
-    id: 1,
-    name: AssignPolicyStepsNames(t)[AssignPolicySteps.Policy],
-    component: (
-      <SelectPolicyWizardContent
-        matchingPolicies={matchingPolicies}
-        policy={state.policy}
-        isValidationEnabled={isValidationEnabled}
-        setPolicy={setPolicy}
-      />
-    ),
-  },
-  {
-    id: 2,
-    name: AssignPolicyStepsNames(t)[AssignPolicySteps.PersistentVolumeClaim],
-    component: (
-      <PVCDetailsWizardContent
-        placementControInfo={state.policy?.placementControlInfo}
-        unProtectedPlacements={unProtectedPlacements}
-        workloadNamespace={workloadNamespace}
-        isValidationEnabled={isValidationEnabled}
-        policyRef={createRefFromK8Resource(state.policy)}
-        setDRPlacementControls={setDRPlacementControls}
-      />
-    ),
-    canJumpTo: stepIdReached >= 2,
-  },
-  {
-    id: 3,
-    name: AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign],
-    component: <PolicyConfigViewer policy={state.policy} hideSelector={true} />,
-    canJumpTo: stepIdReached >= 3,
-  },
-];
+  dispatch: React.Dispatch<ManagePolicyStateAction>
+): WizardStep[] => {
+  const commonSteps = {
+    policy: {
+      name: AssignPolicyStepsNames(t)[AssignPolicySteps.Policy],
+      component: (
+        <SelectPolicyWizardContent
+          matchingPolicies={matchingPolicies}
+          policy={state.policy}
+          isValidationEnabled={isValidationEnabled}
+          dispatch={dispatch}
+        />
+      ),
+    },
+    persistentVolumeClaim: {
+      name: AssignPolicyStepsNames(t)[AssignPolicySteps.PersistentVolumeClaim],
+      component: (
+        <PVCDetailsWizardContent
+          pvcSelectors={state.persistentVolumeClaim.pvcSelectors}
+          unProtectedPlacements={unProtectedPlacements}
+          workloadNamespace={workloadNamespace}
+          isValidationEnabled={isValidationEnabled}
+          dispatch={dispatch}
+        />
+      ),
+    },
+    reviewAndAssign: {
+      name: AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign],
+      component: <ReviewAndAssign state={state} />,
+    },
+  };
+
+  switch (appType) {
+    case APPLICATION_TYPE.APPSET:
+    case APPLICATION_TYPE.SUBSCRIPTION:
+      return [
+        {
+          id: 1,
+          ...commonSteps.policy,
+          canJumpTo: stepIdReached >= 1,
+        },
+        {
+          id: 2,
+          ...commonSteps.persistentVolumeClaim,
+          canJumpTo: stepIdReached >= 2,
+        },
+        {
+          id: 3,
+          ...commonSteps.reviewAndAssign,
+          canJumpTo: stepIdReached >= 3,
+        },
+      ];
+    default:
+      return [];
+  }
+};
 
 export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
   state,
@@ -88,20 +108,12 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
   const [stepIdReached, setStepIdReached] = React.useState(1);
   const [isValidationEnabled, setIsValidationEnabled] = React.useState(false);
 
-  const setPolicy = (policy: DataPolicyType = null) =>
-    dispatch({
-      type: ManagePolicyStateType.SET_SELECTED_POLICY,
-      context: ModalViewContext.ASSIGN_POLICY_VIEW,
-      payload: policy,
-    });
+  const { type: appType, workloadNamespace, placements } = applicaitonInfo;
 
-  const setDRPlacementControls = (
-    drPlacementControls: DRPlacementControlType[]
-  ) =>
+  const resetAssignState = () =>
     dispatch({
-      type: ManagePolicyStateType.SET_PLACEMENT_CONTROLS,
+      type: ManagePolicyStateType.RESET_ASSIGN_POLICY_STATE,
       context: ModalViewContext.ASSIGN_POLICY_VIEW,
-      payload: drPlacementControls,
     });
 
   const onSubmit = async () => {
@@ -123,11 +135,11 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
       setModalActionContext(actionContext, ModalViewContext.POLICY_LIST_VIEW);
       // switch to list policy view
       setModalContext(ModalViewContext.POLICY_LIST_VIEW);
-      // reset policy info
-      setPolicy();
+      // reset info
+      resetAssignState();
     };
     // assign DRPolicy
-    const promises = assignPromises(state.policy);
+    const promises = assignPromises(state, applicaitonInfo.placements);
     await Promise.all(promises)
       .then(() => {
         updateContext(
@@ -149,8 +161,8 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
 
   const onClose = () => {
     setModalContext(ModalViewContext.POLICY_LIST_VIEW);
-    // reset policy info
-    setPolicy();
+    // reset info
+    resetAssignState();
   };
 
   return (
@@ -159,19 +171,20 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
         navAriaLabel={t('Assign policy nav')}
         mainAriaLabel={t('Assign policy content')}
         steps={createSteps(
-          applicaitonInfo.workloadNamespace,
-          applicaitonInfo.placements,
+          appType,
+          workloadNamespace,
+          placements,
           matchingPolicies,
           state,
           stepIdReached,
           isValidationEnabled,
           t,
-          setPolicy,
-          setDRPlacementControls
+          dispatch
         )}
         footer={
           <AssignPolicyViewFooter
-            dataPolicy={state.policy}
+            state={state}
+            appType={appType}
             stepIdReached={stepIdReached}
             isValidationEnabled={isValidationEnabled}
             setStepIdReached={setStepIdReached}

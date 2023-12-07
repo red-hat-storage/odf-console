@@ -7,12 +7,10 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   WatchK8sResults,
-  useFlag,
   StatusPopupSection,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Link } from 'react-router-dom';
 import { Stack, StackItem } from '@patternfly/react-core';
-import { ODF_MANAGED_FLAG } from '../../features';
 import '@odf/shared/popup/status-popup.scss';
 
 export const StoragePopover: React.FC<StoragePopoverProps> = ({ ceph }) => {
@@ -20,7 +18,6 @@ export const StoragePopover: React.FC<StoragePopoverProps> = ({ ceph }) => {
 
   const health = getCephHealthState({ ceph }, t);
   const value = health.message || healthStateMessage(health.state, t);
-  const isOdfManaged = useFlag(ODF_MANAGED_FLAG);
   const operatorName = t('Data Foundation');
 
   return (
@@ -36,11 +33,7 @@ export const StoragePopover: React.FC<StoragePopoverProps> = ({ ceph }) => {
           secondColumn={t('Health')}
         >
           <div className="odf-status-popup__row">
-            {!isOdfManaged ? (
-              <Link to="/odf">{operatorName}</Link>
-            ) : (
-              operatorName
-            )}
+            <Link to="/odf">{operatorName}</Link>
             <Status key="ocs" status={value} />
           </div>
         </StatusPopupSection>

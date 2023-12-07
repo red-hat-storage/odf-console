@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { K8sResourceObj } from '@odf/core/types';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
@@ -19,11 +21,7 @@ import {
   referenceForGroupVersionKind,
   getOperatorHealthState,
 } from '@odf/shared/utils';
-import {
-  HealthState,
-  WatchK8sResource,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import {
   Gallery,
@@ -39,23 +37,23 @@ import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import StorageSystemPopup from './storage-system-popup';
 import './status-card.scss';
 
-const operatorResource: WatchK8sResource = {
+const operatorResource: K8sResourceObj = (ns) => ({
   kind: 'operators.coreos.com~v1alpha1~ClusterServiceVersion',
-  namespace: 'openshift-storage',
+  namespace: ns,
   isList: true,
-};
+});
 
-const storageSystemResource: WatchK8sResource = {
+const storageSystemResource: K8sResourceObj = (ns) => ({
   kind: referenceForModel(ODFStorageSystem),
-  namespace: 'openshift-storage',
+  namespace: ns,
   isList: true,
-};
+});
 
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [csvData, csvLoaded, csvLoadError] =
-    useK8sWatchResource<ClusterServiceVersionKind[]>(operatorResource);
-  const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<
+    useSafeK8sWatchResource<ClusterServiceVersionKind[]>(operatorResource);
+  const [systems, systemsLoaded, systemsLoadError] = useSafeK8sWatchResource<
     StorageSystemKind[]
   >(storageSystemResource);
 

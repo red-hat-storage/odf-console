@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { BucketClassType, ValidationType } from '@odf/core/types';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -20,12 +21,10 @@ import {
   TextContent,
 } from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../../constants';
-import { BucketClassType } from '../../../types';
 import { convertTime, getTimeUnitString } from '../../../utils';
 import {
   VALIDATIONS,
   ValidationMessage,
-  ValidationType,
 } from '../../utils/common-odf-install-el';
 import { StoreCard } from '../review-utils';
 import { State } from '../state';

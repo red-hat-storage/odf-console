@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { RGW_FLAG } from '@odf/core/features';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { secretResource } from '@odf/core/resources';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { LabelPadding } from '@odf/shared/dashboards/breakdown-card/breakdown-chart';
@@ -98,6 +100,8 @@ const BreakdownCardBody_: React.FC<BreakdownCardBodyProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
+  const { odfNamespace } = useODFNamespaceSelector();
+
   // For charts whose datapoints are composed of multiple queries
   const flattenedResponse = response.reduce(
     (acc, curr, ind) => (ind < response?.length - 1 ? [...acc, ...curr] : acc),
@@ -130,6 +134,7 @@ const BreakdownCardBody_: React.FC<BreakdownCardBodyProps> = ({
       humanize={humanizeBinaryBytes}
       ocsVersion={ocsVersion}
       labelPadding={labelPadding}
+      odfNamespace={odfNamespace}
     />
   );
 };
@@ -304,7 +309,7 @@ const BreakdownCard: React.FC = () => {
   }, [isRGWSupported]);
 
   const [secretData, secretLoaded, secretLoadError] =
-    useK8sWatchResource<K8sResourceKind>(secretResource);
+    useSafeK8sWatchResource<K8sResourceKind>(secretResource);
   const rgwPrefix = React.useMemo(
     () =>
       isRGWSupported && secretLoaded && !secretLoadError

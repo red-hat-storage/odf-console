@@ -1,3 +1,4 @@
+import { ResourceProfile } from '@odf/core/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
 export type StorageClusterKind = K8sResourceCommon & {
@@ -19,6 +20,7 @@ export type StorageClusterKind = K8sResourceCommon & {
     };
     manageNodes?: boolean;
     storageDeviceSets?: DeviceSet[];
+    resourceProfile?: ResourceProfile;
     resources?: StorageClusterResource;
     arbiter?: {
       enable: boolean;
@@ -38,8 +40,13 @@ export type StorageClusterKind = K8sResourceCommon & {
     flexibleScaling?: boolean;
     monDataDirHostPath?: string;
     multiCloudGateway?: {
-      reconcileStrategy: string;
-      dbStorageClassName: string;
+      reconcileStrategy?: string;
+      dbStorageClassName?: string;
+      externalPGConfig?: {
+        pgSecretName?: string;
+        allowSelfSignedCerts?: boolean;
+        tlsSecretName?: string;
+      };
     };
     externalStorage?: {};
   };
@@ -104,7 +111,13 @@ type CephDeviceClass = {
 
 export type CephClusterKind = K8sResourceCommon & {
   status?: {
-    storage: {
+    storage?: {
+      osd?: {
+        storeType?: {
+          bluestore?: number;
+          'bluestore-rdr'?: number;
+        };
+      };
       deviceClasses: CephDeviceClass[];
     };
     ceph?: {

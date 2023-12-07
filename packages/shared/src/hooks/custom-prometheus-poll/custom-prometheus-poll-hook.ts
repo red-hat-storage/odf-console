@@ -7,7 +7,7 @@ import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { getPrometheusURL } from './helpers';
 import { useURLPoll } from './use-url-poll';
 
-type CustomPrometheusPollProps = {
+export type CustomPrometheusPollProps = {
   delay?: number;
   endpoint: PrometheusEndpoint;
   endTime?: number;

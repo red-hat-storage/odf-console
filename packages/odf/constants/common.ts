@@ -1,3 +1,7 @@
+import {
+  ResourceProfile,
+  ResourceProfileRequirementsMap,
+} from '@odf/core/types';
 import { Toleration, Taint } from '@odf/shared/types';
 import { TFunction } from 'i18next';
 
@@ -11,13 +15,34 @@ export const LABEL_OPERATOR = 'In';
 export const OCS_SUPPORT_ANNOTATION = 'features.ocs.openshift.io/enabled';
 export const OCS_DISABLED_ANNOTATION = 'features.ocs.openshift.io/disabled';
 export const ODF_VENDOR_ANNOTATION = 'vendors.odf.openshift.io/kind';
-export const CEPH_STORAGE_LABEL = 'cluster.ocs.openshift.io/openshift-storage';
-export const ODF_MANAGED_LABEL = 'odf-managed-service';
 export const OCS_OPERATOR = 'ocs-operator';
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
 export const OCS_DEVICE_SET_MINIMUM_REPLICAS = 3;
 export const MINIMUM_NODES = 3;
 export const SECOND = 1000;
+
+export const cephStorageLabel = (ns: string) =>
+  `cluster.ocs.openshift.io/${ns}`;
+
+/**
+ * Map between resource profiles and the minimum cpu's and memory (expressed in GiB) required
+ * for the profile to be selectable.
+ */
+export const RESOURCE_PROFILE_REQUIREMENTS_MAP: ResourceProfileRequirementsMap =
+  {
+    [ResourceProfile.Lean]: {
+      minCpu: 24,
+      minMem: 72,
+    },
+    [ResourceProfile.Balanced]: {
+      minCpu: 30,
+      minMem: 72,
+    },
+    [ResourceProfile.Performance]: {
+      minCpu: 45,
+      minMem: 96,
+    },
+  };
 
 export enum defaultRequestSize {
   BAREMETAL = '1',

@@ -44,3 +44,33 @@ export const storageCapacityTooltip = (t: TFunction) => {
     </Trans>
   );
 };
+
+export const resourceProfileTooltip = (t: TFunction) => {
+  return (
+    <Trans t={t} ns="plugin__odf-console">
+      <p className="co-break-word pf-u-font-weight-bold pf-u-mb-md">
+        Performance profiles:
+      </p>
+      <p className="co-break-word pf-u-mb-md">
+        <span className="pf-u-font-weight-bold">Balanced mode:</span> Optimized
+        for a well-rounded blend of CPU and memory resources to support diverse
+        workloads.
+      </p>
+      <p className="co-break-word pf-u-mb-md">
+        <span className="pf-u-font-weight-bold">Lean mode:</span> Minimizes
+        resource consumption by allocating fewer CPUs and less memory for
+        resource-efficient operations.
+      </p>
+      <p className="co-break-word">
+        <span className="pf-u-font-weight-bold">Performance mode:</span>{' '}
+        Tailored for high-performance, allocating ample CPUs and memory to
+        ensure optimal execution of demanding workloads.
+      </p>
+    </Trans>
+  );
+};
+
+export const resourceRequirementsTooltip = (t: TFunction) =>
+  t(
+    "plugin__odf-console~The number of CPUs and memory resources needed to optimize your Data Foundation cluster for enhanced performance is determined by taking into account the cluster's specific environment, size and various other factors."
+  );

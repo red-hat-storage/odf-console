@@ -2,6 +2,7 @@ import {
   ExternalCephState,
   ExternalCephStateValues,
   ExternalCephStateKeys,
+  ResourceProfile,
 } from '@odf/core/types';
 import {
   ExternalStateValues,
@@ -42,6 +43,23 @@ export const initialState: CreateStorageSystemState = {
     isRBDStorageClassDefault: false,
     externalStorage: '',
     deployment: DeploymentType.FULL,
+    useExternalPostgres: false,
+    externalPostgres: {
+      username: '',
+      password: '',
+      serverName: '',
+      port: null,
+      databaseName: '',
+      tls: {
+        enabled: false,
+        allowSelfSignedCerts: false,
+        enableClientSideCerts: false,
+        keys: {
+          private: null,
+          public: null,
+        },
+      },
+    },
   },
   capacityAndNodes: {
     enableArbiter: false,
@@ -50,6 +68,7 @@ export const initialState: CreateStorageSystemState = {
     arbiterLocation: '',
     capacity: null,
     pvCount: 0,
+    resourceProfile: ResourceProfile.Balanced,
   },
   createStorageClass: {},
   connectionDetails: {},
@@ -96,6 +115,23 @@ type CreateStorageSystemState = {
     isRBDStorageClassDefault: boolean;
     externalStorage: string;
     deployment: DeploymentType;
+    useExternalPostgres: boolean;
+    externalPostgres: {
+      username: string;
+      password: string;
+      serverName: string;
+      port: string;
+      databaseName: string;
+      tls: {
+        enabled: boolean;
+        allowSelfSignedCerts: boolean;
+        enableClientSideCerts: boolean;
+        keys: {
+          private: File;
+          public: File;
+        };
+      };
+    };
   };
   createStorageClass: ExternalState;
   connectionDetails: ExternalCephState;
@@ -108,6 +144,7 @@ type CreateStorageSystemState = {
     // Requires refactoring osd size dropdown.
     capacity: string | number;
     pvCount: number;
+    resourceProfile: ResourceProfile;
   };
   securityAndNetwork: {
     encryption: EncryptionType;
@@ -259,6 +296,9 @@ export const reducer: WizardReducer = (prevState, action) => {
         [action.payload.field]: action.payload.value,
       };
       break;
+    case 'wizard/setResourceProfile':
+      newState.capacityAndNodes.resourceProfile = action.payload;
+      break;
     case 'backingStorage/setType':
       return setBackingStorageType(newState, action.payload);
     case 'backingStorage/enableNFS':
@@ -267,6 +307,44 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'backingStorage/setIsRBDStorageClassDefault':
       newState.backingStorage.isRBDStorageClassDefault = action.payload;
       break;
+    case 'backingStorage/useExternalPostgres':
+      newState.backingStorage.useExternalPostgres = action.payload;
+      break;
+    case 'backingStorage/externalPostgres/setUsername':
+      newState.backingStorage.externalPostgres.username = action.payload;
+      break;
+    case 'backingStorage/externalPostgres/setPassword':
+      newState.backingStorage.externalPostgres.password = action.payload;
+      break;
+    case 'backingStorage/externalPostgres/setServerName':
+      newState.backingStorage.externalPostgres.serverName = action.payload;
+      break;
+    case 'backingStorage/externalPostgres/setPort':
+      newState.backingStorage.externalPostgres.port = action.payload;
+      break;
+    case 'backingStorage/externalPostgres/setDatabaseName':
+      newState.backingStorage.externalPostgres.databaseName = action.payload;
+      break;
+    case 'backingStorage/externalPostgres/tls/enableTLS':
+      newState.backingStorage.externalPostgres.tls.enabled = action.payload;
+      break;
+    case 'backingStorage/externalPostgres/tls/allowSelfSignedCerts':
+      newState.backingStorage.externalPostgres.tls.allowSelfSignedCerts =
+        action.payload;
+      break;
+
+    case 'backingStorage/externalPostgres/tls/enableClientSideCerts':
+      newState.backingStorage.externalPostgres.tls.enableClientSideCerts =
+        action.payload;
+      break;
+    case 'backingStorage/externalPostgres/tls/keys/setPrivateKey':
+      newState.backingStorage.externalPostgres.tls.keys.private =
+        action.payload;
+      break;
+    case 'backingStorage/externalPostgres/tls/keys/setPublicKey':
+      newState.backingStorage.externalPostgres.tls.keys.public = action.payload;
+      break;
+
     case 'backingStorage/setDeployment':
       return setDeployment(newState, action.payload);
     case 'backingStorage/setExternalStorage':
@@ -348,6 +426,10 @@ export type CreateStorageSystemAction =
       };
     }
   | {
+      type: 'wizard/setResourceProfile';
+      payload: WizardState['capacityAndNodes']['resourceProfile'];
+    }
+  | {
       type: 'backingStorage/setDeployment';
       payload: WizardState['backingStorage']['deployment'];
     }
@@ -423,4 +505,48 @@ export type CreateStorageSystemAction =
   | {
       type: 'dataProtection/enableRDRPreparation';
       payload: WizardState['dataProtection']['enableRDRPreparation'];
+    }
+  | {
+      type: 'backingStorage/useExternalPostgres';
+      payload: WizardState['backingStorage']['useExternalPostgres'];
+    }
+  | {
+      type: 'backingStorage/externalPostgres/setUsername';
+      payload: WizardState['backingStorage']['externalPostgres']['username'];
+    }
+  | {
+      type: 'backingStorage/externalPostgres/setPassword';
+      payload: WizardState['backingStorage']['externalPostgres']['password'];
+    }
+  | {
+      type: 'backingStorage/externalPostgres/setServerName';
+      payload: WizardState['backingStorage']['externalPostgres']['serverName'];
+    }
+  | {
+      type: 'backingStorage/externalPostgres/setPort';
+      payload: WizardState['backingStorage']['externalPostgres']['port'];
+    }
+  | {
+      type: 'backingStorage/externalPostgres/setDatabaseName';
+      payload: WizardState['backingStorage']['externalPostgres']['databaseName'];
+    }
+  | {
+      type: 'backingStorage/externalPostgres/tls/enableTLS';
+      payload: WizardState['backingStorage']['externalPostgres']['tls']['enabled'];
+    }
+  | {
+      type: 'backingStorage/externalPostgres/tls/allowSelfSignedCerts';
+      payload: WizardState['backingStorage']['externalPostgres']['tls']['allowSelfSignedCerts'];
+    }
+  | {
+      type: 'backingStorage/externalPostgres/tls/enableClientSideCerts';
+      payload: WizardState['backingStorage']['externalPostgres']['tls']['enableClientSideCerts'];
+    }
+  | {
+      type: 'backingStorage/externalPostgres/tls/keys/setPrivateKey';
+      payload: WizardState['backingStorage']['externalPostgres']['tls']['keys']['private'];
+    }
+  | {
+      type: 'backingStorage/externalPostgres/tls/keys/setPublicKey';
+      payload: WizardState['backingStorage']['externalPostgres']['tls']['keys']['public'];
     };

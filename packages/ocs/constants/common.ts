@@ -1,11 +1,6 @@
 export const PVC_PROVISIONER_ANNOTATION =
   'volume.beta.kubernetes.io/storage-provisioner';
 export const OCS_OPERATOR = 'ocs-operator';
-
-export const CEPH_NS = 'openshift-storage';
-
-export const cephStorageLabel = 'cluster.ocs.openshift.io/openshift-storage';
-
 export const COMPRESSION_ON = 'aggressive';
 export const CEPH_EXTERNAL_CR_NAME = 'ocs-external-storagecluster-cephcluster';
 
@@ -34,11 +29,16 @@ export const OCS_DEVICE_REPLICA = Object.freeze({
   '4': '4-way',
 });
 
-export const OCS_POOL_MANAGEMENT = 'OCS_POOL_MANAGEMENT';
-
 export enum CLUSTER_STATUS {
   READY = 'Ready',
   PROGRESSING = 'Progressing',
 }
 
 export const CEPH_INTERNAL_CR_NAME = 'ocs-storagecluster-cephcluster';
+
+export const CLUSTER_ID = 'clusterID';
+export const PROV_SECRET_NS = 'csi.storage.k8s.io/provisioner-secret-namespace';
+export const NODE_SECRET_NS = 'csi.storage.k8s.io/node-stage-secret-namespace';
+export const CONTROLLER_SECRET_NS =
+  'csi.storage.k8s.io/controller-expand-secret-namespace';
+export const CEPH_NS_SESSION_STORAGE = 'odfConsole_scForm_cephNs';

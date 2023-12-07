@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -10,6 +10,8 @@ import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
   const { t } = useCustomTranslation();
   const { isOpen, closeModal } = props;
+
+  const { odfNamespace } = useODFNamespaceSelector();
 
   return (
     <Modal
@@ -27,7 +29,7 @@ const NamespaceStoreModal: React.FC<NamespaceStoreModalProps> = (props) => {
             )}
           </p>
           <NamespaceStoreForm
-            namespace={CEPH_STORAGE_NAMESPACE}
+            namespace={odfNamespace}
             onCancel={closeModal}
             redirectHandler={closeModal}
           />

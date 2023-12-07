@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE, ONE_SECOND } from '@odf/shared/constants';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
+import { K8sResourceObj } from '@odf/core/types';
+import { ONE_SECOND } from '@odf/shared/constants';
 import { ModalTitle, ModalFooter } from '@odf/shared/generic/ModalTitle';
 import {
   HandlePromiseProps,
@@ -9,11 +12,7 @@ import { ModalBody } from '@odf/shared/modals/Modal';
 import { CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
-import {
-  k8sCreate,
-  useK8sWatchResource,
-  WatchK8sResource,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Modal } from '@patternfly/react-core';
 import { BlockPoolStatus, BlockPoolBody } from '../../block-pool/body';
@@ -34,6 +33,8 @@ export const CreateBlockPoolModal = withHandlePromise(
     const { cephClusters, onPoolCreation, handlePromise, errorMessage } = props;
     const { t } = useCustomTranslation();
 
+    const { odfNamespace } = useODFNamespaceSelector();
+
     const [state, dispatch] = React.useReducer(
       blockPoolReducer,
       blockPoolInitialState
@@ -47,18 +48,19 @@ export const CreateBlockPoolModal = withHandlePromise(
     const MODAL_TITLE = t('Create BlockPool');
 
     // Watch newly created pool after submit
-    const poolResource: WatchK8sResource = React.useMemo(() => {
-      return {
+    const poolResource: K8sResourceObj = React.useCallback(
+      (ns) => ({
         kind: referenceForModel(CephBlockPoolModel),
         namespaced: true,
         isList: false,
         name: state.poolName,
-        namespace: CEPH_STORAGE_NAMESPACE,
-      };
-    }, [state.poolName]);
+        namespace: ns,
+      }),
+      [state.poolName]
+    );
 
     const [newPool, newPoolLoaded, newPoolLoadError] =
-      useK8sWatchResource<StoragePoolKind>(poolResource);
+      useSafeK8sWatchResource<StoragePoolKind>(poolResource);
 
     React.useEffect(() => {
       if (isSubmit) {
@@ -115,7 +117,7 @@ export const CreateBlockPoolModal = withHandlePromise(
           type: BlockPoolActionType.SET_POOL_STATUS,
           payload: POOL_PROGRESS.PROGRESS,
         });
-        const poolObj: StoragePoolKind = getPoolKindObj(state);
+        const poolObj: StoragePoolKind = getPoolKindObj(state, odfNamespace);
 
         handlePromise(
           k8sCreate({ model: CephBlockPoolModel, data: poolObj }),

@@ -3,12 +3,13 @@ import {
   STORAGE_CLUSTER_SYSTEM_KIND,
   NO_PROVISIONER,
 } from '@odf/core/constants';
+import { useSafeK8sGet } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { scResource } from '@odf/core/resources';
 import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { getSupportedVendors } from '@odf/core/utils';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
@@ -34,10 +35,12 @@ import {
   Radio,
   Alert,
   AlertVariant,
+  Checkbox,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from './enable-nfs';
+import { PostgresConnectionDetails } from './noobaa-external-postgres/postgres-connection-details';
 import { SelectDeployment } from './select-deployment';
 import { SetCephRBDStorageClassDefault } from './set-rbd-sc-default';
 import './backing-storage-step.scss';
@@ -188,14 +191,20 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
     isRBDStorageClassDefault,
     externalStorage,
     deployment,
+    externalPostgres,
+    useExternalPostgres,
   } = state;
 
   const { t } = useCustomTranslation();
+
+  const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
+    useODFNamespaceSelector();
+
   const [sc, scLoaded, scLoadError] =
     useK8sGet<ListKind<StorageClassResourceKind>>(StorageClassModel);
-  const [csvList, csvListLoaded, csvListLoadError] = useK8sGet<
+  const [csvList, csvListLoaded, csvListLoadError] = useSafeK8sGet<
     ListKind<ClusterServiceVersionKind>
-  >(ClusterServiceVersionModel, null, CEPH_STORAGE_NAMESPACE);
+  >(ClusterServiceVersionModel, null, odfNamespace);
 
   const formattedSS: StorageSystemSet = formatStorageSystemList(storageSystems);
   const hasOCS: boolean = formattedSS.has(STORAGE_CLUSTER_SYSTEM_KIND);
@@ -276,8 +285,8 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
 
   return (
     <ErrorHandler
-      error={error || scLoadError || csvListLoadError}
-      loaded={loaded && scLoaded && csvListLoaded}
+      error={error || scLoadError || csvListLoadError || odfNsLoadError}
+      loaded={loaded && scLoaded && csvListLoaded && isODFNsLoaded}
     >
       <Form>
         {!hasOCS && (
@@ -358,6 +367,38 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
               doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
             />
           </>
+        )}
+        <Checkbox
+          id="use-external-postgress"
+          label={t('Use external PostgreSQL')}
+          description={t(
+            'Allow Noobaa to connect to an external postgres server'
+          )}
+          isChecked={useExternalPostgres}
+          onChange={() =>
+            dispatch({
+              type: 'backingStorage/useExternalPostgres',
+              payload: !useExternalPostgres,
+            })
+          }
+          className="odf-backing-store__radio--margin-bottom"
+        />
+        {useExternalPostgres && (
+          <PostgresConnectionDetails
+            dispatch={dispatch}
+            tlsFiles={[
+              externalPostgres.tls.keys.private,
+              externalPostgres.tls.keys.public,
+            ]}
+            tlsEnabled={externalPostgres.tls.enabled}
+            allowSelfSignedCerts={externalPostgres.tls.allowSelfSignedCerts}
+            username={externalPostgres.username}
+            password={externalPostgres.password}
+            serverName={externalPostgres.serverName}
+            databaseName={externalPostgres.databaseName}
+            port={externalPostgres.port}
+            enableClientSideCerts={externalPostgres.tls.enableClientSideCerts}
+          />
         )}
       </Form>
     </ErrorHandler>

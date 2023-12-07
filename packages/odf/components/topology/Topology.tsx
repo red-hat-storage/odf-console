@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import HandleErrorAndLoading from '@odf/shared/error-handler/ErrorStateHandler';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import {
@@ -53,7 +54,7 @@ import {
   NodeShape,
   GraphElement,
 } from '@patternfly/react-topology';
-import { CEPH_STORAGE_LABEL } from '../../constants';
+import { cephStorageLabel } from '../../constants';
 import {
   CEPH_FLAG,
   MCG_STANDALONE,
@@ -433,6 +434,9 @@ const TopologyViewComponent: React.FC = () => {
 const Error = ({ error }) => <>{error}</>;
 
 const Topology: React.FC = () => {
+  const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
+    useODFNamespaceSelector();
+
   const [controller, setController] = React.useState<Visualization>(null);
   const [visualizationLevel, setVisualizationLevel] =
     React.useState<TopologyViewLevel>(TopologyViewLevel.NODES);
@@ -449,22 +453,23 @@ const Topology: React.FC = () => {
     useK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
 
   const [deployments, deploymentsLoaded, deploymentsError] =
-    useK8sWatchResource<DeploymentKind[]>(odfDeploymentsResource);
+    useSafeK8sWatchResource<DeploymentKind[]>(odfDeploymentsResource);
 
   const [pods, podsLoaded, podsError] =
-    useK8sWatchResource<PodKind[]>(odfPodsResource);
+    useSafeK8sWatchResource<PodKind[]>(odfPodsResource);
 
   const [statefulSets, statefulSetLoaded, statefulSetError] =
-    useK8sWatchResource<K8sResourceCommon[]>(odfStatefulSetResource);
+    useSafeK8sWatchResource<K8sResourceCommon[]>(odfStatefulSetResource);
 
   const [replicaSets, replicaSetsLoaded, replicaSetsError] =
-    useK8sWatchResource<K8sResourceCommon[]>(odfReplicaSetResource);
+    useSafeK8sWatchResource<K8sResourceCommon[]>(odfReplicaSetResource);
 
   const [daemonSets, daemonSetsLoaded, daemonSetError] =
-    useK8sWatchResource<K8sResourceCommon[]>(odfDaemonSetResource);
+    useSafeK8sWatchResource<K8sResourceCommon[]>(odfDaemonSetResource);
 
+  const storageLabel = cephStorageLabel(odfNamespace);
   const odfNodes = nodes.filter((node) =>
-    _.has(node.metadata.labels, CEPH_STORAGE_LABEL)
+    _.has(node.metadata.labels, storageLabel)
   );
 
   const memoizedNodes = useDeepCompareMemoize(odfNodes, true);
@@ -527,7 +532,8 @@ const Topology: React.FC = () => {
     !podsLoaded ||
     !statefulSetLoaded ||
     !replicaSetsLoaded ||
-    !daemonSetsLoaded;
+    !daemonSetsLoaded ||
+    !isODFNsLoaded;
 
   const zones = memoizedNodes.map(getTopologyDomain);
 
@@ -561,7 +567,8 @@ const Topology: React.FC = () => {
                 podsError ||
                 replicaSetsError ||
                 daemonSetError ||
-                statefulSetError
+                statefulSetError ||
+                odfNsLoadError
               }
               ErrorMessage={Error}
             >
@@ -582,13 +589,16 @@ const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
   isExternalMode,
 }) => {
   const { t } = useCustomTranslation();
-  const [csv, csvLoaded, csvError] = useK8sWatchResource<
+
+  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+
+  const [csv, csvLoaded, csvError] = useSafeK8sWatchResource<
     ClusterServiceVersionKind[]
-  >({
+  >((ns: string) => ({
     kind: referenceForModel(ClusterServiceVersionModel),
     isList: true,
-    namespace: CEPH_STORAGE_NAMESPACE,
-  });
+    namespace: ns,
+  }));
 
   const odfCsvName: string =
     csvLoaded && !csvError
@@ -596,8 +606,9 @@ const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
           ?.metadata?.name
       : null;
 
-  const createLink = `/k8s/ns/openshift-storage/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
+  const createLink = `/k8s/ns/${odfNamespace}/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
 
+  const showCreateSSOption = !isExternalMode && isNsSafe;
   return (
     <EmptyState>
       <EmptyStateIcon icon={TopologyIcon} />
@@ -607,9 +618,10 @@ const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
           : t('No StorageCluster found')}
       </Title>
       <EmptyStateBody>
-        {!isExternalMode && t('Set up a storage cluster to view the topology')}
+        {showCreateSSOption &&
+          t('Set up a storage cluster to view the topology')}
       </EmptyStateBody>
-      {!isExternalMode && (
+      {showCreateSSOption && (
         <Link to={createLink}>{t('Create StorageSystem')} </Link>
       )}
     </EmptyState>

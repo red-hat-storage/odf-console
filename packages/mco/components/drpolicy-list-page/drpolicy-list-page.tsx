@@ -18,7 +18,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
 import { useHistory, useLocation } from 'react-router';
-import { HUB_CLUSTER_NAME } from '../../constants';
+import { HUB_CLUSTER_NAME, REPLICATION_TYPE } from '../../constants';
 import {
   ApplicationRefKind,
   getDRPolicyResourceObj,
@@ -56,6 +56,8 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
   ));
   const filteredApps = findAppsUsingDRPolicy(applicationRefs, obj);
   const appCount = filteredApps?.length;
+  const syncInterval = obj?.spec?.schedulingInterval;
+  const replicationType = getReplicationType(syncInterval);
 
   const onClick = () => {
     openModal(true);
@@ -68,13 +70,18 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
         {obj?.metadata?.name}
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        {isDRPolicyValidated(obj) ? t('Validated') : t('Not Validated')}
+        {isDRPolicyValidated(obj) ? t('Validated') : t('Not validated')}
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
         {clusterNames}
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
-        {getReplicationType(obj?.spec?.schedulingInterval, t)}
+        {replicationType === REPLICATION_TYPE.ASYNC
+          ? t('{{async}}, interval: {{syncInterval}}', {
+              async: REPLICATION_TYPE.ASYNC,
+              syncInterval,
+            })
+          : REPLICATION_TYPE.SYNC}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
         {appCount > 0 ? (

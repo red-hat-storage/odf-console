@@ -3,7 +3,7 @@ import { getAPIVersion } from '@odf/shared/selectors';
 import {
   DeploymentKind,
   K8sResourceKind,
-  StorageClass,
+  StorageClassResourceKind,
 } from '@odf/shared/types';
 import {
   getAPIVersionForModel,
@@ -195,13 +195,13 @@ export const secretPayloadCreator = (
   return payload;
 };
 
-const objectStorageProvisioners = [
-  'openshift-storage.noobaa.io/obc',
-  'openshift-storage.ceph.rook.io/bucket',
+const objectStorageProvisioners = (ns: string) => [
+  `${ns}.noobaa.io/obc`,
+  `${ns}.ceph.rook.io/bucket`,
 ];
 
-export const isObjectSC = (sc: StorageClass) =>
-  objectStorageProvisioners.includes(sc.provisioner);
+export const isObjectSC = (sc: StorageClassResourceKind, ns: string) =>
+  objectStorageProvisioners(ns).includes(sc?.provisioner);
 
 export const awsRegionItems = _.zipObject(AWS_REGIONS, AWS_REGIONS);
 

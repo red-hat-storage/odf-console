@@ -47,7 +47,12 @@ Cypress.Commands.add('install', () => {
         'be.visible'
       );
       cy.get('button').contains('Next').click();
-      cy.get('input[type="checkbox"]').first().uncheck();
+      // @TODO: Do we still want to uncheck the already unchecked 'Taint nodes' checkbox?
+      // If yes, we should scroll down (needed after adding the performance profile selection)
+      // and then scroll up again to still be able to select nodes
+      // (or put this action after nodes' selection).
+      //cy.get('input[type="checkbox"]').first().uncheck();
+
       cy.get('table').get('input[type="checkbox"]').first().check();
       cy.get('button').contains('Next').click();
       cy.get('button').contains('Next').click();

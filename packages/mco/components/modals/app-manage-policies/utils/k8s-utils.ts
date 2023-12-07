@@ -22,7 +22,8 @@ import {
   k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { DRPlacementControlType, DataPolicyType } from './types';
+import { AssignPolicyViewState } from './reducer';
+import { DRPlacementControlType, PlacementType } from './types';
 
 export const placementUnAssignPromise = (drpc: DRPlacementControlType) => {
   const patch = [
@@ -70,9 +71,9 @@ export const unAssignPromises = (drpcs: DRPlacementControlType[]) => {
   return promises;
 };
 
-const placementAssignPromise = (drpc: DRPlacementControlType) => {
+const placementAssignPromise = (placement: PlacementType) => {
   const patch = [];
-  if (_.isEmpty(getAnnotations(drpc.placementInfo))) {
+  if (_.isEmpty(getAnnotations(placement))) {
     patch.push({
       op: 'add',
       path: `/metadata/annotations`,
@@ -88,8 +89,8 @@ const placementAssignPromise = (drpc: DRPlacementControlType) => {
     model: ACMPlacementModel,
     resource: {
       metadata: {
-        name: getName(drpc.placementInfo),
-        namespace: getNamespace(drpc.placementInfo),
+        name: getName(placement),
+        namespace: getNamespace(placement),
       },
     },
     data: patch,
@@ -97,13 +98,13 @@ const placementAssignPromise = (drpc: DRPlacementControlType) => {
   });
 };
 
-const placementRuleAssignPromise = (drpc: DRPlacementControlType) => {
+const placementRuleAssignPromise = (placement: PlacementType) => {
   return k8sPatch({
     model: ACMPlacementRuleModel,
     resource: {
       metadata: {
-        name: getName(drpc.placementInfo),
-        namespace: getNamespace(drpc.placementInfo),
+        name: getName(placement),
+        namespace: getNamespace(placement),
       },
     },
     data: [
@@ -117,27 +118,36 @@ const placementRuleAssignPromise = (drpc: DRPlacementControlType) => {
   });
 };
 
-export const assignPromises = (dataPolicy: DataPolicyType) => {
+const getPlacement = (placementName: string, placements: PlacementType[]) =>
+  placements.find((placement) => getName(placement) === placementName);
+
+export const assignPromises = (
+  state: AssignPolicyViewState,
+  placements: PlacementType[]
+) => {
+  const { policy, persistentVolumeClaim } = state;
+  const { pvcSelectors } = persistentVolumeClaim;
   const promises: Promise<K8sResourceKind>[] = [];
-  const drpcs: DRPlacementControlType[] = dataPolicy.placementControlInfo;
-  drpcs?.forEach((drpc) => {
-    if (drpc.placementInfo.kind === ACMPlacementModel.kind) {
-      promises.push(placementAssignPromise(drpc));
+  pvcSelectors?.forEach((pvcSelector) => {
+    const { placementName, labels } = pvcSelector;
+    const placement = getPlacement(placementName, placements);
+    if (placement.kind === ACMPlacementModel.kind) {
+      promises.push(placementAssignPromise(placement));
     } else {
-      promises.push(placementRuleAssignPromise(drpc));
+      promises.push(placementRuleAssignPromise(placement));
     }
     promises.push(
       k8sCreate({
         model: DRPlacementControlModel,
         data: getDRPCKindObj(
-          getName(drpc.placementInfo),
-          getNamespace(drpc.placementInfo),
-          drpc.placementInfo.kind,
-          getAPIVersion(drpc.placementInfo),
-          getName(dataPolicy),
-          dataPolicy.drClusters,
-          drpc.placementInfo.deploymentClusters,
-          drpc?.pvcSelector
+          getName(placement),
+          getNamespace(placement),
+          placement.kind,
+          getAPIVersion(placement),
+          getName(policy),
+          policy.drClusters,
+          placement.deploymentClusters,
+          labels
         ),
         cluster: HUB_CLUSTER_NAME,
       })

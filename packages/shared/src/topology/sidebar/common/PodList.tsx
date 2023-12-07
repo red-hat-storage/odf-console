@@ -4,6 +4,7 @@ import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getUID } from '@odf/shared/selectors';
 import { resourceStatus } from '@odf/shared/status/Resource';
 import { Status } from '@odf/shared/status/Status';
+import { PodKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   formatBytesAsMiB,
@@ -12,7 +13,6 @@ import {
 } from '@odf/shared/utils';
 import { ResourceStatus } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { PodKind } from 'packages/shared/types';
 
 type PodOverviewItemProps = {
   pod: PodWithMetricsKind;

@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useSafeK8sWatchResources } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -15,7 +17,11 @@ import {
   CephClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
+import {
+  humanizeBinaryBytes,
+  referenceForModel,
+  getValidPrometheusPollObj,
+} from '@odf/shared/utils';
 import {
   ListPageBody,
   ListPageCreateLink,
@@ -26,7 +32,7 @@ import {
   TableColumn,
   TableData,
   useActiveColumns,
-  useK8sWatchResources,
+  WatchK8sResults,
   useListPageFilter,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -35,7 +41,6 @@ import classNames from 'classnames';
 import { Link, useLocation } from 'react-router-dom';
 import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { CEPH_NS } from '../constants';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
 import { StoragePoolKind } from '../types';
@@ -370,11 +375,11 @@ type BlockPoolListPageProps = {
   hideColumnManagement?: boolean;
 };
 
-const resources = {
+const resources = (ns: string) => ({
   ceph: {
     kind: referenceForModel(CephClusterModel),
     namespaced: true,
-    namespace: CEPH_NS,
+    namespace: ns,
     isList: true,
   },
   sc: {
@@ -386,7 +391,7 @@ const resources = {
     kind: referenceForModel(CephBlockPoolModel),
     isList: true,
   },
-};
+});
 
 type WatchType = {
   sc: StorageClassResourceKind[];
@@ -397,10 +402,15 @@ type WatchType = {
 export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
   const { t } = useCustomTranslation();
 
+  const { odfNamespace, isODFNsLoaded, odfNsLoadError, isNsSafe } =
+    useODFNamespaceSelector();
+
   const location = useLocation();
   const listPagePath: string = location.pathname;
 
-  const response = useK8sWatchResources<WatchType>(resources);
+  const response = useSafeK8sWatchResources(
+    resources
+  ) as WatchK8sResults<WatchType>;
 
   const cephClusters = response.ceph.data;
   const cephLoaded = response.ceph.loaded;
@@ -423,27 +433,37 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
 
   // Metrics
   const [poolRawCapacityMetrics, rawCapLoadError, rawCapLoading] =
-    useCustomPrometheusPoll({
-      endpoint: 'api/v1/query' as any,
-      query: getPoolQuery(
-        memoizedPoolNames,
-        StorageDashboardQuery.POOL_RAW_CAPACITY_USED
-      ),
-      namespace: CEPH_NS,
-      basePath: usePrometheusBasePath(),
-    });
+    useCustomPrometheusPoll(
+      getValidPrometheusPollObj(
+        {
+          endpoint: 'api/v1/query' as any,
+          query: getPoolQuery(
+            memoizedPoolNames,
+            StorageDashboardQuery.POOL_RAW_CAPACITY_USED
+          ),
+          namespace: odfNamespace,
+          basePath: usePrometheusBasePath(),
+        },
+        isNsSafe
+      )
+    );
 
   // compression queries
   const [compressionSavings, compressionLoadError, compressionLoading] =
-    useCustomPrometheusPoll({
-      endpoint: 'api/v1/query' as any,
-      query: getPoolQuery(
-        poolNames,
-        StorageDashboardQuery.POOL_COMPRESSION_SAVINGS
-      ),
-      namespace: CEPH_NS,
-      basePath: usePrometheusBasePath(),
-    });
+    useCustomPrometheusPoll(
+      getValidPrometheusPollObj(
+        {
+          endpoint: 'api/v1/query' as any,
+          query: getPoolQuery(
+            poolNames,
+            StorageDashboardQuery.POOL_COMPRESSION_SAVINGS
+          ),
+          namespace: odfNamespace,
+          basePath: usePrometheusBasePath(),
+        },
+        isNsSafe
+      )
+    );
 
   const customData = React.useMemo(() => {
     const poolRawCapacity: PoolMetrics = getPerPoolMetrics(
@@ -498,15 +518,15 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
       <ListPageBody>
         <ListPageFilter
           data={data}
-          loaded={loaded}
+          loaded={loaded && isODFNsLoaded}
           onFilterChange={onFilterChange}
           hideColumnManagement={true}
         />
         <BlockPoolList
           data={filteredData}
           unfilteredData={data}
-          loaded={loaded}
-          loadError={error}
+          loaded={loaded && isODFNsLoaded}
+          loadError={error || odfNsLoadError}
           rowData={{ ...customData }}
         />
       </ListPageBody>

@@ -2,8 +2,9 @@ import * as React from 'react';
 import { OCS_OPERATOR } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { RGW_FLAG } from '@odf/core/features';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getOperatorVersion } from '@odf/core/utils';
-import { CEPH_STORAGE_NAMESPACE, ODF_OPERATOR } from '@odf/shared/constants';
+import { ODF_OPERATOR } from '@odf/shared/constants';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -34,6 +35,8 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
 
+  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+
   const [systemResult, systemLoadError] = useCustomPrometheusPoll({
     query: NOOBAA_SYSTEM_NAME_QUERY,
     endpoint: 'api/v1/query' as any,
@@ -57,7 +60,8 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
 
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: !isODF ? OCS_OPERATOR : ODF_OPERATOR,
-    namespace: CEPH_STORAGE_NAMESPACE,
+    namespace: odfNamespace,
+    startPollingInstantly: isNsSafe,
   });
 
   const serviceVersion = getOperatorVersion(csv);
@@ -70,7 +74,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
     getName(csv),
-    CEPH_STORAGE_NAMESPACE
+    odfNamespace
   )}`;
   return (
     <Card>
@@ -80,7 +84,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
       <CardBody>
         <DetailsBody>
           <DetailItem key="service_name" title={t('Service name')}>
-            {csvLoaded && !csvLoadError ? (
+            {isNsSafe && csvLoaded && !csvLoadError ? (
               <Link to={servicePath}>{serviceName}</Link>
             ) : (
               serviceName
@@ -89,13 +93,13 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
           <DetailItem
             key="system_name"
             title={t('System name')}
-            isLoading={!systemResult || !dashboardLinkResult}
-            error={
-              systemLoadError ||
-              dashboardLinkLoadError ||
+            isLoading={
+              !systemResult ||
+              !dashboardLinkResult ||
               !systemName ||
               !systemLink
             }
+            error={systemLoadError || dashboardLinkLoadError}
           >
             <p data-test-id="system-name-mcg">
               {t('Multicloud Object Gateway')}

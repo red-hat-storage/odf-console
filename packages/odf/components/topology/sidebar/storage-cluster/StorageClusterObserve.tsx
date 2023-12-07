@@ -7,15 +7,17 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { CEPH_FLAG, OCS_INDEPENDENT_FLAG } from '../../../../features';
 
-export const StorageClusterObserve: React.FC<{ resource?: K8sResourceCommon }> =
-  () => {
-    const isIndependent = useFlag(OCS_INDEPENDENT_FLAG);
-    const isCephAvailable = useFlag(CEPH_FLAG);
-    const isInternal = !isIndependent && isCephAvailable;
+export const StorageClusterObserve: React.FC<{
+  resource?: K8sResourceCommon;
+  odfNamespace?: string;
+}> = () => {
+  const isIndependent = useFlag(OCS_INDEPENDENT_FLAG);
+  const isCephAvailable = useFlag(CEPH_FLAG);
+  const isInternal = !isIndependent && isCephAvailable;
 
-    return isInternal ? (
-      <InternalUtilizationContent />
-    ) : (
-      <ExternalUtilizationContent />
-    );
-  };
+  return isInternal ? (
+    <InternalUtilizationContent />
+  ) : (
+    <ExternalUtilizationContent />
+  );
+};

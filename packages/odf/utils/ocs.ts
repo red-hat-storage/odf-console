@@ -1,4 +1,4 @@
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { ResourceProfile } from '@odf/core/types';
 import { NamespaceModel } from '@odf/shared/models';
 import {
   DeviceSet,
@@ -14,7 +14,6 @@ import {
   convertToBaseValue,
   getRack,
 } from '@odf/shared/utils';
-import { humanizeBinaryBytes } from '@odf/shared/utils';
 import {
   k8sPatch,
   MatchExpression,
@@ -25,6 +24,7 @@ import {
   LABEL_OPERATOR,
   MINIMUM_NODES,
   ocsTaint,
+  RESOURCE_PROFILE_REQUIREMENTS_MAP,
   OCS_PROVISIONERS,
   ZONE_LABELS,
 } from '../constants';
@@ -98,16 +98,21 @@ const getTopologyInfo = (nodes: NodeKind[]) =>
 export const isFlexibleScaling = (nodes: number, zones: number): boolean =>
   !!(nodes >= MINIMUM_NODES && zones < 3);
 
-export const shouldDeployAsMinimal = (
+/**
+ * Checks if the selected nodes' resources meet the minimum requirements of the selected resource profile.
+ * @param profile A resource profile.
+ * @param cpu The amount CPUs.
+ * @param memory The amount of selected nodes' memory in GiB.
+ * @returns boolean
+ */
+export const isResourceProfileAllowed = (
+  profile: ResourceProfile,
   cpu: number,
-  memory: number,
-  nodesCount: number
+  memory: number
 ): boolean => {
-  if (nodesCount >= MINIMUM_NODES) {
-    const humanizedMem = humanizeBinaryBytes(memory, null, 'GiB').value;
-    return cpu < 30 || humanizedMem < 72;
-  }
-  return false;
+  const { minCpu, minMem } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
+
+  return cpu >= minCpu && memory >= minMem;
 };
 
 export const getAssociatedNodes = (pvs: K8sResourceKind[]): string[] => {
@@ -232,12 +237,12 @@ export const isValidTopology = (
   return zones.size >= MINIMUM_NODES || racks.size >= MINIMUM_NODES;
 };
 
-export const labelOCSNamespace = (): Promise<any> =>
+export const labelOCSNamespace = (ns: string): Promise<any> =>
   k8sPatch({
     model: NamespaceModel,
     resource: {
       metadata: {
-        name: CEPH_STORAGE_NAMESPACE,
+        name: ns,
       },
     },
     data: [

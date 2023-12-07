@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -21,11 +22,16 @@ import {
   OCS_INTERNAL_CR_NAME,
 } from '../../constants';
 import { NetworkType, BackingStorageType, DeploymentType } from '../../types';
-import { labelOCSNamespace, getExternalSubSystemName } from '../../utils';
+import {
+  labelOCSNamespace,
+  getExternalSubSystemName,
+  isResourceProfileAllowed,
+} from '../../utils';
 import { createClusterKmsResources } from '../kms-config/utils';
-import { getExternalStorage } from '../utils';
+import { getExternalStorage, getTotalCpu, getTotalMemoryInGiB } from '../utils';
 import {
   createExternalSubSystem,
+  createNoobaaExternalPostgresResources,
   createStorageCluster,
   createStorageSystem,
   labelNodes,
@@ -38,13 +44,46 @@ const validateBackingStorageStep = (
   sc: WizardState['storageClass']
 ) => {
   const { type, enableNFS, externalStorage, deployment } = backingStorage;
+
+  const { useExternalPostgres, externalPostgres } = backingStorage;
+
+  const {
+    username,
+    password,
+    serverName,
+    port,
+    databaseName,
+    tls: { enableClientSideCerts, keys },
+  } = externalPostgres;
+
+  const hasPGEnabledButNoFields =
+    useExternalPostgres &&
+    (!username || !password || !serverName || !port || !databaseName);
+
+  const hasClientCertsEnabledButNoKeys =
+    enableClientSideCerts && (!keys.private || !keys.public);
+
   switch (type) {
     case BackingStorageType.EXISTING:
-      return !!sc.name && !!deployment;
+      return (
+        !!sc.name &&
+        !!deployment &&
+        !hasPGEnabledButNoFields &&
+        !hasClientCertsEnabledButNoKeys
+      );
     case BackingStorageType.EXTERNAL:
-      return !!externalStorage && !enableNFS;
+      return (
+        !!externalStorage &&
+        !enableNFS &&
+        !hasPGEnabledButNoFields &&
+        !hasClientCertsEnabledButNoKeys
+      );
     case BackingStorageType.LOCAL_DEVICES:
-      return !!deployment;
+      return (
+        !!deployment &&
+        !hasPGEnabledButNoFields &&
+        !hasClientCertsEnabledButNoKeys
+      );
     default:
       return false;
   }
@@ -99,7 +138,15 @@ const canJumpToNextStep = (
         isValidDeviceType
       );
     case StepsName(t)[Steps.CapacityAndNodes]:
-      return nodes.length >= MINIMUM_NODES && capacity;
+      return (
+        nodes.length >= MINIMUM_NODES &&
+        capacity &&
+        isResourceProfileAllowed(
+          capacityAndNodes.resourceProfile,
+          getTotalCpu(nodes),
+          getTotalMemoryInGiB(nodes)
+        )
+      );
     case StepsName(t)[Steps.SecurityAndNetwork]:
       if (isExternal && isRHCS) {
         return canGoToNextStep(connectionDetails, storageClass.name);
@@ -125,7 +172,8 @@ const handleReviewAndCreateNext = async (
   hasOCS: boolean,
   handleError: (err: string, showError: boolean) => void,
   history: RouteComponentProps['history'],
-  supportedExternalStorage: ExternalStorage[]
+  supportedExternalStorage: ExternalStorage[],
+  odfNamespace: string
 ) => {
   const {
     connectionDetails,
@@ -134,35 +182,66 @@ const handleReviewAndCreateNext = async (
     nodes,
     capacityAndNodes,
   } = state;
-  const { externalStorage, deployment, type } = state.backingStorage;
+  const {
+    externalStorage,
+    deployment,
+    type,
+    useExternalPostgres,
+    externalPostgres,
+  } = state.backingStorage;
   const inTransitChecked = state.securityAndNetwork.encryption.inTransit;
   const { encryption, kms } = state.securityAndNetwork;
   const isRhcs: boolean = externalStorage === OCSStorageClusterModel.kind;
   const isMCG: boolean = deployment === DeploymentType.MCG;
 
+  const createAdditionalFeatureResources = async () => {
+    if (capacityAndNodes.enableTaint && !isMCG) await taintNodes(nodes);
+
+    if (encryption.advanced)
+      await Promise.all(
+        createClusterKmsResources(
+          kms.providerState,
+          odfNamespace,
+          kms.provider,
+          isMCG
+        )
+      );
+
+    if (useExternalPostgres) {
+      let keyTexts = { private: '', public: '' };
+      if (externalPostgres.tls.enableClientSideCerts) {
+        const keys = externalPostgres.tls.keys;
+        const privateKey = await keys.private.text();
+        const publicKey = await keys.public.text();
+        keyTexts = { private: privateKey, public: publicKey };
+      }
+      await Promise.all(
+        createNoobaaExternalPostgresResources(
+          odfNamespace,
+          externalPostgres,
+          keyTexts
+        )
+      );
+    }
+  };
+
   try {
-    await labelOCSNamespace();
+    await labelOCSNamespace(odfNamespace);
     if (isMCG) {
-      if (encryption.advanced)
-        await Promise.all(
-          createClusterKmsResources(kms.providerState, kms.provider, isMCG)
-        );
-      await createStorageCluster(state);
+      await createAdditionalFeatureResources();
+      await createStorageCluster(state, odfNamespace);
     } else if (
       type === BackingStorageType.EXISTING ||
       type === BackingStorageType.LOCAL_DEVICES
     ) {
-      await labelNodes(nodes);
-      if (capacityAndNodes.enableTaint) await taintNodes(nodes);
-      if (encryption.advanced)
-        await Promise.all(
-          createClusterKmsResources(kms.providerState, kms.provider)
-        );
+      await labelNodes(nodes, odfNamespace);
+      await createAdditionalFeatureResources();
       await createStorageSystem(
         OCS_INTERNAL_CR_NAME,
-        STORAGE_CLUSTER_SYSTEM_KIND
+        STORAGE_CLUSTER_SYSTEM_KIND,
+        odfNamespace
       );
-      await createStorageCluster(state);
+      await createStorageCluster(state, odfNamespace);
     } else if (type === BackingStorageType.EXTERNAL) {
       const { createPayload, model, displayName, waitToCreate } =
         getExternalStorage(externalStorage, supportedExternalStorage) || {};
@@ -180,19 +259,16 @@ const handleReviewAndCreateNext = async (
         systemName: subSystemName,
         state: subSystemState,
         model,
+        namespace: odfNamespace,
         storageClassName: storageClass.name,
         inTransitStatus: inTransitChecked,
       });
 
-      await createStorageSystem(subSystemName, subSystemKind);
+      await createStorageSystem(subSystemName, subSystemKind, odfNamespace);
       if (!hasOCS && !isRhcs) {
-        await labelNodes(nodes);
-        if (capacityAndNodes.enableTaint) await taintNodes(nodes);
-        if (encryption.advanced)
-          await Promise.all(
-            createClusterKmsResources(kms.providerState, kms.provider)
-          );
-        await createStorageCluster(state);
+        await labelNodes(nodes, odfNamespace);
+        await createAdditionalFeatureResources();
+        await createStorageCluster(state, odfNamespace);
       }
       if (!isRhcs && !!waitToCreate) await waitToCreate(model);
       await createExternalSubSystem(subSystemPayloads);
@@ -215,6 +291,9 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
     const { t } = useCustomTranslation();
     const { activeStep, onNext, onBack } =
       React.useContext<WizardContextType>(WizardContext);
+
+    const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+
     const [requestInProgress, setRequestInProgress] = React.useState(false);
     const [requestError, setRequestError] = React.useState('');
     const [showErrorAlert, setShowErrorAlert] = React.useState(false);
@@ -258,7 +337,8 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
             hasOCS,
             handleError,
             history,
-            supportedExternalStorage
+            supportedExternalStorage,
+            odfNamespace
           );
           setRequestInProgress(false);
           break;
@@ -285,7 +365,9 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
         <WizardFooter>
           <Button
             isLoading={requestInProgress || null}
-            isDisabled={disableNext || requestInProgress || !jumpToNextStep}
+            isDisabled={
+              disableNext || requestInProgress || !jumpToNextStep || !isNsSafe
+            }
             variant="primary"
             type="submit"
             onClick={handleNext}
@@ -300,7 +382,8 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
             onClick={onBack}
             isDisabled={
               stepName === StepsName(t)[Steps.BackingStorage] ||
-              requestInProgress
+              requestInProgress ||
+              !isNsSafe
             }
           >
             {t('Back')}

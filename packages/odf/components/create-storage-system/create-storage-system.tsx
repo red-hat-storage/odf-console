@@ -38,7 +38,7 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
     InfrastructureModel,
     'cluster'
   );
-  const [extensions, extensionsResloved] = useResolvedExtensions(
+  const [extensions, extensionsResolved] = useResolvedExtensions(
     isStorageClassWizardStep
   );
 
@@ -49,7 +49,7 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
   let hasOCS: boolean = false;
 
   const supportedExternalStorage: ExternalStorage[] = React.useMemo(() => {
-    if (extensionsResloved) {
+    if (extensionsResolved) {
       return [
         ...EXTERNAL_CEPH_STORAGE,
         ...(extensions?.map(
@@ -58,7 +58,7 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
       ];
     }
     return EXTERNAL_CEPH_STORAGE;
-  }, [extensions, extensionsResloved]);
+  }, [extensions, extensionsResolved]);
 
   if (ssLoaded && !ssLoadError && infraLoaded && !infraLoadError) {
     hasOCS = ssList?.items?.some(

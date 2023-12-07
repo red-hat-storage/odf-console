@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -41,8 +42,12 @@ const NamespaceStoreCreateModal = React.lazy(
 
 const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
   const { t } = useCustomTranslation();
+
+  const { odfNamespace } = useODFNamespaceSelector();
+
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  const { ns = CEPH_STORAGE_NAMESPACE } = match.params;
+  const { ns } = match.params;
+  const namespace = ns || odfNamespace;
 
   const launcher = useModal();
 
@@ -60,7 +65,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
           <SingleNamespaceStorePage
             state={state}
             dispatch={dispatch}
-            namespace={ns}
+            namespace={namespace}
             launchModal={launchModal}
           />
         );
@@ -69,7 +74,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
           <CacheNamespaceStorePage
             state={state}
             dispatch={dispatch}
-            namespace={ns}
+            namespace={namespace}
             launchModal={launchModal}
           />
         );
@@ -78,7 +83,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
           <MultiNamespaceStorePage
             state={state}
             dispatch={dispatch}
-            namespace={ns}
+            namespace={namespace}
             launchModal={launchModal}
           />
         );
@@ -93,7 +98,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
       kind: NooBaaBucketClassModel.kind,
       metadata: {
         name: currentState.bucketClassName,
-        namespace: ns,
+        namespace: namespace,
       },
     };
     let payload = null;
@@ -268,7 +273,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
       id: CreateStepsBC.GENERAL,
       name: t('General'),
       component: (
-        <GeneralPage dispatch={dispatch} state={state} namespace={ns} />
+        <GeneralPage dispatch={dispatch} state={state} namespace={namespace} />
       ),
       enableNext: validateBucketClassName(state.bucketClassName.trim()),
       get canJumpTo() {
@@ -300,7 +305,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
           <BackingStorePage
             state={state}
             dispatcher={dispatch}
-            namespace={ns}
+            namespace={namespace}
           />
         ) : (
           getNamespaceStorePage()
@@ -342,27 +347,29 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
         </p>
       </div>
       <div className="nb-create-bc-wizard">
-        <Wizard
-          steps={steps}
-          cancelButtonText={t('Cancel')}
-          nextButtonText={t('Next')}
-          backButtonText={t('Back')}
-          onSave={finalStep}
-          onClose={() => history.goBack()}
-          onNext={({ id }) => {
-            setCurrentStep(currentStep + 1);
-            const idIndexPlusOne = StepPositionMap[id];
-            const newStepHigherBound =
-              stepsReached < idIndexPlusOne ? idIndexPlusOne : stepsReached;
-            setStepsReached(newStepHigherBound);
-          }}
-          onBack={() => {
-            setCurrentStep(currentStep - 1);
-          }}
-          onGoToStep={(newStep) => {
-            setCurrentStep(StepPositionMap[newStep.id]);
-          }}
-        />
+        <NamespaceSafetyBox>
+          <Wizard
+            steps={steps}
+            cancelButtonText={t('Cancel')}
+            nextButtonText={t('Next')}
+            backButtonText={t('Back')}
+            onSave={finalStep}
+            onClose={() => history.goBack()}
+            onNext={({ id }) => {
+              setCurrentStep(currentStep + 1);
+              const idIndexPlusOne = StepPositionMap[id];
+              const newStepHigherBound =
+                stepsReached < idIndexPlusOne ? idIndexPlusOne : stepsReached;
+              setStepsReached(newStepHigherBound);
+            }}
+            onBack={() => {
+              setCurrentStep(currentStep - 1);
+            }}
+            onGoToStep={(newStep) => {
+              setCurrentStep(StepPositionMap[newStep.id]);
+            }}
+          />
+        </NamespaceSafetyBox>
       </div>
     </>
   );

@@ -1,17 +1,30 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { render } from '@testing-library/react';
 import CreateNamespaceStore from './create-namespace-store';
 
+const odfNamespace = 'test-ns-1';
 const params = {
   ns: 'test-ns',
 };
 
 const mockNamespaceStoreForm = jest.fn();
+const MockNamespaceStoreForm = (): React.ReactElement => {
+  return <></>;
+};
 jest.mock('./namespace-store-form', () => (props) => {
   mockNamespaceStoreForm(props);
-  return <mock-NamespaceStoreForm />;
+  return <MockNamespaceStoreForm />;
 });
+
+jest.mock('@odf/core/redux', () => ({
+  useODFNamespaceSelector: () => ({
+    odfNamespace,
+    isODFNsLoaded: true,
+    odfNsLoadError: null,
+    isNsSafe: true,
+    isFallbackSafe: true,
+  }),
+}));
 
 describe('CreateNamespaceStore test', () => {
   it('shows the correct heading texts', () => {
@@ -41,7 +54,7 @@ describe('CreateNamespaceStore test', () => {
     render(<CreateNamespaceStore match={{ params }} />);
     expect(mockNamespaceStoreForm).toHaveBeenCalledWith(
       expect.objectContaining({
-        namespace: 'test-ns',
+        namespace: params.ns,
       })
     );
   });
@@ -50,7 +63,7 @@ describe('CreateNamespaceStore test', () => {
     render(<CreateNamespaceStore match={{ params: {} }} />);
     expect(mockNamespaceStoreForm).toHaveBeenCalledWith(
       expect.objectContaining({
-        namespace: CEPH_STORAGE_NAMESPACE,
+        namespace: odfNamespace,
       })
     );
   });

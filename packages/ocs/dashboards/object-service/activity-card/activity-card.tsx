@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { RGW_FLAG } from '@odf/core/features';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { secretResource } from '@odf/core/resources';
 import {
   useCustomPrometheusPoll,
@@ -42,7 +43,7 @@ const RecentEvent: React.FC = () => {
 
 const OngoingActivity: React.FC = () => {
   const [data, loaded, loadError] =
-    useK8sWatchResource<K8sResourceKind>(secretResource);
+    useSafeK8sWatchResource<K8sResourceKind>(secretResource);
   const isRGWSupported = useFlag(RGW_FLAG);
 
   const rgwPrefix = React.useMemo(

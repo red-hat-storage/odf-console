@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { DeploymentModel } from '@odf/shared/models';
 import {
@@ -17,17 +16,19 @@ import '../node/node-observe.scss';
 
 type NodeObserveProps = {
   resource: DeploymentKind;
+  odfNamespace?: string;
 };
 
 export const DeploymentObserve: React.FC<NodeObserveProps> = ({
   resource: deployment,
+  odfNamespace,
 }) => {
   const { t } = useCustomTranslation();
 
   const name = getName(deployment);
 
   const utilizationQueries = getUtilizationQueries(
-    CEPH_STORAGE_NAMESPACE,
+    odfNamespace,
     name,
     DeploymentModel.kind.toLowerCase()
   );

@@ -1,100 +1,35 @@
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import {
   ODFStorageSystem,
   OCSStorageClusterModel,
   StorageClassModel,
-  NamespaceModel,
   CephClusterModel,
-  ClusterServiceVersionModel,
 } from '@odf/shared/models';
 import { SelfSubjectAccessReviewModel } from '@odf/shared/models';
-import { getAnnotations, getName } from '@odf/shared/selectors';
 import {
-  ListKind,
   StorageClusterKind,
   StorageClassResourceKind,
-  ClusterServiceVersionKind,
 } from '@odf/shared/types';
 import {
   SetFeatureFlag,
-  k8sGet,
   k8sList,
   k8sCreate,
   K8sResourceCommon,
   SelfSubjectAccessReviewKind,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import {
-  SECOND,
-  OCS_OPERATOR,
-  RGW_PROVISIONER,
-  NOOBAA_PROVISIONER,
-  ODF_MANAGED_LABEL,
-  OCS_SUPPORT_ANNOTATION,
-  OCS_DISABLED_ANNOTATION,
-} from './constants';
-import { NooBaaSystemModel } from './models';
+import { SECOND, RGW_PROVISIONER, NOOBAA_PROVISIONER } from './constants';
 
 export const ODF_MODEL_FLAG = 'ODF_MODEL'; // Based on the existence of StorageSystem CRD
 export const OCS_INDEPENDENT_FLAG = 'OCS_INDEPENDENT'; // Set to "true" if it is external mode StorageCluster
 export const OCS_CONVERGED_FLAG = 'OCS_CONVERGED'; // Set to "true" if it is internal mode StorageCluster
-export const ODF_MANAGED_FLAG = 'ODF_MANAGED'; // Set to "true" if we are using ODF managed services
+export const ROSA_FLAG = 'ROSA'; // Set to "true" if we are using ROSA
 export const RGW_FLAG = 'RGW'; // Based on the existence of StorageClass with RGW provisioner ("openshift-storage.ceph.rook.io/bucket")
 export const MCG_STANDALONE = 'MCG_STANDALONE'; // Based on the existence of NooBaa only system (no Ceph)
-export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaaSystem
+export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaa StorageClass (which only gets created if NooBaaSystem is present)
 export const CEPH_FLAG = 'CEPH'; // Based on the existence of CephCluster
 export const OCS_FLAG = 'OCS'; // Based on the existence of StorageCluster
 export const OCS_NFS_ENABLED = 'NFS'; // Based on the enablement of NFS from StorageCluster spec
 export const ODF_ADMIN = 'ODF_ADMIN'; // Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
-
-export enum FEATURES {
-  // Flag names to be prefixed with "OCS_" so as to seperate from console flags
-  OCS_MULTUS = 'OCS_MULTUS',
-  OCS_ARBITER = 'OCS_ARBITER',
-  OCS_KMS = 'OCS_KMS',
-  OCS_FLEXIBLE_SCALING = 'OCS_FLEXIBLE_SCALING',
-  OCS_TAINT_NODES = 'OCS_TAINT_NODES',
-  OCS_THICK_PROVISION = 'OCS_THICK_PROVISION',
-  OCS_POOL_MANAGEMENT = 'OCS_POOL_MANAGEMENT',
-  OCS_NAMESPACE_STORE = 'OCS_NAMESPACE_STORE',
-  ODF_MCG_STANDALONE = 'ODF_MCG_STANDALONE',
-  ODF_HPCS_KMS = 'ODF_HPCS_KMS',
-  ODF_VAULT_SA_KMS = 'ODF_VAULT_SA_KMS',
-  SS_LIST = 'ODF_SS_LIST',
-  ADD_CAPACITY = 'ODF_ADD_CAPACITY',
-  ODF_WIZARD = 'ODF_WIZARD',
-  BLOCK_POOL = 'BLOCK_POOL',
-  MCG_RESOURCE = 'MCG_RESOURCE',
-  ODF_DASHBOARD = 'ODF_DASHBOARD',
-  COMMON_FLAG = 'COMMON_FLAG',
-  DASHBOARD_RESOURCES = 'ODF_DASHBOARD_RESOURCES',
-}
-
-export const OCS_FEATURE_FLAGS = {
-  // [flag name]: <value of flag in csv annotation>
-  [FEATURES.OCS_MULTUS]: 'multus',
-  [FEATURES.OCS_ARBITER]: 'arbiter',
-  [FEATURES.OCS_KMS]: 'kms',
-  [FEATURES.OCS_FLEXIBLE_SCALING]: 'flexible-scaling',
-  [FEATURES.OCS_TAINT_NODES]: 'taint-nodes',
-  [FEATURES.OCS_THICK_PROVISION]: 'thick-provision',
-  [FEATURES.OCS_POOL_MANAGEMENT]: 'pool-management',
-  [FEATURES.OCS_NAMESPACE_STORE]: 'namespace-store',
-  [FEATURES.ODF_MCG_STANDALONE]: 'mcg-standalone',
-  [FEATURES.ODF_HPCS_KMS]: 'hpcs-kms',
-  [FEATURES.ODF_VAULT_SA_KMS]: 'vault-sa-kms',
-};
-
-export const ODF_BLOCK_FLAG = {
-  [FEATURES.SS_LIST]: 'ss-list',
-  [FEATURES.ADD_CAPACITY]: 'add-capacity',
-  [FEATURES.ODF_WIZARD]: 'install-wizard',
-  [FEATURES.BLOCK_POOL]: 'block-pool',
-  [FEATURES.MCG_RESOURCE]: 'mcg-resource',
-  [FEATURES.ODF_DASHBOARD]: 'odf-dashboard',
-  [FEATURES.COMMON_FLAG]: 'common',
-  [FEATURES.DASHBOARD_RESOURCES]: 'dashboard-resources',
-};
 
 // Check the user's access to some resources.
 const ssarChecks = [
@@ -104,7 +39,6 @@ const ssarChecks = [
       group: ODFStorageSystem.apiGroup,
       resource: ODFStorageSystem.plural,
       verb: 'list',
-      namespace: CEPH_STORAGE_NAMESPACE,
     },
   },
 ];
@@ -130,7 +64,7 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
       const storageClusters: StorageClusterKind[] =
         (await k8sList<K8sResourceCommon>({
           model: OCSStorageClusterModel,
-          queryParams: { CEPH_STORAGE_NAMESPACE },
+          queryParams: { ns: null },
           requestInit: null,
         })) as StorageClusterKind[];
       if (storageClusters?.length > 0) {
@@ -196,11 +130,11 @@ export const detectRGW: FeatureDetector = async (setFlag: SetFeatureFlag) => {
   const logicHandler = () =>
     k8sList({ model: StorageClassModel, queryParams: { ns: null } })
       .then((data: StorageClassResourceKind[]) => {
-        const isRGWPresent = data.some(
-          (sc) => sc.provisioner === RGW_PROVISIONER
+        const isRGWPresent = data.some((sc) =>
+          sc.provisioner?.endsWith(RGW_PROVISIONER)
         );
-        const isNooBaaPresent = data.some(
-          (sc) => sc.provisioner === NOOBAA_PROVISIONER
+        const isNooBaaPresent = data.some((sc) =>
+          sc.provisioner?.endsWith(NOOBAA_PROVISIONER)
         );
         if (isRGWPresent) {
           setFlag(RGW_FLAG, true);
@@ -234,22 +168,9 @@ export const detectRGW: FeatureDetector = async (setFlag: SetFeatureFlag) => {
   id = setInterval(logicHandler, 15 * SECOND);
 };
 
-export const detectManagedODF: FeatureDetector = async (
-  setFlag: SetFeatureFlag
-) => {
-  try {
-    const ns = await k8sGet({
-      model: NamespaceModel,
-      name: CEPH_STORAGE_NAMESPACE,
-    });
-    if (ns) {
-      const isManagedCluster = ns?.metadata?.labels?.[ODF_MANAGED_LABEL];
-      setFlag(ODF_MANAGED_FLAG, !!isManagedCluster);
-    }
-  } catch (error) {
-    handleError(error, [ODF_MANAGED_FLAG], setFlag, detectManagedODF);
-  }
-};
+// ToDo: Add logic to detect ROSA environment here
+export const detectROSA: FeatureDetector = async (setFlag: SetFeatureFlag) =>
+  setFlag(ROSA_FLAG, false);
 
 export const detectSSAR = (setFlag: SetFeatureFlag) => {
   const ssar = {
@@ -281,11 +202,12 @@ export const detectComponents: FeatureDetector = async (
 ) => {
   let cephIntervalId = null;
   let noobaaIntervalId = null;
+
   const cephDetector = async () => {
     try {
       const cephClusters = (await k8sList({
         model: CephClusterModel,
-        queryParams: { ns: CEPH_STORAGE_NAMESPACE },
+        queryParams: { ns: null },
       })) as K8sResourceCommon[];
       if (cephClusters?.length > 0) {
         setFlag(CEPH_FLAG, true);
@@ -295,16 +217,20 @@ export const detectComponents: FeatureDetector = async (
       setFlag(CEPH_FLAG, false);
     }
   };
+
+  // Setting flag based on presence of NooBaa StorageClass gets created only if NooBaa CR is present
   const noobaaDetector = async () => {
     try {
-      const noobaaSystems = (await k8sList({
-        model: NooBaaSystemModel,
-        queryParams: { ns: CEPH_STORAGE_NAMESPACE },
-      })) as K8sResourceCommon[];
-      if (noobaaSystems?.length > 0) {
+      const storageClasses = (await k8sList({
+        model: StorageClassModel,
+        queryParams: { ns: null },
+      })) as StorageClassResourceKind[];
+      const isNooBaaPresent = storageClasses?.some((sc) =>
+        sc?.provisioner?.endsWith(NOOBAA_PROVISIONER)
+      );
+      if (isNooBaaPresent) {
         setFlag(MCG_FLAG, true);
         clearInterval(noobaaIntervalId);
-        clearInterval(cephIntervalId);
       }
     } catch {
       setFlag(MCG_FLAG, false);
@@ -317,50 +243,6 @@ export const detectComponents: FeatureDetector = async (
   noobaaDetector();
   cephIntervalId = setInterval(cephDetector, 15 * SECOND);
   noobaaIntervalId = setInterval(noobaaDetector, 15 * SECOND);
-};
-
-const detectFeatures = (
-  setFlag: SetFeatureFlag,
-  csv: ClusterServiceVersionKind
-) => {
-  const support = JSON.parse(getAnnotations(csv)?.[OCS_SUPPORT_ANNOTATION]);
-  _.keys(OCS_FEATURE_FLAGS).forEach((feature) => {
-    setFlag(feature, support.includes(OCS_FEATURE_FLAGS[feature]));
-  });
-
-  const disabled = JSON.parse(
-    getAnnotations(csv)?.[OCS_DISABLED_ANNOTATION] || '[]'
-  );
-  _.keys(ODF_BLOCK_FLAG).forEach((feature) => {
-    setFlag(feature, disabled.includes(ODF_BLOCK_FLAG[feature]));
-  });
-};
-
-export const detectOCSSupportedFeatures: FeatureDetector = async (
-  setFlag: SetFeatureFlag
-) => {
-  try {
-    const csvList = (await k8sGet({
-      model: ClusterServiceVersionModel,
-      ns: CEPH_STORAGE_NAMESPACE,
-    })) as ListKind<ClusterServiceVersionKind>;
-    const ocsCSV = csvList.items.find((obj) =>
-      _.startsWith(getName(obj), OCS_OPERATOR)
-    );
-    if (ocsCSV) {
-      detectFeatures(setFlag, ocsCSV);
-    } else {
-      // If OCS CSV is not present then poll
-      setTimeout(() => detectOCSSupportedFeatures(setFlag), 15 * SECOND);
-    }
-  } catch (error) {
-    handleError(
-      error,
-      _.keys(OCS_FEATURE_FLAGS),
-      setFlag,
-      detectOCSSupportedFeatures
-    );
-  }
 };
 
 export type FeatureDetector = (setFlag: SetFeatureFlag) => Promise<void>;

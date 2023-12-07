@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { RGW_FLAG } from '@odf/core/features';
+import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { CephObjectStoreModel } from '@odf/core/models';
 import { NooBaaSystemModel } from '@odf/core/models';
 import { secretResource } from '@odf/core/resources';
@@ -82,7 +83,7 @@ const StatusCard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
   const [secretData, secretLoaded, secretLoadError] =
-    useK8sWatchResource<K8sResourceKind>(secretResource);
+    useSafeK8sWatchResource<K8sResourceKind>(secretResource);
   const [noobaa, noobaaLoaded, noobaaLoadError] =
     useK8sWatchResource<K8sResourceKind[]>(noobaaResource);
   const [rgw, rgwLoaded, rgwLoadError] = useK8sWatchResource<K8sResourceKind[]>(

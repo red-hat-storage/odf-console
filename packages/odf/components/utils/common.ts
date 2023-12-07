@@ -2,8 +2,8 @@ import {
   NodesPerZoneMap,
   ValidationType,
   EncryptionType,
+  ResourceProfile,
 } from '@odf/core/types';
-import { MIN_SPEC_RESOURCES, MIN_DEVICESET_RESOURCES } from '@odf/core/types';
 import {
   getNodeCPUCapacity,
   getNodeAllocatableMemory,
@@ -11,10 +11,13 @@ import {
   isFlexibleScaling,
   getDeviceSetCount,
   createDeviceSet,
-  shouldDeployAsMinimal,
+  isResourceProfileAllowed,
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import {
+  NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
+  NOOBA_EXTERNAL_PG_SECRET_NAME,
+} from '@odf/shared/constants';
 import {
   getLabel,
   getName,
@@ -32,6 +35,7 @@ import {
   humanizeCpuCores,
   convertToBaseValue,
   getRack,
+  humanizeBinaryBytes,
 } from '@odf/shared/utils';
 import { Base64 } from 'js-base64';
 import * as _ from 'lodash-es';
@@ -68,6 +72,9 @@ export const getTotalMemory = (nodes: WizardNodeState[]): number =>
     (total: number, { memory }) => total + convertToBaseValue(memory),
     0
   );
+
+export const getTotalMemoryInGiB = (nodes: WizardNodeState[]): number =>
+  humanizeBinaryBytes(getTotalMemory(nodes), null, 'GiB').value;
 
 export const getAllZone = (nodes: WizardNodeState[]): Set<string> =>
   nodes.reduce(
@@ -138,12 +145,13 @@ export const calculateRadius = (size: number) => {
 export const capacityAndNodesValidate = (
   nodes: WizardNodeState[],
   enableStretchCluster: boolean,
-  isNoProvSC: boolean
+  isNoProvSC: boolean,
+  resourceProfile: ResourceProfile
 ): ValidationType[] => {
   const validations = [];
 
   const totalCpu = getTotalCpu(nodes);
-  const totalMemory = getTotalMemory(nodes);
+  const totalMemory = getTotalMemoryInGiB(nodes);
   const zones = getAllZone(nodes);
 
   if (
@@ -153,12 +161,19 @@ export const capacityAndNodesValidate = (
   ) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
   }
-  if (shouldDeployAsMinimal(totalCpu, totalMemory, nodes.length)) {
-    validations.push(ValidationType.MINIMAL);
-  }
   if (!enableStretchCluster && nodes.length && nodes.length < MINIMUM_NODES) {
     validations.push(ValidationType.MINIMUMNODES);
+  } else if (nodes.length && nodes.length >= MINIMUM_NODES) {
+    if (!isResourceProfileAllowed(resourceProfile, totalCpu, totalMemory)) {
+      validations.push(ValidationType.RESOURCE_PROFILE);
+    } else if (
+      resourceProfile === ResourceProfile.Lean &&
+      !isResourceProfileAllowed(ResourceProfile.Balanced, totalCpu, totalMemory)
+    ) {
+      validations.push(ValidationType.MINIMAL);
+    }
   }
+
   return validations;
 };
 
@@ -354,7 +369,7 @@ type OCSRequestData = {
   storageClass: WizardState['storageClass'];
   storage: string;
   encryption: EncryptionType;
-  isMinimal: boolean;
+  resourceProfile: ResourceProfile;
   nodes: WizardNodeState[];
   flexibleScaling: boolean;
   publicNetwork?: NetworkAttachmentDefinitionKind;
@@ -368,13 +383,17 @@ type OCSRequestData = {
   shouldSetCephRBDAsDefault?: boolean;
   isSingleReplicaPoolEnabled?: boolean;
   enableRDRPreparation?: boolean;
+  odfNamespace: string;
+  useExternalPostgres?: boolean;
+  allowNoobaaPostgresSelfSignedCerts?: boolean;
+  enableNoobaaClientSideCerts?: boolean;
 };
 
 export const getOCSRequestData = ({
   storageClass,
   storage,
   encryption,
-  isMinimal,
+  resourceProfile,
   nodes,
   flexibleScaling,
   publicNetwork,
@@ -388,6 +407,10 @@ export const getOCSRequestData = ({
   shouldSetCephRBDAsDefault,
   isSingleReplicaPoolEnabled,
   enableRDRPreparation,
+  odfNamespace,
+  useExternalPostgres,
+  allowNoobaaPostgresSelfSignedCerts,
+  enableNoobaaClientSideCerts,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
@@ -405,7 +428,7 @@ export const getOCSRequestData = ({
     kind: 'StorageCluster',
     metadata: {
       name: OCS_INTERNAL_CR_NAME,
-      namespace: CEPH_STORAGE_NAMESPACE,
+      namespace: odfNamespace,
     },
     spec: {},
   };
@@ -430,7 +453,6 @@ export const getOCSRequestData = ({
     requestData.spec = {
       monDataDirHostPath: isNoProvisioner ? '/var/lib/rook' : '',
       manageNodes: false,
-      resources: isMinimal ? MIN_SPEC_RESOURCES : {},
       flexibleScaling,
       arbiter: {
         enable: stretchClusterChecked,
@@ -444,8 +466,7 @@ export const getOCSRequestData = ({
           storage,
           isPortable,
           deviceSetReplica,
-          deviceSetCount,
-          isMinimal ? MIN_DEVICESET_RESOURCES : {}
+          deviceSetCount
         ),
       ],
       ...Object.assign(
@@ -482,6 +503,24 @@ export const getOCSRequestData = ({
       enable: true,
     };
   }
+
+  if (useExternalPostgres) {
+    requestData.spec = {
+      multiCloudGateway: {
+        externalPGConfig: {
+          pgSecretName: NOOBA_EXTERNAL_PG_SECRET_NAME,
+          allowSelfSignedCerts: allowNoobaaPostgresSelfSignedCerts,
+        },
+      },
+    };
+    if (enableNoobaaClientSideCerts) {
+      requestData.spec.multiCloudGateway.externalPGConfig = {
+        tlsSecretName: NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
+      };
+    }
+  }
+
+  requestData.spec.resourceProfile = resourceProfile;
 
   return requestData;
 };

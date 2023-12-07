@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { ODF_MANAGED_FLAG } from '@odf/core/features';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -14,7 +13,6 @@ import {
   Alert,
   HealthState,
   useK8sWatchResource,
-  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   AlertItem,
@@ -35,6 +33,7 @@ import {
 } from '@patternfly/react-core';
 import { CephClusterModel } from '../../../models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
+import { OSDMigrationProgress } from './osd-migration/osd-migration-progress';
 import { getCephHealthState, getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
 import './healthchecks.scss';
@@ -63,7 +62,6 @@ export const CephAlerts: React.FC = () => {
   const [alerts, loaded, error] = useAlerts();
   const filteredAlerts =
     loaded && !error && !_.isEmpty(alerts) ? filterCephAlerts(alerts) : [];
-  const isOdfManaged = useFlag(ODF_MANAGED_FLAG);
 
   return (
     <AlertsBody error={!_.isEmpty(error)}>
@@ -73,10 +71,7 @@ export const CephAlerts: React.FC = () => {
           <AlertItem
             key={alertURL(alert, alert?.rule?.id)}
             alert={alert as any}
-            // @ts-ignore
-            documentationLink={
-              !isOdfManaged ? getDocumentationLink(alert) : null
-            }
+            documentationLink={getDocumentationLink(alert)}
           />
         ))}
     </AlertsBody>
@@ -189,6 +184,7 @@ export const StatusCard: React.FC = () => {
           </GalleryItem>
         </Gallery>
       </HealthBody>
+      <OSDMigrationProgress cephData={data?.[0]} />
       <CephAlerts />
     </Card>
   );

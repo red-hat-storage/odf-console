@@ -1,4 +1,6 @@
-import { StorageClusterResource, ResourceConstraints } from '@odf/shared/types';
+import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
+
+export type K8sResourceObj = (ns: string) => WatchK8sResource;
 
 export enum BackingStorageType {
   EXISTING = 'existing',
@@ -13,6 +15,7 @@ export enum DeploymentType {
 
 export enum ValidationType {
   'MINIMAL' = 'MINIMAL',
+  'RESOURCE_PROFILE' = 'RESOURCE_PROFILE',
   'INTERNALSTORAGECLASS' = 'INTERNALSTORAGECLASS',
   'BAREMETALSTORAGECLASS' = 'BAREMETALSTORAGECLASS',
   'ALLREQUIREDFIELDS' = 'ALLREQUIREDFIELDS',
@@ -36,36 +39,12 @@ export type NodesPerZoneMap = {
   [zones: string]: number;
 };
 
-export const MIN_SPEC_RESOURCES: StorageClusterResource = {
-  mds: {
-    limits: {
-      cpu: '3',
-      memory: '8Gi',
-    },
-    requests: {
-      cpu: '1',
-      memory: '8Gi',
-    },
-  },
-  rgw: {
-    limits: {
-      cpu: '2',
-      memory: '4Gi',
-    },
-    requests: {
-      cpu: '1',
-      memory: '4Gi',
-    },
-  },
-};
+export enum ResourceProfile {
+  Lean = 'lean', // t('Lean')
+  Balanced = 'balanced', // t('Balanced')
+  Performance = 'performance', // t('Performance')
+}
 
-export const MIN_DEVICESET_RESOURCES: ResourceConstraints = {
-  limits: {
-    cpu: '2',
-    memory: '5Gi',
-  },
-  requests: {
-    cpu: '1',
-    memory: '5Gi',
-  },
+export type ResourceProfileRequirementsMap = {
+  [key in ResourceProfile]: { minCpu: number; minMem: number };
 };
