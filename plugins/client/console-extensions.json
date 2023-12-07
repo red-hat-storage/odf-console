@@ -7,6 +7,9 @@
       "section": "storage",
       "name": "Data Foundation",
       "href": "/odf/cluster"
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
     }
   },
   {
@@ -15,6 +18,9 @@
       "path": ["/odf/cluster"],
       "exact": false,
       "component": { "$codeRef": "dashboard.default" }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
     }
   }
 ]
