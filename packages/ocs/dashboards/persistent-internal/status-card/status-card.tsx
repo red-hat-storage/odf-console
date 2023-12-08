@@ -184,7 +184,11 @@ export const StatusCard: React.FC = () => {
           </GalleryItem>
         </Gallery>
       </HealthBody>
-      <OSDMigrationProgress cephData={data?.[0]} />
+      <OSDMigrationProgress
+        cephData={data?.[0]}
+        dataLoaded={loaded}
+        dataLoadError={loadError}
+      />
       <CephAlerts />
     </Card>
   );

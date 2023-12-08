@@ -14,6 +14,7 @@ import {
   HealthBody,
   HealthItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
+import * as _ from 'lodash-es';
 import { Divider, Flex, FlexItem } from '@patternfly/react-core';
 import { InProgressIcon } from '@patternfly/react-icons';
 import {
@@ -22,8 +23,13 @@ import {
 } from '../../../../utils/osd-migration';
 
 const calculateOSDMigration = (
-  cephData: CephClusterKind
+  cephData: CephClusterKind,
+  loaded: boolean,
+  loadError: any
 ): [number, number, number] => {
+  if (!loaded || !_.isEmpty(loadError)) {
+    return [null, null, null];
+  }
   const migratedDevices = getCephStoreType(cephData)?.[BLUESTORE_RDR] || 0;
   const totalOsd =
     (getCephStoreType(cephData)?.[BLUESTORE] || 0) + migratedDevices;
@@ -35,11 +41,21 @@ const calculateOSDMigration = (
 
 export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
   cephData,
+  dataLoaded,
+  dataLoadError,
 }) => {
   const { t } = useCustomTranslation();
-  const [migratedDevices, totalOsd, percentageComplete] =
-    calculateOSDMigration(cephData);
-  const migrationStatus: string = getOSDMigrationStatus(cephData);
+  const [migratedDevices, totalOsd, percentageComplete] = calculateOSDMigration(
+    cephData,
+    dataLoaded,
+    dataLoadError
+  );
+  const migrationStatus: string =
+    dataLoaded && _.isEmpty(dataLoadError)
+      ? getOSDMigrationStatus(cephData)
+      : null;
+
+  if (!migrationStatus) return <></>;
 
   return (
     <>
@@ -122,4 +138,6 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
 
 type OSDMigrationProgressProps = {
   cephData: CephClusterKind;
+  dataLoaded: boolean;
+  dataLoadError: any;
 };
