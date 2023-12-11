@@ -407,7 +407,7 @@ export const OBCDetailsPage: React.FC<{}> = () => {
     },
     {
       name: t('ObjectBucketClaims'),
-      path: `/odf/object-storage/resource/objectbucket.io~v1alpha1~ObjectBucketClaim`,
+      path: `/odf/object-storage/objectbucket.io~v1alpha1~ObjectBucketClaim`,
     },
     {
       name: t('ObjectBucketClaim details'),

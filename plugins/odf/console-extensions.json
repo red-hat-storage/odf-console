@@ -525,7 +525,7 @@
       "id": "backing-store",
       "name": "%plugin__odf-console~Backing Store%",
       "contextId": "odf-object-service",
-      "href": "resource/noobaa.io~v1alpha1~BackingStore",
+      "href": "noobaa.io~v1alpha1~BackingStore",
       "component": {
         "$codeRef": "resourcePages.BackingStoreListPage"
       }
@@ -541,7 +541,7 @@
       "name": "%plugin__odf-console~Bucket Class%",
       "contextId": "odf-object-service",
       "after": "backing-store",
-      "href": "resource/noobaa.io~v1alpha1~BucketClass",
+      "href": "noobaa.io~v1alpha1~BucketClass",
       "component": {
         "$codeRef": "resourcePages.BucketClassListPage"
       }
@@ -557,7 +557,7 @@
       "name": "%plugin__odf-console~Namespace Store%",
       "contextId": "odf-object-service",
       "after": "bucket-class",
-      "href": "resource/noobaa.io~v1alpha1~NamespaceStore",
+      "href": "noobaa.io~v1alpha1~NamespaceStore",
       "component": {
         "$codeRef": "resourcePages.NamespaceStoreListPage"
       }
@@ -573,7 +573,7 @@
       "name": "%plugin__odf-console~Object Buckets%",
       "contextId": "odf-object-service",
       "after": "namespace-store",
-      "href": "resource/objectbucket.io~v1alpha1~ObjectBucket",
+      "href": "objectbucket.io~v1alpha1~ObjectBucket",
       "component": {
         "$codeRef": "ob.ObjectBucketListPage"
       }
@@ -589,7 +589,7 @@
       "name": "%plugin__odf-console~Object Buckets%",
       "contextId": "odf-object-service",
       "after": "namespace-store",
-      "href": "resource/objectbucket.io~v1alpha1~ObjectBucket",
+      "href": "objectbucket.io~v1alpha1~ObjectBucket",
       "component": {
         "$codeRef": "ob.ObjectBucketListPage"
       }
@@ -616,7 +616,7 @@
       "name": "%plugin__odf-console~Object Bucket Claims%",
       "contextId": "odf-object-service",
       "after": "objectbuckets",
-      "href": "resource/objectbucket.io~v1alpha1~ObjectBucketClaim",
+      "href": "objectbucket.io~v1alpha1~ObjectBucketClaim",
       "component": {
         "$codeRef": "obc.OBCListPage"
       }
@@ -632,7 +632,7 @@
       "name": "%plugin__odf-console~Object Bucket Claims%",
       "contextId": "odf-object-service",
       "after": "objectbuckets",
-      "href": "resource/objectbucket.io~v1alpha1~ObjectBucketClaim",
+      "href": "objectbucket.io~v1alpha1~ObjectBucketClaim",
       "component": {
         "$codeRef": "obc.OBCListPage"
       }

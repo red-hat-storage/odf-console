@@ -19,7 +19,6 @@ import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import { Grid, GridItem } from '@patternfly/react-core';
-import { ODFStorageSystemMock } from '../../models';
 import {
   HorizontalNavProps as DashboardTabProps,
   convertHorizontalNavTabToNavPage as convertDashboardTabToNav,
@@ -127,13 +126,7 @@ const ODFDashboardPage: React.FC<{}> = () => {
         loadError={!_.isEmpty(error) || odfNsLoadError}
         data={navItems}
       >
-        <HorizontalNav
-          pages={navItems}
-          resource={{
-            kind: ODFStorageSystemMock.kind,
-            apiVersion: `${ODFStorageSystemMock.apiGroup}/${ODFStorageSystemMock.apiVersion}`,
-          }}
-        />
+        <HorizontalNav pages={navItems} />
       </StatusBox>
     </>
   );

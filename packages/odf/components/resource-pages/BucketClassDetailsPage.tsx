@@ -91,7 +91,7 @@ const BucketClassDetailsPage: React.FC<{}> = () => {
     },
     {
       name: t('BucketClasses'),
-      path: '/odf/object-storage/resource/noobaa.io~v1alpha1~BucketClass',
+      path: '/odf/object-storage/noobaa.io~v1alpha1~BucketClass',
     },
     {
       name: t('BucketClass details'),

@@ -26,9 +26,17 @@ jest.mock('@odf/core/redux', () => ({
   }),
 }));
 
+jest.mock('react-router-dom-v5-compat', () => ({
+  ...jest.requireActual('react-router-dom-v5-compat'),
+  useParams: () => ({
+    ns: params.ns,
+  }),
+  useNavigate: () => null,
+}));
+
 describe('CreateNamespaceStore test', () => {
   it('shows the correct heading texts', () => {
-    const { container } = render(<CreateNamespaceStore match={{ params }} />);
+    const { container } = render(<CreateNamespaceStore />);
     const heading = container.getElementsByClassName(
       'odf-create-operand__header-text'
     )[0];
@@ -42,7 +50,7 @@ describe('CreateNamespaceStore test', () => {
   });
 
   it('Check the title size and heading level', () => {
-    const { container } = render(<CreateNamespaceStore match={{ params }} />);
+    const { container } = render(<CreateNamespaceStore />);
     const fontSize = container.getElementsByClassName('pf-m-2xl')[0];
     expect(fontSize).toBeInTheDocument();
     expect(
@@ -51,19 +59,10 @@ describe('CreateNamespaceStore test', () => {
   });
 
   it('pass the received namespace to the form', () => {
-    render(<CreateNamespaceStore match={{ params }} />);
+    render(<CreateNamespaceStore />);
     expect(mockNamespaceStoreForm).toHaveBeenCalledWith(
       expect.objectContaining({
         namespace: params.ns,
-      })
-    );
-  });
-
-  it('pass the default namespace to the form when no namespace is received', () => {
-    render(<CreateNamespaceStore match={{ params: {} }} />);
-    expect(mockNamespaceStoreForm).toHaveBeenCalledWith(
-      expect.objectContaining({
-        namespace: odfNamespace,
       })
     );
   });

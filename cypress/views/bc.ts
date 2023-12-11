@@ -238,6 +238,6 @@ export const visitBucketClassPage = () => {
   cy.log(
     'Planning to start testing for standard bucket class visitBucketClassPage ....'
   );
-  cy.byLegacyTestID('horizontal-link-Bucket Class').first().click();
+  cy.byTestID('horizontal-link-Bucket Class').first().click();
   cy.byTestID('item-create').click();
 };

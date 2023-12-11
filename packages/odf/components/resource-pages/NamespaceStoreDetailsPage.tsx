@@ -53,7 +53,7 @@ const NamespaceStoreDetailsPage: React.FC<{}> = () => {
     },
     {
       name: t('NamespaceStores'),
-      path: '/odf/object-storage/resource/noobaa.io~v1alpha1~NamespaceStore',
+      path: '/odf/object-storage/noobaa.io~v1alpha1~NamespaceStore',
     },
     {
       name: t('NamespaceStore details'),

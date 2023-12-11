@@ -19,7 +19,8 @@ export type TabPage = {
   id?: string;
   component: React.ComponentType<any>;
   href: string;
-  title: string;
+  title?: string;
+  name?: string;
 };
 
 type TabsProps = {
@@ -46,17 +47,20 @@ const Tabs: React.FC<TabsProps> = ({
   const { t } = useCustomTranslation();
 
   const elements = React.useMemo(() => {
-    const temp = tabs.map((tab, i) => (
-      <Tab
-        eventKey={i + offset}
-        title={<TabTitleText>{tab.title}</TabTitleText>}
-        translate={t}
-        key={tab.title}
-        data-test={`horizontal-link-${tab.title}`}
-      >
-        <tab.component />
-      </Tab>
-    ));
+    const temp = tabs.map((tab, i) => {
+      const tabTitle = tab.title || tab.name;
+      return (
+        <Tab
+          eventKey={i + offset}
+          title={<TabTitleText>{tabTitle}</TabTitleText>}
+          translate={t}
+          key={tabTitle}
+          data-test={`horizontal-link-${tabTitle}`}
+        >
+          <tab.component />
+        </Tab>
+      );
+    });
     return temp;
   }, [offset, t, tabs]);
 
@@ -103,8 +107,7 @@ const Tabs: React.FC<TabsProps> = ({
       (href) =>
         location.hash === href ||
         currentLocation.endsWith(href) ||
-        currentLocation.endsWith(`${href}/`) ||
-        currentLocation.includes(href)
+        currentLocation.endsWith(`${href}/`)
     );
     const trueActiveTab = hrefToTabMap[firstMatchKey];
     if (trueActiveTab && trueActiveTab !== activeTab) {
@@ -112,7 +115,7 @@ const Tabs: React.FC<TabsProps> = ({
     }
   }, [activeTab, location.hash, hrefToTabMap, location.pathname, tabToHrefMap]);
 
-  const onSelect = (event, tabIndex) => {
+  const onSelect = (_event, tabIndex) => {
     if (!updatePathOnSelect) {
       return setActiveTab(tabIndex);
     }
