@@ -9,7 +9,7 @@ import {
   k8sCreate,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { RouteComponentProps, useHistory } from 'react-router';
+import { useParams, useNavigate } from 'react-router-dom-v5-compat';
 import { Title, Wizard, WizardStep } from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../constants';
 import { NooBaaBucketClassModel } from '../../models';
@@ -40,18 +40,18 @@ const NamespaceStoreCreateModal = React.lazy(
   () => import('../namespace-store/namespace-store-modal')
 );
 
-const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
+const CreateBucketClass: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
   const { odfNamespace } = useODFNamespaceSelector();
 
   const [state, dispatch] = React.useReducer(reducer, initialState);
-  const { ns } = match.params;
+  const { ns } = useParams();
   const namespace = ns || odfNamespace;
 
   const launcher = useModal();
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const launchModal = React.useCallback(
     () => launcher(NamespaceStoreCreateModal, { isOpen: true }),
@@ -193,7 +193,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
           NooBaaBucketClassModel
         )}/${getName(obj)}`;
         dispatch({ type: 'setIsLoading', value: false });
-        history.push(`/odf/resource/${resourcePath}`);
+        navigate(`/odf/resource/${resourcePath}`);
       })
       .catch((err) => {
         dispatch({ type: 'setIsLoading', value: false });
@@ -354,7 +354,7 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
             nextButtonText={t('Next')}
             backButtonText={t('Back')}
             onSave={finalStep}
-            onClose={() => history.goBack()}
+            onClose={() => navigate(-1)}
             onNext={({ id }) => {
               setCurrentStep(currentStep + 1);
               const idIndexPlusOne = StepPositionMap[id];
@@ -374,7 +374,5 @@ const CreateBucketClass: React.FC<CreateBCProps> = ({ match }) => {
     </>
   );
 };
-
-type CreateBCProps = RouteComponentProps<{ ns?: string; appName?: string }>;
 
 export default CreateBucketClass;

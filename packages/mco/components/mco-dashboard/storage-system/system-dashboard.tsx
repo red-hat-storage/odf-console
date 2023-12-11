@@ -3,15 +3,10 @@ import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
-import { RouteComponentProps } from 'react-router';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { StatusCard } from './status-card/status-card';
 import SystemCapacityCard from './system-capacity-card/capacity-card';
 import '../../../style.scss';
-
-type SystemDashboardProps = {
-  history: RouteComponentProps['history'];
-};
 
 const UpperSection: React.FC = () => (
   <Grid hasGutter>
@@ -32,7 +27,7 @@ export const MCODashboard: React.FC = () => {
   );
 };
 
-const SystemDashboard: React.FC<SystemDashboardProps> = () => {
+const SystemDashboard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const title = t('Storage System');
   const pages = [

@@ -2,7 +2,7 @@ import * as React from 'react';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import {
   CheckCircleIcon,

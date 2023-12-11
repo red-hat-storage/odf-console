@@ -9,19 +9,15 @@ import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom-v5-compat';
 import { NooBaaBackingStoreModel } from '../../models';
 import { BackingStoreKind } from '../../types';
 import { CommonDetails } from './CommonDetails';
 import ProviderDetails from './Providers';
 
-type BackingStoreDetilsPageProps = {
-  match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
-};
-
 type DetailsProps = {
   obj: BackingStoreKind;
-} & RouteComponentProps;
+};
 
 const BSDetails: React.FC<DetailsProps> = ({ obj }) => {
   const { t } = useCustomTranslation();
@@ -37,11 +33,9 @@ const BSDetails: React.FC<DetailsProps> = ({ obj }) => {
   );
 };
 
-const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
-  match,
-}) => {
+const BackingStoreDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { resourceName: name } = match.params;
+  const { resourceName: name } = useParams();
 
   const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
 
@@ -95,7 +89,7 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
           {
             href: '',
             name: t('Details'),
-            component: BSDetails,
+            component: BSDetails as any,
           },
           {
             href: 'yaml',

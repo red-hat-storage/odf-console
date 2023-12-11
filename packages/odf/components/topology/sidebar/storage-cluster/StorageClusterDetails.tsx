@@ -42,7 +42,7 @@ import {
   ResourceInventoryItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 
 const resiliencyProgressQuery =
   DATA_RESILIENCY_QUERY[StorageDashboardQuery.RESILIENCY_PROGRESS];
