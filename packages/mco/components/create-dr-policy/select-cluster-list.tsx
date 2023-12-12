@@ -84,6 +84,10 @@ const getODFInfo = (
     clusterClaims,
     ClusterClaimTypes.STORAGE_CLUSTER_COUNT
   );
+  const isDROptimized = getValueFromClusterClaim(
+    clusterClaims,
+    ClusterClaimTypes.DR_OPTIMIZED
+  );
   return {
     odfVersion: odfVersion,
     isValidODFVersion: isMinimumSupportedODFVersion(
@@ -95,6 +99,7 @@ const getODFInfo = (
       storageClusterNamespacedName: storageClusterNamespacedName,
       storageSystemNamespacedName: storageSystemNamespacedName,
       cephFSID: cephFsid,
+      isDROptimized: isDROptimized === 'true',
     },
   };
 };

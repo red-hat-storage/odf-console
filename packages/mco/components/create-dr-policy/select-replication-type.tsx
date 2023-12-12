@@ -4,6 +4,7 @@ import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
 import { SelectOption } from '@patternfly/react-core/next';
+import { TFunction } from 'i18next';
 import { FormGroup, Alert, AlertVariant } from '@patternfly/react-core';
 import {
   REPLICATION_TYPE,
@@ -42,6 +43,9 @@ const getClusterErrorInfo = (
       if (!storageClusterInfo?.cephFSID) {
         acc.clustersWithUnsuccessfulODF.push(cluster.name);
       }
+      if (!storageClusterInfo?.isDROptimized) {
+        acc.clustersWithoutDROptimizedODF.push(cluster.name);
+      }
       return acc;
     },
     {
@@ -49,13 +53,15 @@ const getClusterErrorInfo = (
       clustersWithUnsupportedODF: [],
       clustersWithoutODF: [],
       clustersWithUnsuccessfulODF: [],
+      clustersWithoutDROptimizedODF: [],
     }
   );
 
 const getErrorMessage = (
   selectedClusters: ManagedClusterInfoType[],
   requiredODFVersion: string,
-  t
+  replicationType: REPLICATION_TYPE,
+  t: TFunction
 ): ErrorMessageType => {
   const clusterErrorInfo = getClusterErrorInfo(selectedClusters);
   if (!!clusterErrorInfo.unavailableClusters.length) {
@@ -88,6 +94,15 @@ const getErrorMessage = (
       message: t('{{ names }} is not connected to RHCS', {
         names: clusterErrorInfo.clustersWithUnsuccessfulODF.join(' & '),
       }),
+    };
+  } else if (!!clusterErrorInfo.clustersWithoutDROptimizedODF.length) {
+    return {
+      message: t('Cluster not pre-configured for Regional-DR'),
+      description: t(
+        "The selected cluster(s)[{{clusters}}] is not pre-configured for a Regional-DR setup. Migrate the cluster's OSD to optimise it for Disaster recovery services. To learn more about OSDs migration best practices and its consequences refer to the documentation.",
+        { clusters: clusterErrorInfo.clustersWithoutDROptimizedODF.join(', ') }
+      ),
+      isHidden: replicationType !== REPLICATION_TYPE.ASYNC,
     };
   }
   return null;
@@ -130,7 +145,12 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
-  const errorMessage = getErrorMessage(selectedClusters, requiredODFVersion, t);
+  const errorMessage = getErrorMessage(
+    selectedClusters,
+    requiredODFVersion,
+    replicationType,
+    t
+  );
 
   React.useEffect(() => {
     if (selectedClusters.length === 2) {
@@ -174,7 +194,7 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
 
   return (
     <>
-      {!!errorMessage ? (
+      {!!errorMessage && !errorMessage.isHidden ? (
         <Alert
           data-test="odf-not-found-alert"
           className="odf-alert mco-create-data-policy__alert"
@@ -233,9 +253,11 @@ type ClusterErrorType = {
   clustersWithUnsupportedODF: string[];
   clustersWithoutODF: string[];
   clustersWithUnsuccessfulODF: string[];
+  clustersWithoutDROptimizedODF: string[];
 };
 
 type ErrorMessageType = {
   message?: string;
   description?: string;
+  isHidden?: boolean;
 };

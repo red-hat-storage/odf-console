@@ -28,6 +28,7 @@ export enum ClusterClaimTypes {
   STORAGE_SYSTEM_NAME = 'storagesystemname.odf.openshift.io',
   CEPH_FSID = 'cephfsid.odf.openshift.io',
   STORAGE_CLUSTER_COUNT = 'count.storagecluster.odf.openshift.io',
+  DR_OPTIMIZED = 'droptimized.odf.openshift.io',
 }
 
 // Managed cluster status conditions

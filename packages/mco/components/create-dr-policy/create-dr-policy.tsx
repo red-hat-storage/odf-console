@@ -40,7 +40,7 @@ import {
 } from './reducer';
 import { SelectClusterList } from './select-cluster-list';
 import { DRReplicationType } from './select-replication-type';
-import { SelectedCluster } from './selected-cluster-view';
+import { SelectedCluster, checkForErrors } from './selected-cluster-view';
 import './create-dr-policy.scss';
 import '../../style.scss';
 
@@ -179,7 +179,8 @@ export const CreateDRPolicy: React.FC<{}> = () => {
   const areDRPolicyInputsValid = () =>
     !!state.policyName &&
     !!state.replicationType &&
-    state.selectedClusters.length === MAX_ALLOWED_CLUSTERS;
+    state.selectedClusters.length === MAX_ALLOWED_CLUSTERS &&
+    !checkForErrors(state.selectedClusters, state.replicationType);
 
   return (
     <div>
@@ -239,7 +240,12 @@ export const CreateDRPolicy: React.FC<{}> = () => {
         {!!state.selectedClusters.length && (
           <FormGroup fieldId="selected-clusters" label={t('Selected clusters')}>
             {state.selectedClusters.map((c, i) => (
-              <SelectedCluster key={c.name} id={i + 1} cluster={c} />
+              <SelectedCluster
+                key={c.name}
+                id={i + 1}
+                cluster={c}
+                replicationType={state.replicationType}
+              />
             ))}
           </FormGroup>
         )}
