@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   ActionGroup,
   Button,
@@ -25,7 +25,7 @@ export const BlockPoolModalFooter = (props: BlockPoolModalFooterProps) => {
     close();
   };
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const footerButtonsFactory: FooterButtonFactory = {
     [POOL_PROGRESS.FAILED]: [
@@ -69,7 +69,7 @@ export const BlockPoolModalFooter = (props: BlockPoolModalFooterProps) => {
         type: ButtonType.submit,
         variant: ButtonVariant.primary,
         onClick: () => {
-          history.push('/k8s/all-namespaces/persistentvolumeclaims');
+          navigate('/k8s/all-namespaces/persistentvolumeclaims');
           close();
         },
       },

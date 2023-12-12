@@ -4,7 +4,6 @@ import {
   Extension,
   ExtensionDeclaration,
 } from '@openshift-console/dynamic-plugin-sdk/lib/types';
-import { RouteComponentProps } from 'react-router';
 
 export type HorizontalNavTabExtensionProps = {
   /** Unique string to identify the tab */
@@ -20,7 +19,7 @@ export type HorizontalNavTabExtensionProps = {
   /** Href to be assigned to the tab */
   href: string;
   /** Component to be mounted */
-  component: CodeRef<React.ComponentType<RouteComponentProps>>;
+  component: CodeRef<React.ComponentType<{}>>;
 };
 
 export type HorizontalNavTab = ExtensionDeclaration<

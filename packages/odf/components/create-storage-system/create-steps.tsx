@@ -2,7 +2,6 @@ import * as React from 'react';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { TFunction } from 'i18next';
-import { RouteComponentProps } from 'react-router';
 import { WizardStep } from '@patternfly/react-core';
 import { Steps, StepsName } from '../../constants';
 import { BackingStorageType, DeploymentType } from '../../types';
@@ -23,7 +22,6 @@ export const createSteps = (
   dispatch: WizardDispatch,
   infraType: string,
   hasOCS: boolean,
-  history: RouteComponentProps['history'],
   supportedExternalStorage: ExternalStorage[]
 ): WizardStep[] => {
   const {
@@ -143,7 +141,6 @@ export const createSteps = (
         nodes={nodes}
         stepIdReached={stepIdReached}
         isMCG={isMCG}
-        history={history}
       />
     ),
   };

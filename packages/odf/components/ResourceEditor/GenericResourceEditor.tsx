@@ -7,20 +7,10 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
-import { useRouteMatch } from 'react-router';
-
-// import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
-
-type RouteParams = {
-  kind: string;
-  name: string;
-  namespace?: string;
-  cluster?: string;
-};
+import { useParams } from 'react-router-dom-v5-compat';
 
 const GenericResourceEditor: React.FC = () => {
-  const match = useRouteMatch<RouteParams>();
-  const { kind, name, namespace, cluster } = match.params;
+  const { kind, name, namespace, cluster } = useParams();
   const [model, inFlight] = useK8sModel(kind);
   const [sourceObj, setSourceObj] = React.useState<K8sResourceCommon>({});
 

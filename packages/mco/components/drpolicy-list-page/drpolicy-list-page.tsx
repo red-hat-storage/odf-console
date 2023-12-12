@@ -17,7 +17,7 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
-import { useHistory, useLocation } from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import { HUB_CLUSTER_NAME, REPLICATION_TYPE } from '../../constants';
 import {
   ApplicationRefKind,
@@ -154,7 +154,7 @@ export const DRPolicyListPage: React.FC = () => {
     HUB_CLUSTER_NAME
   );
   const [data, filteredData, onFilterChange] = useListPageFilter(drPolicies);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const openModal = () => setConnectedAppsModalOpen(true);
   const closeModal = () => setConnectedAppsModalOpen(false);
@@ -176,7 +176,7 @@ export const DRPolicyListPage: React.FC = () => {
           // Stop loading when DRPolicy read is success or any error occured
           // For DRPolicy read permission issue, loaded is always false and error is non empty
           isLoaded={drPoliciesLoaded || !!drPoliciesLoadError}
-          onClick={() => history.push(drPolicyCreatePagePath)}
+          onClick={() => navigate(drPolicyCreatePagePath)}
         >
           <Trans t={t}>
             Configure recovery to your failover cluster with a disaster recovery

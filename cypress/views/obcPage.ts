@@ -7,7 +7,7 @@ import { listPage } from './list-page';
 export const obcNavigate = {
   navigateToOBC: () => {
     commonFlows.navigateToObjectStorage();
-    cy.byLegacyTestID('horizontal-link-Object Bucket Claims').click();
+    cy.byTestID('horizontal-link-Object Bucket Claims').click();
   },
 };
 

@@ -59,6 +59,12 @@ jest.mock('react-i18next', () => ({
   Trans: ({ children }: any) => children,
 }));
 
+jest.mock('react-router-dom-v5-compat', () => ({
+  ...jest.requireActual('react-router-dom-v5-compat'),
+  useNavigate: () => null,
+  useLocation: () => ({ pathname: '/' }),
+}));
+
 describe('Test drpolicy list page', () => {
   test('Empty page success test', async () => {
     render(<DRPolicyListPage />);

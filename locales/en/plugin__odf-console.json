@@ -1159,6 +1159,7 @@
   "Receive bandwidth": "Receive bandwidth",
   "Node details": "Node details",
   "Instance type": "Instance type",
+  "Rack": "Rack",
   "External ID": "External ID",
   "Node addresses": "Node addresses",
   "Machine": "Machine",
@@ -1205,6 +1206,5 @@
   "Cannot change resource name (original: \"{{name}}\", updated: \"{{newName}}\").": "Cannot change resource name (original: \"{{name}}\", updated: \"{{newName}}\").",
   "Cannot change resource namespace (original: \"{{namespace}}\", updated: \"{{newNamespace}}\").": "Cannot change resource namespace (original: \"{{namespace}}\", updated: \"{{newNamespace}}\").",
   "Cannot change resource kind (original: \"{{original}}\", updated: \"{{updated}}\").": "Cannot change resource kind (original: \"{{original}}\", updated: \"{{updated}}\").",
-  "Cannot change API group (original: \"{{apiGroup}}\", updated: \"{{newAPIGroup}}\").": "Cannot change API group (original: \"{{apiGroup}}\", updated: \"{{newAPIGroup}}\").",
-  "Rack": "Rack"
+  "Cannot change API group (original: \"{{apiGroup}}\", updated: \"{{newAPIGroup}}\").": "Cannot change API group (original: \"{{apiGroup}}\", updated: \"{{newAPIGroup}}\")."
 }

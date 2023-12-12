@@ -9,7 +9,7 @@ import {
   WatchK8sResults,
   StatusPopupSection,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 import { Stack, StackItem } from '@patternfly/react-core';
 import '@odf/shared/popup/status-popup.scss';
 

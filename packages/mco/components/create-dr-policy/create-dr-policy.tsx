@@ -11,7 +11,7 @@ import {
   k8sCreate,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { RouteComponentProps, match as Match } from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
   Form,
   FormGroup,
@@ -57,12 +57,10 @@ const fetchMirrorPeer = (
 const getDRPolicyListPageLink = (url: string) =>
   url.replace(`${referenceForModel(DRPolicyModel)}/~new`, '');
 
-export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
-  match,
-  history,
-}) => {
+export const CreateDRPolicy: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { url } = match;
+  const { pathname: url } = useLocation();
+  const navigate = useNavigate();
   const [state, dispatch] = React.useReducer(
     drPolicyReducer,
     drPolicyInitialState
@@ -184,7 +182,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
 
     Promise.all(promises)
       .then(() => {
-        history.push(getDRPolicyListPageLink(url));
+        navigate(getDRPolicyListPageLink(url));
       })
       .catch((error) => {
         dispatch({
@@ -300,7 +298,7 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
           <Button
             data-test="cancel-button"
             variant={ButtonVariant.secondary}
-            onClick={history.goBack}
+            onClick={() => navigate(-1)}
           >
             {t('Cancel')}
           </Button>
@@ -308,9 +306,4 @@ export const CreateDRPolicy: React.FC<ReRouteResourceProps> = ({
       </Form>
     </div>
   );
-};
-
-type ReRouteResourceProps = {
-  history: RouteComponentProps['history'];
-  match: Match<{ url: string }>;
 };
