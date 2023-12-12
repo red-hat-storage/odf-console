@@ -556,10 +556,16 @@ export const getDRPCKindObj = (
 
 // Finding placement from application generators
 export const findPlacementNameFromAppSet = (
-  application: ArgoApplicationSetKind
-): string =>
-  application?.spec?.generators?.[0]?.clusterDecisionResource?.labelSelector
-    ?.matchLabels?.[PLACEMENT_REF_LABEL] || '';
+  applicationSet: ArgoApplicationSetKind
+): string => {
+  for (const generator of applicationSet.spec.generators ?? []) {
+    const matchLabels =
+      generator.clusterDecisionResource?.labelSelector?.matchLabels;
+    if (matchLabels?.hasOwnProperty(PLACEMENT_REF_LABEL))
+      return matchLabels[PLACEMENT_REF_LABEL];
+  }
+  return '';
+};
 
 export const findPlacementDecisionUsingPlacement = (
   placement: ACMPlacementKind,

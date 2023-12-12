@@ -3,7 +3,6 @@ import { DisasterRecoveryFormatted } from '@odf/mco/hooks';
 import {
   ACMApplicationKind,
   ACMPlacementType,
-  DRClusterKind,
   DRPlacementControlKind,
   DRPolicyKind,
 } from '@odf/mco/types';
@@ -43,7 +42,6 @@ export const getCurrentStatus = (drpcList: DRPlacementControlType[]): string =>
 
 export const generateDRPolicyInfo = (
   drPolicy: DRPolicyKind,
-  drClusters: DRClusterKind[],
   drpcInfo?: DRPlacementControlType[],
   t?: TFunction
 ): DRPolicyType[] =>
@@ -72,12 +70,15 @@ export const generateDRPolicyInfo = (
 export const generatePlacementInfo = (
   placement: ACMPlacementType,
   deploymentClusters: string[]
-): PlacementType => ({
-  apiVersion: placement.apiVersion,
-  kind: placement.kind,
-  metadata: placement.metadata,
-  deploymentClusters: deploymentClusters,
-});
+): PlacementType =>
+  !_.isEmpty(placement)
+    ? {
+        apiVersion: placement.apiVersion,
+        kind: placement.kind,
+        metadata: placement.metadata,
+        deploymentClusters: deploymentClusters,
+      }
+    : undefined;
 
 export const generateDRPlacementControlInfo = (
   drpc: DRPlacementControlKind,
@@ -133,10 +134,7 @@ export const getMatchingDRPolicies = (
     formattedDRResources?.reduce((acc, resource) => {
       const { drPolicy } = resource;
       return matchClusters(drPolicy?.spec?.drClusters, deploymentClusters)
-        ? [
-            ...acc,
-            ...generateDRPolicyInfo(resource?.drPolicy, resource?.drClusters),
-          ]
+        ? [...acc, ...generateDRPolicyInfo(resource?.drPolicy)]
         : acc;
     }, []) || []
   );

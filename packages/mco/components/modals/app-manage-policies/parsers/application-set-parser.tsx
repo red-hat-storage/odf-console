@@ -111,13 +111,8 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       // Today appset support maximum one placement, DRPC, DRPolicy per app.
       // When it support multi placement, need to change logic to,
       // group all DRPC using DRPolicy
-      const {
-        placement,
-        placementDecision,
-        drPlacementControl,
-        drPolicy,
-        drClusters,
-      } = appSetResource.placements[0];
+      const { placement, placementDecision, drPlacementControl, drPolicy } =
+        appSetResource.placements[0];
       const placementInfo = generatePlacementInfo(
         placement,
         getClustersFromDecisions(placementDecision)
@@ -128,7 +123,6 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       );
       const drPolicyInfo: DRPolicyType[] = generateDRPolicyInfo(
         drPolicy,
-        drClusters,
         drpcInfo,
         t
       );
@@ -137,7 +131,7 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         application,
         getRemoteNamespaceFromAppSet(application),
         // Skip placement if it already DR protected
-        _.isEmpty(drpcInfo) ? [placementInfo] : [],
+        !drpcInfo.length && !!placementInfo ? [placementInfo] : [],
         drPolicyInfo
       );
     }

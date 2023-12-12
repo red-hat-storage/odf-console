@@ -100,7 +100,7 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
             generateDRPlacementControlInfo(drPlacementControl, placementInfo);
           if (!drpcInfo.length) {
             // Unprotected placement
-            unProtectedPlacements.push(placementInfo);
+            !!placementInfo && unProtectedPlacements.push(placementInfo);
           } else {
             // Protected placement
             const policyName = getName(drPolicy);
@@ -116,8 +116,8 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
         }
       );
       const drPolicyInfo: DRPolicyType[] = Object.values(drPolicyToDPRCMap).map(
-        ({ drClusters, drPlacementControls, drPolicy }) =>
-          generateDRPolicyInfo(drPolicy, drClusters, drPlacementControls, t)[0]
+        ({ drPlacementControls, drPolicy }) =>
+          generateDRPolicyInfo(drPolicy, drPlacementControls, t)[0]
       );
       applicationInfo = generateApplicationInfo(
         APPLICATION_TYPE.SUBSCRIPTION,
