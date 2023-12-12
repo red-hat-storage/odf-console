@@ -11,13 +11,25 @@ import {
 import { Button, Flex, FlexItem } from '@patternfly/react-core';
 import OSDMigrationModal from './osd-migration-modal';
 
+type OSDMigrationDetailsProps = {
+  cephData: CephClusterKind;
+  ocsData: StorageClusterKind;
+  loaded: boolean;
+  loadError: any;
+};
+
 export const OSDMigrationDetails: React.FC<OSDMigrationDetailsProps> = ({
   cephData,
   ocsData,
+  loaded,
+  loadError,
 }) => {
   const { t } = useCustomTranslation();
-  const osdMigrationStatus: string = getOSDMigrationStatus(cephData);
+  const osdMigrationStatus: string =
+    !loadError && loaded ? getOSDMigrationStatus(cephData) : null;
   const launcher = useModal();
+
+  if (!loaded || loadError) return <></>;
 
   return (
     <>
@@ -50,9 +62,4 @@ export const OSDMigrationDetails: React.FC<OSDMigrationDetailsProps> = ({
       </Flex>
     </>
   );
-};
-
-type OSDMigrationDetailsProps = {
-  cephData: CephClusterKind;
-  ocsData: StorageClusterKind;
 };

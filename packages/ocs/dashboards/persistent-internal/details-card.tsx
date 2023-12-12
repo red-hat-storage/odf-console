@@ -122,7 +122,12 @@ const DetailsCard: React.FC = () => {
             isLoading={!cephLoaded}
             error={cephLoadError as any}
           >
-            <OSDMigrationDetails cephData={cephData?.[0]} ocsData={cluster} />
+            <OSDMigrationDetails
+              cephData={cephData?.[0]}
+              ocsData={cluster}
+              loaded={cephLoaded && ocsLoaded}
+              loadError={cephLoadError || ocsError}
+            />
           </DetailItem>
         </DetailsBody>
       </CardBody>
