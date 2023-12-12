@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { getMajorVersion } from '@odf/mco/utils';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants/common';
+import { getMajorVersion, parseNamespaceName } from '@odf/mco/utils';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -37,6 +36,7 @@ import {
   drPolicyReducer,
   drPolicyInitialState,
   DRPolicyActionType,
+  ManagedClusterInfoType,
 } from './reducer';
 import { SelectClusterList } from './select-cluster-list';
 import { DRReplicationType } from './select-replication-type';
@@ -54,6 +54,66 @@ const fetchMirrorPeer = (
     return existingPeerNames.sort().join(',') === peerNames.sort().join(',');
   });
 
+const getPeerClustersRef = (clusters: ManagedClusterInfoType[]) =>
+  clusters.map((cluster) => {
+    const { storageClusterNamespacedName } =
+      cluster?.odfInfo.storageClusterInfo;
+    const [storageClusterName, storageClusterNamesapce] = parseNamespaceName(
+      storageClusterNamespacedName
+    );
+    return {
+      clusterName: cluster?.name,
+      storageClusterRef: {
+        name: storageClusterName,
+        namespace: storageClusterNamesapce,
+      },
+    };
+  });
+
+const createDRPolicy = (
+  policyName: string,
+  replicationType: REPLICATION_TYPE,
+  syncIntervalTime: string,
+  peerNames: string[]
+) => {
+  const drPolicyPayload: DRPolicyKind = {
+    apiVersion: getAPIVersionForModel(DRPolicyModel),
+    kind: DRPolicyModel.kind,
+    metadata: { name: policyName },
+    spec: {
+      schedulingInterval:
+        replicationType === REPLICATION_TYPE.ASYNC ? syncIntervalTime : '0m',
+      drClusters: peerNames,
+    },
+  };
+  return k8sCreate({
+    model: DRPolicyModel,
+    data: drPolicyPayload,
+    cluster: HUB_CLUSTER_NAME,
+  });
+};
+
+const createMirrorPeer = (
+  selectedClusters: ManagedClusterInfoType[],
+  replicationType: REPLICATION_TYPE
+) => {
+  const mirrorPeerPayload: MirrorPeerKind = {
+    apiVersion: getAPIVersionForModel(MirrorPeerModel),
+    kind: MirrorPeerModel.kind,
+    metadata: { generateName: 'mirrorpeer-' },
+    spec: {
+      manageS3: true,
+      type: replicationType,
+      items: getPeerClustersRef(selectedClusters),
+    },
+  };
+  return k8sCreate({
+    model: MirrorPeerModel,
+    data: mirrorPeerPayload,
+    cluster: HUB_CLUSTER_NAME,
+  });
+};
+
 const getDRPolicyListPageLink = (url: string) =>
   url.replace(`${referenceForModel(DRPolicyModel)}/~new`, '');
 
@@ -65,6 +125,8 @@ export const CreateDRPolicy: React.FC<{}> = () => {
     drPolicyReducer,
     drPolicyInitialState
   );
+  const [errorMessage, setErrorMessage] = React.useState('');
+
   // odfmco mirrorpeer info
   const [mirrorPeers] = useK8sWatchResource<MirrorPeerKind[]>({
     kind: referenceForModel(MirrorPeerModel),
@@ -78,105 +140,24 @@ export const CreateDRPolicy: React.FC<{}> = () => {
   });
   const odfMCOVersion = getMajorVersion(csv?.spec?.version);
 
-  React.useEffect(() => {
-    if (state.selectedClusters.length === 2) {
-      // ODF detection
-      dispatch({
-        type: DRPolicyActionType.SET_IS_ODF_DETECTED,
-        payload: state.selectedClusters.every(
-          (cluster) => cluster?.cephFSID !== '' && cluster?.isValidODFVersion
-        ),
-      });
-
-      // DR replication type
-      const isReplicationAutoDetectable = state.selectedClusters.every(
-        (cluster) => cluster?.cephFSID !== ''
-      );
-      const cephFSIDs = state.selectedClusters.reduce((ids, cluster) => {
-        if (cluster?.cephFSID !== '') {
-          ids.add(cluster?.cephFSID);
-        }
-        return ids;
-      }, new Set());
-
-      dispatch({
-        type: DRPolicyActionType.SET_IS_REPLICATION_INPUT_MANUAL,
-        payload: !isReplicationAutoDetectable,
-      });
-      dispatch({
-        type: DRPolicyActionType.SET_REPLICATION,
-        payload:
-          isReplicationAutoDetectable && cephFSIDs.size <= 1
-            ? REPLICATION_TYPE.SYNC
-            : REPLICATION_TYPE.ASYNC,
-      });
-    } else {
-      dispatch({
-        type: DRPolicyActionType.SET_IS_ODF_DETECTED,
-        payload: false,
-      });
-      dispatch({
-        type: DRPolicyActionType.SET_IS_REPLICATION_INPUT_MANUAL,
-        payload: false,
-      });
-      dispatch({
-        type: DRPolicyActionType.SET_REPLICATION,
-        payload: '',
-      });
-    }
-  }, [state.selectedClusters, t, dispatch]);
-
   const onCreate = () => {
     const promises: Promise<K8sResourceKind>[] = [];
     const peerNames = state.selectedClusters.map((cluster) => cluster?.name);
-
-    // DRPolicy creation
-    const drPolicyPayload: DRPolicyKind = {
-      apiVersion: getAPIVersionForModel(DRPolicyModel),
-      kind: DRPolicyModel.kind,
-      metadata: { name: state.policyName },
-      spec: {
-        schedulingInterval:
-          state.replication === REPLICATION_TYPE.ASYNC ? state.syncTime : '0m',
-        drClusters: peerNames,
-      },
-    };
     promises.push(
-      k8sCreate({
-        model: DRPolicyModel,
-        data: drPolicyPayload,
-        cluster: HUB_CLUSTER_NAME,
-      })
+      createDRPolicy(
+        state.policyName,
+        state.replicationType,
+        state.syncIntervalTime,
+        peerNames
+      )
     );
 
     const mirrorPeer: MirrorPeerKind =
       fetchMirrorPeer(mirrorPeers, peerNames) ?? {};
 
     if (Object.keys(mirrorPeer).length === 0) {
-      // MirrorPeer creation
-      const mirrorPeerPayload: MirrorPeerKind = {
-        apiVersion: getAPIVersionForModel(MirrorPeerModel),
-        kind: MirrorPeerModel.kind,
-        metadata: { generateName: 'mirrorpeer-' },
-        spec: {
-          manageS3: true,
-          type: state.replication,
-          items: state.selectedClusters.map((cluster) => ({
-            clusterName: cluster?.name,
-            storageClusterRef: {
-              name: cluster.storageClusterName,
-              // ToDo (epic 4422): Need to update this as per ConfigMap/ClusterClaim (whichever us decided) JSON output
-              namespace: CEPH_STORAGE_NAMESPACE,
-            },
-          })),
-        },
-      };
       promises.push(
-        k8sCreate({
-          model: MirrorPeerModel,
-          data: mirrorPeerPayload,
-          cluster: HUB_CLUSTER_NAME,
-        })
+        createMirrorPeer(state.selectedClusters, state.replicationType)
       );
     }
 
@@ -185,10 +166,7 @@ export const CreateDRPolicy: React.FC<{}> = () => {
         navigate(getDRPolicyListPageLink(url));
       })
       .catch((error) => {
-        dispatch({
-          type: DRPolicyActionType.SET_ERROR_MESSAGE,
-          payload: error?.message,
-        });
+        setErrorMessage(error?.message);
       });
   };
 
@@ -200,8 +178,8 @@ export const CreateDRPolicy: React.FC<{}> = () => {
 
   const areDRPolicyInputsValid = () =>
     !!state.policyName &&
-    Object.keys(state.selectedClusters)?.length === MAX_ALLOWED_CLUSTERS &&
-    state.isODFDetected;
+    !!state.replicationType &&
+    state.selectedClusters.length === MAX_ALLOWED_CLUSTERS;
 
   return (
     <div>
@@ -219,6 +197,7 @@ export const CreateDRPolicy: React.FC<{}> = () => {
           <TextInput
             data-test="policy-name-text"
             id="policy-name"
+            data-testid="policy-name"
             value={state.policyName}
             type="text"
             onChange={setPolicyName}
@@ -234,7 +213,7 @@ export const CreateDRPolicy: React.FC<{}> = () => {
           isHelperTextBeforeField
         >
           <SelectClusterList
-            state={state}
+            selectedClusters={state.selectedClusters}
             requiredODFVersion={odfMCOVersion}
             dispatch={dispatch}
           />
@@ -260,21 +239,18 @@ export const CreateDRPolicy: React.FC<{}> = () => {
         {!!state.selectedClusters.length && (
           <FormGroup fieldId="selected-clusters" label={t('Selected clusters')}>
             {state.selectedClusters.map((c, i) => (
-              <SelectedCluster
-                key={c.name}
-                id={i + 1}
-                cluster={c}
-                dispatch={dispatch}
-              />
+              <SelectedCluster key={c.name} id={i + 1} cluster={c} />
             ))}
           </FormGroup>
         )}
         <DRReplicationType
-          state={state}
+          selectedClusters={state.selectedClusters}
+          replicationType={state.replicationType}
+          syncIntervalTime={state.syncIntervalTime}
           requiredODFVersion={odfMCOVersion}
           dispatch={dispatch}
         />
-        {state.errorMessage && (
+        {errorMessage && (
           <FormGroup fieldId="error-message">
             <Alert
               className="odf-alert mco-create-data-policy__alert"
@@ -282,12 +258,13 @@ export const CreateDRPolicy: React.FC<{}> = () => {
               variant="danger"
               isInline
             >
-              {state.errorMessage}
+              {errorMessage}
             </Alert>
           </FormGroup>
         )}
         <ActionGroup className="mco-create-data-policy__action-group">
           <Button
+            data-testid="create-button"
             data-test="create-button"
             variant={ButtonVariant.primary}
             onClick={onCreate}

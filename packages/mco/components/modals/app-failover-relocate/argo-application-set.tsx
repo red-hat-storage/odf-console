@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { K8sResourceCondition } from '@odf/shared';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   DRActionType,
@@ -16,12 +17,11 @@ import {
   useArgoApplicationSetResourceWatch,
   useDisasterRecoveryResourceWatch,
 } from '../../../hooks';
-import { ArgoApplicationSetKind } from '../../../types';
+import { ACMManagedClusterKind, ArgoApplicationSetKind } from '../../../types';
 import {
   findCluster,
   findDeploymentClusters,
   checkDRActionReadiness,
-  getManagedClusterCondition,
   findDRType,
   isDRClusterFenced,
   findPlacementNameFromAppSet,
@@ -67,6 +67,15 @@ const getApplicationSetResources = (
     filterByAppName: appName,
   },
 });
+
+export const ValidateManagedClusterCondition = (
+  managedCluster: ACMManagedClusterKind,
+  conditionType: string
+): K8sResourceCondition =>
+  managedCluster?.status?.conditions?.find(
+    (condition) =>
+      condition?.type === conditionType && condition.status === 'True'
+  );
 
 export const ArogoApplicationSetModal = (
   props: ArogoApplicationSetModalProps
@@ -117,11 +126,11 @@ export const ArogoApplicationSetModal = (
       deploymentClusterName,
       true
     );
-    const primaryClusterCondition = getManagedClusterCondition(
+    const primaryClusterCondition = ValidateManagedClusterCondition(
       primaryCluster,
       MANAGED_CLUSTER_CONDITION_AVAILABLE
     );
-    const targetClusterCondition = getManagedClusterCondition(
+    const targetClusterCondition = ValidateManagedClusterCondition(
       targetCluster,
       MANAGED_CLUSTER_CONDITION_AVAILABLE
     );
