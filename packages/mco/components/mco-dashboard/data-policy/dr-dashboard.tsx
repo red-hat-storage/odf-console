@@ -63,14 +63,30 @@ const UpperSection: React.FC = () => (
   </Grid>
 );
 
-export const DRDashboard: React.FC = () => {
+const CSVStatusesContextProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [csvData, csvError, csvLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as any,
     query: STATUS_QUERIES[StorageDashboard.CSV_STATUS_ALL_WHITELISTED],
     basePath: ACM_ENDPOINT,
     cluster: HUB_CLUSTER_NAME,
   });
+  const contextValue = React.useMemo(
+    () => ({ csvData, csvError, csvLoading }),
+    [csvData, csvError, csvLoading]
+  );
 
+  return (
+    <CSVStatusesContext.Provider value={contextValue}>
+      {children}
+    </CSVStatusesContext.Provider>
+  );
+};
+
+const DRResourcesContextProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [drResources, drLoaded, drLoadError] =
     useDisasterRecoveryResourceWatch();
   const [argoApplicationSetResources, loaded, loadError] =
@@ -159,21 +175,28 @@ export const DRDashboard: React.FC = () => {
     loadError,
   ]);
 
-  const dRResourcesContext = {
-    drClusterAppsMap,
-    loaded,
-    loadError,
-  };
+  const contextValue = React.useMemo(
+    () => ({ drClusterAppsMap, loaded, loadError }),
+    [drClusterAppsMap, loaded, loadError]
+  );
 
-  // ToDo(Sanjal): combime multiple Context together to make it scalable
-  // refer: https://javascript.plainenglish.io/how-to-combine-context-providers-for-cleaner-react-code-9ed24f20225e
+  return (
+    <DRResourcesContext.Provider value={contextValue}>
+      {children}
+    </DRResourcesContext.Provider>
+  );
+};
+
+// ToDo(Sanjal): combime multiple Context together to make it scalable
+// refer: https://javascript.plainenglish.io/how-to-combine-context-providers-for-cleaner-react-code-9ed24f20225e
+const DRDashboard: React.FC = () => {
   return (
     <div className="odf-dashboard-body">
-      <CSVStatusesContext.Provider value={{ csvData, csvError, csvLoading }}>
-        <DRResourcesContext.Provider value={dRResourcesContext}>
+      <CSVStatusesContextProvider>
+        <DRResourcesContextProvider>
           <UpperSection />
-        </DRResourcesContext.Provider>
-      </CSVStatusesContext.Provider>
+        </DRResourcesContextProvider>
+      </CSVStatusesContextProvider>
     </div>
   );
 };

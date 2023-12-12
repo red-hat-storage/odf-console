@@ -433,6 +433,80 @@ const TopologyViewComponent: React.FC = () => {
 
 const Error = ({ error }) => <>{error}</>;
 
+const TopologySearchContextProvider: React.FC<{ children: React.ReactNode }> =
+  ({ children }) => {
+    const [activeItemsUID, setActiveItemsUID] = React.useState<string[]>([]);
+    const [activeItem, setActiveItem] = React.useState<string>('');
+    const contextValue = React.useMemo(
+      () => ({
+        activeItemsUID,
+        setActiveItemsUID,
+        activeItem,
+        setActiveItem,
+      }),
+      [activeItemsUID, setActiveItemsUID, activeItem, setActiveItem]
+    );
+
+    return (
+      <TopologySearchContext.Provider value={contextValue}>
+        {children}
+      </TopologySearchContext.Provider>
+    );
+  };
+
+const TopologyDataContextProvider: React.FC<{
+  children: React.ReactNode;
+  nodes: NodeKind[];
+  storageCluster: StorageClusterKind;
+  zones: string[];
+  deployments: DeploymentKind[];
+  visualizationLevel: TopologyViewLevel;
+  activeNode: string;
+  nodeDeploymentMap: any;
+}> = ({
+  children,
+  nodes,
+  storageCluster,
+  zones,
+  deployments,
+  visualizationLevel,
+  activeNode,
+  nodeDeploymentMap,
+}) => {
+  const [selectedElement, setSelectedElement] =
+    React.useState<GraphElement>(null);
+  const contextValue = React.useMemo(
+    () => ({
+      nodes,
+      storageCluster,
+      zones,
+      deployments,
+      visualizationLevel,
+      activeNode,
+      nodeDeploymentMap,
+      selectedElement,
+      setSelectedElement,
+    }),
+    [
+      nodes,
+      storageCluster,
+      zones,
+      deployments,
+      visualizationLevel,
+      activeNode,
+      nodeDeploymentMap,
+      selectedElement,
+      setSelectedElement,
+    ]
+  );
+
+  return (
+    <TopologyDataContext.Provider value={contextValue}>
+      {children}
+    </TopologyDataContext.Provider>
+  );
+};
+
 const Topology: React.FC = () => {
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
@@ -440,11 +514,7 @@ const Topology: React.FC = () => {
   const [controller, setController] = React.useState<Visualization>(null);
   const [visualizationLevel, setVisualizationLevel] =
     React.useState<TopologyViewLevel>(TopologyViewLevel.NODES);
-  const [activeItemsUID, setActiveItemsUID] = React.useState<string[]>([]);
-  const [activeItem, setActiveItem] = React.useState<string>('');
   const [activeNode, setActiveNode] = React.useState('');
-  const [selectedElement, setSelectedElement] =
-    React.useState<GraphElement>(null);
 
   const [nodes, nodesLoaded, nodesError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);
@@ -538,23 +608,16 @@ const Topology: React.FC = () => {
   const zones = memoizedNodes.map(getTopologyDomain);
 
   return (
-    <TopologyDataContext.Provider
-      value={{
-        nodes: memoizedNodes,
-        storageCluster: storageCluster[0],
-        zones,
-        deployments: memoizedDeployments,
-        visualizationLevel: visualizationLevel,
-        activeNode,
-        setActiveNode,
-        nodeDeploymentMap,
-        selectedElement,
-        setSelectedElement,
-      }}
+    <TopologyDataContextProvider
+      nodes={memoizedNodes}
+      storageCluster={storageCluster[0]}
+      zones={zones}
+      deployments={memoizedDeployments}
+      visualizationLevel={visualizationLevel}
+      activeNode={activeNode}
+      nodeDeploymentMap={nodeDeploymentMap}
     >
-      <TopologySearchContext.Provider
-        value={{ activeItemsUID, setActiveItemsUID, activeItem, setActiveItem }}
-      >
+      <TopologySearchContextProvider>
         <VisualizationProvider controller={controller}>
           <div className="odf__topology-view" id="odf-topology">
             <TopologyTopBar />
@@ -576,8 +639,8 @@ const Topology: React.FC = () => {
             </HandleErrorAndLoading>
           </div>
         </VisualizationProvider>
-      </TopologySearchContext.Provider>
-    </TopologyDataContext.Provider>
+      </TopologySearchContextProvider>
+    </TopologyDataContextProvider>
   );
 };
 
