@@ -651,5 +651,15 @@
         "$codeRef": "obc.OBCDetailsPage"
       }
     }
+  },
+  {
+    "type": "console.alert-action",
+    "properties": {
+      "alert": "CephMonLowNumber",
+      "text": "Configure",
+      "action": {
+        "$codeRef": "monCountAlertModal.launchLowMonAlertModal"
+      }
+    }
   }
 ]

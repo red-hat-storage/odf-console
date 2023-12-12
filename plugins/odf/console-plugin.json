@@ -38,6 +38,7 @@
     "ibmStorage": "@odf/ibm/system-connection-details",
     "objectService": "@odf/core/components/object-service-nav-item/object-service",
     "mutators": "@odf/ocs/storage-class/mutators",
-    "odfReduxReducers": "@odf/core/redux"
+    "odfReduxReducers": "@odf/core/redux",
+    "monCountAlertModal": "@odf/core/modals/configure-mons/configure-mons"
   }
 }
