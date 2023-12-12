@@ -30,6 +30,7 @@ export const CEPH_FLAG = 'CEPH'; // Based on the existence of CephCluster
 export const OCS_FLAG = 'OCS'; // Based on the existence of StorageCluster
 export const OCS_NFS_ENABLED = 'NFS'; // Based on the enablement of NFS from StorageCluster spec
 export const ODF_ADMIN = 'ODF_ADMIN'; // Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
+export const PROVIDER_MODE = 'PROVIDER_MODE'; // Set to "true" if user has deployed it in provider mode
 
 // Check the user's access to some resources.
 const ssarChecks = [
@@ -42,6 +43,9 @@ const ssarChecks = [
     },
   },
 ];
+
+const isProviderMode = (cluster: StorageClusterKind): boolean =>
+  !!cluster.spec.allowRemoteStorageConsumers;
 
 const setOCSFlagsFalse = (setFlag: SetFeatureFlag) => {
   setFlag(OCS_FLAG, false);
@@ -81,6 +85,7 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
             'standalone'
         );
         setFlag(OCS_NFS_ENABLED, storageCluster?.spec?.nfs?.enable === true);
+        setFlag(PROVIDER_MODE, isProviderMode(storageCluster));
         clearInterval(ocsIntervalId);
       } else if (setFlagFalse) {
         setFlagFalse = false;

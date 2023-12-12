@@ -16,6 +16,7 @@ export type HealthItemProps = {
   icon?: React.ReactNode;
   maxWidth?: string;
   disableDetails?: boolean;
+  onClick?: () => void;
 };
 
 const HealthItemIcon: React.FC<HealthItemIconProps> = ({ state, dataTest }) => (
@@ -40,6 +41,7 @@ const HealthItem: React.FC<HealthItemProps> = React.memo(
     children,
     maxWidth,
     disableDetails = false,
+    onClick,
   }) => {
     const { t } = useCustomTranslation();
 
@@ -69,24 +71,36 @@ const HealthItem: React.FC<HealthItemProps> = React.memo(
         )}
         <div>
           <span className="co-status-card__health-item-text">
-            {React.Children.toArray(children).length &&
+            {(React.Children.toArray(children).length || onClick) &&
             state !== HealthState.LOADING ? (
-              <Popover
-                position={PopoverPosition.top}
-                headerContent={popupTitle}
-                bodyContent={children}
-                enableFlip
-                maxWidth={maxWidth || '21rem'}
-              >
+              !onClick ? (
+                <Popover
+                  position={PopoverPosition.top}
+                  headerContent={popupTitle}
+                  bodyContent={children}
+                  enableFlip
+                  maxWidth={maxWidth || '21rem'}
+                >
+                  <Button
+                    variant="link"
+                    isInline
+                    className="co-status-card__popup"
+                    data-test="health-popover-link"
+                  >
+                    {title}
+                  </Button>
+                </Popover>
+              ) : (
                 <Button
                   variant="link"
                   isInline
                   className="co-status-card__popup"
                   data-test="health-popover-link"
+                  onClick={onClick}
                 >
                   {title}
                 </Button>
-              </Popover>
+              )
             ) : (
               title
             )}
