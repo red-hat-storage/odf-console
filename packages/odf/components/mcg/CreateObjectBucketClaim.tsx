@@ -414,9 +414,7 @@ export const CreateOBCPage: React.FC<{}> = () => {
       isAllProjectsInitially.current = false;
     } else if (initialNamespace.current !== namespace) {
       navigate(
-        `/odf/object-storage/resource/${referenceForModel(
-          NooBaaObjectBucketClaimModel
-        )}`
+        `/odf/object-storage/${referenceForModel(NooBaaObjectBucketClaimModel)}`
       );
     }
   }, [navigate, namespace, setNamespace]);
@@ -480,9 +478,10 @@ export const CreateOBCPage: React.FC<{}> = () => {
       });
   };
 
-  // Operator install namespace is determined using Subscriptions, which non-admin can not access (yet).
+  // Operator install namespace is determined using Subscriptions, which non-admin can not access.
   // Using "allowFallback" in "NamespaceSafetyBox" so that they can default to "openshift-storage" (if case of access issues),
   // which is current use case as well (as we do not officially support UI if ODF is installed in any other Namespace).
+  // ToDo (Sanjal): Update the non-admin "Role" to a "ClusterRole", then read list of NooBaa/BucketClasses across all namespaces.
   return (
     <>
       <NamespaceBar />

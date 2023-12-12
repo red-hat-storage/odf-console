@@ -151,12 +151,20 @@ const headerColumns = (t: TFunction) => [
 ];
 
 const getRow: GetRow = (
-  { systemName, targetKind, clusterName, totalValue, usedValue, clusterURL },
+  {
+    systemName,
+    namespace: systemNamespace,
+    targetKind,
+    clusterName,
+    totalValue,
+    usedValue,
+    clusterURL,
+  },
   index
 ) => {
   const { apiGroup, apiVersion, kind } = getGVK(targetKind);
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
-  const systemPath = getDashboardLink(systemKind, systemName);
+  const systemPath = getDashboardLink(systemKind, systemName, systemNamespace);
   const isPercentage = !!totalValue;
   const progress = isPercentage ? getPercentage(usedValue, totalValue) : 100;
   const value = isPercentage
@@ -280,6 +288,8 @@ const SystemCapacityCard: React.FC = () => {
       !loadingUsedCapacity && !errorUsedCapacity
         ? usedCapacity?.data?.result?.reduce(
             (acc: CapacityMetricDatumMap, usedMetric: PrometheusResult) => {
+              // ToDo (epic 4422): Assuming "namespace" in "odf_system.*"" metrics (except "odf_system_map" which is pushed by ODF opr and already has "target_namespace")
+              // is where system is deployed (update query if needed).
               const systemName = usedMetric?.metric?.storage_system;
               const namespace = usedMetric?.metric?.target_namespace;
               const targetKind = usedMetric?.metric?.target_kind;
@@ -305,6 +315,8 @@ const SystemCapacityCard: React.FC = () => {
     !loadingTotalCapacity &&
       !errorTotalCapacity &&
       totalCapacity?.data?.result?.forEach((totalMetric: PrometheusResult) => {
+        // ToDo (epic 4422): Assuming "namespace" in "odf_system.*"" metrics (except "odf_system_map" which is pushed by ODF opr and already has "target_namespace")
+        // is where system is deployed (update query if needed).
         const dataMapKey = getUniqueKey(
           totalMetric?.metric?.storage_system,
           totalMetric?.metric?.target_namespace,

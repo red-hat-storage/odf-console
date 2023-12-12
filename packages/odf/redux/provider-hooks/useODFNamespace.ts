@@ -2,13 +2,12 @@ import * as React from 'react';
 import { SubscriptionModel } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
 import { SubscriptionKind } from '@odf/shared/types';
+import { isAbortError } from '@odf/shared/utils';
 import { k8sList } from '@openshift-console/dynamic-plugin-sdk';
 import { useODFNamespaceDispatch } from '../dispatchers';
 
 const FALLBACK_NAMESPACE = 'openshift-storage';
 const SPEC_NAME = 'odf-operator';
-
-const isAbortError = (err): boolean => err?.name === 'AbortError';
 
 const namespaceDetector = async (maxAttempt = 5): Promise<string> => {
   let attempt = 0;

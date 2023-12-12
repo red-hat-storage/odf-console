@@ -36,3 +36,5 @@ export type StoragePoolKind = K8sResourceCommon & {
     };
   };
 };
+
+export type ODFSystemParams = { namespace: string; systemName: string };

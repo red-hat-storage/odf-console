@@ -2,6 +2,8 @@ import * as React from 'react';
 import { render, screen } from '@testing-library/react';
 import BreakdownCard from './capacity-breakdown-card';
 
+const testNamespace = 'test-ns';
+
 jest.mock('@openshift-console/dynamic-plugin-sdk/lib/extensions', () => {
   const originalModule = jest.requireActual<
     typeof import('@openshift-console/dynamic-plugin-sdk/lib/extensions')
@@ -28,7 +30,18 @@ jest.mock('@odf/core/hooks', () => ({
 }));
 
 jest.mock('@odf/core/redux', () => ({
-  useODFNamespaceSelector: () => ({ odfNamespace: '' }),
+  ...jest.requireActual('@odf/core/redux'),
+  useODFNamespaceSelector: () => ({ odfNamespace: testNamespace }),
+  useODFSystemFlagsSelector: () => ({
+    systemFlags: {
+      [testNamespace]: { isRGWAvailable: true, isNoobaaAvailable: true },
+    },
+  }),
+}));
+
+jest.mock('react-router-dom-v5-compat', () => ({
+  ...jest.requireActual('react-router-dom-v5-compat'),
+  useParams: () => ({ namespace: testNamespace }),
 }));
 
 describe('Capacity Breakdown Card', () => {

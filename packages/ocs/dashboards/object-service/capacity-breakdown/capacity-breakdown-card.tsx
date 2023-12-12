@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { RGW_FLAG } from '@odf/core/features';
-import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { secretResource } from '@odf/core/resources';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { LabelPadding } from '@odf/shared/dashboards/breakdown-card/breakdown-chart';
@@ -18,12 +17,10 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint, getInstantVectorStats } from '@odf/shared/utils';
 import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
 import { isFunctionThenApply } from '@odf/shared/utils';
-import {
-  useK8sWatchResource,
-  useFlag,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash-es';
+import { useParams } from 'react-router-dom-v5-compat';
 import {
   Select,
   SelectGroup,
@@ -40,6 +37,7 @@ import {
   CapacityBreakdown,
 } from '../../../constants';
 import { breakdownQueryMapMCG } from '../../../queries';
+import { ODFSystemParams } from '../../../types';
 import { decodeRGWPrefix, getStackChartStats } from '../../../utils';
 import './capacity-breakdown-card.scss';
 
@@ -295,21 +293,28 @@ const BreakdownCard: React.FC = () => {
   );
   const [isOpenServiceSelect, setServiceSelect] = React.useState(false);
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
-  const isRGWSupported = useFlag(RGW_FLAG);
-  const prevRGWVal = React.useRef(null);
+
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const isRGWSupported = systemFlags[clusterNs]?.isRGWAvailable;
+  const isMCGSupported = systemFlags[clusterNs]?.isNoobaaAvailable;
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 
   React.useEffect(() => {
-    if (isRGWSupported !== prevRGWVal.current) {
-      prevRGWVal.current = isRGWSupported;
-      if (isRGWSupported) {
-        setServiceType(ServiceType.ALL);
-        setMetricType(CapacityBreakdown.defaultMetrics[ServiceType.ALL]);
-      }
+    if (isRGWSupported && isMCGSupported) {
+      setServiceType(ServiceType.ALL);
+      setMetricType(CapacityBreakdown.defaultMetrics[ServiceType.ALL]);
+    } else if (isMCGSupported) {
+      setServiceType(ServiceType.MCG);
+      setMetricType(CapacityBreakdown.defaultMetrics[ServiceType.MCG]);
+    } else if (isRGWSupported) {
+      setServiceType(ServiceType.RGW);
+      setMetricType(CapacityBreakdown.defaultMetrics[ServiceType.RGW]);
     }
-  }, [isRGWSupported]);
+  }, [isRGWSupported, isMCGSupported]);
 
   const [secretData, secretLoaded, secretLoadError] =
-    useSafeK8sWatchResource<K8sResourceKind>(secretResource);
+    useK8sWatchResource<K8sResourceKind>(secretResource(clusterNs));
   const rgwPrefix = React.useMemo(
     () =>
       isRGWSupported && secretLoaded && !secretLoadError
@@ -328,11 +333,11 @@ const BreakdownCard: React.FC = () => {
       CapacityBreakdown.defaultMetrics[serviceType]
     ];
     return {
-      queries: isFunctionThenApply(q)(rgwPrefix),
+      queries: isFunctionThenApply(q)(rgwPrefix, managedByOCS),
       model: mo,
       metric: me,
     };
-  }, [serviceType, metricType, rgwPrefix]);
+  }, [serviceType, metricType, rgwPrefix, managedByOCS]);
 
   const prometheusQueries = React.useMemo(
     () => Object.values(queries) as string[],
@@ -421,7 +426,7 @@ const BreakdownCard: React.FC = () => {
           </FieldLevelHelp>
         </CardTitle>
         <div className="nb-capacity-breakdown-card__header">
-          {isRGWSupported && (
+          {isRGWSupported && isMCGSupported && (
             <Select
               className="nb-capacity-breakdown-card-header__dropdown nb-capacity-breakdown-card-header__dropdown--margin"
               autoFocus={false}

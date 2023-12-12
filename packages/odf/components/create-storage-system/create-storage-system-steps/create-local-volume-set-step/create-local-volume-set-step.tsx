@@ -302,6 +302,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   nodes,
   stepIdReached,
   isMCG,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
   const allNodes = React.useRef([]);
@@ -379,6 +380,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
                     ? diskModeDropdownItems.FILESYSTEM
                     : diskModeDropdownItems.BLOCK
                 }
+                systemNamespace={systemNamespace}
               />
             </Form>
           </GridItem>
@@ -434,4 +436,5 @@ type CreateLocalVolumeSetProps = {
   stepIdReached: WizardState['stepIdReached'];
   dispatch: WizardDispatch;
   isMCG: boolean;
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

@@ -1,5 +1,8 @@
 import { getGaugeValue } from '@odf/shared/utils';
-import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  HealthState,
+  K8sResourceCommon,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   PrometheusHealthHandler,
   SubsystemHealth,
@@ -43,6 +46,7 @@ export const getNooBaaState: PrometheusHealthHandler = (
   const { response, error } = responses[0];
   const noobaaLoaded = noobaa?.loaded;
   const noobaaLoadError = noobaa?.loadError;
+  const noobaaData = noobaa?.data as K8sResourceCommon[];
   const statusIndex: string = getGaugeValue(response);
 
   if (error || noobaaLoadError) {
@@ -51,7 +55,7 @@ export const getNooBaaState: PrometheusHealthHandler = (
   if (!noobaaLoaded || !response) {
     return { state: HealthState.LOADING };
   }
-  if (!statusIndex) {
+  if (!statusIndex || !noobaaData?.length) {
     return { state: HealthState.NOT_AVAILABLE };
   }
   return parseNoobaaStatus(statusIndex, t);

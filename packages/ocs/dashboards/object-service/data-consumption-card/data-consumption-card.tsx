@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { RGW_FLAG } from '@odf/core/features';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { K8sResourceObj } from '@odf/core/types';
 import {
   OCS_OPERATOR,
   Breakdown,
+  DataConsumption,
   Metrics,
   ServiceType,
 } from '@odf/ocs/constants';
@@ -21,12 +22,11 @@ import { ClusterServiceVersionKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
-import {
-  PrometheusResponse,
-  useFlag,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
+import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { ODFSystemParams } from '../../../types';
 import { DataConsumptionDropdown } from './data-consumption-card-dropdown';
 import DataConsumptionGraph from './data-consumption-graph';
 import PerformanceGraph from './performance-graph';
@@ -240,13 +240,27 @@ const DataConsumptionCard: React.FC = () => {
   const [breakdownBy, setBreakdownBy] = React.useState(Breakdown.PROVIDERS);
   const [metric, setMetric] = React.useState(Metrics.IOPS);
   const [serviceType, setServiceType] = React.useState(ServiceType.MCG);
-  const RGW = useFlag(RGW_FLAG);
+
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const RGW = systemFlags[clusterNs]?.isRGWAvailable;
+  const MCG = systemFlags[clusterNs]?.isNoobaaAvailable;
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+
   const [csvList, csvLoaded, csvLoadError] =
     useSafeK8sWatchResource<ClusterServiceVersionKind[]>(csvResource);
   const isOCS45 =
     csvLoaded &&
     !csvLoadError &&
     csvList?.find((obj) => _.startsWith(getName(obj), `${OCS_OPERATOR}.v4.5`));
+
+  React.useEffect(() => {
+    if (RGW && !MCG) {
+      setServiceType(ServiceType.RGW);
+      setMetric(DataConsumption.defaultMetrics[ServiceType.RGW]);
+      setBreakdownBy(null);
+    }
+  }, [RGW, MCG]);
 
   const queries: string[] = React.useMemo(() => {
     return serviceType === ServiceType.MCG
@@ -255,10 +269,10 @@ const DataConsumptionCard: React.FC = () => {
             DATA_CONSUMPTION_QUERIES[ServiceType.MCG][breakdownBy][Metrics.IOPS]
         )
       : Object.values(
-          DATA_CONSUMPTION_QUERIES[ServiceType.RGW][metric] ??
+          DATA_CONSUMPTION_QUERIES[ServiceType.RGW](managedByOCS)[metric] ??
             DATA_CONSUMPTION_QUERIES[ServiceType.MCG][Metrics.BANDWIDTH]
         );
-  }, [breakdownBy, metric, serviceType]);
+  }, [breakdownBy, metric, serviceType, managedByOCS]);
 
   return (
     <Card>
@@ -279,6 +293,7 @@ const DataConsumptionCard: React.FC = () => {
           selectedMetric={metric}
           setSelectedMetric={setMetric}
           isRgwSupported={RGW && !isOCS45}
+          isMcgSupported={MCG}
         />
       </CardHeader>
       <CardBody>

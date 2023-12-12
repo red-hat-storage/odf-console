@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useSafeK8sWatchResources } from '@odf/core/hooks';
 import { NetworkAttachmentDefinitionModel } from '@odf/core/models';
 import TechPreviewBadge from '@odf/shared/badges/TechPreviewBadge';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
@@ -12,11 +11,13 @@ import { referenceForModel } from '@odf/shared/utils';
 import {
   ResourceIcon,
   WatchK8sResults,
+  useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import * as _ from 'lodash-es';
 import { FormGroup, Radio, SelectOption } from '@patternfly/react-core';
 import { NetworkType, NADSelectorType } from '../../../../types';
+import { WizardState } from '../../reducer';
 import './configure.scss';
 
 const resources = (ns: string) => ({
@@ -79,13 +80,14 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
   setNetwork,
   clusterNetwork,
   publicNetwork,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
 
   const clusterNetworkUID = getUID(clusterNetwork);
   const publicNetworkUID = getUID(publicNetwork);
 
-  const networkResources = useSafeK8sWatchResources(resources);
+  const networkResources = useK8sWatchResources(resources(systemNamespace));
 
   const networkDevices: K8sResourceCommon[] = React.useMemo(() => {
     const { loaded: resourcesLoaded, error: resourcesLoadError } =
@@ -190,6 +192,7 @@ type MultusDropdownProps = {
   setNetwork: (type: NADSelectorType, resource: K8sResourceCommon) => void;
   clusterNetwork: NetworkAttachmentDefinitionKind;
   publicNetwork: NetworkAttachmentDefinitionKind;
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
 
 export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
@@ -198,6 +201,7 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   setNetwork,
   clusterNetwork,
   publicNetwork,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -251,6 +255,7 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           setNetwork={setNetwork}
           clusterNetwork={clusterNetwork}
           publicNetwork={publicNetwork}
+          systemNamespace={systemNamespace}
         />
       )}
     </>
@@ -263,4 +268,5 @@ type NetworkFormGroupProps = {
   setNetwork: (type: NADSelectorType, resource: K8sResourceCommon) => void;
   clusterNetwork: NetworkAttachmentDefinitionKind;
   publicNetwork: NetworkAttachmentDefinitionKind;
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

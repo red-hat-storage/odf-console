@@ -8,8 +8,6 @@ import { TFunction } from 'i18next';
 export const CEPH_BRAND_NAME = 'Red Hat Ceph Storage';
 export const NO_PROVISIONER = 'kubernetes.io/no-provisioner';
 export const STORAGE_CLUSTER_SYSTEM_KIND = 'storagecluster.ocs.openshift.io/v1';
-export const OCS_EXTERNAL_CR_NAME = 'ocs-external-storagecluster';
-export const OCS_INTERNAL_CR_NAME = 'ocs-storagecluster';
 export const HOSTNAME_LABEL_KEY = 'kubernetes.io/hostname';
 export const LABEL_OPERATOR = 'In';
 export const OCS_SUPPORT_ANNOTATION = 'features.ocs.openshift.io/enabled';

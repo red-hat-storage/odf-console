@@ -43,7 +43,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
     }
     k8sList<ClusterServiceVersionKind>({
       model: ClusterServiceVersionModel,
-      queryParams: { namespace },
+      queryParams: { ns: namespace },
       requestInit: null,
     })
       .then((data) => {

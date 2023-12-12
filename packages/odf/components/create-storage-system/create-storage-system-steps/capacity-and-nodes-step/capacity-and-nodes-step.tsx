@@ -43,7 +43,6 @@ import {
   TextContent,
   TextInput,
 } from '@patternfly/react-core';
-import { useODFNamespaceSelector } from '../../../../redux';
 import { ValidationMessage } from '../../../utils/common-odf-install-el';
 import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';
@@ -66,12 +65,10 @@ const onResourceProfileChange = _.curry(
 );
 
 const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
-  ({ text }) => {
+  ({ text, systemNamespace }) => {
     const { t } = useCustomTranslation();
 
-    const { odfNamespace } = useODFNamespaceSelector();
-
-    const label = `cluster.ocs.openshift.io/${odfNamespace}=""`;
+    const label = `cluster.ocs.openshift.io/${systemNamespace}=""`;
     return (
       <TextContent>
         <Text>{text}</Text>
@@ -89,7 +86,10 @@ const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
 );
 SelectNodesText.displayName = 'SelectNodesText';
 
-type SelectNodesTextProps = { text: JSX.Element };
+type SelectNodesTextProps = {
+  text: JSX.Element;
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
+};
 
 const EnableTaintNodes: React.FC<EnableTaintNodesProps> = ({
   dispatch,
@@ -157,6 +157,7 @@ type SelectCapacityAndNodesProps = {
   enableTaint: WizardState['capacityAndNodes']['enableTaint'];
   enableSingleReplicaPool: WizardState['capacityAndNodes']['enableSingleReplicaPool'];
   resourceProfile: WizardState['capacityAndNodes']['resourceProfile'];
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
 
 const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
@@ -166,6 +167,7 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
   enableTaint,
   enableSingleReplicaPool,
   resourceProfile,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -233,10 +235,15 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
             text={t(
               'Select at least 3 nodes preferably in 3 different zones. It is recommended to start with at least 14 CPUs and 34 GiB per node.'
             )}
+            systemNamespace={systemNamespace}
           />
         </GridItem>
         <GridItem span={10}>
-          <SelectNodesTable nodes={nodes} onRowSelected={onRowSelected} />
+          <SelectNodesTable
+            nodes={nodes}
+            onRowSelected={onRowSelected}
+            systemNamespace={systemNamespace}
+          />
         </GridItem>
       </Grid>
       <ConfigurePerformance
@@ -265,6 +272,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   nodes,
   enableSingleReplicaPool,
   resourceProfile,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
   const [pv, pvLoaded, pvLoadError] =
@@ -407,6 +415,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
                   ? attachDevicesWithArbiter(t, storageClassName)
                   : attachDevices(t, storageClassName)
               }
+              systemNamespace={systemNamespace}
             />
           </GridItem>
           <GridItem span={10}>
@@ -440,6 +449,7 @@ type SelectedCapacityAndNodesProps = {
   dispatch: WizardDispatch;
   nodes: WizardNodeState[];
   resourceProfile: WizardState['capacityAndNodes']['resourceProfile'];
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
 
 export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
@@ -448,7 +458,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   storageClass,
   volumeSetName,
   nodes,
-  resourceProfile,
+  systemNamespace,
 }) => {
   const {
     capacity,
@@ -456,6 +466,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
     enableTaint,
     arbiterLocation,
     enableSingleReplicaPool,
+    resourceProfile,
   } = state;
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
@@ -479,6 +490,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           capacity={capacity}
           enableSingleReplicaPool={enableSingleReplicaPool}
           resourceProfile={resourceProfile}
+          systemNamespace={systemNamespace}
         />
       ) : (
         <SelectCapacityAndNodes
@@ -488,6 +500,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           nodes={nodes}
           enableSingleReplicaPool={enableSingleReplicaPool}
           resourceProfile={resourceProfile}
+          systemNamespace={systemNamespace}
         />
       )}
       {!!validations.length &&
@@ -503,7 +516,7 @@ type CapacityAndNodesProps = {
   state: WizardState['capacityAndNodes'];
   storageClass: WizardState['storageClass'];
   nodes: WizardState['nodes'];
-  resourceProfile: WizardState['capacityAndNodes']['resourceProfile'];
   volumeSetName: WizardState['createLocalVolumeSet']['volumeSetName'];
   dispatch: WizardDispatch;
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

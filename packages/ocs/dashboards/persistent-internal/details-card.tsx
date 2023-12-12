@@ -1,7 +1,10 @@
 import * as React from 'react';
-import { useSafeK8sList } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getOperatorVersion } from '@odf/core/utils';
+import {
+  getStorageClusterInNs,
+  getResourceInNs as getCephClusterInNs,
+} from '@odf/core/utils';
 import { OSDMigrationDetails } from '@odf/ocs/modals/osd-migration/osd-migration-details';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
@@ -21,42 +24,57 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getInfrastructurePlatform,
   resourcePathFromModel,
+  referenceForModel,
 } from '@odf/shared/utils';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
-import { Link } from 'react-router-dom-v5-compat';
+import { Link, useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { StorageClusterModel } from '../../models';
+import { ODFSystemParams } from '../../types';
 import { getNetworkEncryption } from '../../utils';
+
+const storageClusterResource = {
+  kind: referenceForModel(StorageClusterModel),
+  isList: true,
+};
+
+const cephClusterResource = {
+  kind: referenceForModel(CephClusterModel),
+  isList: true,
+};
 
 const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
+  const { namespace: ocsNs } = useParams<ODFSystemParams>();
 
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
 
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
-  const [ocsData, ocsLoaded, ocsError] = useSafeK8sList<StorageClusterKind>(
-    StorageClusterModel,
-    odfNamespace
-  );
 
-  const [cephData, cephLoaded, cephLoadError] = useSafeK8sList<CephClusterKind>(
-    CephClusterModel,
-    odfNamespace
-  );
+  const [cephData, cephLoaded, cephLoadError] =
+    useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
+
+  const [ocsData, ocsLoaded, ocsError] = useK8sWatchResource<
+    StorageClusterKind[]
+  >(storageClusterResource);
 
   const [csv, csvLoaded, csvError] = useFetchCsv({
     specName: ODF_OPERATOR,
     namespace: odfNamespace,
     startPollingInstantly: isNsSafe,
   });
+
   const infrastructurePlatform = getInfrastructurePlatform(infrastructure);
-  const cluster: StorageClusterKind = ocsData?.find(
-    (item: StorageClusterKind) => item.status.phase !== 'Ignored'
+  const storageCluster: StorageClusterKind = getStorageClusterInNs(
+    ocsData,
+    ocsNs
   );
-  const ocsName = getName(cluster);
-  const inTransitEncryptionStatus = getNetworkEncryption(cluster)
+  const cephCluster: CephClusterKind = getCephClusterInNs(cephData, ocsNs);
+  const ocsName = getName(storageCluster);
+  const inTransitEncryptionStatus = getNetworkEncryption(storageCluster)
     ? t('Enabled')
     : t('Disabled');
 
@@ -123,10 +141,10 @@ const DetailsCard: React.FC = () => {
             error={cephLoadError as any}
           >
             <OSDMigrationDetails
-              cephData={cephData?.[0]}
-              ocsData={cluster}
               loaded={cephLoaded && ocsLoaded}
               loadError={cephLoadError || ocsError}
+              cephData={cephCluster}
+              ocsData={storageCluster}
             />
           </DetailItem>
         </DetailsBody>

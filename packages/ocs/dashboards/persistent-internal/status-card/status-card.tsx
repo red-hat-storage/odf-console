@@ -1,4 +1,7 @@
 import * as React from 'react';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
+import { getCephHealthState } from '@odf/ocs/utils';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -22,6 +25,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import * as _ from 'lodash-es';
+import { useParams } from 'react-router-dom-v5-compat';
 import {
   Gallery,
   GalleryItem,
@@ -33,13 +37,16 @@ import {
 } from '@patternfly/react-core';
 import { CephClusterModel } from '../../../models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
+import { ODFSystemParams } from '../../../types';
 import { OSDMigrationProgress } from './osd-migration/osd-migration-progress';
-import { getCephHealthState, getDataResiliencyState } from './utils';
+import { getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
 import './healthchecks.scss';
 
-const resiliencyProgressQuery =
-  DATA_RESILIENCY_QUERY[StorageDashboardQuery.RESILIENCY_PROGRESS];
+const resiliencyProgressQuery = (managedByOCS: string) =>
+  DATA_RESILIENCY_QUERY(managedByOCS)[
+    StorageDashboardQuery.RESILIENCY_PROGRESS
+  ];
 
 const generateDocumentationLink = (alert: Alert): string => {
   return `https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.12/html-single/troubleshooting_openshift_data_foundation/index#${_.toLower(
@@ -60,6 +67,8 @@ const getDocumentationLink = (alert: Alert): string => {
 
 export const CephAlerts: React.FC = () => {
   const [alerts, loaded, error] = useAlerts();
+  // ToDo (epic 4422): Get StorageCluster name and namespace from the Alert object
+  // and filter Alerts based on that for a particular cluster.
   const filteredAlerts =
     loaded && !error && !_.isEmpty(alerts) ? filterCephAlerts(alerts) : [];
 
@@ -110,9 +119,8 @@ const CephHealthCheck: React.FC<CephHealthCheckProps> = ({
   );
 };
 
-export const cephClusterResource = {
+const cephClusterResource = {
   kind: referenceForModel(CephClusterModel),
-  namespaced: false,
   isList: true,
 };
 
@@ -121,16 +129,22 @@ export const StatusCard: React.FC = () => {
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+
   const [resiliencyProgress, resiliencyProgressError] = useCustomPrometheusPoll(
     {
-      query: resiliencyProgressQuery,
+      query: resiliencyProgressQuery(managedByOCS),
       endpoint: 'api/v1/query' as any,
       basePath: usePrometheusBasePath(),
     }
   );
 
+  const cephCluster = getCephClusterInNs(data, clusterNs);
+
   const cephHealthState = getCephHealthState(
-    { ceph: { data, loaded, loadError } },
+    { ceph: { data: cephCluster, loaded, loadError } },
     t
   );
   const dataResiliencyState = getDataResiliencyState(
@@ -140,7 +154,7 @@ export const StatusCard: React.FC = () => {
 
   const pattern = /[A-Z]+_*|error/g;
   const healthChecks: CephHealthCheckType[] = [];
-  const cephDetails = data?.[0]?.status?.ceph?.details;
+  const cephDetails = cephCluster?.status?.ceph?.details;
   for (const key in cephDetails) {
     if (pattern.test(key)) {
       const healthCheckObject: CephHealthCheckType = {
@@ -185,7 +199,7 @@ export const StatusCard: React.FC = () => {
         </Gallery>
       </HealthBody>
       <OSDMigrationProgress
-        cephData={data?.[0]}
+        cephData={cephCluster}
         dataLoaded={loaded}
         dataLoadError={loadError}
       />

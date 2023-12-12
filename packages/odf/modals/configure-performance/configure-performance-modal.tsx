@@ -12,7 +12,6 @@ import {
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
   resourceRequirementsTooltip,
 } from '@odf/core/constants';
-import { useODFNamespaceSelector } from '@odf/core/redux';
 import { ResourceProfile, ValidationType } from '@odf/core/types';
 import { isResourceProfileAllowed } from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic';
@@ -21,6 +20,7 @@ import { useK8sGet } from '@odf/shared/hooks';
 import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { OCSStorageClusterModel } from '@odf/shared/models';
+import { getNamespace } from '@odf/shared/selectors';
 import {
   NodeKind,
   StorageClusterKind,
@@ -98,7 +98,8 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
   isOpen,
 }) => {
   const { t } = useCustomTranslation();
-  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+  const systemNs = getNamespace(storageCluster);
+
   const [inProgress, setProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState<Error>(null);
 
@@ -134,7 +135,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
       return;
     }
     try {
-      await labelNodes(selectedNodes, odfNamespace);
+      await labelNodes(selectedNodes, systemNs);
 
       const patch: Patch = {
         op: 'replace',
@@ -177,6 +178,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
           nodes={selectedNodes}
           onRowSelected={onRowSelected}
           disableLabeledNodes={true}
+          systemNamespace={systemNs}
         />
         {validation && (
           <ValidationMessage
@@ -212,7 +214,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
             data-test-id="confirm-action"
             variant="primary"
             onClick={submit}
-            isDisabled={!resourceProfile || !isNsSafe || !!validation}
+            isDisabled={!resourceProfile || !!validation}
           >
             {t('Save changes')}
           </Button>

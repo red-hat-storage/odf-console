@@ -1,7 +1,7 @@
 import * as React from 'react';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { ModalFooter } from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
   CommonModalProps,
@@ -12,18 +12,16 @@ import {
   PersistentVolumeClaimModel,
   StorageClassModel,
 } from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   ListKind,
   PersistentVolumeClaimKind,
   StorageClassResourceKind,
-  CephClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
 import {
   k8sDelete,
   K8sKind,
-  useK8sWatchResource,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
@@ -36,17 +34,11 @@ import {
   blockPoolInitialState,
   blockPoolReducer,
 } from '../../block-pool/reducer';
-import { CEPH_EXTERNAL_CR_NAME, POOL_PROGRESS } from '../../constants';
-import { CephBlockPoolModel, CephClusterModel } from '../../models';
+import { POOL_PROGRESS } from '../../constants';
+import { CephBlockPoolModel } from '../../models';
 import { StoragePoolKind } from '../../types';
 import { getStorageClassName } from '../../utils/common';
 import { BlockPoolModalFooter, FooterPrimaryActions } from './modal-footer';
-
-const cephClusterResource = {
-  kind: referenceForModel(CephClusterModel),
-  namespaced: false,
-  isList: true,
-};
 
 export const toList = (text: string[]): React.ReactNode => (
   <div
@@ -68,7 +60,8 @@ const DeleteBlockPoolModal: React.FC<DeleteBlockPoolModalProps> = (props) => {
     isOpen,
     closeModal,
   } = props;
-  const poolName = resource?.metadata.name;
+  const poolName = getName(resource);
+  const poolNamespace = getNamespace(resource);
 
   const [state, dispatch] = React.useReducer(
     blockPoolReducer,
@@ -77,22 +70,18 @@ const DeleteBlockPoolModal: React.FC<DeleteBlockPoolModalProps> = (props) => {
   const [scNames, setScNames] = React.useState<React.ReactNode>();
   const [inProgress, setProgress] = React.useState(false);
 
-  const [cephClusters, isLoaded, loadError] =
-    useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
   const [scResources, scLoaded, scLoadError] =
     useK8sGet<ListKind<StorageClassResourceKind>>(StorageClassModel);
   const [pvcResources, pvcLoaded, pvcLoadError] = useK8sGet<
     ListKind<PersistentVolumeClaimKind>
   >(PersistentVolumeClaimModel);
-  const cephCluster: CephClusterKind = useDeepCompareMemoize(
-    cephClusters[0],
-    true
-  );
+
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const isExternalSC = systemFlags[poolNamespace]?.isExternalMode;
 
   React.useEffect(() => {
     // restrict pool management for default pool and external cluster
-    cephCluster?.metadata.name === CEPH_EXTERNAL_CR_NAME ||
-    isDefaultPool(resource)
+    isExternalSC || isDefaultPool(resource)
       ? dispatch({
           type: BlockPoolActionType.SET_POOL_STATUS,
           payload: POOL_PROGRESS.NOTALLOWED,
@@ -101,7 +90,7 @@ const DeleteBlockPoolModal: React.FC<DeleteBlockPoolModalProps> = (props) => {
           type: BlockPoolActionType.SET_POOL_NAME,
           payload: poolName,
         });
-  }, [resource, cephCluster, isLoaded, loadError, poolName]);
+  }, [resource, isExternalSC, poolName]);
 
   React.useEffect(() => {
     if (
@@ -172,10 +161,7 @@ const DeleteBlockPoolModal: React.FC<DeleteBlockPoolModalProps> = (props) => {
       variant={ModalVariant.small}
       onClose={closeModal}
     >
-      {isLoaded &&
-      pvcLoaded &&
-      scLoaded &&
-      !(loadError && pvcLoadError && scLoadError) ? (
+      {pvcLoaded && scLoaded && !(pvcLoadError && scLoadError) ? (
         <>
           <ModalBody>
             {state.poolStatus === POOL_PROGRESS.NOTALLOWED ? (
@@ -221,8 +207,8 @@ const DeleteBlockPoolModal: React.FC<DeleteBlockPoolModalProps> = (props) => {
         </>
       ) : (
         <StatusBox
-          loaded={isLoaded && pvcLoaded && scLoaded}
-          loadError={loadError ?? pvcLoadError ?? scLoadError}
+          loaded={pvcLoaded && scLoaded}
+          loadError={pvcLoadError ?? scLoadError}
           label={t('BlockPool Delete Modal')}
         />
       )}

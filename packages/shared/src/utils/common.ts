@@ -120,8 +120,10 @@ export const referenceForOwnerRef = (
     groupVersionFor(ownerRef.apiVersion).version
   )(ownerRef.kind);
 
-export const isFunctionThenApply = (fn: any) => (args: string) =>
-  typeof fn === 'function' ? fn(args) : fn;
+export const isFunctionThenApply =
+  (fn: any) =>
+  (...args) =>
+    typeof fn === 'function' ? fn(...args) : fn;
 
 export const getInfrastructurePlatform = (
   infrastructure: K8sResourceKind
@@ -131,7 +133,7 @@ export const getInfrastructurePlatform = (
 export const getGVKLabel = ({ kind, apiGroup, apiVersion }: Model) =>
   `${kind.toLowerCase()}.${apiGroup}/${apiVersion}`;
 
-export const getRandomChars = () => Math.random().toString(36).substring(7);
+export const getRandomChars = () => Math.random().toString(36).substring(2, 10);
 
 export const getErrorMessage = (error: Error) => error?.message;
 
@@ -142,3 +144,5 @@ export const isValidIP = (address) =>
 
 export const getValidatedProp = (error: boolean) =>
   error ? 'error' : 'default';
+
+export const isAbortError = (err): boolean => err?.name === 'AbortError';

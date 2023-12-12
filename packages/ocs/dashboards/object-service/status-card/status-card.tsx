@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { RGW_FLAG } from '@odf/core/features';
-import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { CephObjectStoreModel } from '@odf/core/models';
 import { NooBaaSystemModel } from '@odf/core/models';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { secretResource } from '@odf/core/resources';
+import { getResourceInNs } from '@odf/core/utils';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -17,10 +17,7 @@ import {
   filterRGWAlerts,
 } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
-import {
-  useK8sWatchResource,
-  useFlag,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   AlertsBody,
   AlertItem,
@@ -28,6 +25,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import * as _ from 'lodash-es';
+import { useParams } from 'react-router-dom-v5-compat';
 import {
   Gallery,
   GalleryItem,
@@ -42,6 +40,7 @@ import {
   dataResiliencyQueryMap,
   ObjectServiceDashboardQuery,
 } from '../../../queries';
+import { ODFSystemParams } from '../../../types';
 import { decodeRGWPrefix } from '../../../utils';
 import { ObjectServiceStatus } from './object-service-health';
 import { getNooBaaState, getRGWHealthState } from './statuses';
@@ -59,6 +58,8 @@ const cephObjectStoreResource = {
 
 const ObjectStorageAlerts = () => {
   const [alerts, loaded, loadError] = useAlerts();
+  // ToDo (epic 4422): Get StorageCluster name and namespace from the Alert object
+  // and filter Alerts based on that for a particular cluster.
   const filteredAlerts =
     loaded && !loadError && !_.isEmpty(alerts)
       ? [...filterNooBaaAlerts(alerts), ...filterRGWAlerts(alerts)]
@@ -79,16 +80,24 @@ const ObjectStorageAlerts = () => {
 };
 
 const StatusCard: React.FC<{}> = () => {
-  const isRGWSupported = useFlag(RGW_FLAG);
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const isRGWSupported = systemFlags[clusterNs]?.isRGWAvailable;
+  const isMCGSupported = systemFlags[clusterNs]?.isNoobaaAvailable;
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+
   const { t } = useCustomTranslation();
 
   const [secretData, secretLoaded, secretLoadError] =
-    useSafeK8sWatchResource<K8sResourceKind>(secretResource);
-  const [noobaa, noobaaLoaded, noobaaLoadError] =
+    useK8sWatchResource<K8sResourceKind>(secretResource(clusterNs));
+  const [noobaas, noobaaLoaded, noobaaLoadError] =
     useK8sWatchResource<K8sResourceKind[]>(noobaaResource);
-  const [rgw, rgwLoaded, rgwLoadError] = useK8sWatchResource<K8sResourceKind[]>(
-    cephObjectStoreResource
-  );
+  const [rgws, rgwLoaded, rgwLoadError] = useK8sWatchResource<
+    K8sResourceKind[]
+  >(cephObjectStoreResource);
+
+  const noobaa = getResourceInNs(noobaas, clusterNs);
+  const rgw = getResourceInNs(rgws, clusterNs);
 
   const rgwPrefix = React.useMemo(
     () =>
@@ -98,10 +107,9 @@ const StatusCard: React.FC<{}> = () => {
     [secretData, secretLoaded, secretLoadError, isRGWSupported]
   );
 
-  const rgwResiliencyQuery =
-    dataResiliencyQueryMap[
-      ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY
-    ](rgwPrefix);
+  const rgwResiliencyQuery = dataResiliencyQueryMap[
+    ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY
+  ](rgwPrefix, managedByOCS);
 
   const [healthStatusResult, healthStatusError] = useCustomPrometheusPoll({
     query: StatusCardQueries.HEALTH_QUERY,
@@ -130,7 +138,7 @@ const StatusCard: React.FC<{}> = () => {
   );
 
   const RGWState =
-    !rgwLoadError && rgwLoaded ? getRGWHealthState(rgw[0]) : undefined;
+    !rgwLoadError && rgwLoaded ? getRGWHealthState(rgw) : undefined;
 
   const dataResiliencyState: SubsystemHealth = getDataResiliencyState(
     [{ response: progressResult, error: progressError }],
@@ -152,14 +160,14 @@ const StatusCard: React.FC<{}> = () => {
           <GalleryItem>
             <ObjectServiceStatus
               RGWMetrics={isRGWSupported ? RGWState : undefined}
-              MCGMetrics={MCGState}
+              MCGMetrics={isMCGSupported ? MCGState : undefined}
               statusType={StatusType.HEALTH}
             />
           </GalleryItem>
           <GalleryItem>
             <ObjectServiceStatus
               RGWMetrics={isRGWSupported ? RGWResiliencyState : undefined}
-              MCGMetrics={dataResiliencyState}
+              MCGMetrics={isMCGSupported ? dataResiliencyState : undefined}
               statusType={StatusType.RESILIENCY}
             />
           </GalleryItem>

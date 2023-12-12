@@ -66,6 +66,7 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
   const [scData, scLoaded, scLoadError] =
     useK8sList<StorageClassResourceKind>(StorageClassModel);
 
+  // Non-RHCS StorageSystems are only created in ODF install namespace
   const [secretData, secretLoaded, secretLoadError] =
     useSafeK8sList<SecretKind>(SecretModel, odfNamespace);
   const [flashSystemData, flashSystemLoaded, flashSystemLoadError] =

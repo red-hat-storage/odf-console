@@ -37,22 +37,28 @@ export enum ObjectServiceDashboardQuery {
   RGW_REBUILD_PROGRESS_QUERY = 'RGW_REBUILD_PROGRESS_QUERY',
 }
 
+// ToDo (epic 4422): This should work (for now) as "managedBy" will be unique,
+// but moving forward add a label to metric for CephCluster namespace and use that instead (update query).
 export const dataResiliencyQueryMap = {
   [ObjectServiceDashboardQuery.MCG_REBUILD_PROGRESS_QUERY]:
     'NooBaa_rebuild_progress/100',
   [ObjectServiceDashboardQuery.MCG_REBUILD_TIME_QUERY]: 'NooBaa_rebuild_time',
   [ObjectServiceDashboardQuery.RGW_REBUILD_PROGRESS_QUERY]: (
-    rgwPrefix: string = ''
+    rgwPrefix: string = '',
+    managedByOCS: string
   ) =>
     _.template(
-      'sum(ceph_pool_metadata{name=~"<%= name %>"}*on (job, namespace, pool_id) group_right(name) (ceph_pg_active and ceph_pg_clean)) / sum(ceph_pool_metadata{name=~"<%= name %>"} *on (job, namespace, pool_id) group_right(name) ceph_pg_total)'
+      'sum(ceph_pool_metadata{name=~"<%= name %>",managedBy="<%= managedByOCS %>"}*on (job, namespace, pool_id) group_right(name) (ceph_pg_active{managedBy="<%= managedByOCS %>"} and ceph_pg_clean{managedBy="<%= managedByOCS %>"})) / sum(ceph_pool_metadata{name=~"<%= name %>",managedBy="<%= managedByOCS %>"} *on (job, namespace, pool_id) group_right(name) ceph_pg_total{managedBy="<%= managedByOCS %>"})'
     )({
       name: rgwPrefix
         ? `${rgwPrefix}.rgw.*`
-        : '(ocs-storagecluster-cephblockpool)|(ocs-storagecluster-cephfilesystem-data0)',
+        : `(${managedByOCS}-cephblockpool)|(${managedByOCS}-cephfilesystem-data0)`,
+      managedByOCS: managedByOCS,
     }),
 };
 
+// ToDo (epic 4422): This should work (for now) as "managedBy" will be unique,
+// but moving forward add a label to metric for CephCluster namespace and use that instead (update query).
 export const MCG_CAPACITY_BREAKDOWN_QUERIES = {
   [ObjectServiceDashboardQuery.PROJECTS_BY_USED]:
     'NooBaa_projects_capacity_usage',
@@ -60,17 +66,22 @@ export const MCG_CAPACITY_BREAKDOWN_QUERIES = {
     'NooBaa_bucket_class_capacity_usage',
   [ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED]:
     'sum(NooBaa_providers_physical_size)',
-  [ObjectServiceDashboardQuery.RGW_TOTAL_USED]: (rgwPrefix: string = '') =>
-    _.template(
-      'sum(ceph_pool_metadata{name=~"<%= name %>rgw.buckets.data"} *on (job, namespace, pool_id) group_right(name) ceph_pool_stored) - max(NooBaa_providers_physical_size{type="S3_COMPATIBLE"} or vector(0))'
-    )({ name: rgwPrefix ? `${rgwPrefix}.` : '.*' }),
-  [ObjectServiceDashboardQuery.OBJECT_STORAGE_TOTAL_USED]: (
-    rgwPrefix: string = ''
+  [ObjectServiceDashboardQuery.RGW_TOTAL_USED]: (
+    rgwPrefix: string = '',
+    managedByOCS: string
   ) =>
     _.template(
-      'sum(ceph_pool_metadata{name=~"<%= name %>rgw.buckets.data"} *on (job, namespace, pool_id) group_right(name) ceph_pool_stored) + max(sum(NooBaa_providers_physical_size{type!="S3_COMPATIBLE"}) or vector(0))'
+      'sum(ceph_pool_metadata{name=~"<%= name %>rgw.buckets.data",managedBy="<%= managedByOCS %>"} *on (job, namespace, pool_id) group_right(name) ceph_pool_stored{managedBy="<%= managedByOCS %>"}) - max(NooBaa_providers_physical_size{type="S3_COMPATIBLE"} or vector(0))'
+    )({ name: rgwPrefix ? `${rgwPrefix}.` : '.*', managedByOCS: managedByOCS }),
+  [ObjectServiceDashboardQuery.OBJECT_STORAGE_TOTAL_USED]: (
+    rgwPrefix: string = '',
+    managedByOCS: string
+  ) =>
+    _.template(
+      'sum(ceph_pool_metadata{name=~"<%= name %>rgw.buckets.data",managedBy="<%= managedByOCS %>"} *on (job, namespace, pool_id) group_right(name) ceph_pool_stored{managedBy="<%= managedByOCS %>"}) + max(sum(NooBaa_providers_physical_size{type!="S3_COMPATIBLE"}) or vector(0))'
     )({
       name: rgwPrefix ? `${rgwPrefix}.` : '.*',
+      managedByOCS: managedByOCS,
     }),
 };
 
@@ -79,11 +90,11 @@ export const breakdownQueryMapMCG = {
     [CapacityBreakdown.Metrics.TOTAL]: {
       model: null,
       metric: '',
-      queries: (rgwPrefix: string = '') => ({
+      queries: (rgwPrefix: string = '', managedByOCS: string) => ({
         [ObjectServiceDashboardQuery.RGW_TOTAL_USED]: (() =>
           MCG_CAPACITY_BREAKDOWN_QUERIES[
             ObjectServiceDashboardQuery.RGW_TOTAL_USED
-          ](rgwPrefix))(),
+          ](rgwPrefix, managedByOCS))(),
         [ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED]:
           MCG_CAPACITY_BREAKDOWN_QUERIES[
             ObjectServiceDashboardQuery.NOOBAA_TOTAL_USED
@@ -91,7 +102,7 @@ export const breakdownQueryMapMCG = {
         [ObjectServiceDashboardQuery.OBJECT_STORAGE_TOTAL_USED]: (() =>
           MCG_CAPACITY_BREAKDOWN_QUERIES[
             ObjectServiceDashboardQuery.OBJECT_STORAGE_TOTAL_USED
-          ](rgwPrefix))(),
+          ](rgwPrefix, managedByOCS))(),
       }),
     },
   },
@@ -149,20 +160,22 @@ export const breakdownQueryMapMCG = {
     [CapacityBreakdown.Metrics.TOTAL]: {
       model: null,
       metric: '',
-      queries: (rgwPrefix: string = '') => ({
+      queries: (rgwPrefix: string = '', managedByOCS: string) => ({
         [ObjectServiceDashboardQuery.RGW_TOTAL_USED]: (() =>
           MCG_CAPACITY_BREAKDOWN_QUERIES[
             ObjectServiceDashboardQuery.RGW_TOTAL_USED
-          ](rgwPrefix))(),
+          ](rgwPrefix, managedByOCS))(),
         [ObjectServiceDashboardQuery.RGW_USED]: (() =>
           MCG_CAPACITY_BREAKDOWN_QUERIES[
             ObjectServiceDashboardQuery.RGW_TOTAL_USED
-          ](rgwPrefix))(),
+          ](rgwPrefix, managedByOCS))(),
       }),
     },
   },
 };
 
+// ToDo (epic 4422): This should work (for now) as "managedBy" will be unique,
+// but moving forward add a label to metric for CephCluster namespace and use that instead (update query).
 export const DATA_CONSUMPTION_QUERIES = {
   [ServiceType.MCG]: {
     [Breakdown.ACCOUNTS]: {
@@ -196,18 +209,16 @@ export const DATA_CONSUMPTION_QUERIES = {
       },
     },
   },
-  [ServiceType.RGW]: {
+  [ServiceType.RGW]: (managedByOCS: string) => ({
     [Metrics.LATENCY]: {
-      latencyGet:
-        'avg(rate(ceph_rgw_get_initial_lat_sum[1m])) /avg(rate(ceph_rgw_get_initial_lat_count[1m])>0)',
-      latencyPut:
-        'avg(rate(ceph_rgw_put_initial_lat_sum[1m])) /avg(rate(ceph_rgw_put_initial_lat_count[1m])>0)',
+      latencyGet: `avg(rate(ceph_rgw_get_initial_lat_sum{managedBy="${managedByOCS}"}[1m])) /avg(rate(ceph_rgw_get_initial_lat_count{managedBy="${managedByOCS}"}[1m])>0)`,
+      latencyPut: `avg(rate(ceph_rgw_put_initial_lat_sum{managedBy="${managedByOCS}"}[1m])) /avg(rate(ceph_rgw_put_initial_lat_count{managedBy="${managedByOCS}"}[1m])>0)`,
     },
     [Metrics.BANDWIDTH]: {
-      bandwidthGet: 'sum(rate(ceph_rgw_get_b[1m]))',
-      bandwidthPut: 'sum(rate(ceph_rgw_put_b[1m]))',
+      bandwidthGet: `sum(rate(ceph_rgw_get_b{managedBy="${managedByOCS}"}[1m]))`,
+      bandwidthPut: `sum(rate(ceph_rgw_put_b{managedBy="${managedByOCS}"}[1m]))`,
     },
-  },
+  }),
 };
 
 export enum ObjectStorageEfficiencyQueries {

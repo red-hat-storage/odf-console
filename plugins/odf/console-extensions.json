@@ -63,6 +63,14 @@
     }
   },
   {
+    "type": "console.flag/hookProvider",
+    "properties": {
+      "handler": {
+        "$codeRef": "odfReduxReducers.useODFSystemFlags"
+      }
+    }
+  },
+  {
     "type": "console.navigation/href",
     "properties": {
       "id": "odfdashboard",
@@ -133,7 +141,7 @@
     "type": "console.page/route",
     "properties": {
       "exact": true,
-      "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/create/~new",
+      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/create/~new",
       "component": {
         "$codeRef": "createBlockPools.default"
       }
@@ -142,7 +150,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/:poolName",
+      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/:poolName",
       "exact": false,
       "component": {
         "$codeRef": "blockPoolDetailsPage.default"
@@ -212,7 +220,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/system/ocs.openshift.io~v1~StorageCluster/:systemName",
+      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName",
       "exact": false,
       "component": {
         "$codeRef": "ocs.default"

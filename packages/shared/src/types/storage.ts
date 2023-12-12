@@ -163,3 +163,5 @@ export type StorageConsumerKind = K8sResourceCommon & {
   spec?: StorageConsumerSpec;
   status: StorageConsumerStatus;
 };
+
+export type NoobaaSystemKind = K8sResourceCommon;

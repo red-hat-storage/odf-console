@@ -32,7 +32,6 @@ export const InventoryCard: React.FC = () => {
   const { obj } = React.useContext(BlockPoolDashboardContext);
   const { name } = obj.metadata;
 
-  // Hooks
   const [scResources, scLoaded, scLoadError] =
     useK8sWatchResource<StorageClassResourceKind[]>(scResource);
   const [pvcResources, pvcLoaded, pvcLoadError] =

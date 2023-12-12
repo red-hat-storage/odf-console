@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { ObjectStorageEfficiencyQueries } from '@odf/ocs/queries';
 import { EfficiencyItemBody } from '@odf/shared/dashboards/storage-efficiency/storage-efficiency-card-item';
+import { DataUnavailableError } from '@odf/shared/generic';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -8,9 +10,11 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes, humanizePercentage } from '@odf/shared/utils';
 import { getGaugeValue } from '@odf/shared/utils';
+import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { ODFSystemParams } from '../../../types';
 
-const StorageEfficiencyCard: React.FC<{}> = () => {
+const EfficiencyItemBody_: React.FC = () => {
   const { t } = useCustomTranslation();
 
   const [compressionQueryResult, compressionQueryResultError] =
@@ -85,13 +89,27 @@ const StorageEfficiencyCard: React.FC<{}> = () => {
   };
 
   return (
+    <>
+      <EfficiencyItemBody {...compressionRatioProps} />
+      <EfficiencyItemBody {...savingsProps} />
+    </>
+  );
+};
+
+const StorageEfficiencyCard: React.FC<{}> = () => {
+  const { t } = useCustomTranslation();
+
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const hasMCG = systemFlags[clusterNs]?.isNoobaaAvailable;
+
+  return (
     <Card>
       <CardHeader>
         <CardTitle>{t('Storage efficiency')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <EfficiencyItemBody {...compressionRatioProps} />
-        <EfficiencyItemBody {...savingsProps} />
+        {hasMCG ? <EfficiencyItemBody_ /> : <DataUnavailableError />}
       </CardBody>
     </Card>
   );

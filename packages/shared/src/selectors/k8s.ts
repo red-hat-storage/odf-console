@@ -41,3 +41,13 @@ export const getAnnotations = <A extends K8sResourceCommon = K8sResourceCommon>(
 export const getAPIVersion = <A extends K8sResourceCommon = K8sResourceCommon>(
   value: A
 ) => _.get(value, 'apiVersion') as K8sResourceCommon['apiVersion'];
+
+export const getOwnerReferences = <
+  A extends K8sResourceCommon = K8sResourceCommon
+>(
+  value: A
+) =>
+  _.get(
+    value,
+    'metadata.ownerReferences'
+  ) as K8sResourceCommon['metadata']['ownerReferences'];

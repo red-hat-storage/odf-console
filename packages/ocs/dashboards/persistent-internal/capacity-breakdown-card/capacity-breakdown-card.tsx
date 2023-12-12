@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { useODFNamespaceSelector } from '@odf/core/redux';
+import {
+  useODFNamespaceSelector,
+  useODFSystemFlagsSelector,
+} from '@odf/core/redux';
 import { namespaceResource } from '@odf/core/resources';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { getSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
@@ -22,6 +25,7 @@ import {
   sortInstantVectorStats,
 } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import { useParams } from 'react-router-dom-v5-compat';
 import {
   Select,
   SelectProps,
@@ -35,6 +39,7 @@ import {
   CEPH_CAPACITY_BREAKDOWN_QUERIES,
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
+import { ODFSystemParams } from '../../../types';
 import { getStackChartStats } from '../../../utils/metrics';
 import './capacity-breakdown-card.scss';
 
@@ -130,9 +135,19 @@ const BreakdownCard: React.FC = () => {
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const [pvcNamespace, setPVCNamespace] = React.useState('');
 
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+
+  // name of the created StorageClasses are prefix by StorageCluster name,
+  // it is also the value of the "managedBy" label in the metrics.
+  const ocsCluster = systemFlags[clusterNs]?.ocsClusterName;
+
   const { queries, model, metric } = getBreakdownMetricsQuery(
     metricType,
-    pvcNamespace
+    ocsCluster,
+    pvcNamespace,
+    false,
+    ocsCluster
   );
 
   const { odfNamespace } = useODFNamespaceSelector();
@@ -150,8 +165,9 @@ const BreakdownCard: React.FC = () => {
       basePath: usePrometheusBasePath(),
     });
   const [cephUsedMetric, cephError, cephLoading] = useCustomPrometheusPoll({
-    query:
-      CEPH_CAPACITY_BREAKDOWN_QUERIES[StorageDashboardQuery.CEPH_CAPACITY_USED],
+    query: CEPH_CAPACITY_BREAKDOWN_QUERIES(ocsCluster, ocsCluster)[
+      StorageDashboardQuery.CEPH_CAPACITY_USED
+    ],
     endpoint: 'api/v1/query' as any,
     basePath: usePrometheusBasePath(),
   });

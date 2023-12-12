@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { useODFNamespaceSelector } from '@odf/core/redux';
+import {
+  useODFNamespaceSelector,
+  useODFSystemFlagsSelector,
+} from '@odf/core/redux';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { getSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import {
@@ -16,6 +19,7 @@ import {
   getInstantVectorStats,
   sortInstantVectorStats,
 } from '@odf/shared/utils';
+import { useParams } from 'react-router-dom-v5-compat';
 import {
   Select,
   SelectProps,
@@ -25,6 +29,7 @@ import {
   CardTitle,
 } from '@patternfly/react-core';
 import { getBreakdownMetricsQuery } from '../../queries';
+import { ODFSystemParams } from '../../types';
 import { getStackChartStats } from '../../utils/metrics';
 import {
   NamespaceDropdown,
@@ -41,10 +46,16 @@ export const BreakdownCard: React.FC = () => {
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const [pvcNamespace, setPVCNamespace] = React.useState('');
 
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { odfNamespace } = useODFNamespaceSelector();
+  const { systemFlags } = useODFSystemFlagsSelector();
+
+  // name of created StorageClasses are prefix by StorageCluster name
+  const storageClassNamePrefix = systemFlags[clusterNs]?.ocsClusterName;
 
   const { queries, model, metric } = getBreakdownMetricsQuery(
     metricType,
+    storageClassNamePrefix,
     pvcNamespace,
     true
   );

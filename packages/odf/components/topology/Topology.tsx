@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
-import { useODFNamespaceSelector } from '@odf/core/redux';
+import {
+  useODFNamespaceSelector,
+  useODFSystemFlagsSelector,
+} from '@odf/core/redux';
+import { getStorageClusterInNs } from '@odf/core/utils';
 import HandleErrorAndLoading from '@odf/shared/error-handler/ErrorStateHandler';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import {
@@ -9,6 +13,7 @@ import {
   NodeModel,
 } from '@odf/shared/models';
 import { getName, getUID } from '@odf/shared/selectors';
+import { BlueInfoCircleIcon } from '@odf/shared/status';
 import {
   createNode,
   defaultLayoutFactory,
@@ -28,7 +33,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
-  useFlag,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -56,11 +60,6 @@ import {
 } from '@patternfly/react-topology';
 import { cephStorageLabel } from '../../constants';
 import {
-  CEPH_FLAG,
-  MCG_STANDALONE,
-  OCS_INDEPENDENT_FLAG,
-} from '../../features';
-import {
   nodeResource,
   odfDaemonSetResource,
   odfDeploymentsResource,
@@ -69,6 +68,12 @@ import {
   odfStatefulSetResource,
   storageClusterResource,
 } from '../../resources';
+import {
+  hasAnyExternalOCS,
+  hasAnyInternalOCS,
+  hasAnyCeph,
+  hasAnyNoobaaStandalone,
+} from '../../utils';
 import {
   STEP_INTO_EVENT,
   STEP_TO_CLUSTER,
@@ -110,6 +115,22 @@ const Sidebar: React.FC<SideBarProps> = ({ onClose, isExpanded }) => {
 
 type BackButtonProps = {
   onClick: () => void;
+};
+
+const MessageButton: React.FC = () => {
+  const { t } = useCustomTranslation();
+  const [showMessage, setShowMessage] = React.useState(false);
+
+  return (
+    <div className="odf-topology__message-button">
+      <BlueInfoCircleIcon />{' '}
+      {showMessage &&
+        t('This view is only supported for Internal mode cluster.')}{' '}
+      <a onClick={() => setShowMessage(!showMessage)}>
+        {!showMessage ? t('Show message') : t('Hide message')}
+      </a>
+    </div>
+  );
 };
 
 const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
@@ -426,6 +447,7 @@ const TopologyViewComponent: React.FC = () => {
       {currentView === TopologyViewLevel.DEPLOYMENTS && (
         <BackButton onClick={toggleVisualizationLevel} />
       )}
+      <MessageButton />
       <VisualizationSurface state={{ selectedIds }} />
     </TopologyView>
   );
@@ -449,7 +471,7 @@ const Topology: React.FC = () => {
   const [nodes, nodesLoaded, nodesError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);
 
-  const [storageCluster, storageClusterLoaded, storageClusterError] =
+  const [storageClusters, storageClustersLoaded, storageClustersError] =
     useK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
 
   const [deployments, deploymentsLoaded, deploymentsError] =
@@ -466,6 +488,13 @@ const Topology: React.FC = () => {
 
   const [daemonSets, daemonSetsLoaded, daemonSetError] =
     useSafeK8sWatchResource<K8sResourceCommon[]>(odfDaemonSetResource);
+
+  // ToDo (epic 4422): This will work as Internal mode cluster will only be created in ODF install namespace.
+  // Still, make this generic so that this works even if it gets created in a different namespace.
+  const storageCluster: StorageClusterKind = getStorageClusterInNs(
+    storageClusters,
+    odfNamespace
+  );
 
   const storageLabel = cephStorageLabel(odfNamespace);
   const odfNodes = nodes.filter((node) =>
@@ -527,7 +556,7 @@ const Topology: React.FC = () => {
 
   const loading =
     !nodesLoaded ||
-    !storageClusterLoaded ||
+    !storageClustersLoaded ||
     !deploymentsLoaded ||
     !podsLoaded ||
     !statefulSetLoaded ||
@@ -541,7 +570,7 @@ const Topology: React.FC = () => {
     <TopologyDataContext.Provider
       value={{
         nodes: memoizedNodes,
-        storageCluster: storageCluster[0],
+        storageCluster: storageCluster,
         zones,
         deployments: memoizedDeployments,
         visualizationLevel: visualizationLevel,
@@ -561,7 +590,7 @@ const Topology: React.FC = () => {
             <HandleErrorAndLoading
               loading={loading}
               error={
-                storageClusterError ||
+                storageClustersError ||
                 nodesError ||
                 deploymentsError ||
                 podsError ||
@@ -583,10 +612,12 @@ const Topology: React.FC = () => {
 
 type TopologyViewErrorMessageProps = {
   isExternalMode?: boolean;
+  isInternalMode?: boolean;
 };
 
 const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
   isExternalMode,
+  isInternalMode,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -608,20 +639,21 @@ const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
 
   const createLink = `/k8s/ns/${odfNamespace}/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
 
-  const showCreateSSOption = !isExternalMode && isNsSafe;
+  // If external mode cluster exists, we do not allow internal mode cluster creation (in case of multiple StorageSystem support)
+  const hideCreateSSOption = (isExternalMode && !isInternalMode) || !isNsSafe;
   return (
     <EmptyState>
       <EmptyStateIcon icon={TopologyIcon} />
       <Title headingLevel="h4" size="lg">
         {isExternalMode
-          ? t('Topology view is not supported for External Mode')
+          ? t('Topology view is not supported for External mode')
           : t('No StorageCluster found')}
       </Title>
       <EmptyStateBody>
-        {showCreateSSOption &&
+        {!hideCreateSSOption &&
           t('Set up a storage cluster to view the topology')}
       </EmptyStateBody>
-      {showCreateSSOption && (
+      {!hideCreateSSOption && (
         <Link to={createLink}>{t('Create StorageSystem')} </Link>
       )}
     </EmptyState>
@@ -629,16 +661,22 @@ const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
 };
 
 const TopologyWithErrorHandler: React.FC = () => {
-  const isCephAvailable = useFlag(CEPH_FLAG);
-  const isMCGAvailable = useFlag(MCG_STANDALONE);
-  const isExternalMode = useFlag(OCS_INDEPENDENT_FLAG);
+  const { systemFlags } = useODFSystemFlagsSelector();
 
-  const showDashboard = (isCephAvailable || isMCGAvailable) && !isExternalMode;
+  const isCephAvailable = hasAnyCeph(systemFlags);
+  const isMCGStandalone = hasAnyNoobaaStandalone(systemFlags);
+  const isExternalMode = hasAnyExternalOCS(systemFlags);
+  const isInternalMode = hasAnyInternalOCS(systemFlags);
+
+  const showDashboard = (isCephAvailable || isMCGStandalone) && isInternalMode;
 
   return showDashboard ? (
     <Topology />
   ) : (
-    <TopologyViewErrorMessage isExternalMode={isExternalMode} />
+    <TopologyViewErrorMessage
+      isExternalMode={isExternalMode}
+      isInternalMode={isInternalMode}
+    />
   );
 };
 

@@ -13,6 +13,7 @@ export type KMSConfigureProps = {
   infraType?: string;
   mode?: string;
   isWizardFlow?: boolean;
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
   isMCG?: boolean;
 };
 
@@ -21,4 +22,5 @@ export type AdvancedKMSModalProps = {
   dispatch: EncryptionDispatch;
   mode?: string;
   isWizardFlow?: boolean;
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
