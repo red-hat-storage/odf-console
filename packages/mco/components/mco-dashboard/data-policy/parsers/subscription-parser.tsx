@@ -39,7 +39,7 @@ const createPlacementInfoList = (
         drClusters: currentDRClusters,
       } = drInfo;
 
-      const placementInfo = {
+      const placementInfo: PlacementInfo = {
         deploymentClusterName: clusterName,
         drpcName: getName(drPlacementControl),
         drpcNamespace: getNamespace(drPlacementControl),
@@ -51,6 +51,9 @@ const createPlacementInfoList = (
         preferredCluster: drPlacementControl?.spec?.preferredCluster,
         lastGroupSyncTime: drPlacementControl?.status?.lastGroupSyncTime,
         status: drPlacementControl?.status?.phase as DRPC_STATUS,
+        subscriptions: subscriptionGroup?.subscriptions?.map((subs) =>
+          getName(subs)
+        ),
       };
 
       placementInfoList.push(placementInfo);

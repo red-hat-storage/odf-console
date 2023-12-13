@@ -20,6 +20,10 @@
     &__dropdown--padding {
         padding-right: var(--pf-global--spacer--xs);
     }
+    &__dropdownHeight {
+        max-height: 30rem;
+        overflow-y: auto;
+    }
     &__text--padding-left {
         padding-left: var(--pf-global--spacer--sm);
     }
@@ -56,4 +60,9 @@
 
   .co-utilization-card__item-summary .bold {
     font-weight: bold;
+}
+
+.mco-cluster-app__subs-table--width {
+    min-width: 10rem;
+    max-width: 55rem;
 }

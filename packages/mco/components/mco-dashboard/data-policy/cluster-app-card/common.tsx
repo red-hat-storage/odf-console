@@ -14,11 +14,13 @@ import {
   ProtectedAppsMap,
   ApplicationObj,
   ProtectedPVCData,
-  PlacementInfo,
 } from '@odf/mco/types';
-import { getVolumeReplicationHealth } from '@odf/mco/utils';
+import {
+  filterPVCDataUsingApp,
+  getVolumeReplicationHealth,
+} from '@odf/mco/utils';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
-import { URL_POLL_DEFAULT_DELAY } from '@odf/shared/hooks/custom-prometheus-poll/use-url-poll';
+import { useScheduler } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Select as SelectNext,
@@ -69,12 +71,9 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
     warning: 0,
     healthy: 0,
   });
-  const clearSetIntervalId = React.useRef<NodeJS.Timeout>();
 
   const updateSummary = React.useCallback(() => {
     const volumeHealth = { critical: 0, warning: 0, healthy: 0 };
-    const placementInfo: PlacementInfo =
-      selectedApplication?.placementInfo?.[0];
     protectedPVCData?.forEach((pvcData) => {
       const pvcLastSyncTime = pvcData?.lastSyncTime;
       const health = getVolumeReplicationHealth(
@@ -83,25 +82,15 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
           : LEAST_SECONDS_IN_PROMETHEUS,
         pvcData?.schedulingInterval
       )[0];
-      if (!!selectedApplication) {
-        pvcData?.drpcName === placementInfo?.drpcName &&
-          pvcData?.drpcNamespace === placementInfo?.drpcNamespace &&
-          volumeHealth[health]++;
-      } else {
-        volumeHealth[health]++;
-      }
+      !!selectedApplication
+        ? filterPVCDataUsingApp(pvcData, selectedApplication) &&
+          volumeHealth[health]++
+        : volumeHealth[health]++;
     });
     setSummary(volumeHealth);
   }, [selectedApplication, protectedPVCData, setSummary]);
 
-  React.useEffect(() => {
-    updateSummary();
-    clearSetIntervalId.current = setInterval(
-      updateSummary,
-      URL_POLL_DEFAULT_DELAY
-    );
-    return () => clearInterval(clearSetIntervalId.current);
-  }, [updateSummary]);
+  useScheduler(updateSummary);
 
   return (
     <div className="mco-dashboard__contentColumn">
@@ -287,29 +276,30 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
       onSelect={onSelect}
       onOpenChange={(isOpenFlag) => setIsOpen(isOpenFlag)}
       toggle={toggle}
-      className={className}
     >
-      <SelectGroupNext label="Applications">
-        <SelectListNext>
-          <SelectOptionNext itemId={ALL_APPS_ITEM_ID}>
-            {ALL_APPS}
-          </SelectOptionNext>
-        </SelectListNext>
-      </SelectGroupNext>
-      {Object.keys(options)?.map((appNS: string) => (
-        <SelectGroupNext key={appNS} label={t('Namespace: ') + `${appNS}`}>
+      <div className={className}>
+        <SelectGroupNext label="Applications">
           <SelectListNext>
-            {options[appNS]?.map((appName: string) => (
-              <SelectOptionNext
-                key={appNS + appName}
-                itemId={`${appNS}%#%${appName}`}
-              >
-                {appName}
-              </SelectOptionNext>
-            ))}
+            <SelectOptionNext itemId={ALL_APPS_ITEM_ID}>
+              {ALL_APPS}
+            </SelectOptionNext>
           </SelectListNext>
         </SelectGroupNext>
-      ))}
+        {Object.keys(options)?.map((appNS: string) => (
+          <SelectGroupNext key={appNS} label={t('Namespace: ') + `${appNS}`}>
+            <SelectListNext>
+              {options[appNS]?.map((appName: string) => (
+                <SelectOptionNext
+                  key={appNS + appName}
+                  itemId={`${appNS}%#%${appName}`}
+                >
+                  {appName}
+                </SelectOptionNext>
+              ))}
+            </SelectListNext>
+          </SelectGroupNext>
+        ))}
+      </div>
     </SelectNext>
   );
 };
@@ -338,6 +328,7 @@ export const ClusterAppDropdown: React.FC<ClusterAppDropdownProps> = ({
           clusterName={clusterName}
           application={application}
           setApplication={setApplication}
+          className="mco-cluster-app__dropdownHeight"
         />
       </FlexItem>
     </Flex>
@@ -349,12 +340,10 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
   selectedApplication,
 }) => {
   const { t } = useCustomTranslation();
-  const clearSetIntervalId = React.useRef<NodeJS.Timeout>();
   const [protectedPVC, setProtectedPVC] = React.useState([0, 0]);
   const [protectedPVCsCount, pvcsWithIssueCount] = protectedPVC;
 
   const updateProtectedPVC = React.useCallback(() => {
-    const placementInfo = selectedApplication?.placementInfo?.[0];
     const issueCount =
       protectedPVCData?.reduce((acc, protectedPVCItem) => {
         const pvcLastSyncTime = protectedPVCItem?.lastSyncTime;
@@ -366,8 +355,7 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
         )[0];
 
         (!!selectedApplication
-          ? protectedPVCItem?.drpcName === placementInfo?.drpcName &&
-            protectedPVCItem?.drpcNamespace === placementInfo?.drpcNamespace &&
+          ? !!filterPVCDataUsingApp(protectedPVCItem, selectedApplication) &&
             replicationHealth !== VOLUME_REPLICATION_HEALTH.HEALTHY
           : replicationHealth !== VOLUME_REPLICATION_HEALTH.HEALTHY) && acc++;
 
@@ -376,14 +364,7 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
     setProtectedPVC([protectedPVCData?.length || 0, issueCount]);
   }, [selectedApplication, protectedPVCData, setProtectedPVC]);
 
-  React.useEffect(() => {
-    updateProtectedPVC();
-    clearSetIntervalId.current = setInterval(
-      updateProtectedPVC,
-      URL_POLL_DEFAULT_DELAY
-    );
-    return () => clearInterval(clearSetIntervalId.current);
-  }, [updateProtectedPVC]);
+  useScheduler(updateProtectedPVC);
 
   return (
     <div className="mco-dashboard__contentColumn">
