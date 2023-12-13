@@ -5,24 +5,16 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
-import { RouteComponentProps } from 'react-router';
-import { match as Match } from 'react-router-dom';
+import { useParams } from 'react-router-dom-v5-compat';
 import { CEPH_FLAG, OCS_INDEPENDENT_FLAG } from '../../odf/features';
 import { BlockPoolListPage } from '../block-pool/BlockPoolListPage';
 import { CephBlockPoolModel } from '../models';
 import OCSSystemDashboard from './ocs-system-dashboard';
 
-export type DashboardsPageProps = RouteComponentProps;
-
-type ODFSystemDashboardPageProps = Omit<DashboardsPageProps, 'match'> & {
-  match: Match<{ systemName: string }>;
-};
-
 const blockPoolHref = referenceForModel(CephBlockPoolModel);
 
-const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
-  match,
-}) => {
+const ODFSystemDashboard: React.FC<{}> = () => {
+  const { systemName: title } = useParams();
   const { t } = useCustomTranslation();
   const breadcrumbs = [
     {
@@ -62,16 +54,10 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
     }
   }, [isExternal, isCephAvailable, pages, setPages, t]);
 
-  const title = match.params.systemName;
-
   return (
     <>
       <PageHeading title={title} breadcrumbs={breadcrumbs} />
-      {pages.length > 0 ? (
-        <Tabs id="odf-tab" match={match} tabs={pages} />
-      ) : (
-        <LoadingBox />
-      )}
+      {pages.length > 0 ? <Tabs id="odf-tab" tabs={pages} /> : <LoadingBox />}
     </>
   );
 };

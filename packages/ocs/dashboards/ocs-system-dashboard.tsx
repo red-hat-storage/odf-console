@@ -22,7 +22,6 @@ import {
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import { RouteComponentProps } from 'react-router-dom';
 import { StatusCard as NFSStatusCard } from './network-file-system/status-card/status-card';
 import { ThroughputCard } from './network-file-system/throughput-card/throughput-card';
 import { TopClientsCard } from './network-file-system/top-clients-card/top-clients-card';
@@ -182,7 +181,7 @@ const nfsPage = (t: TFunction): TabPage => {
   };
 };
 
-const OCSSystemDashboard: React.FC<RouteComponentProps> = () => {
+const OCSSystemDashboard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
   const isIndependent = useFlag(OCS_INDEPENDENT_FLAG);

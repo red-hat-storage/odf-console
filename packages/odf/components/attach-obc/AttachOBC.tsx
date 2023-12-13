@@ -16,9 +16,8 @@ import {
   K8sKind,
   k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { History } from 'history';
 import { useForm } from 'react-hook-form';
-import { match as Match } from 'react-router';
+import { useParams, useNavigate } from 'react-router-dom-v5-compat';
 import * as Yup from 'yup';
 import {
   Alert,
@@ -38,10 +37,11 @@ import useObcNameSchema from '../mcg/useObcNameSchema';
 
 const AttachStorage: React.FC<AttachStorageProps> = (props) => {
   const { t } = useCustomTranslation();
+  const navigate = useNavigate();
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
   const [createOBC, setCreateOBC] = React.useState(false);
   const [selectedOBC, setSelectedOBC] = React.useState(null);
-  const { kindObj, namespace, resourceName, history } = props;
+  const { kindObj, namespace, resourceName } = props;
 
   const [deployment, loaded, loadError] = useK8sGet<DeploymentKind>(
     kindObj,
@@ -82,7 +82,7 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
         data: patch,
       });
       dispatch({ type: 'unsetProgress' });
-      history.push(
+      navigate(
         `${resourcePathFromModel(
           DeploymentModel,
           getName(patchedObj),
@@ -183,7 +183,11 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
           >
             {t('Create')}
           </Button>
-          <Button onClick={history.goBack} type="button" variant="secondary">
+          <Button
+            onClick={() => navigate(-1)}
+            type="button"
+            variant="secondary"
+          >
             {t('Cancel')}
           </Button>
         </ActionGroup>
@@ -193,11 +197,9 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
 };
 
 const AttachStorageWrapper: React.FC<AttachStorageWrapperProps> = (props) => {
-  const {
-    kindObj,
-    kindsInFlight,
-    match: { params },
-  } = props;
+  const { kindObj, kindsInFlight } = props;
+  const params = useParams();
+
   return !kindObj && kindsInFlight ? (
     <LoadingBox />
   ) : (
@@ -212,8 +214,6 @@ const AttachStorageWrapper: React.FC<AttachStorageWrapperProps> = (props) => {
 type AttachStorageWrapperProps = {
   kindObj: K8sKind;
   kindsInFlight: any;
-  match?: Match<{ ns: string; name: string }>;
-  history: History;
 };
 
 type AttachStorageProps = AttachStorageWrapperProps & {

@@ -23,7 +23,7 @@ import {
   PrometheusResponse,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,

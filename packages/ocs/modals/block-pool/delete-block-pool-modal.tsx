@@ -27,7 +27,7 @@ import {
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
-import { useHistory, useLocation } from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import { Modal, ModalVariant } from '@patternfly/react-core';
 import { getScNamesUsingPool, isDefaultPool } from '../..//utils';
 import { BlockPoolStatus } from '../../block-pool/body';
@@ -139,7 +139,7 @@ const DeleteBlockPoolModal: React.FC<DeleteBlockPoolModalProps> = (props) => {
   ]);
 
   const location = useLocation();
-  const history = useHistory();
+  const navigate = useNavigate();
   // Delete block pool
   const deletePool = () => {
     setProgress(true);
@@ -153,7 +153,7 @@ const DeleteBlockPoolModal: React.FC<DeleteBlockPoolModalProps> = (props) => {
       closeModal();
       // Go to block pool list page if pool is deleted
       if (location.pathname.includes(poolName)) {
-        history.push(location.pathname.split(`/${poolName}`)[0]);
+        navigate(location.pathname.split(`/${poolName}`)[0]);
       }
     });
   };

@@ -47,9 +47,9 @@ jest.mock('@odf/shared/hooks/rbac-hook', () => ({
   useAccessReview: jest.fn(() => [true, false]),
 }));
 
-jest.mock('react-router', () => ({
+jest.mock('react-router-dom-v5-compat', () => ({
   useLocation: jest.fn(() => ({ pathname: '' })),
-  useHistory: jest.fn(() => []),
+  useNavigate: jest.fn(() => []),
 }));
 
 jest.doMock('../../../assets/EmptyPageIcon.png', () => '');

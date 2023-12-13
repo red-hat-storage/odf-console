@@ -10,7 +10,7 @@ import {
   useFlag,
   StatusPopupSection,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 import { Stack, StackItem } from '@patternfly/react-core';
 import { ODF_MANAGED_FLAG } from '../../features';
 import '@odf/shared/popup/status-popup.scss';

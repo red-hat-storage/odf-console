@@ -9,7 +9,11 @@ import {
   k8sCreate,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { match, useHistory } from 'react-router';
+import {
+  useParams,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom-v5-compat';
 import { Button, Modal } from '@patternfly/react-core';
 import {
   CEPH_EXTERNAL_CR_NAME,
@@ -56,13 +60,12 @@ export const cephClusterResource = {
   isList: true,
 };
 
-const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({
-  match: blockPoolMatch,
-}) => {
-  const { params, url } = blockPoolMatch;
+const CreateBlockPool: React.FC<{}> = () => {
+  const { pathname: url } = useLocation();
+  const params = useParams();
   const { t } = useCustomTranslation();
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [state, dispatch] = React.useReducer(
     blockPoolReducer,
@@ -82,7 +85,7 @@ const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({
     : url.replace('/create/~new', '');
 
   const onClose = () => {
-    history.goBack();
+    navigate(-1);
   };
 
   // Create new pool
@@ -92,7 +95,7 @@ const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({
 
       dispatch({ type: BlockPoolActionType.SET_INPROGRESS, payload: true });
       k8sCreate({ model: CephBlockPoolModel, data: poolObj })
-        .then(() => history.push(`${blockPoolPageUrl}/${state.poolName}`))
+        .then(() => navigate(`${blockPoolPageUrl}/${state.poolName}`))
         .finally(() =>
           dispatch({ type: BlockPoolActionType.SET_INPROGRESS, payload: false })
         )
@@ -172,10 +175,6 @@ const CreateBlockPool: React.FC<CreateBlockPoolProps> = ({
       </div>
     </>
   );
-};
-
-type CreateBlockPoolProps = {
-  match: match<{ appName: string; systemName: string }>;
 };
 
 export default CreateBlockPool;

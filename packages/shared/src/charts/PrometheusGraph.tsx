@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useActivePerspective } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 
 export const PrometheusGraph: React.FC<PrometheusGraphProps> = React.forwardRef(
   ({ children, className, title }, ref: React.RefObject<HTMLDivElement>) => (

@@ -9,14 +9,10 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom-v5-compat';
 import { NooBaaBucketClassModel } from '../../models';
 import { BucketClassKind } from '../../types';
 import { CommonDetails, DetailsItem } from './CommonDetails';
-
-type BucketClassDetailsPageProps = {
-  match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
-};
 
 type DetailsProps = {
   obj: BucketClassKind;
@@ -89,11 +85,9 @@ const extraMap = {
   ),
 };
 
-const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
-  match,
-}) => {
+const BucketClassDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { resourceName: name } = match.params;
+  const { resourceName: name } = useParams();
   const [resource, loaded, loadError] = useK8sWatchResource<BucketClassKind>({
     kind: referenceForModel(NooBaaBucketClassModel),
     name,

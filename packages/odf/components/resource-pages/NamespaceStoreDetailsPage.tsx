@@ -9,15 +9,11 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom-v5-compat';
 import { NooBaaNamespaceStoreModel } from '../../models';
 import { NamespaceStoreKind } from '../../types';
 import { CommonDetails } from './CommonDetails';
 import ProviderDetails from './Providers';
-
-type BackingStoreDetilsPageProps = {
-  match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
-};
 
 type DetailsProps = {
   obj: NamespaceStoreKind;
@@ -45,11 +41,9 @@ const NSDetails: DetailsType =
     );
   };
 
-const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
-  match,
-}) => {
+const NamespaceStoreDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { resourceName: name } = match.params;
+  const { resourceName: name } = useParams();
   const [resource, loaded, loadError] = useK8sWatchResource<NamespaceStoreKind>(
     {
       kind: referenceForModel(NooBaaNamespaceStoreModel),

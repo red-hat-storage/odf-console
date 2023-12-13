@@ -37,7 +37,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
-import { RouteComponentProps } from 'react-router';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Alert,
   Button,
@@ -55,8 +55,8 @@ import { LocalVolumeSetBody } from './body';
 import { SelectedCapacity } from './selected-capacity';
 import './create-local-volume-set-step.scss';
 
-const goToLSOInstallationPage = (history) =>
-  history.push(
+const goToLSOInstallationPage = (navigate) =>
+  navigate(
     '/operatorhub/all-namespaces?details-item=local-storage-operator-redhat-operators-openshift-marketplace'
   );
 
@@ -247,8 +247,10 @@ const RequestErrors: React.FC<RequestErrorsProps> = ({
 
 type RequestErrorsProps = { errorMessage: string; inProgress: boolean };
 
-export const LSOInstallAlert = ({ history }) => {
+export const LSOInstallAlert = () => {
   const { t } = useCustomTranslation();
+  const navigate = useNavigate();
+
   return (
     <Alert
       variant="info"
@@ -264,7 +266,7 @@ export const LSOInstallAlert = ({ history }) => {
           <Button
             type="button"
             variant="primary"
-            onClick={() => goToLSOInstallationPage(history)}
+            onClick={() => goToLSOInstallationPage(navigate)}
           >
             Install
           </Button>
@@ -305,7 +307,6 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   nodes,
   stepIdReached,
   isMCG,
-  history,
 }) => {
   const { t } = useCustomTranslation();
   const allNodes = React.useRef([]);
@@ -364,7 +365,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
       error={discoveriesLoadError}
       errorMessage={
         csvLoadError || csv?.status?.phase !== 'Succeeded' ? (
-          <LSOInstallAlert history={history} />
+          <LSOInstallAlert />
         ) : null
       }
     >
@@ -438,5 +439,4 @@ type CreateLocalVolumeSetProps = {
   stepIdReached: WizardState['stepIdReached'];
   dispatch: WizardDispatch;
   isMCG: boolean;
-  history: RouteComponentProps['history'];
 };
