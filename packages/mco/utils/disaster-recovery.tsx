@@ -471,7 +471,7 @@ export const findAppsUsingDRPolicy = (
 
 const filterMulticlusterView = (mcvs: ACMManagedClusterViewKind[]) =>
   mcvs?.filter(
-    (mcv) => mcv?.spec?.scope?.resource === DRVolumeReplicationGroup.kind
+    (mcv) => mcv?.spec?.scope?.kind === DRVolumeReplicationGroup.kind
   );
 
 export const getProtectedPVCFromVRG = (
@@ -495,20 +495,26 @@ export const getProtectedPVCFromVRG = (
   }, []);
 };
 
+export const filterPVCDataUsingApp = (
+  pvcData: ProtectedPVCData,
+  protectedApp: ProtectedAppsMap
+) =>
+  protectedApp?.placementInfo?.find((placementInfo) => {
+    const result =
+      placementInfo.drpcName === pvcData?.drpcName &&
+      placementInfo.drpcNamespace === pvcData?.drpcNamespace;
+    return result;
+  });
+
 export const filterPVCDataUsingApps = (
   pvcsData: ProtectedPVCData[],
   protectedApps: ProtectedAppsMap[]
 ) =>
   pvcsData?.filter(
     (pvcData) =>
-      !!protectedApps?.find((application) => {
-        return application.placementInfo?.map((placementInfo) => {
-          const result =
-            placementInfo.drpcName === pvcData.drpcName &&
-            placementInfo.drpcNamespace === pvcData.drpcNamespace;
-          return result;
-        });
-      })
+      !!protectedApps?.find(
+        (protectedApp) => !!filterPVCDataUsingApp(pvcData, protectedApp)
+      )
   );
 
 export const filterDRAlerts = (alert: Alert) =>

@@ -13,6 +13,8 @@ export type PlacementInfo = Partial<{
   lastGroupSyncTime: string;
   status: DRPC_STATUS;
   protectedPVCs: string[];
+  // Only applicable for Subscription type
+  subscriptions?: string[];
 }>;
 
 export type ProtectedAppsMap = {
@@ -21,6 +23,8 @@ export type ProtectedAppsMap = {
   appKind: string;
   appAPIVersion: string;
   appType: APPLICATION_TYPE;
+  // ToDo: refactor this PlacementInfo type to
+  // make more flxibile between different app types
   placementInfo: PlacementInfo[];
 };
 
