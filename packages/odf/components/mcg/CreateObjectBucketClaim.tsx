@@ -412,9 +412,7 @@ export const CreateOBCPage: React.FC<{}> = () => {
       isAllProjectsInitially.current = false;
     } else if (initialNamespace.current !== namespace) {
       navigate(
-        `/odf/object-storage/resource/${referenceForModel(
-          NooBaaObjectBucketClaimModel
-        )}`
+        `/odf/object-storage/${referenceForModel(NooBaaObjectBucketClaimModel)}`
       );
     }
   }, [navigate, namespace, setNamespace]);

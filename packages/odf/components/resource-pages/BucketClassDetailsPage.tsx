@@ -26,7 +26,7 @@ type PolicyDetailsProps = {
 
 const PlacementPolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
   const { t } = useCustomTranslation();
-  const tiers = resource.spec.placementPolicy.tiers;
+  const tiers = resource.spec?.placementPolicy?.tiers;
   return (
     <>
       <DetailsItem field={t('Tiers')} padChildElement showBorder>
@@ -46,7 +46,7 @@ const PlacementPolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
 
 const NamespacePolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
   const { t } = useCustomTranslation();
-  const type = resource.spec.namespacePolicy.type;
+  const type = resource.spec?.namespacePolicy?.type;
   return <DetailsItem field={t('Policy type')}>{type}</DetailsItem>;
 };
 
@@ -54,7 +54,7 @@ const BCDetails: DetailsType =
   (launchModal, t) =>
   // eslint-disable-next-line react/display-name
   ({ obj }) => {
-    const isPlacementPolicyType = obj.spec.hasOwnProperty('placementPolicy');
+    const isPlacementPolicyType = obj.spec?.hasOwnProperty('placementPolicy');
 
     const title = isPlacementPolicyType
       ? t('Placement Policy')
@@ -104,7 +104,7 @@ const BucketClassDetailsPage: React.FC<{}> = () => {
     },
     {
       name: t('BucketClasses'),
-      path: '/odf/object-storage/resource/noobaa.io~v1alpha1~BucketClass',
+      path: '/odf/object-storage/noobaa.io~v1alpha1~BucketClass',
     },
     {
       name: t('BucketClass details'),

@@ -294,7 +294,7 @@ export const OBDetailsPage: React.FC<{}> = () => {
     },
     {
       name: t('ObjectBuckets'),
-      path: `/odf/object-storage/resource/objectbucket.io~v1alpha1~ObjectBucket`,
+      path: `/odf/object-storage/objectbucket.io~v1alpha1~ObjectBucket`,
     },
     {
       name: t('ObjectBucket details'),

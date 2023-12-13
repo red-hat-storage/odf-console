@@ -12,8 +12,8 @@ import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
+import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import {
-  HorizontalNav,
   useResolvedExtensions,
   NamespaceBar,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -65,7 +65,7 @@ const ObjectServicePage: React.FC = () => {
     ) {
       navigate('/odf/object-storage/' + sortedPages[0].href, { replace: true });
     }
-  }, [location, navigate, sortedPages]);
+  }, [location.pathname, navigate, sortedPages]);
 
   const showNamespaceBar = NAMESPACE_BAR_PATHS.some((path) =>
     location.pathname.includes(path)
@@ -80,7 +80,10 @@ const ObjectServicePage: React.FC = () => {
       <PageHeading title={title} />
       {/** Todo(bipuladh): Move to usage of common PF Tabs component */}
       {haveExtensionsResolved || haveAlreadyResolvedOnce ? (
-        <HorizontalNav pages={convertObjectServiceTabToNav(sortedPages)} />
+        <Tabs
+          id="odf-object-storage"
+          tabs={convertObjectServiceTabToNav(sortedPages) as TabPage[]}
+        />
       ) : (
         <StatusBox loadError={error} loaded={isLoaded} />
       )}
@@ -93,7 +96,7 @@ export const RerouteResource: React.FC<{}> = () => {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    navigate(`/odf/object-storage/resource/${kind}`);
+    navigate(`/odf/object-storage/${kind}`);
   }, [navigate, kind]);
   return null;
 };

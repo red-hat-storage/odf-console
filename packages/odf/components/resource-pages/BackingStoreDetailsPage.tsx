@@ -61,7 +61,7 @@ const BackingStoreDetailsPage: React.FC<{}> = () => {
     },
     {
       name: t('BackingStores'),
-      path: '/odf/object-storage/resource/noobaa.io~v1alpha1~BackingStore',
+      path: '/odf/object-storage/noobaa.io~v1alpha1~BackingStore',
     },
     {
       name: t('BackingStore details'),
