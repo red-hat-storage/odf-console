@@ -42,6 +42,8 @@
   "We could not retrieve any information about the managed cluster {{names}}. Check the documentation for potential causes and follow the steps mentioned and try again.": "We could not retrieve any information about the managed cluster {{names}}. Check the documentation for potential causes and follow the steps mentioned and try again.",
   "{{ names }} has either an unsupported ODF version or the ODF operator is missing, install or update to ODF {{ version }} or the latest version to enable DR protection.": "{{ names }} has either an unsupported ODF version or the ODF operator is missing, install or update to ODF {{ version }} or the latest version to enable DR protection.",
   "{{ names }} is not connected to RHCS": "{{ names }} is not connected to RHCS",
+  "Cluster not pre-configured for Regional-DR": "Cluster not pre-configured for Regional-DR",
+  "The selected cluster(s)[{{clusters}}] is not pre-configured for a Regional-DR setup. Migrate the cluster's OSD to optimise it for Disaster recovery services. To learn more about OSDs migration best practices and its consequences refer to the documentation.": "The selected cluster(s)[{{clusters}}] is not pre-configured for a Regional-DR setup. Migrate the cluster's OSD to optimise it for Disaster recovery services. To learn more about OSDs migration best practices and its consequences refer to the documentation.",
   "Sync schedule": "Sync schedule",
   "Replication policy": "Replication policy",
   "Information unavailable": "Information unavailable",
