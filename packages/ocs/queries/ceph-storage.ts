@@ -254,7 +254,7 @@ export const getPoolQuery = (
   const names = poolNames.join('|');
   const queries = {
     [StorageDashboardQuery.POOL_RAW_CAPACITY_USED]: `ceph_pool_bytes_used{managedBy='${managedByOCS}'} * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}',managedBy='${managedByOCS}'}`,
-    [StorageDashboardQuery.POOL_MAX_CAPACITY_AVAILABLE]: `ceph_pool_max_avail{managedBy='${managedByOCS}'} * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}',managedBy='${managedByOCS}'}`,
+    [StorageDashboardQuery.POOL_MAX_CAPACITY_AVAILABLE]: `ceph_pool_avail_raw{managedBy='${managedByOCS}'} * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}',managedBy='${managedByOCS}'}`,
     [StorageDashboardQuery.POOL_UTILIZATION_IOPS_QUERY]: `(rate(ceph_pool_wr{managedBy='${managedByOCS}'}[1m]) + rate(ceph_pool_rd{managedBy='${managedByOCS}'}[1m])) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}',managedBy='${managedByOCS}'}`,
     [StorageDashboardQuery.POOL_UTILIZATION_THROUGHPUT_QUERY]: `(rate(ceph_pool_wr_bytes{managedBy='${managedByOCS}'}[1m]) + rate(ceph_pool_rd_bytes{managedBy='${managedByOCS}'}[1m])) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}',managedBy='${managedByOCS}'}`,
     [StorageDashboardQuery.POOL_COMPRESSION_SAVINGS]: `(ceph_pool_compress_under_bytes{managedBy='${managedByOCS}'} - ceph_pool_compress_bytes_used{managedBy='${managedByOCS}'}) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}',managedBy='${managedByOCS}'}`,
