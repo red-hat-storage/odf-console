@@ -33,3 +33,9 @@ export enum ClusterClaimTypes {
 export const MANAGED_CLUSTER_CONDITION_AVAILABLE =
   'ManagedClusterConditionAvailable';
 export const MANAGED_CLUSTER_JOINED = 'ManagedClusterJoined';
+
+// Search result labels
+export const LABEL = 'label';
+export const LABELS_SPLIT_CHAR = '; ';
+export const LABEL_SPLIT_CHAR = '=';
+export const DR_BLOCK_LISTED_LABELS = ['app.kubernetes.io/instance'];
