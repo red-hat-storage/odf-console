@@ -41,6 +41,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   infraType,
   isWizardFlow,
   isMCG,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -104,6 +105,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
         dispatch={dispatch}
         className={className}
         isWizardFlow={isWizardFlow}
+        systemNamespace={systemNamespace}
         isMCG={isMCG}
       />
     </div>

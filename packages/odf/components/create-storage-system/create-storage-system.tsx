@@ -1,22 +1,18 @@
 import * as React from 'react';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   isStorageClassWizardStep,
 } from '@odf/odf-plugin-sdk/extensions';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { InfrastructureModel } from '@odf/shared/models';
-import { ODFStorageSystem } from '@odf/shared/models';
-import { ListKind, StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  RouteComponentProps,
-  useHistory,
-  match as RouteMatch,
-} from 'react-router';
+import { useLocation } from 'react-router-dom-v5-compat';
 import { Wizard, WizardStep } from '@patternfly/react-core';
-import { Steps, StepsName, STORAGE_CLUSTER_SYSTEM_KIND } from '../../constants';
+import { Steps, StepsName } from '../../constants';
+import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
 import { BackingStorage } from './create-storage-system-steps';
 import { EXTERNAL_CEPH_STORAGE } from './external-ceph-storage/system-connection-details';
@@ -25,28 +21,32 @@ import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
 import './create-storage-system.scss';
 
-const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
+const CreateStorageSystem: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const history = useHistory();
   const [state, dispatch] = React.useReducer<WizardReducer>(
     reducer,
     initialState
   );
-  const [ssList, ssLoaded, ssLoadError] =
-    useK8sGet<ListKind<StorageSystemKind>>(ODFStorageSystem);
+
   const [infra, infraLoaded, infraLoadError] = useK8sGet<any>(
     InfrastructureModel,
     'cluster'
   );
+
   const [extensions, extensionsResolved] = useResolvedExtensions(
     isStorageClassWizardStep
   );
+  const { systemFlags, areFlagsLoaded, flagsLoadError } =
+    useODFSystemFlagsSelector();
 
   const infraType = getInfrastructurePlatform(infra);
-  const url = history.location.pathname;
+  const { pathname: url } = useLocation();
 
   let wizardSteps: WizardStep[] = [];
   let hasOCS: boolean = false;
+  let hasExternal: boolean = false;
+  let hasInternal: boolean = false;
+  let hasMultipleClusters: boolean = false;
 
   const supportedExternalStorage: ExternalStorage[] = React.useMemo(() => {
     if (extensionsResolved) {
@@ -60,18 +60,20 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
     return EXTERNAL_CEPH_STORAGE;
   }, [extensions, extensionsResolved]);
 
-  if (ssLoaded && !ssLoadError && infraLoaded && !infraLoadError) {
-    hasOCS = ssList?.items?.some(
-      (ss) => ss.spec.kind === STORAGE_CLUSTER_SYSTEM_KIND
-    );
+  if (areFlagsLoaded && !flagsLoadError && infraLoaded && !infraLoadError) {
+    hasExternal = hasAnyExternalOCS(systemFlags);
+    hasInternal = hasAnyInternalOCS(systemFlags);
+    hasOCS = hasExternal || hasInternal;
+    hasMultipleClusters = hasExternal && hasInternal;
+
     wizardSteps = createSteps(
       t,
       state,
       dispatch,
       infraType,
       hasOCS,
-      history,
-      supportedExternalStorage
+      supportedExternalStorage,
+      hasMultipleClusters
     );
   }
 
@@ -84,11 +86,14 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
           state={state.backingStorage}
           storageClass={state.storageClass}
           dispatch={dispatch}
-          storageSystems={ssList?.items || []}
+          hasOCS={hasOCS}
+          hasExternal={hasExternal}
+          hasInternal={hasInternal}
+          hasMultipleClusters={hasMultipleClusters}
           stepIdReached={state.stepIdReached}
           infraType={infraType}
-          error={ssLoadError || infraLoadError}
-          loaded={ssLoaded && infraLoaded}
+          error={infraLoadError || flagsLoadError}
+          loaded={infraLoaded && areFlagsLoaded}
           supportedExternalStorage={supportedExternalStorage}
         />
       ),
@@ -108,9 +113,11 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
             hasOCS={hasOCS}
             dispatch={dispatch}
             disableNext={
-              !ssLoaded || !!ssLoadError || !infraLoaded || !!infraLoadError
+              !areFlagsLoaded ||
+              !!flagsLoadError ||
+              !infraLoaded ||
+              !!infraLoadError
             }
-            history={history}
             supportedExternalStorage={supportedExternalStorage}
           />
         }
@@ -120,11 +127,6 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
       />
     </>
   );
-};
-
-type CreateStorageSystemProps = {
-  match: RouteMatch<{ ns: string; appName: string }>;
-  history: RouteComponentProps['history'];
 };
 
 export default CreateStorageSystem;

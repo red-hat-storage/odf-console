@@ -30,6 +30,7 @@ const watchResources = {
     kind: StorageClassModel.kind,
   },
 };
+
 export const InventoryCard: React.FC = () => {
   const { t } = useCustomTranslation();
 

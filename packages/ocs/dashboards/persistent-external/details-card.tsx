@@ -1,23 +1,32 @@
 import * as React from 'react';
 import { CEPH_BRAND_NAME, OCS_OPERATOR } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
-import { useSafeK8sWatchResources } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getOperatorVersion } from '@odf/core/utils';
+import { getStorageClusterInNs } from '@odf/core/utils';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import { SecretKind, K8sResourceKind } from '@odf/shared/types';
+import {
+  SecretKind,
+  K8sResourceKind,
+  StorageClusterKind,
+} from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { ExternalLink } from '@odf/shared/utils/link';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useFlag,
+  useK8sWatchResources,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Base64 } from 'js-base64';
+import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { StorageClusterModel } from '../../models';
+import { ODFSystemParams } from '../../types';
 import { getNetworkEncryption } from '../../utils';
 
 const getCephLink = (secret: SecretKind): string => {
@@ -33,16 +42,14 @@ type ResourcesObject = {
   };
 };
 
-const k8sResources = (ns: string) => ({
+const k8sResources = (clusterNs: string) => ({
   ocs: {
     kind: referenceForModel(StorageClusterModel),
-    namespaced: true,
     isList: true,
-    namespace: ns,
   },
   secret: {
     kind: SecretModel.kind,
-    namespace: ns,
+    namespace: clusterNs,
     name: 'rook-ceph-dashboard-link',
   },
 });
@@ -52,15 +59,19 @@ export const DetailsCard: React.FC = () => {
   const isODF = useFlag(ODF_MODEL_FLAG);
 
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
 
-  const resourcesObj: ResourcesObject = useSafeK8sWatchResources(k8sResources);
-  const inTransitEncryptionStatus = getNetworkEncryption(
-    resourcesObj['ocs'].data?.[0]
-  )
+  const resourcesObj: ResourcesObject = useK8sWatchResources(
+    k8sResources(clusterNs)
+  );
+  const ocsCluster = getStorageClusterInNs(
+    resourcesObj['ocs'].data as StorageClusterKind[],
+    clusterNs
+  );
+  const inTransitEncryptionStatus = getNetworkEncryption(ocsCluster)
     ? t('Enabled')
     : t('Disabled');
-
-  const ocsName = getName(resourcesObj['ocs'].data?.[0]);
+  const ocsName = getName(ocsCluster);
 
   const [csv, csvLoaded, csvError] = useFetchCsv({
     specName: !isODF ? OCS_OPERATOR : ODF_OPERATOR,

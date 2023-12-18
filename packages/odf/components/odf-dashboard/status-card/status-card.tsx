@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { K8sResourceObj } from '@odf/core/types';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
+import { StorageConsumerKind } from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMap } from '@odf/shared/dashboards/status-card/states';
@@ -10,6 +11,7 @@ import {
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   ClusterServiceVersionKind,
   StorageSystemKind,
@@ -21,8 +23,13 @@ import {
   referenceForGroupVersionKind,
   getOperatorHealthState,
 } from '@odf/shared/utils';
-import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  HealthState,
+  useFlag,
+  useK8sWatchResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Gallery,
   GalleryItem,
@@ -32,9 +39,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
+import { PROVIDER_MODE } from '../../../features';
+import { StorageConsumerModel } from '../../../models';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
-import StorageSystemPopup from './storage-system-popup';
+import StatusCardPopover from './status-card-popover';
+import { getAggregateClientHealthState, getClientText } from './utils';
 import './status-card.scss';
 
 const operatorResource: K8sResourceObj = (ns) => ({
@@ -43,17 +53,16 @@ const operatorResource: K8sResourceObj = (ns) => ({
   isList: true,
 });
 
-const storageSystemResource: K8sResourceObj = (ns) => ({
+const storageSystemResource = {
   kind: referenceForModel(ODFStorageSystem),
-  namespace: ns,
   isList: true,
-});
+};
 
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [csvData, csvLoaded, csvLoadError] =
     useSafeK8sWatchResource<ClusterServiceVersionKind[]>(operatorResource);
-  const [systems, systemsLoaded, systemsLoadError] = useSafeK8sWatchResource<
+  const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<
     StorageSystemKind[]
   >(storageSystemResource);
 
@@ -69,7 +78,7 @@ export const StatusCard: React.FC = () => {
   const operatorStatus = operator?.status?.phase;
 
   // Todo(bipuladh): In 4.11 this should come in from an extension point
-  const ocsHealthStatus = useGetOCSHealth();
+  const ocsHealthStatuses = useGetOCSHealth(systems);
 
   const parsedHealthData =
     !healthError &&
@@ -79,9 +88,15 @@ export const StatusCard: React.FC = () => {
     healthData
       ? healthData?.data?.result?.reduce((acc, curr) => {
           const systemName = curr.metric.storage_system;
+          // ToDo (epic 4422): This equality check should work (for now) as "storage_system" will be unique,
+          // but moving forward add a label to metric for StorageSystem namespace as well and use that instead (update query as well).
+          // Equality check should be updated as well with "&&" condition on StorageSystem namespace.
           const storageSystem = systems.find(
-            (system) => system.metadata.name === systemName
+            (system) => getName(system) === systemName
           );
+          const systemNamespace = getNamespace(storageSystem);
+          const ocsHealthStatus =
+            ocsHealthStatuses[`${systemName}${systemNamespace}`];
           const { apiGroup, apiVersion, kind } = getGVK(
             storageSystem?.spec.kind
           );
@@ -96,6 +111,7 @@ export const StatusCard: React.FC = () => {
                   link: getVendorDashboardLinkFromMetrics(
                     systemKind,
                     systemName,
+                    systemNamespace,
                     ocsHealthStatus.errorComponent
                   ),
 
@@ -109,7 +125,8 @@ export const StatusCard: React.FC = () => {
                   healthState: healthStateMap(curr.value[1]),
                   link: getVendorDashboardLinkFromMetrics(
                     systemKind,
-                    systemName
+                    systemName,
+                    systemNamespace
                   ),
                 };
           return [...acc, systemData];
@@ -128,6 +145,23 @@ export const StatusCard: React.FC = () => {
     !csvLoaded,
     csvLoadError
   );
+
+  const isProviderMode = useFlag(PROVIDER_MODE);
+
+  const [clients, clientsLoaded, clientsLoadError] = useK8sWatchResource<
+    StorageConsumerKind[]
+  >({
+    kind: referenceForModel(StorageConsumerModel),
+    isList: true,
+  });
+
+  const clientAggregateHealth = getAggregateClientHealthState(clients);
+
+  const navigate = useNavigate();
+
+  const redirectToListPage = React.useCallback(() => {
+    navigate('/odf/storage-clients');
+  }, [navigate]);
 
   return (
     <Card className="odfDashboard-card--height">
@@ -149,7 +183,11 @@ export const StatusCard: React.FC = () => {
                   title={pluralize(healthySystems.length, 'Storage System')}
                   state={HealthState.OK}
                 >
-                  <StorageSystemPopup systemHealthMap={healthySystems} />
+                  <StatusCardPopover
+                    resourceHealthMap={healthySystems}
+                    firstColumnName={t('Storage System')}
+                    secondColumnName={t('Health')}
+                  />
                 </HealthItem>
               </GalleryItem>
             )}
@@ -160,8 +198,22 @@ export const StatusCard: React.FC = () => {
                   state={HealthState.ERROR}
                   maxWidth="35rem"
                 >
-                  <StorageSystemPopup systemHealthMap={unHealthySystems} />
+                  <StatusCardPopover
+                    resourceHealthMap={unHealthySystems}
+                    firstColumnName={t('Storage System')}
+                    secondColumnName={t('Health')}
+                  />
                 </HealthItem>
+              </GalleryItem>
+            )}
+            {isProviderMode && clientsLoaded && !clientsLoadError && (
+              <GalleryItem>
+                <HealthItem
+                  title={t('Storage Clients')}
+                  state={clientAggregateHealth}
+                  onClick={redirectToListPage}
+                  details={getClientText(clients, t)}
+                />
               </GalleryItem>
             )}
           </Gallery>

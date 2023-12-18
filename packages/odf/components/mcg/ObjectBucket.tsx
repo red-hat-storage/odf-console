@@ -26,7 +26,7 @@ import {
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom-v5-compat';
 import { sortable } from '@patternfly/react-table';
 import { NooBaaObjectBucketModel } from '../../models/ocs';
 import { getPhase, obStatusFilter } from '../../utils';
@@ -212,7 +212,7 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
 
 type DetailsProps = {
   obj: K8sResourceKind;
-} & RouteComponentProps;
+};
 
 const OBDetails: React.FC<DetailsProps> = ({ obj }) => {
   const { t } = useCustomTranslation();
@@ -266,15 +266,9 @@ const OBDetails: React.FC<DetailsProps> = ({ obj }) => {
   );
 };
 
-type ObjectBucketDetailsPageProps = {
-  match: RouteComponentProps<{ resourceName: string }>['match'];
-};
-
-export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
-  match,
-}) => {
+export const OBDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { resourceName: name } = match.params;
+  const { resourceName: name } = useParams();
   const [resource, loaded] = useK8sWatchResource<K8sResourceKind>({
     kind: referenceForModel(NooBaaObjectBucketModel),
     name,
@@ -288,7 +282,7 @@ export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
     },
     {
       name: t('ObjectBuckets'),
-      path: `/odf/object-storage/resource/objectbucket.io~v1alpha1~ObjectBucket`,
+      path: `/odf/object-storage/objectbucket.io~v1alpha1~ObjectBucket`,
     },
     {
       name: t('ObjectBucket details'),
@@ -320,7 +314,7 @@ export const OBDetailsPage: React.FC<ObjectBucketDetailsPageProps> = ({
             {
               href: '',
               name: 'Details',
-              component: OBDetails,
+              component: OBDetails as any,
             },
             {
               href: 'yaml',

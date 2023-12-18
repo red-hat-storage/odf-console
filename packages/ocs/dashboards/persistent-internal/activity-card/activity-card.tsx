@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { useODFNamespaceSelector } from '@odf/core/redux';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { getStorageClusterInNs } from '@odf/core/utils';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -15,6 +16,7 @@ import {
   K8sResourceKind,
   PersistentVolumeClaimKind,
   SubscriptionKind,
+  StorageClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getResiliencyProgress, referenceForModel } from '@odf/shared/utils';
@@ -26,6 +28,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import * as _ from 'lodash-es';
+import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
 import { OCS_OPERATOR, PVC_PROVISIONER_ANNOTATION } from '../../../constants';
 import { StorageClusterModel } from '../../../models';
@@ -33,6 +36,7 @@ import {
   DATA_RESILIENCY_QUERY,
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
+import { ODFSystemParams } from '../../../types';
 import {
   isCephProvisioner,
   isPersistentStorageEvent,
@@ -66,7 +70,7 @@ export const eventsResource = {
 };
 
 const RecentEvent: React.FC = () => {
-  const { odfNamespace } = useODFNamespaceSelector();
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
 
   const [pvcs, pvcLoaded] =
     useK8sWatchResource<PersistentVolumeClaimKind[]>(pvcResource);
@@ -81,8 +85,8 @@ const RecentEvent: React.FC = () => {
   const memoizedPVCNames = useDeepCompareMemoize(validPVC, true);
 
   const ocsEventsFilter = React.useCallback(
-    () => isPersistentStorageEvent(memoizedPVCNames, odfNamespace),
-    [memoizedPVCNames, odfNamespace]
+    () => isPersistentStorageEvent(memoizedPVCNames, clusterNs),
+    [memoizedPVCNames, clusterNs]
   );
 
   const eventObject = {
@@ -98,29 +102,39 @@ const RecentEvent: React.FC = () => {
 export const subscriptionResource = {
   isList: true,
   kind: referenceForModel(SubscriptionModel),
-  namespaced: false,
 };
 
 export const storageClusterResource = {
   isList: true,
   kind: referenceForModel(StorageClusterModel),
-  namespaced: false,
 };
 
 const OngoingActivity = () => {
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+
   const [subscriptions, subLoaded] =
     useK8sWatchResource<K8sResourceKind[]>(subscriptionResource);
-  const [cluster, clusterLoaded] = useK8sWatchResource(storageClusterResource);
+  const [clusters, clusterLoaded] = useK8sWatchResource<StorageClusterKind[]>(
+    storageClusterResource
+  );
 
   const [resiliencyMetric, , metricsLoading] = useCustomPrometheusPoll({
-    query: DATA_RESILIENCY_QUERY[StorageDashboardQuery.RESILIENCY_PROGRESS],
+    query:
+      DATA_RESILIENCY_QUERY(managedByOCS)[
+        StorageDashboardQuery.RESILIENCY_PROGRESS
+      ],
     endpoint: 'api/v1/query' as any,
     basePath: usePrometheusBasePath(),
   });
 
   const ocsSubscription: SubscriptionKind = getOCSSubscription(subscriptions);
 
-  const ocsCluster: K8sResourceKind = cluster?.[0];
+  const ocsCluster: K8sResourceKind = getStorageClusterInNs(
+    clusters,
+    clusterNs
+  );
 
   const prometheusActivities = [];
   const resourceActivities = [];

@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { REPLICATION_TYPE } from '@odf/mco/constants';
+import { parseNamespaceName } from '@odf/mco/utils';
+import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { RedExclamationCircleIcon } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Text,
   Badge,
@@ -9,34 +11,44 @@ import {
   Flex,
   FlexItem,
 } from '@patternfly/react-core';
-import { Cluster, DRPolicyAction } from './reducer';
+import { ManagedClusterInfoType } from './reducer';
 import './create-dr-policy.scss';
 
 type SelectedClusterProps = {
   id: number;
-  cluster: Cluster;
-  dispatch: React.Dispatch<DRPolicyAction>;
+  cluster: ManagedClusterInfoType;
+  replicationType: REPLICATION_TYPE;
 };
+
+export const checkForErrors = (
+  clusters: ManagedClusterInfoType[],
+  replicationType: REPLICATION_TYPE
+) =>
+  clusters.some((cluster) => {
+    const { isManagedClusterAvailable, odfInfo } = cluster;
+    const { cephFSID, isDROptimized, storageSystemNamespacedName } =
+      odfInfo.storageClusterInfo;
+    const [storageSystemName] = parseNamespaceName(storageSystemNamespacedName);
+    return (
+      !isManagedClusterAvailable ||
+      !odfInfo?.isValidODFVersion ||
+      !storageSystemName ||
+      !cephFSID ||
+      (replicationType === REPLICATION_TYPE.ASYNC && !isDROptimized)
+    );
+  });
 
 export const SelectedCluster: React.FC<SelectedClusterProps> = ({
   id,
   cluster,
-  dispatch, // eslint-disable-line @typescript-eslint/no-unused-vars
+  replicationType,
 }) => {
-  const {
-    name,
-    region,
-    storageSystemName,
-    isManagedClusterAvailable,
-    isValidODFVersion,
-    cephFSID,
-  } = cluster;
   const { t } = useCustomTranslation();
-  const anyError =
-    !isManagedClusterAvailable ||
-    !isValidODFVersion ||
-    !storageSystemName ||
-    !cephFSID;
+  const { name, region, odfInfo } = cluster;
+  const [storageSystemName] = parseNamespaceName(
+    odfInfo.storageClusterInfo.storageSystemNamespacedName
+  );
+  const anyError = checkForErrors([cluster], replicationType);
   return (
     <Flex
       display={{ default: 'inlineFlex' }}

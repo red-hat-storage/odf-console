@@ -36,7 +36,10 @@ export const ReviewItem = ({ children, title }) => (
 
 export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   state,
+  // any internal or external exists
   hasOCS,
+  // both internal and external exists
+  hasMultipleClusters,
   supportedExternalStorage,
 }) => {
   const { t } = useCustomTranslation();
@@ -126,7 +129,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
               })}
             </ListItem>
           )}
-        {deployment === DeploymentType.FULL && !hasOCS && (
+        {deployment === DeploymentType.FULL && !hasMultipleClusters && (
           <ListItem>
             {t(
               'Set Ceph RBD as the default StorageClass: {{isCephRBDSetAsDefault}}',
@@ -259,5 +262,6 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
 type ReviewAndCreateProps = {
   state: WizardState;
   hasOCS: boolean;
+  hasMultipleClusters: boolean;
   supportedExternalStorage: ExternalStorage[];
 };

@@ -27,7 +27,7 @@ import {
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { Control, useForm } from 'react-hook-form';
-import { match, useHistory } from 'react-router';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import * as Yup from 'yup';
 import {
   ActionGroup,
@@ -363,7 +363,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   );
 };
 
-export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
+export const CreateOBCPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
   const [namespace, setNamespace] = useActiveNamespace();
@@ -372,7 +372,7 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
   );
   const initialNamespace = React.useRef<string>(namespace);
   const submitBtnId = 'obc-submit-btn';
-  const history = useHistory();
+  const navigate = useNavigate();
   const isNoobaa = state.scProvisioner?.includes(NB_PROVISIONER);
   const { obcNameSchema, fieldRequirements } = useObcNameSchema(namespace);
 
@@ -404,7 +404,7 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
 
   /**
    * In OCP, for any creation page: on changing the project from the dropdown,
-   * user is redirected back to the list page, added "history.goBack" to maintain that consistency.
+   * user is redirected back to the list page, added "() => navigate(-1)" to maintain that consistency.
    * Also, if initial selection is "All Projects", it automatically re-selects "default" as the initial project.
    */
   React.useEffect(() => {
@@ -413,13 +413,11 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
       initialNamespace.current = DEFAULT_NS;
       isAllProjectsInitially.current = false;
     } else if (initialNamespace.current !== namespace) {
-      history.push(
-        `/odf/object-storage/resource/${referenceForModel(
-          NooBaaObjectBucketClaimModel
-        )}`
+      navigate(
+        `/odf/object-storage/${referenceForModel(NooBaaObjectBucketClaimModel)}`
       );
     }
-  }, [history, namespace, setNamespace]);
+  }, [navigate, namespace, setNamespace]);
 
   const save = (
     _unused: any,
@@ -465,7 +463,7 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
             const resourcePath = `${referenceForModel(
               NooBaaObjectBucketClaimModel
             )}/${resource.metadata.name}`;
-            history.push(
+            navigate(
               `/odf/resource/ns/${resource.metadata.namespace}/${resourcePath}`
             );
           })
@@ -480,9 +478,10 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
       });
   };
 
-  // Operator install namespace is determined using Subscriptions, which non-admin can not access (yet).
+  // Operator install namespace is determined using Subscriptions, which non-admin can not access.
   // Using "allowFallback" in "NamespaceSafetyBox" so that they can default to "openshift-storage" (if case of access issues),
   // which is current use case as well (as we do not officially support UI if ODF is installed in any other Namespace).
+  // ToDo (Sanjal): Update the non-admin "Role" to a "ClusterRole", then read list of NooBaa/BucketClasses across all namespaces.
   return (
     <>
       <NamespaceBar />
@@ -520,7 +519,7 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
                   {t('Create')}
                 </Button>
                 <Button
-                  onClick={history.goBack}
+                  onClick={() => navigate(-1)}
                   type="button"
                   variant="secondary"
                 >
@@ -533,8 +532,4 @@ export const CreateOBCPage: React.FC<CreateOBCPageProps> = () => {
       </div>
     </>
   );
-};
-
-type CreateOBCPageProps = {
-  match: match<{ ns?: string }>;
 };

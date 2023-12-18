@@ -33,28 +33,40 @@ export const isCephProvisioner = (scProvisioner: string): boolean => {
   );
 };
 
-export const isObjectStorageEvent = (event: EventKind): boolean => {
-  const eventKind: string = event?.involvedObject?.kind;
-  const objectStorageResources = [
-    NooBaaBackingStoreModel.kind,
-    NooBaaBucketClassModel.kind,
-    NooBaaObjectBucketClaimModel.kind,
-    CephObjectStoreModel.kind,
-  ];
-  if (
-    eventKind !== PersistentVolumeClaimModel.kind &&
-    eventKind !== PersistentVolumeModel.kind
-  ) {
-    const eventName: string = event?.involvedObject?.name;
-    return _.startsWith(eventName, 'noobaa') || eventName?.includes('rgw');
-  }
-  return objectStorageResources.includes(eventKind);
-};
+export const isObjectStorageEvent =
+  (isRGW: boolean, isMCG: boolean) =>
+  (event: EventKind): boolean => {
+    const eventKind: string = event?.involvedObject?.kind;
+    const objectStorageResources = [
+      ...(isMCG
+        ? [
+            NooBaaBackingStoreModel.kind,
+            NooBaaBucketClassModel.kind,
+            NooBaaObjectBucketClaimModel.kind,
+          ]
+        : []),
+      ...(isRGW ? [CephObjectStoreModel.kind] : []),
+    ];
+    if (
+      ![PersistentVolumeClaimModel.kind, PersistentVolumeModel.kind].includes(
+        eventKind
+      )
+    ) {
+      const eventName: string = event?.involvedObject?.name;
+
+      if (isRGW && isMCG)
+        return _.startsWith(eventName, 'noobaa') || eventName?.includes('rgw');
+      if (isRGW) return eventName?.includes('rgw');
+      if (isMCG) return _.startsWith(eventName, 'noobaa');
+    }
+
+    return objectStorageResources.includes(eventKind);
+  };
 
 export const isPersistentStorageEvent =
   (pvcs: string[], ns: string) =>
   (event: EventKind): boolean => {
-    if (isObjectStorageEvent(event)) return false;
+    if (isObjectStorageEvent(true, true)(event)) return false;
     const eventKind = event?.involvedObject?.kind;
     const eventNamespace = getNamespace(event);
     const eventObjectName = event?.involvedObject?.name;

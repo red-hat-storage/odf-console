@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { cephStorageLabel } from '@odf/core/constants';
-import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   getZone,
   nodesWithoutTaints,
@@ -31,7 +30,7 @@ import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { Table, TableHeader, TableBody } from '@patternfly/react-table';
 import { IRow, sortable } from '@patternfly/react-table';
-import { WizardNodeState } from '../reducer';
+import { WizardNodeState, WizardState } from '../reducer';
 import { SelectNodesTableFooter } from './select-nodes-table-footer';
 import './select-nodes-table.scss';
 
@@ -122,10 +121,9 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
   onRowSelected,
   nodesData,
   disableLabeledNodes,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
-
-  const { odfNamespace } = useODFNamespaceSelector();
 
   const getColumns = React.useMemo(
     () => [
@@ -184,7 +182,7 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
           setVisibleRows,
           selectedNodes,
           setSelectedNodes,
-          odfNamespace,
+          systemNamespace,
           disableLabeledNodes
         )}
         cells={getColumns}
@@ -205,12 +203,14 @@ type NodeTableProps = {
   onRowSelected: (selectedNodes: NodeKind[]) => void;
   nodesData: NodeKind[];
   disableLabeledNodes: boolean;
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
 
 export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({
   nodes,
   onRowSelected,
   disableLabeledNodes = false,
+  systemNamespace,
 }) => {
   const [nodesData, nodesLoaded, nodesLoadError] = useK8sWatchResource<
     NodeKind[]
@@ -241,6 +241,7 @@ export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({
             onRowSelected={onRowSelected}
             nodesData={filteredData as NodeKind[]}
             disableLabeledNodes={disableLabeledNodes}
+            systemNamespace={systemNamespace}
           />
         </StatusBox>
       </ListPageBody>
@@ -253,4 +254,5 @@ type NodeSelectTableProps = {
   nodes: WizardNodeState[];
   onRowSelected: (selectedNodes: NodeKind[]) => void;
   disableLabeledNodes?: boolean;
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

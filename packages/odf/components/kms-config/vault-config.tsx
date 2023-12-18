@@ -40,6 +40,7 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
   className,
   isWizardFlow,
   isMCG,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -62,6 +63,7 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
       state,
       dispatch,
       isWizardFlow,
+      systemNamespace,
     });
 
   const updateVaultState = React.useCallback(

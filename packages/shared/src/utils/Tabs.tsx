@@ -4,12 +4,7 @@ import {
   ResourceEventStream,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import {
-  RouteComponentProps,
-  useHistory,
-  useLocation,
-  useRouteMatch,
-} from 'react-router';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
   Tab,
   Tabs as PfTabs,
@@ -24,11 +19,11 @@ export type TabPage = {
   id?: string;
   component: React.ComponentType<any>;
   href: string;
-  title: string;
+  title?: string;
+  name?: string;
 };
 
 type TabsProps = {
-  match?: RouteComponentProps['match'];
   tabs: TabPage[];
   isSecondary?: boolean;
   id: string;
@@ -47,25 +42,27 @@ const Tabs: React.FC<TabsProps> = ({
   const [activeTab, setActiveTab] = React.useState(0 + offset);
 
   const location = useLocation();
-  const history = useHistory();
-  const match = useRouteMatch();
+  const navigate = useNavigate();
 
   const { t } = useCustomTranslation();
 
   const elements = React.useMemo(() => {
-    const temp = tabs.map((tab, i) => (
-      <Tab
-        eventKey={i + offset}
-        title={<TabTitleText>{tab.title}</TabTitleText>}
-        translate={t}
-        key={tab.title}
-        data-test={`horizontal-link-${tab.title}`}
-      >
-        <tab.component match={match} history={history} />
-      </Tab>
-    ));
+    const temp = tabs.map((tab, i) => {
+      const tabTitle = tab.title || tab.name;
+      return (
+        <Tab
+          eventKey={i + offset}
+          title={<TabTitleText>{tabTitle}</TabTitleText>}
+          translate={t}
+          key={tabTitle}
+          data-test={`horizontal-link-${tabTitle}`}
+        >
+          <tab.component />
+        </Tab>
+      );
+    });
     return temp;
-  }, [history, match, offset, t, tabs]);
+  }, [offset, t, tabs]);
 
   const hrefToTabMap = React.useMemo(
     () =>
@@ -98,7 +95,7 @@ const Tabs: React.FC<TabsProps> = ({
         : location.pathname;
       const currentPath = sanitizedPath.split('/');
       const updatedPath = [...currentPath, activeHref].join('/');
-      history.push(updatedPath);
+      navigate(updatedPath);
     }
     // Fixing path based on initial page props
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,24 +105,17 @@ const Tabs: React.FC<TabsProps> = ({
     const currentLocation = location.pathname;
     const firstMatchKey = Object.keys(hrefToTabMap).find(
       (href) =>
-        history.location.hash === href ||
+        location.hash === href ||
         currentLocation.endsWith(href) ||
-        currentLocation.endsWith(`${href}/`) ||
-        currentLocation.includes(href)
+        currentLocation.endsWith(`${href}/`)
     );
     const trueActiveTab = hrefToTabMap[firstMatchKey];
     if (trueActiveTab && trueActiveTab !== activeTab) {
       setActiveTab(trueActiveTab);
     }
-  }, [
-    activeTab,
-    history.location,
-    hrefToTabMap,
-    location.pathname,
-    tabToHrefMap,
-  ]);
+  }, [activeTab, location.hash, hrefToTabMap, location.pathname, tabToHrefMap]);
 
-  const onSelect = (event, tabIndex) => {
+  const onSelect = (_event, tabIndex) => {
     if (!updatePathOnSelect) {
       return setActiveTab(tabIndex);
     }
@@ -146,7 +136,7 @@ const Tabs: React.FC<TabsProps> = ({
       const updatedPath = [...currentPath, requiredHref]
         .join('/')
         .replace('/#', '#');
-      history.push(updatedPath);
+      navigate(updatedPath);
     }
   };
 
@@ -167,7 +157,7 @@ const Tabs: React.FC<TabsProps> = ({
 
 type WrappedProps = {
   obj?: K8sResourceKind;
-} & RouteComponentProps;
+};
 
 export const YAMLEditorWrapped: React.FC<WrappedProps> = ({ obj }) => (
   <ResourceYAMLEditor initialResource={obj} />

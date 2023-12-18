@@ -22,7 +22,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import { useForm } from 'react-hook-form';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import * as Yup from 'yup';
 import { ActionGroup, Alert, Button, Form } from '@patternfly/react-core';
 import {
@@ -68,7 +68,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
 
   const isODF = useFlag(ODF_MODEL_FLAG);
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const { className, isPage, appName, namespace, onCancel, onClose } = props;
   const ns = namespace || odfNamespace;
@@ -215,8 +215,8 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
         )}/${getName(resource[lastIndex])}`;
         if (isPage)
           isODF
-            ? history.push(`/odf/resource/${resourcePath}`)
-            : history.push(
+            ? navigate(`/odf/resource/${resourcePath}`)
+            : navigate(
                 `/k8s/ns/${ns}/clusterserviceversions/${appName}/${resourcePath}`
               );
         else onClose();

@@ -1,62 +1,74 @@
-export type ODFInfo = Partial<{
-  storageClusterName: string;
-  storageSystemName: string;
-  cephFSID: string;
-  odfVersion: string;
-  isValidODFVersion: boolean;
-  isManagedClusterAvailable: boolean;
-}>;
+import { REPLICATION_TYPE } from '@odf/mco/constants';
 
-export type Cluster = {
+export type StorageClusterInfoType = {
+  // Namespaced storage cluster name.
+  storageClusterNamespacedName: string;
+  // Namespaced storage system name.
+  storageSystemNamespacedName: string;
+  // Ceph FSID to determine RDR/MDR.
+  cephFSID: string;
+  //  OSDs are migrated for the RDR or not.
+  isDROptimized: boolean;
+};
+
+export type ODFConfigInfoType = {
+  // ODF config info synced from managed cluster.
+  storageClusterInfo: StorageClusterInfoType;
+  // ODF version
+  odfVersion: string;
+  // ODF operator version has to be greater than or equal to MCO operator version.
+  isValidODFVersion: boolean;
+  // Count of storage clusters present under a OCP cluster.
+  storageClusterCount: number;
+};
+
+export type ManagedClusterInfoType = {
+  // Name of the managed cluster in ACM.
   name: string;
-  region: string;
-} & ODFInfo;
+  // Namespace of the managed cluster deployed in ACM.
+  namesapce: string;
+  // The cloud region where the cluster is deployed.
+  region?: string;
+  // Cluster is offline / online.
+  isManagedClusterAvailable: boolean;
+  // ODF cluster info.
+  odfInfo?: ODFConfigInfoType;
+};
 
 export type DRPolicyState = {
+  // DRPolicy CR name.
   policyName: string;
-  replication: string;
-  syncTime: string;
-  selectedClusters: Cluster[];
-  isODFDetected: boolean;
-  isReplicationInputManual: boolean;
-  errorMessage: string;
+  // DRPolicy type Async / Sync.
+  replicationType: REPLICATION_TYPE;
+  // Sync interval schedule for Async policy.
+  syncIntervalTime: string;
+  // Selected managed cluster for DRPolicy paring.
+  selectedClusters: ManagedClusterInfoType[];
 };
 
 export enum DRPolicyActionType {
   SET_POLICY_NAME = 'SET_POLICY_NAME',
-  SET_REPLICATION = 'SET_REPLICATION',
-  SET_SYNC_TIME = 'SET_SYNC_TIME',
+  SET_REPLICATION_TYPE = 'SET_REPLICATION_TYPE',
+  SET_SYNC_INTERVAL_TIME = 'SET_SYNC_INTERVAL_TIME',
   SET_SELECTED_CLUSTERS = 'SET_SELECTED_CLUSTERS',
   UPDATE_SELECTED_CLUSTERS = 'UPDATE_SELECTED_CLUSTERS',
-  SET_IS_ODF_DETECTED = 'SET_IS_ODF_DETECTED',
-  SET_IS_REPLICATION_INPUT_MANUAL = 'SET_IS_REPLICATION_INPUT_MANUAL',
-  SET_ERROR_MESSAGE = 'SET_ERROR_MESSAGE',
 }
 
 export const drPolicyInitialState: DRPolicyState = {
   policyName: '',
-  replication: '',
-  syncTime: '5m',
+  replicationType: null,
+  syncIntervalTime: '5m',
   selectedClusters: [],
-  isODFDetected: false,
-  isReplicationInputManual: false,
-  errorMessage: '',
 };
 
 export type DRPolicyAction =
   | { type: DRPolicyActionType.SET_POLICY_NAME; payload: string }
-  | { type: DRPolicyActionType.SET_REPLICATION; payload: string }
-  | { type: DRPolicyActionType.SET_SYNC_TIME; payload: string }
+  | { type: DRPolicyActionType.SET_REPLICATION_TYPE; payload: REPLICATION_TYPE }
+  | { type: DRPolicyActionType.SET_SYNC_INTERVAL_TIME; payload: string }
   | {
       type: DRPolicyActionType.SET_SELECTED_CLUSTERS;
-      payload: Cluster[];
-    }
-  | { type: DRPolicyActionType.SET_IS_ODF_DETECTED; payload: boolean }
-  | {
-      type: DRPolicyActionType.SET_IS_REPLICATION_INPUT_MANUAL;
-      payload: boolean;
-    }
-  | { type: DRPolicyActionType.SET_ERROR_MESSAGE; payload: string };
+      payload: ManagedClusterInfoType[];
+    };
 
 export const drPolicyReducer = (
   state: DRPolicyState,
@@ -69,40 +81,22 @@ export const drPolicyReducer = (
         policyName: action.payload,
       };
     }
-    case DRPolicyActionType.SET_REPLICATION: {
+    case DRPolicyActionType.SET_REPLICATION_TYPE: {
       return {
         ...state,
-        replication: action.payload,
+        replicationType: action.payload,
       };
     }
-    case DRPolicyActionType.SET_SYNC_TIME: {
+    case DRPolicyActionType.SET_SYNC_INTERVAL_TIME: {
       return {
         ...state,
-        syncTime: action.payload,
+        syncIntervalTime: action.payload,
       };
     }
     case DRPolicyActionType.SET_SELECTED_CLUSTERS: {
       return {
         ...state,
         selectedClusters: action.payload,
-      };
-    }
-    case DRPolicyActionType.SET_IS_ODF_DETECTED: {
-      return {
-        ...state,
-        isODFDetected: action.payload,
-      };
-    }
-    case DRPolicyActionType.SET_IS_REPLICATION_INPUT_MANUAL: {
-      return {
-        ...state,
-        isReplicationInputManual: action.payload,
-      };
-    }
-    case DRPolicyActionType.SET_ERROR_MESSAGE: {
-      return {
-        ...state,
-        errorMessage: action.payload,
       };
     }
     default:

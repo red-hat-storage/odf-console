@@ -1,12 +1,18 @@
+import { STATE_PRIORITY } from '@odf/shared/dashboards/status-card/states';
 import { K8sResourceKind } from '@odf/shared/types';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  ResourceHealthHandler,
   SubsystemHealth,
+  ResourceHealthHandler,
 } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import { TFunction } from 'i18next';
+import * as _ from 'lodash-es';
 
 export type WatchCephResource = {
+  ceph: K8sResourceKind;
+};
+
+export type WatchCephResources = {
   ceph: K8sResourceKind[];
 };
 
@@ -39,7 +45,7 @@ export const getCephHealthState: ResourceHealthHandler<WatchCephResource> = (
   t
 ) => {
   const { data, loaded, loadError } = ceph;
-  const status = data?.[0]?.status?.ceph?.health;
+  const status = data?.status?.ceph?.health;
 
   if (loadError) {
     return { state: HealthState.NOT_AVAILABLE };
@@ -47,10 +53,30 @@ export const getCephHealthState: ResourceHealthHandler<WatchCephResource> = (
   if (!loaded) {
     return { state: HealthState.LOADING };
   }
-  if (data.length === 0) {
+  if (_.isEmpty(data)) {
     return { state: HealthState.NOT_AVAILABLE };
   }
   return parseCephHealthStatus(status, t);
+};
+
+export const getCephsHealthState: ResourceHealthHandler<WatchCephResources> = (
+  { ceph },
+  t
+) => {
+  const { data, loaded, loadError } = ceph;
+  const cephHealthStates = data?.map((cephCluster: K8sResourceKind) =>
+    getCephHealthState({ ceph: { data: cephCluster, loaded, loadError } }, t)
+  );
+
+  let worstCephHealthState: SubsystemHealth;
+  STATE_PRIORITY.some((state) => {
+    worstCephHealthState = cephHealthStates?.find(
+      (cephHealthState) => cephHealthState.state === state
+    );
+    return !!worstCephHealthState ? true : false;
+  });
+
+  return worstCephHealthState || { state: HealthState.UNKNOWN };
 };
 
 export enum Phase {

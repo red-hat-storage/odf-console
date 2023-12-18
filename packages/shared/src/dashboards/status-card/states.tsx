@@ -102,6 +102,18 @@ export const healthStateMapping: {
   },
 };
 
+export const STATE_PRIORITY = [
+  HealthState.NOT_AVAILABLE,
+  HealthState.LOADING,
+  HealthState.ERROR,
+  HealthState.WARNING,
+  HealthState.UPGRADABLE,
+  HealthState.UPDATING,
+  HealthState.PROGRESS,
+  HealthState.UNKNOWN,
+  HealthState.OK,
+];
+
 export type HealthStateMappingValues = {
   icon: React.ReactNode;
   priority: number;

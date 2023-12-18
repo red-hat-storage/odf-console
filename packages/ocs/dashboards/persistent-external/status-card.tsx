@@ -1,12 +1,15 @@
 import * as React from 'react';
 import { cephClusterResource } from '@odf/core/resources';
-import { K8sResourceKind } from '@odf/shared/types';
+import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
+import { getCephHealthState } from '@odf/ocs/utils';
+import { K8sResourceKind, CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   HealthBody,
   HealthItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
+import { useParams } from 'react-router-dom-v5-compat';
 import {
   GalleryItem,
   Gallery,
@@ -14,15 +17,23 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
-import { getCephHealthState } from '../persistent-internal/status-card/utils';
+import { ODFSystemParams } from '../../types';
 
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+
   const cephHealth = getCephHealthState(
-    { ceph: { data, loaded, loadError } },
+    {
+      ceph: {
+        data: getCephClusterInNs(data as CephClusterKind[], clusterNs),
+        loaded,
+        loadError,
+      },
+    },
     t
   );
 

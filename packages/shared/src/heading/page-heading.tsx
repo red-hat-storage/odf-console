@@ -3,7 +3,7 @@ import { resourceStatus as getDefaultResourceStatus } from '@odf/shared/status/R
 import { ResourceStatus } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 import {
   Breadcrumb,
   BreadcrumbItem,

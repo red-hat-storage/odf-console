@@ -24,6 +24,7 @@ import './capacity-card.scss';
 
 export type CapacityMetricDatum = {
   name: string;
+  namespace?: string;
   managedSystemName?: string;
   managedSystemKind?: string;
   totalValue?: HumanizeResult;
@@ -184,7 +185,11 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
         {data?.managedSystemKind ? (
           <Tooltip content={data?.name}>
             <ResourceLink
-              link={getDashboardLink(data?.managedSystemKind, data?.name)}
+              link={getDashboardLink(
+                data?.managedSystemKind,
+                data?.name,
+                data?.namespace
+              )}
               resourceModel={resourceModel}
               resourceName={data?.name}
               className="odf-capacityCardLink--ellipsis"
@@ -317,7 +322,7 @@ const CapacityCard: React.FC<CapacityCardProps> = ({
             const isPercentage = !!item?.totalValue;
             return (
               <CapacityCardRow
-                key={item.name}
+                key={`${item.name}${item.namespace}`}
                 data={item}
                 isPercentage={isPercentage}
                 isRelative={relative}

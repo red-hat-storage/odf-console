@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ModalKeys } from '@odf/shared/modals/types';
-import { StorageClassResourceKind, CephClusterKind } from '@odf/shared/types';
+import { StorageClassResourceKind } from '@odf/shared/types';
 import { getLastLanguage } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import {
@@ -9,7 +9,7 @@ import {
   ExclamationCircleIcon,
   LockIcon,
 } from '@patternfly/react-icons';
-import { CEPH_EXTERNAL_CR_NAME, POOL_PROGRESS, ROOK_MODEL } from '../constants';
+import { POOL_PROGRESS, ROOK_MODEL } from '../constants';
 import { StorageClusterModel } from '../models';
 import { StoragePoolKind } from '../types';
 import { LoadingComponent } from './CustomLoading';
@@ -50,11 +50,11 @@ export const isDefaultPool = (blockPoolConfig: StoragePoolKind): boolean =>
 
 export const disableMenuAction = (
   blockPoolConfig: StoragePoolKind,
-  cephCluster: CephClusterKind
+  isExternal: boolean
 ) =>
   !!(
     blockPoolConfig?.metadata?.deletionTimestamp ||
-    cephCluster?.metadata?.name === CEPH_EXTERNAL_CR_NAME ||
+    isExternal ||
     isDefaultPool(blockPoolConfig)
   );
 

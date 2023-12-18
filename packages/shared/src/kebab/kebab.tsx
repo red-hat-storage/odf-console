@@ -7,7 +7,7 @@ import {
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Dropdown,
   DropdownItem,
@@ -106,7 +106,7 @@ export const Kebab: React.FC<KebabProps> = ({
 
   const resourceLabel = resourceModel.label;
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [canCreate, createLoading] = useAccessReview({
     group: resourceModel?.apiGroup,
@@ -159,7 +159,7 @@ export const Kebab: React.FC<KebabProps> = ({
       let basePath = resourceModel?.namespaced
         ? `${editPrefix}/ns/${resource?.metadata?.namespace}`
         : `${editPrefix}/cluster`;
-      history.push(
+      navigate(
         `${basePath}/${referenceForModel(resourceModel)}/${
           resource?.metadata?.name
         }/yaml`

@@ -19,7 +19,7 @@ import {
 import { DrClusterAppsMap, PlacementInfo } from '@odf/mco/types';
 import {
   getVolumeReplicationHealth,
-  getManagedClusterCondition,
+  ValidateManagedClusterCondition,
 } from '@odf/mco/utils';
 import { getMax, getMin } from '@odf/shared/charts';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
@@ -123,7 +123,7 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
       <HealthItem
         title={t('Cluster health')}
         state={
-          !!getManagedClusterCondition(
+          ValidateManagedClusterCondition(
             clusterResources[clusterName]?.managedCluster,
             MANAGED_CLUSTER_CONDITION_AVAILABLE
           )

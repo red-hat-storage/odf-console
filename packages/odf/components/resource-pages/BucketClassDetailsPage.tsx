@@ -8,18 +8,14 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom-v5-compat';
 import { NooBaaBucketClassModel } from '../../models';
 import { BucketClassKind } from '../../types';
 import { CommonDetails, DetailsItem } from './CommonDetails';
 
-type BucketClassDetailsPageProps = {
-  match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
-};
-
 type DetailsProps = {
   obj: BucketClassKind;
-} & RouteComponentProps;
+};
 
 type PolicyDetailsProps = {
   resource: BucketClassKind;
@@ -74,11 +70,9 @@ const BCDetails: React.FC<DetailsProps> = ({ obj }) => {
   );
 };
 
-const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
-  match,
-}) => {
+const BucketClassDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { resourceName: name } = match.params;
+  const { resourceName: name } = useParams();
 
   const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
 
@@ -97,7 +91,7 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
     },
     {
       name: t('BucketClasses'),
-      path: '/odf/object-storage/resource/noobaa.io~v1alpha1~BucketClass',
+      path: '/odf/object-storage/noobaa.io~v1alpha1~BucketClass',
     },
     {
       name: t('BucketClass details'),
@@ -141,7 +135,7 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
           {
             href: '',
             name: t('Details'),
-            component: BCDetails,
+            component: BCDetails as any,
           },
           {
             href: 'yaml',

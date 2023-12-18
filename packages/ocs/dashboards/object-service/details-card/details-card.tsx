@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { OCS_OPERATOR } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
-import { RGW_FLAG } from '@odf/core/features';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getOperatorVersion } from '@odf/core/utils';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import {
@@ -24,8 +24,9 @@ import { getMetric } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { ODFSystemParams } from '../../../types';
 import './details-card.scss';
 
 const NOOBAA_SYSTEM_NAME_QUERY = 'NooBaa_system_info';
@@ -70,12 +71,17 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
     ? t('Data Foundation')
     : t('OpenShift Container Storage');
 
-  const hasRGW = useFlag(RGW_FLAG);
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const hasRGW = systemFlags[clusterNs]?.isRGWAvailable;
+  const hasMCG = systemFlags[clusterNs]?.isNoobaaAvailable;
+
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
     getName(csv),
     odfNamespace
   )}`;
+
   return (
     <Card>
       <CardHeader>
@@ -101,9 +107,11 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
             }
             error={systemLoadError || dashboardLinkLoadError}
           >
-            <p data-test-id="system-name-mcg">
-              {t('Multicloud Object Gateway')}
-            </p>
+            {hasMCG && (
+              <p data-test-id="system-name-mcg">
+                {t('Multicloud Object Gateway')}
+              </p>
+            )}
             {hasRGW && (
               <p
                 className="ceph-details-card__rgw-system-name--margin"

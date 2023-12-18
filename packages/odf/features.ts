@@ -1,35 +1,30 @@
 import {
   ODFStorageSystem,
-  OCSStorageClusterModel,
   StorageClassModel,
-  CephClusterModel,
+  OCSStorageClusterModel,
 } from '@odf/shared/models';
 import { SelfSubjectAccessReviewModel } from '@odf/shared/models';
 import {
-  StorageClusterKind,
   StorageClassResourceKind,
+  StorageClusterKind,
 } from '@odf/shared/types';
 import {
   SetFeatureFlag,
   k8sList,
   k8sCreate,
-  K8sResourceCommon,
   SelfSubjectAccessReviewKind,
+  K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { SECOND, RGW_PROVISIONER, NOOBAA_PROVISIONER } from './constants';
+import { isExternalCluster, isClusterIgnored } from './utils';
 
 export const ODF_MODEL_FLAG = 'ODF_MODEL'; // Based on the existence of StorageSystem CRD
-export const OCS_INDEPENDENT_FLAG = 'OCS_INDEPENDENT'; // Set to "true" if it is external mode StorageCluster
-export const OCS_CONVERGED_FLAG = 'OCS_CONVERGED'; // Set to "true" if it is internal mode StorageCluster
 export const ROSA_FLAG = 'ROSA'; // Set to "true" if we are using ROSA
 export const RGW_FLAG = 'RGW'; // Based on the existence of StorageClass with RGW provisioner ("openshift-storage.ceph.rook.io/bucket")
-export const MCG_STANDALONE = 'MCG_STANDALONE'; // Based on the existence of NooBaa only system (no Ceph)
 export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaa StorageClass (which only gets created if NooBaaSystem is present)
-export const CEPH_FLAG = 'CEPH'; // Based on the existence of CephCluster
-export const OCS_FLAG = 'OCS'; // Based on the existence of StorageCluster
-export const OCS_NFS_ENABLED = 'NFS'; // Based on the enablement of NFS from StorageCluster spec
 export const ODF_ADMIN = 'ODF_ADMIN'; // Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
+export const PROVIDER_MODE = 'PROVIDER_MODE'; // Set to "true" if user has deployed it in provider mode
 
 // Check the user's access to some resources.
 const ssarChecks = [
@@ -43,16 +38,8 @@ const ssarChecks = [
   },
 ];
 
-const setOCSFlagsFalse = (setFlag: SetFeatureFlag) => {
-  setFlag(OCS_FLAG, false);
-  setFlag(OCS_CONVERGED_FLAG, false);
-  setFlag(OCS_INDEPENDENT_FLAG, false);
-  setFlag(MCG_STANDALONE, false);
-  setFlag(OCS_NFS_ENABLED, false);
-};
-
-export const setODFFlag = (setFlag: SetFeatureFlag) =>
-  setFlag(ODF_MODEL_FLAG, true);
+const isProviderMode = (cluster: StorageClusterKind): boolean =>
+  !!cluster.spec.allowRemoteStorageConsumers;
 
 export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
   let ocsIntervalId = null;
@@ -68,26 +55,18 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
           requestInit: null,
         })) as StorageClusterKind[];
       if (storageClusters?.length > 0) {
-        const storageCluster = storageClusters.find(
-          (sc: StorageClusterKind) => sc.status.phase !== 'Ignored'
+        const internalStorageCluster = storageClusters.find(
+          (sc: StorageClusterKind) =>
+            !isClusterIgnored(sc) && !isExternalCluster(sc)
         );
-        const isInternal = _.isEmpty(storageCluster?.spec?.externalStorage);
-        setFlag(OCS_CONVERGED_FLAG, isInternal);
-        setFlag(OCS_INDEPENDENT_FLAG, !isInternal);
-        setFlag(OCS_FLAG, true);
-        setFlag(
-          MCG_STANDALONE,
-          storageCluster?.spec?.multiCloudGateway?.reconcileStrategy ===
-            'standalone'
-        );
-        setFlag(OCS_NFS_ENABLED, storageCluster?.spec?.nfs?.enable === true);
+        setFlag(PROVIDER_MODE, isProviderMode(internalStorageCluster));
         clearInterval(ocsIntervalId);
       } else if (setFlagFalse) {
         setFlagFalse = false;
-        setOCSFlagsFalse(setFlag);
+        setFlag(PROVIDER_MODE, false);
       }
     } catch (error) {
-      setOCSFlagsFalse(setFlag);
+      setFlag(PROVIDER_MODE, false);
     }
   };
 
@@ -96,6 +75,9 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
   ocsDetector();
   ocsIntervalId = setInterval(ocsDetector, 15 * SECOND);
 };
+
+export const setODFFlag = (setFlag: SetFeatureFlag) =>
+  setFlag(ODF_MODEL_FLAG, true);
 
 const handleError = (
   res: any,
@@ -200,23 +182,7 @@ export const detectSSAR = (setFlag: SetFeatureFlag) => {
 export const detectComponents: FeatureDetector = async (
   setFlag: SetFeatureFlag
 ) => {
-  let cephIntervalId = null;
   let noobaaIntervalId = null;
-
-  const cephDetector = async () => {
-    try {
-      const cephClusters = (await k8sList({
-        model: CephClusterModel,
-        queryParams: { ns: null },
-      })) as K8sResourceCommon[];
-      if (cephClusters?.length > 0) {
-        setFlag(CEPH_FLAG, true);
-        clearInterval(cephIntervalId);
-      }
-    } catch {
-      setFlag(CEPH_FLAG, false);
-    }
-  };
 
   // Setting flag based on presence of NooBaa StorageClass gets created only if NooBaa CR is present
   const noobaaDetector = async () => {
@@ -239,9 +205,7 @@ export const detectComponents: FeatureDetector = async (
 
   // calling first time instantaneously
   // else it will wait for 15s before start polling
-  cephDetector();
   noobaaDetector();
-  cephIntervalId = setInterval(cephDetector, 15 * SECOND);
   noobaaIntervalId = setInterval(noobaaDetector, 15 * SECOND);
 };
 

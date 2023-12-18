@@ -65,6 +65,7 @@ import {
   ACMPlacementKind,
   MirrorPeerKind,
   ArgoApplicationSetKind,
+  ClusterClaim,
 } from '../types';
 
 export type PlacementMap = {
@@ -572,11 +573,11 @@ export const findPlacementDecisionUsingPlacement = (
       getNamespace(placementDecision) === getNamespace(placement)
   );
 
-export const getManagedClusterCondition = (
+export const ValidateManagedClusterCondition = (
   managedCluster: ACMManagedClusterKind,
   conditionType: string
-) =>
-  managedCluster?.status?.conditions?.find(
+): boolean =>
+  !!managedCluster?.status?.conditions?.find(
     (condition) =>
       condition?.type === conditionType && condition.status === 'True'
   );
@@ -634,3 +635,12 @@ export const findDeploymentClusters = (
 
 export const getDRPolicyStatus = (isValidated, t) =>
   isValidated ? t('Validated') : t('Not validated');
+
+export const getValueFromClusterClaim = (
+  clusterClaims: ClusterClaim[],
+  claimName: string
+): string =>
+  clusterClaims?.find((claim) => claim?.name === claimName)?.value || '';
+
+export const parseNamespaceName = (namespaceName: string) =>
+  namespaceName.split('/');

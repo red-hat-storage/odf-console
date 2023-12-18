@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { useSafeK8sWatchResource } from '@odf/core/hooks';
-import { K8sResourceObj } from '@odf/core/types';
+import { isMCGStandaloneCluster, isExternalCluster } from '@odf/core/utils';
 import CapacityCard, {
   CapacityMetricDatum,
 } from '@odf/shared/dashboards/capacity-card/capacity-card';
@@ -18,40 +17,44 @@ import {
   referenceFor,
   referenceForModel,
 } from '@odf/shared/utils';
-import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  PrometheusResponse,
+  useK8sWatchResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { storageCapacityTooltip } from '../../../constants';
 import { StorageDashboard, CAPACITY_QUERIES } from '../queries';
 
-const storageSystemResource: K8sResourceObj = (ns) => ({
+const storageSystemResource = {
   kind: referenceForModel(ODFStorageSystem),
-  namespace: ns,
   isList: true,
-});
+};
 
-const storageClusterResource: K8sResourceObj = (ns) => ({
+const storageClusterResource = {
   kind: referenceForModel(OCSStorageClusterModel),
-  namespace: ns,
   isList: true,
-});
+};
 
 const getMetricForSystem = (
   metric: PrometheusResponse,
   system: StorageSystemKind
 ) =>
+  // ToDo (epic 4422): This equality check should work (for now) as "managedBy" will be unique,
+  // but moving forward add a label to metric for StorageSystem namespace as well and use that,
+  // equality check should be updated with "&&" condition on StorageSystem namespace.
   metric?.data?.result?.find(
     (value) => value.metric.managedBy === system.spec.name
   );
 
 const SystemCapacityCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const [systems, systemsLoaded, systemsLoadError] = useSafeK8sWatchResource<
+  const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<
     StorageSystemKind[]
   >(storageSystemResource);
 
   const [storageClusters, storageClustersLoaded, storageClustersLoadError] =
-    useSafeK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
+    useK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
 
   const [usedCapacity, errorUsedCapacity, loadingUsedCapacity] =
     useCustomPrometheusPoll({
@@ -67,16 +70,6 @@ const SystemCapacityCard: React.FC = () => {
       basePath: usePrometheusBasePath(),
     });
 
-  const isMCGCluster = (storageCluster: StorageClusterKind) => {
-    return (
-      storageCluster.spec?.multiCloudGateway?.reconcileStrategy === 'standalone'
-    );
-  };
-
-  const isExternalCluster = (storageCluster: StorageClusterKind) => {
-    return !_.isEmpty(storageCluster.spec?.externalStorage);
-  };
-
   // We are filtering internal only storagesystems as the metrics are not applicable for MCG standalone and external only StorageSystems.
   // https://bugzilla.redhat.com/show_bug.cgi?id=2185042
   const internalOnlySystems: StorageSystemKind[] = systems.filter((sys) => {
@@ -86,7 +79,8 @@ const SystemCapacityCard: React.FC = () => {
       storageClusters.find((sc) => sc.metadata.name === sys.spec.name);
     if (
       !!storageCluster &&
-      (isMCGCluster(storageCluster) || isExternalCluster(storageCluster))
+      (isMCGStandaloneCluster(storageCluster) ||
+        isExternalCluster(storageCluster))
     ) {
       return false;
     }
@@ -104,6 +98,7 @@ const SystemCapacityCard: React.FC = () => {
           const totalMetric = getMetricForSystem(totalCapacity, system);
           const datum = {
             name: system.metadata.name,
+            namespace: system.metadata.namespace,
             managedSystemName: system.spec.name,
             managedSystemKind: referenceFor(apiGroup)(apiVersion)(kind),
             usedValue: usedMetric

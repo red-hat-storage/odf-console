@@ -99,6 +99,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
   nodes,
   allNodes,
   defaultVolumeMode,
+  systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
   const [radio, setRadio] = React.useState(FilterDiskBy.ALL_NODES);
@@ -311,7 +312,11 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
         id="create-lvs-radio-select-nodes"
       />
       {radio === FilterDiskBy.SELECTED_NODES && (
-        <SelectNodesTable nodes={nodes} onRowSelected={onRowSelected} />
+        <SelectNodesTable
+          nodes={nodes}
+          onRowSelected={onRowSelected}
+          systemNamespace={systemNamespace}
+        />
       )}
       <FormGroup label={t('Disk type')} fieldId="create-lvs-disk-type-dropdown">
         <SingleSelectDropdown
@@ -493,4 +498,5 @@ type LocalVolumeSetBodyProps = {
   nodes: WizardState['nodes'];
   allNodes: WizardState['nodes'];
   defaultVolumeMode: WizardState['createLocalVolumeSet']['diskMode'];
+  systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

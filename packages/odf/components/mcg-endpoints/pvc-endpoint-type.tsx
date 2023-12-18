@@ -101,6 +101,7 @@ export const PVCType: React.FC<PVCTypeProps> = ({ state, dispatch }) => {
           dropdownUnits={units}
           defaultRequestSizeUnit="GiB"
           defaultRequestSizeValue={size}
+          unitText={t('Unit')}
         />
       </FormGroup>
       <FormGroup

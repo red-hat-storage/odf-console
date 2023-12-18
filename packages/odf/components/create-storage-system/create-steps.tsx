@@ -2,7 +2,6 @@ import * as React from 'react';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { TFunction } from 'i18next';
-import { RouteComponentProps } from 'react-router';
 import { WizardStep } from '@patternfly/react-core';
 import { Steps, StepsName } from '../../constants';
 import { BackingStorageType, DeploymentType } from '../../types';
@@ -23,8 +22,8 @@ export const createSteps = (
   dispatch: WizardDispatch,
   infraType: string,
   hasOCS: boolean,
-  history: RouteComponentProps['history'],
-  supportedExternalStorage: ExternalStorage[]
+  supportedExternalStorage: ExternalStorage[],
+  hasMultipleClusters: boolean
 ): WizardStep[] => {
   const {
     backingStorage,
@@ -38,7 +37,7 @@ export const createSteps = (
     connectionDetails,
     dataProtection,
   } = state;
-  const { externalStorage, deployment } = backingStorage;
+  const { systemNamespace, externalStorage, deployment } = backingStorage;
   const { encryption, kms } = securityAndNetwork;
 
   const isMCG = deployment === DeploymentType.MCG;
@@ -53,7 +52,7 @@ export const createSteps = (
           storageClass={storageClass}
           volumeSetName={createLocalVolumeSet.volumeSetName}
           nodes={nodes}
-          resourceProfile={capacityAndNodes.resourceProfile}
+          systemNamespace={systemNamespace}
         />
       ),
     },
@@ -64,6 +63,7 @@ export const createSteps = (
           securityAndNetworkState={securityAndNetwork}
           dispatch={dispatch}
           infraType={infraType}
+          systemNamespace={systemNamespace}
         />
       ),
     },
@@ -75,7 +75,8 @@ export const createSteps = (
           encryption={encryption}
           kms={kms}
           dispatch={dispatch}
-          isMCG
+          isMCG={isMCG}
+          systemNamespace={systemNamespace}
         />
       ),
     },
@@ -85,6 +86,7 @@ export const createSteps = (
         <ReviewAndCreate
           state={state}
           hasOCS={hasOCS}
+          hasMultipleClusters={hasMultipleClusters}
           supportedExternalStorage={supportedExternalStorage}
         />
       ),
@@ -105,6 +107,7 @@ export const createSteps = (
           connectionDetailState={connectionDetails}
           externalStorage={externalStorage}
           supportedExternalStorage={supportedExternalStorage}
+          systemNamespace={systemNamespace}
         />
       ),
     },
@@ -143,7 +146,7 @@ export const createSteps = (
         nodes={nodes}
         stepIdReached={stepIdReached}
         isMCG={isMCG}
-        history={history}
+        systemNamespace={systemNamespace}
       />
     ),
   };

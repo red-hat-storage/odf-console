@@ -1,12 +1,9 @@
 import * as React from 'react';
 import { cephStorageLabel } from '@odf/core/constants';
-import { CEPH_FLAG, OCS_INDEPENDENT_FLAG } from '@odf/core/features';
-import { useSafeK8sList } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { nodeResource } from '@odf/core/resources';
 import { getDataResiliencyState } from '@odf/ocs/dashboards/persistent-internal/status-card/utils';
 import { StorageEfficiencyContent } from '@odf/ocs/dashboards/persistent-internal/storage-efficiency-card/storage-efficiency-card';
-import { StorageClusterModel } from '@odf/ocs/models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '@odf/ocs/queries';
 import { getCephNodes, getOperatorVersion } from '@odf/ocs/utils';
 import { DASH, ODF_OPERATOR } from '@odf/shared/constants';
@@ -33,19 +30,18 @@ import {
   resourcePathFromModel,
   getInfrastructurePlatform,
 } from '@odf/shared/utils';
-import {
-  useFlag,
-  useK8sWatchResource,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   HealthItem,
   ResourceInventoryItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 
-const resiliencyProgressQuery =
-  DATA_RESILIENCY_QUERY[StorageDashboardQuery.RESILIENCY_PROGRESS];
+const resiliencyProgressQuery = (managedByOCS: string) =>
+  DATA_RESILIENCY_QUERY(managedByOCS)[
+    StorageDashboardQuery.RESILIENCY_PROGRESS
+  ];
 
 export type StorageClusterDetailsProps = {
   resource: StorageClusterKind;
@@ -60,15 +56,8 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
 
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
-  const [ocsData, ocsLoaded, ocsError] = useSafeK8sList(
-    StorageClusterModel,
-    odfNamespace
-  );
-  const cluster = ocsData?.find(
-    (item: StorageClusterKind) => item.status.phase !== 'Ignored'
-  );
 
-  const ocsName = ocsLoaded && _.isEmpty(ocsError) ? getName(cluster) : DASH;
+  const ocsName = getName(storageCluster);
   const infrastructurePlatform =
     infrastructureLoaded && _.isEmpty(infrastructureError)
       ? getInfrastructurePlatform(infrastructure)
@@ -76,7 +65,7 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
 
   const [resiliencyProgress, resiliencyProgressError] = useCustomPrometheusPoll(
     {
-      query: resiliencyProgressQuery,
+      query: resiliencyProgressQuery(ocsName),
       endpoint: 'api/v1/query' as any,
       basePath: usePrometheusBasePath(),
     }
@@ -86,10 +75,8 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
     t
   );
 
-  const isIndependent = useFlag(OCS_INDEPENDENT_FLAG);
-  const isCephAvailable = useFlag(CEPH_FLAG);
-  const mode =
-    !isIndependent && isCephAvailable ? t('Internal') : t('External');
+  // Topology is only supported for Internal mode
+  const mode = t('Internal');
 
   const [csv, csvLoaded, csvError] = useFetchCsv({
     specName: ODF_OPERATOR,

@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { useSafeK8sWatchResources } from '@odf/core/hooks';
-import { useODFNamespaceSelector } from '@odf/core/redux';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -11,11 +10,8 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import { ModalKeys } from '@odf/shared/modals/types';
 import { StorageClassModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
-import {
-  K8sResourceKind,
-  StorageClassResourceKind,
-  CephClusterKind,
-} from '@odf/shared/types';
+import { getNamespace } from '@odf/shared/selectors';
+import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   humanizeBinaryBytes,
@@ -35,15 +31,16 @@ import {
   WatchK8sResults,
   useListPageFilter,
   VirtualizedTable,
+  useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom-v5-compat';
 import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { CephBlockPoolModel, CephClusterModel } from '../models';
+import { CephBlockPoolModel } from '../models';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
-import { StoragePoolKind } from '../types';
+import { StoragePoolKind, ODFSystemParams } from '../types';
 import {
   disableMenuAction,
   getPerPoolMetrics,
@@ -216,7 +213,6 @@ type CustomData = {
   };
   storageClasses: StorageClassResourceKind[];
   listPagePath: string;
-  cephCluster: CephClusterKind;
 };
 
 const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
@@ -226,13 +222,16 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
 }) => {
   const { t } = useCustomTranslation();
 
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const isExternalStorageSystem =
+    systemFlags[getNamespace(obj)]?.isExternalMode;
+
   const {
     poolRawCapacity,
     poolCompressionSavings,
     storageClasses,
     listPagePath,
-    cephCluster,
-  } = rowData;
+  }: CustomData = rowData;
 
   const { name } = obj.metadata;
   const replica = obj.spec?.replicated?.size;
@@ -249,7 +248,6 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
     !!compressionMode && compressionMode !== 'none';
   const phase = obj?.status?.phase;
 
-  // Hooks
   const poolScNames: string[] = React.useMemo(
     () => getScNamesUsingPool(storageClasses, name),
     [name, storageClasses]
@@ -258,7 +256,6 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
   // Details page link
   const to = `${listPagePath}/${name}`;
 
-  // Metrics
   // {poolRawCapacity: {"pool-1" : size_bytes, "pool-2" : size_bytes, ...}}
   const rawCapacity: string = poolRawCapacity?.[name]
     ? humanizeBinaryBytes(poolRawCapacity?.[name])?.string
@@ -320,7 +317,7 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
           >
             <Kebab
               extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
-              isDisabled={disableMenuAction(obj, cephCluster)}
+              isDisabled={disableMenuAction(obj, isExternalStorageSystem)}
               customKebabItems={[
                 {
                   key: ModalKeys.EDIT_RES,
@@ -342,7 +339,7 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
         ) : (
           <Kebab
             extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
-            isDisabled={disableMenuAction(obj, cephCluster)}
+            isDisabled={disableMenuAction(obj, isExternalStorageSystem)}
             customKebabItems={[
               {
                 key: ModalKeys.EDIT_RES,
@@ -375,13 +372,7 @@ type BlockPoolListPageProps = {
   hideColumnManagement?: boolean;
 };
 
-const resources = (ns: string) => ({
-  ceph: {
-    kind: referenceForModel(CephClusterModel),
-    namespaced: true,
-    namespace: ns,
-    isList: true,
-  },
+const resources = {
   sc: {
     kind: StorageClassModel.kind,
     namespaced: false,
@@ -391,30 +382,27 @@ const resources = (ns: string) => ({
     kind: referenceForModel(CephBlockPoolModel),
     isList: true,
   },
-});
+};
 
 type WatchType = {
   sc: StorageClassResourceKind[];
-  ceph: K8sResourceKind[];
   blockPools: StoragePoolKind[];
 };
 
 export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
   const { t } = useCustomTranslation();
 
-  const { odfNamespace, isODFNsLoaded, odfNsLoadError, isNsSafe } =
-    useODFNamespaceSelector();
-
   const location = useLocation();
   const listPagePath: string = location.pathname;
 
-  const response = useSafeK8sWatchResources(
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags, areFlagsLoaded, flagsLoadError } =
+    useODFSystemFlagsSelector();
+  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+
+  const response = useK8sWatchResources(
     resources
   ) as WatchK8sResults<WatchType>;
-
-  const cephClusters = response.ceph.data;
-  const cephLoaded = response.ceph.loaded;
-  const cephError = response.ceph.loadError;
 
   const storageClasses = response.sc.data;
   const scLoaded = response.sc.loaded;
@@ -429,26 +417,23 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
     true
   );
   const poolNames: string[] = blockPools.map((pool) => pool.metadata?.name);
-  const memoizedPoolNames = useDeepCompareMemoize(poolNames, true);
 
-  // Metrics
   const [poolRawCapacityMetrics, rawCapLoadError, rawCapLoading] =
     useCustomPrometheusPoll(
       getValidPrometheusPollObj(
         {
           endpoint: 'api/v1/query' as any,
           query: getPoolQuery(
-            memoizedPoolNames,
-            StorageDashboardQuery.POOL_RAW_CAPACITY_USED
+            poolNames,
+            StorageDashboardQuery.POOL_RAW_CAPACITY_USED,
+            managedByOCS
           ),
-          namespace: odfNamespace,
           basePath: usePrometheusBasePath(),
         },
-        isNsSafe
+        !!poolNames?.length
       )
     );
 
-  // compression queries
   const [compressionSavings, compressionLoadError, compressionLoading] =
     useCustomPrometheusPoll(
       getValidPrometheusPollObj(
@@ -456,12 +441,12 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
           endpoint: 'api/v1/query' as any,
           query: getPoolQuery(
             poolNames,
-            StorageDashboardQuery.POOL_COMPRESSION_SAVINGS
+            StorageDashboardQuery.POOL_COMPRESSION_SAVINGS,
+            managedByOCS
           ),
-          namespace: odfNamespace,
           basePath: usePrometheusBasePath(),
         },
-        isNsSafe
+        !!poolNames?.length
       )
     );
 
@@ -478,13 +463,11 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
     );
     return {
       storageClasses: memoizedSC ?? [],
-      cephCluster: cephClusters?.[0],
       poolRawCapacity,
       poolCompressionSavings,
       listPagePath,
     };
   }, [
-    cephClusters,
     compressionLoadError,
     compressionLoading,
     compressionSavings,
@@ -497,9 +480,9 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
 
   const loaded =
     blockPoolsLoaded &&
-    (cephLoaded || scLoaded || !compressionLoading || !rawCapLoading);
+    (areFlagsLoaded || scLoaded || !compressionLoading || !rawCapLoading);
   const error =
-    cephError ||
+    flagsLoadError ||
     scError ||
     blockPoolsError ||
     compressionLoadError ||
@@ -518,15 +501,15 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
       <ListPageBody>
         <ListPageFilter
           data={data}
-          loaded={loaded && isODFNsLoaded}
+          loaded={loaded}
           onFilterChange={onFilterChange}
           hideColumnManagement={true}
         />
         <BlockPoolList
           data={filteredData}
           unfilteredData={data}
-          loaded={loaded && isODFNsLoaded}
-          loadError={error || odfNsLoadError}
+          loaded={loaded}
+          loadError={error}
           rowData={{ ...customData }}
         />
       </ListPageBody>

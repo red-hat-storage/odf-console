@@ -8,19 +8,15 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom-v5-compat';
 import { NooBaaNamespaceStoreModel } from '../../models';
 import { NamespaceStoreKind } from '../../types';
 import { CommonDetails } from './CommonDetails';
 import ProviderDetails from './Providers';
 
-type BackingStoreDetilsPageProps = {
-  match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
-};
-
 type DetailsProps = {
   obj: NamespaceStoreKind;
-} & RouteComponentProps;
+};
 
 const NSDetails: React.FC<DetailsProps> = ({ obj }) => {
   const { t } = useCustomTranslation();
@@ -36,11 +32,9 @@ const NSDetails: React.FC<DetailsProps> = ({ obj }) => {
   );
 };
 
-const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
-  match,
-}) => {
+const NamespaceStoreDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { resourceName: name } = match.params;
+  const { resourceName: name } = useParams();
 
   const { isODFNsLoaded, odfNsLoadError } = useODFNamespaceSelector();
 
@@ -59,7 +53,7 @@ const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
     },
     {
       name: t('NamespaceStores'),
-      path: '/odf/object-storage/resource/noobaa.io~v1alpha1~NamespaceStore',
+      path: '/odf/object-storage/noobaa.io~v1alpha1~NamespaceStore',
     },
     {
       name: t('NamespaceStore details'),
@@ -94,7 +88,7 @@ const NamespaceStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
           {
             href: '',
             name: t('Details'),
-            component: NSDetails,
+            component: NSDetails as any,
           },
           {
             href: 'yaml',

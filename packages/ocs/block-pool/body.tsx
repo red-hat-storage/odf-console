@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { useSafeK8sGet, useSafeK8sList } from '@odf/core/hooks';
 import { checkArbiterCluster } from '@odf/core/utils';
 import {
   fieldRequirementsTranslations,
   formSettings,
 } from '@odf/shared/constants';
+import { useK8sGet, useK8sList } from '@odf/shared/hooks';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
-import { getName } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   ListKind,
   StorageClusterKind,
@@ -72,12 +72,14 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
   const { cephCluster, state, dispatch, showPoolStatus, isUpdate } = props;
   const { t } = useCustomTranslation();
 
+  const poolNs = getNamespace(cephCluster);
+
   const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
-    useSafeK8sGet<ListKind<StorageClusterKind>>(StorageClusterModel, null);
+    useK8sGet<ListKind<StorageClusterKind>>(StorageClusterModel, null, poolNs);
 
   const [isReplicaOpen, setReplicaOpen] = React.useState(false);
 
-  const [data, loaded, loadError] = useSafeK8sList(CephBlockPoolModel);
+  const [data, loaded, loadError] = useK8sList(CephBlockPoolModel, poolNs);
 
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =

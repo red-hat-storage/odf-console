@@ -15,13 +15,13 @@ import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
   ClusterServiceVersionModel,
   StorageClassModel,
+  OCSStorageClusterModel,
 } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import {
   ListKind,
   StorageClassResourceKind,
   ClusterServiceVersionKind,
-  StorageSystemKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isDefaultClass, getODFCsv, getGVKLabel } from '@odf/shared/utils';
@@ -53,6 +53,9 @@ const RHCS_SUPPORTED_INFRA = [
   'oVirt',
   'IBMCloud',
 ];
+
+// ODF watches only 2 namespaces (other one is operator install namespace)
+const OCS_MULTIPLE_CLUSTER_NS = 'openshift-storage-extended';
 
 const ExternalSystemSelection: React.FC<ExternalSystemSelectionProps> = ({
   dispatch,
@@ -164,21 +167,14 @@ type StorageClassSelectionProps = {
   selected: WizardState['storageClass'];
 };
 
-const formatStorageSystemList = (
-  storageSystems: StorageSystemKind[] = []
-): StorageSystemSet =>
-  storageSystems.reduce(
-    (kinds: StorageSystemSet, ss: StorageSystemKind) => kinds.add(ss.spec.kind),
-    new Set()
-  );
-
-type StorageSystemSet = Set<StorageSystemKind['spec']['kind']>;
-
 export const BackingStorage: React.FC<BackingStorageProps> = ({
   state,
   storageClass,
   dispatch,
-  storageSystems,
+  hasOCS,
+  hasExternal,
+  hasInternal,
+  hasMultipleClusters,
   infraType,
   error,
   loaded,
@@ -206,18 +202,19 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
     ListKind<ClusterServiceVersionKind>
   >(ClusterServiceVersionModel, null, odfNamespace);
 
-  const formattedSS: StorageSystemSet = formatStorageSystemList(storageSystems);
-  const hasOCS: boolean = formattedSS.has(STORAGE_CLUSTER_SYSTEM_KIND);
-
-  const odfCsv = getODFCsv(csvList?.items);
-  const supportedODFVendors = getSupportedVendors(odfCsv);
-
   const isFullDeployment = deployment === DeploymentType.FULL;
-  const enableRhcs =
-    RHCS_SUPPORTED_INFRA.includes(infraType) && isFullDeployment;
+  const isNonRHCSExternalType =
+    type === BackingStorageType.EXTERNAL &&
+    externalStorage !== OCSStorageClusterModel.kind;
 
-  const allowedExternalStorage: ExternalStorage[] =
-    !enableRhcs || hasOCS
+  const allowedExternalStorage: ExternalStorage[] = React.useMemo(() => {
+    const odfCsv = getODFCsv(csvList?.items);
+    const supportedODFVendors = getSupportedVendors(odfCsv);
+    const enableRhcs =
+      RHCS_SUPPORTED_INFRA.includes(infraType) && isFullDeployment;
+
+    // Only single external RHCS is allowed
+    return !enableRhcs || hasExternal
       ? supportedExternalStorage.filter(({ model }) => {
           const kind = getGVKLabel(model);
           return (
@@ -226,11 +223,41 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           );
         })
       : supportedExternalStorage;
+  }, [
+    isFullDeployment,
+    infraType,
+    csvList,
+    hasExternal,
+    supportedExternalStorage,
+  ]);
+
+  React.useEffect(() => {
+    /*
+     * Set the namespace where the StorageSystem will be created.
+     * First cluster should only be created in ODF install namespace.
+     */
+    const setODFInstallNsAsDefault = !hasOCS || isNonRHCSExternalType;
+    if (isODFNsLoaded && !odfNsLoadError) {
+      dispatch({
+        type: 'backingStorage/setSystemNamespace',
+        payload: setODFInstallNsAsDefault
+          ? odfNamespace
+          : OCS_MULTIPLE_CLUSTER_NS,
+      });
+    }
+  }, [
+    dispatch,
+    odfNamespace,
+    isODFNsLoaded,
+    odfNsLoadError,
+    hasOCS,
+    isNonRHCSExternalType,
+  ]);
 
   React.useEffect(() => {
     /*
      * Allow pre selecting the "external connection" option instead of the "existing" option
-     * if an OCS Storage System is already created and no external system is created.
+     * if an OCS Storage System is already created.
      */
     if (hasOCS && allowedExternalStorage.length) {
       dispatch({
@@ -252,7 +279,11 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
      * Allow pre selecting the "create new storage class" option instead of the "existing" option
      * if no storage classes present. This is true for a baremetal platform.
      */
-    if (sc?.items?.length === 0 && type !== BackingStorageType.EXTERNAL) {
+    if (
+      sc?.items?.length === 0 &&
+      type !== BackingStorageType.EXTERNAL &&
+      !hasInternal
+    ) {
       dispatch({
         type: 'backingStorage/setType',
         payload: BackingStorageType.LOCAL_DEVICES,
@@ -265,10 +296,11 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
         },
       });
     }
-  }, [deployment, dispatch, sc, type]);
+  }, [deployment, dispatch, sc, type, hasInternal]);
 
   const showExternalStorageSelection =
     type === BackingStorageType.EXTERNAL && allowedExternalStorage.length;
+  // Only single internal cluster allowed, should be created before external cluster
   const showStorageClassSelection =
     !hasOCS && type === BackingStorageType.EXISTING;
 
@@ -283,6 +315,9 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
     isDefaultClass(item)
   );
 
+  // Internal cluster should be created (or should already exist) before external mode cluster creation
+  // Block more than two OCS cluster creations
+  // Block internal cluster creation after external cluster already created
   return (
     <ErrorHandler
       error={error || scLoadError || csvListLoadError || odfNsLoadError}
@@ -354,7 +389,8 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
             className="odf-backing-store__radio--margin-bottom"
           />
         </FormGroup>
-        {isFullDeployment && !hasOCS && (
+        {/* Should be visible for both external and internal mode (even if one cluster already exists) */}
+        {isFullDeployment && !hasMultipleClusters && (
           <>
             <EnableNFS
               dispatch={dispatch}
@@ -368,22 +404,25 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
             />
           </>
         )}
-        <Checkbox
-          id="use-external-postgress"
-          label={t('Use external PostgreSQL')}
-          description={t(
-            'Allow Noobaa to connect to an external postgres server'
-          )}
-          isChecked={useExternalPostgres}
-          onChange={() =>
-            dispatch({
-              type: 'backingStorage/useExternalPostgres',
-              payload: !useExternalPostgres,
-            })
-          }
-          className="odf-backing-store__radio--margin-bottom"
-        />
-        {useExternalPostgres && (
+        {/* Should be visible for both external and internal mode (but only single NooBaa is allowed, so should be hidden if any cluster already exists) */}
+        {!hasOCS && (
+          <Checkbox
+            id="use-external-postgress"
+            label={t('Use external PostgreSQL')}
+            description={t(
+              'Allow Noobaa to connect to an external postgres server'
+            )}
+            isChecked={useExternalPostgres}
+            onChange={() =>
+              dispatch({
+                type: 'backingStorage/useExternalPostgres',
+                payload: !useExternalPostgres,
+              })
+            }
+            className="odf-backing-store__radio--margin-bottom"
+          />
+        )}
+        {useExternalPostgres && !hasOCS && (
           <PostgresConnectionDetails
             dispatch={dispatch}
             tlsFiles={[
@@ -408,7 +447,10 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
 type BackingStorageProps = {
   dispatch: WizardDispatch;
   state: WizardState['backingStorage'];
-  storageSystems: StorageSystemKind[];
+  hasOCS: boolean;
+  hasExternal: boolean;
+  hasInternal: boolean;
+  hasMultipleClusters: boolean;
   storageClass: WizardState['storageClass'];
   stepIdReached: WizardState['stepIdReached'];
   infraType: string;

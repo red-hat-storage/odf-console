@@ -1,8 +1,10 @@
 import * as React from 'react';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { ModalFooter } from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { CommonModalProps, ModalBody } from '@odf/shared/modals/Modal';
+import { getNamespace } from '@odf/shared/selectors';
 import { CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -18,11 +20,7 @@ import {
   blockPoolInitialState,
   blockPoolReducer,
 } from '../../block-pool/reducer';
-import {
-  CEPH_EXTERNAL_CR_NAME,
-  COMPRESSION_ON,
-  POOL_PROGRESS,
-} from '../../constants';
+import { COMPRESSION_ON, POOL_PROGRESS } from '../../constants';
 import { CephBlockPoolModel, CephClusterModel } from '../../models';
 import { StoragePoolKind } from '../../types';
 import { isDefaultPool } from '../../utils';
@@ -35,7 +33,6 @@ type UpdateBlockPoolModalProps = CommonModalProps<{
 
 const cephClusterResource = {
   kind: referenceForModel(CephClusterModel),
-  namespaced: false,
   isList: true,
 };
 
@@ -46,6 +43,7 @@ const UpdateBlockPoolModal: React.FC<UpdateBlockPoolModalProps> = (props) => {
     closeModal,
     isOpen,
   } = props;
+  const poolNamespace = getNamespace(resource);
 
   const [state, dispatch] = React.useReducer(
     blockPoolReducer,
@@ -54,10 +52,12 @@ const UpdateBlockPoolModal: React.FC<UpdateBlockPoolModalProps> = (props) => {
   const [inProgress, setProgress] = React.useState(false);
   const [cephClusters, isLoaded, loadError] =
     useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
-  const cephCluster: CephClusterKind = useDeepCompareMemoize(
-    cephClusters[0],
-    true
-  );
+
+  // only single cluster per Namespace
+  const cephCluster = getCephClusterInNs(
+    cephClusters,
+    poolNamespace
+  ) as CephClusterKind;
 
   const MODAL_TITLE = t('Edit BlockPool');
   const MODAL_DESC = t(
@@ -82,16 +82,18 @@ const UpdateBlockPoolModal: React.FC<UpdateBlockPoolModalProps> = (props) => {
     [dispatch]
   );
 
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const isExternalSC = systemFlags[poolNamespace]?.isExternalMode;
+
   React.useEffect(() => {
     // restrict pool management for default pool and external cluster
-    cephCluster?.metadata.name === CEPH_EXTERNAL_CR_NAME ||
-    isDefaultPool(resource)
+    isExternalSC || isDefaultPool(resource)
       ? dispatch({
           type: BlockPoolActionType.SET_POOL_STATUS,
           payload: POOL_PROGRESS.NOTALLOWED,
         })
       : populateBlockPoolData(resource);
-  }, [resource, cephCluster, populateBlockPoolData]);
+  }, [resource, isExternalSC, populateBlockPoolData]);
 
   // Update block pool
   const updatePool = () => {

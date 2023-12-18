@@ -27,6 +27,16 @@
     z-index: 2;
 }
 
+.odf-topology__message-button {
+    color: #393F44;
+    right: var(--pf-global--gutter);
+    position: absolute;
+    top: var(--pf-global--gutter);
+    font-size: var(--pf-global--FontSize--xs);
+    font-weight: var(--pf-global--FontWeight--normal);
+    z-index: 2;
+}
+
 .odf-topology__back-button:hover {
     box-shadow: 1px 1px 3px 1px #aaabac;
     cursor: pointer;

@@ -27,7 +27,8 @@ export const UTILIZATION_QUERY = {
   [StorageDashboard.THROUGHPUT]: 'odf_system_throughput_total_bytes',
 };
 
-// ToDo (epic 4422): Need to update as per updates in the metrics
+// ToDo (epic 4422): Need to update as per updates in the metrics (if needed/once confirmed).
+// Assuming "namespace" in "odf_system.*"" metrics (except "odf_system_map" which is pushed by ODF opr and already has "target_namespace") is where system is deployed.
 export const STATUS_QUERIES = {
-  [StorageDashboard.HEALTH]: `(label_replace(odf_system_map{target_namespace="openshift-storage"} , "managedBy", "$1", "target_name", "(.*)"))  * on (namespace, managedBy) group_right(storage_system) ${SYSTEM_HEALTH_METRIC}`,
+  [StorageDashboard.HEALTH]: `(label_replace(odf_system_map, "managedBy", "$1", "target_name", "(.*)"))  * on (target_namespace, managedBy) group_right(storage_system) (label_replace(${SYSTEM_HEALTH_METRIC}, "target_namespace", "$1", "namespace", "(.*)"))`,
 };

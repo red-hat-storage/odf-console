@@ -6,6 +6,7 @@ import {
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { ClusterServiceVersionModel } from '@odf/shared/models';
 import { ODFStorageSystem } from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { Status } from '@odf/shared/status/Status';
 import {
   ClusterServiceVersionKind,
@@ -46,7 +47,7 @@ import { OperandStatus } from '../utils';
 import ODFSystemLink from './system-link';
 
 type SystemMetrics = {
-  [systeName: string]: {
+  [systeNameAndNamespace: string]: {
     rawCapacity: HumanizeResult;
     usedCapacity: HumanizeResult;
     iops: HumanizeResult;
@@ -82,8 +83,11 @@ export const normalizeMetrics: MetricNormalize = (
   ) {
     return {};
   }
+  // ToDo (epic 4422): This equality check should work (for now) as "managedBy" will be unique,
+  // but moving forward add a label to metric for StorageSystem namespace as well and use that,
+  // equality check should be updated with "&&" condition on StorageSystem namespace.
   return systems.reduce<SystemMetrics>((acc, curr) => {
-    acc[curr.metadata.name] = {
+    acc[`${getName(curr)}${getNamespace(curr)}`] = {
       rawCapacity: humanizeBinaryBytes(
         rawCapacity.data.result.find(
           (item) => item?.metric?.managedBy === curr.spec.name
@@ -246,10 +250,12 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   const { t } = useCustomTranslation();
   const { apiGroup, apiVersion, kind } = getGVK(obj.spec.kind);
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
-  const systemName = obj?.metadata?.name;
+  const systemName = getName(obj);
+  const systemNamespace = getNamespace(obj);
   const { normalizedMetrics } = rowData;
 
-  const metrics = normalizedMetrics?.normalizedMetrics?.[systemName];
+  const metrics =
+    normalizedMetrics?.normalizedMetrics?.[`${systemName}${systemNamespace}`];
 
   const { rawCapacity, usedCapacity, iops, throughput, latency } =
     metrics || {};
@@ -260,6 +266,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
           kind={systemKind}
           systemName={systemName}
           providerName={systemName}
+          systemNamespace={systemNamespace}
         />
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>

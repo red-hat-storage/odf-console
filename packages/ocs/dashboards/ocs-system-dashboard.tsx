@@ -6,12 +6,7 @@
  */
 
 import * as React from 'react';
-import {
-  OCS_INDEPENDENT_FLAG,
-  MCG_FLAG,
-  CEPH_FLAG,
-  OCS_NFS_ENABLED,
-} from '@odf/core/features';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
@@ -19,10 +14,10 @@ import {
   Overview,
   OverviewGrid,
   OverviewGridCard,
-  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
-import { RouteComponentProps } from 'react-router-dom';
+import { useParams } from 'react-router-dom-v5-compat';
+import { ODFSystemParams } from '../types';
 import { StatusCard as NFSStatusCard } from './network-file-system/status-card/status-card';
 import { ThroughputCard } from './network-file-system/throughput-card/throughput-card';
 import { TopClientsCard } from './network-file-system/top-clients-card/top-clients-card';
@@ -182,13 +177,18 @@ const nfsPage = (t: TFunction): TabPage => {
   };
 };
 
-const OCSSystemDashboard: React.FC<RouteComponentProps> = () => {
+const OCSSystemDashboard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
-  const isIndependent = useFlag(OCS_INDEPENDENT_FLAG);
-  const isObjectServiceAvailable = useFlag(MCG_FLAG);
-  const isCephAvailable = useFlag(CEPH_FLAG);
-  const isNFSEnabled = useFlag(OCS_NFS_ENABLED);
+  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { systemFlags } = useODFSystemFlagsSelector();
+
+  const isIndependent = systemFlags[clusterNs]?.isExternalMode;
+  const isMCGAvailable = systemFlags[clusterNs]?.isNoobaaAvailable;
+  const isRGWAvailable = systemFlags[clusterNs]?.isRGWAvailable;
+  const isObjectServiceAvailable = isMCGAvailable || isRGWAvailable;
+  const isCephAvailable = systemFlags[clusterNs]?.isCephAvailable;
+  const isNFSEnabled = systemFlags[clusterNs]?.isNFSEnabled;
 
   const showInternalDashboard = !isIndependent && isCephAvailable;
   const showNFSDashboard = !isIndependent && isNFSEnabled;
