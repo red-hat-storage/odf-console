@@ -31,7 +31,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom-v5-compat';
 import { sortable } from '@patternfly/react-table';
 import { ATTACH_DEPLOYMENT } from '../../constants';
 import { MCG_FLAG, RGW_FLAG } from '../../features';
@@ -307,20 +307,11 @@ export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
   );
 };
 
-type ObjectBucketClaimDetailsPageProps = {
-  match: RouteComponentProps<{
-    resourceName: string;
-    namespace: string;
-  }>['match'];
-};
-
 type OBCDetailsProps = {
   obj?: K8sResourceKind;
 };
 
-export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
-  obj,
-}) => {
+export const OBCDetails: React.FC<OBCDetailsProps> = ({ obj }) => {
   const { t } = useCustomTranslation();
   const storageClassName = _.get(obj, 'spec.storageClassName');
   const [Modal, modalProps, launchModal] = useModalLauncher(extraMap);
@@ -385,11 +376,9 @@ export const OBCDetails: React.FC<OBCDetailsProps & RouteComponentProps> = ({
   );
 };
 
-export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
-  match,
-}) => {
+export const OBCDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { resourceName: name, namespace } = match.params;
+  const { resourceName: name, namespace } = useParams();
   const [resource, loaded] = useK8sWatchResource<K8sResourceKind>({
     kind: referenceForModel(NooBaaObjectBucketClaimModel),
     name,
@@ -426,7 +415,7 @@ export const OBCDetailsPage: React.FC<ObjectBucketClaimDetailsPageProps> = ({
     },
     {
       name: t('ObjectBucketClaims'),
-      path: `/odf/object-storage/resource/objectbucket.io~v1alpha1~ObjectBucketClaim`,
+      path: `/odf/object-storage/objectbucket.io~v1alpha1~ObjectBucketClaim`,
     },
     {
       name: t('ObjectBucketClaim details'),

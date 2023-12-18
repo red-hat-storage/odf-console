@@ -10,15 +10,11 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom-v5-compat';
 import { NooBaaBackingStoreModel } from '../../models';
 import { BackingStoreKind } from '../../types';
 import { CommonDetails } from './CommonDetails';
 import ProviderDetails from './Providers';
-
-type BackingStoreDetilsPageProps = {
-  match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
-};
 
 type DetailsProps = {
   obj: BackingStoreKind;
@@ -46,11 +42,9 @@ const BSDetails: DetailsType =
     );
   };
 
-const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
-  match,
-}) => {
+const BackingStoreDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { resourceName: name } = match.params;
+  const { resourceName: name } = useParams();
   const [resource, loaded, loadError] = useK8sWatchResource<K8sResourceKind>({
     kind: referenceForModel(NooBaaBackingStoreModel),
     name,
@@ -67,7 +61,7 @@ const BackingStoreDetailsPage: React.FC<BackingStoreDetilsPageProps> = ({
     },
     {
       name: t('BackingStores'),
-      path: '/odf/object-storage/resource/noobaa.io~v1alpha1~BackingStore',
+      path: '/odf/object-storage/noobaa.io~v1alpha1~BackingStore',
     },
     {
       name: t('BackingStore details'),

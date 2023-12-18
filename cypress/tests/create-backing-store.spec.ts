@@ -26,7 +26,7 @@ describe('Tests creation of Backing Stores', () => {
   beforeEach(() => {
     cy.visit('/');
     commonFlows.navigateToObjectStorage();
-    cy.byLegacyTestID('horizontal-link-Backing Store').first().click();
+    cy.byTestID('horizontal-link-Backing Store').first().click();
     cy.byTestID('item-create').click();
   });
 
@@ -49,7 +49,7 @@ describe('Tests form validations on Backing Stores', () => {
   beforeEach(() => {
     cy.visit('/');
     commonFlows.navigateToObjectStorage();
-    cy.byLegacyTestID('horizontal-link-Backing Store').first().click();
+    cy.byTestID('horizontal-link-Backing Store').first().click();
     cy.byTestID('item-create').click();
   });
 

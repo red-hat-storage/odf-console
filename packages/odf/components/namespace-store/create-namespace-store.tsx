@@ -3,21 +3,19 @@ import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
-import { RouteComponentProps, useHistory } from 'react-router';
+import { useParams, useNavigate } from 'react-router-dom-v5-compat';
 import { Title } from '@patternfly/react-core';
 import { NooBaaNamespaceStoreModel } from '../../models';
 import NamespaceStoreForm from './namespace-store-form';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 import '../../style.scss';
 
-const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
-  match,
-}) => {
+const CreateNamespaceStore: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { ns = CEPH_STORAGE_NAMESPACE } = match.params;
+  const { ns = CEPH_STORAGE_NAMESPACE } = useParams();
 
-  const history = useHistory();
-  const onCancel = () => history.goBack();
+  const navigate = useNavigate();
+  const onCancel = () => navigate(-1);
 
   return (
     <>
@@ -42,7 +40,7 @@ const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
           const resourcePath = `${referenceForModel(
             NooBaaNamespaceStoreModel
           )}/${getName(resources[lastIndex])}`;
-          history.push(`/odf/resource/${resourcePath}`);
+          navigate(`/odf/resource/${resourcePath}`);
         }}
         namespace={ns}
         className="nb-endpoints-page-form__short"
@@ -50,10 +48,5 @@ const CreateNamespaceStore: React.FC<CreateNamespaceStoreProps> = ({
     </>
   );
 };
-
-type CreateNamespaceStoreProps = RouteComponentProps<{
-  ns: string;
-  appName: string;
-}>;
 
 export default CreateNamespaceStore;

@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import * as _ from 'lodash-es';
 /* eslint-disable import/named */
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom-v5-compat';
 /* eslint-enable import/named */
 
 export const isGroupVersionKind = (ref: GroupVersionKind | string) =>

@@ -12,8 +12,8 @@ import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
+import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import {
-  HorizontalNav,
   useResolvedExtensions,
   NamespaceBar,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -23,9 +23,11 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
-import { RouteComponentProps, match as Match } from 'react-router';
-import { useHistory } from 'react-router';
-import { useLocation } from 'react-router-dom';
+import {
+  useParams,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom-v5-compat';
 
 const OBJECT_SERVICE_CONTEXT = 'odf-object-service';
 const NAMESPACE_BAR_PATHS = [referenceForModel(NooBaaObjectBucketClaimModel)];
@@ -52,7 +54,7 @@ const ObjectServicePage: React.FC = () => {
   }
   const sortedPages = useSortPages({ extensions, haveExtensionsResolved });
 
-  const history = useHistory();
+  const navigate = useNavigate();
   const location = useLocation();
 
   React.useEffect(() => {
@@ -61,9 +63,9 @@ const ObjectServicePage: React.FC = () => {
         location.pathname.endsWith('/odf/object-storage/')) &&
       !_.isEmpty(sortedPages)
     ) {
-      history.replace('/odf/object-storage/' + sortedPages[0].href);
+      navigate('/odf/object-storage/' + sortedPages[0].href, { replace: true });
     }
-  }, [location, history, sortedPages]);
+  }, [location.pathname, navigate, sortedPages]);
 
   const showNamespaceBar = NAMESPACE_BAR_PATHS.some((path) =>
     location.pathname.includes(path)
@@ -78,7 +80,10 @@ const ObjectServicePage: React.FC = () => {
       <PageHeading title={title} />
       {/** Todo(bipuladh): Move to usage of common PF Tabs component */}
       {haveExtensionsResolved || haveAlreadyResolvedOnce ? (
-        <HorizontalNav pages={convertObjectServiceTabToNav(sortedPages)} />
+        <Tabs
+          id="odf-object-storage"
+          tabs={convertObjectServiceTabToNav(sortedPages) as TabPage[]}
+        />
       ) : (
         <StatusBox loadError={error} loaded={isLoaded} />
       )}
@@ -86,18 +91,13 @@ const ObjectServicePage: React.FC = () => {
   );
 };
 
-type ReRouteResourceProps = {
-  history: RouteComponentProps['history'];
-  match: Match<{ kind: string }>;
-};
+export const RerouteResource: React.FC<{}> = () => {
+  const { kind } = useParams();
+  const navigate = useNavigate();
 
-export const RerouteResource: React.FC<ReRouteResourceProps> = ({
-  match,
-  history,
-}) => {
   React.useEffect(() => {
-    history.push(`/odf/object-storage/resource/${match.params.kind}`);
-  }, [history, match]);
+    navigate(`/odf/object-storage/${kind}`);
+  }, [navigate, kind]);
   return null;
 };
 

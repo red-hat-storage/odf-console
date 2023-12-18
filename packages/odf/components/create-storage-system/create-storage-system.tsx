@@ -10,11 +10,7 @@ import { ListKind, StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  RouteComponentProps,
-  useHistory,
-  match as RouteMatch,
-} from 'react-router';
+import { useLocation } from 'react-router-dom-v5-compat';
 import { Wizard, WizardStep } from '@patternfly/react-core';
 import { Steps, StepsName, STORAGE_CLUSTER_SYSTEM_KIND } from '../../constants';
 import { createSteps } from './create-steps';
@@ -25,9 +21,8 @@ import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
 import './create-storage-system.scss';
 
-const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
+const CreateStorageSystem: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const history = useHistory();
   const [state, dispatch] = React.useReducer<WizardReducer>(
     reducer,
     initialState
@@ -43,7 +38,7 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
   );
 
   const infraType = getInfrastructurePlatform(infra);
-  const url = history.location.pathname;
+  const { pathname: url } = useLocation();
 
   let wizardSteps: WizardStep[] = [];
   let hasOCS: boolean = false;
@@ -70,7 +65,6 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
       dispatch,
       infraType,
       hasOCS,
-      history,
       supportedExternalStorage
     );
   }
@@ -110,7 +104,6 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
             disableNext={
               !ssLoaded || !!ssLoadError || !infraLoaded || !!infraLoadError
             }
-            history={history}
             supportedExternalStorage={supportedExternalStorage}
           />
         }
@@ -120,11 +113,6 @@ const CreateStorageSystem: React.FC<CreateStorageSystemProps> = () => {
       />
     </>
   );
-};
-
-type CreateStorageSystemProps = {
-  match: RouteMatch<{ ns: string; appName: string }>;
-  history: RouteComponentProps['history'];
 };
 
 export default CreateStorageSystem;

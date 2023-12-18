@@ -9,14 +9,10 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { RouteComponentProps } from 'react-router';
+import { useParams } from 'react-router-dom-v5-compat';
 import { NooBaaBucketClassModel } from '../../models';
 import { BucketClassKind } from '../../types';
 import { CommonDetails, DetailsItem } from './CommonDetails';
-
-type BucketClassDetailsPageProps = {
-  match: RouteComponentProps<{ resourceName: string; plural: string }>['match'];
-};
 
 type DetailsProps = {
   obj: BucketClassKind;
@@ -30,7 +26,7 @@ type PolicyDetailsProps = {
 
 const PlacementPolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
   const { t } = useCustomTranslation();
-  const tiers = resource.spec.placementPolicy.tiers;
+  const tiers = resource.spec?.placementPolicy?.tiers;
   return (
     <>
       <DetailsItem field={t('Tiers')} padChildElement showBorder>
@@ -50,7 +46,7 @@ const PlacementPolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
 
 const NamespacePolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
   const { t } = useCustomTranslation();
-  const type = resource.spec.namespacePolicy.type;
+  const type = resource.spec?.namespacePolicy?.type;
   return <DetailsItem field={t('Policy type')}>{type}</DetailsItem>;
 };
 
@@ -58,7 +54,7 @@ const BCDetails: DetailsType =
   (launchModal, t) =>
   // eslint-disable-next-line react/display-name
   ({ obj }) => {
-    const isPlacementPolicyType = obj.spec.hasOwnProperty('placementPolicy');
+    const isPlacementPolicyType = obj.spec?.hasOwnProperty('placementPolicy');
 
     const title = isPlacementPolicyType
       ? t('Placement Policy')
@@ -89,11 +85,9 @@ const extraMap = {
   ),
 };
 
-const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
-  match,
-}) => {
+const BucketClassDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const { resourceName: name } = match.params;
+  const { resourceName: name } = useParams();
   const [resource, loaded, loadError] = useK8sWatchResource<BucketClassKind>({
     kind: referenceForModel(NooBaaBucketClassModel),
     name,
@@ -110,7 +104,7 @@ const BucketClassDetailsPage: React.FC<BucketClassDetailsPageProps> = ({
     },
     {
       name: t('BucketClasses'),
-      path: '/odf/object-storage/resource/noobaa.io~v1alpha1~BucketClass',
+      path: '/odf/object-storage/noobaa.io~v1alpha1~BucketClass',
     },
     {
       name: t('BucketClass details'),

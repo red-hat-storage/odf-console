@@ -204,7 +204,7 @@ const FilesystemDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
 };
 
 const ProviderDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
-  const type = resource.spec.type;
+  const type = resource?.spec?.type;
 
   const ProviderComponent = React.useMemo(() => {
     switch (type) {

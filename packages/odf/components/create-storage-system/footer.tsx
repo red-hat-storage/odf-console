@@ -4,7 +4,7 @@ import { OCSStorageClusterModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKLabel } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
-import { RouteComponentProps } from 'react-router';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   WizardFooter,
   Button,
@@ -124,7 +124,7 @@ const handleReviewAndCreateNext = async (
   state: WizardState,
   hasOCS: boolean,
   handleError: (err: string, showError: boolean) => void,
-  history: RouteComponentProps['history'],
+  navigate,
   supportedExternalStorage: ExternalStorage[]
 ) => {
   const {
@@ -197,22 +197,16 @@ const handleReviewAndCreateNext = async (
       if (!isRhcs && !!waitToCreate) await waitToCreate(model);
       await createExternalSubSystem(subSystemPayloads);
     }
-    history.push('/odf/systems');
+    navigate('/odf/systems');
   } catch (err) {
     handleError(err.message, true);
   }
 };
 
 export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps> =
-  ({
-    dispatch,
-    state,
-    disableNext,
-    hasOCS,
-    history,
-    supportedExternalStorage,
-  }) => {
+  ({ dispatch, state, disableNext, hasOCS, supportedExternalStorage }) => {
     const { t } = useCustomTranslation();
+    const navigate = useNavigate();
     const { activeStep, onNext, onBack } =
       React.useContext<WizardContextType>(WizardContext);
     const [requestInProgress, setRequestInProgress] = React.useState(false);
@@ -257,7 +251,7 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
             state,
             hasOCS,
             handleError,
-            history,
+            navigate,
             supportedExternalStorage
           );
           setRequestInProgress(false);
@@ -307,7 +301,7 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
           </Button>
           <Button
             variant="link"
-            onClick={history.goBack}
+            onClick={() => navigate(-1)}
             isDisabled={requestInProgress}
           >
             {t('Cancel')}
@@ -320,6 +314,5 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
 type CreateStorageSystemFooterProps = WizardCommonProps & {
   disableNext: boolean;
   hasOCS: boolean;
-  history: RouteComponentProps['history'];
   supportedExternalStorage: ExternalStorage[];
 };

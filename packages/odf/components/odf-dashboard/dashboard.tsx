@@ -16,8 +16,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
-import { RouteComponentProps } from 'react-router';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { ODFStorageSystemMock } from '../../models';
 import {
@@ -34,10 +33,6 @@ import SystemCapacityCard from './system-capacity-card/capacity-card';
 import './dashboard.scss';
 
 const ODF_DASHBOARD_CONTEXT = 'odf-dashboard';
-
-type ODFDashboardPageProps = {
-  history: RouteComponentProps['history'];
-};
 
 const UpperSection: React.FC = () => (
   <Grid hasGutter>
@@ -72,7 +67,7 @@ export const ODFDashboard: React.FC = () => {
   );
 };
 
-const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
+const ODFDashboardPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const title = t('Data Foundation');
   const staticPages: DashboardTabProps[] = React.useMemo(
@@ -106,14 +101,14 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
     staticPages,
   });
 
-  const { history } = props;
+  const navigate = useNavigate();
   const location = useLocation();
 
   React.useEffect(() => {
     if (location.pathname.endsWith('/odf/systems')) {
-      history.push(`/odf/cluster/systems`);
+      navigate(`/odf/cluster/systems`);
     }
-  }, [location, history]);
+  }, [location, navigate]);
 
   const navItems = convertDashboardTabToNav(sortedPages);
 
@@ -145,10 +140,12 @@ const ODFDashboardPage: React.FC<ODFDashboardPageProps> = (props) => {
  * To support legacy /odf routes.
  * Todo(fix): Remove from console in 4.10.
  */
-export const Reroute: React.FC<ODFDashboardPageProps> = ({ history }) => {
+export const Reroute: React.FC<{}> = () => {
+  const navigate = useNavigate();
+
   React.useEffect(() => {
-    history.push(`/odf/cluster`);
-  }, [history]);
+    navigate(`/odf/cluster`);
+  }, [navigate]);
 
   return null;
 };

@@ -7,17 +7,12 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { RouteComponentProps, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom-v5-compat';
 import { CEPH_NS } from '../constants';
 import { BlockPoolDashboard } from '../dashboards/block-pool/block-pool-dashboard';
 import { CephBlockPoolModel, CephClusterModel } from '../models';
 import { StoragePoolKind } from '../types';
 import { customActionsMap } from '../utils';
-
-type BlockPoolDetailsPageProps = {
-  match: RouteComponentProps<{ poolName: string }>['match'];
-  namespace?: string;
-};
 
 export const cephClusterResource = {
   kind: referenceForModel(CephClusterModel),
@@ -25,12 +20,10 @@ export const cephClusterResource = {
   isList: true,
 };
 
-export const BlockPoolDetailsPage: React.FC<BlockPoolDetailsPageProps> = ({
-  match,
-}) => {
+export const BlockPoolDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
-  const { poolName } = match.params;
+  const { poolName } = useParams();
   const location = useLocation();
   const kind = referenceForModel(CephBlockPoolModel);
 

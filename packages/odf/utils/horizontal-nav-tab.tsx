@@ -104,5 +104,5 @@ export const convertHorizontalNavTabToNavPage = (
   horizontalNavTabs.map((tab) => ({
     name: tab.name,
     href: tab.href,
-    component: tab.component,
+    component: tab.component as any,
   }));
