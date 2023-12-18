@@ -1,4 +1,4 @@
-export const ALL_APPS = 'All ApplicationSet';
+export const ALL_APPS = 'All Application';
 export const ALL_APPS_ITEM_ID = 'all-applications-itemid';
 
 // Volume replication threshold
