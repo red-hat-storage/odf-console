@@ -146,3 +146,9 @@ export const getValidatedProp = (error: boolean) =>
   error ? 'error' : 'default';
 
 export const isAbortError = (err): boolean => err?.name === 'AbortError';
+
+export const getPageRange = (currentPage: number, perPage: number) => {
+  const indexOfLastRow = currentPage * perPage;
+  const indexOfFirstRow = indexOfLastRow - perPage;
+  return [indexOfFirstRow, indexOfLastRow];
+};
