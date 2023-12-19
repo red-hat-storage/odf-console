@@ -130,9 +130,10 @@ export type PlacementToDrpcMap = {
 export type ACMManagedClusterViewKind = K8sResourceCommon & {
   spec?: {
     scope: {
-      resource: string;
+      resource?: string;
       name: string;
       namespace?: string;
+      kind: string;
     };
   };
   status?: {

@@ -16,7 +16,7 @@ import {
   OBJECT_NAME,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
 } from '@odf/mco/constants';
-import { DRClusterAppsMap, PlacementInfo } from '@odf/mco/types';
+import { DRClusterAppsMap } from '@odf/mco/types';
 import {
   getVolumeReplicationHealth,
   ValidateManagedClusterCondition,
@@ -179,18 +179,19 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
   const appsWithIssues = React.useMemo(
     () =>
       clusterResources[clusterName]?.protectedApps?.reduce(
-        (acc, protectedAppsMap) => {
-          const placementInfo: PlacementInfo =
-            protectedAppsMap?.placementInfo?.[0];
-          const hasIssue = !!lastSyncTimeData?.data?.result?.find(
-            (item: PrometheusResult) =>
-              item?.metric?.[OBJECT_NAMESPACE] ===
-                placementInfo?.drpcNamespace &&
-              item?.metric?.[OBJECT_NAME] === placementInfo?.drpcName &&
-              getVolumeReplicationHealth(
-                Number(item?.value[1]) || 0,
-                placementInfo?.syncInterval
-              )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
+        (acc, protectedAppMap) => {
+          const hasIssue = !!protectedAppMap.placementInfo?.find(
+            (placementInfo) =>
+              !!lastSyncTimeData?.data?.result?.find(
+                (item: PrometheusResult) =>
+                  item.metric?.[OBJECT_NAMESPACE] ===
+                    placementInfo.drpcNamespace &&
+                  item.metric?.[OBJECT_NAME] === placementInfo.drpcName &&
+                  getVolumeReplicationHealth(
+                    Number(item.value[1]) || 0,
+                    placementInfo.syncInterval
+                  )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
+              )
           );
 
           return hasIssue ? acc + 1 : acc;
