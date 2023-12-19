@@ -104,9 +104,7 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <Text component={TextVariants.h3}>
-        {t('Volume replication health (ApplicationSet)')}
-      </Text>
+      <Text component={TextVariants.h3}>{t('Volume replication health')}</Text>
       <div className="mco-cluster-app__donut-chart">
         <ChartDonut
           ariaDesc="Volume replication health"
@@ -389,7 +387,7 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
   return (
     <div className="mco-dashboard__contentColumn">
       <Text component={TextVariants.h1}>{protectedPVCsCount}</Text>
-      <StatusText>{t('Protected PVCs (ApplicationSet)')}</StatusText>
+      <StatusText>{t('Protected PVCs')}</StatusText>
       <Text className="text-muted">
         {t('{{ pvcsWithIssueCount }} with issues', { pvcsWithIssueCount })}
       </Text>
