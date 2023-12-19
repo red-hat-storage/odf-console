@@ -30,7 +30,7 @@ import {
   TextVariants,
   Text,
 } from '@patternfly/react-core';
-import { DrClusterAppsMap } from '../../../../types';
+import { DRClusterAppsMap } from '../../../../types';
 import {
   CSVStatusesContext,
   DRResourcesContext,
@@ -65,7 +65,7 @@ const getDRCombinedStatus = (
 
 const getClustersOperatorHealth = (
   csvManagedData: PrometheusResponse,
-  drClusterAppsMap: DrClusterAppsMap
+  drClusterAppsMap: DRClusterAppsMap
 ) => {
   const drClusters = Object.keys(drClusterAppsMap);
   const clusterWiseHealth: ClusterWiseHealth =
