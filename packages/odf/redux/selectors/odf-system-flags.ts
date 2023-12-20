@@ -4,7 +4,7 @@ import { ODFSystemFlagsPayload } from '../actions';
 
 export const odfSystemFlagsReducerName = 'odfSystemFlags';
 
-const getODFSystemFlags = (state): ODFSystemFlagsPayload =>
+export const getODFSystemFlags = (state): ODFSystemFlagsPayload =>
   state.plugins?.[reduxReducerScope]?.[odfSystemFlagsReducerName] || {};
 
 export const useODFSystemFlagsSelector = (): ODFSystemFlagsPayload & {

@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
   NodeKind,
   NodeModel,
+  StorageClusterKind,
   StorageClusterModel,
   getName,
   getNamespace,
@@ -12,6 +13,8 @@ import { LoadingInline } from '@odf/shared/generic/Loading';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { useSelector } from 'react-redux';
+import { compose } from 'redux';
 import {
   Alert,
   Button,
@@ -24,7 +27,7 @@ import {
 } from '@patternfly/react-core';
 import { groupNodesByZones } from '../../components/topology/utils';
 import { useSafeK8sGet } from '../../hooks';
-import { useODFNamespaceSelector } from '../../redux';
+import { getODFSystemFlags } from '../../redux';
 
 const patch = [
   {
@@ -34,8 +37,16 @@ const patch = [
   },
 ];
 
+const getStorageClusterName = (store: ReturnType<typeof getODFSystemFlags>) =>
+  Object.entries(store.systemFlags).find(([, flags]) => flags.isInternalMode);
+
+const getMonitorCount = (cluster: StorageClusterKind) =>
+  cluster?.spec?.managedResources?.cephCluster?.monCount;
+
 const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
-  const { odfNamespace } = useODFNamespaceSelector();
+  const [namespace, clusterFlags] = useSelector(
+    compose(getStorageClusterName, getODFSystemFlags)
+  );
   const { t } = useCustomTranslation();
 
   const [errorMessage, setErrorMessage] = React.useState('');
@@ -43,11 +54,18 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
 
   // ToDo (epic 4422) (bipuladh): Update it to use information from the alert.
   const [storageCluster, storageClusterLoaded, storageCluserLoadError] =
-    useSafeK8sGet(StorageClusterModel, null, odfNamespace);
+    useSafeK8sGet<StorageClusterKind>(
+      StorageClusterModel,
+      clusterFlags.ocsClusterName,
+      namespace
+    );
+
   const [nodes, nodesLoaded, nodesLoadError] = useK8sList<NodeKind>(NodeModel);
   const failureDomains =
     nodesLoaded && !nodesLoadError ? groupNodesByZones(nodes)?.length : [];
   const Header = <ModalHeader>{t('Configure monitor count')}</ModalHeader>;
+
+  const monitorCount = getMonitorCount(storageCluster);
 
   const onSubmit = () => {
     setProgress(true);
@@ -63,6 +81,7 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
     })
       .then(() => {
         setProgress(false);
+        closeModal();
       })
       .catch((err) => {
         setProgress(false);
@@ -102,7 +121,13 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
                   )}
                 </FlexItem>
               )}
-              <FlexItem>{t('Monitor count: 3')}</FlexItem>
+              <FlexItem>
+                {storageClusterLoaded ? (
+                  t('Monitor count: {{monitorCount}}', { monitorCount })
+                ) : (
+                  <LoadingInline />
+                )}
+              </FlexItem>
             </Flex>
           </FlexItem>
           <FlexItem>
