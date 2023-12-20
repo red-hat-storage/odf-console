@@ -1063,7 +1063,7 @@
   "Configure monitor count": "Configure monitor count",
   "To enhance system resilience, align Ceph monitors with the available node failure zones.": "To enhance system resilience, align Ceph monitors with the available node failure zones.",
   "Failure domains: {{failureDomains}}": "Failure domains: {{failureDomains}}",
-  "Monitor count: 3": "Monitor count: 3",
+  "Monitor count: {{monitorCount}}": "Monitor count: {{monitorCount}}",
   "Recommended monitor count: 5": "Recommended monitor count: 5",
   "Update count": "Update count",
   "and": "and",

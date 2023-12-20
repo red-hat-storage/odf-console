@@ -18,6 +18,11 @@ export type StorageClusterKind = K8sResourceCommon & {
     nfs?: {
       enable?: boolean;
     };
+    managedResources?: {
+      cephCluster: {
+        monCount: 3 | 5;
+      };
+    };
     manageNodes?: boolean;
     storageDeviceSets?: DeviceSet[];
     resourceProfile?: ResourceProfile;
