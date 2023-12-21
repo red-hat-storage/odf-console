@@ -684,6 +684,9 @@
       "insertAfter": "odfdashboard",
       "section": "storage",
       "href": "/odf/storage-clients"
+    },
+    "flags": {
+      "required": ["PROVIDER_MODE"]
     }
   },
   {
@@ -694,6 +697,9 @@
       "component": {
         "$codeRef": "storageConsumerListPage.ClientListPage"
       }
+    },
+    "flags": {
+      "required": ["PROVIDER_MODE"]
     }
   }
 ]
