@@ -284,7 +284,7 @@ export const createExternalSubSystem = async (subSystemPayloads: Payload[]) => {
   }
 };
 
-export const createMultiClusterNs = async (systemNamespace: string) =>
+export const createOCSNamespace = async (systemNamespace: string) =>
   k8sCreate({
     model: NamespaceModel,
     data: {
