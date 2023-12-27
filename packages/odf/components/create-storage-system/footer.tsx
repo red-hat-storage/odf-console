@@ -2,8 +2,10 @@ import * as React from 'react';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { OCSStorageClusterModel } from '@odf/shared/models';
+import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKLabel } from '@odf/shared/utils';
+import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -32,7 +34,7 @@ import {
   createStorageSystem,
   labelNodes,
   taintNodes,
-  createMultiClusterNs,
+  createOCSNamespace,
 } from './payloads';
 import { WizardCommonProps, WizardState } from './reducer';
 
@@ -173,7 +175,8 @@ const handleReviewAndCreateNext = async (
   handleError: (err: string, showError: boolean) => void,
   navigate,
   supportedExternalStorage: ExternalStorage[],
-  odfNamespace: string
+  odfNamespace: string,
+  existingNamespaces: K8sResourceCommon[]
 ) => {
   const {
     connectionDetails,
@@ -194,6 +197,9 @@ const handleReviewAndCreateNext = async (
   const { encryption, kms } = state.securityAndNetwork;
   const isRhcs: boolean = externalStorage === OCSStorageClusterModel.kind;
   const isMCG: boolean = deployment === DeploymentType.MCG;
+  const nsAlreadyExists = !!existingNamespaces.find(
+    (ns) => getName(ns) === systemNamespace
+  );
 
   const createNooBaaResources = async () => {
     if (useExternalPostgres) {
@@ -240,9 +246,9 @@ const handleReviewAndCreateNext = async (
   };
 
   try {
-    systemNamespace === odfNamespace
+    systemNamespace === odfNamespace || nsAlreadyExists
       ? await labelOCSNamespace(systemNamespace)
-      : await createMultiClusterNs(systemNamespace);
+      : await createOCSNamespace(systemNamespace);
 
     if (isMCG) {
       await createAdditionalFeatureResources();
@@ -304,7 +310,14 @@ const handleReviewAndCreateNext = async (
 };
 
 export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps> =
-  ({ dispatch, state, disableNext, hasOCS, supportedExternalStorage }) => {
+  ({
+    dispatch,
+    state,
+    disableNext,
+    hasOCS,
+    supportedExternalStorage,
+    existingNamespaces,
+  }) => {
     const { t } = useCustomTranslation();
     const navigate = useNavigate();
     const { activeStep, onNext, onBack } =
@@ -356,7 +369,8 @@ export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps>
             handleError,
             navigate,
             supportedExternalStorage,
-            odfNamespace
+            odfNamespace,
+            existingNamespaces
           );
           setRequestInProgress(false);
           break;
@@ -422,4 +436,5 @@ type CreateStorageSystemFooterProps = WizardCommonProps & {
   disableNext: boolean;
   hasOCS: boolean;
   supportedExternalStorage: ExternalStorage[];
+  existingNamespaces: K8sResourceCommon[];
 };
