@@ -82,6 +82,7 @@ import {
 } from '../constants';
 import { CreateBlockPoolModal } from '../modals/block-pool/create-block-pool-modal';
 import { StoragePoolKind } from '../types';
+import '../style.scss';
 import './sc-form.scss';
 
 type OnParamChange = (id: string, paramName: string, checkbox: boolean) => void;

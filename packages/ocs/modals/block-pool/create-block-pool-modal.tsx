@@ -157,7 +157,7 @@ export const CreateBlockPoolModal = withHandlePromise(
         isOpen
         onClose={props.closeModal}
         className="modal-content create-block-pool__modal"
-        variant="medium"
+        variant="small"
       >
         <ModalTitle>{MODAL_TITLE}</ModalTitle>
         <ModalBody>

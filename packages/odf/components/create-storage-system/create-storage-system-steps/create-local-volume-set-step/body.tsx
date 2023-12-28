@@ -40,6 +40,7 @@ import { getValidatedDeviceTypes } from '../../../../utils';
 import validationRegEx from '../../../../utils/validation';
 import { LocalVolumeSet, WizardDispatch, WizardState } from '../../reducer';
 import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
+import '../../../../style.scss';
 import './body.scss';
 
 const diskModeDropdownOptions: JSX.Element[] = _.map(

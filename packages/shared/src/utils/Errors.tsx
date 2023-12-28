@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Helmet } from 'react-helmet';
 import PageHeading from '../heading/page-heading';
 import { useCustomTranslation } from '../useCustomTranslationHook';
+import '../style.scss';
 
 export type ErrorComponentProps = {
   title: string;
@@ -13,7 +14,7 @@ const ErrorComponent: React.SFC<ErrorComponentProps> = ({ title, message }) => {
   return (
     <>
       <PageHeading title={t('Error')} />
-      <div className="co-m-pane__body" data-test-id="error-page">
+      <div className="odf-m-pane__body" data-test-id="error-page">
         <PageHeading title={title} centerText />
         {message && <div className="pf-u-text-align-center">{message}</div>}
       </div>
