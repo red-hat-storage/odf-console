@@ -9,3 +9,16 @@
 .odf-resourceDropdown__container > button {
   width: 100%;
 }
+
+.odf-resourceDropdownHeight > div {
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+.odf-resourceDropdownListItems li {
+  // @extend .pf-c-menu__list-item !optional;
+  display: var(--pf-c-menu__list-item--Display);
+  position: relative;
+  color: var(--pf-c-menu__list-item--Color);
+  background-color: var(--pf-c-menu__list-item--BackgroundColor);
+}

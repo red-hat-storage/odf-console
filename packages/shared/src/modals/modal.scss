@@ -39,3 +39,8 @@
   overflow-x: unset;
   overflow-y: unset;
 }
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+}
