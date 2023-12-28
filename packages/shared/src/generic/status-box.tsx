@@ -9,6 +9,7 @@ import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import { Alert, Button } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
+import '../style.scss';
 
 export const Box: React.FC<BoxProps> = ({ children, className }) => (
   <div className={classNames('cos-status-box', className)}>{children}</div>
@@ -183,8 +184,8 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
     const status = _.get(loadError, 'response.status');
     if (status === 404) {
       return (
-        <div className="co-m-pane__body">
-          <h1 className="co-m-pane__heading co-m-pane__heading--center">
+        <div className="odf-m-pane__body">
+          <h1 className="odf-m-pane__heading odf-m-pane__heading">
             {t('404: Not Found')}
           </h1>
         </div>

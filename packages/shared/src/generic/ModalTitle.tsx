@@ -3,6 +3,7 @@ import { ActionGroup, Button } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { ButtonBar } from './ButtonBar';
 import CloseButton from './CloseButton';
+import '../modals/modal.scss';
 
 export const ModalTitle: React.FC<ModalTitleProps> = ({
   children,

@@ -33,6 +33,7 @@ import {
   FlexItem,
   Card,
   CardHeader,
+  CardBody,
   CardTitle,
 } from '@patternfly/react-core';
 import { CephClusterModel } from '../../../models';
@@ -41,6 +42,7 @@ import { ODFSystemParams } from '../../../types';
 import { OSDMigrationProgress } from './osd-migration/osd-migration-progress';
 import { getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
+import '../../../style.scss';
 import './healthchecks.scss';
 
 const resiliencyProgressQuery = (managedByOCS: string) =>
@@ -167,43 +169,45 @@ export const StatusCard: React.FC = () => {
   }
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
-      <HealthBody>
-        <Gallery className="co-overview-status__health" hasGutter>
-          <GalleryItem>
-            <HealthItem
-              title={t('Storage Cluster')}
-              state={cephHealthState.state}
-              details={cephHealthState.message}
-              popupTitle={healthChecks ? t('Active health checks') : null}
-            >
-              {healthChecks?.map((healthCheck: CephHealthCheckType, i) => (
-                <CephHealthCheck
-                  key={`${i}`}
-                  cephHealthState={cephHealthState}
-                  healthCheck={healthCheck}
-                />
-              ))}
-            </HealthItem>
-          </GalleryItem>
-          <GalleryItem>
-            <HealthItem
-              title={t('Data Resiliency')}
-              state={dataResiliencyState.state}
-              details={dataResiliencyState.message}
-            />
-          </GalleryItem>
-        </Gallery>
-      </HealthBody>
-      <OSDMigrationProgress
-        cephData={cephCluster}
-        dataLoaded={loaded}
-        dataLoadError={loadError}
-      />
-      <CephAlerts />
+      <CardBody>
+        <HealthBody>
+          <Gallery className="odf-overview-status__health" hasGutter>
+            <GalleryItem>
+              <HealthItem
+                title={t('Storage Cluster')}
+                state={cephHealthState.state}
+                details={cephHealthState.message}
+                popupTitle={healthChecks ? t('Active health checks') : null}
+              >
+                {healthChecks?.map((healthCheck: CephHealthCheckType, i) => (
+                  <CephHealthCheck
+                    key={`${i}`}
+                    cephHealthState={cephHealthState}
+                    healthCheck={healthCheck}
+                  />
+                ))}
+              </HealthItem>
+            </GalleryItem>
+            <GalleryItem>
+              <HealthItem
+                title={t('Data Resiliency')}
+                state={dataResiliencyState.state}
+                details={dataResiliencyState.message}
+              />
+            </GalleryItem>
+          </Gallery>
+        </HealthBody>
+        <OSDMigrationProgress
+          cephData={cephCluster}
+          dataLoaded={loaded}
+          dataLoadError={loadError}
+        />
+        <CephAlerts />
+      </CardBody>
     </Card>
   );
 };

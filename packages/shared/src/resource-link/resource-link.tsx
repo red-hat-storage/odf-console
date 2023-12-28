@@ -2,6 +2,7 @@ import * as React from 'react';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import classNames from 'classnames';
 import { Link } from 'react-router-dom-v5-compat';
+import '../style.scss';
 
 type ResourceLinkProps = {
   resourceModel: K8sKind;
@@ -24,7 +25,7 @@ export const ResourceIcon: React.FC<ResourceIconProps> = ({
   <>
     <span className="sr-only">{resourceModel.abbr.toLocaleUpperCase()}</span>
     <span
-      className={classNames('co-m-resource-icon', className)}
+      className={classNames('odf-m-resource-icon', className)}
       title={resourceModel.kind}
     >
       {resourceModel.abbr.toLocaleUpperCase()}
@@ -41,13 +42,13 @@ const ResourceLink: React.FC<ResourceLinkProps> = ({
   className,
 }) => {
   return (
-    <span className="co-resource-item">
+    <span className="odf-resource-item">
       {!hideIcon && (
         <>
           <span className="sr-only">
             {resourceModel.abbr.toLocaleUpperCase()}
           </span>
-          <span className="co-m-resource-icon" title={resourceModel.kind}>
+          <span className="odf-m-resource-icon" title={resourceModel.kind}>
             {resourceModel.abbr.toLocaleUpperCase()}
           </span>
         </>

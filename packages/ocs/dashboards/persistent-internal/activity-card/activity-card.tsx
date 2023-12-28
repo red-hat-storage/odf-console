@@ -29,7 +29,7 @@ import {
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
-import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
+import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
 import { OCS_OPERATOR, PVC_PROVISIONER_ANNOTATION } from '../../../constants';
 import { StorageClusterModel } from '../../../models';
 import {
@@ -49,6 +49,7 @@ import {
   isSubscriptionUpgradeActivity,
   OCSUpgradeActivity,
 } from './ocs-upgrade-activity';
+import '../../../style.scss';
 import './activity-card.scss';
 
 export const getOCSSubscription = (
@@ -178,14 +179,16 @@ export const ActivityCard: React.FC = React.memo(() => {
   const { t } = useCustomTranslation();
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Activity')}</CardTitle>
       </CardHeader>
-      <ActivityBody className="ceph-activity-card__body">
-        <OngoingActivity />
-        <RecentEvent />
-      </ActivityBody>
+      <CardBody>
+        <ActivityBody className="ceph-activity-card__body">
+          <OngoingActivity />
+          <RecentEvent />
+        </ActivityBody>
+      </CardBody>
     </Card>
   );
 });
