@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { LoadingBox } from '@odf/shared';
 import { ModalBody, ModalTitle } from '@odf/shared/generic/ModalTitle';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import {
   Modal,
@@ -23,14 +25,33 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
 }) => {
   const { t } = useCustomTranslation();
   const MODAL_TITLE = t('Client onboarding token');
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [ticket, _setTicket] = React.useState('dummy--text');
-  // Todo(bipuladh): Add a HTTP request to proxy to get ticket
+  const [ticket, setTicket] = React.useState('');
 
   const onCopyToClipboard = () => {
     navigator.clipboard.writeText(ticket);
   };
+
+  React.useEffect(() => {
+    consoleFetch(
+      '/api/proxy/plugin/odf-console/provider-proxy/onboarding-tokens',
+      {
+        method: 'post',
+      }
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Network response is not ok!');
+        }
+        return response.text();
+      })
+      .then((text) => {
+        setTicket(text);
+      })
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('Provider proxy is not working as expected', error);
+      });
+  }, []);
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal} variant={ModalVariant.small}>
@@ -38,7 +59,11 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
       <ModalBody>
         <Flex direction={{ default: 'column' }}>
           <FlexItem grow={{ default: 'grow' }}>
-            <div className="odf-onboarding-modal__text-area">{ticket}</div>
+            {ticket ? (
+              <div className="odf-onboarding-modal__text-area">{ticket}</div>
+            ) : (
+              <LoadingBox />
+            )}
           </FlexItem>
           <FlexItem>
             <Button
@@ -48,7 +73,7 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
               className="pf-m-link--align-left odf-onboarding-modal__clipboard"
             >
               <ClipboardIcon />
-              Copy to Clipboard
+              {t('Copy to clipboard')}
             </Button>
           </FlexItem>
           <FlexItem>
