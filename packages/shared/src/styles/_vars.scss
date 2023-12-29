@@ -29,7 +29,6 @@ $screen-md-max: ($screen-lg-min - 1) !default;
 $font-family-monospace: Menlo, Monaco, Consolas, 'Courier New', monospace !default;
 
 //== Typography
-
 $font-size-base: 14px !default;
 $font-size-large: ceil(($font-size-base * 1.25)) !default; // ~18px
 $font-size-small: ceil(($font-size-base * 0.85)) !default; // ~12px
@@ -43,3 +42,6 @@ $pf-global--breakpoint--lg-max: ($pf-global--breakpoint--lg - 1);
 // Can not use --pf-global--gutter --pf-global--gutter--md because you can't get a negative value of a scss variable that is assigned a css custom property.
 $pf-global-gutter: 1rem; // Matches --pf-global--gutter
 $pf-global-gutter--md: 1.5rem; // Matches --pf-global--gutter--md
+
+// == Colors
+$color-container-dark: $pf-color-blue-300;

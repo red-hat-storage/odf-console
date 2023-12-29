@@ -10,6 +10,7 @@ import { ConfigMapModel, SecretModel } from '../models';
 import { getName, getNamespace } from '../selectors';
 import { ConfigMapKind, K8sResourceKind, SecretKind } from '../types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
+import '../style.scss';
 
 type SecretValueProps = {
   value: string;
@@ -113,7 +114,7 @@ export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
     : [];
 
   return dl.length ? (
-    <div className="co-m-pane__body">
+    <div className="odf-m-pane__body">
       <SectionHeading text={t('Object Bucket Claim Data')}>
         {secretValues.length ? (
           <Button

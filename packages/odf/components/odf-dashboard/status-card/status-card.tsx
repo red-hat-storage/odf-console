@@ -45,7 +45,7 @@ import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import StatusCardPopover from './status-card-popover';
 import { getAggregateClientHealthState, getClientText } from './utils';
-import './status-card.scss';
+import '../../../style.scss';
 
 const operatorResource: K8sResourceObj = (ns) => ({
   kind: 'operators.coreos.com~v1alpha1~ClusterServiceVersion',

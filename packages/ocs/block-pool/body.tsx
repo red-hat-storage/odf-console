@@ -40,6 +40,7 @@ import {
   BlockPoolActionType,
   BlockPoolState,
 } from './reducer';
+import '../style.scss';
 import './body.scss';
 
 export const BlockPoolStatus: React.FC<BlockPoolStatusProps> = ({

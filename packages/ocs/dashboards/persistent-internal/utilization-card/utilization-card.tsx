@@ -121,7 +121,7 @@ const UtilizationCard: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="co-utilization-card__title">
+        <CardTitle>
           {t('Utilization')}
           <FieldLevelHelp>
             {t(
