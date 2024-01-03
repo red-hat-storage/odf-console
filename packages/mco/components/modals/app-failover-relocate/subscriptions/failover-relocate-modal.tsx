@@ -115,6 +115,11 @@ export const SubscriptionFailoverRelocateModal: React.FC<FailoverRelocateModalPr
     const onClick = () => {
       updateModalStatus(ModalFooterStatus.INPROGRESS);
       const promises: Promise<K8sResourceKind>[] = [];
+      const targetClusterName =
+        state.selectedTargetCluster.clusterInfo.clusterName;
+      const primaryClusterName = state.selectedDRPolicy.drClusters.find(
+        (drCluster) => drCluster !== targetClusterName
+      );
       state.drPolicyControlState.forEach((acmToDRState) => {
         if (
           state.selectedSubsGroups.includes(
@@ -127,15 +132,21 @@ export const SubscriptionFailoverRelocateModal: React.FC<FailoverRelocateModalPr
               path: '/spec/action',
               value: action,
             },
-            state.actionType === DRActionType.RELOCATE && {
-              op: 'replace',
-              path: '/spec/preferredCluster',
-              value: state.selectedTargetCluster.clusterInfo.clusterName,
-            },
-            state.actionType === DRActionType.FAILOVER && {
+            {
               op: 'replace',
               path: '/spec/failoverCluster',
-              value: state.selectedTargetCluster.clusterInfo.clusterName,
+              value:
+                action === DRActionType.FAILOVER
+                  ? targetClusterName
+                  : primaryClusterName,
+            },
+            {
+              op: 'replace',
+              path: '/spec/preferredCluster',
+              value:
+                action === DRActionType.FAILOVER
+                  ? primaryClusterName
+                  : targetClusterName,
             },
           ];
           promises.push(
