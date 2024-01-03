@@ -18,13 +18,14 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import { useParams } from 'react-router-dom-v5-compat';
-import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
+import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
 import {
   dataResiliencyQueryMap,
   ObjectServiceDashboardQuery,
 } from '../../../queries';
 import { ODFSystemParams } from '../../../types';
 import { isObjectStorageEvent, decodeRGWPrefix } from '../../../utils';
+import '../../../style.scss';
 import './activity-card.scss';
 
 const eventsResource = { isList: true, kind: EventModel.kind };
@@ -124,14 +125,16 @@ const ActivityCard: React.FC = () => {
   const { systemFlags } = useODFSystemFlagsSelector();
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Activity')}</CardTitle>
       </CardHeader>
-      <ActivityBody className="nb-activity-card__body">
-        <OngoingActivity systemFlags={systemFlags} clusterNs={clusterNs} />
-        <RecentEvent systemFlags={systemFlags} clusterNs={clusterNs} />
-      </ActivityBody>
+      <CardBody>
+        <ActivityBody className="nb-activity-card__body">
+          <OngoingActivity systemFlags={systemFlags} clusterNs={clusterNs} />
+          <RecentEvent systemFlags={systemFlags} clusterNs={clusterNs} />
+        </ActivityBody>
+      </CardBody>
     </Card>
   );
 };

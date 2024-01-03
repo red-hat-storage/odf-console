@@ -18,6 +18,7 @@ import { CaretDownIcon } from '@patternfly/react-icons';
 import { LoadingInline } from '../generic/Loading';
 import { getName, getUID } from '../selectors';
 import { useCustomTranslation } from '../useCustomTranslationHook';
+import '../style.scss';
 import './resourceDropdown.scss';
 
 const filterName = (searchText: string, resourceName: string) =>
@@ -32,7 +33,7 @@ const ResourceBadge: React.FC<ResourceBadgeProps> = ({
 }) => (
   <>
     <span className="sr-only">{resourceModel.abbr.toLocaleUpperCase()}</span>
-    <span className="co-m-resource-icon" title={resourceModel.kind}>
+    <span className="odf-m-resource-icon" title={resourceModel.kind}>
       {resourceModel.abbr.toLocaleUpperCase()}
     </span>
   </>
@@ -67,7 +68,7 @@ const ResourceDropdownItem: ResourceDropdownItem = ({
   return (
     <DropdownItem data-test={dataTest} id={id} onClick={onClick}>
       <div>
-        <span className="co-resource-item">
+        <span className="odf-resource-item">
           {showBadge && <ResourceBadge model={model} />}
           {propertySelector(resource)}
         </span>
@@ -224,7 +225,12 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
     <>
       <Dropdown
         id={id}
-        className={classNames('odf-resourceDropdown__container', className)}
+        className={classNames(
+          'odf-resourceDropdown__container',
+          'odf-resourceDropdownHeight',
+          'odf-resourceDropdownListItems',
+          className
+        )}
         toggle={
           <DropdownToggle
             onToggle={loaded && !loadError ? onToggle : () => null}
@@ -409,7 +415,12 @@ export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
 
   return (
     <Dropdown
-      className={classNames('odf-resourceDropdown__container', className)}
+      className={classNames(
+        'odf-resourceDropdown__container',
+        'odf-resourceDropdownHeight',
+        'odf-resourceDropdownListItems',
+        className
+      )}
       toggle={
         <DropdownToggle
           isDisabled={!loaded || loadError}

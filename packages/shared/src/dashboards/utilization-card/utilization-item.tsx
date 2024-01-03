@@ -159,7 +159,7 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
       >
         <div className="co-utilization-card__item-description-ceph">
           <div className="co-utilization-card__item-section">
-            <h4 className="pf-c-title pf-m-lg" style={{ marginRight: '20px' }}>
+            <h4 className="pf-c-title" style={{ marginRight: '20px' }}>
               {title}
             </h4>
             {error || (!isLoading && !utilizationData?.length) ? (

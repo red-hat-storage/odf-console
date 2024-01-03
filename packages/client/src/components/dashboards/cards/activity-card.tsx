@@ -26,8 +26,9 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import * as _ from 'lodash-es';
-import { Card, CardHeader, CardTitle } from '@patternfly/react-core';
+import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
 import { CLIENT_OPERATOR } from '../../../constants';
+import '../../../../style.scss';
 import './activity-card.scss';
 
 const ClientOperatorUpgradeActivity: React.FC = () => {
@@ -115,14 +116,16 @@ export const ActivityCard: React.FC = React.memo(() => {
   const { t } = useCustomTranslation();
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Activity')}</CardTitle>
       </CardHeader>
-      <ActivityBody className="odf-client-activity-card__body">
-        <OngoingActivity />
-        <RecentEvent />
-      </ActivityBody>
+      <CardBody>
+        <ActivityBody className="odf-client-activity-card__body">
+          <OngoingActivity />
+          <RecentEvent />
+        </ActivityBody>
+      </CardBody>
     </Card>
   );
 });

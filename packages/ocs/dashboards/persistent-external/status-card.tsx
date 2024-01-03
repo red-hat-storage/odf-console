@@ -15,9 +15,11 @@ import {
   Gallery,
   Card,
   CardHeader,
+  CardBody,
   CardTitle,
 } from '@patternfly/react-core';
 import { ODFSystemParams } from '../../types';
+import '../../style.scss';
 
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -38,21 +40,23 @@ export const StatusCard: React.FC = () => {
   );
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
-      <HealthBody>
-        <Gallery className="co-overview-status__health" hasGutter>
-          <GalleryItem>
-            <HealthItem
-              title={t('Storage Cluster')}
-              state={cephHealth.state}
-              details={cephHealth.message}
-            />
-          </GalleryItem>
-        </Gallery>
-      </HealthBody>
+      <CardBody>
+        <HealthBody>
+          <Gallery className="odf-overview-status__health" hasGutter>
+            <GalleryItem>
+              <HealthItem
+                title={t('Storage Cluster')}
+                state={cephHealth.state}
+                details={cephHealth.message}
+              />
+            </GalleryItem>
+          </Gallery>
+        </HealthBody>
+      </CardBody>
     </Card>
   );
 };
