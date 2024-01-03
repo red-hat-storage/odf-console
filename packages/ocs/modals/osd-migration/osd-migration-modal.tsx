@@ -74,7 +74,7 @@ export const OSDMigrationModal: React.FC<OSDMigrationModalProps> = ({
   );
 };
 
-type OSDMigrationModalProps = CommonModalProps<{
+export type OSDMigrationModalProps = CommonModalProps<{
   ocsData: StorageClusterKind;
 }>;
 
