@@ -299,9 +299,8 @@ export type PlacementProps = Partial<{
   drPlacementControlName: string;
   targetClusterName: string;
   targetClusterAvailableTime: string;
+  primaryClusterName: string;
   snapshotTakenTime: string;
-  failoverCluster: string;
-  preferredCluster: string;
   isTargetClusterAvailable: boolean;
   isPrimaryClusterAvailable: boolean;
   isDRActionReady: boolean;
