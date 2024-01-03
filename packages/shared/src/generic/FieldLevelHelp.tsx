@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Button, Popover, PopoverProps } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import { useCustomTranslation } from '../useCustomTranslationHook';
+import './field-level-help.scss';
 
 export const FieldLevelHelp: React.FC<FieldLevelHelpProps> = React.memo(
   ({ children, popoverHasAutoWidth, testId }) => {
@@ -19,10 +20,10 @@ export const FieldLevelHelp: React.FC<FieldLevelHelpProps> = React.memo(
           aria-label={t('Help')}
           variant="link"
           isInline
-          className="co-field-level-help"
+          className="odf-field-level-help"
           data-test-id={testId || null}
         >
-          <OutlinedQuestionCircleIcon className="co-field-level-help__icon" />
+          <OutlinedQuestionCircleIcon className="odf-field-level-help__icon" />
         </Button>
       </Popover>
     );

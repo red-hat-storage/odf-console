@@ -31,6 +31,7 @@ import {
   GalleryItem,
   Card,
   CardHeader,
+  CardBody,
   CardTitle,
 } from '@patternfly/react-core';
 import { StatusType } from '../../../constants';
@@ -44,7 +45,7 @@ import { ODFSystemParams } from '../../../types';
 import { decodeRGWPrefix } from '../../../utils';
 import { ObjectServiceStatus } from './object-service-health';
 import { getNooBaaState, getRGWHealthState } from './statuses';
-import './status-card.scss';
+import '../../../style.scss';
 
 const noobaaResource = {
   kind: referenceForModel(NooBaaSystemModel),
@@ -151,29 +152,31 @@ const StatusCard: React.FC<{}> = () => {
   );
 
   return (
-    <Card className="co-overview-card--gradient">
+    <Card className="odf-overview-card--gradient">
       <CardHeader>
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
-      <HealthBody>
-        <Gallery className="nb-status-card__health" hasGutter>
-          <GalleryItem>
-            <ObjectServiceStatus
-              RGWMetrics={isRGWSupported ? RGWState : undefined}
-              MCGMetrics={isMCGSupported ? MCGState : undefined}
-              statusType={StatusType.HEALTH}
-            />
-          </GalleryItem>
-          <GalleryItem>
-            <ObjectServiceStatus
-              RGWMetrics={isRGWSupported ? RGWResiliencyState : undefined}
-              MCGMetrics={isMCGSupported ? dataResiliencyState : undefined}
-              statusType={StatusType.RESILIENCY}
-            />
-          </GalleryItem>
-        </Gallery>
-      </HealthBody>
-      <ObjectStorageAlerts />
+      <CardBody>
+        <HealthBody>
+          <Gallery className="odf-overview-status__health" hasGutter>
+            <GalleryItem>
+              <ObjectServiceStatus
+                RGWMetrics={isRGWSupported ? RGWState : undefined}
+                MCGMetrics={isMCGSupported ? MCGState : undefined}
+                statusType={StatusType.HEALTH}
+              />
+            </GalleryItem>
+            <GalleryItem>
+              <ObjectServiceStatus
+                RGWMetrics={isRGWSupported ? RGWResiliencyState : undefined}
+                MCGMetrics={isMCGSupported ? dataResiliencyState : undefined}
+                statusType={StatusType.RESILIENCY}
+              />
+            </GalleryItem>
+          </Gallery>
+        </HealthBody>
+        <ObjectStorageAlerts />
+      </CardBody>
     </Card>
   );
 };

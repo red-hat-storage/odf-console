@@ -13,6 +13,7 @@ import {
 import { NamespacePolicyType } from '../../constants';
 import { namespaceStoreResource } from '../../resources';
 import { NamespaceStoreKind } from '../../types';
+import '../../style.scss';
 
 export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
   id,

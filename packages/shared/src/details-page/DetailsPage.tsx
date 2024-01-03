@@ -34,6 +34,7 @@ import { getPropertyDescription } from '../utils/swagger';
 import { LabelList } from './label-list';
 import { OwnerReferences } from './owner-references';
 import { Timestamp } from './timestamp';
+import '../style.scss';
 import './details.scss';
 
 type DetailsPageProps = {
@@ -315,7 +316,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   const launchModal = useModal();
 
   return (
-    <dl data-test-id="resource-summary" className="co-m-pane__details">
+    <dl data-test-id="resource-summary" className="odf-m-pane__details">
       <DetailsItem
         label={t('Name')}
         obj={resource}

@@ -51,6 +51,7 @@ import {
   ProviderDataState,
   StoreAction,
 } from './reducer';
+import '../../style.scss';
 import '../mcg-endpoints/noobaa-provider-endpoints.scss';
 
 const PROVIDERS = getProviders(StoreType.NS);
@@ -267,7 +268,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
       <Form
         className={classNames(
           'nb-endpoints-form',
-          'co-m-pane__body',
+          'odf-m-pane__body',
           className
         )}
         onSubmit={handleSubmit(onSubmit)}

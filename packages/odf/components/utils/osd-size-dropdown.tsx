@@ -5,6 +5,7 @@ import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { SelectOption } from '@patternfly/react-core';
 import { OSD_CAPACITY_SIZES } from '../../constants';
+import '../../style.scss';
 
 const valueLabelMap = (t: TFunction) => {
   return {

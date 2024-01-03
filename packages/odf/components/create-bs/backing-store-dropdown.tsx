@@ -11,6 +11,7 @@ import {
   DropdownToggle,
 } from '@patternfly/react-core';
 import { BackingStoreKind } from '../../types';
+import '../../style.scss';
 
 export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
   id,

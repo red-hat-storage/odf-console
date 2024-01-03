@@ -153,3 +153,12 @@
 .odf-m-pane__body-group {
   padding: 0 0 30px;
 }
+
+.odf-m-pane__details {
+  line-height: 1.66;
+  min-width: 0;
+  white-space: normal;
+  dd {
+    @include odf-break-word;
+  }
+}
