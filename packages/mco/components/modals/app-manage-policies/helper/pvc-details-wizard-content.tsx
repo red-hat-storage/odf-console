@@ -1,4 +1,10 @@
 import * as React from 'react';
+import {
+  LABEL,
+  LABELS_SPLIT_CHAR,
+  DR_BLOCK_LISTED_LABELS,
+  LABEL_SPLIT_CHAR,
+} from '@odf/mco/constants';
 import { useACMSafeFetch } from '@odf/mco/hooks/acm-safe-fetch';
 import { SearchResult } from '@odf/mco/types';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
@@ -33,9 +39,6 @@ import { PlacementType } from '../utils/types';
 import '../../../../style.scss';
 import '../style.scss';
 
-const LABEL = 'label';
-const SPLIT_CHAR = '; ';
-
 const getPlacementTags = (pvcSelectors: PVCSelectorType[]) =>
   !!pvcSelectors.length
     ? pvcSelectors.map((pvcSelector) => [
@@ -46,10 +49,14 @@ const getPlacementTags = (pvcSelectors: PVCSelectorType[]) =>
 
 const getLabelsFromSearchResult = (searchResult: SearchResult): string[] => {
   const pvcLabels =
-    searchResult?.data.searchResult?.[0]?.items.reduce(
-      (acc, item) => [...acc, ...(item[LABEL]?.split(SPLIT_CHAR) || [])],
-      []
-    ) || [];
+    searchResult?.data.searchResult?.[0]?.items.reduce((acc, item) => {
+      const labels: string[] = item[LABEL]?.split(LABELS_SPLIT_CHAR) || [];
+      const filteredLabels = labels?.filter((label) => {
+        const [key] = label.split(LABEL_SPLIT_CHAR);
+        return !DR_BLOCK_LISTED_LABELS.includes(key);
+      });
+      return [...acc, ...filteredLabels];
+    }, []) || [];
   return Array.from(new Set(pvcLabels));
 };
 
