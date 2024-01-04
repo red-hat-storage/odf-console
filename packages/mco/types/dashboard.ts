@@ -38,8 +38,9 @@ export type DrClusterAppsMap = {
 };
 
 export type ProtectedPVCData = {
-  drpcName?: string;
-  drpcNamespace?: string;
+  drpcName: string;
+  drpcNamespace: string;
+  replicationType: REPLICATION_TYPE;
   pvcName?: string;
   pvcNamespace?: string;
   lastSyncTime?: string;

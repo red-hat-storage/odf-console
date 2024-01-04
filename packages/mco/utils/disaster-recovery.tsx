@@ -497,14 +497,20 @@ export const getProtectedPVCFromVRG = (
     const drpcNamespace =
       mcv?.metadata?.annotations?.[DRPC_NAMESPACE_ANNOTATION];
     const vrg = mcv?.status?.result as DRVolumeReplicationGroupKind;
-    const pvcInfo = vrg?.status?.protectedPVCs?.map((pvc) => ({
-      drpcName,
-      drpcNamespace,
-      pvcName: pvc?.name,
-      pvcNamespace: getNamespace(vrg),
-      lastSyncTime: pvc?.lastSyncTime,
-      schedulingInterval: vrg?.spec?.async?.schedulingInterval,
-    }));
+    const pvcInfo: ProtectedPVCData[] = vrg?.status?.protectedPVCs?.map(
+      (pvc) => ({
+        drpcName,
+        drpcNamespace,
+        // VRG has async spec only for RDR
+        replicationType: !!vrg?.spec?.async
+          ? REPLICATION_TYPE.ASYNC
+          : REPLICATION_TYPE.SYNC,
+        pvcName: pvc?.name,
+        pvcNamespace: getNamespace(vrg),
+        lastSyncTime: pvc?.lastSyncTime,
+        schedulingInterval: vrg?.spec?.async?.schedulingInterval,
+      })
+    );
     return !!pvcInfo?.length ? [...acc, ...pvcInfo] : acc;
   }, []);
 };
