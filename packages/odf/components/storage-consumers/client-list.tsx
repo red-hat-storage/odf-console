@@ -26,7 +26,6 @@ import {
 import { Button, Popover, PopoverPosition } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import { StorageConsumerModel } from '../../models';
-import { useODFNamespaceSelector } from '../../redux';
 import {
   clientHeartBeatFilter,
   getMajorMinorVersion,
@@ -253,12 +252,8 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
     isList: true,
   });
 
-  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
-
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: ODF_OPERATOR,
-    namespace: odfNamespace,
-    startPollingInstantly: isNsSafe,
   });
   const serviceVersion = getOperatorVersion(csv);
 
