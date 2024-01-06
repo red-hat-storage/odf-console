@@ -506,7 +506,11 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
       {!!validations.length &&
         !!capacity &&
         validations.map((validation) => (
-          <ValidationMessage key={validation} validation={validation} />
+          <ValidationMessage
+            resourceProfile={resourceProfile}
+            key={validation}
+            validation={validation}
+          />
         ))}
     </Form>
   );
