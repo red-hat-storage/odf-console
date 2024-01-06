@@ -29,11 +29,8 @@ import './configure-performance.scss';
 
 const selectOptions = (t: TFunction, forceLean: boolean) =>
   Object.entries(ResourceProfile).map((value: [string, ResourceProfile]) => {
-    let displayName = value[0];
+    const displayName = t('{{profileType}} mode', { profileType: value[0] });
     let profile = value[1];
-    if (profile === ResourceProfile.Balanced) {
-      displayName = t(`${displayName} (default)`);
-    }
     const { minCpu, minMem } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
     const description = `CPUs required: ${minCpu}, Memory required: ${minMem} GiB`;
     const isDisabled =
@@ -161,7 +158,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
           className="pf-u-font-size-sm pf-u-disabled-color-100"
         >
           {t(
-            "Customize your Data Foundation cluster's performance by selecting a performance profile that meets your specific needs."
+            'Select a profile to customise the performance of the Data Foundation cluster to meet your requirements.'
           )}
         </Text>
       </TextContent>
