@@ -91,9 +91,7 @@ describe('OSDMigrationProgress', () => {
       />
     );
 
-    expect(
-      screen.getByText('Cluster OSDs are being migrated')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Migrating cluster OSDs')).toBeInTheDocument();
   });
 
   test('renders the correct message when migration status is completed', () => {
@@ -136,15 +134,7 @@ describe('OSDMigrationProgress', () => {
     );
 
     expect(
-      screen.getByText('Could not migrate cluster OSDs.')
+      screen.getByText('Could not migrate cluster OSDs. Check logs')
     ).toBeInTheDocument();
-    const documentationLink = screen.getByText('Check documentation');
-    expect(documentationLink).toBeInTheDocument();
-    expect(documentationLink).toHaveAttribute(
-      'href',
-      expect.stringContaining(
-        'configuring_openshift_data_foundation_disaster_recovery_for_openshift_workloads/index#apply-drpolicy-to-sample-application_manage-dr'
-      )
-    );
   });
 });

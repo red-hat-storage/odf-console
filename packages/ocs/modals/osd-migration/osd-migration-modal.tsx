@@ -47,14 +47,13 @@ export const OSDMigrationModal: React.FC<OSDMigrationModalProps> = ({
   return (
     <Modal
       variant={ModalVariant.small}
-      title={t('Optimise cluster for Regional-DR?')}
+      title={t('Prepare the cluster for Regional DR setup')}
       isOpen={isOpen}
       onClose={closeModal}
     >
       {t(
-        'Configure the cluster for a Regional-DR setup by migrating OSDs. Migration may take some time depending on several factors. To learn more about OSDs migration best practices and its consequences refer to the documentation.'
+        'To prepare the cluster for Regional DR setup, you must migrate the OSDs. Migrating OSDs may take some time to complete based on your cluster.'
       )}
-      {/* TODO: Show doc link once ViewDocumentation moved to shared */}
       <ModalBody>
         {!!errorMessage && (
           <Alert isInline variant="danger" title={t('An error occurred')}>
@@ -64,10 +63,10 @@ export const OSDMigrationModal: React.FC<OSDMigrationModalProps> = ({
       </ModalBody>
       <ModalFooter>
         <Button key="close" variant="secondary" onClick={closeModal}>
-          {t('Close')}
+          {t('Cancel')}
         </Button>
         <Button key="optimize" variant="primary" onClick={handleOptimize}>
-          {t('Optimise')}
+          {t('Yes, migrate OSDs')}
         </Button>
       </ModalFooter>
     </Modal>

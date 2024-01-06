@@ -76,6 +76,13 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   k8sPatch: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock(
+  '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/icons',
+  () => ({
+    GreenCheckCircleIcon: () => <div>MockedGreenCheckCircleIcon</div>,
+  })
+);
+
 describe('OSDMigrationDetails', () => {
   test('renders OSD migration status and button', () => {
     render(
@@ -88,7 +95,7 @@ describe('OSDMigrationDetails', () => {
     );
 
     expect(screen.getByText('Pending')).toBeInTheDocument();
-    const button = screen.getByText('Optimise cluster');
+    const button = screen.getByText('(Prepare cluster for DR setup)');
     expect(button).toBeEnabled();
   });
 
@@ -103,7 +110,7 @@ describe('OSDMigrationDetails', () => {
     );
     expect(screen.getByText('In Progress')).toBeInTheDocument();
     // Ensure that the button is not present
-    const button = screen.queryByText('Optimise cluster');
+    const button = screen.queryByText('(Prepare cluster for DR setup)');
     expect(button).not.toBeInTheDocument();
   });
 
@@ -118,7 +125,7 @@ describe('OSDMigrationDetails', () => {
     );
 
     expect(screen.getByText('Completed')).toBeInTheDocument();
-    const button = screen.queryByText('Optimise cluster');
+    const button = screen.queryByText('(Prepare cluster for DR setup)');
     expect(button).not.toBeInTheDocument();
   });
 
@@ -144,19 +151,20 @@ describe('OSDMigrationDetails', () => {
     );
 
     // Check the title
-    expect(getByText('Optimise cluster for Regional-DR?')).toBeInTheDocument();
+    expect(
+      getByText('Prepare the cluster for Regional DR setup')
+    ).toBeInTheDocument();
 
     // Check the body text
     expect(
       getByText(
-        'Configure the cluster for a Regional-DR setup by migrating OSDs. ' +
-          'Migration may take some time depending on several factors. ' +
-          'To learn more about OSDs migration best practices and its consequences refer to the documentation.'
+        'To prepare the cluster for Regional DR setup, you must migrate the OSDs. ' +
+          'Migrating OSDs may take some time to complete based on your cluster.'
       )
     ).toBeInTheDocument();
   });
 
-  test('calls closeModal when the "Close" button is clicked', () => {
+  test('calls closeModal when the "Cancel" button is clicked', () => {
     const closeModalMock = jest.fn();
     const { getByText } = render(
       <OSDMigrationModal
@@ -166,7 +174,7 @@ describe('OSDMigrationDetails', () => {
       />
     );
 
-    fireEvent.click(getByText('Close'));
+    fireEvent.click(getByText('Cancel'));
     expect(closeModalMock).toHaveBeenCalled();
   });
 
@@ -175,7 +183,7 @@ describe('OSDMigrationDetails', () => {
     render(
       <OSDMigrationModal isOpen={true} extraProps={{ ocsData, closeModal }} />
     );
-    await fireEvent.click(screen.getByText('Optimise'));
+    await fireEvent.click(screen.getByText('Yes, migrate OSDs'));
     await waitFor(() => {
       expect(k8sPatch).toHaveBeenCalledWith({
         model: OCSStorageClusterModel,
