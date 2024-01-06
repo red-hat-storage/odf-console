@@ -13,6 +13,12 @@ jest.mock(
     useK8sWatchResource: jest.fn(),
   })
 );
+
+jest.mock('@odf/shared/useCustomTranslationHook', () => ({
+  useCustomTranslation: () => ({
+    t: jest.fn(),
+  }),
+}));
 const onResourceProfileChange = jest.fn();
 
 const createFakeNodes = (
@@ -53,7 +59,7 @@ describe('Configure Performance', () => {
     const dropdown = screen.getByRole('button', {
       name: /options menu/i,
     });
-    expect(dropdown).toHaveTextContent('Balanced (default)');
+    expect(dropdown).toHaveTextContent('balanced');
 
     const errorIcon = container.querySelector(errorIconSelector);
     expect(errorIcon).toBeFalsy();
@@ -102,7 +108,7 @@ describe('Configure Performance', () => {
     const dropdown = screen.getByRole('button', {
       name: /options menu/i,
     });
-    expect(dropdown).toHaveTextContent('Performance');
+    expect(dropdown).toHaveTextContent('performance');
 
     const errorIcon = container.querySelector(errorIconSelector);
     expect(errorIcon).toBeVisible();
