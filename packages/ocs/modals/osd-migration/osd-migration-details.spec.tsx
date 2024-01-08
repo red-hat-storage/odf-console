@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DISASTER_RECOVERY_TARGET_ANNOTATION } from '@odf/core/constants';
+import { DISASTER_RECOVERY_TARGET_ANNOTATION_WO_SLASH } from '@odf/core/constants';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { CephClusterKind } from '@odf/shared/src/types/storage';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
@@ -188,7 +188,7 @@ describe('OSDMigrationDetails', () => {
         data: [
           {
             op: 'add',
-            path: `metadata/annotations/${DISASTER_RECOVERY_TARGET_ANNOTATION}`,
+            path: `/metadata/annotations/${DISASTER_RECOVERY_TARGET_ANNOTATION_WO_SLASH}`,
             value: 'true',
           },
         ],

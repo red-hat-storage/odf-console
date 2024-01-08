@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DISASTER_RECOVERY_TARGET_ANNOTATION } from '@odf/core/constants';
+import { DISASTER_RECOVERY_TARGET_ANNOTATION_WO_SLASH } from '@odf/core/constants';
 import { CommonModalProps, ModalBody, ModalFooter } from '@odf/shared/modals';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
@@ -21,7 +21,7 @@ export const OSDMigrationModal: React.FC<OSDMigrationModalProps> = ({
     const patch = [
       {
         op: 'add',
-        path: `metadata/annotations/${DISASTER_RECOVERY_TARGET_ANNOTATION}`,
+        path: `/metadata/annotations/${DISASTER_RECOVERY_TARGET_ANNOTATION_WO_SLASH}`,
         value: 'true',
       },
     ];
