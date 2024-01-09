@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { isMCGStandaloneCluster, isExternalCluster } from '@odf/core/utils';
 import CapacityCard, {
   CapacityMetricDatum,
 } from '@odf/shared/dashboards/capacity-card/capacity-card';
@@ -8,8 +7,8 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
-import { StorageClusterKind, StorageSystemKind } from '@odf/shared/types';
+import { ODFStorageSystem } from '@odf/shared/models';
+import { StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getGVK,
@@ -31,11 +30,6 @@ const storageSystemResource = {
   isList: true,
 };
 
-const storageClusterResource = {
-  kind: referenceForModel(OCSStorageClusterModel),
-  isList: true,
-};
-
 const getMetricForSystem = (
   metric: PrometheusResponse,
   system: StorageSystemKind
@@ -53,9 +47,6 @@ const SystemCapacityCard: React.FC = () => {
     StorageSystemKind[]
   >(storageSystemResource);
 
-  const [storageClusters, storageClustersLoaded, storageClustersLoadError] =
-    useK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
-
   const [usedCapacity, errorUsedCapacity, loadingUsedCapacity] =
     useCustomPrometheusPoll({
       query: CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_FILE_BLOCK],
@@ -70,29 +61,12 @@ const SystemCapacityCard: React.FC = () => {
       basePath: usePrometheusBasePath(),
     });
 
-  // We are filtering internal only storagesystems as the metrics are not applicable for MCG standalone and external only StorageSystems.
-  // https://bugzilla.redhat.com/show_bug.cgi?id=2185042
-  const internalOnlySystems: StorageSystemKind[] = systems.filter((sys) => {
-    const storageCluster =
-      storageClustersLoaded &&
-      !storageClustersLoadError &&
-      storageClusters.find((sc) => sc.metadata.name === sys.spec.name);
-    if (
-      !!storageCluster &&
-      (isMCGStandaloneCluster(storageCluster) ||
-        isExternalCluster(storageCluster))
-    ) {
-      return false;
-    }
-    return true;
-  });
-
   const data =
     systemsLoaded &&
     !loadingUsedCapacity &&
     !loadingTotalCapacity &&
-    internalOnlySystems.length > 0
-      ? internalOnlySystems.map<CapacityMetricDatum>((system) => {
+    systems.length > 0
+      ? systems.map<CapacityMetricDatum>((system) => {
           const { kind, apiGroup, apiVersion } = getGVK(system.spec.kind);
           const usedMetric = getMetricForSystem(usedCapacity, system);
           const totalMetric = getMetricForSystem(totalCapacity, system);
@@ -111,12 +85,17 @@ const SystemCapacityCard: React.FC = () => {
           return datum;
         })
       : [];
+
+  // We need to filter storagesystems for which the raw capacity metrics are not applicable (ex: MCG standalone).
+  // https://bugzilla.redhat.com/show_bug.cgi?id=2185042
+  const filteredData = data.filter((system) => !!system?.totalValue);
   const error =
     !_.isEmpty(systemsLoadError) ||
     !_.isEmpty(errorTotalCapacity) ||
     !_.isEmpty(errorUsedCapacity);
   const isLoading =
     loadingUsedCapacity && loadingTotalCapacity && !systemsLoaded;
+
   return (
     <Card className="odf-capacityCard--height">
       <CardHeader>
@@ -126,7 +105,7 @@ const SystemCapacityCard: React.FC = () => {
       <CardBody>
         {!error ? (
           <CapacityCard
-            data={data}
+            data={filteredData}
             loading={isLoading}
             resourceModel={ODFStorageSystem}
           />
