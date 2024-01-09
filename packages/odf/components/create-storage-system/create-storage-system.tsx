@@ -5,7 +5,8 @@ import {
   isStorageClassWizardStep,
 } from '@odf/odf-plugin-sdk/extensions';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
-import { InfrastructureModel } from '@odf/shared/models';
+import { useK8sList } from '@odf/shared/hooks/useK8sList';
+import { InfrastructureModel, NamespaceModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
@@ -32,6 +33,8 @@ const CreateStorageSystem: React.FC<{}> = () => {
     InfrastructureModel,
     'cluster'
   );
+  const [namespaces, namespacesLoaded, namespacesError] =
+    useK8sList(NamespaceModel);
 
   const [extensions, extensionsResolved] = useResolvedExtensions(
     isStorageClassWizardStep
@@ -60,7 +63,10 @@ const CreateStorageSystem: React.FC<{}> = () => {
     return EXTERNAL_CEPH_STORAGE;
   }, [extensions, extensionsResolved]);
 
-  if (areFlagsLoaded && !flagsLoadError && infraLoaded && !infraLoadError) {
+  const allLoaded = areFlagsLoaded && infraLoaded && namespacesLoaded;
+  const anyError = flagsLoadError || infraLoadError || namespacesError;
+
+  if (allLoaded && !anyError) {
     hasExternal = hasAnyExternalOCS(systemFlags);
     hasInternal = hasAnyInternalOCS(systemFlags);
     hasOCS = hasExternal || hasInternal;
@@ -92,8 +98,8 @@ const CreateStorageSystem: React.FC<{}> = () => {
           hasMultipleClusters={hasMultipleClusters}
           stepIdReached={state.stepIdReached}
           infraType={infraType}
-          error={infraLoadError || flagsLoadError}
-          loaded={infraLoaded && areFlagsLoaded}
+          error={anyError}
+          loaded={allLoaded}
           supportedExternalStorage={supportedExternalStorage}
         />
       ),
@@ -112,13 +118,9 @@ const CreateStorageSystem: React.FC<{}> = () => {
             state={state}
             hasOCS={hasOCS}
             dispatch={dispatch}
-            disableNext={
-              !areFlagsLoaded ||
-              !!flagsLoadError ||
-              !infraLoaded ||
-              !!infraLoadError
-            }
+            disableNext={!allLoaded || !!anyError}
             supportedExternalStorage={supportedExternalStorage}
+            existingNamespaces={namespaces}
           />
         }
         cancelButtonText={t('Cancel')}
