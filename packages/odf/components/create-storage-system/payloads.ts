@@ -141,6 +141,11 @@ export const createNoobaaExternalPostgresResources = (
   return secretResources;
 };
 
+export const setCephRBDAsDefault = (
+  isRBDStorageClassDefault: boolean,
+  deployment: DeploymentType
+): boolean => isRBDStorageClassDefault && deployment === DeploymentType.FULL;
+
 export const createStorageCluster = async (
   state: WizardState,
   storageClusterNamespace: string,
@@ -195,8 +200,10 @@ export const createStorageCluster = async (
     deployment === DeploymentType.FULL &&
     type !== BackingStorageType.EXTERNAL;
 
-  const shouldSetCephRBDAsDefault =
-    isRBDStorageClassDefault && deployment === DeploymentType.FULL;
+  const shouldSetCephRBDAsDefault = setCephRBDAsDefault(
+    isRBDStorageClassDefault,
+    deployment
+  );
 
   const payload = getOCSRequestData({
     storageClass,
