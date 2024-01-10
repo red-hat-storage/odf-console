@@ -30,6 +30,7 @@ import { getExternalStorage, getTotalCpu, getTotalMemoryInGiB } from '../utils';
 import {
   createExternalSubSystem,
   createNoobaaExternalPostgresResources,
+  setCephRBDAsDefault,
   createStorageCluster,
   createStorageSystem,
   labelNodes,
@@ -187,6 +188,7 @@ const handleReviewAndCreateNext = async (
   } = state;
   const {
     systemNamespace,
+    isRBDStorageClassDefault,
     externalStorage,
     deployment,
     type,
@@ -278,6 +280,10 @@ const handleReviewAndCreateNext = async (
       const subSystemState = isRhcs ? connectionDetails : createStorageClass;
       const subSystemKind = getGVKLabel(model);
 
+      const shouldSetCephRBDAsDefault = setCephRBDAsDefault(
+        isRBDStorageClassDefault,
+        deployment
+      );
       const subSystemPayloads = createPayload({
         systemName: subSystemName,
         state: subSystemState,
@@ -285,6 +291,7 @@ const handleReviewAndCreateNext = async (
         namespace: systemNamespace,
         storageClassName: storageClass.name,
         inTransitStatus: inTransitChecked,
+        shouldSetCephRBDAsDefault: shouldSetCephRBDAsDefault,
       });
 
       await createStorageSystem(subSystemName, subSystemKind, systemNamespace);

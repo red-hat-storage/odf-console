@@ -61,6 +61,7 @@ export type CreatePayload<S = ExternalState> = (payloadOptions: {
   namespace: string;
   storageClassName?: string;
   inTransitStatus?: boolean;
+  shouldSetCephRBDAsDefault?: boolean;
 }) => Payload[];
 
 export type Payload = { model: Model; payload: K8sResourceKind };
