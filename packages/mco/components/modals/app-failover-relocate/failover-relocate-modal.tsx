@@ -59,6 +59,7 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
 
   const onClick = () => {
     setFooterStatus(ModalFooterStatus.INPROGRESS);
+    // Prefered cluster and failover cluster should not be same for failover and relocate.
     const patch = [
       {
         op: 'replace',
@@ -67,11 +68,19 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
       },
       {
         op: 'replace',
-        path:
+        path: '/spec/failoverCluster',
+        value:
           action === DRActionType.FAILOVER
-            ? '/spec/failoverCluster'
-            : '/spec/preferredCluster',
-        value: placement?.targetClusterName,
+            ? placement?.targetClusterName
+            : placement?.primaryClusterName,
+      },
+      {
+        op: 'replace',
+        path: '/spec/preferredCluster',
+        value:
+          action === DRActionType.FAILOVER
+            ? placement?.primaryClusterName
+            : placement?.targetClusterName,
       },
     ];
     k8sPatch({
