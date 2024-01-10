@@ -7,6 +7,7 @@ import {
   ALL_APPS,
   ALL_APPS_ITEM_ID,
   LEAST_SECONDS_IN_PROMETHEUS,
+  REPLICATION_TYPE,
   VOLUME_REPLICATION_HEALTH,
 } from '@odf/mco/constants';
 import {
@@ -76,12 +77,16 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
     const volumeHealth = { critical: 0, warning: 0, healthy: 0 };
     protectedPVCData?.forEach((pvcData) => {
       const pvcLastSyncTime = pvcData?.lastSyncTime;
-      const health = getVolumeReplicationHealth(
-        !!pvcLastSyncTime
-          ? getTimeDifferenceInSeconds(pvcLastSyncTime)
-          : LEAST_SECONDS_IN_PROMETHEUS,
-        pvcData?.schedulingInterval
-      )[0];
+      // Only RDR(async) has volume replication
+      const health =
+        pvcData.replicationType === REPLICATION_TYPE.ASYNC
+          ? getVolumeReplicationHealth(
+              !!pvcLastSyncTime
+                ? getTimeDifferenceInSeconds(pvcLastSyncTime)
+                : LEAST_SECONDS_IN_PROMETHEUS,
+              pvcData?.schedulingInterval
+            )[0]
+          : VOLUME_REPLICATION_HEALTH.HEALTHY;
       !!selectedApplication
         ? filterPVCDataUsingApp(pvcData, selectedApplication) &&
           volumeHealth[health]++
@@ -347,13 +352,16 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
     const issueCount =
       protectedPVCData?.reduce((acc, protectedPVCItem) => {
         const pvcLastSyncTime = protectedPVCItem?.lastSyncTime;
-        const replicationHealth = getVolumeReplicationHealth(
-          !!pvcLastSyncTime
-            ? getTimeDifferenceInSeconds(pvcLastSyncTime)
-            : LEAST_SECONDS_IN_PROMETHEUS,
-          protectedPVCItem?.schedulingInterval
-        )[0];
-
+        // Only RDR(async) has volume replication
+        const replicationHealth =
+          protectedPVCItem.replicationType === REPLICATION_TYPE.ASYNC
+            ? getVolumeReplicationHealth(
+                !!pvcLastSyncTime
+                  ? getTimeDifferenceInSeconds(pvcLastSyncTime)
+                  : LEAST_SECONDS_IN_PROMETHEUS,
+                protectedPVCItem?.schedulingInterval
+              )[0]
+            : VOLUME_REPLICATION_HEALTH.HEALTHY;
         (!!selectedApplication
           ? !!filterPVCDataUsingApp(protectedPVCItem, selectedApplication) &&
             replicationHealth !== VOLUME_REPLICATION_HEALTH.HEALTHY
