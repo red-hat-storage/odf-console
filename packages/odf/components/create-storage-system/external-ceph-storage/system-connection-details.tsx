@@ -166,6 +166,7 @@ export const rhcsPayload: CreatePayload<RHCSState> = ({
   model,
   namespace,
   inTransitStatus,
+  shouldSetCephRBDAsDefault,
 }) => {
   return [
     {
@@ -203,6 +204,9 @@ export const rhcsPayload: CreatePayload<RHCSState> = ({
           },
           externalStorage: {
             enable: true,
+          },
+          managedResources: {
+            cephBlockPools: { defaultStorageClass: shouldSetCephRBDAsDefault },
           },
           labelSelector: {
             matchExpressions: [],
