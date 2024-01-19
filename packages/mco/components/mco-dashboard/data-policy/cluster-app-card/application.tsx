@@ -247,7 +247,7 @@ export const SubscriptionDetailsTable: React.FC<SubscriptionDetailsTableProps> =
           id: subscriptionTableColumnProps[1].id,
         },
         {
-          title: t('Snapshot last replicated on'),
+          title: t('Last snapshot synced'),
           sort: 'lastSnapshotSyncTime',
           transforms: [sortable],
           id: subscriptionTableColumnProps[2].id,

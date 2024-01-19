@@ -136,7 +136,7 @@ const DetailsCard: React.FC = () => {
           </DetailItem>
           <DetailItem
             key="osd_migration"
-            title={t('Disaster recovery optimisation')}
+            title={t('Disaster recovery readiness')}
             isLoading={!cephLoaded}
             error={cephLoadError as any}
           >
