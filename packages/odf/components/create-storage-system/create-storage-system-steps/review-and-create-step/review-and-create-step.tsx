@@ -98,7 +98,9 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     ? t('Enabled')
     : t('Disabled');
   const nfsStatus = enableNFS ? t('Enabled') : t('Disabled');
-  const isCephRBDSetAsDefault = isRBDStorageClassDefault ? t('Yes') : t('No');
+  const isCephRBDSetAsDefault = isRBDStorageClassDefault
+    ? t('Enabled')
+    : t('Disabled');
 
   const kmsStatus = encryption.advanced
     ? kms.providerState.name.value
@@ -132,7 +134,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
         {deployment === DeploymentType.FULL && !hasMultipleClusters && (
           <ListItem>
             {t(
-              'Set Ceph RBD as the default StorageClass: {{isCephRBDSetAsDefault}}',
+              'Ceph RBD as the default StorageClass: {{isCephRBDSetAsDefault}}',
               {
                 isCephRBDSetAsDefault,
               }

@@ -195,7 +195,7 @@ const StorageSystemDropdown: React.FC<{
         resourceModel={ODFStorageSystem}
       />
       <span className="help-block">
-        {t('StorageSystem which will be used for storage needs')}
+        {t('Select a StorageSystem for your workloads.')}
       </span>
     </div>
   );

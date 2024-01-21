@@ -262,7 +262,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
               <DataListItemRow>
                 <Tooltip
                   content={t(
-                    'Cannot be selected as it has multiple storage instances.'
+                    'You cannot select this cluster as it has multiple storage instances.'
                   )}
                   trigger={
                     filteredCluster?.odfInfo?.storageClusterCount > 1

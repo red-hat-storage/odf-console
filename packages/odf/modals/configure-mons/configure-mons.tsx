@@ -63,7 +63,7 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
   const [nodes, nodesLoaded, nodesLoadError] = useK8sList<NodeKind>(NodeModel);
   const failureDomains =
     nodesLoaded && !nodesLoadError ? groupNodesByZones(nodes)?.length : [];
-  const Header = <ModalHeader>{t('Configure monitor count')}</ModalHeader>;
+  const Header = <ModalHeader>{t('Configure Ceph Monitor')}</ModalHeader>;
 
   const monitorCount = getMonitorCount(storageCluster);
 
@@ -104,7 +104,7 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
         >
           <FlexItem>
             {t(
-              'To enhance system resilience, align Ceph monitors with the available node failure zones.'
+              'To enhance cluster resilience, align Ceph Monitors with the available node failure domains.'
             )}
           </FlexItem>
           <FlexItem>
@@ -115,7 +115,9 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
               {!nodesLoadError && (
                 <FlexItem>
                   {nodesLoaded ? (
-                    t('Failure domains: {{failureDomains}}', { failureDomains })
+                    t('Node failure domains: {{failureDomains}}', {
+                      failureDomains,
+                    })
                   ) : (
                     <LoadingInline />
                   )}
@@ -123,7 +125,7 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
               )}
               <FlexItem>
                 {storageClusterLoaded ? (
-                  t('Monitor count: {{monitorCount}}', { monitorCount })
+                  t('Ceph Monitor count: {{monitorCount}}', { monitorCount })
                 ) : (
                   <LoadingInline />
                 )}
@@ -132,7 +134,7 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
           </FlexItem>
           <FlexItem>
             <Text component={TextVariants.h6}>
-              {t('Recommended monitor count: 5')}
+              {t('Recommended Ceph Monitor count: 5')}
             </Text>
           </FlexItem>
         </Flex>

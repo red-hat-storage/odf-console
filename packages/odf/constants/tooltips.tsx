@@ -48,12 +48,16 @@ export const storageCapacityTooltip = (t: TFunction) => {
 export const resourceProfileTooltip = (t: TFunction) => {
   return (
     <Trans t={t} ns="plugin__odf-console">
+      <p className="co-break-word pf-u-font-weight-bold font-size-md pf-u-mb-md">
+        What are the different performance profiles I can use to configure
+        performance?
+      </p>
       <p className="co-break-word pf-u-font-weight-bold pf-u-mb-md">
-        Performance profiles:
+        Performance profiles types:
       </p>
       <p className="co-break-word pf-u-mb-md">
         <span className="pf-u-font-weight-bold">Balanced mode:</span> Optimized
-        for a well-rounded blend of CPU and memory resources to support diverse
+        for right amount of CPU and memory resources to support diverse
         workloads.
       </p>
       <p className="co-break-word pf-u-mb-md">
@@ -72,5 +76,5 @@ export const resourceProfileTooltip = (t: TFunction) => {
 
 export const resourceRequirementsTooltip = (t: TFunction) =>
   t(
-    "plugin__odf-console~The number of CPUs and memory resources needed to optimize your Data Foundation cluster for enhanced performance is determined by taking into account the cluster's specific environment, size and various other factors."
+    'plugin__odf-console~For enhanced performance of the Data Foundation cluster, the number of CPUs and memory resources are determined based on the cluster environment, size and various other factors.'
   );
