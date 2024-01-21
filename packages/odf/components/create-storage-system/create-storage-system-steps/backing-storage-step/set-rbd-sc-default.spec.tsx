@@ -24,7 +24,7 @@ describe('Setting Ceph RBD StorageClass as default, during installation', () => 
     ) as HTMLInputElement;
 
     expect(
-      screen.getByText('Set Ceph RBD as the default StorageClass')
+      screen.getByText('Use Ceph RBD as the default StorageClass')
     ).toBeInTheDocument();
 
     // by defaut checkbox should not be checked
@@ -59,7 +59,7 @@ describe('Setting Ceph RBD StorageClass as default, during installation', () => 
     ) as HTMLInputElement;
 
     expect(
-      screen.getByText('Set Ceph RBD as the default StorageClass')
+      screen.getByText('Use Ceph RBD as the default StorageClass')
     ).toBeInTheDocument();
 
     // by defaut checkbox should be checked

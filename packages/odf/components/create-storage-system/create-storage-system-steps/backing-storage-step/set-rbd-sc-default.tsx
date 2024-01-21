@@ -25,9 +25,9 @@ export const SetCephRBDStorageClassDefault: React.FC<SetCephRBDStorageClassDefau
         <Checkbox
           id="set-rbd-sc-default"
           data-test="set-rbd-sc-default"
-          label={t('Set Ceph RBD as the default StorageClass')}
+          label={t('Use Ceph RBD as the default StorageClass')}
           description={t(
-            'Configure a default RBD StorageClass to eliminate manual annotations within a StorageClass or selecting a specific StorageClass when making storage requests or provisions in your PVCs.'
+            'Configure default RBD StorageClass to avoid adding manual annotations within a StorageClass and selecting a specific StorageClass when making storage requests or provisions in your PVCs.'
           )}
           isChecked={isRBDStorageClassDefault}
           onChange={() =>

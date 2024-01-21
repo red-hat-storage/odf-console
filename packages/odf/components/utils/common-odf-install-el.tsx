@@ -32,7 +32,8 @@ export type Validation = {
 
 export const VALIDATIONS = (
   type: keyof typeof ValidationType,
-  t: TFunction
+  t: TFunction,
+  resourceProfile?: ResourceProfile
 ): Validation => {
   const { minCpu, minMem } =
     RESOURCE_PROFILE_REQUIREMENTS_MAP[ResourceProfile.Balanced];
@@ -42,11 +43,11 @@ export const VALIDATIONS = (
         variant: AlertVariant.warning,
         title: (
           <div className="ceph-minimal-deployment-alert__header">
-            {t('A minimal cluster deployment will be performed.')}
+            {t('Deploy a lean mode cluster?')}
           </div>
         ),
         text: t(
-          `The selected nodes do not match Data Foundation's StorageCluster requirement of an aggregated ${minCpu} CPUs and ${minMem} GiB of RAM. If the selection cannot be modified a minimal cluster will be deployed.`
+          `The selected nodes do not meet the Data Foundation storage cluster requirement of an aggregated ${minCpu} CPUs and ${minMem} GiB of RAM. If the requirement is not met, a lean mode cluster will be deployed. You can add more resources now to select a different performance profile, or you can change the profile later by adding more resources.`
         ),
         actionLinkStep: CreateStepsSC.STORAGEANDNODES,
         actionLinkText: t('Back to nodes selection'),
@@ -55,10 +56,12 @@ export const VALIDATIONS = (
       return {
         variant: AlertVariant.danger,
         title: t(
-          'Aggregate resource requirements for the selected performance profile not met.'
+          'Aggregate resource requirement for {{resourceProfile}} mode not met',
+          { resourceProfile }
         ),
         text: t(
-          'Select nodes with sufficient CPU and memory that meet the specified minimum requirements, and try again, or choose a different performance profile to proceed.'
+          'The selected nodes do not meet the {{resourceProfile}} mode aggregate resource requirement. Try again by selecting nodes with enough CPU and memory or you can select a different performance profile to proceed.',
+          { resourceProfile }
         ),
         actionLinkStep: CreateStepsSC.STORAGEANDNODES,
         actionLinkText: t('Back to nodes selection'),
@@ -178,6 +181,7 @@ type ActionAlertProps = Validation & {
 
 export const ValidationMessage: React.FC<ValidationMessageProps> = ({
   className,
+  resourceProfile,
   validation,
 }) => {
   const { t } = useCustomTranslation();
@@ -189,7 +193,7 @@ export const ValidationMessage: React.FC<ValidationMessageProps> = ({
     linkText,
     actionLinkStep,
     actionLinkText,
-  } = VALIDATIONS(validation, t);
+  } = VALIDATIONS(validation, t, resourceProfile);
   return actionLinkStep ? (
     <Alert
       className={classNames('co-alert', className)}
@@ -213,6 +217,7 @@ export const ValidationMessage: React.FC<ValidationMessageProps> = ({
 
 type ValidationMessageProps = {
   className?: string;
+  resourceProfile?: ResourceProfile;
   validation: keyof typeof ValidationType;
 };
 

@@ -182,6 +182,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
         />
         {validation && (
           <ValidationMessage
+            resourceProfile={resourceProfile}
             key={validation}
             validation={validation}
             className="pf-u-mt-md"
