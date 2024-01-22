@@ -41,7 +41,7 @@ const getStorageClusterName = (store: ReturnType<typeof getODFSystemFlags>) =>
   Object.entries(store.systemFlags).find(([, flags]) => flags.isInternalMode);
 
 const getMonitorCount = (cluster: StorageClusterKind) =>
-  cluster?.spec?.managedResources?.cephCluster?.monCount;
+  cluster?.status?.currentMonCount;
 
 const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
   const [namespace, clusterFlags] = useSelector(
