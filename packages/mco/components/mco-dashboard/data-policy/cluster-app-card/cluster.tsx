@@ -209,15 +209,15 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
       <Text component={TextVariants.h1}>{totalAppSetsCount || 0}</Text>
       <StatusText>{t('Total applications')}</StatusText>
       <Text className="text-muted mco-dashboard__statusText--margin">
-        {t(' {{ protectedAppCount }} protected apps', {
+        {t(' {{ protectedAppCount }} protected', {
           protectedAppCount,
         })}
       </Text>
       <Text className="text-muted">
-        {t(
-          ' {{ appsWithIssues }} of {{ protectedAppCount }} apps with issues',
-          { appsWithIssues, protectedAppCount }
-        )}
+        {t('{{ appsWithIssues }} of {{ protectedAppCount }} with issues', {
+          appsWithIssues,
+          protectedAppCount,
+        })}
       </Text>
     </div>
   );
