@@ -200,12 +200,12 @@ export const StatusCard: React.FC = () => {
               />
             </GalleryItem>
           </Gallery>
-          <OSDMigrationProgress
-            cephData={cephCluster}
-            dataLoaded={loaded}
-            dataLoadError={loadError}
-          />
         </HealthBody>
+        <OSDMigrationProgress
+          cephData={cephCluster}
+          dataLoaded={loaded}
+          dataLoadError={loadError}
+        />
         <CephAlerts />
       </CardBody>
     </Card>

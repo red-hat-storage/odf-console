@@ -82,7 +82,7 @@ const getErrorMessage = (
   } else if (!!clusterErrorInfo.clustersWithoutODF.length) {
     return {
       message: t(
-        '{{ names }} has either an unsupported ODF version or the ODF operator is missing, install or update to ODF {{ version }} or the latest version to enable DR protection.',
+        '{{ names }} has either an unsupported Data Foundation version or the Data Foundation operator is missing, install or update to Data Foundation {{ version }} or the latest version to enable DR protection.',
         {
           names: clusterErrorInfo.clustersWithoutODF.join(' & '),
           version: requiredODFVersion,
@@ -99,7 +99,7 @@ const getErrorMessage = (
     return {
       message: t('Cluster not pre-configured for Regional-DR'),
       description: t(
-        "The selected cluster(s)[{{clusters}}] is not pre-configured for a Regional-DR setup. Migrate the cluster's OSD to optimise it for Disaster recovery services. To learn more about OSDs migration best practices and its consequences refer to the documentation.",
+        'The selected cluster(s)[{{clusters}}] is not configured for Regional-DR setup. Migrate the OSDs to optimise the cluster for disaster recovery services.',
         { clusters: clusterErrorInfo.clustersWithoutDROptimizedODF.join(', ') }
       ),
       isHidden: replicationType !== REPLICATION_TYPE.ASYNC,
