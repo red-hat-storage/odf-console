@@ -5,12 +5,12 @@ import {
   BLUESTORE_RDR,
 } from '@odf/core/constants';
 import { ODF_DR_DOC_HOME } from '@odf/shared/constants/doc';
+import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ViewDocumentation } from '@odf/shared/utils';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { HealthItem } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
 import { Divider, Flex, FlexItem } from '@patternfly/react-core';
 import { InProgressIcon } from '@patternfly/react-icons';
@@ -28,12 +28,12 @@ const calculateOSDMigration = (
     return [null, null, null];
   }
   const migratedDevices = getCephStoreType(cephData)?.[BLUESTORE_RDR] || 0;
-  const totalOsd =
+  const totalOSD =
     (getCephStoreType(cephData)?.[BLUESTORE] || 0) + migratedDevices;
   const percentageComplete =
-    totalOsd !== 0 ? Math.round((migratedDevices / totalOsd) * 100) : 0;
+    totalOSD !== 0 ? Math.round((migratedDevices / totalOSD) * 100) : 0;
 
-  return [migratedDevices, totalOsd, percentageComplete];
+  return [migratedDevices, totalOSD, percentageComplete];
 };
 
 export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
@@ -42,7 +42,7 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
   dataLoadError,
 }) => {
   const { t } = useCustomTranslation();
-  const [migratedDevices, totalOsd, percentageComplete] = calculateOSDMigration(
+  const [migratedDevices, totalOSD] = calculateOSDMigration(
     cephData,
     dataLoaded,
     dataLoadError
@@ -60,7 +60,7 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
       <Flex alignItems={{ default: 'alignItemsCenter' }}>
         {migrationStatus === OSDMigrationStatus.COMPLETED && (
           <>
-            <FlexItem>
+            <FlexItem className="pf-m-spacer-none">
               <HealthItem
                 title={t('Cluster ready for Regional-DR setup.')}
                 state={HealthState.OK}
@@ -80,49 +80,35 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
             <FlexItem className="pf-u-mt-xl">
               <HealthItem
                 icon={<InProgressIcon className="co-dashboard-icon" />}
-                state={HealthState.OK}
-                title={t('Cluster OSDs are being migrated')}
+                disableDetails
+                title={t('Migrating cluster OSDs')}
               />
             </FlexItem>
-            <FlexItem className="pf-u-mt-xl">
-              {t(
-                '{{ percentageComplete }}% completed ({{ migratedDevices }}/{{ totalOsd }} remaining)',
-                {
-                  percentageComplete,
-                  migratedDevices,
-                  totalOsd,
-                }
-              )}
+            <FlexItem className="pf-u-mt-xl pf-m-align-right">
+              {t('{{ migratedDevices }}/{{ totalOSD }} OSDs remaining', {
+                migratedDevices,
+                totalOSD,
+              })}
             </FlexItem>
           </>
         )}
 
         {migrationStatus === OSDMigrationStatus.FAILED && (
           <>
-            <FlexItem>
+            <FlexItem className="pf-u-mt-xl">
               <HealthItem
-                state={HealthState.OK}
                 icon={
                   <RedExclamationCircleIcon className="co-dashboard-icon" />
                 }
-                title={t('Could not migrate cluster OSDs.')}
+                disableDetails
+                title={t('Could not migrate cluster OSDs. Check logs')}
               />
             </FlexItem>
-            <FlexItem>
-              <ViewDocumentation
-                text={t('Check documentation')}
-                doclink={ODF_DR_DOC_HOME}
-              />
-            </FlexItem>
-            <FlexItem align={{ default: 'alignRight' }}>
-              {t(
-                '{{ percentageComplete }}% completed ({{ migratedDevices }}/{{ totalOsd }} remaining)',
-                {
-                  percentageComplete,
-                  migratedDevices,
-                  totalOsd,
-                }
-              )}
+            <FlexItem className="pf-u-mt-xl pf-m-align-right">
+              {t('{{ migratedDevices }}/{{ totalOSD }} remaining', {
+                migratedDevices,
+                totalOSD,
+              })}
             </FlexItem>
           </>
         )}

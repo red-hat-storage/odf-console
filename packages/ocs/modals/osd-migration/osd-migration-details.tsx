@@ -4,6 +4,7 @@ import { getOSDMigrationStatus } from '@odf/ocs/utils';
 import { CephClusterKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
+  GreenCheckCircleIcon,
   RedExclamationCircleIcon,
   StatusIconAndText,
   useModal,
@@ -34,13 +35,16 @@ export const OSDMigrationDetails: React.FC<OSDMigrationDetailsProps> = ({
   return (
     <>
       <Flex>
-        <FlexItem>
+        <FlexItem className="pf-m-spacer-none">
           <StatusIconAndText
             title={osdMigrationStatus}
             icon={
-              osdMigrationStatus === OSDMigrationStatus.FAILED && (
+              (osdMigrationStatus === OSDMigrationStatus.FAILED && (
                 <RedExclamationCircleIcon />
-              )
+              )) ||
+              (osdMigrationStatus === OSDMigrationStatus.COMPLETED && (
+                <GreenCheckCircleIcon />
+              ))
             }
           />
         </FlexItem>
@@ -55,7 +59,7 @@ export const OSDMigrationDetails: React.FC<OSDMigrationDetailsProps> = ({
                 })
               }
             >
-              {t('Optimise cluster')}
+              {t('(Prepare cluster for DR setup)')}
             </Button>
           )}
         </FlexItem>
