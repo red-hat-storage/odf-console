@@ -215,16 +215,16 @@ const StorageClientRow: React.FC<
       <TableData {...tableColumns[0]} activeColumnIDs={activeColumnIDs}>
         {getName(obj)}
       </TableData>
-      <TableData {...tableColumns[0]} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumns[1]} activeColumnIDs={activeColumnIDs}>
         {getName(obj).split('storageconsumer-')[1]}
       </TableData>
-      <TableData {...tableColumns[1]} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumns[2]} activeColumnIDs={activeColumnIDs}>
         {getOpenshiftVersion(obj)}
       </TableData>
-      <TableData {...tableColumns[2]} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumns[3]} activeColumnIDs={activeColumnIDs}>
         <DataFoudationVersion obj={obj} currentVersion={currentVersion} />
       </TableData>
-      <TableData {...tableColumns[3]} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumns[4]} activeColumnIDs={activeColumnIDs}>
         <LastHeartBeat heartbeat={obj.status.lastHeartbeat} />
       </TableData>
     </>
