@@ -1,13 +1,10 @@
 import * as React from 'react';
 import {
-  NodeKind,
-  NodeModel,
   StorageClusterKind,
   StorageClusterModel,
   getName,
   getNamespace,
   useCustomTranslation,
-  useK8sList,
 } from '@odf/shared';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
@@ -25,7 +22,6 @@ import {
   Text,
   TextVariants,
 } from '@patternfly/react-core';
-import { groupNodesByZones } from '../../components/topology/utils';
 import { useSafeK8sGet } from '../../hooks';
 import { getODFSystemFlags } from '../../redux';
 
@@ -60,9 +56,7 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
       namespace
     );
 
-  const [nodes, nodesLoaded, nodesLoadError] = useK8sList<NodeKind>(NodeModel);
-  const failureDomains =
-    nodesLoaded && !nodesLoadError ? groupNodesByZones(nodes)?.length : [];
+  const failureDomains = storageCluster?.status?.failureDomainValues?.length;
   const Header = <ModalHeader>{t('Configure Ceph Monitor')}</ModalHeader>;
 
   const monitorCount = getMonitorCount(storageCluster);
@@ -88,7 +82,6 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
         setErrorMessage(err);
       });
   };
-  const allResourcesLoaded = storageClusterLoaded && nodesLoaded;
 
   return (
     <Modal
@@ -112,17 +105,15 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
               direction={{ default: 'column' }}
               spaceItems={{ default: 'spaceItemsNone' }}
             >
-              {!nodesLoadError && (
-                <FlexItem>
-                  {nodesLoaded ? (
-                    t('Node failure domains: {{failureDomains}}', {
-                      failureDomains,
-                    })
-                  ) : (
-                    <LoadingInline />
-                  )}
-                </FlexItem>
-              )}
+              <FlexItem>
+                {storageClusterLoaded ? (
+                  t('Node failure domains: {{failureDomains}}', {
+                    failureDomains,
+                  })
+                ) : (
+                  <LoadingInline />
+                )}
+              </FlexItem>
               <FlexItem>
                 {storageClusterLoaded ? (
                   t('Ceph Monitor count: {{monitorCount}}', { monitorCount })
@@ -153,7 +144,7 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
         >
           {t('Cancel')}
         </Button>
-        {!inProgress && allResourcesLoaded ? (
+        {!inProgress && storageClusterLoaded ? (
           <Button
             key="Add"
             data-test="modal-submit-action"
