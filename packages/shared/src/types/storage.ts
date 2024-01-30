@@ -59,6 +59,7 @@ export type StorageClusterKind = K8sResourceCommon & {
   status?: {
     phase: string;
     failureDomain?: string;
+    failureDomainValues: string[];
     currentMonCount?: number;
   };
 };
