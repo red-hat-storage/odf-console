@@ -77,12 +77,18 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
             </Button>
           </FlexItem>
           <FlexItem>
-            <Text component={TextVariants.h6}>How to use this token?</Text>
-            <Text>Short explanation</Text>
-          </FlexItem>
-          <FlexItem>
+            <Text component={TextVariants.h6}>
+              {t('How to use this token?')}
+            </Text>
             <Text>
-              This token is valid for 48 hours and can only be used once
+              {t(
+                'To onboard the client cluster, the provider cluster requires the onboarding token.'
+              )}
+            </Text>
+            <Text>
+              {t(
+                'An onboarding token is needed to connect an additional OpenShift cluster to a Data Foundation deployment.'
+              )}
             </Text>
           </FlexItem>
         </Flex>
