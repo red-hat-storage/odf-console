@@ -47,7 +47,7 @@ export type StorageClusterKind = K8sResourceCommon & {
     multiCloudGateway?: {
       reconcileStrategy?: string;
       dbStorageClassName?: string;
-      externalPGConfig?: {
+      externalPgConfig?: {
         pgSecretName?: string;
         allowSelfSignedCerts?: boolean;
         tlsSecretName?: string;
