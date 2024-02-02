@@ -7,7 +7,7 @@ import { getGVKofResource, referenceForModel } from '@odf/shared/utils';
 import { ApplicationSetParser } from './parsers/application-set-parser';
 import { SubscriptionParser } from './parsers/subscription-parser';
 
-export const AppManageDataPolicy: React.FC<ACMActionCallbackProps> = ({
+const AppManageDataPolicy: React.FC<ACMActionCallbackProps> = ({
   resource,
   close,
   isOpen,
@@ -38,3 +38,5 @@ export type ACMActionCallbackProps = {
   resource: ACMApplicationKind;
   close: () => void;
 };
+
+export default AppManageDataPolicy;

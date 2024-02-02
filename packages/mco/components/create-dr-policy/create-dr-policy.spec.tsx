@@ -6,7 +6,7 @@ import {
   MirrorPeerModel,
 } from '../../models';
 import { ACMManagedClusterKind } from '../../types';
-import { CreateDRPolicy } from './create-dr-policy';
+import CreateDRPolicy from './create-dr-policy';
 
 let drPolicyObj = {};
 let mirrorPeerObj = {};

@@ -115,9 +115,9 @@ const createMirrorPeer = (
 };
 
 const getDRPolicyListPageLink = (url: string) =>
-  url.replace(`${referenceForModel(DRPolicyModel)}/~new`, '');
+  url.replace(`/${referenceForModel(DRPolicyModel)}/~new`, '');
 
-export const CreateDRPolicy: React.FC<{}> = () => {
+const CreateDRPolicy: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const { pathname: url } = useLocation();
   const navigate = useNavigate();
@@ -290,3 +290,5 @@ export const CreateDRPolicy: React.FC<{}> = () => {
     </div>
   );
 };
+
+export default CreateDRPolicy;

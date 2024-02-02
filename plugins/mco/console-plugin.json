@@ -8,7 +8,7 @@
   },
   "exposedModules": {
     "features": "@odf/mco/features",
-    "dataPolicies": "@odf/mco/components/data-policies/data-policies-page",
+    "disasterRecoveryPage": "@odf/mco/components/disaster-recovery-page/disaster-recovery",
     "createDataPolicy": "@odf/mco/components/create-dr-policy/create-dr-policy",
     "systemDashboard": "@odf/mco/components/mco-dashboard/storage-system/system-dashboard",
     "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor",
