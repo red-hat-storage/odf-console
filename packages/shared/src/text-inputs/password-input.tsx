@@ -28,13 +28,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         onChange={onChange}
         isRequired={isRequired}
       />
-      <Tooltip
-        content={
-          showPassword
-            ? t('plugin__odf-console~Hide password')
-            : t('plugin__odf-console~Show password')
-        }
-      >
+      <Tooltip content={showPassword ? t('Hide password') : t('Show password')}>
         <Button
           variant="control"
           onClick={() => setShowPassword(!showPassword)}
