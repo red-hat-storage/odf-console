@@ -30,11 +30,11 @@
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "mco-data-policies",
+      "id": "mco-disaster-recovery",
       "perspective": "acm",
       "section": "mco-data-services",
-      "name": "%plugin__odf-multicluster-console~Data policies%",
-      "href": "/multicloud/data-services/data-policies"
+      "name": "%plugin__odf-multicluster-console~Disaster recovery%",
+      "href": "/multicloud/data-services/disaster-recovery"
     },
     "flags": {
       "required": ["ODR_MODEL"]
@@ -43,12 +43,9 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": [
-        "/multicloud/data-services/data-policies/ramendr.openshift.io~v1alpha1~DRPolicy/~new",
-        "/multicloud/data-services/data-policies/recovery/ramendr.openshift.io~v1alpha1~DRPolicy/~new"
-      ],
+      "path": "/multicloud/data-services/disaster-recovery/policies/ramendr.openshift.io~v1alpha1~DRPolicy/~new",
       "exact": true,
-      "component": { "$codeRef": "createDataPolicy.CreateDRPolicy" }
+      "component": { "$codeRef": "createDataPolicy.default" }
     },
     "flags": {
       "required": ["ADMIN"]
@@ -57,9 +54,9 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/multicloud/data-services/data-policies",
+      "path": "/multicloud/data-services/disaster-recovery",
       "exact": false,
-      "component": { "$codeRef": "dataPolicies.DataPoliciesPage" }
+      "component": { "$codeRef": "disasterRecoveryPage.default" }
     }
   },
   {
@@ -67,7 +64,7 @@
     "properties": {
       "id": "systemDashboard",
       "perspective": "acm",
-      "insertAfter": "mco-data-policies",
+      "insertAfter": "mco-disaster-recovery",
       "section": "mco-data-services",
       "name": "%plugin__odf-plugin~Storage System%",
       "href": "/multicloud/data-services/storagesystem"
@@ -162,7 +159,7 @@
         }
       ],
       "component": {
-        "$codeRef": "appManagePolicy.AppManageDataPolicy"
+        "$codeRef": "appManagePolicy.default"
       }
     }
   }
