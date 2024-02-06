@@ -95,7 +95,7 @@ export const createNoobaaExternalPostgresResources = (
 ): Promise<K8sResourceKind>[] => {
   let secretResources: Promise<K8sResourceKind>[] = [];
   const stringData = {
-    db_url: `postgres://${externalPostgresDetails.username}:${externalPostgresDetails.password}@${externalPostgresDetails.serverName}.namespace.svc:${externalPostgresDetails.port}/${externalPostgresDetails.databaseName}`,
+    db_url: `postgresql://${externalPostgresDetails.username}:${externalPostgresDetails.password}@${externalPostgresDetails.serverName}:${externalPostgresDetails.port}/${externalPostgresDetails.databaseName}`,
   };
   const noobaaExternalPostgresSecretPayload = createSecretPayload(
     NOOBA_EXTERNAL_PG_SECRET_NAME,
