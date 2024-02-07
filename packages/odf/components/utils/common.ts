@@ -381,7 +381,6 @@ type OCSRequestData = {
   isMCG?: boolean;
   isNFSEnabled?: boolean;
   shouldSetCephRBDAsDefault?: boolean;
-  isSingleReplicaPoolEnabled?: boolean;
   enableRDRPreparation?: boolean;
   storageClusterNamespace: string;
   useExternalPostgres?: boolean;
@@ -406,7 +405,6 @@ export const getOCSRequestData = ({
   isMCG,
   isNFSEnabled,
   shouldSetCephRBDAsDefault,
-  isSingleReplicaPoolEnabled,
   enableRDRPreparation,
   storageClusterNamespace,
   useExternalPostgres,
@@ -475,7 +473,6 @@ export const getOCSRequestData = ({
         getNetworkField(publicNetwork, clusterNetwork, encryption.inTransit)
       ),
       managedResources: {
-        cephNonResilientPools: { enable: isSingleReplicaPoolEnabled },
         cephBlockPools: { defaultStorageClass: shouldSetCephRBDAsDefault },
       },
     };
