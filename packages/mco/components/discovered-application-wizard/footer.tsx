@@ -15,10 +15,19 @@ import {
   Alert,
   AlertVariant,
 } from '@patternfly/react-core';
-import { EnrollDiscoveredApplicationState } from './utils/reducer';
+import {
+  EnrollDiscoveredApplicationState,
+  ProtectionMethodType,
+} from './utils/reducer';
 
 const validateNamespaceStep = (state: EnrollDiscoveredApplicationState) =>
   !!state.namespace.clusterName && !!state.namespace.namespaces.length;
+
+const validateConfigurationStep = (state: EnrollDiscoveredApplicationState) =>
+  state.configuration.protectionMethod === ProtectionMethodType.RECIPE
+    ? !!state.configuration.recipe.recipeName &&
+      !!state.configuration.recipe.recipeNamespace
+    : false;
 
 const canJumpToNextStep = (
   state: EnrollDiscoveredApplicationState,
@@ -33,7 +42,7 @@ const canJumpToNextStep = (
     case EnrollDiscoveredApplicationStepNames(t)[
       EnrollDiscoveredApplicationSteps.Configure
     ]:
-      return true;
+      return validateConfigurationStep(state);
     case EnrollDiscoveredApplicationStepNames(t)[
       EnrollDiscoveredApplicationSteps.Replication
     ]:

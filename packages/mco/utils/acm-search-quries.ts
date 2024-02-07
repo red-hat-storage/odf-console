@@ -93,3 +93,36 @@ export const convertSearchResultToK8sResourceCommon = (
       },
     };
   });
+
+export const queryRecipesFromCluster = (
+  clusterName: string,
+  namespaces: string[]
+): SearchQuery => ({
+  operationName: 'searchResult',
+  variables: {
+    input: [
+      {
+        filters: [
+          {
+            property: 'kind',
+            values: 'recipe',
+          },
+          {
+            property: 'apigroup',
+            values: ['ramendr.openshift.io'],
+          },
+          {
+            property: 'namespace',
+            values: namespaces,
+          },
+          {
+            property: 'cluster',
+            values: clusterName,
+          },
+        ],
+        limit: 20, // search said not to use unlimited results
+      },
+    ],
+  },
+  query: searchFilterQuery,
+});

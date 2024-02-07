@@ -1,9 +1,18 @@
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 
+export const NAME_NAMESPACE_SPLIT_CHAR = '/';
+
+export enum ProtectionMethodType {
+  RECIPE = 'RECIPE',
+  RESOURCE_LABEL = 'RESOURCE_LABEL',
+}
+
 export enum EnrollDiscoveredApplicationStateType {
   SET_CLUSTER_NAME = 'NAMESPACE/SET_CLUSTER_NAME',
   SET_NAMESPACES = 'NAMESPACE/SET_NAMESPACES',
+  SET_PROTECTION_METHOD = 'CONFIGURATION/SET_PROTECTION_METHOD',
+  SET_RECIPE_NAME_NAMESPACE = 'CONFIGURATION/RECIPE/SET_RECIPE_NAME_NAMESPACE',
 }
 
 export type EnrollDiscoveredApplicationState = {
@@ -12,6 +21,16 @@ export type EnrollDiscoveredApplicationState = {
     namespaces: K8sResourceCommon[];
     // Cluster name of the discovered application
     clusterName: string;
+  };
+  configuration: {
+    // recipe CRD (or) normal K8s CR label based protection
+    protectionMethod: ProtectionMethodType;
+    recipe: {
+      // selected recipe CR name from the managed cluster
+      recipeName: string;
+      // recipe CR namespace
+      recipeNamespace: string;
+    };
   };
 };
 
@@ -26,6 +45,13 @@ export const initialState: EnrollDiscoveredApplicationState = {
     clusterName: '',
     namespaces: [],
   },
+  configuration: {
+    protectionMethod: ProtectionMethodType.RECIPE,
+    recipe: {
+      recipeName: '',
+      recipeNamespace: '',
+    },
+  },
 };
 
 // Actions of EnrollDiscoveredApplication
@@ -37,25 +63,69 @@ export type EnrollDiscoveredApplicationAction =
   | {
       type: EnrollDiscoveredApplicationStateType.SET_NAMESPACES;
       payload: K8sResourceCommon[];
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.SET_PROTECTION_METHOD;
+      payload: ProtectionMethodType;
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.SET_RECIPE_NAME_NAMESPACE;
+      payload: string;
     };
 
 export const reducer: EnrollReducer = (state, action) => {
-  let newState: EnrollDiscoveredApplicationState = _.cloneDeep(state);
+  // State shallow copy
   switch (action.type) {
     case EnrollDiscoveredApplicationStateType.SET_CLUSTER_NAME: {
       // Cluser change requires state reset
-      if (newState.namespace.clusterName !== action.payload) {
-        newState = _.cloneDeep(initialState);
-      }
-      newState.namespace.clusterName = action.payload;
-      break;
+      const newState =
+        state.namespace.clusterName !== action.payload
+          ? _.cloneDeep(initialState)
+          : state;
+      return {
+        ...newState,
+        namespace: {
+          ...newState.namespace,
+          clusterName: action.payload,
+        },
+      };
     }
     case EnrollDiscoveredApplicationStateType.SET_NAMESPACES: {
-      newState.namespace.namespaces = action.payload;
-      break;
+      // Namespace change requires configuration state reset
+      return {
+        ...state,
+        namespace: {
+          ...state.namespace,
+          namespaces: action.payload,
+        },
+        configuration: _.cloneDeep(initialState.configuration),
+      };
+    }
+    case EnrollDiscoveredApplicationStateType.SET_PROTECTION_METHOD: {
+      return {
+        ...state,
+        configuration: {
+          ...state.configuration,
+          protectionMethod: action.payload,
+        },
+      };
+    }
+    case EnrollDiscoveredApplicationStateType.SET_RECIPE_NAME_NAMESPACE: {
+      const [recipeName, recipeNamespace] = action.payload.split(
+        NAME_NAMESPACE_SPLIT_CHAR
+      );
+      return {
+        ...state,
+        configuration: {
+          ...state.configuration,
+          recipe: {
+            recipeName,
+            recipeNamespace,
+          },
+        },
+      };
     }
     default:
       throw new TypeError(`${action} is not a valid reducer action`);
   }
-  return newState;
 };
