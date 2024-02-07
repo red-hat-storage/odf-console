@@ -37,6 +37,7 @@ import {
   TitleWithHelp,
 } from '../persistent-internal/capacity-breakdown-card/capacity-breakdown-card';
 import '../persistent-internal/capacity-breakdown-card/capacity-breakdown-card.scss';
+import useClientFallback from './fallback-hook';
 
 export const BreakdownCard: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -51,7 +52,8 @@ export const BreakdownCard: React.FC = () => {
   const { systemFlags } = useODFSystemFlagsSelector();
 
   // name of created StorageClasses are prefix by StorageCluster name
-  const storageClassNamePrefix = systemFlags[clusterNs]?.ocsClusterName;
+  const storageClassName = systemFlags?.[clusterNs]?.ocsClusterName;
+  const storageClassNamePrefix = useClientFallback(storageClassName);
 
   const { queries, model, metric } = getBreakdownMetricsQuery(
     metricType,
