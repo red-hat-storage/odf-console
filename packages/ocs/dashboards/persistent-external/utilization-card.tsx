@@ -21,6 +21,7 @@ import {
   INDEPENDENT_UTILIZATION_QUERIES,
 } from '../../queries';
 import { ODFSystemParams } from '../../types';
+import useClientFallback from './fallback-hook';
 
 export const UtilizationContent: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -29,7 +30,8 @@ export const UtilizationContent: React.FC = () => {
   const { systemFlags } = useODFSystemFlagsSelector();
 
   // name of created StorageClasses are prefix by StorageCluster name
-  const storageClassNamePrefix = systemFlags[clusterNs]?.ocsClusterName;
+  const storageClassName = systemFlags?.[clusterNs]?.ocsClusterName;
+  const storageClassNamePrefix = useClientFallback(storageClassName);
 
   return (
     <UtilizationBody>
