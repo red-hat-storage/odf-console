@@ -122,40 +122,11 @@ type EnableTaintNodesProps = {
   enableTaint: WizardState['capacityAndNodes']['enableTaint'];
 };
 
-const EnableSingleReplicaPool: React.FC<EnableSingleReplicaPoolProps> = ({
-  dispatch,
-  enableSingleReplicaPool: isSingleReplicaPoolEnabled,
-}) => {
-  const { t } = useCustomTranslation();
-  return (
-    <Checkbox
-      label={t('Add replica-1 pool')}
-      description={t(
-        'Enabling this feature creates a single replica pool without data replication, increasing the risk of data loss, data corruption, and potential system instability.'
-      )}
-      id="single-replica-pool"
-      data-checked-state={isSingleReplicaPoolEnabled}
-      isChecked={isSingleReplicaPoolEnabled}
-      onChange={() =>
-        dispatch({
-          type: 'capacityAndNodes/enableSingleReplicaPool',
-          payload: !isSingleReplicaPoolEnabled,
-        })
-      }
-    />
-  );
-};
-type EnableSingleReplicaPoolProps = {
-  dispatch: WizardDispatch;
-  enableSingleReplicaPool: WizardState['capacityAndNodes']['enableSingleReplicaPool'];
-};
-
 type SelectCapacityAndNodesProps = {
   dispatch: WizardDispatch;
   capacity: WizardState['capacityAndNodes']['capacity'];
   nodes: WizardState['nodes'];
   enableTaint: WizardState['capacityAndNodes']['enableTaint'];
-  enableSingleReplicaPool: WizardState['capacityAndNodes']['enableSingleReplicaPool'];
   resourceProfile: WizardState['capacityAndNodes']['resourceProfile'];
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
@@ -165,7 +136,6 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
   capacity,
   nodes,
   enableTaint,
-  enableSingleReplicaPool,
   resourceProfile,
   systemNamespace,
 }) => {
@@ -254,10 +224,6 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
         selectedNodes={nodes}
       />
       <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
-      <EnableSingleReplicaPool
-        dispatch={dispatch}
-        enableSingleReplicaPool={enableSingleReplicaPool}
-      />
     </>
   );
 };
@@ -270,7 +236,6 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   arbiterLocation,
   dispatch,
   nodes,
-  enableSingleReplicaPool,
   resourceProfile,
   systemNamespace,
 }) => {
@@ -430,10 +395,6 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
           selectedNodes={nodes}
         />
         <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
-        <EnableSingleReplicaPool
-          dispatch={dispatch}
-          enableSingleReplicaPool={enableSingleReplicaPool}
-        />
       </>
     </ErrorHandler>
   );
@@ -443,7 +404,6 @@ type SelectedCapacityAndNodesProps = {
   capacity: WizardState['capacityAndNodes']['capacity'];
   enableArbiter: WizardState['capacityAndNodes']['enableArbiter'];
   enableTaint: WizardState['capacityAndNodes']['enableTaint'];
-  enableSingleReplicaPool: WizardState['capacityAndNodes']['enableSingleReplicaPool'];
   storageClassName: string;
   arbiterLocation: WizardState['capacityAndNodes']['arbiterLocation'];
   dispatch: WizardDispatch;
@@ -465,7 +425,6 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
     enableArbiter,
     enableTaint,
     arbiterLocation,
-    enableSingleReplicaPool,
     resourceProfile,
   } = state;
 
@@ -488,7 +447,6 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           dispatch={dispatch}
           nodes={nodes}
           capacity={capacity}
-          enableSingleReplicaPool={enableSingleReplicaPool}
           resourceProfile={resourceProfile}
           systemNamespace={systemNamespace}
         />
@@ -498,7 +456,6 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           enableTaint={enableTaint}
           capacity={capacity}
           nodes={nodes}
-          enableSingleReplicaPool={enableSingleReplicaPool}
           resourceProfile={resourceProfile}
           systemNamespace={systemNamespace}
         />
