@@ -370,6 +370,9 @@
           "$codeRef": "mutators.addKubevirtAnnotations"
         }
       }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
     }
   },
   {
@@ -433,6 +436,9 @@
           }
         }
       }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
     }
   },
   {
@@ -687,6 +693,26 @@
       "exact": false,
       "component": {
         "$codeRef": "obc.OBCDetailsPage"
+      }
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storageclients",
+      "name": "%plugin__odf-console~Storage Clients%",
+      "insertAfter": "odfdashboard",
+      "section": "storage",
+      "href": "/odf/storage-clients"
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/storage-clients",
+      "exact": true,
+      "component": {
+        "$codeRef": "storageConsumerListPage.ClientListPage"
       }
     }
   }
