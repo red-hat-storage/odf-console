@@ -109,7 +109,9 @@ export const fromNow = (dateTime: string | Date, now?: Date, options?) => {
 
   const d = new Date(dateTime);
   const ms = now.getTime() - d.getTime();
-  const justNow = i18n.t('Just now');
+  const justNow = i18n.t('plugin__odf-console~Just now', {
+    ns: 'plugin__odf-console',
+  });
 
   // If the event occurred less than one minute in the future, assume it's clock drift and show "Just now."
   if (!options?.omitSuffix && ms < 60000 && ms > maxClockSkewMS) {

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
-import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { Link } from 'react-router-dom';
 import { Flex, FlexItem } from '@patternfly/react-core';
@@ -9,17 +8,19 @@ import {
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
 } from '@patternfly/react-icons';
-import './storage-system-popup.scss';
+import './status-card-popover.scss';
 
-type SystemHealthMap = {
-  systemName: string;
+export type ResourceHealthMap = {
+  itemName: string;
   healthState: HealthState;
-  link: string;
+  link?: string;
   extraTexts?: string[];
 };
 
-type StorageSystemPopopProps = {
-  systemHealthMap: SystemHealthMap[];
+type StatusCardPopoverProps = {
+  resourceHealthMap: ResourceHealthMap[];
+  firstColumnName: string;
+  secondColumnName: string;
 };
 
 const healthStateToIcon = {
@@ -34,27 +35,32 @@ const healthStateToIcon = {
   ),
 };
 
-const StorageSystemPopup: React.FC<StorageSystemPopopProps> = ({
-  systemHealthMap,
+const StatusCardPopover: React.FC<StatusCardPopoverProps> = ({
+  resourceHealthMap,
+  firstColumnName,
+  secondColumnName,
 }) => {
-  const { t } = useCustomTranslation();
   return (
     <StatusPopupSection
-      firstColumn={t('Storage System')}
-      secondColumn={t('Health')}
+      firstColumn={firstColumnName}
+      secondColumn={secondColumnName}
     >
-      {systemHealthMap.map((system) => (
+      {resourceHealthMap.map((resource) => (
         <Status
-          key={system.systemName}
-          icon={healthStateToIcon[system.healthState]}
+          key={resource.itemName}
+          icon={healthStateToIcon[resource.healthState]}
         >
           <Flex direction={{ default: 'column' }}>
-            <FlexItem className="odf-storageSystemPopup__item--margin">
-              <Link to={system.link}>{system.systemName}</Link>
+            <FlexItem className="odf-status-card__popup--margin">
+              {resource.link ? (
+                <Link to={resource.link}>{resource.itemName}</Link>
+              ) : (
+                <>{resource.itemName}</>
+              )}
             </FlexItem>
-            {!!system.extraTexts && (
+            {!!resource.extraTexts && (
               <FlexItem>
-                {system.extraTexts.map((extraText, i) => (
+                {resource.extraTexts.map((extraText, i) => (
                   <div className="text-muted" key={i}>
                     {extraText}
                   </div>
@@ -68,4 +74,4 @@ const StorageSystemPopup: React.FC<StorageSystemPopopProps> = ({
   );
 };
 
-export default StorageSystemPopup;
+export default StatusCardPopover;

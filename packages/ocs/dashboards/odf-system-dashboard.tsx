@@ -7,7 +7,11 @@ import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { RouteComponentProps } from 'react-router';
 import { match as Match } from 'react-router-dom';
-import { CEPH_FLAG, OCS_INDEPENDENT_FLAG } from '../../odf/features';
+import {
+  CEPH_FLAG,
+  OCS_INDEPENDENT_FLAG,
+  PROVIDER_MODE,
+} from '../../odf/features';
 import { BlockPoolListPage } from '../block-pool/BlockPoolListPage';
 import { CephBlockPoolModel } from '../models';
 import OCSSystemDashboard from './ocs-system-dashboard';
@@ -44,10 +48,16 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
   ]);
   const isCephAvailable = useFlag(CEPH_FLAG);
   const isExternal = useFlag(OCS_INDEPENDENT_FLAG);
+  const isProviderMode = useFlag(PROVIDER_MODE);
 
   React.useEffect(() => {
     const isBlockPoolAdded = pages.find((page) => page.href === blockPoolHref);
-    if (isCephAvailable && !isBlockPoolAdded && !isExternal) {
+    if (
+      isCephAvailable &&
+      !isBlockPoolAdded &&
+      !isExternal &&
+      !isProviderMode
+    ) {
       setPages((p) => [
         ...p,
         {
@@ -60,7 +70,7 @@ const ODFSystemDashboard: React.FC<ODFSystemDashboardPageProps> = ({
     if (isBlockPoolAdded && isExternal) {
       setPages((p) => p.filter((page) => page.href !== blockPoolHref));
     }
-  }, [isExternal, isCephAvailable, pages, setPages, t]);
+  }, [isExternal, isCephAvailable, isProviderMode, pages, setPages, t]);
 
   const title = match.params.systemName;
 

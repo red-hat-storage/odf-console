@@ -37,6 +37,7 @@
     "topology": "@odf/core/components/topology/Topology",
     "ibmStorage": "@odf/ibm/system-connection-details",
     "objectService": "@odf/core/components/object-service-nav-item/object-service",
-    "mutators": "@odf/ocs/storage-class/mutators"
+    "mutators": "@odf/ocs/storage-class/mutators",
+    "storageConsumerListPage": "@odf/core/components/storage-consumers/client-list"
   }
 }
