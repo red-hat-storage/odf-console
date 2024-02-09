@@ -159,13 +159,8 @@ export const createStorageCluster = async (
     backingStorage,
     dataProtection,
   } = state;
-  const {
-    capacity,
-    enableArbiter,
-    arbiterLocation,
-    pvCount,
-    enableSingleReplicaPool,
-  } = capacityAndNodes;
+  const { capacity, enableArbiter, arbiterLocation, pvCount } =
+    capacityAndNodes;
   const { encryption, publicNetwork, clusterNetwork, kms } = securityAndNetwork;
   const {
     type,
@@ -221,7 +216,6 @@ export const createStorageCluster = async (
     isMCG,
     isNFSEnabled,
     shouldSetCephRBDAsDefault,
-    isSingleReplicaPoolEnabled: enableSingleReplicaPool,
     enableRDRPreparation,
     storageClusterNamespace,
     enableNoobaaClientSideCerts: externalPostgres.tls.enableClientSideCerts,
