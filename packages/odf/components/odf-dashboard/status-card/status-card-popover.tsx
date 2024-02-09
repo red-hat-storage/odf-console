@@ -11,7 +11,7 @@ import {
 import './status-card-popover.scss';
 
 export type ResourceHealthMap = {
-  itemName: string;
+  systemName: string;
   healthState: HealthState;
   link?: string;
   extraTexts?: string[];
@@ -47,15 +47,15 @@ const StatusCardPopover: React.FC<StatusCardPopoverProps> = ({
     >
       {resourceHealthMap.map((resource) => (
         <Status
-          key={resource.itemName}
+          key={resource.systemName}
           icon={healthStateToIcon[resource.healthState]}
         >
           <Flex direction={{ default: 'column' }}>
             <FlexItem className="odf-status-card__popup--margin">
               {resource.link ? (
-                <Link to={resource.link}>{resource.itemName}</Link>
+                <Link to={resource.link}>{resource.systemName}</Link>
               ) : (
-                <>{resource.itemName}</>
+                <>{resource.systemName}</>
               )}
             </FlexItem>
             {!!resource.extraTexts && (
