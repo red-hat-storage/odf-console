@@ -3,6 +3,7 @@ import {
   EnrollDiscoveredApplicationStepNames,
   EnrollDiscoveredApplicationSteps,
 } from '@odf/mco/constants';
+import { isLabelOnlyOperator } from '@odf/shared/label-expression-selector';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   WizardContextType,
@@ -25,11 +26,25 @@ import {
 const validateNamespaceStep = (state: EnrollDiscoveredApplicationState) =>
   !!state.namespace.clusterName && !!state.namespace.namespaces.length;
 
-const validateConfigurationStep = (state: EnrollDiscoveredApplicationState) =>
-  state.configuration.protectionMethod === ProtectionMethodType.RECIPE
-    ? !!state.configuration.recipe.recipeName &&
-      !!state.configuration.recipe.recipeNamespace
-    : false;
+const validateConfigurationStep = (state: EnrollDiscoveredApplicationState) => {
+  const { recipe, resourceLabels, protectionMethod } = state.configuration;
+  const { recipeName, recipeNamespace } = recipe;
+  const { k8sResourceLabelExpressions, pvcLabelExpressions } = resourceLabels;
+  const labelExpressions = [
+    ...k8sResourceLabelExpressions,
+    ...pvcLabelExpressions,
+  ];
+  const isLabelExpressionsFound =
+    k8sResourceLabelExpressions.length && pvcLabelExpressions.length;
+  return protectionMethod === ProtectionMethodType.RECIPE
+    ? !!recipeName && !!recipeNamespace
+    : isLabelExpressionsFound &&
+        labelExpressions.every((selector) =>
+          isLabelOnlyOperator(selector.operator)
+            ? !!selector.key
+            : !!selector.key && !!selector.values.length
+        );
+};
 
 const canJumpToNextStep = (
   state: EnrollDiscoveredApplicationState,

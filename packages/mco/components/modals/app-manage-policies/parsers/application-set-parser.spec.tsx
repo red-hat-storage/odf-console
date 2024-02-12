@@ -345,7 +345,7 @@ jest.mock('@odf/mco/hooks/acm-safe-fetch', () => ({
   }),
 }));
 
-describe.skip('ApplicationSet manage data policy modal', () => {
+describe('ApplicationSet manage data policy modal', () => {
   test('Empty list page test', async () => {
     testCase = 1;
     render(
@@ -408,7 +408,7 @@ describe.skip('ApplicationSet manage data policy modal', () => {
     // Row actions
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Actions',
+        name: 'Kebab toggle',
       })
     );
     expect(screen.getByText('View configurations')).toBeInTheDocument();
@@ -461,7 +461,7 @@ describe.skip('ApplicationSet manage data policy modal', () => {
     // Row actions
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Actions',
+        name: 'Kebab toggle',
       })
     );
     // Policy config view

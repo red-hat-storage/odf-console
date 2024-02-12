@@ -19,6 +19,7 @@ import {
   ProtectionMethodType,
 } from '../../utils/reducer';
 import { RecipeSelection } from './recipe-selection';
+import { ResourceLabelSelection } from './resource-label-selection';
 import './configuration-step.scss';
 
 const RADIO_GROUP_NAME = 'k8s_object_protection_method';
@@ -31,7 +32,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
   const { t } = useCustomTranslation();
 
   const { namespaces, clusterName } = state.namespace;
-  const { protectionMethod, recipe } = state.configuration;
+  const { protectionMethod, recipe, resourceLabels } = state.configuration;
 
   const setProtectionMethod = (_unUsed, event) => {
     dispatch({
@@ -49,7 +50,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           )}
         </Text>
         <Alert
-          className="odf-alert pf-v5-u-mb-xs pf-u-pl-md"
+          className="odf-alert pf-v5-u-mb-xs pf-v5-u-pl-md"
           title={t(
             'You have selected {{count}} namespaces, to view or change your selection go back to the previous step.',
             { count: namespaces.length }
@@ -60,7 +61,10 @@ export const Configuration: React.FC<ConfigurationProps> = ({
         />
         <FormGroup fieldId="protection-method-selection">
           <Grid hasGutter>
-            <GridItem span={6} className="mco-configuration__radio pf-u-p-lg">
+            <GridItem
+              span={6}
+              className="mco-configuration-step__radio pf-v5-u-p-lg"
+            >
               <Radio
                 id="recipe-based-protection"
                 name={RADIO_GROUP_NAME}
@@ -73,7 +77,10 @@ export const Configuration: React.FC<ConfigurationProps> = ({
                 checked={protectionMethod === ProtectionMethodType.RECIPE}
               />
             </GridItem>
-            <GridItem span={6} className="mco-configuration__radio pf-u-p-lg">
+            <GridItem
+              span={6}
+              className="mco-configuration-step__radio pf-v5-u-p-lg"
+            >
               <Radio
                 id="label-based-protection"
                 name={RADIO_GROUP_NAME}
@@ -96,6 +103,18 @@ export const Configuration: React.FC<ConfigurationProps> = ({
           <RecipeSelection
             recipeName={recipe.recipeName}
             recipeNamespace={recipe.recipeNamespace}
+            clusterName={clusterName}
+            namespaces={namespaces}
+            isValidationEnabled={isValidationEnabled}
+            dispatch={dispatch}
+          />
+        )}
+        {protectionMethod === ProtectionMethodType.RESOURCE_LABEL && (
+          <ResourceLabelSelection
+            k8sResourceLabelExpressions={
+              resourceLabels.k8sResourceLabelExpressions
+            }
+            pvcLabelExpressions={resourceLabels.pvcLabelExpressions}
             clusterName={clusterName}
             namespaces={namespaces}
             isValidationEnabled={isValidationEnabled}

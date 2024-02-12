@@ -1,4 +1,7 @@
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sResourceCommon,
+  MatchExpression,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 
 export const NAME_NAMESPACE_SPLIT_CHAR = '/';
@@ -13,6 +16,8 @@ export enum EnrollDiscoveredApplicationStateType {
   SET_NAMESPACES = 'NAMESPACE/SET_NAMESPACES',
   SET_PROTECTION_METHOD = 'CONFIGURATION/SET_PROTECTION_METHOD',
   SET_RECIPE_NAME_NAMESPACE = 'CONFIGURATION/RECIPE/SET_RECIPE_NAME_NAMESPACE',
+  SET_K8S_RESOURCE_LABEL_EXPRESSIONS = 'CONFIGURATION/RESOURCE_LABEL/SET_K8S_RESOURCE_LABEL_EXPRESSIONS',
+  SET_PVC_LABEL_EXPRESSIONS = 'CONFIGURATION/RESOURCE_LABEL/SET_PVC_LABEL_EXPRESSIONS',
 }
 
 export type EnrollDiscoveredApplicationState = {
@@ -30,6 +35,10 @@ export type EnrollDiscoveredApplicationState = {
       recipeName: string;
       // recipe CR namespace
       recipeNamespace: string;
+    };
+    resourceLabels: {
+      k8sResourceLabelExpressions: MatchExpression[];
+      pvcLabelExpressions: MatchExpression[];
     };
   };
 };
@@ -51,6 +60,10 @@ export const initialState: EnrollDiscoveredApplicationState = {
       recipeName: '',
       recipeNamespace: '',
     },
+    resourceLabels: {
+      k8sResourceLabelExpressions: [],
+      pvcLabelExpressions: [],
+    },
   },
 };
 
@@ -71,6 +84,14 @@ export type EnrollDiscoveredApplicationAction =
   | {
       type: EnrollDiscoveredApplicationStateType.SET_RECIPE_NAME_NAMESPACE;
       payload: string;
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.SET_K8S_RESOURCE_LABEL_EXPRESSIONS;
+      payload: MatchExpression[];
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.SET_PVC_LABEL_EXPRESSIONS;
+      payload: MatchExpression[];
     };
 
 export const reducer: EnrollReducer = (state, action) => {
@@ -121,6 +142,30 @@ export const reducer: EnrollReducer = (state, action) => {
           recipe: {
             recipeName,
             recipeNamespace,
+          },
+        },
+      };
+    }
+    case EnrollDiscoveredApplicationStateType.SET_K8S_RESOURCE_LABEL_EXPRESSIONS: {
+      return {
+        ...state,
+        configuration: {
+          ...state.configuration,
+          resourceLabels: {
+            ...state.configuration.resourceLabels,
+            k8sResourceLabelExpressions: action.payload,
+          },
+        },
+      };
+    }
+    case EnrollDiscoveredApplicationStateType.SET_PVC_LABEL_EXPRESSIONS: {
+      return {
+        ...state,
+        configuration: {
+          ...state.configuration,
+          resourceLabels: {
+            ...state.configuration.resourceLabels,
+            pvcLabelExpressions: action.payload,
           },
         },
       };
