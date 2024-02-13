@@ -51,6 +51,7 @@ export type StorageClusterKind = K8sResourceCommon & {
         pgSecretName?: string;
         allowSelfSignedCerts?: boolean;
         tlsSecretName?: string;
+        enableTls?: boolean;
       };
     };
     externalStorage?: {};
