@@ -220,6 +220,7 @@ export const createStorageCluster = async (
     storageClusterNamespace,
     enableNoobaaClientSideCerts: externalPostgres.tls.enableClientSideCerts,
     useExternalPostgres: useExternalPostgres,
+    enablePostgresqlTls: externalPostgres.tls.enabled,
     allowNoobaaPostgresSelfSignedCerts:
       externalPostgres.tls.allowSelfSignedCerts,
     storageClusterName,
