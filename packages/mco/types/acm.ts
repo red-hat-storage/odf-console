@@ -157,7 +157,7 @@ export type SearchQuery = {
 export type SearchResult = {
   data: {
     searchResult: {
-      items?: any;
+      items?: SearchResultItemType[];
       count?: number;
       related?: {
         count: number;
@@ -165,4 +165,16 @@ export type SearchResult = {
       }[];
     }[];
   };
+};
+
+export type SearchResultItemType = {
+  apigroup?: string;
+  apiversion: string;
+  kind: string;
+  name: string;
+  namespace?: string;
+  cluster: string;
+  created: string;
+  label: string;
+  _uid: string;
 };

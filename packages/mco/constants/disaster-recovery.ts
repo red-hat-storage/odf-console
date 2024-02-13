@@ -81,3 +81,17 @@ export const AssignPolicyStepsNames = (t: TFunction) => ({
 });
 
 export const ENROLLED_APP_QUERY_PARAMS_KEY = 'enrolledApp';
+
+// Enroll discovered application wizard steps
+export enum EnrollDiscoveredApplicationSteps {
+  Namespace = 'namespace',
+  Configure = 'configure',
+  Replication = 'replication',
+  Review = 'review',
+}
+export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
+  [EnrollDiscoveredApplicationSteps.Namespace]: t('Namespace'),
+  [EnrollDiscoveredApplicationSteps.Configure]: t('Configure'),
+  [EnrollDiscoveredApplicationSteps.Replication]: t('Replication'),
+  [EnrollDiscoveredApplicationSteps.Review]: t('Review'),
+});

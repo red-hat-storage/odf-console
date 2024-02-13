@@ -54,6 +54,8 @@ export const SelectableTable: SelectableTableProps = <
   loadError,
   emptyRowMessage,
   initialSortColumnIndex,
+  borders,
+  className,
 }) => {
   const {
     onSort,
@@ -97,12 +99,14 @@ export const SelectableTable: SelectableTableProps = <
       loaded={loaded}
       EmptyMsg={emptyRowMessage}
       data={sortedRows}
-      skeleton={<div className="loading-skeleton--table" />}
+      skeleton={<div className="loading-skeleton--table pf-u-mt-lg" />}
     >
       <TableComposable
+        className={className}
         translate={null}
         aria-label="Selectable table"
         variant="compact"
+        borders={borders}
       >
         <Thead translate={null}>
           <Tr translate={null}>
@@ -173,6 +177,10 @@ type TableProps<T extends K8sResourceCommon> = {
   loadError?: any;
   emptyRowMessage?: React.FC;
   initialSortColumnIndex?: number;
+  /** Render borders */
+  borders?: boolean;
+  /** Additional classes added to the Table  */
+  className?: string;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(
