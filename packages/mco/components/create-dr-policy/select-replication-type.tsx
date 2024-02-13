@@ -22,9 +22,9 @@ import {
 } from './reducer';
 import '../../style.scss';
 
-const MIN_VALUE = 1;
+export const MIN_VALUE = 1;
 
-const normalizeSyncTimeValue = (value: number) => {
+export const normalizeSyncTimeValue = (value: number) => {
   const syncTimeValue = isNaN(Number(value)) ? MIN_VALUE : Number(value);
   return syncTimeValue < MIN_VALUE ? MIN_VALUE : syncTimeValue;
 };

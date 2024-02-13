@@ -46,7 +46,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
       <FormSection title={t('Configure definition')}>
         <Text component={TextVariants.small}>
           {t(
-            'Choose your configuration preference to protect resources (application volumes/PVCs, or kube objects).'
+            'Choose your configuration preference to protect resources (application volumes/PVCs, or Kubernetes objects).'
           )}
         </Text>
         <Alert

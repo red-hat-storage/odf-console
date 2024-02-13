@@ -33,7 +33,7 @@ import {
 } from '../../utils/reducer';
 import './namespace-step.scss';
 
-const findAllEligiblePolicies = (
+export const findAllEligiblePolicies = (
   clusterName: string,
   drPolicies: DRPolicyKind[]
 ) =>
