@@ -11,6 +11,7 @@ import { createRefFromK8Resource } from '../../utils';
 import EnrollDiscoveredApplication from './enroll-discovered-application';
 
 let testCase = 0;
+let drpcObj = {};
 
 const drPolicies: DRPolicyKind[] = [
   {
@@ -47,9 +48,7 @@ const drPlacements: DRPlacementControlKind[] = [
     spec: {
       drPolicyRef: createRefFromK8Resource(drPolicies[0]),
       placementRef: {},
-      // ToDo: Update with correct spec field which will report all protected namespaces
-      // @ts-ignore
-      enrolledNamespaces: ['mock-appset-1'],
+      eligibleForProtectionNamespaces: ['mock-appset-1'],
       pvcSelector: {
         matchLabels: {
           pvc: 'pvc1',
@@ -230,6 +229,11 @@ jest.mock('@odf/mco/hooks/acm-safe-fetch', () => ({
   }),
 }));
 
+jest.mock('react-router-dom-v5-compat', () => ({
+  ...jest.requireActual('react-router-dom-v5-compat'),
+  useNavigate: () => null,
+}));
+
 jest.mock('@odf/shared/heading/page-heading', () => ({
   __esModule: true,
   default: jest.fn(() => <></>),
@@ -247,16 +251,25 @@ jest.mock(
       '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api'
     ),
     useListPageFilter: jest.fn((userNamespaces) => {
-      if ([3, 4, 5].includes(testCase))
-        return [userNamespaces, userNamespaces, jest.fn()];
+      if (testCase >= 3) return [userNamespaces, userNamespaces, jest.fn()];
       else return [[], [], jest.fn()];
     }),
     ListPageFilter: jest.fn(() => <></>),
     useK8sWatchResource: jest.fn(() => {
       return [drPlacements, true, undefined];
     }),
+    k8sCreate: jest.fn(({ data }) => {
+      drpcObj = data;
+      return Promise.resolve({ data: {} });
+    }),
   })
 );
+
+// Mocking as "fireEvent" is throwing warning for FieldLevelHelp
+jest.mock('@odf/shared/generic', () => ({
+  ...jest.requireActual('@odf/shared/generic'),
+  FieldLevelHelp: () => <></>,
+}));
 
 describe('Test namespace step', () => {
   beforeEach(() => {
@@ -482,15 +495,6 @@ describe('Test replication step', () => {
     ).toBeInTheDocument();
     // Policy dropdown
     expect(screen.getByText('Disaster recovery policy')).toBeInTheDocument();
-    // Popover message
-    fireEvent.click(screen.getByLabelText('Help'));
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          'The policy sync interval is only applicable to volumes.'
-        )
-      ).toBeInTheDocument();
-    });
     fireEvent.click(screen.getByText('Select a policy'));
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
     expect(
@@ -536,5 +540,83 @@ describe('Test replication step', () => {
     fireEvent.click(screen.getByText('days'));
     // Ensure unit selection
     expect(screen.getByText('days')).toBeInTheDocument();
+  });
+});
+describe('Test review step', () => {
+  beforeEach(() => {
+    testCase += 1;
+    render(<EnrollDiscoveredApplication />);
+    // Select cluster
+    fireEvent.click(screen.getByText('Select cluster'));
+    fireEvent.click(screen.getByText('east-1'));
+
+    // Select namespaces
+    fireEvent.click(screen.getByLabelText('Select row 0'));
+    fireEvent.click(screen.getByLabelText('Select row 1'));
+
+    // Next wizard step
+    fireEvent.click(screen.getByText('Next'));
+
+    if (testCase === 6) {
+      // Select recipe
+      fireEvent.click(screen.getByText('Select a recipe'));
+      fireEvent.click(screen.getByText('mock-recipe-1'));
+
+      // Next wizard step
+      fireEvent.click(screen.getByText('Next'));
+    } else {
+      // ToDo: Resource label selection reivew
+    }
+
+    // Select policy
+    fireEvent.click(screen.getByText('Select a policy'));
+    fireEvent.click(screen.getByText('mock-policy-1'));
+
+    // Next wizard step
+    fireEvent.click(screen.getByText('Next'));
+  });
+  test('Review form test', async () => {
+    // Namespace selection test
+    expect(screen.getAllByText('Namespace').length === 2).toBeTruthy();
+    expect(screen.getByText('Cluster:')).toBeInTheDocument();
+    expect(screen.getByText('east-1')).toBeInTheDocument();
+    expect(screen.getByText('Namespace:')).toBeInTheDocument();
+    expect(screen.getByText('namespace-1, namespace-2')).toBeInTheDocument();
+
+    // Configuration selection
+    expect(screen.getAllByText('Configuration').length === 2).toBeTruthy();
+    expect(screen.getByText('Type:')).toBeInTheDocument();
+    expect(screen.getByText('Recipe')).toBeInTheDocument();
+    expect(screen.getByText('Recipe name:')).toBeInTheDocument();
+    expect(screen.getByText('mock-recipe-1')).toBeInTheDocument();
+    expect(screen.getByText('Recipe namespace:')).toBeInTheDocument();
+    expect(screen.getByText('namespace-1')).toBeInTheDocument();
+
+    // Replication selection
+    expect(screen.getAllByText('Replication').length === 2).toBeTruthy();
+    expect(screen.getByText('Volume replication:')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        '{{policyName}}, {{replicationType}}, Interval: {{interval}}'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Kubernetes object replication:')
+    ).toBeInTheDocument();
+    expect(screen.getByText('5 minutes')).toBeInTheDocument();
+
+    // Footer
+    expect(screen.getByText('Save')).toBeInTheDocument();
+    expect(screen.getByText('Back')).toBeEnabled();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+
+    // Click save
+    fireEvent.click(screen.getByText('Save'));
+    await waitFor(async () => {
+      expect(
+        JSON.stringify(drpcObj) ===
+          '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPlacementControl","metadata":{"generateName":"drpc-","namespace":"ramen-protected-apps"},"spec":{"preferredCluster":"east-1","eligibleForProtectionNamespaces":["namespace-1","namespace-2"],"pvcSelector":{},"kubeObjectProtection":{"captureInterval":"5m","recipeRef":{"name":"mock-recipe-1","namespace":"namespace-1"}},"drPolicyRef":{"name":"mock-policy-1","apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy"}}}'
+      ).toBeTruthy();
+    });
   });
 });

@@ -50,11 +50,7 @@ const getProtectedNamespaces = (
     const policyNames: string[] = policies.map(getName);
     return drPlacements.reduce((acc, drpc) => {
       if (policyNames.includes(drpc.spec.drPolicyRef.name)) {
-        acc.push(
-          // ToDo: Update with correct spec field which will report all protected namespaces
-          // @ts-ignore
-          ...(drpc.spec?.enrolledNamespaces || [])
-        );
+        acc.push(...(drpc.spec?.eligibleForProtectionNamespaces || []));
       }
       return acc;
     }, []);

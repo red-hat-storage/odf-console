@@ -4,7 +4,6 @@ import {
   hoursToSeconds,
   minutesToSeconds,
 } from '@odf/shared/details-page/datetime';
-import { objectify } from '@odf/shared/modals/EditLabelModal';
 import {
   getLabel,
   hasLabel,
@@ -13,7 +12,6 @@ import {
   getAnnotations,
 } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types/k8s';
-import { getAPIVersionForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
   GreenCheckCircleIcon,
@@ -49,8 +47,6 @@ import { DisasterRecoveryFormatted, ApplicationRefKind } from '../hooks';
 import {
   ACMPlacementModel,
   ACMPlacementRuleModel,
-  DRPlacementControlModel,
-  DRPolicyModel,
   DRVolumeReplicationGroup,
 } from '../models';
 import {
@@ -536,41 +532,6 @@ export const isDRPolicyValidated = (drPolicy: DRPolicyKind) =>
     (condition) =>
       condition?.type === 'Validated' && condition?.status === 'True'
   );
-
-export const getDRPCKindObj = (
-  plsName: string,
-  plsNamespace: string,
-  plsKind: string,
-  plsApiVersion: string,
-  drPolicyName: string,
-  drClusterNames: string[],
-  decisionClusters: string[],
-  pvcSelectors: string[]
-): DRPlacementControlKind => ({
-  apiVersion: getAPIVersionForModel(DRPlacementControlModel),
-  kind: DRPlacementControlModel.kind,
-  metadata: {
-    name: `${plsName}-drpc`,
-    namespace: plsNamespace,
-  },
-  spec: {
-    drPolicyRef: {
-      name: drPolicyName,
-      apiVersion: getAPIVersionForModel(DRPolicyModel),
-      kind: DRPolicyModel.kind,
-    },
-    placementRef: {
-      name: plsName,
-      namespace: plsNamespace,
-      apiVersion: plsApiVersion,
-      kind: plsKind,
-    },
-    preferredCluster: matchClusters(drClusterNames, decisionClusters),
-    pvcSelector: {
-      matchLabels: objectify(pvcSelectors),
-    },
-  },
-});
 
 // Finding placement from application generators
 export const findPlacementNameFromAppSet = (

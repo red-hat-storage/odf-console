@@ -85,15 +85,16 @@ export const ENROLLED_APP_QUERY_PARAMS_KEY = 'enrolledApp';
 // Enroll discovered application wizard steps
 export enum EnrollDiscoveredApplicationSteps {
   Namespace = 'namespace',
-  Configure = 'configure',
+  Configuration = 'Configuration',
   Replication = 'replication',
   Review = 'review',
 }
 export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
   [EnrollDiscoveredApplicationSteps.Namespace]: t('Namespace'),
-  [EnrollDiscoveredApplicationSteps.Configure]: t('Configure'),
+  [EnrollDiscoveredApplicationSteps.Configuration]: t('Configuration'),
   [EnrollDiscoveredApplicationSteps.Replication]: t('Replication'),
   [EnrollDiscoveredApplicationSteps.Review]: t('Review'),
 });
 
-export const DR_BASE_ROUTE = '/multicloud/data-services/disaster-recovery';
+// Discovered application namespace
+export const RAMEN_PROTECTED_APPS_NAMESPACE = 'ramen-protected-apps';
