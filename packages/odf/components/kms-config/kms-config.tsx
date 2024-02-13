@@ -7,6 +7,7 @@ import {
 } from '@patternfly/react-core';
 import { ProviderStateMap } from '../../constants';
 import { ProviderNames } from '../../types';
+import { AzureConfigure } from './azure-config';
 import { HpcsConfigure } from './hpcs-config';
 import { KMSConfigureProps } from './providers';
 import { ThalesConfigure } from './thales-config';
@@ -31,6 +32,12 @@ const KMSProviders: KMSProvidersType = [
     name: 'Thales CipherTrust Manager (using KMIP)',
     value: ProviderNames.THALES,
     Component: ThalesConfigure,
+  },
+  {
+    name: 'Azure Key Vault',
+    value: ProviderNames.AZURE,
+    Component: AzureConfigure,
+    allowedPlatforms: ['Azure'],
   },
 ];
 

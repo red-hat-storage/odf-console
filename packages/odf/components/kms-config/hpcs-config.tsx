@@ -50,7 +50,7 @@ export const HpcsConfigure: React.FC<KMSConfigureProps> = ({
         const validParam: boolean =
           param === HPCSParams.NAME ? isValidName(value) : true;
         kmsObj[param].value = value;
-        kmsObj[param].valid = validParam && value !== '';
+        kmsObj[param].valid = validParam;
       } else {
         kmsObj[param] = value;
       }

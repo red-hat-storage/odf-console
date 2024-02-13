@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getValidatedProp } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import {
   InputGroup,
@@ -20,10 +21,12 @@ export const VaultTokenConfigure: React.FC<VaultAuthMethodProps> = ({
   className,
   vaultState,
   setAuthValue,
-  isValid,
   isScEncryption,
 }) => {
   const [revealToken, setRevealToken] = React.useState(false);
+  const getValidatedAuthValueProp = getValidatedProp(
+    !vaultState.authValue?.valid
+  );
 
   return (
     <FormGroup
@@ -36,12 +39,12 @@ export const VaultTokenConfigure: React.FC<VaultAuthMethodProps> = ({
         <InputGroupItem isFill>
           <TextInput
             value={vaultState.authValue?.value}
-            onChange={setAuthValue}
+            onChange={(_event, authValue: string) => setAuthValue(authValue)}
             type={revealToken ? 'text' : 'password'}
             id="vault-token"
             name="vault-token"
             isRequired
-            validated={isValid(vaultState.authValue?.valid)}
+            validated={getValidatedAuthValueProp}
           />
         </InputGroupItem>
         <InputGroupItem>
@@ -63,8 +66,8 @@ export const VaultTokenConfigure: React.FC<VaultAuthMethodProps> = ({
       </InputGroup>
       <FormHelperText>
         <HelperText>
-          <HelperTextItem variant={isValid(vaultState.authValue.valid)}>
-            {isValid(vaultState.authValue.valid) === ValidatedOptions.default
+          <HelperTextItem variant={getValidatedAuthValueProp}>
+            {getValidatedAuthValueProp === ValidatedOptions.default
               ? isScEncryption &&
                 t(
                   'Create a secret with the token for every namespace using encrypted PVCs.'
@@ -82,8 +85,10 @@ export const VaultServiceAccountConfigure: React.FC<VaultAuthMethodProps> = ({
   className,
   vaultState,
   setAuthValue,
-  isValid,
 }) => {
+  const getValidatedAuthValueProp = getValidatedProp(
+    !vaultState.authValue?.valid
+  );
   return (
     <FormGroup
       fieldId="vault-sa-role"
@@ -93,17 +98,17 @@ export const VaultServiceAccountConfigure: React.FC<VaultAuthMethodProps> = ({
     >
       <TextInput
         value={vaultState.authValue?.value}
-        onChange={setAuthValue}
+        onChange={(_event, authValue: string) => setAuthValue(authValue)}
         type="text"
         id="vault-sa-role"
         name="vault-sa-role"
         isRequired
-        validated={isValid(vaultState.authValue?.valid)}
+        validated={getValidatedAuthValueProp}
       />
       <FormHelperText>
         <HelperText>
-          <HelperTextItem variant={isValid(vaultState.authValue?.valid)}>
-            {isValid(vaultState.authValue?.valid) === ValidatedOptions.error &&
+          <HelperTextItem variant={getValidatedAuthValueProp}>
+            {getValidatedAuthValueProp === ValidatedOptions.error &&
               t('This is a required field')}
           </HelperTextItem>
         </HelperText>
@@ -118,5 +123,4 @@ export type VaultAuthMethodProps = {
   vaultState: VaultConfig;
   t: TFunction;
   setAuthValue: (string) => void;
-  isValid: (boolean) => ValidatedOptions.error | ValidatedOptions.default;
 };
