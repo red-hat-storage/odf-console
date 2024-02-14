@@ -384,6 +384,7 @@ type OCSRequestData = {
   enableRDRPreparation?: boolean;
   storageClusterNamespace: string;
   useExternalPostgres?: boolean;
+  enablePostgresqlTls?: boolean;
   allowNoobaaPostgresSelfSignedCerts?: boolean;
   enableNoobaaClientSideCerts?: boolean;
   storageClusterName: string;
@@ -408,6 +409,7 @@ export const getOCSRequestData = ({
   enableRDRPreparation,
   storageClusterNamespace,
   useExternalPostgres,
+  enablePostgresqlTls,
   allowNoobaaPostgresSelfSignedCerts,
   enableNoobaaClientSideCerts,
   storageClusterName,
@@ -511,6 +513,13 @@ export const getOCSRequestData = ({
         allowSelfSignedCerts: allowNoobaaPostgresSelfSignedCerts,
       },
     };
+
+    if (enablePostgresqlTls) {
+      requestData.spec.multiCloudGateway.externalPgConfig = {
+        ...requestData.spec.multiCloudGateway.externalPgConfig,
+        enableTls: enablePostgresqlTls,
+      };
+    }
     if (enableNoobaaClientSideCerts) {
       requestData.spec.multiCloudGateway.externalPgConfig = {
         ...requestData.spec.multiCloudGateway.externalPgConfig,
