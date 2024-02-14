@@ -22,6 +22,8 @@ import {
   Button,
   Form,
   FormGroup,
+  Grid,
+  GridItem,
   SelectOption,
   SelectVariant,
   Text,
@@ -149,73 +151,79 @@ const PairElement: React.FC<PairElementProps> = ({
   }, [index, onRemoveProp]);
 
   return (
-    <div className="row" data-test="pairs-list-row">
-      <FormGroup
-        className="col-xs-5 pairs-list__name-field"
-        hasNoPaddingTop
-        isRequired
-        validated={getValidatedProp(isValidationEnabled && !selectedPlacement)}
-        helperTextInvalid={t('Required')}
-      >
-        <SingleSelectDropdown
-          id="placement-selection-dropdown"
-          selectedKey={selectedPlacement}
-          selectOptions={getPlacementDropdownOptions(
-            placementNames,
-            tags,
-            index
-          )}
-          placeholderText={t('Select a placement')}
-          onChange={onChangePlacement}
-          required
+    <Grid hasGutter>
+      <GridItem lg={5} sm={5}>
+        <FormGroup
+          hasNoPaddingTop
+          isRequired
           validated={getValidatedProp(
             isValidationEnabled && !selectedPlacement
           )}
-        />
-      </FormGroup>
-      <FormGroup
-        className="col-xs-5 pairs-list__value-field"
-        hasNoPaddingTop
-        isRequired
-        validated={getValidatedProp(
-          isValidationEnabled && !selectedLabels?.length
-        )}
-        helperTextInvalid={t('Required')}
-      >
-        <MultiSelectDropdown
-          id="labels-selection-dropdown"
-          selections={selectedLabels}
-          onChange={onChangeValue}
-          options={
-            // Display labels only after placement is selected
-            !!selectedPlacement
-              ? getLabelsDropdownOptions(labels, tags, index)
-              : []
-          }
-          placeholderText={
-            !!selectedLabels?.length
-              ? t('{{count}} selected', { count: selectedLabels?.length })
-              : t('Select labels')
-          }
-          variant={SelectVariant.checkbox}
-          required
+          helperTextInvalid={t('Required')}
+        >
+          <SingleSelectDropdown
+            id="placement-selection-dropdown"
+            selectedKey={selectedPlacement}
+            selectOptions={getPlacementDropdownOptions(
+              placementNames,
+              tags,
+              index
+            )}
+            placeholderText={t('Select a placement')}
+            onChange={onChangePlacement}
+            required
+            validated={getValidatedProp(
+              isValidationEnabled && !selectedPlacement
+            )}
+          />
+        </FormGroup>
+      </GridItem>
+      <GridItem lg={5} sm={5}>
+        <FormGroup
+          hasNoPaddingTop
+          isRequired
           validated={getValidatedProp(
             isValidationEnabled && !selectedLabels?.length
           )}
-        />
-      </FormGroup>
-      <FormGroup className="col-xs-1 pairs-list__action" hasNoPaddingTop>
-        <Button
-          type="button"
-          data-test="delete-button"
-          onClick={onRemove}
-          isDisabled={isEmpty && !alwaysAllowRemove}
-          variant="plain"
+          helperTextInvalid={t('Required')}
         >
-          {deleteIcon}
-        </Button>
-      </FormGroup>
-    </div>
+          <MultiSelectDropdown
+            id="labels-selection-dropdown"
+            selections={selectedLabels}
+            onChange={onChangeValue}
+            options={
+              // Display labels only after placement is selected
+              !!selectedPlacement
+                ? getLabelsDropdownOptions(labels, tags, index)
+                : []
+            }
+            placeholderText={
+              !!selectedLabels?.length
+                ? t('{{count}} selected', { count: selectedLabels?.length })
+                : t('Select labels')
+            }
+            variant={SelectVariant.checkbox}
+            required
+            validated={getValidatedProp(
+              isValidationEnabled && !selectedLabels?.length
+            )}
+          />
+        </FormGroup>
+      </GridItem>
+      <GridItem lg={2} sm={2}>
+        <FormGroup hasNoPaddingTop>
+          <Button
+            type="button"
+            data-test="delete-button"
+            onClick={onRemove}
+            isDisabled={isEmpty && !alwaysAllowRemove}
+            variant="plain"
+          >
+            {deleteIcon}
+          </Button>
+        </FormGroup>
+      </GridItem>
+    </Grid>
   );
 };
 
