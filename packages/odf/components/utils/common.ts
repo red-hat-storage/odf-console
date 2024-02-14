@@ -504,16 +504,16 @@ export const getOCSRequestData = ({
   }
 
   if (useExternalPostgres) {
-    requestData.spec = {
-      multiCloudGateway: {
-        externalPgConfig: {
-          pgSecretName: NOOBA_EXTERNAL_PG_SECRET_NAME,
-          allowSelfSignedCerts: allowNoobaaPostgresSelfSignedCerts,
-        },
+    requestData.spec.multiCloudGateway = {
+      ...requestData.spec.multiCloudGateway,
+      externalPgConfig: {
+        pgSecretName: NOOBA_EXTERNAL_PG_SECRET_NAME,
+        allowSelfSignedCerts: allowNoobaaPostgresSelfSignedCerts,
       },
     };
     if (enableNoobaaClientSideCerts) {
       requestData.spec.multiCloudGateway.externalPgConfig = {
+        ...requestData.spec.multiCloudGateway.externalPgConfig,
         tlsSecretName: NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
       };
     }
