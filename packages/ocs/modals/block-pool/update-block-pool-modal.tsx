@@ -78,12 +78,6 @@ const UpdateBlockPoolModal: React.FC<UpdateBlockPoolModalProps> = (props) => {
         type: BlockPoolActionType.SET_POOL_COMPRESSED,
         payload: poolConfig?.spec.compressionMode === COMPRESSION_ON,
       });
-      // Already existing pool may not have any deviceClass, Default is SSD
-      poolConfig?.spec.deviceClass &&
-        dispatch({
-          type: BlockPoolActionType.SET_POOL_VOLUME_TYPE,
-          payload: poolConfig?.spec.deviceClass,
-        });
     },
     [dispatch]
   );
