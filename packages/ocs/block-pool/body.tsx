@@ -7,7 +7,6 @@ import {
   CephClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash';
 import {
   Alert,
@@ -22,7 +21,6 @@ import { CaretDownIcon } from '@patternfly/react-icons';
 import {
   CEPH_NS,
   OCS_DEVICE_REPLICA,
-  OCS_POOL_MANAGEMENT,
   POOL_PROGRESS,
   POOL_STATE,
 } from '../constants';
@@ -69,15 +67,10 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
   const { cephCluster, state, dispatch, showPoolStatus, isUpdate } = props;
   const { t } = useCustomTranslation();
 
-  const isPoolManagementSupported = useFlag(OCS_POOL_MANAGEMENT);
   const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
     useK8sGet<ListKind<StorageClusterKind>>(StorageClusterModel, null, CEPH_NS);
 
   const [isReplicaOpen, setReplicaOpen] = React.useState(false);
-  const [isVolumeTypeOpen, setVolumeTypeOpen] = React.useState(false);
-  const [availableDeviceClasses, setAvailableDeviceClasses] = React.useState(
-    []
-  );
 
   // Failure Domain
   React.useEffect(() => {
@@ -87,57 +80,6 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
         payload: storageCluster?.items[0]?.status?.failureDomain || '',
       });
   }, [storageCluster, storageClusterLoaded, storageClusterLoadError, dispatch]);
-
-  // Volume Type
-  const deviceClasses = React.useMemo(
-    () => cephCluster?.status?.storage?.deviceClasses ?? [],
-    [cephCluster?.status?.storage?.deviceClasses]
-  );
-
-  const setVolumeType = React.useCallback(
-    (volumeType: string) =>
-      dispatch({
-        type: BlockPoolActionType.SET_POOL_VOLUME_TYPE,
-        payload: volumeType,
-      }),
-    [dispatch]
-  );
-
-  React.useEffect(() => {
-    if (deviceClasses.length && isPoolManagementSupported) {
-      if (state.volumeType === '') {
-        // Set default value
-        const ssdDeviceClass =
-          deviceClasses.find((deviceClass) => deviceClass.name === 'ssd') || {};
-        Object.keys(ssdDeviceClass).length
-          ? setVolumeType('ssd')
-          : setVolumeType(deviceClasses[0].name);
-      }
-
-      // Volume Type dropdown
-      setAvailableDeviceClasses(
-        deviceClasses.map((device) => {
-          return (
-            <DropdownItem
-              key={`device-${device?.name}`}
-              component="button"
-              id={device?.name}
-              data-test="volume-type-dropdown-item"
-              onClick={(e) => setVolumeType(e.currentTarget.id)}
-            >
-              {device?.name.toUpperCase()}
-            </DropdownItem>
-          );
-        })
-      );
-    }
-  }, [
-    deviceClasses,
-    dispatch,
-    isPoolManagementSupported,
-    setVolumeType,
-    state.volumeType,
-  ]);
 
   // Check storage cluster is in ready state
   const isClusterReady: boolean =
@@ -185,6 +127,7 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
         component="button"
         id={replica}
         data-test-id="replica-dropdown-item"
+        className="ceph-block-pool__dropdown-description"
         description={warning}
         onClick={(e) =>
           dispatch({
@@ -257,34 +200,6 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
               id="pool-replica-size"
             />
           </div>
-          {isPoolManagementSupported && (
-            <div className="form-group ceph-block-pool-body__input">
-              <label
-                className="control-label co-required"
-                htmlFor="pool-volume-type"
-              >
-                {t('Volume type')}
-              </label>
-              <Dropdown
-                className="dropdown--full-width"
-                toggle={
-                  <DropdownToggle
-                    id="toggle-id"
-                    data-test="volume-type-dropdown"
-                    onToggle={() => setVolumeTypeOpen(!isVolumeTypeOpen)}
-                    toggleIndicator={CaretDownIcon}
-                    isDisabled={isUpdate}
-                  >
-                    {state.volumeType.toUpperCase() || t('Select volume type')}
-                  </DropdownToggle>
-                }
-                isOpen={isVolumeTypeOpen}
-                dropdownItems={availableDeviceClasses}
-                onSelect={() => setVolumeTypeOpen(false)}
-                id="pool-volume-type"
-              />
-            </div>
-          )}
           <div className="form-group ceph-block-pool-body__input">
             <label className="control-label" htmlFor="compression-check">
               {t('Compression')}
