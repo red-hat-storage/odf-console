@@ -152,3 +152,10 @@ export const getPageRange = (currentPage: number, perPage: number) => {
   const indexOfFirstRow = indexOfLastRow - perPage;
   return [indexOfFirstRow, indexOfLastRow];
 };
+
+/**
+ * This ensures we do not return empty filtered data from `useListPageFilter` hook
+ * as it would cause the `ListPageFilter` to not render the `FilterToolbar`.
+ */
+export const getValidFilteredData = <T>(filteredData: T[]): T[] =>
+  _.isEmpty(filteredData) ? [null] : filteredData;

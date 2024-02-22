@@ -1,11 +1,14 @@
 import * as React from 'react';
+import classNames from 'classnames';
 import { Alert } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
-export const DataUnavailableError: React.FC = () => {
+export const DataUnavailableError: React.FC<{ className?: string }> = ({
+  className,
+}) => {
   const { t } = useCustomTranslation();
   return (
-    <div className="centerComponent">
+    <div className={classNames('centerComponent', className)}>
       <div className="text-muted">{t('No data available')}</div>
     </div>
   );

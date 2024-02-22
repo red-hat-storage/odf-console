@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet';
 import { Text, TextContent, TextVariants } from '@patternfly/react-core';
 import { DRPolicyListPage } from '../drpolicy-list-page/drpolicy-list-page';
 import DRDashboard from '../mco-dashboard/disaster-recovery/dr-dashboard';
+import { ProtectedApplicationsListPage } from '../protected-applications/list-page';
 
 const DisasterRecovery: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -22,6 +23,11 @@ const DisasterRecovery: React.FC = () => {
       href: 'policies',
       name: t('Policies'),
       component: DRPolicyListPage,
+    },
+    {
+      href: 'protected-applications',
+      name: t('Protected applications'),
+      component: ProtectedApplicationsListPage,
     },
   ];
 

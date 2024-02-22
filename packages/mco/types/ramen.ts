@@ -45,6 +45,9 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     placementRef: ObjectReference;
     preferredCluster?: string;
     failoverCluster?: string;
+    kubeObjectProtection?: {
+      captureInterval: string;
+    };
     pvcSelector: {
       matchLabels: MatchLabels;
     };

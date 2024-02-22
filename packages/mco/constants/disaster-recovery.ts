@@ -79,3 +79,5 @@ export const AssignPolicyStepsNames = (t: TFunction) => ({
   [AssignPolicySteps.PersistentVolumeClaim]: t('PersistentVolumeClaim'),
   [AssignPolicySteps.ReviewAndAssign]: t('Review and assign'),
 });
+
+export const ENROLLED_APP_QUERY_PARAMS_KEY = 'enrolledApp';
