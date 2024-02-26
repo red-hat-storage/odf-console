@@ -2,11 +2,9 @@ import * as React from 'react';
 import { DASH } from '@odf/shared/constants';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
-import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
+import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName } from '@odf/shared/selectors';
-import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { ComposableTable, RowComponentType } from '@odf/shared/table';
-import { K8sResourceCondition } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getPageRange, getValidFilteredData } from '@odf/shared/utils';
 import {
@@ -17,7 +15,13 @@ import {
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { useNavigate, NavigateFunction } from 'react-router-dom-v5-compat';
+import { global_palette_black_900 as blackIconColor } from '@patternfly/react-tokens/dist/js/global_palette_black_900';
+import classNames from 'classnames';
+import {
+  useNavigate,
+  NavigateFunction,
+  Link,
+} from 'react-router-dom-v5-compat';
 import {
   Button,
   ButtonVariant,
@@ -27,9 +31,6 @@ import {
   TextVariants,
   Flex,
   FlexItem,
-  Tabs,
-  Tab,
-  Tooltip,
 } from '@patternfly/react-core';
 import { InProgressIcon, CubeIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
@@ -49,18 +50,20 @@ import {
   SyncStatus,
   ExpandableComponentProps,
   ExpandableComponentsMap,
+  SelectExpandable,
 } from './components';
 import {
   getHeaderColumns,
   getColumnNames,
   getRowActions,
   getReplicationHealth,
-  getErrorConditions,
   isFailingOrRelocating,
   ReplicationHealthMap,
   getAppWorstSyncStatus,
   SyncStatusInfo,
+  drpcDetailsPageRoute,
 } from './utils';
+import './protected-apps.scss';
 
 const INITIAL_PAGE_NUMBER = 1;
 const COUNT_PER_PAGE_NUMBER = 10;
@@ -81,17 +84,20 @@ const ProtectedAppsTableRow: React.FC<
 
   const columnNames = getColumnNames(t);
   const appName = getName(application);
+  const drPolicyName = getDRPolicyName(application);
   const { launcher, navigate, syncStatus }: RowExtraProps = extraProps;
 
   const onTabSelect = (
     _event: React.MouseEvent<HTMLElement, MouseEvent>,
-    tabKey: EXPANDABLE_COMPONENT_TYPE
-  ) =>
+    buttonRef: React.MutableRefObject<HTMLElement>
+  ) => {
+    const tabKey = buttonRef.current.id as EXPANDABLE_COMPONENT_TYPE;
     tabKey === expandableComponentType
       ? // collapse the expandable section
         setExpandableComponentType(EXPANDABLE_COMPONENT_TYPE.DEFAULT)
       : // render new selected expandable section
         setExpandableComponentType(tabKey);
+  };
 
   const isExpanded: boolean =
     expandableComponentType !== EXPANDABLE_COMPONENT_TYPE.DEFAULT;
@@ -102,15 +108,6 @@ const ProtectedAppsTableRow: React.FC<
     // @ts-ignore
     application.spec?.enrolledNamespace || [];
 
-  // Errors details
-  const filteredErrorConditions: K8sResourceCondition[] =
-    getErrorConditions(application);
-  const showErrorsDetails: boolean =
-    !!filteredErrorConditions.length ||
-    expandableComponentType === EXPANDABLE_COMPONENT_TYPE.ERRORS;
-
-  // Current activity details
-  const errorsCount: number = filteredErrorConditions.length;
   // ToDo: Add clean-up activity event as well
   const showEventsDetails: boolean =
     isFailingOrRelocating(application) ||
@@ -137,7 +134,7 @@ const ProtectedAppsTableRow: React.FC<
           expand={{
             rowIndex,
             isExpanded: isExpanded,
-            // only allowing collapse from here, we can expand from respective "Tabs"
+            // only allowing collapse from here, we can expand from respective "SelectExpandable" FC
             onToggle: () =>
               isExpanded &&
               setExpandableComponentType(EXPANDABLE_COMPONENT_TYPE.DEFAULT),
@@ -145,79 +142,70 @@ const ProtectedAppsTableRow: React.FC<
           }}
         />
         <Td translate={null} dataLabel={columnNames[1]}>
-          <ResourceNameWIcon
+          <ResourceLink
             resourceModel={DRPlacementControlModel}
             resourceName={appName}
+            link={drpcDetailsPageRoute(application)}
           />
         </Td>
         <Td translate={null} dataLabel={columnNames[2]}>
-          <Tabs
-            activeKey={expandableComponentType}
+          <SelectExpandable
+            title={
+              <div>
+                <CubeIcon size={'sm'} color={blackIconColor.value} />
+                <span className="pf-u-pl-sm">{enrolledNamespaces.length}</span>
+              </div>
+            }
+            tooltipContent={t('View namespaces')}
             onSelect={onTabSelect}
-            isFilled
-          >
-            <Tab
-              translate={null}
-              eventKey={EXPANDABLE_COMPONENT_TYPE.NS}
+            buttonId={EXPANDABLE_COMPONENT_TYPE.NS}
+            className={classNames({
+              'mco-protected-applications__expanded':
+                expandableComponentType === EXPANDABLE_COMPONENT_TYPE.NS,
+            })}
+          />
+          {showEventsDetails && (
+            <SelectExpandable
               title={
                 <div>
-                  <CubeIcon size={'sm'} />
-                  <span className="pf-u-pl-sm">
-                    {enrolledNamespaces.length}
-                  </span>
+                  <InProgressIcon size={'sm'} color={blackIconColor.value} />
+                  <span className="pf-u-pl-sm">{eventsCount}</span>
                 </div>
               }
-              tooltip={<Tooltip content={t('View namespaces')} />}
+              tooltipContent={t('View activity')}
+              onSelect={onTabSelect}
+              buttonId={EXPANDABLE_COMPONENT_TYPE.EVENTS}
+              className={classNames({
+                'mco-protected-applications__expanded':
+                  expandableComponentType === EXPANDABLE_COMPONENT_TYPE.EVENTS,
+                'pf-u-pl-lg': true,
+              })}
             />
-            {showErrorsDetails && (
-              <Tab
-                translate={null}
-                eventKey={EXPANDABLE_COMPONENT_TYPE.ERRORS}
-                title={
-                  <div>
-                    <RedExclamationCircleIcon size={'sm'} />
-                    <span className="pf-u-pl-sm">{errorsCount}</span>
-                  </div>
-                }
-                tooltip={<Tooltip content={t('View alerts')} />}
-              />
-            )}
-            {showEventsDetails && (
-              <Tab
-                translate={null}
-                eventKey={EXPANDABLE_COMPONENT_TYPE.EVENTS}
-                title={
-                  <div>
-                    <InProgressIcon size={'sm'} />
-                    <span className="pf-u-pl-sm">{eventsCount}</span>
-                  </div>
-                }
-                tooltip={<Tooltip content={t('View activity')} />}
-              />
-            )}
-          </Tabs>
+          )}
         </Td>
         <Td translate={null} dataLabel={columnNames[3]}>
-          <Tabs
-            activeKey={expandableComponentType}
+          <SelectExpandable
+            title={
+              <div>
+                {icon}
+                <span className="pf-u-pl-sm">{title}</span>
+              </div>
+            }
+            tooltipContent={t('See detailed information')}
             onSelect={onTabSelect}
-            isFilled
-          >
-            <Tab
-              translate={null}
-              eventKey={EXPANDABLE_COMPONENT_TYPE.STATUS}
-              title={
-                <div>
-                  {icon}
-                  <span className="pf-u-pl-sm">{title}</span>
-                </div>
-              }
-              tooltip={<Tooltip content={t('See detailed information')} />}
-            />
-          </Tabs>
+            buttonId={EXPANDABLE_COMPONENT_TYPE.STATUS}
+            className={classNames({
+              'mco-protected-applications__expanded':
+                expandableComponentType === EXPANDABLE_COMPONENT_TYPE.STATUS,
+            })}
+          />
         </Td>
         <Td translate={null} dataLabel={columnNames[4]}>
-          {getDRPolicyName(application)}
+          <Link
+            to={`/multicloud/data-services/disaster-recovery/policies?name=${drPolicyName}`}
+          >
+            {drPolicyName}
+          </Link>
         </Td>
         <Td translate={null} dataLabel={columnNames[5]}>
           {getLastAppDeploymentClusterName(application) || DASH}
@@ -233,7 +221,6 @@ const ProtectedAppsTableRow: React.FC<
           <Td translate={null} colSpan={Object.keys(columnNames).length + 1}>
             <ExpandableComponent
               application={application}
-              filteredConditions={filteredErrorConditions}
               syncStatusInfo={syncStatusInfo}
             />
           </Td>

@@ -7,7 +7,6 @@ import {
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@odf/shared/status/icons';
-import { K8sResourceCondition } from '@odf/shared/types';
 import { sortRows, referenceForModel } from '@odf/shared/utils';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'react-i18next';
@@ -26,6 +25,11 @@ import {
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
 import { getVolumeReplicationHealth } from '../../utils';
+
+export const drpcDetailsPageRoute = (drpc: DRPlacementControlKind) =>
+  `/k8s/ns/${getNamespace(drpc)}/${referenceForModel(
+    DRPlacementControlModel
+  )}/${getName(drpc)}`;
 
 export const getAlertMessages = (
   t: TFunction<string>,
@@ -61,21 +65,6 @@ export const getAlertMessages = (
     isInline: true,
   },
 ];
-
-// ToDo: Add known condition types here, which signifies imperative apps error state
-const isDRPCErrorConditionType = (type: string): boolean => [].includes(type);
-
-export const getErrorStates = (conditions: K8sResourceCondition[]): string[] =>
-  conditions.map(({ message, type }) => message || type);
-
-export const getErrorConditions = (
-  application: DRPlacementControlKind
-): K8sResourceCondition[] =>
-  application?.status?.conditions?.filter(
-    ({ status, reason, type }) =>
-      status === 'True' &&
-      (reason === 'Error' || isDRPCErrorConditionType(type))
-  ) || [];
 
 export const isFailingOrRelocating = (
   application: DRPlacementControlKind
@@ -174,11 +163,9 @@ export const getHeaderColumns = (t: TFunction<string>) => {
     },
     {
       columnName: columnNames[2],
-      thProps: { textCenter: true },
     },
     {
       columnName: columnNames[3],
-      thProps: { textCenter: true },
     },
     {
       columnName: columnNames[4],
@@ -208,12 +195,7 @@ export const getRowActions = (
         </p>
       </>
     ),
-    onClick: () =>
-      navigate(
-        `/k8s/ns/${getNamespace(rowItem)}/${referenceForModel(
-          DRPlacementControlModel
-        )}/${getName(rowItem)}`
-      ),
+    onClick: () => navigate(`${drpcDetailsPageRoute(rowItem)}/yaml`),
   },
   {
     title: (

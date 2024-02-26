@@ -2,8 +2,6 @@ import * as React from 'react';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
-import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
-import { K8sResourceCondition } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
@@ -16,6 +14,9 @@ import {
   Bullseye,
   Alert,
   AlertProps,
+  Button,
+  ButtonVariant,
+  Tooltip,
   DescriptionList,
   DescriptionListTerm,
   DescriptionListGroup,
@@ -27,12 +28,22 @@ import { DRPlacementControlKind } from '../../types';
 import { getCurrentActivity } from '../mco-dashboard/disaster-recovery/cluster-app-card/application';
 import {
   getAlertMessages,
-  getErrorStates,
   isFailingOrRelocating,
   replicationHealthMap,
   SyncStatusInfo,
 } from './utils';
 import './protected-apps.scss';
+
+type SelectExpandableProps = {
+  title: React.ReactNode;
+  tooltipContent: string;
+  onSelect: (
+    event: React.MouseEvent<HTMLElement, MouseEvent>,
+    buttonRef: React.MutableRefObject<HTMLElement>
+  ) => void;
+  buttonId: EXPANDABLE_COMPONENT_TYPE;
+  className?: string;
+};
 
 type DescriptionProps = {
   term: string;
@@ -127,10 +138,33 @@ export const AlertMessages: React.FC = () => {
   );
 };
 
+export const SelectExpandable: React.FC<SelectExpandableProps> = ({
+  title,
+  tooltipContent,
+  onSelect,
+  buttonId,
+  className,
+}) => {
+  const buttonRef = React.useRef<HTMLElement>();
+  return (
+    <Tooltip content={tooltipContent}>
+      <Button
+        ref={buttonRef}
+        variant={ButtonVariant.link}
+        onClick={(event) => onSelect(event, buttonRef)}
+        id={buttonId}
+        className={className}
+        isInline
+      >
+        {title}
+      </Button>
+    </Tooltip>
+  );
+};
+
 export enum EXPANDABLE_COMPONENT_TYPE {
   DEFAULT = '',
   NS = 'namespaces',
-  ERRORS = 'errors',
   EVENTS = 'events',
   STATUS = 'status',
 }
@@ -139,7 +173,6 @@ export type SyncStatus = { [appName: string]: SyncStatusInfo };
 
 export type ExpandableComponentProps = {
   application?: DRPlacementControlKind;
-  filteredConditions?: K8sResourceCondition[];
   syncStatusInfo?: SyncStatusInfo;
 };
 
@@ -166,32 +199,6 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
           <Description
             term={t('Namespace')}
             descriptions={enrolledNamespaces}
-          />
-        </DescriptionList_>
-      )}
-    </>
-  );
-};
-
-export const ErrorsDetails: React.FC<ExpandableComponentProps> = ({
-  filteredConditions,
-}) => {
-  const { t } = useCustomTranslation();
-
-  const errorStates = getErrorStates(filteredConditions).map((errorMessage) => (
-    <>
-      <RedExclamationCircleIcon size={'sm'} /> {errorMessage}
-    </>
-  ));
-  return (
-    <>
-      {!filteredConditions.length ? (
-        <DataUnavailableError className="pf-u-pt-xl pf-u-pb-xl" />
-      ) : (
-        <DescriptionList_>
-          <Description
-            term={t('Error description')}
-            descriptions={errorStates}
           />
         </DescriptionList_>
       )}
@@ -273,7 +280,6 @@ export const StatusDetails: React.FC<ExpandableComponentProps> = ({
 export const ExpandableComponentsMap = {
   [EXPANDABLE_COMPONENT_TYPE.DEFAULT]: () => null,
   [EXPANDABLE_COMPONENT_TYPE.NS]: NamespacesDetails,
-  [EXPANDABLE_COMPONENT_TYPE.ERRORS]: ErrorsDetails,
   [EXPANDABLE_COMPONENT_TYPE.EVENTS]: EventsDetails,
   [EXPANDABLE_COMPONENT_TYPE.STATUS]: StatusDetails,
 };
