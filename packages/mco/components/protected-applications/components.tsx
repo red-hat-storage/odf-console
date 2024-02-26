@@ -6,11 +6,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
-  EmptyState,
-  EmptyStateVariant,
-  EmptyStateIcon,
-  EmptyStateBody,
-  Title,
   Bullseye,
   Alert,
   AlertProps,
@@ -22,9 +17,10 @@ import {
   DescriptionListGroup,
   DescriptionListDescription,
 } from '@patternfly/react-core';
-import { InfoCircleIcon, InProgressIcon } from '@patternfly/react-icons';
+import { InProgressIcon } from '@patternfly/react-icons';
 import { ENROLLED_APP_QUERY_PARAMS_KEY } from '../../constants';
 import { DRPlacementControlKind } from '../../types';
+import EmptyPage from '../empty-state-page/empty-page';
 import { getCurrentActivity } from '../mco-dashboard/disaster-recovery/cluster-app-card/application';
 import {
   getAlertMessages,
@@ -80,6 +76,18 @@ const Description: React.FC<DescriptionProps> = ({ term, descriptions }) => {
   );
 };
 
+export const EnrollApplicationButton: React.FC = () => {
+  const { t } = useCustomTranslation();
+  // ToDo: Update, either just modal or dropdown + modal
+  return (
+    <div className="pf-u-ml-md">
+      <Button variant={ButtonVariant.primary} className="pf-u-mt-md">
+        {t('Enroll application')}
+      </Button>
+    </div>
+  );
+};
+
 export const EmptyRowMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
@@ -92,19 +100,18 @@ export const EmptyRowMessage: React.FC = () => {
 export const NoDataMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
-    <EmptyState variant={EmptyStateVariant.large}>
-      <EmptyStateIcon icon={InfoCircleIcon} />
-      <Title headingLevel="h3" size="lg">
-        {t('No protected applications')}
-      </Title>
-      <EmptyStateBody>
-        <Trans t={t}>
-          You do not have any protected applications yet, to add disaster
-          recovery protection to your applications start by clicking on the{' '}
-          <strong>Enroll application</strong> button.
-        </Trans>
-      </EmptyStateBody>
-    </EmptyState>
+    <EmptyPage
+      title={t('No protected applications')}
+      ButtonComponent={EnrollApplicationButton}
+      isLoaded
+      canAccess
+    >
+      <Trans t={t}>
+        You do not have any protected applications yet, to add disaster recovery
+        protection to your applications start by clicking on the{' '}
+        <strong>Enroll application</strong> button.
+      </Trans>
+    </EmptyPage>
   );
 };
 

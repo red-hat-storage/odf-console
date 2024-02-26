@@ -100,7 +100,7 @@ export const ComposableTable: ComposableTableProps = <
 // sort is replaced by sortFunction
 type TableThProps = Omit<ThProps, 'sort' | 'ref'>;
 
-type TableProps<T extends K8sResourceCommon> = {
+export type TableProps<T extends K8sResourceCommon> = {
   rows: T[];
   columns: TableColumnProps[];
   RowComponent: React.ComponentType<RowComponentType<T>>;

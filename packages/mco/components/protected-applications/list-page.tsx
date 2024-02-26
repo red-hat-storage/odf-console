@@ -2,15 +2,13 @@ import * as React from 'react';
 import { DASH } from '@odf/shared/constants';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
+import { PaginatedsListPage } from '@odf/shared/list-page';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName } from '@odf/shared/selectors';
-import { ComposableTable, RowComponentType } from '@odf/shared/table';
+import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getPageRange, getValidFilteredData } from '@odf/shared/utils';
 import {
-  ListPageBody,
   useListPageFilter,
-  ListPageFilter,
   useK8sWatchResource,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -22,16 +20,6 @@ import {
   NavigateFunction,
   Link,
 } from 'react-router-dom-v5-compat';
-import {
-  Button,
-  ButtonVariant,
-  Pagination,
-  PaginationVariant,
-  Text,
-  TextVariants,
-  Flex,
-  FlexItem,
-} from '@patternfly/react-core';
 import { InProgressIcon, CubeIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { ODFMCO_OPERATOR_NAMESPACE } from '../../constants';
@@ -51,6 +39,7 @@ import {
   ExpandableComponentProps,
   ExpandableComponentsMap,
   SelectExpandable,
+  EnrollApplicationButton,
 } from './components';
 import {
   getHeaderColumns,
@@ -64,9 +53,6 @@ import {
   drpcDetailsPageRoute,
 } from './utils';
 import './protected-apps.scss';
-
-const INITIAL_PAGE_NUMBER = 1;
-const COUNT_PER_PAGE_NUMBER = 10;
 
 type RowExtraProps = {
   launcher: LaunchModal;
@@ -235,8 +221,6 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   const launcher = useModal();
   const navigate = useNavigate();
 
-  const [page, setPage] = React.useState(INITIAL_PAGE_NUMBER);
-  const [perPage, setPerPage] = React.useState(COUNT_PER_PAGE_NUMBER);
   const [syncStatus, setSyncStatus] = React.useState({} as SyncStatus);
 
   const [discoveredApps, discoveredAppsLoaded, discoveredAppsError] =
@@ -291,68 +275,27 @@ export const ProtectedApplicationsListPage: React.FC = () => {
 
   useScheduler(updateSyncStatus);
 
-  const paginatedData: DRPlacementControlKind[] = React.useMemo(() => {
-    const [start, end] = getPageRange(page, perPage);
-    return filteredData.slice(start, end) || [];
-  }, [filteredData, page, perPage]);
-
   return (
-    <>
-      <ListPageBody>
-        {isAllLoadedWOAnyError && (
-          <>
-            <Text component={TextVariants.h2} className="pf-u-mt-sm">
-              {t('Protected applications')}
-            </Text>
-            <Flex className="pf-u-justify-content-space-between">
-              <FlexItem>
-                <Flex>
-                  <ListPageFilter
-                    data={getValidFilteredData(data)}
-                    loaded={isAllLoaded}
-                    onFilterChange={onFilterChange}
-                    hideColumnManagement={true}
-                  />
-                  {/* ToDo: Update, either just modal or dropdown + modal */}
-                  <Button variant={ButtonVariant.primary}>
-                    {t('Enroll application')}
-                  </Button>
-                </Flex>
-              </FlexItem>
-              <FlexItem>
-                <Pagination
-                  perPageComponent="button"
-                  itemCount={filteredData.length || 0}
-                  widgetId="acm-discovered-apps-list"
-                  perPage={perPage}
-                  page={page}
-                  variant={PaginationVariant.bottom}
-                  dropDirection="up"
-                  perPageOptions={[]}
-                  isStatic
-                  onSetPage={(_event, newPage) => setPage(newPage)}
-                  onPerPageSelect={(_event, newPerPage, newPage) => {
-                    setPerPage(newPerPage);
-                    setPage(newPage);
-                  }}
-                />
-              </FlexItem>
-            </Flex>
-            <AlertMessages />
-          </>
-        )}
-        <ComposableTable
-          columns={getHeaderColumns(t)}
-          RowComponent={ProtectedAppsTableRow}
-          extraProps={{ launcher, navigate, syncStatus }}
-          rows={paginatedData}
-          emptyRowMessage={EmptyRowMessage}
-          unfilteredData={data as []}
-          noDataMsg={NoDataMessage}
-          loaded={isAllLoaded}
-          loadError={anyError}
-        />
-      </ListPageBody>
-    </>
+    <PaginatedsListPage
+      filteredData={filteredData}
+      CreateButton={EnrollApplicationButton}
+      Alerts={AlertMessages}
+      noData={!isAllLoadedWOAnyError || !data.length}
+      listPageFilterProps={{
+        data: data,
+        loaded: isAllLoaded,
+        onFilterChange: onFilterChange,
+      }}
+      composableTableProps={{
+        columns: getHeaderColumns(t),
+        RowComponent: ProtectedAppsTableRow,
+        extraProps: { launcher, navigate, syncStatus },
+        emptyRowMessage: EmptyRowMessage,
+        unfilteredData: data as [],
+        noDataMsg: NoDataMessage,
+        loaded: isAllLoaded,
+        loadError: anyError,
+      }}
+    />
   );
 };
