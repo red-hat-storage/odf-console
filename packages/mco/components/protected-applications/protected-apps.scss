@@ -9,4 +9,8 @@
         text-decoration: underline;
         font-weight: bold;
     }
+
+    &__popover {
+        word-break: break-all;
+    }
 }

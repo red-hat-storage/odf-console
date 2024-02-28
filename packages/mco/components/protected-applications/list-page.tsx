@@ -20,7 +20,7 @@ import {
   NavigateFunction,
   Link,
 } from 'react-router-dom-v5-compat';
-import { InProgressIcon, CubeIcon } from '@patternfly/react-icons';
+import { InProgressIcon, CubeIcon, IconSize } from '@patternfly/react-icons';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { ODFMCO_OPERATOR_NAMESPACE } from '../../constants';
 import {
@@ -138,7 +138,7 @@ const ProtectedAppsTableRow: React.FC<
           <SelectExpandable
             title={
               <div>
-                <CubeIcon size={'sm'} color={blackIconColor.value} />
+                <CubeIcon size={IconSize.sm} color={blackIconColor.value} />
                 <span className="pf-u-pl-sm">{enrolledNamespaces.length}</span>
               </div>
             }
@@ -154,7 +154,10 @@ const ProtectedAppsTableRow: React.FC<
             <SelectExpandable
               title={
                 <div>
-                  <InProgressIcon size={'sm'} color={blackIconColor.value} />
+                  <InProgressIcon
+                    size={IconSize.sm}
+                    color={blackIconColor.value}
+                  />
                   <span className="pf-u-pl-sm">{eventsCount}</span>
                 </div>
               }
