@@ -265,18 +265,59 @@ jest.mock(
   })
 );
 
-// Mocking as "fireEvent" is throwing warning for FieldLevelHelp
-jest.mock('@odf/shared/generic', () => ({
-  ...jest.requireActual('@odf/shared/generic'),
-  FieldLevelHelp: () => <></>,
+// Mocking as "Popover" is throwing warning for FieldLevelHelp & TextInputWithFieldRequirements
+jest.mock('@patternfly/react-core', () => ({
+  ...jest.requireActual('@patternfly/react-core'),
+  Popover: () => <></>,
 }));
+
+const moveToStep = async (step: number) => {
+  if (step > 1) {
+    // Select cluster
+    fireEvent.click(screen.getByText('Select cluster'));
+    fireEvent.click(screen.getByText('east-1'));
+
+    // Select namespaces
+    fireEvent.click(screen.getByLabelText('Select row 0'));
+    fireEvent.click(screen.getByLabelText('Select row 1'));
+
+    // Name input
+    fireEvent.change(screen.getByLabelText('Name input'), {
+      target: { value: 'my-name' },
+    });
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('my-name')).toBeInTheDocument();
+    });
+
+    // Next wizard step
+    fireEvent.click(screen.getByText('Next'));
+  }
+
+  if (step > 2) {
+    // Select recipe
+    fireEvent.click(screen.getByText('Select a recipe'));
+    fireEvent.click(screen.getByText('mock-recipe-1'));
+
+    // Next wizard step
+    fireEvent.click(screen.getByText('Next'));
+  }
+
+  if (step > 3) {
+    // Select policy
+    fireEvent.click(screen.getByText('Select a policy'));
+    fireEvent.click(screen.getByText('mock-policy-1'));
+
+    // Next wizard step
+    fireEvent.click(screen.getByText('Next'));
+  }
+};
 
 describe('Test namespace step', () => {
   beforeEach(() => {
-    testCase += 1;
     render(<EnrollDiscoveredApplication />);
   });
   test('Namespace selection form test', async () => {
+    testCase = 1;
     // Step1 title
     expect(screen.getByText('Namespace selection')).toBeInTheDocument();
     // Step1 title description
@@ -311,6 +352,13 @@ describe('Test namespace step', () => {
         'This list does not include namespaces where applications are enrolled separately under disaster recovery protection.'
       )
     ).toBeInTheDocument();
+    // Name input
+    expect(screen.getByText('Name')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'A unique identifier for ACM discovered applications from selected namespaces.'
+      )
+    ).toBeInTheDocument();
 
     // Footer
     expect(screen.getByText('Next')).toBeInTheDocument();
@@ -331,6 +379,7 @@ describe('Test namespace step', () => {
   });
 
   test('No namespace found test', async () => {
+    testCase = 2;
     // Cluster selection
     fireEvent.click(screen.getByText('Select cluster'));
     fireEvent.click(screen.getByText('east-1'));
@@ -347,6 +396,7 @@ describe('Test namespace step', () => {
   });
 
   test('Namespace selection test', async () => {
+    testCase = 3;
     // Cluster  east-1 selection
     fireEvent.click(screen.getByText('Select cluster'));
     fireEvent.click(screen.getByText('east-1'));
@@ -384,28 +434,27 @@ describe('Test namespace step', () => {
     expect(() => screen.getByText('openshift')).toThrow(
       'Unable to find an element'
     );
+    // Name input
+    fireEvent.change(screen.getByLabelText('Name input'), {
+      target: { value: 'my-name' },
+    });
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('my-name')).toBeInTheDocument();
+    });
   });
 });
 
 describe('Test configure step', () => {
   beforeEach(() => {
-    testCase += 1;
     render(<EnrollDiscoveredApplication />);
-    // Select cluster
-    fireEvent.click(screen.getByText('Select cluster'));
-    fireEvent.click(screen.getByText('east-1'));
-
-    // Select namespaces
-    fireEvent.click(screen.getByLabelText('Select row 0'));
-    fireEvent.click(screen.getByLabelText('Select row 1'));
-
-    // Next wizard step
-    fireEvent.click(screen.getByText('Next'));
   });
+
   test('Configure form test', async () => {
-    // Step1 title
+    testCase = 4;
+    await moveToStep(2);
+    // Step2 title
     expect(screen.getByText('Configure definition')).toBeInTheDocument();
-    // Step1 title description
+    // Step2 title description
     expect(
       screen.getByText(
         'Choose your configuration preference to protect resources (application volumes/PVCs, or Kubernetes objects).'
@@ -462,32 +511,16 @@ describe('Test configure step', () => {
 
 describe('Test replication step', () => {
   beforeEach(() => {
-    testCase += 1;
     render(<EnrollDiscoveredApplication />);
-    // Select cluster
-    fireEvent.click(screen.getByText('Select cluster'));
-    fireEvent.click(screen.getByText('east-1'));
-
-    // Select namespaces
-    fireEvent.click(screen.getByLabelText('Select row 0'));
-    fireEvent.click(screen.getByLabelText('Select row 1'));
-
-    // Next wizard step
-    fireEvent.click(screen.getByText('Next'));
-
-    // Select recipe
-    fireEvent.click(screen.getByText('Select a recipe'));
-    fireEvent.click(screen.getByText('mock-recipe-1'));
-
-    // Next wizard step
-    fireEvent.click(screen.getByText('Next'));
   });
   test('Replication form test', async () => {
-    // Step1 title
+    testCase = 5;
+    await moveToStep(3);
+    // Step3 title
     expect(
       screen.getByText('Volume and Kubernetes object replication')
     ).toBeInTheDocument();
-    // Step1 title description
+    // Step3 title description
     expect(
       screen.getByText(
         'Define where to sync or replicate your application volumes and Kubernetes object using a disaster recovery policy.'
@@ -544,38 +577,11 @@ describe('Test replication step', () => {
 });
 describe('Test review step', () => {
   beforeEach(() => {
-    testCase += 1;
     render(<EnrollDiscoveredApplication />);
-    // Select cluster
-    fireEvent.click(screen.getByText('Select cluster'));
-    fireEvent.click(screen.getByText('east-1'));
-
-    // Select namespaces
-    fireEvent.click(screen.getByLabelText('Select row 0'));
-    fireEvent.click(screen.getByLabelText('Select row 1'));
-
-    // Next wizard step
-    fireEvent.click(screen.getByText('Next'));
-
-    if (testCase === 6) {
-      // Select recipe
-      fireEvent.click(screen.getByText('Select a recipe'));
-      fireEvent.click(screen.getByText('mock-recipe-1'));
-
-      // Next wizard step
-      fireEvent.click(screen.getByText('Next'));
-    } else {
-      // ToDo: Resource label selection reivew
-    }
-
-    // Select policy
-    fireEvent.click(screen.getByText('Select a policy'));
-    fireEvent.click(screen.getByText('mock-policy-1'));
-
-    // Next wizard step
-    fireEvent.click(screen.getByText('Next'));
   });
   test('Review form test', async () => {
+    testCase = 6;
+    await moveToStep(4);
     // Namespace selection test
     expect(screen.getAllByText('Namespace').length === 2).toBeTruthy();
     expect(screen.getByText('Cluster:')).toBeInTheDocument();

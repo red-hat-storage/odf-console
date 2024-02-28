@@ -24,11 +24,11 @@ import { getName } from '@odf/shared/selectors';
 import { SecretKind, StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isValidIP } from '@odf/shared/utils';
+import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { Form, TextContent, TextVariants, Text } from '@patternfly/react-core';
-import validationRegEx from '../../../../utils/validation';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './create-storage-class-step.scss';
 

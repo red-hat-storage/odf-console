@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-  getDRPlacementControlResourceObj,
-  useACMSafeFetch,
-} from '@odf/mco/hooks';
+import { useACMSafeFetch } from '@odf/mco/hooks';
 import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
 import {
   queryNamespacesUsingCluster,
@@ -21,7 +18,6 @@ import { isSystemNamespace, sortRows } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
   ListPageFilter,
-  useK8sWatchResource,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
@@ -79,12 +75,15 @@ const TableRow: React.FC<RowComponentType<K8sResourceCommon>> = ({
 };
 
 export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
-  ({ namespaces, clusterName, policies, isValidationEnabled, dispatch }) => {
+  ({
+    namespaces,
+    clusterName,
+    policies,
+    drPlacements,
+    isValidationEnabled,
+    dispatch,
+  }) => {
     const { t } = useCustomTranslation();
-
-    const [drPlacements, drpcLoaded, drpcLoadError] = useK8sWatchResource<
-      DRPlacementControlKind[]
-    >(getDRPlacementControlResourceObj());
 
     const protectedNamespaces = React.useMemo(() => {
       const eligiblePolicies = findAllEligiblePolicies(clusterName, policies);
@@ -100,11 +99,8 @@ export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
     const [searchResult, searchError, searchLoaded] =
       useACMSafeFetch(searchQuery);
 
-    const loaded = searchLoaded && drpcLoaded;
-    const loadError = searchError || drpcLoadError;
-
     const userNamespaces: K8sResourceCommon[] = React.useMemo(() => {
-      if (loaded && !loadError) {
+      if (searchLoaded && !searchError) {
         // Converting from search result type to K8sResourceCommon for shared components compatibility.
         const allNamespaces = convertSearchResultToK8sResourceCommon(
           searchResult?.data.searchResult?.[0]?.items || []
@@ -119,7 +115,7 @@ export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
         });
       }
       return [];
-    }, [searchResult, protectedNamespaces, loaded, loadError]);
+    }, [searchResult, protectedNamespaces, searchLoaded, searchError]);
 
     const [data, filteredData, onFilterChange] =
       useListPageFilter(userNamespaces);
@@ -147,7 +143,7 @@ export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
         <GridItem span={10}>
           <ListPageFilter
             data={data}
-            loaded={loaded}
+            loaded={searchLoaded}
             onFilterChange={onFilterChange}
           />
           {namespaceValidated && (
@@ -190,6 +186,7 @@ type NamespaceSelectionTableProps = {
   namespaces: K8sResourceCommon[];
   clusterName: string;
   policies: DRPolicyKind[];
+  drPlacements: DRPlacementControlKind[];
   isValidationEnabled: boolean;
   dispatch: React.Dispatch<EnrollDiscoveredApplicationAction>;
 };

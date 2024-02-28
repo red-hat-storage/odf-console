@@ -13,6 +13,7 @@ import {
   CephClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   Dropdown,
@@ -30,7 +31,6 @@ import {
   EmptyStateHeader,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
-import validationRegEx from '../../odf/utils/validation';
 import { OCS_DEVICE_REPLICA, POOL_PROGRESS, POOL_STATE } from '../constants';
 import { StorageClusterModel, CephBlockPoolModel } from '../models';
 import {

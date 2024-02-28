@@ -28,7 +28,9 @@ export type TextInputWithFieldRequirementsProps = {
   fieldRequirements: string[];
   control: Control<FieldValues>;
   defaultValue?: any;
-  formGroupProps: FormGroupProps & { helperText?: string };
+  formGroupProps: FormGroupProps;
+  // In PF5 FormGroupProps don't have helperText
+  helperText?: string;
   textInputProps: TextInputProps & {
     'data-test': string;
     disabled?: boolean;
@@ -71,6 +73,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
     textInputProps,
     popoverProps,
     defaultValue = '',
+    helperText,
   }) => {
     const {
       field: { name, value, onChange, onBlur },
@@ -176,9 +179,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
         </InputGroup>
         <FormHelperText>
           <HelperText>
-            <HelperTextItem variant={validated}>
-              {formGroupProps?.helperText}
-            </HelperTextItem>
+            <HelperTextItem variant={validated}>{helperText}</HelperTextItem>
           </HelperText>
         </FormHelperText>
       </FormGroup>

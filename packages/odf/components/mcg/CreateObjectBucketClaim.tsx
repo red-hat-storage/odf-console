@@ -259,7 +259,6 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
           label: t('ObjectBucketClaim Name'),
           fieldId: 'obc-name',
           className: 'control-label',
-          helperText: t('If not provided a generic name will be generated.'),
         }}
         textInputProps={{
           id: 'obc-name',
@@ -270,6 +269,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
           'aria-describedby': 'obc-name-help',
           'data-test': 'obc-name',
         }}
+        helperText={t('If not provided a generic name will be generated.')}
       />
       <FormGroupController
         name="sc-dropdown"
