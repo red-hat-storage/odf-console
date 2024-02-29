@@ -162,5 +162,13 @@
         "$codeRef": "appManagePolicy.default"
       }
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "multicloud/data-services/disaster-recovery/protected-applications/ramendr.openshift.io~v1alpha1~DRPlacementControl/~new",
+      "exact": true,
+      "component": { "$codeRef": "enrollDiscoveredApplication.default" }
+    }
   }
 ]
