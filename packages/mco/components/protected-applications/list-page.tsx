@@ -2,35 +2,24 @@ import * as React from 'react';
 import { DASH } from '@odf/shared/constants';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
-import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
+import { PaginatedsListPage } from '@odf/shared/list-page';
+import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName } from '@odf/shared/selectors';
-import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
-import { ComposableTable, RowComponentType } from '@odf/shared/table';
-import { K8sResourceCondition } from '@odf/shared/types';
+import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getPageRange, getValidFilteredData } from '@odf/shared/utils';
 import {
-  ListPageBody,
   useListPageFilter,
-  ListPageFilter,
   useK8sWatchResource,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { useNavigate, NavigateFunction } from 'react-router-dom-v5-compat';
+import { global_palette_black_900 as blackIconColor } from '@patternfly/react-tokens/dist/js/global_palette_black_900';
+import classNames from 'classnames';
 import {
-  Button,
-  ButtonVariant,
-  Pagination,
-  PaginationVariant,
-  Text,
-  TextVariants,
-  Flex,
-  FlexItem,
-  Tabs,
-  Tab,
-  Tooltip,
-} from '@patternfly/react-core';
+  useNavigate,
+  NavigateFunction,
+  Link,
+} from 'react-router-dom-v5-compat';
 import { InProgressIcon, CubeIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { ODFMCO_OPERATOR_NAMESPACE } from '../../constants';
@@ -49,21 +38,21 @@ import {
   SyncStatus,
   ExpandableComponentProps,
   ExpandableComponentsMap,
+  SelectExpandable,
+  EnrollApplicationButton,
 } from './components';
 import {
   getHeaderColumns,
   getColumnNames,
   getRowActions,
   getReplicationHealth,
-  getErrorConditions,
   isFailingOrRelocating,
   ReplicationHealthMap,
   getAppWorstSyncStatus,
   SyncStatusInfo,
+  drpcDetailsPageRoute,
 } from './utils';
-
-const INITIAL_PAGE_NUMBER = 1;
-const COUNT_PER_PAGE_NUMBER = 10;
+import './protected-apps.scss';
 
 type RowExtraProps = {
   launcher: LaunchModal;
@@ -81,17 +70,20 @@ const ProtectedAppsTableRow: React.FC<
 
   const columnNames = getColumnNames(t);
   const appName = getName(application);
+  const drPolicyName = getDRPolicyName(application);
   const { launcher, navigate, syncStatus }: RowExtraProps = extraProps;
 
   const onTabSelect = (
     _event: React.MouseEvent<HTMLElement, MouseEvent>,
-    tabKey: EXPANDABLE_COMPONENT_TYPE
-  ) =>
+    buttonRef: React.MutableRefObject<HTMLElement>
+  ) => {
+    const tabKey = buttonRef.current.id as EXPANDABLE_COMPONENT_TYPE;
     tabKey === expandableComponentType
       ? // collapse the expandable section
         setExpandableComponentType(EXPANDABLE_COMPONENT_TYPE.DEFAULT)
       : // render new selected expandable section
         setExpandableComponentType(tabKey);
+  };
 
   const isExpanded: boolean =
     expandableComponentType !== EXPANDABLE_COMPONENT_TYPE.DEFAULT;
@@ -102,15 +94,6 @@ const ProtectedAppsTableRow: React.FC<
     // @ts-ignore
     application.spec?.enrolledNamespace || [];
 
-  // Errors details
-  const filteredErrorConditions: K8sResourceCondition[] =
-    getErrorConditions(application);
-  const showErrorsDetails: boolean =
-    !!filteredErrorConditions.length ||
-    expandableComponentType === EXPANDABLE_COMPONENT_TYPE.ERRORS;
-
-  // Current activity details
-  const errorsCount: number = filteredErrorConditions.length;
   // ToDo: Add clean-up activity event as well
   const showEventsDetails: boolean =
     isFailingOrRelocating(application) ||
@@ -137,7 +120,7 @@ const ProtectedAppsTableRow: React.FC<
           expand={{
             rowIndex,
             isExpanded: isExpanded,
-            // only allowing collapse from here, we can expand from respective "Tabs"
+            // only allowing collapse from here, we can expand from respective "SelectExpandable" FC
             onToggle: () =>
               isExpanded &&
               setExpandableComponentType(EXPANDABLE_COMPONENT_TYPE.DEFAULT),
@@ -145,79 +128,70 @@ const ProtectedAppsTableRow: React.FC<
           }}
         />
         <Td translate={null} dataLabel={columnNames[1]}>
-          <ResourceNameWIcon
+          <ResourceLink
             resourceModel={DRPlacementControlModel}
             resourceName={appName}
+            link={drpcDetailsPageRoute(application)}
           />
         </Td>
         <Td translate={null} dataLabel={columnNames[2]}>
-          <Tabs
-            activeKey={expandableComponentType}
+          <SelectExpandable
+            title={
+              <div>
+                <CubeIcon size={'sm'} color={blackIconColor.value} />
+                <span className="pf-u-pl-sm">{enrolledNamespaces.length}</span>
+              </div>
+            }
+            tooltipContent={t('View namespaces')}
             onSelect={onTabSelect}
-            isFilled
-          >
-            <Tab
-              translate={null}
-              eventKey={EXPANDABLE_COMPONENT_TYPE.NS}
+            buttonId={EXPANDABLE_COMPONENT_TYPE.NS}
+            className={classNames({
+              'mco-protected-applications__expanded':
+                expandableComponentType === EXPANDABLE_COMPONENT_TYPE.NS,
+            })}
+          />
+          {showEventsDetails && (
+            <SelectExpandable
               title={
                 <div>
-                  <CubeIcon size={'sm'} />
-                  <span className="pf-u-pl-sm">
-                    {enrolledNamespaces.length}
-                  </span>
+                  <InProgressIcon size={'sm'} color={blackIconColor.value} />
+                  <span className="pf-u-pl-sm">{eventsCount}</span>
                 </div>
               }
-              tooltip={<Tooltip content={t('View namespaces')} />}
+              tooltipContent={t('View activity')}
+              onSelect={onTabSelect}
+              buttonId={EXPANDABLE_COMPONENT_TYPE.EVENTS}
+              className={classNames({
+                'mco-protected-applications__expanded':
+                  expandableComponentType === EXPANDABLE_COMPONENT_TYPE.EVENTS,
+                'pf-u-pl-lg': true,
+              })}
             />
-            {showErrorsDetails && (
-              <Tab
-                translate={null}
-                eventKey={EXPANDABLE_COMPONENT_TYPE.ERRORS}
-                title={
-                  <div>
-                    <RedExclamationCircleIcon size={'sm'} />
-                    <span className="pf-u-pl-sm">{errorsCount}</span>
-                  </div>
-                }
-                tooltip={<Tooltip content={t('View alerts')} />}
-              />
-            )}
-            {showEventsDetails && (
-              <Tab
-                translate={null}
-                eventKey={EXPANDABLE_COMPONENT_TYPE.EVENTS}
-                title={
-                  <div>
-                    <InProgressIcon size={'sm'} />
-                    <span className="pf-u-pl-sm">{eventsCount}</span>
-                  </div>
-                }
-                tooltip={<Tooltip content={t('View activity')} />}
-              />
-            )}
-          </Tabs>
+          )}
         </Td>
         <Td translate={null} dataLabel={columnNames[3]}>
-          <Tabs
-            activeKey={expandableComponentType}
+          <SelectExpandable
+            title={
+              <div>
+                {icon}
+                <span className="pf-u-pl-sm">{title}</span>
+              </div>
+            }
+            tooltipContent={t('See detailed information')}
             onSelect={onTabSelect}
-            isFilled
-          >
-            <Tab
-              translate={null}
-              eventKey={EXPANDABLE_COMPONENT_TYPE.STATUS}
-              title={
-                <div>
-                  {icon}
-                  <span className="pf-u-pl-sm">{title}</span>
-                </div>
-              }
-              tooltip={<Tooltip content={t('See detailed information')} />}
-            />
-          </Tabs>
+            buttonId={EXPANDABLE_COMPONENT_TYPE.STATUS}
+            className={classNames({
+              'mco-protected-applications__expanded':
+                expandableComponentType === EXPANDABLE_COMPONENT_TYPE.STATUS,
+            })}
+          />
         </Td>
         <Td translate={null} dataLabel={columnNames[4]}>
-          {getDRPolicyName(application)}
+          <Link
+            to={`/multicloud/data-services/disaster-recovery/policies?name=${drPolicyName}`}
+          >
+            {drPolicyName}
+          </Link>
         </Td>
         <Td translate={null} dataLabel={columnNames[5]}>
           {getLastAppDeploymentClusterName(application) || DASH}
@@ -233,7 +207,6 @@ const ProtectedAppsTableRow: React.FC<
           <Td translate={null} colSpan={Object.keys(columnNames).length + 1}>
             <ExpandableComponent
               application={application}
-              filteredConditions={filteredErrorConditions}
               syncStatusInfo={syncStatusInfo}
             />
           </Td>
@@ -248,8 +221,6 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   const launcher = useModal();
   const navigate = useNavigate();
 
-  const [page, setPage] = React.useState(INITIAL_PAGE_NUMBER);
-  const [perPage, setPerPage] = React.useState(COUNT_PER_PAGE_NUMBER);
   const [syncStatus, setSyncStatus] = React.useState({} as SyncStatus);
 
   const [discoveredApps, discoveredAppsLoaded, discoveredAppsError] =
@@ -304,68 +275,27 @@ export const ProtectedApplicationsListPage: React.FC = () => {
 
   useScheduler(updateSyncStatus);
 
-  const paginatedData: DRPlacementControlKind[] = React.useMemo(() => {
-    const [start, end] = getPageRange(page, perPage);
-    return filteredData.slice(start, end) || [];
-  }, [filteredData, page, perPage]);
-
   return (
-    <>
-      <ListPageBody>
-        {isAllLoadedWOAnyError && (
-          <>
-            <Text component={TextVariants.h2} className="pf-u-mt-sm">
-              {t('Protected applications')}
-            </Text>
-            <Flex className="pf-u-justify-content-space-between">
-              <FlexItem>
-                <Flex>
-                  <ListPageFilter
-                    data={getValidFilteredData(data)}
-                    loaded={isAllLoaded}
-                    onFilterChange={onFilterChange}
-                    hideColumnManagement={true}
-                  />
-                  {/* ToDo: Update, either just modal or dropdown + modal */}
-                  <Button variant={ButtonVariant.primary}>
-                    {t('Enroll application')}
-                  </Button>
-                </Flex>
-              </FlexItem>
-              <FlexItem>
-                <Pagination
-                  perPageComponent="button"
-                  itemCount={filteredData.length || 0}
-                  widgetId="acm-discovered-apps-list"
-                  perPage={perPage}
-                  page={page}
-                  variant={PaginationVariant.bottom}
-                  dropDirection="up"
-                  perPageOptions={[]}
-                  isStatic
-                  onSetPage={(_event, newPage) => setPage(newPage)}
-                  onPerPageSelect={(_event, newPerPage, newPage) => {
-                    setPerPage(newPerPage);
-                    setPage(newPage);
-                  }}
-                />
-              </FlexItem>
-            </Flex>
-            <AlertMessages />
-          </>
-        )}
-        <ComposableTable
-          columns={getHeaderColumns(t)}
-          RowComponent={ProtectedAppsTableRow}
-          extraProps={{ launcher, navigate, syncStatus }}
-          rows={paginatedData}
-          emptyRowMessage={EmptyRowMessage}
-          unfilteredData={data as []}
-          noDataMsg={NoDataMessage}
-          loaded={isAllLoaded}
-          loadError={anyError}
-        />
-      </ListPageBody>
-    </>
+    <PaginatedsListPage
+      filteredData={filteredData}
+      CreateButton={EnrollApplicationButton}
+      Alerts={AlertMessages}
+      noData={!isAllLoadedWOAnyError || !data.length}
+      listPageFilterProps={{
+        data: data,
+        loaded: isAllLoaded,
+        onFilterChange: onFilterChange,
+      }}
+      composableTableProps={{
+        columns: getHeaderColumns(t),
+        RowComponent: ProtectedAppsTableRow,
+        extraProps: { launcher, navigate, syncStatus },
+        emptyRowMessage: EmptyRowMessage,
+        unfilteredData: data as [],
+        noDataMsg: NoDataMessage,
+        loaded: isAllLoaded,
+        loadError: anyError,
+      }}
+    />
   );
 };

@@ -2,37 +2,44 @@ import * as React from 'react';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
-import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
-import { K8sResourceCondition } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
-  EmptyState,
-  EmptyStateVariant,
-  EmptyStateIcon,
-  EmptyStateBody,
-  Title,
   Bullseye,
   Alert,
   AlertProps,
+  Button,
+  ButtonVariant,
+  Tooltip,
   DescriptionList,
   DescriptionListTerm,
   DescriptionListGroup,
   DescriptionListDescription,
 } from '@patternfly/react-core';
-import { InfoCircleIcon, InProgressIcon } from '@patternfly/react-icons';
+import { InProgressIcon } from '@patternfly/react-icons';
 import { ENROLLED_APP_QUERY_PARAMS_KEY } from '../../constants';
 import { DRPlacementControlKind } from '../../types';
+import EmptyPage from '../empty-state-page/empty-page';
 import { getCurrentActivity } from '../mco-dashboard/disaster-recovery/cluster-app-card/application';
 import {
   getAlertMessages,
-  getErrorStates,
   isFailingOrRelocating,
   replicationHealthMap,
   SyncStatusInfo,
 } from './utils';
 import './protected-apps.scss';
+
+type SelectExpandableProps = {
+  title: React.ReactNode;
+  tooltipContent: string;
+  onSelect: (
+    event: React.MouseEvent<HTMLElement, MouseEvent>,
+    buttonRef: React.MutableRefObject<HTMLElement>
+  ) => void;
+  buttonId: EXPANDABLE_COMPONENT_TYPE;
+  className?: string;
+};
 
 type DescriptionProps = {
   term: string;
@@ -69,6 +76,18 @@ const Description: React.FC<DescriptionProps> = ({ term, descriptions }) => {
   );
 };
 
+export const EnrollApplicationButton: React.FC = () => {
+  const { t } = useCustomTranslation();
+  // ToDo: Update, either just modal or dropdown + modal
+  return (
+    <div className="pf-u-ml-md">
+      <Button variant={ButtonVariant.primary} className="pf-u-mt-md">
+        {t('Enroll application')}
+      </Button>
+    </div>
+  );
+};
+
 export const EmptyRowMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
@@ -81,19 +100,18 @@ export const EmptyRowMessage: React.FC = () => {
 export const NoDataMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
-    <EmptyState variant={EmptyStateVariant.large}>
-      <EmptyStateIcon icon={InfoCircleIcon} />
-      <Title headingLevel="h3" size="lg">
-        {t('No protected applications')}
-      </Title>
-      <EmptyStateBody>
-        <Trans t={t}>
-          You do not have any protected applications yet, to add disaster
-          recovery protection to your applications start by clicking on the{' '}
-          <strong>Enroll application</strong> button.
-        </Trans>
-      </EmptyStateBody>
-    </EmptyState>
+    <EmptyPage
+      title={t('No protected applications')}
+      ButtonComponent={EnrollApplicationButton}
+      isLoaded
+      canAccess
+    >
+      <Trans t={t}>
+        You do not have any protected applications yet, to add disaster recovery
+        protection to your applications start by clicking on the{' '}
+        <strong>Enroll application</strong> button.
+      </Trans>
+    </EmptyPage>
   );
 };
 
@@ -127,10 +145,33 @@ export const AlertMessages: React.FC = () => {
   );
 };
 
+export const SelectExpandable: React.FC<SelectExpandableProps> = ({
+  title,
+  tooltipContent,
+  onSelect,
+  buttonId,
+  className,
+}) => {
+  const buttonRef = React.useRef<HTMLElement>();
+  return (
+    <Tooltip content={tooltipContent}>
+      <Button
+        ref={buttonRef}
+        variant={ButtonVariant.link}
+        onClick={(event) => onSelect(event, buttonRef)}
+        id={buttonId}
+        className={className}
+        isInline
+      >
+        {title}
+      </Button>
+    </Tooltip>
+  );
+};
+
 export enum EXPANDABLE_COMPONENT_TYPE {
   DEFAULT = '',
   NS = 'namespaces',
-  ERRORS = 'errors',
   EVENTS = 'events',
   STATUS = 'status',
 }
@@ -139,7 +180,6 @@ export type SyncStatus = { [appName: string]: SyncStatusInfo };
 
 export type ExpandableComponentProps = {
   application?: DRPlacementControlKind;
-  filteredConditions?: K8sResourceCondition[];
   syncStatusInfo?: SyncStatusInfo;
 };
 
@@ -166,32 +206,6 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
           <Description
             term={t('Namespace')}
             descriptions={enrolledNamespaces}
-          />
-        </DescriptionList_>
-      )}
-    </>
-  );
-};
-
-export const ErrorsDetails: React.FC<ExpandableComponentProps> = ({
-  filteredConditions,
-}) => {
-  const { t } = useCustomTranslation();
-
-  const errorStates = getErrorStates(filteredConditions).map((errorMessage) => (
-    <>
-      <RedExclamationCircleIcon size={'sm'} /> {errorMessage}
-    </>
-  ));
-  return (
-    <>
-      {!filteredConditions.length ? (
-        <DataUnavailableError className="pf-u-pt-xl pf-u-pb-xl" />
-      ) : (
-        <DescriptionList_>
-          <Description
-            term={t('Error description')}
-            descriptions={errorStates}
           />
         </DescriptionList_>
       )}
@@ -273,7 +287,6 @@ export const StatusDetails: React.FC<ExpandableComponentProps> = ({
 export const ExpandableComponentsMap = {
   [EXPANDABLE_COMPONENT_TYPE.DEFAULT]: () => null,
   [EXPANDABLE_COMPONENT_TYPE.NS]: NamespacesDetails,
-  [EXPANDABLE_COMPONENT_TYPE.ERRORS]: ErrorsDetails,
   [EXPANDABLE_COMPONENT_TYPE.EVENTS]: EventsDetails,
   [EXPANDABLE_COMPONENT_TYPE.STATUS]: StatusDetails,
 };

@@ -166,28 +166,27 @@ export const DRPolicyListPage: React.FC = () => {
         onClose={closeModal}
         isOpen={isModalOpen}
       />
-      {drPolicies?.length === 0 ? (
-        // All length 0 cases are handled by EmptyPage
-        <EmptyPage
-          title={t('No disaster recovery policies yet')}
-          buttonText={t('Create DRPolicy')}
-          canAccess={!drPoliciesLoadError && drPoliciesLoaded}
-          t={t}
-          // Stop loading when DRPolicy read is success or any error occured
-          // For DRPolicy read permission issue, loaded is always false and error is non empty
-          isLoaded={drPoliciesLoaded || !!drPoliciesLoadError}
-          onClick={() => navigate(drPolicyCreatePagePath)}
-        >
-          <Trans t={t}>
-            Configure recovery to your failover cluster with a disaster recovery
-            policy.
-            <br />
-            Click the <strong>Create DRPolicy</strong> button to get started.
-          </Trans>
-        </EmptyPage>
-      ) : (
-        <>
-          <ListPageBody>
+      <ListPageBody>
+        {drPolicies?.length === 0 ? (
+          // All length 0 cases are handled by EmptyPage
+          <EmptyPage
+            title={t('No disaster recovery policies yet')}
+            buttonText={t('Create DRPolicy')}
+            canAccess={!drPoliciesLoadError && drPoliciesLoaded}
+            // Stop loading when DRPolicy read is success or any error occured
+            // For DRPolicy read permission issue, loaded is always false and error is non empty
+            isLoaded={drPoliciesLoaded || !!drPoliciesLoadError}
+            onClick={() => navigate(drPolicyCreatePagePath)}
+          >
+            <Trans t={t}>
+              Configure recovery to your failover cluster with a disaster
+              recovery policy.
+              <br />
+              Click the <strong>Create DRPolicy</strong> button to get started.
+            </Trans>
+          </EmptyPage>
+        ) : (
+          <>
             <div className="mco-drpolicy-list__header">
               <ListPageFilter
                 data={data}
@@ -220,9 +219,9 @@ export const DRPolicyListPage: React.FC = () => {
                 openModal,
               }}
             />
-          </ListPageBody>
-        </>
-      )}
+          </>
+        )}
+      </ListPageBody>
     </>
   );
 };

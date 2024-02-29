@@ -4,4 +4,9 @@
         overflow-y: auto;
         padding: 1.5rem;
     }
+
+    &__expanded {
+        text-decoration: underline;
+        font-weight: bold;
+    }
 }
