@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
+import { ActionDropdownItems } from '@odf/shared/dropdown/action-dropdown';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   GrayUnknownIcon,
@@ -218,5 +219,31 @@ export const getRowActions = (
       </>
     ),
     onClick: () => launcher(() => <></>, {}),
+  },
+];
+
+export const enum EnrollApplicationTypes {
+  CHOOSE_TYPE = 'CHOOSE_TYPE',
+  DISCOVERED = 'DISCOVERED',
+  MANAGED = 'MANAGED',
+}
+
+export const getEnrollDropdownItems = (
+  t: TFunction<string>
+): ActionDropdownItems[] => [
+  {
+    id: EnrollApplicationTypes.CHOOSE_TYPE,
+    isDisabled: true,
+    text: t('Choose a type:'),
+  },
+  {
+    id: EnrollApplicationTypes.DISCOVERED,
+    isDisabled: false,
+    text: t('ACM discovered applications'),
+  },
+  {
+    id: EnrollApplicationTypes.MANAGED,
+    isDisabled: false,
+    text: t('ACM managed applications'),
   },
 ];

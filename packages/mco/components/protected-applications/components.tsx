@@ -1,8 +1,13 @@
 import * as React from 'react';
+import { PopoverStatus } from '@odf/shared';
+import { ActionDropdown } from '@odf/shared/dropdown/action-dropdown';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { referenceForModel } from '@odf/shared/utils';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
+import classNames from 'classnames';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -16,9 +21,15 @@ import {
   DescriptionListTerm,
   DescriptionListGroup,
   DescriptionListDescription,
+  PopoverPosition,
 } from '@patternfly/react-core';
-import { InProgressIcon } from '@patternfly/react-icons';
+import {
+  InProgressIcon,
+  OutlinedQuestionCircleIcon,
+  IconSize,
+} from '@patternfly/react-icons';
 import { ENROLLED_APP_QUERY_PARAMS_KEY } from '../../constants';
+import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
 import EmptyPage from '../empty-state-page/empty-page';
 import { getCurrentActivity } from '../mco-dashboard/disaster-recovery/cluster-app-card/application';
@@ -27,6 +38,8 @@ import {
   isFailingOrRelocating,
   replicationHealthMap,
   SyncStatusInfo,
+  EnrollApplicationTypes,
+  getEnrollDropdownItems,
 } from './utils';
 import './protected-apps.scss';
 
@@ -76,17 +89,105 @@ const Description: React.FC<DescriptionProps> = ({ term, descriptions }) => {
   );
 };
 
-export const EnrollApplicationButton: React.FC = () => {
-  const { t } = useCustomTranslation();
-  // ToDo: Update, either just modal or dropdown + modal
-  return (
-    <div className="pf-u-ml-md">
-      <Button variant={ButtonVariant.primary} className="pf-u-mt-md">
-        {t('Enroll application')}
-      </Button>
-    </div>
-  );
-};
+const EnrollApplicationButton_: React.FC = () => (
+  <EnrollApplicationButton isNoDataMessage />
+);
+
+const ManagedApplicationsModalLazy = React.lazy(
+  () => import('../modals/protected-applications/managed-applications-modal')
+);
+
+export const EnrollApplicationButton: React.FC<{ isNoDataMessage?: boolean }> =
+  ({ isNoDataMessage }) => {
+    const { t } = useCustomTranslation();
+    const navigate = useNavigate();
+    const launcher = useModal();
+
+    return (
+      <div
+        className={classNames({
+          'pf-u-display-flex pf-u-flex-direction-column pf-u-flex-direction-row-on-lg mco-protected-applications__popover':
+            !isNoDataMessage,
+        })}
+      >
+        <div className="pf-u-ml-md pf-u-mt-md">
+          <ActionDropdown
+            id="enroll-application-types"
+            aria-label={t('Enroll application')}
+            text={t('Enroll application')}
+            toggleVariant={'primary'}
+            onSelect={(id: EnrollApplicationTypes) => {
+              id === EnrollApplicationTypes.DISCOVERED &&
+                navigate(
+                  `/multicloud/data-services/disaster-recovery/protected-applications/${referenceForModel(
+                    DRPlacementControlModel
+                  )}/~new`
+                );
+              id === EnrollApplicationTypes.MANAGED &&
+                launcher(ManagedApplicationsModalLazy, { isOpen: true });
+            }}
+            dropdownItems={getEnrollDropdownItems(t)}
+          />
+        </div>
+        <PopoverStatus
+          statusBody={
+            <div
+              className={classNames({
+                'pf-u-ml-md': true,
+                'pf-u-mt-md': isNoDataMessage,
+              })}
+            >
+              <OutlinedQuestionCircleIcon
+                size={IconSize.sm}
+                className="pf-u-mr-sm"
+              />
+              {t('Application types and their enrollment processes')}
+            </div>
+          }
+          title={t('Application types and their enrollment processes')}
+          popoverPosition={PopoverPosition.bottom}
+        >
+          <Trans t={t}>
+            <p className="co-break-word pf-u-font-weight-bold">
+              ACM discovered applications:
+            </p>
+            <p className="co-break-word pf-u-mb-sm">
+              Based on modular and microservices architecture, uses operators
+              for dynamically created kubernetes objects. Eg:{' '}
+              <span className="pf-u-font-weight-bold">
+                CloudPak, Custom-created applications
+              </span>
+            </p>
+            <p className="co-break-word pf-u-mb-md">
+              <span className="pf-u-font-weight-bold">Enrollment process:</span>{' '}
+              Discovered applications are enrolled under disaster recovery
+              through enabling protection for their namespaces and further
+              defining the scope of this protection within namespace through
+              recipe selection or resource label.
+            </p>
+
+            <p className="co-break-word pf-u-font-weight-bold">
+              ACM managed applications:
+            </p>
+            <p className="co-break-word pf-u-mb-sm">
+              Based on subscribing to one or more Kubernetes resource
+              repositories (channel resource) that contains resources that are
+              deployed on managed clusters. Eg:{' '}
+              <span className="pf-u-font-weight-bold">
+                ApplicationSet, Subscriptions
+              </span>
+            </p>
+            <p className="co-break-word">
+              <span className="pf-u-font-weight-bold">Enrollment process:</span>{' '}
+              Individually protect managed application with flexibility for
+              distinct configurations for different sub-categories of managed
+              application based on specific requirements.
+            </p>
+          </Trans>
+        </PopoverStatus>
+      </div>
+    );
+  };
 
 export const EmptyRowMessage: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -102,7 +203,7 @@ export const NoDataMessage: React.FC = () => {
   return (
     <EmptyPage
       title={t('No protected applications')}
-      ButtonComponent={EnrollApplicationButton}
+      ButtonComponent={EnrollApplicationButton_}
       isLoaded
       canAccess
     >
@@ -229,7 +330,7 @@ export const EventsDetails: React.FC<ExpandableComponentProps> = ({
   ];
   const status = [
     <>
-      <InProgressIcon size={'sm'} /> {t('In progress')}
+      <InProgressIcon size={IconSize.sm} /> {t('In progress')}
     </>,
   ];
   return (

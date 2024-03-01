@@ -9,6 +9,8 @@ type PopoverStatusProps = {
   hideHeader?: boolean;
   isVisible?: boolean;
   shouldClose?: (hideFunction: any) => void;
+  popoverPosition?: PopoverPosition;
+  hasAutoWidth?: boolean;
 };
 
 const PopoverStatus: React.FC<PopoverStatusProps> = ({
@@ -20,10 +22,12 @@ const PopoverStatus: React.FC<PopoverStatusProps> = ({
   title,
   onHide,
   onShow,
+  popoverPosition,
+  hasAutoWidth,
 }) => {
   return (
     <Popover
-      position={PopoverPosition.right}
+      position={popoverPosition || PopoverPosition.right}
       headerContent={hideHeader ? null : title}
       bodyContent={children}
       aria-label={title}
@@ -31,6 +35,7 @@ const PopoverStatus: React.FC<PopoverStatusProps> = ({
       onShow={onShow}
       isVisible={isVisible}
       shouldClose={shouldClose}
+      hasAutoWidth={hasAutoWidth}
     >
       <Button variant="link" isInline>
         {statusBody}
