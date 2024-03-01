@@ -18,7 +18,7 @@ import { DRActionType } from '../../../constants';
 import { DRPlacementControlModel } from '../../../models';
 import {
   ApplicationProps,
-  PlacementProps,
+  PlacementControlProps,
   FailoverRelocateModalBody,
 } from './failover-relocate-modal-body';
 
@@ -54,7 +54,8 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
   const [footerStatus, setFooterStatus] = React.useState(
     ModalFooterStatus.INITIAL
   );
-  const [placement, setPlacement] = React.useState<PlacementProps>({});
+  const [placementControl, setPlacementControl] =
+    React.useState<PlacementControlProps>({});
   const [canInitiate, setCanInitiate] = React.useState(false);
 
   const onClick = () => {
@@ -71,23 +72,23 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
         path: '/spec/failoverCluster',
         value:
           action === DRActionType.FAILOVER
-            ? placement?.targetClusterName
-            : placement?.primaryClusterName,
+            ? placementControl?.targetClusterName
+            : placementControl?.primaryClusterName,
       },
       {
         op: 'replace',
         path: '/spec/preferredCluster',
         value:
           action === DRActionType.FAILOVER
-            ? placement?.primaryClusterName
-            : placement?.targetClusterName,
+            ? placementControl?.primaryClusterName
+            : placementControl?.targetClusterName,
       },
     ];
     k8sPatch({
       model: DRPlacementControlModel,
       resource: {
         metadata: {
-          name: placement?.drPlacementControlName,
+          name: placementControl?.drPlacementControlName,
           namespace: applicationNamespace,
         },
       },
@@ -117,7 +118,7 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
               {...props}
               canInitiate={canInitiate}
               setCanInitiate={setCanInitiate}
-              setPlacement={setPlacement}
+              setPlacement={setPlacementControl}
             />
             {(!!errorMessage || !!loadError) && (
               <Alert

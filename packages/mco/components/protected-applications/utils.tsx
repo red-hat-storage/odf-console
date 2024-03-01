@@ -23,10 +23,12 @@ import {
   DRPC_STATUS,
   LEAST_SECONDS_IN_PROMETHEUS,
   DR_BASE_ROUTE,
+  DRActionType,
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
 import { getVolumeReplicationHealth } from '../../utils';
+import { DiscoveredApplicationParser as DiscoveredApplicationModal } from '../modals/app-failover-relocate/parser/discovered-application-parser';
 
 export const drpcDetailsPageRoute = (drpc: DRPlacementControlKind) =>
   `/k8s/ns/${getNamespace(drpc)}/${referenceForModel(
@@ -208,7 +210,11 @@ export const getRowActions = (
         </p>
       </>
     ),
-    onClick: () => launcher(() => <></>, {}),
+    onClick: () =>
+      launcher(DiscoveredApplicationModal, {
+        isOpen: true,
+        extraProps: { application: rowItem, action: DRActionType.FAILOVER },
+      }),
   },
   {
     title: (
@@ -219,7 +225,11 @@ export const getRowActions = (
         </p>
       </>
     ),
-    onClick: () => launcher(() => <></>, {}),
+    onClick: () =>
+      launcher(DiscoveredApplicationModal, {
+        isOpen: true,
+        extraProps: { application: rowItem, action: DRActionType.RELOCATE },
+      }),
   },
 ];
 
