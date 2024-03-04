@@ -23,7 +23,7 @@ import {
 import { Icon } from '@patternfly/react-core';
 import { InProgressIcon, CubeIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
-import { ODFMCO_OPERATOR_NAMESPACE } from '../../constants';
+import { ODFMCO_OPERATOR_NAMESPACE, DR_BASE_ROUTE } from '../../constants';
 import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
@@ -194,7 +194,7 @@ const ProtectedAppsTableRow: React.FC<
         </Td>
         <Td translate={null} dataLabel={columnNames[4]}>
           <Link
-            to={`/multicloud/data-services/disaster-recovery/policies?name=${drPolicyName}`}
+            to={`${DR_BASE_ROUTE}/policies?name=${drPolicyName}`}
             data-test={`link-${drPolicyName}`}
           >
             {drPolicyName}

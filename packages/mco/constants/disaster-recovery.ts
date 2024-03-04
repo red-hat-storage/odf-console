@@ -95,3 +95,5 @@ export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
   [EnrollDiscoveredApplicationSteps.Replication]: t('Replication'),
   [EnrollDiscoveredApplicationSteps.Review]: t('Review'),
 });
+
+export const DR_BASE_ROUTE = '/multicloud/data-services/disaster-recovery';

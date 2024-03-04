@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { getCephHealthState } from '@odf/ocs/utils';
+import { ODF_DOC_BASE_PATH } from '@odf/shared/constants/doc';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -50,7 +51,7 @@ const resiliencyProgressQuery = (managedByOCS: string) =>
   ];
 
 const generateDocumentationLink = (alert: Alert): string => {
-  return `https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.12/html-single/troubleshooting_openshift_data_foundation/index#${_.toLower(
+  return `${ODF_DOC_BASE_PATH}/troubleshooting_openshift_data_foundation/index#${_.toLower(
     alert?.labels?.alertname
   )}_rhodf`;
 };

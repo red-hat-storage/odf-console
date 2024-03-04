@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { useScheduler } from '../../../shared/src/hooks';
+import { DR_BASE_ROUTE } from '../../constants';
 import { DRPolicyModel, DRPlacementControlModel } from '../../models/ramen';
 import {
   EmptyRowMessage,
@@ -288,10 +289,7 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     expect(policyElement).toHaveTextContent(drPolicyName);
     expect(
       policyElement.querySelector(`[data-test='link-${drPolicyName}']`)
-    ).toHaveAttribute(
-      'to',
-      `/multicloud/data-services/disaster-recovery/policies?name=${drPolicyName}`
-    );
+    ).toHaveAttribute('to', `${DR_BASE_ROUTE}/policies?name=${drPolicyName}`);
 
     // Cluster
     expect(container.querySelector('[data-label="Cluster"]')).toHaveTextContent(

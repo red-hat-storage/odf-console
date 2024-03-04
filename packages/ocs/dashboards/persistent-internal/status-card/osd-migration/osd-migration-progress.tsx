@@ -4,7 +4,7 @@ import {
   BLUESTORE,
   BLUESTORE_RDR,
 } from '@odf/core/constants';
-import { ODF_DR_DOC_HOME } from '@odf/shared/constants/doc';
+import { ODF_DR_DOC_APPLY_POLICY } from '@odf/shared/constants/doc';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { CephClusterKind } from '@odf/shared/types';
@@ -69,7 +69,7 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
             <FlexItem>
               <ViewDocumentation
                 text={t('Setting up disaster recovery')}
-                doclink={ODF_DR_DOC_HOME}
+                doclink={ODF_DR_DOC_APPLY_POLICY}
               />
             </FlexItem>
           </>
