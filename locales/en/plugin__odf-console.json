@@ -151,7 +151,11 @@
   "Getting started with disaster recovery": "Getting started with disaster recovery",
   "Create a disaster recovery policy": "Create a disaster recovery policy",
   "No disaster recovery policies.": "No disaster recovery policies.",
+<<<<<<< HEAD
   "<0>You have {policyCount.toString()} disaster recovery policies. <4>{t('View policies')}</4></0>": "<0>You have {policyCount.toString()} disaster recovery policies. <4>{t('View policies')}</4></0>",
+=======
+  "<0>You have {JSON.stringify(policyCount)} disaster recovery policies. <4>{t('View policies')}</4></0>": "<0>You have {JSON.stringify(policyCount)} disaster recovery policies. <4>{t('View policies')}</4></0>",
+>>>>>>> 84dfc5c9 (Add 'Getting Started' card to MCO Overview dashboard)
   "View policies": "View policies",
   "<0>View enrolled apps under <2>Protected applications</2>.</0>": "<0>View enrolled apps under <2>Protected applications</2>.</0>",
   "Create policy": "Create policy",
