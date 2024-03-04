@@ -171,6 +171,37 @@ const searchResultForWest1: SearchResult = {
   },
 };
 
+const searchResultForRecipe: SearchResult = {
+  data: {
+    searchResult: [
+      {
+        items: [
+          {
+            _uid: 'east-1/00f6129f-ade1-41f3-88a5-e9c4e046df9b',
+            apiversion: 'v1',
+            cluster: 'east-1',
+            created: '2024-02-13T02:58:52Z',
+            kind: 'Recipe',
+            label: 'name=mock-recipe-1',
+            namespace: 'namespace-1',
+            name: 'mock-recipe-1',
+          },
+          {
+            _uid: 'east-1/db44ed9a-264f-4f05-b870-e0821fe3516c',
+            apiversion: 'v1',
+            cluster: 'east-1',
+            created: '2024-02-13T02:45:40Z',
+            kind: 'Recipe',
+            label: 'name=mock-recipe-2',
+            namespace: 'namespace-2',
+            name: 'mock-recipe-2',
+          },
+        ],
+      },
+    ],
+  },
+};
+
 jest.mock('@odf/shared/hooks/useK8sList', () => ({
   __esModule: true,
   useK8sList: jest.fn(() => [drPolicies, true, undefined]),
@@ -179,17 +210,22 @@ jest.mock('@odf/shared/hooks/useK8sList', () => ({
 jest.mock('@odf/mco/hooks/acm-safe-fetch', () => ({
   __esModule: true,
   useACMSafeFetch: jest.fn((searchQuery: SearchQuery) => {
-    let clusterName = '';
-    searchQuery.variables.input.forEach((param) => {
-      const filter = param.filters.find(
-        (filter) => filter.property === 'cluster'
-      );
-      if (!!filter) clusterName = filter.values as string;
-    });
-    if (clusterName === 'east-1') {
-      return [searchResultForEast1, undefined, true];
+    const queryStr = JSON.stringify(searchQuery);
+    if (queryStr.includes('recipe')) {
+      return [searchResultForRecipe, undefined, true];
     } else {
-      return [searchResultForWest1, undefined, true];
+      let clusterName = '';
+      searchQuery.variables.input.forEach((param) => {
+        const filter = param.filters.find(
+          (filter) => filter.property === 'cluster'
+        );
+        if (!!filter) clusterName = filter.values as string;
+      });
+      if (clusterName === 'east-1') {
+        return [searchResultForEast1, undefined, true];
+      } else {
+        return [searchResultForWest1, undefined, true];
+      }
     }
   }),
 }));
@@ -211,7 +247,7 @@ jest.mock(
       '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api'
     ),
     useListPageFilter: jest.fn((userNamespaces) => {
-      if ([3].includes(testCase))
+      if ([3, 4].includes(testCase))
         return [userNamespaces, userNamespaces, jest.fn()];
       else return [[], [], jest.fn()];
     }),
@@ -335,5 +371,78 @@ describe('Test namespace step', () => {
     expect(() => screen.getByText('openshift')).toThrow(
       'Unable to find an element'
     );
+  });
+});
+
+describe('Test configure step', () => {
+  beforeEach(() => {
+    testCase += 1;
+    render(<EnrollDiscoveredApplication />);
+    // Select cluster
+    fireEvent.click(screen.getByText('Select cluster'));
+    fireEvent.click(screen.getByText('east-1'));
+
+    // Select namespaces
+    fireEvent.click(screen.getByLabelText('Select row 0'));
+    fireEvent.click(screen.getByLabelText('Select row 1'));
+
+    // Next wizard step
+    fireEvent.click(screen.getByText('Next'));
+  });
+  test('Configure form test', async () => {
+    // Step1 title
+    expect(screen.getByText('Configure definition')).toBeInTheDocument();
+    // Step1 title description
+    expect(
+      screen.getByText(
+        'Choose your configuration preference to protect resources (application volumes/PVCs, or kube objects).'
+      )
+    ).toBeInTheDocument();
+    // Number of namespace selection
+    expect(
+      screen.getByText(
+        'You have selected {{count}} namespaces, to view or change your selection go back to the previous step.'
+      )
+    ).toBeInTheDocument();
+
+    // Recipe method
+    expect(screen.getByText('Recipe')).toBeInTheDocument();
+    // Namespace table
+    expect(
+      screen.getByText('Secure namespaces as per recipe definition.')
+    ).toBeInTheDocument();
+
+    // Recipe selection
+    expect(screen.getByText('Recipe list')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Only recipes of the selected namespaces will appear in the list.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Select a recipe')).toBeInTheDocument();
+
+    // Footer
+    expect(screen.getByText('Next')).toBeInTheDocument();
+    expect(screen.getByText('Back')).toBeEnabled();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+
+    // Validation message
+    fireEvent.click(screen.getByText('Next'));
+    expect(screen.getByText('Required')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        '1 or more mandatory fields are empty. To proceed, fill in the required information.'
+      )
+    ).toBeInTheDocument();
+
+    // Select recipe
+    fireEvent.click(screen.getByText('Select a recipe'));
+    expect(screen.getByText('mock-recipe-1')).toBeInTheDocument();
+    expect(screen.getByText('namespace-1')).toBeInTheDocument();
+    expect(screen.getByText('mock-recipe-2')).toBeInTheDocument();
+    expect(screen.getByText('namespace-2')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('mock-recipe-1'));
+    // Ensure recipe selection
+    expect(screen.getByText('mock-recipe-1')).toBeInTheDocument();
   });
 });
