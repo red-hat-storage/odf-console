@@ -55,13 +55,8 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
     nodes,
     dataProtection,
   } = state;
-  const {
-    capacity,
-    arbiterLocation,
-    enableTaint,
-    enableArbiter,
-    enableSingleReplicaPool,
-  } = capacityAndNodes;
+  const { capacity, arbiterLocation, enableTaint, enableArbiter } =
+    capacityAndNodes;
   const { encryption, kms, networkType } = securityAndNetwork;
   const {
     deployment,
@@ -94,9 +89,6 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
 
   const encryptionStatus = hasEncryption ? t('Enabled') : t('Disabled');
   const ocsTaintsStatus = enableTaint ? t('Enabled') : t('Disabled');
-  const singleReplicaPoolStatus = enableSingleReplicaPool
-    ? t('Enabled')
-    : t('Disabled');
   const nfsStatus = enableNFS ? t('Enabled') : t('Disabled');
   const isCephRBDSetAsDefault = isRBDStorageClassDefault
     ? t('Enabled')
@@ -196,11 +188,6 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
           <ListItem>
             {t('Taint nodes: {{ocsTaintsStatus}}', {
               ocsTaintsStatus,
-            })}
-          </ListItem>
-          <ListItem>
-            {t('Replica-1 pool: {{singleReplicaPoolStatus}}', {
-              singleReplicaPoolStatus,
             })}
           </ListItem>
         </ReviewItem>

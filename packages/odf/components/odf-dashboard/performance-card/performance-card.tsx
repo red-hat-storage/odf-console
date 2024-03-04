@@ -72,6 +72,7 @@ const getRow: GetRow = ({
       resourceModel={ODFStorageSystem}
       resourceName={systemName}
     />,
+
     <LineGraph
       key={`${systemName}_IOPS`}
       {...iopsData}

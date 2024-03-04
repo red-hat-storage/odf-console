@@ -1,0 +1,16 @@
+.mco-protected-applications {
+    &__description {
+        max-height: 20vh;
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+
+    &__expanded {
+        text-decoration: underline;
+        font-weight: bold;
+    }
+
+    &__popover {
+        word-break: break-all;
+    }
+}

@@ -8,11 +8,13 @@ import { useSafeFetch } from '@odf/shared/hooks/custom-prometheus-poll/safe-fetc
 
 export const useACMSafeFetch: ACMSafeFetchProps = (
   searchQuery: SearchQuery
-): [SearchResult, any] => {
+): [SearchResult, any, boolean] => {
   const safeFetch = useSafeFetch();
   const [error, setError] = React.useState();
+  const [loaded, setLoaded] = React.useState(false);
   const [response, setResponse] = React.useState<SearchResult>();
   React.useEffect(() => {
+    setLoaded(false);
     safeFetch({
       url: ACM_SEARCH_PROXY_ENDPOINT,
       method: 'post',
@@ -26,13 +28,17 @@ export const useACMSafeFetch: ACMSafeFetchProps = (
     })
       .then((data) => {
         setResponse(data);
+        setLoaded(true);
       })
       .catch((err) => {
         setError(err);
+        setLoaded(true);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setResponse, searchQuery]);
-  return [response, error];
+  return [response, error, loaded];
 };
 
-type ACMSafeFetchProps = (searchQuery: SearchQuery) => [SearchResult, any];
+type ACMSafeFetchProps = (
+  searchQuery: SearchQuery
+) => [SearchResult, any, boolean];

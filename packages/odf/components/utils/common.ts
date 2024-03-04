@@ -381,10 +381,10 @@ type OCSRequestData = {
   isMCG?: boolean;
   isNFSEnabled?: boolean;
   shouldSetCephRBDAsDefault?: boolean;
-  isSingleReplicaPoolEnabled?: boolean;
   enableRDRPreparation?: boolean;
   storageClusterNamespace: string;
   useExternalPostgres?: boolean;
+  enablePostgresqlTls?: boolean;
   allowNoobaaPostgresSelfSignedCerts?: boolean;
   enableNoobaaClientSideCerts?: boolean;
   storageClusterName: string;
@@ -406,10 +406,10 @@ export const getOCSRequestData = ({
   isMCG,
   isNFSEnabled,
   shouldSetCephRBDAsDefault,
-  isSingleReplicaPoolEnabled,
   enableRDRPreparation,
   storageClusterNamespace,
   useExternalPostgres,
+  enablePostgresqlTls,
   allowNoobaaPostgresSelfSignedCerts,
   enableNoobaaClientSideCerts,
   storageClusterName,
@@ -475,7 +475,6 @@ export const getOCSRequestData = ({
         getNetworkField(publicNetwork, clusterNetwork, encryption.inTransit)
       ),
       managedResources: {
-        cephNonResilientPools: { enable: isSingleReplicaPoolEnabled },
         cephBlockPools: { defaultStorageClass: shouldSetCephRBDAsDefault },
       },
     };
@@ -507,16 +506,23 @@ export const getOCSRequestData = ({
   }
 
   if (useExternalPostgres) {
-    requestData.spec = {
-      multiCloudGateway: {
-        externalPgConfig: {
-          pgSecretName: NOOBA_EXTERNAL_PG_SECRET_NAME,
-          allowSelfSignedCerts: allowNoobaaPostgresSelfSignedCerts,
-        },
+    requestData.spec.multiCloudGateway = {
+      ...requestData.spec.multiCloudGateway,
+      externalPgConfig: {
+        pgSecretName: NOOBA_EXTERNAL_PG_SECRET_NAME,
+        allowSelfSignedCerts: allowNoobaaPostgresSelfSignedCerts,
       },
     };
+
+    if (enablePostgresqlTls) {
+      requestData.spec.multiCloudGateway.externalPgConfig = {
+        ...requestData.spec.multiCloudGateway.externalPgConfig,
+        enableTls: enablePostgresqlTls,
+      };
+    }
     if (enableNoobaaClientSideCerts) {
       requestData.spec.multiCloudGateway.externalPgConfig = {
+        ...requestData.spec.multiCloudGateway.externalPgConfig,
         tlsSecretName: NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
       };
     }

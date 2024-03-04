@@ -218,22 +218,13 @@ const searchResult: SearchResult = {
       {
         items: [
           {
-            accessMode: 'readwriteonce',
             apiversion: 'v1',
-            capacity: '5Gi',
             cluster: 'local-cluster',
             created: '2023-07-04T17:14:10Z',
             kind: 'PersistentVolumeClaim',
-            kind_plural: 'persistentvolumeclaims',
             label: 'app=mock-appset-2',
             name: 'busybox-pvc',
             namespace: 'appset1',
-            request: '5Gi',
-            status: 'Bound',
-            storageClassName: 'ocs-storagecluster-ceph-rbd',
-            volumeName: 'pvc-683b0a87-85bf-4743-96d2-565863752e53',
-            _clusterNamespace: '',
-            _hubClusterResource: 'true',
             _uid: 'local-cluster/683b0a87-85bf-4743-96d2-565863752e53',
           },
         ],

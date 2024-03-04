@@ -5,9 +5,9 @@ import {
   RowComponentType,
   SelectableTable,
   TableColumnProps,
-  sortRows,
-} from '@odf/shared/table/selectable-table';
+} from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { sortRows } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import { Text, Bullseye } from '@patternfly/react-core';
 import { ActionsColumn, IAction } from '@patternfly/react-table';

@@ -6,7 +6,7 @@ import * as React from 'react';
 import { DRPC_STATUS } from '@odf/mco/constants';
 import { PlacementInfo, ProtectedAppsMap } from '@odf/mco/types';
 import { getDRStatus } from '@odf/mco/utils';
-import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
+import { formatTime } from '@odf/shared/details-page/datetime';
 import { fromNow } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -46,7 +46,7 @@ const subscriptionTableColumnProps = [
 ];
 
 const formatSyncTimeWithRPO = (lastSnapshotSyncTime: string, rpo: string) => {
-  const dateTime = utcDateTimeFormatter.format(new Date(lastSnapshotSyncTime));
+  const dateTime = formatTime(lastSnapshotSyncTime);
   return `${dateTime} (${rpo})`;
 };
 
@@ -61,7 +61,7 @@ export const getCurrentActivity = (
       currentStatus as DRPC_STATUS
     )
   ) {
-    return t('{{ currentStatus }} to {{ preferredCluster }}', {
+    return t('{{ currentStatus }} to cluster {{ preferredCluster }}', {
       currentStatus,
       preferredCluster,
     });
@@ -70,7 +70,7 @@ export const getCurrentActivity = (
       currentStatus as DRPC_STATUS
     )
   ) {
-    return t('{{ currentStatus }} to {{ failoverCluster }}', {
+    return t('{{ currentStatus }} to cluster {{ failoverCluster }}', {
       currentStatus,
       failoverCluster,
     });

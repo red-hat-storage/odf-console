@@ -95,7 +95,7 @@ export const createNoobaaExternalPostgresResources = (
 ): Promise<K8sResourceKind>[] => {
   let secretResources: Promise<K8sResourceKind>[] = [];
   const stringData = {
-    db_url: `postgres://${externalPostgresDetails.username}:${externalPostgresDetails.password}@${externalPostgresDetails.serverName}.namespace.svc:${externalPostgresDetails.port}/${externalPostgresDetails.databaseName}`,
+    db_url: `postgresql://${externalPostgresDetails.username}:${externalPostgresDetails.password}@${externalPostgresDetails.serverName}:${externalPostgresDetails.port}/${externalPostgresDetails.databaseName}`,
   };
   const noobaaExternalPostgresSecretPayload = createSecretPayload(
     NOOBA_EXTERNAL_PG_SECRET_NAME,
@@ -159,13 +159,8 @@ export const createStorageCluster = async (
     backingStorage,
     dataProtection,
   } = state;
-  const {
-    capacity,
-    enableArbiter,
-    arbiterLocation,
-    pvCount,
-    enableSingleReplicaPool,
-  } = capacityAndNodes;
+  const { capacity, enableArbiter, arbiterLocation, pvCount } =
+    capacityAndNodes;
   const { encryption, publicNetwork, clusterNetwork, kms } = securityAndNetwork;
   const {
     type,
@@ -221,11 +216,11 @@ export const createStorageCluster = async (
     isMCG,
     isNFSEnabled,
     shouldSetCephRBDAsDefault,
-    isSingleReplicaPoolEnabled: enableSingleReplicaPool,
     enableRDRPreparation,
     storageClusterNamespace,
     enableNoobaaClientSideCerts: externalPostgres.tls.enableClientSideCerts,
     useExternalPostgres: useExternalPostgres,
+    enablePostgresqlTls: externalPostgres.tls.enabled,
     allowNoobaaPostgresSelfSignedCerts:
       externalPostgres.tls.allowSelfSignedCerts,
     storageClusterName,

@@ -11,3 +11,18 @@
 .odf-advanced-subscription {
   cursor: pointer;
 }
+
+.odf-steps-count-badge {
+  background-color: var(--pf-global--BackgroundColor--200);
+  color: var(--pf-global--Color--dark-100);
+  border-radius: 20px;
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 16px;
+  margin-right: 4px;
+  min-width: 18px;
+  padding: 1px 4px;
+  text-align: center;
+  white-space: nowrap;
+}

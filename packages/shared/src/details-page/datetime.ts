@@ -232,3 +232,6 @@ export const getTimeDifferenceInSeconds = (date: string) => {
   const currentTimeInSeconds = new Date().getTime() / 1000;
   return currentTimeInSeconds - timeInSeconds;
 };
+
+export const formatTime = (time: string) =>
+  !!time ? utcDateTimeFormatter.format(new Date(time)) : '';

@@ -13,6 +13,12 @@ type ResourceLinkProps = {
   className?: string;
 };
 
+type ResourceNameWIconProps = {
+  resourceModel: K8sKind;
+  resourceName: string;
+  className?: string;
+};
+
 type ResourceIconProps = {
   resourceModel: K8sKind;
   className?: string;
@@ -32,6 +38,19 @@ export const ResourceIcon: React.FC<ResourceIconProps> = ({
     </span>
   </>
 );
+
+export const ResourceNameWIcon: React.FC<ResourceNameWIconProps> = ({
+  resourceModel,
+  resourceName,
+  className,
+}) => {
+  return (
+    <span className="odf-resource-item">
+      <ResourceIcon resourceModel={resourceModel} className={className} />
+      {resourceName}
+    </span>
+  );
+};
 
 const ResourceLink: React.FC<ResourceLinkProps> = ({
   resourceModel,

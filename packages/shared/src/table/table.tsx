@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { StatusBox } from '@odf/shared/generic/status-box';
 import {
   OnSort,
   SortByDirection,
@@ -23,17 +24,32 @@ type TableProps = {
   rowRenderer: (rawData: []) => RowData;
   rawData: [];
   ariaLabel: string;
+  loaded?: boolean;
+  loadError?: any;
+  unfilteredData?: [];
+  noDataMsg?: React.FC;
+  emptyRowMessage?: React.FC;
 };
 
 const Table: React.FC<TableProps> = React.memo(
-  ({ ariaLabel, columns, rawData, rowRenderer }) => {
+  ({
+    ariaLabel,
+    columns,
+    rawData,
+    rowRenderer,
+    loaded = true,
+    loadError = null,
+    unfilteredData,
+    noDataMsg,
+    emptyRowMessage,
+  }) => {
     const [sortIndex, setSortIndex] = React.useState(-1);
     const [sortDirection, setSortDirection] = React.useState<SortByDirection>(
       SortByDirection.asc
     );
 
     const onSort: OnSort = (
-      event: React.MouseEvent,
+      _event: React.MouseEvent,
       columnIndex: number,
       sortByDirection: SortByDirection
     ) => {
@@ -78,26 +94,36 @@ const Table: React.FC<TableProps> = React.memo(
     });
 
     return (
-      <TableComposable aria-label={ariaLabel} translate={null}>
-        <Thead translate={null}>
-          <Tr translate={null}>{headerColumns}</Tr>
-        </Thead>
-        <Tbody translate={null}>
-          {rowData?.map((row, index) => (
-            <Tr key={index} translate={null}>
-              {row.map((item: React.ReactNode, cellIndex: number) => (
-                <Td
-                  translate={null}
-                  key={`${cellIndex}_${index}`}
-                  className={classNames[cellIndex]}
-                >
-                  {item}
-                </Td>
-              ))}
-            </Tr>
-          ))}
-        </Tbody>
-      </TableComposable>
+      <StatusBox
+        loadError={loadError}
+        loaded={loaded}
+        EmptyMsg={emptyRowMessage}
+        data={rawData}
+        unfilteredData={unfilteredData}
+        NoDataEmptyMsg={noDataMsg}
+        skeleton={<div className="loading-skeleton--table pf-u-mt-lg" />}
+      >
+        <TableComposable aria-label={ariaLabel} translate={null}>
+          <Thead translate={null}>
+            <Tr translate={null}>{headerColumns}</Tr>
+          </Thead>
+          <Tbody translate={null}>
+            {rowData?.map((row, index) => (
+              <Tr key={index} translate={null}>
+                {row.map((item: React.ReactNode, cellIndex: number) => (
+                  <Td
+                    translate={null}
+                    key={`${cellIndex}_${index}`}
+                    className={classNames[cellIndex]}
+                  >
+                    {item}
+                  </Td>
+                ))}
+              </Tr>
+            ))}
+          </Tbody>
+        </TableComposable>
+      </StatusBox>
     );
   }
 );

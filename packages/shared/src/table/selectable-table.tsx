@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
 import {
-  SortByDirection,
   TableComposable,
   Tbody,
   Td,
@@ -15,25 +13,7 @@ import {
 import { useSelectList } from '../hooks/select-list';
 import { useSortList } from '../hooks/sort-list';
 import { getUID } from '../selectors';
-
-export type TableColumnProps = ThProps & {
-  thProps?: TableThProps;
-  columnName: string;
-  sortFunction?: <T>(a: T, b: T, c: SortByDirection) => number;
-};
-
-export const sortRows = (
-  a: any,
-  b: any,
-  c: SortByDirection,
-  sortField: string
-) => {
-  const negation = c !== SortByDirection.asc;
-  const aValue = _.get(a, sortField, '').toString();
-  const bValue = _.get(b, sortField, '');
-  const sortVal = String(aValue).localeCompare(String(bValue));
-  return negation ? -sortVal : sortVal;
-};
+import { TableColumnProps, RowComponentType } from './composable-table';
 
 const isRowSelectable = <T extends K8sResourceCommon>(row: T) =>
   !row?.metadata?.deletionTimestamp;
@@ -62,22 +42,21 @@ const canApplyInitialSort = (
 
 export const SelectableTable: SelectableTableProps = <
   T extends K8sResourceCommon
->(
-  props: TableProps<T>
-) => {
-  const {
-    selectedRows,
-    setSelectedRows,
-    columns,
-    rows,
-    RowComponent,
-    extraProps,
-    isSelectableHidden,
-    loaded,
-    loadError,
-    emptyRowMessage,
-    initialSortColumnIndex,
-  } = props;
+>({
+  selectedRows,
+  setSelectedRows,
+  columns,
+  rows,
+  RowComponent,
+  extraProps,
+  isSelectableHidden,
+  loaded,
+  loadError,
+  emptyRowMessage,
+  initialSortColumnIndex,
+  borders,
+  className,
+}) => {
   const {
     onSort,
     sortIndex: activeSortIndex,
@@ -120,12 +99,14 @@ export const SelectableTable: SelectableTableProps = <
       loaded={loaded}
       EmptyMsg={emptyRowMessage}
       data={sortedRows}
-      skeleton={<div className="loading-skeleton--table" />}
+      skeleton={<div className="loading-skeleton--table pf-u-mt-lg" />}
     >
       <TableComposable
+        className={className}
         translate={null}
         aria-label="Selectable table"
         variant="compact"
+        borders={borders}
       >
         <Thead translate={null}>
           <Tr translate={null}>
@@ -183,16 +164,7 @@ export const SelectableTable: SelectableTableProps = <
   );
 };
 
-// Omit ref to resolve incompatible issue
-// sort is replaced by sortFunction
-type TableThProps = Omit<ThProps, 'sort' | 'ref'>;
-
-export type RowComponentType<T extends K8sResourceCommon> = {
-  row: T;
-  extraProps?: any;
-};
-
-export type TableProps<T extends K8sResourceCommon> = {
+type TableProps<T extends K8sResourceCommon> = {
   rows: T[];
   columns: TableColumnProps[];
   RowComponent: React.ComponentType<RowComponentType<T>>;
@@ -205,6 +177,10 @@ export type TableProps<T extends K8sResourceCommon> = {
   loadError?: any;
   emptyRowMessage?: React.FC;
   initialSortColumnIndex?: number;
+  /** Render borders */
+  borders?: boolean;
+  /** Additional classes added to the Table  */
+  className?: string;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(
