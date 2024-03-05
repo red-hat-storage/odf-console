@@ -55,6 +55,7 @@ export const getAlertMessages = (
             />
           ),
           isInline: true,
+          key: 'enrolled_success',
         },
       ]
     : []),
@@ -64,6 +65,7 @@ export const getAlertMessages = (
       'For disaster recovery or replication details about ACM managed applications navigate to Applications overview page.'
     ),
     isInline: true,
+    key: 'navigation_info',
   },
 ];
 

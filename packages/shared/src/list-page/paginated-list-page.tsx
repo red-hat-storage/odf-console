@@ -17,7 +17,7 @@ import { getPageRange, getValidFilteredData } from '../utils';
 const INITIAL_PAGE_NUMBER = 1;
 const COUNT_PER_PAGE_NUMBER = 10;
 
-export type PaginatedsListPageProps = {
+export type PaginatedListPageProps = {
   countPerPage?: number;
   filteredData: K8sResourceCommon[];
   CreateButton: React.FC<unknown>;
@@ -27,7 +27,7 @@ export type PaginatedsListPageProps = {
   composableTableProps: Omit<TableProps<K8sResourceCommon>, 'rows'>;
 };
 
-export const PaginatedsListPage: React.FC<PaginatedsListPageProps> = ({
+export const PaginatedListPage: React.FC<PaginatedListPageProps> = ({
   countPerPage,
   filteredData,
   CreateButton,

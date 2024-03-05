@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { PopoverStatus } from '@odf/shared';
 import { ActionDropdown } from '@odf/shared/dropdown/action-dropdown';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
+import { PopoverStatus } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
@@ -236,6 +236,7 @@ export const AlertMessages: React.FC = () => {
           variant={message.variant}
           title={message.title}
           className="pf-u-mt-xs pf-u-mb-xs"
+          key={message.key}
           {...(message?.isInline ? { isInline: message.isInline } : {})}
           {...(message?.actionClose
             ? { actionClose: message.actionClose }
