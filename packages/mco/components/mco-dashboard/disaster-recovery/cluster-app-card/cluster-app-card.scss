@@ -18,25 +18,25 @@
     }
 
     &__dropdown--padding {
-        padding-right: var(--pf-global--spacer--xs);
+        padding-right: var(--pf-v5-global--spacer--xs);
     }
     &__dropdownHeight {
         max-height: 30rem;
         overflow-y: auto;
     }
     &__text--padding-left {
-        padding-left: var(--pf-global--spacer--sm);
+        padding-left: var(--pf-v5-global--spacer--sm);
     }
 
     &__text--margin-top {
-        margin-top: var(--pf-global--spacer--lg);
+        margin-top: var(--pf-v5-global--spacer--lg);
     }
     &__text--divider {
-        border-bottom: var(--pf-global--BorderWidth--sm) solid var(--pf-global--BorderColor--100);
-        margin-bottom: var(--pf-global--spacer--lg);
+        border-bottom: var(--pf-v5-global--BorderWidth--sm) solid var(--pf-v5-global--BorderColor--100);
+        margin-bottom: var(--pf-v5-global--spacer--lg);
     }
     &__headerText--size {
-        font-size: var(--pf-global--FontSize--xl);
+        font-size: var(--pf-v5-global--FontSize--xl);
     }
 }
 
@@ -46,7 +46,7 @@
 }
 
 .mco-cluster-app__graph--margin-bottom {
-     margin-bottom: var(--pf-global--spacer--xl);
+     margin-bottom: var(--pf-v5-global--spacer--xl);
 }
 
 .mco-cluster-app__donut-chart {
@@ -55,7 +55,7 @@
 }
 
 .co-utilization-card__item-summary {
-    margin-left: var(--pf-global--spacer--3xl);
+    margin-left: var(--pf-v5-global--spacer--3xl);
 }
 
   .co-utilization-card__item-summary .bold {

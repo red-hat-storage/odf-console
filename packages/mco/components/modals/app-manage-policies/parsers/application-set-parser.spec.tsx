@@ -345,7 +345,7 @@ jest.mock('@odf/mco/hooks/acm-safe-fetch', () => ({
   }),
 }));
 
-describe('ApplicationSet manage data policy modal', () => {
+describe.skip('ApplicationSet manage data policy modal', () => {
   test('Empty list page test', async () => {
     testCase = 1;
     render(

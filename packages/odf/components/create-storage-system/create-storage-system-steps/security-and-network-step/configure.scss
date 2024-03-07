@@ -3,7 +3,7 @@
     display: inline-flex;
   }
   .pf-c-radio {
-    margin-right: var(--pf-global--spacer--lg);
+    margin-right: var(--pf-v5-global--spacer--lg);
   }
 }
 
@@ -17,6 +17,6 @@
 }
 
 .ceph__multus-tech-preview-badge--margin {
-  margin: calc(var(--pf-global--spacer--xs) * -1) 0 0
-    calc(var(--pf-global--spacer--sm) * -2);
+  margin: calc(var(--pf-v5-global--spacer--xs) * -1) 0 0
+    calc(var(--pf-v5-global--spacer--sm) * -2);
 }

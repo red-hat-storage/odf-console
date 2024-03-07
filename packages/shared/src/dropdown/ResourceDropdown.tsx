@@ -5,15 +5,15 @@ import {
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import classNames from 'classnames';
-import * as fuzzy from 'fuzzysearch';
-import * as _ from 'lodash-es';
 import {
   Dropdown,
   DropdownItem,
   DropdownToggle,
-  TextInput,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
+import classNames from 'classnames';
+import * as fuzzy from 'fuzzysearch';
+import * as _ from 'lodash-es';
+import { TextInput } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import { LoadingInline } from '../generic/Loading';
 import { getName, getUID } from '../selectors';
@@ -267,9 +267,8 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
       >
         <TextInput
           id="search-bar"
-          iconVariant="search"
           value={searchText}
-          onChange={(val) => setSearchText(val)}
+          onChange={(_event, val) => setSearchText(val)}
           autoComplete="off"
         />
         {dropdownItems}
@@ -453,9 +452,8 @@ export const ResourcesDropdown: ResourcesDropdown = <T extends unknown>({
     >
       <TextInput
         id="search-bar"
-        iconVariant="search"
         value={searchText}
-        onChange={(val) => setSearchText(val)}
+        onChange={(_event, val) => setSearchText(val)}
         autoComplete="off"
       />
       {dropdownItems}

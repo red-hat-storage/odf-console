@@ -6,16 +6,14 @@ import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKLabel } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   WizardFooter,
-  Button,
   WizardContext,
   WizardContextType,
-  Alert,
-  AlertActionCloseButton,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
+import { TFunction } from 'i18next';
+import { useNavigate } from 'react-router-dom-v5-compat';
+import { Button, Alert, AlertActionCloseButton } from '@patternfly/react-core';
 import { Steps, StepsName, STORAGE_CLUSTER_SYSTEM_KIND } from '../../constants';
 import './create-storage-system.scss';
 import { MINIMUM_NODES } from '../../constants';

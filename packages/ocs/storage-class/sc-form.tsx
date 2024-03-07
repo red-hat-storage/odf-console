@@ -59,13 +59,15 @@ import {
   useModal,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import * as _ from 'lodash-es';
 import {
-  Alert,
   Dropdown,
   DropdownItem,
   DropdownToggle,
   DropdownSeparator,
+} from '@patternfly/react-core/deprecated';
+import * as _ from 'lodash-es';
+import {
+  Alert,
   FormGroup,
   Checkbox,
   Card,
@@ -460,18 +462,15 @@ export const StorageClassEncryption: React.FC<ProvisionerProps> = ({
   return (
     <div className="ocs-storage-class__form">
       <Form>
-        <FormGroup
-          fieldId="storage-class-encryption"
-          helperTextInvalid={t('This is a required field')}
-          isRequired
-        >
+        {/* Add form validation again */}
+        <FormGroup fieldId="storage-class-encryption" isRequired>
           <Checkbox
             id="storage-class-encryption"
             isChecked={checked}
             data-checked-state={checked}
             label={<StorageClassEncryptionLabel />}
             aria-label={t('StorageClass encryption')}
-            onChange={setChecked}
+            onChange={(_event, checkedArg) => setChecked(checkedArg)}
             className="ocs-storage-class-encryption__form-checkbox"
             data-test="storage-class-encryption"
           />

@@ -15,6 +15,10 @@ import {
   TextArea,
   PopoverPosition,
   Popover,
+  InputGroupItem,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
 import {
@@ -123,77 +127,88 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
         }}
         render={({ value, onChange, onBlur }) =>
           !showSecret ? (
-            <InputGroup>
-              <TextInput
-                readOnly
-                value={value}
-                className="nb-endpoints-form-entry__file-name"
-                placeholder={t('Upload JSON')}
-                aria-label={t('Uploaded File Name')}
-              />
-              <div className="inputbtn nb-endpoints-form-entry-upload-btn">
-                <Button
-                  href="#"
-                  variant="secondary"
-                  className="custom-input-btn nb-endpoints-form-entry-upload-btn__button"
-                  aria-label={t('Upload File')}
-                >
-                  {t('Browse')}
-                </Button>
-                <input
-                  type="file"
-                  id="inputButton"
-                  className="nb-endpoints-form-entry-upload-btn__input"
-                  onChange={(ev) => onUpload(ev, onChange)}
-                  onBlur={onBlur}
-                  aria-label={t('Upload File')}
+            <InputGroup translate={t}>
+              <InputGroupItem isFill>
+                <TextInput
+                  readOnly
+                  value={value}
+                  className="nb-endpoints-form-entry__file-name"
+                  placeholder={t('Upload JSON')}
+                  aria-label={t('Uploaded File Name')}
                 />
-              </div>
-              <Button
-                variant="plain"
-                onClick={toggleShowSecret}
-                aria-label={t('Switch to Secret')}
-              >
-                {t('Switch to Secret')}
-              </Button>
+              </InputGroupItem>
+              <InputGroupItem>
+                <div className="inputbtn nb-endpoints-form-entry-upload-btn">
+                  <Button
+                    href="#"
+                    variant="secondary"
+                    className="custom-input-btn nb-endpoints-form-entry-upload-btn__button"
+                    aria-label={t('Upload File')}
+                  >
+                    {t('Browse')}
+                  </Button>
+                  <input
+                    type="file"
+                    id="inputButton"
+                    className="nb-endpoints-form-entry-upload-btn__input"
+                    onChange={(ev) => onUpload(ev, onChange)}
+                    onBlur={onBlur}
+                    aria-label={t('Upload File')}
+                  />
+                </div>
+              </InputGroupItem>
+              <InputGroupItem>
+                <Button
+                  variant="plain"
+                  onClick={toggleShowSecret}
+                  aria-label={t('Switch to Secret')}
+                >
+                  {t('Switch to Secret')}
+                </Button>
+              </InputGroupItem>
             </InputGroup>
           ) : (
-            <InputGroup>
-              <ResourceDropdown<K8sResourceCommon>
-                className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
-                onSelect={(e) => {
-                  onChange(e.metadata.name);
-                  dispatch({ type: 'setSecretName', value: e.metadata.name });
-                }}
-                resourceModel={SecretModel}
-                resource={{
-                  namespace,
-                  kind: SecretModel.kind,
-                  isList: true,
-                }}
-              />
-              <Button
-                variant="plain"
-                onClick={toggleShowSecret}
-                aria-label={t('Switch to upload JSON')}
-              >
-                {t('Switch to upload JSON')}
-              </Button>
+            <InputGroup translate={t}>
+              <InputGroupItem>
+                <ResourceDropdown<K8sResourceCommon>
+                  className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
+                  onSelect={(e) => {
+                    onChange(e.metadata.name);
+                    dispatch({ type: 'setSecretName', value: e.metadata.name });
+                  }}
+                  resourceModel={SecretModel}
+                  resource={{
+                    namespace,
+                    kind: SecretModel.kind,
+                    isList: true,
+                  }}
+                />
+              </InputGroupItem>
+              <InputGroupItem>
+                <Button
+                  variant="plain"
+                  onClick={toggleShowSecret}
+                  aria-label={t('Switch to upload JSON')}
+                >
+                  {t('Switch to upload JSON')}
+                </Button>
+              </InputGroupItem>
             </InputGroup>
           )
         }
       />
       {!showSecret && (
-        <FormGroup
-          className="nb-endpoints-form-entry"
-          helperText={gcpHelpText}
-          fieldId="gcp-data"
-        >
+        <FormGroup className="nb-endpoints-form-entry" fieldId="gcp-data">
           <TextArea
             aria-label={t('Cluster Metadata')}
             className="nb-endpoints-form-entry__data-dump"
             value={fileData}
           />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>{gcpHelpText}</HelperTextItem>
+            </HelperText>
+          </FormHelperText>
         </FormGroup>
       )}
       <FormGroupController
@@ -208,9 +223,9 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
         render={({ value, onChange, onBlur }) => (
           <TextInput
             value={value}
-            onChange={(e) => {
-              onChange(e);
-              dispatch({ type: 'setTarget', value: e });
+            onChange={(_event, val) => {
+              onChange(val);
+              dispatch({ type: 'setTarget', value: val });
             }}
             onBlur={onBlur}
             aria-label={t('Target Bucket')}

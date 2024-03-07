@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { DeploymentType } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'i18next';
 import {
-  FormGroup,
   Select,
   SelectOption,
   SelectProps,
   SelectVariant,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
+import { TFunction } from 'i18next';
+import { FormGroup } from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './backing-storage-step.scss';
 
@@ -41,8 +41,10 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
     setIsSelectOpen(false);
   };
 
-  const handleToggling: SelectProps['onToggle'] = (isExpanded: boolean) =>
-    setIsSelectOpen(isExpanded);
+  const handleToggling: SelectProps['onToggle'] = (
+    _event,
+    isExpanded: boolean
+  ) => setIsSelectOpen(isExpanded);
 
   const selectOptions = options.map((option) => (
     <SelectOption
@@ -57,7 +59,9 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
       <Select
         className="odf-backing-storage__selection--width"
         variant={SelectVariant.single}
-        onToggle={handleToggling}
+        onToggle={(_event, isExpanded: boolean) =>
+          handleToggling(_event, isExpanded)
+        }
         onSelect={handleSelection}
         selections={deployment}
         isOpen={isSelectOpen}

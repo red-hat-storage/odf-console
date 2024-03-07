@@ -18,21 +18,21 @@
   }
 
   .odf-alerts-panel__badge-critical {
-    background-color: var(--pf-global--palette--red-50);
-    border-color: var(--pf-global--danger-color--200);
-    color: var(--pf-global--danger-color--200);
+    background-color: var(--pf-v5-global--palette--red-50);
+    border-color: var(--pf-v5-global--danger-color--200);
+    color: var(--pf-v5-global--danger-color--200);
   }
 
   .odf-alerts-panel__badge-warning {
-    background-color: var(--pf-global--palette--gold-50);
-    border-color: var(--pf-global--warning-color--200);
-    color: var(--pf-global--warning-color--200);
+    background-color: var(--pf-v5-global--palette--gold-50);
+    border-color: var(--pf-v5-global--warning-color--200);
+    color: var(--pf-v5-global--warning-color--200);
   }
 
   .odf-alerts-panel__badge-info {
-    background-color: var(--pf-global--info-color--50);
-    border-color: var(--pf-global--info-color--100);
-    color: var(--pf-global--info-color--100);
+    background-color: var(--pf-v5-global--info-color--50);
+    border-color: var(--pf-v5-global--info-color--100);
+    color: var(--pf-v5-global--info-color--100);
   }
 
   .odf-alerts-panel__divider {

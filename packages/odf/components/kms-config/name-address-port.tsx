@@ -2,7 +2,14 @@ import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { FormGroup, TextInput, ValidatedOptions } from '@patternfly/react-core';
+import {
+  FormGroup,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  TextInput,
+  ValidatedOptions,
+} from '@patternfly/react-core';
 import { validateConnectionName } from '../../constants';
 import { VaultConfig, ThalesConfig } from '../../types';
 import { parseURL, isValidEndpoint, isValidName } from './utils';
@@ -63,16 +70,11 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
         fieldId="kms-service-name"
         label={t('Connection name')}
         className={`${className}__form-body`}
-        helperTextInvalid={validateConnectionName(kmsState.name.value, t)}
-        validated={isValid(kmsState.name.valid)}
-        helperText={t(
-          'An unique name for the key management service within the project. Name must only include alphanumeric characters, "-", "_" or "."'
-        )}
         isRequired
       >
         <TextInput
           value={kmsState.name.value}
-          onChange={setServiceName}
+          onChange={(_event, name: string) => setServiceName(name)}
           type="text"
           id="kms-service-name"
           name="kms-service-name"
@@ -80,6 +82,17 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
           validated={isValid(kmsState.name.valid)}
           data-test="kms-service-name-text"
         />
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem variant={isValid(kmsState.name.valid)}>
+              {isValid(kmsState.name.valid) === ValidatedOptions.default
+                ? t(
+                    'An unique name for the key management service within the project. Name must only include alphanumeric characters, "-", "_" or "."'
+                  )
+                : validateConnectionName(kmsState.name.value, t)}
+            </HelperTextItem>
+          </HelperText>
+        </FormHelperText>
       </FormGroup>
       <div className="ocs-install-kms__form-url">
         <FormGroup
@@ -89,13 +102,11 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
             'ocs-install-kms__form-address',
             `${className}__form-body`
           )}
-          helperTextInvalid={validateAddressMessage()}
-          validated={isValid(kmsState.address.valid)}
           isRequired
         >
           <TextInput
             value={kmsState.address.value}
-            onChange={setAddress}
+            onChange={(_event, address: string) => setAddress(address)}
             className="ocs-install-kms__form-address--padding"
             type="url"
             id="kms-address"
@@ -104,6 +115,14 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
             validated={isValid(kmsState.address.valid)}
             data-test="kms-address-text"
           />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant={isValid(kmsState.address.valid)}>
+                {isValid(kmsState.address.valid) === ValidatedOptions.error &&
+                  validateAddressMessage()}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
         </FormGroup>
         <FormGroup
           fieldId="kms-address-port"
@@ -112,13 +131,11 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
             'ocs-install-kms__form-port',
             `${className}__form-body--small-padding`
           )}
-          helperTextInvalid={validatePortMessage()}
-          validated={isValid(kmsState.port.valid)}
           isRequired
         >
           <TextInput
             value={kmsState.port.value}
-            onChange={setAddressPort}
+            onChange={(_event, port: string) => setAddressPort(port)}
             type="text"
             id="kms-address-port"
             name="kms-address-port"
@@ -126,6 +143,14 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
             validated={isValid(kmsState.port.valid)}
             data-test="kms-address-port-text"
           />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant={isValid(kmsState.port.valid)}>
+                {isValid(kmsState.port.valid) === ValidatedOptions.error &&
+                  validatePortMessage()}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
         </FormGroup>
       </div>
     </>

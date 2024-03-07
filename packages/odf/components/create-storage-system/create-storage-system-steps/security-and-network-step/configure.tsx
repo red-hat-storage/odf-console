@@ -14,8 +14,9 @@ import {
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import { FormGroup, Radio, SelectOption } from '@patternfly/react-core';
+import { FormGroup, Radio } from '@patternfly/react-core';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import { WizardState } from '../../reducer';
 import './configure.scss';

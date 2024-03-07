@@ -4,7 +4,7 @@ import {
   DropdownToggle,
   DropdownItem,
   DropdownPosition,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const ActionDropdown: React.FC<ActionDropdownProps> = ({

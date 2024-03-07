@@ -30,23 +30,23 @@
 
 .odf-copy-to-clipboard__pre {
   background-color: var(--pf-c-code-block--BackgroundColor);
-  color: var(--pf-global--Color--100);
+  color: var(--pf-v5-global--Color--100);
   display: block;
   font-family: var(--pf-c-code-block__pre--FontFamily);
   font-size: var(--pf-c-code-block__pre--FontSize);
   overflow-wrap: break-word;
-  padding: var(--pf-global--spacer--md);
+  padding: var(--pf-v5-global--spacer--md);
   white-space: pre-wrap;
 }
 
 .pf-c-button.odf-copy-to-clipboard__btn,
 .pf-c-button.odf-copy-to-clipboard__btn:hover {
-  --pf-c-button--PaddingTop: var(--pf-global--spacer--sm);
-  --pf-c-button--PaddingRight: var(--pf-global--spacer--md);
-  --pf-c-button--PaddingBottom: var(--pf-global--spacer--sm);
-  --pf-c-button--PaddingLeft: var(--pf-global--spacer--md);
+  --pf-c-button--PaddingTop: var(--pf-v5-global--spacer--sm);
+  --pf-c-button--PaddingRight: var(--pf-v5-global--spacer--md);
+  --pf-c-button--PaddingBottom: var(--pf-v5-global--spacer--sm);
+  --pf-c-button--PaddingLeft: var(--pf-v5-global--spacer--md);
   --pf-c-button--BorderRadius: 0;
-  --pf-c-button--hover--BorderWidth: var(--pf-global--BorderWidth--sm) solid
-    var(--pf-global--BorderColor--100);
-  --pf-c-button--LineHeight: var(--pf-global--BorderWidth--lg);
+  --pf-c-button--hover--BorderWidth: var(--pf-v5-global--BorderWidth--sm) solid
+    var(--pf-v5-global--BorderColor--100);
+  --pf-c-button--LineHeight: var(--pf-v5-global--BorderWidth--lg);
 }

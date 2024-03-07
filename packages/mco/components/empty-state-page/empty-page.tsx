@@ -2,12 +2,13 @@ import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Button,
-  Title,
   EmptyState,
   EmptyStateVariant,
   EmptyStateIcon,
   EmptyStateBody,
   Tooltip,
+  EmptyStateHeader,
+  EmptyStateFooter,
 } from '@patternfly/react-core';
 import { CubesIcon } from '@patternfly/react-icons';
 import './empty-page.scss';
@@ -30,37 +31,40 @@ const EmptyPage: React.FC<EmptyPageProps> = (props) => {
       aria-label={t('Loading Empty Page')}
     />
   ) : (
-    <EmptyState variant={EmptyStateVariant.large}>
-      <EmptyStateIcon icon={CubesIcon} />
-      <Title headingLevel="h4" size="lg">
-        {title}
-      </Title>
+    <EmptyState variant={EmptyStateVariant.lg}>
+      <EmptyStateHeader
+        titleText={<>{title}</>}
+        icon={<EmptyStateIcon icon={CubesIcon} />}
+        headingLevel="h4"
+      />
       <EmptyStateBody>{children}</EmptyStateBody>
-      <Tooltip
-        content={
-          !canAccess &&
-          t(
-            'You are not authorized to complete this action. See your cluster administrator for role-based access control information.'
-          )
-        }
-        trigger={!canAccess ? 'mouseenter' : 'manual'}
-        data-test="authorization-tooltip"
-        aria-label={t('Not Authorized')}
-      >
-        {!!ButtonComponent ? (
-          <ButtonComponent />
-        ) : (
-          <Button
-            variant="primary"
-            onClick={onClick}
-            isAriaDisabled={!canAccess}
-            data-test="create-button"
-            aria-label="Create DRPolicy"
-          >
-            {buttonText}
-          </Button>
-        )}
-      </Tooltip>
+      <EmptyStateFooter>
+        <Tooltip
+          content={
+            !canAccess &&
+            t(
+              'You are not authorized to complete this action. See your cluster administrator for role-based access control information.'
+            )
+          }
+          trigger={!canAccess ? 'mouseenter' : 'manual'}
+          data-test="authorization-tooltip"
+          aria-label={t('Not Authorized')}
+        >
+          {!!ButtonComponent ? (
+            <ButtonComponent />
+          ) : (
+            <Button
+              variant="primary"
+              onClick={onClick}
+              isAriaDisabled={!canAccess}
+              data-test="create-button"
+              aria-label="Create DRPolicy"
+            >
+              {buttonText}
+            </Button>
+          )}
+        </Tooltip>
+      </EmptyStateFooter>
     </EmptyState>
   );
 };

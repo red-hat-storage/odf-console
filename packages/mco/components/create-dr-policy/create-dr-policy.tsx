@@ -23,6 +23,9 @@ import {
   ButtonVariant,
   Alert,
   AlertVariant,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
 } from '@patternfly/react-core';
 import {
   MAX_ALLOWED_CLUSTERS,
@@ -89,7 +92,6 @@ const createDRPolicy = (
   return k8sCreate({
     model: DRPolicyModel,
     data: drPolicyPayload,
-    cluster: HUB_CLUSTER_NAME,
   });
 };
 
@@ -110,7 +112,6 @@ const createMirrorPeer = (
   return k8sCreate({
     model: MirrorPeerModel,
     data: mirrorPeerPayload,
-    cluster: HUB_CLUSTER_NAME,
   });
 };
 
@@ -132,7 +133,6 @@ const CreateDRPolicy: React.FC<{}> = () => {
     kind: referenceForModel(MirrorPeerModel),
     isList: true,
     namespaced: false,
-    cluster: HUB_CLUSTER_NAME,
   });
   const [csv] = useFetchCsv({
     specName: ODFMCO_OPERATOR,
@@ -201,29 +201,37 @@ const CreateDRPolicy: React.FC<{}> = () => {
             data-testid="policy-name"
             value={state.policyName}
             type="text"
-            onChange={setPolicyName}
+            onChange={(_event, strVal: string) => setPolicyName(strVal)}
             isRequired
           />
         </FormGroup>
-        <FormGroup
-          fieldId="connect-clusters"
-          label={t('Connect clusters')}
-          helperText={t(
-            'Enables mirroring/replication between two selected clusters, ensuring failover or relocation between the two clusters in the event of an outage or planned maintenance.'
-          )}
-          isHelperTextBeforeField
-        >
+        <FormGroup fieldId="connect-clusters" label={t('Connect clusters')}>
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>
+                {t(
+                  'Enables mirroring/replication between two selected clusters, ensuring failover or relocation between the two clusters in the event of an outage or planned maintenance.'
+                )}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
           <SelectClusterList
             selectedClusters={state.selectedClusters}
             requiredODFVersion={odfMCOVersion}
             dispatch={dispatch}
           />
         </FormGroup>
-        <FormGroup
-          helperText={t(
-            "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation."
-          )}
-        />
+        <FormGroup>
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>
+                {t(
+                  "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation."
+                )}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+        </FormGroup>
         {!!odfMCOVersion && (
           <FormGroup fieldId="policy-name">
             <Alert

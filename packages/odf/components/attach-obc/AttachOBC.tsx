@@ -116,7 +116,7 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
               label={t('Use existing claim')}
               value="exists"
               key="exists"
-              onChange={(checked: boolean) => {
+              onChange={(_event, checked: boolean) => {
                 onRadioToggle();
                 onChange(checked);
               }}

@@ -5,6 +5,7 @@ import {
   InputGroup,
   TextInput,
   ValidatedOptions,
+  InputGroupItem,
 } from '@patternfly/react-core';
 import { TimeUnits } from '../../constants';
 
@@ -32,23 +33,27 @@ export const TimeDurationDropdown: React.FC<TimeDurationDropdownProps> = ({
   };
 
   return (
-    <InputGroup>
-      <TextInput
-        className={classNames('pf-c-form-control', inputClassName)}
-        type="number"
-        onChange={onValueChange}
-        placeholder={placeholder}
-        data-test={testID}
-        value={value}
-        id={inputID}
-        validated={validated}
-      />
-      <StaticDropdown
-        defaultSelection={TimeUnits.HOUR}
-        dropdownItems={TimeUnits}
-        onSelect={onUnitChange}
-        required={required}
-      />
+    <InputGroup translate={undefined}>
+      <InputGroupItem isFill>
+        <TextInput
+          className={classNames('pf-c-form-control', inputClassName)}
+          type="number"
+          onChange={(_event, val) => onValueChange(val)}
+          placeholder={placeholder}
+          data-test={testID}
+          value={value}
+          id={inputID}
+          validated={validated}
+        />
+      </InputGroupItem>
+      <InputGroupItem>
+        <StaticDropdown
+          defaultSelection={TimeUnits.HOUR}
+          dropdownItems={TimeUnits}
+          onSelect={onUnitChange}
+          required={required}
+        />
+      </InputGroupItem>
     </InputGroup>
   );
 };

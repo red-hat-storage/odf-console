@@ -34,6 +34,10 @@ import {
   WatchK8sResource,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  WizardContext,
+  WizardContextType,
+} from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -44,8 +48,6 @@ import {
   Grid,
   GridItem,
   Modal,
-  WizardContext,
-  WizardContextType,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';

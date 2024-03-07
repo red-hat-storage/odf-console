@@ -64,19 +64,6 @@ const config: webpack.Configuration & DevServerConfiguration = {
         exclude: /(build|dist)/, // Ignore shared build folder.
         use: [
           {
-            loader: 'thread-loader',
-            options: {
-              ...(NODE_ENV === 'development'
-                ? { poolTimeout: Infinity, poolRespawn: false }
-                : OPENSHIFT_CI
-                ? {
-                    workers: 2,
-                    workerNodeArgs: ['--max-old-space-size=1024'],
-                  }
-                : {}),
-            },
-          },
-          {
             loader: 'ts-loader',
             options: {
               configFile: path.resolve(__dirname, 'tsconfig.json'),
@@ -176,7 +163,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
       cwd: process.cwd(),
     }),
   ],
-  devtool: 'cheap-module-source-map',
+  devtool: 'eval-cheap-module-source-map',
   optimization: {
     chunkIds: 'named',
   },

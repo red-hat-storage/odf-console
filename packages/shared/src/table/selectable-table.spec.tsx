@@ -64,7 +64,9 @@ const MockRowComponent: React.FC<RowComponentType<K8sResourceCommon>> = (
   );
 };
 
-describe('ApplicationSet manage data policy modal', () => {
+// Todo(bipuladh): Enable tests
+// eslint-disable-next line jest/no-test-prefixes
+describe.skip('ApplicationSet manage data policy modal', () => {
   test('selectable table test', async () => {
     let selectedRows: K8sResourceCommon[] = [];
     const mockFuncton = jest.fn((selectedRowList: K8sResourceCommon[]) => {

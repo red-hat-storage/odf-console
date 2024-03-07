@@ -1,5 +1,5 @@
 .mco-create-data-policy {
-  margin: var(--pf-global--spacer--lg);
+  margin: var(--pf-v5-global--spacer--lg);
   max-width: 700px;
   .pf-c-form.pf-m-limit-width {
     max-width: 33rem;
@@ -7,16 +7,16 @@
 }
 
 .mco-create-data-policy__action-group {
-  margin-bottom: var(--pf-global--spacer--md);
+  margin-bottom: var(--pf-v5-global--spacer--md);
 }
 
 .mco-create-data-policy__description {
-  margin-bottom: var(--pf-global--spacer--sm);
+  margin-bottom: var(--pf-v5-global--spacer--sm);
 }
 
 .mco-create-data-policy__flex {
-  margin-right: var(--pf-global--spacer--lg);
-  margin-bottom: var(--pf-global--spacer--md);
+  margin-right: var(--pf-v5-global--spacer--lg);
+  margin-bottom: var(--pf-v5-global--spacer--md);
 }
 
 .mco-create-data-policy__dropdown {
@@ -24,6 +24,6 @@
 }
 
 .mco-create-data-policy__alert {
-  margin-bottom: var(--pf-global--spacer--xs);
-  --pf-global--FontSize--md: 0.8rem;
+  margin-bottom: var(--pf-v5-global--spacer--xs);
+  --pf-v5-global--FontSize--md: 0.8rem;
 }

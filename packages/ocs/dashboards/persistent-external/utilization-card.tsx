@@ -9,13 +9,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import { useParams } from 'react-router-dom-v5-compat';
-import {
-  Card,
-  CardActions,
-  CardBody,
-  CardHeader,
-  CardTitle,
-} from '@patternfly/react-core';
+import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import {
   StorageDashboardQuery,
   INDEPENDENT_UTILIZATION_QUERIES,
@@ -63,11 +57,18 @@ export const UtilizationCard: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <Card>
-      <CardHeader>
+      <CardHeader
+        actions={{
+          actions: (
+            <>
+              <UtilizationDurationDropdown />
+            </>
+          ),
+          hasNoOffset: false,
+          className: undefined,
+        }}
+      >
         <CardTitle>{t('Utilization')}</CardTitle>
-        <CardActions>
-          <UtilizationDurationDropdown />
-        </CardActions>
       </CardHeader>
       <CardBody>
         <UtilizationContent />

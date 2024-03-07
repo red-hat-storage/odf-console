@@ -15,13 +15,13 @@ import {
 } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import {
   DescriptionList,
   DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
-  SelectOption,
   Text,
 } from '@patternfly/react-core';
 import { DRPlacementControlType, DataPolicyType } from '../utils/types';

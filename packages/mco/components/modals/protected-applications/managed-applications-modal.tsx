@@ -14,8 +14,9 @@ import {
   ModalVariant,
   Button,
   ButtonVariant,
+  Icon,
 } from '@patternfly/react-core';
-import { ArrowRightIcon, IconSize } from '@patternfly/react-icons';
+import { ArrowRightIcon } from '@patternfly/react-icons';
 
 const ManagedApplicationsModal: React.FC<CommonModalProps> = (props) => {
   const { t } = useCustomTranslation();
@@ -80,7 +81,9 @@ const ManagedApplicationsModal: React.FC<CommonModalProps> = (props) => {
           isInline
         >
           {t('Continue to Applications page')}
-          <ArrowRightIcon size={IconSize.sm} className="pf-u-ml-sm" />
+          <Icon size="sm">
+            <ArrowRightIcon className="pf-u-ml-sm" />
+          </Icon>
         </Button>
       </ModalFooter>
     </Modal>

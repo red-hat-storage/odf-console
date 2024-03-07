@@ -10,6 +10,8 @@ import {
   Dropdown,
   DropdownToggle,
   DropdownItem,
+} from '@patternfly/react-core/deprecated';
+import {
   Flex,
   FlexItem,
   HelperText,
@@ -252,7 +254,7 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
               state.modalFooterStatus === ModalFooterStatus.FINISHED ||
               !!state.errorMessage.managedClustersErrorMessage
             }
-            onToggle={onToggle}
+            onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
           >
             {!!Object.keys(state.selectedTargetCluster).length ? (
               <Flex>

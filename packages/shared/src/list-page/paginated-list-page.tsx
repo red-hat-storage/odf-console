@@ -62,7 +62,6 @@ export const PaginatedsListPage: React.FC<PaginatedsListPageProps> = ({
             </GridItem>
             <GridItem md={4} sm={12}>
               <Pagination
-                perPageComponent="button"
                 itemCount={filteredData.length || 0}
                 widgetId="paginated-list-page"
                 perPage={perPage}

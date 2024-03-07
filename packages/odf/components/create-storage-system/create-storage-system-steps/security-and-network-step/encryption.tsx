@@ -63,7 +63,9 @@ const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
         data-checked-state={encryption.clusterWide}
         label={<span>{t('Cluster-wide encryption')}</span>}
         description={t('Encryption for the entire cluster (block and file)')}
-        onChange={handleClusterWideEncryption}
+        onChange={(_event, isChecked: boolean) =>
+          handleClusterWideEncryption(isChecked)
+        }
       />
       <Checkbox
         id="storage-class-encryption"
@@ -74,7 +76,9 @@ const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
         description={t(
           'An encryption key will be generated for each persistent volume (block) created using an encryption enabled StorageClass.'
         )}
-        onChange={handleStorageClassEncryption}
+        onChange={(_event, isChecked: boolean) =>
+          handleStorageClassEncryption(isChecked)
+        }
       />
     </FormGroup>
   );
@@ -127,7 +131,7 @@ const KMSConnection: React.FC<EncryptionProps> = ({
         isChecked={encryption.advanced}
         data-checked-state={encryption.advanced}
         label={t('Connect to an external key management service')}
-        onChange={handleOnChange}
+        onChange={(_event, checked) => handleOnChange(checked)}
         isDisabled={encryption.storageClass || !encryption.hasHandled}
         body={
           (encryption.advanced || encryption.storageClass) && (
@@ -247,7 +251,9 @@ export const Encryption: React.FC<EncryptionProps> = ({
             isDisabled={isMCG}
             label={encryptionLabel}
             description={description}
-            onChange={handleEncryptionOnChange}
+            onChange={(_event, checked: boolean) =>
+              handleEncryptionOnChange(checked)
+            }
             body={
               (isMCG || encryptionChecked) && (
                 <>
@@ -280,7 +286,9 @@ export const Encryption: React.FC<EncryptionProps> = ({
           description={t(
             'A secure mode that encrypts all data passing over the network'
           )}
-          onChange={handleInTransitEncryptionOnChange}
+          onChange={(_event, checked: boolean) =>
+            handleInTransitEncryptionOnChange(checked)
+          }
         />
       </FormGroup>
       {!encryption.hasHandled && (

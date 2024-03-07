@@ -6,15 +6,18 @@ import { StatusBox } from '@odf/shared/generic/status-box';
 import { useK8sList } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import {
   Alert,
   AlertVariant,
   Form,
   FormGroup,
   FormSection,
-  SelectOption,
   Text,
   TextVariants,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
 } from '@patternfly/react-core';
 import {
   EnrollDiscoveredApplicationAction,
@@ -83,12 +86,8 @@ export const NamespaceSelection: React.FC<NamespaceSelectionProps> = ({
             <FormGroup
               className="pf-v5-u-w-50"
               label={t('DR cluster')}
-              helperTextInvalid={
-                !drClusters.length ? noClusterHelperText : clusterNameHelperText
-              }
               fieldId="managed-cluster-selection"
               isRequired
-              validated={clusterNamevalidated}
             >
               <SingleSelectDropdown
                 id="managed-cluster-dropdown"
@@ -99,16 +98,31 @@ export const NamespaceSelection: React.FC<NamespaceSelectionProps> = ({
                 validated={clusterNamevalidated}
                 isDisabled={!drClusters.length}
               />
+
+              <FormHelperText>
+                <HelperText>
+                  <HelperTextItem variant={clusterNamevalidated}>
+                    {!drClusters.length
+                      ? noClusterHelperText
+                      : clusterNameHelperText}
+                  </HelperTextItem>
+                </HelperText>
+              </FormHelperText>
             </FormGroup>
             <FormGroup
               label={t('Namespace')}
-              helperText={t(
-                'Select namespaces that belongs to your ACM discovered applications.'
-              )}
               fieldId="multi-namespace-selection"
               isRequired
-              isHelperTextBeforeField
             >
+              <FormHelperText>
+                <HelperText>
+                  <HelperTextItem variant="default">
+                    {t(
+                      'Select namespaces that belongs to your ACM discovered applications.'
+                    )}
+                  </HelperTextItem>
+                </HelperText>
+              </FormHelperText>
               <Alert
                 className="odf-alert pf-v5-u-mt-sm"
                 title={t(

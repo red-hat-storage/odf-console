@@ -24,24 +24,24 @@ import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  Select as SelectNext,
-  SelectOption as SelectOptionNext,
-  SelectList as SelectListNext,
-  SelectGroup as SelectGroupNext,
-} from '@patternfly/react-core/next';
+  Select,
+  SelectOption,
+  SelectVariant,
+} from '@patternfly/react-core/deprecated';
 import { global_danger_color_100 as globalDanger100 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
 import { global_warning_color_100 as globalWarning100 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import { ChartDonut } from '@patternfly/react-charts';
 import {
-  Select,
-  SelectOption,
-  SelectVariant,
   MenuToggle,
   MenuToggleElement,
   Flex,
   FlexItem,
   Text,
   TextVariants,
+  Select as SelectNext /* data-codemods */,
+  SelectOption as SelectOptionNext /* data-codemods */,
+  SelectList as SelectListNext /* data-codemods */,
+  SelectGroup as SelectGroupNext /* data-codemods */,
 } from '@patternfly/react-core';
 
 const colorScale = [globalDanger100.value, globalWarning100.value, '#0166cc'];
@@ -197,7 +197,7 @@ const ClusterDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
   return (
     <Select
       variant={SelectVariant.typeahead}
-      onToggle={onToggle}
+      onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
       onSelect={onSelect}
       onClear={clearSelection}
       onFilter={customFilter}
@@ -296,7 +296,7 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
               {options[appNS]?.map((appName: string) => (
                 <SelectOptionNext
                   key={appNS + appName}
-                  itemId={`${appNS}%#%${appName}`}
+                  value={`${appNS}%#%${appName}`}
                 >
                   {appName}
                 </SelectOptionNext>

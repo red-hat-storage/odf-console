@@ -6,15 +6,13 @@ import {
 } from '@odf/mco/constants';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'i18next';
 import {
-  Button,
   WizardContextType,
   WizardContext,
   WizardFooter,
-  Alert,
-  AlertVariant,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
+import { TFunction } from 'i18next';
+import { Button, Alert, AlertVariant } from '@patternfly/react-core';
 import { AssignPolicyViewState, PVCSelectorType } from '../utils/reducer';
 import { DRPolicyType } from '../utils/types';
 import '../../../../style.scss';

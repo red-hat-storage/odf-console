@@ -11,12 +11,12 @@ import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Dropdown,
   DropdownItem,
-  DropdownToggle,
-  KebabToggle,
+  DropdownPopperProps,
+  MenuToggle,
+  MenuToggleElement,
   Tooltip,
-  DropdownDirection,
 } from '@patternfly/react-core';
-import { CaretDownIcon } from '@patternfly/react-icons';
+import { EllipsisVIcon } from '@patternfly/react-icons';
 import { useAccessReview } from '../hooks/rbac-hook';
 import { ModalKeys, defaultModalMap } from '../modals/types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
@@ -45,6 +45,10 @@ type KebabProps = {
     [key: string]: () => void;
   };
   terminatingTooltip?: React.ReactNode;
+};
+
+type KebabStaticProperties = {
+  columnClass?: string;
 };
 
 const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
@@ -86,7 +90,7 @@ const defaultKebabItems = (t: TFunction, resourceLabel: string) => ({
   ),
 });
 
-export const Kebab: React.FC<KebabProps> = ({
+export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   extraProps,
   customKebabItems,
   toggleType = 'Kebab',
@@ -99,7 +103,7 @@ export const Kebab: React.FC<KebabProps> = ({
 
   const eventRef = React.useRef(undefined);
   const [toggleDirection, setToggleDirection] =
-    React.useState<DropdownDirection>(DropdownDirection.down);
+    React.useState<DropdownPopperProps['direction']>('down');
   const [isOpen, setOpen] = React.useState(false);
 
   const { resourceModel, resource } = extraProps;
@@ -128,9 +132,8 @@ export const Kebab: React.FC<KebabProps> = ({
       const windowHeight =
         document.getElementsByTagName('body')[0].clientHeight; // height of viewport
 
-      if (clientY + clientHeight >= windowHeight)
-        setToggleDirection(DropdownDirection.up);
-      else setToggleDirection(DropdownDirection.down);
+      if (clientY + clientHeight >= windowHeight) setToggleDirection('up');
+      else setToggleDirection('down');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventRef.current, toggleType]);
@@ -210,25 +213,6 @@ export const Kebab: React.FC<KebabProps> = ({
   isDisabled =
     isDisabled || _.has(resource.metadata, 'deletionTimestamp') || !canCreate;
 
-  const toggle = React.useMemo(() => {
-    const onToggle = (_unused, e) => {
-      eventRef.current = e;
-      return setOpen((open) => !open);
-    };
-    return toggleType === 'Kebab' ? (
-      <KebabToggle onToggle={onToggle} isDisabled={isDisabled} />
-    ) : (
-      <DropdownToggle
-        data-test="kebab-dropdown-toggle"
-        onToggle={onToggle}
-        toggleIndicator={CaretDownIcon}
-        isDisabled={isDisabled}
-      >
-        Actions
-      </DropdownToggle>
-    );
-  }, [setOpen, toggleType, isDisabled]);
-
   const content = _.has(resource.metadata, 'deletionTimestamp')
     ? terminatingTooltip || t('Resource is being deleted.')
     : '';
@@ -248,14 +232,31 @@ export const Kebab: React.FC<KebabProps> = ({
       <Dropdown
         data-test="kebab-button"
         onSelect={onClick}
-        toggle={toggle}
+        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+          <MenuToggle
+            ref={toggleRef}
+            aria-label="Dropdown toggle"
+            variant={toggleType === 'Kebab' ? 'plain' : 'default'}
+            onClick={() => setOpen((o) => !o)}
+            isExpanded={isOpen}
+            data-test="kebab-button"
+          >
+            {toggleType === 'Kebab' ? <EllipsisVIcon /> : t('Actions')}
+          </MenuToggle>
+        )}
         isOpen={isOpen}
-        isPlain={toggleType === 'Kebab' ? true : false}
-        dropdownItems={dropdownItems}
         data-test-id="kebab-button"
-        position="right"
-        direction={toggleDirection}
-      />
+        popperProps={{
+          preventOverflow: true,
+          direction: toggleDirection,
+          enableFlip: true,
+          position: 'right',
+        }}
+      >
+        {dropdownItems}
+      </Dropdown>
     </Tooltip>
   );
 };
+
+Kebab.columnClass = 'dropdown-kebab-pf pf-v5-c-table__action pf-v5-u-min-width';

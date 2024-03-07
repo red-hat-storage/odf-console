@@ -9,13 +9,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeDecimalBytesPerSec } from '@odf/shared/utils';
 import { PrometheusResult } from '@openshift-console/dynamic-plugin-sdk';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
-import {
-  Card,
-  CardBody,
-  CardActions,
-  CardHeader,
-  CardTitle,
-} from '@patternfly/react-core';
+import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import {
   NFS_TOPK_CLIENT_THROUGHPUT_TOTAL,
   NFSDashboardQuery,
@@ -45,11 +39,18 @@ export const TopClientsCard: React.FC = () => {
 
   return (
     <Card data-test="nfs-details-card">
-      <CardHeader>
+      <CardHeader
+        actions={{
+          actions: (
+            <>
+              <UtilizationDurationDropdown />
+            </>
+          ),
+          hasNoOffset: false,
+          className: undefined,
+        }}
+      >
         <CardTitle>{t('Top clients')}</CardTitle>
-        <CardActions>
-          <UtilizationDurationDropdown />
-        </CardActions>
       </CardHeader>
       <CardBody>
         {!!clientNames.length &&

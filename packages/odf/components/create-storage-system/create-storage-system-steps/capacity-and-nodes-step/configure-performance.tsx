@@ -38,6 +38,7 @@ const selectOptions = (t: TFunction, forceLean: boolean) =>
       [ResourceProfile.Balanced, ResourceProfile.Performance].includes(profile);
     return (
       <SelectOption
+        data-testid={`performance-mode-select-option--${profile}`}
         key={profile}
         value={profile}
         description={description}

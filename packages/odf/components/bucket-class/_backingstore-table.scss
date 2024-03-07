@@ -4,8 +4,8 @@
   }
 
   .pf-c-table {
-    border: var(--pf-global--BorderWidth--sm) solid
-      var(--pf-global--BorderColor--100);
+    border: var(--pf-v5-global--BorderWidth--sm) solid
+      var(--pf-v5-global--BorderColor--100);
 
     &__check {
       width: 8.333% !important;
@@ -26,6 +26,6 @@
     margin-bottom: 0;
   }
   &--margin {
-    margin-bottom: var(--pf-global--spacer--lg);
+    margin-bottom: var(--pf-v5-global--spacer--lg);
   }
 }

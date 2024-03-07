@@ -1,8 +1,8 @@
 .odf-topology {
     &-search-bar {
         width: 100%;
-        border-bottom: 1px solid var(--pf-global--palette--black-200);
-        padding: var(--pf-global--spacer--sm);
+        border-bottom: 1px solid var(--pf-v5-global--palette--black-200);
+        padding: var(--pf-v5-global--spacer--sm);
         background-color: #fff;
     }
     &-search-bar__search .pf-c-input-group {
@@ -10,9 +10,9 @@
         display: inline-flex;
     }
     &-search-bar__expand {
-        margin-left: var(--pf-global--spacer--lg);
+        margin-left: var(--pf-v5-global--spacer--lg);
     }
     &-search-bar__expand-icon {
-        margin-right: var(--pf-global--spacer--sm);
+        margin-right: var(--pf-v5-global--spacer--sm);
     }
 }
