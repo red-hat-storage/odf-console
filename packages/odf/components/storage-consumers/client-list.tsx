@@ -5,6 +5,7 @@ import { useFetchCsv } from '@odf/shared/hooks';
 import { getName } from '@odf/shared/selectors/k8s';
 import { StorageConsumerKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getOprVersionFromCSV } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils/common';
 import {
   K8sResourceKind,
@@ -240,9 +241,6 @@ type ClientListPageProps = {
   hideColumnManagement?: boolean;
 };
 
-const getOperatorVersion = (operator: K8sResourceKind): string =>
-  operator?.spec?.version;
-
 export const ClientListPage: React.FC<ClientListPageProps> = () => {
   const { t } = useCustomTranslation();
   const launchModal = useModal();
@@ -260,7 +258,7 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
     namespace: odfNamespace,
     startPollingInstantly: isNsSafe,
   });
-  const serviceVersion = getOperatorVersion(csv);
+  const serviceVersion = getOprVersionFromCSV(csv);
 
   const rowFilters = React.useMemo(
     () => [clientHeartBeatFilter(t), versionMismatchFilter(t, serviceVersion)],

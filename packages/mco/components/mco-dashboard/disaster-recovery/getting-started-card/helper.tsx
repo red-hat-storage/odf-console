@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { EnrollApplicationButton } from '@odf/mco/components/protected-applications/components';
-import { GETTING_STARTED_DR_DOCS, DR_BASE_ROUTE } from '@odf/mco/constants';
+import { gettingStartedDRDocs, DR_BASE_ROUTE } from '@odf/mco/constants';
 import { getDRPolicyResourceObj } from '@odf/mco/hooks';
 import { DRPolicyModel } from '@odf/mco/models';
 import { DRPolicyKind } from '@odf/mco/types';
@@ -114,7 +114,8 @@ type GettingStartedSteps = {
 }[];
 
 export const gettingStartedSteps = (
-  t: TFunction<string>
+  t: TFunction<string>,
+  mcoDocVersion: string
 ): GettingStartedSteps => [
   {
     // header
@@ -124,7 +125,7 @@ export const gettingStartedSteps = (
     message: t(
       'Decide how often your data should be replicated and where it should be stored, either regionally or within your local area, to ensure a quick recovery in case of a disaster.'
     ),
-    docLink: GETTING_STARTED_DR_DOCS.CREATE_POLICY,
+    docLink: gettingStartedDRDocs(mcoDocVersion).CREATE_POLICY,
     docText: t('See documentation'),
     // footer
     FooterComponent: PolicyFooterSection,
@@ -148,7 +149,7 @@ export const gettingStartedSteps = (
     message: t(
       'Monitoring offers an enhanced perspective on disaster recovery, providing a more optimized view of the ongoing replication and status of volumes at both cluster and application levels.'
     ),
-    docLink: GETTING_STARTED_DR_DOCS.ENABLE_MONITORING,
+    docLink: gettingStartedDRDocs(mcoDocVersion).ENABLE_MONITORING,
     docText: t('Steps to enable monitoring'),
   },
 ];

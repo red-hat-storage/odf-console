@@ -71,9 +71,9 @@ export const useFetchCsv = ({
 };
 
 type UseFetchCsvResult = [ClusterServiceVersionKind, boolean, any];
-type UseFetchCsvProps = {
+
+export type UseFetchCsvProps = {
   specName: string;
   namespace?: string;
-  cluster?: string;
   startPollingInstantly?: boolean;
 };

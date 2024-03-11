@@ -2,8 +2,9 @@ import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { getCephHealthState } from '@odf/ocs/utils';
-import { ODF_DOC_BASE_PATH } from '@odf/shared/constants/doc';
+import { odfDocBasePath } from '@odf/shared/constants/doc';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
+import { DOC_VERSION as odfDocVersion } from '@odf/shared/hooks';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -50,8 +51,13 @@ const resiliencyProgressQuery = (managedByOCS: string) =>
     StorageDashboardQuery.RESILIENCY_PROGRESS
   ];
 
-const generateDocumentationLink = (alert: Alert): string => {
-  return `${ODF_DOC_BASE_PATH}/troubleshooting_openshift_data_foundation/index#${_.toLower(
+const generateDocumentationLink = (
+  alert: Alert,
+  docVersion: string
+): string => {
+  return `${odfDocBasePath(
+    docVersion
+  )}/troubleshooting_openshift_data_foundation/index#${_.toLower(
     alert?.labels?.alertname
   )}_rhodf`;
 };
@@ -60,14 +66,14 @@ const isCephBasedAlert = (alert: Alert): boolean => {
   return alert?.annotations?.storage_type === 'ceph';
 };
 
-const getDocumentationLink = (alert: Alert): string => {
-  if (isCephBasedAlert(alert)) {
-    return generateDocumentationLink(alert);
+const getDocumentationLink = (alert: Alert, docVersion: string): string => {
+  if (!!docVersion && isCephBasedAlert(alert)) {
+    return generateDocumentationLink(alert, docVersion);
   }
   return null;
 };
 
-export const CephAlerts: React.FC = () => {
+const CephAlerts: React.FC<{ docVersion: string }> = ({ docVersion }) => {
   const [alerts, loaded, error] = useAlerts();
   // ToDo (epic 4422): Get StorageCluster name and namespace from the Alert object
   // and filter Alerts based on that for a particular cluster.
@@ -82,7 +88,7 @@ export const CephAlerts: React.FC = () => {
           <AlertItem
             key={alertURL(alert, alert?.rule?.id)}
             alert={alert as any}
-            documentationLink={getDocumentationLink(alert)}
+            documentationLink={getDocumentationLink(alert, docVersion)}
           />
         ))}
     </AlertsBody>
@@ -162,7 +168,12 @@ export const StatusCard: React.FC = () => {
       const healthCheckObject: CephHealthCheckType = {
         id: key,
         details: cephDetails[key].message,
-        troubleshootLink: whitelistedHealthChecksRef[key] ?? null,
+        ...(!!odfDocVersion
+          ? {
+              troubleshootLink:
+                whitelistedHealthChecksRef(odfDocVersion)[key] ?? null,
+            }
+          : {}),
       };
       healthChecks.push(healthCheckObject);
     }
@@ -204,7 +215,7 @@ export const StatusCard: React.FC = () => {
           dataLoaded={loaded}
           dataLoadError={loadError}
         />
-        <CephAlerts />
+        <CephAlerts docVersion={odfDocVersion} />
       </CardBody>
     </Card>
   );

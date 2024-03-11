@@ -4,6 +4,7 @@ import {
   GETTING_STARTED_USER_SETTINGS_KEY_OVERVIEW_DASHBOARD,
 } from '@odf/mco/constants';
 import { GettingStartedExpandableGrid } from '@odf/shared/getting-started-grid';
+import { DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { useUserSettings } from '@openshift-console/dynamic-plugin-sdk-internal';
@@ -27,7 +28,7 @@ export const GettingStartedCard: React.FC = () => {
       hideExpandable={!isMonitoringEnabled}
     >
       <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-column pf-v5-u-flex-direction-row-on-lg">
-        {gettingStartedSteps(t).map((step) => {
+        {gettingStartedSteps(t, mcoDocVersion).map((step) => {
           const stepCount = step.stepCount;
           const FooterComponent = step.FooterComponent;
           return (

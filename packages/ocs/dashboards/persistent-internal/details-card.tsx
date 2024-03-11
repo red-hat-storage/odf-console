@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useODFNamespaceSelector } from '@odf/core/redux';
-import { getOperatorVersion } from '@odf/core/utils';
 import {
   getStorageClusterInNs,
   getResourceInNs as getCephClusterInNs,
@@ -21,6 +20,7 @@ import {
   StorageClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getOprVersionFromCSV } from '@odf/shared/utils';
 import {
   getInfrastructurePlatform,
   resourcePathFromModel,
@@ -78,7 +78,7 @@ const DetailsCard: React.FC = () => {
     ? t('Enabled')
     : t('Disabled');
 
-  const serviceVersion = getOperatorVersion(csv);
+  const serviceVersion = getOprVersionFromCSV(csv);
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
     getName(csv),

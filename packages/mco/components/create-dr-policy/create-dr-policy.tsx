@@ -31,7 +31,6 @@ import {
   MAX_ALLOWED_CLUSTERS,
   REPLICATION_TYPE,
   ODFMCO_OPERATOR,
-  HUB_CLUSTER_NAME,
 } from '../../constants';
 import { DRPolicyModel, MirrorPeerModel } from '../../models';
 import { DRPolicyKind, MirrorPeerKind } from '../../types';
@@ -136,7 +135,6 @@ const CreateDRPolicy: React.FC<{}> = () => {
   });
   const [csv] = useFetchCsv({
     specName: ODFMCO_OPERATOR,
-    cluster: HUB_CLUSTER_NAME,
   });
   const odfMCOVersion = getMajorVersion(csv?.spec?.version);
 

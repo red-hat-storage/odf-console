@@ -111,6 +111,12 @@ jest.mock('react-i18next', () => ({
   Trans: ({ children }: any) => children,
 }));
 
+jest.mock('@odf/shared/hooks', () => ({
+  ...jest.requireActual('@odf/shared/hooks'),
+  DOC_VERSION: '1.2',
+  useDocVersion: jest.fn(() => '1.2'),
+}));
+
 describe('Discovered application failover/relocate modal test', () => {
   test('Failover happy path test', async () => {
     type = 1;
@@ -339,7 +345,7 @@ describe('Discovered application failover/relocate modal test', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Failover cannot be initiated as the readiness checks are failing. Refer to workaround mentioned in known issues section of'
+        /Failover cannot be initiated as the readiness checks are failing. Refer to workaround mentioned in known issues section of/i
       )
     ).toBeInTheDocument();
     expect(
@@ -367,7 +373,7 @@ describe('Discovered application failover/relocate modal test', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Relocation cannot be initiated as the readiness checks are failing. Refer to workaround mentioned in known issues section of'
+        /Relocation cannot be initiated as the readiness checks are failing. Refer to workaround mentioned in known issues section of/i
       )
     ).toBeInTheDocument();
     expect(
@@ -409,10 +415,13 @@ describe('Discovered application failover/relocate modal test', () => {
         .getAllByRole('listitem')
         .find((listitem) =>
           listitem.textContent?.includes(
-            'To fence your cluster, follow the instructions in the documentation View documentation'
+            'To fence your cluster, follow the instructions in the documentation'
           )
         )
     ).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: /View documentation/i })
+    ).toBeInTheDocument();
 
     // footer
     expect(screen.getByRole('button', { name: /Cancel/i })).toBeEnabled();
@@ -449,10 +458,13 @@ describe('Discovered application failover/relocate modal test', () => {
         .getAllByRole('listitem')
         .find((listitem) =>
           listitem.textContent?.includes(
-            'To unfence your cluster, refer to the documentation View documentation'
+            'To unfence your cluster, refer to the documentation'
           )
         )
     ).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: /View documentation/i })
+    ).toBeInTheDocument();
 
     // footer
     expect(screen.getByRole('button', { name: /Cancel/i })).toBeEnabled();

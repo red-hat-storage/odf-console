@@ -141,6 +141,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
     }),
     new webpack.DefinePlugin({
       'process.env.I8N_NS': JSON.stringify(process.env.I8N_NS),
+      'process.env.PLUGIN_VERSION': JSON.stringify(process.env.PLUGIN_VERSION),
     }),
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],

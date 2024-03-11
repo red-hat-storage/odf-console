@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { EnrollApplicationButton } from '@odf/mco/components/protected-applications/components';
-import { GETTING_STARTED_DR_DOCS } from '@odf/mco/constants';
+import { gettingStartedDRDocs } from '@odf/mco/constants';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { GettingStartedCard } from './getting-started-card';
 
@@ -29,6 +29,11 @@ jest.mock('react-i18next', () => ({
   Trans: ({ children }: any) => children,
 }));
 
+jest.mock('@odf/shared/hooks', () => ({
+  ...jest.requireActual('@odf/shared/hooks'),
+  DOC_VERSION: '1.2',
+}));
+
 jest.mock('@odf/mco/components/protected-applications/components', () => ({
   ...jest.requireActual(
     '@odf/mco/components/protected-applications/components'
@@ -52,11 +57,11 @@ describe('Test getting started card (GettingStartedCard)', () => {
     // body -- doc link
     expect(screen.getByText('See documentation')).toHaveAttribute(
       'href',
-      GETTING_STARTED_DR_DOCS.CREATE_POLICY
+      gettingStartedDRDocs('1.2').CREATE_POLICY
     );
     expect(screen.getByText('Steps to enable monitoring')).toHaveAttribute(
       'href',
-      GETTING_STARTED_DR_DOCS.ENABLE_MONITORING
+      gettingStartedDRDocs('1.2').ENABLE_MONITORING
     );
 
     // footer -- button
