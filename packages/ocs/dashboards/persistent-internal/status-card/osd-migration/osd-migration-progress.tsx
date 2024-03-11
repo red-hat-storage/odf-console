@@ -4,8 +4,10 @@ import {
   BLUESTORE,
   BLUESTORE_RDR,
 } from '@odf/core/constants';
+import { ODF_OPERATOR, ODF_DEFAULT_DOC_VERSION } from '@odf/shared/constants';
 import { ODF_DR_DOC_APPLY_POLICY } from '@odf/shared/constants/doc';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
+import { useDocVersion } from '@odf/shared/hooks';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -42,6 +44,12 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
   dataLoadError,
 }) => {
   const { t } = useCustomTranslation();
+
+  const odfVersion = useDocVersion({
+    defaultDocVersion: ODF_DEFAULT_DOC_VERSION,
+    specName: ODF_OPERATOR,
+  });
+
   const [migratedDevices, totalOSD] = calculateOSDMigration(
     cephData,
     dataLoaded,
@@ -69,7 +77,7 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
             <FlexItem>
               <ViewDocumentation
                 text={t('Setting up disaster recovery')}
-                doclink={ODF_DR_DOC_APPLY_POLICY}
+                doclink={ODF_DR_DOC_APPLY_POLICY(odfVersion)}
               />
             </FlexItem>
           </>

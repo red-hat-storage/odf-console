@@ -29,7 +29,11 @@ type ErrorMessagesType = {
   [key in ErrorMessageType]: MessageKind;
 };
 
-export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
+export const ErrorMessages = (
+  t: TFunction,
+  odfDocVersion: string,
+  acmDocVersion: string
+): ErrorMessagesType => ({
   [ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER]: {
     title: t('No DRPolicy found.'),
     message: (
@@ -41,8 +45,12 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           </li>
           <li>
             To apply a DRPolicy to your application, follow the instructions in
-            the documentation.
-            <ViewDocumentation doclink={DOC_LINKS.APPLY_POLICY} />
+            the documentation
+            <span>
+              <ViewDocumentation
+                doclink={DOC_LINKS(odfDocVersion, acmDocVersion).APPLY_POLICY}
+              />
+            </span>
           </li>
         </ul>
       </Trans>
@@ -60,8 +68,12 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           </li>
           <li>
             To apply a DRPolicy to your application, follow the instructions in
-            the documentation.
-            <ViewDocumentation doclink={DOC_LINKS.APPLY_POLICY} />
+            the documentation
+            <span>
+              <ViewDocumentation
+                doclink={DOC_LINKS(odfDocVersion, acmDocVersion).APPLY_POLICY}
+              />
+            </span>
           </li>
         </ul>
       </Trans>
@@ -75,10 +87,12 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
         <p>
           Failover cannot be initiated as the readiness checks are failing.
           Refer to workaround mentioned in known issues section of
-          <ViewDocumentation
-            doclink={DOC_LINKS.DR_RELEASE_NOTES}
-            text="release notes"
-          />
+          <span>
+            <ViewDocumentation
+              doclink={DOC_LINKS(odfDocVersion, acmDocVersion).DR_RELEASE_NOTES}
+              text={t('release notes')}
+            />
+          </span>
         </p>
       </Trans>
     ),
@@ -91,10 +105,12 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
         <p>
           Relocation cannot be initiated as the readiness checks are failing.
           Refer to workaround mentioned in known issues section of
-          <ViewDocumentation
-            doclink={DOC_LINKS.DR_RELEASE_NOTES}
-            text="release notes"
-          />
+          <span>
+            <ViewDocumentation
+              doclink={DOC_LINKS(odfDocVersion, acmDocVersion).DR_RELEASE_NOTES}
+              text={t('release notes')}
+            />
+          </span>
         </p>
       </Trans>
     ),
@@ -112,10 +128,14 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           <li>
             To bring the cluster online, refer to the instructions in the
             documentation
-            <ViewDocumentation
-              doclink={DOC_LINKS.ACM_OFFLINE_CLUSTER}
-              text="Troubleshoot"
-            />
+            <span>
+              <ViewDocumentation
+                doclink={
+                  DOC_LINKS(odfDocVersion, acmDocVersion).ACM_OFFLINE_CLUSTER
+                }
+                text={t('Troubleshoot')}
+              />
+            </span>
           </li>
         </ul>
       </Trans>
@@ -130,10 +150,14 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           To begin failover, the target cluster must be available. Check the
           status and try again. If the managed cluster status is offline, follow
           the instructions in the documentation
-          <ViewDocumentation
-            doclink={DOC_LINKS.ACM_OFFLINE_CLUSTER}
-            text="Troubleshoot"
-          />
+          <span>
+            <ViewDocumentation
+              doclink={
+                DOC_LINKS(odfDocVersion, acmDocVersion).ACM_OFFLINE_CLUSTER
+              }
+              text={t('Troubleshoot')}
+            />
+          </span>
         </p>
       </Trans>
     ),
@@ -150,7 +174,11 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           </li>
           <li>
             To unfence your cluster, refer to the documentation
-            <ViewDocumentation doclink={DOC_LINKS.MDR_RELOCATE} />.
+            <span>
+              <ViewDocumentation
+                doclink={DOC_LINKS(odfDocVersion, acmDocVersion).MDR_RELOCATE}
+              />
+            </span>
           </li>
         </ul>
       </Trans>
@@ -168,7 +196,11 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           </li>
           <li>
             To fence your cluster, follow the instructions in the documentation
-            <ViewDocumentation doclink={DOC_LINKS.MDR_FAILOVER} />.
+            <span>
+              <ViewDocumentation
+                doclink={DOC_LINKS(odfDocVersion, acmDocVersion).MDR_FAILOVER}
+              />
+            </span>
           </li>
         </ul>
       </Trans>
@@ -187,7 +219,11 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           <li>
             To unfence your cluster, follow the instructions in the
             documentation
-            <ViewDocumentation doclink={DOC_LINKS.MDR_FAILOVER} />.
+            <span>
+              <ViewDocumentation
+                doclink={DOC_LINKS(odfDocVersion, acmDocVersion).MDR_FAILOVER}
+              />
+            </span>
           </li>
         </ul>
       </Trans>

@@ -75,9 +75,6 @@ export const isPersistentStorageEvent =
       : eventNamespace === ns;
   };
 
-export const getOperatorVersion = (operator: K8sResourceKind): string =>
-  operator?.spec?.version;
-
 export const getCephSC = (
   scData: StorageClassResourceKind[]
 ): K8sResourceKind[] =>

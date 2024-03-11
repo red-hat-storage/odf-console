@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { ODF_OPERATOR, ODF_DEFAULT_DOC_VERSION } from '@odf/shared/constants';
 import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
+import { useDocVersion } from '@odf/shared/hooks';
 import { ApplicationModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -16,7 +18,12 @@ import {
   Alert,
 } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
-import { DRActionType, REPLICATION_TYPE } from '../../../constants';
+import {
+  DRActionType,
+  REPLICATION_TYPE,
+  ACM_OPERATOR_SPEC_NAME,
+  ACM_DEFAULT_DOC_VERSION,
+} from '../../../constants';
 import {
   ErrorMessageType,
   evaluateErrorMessage,
@@ -188,6 +195,15 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
     const [errorMessage, setErrorMessage] = React.useState<ErrorMessageType>();
     const placement = placements?.[0];
 
+    const odfVersion = useDocVersion({
+      defaultDocVersion: ODF_DEFAULT_DOC_VERSION,
+      specName: ODF_OPERATOR,
+    });
+    const acmVersion = useDocVersion({
+      defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
+      specName: ACM_OPERATOR_SPEC_NAME,
+    });
+
     React.useEffect(() => {
       if (loaded && !loadError) {
         const placementErrorMessage = validatePlacement(placement, action);
@@ -287,7 +303,9 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
           </Flex>
         )}
         {evaluateErrorMessage(errorMessage, true) > -1 && (
-          <MessageStatus message={ErrorMessages(t)[errorMessage]} />
+          <MessageStatus
+            message={ErrorMessages(t, odfVersion, acmVersion)[errorMessage]}
+          />
         )}
       </Flex>
     );

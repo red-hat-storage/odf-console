@@ -9,6 +9,9 @@ export const ViewDocumentation: React.FC<ViewDocumentationProps> = ({
   padding = '15px 10px',
 }) => {
   const { t } = useCustomTranslation();
+
+  if (!doclink) return null;
+
   return (
     <Text
       component={TextVariants.a}

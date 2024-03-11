@@ -8,3 +8,4 @@ export * from './sort-list';
 export * from './use-fetch-csv';
 export * from './useK8sList';
 export * from './scheduler';
+export * from './use-doc-version';

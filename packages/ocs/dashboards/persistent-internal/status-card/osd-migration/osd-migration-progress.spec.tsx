@@ -3,6 +3,8 @@ import { CephClusterKind } from '@odf/shared/src/types/storage';
 import { render, screen } from '@testing-library/react';
 import { OSDMigrationProgress } from './osd-migration-progress';
 
+const docVersion = 'x.y';
+
 const cephData1: CephClusterKind = {
   status: {
     storage: {
@@ -61,6 +63,11 @@ jest.mock('@openshift-console/dynamic-plugin-sdk-internal', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk-internal'),
   HealthBody: ({ children }) => <div>{children}</div>,
   HealthItem: ({ title }) => <div>{title}</div>,
+}));
+
+jest.mock('@odf/shared/hooks', () => ({
+  ...jest.requireActual('@odf/shared/hooks'),
+  useDocVersion: jest.fn(() => docVersion),
 }));
 
 describe('OSDMigrationProgress', () => {

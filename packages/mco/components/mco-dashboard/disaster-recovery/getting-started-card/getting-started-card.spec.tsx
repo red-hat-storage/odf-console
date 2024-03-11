@@ -4,6 +4,7 @@ import { GETTING_STARTED_DR_DOCS } from '@odf/mco/constants';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { GettingStartedCard } from './getting-started-card';
 
+const docVersion = 'x.y';
 const setIsOpen = jest.fn(() => null);
 const navigate = jest.fn(() => null);
 
@@ -29,6 +30,11 @@ jest.mock('react-i18next', () => ({
   Trans: ({ children }: any) => children,
 }));
 
+jest.mock('@odf/shared/hooks', () => ({
+  ...jest.requireActual('@odf/shared/hooks'),
+  useDocVersion: jest.fn(() => docVersion),
+}));
+
 jest.mock('@odf/mco/components/protected-applications/components', () => ({
   ...jest.requireActual(
     '@odf/mco/components/protected-applications/components'
@@ -52,11 +58,11 @@ describe('Test getting started card (GettingStartedCard)', () => {
     // body -- doc link
     expect(screen.getByText('See documentation')).toHaveAttribute(
       'href',
-      GETTING_STARTED_DR_DOCS.CREATE_POLICY
+      GETTING_STARTED_DR_DOCS(docVersion).CREATE_POLICY
     );
     expect(screen.getByText('Steps to enable monitoring')).toHaveAttribute(
       'href',
-      GETTING_STARTED_DR_DOCS.ENABLE_MONITORING
+      GETTING_STARTED_DR_DOCS(docVersion).ENABLE_MONITORING
     );
 
     // footer -- button
