@@ -240,6 +240,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
             onClick={() => setOpen((o) => !o)}
             isExpanded={isOpen}
             data-test="kebab-button"
+            isDisabled={isDisabled}
           >
             {toggleType === 'Kebab' ? <EllipsisVIcon /> : t('Actions')}
           </MenuToggle>
