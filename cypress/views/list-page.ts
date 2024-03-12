@@ -8,7 +8,7 @@ export const listPage = {
         .contains(resourceName)
         .parents('tr')
         .within(() => {
-          cy.get('[data-test-id="kebab-button"]').click();
+          cy.get('[data-test="kebab-button"]').click();
         });
       cy.byTestActionID(actionName).click();
     },
