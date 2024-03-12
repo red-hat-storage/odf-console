@@ -32,6 +32,9 @@ import {
   DRPC_STATUS,
   THRESHOLD,
   DRActionType,
+  LABEL_SPLIT_CHAR,
+  LABELS_SPLIT_CHAR,
+  DR_BLOCK_LISTED_LABELS,
 } from '../constants';
 import {
   DRPC_NAMESPACE_ANNOTATION,
@@ -66,6 +69,7 @@ import {
   MirrorPeerKind,
   ArgoApplicationSetKind,
   ClusterClaim,
+  SearchResultItemType,
 } from '../types';
 
 export type PlacementMap = {
@@ -657,3 +661,17 @@ export const getValueFromClusterClaim = (
 
 export const parseNamespaceName = (namespaceName: string) =>
   namespaceName.split('/');
+
+export const getLabelsFromSearchResult = (
+  item: SearchResultItemType
+): { [key in string]: string[] } => {
+  // example label foo1=bar1;foo2=bar2
+  const labels: string[] = item?.label?.split(LABELS_SPLIT_CHAR) || [];
+  return labels?.reduce((acc, label) => {
+    const [key, value] = label.split(LABEL_SPLIT_CHAR);
+    if (!DR_BLOCK_LISTED_LABELS.includes(key)) {
+      acc[key] = [...(acc[key] || []), value];
+    }
+    return acc;
+  }, {});
+};

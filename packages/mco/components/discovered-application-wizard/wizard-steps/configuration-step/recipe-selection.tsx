@@ -102,7 +102,7 @@ export const RecipeSelection: React.FC<RecipeSelectionProps> = ({
             )}
           </Text>
           <SingleSelectDropdown
-            className="pf-v5-u-w-50 pf-u-mt-sm"
+            className="pf-v5-u-w-50 pf-v5-u-mt-sm"
             id="recipe-selection-dropdown"
             placeholderText={t('Select a recipe')}
             selectedKey={recipeNameNamespace}

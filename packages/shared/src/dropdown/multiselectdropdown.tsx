@@ -15,9 +15,13 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   selectOptions,
   selections = [],
   variant,
+  isCreatable,
   ...rest
 }) => {
   const [isOpen, setOpen] = React.useState(false);
+  const [newOptions, setNewOptions] = React.useState<JSX.Element[]>([]);
+  const allOptions =
+    newOptions.length > 0 ? selectOptions.concat(newOptions) : selectOptions;
 
   const onSelect = (
     _event: React.MouseEvent | React.ChangeEvent,
@@ -39,6 +43,12 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     <SelectOption key={item} value={item} />
   ));
 
+  const onCreateOption = (newValue: string) =>
+    setNewOptions([
+      ...newOptions,
+      <SelectOption key={newValue} value={newValue} />,
+    ]);
+
   return (
     <Select
       variant={variant || SelectVariant.typeaheadMulti}
@@ -51,9 +61,10 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
       aria-labelledby={id}
       noResultsFoundText={t('No results found')}
       isCheckboxSelectionBadgeHidden
+      onCreateOption={(isCreatable && onCreateOption) || undefined}
       {...rest}
     >
-      {selectOptions || items}
+      {allOptions || items}
     </Select>
   );
 };
@@ -66,4 +77,5 @@ export type MultiSelectDropdownProps = Omit<
   options?: string[];
   selectOptions?: JSX.Element[];
   onChange: (selected: string[], selection?: string) => void;
+  isCreatable?: boolean;
 };

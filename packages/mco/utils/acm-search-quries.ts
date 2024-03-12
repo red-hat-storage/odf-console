@@ -9,6 +9,9 @@ import { LABELS_SPLIT_CHAR, LABEL_SPLIT_CHAR } from '../constants';
 export const searchFilterQuery =
   'query searchResult($input: [SearchInput]) {\n  searchResult: search(input: $input) {\n    items\n  }\n}';
 
+export const searchRelatedItemsFilterQuery =
+  'query searchResultRelatedItems($input: [SearchInput]) {\n  searchResult: search(input: $input) {\n    items\n    related {\n      kind\n      items\n      __typename\n    }\n    __typename\n  }\n}';
+
 export const queryAppWorkloadPVCs = (
   workloadNamespace: string,
   clusterNames: string[]
@@ -125,4 +128,30 @@ export const queryRecipesFromCluster = (
     ],
   },
   query: searchFilterQuery,
+});
+
+// ACM seach query to fetch all releated resources of this namesapces from the managed cluster.
+export const queryK8sResourceFromCluster = (
+  clusterName: string,
+  namespaces: string[]
+): SearchQuery => ({
+  operationName: 'searchResultRelatedItems',
+  variables: {
+    input: [
+      {
+        filters: [
+          {
+            property: 'namespace',
+            values: namespaces,
+          },
+          {
+            property: 'cluster',
+            values: clusterName,
+          },
+        ],
+        limit: 2000, // search said not to use unlimited results
+      },
+    ],
+  },
+  query: searchRelatedItemsFilterQuery,
 });
