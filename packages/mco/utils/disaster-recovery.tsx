@@ -353,6 +353,14 @@ export const findDRPCUsingDRPolicy = (
   );
 };
 
+export const findDRPolicyUsingDRPC = (
+  drpc: DRPlacementControlKind,
+  drPolicies: DRPolicyKind[]
+): DRPolicyKind =>
+  drPolicies?.find(
+    (drPolicy) => drpc?.spec?.drPolicyRef?.name === getName(drPolicy)
+  );
+
 export const isDRClusterFenced = (cluster: DRClusterKind) =>
   cluster?.status?.phase === 'Fenced';
 
@@ -505,7 +513,7 @@ export const filterPVCDataUsingApp = (
   pvcData: ProtectedPVCData,
   protectedApp: ProtectedAppsMap
 ) =>
-  protectedApp?.placementInfo?.find((placementInfo) => {
+  protectedApp?.placementControlInfo?.find((placementInfo) => {
     const result =
       placementInfo.drpcName === pvcData?.drpcName &&
       placementInfo.drpcNamespace === pvcData?.drpcNamespace;

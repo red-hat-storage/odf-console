@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import { DRPC_STATUS } from '@odf/mco/constants';
-import { PlacementInfo, ProtectedAppsMap } from '@odf/mco/types';
+import { PlacementControlInfo, ProtectedAppsMap } from '@odf/mco/types';
 import { getDRStatus } from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { fromNow } from '@odf/shared/details-page/datetime';
@@ -80,28 +80,31 @@ export const getCurrentActivity = (
 };
 
 const getSubscriptionRow = (
-  placementInfoList: PlacementInfo[] = []
+  placementControlInfoList: PlacementControlInfo[] = []
 ): SubscriptionRowProps[] => {
   const _getRowProps = (
     subscriptions: string[],
     {
       status,
-      lastGroupSyncTime,
+      lastVolumeGroupSyncTime,
       failoverCluster,
       preferredCluster,
-    }: PlacementInfo
+    }: PlacementControlInfo
   ): SubscriptionRowProps[] =>
     subscriptions?.map((subscriptionName) => ({
       name: subscriptionName,
       activity: status,
-      lastSnapshotSyncTime: lastGroupSyncTime,
+      lastSnapshotSyncTime: lastVolumeGroupSyncTime,
       failoverCluster: failoverCluster,
       preferredCluster: preferredCluster,
     }));
-  return placementInfoList.reduce(
-    (acc, placementInfo) => [
+  return placementControlInfoList.reduce(
+    (acc, placementControlInfo) => [
       ...acc,
-      ..._getRowProps(placementInfo?.subscriptions, placementInfo),
+      ..._getRowProps(
+        placementControlInfo?.subscriptions,
+        placementControlInfo
+      ),
     ],
     []
   );
@@ -112,10 +115,11 @@ export const ActivitySection: React.FC<CommonProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const placementInfo: PlacementInfo = selectedApplication?.placementInfo?.[0];
-  const currentStatus = placementInfo?.status;
-  const failoverCluster = placementInfo?.failoverCluster;
-  const preferredCluster = placementInfo?.preferredCluster;
+  const placementControlInfo: PlacementControlInfo =
+    selectedApplication?.placementControlInfo?.[0];
+  const currentStatus = placementControlInfo?.status;
+  const failoverCluster = placementControlInfo?.failoverCluster;
+  const preferredCluster = placementControlInfo?.preferredCluster;
   return (
     <div className="mco-dashboard__contentColumn">
       <StatusText>{t('Activity')}</StatusText>
@@ -133,31 +137,51 @@ export const ActivitySection: React.FC<CommonProps> = ({
   );
 };
 
-export const SnapshotSection: React.FC<CommonProps> = ({
+export const NamespaceSection: React.FC<CommonProps> = ({
   selectedApplication,
 }) => {
   const { t } = useCustomTranslation();
-  const [lastSyncTime, setLastSyncTime] = React.useState('N/A');
-  const lastGroupSyncTime =
-    selectedApplication?.placementInfo?.[0]?.lastGroupSyncTime;
-  const updateSyncTime = React.useCallback(() => {
-    if (!!lastGroupSyncTime) {
-      setLastSyncTime(
-        formatSyncTimeWithRPO(lastGroupSyncTime, fromNow(lastGroupSyncTime))
-      );
-    } else {
-      setLastSyncTime('N/A');
-    }
-  }, [lastGroupSyncTime]);
-
-  useScheduler(updateSyncTime);
+  const workloadNamespace =
+    selectedApplication?.placementControlInfo?.[0]?.workloadNamespaces;
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <StatusText>{t('Snapshot')}</StatusText>
+      <Text component={TextVariants.h1}>{workloadNamespace.length}</Text>
+      <StatusText>{t('Namespaces')}</StatusText>
+    </div>
+  );
+};
+
+export const SnapshotSection: React.FC<SnapshotSectionProps> = ({
+  selectedApplication,
+  isVolumeSnapshot,
+}) => {
+  const { t } = useCustomTranslation();
+  const [syncTime, setSyncTime] = React.useState('N/A');
+  const lastSyncTime = isVolumeSnapshot
+    ? selectedApplication?.placementControlInfo?.[0]?.lastVolumeGroupSyncTime
+    : selectedApplication?.placementControlInfo?.[0]?.lastKubeObjectSyncTime;
+
+  const updateSyncTime = React.useCallback(() => {
+    setSyncTime(
+      !!lastSyncTime
+        ? formatSyncTimeWithRPO(lastSyncTime, fromNow(lastSyncTime))
+        : 'N/A'
+    );
+  }, [lastSyncTime]);
+
+  useScheduler(updateSyncTime);
+
+  const title = isVolumeSnapshot
+    ? t('Volume snapshot')
+    : t('Kubernetes object snapshot');
+
+  return (
+    <div className="mco-dashboard__contentColumn">
+      <StatusText>{title}</StatusText>
       <Text className="text-muted">
-        {t('Last replicated on: {{ lastSyncTime }}', {
-          lastSyncTime: lastSyncTime,
+        {t('Last on: {{ syncTime }}', {
+          syncTime: syncTime,
         })}
       </Text>
     </div>
@@ -210,7 +234,7 @@ export const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
   selectedApplication,
 }) => {
   const { t } = useCustomTranslation();
-  const subsCount = selectedApplication?.placementInfo?.reduce(
+  const subsCount = selectedApplication?.placementControlInfo?.reduce(
     (acc, placement) => acc + placement.subscriptions?.length || 0,
     0
   );
@@ -224,7 +248,7 @@ export const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
 
 export const SubscriptionDetailsTable: React.FC<SubscriptionDetailsTableProps> =
   ({ selectedApplication }) => {
-    const { placementInfo } = selectedApplication;
+    const { placementControlInfo } = selectedApplication;
     const { t } = useCustomTranslation();
     const [subsWiseRPO, setSubsWiseRPO] =
       React.useState<SubscriptionWiseRPOMap>({});
@@ -263,12 +287,12 @@ export const SubscriptionDetailsTable: React.FC<SubscriptionDetailsTableProps> =
     const [subscriptionRows, numberOfRows]: [SubscriptionRowProps[], number] =
       React.useMemo(() => {
         const [start, end] = getPageRange(page, perPage);
-        const subscriptionRowList = getSubscriptionRow(placementInfo);
+        const subscriptionRowList = getSubscriptionRow(placementControlInfo);
         return [
           subscriptionRowList.slice(start, end),
           subscriptionRowList.length,
         ];
-      }, [placementInfo, page, perPage]);
+      }, [placementControlInfo, page, perPage]);
     const updatedRPO = React.useCallback(() => {
       const rpoMap = subscriptionRows.reduce((acc, row) => {
         const { name, lastSnapshotSyncTime } = row;
@@ -336,4 +360,8 @@ type SubscriptionRowProps = {
 
 type SubscriptionWiseRPOMap = {
   [subscriptionName: string]: string;
+};
+
+type SnapshotSectionProps = CommonProps & {
+  isVolumeSnapshot?: boolean;
 };

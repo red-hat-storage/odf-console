@@ -1,11 +1,19 @@
 import * as React from 'react';
-import { APPLICATION_TYPE, DRPC_STATUS } from '@odf/mco/constants';
+import {
+  APPLICATION_TYPE,
+  DRPC_STATUS,
+  GITOPS_OPERATOR_NAMESPACE,
+} from '@odf/mco/constants';
 import {
   DisasterRecoveryResourceKind,
   getApplicationSetResourceObj,
+  getDRClusterResourceObj,
+  getDRPlacementControlResourceObj,
+  getDRPolicyResourceObj,
   getPlacementDecisionsResourceObj,
   getPlacementResourceObj,
   useArgoApplicationSetResourceWatch,
+  useDisasterRecoveryResourceWatch,
 } from '@odf/mco/hooks';
 import {
   ACMManagedClusterKind,
@@ -22,6 +30,7 @@ import { getName, getNamespace } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
 
 const getApplicationSetResources = (
+  namespace: string,
   managedClusters: ACMManagedClusterKind[],
   managedClusterLoaded: boolean,
   managedClusterLoadError: any,
@@ -30,9 +39,9 @@ const getApplicationSetResources = (
   drLoadError: any
 ) => ({
   resources: {
-    applications: getApplicationSetResourceObj(),
-    placements: getPlacementResourceObj(),
-    placementDecisions: getPlacementDecisionsResourceObj(),
+    applications: getApplicationSetResourceObj({ namespace }),
+    placements: getPlacementResourceObj({ namespace }),
+    placementDecisions: getPlacementDecisionsResourceObj({ namespace }),
   },
   drResources: {
     data: drResources,
@@ -48,17 +57,28 @@ const getApplicationSetResources = (
   },
 });
 
+const getDRResources = (namespace: string) => ({
+  resources: {
+    drClusters: getDRClusterResourceObj(),
+    drPolicies: getDRPolicyResourceObj(),
+    drPlacementControls: getDRPlacementControlResourceObj({ namespace }),
+  },
+});
+
 export const useApplicationSetParser: UseApplicationSetParser = (
-  drResources,
-  drLoaded,
-  drLoadError,
   managedClusters,
   managedClusterLoaded,
   managedClusterLoadError
 ) => {
+  // Watch only DRPC from openshift-gitops namespace
+  const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
+    getDRResources(GITOPS_OPERATOR_NAMESPACE)
+  );
+
   const [argoApplicationSetResources, loaded, loadError] =
     useArgoApplicationSetResourceWatch(
       getApplicationSetResources(
+        GITOPS_OPERATOR_NAMESPACE,
         managedClusters,
         managedClusterLoaded,
         managedClusterLoadError,
@@ -81,7 +101,7 @@ export const useApplicationSetParser: UseApplicationSetParser = (
             managedCluster: managedClusters.find(
               (managedCluster) => getName(managedCluster) === clusterName
             ),
-            totalAppCount: 0,
+            totalManagedAppsCount: 0,
             protectedApps: [],
           };
           return acc;
@@ -104,8 +124,8 @@ export const useApplicationSetParser: UseApplicationSetParser = (
         );
         deploymentClusters.forEach((decisionCluster) => {
           if (drClusterAppsMap.hasOwnProperty(decisionCluster)) {
-            drClusterAppsMap[decisionCluster].totalAppCount =
-              drClusterAppsMap[decisionCluster].totalAppCount + 1;
+            drClusterAppsMap[decisionCluster].totalManagedAppsCount =
+              drClusterAppsMap[decisionCluster].totalManagedAppsCount + 1;
             if (!_.isEmpty(drPlacementControl)) {
               drClusterAppsMap[decisionCluster].protectedApps.push({
                 appName: getName(application),
@@ -113,20 +133,21 @@ export const useApplicationSetParser: UseApplicationSetParser = (
                 appKind: application?.kind,
                 appAPIVersion: application?.apiVersion,
                 appType: APPLICATION_TYPE.APPSET,
-                placementInfo: [
+                placementControlInfo: [
                   {
                     deploymentClusterName: decisionCluster,
                     drpcName: getName(drPlacementControl),
                     drpcNamespace: getNamespace(drPlacementControl),
                     protectedPVCs: getProtectedPVCsFromDRPC(drPlacementControl),
                     replicationType: findDRType(currentDRClusters),
-                    syncInterval: drPolicy?.spec?.schedulingInterval,
-                    workloadNamespace:
+                    volumeSyncInterval: drPolicy?.spec?.schedulingInterval,
+                    workloadNamespaces: [
                       getRemoteNamespaceFromAppSet(application),
+                    ],
                     failoverCluster: drPlacementControl?.spec?.failoverCluster,
                     preferredCluster:
                       drPlacementControl?.spec?.preferredCluster,
-                    lastGroupSyncTime:
+                    lastVolumeGroupSyncTime:
                       drPlacementControl?.status?.lastGroupSyncTime,
                     status: drPlacementControl?.status?.phase as DRPC_STATUS,
                   },
@@ -153,9 +174,6 @@ export const useApplicationSetParser: UseApplicationSetParser = (
 type UseApplicationSetParserResult = [DRClusterAppsMap, boolean, any];
 
 type UseApplicationSetParser = (
-  drResources: DisasterRecoveryResourceKind,
-  drLoaded: boolean,
-  drLoadError: any,
   managedClusters: ACMManagedClusterKind[],
   managedClusterLoaded: boolean,
   managedClusterLoadError: any
