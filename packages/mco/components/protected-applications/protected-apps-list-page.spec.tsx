@@ -302,7 +302,7 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     const editConfig = 'Edit configuration';
     const failover = 'Failover';
     const relocate = 'Relocate';
-    const kebabButton = screen.getByRole('button', { name: /Actions/i });
+    const kebabButton = screen.getByRole('button', { name: /Kebab toggle/i });
     // Open action (kebab) menu
     fireEvent.click(kebabButton);
     expect(screen.getByText(editConfig)).toBeInTheDocument();
