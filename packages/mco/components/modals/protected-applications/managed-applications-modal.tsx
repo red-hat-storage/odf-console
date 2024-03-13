@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { StepsCountBadge } from '@odf/shared';
+import { StepsCountBadge } from '@odf/shared/badges';
 import {
   CommonModalProps,
   ModalBody,
@@ -24,15 +24,15 @@ const ManagedApplicationsModal: React.FC<CommonModalProps> = (props) => {
 
   const { isOpen, closeModal } = props;
 
-  const Header = (
-    <ModalHeader>{t('Enroll ACM managed application')}</ModalHeader>
-  );
+  const headerText = t('Enroll ACM managed application');
+  const Header = <ModalHeader>{headerText}</ModalHeader>;
   return (
     <Modal
       isOpen={isOpen}
       variant={ModalVariant.medium}
       header={Header}
       onClose={closeModal}
+      aria-label={headerText}
     >
       <ModalBody>
         <p className="co-break-word pf-u-mb-md">

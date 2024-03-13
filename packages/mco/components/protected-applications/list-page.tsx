@@ -2,7 +2,7 @@ import * as React from 'react';
 import { DASH } from '@odf/shared/constants';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
-import { PaginatedsListPage } from '@odf/shared/list-page';
+import { PaginatedListPage } from '@odf/shared/list-page';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName } from '@odf/shared/selectors';
 import { RowComponentType } from '@odf/shared/table';
@@ -93,7 +93,7 @@ const ProtectedAppsTableRow: React.FC<
   const enrolledNamespaces: string[] =
     // ToDo: Update with correct spec field which will report all protected namespaces
     // @ts-ignore
-    application.spec?.enrolledNamespace || [];
+    application.spec?.enrolledNamespaces || [];
 
   // ToDo: Add clean-up activity event as well
   const showEventsDetails: boolean =
@@ -117,6 +117,7 @@ const ProtectedAppsTableRow: React.FC<
     <>
       <Tr translate={null}>
         <Td
+          data-test="expand-button"
           translate={null}
           expand={{
             rowIndex,
@@ -194,6 +195,7 @@ const ProtectedAppsTableRow: React.FC<
         <Td translate={null} dataLabel={columnNames[4]}>
           <Link
             to={`/multicloud/data-services/disaster-recovery/policies?name=${drPolicyName}`}
+            data-test={`link-${drPolicyName}`}
           >
             {drPolicyName}
           </Link>
@@ -282,7 +284,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   useScheduler(updateSyncStatus);
 
   return (
-    <PaginatedsListPage
+    <PaginatedListPage
       filteredData={filteredData}
       CreateButton={EnrollApplicationButton}
       Alerts={AlertMessages}
