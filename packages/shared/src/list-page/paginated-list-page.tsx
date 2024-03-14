@@ -51,8 +51,8 @@ export const PaginatedListPage: React.FC<PaginatedListPageProps> = ({
       {!noData && (
         <>
           <Grid>
-            <GridItem md={8} sm={12}>
-              <div className="pf-u-display-flex pf-u-flex-direction-column pf-u-flex-direction-row-on-md">
+            <GridItem md={8} sm={12} className="pf-v5-u-mt-md">
+              <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-column pf-v5-u-flex-direction-row-on-md">
                 <ListPageFilter
                   {...listPageFilterProps}
                   data={getValidFilteredData(listPageFilterProps.data)}
@@ -62,6 +62,7 @@ export const PaginatedListPage: React.FC<PaginatedListPageProps> = ({
             </GridItem>
             <GridItem md={4} sm={12}>
               <Pagination
+                className="pf-v5-u-mt-md"
                 itemCount={filteredData.length || 0}
                 widgetId="paginated-list-page"
                 perPage={perPage}

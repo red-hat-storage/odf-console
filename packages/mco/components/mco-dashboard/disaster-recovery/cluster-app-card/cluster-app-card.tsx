@@ -33,6 +33,7 @@ import {
   Grid,
   GridItem,
   Text,
+  Skeleton,
 } from '@patternfly/react-core';
 import {
   ACMManagedClusterViewModel,
@@ -275,56 +276,58 @@ export const ClusterAppCard: React.FC = () => {
     mcvsLoadError,
   ]);
 
+  const loadedWOError = allLoaded && !anyError;
   return (
     <Card data-test="cluster-app-card">
-      {allLoaded && !anyError && (
-        <>
-          <CardHeader className="mco-cluster-app__text--divider">
-            <div className="mco-dashboard__contentColumn">
-              <ClusterAppDropdown
-                clusterResources={drClusterAppsMap}
-                clusterName={cluster}
-                application={application}
-                setCluster={setCluster}
-                setApplication={setApplication}
+      {loadedWOError && (
+        <CardHeader className="mco-cluster-app__text--divider">
+          <div className="mco-dashboard__contentColumn">
+            <ClusterAppDropdown
+              clusterResources={drClusterAppsMap}
+              clusterName={cluster}
+              application={application}
+              setCluster={setCluster}
+              setApplication={setApplication}
+            />
+            <CardTitle className="mco-cluster-app__text--margin-top">
+              <ClusterAppCardTitle
+                app={application}
+                cluster={cluster}
+                appKind={selectedApplication?.appKind}
+                appType={selectedApplication?.appType}
+                appAPIVersion={selectedApplication?.appAPIVersion}
               />
-              <CardTitle className="mco-cluster-app__text--margin-top">
-                <ClusterAppCardTitle
-                  app={application}
-                  cluster={cluster}
-                  appKind={selectedApplication?.appKind}
-                  appType={selectedApplication?.appType}
-                  appAPIVersion={selectedApplication?.appAPIVersion}
-                />
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardBody>
-            {!application.namespace && application.name === ALL_APPS ? (
-              <ClusterWiseCard
-                clusterName={cluster}
-                lastSyncTimeData={lastSyncTimeData}
-                protectedPVCData={protectedPVCData}
-                csvData={csvData}
-                clusterResources={drClusterAppsMap}
-              />
-            ) : (
-              <AppWiseCard
-                protectedPVCData={protectedPVCData}
-                selectedApplication={selectedApplication}
-              />
-            )}
-          </CardBody>
-        </>
+            </CardTitle>
+          </div>
+        </CardHeader>
       )}
-      {!allLoaded && !anyError && (
-        <div className="mco-dashboard-loading__singleBlock" />
-      )}
-      {anyError && (
-        <div className="mco-dashboard__centerComponent">
-          <DataUnavailableError />
-        </div>
-      )}
+      <CardBody>
+        {loadedWOError &&
+          (!application.namespace && application.name === ALL_APPS ? (
+            <ClusterWiseCard
+              clusterName={cluster}
+              lastSyncTimeData={lastSyncTimeData}
+              protectedPVCData={protectedPVCData}
+              csvData={csvData}
+              clusterResources={drClusterAppsMap}
+            />
+          ) : (
+            <AppWiseCard
+              protectedPVCData={protectedPVCData}
+              selectedApplication={selectedApplication}
+            />
+          ))}
+        {!allLoaded && !anyError && (
+          <div style={{ height: '200px' }}>
+            <Skeleton height="100%" />
+          </div>
+        )}
+        {anyError && (
+          <div className="mco-dashboard__centerComponent">
+            <DataUnavailableError />
+          </div>
+        )}
+      </CardBody>
     </Card>
   );
 };

@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
   EnrollDiscoveredApplicationStepNames,
   EnrollDiscoveredApplicationSteps,
+  DR_BASE_ROUTE,
 } from '@odf/mco/constants';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -22,7 +23,7 @@ import './enroll-discovered-application.scss';
 const breadcrumbs = (t: TFunction) => [
   {
     name: t('Protected applications'),
-    path: '/multicloud/data-services/disaster-recovery/protected-applications',
+    path: `${DR_BASE_ROUTE}/protected-applications`,
   },
   {
     name: t('Enroll discovered application'),

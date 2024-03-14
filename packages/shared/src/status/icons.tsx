@@ -20,7 +20,6 @@ import {
 export type ColoredIconProps = {
   className?: string;
   title?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
 };
 
 export const GreenCheckCircleIcon: React.FC<ColoredIconProps> = ({
