@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DRPlacementControlModel, DRPolicyModel } from '../../models';
 import {
   DRPlacementControlKind,
@@ -247,7 +247,7 @@ jest.mock(
       '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api'
     ),
     useListPageFilter: jest.fn((userNamespaces) => {
-      if ([3, 4].includes(testCase))
+      if ([3, 4, 5].includes(testCase))
         return [userNamespaces, userNamespaces, jest.fn()];
       else return [[], [], jest.fn()];
     }),
@@ -395,7 +395,7 @@ describe('Test configure step', () => {
     // Step1 title description
     expect(
       screen.getByText(
-        'Choose your configuration preference to protect resources (application volumes/PVCs, or kube objects).'
+        'Choose your configuration preference to protect resources (application volumes/PVCs, or Kubernetes objects).'
       )
     ).toBeInTheDocument();
     // Number of namespace selection
@@ -444,5 +444,97 @@ describe('Test configure step', () => {
     fireEvent.click(screen.getByText('mock-recipe-1'));
     // Ensure recipe selection
     expect(screen.getByText('mock-recipe-1')).toBeInTheDocument();
+  });
+});
+
+describe('Test replication step', () => {
+  beforeEach(() => {
+    testCase += 1;
+    render(<EnrollDiscoveredApplication />);
+    // Select cluster
+    fireEvent.click(screen.getByText('Select cluster'));
+    fireEvent.click(screen.getByText('east-1'));
+
+    // Select namespaces
+    fireEvent.click(screen.getByLabelText('Select row 0'));
+    fireEvent.click(screen.getByLabelText('Select row 1'));
+
+    // Next wizard step
+    fireEvent.click(screen.getByText('Next'));
+
+    // Select recipe
+    fireEvent.click(screen.getByText('Select a recipe'));
+    fireEvent.click(screen.getByText('mock-recipe-1'));
+
+    // Next wizard step
+    fireEvent.click(screen.getByText('Next'));
+  });
+  test('Replication form test', async () => {
+    // Step1 title
+    expect(
+      screen.getByText('Volume and Kubernetes object replication')
+    ).toBeInTheDocument();
+    // Step1 title description
+    expect(
+      screen.getByText(
+        'Define where to sync or replicate your application volumes and Kubernetes object using a disaster recovery policy.'
+      )
+    ).toBeInTheDocument();
+    // Policy dropdown
+    expect(screen.getByText('Disaster recovery policy')).toBeInTheDocument();
+    // Popover message
+    fireEvent.click(screen.getByLabelText('Help'));
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'The policy sync interval is only applicable to volumes.'
+        )
+      ).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText('Select a policy'));
+    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Replication type: {{type}}, Interval: {{interval}}, Clusters: {{clusters}}'
+      )
+    ).toBeInTheDocument();
+
+    // kubernetes object replication interval
+    expect(
+      screen.getByText('Kubernetes object replication interval')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Define the interval for Kubernetes object replication')
+    ).toBeInTheDocument();
+    // Default interval
+    expect(screen.getByDisplayValue(5)).toBeInTheDocument();
+    fireEvent.click(screen.getByText('minutes'));
+    expect(screen.getByText('hours')).toBeInTheDocument();
+    expect(screen.getByText('days')).toBeInTheDocument();
+
+    // Footer
+    expect(screen.getByText('Next')).toBeInTheDocument();
+    expect(screen.getByText('Back')).toBeEnabled();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
+
+    // Validation message
+    fireEvent.click(screen.getByText('Next'));
+    expect(screen.getByText('Required')).toBeInTheDocument();
+
+    // Select policy
+    fireEvent.click(screen.getByText('Select a policy'));
+    fireEvent.click(screen.getByText('mock-policy-1'));
+    // Ensure policy selection
+    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+
+    // kubernetes object replication interval selection
+    fireEvent.change(screen.getByDisplayValue(5), { target: { value: 10 } });
+    // Ensure interval selection
+    expect(screen.getByDisplayValue(10)).toBeInTheDocument();
+    // unit selection
+    fireEvent.click(screen.getByText('minutes'));
+    fireEvent.click(screen.getByText('days'));
+    // Ensure unit selection
+    expect(screen.getByText('days')).toBeInTheDocument();
   });
 });

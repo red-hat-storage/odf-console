@@ -1,3 +1,4 @@
+import { DRPolicyKind } from '@odf/mco/types';
 import {
   K8sResourceCommon,
   MatchExpression,
@@ -18,6 +19,8 @@ export enum EnrollDiscoveredApplicationStateType {
   SET_RECIPE_NAME_NAMESPACE = 'CONFIGURATION/RECIPE/SET_RECIPE_NAME_NAMESPACE',
   SET_K8S_RESOURCE_LABEL_EXPRESSIONS = 'CONFIGURATION/RESOURCE_LABEL/SET_K8S_RESOURCE_LABEL_EXPRESSIONS',
   SET_PVC_LABEL_EXPRESSIONS = 'CONFIGURATION/RESOURCE_LABEL/SET_PVC_LABEL_EXPRESSIONS',
+  SET_POLICY = 'REPLICATION/SET_POLICY',
+  SET_K8S_RESOURCE_REPLICATION_INTERVAL = 'REPLICATION/SET_K8S_RESOURCE_REPLICATION_INTERVAL',
 }
 
 export type EnrollDiscoveredApplicationState = {
@@ -40,6 +43,10 @@ export type EnrollDiscoveredApplicationState = {
       k8sResourceLabelExpressions: MatchExpression[];
       pvcLabelExpressions: MatchExpression[];
     };
+  };
+  replication: {
+    drPolicy: DRPolicyKind;
+    k8sResourceReplicationInterval: string;
   };
 };
 
@@ -64,6 +71,10 @@ export const initialState: EnrollDiscoveredApplicationState = {
       k8sResourceLabelExpressions: [],
       pvcLabelExpressions: [],
     },
+  },
+  replication: {
+    drPolicy: {},
+    k8sResourceReplicationInterval: '5m',
   },
 };
 
@@ -92,6 +103,14 @@ export type EnrollDiscoveredApplicationAction =
   | {
       type: EnrollDiscoveredApplicationStateType.SET_PVC_LABEL_EXPRESSIONS;
       payload: MatchExpression[];
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.SET_POLICY;
+      payload: DRPolicyKind;
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.SET_K8S_RESOURCE_REPLICATION_INTERVAL;
+      payload: string;
     };
 
 export const reducer: EnrollReducer = (state, action) => {
@@ -167,6 +186,24 @@ export const reducer: EnrollReducer = (state, action) => {
             ...state.configuration.resourceLabels,
             pvcLabelExpressions: action.payload,
           },
+        },
+      };
+    }
+    case EnrollDiscoveredApplicationStateType.SET_POLICY: {
+      return {
+        ...state,
+        replication: {
+          ...state.replication,
+          drPolicy: action.payload,
+        },
+      };
+    }
+    case EnrollDiscoveredApplicationStateType.SET_K8S_RESOURCE_REPLICATION_INTERVAL: {
+      return {
+        ...state,
+        replication: {
+          ...state.replication,
+          k8sResourceReplicationInterval: action.payload,
         },
       };
     }

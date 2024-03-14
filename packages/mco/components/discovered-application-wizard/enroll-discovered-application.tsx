@@ -17,7 +17,11 @@ import {
   reducer,
   initialState,
 } from './utils/reducer';
-import { NamespaceSelection, Configuration } from './wizard-steps';
+import {
+  NamespaceSelection,
+  Configuration,
+  ReplicationSelection,
+} from './wizard-steps';
 import './enroll-discovered-application.scss';
 
 const breadcrumbs = (t: TFunction) => [
@@ -71,7 +75,13 @@ export const createSteps = (
     name: EnrollDiscoveredApplicationStepNames(t)[
       EnrollDiscoveredApplicationSteps.Replication
     ],
-    component: <></>,
+    component: (
+      <ReplicationSelection
+        state={state}
+        isValidationEnabled={isValidationEnabled}
+        dispatch={dispatch}
+      />
+    ),
     canJumpTo: stepIdReached >= 3,
   },
   {
@@ -114,7 +124,7 @@ const EnrollDiscoveredApplication: React.FC<{}> = () => {
         </TextContent>
       </PageHeading>
       <Wizard
-        className="mco-discovered-application__wizard--height"
+        className="mco-enroll-discovered-application__wizard--height"
         navAriaLabel={t('Enroll discovered application nav')}
         mainAriaLabel={t('Enroll discovered application steps')}
         steps={createSteps(

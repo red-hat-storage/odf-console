@@ -11,6 +11,7 @@ import {
   WizardFooter,
 } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
+import * as _ from 'lodash-es';
 import {
   Button,
   ButtonVariant,
@@ -46,6 +47,9 @@ const validateConfigurationStep = (state: EnrollDiscoveredApplicationState) => {
         );
 };
 
+const validateReplicationStep = (state: EnrollDiscoveredApplicationState) =>
+  !_.isEmpty(state.replication.drPolicy);
+
 const canJumpToNextStep = (
   state: EnrollDiscoveredApplicationState,
   stepName: string,
@@ -63,7 +67,7 @@ const canJumpToNextStep = (
     case EnrollDiscoveredApplicationStepNames(t)[
       EnrollDiscoveredApplicationSteps.Replication
     ]:
-      return true;
+      return validateReplicationStep(state);
     default:
       return false;
   }

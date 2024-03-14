@@ -116,7 +116,7 @@ export const ResourceLabelSelection: React.FC<ResourceLabelSelectionProps> = ({
                   {k8sResourceLabelValidated === 'error'
                     ? t('Required')
                     : t(
-                        'Protect all Kubernetes resources that match the selected resource label selector'
+                        'Protect all your Kubernetes objects matching the selected resource label value.'
                       )}
                 </HelperTextItem>
               </HelperText>
@@ -139,7 +139,7 @@ export const ResourceLabelSelection: React.FC<ResourceLabelSelectionProps> = ({
                   {pvcLabelValidated === 'error'
                     ? t('Required')
                     : t(
-                        'Protect all PVCs that match the selected resource label selector'
+                        'Protect all your volumes that match the selected PVC labels'
                       )}
                 </HelperTextItem>
               </HelperText>

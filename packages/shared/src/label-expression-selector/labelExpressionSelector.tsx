@@ -26,6 +26,7 @@ import { SingleSelectDropdown, MultiSelectDropdown } from '../dropdown';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { getValidatedProp } from '../utils';
 import { AsyncLoader } from '../utils/AsyncLoader';
+import './labelExpressionSelector.scss';
 
 /**
  * Set up an AsyncComponent to wrap the label-expression-selector to allow on demand loading to reduce the
@@ -275,6 +276,7 @@ const ArrayInput: React.FC<ArrayInputProps> = ({
       <Form>
         {/* Expand section */}
         <FormFieldGroupExpandable
+          className="odf-label-expression-selector__expandBody--padding-top"
           key={expandSectionName}
           data-test={expandSectionName}
           toggleAriaLabel={expandSectionName}
