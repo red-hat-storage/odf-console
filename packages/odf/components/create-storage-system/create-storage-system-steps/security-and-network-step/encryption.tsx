@@ -20,6 +20,7 @@ const EncryptionLabel: React.FC<{ label: string }> = ({ label }) => (
 const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
   encryption,
   dispatch,
+  isProviderMode,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -67,19 +68,21 @@ const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
           handleClusterWideEncryption(isChecked)
         }
       />
-      <Checkbox
-        id="storage-class-encryption"
-        className="odf-security-encryption"
-        isChecked={encryption.storageClass}
-        data-checked-state={encryption.storageClass}
-        label={<EncryptionLabel label={t('StorageClass encryption')} />}
-        description={t(
-          'An encryption key will be generated for each persistent volume (block) created using an encryption enabled StorageClass.'
-        )}
-        onChange={(_event, isChecked: boolean) =>
-          handleStorageClassEncryption(isChecked)
-        }
-      />
+      {!isProviderMode && (
+        <Checkbox
+          id="storage-class-encryption"
+          className="odf-security-encryption"
+          isChecked={encryption.storageClass}
+          data-checked-state={encryption.storageClass}
+          label={<EncryptionLabel label={t('StorageClass encryption')} />}
+          description={t(
+            'An encryption key will be generated for each persistent volume (block) created using an encryption enabled StorageClass.'
+          )}
+          onChange={(_event, isChecked: boolean) =>
+            handleStorageClassEncryption(isChecked)
+          }
+        />
+      )}
     </FormGroup>
   );
 };
@@ -87,6 +90,7 @@ const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
 type EncryptionLevelProps = {
   encryption: WizardState['securityAndNetwork']['encryption'];
   dispatch: WizardDispatch;
+  isProviderMode?: boolean;
 };
 
 const KMSConnection: React.FC<EncryptionProps> = ({
@@ -159,6 +163,7 @@ export const Encryption: React.FC<EncryptionProps> = ({
   isMCG,
   isExternal,
   systemNamespace,
+  isProviderMode,
 }) => {
   const { t } = useCustomTranslation();
   const [encryptionChecked, setEncryptionChecked] = React.useState(
@@ -261,6 +266,7 @@ export const Encryption: React.FC<EncryptionProps> = ({
                     <EncryptionLevel
                       encryption={encryption}
                       dispatch={dispatch}
+                      isProviderMode={isProviderMode}
                     />
                   )}
                   <KMSConnection
@@ -276,20 +282,22 @@ export const Encryption: React.FC<EncryptionProps> = ({
             }
           />
         )}
-        <Checkbox
-          className="odf-in-transit-encryption"
-          data-test="in-transit-encryption-checkbox"
-          id="in-transit-encryption"
-          isChecked={encryption.inTransit}
-          data-checked-state={encryption.inTransit}
-          label={t('In-transit encryption')}
-          description={t(
-            'A secure mode that encrypts all data passing over the network'
-          )}
-          onChange={(_event, checked: boolean) =>
-            handleInTransitEncryptionOnChange(checked)
-          }
-        />
+        {!isProviderMode && (
+          <Checkbox
+            className="odf-in-transit-encryption"
+            data-test="in-transit-encryption-checkbox"
+            id="in-transit-encryption"
+            isChecked={encryption.inTransit}
+            data-checked-state={encryption.inTransit}
+            label={t('In-transit encryption')}
+            description={t(
+              'A secure mode that encrypts all data passing over the network'
+            )}
+            onChange={(_event, checked: boolean) =>
+              handleInTransitEncryptionOnChange(checked)
+            }
+          />
+        )}
       </FormGroup>
       {!encryption.hasHandled && (
         <ValidationMessage validation={ValidationType.ENCRYPTION} />
@@ -305,6 +313,7 @@ export const EncryptionForm: React.FC<EncryptionProps> = ({
   infraType,
   isMCG,
   systemNamespace,
+  isProviderMode,
 }) => {
   // enclosed in a "Form" so that child components can use default pf classes
   return (
@@ -316,6 +325,7 @@ export const EncryptionForm: React.FC<EncryptionProps> = ({
         dispatch={dispatch}
         isMCG={isMCG}
         systemNamespace={systemNamespace}
+        isProviderMode={isProviderMode}
       />
     </Form>
   );
@@ -327,5 +337,6 @@ type EncryptionProps = {
   infraType: string;
   isMCG?: boolean;
   isExternal?: boolean;
+  isProviderMode?: boolean;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

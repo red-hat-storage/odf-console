@@ -12,7 +12,11 @@ import { FormGroup } from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './backing-storage-step.scss';
 
-const options = [DeploymentType.FULL, DeploymentType.MCG];
+const options = [
+  DeploymentType.FULL,
+  DeploymentType.PROVIDER_MODE,
+  DeploymentType.MCG,
+];
 
 const optionsDescription = (t: TFunction) => ({
   [DeploymentType.MCG]: t(
@@ -20,6 +24,9 @@ const optionsDescription = (t: TFunction) => ({
   ),
   [DeploymentType.FULL]: t(
     'Deploys Data Foundation with block, shared fileSystem and object services.'
+  ),
+  [DeploymentType.PROVIDER_MODE]: t(
+    'Deploys Data Foundation as a provider cluster'
   ),
 });
 

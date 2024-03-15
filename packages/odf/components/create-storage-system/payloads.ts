@@ -194,6 +194,7 @@ export const createStorageCluster = async (
     enableNFS &&
     deployment === DeploymentType.FULL &&
     type !== BackingStorageType.EXTERNAL;
+  const isProviderMode = deployment === DeploymentType.PROVIDER_MODE;
 
   const shouldSetCephRBDAsDefault = setCephRBDAsDefault(
     isRBDStorageClassDefault,
@@ -215,6 +216,7 @@ export const createStorageCluster = async (
     availablePvsCount: pvCount,
     isMCG,
     isNFSEnabled,
+    isProviderMode,
     shouldSetCephRBDAsDefault,
     enableRDRPreparation,
     storageClusterNamespace,

@@ -68,6 +68,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
 
   // NooBaa standalone deployment
   const isMCG = deployment === DeploymentType.MCG;
+  const isProviderMode = deployment === DeploymentType.PROVIDER_MODE;
   // External Red Hat Ceph Storage deployment
   const isRhcs = !_.isEmpty(connectionDetails);
   // External IBM deployment without ODF
@@ -208,11 +209,13 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             <ListItem>
               {t('Encryption: {{encryptionStatus}}', { encryptionStatus })}
             </ListItem>
-            <ListItem>
-              {t('In-transit encryption: {{hasInTransitEncryption}}', {
-                hasInTransitEncryption,
-              })}
-            </ListItem>
+            {!isProviderMode && (
+              <ListItem>
+                {t('In-transit encryption: {{hasInTransitEncryption}}', {
+                  hasInTransitEncryption,
+                })}
+              </ListItem>
+            )}
             {hasEncryption && (
               <ListItem>
                 {t('External key management service: {{kmsStatus}}', {
@@ -220,11 +223,13 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
                 })}
               </ListItem>
             )}
-            <ListItem>
-              {t('Network: {{networkType}}', {
-                networkType: NetworkTypeLabels[networkType],
-              })}
-            </ListItem>
+            {!isProviderMode && (
+              <ListItem>
+                {t('Network: {{networkType}}', {
+                  networkType: NetworkTypeLabels[networkType],
+                })}
+              </ListItem>
+            )}
           </ReviewItem>
         ))}
       {isRhcs && (
@@ -236,7 +241,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
           </ListItem>
         </ReviewItem>
       )}
-      {!isMCG && !isRhcs && !isStandaloneExternal && (
+      {!isMCG && !isRhcs && !isStandaloneExternal && !isProviderMode && (
         <ReviewItem title={t('Data protection')}>
           <ListItem>
             {t('Regional-DR preparation: {{isRDRPreparationEnabled}}', {
