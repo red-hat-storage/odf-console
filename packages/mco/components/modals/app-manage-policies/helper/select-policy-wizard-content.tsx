@@ -51,6 +51,7 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
   ({ policy, matchingPolicies, isValidationEnabled, dispatch }) => {
     const { t } = useCustomTranslation();
     const name = getName(policy);
+    const isInvalidPolicy = isValidationEnabled && !name;
     return (
       <Form className="mco-manage-policies__form--width">
         <FormGroup
@@ -63,7 +64,7 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
             selectOptions={getDropdownOptions(matchingPolicies, t)}
             id="policy-selection-dropdown"
             selectedKey={name}
-            validated={getValidatedProp(isValidationEnabled && !name)}
+            validated={getValidatedProp(isInvalidPolicy)}
             required
             onChange={(value: string) => {
               if (name !== value) {
@@ -83,11 +84,11 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
                     status: getDRPolicyStatus(policy.isValidated, t),
                   })}
               </HelperTextItem>
-              <HelperTextItem
-                variant={getValidatedProp(isValidationEnabled && !name)}
-              >
-                {t('Required')}
-              </HelperTextItem>
+              {isInvalidPolicy && (
+                <HelperTextItem variant={getValidatedProp(isInvalidPolicy)}>
+                  {t('Required')}
+                </HelperTextItem>
+              )}
             </HelperText>
           </FormHelperText>
         </FormGroup>

@@ -48,7 +48,7 @@ const DisasterRecovery: React.FC = () => {
         <TextContent>
           <Text component={TextVariants.small}>
             {t(
-              'Allows you to configure your business critical applications and provides the ability to recover from any disaster.'
+              'Configure and recover your business critical applications in event of any disaster.'
             )}
           </Text>
         </TextContent>

@@ -66,7 +66,7 @@
       "perspective": "acm",
       "insertAfter": "mco-disaster-recovery",
       "section": "mco-data-services",
-      "name": "%plugin__odf-plugin~Storage System%",
+      "name": "%plugin__odf-multicluster-console~Storage System%",
       "href": "/multicloud/data-services/storagesystem"
     },
     "flags": {
@@ -97,7 +97,7 @@
   {
     "type": "acm.application/list/column",
     "properties": {
-      "header": "Data policy",
+      "header": "%plugin__odf-multicluster-console~Data policy%",
       "cell": {
         "$codeRef": "dataPolicyStatusPopover.default"
       }
@@ -107,7 +107,7 @@
     "type": "acm.application/action",
     "properties": {
       "id": "failover",
-      "title": "%plugin__acm~Failover application%",
+      "title": "%plugin__odf-multicluster-console~Failover application%",
       "model": [
         {
           "apiVersion": "argoproj.io/v1alpha1",
@@ -127,7 +127,7 @@
     "type": "acm.application/action",
     "properties": {
       "id": "relocate",
-      "title": "%plugin__acm~Relocate application%",
+      "title": "%plugin__odf-multicluster-console~Relocate application%",
       "model": [
         {
           "apiVersion": "argoproj.io/v1alpha1",
@@ -147,7 +147,7 @@
     "type": "acm.application/action",
     "properties": {
       "id": "appManagePolicy",
-      "title": "%plugin__acm~Manage data policy%",
+      "title": "%plugin__odf-multicluster-console~Manage disaster recovery%",
       "model": [
         {
           "apiVersion": "argoproj.io/v1alpha1",

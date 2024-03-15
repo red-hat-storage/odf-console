@@ -6,6 +6,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getPageRange } from '@odf/shared/utils';
 import { getErrorMessage } from '@odf/shared/utils';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
+import { Trans } from 'react-i18next';
 import {
   Button,
   Pagination,
@@ -192,7 +193,7 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
           isDisabled={!!state.policies.length}
           onClick={() => setModalContext(ModalViewContext.ASSIGN_POLICY_VIEW)}
         >
-          {t('Assign data policy')}
+          {t('Enroll application')}
         </Button>
       </div>
       <PolicyListViewToolBar
@@ -212,7 +213,7 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
             className="mco-manage-policies__emptyState---margin-bottom"
           >
             <EmptyStateHeader
-              titleText={<>{t('No assigned data policy found')}</>}
+              titleText={<>{t('No assigned disaster recovery policy found')}</>}
               icon={
                 <EmptyStateIcon
                   icon={InfoCircleIcon}
@@ -222,9 +223,10 @@ export const PolicyListView: React.FC<PolicyListViewProps> = ({
               headingLevel="h3"
             />
             <EmptyStateBody>
-              {t(
-                "You haven't set a data policy for your application yet. To protect your application, click the 'Assign data policy' button and select a policy from the available templates."
-              )}
+              <Trans t={t}>
+                You have not enrolled this application yet. To protect your
+                application, click <strong>Enroll application.</strong>
+              </Trans>
             </EmptyStateBody>
           </EmptyState>
         ) : (

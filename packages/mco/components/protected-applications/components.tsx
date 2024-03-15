@@ -197,7 +197,7 @@ export const EmptyRowMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <Bullseye className="pf-v5-u-mt-xl">
-      {t('No protected applications found')}
+      {t('No protected discovered applications found')}
     </Bullseye>
   );
 };
@@ -206,15 +206,24 @@ export const NoDataMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <EmptyPage
-      title={t('No protected applications')}
+      title={t('Looks like there are no applications here.')}
       ButtonComponent={EnrollApplicationButton_}
       isLoaded
       canAccess
     >
       <Trans t={t}>
-        You do not have any protected applications yet, to add disaster recovery
-        protection to your applications start by clicking on the{' '}
-        <strong>Enroll application</strong> button.
+        <p>
+          You do not have any <strong>discovered applications</strong> that are
+          protected yet. For details about your{' '}
+          <strong>protected managed applications</strong>, navigate to the{' '}
+          <strong>Applications</strong> page, as this information is not
+          maintained here.
+        </p>
+        <br />
+        <p>
+          Click <strong>Enroll applications</strong> to add disaster recovery
+          protection to your applications.
+        </p>
       </Trans>
     </EmptyPage>
   );

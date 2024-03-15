@@ -345,7 +345,11 @@ jest.mock('@odf/mco/hooks/acm-safe-fetch', () => ({
   }),
 }));
 
-describe('ApplicationSet manage data policy modal', () => {
+jest.mock('react-i18next', () => ({
+  Trans: ({ children }: any) => children,
+}));
+
+describe('ApplicationSet manage disaster recovery modal', () => {
   test('Empty list page test', async () => {
     testCase = 1;
     render(
@@ -357,16 +361,16 @@ describe('ApplicationSet manage data policy modal', () => {
     );
     // Ensure empty state
     expect(
-      screen.getByText('No assigned data policy found')
+      screen.getByText('No assigned disaster recovery policy found')
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "You haven't set a data policy for your application yet. To protect your application, click the 'Assign data policy' button and select a policy from the available templates."
+        /You have not enrolled this application yet. To protect your application,/i
       )
     ).toBeInTheDocument();
   });
 
-  test('manage data policy list view test', async () => {
+  test('manage disaster recovery policy list view test', async () => {
     testCase = 2;
     render(
       <ApplicationSetParser
@@ -379,16 +383,16 @@ describe('ApplicationSet manage data policy modal', () => {
     const searchBox = screen.getByPlaceholderText('Search');
 
     // Modal headers
-    expect(screen.getByText('Manage data policy')).toBeInTheDocument();
+    expect(screen.getByText('Manage disaster recovery')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Assign a policy to protect the application and to ensure a quick recovery.'
+        "Assign a disaster recovery policy or view the policy's configuration details."
       )
     ).toBeInTheDocument();
     expect(screen.getByText('My assigned policies')).toBeInTheDocument();
 
     // Check primary action is enabled
-    expect(screen.getByText('Assign data policy')).toBeEnabled();
+    expect(screen.getByText('Enroll application')).toBeEnabled();
 
     // Policy list table
     expect(screen.getByLabelText('Selectable table')).toBeInTheDocument();
@@ -425,7 +429,7 @@ describe('ApplicationSet manage data policy modal', () => {
     // Select all policy
     fireEvent.click(screen.getByLabelText('Select all rows'));
     // Check primary action is disabled
-    expect(screen.getByText('Assign data policy')).toBeDisabled();
+    expect(screen.getByText('Enroll application')).toBeDisabled();
     // Check secondary action is enabled
     expect(screen.getByLabelText('Select input')).toBeEnabled();
     // Trigger bulk unassign
@@ -514,7 +518,7 @@ describe('ApplicationSet manage data policy modal', () => {
       />
     );
     // Open assign policy wizard
-    fireEvent.click(screen.getByText('Assign data policy'));
+    fireEvent.click(screen.getByText('Enroll application'));
 
     // Step 1 - select a policy
     // Buttons
