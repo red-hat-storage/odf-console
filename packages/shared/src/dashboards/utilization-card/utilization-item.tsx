@@ -58,6 +58,7 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
     disableGraphLink,
     showLegend,
     CustomUtilizationSummary,
+    formatDate,
   }) => {
     const { t } = useCustomTranslation();
     const { data, chartStyle } = mapLimitsRequests({
@@ -108,6 +109,7 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
         chartType={chartType}
         mainDataName="usage"
         showLegend={showLegend}
+        formatDate={formatDate}
       />
     );
 
@@ -274,4 +276,5 @@ type UtilizationItemProps = {
   showLegend?: boolean;
   hideHorizontalBorder?: boolean;
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
+  formatDate?: (date: Date, showSeconds?: boolean) => string;
 };
