@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { StatusBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { TFunction } from 'i18next';
 import { Modal, ModalVariant } from '@patternfly/react-core';
@@ -45,6 +44,8 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
   state,
   matchingPolicies,
   dispatch,
+  loaded,
+  loadError,
 }) => {
   const setModalContext = React.useCallback(
     (modalViewContext: ModalViewContext) =>
@@ -83,11 +84,15 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
       {state.modalViewContext === ModalViewContext.POLICY_LIST_VIEW && (
         <PolicyListView
           dataPolicyInfo={applicaitonInfo?.dataPolicies}
+          workloadNamespace={applicaitonInfo?.workloadNamespace}
+          eligiblePolicies={matchingPolicies}
           state={state.policyListView}
           dispatch={dispatch}
           setModalContext={setModalContext}
           setModalActionContext={setModalActionContext}
           setMessage={setMessage}
+          loaded={loaded}
+          loadError={loadError}
         />
       )}
       {state.modalViewContext === ModalViewContext.POLICY_CONFIGURATON_VIEW && (
@@ -136,16 +141,14 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
       aria-describedby="manage-policy-modal"
       onClose={close}
     >
-      {loaded && !loadError ? (
-        <ModalContextViewer
-          applicaitonInfo={applicaitonInfo as ApplicationType}
-          matchingPolicies={matchingPolicies}
-          state={state}
-          dispatch={dispatch}
-        />
-      ) : (
-        <StatusBox loadError={loadError} loaded={loaded} />
-      )}
+      <ModalContextViewer
+        applicaitonInfo={applicaitonInfo as ApplicationType}
+        matchingPolicies={matchingPolicies}
+        state={state}
+        dispatch={dispatch}
+        loaded={loaded}
+        loadError={loadError}
+      />
     </Modal>
   );
 };
@@ -164,4 +167,6 @@ type ModalContextViewerProps = {
   applicaitonInfo: ApplicationType;
   matchingPolicies: DataPolicyType[];
   dispatch: React.Dispatch<ManagePolicyStateAction>;
+  loaded: boolean;
+  loadError: any;
 };

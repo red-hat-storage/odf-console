@@ -341,12 +341,17 @@ jest.mock('../utils/k8s-utils', () => ({
 jest.mock('@odf/mco/hooks/acm-safe-fetch', () => ({
   __esModule: true,
   useACMSafeFetch: jest.fn(() => {
-    return [searchResult, ''];
+    return [searchResult, '', true];
   }),
 }));
 
 jest.mock('react-i18next', () => ({
   Trans: ({ children }: any) => children,
+}));
+
+jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
+  ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
+  useK8sWatchResource: jest.fn(() => [[], true, undefined]),
 }));
 
 describe('ApplicationSet manage disaster recovery modal', () => {
