@@ -756,6 +756,7 @@
   "Files should be named private and public followed by compatible extensions": "Files should be named private and public followed by compatible extensions",
   "Deploys MultiCloud Object Gateway without block and file services.": "Deploys MultiCloud Object Gateway without block and file services.",
   "Deploys Data Foundation with block, shared fileSystem and object services.": "Deploys Data Foundation with block, shared fileSystem and object services.",
+  "Deploys Data Foundation as a provider cluster": "Deploys Data Foundation as a provider cluster",
   "Deployment type": "Deployment type",
   "Use Ceph RBD as the default StorageClass": "Use Ceph RBD as the default StorageClass",
   "Configure default RBD StorageClass to avoid adding manual annotations within a StorageClass and selecting a specific StorageClass when making storage requests or provisions in your PVCs.": "Configure default RBD StorageClass to avoid adding manual annotations within a StorageClass and selecting a specific StorageClass when making storage requests or provisions in your PVCs.",

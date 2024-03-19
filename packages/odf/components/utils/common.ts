@@ -379,6 +379,7 @@ type OCSRequestData = {
   stretchClusterChecked?: boolean;
   availablePvsCount?: number;
   isMCG?: boolean;
+  isProviderMode?: boolean;
   isNFSEnabled?: boolean;
   shouldSetCephRBDAsDefault?: boolean;
   enableRDRPreparation?: boolean;
@@ -405,6 +406,7 @@ export const getOCSRequestData = ({
   availablePvsCount,
   isMCG,
   isNFSEnabled,
+  isProviderMode,
   shouldSetCephRBDAsDefault,
   enableRDRPreparation,
   storageClusterNamespace,
@@ -484,6 +486,9 @@ export const getOCSRequestData = ({
         ...getAnnotations(requestData, {}),
         [DISASTER_RECOVERY_TARGET_ANNOTATION]: 'true',
       };
+    }
+    if (isProviderMode) {
+      requestData.spec.allowRemoteStorageConsumers = true;
     }
   }
 

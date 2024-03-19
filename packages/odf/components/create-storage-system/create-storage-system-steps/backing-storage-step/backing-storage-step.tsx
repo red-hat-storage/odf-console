@@ -212,6 +212,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   >(ClusterServiceVersionModel, null, odfNamespace);
 
   const isFullDeployment = deployment === DeploymentType.FULL;
+  const isProviderMode = deployment === DeploymentType.PROVIDER_MODE;
   const isNonRHCSExternalType =
     type === BackingStorageType.EXTERNAL &&
     externalStorage !== OCSStorageClusterModel.kind;
@@ -383,7 +384,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
             value={BackingStorageType.EXTERNAL}
             isChecked={type === BackingStorageType.EXTERNAL}
             onChange={(event, _unused) => onRadioSelect(_unused, event)}
-            isDisabled={allowedExternalStorage.length === 0}
+            isDisabled={allowedExternalStorage.length === 0 || isProviderMode}
             body={
               showExternalStorageSelection && (
                 <ExternalSystemSelection
