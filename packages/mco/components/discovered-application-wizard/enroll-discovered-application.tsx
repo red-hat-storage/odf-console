@@ -5,11 +5,14 @@ import {
   DR_BASE_ROUTE,
 } from '@odf/mco/constants';
 import PageHeading from '@odf/shared/heading/page-heading';
+import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import { Text, TextContent, TextVariants } from '@patternfly/react-core';
 import { EnrollDiscoveredApplicationFooter } from './footer';
+import { createPromise } from './utils/k8s-utils';
 import {
   EnrollDiscoveredApplicationState,
   EnrollDiscoveredApplicationAction,
@@ -21,6 +24,7 @@ import {
   NamespaceSelection,
   Configuration,
   ReplicationSelection,
+  Review,
 } from './wizard-steps';
 import './enroll-discovered-application.scss';
 
@@ -59,7 +63,7 @@ export const createSteps = (
   {
     id: 2,
     name: EnrollDiscoveredApplicationStepNames(t)[
-      EnrollDiscoveredApplicationSteps.Configure
+      EnrollDiscoveredApplicationSteps.Configuration
     ],
     component: (
       <Configuration
@@ -89,16 +93,17 @@ export const createSteps = (
     name: EnrollDiscoveredApplicationStepNames(t)[
       EnrollDiscoveredApplicationSteps.Review
     ],
-    component: <></>,
+    component: <Review state={state} />,
     canJumpTo: stepIdReached >= 4,
   },
 ];
 
 const EnrollDiscoveredApplication: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-
+  const navigate = useNavigate();
   const [stepIdReached, setStepIdReached] = React.useState(1);
   const [isValidationEnabled, setIsValidationEnabled] = React.useState(false);
+  const [onSaveError, setOnSaveError] = React.useState('');
 
   const [state, dispatch] = React.useReducer<EnrollReducer>(
     reducer,
@@ -107,10 +112,22 @@ const EnrollDiscoveredApplication: React.FC<{}> = () => {
 
   const title = t('Enroll discovered application');
 
-  /* eslint-disable @typescript-eslint/no-empty-function */
-  const onSubmit = async () => {};
-  /* eslint-disable @typescript-eslint/no-empty-function */
-  const onClose = () => {};
+  const onSubmit = async (
+    setRequestInProgress: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    setRequestInProgress(true);
+    const promise = createPromise(state);
+    await promise
+      .then((drpc) => {
+        navigate(
+          `${DR_BASE_ROUTE}/protected-applications?enrolledApp=${getName(drpc)}`
+        );
+      })
+      .catch((error) => {
+        setOnSaveError(error?.message);
+        setRequestInProgress(false);
+      });
+  };
 
   return (
     <>
@@ -139,10 +156,11 @@ const EnrollDiscoveredApplication: React.FC<{}> = () => {
             state={state}
             stepIdReached={stepIdReached}
             isValidationEnabled={isValidationEnabled}
+            onSaveError={onSaveError}
             setStepIdReached={setStepIdReached}
             setIsValidationEnabled={setIsValidationEnabled}
             onSubmit={onSubmit}
-            onCancel={onClose}
+            onCancel={() => navigate(-1)}
           />
         }
       />

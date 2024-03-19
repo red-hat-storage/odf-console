@@ -23,7 +23,7 @@ import {
 import { Icon } from '@patternfly/react-core';
 import { InProgressIcon, CubeIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
-import { ODFMCO_OPERATOR_NAMESPACE, DR_BASE_ROUTE } from '../../constants';
+import { DR_BASE_ROUTE, RAMEN_PROTECTED_APPS_NAMESPACE } from '../../constants';
 import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
@@ -91,9 +91,7 @@ const ProtectedAppsTableRow: React.FC<
 
   // Enrolled/protected namespaces details
   const enrolledNamespaces: string[] =
-    // ToDo: Update with correct spec field which will report all protected namespaces
-    // @ts-ignore
-    application.spec?.enrolledNamespaces || [];
+    application.spec?.eligibleForProtectionNamespaces || [];
 
   // ToDo: Add clean-up activity event as well
   const showEventsDetails: boolean =
@@ -234,8 +232,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   const [discoveredApps, discoveredAppsLoaded, discoveredAppsError] =
     useK8sWatchResource<DRPlacementControlKind[]>(
       getDRPlacementControlResourceObj({
-        // ToDo: Update this namespace with correct imperative apps namespace
-        namespace: ODFMCO_OPERATOR_NAMESPACE,
+        namespace: RAMEN_PROTECTED_APPS_NAMESPACE,
       })
     );
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =

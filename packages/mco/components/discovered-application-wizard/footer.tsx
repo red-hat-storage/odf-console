@@ -61,7 +61,7 @@ const canJumpToNextStep = (
     ]:
       return validateNamespaceStep(state);
     case EnrollDiscoveredApplicationStepNames(t)[
-      EnrollDiscoveredApplicationSteps.Configure
+      EnrollDiscoveredApplicationSteps.Configuration
     ]:
       return validateConfigurationStep(state);
     case EnrollDiscoveredApplicationStepNames(t)[
@@ -78,6 +78,7 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
     state,
     stepIdReached,
     isValidationEnabled,
+    onSaveError,
     setStepIdReached,
     setIsValidationEnabled,
     onSubmit,
@@ -95,6 +96,11 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
     const validationError = isValidationEnabled && !canJumpToNext;
     const enrollDiscoveredApplicationStepNames =
       EnrollDiscoveredApplicationStepNames(t);
+    const isReviewStep =
+      stepName ===
+      enrollDiscoveredApplicationStepNames[
+        EnrollDiscoveredApplicationSteps.Review
+      ];
 
     const moveToNextStep = () => {
       if (canJumpToNext) {
@@ -106,17 +112,11 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
       }
     };
 
-    const handleNext = async () => {
-      switch (stepName) {
-        case enrollDiscoveredApplicationStepNames[
-          EnrollDiscoveredApplicationSteps.Review
-        ]:
-          setRequestInProgress(true);
-          await onSubmit();
-          setRequestInProgress(false);
-          break;
-        default:
-          moveToNextStep();
+    const handleNext = () => {
+      if (isReviewStep) {
+        onSubmit(setRequestInProgress);
+      } else {
+        moveToNextStep();
       }
     };
 
@@ -131,6 +131,9 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
             isInline
           />
         )}
+        {!!onSaveError && isReviewStep && (
+          <Alert title={onSaveError} variant={AlertVariant.danger} isInline />
+        )}
         <WizardFooter>
           <Button
             isLoading={requestInProgress}
@@ -143,7 +146,7 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
             enrollDiscoveredApplicationStepNames[
               EnrollDiscoveredApplicationSteps.Review
             ]
-              ? t('Assign')
+              ? t('Save')
               : t('Next')}
           </Button>
           {/* Disabling the back button for the first step in wizard */}
@@ -170,8 +173,11 @@ type EnrollDiscoveredApplicationFooterProps = {
   state: EnrollDiscoveredApplicationState;
   stepIdReached: number;
   isValidationEnabled: boolean;
+  onSaveError: string;
   setStepIdReached: React.Dispatch<React.SetStateAction<number>>;
   setIsValidationEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-  onSubmit: () => Promise<void>;
+  onSubmit: (
+    setRequestInProgress: React.Dispatch<React.SetStateAction<boolean>>
+  ) => Promise<void>;
   onCancel: () => void;
 };

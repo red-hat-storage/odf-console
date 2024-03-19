@@ -296,14 +296,14 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
   const { t } = useCustomTranslation();
 
   const enrolledNamespaces: React.ReactNode[] =
-    // ToDo: Update with correct spec field which will report all protected namespaces
-    // @ts-ignore
-    application.spec?.enrolledNamespaces?.map((namespace: string) => (
-      <ResourceNameWIcon
-        resourceModel={NamespaceModel}
-        resourceName={namespace}
-      />
-    )) || [];
+    application.spec?.eligibleForProtectionNamespaces?.map(
+      (namespace: string) => (
+        <ResourceNameWIcon
+          resourceModel={NamespaceModel}
+          resourceName={namespace}
+        />
+      )
+    ) || [];
   return (
     <>
       {!enrolledNamespaces.length ? (
@@ -361,7 +361,7 @@ export const StatusDetails: React.FC<ExpandableComponentProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const syncType = [t('Application volumes (PVCs)'), t('Kube objects')];
+  const syncType = [t('Application volumes (PVCs)'), t('Kubernetes objects')];
   const { icon: volIcon, title: volTitle } = replicationHealthMap(
     syncStatusInfo.volumeReplicationStatus,
     t
