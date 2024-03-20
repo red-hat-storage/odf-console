@@ -7,6 +7,7 @@ import { SVGIconProps } from '@patternfly/react-icons/dist/esm/createIcon';
 import DefaultIcon from '@patternfly/react-icons/dist/esm/icons/builder-image-icon';
 import useDetailsLevel from '@patternfly/react-topology/dist/esm/hooks/useDetailsLevel';
 import classNames from 'classnames';
+import { TFunction } from 'react-i18next';
 import { Tooltip } from '@patternfly/react-core';
 import {
   ContainerNodeIcon,
@@ -107,6 +108,7 @@ const renderDecorator = (
   element: Node,
   quadrant: TopologyQuadrant,
   icon: React.ReactNode,
+  decoratorRef: React.RefObject<SVGGElement>,
   getShapeDecoratorCenter?: (
     quadrant: TopologyQuadrant,
     node: Node,
@@ -122,9 +124,16 @@ const renderDecorator = (
     ? getShapeDecoratorCenter(quadrant, element)
     : getDefaultShapeDecoratorCenter(quadrant, element);
 
+  /**
+   * "attachments" prop of "DefaultNode" does not work if passed element is wrapped around a "div".
+   * "Tooltip" is automatically wrapping its children around a "div" in PF5.
+   * Using "triggerRef" instead, as a workaround.
+   */
   return (
-    <Tooltip content={tooltip}>
+    <>
+      <Tooltip content={tooltip} triggerRef={decoratorRef} />
       <Decorator
+        innerRef={decoratorRef}
         x={x}
         y={y}
         radius={DEFAULT_DECORATOR_RADIUS}
@@ -132,13 +141,15 @@ const renderDecorator = (
         icon={icon}
         onClick={onClick}
       />
-    </Tooltip>
+    </>
   );
 };
 
 const renderDecorators = (
   element: Node,
   data: any,
+  decoratorRef: React.RefObject<SVGGElement>,
+  t: TFunction<string>,
   getShapeDecoratorCenter?: (
     quadrant: TopologyQuadrant,
     node: Node
@@ -164,8 +175,9 @@ const renderDecorators = (
           element,
           TopologyQuadrant.lowerRight,
           <LevelDownAltIcon />,
+          decoratorRef,
           getShapeDecoratorCenter,
-          'Enter node',
+          t('Enter node'),
           onStepOntoClick
         )}
     </>
@@ -182,6 +194,8 @@ const StyleNode: React.FunctionComponent<StyleNodeProps> = ({
   onHideCreateConnector,
   ...rest
 }) => {
+  const decoratorRef = React.useRef<SVGGElement>();
+
   const data = element.getData();
   const controller = useVisualizationController();
   const detailsLevel = useDetailsLevel();
@@ -276,7 +290,13 @@ const StyleNode: React.FunctionComponent<StyleNodeProps> = ({
           labelIcon={LabelIcon && <LabelIcon noVerticalAlign />}
           attachments={
             (hover || detailsLevel === ScaleDetailsLevel.high) &&
-            renderDecorators(element, passedData, rest.getShapeDecoratorCenter)
+            renderDecorators(
+              element,
+              passedData,
+              decoratorRef,
+              t,
+              rest.getShapeDecoratorCenter
+            )
           }
           {...(highlightNode ? { selected: true } : {})}
           nodeStatus={status}
