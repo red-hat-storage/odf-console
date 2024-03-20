@@ -80,7 +80,7 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           <ViewDocumentation
             doclink={DOC_LINKS.DR_RELEASE_NOTES}
             text="release notes"
-          />{' '}
+          />
         </p>
       </Trans>
     ),
