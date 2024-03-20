@@ -9,6 +9,7 @@ import { getDRStatus } from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { fromNow } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
+import { GrayUnknownIcon, GreenCheckCircleIcon } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getPageRange } from '@odf/shared/utils';
 import {
@@ -27,6 +28,7 @@ import {
   Text,
   TextVariants,
 } from '@patternfly/react-core';
+import { InProgressIcon, PendingIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
 import { StatusText } from './common';
 
@@ -54,28 +56,57 @@ export const getCurrentActivity = (
   currentStatus: string,
   failoverCluster: string,
   preferredCluster: string,
-  t: TFunction
-) => {
-  if (
-    [DRPC_STATUS.Relocating, DRPC_STATUS.Relocated].includes(
-      currentStatus as DRPC_STATUS
-    )
-  ) {
-    return t('{{ currentStatus }} to cluster {{ preferredCluster }}', {
-      currentStatus,
-      preferredCluster,
-    });
-  } else if (
-    [DRPC_STATUS.FailingOver, DRPC_STATUS.FailedOver].includes(
-      currentStatus as DRPC_STATUS
-    )
-  ) {
-    return t('{{ currentStatus }} to cluster {{ failoverCluster }}', {
-      currentStatus,
-      failoverCluster,
-    });
+  t: TFunction,
+  isCleanupPending?: boolean
+): { description: string; status: string; icon: JSX.Element } => {
+  const status = currentStatus as DRPC_STATUS;
+
+  if (status === DRPC_STATUS.Relocating) {
+    return {
+      description: t('Relocating to cluster {{ preferredCluster }}', {
+        preferredCluster,
+      }),
+      status: t('In Progress'),
+      icon: <InProgressIcon />,
+    };
+  } else if (status === DRPC_STATUS.Relocated) {
+    return {
+      description: t('Relocated to cluster {{ preferredCluster }}', {
+        preferredCluster,
+      }),
+      status: t('Completed'),
+      icon: <GreenCheckCircleIcon />,
+    };
+  } else if (status === DRPC_STATUS.FailingOver) {
+    return {
+      description: t('FailingOver to cluster {{ failoverCluster }}', {
+        failoverCluster,
+      }),
+      status: t('In Progress'),
+      icon: <InProgressIcon />,
+    };
+  } else if (status === DRPC_STATUS.FailedOver) {
+    return isCleanupPending
+      ? {
+          description: t(
+            'Cleanup of resources requires user attention. Finish cleanup to restart replication.'
+          ),
+          status: t('Pending'),
+          icon: <PendingIcon />,
+        }
+      : {
+          description: t('FailedOver to cluster {{ failoverCluster }}', {
+            failoverCluster,
+          }),
+          status: t('Completed'),
+          icon: <GreenCheckCircleIcon />,
+        };
   } else {
-    return t('Unknown');
+    return {
+      description: t('Unknown'),
+      status: t('Unknown'),
+      icon: <GrayUnknownIcon />,
+    };
   }
 };
 
@@ -125,12 +156,14 @@ export const ActivitySection: React.FC<CommonProps> = ({
       <StatusText>{t('Activity')}</StatusText>
       <StatusIconAndText
         icon={getDRStatus({ currentStatus, t }).icon}
-        title={getCurrentActivity(
-          currentStatus,
-          failoverCluster,
-          preferredCluster,
-          t
-        )}
+        title={
+          getCurrentActivity(
+            currentStatus,
+            failoverCluster,
+            preferredCluster,
+            t
+          ).description
+        }
         className="text-muted"
       />
     </div>
@@ -218,7 +251,10 @@ const SubscriptionRow: React.FC<
         {...subscriptionTableColumnProps[1]}
         activeColumnIDs={activeColumnIDs}
       >
-        {getCurrentActivity(activity, failoverCluster, preferredCluster, t)}
+        {
+          getCurrentActivity(activity, failoverCluster, preferredCluster, t)
+            .description
+        }
       </TableData>
       <TableData
         {...subscriptionTableColumnProps[2]}

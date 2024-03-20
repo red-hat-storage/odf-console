@@ -27,7 +27,11 @@ import {
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
-import { getVolumeReplicationHealth } from '../../utils';
+import {
+  getVolumeReplicationHealth,
+  isDRPCAvailable,
+  isPeerReady,
+} from '../../utils';
 import { DiscoveredApplicationParser as DiscoveredApplicationModal } from '../modals/app-failover-relocate/parser/discovered-application-parser';
 
 export const drpcDetailsPageRoute = (drpc: DRPlacementControlKind) =>
@@ -76,6 +80,11 @@ export const isFailingOrRelocating = (
   [DRPC_STATUS.FailingOver, DRPC_STATUS.Relocating].includes(
     application?.status?.phase as DRPC_STATUS
   );
+
+export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
+  drpc?.status?.phase === DRPC_STATUS.FailedOver &&
+  !isPeerReady(drpc) &&
+  isDRPCAvailable(drpc);
 
 export const getReplicationHealth = (
   lastSyncTime: string,

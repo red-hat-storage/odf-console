@@ -62,6 +62,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
       noResultsFoundText={t('No results found')}
       isCheckboxSelectionBadgeHidden
       onCreateOption={(isCreatable && onCreateOption) || undefined}
+      isCreatable={isCreatable}
       {...rest}
     >
       {allOptions || items}
