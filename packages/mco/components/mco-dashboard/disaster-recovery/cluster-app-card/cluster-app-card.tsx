@@ -3,6 +3,7 @@ import {
   ALL_APPS,
   applicationDetails,
   APPLICATION_TYPE,
+  APPLICATION_TYPE_DISPLAY_TEXT,
 } from '@odf/mco/constants';
 import {
   DRClusterAppsMap,
@@ -50,9 +51,10 @@ import {
 } from '../dr-dashboard-context';
 import {
   ActivitySection,
-  SnapshotSection,
   SubscriptionDetailsTable,
   SubscriptionSection,
+  SnapshotSection,
+  NamespaceSection,
 } from './application';
 import {
   HealthSection,
@@ -66,6 +68,43 @@ import {
   VolumeSummarySection,
 } from './common';
 import './cluster-app-card.scss';
+
+const DiscoveredAppCard: React.FC<AppWiseCardProps> = ({
+  protectedPVCData,
+  selectedApplication,
+}) => {
+  return (
+    <Grid hasGutter>
+      <GridItem lg={3} rowSpan={8} sm={12}>
+        <ProtectedPVCsSection
+          protectedPVCData={protectedPVCData}
+          selectedApplication={selectedApplication}
+        />
+      </GridItem>
+      <GridItem lg={9} rowSpan={8} sm={12}>
+        <NamespaceSection selectedApplication={selectedApplication} />
+      </GridItem>
+      <GridItem lg={3} rowSpan={8} sm={12}>
+        <ActivitySection selectedApplication={selectedApplication} />
+      </GridItem>
+      <GridItem lg={3} rowSpan={8} sm={12}>
+        <SnapshotSection
+          selectedApplication={selectedApplication}
+          isVolumeSnapshot
+        />
+      </GridItem>
+      <GridItem lg={6} rowSpan={8} sm={12}>
+        <SnapshotSection selectedApplication={selectedApplication} />
+      </GridItem>
+      <GridItem lg={12} rowSpan={8} sm={12}>
+        <VolumeSummarySection
+          protectedPVCData={protectedPVCData}
+          selectedApplication={selectedApplication}
+        />
+      </GridItem>
+    </Grid>
+  );
+};
 
 const ApplicationSetAppCard: React.FC<AppWiseCardProps> = ({
   protectedPVCData,
@@ -83,7 +122,10 @@ const ApplicationSetAppCard: React.FC<AppWiseCardProps> = ({
         <ActivitySection selectedApplication={selectedApplication} />
       </GridItem>
       <GridItem lg={9} rowSpan={8} sm={12}>
-        <SnapshotSection selectedApplication={selectedApplication} />
+        <SnapshotSection
+          selectedApplication={selectedApplication}
+          isVolumeSnapshot
+        />
       </GridItem>
       <GridItem lg={12} rowSpan={8} sm={12}>
         <VolumeSummarySection
@@ -180,6 +222,8 @@ const AppWiseCard: React.FC<AppWiseCardProps> = (props) => {
       return <ApplicationSetAppCard {...props} />;
     case APPLICATION_TYPE.SUBSCRIPTION:
       return <SubscriptionSetAppCard {...props} />;
+    case APPLICATION_TYPE.DISCOVERED:
+      return <DiscoveredAppCard {...props} />;
     default:
       return <></>;
   }
@@ -206,12 +250,18 @@ const ClusterAppCardTitle: React.FC<ClusterAppCardTitleProps> = ({
     <div>
       <Text className="mco-cluster-app__headerText--size mco-dashboard__statusText--margin">
         {t('Application: ')}
-        <Link id="app-search-argo-apps-link" to={applicationDetailsPath}>
-          {app.name}
-        </Link>
+        {appType === APPLICATION_TYPE.DISCOVERED ? (
+          app.name
+        ) : (
+          <Link id="app-search-argo-apps-link" to={applicationDetailsPath}>
+            {app.name}
+          </Link>
+        )}
       </Text>
       <Text className="mco-dashboard__statusText--margin">
-        {t('Type: {{type}}', { type: appType })}
+        {t('Type: {{type}}', {
+          type: APPLICATION_TYPE_DISPLAY_TEXT(t)[appType],
+        })}
       </Text>
     </div>
   ) : (
