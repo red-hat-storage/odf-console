@@ -20,6 +20,7 @@ import { getName } from '@odf/shared/selectors';
 import { NodeKind } from '@odf/shared/types';
 import { StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
@@ -40,7 +41,6 @@ import {
   HelperTextItem,
 } from '@patternfly/react-core';
 import { getValidatedDeviceTypes } from '../../../../utils';
-import validationRegEx from '../../../../utils/validation';
 import { LocalVolumeSet, WizardDispatch, WizardState } from '../../reducer';
 import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
 import '../../../../style.scss';

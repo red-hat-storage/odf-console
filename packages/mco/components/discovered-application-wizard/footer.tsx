@@ -25,7 +25,9 @@ import {
 } from './utils/reducer';
 
 const validateNamespaceStep = (state: EnrollDiscoveredApplicationState) =>
-  !!state.namespace.clusterName && !!state.namespace.namespaces.length;
+  !!state.namespace.clusterName &&
+  !!state.namespace.namespaces.length &&
+  !!state.namespace.name;
 
 const validateConfigurationStep = (state: EnrollDiscoveredApplicationState) => {
   const { recipe, resourceLabels, protectionMethod } = state.configuration;

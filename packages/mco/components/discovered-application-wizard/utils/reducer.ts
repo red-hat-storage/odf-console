@@ -21,6 +21,7 @@ export enum EnrollDiscoveredApplicationStateType {
   SET_PVC_LABEL_EXPRESSIONS = 'CONFIGURATION/RESOURCE_LABEL/SET_PVC_LABEL_EXPRESSIONS',
   SET_POLICY = 'REPLICATION/SET_POLICY',
   SET_K8S_RESOURCE_REPLICATION_INTERVAL = 'REPLICATION/SET_K8S_RESOURCE_REPLICATION_INTERVAL',
+  SET_NAME = 'NAMESPACE/SET_NAME',
 }
 
 export type EnrollDiscoveredApplicationState = {
@@ -29,6 +30,8 @@ export type EnrollDiscoveredApplicationState = {
     namespaces: K8sResourceCommon[];
     // Cluster name of the discovered application
     clusterName: string;
+    // DRPC name to protect the discovered application
+    name: string;
   };
   configuration: {
     // recipe CRD (or) normal K8s CR label based protection
@@ -60,6 +63,7 @@ export const initialState: EnrollDiscoveredApplicationState = {
   namespace: {
     clusterName: '',
     namespaces: [],
+    name: '',
   },
   configuration: {
     protectionMethod: ProtectionMethodType.RECIPE,
@@ -111,6 +115,10 @@ export type EnrollDiscoveredApplicationAction =
   | {
       type: EnrollDiscoveredApplicationStateType.SET_K8S_RESOURCE_REPLICATION_INTERVAL;
       payload: string;
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.SET_NAME;
+      payload: string;
     };
 
 export const reducer: EnrollReducer = (state, action) => {
@@ -127,6 +135,7 @@ export const reducer: EnrollReducer = (state, action) => {
         namespace: {
           ...newState.namespace,
           clusterName: action.payload,
+          name: state.namespace.name,
         },
       };
     }
@@ -204,6 +213,15 @@ export const reducer: EnrollReducer = (state, action) => {
         replication: {
           ...state.replication,
           k8sResourceReplicationInterval: action.payload,
+        },
+      };
+    }
+    case EnrollDiscoveredApplicationStateType.SET_NAME: {
+      return {
+        ...state,
+        namespace: {
+          ...state.namespace,
+          name: action.payload,
         },
       };
     }
