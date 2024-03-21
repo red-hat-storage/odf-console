@@ -1,14 +1,11 @@
 import * as React from 'react';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
-import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getOprVersionFromCSV } from '@odf/shared/utils';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
 import { CLIENT_OPERATOR } from '../../../constants';
-
-const getOperatorVersion = (operator: K8sResourceKind): string =>
-  operator?.spec?.version || '';
 
 export const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -17,7 +14,7 @@ export const DetailsCard: React.FC = () => {
     specName: CLIENT_OPERATOR,
   });
 
-  const subscriptionVersion = getOperatorVersion(csv);
+  const subscriptionVersion = getOprVersionFromCSV(csv);
 
   const serviceName = t('Data Foundation');
 

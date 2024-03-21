@@ -41,3 +41,5 @@ export const LABEL = 'label';
 export const LABELS_SPLIT_CHAR = '; ';
 export const LABEL_SPLIT_CHAR = '=';
 export const DR_BLOCK_LISTED_LABELS = ['app.kubernetes.io/instance'];
+
+export const ACM_OPERATOR_SPEC_NAME = 'advanced-cluster-management';

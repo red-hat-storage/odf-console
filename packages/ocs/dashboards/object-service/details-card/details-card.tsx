@@ -3,7 +3,6 @@ import { OCS_OPERATOR } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
-import { getOperatorVersion } from '@odf/core/utils';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import {
   useCustomPrometheusPoll,
@@ -18,6 +17,7 @@ import {
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getOprVersionFromCSV } from '@odf/shared/utils';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import { getMetric } from '@odf/shared/utils';
@@ -65,7 +65,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
     startPollingInstantly: isNsSafe,
   });
 
-  const serviceVersion = getOperatorVersion(csv);
+  const serviceVersion = getOprVersionFromCSV(csv);
 
   const serviceName = isODF
     ? t('Data Foundation')

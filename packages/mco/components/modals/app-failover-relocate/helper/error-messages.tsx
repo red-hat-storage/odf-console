@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DOC_LINKS } from '@odf/mco/constants/doc';
+import { docLinks } from '@odf/mco/constants/doc';
 import { ViewDocumentation } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
@@ -31,7 +31,11 @@ type ErrorMessagesType = {
   [key in ErrorMessageType]: MessageKind;
 };
 
-export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
+export const ErrorMessages = (
+  t: TFunction,
+  mcoDocVersion: string,
+  acmDocVersion: string
+): ErrorMessagesType => ({
   [ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER]: {
     title: t('No DRPolicy found.'),
     message: (
@@ -43,8 +47,13 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           </li>
           <li>
             To apply a DRPolicy to your application, follow the instructions in
-            the documentation.{' '}
-            <ViewDocumentation doclink={DOC_LINKS.APPLY_POLICY} />
+            the documentation
+            <span>
+              <ViewDocumentation
+                doclink={docLinks(mcoDocVersion, acmDocVersion).APPLY_POLICY}
+                hideDocLink={!mcoDocVersion || !acmDocVersion}
+              />
+            </span>
           </li>
         </ul>
       </Trans>
@@ -62,8 +71,13 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           </li>
           <li>
             To apply a DRPolicy to your application, follow the instructions in
-            the documentation.{' '}
-            <ViewDocumentation doclink={DOC_LINKS.APPLY_POLICY} />
+            the documentation
+            <span>
+              <ViewDocumentation
+                doclink={docLinks(mcoDocVersion, acmDocVersion).APPLY_POLICY}
+                hideDocLink={!mcoDocVersion || !acmDocVersion}
+              />
+            </span>
           </li>
         </ul>
       </Trans>
@@ -77,10 +91,14 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
         <p>
           Failover cannot be initiated as the readiness checks are failing.
           Refer to workaround mentioned in known issues section of
-          <ViewDocumentation
-            doclink={DOC_LINKS.DR_RELEASE_NOTES}
-            text="release notes"
-          />
+          <span>
+            <ViewDocumentation
+              doclink={docLinks(mcoDocVersion, acmDocVersion).DR_RELEASE_NOTES}
+              hideDocLink={!mcoDocVersion || !acmDocVersion}
+              text={t('release notes')}
+            />
+          </span>
+          .
         </p>
       </Trans>
     ),
@@ -93,10 +111,14 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
         <p>
           Relocation cannot be initiated as the readiness checks are failing.
           Refer to workaround mentioned in known issues section of
-          <ViewDocumentation
-            doclink={DOC_LINKS.DR_RELEASE_NOTES}
-            text="release notes"
-          />{' '}
+          <span>
+            <ViewDocumentation
+              doclink={docLinks(mcoDocVersion, acmDocVersion).DR_RELEASE_NOTES}
+              hideDocLink={!mcoDocVersion || !acmDocVersion}
+              text={t('release notes')}
+            />
+          </span>
+          .
         </p>
       </Trans>
     ),
@@ -114,10 +136,15 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           <li>
             To bring the cluster online, refer to the instructions in the
             documentation
-            <ViewDocumentation
-              doclink={DOC_LINKS.ACM_OFFLINE_CLUSTER}
-              text="Troubleshoot"
-            />
+            <span>
+              <ViewDocumentation
+                doclink={
+                  docLinks(mcoDocVersion, acmDocVersion).ACM_OFFLINE_CLUSTER
+                }
+                hideDocLink={!mcoDocVersion || !acmDocVersion}
+                text={t('Troubleshoot')}
+              />
+            </span>
           </li>
         </ul>
       </Trans>
@@ -132,10 +159,15 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           To begin failover, the target cluster must be available. Check the
           status and try again. If the managed cluster status is offline, follow
           the instructions in the documentation
-          <ViewDocumentation
-            doclink={DOC_LINKS.ACM_OFFLINE_CLUSTER}
-            text="Troubleshoot"
-          />
+          <span>
+            <ViewDocumentation
+              doclink={
+                docLinks(mcoDocVersion, acmDocVersion).ACM_OFFLINE_CLUSTER
+              }
+              hideDocLink={!mcoDocVersion || !acmDocVersion}
+              text={t('Troubleshoot')}
+            />
+          </span>
         </p>
       </Trans>
     ),
@@ -151,8 +183,13 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
             clusters should be unfenced for initiating relocation.
           </li>
           <li>
-            To unfence your cluster, refer to the documentation{' '}
-            <ViewDocumentation doclink={DOC_LINKS.MDR_RELOCATE} />.
+            To unfence your cluster, refer to the documentation
+            <span>
+              <ViewDocumentation
+                doclink={docLinks(mcoDocVersion, acmDocVersion).MDR_RELOCATE}
+                hideDocLink={!mcoDocVersion || !acmDocVersion}
+              />
+            </span>
           </li>
         </ul>
       </Trans>
@@ -169,8 +206,13 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
             failover. Check the status and try again.
           </li>
           <li>
-            To fence your cluster, follow the instructions in the documentation{' '}
-            <ViewDocumentation doclink={DOC_LINKS.MDR_FAILOVER} />.
+            To fence your cluster, follow the instructions in the documentation
+            <span>
+              <ViewDocumentation
+                doclink={docLinks(mcoDocVersion, acmDocVersion).MDR_FAILOVER}
+                hideDocLink={!mcoDocVersion || !acmDocVersion}
+              />
+            </span>
           </li>
         </ul>
       </Trans>
@@ -188,8 +230,13 @@ export const ErrorMessages = (t: TFunction): ErrorMessagesType => ({
           </li>
           <li>
             To unfence your cluster, follow the instructions in the
-            documentation <ViewDocumentation doclink={DOC_LINKS.MDR_FAILOVER} />
-            .
+            documentation
+            <span>
+              <ViewDocumentation
+                doclink={docLinks(mcoDocVersion, acmDocVersion).MDR_FAILOVER}
+                hideDocLink={!mcoDocVersion || !acmDocVersion}
+              />
+            </span>
           </li>
         </ul>
       </Trans>

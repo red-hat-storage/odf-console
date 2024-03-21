@@ -5,7 +5,7 @@ import { nodeResource } from '@odf/core/resources';
 import { getDataResiliencyState } from '@odf/ocs/dashboards/persistent-internal/status-card/utils';
 import { StorageEfficiencyContent } from '@odf/ocs/dashboards/persistent-internal/storage-efficiency-card/storage-efficiency-card';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '@odf/ocs/queries';
-import { getCephNodes, getOperatorVersion } from '@odf/ocs/utils';
+import { getCephNodes } from '@odf/ocs/utils';
 import { DASH, ODF_OPERATOR } from '@odf/shared/constants';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import {
@@ -26,6 +26,7 @@ import { Status } from '@odf/shared/status/Status';
 import { NodeKind } from '@odf/shared/types';
 import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getOprVersionFromCSV } from '@odf/shared/utils';
 import {
   resourcePathFromModel,
   getInfrastructurePlatform,
@@ -84,7 +85,7 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
     startPollingInstantly: isNsSafe,
   });
   const serviceVersion =
-    csvLoaded && _.isEmpty(csvError) ? getOperatorVersion(csv) : DASH;
+    csvLoaded && _.isEmpty(csvError) ? getOprVersionFromCSV(csv) : DASH;
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
     getName(csv),

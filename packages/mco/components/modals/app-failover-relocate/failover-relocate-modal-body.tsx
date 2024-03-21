@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { DRPlacementControlModel } from '@odf/mco/models';
+import { ACM_DEFAULT_DOC_VERSION } from '@odf/shared/constants';
 import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
+import { useDocVersion, DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import {
   RedExclamationCircleIcon,
@@ -20,7 +22,11 @@ import {
   AlertProps,
 } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
-import { DRActionType, REPLICATION_TYPE } from '../../../constants';
+import {
+  DRActionType,
+  REPLICATION_TYPE,
+  ACM_OPERATOR_SPEC_NAME,
+} from '../../../constants';
 import {
   ErrorMessageType,
   evaluateErrorMessage,
@@ -191,6 +197,11 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
     const [errorMessage, setErrorMessage] = React.useState<ErrorMessageType>();
     const placement = placementControls?.[0];
 
+    const acmDocVersion = useDocVersion({
+      defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
+      specName: ACM_OPERATOR_SPEC_NAME,
+    });
+
     React.useEffect(() => {
       if (loaded && !loadError) {
         const placementErrorMessage = validatePlacement(placement, action);
@@ -291,7 +302,11 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
             </Flex>
           )}
           {evaluateErrorMessage(errorMessage, true) > -1 && (
-            <MessageStatus message={ErrorMessages(t)[errorMessage]} />
+            <MessageStatus
+              message={
+                ErrorMessages(t, mcoDocVersion, acmDocVersion)[errorMessage]
+              }
+            />
           )}
         </Flex>
       </>
