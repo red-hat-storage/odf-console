@@ -3,7 +3,6 @@ import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { K8sResourceObj } from '@odf/core/types';
 import {
-  OCS_OPERATOR,
   Breakdown,
   DataConsumption,
   Metrics,
@@ -11,6 +10,7 @@ import {
 } from '@odf/ocs/constants';
 import { DATA_CONSUMPTION_QUERIES } from '@odf/ocs/queries';
 import { getRangeVectorStats } from '@odf/shared/charts';
+import { OCS_OPERATOR } from '@odf/shared/constants';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
   useCustomPrometheusPoll,

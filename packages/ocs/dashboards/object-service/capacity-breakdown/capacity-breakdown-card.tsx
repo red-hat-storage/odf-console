@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { secretResource } from '@odf/core/resources';
+import { OCS_OPERATOR } from '@odf/shared/constants';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { LabelPadding } from '@odf/shared/dashboards/breakdown-card/breakdown-chart';
 import { getGroupedSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
@@ -28,11 +29,7 @@ import {
 import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import {
-  OCS_OPERATOR,
-  ServiceType,
-  CapacityBreakdown,
-} from '../../../constants';
+import { ServiceType, CapacityBreakdown } from '../../../constants';
 import { breakdownQueryMapMCG } from '../../../queries';
 import { ODFSystemParams } from '../../../types';
 import { decodeRGWPrefix, getStackChartStats } from '../../../utils';
