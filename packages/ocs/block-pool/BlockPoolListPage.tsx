@@ -52,12 +52,12 @@ import {
 import { PopoverHelper } from './popover-helper';
 
 const tableColumnInfo = [
-  { className: 'pf-u-w-16-on-2xl', id: 'name' },
+  { className: 'pf-v5-u-w-16-on-2xl', id: 'name' },
   {
     className: classNames(
       'pf-m-hidden',
       'pf-m-visible-on-md',
-      'pf-u-w-8-on-2xl'
+      'pf-v5-u-w-8-on-2xl'
     ),
     id: 'status',
   },
@@ -69,7 +69,7 @@ const tableColumnInfo = [
     className: classNames(
       'pf-m-hidden',
       'pf-m-visible-on-lg',
-      'pf-u-w-8-on-2xl'
+      'pf-v5-u-w-8-on-2xl'
     ),
     id: 'replicas',
   },

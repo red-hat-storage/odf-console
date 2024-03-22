@@ -39,11 +39,11 @@ import { SelectNodesTableFooter } from './select-nodes-table-footer';
 import './select-nodes-table.scss';
 
 const tableColumnClasses = [
-  classNames('pf-u-w-33-on-md', 'pf-u-w-50-on-sm'),
-  classNames('pf-m-hidden', 'pf-m-visible-on-xl', 'pf-u-w-inherit-on-xl'),
-  classNames('pf-m-hidden', 'pf-m-visible-on-xl', 'pf-u-w-inherit-on-xl'),
-  classNames('pf-m-hidden', 'pf-m-visible-on-xl', 'pf-u-w-inherit-on-xl'),
-  classNames('pf-u-w-inherit'),
+  classNames('pf-v5-u-w-33-on-md', 'pf-v5-u-w-50-on-sm'),
+  classNames('pf-m-hidden', 'pf-m-visible-on-xl', 'pf-v5-u-w-inherit-on-xl'),
+  classNames('pf-m-hidden', 'pf-m-visible-on-xl', 'pf-v5-u-w-inherit-on-xl'),
+  classNames('pf-m-hidden', 'pf-m-visible-on-xl', 'pf-v5-u-w-inherit-on-xl'),
+  classNames('pf-v5-u-w-inherit'),
 ];
 
 const getRows = (

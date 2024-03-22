@@ -413,16 +413,16 @@ const BreakdownCard: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="nb-capacity-breakdown-card__header">
-        <CardTitle>
-          {t('Capacity breakdown')}
-          <FieldLevelHelp>
-            {t(
-              'This card shows used capacity for different resources. The available capacity is based on cloud services therefore it cannot be shown.'
-            )}
-          </FieldLevelHelp>
-        </CardTitle>
-        <div className="nb-capacity-breakdown-card__header">
+      <CardHeader>
+        <div className="pf-v5-u-display-flex pf-v5-u-justify-content-space-between">
+          <CardTitle>
+            {t('Capacity breakdown')}
+            <FieldLevelHelp>
+              {t(
+                'This card shows used capacity for different resources. The available capacity is based on cloud services therefore it cannot be shown.'
+              )}
+            </FieldLevelHelp>
+          </CardTitle>
           {isRGWSupported && isMCGSupported && (
             <Select
               className="nb-capacity-breakdown-card-header__dropdown nb-capacity-breakdown-card-header__dropdown--margin"

@@ -263,7 +263,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
         textInputProps={{
           id: 'obc-name',
           name: 'obcName',
-          className: 'pf-c-form-control',
+          className: 'pf-v5-c-form-control',
           type: 'text',
           placeholder: t('my-object-bucket'),
           'aria-describedby': 'obc-name-help',
@@ -509,7 +509,7 @@ export const CreateOBCPage: React.FC<{}> = () => {
               />
             )}
             <ButtonBar errorMessage={state.error} inProgress={state.progress}>
-              <ActionGroup className="pf-c-form">
+              <ActionGroup className="pf-v5-c-form">
                 <Button
                   id={submitBtnId}
                   type="submit"

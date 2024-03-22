@@ -9,16 +9,16 @@ $mco-icon-and-text-icon-lg: 1.2rem;
   overflow-x: hidden;
   overflow-y: auto;
 
-  .pf-c-empty-state {
-    --pf-c-empty-state__icon--MarginBottom: 0 !important;
+  .pf-v5-c-empty-state {
+    --pf-v5-c-empty-state__icon--MarginBottom: 0 !important;
   }
 }
 
 .mco-status-card__alert-item {
   display: flex;
   padding-bottom: 0.5rem;
-  padding-left: var(--pf-c-card--child--PaddingLeft);
-  padding-right: var(--pf-c-card--child--PaddingRight);
+  padding-left: var(--pf-v5-c-card--child--PaddingLeft);
+  padding-right: var(--pf-v5-c-card--child--PaddingRight);
 }
 
 .mco-status-card__alert-item-icon {

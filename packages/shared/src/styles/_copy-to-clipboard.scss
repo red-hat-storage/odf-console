@@ -3,7 +3,7 @@
   position: relative;
 }
 
-.pf-c-clipboard-copy__group-copy.odf-copy-to-clipboard__btn {
+.pf-v5-c-clipboard-copy__group-copy.odf-copy-to-clipboard__btn {
   position: absolute;
   right: 0;
   top: 3px;
@@ -29,24 +29,24 @@
 }
 
 .odf-copy-to-clipboard__pre {
-  background-color: var(--pf-c-code-block--BackgroundColor);
+  background-color: var(--pf-v5-c-code-block--BackgroundColor);
   color: var(--pf-v5-global--Color--100);
   display: block;
-  font-family: var(--pf-c-code-block__pre--FontFamily);
-  font-size: var(--pf-c-code-block__pre--FontSize);
+  font-family: var(--pf-v5-c-code-block__pre--FontFamily);
+  font-size: var(--pf-v5-c-code-block__pre--FontSize);
   overflow-wrap: break-word;
   padding: var(--pf-v5-global--spacer--md);
   white-space: pre-wrap;
 }
 
-.pf-c-button.odf-copy-to-clipboard__btn,
-.pf-c-button.odf-copy-to-clipboard__btn:hover {
-  --pf-c-button--PaddingTop: var(--pf-v5-global--spacer--sm);
-  --pf-c-button--PaddingRight: var(--pf-v5-global--spacer--md);
-  --pf-c-button--PaddingBottom: var(--pf-v5-global--spacer--sm);
-  --pf-c-button--PaddingLeft: var(--pf-v5-global--spacer--md);
-  --pf-c-button--BorderRadius: 0;
-  --pf-c-button--hover--BorderWidth: var(--pf-v5-global--BorderWidth--sm) solid
+.pf-v5-c-button.odf-copy-to-clipboard__btn,
+.pf-v5-c-button.odf-copy-to-clipboard__btn:hover {
+  --pf-v5-c-button--PaddingTop: var(--pf-v5-global--spacer--sm);
+  --pf-v5-c-button--PaddingRight: var(--pf-v5-global--spacer--md);
+  --pf-v5-c-button--PaddingBottom: var(--pf-v5-global--spacer--sm);
+  --pf-v5-c-button--PaddingLeft: var(--pf-v5-global--spacer--md);
+  --pf-v5-c-button--BorderRadius: 0;
+  --pf-v5-c-button--hover--BorderWidth: var(--pf-v5-global--BorderWidth--sm) solid
     var(--pf-v5-global--BorderColor--100);
-  --pf-c-button--LineHeight: var(--pf-v5-global--BorderWidth--lg);
+  --pf-v5-c-button--LineHeight: var(--pf-v5-global--BorderWidth--lg);
 }

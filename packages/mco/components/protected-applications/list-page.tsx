@@ -144,7 +144,9 @@ const ProtectedAppsTableRow: React.FC<
                 <Icon size="sm">
                   <CubeIcon color={blackIconColor.value} />
                 </Icon>
-                <span className="pf-u-pl-sm">{enrolledNamespaces.length}</span>
+                <span className="pf-v5-u-pl-sm">
+                  {enrolledNamespaces.length}
+                </span>
               </div>
             }
             tooltipContent={t('View namespaces')}
@@ -162,7 +164,7 @@ const ProtectedAppsTableRow: React.FC<
                   <Icon size="sm">
                     <InProgressIcon color={blackIconColor.value} />
                   </Icon>
-                  <span className="pf-u-pl-sm">{eventsCount}</span>
+                  <span className="pf-v5-u-pl-sm">{eventsCount}</span>
                 </div>
               }
               tooltipContent={t('View activity')}
@@ -171,7 +173,7 @@ const ProtectedAppsTableRow: React.FC<
               className={classNames({
                 'mco-protected-applications__expanded':
                   expandableComponentType === EXPANDABLE_COMPONENT_TYPE.EVENTS,
-                'pf-u-pl-lg': true,
+                'pf-v5-u-pl-lg': true,
               })}
             />
           )}
@@ -181,7 +183,7 @@ const ProtectedAppsTableRow: React.FC<
             title={
               <div>
                 {icon}
-                <span className="pf-u-pl-sm">{title}</span>
+                <span className="pf-v5-u-pl-sm">{title}</span>
               </div>
             }
             tooltipContent={t('See detailed information')}

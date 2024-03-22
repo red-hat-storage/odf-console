@@ -101,7 +101,7 @@ const Table: React.FC<TableProps> = React.memo(
         data={rawData}
         unfilteredData={unfilteredData}
         NoDataEmptyMsg={noDataMsg}
-        skeleton={<div className="loading-skeleton--table pf-u-mt-lg" />}
+        skeleton={<div className="loading-skeleton--table pf-v5-u-mt-lg" />}
       >
         <PfTable aria-label={ariaLabel} translate={null}>
           <Thead translate={null}>

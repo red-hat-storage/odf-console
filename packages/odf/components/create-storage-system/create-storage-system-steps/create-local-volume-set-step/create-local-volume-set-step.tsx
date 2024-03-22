@@ -194,7 +194,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <span>
         {t("After the LocalVolumeSet is created you won't be able to edit it.")}
       </span>
-      <p className="pf-u-pt-sm">
+      <p className="pf-v5-u-pt-sm">
         <strong>{t('Note:')} </strong>
         {arbiterText(t)}
       </p>

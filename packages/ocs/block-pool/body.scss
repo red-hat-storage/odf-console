@@ -3,8 +3,8 @@
 }
 
 .ceph-block-pool__switch {
-  --pf-c-switch--FontSize: var(--pf-v5-global--FontSize--xs) !important;
-  --pf-c-switch__input--focus__toggle--OutlineWidth: 0 !important; // To disable the switch focus border
+  --pf-v5-c-switch--FontSize: var(--pf-v5-global--FontSize--xs) !important;
+  --pf-v5-c-switch__input--focus__toggle--OutlineWidth: 0 !important; // To disable the switch focus border
 }
 
 .ceph-block-pool__error-icon {

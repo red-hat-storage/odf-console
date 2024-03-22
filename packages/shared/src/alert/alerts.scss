@@ -42,25 +42,25 @@
 
   // Override the PF Accordion properties that don't fit the design.
   /* stylelint-disable max-nesting-depth, selector-max-compound-selectors */
-  .pf-c-accordion {
+  .pf-v5-c-accordion {
     .pf-m-expanded {
-      --pf-c-accordion__toggle--before--BackgroundColor: transparent;
-      --pf-c-accordion__expanded-content-body--before--BackgroundColor: transparent;
+      --pf-v5-c-accordion__toggle--before--BackgroundColor: transparent;
+      --pf-v5-c-accordion__expanded-content-body--before--BackgroundColor: transparent;
     }
 
-    .pf-c-accordion__toggle .pf-c-accordion__toggle-text {
+    .pf-v5-c-accordion__toggle .pf-v5-c-accordion__toggle-text {
       color: unset;
       font-size: 15px;
       font-weight: 50;
     }
 
-    .pf-c-accordion__toggle:focus .pf-c-accordion__toggle-text {
+    .pf-v5-c-accordion__toggle:focus .pf-v5-c-accordion__toggle-text {
       color: unset;
       font-size: 15px;
       font-weight: 50;
     }
 
-    .pf-c-accordion__expanded-content {
+    .pf-v5-c-accordion__expanded-content {
       color: unset;
     }
   }

@@ -203,13 +203,11 @@ const BreakdownCard: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="ceph-capacity-breakdown-card__header">
-        <div>
+      <CardHeader>
+        <div className="pf-v5-u-display-flex pf-v5-u-justify-content-space-between">
           <CardTitle id="breakdown-card-title">
             <TitleWithHelp />
           </CardTitle>
-        </div>
-        <div>
           <Select
             className="ceph-capacity-breakdown-card-header__dropdown"
             autoFocus={false}

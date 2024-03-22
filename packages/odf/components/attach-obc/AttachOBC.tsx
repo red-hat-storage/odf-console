@@ -175,7 +175,7 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
         errorMessage={state.error || loadError?.message}
         inProgress={state.progress}
       >
-        <ActionGroup className="pf-c-form">
+        <ActionGroup className="pf-v5-c-form">
           <Button
             type="submit"
             variant="primary"

@@ -330,7 +330,7 @@ export const ChartLegendTooltip: React.FunctionComponent<
     const tooltipComponent = isCursorTooltip ? (
       <ChartCursorTooltip />
     ) : (
-      <ChartTooltip />
+      <ChartTooltip constrainToVisibleArea />
     );
     return React.cloneElement(tooltipComponent, {
       activePoints,

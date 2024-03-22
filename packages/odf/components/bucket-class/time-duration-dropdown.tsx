@@ -36,7 +36,7 @@ export const TimeDurationDropdown: React.FC<TimeDurationDropdownProps> = ({
     <InputGroup translate={undefined}>
       <InputGroupItem isFill>
         <TextInput
-          className={classNames('pf-c-form-control', inputClassName)}
+          className={classNames('pf-v5-c-form-control', inputClassName)}
           type="number"
           onChange={(_event, val) => onValueChange(val)}
           placeholder={placeholder}

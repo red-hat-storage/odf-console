@@ -185,7 +185,10 @@ export const StatusCard: React.FC = () => {
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <Gallery className="odf-overview-status__health" hasGutter>
+        <Gallery
+          className="odf-overview-status__health pf-v5-u-mb-sm"
+          hasGutter
+        >
           <GalleryItem>
             <HealthItem
               title={t('Storage Cluster')}
