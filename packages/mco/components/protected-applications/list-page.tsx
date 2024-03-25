@@ -52,6 +52,7 @@ import {
   getAppWorstSyncStatus,
   SyncStatusInfo,
   drpcDetailsPageRoute,
+  isCleanupPending,
 } from './utils';
 import './protected-apps.scss';
 
@@ -93,11 +94,13 @@ const ProtectedAppsTableRow: React.FC<
   const enrolledNamespaces: string[] =
     application.spec?.eligibleForProtectionNamespaces || [];
 
-  // ToDo: Add clean-up activity event as well
+  // Failover/Relocate/Cleanup event details
+  const anyOnGoingEvent =
+    isFailingOrRelocating(application) || isCleanupPending(application);
   const showEventsDetails: boolean =
-    isFailingOrRelocating(application) ||
+    anyOnGoingEvent ||
     expandableComponentType === EXPANDABLE_COMPONENT_TYPE.EVENTS;
-  const eventsCount: number = isFailingOrRelocating(application) ? 1 : 0;
+  const eventsCount: number = anyOnGoingEvent ? 1 : 0;
 
   // Overall sync status details (replication health)
   const syncStatusInfo: SyncStatusInfo =

@@ -7,6 +7,7 @@ import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
 import { PopoverStatus } from '@odf/shared/status';
+import { StatusIconAndText } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
@@ -26,10 +27,7 @@ import {
   DescriptionListDescription,
   PopoverPosition,
 } from '@patternfly/react-core';
-import {
-  InProgressIcon,
-  OutlinedQuestionCircleIcon,
-} from '@patternfly/react-icons';
+import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import { ENROLLED_APP_QUERY_PARAMS_KEY, DR_BASE_ROUTE } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
@@ -42,6 +40,7 @@ import {
   SyncStatusInfo,
   EnrollApplicationTypes,
   getEnrollDropdownItems,
+  isCleanupPending,
 } from './utils';
 import './protected-apps.scss';
 
@@ -324,30 +323,28 @@ export const EventsDetails: React.FC<ExpandableComponentProps> = ({
   application,
 }) => {
   const { t } = useCustomTranslation();
+  const anyOnGoingEvent =
+    isFailingOrRelocating(application) || isCleanupPending(application);
 
-  // ToDo: Add clean-up activity event as well
-  const activity = [
-    getCurrentActivity(
-      application?.status?.phase,
-      application.spec?.failoverCluster,
-      application.spec?.preferredCluster,
-      t
-    ),
-  ];
+  const activity = getCurrentActivity(
+    application?.status?.phase,
+    application.spec?.failoverCluster,
+    application.spec?.preferredCluster,
+    t,
+    isCleanupPending(application)
+  );
   const status = [
-    <>
-      <InProgressIcon /> {t('In progress')}
-    </>,
+    <StatusIconAndText icon={activity.icon} title={activity.status} />,
   ];
   return (
     <>
-      {!isFailingOrRelocating(application) ? (
+      {!anyOnGoingEvent ? (
         <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
       ) : (
         <DescriptionList_ columnModifier={'2Col'}>
           <Description
             term={t('Activity description')}
-            descriptions={activity}
+            descriptions={[activity.description]}
           />
           <Description term={t('Status')} descriptions={status} />
         </DescriptionList_>

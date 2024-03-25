@@ -13,6 +13,7 @@ import {
 } from './reducer';
 
 export const getDRPCKindObj = (props: {
+  name: string;
   preferredCluster: string;
   namespaces: string[];
   protectionMethod: ProtectionMethodType;
@@ -26,8 +27,7 @@ export const getDRPCKindObj = (props: {
   apiVersion: getAPIVersionForModel(DRPlacementControlModel),
   kind: DRPlacementControlModel.kind,
   metadata: {
-    // ToDo: Dummy name, need to change: https://github.com/red-hat-storage/odf-console/pull/1240
-    generateName: `drpc-`,
+    name: props.name,
     namespace: RAMEN_PROTECTED_APPS_NAMESPACE,
   },
   spec: {
@@ -66,7 +66,7 @@ export const getDRPCKindObj = (props: {
 
 export const createPromise = (state: EnrollDiscoveredApplicationState) => {
   const { namespace, configuration, replication } = state;
-  const { clusterName, namespaces } = namespace;
+  const { clusterName, namespaces, name } = namespace;
   const { protectionMethod, recipe, resourceLabels } = configuration;
   const { recipeName, recipeNamespace } = recipe;
   const { k8sResourceLabelExpressions, pvcLabelExpressions } = resourceLabels;
@@ -76,6 +76,7 @@ export const createPromise = (state: EnrollDiscoveredApplicationState) => {
   return k8sCreate({
     model: DRPlacementControlModel,
     data: getDRPCKindObj({
+      name,
       preferredCluster: clusterName,
       namespaces: namespaceList,
       protectionMethod,
