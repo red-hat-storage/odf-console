@@ -1,4 +1,9 @@
 import * as React from 'react';
+import {
+  APP_NAMESPACE_ANNOTATION,
+  DISCOVERED_APP_NS,
+  GITOPS_OPERATOR_NAMESPACE,
+} from '@odf/mco/constants';
 import { useACMSafeFetch } from '@odf/mco/hooks';
 import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
 import {
@@ -7,7 +12,8 @@ import {
 } from '@odf/mco/utils';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
-import { getName } from '@odf/shared/selectors';
+import { getAnnotations, getName } from '@odf/shared/selectors';
+import { getNamespace } from '@odf/shared/selectors';
 import {
   RedExclamationCircleIcon,
   StatusIconAndText,
@@ -46,7 +52,18 @@ const getProtectedNamespaces = (
     const policyNames: string[] = policies.map(getName);
     return drPlacements.reduce((acc, drpc) => {
       if (policyNames.includes(drpc.spec.drPolicyRef.name)) {
-        acc.push(...(drpc.spec?.eligibleForProtectionNamespaces || []));
+        const namespace = getNamespace(drpc);
+        if (namespace === DISCOVERED_APP_NS) {
+          // Protected namespaces from discovered DRPC
+          acc.push(...(drpc.spec?.protectedNamespace || []));
+        } else if (namespace === GITOPS_OPERATOR_NAMESPACE) {
+          // Protected namespaces from ApplicationSet DRPC
+          const ns = getAnnotations(drpc)?.[APP_NAMESPACE_ANNOTATION];
+          !!ns && acc.push(ns);
+        } else {
+          // Protected namespaces from Subscription DRPC
+          acc.push(namespace);
+        }
       }
       return acc;
     }, []);

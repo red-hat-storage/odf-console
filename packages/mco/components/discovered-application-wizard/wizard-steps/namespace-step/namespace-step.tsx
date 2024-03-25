@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { RAMEN_PROTECTED_APPS_NAMESPACE } from '@odf/mco/constants';
+import { DISCOVERED_APP_NS } from '@odf/mco/constants';
 import { getDRPlacementControlResourceObj } from '@odf/mco/hooks';
 import { DRPolicyModel } from '@odf/mco/models';
 import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
@@ -98,9 +98,7 @@ export const NameInput: React.FC<NameInputProps> = ({
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =
       drPlacements
-        ?.filter(
-          (drpc) => getNamespace(drpc) === RAMEN_PROTECTED_APPS_NAMESPACE
-        )
+        ?.filter((drpc) => getNamespace(drpc) === DISCOVERED_APP_NS)
         .map(getName) || [];
     return getInputValidationSchema(t, existingNames);
   }, [drPlacements, t]);

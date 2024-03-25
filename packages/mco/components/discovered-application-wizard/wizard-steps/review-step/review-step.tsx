@@ -21,7 +21,7 @@ export const Review: React.FC<ReviewProps> = ({ state }) => {
   const { t } = useCustomTranslation();
 
   const { namespace, configuration, replication } = state;
-  const { clusterName, namespaces } = namespace;
+  const { clusterName, namespaces, name } = namespace;
   const { protectionMethod, recipe, resourceLabels } = configuration;
   const { recipeName, recipeNamespace } = recipe;
   const { k8sResourceLabelExpressions, pvcLabelExpressions } = resourceLabels;
@@ -48,6 +48,7 @@ export const Review: React.FC<ReviewProps> = ({ state }) => {
         <ReviewAndCreationItem label={t('Namespace:')}>
           {namespaces.map(getName).join(', ')}
         </ReviewAndCreationItem>
+        <ReviewAndCreationItem label={t('Name:')}>{name}</ReviewAndCreationItem>
       </ReviewAndCreationGroup>
       <ReviewAndCreationGroup title={t('Configuration')}>
         {protectionMethod === ProtectionMethodType.RECIPE && (

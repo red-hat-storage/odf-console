@@ -304,14 +304,12 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
   const { t } = useCustomTranslation();
 
   const enrolledNamespaces: React.ReactNode[] =
-    application.spec?.eligibleForProtectionNamespaces?.map(
-      (namespace: string) => (
-        <ResourceNameWIcon
-          resourceModel={NamespaceModel}
-          resourceName={namespace}
-        />
-      )
-    ) || [];
+    application.spec?.protectedNamespace?.map((namespace: string) => (
+      <ResourceNameWIcon
+        resourceModel={NamespaceModel}
+        resourceName={namespace}
+      />
+    )) || [];
   return (
     <>
       {!enrolledNamespaces.length ? (

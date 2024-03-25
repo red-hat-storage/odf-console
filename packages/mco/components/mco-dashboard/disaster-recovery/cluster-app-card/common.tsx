@@ -8,7 +8,7 @@ import {
   ALL_APPS_ITEM_ID,
   GITOPS_OPERATOR_NAMESPACE,
   LEAST_SECONDS_IN_PROMETHEUS,
-  RAMEN_PROTECTED_APPS_NAMESPACE,
+  DISCOVERED_APP_NS,
   REPLICATION_TYPE,
   VOLUME_REPLICATION_HEALTH,
 } from '@odf/mco/constants';
@@ -56,7 +56,7 @@ import {
 const NAMESPACE_NAME_SPLIT_CHAR = '%#%';
 
 const namespaceToModelMapping = (namespace: string) => {
-  if (namespace === RAMEN_PROTECTED_APPS_NAMESPACE) {
+  if (namespace === DISCOVERED_APP_NS) {
     return DRPlacementControlModel;
   } else if (namespace === GITOPS_OPERATOR_NAMESPACE) {
     return ArgoApplicationSetModel;
@@ -265,10 +265,8 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
   );
 
   const namespaces = Object.keys(options);
-  const isDiscoveredAppsFound = namespaces.includes(
-    RAMEN_PROTECTED_APPS_NAMESPACE
-  );
-  const isManagedAppsFound = namespaces.includes(RAMEN_PROTECTED_APPS_NAMESPACE)
+  const isDiscoveredAppsFound = namespaces.includes(DISCOVERED_APP_NS);
+  const isManagedAppsFound = namespaces.includes(DISCOVERED_APP_NS)
     ? namespaces.length > 1
     : namespaces.length > 0;
 
@@ -330,19 +328,17 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
           <>
             <SelectGroupNext label={t('Discovered applications')}>
               <SelectListNext>
-                {options[RAMEN_PROTECTED_APPS_NAMESPACE]?.map(
-                  (appName: string) => (
-                    <SelectOptionNext
-                      key={RAMEN_PROTECTED_APPS_NAMESPACE + appName}
-                      value={`${RAMEN_PROTECTED_APPS_NAMESPACE}${NAMESPACE_NAME_SPLIT_CHAR}${appName}`}
-                      icon={
-                        <ResourceIcon resourceModel={DRPlacementControlModel} />
-                      }
-                    >
-                      {appName}
-                    </SelectOptionNext>
-                  )
-                )}
+                {options[DISCOVERED_APP_NS]?.map((appName: string) => (
+                  <SelectOptionNext
+                    key={DISCOVERED_APP_NS + appName}
+                    value={`${DISCOVERED_APP_NS}${NAMESPACE_NAME_SPLIT_CHAR}${appName}`}
+                    icon={
+                      <ResourceIcon resourceModel={DRPlacementControlModel} />
+                    }
+                  >
+                    {appName}
+                  </SelectOptionNext>
+                ))}
               </SelectListNext>
             </SelectGroupNext>
             <Divider />
@@ -353,7 +349,7 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
           <SelectGroupNext label={t('Managed applications')}>
             {Object.keys(options)?.map(
               (appNS: string) =>
-                appNS !== RAMEN_PROTECTED_APPS_NAMESPACE && (
+                appNS !== DISCOVERED_APP_NS && (
                   <SelectGroupNext
                     key={appNS}
                     label={t('Namespace: ') + `${appNS}`}

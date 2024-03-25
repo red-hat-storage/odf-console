@@ -118,6 +118,7 @@
   "Replication interval": "Replication interval",
   "Cluster:": "Cluster:",
   "Namespace:": "Namespace:",
+  "Name:": "Name:",
   "Configuration": "Configuration",
   "Type:": "Type:",
   "Recipe name:": "Recipe name:",

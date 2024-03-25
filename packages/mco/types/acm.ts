@@ -59,7 +59,6 @@ export type ACMPlacementKind = K8sResourceCommon & {
         labelSelector?: Selector;
         claimSelector?: Selector;
       };
-      clusterName?: string;
     }[];
     clusterSelector?: Selector | null;
   };

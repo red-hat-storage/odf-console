@@ -1,7 +1,19 @@
-import { DRPlacementControlModel, DRPolicyModel } from '@odf/mco//models';
-import { RAMEN_PROTECTED_APPS_NAMESPACE } from '@odf/mco/constants';
-import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
+import {
+  ACMPlacementModel,
+  DRPlacementControlModel,
+  DRPolicyModel,
+} from '@odf/mco//models';
+import {
+  DISCOVERED_APP_NS,
+  PROTECTED_APP_ANNOTATION,
+} from '@odf/mco/constants';
+import {
+  ACMPlacementKind,
+  DRPlacementControlKind,
+  DRPolicyKind,
+} from '@odf/mco/types';
 import { getName } from '@odf/shared/selectors';
+import { K8sResourceKind } from '@odf/shared/types';
 import { getAPIVersionForModel } from '@odf/shared/utils';
 import {
   MatchExpression,
@@ -23,16 +35,17 @@ export const getDRPCKindObj = (props: {
   recipeNamespace?: string;
   k8sResourceLabelExpressions?: MatchExpression[];
   pvcLabelExpressions?: MatchExpression[];
+  placementName: string;
 }): DRPlacementControlKind => ({
   apiVersion: getAPIVersionForModel(DRPlacementControlModel),
   kind: DRPlacementControlModel.kind,
   metadata: {
     name: props.name,
-    namespace: RAMEN_PROTECTED_APPS_NAMESPACE,
+    namespace: DISCOVERED_APP_NS,
   },
   spec: {
     preferredCluster: props.preferredCluster,
-    eligibleForProtectionNamespaces: props.namespaces,
+    protectedNamespace: props.namespaces,
     pvcSelector: !!props.pvcLabelExpressions.length
       ? {
           matchExpressions: props.pvcLabelExpressions,
@@ -61,10 +74,34 @@ export const getDRPCKindObj = (props: {
       apiVersion: getAPIVersionForModel(DRPolicyModel),
       kind: DRPolicyModel.kind,
     },
+    placementRef: {
+      name: props.placementName,
+      namespace: DISCOVERED_APP_NS,
+      apiVersion: getAPIVersionForModel(ACMPlacementModel),
+      kind: ACMPlacementModel.kind,
+    },
   },
 });
 
-export const createPromise = (state: EnrollDiscoveredApplicationState) => {
+// Dummy placement for the discovered apps DRPC
+const getPlacementKindObj = (placementName: string): ACMPlacementKind => ({
+  apiVersion: getAPIVersionForModel(ACMPlacementModel),
+  kind: ACMPlacementModel.kind,
+  metadata: {
+    name: placementName,
+    namespace: DISCOVERED_APP_NS,
+    annotations: {
+      [PROTECTED_APP_ANNOTATION]: 'true',
+    },
+  },
+  spec: {
+    predicates: [],
+  },
+});
+
+export const createPromise = (
+  state: EnrollDiscoveredApplicationState
+): Promise<K8sResourceKind>[] => {
   const { namespace, configuration, replication } = state;
   const { clusterName, namespaces, name } = namespace;
   const { protectionMethod, recipe, resourceLabels } = configuration;
@@ -72,20 +109,35 @@ export const createPromise = (state: EnrollDiscoveredApplicationState) => {
   const { k8sResourceLabelExpressions, pvcLabelExpressions } = resourceLabels;
   const { drPolicy, k8sResourceReplicationInterval } = replication;
   const namespaceList = namespaces.map(getName);
+  // Placement naming format is similar to the ACM console.
+  // Using the same postfix will prevent the UI from creating multiple placement for the same app.
+  const placementName = `${name}-placement-1`;
 
-  return k8sCreate({
-    model: DRPlacementControlModel,
-    data: getDRPCKindObj({
-      name,
-      preferredCluster: clusterName,
-      namespaces: namespaceList,
-      protectionMethod,
-      recipeName,
-      recipeNamespace,
-      k8sResourceLabelExpressions,
-      pvcLabelExpressions,
-      drPolicy,
-      k8sResourceReplicationInterval,
-    }),
-  });
+  const promises: Promise<K8sResourceKind>[] = [];
+  promises.push(
+    k8sCreate({
+      model: ACMPlacementModel,
+      data: getPlacementKindObj(placementName),
+    })
+  );
+
+  promises.push(
+    k8sCreate({
+      model: DRPlacementControlModel,
+      data: getDRPCKindObj({
+        name,
+        preferredCluster: clusterName,
+        namespaces: namespaceList,
+        protectionMethod,
+        recipeName,
+        recipeNamespace,
+        k8sResourceLabelExpressions,
+        pvcLabelExpressions,
+        drPolicy,
+        k8sResourceReplicationInterval,
+        placementName,
+      }),
+    })
+  );
+  return promises;
 };

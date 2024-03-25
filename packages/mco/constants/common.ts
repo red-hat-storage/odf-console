@@ -18,3 +18,6 @@ export const SECOND = 1000;
 export const DEFAULT_SYNC_TIME = 15;
 export const ACM_OBSERVABILITY_FLAG = 'ACM_OBSERVABILITY';
 export const ADMIN_FLAG = 'ADMIN';
+
+// Discovered application namespace
+export const DISCOVERED_APP_NS = 'ramen-ops';
