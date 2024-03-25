@@ -35,8 +35,8 @@ jest.mock(
   })
 );
 
-jest.mock('@odf/mco/hooks/applications-hook', () => ({
-  useApplicationsWatch: jest.fn(() => {
+jest.mock('@odf/mco/hooks/protected-applications', () => ({
+  useProtectedApplicationsWatch: jest.fn(() => {
     if ([1, 2, 3].includes(testCase)) {
       return [[], true, ''];
     }
