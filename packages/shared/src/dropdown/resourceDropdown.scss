@@ -16,9 +16,9 @@
 }
 
 .odf-resourceDropdownListItems li {
-  // @extend .pf-c-menu__list-item !optional;
-  display: var(--pf-c-menu__list-item--Display);
+  // @extend .pf-v5-c-menu__list-item !optional;
+  display: var(--pf-v5-c-menu__list-item--Display);
   position: relative;
-  color: var(--pf-c-menu__list-item--Color);
-  background-color: var(--pf-c-menu__list-item--BackgroundColor);
+  color: var(--pf-v5-c-menu__list-item--Color);
+  background-color: var(--pf-v5-c-menu__list-item--BackgroundColor);
 }

@@ -233,14 +233,14 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           isChecked={networkType === NetworkType.MULTUS}
           name="custom-network"
           label={
-            <>
+            <div className="ceph__multus-radio--width">
               {t('Custom (Multus)')}
               <FieldLevelHelp>
                 {t(
                   'Multus allows a network seperation between the data operations and the control plane operations.'
                 )}
               </FieldLevelHelp>
-            </>
+            </div>
           }
           onChange={() => setNetworkType(NetworkType.MULTUS)}
           value={NetworkType.MULTUS}

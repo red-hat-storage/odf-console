@@ -282,7 +282,7 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
           {t('Last available: ')}
           <DateTimeFormat
             dateTime={state.selectedTargetCluster?.lastAvailableTime}
-            className="pf-u-display-inline-block pf-u-ml-sm"
+            className="pf-v5-u-display-inline-block pf-v5-u-ml-sm"
           />
         </HelperTextItem>
       </HelperText>

@@ -126,6 +126,7 @@ const renderDecorator = (
 
   /**
    * "attachments" prop of "DefaultNode" does not work if passed element is wrapped around a "div".
+   * Ref: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/g#usage_notes.
    * "Tooltip" is automatically wrapping its children around a "div" in PF5.
    * Using "triggerRef" instead, as a workaround.
    */

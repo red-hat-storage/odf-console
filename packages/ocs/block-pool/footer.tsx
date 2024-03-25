@@ -17,7 +17,7 @@ export const BlockPoolFooter = (props: BlockPoolFooterProps) => {
 
   return (
     <ButtonBar errorMessage={state.errorMessage} inProgress={state.inProgress}>
-      <ActionGroup className="pf-c-form pf-c-form__actions--left">
+      <ActionGroup className="pf-v5-c-form pf-v5-c-form__actions--left">
         <Button
           type="button"
           variant="primary"

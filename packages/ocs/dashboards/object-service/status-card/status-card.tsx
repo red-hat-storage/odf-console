@@ -21,7 +21,6 @@ import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   AlertsBody,
   AlertItem,
-  HealthBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import * as _ from 'lodash-es';
@@ -157,24 +156,22 @@ const StatusCard: React.FC<{}> = () => {
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <HealthBody>
-          <Gallery className="odf-overview-status__health" hasGutter>
-            <GalleryItem>
-              <ObjectServiceStatus
-                RGWMetrics={isRGWSupported ? RGWState : undefined}
-                MCGMetrics={isMCGSupported ? MCGState : undefined}
-                statusType={StatusType.HEALTH}
-              />
-            </GalleryItem>
-            <GalleryItem>
-              <ObjectServiceStatus
-                RGWMetrics={isRGWSupported ? RGWResiliencyState : undefined}
-                MCGMetrics={isMCGSupported ? dataResiliencyState : undefined}
-                statusType={StatusType.RESILIENCY}
-              />
-            </GalleryItem>
-          </Gallery>
-        </HealthBody>
+        <Gallery className="odf-overview-status__health" hasGutter>
+          <GalleryItem>
+            <ObjectServiceStatus
+              RGWMetrics={isRGWSupported ? RGWState : undefined}
+              MCGMetrics={isMCGSupported ? MCGState : undefined}
+              statusType={StatusType.HEALTH}
+            />
+          </GalleryItem>
+          <GalleryItem>
+            <ObjectServiceStatus
+              RGWMetrics={isRGWSupported ? RGWResiliencyState : undefined}
+              MCGMetrics={isMCGSupported ? dataResiliencyState : undefined}
+              statusType={StatusType.RESILIENCY}
+            />
+          </GalleryItem>
+        </Gallery>
         <ObjectStorageAlerts />
       </CardBody>
     </Card>
