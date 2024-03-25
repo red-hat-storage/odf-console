@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { CEPH_BRAND_NAME, OCS_OPERATOR } from '@odf/core/constants';
+import { CEPH_BRAND_NAME } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getStorageClusterInNs } from '@odf/core/utils';
-import { ODF_OPERATOR } from '@odf/shared/constants';
+import { ODF_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';

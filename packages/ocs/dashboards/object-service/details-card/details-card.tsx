@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { OCS_OPERATOR } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
-import { ODF_OPERATOR } from '@odf/shared/constants';
+import { ODF_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,

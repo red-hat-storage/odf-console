@@ -285,10 +285,12 @@ export const checkError = (
   return '';
 };
 
-export const createDownloadFile = (data: string = ''): string =>
-  `data:application/octet-stream;charset=utf-8,${encodeURIComponent(
-    Base64.decode(data)
-  )}`;
+export const createDownloadFile = (data: string): string =>
+  !!data
+    ? `data:application/octet-stream;charset=utf-8,${encodeURIComponent(
+        Base64.decode(data)
+      )}`
+    : '';
 
 export const isValidJSON = (fData: string): boolean => {
   try {
