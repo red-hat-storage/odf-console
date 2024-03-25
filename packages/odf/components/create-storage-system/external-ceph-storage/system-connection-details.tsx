@@ -16,6 +16,7 @@ import {
   StorageClassComponentProps as ExternalComponentProps,
   StorageClassWizardStepExtensionProps as ExternalStorage,
 } from '@odf/odf-plugin-sdk/extensions';
+import { ROOK_CEPH_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import {
@@ -41,8 +42,6 @@ import {
 } from '@patternfly/react-core';
 import './system-connection-details.scss';
 
-const OCS_OPERATOR = 'ocs-operator';
-
 const SCRIPT_NAME = 'ceph-external-cluster-details-exporter.py';
 
 export const getValidationKeys = (
@@ -65,7 +64,15 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
 
   const [pods, podsLoaded, podsLoadError] =
     useK8sGet<ListKind<PodKind>>(PodModel);
-  const [csv, csvLoaded, csvLoadError] = useFetchCsv({
+
+  // From 4.16 onwards Rook will have separate CSV & Subscription.
+  const [rookCSV, rookCSVLoaded, rookCSVError] = useFetchCsv({
+    specName: ROOK_CEPH_OPERATOR,
+    namespace: odfNamespace,
+    startPollingInstantly: isNsSafe,
+  });
+
+  const [ocsCSV, ocsCSVLoaded, ocsCSVError] = useFetchCsv({
     specName: OCS_OPERATOR,
     namespace: odfNamespace,
     startPollingInstantly: isNsSafe,
@@ -73,10 +80,11 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
 
   const { fileName, fileData, errorMessage, isLoading } = formState;
 
-  const annotations = getAnnotations(csv);
+  const rookAnnotations = getAnnotations(rookCSV, {});
+  const ocsAnnotations = getAnnotations(ocsCSV, {});
 
   const downloadFile = createDownloadFile(
-    annotations?.['external.features.ocs.openshift.io/export-script']
+    rookAnnotations?.['externalClusterScript']
   );
 
   const handleDataChange: FileUploadProps['onDataChange'] = (
@@ -85,7 +93,7 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
   ) => {
     if (isValidJSON(fData)) {
       const { plainKeys, secretKeys } = getValidationKeys(
-        annotations?.['external.features.ocs.openshift.io/validation']
+        ocsAnnotations?.['external.features.ocs.openshift.io/validation']
       );
       const ipAddress: string = pods.items?.[0]?.status?.podIP;
       const ipFamily: IP_FAMILY = ipAddress
@@ -103,7 +111,7 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
   };
 
   const handleFileChange: FileUploadProps['onFileInputChange'] = (
-    event,
+    _event,
     file: File
   ) => {
     const fName = file.name;
@@ -112,8 +120,8 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
 
   return (
     <ErrorHandler
-      error={podsLoadError || csvLoadError}
-      loaded={podsLoaded && csvLoaded}
+      error={podsLoadError || rookCSVError || ocsCSVError}
+      loaded={podsLoaded && rookCSVLoaded && ocsCSVLoaded}
     >
       <Form>
         <FormGroup
@@ -130,7 +138,7 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
                     the RHCS cluster, then upload the results (JSON) in the
                     External storage system metadata field.
                   </Trans>{' '}
-                  {downloadFile && (
+                  {!!downloadFile && (
                     <a
                       id="downloadAnchorElem"
                       href={downloadFile}
