@@ -42,6 +42,8 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
     disableGraphLink,
     showLegend,
     CustomUtilizationSummary,
+    formatDate,
+    timespan,
   }) => {
     const { duration } = useUtilizationDuration();
     const defaultBasePath = usePrometheusBasePath();
@@ -49,7 +51,7 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
     const [utilization, error, loading] = useCustomPrometheusPoll({
       query: utilizationQuery,
       endpoint: 'api/v1/query_range' as any,
-      timespan: duration,
+      timespan: timespan || duration,
       basePath: basePath || defaultBasePath,
     });
 
@@ -91,6 +93,7 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
         disableGraphLink={disableGraphLink}
         showLegend={showLegend}
         CustomUtilizationSummary={CustomUtilizationSummary}
+        formatDate={formatDate}
       />
     );
   };
@@ -170,4 +173,6 @@ type PrometheusUtilizationItemProps = PrometheusCommonProps & {
   disableGraphLink?: boolean;
   showLegend?: boolean;
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
+  formatDate?: (date: Date, showSeconds?: boolean) => string;
+  timespan?: number;
 };
