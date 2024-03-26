@@ -9,6 +9,9 @@ export const DRPC_NAMESPACE_ANNOTATION =
 // DRPC annotations
 export const LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION =
   'drplacementcontrol.ramendr.openshift.io/last-app-deployment-cluster';
+// ACM managed application workload namespace
+export const APP_NAMESPACE_ANNOTATION =
+  'drplacementcontrol.ramendr.openshift.io/app-namespace';
 
 // Maximum cluster per DRPolicy
 export const MAX_ALLOWED_CLUSTERS = 2;
@@ -95,6 +98,3 @@ export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
   [EnrollDiscoveredApplicationSteps.Replication]: t('Replication'),
   [EnrollDiscoveredApplicationSteps.Review]: t('Review'),
 });
-
-// Discovered application namespace
-export const RAMEN_PROTECTED_APPS_NAMESPACE = 'ramen-protected-apps';

@@ -23,7 +23,7 @@ import {
 import { Icon } from '@patternfly/react-core';
 import { InProgressIcon, CubeIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
-import { DR_BASE_ROUTE, RAMEN_PROTECTED_APPS_NAMESPACE } from '../../constants';
+import { DR_BASE_ROUTE, DISCOVERED_APP_NS } from '../../constants';
 import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
@@ -92,7 +92,7 @@ const ProtectedAppsTableRow: React.FC<
 
   // Enrolled/protected namespaces details
   const enrolledNamespaces: string[] =
-    application.spec?.eligibleForProtectionNamespaces || [];
+    application.spec?.protectedNamespace || [];
 
   // Failover/Relocate/Cleanup event details
   const anyOnGoingEvent =
@@ -237,7 +237,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   const [discoveredApps, discoveredAppsLoaded, discoveredAppsError] =
     useK8sWatchResource<DRPlacementControlKind[]>(
       getDRPlacementControlResourceObj({
-        namespace: RAMEN_PROTECTED_APPS_NAMESPACE,
+        namespace: DISCOVERED_APP_NS,
       })
     );
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =

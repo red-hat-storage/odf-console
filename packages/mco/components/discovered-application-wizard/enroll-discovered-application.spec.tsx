@@ -48,7 +48,7 @@ const drPlacements: DRPlacementControlKind[] = [
     spec: {
       drPolicyRef: createRefFromK8Resource(drPolicies[0]),
       placementRef: {},
-      eligibleForProtectionNamespaces: ['mock-appset-1'],
+      protectedNamespace: ['mock-appset-1'],
       pvcSelector: {
         matchLabels: {
           pvc: 'pvc1',
@@ -588,6 +588,8 @@ describe('Test review step', () => {
     expect(screen.getByText('east-1')).toBeInTheDocument();
     expect(screen.getByText('Namespace:')).toBeInTheDocument();
     expect(screen.getByText('namespace-1, namespace-2')).toBeInTheDocument();
+    expect(screen.getByText('Name:')).toBeInTheDocument();
+    expect(screen.getByText('my-name')).toBeInTheDocument();
 
     // Configuration selection
     expect(screen.getAllByText('Configuration').length === 2).toBeTruthy();
@@ -621,7 +623,7 @@ describe('Test review step', () => {
     await waitFor(async () => {
       expect(
         JSON.stringify(drpcObj) ===
-          '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPlacementControl","metadata":{"name":"my-name","namespace":"ramen-protected-apps"},"spec":{"preferredCluster":"east-1","eligibleForProtectionNamespaces":["namespace-1","namespace-2"],"pvcSelector":{},"kubeObjectProtection":{"captureInterval":"5m","recipeRef":{"name":"mock-recipe-1","namespace":"namespace-1"}},"drPolicyRef":{"name":"mock-policy-1","apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy"}}}'
+          '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPlacementControl","metadata":{"name":"my-name","namespace":"ramen-ops"},"spec":{"preferredCluster":"east-1","protectedNamespace":["namespace-1","namespace-2"],"pvcSelector":{},"kubeObjectProtection":{"captureInterval":"5m","recipeRef":{"name":"mock-recipe-1","namespace":"namespace-1"}},"drPolicyRef":{"name":"mock-policy-1","apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy"},"placementRef":{"name":"my-name-placement-1","namespace":"ramen-ops","apiVersion":"cluster.open-cluster-management.io/v1beta1","kind":"Placement"}}}'
       ).toBeTruthy();
     });
   });

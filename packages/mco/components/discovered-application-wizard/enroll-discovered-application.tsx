@@ -5,7 +5,6 @@ import {
   DR_BASE_ROUTE,
 } from '@odf/mco/constants';
 import PageHeading from '@odf/shared/heading/page-heading';
-import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
@@ -116,11 +115,11 @@ const EnrollDiscoveredApplication: React.FC<{}> = () => {
     setRequestInProgress: React.Dispatch<React.SetStateAction<boolean>>
   ) => {
     setRequestInProgress(true);
-    const promise = createPromise(state);
-    await promise
-      .then((drpc) => {
+    const promises = createPromise(state);
+    await Promise.all(promises)
+      .then(() => {
         navigate(
-          `${DR_BASE_ROUTE}/protected-applications?enrolledApp=${getName(drpc)}`
+          `${DR_BASE_ROUTE}/protected-applications?enrolledApp=${state.namespace.name}`
         );
       })
       .catch((error) => {
