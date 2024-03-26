@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getValidatedProp } from '@odf/shared/utils';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
 import { TFunction } from 'i18next';
@@ -25,7 +26,7 @@ import {
   KmsEncryptionLevel,
   VaultAuthMethodMapping,
 } from '../../types';
-import { NameAddrPort, isValid } from './name-address-port';
+import { NameAddrPort } from './name-address-port';
 import { KMSConfigureProps, EncryptionDispatch } from './providers';
 import { kmsConfigValidation, isLengthUnity } from './utils';
 import {
@@ -136,6 +137,8 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
     }
   }, [setAuthMethod, vaultAuthMethods, vaultState.authMethod]);
 
+  const getValidatedAuthMethodProp = getValidatedProp(!vaultState.authMethod);
+
   return (
     <>
       <FormGroup
@@ -163,8 +166,8 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
         </FormSelect>
         <FormHelperText>
           <HelperText>
-            <HelperTextItem variant={isValid(!!vaultState.authMethod)}>
-              {isValid(!!vaultState.authMethod) === ValidatedOptions.error &&
+            <HelperTextItem variant={getValidatedAuthMethodProp}>
+              {getValidatedAuthMethodProp === ValidatedOptions.error &&
                 t('This is a required field')}
             </HelperTextItem>
           </HelperText>
@@ -238,7 +241,6 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
             className: `${className}__form-body`,
             vaultState,
             setAuthValue,
-            isValid,
             isScEncryption,
           }}
         />

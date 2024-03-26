@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   APPLICATION_TYPE,
   DRPC_STATUS,
-  RAMEN_PROTECTED_APPS_NAMESPACE,
+  DISCOVERED_APP_NS,
 } from '@odf/mco/constants';
 import {
   getDRClusterResourceObj,
@@ -40,7 +40,7 @@ export const useDiscoveredParser: UseDiscoveredParser = (
 ) => {
   // Watch only DRPC from discovered application namespace
   const drResources = useK8sWatchResources<WatchResourceType>(
-    getDRResources(RAMEN_PROTECTED_APPS_NAMESPACE)
+    getDRResources(DISCOVERED_APP_NS)
   );
 
   const {
@@ -112,8 +112,7 @@ export const useDiscoveredParser: UseDiscoveredParser = (
                   replicationType: findDRType(currentDRClusters),
                   volumeSyncInterval: drPolicy?.spec?.schedulingInterval,
                   workloadNamespaces:
-                    drPlacementControl.spec?.eligibleForProtectionNamespaces ||
-                    [],
+                    drPlacementControl.spec?.protectedNamespace || [],
                   failoverCluster: drPlacementControl.spec?.failoverCluster,
                   preferredCluster: drPlacementControl.spec?.preferredCluster,
                   lastVolumeGroupSyncTime:

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getValidatedProp } from '@odf/shared/utils';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import {
@@ -14,9 +15,6 @@ import { validateConnectionName } from '../../constants';
 import { VaultConfig, ThalesConfig } from '../../types';
 import { parseURL, isValidEndpoint, isValidName } from './utils';
 
-export const isValid = (value: boolean) =>
-  value ? ValidatedOptions.default : ValidatedOptions.error;
-
 export const NameAddrPort: React.FC<NameAddrPortProps> = ({
   className,
   kmsState,
@@ -28,7 +26,7 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
 
   const setServiceName = (name: string) => {
     kmsStateClone.name.value = name;
-    kmsStateClone.name.valid = name !== '' && isValidName(name);
+    kmsStateClone.name.valid = isValidName(name);
     updateKmsState(kmsStateClone);
   };
 
@@ -64,6 +62,10 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
       ? t('This is a required field')
       : t('Please enter a valid port');
 
+  const getValidatedNameProp = getValidatedProp(!kmsState.name.valid);
+  const getValidatedAddressProp = getValidatedProp(!kmsState.address.valid);
+  const getValidatedPortProp = getValidatedProp(!kmsState.port.valid);
+
   return (
     <>
       <FormGroup
@@ -79,13 +81,13 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
           id="kms-service-name"
           name="kms-service-name"
           isRequired
-          validated={isValid(kmsState.name.valid)}
+          validated={getValidatedNameProp}
           data-test="kms-service-name-text"
         />
         <FormHelperText>
           <HelperText>
-            <HelperTextItem variant={isValid(kmsState.name.valid)}>
-              {isValid(kmsState.name.valid) === ValidatedOptions.default
+            <HelperTextItem variant={getValidatedNameProp}>
+              {getValidatedNameProp === ValidatedOptions.default
                 ? t(
                     'An unique name for the key management service within the project. Name must only include alphanumeric characters, "-", "_" or "."'
                   )
@@ -112,13 +114,13 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
             id="kms-address"
             name="kms-address"
             isRequired
-            validated={isValid(kmsState.address.valid)}
+            validated={getValidatedAddressProp}
             data-test="kms-address-text"
           />
           <FormHelperText>
             <HelperText>
-              <HelperTextItem variant={isValid(kmsState.address.valid)}>
-                {isValid(kmsState.address.valid) === ValidatedOptions.error &&
+              <HelperTextItem variant={getValidatedAddressProp}>
+                {getValidatedAddressProp === ValidatedOptions.error &&
                   validateAddressMessage()}
               </HelperTextItem>
             </HelperText>
@@ -140,13 +142,13 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
             id="kms-address-port"
             name="kms-address-port"
             isRequired
-            validated={isValid(kmsState.port.valid)}
+            validated={getValidatedPortProp}
             data-test="kms-address-port-text"
           />
           <FormHelperText>
             <HelperText>
-              <HelperTextItem variant={isValid(kmsState.port.valid)}>
-                {isValid(kmsState.port.valid) === ValidatedOptions.error &&
+              <HelperTextItem variant={getValidatedPortProp}>
+                {getValidatedPortProp === ValidatedOptions.error &&
                   validatePortMessage()}
               </HelperTextItem>
             </HelperText>

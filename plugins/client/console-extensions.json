@@ -22,5 +22,16 @@
     "flags": {
       "disallowed": ["PROVIDER_MODE"]
     }
+  },
+  {
+    "type": "console.resource/create",
+    "properties": {
+      "model": {
+        "group": "ocs.openshift.io",
+        "version": "v1alpha1",
+        "kind": "StorageClient"
+      },
+      "component": { "$codeRef": "install.default" }
+    }
   }
 ]
