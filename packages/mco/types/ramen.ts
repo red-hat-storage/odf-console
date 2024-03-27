@@ -83,6 +83,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
       clusterName?: string;
       clusterNamespace?: string;
     };
+    progression?: string;
   };
 };
 
