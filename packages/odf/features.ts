@@ -20,7 +20,6 @@ import { SECOND, RGW_PROVISIONER, NOOBAA_PROVISIONER } from './constants';
 import { isExternalCluster, isClusterIgnored } from './utils';
 
 export const ODF_MODEL_FLAG = 'ODF_MODEL'; // Based on the existence of StorageSystem CRD
-export const ROSA_FLAG = 'ROSA'; // Set to "true" if we are using ROSA
 export const RGW_FLAG = 'RGW'; // Based on the existence of StorageClass with RGW provisioner ("openshift-storage.ceph.rook.io/bucket")
 export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaa StorageClass (which only gets created if NooBaaSystem is present)
 export const ODF_ADMIN = 'ODF_ADMIN'; // Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
@@ -149,10 +148,6 @@ export const detectRGW: FeatureDetector = async (setFlag: SetFeatureFlag) => {
       });
   id = setInterval(logicHandler, 15 * SECOND);
 };
-
-// ToDo: Add logic to detect ROSA environment here
-export const detectROSA: FeatureDetector = async (setFlag: SetFeatureFlag) =>
-  setFlag(ROSA_FLAG, false);
 
 export const detectSSAR = (setFlag: SetFeatureFlag) => {
   const ssar = {
