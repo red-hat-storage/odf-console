@@ -17,7 +17,7 @@ import { getPageRange, getValidFilteredData } from '../utils';
 const INITIAL_PAGE_NUMBER = 1;
 const COUNT_PER_PAGE_NUMBER = 10;
 
-export type PaginatedsListPageProps = {
+export type PaginatedListPageProps = {
   countPerPage?: number;
   filteredData: K8sResourceCommon[];
   CreateButton: React.FC<unknown>;
@@ -27,7 +27,7 @@ export type PaginatedsListPageProps = {
   composableTableProps: Omit<TableProps<K8sResourceCommon>, 'rows'>;
 };
 
-export const PaginatedsListPage: React.FC<PaginatedsListPageProps> = ({
+export const PaginatedListPage: React.FC<PaginatedListPageProps> = ({
   countPerPage,
   filteredData,
   CreateButton,
@@ -51,8 +51,8 @@ export const PaginatedsListPage: React.FC<PaginatedsListPageProps> = ({
       {!noData && (
         <>
           <Grid>
-            <GridItem md={8} sm={12}>
-              <div className="pf-u-display-flex pf-u-flex-direction-column pf-u-flex-direction-row-on-md">
+            <GridItem md={8} sm={12} className="pf-v5-u-mt-md">
+              <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-column pf-v5-u-flex-direction-row-on-md">
                 <ListPageFilter
                   {...listPageFilterProps}
                   data={getValidFilteredData(listPageFilterProps.data)}
@@ -62,7 +62,7 @@ export const PaginatedsListPage: React.FC<PaginatedsListPageProps> = ({
             </GridItem>
             <GridItem md={4} sm={12}>
               <Pagination
-                perPageComponent="button"
+                className="pf-v5-u-mt-md"
                 itemCount={filteredData.length || 0}
                 widgetId="paginated-list-page"
                 perPage={perPage}

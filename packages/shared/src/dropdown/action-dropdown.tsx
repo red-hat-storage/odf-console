@@ -4,7 +4,7 @@ import {
   DropdownToggle,
   DropdownItem,
   DropdownPosition,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const ActionDropdown: React.FC<ActionDropdownProps> = ({
@@ -64,12 +64,14 @@ export type ActionDropdownItems = {
   text: string | React.ReactNode;
 };
 
+export type ToggleVariant = 'primary' | 'secondary' | 'default';
+
 export type ActionDropdownProps = {
   dropdownItems: ActionDropdownItems[];
   text: string;
   isDisabled?: boolean;
   id: string;
-  toggleVariant?: 'primary' | 'secondary' | 'default';
+  toggleVariant?: ToggleVariant;
   dropdownPosition?: DropdownPosition;
   isPlain?: boolean;
   onSelect: (id: string) => void;

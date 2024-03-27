@@ -159,3 +159,16 @@ export const getPageRange = (currentPage: number, perPage: number) => {
  */
 export const getValidFilteredData = <T>(filteredData: T[]): T[] =>
   _.isEmpty(filteredData) ? [null] : filteredData;
+
+export const getOprVersionFromCSV = (operator: K8sResourceKind): string =>
+  operator?.spec?.version || '';
+
+export const parseOprMajorMinorVersion = (version: string): string => {
+  const majorMinorVersionRegex = /[0-9]+\.[0-9]+/;
+  // parse major and minor version and
+  // removes leading zeros from the version string
+  return majorMinorVersionRegex.exec(version)?.[0]?.replace(/^0+/, '');
+};
+
+export const getOprMajorMinorVersion = (operator: K8sResourceKind): string =>
+  parseOprMajorMinorVersion(getOprVersionFromCSV(operator));

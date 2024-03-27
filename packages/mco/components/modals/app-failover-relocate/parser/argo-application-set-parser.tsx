@@ -1,10 +1,11 @@
 import * as React from 'react';
+import { ArgoApplicationSetModel } from '@odf/mco/models';
 import { K8sResourceCondition } from '@odf/shared';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   DRActionType,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
-} from '../../../constants';
+} from '../../../../constants';
 import {
   DisasterRecoveryResourceKind,
   getApplicationSetResourceObj,
@@ -16,8 +17,11 @@ import {
   getPlacementResourceObj,
   useArgoApplicationSetResourceWatch,
   useDisasterRecoveryResourceWatch,
-} from '../../../hooks';
-import { ACMManagedClusterKind, ArgoApplicationSetKind } from '../../../types';
+} from '../../../../hooks';
+import {
+  ACMManagedClusterKind,
+  ArgoApplicationSetKind,
+} from '../../../../types';
 import {
   findCluster,
   findDeploymentClusters,
@@ -25,9 +29,9 @@ import {
   findDRType,
   isDRClusterFenced,
   findPlacementNameFromAppSet,
-} from '../../../utils';
-import { FailoverRelocateModal } from './failover-relocate-modal';
-import { PlacementProps } from './failover-relocate-modal-body';
+} from '../../../../utils';
+import { FailoverRelocateModal } from '../failover-relocate-modal';
+import { PlacementControlProps } from '../failover-relocate-modal-body';
 
 const getDRResources = (namespace: string) => ({
   resources: {
@@ -77,8 +81,8 @@ export const ValidateManagedClusterCondition = (
       condition?.type === conditionType && condition.status === 'True'
   );
 
-export const ArogoApplicationSetModal = (
-  props: ArogoApplicationSetModalProps
+export const ArogoApplicationSetParser = (
+  props: ArogoApplicationSetParserProps
 ) => {
   const { application, action, isOpen, close } = props;
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
@@ -96,19 +100,14 @@ export const ArogoApplicationSetModal = (
       )
     );
   const aroAppSetResource = aroAppSetResources?.formattedResources?.[0];
-  const placements: PlacementProps[] = React.useMemo(() => {
+  const placementControls: PlacementControlProps[] = React.useMemo(() => {
     const {
       managedClusters,
       siblingApplications,
       placements: resourcePlacements,
     } = aroAppSetResource || {};
-    const {
-      drClusters,
-      drPlacementControl,
-      drPolicy,
-      placementDecision,
-      placement,
-    } = resourcePlacements?.[0] || {};
+    const { drClusters, drPlacementControl, placementDecision, placement } =
+      resourcePlacements?.[0] || {};
     const deploymentClusters = findDeploymentClusters(
       placementDecision,
       drPlacementControl
@@ -138,7 +137,6 @@ export const ArogoApplicationSetModal = (
       ? [
           {
             placementName: getName(placement),
-            drPolicyName: getName(drPolicy),
             drPlacementControlName: getName(drPlacementControl),
             targetClusterName: getName(targetDRCluster),
             primaryClusterName: getName(primaryCluster),
@@ -162,7 +160,8 @@ export const ArogoApplicationSetModal = (
       action={action}
       applicationName={getName(application)}
       applicationNamespace={getNamespace(application)}
-      placements={placements}
+      applicationModel={ArgoApplicationSetModel}
+      placementControls={placementControls}
       isOpen={isOpen}
       loadError={loadError}
       loaded={loaded}
@@ -171,7 +170,7 @@ export const ArogoApplicationSetModal = (
   );
 };
 
-type ArogoApplicationSetModalProps = {
+type ArogoApplicationSetParserProps = {
   application: ArgoApplicationSetKind;
   isOpen: boolean;
   action: DRActionType;

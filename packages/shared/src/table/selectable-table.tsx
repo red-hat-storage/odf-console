@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import { TdSelectType } from '@patternfly/react-table/dist/esm/components/Table/base/types';
 import {
-  TableComposable,
+  Table,
   Tbody,
   Td,
   Th,
@@ -99,9 +100,9 @@ export const SelectableTable: SelectableTableProps = <
       loaded={loaded}
       EmptyMsg={emptyRowMessage}
       data={sortedRows}
-      skeleton={<div className="loading-skeleton--table pf-u-mt-lg" />}
+      skeleton={<div className="loading-skeleton--table pf-v5-u-mt-lg" />}
     >
-      <TableComposable
+      <Table
         className={className}
         translate={null}
         aria-label="Selectable table"
@@ -151,7 +152,7 @@ export const SelectableTable: SelectableTableProps = <
                         props: {
                           id: getUID(row),
                         },
-                      },
+                      } as TdSelectType,
                     }
                   : {})}
               />
@@ -159,7 +160,7 @@ export const SelectableTable: SelectableTableProps = <
             </Tr>
           ))}
         </Tbody>
-      </TableComposable>
+      </Table>
     </StatusBox>
   );
 };

@@ -3,22 +3,54 @@ import {
   EnrollDiscoveredApplicationStepNames,
   EnrollDiscoveredApplicationSteps,
 } from '@odf/mco/constants';
+import { isLabelOnlyOperator } from '@odf/shared/label-expression-selector';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import {
+  WizardContextType,
+  WizardContext,
+  WizardFooter,
+} from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
+import * as _ from 'lodash-es';
 import {
   Button,
   ButtonVariant,
   ButtonType,
-  WizardContextType,
-  WizardContext,
-  WizardFooter,
   Alert,
   AlertVariant,
 } from '@patternfly/react-core';
-import { EnrollDiscoveredApplicationState } from './utils/reducer';
+import {
+  EnrollDiscoveredApplicationState,
+  ProtectionMethodType,
+} from './utils/reducer';
 
 const validateNamespaceStep = (state: EnrollDiscoveredApplicationState) =>
-  !!state.namespace.clusterName && !!state.namespace.namespaces.length;
+  !!state.namespace.clusterName &&
+  !!state.namespace.namespaces.length &&
+  !!state.namespace.name;
+
+const validateConfigurationStep = (state: EnrollDiscoveredApplicationState) => {
+  const { recipe, resourceLabels, protectionMethod } = state.configuration;
+  const { recipeName, recipeNamespace } = recipe;
+  const { k8sResourceLabelExpressions, pvcLabelExpressions } = resourceLabels;
+  const labelExpressions = [
+    ...k8sResourceLabelExpressions,
+    ...pvcLabelExpressions,
+  ];
+  const isLabelExpressionsFound =
+    k8sResourceLabelExpressions.length && pvcLabelExpressions.length;
+  return protectionMethod === ProtectionMethodType.RECIPE
+    ? !!recipeName && !!recipeNamespace
+    : isLabelExpressionsFound &&
+        labelExpressions.every((selector) =>
+          isLabelOnlyOperator(selector.operator)
+            ? !!selector.key
+            : !!selector.key && !!selector.values.length
+        );
+};
+
+const validateReplicationStep = (state: EnrollDiscoveredApplicationState) =>
+  !_.isEmpty(state.replication.drPolicy);
 
 const canJumpToNextStep = (
   state: EnrollDiscoveredApplicationState,
@@ -31,13 +63,13 @@ const canJumpToNextStep = (
     ]:
       return validateNamespaceStep(state);
     case EnrollDiscoveredApplicationStepNames(t)[
-      EnrollDiscoveredApplicationSteps.Configure
+      EnrollDiscoveredApplicationSteps.Configuration
     ]:
-      return true;
+      return validateConfigurationStep(state);
     case EnrollDiscoveredApplicationStepNames(t)[
       EnrollDiscoveredApplicationSteps.Replication
     ]:
-      return true;
+      return validateReplicationStep(state);
     default:
       return false;
   }
@@ -48,6 +80,7 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
     state,
     stepIdReached,
     isValidationEnabled,
+    onSaveError,
     setStepIdReached,
     setIsValidationEnabled,
     onSubmit,
@@ -65,6 +98,11 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
     const validationError = isValidationEnabled && !canJumpToNext;
     const enrollDiscoveredApplicationStepNames =
       EnrollDiscoveredApplicationStepNames(t);
+    const isReviewStep =
+      stepName ===
+      enrollDiscoveredApplicationStepNames[
+        EnrollDiscoveredApplicationSteps.Review
+      ];
 
     const moveToNextStep = () => {
       if (canJumpToNext) {
@@ -76,17 +114,11 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
       }
     };
 
-    const handleNext = async () => {
-      switch (stepName) {
-        case enrollDiscoveredApplicationStepNames[
-          EnrollDiscoveredApplicationSteps.Review
-        ]:
-          setRequestInProgress(true);
-          await onSubmit();
-          setRequestInProgress(false);
-          break;
-        default:
-          moveToNextStep();
+    const handleNext = () => {
+      if (isReviewStep) {
+        onSubmit(setRequestInProgress);
+      } else {
+        moveToNextStep();
       }
     };
 
@@ -101,6 +133,9 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
             isInline
           />
         )}
+        {!!onSaveError && isReviewStep && (
+          <Alert title={onSaveError} variant={AlertVariant.danger} isInline />
+        )}
         <WizardFooter>
           <Button
             isLoading={requestInProgress}
@@ -113,7 +148,7 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
             enrollDiscoveredApplicationStepNames[
               EnrollDiscoveredApplicationSteps.Review
             ]
-              ? t('Assign')
+              ? t('Save')
               : t('Next')}
           </Button>
           {/* Disabling the back button for the first step in wizard */}
@@ -140,8 +175,11 @@ type EnrollDiscoveredApplicationFooterProps = {
   state: EnrollDiscoveredApplicationState;
   stepIdReached: number;
   isValidationEnabled: boolean;
+  onSaveError: string;
   setStepIdReached: React.Dispatch<React.SetStateAction<number>>;
   setIsValidationEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-  onSubmit: () => Promise<void>;
+  onSubmit: (
+    setRequestInProgress: React.Dispatch<React.SetStateAction<boolean>>
+  ) => Promise<void>;
   onCancel: () => void;
 };

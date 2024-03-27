@@ -18,13 +18,9 @@ import { NodeModel } from '@odf/shared/models';
 import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
-import {
-  SelectOption,
-  Text,
-  TextVariants,
-  TextContent,
-} from '@patternfly/react-core';
+import { Text, TextVariants, TextContent } from '@patternfly/react-core';
 import './configure-performance.scss';
 
 const selectOptions = (t: TFunction, forceLean: boolean) =>
@@ -38,6 +34,7 @@ const selectOptions = (t: TFunction, forceLean: boolean) =>
       [ResourceProfile.Balanced, ResourceProfile.Performance].includes(profile);
     return (
       <SelectOption
+        data-testid={`performance-mode-select-option--${profile}`}
         key={profile}
         value={profile}
         description={description}
@@ -52,7 +49,7 @@ export const PerformanceHeaderText: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <Text id="configure-performance" component={TextVariants.h4}>
-      <span className="pf-u-mr-sm">{t('Configure performance')}</span>
+      <span className="pf-v5-u-mr-sm">{t('Configure performance')}</span>
       <FieldLevelHelp>{resourceProfileTooltip(t)}</FieldLevelHelp>
     </Text>
   );
@@ -70,27 +67,27 @@ export const ProfileRequirementsText: React.FC<ProfileRequirementsTextProps> =
     return (
       <TextContent>
         <Text id="resource-requirements" component={TextVariants.h4}>
-          <span className="pf-u-mr-sm">
+          <span className="pf-v5-u-mr-sm">
             {t(`Aggregate resource requirements for ${selectedProfile} mode`)}
           </span>
           {selectedProfile === ResourceProfile.Performance && (
             <FieldLevelHelp>{resourceRequirementsTooltip(t)}</FieldLevelHelp>
           )}
         </Text>
-        <Text id="cpu-requirements-desc" className="pf-u-font-size-sm">
-          <div className="pf-u-mb-sm">
-            <span className="pf-u-disabled-color-100">
+        <Text id="cpu-requirements-desc" className="pf-v5-u-font-size-sm">
+          <div className="pf-v5-u-mb-sm">
+            <span className="pf-v5-u-disabled-color-100">
               {t('CPUs required')}:
             </span>{' '}
-            <span className="pf-u-font-size-md">
+            <span className="pf-v5-u-font-size-md">
               {minCpu} {t('CPUs')}
             </span>
           </div>
           <div>
-            <span className="pf-u-disabled-color-100">
+            <span className="pf-v5-u-disabled-color-100">
               {t('Memory required')}:
             </span>{' '}
-            <span className="pf-u-font-size-md">
+            <span className="pf-v5-u-font-size-md">
               {minMem} {t('GiB')}
             </span>
           </div>
@@ -150,12 +147,12 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
     selectedNodes.length === 0 || isProfileAllowed ? 'default' : 'error';
 
   return (
-    <div className="pf-u-mb-lg">
-      <TextContent className="pf-u-mb-md">
+    <div className="pf-v5-u-mb-lg">
+      <TextContent className="pf-v5-u-mb-md">
         {HeaderTextComponent && <HeaderTextComponent />}
         <Text
           id="configure-performance-desc"
-          className="pf-u-font-size-sm pf-u-disabled-color-100"
+          className="pf-v5-u-font-size-sm pf-v5-u-disabled-color-100"
         >
           {t(
             'Select a profile to customise the performance of the Data Foundation cluster to meet your requirements.'
@@ -166,7 +163,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         aria-label={t('Select a performance mode from the list')}
         selectedKey={resourceProfile}
         id="resource-profile"
-        className="odf-configure-performance__selector pf-u-mb-md"
+        className="odf-configure-performance__selector pf-v5-u-mb-md"
         selectOptions={selectOptions(t, forceLean)}
         onChange={onResourceProfileChange}
         validated={validated}

@@ -142,28 +142,30 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
           <FieldLevelHelp>{requestedCapacityTooltip(t)}</FieldLevelHelp>
         }
       >
-        <TextInput
-          isDisabled
-          id="request-size"
-          className={classNames(
-            'pf-c-form-control',
-            'ceph-add-capacity__input'
-          )}
-          type="number"
-          name="requestSize"
-          value={osdSizeWithoutUnit}
-          aria-label="requestSize"
-          data-test="requestSize"
-        />
-        <TextContent className="ceph-add-capacity__provisioned-capacity">
-          {' '}
-          {t('x {{ replica, number }} replicas =', {
-            replica,
-          })}{' '}
-          <strong data-test="provisioned-capacity">
-            {provisionedCapacity}&nbsp;TiB
-          </strong>
-        </TextContent>
+        <div className="pf-v5-u-display-flex pf-v5-u-pt-sm pf-v5-u-pl-xs">
+          <TextInput
+            isDisabled
+            id="request-size"
+            className={classNames(
+              'pf-v5-c-form-control',
+              'ceph-add-capacity__input'
+            )}
+            type="number"
+            name="requestSize"
+            value={osdSizeWithoutUnit}
+            aria-label="requestSize"
+            data-test="requestSize"
+          />
+          <TextContent className="ceph-add-capacity__provisioned-capacity pf-v5-u-ml-xs">
+            {' '}
+            {t('x {{ replica, number }} replicas =', {
+              replica,
+            })}{' '}
+            <strong data-test="provisioned-capacity">
+              {provisionedCapacity}&nbsp;TiB
+            </strong>
+          </TextContent>
+        </div>
       </FormGroup>
     </>
   );
@@ -424,7 +426,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
             increase your expenses.
           </Trans>
           <FormGroup
-            className="pf-u-pt-md pf-u-pb-sm"
+            className="pf-v5-u-pt-md pf-v5-u-pb-sm"
             id="add-cap-sc-dropdown__FormGroup"
             fieldId="add-capacity-dropdown"
             label={t('StorageClass')}
@@ -467,7 +469,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
                     osdSizeWithoutUnit={osdSizeWithoutUnit}
                   />
                 )}
-                <TextContent className="pf-u-font-weight-bold pf-u-secondary-color-100 ceph-add-capacity__current-capacity">
+                <TextContent className="ceph-add-capacity__current-capacity pf-v5-u-mt-sm">
                   {t('Currently Used:')}&nbsp;
                   {currentCapacity}
                 </TextContent>

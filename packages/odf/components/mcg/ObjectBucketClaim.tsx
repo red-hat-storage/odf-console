@@ -65,7 +65,7 @@ const tableColumnInfo = [
     className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
     id: 'StorageClass',
   },
-  { className: 'dropdown-kebab-pf pf-c-table__action', id: '' },
+  { className: Kebab.columnClass, id: '' },
 ];
 
 type ObjectBucketClaimsListProps = {

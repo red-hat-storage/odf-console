@@ -70,7 +70,7 @@ export const tableColumnInfo = [
     className: classNames('pf-m-hidden', 'pf-m-visible-on-lg'),
     id: 'applications',
   },
-  { className: 'dropdown-kebab-pf pf-c-table__action', id: '' },
+  { className: 'dropdown-kebab-pf pf-v5-c-table__action', id: '' },
 ];
 
 export const kebabActionItems = (

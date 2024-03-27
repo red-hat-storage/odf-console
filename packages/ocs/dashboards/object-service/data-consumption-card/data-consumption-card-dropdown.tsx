@@ -13,12 +13,12 @@ import {
 } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  Select,
-  SelectVariant,
   OptionsMenu,
   OptionsMenuPosition,
   OptionsMenuToggle,
-} from '@patternfly/react-core';
+  Select,
+  SelectVariant,
+} from '@patternfly/react-core/deprecated';
 import './data-consumption-card.scss';
 
 export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (

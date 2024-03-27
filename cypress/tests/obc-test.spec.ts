@@ -135,7 +135,6 @@ describe('Tests form validations on Object Bucket Claim', () => {
   });
 
   beforeEach(() => {
-    cy.visit('/');
     obcNavigate.navigateToOBC();
     cy.byTestID('item-create').click();
   });

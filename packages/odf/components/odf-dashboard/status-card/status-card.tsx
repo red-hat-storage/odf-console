@@ -28,7 +28,6 @@ import {
   useFlag,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { HealthBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Gallery,
@@ -169,55 +168,53 @@ export const StatusCard: React.FC = () => {
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <HealthBody>
-          <Gallery className="odf-overview-status__health" hasGutter>
+        <Gallery className="odf-overview-status__health" hasGutter>
+          <GalleryItem>
+            <HealthItem
+              title={t('Data Foundation')}
+              state={operatorHealthStatus.state}
+            />
+          </GalleryItem>
+          {healthySystems.length > 0 && (
             <GalleryItem>
               <HealthItem
-                title={t('Data Foundation')}
-                state={operatorHealthStatus.state}
+                title={pluralize(healthySystems.length, 'Storage System')}
+                state={HealthState.OK}
+              >
+                <StatusCardPopover
+                  resourceHealthMap={healthySystems}
+                  firstColumnName={t('Storage System')}
+                  secondColumnName={t('Health')}
+                />
+              </HealthItem>
+            </GalleryItem>
+          )}
+          {unHealthySystems.length > 0 && (
+            <GalleryItem>
+              <HealthItem
+                title={pluralize(unHealthySystems.length, 'Storage System')}
+                state={HealthState.ERROR}
+                maxWidth="35rem"
+              >
+                <StatusCardPopover
+                  resourceHealthMap={unHealthySystems}
+                  firstColumnName={t('Storage System')}
+                  secondColumnName={t('Health')}
+                />
+              </HealthItem>
+            </GalleryItem>
+          )}
+          {isProviderMode && clientsLoaded && !clientsLoadError && (
+            <GalleryItem>
+              <HealthItem
+                title={t('Storage Clients')}
+                state={clientAggregateHealth}
+                onClick={redirectToListPage}
+                details={getClientText(clients, t)}
               />
             </GalleryItem>
-            {healthySystems.length > 0 && (
-              <GalleryItem>
-                <HealthItem
-                  title={pluralize(healthySystems.length, 'Storage System')}
-                  state={HealthState.OK}
-                >
-                  <StatusCardPopover
-                    resourceHealthMap={healthySystems}
-                    firstColumnName={t('Storage System')}
-                    secondColumnName={t('Health')}
-                  />
-                </HealthItem>
-              </GalleryItem>
-            )}
-            {unHealthySystems.length > 0 && (
-              <GalleryItem>
-                <HealthItem
-                  title={pluralize(unHealthySystems.length, 'Storage System')}
-                  state={HealthState.ERROR}
-                  maxWidth="35rem"
-                >
-                  <StatusCardPopover
-                    resourceHealthMap={unHealthySystems}
-                    firstColumnName={t('Storage System')}
-                    secondColumnName={t('Health')}
-                  />
-                </HealthItem>
-              </GalleryItem>
-            )}
-            {isProviderMode && clientsLoaded && !clientsLoadError && (
-              <GalleryItem>
-                <HealthItem
-                  title={t('Storage Clients')}
-                  state={clientAggregateHealth}
-                  onClick={redirectToListPage}
-                  details={getClientText(clients, t)}
-                />
-              </GalleryItem>
-            )}
-          </Gallery>
-        </HealthBody>
+          )}
+        </Gallery>
       </CardBody>
     </Card>
   );

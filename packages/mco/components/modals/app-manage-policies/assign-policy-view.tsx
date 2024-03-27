@@ -7,8 +7,9 @@ import {
 import { ModalBody } from '@odf/shared/modals';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
+import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
-import { Wizard, WizardStep, AlertVariant } from '@patternfly/react-core';
+import { AlertVariant } from '@patternfly/react-core';
 import { AssignPolicyViewFooter } from './helper/assign-policy-view-footer';
 import { PVCDetailsWizardContent } from './helper/pvc-details-wizard-content';
 import { ReviewAndAssign } from './helper/review-and-assign';

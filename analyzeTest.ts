@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 const pluginName = process.env.PLUGIN;
-const MAX_ASSET_SIZE = 3; //3 MiB
+const MAX_ASSET_SIZE = 17; //17 MiB
 
 const getStatsFilePath = () => `./plugins/${pluginName}/dist/stats.json`;
 

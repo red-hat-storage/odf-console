@@ -7,8 +7,12 @@ export const ViewDocumentation: React.FC<ViewDocumentationProps> = ({
   doclink,
   text,
   padding = '15px 10px',
+  hideDocLink,
 }) => {
   const { t } = useCustomTranslation();
+
+  if (!doclink || hideDocLink) return null;
+
   return (
     <Text
       component={TextVariants.a}
@@ -31,4 +35,5 @@ type ViewDocumentationProps = {
   doclink: string;
   text?: string;
   padding?: string;
+  hideDocLink?: boolean;
 };

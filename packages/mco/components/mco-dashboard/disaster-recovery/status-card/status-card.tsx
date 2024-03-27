@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  HUB_CLUSTER_NAME,
   ODFMCO_OPERATOR,
   ODFMCO_OPERATOR_NAMESPACE,
   ODR_CLUSTER_OPERATOR,
@@ -41,7 +40,6 @@ const operatorResource: WatchK8sResource = {
   kind: 'operators.coreos.com~v1alpha1~ClusterServiceVersion',
   namespace: ODFMCO_OPERATOR_NAMESPACE,
   isList: true,
-  cluster: HUB_CLUSTER_NAME,
 };
 const drOperators: string[] = [ODFMCO_OPERATOR, ODR_HUB_OPERATOR];
 const clusterOperators: string[] = [ODR_CLUSTER_OPERATOR, VOL_SYNC];

@@ -102,19 +102,12 @@ describe('Tests form validations on BlockPool', () => {
     cy.login();
     cy.visit('/');
     cy.install();
+    navigateToBlockPool();
+    cy.byTestID('item-create').click();
   });
 
   after(() => {
     cy.logout();
-  });
-
-  beforeEach(() => {
-    navigateToBlockPool();
-  });
-
-  beforeEach(() => {
-    navigateToBlockPool();
-    cy.byTestID('item-create').click();
   });
 
   fieldValidationOnWizardFormsTests(

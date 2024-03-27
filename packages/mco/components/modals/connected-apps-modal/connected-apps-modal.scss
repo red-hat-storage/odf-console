@@ -1,11 +1,11 @@
 .mco-application-status {
   &__form {
-    padding: var(--pf-global--spacer--sm) var(--pf-global--spacer--sm)
-      var(--pf-global--spacer--xs) var(--pf-global--spacer--sm);
+    padding: var(--pf-v5-global--spacer--sm) var(--pf-v5-global--spacer--sm)
+      var(--pf-v5-global--spacer--xs) var(--pf-v5-global--spacer--sm);
   }
   &__box {
-    border: var(--pf-global--BorderWidth--sm) solid
-      var(--pf-global--BorderColor--100);
+    border: var(--pf-v5-global--BorderWidth--sm) solid
+      var(--pf-v5-global--BorderColor--100);
   }
   &__table {
     max-height: 12.5rem;

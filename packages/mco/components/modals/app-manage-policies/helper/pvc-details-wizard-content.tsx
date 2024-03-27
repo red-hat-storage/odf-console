@@ -9,6 +9,7 @@ import { useACMSafeFetch } from '@odf/mco/hooks/acm-safe-fetch';
 import { SearchResult } from '@odf/mco/types';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
+import { StatusBox } from '@odf/shared/generic/status-box';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
@@ -17,16 +18,15 @@ import {
   LazyNameValueEditor,
   NameValueEditorPair,
 } from '@odf/shared/utils/NameValueEditor';
+import { SelectOption, SelectVariant } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import {
   Button,
   Form,
   FormGroup,
+  Text,
   Grid,
   GridItem,
-  SelectOption,
-  SelectVariant,
-  Text,
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
 import { queryAppWorkloadPVCs } from '../../../../utils/acm-search-quries';
@@ -153,14 +153,8 @@ const PairElement: React.FC<PairElementProps> = ({
   return (
     <Grid hasGutter>
       <GridItem lg={5} sm={5}>
-        <FormGroup
-          hasNoPaddingTop
-          isRequired
-          validated={getValidatedProp(
-            isValidationEnabled && !selectedPlacement
-          )}
-          helperTextInvalid={t('Required')}
-        >
+        <FormGroup hasNoPaddingTop isRequired>
+          {/* Add validation */}
           <SingleSelectDropdown
             id="placement-selection-dropdown"
             selectedKey={selectedPlacement}
@@ -178,15 +172,10 @@ const PairElement: React.FC<PairElementProps> = ({
           />
         </FormGroup>
       </GridItem>
+
       <GridItem lg={5} sm={5}>
-        <FormGroup
-          hasNoPaddingTop
-          isRequired
-          validated={getValidatedProp(
-            isValidationEnabled && !selectedLabels?.length
-          )}
-          helperTextInvalid={t('Required')}
-        >
+        <FormGroup hasNoPaddingTop isRequired>
+          {/* Add validation */}
           <MultiSelectDropdown
             id="labels-selection-dropdown"
             selections={selectedLabels}
@@ -257,7 +246,7 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
         ),
       [unProtectedPlacements, workloadNamespace]
     );
-    const [searchResult] = useACMSafeFetch(searchQuery);
+    const [searchResult, error, loaded] = useACMSafeFetch(searchQuery);
 
     // All labels
     const labels: string[] = React.useMemo(
@@ -280,28 +269,32 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
             )}
           </Text>
         </FormGroup>
-        <LazyNameValueEditor
-          nameValuePairs={tags}
-          updateParentData={({ nameValuePairs }) => {
-            setTags(nameValuePairs);
-            dispatch({
-              type: ManagePolicyStateType.SET_PVC_SELECTORS,
-              context: ModalViewContext.ASSIGN_POLICY_VIEW,
-              payload: getPVCSelectors(nameValuePairs),
-            });
-          }}
-          PairElementComponent={PairElement}
-          nameString={t('Application resource')}
-          valueString={t('PVC label selector')}
-          addString={t('Add application resource')}
-          extraProps={{
-            placementNames,
-            labels,
-            tags,
-            isValidationEnabled,
-          }}
-          className="co-required mco-manage-policies__nameValue--weight"
-        />
+        {loaded && !error ? (
+          <LazyNameValueEditor
+            nameValuePairs={tags}
+            updateParentData={({ nameValuePairs }) => {
+              setTags(nameValuePairs);
+              dispatch({
+                type: ManagePolicyStateType.SET_PVC_SELECTORS,
+                context: ModalViewContext.ASSIGN_POLICY_VIEW,
+                payload: getPVCSelectors(nameValuePairs),
+              });
+            }}
+            PairElementComponent={PairElement}
+            nameString={t('Application resource')}
+            valueString={t('PVC label selector')}
+            addString={t('Add application resource')}
+            extraProps={{
+              placementNames,
+              labels,
+              tags,
+              isValidationEnabled,
+            }}
+            className="co-required mco-manage-policies__nameValue--weight"
+          />
+        ) : (
+          <StatusBox loaded={loaded} loadError={error} />
+        )}
       </Form>
     );
   };

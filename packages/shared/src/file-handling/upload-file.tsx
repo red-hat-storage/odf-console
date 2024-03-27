@@ -35,7 +35,6 @@ const UploadFilePicker: React.FC<UploadFilePickerProps> = ({
   onFileUpload,
   infoText,
   titleText,
-  acceptedFiles,
   uploadLimit,
   compatibleFileFilter,
   uploadedFiles = [],
@@ -84,7 +83,7 @@ const UploadFilePicker: React.FC<UploadFilePickerProps> = ({
     setCurrentFiles((prevFiles) => [...prevFiles, ...files]);
   };
 
-  const handleFileDrop = (droppedFiles: File[]) => {
+  const handleFileDrop = (_event, droppedFiles: File[]) => {
     // identify what, if any, files are re-uploads of already uploaded files
     const currentFileNames = currentFiles.map((file) => file.name);
     const reUploads = droppedFiles.filter((droppedFile) =>
@@ -128,10 +127,7 @@ const UploadFilePicker: React.FC<UploadFilePickerProps> = ({
 
   return (
     <>
-      <MultipleFileUpload
-        onFileDrop={handleFileDrop}
-        dropzoneProps={{ accept: acceptedFiles }}
-      >
+      <MultipleFileUpload onFileDrop={handleFileDrop}>
         <MultipleFileUploadMain
           titleText={titleText}
           infoText={infoText}

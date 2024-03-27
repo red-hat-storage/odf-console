@@ -145,7 +145,7 @@ export const PropertyPath: React.FC<{ kind: string; path: string | string[] }> =
   ({ kind, path }) => {
     const pathArray: string[] = _.toPath(path);
     return (
-      <Breadcrumb className="pf-c-breadcrumb--no-padding-top">
+      <Breadcrumb className="pf-v5-c-breadcrumb--no-padding-top">
         <BreadcrumbItem>{kind}</BreadcrumbItem>
         {pathArray.map((property, i) => {
           const isLast = i === pathArray.length - 1;
@@ -178,7 +178,7 @@ const EditButton: React.FC<EditButtonProps> = (props) => {
       }
     >
       {props.children}
-      <PencilAltIcon className="co-icon-space-l pf-c-button-icon--plain" />
+      <PencilAltIcon className="co-icon-space-l pf-v5-c-button-icon--plain" />
     </Button>
   );
 };
@@ -377,7 +377,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
               {t('{{count}} annotation', {
                 count: _.size(metadata.annotations),
               })}
-              <PencilAltIcon className="co-icon-space-l pf-c-button-icon--plain" />
+              <PencilAltIcon className="co-icon-space-l pf-v5-c-button-icon--plain" />
             </Button>
           ) : (
             t('{{count}} annotation', {

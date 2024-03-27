@@ -10,7 +10,7 @@
 
 .nb-data-consumption-card__dropdown-item {
   max-width: 12em;
-  @media screen and (min-width: $pf-global--breakpoint--lg) {
+  @media screen and (min-width: $pf-v5-global--breakpoint--lg) {
     min-width: 12em;
   }
   &--hide-list-style {
@@ -19,11 +19,11 @@
     }
   }
   &--margin {
-    margin-right: var(--pf-global--spacer--xs);
+    margin-right: var(--pf-v5-global--spacer--xs);
   }
   /* Override Options Menu item style to make it similar to Select Menu */
-  .pf-c-options-menu {
-    --pf-c-options-menu__menu-item--PaddingLeft: 0;
+  .pf-v5-c-options-menu {
+    --pf-v5-c-options-menu__menu-item--PaddingLeft: 0;
   }
 }
 
@@ -32,25 +32,25 @@
 }
 
 .nb-data-consumption-card__chart-label {
-  margin-top: var(--pf-global--spacer--md);
+  margin-top: var(--pf-v5-global--spacer--md);
 }
 
 .nb-data-consumption-card__chart-skeleton {
-  margin-top: var(--pf-global--spacer--md);
-  margin-bottom: var(--pf-global--spacer--md);
+  margin-top: var(--pf-v5-global--spacer--md);
+  margin-bottom: var(--pf-v5-global--spacer--md);
   width: 50%;
 }
 
 .nb-data-consumption-card__chart-legend-skeleton {
-  margin-top: var(--pf-global--spacer--md);
+  margin-top: var(--pf-v5-global--spacer--md);
   width: 80%;
 }
 
 .nb-perf__graph {
   &--short {
-    margin-left: var(--pf-global--spacer--xs);
+    margin-left: var(--pf-v5-global--spacer--xs);
   }
   &--long {
-    margin-left: var(--pf-global--spacer--xl);
+    margin-left: var(--pf-v5-global--spacer--xl);
   }
 }

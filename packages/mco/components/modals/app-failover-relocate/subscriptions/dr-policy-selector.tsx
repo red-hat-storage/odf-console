@@ -3,7 +3,11 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName, getUID } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
+import {
+  Dropdown,
+  DropdownToggle,
+  DropdownItem,
+} from '@patternfly/react-core/deprecated';
 import { getDRPolicyResourceObj } from '../../../../hooks';
 import { DRPolicyKind } from '../../../../types';
 import {
@@ -103,7 +107,7 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
               !drPolicyList.length ||
               state.modalFooterStatus === ModalFooterStatus.FINISHED
             }
-            onToggle={onToggle}
+            onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
           >
             {state.selectedDRPolicy.policyName || t('Select')}
           </DropdownToggle>

@@ -339,9 +339,9 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
           <Grid hasGutter>
             <GridItem span={5}>
               <TextInput
-                isReadOnly
                 value={humanizeBinaryBytes(capacity).string}
                 id="available-raw-capacity"
+                readOnlyVariant="default"
               />
               <TextContent>
                 <Text component={TextVariants.small}>

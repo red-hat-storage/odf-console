@@ -3,16 +3,21 @@ import { arbiterText } from '@odf/core/constants';
 import { AdvancedSubscription } from '@odf/shared/badges/advanced-subscription';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  FormGroup,
-  Alert,
-  Checkbox,
   Select,
   SelectVariant,
   SelectOption,
+  SelectProps,
+} from '@patternfly/react-core/deprecated';
+import {
+  FormGroup,
+  Alert,
+  Checkbox,
   TextContent,
   TextVariants,
   Text,
-  SelectProps,
+  FormHelperText,
+  HelperTextItem,
+  HelperText as PfHelperText,
 } from '@patternfly/react-core';
 import { WizardState } from '../../reducer';
 import './capacity-and-nodes.scss';
@@ -32,7 +37,6 @@ const HelperText: React.FC<{ enableArbiter: boolean }> = ({
       </TextContent>
       {enableArbiter && (
         <Alert
-          aria-label={t('Arbiter minimum requirements')}
           title={t('Arbiter minimum requirements')}
           variant="info"
           isInline
@@ -84,7 +88,7 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
         data-checked-state={enableArbiter}
         label={<EnableArbiterLabel />}
         description={<HelperText enableArbiter={enableArbiter} />}
-        onChange={(hasChecked: boolean) => {
+        onChange={(_event, hasChecked: boolean) => {
           if (!hasChecked) onSelect(null, '');
           onChecked(hasChecked);
         }}
@@ -93,15 +97,12 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
             <FormGroup
               label={t('Arbiter zone')}
               fieldId="arbiter-zone-selection"
-              helperText={t(
-                'An arbiter node will be automatically selected from this zone'
-              )}
             >
               <Select
                 variant={SelectVariant.single}
                 placeholderText={t('Select an arbiter zone')}
                 aria-label={t('Arbiter zone selection')}
-                onToggle={(value: boolean) => setIsOpen(value)}
+                onToggle={(_event, value: boolean) => setIsOpen(value)}
                 onSelect={handleSelection}
                 selections={arbiterLocation}
                 isOpen={isOpen}
@@ -111,6 +112,15 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
                   <SelectOption key={zone} value={zone} />
                 ))}
               </Select>
+              <FormHelperText>
+                <PfHelperText>
+                  <HelperTextItem>
+                    {t(
+                      'An arbiter node will be automatically selected from this zone'
+                    )}
+                  </HelperTextItem>
+                </PfHelperText>
+              </FormHelperText>
             </FormGroup>
           )
         }

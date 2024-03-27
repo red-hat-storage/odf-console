@@ -6,7 +6,7 @@ import { DRActionType } from '../../../constants';
 import { ArgoApplicationSetModel } from '../../../models';
 import { ACMApplicationKind, ArgoApplicationSetKind } from '../../../types';
 import { getGVKFromK8Resource } from '../../../utils';
-import { ArogoApplicationSetModal } from './argo-application-set';
+import { ArogoApplicationSetParser as ArogoApplicationSetModal } from './parser/argo-application-set-parser';
 import { SubscriptionFailoverRelocateModal } from './subscriptions/failover-relocate-modal';
 
 export const ApplicationFailover = (props: ModalProps) => {

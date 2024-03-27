@@ -22,10 +22,17 @@ import {
   VOLUME_REPLICATION_HEALTH,
   DRPC_STATUS,
   LEAST_SECONDS_IN_PROMETHEUS,
+  DR_BASE_ROUTE,
+  DRActionType,
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
-import { getVolumeReplicationHealth } from '../../utils';
+import {
+  getVolumeReplicationHealth,
+  isDRPCAvailable,
+  isPeerReady,
+} from '../../utils';
+import { DiscoveredApplicationParser as DiscoveredApplicationModal } from '../modals/app-failover-relocate/parser/discovered-application-parser';
 
 export const drpcDetailsPageRoute = (drpc: DRPlacementControlKind) =>
   `/k8s/ns/${getNamespace(drpc)}/${referenceForModel(
@@ -48,13 +55,12 @@ export const getAlertMessages = (
           actionClose: (
             <AlertActionCloseButton
               onClose={() =>
-                navigate(
-                  '/multicloud/data-services/disaster-recovery/protected-applications'
-                )
+                navigate(`${DR_BASE_ROUTE}/protected-applications`)
               }
             />
           ),
           isInline: true,
+          key: 'enrolled_success',
         },
       ]
     : []),
@@ -64,6 +70,7 @@ export const getAlertMessages = (
       'For disaster recovery or replication details about ACM managed applications navigate to Applications overview page.'
     ),
     isInline: true,
+    key: 'navigation_info',
   },
 ];
 
@@ -73,6 +80,11 @@ export const isFailingOrRelocating = (
   [DRPC_STATUS.FailingOver, DRPC_STATUS.Relocating].includes(
     application?.status?.phase as DRPC_STATUS
   );
+
+export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
+  drpc?.status?.phase === DRPC_STATUS.FailedOver &&
+  !isPeerReady(drpc) &&
+  isDRPCAvailable(drpc);
 
 export const getReplicationHealth = (
   lastSyncTime: string,
@@ -98,25 +110,25 @@ export const replicationHealthMap = (
     case VOLUME_REPLICATION_HEALTH.CRITICAL:
       return {
         title: t('Critical'),
-        icon: <RedExclamationCircleIcon size={'sm'} />,
+        icon: <RedExclamationCircleIcon />,
         priority: 3,
       };
     case VOLUME_REPLICATION_HEALTH.WARNING:
       return {
         title: t('Warning'),
-        icon: <YellowExclamationTriangleIcon size={'sm'} />,
+        icon: <YellowExclamationTriangleIcon />,
         priority: 2,
       };
     case VOLUME_REPLICATION_HEALTH.HEALTHY:
       return {
         title: t('Healthy'),
-        icon: <GreenCheckCircleIcon size={'sm'} />,
+        icon: <GreenCheckCircleIcon />,
         priority: 0,
       };
     default:
       return {
         title: t('Unknown'),
-        icon: <GrayUnknownIcon size={'sm'} />,
+        icon: <GrayUnknownIcon />,
         priority: 1,
       };
   }
@@ -191,7 +203,7 @@ export const getRowActions = (
     title: (
       <>
         {t('Edit configuration')}
-        <p className="text-muted pf-u-font-size-xs">
+        <p className="text-muted pf-v5-u-font-size-xs">
           {t('Update existing configuration in YAML view')}
         </p>
       </>
@@ -202,23 +214,31 @@ export const getRowActions = (
     title: (
       <>
         {t('Failover')}
-        <p className="text-muted pf-u-font-size-xs">
+        <p className="text-muted pf-v5-u-font-size-xs">
           {t('Move workloads to target cluster')}
         </p>
       </>
     ),
-    onClick: () => launcher(() => <></>, {}),
+    onClick: () =>
+      launcher(DiscoveredApplicationModal, {
+        isOpen: true,
+        extraProps: { application: rowItem, action: DRActionType.FAILOVER },
+      }),
   },
   {
     title: (
       <>
         {t('Relocate')}
-        <p className="text-muted pf-u-font-size-xs">
+        <p className="text-muted pf-v5-u-font-size-xs">
           {t('Failback workloads to primary cluster')}
         </p>
       </>
     ),
-    onClick: () => launcher(() => <></>, {}),
+    onClick: () =>
+      launcher(DiscoveredApplicationModal, {
+        isOpen: true,
+        extraProps: { application: rowItem, action: DRActionType.RELOCATE },
+      }),
   },
 ];
 

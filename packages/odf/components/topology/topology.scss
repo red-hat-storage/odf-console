@@ -15,13 +15,13 @@
 }
 
 .odf-topology__back-button {
-    background-color: var(--pf-global--palette--black-300);
+    background-color: var(--pf-v5-global--palette--black-300);
     color: #393F44;
-    left: var(--pf-global--gutter);
+    left: var(--pf-v5-global--gutter);
     position: absolute;
-    top: var(--pf-global--gutter);
-    font-size: var(--pf-global--FontSize--xs);
-    font-weight: var(--pf-global--FontWeight--normal);
+    top: var(--pf-v5-global--gutter);
+    font-size: var(--pf-v5-global--FontSize--xs);
+    font-weight: var(--pf-v5-global--FontWeight--normal);
     padding: 4px;
     border-radius: 4px;
     z-index: 2;
@@ -29,11 +29,11 @@
 
 .odf-topology__message-button {
     color: #393F44;
-    right: var(--pf-global--gutter);
+    right: var(--pf-v5-global--gutter);
     position: absolute;
-    top: var(--pf-global--gutter);
-    font-size: var(--pf-global--FontSize--xs);
-    font-weight: var(--pf-global--FontWeight--normal);
+    top: var(--pf-v5-global--gutter);
+    font-size: var(--pf-v5-global--FontSize--xs);
+    font-weight: var(--pf-v5-global--FontWeight--normal);
     z-index: 2;
 }
 

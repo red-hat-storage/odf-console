@@ -1,16 +1,26 @@
 import * as React from 'react';
 import { useController, UseControllerProps } from 'react-hook-form';
-import { FormGroup, FormGroupProps } from '@patternfly/react-core';
+import {
+  FormGroup,
+  FormGroupProps,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  HelperTextItemProps,
+  ValidatedOptions,
+} from '@patternfly/react-core';
 
 export type FormGroupControllerRenderProps = {
   value: any;
-  validated: FormGroupProps['validated'];
+  validated: HelperTextItemProps['variant'];
   onChange: (...event: any[]) => void;
   onBlur: () => void;
 };
 
 export type FormGroupControllerProps = UseControllerProps & {
-  formGroupProps: FormGroupProps;
+  formGroupProps: FormGroupProps & {
+    helperText?: string;
+  };
   render: (props: FormGroupControllerRenderProps) => React.ReactNode;
 };
 
@@ -25,7 +35,7 @@ const FormGroupController: React.FC<FormGroupControllerProps> = ({
     formState: { isSubmitted },
   } = useController(controllerProps);
   const [validated, setValidated] =
-    React.useState<FormGroupProps['validated']>('default');
+    React.useState<HelperTextItemProps['variant']>('default');
 
   React.useEffect(() => {
     setValidated(
@@ -34,13 +44,17 @@ const FormGroupController: React.FC<FormGroupControllerProps> = ({
   }, [error, isDirty, isSubmitted]);
 
   return (
-    <FormGroup
-      id={controllerProps.name}
-      {...formGroupProps}
-      validated={validated}
-      helperTextInvalid={error?.message}
-    >
+    <FormGroup id={controllerProps.name} {...formGroupProps}>
       {render({ value, validated, onChange, onBlur })}
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem variant={validated}>
+            {validated === ValidatedOptions.error && error?.message}
+            {validated === ValidatedOptions.default &&
+              formGroupProps?.helperText}
+          </HelperTextItem>
+        </HelperText>
+      </FormHelperText>
     </FormGroup>
   );
 };

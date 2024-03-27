@@ -82,7 +82,11 @@ const ResourceLink: React.FC<ResourceLinkProps> = ({
           {resourceName}
         </a>
       ) : (
-        <Link to={link} className={className}>
+        <Link
+          to={link}
+          className={className}
+          data-test={`resource-link-${resourceName}`}
+        >
           {resourceName}
         </Link>
       )}

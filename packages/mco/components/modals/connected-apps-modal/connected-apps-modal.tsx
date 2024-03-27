@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { Table } from '@patternfly/react-table/deprecated';
 import {
   Modal,
   Button,
@@ -15,15 +16,7 @@ import {
   SearchInput,
   Bullseye,
 } from '@patternfly/react-core';
-import {
-  TableComposable,
-  Tbody,
-  Tr,
-  Td,
-  Th,
-  Thead,
-  ThProps,
-} from '@patternfly/react-table';
+import { Tbody, Tr, Td, Th, Thead, ThProps } from '@patternfly/react-table';
 import { ApplicationRefKind } from '../../../hooks/applications-hook';
 import './connected-apps-modal.scss';
 
@@ -138,7 +131,7 @@ export const ConnectedApplicationsModal: React.FC<ConnectedApplicationsModalProp
               </Bullseye>
             ) : (
               <div className="mco-application-status__table">
-                <TableComposable
+                <Table
                   {...reactPropFix}
                   variant="compact"
                   aria-label={t('Application list')}
@@ -164,7 +157,7 @@ export const ConnectedApplicationsModal: React.FC<ConnectedApplicationsModalProp
                       </Tr>
                     ))}
                   </Tbody>
-                </TableComposable>
+                </Table>
               </div>
             )}
           </div>

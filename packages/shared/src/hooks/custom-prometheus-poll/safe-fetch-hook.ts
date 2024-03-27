@@ -23,7 +23,6 @@ export const useSafeFetch = () => {
       props.options || {
         signal: controller.current.signal as AbortSignal,
       },
-      props.timeout,
-      props.cluster
+      props.timeout
     );
 };

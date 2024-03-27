@@ -10,3 +10,4 @@ plugins/**/dist
 plugins/**/.cache-loader
 plugins/**/cypress.config.ts
 yarn-error.log
+test-report.html

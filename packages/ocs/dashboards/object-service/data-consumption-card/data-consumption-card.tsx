@@ -3,7 +3,6 @@ import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { K8sResourceObj } from '@odf/core/types';
 import {
-  OCS_OPERATOR,
   Breakdown,
   DataConsumption,
   Metrics,
@@ -11,6 +10,7 @@ import {
 } from '@odf/ocs/constants';
 import { DATA_CONSUMPTION_QUERIES } from '@odf/ocs/queries';
 import { getRangeVectorStats } from '@odf/shared/charts';
+import { OCS_OPERATOR } from '@odf/shared/constants';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
   useCustomPrometheusPoll,
@@ -276,25 +276,27 @@ const DataConsumptionCard: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="nb-data-consumption-card__header">
-        <CardTitle>
-          {t('Performance')}
-          <FieldLevelHelp>
-            {t(
-              'Shows an overview of the data consumption per provider or account collected from the day of the entity creation.'
-            )}
-          </FieldLevelHelp>
-        </CardTitle>
-        <DataConsumptionDropdown
-          selectedService={serviceType}
-          setSelectedService={setServiceType}
-          selectedBreakdown={breakdownBy}
-          setSelectedBreakdown={setBreakdownBy}
-          selectedMetric={metric}
-          setSelectedMetric={setMetric}
-          isRgwSupported={RGW && !isOCS45}
-          isMcgSupported={MCG}
-        />
+      <CardHeader>
+        <div className="pf-v5-u-display-flex pf-v5-u-justify-content-space-between">
+          <CardTitle>
+            {t('Performance')}
+            <FieldLevelHelp>
+              {t(
+                'Shows an overview of the data consumption per provider or account collected from the day of the entity creation.'
+              )}
+            </FieldLevelHelp>
+          </CardTitle>
+          <DataConsumptionDropdown
+            selectedService={serviceType}
+            setSelectedService={setServiceType}
+            selectedBreakdown={breakdownBy}
+            setSelectedBreakdown={setBreakdownBy}
+            selectedMetric={metric}
+            setSelectedMetric={setMetric}
+            isRgwSupported={RGW && !isOCS45}
+            isMcgSupported={MCG}
+          />
+        </div>
       </CardHeader>
       <CardBody>
         {serviceType === ServiceType.MCG &&

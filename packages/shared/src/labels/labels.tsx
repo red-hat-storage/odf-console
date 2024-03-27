@@ -9,7 +9,7 @@ export const Labels: React.FC<LabelsProps> = ({
   return (
     <LabelGroup {...props}>
       {labels.map((label) => (
-        <Label key={label} className={labelClassName} isTruncated>
+        <Label key={label} className={labelClassName}>
           {label}
         </Label>
       ))}

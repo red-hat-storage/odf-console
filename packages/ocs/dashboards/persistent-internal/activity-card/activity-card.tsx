@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getStorageClusterInNs } from '@odf/core/utils';
+import { OCS_OPERATOR } from '@odf/shared/constants';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -30,7 +31,7 @@ import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/interna
 import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
-import { OCS_OPERATOR, PVC_PROVISIONER_ANNOTATION } from '../../../constants';
+import { PVC_PROVISIONER_ANNOTATION } from '../../../constants';
 import { StorageClusterModel } from '../../../models';
 import {
   DATA_RESILIENCY_QUERY,

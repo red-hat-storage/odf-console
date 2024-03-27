@@ -6,6 +6,7 @@ const config = {
     '^@odf/shared/(.*)': '<rootDir>/packages/shared/src/$1',
     '^lodash-es$': 'lodash',
     '\\.(css|scss)$': 'identity-obj-proxy',
+    '@patternfly/react-table/deprecated*': 'identity-obj-proxy',
   },
   roots: ['<rootDir>/packages/'],
   setupFilesAfterEnv: ['<rootDir>/setupJest.ts'],
@@ -25,6 +26,15 @@ const config = {
       statements: 0,
     },
   },
+  reporters: [
+    'default',
+    [
+      './node_modules/jest-html-reporter',
+      {
+        pageTitle: 'Test Report',
+      },
+    ],
+  ],
 };
 
 module.exports = config;

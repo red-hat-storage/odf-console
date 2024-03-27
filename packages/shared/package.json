@@ -1,7 +1,7 @@
 {
   "name": "@odf-console/shared",
   "description": "ODF console shared code.",
-  "version": "0.0.0-beta13",
+  "version": "0.0.0-beta14",
   "license": "Apache-2.0",
   "private": false,
   "main": "src/index.ts",
@@ -20,13 +20,13 @@
     "publish-new": "scripts/publish-new.sh"
   },
   "dependencies": {
-    "@patternfly/patternfly": "4.103.6",
-    "@patternfly/react-charts": "^6.15.3",
-    "@patternfly/react-core": "4.267.5",
-    "@patternfly/react-icons": "^4.11.0",
-    "@patternfly/react-table": "4.104.7",
-    "@patternfly/react-tokens": "^4.12.0",
-    "@patternfly/react-topology": "^4.90.38",
+    "@patternfly/patternfly": "5.0.2",
+    "@patternfly/react-charts": "7.1.0",
+    "@patternfly/react-core": "5.1.0",
+    "@patternfly/react-icons": "5.0.1",
+    "@patternfly/react-table": "5.1.0",
+    "@patternfly/react-tokens": "5.1.0",
+    "@patternfly/react-topology": "5.0.0",
     "@types/lodash-es": "^4.17.4",
     "@types/node": "^14.14.34",
     "@types/react": "16.8.13",
@@ -55,8 +55,8 @@
     "yup": "^0.32.11"
   },
   "peerDependencies": {
-    "@openshift-console/dynamic-plugin-sdk": "^0.0.21",
-    "@openshift-console/dynamic-plugin-sdk-internal": "^0.0.12",
+    "@openshift-console/dynamic-plugin-sdk": "1.0.0",
+    "@openshift-console/dynamic-plugin-sdk-internal": "1.0.0",
     "i18next": "^20.2.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",

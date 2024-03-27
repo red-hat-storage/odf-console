@@ -155,7 +155,9 @@ export const ReplicationPolicyForm: React.FC<ReplicationFormProps> = ({
             description={t(
               'You must enable and configure object logging in the cloud environment of your choice'
             )}
-            onChange={onChangeEventLogs}
+            onChange={(_event, isEventLogEnabled: boolean) =>
+              onChangeEventLogs(isEventLogEnabled)
+            }
           />
         </FormGroup>
         <FormGroup>
@@ -293,7 +295,7 @@ export const RuleForm: React.FC<RuleFormProps> = ({
                   type="text"
                   id="prefix-input"
                   value={rule.prefix}
-                  onChange={onPrefixChange}
+                  onChange={(_event, value) => onPrefixChange(value)}
                   aria-label={t('Prefix')}
                 />
               </FormGroup>
@@ -307,7 +309,7 @@ export const RuleForm: React.FC<RuleFormProps> = ({
               id="sync-deletions-checkbox"
               isChecked={rule.syncDeletion}
               isDisabled={isSyncDeletionDisabled}
-              onChange={onSyncDeletions}
+              onChange={(_event, value) => onSyncDeletions(value)}
               description={
                 index === 0
                   ? t(

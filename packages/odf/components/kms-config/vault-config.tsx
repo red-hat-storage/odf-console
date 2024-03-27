@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getValidatedProp } from '@odf/shared/utils';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
 import { TFunction } from 'i18next';
@@ -10,6 +11,11 @@ import {
   FormSelect,
   FormSelectOption,
   Button,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+  ValidatedOptions,
+  Icon,
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
 import { ProviderStateMap } from '../../constants';
@@ -20,7 +26,7 @@ import {
   KmsEncryptionLevel,
   VaultAuthMethodMapping,
 } from '../../types';
-import { NameAddrPort, isValid } from './name-address-port';
+import { NameAddrPort } from './name-address-port';
 import { KMSConfigureProps, EncryptionDispatch } from './providers';
 import { kmsConfigValidation, isLengthUnity } from './utils';
 import {
@@ -131,18 +137,19 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
     }
   }, [setAuthMethod, vaultAuthMethods, vaultState.authMethod]);
 
+  const getValidatedAuthMethodProp = getValidatedProp(!vaultState.authMethod);
+
   return (
     <>
       <FormGroup
         fieldId="authentication-method"
         label={t('Authentication method')}
         className={`${className}__form-body`}
-        helperTextInvalid={t('This is a required field')}
         isRequired
       >
         <FormSelect
           value={vaultState.authMethod}
-          onChange={setAuthMethod}
+          onChange={(_ev, value) => setAuthMethod(value as VaultAuthMethods)}
           id="authentication-method"
           name="authentication-method"
           aria-label={t('authentication-method')}
@@ -157,6 +164,14 @@ export const VaultConfigure: React.FC<KMSConfigureProps> = ({
             />
           ))}
         </FormSelect>
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem variant={getValidatedAuthMethodProp}>
+              {getValidatedAuthMethodProp === ValidatedOptions.error &&
+                t('This is a required field')}
+            </HelperTextItem>
+          </HelperText>
+        </FormHelperText>
       </FormGroup>
       <ValutConnectionForm
         {...{
@@ -226,7 +241,6 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
             className: `${className}__form-body`,
             vaultState,
             setAuthValue,
-            isValid,
             isScEncryption,
           }}
         />
@@ -244,11 +258,9 @@ const ValutConnectionForm: React.FC<ValutConnectionFormProps> = ({
           vaultState.clientCert ||
           vaultState.clientKey ||
           vaultState.providerNamespace) && (
-          <PencilAltIcon
-            data-test="edit-icon"
-            size="sm"
-            color={blueInfoColor.value}
-          />
+          <Icon size="sm">
+            <PencilAltIcon data-test="edit-icon" color={blueInfoColor.value} />
+          </Icon>
         )}
       </Button>
     </>

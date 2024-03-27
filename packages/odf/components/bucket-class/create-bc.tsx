@@ -9,8 +9,9 @@ import {
   k8sCreate,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { WizardStep, Wizard } from '@patternfly/react-core/deprecated';
 import { useParams, useNavigate } from 'react-router-dom-v5-compat';
-import { Title, Wizard, WizardStep } from '@patternfly/react-core';
+import { Title } from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../constants';
 import { NooBaaBucketClassModel } from '../../models';
 import { BucketClassType, PlacementPolicy } from '../../types';

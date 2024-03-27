@@ -15,17 +15,24 @@ import {
   OBJECT_NAMESPACE,
   OBJECT_NAME,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
+  APPLICATION_TYPE,
+  LEAST_SECONDS_IN_PROMETHEUS,
 } from '@odf/mco/constants';
-import { DRClusterAppsMap } from '@odf/mco/types';
+import { DRClusterAppsMap, ProtectedAppsMap } from '@odf/mco/types';
 import {
   getVolumeReplicationHealth,
   ValidateManagedClusterCondition,
 } from '@odf/mco/utils';
+import {
+  GreenCheckCircleIcon,
+  YellowExclamationTriangleIcon,
+} from '@odf/shared';
 import { getMax, getMin } from '@odf/shared/charts';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { CustomUtilizationSummaryProps } from '@odf/shared/dashboards/utilization-card/utilization-item';
+import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { FieldLevelHelp } from '@odf/shared/generic';
 import Status, { StatusPopupSection } from '@odf/shared/popup/status-popup';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -38,10 +45,50 @@ import {
   Humanize,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { Flex, Text, TextVariants } from '@patternfly/react-core';
+import {
+  Flex,
+  Grid,
+  GridItem,
+  Text,
+  TextVariants,
+} from '@patternfly/react-core';
 import { ConnectedIcon } from '@patternfly/react-icons';
 import { StatusText } from './common';
 import './cluster-app-card.scss';
+
+const checkVolumeReplicationHealth = (
+  protectedAppMap: ProtectedAppsMap,
+  lastSyncTimeData: PrometheusResponse
+): boolean =>
+  !!protectedAppMap.placementControlInfo?.find(
+    (placementInfo) =>
+      !!lastSyncTimeData?.data?.result?.find(
+        (item: PrometheusResult) =>
+          item.metric?.[OBJECT_NAMESPACE] === placementInfo.drpcNamespace &&
+          item.metric?.[OBJECT_NAME] === placementInfo.drpcName &&
+          getVolumeReplicationHealth(
+            Number(item.value[1]) || 0,
+            placementInfo.volumeSyncInterval
+          )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
+      )
+  );
+
+const checkKubeObjBackupHealth = (
+  protectedAppMap: ProtectedAppsMap
+): boolean => {
+  const lastKubeObjectSyncTime =
+    protectedAppMap.placementControlInfo[0].lastKubeObjectSyncTime;
+  const objCaptureInterval =
+    protectedAppMap.placementControlInfo[0].kubeObjSyncInterval;
+  return protectedAppMap.appType === APPLICATION_TYPE.DISCOVERED
+    ? getVolumeReplicationHealth(
+        !!lastKubeObjectSyncTime
+          ? getTimeDifferenceInSeconds(lastKubeObjectSyncTime)
+          : LEAST_SECONDS_IN_PROMETHEUS,
+        objCaptureInterval
+      )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
+    : false;
+};
 
 const OperatorsHealthPopUp: React.FC<OperatorsHealthPopUpProps> = ({
   clusterCSVStatus,
@@ -169,6 +216,35 @@ export const PeerConnectionSection: React.FC<PeerConnectionSectionProps> = ({
   );
 };
 
+const ProtectedAppStatus: React.FC<ProtectedAppStatusProps> = ({
+  text,
+  healthyCount,
+  issueCount,
+}) => {
+  return (
+    <>
+      <GridItem lg={9} sm={6}>
+        <Text className="text-muted mco-dashboard__statusText--margin">
+          {text}
+        </Text>
+      </GridItem>
+      <GridItem lg={2} sm={2}>
+        <StatusIconAndText
+          title={healthyCount.toString()}
+          icon={<GreenCheckCircleIcon />}
+          className="pf-v5-u-text-align-center"
+        />
+      </GridItem>
+      <GridItem lg={1} sm={4}>
+        <StatusIconAndText
+          title={issueCount.toString()}
+          icon={<YellowExclamationTriangleIcon />}
+        />
+      </GridItem>
+    </>
+  );
+};
+
 export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
   clusterResources,
   clusterName,
@@ -180,45 +256,48 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
     () =>
       clusterResources[clusterName]?.protectedApps?.reduce(
         (acc, protectedAppMap) => {
-          const hasIssue = !!protectedAppMap.placementInfo?.find(
-            (placementInfo) =>
-              !!lastSyncTimeData?.data?.result?.find(
-                (item: PrometheusResult) =>
-                  item.metric?.[OBJECT_NAMESPACE] ===
-                    placementInfo.drpcNamespace &&
-                  item.metric?.[OBJECT_NAME] === placementInfo.drpcName &&
-                  getVolumeReplicationHealth(
-                    Number(item.value[1]) || 0,
-                    placementInfo.syncInterval
-                  )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
-              )
+          const hasVolumeReplicationIssue = checkVolumeReplicationHealth(
+            protectedAppMap,
+            lastSyncTimeData
           );
-
-          return hasIssue ? acc + 1 : acc;
+          const hasKubeObjBackupIssue =
+            checkKubeObjBackupHealth(protectedAppMap);
+          const hasIssue = hasVolumeReplicationIssue || hasKubeObjBackupIssue;
+          hasIssue &&
+            ++acc[
+              protectedAppMap.appType === APPLICATION_TYPE.DISCOVERED ? 0 : 1
+            ];
+          return acc;
         },
-        0
-      ) || 0,
+        [0, 0]
+      ) || [0, 0],
     [clusterResources, clusterName, lastSyncTimeData]
   );
 
-  const totalAppSetsCount = clusterResources[clusterName]?.totalAppCount;
   const protectedAppCount =
     clusterResources[clusterName]?.protectedApps?.length;
+
+  // All discovered are protected apps
+  const protectedDiscoveredApps =
+    clusterResources[clusterName]?.totalDiscoveredAppsCount;
+  const protectedManagedApps = protectedAppCount - protectedDiscoveredApps;
+
   return (
     <div className="mco-dashboard__contentColumn">
-      <Text component={TextVariants.h1}>{totalAppSetsCount || 0}</Text>
-      <StatusText>{t('Total applications')}</StatusText>
-      <Text className="text-muted mco-dashboard__statusText--margin">
-        {t(' {{ protectedAppCount }} protected', {
-          protectedAppCount,
-        })}
-      </Text>
-      <Text className="text-muted">
-        {t('{{ appsWithIssues }} of {{ protectedAppCount }} with issues', {
-          appsWithIssues,
-          protectedAppCount,
-        })}
-      </Text>
+      <Text component={TextVariants.h1}>{protectedAppCount}</Text>
+      <StatusText>{t('Protected applications')}</StatusText>
+      <Grid hasGutter className="pf-v5-u-w-75">
+        <ProtectedAppStatus
+          text={t('ACM discovered applications: ')}
+          healthyCount={protectedDiscoveredApps - appsWithIssues[0]}
+          issueCount={appsWithIssues[0]}
+        />
+        <ProtectedAppStatus
+          text={t('ACM managed applications: ')}
+          healthyCount={protectedManagedApps - appsWithIssues[1]}
+          issueCount={appsWithIssues[1]}
+        />
+      </Grid>
     </div>
   );
 };
@@ -384,4 +463,10 @@ type SnapshotUtilizationCardProps = {
 type UtilizationCardProps = {
   clusterName: string;
   peerClusters: string[];
+};
+
+type ProtectedAppStatusProps = {
+  text: string;
+  healthyCount: number;
+  issueCount: number;
 };

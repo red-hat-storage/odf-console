@@ -51,7 +51,6 @@ describe('Test Ceph pool creation', () => {
   });
 
   it('Check for a new pool creation', () => {
-    cy.visit('/');
     cy.clickNavLink(['Storage', 'StorageClasses']);
     cy.byTestID('item-create').click();
 

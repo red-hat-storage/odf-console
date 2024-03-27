@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { APPLICATION_TYPE, DRPC_STATUS } from '@odf/mco/constants';
 import {
-  DisasterRecoveryResourceKind,
   SubscriptionGroupType,
+  useDisasterRecoveryResourceWatch,
   useSubscriptionResourceWatch,
 } from '@odf/mco/hooks';
 import { ACMPlacementModel } from '@odf/mco/models';
@@ -11,7 +11,7 @@ import {
   ACMPlacementRuleKind,
   DRClusterAppsMap,
   DRClusterKind,
-  PlacementInfo,
+  PlacementControlInfo,
   ProtectedAppsMap,
 } from '@odf/mco/types';
 import {
@@ -23,12 +23,12 @@ import { ApplicationKind } from '@odf/shared';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
 
-const createPlacementInfoList = (
+const createPlacementControlInfoList = (
   subscriptionGroupsList: SubscriptionGroupType[],
   clusterName: string,
   applicationNamespace: string
-): PlacementInfo[] => {
-  const placementInfoList: PlacementInfo[] = [];
+): PlacementControlInfo[] => {
+  const placementInfoList: PlacementControlInfo[] = [];
 
   subscriptionGroupsList.forEach((subscriptionGroup) => {
     const { drInfo } = subscriptionGroup;
@@ -39,24 +39,24 @@ const createPlacementInfoList = (
         drClusters: currentDRClusters,
       } = drInfo;
 
-      const placementInfo: PlacementInfo = {
+      const placementControlInfo: PlacementControlInfo = {
         deploymentClusterName: clusterName,
         drpcName: getName(drPlacementControl),
         drpcNamespace: getNamespace(drPlacementControl),
         protectedPVCs: getProtectedPVCsFromDRPC(drPlacementControl),
         replicationType: findDRType(currentDRClusters),
-        syncInterval: drPolicy?.spec?.schedulingInterval,
-        workloadNamespace: applicationNamespace,
+        volumeSyncInterval: drPolicy?.spec?.schedulingInterval,
+        workloadNamespaces: [applicationNamespace],
         failoverCluster: drPlacementControl?.spec?.failoverCluster,
         preferredCluster: drPlacementControl?.spec?.preferredCluster,
-        lastGroupSyncTime: drPlacementControl?.status?.lastGroupSyncTime,
+        lastVolumeGroupSyncTime: drPlacementControl?.status?.lastGroupSyncTime,
         status: drPlacementControl?.status?.phase as DRPC_STATUS,
         subscriptions: subscriptionGroup?.subscriptions?.map((subs) =>
           getName(subs)
         ),
       };
 
-      placementInfoList.push(placementInfo);
+      placementInfoList.push(placementControlInfo);
     }
   });
 
@@ -75,7 +75,7 @@ const createProtectedAppMap = (
     appKind: application?.kind,
     appAPIVersion: application?.apiVersion,
     appType: APPLICATION_TYPE.SUBSCRIPTION,
-    placementInfo: createPlacementInfoList(
+    placementControlInfo: createPlacementControlInfoList(
       subscriptionGroupsList,
       clusterName,
       applicationNamespace
@@ -109,13 +109,13 @@ const createClusterWiseSubscriptionGroupsMap = (
 };
 
 export const useSubscriptionParser: UseSubscriptionParser = (
-  drResources,
-  drLoaded,
-  drLoadError,
   managedClusters,
   managedClusterLoaded,
   managedClusterLoadError
 ) => {
+  const [drResources, drLoaded, drLoadError] =
+    useDisasterRecoveryResourceWatch();
+
   const [subscriptionResources, subsResourceLoaded, subsResourceLoadError] =
     useSubscriptionResourceWatch({
       drResources: {
@@ -134,7 +134,7 @@ export const useSubscriptionParser: UseSubscriptionParser = (
         (acc, drCluster) => {
           const clusterName = getName(drCluster);
           acc[clusterName] = {
-            totalAppCount: 0,
+            totalManagedAppsCount: 0,
             protectedApps: [],
             managedCluster: managedClusters.find(
               (managedCluster) => getName(managedCluster) === clusterName
@@ -155,14 +155,14 @@ export const useSubscriptionParser: UseSubscriptionParser = (
         Object.entries(clusterWiseSubscriptionGroups).forEach(
           ([clusterName, subscriptionGroupsList]) => {
             if (clusterName in drClusterAppsMap) {
-              drClusterAppsMap[clusterName].totalAppCount += 1;
+              drClusterAppsMap[clusterName].totalManagedAppsCount += 1;
               const protectedApp = createProtectedAppMap(
                 application,
                 clusterName,
                 subscriptionGroupsList
               );
 
-              if (!!protectedApp.placementInfo.length) {
+              if (!!protectedApp.placementControlInfo.length) {
                 drClusterAppsMap[clusterName].protectedApps.push(protectedApp);
               }
             }
@@ -181,9 +181,6 @@ export const useSubscriptionParser: UseSubscriptionParser = (
 type UseSubscriptionParserResult = [DRClusterAppsMap, boolean, any];
 
 type UseSubscriptionParser = (
-  drResources: DisasterRecoveryResourceKind,
-  drLoaded: boolean,
-  drLoadError: any,
   managedClusters: ACMManagedClusterKind[],
   managedClusterLoaded: boolean,
   managedClusterLoadError: any

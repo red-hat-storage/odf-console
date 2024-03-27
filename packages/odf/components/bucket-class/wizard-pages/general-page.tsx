@@ -8,6 +8,7 @@ import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requireme
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isValidIP } from '@odf/shared/utils';
+import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { TFunction } from 'i18next';
 import { useForm } from 'react-hook-form';
@@ -22,7 +23,6 @@ import {
 } from '@patternfly/react-core';
 import { NooBaaBucketClassModel } from '../../../models';
 import { BucketClassKind, BucketClassType } from '../../../types';
-import validationRegEx from '../../../utils/validation';
 import { ExternalLink } from '../../mcg-endpoints/gcp-endpoint-type';
 import { Action, State } from '../state';
 import '../create-bc.scss';
@@ -201,7 +201,7 @@ const GeneralPage: React.FC<GeneralPageProps> = ({
             data-test="bucket-class-description"
             id="bc-description"
             value={state.description}
-            onChange={(description) =>
+            onChange={(_event, description) =>
               dispatch({ type: 'setDescription', value: description })
             }
             aria-label={t('Description of bucket class')}

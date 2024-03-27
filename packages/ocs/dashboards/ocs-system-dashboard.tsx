@@ -35,6 +35,7 @@ import { StatusCard as ExtStatusCard } from './persistent-external/status-card';
 import { default as ExtUtilizationCard } from './persistent-external/utilization-card';
 import { default as ActivityCard } from './persistent-internal/activity-card/activity-card';
 import BreakdownCard from './persistent-internal/capacity-breakdown-card/capacity-breakdown-card';
+import CapacityTrendCard from './persistent-internal/capacity-trend-card/capacity-trend-card';
 import DetailsCard from './persistent-internal/details-card';
 import InventoryCard from './persistent-internal/inventory-card';
 import RawCapacityCard from './persistent-internal/raw-capacity-card/raw-capacity-card';
@@ -77,6 +78,7 @@ const PersistentInternalDashboard: React.FC = () => {
   const mainCards: React.ComponentType[] = [
     StatusCard,
     RawCapacityCard,
+    CapacityTrendCard,
     BreakdownCard,
     UtilizationCard,
   ];

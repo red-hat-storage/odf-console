@@ -3,9 +3,9 @@ import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import validationRegEx from '@odf/shared/utils/validation';
 import * as Yup from 'yup';
 import { NooBaaObjectBucketClaimModel } from '../../models';
-import validationRegEx from '../../utils/validation';
 
 export type UseObcBaseSchema = {
   obcNameSchema: Yup.ObjectSchema<{ obcName: Yup.StringSchema }>;

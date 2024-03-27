@@ -3,11 +3,9 @@ import { MANAGED_CLUSTER_CONDITION_AVAILABLE } from '@odf/mco/constants';
 import { DRClusterAppsMap } from '@odf/mco/types';
 import { ValidateManagedClusterCondition } from '@odf/mco/utils';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
-import { FieldLevelHelp } from '@odf/shared/generic';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { Trans } from 'react-i18next';
 import {
   Card,
   CardBody,
@@ -17,7 +15,6 @@ import {
   Text,
 } from '@patternfly/react-core';
 import { DRResourcesContext } from '../dr-dashboard-context';
-import './summary-card.scss';
 
 type SummaryMap = {
   clusters: {
@@ -25,7 +22,8 @@ type SummaryMap = {
     withIssuesCount: number;
   };
   applications: {
-    totalCount: number;
+    totalDiscovredAppsCount: number;
+    totalManagedAppsCount: number;
     protectedCount: number;
   };
 };
@@ -37,15 +35,22 @@ const getClusterSummary = (
 ): SummaryMap => {
   const summaryMap: SummaryMap = {
     clusters: { totalCount: 0, withIssuesCount: 0 },
-    applications: { totalCount: 0, protectedCount: 0 },
+    applications: {
+      totalManagedAppsCount: 0,
+      totalDiscovredAppsCount: 0,
+      protectedCount: 0,
+    },
   };
   if (loaded && !loadError) {
     const drClusters = Object.keys(drClusterAppsMap);
     summaryMap.clusters.totalCount = drClusters?.length;
     drClusters?.forEach((cluster) => {
-      summaryMap.applications.totalCount =
-        summaryMap.applications.totalCount +
-        drClusterAppsMap[cluster].totalAppCount;
+      summaryMap.applications.totalManagedAppsCount =
+        summaryMap.applications.totalManagedAppsCount +
+        drClusterAppsMap[cluster].totalManagedAppsCount;
+      summaryMap.applications.totalDiscovredAppsCount =
+        summaryMap.applications.totalDiscovredAppsCount +
+        drClusterAppsMap[cluster].totalDiscoveredAppsCount;
       summaryMap.applications.protectedCount =
         summaryMap.applications.protectedCount +
         drClusterAppsMap[cluster].protectedApps.length;
@@ -74,6 +79,9 @@ export const SummaryCard: React.FC = () => {
   );
   const healthyClusters =
     summaryMap.clusters.totalCount - summaryMap.clusters.withIssuesCount;
+  const totalAppCount =
+    summaryMap.applications.totalDiscovredAppsCount +
+    summaryMap.applications.totalManagedAppsCount;
   return (
     <Card data-test="cluster-summary-card">
       <CardBody>
@@ -83,10 +91,13 @@ export const SummaryCard: React.FC = () => {
               <Text className="text-muted mco-dashboard__statusText--margin mco-dashboard__statusText--size">
                 {t('Clusters')}
               </Text>
-              <Text className="mco-dashboard__statusText--margin mco-summary__countText--size mco-dashboard__statusText--weight">
+              <Text className="mco-dashboard__statusText--margin pf-v5-u-font-size-4xl mco-dashboard__statusText--weight">
                 {summaryMap.clusters.totalCount}
               </Text>
-              <Divider className="mco-summary__divider--width mco-dashboard__statusText--margin" />
+              <Text className="text-muted mco-dashboard__statusText--margin">
+                {t('in disaster recovery relationship')}
+              </Text>
+              <Divider className="pf-v5-u-w-75 mco-dashboard__statusText--margin" />
               <HealthItem
                 title={t('{{ healthy }} healthy', {
                   healthy: healthyClusters,
@@ -107,21 +118,22 @@ export const SummaryCard: React.FC = () => {
             <GalleryItem className="mco-dashboard__contentColumn">
               <Text className="text-muted mco-dashboard__statusText--margin mco-dashboard__statusText--size">
                 {t('Applications')}
-                <FieldLevelHelp>
-                  <Trans t={t}>
-                    The applications count displays the total number of
-                    ApplicationSet and Subscription type applications in all
-                    disaster recovery configured clusters.
-                  </Trans>
-                </FieldLevelHelp>
               </Text>
-              <Text className="mco-dashboard__statusText--margin mco-summary__countText--size mco-dashboard__statusText--weight">
-                {summaryMap.applications.totalCount}
+              <Text className="mco-dashboard__statusText--margin pf-v5-u-font-size-4xl mco-dashboard__statusText--weight">
+                {totalAppCount}
               </Text>
-              <Divider className="mco-summary__divider--width mco-dashboard__statusText--margin" />
+              <Text className="text-muted mco-dashboard__statusText--margin">
+                {t('enrolled in disaster recovery')}
+              </Text>
+              <Divider className="pf-v5-u-w-75 mco-dashboard__statusText--margin" />
+              <Text className="text-muted mco-dashboard__statusText--margin">
+                {t('ACM discovered applications: {{count}}', {
+                  count: summaryMap.applications.totalDiscovredAppsCount,
+                })}
+              </Text>
               <Text className="text-muted">
-                {t('{{ protected }} protected', {
-                  protected: summaryMap.applications.protectedCount,
+                {t('ACM managed applications: {{count}}', {
+                  count: summaryMap.applications.totalManagedAppsCount,
                 })}
               </Text>
             </GalleryItem>

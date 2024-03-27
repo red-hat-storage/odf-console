@@ -4,11 +4,12 @@
 
 import * as React from 'react';
 import { DRPC_STATUS } from '@odf/mco/constants';
-import { PlacementInfo, ProtectedAppsMap } from '@odf/mco/types';
+import { PlacementControlInfo, ProtectedAppsMap } from '@odf/mco/types';
 import { getDRStatus } from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { fromNow } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
+import { GrayUnknownIcon, GreenCheckCircleIcon } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getPageRange } from '@odf/shared/utils';
 import {
@@ -27,6 +28,7 @@ import {
   Text,
   TextVariants,
 } from '@patternfly/react-core';
+import { InProgressIcon, PendingIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
 import { StatusText } from './common';
 
@@ -54,54 +56,86 @@ export const getCurrentActivity = (
   currentStatus: string,
   failoverCluster: string,
   preferredCluster: string,
-  t: TFunction
-) => {
-  if (
-    [DRPC_STATUS.Relocating, DRPC_STATUS.Relocated].includes(
-      currentStatus as DRPC_STATUS
-    )
-  ) {
-    return t('{{ currentStatus }} to cluster {{ preferredCluster }}', {
-      currentStatus,
-      preferredCluster,
-    });
-  } else if (
-    [DRPC_STATUS.FailingOver, DRPC_STATUS.FailedOver].includes(
-      currentStatus as DRPC_STATUS
-    )
-  ) {
-    return t('{{ currentStatus }} to cluster {{ failoverCluster }}', {
-      currentStatus,
-      failoverCluster,
-    });
+  t: TFunction,
+  isCleanupPending?: boolean
+): { description: string; status: string; icon: JSX.Element } => {
+  const status = currentStatus as DRPC_STATUS;
+
+  if (status === DRPC_STATUS.Relocating) {
+    return {
+      description: t('Relocating to cluster {{ preferredCluster }}', {
+        preferredCluster,
+      }),
+      status: t('In Progress'),
+      icon: <InProgressIcon />,
+    };
+  } else if (status === DRPC_STATUS.Relocated) {
+    return {
+      description: t('Relocated to cluster {{ preferredCluster }}', {
+        preferredCluster,
+      }),
+      status: t('Completed'),
+      icon: <GreenCheckCircleIcon />,
+    };
+  } else if (status === DRPC_STATUS.FailingOver) {
+    return {
+      description: t('FailingOver to cluster {{ failoverCluster }}', {
+        failoverCluster,
+      }),
+      status: t('In Progress'),
+      icon: <InProgressIcon />,
+    };
+  } else if (status === DRPC_STATUS.FailedOver) {
+    return isCleanupPending
+      ? {
+          description: t(
+            'Cleanup of resources requires user attention. Finish cleanup to restart replication.'
+          ),
+          status: t('Pending'),
+          icon: <PendingIcon />,
+        }
+      : {
+          description: t('FailedOver to cluster {{ failoverCluster }}', {
+            failoverCluster,
+          }),
+          status: t('Completed'),
+          icon: <GreenCheckCircleIcon />,
+        };
   } else {
-    return t('Unknown');
+    return {
+      description: t('Unknown'),
+      status: t('Unknown'),
+      icon: <GrayUnknownIcon />,
+    };
   }
 };
 
 const getSubscriptionRow = (
-  placementInfoList: PlacementInfo[] = []
+  placementControlInfoList: PlacementControlInfo[] = []
 ): SubscriptionRowProps[] => {
   const _getRowProps = (
     subscriptions: string[],
     {
       status,
-      lastGroupSyncTime,
+      lastVolumeGroupSyncTime,
       failoverCluster,
       preferredCluster,
-    }: PlacementInfo
+    }: PlacementControlInfo
   ): SubscriptionRowProps[] =>
     subscriptions?.map((subscriptionName) => ({
       name: subscriptionName,
       activity: status,
-      lastSnapshotSyncTime: lastGroupSyncTime,
+      lastSnapshotSyncTime: lastVolumeGroupSyncTime,
       failoverCluster: failoverCluster,
       preferredCluster: preferredCluster,
     }));
-  return placementInfoList.reduce(
-    (acc, placementInfo) => [
+  return placementControlInfoList.reduce(
+    (acc, placementControlInfo) => [
       ...acc,
-      ..._getRowProps(placementInfo?.subscriptions, placementInfo),
+      ..._getRowProps(
+        placementControlInfo?.subscriptions,
+        placementControlInfo
+      ),
     ],
     []
   );
@@ -112,52 +146,75 @@ export const ActivitySection: React.FC<CommonProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const placementInfo: PlacementInfo = selectedApplication?.placementInfo?.[0];
-  const currentStatus = placementInfo?.status;
-  const failoverCluster = placementInfo?.failoverCluster;
-  const preferredCluster = placementInfo?.preferredCluster;
+  const placementControlInfo: PlacementControlInfo =
+    selectedApplication?.placementControlInfo?.[0];
+  const currentStatus = placementControlInfo?.status;
+  const failoverCluster = placementControlInfo?.failoverCluster;
+  const preferredCluster = placementControlInfo?.preferredCluster;
   return (
     <div className="mco-dashboard__contentColumn">
       <StatusText>{t('Activity')}</StatusText>
       <StatusIconAndText
         icon={getDRStatus({ currentStatus, t }).icon}
-        title={getCurrentActivity(
-          currentStatus,
-          failoverCluster,
-          preferredCluster,
-          t
-        )}
+        title={
+          getCurrentActivity(
+            currentStatus,
+            failoverCluster,
+            preferredCluster,
+            t
+          ).description
+        }
         className="text-muted"
       />
     </div>
   );
 };
 
-export const SnapshotSection: React.FC<CommonProps> = ({
+export const NamespaceSection: React.FC<CommonProps> = ({
   selectedApplication,
 }) => {
   const { t } = useCustomTranslation();
-  const [lastSyncTime, setLastSyncTime] = React.useState('N/A');
-  const lastGroupSyncTime =
-    selectedApplication?.placementInfo?.[0]?.lastGroupSyncTime;
-  const updateSyncTime = React.useCallback(() => {
-    if (!!lastGroupSyncTime) {
-      setLastSyncTime(
-        formatSyncTimeWithRPO(lastGroupSyncTime, fromNow(lastGroupSyncTime))
-      );
-    } else {
-      setLastSyncTime('N/A');
-    }
-  }, [lastGroupSyncTime]);
-
-  useScheduler(updateSyncTime);
+  const workloadNamespace =
+    selectedApplication?.placementControlInfo?.[0]?.workloadNamespaces;
 
   return (
     <div className="mco-dashboard__contentColumn">
-      <StatusText>{t('Snapshot')}</StatusText>
+      <Text component={TextVariants.h1}>{workloadNamespace.length}</Text>
+      <StatusText>{t('Namespaces')}</StatusText>
+    </div>
+  );
+};
+
+export const SnapshotSection: React.FC<SnapshotSectionProps> = ({
+  selectedApplication,
+  isVolumeSnapshot,
+}) => {
+  const { t } = useCustomTranslation();
+  const [syncTime, setSyncTime] = React.useState('N/A');
+  const lastSyncTime = isVolumeSnapshot
+    ? selectedApplication?.placementControlInfo?.[0]?.lastVolumeGroupSyncTime
+    : selectedApplication?.placementControlInfo?.[0]?.lastKubeObjectSyncTime;
+
+  const updateSyncTime = React.useCallback(() => {
+    setSyncTime(
+      !!lastSyncTime
+        ? formatSyncTimeWithRPO(lastSyncTime, fromNow(lastSyncTime))
+        : 'N/A'
+    );
+  }, [lastSyncTime]);
+
+  useScheduler(updateSyncTime);
+
+  const title = isVolumeSnapshot
+    ? t('Volume snapshot')
+    : t('Kubernetes object snapshot');
+
+  return (
+    <div className="mco-dashboard__contentColumn">
+      <StatusText>{title}</StatusText>
       <Text className="text-muted">
-        {t('Last replicated on: {{ lastSyncTime }}', {
-          lastSyncTime: lastSyncTime,
+        {t('Last on: {{ syncTime }}', {
+          syncTime: syncTime,
         })}
       </Text>
     </div>
@@ -194,7 +251,10 @@ const SubscriptionRow: React.FC<
         {...subscriptionTableColumnProps[1]}
         activeColumnIDs={activeColumnIDs}
       >
-        {getCurrentActivity(activity, failoverCluster, preferredCluster, t)}
+        {
+          getCurrentActivity(activity, failoverCluster, preferredCluster, t)
+            .description
+        }
       </TableData>
       <TableData
         {...subscriptionTableColumnProps[2]}
@@ -210,7 +270,7 @@ export const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
   selectedApplication,
 }) => {
   const { t } = useCustomTranslation();
-  const subsCount = selectedApplication?.placementInfo?.reduce(
+  const subsCount = selectedApplication?.placementControlInfo?.reduce(
     (acc, placement) => acc + placement.subscriptions?.length || 0,
     0
   );
@@ -224,7 +284,7 @@ export const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
 
 export const SubscriptionDetailsTable: React.FC<SubscriptionDetailsTableProps> =
   ({ selectedApplication }) => {
-    const { placementInfo } = selectedApplication;
+    const { placementControlInfo } = selectedApplication;
     const { t } = useCustomTranslation();
     const [subsWiseRPO, setSubsWiseRPO] =
       React.useState<SubscriptionWiseRPOMap>({});
@@ -263,12 +323,12 @@ export const SubscriptionDetailsTable: React.FC<SubscriptionDetailsTableProps> =
     const [subscriptionRows, numberOfRows]: [SubscriptionRowProps[], number] =
       React.useMemo(() => {
         const [start, end] = getPageRange(page, perPage);
-        const subscriptionRowList = getSubscriptionRow(placementInfo);
+        const subscriptionRowList = getSubscriptionRow(placementControlInfo);
         return [
           subscriptionRowList.slice(start, end),
           subscriptionRowList.length,
         ];
-      }, [placementInfo, page, perPage]);
+      }, [placementControlInfo, page, perPage]);
     const updatedRPO = React.useCallback(() => {
       const rpoMap = subscriptionRows.reduce((acc, row) => {
         const { name, lastSnapshotSyncTime } = row;
@@ -295,7 +355,6 @@ export const SubscriptionDetailsTable: React.FC<SubscriptionDetailsTableProps> =
             loadError=""
           />
           <Pagination
-            perPageComponent="button"
             itemCount={numberOfRows}
             widgetId="subscription-table"
             perPage={perPage}
@@ -337,4 +396,8 @@ type SubscriptionRowProps = {
 
 type SubscriptionWiseRPOMap = {
   [subscriptionName: string]: string;
+};
+
+type SnapshotSectionProps = CommonProps & {
+  isVolumeSnapshot?: boolean;
 };

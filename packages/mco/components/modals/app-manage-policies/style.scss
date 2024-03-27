@@ -1,15 +1,15 @@
 .mco-manage-policies {
     &__row--padding {
-        padding: 0 0 var(--pf-global--spacer--md) 0;
+        padding: 0 0 var(--pf-v5-global--spacer--md) 0;
     }
     &__col-padding {
-        padding: 0 var(--pf-global--spacer--md) 0 var(--pf-global--spacer--md);
+        padding: 0 var(--pf-v5-global--spacer--md) 0 var(--pf-v5-global--spacer--md);
     }
     &__header{
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        padding: 0 var(--pf-global--spacer--md) 0 var(--pf-global--spacer--md);
+        padding: 0 var(--pf-v5-global--spacer--md) 0 var(--pf-v5-global--spacer--md);
     }
     &__dropdown--wide {
         min-width: 15rem;
@@ -18,12 +18,12 @@
         width: 50%;
     }
     &__emptyState---margin-bottom {
-        margin-bottom: var(--pf-global--spacer--lg);
+        margin-bottom: var(--pf-v5-global--spacer--lg);
     }
     &__nameValue--weight {
-        font-weight: var(--pf-global--FontWeight--bold)
+        font-weight: var(--pf-v5-global--FontWeight--bold)
     }
     &__alert--margin-left {
-        margin-left: var(--pf-global--spacer--lg);
+        margin-left: var(--pf-v5-global--spacer--lg);
     }
 }

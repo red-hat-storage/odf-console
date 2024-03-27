@@ -20,12 +20,12 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
-    <InputGroup>
+    <InputGroup translate={undefined}>
       <TextInput
         id={id}
         type={showPassword ? 'text' : 'password'}
         value={value}
-        onChange={onChange}
+        onChange={(_event, newValue) => onChange(newValue)}
         isRequired={isRequired}
       />
       <Tooltip content={showPassword ? t('Hide password') : t('Show password')}>

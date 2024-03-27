@@ -154,7 +154,7 @@ const PairElement: React.FC<PairElementProps> = ({
         <input
           type="text"
           data-test="pairs-list-name"
-          className="pf-c-form-control"
+          className="pf-v5-c-form-control"
           placeholder={nameString}
           value={pair[NameValueEditorPair.Name]}
           onChange={onChangeName}
@@ -165,7 +165,7 @@ const PairElement: React.FC<PairElementProps> = ({
         <input
           type="text"
           data-test="pairs-list-value"
-          className="pf-c-form-control"
+          className="pf-v5-c-form-control"
           placeholder={valueString}
           value={pair[NameValueEditorPair.Value] || ''}
           onChange={onChangeValue}

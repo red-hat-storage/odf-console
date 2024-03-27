@@ -40,9 +40,6 @@ export const getStorageClassDescription = (
   return _.compact(storageClassProperties).join(' | ');
 };
 
-export const getOperatorVersion = (operator: K8sResourceKind): string =>
-  operator?.spec?.version;
-
 export const isMCGStandaloneCluster = (storageCluster: StorageClusterKind) =>
   storageCluster?.spec?.multiCloudGateway?.reconcileStrategy === 'standalone';
 

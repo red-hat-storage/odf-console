@@ -27,14 +27,6 @@
     "type": "console.flag",
     "properties": {
       "handler": {
-        "$codeRef": "features.detectROSA"
-      }
-    }
-  },
-  {
-    "type": "console.flag",
-    "properties": {
-      "handler": {
         "$codeRef": "features.detectComponents"
       }
     }

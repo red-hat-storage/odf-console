@@ -18,12 +18,12 @@ import { WizardNodeState } from '../../reducer';
 import { SelectNodesTableFooter } from '../../select-nodes-table/select-nodes-table-footer';
 
 const tableColumnClasses = [
-  { className: classNames('pf-u-w-40-on-sm'), id: 'name' },
+  { className: classNames('pf-v5-u-w-40-on-sm'), id: 'name' },
   {
     className: classNames(
       'pf-m-hidden',
       'pf-m-visible-on-sm',
-      'pf-u-w-10-on-sm'
+      'pf-v5-u-w-10-on-sm'
     ),
     id: 'roles',
   },
@@ -31,7 +31,7 @@ const tableColumnClasses = [
     className: classNames(
       'pf-m-hidden',
       'pf-m-visible-on-sm',
-      'pf-u-w-10-on-sm'
+      'pf-v5-u-w-10-on-sm'
     ),
     id: 'cpu',
   },
@@ -39,7 +39,7 @@ const tableColumnClasses = [
     className: classNames(
       'pf-m-hidden',
       'pf-m-visible-on-sm',
-      'pf-u-w-10-on-sm'
+      'pf-v5-u-w-10-on-sm'
     ),
     id: 'memory',
   },
@@ -47,7 +47,7 @@ const tableColumnClasses = [
     className: classNames(
       'pf-m-hidden',
       'pf-m-visible-on-sm',
-      'pf-u-w-10-on-sm'
+      'pf-v5-u-w-10-on-sm'
     ),
     id: 'zone',
   },
@@ -120,7 +120,7 @@ export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({
   );
 
   const [columns] = useActiveColumns({
-    columns: SelectedNodesTableColumns,
+    columns: SelectedNodesTableColumns as any, // Todo(bipuladh): Update once sdk is updated
     showNamespaceOverride: false,
     columnManagementID: 'SELECTED_NODES',
   });

@@ -76,7 +76,7 @@ const RowRenderer: React.FC<RowProps<BackingStoreKind, CustomData>> = ({
         <Checkbox
           label=""
           isChecked={isChecked}
-          onChange={onChange}
+          onChange={(_event, checked: boolean) => onChange(checked)}
           id={`${obj.metadata.name}-checkbox`}
         />
       </TableData>

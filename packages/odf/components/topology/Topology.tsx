@@ -543,7 +543,7 @@ const Topology: React.FC = () => {
   React.useEffect(() => {
     const temp = new Visualization();
     temp.registerLayoutFactory(defaultLayoutFactory);
-    temp.registerComponentFactory(stylesComponentFactory);
+    temp.registerComponentFactory(stylesComponentFactory as any);
     temp.addEventListener(STEP_INTO_EVENT, onStepInto);
     temp.addEventListener(STEP_TO_CLUSTER, onStepOut);
     setController(temp);
@@ -578,7 +578,7 @@ const Topology: React.FC = () => {
         setActiveNode,
         nodeDeploymentMap,
         selectedElement,
-        setSelectedElement,
+        setSelectedElement: setSelectedElement as any,
       }}
     >
       <TopologySearchContext.Provider

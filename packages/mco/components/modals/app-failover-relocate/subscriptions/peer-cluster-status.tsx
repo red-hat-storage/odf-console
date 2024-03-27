@@ -180,7 +180,7 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
       </Flex>
       <Flex>
         <FlexItem>
-          <strong> {t('Data last synced on:')} </strong>
+          <strong> {t('Volume last synced on:')} </strong>
         </FlexItem>
         <FlexItem>
           <DateTimeFormat

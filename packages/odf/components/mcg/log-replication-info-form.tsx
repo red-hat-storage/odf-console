@@ -1,6 +1,14 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TextInput, FormGroup, Stack, StackItem } from '@patternfly/react-core';
+import {
+  TextInput,
+  FormGroup,
+  Stack,
+  StackItem,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+} from '@patternfly/react-core';
 
 type LogReplicationInfoFormProps = {
   location?: string;
@@ -26,7 +34,7 @@ export const LogReplicationInfoForm: React.FC<LogReplicationInfoFormProps> = ({
             type="text"
             id="logs-location-input"
             value={location}
-            onChange={(val: string) => {
+            onChange={(_event, val: string) => {
               onLogLocationChange(val);
             }}
             aria-label={t('Prefix')}
@@ -34,24 +42,27 @@ export const LogReplicationInfoForm: React.FC<LogReplicationInfoFormProps> = ({
         </FormGroup>
       </StackItem>
       <StackItem>
-        <FormGroup
-          fieldId="log-prefix-input-field"
-          label={t('Prefix')}
-          helperText={t(
-            'Object names starting with given prefix gets synchronised with the target bucket'
-          )}
-        >
+        <FormGroup fieldId="log-prefix-input-field" label={t('Prefix')}>
           <TextInput
             data-test="log-prefix-input"
             placeholder={t('Enter a prefix')}
             type="text"
             id="log-prefix-input"
             value={prefix}
-            onChange={(val: string) => {
+            onChange={(_event, val: string) => {
               onPrefixChange(val);
             }}
             aria-label={t('Log Prefix')}
           />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>
+                {t(
+                  'Object names starting with given prefix gets synchronised with the target bucket'
+                )}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
         </FormGroup>
       </StackItem>
     </Stack>

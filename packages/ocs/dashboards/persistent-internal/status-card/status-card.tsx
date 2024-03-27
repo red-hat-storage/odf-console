@@ -2,7 +2,9 @@ import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { getCephHealthState } from '@odf/ocs/utils';
+import { odfDocBasePath } from '@odf/shared/constants/doc';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
+import { DOC_VERSION as odfDocVersion } from '@odf/shared/hooks';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -20,7 +22,6 @@ import {
 import {
   AlertItem,
   AlertsBody,
-  HealthBody,
   HealthItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
@@ -50,8 +51,13 @@ const resiliencyProgressQuery = (managedByOCS: string) =>
     StorageDashboardQuery.RESILIENCY_PROGRESS
   ];
 
-const generateDocumentationLink = (alert: Alert): string => {
-  return `https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.12/html-single/troubleshooting_openshift_data_foundation/index#${_.toLower(
+const generateDocumentationLink = (
+  alert: Alert,
+  docVersion: string
+): string => {
+  return `${odfDocBasePath(
+    docVersion
+  )}/troubleshooting_openshift_data_foundation/index#${_.toLower(
     alert?.labels?.alertname
   )}_rhodf`;
 };
@@ -60,14 +66,14 @@ const isCephBasedAlert = (alert: Alert): boolean => {
   return alert?.annotations?.storage_type === 'ceph';
 };
 
-const getDocumentationLink = (alert: Alert): string => {
-  if (isCephBasedAlert(alert)) {
-    return generateDocumentationLink(alert);
+const getDocumentationLink = (alert: Alert, docVersion: string): string => {
+  if (!!docVersion && isCephBasedAlert(alert)) {
+    return generateDocumentationLink(alert, docVersion);
   }
   return null;
 };
 
-export const CephAlerts: React.FC = () => {
+const CephAlerts: React.FC<{ docVersion: string }> = ({ docVersion }) => {
   const [alerts, loaded, error] = useAlerts();
   // ToDo (epic 4422): Get StorageCluster name and namespace from the Alert object
   // and filter Alerts based on that for a particular cluster.
@@ -82,7 +88,7 @@ export const CephAlerts: React.FC = () => {
           <AlertItem
             key={alertURL(alert, alert?.rule?.id)}
             alert={alert as any}
-            documentationLink={getDocumentationLink(alert)}
+            documentationLink={getDocumentationLink(alert, docVersion)}
           />
         ))}
     </AlertsBody>
@@ -162,7 +168,12 @@ export const StatusCard: React.FC = () => {
       const healthCheckObject: CephHealthCheckType = {
         id: key,
         details: cephDetails[key].message,
-        troubleshootLink: whitelistedHealthChecksRef[key] ?? null,
+        ...(!!odfDocVersion
+          ? {
+              troubleshootLink:
+                whitelistedHealthChecksRef(odfDocVersion)[key] ?? null,
+            }
+          : {}),
       };
       healthChecks.push(healthCheckObject);
     }
@@ -174,39 +185,40 @@ export const StatusCard: React.FC = () => {
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <HealthBody>
-          <Gallery className="odf-overview-status__health" hasGutter>
-            <GalleryItem>
-              <HealthItem
-                title={t('Storage Cluster')}
-                state={cephHealthState.state}
-                details={cephHealthState.message}
-                popupTitle={healthChecks ? t('Active health checks') : null}
-              >
-                {healthChecks?.map((healthCheck: CephHealthCheckType, i) => (
-                  <CephHealthCheck
-                    key={`${i}`}
-                    cephHealthState={cephHealthState}
-                    healthCheck={healthCheck}
-                  />
-                ))}
-              </HealthItem>
-            </GalleryItem>
-            <GalleryItem>
-              <HealthItem
-                title={t('Data Resiliency')}
-                state={dataResiliencyState.state}
-                details={dataResiliencyState.message}
-              />
-            </GalleryItem>
-          </Gallery>
-        </HealthBody>
+        <Gallery
+          className="odf-overview-status__health pf-v5-u-mb-sm"
+          hasGutter
+        >
+          <GalleryItem>
+            <HealthItem
+              title={t('Storage Cluster')}
+              state={cephHealthState.state}
+              details={cephHealthState.message}
+              popupTitle={healthChecks ? t('Active health checks') : null}
+            >
+              {healthChecks?.map((healthCheck: CephHealthCheckType, i) => (
+                <CephHealthCheck
+                  key={`${i}`}
+                  cephHealthState={cephHealthState}
+                  healthCheck={healthCheck}
+                />
+              ))}
+            </HealthItem>
+          </GalleryItem>
+          <GalleryItem>
+            <HealthItem
+              title={t('Data Resiliency')}
+              state={dataResiliencyState.state}
+              details={dataResiliencyState.message}
+            />
+          </GalleryItem>
+        </Gallery>
         <OSDMigrationProgress
           cephData={cephCluster}
           dataLoaded={loaded}
           dataLoadError={loadError}
         />
-        <CephAlerts />
+        <CephAlerts docVersion={odfDocVersion} />
       </CardBody>
     </Card>
   );

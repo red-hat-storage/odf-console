@@ -9,15 +9,13 @@ import {
   K8sResourceCommon,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link } from 'react-router-dom-v5-compat';
 import {
-  PopoverPosition,
-  Popover,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownToggle,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
+import { Link } from 'react-router-dom-v5-compat';
+import { PopoverPosition, Popover, Button } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import { getName, getNamespace } from '../../selectors';
 import { useCustomTranslation } from '../../useCustomTranslationHook';

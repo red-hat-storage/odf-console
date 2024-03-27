@@ -4,8 +4,9 @@ import {
   BLUESTORE,
   BLUESTORE_RDR,
 } from '@odf/core/constants';
-import { ODF_DR_DOC_HOME } from '@odf/shared/constants/doc';
+import { odfDRDocApplyPolicy } from '@odf/shared/constants/doc';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
+import { DOC_VERSION as odfDocVersion } from '@odf/shared/hooks';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -42,6 +43,7 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
   dataLoadError,
 }) => {
   const { t } = useCustomTranslation();
+
   const [migratedDevices, totalOSD] = calculateOSDMigration(
     cephData,
     dataLoaded,
@@ -69,7 +71,8 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
             <FlexItem>
               <ViewDocumentation
                 text={t('Setting up disaster recovery')}
-                doclink={ODF_DR_DOC_HOME}
+                doclink={odfDRDocApplyPolicy(odfDocVersion)}
+                hideDocLink={!odfDocVersion}
               />
             </FlexItem>
           </>
@@ -77,14 +80,14 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
 
         {migrationStatus === OSDMigrationStatus.IN_PROGRESS && (
           <>
-            <FlexItem className="pf-u-mt-xl">
+            <FlexItem className="pf-v5-u-mt-xl">
               <HealthItem
                 icon={<InProgressIcon className="co-dashboard-icon" />}
                 disableDetails
                 title={t('Migrating cluster OSDs')}
               />
             </FlexItem>
-            <FlexItem className="pf-u-mt-xl pf-m-align-right">
+            <FlexItem className="pf-v5-u-mt-xl pf-m-align-right">
               {t('{{ migratedDevices }}/{{ totalOSD }} OSDs remaining', {
                 migratedDevices,
                 totalOSD,
@@ -95,7 +98,7 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
 
         {migrationStatus === OSDMigrationStatus.FAILED && (
           <>
-            <FlexItem className="pf-u-mt-xl">
+            <FlexItem className="pf-v5-u-mt-xl">
               <HealthItem
                 icon={
                   <RedExclamationCircleIcon className="co-dashboard-icon" />
@@ -104,7 +107,7 @@ export const OSDMigrationProgress: React.FC<OSDMigrationProgressProps> = ({
                 title={t('Could not migrate cluster OSDs. Check logs')}
               />
             </FlexItem>
-            <FlexItem className="pf-u-mt-xl pf-m-align-right">
+            <FlexItem className="pf-v5-u-mt-xl pf-m-align-right">
               {t('{{ migratedDevices }}/{{ totalOSD }} remaining', {
                 migratedDevices,
                 totalOSD,

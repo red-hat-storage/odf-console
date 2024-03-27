@@ -18,11 +18,11 @@ export const ReviewAndCreateStep: React.FC<ReviewAndCreateStepProps> = ({
 
 export const ReviewAndCreationGroup: React.FC<ReviewAndCreationGroupProps> = ({
   title,
-  description,
   className,
   children,
 }) => (
-  <FormGroup label={title} helperText={description} className={className}>
+  <FormGroup label={title} className={className}>
+    {/* Add helper text */}
     <DescriptionList isFluid isCompact isHorizontal>
       {children}
     </DescriptionList>

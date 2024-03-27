@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { NetworkAttachmentDefinitionModel } from '@odf/core/models';
-import TechPreviewBadge from '@odf/shared/badges/TechPreviewBadge';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
@@ -14,8 +13,9 @@ import {
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import { FormGroup, Radio, SelectOption } from '@patternfly/react-core';
+import { FormGroup, Radio } from '@patternfly/react-core';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import { WizardState } from '../../reducer';
 import './configure.scss';
@@ -233,22 +233,19 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           isChecked={networkType === NetworkType.MULTUS}
           name="custom-network"
           label={
-            <>
+            <div className="ceph__multus-radio--width">
               {t('Custom (Multus)')}
               <FieldLevelHelp>
                 {t(
                   'Multus allows a network seperation between the data operations and the control plane operations.'
                 )}
               </FieldLevelHelp>
-            </>
+            </div>
           }
           onChange={() => setNetworkType(NetworkType.MULTUS)}
           value={NetworkType.MULTUS}
           id={NetworkType.MULTUS}
         />
-        <div className="ceph__multus-tech-preview-badge--margin">
-          <TechPreviewBadge />
-        </div>
       </FormGroup>
       {networkType === NetworkType.MULTUS && (
         <MultusDropdown

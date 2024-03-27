@@ -128,22 +128,22 @@ const PerformanceCard: React.FC = () => {
     () => [
       {
         columnName: t('Name'),
-        className: 'pf-u-w-10 performanceCard--verticalAlign',
+        className: 'pf-v5-u-w-10 performanceCard--verticalAlign',
         sortFunction: nameSort,
       },
       {
         columnName: t('IOPS'),
-        className: 'pf-u-w-30',
+        className: 'pf-v5-u-w-30',
         sortFunction: metricsSort('iopsData'),
       },
       {
         columnName: t('Latency'),
-        className: 'pf-u-w-30',
+        className: 'pf-v5-u-w-30',
         sortFunction: metricsSort('latencyData'),
       },
       {
         columnName: t('Throughput'),
-        className: 'pf-u-w-30',
+        className: 'pf-v5-u-w-30',
         sortFunction: metricsSort('throughputData'),
       },
     ],

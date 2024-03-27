@@ -9,6 +9,9 @@ export const DRPC_NAMESPACE_ANNOTATION =
 // DRPC annotations
 export const LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION =
   'drplacementcontrol.ramendr.openshift.io/last-app-deployment-cluster';
+// ACM managed application workload namespace
+export const APP_NAMESPACE_ANNOTATION =
+  'drplacementcontrol.ramendr.openshift.io/app-namespace';
 
 // Maximum cluster per DRPolicy
 export const MAX_ALLOWED_CLUSTERS = 2;
@@ -85,13 +88,13 @@ export const ENROLLED_APP_QUERY_PARAMS_KEY = 'enrolledApp';
 // Enroll discovered application wizard steps
 export enum EnrollDiscoveredApplicationSteps {
   Namespace = 'namespace',
-  Configure = 'configure',
+  Configuration = 'Configuration',
   Replication = 'replication',
   Review = 'review',
 }
 export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
   [EnrollDiscoveredApplicationSteps.Namespace]: t('Namespace'),
-  [EnrollDiscoveredApplicationSteps.Configure]: t('Configure'),
+  [EnrollDiscoveredApplicationSteps.Configuration]: t('Configuration'),
   [EnrollDiscoveredApplicationSteps.Replication]: t('Replication'),
   [EnrollDiscoveredApplicationSteps.Review]: t('Review'),
 });

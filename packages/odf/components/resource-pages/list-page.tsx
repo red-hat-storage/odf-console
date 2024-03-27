@@ -47,7 +47,7 @@ const tableColumnInfo = [
     className: classNames('pf-m-hidden', 'pf-m-visible-on-lg'),
     id: 'creationTimestamp',
   },
-  { className: 'dropdown-kebab-pf pf-c-table__action', id: '' },
+  { className: Kebab.columnClass, id: '' },
 ];
 
 type ResourceTableProps = {

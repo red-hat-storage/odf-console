@@ -32,3 +32,4 @@ export * from './yaml-editor';
 export * from './yup-validation-resolver';
 export * from './file-handling';
 export * from './text-inputs';
+export * from './label-expression-selector';

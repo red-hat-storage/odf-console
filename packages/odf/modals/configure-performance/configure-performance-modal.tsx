@@ -67,17 +67,17 @@ const ProfileRequirementsModalText: React.FC<ProfileRequirementsModalTextProps> 
       RESOURCE_PROFILE_REQUIREMENTS_MAP[selectedProfile];
     return (
       <TextContent>
-        <Text id="resource-requirements" className="pf-u-font-size-md">
-          <span className="pf-u-mr-sm">
+        <Text id="resource-requirements" className="pf-v5-u-font-size-md">
+          <span className="pf-v5-u-mr-sm">
             {t(
               `The aggregate resource requirements for ${selectedProfile} mode is`
             )}
           </span>
-          <span className="pf-u-font-weight-bold pf-u-font-size-md">
+          <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md">
             {minCpu} {t('CPUs')}
           </span>{' '}
           {t('and')}{' '}
-          <span className="pf-u-font-weight-bold pf-u-font-size-md pf-u-mr-xs">
+          <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md pf-v5-u-mr-xs">
             {minMem} {t('GiB RAM')}
           </span>
           {selectedProfile === ResourceProfile.Performance && (
@@ -185,12 +185,12 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
             resourceProfile={resourceProfile}
             key={validation}
             validation={validation}
-            className="pf-u-mt-md"
+            className="pf-v5-u-mt-md"
           />
         )}
         {errorMessage && (
           <Alert
-            className="pf-u-mt-md"
+            className="pf-v5-u-mt-md"
             isInline
             variant="danger"
             title={t('An error occurred')}

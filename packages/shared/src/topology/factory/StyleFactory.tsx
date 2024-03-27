@@ -1,5 +1,5 @@
+import { ComponentFactory } from '@patternfly/react-topology/src/types';
 import {
-  ComponentFactory,
   withDragNode,
   withSelection,
   ModelKind,

@@ -16,7 +16,8 @@
     "paths": {
       "@odf/shared/*": ["./packages/shared/src/*"],
       "packages/shared/*": ["./packages/shared/src/*"]
-    }
+    },
+    "types": ["./index"]
   },
   "exclude": [
     "**/*/build",

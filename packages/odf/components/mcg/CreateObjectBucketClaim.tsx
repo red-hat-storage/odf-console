@@ -259,17 +259,17 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
           label: t('ObjectBucketClaim Name'),
           fieldId: 'obc-name',
           className: 'control-label',
-          helperText: t('If not provided a generic name will be generated.'),
         }}
         textInputProps={{
           id: 'obc-name',
           name: 'obcName',
-          className: 'pf-c-form-control',
+          className: 'pf-v5-c-form-control',
           type: 'text',
           placeholder: t('my-object-bucket'),
           'aria-describedby': 'obc-name-help',
           'data-test': 'obc-name',
         }}
+        helperText={t('If not provided a generic name will be generated.')}
       />
       <FormGroupController
         name="sc-dropdown"
@@ -509,7 +509,7 @@ export const CreateOBCPage: React.FC<{}> = () => {
               />
             )}
             <ButtonBar errorMessage={state.error} inProgress={state.progress}>
-              <ActionGroup className="pf-c-form">
+              <ActionGroup className="pf-v5-c-form">
                 <Button
                   id={submitBtnId}
                   type="submit"

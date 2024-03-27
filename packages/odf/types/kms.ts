@@ -4,6 +4,7 @@ export enum ProviderNames {
   VAULT = 'vault',
   HPCS = 'hpcs',
   THALES = 'thales',
+  AZURE = 'azure',
 }
 
 export enum VaultAuthMethods {
@@ -17,6 +18,7 @@ export enum KmsImplementations {
   VAULT_TENANT_SA = 'vaulttenantsa', // used by ceph-csi for tenant service account
   IBM_KEY_PROTECT = 'ibmkeyprotect', // used by both rook & ceph-csi
   KMIP = 'kmip', // used by both rook & ceph-csi
+  AZURE = 'azure-kv', // used by both rook & ceph-csi
 }
 
 // for Vault, ceph-csi uses camelCase format and other operators uses CAPITAL_UNDERSCORE format
@@ -143,7 +145,36 @@ export type ThalesConfig = {
   hasHandled: boolean;
 };
 
-export type KMSConfiguration = VaultConfig | HpcsConfig | ThalesConfig;
+export type AzureConfig = {
+  name: {
+    value: string;
+    valid: boolean;
+  };
+  azureVaultURL: {
+    value: string;
+    valid: boolean;
+  };
+  clientID: {
+    value: string;
+    valid: boolean;
+  };
+  tenantID: {
+    value: string;
+    valid: boolean;
+  };
+  clientCert: {
+    value: string;
+    error: string;
+    fileName: string;
+  };
+  hasHandled: boolean;
+};
+
+export type KMSConfiguration =
+  | VaultConfig
+  | HpcsConfig
+  | ThalesConfig
+  | AzureConfig;
 
 export type KMSConfig = {
   providerState: KMSConfiguration;
@@ -205,6 +236,15 @@ export type ThalesConfigMap = {
   TLS_SERVER_NAME: string;
 };
 
+export type AzureConfigMap = {
+  KMS_PROVIDER: string;
+  KMS_SERVICE_NAME: string;
+  AZURE_VAULT_URL: string;
+  AZURE_TENANT_ID: string;
+  AZURE_CLIENT_ID: string;
+  AZURE_CERT_SECRET_NAME: string;
+};
+
 export const VaultAuthMethodMapping: {
   [keys in VaultAuthMethods]: {
     name: string;
@@ -230,4 +270,8 @@ export const VaultAuthMethodMapping: {
   },
 };
 
-export type KMSConfigMap = VaultConfigMap | HpcsConfigMap | ThalesConfigMap;
+export type KMSConfigMap =
+  | VaultConfigMap
+  | HpcsConfigMap
+  | ThalesConfigMap
+  | AzureConfigMap;

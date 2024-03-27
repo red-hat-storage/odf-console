@@ -223,19 +223,6 @@ const drResources1: DisasterRecoveryResourceKind = {
   ],
 };
 
-const drResources2: DisasterRecoveryResourceKind = {
-  drClusters: [],
-  drPolicies: [],
-  drPlacementControls: [],
-  formattedResources: [
-    {
-      drClusters: [],
-      drPolicy: {},
-      drPlacementControls: [],
-    },
-  ],
-};
-
 const appResources1: ArgoApplicationSetResourceKind = {
   formattedResources: [
     {
@@ -272,19 +259,13 @@ const appResources2: ArgoApplicationSetResourceKind = {
 };
 
 const managedClusters = [];
-const drLoaded = true;
-const drLoadError = null;
 const managedClusterLoaded = true;
 const managedClusterLoadError = null;
 
 jest.mock('@odf/mco/hooks/disaster-recovery', () => ({
   __esModule: true,
   useDisasterRecoveryResourceWatch: jest.fn(() => {
-    if (isUnProtectedApplicationTestCase) {
-      return [drResources2, true, ''];
-    } else {
-      return [drResources1, true, ''];
-    }
+    return [drResources1, true, ''];
   }),
 }));
 
@@ -303,9 +284,6 @@ describe('useApplicationSetParser', () => {
   test('Application count with unprotected applications', async () => {
     const { result } = renderHook(() =>
       useApplicationSetParser(
-        drResources1,
-        drLoaded,
-        drLoadError,
         managedClusters,
         managedClusterLoaded,
         managedClusterLoadError
@@ -314,8 +292,8 @@ describe('useApplicationSetParser', () => {
 
     const [drClusterAppsMap, loaded, loadError] = result.current;
     expect(Object.keys(drClusterAppsMap)).toEqual(['east-1', 'west-1']);
-    expect(drClusterAppsMap['east-1'].totalAppCount).toBe(1);
-    expect(drClusterAppsMap['west-1'].totalAppCount).toBe(0);
+    expect(drClusterAppsMap['east-1'].totalManagedAppsCount).toBe(1);
+    expect(drClusterAppsMap['west-1'].totalManagedAppsCount).toBe(0);
     expect(loaded).toBe(true);
     expect(loadError).toBe('');
   });
@@ -325,9 +303,6 @@ describe('useApplicationSetParser', () => {
 
     const { result } = renderHook(() =>
       useApplicationSetParser(
-        drResources1,
-        drLoaded,
-        drLoadError,
         managedClusters,
         managedClusterLoaded,
         managedClusterLoadError
@@ -341,23 +316,26 @@ describe('useApplicationSetParser', () => {
     expect(drClusterAppsMap['east-1'].protectedApps[0].appType).toBe(
       'ApplicationSet'
     );
-    expect(drClusterAppsMap['east-1'].protectedApps[0].placementInfo).toEqual([
+    expect(
+      drClusterAppsMap['east-1'].protectedApps[0].placementControlInfo
+    ).toEqual([
       {
         deploymentClusterName: 'east-1',
         drpcName: 'mock-placement-1-drpc',
         drpcNamespace: 'mock-appset-1',
         failoverCluster: undefined,
-        lastGroupSyncTime: '2023-06-06T17:50:56Z',
+        lastVolumeGroupSyncTime: '2023-06-06T17:50:56Z',
         preferredCluster: undefined,
         protectedPVCs: [],
         replicationType: 'async',
         status: 'Relocating',
-        syncInterval: '5m',
-        workloadNamespace: 'mock-appset-1',
+        volumeSyncInterval: '5m',
+        workloadNamespaces: ['mock-appset-1'],
       },
     ]);
     // Checking the total app count and protected app coun
-    expect(drClusterAppsMap['east-1'].totalAppCount).toBe(1);
+    expect(drClusterAppsMap['east-1'].totalManagedAppsCount).toBe(1);
     expect(drClusterAppsMap['east-1'].protectedApps).toHaveLength(1);
+    expect(drClusterAppsMap['east-1'].totalDiscoveredAppsCount).toBeUndefined();
   });
 });

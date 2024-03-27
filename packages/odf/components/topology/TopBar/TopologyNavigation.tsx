@@ -7,7 +7,7 @@ import {
   OptionsMenu,
   OptionsMenuItem,
   OptionsMenuToggle,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
 import { AngleRightIcon } from '@patternfly/react-icons';
 import { useVisualizationController } from '@patternfly/react-topology';
 import { STEP_INTO_EVENT, STEP_TO_CLUSTER } from '../constants';

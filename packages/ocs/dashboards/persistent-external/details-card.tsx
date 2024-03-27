@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { CEPH_BRAND_NAME, OCS_OPERATOR } from '@odf/core/constants';
+import { CEPH_BRAND_NAME } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { useODFNamespaceSelector } from '@odf/core/redux';
-import { getOperatorVersion } from '@odf/core/utils';
 import { getStorageClusterInNs } from '@odf/core/utils';
-import { ODF_OPERATOR } from '@odf/shared/constants';
+import { ODF_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -14,6 +13,7 @@ import {
   StorageClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getOprVersionFromCSV } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
 import { ExternalLink } from '@odf/shared/utils/link';
 import {
@@ -79,7 +79,7 @@ export const DetailsCard: React.FC = () => {
     startPollingInstantly: isNsSafe,
   });
 
-  const subscriptionVersion = getOperatorVersion(csv);
+  const subscriptionVersion = getOprVersionFromCSV(csv);
 
   const serviceName = isODF
     ? t('Data Foundation')

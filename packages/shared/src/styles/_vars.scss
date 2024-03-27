@@ -34,14 +34,14 @@ $font-size-large: ceil(($font-size-base * 1.25)) !default; // ~18px
 $font-size-small: ceil(($font-size-base * 0.85)) !default; // ~12px
 
 // == Declare max breakpoints from PatternFly variables
-$pf-global--breakpoint--xs-max: ($pf-global--breakpoint--xs - 1);
-$pf-global--breakpoint--sm-max: ($pf-global--breakpoint--sm - 1);
-$pf-global--breakpoint--md-max: ($pf-global--breakpoint--md - 1);
-$pf-global--breakpoint--lg-max: ($pf-global--breakpoint--lg - 1);
+$pf-v5-global--breakpoint--xs-max: ($pf-v5-global--breakpoint--xs - 1);
+$pf-v5-global--breakpoint--sm-max: ($pf-v5-global--breakpoint--sm - 1);
+$pf-v5-global--breakpoint--md-max: ($pf-v5-global--breakpoint--md - 1);
+$pf-v5-global--breakpoint--lg-max: ($pf-v5-global--breakpoint--lg - 1);
 
-// Can not use --pf-global--gutter --pf-global--gutter--md because you can't get a negative value of a scss variable that is assigned a css custom property.
-$pf-global-gutter: 1rem; // Matches --pf-global--gutter
-$pf-global-gutter--md: 1.5rem; // Matches --pf-global--gutter--md
+// Can not use --pf-v5-global--gutter --pf-v5-global--gutter--md because you can't get a negative value of a scss variable that is assigned a css custom property.
+$pf-v5-global-gutter: 1rem; // Matches --pf-v5-global--gutter
+$pf-v5-global-gutter--md: 1.5rem; // Matches --pf-v5-global--gutter--md
 
 // == Colors
-$color-container-dark: $pf-color-blue-300;
+$color-container-dark: $pf-v5-color-blue-300;

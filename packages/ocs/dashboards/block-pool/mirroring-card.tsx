@@ -178,6 +178,7 @@ export const MirroringCard: React.FC = () => {
                 <StatusIconAndText
                   title={mirroringImageHealth}
                   icon={healthStateMapping[mirroringImageHealth]?.icon}
+                  className="pf-v5-u-ml-xs"
                 />
               </MirroringCardItem>
               {!_.isEmpty(obj.status?.mirroringStatus?.summary?.states) && (

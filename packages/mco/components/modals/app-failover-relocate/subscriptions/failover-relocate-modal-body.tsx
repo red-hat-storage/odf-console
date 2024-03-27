@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { ACM_DEFAULT_DOC_VERSION } from '@odf/shared/constants';
 import { StatusBox } from '@odf/shared/generic';
+import { useDocVersion, DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
 import { ApplicationModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { ApplicationKind } from '@odf/shared/types';
@@ -7,7 +9,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Flex, FlexItem, Alert, AlertVariant } from '@patternfly/react-core';
-import { DRActionType } from '../../../../constants';
+import { DRActionType, ACM_OPERATOR_SPEC_NAME } from '../../../../constants';
 import {
   getDRPlacementControlResourceObj,
   getPlacementDecisionsResourceObj,
@@ -85,6 +87,11 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
     const response = useK8sWatchResources<DRActionWatchResourceType>(
       resources(application?.metadata?.namespace)
     );
+
+    const acmDocVersion = useDocVersion({
+      defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
+      specName: ACM_OPERATOR_SPEC_NAME,
+    });
 
     const {
       data: placementRules,
@@ -246,8 +253,9 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
           ((!!findErrorMessage(state.errorMessage) ||
             !_.isEmpty(state.actionErrorMessage)) && (
             <MessageStatus
-              {...(ErrorMessages(t)[findErrorMessage(state.errorMessage)] ||
-                state.actionErrorMessage)}
+              {...(ErrorMessages(t, mcoDocVersion, acmDocVersion)[
+                findErrorMessage(state.errorMessage)
+              ] || state.actionErrorMessage)}
             />
           ))}
       </Flex>

@@ -19,15 +19,9 @@ import {
   getInstantVectorStats,
   sortInstantVectorStats,
 } from '@odf/shared/utils';
+import { Select, SelectProps } from '@patternfly/react-core/deprecated';
 import { useParams } from 'react-router-dom-v5-compat';
-import {
-  Select,
-  SelectProps,
-  Card,
-  CardBody,
-  CardHeader,
-  CardTitle,
-} from '@patternfly/react-core';
+import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getBreakdownMetricsQuery } from '../../queries';
 import { ODFSystemParams } from '../../types';
 import { getStackChartStats } from '../../utils/metrics';

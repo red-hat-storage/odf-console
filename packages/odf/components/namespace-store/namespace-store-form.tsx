@@ -12,6 +12,7 @@ import { PersistentVolumeClaimModel, SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { PersistentVolumeClaimKind, SecretKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   getAPIVersionForModel,
@@ -43,7 +44,6 @@ import {
   getProviders,
   secretPayloadCreator,
 } from '../../utils';
-import validationRegEx from '../../utils/validation';
 import { S3EndPointType } from '../mcg-endpoints/s3-endpoint-type';
 import {
   initialState,

@@ -6,10 +6,17 @@ import * as React from 'react';
 import {
   ALL_APPS,
   ALL_APPS_ITEM_ID,
+  GITOPS_OPERATOR_NAMESPACE,
   LEAST_SECONDS_IN_PROMETHEUS,
+  DISCOVERED_APP_NS,
   REPLICATION_TYPE,
   VOLUME_REPLICATION_HEALTH,
 } from '@odf/mco/constants';
+import {
+  ACMSubscriptionModel,
+  ArgoApplicationSetModel,
+  DRPlacementControlModel,
+} from '@odf/mco/models';
 import {
   DRClusterAppsMap,
   ProtectedAppsMap,
@@ -22,33 +29,47 @@ import {
 } from '@odf/mco/utils';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
+import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  Select as SelectNext,
-  SelectOption as SelectOptionNext,
-  SelectList as SelectListNext,
-  SelectGroup as SelectGroupNext,
-} from '@patternfly/react-core/next';
-import { global_danger_color_100 as globalDanger100 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
-import { global_warning_color_100 as globalWarning100 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
-import { ChartDonut } from '@patternfly/react-charts';
 import {
   Select,
   SelectOption,
   SelectVariant,
+} from '@patternfly/react-core/deprecated';
+import { global_danger_color_100 as globalDanger100 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
+import { global_warning_color_100 as globalWarning100 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
+import { ChartDonut } from '@patternfly/react-charts';
+import {
   MenuToggle,
   MenuToggleElement,
   Flex,
   FlexItem,
   Text,
   TextVariants,
+  Select as SelectNext /* data-codemods */,
+  SelectOption as SelectOptionNext /* data-codemods */,
+  SelectList as SelectListNext /* data-codemods */,
+  SelectGroup as SelectGroupNext /* data-codemods */,
+  Divider,
 } from '@patternfly/react-core';
+
+const NAMESPACE_NAME_SPLIT_CHAR = '%#%';
+
+const namespaceToModelMapping = (namespace: string) => {
+  if (namespace === DISCOVERED_APP_NS) {
+    return DRPlacementControlModel;
+  } else if (namespace === GITOPS_OPERATOR_NAMESPACE) {
+    return ArgoApplicationSetModel;
+  } else {
+    return ACMSubscriptionModel;
+  }
+};
 
 const colorScale = [globalDanger100.value, globalWarning100.value, '#0166cc'];
 
 const getNSAndNameFromId = (itemId: string): string[] => {
-  if (itemId?.includes('%#%')) {
-    return itemId.split('%#%');
+  if (itemId?.includes(NAMESPACE_NAME_SPLIT_CHAR)) {
+    return itemId.split(NAMESPACE_NAME_SPLIT_CHAR);
   } else {
     return [undefined, ALL_APPS];
   }
@@ -197,7 +218,7 @@ const ClusterDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
   return (
     <Select
       variant={SelectVariant.typeahead}
-      onToggle={onToggle}
+      onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
       onSelect={onSelect}
       onClear={clearSelection}
       onFilter={customFilter}
@@ -211,13 +232,7 @@ const ClusterDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
   );
 };
 
-/**
- * Imports: Select as SelectNext, SelectOption as SelectOptionNext, SelectList as SelectListNext.
- * From "react-core/next" which is the newer implementation of "Select" component offering a
- * lot more flexibility and easily implemented configuration options. In few releases, it will be
- * promoted to become the official recommended solution for the "Select" component and the current
- * "Select" component from "react-core" will be deprecated.
- */
+// Imports: Select as SelectNext, SelectOption as SelectOptionNext, SelectList as SelectListNext.
 const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
   clusterResources,
   clusterName,
@@ -230,7 +245,9 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
   const menuRef = React.useRef<HTMLDivElement>(null);
 
   const { name, namespace } = application;
-  const selected = !namespace ? ALL_APPS_ITEM_ID : `${namespace}%#%${name}`;
+  const selected = !namespace
+    ? ALL_APPS_ITEM_ID
+    : `${namespace}${NAMESPACE_NAME_SPLIT_CHAR}${name}`;
 
   const options: AppOptions = React.useMemo(
     () =>
@@ -247,6 +264,12 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
     [clusterResources, clusterName]
   );
 
+  const namespaces = Object.keys(options);
+  const isDiscoveredAppsFound = namespaces.includes(DISCOVERED_APP_NS);
+  const isManagedAppsFound = namespaces.includes(DISCOVERED_APP_NS)
+    ? namespaces.length > 1
+    : namespaces.length > 0;
+
   const onToggleClick = () => {
     setIsOpen(!isOpen);
   };
@@ -262,17 +285,26 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => {
     const [selectedNamespace, selectedName] = getNSAndNameFromId(selected);
+
     return (
       <MenuToggle ref={toggleRef} onClick={onToggleClick} isExpanded={isOpen}>
         {t('Application:')}{' '}
-        {!!selectedNamespace
-          ? `${selectedName} (${selectedNamespace})`
-          : selectedName}
+        {!!selectedNamespace ? (
+          <>
+            <ResourceIcon
+              resourceModel={namespaceToModelMapping(selectedNamespace)}
+            />
+            {selectedName}
+          </>
+        ) : (
+          selectedName
+        )}
       </MenuToggle>
     );
   };
 
   return (
+    // ToDo: Add a search provision for the application name dropdown
     <SelectNext
       id="single-select-next"
       ref={menuRef}
@@ -290,20 +322,58 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
             </SelectOptionNext>
           </SelectListNext>
         </SelectGroupNext>
-        {Object.keys(options)?.map((appNS: string) => (
-          <SelectGroupNext key={appNS} label={t('Namespace: ') + `${appNS}`}>
-            <SelectListNext>
-              {options[appNS]?.map((appName: string) => (
-                <SelectOptionNext
-                  key={appNS + appName}
-                  itemId={`${appNS}%#%${appName}`}
-                >
-                  {appName}
-                </SelectOptionNext>
-              ))}
-            </SelectListNext>
+        <Divider />
+        {isDiscoveredAppsFound && (
+          // Discovered application group
+          <>
+            <SelectGroupNext label={t('Discovered applications')}>
+              <SelectListNext>
+                {options[DISCOVERED_APP_NS]?.map((appName: string) => (
+                  <SelectOptionNext
+                    key={DISCOVERED_APP_NS + appName}
+                    value={`${DISCOVERED_APP_NS}${NAMESPACE_NAME_SPLIT_CHAR}${appName}`}
+                    icon={
+                      <ResourceIcon resourceModel={DRPlacementControlModel} />
+                    }
+                  >
+                    {appName}
+                  </SelectOptionNext>
+                ))}
+              </SelectListNext>
+            </SelectGroupNext>
+            <Divider />
+          </>
+        )}
+        {isManagedAppsFound && (
+          // Managed application group
+          <SelectGroupNext label={t('Managed applications')}>
+            {Object.keys(options)?.map(
+              (appNS: string) =>
+                appNS !== DISCOVERED_APP_NS && (
+                  <SelectGroupNext
+                    key={appNS}
+                    label={t('Namespace: ') + `${appNS}`}
+                  >
+                    <SelectListNext>
+                      {options[appNS]?.map((appName: string) => (
+                        <SelectOptionNext
+                          key={appNS + appName}
+                          value={`${appNS}${NAMESPACE_NAME_SPLIT_CHAR}${appName}`}
+                          icon={
+                            <ResourceIcon
+                              resourceModel={namespaceToModelMapping(appNS)}
+                            />
+                          }
+                        >
+                          {appName}
+                        </SelectOptionNext>
+                      ))}
+                    </SelectListNext>
+                  </SelectGroupNext>
+                )
+            )}
           </SelectGroupNext>
-        ))}
+        )}
       </div>
     </SelectNext>
   );
@@ -377,7 +447,7 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
   return (
     <div className="mco-dashboard__contentColumn">
       <Text component={TextVariants.h1}>{protectedPVCsCount}</Text>
-      <StatusText>{t('Protected PVCs')}</StatusText>
+      <StatusText>{t('Protected volumes')}</StatusText>
       <Text className="text-muted">
         {t('{{ pvcsWithIssueCount }} with issues', { pvcsWithIssueCount })}
       </Text>

@@ -4,7 +4,6 @@ import {
   hoursToSeconds,
   minutesToSeconds,
 } from '@odf/shared/details-page/datetime';
-import { objectify } from '@odf/shared/modals/EditLabelModal';
 import {
   getLabel,
   hasLabel,
@@ -13,7 +12,6 @@ import {
   getAnnotations,
 } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types/k8s';
-import { getAPIVersionForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
   GreenCheckCircleIcon,
@@ -32,6 +30,9 @@ import {
   DRPC_STATUS,
   THRESHOLD,
   DRActionType,
+  LABEL_SPLIT_CHAR,
+  LABELS_SPLIT_CHAR,
+  DR_BLOCK_LISTED_LABELS,
 } from '../constants';
 import {
   DRPC_NAMESPACE_ANNOTATION,
@@ -46,8 +47,6 @@ import { DisasterRecoveryFormatted, ApplicationRefKind } from '../hooks';
 import {
   ACMPlacementModel,
   ACMPlacementRuleModel,
-  DRPlacementControlModel,
-  DRPolicyModel,
   DRVolumeReplicationGroup,
 } from '../models';
 import {
@@ -66,6 +65,7 @@ import {
   MirrorPeerKind,
   ArgoApplicationSetKind,
   ClusterClaim,
+  SearchResultItemType,
 } from '../types';
 
 export type PlacementMap = {
@@ -353,6 +353,14 @@ export const findDRPCUsingDRPolicy = (
   );
 };
 
+export const findDRPolicyUsingDRPC = (
+  drpc: DRPlacementControlKind,
+  drPolicies: DRPolicyKind[]
+): DRPolicyKind =>
+  drPolicies?.find(
+    (drPolicy) => drpc?.spec?.drPolicyRef?.name === getName(drPolicy)
+  );
+
 export const isDRClusterFenced = (cluster: DRClusterKind) =>
   cluster?.status?.phase === 'Fenced';
 
@@ -505,7 +513,7 @@ export const filterPVCDataUsingApp = (
   pvcData: ProtectedPVCData,
   protectedApp: ProtectedAppsMap
 ) =>
-  protectedApp?.placementInfo?.find((placementInfo) => {
+  protectedApp?.placementControlInfo?.find((placementInfo) => {
     const result =
       placementInfo.drpcName === pvcData?.drpcName &&
       placementInfo.drpcNamespace === pvcData?.drpcNamespace;
@@ -532,41 +540,6 @@ export const isDRPolicyValidated = (drPolicy: DRPolicyKind) =>
     (condition) =>
       condition?.type === 'Validated' && condition?.status === 'True'
   );
-
-export const getDRPCKindObj = (
-  plsName: string,
-  plsNamespace: string,
-  plsKind: string,
-  plsApiVersion: string,
-  drPolicyName: string,
-  drClusterNames: string[],
-  decisionClusters: string[],
-  pvcSelectors: string[]
-): DRPlacementControlKind => ({
-  apiVersion: getAPIVersionForModel(DRPlacementControlModel),
-  kind: DRPlacementControlModel.kind,
-  metadata: {
-    name: `${plsName}-drpc`,
-    namespace: plsNamespace,
-  },
-  spec: {
-    drPolicyRef: {
-      name: drPolicyName,
-      apiVersion: getAPIVersionForModel(DRPolicyModel),
-      kind: DRPolicyModel.kind,
-    },
-    placementRef: {
-      name: plsName,
-      namespace: plsNamespace,
-      apiVersion: plsApiVersion,
-      kind: plsKind,
-    },
-    preferredCluster: matchClusters(drClusterNames, decisionClusters),
-    pvcSelector: {
-      matchLabels: objectify(pvcSelectors),
-    },
-  },
-});
 
 // Finding placement from application generators
 export const findPlacementNameFromAppSet = (
@@ -657,3 +630,17 @@ export const getValueFromClusterClaim = (
 
 export const parseNamespaceName = (namespaceName: string) =>
   namespaceName.split('/');
+
+export const getLabelsFromSearchResult = (
+  item: SearchResultItemType
+): { [key in string]: string[] } => {
+  // example label foo1=bar1;foo2=bar2
+  const labels: string[] = item?.label?.split(LABELS_SPLIT_CHAR) || [];
+  return labels?.reduce((acc, label) => {
+    const [key, value] = label.split(LABEL_SPLIT_CHAR);
+    if (!DR_BLOCK_LISTED_LABELS.includes(key)) {
+      acc[key] = [...(acc[key] || []), value];
+    }
+    return acc;
+  }, {});
+};

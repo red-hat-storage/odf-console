@@ -9,3 +9,5 @@ export const applicationDetails =
 // ACM search api proxy endpoint
 export const ACM_SEARCH_PROXY_ENDPOINT =
   '/api/proxy/plugin/acm/console/multicloud/proxy/search';
+// MCO DR navigation item base route
+export const DR_BASE_ROUTE = '/multicloud/data-services/disaster-recovery';

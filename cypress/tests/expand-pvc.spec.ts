@@ -12,7 +12,6 @@ describe('Tests Expansion of a PVC', () => {
   });
 
   beforeEach(() => {
-    cy.visit('/');
     cy.clickNavLink(['Storage', 'PersistentVolumeClaims']);
   });
 

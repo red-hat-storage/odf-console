@@ -28,7 +28,7 @@ export const navigateToBlockPool = () => {
 };
 
 export const populateBlockPoolForm = () => {
-  cy.byTestID('new-pool-name-textbox').type(poolName);
+  cy.byTestID('new-pool-name-textbox').clear().type(poolName);
   cy.byTestID('replica-dropdown').click();
   cy.byLegacyTestID('replica-dropdown-item')
     .contains(`${replicaCount}-way Replication`)
@@ -107,7 +107,6 @@ export const openBlockPoolKebab = (
   cy.byLegacyTestID('item-filter').clear().type(targetPoolName);
   cy.log('Only one resource should be present after filtering');
   cy.byTestID('kebab-button').should('have.length', 1);
-  if (isDefaultPool)
-    cy.byTestID('kebab-button').first().find('button').should('be.disabled');
-  else cy.byTestID('kebab-button').first().click();
+  if (isDefaultPool) cy.byTestID('kebab-button').should('be.disabled');
+  else cy.byTestID('kebab-button').click();
 };

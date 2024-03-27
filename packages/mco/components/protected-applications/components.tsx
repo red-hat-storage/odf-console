@@ -1,9 +1,13 @@
 import * as React from 'react';
-import { PopoverStatus } from '@odf/shared';
-import { ActionDropdown } from '@odf/shared/dropdown/action-dropdown';
+import {
+  ActionDropdown,
+  ToggleVariant,
+} from '@odf/shared/dropdown/action-dropdown';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
+import { PopoverStatus } from '@odf/shared/status';
+import { StatusIconAndText } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
@@ -23,12 +27,8 @@ import {
   DescriptionListDescription,
   PopoverPosition,
 } from '@patternfly/react-core';
-import {
-  InProgressIcon,
-  OutlinedQuestionCircleIcon,
-  IconSize,
-} from '@patternfly/react-icons';
-import { ENROLLED_APP_QUERY_PARAMS_KEY } from '../../constants';
+import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
+import { ENROLLED_APP_QUERY_PARAMS_KEY, DR_BASE_ROUTE } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
 import EmptyPage from '../empty-state-page/empty-page';
@@ -40,6 +40,7 @@ import {
   SyncStatusInfo,
   EnrollApplicationTypes,
   getEnrollDropdownItems,
+  isCleanupPending,
 } from './utils';
 import './protected-apps.scss';
 
@@ -97,103 +98,106 @@ const ManagedApplicationsModalLazy = React.lazy(
   () => import('../modals/protected-applications/managed-applications-modal')
 );
 
-export const EnrollApplicationButton: React.FC<{ isNoDataMessage?: boolean }> =
-  ({ isNoDataMessage }) => {
-    const { t } = useCustomTranslation();
-    const navigate = useNavigate();
-    const launcher = useModal();
+export const EnrollApplicationButton: React.FC<{
+  isNoDataMessage?: boolean;
+  toggleVariant?: ToggleVariant;
+}> = ({ isNoDataMessage, toggleVariant }) => {
+  const { t } = useCustomTranslation();
+  const navigate = useNavigate();
+  const launcher = useModal();
 
-    return (
-      <div
-        className={classNames({
-          'pf-u-display-flex pf-u-flex-direction-column pf-u-flex-direction-row-on-lg mco-protected-applications__popover':
-            !isNoDataMessage,
-        })}
-      >
-        <div className="pf-u-ml-md pf-u-mt-md">
-          <ActionDropdown
-            id="enroll-application-types"
-            aria-label={t('Enroll application')}
-            text={t('Enroll application')}
-            toggleVariant={'primary'}
-            onSelect={(id: EnrollApplicationTypes) => {
-              id === EnrollApplicationTypes.DISCOVERED &&
-                navigate(
-                  `/multicloud/data-services/disaster-recovery/protected-applications/${referenceForModel(
-                    DRPlacementControlModel
-                  )}/~new`
-                );
-              id === EnrollApplicationTypes.MANAGED &&
-                launcher(ManagedApplicationsModalLazy, { isOpen: true });
-            }}
-            dropdownItems={getEnrollDropdownItems(t)}
-          />
-        </div>
-        <PopoverStatus
-          statusBody={
-            <div
-              className={classNames({
-                'pf-u-ml-md': true,
-                'pf-u-mt-md': isNoDataMessage,
-              })}
-            >
-              <OutlinedQuestionCircleIcon
-                size={IconSize.sm}
-                className="pf-u-mr-sm"
-              />
-              {t('Application types and their enrollment processes')}
-            </div>
-          }
-          title={t('Application types and their enrollment processes')}
-          popoverPosition={PopoverPosition.bottom}
-        >
-          <Trans t={t}>
-            <p className="co-break-word pf-u-font-weight-bold">
-              ACM discovered applications:
-            </p>
-            <p className="co-break-word pf-u-mb-sm">
-              Based on modular and microservices architecture, uses operators
-              for dynamically created kubernetes objects. Eg:{' '}
-              <span className="pf-u-font-weight-bold">
-                CloudPak, Custom-created applications
-              </span>
-            </p>
-            <p className="co-break-word pf-u-mb-md">
-              <span className="pf-u-font-weight-bold">Enrollment process:</span>{' '}
-              Discovered applications are enrolled under disaster recovery
-              through enabling protection for their namespaces and further
-              defining the scope of this protection within namespace through
-              recipe selection or resource label.
-            </p>
-
-            <p className="co-break-word pf-u-font-weight-bold">
-              ACM managed applications:
-            </p>
-            <p className="co-break-word pf-u-mb-sm">
-              Based on subscribing to one or more Kubernetes resource
-              repositories (channel resource) that contains resources that are
-              deployed on managed clusters. Eg:{' '}
-              <span className="pf-u-font-weight-bold">
-                ApplicationSet, Subscriptions
-              </span>
-            </p>
-            <p className="co-break-word">
-              <span className="pf-u-font-weight-bold">Enrollment process:</span>{' '}
-              Individually protect managed application with flexibility for
-              distinct configurations for different sub-categories of managed
-              application based on specific requirements.
-            </p>
-          </Trans>
-        </PopoverStatus>
+  return (
+    <div
+      className={classNames({
+        'pf-v5-u-display-flex pf-v5-u-flex-direction-column pf-v5-u-flex-direction-row-on-lg mco-protected-applications__popover':
+          !isNoDataMessage,
+      })}
+    >
+      <div className="pf-v5-u-ml-md pf-v5-u-mt-md">
+        <ActionDropdown
+          id="enroll-application-types"
+          aria-label={t('Enroll application')}
+          text={t('Enroll application')}
+          toggleVariant={toggleVariant || 'primary'}
+          onSelect={(id: EnrollApplicationTypes) => {
+            id === EnrollApplicationTypes.DISCOVERED &&
+              navigate(
+                `${DR_BASE_ROUTE}/protected-applications/${referenceForModel(
+                  DRPlacementControlModel
+                )}/~new`
+              );
+            id === EnrollApplicationTypes.MANAGED &&
+              launcher(ManagedApplicationsModalLazy, { isOpen: true });
+          }}
+          dropdownItems={getEnrollDropdownItems(t)}
+        />
       </div>
-    );
-  };
+      <PopoverStatus
+        statusBody={
+          <div
+            className={classNames({
+              'pf-v5-u-ml-md': true,
+              'pf-v5-u-mt-md': isNoDataMessage,
+            })}
+          >
+            <OutlinedQuestionCircleIcon className="pf-v5-u-mr-sm" />
+            {t('Application types and their enrollment processes')}
+          </div>
+        }
+        title={t('Application types and their enrollment processes')}
+        popoverPosition={PopoverPosition.bottom}
+      >
+        <Trans t={t}>
+          <p className="co-break-word pf-v5-u-font-weight-bold">
+            ACM discovered applications:
+          </p>
+          <p className="co-break-word pf-v5-u-mb-sm">
+            Based on modular and microservices architecture, uses operators for
+            dynamically created kubernetes objects. Eg:{' '}
+            <span className="pf-v5-u-font-weight-bold">
+              CloudPak, Custom-created applications
+            </span>
+          </p>
+          <p className="co-break-word pf-v5-u-mb-md">
+            <span className="pf-v5-u-font-weight-bold">
+              Enrollment process:
+            </span>{' '}
+            Discovered applications are enrolled under disaster recovery through
+            enabling protection for their namespaces and further defining the
+            scope of this protection within namespace through recipe selection
+            or resource label.
+          </p>
+
+          <p className="co-break-word pf-v5-u-font-weight-bold">
+            ACM managed applications:
+          </p>
+          <p className="co-break-word pf-v5-u-mb-sm">
+            Based on subscribing to one or more Kubernetes resource repositories
+            (channel resource) that contains resources that are deployed on
+            managed clusters. Eg:{' '}
+            <span className="pf-v5-u-font-weight-bold">
+              ApplicationSet, Subscriptions
+            </span>
+          </p>
+          <p className="co-break-word">
+            <span className="pf-v5-u-font-weight-bold">
+              Enrollment process:
+            </span>{' '}
+            Individually protect managed application with flexibility for
+            distinct configurations for different sub-categories of managed
+            application based on specific requirements.
+          </p>
+        </Trans>
+      </PopoverStatus>
+    </div>
+  );
+};
 
 export const EmptyRowMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
-    <Bullseye className="pf-u-mt-xl">
-      {t('No protected applications found')}
+    <Bullseye className="pf-v5-u-mt-xl">
+      {t('No protected discovered applications found')}
     </Bullseye>
   );
 };
@@ -202,15 +206,24 @@ export const NoDataMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <EmptyPage
-      title={t('No protected applications')}
+      title={t('Looks like there are no applications here.')}
       ButtonComponent={EnrollApplicationButton_}
       isLoaded
       canAccess
     >
       <Trans t={t}>
-        You do not have any protected applications yet, to add disaster recovery
-        protection to your applications start by clicking on the{' '}
-        <strong>Enroll application</strong> button.
+        <p>
+          You do not have any <strong>discovered applications</strong> that are
+          protected yet. For details about your{' '}
+          <strong>protected managed applications</strong>, navigate to the{' '}
+          <strong>Applications</strong> page, as this information is not
+          maintained here.
+        </p>
+        <br />
+        <p>
+          Click <strong>Enroll applications</strong> to add disaster recovery
+          protection to your applications.
+        </p>
       </Trans>
     </EmptyPage>
   );
@@ -235,7 +248,8 @@ export const AlertMessages: React.FC = () => {
         <Alert
           variant={message.variant}
           title={message.title}
-          className="pf-u-mt-xs pf-u-mb-xs"
+          key={message.key}
+          className="pf-v5-u-mt-xs pf-v5-u-mb-xs"
           {...(message?.isInline ? { isInline: message.isInline } : {})}
           {...(message?.actionClose
             ? { actionClose: message.actionClose }
@@ -290,9 +304,7 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
   const { t } = useCustomTranslation();
 
   const enrolledNamespaces: React.ReactNode[] =
-    // ToDo: Update with correct spec field which will report all protected namespaces
-    // @ts-ignore
-    application.spec?.enrolledNamespaces?.map((namespace: string) => (
+    application.spec?.protectedNamespace?.map((namespace: string) => (
       <ResourceNameWIcon
         resourceModel={NamespaceModel}
         resourceName={namespace}
@@ -301,7 +313,7 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
   return (
     <>
       {!enrolledNamespaces.length ? (
-        <DataUnavailableError className="pf-u-pt-xl pf-u-pb-xl" />
+        <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
       ) : (
         <DescriptionList_>
           <Description
@@ -318,30 +330,28 @@ export const EventsDetails: React.FC<ExpandableComponentProps> = ({
   application,
 }) => {
   const { t } = useCustomTranslation();
+  const anyOnGoingEvent =
+    isFailingOrRelocating(application) || isCleanupPending(application);
 
-  // ToDo: Add clean-up activity event as well
-  const activity = [
-    getCurrentActivity(
-      application?.status?.phase,
-      application.spec?.failoverCluster,
-      application.spec?.preferredCluster,
-      t
-    ),
-  ];
+  const activity = getCurrentActivity(
+    application?.status?.phase,
+    application.spec?.failoverCluster,
+    application.spec?.preferredCluster,
+    t,
+    isCleanupPending(application)
+  );
   const status = [
-    <>
-      <InProgressIcon size={IconSize.sm} /> {t('In progress')}
-    </>,
+    <StatusIconAndText icon={activity.icon} title={activity.status} />,
   ];
   return (
     <>
-      {!isFailingOrRelocating(application) ? (
-        <DataUnavailableError className="pf-u-pt-xl pf-u-pb-xl" />
+      {!anyOnGoingEvent ? (
+        <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
       ) : (
         <DescriptionList_ columnModifier={'2Col'}>
           <Description
             term={t('Activity description')}
-            descriptions={activity}
+            descriptions={[activity.description]}
           />
           <Description term={t('Status')} descriptions={status} />
         </DescriptionList_>
@@ -355,7 +365,7 @@ export const StatusDetails: React.FC<ExpandableComponentProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const syncType = [t('Application volumes (PVCs)'), t('Kube objects')];
+  const syncType = [t('Application volumes (PVCs)'), t('Kubernetes objects')];
   const { icon: volIcon, title: volTitle } = replicationHealthMap(
     syncStatusInfo.volumeReplicationStatus,
     t
