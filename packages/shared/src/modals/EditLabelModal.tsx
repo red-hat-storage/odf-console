@@ -171,7 +171,12 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
           {t('Cancel')}
         </Button>
         {!loading ? (
-          <Button key="Save" variant="primary" onClick={onSubmit}>
+          <Button
+            key="Save"
+            variant="primary"
+            onClick={onSubmit}
+            isDisabled={loading || errorMessage}
+          >
             {t('Save')}
           </Button>
         ) : (
