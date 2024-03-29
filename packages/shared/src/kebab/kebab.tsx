@@ -25,6 +25,8 @@ import { referenceForModel } from '../utils';
 export type CustomKebabItem = {
   key: string;
   value: string;
+  isDisabled?: boolean;
+  description?: React.ReactNode;
   component?: React.LazyExoticComponent<any>;
 };
 
@@ -180,7 +182,13 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
     const { overrides, custom } = Object.entries(customResolved).reduce(
       (acc, [k, obj]) => {
         const dropdownItem = (
-          <DropdownItem key={k} id={k} data-test-action={obj?.value}>
+          <DropdownItem
+            key={k}
+            id={k}
+            data-test-action={obj?.value}
+            isDisabled={obj?.isDisabled}
+            description={obj?.description}
+          >
             {obj?.value}
           </DropdownItem>
         );
