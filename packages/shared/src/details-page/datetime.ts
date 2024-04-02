@@ -54,6 +54,16 @@ export const dateTimeFormatter = new Intl.DateTimeFormat(
   }
 );
 
+export const dateTimeFormatterNoYear = new Intl.DateTimeFormat(
+  getLastLanguage() || undefined,
+  {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+  }
+);
+
 export const dateTimeFormatterWithSeconds = new Intl.DateTimeFormat(
   getLastLanguage() || undefined,
   {
