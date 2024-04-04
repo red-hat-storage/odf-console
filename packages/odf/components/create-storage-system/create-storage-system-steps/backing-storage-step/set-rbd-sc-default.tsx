@@ -11,7 +11,9 @@ export const SetCephRBDStorageClassDefault: React.FC<SetCephRBDStorageClassDefau
     // for infra with already existing "default" SC (eg: say gp3-csi): option should be default unchecked.
     // for infra with no "default" SC (BM here): option should be default checked.
     React.useEffect(() => {
-      if (!doesDefaultSCAlreadyExists) {
+      // do not reset state once value is already set to either "true" or "false".
+      // needed when user navigates back to this step and the FC gets mounted again.
+      if (isRBDStorageClassDefault === null && !doesDefaultSCAlreadyExists) {
         dispatch({
           type: 'backingStorage/setIsRBDStorageClassDefault',
           payload: true,
@@ -29,7 +31,7 @@ export const SetCephRBDStorageClassDefault: React.FC<SetCephRBDStorageClassDefau
           description={t(
             'Configure default RBD StorageClass to avoid adding manual annotations within a StorageClass and selecting a specific StorageClass when making storage requests or provisions in your PVCs.'
           )}
-          isChecked={isRBDStorageClassDefault}
+          isChecked={isRBDStorageClassDefault || false}
           onChange={() =>
             dispatch({
               type: 'backingStorage/setIsRBDStorageClassDefault',
@@ -45,5 +47,5 @@ export const SetCephRBDStorageClassDefault: React.FC<SetCephRBDStorageClassDefau
 type SetCephRBDStorageClassDefaultProps = {
   dispatch: WizardDispatch;
   isRBDStorageClassDefault: WizardState['backingStorage']['isRBDStorageClassDefault'];
-  doesDefaultSCAlreadyExists: boolean;
+  doesDefaultSCAlreadyExists: boolean | null;
 };
