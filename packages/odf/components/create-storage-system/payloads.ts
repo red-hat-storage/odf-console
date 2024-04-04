@@ -142,9 +142,9 @@ export const createNoobaaExternalPostgresResources = (
 };
 
 export const setCephRBDAsDefault = (
-  isRBDStorageClassDefault: boolean,
+  isRBDStorageClassDefault: boolean | null,
   deployment: DeploymentType
-): boolean => isRBDStorageClassDefault && deployment === DeploymentType.FULL;
+): boolean => !!isRBDStorageClassDefault && deployment === DeploymentType.FULL;
 
 export const createStorageCluster = async (
   state: WizardState,
