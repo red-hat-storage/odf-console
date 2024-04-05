@@ -40,12 +40,13 @@ export const RotateKeysModal: RotateKeysModalProps = ({
         setProgress(false);
       })
       .catch((err) => {
-        setError(err.message);
+        setProgress(false);
+        setError(err);
       });
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={closeModal} variant={ModalVariant.small}>
+    <Modal isOpen={isOpen} onClose={closeModal} variant={ModalVariant.medium}>
       <ModalTitle>{MODAL_TITLE}</ModalTitle>
       <ModalBody>
         <Flex direction={{ default: 'column' }}>
@@ -63,9 +64,17 @@ export const RotateKeysModal: RotateKeysModalProps = ({
           </FlexItem>
         </Flex>
       </ModalBody>
-      <ModalFooter inProgress={inProgress} errorMessage={error}>
-        <Button onClick={() => closeModal()}>{t('Cancel')}</Button>
-        <Button onClick={() => onRotate()}>{t('Confirm')}</Button>
+      <ModalFooter inProgress={inProgress} errorMessage={error?.message}>
+        <Flex direction={{ default: 'row' }}>
+          <FlexItem>
+            <Button variant="secondary" onClick={() => closeModal()}>
+              {t('Cancel')}
+            </Button>
+          </FlexItem>
+          <FlexItem>
+            <Button onClick={() => onRotate()}>{t('Confirm')}</Button>
+          </FlexItem>
+        </Flex>
       </ModalFooter>
     </Modal>
   );
