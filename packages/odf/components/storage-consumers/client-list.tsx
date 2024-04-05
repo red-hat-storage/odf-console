@@ -24,6 +24,7 @@ import {
   useListPageFilter,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Button, Popover, PopoverPosition } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import { StorageConsumerModel } from '../../models';
@@ -34,6 +35,7 @@ import {
   versionMismatchFilter,
 } from './list-filter';
 import { ClientOnBoardingModal } from './onboarding-modal';
+import { RotateKeysModal } from './rotate-keys-modal';
 
 const tableColumns = [
   {
@@ -270,16 +272,25 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
     rowFilters
   );
 
-  const onClick = (modalLauncher: typeof launchModal) => () => {
+  const launchModalOnClick = (modalComponent: ModalComponent) => () => {
     const modalComponentProps = { isOpen: true };
-    modalLauncher(ClientOnBoardingModal, modalComponentProps);
+    launchModal(modalComponent, modalComponentProps);
   };
 
   return (
     <>
       <ListPageHeader title={t('Storage clients')}>
-        <Button variant="primary" onClick={onClick(launchModal)}>
+        <Button
+          variant="primary"
+          onClick={launchModalOnClick(ClientOnBoardingModal)}
+        >
           {t('Generate client onboarding token')}
+        </Button>
+        <Button
+          variant="tertiary"
+          onClick={launchModalOnClick(RotateKeysModal)}
+        >
+          {t('Rotate signing keys')}
         </Button>
       </ListPageHeader>
       <ListPageBody>
