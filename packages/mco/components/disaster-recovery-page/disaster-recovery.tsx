@@ -1,35 +1,43 @@
 import * as React from 'react';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { HorizontalNav } from '@openshift-console/dynamic-plugin-sdk';
+import { HorizontalNav, useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { Text, TextContent, TextVariants } from '@patternfly/react-core';
+import { ADMIN_FLAG } from '../../constants';
 import { DRPolicyListPage } from '../drpolicy-list-page/drpolicy-list-page';
 import DRDashboard from '../mco-dashboard/disaster-recovery/dr-dashboard';
 import { ProtectedApplicationsListPage } from '../protected-applications/list-page';
 
 const DisasterRecovery: React.FC = () => {
   const { t } = useCustomTranslation();
+  const isAdmin = useFlag(ADMIN_FLAG);
+
   const title = t('Disaster recovery');
-  const pages = [
-    // ToDo(issue RHSTOR-5377): Display DR getting started changes and dashboard under overview.
-    // Also, Hide dashboard for non admin users.
-    {
-      href: '',
-      name: t('Overview'),
-      component: DRDashboard,
-    },
-    {
-      href: 'policies',
-      name: t('Policies'),
-      component: DRPolicyListPage,
-    },
-    {
-      href: 'protected-applications',
-      name: t('Protected applications'),
-      component: ProtectedApplicationsListPage,
-    },
-  ];
+  const pages = React.useMemo(
+    () => [
+      ...(isAdmin
+        ? [
+            {
+              href: '',
+              name: t('Overview'),
+              component: DRDashboard,
+            },
+          ]
+        : []),
+      {
+        href: isAdmin ? 'policies' : '',
+        name: t('Policies'),
+        component: DRPolicyListPage,
+      },
+      {
+        href: 'protected-applications',
+        name: t('Protected applications'),
+        component: ProtectedApplicationsListPage,
+      },
+    ],
+    [t, isAdmin]
+  );
 
   return (
     <>
@@ -40,7 +48,7 @@ const DisasterRecovery: React.FC = () => {
         <TextContent>
           <Text component={TextVariants.small}>
             {t(
-              'Allows you to configure your business critical applications and provides the ability to recover from any disaster.'
+              'Configure and recover your business critical applications in event of any disaster.'
             )}
           </Text>
         </TextContent>

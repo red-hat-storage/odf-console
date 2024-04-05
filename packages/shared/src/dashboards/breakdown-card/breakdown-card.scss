@@ -2,17 +2,17 @@
 
 .capacity-breakdown-card__available-body {
   float: right;
-  font-weight: var(--pf-global--FontWeight--normal);
+  font-weight: var(--pf-v5-global--FontWeight--normal);
 }
 
 .capacity-breakdown-card__capacity-body {
-  font-size: var(--pf-global--FontSize--sm);
+  font-size: var(--pf-v5-global--FontSize--sm);
   margin-bottom: 0;
 }
 
 .capacity-breakdown-card__header-link {
-  padding: var(--pf-global--spacer--xs);
-  margin-right: var(--pf-global--spacer--md);
+  padding: var(--pf-v5-global--spacer--xs);
+  margin-right: var(--pf-v5-global--spacer--md);
 }
 
 .capacity-breakdown-card__legend-link {
@@ -43,7 +43,7 @@
 }
 
 .skeleton-stack-no-show {
-  background-color: var(--pf-global--BackgroundColor--100);
+  background-color: var(--pf-v5-global--BackgroundColor--100);
   animation: none;
 }
 

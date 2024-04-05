@@ -34,6 +34,10 @@ import {
   WatchK8sResource,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  WizardContext,
+  WizardContextType,
+} from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -44,8 +48,6 @@ import {
   Grid,
   GridItem,
   Modal,
-  WizardContext,
-  WizardContextType,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';
@@ -192,7 +194,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <span>
         {t("After the LocalVolumeSet is created you won't be able to edit it.")}
       </span>
-      <p className="pf-u-pt-sm">
+      <p className="pf-v5-u-pt-sm">
         <strong>{t('Note:')} </strong>
         {arbiterText(t)}
       </p>

@@ -76,7 +76,7 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
           data-test="placement-policy-spread1"
           value={PlacementPolicy.Spread}
           isChecked={tier1Policy === PlacementPolicy.Spread}
-          onChange={onChange}
+          onChange={(event, checked: boolean) => onChange(checked, event)}
           id="radio-1"
           label={t('Spread')}
           name="placement-policy-1"
@@ -90,7 +90,7 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
           data-test="placement-policy-mirror1"
           value={PlacementPolicy.Mirror}
           isChecked={tier1Policy === PlacementPolicy.Mirror}
-          onChange={onChange}
+          onChange={(event, checked: boolean) => onChange(checked, event)}
           id="radio-2"
           label={t('Mirror')}
           name="placement-policy-1"
@@ -141,7 +141,7 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
             data-test="placement-policy-spread2"
             value={PlacementPolicy.Spread}
             isChecked={tier2Policy === PlacementPolicy.Spread}
-            onChange={onChange}
+            onChange={(event, checked: boolean) => onChange(checked, event)}
             id="radio-3"
             label={t('Spread')}
             name="placement-policy-2"
@@ -155,7 +155,7 @@ const PlacementPolicyPage: React.FC<PlacementPolicyPageProps> = ({
             data-test="placement-policy-mirror2"
             value={PlacementPolicy.Mirror}
             isChecked={tier2Policy === PlacementPolicy.Mirror}
-            onChange={onChange}
+            onChange={(event, checked: boolean) => onChange(checked, event)}
             id="radio-4"
             label={t('Mirror')}
             name="placement-policy-2"

@@ -2,14 +2,13 @@ import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName, getUID } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'i18next';
 import {
   Select,
   SelectOption,
   SelectVariant,
-  HelperText,
-  HelperTextItem,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
+import { TFunction } from 'i18next';
+import { HelperText, HelperTextItem } from '@patternfly/react-core';
 import { checkDRActionReadiness } from '../../../../utils';
 import { ErrorMessageType } from './error-messages';
 import { PlacementDecision } from './reducer';
@@ -211,7 +210,7 @@ export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps>
       <>
         <Select
           variant={SelectVariant.checkbox}
-          onToggle={onToggle}
+          onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
           onSelect={onSelect}
           selections={state.selectedSubsGroups}
           isDisabled={

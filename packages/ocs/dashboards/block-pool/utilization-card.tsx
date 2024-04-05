@@ -5,13 +5,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeDecimalBytesPerSec } from '@odf/shared/utils';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useParams } from 'react-router-dom-v5-compat';
-import {
-  Grid,
-  Card,
-  CardActions,
-  CardHeader,
-  CardTitle,
-} from '@patternfly/react-core';
+import { Grid, Card, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
 import { ODFSystemParams } from '../../types';
 import { humanizeIOPS } from '../persistent-internal/utilization-card/utils';
@@ -28,13 +22,20 @@ export const UtilizationCard: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader
+        actions={{
+          actions: (
+            <>
+              <UtilizationDurationDropdown />
+            </>
+          ),
+          hasNoOffset: false,
+          className: undefined,
+        }}
+      >
         <CardTitle>{t('Performance')}</CardTitle>
-        <CardActions>
-          <UtilizationDurationDropdown />
-        </CardActions>
       </CardHeader>
-      <Grid className="odf-block-pool-utilization-card-body">
+      <Grid className="odf-block-pool-utilization-card-body pf-v5-u-ml-lg pf-v5-u-mr-md">
         <PrometheusUtilizationItem
           title={t('IOPS')}
           utilizationQuery={getPoolQuery(

@@ -25,15 +25,9 @@ import {
   sortInstantVectorStats,
 } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import { Select, SelectProps } from '@patternfly/react-core/deprecated';
 import { useParams } from 'react-router-dom-v5-compat';
-import {
-  Select,
-  SelectProps,
-  Card,
-  CardBody,
-  CardHeader,
-  CardTitle,
-} from '@patternfly/react-core';
+import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import {
   getBreakdownMetricsQuery,
   CEPH_CAPACITY_BREAKDOWN_QUERIES,
@@ -209,26 +203,28 @@ const BreakdownCard: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="ceph-capacity-breakdown-card__header">
-        <CardTitle id="breakdown-card-title">
-          <TitleWithHelp />
-        </CardTitle>
-        <Select
-          className="ceph-capacity-breakdown-card-header__dropdown"
-          autoFocus={false}
-          onSelect={handleMetricsChange}
-          onToggle={() => setBreakdownSelect(!isOpenBreakdownSelect)}
-          isOpen={isOpenBreakdownSelect}
-          selections={[metricType]}
-          placeholderText={t('{{metricType}}', {
-            metricType,
-          })}
-          aria-label={t('Break By Dropdown')}
-          isCheckboxSelectionBadgeHidden
-          id="breakdown-card-metrics-dropdown"
-        >
-          {breakdownSelectItems}
-        </Select>
+      <CardHeader>
+        <div className="pf-v5-u-display-flex pf-v5-u-justify-content-space-between">
+          <CardTitle id="breakdown-card-title">
+            <TitleWithHelp />
+          </CardTitle>
+          <Select
+            className="ceph-capacity-breakdown-card-header__dropdown"
+            autoFocus={false}
+            onSelect={handleMetricsChange}
+            onToggle={() => setBreakdownSelect(!isOpenBreakdownSelect)}
+            isOpen={isOpenBreakdownSelect}
+            selections={[metricType]}
+            placeholderText={t('{{metricType}}', {
+              metricType,
+            })}
+            aria-label={t('Break By Dropdown')}
+            isCheckboxSelectionBadgeHidden
+            id="breakdown-card-metrics-dropdown"
+          >
+            {breakdownSelectItems}
+          </Select>
+        </div>
       </CardHeader>
       {metricType === BreakdownCardFieldsWithParams.PVCS && (
         <NamespaceDropdown setPVCNamespace={setPVCNamespace} />

@@ -1,9 +1,9 @@
 import * as React from 'react';
 import {
-  HUB_CLUSTER_NAME,
   ALL_APPS,
   applicationDetails,
   APPLICATION_TYPE,
+  APPLICATION_TYPE_DISPLAY_TEXT,
 } from '@odf/mco/constants';
 import {
   DRClusterAppsMap,
@@ -34,6 +34,7 @@ import {
   Grid,
   GridItem,
   Text,
+  Skeleton,
 } from '@patternfly/react-core';
 import {
   ACMManagedClusterViewModel,
@@ -50,9 +51,10 @@ import {
 } from '../dr-dashboard-context';
 import {
   ActivitySection,
-  SnapshotSection,
   SubscriptionDetailsTable,
   SubscriptionSection,
+  SnapshotSection,
+  NamespaceSection,
 } from './application';
 import {
   HealthSection,
@@ -66,6 +68,43 @@ import {
   VolumeSummarySection,
 } from './common';
 import './cluster-app-card.scss';
+
+const DiscoveredAppCard: React.FC<AppWiseCardProps> = ({
+  protectedPVCData,
+  selectedApplication,
+}) => {
+  return (
+    <Grid hasGutter>
+      <GridItem lg={3} rowSpan={8} sm={12}>
+        <ProtectedPVCsSection
+          protectedPVCData={protectedPVCData}
+          selectedApplication={selectedApplication}
+        />
+      </GridItem>
+      <GridItem lg={9} rowSpan={8} sm={12}>
+        <NamespaceSection selectedApplication={selectedApplication} />
+      </GridItem>
+      <GridItem lg={3} rowSpan={8} sm={12}>
+        <ActivitySection selectedApplication={selectedApplication} />
+      </GridItem>
+      <GridItem lg={3} rowSpan={8} sm={12}>
+        <SnapshotSection
+          selectedApplication={selectedApplication}
+          isVolumeSnapshot
+        />
+      </GridItem>
+      <GridItem lg={6} rowSpan={8} sm={12}>
+        <SnapshotSection selectedApplication={selectedApplication} />
+      </GridItem>
+      <GridItem lg={12} rowSpan={8} sm={12}>
+        <VolumeSummarySection
+          protectedPVCData={protectedPVCData}
+          selectedApplication={selectedApplication}
+        />
+      </GridItem>
+    </Grid>
+  );
+};
 
 const ApplicationSetAppCard: React.FC<AppWiseCardProps> = ({
   protectedPVCData,
@@ -83,7 +122,10 @@ const ApplicationSetAppCard: React.FC<AppWiseCardProps> = ({
         <ActivitySection selectedApplication={selectedApplication} />
       </GridItem>
       <GridItem lg={9} rowSpan={8} sm={12}>
-        <SnapshotSection selectedApplication={selectedApplication} />
+        <SnapshotSection
+          selectedApplication={selectedApplication}
+          isVolumeSnapshot
+        />
       </GridItem>
       <GridItem lg={12} rowSpan={8} sm={12}>
         <VolumeSummarySection
@@ -134,7 +176,6 @@ const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
     kind: referenceForModel(MirrorPeerModel),
     isList: true,
     namespaced: false,
-    cluster: HUB_CLUSTER_NAME,
   });
   const peerClusters = getClusterNamesFromMirrorPeers(
     mirrorPeers || [],
@@ -181,6 +222,8 @@ const AppWiseCard: React.FC<AppWiseCardProps> = (props) => {
       return <ApplicationSetAppCard {...props} />;
     case APPLICATION_TYPE.SUBSCRIPTION:
       return <SubscriptionSetAppCard {...props} />;
+    case APPLICATION_TYPE.DISCOVERED:
+      return <DiscoveredAppCard {...props} />;
     default:
       return <></>;
   }
@@ -207,12 +250,18 @@ const ClusterAppCardTitle: React.FC<ClusterAppCardTitleProps> = ({
     <div>
       <Text className="mco-cluster-app__headerText--size mco-dashboard__statusText--margin">
         {t('Application: ')}
-        <Link id="app-search-argo-apps-link" to={applicationDetailsPath}>
-          {app.name}
-        </Link>
+        {appType === APPLICATION_TYPE.DISCOVERED ? (
+          app.name
+        ) : (
+          <Link id="app-search-argo-apps-link" to={applicationDetailsPath}>
+            {app.name}
+          </Link>
+        )}
       </Text>
       <Text className="mco-dashboard__statusText--margin">
-        {t('Type: {{type}}', { type: appType })}
+        {t('Type: {{type}}', {
+          type: APPLICATION_TYPE_DISPLAY_TEXT(t)[appType],
+        })}
       </Text>
     </div>
   ) : (
@@ -234,7 +283,6 @@ export const ClusterAppCard: React.FC = () => {
     namespace: cluster,
     namespaced: true,
     optional: true,
-    cluster: HUB_CLUSTER_NAME,
   });
   const [lastSyncTimeData, lastSyncTimeError, lastSyncTimeLoading] =
     useCustomPrometheusPoll({
@@ -278,56 +326,58 @@ export const ClusterAppCard: React.FC = () => {
     mcvsLoadError,
   ]);
 
+  const loadedWOError = allLoaded && !anyError;
   return (
     <Card data-test="cluster-app-card">
-      {allLoaded && !anyError && (
-        <>
-          <CardHeader className="mco-cluster-app__text--divider">
-            <div className="mco-dashboard__contentColumn">
-              <ClusterAppDropdown
-                clusterResources={drClusterAppsMap}
-                clusterName={cluster}
-                application={application}
-                setCluster={setCluster}
-                setApplication={setApplication}
+      {loadedWOError && (
+        <CardHeader className="mco-cluster-app__text--divider">
+          <div className="mco-dashboard__contentColumn">
+            <ClusterAppDropdown
+              clusterResources={drClusterAppsMap}
+              clusterName={cluster}
+              application={application}
+              setCluster={setCluster}
+              setApplication={setApplication}
+            />
+            <CardTitle className="mco-cluster-app__text--margin-top">
+              <ClusterAppCardTitle
+                app={application}
+                cluster={cluster}
+                appKind={selectedApplication?.appKind}
+                appType={selectedApplication?.appType}
+                appAPIVersion={selectedApplication?.appAPIVersion}
               />
-              <CardTitle className="mco-cluster-app__text--margin-top">
-                <ClusterAppCardTitle
-                  app={application}
-                  cluster={cluster}
-                  appKind={selectedApplication?.appKind}
-                  appType={selectedApplication?.appType}
-                  appAPIVersion={selectedApplication?.appAPIVersion}
-                />
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardBody>
-            {!application.namespace && application.name === ALL_APPS ? (
-              <ClusterWiseCard
-                clusterName={cluster}
-                lastSyncTimeData={lastSyncTimeData}
-                protectedPVCData={protectedPVCData}
-                csvData={csvData}
-                clusterResources={drClusterAppsMap}
-              />
-            ) : (
-              <AppWiseCard
-                protectedPVCData={protectedPVCData}
-                selectedApplication={selectedApplication}
-              />
-            )}
-          </CardBody>
-        </>
+            </CardTitle>
+          </div>
+        </CardHeader>
       )}
-      {!allLoaded && !anyError && (
-        <div className="mco-dashboard-loading__singleBlock" />
-      )}
-      {anyError && (
-        <div className="mco-dashboard__centerComponent">
-          <DataUnavailableError />
-        </div>
-      )}
+      <CardBody>
+        {loadedWOError &&
+          (!application.namespace && application.name === ALL_APPS ? (
+            <ClusterWiseCard
+              clusterName={cluster}
+              lastSyncTimeData={lastSyncTimeData}
+              protectedPVCData={protectedPVCData}
+              csvData={csvData}
+              clusterResources={drClusterAppsMap}
+            />
+          ) : (
+            <AppWiseCard
+              protectedPVCData={protectedPVCData}
+              selectedApplication={selectedApplication}
+            />
+          ))}
+        {!allLoaded && !anyError && (
+          <div style={{ height: '200px' }}>
+            <Skeleton height="100%" />
+          </div>
+        )}
+        {anyError && (
+          <div className="mco-dashboard__centerComponent">
+            <DataUnavailableError />
+          </div>
+        )}
+      </CardBody>
     </Card>
   );
 };

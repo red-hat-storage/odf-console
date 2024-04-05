@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { screen, render, fireEvent } from '@testing-library/react';
+import { screen, render, fireEvent, waitFor } from '@testing-library/react';
 import { ActionsColumn, IAction, Td } from '@patternfly/react-table';
 import { getName, getNamespace } from '../selectors';
-import { RowComponentType, SelectableTable } from './selectable-table';
+import { RowComponentType } from './composable-table';
+import { SelectableTable } from './selectable-table';
 
 const getRow = (): K8sResourceCommon[] => [
   {
@@ -58,7 +59,7 @@ const MockRowComponent: React.FC<RowComponentType<K8sResourceCommon>> = (
       <Td translate={null}> {getNamespace(row)} </Td>
       <Td translate={null}> {row?.kind} </Td>
       <Td translate={null} isActionCell>
-        <ActionsColumn items={RowActions()} />
+        <ActionsColumn translate={null} items={RowActions()} />
       </Td>
     </>
   );
@@ -103,10 +104,12 @@ describe('ApplicationSet manage data policy modal', () => {
     expect(screen.getByText('kind3')).toBeInTheDocument();
 
     // Row action
-    fireEvent.click(
-      screen.getAllByRole('button', {
-        name: 'Actions',
-      })[0]
+    await waitFor(() =>
+      fireEvent.click(
+        screen.getAllByRole('button', {
+          name: 'Kebab toggle',
+        })[0]
+      )
     );
     expect(screen.getByText('test action')).toBeInTheDocument();
   });

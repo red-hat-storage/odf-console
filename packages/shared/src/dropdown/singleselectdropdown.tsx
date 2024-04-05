@@ -1,5 +1,10 @@
 import * as React from 'react';
-import { Select, SelectProps, SelectVariant } from '@patternfly/react-core';
+import {
+  Select,
+  SelectOption,
+  SelectProps,
+  SelectVariant,
+} from '@patternfly/react-core/deprecated';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
@@ -12,6 +17,10 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
   const { t } = useCustomTranslation();
 
   const [isOpen, setOpen] = React.useState(false);
+  const [newOptions, setNewOptions] = React.useState<JSX.Element[]>([]);
+  const allOptions =
+    newOptions.length > 0 ? selectOptions.concat(newOptions) : selectOptions;
+
   const onSelect = React.useCallback(
     (event: React.MouseEvent | React.ChangeEvent, selection: string) => {
       /**
@@ -30,22 +39,29 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
     [valueLabelMap, onChange, setOpen]
   );
 
+  const onCreateOption = (newValue: string) =>
+    setNewOptions([
+      ...newOptions,
+      <SelectOption key={newValue} value={newValue} />,
+    ]);
+
   return (
-    // surround select with data-test-id to be able to find it in tests
-    <div className="test" data-test-id={props['data-test-id']}>
+    // surround select with data-test to be able to find it in tests
+    <div className="test" data-test={props['data-test']}>
       <Select
         {...props}
         variant={SelectVariant.single}
         aria-label={t('Select input')}
-        onToggle={setOpen}
+        onToggle={() => setOpen((o) => !o)}
         onSelect={onSelect}
         selections={selectedKey}
         isOpen={isOpen}
         placeholderText={props?.placeholderText || t('Select options')}
         aria-labelledby={props?.id}
         noResultsFoundText={t('No results found')}
+        onCreateOption={(props?.isCreatable && onCreateOption) || undefined}
       >
-        {selectOptions}
+        {allOptions}
       </Select>
     </div>
   );
@@ -59,10 +75,11 @@ export type SingleSelectDropdownProps = {
   className?: string;
   selectOptions: JSX.Element[];
   onChange: (selected: string) => void;
-  'data-test-id'?: string;
+  'data-test'?: string;
   onFilter?: SelectProps['onFilter'];
   hasInlineFilter?: SelectProps['hasInlineFilter'];
   isDisabled?: boolean;
   validated?: 'success' | 'warning' | 'error' | 'default';
   required?: boolean;
+  isCreatable?: boolean;
 };

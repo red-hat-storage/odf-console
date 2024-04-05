@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { InputGroupItem } from '@patternfly/react-core/dist/esm/components/InputGroup/InputGroupItem';
 import CheckCircleIcon from '@patternfly/react-icons/dist/esm/icons/check-circle-icon';
 import ExclamationCircleIcon from '@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon';
 import InfoCircleIcon from '@patternfly/react-icons/dist/esm/icons/info-circle-icon';
@@ -17,6 +18,8 @@ import {
   Button,
   TextInputProps,
   Icon,
+  FormHelperText,
+  HelperTextItemProps,
 } from '@patternfly/react-core';
 import useFieldRequirements from './useFieldRequirements';
 import './TextInputWithFieldRequirements.scss';
@@ -26,6 +29,8 @@ export type TextInputWithFieldRequirementsProps = {
   control: Control<FieldValues>;
   defaultValue?: any;
   formGroupProps: FormGroupProps;
+  // In PF5 FormGroupProps don't have helperText
+  helperText?: string;
   textInputProps: TextInputProps & {
     'data-test': string;
     disabled?: boolean;
@@ -34,7 +39,7 @@ export type TextInputWithFieldRequirementsProps = {
 };
 
 export type ValidationIconProp = {
-  status: FormGroupProps['validated'];
+  status: HelperTextItemProps['variant'];
 };
 
 export const getStatusIcon = (status: string) => {
@@ -68,6 +73,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
     textInputProps,
     popoverProps,
     defaultValue = '',
+    helperText,
   }) => {
     const {
       field: { name, value, onChange, onBlur },
@@ -85,7 +91,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
     );
     const [isVisible, setIsVisible] = React.useState(false);
     const [validated, setValidated] =
-      React.useState<FormGroupProps['validated']>('default');
+      React.useState<HelperTextItemProps['variant']>('default');
 
     React.useEffect(() => {
       setValidated(
@@ -98,9 +104,9 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
     }, [error, isDirty, isTouched, isSubmitted]);
 
     const handleInputChange = React.useCallback(
-      (newValue: string, event: React.FormEvent<HTMLInputElement>) => {
+      (event: React.FormEvent<HTMLInputElement>, newValue: string) => {
         if (!isVisible) setIsVisible(true);
-        textInputProps?.onChange?.(newValue, event);
+        textInputProps?.onChange?.(event, newValue);
         onChange(newValue, event);
       },
       [isVisible, onChange, textInputProps]
@@ -116,7 +122,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
     );
 
     return (
-      <FormGroup {...formGroupProps} validated={validated}>
+      <FormGroup {...formGroupProps}>
         <InputGroup
           data-test="field-requirements-input-group"
           className={cn(
@@ -124,48 +130,58 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
             error && 'rich-input__group--invalid',
             !error && (isDirty || isSubmitted) && 'rich-input__group--success'
           )}
+          translate={undefined}
         >
-          <TextInput
-            {...textInputProps}
-            name={name}
-            value={value}
-            className={cn('rich-input__text', textInputProps?.className)}
-            onBlur={handleInputBlur}
-            onFocus={() => setIsVisible(true)}
-            onClick={() => setIsVisible(true)}
-            onChange={handleInputChange}
-          />
-          <Popover
-            data-test="field-requirements-popover"
-            position={PopoverPosition.top}
-            isVisible={isVisible}
-            shouldOpen={() => setIsVisible(true)}
-            shouldClose={() => setIsVisible(false)}
-            bodyContent={
-              <HelperText component="ul">
-                {Object.keys(state.fieldRequirements).map((rule) => {
-                  return (
-                    <HelperTextItem
-                      isDynamic
-                      variant={state.fieldRequirements[rule]}
-                      component="li"
-                      key={rule}
-                    >
-                      {rule}
-                    </HelperTextItem>
-                  );
-                })}
-              </HelperText>
-            }
-            {...popoverProps}
-          >
-            <Button variant="plain" aria-label="Validation" tabIndex={-1}>
-              <Icon status={getVariant(validated)}>
-                {getStatusIcon(validated)}
-              </Icon>
-            </Button>
-          </Popover>
+          <InputGroupItem isFill>
+            <TextInput
+              {...textInputProps}
+              name={name}
+              value={value}
+              className={cn('rich-input__text', textInputProps?.className)}
+              onBlur={handleInputBlur}
+              onFocus={() => setIsVisible(true)}
+              onClick={() => setIsVisible(true)}
+              onChange={handleInputChange}
+            />
+          </InputGroupItem>
+          <InputGroupItem>
+            <Popover
+              data-test="field-requirements-popover"
+              position={PopoverPosition.top}
+              isVisible={isVisible}
+              shouldOpen={() => setIsVisible(true)}
+              shouldClose={() => setIsVisible(false)}
+              bodyContent={
+                <HelperText component="ul">
+                  {Object.keys(state.fieldRequirements).map((rule) => {
+                    return (
+                      <HelperTextItem
+                        isDynamic
+                        variant={state.fieldRequirements[rule]}
+                        component="li"
+                        key={rule}
+                      >
+                        {rule}
+                      </HelperTextItem>
+                    );
+                  })}
+                </HelperText>
+              }
+              {...popoverProps}
+            >
+              <Button variant="plain" aria-label="Validation" tabIndex={-1}>
+                <Icon status={getVariant(validated)}>
+                  {getStatusIcon(validated)}
+                </Icon>
+              </Button>
+            </Popover>
+          </InputGroupItem>
         </InputGroup>
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem variant={validated}>{helperText}</HelperTextItem>
+          </HelperText>
+        </FormHelperText>
       </FormGroup>
     );
   };

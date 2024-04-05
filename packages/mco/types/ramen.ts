@@ -41,17 +41,33 @@ export type DRClusterKind = K8sResourceCommon & {
 
 export type DRPlacementControlKind = K8sResourceCommon & {
   spec: {
+    // The reference to the DRPolicy participating in the DR replication for this DRPC.
     drPolicyRef: ObjectReference;
-    placementRef: ObjectReference;
+    // The reference to the PlacementRule/Placement used by DRPC.
+    // N/A for the discovered apps.
+    placementRef?: ObjectReference;
+    // The cluster name that the user preferred to run the application on.
     preferredCluster?: string;
+    //  The cluster name that the user wants to failover the application to.
     failoverCluster?: string;
-    kubeObjectProtection?: {
-      captureInterval: string;
-    };
-    pvcSelector: {
-      matchLabels: MatchLabels;
-    };
+    // To identify all the PVCs that need DR protection.
+    pvcSelector: Selector;
+    // Failover or Relocate
     action?: DRActionType;
+    //  N/A for the managed applications.
+    kubeObjectProtection?: {
+      captureInterval?: string;
+      recipeRef?: {
+        namespace?: string;
+        name?: string;
+      };
+    };
+    // To identify all the kube objects that need DR protection.
+    //  N/A for the managed  applications.
+    kubeObjectSelector?: Selector;
+    //  A list of namespaces that are protected by the DRPC.
+    //  N/A for the managed  applications.
+    protectedNamespace?: string[];
   };
   status?: {
     conditions?: K8sResourceCondition[];
@@ -61,6 +77,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
       };
     };
     phase: string;
+    // The time of the most recent successful synchronization of all PVCs.
     lastGroupSyncTime?: string;
     preferredDecision?: {
       clusterName?: string;

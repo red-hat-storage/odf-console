@@ -116,7 +116,7 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
               label={t('Use existing claim')}
               value="exists"
               key="exists"
-              onChange={(checked: boolean) => {
+              onChange={(_event, checked: boolean) => {
                 onRadioToggle();
                 onChange(checked);
               }}
@@ -175,7 +175,7 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
         errorMessage={state.error || loadError?.message}
         inProgress={state.progress}
       >
-        <ActionGroup className="pf-c-form">
+        <ActionGroup className="pf-v5-c-form">
           <Button
             type="submit"
             variant="primary"

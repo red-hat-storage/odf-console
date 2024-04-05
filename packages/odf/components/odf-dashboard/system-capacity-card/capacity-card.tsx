@@ -99,8 +99,10 @@ const SystemCapacityCard: React.FC = () => {
   return (
     <Card className="odf-capacityCard--height">
       <CardHeader>
-        <CardTitle>{t('System raw capacity')}</CardTitle>
-        <FieldLevelHelp>{storageCapacityTooltip(t)}</FieldLevelHelp>
+        <CardTitle>
+          {t('System raw capacity')}
+          <FieldLevelHelp>{storageCapacityTooltip(t)}</FieldLevelHelp>
+        </CardTitle>
       </CardHeader>
       <CardBody>
         {!error ? (

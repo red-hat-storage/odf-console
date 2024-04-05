@@ -36,6 +36,9 @@ import {
   Alert,
   AlertVariant,
   Checkbox,
+  HelperTextItem,
+  FormHelperText,
+  HelperText,
 } from '@patternfly/react-core';
 import { ErrorHandler } from '../../error-handler';
 import { WizardState, WizardDispatch } from '../../reducer';
@@ -66,7 +69,7 @@ const ExternalSystemSelection: React.FC<ExternalSystemSelectionProps> = ({
   const { t } = useCustomTranslation();
 
   const handleSelection: FormSelectProps['onChange'] = React.useCallback(
-    (value: string) => {
+    (_event, value: string) => {
       if (stepIdReached === 2)
         dispatch({ type: 'wizard/setStepIdReached', payload: 1 });
       dispatch({
@@ -79,7 +82,7 @@ const ExternalSystemSelection: React.FC<ExternalSystemSelectionProps> = ({
 
   React.useEffect(() => {
     if (!selectedStorage) {
-      handleSelection(selectOptions[0].model.kind, null);
+      handleSelection(null, selectOptions[0].model.kind);
     }
   }, [handleSelection, selectOptions, selectedStorage]);
 
@@ -88,7 +91,6 @@ const ExternalSystemSelection: React.FC<ExternalSystemSelectionProps> = ({
       fieldId="storage-platform-name"
       label={t('Storage platform')}
       className=""
-      helperText={t('Select a storage platform you wish to connect')}
     >
       <FormSelect
         aria-label={t('Select external system from list')}
@@ -101,6 +103,13 @@ const ExternalSystemSelection: React.FC<ExternalSystemSelectionProps> = ({
           <FormSelectOption key={kind} value={kind} label={displayName} />
         ))}
       </FormSelect>
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem>
+            {t('Select a storage platform you wish to connect')}
+          </HelperTextItem>
+        </HelperText>
+      </FormHelperText>
     </FormGroup>
   );
 };
@@ -203,6 +212,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   >(ClusterServiceVersionModel, null, odfNamespace);
 
   const isFullDeployment = deployment === DeploymentType.FULL;
+  const isProviderMode = deployment === DeploymentType.PROVIDER_MODE;
   const isNonRHCSExternalType =
     type === BackingStorageType.EXTERNAL &&
     externalStorage !== OCSStorageClusterModel.kind;
@@ -339,7 +349,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
             name={RADIO_GROUP_NAME}
             value={BackingStorageType.EXISTING}
             isChecked={type === BackingStorageType.EXISTING}
-            onChange={onRadioSelect}
+            onChange={(event, _unused) => onRadioSelect(_unused, event)}
             isDisabled={hasOCS || sc?.items?.length === 0}
             body={
               showStorageClassSelection && (
@@ -360,7 +370,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
             name={RADIO_GROUP_NAME}
             value={BackingStorageType.LOCAL_DEVICES}
             isChecked={type === BackingStorageType.LOCAL_DEVICES}
-            onChange={onRadioSelect}
+            onChange={(event, _unused) => onRadioSelect(_unused, event)}
             isDisabled={hasOCS}
             id={`bs-${BackingStorageType.LOCAL_DEVICES}`}
             className="odf-backing-store__radio--margin-bottom"
@@ -373,8 +383,8 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
             name={RADIO_GROUP_NAME}
             value={BackingStorageType.EXTERNAL}
             isChecked={type === BackingStorageType.EXTERNAL}
-            onChange={onRadioSelect}
-            isDisabled={allowedExternalStorage.length === 0}
+            onChange={(event, _unused) => onRadioSelect(_unused, event)}
+            isDisabled={allowedExternalStorage.length === 0 || isProviderMode}
             body={
               showExternalStorageSelection && (
                 <ExternalSystemSelection

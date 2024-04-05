@@ -1,15 +1,15 @@
 .mco-select-cluster-list {
-  border: 1px solid var(--pf-global--BorderColor--light-100);
-  margin-top: var(--pf-global--spacer--md);
+  border: 1px solid var(--pf-v5-global--BorderColor--light-100);
+  margin-top: var(--pf-v5-global--spacer--md);
 }
 
 .mco-select-cluster-list__data-list {
-  --pf-c-data-list__item--BorderBottomWidth: 0;
+  --pf-v5-c-data-list__item--BorderBottomWidth: 0;
   max-height: 300px;
   min-height: 200px;
   overflow-y: auto;
-  padding: var(--pf-global--spacer--md) var(--pf-global--spacer--md)
-    var(--pf-global--spacer--md) 0;
+  padding: var(--pf-v5-global--spacer--md) var(--pf-v5-global--spacer--md)
+    var(--pf-v5-global--spacer--md) 0;
 }
 
 .mco-select-cluster-list__filter-toolbar-item {

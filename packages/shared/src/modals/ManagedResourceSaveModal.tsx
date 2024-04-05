@@ -20,7 +20,7 @@ import { ModalBody, ModalFooter, ModalHeader, CommonModalProps } from './Modal';
 const header = (t: TFunction) => (
   <ModalHeader>
     <ExclamationTriangleIcon
-      color="var(--pf-global--warning-color--100)"
+      color="var(--pf-v5-global--warning-color--100)"
       className="icon--spacer"
     />
     {t('Managed resource')}

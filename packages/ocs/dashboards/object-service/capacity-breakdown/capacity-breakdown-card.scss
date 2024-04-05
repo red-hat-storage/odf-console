@@ -10,11 +10,11 @@
 }
 
 .nb-capacity-breakdown-card-header__dropdown {
-  @media screen and (min-width: $pf-global--breakpoint--lg) {
+  @media screen and (min-width: $pf-v5-global--breakpoint--lg) {
     max-width: 12em;
     min-width: 12em;
   }
   &--margin {
-    margin-right: var(--pf-global--spacer--xs);
+    margin-right: var(--pf-v5-global--spacer--xs);
   }
 }

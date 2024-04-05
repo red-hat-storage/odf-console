@@ -29,7 +29,7 @@ export const ThickProvision: React.FC<ProvisionerProps> = ({
         isChecked={checked}
         data-checked-state={checked}
         label={t('Enable Thick Provisioning')}
-        onChange={setChecked}
+        onChange={(_event, value: boolean) => setChecked(value)}
       />
       <span className="help-block">
         {t(

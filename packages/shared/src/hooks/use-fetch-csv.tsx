@@ -14,7 +14,6 @@ import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 export const useFetchCsv = ({
   specName,
   namespace,
-  cluster,
   startPollingInstantly = true,
 }: UseFetchCsvProps): UseFetchCsvResult => {
   const { t } = useCustomTranslation();
@@ -26,7 +25,6 @@ export const useFetchCsv = ({
         isList: true,
         kind: referenceForModel(SubscriptionModel),
         namespace,
-        cluster: cluster,
       },
       startPollingInstantly
     )
@@ -56,7 +54,6 @@ export const useFetchCsv = ({
           namespaced: true,
           namespace: csvDetails.csvNamespace,
           isList: false,
-          cluster: cluster,
         },
         csvDetails.csvName !== null && csvDetails.csvNamespace !== null
       )
@@ -74,9 +71,9 @@ export const useFetchCsv = ({
 };
 
 type UseFetchCsvResult = [ClusterServiceVersionKind, boolean, any];
-type UseFetchCsvProps = {
+
+export type UseFetchCsvProps = {
   specName: string;
   namespace?: string;
-  cluster?: string;
   startPollingInstantly?: boolean;
 };

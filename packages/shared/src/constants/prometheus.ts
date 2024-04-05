@@ -1,10 +1,8 @@
-import { WindowObject } from '@odf/shared/types';
 import { ONE_HOUR } from './common';
 
-export const PROMETHEUS_BASE_PATH = (window as WindowObject).SERVER_FLAGS
-  .prometheusBaseURL;
-export const PROMETHEUS_TENANCY_BASE_PATH = (window as WindowObject)
-  .SERVER_FLAGS.prometheusTenancyBaseURL;
+export const PROMETHEUS_BASE_PATH = window.SERVER_FLAGS.prometheusBaseURL;
+export const PROMETHEUS_TENANCY_BASE_PATH =
+  window.SERVER_FLAGS.prometheusTenancyBaseURL;
 export const DEFAULT_PROMETHEUS_SAMPLES = 60;
 export const DEFAULT_PROMETHEUS_TIMESPAN = ONE_HOUR;
 

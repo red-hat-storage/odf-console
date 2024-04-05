@@ -5,10 +5,7 @@ import { getCephHealthState } from '@odf/ocs/utils';
 import { K8sResourceKind, CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  HealthBody,
-  HealthItem,
-} from '@openshift-console/dynamic-plugin-sdk-internal';
+import { HealthItem } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useParams } from 'react-router-dom-v5-compat';
 import {
   GalleryItem,
@@ -45,17 +42,15 @@ export const StatusCard: React.FC = () => {
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <HealthBody>
-          <Gallery className="odf-overview-status__health" hasGutter>
-            <GalleryItem>
-              <HealthItem
-                title={t('Storage Cluster')}
-                state={cephHealth.state}
-                details={cephHealth.message}
-              />
-            </GalleryItem>
-          </Gallery>
-        </HealthBody>
+        <Gallery className="odf-overview-status__health" hasGutter>
+          <GalleryItem>
+            <HealthItem
+              title={t('Storage Cluster')}
+              state={cephHealth.state}
+              details={cephHealth.message}
+            />
+          </GalleryItem>
+        </Gallery>
       </CardBody>
     </Card>
   );

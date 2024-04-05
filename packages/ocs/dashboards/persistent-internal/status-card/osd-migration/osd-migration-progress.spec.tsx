@@ -63,6 +63,11 @@ jest.mock('@openshift-console/dynamic-plugin-sdk-internal', () => ({
   HealthItem: ({ title }) => <div>{title}</div>,
 }));
 
+jest.mock('@odf/shared/hooks', () => ({
+  ...jest.requireActual('@odf/shared/hooks'),
+  DOC_VERSION: '1.2',
+}));
+
 describe('OSDMigrationProgress', () => {
   test('does not render anything if data not loaded', () => {
     const cephData = cephData1;

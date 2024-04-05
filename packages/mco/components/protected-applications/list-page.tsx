@@ -2,7 +2,7 @@ import * as React from 'react';
 import { DASH } from '@odf/shared/constants';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
-import { PaginatedsListPage } from '@odf/shared/list-page';
+import { PaginatedListPage } from '@odf/shared/list-page';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName } from '@odf/shared/selectors';
 import { RowComponentType } from '@odf/shared/table';
@@ -20,9 +20,10 @@ import {
   NavigateFunction,
   Link,
 } from 'react-router-dom-v5-compat';
-import { InProgressIcon, CubeIcon, IconSize } from '@patternfly/react-icons';
+import { Icon } from '@patternfly/react-core';
+import { InProgressIcon, CubeIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
-import { ODFMCO_OPERATOR_NAMESPACE } from '../../constants';
+import { DR_BASE_ROUTE, DISCOVERED_APP_NS } from '../../constants';
 import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
@@ -51,6 +52,7 @@ import {
   getAppWorstSyncStatus,
   SyncStatusInfo,
   drpcDetailsPageRoute,
+  isCleanupPending,
 } from './utils';
 import './protected-apps.scss';
 
@@ -90,15 +92,15 @@ const ProtectedAppsTableRow: React.FC<
 
   // Enrolled/protected namespaces details
   const enrolledNamespaces: string[] =
-    // ToDo: Update with correct spec field which will report all protected namespaces
-    // @ts-ignore
-    application.spec?.enrolledNamespace || [];
+    application.spec?.protectedNamespace || [];
 
-  // ToDo: Add clean-up activity event as well
+  // Failover/Relocate/Cleanup event details
+  const anyOnGoingEvent =
+    isFailingOrRelocating(application) || isCleanupPending(application);
   const showEventsDetails: boolean =
-    isFailingOrRelocating(application) ||
+    anyOnGoingEvent ||
     expandableComponentType === EXPANDABLE_COMPONENT_TYPE.EVENTS;
-  const eventsCount: number = isFailingOrRelocating(application) ? 1 : 0;
+  const eventsCount: number = anyOnGoingEvent ? 1 : 0;
 
   // Overall sync status details (replication health)
   const syncStatusInfo: SyncStatusInfo =
@@ -116,6 +118,7 @@ const ProtectedAppsTableRow: React.FC<
     <>
       <Tr translate={null}>
         <Td
+          data-test="expand-button"
           translate={null}
           expand={{
             rowIndex,
@@ -138,8 +141,12 @@ const ProtectedAppsTableRow: React.FC<
           <SelectExpandable
             title={
               <div>
-                <CubeIcon size={IconSize.sm} color={blackIconColor.value} />
-                <span className="pf-u-pl-sm">{enrolledNamespaces.length}</span>
+                <Icon size="sm">
+                  <CubeIcon color={blackIconColor.value} />
+                </Icon>
+                <span className="pf-v5-u-pl-sm">
+                  {enrolledNamespaces.length}
+                </span>
               </div>
             }
             tooltipContent={t('View namespaces')}
@@ -154,11 +161,10 @@ const ProtectedAppsTableRow: React.FC<
             <SelectExpandable
               title={
                 <div>
-                  <InProgressIcon
-                    size={IconSize.sm}
-                    color={blackIconColor.value}
-                  />
-                  <span className="pf-u-pl-sm">{eventsCount}</span>
+                  <Icon size="sm">
+                    <InProgressIcon color={blackIconColor.value} />
+                  </Icon>
+                  <span className="pf-v5-u-pl-sm">{eventsCount}</span>
                 </div>
               }
               tooltipContent={t('View activity')}
@@ -167,7 +173,7 @@ const ProtectedAppsTableRow: React.FC<
               className={classNames({
                 'mco-protected-applications__expanded':
                   expandableComponentType === EXPANDABLE_COMPONENT_TYPE.EVENTS,
-                'pf-u-pl-lg': true,
+                'pf-v5-u-pl-lg': true,
               })}
             />
           )}
@@ -177,7 +183,7 @@ const ProtectedAppsTableRow: React.FC<
             title={
               <div>
                 {icon}
-                <span className="pf-u-pl-sm">{title}</span>
+                <span className="pf-v5-u-pl-sm">{title}</span>
               </div>
             }
             tooltipContent={t('See detailed information')}
@@ -191,7 +197,8 @@ const ProtectedAppsTableRow: React.FC<
         </Td>
         <Td translate={null} dataLabel={columnNames[4]}>
           <Link
-            to={`/multicloud/data-services/disaster-recovery/policies?name=${drPolicyName}`}
+            to={`${DR_BASE_ROUTE}/policies?name=${drPolicyName}`}
+            data-test={`link-${drPolicyName}`}
           >
             {drPolicyName}
           </Link>
@@ -202,6 +209,7 @@ const ProtectedAppsTableRow: React.FC<
         <Td translate={null} isActionCell>
           <ActionsColumn
             items={getRowActions(t, launcher, navigate, application)}
+            translate={null}
           />
         </Td>
       </Tr>
@@ -229,8 +237,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   const [discoveredApps, discoveredAppsLoaded, discoveredAppsError] =
     useK8sWatchResource<DRPlacementControlKind[]>(
       getDRPlacementControlResourceObj({
-        // ToDo: Update this namespace with correct imperative apps namespace
-        namespace: ODFMCO_OPERATOR_NAMESPACE,
+        namespace: DISCOVERED_APP_NS,
       })
     );
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
@@ -279,7 +286,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   useScheduler(updateSyncStatus);
 
   return (
-    <PaginatedsListPage
+    <PaginatedListPage
       filteredData={filteredData}
       CreateButton={EnrollApplicationButton}
       Alerts={AlertMessages}

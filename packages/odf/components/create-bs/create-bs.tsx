@@ -14,6 +14,7 @@ import { SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
+import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   getAPIVersionForModel,
@@ -41,7 +42,6 @@ import {
   getProviders,
   secretPayloadCreator,
 } from '../../utils';
-import validationRegEx from '../../utils/validation';
 import { GCPEndpointType } from '../mcg-endpoints/gcp-endpoint-type';
 import { PVCType } from '../mcg-endpoints/pvc-endpoint-type';
 import { S3EndPointType } from '../mcg-endpoints/s3-endpoint-type';

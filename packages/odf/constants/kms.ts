@@ -9,6 +9,7 @@ import {
   KMSConfig,
   KMSConfigMap,
   ThalesConfigMap,
+  AzureConfig,
 } from '../types';
 
 export const KMSMaxFileUploadSize = 4000000;
@@ -58,6 +59,11 @@ export const SupportedProviders: SupportedProvidersProps = {
       return !kmsSecret?.data?.['UNIQUE_IDENTIFIER'];
     },
   },
+  [ProviderNames.AZURE]: {
+    group: 'Azure Key Vault',
+    supported: [KmsImplementations.AZURE],
+    allowedPlatforms: ['Azure'],
+  },
 };
 
 export const DescriptionKey = {
@@ -65,6 +71,7 @@ export const DescriptionKey = {
   [KmsImplementations.VAULT_TENANT_SA]: 'VAULT_ADDR',
   [KmsImplementations.IBM_KEY_PROTECT]: 'IBM_KP_SERVICE_INSTANCE_ID',
   [KmsImplementations.KMIP]: 'KMIP_ENDPOINT',
+  [KmsImplementations.AZURE]: 'AZURE_VAULT_URI',
 };
 
 const VaultEmptyState: VaultConfig = Object.seal({
@@ -160,10 +167,36 @@ const ThalesEmptyState: ThalesConfig = Object.seal({
   hasHandled: true,
 });
 
+const AzureEmptyState: AzureConfig = Object.seal({
+  name: {
+    value: '',
+    valid: true,
+  },
+  azureVaultURL: {
+    value: '',
+    valid: true,
+  },
+  clientID: {
+    value: '',
+    valid: true,
+  },
+  tenantID: {
+    value: '',
+    valid: true,
+  },
+  clientCert: {
+    value: '',
+    fileName: '',
+    error: '',
+  },
+  hasHandled: true,
+});
+
 export const ProviderStateMap = {
   [ProviderNames.VAULT]: VaultEmptyState,
   [ProviderNames.HPCS]: HpcsEmptyState,
   [ProviderNames.THALES]: ThalesEmptyState,
+  [ProviderNames.AZURE]: AzureEmptyState,
 };
 
 export const KMSEmptyState: KMSConfig = Object.seal({

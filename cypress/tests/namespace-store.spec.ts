@@ -36,7 +36,6 @@ describe('Tests creation of Namespace Stores', () => {
   });
 
   beforeEach(() => {
-    cy.visit('/');
     commonFlows.navigateToObjectStorage();
     cy.byTestID('horizontal-link-Namespace Store').first().click();
     cy.byTestID('item-create').click();

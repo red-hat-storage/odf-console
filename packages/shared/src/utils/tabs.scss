@@ -6,13 +6,13 @@
     font: 18px 'RedHatText';
   }
 
-  .pf-c-tabs__link {
+  .pf-v5-c-tabs__link {
     margin-right: 2rem;
-    padding: var(--pf-c-tabs__link--PaddingTop) 0
-      var(--pf-c-tabs__link--PaddingBottom) 0;
+    padding: var(--pf-v5-c-tabs__link--PaddingTop) 0
+      var(--pf-v5-c-tabs__link--PaddingBottom) 0;
   }
 
   .pf-m-current span {
-    color: var(--pf-global--link--Color);
+    color: var(--pf-v5-global--link--Color);
   }
 }

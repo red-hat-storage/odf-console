@@ -12,14 +12,14 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isValidIP } from '@odf/shared/utils';
 import { getAPIVersionForModel } from '@odf/shared/utils';
 import { k8sGet } from '@openshift-console/dynamic-plugin-sdk';
+import { Select, SelectOption } from '@patternfly/react-core/deprecated';
 import {
   FormGroup,
   TextInput,
   InputGroup,
   Button,
   Tooltip,
-  Select,
-  SelectOption,
+  InputGroupItem,
 } from '@patternfly/react-core';
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
 import { IBMFlashSystemModel } from './system-models';
@@ -58,7 +58,7 @@ export const FlashSystemConnectionDetails: React.FC<
             id="endpoint-input"
             type="text"
             value={value}
-            onChange={(newValue: string) => {
+            onChange={(_event, newValue: string) => {
               onChange(newValue);
               setFormState('endpoint', newValue);
             }}
@@ -80,7 +80,7 @@ export const FlashSystemConnectionDetails: React.FC<
             id="username-input"
             value={formState.username}
             type="text"
-            onChange={(value: string) => {
+            onChange={(_event, value: string) => {
               onChange(value);
               setFormState('username', value);
             }}
@@ -98,25 +98,29 @@ export const FlashSystemConnectionDetails: React.FC<
           fieldId: 'password-input',
         }}
         render={({ onChange, onBlur }) => (
-          <InputGroup>
-            <TextInput
-              id="password-input"
-              value={formState.password}
-              type={reveal ? 'text' : 'password'}
-              onChange={(value: string) => {
-                onChange(value);
-                setFormState('password', value);
-              }}
-              onBlur={onBlur}
-              isRequired
-            />
-            <Tooltip
-              content={reveal ? t('Hide password') : t('Reveal password')}
-            >
-              <Button variant="control" onClick={() => setReveal(!reveal)}>
-                {reveal ? <EyeSlashIcon /> : <EyeIcon />}
-              </Button>
-            </Tooltip>
+          <InputGroup translate={undefined}>
+            <InputGroupItem isFill>
+              <TextInput
+                id="password-input"
+                value={formState.password}
+                type={reveal ? 'text' : 'password'}
+                onChange={(_event, value: string) => {
+                  onChange(value);
+                  setFormState('password', value);
+                }}
+                onBlur={onBlur}
+                isRequired
+              />
+            </InputGroupItem>
+            <InputGroupItem>
+              <Tooltip
+                content={reveal ? t('Hide password') : t('Reveal password')}
+              >
+                <Button variant="control" onClick={() => setReveal(!reveal)}>
+                  {reveal ? <EyeSlashIcon /> : <EyeIcon />}
+                </Button>
+              </Tooltip>
+            </InputGroupItem>
           </InputGroup>
         )}
       />
@@ -134,7 +138,7 @@ export const FlashSystemConnectionDetails: React.FC<
             id="poolname-input"
             value={formState.poolname}
             type="text"
-            onChange={(value: string) => {
+            onChange={(_event, value: string) => {
               onChange(value);
               setFormState('poolname', value);
             }}

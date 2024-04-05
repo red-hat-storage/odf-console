@@ -1,13 +1,13 @@
 .odf-topology {
     &-nav__item {
-        margin-left: var(--pf-global--spacer--sm);
-        margin-right: var(--pf-global--spacer--sm);
+        margin-left: var(--pf-v5-global--spacer--sm);
+        margin-right: var(--pf-v5-global--spacer--sm);
         display: flex;
         align-items: center;
     }
     &-nav {
-        border-bottom: 1px solid var(--pf-global--palette--black-200);
-        padding: var(--pf-global--spacer--sm);
+        border-bottom: 1px solid var(--pf-v5-global--palette--black-200);
+        padding: var(--pf-v5-global--spacer--sm);
         display: inline-flex;
         background-color: #fff;
         width: 100%;
@@ -15,7 +15,7 @@
 }
 
 .odf-topology-nav__item {
-    .pf-c-options-menu__toggle:not(.pf-m-plain)::before {
+    .pf-v5-c-options-menu__toggle:not(.pf-m-plain)::before {
         border: none;
     }
 }

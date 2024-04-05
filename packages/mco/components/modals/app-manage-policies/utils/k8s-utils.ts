@@ -2,13 +2,15 @@ import {
   ACMPlacementModel,
   ACMPlacementRuleModel,
   DRPlacementControlModel,
+  DRPolicyModel,
 } from '@odf/mco//models';
 import {
   DR_SECHEDULER_NAME,
-  HUB_CLUSTER_NAME,
   PROTECTED_APP_ANNOTATION_WO_SLASH,
 } from '@odf/mco/constants';
-import { getDRPCKindObj } from '@odf/mco/utils';
+import { DRPlacementControlKind } from '@odf/mco/types';
+import { matchClusters } from '@odf/mco/utils';
+import { objectify } from '@odf/shared/modals/EditLabelModal';
 import {
   getAPIVersion,
   getAnnotations,
@@ -16,6 +18,7 @@ import {
   getNamespace,
 } from '@odf/shared/selectors';
 import { K8sResourceKind } from '@odf/shared/types';
+import { getAPIVersionForModel } from '@odf/shared/utils';
 import {
   k8sDelete,
   k8sPatch,
@@ -24,6 +27,41 @@ import {
 import * as _ from 'lodash-es';
 import { AssignPolicyViewState } from './reducer';
 import { DRPlacementControlType, PlacementType } from './types';
+
+export const getDRPCKindObj = (
+  plsName: string,
+  plsNamespace: string,
+  plsKind: string,
+  plsApiVersion: string,
+  drPolicyName: string,
+  drClusterNames: string[],
+  decisionClusters: string[],
+  pvcSelectors: string[]
+): DRPlacementControlKind => ({
+  apiVersion: getAPIVersionForModel(DRPlacementControlModel),
+  kind: DRPlacementControlModel.kind,
+  metadata: {
+    name: `${plsName}-drpc`,
+    namespace: plsNamespace,
+  },
+  spec: {
+    drPolicyRef: {
+      name: drPolicyName,
+      apiVersion: getAPIVersionForModel(DRPolicyModel),
+      kind: DRPolicyModel.kind,
+    },
+    placementRef: {
+      name: plsName,
+      namespace: plsNamespace,
+      apiVersion: plsApiVersion,
+      kind: plsKind,
+    },
+    preferredCluster: matchClusters(drClusterNames, decisionClusters),
+    pvcSelector: {
+      matchLabels: objectify(pvcSelectors),
+    },
+  },
+});
 
 export const placementUnAssignPromise = (drpc: DRPlacementControlType) => {
   const patch = [
@@ -41,7 +79,6 @@ export const placementUnAssignPromise = (drpc: DRPlacementControlType) => {
       },
     },
     data: patch,
-    cluster: HUB_CLUSTER_NAME,
   });
 };
 
@@ -63,7 +100,6 @@ export const unAssignPromises = (drpcs: DRPlacementControlType[]) => {
         },
         requestInit: null,
         json: null,
-        cluster: HUB_CLUSTER_NAME,
       })
     );
   });
@@ -94,7 +130,6 @@ const placementAssignPromise = (placement: PlacementType) => {
       },
     },
     data: patch,
-    cluster: HUB_CLUSTER_NAME,
   });
 };
 
@@ -114,7 +149,6 @@ const placementRuleAssignPromise = (placement: PlacementType) => {
         value: DR_SECHEDULER_NAME,
       },
     ],
-    cluster: HUB_CLUSTER_NAME,
   });
 };
 
@@ -149,7 +183,6 @@ export const assignPromises = (
           placement.deploymentClusters,
           labels
         ),
-        cluster: HUB_CLUSTER_NAME,
       })
     );
   });

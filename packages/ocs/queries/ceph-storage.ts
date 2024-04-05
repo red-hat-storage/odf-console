@@ -48,6 +48,11 @@ export enum StorageDashboardQuery {
   POOL_MAX_CAPACITY_AVAILABLE = 'POOL_MAX_CAPACITY_AVAILABLE',
   POOL_UTILIZATION_IOPS_QUERY = 'POOL_UTILIZATION_IOPS_QUERY',
   POOL_UTILIZATION_THROUGHPUT_QUERY = 'POOL_UTILIZATION_THROUGHPUT_QUERY',
+  // Capacity Trend Queries
+  UTILIZATION_1D = 'UTILIZATION_1D',
+  UTILIZATION_VECTOR = 'UTILIZATION_VECTOR',
+  UPTIME_DAYS = 'UPTIME_DAYS',
+  RAW_CAPACITY_AVAILABLE = 'RAW_CAPACITY_AVAILABLE',
 }
 
 // ToDo (epic 4422): This should work (for now) as "managedBy" will be unique,
@@ -318,4 +323,18 @@ export const breakdownIndependentQueryMap = (
       )[StorageDashboardQuery.PODS_TOTAL_USED],
     },
   },
+});
+
+// ToDo (epic 4422): This should work (for now) as "managedBy" will be unique,
+// but moving forward add a label to metric for CephCluster namespace and use that instead (update query).
+export const CAPACITY_TREND_QUERIES = (
+  managedByOCS?: string,
+  maxDays?: number
+) => ({
+  [StorageDashboardQuery.UTILIZATION_1D]: `delta(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}[1d])`,
+  [StorageDashboardQuery.UTILIZATION_VECTOR]: maxDays
+    ? `delta(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}[${maxDays}d])`
+    : `delta(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}[15d])`,
+  [StorageDashboardQuery.UPTIME_DAYS]: `ceil(((time() - process_start_time_seconds{job="ocs-metrics-exporter"}) / (3600 * 24)))`,
+  [StorageDashboardQuery.RAW_CAPACITY_AVAILABLE]: `ceph_cluster_total_bytes{managedBy="${managedByOCS}"} - ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}`,
 });

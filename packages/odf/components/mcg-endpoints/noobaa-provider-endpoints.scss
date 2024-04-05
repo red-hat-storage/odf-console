@@ -19,20 +19,20 @@
 }
 
 .nb-endpoints-page {
-  margin-left: var(--pf-global--spacer--lg);
-  margin-right: var(--pf-global--spacer--lg);
-  margin-top: var(--pf-global--spacer--lg);
+  margin-left: var(--pf-v5-global--spacer--lg);
+  margin-right: var(--pf-v5-global--spacer--lg);
+  margin-top: var(--pf-v5-global--spacer--lg);
 }
 
 .nb-endpoints-form {
   width: 100%;
-  margin-top: var(--pf-global--spacer--lg);
-  margin-bottom: var(--pf-global--spacer--lg);
+  margin-top: var(--pf-v5-global--spacer--lg);
+  margin-bottom: var(--pf-v5-global--spacer--lg);
 }
 
 .nb-endpoints-form-entry {
-  margin-top: var(--pf-global--spacer--sm);
-  margin-bottom: var(--pf-global--spacer--sm);
+  margin-top: var(--pf-v5-global--spacer--sm);
+  margin-bottom: var(--pf-v5-global--spacer--sm);
 }
 
 .nb-endpoints-form-entry__file-upload {
@@ -53,7 +53,7 @@
 }
 
 .nb-endpoints__modal {
-  background-color: var(--pf-global--BackgroundColor--100);
+  background-color: var(--pf-v5-global--BackgroundColor--100);
 }
 
 .nb-endpoints-page-form__short {

@@ -226,14 +226,13 @@ export const verifyBucketClass = () => {
 
 export const deleteBucketClass = () => {
   cy.log('Deleting bucket class');
-  cy.byTestID('kebab-dropdown-toggle').click();
+  cy.byTestID('kebab-button').click();
   cy.byTestActionID('Delete Bucket Class').click();
   cy.byTestID('delete-action').click();
   cy.byTestID('item-create').should('be.visible');
 };
 
 export const visitBucketClassPage = () => {
-  cy.visit('/');
   commonFlows.navigateToObjectStorage();
   cy.log(
     'Planning to start testing for standard bucket class visitBucketClassPage ....'

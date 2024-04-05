@@ -68,6 +68,7 @@ const PolicyListViewTableRow: React.FC<RowComponentType<DataPolicyType>> = ({
         <ActionsColumn
           items={RowActions(t)}
           isDisabled={!!policy.metadata?.deletionTimestamp || isActionDisabled}
+          translate={undefined}
         />
       </Td>
     </>

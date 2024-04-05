@@ -1,13 +1,35 @@
-import { ODF_DOC_BASE_PATH, ODF_DOC_VERSION } from '@odf/shared/constants/doc';
+import {
+  odfDocBasePath,
+  odfDRDocHome,
+  odfDRDocApplyPolicy,
+} from '@odf/shared/constants/doc';
 
-export const ACM_DOC_VERSION = '2.9';
-export const ACM_DOC_HOME = `https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/${ACM_DOC_VERSION}`;
-export const ACM_DOC_BASE_PATH = `${ACM_DOC_HOME}/html-single`;
+export const acmDocHome = (acmDocVersion) =>
+  `https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/${acmDocVersion}`;
+export const acmDocBasePath = (acmDocVersion) =>
+  `${acmDocHome(acmDocVersion)}/html-single`;
 
-export const DOC_LINKS = {
-  APPLY_POLICY: `${ODF_DOC_BASE_PATH}/configuring_openshift_data_foundation_disaster_recovery_for_openshift_workloads/index#apply-drpolicy-to-sample-application_manage-dr`,
-  MDR_FAILOVER: `${ODF_DOC_BASE_PATH}/configuring_openshift_data_foundation_disaster_recovery_for_openshift_workloads/index#application-failover-between-managed-clusters_manage-dr`,
-  MDR_RELOCATE: `${ODF_DOC_BASE_PATH}/configuring_openshift_data_foundation_disaster_recovery_for_openshift_workloads/index#relocating-application-between-managed-clusters_manage-dr`,
-  DR_RELEASE_NOTES: `${ODF_DOC_BASE_PATH}/${ODF_DOC_VERSION}_release_notes/index#disaster_recovery`,
-  ACM_OFFLINE_CLUSTER: `${ACM_DOC_BASE_PATH}/troubleshooting/index#troubleshooting-an-offline-cluster`,
-};
+export const docLinks = (mcoDocVersion, acmDocVersion) => ({
+  APPLY_POLICY: odfDRDocApplyPolicy(mcoDocVersion),
+  MDR_FAILOVER: `${odfDRDocHome(
+    mcoDocVersion
+  )}#application-failover-between-managed-clusters_manage-dr`,
+  MDR_RELOCATE: `${odfDRDocHome(
+    mcoDocVersion
+  )}#relocating-application-between-managed-clusters_manage-dr`,
+  DR_RELEASE_NOTES: `${odfDocBasePath(
+    mcoDocVersion
+  )}/${mcoDocVersion}_release_notes/index#disaster_recovery`,
+  ACM_OFFLINE_CLUSTER: `${acmDocBasePath(
+    acmDocVersion
+  )}/troubleshooting/index#troubleshooting-an-offline-cluster`,
+});
+
+export const gettingStartedDRDocs = (mcoDocVersion) => ({
+  CREATE_POLICY: `${odfDRDocHome(
+    mcoDocVersion
+  )}#creating-disaster-recovery-policy-on-hub-cluster_mdr`,
+  ENABLE_MONITORING: `${odfDRDocHome(
+    mcoDocVersion
+  )}#enable-dr-monitoring_monitor-dr`,
+});

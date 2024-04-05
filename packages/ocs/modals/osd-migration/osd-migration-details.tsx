@@ -34,8 +34,8 @@ export const OSDMigrationDetails: React.FC<OSDMigrationDetailsProps> = ({
 
   return (
     <>
-      <Flex>
-        <FlexItem className="pf-m-spacer-none">
+      <Flex className="pf-v5-u-ml-xs">
+        <FlexItem>
           <StatusIconAndText
             title={osdMigrationStatus}
             icon={

@@ -5,8 +5,15 @@ import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown'
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
-import { Form, FormGroup, SelectOption } from '@patternfly/react-core';
+import {
+  Form,
+  FormGroup,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
+} from '@patternfly/react-core';
 import {
   ManagePolicyStateAction,
   ManagePolicyStateType,
@@ -44,27 +51,20 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
   ({ policy, matchingPolicies, isValidationEnabled, dispatch }) => {
     const { t } = useCustomTranslation();
     const name = getName(policy);
+    const isInvalidPolicy = isValidationEnabled && !name;
     return (
       <Form className="mco-manage-policies__form--width">
         <FormGroup
           fieldId="policy-type-selector"
           label={t('Policy name')}
           isRequired
-          validated={getValidatedProp(isValidationEnabled && !name)}
-          helperTextInvalid={t('Required')}
-          helperText={
-            !!policy &&
-            t('Status: {{status}}', {
-              status: getDRPolicyStatus(policy.isValidated, t),
-            })
-          }
         >
           <SingleSelectDropdown
             placeholderText={t('Select a policy')}
             selectOptions={getDropdownOptions(matchingPolicies, t)}
             id="policy-selection-dropdown"
             selectedKey={name}
-            validated={getValidatedProp(isValidationEnabled && !name)}
+            validated={getValidatedProp(isInvalidPolicy)}
             required
             onChange={(value: string) => {
               if (name !== value) {
@@ -76,6 +76,21 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
               }
             }}
           />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>
+                {!!policy &&
+                  t('Status: {{status}}', {
+                    status: getDRPolicyStatus(policy.isValidated, t),
+                  })}
+              </HelperTextItem>
+              {isInvalidPolicy && (
+                <HelperTextItem variant={getValidatedProp(isInvalidPolicy)}>
+                  {t('Required')}
+                </HelperTextItem>
+              )}
+            </HelperText>
+          </FormHelperText>
         </FormGroup>
       </Form>
     );

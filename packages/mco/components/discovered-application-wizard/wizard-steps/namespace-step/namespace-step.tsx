@@ -1,20 +1,37 @@
 import * as React from 'react';
+import { DISCOVERED_APP_NS } from '@odf/mco/constants';
+import { getDRPlacementControlResourceObj } from '@odf/mco/hooks';
 import { DRPolicyModel } from '@odf/mco/models';
-import { DRPolicyKind } from '@odf/mco/types';
+import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
+import {
+  fieldRequirementsTranslations,
+  formSettings,
+} from '@odf/shared/constants';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useK8sList } from '@odf/shared/hooks';
+import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
+import validationRegEx from '@odf/shared/utils/validation';
+import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { SelectOption } from '@patternfly/react-core/deprecated';
+import { TFunction } from 'i18next';
+import { useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import {
   Alert,
   AlertVariant,
   Form,
   FormGroup,
   FormSection,
-  SelectOption,
   Text,
   TextVariants,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
 } from '@patternfly/react-core';
 import {
   EnrollDiscoveredApplicationAction,
@@ -41,6 +58,101 @@ const clusterOptions = (clusters: string[]): JSX.Element[] =>
     />
   ));
 
+const getInputValidationSchema = (t: TFunction, existingNames: string[]) => {
+  const fieldRequirements = [
+    fieldRequirementsTranslations.maxChars(t, 63),
+    fieldRequirementsTranslations.startAndEndName(t),
+    fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
+    fieldRequirementsTranslations.cannotBeUsedBefore(t),
+  ];
+
+  const schema = Yup.object({
+    'name-input': Yup.string()
+      .required()
+      .max(63, fieldRequirements[0])
+      .matches(
+        validationRegEx.startAndEndsWithAlphanumerics,
+        fieldRequirements[1]
+      )
+      .matches(
+        validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
+        fieldRequirements[2]
+      )
+      .test(
+        'unique-name',
+        fieldRequirements[3],
+        (value: string) => !existingNames.includes(value)
+      ),
+  });
+
+  return { schema, fieldRequirements };
+};
+
+export const NameInput: React.FC<NameInputProps> = ({
+  name,
+  drPlacements,
+  dispatch,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const { schema, fieldRequirements } = React.useMemo(() => {
+    const existingNames =
+      drPlacements
+        ?.filter((drpc) => getNamespace(drpc) === DISCOVERED_APP_NS)
+        .map(getName) || [];
+    return getInputValidationSchema(t, existingNames);
+  }, [drPlacements, t]);
+
+  const resolver = useYupValidationResolver(schema);
+  const {
+    control,
+    watch,
+    formState: { isValid },
+  } = useForm({
+    ...formSettings,
+    resolver,
+  });
+
+  const newName: string = watch('name-input');
+
+  React.useEffect(
+    () =>
+      dispatch({
+        type: EnrollDiscoveredApplicationStateType.SET_NAME,
+        payload: isValid ? newName : '',
+      }),
+    [newName, isValid, dispatch]
+  );
+
+  return (
+    <TextInputWithFieldRequirements
+      control={control}
+      fieldRequirements={fieldRequirements}
+      defaultValue={name}
+      popoverProps={{
+        headerContent: t('Name requirements'),
+        footerContent: `${t('Example')}: my-name`,
+      }}
+      formGroupProps={{
+        className: 'pf-v5-u-w-50',
+        label: t('Name'),
+        fieldId: 'name-input',
+        isRequired: true,
+      }}
+      textInputProps={{
+        id: 'name-input',
+        name: 'name-input',
+        placeholder: t('Enter a unique name'),
+        'data-test': 'discovered-app-group-name',
+        'aria-label': t('Name input'),
+      }}
+      helperText={t(
+        'A unique identifier for ACM discovered applications from selected namespaces.'
+      )}
+    />
+  );
+};
+
 export const NamespaceSelection: React.FC<NamespaceSelectionProps> = ({
   state,
   isValidationEnabled,
@@ -48,10 +160,17 @@ export const NamespaceSelection: React.FC<NamespaceSelectionProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const [drPolicies, loaded, loadError] =
+  const [drPolicies, policyloaded, policyLoadError] =
     useK8sList<DRPolicyKind>(DRPolicyModel);
 
-  const { clusterName, namespaces } = state.namespace;
+  const [drPlacements, drpcLoaded, drpcLoadError] = useK8sWatchResource<
+    DRPlacementControlKind[]
+  >(getDRPlacementControlResourceObj());
+
+  const loaded = policyloaded && drpcLoaded;
+  const loadError = policyLoadError || drpcLoadError;
+
+  const { clusterName, namespaces, name } = state.namespace;
   const clusterNameHelperText = t(
     'Select a DRCluster to choose your namespace.'
   );
@@ -83,12 +202,8 @@ export const NamespaceSelection: React.FC<NamespaceSelectionProps> = ({
             <FormGroup
               className="pf-v5-u-w-50"
               label={t('DR cluster')}
-              helperTextInvalid={
-                !drClusters.length ? noClusterHelperText : clusterNameHelperText
-              }
               fieldId="managed-cluster-selection"
               isRequired
-              validated={clusterNamevalidated}
             >
               <SingleSelectDropdown
                 id="managed-cluster-dropdown"
@@ -99,16 +214,31 @@ export const NamespaceSelection: React.FC<NamespaceSelectionProps> = ({
                 validated={clusterNamevalidated}
                 isDisabled={!drClusters.length}
               />
+
+              <FormHelperText>
+                <HelperText>
+                  <HelperTextItem variant={clusterNamevalidated}>
+                    {!drClusters.length
+                      ? noClusterHelperText
+                      : clusterNameHelperText}
+                  </HelperTextItem>
+                </HelperText>
+              </FormHelperText>
             </FormGroup>
             <FormGroup
               label={t('Namespace')}
-              helperText={t(
-                'Select namespaces that belongs to your ACM discovered applications.'
-              )}
               fieldId="multi-namespace-selection"
               isRequired
-              isHelperTextBeforeField
             >
+              <FormHelperText>
+                <HelperText>
+                  <HelperTextItem variant="default">
+                    {t(
+                      'Select namespaces that belongs to your ACM discovered applications.'
+                    )}
+                  </HelperTextItem>
+                </HelperText>
+              </FormHelperText>
               <Alert
                 className="odf-alert pf-v5-u-mt-sm"
                 title={t(
@@ -121,10 +251,16 @@ export const NamespaceSelection: React.FC<NamespaceSelectionProps> = ({
                 namespaces={namespaces}
                 clusterName={clusterName}
                 policies={drPolicies}
+                drPlacements={drPlacements}
                 isValidationEnabled={isValidationEnabled}
                 dispatch={dispatch}
               />
             </FormGroup>
+            <NameInput
+              name={name}
+              drPlacements={drPlacements}
+              dispatch={dispatch}
+            />
           </FormSection>
         </Form>
       ) : (
@@ -137,5 +273,11 @@ export const NamespaceSelection: React.FC<NamespaceSelectionProps> = ({
 type NamespaceSelectionProps = {
   state: EnrollDiscoveredApplicationState;
   isValidationEnabled: boolean;
+  dispatch: React.Dispatch<EnrollDiscoveredApplicationAction>;
+};
+
+type NameInputProps = {
+  name: string;
+  drPlacements: DRPlacementControlKind[];
   dispatch: React.Dispatch<EnrollDiscoveredApplicationAction>;
 };

@@ -49,7 +49,7 @@ const LineGraph: React.FC<LineGraphProps> = React.memo(
       : '';
     return !dataUnavailable ? (
       <div className="odf-lineGraph">
-        <div className="pf-u-display-none-on-md pf-u-display-inline-block-on-lg pf-u-w-95-lg">
+        <div className="pf-v5-u-display-none-on-md pf-v5-u-display-inline-block-on-lg pf-v5-u-w-95-lg">
           <Chart
             containerComponent={
               <ChartVoronoiContainer
@@ -84,7 +84,7 @@ const LineGraph: React.FC<LineGraphProps> = React.memo(
             </ChartGroup>
           </Chart>
         </div>
-        <div className="pf-u-w-5-lg pf-u-w-100-md odf-valueBox">
+        <div className="pf-v5-u-w-5-lg pf-v5-u-w-100-md odf-valueBox">
           <div>
             <Title headingLevel="h5" size="md">
               {latestValue}

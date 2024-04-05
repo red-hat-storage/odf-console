@@ -40,7 +40,7 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
             <Button
               variant="plain"
               onMouseEnter={() => setCopied(false)}
-              className="odf-copy-to-clipboard__btn pf-c-clipboard-copy__group-copy"
+              className="odf-copy-to-clipboard__btn pf-v5-c-clipboard-copy__group-copy"
               type="button"
             >
               <CopyIcon />

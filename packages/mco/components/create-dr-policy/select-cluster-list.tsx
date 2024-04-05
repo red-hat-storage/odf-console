@@ -10,6 +10,7 @@ import { StatusBox } from '@odf/shared/generic/status-box';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { Select, SelectOption } from '@patternfly/react-core/deprecated';
 import {
   DataList,
   DataListItem,
@@ -20,8 +21,6 @@ import {
   Toolbar,
   ToolbarContent,
   ToolbarItem,
-  Select,
-  SelectOption,
   SearchInput,
   DataListCheckProps,
   TextContent,
@@ -173,7 +172,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     [clusters, region, nameSearch]
   );
 
-  const onChange: DataListCheckProps['onChange'] = (checked, event) => {
+  const onChange: DataListCheckProps['onChange'] = (event, checked) => {
     const selectedClusterInfo = filteredClusters.find(
       (filteredCluster) => filteredCluster.name === event.currentTarget.id
     );
@@ -200,7 +199,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     setNameSearch(searchValue);
   };
 
-  const onSelect = (_, selection: string, isPlaceholder: boolean) => {
+  const onSelect = (selection: string, isPlaceholder: boolean) => {
     setRegion(isPlaceholder ? '' : selection);
     setIsRegionOpen(false);
   };
@@ -213,10 +212,12 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
             <Select
               toggleId="region-select"
               isOpen={isRegionOpen}
-              onToggle={(open) => {
+              onToggle={(_event, open) => {
                 setIsRegionOpen(open);
               }}
-              onSelect={onSelect}
+              onSelect={(_event, value, placeholder) =>
+                onSelect(value as string, placeholder)
+              }
               selections={region}
             >
               <SelectOption
@@ -272,18 +273,17 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
                 >
                   <>
                     <DataListCheck
-                      data-testid={filteredCluster.name}
                       data-test="managed-cluster-checkbox"
                       aria-labelledby={t('Checkbox to select cluster')}
-                      id={filteredCluster.name}
+                      id={filteredCluster?.name}
                       onChange={onChange}
                       isChecked={isChecked(
                         selectedClusters,
-                        filteredCluster.name
+                        filteredCluster?.name
                       )}
                       isDisabled={isDisabled(
                         selectedClusters,
-                        filteredCluster.name,
+                        filteredCluster?.name,
                         filteredCluster?.odfInfo?.storageClusterCount
                       )}
                     />

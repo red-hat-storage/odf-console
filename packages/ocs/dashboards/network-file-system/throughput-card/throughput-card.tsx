@@ -3,13 +3,7 @@ import { PrometheusMultilineUtilizationItem } from '@odf/shared/dashboards/utili
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeDecimalBytesPerSec } from '@odf/shared/utils';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
-import {
-  Card,
-  CardBody,
-  CardActions,
-  CardHeader,
-  CardTitle,
-} from '@patternfly/react-core';
+import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { NFS_HOST_THROUGHPUT_TOTAL, NFSDashboardQuery } from '../../../queries';
 
 export const ThroughputCard: React.FC = () => {
@@ -17,11 +11,18 @@ export const ThroughputCard: React.FC = () => {
 
   return (
     <Card data-test="nfs-throughput-card">
-      <CardHeader>
+      <CardHeader
+        actions={{
+          actions: (
+            <>
+              <UtilizationDurationDropdown />
+            </>
+          ),
+          hasNoOffset: false,
+          className: undefined,
+        }}
+      >
         <CardTitle>{t('Performance')}</CardTitle>
-        <CardActions>
-          <UtilizationDurationDropdown />
-        </CardActions>
       </CardHeader>
       <CardBody>
         <PrometheusMultilineUtilizationItem

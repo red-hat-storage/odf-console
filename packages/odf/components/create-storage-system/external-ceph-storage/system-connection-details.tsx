@@ -16,6 +16,7 @@ import {
   StorageClassComponentProps as ExternalComponentProps,
   StorageClassWizardStepExtensionProps as ExternalStorage,
 } from '@odf/odf-plugin-sdk/extensions';
+import { ROOK_CEPH_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import {
@@ -35,10 +36,11 @@ import {
   FileUpload,
   FileUploadProps,
   Form,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
 } from '@patternfly/react-core';
 import './system-connection-details.scss';
-
-const OCS_OPERATOR = 'ocs-operator';
 
 const SCRIPT_NAME = 'ceph-external-cluster-details-exporter.py';
 
@@ -62,7 +64,15 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
 
   const [pods, podsLoaded, podsLoadError] =
     useK8sGet<ListKind<PodKind>>(PodModel);
-  const [csv, csvLoaded, csvLoadError] = useFetchCsv({
+
+  // From 4.16 onwards Rook will have separate CSV & Subscription.
+  const [rookCSV, rookCSVLoaded, rookCSVError] = useFetchCsv({
+    specName: ROOK_CEPH_OPERATOR,
+    namespace: odfNamespace,
+    startPollingInstantly: isNsSafe,
+  });
+
+  const [ocsCSV, ocsCSVLoaded, ocsCSVError] = useFetchCsv({
     specName: OCS_OPERATOR,
     namespace: odfNamespace,
     startPollingInstantly: isNsSafe,
@@ -70,19 +80,20 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
 
   const { fileName, fileData, errorMessage, isLoading } = formState;
 
-  const annotations = getAnnotations(csv);
+  const rookAnnotations = getAnnotations(rookCSV, {});
+  const ocsAnnotations = getAnnotations(ocsCSV, {});
 
   const downloadFile = createDownloadFile(
-    annotations?.['external.features.ocs.openshift.io/export-script']
+    rookAnnotations?.['externalClusterScript']
   );
 
-  const handleFileChange: FileUploadProps['onChange'] = (
-    fData: string,
-    fName
+  const handleDataChange: FileUploadProps['onDataChange'] = (
+    _event,
+    fData: string
   ) => {
     if (isValidJSON(fData)) {
       const { plainKeys, secretKeys } = getValidationKeys(
-        annotations?.['external.features.ocs.openshift.io/validation']
+        ocsAnnotations?.['external.features.ocs.openshift.io/validation']
       );
       const ipAddress: string = pods.items?.[0]?.status?.podIP;
       const ipFamily: IP_FAMILY = ipAddress
@@ -96,44 +107,55 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
       );
       setFormState('errorMessage', fData ? invalidString : '');
     }
-
-    setFormState('fileName', fName);
     setFormState('fileData', fData);
+  };
+
+  const handleFileChange: FileUploadProps['onFileInputChange'] = (
+    _event,
+    file: File
+  ) => {
+    const fName = file.name;
+    setFormState('fileName', fName);
   };
 
   return (
     <ErrorHandler
-      error={podsLoadError || csvLoadError}
-      loaded={podsLoaded && csvLoaded}
+      error={podsLoadError || rookCSVError || ocsCSVError}
+      loaded={podsLoaded && rookCSVLoaded && ocsCSVLoaded}
     >
       <Form>
         <FormGroup
           label={t('External storage system metadata')}
           fieldId="external-storage-system-metadata"
           className="odf-connection-details__form-group"
-          helperText={
-            <div className="odf-connection-details__helper-text">
-              <Trans t={t as any} ns="plugin__odf-console">
-                Download <code>{{ SCRIPT_NAME }}</code> script and run on the
-                RHCS cluster, then upload the results (JSON) in the External
-                storage system metadata field.
-              </Trans>{' '}
-              {downloadFile && (
-                <a
-                  id="downloadAnchorElem"
-                  href={downloadFile}
-                  download="ceph-external-cluster-details-exporter.py"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t('Download script')}
-                </a>
-              )}
-            </div>
-          }
-          helperTextInvalid={errorMessage}
-          validated={errorMessage ? 'error' : 'default'}
         >
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>
+                <div className="odf-connection-details__helper-text">
+                  <Trans t={t as any} ns="plugin__odf-console">
+                    Download <code>{{ SCRIPT_NAME }}</code> script and run on
+                    the RHCS cluster, then upload the results (JSON) in the
+                    External storage system metadata field.
+                  </Trans>{' '}
+                  {!!downloadFile && (
+                    <a
+                      id="downloadAnchorElem"
+                      href={downloadFile}
+                      download="ceph-external-cluster-details-exporter.py"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t('Download script')}
+                    </a>
+                  )}
+                </div>
+              </HelperTextItem>
+              {errorMessage && (
+                <HelperTextItem variant="error">{errorMessage}</HelperTextItem>
+              )}
+            </HelperText>
+          </FormHelperText>
           <FileUpload
             id="external-storage-system-metadata"
             className="odf-connection-details__file-upload"
@@ -145,9 +167,10 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
             isLoading={isLoading}
             validated={errorMessage ? 'error' : 'default'}
             dropzoneProps={{
-              accept: '.json',
+              accept: { 'text/json': ['.json'] },
             }}
-            onChange={handleFileChange}
+            onFileInputChange={handleFileChange}
+            onDataChange={handleDataChange}
             onReadStarted={() => setFormState('isLoading', true)}
             onReadFinished={() => setFormState('isLoading', false)}
             browseButtonText={t('Browse')}

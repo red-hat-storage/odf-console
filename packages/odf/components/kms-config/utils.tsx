@@ -25,6 +25,8 @@ import {
   KmsCsiConfigKeysMapping,
   VaultAuthMethodMapping,
   KmsEncryptionLevel,
+  AzureConfig,
+  AzureConfigMap,
 } from '../../types';
 
 // will accept protocol in URL as well
@@ -49,7 +51,8 @@ export const isValidEndpoint = (url: string) => {
   return validURL || validIP;
 };
 
-export const isValidName = (name: string) => /^[a-zA-Z0-9_.-]*$/.test(name);
+export const isValidName = (name: string) =>
+  !!name && /^[a-zA-Z0-9_.-]*$/.test(name);
 
 export const isLengthUnity = (items) => items.length === 1;
 
@@ -215,6 +218,22 @@ const getKmsVaultSecret = (
   },
 });
 
+const generateAzureSecret = (
+  kms: AzureConfig,
+  isCSISecret: boolean,
+  ns: string
+) => ({
+  apiVersion: SecretModel.apiVersion,
+  kind: SecretModel.kind,
+  metadata: {
+    name: `azure-${isCSISecret ? 'csi' : 'ocs'}-${getRandomChars()}`,
+    namespace: ns,
+  },
+  stringData: {
+    CLIENT_CERT: kms.clientCert.value,
+  },
+});
+
 const createAdvancedVaultResources = (kms: VaultConfig) => {
   const advancedKmsResources: Promise<K8sResourceKind>[] = [];
   if (kms.caCert)
@@ -337,6 +356,7 @@ const getCsiHpcsResources = (
 ) => {
   const csiKmsResources: Promise<K8sResourceKind>[] = [];
 
+  const kmsName = kms.name.value;
   let keySecret: SecretKind;
   if (!secretName) {
     keySecret = generateHpcsSecret(kms, ns);
@@ -345,22 +365,20 @@ const getCsiHpcsResources = (
 
   const csiConfigData: HpcsConfigMap = {
     KMS_PROVIDER: KmsImplementations.IBM_KEY_PROTECT,
-    KMS_SERVICE_NAME: kms.name.value,
+    KMS_SERVICE_NAME: kmsName,
     IBM_KP_SERVICE_INSTANCE_ID: kms.instanceId.value,
     IBM_KP_SECRET_NAME: secretName || getName(keySecret),
     IBM_KP_BASE_URL: kms.baseUrl.value,
     IBM_KP_TOKEN_URL: kms.tokenUrl,
   };
   const csiConfigObj: ConfigMapKind = generateCsiKmsConfigMap(
-    kms.name.value,
+    kmsName,
     csiConfigData,
     ns,
     false
   );
   if (update) {
-    const cmPatch = [
-      generateConfigMapPatch(kms.name.value, csiConfigData, false),
-    ];
+    const cmPatch = [generateConfigMapPatch(kmsName, csiConfigData, false)];
     csiKmsResources.push(
       k8sPatch({ model: ConfigMapModel, resource: csiConfigObj, data: cmPatch })
     );
@@ -379,27 +397,25 @@ const getCsiThalesResources = (
   ns: string
 ) => {
   const csiKmsResources: Promise<K8sResourceKind>[] = [];
-
+  const kmsName = kms.name.value;
   const keySecret = generateThalesSecret(kms, true, ns);
   csiKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
 
   const csiConfigData: ThalesConfigMap = {
     KMS_PROVIDER: KmsImplementations.KMIP,
-    KMS_SERVICE_NAME: kms.name.value,
+    KMS_SERVICE_NAME: kmsName,
     KMIP_ENDPOINT: `${kms.address.value}:${kms.port.value}`,
     KMIP_SECRET_NAME: getName(keySecret),
     TLS_SERVER_NAME: kms.tls,
   };
   const csiConfigObj: ConfigMapKind = generateCsiKmsConfigMap(
-    kms.name.value,
+    kmsName,
     csiConfigData,
     ns,
     false
   );
   if (update) {
-    const cmPatch = [
-      generateConfigMapPatch(kms.name.value, csiConfigData, false),
-    ];
+    const cmPatch = [generateConfigMapPatch(kmsName, csiConfigData, false)];
     csiKmsResources.push(
       k8sPatch({ model: ConfigMapModel, resource: csiConfigObj, data: cmPatch })
     );
@@ -410,6 +426,83 @@ const getCsiThalesResources = (
   }
 
   return csiKmsResources;
+};
+
+const generateAzureConfigMapData = (
+  kmsConfig: AzureConfig,
+  secretName: string
+): AzureConfigMap => {
+  return {
+    KMS_PROVIDER: KmsImplementations.AZURE,
+    KMS_SERVICE_NAME: kmsConfig.name.value,
+    AZURE_CLIENT_ID: kmsConfig.clientID.value,
+    AZURE_VAULT_URL: kmsConfig.azureVaultURL.value,
+    AZURE_TENANT_ID: kmsConfig.tenantID.value,
+    AZURE_CERT_SECRET_NAME: secretName,
+  };
+};
+
+const getCsiAzureResources = (
+  kmsConfig: AzureConfig,
+  isUpdate: boolean,
+  namespace: string
+) => {
+  const csiKmsResources: Promise<K8sResourceKind>[] = [];
+
+  const keySecret = generateAzureSecret(kmsConfig, true, namespace);
+  csiKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
+  const csiConfigData: AzureConfigMap = generateAzureConfigMapData(
+    kmsConfig,
+    getName(keySecret)
+  );
+  const csiConfigObj: ConfigMapKind = generateCsiKmsConfigMap(
+    kmsConfig.name.value,
+    csiConfigData,
+    namespace,
+    false
+  );
+  if (isUpdate) {
+    const configMapPatch = [
+      generateConfigMapPatch(kmsConfig.name.value, csiConfigData, false),
+    ];
+    csiKmsResources.push(
+      k8sPatch({
+        model: ConfigMapModel,
+        resource: csiConfigObj,
+        data: configMapPatch,
+      })
+    );
+  } else {
+    csiKmsResources.push(
+      k8sCreate({ model: ConfigMapModel, data: csiConfigObj })
+    );
+  }
+
+  return csiKmsResources;
+};
+
+const getClusterAzureResources = (
+  kmsConfig: AzureConfig,
+  namespace: string
+): Promise<K8sResourceKind>[] => {
+  const clusterKmsResources: Promise<K8sResourceKind>[] = [];
+
+  const keySecret = generateAzureSecret(kmsConfig, false, namespace);
+  clusterKmsResources.push(k8sCreate({ model: SecretModel, data: keySecret }));
+
+  const configData: AzureConfigMap = generateAzureConfigMapData(
+    kmsConfig,
+    getName(keySecret)
+  );
+  const configMapObj: ConfigMapKind = generateOcsKmsConfigMap(
+    configData,
+    namespace
+  );
+  clusterKmsResources.push(
+    k8sCreate({ model: ConfigMapModel, data: configMapObj })
+  );
+
+  return clusterKmsResources;
 };
 
 const getClusterVaultResources = (kms: VaultConfig, ns: string) => {
@@ -541,6 +634,9 @@ export const createCsiKmsResources = (
     case ProviderNames.THALES: {
       return getCsiThalesResources(kms as ThalesConfig, update, odfNamespace);
     }
+    case ProviderNames.AZURE: {
+      return getCsiAzureResources(kms as AzureConfig, update, odfNamespace);
+    }
   }
 };
 
@@ -594,6 +690,16 @@ export const createClusterKmsResources = (
         : [];
       return [...clusterKmsResources, ...csiKmsResources];
     }
+    case ProviderNames.AZURE: {
+      const clusterKmsResources = getClusterAzureResources(
+        kms as AzureConfig,
+        storageClusterNs
+      );
+      const csiKmsResources = !isMCGStandalone
+        ? getCsiAzureResources(kms as AzureConfig, false, odfNamespace)
+        : [];
+      return [...clusterKmsResources, ...csiKmsResources];
+    }
   }
 };
 
@@ -643,6 +749,21 @@ export const kmsConfigValidation = (
         kmsObj.clientCert.value !== '' &&
         kmsObj.caCert.value !== '' &&
         kmsObj.clientKey.value !== ''
+      );
+    }
+    case ProviderNames.AZURE: {
+      const kmsObj = kms as AzureConfig;
+      return (
+        kmsObj.name.valid &&
+        kmsObj.azureVaultURL.valid &&
+        kmsObj.clientID.valid &&
+        kmsObj.tenantID.valid &&
+        !kmsObj.clientCert.error &&
+        kmsObj.name.value !== '' &&
+        kmsObj.azureVaultURL.value !== '' &&
+        kmsObj.clientID.value !== '' &&
+        kmsObj.tenantID.value !== '' &&
+        kmsObj.clientCert.value !== ''
       );
     }
     default:

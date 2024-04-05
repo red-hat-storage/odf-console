@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { secretResource } from '@odf/core/resources';
+import { OCS_OPERATOR } from '@odf/shared/constants';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { LabelPadding } from '@odf/shared/dashboards/breakdown-card/breakdown-chart';
 import { getGroupedSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
@@ -19,23 +20,16 @@ import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
 import { isFunctionThenApply } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import * as _ from 'lodash-es';
-import { useParams } from 'react-router-dom-v5-compat';
 import {
   Select,
   SelectGroup,
   SelectOption,
   SelectProps,
-  Card,
-  CardBody,
-  CardHeader,
-  CardTitle,
-} from '@patternfly/react-core';
-import {
-  OCS_OPERATOR,
-  ServiceType,
-  CapacityBreakdown,
-} from '../../../constants';
+} from '@patternfly/react-core/deprecated';
+import * as _ from 'lodash-es';
+import { useParams } from 'react-router-dom-v5-compat';
+import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { ServiceType, CapacityBreakdown } from '../../../constants';
 import { breakdownQueryMapMCG } from '../../../queries';
 import { ODFSystemParams } from '../../../types';
 import { decodeRGWPrefix, getStackChartStats } from '../../../utils';
@@ -416,16 +410,16 @@ const BreakdownCard: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="nb-capacity-breakdown-card__header">
-        <CardTitle>
-          {t('Capacity breakdown')}
-          <FieldLevelHelp>
-            {t(
-              'This card shows used capacity for different resources. The available capacity is based on cloud services therefore it cannot be shown.'
-            )}
-          </FieldLevelHelp>
-        </CardTitle>
-        <div className="nb-capacity-breakdown-card__header">
+      <CardHeader>
+        <div className="pf-v5-u-display-flex pf-v5-u-justify-content-space-between">
+          <CardTitle>
+            {t('Capacity breakdown')}
+            <FieldLevelHelp>
+              {t(
+                'This card shows used capacity for different resources. The available capacity is based on cloud services therefore it cannot be shown.'
+              )}
+            </FieldLevelHelp>
+          </CardTitle>
           {isRGWSupported && isMCGSupported && (
             <Select
               className="nb-capacity-breakdown-card-header__dropdown nb-capacity-breakdown-card-header__dropdown--margin"

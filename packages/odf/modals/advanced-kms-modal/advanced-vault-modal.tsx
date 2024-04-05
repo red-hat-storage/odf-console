@@ -10,6 +10,9 @@ import {
   Modal,
   ModalVariant,
   Button,
+  FormHelperText,
+  HelperText,
+  HelperTextItem,
 } from '@patternfly/react-core';
 import { AdvancedKMSModalProps } from '../../components/kms-config/providers';
 import {
@@ -183,7 +186,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
         >
           <TextInput
             value={backendPath}
-            onChange={setBackendPath}
+            onChange={(_ev, value) => setBackendPath(value)}
             type="text"
             id="kms-service-backend-path"
             name="kms-service-backend-path"
@@ -200,7 +203,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
           >
             <TextInput
               value={authPath}
-              onChange={setAuthPath}
+              onChange={(_ev, value) => setAuthPath(value)}
               type="text"
               id="kms-service-auth-path"
               name="kms-service-auth-path"
@@ -220,7 +223,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
             >
               <TextInput
                 value={authNamespace}
-                onChange={setAuthNamespace}
+                onChange={(ev, value) => setAuthNamespace(value)}
                 type="text"
                 id="kms-service-auth-namespace"
                 name="kms-service-auth-namespace"
@@ -237,7 +240,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
         >
           <TextInput
             value={tlsName}
-            onChange={setTLSName}
+            onChange={(ev, value) => setTLSName(value)}
             type="text"
             id="kms-service-tls"
             name="kms-service-tls"
@@ -248,18 +251,24 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
           label={t('Vault Enterprise Namespace')}
           className="ceph-advanced-kms__form-body"
           labelIcon={<FieldLevelHelp>{vaultNamespaceTooltip}</FieldLevelHelp>}
-          helperText={t(
-            'The name must be accurate and must match the service namespace'
-          )}
         >
           <TextInput
             value={providerNS}
-            onChange={setProvideNS}
+            onChange={(_ev, value) => setProvideNS(value)}
             type="text"
             id="kms-service-namespace"
             name="kms-service-namespace"
             placeholder="kms-namespace"
           />
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem>
+                {t(
+                  'The name must be accurate and must match the service namespace'
+                )}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
         </FormGroup>
         <FormGroup
           fieldId="kms-service-ca-cert"
@@ -271,11 +280,11 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
             id="kms-service-ca-cert"
             value={caCertificate}
             filename={caCertificateFile}
-            onChange={updateCaCert}
             hideDefaultPreview
             filenamePlaceholder={t('Upload a .PEM file here...')}
+            onFileInputChange={(_ev, file) => updateCaCert(file, file.name)}
             dropzoneProps={{
-              accept: '.pem',
+              accept: { 'text/plain': ['.pem'] },
               maxSize: KMSMaxFileUploadSize,
               onDropRejected: () => setError(KMSFileSizeErrorMsg),
             }}
@@ -292,11 +301,11 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
             id="kms-service-cert"
             value={clientCertificate}
             filename={clientCertificateFile}
-            onChange={updateClientCert}
             hideDefaultPreview
             filenamePlaceholder={t('Upload a .PEM file here...')}
+            onFileInputChange={(_ev, file) => updateClientCert(file, file.name)}
             dropzoneProps={{
-              accept: '.pem',
+              accept: { 'text/plain': ['.pem'] },
               maxSize: KMSMaxFileUploadSize,
               onDropRejected: () => setError(KMSFileSizeErrorMsg),
             }}
@@ -313,11 +322,11 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
             id="kms-service-key"
             value={clientKey}
             filename={clientKeyFile}
-            onChange={updateClientKey}
             hideDefaultPreview
             filenamePlaceholder={t('Upload a .PEM file here...')}
+            onFileInputChange={(_ev, file) => updateClientKey(file, file.name)}
             dropzoneProps={{
-              accept: '.pem',
+              accept: { 'text/plain': ['.pem'] },
               maxSize: KMSMaxFileUploadSize,
               onDropRejected: () => setError(KMSFileSizeErrorMsg),
             }}

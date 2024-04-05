@@ -1,8 +1,10 @@
 import * as React from 'react';
 import {
-  getDRPlacementControlResourceObj,
-  useACMSafeFetch,
-} from '@odf/mco/hooks';
+  APP_NAMESPACE_ANNOTATION,
+  DISCOVERED_APP_NS,
+  GITOPS_OPERATOR_NAMESPACE,
+} from '@odf/mco/constants';
+import { useACMSafeFetch } from '@odf/mco/hooks';
 import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
 import {
   queryNamespacesUsingCluster,
@@ -10,7 +12,8 @@ import {
 } from '@odf/mco/utils';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
-import { getName } from '@odf/shared/selectors';
+import { getAnnotations, getName } from '@odf/shared/selectors';
+import { getNamespace } from '@odf/shared/selectors';
 import {
   RedExclamationCircleIcon,
   StatusIconAndText,
@@ -21,7 +24,6 @@ import { isSystemNamespace, sortRows } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
   ListPageFilter,
-  useK8sWatchResource,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
@@ -33,7 +35,7 @@ import {
 } from '../../utils/reducer';
 import './namespace-step.scss';
 
-const findAllEligiblePolicies = (
+export const findAllEligiblePolicies = (
   clusterName: string,
   drPolicies: DRPolicyKind[]
 ) =>
@@ -50,11 +52,18 @@ const getProtectedNamespaces = (
     const policyNames: string[] = policies.map(getName);
     return drPlacements.reduce((acc, drpc) => {
       if (policyNames.includes(drpc.spec.drPolicyRef.name)) {
-        acc.push(
-          // ToDo: Update with correct spec field which will report all protected namespaces
-          // @ts-ignore
-          ...(drpc.spec?.enrolledNamespaces || [])
-        );
+        const namespace = getNamespace(drpc);
+        if (namespace === DISCOVERED_APP_NS) {
+          // Protected namespaces from discovered DRPC
+          acc.push(...(drpc.spec?.protectedNamespace || []));
+        } else if (namespace === GITOPS_OPERATOR_NAMESPACE) {
+          // Protected namespaces from ApplicationSet DRPC
+          const ns = getAnnotations(drpc)?.[APP_NAMESPACE_ANNOTATION];
+          !!ns && acc.push(ns);
+        } else {
+          // Protected namespaces from Subscription DRPC
+          acc.push(namespace);
+        }
       }
       return acc;
     }, []);
@@ -83,12 +92,15 @@ const TableRow: React.FC<RowComponentType<K8sResourceCommon>> = ({
 };
 
 export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
-  ({ namespaces, clusterName, policies, isValidationEnabled, dispatch }) => {
+  ({
+    namespaces,
+    clusterName,
+    policies,
+    drPlacements,
+    isValidationEnabled,
+    dispatch,
+  }) => {
     const { t } = useCustomTranslation();
-
-    const [drPlacements, drpcLoaded, drpcLoadError] = useK8sWatchResource<
-      DRPlacementControlKind[]
-    >(getDRPlacementControlResourceObj());
 
     const protectedNamespaces = React.useMemo(() => {
       const eligiblePolicies = findAllEligiblePolicies(clusterName, policies);
@@ -104,11 +116,8 @@ export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
     const [searchResult, searchError, searchLoaded] =
       useACMSafeFetch(searchQuery);
 
-    const loaded = searchLoaded && drpcLoaded;
-    const loadError = searchError || drpcLoadError;
-
     const userNamespaces: K8sResourceCommon[] = React.useMemo(() => {
-      if (loaded && !loadError) {
+      if (searchLoaded && !searchError) {
         // Converting from search result type to K8sResourceCommon for shared components compatibility.
         const allNamespaces = convertSearchResultToK8sResourceCommon(
           searchResult?.data.searchResult?.[0]?.items || []
@@ -123,7 +132,7 @@ export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
         });
       }
       return [];
-    }, [searchResult, protectedNamespaces, loaded, loadError]);
+    }, [searchResult, protectedNamespaces, searchLoaded, searchError]);
 
     const [data, filteredData, onFilterChange] =
       useListPageFilter(userNamespaces);
@@ -151,7 +160,7 @@ export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
         <GridItem span={10}>
           <ListPageFilter
             data={data}
-            loaded={loaded}
+            loaded={searchLoaded}
             onFilterChange={onFilterChange}
           />
           {namespaceValidated && (
@@ -194,6 +203,7 @@ type NamespaceSelectionTableProps = {
   namespaces: K8sResourceCommon[];
   clusterName: string;
   policies: DRPolicyKind[];
+  drPlacements: DRPlacementControlKind[];
   isValidationEnabled: boolean;
   dispatch: React.Dispatch<EnrollDiscoveredApplicationAction>;
 };

@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import {
+  Table as PfTable,
   OnSort,
   SortByDirection,
-  TableComposable,
   Tbody,
   Td,
   Th,
@@ -101,9 +101,9 @@ const Table: React.FC<TableProps> = React.memo(
         data={rawData}
         unfilteredData={unfilteredData}
         NoDataEmptyMsg={noDataMsg}
-        skeleton={<div className="loading-skeleton--table pf-u-mt-lg" />}
+        skeleton={<div className="loading-skeleton--table pf-v5-u-mt-lg" />}
       >
-        <TableComposable aria-label={ariaLabel} translate={null}>
+        <PfTable aria-label={ariaLabel} translate={null}>
           <Thead translate={null}>
             <Tr translate={null}>{headerColumns}</Tr>
           </Thead>
@@ -122,7 +122,7 @@ const Table: React.FC<TableProps> = React.memo(
               </Tr>
             ))}
           </Tbody>
-        </TableComposable>
+        </PfTable>
       </StatusBox>
     );
   }

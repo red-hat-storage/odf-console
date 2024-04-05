@@ -82,7 +82,7 @@ export const PostgresConnectionDetails: React.FC<PostgresConnectionDetailsProps>
                 id="external-postgres-username-input"
                 type="text"
                 value={username}
-                onChange={(newUsername: string) => {
+                onChange={(_event, newUsername: string) => {
                   dispatch({
                     type: 'backingStorage/externalPostgres/setUsername',
                     payload: newUsername,
@@ -123,7 +123,7 @@ export const PostgresConnectionDetails: React.FC<PostgresConnectionDetailsProps>
                 id="external-postgres-server-input"
                 type="text"
                 value={serverName}
-                onChange={(newServer: string) => {
+                onChange={(_event, newServer: string) => {
                   dispatch({
                     type: 'backingStorage/externalPostgres/setServerName',
                     payload: newServer,
@@ -143,7 +143,7 @@ export const PostgresConnectionDetails: React.FC<PostgresConnectionDetailsProps>
                 id="external-postgres-port-input"
                 type="number"
                 value={port}
-                onChange={(newPort: string) => {
+                onChange={(_event, newPort: string) => {
                   dispatch({
                     type: 'backingStorage/externalPostgres/setPort',
                     payload: newPort,
@@ -164,7 +164,7 @@ export const PostgresConnectionDetails: React.FC<PostgresConnectionDetailsProps>
                 id="external-postgres-database-input"
                 type="text"
                 value={databaseName}
-                onChange={(newDatabase: string) => {
+                onChange={(_event, newDatabase: string) => {
                   dispatch({
                     type: 'backingStorage/externalPostgres/setDatabaseName',
                     payload: newDatabase,

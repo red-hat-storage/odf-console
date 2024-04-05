@@ -4,12 +4,12 @@ import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  Alert,
   Dropdown,
   DropdownItem,
   DropdownSeparator,
   DropdownToggle,
-} from '@patternfly/react-core';
+} from '@patternfly/react-core/deprecated';
+import { Alert } from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../constants';
 import { namespaceStoreResource } from '../../resources';
 import { NamespaceStoreKind } from '../../types';
