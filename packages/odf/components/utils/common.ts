@@ -491,6 +491,21 @@ export const getOCSRequestData = ({
     }
     if (isProviderMode) {
       requestData.spec.allowRemoteStorageConsumers = true;
+      requestData.spec.hostNetwork = true;
+      Object.assign(requestData.spec.managedResources, {
+        ...requestData.spec.managedResources,
+        cephBlockPools: {
+          disableSnapshotClass: true,
+          disableStorageClass: true,
+        },
+        cephFileSystems: {
+          disableSnapshotClass: true,
+          disableStorageClass: true,
+        },
+        cephObjectStores: {
+          hostNetwork: false,
+        },
+      });
     }
   }
 
