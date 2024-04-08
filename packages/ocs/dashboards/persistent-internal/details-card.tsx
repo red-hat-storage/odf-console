@@ -26,11 +26,15 @@ import {
   resourcePathFromModel,
   referenceForModel,
 } from '@odf/shared/utils';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useK8sWatchResource,
+  useFlag,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Link, useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { PROVIDER_MODE } from '../../../odf/features';
 import { StorageClusterModel } from '../../models';
 import { ODFSystemParams } from '../../types';
 import { getNetworkEncryption } from '../../utils';
@@ -78,6 +82,8 @@ const DetailsCard: React.FC = () => {
     ? t('Enabled')
     : t('Disabled');
 
+  const isProviderMode = useFlag(PROVIDER_MODE);
+
   const serviceVersion = getOprVersionFromCSV(csv);
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
@@ -117,7 +123,9 @@ const DetailsCard: React.FC = () => {
           >
             {infrastructurePlatform}
           </DetailItem>
-          <DetailItem title={t('Mode')}>{t('Internal')}</DetailItem>
+          <DetailItem title={t('Mode')}>
+            {isProviderMode ? t('Provider') : t('Internal')}
+          </DetailItem>
           <DetailItem
             key="version"
             title={t('Version')}
