@@ -70,7 +70,7 @@ export const PostgresConnectionDetails: React.FC<PostgresConnectionDetailsProps>
 
     return (
       <Form>
-        <Text component={TextVariants.h4}>Connection details</Text>
+        <Text component={TextVariants.h4}>{t('Connection details')}</Text>
         <Grid hasGutter>
           <GridItem span={6}>
             <FormGroup
