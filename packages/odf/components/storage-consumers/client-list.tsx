@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Kebab } from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants/common';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { useFetchCsv } from '@odf/shared/hooks';
@@ -24,7 +25,9 @@ import {
   useListPageFilter,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Button, Popover, PopoverPosition } from '@patternfly/react-core';
+import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { Button, Icon, Popover, PopoverPosition } from '@patternfly/react-core';
+import { TrashIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
 import { StorageConsumerModel } from '../../models';
 import { useODFNamespaceSelector } from '../../redux';
@@ -34,6 +37,8 @@ import {
   versionMismatchFilter,
 } from './list-filter';
 import { ClientOnBoardingModal } from './onboarding-modal';
+import { RemoveClientModal } from './remove-client-modal';
+import { RotateKeysModal } from './rotate-keys-modal';
 
 const tableColumns = [
   {
@@ -55,6 +60,10 @@ const tableColumns = [
   {
     className: '',
     id: 'lastHeartBeat',
+  },
+  {
+    className: Kebab.columnClass,
+    id: 'kebab',
   },
 ];
 
@@ -115,6 +124,13 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
         },
         id: tableColumns[4].id,
       },
+      {
+        title: '',
+        props: {
+          className: tableColumns[5].className,
+        },
+        id: tableColumns[5].id,
+      },
     ],
     [t]
   );
@@ -136,10 +152,10 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
 };
 
 const getOpenshiftVersion = (obj: StorageConsumerKind) =>
-  obj.status.client.platformVersion;
+  obj?.status?.client?.platformVersion;
 
 const getDataFoundationVersion = (obj: StorageConsumerKind) =>
-  obj.status.client.operatorVersion;
+  obj?.status?.client?.operatorVersion;
 
 type LastHeartBeatProps = {
   heartbeat: string;
@@ -209,8 +225,31 @@ const DataFoudationVersion: React.FC<DataFoundationVersionProps> = ({
 };
 
 const StorageClientRow: React.FC<
-  RowProps<StorageConsumerKind, { currentVersion: string }>
-> = ({ obj, activeColumnIDs, rowData: { currentVersion } }) => {
+  RowProps<
+    StorageConsumerKind,
+    {
+      currentVersion: string;
+      deleteClient: (resource: StorageConsumerKind) => void;
+    }
+  >
+> = ({ obj, activeColumnIDs, rowData: { currentVersion, deleteClient } }) => {
+  const [allowDeletion, setAllowDeletion] = React.useState(false);
+  const DELETE_THRESHOLD = 300; // wait till 5 minutes before activating the delete button
+
+  React.useEffect(() => {
+    const setter = () => {
+      const timeDifference = getTimeDifferenceInSeconds(
+        obj?.status?.lastHeartbeat
+      );
+      if (timeDifference > DELETE_THRESHOLD && !allowDeletion) {
+        setAllowDeletion(true);
+      } else if (timeDifference < DELETE_THRESHOLD && allowDeletion) {
+        setAllowDeletion(false);
+      }
+    };
+    const id = setInterval(setter, 10000);
+    return () => clearInterval(id);
+  });
   return (
     <>
       <TableData {...tableColumns[0]} activeColumnIDs={activeColumnIDs}>
@@ -226,7 +265,12 @@ const StorageClientRow: React.FC<
         <DataFoudationVersion obj={obj} currentVersion={currentVersion} />
       </TableData>
       <TableData {...tableColumns[4]} activeColumnIDs={activeColumnIDs}>
-        <LastHeartBeat heartbeat={obj.status.lastHeartbeat} />
+        <LastHeartBeat heartbeat={obj?.status?.lastHeartbeat} />
+      </TableData>
+      <TableData {...tableColumns[5]} activeColumnIDs={activeColumnIDs}>
+        <Icon disabled={allowDeletion} onClick={() => deleteClient(obj)}>
+          <TrashIcon />
+        </Icon>
       </TableData>
     </>
   );
@@ -270,16 +314,29 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
     rowFilters
   );
 
-  const onClick = (modalLauncher: typeof launchModal) => () => {
-    const modalComponentProps = { isOpen: true };
-    modalLauncher(ClientOnBoardingModal, modalComponentProps);
+  const launchModalOnClick = (modalComponent: ModalComponent) => () => {
+    launchModal(modalComponent, { isOpen: true });
+  };
+
+  const deleteClient = (client: StorageConsumerKind) => {
+    launchModal(RemoveClientModal, { resource: client, isOpen: true });
   };
 
   return (
     <>
       <ListPageHeader title={t('Storage clients')}>
-        <Button variant="primary" onClick={onClick(launchModal)}>
+        <Button
+          variant="primary"
+          className="pf-v5-u-mr-sm"
+          onClick={launchModalOnClick(ClientOnBoardingModal)}
+        >
           {t('Generate client onboarding token')}
+        </Button>
+        <Button
+          variant="tertiary"
+          onClick={launchModalOnClick(RotateKeysModal)}
+        >
+          {t('Rotate signing keys')}
         </Button>
       </ListPageHeader>
       <ListPageBody>
@@ -295,7 +352,7 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
           unfilteredData={storageClients}
           loaded={loaded && csvLoaded}
           loadError={loadError || csvLoadError}
-          rowData={{ currentVersion: serviceVersion }}
+          rowData={{ currentVersion: serviceVersion, deleteClient }}
         />
       </ListPageBody>
     </>

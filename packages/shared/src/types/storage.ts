@@ -22,6 +22,17 @@ export type StorageClusterKind = K8sResourceCommon & {
       cephCluster: {
         monCount: 3 | 5;
       };
+      cephBlockPools?: {
+        disableSnapshotClass: boolean;
+        disableStorageClass: boolean;
+      };
+      cephFilesystems?: {
+        disableSnapshotClass: boolean;
+        disableStorageClass: boolean;
+      };
+      cephObjectStores?: {
+        hostNetwork: boolean;
+      };
     };
     manageNodes?: boolean;
     storageDeviceSets?: DeviceSet[];
@@ -56,6 +67,7 @@ export type StorageClusterKind = K8sResourceCommon & {
     };
     externalStorage?: {};
     allowRemoteStorageConsumers?: boolean;
+    hostNetwork?: boolean;
   };
   status?: {
     phase: string;
