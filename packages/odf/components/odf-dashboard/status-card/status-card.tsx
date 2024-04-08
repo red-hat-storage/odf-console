@@ -178,7 +178,7 @@ export const StatusCard: React.FC = () => {
           {healthySystems.length > 0 && (
             <GalleryItem>
               <HealthItem
-                title={pluralize(healthySystems.length, 'Storage System')}
+                title={pluralize(healthySystems.length, t('Storage System'))}
                 state={HealthState.OK}
               >
                 <StatusCardPopover

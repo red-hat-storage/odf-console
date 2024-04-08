@@ -52,11 +52,11 @@ import {
   VisualizationProvider,
   SELECTION_EVENT,
   TopologyControlBar,
-  createTopologyControlButtons,
-  defaultControlButtonsOptions,
   LabelPosition,
   NodeShape,
   GraphElement,
+  defaultControlButtonsOptions,
+  createTopologyControlButtons,
 } from '@patternfly/react-topology';
 import { cephStorageLabel } from '../../constants';
 import {
@@ -143,6 +143,7 @@ const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
 };
 
 const TopologyViewComponent: React.FC = () => {
+  const { t } = useCustomTranslation();
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [currentView, setCurrentView] = React.useState(TopologyViewLevel.NODES);
   const controller = useVisualizationController();
@@ -420,15 +421,19 @@ const TopologyViewComponent: React.FC = () => {
           data-test="topology-control-bar"
           controlButtons={createTopologyControlButtons({
             ...defaultControlButtonsOptions,
+            zoomInTip: t('Zoom in'),
             zoomInCallback: () => {
               controller && controller.getGraph().scaleBy(ZOOM_IN);
             },
+            zoomOutTip: t('Zoom out'),
             zoomOutCallback: () => {
               controller && controller.getGraph().scaleBy(ZOOM_OUT);
             },
+            fitToScreenTip: t('Fit to screen'),
             fitToScreenCallback: () => {
               controller && controller.getGraph().fit(100);
             },
+            resetViewTip: t('Reset view'),
             resetViewCallback: () => {
               if (controller) {
                 controller.getGraph().reset();
