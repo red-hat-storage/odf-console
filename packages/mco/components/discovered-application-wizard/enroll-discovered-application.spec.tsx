@@ -239,11 +239,6 @@ jest.mock('@odf/shared/heading/page-heading', () => ({
   default: jest.fn(() => <></>),
 }));
 
-jest.mock('react-i18next', () => ({
-  ...jest.requireActual('react-i18next'),
-  useTranslation: (_ns: string) => ({ t: (children: any) => children }),
-}));
-
 jest.mock(
   '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api',
   () => ({

@@ -52,11 +52,6 @@ jest.mock('react-router', () => ({
   useHistory: jest.fn(() => []),
 }));
 
-jest.mock('react-i18next', () => ({
-  useTranslation: (_ns: string) => ({ t: (children: any) => children }),
-  Trans: ({ children }: any) => children,
-}));
-
 jest.mock('react-router-dom-v5-compat', () => ({
   ...jest.requireActual('react-router-dom-v5-compat'),
   useNavigate: () => null,

@@ -19,13 +19,17 @@ import {
   attachDevices,
   attachDevicesWithArbiter,
 } from '@odf/core/constants';
-import { pvResource, nodeResource } from '@odf/core/resources';
-import { NodesPerZoneMap, ResourceProfile } from '@odf/core/types';
-import { getSCAvailablePVs, getAssociatedNodes } from '@odf/core/utils';
-import { calcPVsCapacity } from '@odf/core/utils';
+import { useNodesData } from '@odf/core/hooks';
+import { pvResource } from '@odf/core/resources';
+import { NodeData, NodesPerZoneMap, ResourceProfile } from '@odf/core/types';
+import {
+  calcPVsCapacity,
+  getSCAvailablePVs,
+  getAssociatedNodes,
+} from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import { K8sResourceKind, NodeKind } from '@odf/shared/types';
+import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -148,7 +152,7 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
   }, []);
 
   const onRowSelected = React.useCallback(
-    (selectedNodes: NodeKind[]) => {
+    (selectedNodes: NodeData[]) => {
       const nodesData = createWizardNodeState(selectedNodes);
       dispatch({ type: 'wizard/setNodes', payload: nodesData });
     },
@@ -243,8 +247,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   const [pv, pvLoaded, pvLoadError] =
     useK8sWatchResource<K8sResourceKind[]>(pvResource);
   const memoizedPv = useDeepCompareMemoize(pv, true);
-  const [allNodes, allNodeLoaded, allNodeLoadError] =
-    useK8sWatchResource<NodeKind[]>(nodeResource);
+  const [allNodes, allNodeLoaded, allNodeLoadError] = useNodesData();
   const memoizedAllNodes = useDeepCompareMemoize(allNodes, true);
   const [hasStrechClusterEnabled, setHasStrechClusterEnabled] =
     React.useState(false);

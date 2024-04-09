@@ -7,6 +7,7 @@ import {
   diskTypeDropdownItems,
   NO_PROVISIONER,
 } from '@odf/core/constants';
+import { NodeData } from '@odf/core/types';
 import {
   fieldRequirementsTranslations,
   formSettings,
@@ -17,7 +18,6 @@ import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import { NodeKind } from '@odf/shared/types';
 import { StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
@@ -170,7 +170,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
   const diskSizeHelpText = t('Please enter a positive Integer');
 
   const onRowSelected = React.useCallback(
-    (selectedNodes: NodeKind[]) => {
+    (selectedNodes: NodeData[]) => {
       const nodesData = createWizardNodeState(selectedNodes);
       dispatch({ type: 'wizard/setNodes', payload: nodesData });
     },

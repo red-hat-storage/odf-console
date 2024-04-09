@@ -1,3 +1,4 @@
+import { NodeKind } from '@odf/shared';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
 
 export type K8sResourceObj = (ns: string) => WatchK8sResource;
@@ -38,6 +39,12 @@ export type EncryptionType = {
 
 export type NodesPerZoneMap = {
   [zones: string]: number;
+};
+
+export type NodeData = NodeKind & {
+  metrics: {
+    memory: string;
+  };
 };
 
 export enum ResourceProfile {
