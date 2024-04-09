@@ -15,11 +15,6 @@ jest.mock('react-router-dom-v5-compat', () => ({
   useNavigate: () => navigate,
 }));
 
-jest.mock('react-i18next', () => ({
-  withTranslation: () => () => null,
-  Trans: ({ children }: any) => children,
-}));
-
 describe('Test managed applications modal (ManagedApplicationsModal)', () => {
   afterEach(() => jest.clearAllMocks());
 

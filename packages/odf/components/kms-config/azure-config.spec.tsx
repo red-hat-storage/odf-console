@@ -2,11 +2,6 @@ import React from 'react';
 import { screen, render, fireEvent } from '@testing-library/react';
 import { AzureConfigure } from './azure-config';
 
-jest.mock('react-i18next', () => ({
-  withTranslation: () => () => null,
-  Trans: ({ children }: any) => children,
-}));
-
 const state = {
   kms: {
     providerState: {

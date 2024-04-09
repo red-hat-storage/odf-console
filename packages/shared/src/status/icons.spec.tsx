@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { render } from '@testing-library/react';
+import { configure, render } from '@testing-library/react';
 import {
   BlueArrowCircleUpIcon,
   BlueInfoCircleIcon,
@@ -11,6 +11,8 @@ import {
   YellowExclamationTriangleIcon,
   YellowResourcesAlmostFullIcon,
 } from './icons';
+
+configure({ testIdAttribute: 'data-testid' });
 
 const mockCheckCircleIcon = jest.fn((props) => (
   <span data-testid="mock-check-circle-icon" {...props} />
