@@ -134,11 +134,6 @@ jest.mock('react-router-dom-v5-compat', () => ({
   Link: jest.fn((props) => <div {...props} />),
 }));
 
-jest.mock('react-i18next', () => ({
-  withTranslation: () => () => null,
-  Trans: ({ children }: any) => children,
-}));
-
 jest.mock('./components', () => ({
   ...jest.requireActual('./components'),
   EmptyRowMessage: jest.fn(() => null),

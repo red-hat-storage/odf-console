@@ -105,12 +105,6 @@ jest.mock(
   })
 );
 
-jest.mock('react-i18next', () => ({
-  ...jest.requireActual('react-i18next'),
-  useTranslation: (_ns: string) => ({ t: (children: any) => children }),
-  Trans: ({ children }: any) => children,
-}));
-
 jest.mock('@odf/shared/hooks', () => ({
   ...jest.requireActual('@odf/shared/hooks'),
   DOC_VERSION: '1.2',

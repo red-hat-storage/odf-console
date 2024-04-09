@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { cephStorageLabel } from '@odf/core/constants';
+import { useNodesData } from '@odf/core/hooks';
+import { NodeData } from '@odf/core/types';
 import {
   getZone,
   nodesWithoutTaints,
   getNodeCPUCapacity,
-  getNodeAllocatableMemory,
+  getNodeTotalMemory,
 } from '@odf/core/utils';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useSelectList } from '@odf/shared/hooks/select-list';
@@ -14,14 +16,13 @@ import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName, hasLabel } from '@odf/shared/selectors';
 import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getNodeRoles } from '@odf/shared/utils';
 import {
   resourcePathFromModel,
   getConvertedUnits,
+  getNodeRoles,
   humanizeCpuCores,
 } from '@odf/shared/utils';
 import {
-  useK8sWatchResource,
   ListPageBody,
   ListPageFilter,
   useListPageFilter,
@@ -47,7 +48,7 @@ const tableColumnClasses = [
 ];
 
 const getRows = (
-  nodesData,
+  nodesData: NodeData[],
   visibleRows,
   setVisibleRows,
   selectedNodes,
@@ -55,15 +56,14 @@ const getRows = (
   ns,
   disableLabeledNodes
 ) => {
-  const data = nodesData;
   const storageLabel = cephStorageLabel(ns);
 
-  const filteredData = nodesWithoutTaints(data);
+  const filteredData = nodesWithoutTaints(nodesData);
 
-  const rows: IRow[] = filteredData.map((node: NodeKind) => {
+  const rows: IRow[] = filteredData.map((node: NodeData) => {
     const roles = getNodeRoles(node).sort();
     const cpuSpec: string = getNodeCPUCapacity(node);
-    const memSpec: string = getNodeAllocatableMemory(node);
+    const memSpec: string = getNodeTotalMemory(node);
     const cells: IRow['cells'] = [
       {
         title: (
@@ -168,7 +168,7 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
     sortIndex: index,
     sortDirection: direction,
     sortedData: rowsData,
-  } = useSortList<NodeKind>(nodesData, getColumns, true);
+  } = useSortList<NodeData>(nodesData, getColumns, true);
 
   /* Prevent the deselection of the labeled nodes (when that protection is enabled)
      through the "Select/Unselect All" checkbox. */
@@ -205,24 +205,18 @@ const InternalNodeTable: React.FC<NodeTableProps> = ({
 type NodeTableProps = {
   nodes: Set<string>;
   onRowSelected: (selectedNodes: NodeKind[]) => void;
-  nodesData: NodeKind[];
+  nodesData: NodeData[];
   disableLabeledNodes: boolean;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
 
-export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({
+export const SelectNodesTable: React.FC<SelectNodesTableProps> = ({
   nodes,
   onRowSelected,
   disableLabeledNodes = false,
   systemNamespace,
 }) => {
-  const [nodesData, nodesLoaded, nodesLoadError] = useK8sWatchResource<
-    NodeKind[]
-  >({
-    kind: NodeModel.kind,
-    namespaced: false,
-    isList: true,
-  });
+  const [nodesData, nodesLoaded, nodesLoadError] = useNodesData();
   const [data, filteredData, onFilterChange] = useListPageFilter(nodesData);
 
   return (
@@ -243,7 +237,7 @@ export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({
           <InternalNodeTable
             nodes={new Set(nodes.map(({ uid }) => uid))}
             onRowSelected={onRowSelected}
-            nodesData={filteredData as NodeKind[]}
+            nodesData={filteredData}
             disableLabeledNodes={disableLabeledNodes}
             systemNamespace={systemNamespace}
           />
@@ -254,9 +248,9 @@ export const SelectNodesTable: React.FC<NodeSelectTableProps> = ({
   );
 };
 
-type NodeSelectTableProps = {
+type SelectNodesTableProps = {
   nodes: WizardNodeState[];
-  onRowSelected: (selectedNodes: NodeKind[]) => void;
+  onRowSelected: (selectedNodes: NodeData[]) => void;
   disableLabeledNodes?: boolean;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
