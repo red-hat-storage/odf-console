@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { parseSyncInterval } from '@odf/mco/utils';
+import { DRPolicyKind } from '@odf/mco/types';
+import { getReplicationType, parseSyncInterval } from '@odf/mco/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
@@ -28,6 +29,20 @@ export const normalizeSyncTimeValue = (value: number) => {
   const syncTimeValue = isNaN(Number(value)) ? MIN_VALUE : Number(value);
   return syncTimeValue < MIN_VALUE ? MIN_VALUE : syncTimeValue;
 };
+
+const checkSyncPolicyAlreadyExists = (
+  drPolicies: DRPolicyKind[],
+  selectedClusters: string[]
+): boolean =>
+  drPolicies.some((drPolicy) => {
+    const { drClusters, schedulingInterval } = drPolicy.spec;
+    const isSyncPolicy =
+      getReplicationType(schedulingInterval) === REPLICATION_TYPE.SYNC;
+    return (
+      isSyncPolicy &&
+      drClusters.every((cluster) => selectedClusters.includes(cluster))
+    );
+  });
 
 const getClusterErrorInfo = (
   selectedClusters: ManagedClusterInfoType[]
@@ -65,10 +80,18 @@ const getErrorMessage = (
   selectedClusters: ManagedClusterInfoType[],
   requiredODFVersion: string,
   replicationType: REPLICATION_TYPE,
+  isSyncPolicyFound: boolean,
   t: TFunction
 ): ErrorMessageType => {
   const clusterErrorInfo = getClusterErrorInfo(selectedClusters);
-  if (!!clusterErrorInfo.unavailableClusters.length) {
+  if (isSyncPolicyFound) {
+    return {
+      message: t('Existing DRPolicy detected'),
+      description: t(
+        'A DRPolicy is already configured for selected managed clusters. You cannot create another DRPolicy using the same pair of clusters.'
+      ),
+    };
+  } else if (!!clusterErrorInfo.unavailableClusters.length) {
     return {
       message: t('1 or more managed clusters are offline'),
       description: t(
@@ -146,13 +169,23 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
   syncIntervalTime,
   replicationType,
   requiredODFVersion,
+  drPolicies,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
+
+  const isSyncPolicyFound =
+    replicationType === REPLICATION_TYPE.SYNC &&
+    checkSyncPolicyAlreadyExists(
+      drPolicies,
+      selectedClusters.map((cluster) => cluster.name)
+    );
+
   const errorMessage = getErrorMessage(
     selectedClusters,
     requiredODFVersion,
     replicationType,
+    isSyncPolicyFound,
     t
   );
 
@@ -249,6 +282,7 @@ type DRReplicationTypeProps = {
   syncIntervalTime: string;
   replicationType: REPLICATION_TYPE;
   requiredODFVersion: string;
+  drPolicies: DRPolicyKind[];
   dispatch: React.Dispatch<DRPolicyAction>;
 };
 
