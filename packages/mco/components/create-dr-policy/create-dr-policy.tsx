@@ -1,5 +1,7 @@
 import * as React from 'react';
+import { getDRPolicyResourceObj } from '@odf/mco/hooks';
 import { getMajorVersion, parseNamespaceName } from '@odf/mco/utils';
+import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -50,11 +52,11 @@ const fetchMirrorPeer = (
   mirrorPeers: MirrorPeerKind[],
   peerNames: string[]
 ): MirrorPeerKind =>
-  mirrorPeers?.find((mirrorPeer) => {
+  mirrorPeers.find((mirrorPeer) => {
     const existingPeerNames =
       mirrorPeer?.spec?.items?.map((item) => item?.clusterName) ?? [];
     return existingPeerNames.sort().join(',') === peerNames.sort().join(',');
-  });
+  }) || {};
 
 const getPeerClustersRef = (clusters: ManagedClusterInfoType[]) =>
   clusters.map((cluster) => {
@@ -127,12 +129,17 @@ const CreateDRPolicy: React.FC<{}> = () => {
   );
   const [errorMessage, setErrorMessage] = React.useState('');
 
-  // odfmco mirrorpeer info
-  const [mirrorPeers] = useK8sWatchResource<MirrorPeerKind[]>({
-    kind: referenceForModel(MirrorPeerModel),
-    isList: true,
-    namespaced: false,
-  });
+  const [mirrorPeers, mirrorPeerLoaded, mirrorPeerLoadError] =
+    useK8sWatchResource<MirrorPeerKind[]>({
+      kind: referenceForModel(MirrorPeerModel),
+      isList: true,
+      namespaced: false,
+    });
+
+  const [drPolicies, policyLoaded, policyLoadedError] = useK8sWatchResource<
+    DRPolicyKind[]
+  >(getDRPolicyResourceObj());
+
   const [csv] = useFetchCsv({
     specName: ODFMCO_OPERATOR,
   });
@@ -151,7 +158,9 @@ const CreateDRPolicy: React.FC<{}> = () => {
     );
 
     const mirrorPeer: MirrorPeerKind =
-      fetchMirrorPeer(mirrorPeers, peerNames) ?? {};
+      mirrorPeerLoaded &&
+      !mirrorPeerLoadError &&
+      fetchMirrorPeer(mirrorPeers, peerNames);
 
     if (Object.keys(mirrorPeer).length === 0) {
       promises.push(
@@ -180,8 +189,11 @@ const CreateDRPolicy: React.FC<{}> = () => {
     state.selectedClusters.length === MAX_ALLOWED_CLUSTERS &&
     !checkForErrors(state.selectedClusters, state.replicationType);
 
+  const loaded = mirrorPeerLoaded && policyLoaded;
+  const loadedError = mirrorPeerLoadError || policyLoadedError;
+
   return (
-    <div>
+    <>
       <PageHeading title={t('Create DRPolicy')}>
         <TextContent className="mco-create-data-policy__description">
           <Text component={TextVariants.small}>
@@ -191,109 +203,117 @@ const CreateDRPolicy: React.FC<{}> = () => {
           </Text>
         </TextContent>
       </PageHeading>
-      <Form className="mco-create-data-policy">
-        <FormGroup fieldId="policy-name" label={t('Policy name')}>
-          <TextInput
-            data-test="policy-name-text"
-            id="policy-name"
-            data-testid="policy-name"
-            value={state.policyName}
-            type="text"
-            onChange={(_event, strVal: string) => setPolicyName(strVal)}
-            isRequired
-          />
-        </FormGroup>
-        <FormGroup fieldId="connect-clusters" label={t('Connect clusters')}>
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem>
-                {t(
-                  'Enables mirroring/replication between two selected clusters, ensuring failover or relocation between the two clusters in the event of an outage or planned maintenance.'
-                )}
-              </HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-          <SelectClusterList
-            selectedClusters={state.selectedClusters}
-            requiredODFVersion={odfMCOVersion}
-            dispatch={dispatch}
-          />
-        </FormGroup>
-        <FormGroup>
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem>
-                {t(
-                  "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation."
-                )}
-              </HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-        </FormGroup>
-        {!!odfMCOVersion && (
-          <FormGroup fieldId="policy-name">
-            <Alert
-              className="odf-alert mco-create-data-policy__alert"
-              title={t(
-                'Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring.',
-                { version: odfMCOVersion }
-              )}
-              variant={AlertVariant.info}
-              isInline
+      {loaded && !loadedError ? (
+        <Form className="mco-create-data-policy">
+          <FormGroup fieldId="policy-name" label={t('Policy name')}>
+            <TextInput
+              data-test="policy-name-text"
+              id="policy-name"
+              data-testid="policy-name"
+              value={state.policyName}
+              type="text"
+              onChange={(_event, strVal: string) => setPolicyName(strVal)}
+              isRequired
             />
           </FormGroup>
-        )}
-        {!!state.selectedClusters.length && (
-          <FormGroup fieldId="selected-clusters" label={t('Selected clusters')}>
-            {state.selectedClusters.map((c, i) => (
-              <SelectedCluster
-                key={c.name}
-                id={i + 1}
-                cluster={c}
-                replicationType={state.replicationType}
+          <FormGroup fieldId="connect-clusters" label={t('Connect clusters')}>
+            <FormHelperText>
+              <HelperText>
+                <HelperTextItem>
+                  {t(
+                    'Enables mirroring/replication between two selected clusters, ensuring failover or relocation between the two clusters in the event of an outage or planned maintenance.'
+                  )}
+                </HelperTextItem>
+              </HelperText>
+            </FormHelperText>
+            <SelectClusterList
+              selectedClusters={state.selectedClusters}
+              requiredODFVersion={odfMCOVersion}
+              dispatch={dispatch}
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormHelperText>
+              <HelperText>
+                <HelperTextItem>
+                  {t(
+                    "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation."
+                  )}
+                </HelperTextItem>
+              </HelperText>
+            </FormHelperText>
+          </FormGroup>
+          {!!odfMCOVersion && (
+            <FormGroup fieldId="policy-name">
+              <Alert
+                className="odf-alert mco-create-data-policy__alert"
+                title={t(
+                  'Data Foundation {{ version }} or above must be installed on the managed clusters to setup connection for enabling replication/mirroring.',
+                  { version: odfMCOVersion }
+                )}
+                variant={AlertVariant.info}
+                isInline
               />
-            ))}
-          </FormGroup>
-        )}
-        <DRReplicationType
-          selectedClusters={state.selectedClusters}
-          replicationType={state.replicationType}
-          syncIntervalTime={state.syncIntervalTime}
-          requiredODFVersion={odfMCOVersion}
-          dispatch={dispatch}
-        />
-        {errorMessage && (
-          <FormGroup fieldId="error-message">
-            <Alert
-              className="odf-alert mco-create-data-policy__alert"
-              title={t('An error occurred')}
-              variant="danger"
-              isInline
+            </FormGroup>
+          )}
+          {!!state.selectedClusters.length && (
+            <FormGroup
+              fieldId="selected-clusters"
+              label={t('Selected clusters')}
             >
-              {errorMessage}
-            </Alert>
-          </FormGroup>
-        )}
-        <ActionGroup className="mco-create-data-policy__action-group">
-          <Button
-            data-testid="create-button"
-            data-test="create-button"
-            variant={ButtonVariant.primary}
-            onClick={onCreate}
-            isDisabled={!areDRPolicyInputsValid()}
-          >
-            {t('Create')}
-          </Button>
-          <Button
-            data-test="cancel-button"
-            variant={ButtonVariant.secondary}
-            onClick={() => navigate(-1)}
-          >
-            {t('Cancel')}
-          </Button>
-        </ActionGroup>
-      </Form>
-    </div>
+              {state.selectedClusters.map((c, i) => (
+                <SelectedCluster
+                  key={c.name}
+                  id={i + 1}
+                  cluster={c}
+                  replicationType={state.replicationType}
+                />
+              ))}
+            </FormGroup>
+          )}
+          <DRReplicationType
+            selectedClusters={state.selectedClusters}
+            replicationType={state.replicationType}
+            syncIntervalTime={state.syncIntervalTime}
+            requiredODFVersion={odfMCOVersion}
+            drPolicies={drPolicies}
+            dispatch={dispatch}
+          />
+          {errorMessage && (
+            <FormGroup fieldId="error-message">
+              <Alert
+                className="odf-alert mco-create-data-policy__alert"
+                title={t('An error occurred')}
+                variant="danger"
+                isInline
+              >
+                {errorMessage}
+              </Alert>
+            </FormGroup>
+          )}
+          <ActionGroup className="mco-create-data-policy__action-group">
+            <Button
+              data-testid="create-button"
+              data-test="create-button"
+              variant={ButtonVariant.primary}
+              onClick={onCreate}
+              isDisabled={!areDRPolicyInputsValid()}
+            >
+              {t('Create')}
+            </Button>
+            <Button
+              data-test="cancel-button"
+              variant={ButtonVariant.secondary}
+              onClick={() => navigate(-1)}
+            >
+              {t('Cancel')}
+            </Button>
+          </ActionGroup>
+        </Form>
+      ) : (
+        <StatusBox loaded={loaded} loadError={loadedError} />
+      )}
+    </>
   );
 };
 
