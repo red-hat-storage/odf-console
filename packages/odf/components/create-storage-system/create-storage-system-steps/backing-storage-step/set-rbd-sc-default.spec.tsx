@@ -7,7 +7,7 @@ describe('Setting Ceph RBD StorageClass as default, during installation', () => 
   it('renders the FC, on infra with existing default StorageClass', async () => {
     const uEvent = userEvent.setup();
     const Wrapper = () => {
-      const [isRBDStorageClassDefault, dispatch] = React.useState(false);
+      const [isRBDStorageClassDefault, dispatch] = React.useState(null);
       const dispatchWrapper = ({ payload }) => dispatch(payload);
       return (
         <SetCephRBDStorageClassDefault
@@ -42,7 +42,7 @@ describe('Setting Ceph RBD StorageClass as default, during installation', () => 
   it('renders the FC, on infra with non-existing default StorageClass', async () => {
     const uEvent = userEvent.setup();
     const Wrapper = () => {
-      const [isRBDStorageClassDefault, dispatch] = React.useState(false);
+      const [isRBDStorageClassDefault, dispatch] = React.useState(null);
       const dispatchWrapper = ({ payload }) => dispatch(payload);
       return (
         <SetCephRBDStorageClassDefault
