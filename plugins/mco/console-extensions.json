@@ -8,17 +8,6 @@
     }
   },
   {
-    "type": "console.flag/model",
-    "properties": {
-      "model": {
-        "group": "ramendr.openshift.io",
-        "version": "v1alpha1",
-        "kind": "DRPolicy"
-      },
-      "flag": "ODR_MODEL"
-    }
-  },
-  {
     "type": "console.navigation/section",
     "properties": {
       "id": "mco-data-services",
@@ -35,9 +24,6 @@
       "section": "mco-data-services",
       "name": "%plugin__odf-multicluster-console~Disaster recovery%",
       "href": "/multicloud/data-services/disaster-recovery"
-    },
-    "flags": {
-      "required": ["ODR_MODEL"]
     }
   },
   {
