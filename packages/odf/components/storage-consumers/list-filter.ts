@@ -6,7 +6,7 @@ import * as _ from 'lodash-es';
 const heartbeatPhases = ['Connected', 'Disconnected'];
 
 export const getHeartbeatPhase = (client: StorageConsumerKind): string => {
-  const heartbeat = client.status.lastHeartbeat;
+  const heartbeat = client?.status?.lastHeartbeat;
   const timeElasped = getTimeDifferenceInSeconds(heartbeat);
   if (timeElasped <= 300) {
     return heartbeatPhases[0];
@@ -47,7 +47,7 @@ export const getMajorMinorVersion = (version: string) => {
 
 const getDataFoundationVersionState =
   (currentVersion: string) => (obj: StorageConsumerKind) =>
-    getMajorMinorVersion(obj.status.client.operatorVersion) ===
+    getMajorMinorVersion(obj?.status?.client?.operatorVersion) ===
     getMajorMinorVersion(currentVersion)
       ? dataFoundationMismatchStates[0]
       : dataFoundationMismatchStates[1];
