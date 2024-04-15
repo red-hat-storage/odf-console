@@ -41,7 +41,8 @@ export const initialState: CreateStorageSystemState = {
     type: BackingStorageType.EXISTING,
     systemNamespace: '',
     enableNFS: false,
-    isRBDStorageClassDefault: false,
+    // using equality check on "null", do not make it "false" as default
+    isRBDStorageClassDefault: null,
     externalStorage: '',
     deployment: DeploymentType.FULL,
     useExternalPostgres: false,
@@ -113,7 +114,7 @@ type CreateStorageSystemState = {
     type: BackingStorageType;
     systemNamespace: string;
     enableNFS: boolean;
-    isRBDStorageClassDefault: boolean;
+    isRBDStorageClassDefault: boolean | null;
     externalStorage: string;
     deployment: DeploymentType;
     useExternalPostgres: boolean;
