@@ -1,4 +1,8 @@
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sResourceCommon,
+  K8sResourceCondition,
+  K8sResourceKind,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 
 type GetStringProperty<T = K8sResourceCommon> = (resource: T) => string;
@@ -51,3 +55,16 @@ export const getOwnerReferences = <
     value,
     'metadata.ownerReferences'
   ) as K8sResourceCommon['metadata']['ownerReferences'];
+
+type KnownResourceConditions = 'Available' | 'Degraded' | 'Progressing';
+
+export const getResourceCondition = <
+  A extends K8sResourceKind = K8sResourceKind
+>(
+  resource: A,
+  condition: KnownResourceConditions
+): K8sResourceCondition => {
+  return resource?.status?.conditions?.find(
+    (current: K8sResourceCondition) => current.type === condition
+  );
+};

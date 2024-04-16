@@ -1,24 +1,73 @@
 import * as React from 'react';
-import { getCephsHealthState, WatchCephResources } from '@odf/ocs/utils';
-import { healthStateMessage } from '@odf/shared/dashboards/status-card/states';
+import { getNooBaaState } from '@odf/ocs/dashboards/object-service/status-card/statuses';
+import { getCephsHealthState } from '@odf/ocs/utils';
+import { healthStateMapping } from '@odf/shared/dashboards';
 import { CephClusterModel } from '@odf/shared/models';
-import { Status } from '@odf/shared/status/Status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
-  WatchK8sResults,
   StatusPopupSection,
   HealthState,
+  SubsystemHealth,
+  PrometheusHealthPopupProps,
+  FirehoseResource,
+  K8sResourceCommon,
+  PrometheusHealthHandler,
 } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom-v5-compat';
 import { Stack, StackItem } from '@patternfly/react-core';
 import '@odf/shared/popup/status-popup.scss';
 
-export const StoragePopover: React.FC<StoragePopoverProps> = ({ ceph }) => {
+export const getStorageSystemHealthState: PrometheusHealthHandler = (
+  promMetrics,
+  t,
+  ceph
+) => {
+  const isNoobaaOnly = _.isEmpty(ceph?.data);
+  if (!isNoobaaOnly) {
+    return getCephsHealthState({
+      ceph: {
+        data: ceph.data as K8sResourceCommon[],
+        loaded: ceph.loaded,
+        loadError: ceph.loadError,
+      },
+    });
+  } else {
+    return getNooBaaState(promMetrics, t, {
+      loaded: true,
+      loadError: '',
+      data: {},
+    });
+  }
+};
+
+export const StoragePopover: React.FC<PrometheusHealthPopupProps> = ({
+  responses,
+  k8sResult,
+}) => {
   const { t } = useCustomTranslation();
 
-  const health = getCephsHealthState({ ceph }, t);
-  const value = health.message || healthStateMessage(health.state, t);
+  const noobaaHealth = getNooBaaState(responses, t, {
+    loaded: true,
+    loadError: '',
+    data: {},
+  });
+  const cephData = k8sResult.data;
+  const isNoobaaOnly = _.isEmpty(k8sResult);
+  const cephHealthState: SubsystemHealth = getCephsHealthState(
+    {
+      ceph: {
+        data: cephData as K8sResourceCommon[],
+        loaded: k8sResult?.loaded,
+        loadError: k8sResult?.loadError,
+      },
+    },
+    t
+  );
+  const healthStatus: HealthState = isNoobaaOnly
+    ? noobaaHealth?.state
+    : cephHealthState?.state;
   const operatorName = t('Data Foundation');
 
   return (
@@ -35,12 +84,7 @@ export const StoragePopover: React.FC<StoragePopoverProps> = ({ ceph }) => {
         >
           <div className="odf-status-popup__row">
             <Link to="/odf">{operatorName}</Link>
-            <Status
-              key="ocs"
-              status={
-                health.state === HealthState.OK && !value ? t('Healthy') : value
-              }
-            />
+            {healthStateMapping[healthStatus]}
           </div>
         </StatusPopupSection>
       </StackItem>
@@ -48,14 +92,11 @@ export const StoragePopover: React.FC<StoragePopoverProps> = ({ ceph }) => {
   );
 };
 
-export { getCephsHealthState as healthHandler };
+export { getStorageSystemHealthState as healthHandler };
 
-export const healthResource = {
-  ceph: {
-    kind: referenceForModel(CephClusterModel),
-    namespaced: false,
-    isList: true,
-  },
+export const healthResource: FirehoseResource = {
+  kind: referenceForModel(CephClusterModel),
+  namespaced: false,
+  isList: true,
+  prop: 'ceph',
 };
-
-type StoragePopoverProps = WatchK8sResults<WatchCephResources>;
