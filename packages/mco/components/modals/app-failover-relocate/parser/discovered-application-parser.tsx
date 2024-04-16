@@ -102,7 +102,7 @@ export const DiscoveredApplicationParser: React.FC<
       const { drClusters, drPlacementControls } = drResource || {};
       const drPlacementControl = drPlacementControls?.[0];
 
-      // use drplacementcontrol.ramendr.openshift.io/last-app-deployment-cluster annotation
+      // use "drplacementcontrol.ramendr.openshift.io/last-app-deployment-cluster" annotation
       // To find current app the deployment cluster
       const deploymentClusterName =
         getLastAppDeploymentClusterName(drPlacementControl);
