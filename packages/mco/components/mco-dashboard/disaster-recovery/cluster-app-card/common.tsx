@@ -37,6 +37,7 @@ import {
   SelectVariant,
 } from '@patternfly/react-core/deprecated';
 import { global_danger_color_100 as globalDanger100 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
+import { global_info_color_100 as globalInfo100 } from '@patternfly/react-tokens/dist/js/global_info_color_100';
 import { global_warning_color_100 as globalWarning100 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import { ChartDonut } from '@patternfly/react-charts';
 import {
@@ -65,7 +66,11 @@ const namespaceToModelMapping = (namespace: string) => {
   }
 };
 
-const colorScale = [globalDanger100.value, globalWarning100.value, '#0166cc'];
+const colorScale = [
+  globalDanger100.value,
+  globalWarning100.value,
+  globalInfo100.value,
+];
 
 const getNSAndNameFromId = (itemId: string): string[] => {
   if (itemId?.includes(NAMESPACE_NAME_SPLIT_CHAR)) {

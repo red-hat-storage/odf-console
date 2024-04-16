@@ -7,6 +7,8 @@ import {
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { global_danger_color_100 as globalDanger100 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
+import { global_disabled_color_100 as globalDisable100 } from '@patternfly/react-tokens/dist/js/global_disabled_color_100';
+import { global_info_color_100 as globalInfo100 } from '@patternfly/react-tokens/dist/js/global_info_color_100';
 import { global_warning_color_100 as globalWarning100 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import classNames from 'classnames';
 import { ChartDonut, ChartLabel } from '@patternfly/react-charts';
@@ -14,9 +16,9 @@ import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { DANGER_THRESHOLD, WARNING_THRESHOLD } from '../../../constants';
 import './capacity-card.scss';
 
-const generalColorScale = ['#0166cc', '#d6d6d6'];
-const warningColorScale = [globalWarning100.value, '#d6d6d6'];
-const dangerColorScale = [globalDanger100.value, '#d6d6d6'];
+const generalColorScale = [globalInfo100.value, globalDisable100.value];
+const warningColorScale = [globalWarning100.value, globalDisable100.value];
+const dangerColorScale = [globalDanger100.value, globalDisable100.value];
 
 const CapacityStatusIcon: React.FC<CapacityStatusIconProps> = React.memo(
   ({ ratio }) => {
@@ -129,7 +131,7 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
                 subTitleComponent={
                   <ChartLabel
                     dy={5}
-                    style={{ fill: `var(--pf-v5-global--palette--black-500)` }}
+                    style={{ fill: `var(--pf-v5-global--Color--200)` }}
                   />
                 }
               />
