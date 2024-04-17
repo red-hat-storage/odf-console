@@ -6,6 +6,8 @@ export const PROMETHEUS_TENANCY_BASE_PATH =
 export const DEFAULT_PROMETHEUS_SAMPLES = 60;
 export const DEFAULT_PROMETHEUS_TIMESPAN = ONE_HOUR;
 
+export const DEFAULT_PROMETHEUS_RETENTION = '15d';
+
 export enum PrometheusEndpoint {
   LABEL = 'api/v1/label',
   QUERY = 'api/v1/query',

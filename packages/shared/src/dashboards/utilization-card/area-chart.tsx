@@ -144,7 +144,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({
             themeColor={ChartThemeColor.multiUnordered}
             scale={{ x: 'time', y: 'linear' }}
             padding={{ top: 20, left: 70, bottom: 60, right: 0 }}
-            legendData={chartType ? legendData : null}
+            legendData={chartType && showLegend ? legendData : null}
             legendPosition="bottom-left"
           >
             {xAxis && (
