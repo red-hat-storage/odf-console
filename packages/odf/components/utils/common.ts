@@ -3,15 +3,16 @@ import {
   ValidationType,
   EncryptionType,
   ResourceProfile,
+  NodeData,
 } from '@odf/core/types';
 import {
   getNodeCPUCapacity,
-  getNodeAllocatableMemory,
   getZone,
   isFlexibleScaling,
   getDeviceSetCount,
   createDeviceSet,
   isResourceProfileAllowed,
+  getNodeTotalMemory,
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import {
@@ -96,14 +97,23 @@ export const getExternalStorage = (
   supportedExternalStorage: ExternalStorage[]
 ) => supportedExternalStorage.find((p) => p.model.kind === id);
 
+/**
+ * We get the total cpu & memory as calculating the cpu & memory available for scheduling
+ * is a hard computational problem that can't be solved at the UI level.
+ * See: https://bugzilla.redhat.com/show_bug.cgi?id=2263148#c2
+ * Moreover, on Day-2 operations it can lead to inconsistent information
+ * (due to end user workloads and/or other factors that can alter the available resources)
+ * e.g. misleadingly warning the end user about not having enough resources for a
+ * successfully applied performance mode.
+ */
 export const createWizardNodeState = (
-  nodes: NodeKind[] = []
+  nodes: NodeData[] = []
 ): WizardNodeState[] =>
   nodes.map((node) => {
     const name = getName(node);
     const hostName = getLabel(node, 'kubernetes.io/hostname', '');
     const cpu = getNodeCPUCapacity(node);
-    const memory = getNodeAllocatableMemory(node);
+    const memory = getNodeTotalMemory(node);
     const zone = getZone(node);
     const rack = getRack(node);
     const uid = getUID(node);

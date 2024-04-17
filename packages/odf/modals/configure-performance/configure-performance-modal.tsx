@@ -12,7 +12,7 @@ import {
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
   resourceRequirementsTooltip,
 } from '@odf/core/constants';
-import { ResourceProfile, ValidationType } from '@odf/core/types';
+import { NodeData, ResourceProfile, ValidationType } from '@odf/core/types';
 import { isResourceProfileAllowed } from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic';
 import { LoadingInline } from '@odf/shared/generic/Loading';
@@ -21,11 +21,7 @@ import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
-import {
-  NodeKind,
-  StorageClusterKind,
-  StorageSystemKind,
-} from '@odf/shared/types';
+import { StorageClusterKind, StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Patch, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -118,7 +114,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
     [selectedNodes]
   );
   const onRowSelected = React.useCallback(
-    (newNodes: NodeKind[]) => {
+    (newNodes: NodeData[]) => {
       const nodes = createWizardNodeState(newNodes);
       setSelectedNodes(nodes);
       setValidation(getValidation(resourceProfile, nodes));

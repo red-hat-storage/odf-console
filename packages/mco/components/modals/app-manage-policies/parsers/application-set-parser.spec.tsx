@@ -345,10 +345,6 @@ jest.mock('@odf/mco/hooks/acm-safe-fetch', () => ({
   }),
 }));
 
-jest.mock('react-i18next', () => ({
-  Trans: ({ children }: any) => children,
-}));
-
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
   useK8sWatchResource: jest.fn(() => [[], true, undefined]),

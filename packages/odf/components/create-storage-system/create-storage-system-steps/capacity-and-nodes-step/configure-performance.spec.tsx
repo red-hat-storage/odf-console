@@ -1,18 +1,15 @@
 import * as React from 'react';
 import { createWizardNodeState } from '@odf/core/components/utils';
+import { useNodesData } from '@odf/core/hooks';
 import { ResourceProfile } from '@odf/core/types';
-import { NodeKind } from '@odf/shared/types';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import { createFakeNodesData } from '../../../../../../jest/helpers';
 import ConfigurePerformance from './configure-performance';
 
-jest.mock(
-  '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api',
-  () => ({
-    useK8sWatchResource: jest.fn(),
-  })
-);
+jest.mock('@odf/core/hooks', () => ({
+  useNodesData: jest.fn(),
+}));
 
 jest.mock('@odf/shared/useCustomTranslationHook', () => ({
   useCustomTranslation: () => ({
@@ -21,18 +18,6 @@ jest.mock('@odf/shared/useCustomTranslationHook', () => ({
 }));
 const onResourceProfileChange = jest.fn();
 
-const createFakeNodes = (
-  amount: number,
-  cpu: number,
-  memory: string
-): NodeKind[] =>
-  Array.from(
-    Array(amount),
-    (): NodeKind => ({
-      status: { capacity: { cpu: cpu }, allocatable: { memory: memory } },
-      metadata: {},
-    })
-  );
 const errorIconSelector = '[class$="select__toggle-status-icon"]';
 
 describe('Configure Performance', () => {
@@ -40,13 +25,12 @@ describe('Configure Performance', () => {
     onResourceProfileChange.mockClear();
   });
 
-  // Todo(bipuladh): activate it later
-  it.skip('renders default profile and selects Performance profile', async () => {
+  it('renders default profile and selects Performance profile', async () => {
     const cpu = 12;
-    const memory = String(32 * 1000 * 1000 * 1000);
-    const nodes: NodeKind[] = createFakeNodes(3, cpu, memory);
+    const memory = 32 * 1000 * 1000 * 1000;
+    const nodes = createFakeNodesData(3, cpu, memory);
     const selectedNodes = createWizardNodeState(nodes);
-    (useK8sWatchResource as jest.Mock).mockReturnValueOnce([nodes, true, null]);
+    (useNodesData as jest.Mock).mockReturnValueOnce([nodes, true, null]);
 
     const user = userEvent.setup();
     const { container } = render(
@@ -66,11 +50,9 @@ describe('Configure Performance', () => {
     expect(errorIcon).toBeFalsy();
 
     await user.click(dropdown);
-    const performanceOption = screen
-      .getByTestId(
-        `performance-mode-select-option--${ResourceProfile.Performance}`
-      )
-      .querySelector('button') as HTMLButtonElement;
+    const performanceOption = screen.getByRole('option', {
+      name: /performance cpus required/i,
+    });
     await user.click(performanceOption);
     expect(onResourceProfileChange).toHaveBeenNthCalledWith(
       1,
@@ -79,7 +61,7 @@ describe('Configure Performance', () => {
   });
 
   it('forces Lean when selectable nodes do not allow higher profiles', () => {
-    (useK8sWatchResource as jest.Mock).mockReturnValueOnce([[], true, null]);
+    (useNodesData as jest.Mock).mockReturnValueOnce([[], true, null]);
 
     render(
       <ConfigurePerformance
@@ -96,10 +78,10 @@ describe('Configure Performance', () => {
 
   it('shows error icon in the dropdown when resource requirements are not enough', () => {
     const cpu = 12;
-    const memory = String(32 * 1000 * 1000 * 1000);
-    const nodes: NodeKind[] = createFakeNodes(3, cpu, memory);
+    const memory = 32 * 1000 * 1000 * 1000;
+    const nodes = createFakeNodesData(3, cpu, memory);
     const selectedNodes = createWizardNodeState(nodes);
-    (useK8sWatchResource as jest.Mock).mockReturnValueOnce([nodes, true, null]);
+    (useNodesData as jest.Mock).mockReturnValueOnce([nodes, true, null]);
 
     const { container } = render(
       <ConfigurePerformance
