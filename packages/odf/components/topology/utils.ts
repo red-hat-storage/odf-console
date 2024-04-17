@@ -35,6 +35,7 @@ export const generateNodeDeploymentsMap = (
         allNames.includes(pod.metadata.labels['app'])
     );
     const deploymentsInNode = podsInNode
+      .filter((pod) => _.has(pod, 'metadata.ownerReferences'))
       .map((pod) =>
         resolveResourceUntilDeployment(
           pod.metadata.ownerReferences[0].uid,
