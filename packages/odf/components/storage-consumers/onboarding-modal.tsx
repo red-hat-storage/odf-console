@@ -2,14 +2,18 @@ import * as React from 'react';
 import { LoadingBox } from '@odf/shared';
 import { ModalBody, ModalTitle } from '@odf/shared/generic/ModalTitle';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { ExternalLink } from '@odf/shared/utils';
+import { HttpError } from '@odf/shared/utils/error/http-error';
 import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { Trans } from 'react-i18next';
 import {
   Modal,
   Button,
   ModalVariant,
   FlexItem,
   Flex,
+  Alert,
 } from '@patternfly/react-core';
 import { Text, TextVariants } from '@patternfly/react-core';
 import { ClipboardIcon } from '@patternfly/react-icons';
@@ -26,12 +30,15 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
   const { t } = useCustomTranslation();
   const MODAL_TITLE = t('Client onboarding token');
   const [ticket, setTicket] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState(null);
 
   const onCopyToClipboard = () => {
     navigator.clipboard.writeText(ticket);
   };
 
   React.useEffect(() => {
+    setLoading(true);
     consoleFetch(
       '/api/proxy/plugin/odf-console/provider-proxy/onboarding-tokens',
       {
@@ -39,6 +46,7 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
       }
     )
       .then((response) => {
+        setLoading(false);
         if (!response.ok) {
           throw new Error('Network response is not ok!');
         }
@@ -47,9 +55,9 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
       .then((text) => {
         setTicket(text);
       })
-      .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error('Provider proxy is not working as expected', error);
+      .catch((err: HttpError) => {
+        setLoading(false);
+        setError(err.message);
       });
   }, []);
 
@@ -59,23 +67,40 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
       <ModalBody>
         <Flex direction={{ default: 'column' }}>
           <FlexItem grow={{ default: 'grow' }}>
-            {ticket ? (
+            {ticket && !loading && (
               <div className="odf-onboarding-modal__text-area">{ticket}</div>
-            ) : (
-              <LoadingBox />
+            )}
+            {loading && !error && <LoadingBox />}
+            {!loading && error && (
+              <Alert
+                variant="danger"
+                isInline
+                title={t('Can not generate an onboarding token at the moment')}
+              >
+                <Trans>
+                  The token generation service is currently unavailable. Contact
+                  our{' '}
+                  <ExternalLink href="https://access.redhat.com/support/">
+                    customer support
+                  </ExternalLink>{' '}
+                  for further help.
+                </Trans>
+              </Alert>
             )}
           </FlexItem>
-          <FlexItem>
-            <Button
-              type="button"
-              onClick={onCopyToClipboard}
-              variant="link"
-              className="pf-m-link--align-left odf-onboarding-modal__clipboard"
-            >
-              <ClipboardIcon />
-              {t('Copy to clipboard')}
-            </Button>
-          </FlexItem>
+          {!error && !loading && (
+            <FlexItem>
+              <Button
+                type="button"
+                onClick={onCopyToClipboard}
+                variant="link"
+                className="pf-m-link--align-left odf-onboarding-modal__clipboard"
+              >
+                <ClipboardIcon />
+                {t('Copy to clipboard')}
+              </Button>
+            </FlexItem>
+          )}
           <FlexItem>
             <Text component={TextVariants.h6}>
               {t('How to use this token?')}
