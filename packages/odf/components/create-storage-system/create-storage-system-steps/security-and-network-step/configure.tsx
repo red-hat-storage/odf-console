@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { NetworkAttachmentDefinitionModel } from '@odf/core/models';
-import TechPreviewBadge from '@odf/shared/badges/TechPreviewBadge';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
@@ -244,9 +243,6 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           value={NetworkType.MULTUS}
           id={NetworkType.MULTUS}
         />
-        <div className="ceph__multus-tech-preview-badge--margin">
-          <TechPreviewBadge />
-        </div>
       </FormGroup>
       {networkType === NetworkType.MULTUS && (
         <MultusDropdown
