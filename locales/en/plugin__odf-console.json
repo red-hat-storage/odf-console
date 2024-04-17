@@ -1108,6 +1108,8 @@
   "Rotate signing keys": "Rotate signing keys",
   "Data Foundation version sync": "Data Foundation version sync",
   "Client onboarding token": "Client onboarding token",
+  "Can not generate an onboarding token at the moment": "Can not generate an onboarding token at the moment",
+  "The token generation service is currently unavailable. Contact our <2>customer support</2> for further help.": "The token generation service is currently unavailable. Contact our <2>customer support</2> for further help.",
   "Copy to clipboard": "Copy to clipboard",
   "How to use this token?": "How to use this token?",
   "To onboard the client cluster, the provider cluster requires the onboarding token.": "To onboard the client cluster, the provider cluster requires the onboarding token.",
