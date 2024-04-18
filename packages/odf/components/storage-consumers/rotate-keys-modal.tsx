@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { ModalFooter } from '@odf/shared';
+import { ModalFooter } from '@odf/shared/generic';
 import { ModalBody, ModalTitle } from '@odf/shared/generic/ModalTitle';
+import { SecretModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
+import { k8sDelete } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import {
   Modal,
@@ -11,6 +12,7 @@ import {
   FlexItem,
   Flex,
 } from '@patternfly/react-core';
+import { useODFNamespaceSelector } from '../../redux';
 
 type RotateKeysModalProps = ModalComponent<{
   isOpen: boolean;
@@ -21,23 +23,25 @@ export const RotateKeysModal: RotateKeysModalProps = ({
   closeModal,
 }) => {
   const { t } = useCustomTranslation();
+  const { odfNamespace } = useODFNamespaceSelector();
   const MODAL_TITLE = t('Rotate signing keys');
   const [inProgress, setProgress] = React.useState(false);
   const [error, setError] = React.useState<Error>(null);
 
   const onRotate = () => {
     setProgress(true);
-    consoleFetch('/api/proxy/plugin/odf-console/provider-proxy/rotate-keys', {
-      method: 'post',
+    k8sDelete({
+      model: SecretModel,
+      resource: {
+        metadata: {
+          name: 'onboarding-ticket-key',
+          namespace: odfNamespace,
+        },
+      },
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Network response is not ok!');
-        }
-        return response.text();
-      })
       .then(() => {
         setProgress(false);
+        closeModal();
       })
       .catch((err) => {
         setProgress(false);
