@@ -1,9 +1,12 @@
 node_modules
+build
 coverage
 dist
+gui-test-screenshots
 .cache-loader
 locales
 .husky
 .vscode
 *.scss
 plugins/**/package.json
+test-report.html

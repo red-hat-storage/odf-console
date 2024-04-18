@@ -10,14 +10,12 @@ import {
   resourceProfileTooltip,
   resourceRequirementsTooltip,
 } from '@odf/core/constants';
+import { useNodesData } from '@odf/core/hooks';
 import { ResourceProfile } from '@odf/core/types';
 import { isResourceProfileAllowed, nodesWithoutTaints } from '@odf/core/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
-import { NodeModel } from '@odf/shared/models';
-import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import { Text, TextVariants, TextContent } from '@patternfly/react-core';
@@ -34,7 +32,6 @@ const selectOptions = (t: TFunction, forceLean: boolean) =>
       [ResourceProfile.Balanced, ResourceProfile.Performance].includes(profile);
     return (
       <SelectOption
-        data-testid={`performance-mode-select-option--${profile}`}
         key={profile}
         value={profile}
         description={description}
@@ -113,11 +110,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const [availableNodes, availableNodesLoaded, availableNodesLoadError] =
-    useK8sWatchResource<NodeKind[]>({
-      kind: NodeModel.kind,
-      namespaced: false,
-      isList: true,
-    });
+    useNodesData();
 
   // Force Lean mode when all selectable capacity is not enough for higher profiles.
   let forceLean = false;

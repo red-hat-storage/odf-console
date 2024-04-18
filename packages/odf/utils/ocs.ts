@@ -1,4 +1,4 @@
-import { ResourceProfile } from '@odf/core/types';
+import { NodeData, ResourceProfile } from '@odf/core/types';
 import { NamespaceModel } from '@odf/shared/models';
 import {
   DeviceSet,
@@ -131,14 +131,28 @@ export const getAssociatedNodes = (pvs: K8sResourceKind[]): string[] => {
   return Array.from(nodes);
 };
 
-export const nodesWithoutTaints = (nodes: NodeKind[] = []) =>
-  nodes.filter((node: NodeKind) => hasOCSTaint(node) || hasNoTaints(node));
+export const nodesWithoutTaints = (nodes: NodeData[] = []): NodeData[] =>
+  nodes.filter((node: NodeData) => hasOCSTaint(node) || hasNoTaints(node));
 
 export const getNodeCPUCapacity = (node: NodeKind): string =>
   _.get(node.status, 'capacity.cpu');
 
+export const getNodeMemoryCapacity = (node: NodeKind): string =>
+  _.get(node.status, 'capacity.memory');
+
 export const getNodeAllocatableMemory = (node: NodeKind): string =>
   _.get(node.status, 'allocatable.memory');
+
+/**
+ * Get the total memory from node metrics or fallback to CR capacity memory.
+ */
+export const getNodeTotalMemory = (node: NodeData): string => {
+  const metricMemory = _.get(node.metrics, 'memory');
+  if (!metricMemory || isNaN(Number(metricMemory))) {
+    return getNodeMemoryCapacity(node);
+  }
+  return metricMemory;
+};
 
 export const hasNoTaints = (node: NodeKind) => {
   return _.isEmpty(node.spec?.taints);

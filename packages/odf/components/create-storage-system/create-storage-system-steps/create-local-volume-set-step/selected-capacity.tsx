@@ -4,21 +4,20 @@ import {
   createWizardNodeState,
 } from '@odf/core/components/utils';
 import { deviceTypeDropdownItems } from '@odf/core/constants';
+import { useNodesData } from '@odf/core/hooks';
 import {
   DISK_TYPES,
+  DiscoveredDisk,
   DiskType,
   DiskMetadata,
   LocalVolumeDiscoveryResultKind,
+  NodeData,
 } from '@odf/core/types';
-import { DiscoveredDisk } from '@odf/core/types';
 import { AVAILABLE } from '@odf/shared/constants';
 import { StatusBox } from '@odf/shared/generic/status-box';
-import { NodeModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { convertToBaseValue, humanizeBinaryBytes } from '@odf/shared/utils';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { ChartDonut, ChartLabel } from '@patternfly/react-charts';
 import { Button } from '@patternfly/react-core';
@@ -219,8 +218,8 @@ type SelectedCapacityProps = {
   lvdResults: LocalVolumeDiscoveryResultKind[];
 };
 
-const filterNodes = (nodesData: NodeKind[], filteredNodes: Set<string>) => {
-  const filteredData = nodesData?.filter((node: NodeKind) =>
+const filterNodes = (nodesData: NodeData[], filteredNodes: Set<string>) => {
+  const filteredData = nodesData?.filter((node: NodeData) =>
     filteredNodes.has(getName(node))
   );
   return createWizardNodeState(filteredData);
@@ -233,13 +232,7 @@ const NodeListModal: React.FC<NodeListModalProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const [nodesData, nodesLoaded, nodesLoadError] = useK8sWatchResource<
-    NodeKind[]
-  >({
-    kind: NodeModel.kind,
-    namespaced: false,
-    isList: true,
-  });
+  const [nodesData, nodesLoaded, nodesLoadError] = useNodesData();
   const filteredData = React.useMemo(
     () => filterNodes(nodesData, filteredNodes),
     [nodesData, filteredNodes]

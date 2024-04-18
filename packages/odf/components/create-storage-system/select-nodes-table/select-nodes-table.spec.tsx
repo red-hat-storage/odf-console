@@ -1,85 +1,63 @@
 import * as React from 'react';
 import { createWizardNodeState } from '@odf/core/components/utils';
-import { NodeKind } from '@odf/shared/types';
-import {
-  useK8sWatchResource,
-  useListPageFilter,
-} from '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api';
+import { useNodesData } from '@odf/core/hooks';
+import { useListPageFilter } from '@openshift-console/dynamic-plugin-sdk';
 import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom-v5-compat';
+import { createFakeNodesData } from '../../../../../jest/helpers';
 import { SelectNodesTable } from './select-nodes-table';
 
-jest.mock(
-  '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api',
-  () => ({
-    ...jest.requireActual(
-      '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api'
-    ),
-    useK8sWatchResource: jest.fn(),
-    useListPageFilter: jest.fn(),
-  })
-);
-
-jest.mock('@odf/core/redux/selectors/odf-namespace', () => ({
-  useODFNamespaceSelector: jest.fn(() => ['openshift-storage', true, null]),
+jest.mock('@odf/core/hooks', () => ({
+  ...jest.requireActual('@odf/core/hooks'),
+  useNodesData: jest.fn(),
 }));
-
+// Mock needed due to sdk @console/internal declarations.
+jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
+  ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
+  ListPageFilter: jest.fn(() => <></>),
+  useListPageFilter: jest.fn(),
+}));
 const onRowSelected = jest.fn();
 
-const createFakeNodes = (
-  amount: number,
-  cpu: number,
-  memory: string
-): NodeKind[] =>
-  Array.from(
-    Array(amount),
-    (): NodeKind => ({
-      status: { capacity: { cpu: cpu }, allocatable: { memory: memory } },
-      metadata: {},
-    })
-  );
+const systemNamespace = 'openshift-storage';
 const cpu = 12;
-const memory = String(32 * 1000 * 1000 * 1000);
-const nodes: NodeKind[] = createFakeNodes(3, cpu, memory);
+const memory = 32 * 1000 * 1000 * 1000;
+const nodes = createFakeNodesData(3, cpu, memory);
 const selectedNodes = createWizardNodeState(nodes);
-(useK8sWatchResource as jest.Mock).mockReturnValue([nodes, true, null]);
+(useNodesData as jest.Mock).mockReturnValue([nodes, true, null]);
 (useListPageFilter as jest.Mock).mockReturnValue([nodes, nodes, jest.fn()]);
 
-// eslint-disable-next-line no-console
-const originalError = console.error.bind(console.error);
-let consoleSpy: jest.SpyInstance;
-
-// ToDo (Sanjal): Enable unit test
-// eslint-disable-next-line jest/no-disabled-tests
-describe.skip('Select Nodes Table', () => {
-  beforeAll(() => {
-    // Ignore error messages coming from ListPageBody (third-party dependency).
-    consoleSpy = jest.spyOn(console, 'error').mockImplementation((...data) => {
-      if (!data.toString().includes('ListPageBody.js')) {
-        originalError(...data);
-      }
-    });
-  });
-
-  afterAll(() => consoleSpy.mockRestore());
-
+describe('Select Nodes Table', () => {
   it('shows the table including the Select All checkbox', () => {
     render(
-      <SelectNodesTable nodes={selectedNodes} onRowSelected={onRowSelected} />
+      <BrowserRouter>
+        <SelectNodesTable
+          nodes={selectedNodes}
+          onRowSelected={onRowSelected}
+          systemNamespace={systemNamespace}
+        />
+      </BrowserRouter>
     );
 
     const selectAll = screen.getByRole('checkbox', {
       name: /select all rows/i,
     });
     expect(selectAll).toBeVisible();
+
+    const footer = screen.getByTestId('nodes-selected');
+    expect(footer).toBeVisible();
   });
 
   it('shows the table without the Select All checkbox', () => {
     render(
-      <SelectNodesTable
-        nodes={selectedNodes}
-        onRowSelected={onRowSelected}
-        disableLabeledNodes={true}
-      />
+      <BrowserRouter>
+        <SelectNodesTable
+          nodes={selectedNodes}
+          onRowSelected={onRowSelected}
+          disableLabeledNodes={true}
+          systemNamespace={systemNamespace}
+        />
+      </BrowserRouter>
     );
 
     const selectAll = screen.queryByRole('checkbox', {
