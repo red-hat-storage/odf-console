@@ -1,6 +1,7 @@
 import * as _ from 'lodash-es';
 
 export enum NodeQueries {
+  ALL_NODES_MEMORY_TOTAL = 'ALL_NODES_MEMORY_TOTAL',
   CPU_USAGE = 'CPU_USAGE',
   CPU_TOTAL = 'CPU_TOTAL',
   MEMORY_USAGE = 'MEMORY_USAGE',
@@ -59,6 +60,10 @@ const resourceQuotaQueries = {
   [NodeQueries.POD_RESOURCE_REQUEST_MEMORY]: _.template(
     `sum(kube_pod_resource_request{node='<%= node %>',resource='memory'})`
   ),
+};
+
+export const allNodesUtilizationQueries = {
+  [NodeQueries.ALL_NODES_MEMORY_TOTAL]: 'node_memory_MemTotal_bytes',
 };
 
 export const getResourceQuotaQueries = (node: string) => ({

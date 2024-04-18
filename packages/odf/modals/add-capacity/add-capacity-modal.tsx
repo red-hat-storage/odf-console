@@ -1,6 +1,8 @@
 import * as React from 'react';
 import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
+import { useNodesData } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import { NodeData } from '@odf/core/types';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { getCephNodes } from '@odf/ocs/utils/common';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
@@ -13,16 +15,11 @@ import {
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
-import {
-  NodeModel,
-  PersistentVolumeModel,
-  StorageClassModel,
-} from '@odf/shared/models';
+import { PersistentVolumeModel, StorageClassModel } from '@odf/shared/models';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import {
   StorageClassResourceKind,
-  NodeKind,
   StorageClusterKind,
   DeviceSet,
   StorageSystemKind,
@@ -111,12 +108,6 @@ const scResource: WatchK8sResource = {
 
 const pvResource: WatchK8sResource = {
   kind: PersistentVolumeModel.kind,
-  namespaced: false,
-  isList: true,
-};
-
-const nodeResource: WatchK8sResource = {
-  kind: NodeModel.kind,
   namespaced: false,
   isList: true,
 };
@@ -237,8 +228,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   ];
   const [pvData, pvLoaded, pvLoadError] =
     useK8sWatchResource<K8sResourceCommon[]>(pvResource);
-  const [nodesData, nodesLoaded, nodesLoadError] =
-    useK8sWatchResource<NodeKind[]>(nodeResource);
+  const [nodesData, nodesLoaded, nodesLoadError] = useNodesData();
   const [scResources, scResourcesLoaded, scResourcesLoadError] =
     useK8sWatchResource<StorageClassResourceKind[]>(scResource);
   const [storageClass, setStorageClass] = React.useState(null);
@@ -261,7 +251,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   const replica = getDeviceSetReplica(
     isArbiterEnabled,
     hasFlexibleScaling,
-    createWizardNodeState(getCephNodes(nodesData, odfNamespace))
+    createWizardNodeState(getCephNodes(nodesData, odfNamespace) as NodeData[])
   );
 
   const totalCapacityMetric = values?.[0];

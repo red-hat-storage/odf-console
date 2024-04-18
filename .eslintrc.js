@@ -84,7 +84,7 @@ module.exports = {
         devDependencies: [
           '**/*.spec.ts',
           '**/*.spec.tsx',
-          './setupJest.ts',
+          './jest/setup.ts',
           './cypress/**',
         ],
         optionalDependencies: false,

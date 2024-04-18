@@ -10,6 +10,7 @@ import {
   LSO_OPERATOR,
   OCS_TOLERATION,
 } from '@odf/core/constants';
+import { useNodesData } from '@odf/core/hooks';
 import {
   LocalVolumeDiscoveryResult,
   LocalVolumeSetModel,
@@ -23,10 +24,7 @@ import {
 } from '@odf/core/utils';
 import { ErrorAlert } from '@odf/shared/generic/Error';
 import { LoadingInline } from '@odf/shared/generic/Loading';
-import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
-import { NodeModel } from '@odf/shared/models';
-import { ListKind, NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
@@ -312,8 +310,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,
   });
-  const [rawNodes, rawNodesLoaded, rawNodesLoadError] =
-    useK8sGet<ListKind<NodeKind>>(NodeModel);
+  const [rawNodes, rawNodesLoaded, rawNodesLoadError] = useNodesData();
   const [lvdResults, lvdResultsLoaded] = useK8sWatchResource<
     LocalVolumeDiscoveryResultKind[]
   >(getLvdrResource(allNodes.current, csv?.metadata?.namespace));
@@ -323,7 +320,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   const [lvsetError, setLvsetError] = React.useState(null);
 
   React.useEffect(() => {
-    const nonTaintedNodes = nodesWithoutTaints(rawNodes?.items);
+    const nonTaintedNodes = nodesWithoutTaints(rawNodes);
     allNodes.current = createWizardNodeState(nonTaintedNodes);
   }, [rawNodes]);
 
