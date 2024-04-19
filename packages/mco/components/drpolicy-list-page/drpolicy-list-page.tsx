@@ -2,6 +2,7 @@ import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
 import { useAccessReview } from '@odf/shared/hooks/rbac-hook';
 import { Kebab } from '@odf/shared/kebab/kebab';
+import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
@@ -20,19 +21,14 @@ import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import { HUB_CLUSTER_NAME, REPLICATION_TYPE } from '../../constants';
 import {
-  ApplicationRefKind,
+  DRPolicyToAppCount,
   getDRPolicyResourceObj,
-  useApplicationsWatch,
+  useProtectedApplicationsWatch,
 } from '../../hooks';
 import { DRPolicyModel } from '../../models';
 import { DRPolicyKind } from '../../types';
-import {
-  getReplicationType,
-  findAppsUsingDRPolicy,
-  isDRPolicyValidated,
-} from '../../utils';
+import { getReplicationType, isDRPolicyValidated } from '../../utils';
 import EmptyPage from '../empty-state-page/empty-page';
-import { ConnectedApplicationsModal } from '../modals/connected-apps-modal/connected-apps-modal';
 import { Header, kebabActionItems, tableColumnInfo } from './helper';
 import './drpolicy-list-page.scss';
 
@@ -42,27 +38,15 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
   rowData,
 }) => {
   const { t } = useCustomTranslation();
-  const {
-    canDeleteDRPolicy,
-    appsLoadError,
-    appsLoaded,
-    setLinkedApps,
-    applicationRefs,
-    openModal,
-  } = rowData;
+  const { canDeleteDRPolicy, policyToAppCount, appCountLoadedWOError } =
+    rowData;
 
   const clusterNames = obj?.spec?.drClusters?.map((clusterName) => (
     <p key={clusterName}> {clusterName} </p>
   ));
-  const filteredApps = findAppsUsingDRPolicy(applicationRefs, obj);
-  const appCount = filteredApps?.length;
+  const appCount = policyToAppCount?.[getName(obj)] || 0;
   const syncInterval = obj?.spec?.schedulingInterval;
   const replicationType = getReplicationType(syncInterval);
-
-  const onClick = () => {
-    openModal(true);
-    setLinkedApps(filteredApps);
-  };
 
   return (
     <>
@@ -84,13 +68,9 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
           : REPLICATION_TYPE.SYNC}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-        {appCount > 0 ? (
-          <a onClick={onClick}>
-            {pluralize(appCount, t('Application'), t('Applications'), true)}
-          </a>
-        ) : (
-          '-'
-        )}
+        {appCount > 0
+          ? pluralize(appCount, t('Application'), t('Applications'), true)
+          : '-'}
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         <Kebab
@@ -102,8 +82,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
           customKebabItems={kebabActionItems(
             canDeleteDRPolicy,
             appCount,
-            appsLoaded,
-            appsLoadError,
+            appCountLoadedWOError,
             t
           )}
         />
@@ -134,9 +113,8 @@ export const DRPolicyListPage: React.FC = () => {
   const { t } = useCustomTranslation();
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
     useK8sWatchResource<DRPolicyKind[]>(getDRPolicyResourceObj());
-  const [applicationRefs, appsLoaded, appsLoadError] = useApplicationsWatch();
-  const [isModalOpen, setConnectedAppsModalOpen] = React.useState(false);
-  const [linkedApps, setLinkedApps] = React.useState<ApplicationRefKind[]>([]);
+  const [policyToAppCount, appCountLoadedWOError] =
+    useProtectedApplicationsWatch();
 
   const location = useLocation();
   const drPolicyListPagePath = location.pathname.replace(/\/$/, '');
@@ -156,16 +134,8 @@ export const DRPolicyListPage: React.FC = () => {
   const [data, filteredData, onFilterChange] = useListPageFilter(drPolicies);
   const navigate = useNavigate();
 
-  const openModal = () => setConnectedAppsModalOpen(true);
-  const closeModal = () => setConnectedAppsModalOpen(false);
-
   return (
     <>
-      <ConnectedApplicationsModal
-        applicationRefs={linkedApps}
-        onClose={closeModal}
-        isOpen={isModalOpen}
-      />
       <ListPageBody>
         {drPolicies?.length === 0 ? (
           // All length 0 cases are handled by EmptyPage
@@ -212,11 +182,8 @@ export const DRPolicyListPage: React.FC = () => {
               loadError={drPoliciesLoadError}
               rowData={{
                 canDeleteDRPolicy,
-                appsLoaded,
-                appsLoadError,
-                applicationRefs,
-                setLinkedApps,
-                openModal,
+                appCountLoadedWOError,
+                policyToAppCount,
               }}
             />
           </>
@@ -228,11 +195,8 @@ export const DRPolicyListPage: React.FC = () => {
 
 type RowData = {
   canDeleteDRPolicy: boolean;
-  appsLoaded: boolean;
-  appsLoadError: any;
-  applicationRefs: ApplicationRefKind[];
-  setLinkedApps: React.Dispatch<React.SetStateAction<ApplicationRefKind[]>>;
-  openModal: (boolean) => void;
+  appCountLoadedWOError: boolean;
+  policyToAppCount: DRPolicyToAppCount;
 };
 
 type DRPolicyListProps = {

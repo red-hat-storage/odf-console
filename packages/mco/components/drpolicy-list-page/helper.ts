@@ -77,8 +77,7 @@ export const tableColumnInfo = [
 export const kebabActionItems = (
   canDeleteDRPolicy,
   appsCount,
-  appsLoaded,
-  appsLoadedError,
+  appsLoadedWOError,
   t
 ): CustomKebabItem[] => [
   {
@@ -87,11 +86,6 @@ export const kebabActionItems = (
     description: !!appsCount
       ? t('Cannot delete while connected to an application.')
       : '',
-    isDisabled: !(
-      canDeleteDRPolicy &&
-      appsLoaded &&
-      !appsLoadedError &&
-      !appsCount
-    ),
+    isDisabled: !(canDeleteDRPolicy && appsLoadedWOError && !appsCount),
   },
 ];
