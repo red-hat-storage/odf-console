@@ -20,7 +20,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInstantVectorStats, humanizeBinaryBytes } from '@odf/shared/utils';
 import {
   PrometheusResponse,
-  PrometheusValue,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
@@ -51,20 +50,26 @@ const calculateDaysUp = (response: PrometheusResponse): number | null => {
     return null;
   }
 
-  const values: PrometheusValue[] = response.data?.result?.[0]?.values || [];
+  let minTimestamp: number;
+  let maxTimestamp: number = 0;
 
-  if (!values.length) {
-    return null;
+  for (const promResult of response.data.result) {
+    if (!promResult.values?.length) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    const timestamps: number[] = promResult.values.map(
+      ([timestamp, _value]) => timestamp
+    );
+
+    minTimestamp = Math.min(...timestamps, minTimestamp ?? timestamps[0]);
+    maxTimestamp = Math.max(...timestamps, maxTimestamp);
   }
 
-  const timestamps: number[] = values.map(([timestamp, _value]) => timestamp);
+  const timeDifferenceSecond: number = maxTimestamp - (minTimestamp || 0);
 
-  const minTimestamp: number = Math.min(...timestamps);
-  const maxTimestamp: number = Math.max(...timestamps);
-
-  const timeDifferenceMs: number = maxTimestamp - minTimestamp;
-
-  const daysPassed: number = timeDifferenceMs / (1000 * 60 * 60 * 24);
+  const daysPassed: number = timeDifferenceSecond / (60 * 60 * 24);
 
   // Rounding up to one decimal place if days passed is less than half a day
   if (daysPassed < 0.5) {
