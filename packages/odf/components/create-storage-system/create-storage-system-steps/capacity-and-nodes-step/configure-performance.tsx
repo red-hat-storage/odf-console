@@ -6,13 +6,16 @@ import {
   getTotalMemoryInGiB,
 } from '@odf/core/components/utils';
 import {
-  RESOURCE_PROFILE_REQUIREMENTS_MAP,
   resourceProfileTooltip,
   resourceRequirementsTooltip,
 } from '@odf/core/constants';
 import { useNodesData } from '@odf/core/hooks';
 import { ResourceProfile } from '@odf/core/types';
-import { isResourceProfileAllowed, nodesWithoutTaints } from '@odf/core/utils';
+import {
+  getResourceProfileRequirements,
+  isResourceProfileAllowed,
+  nodesWithoutTaints,
+} from '@odf/core/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -21,11 +24,14 @@ import { TFunction } from 'i18next';
 import { Text, TextVariants, TextContent } from '@patternfly/react-core';
 import './configure-performance.scss';
 
-const selectOptions = (t: TFunction, forceLean: boolean) =>
+const selectOptions = (t: TFunction, forceLean: boolean, osdAmount: number) =>
   Object.entries(ResourceProfile).map((value: [string, ResourceProfile]) => {
-    const displayName = t('{{profileType}} mode', { profileType: value[0] });
+    const displayName = t(`${value[0]} mode`);
     let profile = value[1];
-    const { minCpu, minMem } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
+    const { minCpu, minMem } = getResourceProfileRequirements(
+      profile,
+      osdAmount
+    );
     const description = `CPUs required: ${minCpu}, Memory required: ${minMem} GiB`;
     const isDisabled =
       forceLean &&
@@ -54,13 +60,16 @@ export const PerformanceHeaderText: React.FC = () => {
 
 type ProfileRequirementsTextProps = {
   selectedProfile: ResourceProfile;
+  osdAmount: number;
 };
 
 export const ProfileRequirementsText: React.FC<ProfileRequirementsTextProps> =
-  ({ selectedProfile }) => {
+  ({ selectedProfile, osdAmount }) => {
     const { t } = useCustomTranslation();
-    const { minCpu, minMem } =
-      RESOURCE_PROFILE_REQUIREMENTS_MAP[selectedProfile];
+    const { minCpu, minMem } = getResourceProfileRequirements(
+      selectedProfile,
+      osdAmount
+    );
     return (
       <TextContent>
         <Text id="resource-requirements" component={TextVariants.h4}>
@@ -97,8 +106,9 @@ type ConfigurePerformanceProps = {
   onResourceProfileChange: (newProfile: ResourceProfile) => void;
   resourceProfile: ResourceProfile;
   headerText?: React.FC;
-  profileRequirementsText?: React.FC<{ selectedProfile: ResourceProfile }>;
+  profileRequirementsText?: React.FC<ProfileRequirementsTextProps>;
   selectedNodes: WizardNodeState[];
+  osdAmount?: number;
 };
 
 const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
@@ -107,6 +117,7 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
   headerText: HeaderTextComponent,
   profileRequirementsText: ProfileRequirementsTextComponent,
   selectedNodes,
+  osdAmount,
 }) => {
   const { t } = useCustomTranslation();
   const [availableNodes, availableNodesLoaded, availableNodesLoadError] =
@@ -120,7 +131,14 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
     );
     const allCpu = getTotalCpu(selectableNodes);
     const allMem = getTotalMemoryInGiB(selectableNodes);
-    if (!isResourceProfileAllowed(ResourceProfile.Balanced, allCpu, allMem)) {
+    if (
+      !isResourceProfileAllowed(
+        ResourceProfile.Balanced,
+        allCpu,
+        allMem,
+        osdAmount
+      )
+    ) {
       forceLean = true;
     }
   }
@@ -133,7 +151,8 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
     ? isResourceProfileAllowed(
         resourceProfile,
         getTotalCpu(selectedNodes),
-        getTotalMemoryInGiB(selectedNodes)
+        getTotalMemoryInGiB(selectedNodes),
+        osdAmount
       )
     : true;
   const validated =
@@ -157,12 +176,15 @@ const ConfigurePerformance: React.FC<ConfigurePerformanceProps> = ({
         selectedKey={resourceProfile}
         id="resource-profile"
         className="odf-configure-performance__selector pf-v5-u-mb-md"
-        selectOptions={selectOptions(t, forceLean)}
+        selectOptions={selectOptions(t, forceLean, osdAmount)}
         onChange={onResourceProfileChange}
         validated={validated}
       />
       {resourceProfile && ProfileRequirementsTextComponent && (
-        <ProfileRequirementsTextComponent selectedProfile={resourceProfile} />
+        <ProfileRequirementsTextComponent
+          selectedProfile={resourceProfile}
+          osdAmount={osdAmount}
+        />
       )}
     </div>
   );
