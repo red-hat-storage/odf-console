@@ -1,9 +1,6 @@
 import * as React from 'react';
-import {
-  getTotalCpu,
-  getTotalMemory,
-  getAllZone,
-} from '@odf/core/components/utils';
+import { getTotalCpu, getTotalMemory } from '@odf/core/components/utils';
+import { getAllZone } from '@odf/core/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { TextContent, Text } from '@patternfly/react-core';
