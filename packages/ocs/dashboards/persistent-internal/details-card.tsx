@@ -51,6 +51,14 @@ const cephClusterResource = {
 
 const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
+  const [isMigrationInProgress, setMigrationInProgress] = React.useState(false);
+  const startMigration = () => {
+    setMigrationInProgress(true); // Set this only when migration actually starts
+  };
+
+  const cancelMigration = () => {
+    setMigrationInProgress(false); // Reset the state when migration is canceled
+  };
   const { namespace: ocsNs } = useParams<ODFSystemParams>();
 
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
@@ -148,12 +156,18 @@ const DetailsCard: React.FC = () => {
             isLoading={!cephLoaded}
             error={cephLoadError as any}
           >
-            <OSDMigrationDetails
-              loaded={cephLoaded && ocsLoaded}
-              loadError={cephLoadError || ocsError}
-              cephData={cephCluster}
-              ocsData={storageCluster}
-            />
+            {isMigrationInProgress ? (
+              <span>{t('In progress')}</span>
+            ) : (
+              <OSDMigrationDetails
+                loaded={cephLoaded && ocsLoaded}
+                loadError={cephLoadError || ocsError}
+                cephData={cephCluster}
+                ocsData={storageCluster}
+                onMigrationStart={startMigration}
+                onCancel={cancelMigration}
+              />
+            )}
           </DetailItem>
         </DetailsBody>
       </CardBody>

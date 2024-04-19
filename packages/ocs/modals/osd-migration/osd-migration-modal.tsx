@@ -12,12 +12,14 @@ export const OSDMigrationModal: React.FC<OSDMigrationModalProps> = ({
   isOpen,
   extraProps,
   closeModal,
+  onMigrationStart, // prop to notify when migration starts
 }) => {
   const { t } = useCustomTranslation();
   const ocsData = extraProps?.ocsData;
   const [errorMessage, setErrorMessage] = React.useState<string>('');
 
   const handleOptimize = () => {
+    onMigrationStart();
     const patch = [
       {
         op: 'add',
@@ -44,12 +46,16 @@ export const OSDMigrationModal: React.FC<OSDMigrationModalProps> = ({
       });
   };
 
+  const handleClose = () => {
+    closeModal();
+  };
+
   return (
     <Modal
       variant={ModalVariant.small}
       title={t('Prepare the cluster for Regional DR setup')}
       isOpen={isOpen}
-      onClose={closeModal}
+      onClose={handleClose}
     >
       {t(
         'To prepare the cluster for Regional DR setup, you must migrate the OSDs. Migrating OSDs may take some time to complete based on your cluster.'
@@ -73,8 +79,11 @@ export const OSDMigrationModal: React.FC<OSDMigrationModalProps> = ({
   );
 };
 
-export type OSDMigrationModalProps = CommonModalProps<{
-  ocsData: StorageClusterKind;
-}>;
+export type OSDMigrationModalProps = CommonModalProps & {
+  extraProps: {
+    ocsData: StorageClusterKind;
+  };
+  onMigrationStart: () => void;
+};
 
 export default OSDMigrationModal;

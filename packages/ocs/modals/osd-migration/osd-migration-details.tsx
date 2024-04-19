@@ -17,6 +17,8 @@ type OSDMigrationDetailsProps = {
   ocsData: StorageClusterKind;
   loaded: boolean;
   loadError: any;
+  onMigrationStart?: () => void;
+  onCancel: () => void;
 };
 
 export const OSDMigrationDetails: React.FC<OSDMigrationDetailsProps> = ({
@@ -24,6 +26,8 @@ export const OSDMigrationDetails: React.FC<OSDMigrationDetailsProps> = ({
   ocsData,
   loaded,
   loadError,
+  onMigrationStart,
+  onCancel,
 }) => {
   const { t } = useCustomTranslation();
   const osdMigrationStatus: string =
@@ -31,6 +35,15 @@ export const OSDMigrationDetails: React.FC<OSDMigrationDetailsProps> = ({
   const launcher = useModal();
 
   if (!loaded || loadError) return <></>;
+
+  const handleMigrationClick = () => {
+    launcher(OSDMigrationModal, {
+      isOpen: true,
+      extraProps: { ocsData },
+      onMigrationStart,
+      closeModal: onCancel,
+    });
+  };
 
   return (
     <>
@@ -50,15 +63,7 @@ export const OSDMigrationDetails: React.FC<OSDMigrationDetailsProps> = ({
         </FlexItem>
         <FlexItem>
           {osdMigrationStatus === OSDMigrationStatus.PENDING && (
-            <Button
-              variant="link"
-              onClick={() =>
-                launcher(OSDMigrationModal, {
-                  isOpen: true,
-                  extraProps: { ocsData },
-                })
-              }
-            >
+            <Button variant="link" onClick={handleMigrationClick}>
               {t('(Prepare cluster for DR setup)')}
             </Button>
           )}
