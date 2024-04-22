@@ -43,7 +43,7 @@ import {
   PLACEMENT_REF_LABEL,
   LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
 } from '../constants';
-import { DisasterRecoveryFormatted, ApplicationRefKind } from '../hooks';
+import { DisasterRecoveryFormatted } from '../hooks';
 import {
   ACMPlacementModel,
   ACMPlacementRuleModel,
@@ -468,14 +468,6 @@ export const getDRStatus = ({
       };
   }
 };
-
-export const findAppsUsingDRPolicy = (
-  appsRefs: ApplicationRefKind[],
-  drPolicy: DRPolicyKind
-) =>
-  appsRefs?.filter((appsRef) =>
-    appsRef?.drPolicyRefs?.includes(getName(drPolicy))
-  );
 
 const filterMulticlusterView = (mcvs: ACMManagedClusterViewKind[]) =>
   mcvs?.filter(

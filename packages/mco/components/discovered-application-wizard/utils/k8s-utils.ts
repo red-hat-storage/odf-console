@@ -51,13 +51,6 @@ export const getDRPCKindObj = (props: {
           matchExpressions: props.pvcLabelExpressions,
         }
       : {},
-    ...(!!props.k8sResourceLabelExpressions.length
-      ? {
-          kubeObjectSelector: {
-            matchExpressions: props.pvcLabelExpressions,
-          },
-        }
-      : {}),
     kubeObjectProtection: {
       captureInterval: props.k8sResourceReplicationInterval,
       ...(props.protectionMethod === ProtectionMethodType.RECIPE
@@ -67,7 +60,11 @@ export const getDRPCKindObj = (props: {
               namespace: props.recipeNamespace,
             },
           }
-        : {}),
+        : {
+            kubeObjectSelector: {
+              matchExpressions: props.k8sResourceLabelExpressions,
+            },
+          }),
     },
     drPolicyRef: {
       name: getName(props.drPolicy),
