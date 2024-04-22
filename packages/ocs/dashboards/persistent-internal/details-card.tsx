@@ -142,19 +142,21 @@ const DetailsCard: React.FC = () => {
           >
             {inTransitEncryptionStatus}
           </DetailItem>
-          <DetailItem
-            key="osd_migration"
-            title={t('Disaster recovery readiness')}
-            isLoading={!cephLoaded}
-            error={cephLoadError as any}
-          >
-            <OSDMigrationDetails
-              loaded={cephLoaded && ocsLoaded}
-              loadError={cephLoadError || ocsError}
-              cephData={cephCluster}
-              ocsData={storageCluster}
-            />
-          </DetailItem>
+          {!isProviderMode && (
+            <DetailItem
+              key="osd_migration"
+              title={t('Disaster recovery readiness')}
+              isLoading={!cephLoaded}
+              error={cephLoadError as any}
+            >
+              <OSDMigrationDetails
+                loaded={cephLoaded && ocsLoaded}
+                loadError={cephLoadError || ocsError}
+                cephData={cephCluster}
+                ocsData={storageCluster}
+              />
+            </DetailItem>
+          )}
         </DetailsBody>
       </CardBody>
     </Card>
