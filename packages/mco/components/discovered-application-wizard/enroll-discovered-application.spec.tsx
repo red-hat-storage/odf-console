@@ -48,7 +48,7 @@ const drPlacements: DRPlacementControlKind[] = [
     spec: {
       drPolicyRef: createRefFromK8Resource(drPolicies[0]),
       placementRef: {},
-      protectedNamespace: ['mock-appset-1'],
+      protectedNamespaces: ['mock-appset-1'],
       pvcSelector: {
         matchLabels: {
           pvc: 'pvc1',
@@ -618,7 +618,7 @@ describe('Test review step', () => {
     await waitFor(async () => {
       expect(
         JSON.stringify(drpcObj) ===
-          '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPlacementControl","metadata":{"name":"my-name","namespace":"ramen-ops"},"spec":{"preferredCluster":"east-1","protectedNamespace":["namespace-1","namespace-2"],"pvcSelector":{},"kubeObjectProtection":{"captureInterval":"5m","recipeRef":{"name":"mock-recipe-1","namespace":"namespace-1"}},"drPolicyRef":{"name":"mock-policy-1","apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy"},"placementRef":{"name":"my-name-placement-1","namespace":"ramen-ops","apiVersion":"cluster.open-cluster-management.io/v1beta1","kind":"Placement"}}}'
+          '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPlacementControl","metadata":{"name":"my-name","namespace":"openshift-dr-ops"},"spec":{"preferredCluster":"east-1","protectedNamespaces":["namespace-1","namespace-2"],"pvcSelector":{},"kubeObjectProtection":{"captureInterval":"5m","recipeRef":{"name":"mock-recipe-1","namespace":"namespace-1"}},"drPolicyRef":{"name":"mock-policy-1","apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy"},"placementRef":{"name":"my-name-placement-1","namespace":"openshift-dr-ops","apiVersion":"cluster.open-cluster-management.io/v1beta1","kind":"Placement"}}}'
       ).toBeTruthy();
     });
   });
