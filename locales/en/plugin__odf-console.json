@@ -1316,7 +1316,7 @@
   "Duplicate keys found.": "Duplicate keys found.",
   "Edit {{description}}": "Edit {{description}}",
   "Invalid label name": "Invalid label name",
-  "Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers and non-consecutive dots (.), and hyphens (-), forward slash (/), underscore(_) and equal to (=)": "Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers and non-consecutive dots (.), and hyphens (-), forward slash (/), underscore(_) and equal to (=)",
+  "Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers, dots (.), hyphens (-), forward slash (/), underscore(_) and equal to (=)": "Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers, dots (.), hyphens (-), forward slash (/), underscore(_) and equal to (=)",
   "Labels help you organize and select resources. Adding labels below will let you query for objects that have similar, overlapping or dissimilar labels.": "Labels help you organize and select resources. Adding labels below will let you query for objects that have similar, overlapping or dissimilar labels.",
   "{{description}} for": "{{description}} for",
   "Labels for": "Labels for",
