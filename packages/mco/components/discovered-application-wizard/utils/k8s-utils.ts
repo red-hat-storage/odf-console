@@ -45,7 +45,7 @@ export const getDRPCKindObj = (props: {
   },
   spec: {
     preferredCluster: props.preferredCluster,
-    protectedNamespace: props.namespaces,
+    protectedNamespaces: props.namespaces,
     pvcSelector: !!props.pvcLabelExpressions.length
       ? {
           matchExpressions: props.pvcLabelExpressions,
