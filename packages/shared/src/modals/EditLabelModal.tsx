@@ -11,7 +11,7 @@ import {
   ModalVariant,
   Title,
   TitleSizes,
-  AlertProps,
+  AlertVariant,
 } from '@patternfly/react-core';
 import FormAlertInline from '../generic/FormAlertInline';
 import { LoadingInline } from '../generic/Loading';
@@ -61,8 +61,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
   const [loading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState();
   const [errorTitle, setErrorTitle] = React.useState();
-  const [errorVariant, setErrorVariant] =
-    React.useState<AlertProps['variant']>();
+  const [errorVariant, setErrorVariant] = React.useState<AlertVariant>();
 
   const createPath = !labels.length;
   const { t } = useCustomTranslation();
@@ -89,7 +88,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
       .catch((err) => {
         setErrorTitle(t('An error occurred'));
         setErrorMessage(err.message);
-        setErrorVariant('danger');
+        setErrorVariant(AlertVariant.danger);
       })
       .finally(() => {
         setLoading(false);
@@ -113,12 +112,13 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
       setErrorVariant(undefined);
     } else {
       setErrorTitle(t('Invalid label name'));
+      // https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
       setErrorMessage(
         t(
-          'Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers and non-consecutive dots (.), and hyphens (-), forward slash (/), underscore(_) and equal to (=)'
+          'Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers, dots (.), hyphens (-), forward slash (/), underscore(_) and equal to (=)'
         )
       );
-      setErrorVariant('warning');
+      setErrorVariant(AlertVariant.warning);
     }
   };
 
@@ -171,7 +171,12 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
           {t('Cancel')}
         </Button>
         {!loading ? (
-          <Button key="Save" variant="primary" onClick={onSubmit}>
+          <Button
+            key="Save"
+            variant="primary"
+            onClick={onSubmit}
+            isDisabled={errorVariant === AlertVariant.warning}
+          >
             {t('Save')}
           </Button>
         ) : (
