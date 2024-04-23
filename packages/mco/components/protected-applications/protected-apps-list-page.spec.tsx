@@ -45,7 +45,7 @@ const failingDRPC = {
     preferredCluster: 'test-cluster-2',
     placementRef: { name: 'test-ref' },
     pvcSelector: {},
-    protectedNamespace: namespaces,
+    protectedNamespaces: namespaces,
     kubeObjectProtection: { captureInterval: '5m' },
   },
   status: {
@@ -73,7 +73,7 @@ const relocatedDRPC = {
     preferredCluster: 'test-cluster-2',
     placementRef: { name: 'test-ref' },
     pvcSelector: {},
-    protectedNamespace: namespaces,
+    protectedNamespaces: namespaces,
     kubeObjectProtection: { captureInterval: '5m' },
   },
   status: {

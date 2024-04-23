@@ -26,6 +26,7 @@ import {
   DescriptionListGroup,
   DescriptionListDescription,
   PopoverPosition,
+  Text,
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import { ENROLLED_APP_QUERY_PARAMS_KEY, DR_BASE_ROUTE } from '../../constants';
@@ -304,7 +305,7 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
   const { t } = useCustomTranslation();
 
   const enrolledNamespaces: React.ReactNode[] =
-    application.spec?.protectedNamespace?.map((namespace: string) => (
+    application.spec?.protectedNamespaces?.map((namespace: string) => (
       <ResourceNameWIcon
         resourceModel={NamespaceModel}
         resourceName={namespace}
@@ -382,9 +383,14 @@ export const StatusDetails: React.FC<ExpandableComponentProps> = ({
       {kubeIcon} {kubeTitle}
     </>,
   ];
+
   const lastSyncOn = [
-    syncStatusInfo.volumeLastGroupSyncTime,
-    syncStatusInfo.kubeObjectLastSyncTime,
+    syncStatusInfo.volumeLastGroupSyncTime || (
+      <Text className="text-muted"> {t('No data available')}</Text>
+    ),
+    // For kube object, it is always no data available message.
+    // lastTransitionTime just to decide the status, it can't be considered as last synced on.
+    <Text className="text-muted"> {t('No data available')}</Text>,
   ];
   return (
     <DescriptionList_ columnModifier={'3Col'}>

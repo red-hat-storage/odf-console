@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { DRPlacementControlModel } from '@odf/mco/models';
 import { ACM_DEFAULT_DOC_VERSION } from '@odf/shared/constants';
 import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
 import { useDocVersion, DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
@@ -291,7 +290,10 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
               </FlexItem>
             </Flex>
           )}
-          {applicationModel.kind === DRPlacementControlModel.kind && (
+
+          {
+            // ToDo: Enable this once DRPC has kube object last sync time.
+            /*applicationModel.kind === DRPlacementControlModel.kind && (
             <Flex>
               <FlexItem>
                 <strong>{t('Kubernetes object last synced on:')}</strong>
@@ -300,7 +302,8 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
                 <DateTimeFormat dateTime={placement?.kubeObjectLastSyncTime} />
               </FlexItem>
             </Flex>
-          )}
+          )*/
+          }
           {evaluateErrorMessage(errorMessage, true) > -1 && (
             <MessageStatus
               message={

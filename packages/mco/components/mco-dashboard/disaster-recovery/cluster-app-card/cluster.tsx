@@ -76,14 +76,14 @@ const checkVolumeReplicationHealth = (
 const checkKubeObjBackupHealth = (
   protectedAppMap: ProtectedAppsMap
 ): boolean => {
-  const lastKubeObjectSyncTime =
-    protectedAppMap.placementControlInfo[0].lastKubeObjectSyncTime;
+  const kubeObjectLastTransitionTime =
+    protectedAppMap.placementControlInfo[0].kubeObjectLastTransitionTime;
   const objCaptureInterval =
     protectedAppMap.placementControlInfo[0].kubeObjSyncInterval;
   return protectedAppMap.appType === APPLICATION_TYPE.DISCOVERED
     ? getVolumeReplicationHealth(
-        !!lastKubeObjectSyncTime
-          ? getTimeDifferenceInSeconds(lastKubeObjectSyncTime)
+        !!kubeObjectLastTransitionTime
+          ? getTimeDifferenceInSeconds(kubeObjectLastTransitionTime)
           : LEAST_SECONDS_IN_PROMETHEUS,
         objCaptureInterval
       )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
