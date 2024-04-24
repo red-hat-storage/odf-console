@@ -137,7 +137,7 @@ const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({
           height={210}
           width={300}
           padding={{
-            right: 160,
+            right: 190,
           }}
           themeColor={ChartThemeColor.multi}
         />
