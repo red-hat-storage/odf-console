@@ -6,12 +6,19 @@ import {
 } from '@odf/odf-plugin-sdk/extensions';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
-import { InfrastructureModel, NamespaceModel } from '@odf/shared/models';
+import {
+  InfrastructureModel,
+  NamespaceModel,
+  ODFStorageSystem,
+} from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getInfrastructurePlatform } from '@odf/shared/utils';
+import {
+  getInfrastructurePlatform,
+  referenceForModel,
+} from '@odf/shared/utils';
 import { useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
 import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
-import { useLocation } from 'react-router-dom-v5-compat';
+import { useNavigate, useLocation } from 'react-router-dom-v5-compat';
 import { Steps, StepsName } from '../../constants';
 import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
@@ -21,6 +28,21 @@ import { CreateStorageSystemFooter } from './footer';
 import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
 import './create-storage-system.scss';
+
+const CREATE_SS_PAGE_URL = `/odf/resource/${referenceForModel(
+  ODFStorageSystem
+)}/create/~new`;
+
+export const RedirectStorageSystem: React.FC<{}> = () => {
+  const navigate = useNavigate();
+  const { pathname: url } = useLocation();
+
+  if (url !== CREATE_SS_PAGE_URL) {
+    navigate(CREATE_SS_PAGE_URL, { replace: true });
+  }
+
+  return null;
+};
 
 const CreateStorageSystem: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
@@ -43,7 +65,6 @@ const CreateStorageSystem: React.FC<{}> = () => {
     useODFSystemFlagsSelector();
 
   const infraType = getInfrastructurePlatform(infra);
-  const { pathname: url } = useLocation();
 
   let wizardSteps: WizardStep[] = [];
   let hasOCS: boolean = false;
@@ -109,7 +130,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
 
   return (
     <>
-      <CreateStorageSystemHeader url={url} />
+      <CreateStorageSystemHeader state={state} />
       <Wizard
         className="odf-create-storage-system-wizard"
         steps={steps}
