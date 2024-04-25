@@ -66,7 +66,10 @@ const ProfileRequirementsModalText: React.FC<ProfileRequirementsModalTextProps> 
         <Text id="resource-requirements" className="pf-v5-u-font-size-md">
           <span className="pf-v5-u-mr-sm">
             {t(
-              `The aggregate resource requirements for ${selectedProfile} mode is`
+              'The aggregate resource requirements for {{selectedProfile}} mode is',
+              {
+                selectedProfile,
+              }
             )}
           </span>
           <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md">
