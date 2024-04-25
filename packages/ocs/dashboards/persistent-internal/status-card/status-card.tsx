@@ -18,6 +18,7 @@ import {
   Alert,
   HealthState,
   useK8sWatchResource,
+  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   AlertItem,
@@ -37,6 +38,7 @@ import {
   CardBody,
   CardTitle,
 } from '@patternfly/react-core';
+import { PROVIDER_MODE } from '../../../../odf/features';
 import { CephClusterModel } from '../../../models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
 import { ODFSystemParams } from '../../../types';
@@ -179,6 +181,8 @@ export const StatusCard: React.FC = () => {
     }
   }
 
+  const isProviderMode = useFlag(PROVIDER_MODE);
+
   return (
     <Card className="odf-overview-card--gradient">
       <CardHeader>
@@ -213,11 +217,13 @@ export const StatusCard: React.FC = () => {
             />
           </GalleryItem>
         </Gallery>
-        <OSDMigrationProgress
-          cephData={cephCluster}
-          dataLoaded={loaded}
-          dataLoadError={loadError}
-        />
+        {!isProviderMode && (
+          <OSDMigrationProgress
+            cephData={cephCluster}
+            dataLoaded={loaded}
+            dataLoadError={loadError}
+          />
+        )}
         <CephAlerts docVersion={odfDocVersion} />
       </CardBody>
     </Card>
