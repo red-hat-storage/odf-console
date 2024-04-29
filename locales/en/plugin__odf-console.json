@@ -1134,7 +1134,7 @@
   "Search...": "Search...",
   "Expand to fullscreen": "Expand to fullscreen",
   "Exit fullscreen": "Exit fullscreen",
-  "This view is only supported for Internal mode cluster.": "This view is only supported for Internal mode cluster.",
+  "This view is not available for external mode cluster.": "This view is not available for external mode cluster.",
   "Show message": "Show message",
   "Hide message": "Hide message",
   "Back to main view": "Back to main view",

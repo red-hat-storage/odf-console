@@ -125,7 +125,7 @@ const MessageButton: React.FC = () => {
     <div className="odf-topology__message-button">
       <BlueInfoCircleIcon />{' '}
       {showMessage &&
-        t('This view is only supported for Internal mode cluster.')}{' '}
+        t('This view is not available for external mode cluster.')}{' '}
       <a onClick={() => setShowMessage(!showMessage)}>
         {!showMessage ? t('Show message') : t('Hide message')}
       </a>
