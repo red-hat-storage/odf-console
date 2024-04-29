@@ -17,6 +17,7 @@ import {
   GreenCheckCircleIcon,
   Alert,
   AlertStates,
+  K8sResourceCondition,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Operator,
@@ -33,6 +34,7 @@ import {
   LABEL_SPLIT_CHAR,
   LABELS_SPLIT_CHAR,
   DR_BLOCK_LISTED_LABELS,
+  KUBE_OBJECT_SYNC_CONDITION_TYPE,
 } from '../constants';
 import {
   DRPC_NAMESPACE_ANNOTATION,
@@ -554,11 +556,12 @@ export const findPlacementDecisionUsingPlacement = (
 export const ValidateManagedClusterCondition = (
   managedCluster: ACMManagedClusterKind,
   conditionType: string
-): boolean =>
-  !!managedCluster?.status?.conditions?.find(
-    (condition) =>
-      condition?.type === conditionType && condition.status === 'True'
+): boolean => {
+  const condition = managedCluster?.status?.conditions?.find(
+    (current) => current.type === conditionType
   );
+  return !!condition && condition?.status === 'True';
+};
 
 export const findSiblingArgoAppSetsFromPlacement = (
   appName: string,
@@ -635,4 +638,20 @@ export const getLabelsFromSearchResult = (
     }
     return acc;
   }, {});
+};
+
+export const getKubeObjectLastTransitionTime = (
+  conditions: K8sResourceCondition[]
+): string => {
+  const condition = conditions?.find(
+    (condition) => condition.type === KUBE_OBJECT_SYNC_CONDITION_TYPE
+  );
+  if (condition?.status === 'True') {
+    // For "True", checking the lastTransitionTime to ensure there is no reconcile problem on ramen.
+    // If there is any reconcile problem, And if status stuck in "True"
+    // then status will be displayed based on lastTransitionTime (critical/warning).
+    return condition.lastTransitionTime;
+  }
+  // Returning empty to show critical status immediately.
+  return '';
 };

@@ -30,7 +30,11 @@ import {
 } from '../../hooks';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind, DRPolicyKind } from '../../types';
-import { getLastAppDeploymentClusterName, getDRPolicyName } from '../../utils';
+import {
+  getLastAppDeploymentClusterName,
+  getDRPolicyName,
+  getKubeObjectLastTransitionTime,
+} from '../../utils';
 import {
   EmptyRowMessage,
   NoDataMessage,
@@ -92,7 +96,7 @@ const ProtectedAppsTableRow: React.FC<
 
   // Enrolled/protected namespaces details
   const enrolledNamespaces: string[] =
-    application.spec?.protectedNamespace || [];
+    application.spec?.protectedNamespaces || [];
 
   // Failover/Relocate/Cleanup event details
   const anyOnGoingEvent =
@@ -260,20 +264,19 @@ export const ProtectedApplicationsListPage: React.FC = () => {
         const volumesLastSyncTime = app?.status?.lastGroupSyncTime;
         const kubeObjectsSchedulingInterval =
           app.spec?.kubeObjectProtection?.captureInterval;
-        // ToDo: Update with correct status field which will report kube object last sync time
-        // @ts-ignore
-        const kubeObjectsLastSyncTime = app?.status?.lastKubeObjectSyncTime;
+        const kubeObjectLastTransitionTime = getKubeObjectLastTransitionTime(
+          app?.status?.resourceConditions?.conditions
+        );
         acc[getName(app)] = {
           volumeReplicationStatus: getReplicationHealth(
             volumesLastSyncTime,
             volumesSchedulingInterval
           ),
-          volumeLastGroupSyncTime: formatTime(volumesLastSyncTime) || DASH,
+          volumeLastGroupSyncTime: formatTime(volumesLastSyncTime),
           kubeObjectReplicationStatus: getReplicationHealth(
-            kubeObjectsLastSyncTime,
+            kubeObjectLastTransitionTime,
             kubeObjectsSchedulingInterval
           ),
-          kubeObjectLastSyncTime: formatTime(kubeObjectsLastSyncTime) || DASH,
         };
 
         return acc;
