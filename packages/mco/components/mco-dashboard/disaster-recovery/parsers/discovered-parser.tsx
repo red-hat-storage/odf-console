@@ -20,6 +20,7 @@ import {
   filerDRClustersUsingDRPolicy,
   findDRPolicyUsingDRPC,
   findDRType,
+  getKubeObjectLastTransitionTime,
   getLastAppDeploymentClusterName,
   getProtectedPVCsFromDRPC,
 } from '@odf/mco/utils';
@@ -112,7 +113,7 @@ export const useDiscoveredParser: UseDiscoveredParser = (
                   replicationType: findDRType(currentDRClusters),
                   volumeSyncInterval: drPolicy?.spec?.schedulingInterval,
                   workloadNamespaces:
-                    drPlacementControl.spec?.protectedNamespace || [],
+                    drPlacementControl.spec?.protectedNamespaces || [],
                   failoverCluster: drPlacementControl.spec?.failoverCluster,
                   preferredCluster: drPlacementControl.spec?.preferredCluster,
                   lastVolumeGroupSyncTime:
@@ -121,10 +122,10 @@ export const useDiscoveredParser: UseDiscoveredParser = (
                   kubeObjSyncInterval:
                     drPlacementControl.spec?.kubeObjectProtection
                       ?.captureInterval,
-                  lastKubeObjectSyncTime:
-                    // ToDo: Update with correct status field which will report kube object last sync time
-                    // @ts-ignore
-                    drPlacementControl?.status?.lastKubeObjectSyncTime,
+                  // lastTransitionTime just to decide the status, it can't be considered as last synced on.
+                  kubeObjectLastTransitionTime: getKubeObjectLastTransitionTime(
+                    drPlacementControl?.status?.resourceConditions?.conditions
+                  ),
                 },
               ],
             });

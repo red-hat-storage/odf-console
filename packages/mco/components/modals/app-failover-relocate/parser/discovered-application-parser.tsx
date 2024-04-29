@@ -153,10 +153,6 @@ export const DiscoveredApplicationParser: React.FC<
           isDRActionReady: checkDRActionReadiness(drPlacementControl, action),
           snapshotTakenTime: drPlacementControl?.status?.lastGroupSyncTime,
           replicationType: findDRType(drClusters),
-          kubeObjectLastSyncTime:
-            // ToDo: Update with correct status field which will report kube object last sync time
-            // @ts-ignore
-            drPlacementControl?.status?.lastKubeObjectSyncTime,
         },
       ];
     }

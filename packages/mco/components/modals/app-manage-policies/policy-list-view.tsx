@@ -74,7 +74,7 @@ const checkNamespaceProtected = (
 ): boolean =>
   drpcs?.some((drpc) => {
     const isNamespaceProtected =
-      drpc.spec?.protectedNamespace?.includes(workloadNamespace);
+      drpc.spec?.protectedNamespaces?.includes(workloadNamespace);
     const isPolicyMatching = eligiblePolicies?.some(
       (policy) => getName(policy) === drpc.spec.drPolicyRef.name
     );

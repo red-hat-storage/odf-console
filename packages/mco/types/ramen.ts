@@ -56,7 +56,9 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     action?: DRActionType;
     //  N/A for the managed applications.
     kubeObjectProtection?: {
+      // Time interval to capture kube objects.
       captureInterval?: string;
+      // Name of the Recipe to reference for capture and recovery workflows and volume selection.
       recipeRef?: {
         namespace?: string;
         name?: string;
@@ -67,11 +69,12 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     };
     //  A list of namespaces that are protected by the DRPC.
     //  N/A for the managed  applications.
-    protectedNamespace?: string[];
+    protectedNamespaces?: string[];
   };
   status?: {
     conditions?: K8sResourceCondition[];
     resourceConditions?: {
+      conditions?: K8sResourceCondition[];
       resourceMeta?: {
         protectedpvcs?: string[];
       };

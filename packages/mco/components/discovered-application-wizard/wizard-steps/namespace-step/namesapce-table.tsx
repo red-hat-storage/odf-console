@@ -55,7 +55,7 @@ const getProtectedNamespaces = (
         const namespace = getNamespace(drpc);
         if (namespace === DISCOVERED_APP_NS) {
           // Protected namespaces from discovered DRPC
-          acc.push(...(drpc.spec?.protectedNamespace || []));
+          acc.push(...(drpc.spec?.protectedNamespaces || []));
         } else if (namespace === GITOPS_OPERATOR_NAMESPACE) {
           // Protected namespaces from ApplicationSet DRPC
           const ns = getAnnotations(drpc)?.[APP_NAMESPACE_ANNOTATION];

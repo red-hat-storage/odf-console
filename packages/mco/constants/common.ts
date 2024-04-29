@@ -20,4 +20,4 @@ export const ACM_OBSERVABILITY_FLAG = 'ACM_OBSERVABILITY';
 export const ADMIN_FLAG = 'ADMIN';
 
 // Discovered application namespace
-export const DISCOVERED_APP_NS = 'ramen-ops';
+export const DISCOVERED_APP_NS = 'openshift-dr-ops';

@@ -138,7 +138,6 @@ export type SyncStatusInfo = {
   volumeReplicationStatus: VOLUME_REPLICATION_HEALTH;
   volumeLastGroupSyncTime: string;
   kubeObjectReplicationStatus: VOLUME_REPLICATION_HEALTH;
-  kubeObjectLastSyncTime: string;
 };
 
 export const getAppWorstSyncStatus = (
