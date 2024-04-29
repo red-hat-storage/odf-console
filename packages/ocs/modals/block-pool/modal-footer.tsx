@@ -142,11 +142,7 @@ export const BlockPoolModalFooter = (props: BlockPoolModalFooterProps) => {
         onClick: onSubmit,
         disable:
           primaryAction !== FooterPrimaryActions(t).DELETE &&
-          checkRequiredValues(
-            state.poolName,
-            state.replicaSize,
-            state.volumeType
-          ),
+          checkRequiredValues(state.poolName, state.replicaSize),
       },
     ],
   };
