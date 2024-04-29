@@ -7,9 +7,8 @@ import './create-block-pool.scss';
 
 export const checkRequiredValues = (
   poolName: string,
-  replicaSize: string,
-  volumeType: string
-): boolean => !poolName || !replicaSize || !volumeType;
+  replicaSize: string
+): boolean => !poolName || !replicaSize;
 
 export const BlockPoolFooter = (props: BlockPoolFooterProps) => {
   const { state, cancel, onConfirm } = props;
@@ -23,11 +22,7 @@ export const BlockPoolFooter = (props: BlockPoolFooterProps) => {
           variant="primary"
           data-test-id="confirm-action"
           onClick={onConfirm}
-          isDisabled={checkRequiredValues(
-            state.poolName,
-            state.replicaSize,
-            state.volumeType
-          )}
+          isDisabled={checkRequiredValues(state.poolName, state.replicaSize)}
         >
           {t('Create')}
         </Button>
