@@ -1,3 +1,4 @@
+import { CustomKebabItem } from '@odf/shared/kebab';
 import { ModalKeys } from '@odf/shared/modals/types';
 import classNames from 'classnames';
 import { TFunction } from 'i18next';
@@ -78,15 +79,13 @@ export const kebabActionItems = (
   appsCount,
   appsLoadedWOError,
   t
-) => [
+): CustomKebabItem[] => [
   {
     key: ModalKeys.DELETE,
     value: Actions.DELETE_DR_POLICY,
-    props: {
-      description: !!appsCount
-        ? t('Cannot delete while connected to an application.')
-        : '',
-      isDisabled: !(canDeleteDRPolicy && appsLoadedWOError && !appsCount),
-    },
+    description: !!appsCount
+      ? t('Cannot delete while connected to an application.')
+      : '',
+    isDisabled: !(canDeleteDRPolicy && appsLoadedWOError && !appsCount),
   },
 ];
