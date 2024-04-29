@@ -36,6 +36,14 @@ export const attachDevicesWithArbiter = (t: TFunction, scName: string) => {
   );
 };
 
+export const externalStorageCapacityUsed = (t: TFunction) => {
+  return (
+    <Trans t={t} ns="plugin__odf-console">
+      Storage capacity utilised from the external object storage provider.
+    </Trans>
+  );
+};
+
 export const storageCapacityTooltip = (t: TFunction) => {
   return (
     <Trans t={t} ns="plugin__odf-console">
