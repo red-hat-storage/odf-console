@@ -88,14 +88,15 @@ const DiscoveredAppCard: React.FC<AppWiseCardProps> = ({
         <ActivitySection selectedApplication={selectedApplication} />
       </GridItem>
       <GridItem lg={3} rowSpan={8} sm={12}>
-        <SnapshotSection
-          selectedApplication={selectedApplication}
-          isVolumeSnapshot
-        />
-      </GridItem>
-      <GridItem lg={6} rowSpan={8} sm={12}>
         <SnapshotSection selectedApplication={selectedApplication} />
       </GridItem>
+
+      {
+        // ToDo: Enable snapshot card for kube object last sync time once the DRPC has the status.
+        /*<GridItem lg={6} rowSpan={8} sm={12}>
+        <SnapshotSection selectedApplication={selectedApplication} />
+        </GridItem>*/
+      }
       <GridItem lg={12} rowSpan={8} sm={12}>
         <VolumeSummarySection
           protectedPVCData={protectedPVCData}
@@ -122,10 +123,7 @@ const ApplicationSetAppCard: React.FC<AppWiseCardProps> = ({
         <ActivitySection selectedApplication={selectedApplication} />
       </GridItem>
       <GridItem lg={9} rowSpan={8} sm={12}>
-        <SnapshotSection
-          selectedApplication={selectedApplication}
-          isVolumeSnapshot
-        />
+        <SnapshotSection selectedApplication={selectedApplication} />
       </GridItem>
       <GridItem lg={12} rowSpan={8} sm={12}>
         <VolumeSummarySection
