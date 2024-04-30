@@ -331,8 +331,8 @@ export const CAPACITY_TREND_QUERIES = (
   managedByOCS: string,
   maxDays?: string
 ) => ({
-  [StorageDashboardQuery.UTILIZATION_1D]: `sum(delta(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}[1d]))`,
-  [StorageDashboardQuery.UTILIZATION_VECTOR]: `sum(delta(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}[${maxDays}]))`,
+  [StorageDashboardQuery.UTILIZATION_1D]: `delta(sum(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"})[1d:])`,
+  [StorageDashboardQuery.UTILIZATION_VECTOR]: `delta(sum(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"})[${maxDays}:])`,
   [StorageDashboardQuery.UPTIME_DAYS]: `ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}[${maxDays}]`,
   [StorageDashboardQuery.RAW_CAPACITY_AVAILABLE]: `ceph_cluster_total_bytes{managedBy="${managedByOCS}"} - ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}`,
 });
