@@ -13,6 +13,7 @@ import { DRPlacementControlModel } from '@odf/mco/models';
 import { ACMManagedClusterKind, DRPlacementControlKind } from '@odf/mco/types';
 import {
   checkDRActionReadiness,
+  filterManagedClusterUsingDRClusters,
   findCluster,
   findDRType,
   getLastAppDeploymentClusterName,
@@ -107,9 +108,14 @@ export const DiscoveredApplicationParser: React.FC<
       const deploymentClusterName =
         getLastAppDeploymentClusterName(drPlacementControl);
 
+      const filteredManagedClusters = filterManagedClusterUsingDRClusters(
+        drClusters,
+        managedClusters
+      );
+
       // Failover/Relocate cluster info
       const targetManagedCluster = findCluster(
-        managedClusters,
+        filteredManagedClusters,
         deploymentClusterName
       );
       const targetDRCluster = findCluster(drClusters, deploymentClusterName);
@@ -120,7 +126,7 @@ export const DiscoveredApplicationParser: React.FC<
 
       // Surviving cluster info
       const primaryManagedCluster = findCluster(
-        managedClusters,
+        filteredManagedClusters,
         deploymentClusterName,
         true
       );

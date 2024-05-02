@@ -327,7 +327,7 @@ export const findDRResourceUsingPlacement = (
   return result;
 };
 
-export const filerManagedClusterUsingDRClusters = (
+export const filterManagedClusterUsingDRClusters = (
   drClusters: DRClusterKind[],
   managedClusters: ACMManagedClusterKind[]
 ) =>
