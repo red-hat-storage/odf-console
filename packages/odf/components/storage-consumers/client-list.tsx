@@ -2,7 +2,6 @@ import * as React from 'react';
 import { ODF_OPERATOR } from '@odf/shared/constants/common';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { useFetchCsv } from '@odf/shared/hooks';
-import { getName } from '@odf/shared/selectors/k8s';
 import { StorageConsumerKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils/common';
@@ -73,7 +72,7 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
     () => [
       {
         title: t('Name'),
-        sort: 'metadata.name',
+        sort: 'status.client.name',
         transforms: [sortable],
         props: {
           className: tableColumns[0].className,
@@ -82,6 +81,7 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
       },
       {
         title: t('Cluster ID'),
+        sort: 'status.client.clusterId',
         props: {
           className: tableColumns[1].className,
         },
@@ -213,10 +213,10 @@ const StorageClientRow: React.FC<
   return (
     <>
       <TableData {...tableColumns[0]} activeColumnIDs={activeColumnIDs}>
-        {getName(obj)}
+        {obj?.status?.client?.name}
       </TableData>
       <TableData {...tableColumns[1]} activeColumnIDs={activeColumnIDs}>
-        {getName(obj).split('storageconsumer-')[1]}
+        {obj?.status?.client?.clusterId}
       </TableData>
       <TableData {...tableColumns[2]} activeColumnIDs={activeColumnIDs}>
         {getOpenshiftVersion(obj)}
