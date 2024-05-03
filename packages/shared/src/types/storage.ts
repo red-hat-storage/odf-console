@@ -177,6 +177,9 @@ type StorageConsumerStatus = {
 type ClientStatus = {
   platformVersion: string;
   operatorVersion: string;
+  clusterId: string;
+  clusterName: string;
+  name: string;
 };
 
 export type StorageConsumerKind = K8sResourceCommon & {
