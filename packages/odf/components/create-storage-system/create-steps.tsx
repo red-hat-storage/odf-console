@@ -54,6 +54,7 @@ export const createSteps = (
           volumeSetName={createLocalVolumeSet.volumeSetName}
           nodes={nodes}
           systemNamespace={systemNamespace}
+          deploymentMode={backingStorage.deployment}
         />
       ),
     },
