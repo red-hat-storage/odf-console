@@ -1,5 +1,6 @@
 import * as React from 'react';
 import CapacityCard from '@odf/shared/dashboards/capacity-card/capacity-card';
+import { FieldLevelHelp } from '@odf/shared/generic';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -9,6 +10,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils/humanize';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { externalStorageCapacityUsed } from '../../../constants';
 import { StorageDashboard, CAPACITY_QUERIES } from '../queries';
 
 const parseMetricData = (metric: PrometheusResponse) =>
@@ -30,7 +32,10 @@ const ObjectCapacityCard: React.FC = () => {
   return (
     <Card className="odf-capacityCard--height">
       <CardHeader>
-        <CardTitle>{t('External object provider used capacity')}</CardTitle>
+        <CardTitle>
+          {t('External object provider used capacity')}
+          <FieldLevelHelp>{externalStorageCapacityUsed(t)}</FieldLevelHelp>
+        </CardTitle>
       </CardHeader>
       <CardBody>
         <CapacityCard
