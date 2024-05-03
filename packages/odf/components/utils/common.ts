@@ -76,12 +76,6 @@ export const getTotalMemory = (nodes: WizardNodeState[]): number =>
 export const getTotalMemoryInGiB = (nodes: WizardNodeState[]): number =>
   humanizeBinaryBytes(getTotalMemory(nodes), null, 'GiB').value;
 
-export const getAllZone = (nodes: WizardNodeState[]): Set<string> =>
-  nodes.reduce(
-    (total: Set<string>, { zone }) => (zone ? total.add(zone) : total),
-    new Set<string>()
-  );
-
 export const getVendorDashboardLinkFromMetrics = (
   systemKind: string,
   systemName: string,
@@ -156,29 +150,37 @@ export const capacityAndNodesValidate = (
   nodes: WizardNodeState[],
   enableStretchCluster: boolean,
   isNoProvSC: boolean,
-  resourceProfile: ResourceProfile
+  resourceProfile: ResourceProfile,
+  osdAmount: number
 ): ValidationType[] => {
   const validations = [];
 
   const totalCpu = getTotalCpu(nodes);
   const totalMemory = getTotalMemoryInGiB(nodes);
-  const zones = getAllZone(nodes);
 
-  if (
-    !enableStretchCluster &&
-    isNoProvSC &&
-    isFlexibleScaling(nodes.length, zones.size)
-  ) {
+  if (isFlexibleScaling(nodes, isNoProvSC, enableStretchCluster)) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
   }
   if (!enableStretchCluster && nodes.length && nodes.length < MINIMUM_NODES) {
     validations.push(ValidationType.MINIMUMNODES);
   } else if (nodes.length && nodes.length >= MINIMUM_NODES) {
-    if (!isResourceProfileAllowed(resourceProfile, totalCpu, totalMemory)) {
+    if (
+      !isResourceProfileAllowed(
+        resourceProfile,
+        totalCpu,
+        totalMemory,
+        osdAmount
+      )
+    ) {
       validations.push(ValidationType.RESOURCE_PROFILE);
     } else if (
       resourceProfile === ResourceProfile.Lean &&
-      !isResourceProfileAllowed(ResourceProfile.Balanced, totalCpu, totalMemory)
+      !isResourceProfileAllowed(
+        ResourceProfile.Balanced,
+        totalCpu,
+        totalMemory,
+        osdAmount
+      )
     ) {
       validations.push(ValidationType.MINIMAL);
     }

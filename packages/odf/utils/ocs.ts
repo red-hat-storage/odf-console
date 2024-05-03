@@ -1,3 +1,4 @@
+import { WizardNodeState } from '@odf/core/components/create-storage-system/reducer';
 import { NodeData, ResourceProfile } from '@odf/core/types';
 import { NamespaceModel } from '@odf/shared/models';
 import {
@@ -95,22 +96,56 @@ const getTopologyInfo = (nodes: NodeKind[]) =>
     }
   );
 
-export const isFlexibleScaling = (nodes: number, zones: number): boolean =>
-  !!(nodes >= MINIMUM_NODES && zones < 3);
+export const getAllZone = (nodes: WizardNodeState[]): Set<string> =>
+  nodes.reduce(
+    (total: Set<string>, { zone }) => (zone ? total.add(zone) : total),
+    new Set<string>()
+  );
+
+export const isFlexibleScaling = (
+  nodes: WizardNodeState[],
+  isNoProvisioner: boolean,
+  enableArbiter: boolean
+): boolean =>
+  isNoProvisioner &&
+  !enableArbiter &&
+  nodes.length >= MINIMUM_NODES &&
+  getAllZone(nodes).size < 3;
+
+/**
+ * Returns the minimum required resources taking into account the OSD pods.
+ * Default requirements assume 6 OSDs deployed.
+ */
+export const getResourceProfileRequirements = (
+  profile: ResourceProfile,
+  osdAmount: number
+): { minCpu: number; minMem: number } => {
+  const { minCpu, minMem, osd } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
+  const extraOsds = osdAmount - 6;
+  let cpu = minCpu;
+  let mem = minMem;
+  if (extraOsds > 0) {
+    cpu += Math.ceil(extraOsds * osd.cpu);
+    mem += Math.ceil(extraOsds * osd.mem);
+  }
+  return { minCpu: cpu, minMem: mem };
+};
 
 /**
  * Checks if the selected nodes' resources meet the minimum requirements of the selected resource profile.
  * @param profile A resource profile.
  * @param cpu The amount CPUs.
  * @param memory The amount of selected nodes' memory in GiB.
+ * @param memory The amount of OSD pods.
  * @returns boolean
  */
 export const isResourceProfileAllowed = (
   profile: ResourceProfile,
   cpu: number,
-  memory: number
+  memory: number,
+  osdAmount: number
 ): boolean => {
-  const { minCpu, minMem } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
+  const { minCpu, minMem } = getResourceProfileRequirements(profile, osdAmount);
 
   return cpu >= minCpu && memory >= minMem;
 };
@@ -212,6 +247,11 @@ export const createDeviceSet = (
 
 export const getDeviceSetCount = (pvCount: number, replica: number): number =>
   Math.floor(pvCount / replica) || 1;
+
+export const getOsdAmount = (
+  deviceSetCount: number,
+  deviceSetReplica: number
+) => deviceSetCount * deviceSetReplica;
 
 export const filterSC = (sc: StorageClassResourceKind) =>
   !!sc &&

@@ -24,20 +24,34 @@ export const cephStorageLabel = (ns: string) =>
 /**
  * Map between resource profiles and the minimum cpu's and memory (expressed in GiB) required
  * for the profile to be selectable.
+ * Also maps the OSD pod resources' requests per profile.
+ * https://github.com/red-hat-storage/ocs-operator/blob/main/controllers/defaults/resources.go
  */
 export const RESOURCE_PROFILE_REQUIREMENTS_MAP: ResourceProfileRequirementsMap =
   {
     [ResourceProfile.Lean]: {
       minCpu: 24,
       minMem: 72,
+      osd: {
+        cpu: 1.5,
+        mem: 3,
+      },
     },
     [ResourceProfile.Balanced]: {
       minCpu: 30,
       minMem: 72,
+      osd: {
+        cpu: 2,
+        mem: 5,
+      },
     },
     [ResourceProfile.Performance]: {
       minCpu: 45,
       minMem: 96,
+      osd: {
+        cpu: 4,
+        mem: 8,
+      },
     },
   };
 

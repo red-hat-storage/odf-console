@@ -54,5 +54,12 @@ export enum ResourceProfile {
 }
 
 export type ResourceProfileRequirementsMap = {
-  [key in ResourceProfile]: { minCpu: number; minMem: number };
+  [key in ResourceProfile]: {
+    minCpu: number;
+    minMem: number;
+    osd: {
+      cpu: number;
+      mem: number;
+    };
+  };
 };
