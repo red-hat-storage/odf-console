@@ -172,12 +172,14 @@ const canJumpToNextStep = (
       return (
         nodes.length >= MINIMUM_NODES &&
         capacity &&
-        isResourceProfileAllowed(
-          capacityAndNodes.resourceProfile,
-          getTotalCpu(nodes),
-          getTotalMemoryInGiB(nodes),
-          osdAmount
-        )
+        (backingStorage.deployment !== DeploymentType.PROVIDER_MODE
+          ? isResourceProfileAllowed(
+              capacityAndNodes.resourceProfile,
+              getTotalCpu(nodes),
+              getTotalMemoryInGiB(nodes),
+              osdAmount
+            )
+          : true)
       );
     case StepsName(t)[Steps.SecurityAndNetwork]:
       if (isExternal && isRHCS) {
