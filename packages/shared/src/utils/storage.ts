@@ -4,6 +4,7 @@ import {
   ClusterServiceVersionKind,
   StorageSystemKind,
 } from '@odf/shared/types';
+import { K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk';
 import { ODF_OPERATOR } from '../constants';
 import { getGVKLabel } from '../utils/common';
 
@@ -13,8 +14,10 @@ export const getODFCsv = (csvList: ClusterServiceVersionKind[] = []) =>
       csv?.metadata.name?.substring(0, ODF_OPERATOR.length) === ODF_OPERATOR
   );
 
-export const isOCSStorageSystem = (storageSystem: StorageSystemKind) =>
-  storageSystem?.spec?.kind ===
+export const isOCSStorageSystem = (
+  resource: K8sResourceKind
+): resource is StorageSystemKind =>
+  resource?.spec?.kind ===
   getGVKLabel({
     kind: OCSStorageClusterModel.kind,
     apiVersion: OCSStorageClusterModel.apiVersion,

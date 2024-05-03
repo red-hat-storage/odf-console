@@ -48,7 +48,6 @@ import {
   K8sResourceKind,
   StorageClassResourceKind,
   SecretKind,
-  StorageSystemKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isOCSStorageSystem, referenceForModel } from '@odf/shared/utils';
@@ -99,8 +98,7 @@ const cephBlockPoolResource: WatchK8sResource = {
   isList: true,
 };
 
-const filterOCSStorageSystems = (resource) =>
-  isOCSStorageSystem(resource as StorageSystemKind);
+const filterOCSStorageSystems = (resource) => isOCSStorageSystem(resource);
 
 const setSessionValueAgain = (systemNamespace: string) => {
   // session value will get removed after clicking "Create" (check "mutators.ts"),
