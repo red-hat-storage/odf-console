@@ -1,13 +1,11 @@
 import * as React from 'react';
-import {
-  CreateStepsSC,
-  RESOURCE_PROFILE_REQUIREMENTS_MAP,
-} from '@odf/core/constants';
+import { CreateStepsSC } from '@odf/core/constants';
 import {
   EncryptionType,
   ResourceProfile,
   ValidationType,
 } from '@odf/core/types';
+import { getResourceProfileRequirements } from '@odf/core/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { WizardContextConsumer } from '@patternfly/react-core/deprecated';
 import classNames from 'classnames';
@@ -29,12 +27,15 @@ export type Validation = {
 export const VALIDATIONS = (
   type: keyof typeof ValidationType,
   t: TFunction,
-  resourceProfile?: ResourceProfile
+  resourceProfile?: ResourceProfile,
+  osdAmount?: number
 ): Validation => {
-  const { minCpu, minMem } =
-    RESOURCE_PROFILE_REQUIREMENTS_MAP[ResourceProfile.Balanced];
   switch (type) {
-    case ValidationType.MINIMAL:
+    case ValidationType.MINIMAL: {
+      const { minCpu, minMem } = getResourceProfileRequirements(
+        ResourceProfile.Balanced,
+        osdAmount
+      );
       return {
         variant: AlertVariant.warning,
         title: (
@@ -48,6 +49,7 @@ export const VALIDATIONS = (
         actionLinkStep: CreateStepsSC.STORAGEANDNODES,
         actionLinkText: t('Back to nodes selection'),
       };
+    }
     case ValidationType.RESOURCE_PROFILE:
       return {
         variant: AlertVariant.danger,
@@ -179,6 +181,7 @@ export const ValidationMessage: React.FC<ValidationMessageProps> = ({
   className,
   resourceProfile,
   validation,
+  osdAmount,
 }) => {
   const { t } = useCustomTranslation();
   const {
@@ -189,7 +192,7 @@ export const ValidationMessage: React.FC<ValidationMessageProps> = ({
     linkText,
     actionLinkStep,
     actionLinkText,
-  } = VALIDATIONS(validation, t, resourceProfile);
+  } = VALIDATIONS(validation, t, resourceProfile, osdAmount);
   return actionLinkStep ? (
     <Alert
       className={classNames('co-alert', className)}
@@ -215,6 +218,7 @@ type ValidationMessageProps = {
   className?: string;
   resourceProfile?: ResourceProfile;
   validation: keyof typeof ValidationType;
+  osdAmount?: number;
 };
 
 export const getEncryptionLevel = (obj: EncryptionType, t: TFunction) => {

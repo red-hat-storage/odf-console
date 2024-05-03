@@ -4,6 +4,14 @@ import { listPage } from '../views/list-page';
 import { modal } from '../views/modals';
 import { ODFCommon } from '../views/odf-common';
 
+const checkKebabMenuItem = (itemText: string) => {
+  cy.byTestID('kebab-button').click();
+  cy.contains(itemText).click();
+  modal.shouldBeOpened();
+  cy.byLegacyTestID('modal-cancel-action').click();
+  modal.shouldBeClosed();
+};
+
 describe('Tests storage system list page', () => {
   before(() => {
     cy.login();
@@ -22,13 +30,11 @@ describe('Tests storage system list page', () => {
     ODFCommon.visitStorageDashboard();
     ODFCommon.visitStorageSystemList();
     listPage.searchInList(STORAGE_SYSTEM_NAME);
+
     // Test if the Kebab Menu contains all Items
-    cy.byTestID('kebab-button').click();
-    // eslint-disable-next-line cypress/require-data-selectors
-    cy.contains('Add Capacity').click();
-    // Check if a modal was opened
-    modal.shouldBeOpened();
-    cy.byLegacyTestID('modal-cancel-action').click();
+    checkKebabMenuItem('Add Capacity');
+    checkKebabMenuItem('Configure performance');
+
     // Todo(bipuladh): Add a proper data-selector once the list page is migrated
     // eslint-disable-next-line cypress/require-data-selectors
     cy.get('a').contains(STORAGE_SYSTEM_NAME).click();

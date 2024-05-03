@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {
   createWizardNodeState,
+  getDeviceSetReplica,
   getReplicasFromSelectedNodes,
 } from '@odf/core/components/utils';
 import {
@@ -26,6 +27,9 @@ import {
   calcPVsCapacity,
   getSCAvailablePVs,
   getAssociatedNodes,
+  isFlexibleScaling,
+  getDeviceSetCount,
+  getOsdAmount,
 } from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
@@ -62,7 +66,7 @@ import './capacity-and-nodes.scss';
 const onResourceProfileChange = _.curry(
   (dispatch: WizardDispatch, newProfile: ResourceProfile): void => {
     dispatch({
-      type: 'wizard/setResourceProfile',
+      type: 'capacityAndNodes/setResourceProfile',
       payload: newProfile,
     });
   }
@@ -130,8 +134,6 @@ type SelectCapacityAndNodesProps = {
   dispatch: WizardDispatch;
   capacity: WizardState['capacityAndNodes']['capacity'];
   nodes: WizardState['nodes'];
-  enableTaint: WizardState['capacityAndNodes']['enableTaint'];
-  resourceProfile: WizardState['capacityAndNodes']['resourceProfile'];
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
 
@@ -139,8 +141,6 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
   dispatch,
   capacity,
   nodes,
-  enableTaint,
-  resourceProfile,
   systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
@@ -158,12 +158,14 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
     },
     [dispatch]
   );
-  const onProfileChange = React.useCallback(
-    (profile) => onResourceProfileChange(dispatch)(profile),
-    [dispatch]
-  );
 
   const replicas = getReplicasFromSelectedNodes(nodes);
+
+  React.useEffect(() => {
+    // Reset pvCount that could have been set by another StorageClass.
+    dispatch({ type: 'capacityAndNodes/pvCount', payload: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -220,14 +222,6 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
           />
         </GridItem>
       </Grid>
-      <ConfigurePerformance
-        onResourceProfileChange={onProfileChange}
-        resourceProfile={resourceProfile}
-        headerText={PerformanceHeaderText}
-        profileRequirementsText={ProfileRequirementsText}
-        selectedNodes={nodes}
-      />
-      <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
     </>
   );
 };
@@ -236,11 +230,9 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   capacity,
   storageClassName,
   enableArbiter,
-  enableTaint,
   arbiterLocation,
   dispatch,
   nodes,
-  resourceProfile,
   systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
@@ -317,10 +309,6 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
       }),
     [dispatch]
   );
-  const onProfileChange = React.useCallback(
-    (profile) => onResourceProfileChange(dispatch)(profile),
-    [dispatch]
-  );
 
   return (
     <ErrorHandler
@@ -390,14 +378,6 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
             <SelectedNodesTable data={nodes} />
           </GridItem>
         </Grid>
-        <ConfigurePerformance
-          onResourceProfileChange={onProfileChange}
-          resourceProfile={resourceProfile}
-          headerText={PerformanceHeaderText}
-          profileRequirementsText={ProfileRequirementsText}
-          selectedNodes={nodes}
-        />
-        <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
       </>
     </ErrorHandler>
   );
@@ -406,12 +386,10 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
 type SelectedCapacityAndNodesProps = {
   capacity: WizardState['capacityAndNodes']['capacity'];
   enableArbiter: WizardState['capacityAndNodes']['enableArbiter'];
-  enableTaint: WizardState['capacityAndNodes']['enableTaint'];
   storageClassName: string;
   arbiterLocation: WizardState['capacityAndNodes']['arbiterLocation'];
   dispatch: WizardDispatch;
   nodes: WizardNodeState[];
-  resourceProfile: WizardState['capacityAndNodes']['resourceProfile'];
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
 
@@ -429,15 +407,40 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
     enableTaint,
     arbiterLocation,
     resourceProfile,
+    pvCount,
   } = state;
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
+  const flexibleScaling = isFlexibleScaling(
+    nodes,
+    isNoProvisioner,
+    enableArbiter
+  );
+  const deviceSetReplica: number = getDeviceSetReplica(
+    enableArbiter,
+    flexibleScaling,
+    nodes
+  );
+  const deviceSetCount = getDeviceSetCount(pvCount, deviceSetReplica);
+  const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
+
   const validations = capacityAndNodesValidate(
     nodes,
     enableArbiter,
     isNoProvisioner,
-    resourceProfile
+    resourceProfile,
+    osdAmount
   );
+  const onProfileChange = React.useCallback(
+    (profile) => onResourceProfileChange(dispatch)(profile),
+    [dispatch]
+  );
+
+  React.useEffect(() => {
+    // Reset selected nodes that could have been set by another StorageClass.
+    dispatch({ type: 'wizard/setNodes', payload: [] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Form>
@@ -446,28 +449,38 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           storageClassName={storageClass.name || volumeSetName}
           enableArbiter={enableArbiter}
           arbiterLocation={arbiterLocation}
-          enableTaint={enableTaint}
           dispatch={dispatch}
           nodes={nodes}
           capacity={capacity}
-          resourceProfile={resourceProfile}
           systemNamespace={systemNamespace}
         />
       ) : (
         <SelectCapacityAndNodes
           dispatch={dispatch}
-          enableTaint={enableTaint}
           capacity={capacity}
           nodes={nodes}
-          resourceProfile={resourceProfile}
           systemNamespace={systemNamespace}
         />
+      )}
+      {(!isNoProvisioner || nodes.length > 0) && (
+        <>
+          <ConfigurePerformance
+            onResourceProfileChange={onProfileChange}
+            resourceProfile={resourceProfile}
+            headerText={PerformanceHeaderText}
+            profileRequirementsText={ProfileRequirementsText}
+            selectedNodes={nodes}
+            osdAmount={osdAmount}
+          />
+          <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
+        </>
       )}
       {!!validations.length &&
         !!capacity &&
         validations.map((validation) => (
           <ValidationMessage
             resourceProfile={resourceProfile}
+            osdAmount={osdAmount}
             key={validation}
             validation={validation}
           />

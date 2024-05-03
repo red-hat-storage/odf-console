@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  getAllZone,
   getExternalStorage,
   getTotalCpu,
   getTotalMemory,
@@ -11,6 +10,7 @@ import {
   OSD_CAPACITY_SIZES,
 } from '@odf/core/constants';
 import { BackingStorageType, DeploymentType } from '@odf/core/types';
+import { getAllZone } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';

@@ -5,17 +5,14 @@ import { ResourceProfile } from '@odf/core/types';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createFakeNodesData } from '../../../../../../jest/helpers';
-import ConfigurePerformance from './configure-performance';
+import ConfigurePerformance, {
+  ProfileRequirementsText,
+} from './configure-performance';
 
 jest.mock('@odf/core/hooks', () => ({
   useNodesData: jest.fn(),
 }));
 
-jest.mock('@odf/shared/useCustomTranslationHook', () => ({
-  useCustomTranslation: () => ({
-    t: jest.fn(),
-  }),
-}));
 const onResourceProfileChange = jest.fn();
 
 const errorIconSelector = '[class$="select__toggle-status-icon"]';
@@ -44,14 +41,14 @@ describe('Configure Performance', () => {
     const dropdown = screen.getByRole('button', {
       name: /options menu/i,
     });
-    expect(dropdown).toHaveTextContent('balanced');
+    expect(dropdown).toHaveTextContent('Balanced mode');
 
     const errorIcon = container.querySelector(errorIconSelector);
     expect(errorIcon).toBeFalsy();
 
     await user.click(dropdown);
     const performanceOption = screen.getByRole('option', {
-      name: /performance cpus required/i,
+      name: /performance mode cpus required/i,
     });
     await user.click(performanceOption);
     expect(onResourceProfileChange).toHaveBeenNthCalledWith(
@@ -93,10 +90,35 @@ describe('Configure Performance', () => {
     const dropdown = screen.getByRole('button', {
       name: /options menu/i,
     });
-    expect(dropdown).toHaveTextContent('performance');
+    expect(dropdown).toHaveTextContent('Performance mode');
 
     const errorIcon = container.querySelector(errorIconSelector);
     expect(errorIcon).toBeVisible();
     expect(onResourceProfileChange).toHaveBeenCalledTimes(0);
+  });
+
+  it('shows higher resource requirements due to high amount of OSDs', () => {
+    const cpu = 12;
+    const memory = 32 * 1000 * 1000 * 1000;
+    const nodes = createFakeNodesData(3, cpu, memory);
+    const selectedNodes = createWizardNodeState(nodes);
+    (useNodesData as jest.Mock).mockReturnValueOnce([nodes, true, null]);
+
+    render(
+      <ConfigurePerformance
+        onResourceProfileChange={onResourceProfileChange}
+        resourceProfile={ResourceProfile.Balanced}
+        selectedNodes={selectedNodes}
+        osdAmount={9}
+        profileRequirementsText={ProfileRequirementsText}
+      />
+    );
+
+    const dropdown = screen.getByRole('button', {
+      name: /options menu/i,
+    });
+    expect(dropdown).toHaveTextContent('Balanced mode');
+    expect(screen.getByText(/36 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/87 GiB/i)).toBeInTheDocument();
   });
 });

@@ -297,9 +297,6 @@ export const reducer: WizardReducer = (prevState, action) => {
         [action.payload.field]: action.payload.value,
       };
       break;
-    case 'wizard/setResourceProfile':
-      newState.capacityAndNodes.resourceProfile = action.payload;
-      break;
     case 'backingStorage/setType':
       return setBackingStorageType(newState, action.payload);
     case 'backingStorage/setSystemNamespace':
@@ -369,6 +366,9 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'capacityAndNodes/enableTaint':
       newState.capacityAndNodes.enableTaint = action.payload;
       break;
+    case 'capacityAndNodes/setResourceProfile':
+      newState.capacityAndNodes.resourceProfile = action.payload;
+      break;
     case 'securityAndNetwork/setKms':
       newState.securityAndNetwork.kms = action.payload;
       break;
@@ -427,7 +427,7 @@ export type CreateStorageSystemAction =
       };
     }
   | {
-      type: 'wizard/setResourceProfile';
+      type: 'capacityAndNodes/setResourceProfile';
       payload: WizardState['capacityAndNodes']['resourceProfile'];
     }
   | {

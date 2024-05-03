@@ -1,5 +1,26 @@
 import * as React from 'react';
+import {
+  getDeviceSetReplica,
+  getExternalStorage,
+  getTotalCpu,
+  getTotalMemoryInGiB,
+} from '@odf/core/components/utils';
+import {
+  MINIMUM_NODES,
+  NO_PROVISIONER,
+  Steps,
+  StepsName,
+  STORAGE_CLUSTER_SYSTEM_KIND,
+} from '@odf/core/constants';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import {
+  labelOCSNamespace,
+  getExternalSubSystemName,
+  isResourceProfileAllowed,
+  isFlexibleScaling,
+  getDeviceSetCount,
+  getOsdAmount,
+} from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -14,17 +35,9 @@ import {
 import { TFunction } from 'i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { Button, Alert, AlertActionCloseButton } from '@patternfly/react-core';
-import { Steps, StepsName, STORAGE_CLUSTER_SYSTEM_KIND } from '../../constants';
 import './create-storage-system.scss';
-import { MINIMUM_NODES } from '../../constants';
 import { NetworkType, BackingStorageType, DeploymentType } from '../../types';
-import {
-  labelOCSNamespace,
-  getExternalSubSystemName,
-  isResourceProfileAllowed,
-} from '../../utils';
 import { createClusterKmsResources } from '../kms-config/utils';
-import { getExternalStorage, getTotalCpu, getTotalMemoryInGiB } from '../utils';
 import {
   createExternalSubSystem,
   createNoobaaExternalPostgresResources,
@@ -122,6 +135,23 @@ const canJumpToNextStep = (
       ? !!(publicNetwork || clusterNetwork)
       : true;
 
+  const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
+  const flexibleScaling = isFlexibleScaling(
+    nodes,
+    isNoProvisioner,
+    capacityAndNodes.enableArbiter
+  );
+  const deviceSetReplica: number = getDeviceSetReplica(
+    capacityAndNodes.enableArbiter,
+    flexibleScaling,
+    nodes
+  );
+  const deviceSetCount = getDeviceSetCount(
+    capacityAndNodes.pvCount,
+    deviceSetReplica
+  );
+  const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
+
   switch (name) {
     case StepsName(t)[Steps.BackingStorage]:
       return validateBackingStorageStep(backingStorage, storageClass);
@@ -145,7 +175,8 @@ const canJumpToNextStep = (
         isResourceProfileAllowed(
           capacityAndNodes.resourceProfile,
           getTotalCpu(nodes),
-          getTotalMemoryInGiB(nodes)
+          getTotalMemoryInGiB(nodes),
+          osdAmount
         )
       );
     case StepsName(t)[Steps.SecurityAndNetwork]:

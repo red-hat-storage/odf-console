@@ -1,12 +1,6 @@
-import {
-  getOCSRequestData,
-  capacityAndNodesValidate,
-} from '@odf/core/components/utils';
-import {
-  DeploymentType,
-  BackingStorageType,
-  ValidationType,
-} from '@odf/core/types';
+import { getOCSRequestData } from '@odf/core/components/utils';
+import { DeploymentType, BackingStorageType } from '@odf/core/types';
+import { isFlexibleScaling } from '@odf/core/utils';
 import { Payload } from '@odf/odf-plugin-sdk/extensions';
 import { SecretModel, getAPIVersion } from '@odf/shared';
 import {
@@ -178,15 +172,10 @@ export const createStorageCluster = async (
     isNoProvisioner ? defaultRequestSize.BAREMETAL : capacity
   ) as string;
 
-  const validations = capacityAndNodesValidate(
+  const flexibleScaling = isFlexibleScaling(
     nodes,
-    enableArbiter,
     isNoProvisioner,
-    capacityAndNodes.resourceProfile
-  );
-
-  const isFlexibleScaling = validations.includes(
-    ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING
+    enableArbiter
   );
 
   const isMCG = deployment === DeploymentType.MCG;
@@ -207,7 +196,7 @@ export const createStorageCluster = async (
     encryption,
     resourceProfile: capacityAndNodes.resourceProfile,
     nodes,
-    flexibleScaling: isFlexibleScaling,
+    flexibleScaling,
     publicNetwork,
     clusterNetwork,
     kmsEnable: kms.providerState.hasHandled && encryption.advanced,

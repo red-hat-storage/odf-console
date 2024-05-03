@@ -8,12 +8,13 @@ import {
   getTotalMemoryInGiB,
 } from '@odf/core/components/utils';
 import { ValidationMessage } from '@odf/core/components/utils/common-odf-install-el';
-import {
-  RESOURCE_PROFILE_REQUIREMENTS_MAP,
-  resourceRequirementsTooltip,
-} from '@odf/core/constants';
+import { resourceRequirementsTooltip } from '@odf/core/constants';
 import { NodeData, ResourceProfile, ValidationType } from '@odf/core/types';
-import { isResourceProfileAllowed } from '@odf/core/utils';
+import {
+  getOsdAmount,
+  getResourceProfileRequirements,
+  isResourceProfileAllowed,
+} from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { useK8sGet } from '@odf/shared/hooks';
@@ -21,7 +22,11 @@ import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { OCSStorageClusterModel } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
-import { StorageClusterKind, StorageSystemKind } from '@odf/shared/types';
+import {
+  DeviceSet,
+  StorageClusterKind,
+  StorageSystemKind,
+} from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Patch, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -37,7 +42,8 @@ import './configure-performance-modal.scss';
 
 const getValidation = (
   profile: ResourceProfile,
-  nodes: WizardNodeState[]
+  nodes: WizardNodeState[],
+  osdAmount: number
 ): ValidationType => {
   if (!profile) {
     return null;
@@ -46,7 +52,8 @@ const getValidation = (
   return isResourceProfileAllowed(
     profile,
     getTotalCpu(nodes),
-    getTotalMemoryInGiB(nodes)
+    getTotalMemoryInGiB(nodes),
+    osdAmount
   )
     ? null
     : ValidationType.RESOURCE_PROFILE;
@@ -54,13 +61,16 @@ const getValidation = (
 
 type ProfileRequirementsModalTextProps = {
   selectedProfile: ResourceProfile;
+  osdAmount: number;
 };
 
 const ProfileRequirementsModalText: React.FC<ProfileRequirementsModalTextProps> =
-  ({ selectedProfile }) => {
+  ({ selectedProfile, osdAmount }) => {
     const { t } = useCustomTranslation();
-    const { minCpu, minMem } =
-      RESOURCE_PROFILE_REQUIREMENTS_MAP[selectedProfile];
+    const { minCpu, minMem } = getResourceProfileRequirements(
+      selectedProfile,
+      osdAmount
+    );
     return (
       <TextContent>
         <Text id="resource-requirements" className="pf-v5-u-font-size-md">
@@ -106,20 +116,26 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
     []
   );
   const [validation, setValidation] = React.useState<ValidationType>(null);
+  const osdAmount = storageCluster.spec.storageDeviceSets
+    ?.map((deviceSet: DeviceSet) =>
+      getOsdAmount(deviceSet.count, deviceSet.replica)
+    )
+    .reduce((accumulator: number, current: number) => accumulator + current);
+
   const onProfileChange = React.useCallback(
     (newProfile: ResourceProfile): void => {
       setResourceProfile(newProfile);
-      setValidation(getValidation(newProfile, selectedNodes));
+      setValidation(getValidation(newProfile, selectedNodes, osdAmount));
     },
-    [selectedNodes]
+    [selectedNodes, osdAmount]
   );
   const onRowSelected = React.useCallback(
     (newNodes: NodeData[]) => {
       const nodes = createWizardNodeState(newNodes);
       setSelectedNodes(nodes);
-      setValidation(getValidation(resourceProfile, nodes));
+      setValidation(getValidation(resourceProfile, nodes, osdAmount));
     },
-    [resourceProfile]
+    [resourceProfile, osdAmount]
   );
 
   const submit = async (event: React.FormEvent<EventTarget>): Promise<void> => {
@@ -169,6 +185,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
           resourceProfile={resourceProfile}
           profileRequirementsText={ProfileRequirementsModalText}
           selectedNodes={selectedNodes}
+          osdAmount={osdAmount}
         />
         <SelectNodesTable
           nodes={selectedNodes}
@@ -179,6 +196,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
         {validation && (
           <ValidationMessage
             resourceProfile={resourceProfile}
+            osdAmount={osdAmount}
             key={validation}
             validation={validation}
             className="pf-v5-u-mt-md"
