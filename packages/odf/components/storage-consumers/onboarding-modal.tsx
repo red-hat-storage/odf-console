@@ -4,7 +4,11 @@ import { ModalBody, ModalTitle } from '@odf/shared/generic/ModalTitle';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ExternalLink } from '@odf/shared/utils';
 import { HttpError } from '@odf/shared/utils/error/http-error';
-import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  BlueInfoCircleIcon,
+  StatusIconAndText,
+  consoleFetch,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Trans } from 'react-i18next';
 import {
@@ -107,14 +111,18 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
             </Text>
             <Text>
               {t(
-                'To onboard the client cluster, the provider cluster requires the onboarding token.'
+                'An onboarding token is needed to connect an additional OpenShift cluster to a Data Foundation deployment. Copy the generated token and use it for deploying Data Foundation client operator on your OpenShift cluster.'
               )}
             </Text>
-            <Text>
-              {t(
-                'An onboarding token is needed to connect an additional OpenShift cluster to a Data Foundation deployment.'
+          </FlexItem>
+          <FlexItem>
+            <StatusIconAndText
+              title={t(
+                'This token is valid for 48 hours and can only be used once.'
               )}
-            </Text>
+              icon={<BlueInfoCircleIcon />}
+              className="text-muted"
+            />
           </FlexItem>
         </Flex>
       </ModalBody>
