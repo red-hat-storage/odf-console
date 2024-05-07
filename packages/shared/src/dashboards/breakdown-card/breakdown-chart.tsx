@@ -41,7 +41,7 @@ export const LinkableLegend: React.FC<LinkableLegendProps> = React.memo(
             lineHeight={1.2}
             style={[
               { ...datum.labels, fontSize: 9 },
-              { fill: 'black', fontSize: 8 },
+              { fill: `var(--pf-v5-global--Color--200)`, fontSize: 8 },
             ]}
           />
         </g>

@@ -16,7 +16,7 @@
 
 .odf-topology__back-button {
     background-color: var(--pf-v5-global--palette--black-300);
-    color: #393F44;
+    color: var(--pf-v5-global--Color--dark-200);
     left: var(--pf-v5-global--gutter);
     position: absolute;
     top: var(--pf-v5-global--gutter);
@@ -28,7 +28,7 @@
 }
 
 .odf-topology__message-button {
-    color: #393F44;
+    color: var(--pf-v5-global--Color--dark-200);
     right: var(--pf-v5-global--gutter);
     position: absolute;
     top: var(--pf-v5-global--gutter);
