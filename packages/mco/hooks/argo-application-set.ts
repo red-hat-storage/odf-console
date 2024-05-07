@@ -19,7 +19,7 @@ import {
   findPlacementFromArgoAppSet,
   findPlacementDecisionUsingPlacement,
   findDRResourceUsingPlacement,
-  filerManagedClusterUsingDRClusters,
+  filterManagedClusterUsingDRClusters,
 } from '../utils';
 import { DisasterRecoveryResourceKind } from './disaster-recovery';
 import {
@@ -137,7 +137,7 @@ export const useArgoApplicationSetResourceWatch: UseArgoApplicationSetResourceWa
                 placement,
                 appList
               ),
-              managedClusters: filerManagedClusterUsingDRClusters(
+              managedClusters: filterManagedClusterUsingDRClusters(
                 drResource?.drClusters,
                 managedClusterList
               ),
