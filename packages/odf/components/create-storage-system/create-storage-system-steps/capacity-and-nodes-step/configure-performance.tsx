@@ -74,7 +74,9 @@ export const ProfileRequirementsText: React.FC<ProfileRequirementsTextProps> =
       <TextContent>
         <Text id="resource-requirements" component={TextVariants.h4}>
           <span className="pf-v5-u-mr-sm">
-            {t(`Aggregate resource requirements for ${selectedProfile} mode`)}
+            {t('Aggregate resource requirements for {{selectedProfile}} mode', {
+              selectedProfile,
+            })}
           </span>
           {selectedProfile === ResourceProfile.Performance && (
             <FieldLevelHelp>{resourceRequirementsTooltip(t)}</FieldLevelHelp>
