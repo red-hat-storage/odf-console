@@ -84,7 +84,7 @@ export const StoragePopover: React.FC<PrometheusHealthPopupProps> = ({
         >
           <div className="odf-status-popup__row">
             <Link to="/odf">{operatorName}</Link>
-            {healthStateMapping[healthStatus]}
+            {healthStateMapping[healthStatus]?.icon}
           </div>
         </StatusPopupSection>
       </StackItem>
