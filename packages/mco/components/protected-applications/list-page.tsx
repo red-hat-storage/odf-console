@@ -34,6 +34,7 @@ import {
   getLastAppDeploymentClusterName,
   getDRPolicyName,
   getKubeObjectLastTransitionTime,
+  getReplicationType,
 } from '../../utils';
 import {
   EmptyRowMessage,
@@ -268,6 +269,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
           app?.status?.resourceConditions?.conditions
         );
         acc[getName(app)] = {
+          volumeReplicationType: getReplicationType(volumesSchedulingInterval),
           volumeReplicationStatus: getReplicationHealth(
             volumesLastSyncTime,
             volumesSchedulingInterval

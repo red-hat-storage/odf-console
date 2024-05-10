@@ -4,6 +4,7 @@
 
 import * as React from 'react';
 import { DRPC_STATUS } from '@odf/mco/constants';
+import { REPLICATION_TYPE } from '@odf/mco/constants';
 import { PlacementControlInfo, ProtectedAppsMap } from '@odf/mco/types';
 import { getDRStatus } from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
@@ -57,15 +58,19 @@ export const getCurrentActivity = (
   failoverCluster: string,
   preferredCluster: string,
   t: TFunction,
-  isCleanupPending?: boolean
+  isCleanupPending?: boolean,
+  replicationType?: REPLICATION_TYPE
 ): { description: string; status: string; icon: JSX.Element } => {
   const status = currentStatus as DRPC_STATUS;
 
   if (status === DRPC_STATUS.Relocating) {
     return {
-      description: t('Relocating to cluster {{ preferredCluster }}', {
-        preferredCluster,
-      }),
+      description: t(
+        'Clean up application resources on current primary cluster {{failoverCluster}} to start the relocation.',
+        {
+          failoverCluster,
+        }
+      ),
       status: t('In Progress'),
       icon: <InProgressIcon />,
     };
@@ -86,21 +91,39 @@ export const getCurrentActivity = (
       icon: <InProgressIcon />,
     };
   } else if (status === DRPC_STATUS.FailedOver) {
-    return isCleanupPending
-      ? {
+    if (isCleanupPending) {
+      if (replicationType === REPLICATION_TYPE.ASYNC) {
+        return {
           description: t(
-            'Cleanup of resources requires user attention. Finish cleanup to restart replication.'
+            'Clean up application resources on failed cluster {{failoverCluster}} to start the replication.',
+            {
+              failoverCluster,
+            }
           ),
           status: t('Pending'),
           icon: <PendingIcon />,
-        }
-      : {
-          description: t('FailedOver to cluster {{ failoverCluster }}', {
-            failoverCluster,
-          }),
-          status: t('Completed'),
-          icon: <GreenCheckCircleIcon />,
         };
+      } else {
+        return {
+          description: t(
+            'Clean up application resources on failed cluster {{failoverCluster}}.',
+            {
+              failoverCluster,
+            }
+          ),
+          status: t('Pending'),
+          icon: <PendingIcon />,
+        };
+      }
+    } else {
+      return {
+        description: t('FailedOver to cluster {{failoverCluster}}', {
+          failoverCluster,
+        }),
+        status: t('Completed'),
+        icon: <GreenCheckCircleIcon />,
+      };
+    }
   } else {
     return {
       description: t('Unknown'),
