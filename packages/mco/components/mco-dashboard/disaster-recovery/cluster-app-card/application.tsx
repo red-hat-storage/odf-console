@@ -4,6 +4,7 @@
 
 import * as React from 'react';
 import { DRPC_STATUS } from '@odf/mco/constants';
+import { REPLICATION_TYPE } from '@odf/mco/constants';
 import { PlacementControlInfo, ProtectedAppsMap } from '@odf/mco/types';
 import { getDRStatus } from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
@@ -57,56 +58,83 @@ export const getCurrentActivity = (
   failoverCluster: string,
   preferredCluster: string,
   t: TFunction,
-  isCleanupPending?: boolean
+  isCleanupPending?: boolean,
+  replicationType?: REPLICATION_TYPE
 ): { description: string; status: string; icon: JSX.Element } => {
   const status = currentStatus as DRPC_STATUS;
 
-  if (status === DRPC_STATUS.Relocating) {
-    return {
-      description: t('Relocating to cluster {{ preferredCluster }}', {
-        preferredCluster,
-      }),
-      status: t('In Progress'),
-      icon: <InProgressIcon />,
-    };
-  } else if (status === DRPC_STATUS.Relocated) {
-    return {
-      description: t('Relocated to cluster {{ preferredCluster }}', {
-        preferredCluster,
-      }),
-      status: t('Completed'),
-      icon: <GreenCheckCircleIcon />,
-    };
-  } else if (status === DRPC_STATUS.FailingOver) {
-    return {
-      description: t('FailingOver to cluster {{ failoverCluster }}', {
-        failoverCluster,
-      }),
-      status: t('In Progress'),
-      icon: <InProgressIcon />,
-    };
-  } else if (status === DRPC_STATUS.FailedOver) {
-    return isCleanupPending
-      ? {
-          description: t(
-            'Cleanup of resources requires user attention. Finish cleanup to restart replication.'
-          ),
-          status: t('Pending'),
-          icon: <PendingIcon />,
-        }
-      : {
+  switch (status) {
+    case DRPC_STATUS.Relocating:
+      return isCleanupPending
+        ? {
+            description: t(
+              'Clean up application resources on current primary cluster {{ failoverCluster }} to start the relocation.',
+              { failoverCluster }
+            ),
+            status: t('Cleanup Pending'),
+            icon: <PendingIcon />,
+          }
+        : {
+            description: t('Relocating to cluster {{ preferredCluster }}', {
+              preferredCluster,
+            }),
+            status: t('In Progress'),
+            icon: <InProgressIcon />,
+          };
+
+    case DRPC_STATUS.Relocated:
+      return {
+        description: t('Relocated to cluster {{ preferredCluster }}', {
+          preferredCluster,
+        }),
+        status: t('Completed'),
+        icon: <GreenCheckCircleIcon />,
+      };
+
+    case DRPC_STATUS.FailingOver:
+      return {
+        description: t('FailingOver to cluster {{ failoverCluster }}', {
+          failoverCluster,
+        }),
+        status: t('In Progress'),
+        icon: <InProgressIcon />,
+      };
+
+    case DRPC_STATUS.FailedOver:
+      if (isCleanupPending) {
+        return replicationType === REPLICATION_TYPE.ASYNC
+          ? {
+              description: t(
+                'Clean up application resources on failed cluster {{ preferredCluster }} to start the replication.',
+                { preferredCluster }
+              ),
+              status: t('Pending'),
+              icon: <PendingIcon />,
+            }
+          : {
+              description: t(
+                'Clean up application resources on failed cluster {{ preferredCluster }}.',
+                { preferredCluster }
+              ),
+              status: t('Pending'),
+              icon: <PendingIcon />,
+            };
+      } else {
+        return {
           description: t('FailedOver to cluster {{ failoverCluster }}', {
             failoverCluster,
           }),
           status: t('Completed'),
           icon: <GreenCheckCircleIcon />,
         };
-  } else {
-    return {
-      description: t('Unknown'),
-      status: t('Unknown'),
-      icon: <GrayUnknownIcon />,
-    };
+      }
+
+    default:
+      return {
+        description: t('Unknown'),
+        status: t('Unknown'),
+        icon: <GrayUnknownIcon />,
+      };
   }
 };
 
