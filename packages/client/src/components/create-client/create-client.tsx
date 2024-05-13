@@ -1,8 +1,12 @@
 import * as React from 'react';
 import { ButtonBar, useCustomTranslation } from '@odf/shared';
-import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  getAPIVersionForModel,
+  k8sCreate,
+} from '@openshift-console/dynamic-plugin-sdk';
+import { isIP } from 'is-ip';
 import * as _ from 'lodash-es';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate, useParams } from 'react-router-dom-v5-compat';
 import {
   Form,
   Button,
@@ -41,12 +45,27 @@ const validateURL = (userInput: string): ValidatedOptions => {
     return ValidatedOptions.default;
   }
   try {
-    (() => new URL(userInput))();
-    const port = userInput.split(':').pop();
-    if (port !== '' && _.isInteger(Number(port))) {
-      return ValidatedOptions.default;
-    } else {
+    let port: string = '';
+    let address: string = '';
+    const splitInput = userInput.split(':');
+    if (splitInput.length > 3) {
       return ValidatedOptions.error;
+    }
+    if (splitInput.length === 3) {
+      address = splitInput[0] + splitInput[1];
+      port = splitInput[2];
+    }
+    if (splitInput.length === 2) {
+      address = splitInput[0];
+      port = splitInput[1];
+    }
+    const isPortValid = port !== '' && _.isInteger(Number(port));
+    if (isIP(address) && isPortValid) {
+      return ValidatedOptions.success;
+    }
+    (() => new URL(userInput))();
+    if (isPortValid) {
+      return ValidatedOptions.success;
     }
   } catch {
     return ValidatedOptions.error;
@@ -62,12 +81,16 @@ const CreateStorageClient: React.FC = () => {
 
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
+  const { plural } = useParams();
+  const redirectionUrl = `/k8s/cluster/${plural}/${name}`;
 
   const submit = () => {
     setProgress(true);
     k8sCreate({
       model: StorageClientModel,
       data: {
+        apiVersion: getAPIVersionForModel(StorageClientModel),
+        kind: StorageClientModel.kind,
         metadata: {
           name,
         },
@@ -79,6 +102,7 @@ const CreateStorageClient: React.FC = () => {
     })
       .then(() => {
         setProgress(false);
+        navigate(redirectionUrl);
       })
       .catch((err) => {
         setProgress(false);
@@ -110,7 +134,7 @@ const CreateStorageClient: React.FC = () => {
               onChange={(_e, value) => setAddress(value)}
               validated={validateURL(address)}
             />
-            {validateURL(address) !== ValidatedOptions.default && (
+            {validateURL(address) === ValidatedOptions.error && (
               <FormHelperText>
                 <HelperText>
                   <HelperTextItem variant={ValidatedOptions.error}>
