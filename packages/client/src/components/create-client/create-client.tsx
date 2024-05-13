@@ -1,12 +1,5 @@
 import * as React from 'react';
-import {
-  ButtonBar,
-  K8sResourceKind,
-  NamespaceModel,
-  ResourceDropdown,
-  getName,
-  useCustomTranslation,
-} from '@odf/shared';
+import { ButtonBar, useCustomTranslation } from '@odf/shared';
 import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -62,7 +55,6 @@ const validateURL = (userInput: string): ValidatedOptions => {
 
 const CreateStorageClient: React.FC = () => {
   const [name, setName] = React.useState('');
-  const [namespace, setNamespace] = React.useState('');
   const [address, setAddress] = React.useState('');
   const [ticket, setTicket] = React.useState('');
   const [inProgress, setProgress] = React.useState(false);
@@ -78,7 +70,6 @@ const CreateStorageClient: React.FC = () => {
       data: {
         metadata: {
           name,
-          namespace,
         },
         spec: {
           storageProviderEndpoint: address,
@@ -105,19 +96,6 @@ const CreateStorageClient: React.FC = () => {
               id="name"
               value={name}
               onChange={(_e, value) => setName(value)}
-            />
-          </FormGroup>
-          <FormGroup label={t('Namespace')} fieldId="namespace" isRequired>
-            <ResourceDropdown<K8sResourceKind>
-              className="pf-v5-u-w-100"
-              id="namespace"
-              resource={{
-                kind: NamespaceModel.kind,
-                isList: true,
-                namespaced: false,
-              }}
-              resourceModel={NamespaceModel}
-              onSelect={(ns) => setNamespace(getName(ns))}
             />
           </FormGroup>
           <FormGroup
