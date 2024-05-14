@@ -22,7 +22,12 @@ import {
 } from '@odf/core/constants';
 import { useNodesData } from '@odf/core/hooks';
 import { pvResource } from '@odf/core/resources';
-import { NodeData, NodesPerZoneMap, ResourceProfile } from '@odf/core/types';
+import {
+  DeploymentType,
+  NodeData,
+  NodesPerZoneMap,
+  ResourceProfile,
+} from '@odf/core/types';
 import {
   calcPVsCapacity,
   getSCAvailablePVs,
@@ -400,6 +405,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   volumeSetName,
   nodes,
   systemNamespace,
+  deploymentMode,
 }) => {
   const {
     capacity,
@@ -411,6 +417,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   } = state;
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
+  const isProviderMode = deploymentMode === DeploymentType.PROVIDER_MODE;
   const flexibleScaling = isFlexibleScaling(
     nodes,
     isNoProvisioner,
@@ -429,7 +436,8 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
     enableArbiter,
     isNoProvisioner,
     resourceProfile,
-    osdAmount
+    osdAmount,
+    deploymentMode
   );
   const onProfileChange = React.useCallback(
     (profile) => onResourceProfileChange(dispatch)(profile),
@@ -464,14 +472,16 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
       )}
       {(!isNoProvisioner || nodes.length > 0) && (
         <>
-          <ConfigurePerformance
-            onResourceProfileChange={onProfileChange}
-            resourceProfile={resourceProfile}
-            headerText={PerformanceHeaderText}
-            profileRequirementsText={ProfileRequirementsText}
-            selectedNodes={nodes}
-            osdAmount={osdAmount}
-          />
+          {!isProviderMode && (
+            <ConfigurePerformance
+              onResourceProfileChange={onProfileChange}
+              resourceProfile={resourceProfile}
+              headerText={PerformanceHeaderText}
+              profileRequirementsText={ProfileRequirementsText}
+              selectedNodes={nodes}
+              osdAmount={osdAmount}
+            />
+          )}
           <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
         </>
       )}
@@ -496,4 +506,5 @@ type CapacityAndNodesProps = {
   volumeSetName: WizardState['createLocalVolumeSet']['volumeSetName'];
   dispatch: WizardDispatch;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  deploymentMode: DeploymentType;
 };

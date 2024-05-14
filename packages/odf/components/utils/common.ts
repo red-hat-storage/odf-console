@@ -4,6 +4,7 @@ import {
   EncryptionType,
   ResourceProfile,
   NodeData,
+  DeploymentType,
 } from '@odf/core/types';
 import {
   getNodeCPUCapacity,
@@ -151,7 +152,8 @@ export const capacityAndNodesValidate = (
   enableStretchCluster: boolean,
   isNoProvSC: boolean,
   resourceProfile: ResourceProfile,
-  osdAmount: number
+  osdAmount: number,
+  deploymentType: DeploymentType
 ): ValidationType[] => {
   const validations = [];
 
@@ -163,7 +165,11 @@ export const capacityAndNodesValidate = (
   }
   if (!enableStretchCluster && nodes.length && nodes.length < MINIMUM_NODES) {
     validations.push(ValidationType.MINIMUMNODES);
-  } else if (nodes.length && nodes.length >= MINIMUM_NODES) {
+  } else if (
+    nodes.length &&
+    nodes.length >= MINIMUM_NODES &&
+    deploymentType !== DeploymentType.PROVIDER_MODE
+  ) {
     if (
       !isResourceProfileAllowed(
         resourceProfile,
