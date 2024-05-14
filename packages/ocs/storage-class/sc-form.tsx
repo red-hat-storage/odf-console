@@ -114,7 +114,8 @@ const getPoolDropdownItems = (
   handleDropdownChange,
   onPoolCreation,
   launchModal,
-  t
+  t,
+  defaultDeviceClass: string
 ) =>
   _.reduce(
     poolData,
@@ -155,6 +156,7 @@ const getPoolDropdownItems = (
           launchModal(CreateBlockPoolModal, {
             cephCluster,
             onPoolCreation,
+            defaultDeviceClass,
           })
         }
       >
@@ -209,7 +211,7 @@ export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
   const { t } = useCustomTranslation();
   const [systemNamespace, setSystemNamespace] = React.useState<string>();
   const onParamChangeRef = React.useRef<OnParamChange>();
-  // refernce of "onParamChange" changes on each re-render, hence storing in a "useRef"
+  // reference of "onParamChange" changes on each re-render, hence storing in a "useRef"
   onParamChangeRef.current = onParamChange;
 
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
@@ -288,7 +290,7 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const onParamChangeRef = React.useRef<OnParamChange>();
-  // refernce of "onParamChange" changes on each re-render, hence storing in a "useRef"
+  // reference of "onParamChange" changes on each re-render, hence storing in a "useRef"
   onParamChangeRef.current = onParamChange;
 
   const launchModal = useModal();
@@ -307,11 +309,20 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
   const poolData = poolsData.filter(
     (pool) => getNamespace(pool) === systemNamespace
   );
+
   const cephCluster = getResourceInNs(cephClusters, systemNamespace);
 
   const { systemFlags, areFlagsLoaded, flagsLoadError, areFlagsSafe } =
     useODFSystemFlagsSelector();
   const isExternal = systemFlags[systemNamespace]?.isExternalMode;
+
+  // Get the default deviceClass required by the 'create' modal.
+  const poolNs = getNamespace(cephCluster);
+  const defaultPoolName = `${systemFlags[poolNs]?.ocsClusterName}-cephblockpool`;
+  const defaultPool = poolData.find(
+    (pool: StoragePoolKind) => pool.metadata.name === defaultPoolName
+  );
+  const defaultDeviceClass = defaultPool?.spec?.deviceClass || '';
 
   const handleDropdownChange = (e: React.KeyboardEvent<HTMLInputElement>) => {
     setPoolName(e.currentTarget.id);
@@ -373,7 +384,8 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
                   handleDropdownChange,
                   onPoolCreation,
                   launchModal,
-                  t
+                  t,
+                  defaultDeviceClass
                 )}
                 onSelect={() => setOpen(false)}
                 id="ocs-storage-pool"
