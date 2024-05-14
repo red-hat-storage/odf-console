@@ -6,6 +6,7 @@ import { CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
+  WatchK8sResource,
   getAPIVersionForModel,
   k8sCreate,
   useK8sWatchResource,
@@ -32,7 +33,8 @@ import './create-block-pool.scss';
 
 export const getPoolKindObj = (
   state: BlockPoolState,
-  ns: string
+  ns: string,
+  deviceClass: StoragePoolKind['spec']['deviceClass']
 ): StoragePoolKind => ({
   apiVersion: getAPIVersionForModel(CephBlockPoolModel),
   kind: CephBlockPoolModel.kind,
@@ -42,7 +44,7 @@ export const getPoolKindObj = (
   },
   spec: {
     compressionMode: state.isCompressed ? COMPRESSION_ON : 'none',
-    deviceClass: state.volumeType || '',
+    deviceClass: deviceClass,
     failureDomain: state.failureDomain,
     parameters: {
       compression_mode: state.isCompressed ? COMPRESSION_ON : 'none',
@@ -58,6 +60,17 @@ export const cephClusterResource = {
   isList: true,
 };
 
+export const poolResource = (
+  poolName: string,
+  ns: string
+): WatchK8sResource => ({
+  kind: referenceForModel(CephBlockPoolModel),
+  namespaced: true,
+  isList: false,
+  name: poolName,
+  namespace: ns,
+});
+
 const CreateBlockPool: React.FC<{}> = ({}) => {
   const { pathname: url } = useLocation();
   const params = useParams();
@@ -71,7 +84,7 @@ const CreateBlockPool: React.FC<{}> = ({}) => {
     blockPoolInitialState
   );
 
-  const [cephClusters, isLoaded, loadError] =
+  const [cephClusters, cephClustersLoaded, cephClustersLoadError] =
     useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
   // only single cluster per Namespace
   const cephCluster = getCephClusterInNs(
@@ -82,6 +95,15 @@ const CreateBlockPool: React.FC<{}> = ({}) => {
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
   const isExternalStorageSystem = systemFlags[poolNs]?.isExternalMode;
+
+  // Get the default deviceClass.
+  const defaultPoolName = `${systemFlags[poolNs]?.ocsClusterName}-cephblockpool`;
+  const [defaultPool, defaultPoolLoaded, defaultPoolLoadError] =
+    useK8sWatchResource<StoragePoolKind>(poolResource(defaultPoolName, poolNs));
+  const isLoaded = cephClustersLoaded && areFlagsLoaded && defaultPoolLoaded;
+  const isLoadError =
+    cephClustersLoadError || flagsLoadError || defaultPoolLoadError;
+  const defaultDeviceClass = defaultPool?.spec?.deviceClass || '';
 
   // OCS create pool page url ends with ~new, ODF create pool page ends with /create/~new
   const blockPoolPageUrl = params?.appName
@@ -95,7 +117,11 @@ const CreateBlockPool: React.FC<{}> = ({}) => {
   // Create new pool
   const createPool = () => {
     if (cephCluster?.status?.phase === POOL_STATE.READY) {
-      const poolObj: StoragePoolKind = getPoolKindObj(state, poolNs);
+      const poolObj: StoragePoolKind = getPoolKindObj(
+        state,
+        poolNs,
+        defaultDeviceClass
+      );
 
       dispatch({ type: BlockPoolActionType.SET_INPROGRESS, payload: true });
       k8sCreate({ model: CephBlockPoolModel, data: poolObj })
@@ -155,7 +181,7 @@ const CreateBlockPool: React.FC<{}> = ({}) => {
         </p>
       </div>
       <div className="ceph-create-block-pool__form">
-        {isLoaded && areFlagsLoaded && !loadError && !flagsLoadError ? (
+        {isLoaded && !isLoadError ? (
           <>
             <BlockPoolBody
               cephCluster={cephCluster}
@@ -171,8 +197,8 @@ const CreateBlockPool: React.FC<{}> = ({}) => {
           </>
         ) : (
           <StatusBox
-            loadError={loadError || flagsLoadError}
-            loaded={isLoaded && areFlagsLoaded}
+            loadError={isLoadError}
+            loaded={isLoaded}
             label={t('BlockPool Creation Form')}
           />
         )}
