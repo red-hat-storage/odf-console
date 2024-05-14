@@ -12,10 +12,12 @@ import {
 import {
   Action,
   K8sResourceCommon,
+  useFlag,
   useK8sModel,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { PROVIDER_MODE } from '../../features';
 
 export const useCsvActions = ({
   resource,
@@ -27,25 +29,28 @@ export const useCsvActions = ({
     referenceFor(group)(version)(resource.kind)
   );
   const launchModal = useModal();
+  const isProviderMode = useFlag(PROVIDER_MODE);
 
-  const actions = useMemo(
-    () =>
+  const actions = useMemo(() => {
+    const items = [];
+    if (
       referenceForModel(k8sModel) === referenceForModel(ODFStorageSystem) &&
-      isOCSStorageSystem(resource as StorageSystemKind)
-        ? [
-            AddCapacityStorageSystem(
-              resource as StorageSystemKind,
-              launchModal
-            ),
-            ConfigurePerformanceStorageSystem(
-              resource as StorageSystemKind,
-              launchModal
-            ),
-          ]
-        : [],
-
-    [k8sModel, resource, launchModal]
-  );
+      isOCSStorageSystem(resource)
+    ) {
+      items.push(
+        AddCapacityStorageSystem(resource as StorageSystemKind, launchModal)
+      );
+      if (!isProviderMode) {
+        items.push(
+          ConfigurePerformanceStorageSystem(
+            resource as StorageSystemKind,
+            launchModal
+          )
+        );
+      }
+    }
+    return items;
+  }, [k8sModel, resource, launchModal, isProviderMode]);
 
   return useMemo(() => [actions, !inFlight, undefined], [actions, inFlight]);
 };
