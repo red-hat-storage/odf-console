@@ -1,9 +1,12 @@
 import * as React from 'react';
+import { TechPreviewBadge } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   FormGroup,
-  FormSelect,
-  FormSelectOption,
+  MenuToggle,
+  MenuToggleElement,
+  Select,
+  SelectOption,
 } from '@patternfly/react-core';
 import { ProviderStateMap } from '../../constants';
 import { ProviderNames } from '../../types';
@@ -51,6 +54,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
+  const [isOpen, setIsOpen] = React.useState(false);
 
   // vault as default KMS
   const kmsProvider: ProviderNames =
@@ -64,6 +68,10 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
     (provider) => provider.value === kmsProvider
   );
 
+  const selectedProvider =
+    allowedKMSProviders.find((provider) => provider.value === kmsProvider) ||
+    allowedKMSProviders[0];
+
   const setKMSProvider = React.useCallback(
     (provider: ProviderNames) => {
       dispatch({
@@ -74,8 +82,25 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
         type: 'securityAndNetwork/setKmsProvider',
         payload: provider,
       });
+      setIsOpen(false);
     },
     [dispatch]
+  );
+
+  const onToggleClick = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={onToggleClick}
+      isDisabled={isLengthUnity(allowedKMSProviders)}
+      isExpanded={isOpen}
+      className="pf-v5-c-form-control"
+    >
+      {selectedProvider.name}
+    </MenuToggle>
   );
 
   return (
@@ -90,22 +115,27 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
         label={t('Key management service provider')}
         className={`${className}__form-body`}
       >
-        <FormSelect
-          value={kmsProvider}
-          onChange={(_event, value) => setKMSProvider(value as ProviderNames)}
+        <Select
+          onSelect={(_event, value) => setKMSProvider(value as ProviderNames)}
+          onOpenChange={setIsOpen}
+          toggle={toggle}
+          isOpen={isOpen}
           id="kms-provider"
-          name="kms-provider-name"
           aria-label={t('kms-provider-name')}
-          isDisabled={isLengthUnity(allowedKMSProviders)}
+          selected={kmsProvider}
         >
           {allowedKMSProviders.map((provider) => (
-            <FormSelectOption
-              value={provider.value}
-              label={provider.name}
-              key={provider.value}
-            />
+            <SelectOption value={provider.value} key={provider.value}>
+              {provider.value === ProviderNames.AZURE ? (
+                <>
+                  {provider.name} <TechPreviewBadge />
+                </>
+              ) : (
+                provider.name
+              )}
+            </SelectOption>
           ))}
-        </FormSelect>
+        </Select>
       </FormGroup>
       <Component
         state={state}
