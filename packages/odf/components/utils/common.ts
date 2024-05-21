@@ -510,13 +510,16 @@ export const getOCSRequestData = ({
     if (isProviderMode) {
       requestData.spec.allowRemoteStorageConsumers = true;
       requestData.spec.hostNetwork = true;
-      Object.assign(requestData.spec.managedResources, {
+      Object.assign<
+        StorageClusterKind['spec']['managedResources'],
+        StorageClusterKind['spec']['managedResources']
+      >(requestData.spec.managedResources, {
         ...requestData.spec.managedResources,
         cephBlockPools: {
           disableSnapshotClass: true,
           disableStorageClass: true,
         },
-        cephFileSystems: {
+        cephFilesystems: {
           disableSnapshotClass: true,
           disableStorageClass: true,
         },
