@@ -53,8 +53,8 @@ export const StoragePopover: React.FC<PrometheusHealthPopupProps> = ({
     loadError: '',
     data: {},
   });
-  const cephData = k8sResult.data;
-  const isNoobaaOnly = _.isEmpty(k8sResult);
+  const cephData = k8sResult?.data;
+  const isNoobaaOnly = _.isEmpty(cephData);
   const cephHealthState: SubsystemHealth = getCephsHealthState(
     {
       ceph: {
