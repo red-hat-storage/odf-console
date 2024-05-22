@@ -11,12 +11,8 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
   useFlag: jest.fn(() => true),
   useK8sWatchResource: jest.fn(() => [['policy1', 'policy2'], true, '']),
-  AlertSeverity: { Critical: 'critical' },
-}));
-
-jest.mock('@openshift-console/dynamic-plugin-sdk-internal', () => ({
-  ...jest.requireActual('@openshift-console/dynamic-plugin-sdk-internal'),
   useUserSettings: jest.fn(() => [true, setIsOpen]),
+  AlertSeverity: { Critical: 'critical' },
 }));
 
 jest.mock('react-router-dom-v5-compat', () => ({
