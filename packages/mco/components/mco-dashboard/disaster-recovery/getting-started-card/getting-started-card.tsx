@@ -7,7 +7,9 @@ import { GettingStartedExpandableGrid } from '@odf/shared/getting-started-grid';
 import { DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
-import { useUserSettings } from '@openshift-console/dynamic-plugin-sdk-internal';
+// ToDo (Sanjal): Update sdk (stable & internal) version and remove these comments
+// @ts-ignore
+import { useUserSettings } from '@openshift-console/dynamic-plugin-sdk';
 import { HeaderSection, BodySection, gettingStartedSteps } from './helper';
 
 export const GettingStartedCard: React.FC = () => {
