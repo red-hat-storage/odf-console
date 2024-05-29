@@ -47,6 +47,7 @@ type KebabProps = {
     [key: string]: () => void;
   };
   terminatingTooltip?: React.ReactNode;
+  hideItems?: ModalKeys[];
 };
 
 type KebabStaticProperties = {
@@ -98,6 +99,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   toggleType = 'Kebab',
   isDisabled,
   terminatingTooltip,
+  hideItems,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -176,11 +178,22 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
 
   const dropdownItems = React.useMemo(() => {
     const defaultResolved = defaultKebabItems(t, resourceLabel);
+    const filteredDefaultItems = hideItems
+      ? Object.keys(defaultResolved)
+          .filter((key) => !hideItems.includes(key as ModalKeys))
+          .reduce((obj, key) => {
+            obj[key] = defaultResolved[key];
+            return obj;
+          }, {})
+      : defaultResolved;
     const customResolved: CustomKebabItemsMap = customKebabItemsMap
       ? customKebabItemsMap
       : {};
     const { overrides, custom } = Object.entries(customResolved).reduce(
       (acc, [k, obj]) => {
+        if (hideItems?.includes(k as ModalKeys)) {
+          return acc;
+        }
         const dropdownItem = (
           <DropdownItem
             key={k}
@@ -209,14 +222,14 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
       },
       { overrides: {}, custom: {} }
     );
-    const deafultItems = Object.values(
-      Object.assign(defaultResolved, overrides)
+    const defaultItems = Object.values(
+      Object.assign(filteredDefaultItems, overrides)
     );
 
     const customItems = Object.values(custom) ?? [];
 
-    return [...customItems, ...deafultItems];
-  }, [t, customKebabItemsMap, resourceLabel]);
+    return [...customItems, ...defaultItems];
+  }, [t, customKebabItemsMap, resourceLabel, hideItems]);
 
   isDisabled =
     isDisabled || _.has(resource.metadata, 'deletionTimestamp') || !canCreate;

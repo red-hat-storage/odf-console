@@ -27,7 +27,7 @@ import {
   K8sResourceObj,
 } from '@odf/core/types';
 import { getResourceInNs } from '@odf/core/utils';
-import { CephBlockPoolModel } from '@odf/ocs/models';
+import { CephBlockPoolModel, CephFileSystemModel } from '@odf/ocs/models';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox } from '@odf/shared/generic/status-box';
@@ -74,17 +74,25 @@ import {
   Form,
   Radio,
   ActionGroup,
+  Icon,
 } from '@patternfly/react-core';
-import { CaretDownIcon } from '@patternfly/react-icons';
+import { AddCircleOIcon, CaretDownIcon } from '@patternfly/react-icons';
 import {
   CLUSTER_STATUS,
   POOL_STATE,
   CEPH_NS_SESSION_STORAGE,
+  POOL_TYPE,
 } from '../constants';
-import { CreateBlockPoolModal } from '../modals/block-pool/create-block-pool-modal';
-import { StoragePoolKind } from '../types';
+import { CreateStoragePoolModal } from '../modals/storage-pool/create-storage-pool-modal';
+import { CephFilesystemKind, StoragePool, StoragePoolKind } from '../types';
 import '../style.scss';
 import './sc-form.scss';
+import {
+  getExistingBlockPoolNames,
+  getExistingFsPoolNames,
+  getStoragePoolsFromBlockPools,
+  getStoragePoolsFromFilesystem,
+} from '../utils';
 
 type OnParamChange = (id: string, paramName: string, checkbox: boolean) => void;
 
@@ -100,7 +108,7 @@ const cephBlockPoolResource: WatchK8sResource = {
 
 const filterOCSStorageSystems = (resource) => isOCSStorageSystem(resource);
 
-const setSessionValueAgain = (systemNamespace: string) => {
+const setSessionStorageSystemNamespace = (systemNamespace: string) => {
   // session value will get removed after clicking "Create" (check "mutators.ts"),
   // so in case of any error (after clicking "Create") form persists but session gets removed.
   const sessionNsValue = sessionStorage.getItem(CEPH_NS_SESSION_STORAGE);
@@ -109,17 +117,20 @@ const setSessionValueAgain = (systemNamespace: string) => {
 };
 
 const getPoolDropdownItems = (
-  poolData,
+  poolData: StoragePool[],
   cephCluster,
   handleDropdownChange,
   onPoolCreation,
   launchModal,
   t,
-  defaultDeviceClass: string
+  defaultDeviceClass: string,
+  poolType: POOL_TYPE,
+  existingNames: string[],
+  filesystemName = ''
 ) =>
   _.reduce(
     poolData,
-    (res, pool: StoragePoolKind) => {
+    (res, pool: StoragePool) => {
       const compressionText =
         pool?.spec?.compressionMode === 'none' ||
         pool?.spec?.compressionMode === ''
@@ -131,7 +142,7 @@ const getPoolDropdownItems = (
       ) {
         res.push(
           <DropdownItem
-            key={pool.metadata.uid}
+            key={pool?.metadata?.name}
             component="button"
             id={pool?.metadata?.name}
             data-test={pool?.metadata?.name}
@@ -153,14 +164,20 @@ const getPoolDropdownItems = (
         key="first-item"
         component="button"
         onClick={() =>
-          launchModal(CreateBlockPoolModal, {
+          launchModal(CreateStoragePoolModal, {
             cephCluster,
             onPoolCreation,
             defaultDeviceClass,
+            poolType,
+            existingNames,
+            filesystemName,
           })
         }
       >
-        {t('Create New Pool')}
+        <Icon size="md" className="ocs-storage-class__pool--create">
+          <AddCircleOIcon className="pf-v5-u-mr-sm" />
+          {t('Create new storage pool')}
+        </Icon>
       </DropdownItem>,
       <DropdownSeparator key="separator" />,
     ]
@@ -226,6 +243,7 @@ export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
 
   React.useEffect(() => {
     if (!!sc && scLoaded && !scLoadError) {
+      // Get the default filesystem name from StorageClass.
       const fsName = sc?.parameters?.fsName;
       if (fsName) {
         onParamChangeRef.current(parameterKey, fsName, false);
@@ -244,7 +262,7 @@ export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
     [setSystemNamespace]
   );
 
-  setSessionValueAgain(systemNamespace);
+  setSessionStorageSystemNamespace(systemNamespace);
 
   if (scLoaded && areFlagsLoaded && !scLoadError && !flagsLoadError) {
     return (
@@ -262,9 +280,9 @@ export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
             type="text"
             value={parameterValue}
             disabled={!isExternal}
-            onChange={(e) =>
-              onParamChange(parameterKey, e.currentTarget.value, false)
-            }
+            onChange={(e) => {
+              onParamChange(parameterKey, e.currentTarget.value, false);
+            }}
             placeholder={t('Enter filesystem name')}
             id="filesystem-name"
             required
@@ -284,7 +302,137 @@ export const CephFsNameComponent: React.FC<ProvisionerProps> = ({
   );
 };
 
-export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
+export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
+  parameterKey,
+  parameterValue,
+  onParamChange,
+}) => {
+  const { t } = useCustomTranslation();
+  const onParamChangeRef = React.useRef<OnParamChange>();
+  // reference of "onParamChange" changes on each re-render, hence storing in a "useRef"
+  onParamChangeRef.current = onParamChange;
+
+  const launchModal = useModal();
+
+  const [isOpen, setOpen] = React.useState(false);
+
+  const [cephClusters, cephClustersLoaded, cephClustersLoadError] =
+    useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
+
+  const { systemFlags, areFlagsLoaded, flagsLoadError, areFlagsSafe } =
+    useODFSystemFlagsSelector();
+
+  const systemNamespace = sessionStorage.getItem(CEPH_NS_SESSION_STORAGE);
+  const filesystemName = `${systemFlags[systemNamespace]?.ocsClusterName}-cephfilesystem`;
+
+  // We read pools from CephFilesystem as it's the only resource where the default pool appears
+  // (unlike in StorageCluster CR).
+  const [fsData, fsDataLoaded, fsDataLoadError] =
+    useK8sWatchResource<CephFilesystemKind>({
+      kind: referenceForModel(CephFileSystemModel),
+      isList: false,
+      name: filesystemName,
+      namespace: systemNamespace,
+    });
+
+  const cephCluster = getResourceInNs(cephClusters, systemNamespace);
+
+  const isExternal = systemFlags[systemNamespace]?.isExternalMode;
+
+  const isLoaded = areFlagsLoaded && cephClustersLoaded;
+  const loadError = flagsLoadError || cephClustersLoadError;
+
+  const handleDropdownChange = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    onParamChange(parameterKey, e.currentTarget.id, false);
+  };
+
+  const onPoolCreation = (name: string) => {
+    onParamChange(parameterKey, name, false);
+  };
+  const onPoolInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onParamChange(parameterKey, e.currentTarget.value, false);
+  };
+
+  // Collect existing pool names to check against new pool name.
+  const poolData = getStoragePoolsFromFilesystem(fsData) || [];
+  const existingNames = getExistingFsPoolNames(fsData);
+
+  if (areFlagsSafe && isLoaded && !loadError) {
+    if (!isExternal && fsDataLoaded && !fsDataLoadError) {
+      return (
+        <>
+          <div className="form-group">
+            <label className="co-required" htmlFor="ocs-storage-pool">
+              {t('Storage Pool')}
+            </label>
+            <Dropdown
+              className="dropdown--full-width"
+              toggle={
+                <DropdownToggle
+                  id="pool-dropdown-id"
+                  data-test="pool-dropdown-toggle"
+                  onToggle={() => setOpen(!isOpen)}
+                  toggleIndicator={CaretDownIcon}
+                >
+                  {parameterValue || t('Select a Pool')}
+                </DropdownToggle>
+              }
+              isOpen={isOpen}
+              dropdownItems={getPoolDropdownItems(
+                poolData,
+                cephCluster,
+                handleDropdownChange,
+                onPoolCreation,
+                launchModal,
+                t,
+                '',
+                POOL_TYPE.FILESYSTEM,
+                existingNames,
+                filesystemName
+              )}
+              onSelect={() => setOpen(false)}
+              id="ocs-storage-pool"
+            />
+            <span className="help-block">
+              {t('Storage pool into which volume data shall be stored')}
+            </span>
+          </div>
+        </>
+      );
+    }
+    if (isExternal) {
+      return (
+        <div className="form-group">
+          <label className="co-required" htmlFor="ocs-storage-pool">
+            {t('Storage Pool')}
+          </label>
+          <input
+            className="pf-v5-c-form-control"
+            type="text"
+            onChange={onPoolInput}
+            value={parameterValue}
+            placeholder={t('my-storage-pool')}
+            aria-describedby={t('pool-name-help')}
+            id="pool-name"
+            name="newPoolName"
+            required
+          />
+          <span className="help-block">
+            {t('Storage pool into which volume data shall be stored')}
+          </span>
+        </div>
+      );
+    }
+  }
+  return (
+    <StatusBox
+      loaded={isLoaded && fsDataLoaded}
+      loadError={loadError || fsDataLoadError}
+    />
+  );
+};
+
+export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
   parameterKey,
   onParamChange,
 }) => {
@@ -299,16 +447,20 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
     StoragePoolKind[]
   >(cephBlockPoolResource);
 
-  const [cephClusters, cephClusterLoaded, cephClusterLoadError] =
+  const [cephClusters, cephClustersLoaded, cephClustersLoadError] =
     useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
 
   const [isOpen, setOpen] = React.useState(false);
   const [poolName, setPoolName] = React.useState('');
   const [systemNamespace, setSystemNamespace] = React.useState<string>();
 
-  const poolData = poolsData.filter(
+  const filteredPools = poolsData?.filter(
     (pool) => getNamespace(pool) === systemNamespace
   );
+
+  // Collect existing pool names to check against new pool name.
+  const poolData = getStoragePoolsFromBlockPools(filteredPools) || [];
+  const existingNames = getExistingBlockPoolNames(poolData);
 
   const cephCluster = getResourceInNs(cephClusters, systemNamespace);
 
@@ -319,7 +471,7 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
   // Get the default deviceClass required by the 'create' modal.
   const poolNs = getNamespace(cephCluster);
   const defaultPoolName = `${systemFlags[poolNs]?.ocsClusterName}-cephblockpool`;
-  const defaultPool = poolData.find(
+  const defaultPool = filteredPools.find(
     (pool: StoragePoolKind) => pool.metadata.name === defaultPoolName
   );
   const defaultDeviceClass = defaultPool?.spec?.deviceClass || '';
@@ -350,7 +502,7 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
     [setSystemNamespace, setPoolName, parameterKey]
   );
 
-  setSessionValueAgain(systemNamespace);
+  setSessionStorageSystemNamespace(systemNamespace);
 
   if (areFlagsSafe && !isExternal) {
     return (
@@ -385,7 +537,9 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
                   onPoolCreation,
                   launchModal,
                   t,
-                  defaultDeviceClass
+                  defaultDeviceClass,
+                  POOL_TYPE.BLOCK,
+                  existingNames
                 )}
                 onSelect={() => setOpen(false)}
                 id="ocs-storage-pool"
@@ -396,11 +550,11 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
             </div>
           </>
         )}
-        {(poolDataLoadError || cephClusterLoadError || flagsLoadError) && (
+        {(poolDataLoadError || cephClustersLoadError || flagsLoadError) && (
           <Alert
             className="co-alert"
             variant="danger"
-            title={t('Error retrieving Parameters')}
+            title={t('Error retrieving parameters')}
             isInline
           />
         )}
@@ -438,8 +592,8 @@ export const PoolResourceComponent: React.FC<ProvisionerProps> = ({
   }
   return (
     <StatusBox
-      loadError={cephClusterLoadError || poolDataLoadError || flagsLoadError}
-      loaded={cephClusterLoaded && poolDataLoaded && areFlagsLoaded}
+      loadError={cephClustersLoadError || poolDataLoadError || flagsLoadError}
+      loaded={cephClustersLoaded && poolDataLoaded && areFlagsLoaded}
     />
   );
 };

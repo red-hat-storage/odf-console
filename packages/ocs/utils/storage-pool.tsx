@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { ModalKeys } from '@odf/shared/modals/types';
-import { StorageClassResourceKind } from '@odf/shared/types';
+import { getName } from '@odf/shared/selectors';
+import {
+  StorageClassResourceKind,
+  StorageClusterKind,
+} from '@odf/shared/types';
 import { getLastLanguage } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import {
@@ -9,9 +13,14 @@ import {
   ExclamationCircleIcon,
   LockIcon,
 } from '@patternfly/react-icons';
-import { POOL_PROGRESS, ROOK_MODEL } from '../constants';
+import {
+  POOL_FS_DEFAULT,
+  POOL_PROGRESS,
+  POOL_TYPE,
+  ROOK_MODEL,
+} from '../constants';
 import { StorageClusterModel } from '../models';
-import { StoragePoolKind } from '../types';
+import { CephFilesystemKind, StoragePool, StoragePoolKind } from '../types';
 import { LoadingComponent } from './CustomLoading';
 
 export const twelveHoursdateTimeNoYear = new Intl.DateTimeFormat(
@@ -27,10 +36,19 @@ export const twelveHoursdateTimeNoYear = new Intl.DateTimeFormat(
 
 export const getScNamesUsingPool = (
   scResources: StorageClassResourceKind[],
-  poolName: string
+  pool: StoragePool
 ): string[] =>
   scResources?.reduce((scList, sc) => {
-    if (sc.parameters?.pool === poolName) scList.push(sc.metadata?.name);
+    const poolName = getName(pool);
+    if (
+      sc.parameters?.pool === poolName ||
+      (pool.type === POOL_TYPE.FILESYSTEM &&
+        sc.parameters?.fsName === pool.fsName &&
+        !sc.parameters?.pool &&
+        pool.shortName === POOL_FS_DEFAULT)
+    ) {
+      scList.push(sc.metadata?.name);
+    }
     return scList;
   }, []);
 
@@ -43,20 +61,17 @@ export const getPerPoolMetrics = (metrics, error, isLoading) =>
       )
     : {};
 
-export const isDefaultPool = (blockPoolConfig: StoragePoolKind): boolean =>
-  !!blockPoolConfig?.metadata.ownerReferences?.find(
+export const isDefaultPool = (pool: StoragePool): boolean => {
+  if (pool?.type === POOL_TYPE.FILESYSTEM) {
+    return pool?.metadata?.name === `${pool?.fsName}-${POOL_FS_DEFAULT}`;
+  }
+  return !!pool?.metadata.ownerReferences?.find(
     (ownerReference) => ownerReference.kind === StorageClusterModel.kind
   );
+};
 
-export const disableMenuAction = (
-  blockPoolConfig: StoragePoolKind,
-  isExternal: boolean
-) =>
-  !!(
-    blockPoolConfig?.metadata?.deletionTimestamp ||
-    isExternal ||
-    isDefaultPool(blockPoolConfig)
-  );
+export const disableMenuAction = (pool: StoragePool, isExternal: boolean) =>
+  !!(pool?.metadata?.deletionTimestamp || isExternal || isDefaultPool(pool));
 
 export const getErrorMessage = (error: string): string =>
   error.replace(ROOK_MODEL, 'Pool');
@@ -133,13 +148,64 @@ export const PROGRESS_STATUS = (
 
 export const customActionsMap = {
   [ModalKeys.DELETE]: React.lazy(
-    () => import('../modals/block-pool/delete-block-pool-modal')
+    () => import('../modals/storage-pool/delete-storage-pool-modal')
   ),
   [ModalKeys.EDIT_RES]: React.lazy(
-    () => import('../modals/block-pool/update-block-pool-modal')
+    () => import('../modals/storage-pool/update-storage-pool-modal')
   ),
 };
 
 export type PoolMetrics = {
   [poolName: string]: string;
 };
+
+export const getStoragePoolsFromFilesystem = (
+  fs: CephFilesystemKind
+): StoragePool[] => {
+  const fsName = fs?.metadata?.name;
+  return fs?.spec?.dataPools?.map((dataPool) => {
+    return {
+      fsName,
+      // The default pool doesn't have the 'name' property set.
+      metadata: {
+        name: dataPool.name
+          ? `${fsName}-${dataPool.name}`
+          : `${fsName}-${POOL_FS_DEFAULT}`,
+        namespace: fs?.metadata?.namespace,
+      },
+      spec: {
+        compressionMode: dataPool?.compressionMode,
+        replicated: dataPool?.replicated,
+      },
+      status: { phase: fs.status?.phase },
+      shortName: dataPool.name ?? POOL_FS_DEFAULT,
+      type: POOL_TYPE.FILESYSTEM,
+    } as StoragePool;
+  });
+};
+
+export const getStoragePoolsFromBlockPools = (
+  blockPools: StoragePoolKind[]
+): StoragePool[] => {
+  return blockPools?.map((pool) => {
+    pool['type'] = POOL_TYPE.BLOCK;
+    return pool as StoragePool;
+  });
+};
+
+export const getExistingFsPoolNames = (fsData: CephFilesystemKind): string[] =>
+  fsData?.spec?.dataPools?.map((dataPool) => {
+    return dataPool.name ?? POOL_FS_DEFAULT;
+  });
+
+export const getExistingBlockPoolNames = (
+  blockPools: StoragePoolKind[]
+): string[] => blockPools?.map((pool) => pool.metadata?.name);
+
+export const getFsPoolIndex = (
+  storageCluster: StorageClusterKind,
+  poolName: string
+) =>
+  storageCluster.spec.managedResources?.cephFilesystems?.additionalDataPools.findIndex(
+    (additionalPool) => additionalPool.name === poolName
+  );

@@ -36,6 +36,8 @@ export type TextInputWithFieldRequirementsProps = {
     disabled?: boolean;
   };
   popoverProps: Omit<PopoverProps, 'bodyContent'>;
+  infoElement?: JSX.Element;
+  inputPrefixElement?: JSX.Element;
 };
 
 export type ValidationIconProp = {
@@ -74,6 +76,8 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
     popoverProps,
     defaultValue = '',
     helperText,
+    infoElement,
+    inputPrefixElement,
   }) => {
     const {
       field: { name, value, onChange, onBlur },
@@ -123,60 +127,65 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
 
     return (
       <FormGroup {...formGroupProps}>
-        <InputGroup
-          data-test="field-requirements-input-group"
-          className={cn(
-            'rich-input__group',
-            error && 'rich-input__group--invalid',
-            !error && (isDirty || isSubmitted) && 'rich-input__group--success'
-          )}
-          translate={undefined}
-        >
-          <InputGroupItem isFill>
-            <TextInput
-              {...textInputProps}
-              name={name}
-              value={value}
-              className={cn('rich-input__text', textInputProps?.className)}
-              onBlur={handleInputBlur}
-              onFocus={() => setIsVisible(true)}
-              onClick={() => setIsVisible(true)}
-              onChange={handleInputChange}
-            />
-          </InputGroupItem>
-          <InputGroupItem>
-            <Popover
-              data-test="field-requirements-popover"
-              position={PopoverPosition.top}
-              isVisible={isVisible}
-              shouldOpen={() => setIsVisible(true)}
-              shouldClose={() => setIsVisible(false)}
-              bodyContent={
-                <HelperText component="ul">
-                  {Object.keys(state.fieldRequirements).map((rule) => {
-                    return (
-                      <HelperTextItem
-                        isDynamic
-                        variant={state.fieldRequirements[rule]}
-                        component="li"
-                        key={rule}
-                      >
-                        {rule}
-                      </HelperTextItem>
-                    );
-                  })}
-                </HelperText>
-              }
-              {...popoverProps}
-            >
-              <Button variant="plain" aria-label="Validation" tabIndex={-1}>
-                <Icon status={getVariant(validated)}>
-                  {getStatusIcon(validated)}
-                </Icon>
-              </Button>
-            </Popover>
-          </InputGroupItem>
-        </InputGroup>
+        {infoElement}
+        <div className="field-requirements-input-section">
+          {inputPrefixElement}
+          <InputGroup
+            data-test="field-requirements-input-group"
+            className={cn(
+              'rich-input__group',
+              error && 'rich-input__group--invalid',
+              !error && (isDirty || isSubmitted) && 'rich-input__group--success'
+            )}
+            translate={undefined}
+          >
+            <InputGroupItem isFill>
+              <TextInput
+                {...textInputProps}
+                name={name}
+                value={value}
+                className={cn('rich-input__text', textInputProps?.className)}
+                onBlur={handleInputBlur}
+                onFocus={() => setIsVisible(true)}
+                onClick={() => setIsVisible(true)}
+                onChange={handleInputChange}
+                onKeyUp={onBlur /*Required for avoiding outdated validations.*/}
+              />
+            </InputGroupItem>
+            <InputGroupItem>
+              <Popover
+                data-test="field-requirements-popover"
+                position={PopoverPosition.top}
+                isVisible={isVisible}
+                shouldOpen={() => setIsVisible(true)}
+                shouldClose={() => setIsVisible(false)}
+                bodyContent={
+                  <HelperText component="ul">
+                    {Object.keys(state.fieldRequirements).map((rule) => {
+                      return (
+                        <HelperTextItem
+                          isDynamic
+                          variant={state.fieldRequirements[rule]}
+                          component="li"
+                          key={rule}
+                        >
+                          {rule}
+                        </HelperTextItem>
+                      );
+                    })}
+                  </HelperText>
+                }
+                {...popoverProps}
+              >
+                <Button variant="plain" aria-label="Validation" tabIndex={-1}>
+                  <Icon status={getVariant(validated)}>
+                    {getStatusIcon(validated)}
+                  </Icon>
+                </Button>
+              </Popover>
+            </InputGroupItem>
+          </InputGroup>
+        </div>
         <FormHelperText>
           <HelperText>
             <HelperTextItem variant={validated}>{helperText}</HelperTextItem>
