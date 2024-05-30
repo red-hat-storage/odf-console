@@ -18,9 +18,11 @@ import {
   createNode,
   defaultLayoutFactory,
   stylesComponentFactory,
+  TopologyViewLevel,
+} from '@odf/shared/topology';
+import {
   TopologyDataContext,
   TopologySearchContext,
-  TopologyViewLevel,
 } from '@odf/shared/topology';
 import {
   ClusterServiceVersionKind,
@@ -97,6 +99,151 @@ import './topology.scss';
 type SideBarProps = {
   onClose: any;
   isExpanded: boolean;
+};
+
+const Error = ({ error }) => <>{error}</>;
+
+const TopologyDataProvider: React.FC<{
+  children: React.ReactNode;
+  visualizationLevel: TopologyViewLevel;
+  activeNode: string;
+  setActiveNode: React.Dispatch<React.SetStateAction<string>>;
+}> = ({ children, visualizationLevel, activeNode, setActiveNode }) => {
+  const [nodes, nodesLoaded, nodesError] =
+    useK8sWatchResource<NodeKind[]>(nodeResource);
+  const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
+    useODFNamespaceSelector();
+  const [storageClusters, storageClustersLoaded, storageClustersError] =
+    useK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
+  const [selectedElement, setSelectedElement] =
+    React.useState<GraphElement | null>(null);
+
+  // ToDo (epic 4422): This will work as Internal mode cluster will only be created in ODF install namespace.
+  // Still, make this generic so that this works even if it gets created in a different namespace.
+  const storageCluster = getStorageClusterInNs(storageClusters, odfNamespace);
+  const storageLabel = cephStorageLabel(odfNamespace);
+  const odfNodes = nodes.filter((node) =>
+    _.has(node.metadata.labels, storageLabel)
+  );
+
+  const [deployments, deploymentsLoaded, deploymentsError] =
+    useSafeK8sWatchResource<DeploymentKind[]>(odfDeploymentsResource);
+
+  const [pods, podsLoaded, podsError] =
+    useSafeK8sWatchResource<PodKind[]>(odfPodsResource);
+
+  const [statefulSets, statefulSetLoaded, statefulSetError] =
+    useSafeK8sWatchResource<K8sResourceCommon[]>(odfStatefulSetResource);
+
+  const [replicaSets, replicaSetsLoaded, replicaSetsError] =
+    useSafeK8sWatchResource<K8sResourceCommon[]>(odfReplicaSetResource);
+
+  const [daemonSets, daemonSetsLoaded, daemonSetError] =
+    useSafeK8sWatchResource<K8sResourceCommon[]>(odfDaemonSetResource);
+
+  const memoizedNodes = useDeepCompareMemoize(odfNodes, true);
+  const memoizedDeployments = useDeepCompareMemoize(deployments, true);
+  const memoizedPods = useDeepCompareMemoize(pods, true);
+  const memoizedStatefulSets = useDeepCompareMemoize(statefulSets, true);
+  const memoizedReplicaSets = useDeepCompareMemoize(replicaSets, true);
+  const memoizedDaemonSets = useDeepCompareMemoize(daemonSets, true);
+  const zones = memoizedNodes.map(getTopologyDomain);
+
+  const nodeDeploymentMap = React.useMemo(
+    () =>
+      generateNodeDeploymentsMap(
+        memoizedNodes,
+        memoizedPods,
+        memoizedDeployments,
+        ...memoizedReplicaSets,
+        ...memoizedDaemonSets,
+        ...memoizedStatefulSets,
+        ...memoizedDeployments
+      ),
+    [
+      memoizedDaemonSets,
+      memoizedDeployments,
+      memoizedNodes,
+      memoizedPods,
+      memoizedReplicaSets,
+      memoizedStatefulSets,
+    ]
+  );
+
+  const value = {
+    nodes: memoizedNodes,
+    storageCluster,
+    zones: zones,
+    deployments: memoizedDeployments,
+    visualizationLevel: visualizationLevel,
+    activeNode,
+    setActiveNode,
+    nodeDeploymentMap,
+    selectedElement,
+    setSelectedElement,
+  };
+
+  const loading =
+    !nodesLoaded ||
+    !storageClustersLoaded ||
+    !deploymentsLoaded ||
+    !podsLoaded ||
+    !statefulSetLoaded ||
+    !replicaSetsLoaded ||
+    !daemonSetsLoaded ||
+    !isODFNsLoaded;
+
+  const error =
+    deploymentsError ||
+    podsError ||
+    statefulSetError ||
+    replicaSetsError ||
+    daemonSetError;
+
+  return (
+    <>
+      {loading || error ? (
+        <HandleErrorAndLoading
+          loading={loading}
+          error={
+            storageClustersError ||
+            nodesError ||
+            deploymentsError ||
+            podsError ||
+            replicaSetsError ||
+            daemonSetError ||
+            statefulSetError ||
+            odfNsLoadError
+          }
+          ErrorMessage={Error}
+        />
+      ) : (
+        <TopologyDataContext.Provider value={value}>
+          {children}
+        </TopologyDataContext.Provider>
+      )}
+    </>
+  );
+};
+
+const TopologySearchProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [activeItemsUID, setActiveItemsUID] = React.useState<string[]>([]);
+  const [activeItem, setActiveItem] = React.useState<string>('');
+
+  const value = {
+    activeItemsUID,
+    setActiveItemsUID,
+    activeItem,
+    setActiveItem,
+  };
+
+  return (
+    <TopologySearchContext.Provider value={value}>
+      {children}
+    </TopologySearchContext.Provider>
+  );
 };
 
 const Sidebar: React.FC<SideBarProps> = ({ onClose, isExpanded }) => {
@@ -458,81 +605,11 @@ const TopologyViewComponent: React.FC = () => {
   );
 };
 
-const Error = ({ error }) => <>{error}</>;
-
 const Topology: React.FC = () => {
-  const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
-    useODFNamespaceSelector();
-
   const [controller, setController] = React.useState<Visualization>(null);
   const [visualizationLevel, setVisualizationLevel] =
     React.useState<TopologyViewLevel>(TopologyViewLevel.NODES);
-  const [activeItemsUID, setActiveItemsUID] = React.useState<string[]>([]);
-  const [activeItem, setActiveItem] = React.useState<string>('');
   const [activeNode, setActiveNode] = React.useState('');
-  const [selectedElement, setSelectedElement] =
-    React.useState<GraphElement>(null);
-
-  const [nodes, nodesLoaded, nodesError] =
-    useK8sWatchResource<NodeKind[]>(nodeResource);
-
-  const [storageClusters, storageClustersLoaded, storageClustersError] =
-    useK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
-
-  const [deployments, deploymentsLoaded, deploymentsError] =
-    useSafeK8sWatchResource<DeploymentKind[]>(odfDeploymentsResource);
-
-  const [pods, podsLoaded, podsError] =
-    useSafeK8sWatchResource<PodKind[]>(odfPodsResource);
-
-  const [statefulSets, statefulSetLoaded, statefulSetError] =
-    useSafeK8sWatchResource<K8sResourceCommon[]>(odfStatefulSetResource);
-
-  const [replicaSets, replicaSetsLoaded, replicaSetsError] =
-    useSafeK8sWatchResource<K8sResourceCommon[]>(odfReplicaSetResource);
-
-  const [daemonSets, daemonSetsLoaded, daemonSetError] =
-    useSafeK8sWatchResource<K8sResourceCommon[]>(odfDaemonSetResource);
-
-  // ToDo (epic 4422): This will work as Internal mode cluster will only be created in ODF install namespace.
-  // Still, make this generic so that this works even if it gets created in a different namespace.
-  const storageCluster: StorageClusterKind = getStorageClusterInNs(
-    storageClusters,
-    odfNamespace
-  );
-
-  const storageLabel = cephStorageLabel(odfNamespace);
-  const odfNodes = nodes.filter((node) =>
-    _.has(node.metadata.labels, storageLabel)
-  );
-
-  const memoizedNodes = useDeepCompareMemoize(odfNodes, true);
-  const memoizedDeployments = useDeepCompareMemoize(deployments, true);
-  const memoizedPods = useDeepCompareMemoize(pods, true);
-  const memoizedStatefulSets = useDeepCompareMemoize(statefulSets, true);
-  const memoizedReplicaSets = useDeepCompareMemoize(replicaSets, true);
-  const memoizedDaemonSets = useDeepCompareMemoize(daemonSets, true);
-
-  const nodeDeploymentMap = React.useMemo(
-    () =>
-      generateNodeDeploymentsMap(
-        memoizedNodes,
-        memoizedPods,
-        memoizedDeployments,
-        ...memoizedReplicaSets,
-        ...memoizedDaemonSets,
-        ...memoizedStatefulSets,
-        ...memoizedDeployments
-      ),
-    [
-      memoizedDaemonSets,
-      memoizedDeployments,
-      memoizedNodes,
-      memoizedPods,
-      memoizedReplicaSets,
-      memoizedStatefulSets,
-    ]
-  );
 
   const onStepInto = (args) => {
     const nodeName = args.label;
@@ -559,59 +636,21 @@ const Topology: React.FC = () => {
     };
   }, []);
 
-  const loading =
-    !nodesLoaded ||
-    !storageClustersLoaded ||
-    !deploymentsLoaded ||
-    !podsLoaded ||
-    !statefulSetLoaded ||
-    !replicaSetsLoaded ||
-    !daemonSetsLoaded ||
-    !isODFNsLoaded;
-
-  const zones = memoizedNodes.map(getTopologyDomain);
-
   return (
-    <TopologyDataContext.Provider
-      value={{
-        nodes: memoizedNodes,
-        storageCluster: storageCluster,
-        zones,
-        deployments: memoizedDeployments,
-        visualizationLevel: visualizationLevel,
-        activeNode,
-        setActiveNode,
-        nodeDeploymentMap,
-        selectedElement,
-        setSelectedElement: setSelectedElement as any,
-      }}
+    <TopologyDataProvider
+      visualizationLevel={visualizationLevel}
+      activeNode={activeNode}
+      setActiveNode={setActiveNode}
     >
-      <TopologySearchContext.Provider
-        value={{ activeItemsUID, setActiveItemsUID, activeItem, setActiveItem }}
-      >
+      <TopologySearchProvider>
         <VisualizationProvider controller={controller}>
           <div className="odf__topology-view" id="odf-topology">
             <TopologyTopBar />
-            <HandleErrorAndLoading
-              loading={loading}
-              error={
-                storageClustersError ||
-                nodesError ||
-                deploymentsError ||
-                podsError ||
-                replicaSetsError ||
-                daemonSetError ||
-                statefulSetError ||
-                odfNsLoadError
-              }
-              ErrorMessage={Error}
-            >
-              <TopologyViewComponent />
-            </HandleErrorAndLoading>
+            <TopologyViewComponent />
           </div>
         </VisualizationProvider>
-      </TopologySearchContext.Provider>
-    </TopologyDataContext.Provider>
+      </TopologySearchProvider>
+    </TopologyDataProvider>
   );
 };
 
