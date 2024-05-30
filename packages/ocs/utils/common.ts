@@ -5,6 +5,7 @@ import {
   NooBaaBucketClassModel,
   NooBaaObjectBucketClaimModel,
 } from '@odf/core/models';
+import { PVC_STATUS } from '@odf/shared/constants';
 import {
   PersistentVolumeClaimModel,
   PersistentVolumeModel,
@@ -24,13 +25,11 @@ import * as _ from 'lodash-es';
 import { compose } from 'redux';
 import { OCS_STORAGECLASS_PARAMS } from '../constants';
 
-const enum Status {
-  BOUND = 'Bound',
-  AVAILABLE = 'Available',
-}
-const isBound = (pvc: K8sResourceKind) => pvc.status.phase === Status.BOUND;
 const getPVStorageClass = (pv: K8sResourceKind): string =>
   pv?.spec?.storageClassName;
+
+const isBound = (pvc: PersistentVolumeClaimKind): boolean =>
+  pvc?.status?.phase === PVC_STATUS.BOUND;
 
 export const cephStorageProvisioners = [
   'ceph.rook.io/block',
