@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-  useODFNamespaceSelector,
-  useODFSystemFlagsSelector,
-} from '@odf/core/redux';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { getSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import {
@@ -22,6 +19,7 @@ import {
 import { Select, SelectProps } from '@patternfly/react-core/deprecated';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import { useStorageClassQueryFilter } from '../../hooks';
 import { getBreakdownMetricsQuery } from '../../queries';
 import { ODFSystemParams } from '../../types';
 import { getStackChartStats } from '../../utils/metrics';
@@ -31,7 +29,6 @@ import {
   TitleWithHelp,
 } from '../persistent-internal/capacity-breakdown-card/capacity-breakdown-card';
 import '../persistent-internal/capacity-breakdown-card/capacity-breakdown-card.scss';
-import getClientFallback from './client-fallback';
 
 export const BreakdownCard: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -43,15 +40,13 @@ export const BreakdownCard: React.FC = () => {
 
   const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { odfNamespace } = useODFNamespaceSelector();
-  const { systemFlags } = useODFSystemFlagsSelector();
 
-  // name of created StorageClasses are prefix by StorageCluster name
-  const storageClassName = systemFlags?.[clusterNs]?.ocsClusterName;
-  const storageClassNamePrefix = getClientFallback(storageClassName);
+  const [scQueryfilter, scQueryfilterLoaded, scQueryfilterError] =
+    useStorageClassQueryFilter(clusterNs);
 
   const { queries, model, metric } = getBreakdownMetricsQuery(
     metricType,
-    storageClassNamePrefix,
+    scQueryfilter,
     pvcNamespace,
     true
   );
@@ -70,8 +65,9 @@ export const BreakdownCard: React.FC = () => {
     }
   );
 
-  const queriesLoadError = byUsedError || totalUsedError;
-  const queriesDataLoaded = !byUsedLoading && !totalUsedLoading;
+  const queriesLoadError = byUsedError || totalUsedError || scQueryfilterError;
+  const queriesDataLoaded =
+    !byUsedLoading && !totalUsedLoading && scQueryfilterLoaded;
 
   const humanize = humanizeBinaryBytes;
   const top6MetricsData = getInstantVectorStats(byUsed, metric);
