@@ -9,17 +9,28 @@ import {
   PersistentVolumeClaimModel,
   PersistentVolumeModel,
 } from '@odf/shared/models';
-import { getNamespace } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   NodeKind,
   HumanizeResult,
   K8sResourceKind,
   StorageClassResourceKind,
   StorageClusterKind,
+  PersistentVolumeClaimKind,
 } from '@odf/shared/types';
 import { DataPoint, humanizePercentage } from '@odf/shared/utils';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
 import * as _ from 'lodash-es';
+import { compose } from 'redux';
+import { OCS_STORAGECLASS_PARAMS } from '../constants';
+
+const enum Status {
+  BOUND = 'Bound',
+  AVAILABLE = 'Available',
+}
+const isBound = (pvc: K8sResourceKind) => pvc.status.phase === Status.BOUND;
+const getPVStorageClass = (pv: K8sResourceKind): string =>
+  pv?.spec?.storageClassName;
 
 export const cephStorageProvisioners = [
   'ceph.rook.io/block',
@@ -75,14 +86,29 @@ export const isPersistentStorageEvent =
       : eventNamespace === ns;
   };
 
+// All Ceph based StorageClasses (across multiple Ceph clusters)
 export const getCephSC = (
-  scData: StorageClassResourceKind[]
-): K8sResourceKind[] =>
+  scData: StorageClassResourceKind[] = []
+): StorageClassResourceKind[] =>
   scData.filter((sc) => {
     return cephStorageProvisioners.some((provisioner: string) =>
       (sc?.provisioner).includes(provisioner)
     );
   });
+
+// All Ceph based StorageClasses from a particular Ceph cluster (multiple StorageSystem/StorageCluster scenario)
+export const filterCephSCByCluster: (
+  scData: StorageClassResourceKind[],
+  clusterNs: string
+) => StorageClassResourceKind[] = compose(
+  getCephSC,
+  (scData: StorageClassResourceKind[] = [], clusterNs: string) =>
+    scData.filter((sc) =>
+      OCS_STORAGECLASS_PARAMS.some(
+        (param: string) => sc.parameters?.[param] === clusterNs
+      )
+    )
+);
 
 export const getCephNodes = (
   nodesData: NodeKind[] = [],
@@ -94,33 +120,51 @@ export const getCephNodes = (
   );
 };
 
+// All Ceph based PVs (across multiple Ceph clusters)
 export const getCephPVs = (
   pvsData: K8sResourceKind[] = []
 ): K8sResourceKind[] =>
   pvsData.filter((pv) => {
     return cephStorageProvisioners.some((provisioner: string) =>
       (
-        pv?.metadata?.annotations?.['pv.kubernetes.io/provisioned-by'] ?? ''
+        pv?.metadata?.annotations?.['pv.kubernetes.io/provisioned-by'] ||
+        pv?.spec?.csi?.driver ||
+        ''
       ).includes(provisioner)
     );
   });
 
-const enum Status {
-  BOUND = 'Bound',
-  AVAILABLE = 'Available',
-}
-const isBound = (pvc: K8sResourceKind) => pvc.status.phase === Status.BOUND;
-const getPVStorageClass = (pv: K8sResourceKind) => pv?.spec?.storageClassName;
+// All Ceph based PVs from a particular Ceph cluster (multiple StorageSystem/StorageCluster scenario)
+export const filterCephPVsByCluster: (
+  pvsData: K8sResourceKind[],
+  scData: StorageClassResourceKind[],
+  clusterNs: string
+) => K8sResourceKind[] = compose(
+  getCephPVs,
+  (
+    pvsData: K8sResourceKind[] = [],
+    scData: StorageClassResourceKind[] = [],
+    clusterNs: string
+  ) => {
+    const filteredCephSCNames = new Set(
+      filterCephSCByCluster(scData, clusterNs)?.map(getName)
+    );
+    return pvsData.filter((pv) =>
+      filteredCephSCNames.has(getPVStorageClass(pv))
+    );
+  }
+);
 
-export const getStorageClassName = (pvc: K8sResourceKind) =>
+export const getStorageClassName = (pvc: PersistentVolumeClaimKind): string =>
   pvc?.spec?.storageClassName ||
   pvc?.metadata?.annotations?.['volume.beta.kubernetes.io/storage-class'];
 
+// All Ceph based PVCs (across multiple Ceph clusters)
 export const getCephPVCs = (
   cephSCNames: string[] = [],
-  pvcsData: K8sResourceKind[] = [],
+  pvcsData: PersistentVolumeClaimKind[] = [],
   pvsData: K8sResourceKind[] = []
-): K8sResourceKind[] => {
+): PersistentVolumeClaimKind[] => {
   const cephPVs = getCephPVs(pvsData);
   const cephSCNameSet = new Set<string>([
     ...cephSCNames,
@@ -129,13 +173,26 @@ export const getCephPVCs = (
   const cephBoundPVCUIDSet = new Set<string>(
     _.map(cephPVs, 'spec.claimRef.uid')
   );
-  // If the PVC is bound use claim uid(links PVC to PV) else storage class to verify it's provisioned by ceph.
-  return pvcsData.filter((pvc: K8sResourceKind) =>
+  // If the PVC is bound use claim uid (links PVC to PV) else storage class to verify it's provisioned by ceph.
+  return pvcsData.filter((pvc: PersistentVolumeClaimKind) =>
     isBound(pvc)
       ? cephBoundPVCUIDSet.has(pvc.metadata.uid)
       : cephSCNameSet.has(getStorageClassName(pvc))
   );
 };
+
+// All Ceph based PVCs from a particular Ceph cluster (multiple StorageSystem/StorageCluster scenario)
+export const filterCephPVCsByCluster = (
+  scData: StorageClassResourceKind[] = [],
+  pvcsData: PersistentVolumeClaimKind[] = [],
+  pvsData: K8sResourceKind[] = [],
+  clusterNs: string
+): PersistentVolumeClaimKind[] =>
+  getCephPVCs(
+    filterCephSCByCluster(scData, clusterNs)?.map(getName),
+    pvcsData,
+    filterCephPVsByCluster(pvsData, scData, clusterNs)
+  );
 
 export const decodeRGWPrefix = (secretData: K8sResourceKind) => {
   try {
