@@ -25,7 +25,13 @@ import {
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { Button, Icon, Popover, PopoverPosition } from '@patternfly/react-core';
+import * as _ from 'lodash-es';
+import {
+  Button,
+  ButtonVariant,
+  Popover,
+  PopoverPosition,
+} from '@patternfly/react-core';
 import { TrashIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
 import { StorageConsumerModel } from '../../models';
@@ -172,7 +178,9 @@ const LastHeartBeat: React.FC<LastHeartBeatProps> = ({ heartbeat }) => {
     }
     return null;
   })();
-  return (
+  return _.isEmpty(heartbeat) ? (
+    <>-</>
+  ) : (
     <span>
       {Component && <Component />}
       &nbsp;
@@ -197,6 +205,9 @@ const DataFoudationVersion: React.FC<DataFoundationVersionProps> = ({
   const isVersionMismatch =
     getMajorMinorVersion(clientVersion) !==
     getMajorMinorVersion(currentVersion);
+  if (_.isEmpty(clientVersion)) {
+    return <>-</>;
+  }
   return isVersionMismatch ? (
     <Popover
       position={PopoverPosition.top}
@@ -247,19 +258,20 @@ const StorageClientRow: React.FC<
         setAllowDeletion(false);
       }
     };
+    setter();
     const id = setInterval(setter, 10000);
     return () => clearInterval(id);
-  });
+  }, [allowDeletion, setAllowDeletion, obj?.status?.lastHeartbeat]);
   return (
     <>
       <TableData {...tableColumns[0]} activeColumnIDs={activeColumnIDs}>
-        {obj?.status?.client?.name}
+        {obj?.status?.client?.name || '-'}
       </TableData>
       <TableData {...tableColumns[1]} activeColumnIDs={activeColumnIDs}>
-        {obj?.status?.client?.clusterId}
+        {obj?.status?.client?.clusterId || '-'}
       </TableData>
       <TableData {...tableColumns[2]} activeColumnIDs={activeColumnIDs}>
-        {getOpenshiftVersion(obj)}
+        {getOpenshiftVersion(obj) || '-'}
       </TableData>
       <TableData {...tableColumns[3]} activeColumnIDs={activeColumnIDs}>
         <DataFoudationVersion obj={obj} currentVersion={currentVersion} />
@@ -268,9 +280,13 @@ const StorageClientRow: React.FC<
         <LastHeartBeat heartbeat={obj?.status?.lastHeartbeat} />
       </TableData>
       <TableData {...tableColumns[5]} activeColumnIDs={activeColumnIDs}>
-        <Icon disabled={allowDeletion} onClick={() => deleteClient(obj)}>
+        <Button
+          onClick={() => deleteClient(obj)}
+          variant={ButtonVariant.plain}
+          isDisabled={!allowDeletion}
+        >
           <TrashIcon />
-        </Icon>
+        </Button>
       </TableData>
     </>
   );
