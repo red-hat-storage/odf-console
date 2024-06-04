@@ -18,10 +18,7 @@ import { ConfigMapModel } from '@odf/shared/models';
 import { ConfigMapKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInstantVectorStats, humanizeBinaryBytes } from '@odf/shared/utils';
-import {
-  PrometheusResponse,
-  useK8sWatchResource,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
@@ -45,31 +42,8 @@ import { ODFSystemParams } from '../../../types';
 
 const parser = compose((val) => val?.[0]?.y, getInstantVectorStats);
 
-const calculateDaysUp = (response: PrometheusResponse): number | null => {
-  if (!response.data?.result?.length) {
-    return null;
-  }
-
-  let minTimestamp: number;
-  let maxTimestamp: number = 0;
-
-  for (const promResult of response.data.result) {
-    if (!promResult.values?.length) {
-      // eslint-disable-next-line no-continue
-      continue;
-    }
-
-    const timestamps: number[] = promResult.values.map(
-      ([timestamp, _value]) => timestamp
-    );
-
-    minTimestamp = Math.min(...timestamps, minTimestamp ?? timestamps[0]);
-    maxTimestamp = Math.max(...timestamps, maxTimestamp);
-  }
-
-  const timeDifferenceSecond: number = maxTimestamp - (minTimestamp || 0);
-
-  const daysPassed: number = timeDifferenceSecond / (60 * 60 * 24);
+const calculateDaysUp = (timespan: number): number | null => {
+  const daysPassed: number = timespan / (60 * 60 * 24);
 
   // Rounding up to one decimal place if days passed is less than half a day
   if (daysPassed < 0.5) {
@@ -149,7 +123,7 @@ const CapacityTrendCard: React.FC = () => {
 
   let daysUp: number;
   if (!loading && !loadError) {
-    daysUp = calculateDaysUp(uptime);
+    daysUp = calculateDaysUp(parser(uptime));
   }
 
   const totalUtilMetric = parser(totalUtil);
