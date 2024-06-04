@@ -28,6 +28,7 @@ import {
 } from '@odf/core/types';
 import { getResourceInNs } from '@odf/core/utils';
 import { CephBlockPoolModel } from '@odf/ocs/models';
+import { TechPreviewBadge } from '@odf/shared/badges';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox } from '@odf/shared/generic/status-box';
@@ -535,6 +536,11 @@ const ExistingKMSDropDown: React.FC<ExistingKMSDropDownProps> = ({
             onClick={handleProviderDropdownChange}
           >
             {providerDetails.group}
+            {providerName === ProviderNames.AZURE && (
+              <span className="pf-v5-u-ml-sm">
+                <TechPreviewBadge />
+              </span>
+            )}
           </DropdownItem>
         );
       return res;
