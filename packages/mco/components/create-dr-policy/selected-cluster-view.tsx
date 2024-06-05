@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { REPLICATION_TYPE } from '@odf/mco/constants';
 import { parseNamespaceName } from '@odf/mco/utils';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -17,38 +16,32 @@ import './create-dr-policy.scss';
 type SelectedClusterProps = {
   id: number;
   cluster: ManagedClusterInfoType;
-  replicationType: REPLICATION_TYPE;
 };
 
-export const checkForErrors = (
-  clusters: ManagedClusterInfoType[],
-  replicationType: REPLICATION_TYPE
-) =>
+export const checkForErrors = (clusters: ManagedClusterInfoType[]) =>
   clusters.some((cluster) => {
     const { isManagedClusterAvailable, odfInfo } = cluster;
-    const { cephFSID, isDROptimized, storageSystemNamespacedName } =
+    const { cephFSID, storageSystemNamespacedName } =
       odfInfo.storageClusterInfo;
     const [storageSystemName] = parseNamespaceName(storageSystemNamespacedName);
     return (
       !isManagedClusterAvailable ||
       !odfInfo?.isValidODFVersion ||
       !storageSystemName ||
-      !cephFSID ||
-      (replicationType === REPLICATION_TYPE.ASYNC && !isDROptimized)
+      !cephFSID
     );
   });
 
 export const SelectedCluster: React.FC<SelectedClusterProps> = ({
   id,
   cluster,
-  replicationType,
 }) => {
   const { t } = useCustomTranslation();
   const { name, region, odfInfo } = cluster;
   const [storageSystemName] = parseNamespaceName(
     odfInfo.storageClusterInfo.storageSystemNamespacedName
   );
-  const anyError = checkForErrors([cluster], replicationType);
+  const anyError = checkForErrors([cluster]);
   return (
     <Flex
       display={{ default: 'inlineFlex' }}
