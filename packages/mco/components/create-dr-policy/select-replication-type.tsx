@@ -122,15 +122,6 @@ const getErrorMessage = (
         names: clusterErrorInfo.clustersWithUnsuccessfulODF.join(' & '),
       }),
     };
-  } else if (!!clusterErrorInfo.clustersWithoutDROptimizedODF.length) {
-    return {
-      message: t('Cluster not pre-configured for Regional-DR'),
-      description: t(
-        'The selected cluster(s)[{{clusters}}] is not configured for Regional-DR setup. Migrate the OSDs to optimise the cluster for disaster recovery services.',
-        { clusters: clusterErrorInfo.clustersWithoutDROptimizedODF.join(', ') }
-      ),
-      isHidden: replicationType !== REPLICATION_TYPE.ASYNC,
-    };
   }
   return null;
 };
@@ -291,7 +282,6 @@ type ClusterErrorType = {
   clustersWithUnsupportedODF: string[];
   clustersWithoutODF: string[];
   clustersWithUnsuccessfulODF: string[];
-  clustersWithoutDROptimizedODF: string[];
 };
 
 type ErrorMessageType = {

@@ -192,8 +192,6 @@ const canJumpToNextStep = (
       );
     case StepsName(t)[Steps.Security]:
       return encryption.hasHandled && kms.providerState.hasHandled;
-    case StepsName(t)[Steps.DataProtection]:
-      return true;
     case StepsName(t)[Steps.ReviewAndCreate]:
       return true;
     default:
