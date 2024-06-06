@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { TechPreviewBadge } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   FormGroup,
@@ -125,14 +124,8 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
           selected={kmsProvider}
         >
           {allowedKMSProviders.map((provider) => (
-            <SelectOption value={provider.value} key={provider.value}>
-              {provider.value === ProviderNames.AZURE ? (
-                <>
-                  {provider.name} <TechPreviewBadge />
-                </>
-              ) : (
-                provider.name
-              )}
+            <SelectOption key={provider.value} value={provider.value}>
+              {provider.name}
             </SelectOption>
           ))}
         </Select>
