@@ -80,10 +80,11 @@ const CapacityTrendCard: React.FC = () => {
   let retentionPeriod: string = DEFAULT_PROMETHEUS_RETENTION;
 
   if (configLoaded && !configLoadError && configData?.data) {
-    const retentionRegex = /retention:\s*["'](\d+([dhmy]))["']/;
+    const retentionRegex =
+      /retention:\s*["']?((\d+y)?(\d+w)?(\d+d)?(\d+h)?(\d+m)?(\d+s)?(\d+ms)?)["']?/;
     const retentionMatch =
       configData?.data?.['config.yaml']?.match(retentionRegex);
-    if (!!retentionMatch && retentionMatch.length === 2) {
+    if (!!retentionMatch && retentionMatch.length > 0) {
       retentionPeriod = retentionMatch[1];
     } else {
       retentionPeriod = DEFAULT_PROMETHEUS_RETENTION;
