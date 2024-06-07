@@ -22,6 +22,7 @@ import {
   createLocalVolumeDiscovery,
   updateLocalVolumeDiscovery,
 } from '@odf/core/utils';
+import { getNamespace } from '@odf/shared';
 import { ErrorAlert } from '@odf/shared/generic/Error';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
@@ -324,16 +325,20 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
     allNodes.current = createWizardNodeState(nonTaintedNodes);
   }, [rawNodes]);
 
+  const shouldStartDiscovery =
+    !csvLoadError && csvLoaded && allNodes.current.length;
+  const csvNamespace = getNamespace(csv);
+
   React.useEffect(() => {
-    if (!csvLoadError && csvLoaded && allNodes.current.length) {
+    if (shouldStartDiscovery) {
       initDiskDiscovery(
         allNodes.current,
-        csv?.metadata.namespace,
+        csvNamespace,
         setLvdError,
         setLvdInProgress
       );
     }
-  }, [csv, csvLoadError, csvLoaded, rawNodes]);
+  }, [csvNamespace, shouldStartDiscovery]);
 
   const discoveriesLoaded =
     csvLoaded &&
