@@ -66,22 +66,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
               className="mco-configuration-step__radio pf-v5-u-p-lg"
             >
               <Radio
-                id="recipe-based-protection"
-                name={RADIO_GROUP_NAME}
-                value={ProtectionMethodType.RECIPE}
-                description={t('Secure namespaces as per recipe definition.')}
-                label={<strong>{t('Recipe')}</strong>}
-                onChange={(event, _unUsed) =>
-                  setProtectionMethod(_unUsed, event)
-                }
-                checked={protectionMethod === ProtectionMethodType.RECIPE}
-              />
-            </GridItem>
-            <GridItem
-              span={6}
-              className="mco-configuration-step__radio pf-v5-u-p-lg"
-            >
-              <Radio
                 id="label-based-protection"
                 name={RADIO_GROUP_NAME}
                 value={ProtectionMethodType.RESOURCE_LABEL}
@@ -95,6 +79,22 @@ export const Configuration: React.FC<ConfigurationProps> = ({
                 checked={
                   protectionMethod === ProtectionMethodType.RESOURCE_LABEL
                 }
+              />
+            </GridItem>
+            <GridItem
+              span={6}
+              className="mco-configuration-step__radio pf-v5-u-p-lg"
+            >
+              <Radio
+                id="recipe-based-protection"
+                name={RADIO_GROUP_NAME}
+                value={ProtectionMethodType.RECIPE}
+                description={t('Secure namespaces as per Recipe definition.')}
+                label={<strong>{t('Recipe')}</strong>}
+                onChange={(event, _unUsed) =>
+                  setProtectionMethod(_unUsed, event)
+                }
+                checked={protectionMethod === ProtectionMethodType.RECIPE}
               />
             </GridItem>
           </Grid>
