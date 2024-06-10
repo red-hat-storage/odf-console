@@ -5,7 +5,11 @@
 import {
   K8sResourceCommon,
   ObjectReference,
+  WatchK8sResults,
+  ResourcesObject,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
+import { TFunction } from 'i18next';
 import { K8sResourceCondition } from './common';
 
 export type ClusterServiceVersionIcon = {
@@ -188,3 +192,8 @@ export type SubscriptionKind = {
     currentCSV?: string;
   };
 } & K8sResourceCommon;
+
+export declare type ResourceHealthHandler<R extends ResourcesObject> = (
+  resourcesResult: WatchK8sResults<R>,
+  t: TFunction
+) => SubsystemHealth;

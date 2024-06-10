@@ -26,13 +26,16 @@ export const getStorageSystemHealthState: PrometheusHealthHandler = (
 ) => {
   const isNoobaaOnly = _.isEmpty(ceph?.data);
   if (!isNoobaaOnly) {
-    return getCephsHealthState({
-      ceph: {
-        data: ceph.data as K8sResourceCommon[],
-        loaded: ceph.loaded,
-        loadError: ceph.loadError,
+    return getCephsHealthState(
+      {
+        ceph: {
+          data: ceph.data as K8sResourceCommon[],
+          loaded: ceph.loaded,
+          loadError: ceph.loadError,
+        },
       },
-    });
+      t
+    );
   } else {
     return getNooBaaState(promMetrics, t, {
       loaded: true,
