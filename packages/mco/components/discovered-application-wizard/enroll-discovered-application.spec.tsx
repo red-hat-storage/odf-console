@@ -290,6 +290,7 @@ const moveToStep = async (step: number) => {
 
   if (step > 2) {
     // Select recipe
+    fireEvent.click(screen.getByText('Recipe'));
     fireEvent.click(screen.getByText('Select a recipe'));
     fireEvent.click(screen.getByText('mock-recipe-1'));
 
@@ -466,10 +467,11 @@ describe('Test configure step', () => {
     expect(screen.getByText('Recipe')).toBeInTheDocument();
     // Namespace table
     expect(
-      screen.getByText('Secure namespaces as per recipe definition.')
+      screen.getByText('Secure namespaces as per Recipe definition.')
     ).toBeInTheDocument();
 
     // Recipe selection
+    fireEvent.click(screen.getByText('Recipe'));
     expect(screen.getByText('Recipe list')).toBeInTheDocument();
     expect(
       screen.getByText(

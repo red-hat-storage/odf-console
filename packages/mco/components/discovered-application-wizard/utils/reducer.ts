@@ -66,7 +66,8 @@ export const initialState: EnrollDiscoveredApplicationState = {
     name: '',
   },
   configuration: {
-    protectionMethod: ProtectionMethodType.RECIPE,
+    // Resource label as a default option
+    protectionMethod: ProtectionMethodType.RESOURCE_LABEL,
     recipe: {
       recipeName: '',
       recipeNamespace: '',
