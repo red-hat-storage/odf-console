@@ -53,7 +53,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     <Select
       variant={variant || SelectVariant.typeaheadMulti}
       aria-label={t('Select input')}
-      onToggle={() => setOpen((o) => !o)}
+      onToggle={(_event, expanded) => setOpen(() => expanded)}
       onSelect={onSelect}
       selections={selections}
       isOpen={isOpen}

@@ -207,7 +207,7 @@ export const getRequestedPVCSize = (pvc): string =>
 export const getSCAvailablePVs = (pvsData, sc: string) =>
   pvsData.filter(
     (pv) => getPVStorageClass(pv) === sc && pv.status.phase === 'Available'
-  );
+  ) || [];
 
 export const getCurrentDeviceSetIndex = (
   deviceSets: DeviceSet[],

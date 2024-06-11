@@ -2,37 +2,26 @@ import * as React from 'react';
 import { createWizardNodeState } from '@odf/core/components/utils';
 import {
   diskModeDropdownItems,
-  LABEL_OPERATOR,
-  LABEL_SELECTOR,
   MINIMUM_NODES,
   NO_PROVISIONER,
   arbiterText,
   LSO_OPERATOR,
   OCS_TOLERATION,
 } from '@odf/core/constants';
-import { useNodesData } from '@odf/core/hooks';
-import {
-  LocalVolumeDiscoveryResult,
-  LocalVolumeSetModel,
-} from '@odf/core/models';
-import { LocalVolumeDiscoveryResultKind } from '@odf/core/types';
+import { useNodesData, useLSODiskDiscovery } from '@odf/core/hooks';
+import { LocalVolumeSetModel } from '@odf/core/models';
+import { NodeData } from '@odf/core/types';
 import {
   nodesWithoutTaints,
   getLocalVolumeSetRequestData,
-  createLocalVolumeDiscovery,
-  updateLocalVolumeDiscovery,
 } from '@odf/core/utils';
 import { getNamespace } from '@odf/shared';
 import { ErrorAlert } from '@odf/shared/generic/Error';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
-import {
-  k8sCreate,
-  WatchK8sResource,
-  useK8sWatchResource,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { isCSVSucceeded } from '@odf/shared/utils';
+import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
 import {
   WizardContext,
   WizardContextType,
@@ -42,6 +31,7 @@ import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Alert,
+  AlertVariant,
   Button,
   Form,
   Grid,
@@ -52,6 +42,7 @@ import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';
 import { LocalVolumeSetBody } from './body';
 import { SelectedCapacity } from './selected-capacity';
+import { useLSODiscoveredDisks } from './useLSODiscoveredDisks';
 import './create-local-volume-set-step.scss';
 
 const goToLSOInstallationPage = (navigate) =>
@@ -94,54 +85,6 @@ const makeLocalVolumeSetCall = (
       setErrorMessage(err.message);
       setInProgress(false);
     });
-};
-
-const initDiskDiscovery = async (
-  nodes: WizardNodeState[] = [],
-  namespace: string,
-  setError: (error: any) => void,
-  setInProgress: (inProgress: boolean) => void
-) => {
-  setInProgress(true);
-  const nodeByHostNames: string[] = nodes.map((node) => node.hostName);
-  try {
-    await updateLocalVolumeDiscovery(nodeByHostNames, namespace, setError);
-  } catch (loadError) {
-    if (loadError?.response?.status === 404) {
-      try {
-        await createLocalVolumeDiscovery(
-          nodeByHostNames,
-          namespace,
-          OCS_TOLERATION
-        );
-      } catch (createError) {
-        setError(createError.message);
-      }
-    }
-  } finally {
-    setError(false);
-    setInProgress(false);
-  }
-};
-
-const getLvdrResource = (
-  nodes: WizardNodeState[] = [],
-  ns: string
-): WatchK8sResource => {
-  return {
-    kind: referenceForModel(LocalVolumeDiscoveryResult),
-    namespace: ns,
-    isList: true,
-    selector: {
-      matchExpressions: [
-        {
-          key: LABEL_SELECTOR,
-          operator: LABEL_OPERATOR,
-          values: nodes.map((node) => node.name),
-        },
-      ],
-    },
-  };
 };
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -306,67 +249,57 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
-  const allNodes = React.useRef([]);
 
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,
   });
-  const [rawNodes, rawNodesLoaded, rawNodesLoadError] = useNodesData();
-  const [lvdResults, lvdResultsLoaded] = useK8sWatchResource<
-    LocalVolumeDiscoveryResultKind[]
-  >(getLvdrResource(allNodes.current, csv?.metadata?.namespace));
-  const [lvdInProgress, setLvdInProgress] = React.useState(false);
-  const [lvdError, setLvdError] = React.useState(null);
-  const [lvsetInProgress, setLvsetInProgress] = React.useState(false);
-  const [lvsetError, setLvsetError] = React.useState(null);
+  const lsoNamespace = getNamespace(csv);
 
-  React.useEffect(() => {
-    const nonTaintedNodes = nodesWithoutTaints(rawNodes);
-    allNodes.current = createWizardNodeState(nonTaintedNodes);
-  }, [rawNodes]);
+  const [rawNodes, rawNodesLoaded, rawNodesLoadError]: [
+    NodeData[],
+    boolean,
+    any
+  ] = useNodesData();
+  const allNodes: WizardNodeState[] =
+    createWizardNodeState(nodesWithoutTaints(rawNodes)) || [];
 
-  const shouldStartDiscovery =
-    !csvLoadError && csvLoaded && allNodes.current.length;
-  const csvNamespace = getNamespace(csv);
+  const [discoveryInProgress, discoveryError] = useLSODiskDiscovery(
+    allNodes,
+    lsoNamespace,
+    !csvLoadError && csvLoaded
+  );
 
-  React.useEffect(() => {
-    if (shouldStartDiscovery) {
-      initDiskDiscovery(
-        allNodes.current,
-        csvNamespace,
-        setLvdError,
-        setLvdInProgress
-      );
-    }
-  }, [csvNamespace, shouldStartDiscovery]);
+  const {
+    filteredDisksOnSelectedNodes,
+    allDiscoveredDisks,
+    disksLoaded,
+    disksError,
+  } = useLSODiscoveredDisks(state, nodes, lsoNamespace, allNodes);
 
-  const discoveriesLoaded =
-    csvLoaded &&
-    !lvdInProgress &&
-    rawNodesLoaded &&
-    lvdResultsLoaded &&
-    allNodes.current?.length === lvdResults?.length;
+  const [lvsInProgress, setLvsInProgress] = React.useState(false);
+  const [lvsError, setLvsError] = React.useState(null);
 
-  const discoveriesLoadError = csvLoadError || rawNodesLoadError || lvdError;
-  const ns = csv?.metadata?.namespace;
+  const allLoaded =
+    csvLoaded && !discoveryInProgress && rawNodesLoaded && disksLoaded;
+
+  const anyError =
+    csvLoadError || rawNodesLoadError || discoveryError || disksError;
 
   const lvsStepValidationErrors = getLVSStepValidationErrors(state, t);
 
   return (
     <ErrorHandler
-      loaded={discoveriesLoaded}
+      loaded={allLoaded}
       loadingMessage={
         !csvLoaded
           ? t('Checking Local Storage Operator installation')
-          : !discoveriesLoaded
+          : !allLoaded
           ? t('Discovering disks on all hosts. This may take a few minutes.')
           : null
       }
-      error={discoveriesLoadError}
+      error={anyError}
       errorMessage={
-        csvLoadError || csv?.status?.phase !== 'Succeeded' ? (
-          <LSOInstallAlert />
-        ) : null
+        csvLoadError || !isCSVSucceeded(csv) ? <LSOInstallAlert /> : null
       }
     >
       <>
@@ -377,7 +310,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
                 state={state}
                 dispatch={dispatch}
                 storageClassName={storageClass.name}
-                allNodes={allNodes.current}
+                allNodes={allNodes}
                 nodes={nodes}
                 defaultVolumeMode={
                   isMCG
@@ -400,19 +333,18 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
             <SelectedCapacity
               dispatch={dispatch}
               state={state}
-              ns={ns}
-              nodes={nodes}
-              lvdResults={lvdResults}
+              chartDisks={filteredDisksOnSelectedNodes}
+              allDiscoveredDisks={allDiscoveredDisks}
             />
           </GridItem>
         </Grid>
         <ConfirmationModal
-          ns={ns}
+          ns={lsoNamespace}
           nodes={nodes}
           state={state}
           dispatch={dispatch}
-          setInProgress={setLvsetInProgress}
-          setErrorMessage={setLvsetError}
+          setInProgress={setLvsInProgress}
+          setErrorMessage={setLvsError}
           storageClassName={storageClass.name}
           stepIdReached={stepIdReached}
         />
@@ -420,14 +352,14 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
           lvsStepValidationErrors.map((lvsStepValidationError) => (
             <Alert
               className="odf-create-lvs__alert"
-              variant="danger"
+              variant={AlertVariant.danger}
               title={lvsStepValidationError.title}
               isInline
             >
               {lvsStepValidationError.description}
             </Alert>
           ))}
-        <RequestErrors errorMessage={lvsetError} inProgress={lvsetInProgress} />
+        <RequestErrors errorMessage={lvsError} inProgress={lvsInProgress} />
       </>
     </ErrorHandler>
   );

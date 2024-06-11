@@ -1,4 +1,5 @@
 import { TFunction } from 'i18next';
+import { DiskType } from '../types';
 
 export const LABEL_SELECTOR = 'discovery-result-node';
 export const DISCOVERY_CR_NAME = 'auto-discover-devices';
@@ -19,12 +20,17 @@ export const deviceTypeDropdownItems = Object.freeze({
 
 export const diskTypeDropdownItems = (t: TFunction) =>
   Object.freeze({
-    All: t('plugin__odf-console~All'),
-    SSD: t('plugin__odf-console~SSD / NVMe'),
-    HDD: t('plugin__odf-console~HDD'),
+    [DiskType.All]: t('plugin__odf-console~All'),
+    [DiskType.SSD]: t('plugin__odf-console~SSD / NVMe'),
+    [DiskType.HDD]: t('plugin__odf-console~HDD'),
   });
 
+export enum DiskSize {
+  Ti = 'Ti',
+  Gi = 'Gi',
+}
+
 export const diskSizeUnitOptions = {
-  Ti: 'TiB',
-  Gi: 'GiB',
+  [DiskSize.Ti]: 'TiB',
+  [DiskSize.Gi]: 'GiB',
 };
