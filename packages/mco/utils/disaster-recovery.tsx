@@ -33,6 +33,7 @@ import {
   LABEL_SPLIT_CHAR,
   LABELS_SPLIT_CHAR,
   DR_BLOCK_LISTED_LABELS,
+  PLACEMENT_RULE_REF_LABEL,
 } from '../constants';
 import {
   DRPC_NAMESPACE_ANNOTATION,
@@ -66,6 +67,7 @@ import {
   ArgoApplicationSetKind,
   ClusterClaim,
   SearchResultItemType,
+  ACMPlacementType,
 } from '../types';
 
 export type PlacementMap = {
@@ -541,15 +543,19 @@ export const findPlacementNameFromAppSet = (
     ?.matchLabels?.[PLACEMENT_REF_LABEL] || '';
 
 export const findPlacementDecisionUsingPlacement = (
-  placement: ACMPlacementKind,
+  placement: ACMPlacementType,
   placementDecisions: ACMPlacementDecisionKind[]
-) =>
-  placementDecisions?.find(
+) => {
+  const placementLabel =
+    placement.kind === ACMPlacementModel.kind
+      ? PLACEMENT_REF_LABEL
+      : PLACEMENT_RULE_REF_LABEL;
+  return placementDecisions?.find(
     (placementDecision) =>
-      getLabel(placementDecision, PLACEMENT_REF_LABEL, '') ===
-        getName(placement) &&
+      getLabel(placementDecision, placementLabel, '') === getName(placement) &&
       getNamespace(placementDecision) === getNamespace(placement)
   );
+};
 
 export const ValidateManagedClusterCondition = (
   managedCluster: ACMManagedClusterKind,

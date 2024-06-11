@@ -18,6 +18,9 @@ export const PROTECTED_APP_ANNOTATION_WO_SLASH =
 export const PLACEMENT_REF_LABEL =
   'cluster.open-cluster-management.io/placement';
 
+export const PLACEMENT_RULE_REF_LABEL =
+  'cluster.open-cluster-management.io/placementrule';
+
 // Application types supported for DR
 export enum APPLICATION_TYPE {
   APPSET = 'ApplicationSet',

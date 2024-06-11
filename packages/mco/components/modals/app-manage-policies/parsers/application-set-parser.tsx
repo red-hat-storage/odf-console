@@ -17,13 +17,12 @@ import {
   findDeploymentClusters,
 } from '@odf/mco/utils';
 import { getNamespace } from '@odf/shared/selectors';
-import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import * as _ from 'lodash-es';
 import { AppManagePoliciesModal } from '../app-manage-policies-modal';
 import {
   generateApplicationInfo,
   generateDRPlacementControlInfo,
-  generateDRPolicyInfo,
+  generateDRInfo,
   generatePlacementInfo,
   getMatchingDRPolicies,
 } from '../utils/parser-utils';
@@ -32,7 +31,6 @@ import {
   ApplicationType,
   DRPlacementControlType,
   DRPolicyType,
-  DataPolicyType,
 } from '../utils/types';
 
 const getDRResources = (namespace: string) => ({
@@ -87,7 +85,6 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
   isOpen,
   close,
 }) => {
-  const { t } = useCustomTranslation();
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
     getDRResources(getNamespace(application))
   );
@@ -103,7 +100,7 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       )
     );
   const appSetResource = appSetResources?.formattedResources?.[0];
-  const formattedDRResources = drResources?.formattedResources;
+  const { drPolicies } = drResources;
 
   const applicationInfo: ApplicationInfoType = React.useMemo(() => {
     let applicationInfo: ApplicationInfoType = {};
@@ -111,13 +108,8 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       // Today appset support maximum one placement, DRPC, DRPolicy per app.
       // When it support multi placement, need to change logic to,
       // group all DRPC using DRPolicy
-      const {
-        placement,
-        placementDecision,
-        drPlacementControl,
-        drPolicy,
-        drClusters,
-      } = appSetResource.placements[0];
+      const { placement, placementDecision, drPlacementControl, drPolicy } =
+        appSetResource.placements[0];
 
       const placementInfo = generatePlacementInfo(
         placement,
@@ -127,38 +119,29 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         drPlacementControl,
         placementInfo
       );
-      const drPolicyInfo: DRPolicyType[] = generateDRPolicyInfo(
-        drPolicy,
-        drClusters,
-        drpcInfo,
-        t
-      );
       applicationInfo = generateApplicationInfo(
         APPLICATION_TYPE.APPSET,
         application,
         getRemoteNamespaceFromAppSet(application),
         // Skip placement if it already DR protected
         _.isEmpty(drpcInfo) ? [placementInfo] : [],
-        drPolicyInfo
+        generateDRInfo(drPolicy, drpcInfo)
       );
     }
     return applicationInfo;
-  }, [application, appSetResource, loaded, loadError, t]);
+  }, [application, appSetResource, loaded, loadError]);
 
-  const matchingPolicies: DataPolicyType[] = React.useMemo(
+  const matchingPolicies: DRPolicyType[] = React.useMemo(
     () =>
       !_.isEmpty(applicationInfo)
-        ? getMatchingDRPolicies(
-            applicationInfo as ApplicationType,
-            formattedDRResources
-          )
+        ? getMatchingDRPolicies(applicationInfo as ApplicationType, drPolicies)
         : [],
-    [applicationInfo, formattedDRResources]
+    [applicationInfo, drPolicies]
   );
 
   return (
     <AppManagePoliciesModal
-      applicaitonInfo={applicationInfo}
+      applicaitonInfo={applicationInfo as ApplicationType}
       matchingPolicies={matchingPolicies}
       loaded={loaded}
       loadError={loadError}

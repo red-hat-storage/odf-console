@@ -19,7 +19,7 @@ import {
   ManagePolicyStateType,
   ModalViewContext,
 } from '../utils/reducer';
-import { DRPolicyType, DataPolicyType } from '../utils/types';
+import { DRPolicyType } from '../utils/types';
 
 const getDropdownOptions = (dataPolicies: DRPolicyType[], t: TFunction) =>
   dataPolicies.map((policy) => (
@@ -97,7 +97,7 @@ export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps>
   };
 
 type SelectPolicyWizardContentProps = {
-  policy: DataPolicyType;
+  policy: DRPolicyType;
   matchingPolicies: DRPolicyType[];
   isValidationEnabled: boolean;
   dispatch: React.Dispatch<ManagePolicyStateAction>;

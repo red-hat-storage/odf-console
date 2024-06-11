@@ -13,7 +13,11 @@ import {
 } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import { Button, Alert, AlertVariant } from '@patternfly/react-core';
-import { AssignPolicyViewState, PVCSelectorType } from '../utils/reducer';
+import {
+  AssignPolicyViewState,
+  ModalActionContext,
+  PVCSelectorType,
+} from '../utils/reducer';
 import { DRPolicyType } from '../utils/types';
 import '../../../../style.scss';
 import '../style.scss';
@@ -112,7 +116,13 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
           onClick={onBack}
           isDisabled={
             stepName === AssignPolicyStepsNames(t)[AssignPolicySteps.Policy] ||
-            requestInProgress
+            requestInProgress ||
+            (stepName ===
+              AssignPolicyStepsNames(t)[
+                AssignPolicySteps.PersistentVolumeClaim
+              ] &&
+              state.modalActionContext ===
+                ModalActionContext.EDIT_DR_PROTECTION)
           }
         >
           {t('Back')}

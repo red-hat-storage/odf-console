@@ -1,24 +1,23 @@
 import { AlertVariant } from '@patternfly/react-core';
-import { DataPolicyType } from './types';
+import { DRPolicyType } from './types';
 
 export enum ModalViewContext {
-  POLICY_LIST_VIEW = 'policyListView',
+  MANAGE_POLICY_VIEW = 'managePolicyView',
   ASSIGN_POLICY_VIEW = 'assignPolicyView',
-  POLICY_CONFIGURATON_VIEW = 'policyConfigurationView',
 }
 
 export enum ModalActionContext {
-  UN_ASSIGNING_POLICIES = 'UN_ASSIGNING_POLICIES',
-  UN_ASSIGN_POLICIES_SUCCEEDED = 'UN_ASSIGN_POLICIES_SUCCEEDED',
-  UN_ASSIGN_POLICIES_FAILED = 'UN_ASSIGN_POLICIES_FAILED',
+  UN_ASSIGN_POLICY = 'UN_ASSIGN_POLICY',
+  UN_ASSIGN_POLICY_SUCCEEDED = 'UN_ASSIGN_POLICY_SUCCEEDED',
+  UN_ASSIGN_POLICY_FAILED = 'UN_ASSIGN_POLICY_FAILED',
   ASSIGN_POLICY_SUCCEEDED = 'ASSIGN_POLICY_SUCCEEDED',
   ASSIGN_POLICY_FAILED = 'ASSIGN_POLICY_FAILED',
+  EDIT_DR_PROTECTION = 'EDIT_DR_PROTECTION',
 }
 
 export enum ManagePolicyStateType {
   SET_MODAL_VIEW_CONTEXT = 'SET_MODAL_VIEW_CONTEXT',
   SET_MODAL_ACTION_CONTEXT = 'SET_MODAL_ACTION_CONTEXT',
-  SET_SELECTED_POLICIES = 'SET_SELECTED_POLICIES',
   SET_SELECTED_POLICY = 'SET_SELECTED_POLICY',
   SET_MESSAGE = 'SET_MESSAGE',
   SET_PVC_SELECTORS = 'SET_PVC_SELECTORS',
@@ -37,20 +36,14 @@ export type MessageType = {
 };
 
 export type CommonViewState = {
-  modalActionContext: ModalActionContext;
-  message: MessageType;
+  modalActionContext?: ModalActionContext;
+  message?: MessageType;
 };
 
-export type PolicyListViewState = CommonViewState & {
-  policies: DataPolicyType[];
-};
-
-export type PolicyConfigViewState = {
-  policy: DataPolicyType;
-};
+export type ManagePolicyViewState = CommonViewState;
 
 export type AssignPolicyViewState = CommonViewState & {
-  policy: DataPolicyType;
+  policy: DRPolicyType;
   persistentVolumeClaim: {
     pvcSelectors: PVCSelectorType[];
   };
@@ -58,31 +51,17 @@ export type AssignPolicyViewState = CommonViewState & {
 
 export type ManagePolicyState = {
   modalViewContext: ModalViewContext;
-  [ModalViewContext.POLICY_LIST_VIEW]: PolicyListViewState;
-  [ModalViewContext.POLICY_CONFIGURATON_VIEW]: PolicyConfigViewState;
+  [ModalViewContext.MANAGE_POLICY_VIEW]: ManagePolicyViewState;
   [ModalViewContext.ASSIGN_POLICY_VIEW]: AssignPolicyViewState;
 };
 
 export const initialPolicyState: ManagePolicyState = {
-  modalViewContext: ModalViewContext.POLICY_LIST_VIEW,
-  [ModalViewContext.POLICY_LIST_VIEW]: {
-    policies: [],
-    modalActionContext: undefined,
-    message: {
-      title: '',
-    },
-  },
-  [ModalViewContext.POLICY_CONFIGURATON_VIEW]: {
-    policy: undefined,
-  },
+  modalViewContext: ModalViewContext.MANAGE_POLICY_VIEW,
+  [ModalViewContext.MANAGE_POLICY_VIEW]: {},
   [ModalViewContext.ASSIGN_POLICY_VIEW]: {
     policy: undefined,
     persistentVolumeClaim: {
       pvcSelectors: [],
-    },
-    modalActionContext: undefined,
-    message: {
-      title: '',
     },
   },
 };
@@ -98,14 +77,9 @@ export type ManagePolicyStateAction =
       payload: ModalActionContext;
     }
   | {
-      type: ManagePolicyStateType.SET_SELECTED_POLICIES;
-      context: ModalViewContext;
-      payload: DataPolicyType[];
-    }
-  | {
       type: ManagePolicyStateType.SET_SELECTED_POLICY;
       context: ModalViewContext;
-      payload: DataPolicyType;
+      payload: DRPolicyType;
     }
   | {
       type: ManagePolicyStateType.SET_MESSAGE;
@@ -139,15 +113,6 @@ export const managePolicyStateReducer = (
         [action.context]: {
           ...state[action.context],
           modalActionContext: action.payload,
-        },
-      };
-    }
-    case ManagePolicyStateType.SET_SELECTED_POLICIES: {
-      return {
-        ...state,
-        [action.context]: {
-          ...state[action.context],
-          policies: action.payload,
         },
       };
     }
