@@ -64,22 +64,22 @@ export const DATA_RESILIENCY_QUERY = (managedByOCS: string) => ({
 // ToDo (epic 4422): This should work (for now) as "managedBy" will be unique,
 // but moving forward add a label to metric for CephCluster namespace and use that instead (update query).
 export const CEPH_CAPACITY_BREAKDOWN_QUERIES = (
-  storageClassNamePrefix: string,
+  scQueryfilter: string,
   managedByOCS?: string
 ) => ({
-  [StorageDashboardQuery.PROJECTS_TOTAL_USED]: `sum(sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${storageClassNamePrefix}.*"})) by (namespace))`,
-  [StorageDashboardQuery.PROJECTS_BY_USED]: `sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${storageClassNamePrefix}.*"})) by (namespace)`,
-  [StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED]: `sum(sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${storageClassNamePrefix}.*"})) by (storageclass, provisioner))`,
-  [StorageDashboardQuery.STORAGE_CLASSES_BY_USED]: `sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${storageClassNamePrefix}.*"})) by (storageclass, provisioner)`,
-  [StorageDashboardQuery.PODS_TOTAL_USED]: `sum (((max by(namespace,persistentvolumeclaim) (kubelet_volume_stats_used_bytes)) * on (namespace,persistentvolumeclaim) group_right() ((kube_running_pod_ready*0+1) * on(namespace, pod)  group_right() kube_pod_spec_volumes_persistentvolumeclaims_info)) * on(namespace,persistentvolumeclaim) group_left(provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${storageClassNamePrefix}.*"}))`,
-  [StorageDashboardQuery.PODS_BY_USED]: `sum by(namespace,pod) (((max by(namespace,persistentvolumeclaim) (kubelet_volume_stats_used_bytes)) * on (namespace,persistentvolumeclaim) group_right() ((kube_running_pod_ready*0+1) * on(namespace, pod)  group_right() kube_pod_spec_volumes_persistentvolumeclaims_info)) * on(namespace,persistentvolumeclaim) group_left(provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${storageClassNamePrefix}.*"}))`,
+  [StorageDashboardQuery.PROJECTS_TOTAL_USED]: `sum(sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${scQueryfilter}"})) by (namespace))`,
+  [StorageDashboardQuery.PROJECTS_BY_USED]: `sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${scQueryfilter}"})) by (namespace)`,
+  [StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED]: `sum(sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${scQueryfilter}"})) by (storageclass, provisioner))`,
+  [StorageDashboardQuery.STORAGE_CLASSES_BY_USED]: `sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${scQueryfilter}"})) by (storageclass, provisioner)`,
+  [StorageDashboardQuery.PODS_TOTAL_USED]: `sum (((max by(namespace,persistentvolumeclaim) (kubelet_volume_stats_used_bytes)) * on (namespace,persistentvolumeclaim) group_right() ((kube_running_pod_ready*0+1) * on(namespace, pod)  group_right() kube_pod_spec_volumes_persistentvolumeclaims_info)) * on(namespace,persistentvolumeclaim) group_left(provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${scQueryfilter}"}))`,
+  [StorageDashboardQuery.PODS_BY_USED]: `sum by(namespace,pod) (((max by(namespace,persistentvolumeclaim) (kubelet_volume_stats_used_bytes)) * on (namespace,persistentvolumeclaim) group_right() ((kube_running_pod_ready*0+1) * on(namespace, pod)  group_right() kube_pod_spec_volumes_persistentvolumeclaims_info)) * on(namespace,persistentvolumeclaim) group_left(provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${scQueryfilter}"}))`,
   [StorageDashboardQuery.CEPH_CAPACITY_TOTAL]: `ceph_cluster_total_bytes{managedBy="${managedByOCS}"}`,
-  [StorageDashboardQuery.CEPH_CAPACITY_USED]: `sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)",storageclass=~"${storageClassNamePrefix}.*"}))`,
+  [StorageDashboardQuery.CEPH_CAPACITY_USED]: `sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)",storageclass=~"${scQueryfilter}"}))`,
   [StorageDashboardQuery.CEPH_CAPACITY_AVAILABLE]: `max(ceph_pool_max_avail{managedBy="${managedByOCS}"} * on (pool_id) group_left(name)ceph_pool_metadata{name=~"(.*file.*)|(.*block.*)",managedBy="${managedByOCS}"})`,
 });
 
 export const breakdownQueryMapCEPH = (
-  storageClassNamePrefix: string,
+  scQueryfilter: string,
   managedByOCS: string
 ): BreakdownCardQueryMap => ({
   [BreakdownCardFields.PROJECTS]: {
@@ -87,16 +87,16 @@ export const breakdownQueryMapCEPH = (
     metric: 'namespace',
     queries: {
       [StorageDashboardQuery.PROJECTS_BY_USED]: `(topk(6,(${
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix, managedByOCS)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter, managedByOCS)[
           StorageDashboardQuery.PROJECTS_BY_USED
         ]
       })))`,
       [StorageDashboardQuery.PROJECTS_TOTAL_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix, managedByOCS)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter, managedByOCS)[
           StorageDashboardQuery.PROJECTS_TOTAL_USED
         ],
       [StorageDashboardQuery.CEPH_CAPACITY_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix, managedByOCS)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter, managedByOCS)[
           StorageDashboardQuery.CEPH_CAPACITY_USED
         ],
     },
@@ -106,16 +106,16 @@ export const breakdownQueryMapCEPH = (
     metric: 'storageclass',
     queries: {
       [StorageDashboardQuery.STORAGE_CLASSES_BY_USED]: `(topk(6,(${
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix, managedByOCS)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter, managedByOCS)[
           StorageDashboardQuery.STORAGE_CLASSES_BY_USED
         ]
       })))`,
       [StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix, managedByOCS)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter, managedByOCS)[
           StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED
         ],
       [StorageDashboardQuery.CEPH_CAPACITY_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix, managedByOCS)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter, managedByOCS)[
           StorageDashboardQuery.CEPH_CAPACITY_USED
         ],
     },
@@ -125,16 +125,16 @@ export const breakdownQueryMapCEPH = (
     metric: 'pod',
     queries: {
       [StorageDashboardQuery.PODS_BY_USED]: `(topk(6,(${
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix, managedByOCS)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter, managedByOCS)[
           StorageDashboardQuery.PODS_BY_USED
         ]
       })))`,
       [StorageDashboardQuery.PODS_TOTAL_USED]: CEPH_CAPACITY_BREAKDOWN_QUERIES(
-        storageClassNamePrefix,
+        scQueryfilter,
         managedByOCS
       )[StorageDashboardQuery.PODS_TOTAL_USED],
       [StorageDashboardQuery.CEPH_CAPACITY_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix, managedByOCS)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter, managedByOCS)[
           StorageDashboardQuery.CEPH_CAPACITY_USED
         ],
     },
@@ -143,7 +143,7 @@ export const breakdownQueryMapCEPH = (
 
 export const getBreakdownMetricsQuery = (
   metricType: BreakdownCardFieldsWithParams | BreakdownCardFields,
-  storageClassNamePrefix: string,
+  scQueryfilter: string,
   namespace?: string,
   isExternal?: boolean,
   managedByOCS?: string
@@ -152,12 +152,12 @@ export const getBreakdownMetricsQuery = (
     return {
       model: PersistentVolumeClaimModel,
       metric: 'persistentvolumeclaim',
-      queries: getPVCNamespaceQuery(namespace, storageClassNamePrefix),
+      queries: getPVCNamespaceQuery(namespace, scQueryfilter),
     };
   }
   return !isExternal
-    ? breakdownQueryMapCEPH(storageClassNamePrefix, managedByOCS)[metricType]
-    : breakdownIndependentQueryMap(storageClassNamePrefix)[metricType];
+    ? breakdownQueryMapCEPH(scQueryfilter, managedByOCS)[metricType]
+    : breakdownIndependentQueryMap(scQueryfilter)[metricType];
 };
 
 // ToDo (epic 4422): This should work (for now) as "managedBy" will be unique,
@@ -178,9 +178,9 @@ export const POOL_STORAGE_EFFICIENCY_QUERIES = (managedByOCS: string) => ({
 // but moving forward add a label to metric for CephCluster namespace and use that instead (update query).
 export const UTILIZATION_QUERY = (
   managedByOCS: string,
-  storageClassNamePrefix?: string
+  scQueryfilter?: string
 ) => ({
-  [StorageDashboardQuery.CEPH_CAPACITY_USED]: `sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)",storageclass=~"${storageClassNamePrefix}.*"}))`,
+  [StorageDashboardQuery.CEPH_CAPACITY_USED]: `sum(topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)",storageclass=~"${scQueryfilter}"}))`,
   [StorageDashboardQuery.UTILIZATION_IOPS_READ_QUERY]: {
     query: `sum(rate(ceph_pool_rd{managedBy="${managedByOCS}"}[1m]))`,
     desc: 'Reads',
@@ -208,12 +208,12 @@ export const UTILIZATION_QUERY = (
   [StorageDashboardQuery.UTILIZATION_RECOVERY_RATE_QUERY]: `(sum(ceph_pool_recovering_bytes_per_sec{managedBy="${managedByOCS}"}))`,
 });
 
-export const utilizationPopoverQueryMap = (storageClassNamePrefix: string) => [
+export const utilizationPopoverQueryMap = (scQueryfilter: string) => [
   {
     model: ProjectModel,
     metric: 'namespace',
     query: `(sort_desc(topk(25,(${
-      CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix)[
+      CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter)[
         StorageDashboardQuery.PROJECTS_BY_USED
       ]
     }))))`,
@@ -222,7 +222,7 @@ export const utilizationPopoverQueryMap = (storageClassNamePrefix: string) => [
     model: StorageClassModel,
     metric: 'storageclass',
     query: `(sort_desc(topk(25,(${
-      CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix)[
+      CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter)[
         StorageDashboardQuery.STORAGE_CLASSES_BY_USED
       ]
     }))))`,
@@ -231,7 +231,7 @@ export const utilizationPopoverQueryMap = (storageClassNamePrefix: string) => [
     model: PodModel,
     metric: 'pod',
     query: `(sort_desc(topk(25, (${
-      CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix)[
+      CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter)[
         StorageDashboardQuery.PODS_BY_USED
       ]
     }))))`,
@@ -240,11 +240,11 @@ export const utilizationPopoverQueryMap = (storageClassNamePrefix: string) => [
 
 export const getPVCNamespaceQuery = (
   namespace: string = '',
-  storageClassNamePrefix: string
+  scQueryfilter: string
 ) => {
   const queries = {
-    [StorageDashboardQuery.PVC_NAMESPACES_BY_USED]: `sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${storageClassNamePrefix}.*"}))`,
-    [StorageDashboardQuery.PVC_NAMESPACES_TOTAL_USED]: `sum(sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${storageClassNamePrefix}.*"})))`,
+    [StorageDashboardQuery.PVC_NAMESPACES_BY_USED]: `sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${scQueryfilter}"}))`,
+    [StorageDashboardQuery.PVC_NAMESPACES_TOTAL_USED]: `sum(sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${scQueryfilter}"})))`,
   };
   return queries;
 };
@@ -269,27 +269,25 @@ export const getPoolQuery = (
   return queries[queryName];
 };
 
-export const INDEPENDENT_UTILIZATION_QUERIES = (
-  storageClassNamePrefix: string
-) => ({
-  [StorageDashboardQuery.REQUESTED_CAPACITY]: `sum((kube_persistentvolumeclaim_resource_requests_storage_bytes * on (namespace,persistentvolumeclaim) group_right() kube_pod_spec_volumes_persistentvolumeclaims_info) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${storageClassNamePrefix}.*"}))`,
-  [StorageDashboardQuery.USED_CAPACITY]: `sum((topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_right() kube_pod_spec_volumes_persistentvolumeclaims_info) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${storageClassNamePrefix}.*"}))`,
+export const INDEPENDENT_UTILIZATION_QUERIES = (scQueryfilter: string) => ({
+  [StorageDashboardQuery.REQUESTED_CAPACITY]: `sum((kube_persistentvolumeclaim_resource_requests_storage_bytes * on (namespace,persistentvolumeclaim) group_right() kube_pod_spec_volumes_persistentvolumeclaims_info) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${scQueryfilter}"}))`,
+  [StorageDashboardQuery.USED_CAPACITY]: `sum((topk by (namespace,persistentvolumeclaim) (1, kubelet_volume_stats_used_bytes) * on (namespace,persistentvolumeclaim) group_right() kube_pod_spec_volumes_persistentvolumeclaims_info) * on (namespace,persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass)  group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(ceph.rook.io/block)",storageclass=~"${scQueryfilter}"}))`,
 });
 
 export const breakdownIndependentQueryMap = (
-  storageClassNamePrefix: string
+  scQueryfilter: string
 ): BreakdownCardQueryMap => ({
   [BreakdownCardFields.PROJECTS]: {
     model: ProjectModel,
     metric: 'namespace',
     queries: {
       [StorageDashboardQuery.PROJECTS_BY_USED]: `(topk(6,(${
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter)[
           StorageDashboardQuery.PROJECTS_BY_USED
         ]
       })))`,
       [StorageDashboardQuery.PROJECTS_TOTAL_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter)[
           StorageDashboardQuery.PROJECTS_TOTAL_USED
         ],
     },
@@ -299,12 +297,12 @@ export const breakdownIndependentQueryMap = (
     metric: 'storageclass',
     queries: {
       [StorageDashboardQuery.STORAGE_CLASSES_BY_USED]: `(topk(6,(${
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter)[
           StorageDashboardQuery.STORAGE_CLASSES_BY_USED
         ]
       })))`,
       [StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED]:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter)[
           StorageDashboardQuery.STORAGE_CLASSES_TOTAL_USED
         ],
     },
@@ -314,13 +312,14 @@ export const breakdownIndependentQueryMap = (
     metric: 'pod',
     queries: {
       [StorageDashboardQuery.PODS_BY_USED]: `(topk(6,(${
-        CEPH_CAPACITY_BREAKDOWN_QUERIES(storageClassNamePrefix)[
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter)[
           StorageDashboardQuery.PODS_BY_USED
         ]
       })))`,
-      [StorageDashboardQuery.PODS_TOTAL_USED]: CEPH_CAPACITY_BREAKDOWN_QUERIES(
-        storageClassNamePrefix
-      )[StorageDashboardQuery.PODS_TOTAL_USED],
+      [StorageDashboardQuery.PODS_TOTAL_USED]:
+        CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter)[
+          StorageDashboardQuery.PODS_TOTAL_USED
+        ],
     },
   },
 });
@@ -333,6 +332,6 @@ export const CAPACITY_TREND_QUERIES = (
 ) => ({
   [StorageDashboardQuery.UTILIZATION_1D]: `delta(sum(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"})[1d:])`,
   [StorageDashboardQuery.UTILIZATION_VECTOR]: `delta(sum(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"})[${maxDays}:])`,
-  [StorageDashboardQuery.UPTIME_DAYS]: `ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}[${maxDays}]`,
+  [StorageDashboardQuery.UPTIME_DAYS]: `delta(sum(timestamp(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}))[${maxDays}:])`,
   [StorageDashboardQuery.RAW_CAPACITY_AVAILABLE]: `ceph_cluster_total_bytes{managedBy="${managedByOCS}"} - ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}`,
 });
