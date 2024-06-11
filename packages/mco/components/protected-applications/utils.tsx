@@ -24,6 +24,7 @@ import {
   LEAST_SECONDS_IN_PROMETHEUS,
   DR_BASE_ROUTE,
   DRActionType,
+  REPLICATION_TYPE,
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
@@ -136,6 +137,7 @@ export const replicationHealthMap = (
 
 export type SyncStatusInfo = {
   volumeReplicationStatus: VOLUME_REPLICATION_HEALTH;
+  volumeReplicationType: REPLICATION_TYPE;
   volumeLastGroupSyncTime: string;
   kubeObjectReplicationStatus: VOLUME_REPLICATION_HEALTH;
 };
