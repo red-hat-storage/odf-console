@@ -28,8 +28,8 @@ export type PlacementControlInfo = Partial<{
   // Subscription name(Only for display purpose)
   subscriptions?: string[];
   // Only applicable for Discovered type
-  // ClusterDataProtected condition transition time
-  kubeObjectLastTransitionTime?: string;
+  // Recent successful kube object protection Time
+  kubeObjectLastProtectionTime?: string;
   // Kube resources backup interval(interval + unit(m, h, d))
   kubeObjSyncInterval?: string;
 }>;
