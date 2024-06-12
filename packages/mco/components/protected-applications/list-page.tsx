@@ -33,7 +33,7 @@ import { DRPlacementControlKind, DRPolicyKind } from '../../types';
 import {
   getLastAppDeploymentClusterName,
   getDRPolicyName,
-  getKubeObjectLastTransitionTime,
+  getReplicationType,
 } from '../../utils';
 import {
   EmptyRowMessage,
@@ -261,21 +261,26 @@ export const ProtectedApplicationsListPage: React.FC = () => {
         const volumesSchedulingInterval = drPolicies.find(
           (policy) => getName(policy) === app.spec?.drPolicyRef?.name
         )?.spec?.schedulingInterval;
+        const replicationType = getReplicationType(volumesSchedulingInterval);
         const volumesLastSyncTime = app?.status?.lastGroupSyncTime;
         const kubeObjectsSchedulingInterval =
           app.spec?.kubeObjectProtection?.captureInterval;
-        const kubeObjectLastTransitionTime = getKubeObjectLastTransitionTime(
-          app?.status?.resourceConditions?.conditions
-        );
+        const kubeObjectLastProtectionTime =
+          app?.status?.lastKubeObjectProtectionTime;
         acc[getName(app)] = {
           volumeReplicationStatus: getReplicationHealth(
             volumesLastSyncTime,
-            volumesSchedulingInterval
+            volumesSchedulingInterval,
+            replicationType
           ),
           volumeLastGroupSyncTime: formatTime(volumesLastSyncTime),
           kubeObjectReplicationStatus: getReplicationHealth(
-            kubeObjectLastTransitionTime,
-            kubeObjectsSchedulingInterval
+            kubeObjectLastProtectionTime,
+            kubeObjectsSchedulingInterval,
+            replicationType
+          ),
+          kubeObjectLastProtectionTime: formatTime(
+            kubeObjectLastProtectionTime
           ),
         };
 

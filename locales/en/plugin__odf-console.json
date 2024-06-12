@@ -156,6 +156,7 @@
   "Unknown": "Unknown",
   "Namespaces": "Namespaces",
   "Volume snapshot": "Volume snapshot",
+  "Kubernetes object snapshot": "Kubernetes object snapshot",
   "Last on: {{ syncTime }}": "Last on: {{ syncTime }}",
   "Subscription": "Subscription",
   "Last snapshot synced": "Last snapshot synced",

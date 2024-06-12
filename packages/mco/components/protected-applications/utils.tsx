@@ -24,6 +24,7 @@ import {
   LEAST_SECONDS_IN_PROMETHEUS,
   DR_BASE_ROUTE,
   DRActionType,
+  REPLICATION_TYPE,
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
@@ -88,8 +89,12 @@ export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
 
 export const getReplicationHealth = (
   lastSyncTime: string,
-  schedulingInterval: string
+  schedulingInterval: string,
+  replicationType: REPLICATION_TYPE
 ): VOLUME_REPLICATION_HEALTH => {
+  if (replicationType === REPLICATION_TYPE.SYNC) {
+    return VOLUME_REPLICATION_HEALTH.HEALTHY;
+  }
   const seconds = !!lastSyncTime
     ? getTimeDifferenceInSeconds(lastSyncTime)
     : LEAST_SECONDS_IN_PROMETHEUS;
@@ -138,6 +143,7 @@ export type SyncStatusInfo = {
   volumeReplicationStatus: VOLUME_REPLICATION_HEALTH;
   volumeLastGroupSyncTime: string;
   kubeObjectReplicationStatus: VOLUME_REPLICATION_HEALTH;
+  kubeObjectLastProtectionTime: string;
 };
 
 export const getAppWorstSyncStatus = (
