@@ -5,6 +5,7 @@ import {
   DRPolicyModel,
 } from '@odf/mco//models';
 import {
+  DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH,
   DR_SECHEDULER_NAME,
   PROTECTED_APP_ANNOTATION_WO_SLASH,
 } from '@odf/mco/constants';
@@ -63,32 +64,37 @@ export const getDRPCKindObj = (
   },
 });
 
-export const placementUnAssignPromise = (drpc: DRPlacementControlType) => {
+export const doNotDeletePVCAnnotationPromises = (
+  drpcs: DRPlacementControlType[]
+) => {
+  const promises: Promise<K8sResourceKind>[] = [];
   const patch = [
     {
-      op: 'remove',
-      path: `/metadata/annotations/${PROTECTED_APP_ANNOTATION_WO_SLASH}`,
+      op: 'add',
+      path: `/metadata/annotations/${DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH}`,
+      value: 'true',
     },
   ];
-  return k8sPatch({
-    model: ACMPlacementModel,
-    resource: {
-      metadata: {
-        name: getName(drpc?.placementInfo),
-        namespace: getNamespace(drpc?.placementInfo),
-      },
-    },
-    data: patch,
+  drpcs.forEach((drpc) => {
+    promises.push(
+      k8sPatch({
+        model: DRPlacementControlModel,
+        resource: {
+          metadata: {
+            name: getName(drpc),
+            namespace: getNamespace(drpc),
+          },
+        },
+        data: patch,
+      })
+    );
   });
+  return promises;
 };
 
 export const unAssignPromises = (drpcs: DRPlacementControlType[]) => {
   const promises: Promise<K8sResourceKind>[] = [];
-
-  drpcs?.forEach((drpc) => {
-    if (drpc?.placementInfo?.kind === ACMPlacementModel.kind) {
-      promises.push(placementUnAssignPromise(drpc));
-    }
+  drpcs.forEach((drpc) => {
     promises.push(
       k8sDelete({
         model: DRPlacementControlModel,
@@ -103,7 +109,6 @@ export const unAssignPromises = (drpcs: DRPlacementControlType[]) => {
       })
     );
   });
-
   return promises;
 };
 

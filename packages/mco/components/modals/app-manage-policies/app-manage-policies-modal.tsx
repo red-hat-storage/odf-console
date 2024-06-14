@@ -9,7 +9,6 @@ import { ManagePolicyView } from './manage-policy-view';
 import {
   ManagePolicyStateAction,
   ManagePolicyStateType,
-  MessageType,
   ModalActionContext,
   ModalViewContext,
   initialPolicyState,
@@ -36,26 +35,12 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
   );
 
   const setModalActionContext = React.useCallback(
-    (
-      modalActionContext: ModalActionContext,
-      modalViewContext?: ModalViewContext
-    ) =>
+    (modalActionContext: ModalActionContext) =>
       dispatch({
         type: ManagePolicyStateType.SET_MODAL_ACTION_CONTEXT,
-        context: modalViewContext || state.modalViewContext,
         payload: modalActionContext,
       }),
-    [dispatch, state.modalViewContext]
-  );
-
-  const setMessage = React.useCallback(
-    (message: MessageType, modalViewContext?: ModalViewContext) =>
-      dispatch({
-        type: ManagePolicyStateType.SET_MESSAGE,
-        context: modalViewContext || state.modalViewContext,
-        payload: message,
-      }),
-    [dispatch, state.modalViewContext]
+    [dispatch]
   );
 
   return (
@@ -69,13 +54,12 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
             applicaitonInfo?.type === APPLICATION_TYPE.SUBSCRIPTION
           }
           unProtectedPlacementCount={applicaitonInfo?.placements?.length}
-          state={state.managePolicyView}
           dispatch={dispatch}
           setModalContext={setModalContext}
           setModalActionContext={setModalActionContext}
-          setMessage={setMessage}
           loaded={loaded}
           loadError={loadError}
+          modalActionContext={state.modalActionContext}
         />
       )}
       {state.modalViewContext === ModalViewContext.ASSIGN_POLICY_VIEW && (
@@ -83,10 +67,10 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
           applicaitonInfo={applicaitonInfo}
           matchingPolicies={matchingPolicies}
           state={state.assignPolicyView}
+          modalActionContext={state.modalActionContext}
           dispatch={dispatch}
           setModalContext={setModalContext}
           setModalActionContext={setModalActionContext}
-          setMessage={setMessage}
         />
       )}
     </>
