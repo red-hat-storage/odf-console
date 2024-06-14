@@ -185,13 +185,16 @@ export const NamespaceSection: React.FC<CommonProps> = ({
   );
 };
 
-export const SnapshotSection: React.FC<CommonProps> = ({
+export const SnapshotSection: React.FC<SnapshotSectionProps> = ({
   selectedApplication,
+  isVolumeSnapshot,
 }) => {
   const { t } = useCustomTranslation();
   const [syncTime, setSyncTime] = React.useState('N/A');
-  const lastSyncTime =
-    selectedApplication?.placementControlInfo?.[0]?.lastVolumeGroupSyncTime;
+  const lastSyncTime = isVolumeSnapshot
+    ? selectedApplication?.placementControlInfo?.[0]?.lastVolumeGroupSyncTime
+    : selectedApplication?.placementControlInfo?.[0]
+        ?.kubeObjectLastProtectionTime;
 
   const updateSyncTime = React.useCallback(() => {
     setSyncTime(
@@ -203,9 +206,13 @@ export const SnapshotSection: React.FC<CommonProps> = ({
 
   useScheduler(updateSyncTime);
 
+  const title = isVolumeSnapshot
+    ? t('Volume snapshot')
+    : t('Kubernetes object snapshot');
+
   return (
     <div className="mco-dashboard__contentColumn">
-      <StatusText>{t('Volume snapshot')}</StatusText>
+      <StatusText>{title}</StatusText>
       <Text className="text-muted">
         {t('Last on: {{ syncTime }}', {
           syncTime: syncTime,
@@ -390,4 +397,8 @@ type SubscriptionRowProps = {
 
 type SubscriptionWiseRPOMap = {
   [subscriptionName: string]: string;
+};
+
+type SnapshotSectionProps = CommonProps & {
+  isVolumeSnapshot?: boolean;
 };
