@@ -388,9 +388,9 @@ export const StatusDetails: React.FC<ExpandableComponentProps> = ({
     syncStatusInfo.volumeLastGroupSyncTime || (
       <Text className="text-muted"> {t('No data available')}</Text>
     ),
-    // For kube object, it is always no data available message.
-    // lastTransitionTime just to decide the status, it can't be considered as last synced on.
-    <Text className="text-muted"> {t('No data available')}</Text>,
+    syncStatusInfo.kubeObjectLastProtectionTime || (
+      <Text className="text-muted"> {t('No data available')}</Text>
+    ),
   ];
   return (
     <DescriptionList_ columnModifier={'3Col'}>

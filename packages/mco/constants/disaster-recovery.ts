@@ -98,6 +98,3 @@ export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
   [EnrollDiscoveredApplicationSteps.Replication]: t('Replication'),
   [EnrollDiscoveredApplicationSteps.Review]: t('Review'),
 });
-
-// DRPC status condition types
-export const KUBE_OBJECT_SYNC_CONDITION_TYPE = 'ClusterDataProtected';

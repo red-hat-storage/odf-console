@@ -72,6 +72,8 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     protectedNamespaces?: string[];
   };
   status?: {
+    // The time of the most recent successful kube object protection
+    lastKubeObjectProtectionTime?: string;
     conditions?: K8sResourceCondition[];
     resourceConditions?: {
       conditions?: K8sResourceCondition[];
