@@ -1,3 +1,4 @@
+import { STORAGE_SYSTEM_NAME } from '../consts';
 import { getPVCJSON } from '../helpers/pvc';
 import { ODFCommon } from '../views/odf-common';
 import { deletePVCFromCLI } from '../views/pvc';
@@ -24,7 +25,7 @@ describe('Check Persistent Dashboard', () => {
     cy.log('Check if Storage System is Healthy');
     cy.byTestID('success-icon').last().should('be.visible');
     cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
-    cy.byLegacyTestID('item-filter').type('ocs-storagecluster-storagesystem');
+    cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
     cy.byTestRows('resource-row').get('td a').first().click();
     cy.log('Check if Storage Cluster is Healthy');
     cy.byTestID('success-icon').first().should('be.visible');
@@ -52,7 +53,7 @@ describe('Check Persistent Dashboard', () => {
   it('Check Inventory card is correct', () => {
     ODFCommon.visitStorageDashboard();
     cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
-    cy.byLegacyTestID('item-filter').type('ocs-storagecluster-storagesystem');
+    cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
     cy.byTestRows('resource-row').get('td a').first().click();
     cy.log('Check the total number of OCS nodes');
     cy.get('.skeleton-activity').should('not.exist'); // eslint-disable-line cypress/require-data-selectors

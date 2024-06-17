@@ -2,6 +2,7 @@ import {
   CEPH_DEFAULT_BLOCK_POOL_NAME,
   POOL_PROGRESS,
 } from '../constants/storage-pool-const';
+import { STORAGE_SYSTEM_NAME } from '../consts';
 import { app } from '../support/pages/app';
 import { NS } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
@@ -24,7 +25,7 @@ export const poolMessage: {
 export const navigateToBlockPool = () => {
   ODFCommon.visitStorageDashboard();
   cy.byLegacyTestID('horizontal-link-Storage Systems').click();
-  cy.byLegacyTestID('item-filter').type('ocs-storagecluster-storagesystem');
+  cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
   cy.byTestRows('resource-row').get('td a').first().click();
   cy.byTestID('horizontal-link-BlockPools').click();
 };
