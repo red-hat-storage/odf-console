@@ -81,6 +81,9 @@ export const Configuration: React.FC<ConfigurationProps> = ({
                 }
               />
             </GridItem>
+            {/* The Recipe-bsaed dr protection is in Dev Preview for ODF 4.16.
+            https://bugzilla.redhat.com/show_bug.cgi?id=2291301
+
             <GridItem
               span={6}
               className="mco-configuration-step__radio pf-v5-u-p-lg"
@@ -96,7 +99,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
                 }
                 checked={protectionMethod === ProtectionMethodType.RECIPE}
               />
-            </GridItem>
+            </GridItem> */}
           </Grid>
         </FormGroup>
         {protectionMethod === ProtectionMethodType.RECIPE && (
