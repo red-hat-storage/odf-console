@@ -12,22 +12,16 @@ import {
   getSubscriptionResourceObj,
   getPlacementRuleResourceObj,
 } from '@odf/mco/hooks';
-import { ACMPlacementModel } from '@odf/mco/models';
-import {
-  ACMPlacementDecisionKind,
-  DRClusterKind,
-  DRPolicyKind,
-} from '@odf/mco/types';
+import { DRPolicyKind } from '@odf/mco/types';
 import { findDeploymentClusters } from '@odf/mco/utils';
-import { getName, getNamespace } from '@odf/shared/selectors';
+import { getNamespace } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
-import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import * as _ from 'lodash-es';
 import { AppManagePoliciesModal } from '../app-manage-policies-modal';
 import {
   generateApplicationInfo,
   generateDRPlacementControlInfo,
-  generateDRPolicyInfo,
+  generateDRInfo,
   generatePlacementInfo,
   getMatchingDRPolicies,
 } from '../utils/parser-utils';
@@ -36,7 +30,6 @@ import {
   ApplicationType,
   DRPlacementControlType,
   DRPolicyType,
-  DataPolicyType,
   PlacementType,
 } from '../utils/types';
 
@@ -90,7 +83,6 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
   isOpen,
   close,
 }) => {
-  const { t } = useCustomTranslation();
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
     getDRResources(getNamespace(application))
   );
@@ -104,79 +96,64 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
         drLoadError
       )
     );
-  const formattedDRResources = drResources?.formattedResources;
   const subscriptionResources = subscriptionResourceList?.[0];
+  const { drPolicies } = drResources;
 
   const applicationInfo: ApplicationInfoType = React.useMemo(() => {
     let applicationInfo: ApplicationInfoType = {};
     if (loaded && !loadError) {
       const unProtectedPlacements: PlacementType[] = [];
-      const drPolicyToDPRCMap: DRPolicyToDRPCMap = {};
+      const drPlacementControls: DRPlacementControlType[] = [];
+      let drPolicyInfo: DRPolicyKind = {};
       subscriptionResources?.subscriptionGroupInfo?.forEach(
         ({ placement, placementDecision, drInfo }) => {
-          const { drClusters, drPlacementControl, drPolicy } = drInfo || {};
-
-          const appPlacement = (
-            placement.kind === ACMPlacementModel.kind
-              ? placementDecision
-              : placement
-          ) as ACMPlacementDecisionKind;
+          const { drPlacementControl, drPolicy } = drInfo || {};
           const deploymentClusters: string[] = findDeploymentClusters(
-            appPlacement,
+            placementDecision,
             drPlacementControl
           );
           const placementInfo = generatePlacementInfo(
             placement,
             deploymentClusters
           );
-          const drpcInfo: DRPlacementControlType[] =
-            generateDRPlacementControlInfo(drPlacementControl, placementInfo);
-          if (!drpcInfo.length) {
+          if (_.isEmpty(drPlacementControl)) {
             // Unprotected placement
             unProtectedPlacements.push(placementInfo);
           } else {
             // Protected placement
-            const policyName = getName(drPolicy);
-            drPolicyToDPRCMap[policyName] = {
-              drClusters,
-              drPolicy,
-              drPlacementControls: [
-                ...(drPolicyToDPRCMap?.[policyName]?.drPlacementControls || []),
-                ...drpcInfo,
-              ],
-            };
+            drPlacementControls.push(
+              ...generateDRPlacementControlInfo(
+                drPlacementControl,
+                placementInfo
+              )
+            );
+            // DRPolicy will be same for all subscription groups, its ok to override
+            drPolicyInfo = drPolicy;
           }
         }
-      );
-      const drPolicyInfo: DRPolicyType[] = Object.values(drPolicyToDPRCMap).map(
-        ({ drClusters, drPlacementControls, drPolicy }) =>
-          generateDRPolicyInfo(drPolicy, drClusters, drPlacementControls, t)[0]
       );
       applicationInfo = generateApplicationInfo(
         APPLICATION_TYPE.SUBSCRIPTION,
         application,
         getNamespace(application),
         unProtectedPlacements,
-        drPolicyInfo
+        generateDRInfo(drPolicyInfo, drPlacementControls)
       );
     }
     return applicationInfo;
-  }, [application, subscriptionResources, loaded, loadError, t]);
+  }, [application, subscriptionResources, loaded, loadError]);
 
-  const matchingPolicies: DataPolicyType[] = React.useMemo(
+  const matchingPolicies: DRPolicyType[] = React.useMemo(
     () =>
       !_.isEmpty(applicationInfo)
-        ? getMatchingDRPolicies(
-            applicationInfo as ApplicationType,
-            formattedDRResources
-          )
+        ? getMatchingDRPolicies(applicationInfo as ApplicationType, drPolicies)
         : [],
-    [applicationInfo, formattedDRResources]
+    [applicationInfo, drPolicies]
   );
 
   return (
     <AppManagePoliciesModal
-      applicaitonInfo={applicationInfo}
+      applicaitonInfo={applicationInfo as ApplicationType}
       matchingPolicies={matchingPolicies}
       loaded={loaded}
       loadError={loadError}
@@ -184,14 +161,6 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
       close={close}
     />
   );
-};
-
-type DRPolicyToDRPCMap = {
-  [policyName: string]: {
-    drPlacementControls: DRPlacementControlType[];
-    drClusters: DRClusterKind[];
-    drPolicy: DRPolicyKind;
-  };
 };
 
 type SubscriptionParserProps = {

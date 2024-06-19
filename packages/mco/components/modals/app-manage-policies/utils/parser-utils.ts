@@ -1,9 +1,7 @@
-import { APPLICATION_TYPE, DRPC_STATUS } from '@odf/mco/constants';
-import { DisasterRecoveryFormatted } from '@odf/mco/hooks';
+import { APPLICATION_TYPE } from '@odf/mco/constants';
 import {
   ACMApplicationKind,
   ACMPlacementType,
-  DRClusterKind,
   DRPlacementControlKind,
   DRPolicyKind,
 } from '@odf/mco/types';
@@ -14,60 +12,43 @@ import {
 } from '@odf/mco/utils';
 import { getLatestDate } from '@odf/shared/details-page/datetime';
 import { arrayify } from '@odf/shared/modals/EditLabelModal';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import {
   ApplicationType,
   DRPlacementControlType,
-  DRPolicyType,
+  DRInfoType,
   PlacementType,
 } from './types';
 
-export const getCurrentActivity = (currentStatus: string, t: TFunction) => {
-  let status = '';
-  if (currentStatus === DRPC_STATUS.Relocating) {
-    status = t('Relocate in progress');
-  } else if (currentStatus === DRPC_STATUS.FailingOver) {
-    status = t('Failover in progress');
-  }
-  return status;
-};
-
-export const getCurrentStatus = (drpcList: DRPlacementControlType[]): string =>
-  drpcList.reduce((acc, drpc) => {
-    const status = DRPC_STATUS[drpc.status] || '';
-    return [DRPC_STATUS.Relocating, DRPC_STATUS.FailingOver].includes(status)
-      ? status
-      : acc || status;
-  }, '');
-
-export const generateDRPolicyInfo = (
-  drPolicy: DRPolicyKind,
-  drClusters: DRClusterKind[],
-  drpcInfo?: DRPlacementControlType[],
-  t?: TFunction
-): DRPolicyType[] =>
+const getDRPolicyInfo = (drPolicy: DRPolicyKind, assignedOn?: string) =>
   !_.isEmpty(drPolicy)
-    ? [
-        {
-          apiVersion: drPolicy.apiVersion,
-          kind: drPolicy.kind,
-          metadata: drPolicy.metadata,
-          assignedOn:
-            !!drpcInfo &&
-            getLatestDate(
-              drpcInfo.map((drpc) => drpc.metadata?.creationTimestamp)
-            ),
-          activity:
-            !!drpcInfo && getCurrentActivity(getCurrentStatus(drpcInfo), t),
-          isValidated: isDRPolicyValidated(drPolicy),
-          schedulingInterval: drPolicy.spec.schedulingInterval,
-          replicationType: getReplicationType(drPolicy.spec.schedulingInterval),
-          drClusters: drPolicy.spec.drClusters,
-          placementControlInfo: drpcInfo,
-        },
-      ]
-    : [];
+    ? {
+        apiVersion: drPolicy.apiVersion,
+        kind: drPolicy.kind,
+        metadata: drPolicy.metadata,
+        isValidated: isDRPolicyValidated(drPolicy),
+        schedulingInterval: drPolicy.spec.schedulingInterval,
+        replicationType: getReplicationType(drPolicy.spec.schedulingInterval),
+        drClusters: drPolicy.spec.drClusters,
+        ...(!!assignedOn ? { assignedOn } : {}),
+      }
+    : {};
+
+export const generateDRInfo = (
+  drPolicy: DRPolicyKind,
+  drpcInfo?: DRPlacementControlType[]
+): DRInfoType | {} =>
+  !_.isEmpty(drPolicy) && !_.isEmpty(drpcInfo)
+    ? {
+        drPolicyInfo: getDRPolicyInfo(
+          drPolicy,
+          getLatestDate(
+            drpcInfo.map((drpc) => drpc.metadata?.creationTimestamp)
+          )
+        ),
+        placementControlInfo: drpcInfo,
+      }
+    : {};
 
 export const generatePlacementInfo = (
   placement: ACMPlacementType,
@@ -93,7 +74,6 @@ export const generateDRPlacementControlInfo = (
           placementInfo: plsInfo,
           pvcSelector: arrayify(drpc?.spec.pvcSelector.matchLabels) || [],
           lastGroupSyncTime: drpc?.status?.lastGroupSyncTime,
-          status: drpc?.status?.phase,
         },
       ]
     : [];
@@ -103,7 +83,7 @@ export const generateApplicationInfo = (
   application: ACMApplicationKind,
   workloadNamespace: string,
   plsInfo: PlacementType[],
-  drPolicyInfo: DRPolicyType[]
+  drInfo: DRInfoType | {}
 ): ApplicationType => ({
   type: appType,
   apiVersion: application.apiVersion,
@@ -111,7 +91,7 @@ export const generateApplicationInfo = (
   metadata: application.metadata,
   workloadNamespace: workloadNamespace,
   placements: plsInfo,
-  dataPolicies: drPolicyInfo,
+  drInfo: drInfo,
 });
 
 export const getClusterNamesFromPlacements = (placements: PlacementType[]) =>
@@ -122,7 +102,7 @@ export const getClusterNamesFromPlacements = (placements: PlacementType[]) =>
 
 export const getMatchingDRPolicies = (
   appInfo: ApplicationType,
-  formattedDRResources: DisasterRecoveryFormatted[]
+  drPolicies: DRPolicyKind[]
 ) => {
   const deploymentClusters: string[] = getClusterNamesFromPlacements(
     appInfo.placements
@@ -130,13 +110,9 @@ export const getMatchingDRPolicies = (
 
   return (
     // Filter all matching policies
-    formattedDRResources?.reduce((acc, resource) => {
-      const { drPolicy } = resource;
+    drPolicies?.reduce((acc, drPolicy) => {
       return matchClusters(drPolicy?.spec?.drClusters, deploymentClusters)
-        ? [
-            ...acc,
-            ...generateDRPolicyInfo(resource?.drPolicy, resource?.drClusters),
-          ]
+        ? [...acc, getDRPolicyInfo(drPolicy)]
         : acc;
     }, []) || []
   );

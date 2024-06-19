@@ -2,9 +2,9 @@ import * as React from 'react';
 import { screen, render, fireEvent, waitFor } from '@testing-library/react';
 // eslint-disable-next-line jest/no-mocks-import
 import {
-  mockApplicationSet1,
-  mockApplicationSet2,
-} from '../../../../__mocks__/applicationset';
+  mockApplication1,
+  mockApplication2,
+} from '../../../../__mocks__/application';
 // eslint-disable-next-line jest/no-mocks-import
 import {
   mockDRClusterEast1,
@@ -24,10 +24,14 @@ import {
   mockPlacementDecision1,
   mockPlacementDecision2,
 } from '../../../../__mocks__/placementdecision';
-import { ArgoApplicationSetResourceKind } from '../../../../hooks';
+// eslint-disable-next-line jest/no-mocks-import
+import {
+  mockSubscription1,
+  mockSubscription2,
+} from '../../../../__mocks__/subscription';
 import { DisasterRecoveryResourceKind } from '../../../../hooks/disaster-recovery';
 import { SearchResult } from '../../../../types';
-import { ApplicationSetParser } from './application-set-parser';
+import { SubscriptionParser } from './subscription-parser';
 
 let testCase = 1;
 
@@ -41,7 +45,7 @@ const searchResult: SearchResult = {
             cluster: 'local-cluster',
             created: '2023-07-04T17:14:10Z',
             kind: 'PersistentVolumeClaim',
-            label: 'app=mock-appset-2',
+            label: 'app=mock-application-2',
             name: 'busybox-pvc',
             namespace: 'test-ns',
             _uid: 'local-cluster/683b0a87-85bf-4743-96d2-565863752e53',
@@ -91,41 +95,37 @@ const drResources3: DisasterRecoveryResourceKind = {
   ],
 };
 
-const appResources1: ArgoApplicationSetResourceKind = {
-  formattedResources: [
-    {
-      application: mockApplicationSet1,
-      placements: [
-        {
-          placement: mockPlacement1,
-          placementDecision: mockPlacementDecision1,
-          drClusters: [mockDRClusterEast1, mockDRClusterWest1],
-          drPlacementControl: mockDRPC1,
-          drPolicy: mockDRPolicy1,
+const appResources1 = [
+  {
+    application: mockApplication1,
+    subscriptionGroupInfo: [
+      {
+        drInfo: {
+          drClusters: drResources1.formattedResources?.[0].drClusters,
+          drPolicy: drResources1.formattedResources?.[0].drPolicy,
+          drPlacementControl:
+            drResources1.formattedResources?.[0].drPlacementControls?.[0],
         },
-      ],
-      managedClusters: [],
-      siblingApplications: [],
-    },
-  ],
-};
+        placement: mockPlacement1,
+        placementDecision: mockPlacementDecision1,
+        subscriptions: [mockSubscription1],
+      },
+    ],
+  },
+];
 
-const appResources2: ArgoApplicationSetResourceKind = {
-  formattedResources: [
-    {
-      application: mockApplicationSet2,
-      placements: [
-        {
-          placement: mockPlacement2,
-          placementDecision: mockPlacementDecision2,
-        },
-      ],
-      managedClusters: [],
-      siblingApplications: [],
-    },
-  ],
-};
-
+const appResources2 = [
+  {
+    application: mockApplication2,
+    subscriptionGroupInfo: [
+      {
+        placement: mockPlacement2,
+        placementDecision: mockPlacementDecision2,
+        subscriptions: [mockSubscription2],
+      },
+    ],
+  },
+];
 const onClose = jest.fn();
 
 jest.mock('@odf/shared/useCustomTranslationHook', () => ({
@@ -158,9 +158,9 @@ jest.mock('@odf/mco/hooks/disaster-recovery', () => ({
   }),
 }));
 
-jest.mock('@odf/mco/hooks/argo-application-set', () => ({
+jest.mock('@odf/mco/hooks/subscription', () => ({
   __esModule: true,
-  useArgoApplicationSetResourceWatch: jest.fn(() => {
+  useSubscriptionResourceWatch: jest.fn(() => {
     if ([1, 3].includes(testCase)) {
       return [appResources2, true, ''];
     } else {
@@ -181,12 +181,12 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useK8sWatchResource: jest.fn(() => [[], true, undefined]),
 }));
 
-describe('ApplicationSet manage disaster recovery modal', () => {
+describe('Subscription manage disaster recovery modal', () => {
   test('Empty manage policy page test', async () => {
     testCase = 1;
     render(
-      <ApplicationSetParser
-        application={mockApplicationSet2}
+      <SubscriptionParser
+        application={mockApplication2}
         close={onClose}
         isOpen={true}
       />
@@ -207,8 +207,8 @@ describe('ApplicationSet manage disaster recovery modal', () => {
   test('manage policy view test', async () => {
     testCase = 2;
     render(
-      <ApplicationSetParser
-        application={mockApplicationSet1}
+      <SubscriptionParser
+        application={mockApplication1}
         close={onClose}
         isOpen={true}
       />
@@ -237,8 +237,8 @@ describe('ApplicationSet manage disaster recovery modal', () => {
   test('Assign policy action test', async () => {
     testCase = 3;
     render(
-      <ApplicationSetParser
-        application={mockApplicationSet2}
+      <SubscriptionParser
+        application={mockApplication1}
         close={onClose}
         isOpen={true}
       />
@@ -278,9 +278,9 @@ describe('ApplicationSet manage disaster recovery modal', () => {
     fireEvent.click(screen.getByText('mock-placement-2'));
     expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Select labels'));
-    screen.getByText('app=mock-appset-2');
-    fireEvent.click(screen.getByText('app=mock-appset-2'));
-    expect(screen.getByText('app=mock-appset-2')).toBeInTheDocument();
+    screen.getByText('app=mock-application-2');
+    fireEvent.click(screen.getByText('app=mock-application-2'));
+    expect(screen.getByText('app=mock-application-2')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Next'));
 
     // Step 3 - review and assign
@@ -305,6 +305,6 @@ describe('ApplicationSet manage disaster recovery modal', () => {
     expect(screen.getByText('Asynchronous')).toBeInTheDocument();
     expect(screen.getByText('5 minutes')).toBeInTheDocument();
     expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
-    expect(screen.getByText('app=mock-appset-2')).toBeInTheDocument();
+    expect(screen.getByText('app=mock-application-2')).toBeInTheDocument();
   });
 });

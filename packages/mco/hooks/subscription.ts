@@ -153,13 +153,10 @@ const generateSubscriptionGroupInfo = (
           drResources,
           placement.kind
         );
-        const placementDecision =
-          placement.kind === ACMPlacementModel.kind
-            ? findPlacementDecisionUsingPlacement(
-                placement as ACMPlacementKind,
-                placementDecisions
-              )
-            : null;
+        const placementDecision = findPlacementDecisionUsingPlacement(
+          placement as ACMPlacementKind,
+          placementDecisions
+        );
         placementToAppDeploymentMap[placementUniqueId] = {
           subscriptions: [subscription],
           placement,

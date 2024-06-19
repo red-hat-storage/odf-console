@@ -64,7 +64,7 @@ describe('Test drpolicy list page', () => {
     expect(
       screen.getByText('No disaster recovery policies yet')
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Create DRPolicy')).toHaveAttribute(
+    expect(screen.getByLabelText('Empty Page')).toHaveAttribute(
       'aria-disabled',
       'false'
     );
@@ -76,12 +76,12 @@ describe('Test drpolicy list page', () => {
     expect(
       screen.getByText('No disaster recovery policies yet')
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Create DRPolicy')).toHaveAttribute(
+    expect(screen.getByLabelText('Empty Page')).toHaveAttribute(
       'aria-disabled',
       'true'
     );
     // Tooltip content check
-    fireEvent.mouseEnter(screen.getByLabelText('Create DRPolicy'));
+    fireEvent.mouseEnter(screen.getByLabelText('Empty Page'));
     expect(
       await screen.findByText(
         'You are not authorized to complete this action. See your cluster administrator for role-based access control information.'
