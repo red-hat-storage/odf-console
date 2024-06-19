@@ -34,6 +34,7 @@ import {
   isPeerReady,
 } from '../../utils';
 import { DiscoveredApplicationParser as DiscoveredApplicationModal } from '../modals/app-failover-relocate/parser/discovered-application-parser';
+import RemoveDisasterRecoveryModal from '../modals/remove-disaster-recovery/remove-disaster-recovery';
 
 export const drpcDetailsPageRoute = (drpc: DRPlacementControlKind) =>
   `/k8s/ns/${getNamespace(drpc)}/${referenceForModel(
@@ -243,6 +244,14 @@ export const getRowActions = (
       launcher(DiscoveredApplicationModal, {
         isOpen: true,
         extraProps: { application: rowItem, action: DRActionType.RELOCATE },
+      }),
+  },
+  {
+    title: t('Remove disaster recovery'),
+    onClick: () =>
+      launcher(RemoveDisasterRecoveryModal, {
+        isOpen: true,
+        extraProps: { application: rowItem },
       }),
   },
 ];

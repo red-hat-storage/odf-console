@@ -64,6 +64,7 @@ export const getDRPCKindObj = (
   },
 });
 
+// ToDo(Gowtham): https://github.com/red-hat-storage/odf-console/issues/1449
 export const doNotDeletePVCAnnotationPromises = (
   drpcs: DRPlacementControlType[]
 ) => {
@@ -92,6 +93,7 @@ export const doNotDeletePVCAnnotationPromises = (
   return promises;
 };
 
+// ToDo(Gowtham): https://github.com/red-hat-storage/odf-console/issues/1449
 export const unAssignPromises = (drpcs: DRPlacementControlType[]) => {
   const promises: Promise<K8sResourceKind>[] = [];
   drpcs.forEach((drpc) => {
