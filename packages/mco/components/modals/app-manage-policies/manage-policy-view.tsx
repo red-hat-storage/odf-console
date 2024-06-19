@@ -4,17 +4,20 @@ import { getDRPolicyStatus, parseSyncInterval } from '@odf/mco/utils';
 import { formatTime, getLatestDate } from '@odf/shared/details-page/datetime';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { Labels } from '@odf/shared/labels';
-import { ModalBody } from '@odf/shared/modals/Modal';
+import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { getName } from '@odf/shared/selectors';
 import { BlueInfoCircleIcon } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getErrorMessage } from '@odf/shared/utils';
 import {
   StatusIconAndText,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { Trans } from 'react-i18next';
+import { TFunction, Trans } from 'react-i18next';
 import {
+  Alert,
+  AlertVariant,
   Button,
   ButtonVariant,
   Divider,
@@ -30,10 +33,12 @@ import {
 import { getDRPlacementControlResourceObj } from '../../../hooks';
 import EmptyPage from '../../empty-state-page/empty-page';
 import {
-  MessageType,
+  doNotDeletePVCAnnotationPromises,
+  unAssignPromises,
+} from './utils/k8s-utils';
+import {
   ModalActionContext,
   ModalViewContext,
-  CommonViewState,
   ManagePolicyStateType,
 } from './utils/reducer';
 import { ManagePolicyStateAction } from './utils/reducer';
@@ -77,6 +82,28 @@ const getAggregatedDRInfo = (
     }),
     { placements: [], pvcSelector: [], lastGroupSyncTime: '', assignedOn: '' }
   );
+
+const getMessage = (t: TFunction<string>, errorMessage?: string) => ({
+  [ModalActionContext.ENABLE_DR_PROTECTION_SUCCEEDED]: {
+    title: t('New policy assigned to application'),
+    variant: AlertVariant.success,
+  },
+  [ModalActionContext.DISABLE_DR_PROTECTION]: {
+    title: t('Remove disaster recovery'),
+    variant: AlertVariant.warning,
+    description: t(
+      'Your application will lose disaster recovery protection, preventing volume synchronization (replication) between clusters.'
+    ),
+  },
+  [ModalActionContext.DISABLE_DR_PROTECTION_SUCCEEDED]: {
+    title: t('Disaster recovery removed successfully.'),
+    variant: AlertVariant.success,
+  },
+  [ModalActionContext.DISABLE_DR_PROTECTION_FAILED]: {
+    title: errorMessage,
+    variant: AlertVariant.danger,
+  },
+});
 
 const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
   eligiblePolicies,
@@ -269,12 +296,21 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
   eligiblePolicies,
   isSubscriptionAppType,
   unProtectedPlacementCount,
+  modalActionContext,
   loaded,
   loadError,
   dispatch,
   setModalContext,
   setModalActionContext,
 }) => {
+  const { t } = useCustomTranslation();
+  const [localModalActionContext, setLocalModalActionContext] =
+    React.useState<ModalActionContext>(null);
+  const [errorMessage, setErrorMessage] = React.useState('');
+  const [inProgress, setInProgress] = React.useState(false);
+  const actionContext = localModalActionContext ?? modalActionContext;
+  const alertProps = getMessage(t, errorMessage)?.[actionContext];
+
   if (_.isEmpty(drInfo)) {
     return (
       <ManagePolicyEmptyPage
@@ -282,25 +318,55 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
         workloadNamespace={workloadNamespace}
         policyInfoLoaded={loaded}
         policyInfoLoadError={loadError}
-        onClick={() => setModalContext(ModalViewContext.ASSIGN_POLICY_VIEW)}
+        onClick={() => {
+          setModalActionContext(ModalActionContext.ENABLE_DR_PROTECTION);
+          setModalContext(ModalViewContext.ASSIGN_POLICY_VIEW);
+        }}
       />
     );
   }
 
   // To protect new subscription group(s)
   const onEdit = () => {
+    // Set already assigned policy as default
     dispatch({
       type: ManagePolicyStateType.SET_SELECTED_POLICY,
       context: ModalViewContext.ASSIGN_POLICY_VIEW,
       payload: drInfo.drPolicyInfo,
     });
     // Change assign policy view to edit mode
-    setModalActionContext(
-      ModalActionContext.EDIT_DR_PROTECTION,
-      ModalViewContext.ASSIGN_POLICY_VIEW
-    );
+    setModalActionContext(ModalActionContext.EDIT_DR_PROTECTION);
     // Switch to assign policy view
     setModalContext(ModalViewContext.ASSIGN_POLICY_VIEW);
+  };
+
+  const onRemove = async () => {
+    setInProgress(true);
+    await Promise.all(
+      doNotDeletePVCAnnotationPromises(drInfo.placementControlInfo)
+    )
+      .then(() =>
+        // Delete DRPC after adding the PVC annotation successfully
+        Promise.all(unAssignPromises(drInfo.placementControlInfo))
+          .then(() =>
+            setLocalModalActionContext(
+              ModalActionContext.DISABLE_DR_PROTECTION_SUCCEEDED
+            )
+          )
+          .catch((error) => {
+            setLocalModalActionContext(
+              ModalActionContext.DISABLE_DR_PROTECTION_FAILED
+            );
+            setErrorMessage(getErrorMessage(error) || error);
+          })
+      )
+      .catch((error) => {
+        setLocalModalActionContext(
+          ModalActionContext.DISABLE_DR_PROTECTION_FAILED
+        );
+        setErrorMessage(getErrorMessage(error) || error);
+      });
+    setInProgress(false);
   };
 
   return (
@@ -311,7 +377,47 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
           hideEditAction={!isSubscriptionAppType || !unProtectedPlacementCount}
           onEdit={onEdit}
         />
+        {!!alertProps && (
+          <Alert title={alertProps.title} variant={alertProps.variant} isInline>
+            {alertProps.description}
+          </Alert>
+        )}
       </ModalBody>
+      <ModalFooter>
+        {actionContext !== ModalActionContext.DISABLE_DR_PROTECTION && (
+          <Button
+            id="disable-dr-action"
+            variant={ButtonVariant.secondary}
+            isDanger
+            onClick={() =>
+              setLocalModalActionContext(
+                ModalActionContext.DISABLE_DR_PROTECTION
+              )
+            }
+          >
+            {t('Remove disaster recovery')}
+          </Button>
+        )}
+        {actionContext === ModalActionContext.DISABLE_DR_PROTECTION && (
+          <>
+            <Button
+              id="cancel-disable-dr-action"
+              variant={ButtonVariant.secondary}
+              onClick={() => setLocalModalActionContext(null)}
+            >
+              {t('Cancel')}
+            </Button>
+            <Button
+              id="confirm-disable-dr-action"
+              variant={ButtonVariant.danger}
+              onClick={onRemove}
+              isLoading={inProgress}
+            >
+              {t('Confirm remove')}
+            </Button>
+          </>
+        )}
+      </ModalFooter>
     </>
   );
 };
@@ -320,18 +426,14 @@ type ManagePolicyViewProps = {
   drInfo: DRInfoType;
   workloadNamespace: string;
   eligiblePolicies: DRPolicyType[];
-  state: CommonViewState;
   isSubscriptionAppType: boolean;
   unProtectedPlacementCount: number;
+  modalActionContext: ModalActionContext;
   loaded: boolean;
   loadError: any;
   dispatch: React.Dispatch<ManagePolicyStateAction>;
   setModalContext: (modalViewContext: ModalViewContext) => void;
-  setModalActionContext: (
-    modalActionContext: ModalActionContext,
-    modalViewContext?: ModalViewContext
-  ) => void;
-  setMessage: (error: MessageType) => void;
+  setModalActionContext: (modalActionContext: ModalActionContext) => void;
 };
 
 type DRInformationProps = {

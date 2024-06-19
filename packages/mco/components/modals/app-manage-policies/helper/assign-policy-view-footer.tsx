@@ -47,6 +47,8 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
   state,
   stepIdReached,
   isValidationEnabled,
+  errorMessage,
+  modalActionContext,
   setStepIdReached,
   onSubmit,
   onCancel,
@@ -97,6 +99,16 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
           className="odf-alert mco-manage-policies__alert--margin-left"
         />
       )}
+      {!!errorMessage &&
+        stepName ===
+          AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign] && (
+          <Alert
+            title={errorMessage}
+            variant={AlertVariant.danger}
+            isInline
+            className="odf-alert mco-manage-policies__alert--margin-left"
+          />
+        )}
       <WizardFooter>
         <Button
           isLoading={requestInProgress}
@@ -121,8 +133,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
               AssignPolicyStepsNames(t)[
                 AssignPolicySteps.PersistentVolumeClaim
               ] &&
-              state.modalActionContext ===
-                ModalActionContext.EDIT_DR_PROTECTION)
+              modalActionContext === ModalActionContext.EDIT_DR_PROTECTION)
           }
         >
           {t('Back')}
@@ -144,6 +155,8 @@ type AssignPolicyViewFooterProps = {
   appType: APPLICATION_TYPE;
   stepIdReached: number;
   isValidationEnabled: boolean;
+  errorMessage: string;
+  modalActionContext: ModalActionContext;
   setStepIdReached: React.Dispatch<React.SetStateAction<number>>;
   onSubmit: () => Promise<void>;
   onCancel: () => void;
