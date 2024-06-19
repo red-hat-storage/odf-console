@@ -1,4 +1,4 @@
-export type BlockPoolState = {
+export type StoragePoolState = {
   poolName: string;
   poolStatus: string;
   replicaSize: string;
@@ -9,7 +9,7 @@ export type BlockPoolState = {
   errorMessage: string;
 };
 
-export enum BlockPoolActionType {
+export enum StoragePoolActionType {
   SET_POOL_NAME = 'SET_POOL_NAME',
   SET_POOL_STATUS = 'SET_POOL_STATUS',
   SET_POOL_REPLICA_SIZE = 'SET_POOL_REPLICA_SIZE',
@@ -20,7 +20,7 @@ export enum BlockPoolActionType {
   SET_ERROR_MESSAGE = 'SET_ERROR_MESSAGE',
 }
 
-export const blockPoolInitialState: BlockPoolState = {
+export const blockPoolInitialState: StoragePoolState = {
   poolName: '',
   poolStatus: '',
   replicaSize: '',
@@ -31,64 +31,64 @@ export const blockPoolInitialState: BlockPoolState = {
   errorMessage: '',
 };
 
-export type BlockPoolAction =
-  | { type: BlockPoolActionType.SET_POOL_NAME; payload: string }
-  | { type: BlockPoolActionType.SET_POOL_STATUS; payload: string }
-  | { type: BlockPoolActionType.SET_POOL_REPLICA_SIZE; payload: string }
-  | { type: BlockPoolActionType.SET_POOL_COMPRESSED; payload: boolean }
-  | { type: BlockPoolActionType.SET_POOL_ARBITER; payload: boolean }
-  | { type: BlockPoolActionType.SET_FAILURE_DOMAIN; payload: string }
-  | { type: BlockPoolActionType.SET_INPROGRESS; payload: boolean }
-  | { type: BlockPoolActionType.SET_ERROR_MESSAGE; payload: string };
+export type StoragePoolAction =
+  | { type: StoragePoolActionType.SET_POOL_NAME; payload: string }
+  | { type: StoragePoolActionType.SET_POOL_STATUS; payload: string }
+  | { type: StoragePoolActionType.SET_POOL_REPLICA_SIZE; payload: string }
+  | { type: StoragePoolActionType.SET_POOL_COMPRESSED; payload: boolean }
+  | { type: StoragePoolActionType.SET_POOL_ARBITER; payload: boolean }
+  | { type: StoragePoolActionType.SET_FAILURE_DOMAIN; payload: string }
+  | { type: StoragePoolActionType.SET_INPROGRESS; payload: boolean }
+  | { type: StoragePoolActionType.SET_ERROR_MESSAGE; payload: string };
 
-export const blockPoolReducer = (
-  state: BlockPoolState,
-  action: BlockPoolAction
+export const storagePoolReducer = (
+  state: StoragePoolState,
+  action: StoragePoolAction
 ) => {
   switch (action.type) {
-    case BlockPoolActionType.SET_POOL_NAME: {
+    case StoragePoolActionType.SET_POOL_NAME: {
       return {
         ...state,
         poolName: action.payload,
       };
     }
-    case BlockPoolActionType.SET_POOL_STATUS: {
+    case StoragePoolActionType.SET_POOL_STATUS: {
       return {
         ...state,
         poolStatus: action.payload,
       };
     }
-    case BlockPoolActionType.SET_POOL_REPLICA_SIZE: {
+    case StoragePoolActionType.SET_POOL_REPLICA_SIZE: {
       return {
         ...state,
         replicaSize: action.payload,
       };
     }
-    case BlockPoolActionType.SET_POOL_COMPRESSED: {
+    case StoragePoolActionType.SET_POOL_COMPRESSED: {
       return {
         ...state,
         isCompressed: action.payload,
       };
     }
-    case BlockPoolActionType.SET_POOL_ARBITER: {
+    case StoragePoolActionType.SET_POOL_ARBITER: {
       return {
         ...state,
         isArbiterCluster: action.payload,
       };
     }
-    case BlockPoolActionType.SET_FAILURE_DOMAIN: {
+    case StoragePoolActionType.SET_FAILURE_DOMAIN: {
       return {
         ...state,
         failureDomain: action.payload,
       };
     }
-    case BlockPoolActionType.SET_INPROGRESS: {
+    case StoragePoolActionType.SET_INPROGRESS: {
       return {
         ...state,
         inProgress: action.payload,
       };
     }
-    case BlockPoolActionType.SET_ERROR_MESSAGE: {
+    case StoragePoolActionType.SET_ERROR_MESSAGE: {
       return {
         ...state,
         errorMessage: action.payload,

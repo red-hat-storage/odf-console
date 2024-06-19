@@ -8,15 +8,15 @@ import {
   ButtonType,
   ButtonVariant,
 } from '@patternfly/react-core';
-import { checkRequiredValues } from '../../block-pool/footer';
-import {
-  BlockPoolAction,
-  BlockPoolActionType,
-  BlockPoolState,
-} from '../../block-pool/reducer';
 import { POOL_PROGRESS } from '../../constants';
+import { checkRequiredValues } from '../../storage-pool/footer';
+import {
+  StoragePoolAction,
+  StoragePoolActionType,
+  StoragePoolState,
+} from '../../storage-pool/reducer';
 
-export const BlockPoolModalFooter = (props: BlockPoolModalFooterProps) => {
+export const StoragePoolModalFooter = (props: StoragePoolModalFooterProps) => {
   const { state, dispatch, onSubmit, primaryAction, cancel, close } = props;
   const { t } = useCustomTranslation();
 
@@ -35,7 +35,10 @@ export const BlockPoolModalFooter = (props: BlockPoolModalFooterProps) => {
         type: ButtonType.button,
         variant: ButtonVariant.secondary,
         onClick: () => {
-          dispatch({ type: BlockPoolActionType.SET_POOL_STATUS, payload: '' });
+          dispatch({
+            type: StoragePoolActionType.SET_POOL_STATUS,
+            payload: '',
+          });
         },
       },
       {
@@ -168,9 +171,9 @@ export const BlockPoolModalFooter = (props: BlockPoolModalFooterProps) => {
   );
 };
 
-type BlockPoolModalFooterProps = {
-  state: BlockPoolState;
-  dispatch: React.Dispatch<BlockPoolAction>;
+type StoragePoolModalFooterProps = {
+  state: StoragePoolState;
+  dispatch: React.Dispatch<StoragePoolAction>;
   primaryAction: string;
   onSubmit: () => void;
   cancel: () => void;

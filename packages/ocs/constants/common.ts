@@ -6,6 +6,13 @@ export enum POOL_STATE {
   RECONCILE_FAILED = 'ReconcileFailed',
   FAILURE = 'Failure',
 }
+export enum POOL_TYPE {
+  BLOCK = 'Block',
+  FILESYSTEM = 'Filesystem',
+}
+export const POOL_FS_DEFAULT = 'data0';
+export const ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH =
+  '/spec/managedResources/cephFilesystems/additionalDataPools';
 
 export const ROOK_MODEL = 'cephblockpools.ceph.rook.io';
 

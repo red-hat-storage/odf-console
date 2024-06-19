@@ -3,15 +3,13 @@ import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { useParams } from 'react-router-dom-v5-compat';
-import { BlockPoolListPage } from '../block-pool/BlockPoolListPage';
-import { CephBlockPoolModel } from '../models';
+import { StoragePoolListPage } from '../storage-pool/StoragePoolListPage';
 import { ODFSystemParams } from '../types';
 import OCSSystemDashboard from './ocs-system-dashboard';
 
-const blockPoolHref = referenceForModel(CephBlockPoolModel);
+const storagePoolHref = 'storage-pools';
 
 const ODFSystemDashboard: React.FC<{}> = ({}) => {
   const { t } = useCustomTranslation();
@@ -43,19 +41,21 @@ const ODFSystemDashboard: React.FC<{}> = ({}) => {
   const isExternal = systemFlags[clusterNs]?.isExternalMode;
 
   React.useEffect(() => {
-    const isBlockPoolAdded = pages.find((page) => page.href === blockPoolHref);
-    if (isCephAvailable && !isBlockPoolAdded && !isExternal) {
+    const isStoragePoolAdded = pages.find(
+      (page) => page.href === storagePoolHref
+    );
+    if (isCephAvailable && !isStoragePoolAdded && !isExternal) {
       setPages((p) => [
         ...p,
         {
-          title: t('BlockPools'),
-          href: blockPoolHref,
-          component: BlockPoolListPage,
+          title: t('Storage pools'),
+          href: storagePoolHref,
+          component: StoragePoolListPage,
         },
       ]);
     }
-    if (isBlockPoolAdded && isExternal) {
-      setPages((p) => p.filter((page) => page.href !== blockPoolHref));
+    if (isStoragePoolAdded && isExternal) {
+      setPages((p) => p.filter((page) => page.href !== storagePoolHref));
     }
   }, [isExternal, isCephAvailable, pages, setPages, t]);
 

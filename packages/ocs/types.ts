@@ -1,4 +1,6 @@
+import { DataPool } from '@odf/shared/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import { POOL_STATE, POOL_TYPE } from './constants';
 
 export enum ImageStates {
   STARTING_REPLAY = 'starting_replay',
@@ -11,22 +13,15 @@ export enum ImageStates {
 }
 
 export type StoragePoolKind = K8sResourceCommon & {
-  spec: {
-    compressionMode?: string;
+  spec: DataPool & {
     deviceClass?: string;
     failureDomain?: string;
-    replicated: {
-      size: number;
-    };
     parameters?: {
       compression_mode: string;
     };
-    mirroring?: {
-      enabled: boolean;
-    };
   };
   status?: {
-    phase?: string;
+    phase?: POOL_STATE;
     mirroringStatus?: {
       lastChecked: string;
       summary: {
@@ -34,6 +29,21 @@ export type StoragePoolKind = K8sResourceCommon & {
         states: ImageStates | {};
       };
     };
+  };
+};
+
+export type StoragePool = StoragePoolKind & {
+  type: POOL_TYPE;
+  fsName?: string;
+  shortName?: string;
+};
+
+export type CephFilesystemKind = K8sResourceCommon & {
+  spec: {
+    dataPools: DataPool[];
+  };
+  status?: {
+    phase?: string;
   };
 };
 

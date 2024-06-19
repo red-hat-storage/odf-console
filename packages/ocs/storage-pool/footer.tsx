@@ -2,15 +2,15 @@ import * as React from 'react';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ActionGroup, Button } from '@patternfly/react-core';
-import { BlockPoolState } from './reducer';
-import './create-block-pool.scss';
+import { StoragePoolState } from './reducer';
+import './create-storage-pool.scss';
 
 export const checkRequiredValues = (
   poolName: string,
   replicaSize: string
 ): boolean => !poolName || !replicaSize;
 
-export const BlockPoolFooter = (props: BlockPoolFooterProps) => {
+export const StoragePoolFooter = (props: StoragePoolFooterProps) => {
   const { state, cancel, onConfirm } = props;
   const { t } = useCustomTranslation();
 
@@ -39,8 +39,8 @@ export const BlockPoolFooter = (props: BlockPoolFooterProps) => {
   );
 };
 
-type BlockPoolFooterProps = {
-  state: BlockPoolState;
+type StoragePoolFooterProps = {
+  state: StoragePoolState;
   cancel: () => void;
   onConfirm: () => void;
 };

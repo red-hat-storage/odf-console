@@ -4,9 +4,9 @@ import {
   fieldRequirementsTranslations,
   formSettings,
 } from '@odf/shared/constants';
-import { useK8sGet, useK8sList } from '@odf/shared/hooks';
+import { useK8sGet } from '@odf/shared/hooks';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
-import { getName, getNamespace } from '@odf/shared/selectors';
+import { getNamespace } from '@odf/shared/selectors';
 import {
   ListKind,
   StorageClusterKind,
@@ -29,24 +29,33 @@ import {
   EmptyStateIcon,
   EmptyStateBody,
   EmptyStateHeader,
+  Radio,
+  FormGroup,
+  TextInput,
+  Icon,
 } from '@patternfly/react-core';
-import { CaretDownIcon } from '@patternfly/react-icons';
-import { OCS_DEVICE_REPLICA, POOL_PROGRESS, POOL_STATE } from '../constants';
-import { StorageClusterModel, CephBlockPoolModel } from '../models';
+import { CaretDownIcon, InfoCircleIcon } from '@patternfly/react-icons';
+import {
+  OCS_DEVICE_REPLICA,
+  POOL_PROGRESS,
+  POOL_STATE,
+  POOL_TYPE,
+} from '../constants';
+import { StorageClusterModel } from '../models';
 import {
   getErrorMessage,
   ProgressStatusProps,
   PROGRESS_STATUS,
 } from '../utils';
 import {
-  BlockPoolAction,
-  BlockPoolActionType,
-  BlockPoolState,
+  StoragePoolAction,
+  StoragePoolActionType,
+  StoragePoolState,
 } from './reducer';
 import '../style.scss';
 import './body.scss';
 
-export const BlockPoolStatus: React.FC<BlockPoolStatusProps> = ({
+export const StoragePoolStatus: React.FC<StoragePoolStatusProps> = ({
   status,
   name,
   error = '',
@@ -73,14 +82,37 @@ export const BlockPoolStatus: React.FC<BlockPoolStatusProps> = ({
   );
 };
 
-export type BlockPoolStatusProps = {
+export type StoragePoolStatusProps = {
   status: string;
   name?: string;
   error?: string;
 };
 
-export const BlockPoolBody = (props: BlockPoolBodyPros) => {
-  const { cephCluster, state, dispatch, showPoolStatus, isUpdate } = props;
+export type StoragePoolBodyProps = {
+  cephCluster: CephClusterKind;
+  state: StoragePoolState;
+  showPoolStatus: boolean;
+  dispatch: React.Dispatch<StoragePoolAction>;
+  poolType: POOL_TYPE;
+  existingNames?: string[];
+  onPoolTypeChange?: (newPoolType: POOL_TYPE) => void;
+  disablePoolType?: boolean;
+  isUpdate?: boolean;
+  fsName?: string;
+};
+
+export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
+  cephCluster,
+  state,
+  showPoolStatus,
+  dispatch,
+  poolType,
+  existingNames,
+  onPoolTypeChange,
+  disablePoolType,
+  isUpdate,
+  fsName,
+}) => {
   const { t } = useCustomTranslation();
 
   const poolNs = getNamespace(cephCluster);
@@ -90,14 +122,10 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
 
   const [isReplicaOpen, setReplicaOpen] = React.useState(false);
 
-  const [data, loaded, loadError] = useK8sList(CephBlockPoolModel, poolNs);
-
+  const poolNameMaxLength = 253;
   const { schema, fieldRequirements } = React.useMemo(() => {
-    const existingNames =
-      loaded && !loadError ? data?.map((dataItem) => getName(dataItem)) : [];
-
     const translationFieldRequirements = [
-      fieldRequirementsTranslations.maxChars(t, 253),
+      fieldRequirementsTranslations.maxChars(t, poolNameMaxLength),
       fieldRequirementsTranslations.startAndEndName(t),
       fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
       fieldRequirementsTranslations.cannotBeUsedBefore(t),
@@ -106,7 +134,7 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
     const validationSchema = Yup.object({
       newPoolName: Yup.string()
         .required()
-        .max(253, translationFieldRequirements[0])
+        .max(poolNameMaxLength, translationFieldRequirements[0])
         .matches(
           validationRegEx.startAndEndsWithAlphanumerics,
           translationFieldRequirements[1]
@@ -126,10 +154,14 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
       schema: validationSchema,
       fieldRequirements: translationFieldRequirements,
     };
-  }, [data, loadError, loaded, t]);
+  }, [existingNames, t]);
 
   const resolver = useYupValidationResolver(schema);
-  const { control, watch } = useForm({
+  const {
+    formState: { errors },
+    control,
+    watch,
+  } = useForm({
     ...formSettings,
     resolver,
   });
@@ -137,17 +169,19 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
   const poolName: string = watch('newPoolName');
 
   React.useEffect(() => {
+    // Update pool name: set empty on validation error.
+    const payload = errors?.newPoolName ? '' : poolName;
     dispatch({
-      type: BlockPoolActionType.SET_POOL_NAME,
-      payload: poolName,
+      type: StoragePoolActionType.SET_POOL_NAME,
+      payload: payload,
     });
-  }, [poolName, dispatch]);
+  }, [poolName, dispatch, errors?.newPoolName]);
 
   // Failure Domain
   React.useEffect(() => {
     if (storageClusterLoaded && !storageClusterLoadError)
       dispatch({
-        type: BlockPoolActionType.SET_FAILURE_DOMAIN,
+        type: StoragePoolActionType.SET_FAILURE_DOMAIN,
         payload: storageCluster?.items[0]?.status?.failureDomain || '',
       });
   }, [storageCluster, storageClusterLoaded, storageClusterLoadError, dispatch]);
@@ -162,12 +196,12 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
       storageCluster?.items[0]
     );
     dispatch({
-      type: BlockPoolActionType.SET_POOL_ARBITER,
+      type: StoragePoolActionType.SET_POOL_ARBITER,
       payload: isArbiterCluster,
     });
     if (isArbiterCluster) {
       dispatch({
-        type: BlockPoolActionType.SET_POOL_REPLICA_SIZE,
+        type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
         payload: '4',
       });
     }
@@ -202,7 +236,7 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
         description={warning}
         onClick={(e) =>
           dispatch({
-            type: BlockPoolActionType.SET_POOL_REPLICA_SIZE,
+            type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
             payload: e.currentTarget.id,
           })
         }
@@ -218,13 +252,44 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
     <>
       {isClusterReady || !showPoolStatus ? (
         <>
+          <FormGroup label={t('Volume type')} isRequired>
+            <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row ceph-pool__radio-flex">
+              <Radio
+                label={t('Filesystem')}
+                value="filesystem"
+                id="type-filesystem"
+                data-test="type-filesystem"
+                name="volume-type"
+                className="pf-v5-u-mr-4xl"
+                isChecked={poolType === POOL_TYPE.FILESYSTEM}
+                isDisabled={
+                  disablePoolType && poolType !== POOL_TYPE.FILESYSTEM
+                }
+                onChange={() => {
+                  onPoolTypeChange(POOL_TYPE.FILESYSTEM);
+                }}
+              />
+              <Radio
+                label={t('Block')}
+                value="block"
+                id="type-block"
+                data-test="type-block"
+                name="volume-type"
+                isChecked={poolType === POOL_TYPE.BLOCK}
+                isDisabled={disablePoolType && poolType !== POOL_TYPE.BLOCK}
+                onChange={() => {
+                  onPoolTypeChange(POOL_TYPE.BLOCK);
+                }}
+              />
+            </div>
+          </FormGroup>
           <TextInputWithFieldRequirements
             control={control}
             fieldRequirements={fieldRequirements}
             defaultValue={state.poolName}
             popoverProps={{
               headerContent: t('Name requirements'),
-              footerContent: `${t('Example')}: my-block-pool`,
+              footerContent: `${t('Example')}: my-pool`,
             }}
             formGroupProps={{
               label: t('Pool name'),
@@ -237,9 +302,36 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
               name: 'newPoolName',
               'data-test': 'new-pool-name-textbox',
               'aria-describedby': t('pool-name-help'),
-              placeholder: t('my-block-pool'),
+              placeholder: t('my-pool'),
               isDisabled: isUpdate,
             }}
+            infoElement={
+              poolType === POOL_TYPE.FILESYSTEM && (
+                <>
+                  <Icon status="info">
+                    <InfoCircleIcon />
+                  </Icon>
+                  <span className="pf-v5-u-disabled-color-100 pf-v5-u-font-size-sm pf-v5-u-ml-sm">
+                    {t(
+                      'The pool name comprises a prefix followed by the user-provided name.'
+                    )}
+                  </span>
+                </>
+              )
+            }
+            inputPrefixElement={
+              poolType === POOL_TYPE.FILESYSTEM && (
+                <>
+                  <TextInput
+                    id="cephfs-pool-prefix"
+                    className="cephfs-pool-prefix"
+                    value={fsName}
+                    isDisabled={true}
+                  />
+                  <div className="pf-v5-u-ml-sm pf-v5-u-mr-sm">-</div>
+                </>
+              )
+            }
           />
           <div className="form-group ceph-block-pool-body__input">
             <label
@@ -273,15 +365,15 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
           </div>
           <div className="form-group ceph-block-pool-body__input">
             <label className="control-label" htmlFor="compression-check">
-              {t('Compression')}
+              {t('Data compression')}
             </label>
             <div className="checkbox">
-              <label>
+              <label className="ceph-block-pool-body__compression">
                 <input
                   type="checkbox"
                   onChange={(event) =>
                     dispatch({
-                      type: BlockPoolActionType.SET_POOL_COMPRESSED,
+                      type: StoragePoolActionType.SET_POOL_COMPRESSED,
                       payload: event.target.checked,
                     })
                   }
@@ -289,7 +381,9 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
                   name="compression-check"
                   data-test="compression-checkbox"
                 />
-                {t('Enable compression')}
+                {t(
+                  'Optimize storage efficiency by enabling data compression within replicas.'
+                )}
               </label>
             </div>
           </div>
@@ -305,16 +399,8 @@ export const BlockPoolBody = (props: BlockPoolBodyPros) => {
           )}
         </>
       ) : (
-        <BlockPoolStatus status={POOL_PROGRESS.CLUSTERNOTREADY} />
+        <StoragePoolStatus status={POOL_PROGRESS.CLUSTERNOTREADY} />
       )}
     </>
   );
-};
-
-export type BlockPoolBodyPros = {
-  cephCluster?: CephClusterKind;
-  state: BlockPoolState;
-  showPoolStatus: boolean;
-  dispatch: React.Dispatch<BlockPoolAction>;
-  isUpdate?: boolean;
 };

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { POOL_TYPE } from '@odf/ocs/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
@@ -8,7 +9,8 @@ import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 export const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
-  const volumeType = obj.spec?.deviceClass?.toUpperCase() ?? '-';
+  const volumeType = POOL_TYPE.BLOCK;
+  const deviceType = obj.spec?.deviceClass?.toUpperCase() ?? '-';
 
   return (
     <Card data-test-id="details-card">
@@ -22,6 +24,9 @@ export const DetailsCard: React.FC = () => {
           </DetailItem>
           <DetailItem isLoading={!obj} title={t('Volume type')}>
             {volumeType}
+          </DetailItem>
+          <DetailItem isLoading={!obj} title={t('Device type')}>
+            {deviceType}
           </DetailItem>
           <DetailItem isLoading={!obj} title={t('Replicas')}>
             {obj.spec?.replicated?.size}
