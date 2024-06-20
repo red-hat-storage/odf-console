@@ -99,13 +99,19 @@ const getLabelsDropdownOptions = (
   return labels.filter((name) => !selectedLabels.includes(name));
 };
 
-const getPVCSelectors = (nameValuePairs: TagsType): PVCSelectorType[] =>
-  nameValuePairs.map((pair) => {
-    return {
+const getPVCSelectors = (
+  nameValuePairs: TagsType,
+  protectedPlacementNames: string[]
+): PVCSelectorType[] =>
+  nameValuePairs.reduce((acc, pair) => {
+    const pvcSelector = {
       placementName: pair[NameValueEditorPair.Name] as string,
       labels: pair[NameValueEditorPair.Value] as string[],
     };
-  });
+    return protectedPlacementNames.includes(pvcSelector.placementName)
+      ? acc
+      : [...acc, pvcSelector];
+  }, [] as PVCSelectorType[]);
 
 const PairElement: React.FC<PairElementProps> = ({
   index,
@@ -117,10 +123,17 @@ const PairElement: React.FC<PairElementProps> = ({
   extraProps,
 }) => {
   const { t } = useCustomTranslation();
-  const { placementNames, labels, tags, isValidationEnabled }: extraProps =
-    extraProps;
+  const {
+    unProtectedPlacementNames,
+    labels,
+    tags,
+    isValidationEnabled,
+    protectedPlacementNames,
+  }: extraProps = extraProps;
   const selectedPlacement = pair[NameValueEditorPair.Name];
   const selectedLabels = pair[NameValueEditorPair.Value];
+  // Disable already protected placements for edit mode
+  const isDisabled = protectedPlacementNames.includes(selectedPlacement);
   const deleteIcon = (
     <>
       <MinusCircleIcon className="pairs-list__side-btn pairs-list__delete-icon" />
@@ -159,7 +172,7 @@ const PairElement: React.FC<PairElementProps> = ({
             id="placement-selection-dropdown"
             selectedKey={selectedPlacement}
             selectOptions={getPlacementDropdownOptions(
-              placementNames,
+              unProtectedPlacementNames,
               tags,
               index
             )}
@@ -169,6 +182,7 @@ const PairElement: React.FC<PairElementProps> = ({
             validated={getValidatedProp(
               isValidationEnabled && !selectedPlacement
             )}
+            isDisabled={isDisabled}
           />
         </FormGroup>
       </GridItem>
@@ -196,6 +210,7 @@ const PairElement: React.FC<PairElementProps> = ({
             validated={getValidatedProp(
               isValidationEnabled && !selectedLabels?.length
             )}
+            isDisabled={isDisabled}
           />
         </FormGroup>
       </GridItem>
@@ -205,7 +220,7 @@ const PairElement: React.FC<PairElementProps> = ({
             type="button"
             data-test="delete-button"
             onClick={onRemove}
-            isDisabled={isEmpty && !alwaysAllowRemove}
+            isDisabled={(isEmpty && !alwaysAllowRemove) || isDisabled}
             variant="plain"
           >
             {deleteIcon}
@@ -222,6 +237,7 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
     unProtectedPlacements,
     workloadNamespace,
     isValidationEnabled,
+    protectedPVCSelectors,
     dispatch,
   }) => {
     const { t } = useCustomTranslation();
@@ -234,7 +250,7 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
 
     // Selected placement and labels
     const [tags, setTags] = React.useState<TagsType>(
-      getPlacementTags(selectedPVCSelectors)
+      getPlacementTags([...protectedPVCSelectors, ...selectedPVCSelectors])
     );
 
     // ACM search proxy api call
@@ -255,9 +271,12 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
     );
 
     // All unprotected placements
-    const placementNames: string[] = React.useMemo(
-      () => unProtectedPlacements.map(getName),
-      [unProtectedPlacements]
+    const unProtectedPlacementNames: string[] =
+      unProtectedPlacements.map(getName);
+
+    // All protected placements
+    const protectedPlacementNames: string[] = protectedPVCSelectors.map(
+      (pvcSelector) => pvcSelector.placementName
     );
 
     return (
@@ -277,7 +296,10 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
               dispatch({
                 type: ManagePolicyStateType.SET_PVC_SELECTORS,
                 context: ModalViewContext.ASSIGN_POLICY_VIEW,
-                payload: getPVCSelectors(nameValuePairs),
+                payload: getPVCSelectors(
+                  nameValuePairs,
+                  protectedPlacementNames
+                ),
               });
             }}
             PairElementComponent={PairElement}
@@ -285,10 +307,11 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
             valueString={t('PVC label selector')}
             addString={t('Add application resource')}
             extraProps={{
-              placementNames,
+              unProtectedPlacementNames,
               labels,
               tags,
               isValidationEnabled,
+              protectedPlacementNames,
             }}
             className="co-required mco-manage-policies__nameValue--weight"
           />
@@ -302,10 +325,11 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
 type TagsType = (string | string[])[][];
 
 type extraProps = {
-  placementNames: string[];
+  unProtectedPlacementNames: string[];
   labels: string[];
   tags: TagsType;
   isValidationEnabled: boolean;
+  protectedPlacementNames: string[];
 };
 
 type PVCDetailsWizardContentProps = {
@@ -314,4 +338,5 @@ type PVCDetailsWizardContentProps = {
   workloadNamespace: string;
   isValidationEnabled: boolean;
   dispatch: React.Dispatch<ManagePolicyStateAction>;
+  protectedPVCSelectors: PVCSelectorType[];
 };

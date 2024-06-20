@@ -11,7 +11,7 @@ import { ModalKeys } from '@odf/shared/modals/types';
 import { StorageClassModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { getNamespace } from '@odf/shared/selectors';
-import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import { StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   humanizeBinaryBytes,
@@ -38,9 +38,15 @@ import classNames from 'classnames';
 import { Link, useLocation, useParams } from 'react-router-dom-v5-compat';
 import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { CephBlockPoolModel } from '../models';
+import { POOL_TYPE } from '../constants';
+import { CephBlockPoolModel, CephFileSystemModel } from '../models';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
-import { StoragePoolKind, ODFSystemParams } from '../types';
+import {
+  StoragePoolKind,
+  ODFSystemParams,
+  CephFilesystemKind,
+  StoragePool,
+} from '../types';
 import {
   disableMenuAction,
   getPerPoolMetrics,
@@ -48,6 +54,8 @@ import {
   twelveHoursdateTimeNoYear,
   isDefaultPool,
   PoolMetrics,
+  getStoragePoolsFromFilesystem,
+  getStoragePoolsFromBlockPools,
 } from '../utils';
 import { PopoverHelper } from './popover-helper';
 
@@ -64,6 +72,14 @@ const tableColumnInfo = [
   {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-lg'),
     id: 'storageClasses',
+  },
+  {
+    className: classNames(
+      'pf-m-hidden',
+      'pf-m-visible-on-lg',
+      'pf-v5-u-w-8-on-2xl'
+    ),
+    id: 'volumeType',
   },
   {
     className: classNames(
@@ -96,15 +112,15 @@ const tableColumnInfo = [
   { className: Kebab.columnClass, id: '' },
 ];
 
-type BlockPoolListProps = {
-  data: K8sResourceKind[];
-  unfilteredData: K8sResourceKind[];
+type StoragePoolListProps = {
+  data: StoragePool[];
+  unfilteredData: StoragePool[];
   loaded: boolean;
   loadError: any;
   rowData: any;
 };
 
-const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
+const StoragePoolList: React.FC<StoragePoolListProps> = (props) => {
   const { t } = useCustomTranslation();
   const tableColumns = React.useMemo<TableColumn<any>[]>(
     () => [
@@ -133,7 +149,7 @@ const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
         id: tableColumnInfo[2].id,
       },
       {
-        title: t('Replicas'),
+        title: t('Volume type'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[3].className,
@@ -141,7 +157,7 @@ const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('Used capacity'),
+        title: t('Replicas'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[4].className,
@@ -149,7 +165,7 @@ const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
         id: tableColumnInfo[4].id,
       },
       {
-        title: t('Mirroring status'),
+        title: t('Used capacity'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[5].className,
@@ -157,32 +173,40 @@ const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
         id: tableColumnInfo[5].id,
       },
       {
-        title: t('Overall image health'),
+        title: t('Mirroring status'),
+        transforms: [wrappable],
         props: {
           className: tableColumnInfo[6].className,
         },
         id: tableColumnInfo[6].id,
       },
       {
-        title: t('Compression status'),
+        title: t('Overall image health'),
         props: {
           className: tableColumnInfo[7].className,
         },
         id: tableColumnInfo[7].id,
       },
       {
-        title: t('Compression savings'),
+        title: t('Compression status'),
         props: {
           className: tableColumnInfo[8].className,
         },
         id: tableColumnInfo[8].id,
       },
       {
-        title: '',
+        title: t('Compression savings'),
         props: {
           className: tableColumnInfo[9].className,
         },
         id: tableColumnInfo[9].id,
+      },
+      {
+        title: '',
+        props: {
+          className: tableColumnInfo[10].className,
+        },
+        id: tableColumnInfo[10].id,
       },
     ],
     [t]
@@ -196,7 +220,7 @@ const BlockPoolList: React.FC<BlockPoolListProps> = (props) => {
 
   return (
     <VirtualizedTable
-      aria-label={t('BlockPools')}
+      aria-label={t('Storage pools')}
       columns={columns}
       Row={RowRenderer}
       {...props}
@@ -215,7 +239,7 @@ type CustomData = {
   listPagePath: string;
 };
 
-const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
+const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
   obj,
   activeColumnIDs,
   rowData,
@@ -234,6 +258,11 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
   }: CustomData = rowData;
 
   const { name } = obj.metadata;
+  const poolType = obj.type;
+  const hideItems =
+    poolType === POOL_TYPE.FILESYSTEM
+      ? [ModalKeys.EDIT_LABELS, ModalKeys.EDIT_ANN]
+      : [];
   const replica = obj.spec?.replicated?.size;
   const mirroringStatus: boolean = obj.spec?.mirroring?.enabled;
   const mirroringImageHealth: string = mirroringStatus
@@ -249,8 +278,8 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
   const phase = obj?.status?.phase;
 
   const poolScNames: string[] = React.useMemo(
-    () => getScNamesUsingPool(storageClasses, name),
-    [name, storageClasses]
+    () => getScNamesUsingPool(storageClasses, obj),
+    [obj, storageClasses]
   );
 
   // Details page link
@@ -267,14 +296,24 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
   return (
     <>
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
-        <ResourceIcon resourceModel={CephBlockPoolModel} />
-        <Link
-          to={to}
-          className="co-resource-item__resource-name"
-          data-test={name}
-        >
-          {name}
-        </Link>
+        <ResourceIcon
+          resourceModel={
+            poolType === POOL_TYPE.BLOCK
+              ? CephBlockPoolModel
+              : CephFileSystemModel
+          }
+        />
+        {poolType === POOL_TYPE.BLOCK ? (
+          <Link
+            to={to}
+            className="co-resource-item__resource-name"
+            data-test={name}
+          >
+            {name}
+          </Link>
+        ) : (
+          name
+        )}
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
         <Status status={phase} />
@@ -287,15 +326,18 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
         />
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
-        {replica}
+        {poolType}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-        {rawCapacity}
+        <span data-test={`${name}-replicas`}>{replica}</span>
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
-        {mirroringStatus ? t('Enabled') : t('Disabled')}
+        {rawCapacity}
       </TableData>
       <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
+        {mirroringStatus ? t('Enabled') : t('Disabled')}
+      </TableData>
+      <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
         <Tooltip content={`${t('Last synced')} ${formatedDateTime}`}>
           <StatusIconAndText
             title={mirroringImageHealth}
@@ -303,13 +345,15 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
           />
         </Tooltip>
       </TableData>
-      <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
-        {isCompressionEnabled ? t('Enabled') : t('Disabled')}
-      </TableData>
       <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
-        {isCompressionEnabled ? compressionSavings : '-'}
+        <span data-test={`${name}-compression`}>
+          {isCompressionEnabled ? t('Enabled') : t('Disabled')}
+        </span>
       </TableData>
       <TableData {...tableColumnInfo[9]} activeColumnIDs={activeColumnIDs}>
+        {isCompressionEnabled ? compressionSavings : '-'}
+      </TableData>
+      <TableData {...tableColumnInfo[10]} activeColumnIDs={activeColumnIDs}>
         {isDefaultPool(obj) ? (
           <Tooltip
             content={t('Default pool cannot be deleted.')}
@@ -321,19 +365,22 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
               customKebabItems={[
                 {
                   key: ModalKeys.EDIT_RES,
-                  value: t('Edit BlockPool'),
+                  value: t('Edit Pool'),
                   component: React.lazy(
-                    () => import('../modals/block-pool/update-block-pool-modal')
+                    () =>
+                      import('../modals/storage-pool/update-storage-pool-modal')
                   ),
                 },
                 {
                   key: ModalKeys.DELETE,
-                  value: t('Delete BlockPool'),
+                  value: t('Delete Pool'),
                   component: React.lazy(
-                    () => import('../modals/block-pool/delete-block-pool-modal')
+                    () =>
+                      import('../modals/storage-pool/delete-storage-pool-modal')
                   ),
                 },
               ]}
+              hideItems={hideItems}
             />
           </Tooltip>
         ) : (
@@ -343,19 +390,22 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
             customKebabItems={[
               {
                 key: ModalKeys.EDIT_RES,
-                value: t('Edit BlockPool'),
+                value: t('Edit Pool'),
                 component: React.lazy(
-                  () => import('../modals/block-pool/update-block-pool-modal')
+                  () =>
+                    import('../modals/storage-pool/update-storage-pool-modal')
                 ),
               },
               {
                 key: ModalKeys.DELETE,
-                value: t('Delete BlockPool'),
+                value: t('Delete Pool'),
                 component: React.lazy(
-                  () => import('../modals/block-pool/delete-block-pool-modal')
+                  () =>
+                    import('../modals/storage-pool/delete-storage-pool-modal')
                 ),
               },
             ]}
+            hideItems={hideItems}
           />
         )}
       </TableData>
@@ -363,7 +413,7 @@ const RowRenderer: React.FC<RowProps<StoragePoolKind, CustomData>> = ({
   );
 };
 
-type BlockPoolListPageProps = {
+type StoragePoolListPageProps = {
   showTitle?: boolean;
   namespace?: string;
   selector?: any;
@@ -382,14 +432,19 @@ const resources = {
     kind: referenceForModel(CephBlockPoolModel),
     isList: true,
   },
+  filesystem: {
+    kind: referenceForModel(CephFileSystemModel),
+    isList: false,
+  },
 };
 
 type WatchType = {
   sc: StorageClassResourceKind[];
   blockPools: StoragePoolKind[];
+  filesystem: CephFilesystemKind;
 };
 
-export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
+export const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({}) => {
   const { t } = useCustomTranslation();
 
   const location = useLocation();
@@ -399,6 +454,9 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+
+  resources.filesystem['name'] = `${managedByOCS}-cephfilesystem`;
+  resources.filesystem['namespace'] = clusterNs;
 
   const response = useK8sWatchResources(
     resources
@@ -412,11 +470,20 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
   const blockPoolsLoaded = response.blockPools.loaded;
   const blockPoolsError = response.blockPools.loadError;
 
+  const filesystem = response.filesystem.data;
+  const filesystemLoaded = response.filesystem.loaded;
+  const filesystemError = response.filesystem.loadError;
+
   const memoizedSC: StorageClassResourceKind[] = useDeepCompareMemoize(
     storageClasses,
     true
   );
-  const poolNames: string[] = blockPools.map((pool) => pool.metadata?.name);
+
+  const poolsFromBlock = getStoragePoolsFromBlockPools(blockPools);
+  const poolsFromFS = getStoragePoolsFromFilesystem(filesystem);
+  const storagePools =
+    poolsFromBlock && poolsFromFS ? poolsFromBlock.concat(poolsFromFS) : [];
+  const poolNames = storagePools.map((pool) => pool.metadata?.name);
 
   const [poolRawCapacityMetrics, rawCapLoadError, rawCapLoading] =
     useCustomPrometheusPoll(
@@ -480,22 +547,24 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
 
   const loaded =
     blockPoolsLoaded &&
+    filesystemLoaded &&
     (areFlagsLoaded || scLoaded || !compressionLoading || !rawCapLoading);
   const error =
     flagsLoadError ||
     scError ||
     blockPoolsError ||
+    filesystemError ||
     compressionLoadError ||
     rawCapLoadError;
 
-  const [data, filteredData, onFilterChange] = useListPageFilter(blockPools);
+  const [data, filteredData, onFilterChange] = useListPageFilter(storagePools);
 
   const createPath = `${listPagePath}/create/~new`;
   return (
     <>
-      <ListPageHeader title={t('BlockPools')}>
+      <ListPageHeader title={t('Storage pools')}>
         <ListPageCreateLink to={createPath}>
-          {t('Create BlockPool')}
+          {t('Create storage pool')}
         </ListPageCreateLink>
       </ListPageHeader>
       <ListPageBody>
@@ -505,7 +574,7 @@ export const BlockPoolListPage: React.FC<BlockPoolListPageProps> = ({}) => {
           onFilterChange={onFilterChange}
           hideColumnManagement={true}
         />
-        <BlockPoolList
+        <StoragePoolList
           data={filteredData}
           unfilteredData={data}
           loaded={loaded}

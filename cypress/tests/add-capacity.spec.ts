@@ -5,6 +5,7 @@ import {
   STORAGE_CLUSTER_NAME,
   CLUSTER_NAMESPACE,
   CEPH_CLUSTER_NAME,
+  ODF_OPERATOR_NAME,
 } from '../consts';
 import {
   createOSDTreeMap,
@@ -111,8 +112,8 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       modal.shouldBeClosed();
 
       cy.clickNavLink(['Operators', 'Installed Operators']).first();
-      cy.byLegacyTestID('item-filter').type('Openshift Data Foundation');
-      cy.byTestRows('resource-row').get('td').first().click();
+      cy.byLegacyTestID('item-filter').type(ODF_OPERATOR_NAME);
+      cy.byTestOperatorRow(ODF_OPERATOR_NAME).click();
       cy.byLegacyTestID('horizontal-link-Storage System').click();
       cy.contains(STORAGE_SYSTEM_NAME).click();
       cy.contains('Resources').click();

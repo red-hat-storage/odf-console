@@ -6,6 +6,7 @@ import {
   ServiceType,
   Breakdown,
   Metrics,
+  POOL_FS_DEFAULT,
 } from '../constants';
 
 export enum ObjectServiceDashboardQuery {
@@ -52,7 +53,7 @@ export const dataResiliencyQueryMap = {
     )({
       name: rgwPrefix
         ? `${rgwPrefix}.rgw.*`
-        : `(${managedByOCS}-cephblockpool)|(${managedByOCS}-cephfilesystem-data0)`,
+        : `(${managedByOCS}-cephblockpool)|(${managedByOCS}-cephfilesystem-${POOL_FS_DEFAULT})`,
       managedByOCS: managedByOCS,
     }),
 };

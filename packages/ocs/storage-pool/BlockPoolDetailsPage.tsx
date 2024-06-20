@@ -38,7 +38,7 @@ export const BlockPoolDetailsPage: React.FC<{}> = () => {
     },
     {
       name: t('StorageSystem details'),
-      path: `${location.pathname.split(`/${kind}`)[0]}/${kind}`,
+      path: `${location.pathname.split(`/${poolName}`)[0]}`,
     },
     {
       name: poolName,
@@ -60,14 +60,14 @@ export const BlockPoolDetailsPage: React.FC<{}> = () => {
             key: ModalKeys.EDIT_RES,
             value: t('Edit BlockPool'),
             component: React.lazy(
-              () => import('../modals/block-pool/update-block-pool-modal')
+              () => import('../modals/storage-pool/update-storage-pool-modal')
             ),
           },
           {
             key: ModalKeys.DELETE,
             value: t('Delete BlockPool'),
             component: React.lazy(
-              () => import('../modals/block-pool/delete-block-pool-modal')
+              () => import('../modals/storage-pool/delete-storage-pool-modal')
             ),
           },
         ]}
@@ -87,7 +87,7 @@ export const BlockPoolDetailsPage: React.FC<{}> = () => {
         {
           href: '',
           name: t('Details'),
-          component: BlockPoolDashboard as any,
+          component: BlockPoolDashboard,
         },
         {
           href: 'yaml',

@@ -12,6 +12,8 @@ export const LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION =
 // ACM managed application workload namespace
 export const APP_NAMESPACE_ANNOTATION =
   'drplacementcontrol.ramendr.openshift.io/app-namespace';
+export const DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH =
+  'drplacementcontrol.ramendr.openshift.io~1do-not-delete-pvc';
 
 // Maximum cluster per DRPolicy
 export const MAX_ALLOWED_CLUSTERS = 2;
@@ -98,6 +100,3 @@ export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
   [EnrollDiscoveredApplicationSteps.Replication]: t('Replication'),
   [EnrollDiscoveredApplicationSteps.Review]: t('Review'),
 });
-
-// DRPC status condition types
-export const KUBE_OBJECT_SYNC_CONDITION_TYPE = 'ClusterDataProtected';

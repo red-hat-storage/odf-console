@@ -17,6 +17,7 @@ import {
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
   APPLICATION_TYPE,
   LEAST_SECONDS_IN_PROMETHEUS,
+  REPLICATION_TYPE,
 } from '@odf/mco/constants';
 import { DRClusterAppsMap, ProtectedAppsMap } from '@odf/mco/types';
 import {
@@ -76,14 +77,15 @@ const checkVolumeReplicationHealth = (
 const checkKubeObjBackupHealth = (
   protectedAppMap: ProtectedAppsMap
 ): boolean => {
-  const kubeObjectLastTransitionTime =
-    protectedAppMap.placementControlInfo[0].kubeObjectLastTransitionTime;
+  const { kubeObjectLastProtectionTime, replicationType } =
+    protectedAppMap.placementControlInfo[0];
   const objCaptureInterval =
     protectedAppMap.placementControlInfo[0].kubeObjSyncInterval;
-  return protectedAppMap.appType === APPLICATION_TYPE.DISCOVERED
+  return protectedAppMap.appType === APPLICATION_TYPE.DISCOVERED &&
+    replicationType === REPLICATION_TYPE.ASYNC
     ? getVolumeReplicationHealth(
-        !!kubeObjectLastTransitionTime
-          ? getTimeDifferenceInSeconds(kubeObjectLastTransitionTime)
+        !!kubeObjectLastProtectionTime
+          ? getTimeDifferenceInSeconds(kubeObjectLastProtectionTime)
           : LEAST_SECONDS_IN_PROMETHEUS,
         objCaptureInterval
       )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY

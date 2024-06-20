@@ -17,7 +17,6 @@ import {
   GreenCheckCircleIcon,
   Alert,
   AlertStates,
-  K8sResourceCondition,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Operator,
@@ -34,7 +33,7 @@ import {
   LABEL_SPLIT_CHAR,
   LABELS_SPLIT_CHAR,
   DR_BLOCK_LISTED_LABELS,
-  KUBE_OBJECT_SYNC_CONDITION_TYPE,
+  PLACEMENT_RULE_REF_LABEL,
 } from '../constants';
 import {
   DRPC_NAMESPACE_ANNOTATION,
@@ -68,6 +67,7 @@ import {
   ArgoApplicationSetKind,
   ClusterClaim,
   SearchResultItemType,
+  ACMPlacementType,
 } from '../types';
 
 export type PlacementMap = {
@@ -543,15 +543,19 @@ export const findPlacementNameFromAppSet = (
     ?.matchLabels?.[PLACEMENT_REF_LABEL] || '';
 
 export const findPlacementDecisionUsingPlacement = (
-  placement: ACMPlacementKind,
+  placement: ACMPlacementType,
   placementDecisions: ACMPlacementDecisionKind[]
-) =>
-  placementDecisions?.find(
+) => {
+  const placementLabel =
+    placement.kind === ACMPlacementModel.kind
+      ? PLACEMENT_REF_LABEL
+      : PLACEMENT_RULE_REF_LABEL;
+  return placementDecisions?.find(
     (placementDecision) =>
-      getLabel(placementDecision, PLACEMENT_REF_LABEL, '') ===
-        getName(placement) &&
+      getLabel(placementDecision, placementLabel, '') === getName(placement) &&
       getNamespace(placementDecision) === getNamespace(placement)
   );
+};
 
 export const ValidateManagedClusterCondition = (
   managedCluster: ACMManagedClusterKind,
@@ -638,20 +642,4 @@ export const getLabelsFromSearchResult = (
     }
     return acc;
   }, {});
-};
-
-export const getKubeObjectLastTransitionTime = (
-  conditions: K8sResourceCondition[]
-): string => {
-  const condition = conditions?.find(
-    (condition) => condition.type === KUBE_OBJECT_SYNC_CONDITION_TYPE
-  );
-  if (condition?.status === 'True') {
-    // For "True", checking the lastTransitionTime to ensure there is no reconcile problem on ramen.
-    // If there is any reconcile problem, And if status stuck in "True"
-    // then status will be displayed based on lastTransitionTime (critical/warning).
-    return condition.lastTransitionTime;
-  }
-  // Returning empty to show critical status immediately.
-  return '';
 };

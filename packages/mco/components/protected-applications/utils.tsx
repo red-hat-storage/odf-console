@@ -24,6 +24,7 @@ import {
   LEAST_SECONDS_IN_PROMETHEUS,
   DR_BASE_ROUTE,
   DRActionType,
+  REPLICATION_TYPE,
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
@@ -33,6 +34,7 @@ import {
   isPeerReady,
 } from '../../utils';
 import { DiscoveredApplicationParser as DiscoveredApplicationModal } from '../modals/app-failover-relocate/parser/discovered-application-parser';
+import RemoveDisasterRecoveryModal from '../modals/remove-disaster-recovery/remove-disaster-recovery';
 
 export const drpcDetailsPageRoute = (drpc: DRPlacementControlKind) =>
   `/k8s/ns/${getNamespace(drpc)}/${referenceForModel(
@@ -88,8 +90,12 @@ export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
 
 export const getReplicationHealth = (
   lastSyncTime: string,
-  schedulingInterval: string
+  schedulingInterval: string,
+  replicationType: REPLICATION_TYPE
 ): VOLUME_REPLICATION_HEALTH => {
+  if (replicationType === REPLICATION_TYPE.SYNC) {
+    return VOLUME_REPLICATION_HEALTH.HEALTHY;
+  }
   const seconds = !!lastSyncTime
     ? getTimeDifferenceInSeconds(lastSyncTime)
     : LEAST_SECONDS_IN_PROMETHEUS;
@@ -138,6 +144,7 @@ export type SyncStatusInfo = {
   volumeReplicationStatus: VOLUME_REPLICATION_HEALTH;
   volumeLastGroupSyncTime: string;
   kubeObjectReplicationStatus: VOLUME_REPLICATION_HEALTH;
+  kubeObjectLastProtectionTime: string;
 };
 
 export const getAppWorstSyncStatus = (
@@ -237,6 +244,14 @@ export const getRowActions = (
       launcher(DiscoveredApplicationModal, {
         isOpen: true,
         extraProps: { application: rowItem, action: DRActionType.RELOCATE },
+      }),
+  },
+  {
+    title: t('Remove disaster recovery'),
+    onClick: () =>
+      launcher(RemoveDisasterRecoveryModal, {
+        isOpen: true,
+        extraProps: { application: rowItem },
       }),
   },
 ];

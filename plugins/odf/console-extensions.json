@@ -133,16 +133,16 @@
     "type": "console.page/route",
     "properties": {
       "exact": true,
-      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/create/~new",
+      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/storage-pools/create/~new",
       "component": {
-        "$codeRef": "createBlockPools.default"
+        "$codeRef": "createStoragePools.default"
       }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/ceph.rook.io~v1~CephBlockPool/:poolName",
+      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/storage-pools/:poolName",
       "exact": false,
       "component": {
         "$codeRef": "blockPoolDetailsPage.default"
@@ -283,7 +283,7 @@
             "required": true,
             "visible": true,
             "Component": {
-              "$codeRef": "storageProvisionerComponents.PoolResourceComponent"
+              "$codeRef": "storageProvisionerComponents.BlockPoolResourceComponent"
             }
           },
           "imageFormat": {
@@ -354,9 +354,6 @@
           "$codeRef": "mutators.addKubevirtAnnotations"
         }
       }
-    },
-    "flags": {
-      "disallowed": ["PROVIDER_MODE"]
     }
   },
   {
@@ -374,6 +371,15 @@
             "visible": true,
             "Component": {
               "$codeRef": "storageProvisionerComponents.CephFsNameComponent"
+            }
+          },
+          "pool": {
+            "name": "Storage Pool",
+            "hintText": "Storage pool into which volume data shall be stored",
+            "required": true,
+            "visible": true,
+            "Component": {
+              "$codeRef": "storageProvisionerComponents.CephFsPoolComponent"
             }
           },
           "csi.storage.k8s.io/provisioner-secret-name": {
@@ -399,9 +405,6 @@
           "$codeRef": "mutators.addClusterParams"
         }
       }
-    },
-    "flags": {
-      "disallowed": ["PROVIDER_MODE"]
     }
   },
   {

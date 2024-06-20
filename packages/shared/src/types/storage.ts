@@ -1,6 +1,17 @@
 import { ResourceProfile } from '@odf/core/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
+export type DataPool = {
+  compressionMode?: string;
+  mirroring?: {
+    enabled: boolean;
+  };
+  name?: string;
+  replicated?: {
+    size: number;
+  };
+};
+
 export type StorageClusterKind = K8sResourceCommon & {
   spec: {
     network?: {
@@ -29,6 +40,7 @@ export type StorageClusterKind = K8sResourceCommon & {
       cephFilesystems?: {
         disableSnapshotClass: boolean;
         disableStorageClass: boolean;
+        additionalDataPools?: DataPool[];
       };
       cephObjectStores?: {
         hostNetwork: boolean;

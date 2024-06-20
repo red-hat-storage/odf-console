@@ -24,6 +24,8 @@ const EmptyPage: React.FC<EmptyPageProps> = (props) => {
     isLoaded,
     onClick,
     ButtonComponent,
+    isDisabled,
+    EmptyIcon = CubesIcon,
   } = props;
   return !isLoaded ? (
     <div
@@ -34,7 +36,7 @@ const EmptyPage: React.FC<EmptyPageProps> = (props) => {
     <EmptyState variant={EmptyStateVariant.lg}>
       <EmptyStateHeader
         titleText={<>{title}</>}
-        icon={<EmptyStateIcon icon={CubesIcon} />}
+        icon={<EmptyStateIcon icon={EmptyIcon} />}
         headingLevel="h4"
       />
       <EmptyStateBody>{children}</EmptyStateBody>
@@ -58,7 +60,8 @@ const EmptyPage: React.FC<EmptyPageProps> = (props) => {
               onClick={onClick}
               isAriaDisabled={!canAccess}
               data-test="create-button"
-              aria-label="Create DRPolicy"
+              aria-label={t('Empty Page')}
+              isDisabled={isDisabled}
             >
               {buttonText}
             </Button>
@@ -77,6 +80,8 @@ type EmptyPageProps = {
   isLoaded?: boolean;
   onClick?: () => void;
   ButtonComponent?: React.FC<unknown>;
+  isDisabled?: boolean;
+  EmptyIcon?: React.ComponentType<any>;
 };
 
 export default EmptyPage;
