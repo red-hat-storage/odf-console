@@ -14,7 +14,10 @@ import {
 import { useODFNamespaceDispatch } from '../dispatchers';
 
 const FALLBACK_NAMESPACE = 'openshift-storage';
-const SPEC_NAME = 'odf-operator';
+const ODF_SUBSCRIPTION_NAME = 'odf-operator';
+const CLIENT_SUBSCRIPTION_NAME = 'ocs-client-operator';
+
+const getSpecName = (resource: SubscriptionKind) => resource?.spec?.name;
 
 export const FDF_FLAG = 'FDF_FLAG'; // Based on whether installed operator is ODF or FDF
 
@@ -37,22 +40,30 @@ const namespaceDetector = async (
         model: SubscriptionModel,
         queryParams: { ns: null },
       })) as SubscriptionKind[];
-      const subscription: SubscriptionKind = subscriptions.find(
-        (subscription) => subscription.spec.name.includes(SPEC_NAME)
+      const odfSubscription = subscriptions.find((subscription) =>
+        getSpecName(subscription).includes(ODF_SUBSCRIPTION_NAME)
       );
-      ns = getNamespace(subscription);
-      if (!ns) throw new Error('ODF install namespace not found');
+      const isODFPresent = odfSubscription !== undefined;
+      if (isODFPresent) {
+        ns = getNamespace(odfSubscription);
 
-      // ToDo: Remove in z-stream (https://bugzilla.redhat.com/show_bug.cgi?id=2294383)
-      // eslint-disable-next-line no-await-in-loop
-      const csv: ClusterServiceVersionKind = await k8sGet({
-        model: ClusterServiceVersionModel,
-        name: subscription?.status?.installedCSV,
-        ns,
-      });
-      isFDF = !['redhat', 'red hat'].includes(
-        csv?.spec?.provider?.name?.toLowerCase()
-      );
+        // ToDo: Remove in z-stream (https://bugzilla.redhat.com/show_bug.cgi?id=2294383)
+        // eslint-disable-next-line no-await-in-loop
+        const csv: ClusterServiceVersionKind = await k8sGet({
+          model: ClusterServiceVersionModel,
+          name: odfSubscription?.status?.installedCSV,
+          ns,
+        });
+        isFDF = !['redhat', 'red hat'].includes(
+          csv?.spec?.provider?.name?.toLowerCase()
+        );
+      } else {
+        const clientSubscription = subscriptions.find((sub) =>
+          getSpecName(sub).includes(CLIENT_SUBSCRIPTION_NAME)
+        );
+        ns = getNamespace(clientSubscription);
+      }
+      if (!ns) throw new Error('ODF install namespace not found');
     } catch (err) {
       if (attempt <= maxAttempt && !isAbortError(err)) shouldRetry = true;
       else throw err;

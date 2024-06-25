@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "dependencies": {
     "@odf/ocs": "0.0.0",
+    "@odf/core": "0.0.0",
     "@odf/shared": "file:../shared"
   },
   "scripts": {
