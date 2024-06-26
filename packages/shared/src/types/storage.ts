@@ -170,6 +170,7 @@ export enum StorageConsumerState {
 
 type StorageConsumerSpec = {
   enable?: boolean;
+  storageQuotaInGiB: number;
 };
 
 type CephResourcesSpec = {
@@ -184,6 +185,7 @@ type StorageConsumerStatus = {
   cephResources?: CephResourcesSpec[];
   lastHeartbeat?: string; // Assuming metav1.Time is a string
   client?: ClientStatus;
+  usedCapacityInGiB: number;
 };
 
 type ClientStatus = {
