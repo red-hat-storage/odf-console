@@ -5,6 +5,7 @@ import {
   CONTROLLER_SECRET_NS,
   CEPH_NS_SESSION_STORAGE,
 } from '@odf/ocs/constants';
+import { getAnnotations } from '@odf/shared/selectors';
 import { StorageClass } from '@odf/shared/types';
 
 export const addClusterParams = (sc: StorageClass): StorageClass => {
@@ -33,4 +34,18 @@ export const addKubevirtAnnotations = (sc: StorageClass): StorageClass => {
   }
 
   return addClusterParams(sc);
+};
+
+export const addReclaimSpaceAnnotation = (sc: StorageClass): StorageClass => {
+  sc.metadata.annotations = {
+    ...getAnnotations(sc, {}),
+    'reclaimspace.csiaddons.openshift.io/schedule': '@weekly',
+  };
+  return sc;
+};
+
+export const addRBDAnnotations = (sc: StorageClass): StorageClass => {
+  sc = addKubevirtAnnotations(sc);
+  sc = addReclaimSpaceAnnotation(sc);
+  return sc;
 };

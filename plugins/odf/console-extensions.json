@@ -351,7 +351,7 @@
           }
         },
         "mutator": {
-          "$codeRef": "mutators.addKubevirtAnnotations"
+          "$codeRef": "mutators.addRBDAnnotations"
         }
       }
     }
