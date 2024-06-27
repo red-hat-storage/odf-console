@@ -34,6 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@patternfly/react-core';
+import { useStorageClassQueryFilter } from '../../../hooks';
 import {
   getBreakdownMetricsQuery,
   CEPH_CAPACITY_BREAKDOWN_QUERIES,
@@ -142,9 +143,12 @@ const BreakdownCard: React.FC = () => {
   // it is also the value of the "managedBy" label in the metrics.
   const ocsCluster = systemFlags[clusterNs]?.ocsClusterName;
 
+  const [scQueryfilter, scQueryfilterLoaded, scQueryfilterError] =
+    useStorageClassQueryFilter(clusterNs);
+
   const { queries, model, metric } = getBreakdownMetricsQuery(
     metricType,
-    ocsCluster,
+    scQueryfilter,
     pvcNamespace,
     false,
     ocsCluster
@@ -165,15 +169,20 @@ const BreakdownCard: React.FC = () => {
       basePath: usePrometheusBasePath(),
     });
   const [cephUsedMetric, cephError, cephLoading] = useCustomPrometheusPoll({
-    query: CEPH_CAPACITY_BREAKDOWN_QUERIES(ocsCluster, ocsCluster)[
+    query: CEPH_CAPACITY_BREAKDOWN_QUERIES(scQueryfilter, ocsCluster)[
       StorageDashboardQuery.CEPH_CAPACITY_USED
     ],
     endpoint: 'api/v1/query' as any,
     basePath: usePrometheusBasePath(),
   });
 
-  const queriesLoadError = modelUsedError || modelTotalError || cephError;
-  const dataLoaded = !modelUsedLoading && !modalTotalLoading && !cephLoading;
+  const queriesLoadError =
+    modelUsedError || modelTotalError || cephError || scQueryfilterError;
+  const dataLoaded =
+    !modelUsedLoading &&
+    !modalTotalLoading &&
+    !cephLoading &&
+    scQueryfilterLoaded;
 
   const humanize = humanizeBinaryBytes;
   const top6MetricsData = getInstantVectorStats(modelByUsed, metric);
