@@ -17,7 +17,7 @@ import { LocalVolumeSetModel, LocalVolumeDiscovery } from '../models';
 import {
   DISK_TYPES,
   LocalVolumeSetKind,
-  DiskType,
+  DeviceType,
   LocalVolumeDiscoveryKind,
 } from '../types';
 
@@ -27,15 +27,15 @@ const getDeviceTypes = (deviceType: string[]) => {
     (deviceType.includes(DISK) && deviceType.includes(PART)) ||
     deviceType.length === 0
   ) {
-    return [DiskType.RawDisk, DiskType.Partition];
+    return [DeviceType.RawDisk, DeviceType.Partition];
   }
   if (deviceType.includes(PART)) {
-    return [DiskType.Partition];
+    return [DeviceType.Partition];
   }
   if (deviceType.includes(MPATH)) {
-    return [DiskType.Multipath];
+    return [DeviceType.Multipath];
   }
-  return [DiskType.RawDisk];
+  return [DeviceType.RawDisk];
 };
 
 /**

@@ -15,6 +15,13 @@ export enum DeploymentType {
   PROVIDER_MODE = 'Provider Mode',
 }
 
+export enum VolumeTypeValidation {
+  NONE = 'None',
+  UNKNOWN = 'Unknown',
+  ERROR = 'Error',
+  INFO = 'Info',
+}
+
 export enum ValidationType {
   'MINIMAL' = 'MINIMAL',
   'RESOURCE_PROFILE' = 'RESOURCE_PROFILE',
@@ -27,6 +34,7 @@ export enum ValidationType {
   'NETWORK' = 'NETWORK',
   'INTERNAL_FLEXIBLE_SCALING' = 'INTERNAL_FLEXIBLE_SCALING',
   'ATTACHED_DEVICES_FLEXIBLE_SCALING' = 'ATTACHED_DEVICES_FLEXIBLE_SCALING',
+  'VOLUME_TYPE' = 'VOLUME_TYPE',
 }
 
 export type EncryptionType = {

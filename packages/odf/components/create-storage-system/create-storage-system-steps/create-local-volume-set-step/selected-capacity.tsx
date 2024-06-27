@@ -3,21 +3,12 @@ import {
   calculateRadius,
   createWizardNodeState,
 } from '@odf/core/components/utils';
-import { deviceTypeDropdownItems } from '@odf/core/constants';
 import { useNodesData } from '@odf/core/hooks';
-import {
-  DISK_TYPES,
-  DiscoveredDisk,
-  DiskType,
-  DiskMetadata,
-  LocalVolumeDiscoveryResultKind,
-  NodeData,
-} from '@odf/core/types';
-import { AVAILABLE } from '@odf/shared/constants';
+import { DiscoveredDisk, DiskMetadata, NodeData } from '@odf/core/types';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { convertToBaseValue, humanizeBinaryBytes } from '@odf/shared/utils';
+import { humanizeBinaryBytes } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
 import { ChartDonut, ChartLabel } from '@patternfly/react-charts';
 import { Button } from '@patternfly/react-core';
@@ -29,95 +20,15 @@ import './selected-capacity.scss';
 const getTotalCapacity = (disks: DiscoveredDisk[]): number =>
   disks.reduce((total: number, disk: DiskMetadata) => total + disk.size, 0);
 
-const isAvailableDisk = (disk: DiscoveredDisk): boolean =>
-  disk?.status?.state === AVAILABLE &&
-  (disk.type === DiskType.RawDisk ||
-    disk.type === DiskType.Partition ||
-    disk.type === DiskType.Multipath);
-
-const isValidSize = (disk: DiscoveredDisk, minSize: number, maxSize: number) =>
-  Number(disk.size) >= minSize &&
-  (maxSize ? Number(disk.size) <= maxSize : true);
-
-const isValidDiskProperty = (
-  disk: DiscoveredDisk,
-  property: DiskMetadata['property']
-) => (property ? property === disk.property : true);
-
-const isValidDeviceType = (disk: DiscoveredDisk, types: string[]) =>
-  types.includes(deviceTypeDropdownItems[disk.type.toUpperCase()]);
-
-const addNodesOnAvailableDisks = (disks: DiskMetadata[] = [], node: string) =>
-  disks.reduce((availableDisks: DiscoveredDisk[], disk: DiscoveredDisk) => {
-    if (isAvailableDisk(disk)) {
-      disk.node = node;
-      return [disk, ...availableDisks];
-    }
-    return availableDisks;
-  }, []);
-
-const createDiscoveredDiskData = (
-  results: LocalVolumeDiscoveryResultKind[]
-): DiscoveredDisk[] =>
-  results?.reduce((discoveredDisk: DiscoveredDisk[], lvdr) => {
-    const lvdrDisks = lvdr?.status?.discoveredDevices;
-    const lvdrNode = lvdr?.spec?.nodeName;
-    const availableDisks = addNodesOnAvailableDisks(lvdrDisks, lvdrNode) || [];
-    return [...availableDisks, ...discoveredDisk];
-  }, []);
-
 export const SelectedCapacity: React.FC<SelectedCapacityProps> = ({
   state,
-  nodes,
-  lvdResults,
+  chartDisks,
+  allDiscoveredDisks,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
   const [showNodeList, setShowNodeList] = React.useState(false);
   const [showDiskList, setShowDiskList] = React.useState(false);
-
-  const minSize: number = state.minDiskSize
-    ? Number(convertToBaseValue(`${state.minDiskSize} ${state.diskSizeUnit}`))
-    : 0;
-  const maxSize: number = state.maxDiskSize
-    ? Number(convertToBaseValue(`${state.maxDiskSize} ${state.diskSizeUnit}`))
-    : undefined;
-
-  const allDiscoveredDisks: DiscoveredDisk[] = React.useMemo(
-    () => createDiscoveredDiskData(lvdResults),
-    [lvdResults]
-  );
-
-  const filteredDisks: DiscoveredDisk[] = React.useMemo(
-    () =>
-      allDiscoveredDisks.length
-        ? allDiscoveredDisks.filter(
-            (disk: DiscoveredDisk) =>
-              state.isValidDiskSize &&
-              isValidSize(disk, minSize, maxSize) &&
-              isValidDiskProperty(disk, DISK_TYPES[state.diskType]?.property) &&
-              isValidDeviceType(disk, state.deviceType)
-          )
-        : [],
-    [
-      allDiscoveredDisks,
-      maxSize,
-      minSize,
-      state.deviceType,
-      state.diskType,
-      state.isValidDiskSize,
-    ]
-  );
-
-  const chartDisks = React.useMemo(() => {
-    const selectedNodes = nodes.reduce(
-      (data, node) => data.add(node.name),
-      new Set()
-    );
-    return filteredDisks.filter((disk: DiscoveredDisk) =>
-      selectedNodes.has(disk.node)
-    );
-  }, [filteredDisks, nodes]);
 
   React.useEffect(() => {
     const chartNodes: Set<string> = chartDisks.reduce(
@@ -213,9 +124,8 @@ export const SelectedCapacity: React.FC<SelectedCapacityProps> = ({
 type SelectedCapacityProps = {
   state: WizardState['createLocalVolumeSet'];
   dispatch: WizardDispatch;
-  ns: string;
-  nodes: WizardState['nodes'];
-  lvdResults: LocalVolumeDiscoveryResultKind[];
+  chartDisks: DiscoveredDisk[];
+  allDiscoveredDisks: DiscoveredDisk[];
 };
 
 const filterNodes = (nodesData: NodeData[], filteredNodes: Set<string>) => {

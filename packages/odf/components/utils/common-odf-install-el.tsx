@@ -4,6 +4,7 @@ import {
   EncryptionType,
   ResourceProfile,
   ValidationType,
+  VolumeTypeValidation,
 } from '@odf/core/types';
 import { getResourceProfileRequirements } from '@odf/core/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -28,7 +29,8 @@ export const VALIDATIONS = (
   type: keyof typeof ValidationType,
   t: TFunction,
   resourceProfile?: ResourceProfile,
-  osdAmount?: number
+  osdAmount?: number,
+  volumeValidationType?: VolumeTypeValidation
 ): Validation => {
   switch (type) {
     case ValidationType.MINIMAL: {
@@ -138,6 +140,26 @@ export const VALIDATIONS = (
           'When the nodes in the selected StorageClass are spread across fewer than 3 availability zones, the StorageCluster will be deployed with the host based failure domain.'
         ),
       };
+    case ValidationType.VOLUME_TYPE: {
+      if (volumeValidationType === VolumeTypeValidation.ERROR)
+        return {
+          variant: AlertVariant.danger,
+          title: t(
+            'Disk type is not compatible with the selected backing storage.'
+          ),
+          text: t(
+            'Data Foundation does not support HDD disk type in internal mode. You are trying to install an unsupported cluster by choosing HDDs as the local devices. To continue installation, select a supported disk type with internal mode.'
+          ),
+        };
+      else if (volumeValidationType === VolumeTypeValidation.INFO)
+        return {
+          variant: AlertVariant.info,
+          title: t(
+            'Data Foundation supports only SSD/NVMe disk type for internal mode deployment.'
+          ),
+        };
+      return { title: '', text: '' };
+    }
     default:
       return { title: '', text: '' };
   }
@@ -180,6 +202,7 @@ type ActionAlertProps = Validation & {
 export const ValidationMessage: React.FC<ValidationMessageProps> = ({
   className,
   resourceProfile,
+  volumeValidationType,
   validation,
   osdAmount,
 }) => {
@@ -192,7 +215,13 @@ export const ValidationMessage: React.FC<ValidationMessageProps> = ({
     linkText,
     actionLinkStep,
     actionLinkText,
-  } = VALIDATIONS(validation, t, resourceProfile, osdAmount);
+  } = VALIDATIONS(
+    validation,
+    t,
+    resourceProfile,
+    osdAmount,
+    volumeValidationType
+  );
   return actionLinkStep ? (
     <Alert
       className={classNames('co-alert', className)}
@@ -219,6 +248,7 @@ type ValidationMessageProps = {
   resourceProfile?: ResourceProfile;
   validation: keyof typeof ValidationType;
   osdAmount?: number;
+  volumeValidationType?: VolumeTypeValidation;
 };
 
 export const getEncryptionLevel = (obj: EncryptionType, t: TFunction) => {
