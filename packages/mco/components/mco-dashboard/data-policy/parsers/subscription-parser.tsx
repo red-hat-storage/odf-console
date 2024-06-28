@@ -8,7 +8,7 @@ import {
 import { ACMPlacementModel } from '@odf/mco/models';
 import {
   ACMManagedClusterKind,
-  ACMPlacementRuleKind,
+  ACMPlacementDecisionKind,
   DRClusterAppsMap,
   DRClusterKind,
   PlacementInfo,
@@ -16,7 +16,7 @@ import {
 } from '@odf/mco/types';
 import {
   findDRType,
-  getClustersFromDecisions,
+  findDeploymentClusters,
   getProtectedPVCsFromDRPC,
 } from '@odf/mco/utils';
 import { ApplicationKind } from '@odf/shared';
@@ -91,13 +91,15 @@ const createClusterWiseSubscriptionGroupsMap = (
   const clusterWiseSubscriptionGroups: ClusterWiseSubscriptionGroupsMap = {};
 
   subscriptionGroupInfo?.forEach((subscriptionGroup) => {
-    const deploymentClusters: string[] =
-      subscriptionGroup.placement?.kind === ACMPlacementModel.kind
-        ? getClustersFromDecisions(subscriptionGroup.placementDecision)
-        : getClustersFromDecisions(
-            subscriptionGroup.placement as ACMPlacementRuleKind
-          );
-
+    const appPlacement = (
+      subscriptionGroup?.placement?.kind === ACMPlacementModel.kind
+        ? subscriptionGroup?.placementDecision
+        : subscriptionGroup?.placement
+    ) as ACMPlacementDecisionKind;
+    const deploymentClusters: string[] = findDeploymentClusters(
+      appPlacement,
+      subscriptionGroup?.drInfo?.drPlacementControl
+    );
     deploymentClusters?.forEach((decisionCluster) => {
       clusterWiseSubscriptionGroups[decisionCluster] =
         clusterWiseSubscriptionGroups[decisionCluster] || [];
