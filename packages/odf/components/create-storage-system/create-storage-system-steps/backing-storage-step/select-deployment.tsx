@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { FDF_FLAG } from '@odf/core/redux';
 import { DeploymentType } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Select,
   SelectOption,
@@ -12,9 +14,9 @@ import { FormGroup } from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './backing-storage-step.scss';
 
-const options = [
+const options = (isFDF: boolean) => [
   DeploymentType.FULL,
-  DeploymentType.PROVIDER_MODE,
+  ...(isFDF ? [DeploymentType.PROVIDER_MODE] : []),
   DeploymentType.MCG,
 ];
 
@@ -37,6 +39,8 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
   const { t } = useCustomTranslation();
   const [isSelectOpen, setIsSelectOpen] = React.useState(false);
 
+  const isFDF = useFlag(FDF_FLAG);
+
   const descriptions = optionsDescription(t);
 
   const handleSelection: SelectProps['onSelect'] = (_, value) => {
@@ -53,7 +57,7 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
     isExpanded: boolean
   ) => setIsSelectOpen(isExpanded);
 
-  const selectOptions = options.map((option) => (
+  const selectOptions = options(isFDF).map((option) => (
     <SelectOption
       key={option}
       value={option}
