@@ -211,13 +211,11 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             <ListItem>
               {t('Encryption: {{encryptionStatus}}', { encryptionStatus })}
             </ListItem>
-            {!isProviderMode && (
-              <ListItem>
-                {t('In-transit encryption: {{hasInTransitEncryption}}', {
-                  hasInTransitEncryption,
-                })}
-              </ListItem>
-            )}
+            <ListItem>
+              {t('In-transit encryption: {{hasInTransitEncryption}}', {
+                hasInTransitEncryption,
+              })}
+            </ListItem>
             {hasEncryption && (
               <ListItem>
                 {t('External key management service: {{kmsStatus}}', {
