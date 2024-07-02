@@ -9,4 +9,11 @@ module.exports = {
       console.error(`Failed to delete file ${filePath}:`, e);
     }
   },
+  deleteDir(dirPath) {
+    try {
+      fs.rmSync(dirPath, { recursive: true, force: true });
+    } catch (e) {
+      console.error(`Failed to delete directory ${dirPath}:`, e);
+    }
+  },
 };
