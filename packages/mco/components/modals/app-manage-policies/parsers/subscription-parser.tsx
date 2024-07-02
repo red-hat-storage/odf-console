@@ -14,11 +14,11 @@ import {
 } from '@odf/mco/hooks';
 import { ACMPlacementModel } from '@odf/mco/models';
 import {
-  ACMPlacementRuleKind,
+  ACMPlacementDecisionKind,
   DRClusterKind,
   DRPolicyKind,
 } from '@odf/mco/types';
-import { getClustersFromDecisions } from '@odf/mco/utils';
+import { findDeploymentClusters } from '@odf/mco/utils';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -115,10 +115,15 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
       subscriptionResources?.subscriptionGroupInfo?.forEach(
         ({ placement, placementDecision, drInfo }) => {
           const { drClusters, drPlacementControl, drPolicy } = drInfo || {};
-          const deploymentClusters: string[] =
-            placement.kind === ACMPlacementModel.kind
-              ? getClustersFromDecisions(placementDecision)
-              : getClustersFromDecisions(placement as ACMPlacementRuleKind);
+          const appPlacement = (
+            placement?.kind === ACMPlacementModel.kind
+              ? placementDecision
+              : placement
+          ) as ACMPlacementDecisionKind;
+          const deploymentClusters: string[] = findDeploymentClusters(
+            appPlacement,
+            drInfo?.drPlacementControl
+          );
           const placementInfo = generatePlacementInfo(
             placement,
             deploymentClusters
