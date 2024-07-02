@@ -33,17 +33,20 @@ export const useFetchCsv = ({
     csvName: null,
     csvNamespace: null,
   });
+  const csvDetailsRef = React.useRef<typeof csvDetails>();
+  csvDetailsRef.current = csvDetails;
 
   React.useEffect(() => {
+    // using "Ref" (instead of "csvDetails" directly) otherwise we will get "Maximum update depth exceeded" error when Subscription is not found
     const alreadyHaveDetails =
-      !!csvDetails.csvName && !!csvDetails.csvNamespace;
+      !!csvDetailsRef.current.csvName && !!csvDetailsRef.current.csvNamespace;
     if (subsLoaded && !subsLoadError && subs?.length && !alreadyHaveDetails) {
       const sub = subs.find((s) => s.spec.name === specName);
       const csvName = sub?.status?.installedCSV;
       const csvNamespace = sub?.metadata?.namespace;
       setCSVDetails({ csvName, csvNamespace });
     }
-  }, [specName, subs, subsLoadError, subsLoaded, csvDetails, setCSVDetails]);
+  }, [specName, subs, subsLoadError, subsLoaded, setCSVDetails]);
 
   const [csv, csvLoaded, csvLoadError] =
     useK8sWatchResource<ClusterServiceVersionKind>(

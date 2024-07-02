@@ -28,6 +28,8 @@ import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import {
+  Alert,
+  AlertVariant,
   FormGroup,
   TextInput,
   Radio,
@@ -96,6 +98,37 @@ const AllNodesLabel: React.FC<{ count: number }> = ({ count }) => {
   );
 };
 
+const getDiskTypeValidationError = (
+  state: WizardState['createLocalVolumeSet'],
+  t: TFunction
+) => {
+  let validationError: {
+    title: string;
+    description: string;
+    variant?: AlertVariant;
+  };
+
+  // "chartNodes" signify the nodes (selected by the user) on which disks (SSDs only, other types are disabled) are attached
+  // if no such nodes found, it means no SSD is present as well
+  if (state.chartNodes.size === 0)
+    validationError = {
+      title: t('No SSD/NVMe disks detected'),
+      description: t(
+        'You do not have any SSD/NVMe disks available. Data Foundation supports only SSD/NVMe disk type in internal mode.'
+      ),
+    };
+  else
+    validationError = {
+      title: t('Disk type is set to SSD/NVMe'),
+      description: t(
+        'Data Foundation supports only SSD/NVMe disk type for internal mode deployment.'
+      ),
+      variant: AlertVariant.info,
+    };
+
+  return validationError;
+};
+
 export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
   dispatch,
   state,
@@ -122,6 +155,8 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
     [dispatch]
   );
 
+  // "ErrorHandler" in "CreateLocalVolumeSet" ensures this hook (or FC) renders only after all nodes are loaded
+  // It also ensures this FC is un-mounted & mounted again if new nodes are added
   React.useEffect(() => {
     // Updates the nodes with allNodes when the component is rendered
     dispatch({ type: 'wizard/setNodes', payload: allNodes });
@@ -129,7 +164,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
     // Updates the pre-selected volume mode
     formHandler('diskMode', defaultVolumeMode);
 
-    // Required to be run only on initial rendering , hence suppressing the eslint rule
+    // Required to be run only on initial rendering, hence suppressing the eslint rule
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -247,6 +282,8 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
     });
   }, [createLvsStorageClassName, dispatch, isValid]);
 
+  const diskTypeValidationError = getDiskTypeValidationError(state, t);
+
   return (
     <>
       <FormGroup
@@ -338,7 +375,17 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           selectedKey={diskTypeDropdownItems(t)[state.diskType]}
           onChange={(type: string) => formHandler('diskType', type)}
           valueLabelMap={diskTypeDropdownItems(t)}
+          // we only support SSD, disabling dropdown for other options (All/HDD)
+          isDisabled
         />
+        <Alert
+          className="pf-v5-u-mt-md"
+          variant={diskTypeValidationError.variant || AlertVariant.danger}
+          title={diskTypeValidationError.title}
+          isInline
+        >
+          {diskTypeValidationError.description}
+        </Alert>
       </FormGroup>
       <ExpandableSection
         toggleText={t('Advanced')}

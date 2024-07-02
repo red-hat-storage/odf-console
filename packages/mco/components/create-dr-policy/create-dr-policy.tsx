@@ -12,6 +12,7 @@ import {
   k8sCreate,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
   Form,
@@ -28,11 +29,14 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
+  ExpandableSection,
+  Checkbox,
 } from '@patternfly/react-core';
 import {
   MAX_ALLOWED_CLUSTERS,
   REPLICATION_TYPE,
   ODFMCO_OPERATOR,
+  RBD_IMAGE_FLATTEN_LABEL,
 } from '../../constants';
 import { DRPolicyModel, MirrorPeerModel } from '../../models';
 import { DRPolicyKind, MirrorPeerKind } from '../../types';
@@ -41,6 +45,7 @@ import {
   drPolicyInitialState,
   DRPolicyActionType,
   ManagedClusterInfoType,
+  DRPolicyAction,
 } from './reducer';
 import { SelectClusterList } from './select-cluster-list';
 import { DRReplicationType } from './select-replication-type';
@@ -78,6 +83,7 @@ const createDRPolicy = (
   policyName: string,
   replicationType: REPLICATION_TYPE,
   syncIntervalTime: string,
+  enableRBDImageFlatten: boolean,
   peerNames: string[]
 ) => {
   const drPolicyPayload: DRPolicyKind = {
@@ -85,6 +91,9 @@ const createDRPolicy = (
     kind: DRPolicyModel.kind,
     metadata: { name: policyName },
     spec: {
+      replicationClassSelector: enableRBDImageFlatten
+        ? { matchLabels: RBD_IMAGE_FLATTEN_LABEL }
+        : {},
       schedulingInterval:
         replicationType === REPLICATION_TYPE.ASYNC ? syncIntervalTime : '0m',
       drClusters: peerNames,
@@ -118,6 +127,51 @@ const createMirrorPeer = (
 
 const getDRPolicyListPageLink = (url: string) =>
   url.replace(`/${referenceForModel(DRPolicyModel)}/~new`, '');
+
+const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
+  enableRBDImageFlatten,
+  dispatch,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const handleRBDImageFlattenOnChange = (checked: boolean) => {
+    dispatch({
+      type: DRPolicyActionType.SET_RBD_IMAGE_FLATTEN,
+      payload: checked,
+    });
+  };
+
+  return (
+    <ExpandableSection toggleText={t('Advanced settings')}>
+      <Checkbox
+        label={t(
+          'Enable disaster recovery support for restored and cloned PersistentVolumeClaims (For Data Foundation only)'
+        )}
+        isChecked={enableRBDImageFlatten}
+        onChange={(_event, checked: boolean) =>
+          handleRBDImageFlattenOnChange(checked)
+        }
+        id="flat-image-checkbox"
+        name="flat-image-checkbox"
+      />
+      <Alert
+        className="pf-v5-u-mt-md odf-alert mco-create-data-policy__alert"
+        title={
+          <Trans>
+            Before choosing this option, read the section
+            <i className="pf-v5-u-mx-xs">
+              Creating Disaster Recovery Policy on Hub cluster chapter of
+              Regional-DR solution guide
+            </i>
+            to understand the impact and limitations of this feature.
+          </Trans>
+        }
+        variant={AlertVariant.warning}
+        isInline
+      />
+    </ExpandableSection>
+  );
+};
 
 const CreateDRPolicy: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
@@ -153,6 +207,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
         state.policyName,
         state.replicationType,
         state.syncIntervalTime,
+        state.enableRBDImageFlatten,
         peerNames
       )
     );
@@ -279,6 +334,12 @@ const CreateDRPolicy: React.FC<{}> = () => {
             drPolicies={drPolicies}
             dispatch={dispatch}
           />
+          {state.replicationType === REPLICATION_TYPE.ASYNC && (
+            <AdvancedSettings
+              enableRBDImageFlatten={state.enableRBDImageFlatten}
+              dispatch={dispatch}
+            />
+          )}
           {errorMessage && (
             <FormGroup fieldId="error-message">
               <Alert
@@ -315,6 +376,11 @@ const CreateDRPolicy: React.FC<{}> = () => {
       )}
     </>
   );
+};
+
+type AdvancedSettingsProps = {
+  enableRBDImageFlatten: boolean;
+  dispatch: React.Dispatch<DRPolicyAction>;
 };
 
 export default CreateDRPolicy;

@@ -5,6 +5,7 @@ import {
   ResourceProfile,
   NodeData,
   DeploymentType,
+  VolumeTypeValidation,
 } from '@odf/core/types';
 import {
   getNodeCPUCapacity,
@@ -153,7 +154,8 @@ export const capacityAndNodesValidate = (
   isNoProvSC: boolean,
   resourceProfile: ResourceProfile,
   osdAmount: number,
-  deploymentType: DeploymentType
+  deploymentType: DeploymentType,
+  volumeValidationType: VolumeTypeValidation
 ): ValidationType[] => {
   const validations = [];
 
@@ -190,6 +192,13 @@ export const capacityAndNodesValidate = (
     ) {
       validations.push(ValidationType.MINIMAL);
     }
+  }
+  if (
+    ![VolumeTypeValidation.UNKNOWN, VolumeTypeValidation.NONE].includes(
+      volumeValidationType
+    )
+  ) {
+    validations.push(ValidationType.VOLUME_TYPE);
   }
 
   return validations;

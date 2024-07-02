@@ -36,7 +36,12 @@ import { TFunction } from 'i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { Button, Alert, AlertActionCloseButton } from '@patternfly/react-core';
 import './create-storage-system.scss';
-import { NetworkType, BackingStorageType, DeploymentType } from '../../types';
+import {
+  NetworkType,
+  BackingStorageType,
+  DeploymentType,
+  VolumeTypeValidation,
+} from '../../types';
 import { createClusterKmsResources } from '../kms-config/utils';
 import {
   createExternalSubSystem,
@@ -119,10 +124,16 @@ const canJumpToNextStep = (
     connectionDetails,
     nodes,
   } = state;
-  const { type, externalStorage } = backingStorage;
+  const { type, externalStorage, deployment } = backingStorage;
   const isExternal: boolean = type === BackingStorageType.EXTERNAL;
   const isRHCS: boolean = externalStorage === OCSStorageClusterModel.kind;
-  const { capacity } = capacityAndNodes;
+  const {
+    capacity,
+    enableArbiter,
+    pvCount,
+    resourceProfile,
+    volumeValidationType,
+  } = capacityAndNodes;
   const { chartNodes, volumeSetName, isValidDiskSize, isValidDeviceType } =
     createLocalVolumeSet;
   const { encryption, kms, networkType, publicNetwork, clusterNetwork } =
@@ -139,17 +150,14 @@ const canJumpToNextStep = (
   const flexibleScaling = isFlexibleScaling(
     nodes,
     isNoProvisioner,
-    capacityAndNodes.enableArbiter
+    enableArbiter
   );
   const deviceSetReplica: number = getDeviceSetReplica(
-    capacityAndNodes.enableArbiter,
+    enableArbiter,
     flexibleScaling,
     nodes
   );
-  const deviceSetCount = getDeviceSetCount(
-    capacityAndNodes.pvCount,
-    deviceSetReplica
-  );
+  const deviceSetCount = getDeviceSetCount(pvCount, deviceSetReplica);
   const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
 
   switch (name) {
@@ -163,6 +171,7 @@ const canJumpToNextStep = (
       );
     case StepsName(t)[Steps.CreateLocalVolumeSet]:
       return (
+        // "chartNodes.size === 0" signify no SSDs are attached, but no need to add that as it's already covered by "chartNodes.size >= MINIMUM_NODES" condition
         chartNodes.size >= MINIMUM_NODES &&
         volumeSetName.trim().length &&
         isValidDiskSize &&
@@ -172,9 +181,12 @@ const canJumpToNextStep = (
       return (
         nodes.length >= MINIMUM_NODES &&
         capacity &&
-        (backingStorage.deployment !== DeploymentType.PROVIDER_MODE
+        ![VolumeTypeValidation.UNKNOWN, VolumeTypeValidation.ERROR].includes(
+          volumeValidationType
+        ) &&
+        (deployment !== DeploymentType.PROVIDER_MODE
           ? isResourceProfileAllowed(
-              capacityAndNodes.resourceProfile,
+              resourceProfile,
               getTotalCpu(nodes),
               getTotalMemoryInGiB(nodes),
               osdAmount

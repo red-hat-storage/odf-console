@@ -27,6 +27,7 @@ import {
   NodeData,
   NodesPerZoneMap,
   ResourceProfile,
+  VolumeTypeValidation,
 } from '@odf/core/types';
 import {
   calcPVsCapacity,
@@ -37,7 +38,6 @@ import {
   getOsdAmount,
 } from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
@@ -66,6 +66,7 @@ import ConfigurePerformance, {
 } from './configure-performance';
 import { SelectedNodesTable } from './selected-nodes-table';
 import { StretchCluster } from './stretch-cluster';
+import { useVolumeTypeValidation } from './useVolumeTypeValidation';
 import './capacity-and-nodes.scss';
 
 const onResourceProfileChange = _.curry(
@@ -166,12 +167,6 @@ const SelectCapacityAndNodes: React.FC<SelectCapacityAndNodesProps> = ({
 
   const replicas = getReplicasFromSelectedNodes(nodes);
 
-  React.useEffect(() => {
-    // Reset pvCount that could have been set by another StorageClass.
-    dispatch({ type: 'capacityAndNodes/pvCount', payload: 0 });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <>
       <TextContent>
@@ -236,58 +231,60 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   storageClassName,
   enableArbiter,
   arbiterLocation,
+  volumeValidationType,
   dispatch,
   nodes,
   systemNamespace,
+  isLSOPreConfigured,
 }) => {
   const { t } = useCustomTranslation();
-  const [pv, pvLoaded, pvLoadError] =
+
+  const [pvs, pvsLoaded, pvsLoadError] =
     useK8sWatchResource<K8sResourceKind[]>(pvResource);
-  const memoizedPv = useDeepCompareMemoize(pv, true);
   const [allNodes, allNodeLoaded, allNodeLoadError] = useNodesData();
-  const memoizedAllNodes = useDeepCompareMemoize(allNodes, true);
+
   const [hasStrechClusterEnabled, setHasStrechClusterEnabled] =
     React.useState(false);
   const [zones, setZones] = React.useState([]);
 
-  const pvBySc = React.useMemo(
-    () => getSCAvailablePVs(memoizedPv, storageClassName),
-    [memoizedPv, storageClassName]
+  const pvsBySc = React.useMemo(
+    () => getSCAvailablePVs(pvs, storageClassName),
+    [pvs, storageClassName]
   );
 
   React.useEffect(() => {
     // Updates selected capacity
-    if (pvLoaded && !pvLoadError) {
-      const pvCapacity = calcPVsCapacity(pvBySc);
+    if (pvsLoaded && !pvsLoadError) {
+      const pvCapacity = calcPVsCapacity(pvsBySc);
       dispatch({
         type: 'capacityAndNodes/capacity',
         payload: pvCapacity,
       });
-      dispatch({ type: 'capacityAndNodes/pvCount', payload: pvBySc.length });
+      dispatch({ type: 'capacityAndNodes/pvCount', payload: pvsBySc.length });
     }
-  }, [dispatch, pvBySc, pvLoadError, pvLoaded]);
+  }, [dispatch, pvsBySc, pvsLoadError, pvsLoaded]);
 
   React.useEffect(() => {
     // Updates selected nodes
     if (
       allNodeLoaded &&
       !allNodeLoadError &&
-      memoizedAllNodes.length &&
-      pvBySc.length
+      allNodes.length &&
+      pvsBySc.length
     ) {
-      const pvNodes = getAssociatedNodes(pvBySc);
-      const filteredNodes = memoizedAllNodes.filter((node) =>
+      const pvNodes = getAssociatedNodes(pvsBySc);
+      const filteredNodes = allNodes.filter((node) =>
         pvNodes.includes(node.metadata.name)
       );
       const nodesData = createWizardNodeState(filteredNodes);
       dispatch({ type: 'wizard/setNodes', payload: nodesData });
     }
-  }, [dispatch, allNodeLoadError, allNodeLoaded, memoizedAllNodes, pvBySc]);
+  }, [dispatch, allNodeLoadError, allNodeLoaded, allNodes, pvsBySc]);
 
   React.useEffect(() => {
     // Validates stretch cluster topology
-    if (memoizedAllNodes.length && nodes.length) {
-      const allZones = getZonesFromNodesKind(memoizedAllNodes);
+    if (allNodes.length && nodes.length) {
+      const allZones = getZonesFromNodesKind(allNodes);
       const nodesPerZoneMap: NodesPerZoneMap =
         getPVAssociatedNodesPerZone(nodes);
       const isValidStretchCluster = isValidStretchClusterTopology(
@@ -298,7 +295,17 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
       setHasStrechClusterEnabled(isValidStretchCluster);
       setZones(allZones);
     }
-  }, [memoizedAllNodes, nodes]);
+  }, [allNodes, nodes]);
+
+  // Skipping validation if LSO was configured as part of the SS deployment (in the previous LVS creation wizard step), as that step already have all the required validations
+  // These validations are needed if LSO was already configured before even starting with the SS deployment
+  useVolumeTypeValidation(
+    nodes,
+    pvsBySc,
+    volumeValidationType,
+    dispatch,
+    isLSOPreConfigured
+  );
 
   const onArbiterChecked = React.useCallback(
     (isChecked: boolean) =>
@@ -317,8 +324,12 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
 
   return (
     <ErrorHandler
-      error={pvLoadError}
-      loaded={pvLoaded && !!capacity}
+      error={pvsLoadError}
+      loaded={
+        pvsLoaded &&
+        !!capacity &&
+        volumeValidationType !== VolumeTypeValidation.UNKNOWN
+      }
       loadingMessage={t(
         'PersistentVolumes are being provisioned on the selected nodes.'
       )}
@@ -396,6 +407,8 @@ type SelectedCapacityAndNodesProps = {
   dispatch: WizardDispatch;
   nodes: WizardNodeState[];
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  volumeValidationType: VolumeTypeValidation;
+  isLSOPreConfigured: boolean;
 };
 
 export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
@@ -413,6 +426,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
     enableTaint,
     arbiterLocation,
     resourceProfile,
+    volumeValidationType,
     pvCount,
   } = state;
 
@@ -437,19 +451,16 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
     isNoProvisioner,
     resourceProfile,
     osdAmount,
-    deploymentMode
+    deploymentMode,
+    volumeValidationType
   );
   const onProfileChange = React.useCallback(
     (profile) => onResourceProfileChange(dispatch)(profile),
     [dispatch]
   );
 
-  React.useEffect(() => {
-    // Reset selected nodes that could have been set by another StorageClass.
-    dispatch({ type: 'wizard/setNodes', payload: [] });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  // In case LSO is already configured (before SS deployment), wizard skips LVS creation step (thus, corresponding redux state should be empty)
+  const isLSOPreConfigured = !volumeSetName;
   return (
     <Form>
       {isNoProvisioner ? (
@@ -457,10 +468,12 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           storageClassName={storageClass.name || volumeSetName}
           enableArbiter={enableArbiter}
           arbiterLocation={arbiterLocation}
+          volumeValidationType={volumeValidationType}
           dispatch={dispatch}
           nodes={nodes}
           capacity={capacity}
           systemNamespace={systemNamespace}
+          isLSOPreConfigured={isLSOPreConfigured}
         />
       ) : (
         <SelectCapacityAndNodes
@@ -490,6 +503,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
         validations.map((validation) => (
           <ValidationMessage
             resourceProfile={resourceProfile}
+            volumeValidationType={volumeValidationType}
             osdAmount={osdAmount}
             key={validation}
             validation={validation}

@@ -4,10 +4,16 @@ import {
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk';
 
-export enum DiskType {
+export enum DeviceType {
   RawDisk = 'disk',
   Partition = 'part',
   Multipath = 'mpath',
+}
+
+export enum DiskType {
+  All = 'All',
+  SSD = 'SSD',
+  HDD = 'HDD',
 }
 
 export enum DiskMechanicalProperties {
@@ -26,10 +32,10 @@ export const DISK_TYPES: {
     property: keyof typeof DiskMechanicalProperties;
   };
 } = {
-  SSD: {
+  [DiskType.SSD]: {
     property: 'NonRotational',
   },
-  HDD: {
+  [DiskType.HDD]: {
     property: 'Rotational',
   },
 };
@@ -40,7 +46,7 @@ export type LocalVolumeSetKind = K8sResourceCommon & {
     volumeMode: string;
     fsType: string;
     deviceInclusionSpec: {
-      deviceTypes?: DiskType[];
+      deviceTypes?: DeviceType[];
       deviceMechanicalProperties: [keyof typeof DiskMechanicalProperties];
       minSize?: string;
       maxSize?: string;

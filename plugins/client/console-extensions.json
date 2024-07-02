@@ -32,6 +32,171 @@
         "kind": "StorageClient"
       },
       "component": { "$codeRef": "install.default" }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "console.flag",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.detectRGW"
+      }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "odfobjectservice",
+      "insertBefore": "persistentvolumes",
+      "insertAfter": "odfdashboard",
+      "section": "storage",
+      "name": "%plugin__odf-client-console~Object Storage%",
+      "href": "/odf/object-storage"
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "console.redux-reducer",
+    "properties": {
+      "scope": "odfConsoleRedux",
+      "reducer": { "$codeRef": "features" }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "console.flag/hookProvider",
+    "properties": {
+      "handler": {
+        "$codeRef": "features.useODFNamespace"
+      }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/odf/object-storage"],
+      "exact": false,
+      "component": { "$codeRef": "mcg.default" }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "backing-store",
+      "name": "%plugin__odf-client-console~Backing Store%",
+      "contextId": "odf-object-service",
+      "href": "noobaa.io~v1alpha1~BackingStore",
+      "component": {
+        "$codeRef": "mcg.BackingStoreListPage"
+      }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "bucket-class",
+      "name": "%plugin__odf-client-console~Bucket Class%",
+      "contextId": "odf-object-service",
+      "after": "backing-store",
+      "href": "noobaa.io~v1alpha1~BucketClass",
+      "component": {
+        "$codeRef": "mcg.BucketClassListPage"
+      }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "namespace-store",
+      "name": "%plugin__odf-client-console~Namespace Store%",
+      "contextId": "odf-object-service",
+      "after": "bucket-class",
+      "href": "noobaa.io~v1alpha1~NamespaceStore",
+      "component": {
+        "$codeRef": "mcg.NamespaceStoreListPage"
+      }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "objectbuckets",
+      "name": "%plugin__odf-client-console~Object Buckets%",
+      "contextId": "odf-object-service",
+      "after": "namespace-store",
+      "href": "objectbucket.io~v1alpha1~ObjectBucket",
+      "component": {
+        "$codeRef": "mcg.ObjectBucketListPage"
+      }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/resource/objectbucket.io~v1alpha1~ObjectBucket/:resourceName",
+      "exact": false,
+      "component": {
+        "$codeRef": "mcg.OBDetailsPage"
+      }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "objectbucketclaims",
+      "name": "%plugin__odf-client-console~Object Bucket Claims%",
+      "contextId": "odf-object-service",
+      "after": "objectbuckets",
+      "href": "objectbucket.io~v1alpha1~ObjectBucketClaim",
+      "component": {
+        "$codeRef": "mcg.OBCListPage"
+      }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/resource/ns/:namespace/objectbucket.io~v1alpha1~ObjectBucketClaim/:resourceName",
+      "exact": false,
+      "component": {
+        "$codeRef": "mcg.OBCDetailsPage"
+      }
+    },
+    "flags": {
+      "disallowed": ["PROVIDER_MODE"]
     }
   }
 ]

@@ -11,17 +11,20 @@ import {
 import { NetworkAttachmentDefinitionKind, NodeKind } from '@odf/shared/types';
 import * as _ from 'lodash-es';
 import {
+  DiskSize,
   KMSEmptyState,
   NO_PROVISIONER,
   deviceTypeDropdownItems,
   diskModeDropdownItems,
 } from '../../constants';
 import {
+  DiskType,
   EncryptionType,
   KMSConfig,
   NetworkType,
   BackingStorageType,
   DeploymentType,
+  VolumeTypeValidation,
 } from '../../types';
 
 export type WizardState = CreateStorageSystemState;
@@ -70,20 +73,22 @@ export const initialState: CreateStorageSystemState = {
     capacity: null,
     pvCount: 0,
     resourceProfile: ResourceProfile.Balanced,
+    volumeValidationType: VolumeTypeValidation.NONE,
   },
   createStorageClass: {},
   connectionDetails: {},
   createLocalVolumeSet: {
     volumeSetName: '',
     isValidDiskSize: true,
-    diskType: 'All',
+    // we only support SSD, other options (All/HDD) are disabled
+    diskType: DiskType.SSD,
     diskMode: diskModeDropdownItems.BLOCK,
     deviceType: [deviceTypeDropdownItems.DISK, deviceTypeDropdownItems.PART],
     isValidDeviceType: true,
     maxDiskLimit: '',
     minDiskSize: '1',
     maxDiskSize: '',
-    diskSizeUnit: 'Gi',
+    diskSizeUnit: DiskSize.Gi,
     isValidMaxSize: true,
     showConfirmModal: false,
     chartNodes: new Set(),
@@ -146,6 +151,7 @@ type CreateStorageSystemState = {
     capacity: string | number;
     pvCount: number;
     resourceProfile: ResourceProfile;
+    volumeValidationType: VolumeTypeValidation;
   };
   securityAndNetwork: {
     encryption: EncryptionType;
@@ -176,14 +182,14 @@ export type WizardNodeState = {
 export type LocalVolumeSet = {
   volumeSetName: string;
   isValidDiskSize: boolean;
-  diskType: string;
+  diskType: DiskType;
   diskMode: string;
   deviceType: string[];
   isValidDeviceType: boolean;
   maxDiskLimit: string;
   minDiskSize: string;
   maxDiskSize: string;
-  diskSizeUnit: string;
+  diskSizeUnit: DiskSize;
   isValidMaxSize: boolean;
   showConfirmModal: boolean;
   chartNodes: Set<string>;
@@ -369,6 +375,9 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'capacityAndNodes/setResourceProfile':
       newState.capacityAndNodes.resourceProfile = action.payload;
       break;
+    case 'capacityAndNodes/setVolumeValidationType':
+      newState.capacityAndNodes.volumeValidationType = action.payload;
+      break;
     case 'securityAndNetwork/setKms':
       newState.securityAndNetwork.kms = action.payload;
       break;
@@ -429,6 +438,10 @@ export type CreateStorageSystemAction =
   | {
       type: 'capacityAndNodes/setResourceProfile';
       payload: WizardState['capacityAndNodes']['resourceProfile'];
+    }
+  | {
+      type: 'capacityAndNodes/setVolumeValidationType';
+      payload: WizardState['capacityAndNodes']['volumeValidationType'];
     }
   | {
       type: 'backingStorage/setDeployment';

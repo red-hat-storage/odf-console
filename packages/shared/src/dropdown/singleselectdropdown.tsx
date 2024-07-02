@@ -22,7 +22,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
     newOptions.length > 0 ? selectOptions.concat(newOptions) : selectOptions;
 
   const onSelect = React.useCallback(
-    (event: React.MouseEvent | React.ChangeEvent, selection: string) => {
+    (_event: React.MouseEvent | React.ChangeEvent, selection: string) => {
       /**
        * For case when the dropdownitem that we want to show on UI (label)
        * and its corresponding value that we want to store in the redux-state is different.

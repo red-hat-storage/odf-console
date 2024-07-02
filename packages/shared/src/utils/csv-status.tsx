@@ -1,3 +1,5 @@
+import { ClusterServiceVersionKind } from '../types';
+
 enum HealthState {
   OK = 'OK',
   ERROR = 'ERROR',
@@ -30,3 +32,6 @@ export const getOperatorHealthState = (
   }
   return { state: HealthState.ERROR };
 };
+
+export const isCSVSucceeded = (csv: ClusterServiceVersionKind) =>
+  csv?.status?.phase === 'Succeeded';
