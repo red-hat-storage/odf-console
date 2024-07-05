@@ -9,7 +9,7 @@ import * as webpack from 'webpack';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import type { Configuration as DevServerConfiguration } from 'webpack-dev-server';
 
-const LANGUAGES = ['en', 'ja', 'ko', 'zh'];
+const LANGUAGES = ['en', 'ja', 'ko', 'zh', 'es', 'fr'];
 const resolveLocale = (dirName: string, ns: string) =>
   LANGUAGES.map((lang) => ({
     from: path.resolve(dirName, `locales/${lang}/plugin__*.json`),
