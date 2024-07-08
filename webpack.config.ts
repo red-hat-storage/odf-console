@@ -146,17 +146,6 @@ const config: webpack.Configuration & DevServerConfiguration = {
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
     }),
-    new ForkTsCheckerWebpackPlugin({
-      issue: {
-        exclude: [{ file: '**/node_modules/**/*' }],
-      },
-      typescript: {
-        diagnosticOptions: {
-          semantic: true,
-          syntactic: true,
-        },
-      },
-    }),
     new CircularDependencyPlugin({
       exclude: /cypress|plugins|scripts|node_modules/,
       failOnError: true,
@@ -169,6 +158,22 @@ const config: webpack.Configuration & DevServerConfiguration = {
     chunkIds: 'named',
   },
 };
+
+if (NODE_ENV === 'production' || process.env.DEV_NO_TYPE_CHECK !== 'true') {
+  config.plugins?.push(
+    new ForkTsCheckerWebpackPlugin({
+      issue: {
+        exclude: [{ file: '**/node_modules/**/*' }],
+      },
+      typescript: {
+        diagnosticOptions: {
+          semantic: true,
+          syntactic: true,
+        },
+      },
+    })
+  );
+}
 
 if (process.env.ANALYZE_BUNDLE === 'true') {
   config.plugins?.push(
