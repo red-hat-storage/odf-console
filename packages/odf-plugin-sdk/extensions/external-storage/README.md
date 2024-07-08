@@ -14,10 +14,10 @@ Follow the steps written below to integrate with the ODF wizard:
 
 1. Any new external storage vendor would require to add a new entry to their `console-extensions.json` file.
 
-2. Create `component`, `createPayload`, `canGoToNextStep` and `waitToCreate (optional)`. Some guidelines for `component`:
+2. Create `component`, `schemaHandler (optional)`, `createPayload`, `canGoToNextStep` and `waitToCreate (optional)`. Some guidelines for `component`:
 
 - The Component is required to only include the connection details e.g IP Address, username, password, etc related to the external storage. The StorageClass field is generic for all external Providers and is not required to be duplicated by any external vendor's Component.
-- The Component must use the [Patternfly's form components](https://www.patternfly.org/v4/components/form) e.g `FormGroup`, `TextInput`, `Radio` to make the design consistent with the rest of the wizard and OpenShift console.
+- The Component must use the [Patternfly's form components](https://www.patternfly.org/components/forms/form) e.g `FormGroup`, `TextInput`, `Radio` to make the design consistent with the rest of the wizard and OpenShift console.
 - All form components should be controlled forms i.e using `onChange` event handler to control the value of the input elements.
 - The component should externalize the strings for i18n. [See usage](https://github.com/openshift/console/blob/master/frontend/packages/ceph-storage-plugin/src/components/ocs-install/existing-cluster-modal.tsx#L17).
 
@@ -26,7 +26,7 @@ Follow the steps written below to integrate with the ODF wizard:
 ```js
 /* Add new state for the Component*/
 
-export type ExternalState = {} | RHCSState | ABCState; // new state
+export type ExternalState = {} | RHCSState | ABCStorageState; // new state
 
 export type RHCSState = {
   fileData: string,

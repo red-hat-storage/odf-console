@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useSafeK8sList } from '@odf/core/hooks';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   CreatePayload,
   StorageClassComponentProps as ExternalComponentProps,
@@ -6,13 +8,15 @@ import {
   waitToCreate,
 } from '@odf/odf-plugin-sdk/extensions';
 import { FormGroupController } from '@odf/shared/form-group-controller';
+import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { SecretModel, CustomResourceDefinitionModel } from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { SecretKind, K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { isValidIP } from '@odf/shared/utils';
-import { getAPIVersionForModel } from '@odf/shared/utils';
+import { getAPIVersionForModel, isValidIP } from '@odf/shared/utils';
 import { k8sGet } from '@openshift-console/dynamic-plugin-sdk';
 import { Select, SelectOption } from '@patternfly/react-core/deprecated';
+import * as Yup from 'yup';
 import {
   FormGroup,
   TextInput,
@@ -24,6 +28,11 @@ import {
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
 import { IBMFlashSystemModel } from './system-models';
 import { FlashSystemState, IBMFlashSystemKind } from './system-types';
+import {
+  isIPRegistered,
+  getSecretManagementAddress,
+  getFlashSystemSecretName,
+} from './utils';
 
 const VOLUME_MODES = ['thick', 'thin'];
 
@@ -164,6 +173,57 @@ export const FlashSystemConnectionDetails: React.FC<
       </FormGroup>
     </>
   );
+};
+
+export const useFlashSystemSchema = (): Yup.ObjectSchema<{}> => {
+  const { t } = useCustomTranslation();
+
+  const { odfNamespace } = useODFNamespaceSelector();
+
+  // Non-RHCS StorageSystems are only created in ODF install namespace
+  const [secretData, secretLoaded, secretLoadError] =
+    useSafeK8sList<SecretKind>(SecretModel, odfNamespace);
+  const [flashSystemData, flashSystemLoaded, flashSystemLoadError] =
+    useK8sList<IBMFlashSystemKind>(IBMFlashSystemModel);
+
+  const dataLoaded = flashSystemLoaded && secretLoaded;
+  const dataLoadError = flashSystemLoadError || secretLoadError;
+
+  return React.useMemo(() => {
+    const existingFlashSystemSecretNames =
+      dataLoaded && !dataLoadError
+        ? flashSystemData?.map((data) => getFlashSystemSecretName(data))
+        : [];
+
+    const existingSecretManagementAddresses =
+      existingFlashSystemSecretNames.map((secretName) => {
+        const secret = secretData?.find(
+          (secret) =>
+            getName(secret) === secretName &&
+            getNamespace(secret) === odfNamespace
+        );
+        return atob(getSecretManagementAddress(secret));
+      });
+
+    return Yup.object({
+      'endpoint-input': Yup.string()
+        .required()
+        .test(
+          'ip-address',
+          t('The endpoint is not a valid IP address'),
+          (value: string) => isValidIP(value)
+        )
+        .test(
+          'unique-ip-address',
+          t('The IP address is already registered'),
+          (value: string) =>
+            !isIPRegistered(value, existingSecretManagementAddresses)
+        ),
+      'username-input': Yup.string().required(),
+      'password-input': Yup.string().required(),
+      'poolname-input': Yup.string().required(),
+    });
+  }, [secretData, flashSystemData, dataLoaded, dataLoadError, odfNamespace, t]);
 };
 
 export const createFlashSystemPayload: CreatePayload<FlashSystemState> = ({
