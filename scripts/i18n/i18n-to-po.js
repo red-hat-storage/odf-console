@@ -50,15 +50,16 @@ function consolidateWithExistingTranslations(filePath, fileName, language) {
 
 function processFile(fileName, language) {
   let tmpFile;
+  let dirPath;
   const i18nFile = path.join(__dirname, `../../locales/en/${fileName}.json`);
 
   console.log(`Current dirname: ${__dirname}`);
 
   try {
     if (fs.existsSync(i18nFile)) {
-      fs.mkdirSync(path.join(__dirname, '../../locales/tmp'), {
-        recursive: true,
-      });
+      dirPath = path.join(__dirname, '../../locales/tmp');
+
+      fs.mkdirSync(dirPath, { recursive: true });
 
       tmpFile = path.join(__dirname, `../../locales/tmp/${fileName}.json`);
 
@@ -88,6 +89,7 @@ function processFile(fileName, language) {
     console.error(`Failed to processFile ${fileName}:`, err);
   }
   common.deleteFile(tmpFile);
+  common.deleteDir(dirPath);
   console.log(`Processed ${fileName}`);
 }
 

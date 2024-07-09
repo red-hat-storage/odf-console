@@ -44,6 +44,7 @@ export type DRPolicyState = {
   syncIntervalTime: string;
   // Selected managed cluster for DRPolicy paring.
   selectedClusters: ManagedClusterInfoType[];
+  enableRBDImageFlatten: boolean;
 };
 
 export enum DRPolicyActionType {
@@ -52,6 +53,7 @@ export enum DRPolicyActionType {
   SET_SYNC_INTERVAL_TIME = 'SET_SYNC_INTERVAL_TIME',
   SET_SELECTED_CLUSTERS = 'SET_SELECTED_CLUSTERS',
   UPDATE_SELECTED_CLUSTERS = 'UPDATE_SELECTED_CLUSTERS',
+  SET_RBD_IMAGE_FLATTEN = 'SET_RBD_IMAGE_FLATTEN',
 }
 
 export const drPolicyInitialState: DRPolicyState = {
@@ -59,6 +61,7 @@ export const drPolicyInitialState: DRPolicyState = {
   replicationType: null,
   syncIntervalTime: '5m',
   selectedClusters: [],
+  enableRBDImageFlatten: false,
 };
 
 export type DRPolicyAction =
@@ -68,7 +71,8 @@ export type DRPolicyAction =
   | {
       type: DRPolicyActionType.SET_SELECTED_CLUSTERS;
       payload: ManagedClusterInfoType[];
-    };
+    }
+  | { type: DRPolicyActionType.SET_RBD_IMAGE_FLATTEN; payload: boolean };
 
 export const drPolicyReducer = (
   state: DRPolicyState,
@@ -97,6 +101,12 @@ export const drPolicyReducer = (
       return {
         ...state,
         selectedClusters: action.payload,
+      };
+    }
+    case DRPolicyActionType.SET_RBD_IMAGE_FLATTEN: {
+      return {
+        ...state,
+        enableRBDImageFlatten: action.payload,
       };
     }
     default:

@@ -15,6 +15,11 @@ import {
 import * as _ from 'lodash-es';
 import { NodeData } from '../types';
 
+/**
+ * Note: Reference of "nodesData" changes frequently due to recomputation caused by Prometheus response.
+ * That is, "utilization" updates every few seconds.
+ * Make sure to optimise on the consumer FC side (in case really needed or if it affects the FC's performance).
+ */
 export const useNodesData = (): [NodeData[], boolean, any] => {
   const [nodes, nodesLoaded, nodesLoadError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);

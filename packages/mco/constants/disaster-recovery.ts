@@ -23,6 +23,10 @@ export const Actions = {
   DELETE_DR_POLICY: 'Delete DRPolicy',
 };
 
+// This label enables the flatten image feature
+export const RBD_IMAGE_FLATTEN_LABEL = {
+  'replication.storage.openshift.io/flatten-mode': 'force',
+};
 // DR actions
 export enum DRActionType {
   FAILOVER = 'Failover',
