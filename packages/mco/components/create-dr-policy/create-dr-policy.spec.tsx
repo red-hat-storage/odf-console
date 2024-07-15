@@ -24,26 +24,6 @@ const managedClusters: ACMManagedClusterKind[] = [
           name: 'region.open-cluster-management.io',
           value: 'us-east-1',
         },
-        {
-          name: 'cephfsid.odf.openshift.io',
-          value: 'e6928945-2b95-4ff8-8400-0914ee5cb2ec',
-        },
-        {
-          name: 'storageclustername.odf.openshift.io',
-          value: 'ocs-storagecluster/openshift-storage',
-        },
-        {
-          name: 'storagesystemname.odf.openshift.io',
-          value: 'ocs-storagecluster-storagesystem/openshift-storage',
-        },
-        {
-          name: 'version.odf.openshift.io',
-          value: '4.14.0-rhodf',
-        },
-        {
-          name: 'count.storagecluster.odf.openshift.io',
-          value: '1',
-        },
       ],
       conditions: [
         {
@@ -74,26 +54,6 @@ const managedClusters: ACMManagedClusterKind[] = [
         {
           name: 'region.open-cluster-management.io',
           value: 'us-west-1',
-        },
-        {
-          name: 'cephfsid.odf.openshift.io',
-          value: '84eea701-7d87-4f1f-a594-6d0c899327e3',
-        },
-        {
-          name: 'storageclustername.odf.openshift.io',
-          value: 'ocs-storagecluster/openshift-storage',
-        },
-        {
-          name: 'storagesystemname.odf.openshift.io',
-          value: 'ocs-storagecluster-storagesystem/openshift-storage',
-        },
-        {
-          name: 'version.odf.openshift.io',
-          value: '4.14.0-rhodf',
-        },
-        {
-          name: 'count.storagecluster.odf.openshift.io',
-          value: '1',
         },
       ],
       conditions: [
@@ -181,26 +141,6 @@ const managedClusters: ACMManagedClusterKind[] = [
           name: 'region.open-cluster-management.io',
           value: 'us-east-3',
         },
-        {
-          name: 'cephfsid.odf.openshift.io',
-          value: 'bc2965d7-f9b1-4c08-b8fa-dd4fdfa38f71',
-        },
-        {
-          name: 'storageclustername.odf.openshift.io',
-          value: 'ocs-storagecluster/openshift-storage',
-        },
-        {
-          name: 'storagesystemname.odf.openshift.io',
-          value: 'ocs-storagecluster-storagesystem/openshift-storage',
-        },
-        {
-          name: 'version.odf.openshift.io',
-          value: '4.14.0-rhodf',
-        },
-        {
-          name: 'count.storagecluster.odf.openshift.io',
-          value: '2',
-        },
       ],
       conditions: [
         {
@@ -263,26 +203,6 @@ const managedClusters: ACMManagedClusterKind[] = [
           name: 'region.open-cluster-management.io',
           value: 'us-east-4',
         },
-        {
-          name: 'cephfsid.odf.openshift.io',
-          value: '3e121eef-d363-42fd-93d4-744044b6e4cc',
-        },
-        {
-          name: 'storageclustername.odf.openshift.io',
-          value: 'ocs-storagecluster/openshift-storage',
-        },
-        {
-          name: 'storagesystemname.odf.openshift.io',
-          value: 'ocs-storagecluster-storagesystem/openshift-storage',
-        },
-        {
-          name: 'version.odf.openshift.io',
-          value: '4.13.0-rhodf',
-        },
-        {
-          name: 'count.storagecluster.odf.openshift.io',
-          value: '1',
-        },
       ],
       conditions: [
         {
@@ -314,26 +234,6 @@ const managedClusters: ACMManagedClusterKind[] = [
           name: 'region.open-cluster-management.io',
           value: 'us-west-4',
         },
-        {
-          name: 'cephfsid.odf.openshift.io',
-          value: '',
-        },
-        {
-          name: 'storageclustername.odf.openshift.io',
-          value: 'ocs-storagecluster/openshift-storage',
-        },
-        {
-          name: 'storagesystemname.odf.openshift.io',
-          value: 'ocs-storagecluster-storagesystem/openshift-storage',
-        },
-        {
-          name: 'version.odf.openshift.io',
-          value: '4.14.0-rhodf',
-        },
-        {
-          name: 'count.storagecluster.odf.openshift.io',
-          value: '1',
-        },
       ],
       conditions: [
         {
@@ -364,26 +264,6 @@ const managedClusters: ACMManagedClusterKind[] = [
         {
           name: 'region.open-cluster-management.io',
           value: 'us-east-5',
-        },
-        {
-          name: 'cephfsid.odf.openshift.io',
-          value: 'c1ea826f-1dc2-4faa-87b2-f0fc4665b11a',
-        },
-        {
-          name: 'storageclustername.odf.openshift.io',
-          value: 'ocs-storagecluster/openshift-storage',
-        },
-        {
-          name: 'storagesystemname.odf.openshift.io',
-          value: 'ocs-storagecluster-storagesystem/openshift-storage',
-        },
-        {
-          name: 'version.odf.openshift.io',
-          value: '4.14.0-rhodf',
-        },
-        {
-          name: 'count.storagecluster.odf.openshift.io',
-          value: '1',
         },
       ],
       conditions: [

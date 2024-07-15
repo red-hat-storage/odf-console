@@ -1,11 +1,10 @@
+import { NAME_NAMESPACE_SPLIT_CHAR } from '@odf/mco/constants';
 import { DRPolicyKind } from '@odf/mco/types';
 import {
   K8sResourceCommon,
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-
-export const NAME_NAMESPACE_SPLIT_CHAR = '/';
 
 export enum ProtectionMethodType {
   RECIPE = 'RECIPE',

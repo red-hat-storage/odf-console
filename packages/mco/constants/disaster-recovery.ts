@@ -104,3 +104,10 @@ export const EnrollDiscoveredApplicationStepNames = (t: TFunction) => ({
   [EnrollDiscoveredApplicationSteps.Replication]: t('Replication'),
   [EnrollDiscoveredApplicationSteps.Review]: t('Review'),
 });
+
+export const MCV_NAME_TEMPLATE = 'odf-multicluster-mcv-';
+
+export const MCO_CREATED_BY_LABEL_KEY =
+  'multicluster.odf.openshift.io/created-by';
+export const MCO_CREATED_BY_MC_CONTROLLER =
+  'odf-multicluster-managedcluster-controller';
