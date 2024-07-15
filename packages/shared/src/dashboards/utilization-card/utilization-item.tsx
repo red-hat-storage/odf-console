@@ -13,6 +13,7 @@ import {
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
 import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
+import { ChartThemeColor, ChartLegend } from '@patternfly/react-charts';
 import { useCustomTranslation } from '../../useCustomTranslationHook';
 
 enum LIMIT_STATE {
@@ -59,6 +60,7 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
     showLegend,
     CustomUtilizationSummary,
     formatDate,
+    showHumanizedInLegend,
   }) => {
     const { t } = useCustomTranslation();
     const { data, chartStyle } = mapLimitsRequests({
@@ -92,6 +94,14 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
 
       humanAvailable = humanizeValue(max - current).string;
     }
+    let humanizedLegend: JSX.Element;
+    if (!!showHumanizedInLegend && current)
+      humanizedLegend = (
+        <ChartLegend
+          themeColor={ChartThemeColor.purple}
+          data={[{ name: description + ' : ' + humanizeValue(current).string }]}
+        />
+      );
 
     const chart = (
       <AreaChart
@@ -110,6 +120,7 @@ export const UtilizationItem: React.FC<UtilizationItemProps> = React.memo(
         mainDataName="usage"
         showLegend={showLegend}
         formatDate={formatDate}
+        legendComponent={humanizedLegend}
       />
     );
 
@@ -277,4 +288,5 @@ type UtilizationItemProps = {
   hideHorizontalBorder?: boolean;
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
   formatDate?: (date: Date, showSeconds?: boolean) => string;
+  showHumanizedInLegend?: boolean;
 };

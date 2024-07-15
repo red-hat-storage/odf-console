@@ -17,7 +17,7 @@ import {
 import { ConfigMapModel } from '@odf/shared/models';
 import { ConfigMapKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { humanizeBinaryBytes, parser } from '@odf/shared/utils';
+import { humanizeBinaryBytesWithNegatives, parser } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
@@ -29,12 +29,14 @@ import {
   CardTitle,
   Flex,
   FlexItem,
+  PopoverPosition,
   Text,
   TextContent,
   TextVariants,
 } from '@patternfly/react-core';
 import {
   CAPACITY_TREND_QUERIES,
+  CEPH_CAPACITY_BREAKDOWN_QUERIES,
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
 import { ODFSystemParams } from '../../../types';
@@ -50,11 +52,38 @@ const calculateDaysUp = (timespan: number): number | null => {
   return Math.ceil(daysPassed); // If days passed is half a day or more, round up to the nearest whole day
 };
 
-const roughEstimationToolTip = (t: TFunction, estimationName: string) => {
+const understandingToolTip = (t: TFunction) => {
   return (
     <Trans t={t}>
-      The {{ estimationName }} is a rough estimation. The calculation is based
-      on the data gathered on day to day basis.
+      <TextContent>
+        <Text component={TextVariants.h2}>Understand terms</Text>
+        <Text component={TextVariants.h4}>Net storage consumption</Text>
+
+        <Text component={TextVariants.p}>
+          Indicates the daily net change in storage capacity.
+        </Text>
+
+        <Text component={TextVariants.h4}>Average storage consumption </Text>
+
+        <Text component={TextVariants.p}>
+          Refers to the amount of data used over a specified period. A positive
+          average indicates how quickly the cluster is filling up, while a
+          negative average indicates the rate at which the cluster is clearing
+          up.
+        </Text>
+        <Text component={TextVariants.h4}>Estimated days until full ** </Text>
+
+        <Text component={TextVariants.p}>
+          Indicates the number of days remaining before a storage system reaches
+          its maximum capacity based on current usage trends.
+        </Text>
+
+        <Text component={TextVariants.small}>
+          Calculations for above metrics are based on the data gathered day to
+          day basis. **This is only a rough estimation These calculations are
+          based on the data gathered on day to day basis
+        </Text>
+      </TextContent>
     </Trans>
   );
 };
@@ -115,9 +144,26 @@ const CapacityTrendCard: React.FC = () => {
     basePath: usePrometheusBasePath(),
   });
 
-  const loadError = availableCapacityError || totalUtilError || uptimeError;
+  const [totalCapacity, totalCapacityError, totalCapacityLoading] =
+    useCustomPrometheusPoll({
+      query:
+        CEPH_CAPACITY_BREAKDOWN_QUERIES[
+          StorageDashboardQuery.CEPH_CAPACITY_TOTAL
+        ],
+      endpoint: 'api/v1/query' as any,
+      basePath: usePrometheusBasePath(),
+    });
+
+  const loadError =
+    availableCapacityError ||
+    totalUtilError ||
+    uptimeError ||
+    totalCapacityError;
   const loading =
-    availableCapacityLoading || totalUtilLoading || uptimeUtilLoading;
+    availableCapacityLoading ||
+    totalUtilLoading ||
+    uptimeUtilLoading ||
+    totalCapacityLoading;
 
   let daysUp: number;
   if (!loading && !loadError) {
@@ -125,18 +171,31 @@ const CapacityTrendCard: React.FC = () => {
   }
 
   const totalUtilMetric = parser(totalUtil);
+  const totalCapacityMetric = parser(totalCapacity);
   const avgUtilMetric =
     !!daysUp && !!totalUtilMetric
       ? totalUtilMetric / Math.ceil(daysUp) // do a ceil function, if it's a new cluster (dayUp < 1)
       : 0;
-  const avgUtilMetricByte = humanizeBinaryBytes(avgUtilMetric.toFixed(0));
 
+  const avgUtilMetricByte = humanizeBinaryBytesWithNegatives(
+    avgUtilMetric.toFixed(0)
+  );
   const availableCapacityMetric = parser(availableCapacity);
-  const daysLeft =
+  let daysLeft =
     !!availableCapacityMetric && avgUtilMetric
       ? Math.floor(availableCapacityMetric / avgUtilMetric)
       : 0;
 
+  if (daysLeft < 0) {
+    // Clean up negative average values, if a user empties a cluster the average value goes to negative we need to make
+    // sure that estimated days left takes into account the average rate of filling up the cluster.
+    // This will give better information about estimated days
+    const clusterCleanUpToZeroDays =
+      (totalCapacityMetric - availableCapacityMetric) / Math.abs(avgUtilMetric);
+    const clusterFillUpToMaxDays =
+      totalCapacityMetric / Math.abs(avgUtilMetric);
+    daysLeft = clusterCleanUpToZeroDays + clusterFillUpToMaxDays;
+  }
   return (
     <Card>
       <CardHeader>
@@ -149,7 +208,7 @@ const CapacityTrendCard: React.FC = () => {
               <FlexItem flex={{ default: 'flex_4' }}>
                 <TextContent>
                   <Text component={TextVariants.h4}>
-                    {t('Storage consumption per day')}
+                    {t('Storage consumption')}
                   </Text>
                   <Text component={TextVariants.small}>
                     {t('Over the past {{daysUp}} ', {
@@ -160,12 +219,13 @@ const CapacityTrendCard: React.FC = () => {
                 </TextContent>
                 <PrometheusUtilizationItem
                   title=""
+                  description={t('Net storage consumption')}
                   utilizationQuery={
                     CAPACITY_TREND_QUERIES(ocsCluster)[
                       StorageDashboardQuery.UTILIZATION_1D
                     ]
                   }
-                  humanizeValue={humanizeBinaryBytes}
+                  humanizeValue={humanizeBinaryBytesWithNegatives}
                   hideHorizontalBorder={true}
                   hideCurrentHumanized={true}
                   formatDate={
@@ -176,31 +236,34 @@ const CapacityTrendCard: React.FC = () => {
                       : undefined
                   }
                   chartType="grouped-line"
-                  showLegend={false}
+                  showLegend={true}
                   timespan={daysUp * 24 * 60 * 60 * 1000}
+                  showHumanizedInLegend={true}
                 />
-              </FlexItem>
-              <FlexItem
-                flex={{ default: 'flex_1' }}
-                alignSelf={{ default: 'alignSelfCenter' }}
-                spacer={{ default: 'spacerLg' }}
-              >
-                <Text component={TextVariants.h4}>
-                  {t('Average consumption')}
-                </Text>
-                {avgUtilMetricByte.string} / {t('day')}
               </FlexItem>
             </Flex>
             <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }}>
               <FlexItem flex={{ default: 'flex_1' }}>
                 <Text component={TextVariants.h4}>
+                  {t('Average storage consumption')}
+                </Text>
+                {avgUtilMetricByte.string}
+              </FlexItem>
+              <FlexItem flex={{ default: 'flex_1' }}>
+                <Text component={TextVariants.h4}>
                   {t('Estimated days until full')}
-                  <FieldLevelHelp>
-                    {roughEstimationToolTip(t, t('number of days left'))}
-                  </FieldLevelHelp>
                 </Text>
                 {daysLeft} {pluralize(daysUp, t('day'), t('days'), false)}
               </FlexItem>
+            </Flex>
+            <Flex>
+              <FieldLevelHelp
+                position={PopoverPosition.right}
+                buttonText={t('Understanding these terms')}
+                popoverHasAutoWidth
+              >
+                {understandingToolTip(t)}
+              </FieldLevelHelp>
             </Flex>
           </Flex>
         )}
