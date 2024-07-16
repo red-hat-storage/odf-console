@@ -151,7 +151,6 @@ export const createStorageCluster = async (
     securityAndNetwork,
     nodes,
     backingStorage,
-    dataProtection,
   } = state;
   const { capacity, enableArbiter, arbiterLocation, pvCount } =
     capacityAndNodes;
@@ -164,7 +163,6 @@ export const createStorageCluster = async (
     useExternalPostgres,
     externalPostgres,
   } = backingStorage;
-  const { enableRDRPreparation } = dataProtection;
 
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
 
@@ -207,7 +205,6 @@ export const createStorageCluster = async (
     isNFSEnabled,
     isProviderMode,
     shouldSetCephRBDAsDefault,
-    enableRDRPreparation,
     storageClusterNamespace,
     enableNoobaaClientSideCerts: externalPostgres.tls.enableClientSideCerts,
     useExternalPostgres: useExternalPostgres,

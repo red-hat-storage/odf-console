@@ -62,9 +62,6 @@ const getClusterErrorInfo = (
       if (!storageClusterInfo?.cephFSID) {
         acc.clustersWithUnsuccessfulODF.push(cluster.name);
       }
-      if (!storageClusterInfo?.isDROptimized) {
-        acc.clustersWithoutDROptimizedODF.push(cluster.name);
-      }
       return acc;
     },
     {
@@ -72,14 +69,12 @@ const getClusterErrorInfo = (
       clustersWithUnsupportedODF: [],
       clustersWithoutODF: [],
       clustersWithUnsuccessfulODF: [],
-      clustersWithoutDROptimizedODF: [],
     }
   );
 
 const getErrorMessage = (
   selectedClusters: ManagedClusterInfoType[],
   requiredODFVersion: string,
-  replicationType: REPLICATION_TYPE,
   isSyncPolicyFound: boolean,
   t: TFunction
 ): ErrorMessageType => {
@@ -121,15 +116,6 @@ const getErrorMessage = (
       message: t('{{ names }} is not connected to RHCS', {
         names: clusterErrorInfo.clustersWithUnsuccessfulODF.join(' & '),
       }),
-    };
-  } else if (!!clusterErrorInfo.clustersWithoutDROptimizedODF.length) {
-    return {
-      message: t('Cluster not pre-configured for Regional-DR'),
-      description: t(
-        'The selected cluster(s)[{{clusters}}] is not configured for Regional-DR setup. Migrate the OSDs to optimise the cluster for disaster recovery services.',
-        { clusters: clusterErrorInfo.clustersWithoutDROptimizedODF.join(', ') }
-      ),
-      isHidden: replicationType !== REPLICATION_TYPE.ASYNC,
     };
   }
   return null;
@@ -184,7 +170,6 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
   const errorMessage = getErrorMessage(
     selectedClusters,
     requiredODFVersion,
-    replicationType,
     isSyncPolicyFound,
     t
   );
@@ -231,7 +216,7 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
 
   return (
     <>
-      {!!errorMessage && !errorMessage.isHidden ? (
+      {!!errorMessage ? (
         <Alert
           data-test="odf-not-found-alert"
           className="odf-alert mco-create-data-policy__alert"
@@ -291,11 +276,9 @@ type ClusterErrorType = {
   clustersWithUnsupportedODF: string[];
   clustersWithoutODF: string[];
   clustersWithUnsuccessfulODF: string[];
-  clustersWithoutDROptimizedODF: string[];
 };
 
 type ErrorMessageType = {
   message?: string;
   description?: string;
-  isHidden?: boolean;
 };

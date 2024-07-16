@@ -1,6 +1,12 @@
 import * as React from 'react';
+import { OSDMigrationStatus } from '@odf/core/constants';
+import { PROVIDER_MODE } from '@odf/core/features';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
-import { getStorageClusterInNs } from '@odf/core/utils';
+import {
+  getStorageClusterInNs,
+  getResourceInNs as getCephClusterInNs,
+} from '@odf/core/utils';
+import { getOSDMigrationStatus } from '@odf/ocs/utils';
 import { OCS_OPERATOR } from '@odf/shared/constants';
 import {
   useCustomPrometheusPoll,
@@ -18,9 +24,11 @@ import {
   PersistentVolumeClaimKind,
   SubscriptionKind,
   StorageClusterKind,
+  CephClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getResiliencyProgress, referenceForModel } from '@odf/shared/utils';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   ActivityBody,
@@ -32,7 +40,7 @@ import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
 import { PVC_PROVISIONER_ANNOTATION } from '../../../constants';
-import { StorageClusterModel } from '../../../models';
+import { CephClusterModel, StorageClusterModel } from '../../../models';
 import {
   DATA_RESILIENCY_QUERY,
   StorageDashboardQuery,
@@ -46,6 +54,7 @@ import {
   isClusterExpandActivity,
   ClusterExpandActivity,
 } from './cluster-expand-activity';
+import { ClusterMigrationActivity } from './cluster-migration-activity';
 import {
   isSubscriptionUpgradeActivity,
   OCSUpgradeActivity,
@@ -69,6 +78,11 @@ export const pvcResource = {
 export const eventsResource = {
   isList: true,
   kind: EventModel.kind,
+};
+
+const cephClusterResource = {
+  kind: referenceForModel(CephClusterModel),
+  isList: true,
 };
 
 const RecentEvent: React.FC = () => {
@@ -122,6 +136,15 @@ const OngoingActivity = () => {
     storageClusterResource
   );
 
+  const [cephClusters, cephClustersLoaded] =
+    useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
+
+  // Only single cluster per Namespace.
+  const cephCluster: CephClusterKind = getCephClusterInNs(
+    cephClusters,
+    clusterNs
+  );
+
   const [resiliencyMetric, , metricsLoading] = useCustomPrometheusPoll({
     query:
       DATA_RESILIENCY_QUERY(managedByOCS)[
@@ -167,9 +190,29 @@ const OngoingActivity = () => {
     });
   }
 
+  const isProviderMode = useFlag(PROVIDER_MODE);
+  const osdMigrationStatus = getOSDMigrationStatus(cephCluster);
+
+  // Checks for migration progress and displays a message if migration is in progress.
+  // If migration is complete, the UI remains empty.
+  if (
+    !isProviderMode &&
+    [OSDMigrationStatus.PENDING, OSDMigrationStatus.IN_PROGRESS].includes(
+      osdMigrationStatus
+    )
+  ) {
+    resourceActivities.push({
+      resource: cephCluster,
+      timestamp: null,
+      loader: () => Promise.resolve(ClusterMigrationActivity),
+    });
+  }
+
   return (
     <OngoingActivityBody
-      loaded={subLoaded && clusterLoaded && !metricsLoading}
+      loaded={
+        subLoaded && cephClustersLoaded && clusterLoaded && !metricsLoading
+      }
       resourceActivities={resourceActivities}
       prometheusActivities={prometheusActivities}
     />
