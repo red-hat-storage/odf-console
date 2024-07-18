@@ -75,7 +75,7 @@
     "cache-loader": "1.x",
     "circular-dependency-plugin": "5.x",
     "classnames": "^2.3.1",
-    "copy-webpack-plugin": "^6.4.1",
+    "copy-webpack-plugin": "^7.0.0",
     "css-loader": "0.28.x",
     "eslint-config-airbnb": "18.2.1",
     "file-loader": "1.x",
