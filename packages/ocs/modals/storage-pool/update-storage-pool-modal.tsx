@@ -246,14 +246,18 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
     <Modal
       className="modal-content storage-pool__modal"
       isOpen={isOpen}
-      header={<ModalTitle>{MODAL_TITLE}</ModalTitle>}
+      header={
+        <>
+          <ModalTitle>{MODAL_TITLE}</ModalTitle>
+          <StoragePoolDefinitionText className="pf-v5-u-ml-xl" />
+        </>
+      }
       variant={ModalVariant.medium}
       onClose={closeModal}
     >
       {cephClustersLoaded && !cephClustersLoadError ? (
         <>
           <ModalBody>
-            <StoragePoolDefinitionText className="storage-pool__definition-text" />
             {state.poolStatus ? (
               <div key="progress-modal">
                 <StoragePoolStatus
