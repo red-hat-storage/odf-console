@@ -17,12 +17,11 @@ import {
 import { ConfigMapModel } from '@odf/shared/models';
 import { ConfigMapKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getInstantVectorStats, humanizeBinaryBytes } from '@odf/shared/utils';
+import { humanizeBinaryBytes, parser } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { Trans } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
-import { compose } from 'redux';
 import {
   Card,
   CardBody,
@@ -39,8 +38,6 @@ import {
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
 import { ODFSystemParams } from '../../../types';
-
-const parser = compose((val) => val?.[0]?.y, getInstantVectorStats);
 
 const calculateDaysUp = (timespan: number): number | null => {
   const daysPassed: number = timespan / (60 * 60 * 24);

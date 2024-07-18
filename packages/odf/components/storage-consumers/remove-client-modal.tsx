@@ -1,17 +1,18 @@
 import * as React from 'react';
 import {
   getName,
+  getNamespace,
   ModalBody,
   ModalFooter,
   ModalTitle,
   StorageConsumerKind,
   useCustomTranslation,
 } from '@odf/shared';
+import { CommonModalProps } from '@odf/shared/modals';
 import {
   k8sDelete,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Trans } from 'react-i18next';
 import {
   Button,
@@ -22,16 +23,16 @@ import {
 } from '@patternfly/react-core';
 import { StorageConsumerModel } from '../../models';
 
-type RemoveClientModalProps = ModalComponent<{
-  isOpen: boolean;
+type RemoveClientModalProps = CommonModalProps<{
   resource: StorageConsumerKind;
 }>;
 
-export const RemoveClientModal: RemoveClientModalProps = ({
-  resource,
-  closeModal,
-  isOpen,
-}) => {
+const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
+  const {
+    extraProps: { resource },
+    isOpen,
+    closeModal,
+  } = props;
   const { t } = useCustomTranslation();
   const [confirmed, setConfirmed] = React.useState(false);
   const [inProgress, setProgress] = React.useState(false);
@@ -65,13 +66,14 @@ export const RemoveClientModal: RemoveClientModalProps = ({
       <ModalBody>
         <p>
           <Trans t={t}>
-            Deleting the storage client {getName(resource)} will remove all
-            Ceph/Rook resources and erase all data associated with this client,
-            leading to permanent deletion of the client. This action cannot be
-            undone. It will destroy all pods, services and other objects in the
-            namespace{' '}
+            Deleting the storage client{' '}
+            <strong className="co-break-word">{getName(resource)}</strong> will
+            remove all Ceph/Rook resources and erase all data associated with
+            this client, leading to permanent deletion of the client. This
+            action cannot be undone. It will destroy all pods, services and
+            other objects in the namespace{' '}
             <strong className="co-break-word">
-              {{ name: getName(resource) }}
+              {{ name: getNamespace(resource) }}
             </strong>
             .
           </Trans>
@@ -82,7 +84,7 @@ export const RemoveClientModal: RemoveClientModalProps = ({
         </p>
         <p>
           <Trans t={t}>
-            Confirm deletion by typing&nbsp;
+            Confirm deletion by typing{' '}
             <strong className="co-break-word">
               {{ name: getName(resource) }}
             </strong>{' '}
@@ -130,3 +132,5 @@ export const RemoveClientModal: RemoveClientModalProps = ({
     </Modal>
   );
 };
+
+export default RemoveClientModal;

@@ -1,11 +1,16 @@
 import * as React from 'react';
-import { Kebab } from '@odf/shared';
+import {
+  DiskSize as QuotaSize,
+  diskSizeUnitOptions as QuotaSizeUnitOptions,
+} from '@odf/core/constants';
+import { GrayInfoCircleIcon, Kebab } from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants/common';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { useFetchCsv } from '@odf/shared/hooks';
+import { ModalKeys } from '@odf/shared/modals';
 import { StorageConsumerKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getOprVersionFromCSV } from '@odf/shared/utils';
+import { getOprVersionFromCSV, humanizeBinaryBytes } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils/common';
 import {
   K8sResourceKind,
@@ -26,13 +31,14 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import * as _ from 'lodash-es';
+import { Trans } from 'react-i18next';
 import {
   Button,
-  ButtonVariant,
+  Flex,
+  FlexItem,
   Popover,
   PopoverPosition,
 } from '@patternfly/react-core';
-import { TrashIcon } from '@patternfly/react-icons';
 import { sortable } from '@patternfly/react-table';
 import { StorageConsumerModel } from '../../models';
 import { useODFNamespaceSelector } from '../../redux';
@@ -42,8 +48,61 @@ import {
   versionMismatchFilter,
 } from './list-filter';
 import { ClientOnBoardingModal } from './onboarding-modal';
-import { RemoveClientModal } from './remove-client-modal';
 import { RotateKeysModal } from './rotate-keys-modal';
+import './client-list.scss';
+
+const StorageQuotaPopoverContent: React.FC = () => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <Trans t={t} ns="plugin__odf-console">
+      <p className="pf-v5-u-mb-md">
+        The amount of storage allocated to the client cluster for usage.
+      </p>
+      <p>
+        Due to simultaneous usage by multiple client clusters, actual available
+        storage may vary affecting your allocated storage quota.
+      </p>
+    </Trans>
+  );
+};
+
+const NoClientsMessage: React.FC = () => {
+  const { t } = useCustomTranslation();
+  return (
+    <>
+      <Flex
+        direction={{ default: 'column' }}
+        spaceItems={{ default: 'spaceItemsLg' }}
+        alignItems={{ default: 'alignItemsCenter' }}
+        justifyContent={{ default: 'justifyContentCenter' }}
+        className="pf-v5-u-font-size-lg odf-storage-client-list__no-client-msg"
+      >
+        <FlexItem>
+          <GrayInfoCircleIcon className="odf-storage-client-list__no-client-msg-icon" />
+        </FlexItem>
+        <FlexItem className="pf-v5-u-font-weight-bold">
+          {t('No storage clients found.')}
+        </FlexItem>
+        <FlexItem className="odf-storage-client-list__no-client-msg-text">
+          {t(
+            'You do not have any storage clients connected to this Data Foundation provider cluster.'
+          )}
+        </FlexItem>
+        <FlexItem className="odf-storage-client-list__no-client-msg-text">
+          <Trans t={t} ns="plugin__odf-console">
+            To connect a storage client to the Data Foundation provider cluster,
+            click{' '}
+            <span className="pf-v5-u-font-weight-bold">
+              Generate client onboarding token
+            </span>{' '}
+            and use the token to deploy the client cluster.
+          </Trans>
+        </FlexItem>
+      </Flex>
+    </>
+  );
+};
 
 const tableColumns = [
   {
@@ -51,8 +110,16 @@ const tableColumns = [
     id: 'name',
   },
   {
+    className: 'pf-m-width-20',
+    id: 'clusterName',
+  },
+  {
     className: '',
-    id: 'clusterID',
+    id: 'storageQuota',
+  },
+  {
+    className: '',
+    id: 'usedCapacity',
   },
   {
     className: '',
@@ -85,59 +152,61 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
   const clientListTableColumns = React.useMemo<
     TableColumn<StorageConsumerKind>[]
   >(
-    () => [
-      {
-        title: t('Name'),
-        sort: 'status.client.name',
-        transforms: [sortable],
-        props: {
-          className: tableColumns[0].className,
-        },
-        id: tableColumns[0].id,
-      },
-      {
-        title: t('Cluster ID'),
-        sort: 'status.client.clusterId',
-        props: {
-          className: tableColumns[1].className,
-        },
-        id: tableColumns[1].id,
-      },
-      {
-        title: t('Openshift version'),
-        sort: 'status.client.platformVersion',
-        transforms: [sortable],
-        props: {
-          className: tableColumns[2].className,
-        },
-        id: tableColumns[2].id,
-      },
-      {
-        title: t('Data Foundation version'),
-        sort: 'status.client.operatorVersion',
-        transforms: [sortable],
-        props: {
-          className: tableColumns[3].className,
-        },
-        id: tableColumns[3].id,
-      },
-      {
-        title: t('Last heartbeat'),
-        sort: 'status.lastHeartbeat',
-        transforms: [sortable],
-        props: {
-          className: tableColumns[4].className,
-        },
-        id: tableColumns[4].id,
-      },
-      {
-        title: '',
-        props: {
-          className: tableColumns[5].className,
-        },
-        id: tableColumns[5].id,
-      },
-    ],
+    () =>
+      tableColumns.map((tableColumn) => {
+        const column: TableColumn<StorageConsumerKind> = {
+          id: tableColumn.id,
+          props: { className: tableColumn.className },
+          title: '',
+          sort: '',
+          transforms: null,
+        };
+        switch (column.id) {
+          case 'name':
+            column.title = t('Name');
+            column.sort = 'status.client.name';
+            column.transforms = [sortable];
+            break;
+          case 'clusterName':
+            column.title = t('Cluster name (ID)');
+            column.sort = 'status.client.clusterName';
+            break;
+          case 'storageQuota':
+            column.title = t('Storage quota');
+            column.sort = 'status.storageQuotaInGiB';
+            column.props.info = { popover: <StorageQuotaPopoverContent /> };
+            break;
+          case 'usedCapacity':
+            column.title = t('Used capacity');
+            column.sort = 'status.usedCapacityInGiB';
+            column.props.info = {
+              popover: t(
+                'Used capacity is the amount of storage consumed by the client.'
+              ),
+            };
+            break;
+          case 'openshiftVersion':
+            column.title = t('Openshift version');
+            column.sort = 'status.client.platformVersion';
+            column.transforms = [sortable];
+            break;
+          case 'dataFoundationVersion':
+            column.title = t('Data Foundation version');
+            column.sort = 'status.client.operatorVersion';
+            column.transforms = [sortable];
+            break;
+          case 'lastHeartBeat':
+            column.title = t('Last heartbeat');
+            column.sort = 'status.lastHeartbeat';
+            column.transforms = [sortable];
+            break;
+          case 'kebab':
+            break;
+          default:
+            throw new Error(`Column not found: ${column.id}`);
+        }
+        return column;
+      }),
     [t]
   );
 
@@ -153,6 +222,7 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
       aria-label={t('Storage Clients')}
       columns={columns}
       Row={StorageClientRow}
+      NoDataEmptyMsg={NoClientsMessage}
     />
   );
 };
@@ -196,7 +266,7 @@ type DataFoundationVersionProps = {
   currentVersion: string;
 };
 
-const DataFoudationVersion: React.FC<DataFoundationVersionProps> = ({
+const DataFoundationVersion: React.FC<DataFoundationVersionProps> = ({
   obj,
   currentVersion,
 }) => {
@@ -240,12 +310,25 @@ const StorageClientRow: React.FC<
     StorageConsumerKind,
     {
       currentVersion: string;
-      deleteClient: (resource: StorageConsumerKind) => void;
     }
   >
-> = ({ obj, activeColumnIDs, rowData: { currentVersion, deleteClient } }) => {
+> = ({ obj, activeColumnIDs, rowData: { currentVersion } }) => {
+  const { t } = useCustomTranslation();
   const [allowDeletion, setAllowDeletion] = React.useState(false);
   const DELETE_THRESHOLD = 300; // wait till 5 minutes before activating the delete button
+  const humanizedStorageQuota = obj?.spec?.storageQuotaInGiB
+    ? humanizeBinaryBytes(
+        obj?.spec?.storageQuotaInGiB,
+        QuotaSizeUnitOptions[QuotaSize.Gi]
+      ).string
+    : t('Unlimited');
+  const humanizedUsedCapacity =
+    obj?.spec?.storageQuotaInGiB && obj?.status?.usedCapacityInGiB != null
+      ? humanizeBinaryBytes(
+          obj?.status?.usedCapacityInGiB,
+          QuotaSizeUnitOptions[QuotaSize.Gi]
+        ).string
+      : '-';
 
   React.useEffect(() => {
     const setter = () => {
@@ -264,30 +347,74 @@ const StorageClientRow: React.FC<
   }, [allowDeletion, setAllowDeletion, obj?.status?.lastHeartbeat]);
   return (
     <>
-      <TableData {...tableColumns[0]} activeColumnIDs={activeColumnIDs}>
-        {obj?.status?.client?.name || '-'}
-      </TableData>
-      <TableData {...tableColumns[1]} activeColumnIDs={activeColumnIDs}>
-        {obj?.status?.client?.clusterId || '-'}
-      </TableData>
-      <TableData {...tableColumns[2]} activeColumnIDs={activeColumnIDs}>
-        {getOpenshiftVersion(obj) || '-'}
-      </TableData>
-      <TableData {...tableColumns[3]} activeColumnIDs={activeColumnIDs}>
-        <DataFoudationVersion obj={obj} currentVersion={currentVersion} />
-      </TableData>
-      <TableData {...tableColumns[4]} activeColumnIDs={activeColumnIDs}>
-        <LastHeartBeat heartbeat={obj?.status?.lastHeartbeat} />
-      </TableData>
-      <TableData {...tableColumns[5]} activeColumnIDs={activeColumnIDs}>
-        <Button
-          onClick={() => deleteClient(obj)}
-          variant={ButtonVariant.plain}
-          isDisabled={!allowDeletion}
-        >
-          <TrashIcon />
-        </Button>
-      </TableData>
+      {tableColumns.map((tableColumn) => {
+        let data: string | JSX.Element;
+        switch (tableColumn.id) {
+          case 'name':
+            data = obj?.status?.client?.name || '-';
+            break;
+          case 'clusterName':
+            data = `${obj?.status?.client?.clusterName || '-'} (${
+              obj?.status?.client?.clusterId || '-'
+            })`;
+            break;
+          case 'storageQuota':
+            data = humanizedStorageQuota;
+            break;
+          case 'usedCapacity':
+            data = humanizedUsedCapacity;
+            break;
+          case 'openshiftVersion':
+            data = getOpenshiftVersion(obj) || '-';
+            break;
+          case 'dataFoundationVersion':
+            data = (
+              <DataFoundationVersion
+                obj={obj}
+                currentVersion={currentVersion}
+              />
+            );
+            break;
+          case 'lastHeartBeat':
+            data = <LastHeartBeat heartbeat={obj?.status?.lastHeartbeat} />;
+            break;
+          case 'kebab':
+            data = (
+              <Kebab
+                extraProps={{
+                  resource: obj,
+                  resourceModel: StorageConsumerModel,
+                }}
+                customKebabItems={[
+                  {
+                    key: ModalKeys.EDIT_RES,
+                    value: t('Edit storage quota'),
+                    component: React.lazy(
+                      () => import('./update-storage-quota-modal')
+                    ),
+                  },
+                  {
+                    key: ModalKeys.DELETE,
+                    value: t('Delete storage client'),
+                    isDisabled: !allowDeletion,
+                    component: React.lazy(
+                      () => import('./remove-client-modal')
+                    ),
+                  },
+                ]}
+                hideItems={[ModalKeys.EDIT_LABELS, ModalKeys.EDIT_ANN]}
+              />
+            );
+            break;
+          default:
+            throw new Error(`Data not found for column: ${tableColumn.id}`);
+        }
+        return (
+          <TableData {...tableColumn} activeColumnIDs={activeColumnIDs}>
+            {data}
+          </TableData>
+        );
+      })}
     </>
   );
 };
@@ -334,10 +461,6 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
     launchModal(modalComponent, { isOpen: true });
   };
 
-  const deleteClient = (client: StorageConsumerKind) => {
-    launchModal(RemoveClientModal, { resource: client, isOpen: true });
-  };
-
   return (
     <>
       <ListPageHeader title={t('Storage clients')}>
@@ -368,7 +491,7 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
           unfilteredData={storageClients}
           loaded={loaded && csvLoaded}
           loadError={loadError || csvLoadError}
-          rowData={{ currentVersion: serviceVersion, deleteClient }}
+          rowData={{ currentVersion: serviceVersion }}
         />
       </ListPageBody>
     </>
