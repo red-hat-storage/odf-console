@@ -5,6 +5,7 @@ import {
   ExtensionDeclaration,
 } from '@openshift-console/dynamic-plugin-sdk/lib/types';
 import { Control } from 'react-hook-form';
+import { ObjectSchema } from 'yup';
 
 type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
@@ -20,6 +21,8 @@ export type StorageClassWizardStepExtensionProps = {
   model: Model;
   /** A React Functional Component to input the connection details of the external storage vendor. */
   component: React.FunctionComponent<StorageClassComponentProps<{}>>;
+  /** A React Hook returning the `Yup` schema object (if `react-hook-form` is used in the `component`) */
+  schemaHandler?: () => ObjectSchema<{}>;
   /**  Handler function to create external storage storage vendor CR or resources. */
   createPayload: CreatePayload<{}>;
   /**  Handler function to validate the storage class page in order to move to the next step of wizard */

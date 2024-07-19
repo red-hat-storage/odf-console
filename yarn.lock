@@ -1054,7 +1054,7 @@
     rimraf "^3.0.2"
 
 "@odf/shared@file:packages/shared":
-  version "0.0.0-beta14"
+  version "0.0.0-beta15"
   dependencies:
     "@patternfly/patternfly" "5.0.2"
     "@patternfly/react-charts" "7.1.0"

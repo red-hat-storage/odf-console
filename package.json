@@ -32,6 +32,7 @@
     "analyze-odf": "PLUGIN=odf yarn analyze-common && PLUGIN=odf yarn ts-node ./analyzeTest.ts",
     "analyze-mco": "PLUGIN=mco yarn analyze-common && PLUGIN=mco yarn ts-node ./analyzeTest.ts",
     "dev": "PLUGIN=odf I8N_NS=plugin__odf-console yarn server:plugin",
+    "dev:no-type-check": "DEV_NO_TYPE_CHECK=true yarn dev",
     "dev-mco": "PLUGIN=mco I8N_NS=plugin__odf-multicluster-console yarn server:plugin",
     "dev-client": "PLUGIN=client I8N_NS=plugin__odf-client-console yarn server:plugin",
     "serve-local-build": "./http-server.sh ./plugins/odf/dist",

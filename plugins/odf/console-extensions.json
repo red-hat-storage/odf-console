@@ -480,6 +480,9 @@
       "component": {
         "$codeRef": "ibmStorage.FlashSystemConnectionDetails"
       },
+      "schemaHandler": {
+        "$codeRef": "ibmStorage.useFlashSystemSchema"
+      },
       "createPayload": {
         "$codeRef": "ibmStorage.createFlashSystemPayload"
       },

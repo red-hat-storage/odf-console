@@ -21,13 +21,7 @@ import {
   NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
   NOOBA_EXTERNAL_PG_SECRET_NAME,
 } from '@odf/shared/constants';
-import {
-  getLabel,
-  getName,
-  getNamespace,
-  getUID,
-  getAnnotations,
-} from '@odf/shared/selectors';
+import { getLabel, getName, getNamespace, getUID } from '@odf/shared/selectors';
 import {
   NetworkAttachmentDefinitionKind,
   NodeKind,
@@ -49,7 +43,6 @@ import {
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
   ATTACHED_DEVICES_ANNOTATION,
-  DISASTER_RECOVERY_TARGET_ANNOTATION,
 } from '../../constants';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
 
@@ -411,7 +404,6 @@ type OCSRequestData = {
   isProviderMode?: boolean;
   isNFSEnabled?: boolean;
   shouldSetCephRBDAsDefault?: boolean;
-  enableRDRPreparation?: boolean;
   storageClusterNamespace: string;
   useExternalPostgres?: boolean;
   enablePostgresqlTls?: boolean;
@@ -437,7 +429,6 @@ export const getOCSRequestData = ({
   isNFSEnabled,
   isProviderMode,
   shouldSetCephRBDAsDefault,
-  enableRDRPreparation,
   storageClusterNamespace,
   useExternalPostgres,
   enablePostgresqlTls,
@@ -510,12 +501,6 @@ export const getOCSRequestData = ({
       },
     };
 
-    if (enableRDRPreparation) {
-      requestData.metadata.annotations = {
-        ...getAnnotations(requestData, {}),
-        [DISASTER_RECOVERY_TARGET_ANNOTATION]: 'true',
-      };
-    }
     if (isProviderMode) {
       requestData.spec.allowRemoteStorageConsumers = true;
       requestData.spec.hostNetwork = true;

@@ -44,10 +44,6 @@ const managedClusters: ACMManagedClusterKind[] = [
           name: 'count.storagecluster.odf.openshift.io',
           value: '1',
         },
-        {
-          name: 'droptimized.odf.openshift.io',
-          value: 'true',
-        },
       ],
       conditions: [
         {
@@ -98,10 +94,6 @@ const managedClusters: ACMManagedClusterKind[] = [
         {
           name: 'count.storagecluster.odf.openshift.io',
           value: '1',
-        },
-        {
-          name: 'droptimized.odf.openshift.io',
-          value: 'true',
         },
       ],
       conditions: [
@@ -209,10 +201,6 @@ const managedClusters: ACMManagedClusterKind[] = [
           name: 'count.storagecluster.odf.openshift.io',
           value: '2',
         },
-        {
-          name: 'droptimized.odf.openshift.io',
-          value: 'true',
-        },
       ],
       conditions: [
         {
@@ -295,10 +283,6 @@ const managedClusters: ACMManagedClusterKind[] = [
           name: 'count.storagecluster.odf.openshift.io',
           value: '1',
         },
-        {
-          name: 'droptimized.odf.openshift.io',
-          value: 'true',
-        },
       ],
       conditions: [
         {
@@ -350,10 +334,6 @@ const managedClusters: ACMManagedClusterKind[] = [
           name: 'count.storagecluster.odf.openshift.io',
           value: '1',
         },
-        {
-          name: 'droptimized.odf.openshift.io',
-          value: 'true',
-        },
       ],
       conditions: [
         {
@@ -404,10 +384,6 @@ const managedClusters: ACMManagedClusterKind[] = [
         {
           name: 'count.storagecluster.odf.openshift.io',
           value: '1',
-        },
-        {
-          name: 'droptimized.odf.openshift.io',
-          value: 'false',
         },
       ],
       conditions: [
@@ -656,29 +632,6 @@ xdescribe('Test drpolicy list page', () => {
     expect(
       screen.getByText(
         '{{ names }} has either an unsupported Data Foundation version or the Data Foundation operator is missing, install or update to Data Foundation {{ version }} or the latest version to enable DR protection.'
-      )
-    ).toBeInTheDocument();
-    // Create button should be disabled
-    expect(screen.getByTestId('create-button')).toBeDisabled();
-  });
-
-  test('Select non-DR optimized cluster test', async () => {
-    // Enter policy name
-    expect(screen.getByText('Policy name')).toBeInTheDocument();
-    fireEvent.change(screen.getByTestId('policy-name'), {
-      target: { value: 'policy-1' },
-    });
-    // Select east-1 DR optimized ODF
-    await waitFor(() => fireEvent.click(screen.getByTestId('east-1')));
-    // Select east-5 none DR optimized ODF
-    await waitFor(() => fireEvent.click(screen.getByTestId('east-5')));
-    // Error message for not DR optimized
-    expect(
-      screen.getByText('Cluster not pre-configured for Regional-DR')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'The selected cluster(s)[{{clusters}}] is not configured for Regional-DR setup. Migrate the OSDs to optimise the cluster for disaster recovery services.'
       )
     ).toBeInTheDocument();
     // Create button should be disabled

@@ -1,24 +1,15 @@
 import * as React from 'react';
 import { useODFNamespaceSelector } from '@odf/core/redux';
-import {
-  getStorageClusterInNs,
-  getResourceInNs as getCephClusterInNs,
-} from '@odf/core/utils';
-import { OSDMigrationDetails } from '@odf/ocs/modals/osd-migration/osd-migration-details';
+import { getStorageClusterInNs } from '@odf/core/utils';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import {
-  CephClusterModel,
   ClusterServiceVersionModel,
   InfrastructureModel,
 } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import {
-  CephClusterKind,
-  K8sResourceKind,
-  StorageClusterKind,
-} from '@odf/shared/types';
+import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getOprVersionFromCSV } from '@odf/shared/utils';
 import {
@@ -44,11 +35,6 @@ const storageClusterResource = {
   isList: true,
 };
 
-const cephClusterResource = {
-  kind: referenceForModel(CephClusterModel),
-  isList: true,
-};
-
 const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { namespace: ocsNs } = useParams<ODFSystemParams>();
@@ -57,9 +43,6 @@ const DetailsCard: React.FC = () => {
 
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
-
-  const [cephData, cephLoaded, cephLoadError] =
-    useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
 
   const [ocsData, ocsLoaded, ocsError] = useK8sWatchResource<
     StorageClusterKind[]
@@ -76,7 +59,6 @@ const DetailsCard: React.FC = () => {
     ocsData,
     ocsNs
   );
-  const cephCluster: CephClusterKind = getCephClusterInNs(cephData, ocsNs);
   const ocsName = getName(storageCluster);
   const inTransitEncryptionStatus = getNetworkEncryption(storageCluster)
     ? t('Enabled')
@@ -142,21 +124,6 @@ const DetailsCard: React.FC = () => {
           >
             {inTransitEncryptionStatus}
           </DetailItem>
-          {!isProviderMode && (
-            <DetailItem
-              key="osd_migration"
-              title={t('Disaster recovery readiness')}
-              isLoading={!cephLoaded}
-              error={cephLoadError as any}
-            >
-              <OSDMigrationDetails
-                loaded={cephLoaded && ocsLoaded}
-                loadError={cephLoadError || ocsError}
-                cephData={cephCluster}
-                ocsData={storageCluster}
-              />
-            </DetailItem>
-          )}
         </DetailsBody>
       </CardBody>
     </Card>

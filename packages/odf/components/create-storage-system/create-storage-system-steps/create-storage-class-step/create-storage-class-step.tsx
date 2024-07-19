@@ -1,14 +1,5 @@
 import * as React from 'react';
 import { getExternalStorage } from '@odf/core/components/utils';
-import { useSafeK8sList } from '@odf/core/hooks';
-import { useODFNamespaceSelector } from '@odf/core/redux';
-import { IBMFlashSystemModel } from '@odf/ibm/system-models';
-import { IBMFlashSystemKind } from '@odf/ibm/system-types';
-import {
-  isIPRegistered,
-  getSecretManagementAddress,
-  getFlashSystemSecretName,
-} from '@odf/ibm/utils';
 import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   ExternalStateValues,
@@ -19,11 +10,10 @@ import {
 } from '@odf/shared/constants';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
-import { SecretModel, StorageClassModel } from '@odf/shared/models';
+import { StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import { SecretKind, StorageClassResourceKind } from '@odf/shared/types';
+import { StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { isValidIP } from '@odf/shared/utils';
 import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { useForm } from 'react-hook-form';
@@ -41,15 +31,16 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const { odfNamespace } = useODFNamespaceSelector();
-
-  const { component: Component, displayName } = getExternalStorage(
-    externalStorage,
-    supportedExternalStorage
-  ) || {
+  const {
+    component: Component,
+    schemaHandler,
+    displayName,
+  } = getExternalStorage(externalStorage, supportedExternalStorage) || {
     Component: null,
     displayName: '',
   };
+
+  const externalStorageSchema = schemaHandler?.();
 
   const setForm = React.useCallback(
     (field: string, value: ExternalStateValues) =>
@@ -66,33 +57,9 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
   const [scData, scLoaded, scLoadError] =
     useK8sList<StorageClassResourceKind>(StorageClassModel);
 
-  // Non-RHCS StorageSystems are only created in ODF install namespace
-  const [secretData, secretLoaded, secretLoadError] =
-    useSafeK8sList<SecretKind>(SecretModel, odfNamespace);
-  const [flashSystemData, flashSystemLoaded, flashSystemLoadError] =
-    useK8sList<IBMFlashSystemKind>(IBMFlashSystemModel);
-
-  const dataLoaded = flashSystemLoaded && secretLoaded;
-  const dataLoadError = flashSystemLoadError || secretLoadError;
-
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =
       scLoaded && !scLoadError ? scData?.map((data) => getName(data)) : [];
-
-    const existingFlashSystemSecretNames =
-      dataLoaded && !dataLoadError
-        ? flashSystemData?.map((data) => getFlashSystemSecretName(data))
-        : [];
-
-    const existingSecretManagementAddresses =
-      existingFlashSystemSecretNames.map((secretName) => {
-        const secret = secretData?.find(
-          (secret) =>
-            secret.metadata.name === secretName &&
-            secret.metadata.namespace === odfNamespace
-        );
-        return atob(getSecretManagementAddress(secret));
-      });
 
     const fieldRequirements = [
       fieldRequirementsTranslations.maxChars(t, 253),
@@ -118,36 +85,11 @@ export const CreateStorageClass: React.FC<CreateStorageClassProps> = ({
           fieldRequirements[3],
           (value: string) => !existingNames.includes(value)
         ),
-      'endpoint-input': Yup.string()
-        .required()
-        .test(
-          'ip-address',
-          t('The endpoint is not a valid IP address'),
-          (value: string) => isValidIP(value)
-        )
-        .test(
-          'unique-ip-address',
-          t('The IP address is already registered'),
-          (value: string) =>
-            !isIPRegistered(value, existingSecretManagementAddresses)
-        ),
-      'username-input': Yup.string().required(),
-      'password-input': Yup.string().required(),
-      'poolname-input': Yup.string().required(),
-    });
+    }).concat(externalStorageSchema);
 
     return { schema, fieldRequirements };
-  }, [
-    scData,
-    scLoadError,
-    scLoaded,
-    t,
-    dataLoaded,
-    dataLoadError,
-    flashSystemData,
-    secretData,
-    odfNamespace,
-  ]);
+  }, [scData, scLoadError, scLoaded, externalStorageSchema, t]);
+
   const resolver = useYupValidationResolver(schema);
   const {
     control,
