@@ -507,7 +507,7 @@
       "insertBefore": "persistentvolumes",
       "insertAfter": "odfdashboard",
       "section": "storage",
-      "name": "Object Storage",
+      "name": "%plugin__odf-console~Object Storage%",
       "href": "/odf/object-storage"
     },
     "flags": {

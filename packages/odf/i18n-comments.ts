@@ -8,3 +8,4 @@
 // t('Object Bucket Claims')
 // t('Topology')
 // t('Storage Clients')
+// t('Object Storage')

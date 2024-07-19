@@ -9,6 +9,9 @@ export enum BackingStorageType {
   EXTERNAL = 'external',
 }
 
+// t('Full deployment')
+// t('MultiCloud Object Gateway')
+// t('Provider Mode')
 export enum DeploymentType {
   FULL = 'Full deployment',
   MCG = 'MultiCloud Object Gateway',
@@ -55,10 +58,13 @@ export type NodeData = NodeKind & {
   };
 };
 
+// t('Lean mode')
+// t('Balanced mode')
+// t('Performance mode')
 export enum ResourceProfile {
-  Lean = 'lean', // t('Lean')
-  Balanced = 'balanced', // t('Balanced')
-  Performance = 'performance', // t('Performance')
+  Lean = 'lean',
+  Balanced = 'balanced',
+  Performance = 'performance',
 }
 
 export type ResourceProfileRequirementsMap = {

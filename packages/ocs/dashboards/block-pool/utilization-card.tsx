@@ -39,7 +39,7 @@ export const UtilizationCard: React.FC = () => {
             StorageDashboardQuery.POOL_UTILIZATION_IOPS_QUERY,
             managedByOCS
           )}
-          humanizeValue={humanizeIOPS}
+          humanizeValue={humanizeIOPS(t)}
         />
         <PrometheusUtilizationItem
           title={t('Throughput')}
