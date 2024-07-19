@@ -789,6 +789,8 @@
   "Select this option to upload and use your client side certificates": "Select this option to upload and use your client side certificates",
   "Accepted file types: .pem, .crt, .key": "Accepted file types: .pem, .crt, .key",
   "Files should be named private and public followed by compatible extensions": "Files should be named private and public followed by compatible extensions",
+  "Full deployment": "Full deployment",
+  "MultiCloud Object Gateway": "MultiCloud Object Gateway",
   "Deploys MultiCloud Object Gateway without block and file services.": "Deploys MultiCloud Object Gateway without block and file services.",
   "Deploys Data Foundation with block, shared fileSystem and object services.": "Deploys Data Foundation with block, shared fileSystem and object services.",
   "Deploys Data Foundation as a provider cluster": "Deploys Data Foundation as a provider cluster",

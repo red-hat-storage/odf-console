@@ -275,7 +275,7 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
     blockPoolInitialState
   );
   const [poolType, setPoolType] = React.useState<POOL_TYPE>(
-    POOL_TYPE.FILESYSTEM
+    t(POOL_TYPE.FILESYSTEM)
   );
   const onPoolTypeChange = React.useMemo(
     () => (newPoolType: POOL_TYPE) => setPoolType(newPoolType),
