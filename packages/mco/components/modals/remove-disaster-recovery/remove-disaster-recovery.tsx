@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH } from '@odf/mco/constants';
 import { ACMPlacementModel, DRPlacementControlModel } from '@odf/mco/models';
+import { DRPlacementControlKind } from '@odf/mco/types';
 import {
   ModalBody,
   ModalFooter,
@@ -15,7 +16,6 @@ import {
   k8sDelete,
   k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { DRPlacementControlKind } from 'packages/mco/types';
 import { Trans } from 'react-i18next';
 import {
   Alert,
