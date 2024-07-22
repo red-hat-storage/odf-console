@@ -29,7 +29,11 @@ import {
   Text,
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
-import { ENROLLED_APP_QUERY_PARAMS_KEY, DR_BASE_ROUTE } from '../../constants';
+import {
+  ENROLLED_APP_QUERY_PARAMS_KEY,
+  DR_BASE_ROUTE,
+  REPLICATION_TYPE,
+} from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
 import EmptyPage from '../empty-state-page/empty-page';
@@ -365,33 +369,44 @@ export const StatusDetails: React.FC<ExpandableComponentProps> = ({
   syncStatusInfo,
 }) => {
   const { t } = useCustomTranslation();
+  const syncType = [];
+  const syncStatus = [];
+  const lastSyncOn = [];
 
-  const syncType = [t('Application volumes (PVCs)'), t('Kubernetes objects')];
-  const { icon: volIcon, title: volTitle } = replicationHealthMap(
-    syncStatusInfo.volumeReplicationStatus,
-    t
-  );
+  if (syncStatusInfo.replicationType === REPLICATION_TYPE.ASYNC) {
+    syncType.push(t('Application volumes (PVCs)'));
+    const { icon: volIcon, title: volTitle } = replicationHealthMap(
+      syncStatusInfo.volumeReplicationStatus,
+      t
+    );
+    syncStatus.push(
+      <>
+        {volIcon} {volTitle}
+      </>
+    );
+    lastSyncOn.push(
+      syncStatusInfo.volumeLastGroupSyncTime || (
+        <Text className="text-muted">{t('No data available')}</Text>
+      )
+    );
+  }
+
+  syncType.push(t('Kubernetes objects'));
   const { icon: kubeIcon, title: kubeTitle } = replicationHealthMap(
     syncStatusInfo.kubeObjectReplicationStatus,
     t
   );
-  const syncStatus = [
-    <>
-      {volIcon} {volTitle}
-    </>,
+  syncStatus.push(
     <>
       {kubeIcon} {kubeTitle}
-    </>,
-  ];
-
-  const lastSyncOn = [
-    syncStatusInfo.volumeLastGroupSyncTime || (
-      <Text className="text-muted"> {t('No data available')}</Text>
-    ),
+    </>
+  );
+  lastSyncOn.push(
     syncStatusInfo.kubeObjectLastProtectionTime || (
       <Text className="text-muted"> {t('No data available')}</Text>
-    ),
-  ];
+    )
+  );
+
   return (
     <DescriptionList_ columnModifier={'3Col'}>
       <Description term={t('Sync resource type')} descriptions={syncType} />
