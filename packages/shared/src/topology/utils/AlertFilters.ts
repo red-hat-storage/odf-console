@@ -1,6 +1,6 @@
+import { NodeModel, StorageClusterModel } from '@odf/shared/models';
 import { Alert, K8sModel } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { NodeModel, StorageClusterModel } from '../../models';
 import { cephFilter, noobaaFilter, rgwFilter } from '../../utils';
 
 export const commonFilter =

@@ -7,7 +7,7 @@ import { StoragePoolDefinitionText } from '@odf/ocs/storage-pool/CreateStoragePo
 import { ModalFooter, ModalTitle } from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { CommonModalProps, ModalBody } from '@odf/shared/modals/Modal';
-import { OCSStorageClusterModel } from '@odf/shared/models';
+import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { CephClusterKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -27,7 +27,7 @@ import {
   POOL_PROGRESS,
   POOL_TYPE,
 } from '../../constants';
-import { CephBlockPoolModel, CephClusterModel } from '../../models';
+import { CephBlockPoolModel } from '../../models';
 import { StoragePoolBody, StoragePoolStatus } from '../../storage-pool/body';
 import {
   StoragePoolActionType,
@@ -61,7 +61,7 @@ const updateFsPoolRequest = (
 
   return () =>
     k8sPatch({
-      model: OCSStorageClusterModel,
+      model: StorageClusterModel,
       resource: storageCluster,
       data: patches,
     });
@@ -119,7 +119,7 @@ const UpdateFsPoolModal: React.FC<UpdateFsPoolModalProps> = (props) => {
   const clusterName = systemFlags[poolNamespace]?.ocsClusterName;
   const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
     useSafeK8sGet<StorageClusterKind>(
-      OCSStorageClusterModel,
+      StorageClusterModel,
       clusterName,
       poolNamespace
     );

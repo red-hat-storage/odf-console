@@ -12,7 +12,7 @@ export const ODFStorageSystem: K8sModel = {
   crd: true,
 };
 
-export const OCSStorageClusterModel: K8sModel = {
+export const StorageClusterModel: K8sModel = {
   label: 'Storage Cluster',
   labelPlural: 'Storage Clusters',
   apiVersion: 'v1',
@@ -22,6 +22,7 @@ export const OCSStorageClusterModel: K8sModel = {
   namespaced: true,
   kind: 'StorageCluster',
   crd: true,
+  id: 'ocscluster',
 };
 
 export const CephClusterModel: K8sModel = {
@@ -34,4 +35,5 @@ export const CephClusterModel: K8sModel = {
   namespaced: true,
   kind: 'CephCluster',
   crd: true,
+  id: 'cephcluster',
 };

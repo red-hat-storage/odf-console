@@ -2,13 +2,14 @@ import * as React from 'react';
 import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { ModalKeys } from '@odf/shared/modals/types';
+import { CephClusterModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useParams, useLocation } from 'react-router-dom-v5-compat';
 import { BlockPoolDashboard } from '../dashboards/block-pool/block-pool-dashboard';
-import { CephBlockPoolModel, CephClusterModel } from '../models';
+import { CephBlockPoolModel } from '../models';
 import { StoragePoolKind } from '../types';
 
 export const cephClusterResource = {

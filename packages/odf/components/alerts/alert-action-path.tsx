@@ -1,6 +1,6 @@
 import { getStorageClusterInNs } from '@odf/core/utils';
-import { StorageClusterModel } from '@odf/ocs/models';
 import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { StorageClusterModel } from '@odf/shared/models';
 import { StorageClusterKind } from '@odf/shared/types';
 import { k8sList } from '@openshift-console/dynamic-plugin-sdk';
 import { AddCapacityModal } from '../../modals/add-capacity/add-capacity-modal';

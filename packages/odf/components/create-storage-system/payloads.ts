@@ -8,7 +8,7 @@ import {
   NOOBA_EXTERNAL_PG_SECRET_NAME,
 } from '@odf/shared/constants';
 import {
-  OCSStorageClusterModel,
+  StorageClusterModel,
   ODFStorageSystem,
   NodeModel,
   NamespaceModel,
@@ -214,7 +214,7 @@ export const createStorageCluster = async (
     storageClusterName,
   });
 
-  return k8sCreate({ model: OCSStorageClusterModel, data: payload });
+  return k8sCreate({ model: StorageClusterModel, data: payload });
 };
 
 export const labelNodes = async (

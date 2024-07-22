@@ -13,6 +13,7 @@ import {
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
+import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
 import {
   EventModel,
   PersistentVolumeClaimModel,
@@ -40,7 +41,6 @@ import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
 import { PVC_PROVISIONER_ANNOTATION } from '../../../constants';
-import { CephClusterModel, StorageClusterModel } from '../../../models';
 import {
   DATA_RESILIENCY_QUERY,
   StorageDashboardQuery,

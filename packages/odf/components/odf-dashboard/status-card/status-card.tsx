@@ -10,7 +10,7 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import { OCSStorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
+import { StorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   ClusterServiceVersionKind,
@@ -102,7 +102,7 @@ export const StatusCard: React.FC = () => {
           const systemKind =
             referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
           const systemData =
-            apiGroup === OCSStorageClusterModel.apiGroup
+            apiGroup === StorageClusterModel.apiGroup
               ? {
                   systemName,
                   rawHealthData: ocsHealthStatus.rawHealthState,
