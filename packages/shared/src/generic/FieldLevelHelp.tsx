@@ -5,7 +5,7 @@ import { useCustomTranslation } from '../useCustomTranslationHook';
 import './field-level-help.scss';
 
 export const FieldLevelHelp: React.FC<FieldLevelHelpProps> = React.memo(
-  ({ children, popoverHasAutoWidth, testId }) => {
+  ({ children, popoverHasAutoWidth, testId, position }) => {
     const { t } = useCustomTranslation();
     if (React.Children.count(children) === 0) {
       return null;
@@ -15,6 +15,7 @@ export const FieldLevelHelp: React.FC<FieldLevelHelpProps> = React.memo(
         aria-label={t('Help')}
         bodyContent={children}
         hasAutoWidth={popoverHasAutoWidth}
+        position={position}
       >
         <Button
           aria-label={t('Help')}
@@ -36,4 +37,5 @@ type FieldLevelHelpProps = {
   children: React.ReactNode;
   popoverHasAutoWidth?: PopoverProps['hasAutoWidth'];
   testId?: string;
+  position?: PopoverProps['position'];
 };

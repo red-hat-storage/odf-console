@@ -4,6 +4,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert, PrometheusLabels } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
+import { compose } from 'redux';
 
 export const getGaugeValue = (response: PrometheusResponse) =>
   response?.data?.result?.[0]?.value?.[1];
@@ -67,6 +68,9 @@ export const sortInstantVectorStats = (stats: DataPoint[]): DataPoint[] => {
   });
   return stats.length === 6 ? stats.splice(0, 5) : stats;
 };
+
+// @TODO: Enhance instantVectorStats to directly parse the values (else loading state won't be accurate)
+export const parser = compose((val) => val?.[0]?.y, getInstantVectorStats);
 
 export const getMetric = (result: PrometheusResponse, metric: string): string =>
   _.get(result, ['data', 'result', '0', 'metric', metric], null);

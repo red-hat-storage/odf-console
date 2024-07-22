@@ -2,6 +2,7 @@ import * as React from 'react';
 import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
 import { global_disabled_color_100 as disabledColor } from '@patternfly/react-tokens/dist/js/global_disabled_color_100';
 import { global_info_color_100 as blueDefaultColor } from '@patternfly/react-tokens/dist/js/global_info_color_100';
+import { global_palette_black_600 as GrayInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_black_600';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
 import { global_palette_green_500 as okColor } from '@patternfly/react-tokens/dist/js/global_palette_green_500';
 import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
@@ -62,6 +63,17 @@ export const BlueInfoCircleIcon: React.FC<ColoredIconProps> = ({
 }) => (
   <InfoCircleIcon
     color={blueInfoColor.value}
+    className={className}
+    title={title}
+  />
+);
+
+export const GrayInfoCircleIcon: React.FC<ColoredIconProps> = ({
+  className,
+  title,
+}) => (
+  <InfoCircleIcon
+    color={GrayInfoColor.value}
     className={className}
     title={title}
   />

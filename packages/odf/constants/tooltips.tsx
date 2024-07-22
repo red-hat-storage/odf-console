@@ -86,3 +86,8 @@ export const resourceRequirementsTooltip = (t: TFunction) =>
   t(
     'plugin__odf-console~For enhanced performance of the Data Foundation cluster, the number of CPUs and memory resources are determined based on the cluster environment, size and various other factors.'
   );
+
+export const onboardingTokenTooltip = (t: TFunction) =>
+  t(
+    'plugin__odf-console~An onboarding token to authenticate and authorize an OpenShift cluster, granting access to the Data Foundation deployment, thus establishing a secure connection.'
+  );

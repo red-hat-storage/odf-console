@@ -14,7 +14,9 @@
     "noEmitOnError": false,
     "outDir": "./dist",
     "paths": {
+      "@odf/shared": ["./packages/shared/src"],
       "@odf/shared/*": ["./packages/shared/src/*"],
+      "packages/shared": ["./packages/shared/src"],
       "packages/shared/*": ["./packages/shared/src/*"]
     },
     "types": ["./index"]

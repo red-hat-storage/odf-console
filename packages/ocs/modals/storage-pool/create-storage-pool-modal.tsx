@@ -206,10 +206,14 @@ export const CreateStoragePoolModal = withHandlePromise(
           onClose={props.closeModal}
           className="modal-content storage-pool__modal"
           variant={ModalVariant.medium}
-          header={<ModalTitle>{MODAL_TITLE}</ModalTitle>}
+          header={
+            <>
+              <ModalTitle>{MODAL_TITLE}</ModalTitle>
+              <StoragePoolDefinitionText className="pf-v5-u-ml-xl" />
+            </>
+          }
         >
           <ModalBody>
-            <StoragePoolDefinitionText className="storage-pool__definition-text" />
             {state.poolStatus ? (
               <div key="progress-modal">
                 <StoragePoolStatus
