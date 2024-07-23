@@ -5,7 +5,7 @@ import { useCustomTranslation } from '../useCustomTranslationHook';
 import './field-level-help.scss';
 
 export const FieldLevelHelp: React.FC<FieldLevelHelpProps> = React.memo(
-  ({ children, popoverHasAutoWidth, testId, position }) => {
+  ({ children, popoverHasAutoWidth, testId, position, buttonText }) => {
     const { t } = useCustomTranslation();
     if (React.Children.count(children) === 0) {
       return null;
@@ -24,6 +24,7 @@ export const FieldLevelHelp: React.FC<FieldLevelHelpProps> = React.memo(
           className="odf-field-level-help"
           data-test-id={testId || null}
         >
+          {!!buttonText && buttonText + ' '}
           <OutlinedQuestionCircleIcon className="odf-field-level-help__icon" />
         </Button>
       </Popover>
@@ -38,4 +39,5 @@ type FieldLevelHelpProps = {
   popoverHasAutoWidth?: PopoverProps['hasAutoWidth'];
   testId?: string;
   position?: PopoverProps['position'];
+  buttonText?: string;
 };

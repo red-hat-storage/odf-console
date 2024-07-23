@@ -41,6 +41,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({
   tickCount = 4,
   height = 200,
   showLegend,
+  legendComponent,
 }) => {
   const [containerRef, width] = useRefWidth();
 
@@ -146,6 +147,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({
             padding={{ top: 20, left: 70, bottom: 60, right: 0 }}
             legendData={chartType && showLegend ? legendData : null}
             legendPosition="bottom-left"
+            legendComponent={legendComponent}
           >
             {xAxis && (
               <ChartAxis tickCount={tickCount} tickFormat={xTickFormat} />
@@ -194,4 +196,5 @@ export type AreaChartProps = {
   tickCount?: number;
   height?: number;
   showLegend?: boolean;
+  legendComponent?: React.ReactElement<any>;
 };

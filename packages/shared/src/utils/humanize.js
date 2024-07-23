@@ -68,10 +68,13 @@ const convertBaseValueToUnits = (
   unitArray,
   divisor,
   initialUnit,
-  preferredUnit
+  preferredUnit,
+  humanizeNegative
 ) => {
   const sliceIndex = initialUnit ? unitArray.indexOf(initialUnit) : 0;
   const units_ = unitArray.slice(sliceIndex);
+
+  const shouldHumanizeNegative = humanizeNegative && value < 0;
 
   if (preferredUnit || preferredUnit === '') {
     const unitIndex = units_.indexOf(preferredUnit);
@@ -83,10 +86,17 @@ const convertBaseValueToUnits = (
     }
   }
 
+  if (shouldHumanizeNegative) {
+    value = Math.abs(value);
+  }
+
   let unit = units_.shift();
   while (value >= divisor && units_.length > 0) {
     value = value / divisor;
     unit = units_.shift();
+  }
+  if (shouldHumanizeNegative) {
+    value *= -1;
   }
   return { value, unit };
 };
@@ -167,7 +177,8 @@ const humanize = (units.humanize = (
   typeName,
   useRound = false,
   initialUnit,
-  preferredUnit
+  preferredUnit,
+  humanizedNegative = false
 ) => {
   const type = getType(typeName);
 
@@ -180,7 +191,8 @@ const humanize = (units.humanize = (
     type.units,
     type.divisor,
     initialUnit,
-    preferredUnit
+    preferredUnit,
+    humanizedNegative
   );
 
   if (useRound) {
@@ -190,7 +202,8 @@ const humanize = (units.humanize = (
       type.units,
       type.divisor,
       converted.unit,
-      preferredUnit
+      preferredUnit,
+      humanizedNegative
     );
   }
 
@@ -220,6 +233,11 @@ export const humanizeBinaryBytesWithoutB = (v, initialUnit, preferredUnit) =>
   humanize(v, 'binaryBytesWithoutB', true, initialUnit, preferredUnit);
 export const humanizeBinaryBytes = (v, initialUnit, preferredUnit) =>
   humanize(v, 'binaryBytes', true, initialUnit, preferredUnit);
+export const humanizeBinaryBytesWithNegatives = (
+  v,
+  initialUnit,
+  preferredUnit
+) => humanize(v, 'binaryBytes', true, initialUnit, preferredUnit, true);
 export const humanizeDecimalBytes = (v, initialUnit, preferredUnit) =>
   humanize(v, 'decimalBytes', true, initialUnit, preferredUnit);
 export const humanizeDecimalBytesPerSec = (v, initialUnit, preferredUnit) =>
