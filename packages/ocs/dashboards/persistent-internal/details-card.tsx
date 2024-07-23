@@ -4,6 +4,7 @@ import { getStorageClusterInNs } from '@odf/core/utils';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
+import { StorageClusterModel } from '@odf/shared/models';
 import {
   ClusterServiceVersionModel,
   InfrastructureModel,
@@ -26,7 +27,6 @@ import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shar
 import { Link, useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { PROVIDER_MODE } from '../../../odf/features';
-import { StorageClusterModel } from '../../models';
 import { ODFSystemParams } from '../../types';
 import { getNetworkEncryption } from '../../utils';
 

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { StorageClusterModel } from '@odf/ocs/models';
+import { StorageClusterModel } from '@odf/shared/models';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';

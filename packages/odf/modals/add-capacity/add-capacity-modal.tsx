@@ -15,8 +15,8 @@ import {
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
+import { StorageClusterModel } from '@odf/shared/models';
 import { PersistentVolumeModel, StorageClassModel } from '@odf/shared/models';
-import { OCSStorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import {
   StorageClassResourceKind,
@@ -177,7 +177,7 @@ const AddSSCapacityModal: React.FC<AddSSCapacityModalProps> = ({
   ...props
 }) => {
   const [ocs, ocsLoaded, ocsError] = useK8sGet<StorageClusterKind>(
-    OCSStorageClusterModel,
+    StorageClusterModel,
     storageSystem.spec.name,
     storageSystem.spec.namespace
   );
@@ -378,7 +378,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
       setProgress(false);
     } else {
       k8sPatch({
-        model: OCSStorageClusterModel,
+        model: StorageClusterModel,
         resource: ocsConfig,
         data: [patch],
       })

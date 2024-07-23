@@ -9,7 +9,7 @@ import {
   withHandlePromise,
 } from '@odf/shared/generic/promise-component';
 import { ModalBody } from '@odf/shared/modals/Modal';
-import { OCSStorageClusterModel } from '@odf/shared/models';
+import { StorageClusterModel } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
 import { CephClusterKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -62,7 +62,7 @@ export const CreateStoragePoolModal = withHandlePromise(
     const clusterName = systemFlags[poolNs]?.ocsClusterName;
     const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
       useSafeK8sGet<StorageClusterKind>(
-        OCSStorageClusterModel,
+        StorageClusterModel,
         clusterName,
         poolNs
       );
@@ -82,7 +82,7 @@ export const CreateStoragePoolModal = withHandlePromise(
     const initResource =
       poolType === POOL_TYPE.FILESYSTEM
         ? {
-            kind: referenceForModel(OCSStorageClusterModel),
+            kind: referenceForModel(StorageClusterModel),
             namespaced: true,
             isList: false,
             name: clusterName,

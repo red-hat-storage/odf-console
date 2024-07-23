@@ -5,14 +5,13 @@ import {
   isClusterIgnored,
   isNFSEnabled,
 } from '@odf/core/utils';
+import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/ocs/models';
+import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import {
   CephClusterModel,
-  CephObjectStoreModel,
-  NooBaaSystemModel,
   StorageClusterModel,
-} from '@odf/ocs/models';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import { ODFStorageSystem } from '@odf/shared/models';
+  ODFStorageSystem,
+} from '@odf/shared/models';
 import {
   getName,
   getNamespace,

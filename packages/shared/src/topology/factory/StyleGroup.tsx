@@ -1,5 +1,10 @@
 import * as React from 'react';
 import {
+  DeploymentModel,
+  NodeModel,
+  StorageClusterModel,
+} from '@odf/shared/models';
+import {
   BlueInfoCircleIcon,
   GreenCheckCircleIcon,
   K8sModel,
@@ -21,7 +26,6 @@ import {
   WithDragNodeProps,
   WithSelectionProps,
 } from '@patternfly/react-topology';
-import { DeploymentModel, NodeModel, StorageClusterModel } from '../../models';
 import { getName } from '../../selectors';
 import { getGVKofResource } from '../../utils';
 import { TopologyDataContext } from '../Context';

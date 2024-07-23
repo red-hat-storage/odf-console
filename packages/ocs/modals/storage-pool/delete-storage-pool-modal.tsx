@@ -10,7 +10,7 @@ import {
   ModalHeader,
 } from '@odf/shared/modals/Modal';
 import {
-  OCSStorageClusterModel,
+  StorageClusterModel,
   PersistentVolumeClaimModel,
   StorageClassModel,
 } from '@odf/shared/models';
@@ -74,7 +74,7 @@ const deleteFsPoolRequest = (
 
   return () =>
     k8sPatch({
-      model: OCSStorageClusterModel,
+      model: StorageClusterModel,
       resource: storageCluster,
       data: patches,
     });
@@ -140,7 +140,7 @@ const DeleteFsPoolModal: React.FC<DeleteFsPoolModalProps> = (props) => {
   const clusterName = systemFlags[poolNamespace]?.ocsClusterName;
   const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
     useSafeK8sGet<StorageClusterKind>(
-      OCSStorageClusterModel,
+      StorageClusterModel,
       clusterName,
       poolNamespace
     );

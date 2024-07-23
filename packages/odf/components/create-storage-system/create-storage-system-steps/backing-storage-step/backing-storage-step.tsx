@@ -15,7 +15,7 @@ import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
   ClusterServiceVersionModel,
   StorageClassModel,
-  OCSStorageClusterModel,
+  StorageClusterModel,
 } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import {
@@ -215,7 +215,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   const isProviderMode = deployment === DeploymentType.PROVIDER_MODE;
   const isNonRHCSExternalType =
     type === BackingStorageType.EXTERNAL &&
-    externalStorage !== OCSStorageClusterModel.kind;
+    externalStorage !== StorageClusterModel.kind;
 
   const allowedExternalStorage: ExternalStorage[] = React.useMemo(() => {
     const odfCsv = getODFCsv(csvList?.items);

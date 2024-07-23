@@ -6,6 +6,7 @@ import {
 } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
+import { StorageClusterModel } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
 import {
   ListKind,
@@ -41,7 +42,6 @@ import {
   POOL_STATE,
   POOL_TYPE,
 } from '../constants';
-import { StorageClusterModel } from '../models';
 import {
   getErrorMessage,
   ProgressStatusProps,

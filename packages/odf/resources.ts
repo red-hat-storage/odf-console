@@ -8,7 +8,7 @@ import { K8sResourceObj } from '@odf/core/types';
 import {
   PersistentVolumeModel,
   StorageClassModel,
-  OCSStorageClusterModel,
+  StorageClusterModel,
   NodeModel,
   PersistentVolumeClaimModel,
   SecretModel,
@@ -82,7 +82,7 @@ export const nodesDiscoveriesResource: WatchK8sResource = {
 
 export const storageClusterResource: WatchK8sResource = {
   isList: true,
-  kind: referenceForModel(OCSStorageClusterModel),
+  kind: referenceForModel(StorageClusterModel),
 };
 
 export const odfPodsResource: K8sResourceObj = (ns) => ({

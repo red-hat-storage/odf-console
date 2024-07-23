@@ -3,19 +3,6 @@ import {
   K8sModel,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
-export const CephClusterModel: K8sKind = {
-  label: 'Ceph Cluster',
-  labelPlural: 'Ceph Clusters',
-  apiVersion: 'v1',
-  apiGroup: 'ceph.rook.io',
-  plural: 'cephclusters',
-  abbr: 'CC',
-  namespaced: true,
-  kind: 'CephCluster',
-  id: 'cephcluster',
-  crd: true,
-};
-
 export const CephObjectStoreModel: K8sKind = {
   label: 'Ceph Object Store',
   labelPlural: 'Ceph Object Stores',
@@ -41,19 +28,6 @@ export const NooBaaSystemModel: K8sKind = {
   id: 'noobaasystem',
   crd: true,
   legacyPluralURL: true,
-};
-
-export const StorageClusterModel: K8sKind = {
-  label: 'Storage Cluster',
-  labelPlural: 'Storage Clusters',
-  apiVersion: 'v1',
-  apiGroup: 'ocs.openshift.io',
-  plural: 'storageclusters',
-  abbr: 'OCS',
-  namespaced: true,
-  kind: 'StorageCluster',
-  id: 'ocscluster',
-  crd: true,
 };
 
 export const CephBlockPoolModel: K8sKind = {

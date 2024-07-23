@@ -3,6 +3,7 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { CephClusterModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -13,11 +14,7 @@ import {
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import {
-  CephClusterModel,
-  CephObjectStoreModel,
-  NooBaaSystemModel,
-} from '../models/core';
+import { CephObjectStoreModel, NooBaaSystemModel } from '../models/core';
 import { Health, HEALTH_QUERY } from '../queries';
 import {
   getCephHealthState,

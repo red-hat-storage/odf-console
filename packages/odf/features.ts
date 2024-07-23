@@ -1,7 +1,7 @@
 import {
   ODFStorageSystem,
   StorageClassModel,
-  OCSStorageClusterModel,
+  StorageClusterModel,
 } from '@odf/shared/models';
 import { SelfSubjectAccessReviewModel } from '@odf/shared/models';
 import {
@@ -49,7 +49,7 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
     try {
       const storageClusters: StorageClusterKind[] =
         (await k8sList<K8sResourceCommon>({
-          model: OCSStorageClusterModel,
+          model: StorageClusterModel,
           queryParams: { ns: null },
           requestInit: null,
         })) as StorageClusterKind[];
