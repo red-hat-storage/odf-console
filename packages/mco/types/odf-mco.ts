@@ -13,3 +13,25 @@ export type MirrorPeerKind = K8sResourceCommon & {
     type: string;
   };
 };
+
+export type ConnectedClient = {
+  name: string;
+  clusterId: string;
+};
+
+export type InfoStorageCluster = {
+  namespacedName: {
+    name: string;
+    namespace: string;
+  };
+  storageProviderEndpoint: string;
+  cephClusterFSID: string;
+};
+
+export type ODFInfoYamlObject = {
+  version: string;
+  deploymentType: string;
+  clients: ConnectedClient[];
+  storageCluster: InfoStorageCluster;
+  storageSystemName: string;
+};

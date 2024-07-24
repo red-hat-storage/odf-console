@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useACMSafeFetch } from '@odf/mco/hooks';
 import { SearchResultItemType } from '@odf/mco/types';
-import { queryRecipesFromCluster } from '@odf/mco/utils';
+import { queryRecipesFromCluster, getNameNamespace } from '@odf/mco/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { getName } from '@odf/shared/selectors';
@@ -19,16 +19,8 @@ import {
 import {
   EnrollDiscoveredApplicationAction,
   EnrollDiscoveredApplicationStateType,
-  NAME_NAMESPACE_SPLIT_CHAR,
 } from '../../utils/reducer';
 import './configuration-step.scss';
-
-const getNameNamespace = (name: string, namespace: string) =>
-  // Multiple namespace can have recipe with same name,
-  // Converting into name/namespace for unique identification in dropdown option
-  !!name && !!namespace
-    ? `${name}${NAME_NAMESPACE_SPLIT_CHAR}${namespace}`
-    : '';
 
 const getRecipeOptions = (
   searchResultItem: SearchResultItemType[]
@@ -74,6 +66,8 @@ export const RecipeSelection: React.FC<RecipeSelectionProps> = ({
       ? getRecipeOptions(searchResult?.data.searchResult?.[0]?.items || [])
       : [];
 
+  // Multiple namespace can have recipe with same name,
+  // Converting into name/namespace for unique identification in dropdown option
   const recipeNameNamespace = getNameNamespace(recipeName, recipeNamespace);
   // For no recipe found has different validation message
   // For recipe not selected has different validation message

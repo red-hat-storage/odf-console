@@ -34,6 +34,8 @@ import {
   LABELS_SPLIT_CHAR,
   DR_BLOCK_LISTED_LABELS,
   PLACEMENT_RULE_REF_LABEL,
+  MCV_NAME_TEMPLATE,
+  NAME_NAMESPACE_SPLIT_CHAR,
 } from '../constants';
 import {
   DRPC_NAMESPACE_ANNOTATION,
@@ -630,6 +632,11 @@ export const getValueFromClusterClaim = (
 export const parseNamespaceName = (namespaceName: string) =>
   namespaceName.split('/');
 
+export const getNameNamespace = (name: string, namespace: string) =>
+  !!name && !!namespace
+    ? `${name}${NAME_NAMESPACE_SPLIT_CHAR}${namespace}`
+    : '';
+
 export const getLabelsFromSearchResult = (
   item: SearchResultItemType
 ): { [key in string]: string[] } => {
@@ -643,3 +650,6 @@ export const getLabelsFromSearchResult = (
     return acc;
   }, {});
 };
+
+export const getManagedClusterViewName = (managedClusterName: string): string =>
+  MCV_NAME_TEMPLATE + managedClusterName;

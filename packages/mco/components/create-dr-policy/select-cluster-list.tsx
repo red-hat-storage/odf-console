@@ -1,16 +1,22 @@
 import * as React from 'react';
 import { getManagedClusterResourceObj } from '@odf/mco/hooks';
+import { ODFInfoYamlObject } from '@odf/mco/types';
 import {
   getMajorVersion,
   ValidateManagedClusterCondition,
   getValueFromClusterClaim,
   isMinimumSupportedODFVersion,
+  getManagedClusterViewName,
+  getNameNamespace,
 } from '@odf/mco/utils';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { getName, getNamespace } from '@odf/shared/selectors';
+import { ConfigMapKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { Select, SelectOption } from '@patternfly/react-core/deprecated';
+import { safeLoad } from 'js-yaml';
 import {
   DataList,
   DataListItem,
@@ -33,9 +39,11 @@ import {
   MANAGED_CLUSTER_REGION_CLAIM,
   MANAGED_CLUSTER_JOINED,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
-  ClusterClaimTypes,
+  MCO_CREATED_BY_LABEL_KEY,
+  MCO_CREATED_BY_MC_CONTROLLER,
 } from '../../constants';
-import { ACMManagedClusterKind } from '../../types';
+import { ACMManagedClusterViewModel } from '../../models';
+import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
 import {
   DRPolicyAction,
   DRPolicyActionType,
@@ -59,43 +67,61 @@ const getFilteredClusters = (
 };
 
 const getODFInfo = (
-  managedCluster: ACMManagedClusterKind,
-  requiredODFVersion: string
+  requiredODFVersion: string,
+  odfInfoConfigData: { [key: string]: string }
 ): ODFConfigInfoType => {
-  const clusterClaims = managedCluster?.status?.clusterClaims;
-  const odfVersion = getValueFromClusterClaim(
-    clusterClaims,
-    ClusterClaimTypes.ODF_VERSION
-  );
-  const storageClusterNamespacedName = getValueFromClusterClaim(
-    clusterClaims,
-    ClusterClaimTypes.STORAGE_CLUSTER_NAME
-  );
-  const storageSystemNamespacedName = getValueFromClusterClaim(
-    clusterClaims,
-    ClusterClaimTypes.STORAGE_SYSTEM_NAME
-  );
-  const cephFsid = getValueFromClusterClaim(
-    clusterClaims,
-    ClusterClaimTypes.CEPH_FSID
-  );
-  const storageClusterCount = getValueFromClusterClaim(
-    clusterClaims,
-    ClusterClaimTypes.STORAGE_CLUSTER_COUNT
-  );
-  return {
-    odfVersion: odfVersion,
-    isValidODFVersion: isMinimumSupportedODFVersion(
-      getMajorVersion(odfVersion),
-      requiredODFVersion
-    ),
-    storageClusterCount: Number(storageClusterCount || '0'),
-    storageClusterInfo: {
-      storageClusterNamespacedName: storageClusterNamespacedName,
-      storageSystemNamespacedName: storageSystemNamespacedName,
-      cephFSID: cephFsid,
-    },
-  };
+  try {
+    // Managed cluster with multiple StorageSystems is not currently supported for DR
+    // ToDo: Update this once we add support for multiple clusters
+    const odfInfoKey = Object.keys(odfInfoConfigData)[0];
+    const odfInfoYaml = odfInfoConfigData[odfInfoKey];
+    const odfInfo: ODFInfoYamlObject = safeLoad(odfInfoYaml);
+
+    const storageClusterName = odfInfo?.storageCluster?.namespacedName?.name;
+    const storageClusterNamespace =
+      odfInfo?.storageCluster?.namespacedName?.namespace;
+    const storageSystemName = odfInfo?.storageSystemName;
+
+    const odfVersion = odfInfo?.version;
+    const storageClusterCount = Object.keys(odfInfoConfigData).length;
+    const storageClusterNamespacedName = getNameNamespace(
+      storageClusterName,
+      storageClusterNamespace
+    );
+    const storageSystemNamespacedName = getNameNamespace(
+      storageSystemName,
+      storageClusterNamespace
+    );
+    const cephFSID = odfInfo?.storageCluster?.cephClusterFSID;
+
+    return {
+      odfVersion,
+      isValidODFVersion: isMinimumSupportedODFVersion(
+        getMajorVersion(odfVersion),
+        requiredODFVersion
+      ),
+      storageClusterCount,
+      storageClusterInfo: {
+        storageClusterNamespacedName,
+        storageSystemNamespacedName,
+        cephFSID,
+      },
+    };
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(err);
+
+    return {
+      odfVersion: '',
+      isValidODFVersion: false,
+      storageClusterCount: 0,
+      storageClusterInfo: {
+        storageClusterNamespacedName: '',
+        storageSystemNamespacedName: '',
+        cephFSID: '',
+      },
+    };
+  }
 };
 
 const filterRegions = (filteredClusters: ManagedClusterInfoType[]) =>
@@ -108,7 +134,8 @@ const filterRegions = (filteredClusters: ManagedClusterInfoType[]) =>
 
 const getManagedClusterInfo = (
   cluster: ACMManagedClusterKind,
-  requiredODFVersion: string
+  requiredODFVersion: string,
+  odfInfoConfigData: { [key: string]: string }
 ): ManagedClusterInfoType => ({
   name: getName(cluster),
   namesapce: getNamespace(cluster),
@@ -120,8 +147,35 @@ const getManagedClusterInfo = (
     cluster,
     MANAGED_CLUSTER_CONDITION_AVAILABLE
   ),
-  odfInfo: getODFInfo(cluster, requiredODFVersion),
+  odfInfo: getODFInfo(requiredODFVersion, odfInfoConfigData),
 });
+
+const getManagedClusterInfoTypes = (
+  managedClusters: ACMManagedClusterKind[],
+  mcvs: ACMManagedClusterViewKind[],
+  requiredODFVersion: string
+): ManagedClusterInfoType[] =>
+  managedClusters?.reduce((acc, cluster) => {
+    if (ValidateManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED)) {
+      // OCS creates a ConfigMap on the managed clusters, with details about StorageClusters, Clients.
+      // MCO creates ManagedClusterView on the hub cluster, referencing that ConfigMap.
+      const managedClusterName = getName(cluster);
+      const mcv =
+        mcvs.find(
+          (obj: ACMManagedClusterViewKind) =>
+            getName(obj) === getManagedClusterViewName(managedClusterName) &&
+            getNamespace(obj) === managedClusterName
+        ) || {};
+      const odfInfoConfigData =
+        (mcv.status?.result as ConfigMapKind)?.data || {};
+      return [
+        ...acc,
+        getManagedClusterInfo(cluster, requiredODFVersion, odfInfoConfigData),
+      ];
+    }
+
+    return acc;
+  }, []);
 
 const isChecked = (clusters: ManagedClusterInfoType[], clusterName: string) =>
   clusters?.some((cluster) => cluster?.name === clusterName);
@@ -149,18 +203,30 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     ACMManagedClusterKind[]
   >(getManagedClusterResourceObj());
 
+  const [mcvs, mcvsLoaded, mcvsLoadError] = useK8sWatchResource<
+    ACMManagedClusterViewKind[]
+  >({
+    kind: referenceForModel(ACMManagedClusterViewModel),
+    selector: {
+      // https://github.com/red-hat-storage/odf-multicluster-orchestrator/blob/release-4.17/controllers/utils/managedclusterview.go#L43
+      matchLabels: { [MCO_CREATED_BY_LABEL_KEY]: MCO_CREATED_BY_MC_CONTROLLER },
+    },
+    isList: true,
+  });
+
+  const allLoaded = loaded && mcvsLoaded;
+  const anyError = loadError || mcvsLoadError;
+
   const clusters: ManagedClusterInfoType[] = React.useMemo(() => {
-    if (!!requiredODFVersion && loaded && !loadError) {
-      return managedClusters?.reduce(
-        (acc, cluster) =>
-          ValidateManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED)
-            ? [...acc, getManagedClusterInfo(cluster, requiredODFVersion)]
-            : acc,
-        []
+    if (!!requiredODFVersion && allLoaded && !anyError)
+      return getManagedClusterInfoTypes(
+        managedClusters,
+        mcvs,
+        requiredODFVersion
       );
-    }
+
     return [];
-  }, [requiredODFVersion, managedClusters, loaded, loadError]);
+  }, [requiredODFVersion, managedClusters, mcvs, allLoaded, anyError]);
 
   const filteredClusters: ManagedClusterInfoType[] = React.useMemo(
     () => getFilteredClusters(clusters, region, nameSearch),
@@ -245,8 +311,8 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       </Toolbar>
       <StatusBox
         data={!!nameSearch ? filteredClusters : managedClusters}
-        loadError={loadError}
-        loaded={loaded && !!clusters.length}
+        loadError={anyError}
+        loaded={allLoaded && !!clusters.length}
       >
         <DataList
           aria-label={t('Select cluster list')}
