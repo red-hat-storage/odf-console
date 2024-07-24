@@ -220,6 +220,9 @@ export const twentyFourHourTime = (
   date: Date,
   showSeconds?: boolean
 ): string => {
+  if (!_.isDate(date)) {
+    date = new Date(0);
+  }
   const hours = zeroPad(date.getHours() ?? 0);
   const minutes = `:${zeroPad(date.getMinutes() ?? 0)}`;
   const seconds = showSeconds ? `:${zeroPad(date.getSeconds() ?? 0)}` : '';
