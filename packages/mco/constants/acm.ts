@@ -36,15 +36,6 @@ export const APPLICATION_TYPE_DISPLAY_TEXT = (
   [APPLICATION_TYPE.DISCOVERED]: t('Discovered'),
 });
 
-// Please refer to clusterclaims.go in github.com/red-hat-storage/ocs-operator before changing anything here
-export enum ClusterClaimTypes {
-  ODF_VERSION = 'version.odf.openshift.io',
-  STORAGE_CLUSTER_NAME = 'storageclustername.odf.openshift.io',
-  STORAGE_SYSTEM_NAME = 'storagesystemname.odf.openshift.io',
-  CEPH_FSID = 'cephfsid.odf.openshift.io',
-  STORAGE_CLUSTER_COUNT = 'count.storagecluster.odf.openshift.io',
-}
-
 // Managed cluster status conditions
 export const MANAGED_CLUSTER_CONDITION_AVAILABLE =
   'ManagedClusterConditionAvailable';

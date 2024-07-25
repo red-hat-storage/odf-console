@@ -20,7 +20,7 @@ import { LoadingInline } from '@odf/shared/generic/Loading';
 import { useK8sGet } from '@odf/shared/hooks';
 import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
-import { OCSStorageClusterModel } from '@odf/shared/models';
+import { StorageClusterModel } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
 import {
   DeviceSet,
@@ -158,7 +158,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
         value: resourceProfile,
       };
       await k8sPatch({
-        model: OCSStorageClusterModel,
+        model: StorageClusterModel,
         resource: storageCluster,
         data: [patch],
       });
@@ -251,7 +251,7 @@ type ConfigureSSPerformanceModalProps = CommonModalProps & {
 const ConfigureSSPerformanceModal: React.FC<ConfigureSSPerformanceModalProps> =
   ({ extraProps: { resource: storageSystem }, ...props }) => {
     const [ocs, ocsLoaded, ocsError] = useK8sGet<StorageClusterKind>(
-      OCSStorageClusterModel,
+      StorageClusterModel,
       storageSystem.spec.name,
       storageSystem.spec.namespace
     );

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useSafeK8sGet } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { ODFSystemFlagsPayload } from '@odf/core/redux/actions';
 import { ModalFooter } from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
@@ -10,7 +11,7 @@ import {
   ModalHeader,
 } from '@odf/shared/modals/Modal';
 import {
-  OCSStorageClusterModel,
+  StorageClusterModel,
   PersistentVolumeClaimModel,
   StorageClassModel,
 } from '@odf/shared/models';
@@ -31,7 +32,6 @@ import {
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { ODFSystemFlagsPayload } from 'packages/odf/redux/actions';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import { Modal, ModalVariant } from '@patternfly/react-core';
@@ -74,7 +74,7 @@ const deleteFsPoolRequest = (
 
   return () =>
     k8sPatch({
-      model: OCSStorageClusterModel,
+      model: StorageClusterModel,
       resource: storageCluster,
       data: patches,
     });
@@ -140,7 +140,7 @@ const DeleteFsPoolModal: React.FC<DeleteFsPoolModalProps> = (props) => {
   const clusterName = systemFlags[poolNamespace]?.ocsClusterName;
   const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
     useSafeK8sGet<StorageClusterKind>(
-      OCSStorageClusterModel,
+      StorageClusterModel,
       clusterName,
       poolNamespace
     );

@@ -22,7 +22,7 @@ import {
   getOsdAmount,
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
-import { OCSStorageClusterModel } from '@odf/shared/models';
+import { StorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVKLabel } from '@odf/shared/utils';
@@ -126,7 +126,7 @@ const canJumpToNextStep = (
   } = state;
   const { type, externalStorage, deployment } = backingStorage;
   const isExternal: boolean = type === BackingStorageType.EXTERNAL;
-  const isRHCS: boolean = externalStorage === OCSStorageClusterModel.kind;
+  const isRHCS: boolean = externalStorage === StorageClusterModel.kind;
   const {
     capacity,
     enableArbiter,
@@ -238,7 +238,7 @@ const handleReviewAndCreateNext = async (
   } = state.backingStorage;
   const inTransitChecked = state.securityAndNetwork.encryption.inTransit;
   const { encryption, kms } = state.securityAndNetwork;
-  const isRhcs: boolean = externalStorage === OCSStorageClusterModel.kind;
+  const isRhcs: boolean = externalStorage === StorageClusterModel.kind;
   const isMCG: boolean = deployment === DeploymentType.MCG;
   const nsAlreadyExists = !!existingNamespaces.find(
     (ns) => getName(ns) === systemNamespace

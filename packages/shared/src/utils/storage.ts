@@ -1,5 +1,5 @@
 import { Model } from '@odf/odf-plugin-sdk/extensions';
-import { OCSStorageClusterModel } from '@odf/shared/models';
+import { StorageClusterModel } from '@odf/shared/models';
 import {
   ClusterServiceVersionKind,
   StorageSystemKind,
@@ -19,9 +19,9 @@ export const isOCSStorageSystem = (
 ): resource is StorageSystemKind =>
   resource?.spec?.kind ===
   getGVKLabel({
-    kind: OCSStorageClusterModel.kind,
-    apiVersion: OCSStorageClusterModel.apiVersion,
-    apiGroup: OCSStorageClusterModel.apiGroup,
+    kind: StorageClusterModel.kind,
+    apiVersion: StorageClusterModel.apiVersion,
+    apiGroup: StorageClusterModel.apiGroup,
   } as Model);
 
 export const getOCSStorageSystem = (ssList: StorageSystemKind[] = []) =>

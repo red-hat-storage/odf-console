@@ -9,6 +9,7 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { CephClusterModel } from '@odf/shared/models';
 import useAlerts from '@odf/shared/monitoring/useAlert';
 import { alertURL } from '@odf/shared/monitoring/utils';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -37,7 +38,6 @@ import {
   CardBody,
   CardTitle,
 } from '@patternfly/react-core';
-import { CephClusterModel } from '../../../models';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
 import { ODFSystemParams } from '../../../types';
 import { getDataResiliencyState } from './utils';

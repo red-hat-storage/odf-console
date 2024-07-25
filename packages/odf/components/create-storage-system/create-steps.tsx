@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
-import { OCSStorageClusterModel } from '@odf/shared/models';
+import { StorageClusterModel } from '@odf/shared/models';
 import { WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
 import { Steps, StepsName } from '../../constants';
@@ -259,7 +259,7 @@ export const createSteps = (
         },
       ];
     case BackingStorageType.EXTERNAL:
-      if (externalStorage === OCSStorageClusterModel.kind) {
+      if (externalStorage === StorageClusterModel.kind) {
         return rhcsExternalProviderSteps;
       }
       if (!hasOCS) {

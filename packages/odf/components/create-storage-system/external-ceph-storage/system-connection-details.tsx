@@ -19,11 +19,7 @@ import {
 import { ROOK_CEPH_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
-import {
-  PodModel,
-  SecretModel,
-  OCSStorageClusterModel,
-} from '@odf/shared/models';
+import { PodModel, SecretModel, StorageClusterModel } from '@odf/shared/models';
 import { getAnnotations } from '@odf/shared/selectors';
 import { ListKind, PodKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -250,10 +246,10 @@ export const EXTERNAL_CEPH_STORAGE: ExternalStorage[] = [
   {
     displayName: 'Red Hat Ceph Storage',
     model: {
-      apiGroup: OCSStorageClusterModel.apiGroup,
-      apiVersion: OCSStorageClusterModel.apiVersion,
-      kind: OCSStorageClusterModel.kind,
-      plural: OCSStorageClusterModel.plural,
+      apiGroup: StorageClusterModel.apiGroup,
+      apiVersion: StorageClusterModel.apiVersion,
+      kind: StorageClusterModel.kind,
+      plural: StorageClusterModel.plural,
     },
     component: ConnectionDetails,
     createPayload: rhcsPayload,

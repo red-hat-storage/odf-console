@@ -1,11 +1,14 @@
 import * as React from 'react';
 import { useODFNamespaceSelector } from '@odf/core/redux';
-import { StorageClusterModel } from '@odf/ocs/models';
 import { DetailsPageTitle } from '@odf/shared/details-page/DetailsPage';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import useAutoExpand from '@odf/shared/hooks/useAutoExpand';
-import { DeploymentModel, NodeModel } from '@odf/shared/models';
+import {
+  DeploymentModel,
+  NodeModel,
+  StorageClusterModel,
+} from '@odf/shared/models';
 import { nodeStatus } from '@odf/shared/status/Node';
 import AlertsDetails from '@odf/shared/topology/sidebar/alerts/AlertsDetails';
 import {

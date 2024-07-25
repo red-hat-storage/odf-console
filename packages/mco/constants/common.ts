@@ -21,3 +21,5 @@ export const ADMIN_FLAG = 'ADMIN';
 
 // Discovered application namespace
 export const DISCOVERED_APP_NS = 'openshift-dr-ops';
+
+export const NAME_NAMESPACE_SPLIT_CHAR = '/';

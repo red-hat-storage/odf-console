@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ModalKeys } from '@odf/shared/modals/types';
+import { StorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import {
   StorageClassResourceKind,
@@ -19,7 +20,6 @@ import {
   POOL_TYPE,
   ROOK_MODEL,
 } from '../constants';
-import { StorageClusterModel } from '../models';
 import { CephFilesystemKind, StoragePool, StoragePoolKind } from '../types';
 import { LoadingComponent } from './CustomLoading';
 

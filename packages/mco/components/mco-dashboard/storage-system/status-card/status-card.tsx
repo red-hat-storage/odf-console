@@ -5,7 +5,7 @@ import {
   csvStatusMap,
 } from '@odf/shared/dashboards/status-card/states';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
-import { OCSStorageClusterModel } from '@odf/shared/models';
+import { StorageClusterModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGVK } from '@odf/shared/utils';
 import {
@@ -86,7 +86,7 @@ const setHealthData = (
     healthData.push({
       systemName: item?.metric?.storage_system,
       rawHealthData:
-        apiGroup === OCSStorageClusterModel.apiGroup
+        apiGroup === StorageClusterModel.apiGroup
           ? unifiedHealthVal
           : healthVal,
     });

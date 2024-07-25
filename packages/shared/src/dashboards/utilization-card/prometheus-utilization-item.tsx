@@ -44,6 +44,7 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
     CustomUtilizationSummary,
     formatDate,
     timespan,
+    showHumanizedInLegend,
   }) => {
     const { duration } = useUtilizationDuration();
     const defaultBasePath = usePrometheusBasePath();
@@ -94,6 +95,7 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
         showLegend={showLegend}
         CustomUtilizationSummary={CustomUtilizationSummary}
         formatDate={formatDate}
+        showHumanizedInLegend={showHumanizedInLegend}
       />
     );
   };
@@ -175,4 +177,5 @@ type PrometheusUtilizationItemProps = PrometheusCommonProps & {
   CustomUtilizationSummary?: React.FC<CustomUtilizationSummaryProps>;
   formatDate?: (date: Date, showSeconds?: boolean) => string;
   timespan?: number;
+  showHumanizedInLegend?: boolean;
 };

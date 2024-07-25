@@ -7,7 +7,7 @@ import {
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { StatusBox } from '@odf/shared/generic/status-box';
-import { OCSStorageClusterModel } from '@odf/shared/models';
+import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import {
   CephClusterKind,
@@ -37,11 +37,7 @@ import {
   POOL_STATE,
   POOL_TYPE,
 } from '../constants';
-import {
-  CephBlockPoolModel,
-  CephClusterModel,
-  CephFileSystemModel,
-} from '../models';
+import { CephBlockPoolModel, CephFileSystemModel } from '../models';
 import { CephFilesystemKind, StoragePoolKind } from '../types';
 import {
   getErrorMessage,
@@ -82,7 +78,7 @@ export const createFsPoolRequest = (
 
   return () =>
     k8sPatch({
-      model: OCSStorageClusterModel,
+      model: StorageClusterModel,
       resource: storageCluster,
       data: [patch],
     });
@@ -200,11 +196,7 @@ const CreateStoragePool: React.FC<{}> = ({}) => {
   }, [blockPools, blockPoolsLoaded, blockPoolsLoadError, defaultBlockPoolName]);
 
   const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
-    useSafeK8sGet<StorageClusterKind>(
-      OCSStorageClusterModel,
-      clusterName,
-      poolNs
-    );
+    useSafeK8sGet<StorageClusterKind>(StorageClusterModel, clusterName, poolNs);
 
   const isLoaded =
     areFlagsLoaded &&

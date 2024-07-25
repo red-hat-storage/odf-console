@@ -16,8 +16,8 @@
     "paths": {
       "@odf/shared": ["./packages/shared/src"],
       "@odf/shared/*": ["./packages/shared/src/*"],
-      "packages/shared": ["./packages/shared/src"],
-      "packages/shared/*": ["./packages/shared/src/*"]
+      "@odf/core/*": ["./packages/odf/*"],
+      "@odf/*": ["./packages/*"]
     },
     "types": ["./index"]
   },

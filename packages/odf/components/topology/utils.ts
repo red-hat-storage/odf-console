@@ -1,4 +1,4 @@
-import { StorageClusterModel } from '@odf/ocs/models';
+import { StorageClusterModel } from '@odf/shared/models';
 import { NodeModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import {

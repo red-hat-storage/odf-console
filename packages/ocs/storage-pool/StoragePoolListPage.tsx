@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { cephBlockPoolResource } from '@odf/core/resources';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -428,10 +429,7 @@ const resources = {
     namespaced: false,
     isList: true,
   },
-  blockPools: {
-    kind: referenceForModel(CephBlockPoolModel),
-    isList: true,
-  },
+  blockPools: cephBlockPoolResource,
   filesystem: {
     kind: referenceForModel(CephFileSystemModel),
     isList: false,
