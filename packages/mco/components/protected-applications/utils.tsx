@@ -28,11 +28,7 @@ import {
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
-import {
-  getVolumeReplicationHealth,
-  isDRPCAvailable,
-  isPeerReady,
-} from '../../utils';
+import { getVolumeReplicationHealth } from '../../utils';
 import { DiscoveredApplicationParser as DiscoveredApplicationModal } from '../modals/app-failover-relocate/parser/discovered-application-parser';
 import RemoveDisasterRecoveryModal from '../modals/remove-disaster-recovery/remove-disaster-recovery';
 
@@ -84,9 +80,9 @@ export const isFailingOrRelocating = (
   );
 
 export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
-  drpc?.status?.phase === DRPC_STATUS.FailedOver &&
-  !isPeerReady(drpc) &&
-  isDRPCAvailable(drpc);
+  drpc?.status?.phase.includes[
+    (DRPC_STATUS.FailedOver, DRPC_STATUS.Relocating)
+  ] && drpc?.status?.progression === 'WaitOnUserToCleanUp';
 
 export const getReplicationHealth = (
   lastSyncTime: string,
