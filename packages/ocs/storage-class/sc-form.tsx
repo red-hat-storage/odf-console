@@ -19,7 +19,10 @@ import {
   useODFNamespaceSelector,
   useODFSystemFlagsSelector,
 } from '@odf/core/redux';
-import { cephClusterResource } from '@odf/core/resources';
+import {
+  cephBlockPoolResource,
+  cephClusterResource,
+} from '@odf/core/resources';
 import {
   ProviderNames,
   KmsCsiConfigKeysMapping,
@@ -27,7 +30,6 @@ import {
   K8sResourceObj,
 } from '@odf/core/types';
 import { getResourceInNs } from '@odf/core/utils';
-import { CephBlockPoolModel } from '@odf/ocs/models';
 import { TechPreviewBadge } from '@odf/shared/badges';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
@@ -91,11 +93,6 @@ type OnParamChange = (id: string, paramName: string, checkbox: boolean) => void;
 
 const storageSystemResource: WatchK8sResource = {
   kind: referenceForModel(ODFStorageSystem),
-  isList: true,
-};
-
-const cephBlockPoolResource: WatchK8sResource = {
-  kind: referenceForModel(CephBlockPoolModel),
   isList: true,
 };
 
