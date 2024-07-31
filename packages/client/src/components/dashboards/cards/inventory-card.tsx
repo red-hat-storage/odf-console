@@ -10,7 +10,11 @@ import {
   getPVCStatusGroups,
   getPVStatusGroups,
 } from '@odf/shared/status/Inventory';
-import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import {
+  K8sResourceKind,
+  StorageClassResourceKind,
+  PersistentVolumeClaimKind,
+} from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
@@ -38,7 +42,7 @@ export const InventoryCard: React.FC = () => {
 
   const pvcsLoaded = resources?.pvcs?.loaded;
   const pvcsLoadError = resources?.pvcs?.loadError;
-  const pvcsData = (resources?.pvcs?.data ?? []) as K8sResourceKind[];
+  const pvcsData = (resources?.pvcs?.data ?? []) as PersistentVolumeClaimKind[];
 
   const pvsLoaded = resources?.pvs?.loaded;
   const pvsLoadError = resources?.pvs?.loadError;

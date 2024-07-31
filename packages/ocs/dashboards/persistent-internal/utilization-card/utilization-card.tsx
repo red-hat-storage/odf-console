@@ -1,6 +1,7 @@
 // TODO (@rexagod): https://github.com/openshift/console/pull/10470#discussion_r766453369
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { GraphEmpty } from '@odf/shared/charts';
 import ConsumerPopover from '@odf/shared/dashboards/utilization-card/ConsumerPopover';
 import { PrometheusMultilineUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-multi-utilization-item';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
@@ -20,6 +21,7 @@ import {
   CardTitle,
   Grid,
 } from '@patternfly/react-core';
+import { useStorageClassQueryFilter } from '../../../hooks';
 import {
   StorageDashboardQuery,
   utilizationPopoverQueryMap,
@@ -38,79 +40,88 @@ export const UtilizationContent: React.FC = () => {
   // it is also the value of the "managedBy" label in the metrics.
   const ocsCluster = systemFlags[clusterNs]?.ocsClusterName;
 
+  const [scQueryfilter, scQueryfilterLoaded, scQueryfilterError] =
+    useStorageClassQueryFilter(clusterNs);
+
   const storagePopover = React.useCallback(
     ({ current }) => (
       <ConsumerPopover
         title={t('Used Capacity')}
         current={current}
-        consumers={utilizationPopoverQueryMap(ocsCluster)}
+        consumers={utilizationPopoverQueryMap(scQueryfilter)}
         humanize={humanizeBinaryBytes}
       />
     ),
-    [t, ocsCluster]
+    [t, scQueryfilter]
   );
 
   return (
     <Grid className="co-utilization-card__body">
-      <PrometheusUtilizationItem
-        title={t('Used capacity')}
-        utilizationQuery={
-          UTILIZATION_QUERY(ocsCluster, ocsCluster)[
-            StorageDashboardQuery.CEPH_CAPACITY_USED
-          ]
-        }
-        humanizeValue={humanizeBinaryBytes}
-        byteDataType={ByteDataTypes.BinaryBytes}
-        TopConsumerPopover={storagePopover}
-      />
-      <PrometheusMultilineUtilizationItem
-        title={t('IOPS')}
-        queries={[
-          UTILIZATION_QUERY(ocsCluster)[
-            StorageDashboardQuery.UTILIZATION_IOPS_READ_QUERY
-          ],
-          UTILIZATION_QUERY(ocsCluster)[
-            StorageDashboardQuery.UTILIZATION_IOPS_WRITE_QUERY
-          ],
-        ]}
-        humanizeValue={humanizeIOPS}
-        chartType="stacked-area"
-      />
-      <PrometheusMultilineUtilizationItem
-        title={t('Throughput')}
-        queries={[
-          UTILIZATION_QUERY(ocsCluster)[
-            StorageDashboardQuery.UTILIZATION_THROUGHPUT_READ_QUERY
-          ],
-          UTILIZATION_QUERY(ocsCluster)[
-            StorageDashboardQuery.UTILIZATION_THROUGHPUT_WRITE_QUERY
-          ],
-        ]}
-        humanizeValue={humanizeDecimalBytesPerSec}
-        chartType="stacked-area"
-      />
-      <PrometheusMultilineUtilizationItem
-        title={t('Latency')}
-        queries={[
-          UTILIZATION_QUERY(ocsCluster)[
-            StorageDashboardQuery.UTILIZATION_LATENCY_READ_QUERY
-          ],
-          UTILIZATION_QUERY(ocsCluster)[
-            StorageDashboardQuery.UTILIZATION_LATENCY_WRITE_QUERY
-          ],
-        ]}
-        humanizeValue={humanizeLatency}
-        chartType="grouped-line"
-      />
-      <PrometheusUtilizationItem
-        title={t('Recovery')}
-        utilizationQuery={
-          UTILIZATION_QUERY(ocsCluster)[
-            StorageDashboardQuery.UTILIZATION_RECOVERY_RATE_QUERY
-          ]
-        }
-        humanizeValue={humanizeDecimalBytesPerSec}
-      />
+      {scQueryfilterLoaded && !scQueryfilterError && (
+        <>
+          <PrometheusUtilizationItem
+            title={t('Used capacity')}
+            utilizationQuery={
+              UTILIZATION_QUERY(ocsCluster, scQueryfilter)[
+                StorageDashboardQuery.CEPH_CAPACITY_USED
+              ]
+            }
+            humanizeValue={humanizeBinaryBytes}
+            byteDataType={ByteDataTypes.BinaryBytes}
+            TopConsumerPopover={storagePopover}
+          />
+          <PrometheusMultilineUtilizationItem
+            title={t('IOPS')}
+            queries={[
+              UTILIZATION_QUERY(ocsCluster)[
+                StorageDashboardQuery.UTILIZATION_IOPS_READ_QUERY
+              ],
+              UTILIZATION_QUERY(ocsCluster)[
+                StorageDashboardQuery.UTILIZATION_IOPS_WRITE_QUERY
+              ],
+            ]}
+            humanizeValue={humanizeIOPS}
+            chartType="stacked-area"
+          />
+          <PrometheusMultilineUtilizationItem
+            title={t('Throughput')}
+            queries={[
+              UTILIZATION_QUERY(ocsCluster)[
+                StorageDashboardQuery.UTILIZATION_THROUGHPUT_READ_QUERY
+              ],
+              UTILIZATION_QUERY(ocsCluster)[
+                StorageDashboardQuery.UTILIZATION_THROUGHPUT_WRITE_QUERY
+              ],
+            ]}
+            humanizeValue={humanizeDecimalBytesPerSec}
+            chartType="stacked-area"
+          />
+          <PrometheusMultilineUtilizationItem
+            title={t('Latency')}
+            queries={[
+              UTILIZATION_QUERY(ocsCluster)[
+                StorageDashboardQuery.UTILIZATION_LATENCY_READ_QUERY
+              ],
+              UTILIZATION_QUERY(ocsCluster)[
+                StorageDashboardQuery.UTILIZATION_LATENCY_WRITE_QUERY
+              ],
+            ]}
+            humanizeValue={humanizeLatency}
+            chartType="grouped-line"
+          />
+          <PrometheusUtilizationItem
+            title={t('Recovery')}
+            utilizationQuery={
+              UTILIZATION_QUERY(ocsCluster)[
+                StorageDashboardQuery.UTILIZATION_RECOVERY_RATE_QUERY
+              ]
+            }
+            humanizeValue={humanizeDecimalBytesPerSec}
+          />
+        </>
+      )}
+      {!scQueryfilterLoaded && !scQueryfilterError && <GraphEmpty loading />}
+      {!!scQueryfilterError && <GraphEmpty />}
     </Grid>
   );
 };
