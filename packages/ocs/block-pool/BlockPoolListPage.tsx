@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { cephBlockPoolResource } from '@odf/core/resources';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -15,7 +16,6 @@ import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   humanizeBinaryBytes,
-  referenceForModel,
   getValidPrometheusPollObj,
 } from '@odf/shared/utils';
 import {
@@ -378,10 +378,7 @@ const resources = {
     namespaced: false,
     isList: true,
   },
-  blockPools: {
-    kind: referenceForModel(CephBlockPoolModel),
-    isList: true,
-  },
+  blockPools: cephBlockPoolResource,
 };
 
 type WatchType = {
