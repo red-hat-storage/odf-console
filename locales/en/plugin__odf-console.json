@@ -1094,7 +1094,6 @@
   "To connect a storage client to the Data Foundation provider cluster, click <2>Generate client onboarding token</2> and use the token to deploy the client cluster.": "To connect a storage client to the Data Foundation provider cluster, click <2>Generate client onboarding token</2> and use the token to deploy the client cluster.",
   "Cluster name (ID)": "Cluster name (ID)",
   "Storage quota": "Storage quota",
-  "Used capacity is the amount of storage consumed by the client.": "Used capacity is the amount of storage consumed by the client.",
   "Openshift version": "Openshift version",
   "Data Foundation version": "Data Foundation version",
   "Last heartbeat": "Last heartbeat",
