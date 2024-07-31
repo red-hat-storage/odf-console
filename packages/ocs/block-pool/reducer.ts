@@ -4,7 +4,6 @@ export type BlockPoolState = {
   replicaSize: string;
   isCompressed: boolean;
   isArbiterCluster: boolean;
-  volumeType: string;
   failureDomain: string;
   inProgress: boolean;
   errorMessage: string;
@@ -27,8 +26,6 @@ export const blockPoolInitialState: BlockPoolState = {
   replicaSize: '',
   isCompressed: false,
   isArbiterCluster: false,
-  // this should always be set to 'ssd' (https://bugzilla.redhat.com/show_bug.cgi?id=2239622)
-  volumeType: 'ssd',
   failureDomain: '',
   inProgress: false,
   errorMessage: '',

@@ -1,3 +1,5 @@
+import { CEPH_DEFAULT_BLOCK_POOL_NAME } from '../constants/storage-pool-const';
+
 const configureKms = () => {
   cy.byTestID('storage-class-encryption').check();
   cy.byTestID('sc-form-new-kms-radio').click();
@@ -47,7 +49,7 @@ export const createStorageClass = (
 
   cy.log(`Selecting block pool ${poolName}`);
   cy.byTestID('pool-dropdown-toggle').click();
-  cy.byTestID(poolName || 'ocs-storagecluster-cephblockpool').click();
+  cy.byTestID(poolName || CEPH_DEFAULT_BLOCK_POOL_NAME).click();
 
   cy.log('Creating new StorageClass');
   cy.byTestID('storage-class-volume-binding-mode').click();
