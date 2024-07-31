@@ -6,13 +6,16 @@ import {
   PersistentVolumeModel,
   StorageClassModel,
 } from '@odf/shared/models';
-import { getName } from '@odf/shared/selectors';
 import {
   getNodeStatusGroups,
   getPVCStatusGroups,
   getPVStatusGroups,
 } from '@odf/shared/status/Inventory';
-import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
+import {
+  K8sResourceKind,
+  StorageClassResourceKind,
+  PersistentVolumeClaimKind,
+} from '@odf/shared/types';
 import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
@@ -22,9 +25,8 @@ import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ODFSystemParams } from '../../types';
 import {
   getCephNodes,
-  getCephPVCs,
-  getCephPVs,
-  getCephSC,
+  filterCephPVCsByCluster,
+  filterCephPVsByCluster,
 } from '../../utils/common';
 
 const watchResources = {
@@ -58,15 +60,13 @@ const InventoryCard: React.FC = () => {
 
   const pvcsLoaded = resources?.pvcs?.loaded;
   const pvcsLoadError = resources?.pvcs?.loadError;
-  const pvcsData = (resources?.pvcs?.data ?? []) as K8sResourceKind[];
+  const pvcsData = (resources?.pvcs?.data ?? []) as PersistentVolumeClaimKind[];
 
   const pvsLoaded = resources?.pvs?.loaded;
   const pvsLoadError = resources?.pvs?.loadError;
   const pvsData = (resources?.pvs?.data ?? []) as K8sResourceKind[];
 
   const scData = (resources?.sc?.data ?? []) as StorageClassResourceKind[];
-  const filteredCephSC = getCephSC(scData);
-  const filteredSCNames = filteredCephSC.map(getName);
   const ocsNodesHref = `/search?kind=${NodeModel.kind}&q=${cephStorageLabel}`;
 
   return (
@@ -89,7 +89,12 @@ const InventoryCard: React.FC = () => {
           isLoading={!pvcsLoaded}
           error={!!pvcsLoadError}
           kind={PersistentVolumeClaimModel as any}
-          resources={getCephPVCs(filteredSCNames, pvcsData, pvsData)}
+          resources={filterCephPVCsByCluster(
+            scData,
+            pvcsData,
+            pvsData,
+            clusterNs
+          )}
           mapper={getPVCStatusGroups}
           showLink={false}
         />
@@ -98,7 +103,7 @@ const InventoryCard: React.FC = () => {
           isLoading={!pvsLoaded}
           error={!!pvsLoadError}
           kind={PersistentVolumeModel as any}
-          resources={getCephPVs(pvsData)}
+          resources={filterCephPVsByCluster(pvsData, scData, clusterNs)}
           mapper={getPVStatusGroups}
           showLink={false}
         />
