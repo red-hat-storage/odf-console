@@ -1,4 +1,7 @@
-import { POOL_PROGRESS } from '../constants/storage-pool-const';
+import {
+  CEPH_DEFAULT_BLOCK_POOL_NAME,
+  POOL_PROGRESS,
+} from '../constants/storage-pool-const';
 import { app } from '../support/pages/app';
 import { NS } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
@@ -6,7 +9,6 @@ import { ODFCommon } from '../views/odf-common';
 // Pool var
 export const poolName: string = 'example.pool';
 export const replicaCount: string = '2';
-export const volumeType: string = 'ssd';
 export const scName: string = 'testing-sc';
 
 export const poolMessage: {
@@ -72,18 +74,25 @@ export const verifyFooterActions = (action: string) => {
 export const verifyBlockPoolJSON = (
   compressionEnabled: boolean = true,
   replica: string = replicaCount
-) =>
-  cy.exec(`oc get cephBlockPool ${poolName} -n  ${NS} -o json`).then((res) => {
-    const blockPool = JSON.parse(res.stdout);
-    expect(blockPool.spec?.replicated?.size).to.equal(Number(replica));
-    expect(blockPool.spec?.compressionMode).to.equal(
-      compressionEnabled ? 'aggressive' : 'none'
-    );
-    expect(blockPool.spec?.parameters?.compression_mode).to.equal(
-      compressionEnabled ? 'aggressive' : 'none'
-    );
-    expect(blockPool.spec?.deviceClass).to.equal(volumeType);
+) => {
+  cy.exec(
+    `oc get cephBlockPool ${CEPH_DEFAULT_BLOCK_POOL_NAME} -n ${NS} -o json`
+  ).then((response) => {
+    const defaultBlockPool = JSON.parse(response.stdout);
+    const defaultDeviceClass = defaultBlockPool.spec?.deviceClass;
+    cy.exec(`oc get cephBlockPool ${poolName} -n ${NS} -o json`).then((res) => {
+      const blockPool = JSON.parse(res.stdout);
+      expect(blockPool.spec?.replicated?.size).to.equal(Number(replica));
+      expect(blockPool.spec?.compressionMode).to.equal(
+        compressionEnabled ? 'aggressive' : 'none'
+      );
+      expect(blockPool.spec?.parameters?.compression_mode).to.equal(
+        compressionEnabled ? 'aggressive' : 'none'
+      );
+      expect(blockPool.spec?.deviceClass).to.equal(defaultDeviceClass);
+    });
   });
+};
 
 export const createBlockPool = () => {
   cy.byTestID('item-create').click();
