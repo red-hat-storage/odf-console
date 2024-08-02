@@ -265,7 +265,7 @@ describe('Subscription manage disaster recovery modal', () => {
     expect(screen.getByText('Back')).toBeEnabled();
     // PVC selector
     screen.getByText(
-      'Use PVC label selectors to effortlessly specify the application resources that need protection.'
+      /Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information/i
     );
     await waitFor(() => {
       expect(screen.getByText('Application resource')).toBeInTheDocument();
