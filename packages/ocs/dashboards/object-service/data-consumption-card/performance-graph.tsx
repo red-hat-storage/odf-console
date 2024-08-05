@@ -22,7 +22,7 @@ import { convertNaNToNull, getLatestValue } from '../../../utils';
 import './data-consumption-card.scss';
 
 type PerformanceGraphProps = {
-  dataPoints: DataPoint[][][];
+  dataPoints: DataPoint[][];
   loading: boolean;
   loadError: boolean;
   metricType: string;
@@ -41,8 +41,8 @@ const PerformanceGraph: React.FC<PerformanceGraphProps> = ({
     metricType === Metrics.BANDWIDTH
       ? humanizeDecimalBytesPerSec
       : humanizeSeconds;
-  const getData = getDataArray?.[0]?.map(convertNaNToNull);
-  const putData = putDataArray?.[0]?.map(convertNaNToNull);
+  const getData = getDataArray?.map(convertNaNToNull);
+  const putData = putDataArray?.map(convertNaNToNull);
   const PUTLatestValue = humanize(getLatestValue(putData)).string;
   const GETLatestValue = humanize(getLatestValue(getData)).string;
 
@@ -53,10 +53,10 @@ const PerformanceGraph: React.FC<PerformanceGraphProps> = ({
 
   const emptyData = dataPoints.some(_.isEmpty);
 
-  if (loadError && emptyData) {
+  if (loadError || emptyData) {
     return <GraphEmpty />;
   }
-  if (!loading && !loadError && !emptyData) {
+  if (!loading) {
     return (
       <>
         <div className="nb-data-consumption-card__chart-label text-secondary">

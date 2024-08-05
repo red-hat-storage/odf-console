@@ -219,7 +219,7 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({ queries, metric }) => {
   const loading = getLoading || putLoading;
   const error = !!getError || !!putError;
   const data = !!get && !!put;
-  const response: Response = React.useMemo(() => {
+  const response: DataPoint<Date>[][] = React.useMemo(() => {
     return !loading && !error && data
       ? [...getRangeVectorStats(get), ...getRangeVectorStats(put)]
       : [];
@@ -229,7 +229,7 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({ queries, metric }) => {
     <PerformanceGraph
       loading={loading}
       loadError={error}
-      dataPoints={response as DataPoint[][][]}
+      dataPoints={response}
       metricType={metric}
     />
   );
