@@ -57,13 +57,16 @@ export const subscriptionResource: WatchK8sResource = {
   kind: referenceForModel(SubscriptionModel),
   namespaced: false,
 };
-
-export const cephBlockPoolResource: K8sResourceObj = (ns) => ({
+/**
+ * Retrieve all the CRs except those not meant to be
+ * exposed to the users. See:
+ * https://bugzilla.redhat.com/show_bug.cgi?id=2297295
+ */
+export const cephBlockPoolResource: WatchK8sResource = {
   kind: referenceForModel(CephBlockPoolModel),
-  namespaced: true,
   isList: true,
-  namespace: ns,
-});
+  fieldSelector: 'metadata.name!=builtin-mgr',
+};
 
 export const nodeResource: WatchK8sResource = {
   kind: NodeModel.kind,
