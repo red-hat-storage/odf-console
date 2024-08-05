@@ -119,10 +119,6 @@ const tableColumns = [
   },
   {
     className: '',
-    id: 'usedCapacity',
-  },
-  {
-    className: '',
     id: 'openshiftVersion',
   },
   {
@@ -175,15 +171,6 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
             column.title = t('Storage quota');
             column.sort = 'status.storageQuotaInGiB';
             column.props.info = { popover: <StorageQuotaPopoverContent /> };
-            break;
-          case 'usedCapacity':
-            column.title = t('Used capacity');
-            column.sort = 'status.usedCapacityInGiB';
-            column.props.info = {
-              popover: t(
-                'Used capacity is the amount of storage consumed by the client.'
-              ),
-            };
             break;
           case 'openshiftVersion':
             column.title = t('Openshift version');
@@ -322,13 +309,6 @@ const StorageClientRow: React.FC<
         QuotaSizeUnitOptions[QuotaSize.Gi]
       ).string
     : t('Unlimited');
-  const humanizedUsedCapacity =
-    obj?.spec?.storageQuotaInGiB && obj?.status?.usedCapacityInGiB != null
-      ? humanizeBinaryBytes(
-          obj?.status?.usedCapacityInGiB,
-          QuotaSizeUnitOptions[QuotaSize.Gi]
-        ).string
-      : '-';
 
   React.useEffect(() => {
     const setter = () => {
@@ -360,9 +340,6 @@ const StorageClientRow: React.FC<
             break;
           case 'storageQuota':
             data = humanizedStorageQuota;
-            break;
-          case 'usedCapacity':
-            data = humanizedUsedCapacity;
             break;
           case 'openshiftVersion':
             data = getOpenshiftVersion(obj) || '-';
