@@ -1,5 +1,5 @@
 import { getStorageClusterInNs } from '@odf/core/utils';
-import { CEPH_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { StorageClusterModel } from '@odf/shared/models';
 import { StorageClusterKind } from '@odf/shared/types';
 import { k8sList } from '@openshift-console/dynamic-plugin-sdk';
@@ -21,13 +21,13 @@ export const launchClusterExpansionModal = async (alert, launchModal) => {
     */
     const storageCluster = (await k8sList({
       model: StorageClusterModel,
-      queryParams: { ns: CEPH_STORAGE_NAMESPACE },
+      queryParams: { ns: DEFAULT_STORAGE_NAMESPACE },
     })) as StorageClusterKind[];
     launchModal(AddCapacityModal, {
       isOpen: true,
       storageCluster: getStorageClusterInNs(
         storageCluster,
-        CEPH_STORAGE_NAMESPACE
+        DEFAULT_STORAGE_NAMESPACE
       ),
     });
   } catch (e) {
