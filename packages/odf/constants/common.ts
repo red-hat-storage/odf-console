@@ -2,6 +2,7 @@ import {
   ResourceProfile,
   ResourceProfileRequirementsMap,
 } from '@odf/core/types';
+import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { Toleration, Taint } from '@odf/shared/types';
 import { TFunction } from 'i18next';
 
@@ -18,8 +19,9 @@ export const OCS_DEVICE_SET_MINIMUM_REPLICAS = 3;
 export const MINIMUM_NODES = 3;
 export const SECOND = 1000;
 
-export const cephStorageLabel = (ns: string) =>
-  `cluster.ocs.openshift.io/${ns}`;
+// ToDo (epic 4422): Use StorageSystem namespace once we support multiple internal clusters
+export const cephStorageLabel = (_ns: string) =>
+  `cluster.ocs.openshift.io/${DEFAULT_STORAGE_NAMESPACE}`;
 
 /**
  * Map between resource profiles and the minimum cpu's and memory (expressed in GiB) required

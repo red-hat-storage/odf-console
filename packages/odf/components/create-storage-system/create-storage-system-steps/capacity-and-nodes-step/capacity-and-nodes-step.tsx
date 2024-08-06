@@ -36,6 +36,7 @@ import {
   getDeviceSetCount,
   getOsdAmount,
 } from '@odf/core/utils';
+import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -78,10 +79,11 @@ const onResourceProfileChange = _.curry(
 );
 
 const SelectNodesText: React.FC<SelectNodesTextProps> = React.memo(
-  ({ text, systemNamespace }) => {
+  ({ text }) => {
     const { t } = useCustomTranslation();
 
-    const label = `cluster.ocs.openshift.io/${systemNamespace}=""`;
+    // ToDo (epic 4422): Use StorageSystem namespace once we support multiple internal clusters
+    const label = `cluster.ocs.openshift.io/${DEFAULT_STORAGE_NAMESPACE}=""`;
     return (
       <TextContent>
         <Text>{text}</Text>
