@@ -124,7 +124,11 @@ const config: webpack.Configuration & DevServerConfiguration = {
     ],
   },
   plugins: [
-    new ConsoleRemotePlugin(),
+    new ConsoleRemotePlugin({
+      sharedDynamicModuleSettings: {
+        modulePaths: [path.resolve(__dirname, 'node_modules')],
+      },
+    }),
     new CopyWebpackPlugin({
       patterns: [...resolveLocale(__dirname, process.env.I8N_NS || '')],
     }),

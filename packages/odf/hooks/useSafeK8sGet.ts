@@ -1,4 +1,4 @@
-import { useK8sGet } from '@odf/shared';
+import { useK8sGet } from '@odf/shared/hooks';
 import { getValidK8sOptions } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
