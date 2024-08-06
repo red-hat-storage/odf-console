@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { DEFAULT_STORAGE_NAMESPACE as FALLBACK_NAMESPACE } from '@odf/shared/constants';
 import {
   SubscriptionModel,
   ClusterServiceVersionModel,
@@ -13,7 +14,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useODFNamespaceDispatch } from '../dispatchers';
 
-const FALLBACK_NAMESPACE = 'openshift-storage';
 const SPEC_NAME = 'odf-operator';
 
 export const FDF_FLAG = 'FDF_FLAG'; // Based on whether installed operator is ODF or FDF

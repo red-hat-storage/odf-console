@@ -67,7 +67,9 @@ const InventoryCard: React.FC = () => {
   const pvsData = (resources?.pvs?.data ?? []) as K8sResourceKind[];
 
   const scData = (resources?.sc?.data ?? []) as StorageClassResourceKind[];
-  const ocsNodesHref = `/search?kind=${NodeModel.kind}&q=${cephStorageLabel}`;
+  const ocsNodesHref = `/search?kind=${NodeModel.kind}&q=${cephStorageLabel(
+    clusterNs
+  )}`;
 
   return (
     <Card>
