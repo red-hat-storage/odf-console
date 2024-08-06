@@ -1,6 +1,6 @@
 export const DASH = '-';
 export const AVAILABLE = 'Available';
-export const CEPH_STORAGE_NAMESPACE = 'openshift-storage';
+export const DEFAULT_STORAGE_NAMESPACE = 'openshift-storage'; // This hardcoded namespace is only for specific cases, do not use it otherwise.
 export const ODF_OPERATOR = 'odf-operator';
 export const OCS_OPERATOR = 'ocs-operator';
 export const ROOK_CEPH_OPERATOR = 'rook-ceph-operator';

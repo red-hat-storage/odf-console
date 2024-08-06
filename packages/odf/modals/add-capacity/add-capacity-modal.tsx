@@ -1,7 +1,6 @@
 import * as React from 'react';
 import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { useNodesData } from '@odf/core/hooks';
-import { useODFNamespaceSelector } from '@odf/core/redux';
 import { NodeData } from '@odf/core/types';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { getCephNodes } from '@odf/ocs/utils/common';
@@ -17,7 +16,7 @@ import { CommonModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { PersistentVolumeModel, StorageClassModel } from '@odf/shared/models';
 import { OCSStorageClusterModel } from '@odf/shared/models';
-import { getName } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   StorageClassResourceKind,
   StorageClusterKind,
@@ -199,9 +198,9 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const { odfNamespace } = useODFNamespaceSelector();
-
+  const ocsClusterNs = getNamespace(ocsConfig);
   const ocsClusterName = getName(ocsConfig);
+
   const [cephTotal, totalError, totalLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
     query:
@@ -251,7 +250,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   const replica = getDeviceSetReplica(
     isArbiterEnabled,
     hasFlexibleScaling,
-    createWizardNodeState(getCephNodes(nodesData, odfNamespace) as NodeData[])
+    createWizardNodeState(getCephNodes(nodesData, ocsClusterNs) as NodeData[])
   );
 
   const totalCapacityMetric = values?.[0];
