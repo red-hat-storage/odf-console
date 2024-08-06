@@ -9,6 +9,16 @@ import * as webpack from 'webpack';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import type { Configuration as DevServerConfiguration } from 'webpack-dev-server';
 
+// supported PLUGINS: odf/mco/client
+const PLUGIN = process.env.PLUGIN;
+if (PLUGIN === undefined) {
+  process.exit(1);
+}
+// switch current working directory based on the plugins
+const processPath = path.resolve(__dirname, `plugins/${PLUGIN}`);
+process.chdir(processPath);
+
+// supported languages
 const LANGUAGES = ['en', 'ja', 'ko', 'zh', 'es', 'fr'];
 const resolveLocale = (dirName: string, ns: string) =>
   LANGUAGES.map((lang) => ({
@@ -16,16 +26,11 @@ const resolveLocale = (dirName: string, ns: string) =>
     to: `locales/${lang}/${ns}.[ext]`,
   }));
 
+// supported NODE_ENV: production/development
 const NODE_ENV = (process.env.NODE_ENV ||
   'development') as webpack.Configuration['mode'];
-const PLUGIN = process.env.PLUGIN;
+const isProduction = NODE_ENV === 'production';
 const OPENSHIFT_CI = process.env.OPENSHIFT_CI;
-
-if (PLUGIN === undefined) {
-  process.exit(1);
-}
-const processPath = path.resolve(__dirname, `plugins/${PLUGIN}`);
-process.chdir(processPath);
 
 const config: webpack.Configuration & DevServerConfiguration = {
   context: __dirname,
@@ -33,28 +38,12 @@ const config: webpack.Configuration & DevServerConfiguration = {
   entry: {},
   output: {
     path: path.resolve('./dist'),
-    filename: '[name]-bundle.js',
-    chunkFilename: '[name]-chunk.js',
+    filename: '[name].bundle.[contenthash:8].js',
+    chunkFilename: '[name].[contenthash:8].js',
   },
   ignoreWarnings: [(warning) => !!warning?.file?.includes('shared module')],
   watchOptions: {
     ignored: ['node_modules', 'dist'],
-  },
-  devServer: {
-    port: 9001,
-    devMiddleware: {
-      writeToDisk: true,
-    },
-    headers: {
-      'Cache-Control': 'no-store',
-    },
-    static: ['dist'],
-  },
-  resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx'],
-    alias: {
-      '@odf/shared': path.resolve(__dirname, './packages/shared/src/'),
-    },
   },
   module: {
     rules: [
@@ -86,7 +75,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
           {
             loader: 'thread-loader',
             options: {
-              ...(NODE_ENV === 'development'
+              ...(!isProduction
                 ? { poolTimeout: Infinity, poolRespawn: false }
                 : OPENSHIFT_CI
                 ? {
@@ -153,13 +142,34 @@ const config: webpack.Configuration & DevServerConfiguration = {
       cwd: process.cwd(),
     }),
   ],
-  devtool: 'eval-cheap-module-source-map',
+  // 'source-map' is recommended choice for production builds, A full SourceMap is emitted as a separate file.
+  // 'eval-source-map' is recommended for development but 'eval-cheap-module-source-map' is faster and gives better result.
+  devtool: isProduction ? 'source-map' : 'eval-cheap-module-source-map',
   optimization: {
-    chunkIds: 'named',
+    // 'deterministic' Good for long term caching.
+    // 'named' Readable ids for better debugging.
+    chunkIds: isProduction ? 'deterministic' : 'named',
+  },
+  devServer: {
+    port: 9001,
+    // Allow bridge running in a container to connect to the plugin dev server.
+    allowedHosts: 'all',
+    devMiddleware: {
+      writeToDisk: true,
+    },
+    static: ['dist'],
+    // Enable gzip compression for dev server
+    compress: true,
+  },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    alias: {
+      '@odf/shared': path.resolve(__dirname, './packages/shared/src/'),
+    },
   },
 };
 
-if (NODE_ENV === 'production' || process.env.DEV_NO_TYPE_CHECK !== 'true') {
+if (isProduction || process.env.DEV_NO_TYPE_CHECK !== 'true') {
   config.plugins?.push(
     new ForkTsCheckerWebpackPlugin({
       issue: {
