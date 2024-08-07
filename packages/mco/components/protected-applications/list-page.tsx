@@ -268,6 +268,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
         const kubeObjectLastProtectionTime =
           app?.status?.lastKubeObjectProtectionTime;
         acc[getName(app)] = {
+          volumeReplicationType: getReplicationType(volumesSchedulingInterval),
           volumeReplicationStatus: getReplicationHealth(
             volumesLastSyncTime,
             volumesSchedulingInterval,

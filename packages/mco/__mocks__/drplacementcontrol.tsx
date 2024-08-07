@@ -1,7 +1,7 @@
 import { getName } from '@odf/shared/selectors';
 import { LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION } from '../constants';
 import { DRPlacementControlModel } from '../models';
-import { DRPlacementControlKind } from '../types';
+import { DRPlacementControlKind, Progression } from '../types';
 import { createRefFromK8Resource } from '../utils';
 import { mockDRClusterEast1 } from './drcluster';
 import { mockDRPolicy1 } from './drpolicy';
@@ -38,6 +38,7 @@ export const mockDRPC1: DRPlacementControlKind = {
       },
     ],
     phase: 'Deployed',
+    progression: Progression.WaitOnUserToCleanUp,
     lastGroupSyncTime: '2023-06-06T17:50:56Z',
   },
 };
