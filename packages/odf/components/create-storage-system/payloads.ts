@@ -7,6 +7,7 @@ import {
   NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
   NOOBA_EXTERNAL_PG_SECRET_NAME,
 } from '@odf/shared/constants';
+import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import {
   StorageClusterModel,
   ODFStorageSystem,
@@ -221,7 +222,8 @@ export const labelNodes = async (
   nodes: WizardNodeState[],
   namespace: string
 ) => {
-  const labelPath = `/metadata/labels/cluster.ocs.openshift.io~1${namespace}`;
+  // ToDo (epic 4422): Use StorageSystem namespace once we support multiple internal clusters
+  const labelPath = `/metadata/labels/cluster.ocs.openshift.io~1${DEFAULT_STORAGE_NAMESPACE}`;
   const storageLabel = cephStorageLabel(namespace);
   const patch: Patch[] = [
     {
