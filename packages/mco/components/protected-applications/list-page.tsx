@@ -282,6 +282,7 @@ export const ProtectedApplicationsListPage: React.FC = () => {
           kubeObjectLastProtectionTime: formatTime(
             kubeObjectLastProtectionTime
           ),
+          replicationType,
         };
 
         return acc;
