@@ -38,6 +38,7 @@ export const mockDRPC1: DRPlacementControlKind = {
       },
     ],
     phase: 'Deployed',
+    progression: 'WaitOnUserToCleanUp',
     lastGroupSyncTime: '2023-06-06T17:50:56Z',
   },
 };

@@ -82,6 +82,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
       };
     };
     phase: string;
+    progression?: string;
     // The time of the most recent successful synchronization of all PVCs.
     lastGroupSyncTime?: string;
     preferredDecision?: {
