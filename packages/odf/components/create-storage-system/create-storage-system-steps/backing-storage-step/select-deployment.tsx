@@ -14,10 +14,17 @@ import { FormGroup } from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './backing-storage-step.scss';
 
-const options = (isFDF: boolean) => [
-  DeploymentType.FULL,
-  ...(isFDF ? [DeploymentType.PROVIDER_MODE] : []),
-  DeploymentType.MCG,
+const options = (t: TFunction, isFDF: boolean) => [
+  { value: DeploymentType.FULL, label: t('Full deployment') },
+  ...(isFDF
+    ? [
+        {
+          value: DeploymentType.PROVIDER_MODE,
+          label: t(DeploymentType.PROVIDER_MODE),
+        },
+      ]
+    : []),
+  { value: DeploymentType.MCG, label: t('MultiCloud Object Gateway') },
 ];
 
 const optionsDescription = (t: TFunction) => ({
@@ -57,12 +64,14 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
     isExpanded: boolean
   ) => setIsSelectOpen(isExpanded);
 
-  const selectOptions = options(isFDF).map((option) => (
+  const selectOptions = options(t, isFDF).map((option) => (
     <SelectOption
-      key={option}
-      value={option}
-      description={descriptions[option]}
-    />
+      key={option.value}
+      value={option.value}
+      description={descriptions[option.value]}
+    >
+      {option.label}
+    </SelectOption>
   ));
 
   return (
