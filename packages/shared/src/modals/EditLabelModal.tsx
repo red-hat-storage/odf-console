@@ -4,6 +4,7 @@ import {
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import {
   Button,
@@ -29,6 +30,11 @@ type Patch = {
 
 const LABELS_PATH = '/metadata/labels';
 
+export const getLabelValidationMessage = (t: TFunction) =>
+  t(
+    'Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers, dots (.), hyphens (-), forward slash (/), underscore(_) and equal to (=)'
+  );
+
 type EditLabelModalExtraProps = {
   resource: K8sResourceCommon;
   resourceModel: K8sModel;
@@ -43,7 +49,7 @@ export const arrayify = (obj) => _.map(obj, (v, k) => (v ? `${k}=${v}` : k));
 export const objectify = (arr) => {
   const result = {};
   _.each(arr, (item) => {
-    const [key, value = null] = item.split('=');
+    const [key, value = ''] = item.split('=');
     result[key] = value;
   });
   return result;
@@ -59,7 +65,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
     arrayify(_.get(resource, LABELS_PATH.split('/').slice(1)))
   );
   const [loading, setLoading] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState();
+  const [errorMessage, setErrorMessage] = React.useState('');
   const [errorTitle, setErrorTitle] = React.useState();
   const [errorVariant, setErrorVariant] = React.useState<AlertVariant>();
 
@@ -113,11 +119,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
     } else {
       setErrorTitle(t('Invalid label name'));
       // https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
-      setErrorMessage(
-        t(
-          'Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers, dots (.), hyphens (-), forward slash (/), underscore(_) and equal to (=)'
-        )
-      );
+      setErrorMessage(getLabelValidationMessage(t));
       setErrorVariant(AlertVariant.warning);
     }
   };

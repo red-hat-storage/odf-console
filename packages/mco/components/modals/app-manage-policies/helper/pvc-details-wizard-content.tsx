@@ -10,6 +10,7 @@ import { SearchResult } from '@odf/mco/types';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { StatusBox } from '@odf/shared/generic/status-box';
+import { getLabelValidationMessage } from '@odf/shared/modals/EditLabelModal';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
@@ -18,7 +19,11 @@ import {
   LazyNameValueEditor,
   NameValueEditorPair,
 } from '@odf/shared/utils/NameValueEditor';
-import { SelectOption, SelectVariant } from '@patternfly/react-core/deprecated';
+import {
+  SelectOption,
+  SelectVariant,
+  SelectPosition,
+} from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import {
   Button,
@@ -27,6 +32,7 @@ import {
   Text,
   Grid,
   GridItem,
+  Popover,
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
 import { queryAppWorkloadPVCs } from '../../../../utils/acm-search-quries';
@@ -38,6 +44,7 @@ import {
   PVCSelectorType,
 } from '../utils/reducer';
 import { PlacementType } from '../utils/types';
+import { isValidLabelInput } from './assign-policy-view-footer';
 import '../../../../style.scss';
 import '../style.scss';
 
@@ -93,10 +100,16 @@ const getLabelsDropdownOptions = (
   labels: string[],
   tags: TagsType,
   currIndex: number
-) => {
+): JSX.Element[] => {
   // Display labels names except selected from other indexes
   const selectedLabels = getLabelsFromTags(tags, currIndex);
-  return labels.filter((name) => !selectedLabels.includes(name));
+  return labels.reduce(
+    (acc, name) =>
+      !selectedLabels.includes(name)
+        ? [...acc, <SelectOption key={name} value={name} />]
+        : acc,
+    []
+  );
 };
 
 const getPVCSelectors = (
@@ -167,7 +180,6 @@ const PairElement: React.FC<PairElementProps> = ({
     <Grid hasGutter>
       <GridItem lg={5} sm={5}>
         <FormGroup hasNoPaddingTop isRequired>
-          {/* Add validation */}
           <SingleSelectDropdown
             id="placement-selection-dropdown"
             selectedKey={selectedPlacement}
@@ -189,17 +201,11 @@ const PairElement: React.FC<PairElementProps> = ({
 
       <GridItem lg={5} sm={5}>
         <FormGroup hasNoPaddingTop isRequired>
-          {/* Add validation */}
           <MultiSelectDropdown
             id="labels-selection-dropdown"
             selections={selectedLabels}
             onChange={onChangeValue}
-            options={
-              // Display labels only after placement is selected
-              !!selectedPlacement
-                ? getLabelsDropdownOptions(labels, tags, index)
-                : []
-            }
+            selectOptions={getLabelsDropdownOptions(labels, tags, index)}
             placeholderText={
               !!selectedLabels?.length
                 ? t('{{count}} selected', { count: selectedLabels?.length })
@@ -208,9 +214,12 @@ const PairElement: React.FC<PairElementProps> = ({
             variant={SelectVariant.checkbox}
             required
             validated={getValidatedProp(
-              isValidationEnabled && !selectedLabels?.length
+              isValidationEnabled && !isValidLabelInput(selectedLabels, false)
             )}
             isDisabled={isDisabled}
+            position={SelectPosition.right}
+            isCreatable
+            hasInlineFilter
           />
         </FormGroup>
       </GridItem>
@@ -284,8 +293,16 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
         <FormGroup>
           <Text>
             {t(
-              'Use PVC label selectors to effortlessly specify the application resources that need protection.'
+              'Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information, '
             )}
+            <Popover
+              aria-label={t('Help')}
+              bodyContent={getLabelValidationMessage(t)}
+            >
+              <Button aria-label={t('Help')} variant="link" isInline>
+                {t('see PVC label selector requirements.')}
+              </Button>
+            </Popover>
           </Text>
         </FormGroup>
         {loaded && !error ? (
