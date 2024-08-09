@@ -68,6 +68,7 @@ module.exports = {
     'default-case': 'off',
     'global-require': 'off',
     'implicit-arrow-linebreak': 'off',
+    camelcase: ['error', { allow: ['pfV5', 'pfM'] }],
     'import/no-extraneous-dependencies': [
       'error',
       {
