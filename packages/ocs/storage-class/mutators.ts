@@ -44,25 +44,8 @@ export const addReclaimSpaceAnnotation = (sc: StorageClass): StorageClass => {
   return sc;
 };
 
-export const addEncryptionKeyRotationAnnotation = (
-  sc: StorageClass
-): StorageClass => {
-  if (
-    sc?.parameters?.hasOwnProperty('encrypted') &&
-    sc?.parameters?.['encrypted'] === 'true'
-  ) {
-    sc.metadata.annotations = {
-      ...getAnnotations(sc, {}),
-      'keyrotation.csiaddons.openshift.io/schedule': '@weekly',
-    };
-  }
-
-  return sc;
-};
-
 export const addRBDAnnotations = (sc: StorageClass): StorageClass => {
   sc = addKubevirtAnnotations(sc);
   sc = addReclaimSpaceAnnotation(sc);
-  sc = addEncryptionKeyRotationAnnotation(sc);
   return sc;
 };
