@@ -53,7 +53,7 @@ export const RequestSizeInput: React.FC<RequestSizeInputProps> = ({
   testID,
   unitText,
 }) => {
-  const parsedRequestSizeValue = parseInt(defaultRequestSizeValue, 10);
+  const parsedRequestSizeValue = parseInt(String(defaultRequestSizeValue), 10);
   const defaultValue = Number.isFinite(parsedRequestSizeValue)
     ? parsedRequestSizeValue
     : null;
@@ -62,7 +62,7 @@ export const RequestSizeInput: React.FC<RequestSizeInputProps> = ({
 
   const onValueChange: React.ReactEventHandler<HTMLInputElement> = (event) => {
     setValue(parseInt(event.currentTarget.value, 10));
-    onChange({ value: event.currentTarget.value, unit });
+    onChange({ value: parseInt(event.currentTarget.value, 10), unit });
   };
 
   const changeValueBy = (changeBy: number) => {
@@ -121,7 +121,7 @@ export type RequestSizeInputProps = {
   required?: boolean;
   dropdownUnits: any;
   defaultRequestSizeUnit: string;
-  defaultRequestSizeValue: string;
+  defaultRequestSizeValue: string | number;
   describedBy?: string;
   step?: number;
   minValue?: number;
