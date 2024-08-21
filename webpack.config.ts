@@ -20,7 +20,7 @@ const NODE_ENV = (process.env.NODE_ENV ||
   'development') as webpack.Configuration['mode'];
 const PLUGIN = process.env.PLUGIN;
 const OPENSHIFT_CI = process.env.OPENSHIFT_CI;
-const isProduction = NODE_ENV === 'production';
+const IS_PRODUCTION = NODE_ENV === 'production';
 
 if (PLUGIN === undefined) {
   process.exit(1);
@@ -87,7 +87,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
           {
             loader: 'thread-loader',
             options: {
-              ...(!isProduction
+              ...(!IS_PRODUCTION
                 ? { poolTimeout: Infinity, poolRespawn: false }
                 : OPENSHIFT_CI
                 ? {
@@ -154,15 +154,14 @@ const config: webpack.Configuration & DevServerConfiguration = {
       cwd: process.cwd(),
     }),
   ],
-  // 'source-map' is recommended choice for production builds, A full SourceMap is emitted as a separate file.
   // 'eval-source-map' is recommended for development but 'eval-cheap-module-source-map' is faster and gives better result.
-  devtool: isProduction ? 'source-map' : 'eval-cheap-module-source-map',
+  ...(!IS_PRODUCTION ? { devtool: 'eval-cheap-module-source-map' } : {}),
   optimization: {
     chunkIds: 'named',
   },
 };
 
-if (isProduction || process.env.DEV_NO_TYPE_CHECK !== 'true') {
+if (IS_PRODUCTION || process.env.DEV_NO_TYPE_CHECK !== 'true') {
   config.plugins?.push(
     new ForkTsCheckerWebpackPlugin({
       issue: {
