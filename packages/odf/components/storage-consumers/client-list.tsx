@@ -51,8 +51,8 @@ const tableColumns = [
     id: 'name',
   },
   {
-    className: '',
-    id: 'clusterID',
+    className: 'pf-m-width-20',
+    id: 'clusterName',
   },
   {
     className: '',
@@ -96,8 +96,8 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
         id: tableColumns[0].id,
       },
       {
-        title: t('Cluster ID'),
-        sort: 'status.client.clusterId',
+        title: t('Cluster name (ID)'),
+        sort: 'status.client.clusterName',
         props: {
           className: tableColumns[1].className,
         },
@@ -268,7 +268,9 @@ const StorageClientRow: React.FC<
         {obj?.status?.client?.name || '-'}
       </TableData>
       <TableData {...tableColumns[1]} activeColumnIDs={activeColumnIDs}>
-        {obj?.status?.client?.clusterId || '-'}
+        {`${obj?.status?.client?.clusterName || '-'} (${
+          obj?.status?.client?.clusterId || '-'
+        })`}
       </TableData>
       <TableData {...tableColumns[2]} activeColumnIDs={activeColumnIDs}>
         {getOpenshiftVersion(obj) || '-'}
