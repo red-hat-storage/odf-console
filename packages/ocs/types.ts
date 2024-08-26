@@ -14,6 +14,7 @@ export enum ImageStates {
 
 export type StoragePoolKind = K8sResourceCommon & {
   spec: DataPool & {
+    enableCrushUpdates?: boolean;
     deviceClass?: string;
     failureDomain?: string;
     parameters?: {

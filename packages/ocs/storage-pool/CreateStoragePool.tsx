@@ -97,6 +97,8 @@ export const getPoolKindObj = (
   },
   spec: {
     compressionMode: state.isCompressed ? COMPRESSION_ON : 'none',
+    // without explicit "true" Rook will not allow updating CRUSH Rules ("deviceClass" will not be set)
+    enableCrushUpdates: true,
     deviceClass: deviceClass,
     failureDomain: state.failureDomain,
     parameters: {
