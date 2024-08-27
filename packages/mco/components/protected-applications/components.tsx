@@ -333,6 +333,7 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
 
 export const EventsDetails: React.FC<ExpandableComponentProps> = ({
   application,
+  syncStatusInfo,
 }) => {
   const { t } = useCustomTranslation();
   const anyOnGoingEvent =
@@ -343,7 +344,8 @@ export const EventsDetails: React.FC<ExpandableComponentProps> = ({
     application.spec?.failoverCluster,
     application.spec?.preferredCluster,
     t,
-    isCleanupPending(application)
+    isCleanupPending(application),
+    syncStatusInfo.volumeReplicationType
   );
   const status = [
     <StatusIconAndText icon={activity.icon} title={activity.status} />,

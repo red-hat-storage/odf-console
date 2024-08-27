@@ -82,6 +82,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
       };
     };
     phase: string;
+    progression?: Progression;
     // The time of the most recent successful synchronization of all PVCs.
     lastGroupSyncTime?: string;
     preferredDecision?: {
@@ -124,3 +125,18 @@ export type DRVolumeReplicationGroupKind = K8sResourceCommon & {
     lastGroupSyncTime?: string;
   };
 };
+
+export enum Progression {
+  Completed = 'Completed',
+  Initial = 'Initial',
+  Deploying = 'Deploying',
+  Deployed = 'Deployed',
+  FailingOver = 'FailingOver',
+  Relocating = 'Relocating',
+  FailedOver = 'FailedOver',
+  FailedToFailover = 'FailedToFailover',
+  WaitOnUserToCleanUp = 'WaitOnUserToCleanUp',
+  CleaningUp = 'CleaningUp',
+  FailedToRelocate = 'FailedToRelocate',
+  WaitForUserAction = 'WaitForUserAction',
+}
