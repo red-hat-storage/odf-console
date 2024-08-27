@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { NOOBAA_PROVISIONER } from '@odf/core/constants';
 import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { getName } from '@odf/shared/selectors';
@@ -6,13 +7,21 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
 import * as Yup from 'yup';
 import { NooBaaObjectBucketClaimModel } from '../../models';
+import { State } from './state';
 
 export type UseObcBaseSchema = {
-  obcNameSchema: Yup.ObjectSchema<{ obcName: Yup.StringSchema }>;
+  obcFormSchema: Yup.ObjectSchema<{
+    obcName: Yup.StringSchema;
+    'sc-dropdown': Yup.StringSchema;
+    bucketclass: Yup.StringSchema;
+  }>;
   fieldRequirements: string[];
 };
 
-const useObcNameSchema = (namespace?: string): UseObcBaseSchema => {
+const useObcFormSchema = (
+  namespace: string,
+  state: State
+): UseObcBaseSchema => {
   const { t } = useCustomTranslation();
   const [data, loaded, loadError] = useK8sList(
     NooBaaObjectBucketClaimModel,
@@ -22,6 +31,8 @@ const useObcNameSchema = (namespace?: string): UseObcBaseSchema => {
   return React.useMemo(() => {
     const existingNames =
       loaded && !loadError ? data?.map((dataItem) => getName(dataItem)) : [];
+
+    const isNoobaa = state.scProvisioner?.includes(NOOBAA_PROVISIONER);
 
     const fieldRequirements = [
       fieldRequirementsTranslations.maxChars(t, 253),
@@ -50,8 +61,16 @@ const useObcNameSchema = (namespace?: string): UseObcBaseSchema => {
         .transform((value: string) => (!!value ? value : undefined)),
     });
 
-    return { obcNameSchema, fieldRequirements };
-  }, [data, loadError, loaded, t]);
+    const obcFormSchema = Yup.object({
+      'sc-dropdown': Yup.string().required(),
+      bucketclass: Yup.string().when('sc-dropdown', {
+        is: (value: string) => !!value && isNoobaa,
+        then: (schema: Yup.StringSchema) => schema.required(),
+      }),
+    }).concat(obcNameSchema);
+
+    return { obcFormSchema, fieldRequirements };
+  }, [data, loadError, loaded, state.scProvisioner, t]);
 };
 
-export default useObcNameSchema;
+export default useObcFormSchema;
