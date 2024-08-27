@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { NOOBAA_PROVISIONER } from '@odf/core/constants';
 import { BucketClassKind, ObjectBucketClaimKind } from '@odf/core/types';
 import {
   createNewObjectBucketClaim,
@@ -28,7 +29,6 @@ import * as _ from 'lodash-es';
 import { Helmet } from 'react-helmet';
 import { Control, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import * as Yup from 'yup';
 import {
   ActionGroup,
   Button,
@@ -60,7 +60,7 @@ import {
 } from './state';
 import './create-obc.scss';
 import '../../style.scss';
-import useObcNameSchema from './useObcNameSchema';
+import useObcFormSchema from './useObcFormSchema';
 
 const storageClassResource = {
   kind: StorageClassModel.kind,
@@ -82,8 +82,6 @@ type CreateOBCFormProps = {
   control: Control;
   fieldRequirements: string[];
 };
-
-export const NB_PROVISIONER = 'noobaa.io/obc';
 
 const createReplicationRulesAndStringify = (
   data: ReplicationRuleFormData[],
@@ -145,7 +143,7 @@ const generateAdditionalReplicationResources = (
 export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   const { t } = useCustomTranslation();
   const { state, dispatch, namespace, control, fieldRequirements } = props;
-  const isNoobaa = state.scProvisioner?.includes(NB_PROVISIONER);
+  const isNoobaa = state.scProvisioner?.includes(NOOBAA_PROVISIONER);
 
   const { odfNamespace } = useODFNamespaceSelector();
 
@@ -288,6 +286,9 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
             onSelect={(res) => onScChange(res, onChange)}
             onBlur={onBlur}
             filterResource={filterResource}
+            initialSelection={(resources) =>
+              resources?.find((res) => getName(res) === state.scName)
+            }
             className="odf-mcg__resource-dropdown"
             id="sc-dropdown"
             data-test="sc-dropdown"
@@ -373,18 +374,12 @@ export const CreateOBCPage: React.FC<{}> = () => {
   const initialNamespace = React.useRef<string>(namespace);
   const submitBtnId = 'obc-submit-btn';
   const navigate = useNavigate();
-  const isNoobaa = state.scProvisioner?.includes(NB_PROVISIONER);
-  const { obcNameSchema, fieldRequirements } = useObcNameSchema(namespace);
+  const { obcFormSchema, fieldRequirements } = useObcFormSchema(
+    namespace,
+    state
+  );
 
-  const schema = Yup.object({
-    'sc-dropdown': Yup.string().required(),
-    bucketclass: Yup.string().when('sc-dropdown', {
-      is: (value: string) => !!value && isNoobaa,
-      then: (schema: Yup.StringSchema) => schema.required(),
-    }),
-  }).concat(obcNameSchema);
-
-  const resolver = useYupValidationResolver(schema);
+  const resolver = useYupValidationResolver(obcFormSchema);
 
   const {
     control,
