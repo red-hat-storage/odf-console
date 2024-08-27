@@ -31,16 +31,15 @@ import { NooBaaObjectBucketClaimModel } from '../../models';
 import { getAttachOBCPatch } from '../../utils';
 import { CreateOBCForm } from '../mcg/CreateObjectBucketClaim';
 import { commonReducer, defaultState } from '../mcg/state';
-import './AttachOBC.scss';
 import '../../style.scss';
-import useObcNameSchema from '../mcg/useObcNameSchema';
+import useObcFormSchema from '../mcg/useObcFormSchema';
 
 const AttachStorage: React.FC<AttachStorageProps> = (props) => {
   const navigate = useNavigate();
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
-  const [createOBC, setCreateOBC] = React.useState(false);
-  const [selectedOBC, setSelectedOBC] = React.useState(null);
+  const [createOBC, setCreateOBC] = React.useState<boolean>(false);
+  const [selectedOBC, setSelectedOBC] = React.useState<string>(null);
   const { kindObj, namespace, resourceName } = props;
 
   const [deployment, loaded, loadError] = useK8sGet<DeploymentKind>(
@@ -49,26 +48,39 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
     namespace
   );
 
-  const { obcNameSchema, fieldRequirements } = useObcNameSchema(namespace);
+  const { obcFormSchema, fieldRequirements } = useObcFormSchema(
+    namespace,
+    state
+  );
 
-  const schema = Yup.object({
-    exists: Yup.string().required(),
-  }).concat(obcNameSchema);
+  const schema = !createOBC
+    ? Yup.object({
+        existing: Yup.string().required(),
+      })
+    : obcFormSchema;
 
   const resolver = useYupValidationResolver(schema);
 
   const {
     control,
     handleSubmit,
+    watch,
     formState: { isValid, isSubmitted },
   } = useForm({ ...formSettings, resolver });
 
-  const onSubmit = async (e: { preventDefault: () => void }) => {
+  const obcName: string = watch('obcName');
+  React.useEffect(() => {
+    if (createOBC) {
+      dispatch({ type: 'setName', name: obcName });
+    }
+  }, [obcName, createOBC, dispatch]);
+
+  const onSubmit = async (_unused, e: { preventDefault: () => void }) => {
     e.preventDefault();
     try {
       let obc = selectedOBC;
+      dispatch({ type: 'setProgress' });
       if (createOBC) {
-        dispatch({ type: 'setProgress' });
         const obj = await k8sCreate({
           model: NooBaaObjectBucketClaimModel,
           data: state.payload,
@@ -81,7 +93,6 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
         resource: deployment,
         data: patch,
       });
-      dispatch({ type: 'unsetProgress' });
       navigate(
         `${resourcePathFromModel(
           DeploymentModel,
@@ -102,47 +113,48 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
       onSubmit={handleSubmit(onSubmit)}
       className="odf-m-pane__body-group odf-m-pane__form"
     >
-      <FormGroupController
-        control={control}
-        name="exists"
-        formGroupProps={{
-          fieldId: 'exists',
-          label: t('ObjectBucketClaim'),
-          isRequired: true,
-        }}
-        render={({ onChange, onBlur }) => (
-          <>
-            <Radio
-              label={t('Use existing claim')}
-              value="exists"
-              key="exists"
-              onChange={(_event, checked: boolean) => {
-                onRadioToggle();
-                onChange(checked);
-              }}
-              onBlur={onBlur}
-              id="exists"
-              name="exists"
-              isChecked={!createOBC}
-            />
-            {!createOBC && (
-              <div className="odf-attach-obc__subgroup">
-                <ResourceDropdown
-                  resourceModel={NooBaaObjectBucketClaimModel}
-                  resource={{
-                    kind: referenceForModel(NooBaaObjectBucketClaimModel),
-                    namespace,
-                    namespaced: true,
-                    isList: true,
-                  }}
-                  onSelect={(item) => setSelectedOBC(item)}
-                />
-              </div>
+      <FormGroup fieldId="attach-obc">
+        <Radio
+          label={t('Use existing claim')}
+          value="exists"
+          key="exists"
+          onChange={onRadioToggle}
+          id="exists"
+          name="exists"
+          isChecked={!createOBC}
+        />
+        {!createOBC && (
+          <FormGroupController
+            control={control}
+            name="existing"
+            formGroupProps={{
+              fieldId: 'existing',
+              label: t('ObjectBucketClaim'),
+              isRequired: true,
+              className: 'pf-v5-u-ml-lg',
+            }}
+            render={({ onChange }) => (
+              <ResourceDropdown
+                id="existing"
+                initialSelection={(resources) =>
+                  resources?.find((res) => getName(res) === selectedOBC)
+                }
+                resourceModel={NooBaaObjectBucketClaimModel}
+                resource={{
+                  kind: referenceForModel(NooBaaObjectBucketClaimModel),
+                  namespace,
+                  namespaced: true,
+                  isList: true,
+                }}
+                onSelect={(item) => {
+                  const name = getName(item);
+                  setSelectedOBC(name);
+                  onChange(name);
+                }}
+              />
             )}
-          </>
+          />
         )}
-      />
-      <FormGroup fieldId="create">
         <Radio
           label={t('Create new claim')}
           value="create"
@@ -151,9 +163,10 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
           id="create"
           name="create"
           isChecked={createOBC}
+          className="pf-v5-u-mt-sm"
         />
         {createOBC && (
-          <div className="ceph-attach-obc__subgroup">
+          <div className="pf-v5-u-ml-lg">
             <CreateOBCForm
               state={state}
               dispatch={dispatch}
@@ -179,7 +192,7 @@ const AttachStorage: React.FC<AttachStorageProps> = (props) => {
           <Button
             type="submit"
             variant="primary"
-            disabled={loadError || !loaded}
+            isDisabled={loadError || !loaded || state.progress}
           >
             {t('Create')}
           </Button>
