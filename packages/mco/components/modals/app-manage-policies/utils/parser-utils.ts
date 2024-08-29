@@ -6,12 +6,14 @@ import {
   DRPolicyKind,
 } from '@odf/mco/types';
 import {
+  convertExpressionToLabel,
   getReplicationType,
   isDRPolicyValidated,
   matchClusters,
 } from '@odf/mco/utils';
 import { getLatestDate } from '@odf/shared/details-page/datetime';
 import { arrayify } from '@odf/shared/modals/EditLabelModal';
+import { Selector } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
   ApplicationType,
@@ -19,6 +21,11 @@ import {
   DRInfoType,
   PlacementType,
 } from './types';
+
+const getPVCSelector = (pvcSelector: Selector): string[] => {
+  const { matchLabels, matchExpressions } = pvcSelector;
+  return convertExpressionToLabel(matchExpressions) || arrayify(matchLabels);
+};
 
 const getDRPolicyInfo = (drPolicy: DRPolicyKind, assignedOn?: string) =>
   !_.isEmpty(drPolicy)
@@ -72,7 +79,7 @@ export const generateDRPlacementControlInfo = (
           metadata: drpc.metadata,
           drPolicyRef: drpc.spec.drPolicyRef,
           placementInfo: plsInfo,
-          pvcSelector: arrayify(drpc?.spec.pvcSelector.matchLabels) || [],
+          pvcSelector: getPVCSelector(drpc.spec.pvcSelector),
           lastGroupSyncTime: drpc?.status?.lastGroupSyncTime,
         },
       ]
