@@ -10,6 +10,7 @@ import {
 } from '@odf/shared/status/icons';
 import { sortRows, referenceForModel } from '@odf/shared/utils';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import { NavigateFunction } from 'react-router-dom-v5-compat';
 import {
@@ -246,6 +247,15 @@ export const getRowActions = (
   },
   {
     title: t('Remove disaster recovery'),
+    ...(_.has(rowItem.metadata, 'deletionTimestamp')
+      ? {
+          isAriaDisabled: true,
+          tooltipProps: {
+            content: t('Resource is being deleted.'),
+            trigger: 'mouseenter',
+          },
+        }
+      : {}),
     onClick: () =>
       launcher(RemoveDisasterRecoveryModal, {
         isOpen: true,

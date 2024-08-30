@@ -49,6 +49,9 @@ import {
 } from './utils/types';
 import './style.scss';
 
+const isDRProtectionRemoved = (drpcs: DRPlacementControlType[]) =>
+  drpcs.every((drpc) => _.has(drpc.metadata, 'deletionTimestamp'));
+
 const checkNamespaceProtected = (
   workloadNamespace: string,
   eligiblePolicies: DRPolicyKind[],
@@ -389,6 +392,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
             id="disable-dr-action"
             variant={ButtonVariant.secondary}
             isDanger
+            isDisabled={isDRProtectionRemoved(drInfo.placementControlInfo)}
             onClick={() =>
               setLocalModalActionContext(
                 ModalActionContext.DISABLE_DR_PROTECTION
