@@ -10,8 +10,7 @@ import {
   PROTECTED_APP_ANNOTATION_WO_SLASH,
 } from '@odf/mco/constants';
 import { DRPlacementControlKind } from '@odf/mco/types';
-import { matchClusters } from '@odf/mco/utils';
-import { objectify } from '@odf/shared/modals/EditLabelModal';
+import { convertLabelToExpression, matchClusters } from '@odf/mco/utils';
 import {
   getAPIVersion,
   getAnnotations,
@@ -59,7 +58,7 @@ export const getDRPCKindObj = (
     },
     preferredCluster: matchClusters(drClusterNames, decisionClusters),
     pvcSelector: {
-      matchLabels: objectify(pvcSelectors),
+      matchExpressions: convertLabelToExpression(pvcSelectors),
     },
   },
 });
