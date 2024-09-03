@@ -4,15 +4,22 @@ import {
   AssignPolicySteps,
   AssignPolicyStepsNames,
 } from '@odf/mco/constants';
+import { requirementFromString } from '@odf/shared/modals';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { Operator } from '@openshift-console/dynamic-plugin-sdk';
 import {
   WizardContextType,
   WizardContext,
   WizardFooter,
 } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'i18next';
-import { Button, Alert, AlertVariant } from '@patternfly/react-core';
+import {
+  Button,
+  Alert,
+  AlertVariant,
+  AlertProps,
+} from '@patternfly/react-core';
 import {
   AssignPolicyViewState,
   ModalActionContext,
@@ -22,9 +29,31 @@ import { DRPolicyType } from '../utils/types';
 import '../../../../style.scss';
 import '../style.scss';
 
+export const getLabelValidationMessage = (t: TFunction) =>
+  t(
+    'Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers, dots (.), hyphens (-), forward slash (/), underscore(_) and equal to (=)'
+  );
+
+export const isValidLabelInput = (labels: string[] = []): boolean =>
+  labels.length
+    ? labels.every((label) => {
+        const requirement = requirementFromString(label);
+        // "key" or "key=value" is supported
+        return (
+          !!requirement &&
+          [Operator.Equals, Operator.Exists].includes(
+            requirement?.operator as Operator
+          )
+        );
+      })
+    : false;
+
 const isPVCSelectorFound = (pvcSelectors: PVCSelectorType[]) =>
   !!pvcSelectors.length &&
-  !!pvcSelectors.every((pvcSelector) => !!pvcSelector.labels?.length);
+  !!pvcSelectors.every(
+    (pvcSelector) =>
+      !!pvcSelector.placementName && isValidLabelInput(pvcSelector.labels)
+  );
 
 const isDRPolicySelected = (dataPolicy: DRPolicyType) => !!getName(dataPolicy);
 
@@ -40,6 +69,45 @@ const canJumpToNextStep = (
       return isPVCSelectorFound(state.persistentVolumeClaim.pvcSelectors);
     default:
       return false;
+  }
+};
+
+const getErrorMessage = (
+  state: AssignPolicyViewState,
+  stepName: string,
+  errorMessage: string,
+  t: TFunction
+): AlertProps => {
+  const defualtMessage = {
+    title: t(
+      '1 or more mandatory fields are empty. To proceed, fill in the required information.'
+    ),
+    variant: AlertVariant.danger,
+  };
+  switch (stepName) {
+    case AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign]:
+      return {
+        title: errorMessage,
+        variant: AlertVariant.danger,
+      };
+    case AssignPolicyStepsNames(t)[AssignPolicySteps.PersistentVolumeClaim]: {
+      const { pvcSelectors } = state.persistentVolumeClaim;
+      const isValidPVCSelector = pvcSelectors.every((pvcSelector) =>
+        pvcSelector.labels.length ? isValidLabelInput(pvcSelector.labels) : true
+      );
+      return !isValidPVCSelector
+        ? {
+            title: t('Invalid label selector'),
+            children: t(
+              "The selected PVC label selector doesn't meet the label requirements. Choose a valid label selector or create one with the following requirements: {{ message }}",
+              { message: getLabelValidationMessage(t) }
+            ),
+            variant: AlertVariant.danger,
+          }
+        : defualtMessage;
+    }
+    default:
+      return defualtMessage;
   }
 };
 
@@ -64,6 +132,9 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
 
   const canJumpToNext = canJumpToNextStep(stepName, state, t);
   const validationError = isValidationEnabled && !canJumpToNext;
+  const message =
+    (validationError || !!errorMessage) &&
+    getErrorMessage(state, stepName, errorMessage, t);
 
   const moveToNextStep = () => {
     if (canJumpToNext) {
@@ -89,26 +160,16 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
 
   return (
     <>
-      {validationError && (
+      {!!message && (
         <Alert
-          title={t(
-            '1 or more mandatory fields are empty. To proceed, fill in the required information.'
-          )}
-          variant={AlertVariant.danger}
+          title={message.title}
+          variant={message.variant}
           isInline
           className="odf-alert mco-manage-policies__alert--margin-left"
-        />
+        >
+          {message?.children}
+        </Alert>
       )}
-      {!!errorMessage &&
-        stepName ===
-          AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign] && (
-          <Alert
-            title={errorMessage}
-            variant={AlertVariant.danger}
-            isInline
-            className="odf-alert mco-manage-policies__alert--margin-left"
-          />
-        )}
       <WizardFooter>
         <Button
           isLoading={requestInProgress}
