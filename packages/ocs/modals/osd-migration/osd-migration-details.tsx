@@ -9,7 +9,7 @@ import {
   StatusIconAndText,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Button } from '@patternfly/react-core';
+import { Button, ButtonVariant } from '@patternfly/react-core';
 import OSDMigrationModal from '../../dashboards/persistent-internal/status-card/osd-migration/osd-migration-modal';
 
 type OSDMigrationDetailsProps = {
@@ -50,7 +50,7 @@ export const OSDMigrationDetails: React.FC<OSDMigrationDetailsProps> = ({
       <div className="pf-v5-l-flex__item">
         {osdMigrationStatus === OSDMigrationStatus.PENDING && (
           <Button
-            variant="link"
+            variant={ButtonVariant.link}
             onClick={() =>
               launcher(OSDMigrationModal, {
                 isOpen: true,
