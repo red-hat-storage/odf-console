@@ -60,7 +60,7 @@
   "dependencies": {
     "@openshift-console/dynamic-plugin-sdk": "1.3.0",
     "@openshift-console/dynamic-plugin-sdk-internal": "1.0.0",
-    "@openshift-console/dynamic-plugin-sdk-webpack": "1.1.0",
+    "@openshift-console/dynamic-plugin-sdk-webpack": "1.1.1",
     "@openshift-console/plugin-shared": "^0.0.1",
     "@patternfly/patternfly": "5.0.2",
     "@patternfly/react-charts": "7.1.0",
@@ -117,7 +117,7 @@
     "typesafe-actions": "^4.2.1",
     "typescript": "^4.8",
     "victory-core": "^35.4.4",
-    "webpack": "5.75.0",
+    "webpack": "5.94.0",
     "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "4.5.x",
     "yup": "^0.32.11"
@@ -174,6 +174,7 @@
   },
   "resolutions": {
     "jest-environment-jsdom/jsdom": "^20.0.3",
+    "webpack": "5.94.0",
     "webpack-bundle-analyzer/ws": "^7.5.10",
     "webpack-dev-server/ws": "^8.18.0",
     "tough-cookie": "^4.1.3"
