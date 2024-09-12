@@ -197,9 +197,7 @@ const OngoingActivity = () => {
   // If migration is complete, the UI remains empty.
   if (
     !isProviderMode &&
-    [OSDMigrationStatus.PENDING, OSDMigrationStatus.IN_PROGRESS].includes(
-      osdMigrationStatus
-    )
+    [OSDMigrationStatus.IN_PROGRESS].includes(osdMigrationStatus)
   ) {
     resourceActivities.push({
       resource: cephCluster,

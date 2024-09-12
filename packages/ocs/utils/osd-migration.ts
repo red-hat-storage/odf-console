@@ -23,7 +23,7 @@ export const getOSDMigrationMetrics = (ceph: CephClusterKind) => {
   const totalOSDCount = blueStoreCount + blueStoreRdrCount;
   const percentageComplete =
     totalOSDCount !== 0
-      ? Math.round((blueStoreCount / totalOSDCount) * 100)
+      ? Math.round((blueStoreRdrCount / totalOSDCount) * 100)
       : 0;
   return {
     blueStoreCount,
@@ -38,13 +38,13 @@ export const getOSDMigrationStatus = (ceph: CephClusterKind) => {
     const bluestoreCount = getBluestoreCount(ceph);
     const bluestoreRdrCount = getBluestoreRdrCount(ceph);
 
-    if (bluestoreRdrCount > 0) {
-      if (bluestoreCount > 0) {
+    if (bluestoreCount > 0) {
+      if (bluestoreRdrCount > 0) {
         return OSDMigrationStatus.IN_PROGRESS;
       } else {
         return OSDMigrationStatus.PENDING;
       }
-    } else if (bluestoreCount > 0) {
+    } else if (bluestoreRdrCount > 0) {
       return OSDMigrationStatus.COMPLETED;
     }
   } else {

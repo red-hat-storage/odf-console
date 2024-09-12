@@ -8,8 +8,8 @@ const cephDataPending: CephClusterKind = {
     storage: {
       osd: {
         storeType: {
-          bluestore: 0,
-          'bluestore-rdr': 5,
+          bluestore: 5,
+          'bluestore-rdr': 0,
         },
       },
     },
@@ -21,8 +21,8 @@ const cephDataInProgress: CephClusterKind = {
     storage: {
       osd: {
         storeType: {
-          bluestore: 3,
-          'bluestore-rdr': 2,
+          bluestore: 2,
+          'bluestore-rdr': 3,
         },
       },
     },
@@ -34,8 +34,8 @@ const cephDataCompleted: CephClusterKind = {
     storage: {
       osd: {
         storeType: {
-          bluestore: 5,
-          'bluestore-rdr': 0,
+          bluestore: 0,
+          'bluestore-rdr': 5,
         },
       },
     },
