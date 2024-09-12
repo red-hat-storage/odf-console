@@ -56,6 +56,7 @@ Cypress.Commands.add('install', () => {
       cy.get('table').get('input[type="checkbox"]').first().check();
       cy.get('button').contains('Next').click();
       cy.get('button').contains('Next').click();
+      cy.get('button').contains('Next').click();
       cy.get('button')
         .contains('Create StorageSystem')
         .as('Create StorageSystem Button');
