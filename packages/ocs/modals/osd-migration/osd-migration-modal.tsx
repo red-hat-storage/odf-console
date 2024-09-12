@@ -6,7 +6,14 @@ import { getName, getNamespace } from '@odf/shared/selectors';
 import { StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
-import { Modal, ModalVariant, Button, Alert } from '@patternfly/react-core';
+import {
+  Modal,
+  ModalVariant,
+  Button,
+  Alert,
+  AlertVariant,
+  ButtonVariant,
+} from '@patternfly/react-core';
 
 export const OSDMigrationModal: React.FC<OSDMigrationModalProps> = ({
   isOpen,
@@ -56,16 +63,28 @@ export const OSDMigrationModal: React.FC<OSDMigrationModalProps> = ({
       )}
       <ModalBody>
         {!!errorMessage && (
-          <Alert isInline variant="danger" title={t('An error occurred')}>
+          <Alert
+            isInline
+            variant={AlertVariant.danger}
+            title={t('An error occurred')}
+          >
             {errorMessage}
           </Alert>
         )}
       </ModalBody>
       <ModalFooter>
-        <Button key="close" variant="secondary" onClick={closeModal}>
+        <Button
+          key="close"
+          variant={ButtonVariant.secondary}
+          onClick={closeModal}
+        >
           {t('Cancel')}
         </Button>
-        <Button key="optimize" variant="primary" onClick={handleOptimize}>
+        <Button
+          key="optimize"
+          variant={ButtonVariant.primary}
+          onClick={handleOptimize}
+        >
           {t('Yes, migrate OSDs')}
         </Button>
       </ModalFooter>
