@@ -242,7 +242,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
     !!state.policyName &&
     !!state.replicationType &&
     state.selectedClusters.length === MAX_ALLOWED_CLUSTERS &&
-    !checkForErrors(state.selectedClusters);
+    !checkForErrors(state.selectedClusters, state.replicationType);
 
   const loaded = mirrorPeerLoaded && policyLoaded;
   const loadedError = mirrorPeerLoadError || policyLoadedError;
@@ -317,7 +317,12 @@ const CreateDRPolicy: React.FC<{}> = () => {
               label={t('Selected clusters')}
             >
               {state.selectedClusters.map((c, i) => (
-                <SelectedCluster key={c.name} id={i + 1} cluster={c} />
+                <SelectedCluster
+                  key={c.name}
+                  id={i + 1}
+                  cluster={c}
+                  replicationType={state.replicationType}
+                />
               ))}
             </FormGroup>
           )}

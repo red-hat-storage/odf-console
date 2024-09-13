@@ -45,7 +45,8 @@ const checkSyncPolicyAlreadyExists = (
   });
 
 const getClusterErrorInfo = (
-  selectedClusters: ManagedClusterInfoType[]
+  selectedClusters: ManagedClusterInfoType[],
+  replicationType: REPLICATION_TYPE
 ): ClusterErrorType =>
   selectedClusters.reduce(
     (acc, cluster) => {
@@ -62,6 +63,12 @@ const getClusterErrorInfo = (
       if (!storageClusterInfo?.cephFSID) {
         acc.clustersWithUnsuccessfulODF.push(cluster.name);
       }
+      if (
+        !storageClusterInfo?.isDROptimized &&
+        replicationType === REPLICATION_TYPE.ASYNC
+      ) {
+        acc.clustersWithoutDROptimizedODF.push(cluster.name);
+      }
       return acc;
     },
     {
@@ -69,6 +76,7 @@ const getClusterErrorInfo = (
       clustersWithUnsupportedODF: [],
       clustersWithoutODF: [],
       clustersWithUnsuccessfulODF: [],
+      clustersWithoutDROptimizedODF: [],
     }
   );
 
@@ -76,9 +84,13 @@ const getErrorMessage = (
   selectedClusters: ManagedClusterInfoType[],
   requiredODFVersion: string,
   isSyncPolicyFound: boolean,
+  replicationType: REPLICATION_TYPE,
   t: TFunction
 ): ErrorMessageType => {
-  const clusterErrorInfo = getClusterErrorInfo(selectedClusters);
+  const clusterErrorInfo = getClusterErrorInfo(
+    selectedClusters,
+    replicationType
+  );
   if (isSyncPolicyFound) {
     return {
       message: t('Existing DRPolicy detected'),
@@ -116,6 +128,14 @@ const getErrorMessage = (
       message: t('{{ names }} is not connected to RHCS', {
         names: clusterErrorInfo.clustersWithUnsuccessfulODF.join(' & '),
       }),
+    };
+  } else if (!!clusterErrorInfo.clustersWithoutDROptimizedODF.length) {
+    return {
+      message: t('Cluster not pre-configured for Regional-DR'),
+      description: t(
+        'The selected cluster(s)[{{clusters}}] is not configured for Regional-DR setup. Migrate the OSDs to optimise the cluster for disaster recovery services.',
+        { clusters: clusterErrorInfo.clustersWithoutDROptimizedODF.join(', ') }
+      ),
     };
   }
   return null;
@@ -171,6 +191,7 @@ export const DRReplicationType: React.FC<DRReplicationTypeProps> = ({
     selectedClusters,
     requiredODFVersion,
     isSyncPolicyFound,
+    replicationType,
     t
   );
 
@@ -276,6 +297,7 @@ type ClusterErrorType = {
   clustersWithUnsupportedODF: string[];
   clustersWithoutODF: string[];
   clustersWithUnsuccessfulODF: string[];
+  clustersWithoutDROptimizedODF: string[];
 };
 
 type ErrorMessageType = {
