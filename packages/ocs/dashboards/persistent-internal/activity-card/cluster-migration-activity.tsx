@@ -8,7 +8,7 @@ export const ClusterMigrationActivity: React.FC<MigrationProps> = ({
   resource: cephData,
 }) => {
   const { t } = useCustomTranslation();
-  const { blueStoreCount, totalOSDCount, percentageComplete } =
+  const { blueStoreRdrCount, totalOSDCount, percentageComplete } =
     getOSDMigrationMetrics(cephData);
 
   return (
@@ -17,8 +17,8 @@ export const ClusterMigrationActivity: React.FC<MigrationProps> = ({
       <Progress
         value={percentageComplete}
         size={ProgressSize.sm}
-        title={t('{{blueStoreCount}}/{{totalOSDCount}} OSDs migrated:', {
-          blueStoreCount,
+        title={t('{{blueStoreRdrCount}}/{{totalOSDCount}} OSDs migrated:', {
+          blueStoreRdrCount,
           totalOSDCount,
         })}
         label={`${percentageComplete}%`}

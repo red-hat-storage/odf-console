@@ -19,6 +19,7 @@ import {
   Alert,
   HealthState,
   useK8sWatchResource,
+  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   AlertItem,
@@ -38,8 +39,10 @@ import {
   CardBody,
   CardTitle,
 } from '@patternfly/react-core';
+import { PROVIDER_MODE } from '../../../../odf/features';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
 import { ODFSystemParams } from '../../../types';
+import { OSDMigrationProgress } from './osd-migration/osd-migration-progress';
 import { getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
 import '../../../style.scss';
@@ -147,6 +150,7 @@ export const StatusCard: React.FC = () => {
       basePath: usePrometheusBasePath(),
     }
   );
+  const isProviderMode = useFlag(PROVIDER_MODE);
 
   const cephCluster = getCephClusterInNs(data, clusterNs);
 
@@ -212,6 +216,13 @@ export const StatusCard: React.FC = () => {
             />
           </GalleryItem>
         </Gallery>
+        {!isProviderMode && (
+          <OSDMigrationProgress
+            cephData={cephCluster}
+            dataLoaded={loaded}
+            dataLoadError={loadError}
+          />
+        )}
         <CephAlerts docVersion={odfDocVersion} />
       </CardBody>
     </Card>
