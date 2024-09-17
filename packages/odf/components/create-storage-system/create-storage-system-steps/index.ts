@@ -6,3 +6,4 @@ export { ReviewAndCreate } from './review-and-create-step/review-and-create-step
 export { CreateLocalVolumeSet } from './create-local-volume-set-step/create-local-volume-set-step';
 export { SecurityAndNetwork } from './security-and-network-step/security-and-network-step';
 export { EncryptionForm as Security } from './security-and-network-step/encryption';
+export { DataProtection } from './data-protection-step/data-protection-step';
