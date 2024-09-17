@@ -58,6 +58,7 @@
     "dev:c": "yarn ocp-console & PLUGIN=${PLUGIN} I8N_NS=${I8N_NS} yarn server:plugin & wait"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.614.0",
     "@openshift-console/dynamic-plugin-sdk": "1.3.0",
     "@openshift-console/dynamic-plugin-sdk-internal": "1.0.0",
     "@openshift-console/dynamic-plugin-sdk-webpack": "1.1.1",
