@@ -11,7 +11,7 @@ export const resolveResourceUntilDeployment = (
   if (!owner) {
     return null;
   }
-  if (owner.kind === DeploymentModel.kind) {
+  if (owner?.kind === DeploymentModel.kind) {
     return owner as DeploymentKind;
   } else {
     return resolveResourceUntilDeployment(
