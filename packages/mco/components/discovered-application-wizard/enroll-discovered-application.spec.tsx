@@ -288,12 +288,11 @@ const moveToStep = async (step: number) => {
     fireEvent.click(screen.getByText('Next'));
   }
 
-  // Commented out recipe-based steps
   if (step > 2) {
     // Select recipe
-    // fireEvent.click(screen.getByText('Recipe'));
-    // fireEvent.click(screen.getByText('Select a recipe'));
-    // fireEvent.click(screen.getByText('mock-recipe-1'));
+    fireEvent.click(screen.getByText('Recipe'));
+    fireEvent.click(screen.getByText('Select a recipe'));
+    fireEvent.click(screen.getByText('mock-recipe-1'));
 
     // Next wizard step
     fireEvent.click(screen.getByText('Next'));
@@ -441,10 +440,7 @@ describe('Test namespace step', () => {
   });
 });
 
-// The Recipe-bsaed dr protection is in Dev Preview for ODF 4.16.
-// All Recipe-based test cases are skipped.
-// https://bugzilla.redhat.com/show_bug.cgi?id=2291301
-describe.skip('Test configure step', () => {
+describe('Test configure step', () => {
   beforeEach(() => {
     render(<EnrollDiscoveredApplication />);
   });
@@ -510,7 +506,7 @@ describe.skip('Test configure step', () => {
   });
 });
 
-describe.skip('Test replication step', () => {
+describe('Test replication step', () => {
   beforeEach(() => {
     render(<EnrollDiscoveredApplication />);
   });
@@ -576,7 +572,7 @@ describe.skip('Test replication step', () => {
     expect(screen.getByText('days')).toBeInTheDocument();
   });
 });
-describe.skip('Test review step', () => {
+describe('Test review step', () => {
   beforeEach(() => {
     render(<EnrollDiscoveredApplication />);
   });
