@@ -132,6 +132,14 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": ["/odf/object-storage/create-bucket"],
+      "exact": true,
+      "component": { "$codeRef": "createBucket.default" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "exact": true,
       "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/storage-pools/create/~new",
       "component": {

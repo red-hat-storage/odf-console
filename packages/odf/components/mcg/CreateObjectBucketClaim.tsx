@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { NOOBAA_PROVISIONER } from '@odf/core/constants';
+import { namespaceResource } from '@odf/core/resources';
 import { BucketClassKind, ObjectBucketClaimKind } from '@odf/core/types';
 import {
   createNewObjectBucketClaim,
@@ -13,7 +14,7 @@ import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
-import { StorageClassModel } from '@odf/shared/models';
+import { NamespaceModel, StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -22,6 +23,7 @@ import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   getAPIVersionForModel,
   k8sCreate,
+  K8sResourceCommon,
   NamespaceBar,
   useActiveNamespace,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -364,10 +366,25 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
   );
 };
 
-export const CreateOBCPage: React.FC<{}> = () => {
+type CreateOBCProps = {
+  showNamespaceSelector?: boolean;
+};
+
+export const CreateOBC: React.FC<CreateOBCProps> = ({
+  showNamespaceSelector = false,
+}) => {
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer(commonReducer, defaultState);
-  const [namespace, setNamespace] = useActiveNamespace();
+  const [projectNs, setProjectNs] = useActiveNamespace();
+  const { odfNamespace } = useODFNamespaceSelector();
+  const [namespace, setNamespace] = React.useState(
+    showNamespaceSelector ? odfNamespace : projectNs
+  );
+  // Keep form namespace in sync with project ns when ns form selector is not shown.
+  if (!showNamespaceSelector && projectNs !== namespace) {
+    setNamespace(projectNs);
+  }
+
   const isAllProjectsInitially = React.useRef<boolean>(
     namespace === ALL_NAMESPACES_KEY
   );
@@ -403,8 +420,11 @@ export const CreateOBCPage: React.FC<{}> = () => {
    * Also, if initial selection is "All Projects", it automatically re-selects "default" as the initial project.
    */
   React.useEffect(() => {
+    if (showNamespaceSelector) {
+      return;
+    }
     if (isAllProjectsInitially.current) {
-      setNamespace(DEFAULT_NS);
+      setProjectNs(DEFAULT_NS);
       initialNamespace.current = DEFAULT_NS;
       isAllProjectsInitially.current = false;
     } else if (initialNamespace.current !== namespace) {
@@ -412,7 +432,7 @@ export const CreateOBCPage: React.FC<{}> = () => {
         `/odf/object-storage/${referenceForModel(NooBaaObjectBucketClaimModel)}`
       );
     }
-  }, [navigate, namespace, setNamespace]);
+  }, [navigate, namespace, setProjectNs, showNamespaceSelector]);
 
   const save = (
     _unused: any,
@@ -455,6 +475,7 @@ export const CreateOBCPage: React.FC<{}> = () => {
         })
           .then((resource) => {
             dispatch({ type: 'unsetProgress' });
+            //@TODO: update the resource path with the new bucket details path.
             const resourcePath = `${referenceForModel(
               NooBaaObjectBucketClaimModel
             )}/${resource.metadata.name}`;
@@ -478,6 +499,80 @@ export const CreateOBCPage: React.FC<{}> = () => {
   // which is current use case as well (as we do not officially support UI if ODF is installed in any other Namespace).
   // ToDo (Sanjal): Update the non-admin "Role" to a "ClusterRole", then read list of NooBaa/BucketClasses across all namespaces.
   return (
+    <NamespaceSafetyBox allowFallback>
+      <Form onSubmit={handleSubmit(save)}>
+        {showNamespaceSelector && (
+          <FormGroupController
+            name="ns-dropdown"
+            control={control}
+            formGroupProps={{
+              fieldId: 'ns-dropdown',
+              label: t('Namespace'),
+              helperText: t(
+                'A namespace controls access to the OBC and ties the buckets to a specific project.'
+              ),
+              isRequired: true,
+            }}
+            render={({ onBlur }) => (
+              <ResourcesDropdown<K8sResourceCommon>
+                resourceModel={NamespaceModel}
+                onSelect={(selectedNamespace) =>
+                  setNamespace(getName(selectedNamespace))
+                }
+                onBlur={onBlur}
+                initialSelection={(resources) =>
+                  resources?.find((res) => getName(res) === namespace)
+                }
+                className="odf-mcg__resource-dropdown"
+                id="ns-dropdown"
+                data-test="ns-dropdown"
+                resource={namespaceResource}
+              />
+            )}
+          />
+        )}
+        <CreateOBCForm
+          state={state}
+          dispatch={dispatch}
+          namespace={namespace}
+          control={control}
+          fieldRequirements={fieldRequirements}
+        />
+        {!isValid && isSubmitted && (
+          <Alert
+            variant="danger"
+            isInline
+            title={t('Address form errors to proceed')}
+          />
+        )}
+        <ButtonBar errorMessage={state.error} inProgress={state.progress}>
+          <ActionGroup className="pf-v5-c-form">
+            <Button
+              id={submitBtnId}
+              type="submit"
+              variant="primary"
+              data-test="obc-create"
+            >
+              {t('Create')}
+            </Button>
+            <Button
+              onClick={() => navigate(-1)}
+              type="button"
+              variant="secondary"
+            >
+              {t('Cancel')}
+            </Button>
+          </ActionGroup>
+        </ButtonBar>
+      </Form>
+    </NamespaceSafetyBox>
+  );
+};
+
+export const CreateOBCPage: React.FC<{}> = () => {
+  const { t } = useCustomTranslation();
+
+  return (
     <>
       <NamespaceBar />
       <div className="odf-m-pane__body odf-m-pane__form">
@@ -487,43 +582,7 @@ export const CreateOBCPage: React.FC<{}> = () => {
         <h1 className="odf-m-pane__heading odf-m-pane__heading--baseline">
           <div>{t('Create ObjectBucketClaim')}</div>
         </h1>
-        <NamespaceSafetyBox allowFallback>
-          <Form onSubmit={handleSubmit(save)}>
-            <CreateOBCForm
-              state={state}
-              dispatch={dispatch}
-              namespace={namespace}
-              control={control}
-              fieldRequirements={fieldRequirements}
-            />
-            {!isValid && isSubmitted && (
-              <Alert
-                variant="danger"
-                isInline
-                title={t('Address form errors to proceed')}
-              />
-            )}
-            <ButtonBar errorMessage={state.error} inProgress={state.progress}>
-              <ActionGroup className="pf-v5-c-form">
-                <Button
-                  id={submitBtnId}
-                  type="submit"
-                  variant="primary"
-                  data-test="obc-create"
-                >
-                  {t('Create')}
-                </Button>
-                <Button
-                  onClick={() => navigate(-1)}
-                  type="button"
-                  variant="secondary"
-                >
-                  {t('Cancel')}
-                </Button>
-              </ActionGroup>
-            </ButtonBar>
-          </Form>
-        </NamespaceSafetyBox>
+        <CreateOBC />
       </div>
     </>
   );
