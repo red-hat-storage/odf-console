@@ -41,6 +41,7 @@
     "mutators": "@odf/ocs/storage-class/mutators",
     "odfReduxReducers": "@odf/core/redux",
     "monCountAlertModal": "@odf/core/modals/configure-mons/configure-mons",
-    "storageConsumerListPage": "@odf/core/components/storage-consumers/client-list"
+    "storageConsumerListPage": "@odf/core/components/storage-consumers/client-list",
+    "s3BucketOverview": "@odf/core/components/s3-browser/bucket-overview/BucketOverview"
   }
 }

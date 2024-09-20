@@ -112,6 +112,7 @@
     "sass-loader": "^13.0.2",
     "semver": "6.x",
     "style-loader": "^0.23.1",
+    "swr": "2.2.5",
     "thread-loader": "3.0.4",
     "ts-loader": "^9.4.1",
     "ts-node": "5.0.1",

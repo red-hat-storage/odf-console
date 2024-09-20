@@ -1,8 +1,8 @@
 import {
   ListBucketsCommandInput,
   ListBucketsCommandOutput,
-  ListObjectsCommandInput,
-  ListObjectsCommandOutput,
+  ListObjectsV2CommandInput,
+  ListObjectsV2CommandOutput,
 } from '@aws-sdk/client-s3';
 
 // Bucket command types
@@ -11,6 +11,6 @@ export type ListBuckets = (
 ) => Promise<ListBucketsCommandOutput>;
 
 // Object command types
-export type ListObjects = (
-  input: ListObjectsCommandInput
-) => Promise<ListObjectsCommandOutput>;
+export type ListObjectsV2 = (
+  input: ListObjectsV2CommandInput
+) => Promise<ListObjectsV2CommandOutput>;
