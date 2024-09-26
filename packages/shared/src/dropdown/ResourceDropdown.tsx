@@ -184,6 +184,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
             filterName(searchText, getName(res)) &&
             (filterResource ? filterResource(res) : true)
         )
+        .sort((a, b) => getName(a).localeCompare(getName(b)))
         .reduce((acc, curr) => {
           return [
             ...acc,
