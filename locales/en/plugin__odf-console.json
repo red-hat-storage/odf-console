@@ -1096,7 +1096,7 @@
   "NamespaceStore details": "NamespaceStore details",
   "Target Blob Container": "Target Blob Container",
   "Num Volumes": "Num Volumes",
-  "Cluster ID": "Cluster ID",
+  "Cluster name (ID)": "Cluster name (ID)",
   "Openshift version": "Openshift version",
   "Data Foundation version": "Data Foundation version",
   "Last heartbeat": "Last heartbeat",
