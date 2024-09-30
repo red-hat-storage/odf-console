@@ -55,6 +55,8 @@
   "We could not retrieve any information about the managed cluster {{names}}. Check the documentation for potential causes and follow the steps mentioned and try again.": "We could not retrieve any information about the managed cluster {{names}}. Check the documentation for potential causes and follow the steps mentioned and try again.",
   "{{ names }} has either an unsupported Data Foundation version or the Data Foundation operator is missing, install or update to Data Foundation {{ version }} or the latest version to enable DR protection.": "{{ names }} has either an unsupported Data Foundation version or the Data Foundation operator is missing, install or update to Data Foundation {{ version }} or the latest version to enable DR protection.",
   "{{ names }} is not connected to RHCS": "{{ names }} is not connected to RHCS",
+  "Cluster not pre-configured for Regional-DR": "Cluster not pre-configured for Regional-DR",
+  "The selected cluster(s)[{{clusters}}] is not configured for Regional-DR setup. Migrate the OSDs to optimise the cluster for disaster recovery services.": "The selected cluster(s)[{{clusters}}] is not configured for Regional-DR setup. Migrate the OSDs to optimise the cluster for disaster recovery services.",
   "Sync schedule": "Sync schedule",
   "Replication policy": "Replication policy",
   "Information unavailable": "Information unavailable",

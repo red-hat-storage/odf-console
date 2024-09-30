@@ -93,6 +93,7 @@ const getODFInfo = (
       storageClusterNamespace
     );
     const cephFSID = odfInfo?.storageCluster?.cephClusterFSID;
+    const isDROptimized = odfInfo?.storageCluster?.isDROptimized;
 
     return {
       odfVersion,
@@ -105,6 +106,7 @@ const getODFInfo = (
         storageClusterNamespacedName,
         storageSystemNamespacedName,
         cephFSID,
+        isDROptimized,
       },
     };
   } catch (err) {
@@ -119,6 +121,7 @@ const getODFInfo = (
         storageClusterNamespacedName: '',
         storageSystemNamespacedName: '',
         cephFSID: '',
+        isDROptimized: false,
       },
     };
   }

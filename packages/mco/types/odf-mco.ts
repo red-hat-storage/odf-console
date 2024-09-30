@@ -26,6 +26,7 @@ export type InfoStorageCluster = {
   };
   storageProviderEndpoint: string;
   cephClusterFSID: string;
+  isDROptimized: boolean;
 };
 
 export type ODFInfoYamlObject = {
