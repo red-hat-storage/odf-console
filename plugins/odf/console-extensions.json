@@ -716,5 +716,15 @@
       "path": "/odf/resource/odf.openshift.io~v1alpha1~StorageSystem/create/~new",
       "component": { "$codeRef": "wizard.default" }
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/buckets/:bucketName",
+      "exact": false,
+      "component": {
+        "$codeRef": "s3BucketOverview.default"
+      }
+    }
   }
 ]

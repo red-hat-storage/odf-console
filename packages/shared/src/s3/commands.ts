@@ -1,9 +1,9 @@
 import {
   S3Client,
   ListBucketsCommand,
-  ListObjectsCommand,
+  ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
-import { ListBuckets, ListObjects } from './types';
+import { ListBuckets, ListObjectsV2 } from './types';
 
 export class S3Commands {
   private s3Client: S3Client;
@@ -26,6 +26,6 @@ export class S3Commands {
     this.s3Client.send(new ListBucketsCommand(input));
 
   // Object command members
-  listObjects: ListObjects = (input) =>
-    this.s3Client.send(new ListObjectsCommand(input));
+  listObjects: ListObjectsV2 = (input) =>
+    this.s3Client.send(new ListObjectsV2Command(input));
 }
