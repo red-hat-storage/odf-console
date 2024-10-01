@@ -2,8 +2,15 @@ import {
   S3Client,
   ListBucketsCommand,
   ListObjectsV2Command,
+  CreateBucketCommand,
+  PutBucketTaggingCommand,
 } from '@aws-sdk/client-s3';
-import { ListBuckets, ListObjectsV2 } from './types';
+import {
+  CreateBucket,
+  ListBuckets,
+  ListObjectsV2,
+  PutBucketTags,
+} from './types';
 
 export class S3Commands {
   private s3Client: S3Client;
@@ -22,8 +29,14 @@ export class S3Commands {
   }
 
   // Bucket command members
+  createBucket: CreateBucket = (input) =>
+    this.s3Client.send(new CreateBucketCommand(input));
+
   listBuckets: ListBuckets = (input) =>
     this.s3Client.send(new ListBucketsCommand(input));
+
+  putBucketTags: PutBucketTags = (input) =>
+    this.s3Client.send(new PutBucketTaggingCommand(input));
 
   // Object command members
   listObjects: ListObjectsV2 = (input) =>
