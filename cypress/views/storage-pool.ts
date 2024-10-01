@@ -178,7 +178,7 @@ export const deleteStoragePool = (poolName: string) => {
   navigateToStoragePoolList();
   openStoragePoolKebab(poolName);
   cy.byTestActionID('Delete Pool').click();
-  cy.contains('Delete Storage Pool');
+  cy.contains('Delete Storage Pool', { timeout: 5 * 1000 });
   triggerPoolFormFooterAction('delete');
 
   cy.log('Verify that the pool is not found.');
