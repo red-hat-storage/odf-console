@@ -4,12 +4,15 @@ import {
   ListObjectsV2Command,
   CreateBucketCommand,
   PutBucketTaggingCommand,
+  GetObjectCommand,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
   CreateBucket,
   ListBuckets,
   ListObjectsV2,
   PutBucketTags,
+  GetSignedUrl,
 } from './types';
 
 export class S3Commands {
@@ -41,4 +44,7 @@ export class S3Commands {
   // Object command members
   listObjects: ListObjectsV2 = (input) =>
     this.s3Client.send(new ListObjectsV2Command(input));
+
+  getSignedUrl: GetSignedUrl = (input, expiresIn) =>
+    getSignedUrl(this.s3Client, new GetObjectCommand(input), { expiresIn });
 }

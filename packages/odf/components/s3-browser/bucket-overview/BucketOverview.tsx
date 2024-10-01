@@ -180,7 +180,6 @@ const BucketOverview: React.FC<{}> = () => {
             bucketName={bucketName}
             foldersPath={foldersPath}
             currentFolder={currentFolder}
-            fresh={fresh}
             isCreatedByOBC={isCreatedByOBC}
             noobaaObjectBucket={noobaaObjectBucket}
           />

@@ -319,7 +319,7 @@ export const ObjectsList: React.FC<{}> = () => {
         loaded={!isMutating}
         loadError={error}
         isRowSelectable={isRowSelectable}
-        extraProps={{ launcher, bucketName, foldersPath }}
+        extraProps={{ launcher, bucketName, foldersPath, noobaaS3 }}
         emptyRowMessage={EmptyPage}
       />
     </div>
