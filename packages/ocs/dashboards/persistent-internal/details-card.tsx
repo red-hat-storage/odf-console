@@ -28,7 +28,7 @@ import { Link, useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { PROVIDER_MODE } from '../../../odf/features';
 import { ODFSystemParams } from '../../types';
-import { getNetworkEncryption } from '../../utils';
+import EncryptionPopover from '../common/details-card/encryption-popover';
 
 const storageClusterResource = {
   kind: referenceForModel(StorageClusterModel),
@@ -60,9 +60,6 @@ const DetailsCard: React.FC = () => {
     ocsNs
   );
   const ocsName = getName(storageCluster);
-  const inTransitEncryptionStatus = getNetworkEncryption(storageCluster)
-    ? t('Enabled')
-    : t('Disabled');
 
   const isProviderMode = useFlag(PROVIDER_MODE);
 
@@ -73,6 +70,7 @@ const DetailsCard: React.FC = () => {
     odfNamespace
   )}`;
   const serviceName = t('Data Foundation');
+
   return (
     <Card>
       <CardHeader>
@@ -117,12 +115,15 @@ const DetailsCard: React.FC = () => {
             {serviceVersion}
           </DetailItem>
           <DetailItem
-            key="inTransitEncryption"
-            title={t('In-transit encryption')}
+            key="encryption"
+            title={t('Encryption')}
             isLoading={!ocsLoaded}
-            error={ocsError as any}
+            error={ocsError}
           >
-            {inTransitEncryptionStatus}
+            <EncryptionPopover
+              cluster={storageCluster}
+              isObjectDashboard={false}
+            />
           </DetailItem>
         </DetailsBody>
       </CardBody>

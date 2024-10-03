@@ -16,6 +16,7 @@ import {
   SyncAltIcon,
   ResourcesAlmostFullIcon,
   ResourcesFullIcon,
+  TimesIcon,
 } from '@patternfly/react-icons';
 
 export type ColoredIconProps = {
@@ -132,4 +133,11 @@ export const BlueArrowCircleUpIcon: React.FC<ColoredIconProps> = ({
     className={className}
     title={title}
   />
+);
+
+export const TimesCircleIcon: React.FC<ColoredIconProps> = ({
+  className,
+  title,
+}) => (
+  <TimesIcon color={dangerColor.value} className={className} title={title} />
 );
