@@ -8,7 +8,7 @@ export type StorageClusterInfoType = {
   // Ceph FSID to determine RDR/MDR.
   cephFSID: string;
   //  OSDs are migrated for the RDR or not.
-  isDROptimized: boolean;
+  isDrOptimized: boolean;
 };
 
 export type ODFConfigInfoType = {
