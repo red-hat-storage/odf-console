@@ -19,6 +19,7 @@ import { CubesIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, IAction } from '@patternfly/react-table';
 import { BUCKETS_BASE_ROUTE, PREFIX } from '../../../constants';
 import { ObjectCrFormat } from '../../../types';
+import { getEncodedPrefix } from '../../../utils';
 import {
   DownloadAndPreviewState,
   onDownload,
@@ -116,9 +117,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
   const { launcher, bucketName, foldersPath, noobaaS3 } = extraProps;
   const isFolder = object.isFolder;
   const name = getName(object).replace(foldersPath, '');
-  const prefix = !!foldersPath
-    ? encodeURIComponent(foldersPath + name)
-    : encodeURIComponent(name);
+  const prefix = getEncodedPrefix(name, foldersPath);
 
   const columnNames = getColumnNames(t);
 

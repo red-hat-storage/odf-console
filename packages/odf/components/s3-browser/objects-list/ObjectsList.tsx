@@ -4,6 +4,7 @@ import {
   _Object as Content,
   CommonPrefix,
 } from '@aws-sdk/client-s3';
+import { S3Commands } from '@odf/shared/s3';
 import { SelectableTable } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
@@ -36,6 +37,10 @@ import {
   EmptyPage,
 } from './table-components';
 
+const LazyCreateFolderModal = React.lazy(
+  () => import('../../../modals/s3-browser/create-folder/CreateFolderModal')
+);
+
 type PaginationProps = {
   onNext: () => void;
   onPrevious: () => void;
@@ -47,6 +52,9 @@ type TableActionsProps = {
   launcher: LaunchModal;
   selectedRows: unknown[];
   loadedWOError: boolean;
+  foldersPath: string;
+  bucketName: string;
+  noobaaS3: S3Commands;
 };
 
 type ContinuationTokens = {
@@ -171,6 +179,9 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
   disablePrevious,
   launcher,
   selectedRows,
+  foldersPath,
+  bucketName,
+  noobaaS3,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -180,12 +191,16 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
     <Level hasGutter>
       <LevelItem>
         <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row">
-          {/* ToDo: add create folder option */}
           <Button
             variant={ButtonVariant.secondary}
             className="pf-v5-u-mr-xs"
             isDisabled={anySelection || !loadedWOError}
-            onClick={() => undefined}
+            onClick={() =>
+              launcher(LazyCreateFolderModal, {
+                isOpen: true,
+                extraProps: { foldersPath, bucketName, noobaaS3 },
+              })
+            }
           >
             {t('Create folder')}
           </Button>
@@ -303,6 +318,9 @@ export const ObjectsList: React.FC<{}> = () => {
         disableNext={!continuationTokens.next || !loadedWOError}
         disablePrevious={!continuationTokens.current || !loadedWOError}
         launcher={launcher}
+        foldersPath={foldersPath}
+        bucketName={bucketName}
+        noobaaS3={noobaaS3}
       />
 
       <SelectableTable

@@ -48,6 +48,14 @@ export const getBreadcrumbs = (
 export const getPath = (bucketName: string, foldersPath: string) =>
   !foldersPath ? bucketName + DELIMITER : bucketName + DELIMITER + foldersPath;
 
+export const getPrefix = (name: string, foldersPath: string) =>
+  !!foldersPath ? foldersPath + name : name;
+
+export const getEncodedPrefix = (name: string, foldersPath: string) =>
+  !!foldersPath
+    ? encodeURIComponent(foldersPath + name)
+    : encodeURIComponent(name);
+
 export const convertObjectsDataToCrFormat = (
   objectData: Content | CommonPrefix,
   isFolder: boolean,
