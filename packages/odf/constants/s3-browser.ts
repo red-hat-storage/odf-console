@@ -7,6 +7,9 @@ export const DELIMITER = '/';
 export const PREFIX = 'prefix';
 export const MAX_KEYS = 300;
 
+export const BUCKET_NAME_MAX_LENGTH = 63;
+export const BUCKET_NAME_MIN_LENGTH = 3;
+
 export const BUCKETS_BASE_ROUTE = '/odf/object-storage/buckets';
 
 // key to be used by SWR for caching particular API call

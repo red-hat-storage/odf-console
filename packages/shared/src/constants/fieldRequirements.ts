@@ -3,6 +3,9 @@ import { TFunction } from 'i18next';
 export const maxChars = (t: TFunction, max: number) =>
   t(`No more than ${max} characters`);
 
+export const minChars = (t: TFunction, min: number) =>
+  t(`No less than ${min} characters`);
+
 export const startAndEndName = (t: TFunction) =>
   t('Starts and ends with a lowercase letter or number');
 
@@ -16,6 +19,7 @@ export const uniqueName = (t: TFunction, fieldName: string) =>
 
 export const fieldRequirementsTranslations = {
   maxChars,
+  minChars,
   startAndEndName,
   alphaNumericPeriodAdnHyphen,
   cannotBeUsedBefore,

@@ -367,10 +367,12 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
 };
 
 type CreateOBCProps = {
+  className?: string;
   showNamespaceSelector?: boolean;
 };
 
 export const CreateOBC: React.FC<CreateOBCProps> = ({
+  className,
   showNamespaceSelector = false,
 }) => {
   const { t } = useCustomTranslation();
@@ -500,7 +502,7 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
   // ToDo (Sanjal): Update the non-admin "Role" to a "ClusterRole", then read list of NooBaa/BucketClasses across all namespaces.
   return (
     <NamespaceSafetyBox allowFallback>
-      <Form onSubmit={handleSubmit(save)}>
+      <Form onSubmit={handleSubmit(save)} className={className}>
         {showNamespaceSelector && (
           <FormGroupController
             name="ns-dropdown"

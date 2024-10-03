@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { CreateOBC } from '@odf/core/components/mcg/CreateObjectBucketClaim';
+import CreateBucketForm from '@odf/core/components/s3-browser/create-bucket/CreateBucketForm';
+import { NoobaaS3Provider } from '@odf/core/components/s3-browser/noobaa-context';
 import { useCustomTranslation } from '@odf/shared';
 import { Alert, FormGroup, Tile } from '@patternfly/react-core';
 
@@ -61,10 +63,14 @@ const CreateBucket: React.FC<{}> = () => {
               )}
               className="pf-v5-u-mb-md"
             />
-            <CreateOBC showNamespaceSelector={true} />
+            <CreateOBC className="pf-v5-u-w-50" showNamespaceSelector={true} />
           </>
         )}
-        {/* @TODO: implement S3 form. */}
+        {method === CreationMethod.S3 && (
+          <NoobaaS3Provider>
+            <CreateBucketForm />
+          </NoobaaS3Provider>
+        )}
       </div>
     </>
   );
