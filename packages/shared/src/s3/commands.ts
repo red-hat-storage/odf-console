@@ -13,6 +13,7 @@ import {
   ListObjectsV2,
   PutBucketTags,
   GetSignedUrl,
+  GetObject,
 } from './types';
 
 export class S3Commands {
@@ -47,4 +48,7 @@ export class S3Commands {
 
   getSignedUrl: GetSignedUrl = (input, expiresIn) =>
     getSignedUrl(this.s3Client, new GetObjectCommand(input), { expiresIn });
+
+  getObject: GetObject = (input) =>
+    this.s3Client.send(new GetObjectCommand(input));
 }
