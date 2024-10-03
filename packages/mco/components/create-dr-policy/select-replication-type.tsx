@@ -64,7 +64,7 @@ const getClusterErrorInfo = (
         acc.clustersWithUnsuccessfulODF.push(cluster.name);
       }
       if (
-        !storageClusterInfo?.isDROptimized &&
+        !storageClusterInfo?.isDrOptimized &&
         replicationType === REPLICATION_TYPE.ASYNC
       ) {
         acc.clustersWithoutDROptimizedODF.push(cluster.name);

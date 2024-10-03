@@ -93,7 +93,7 @@ const getODFInfo = (
       storageClusterNamespace
     );
     const cephFSID = odfInfo?.storageCluster?.cephClusterFSID;
-    const isDROptimized = odfInfo?.storageCluster?.isDROptimized;
+    const isDrOptimized = odfInfo?.storageCluster?.isDrOptimized;
 
     return {
       odfVersion,
@@ -106,7 +106,7 @@ const getODFInfo = (
         storageClusterNamespacedName,
         storageSystemNamespacedName,
         cephFSID,
-        isDROptimized,
+        isDrOptimized: isDrOptimized === 'true',
       },
     };
   } catch (err) {
@@ -121,7 +121,7 @@ const getODFInfo = (
         storageClusterNamespacedName: '',
         storageSystemNamespacedName: '',
         cephFSID: '',
-        isDROptimized: false,
+        isDrOptimized: false,
       },
     };
   }
