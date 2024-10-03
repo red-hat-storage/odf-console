@@ -12,30 +12,43 @@ import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import {
   InfrastructureModel,
   ClusterServiceVersionModel,
+  StorageClusterModel,
 } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import { K8sResourceKind } from '@odf/shared/types';
+import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getOprVersionFromCSV } from '@odf/shared/utils';
+import { getOprVersionFromCSV, referenceForModel } from '@odf/shared/utils';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import { getMetric } from '@odf/shared/utils';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useFlag,
+  useK8sWatchResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Link, useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ODFSystemParams } from '../../../types';
 import './details-card.scss';
+import EncryptionPopover from '../../persistent-internal/encryption-popover';
 
 const NOOBAA_SYSTEM_NAME_QUERY = 'NooBaa_system_info';
 const NOOBAA_DASHBOARD_LINK_QUERY = 'NooBaa_system_links';
 
+type EncryptionDetailsType = {
+  kms: { enable: boolean };
+  storageClass: boolean;
+};
+
 export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
-
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+  const storageClusterResource = {
+    kind: referenceForModel(StorageClusterModel),
+    isList: true,
+  };
 
   const [systemResult, systemLoadError] = useCustomPrometheusPoll({
     query: NOOBAA_SYSTEM_NAME_QUERY,
@@ -52,7 +65,9 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
 
   const { t } = useCustomTranslation();
   const isODF = useFlag(ODF_MODEL_FLAG);
-
+  const [ocsData, ocsLoaded, ocsError] = useK8sWatchResource<
+    StorageClusterKind[]
+  >(storageClusterResource);
   const systemName = getMetric(systemResult, 'system_name');
   const systemLink = getMetric(dashboardLinkResult, 'dashboard');
 
@@ -74,6 +89,16 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const { systemFlags } = useODFSystemFlagsSelector();
   const hasRGW = systemFlags[clusterNs]?.isRGWAvailable;
   const hasMCG = systemFlags[clusterNs]?.isNoobaaAvailable;
+
+  // Extract storage cluster encryption details
+  const storageClusterEncryption = ocsData[0]?.spec?.encryption;
+
+  const encryptionDetails: EncryptionDetailsType = {
+    kms: storageClusterEncryption?.kms ?? { enable: false },
+    storageClass: storageClusterEncryption?.storageClass ?? false,
+  };
+
+  const hasStorageClassEncryption = !!encryptionDetails.storageClass;
 
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
@@ -135,6 +160,19 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
             error={csvLoadError}
           >
             {serviceVersion}
+          </DetailItem>
+          <DetailItem
+            key="encryption"
+            title={t('Encryption')}
+            isLoading={!ocsLoaded}
+            error={ocsError}
+          >
+            <EncryptionPopover
+              encryptionDetails={encryptionDetails}
+              hasStorageClassEncryption={hasStorageClassEncryption}
+              inTransitEncryption={false}
+              hasMCGEncryption={hasMCG}
+            />
           </DetailItem>
         </DetailsBody>
       </CardBody>
