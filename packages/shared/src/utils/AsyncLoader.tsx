@@ -47,13 +47,18 @@ const useAsynchronousLoading: UseAsynchronousLoading = (
   const Component = React.useRef<React.ComponentType>(null);
   const [loadingStarted, setLoadingStarted] = React.useState(false);
   const [loaded, setLoaded] = React.useState(false);
+  // Mount status for safty state updates
+  const mounted = React.useRef(true);
+  React.useEffect(() => () => (mounted.current = false), []);
 
   const prevLoader = React.useRef<PromiseComponent>(null);
 
   const setComponent = React.useCallback(
     (value) => {
       Component.current = value;
-      setLoaded(true);
+      if (mounted.current) {
+        setLoaded(true);
+      }
     },
     [Component]
   );

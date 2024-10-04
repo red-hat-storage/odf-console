@@ -76,7 +76,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
                 onChange={(event, _unUsed) =>
                   setProtectionMethod(_unUsed, event)
                 }
-                checked={
+                isChecked={
                   protectionMethod === ProtectionMethodType.RESOURCE_LABEL
                 }
               />
@@ -94,7 +94,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
                 onChange={(event, _unUsed) =>
                   setProtectionMethod(_unUsed, event)
                 }
-                checked={protectionMethod === ProtectionMethodType.RECIPE}
+                isChecked={protectionMethod === ProtectionMethodType.RECIPE}
               />
             </GridItem>
           </Grid>
