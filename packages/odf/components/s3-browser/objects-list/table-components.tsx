@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { S3Commands } from '@odf/shared/s3';
 import { getName } from '@odf/shared/selectors';
 import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -18,6 +19,15 @@ import { CubesIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, IAction } from '@patternfly/react-table';
 import { BUCKETS_BASE_ROUTE, PREFIX } from '../../../constants';
 import { ObjectCrFormat } from '../../../types';
+import {
+  DownloadAndPreviewState,
+  onDownload,
+  onPreview,
+} from '../download-and-preview/download-and-preview';
+
+const LazyPresignedURLModal = React.lazy(
+  () => import('../../../modals/s3-browser/presigned-url/PresignedURLModal')
+);
 
 const getColumnNames = (t: TFunction): string[] => [
   t('Name'),
@@ -29,25 +39,35 @@ const getColumnNames = (t: TFunction): string[] => [
 
 const getInlineActionsItems = (
   t: TFunction,
-  _launcher: LaunchModal,
-  _object: ObjectCrFormat
+  launcher: LaunchModal,
+  bucketName: string,
+  object: ObjectCrFormat,
+  noobaaS3: S3Commands,
+  downloadAndPreview: DownloadAndPreviewState,
+  setDownloadAndPreview: React.Dispatch<
+    React.SetStateAction<DownloadAndPreviewState>
+  >
 ): IAction[] => [
-  // ToDo: add inline download, copy, preview, share & delete options
+  // ToDo: add inline delete option
   {
     title: t('Download'),
-    onClick: () => undefined,
-  },
-  {
-    title: t('Copy Object URL'),
-    onClick: () => undefined,
+    onClick: () =>
+      onDownload(bucketName, object, noobaaS3, setDownloadAndPreview),
+    isDisabled: downloadAndPreview.isDownloading,
   },
   {
     title: t('Preview'),
-    onClick: () => undefined,
+    onClick: () =>
+      onPreview(bucketName, object, noobaaS3, setDownloadAndPreview),
+    isDisabled: downloadAndPreview.isPreviewing,
   },
   {
     title: t('Share with presigned URL'),
-    onClick: () => undefined,
+    onClick: () =>
+      launcher(LazyPresignedURLModal, {
+        isOpen: true,
+        extraProps: { bucketName, object, noobaaS3 },
+      }),
   },
   {
     title: t('Delete'),
@@ -87,7 +107,13 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const { launcher, bucketName, foldersPath } = extraProps;
+  const [downloadAndPreview, setDownloadAndPreview] =
+    React.useState<DownloadAndPreviewState>({
+      isDownloading: false,
+      isPreviewing: false,
+    });
+
+  const { launcher, bucketName, foldersPath, noobaaS3 } = extraProps;
   const isFolder = object.isFolder;
   const name = getName(object).replace(foldersPath, '');
   const prefix = !!foldersPath
@@ -120,7 +146,15 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
         {isFolder ? null : (
           <ActionsColumn
             translate={null}
-            items={getInlineActionsItems(t, launcher, object)}
+            items={getInlineActionsItems(
+              t,
+              launcher,
+              bucketName,
+              object,
+              noobaaS3,
+              downloadAndPreview,
+              setDownloadAndPreview
+            )}
           />
         )}
       </Td>

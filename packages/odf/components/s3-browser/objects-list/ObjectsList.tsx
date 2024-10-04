@@ -114,11 +114,7 @@ const getBulkActionsItems = (
   _launcher: LaunchModal,
   _selectedRows: unknown[]
 ): IAction[] => [
-  // ToDo: add bulk download & delete options
-  {
-    title: t('Download objects'),
-    onClick: () => undefined,
-  },
+  // ToDo: add bulk delete option
   {
     title: t('Delete objects'),
     onClick: () => undefined,
@@ -319,7 +315,7 @@ export const ObjectsList: React.FC<{}> = () => {
         loaded={!isMutating}
         loadError={error}
         isRowSelectable={isRowSelectable}
-        extraProps={{ launcher, bucketName, foldersPath }}
+        extraProps={{ launcher, bucketName, foldersPath, noobaaS3 }}
         emptyRowMessage={EmptyPage}
       />
     </div>
