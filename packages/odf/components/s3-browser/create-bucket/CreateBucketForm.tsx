@@ -18,7 +18,10 @@ import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   ActionGroup,
   Alert,
+  AlertVariant,
   Button,
+  ButtonType,
+  ButtonVariant,
   Form,
   FormGroup,
 } from '@patternfly/react-core';
@@ -51,18 +54,13 @@ const CreateBucketForm: React.FC<{}> = () => {
 
   const save = async (formData: FormData) => {
     setInProgress(true);
-    let bucketCreationError = '';
-    setErrorMessage(bucketCreationError);
+    setErrorMessage('');
     const { bucketName } = formData;
     try {
       await noobaaS3.createBucket({ Bucket: bucketName });
     } catch ({ name, message }) {
-      bucketCreationError = `Error while creating bucket: ${name}: ${message}`;
-    }
-
-    if (bucketCreationError) {
+      setErrorMessage(`Error while creating bucket: ${name}: ${message}`);
       setInProgress(false);
-      setErrorMessage(bucketCreationError);
       return;
     }
 
@@ -140,7 +138,7 @@ const CreateBucketForm: React.FC<{}> = () => {
       </FormGroup>
       {!isValid && isSubmitted && (
         <Alert
-          variant="danger"
+          variant={AlertVariant.danger}
           isInline
           title={t('Address form errors to proceed')}
         />
@@ -149,16 +147,16 @@ const CreateBucketForm: React.FC<{}> = () => {
         <ActionGroup className="pf-v5-c-form">
           <Button
             id="create-s3-bucket-btn"
-            type="submit"
-            variant="primary"
+            type={ButtonType.submit}
+            variant={ButtonVariant.primary}
             data-test="obc-create"
           >
             {t('Create')}
           </Button>
           <Button
             onClick={() => navigate(-1)}
-            type="button"
-            variant="secondary"
+            type={ButtonType.button}
+            variant={ButtonVariant.secondary}
           >
             {t('Cancel')}
           </Button>
