@@ -26,7 +26,7 @@ export const checkForErrors = (
 ) =>
   clusters.some((cluster) => {
     const { isManagedClusterAvailable, odfInfo } = cluster;
-    const { cephFSID, storageSystemNamespacedName, isDROptimized } =
+    const { cephFSID, storageSystemNamespacedName, isDrOptimized } =
       odfInfo.storageClusterInfo;
     const [storageSystemName] = parseNamespaceName(storageSystemNamespacedName);
     return (
@@ -34,7 +34,7 @@ export const checkForErrors = (
       !odfInfo?.isValidODFVersion ||
       !storageSystemName ||
       !cephFSID ||
-      (replicationType === REPLICATION_TYPE.ASYNC && !isDROptimized)
+      (replicationType === REPLICATION_TYPE.ASYNC && !isDrOptimized)
     );
   });
 
