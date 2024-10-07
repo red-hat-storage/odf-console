@@ -4,6 +4,7 @@ import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import {
   SortByDirection,
   Table,
+  TableVariant,
   Tbody,
   Th,
   ThProps,
@@ -18,7 +19,7 @@ export type TableColumnProps = ThProps & {
   sortFunction?: <T>(a: T, b: T, c: SortByDirection) => number;
 };
 
-export type RowComponentType<T extends K8sResourceCommon> = {
+export type RowComponentType<T extends K8sResourceCommon | unknown> = {
   row: T;
   rowIndex?: number;
   extraProps?: any;
@@ -36,6 +37,7 @@ export const ComposableTable: ComposableTableProps = <
   unfilteredData,
   noDataMsg,
   emptyRowMessage,
+  variant,
 }) => {
   const {
     onSort,
@@ -67,6 +69,7 @@ export const ComposableTable: ComposableTableProps = <
         translate={null}
         aria-label="Composable table"
         className="pf-v5-u-mt-md"
+        variant={variant}
       >
         <Thead translate={null}>
           <Tr translate={null}>
@@ -100,7 +103,7 @@ export const ComposableTable: ComposableTableProps = <
 // sort is replaced by sortFunction
 type TableThProps = Omit<ThProps, 'sort' | 'ref'>;
 
-export type TableProps<T extends K8sResourceCommon> = {
+export type TableProps<T extends K8sResourceCommon | unknown> = {
   rows: T[];
   columns: TableColumnProps[];
   RowComponent: React.ComponentType<RowComponentType<T>>;
@@ -110,6 +113,7 @@ export type TableProps<T extends K8sResourceCommon> = {
   unfilteredData?: [];
   noDataMsg?: React.FC;
   emptyRowMessage?: React.FC;
+  variant?: TableVariant;
 };
 
 type ComposableTableProps = <T extends K8sResourceCommon>(

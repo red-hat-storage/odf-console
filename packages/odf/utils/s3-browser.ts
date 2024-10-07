@@ -1,5 +1,6 @@
 import { _Object as Content, CommonPrefix } from '@aws-sdk/client-s3';
 import { DASH } from '@odf/shared/constants';
+import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import { DELIMITER, BUCKETS_BASE_ROUTE, PREFIX } from '../constants';
@@ -91,3 +92,11 @@ export const convertObjectsDataToCrFormat = (
 
   return structuredObjects;
 };
+
+export const replacePathFromName = (
+  object: ObjectCrFormat | string,
+  foldersPath: string
+): string =>
+  typeof object === 'string'
+    ? object.replace(foldersPath, '')
+    : getName(object).replace(foldersPath, '');
