@@ -10,3 +10,4 @@ export * from './useK8sList';
 export * from './scheduler';
 export * from './use-doc-version';
 export * from './useRefresh';
+export * from './useUserSettingsLocalStorage';

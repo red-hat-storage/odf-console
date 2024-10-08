@@ -1,10 +1,14 @@
-import { _Object as Content, CommonPrefix } from '@aws-sdk/client-s3';
+import {
+  _Object as Content,
+  CommonPrefix,
+  ListBucketsCommandOutput,
+} from '@aws-sdk/client-s3';
 import { DASH } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
 import { DELIMITER, BUCKETS_BASE_ROUTE, PREFIX } from '../constants';
-import { ObjectCrFormat } from '../types';
+import { BucketCrFormat, ObjectCrFormat } from '../types';
 
 export const getBreadcrumbs = (
   foldersPath: string,
@@ -100,3 +104,17 @@ export const replacePathFromName = (
   typeof object === 'string'
     ? object.replace(foldersPath, '')
     : getName(object).replace(foldersPath, '');
+
+export const convertBucketDataToCrFormat = (
+  listBucketsCommandOutput: ListBucketsCommandOutput
+): BucketCrFormat[] =>
+  listBucketsCommandOutput?.Buckets.map((bucket) => ({
+    metadata: {
+      name: bucket.Name,
+      uid: bucket.Name,
+      creationTimestamp: bucket.CreationDate.toString(),
+    },
+    apiResponse: {
+      owner: listBucketsCommandOutput?.Owner?.DisplayName,
+    },
+  })) || [];

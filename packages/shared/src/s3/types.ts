@@ -43,3 +43,7 @@ export type GetObject = (
 export type DeleteObjects = (
   input: DeleteObjectsCommandInput
 ) => Promise<DeleteObjectsCommandOutput>;
+
+export type ListCommandOutput =
+  | ListObjectsV2CommandOutput
+  | ListBucketsCommandOutput;

@@ -8,3 +8,9 @@ export type ObjectCrFormat = K8sResourceCommon & {
   isFolder?: boolean;
   type?: string;
 };
+
+export type BucketCrFormat = K8sResourceCommon & {
+  apiResponse?: {
+    owner?: string;
+  };
+};

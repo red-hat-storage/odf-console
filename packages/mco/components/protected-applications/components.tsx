@@ -3,6 +3,7 @@ import {
   ActionDropdown,
   ToggleVariant,
 } from '@odf/shared/dropdown/action-dropdown';
+import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
@@ -36,7 +37,6 @@ import {
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
-import EmptyPage from '../empty-state-page/empty-page';
 import { getCurrentActivity } from '../mco-dashboard/disaster-recovery/cluster-app-card/application';
 import {
   getAlertMessages,
