@@ -285,7 +285,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
         },
       });
     }
-  }, [dispatch, allowedExternalStorage.length, hasOCS]);
+  }, [dispatch, allowedExternalStorage.length, hasOCS, isProviderModePresent]);
 
   React.useEffect(() => {
     /*
