@@ -16,12 +16,17 @@ import {
   StorageClassComponentProps as ExternalComponentProps,
   StorageClassWizardStepExtensionProps as ExternalStorage,
 } from '@odf/odf-plugin-sdk/extensions';
-import { ROOK_CEPH_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
+import { OCS_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
-import { PodModel, SecretModel, StorageClusterModel } from '@odf/shared/models';
+import {
+  ConfigMapModel,
+  PodModel,
+  SecretModel,
+  StorageClusterModel,
+} from '@odf/shared/models';
 import { getAnnotations } from '@odf/shared/selectors';
-import { ListKind, PodKind } from '@odf/shared/types';
+import { ConfigMapKind, ListKind, PodKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getAPIVersionForModel } from '@odf/shared/utils';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
@@ -50,6 +55,8 @@ export const getValidationKeys = (
   return { plainKeys, secretKeys: secrets };
 };
 
+const ROOK_EXTERNAL_SCRIPT_CM = 'rook-ceph-external-cluster-script-config';
+
 export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
   setFormState,
   formState,
@@ -61,27 +68,22 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
   const [pods, podsLoaded, podsLoadError] =
     useK8sGet<ListKind<PodKind>>(PodModel);
 
-  // From 4.16 onwards Rook will have separate CSV & Subscription.
-  const [rookCSV, rookCSVLoaded, rookCSVError] = useFetchCsv({
-    specName: ROOK_CEPH_OPERATOR,
-    namespace: odfNamespace,
-    startPollingInstantly: isNsSafe,
-  });
-
   const [ocsCSV, ocsCSVLoaded, ocsCSVError] = useFetchCsv({
     specName: OCS_OPERATOR,
     namespace: odfNamespace,
     startPollingInstantly: isNsSafe,
   });
 
+  const [cm, cmLoaded, cmLoadError] = useK8sGet<ConfigMapKind>(
+    ConfigMapModel,
+    ROOK_EXTERNAL_SCRIPT_CM,
+    odfNamespace
+  );
+
   const { fileName, fileData, errorMessage, isLoading } = formState;
 
-  const rookAnnotations = getAnnotations(rookCSV, {});
+  const downloadFile = createDownloadFile(cm?.data?.script);
   const ocsAnnotations = getAnnotations(ocsCSV, {});
-
-  const downloadFile = createDownloadFile(
-    rookAnnotations?.['externalClusterScript']
-  );
 
   const handleDataChange: FileUploadProps['onDataChange'] = (
     _event,
@@ -116,8 +118,8 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
 
   return (
     <ErrorHandler
-      error={podsLoadError || rookCSVError || ocsCSVError}
-      loaded={podsLoaded && rookCSVLoaded && ocsCSVLoaded}
+      error={podsLoadError || ocsCSVError || cmLoadError}
+      loaded={podsLoaded && ocsCSVLoaded && cmLoaded}
     >
       <Form>
         <FormGroup
