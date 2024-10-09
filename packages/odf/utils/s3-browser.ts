@@ -7,7 +7,7 @@ import { DASH } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
-import { DELIMITER, BUCKETS_BASE_ROUTE, PREFIX } from '../constants';
+import { DELIMITER, BUCKETS_BASE_ROUTE, PREFIX, SEARCH } from '../constants';
 import { BucketCrFormat, ObjectCrFormat } from '../types';
 
 export const getBreadcrumbs = (
@@ -118,3 +118,21 @@ export const convertBucketDataToCrFormat = (
       owner: listBucketsCommandOutput?.Owner?.DisplayName,
     },
   })) || [];
+
+export const getNavigationURL = (
+  bucketName: string,
+  foldersPath: string,
+  inputValue: string
+): string => {
+  const queryParams = [
+    ...(!!foldersPath
+      ? [`${PREFIX}=${getEncodedPrefix('', foldersPath)}`]
+      : []),
+    ...(!!inputValue ? [`${SEARCH}=${getEncodedPrefix(inputValue, '')}`] : []),
+  ];
+  const queryParamsString = !!queryParams.length
+    ? '?' + queryParams.join('&')
+    : '';
+
+  return `${BUCKETS_BASE_ROUTE}/${bucketName}` + queryParamsString;
+};
