@@ -16,6 +16,8 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getAPIVersionForModel, isValidIP } from '@odf/shared/utils';
 import { k8sGet } from '@openshift-console/dynamic-plugin-sdk';
 import { Select, SelectOption } from '@patternfly/react-core/deprecated';
+import { TFunction } from 'i18next';
+import * as _ from 'lodash-es';
 import * as Yup from 'yup';
 import {
   FormGroup,
@@ -34,7 +36,26 @@ import {
   getFlashSystemSecretName,
 } from './utils';
 
-const VOLUME_MODES = ['thick', 'thin'];
+const VOLUME_MODES_VALUES = [
+  'thick',
+  'thin',
+  'compressed',
+  'deduplicated',
+  'dedup_thin',
+  'dedup_compressed',
+];
+
+const VOLUME_MODES_TEXT = (t: TFunction) => [
+  t('Thick'),
+  t('Thin'),
+  t('Compressed'),
+  t('Deduplicated'),
+  t('Deduplicated thin'),
+  t('Deduplicated compressed'),
+];
+
+const volumeModeObject = (t: TFunction) =>
+  _.zipObject(VOLUME_MODES_TEXT(t), VOLUME_MODES_VALUES);
 
 export const FlashSystemConnectionDetails: React.FC<
   ExternalComponentProps<FlashSystemState>
@@ -45,9 +66,13 @@ export const FlashSystemConnectionDetails: React.FC<
 
   const onToggle = () => setIsOpen(!isOpen);
 
+  const volumeMapper = volumeModeObject(t);
+  const inverseVolumeMapper = _.invert(volumeMapper);
+
   const onModeSelect = (event, value) => {
     event.preventDefault();
-    setFormState('volmode', value);
+    const volumeMode = volumeMapper[value];
+    setFormState('volmode', volumeMode);
     setIsOpen(!isOpen);
   };
 
@@ -160,13 +185,13 @@ export const FlashSystemConnectionDetails: React.FC<
         <Select
           onSelect={onModeSelect}
           id="volume-mode-input"
-          selections={formState.volmode}
+          selections={inverseVolumeMapper[formState.volmode]}
           onToggle={onToggle}
           isOpen={isOpen}
           isDisabled={false}
-          placeholderText={VOLUME_MODES[0]}
+          placeholderText={Object.keys(volumeMapper)[0]}
         >
-          {VOLUME_MODES.map((mode) => (
+          {Object.keys(volumeMapper).map((mode) => (
             <SelectOption key={mode} value={mode} />
           ))}
         </Select>
