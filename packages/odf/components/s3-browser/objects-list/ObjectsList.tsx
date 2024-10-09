@@ -1,9 +1,12 @@
 import * as React from 'react';
 import {
   ListObjectsV2CommandOutput,
+  DeleteObjectsCommandOutput,
   _Object as Content,
   CommonPrefix,
 } from '@aws-sdk/client-s3';
+import { pluralize } from '@odf/core/components/utils';
+import { S3Commands } from '@odf/shared/s3';
 import { SelectableTable } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
@@ -18,6 +21,10 @@ import {
   Level,
   LevelItem,
   MenuToggle,
+  Alert,
+  AlertVariant,
+  AlertActionCloseButton,
+  AlertActionLink,
 } from '@patternfly/react-core';
 import { AngleLeftIcon, AngleRightIcon } from '@patternfly/react-icons';
 import {
@@ -26,6 +33,14 @@ import {
   CustomActionsToggleProps,
 } from '@patternfly/react-table';
 import { LIST_OBJECTS, DELIMITER, MAX_KEYS, PREFIX } from '../../../constants';
+import {
+  ObjectsDeleteResponse,
+  SetObjectsDeleteResponse,
+} from '../../../modals/s3-browser/delete-objects/DeleteObjectsModal';
+import {
+  LazyDeleteObjectsModal,
+  LazyDeleteObjectsSummary,
+} from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
 import { ObjectCrFormat } from '../../../types';
 import { getPath, convertObjectsDataToCrFormat } from '../../../utils';
 import { NoobaaS3Context } from '../noobaa-context';
@@ -36,6 +51,10 @@ import {
   EmptyPage,
 } from './table-components';
 
+const LazyCreateFolderModal = React.lazy(
+  () => import('../../../modals/s3-browser/create-folder/CreateFolderModal')
+);
+
 type PaginationProps = {
   onNext: () => void;
   onPrevious: () => void;
@@ -45,8 +64,18 @@ type PaginationProps = {
 
 type TableActionsProps = {
   launcher: LaunchModal;
-  selectedRows: unknown[];
+  selectedRows: ObjectCrFormat[];
   loadedWOError: boolean;
+  foldersPath: string;
+  bucketName: string;
+  noobaaS3: S3Commands;
+  setDeleteResponse: SetObjectsDeleteResponse;
+  refreshTokens: () => Promise<void>;
+};
+
+type DeletionAlertsProps = {
+  deleteResponse: ObjectsDeleteResponse;
+  foldersPath: string;
 };
 
 type ContinuationTokens = {
@@ -62,6 +91,7 @@ type Trigger = TriggerWithOptionsArgs<
   string
 >;
 
+// for navigating (next/previous) through objects list
 const continuationTokensSetter = (
   setContinuationTokens: React.Dispatch<
     React.SetStateAction<ContinuationTokens>
@@ -109,15 +139,53 @@ const fetchObjects = async (
   }
 };
 
+// for refreshing (re-feching) objects from start, once state of bucket has changed (objects added/deleted)
+const continuationTokensRefresher = async (
+  setContinuationTokens: React.Dispatch<
+    React.SetStateAction<ContinuationTokens>
+  >,
+  trigger: Trigger,
+  setSelectedRows: React.Dispatch<React.SetStateAction<ObjectCrFormat[]>>
+) => {
+  try {
+    const response: ListObjectsV2CommandOutput = await trigger();
+    setContinuationTokens({
+      previous: [''],
+      current: '',
+      next: response.NextContinuationToken,
+    });
+    setSelectedRows([]);
+  } catch (err) {
+    // no need to handle any error here, use "error" object directly from the "useSWRMutation" hook
+    // eslint-disable-next-line no-console
+    console.error(err);
+  }
+};
+
 const getBulkActionsItems = (
   t: TFunction,
-  _launcher: LaunchModal,
-  _selectedRows: unknown[]
+  launcher: LaunchModal,
+  selectedRows: ObjectCrFormat[],
+  foldersPath: string,
+  bucketName: string,
+  noobaaS3: S3Commands,
+  setDeleteResponse: SetObjectsDeleteResponse,
+  refreshTokens: () => Promise<void>
 ): IAction[] => [
-  // ToDo: add bulk delete option
   {
     title: t('Delete objects'),
-    onClick: () => undefined,
+    onClick: () =>
+      launcher(LazyDeleteObjectsModal, {
+        isOpen: true,
+        extraProps: {
+          foldersPath,
+          bucketName,
+          objects: selectedRows,
+          noobaaS3,
+          setDeleteResponse,
+          refreshTokens,
+        },
+      }),
   },
 ];
 
@@ -171,6 +239,11 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
   disablePrevious,
   launcher,
   selectedRows,
+  foldersPath,
+  bucketName,
+  noobaaS3,
+  setDeleteResponse,
+  refreshTokens,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -180,21 +253,34 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
     <Level hasGutter>
       <LevelItem>
         <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row">
-          {/* ToDo: add create folder option */}
           <Button
             variant={ButtonVariant.secondary}
-            className="pf-v5-u-mr-xs"
+            className="pf-v5-u-mr-sm"
             isDisabled={anySelection || !loadedWOError}
-            onClick={() => undefined}
+            onClick={() =>
+              launcher(LazyCreateFolderModal, {
+                isOpen: true,
+                extraProps: { foldersPath, bucketName, noobaaS3 },
+              })
+            }
           >
             {t('Create folder')}
           </Button>
           <ActionsColumn
             isDisabled={!anySelection || !loadedWOError}
             translate={null}
-            items={getBulkActionsItems(t, launcher, selectedRows)}
+            items={getBulkActionsItems(
+              t,
+              launcher,
+              selectedRows,
+              foldersPath,
+              bucketName,
+              noobaaS3,
+              setDeleteResponse,
+              refreshTokens
+            )}
             actionsToggle={CustomActionsToggle}
-            className="pf-v5-u-ml-xs"
+            className="pf-v5-u-ml-sm"
           />
         </div>
       </LevelItem>
@@ -207,6 +293,94 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
         />
       </LevelItem>
     </Level>
+  );
+};
+
+const DeletionAlerts: React.FC<DeletionAlertsProps> = ({
+  deleteResponse,
+  foldersPath,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const launcher = useModal();
+
+  const [errorResponse, setErrorResponse] = React.useState<
+    DeleteObjectsCommandOutput['Errors']
+  >([]);
+  const [successResponse, setSuccessResponse] = React.useState<
+    DeleteObjectsCommandOutput['Deleted']
+  >([]);
+
+  React.useEffect(() => {
+    setErrorResponse(deleteResponse?.deleteResponse?.Errors || []);
+    setSuccessResponse(deleteResponse?.deleteResponse?.Deleted || []);
+  }, [deleteResponse]);
+
+  const errorCount = errorResponse.length;
+  const successCount = successResponse.length;
+  return (
+    <>
+      {!!errorCount && (
+        <Alert
+          variant={AlertVariant.danger}
+          title={pluralize(
+            errorCount,
+            t(
+              'Failed to delete {{ errorCount }} object from the bucket. View deletion summary for details.',
+              { errorCount }
+            ),
+            t(
+              'Failed to delete {{ errorCount }} objects from the bucket. View deletion summary for details.',
+              { errorCount }
+            ),
+            false
+          )}
+          isInline
+          className="pf-v5-u-mb-sm pf-v5-u-mt-lg"
+          actionClose={
+            <AlertActionCloseButton onClose={() => setErrorResponse([])} />
+          }
+          actionLinks={
+            <AlertActionLink
+              onClick={() =>
+                launcher(LazyDeleteObjectsSummary, {
+                  isOpen: true,
+                  extraProps: {
+                    foldersPath,
+                    errorResponse,
+                    selectedObjects: deleteResponse.selectedObjects,
+                  },
+                })
+              }
+            >
+              {t('View failed objects')}
+            </AlertActionLink>
+          }
+        />
+      )}
+      {!!successCount && (
+        <Alert
+          variant={AlertVariant.success}
+          title={pluralize(
+            successCount,
+            t(
+              'Successfully deleted {{ successCount }} object from the bucket.',
+              { successCount }
+            ),
+            t(
+              'Successfully deleted {{ successCount }} objects from the bucket.',
+              { successCount }
+            ),
+            false
+          )}
+          isInline
+          className="pf-v5-u-mb-lg pf-v5-u-mt-sm"
+          actionClose={
+            <AlertActionCloseButton onClose={() => setSuccessResponse([])} />
+          }
+        />
+      )}
+    </>
   );
 };
 
@@ -244,6 +418,11 @@ export const ObjectsList: React.FC<{}> = () => {
       next: '',
     });
   const [selectedRows, setSelectedRows] = React.useState<ObjectCrFormat[]>([]);
+  const [deleteResponse, setDeleteResponse] =
+    React.useState<ObjectsDeleteResponse>({
+      selectedObjects: [] as ObjectCrFormat[],
+      deleteResponse: {} as DeleteObjectsCommandOutput,
+    });
 
   const structuredObjects: ObjectCrFormat[] = React.useMemo(() => {
     const objects: ObjectCrFormat[] = [];
@@ -262,16 +441,29 @@ export const ObjectsList: React.FC<{}> = () => {
     return objects;
   }, [data, loadedWOError, t]);
 
+  const refreshTokens = () =>
+    continuationTokensRefresher(
+      setContinuationTokens,
+      trigger,
+      setSelectedRows
+    );
+
   // initial fetch on first mount or on route update (drilling in/out of the folder view)
   React.useEffect(() => {
-    fetchObjects(setContinuationTokens, trigger, true, setSelectedRows);
+    refreshTokens();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [foldersPath]);
 
   return (
     <div className="pf-v5-u-m-lg">
+      <p className="pf-v5-u-mb-sm">
+        {t('Objects are the fundamental entities stored in buckets.')}
+      </p>
+      <DeletionAlerts
+        deleteResponse={deleteResponse}
+        foldersPath={foldersPath}
+      />
       {/* ToDo: add upload objects option */}
-
       <TableActions
         onNext={async () => {
           if (!!continuationTokens.next && loadedWOError)
@@ -303,8 +495,12 @@ export const ObjectsList: React.FC<{}> = () => {
         disableNext={!continuationTokens.next || !loadedWOError}
         disablePrevious={!continuationTokens.current || !loadedWOError}
         launcher={launcher}
+        foldersPath={foldersPath}
+        bucketName={bucketName}
+        noobaaS3={noobaaS3}
+        setDeleteResponse={setDeleteResponse}
+        refreshTokens={refreshTokens}
       />
-
       <SelectableTable
         className="pf-v5-u-mt-lg"
         columns={getColumns(t)}
@@ -315,7 +511,14 @@ export const ObjectsList: React.FC<{}> = () => {
         loaded={!isMutating}
         loadError={error}
         isRowSelectable={isRowSelectable}
-        extraProps={{ launcher, bucketName, foldersPath, noobaaS3 }}
+        extraProps={{
+          launcher,
+          bucketName,
+          foldersPath,
+          noobaaS3,
+          setDeleteResponse,
+          refreshTokens,
+        }}
         emptyRowMessage={EmptyPage}
       />
     </div>

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { S3Commands } from '@odf/shared/s3';
-import { getName } from '@odf/shared/selectors';
 import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { sortRows } from '@odf/shared/utils';
@@ -18,7 +17,10 @@ import {
 import { CubesIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, IAction } from '@patternfly/react-table';
 import { BUCKETS_BASE_ROUTE, PREFIX } from '../../../constants';
+import { SetObjectsDeleteResponse } from '../../../modals/s3-browser/delete-objects/DeleteObjectsModal';
+import { LazyDeleteObjectsModal } from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
 import { ObjectCrFormat } from '../../../types';
+import { getEncodedPrefix, replacePathFromName } from '../../../utils';
 import {
   DownloadAndPreviewState,
   onDownload,
@@ -46,9 +48,11 @@ const getInlineActionsItems = (
   downloadAndPreview: DownloadAndPreviewState,
   setDownloadAndPreview: React.Dispatch<
     React.SetStateAction<DownloadAndPreviewState>
-  >
+  >,
+  foldersPath: string,
+  setDeleteResponse: SetObjectsDeleteResponse,
+  refreshTokens: () => Promise<void>
 ): IAction[] => [
-  // ToDo: add inline delete option
   {
     title: t('Download'),
     onClick: () =>
@@ -71,7 +75,18 @@ const getInlineActionsItems = (
   },
   {
     title: t('Delete'),
-    onClick: () => undefined,
+    onClick: () =>
+      launcher(LazyDeleteObjectsModal, {
+        isOpen: true,
+        extraProps: {
+          foldersPath,
+          bucketName,
+          objects: [object],
+          noobaaS3,
+          setDeleteResponse,
+          refreshTokens,
+        },
+      }),
   },
 ];
 
@@ -113,12 +128,17 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
       isPreviewing: false,
     });
 
-  const { launcher, bucketName, foldersPath, noobaaS3 } = extraProps;
+  const {
+    launcher,
+    bucketName,
+    foldersPath,
+    noobaaS3,
+    setDeleteResponse,
+    refreshTokens,
+  } = extraProps;
   const isFolder = object.isFolder;
-  const name = getName(object).replace(foldersPath, '');
-  const prefix = !!foldersPath
-    ? encodeURIComponent(foldersPath + name)
-    : encodeURIComponent(name);
+  const name = replacePathFromName(object, foldersPath);
+  const prefix = getEncodedPrefix(name, foldersPath);
 
   const columnNames = getColumnNames(t);
 
@@ -153,7 +173,10 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
               object,
               noobaaS3,
               downloadAndPreview,
-              setDownloadAndPreview
+              setDownloadAndPreview,
+              foldersPath,
+              setDeleteResponse,
+              refreshTokens
             )}
           />
         )}

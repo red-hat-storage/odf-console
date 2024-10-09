@@ -9,6 +9,8 @@ import {
   PutBucketTaggingCommandOutput,
   GetObjectCommandInput,
   GetObjectCommandOutput,
+  DeleteObjectsCommandInput,
+  DeleteObjectsCommandOutput,
 } from '@aws-sdk/client-s3';
 
 // Bucket command types
@@ -37,3 +39,7 @@ export type GetSignedUrl = (
 export type GetObject = (
   input: GetObjectCommandInput
 ) => Promise<GetObjectCommandOutput>;
+
+export type DeleteObjects = (
+  input: DeleteObjectsCommandInput
+) => Promise<DeleteObjectsCommandOutput>;
