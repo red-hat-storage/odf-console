@@ -28,11 +28,17 @@ import { Link, useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { PROVIDER_MODE } from '../../../odf/features';
 import { ODFSystemParams } from '../../types';
-import { getNetworkEncryption } from '../../utils';
+import EncryptionPopover from './encryption-popover';
 
 const storageClusterResource = {
   kind: referenceForModel(StorageClusterModel),
   isList: true,
+};
+
+type EncryptionDetailsType = {
+  clusterWide?: boolean;
+  kms?: { enable: boolean };
+  storageClass?: boolean;
 };
 
 const DetailsCard: React.FC = () => {
@@ -60,9 +66,6 @@ const DetailsCard: React.FC = () => {
     ocsNs
   );
   const ocsName = getName(storageCluster);
-  const inTransitEncryptionStatus = getNetworkEncryption(storageCluster)
-    ? t('Enabled')
-    : t('Disabled');
 
   const isProviderMode = useFlag(PROVIDER_MODE);
 
@@ -73,6 +76,18 @@ const DetailsCard: React.FC = () => {
     odfNamespace
   )}`;
   const serviceName = t('Data Foundation');
+
+  // Extract encryption details
+  const encryptionDetails: EncryptionDetailsType = {
+    clusterWide: storageCluster?.spec?.encryption?.clusterWide,
+    kms: storageCluster?.spec?.encryption?.kms,
+    storageClass: storageCluster?.spec?.encryption?.storageClass,
+  };
+
+  const inTransitEncryption =
+    storageCluster?.spec?.network?.connections?.encryption?.enabled;
+  const hasStorageClassEncryption = encryptionDetails.storageClass;
+
   return (
     <Card>
       <CardHeader>
@@ -117,12 +132,17 @@ const DetailsCard: React.FC = () => {
             {serviceVersion}
           </DetailItem>
           <DetailItem
-            key="inTransitEncryption"
-            title={t('In-transit encryption')}
+            key="encryption"
+            title={t('Encryption')}
             isLoading={!ocsLoaded}
-            error={ocsError as any}
+            error={ocsError}
           >
-            {inTransitEncryptionStatus}
+            <EncryptionPopover
+              encryptionDetails={encryptionDetails}
+              inTransitEncryption={!!inTransitEncryption}
+              hasStorageClassEncryption={!!hasStorageClassEncryption}
+              hasMCGEncryption={false}
+            />
           </DetailItem>
         </DetailsBody>
       </CardBody>
