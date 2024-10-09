@@ -31,6 +31,7 @@
     "analyze-common": "yarn build:generate && NODE_ENV=production I8N_NS=${I8N_NS} ANALYZE_BUNDLE=true yarn ts-node ./node_modules/.bin/webpack -c ./webpack.config.ts",
     "analyze-odf": "PLUGIN=odf yarn analyze-common && PLUGIN=odf yarn ts-node ./analyzeTest.ts",
     "analyze-mco": "PLUGIN=mco yarn analyze-common && PLUGIN=mco yarn ts-node ./analyzeTest.ts",
+    "analyze-client": "PLUGIN=client yarn analyze-common && PLUGIN=client yarn ts-node ./analyzeTest.ts",
     "dev": "PLUGIN=odf I8N_NS=plugin__odf-console yarn server:plugin",
     "dev-mco": "PLUGIN=mco I8N_NS=plugin__odf-multicluster-console yarn server:plugin",
     "dev-client": "PLUGIN=client I8N_NS=plugin__odf-client-console yarn server:plugin",
