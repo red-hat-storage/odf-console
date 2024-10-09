@@ -12,9 +12,8 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'i18next';
-import * as _ from 'lodash-es';
 import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
-import useSWRMutation, { TriggerWithOptionsArgs } from 'swr/mutation';
+import useSWRMutation from 'swr/mutation';
 import {
   Button,
   ButtonVariant,
@@ -26,7 +25,6 @@ import {
   AlertActionCloseButton,
   AlertActionLink,
 } from '@patternfly/react-core';
-import { AngleLeftIcon, AngleRightIcon } from '@patternfly/react-icons';
 import {
   ActionsColumn,
   IAction,
@@ -45,6 +43,13 @@ import { ObjectCrFormat } from '../../../types';
 import { getPath, convertObjectsDataToCrFormat } from '../../../utils';
 import { NoobaaS3Context } from '../noobaa-context';
 import {
+  Pagination,
+  PaginationProps,
+  ContinuationTokens,
+  fetchS3Resources,
+  continuationTokensRefresher,
+} from '../pagination-helper';
+import {
   isRowSelectable,
   getColumns,
   TableRow,
@@ -54,13 +59,6 @@ import {
 const LazyCreateFolderModal = React.lazy(
   () => import('../../../modals/s3-browser/create-folder/CreateFolderModal')
 );
-
-type PaginationProps = {
-  onNext: () => void;
-  onPrevious: () => void;
-  disableNext: boolean;
-  disablePrevious: boolean;
-};
 
 type TableActionsProps = {
   launcher: LaunchModal;
@@ -76,90 +74,6 @@ type TableActionsProps = {
 type DeletionAlertsProps = {
   deleteResponse: ObjectsDeleteResponse;
   foldersPath: string;
-};
-
-type ContinuationTokens = {
-  previous: string[];
-  current: string;
-  next: string;
-};
-
-type Trigger = TriggerWithOptionsArgs<
-  ListObjectsV2CommandOutput,
-  any,
-  string,
-  string
->;
-
-// for navigating (next/previous) through objects list
-const continuationTokensSetter = (
-  setContinuationTokens: React.Dispatch<
-    React.SetStateAction<ContinuationTokens>
-  >,
-  response: ListObjectsV2CommandOutput,
-  isNext: boolean,
-  setSelectedRows: React.Dispatch<React.SetStateAction<ObjectCrFormat[]>>
-) => {
-  setContinuationTokens((oldTokens) => {
-    const newTokens = _.cloneDeep(oldTokens);
-    if (isNext) {
-      newTokens.previous.push(newTokens.current);
-      newTokens.current = newTokens.next;
-    } else {
-      newTokens.current = newTokens.previous.pop();
-    }
-    newTokens.next = response.NextContinuationToken;
-
-    return newTokens;
-  });
-  setSelectedRows([]);
-};
-
-const fetchObjects = async (
-  setContinuationTokens: React.Dispatch<
-    React.SetStateAction<ContinuationTokens>
-  >,
-  trigger: Trigger,
-  isNext: boolean,
-  setSelectedRows: React.Dispatch<React.SetStateAction<ObjectCrFormat[]>>,
-  paginationToken = ''
-) => {
-  try {
-    const response: ListObjectsV2CommandOutput = await trigger(paginationToken);
-    continuationTokensSetter(
-      setContinuationTokens,
-      response,
-      isNext,
-      setSelectedRows
-    );
-  } catch (err) {
-    // no need to handle any error here, use "error" object directly from the "useSWRMutation" hook
-    // eslint-disable-next-line no-console
-    console.error(err);
-  }
-};
-
-// for refreshing (re-feching) objects from start, once state of bucket has changed (objects added/deleted)
-const continuationTokensRefresher = async (
-  setContinuationTokens: React.Dispatch<
-    React.SetStateAction<ContinuationTokens>
-  >,
-  trigger: Trigger,
-  setSelectedRows: React.Dispatch<React.SetStateAction<ObjectCrFormat[]>>
-) => {
-  try {
-    const response: ListObjectsV2CommandOutput = await trigger();
-    setContinuationTokens({
-      previous: [''],
-      current: '',
-      next: response.NextContinuationToken,
-    });
-    setSelectedRows([]);
-  } catch (err) {
-    // no need to handle any error here, use "error" object directly from the "useSWRMutation" hook
-    // eslint-disable-next-line no-console
-    console.error(err);
-  }
 };
 
 const getBulkActionsItems = (
@@ -200,34 +114,6 @@ export const CustomActionsToggle = (props: CustomActionsToggleProps) => {
     >
       {t('Actions')}
     </MenuToggle>
-  );
-};
-
-const Pagination: React.FC<PaginationProps> = ({
-  onNext,
-  onPrevious,
-  disableNext,
-  disablePrevious,
-}) => {
-  return (
-    <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row">
-      <Button
-        variant={ButtonVariant.plain}
-        className="pf-v5-u-mr-xs"
-        isDisabled={disablePrevious}
-        onClick={onPrevious}
-      >
-        <AngleLeftIcon />
-      </Button>
-      <Button
-        variant={ButtonVariant.plain}
-        className="pf-v5-u-ml-xs"
-        isDisabled={disableNext}
-        onClick={onNext}
-      >
-        <AngleRightIcon />
-      </Button>
-    </div>
   );
 };
 
@@ -467,12 +353,12 @@ export const ObjectsList: React.FC<{}> = () => {
       <TableActions
         onNext={async () => {
           if (!!continuationTokens.next && loadedWOError)
-            fetchObjects(
+            fetchS3Resources<ListObjectsV2CommandOutput>(
               setContinuationTokens,
               trigger,
               true,
-              setSelectedRows,
-              continuationTokens.next
+              continuationTokens.next,
+              setSelectedRows
             );
         }}
         onPrevious={async () => {
@@ -481,12 +367,12 @@ export const ObjectsList: React.FC<{}> = () => {
               continuationTokens.previous[
                 continuationTokens.previous.length - 1
               ];
-            fetchObjects(
+            fetchS3Resources<ListObjectsV2CommandOutput>(
               setContinuationTokens,
               trigger,
               false,
-              setSelectedRows,
-              paginationToken
+              paginationToken,
+              setSelectedRows
             );
           }
         }}

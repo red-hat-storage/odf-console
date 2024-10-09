@@ -30,7 +30,7 @@ const EmptyPage: React.FC<EmptyPageProps> = (props) => {
   return !isLoaded ? (
     <div
       className="loading-skeleton--table mco-empty-page__skeleton"
-      aria-label={t('Loading Empty Page')}
+      aria-label={t('Loading empty page')}
     />
   ) : (
     <EmptyState variant={EmptyStateVariant.lg}>

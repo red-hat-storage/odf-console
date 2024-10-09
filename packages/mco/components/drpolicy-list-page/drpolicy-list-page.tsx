@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
+import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { useAccessReview } from '@odf/shared/hooks/rbac-hook';
 import { Kebab } from '@odf/shared/kebab/kebab';
 import { getName } from '@odf/shared/selectors';
@@ -28,7 +29,6 @@ import {
 import { DRPolicyModel } from '../../models';
 import { DRPolicyKind } from '../../types';
 import { getReplicationType, isDRPolicyValidated } from '../../utils';
-import EmptyPage from '../empty-state-page/empty-page';
 import { Header, kebabActionItems, tableColumnInfo } from './helper';
 import './drpolicy-list-page.scss';
 
