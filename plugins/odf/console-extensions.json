@@ -747,7 +747,7 @@
       }
     },
     "flags": {
-      "required": ["MCG_STANDALONE"]
+      "required": ["MCG"]
     }
   }
 ]

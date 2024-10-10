@@ -444,7 +444,6 @@ export const ObjectsList: React.FC<{}> = () => {
         deleteResponse={deleteResponse}
         foldersPath={foldersPath}
       />
-      {/* ToDo: add upload objects option */}
       <TableActions
         onNext={async () => {
           if (!!continuationTokens.next && loadedWOError)
