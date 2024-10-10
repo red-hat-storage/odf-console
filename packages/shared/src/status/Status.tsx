@@ -55,6 +55,7 @@ export const Status: React.FC<StatusProps> = ({
 
     case 'ContainerCreating':
     case 'UpgradePending':
+    case 'Uploading':
       return <ProgressStatus {...statusProps} />;
 
     case 'In Progress':

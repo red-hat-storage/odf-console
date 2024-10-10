@@ -1,0 +1,40 @@
+.odf-upload-component {
+    width: 95%;
+    margin: 10px;
+    padding: 5px;
+}
+
+.odf-upload__title {
+    border: 1px dotted var(--pf-v5-global--palette--black-500);
+    padding: 15px;
+    margin-top: 5px;
+}
+
+.odf-upload-title__button{
+    width: 75%;
+}
+
+.odf-upload-title__input {
+    margin: 0 auto;
+    align-self: center;
+}
+
+.odf-drawer__head .pf-v5-c-drawer__body {
+    height: unset;
+}
+
+.odf-upload__file-title--color {
+    color: var(--pf-v5-global--palette--black-500);
+}
+
+.odf-upload__helper-text {
+    color: var(--pf-v5-global--palette--black-500);
+}
+
+.odf-upload__file-title--overflow {
+    overflow: hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    max-width:200px;
+    display: block;
+}

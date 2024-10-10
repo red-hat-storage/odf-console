@@ -18,11 +18,9 @@ import {
   DeleteObjects,
 } from './types';
 
-export class S3Commands {
-  private s3Client: S3Client;
-
+export class S3Commands extends S3Client {
   constructor(endpoint: string, accessKeyId: string, secretAccessKey: string) {
-    this.s3Client = new S3Client({
+    super({
       // "region" is a required parameter for the SDK, using "none" as a workaround
       region: 'none',
       endpoint,
@@ -36,24 +34,24 @@ export class S3Commands {
 
   // Bucket command members
   createBucket: CreateBucket = (input) =>
-    this.s3Client.send(new CreateBucketCommand(input));
+    this.send(new CreateBucketCommand(input));
 
   listBuckets: ListBuckets = (input) =>
-    this.s3Client.send(new ListBucketsCommand(input));
+    this.send(new ListBucketsCommand(input));
 
   putBucketTags: PutBucketTags = (input) =>
-    this.s3Client.send(new PutBucketTaggingCommand(input));
+    this.send(new PutBucketTaggingCommand(input));
 
   // Object command members
   listObjects: ListObjectsV2 = (input) =>
-    this.s3Client.send(new ListObjectsV2Command(input));
+    this.send(new ListObjectsV2Command(input));
 
   getSignedUrl: GetSignedUrl = (input, expiresIn) =>
-    getSignedUrl(this.s3Client, new GetObjectCommand(input), { expiresIn });
+    getSignedUrl(this, new GetObjectCommand(input), { expiresIn });
 
   getObject: GetObject = (input) =>
-    this.s3Client.send(new GetObjectCommand(input));
+    this.send(new GetObjectCommand(input));
 
   deleteObjects: DeleteObjects = (input) =>
-    this.s3Client.send(new DeleteObjectsCommand(input));
+    this.send(new DeleteObjectsCommand(input));
 }
