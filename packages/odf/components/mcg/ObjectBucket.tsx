@@ -12,6 +12,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
+  K8sResourceCommon,
   ListPageBody,
   ListPageFilter,
   ResourceLink as ResourceLinkWithKind,
@@ -211,7 +212,7 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
 };
 
 type OBDetailsProps = {
-  obj: K8sResourceKind;
+  obj: K8sResourceCommon;
   ownerLabel?: string;
 };
 

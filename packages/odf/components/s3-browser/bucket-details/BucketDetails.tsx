@@ -16,11 +16,14 @@ import {
   BUCKET_VERSIONING_CACHE_KEY_SUFFIX,
 } from '@odf/core/constants';
 import { DASH } from '@odf/shared';
+import { LoadingBox } from '@odf/shared/generic/status-box';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { BucketPolicy } from '@odf/shared/s3';
-import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { GreenCheckCircleIcon } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  GreenCheckCircleIcon,
+  K8sResourceCommon,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import { useParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
@@ -166,16 +169,25 @@ const BucketDetailsOverview: React.FC<{}> = ({}) => {
 };
 
 type BucketDetailsProps = {
-  obj: K8sResourceKind;
+  obj: {
+    refresh: boolean;
+    resource?: K8sResourceCommon;
+  };
 };
 
-export const BucketDetails: React.FC<BucketDetailsProps> = ({ obj }) => {
+export const BucketDetails: React.FC<BucketDetailsProps> = ({
+  obj: { resource, refresh },
+}) => {
   const { t } = useCustomTranslation();
 
-  return (
+  return refresh ? (
     <>
       <BucketDetailsOverview />
-      {obj && <OBDetails obj={obj} ownerLabel={t('Owner References')} />}
+      {resource && (
+        <OBDetails obj={resource} ownerLabel={t('Owner References')} />
+      )}
     </>
+  ) : (
+    <LoadingBox />
   );
 };

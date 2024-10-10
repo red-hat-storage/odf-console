@@ -1,0 +1,12 @@
+.odf-upload-status-item{
+    &__file-title--overflow {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 200px;
+        display: block;
+    }
+    &__file-title--color {
+        color: var(--pf-v5-global--palette--black-500);
+    }
+}
