@@ -3,7 +3,6 @@ export const AVAILABLE = 'Available';
 export const DEFAULT_STORAGE_NAMESPACE = 'openshift-storage'; // This hardcoded namespace is only for specific cases, do not use it otherwise.
 export const ODF_OPERATOR = 'odf-operator';
 export const OCS_OPERATOR = 'ocs-operator';
-export const ROOK_CEPH_OPERATOR = 'rook-ceph-operator';
 export const ONE_SECOND = 1000;
 export const ONE_MINUTE = 60 * ONE_SECOND;
 export const ONE_HOUR = 60 * ONE_MINUTE;

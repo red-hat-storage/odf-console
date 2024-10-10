@@ -32,7 +32,7 @@ export const generateNodeDeploymentsMap = (
     const podsInNode = pods.filter(
       (pod) =>
         pod.spec.nodeName === getName(node) &&
-        allNames.includes(pod.metadata.labels['app'])
+        allNames.includes(pod.metadata.labels?.['app'])
     );
     const deploymentsInNode = podsInNode
       .filter((pod) => _.has(pod, 'metadata.ownerReferences'))

@@ -92,6 +92,6 @@ describe('Test drpolicy list page', () => {
   test('Empty page loading test', async () => {
     testCase = 3;
     render(<DRPolicyListPage />);
-    expect(screen.getByLabelText('Loading Empty Page')).toBeInTheDocument();
+    expect(screen.getByLabelText('Loading empty page')).toBeInTheDocument();
   });
 });

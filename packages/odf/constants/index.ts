@@ -6,3 +6,4 @@ export * from './tooltips';
 export * from './mcg';
 export * from './providerSchema';
 export * from './data-protection';
+export * from './s3-browser';

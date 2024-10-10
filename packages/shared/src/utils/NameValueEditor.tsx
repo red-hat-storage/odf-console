@@ -53,6 +53,10 @@ type NameValueEditorProps = {
   extraProps?: any;
   isAddDisabled?: boolean;
   className?: string;
+  hideHeaderWhenNoItems?: boolean;
+  IconComponent?: React.FC;
+  nameMaxLength?: number;
+  valueMaxLength?: number;
 };
 
 export const enum NameValueEditorPair {
@@ -80,6 +84,8 @@ export type PairElementProps = {
   isEmpty: boolean;
   disableReorder: boolean;
   extraProps?: any;
+  nameMaxLength?: number;
+  valueMaxLength?: number;
 };
 
 const PairElement: React.FC<PairElementProps> = ({
@@ -97,6 +103,8 @@ const PairElement: React.FC<PairElementProps> = ({
   toolTip,
   valueString,
   alwaysAllowRemove,
+  nameMaxLength,
+  valueMaxLength,
 }) => {
   const { t } = useCustomTranslation();
   const deleteIcon = (
@@ -159,6 +167,7 @@ const PairElement: React.FC<PairElementProps> = ({
           value={pair[NameValueEditorPair.Name]}
           onChange={onChangeName}
           disabled={readOnly}
+          maxLength={nameMaxLength}
         />
       </div>
       <div className="col-xs-5 pairs-list__value-field">
@@ -170,6 +179,7 @@ const PairElement: React.FC<PairElementProps> = ({
           value={pair[NameValueEditorPair.Value] || ''}
           onChange={onChangeValue}
           disabled={readOnly}
+          maxLength={valueMaxLength}
         />
       </div>
       {!readOnly && (
@@ -210,6 +220,10 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
       extraProps,
       isAddDisabled,
       className,
+      hideHeaderWhenNoItems = false,
+      nameMaxLength,
+      valueMaxLength,
+      IconComponent = PlusCircleIcon,
       PairElementComponent = PairElement,
     }) => {
       const { t } = useCustomTranslation();
@@ -300,24 +314,32 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
             disableReorder={nameValuePairs.length === 1}
             toolTip={toolTip}
             extraProps={extraProps}
+            nameMaxLength={nameMaxLength}
+            valueMaxLength={valueMaxLength}
           />
         );
       });
       return (
         <>
-          <div className="row pairs-list__heading">
-            {!readOnly && allowSorting && (
-              <div className="col-xs-1 co-empty__header" />
-            )}
-            <div className={classNames('col-xs-5', className)}>
-              {nameStringUpdated}
-            </div>
-            <div className={classNames('col-xs-5', className)}>
-              {valueStringUpdated}
-            </div>
-            <div className="col-xs-1 co-empty__header" />
-          </div>
-          {pairElems}
+          {hideHeaderWhenNoItems && _.isEmpty(pairElems) ? (
+            <></>
+          ) : (
+            <>
+              <div className="row pairs-list__heading">
+                {!readOnly && allowSorting && (
+                  <div className="col-xs-1 co-empty__header" />
+                )}
+                <div className={classNames('col-xs-5', className)}>
+                  {nameStringUpdated}
+                </div>
+                <div className={classNames('col-xs-5', className)}>
+                  {valueStringUpdated}
+                </div>
+                <div className="col-xs-1 co-empty__header" />
+              </div>
+              {pairElems}
+            </>
+          )}
           <div className="row">
             <div className="col-xs-12">
               {readOnly ? null : (
@@ -330,7 +352,7 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
                     variant="link"
                     isDisabled={isAddDisabled}
                   >
-                    <PlusCircleIcon
+                    <IconComponent
                       data-test-id="pairs-list__add-icon"
                       className="co-icon-space-r"
                     />

@@ -16,8 +16,9 @@ import { useSortList } from '../hooks/sort-list';
 import { getUID } from '../selectors';
 import { TableColumnProps, RowComponentType } from './composable-table';
 
-const isRowSelectable = <T extends K8sResourceCommon>(row: T) =>
-  !row?.metadata?.deletionTimestamp;
+const hasNoDeletionTimestamp: IsRowSelectable = <T extends K8sResourceCommon>(
+  row: T
+) => !row?.metadata?.deletionTimestamp;
 
 const areAllRowsSelected = <T extends K8sResourceCommon>(
   selectableRows: T[],
@@ -57,6 +58,7 @@ export const SelectableTable: SelectableTableProps = <
   initialSortColumnIndex,
   borders,
   className,
+  isRowSelectable,
 }) => {
   const {
     onSort,
@@ -73,10 +75,11 @@ export const SelectableTable: SelectableTableProps = <
   );
 
   const [selectableRows, rowIds] = React.useMemo(() => {
-    const selectableRows = sortedRows?.filter(isRowSelectable) || [];
+    const selectableRows =
+      sortedRows?.filter(isRowSelectable || hasNoDeletionTimestamp) || [];
     const rowIds = new Set(selectableRows?.map(getUID));
     return [selectableRows, rowIds];
-  }, [sortedRows]);
+  }, [sortedRows, isRowSelectable]);
 
   const { onSelect } = useSelectList<T>(
     selectableRows,
@@ -148,7 +151,9 @@ export const SelectableTable: SelectableTableProps = <
                         rowIndex,
                         onSelect: onSelect,
                         isSelected: isRowSelected(getUID(row), selectedRows),
-                        disable: !isRowSelectable(row),
+                        isDisabled:
+                          !isRowSelectable?.(row) ||
+                          !hasNoDeletionTimestamp(row),
                         props: {
                           id: getUID(row),
                         },
@@ -164,6 +169,8 @@ export const SelectableTable: SelectableTableProps = <
     </StatusBox>
   );
 };
+
+type IsRowSelectable = <T extends K8sResourceCommon>(row: T) => boolean;
 
 type TableProps<T extends K8sResourceCommon> = {
   rows: T[];
@@ -182,6 +189,7 @@ type TableProps<T extends K8sResourceCommon> = {
   borders?: boolean;
   /** Additional classes added to the Table  */
   className?: string;
+  isRowSelectable?: IsRowSelectable;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(

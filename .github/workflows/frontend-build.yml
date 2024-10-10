@@ -21,6 +21,7 @@ jobs:
       - run: yarn install --prod --frozen-lockfile
       - run: yarn build
       - run: yarn build-mco
+      - run: yarn build-client
       - run: yarn install # Install dev. deps.
       - run: yarn lint
       - run: yarn format-test
@@ -28,3 +29,4 @@ jobs:
       - run: yarn test-coverage
       - run: yarn analyze-odf
       - run: yarn analyze-mco
+      - run: yarn analyze-client

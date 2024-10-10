@@ -2,6 +2,7 @@ import * as React from 'react';
 import { DRPolicyKind, DRPlacementControlKind } from '@odf/mco/types';
 import { getDRPolicyStatus, parseSyncInterval } from '@odf/mco/utils';
 import { formatTime, getLatestDate } from '@odf/shared/details-page/datetime';
+import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { Labels } from '@odf/shared/labels';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
@@ -31,7 +32,6 @@ import {
   SYNC_SCHEDULE_DISPLAY_TEXT,
 } from '../../../constants';
 import { getDRPlacementControlResourceObj } from '../../../hooks';
-import EmptyPage from '../../empty-state-page/empty-page';
 import {
   doNotDeletePVCAnnotationPromises,
   unAssignPromises,

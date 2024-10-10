@@ -132,6 +132,14 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": ["/odf/object-storage/create-bucket"],
+      "exact": true,
+      "component": { "$codeRef": "createBucket.default" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "exact": true,
       "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/storage-pools/create/~new",
       "component": {
@@ -535,8 +543,24 @@
   {
     "type": "odf.horizontalNav/tab",
     "properties": {
+      "id": "buckets",
+      "name": "%plugin__odf-console~Buckets%",
+      "contextId": "odf-object-service",
+      "href": "buckets",
+      "component": {
+        "$codeRef": "s3BucketList.default"
+      }
+    },
+    "flags": {
+      "required": ["MCG_STANDALONE", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
       "id": "backing-store",
       "name": "%plugin__odf-console~Backing Store%",
+      "after": "buckets",
       "contextId": "odf-object-service",
       "href": "noobaa.io~v1alpha1~BackingStore",
       "component": {
@@ -592,7 +616,8 @@
       }
     },
     "flags": {
-      "required": ["MCG"]
+      "required": ["MCG"],
+      "disallowed": ["MCG_STANDALONE"]
     }
   },
   {
@@ -707,6 +732,16 @@
       "exact": true,
       "path": "/odf/resource/odf.openshift.io~v1alpha1~StorageSystem/create/~new",
       "component": { "$codeRef": "wizard.default" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/buckets/:bucketName",
+      "exact": false,
+      "component": {
+        "$codeRef": "s3BucketOverview.default"
+      }
     }
   }
 ]

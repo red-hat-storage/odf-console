@@ -282,20 +282,22 @@ export const Encryption: React.FC<EncryptionProps> = ({
             }
           />
         )}
-        <Checkbox
-          className="odf-in-transit-encryption"
-          data-test="in-transit-encryption-checkbox"
-          id="in-transit-encryption"
-          isChecked={encryption.inTransit}
-          data-checked-state={encryption.inTransit}
-          label={t('In-transit encryption')}
-          description={t(
-            'A secure mode that encrypts all data passing over the network'
-          )}
-          onChange={(_event, checked: boolean) =>
-            handleInTransitEncryptionOnChange(checked)
-          }
-        />
+        {!isMCG && (
+          <Checkbox
+            className="odf-in-transit-encryption"
+            data-test="in-transit-encryption-checkbox"
+            id="in-transit-encryption"
+            isChecked={encryption.inTransit}
+            data-checked-state={encryption.inTransit}
+            label={t('In-transit encryption')}
+            description={t(
+              'A secure mode that encrypts all data passing over the network'
+            )}
+            onChange={(_event, checked: boolean) =>
+              handleInTransitEncryptionOnChange(checked)
+            }
+          />
+        )}
       </FormGroup>
       {!encryption.hasHandled && (
         <ValidationMessage validation={ValidationType.ENCRYPTION} />

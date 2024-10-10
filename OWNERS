@@ -1,11 +1,12 @@
 reviewers:
-  - cloudbehl
   - bipuladh
   - SanjalKatiyar
   - vbnrh
-  - rexagod
+  - GowthamShanmugam
+  - alfonsomthd
 approvers:
-  - cloudbehl
   - bipuladh
   - SanjalKatiyar
+  - GowthamShanmugam
+  - alfonsomthd
 component: ODF Console

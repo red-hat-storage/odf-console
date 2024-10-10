@@ -172,3 +172,12 @@ export const parseOprMajorMinorVersion = (version: string): string => {
 
 export const getOprMajorMinorVersion = (operator: K8sResourceKind): string =>
   parseOprMajorMinorVersion(getOprVersionFromCSV(operator));
+
+export const numberInputOnChange =
+  (min: number, max: number, onChange: (value: number) => void) =>
+  (input: React.FormEvent<HTMLInputElement>): void => {
+    const inputValue = +(input.target as HTMLInputElement)?.value;
+    if (!!min && inputValue < min) onChange(min);
+    else if (!!max && inputValue > max) onChange(max);
+    else onChange(inputValue);
+  };
