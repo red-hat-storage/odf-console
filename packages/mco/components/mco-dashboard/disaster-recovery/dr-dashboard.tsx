@@ -71,7 +71,7 @@ const aggregateAppsMap = (
     return acc;
   }, {});
 
-const MonitoringDashboard: React.FC = () => {
+const CSVStatusesProvider: React.FC = ({ children }) => {
   const [csvData, csvError, csvLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as any,
     query: STATUS_QUERIES[StorageDashboard.CSV_STATUS_ALL_WHITELISTED],
@@ -79,6 +79,14 @@ const MonitoringDashboard: React.FC = () => {
     cluster: HUB_CLUSTER_NAME,
   });
 
+  return (
+    <CSVStatusesContext.Provider value={{ csvData, csvError, csvLoading }}>
+      {children}
+    </CSVStatusesContext.Provider>
+  );
+};
+
+const DRResourcesProvider: React.FC = ({ children }) => {
   const [managedClusters, managedClusterLoaded, managedClusterLoadError] =
     useK8sWatchResource<ACMManagedClusterKind[]>(
       getManagedClusterResourceObj()
@@ -122,16 +130,20 @@ const MonitoringDashboard: React.FC = () => {
     loadError,
   };
 
-  // ToDo(Sanjal): combime multiple Context together to make it scalable
-  // refer: https://javascript.plainenglish.io/how-to-combine-context-providers-for-cleaner-react-code-9ed24f20225e
   return (
-    <CSVStatusesContext.Provider value={{ csvData, csvError, csvLoading }}>
-      <DRResourcesContext.Provider value={dRResourcesContext}>
-        <UpperSection />
-      </DRResourcesContext.Provider>
-    </CSVStatusesContext.Provider>
+    <DRResourcesContext.Provider value={dRResourcesContext}>
+      {children}
+    </DRResourcesContext.Provider>
   );
 };
+
+const MonitoringDashboard: React.FC = () => (
+  <CSVStatusesProvider>
+    <DRResourcesProvider>
+      <UpperSection />
+    </DRResourcesProvider>
+  </CSVStatusesProvider>
+);
 
 const DRDashboard: React.FC = () => {
   const isMonitoringEnabled = useFlag(ACM_OBSERVABILITY_FLAG);
