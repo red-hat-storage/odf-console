@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { BucketDetails } from '@odf/core/components/s3-browser/bucket-details/BucketDetails';
+import DeleteBucketModal from '@odf/core/modals/s3-browser/delete-buckets/DeleteBucketModal';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useRefresh } from '@odf/shared/hooks';
 import { ModalKeys, defaultModalMap } from '@odf/shared/modals/types';
@@ -52,7 +53,8 @@ const getBucketActionsItems = (
   // ToDo: add empty/delete bucket actions
   {
     title: t('Empty bucket'),
-    onClick: () => undefined,
+    onClick: () =>
+      launcher(DeleteBucketModal, { isOpen: true, extraProps: { bucketName } }),
   },
   {
     title: t('Delete bucket'),
