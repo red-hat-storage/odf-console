@@ -1,4 +1,8 @@
 import * as React from 'react';
+import {
+  EmptyBucketAlerts,
+  EmptyBucketResponse,
+} from '@odf/core/modals/s3-browser/delete-and-empty-bucket/EmptyBucketModal';
 import { useRefresh } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidFilteredData } from '@odf/shared/utils';
@@ -31,12 +35,23 @@ const BucketsListPageBody: React.FC<BucketsListPageBodyProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const [fresh, triggerRefresh] = useRefresh();
+  const [emptyBucketResponse, setEmptyBucketResponse] =
+    React.useState<EmptyBucketResponse>({
+      response: null,
+      bucketName: '',
+    });
+
   const [buckets, loaded, loadError] = bucketInfo;
   const [allBuckets, filteredBuckets, onFilterChange] =
     useListPageFilter(buckets);
 
   return (
     <ListPageBody>
+      <EmptyBucketAlerts
+        emptyBucketResponse={emptyBucketResponse}
+        setEmptyBucketResponse={setEmptyBucketResponse}
+        triggerRefresh={triggerRefresh}
+      />
       <Flex className="pf-v5-u-mt-md">
         <Flex flex={{ default: 'flex_1' }}>
           <FlexItem className="pf-v5-u-mr-md">
@@ -71,6 +86,8 @@ const BucketsListPageBody: React.FC<BucketsListPageBodyProps> = ({
           filteredBuckets={filteredBuckets}
           loaded={loaded}
           error={loadError}
+          setEmptyBucketResponse={setEmptyBucketResponse}
+          triggerRefresh={triggerRefresh}
         />
       )}
     </ListPageBody>
