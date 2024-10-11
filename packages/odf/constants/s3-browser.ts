@@ -16,6 +16,11 @@ export const BUCKETS_BASE_ROUTE = '/odf/object-storage/buckets';
 export const BUCKET_CREATE_PAGE_PATH = '/odf/object-storage/create-bucket';
 
 // key to be used by SWR for caching particular API call
+export const BUCKET_ACL_CACHE_KEY_SUFFIX = 'BUCKET_ACL_CACHE_KEY';
+export const BUCKET_ENCRYPTION_CACHE_KEY_SUFFIX = 'BUCKET_ENCRYPTION_CACHE_KEY';
+export const BUCKET_POLICY_CACHE_KEY_SUFFIX = 'BUCKET_POLICY_CACHE_KEY_SUFFIX';
+export const BUCKET_TAGGING_CACHE_KEY_SUFFIX = 'BUCKET_TAGGING_CACHE_KEY';
+export const BUCKET_VERSIONING_CACHE_KEY_SUFFIX = 'BUCKET_VERSIONING_CACHE_KEY';
 export const LIST_BUCKET = 'LIST_BUCKET_CACHE_KEY';
 export const LIST_OBJECTS = 'LIST_OBJECTS_CACHE_KEY';
 
