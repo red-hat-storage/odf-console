@@ -1,9 +1,6 @@
-.mco-create-data-policy {
+.mco-create-data-policy__body {
   margin: var(--pf-v5-global--spacer--lg);
-  max-width: 700px;
-  .pf-v5-c-form.pf-m-limit-width {
-    max-width: 33rem;
-  }
+  width: 90%;
 }
 
 .mco-create-data-policy__action-group {
@@ -15,7 +12,7 @@
 }
 
 .mco-create-data-policy__flex {
-  margin-right: var(--pf-v5-global--spacer--lg);
+  margin-right: var(--pf-v5-global--spacer--2xl);
   margin-bottom: var(--pf-v5-global--spacer--md);
 }
 
@@ -27,3 +24,8 @@
   margin-bottom: var(--pf-v5-global--spacer--xs);
   --pf-v5-global--FontSize--md: 0.8rem;
 }
+
+.mco-create-data-policy__text-input {
+  width: 67%;
+}
+
