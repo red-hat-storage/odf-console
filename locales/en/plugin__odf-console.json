@@ -1139,6 +1139,7 @@
   "Value (optional)": "Value (optional)",
   "Delete objects": "Delete objects",
   "Actions": "Actions",
+  "Search objects in the bucket using prefix": "Search objects in the bucket using prefix",
   "Create folder": "Create folder",
   "Failed to delete {{ errorCount }} object from the bucket. View deletion summary for details.": "Failed to delete {{ errorCount }} object from the bucket. View deletion summary for details.",
   "Failed to delete {{ errorCount }} objects from the bucket. View deletion summary for details.": "Failed to delete {{ errorCount }} objects from the bucket. View deletion summary for details.",
