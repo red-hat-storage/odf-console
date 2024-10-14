@@ -1154,6 +1154,8 @@
   "Share with presigned URL": "Share with presigned URL",
   "No objects found": "No objects found",
   "You do not have any objects in the bucket": "You do not have any objects in the bucket",
+  "many": "many",
+  "{{ fromCount }} - {{ toCount }} of {{ totalCount }}": "{{ fromCount }} - {{ toCount }} of {{ totalCount }}",
   "<0>The amount of storage allocated to the client cluster for usage.</0><1>Due to simultaneous usage by multiple client clusters, actual available storage may vary affecting your allocated storage quota.</1>": "<0>The amount of storage allocated to the client cluster for usage.</0><1>Due to simultaneous usage by multiple client clusters, actual available storage may vary affecting your allocated storage quota.</1>",
   "No storage clients found.": "No storage clients found.",
   "You do not have any storage clients connected to this Data Foundation provider cluster.": "You do not have any storage clients connected to this Data Foundation provider cluster.",

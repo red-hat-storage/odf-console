@@ -135,6 +135,9 @@
       "path": ["/odf/object-storage/create-bucket"],
       "exact": true,
       "component": { "$codeRef": "createBucket.default" }
+    },
+    "flags": {
+      "required": ["MCG_STANDALONE"]
     }
   },
   {
@@ -742,6 +745,9 @@
       "component": {
         "$codeRef": "s3BucketOverview.default"
       }
+    },
+    "flags": {
+      "required": ["MCG_STANDALONE"]
     }
   }
 ]
