@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { TdSelectType } from '@patternfly/react-table/dist/esm/components/Table/base/types';
 import {
   Table,
+  TableVariant,
   Tbody,
   Td,
   Th,
@@ -51,7 +51,7 @@ export const SelectableTable: SelectableTableProps = <
   rows,
   RowComponent,
   extraProps,
-  isSelectableHidden,
+  isColumnSelectableHidden,
   loaded,
   loadError,
   emptyRowMessage,
@@ -59,6 +59,7 @@ export const SelectableTable: SelectableTableProps = <
   borders,
   className,
   isRowSelectable,
+  isCompact = true,
 }) => {
   const {
     onSort,
@@ -109,14 +110,14 @@ export const SelectableTable: SelectableTableProps = <
         className={className}
         translate={null}
         aria-label="Selectable table"
-        variant="compact"
         borders={borders}
+        {...(isCompact && { variant: TableVariant.compact })}
       >
         <Thead translate={null}>
           <Tr translate={null}>
             <Th
               translate={null}
-              {...(!isSelectableHidden
+              {...(!isColumnSelectableHidden
                 ? {
                     select: {
                       onSelect: onSelect,
@@ -145,21 +146,16 @@ export const SelectableTable: SelectableTableProps = <
             <Tr translate={null} key={getUID(row)}>
               <Td
                 translate={null}
-                {...(!isSelectableHidden
-                  ? {
-                      select: {
-                        rowIndex,
-                        onSelect: onSelect,
-                        isSelected: isRowSelected(getUID(row), selectedRows),
-                        isDisabled:
-                          !isRowSelectable?.(row) ||
-                          !hasNoDeletionTimestamp(row),
-                        props: {
-                          id: getUID(row),
-                        },
-                      } as TdSelectType,
-                    }
-                  : {})}
+                select={{
+                  rowIndex,
+                  onSelect: onSelect,
+                  isSelected: isRowSelected(getUID(row), selectedRows),
+                  isDisabled:
+                    !isRowSelectable?.(row) || !hasNoDeletionTimestamp(row),
+                  props: {
+                    id: getUID(row),
+                  },
+                }}
               />
               <RowComponent row={row} extraProps={extraProps} />
             </Tr>
@@ -179,8 +175,7 @@ type TableProps<T extends K8sResourceCommon> = {
   selectedRows: T[];
   setSelectedRows: (selectedRows: T[]) => void;
   extraProps?: any;
-  // A temporary prop for MCO to hide disable DR
-  isSelectableHidden?: boolean;
+  isColumnSelectableHidden?: boolean;
   loaded: boolean;
   loadError?: any;
   emptyRowMessage?: React.FC;
@@ -190,6 +185,7 @@ type TableProps<T extends K8sResourceCommon> = {
   /** Additional classes added to the Table  */
   className?: string;
   isRowSelectable?: IsRowSelectable;
+  isCompact?: boolean;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(
