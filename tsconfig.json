@@ -9,6 +9,7 @@
     "checkJs": true,
     "experimentalDecorators": true,
     "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "noEmitOnError": false,
