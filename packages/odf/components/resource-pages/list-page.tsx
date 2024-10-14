@@ -211,8 +211,8 @@ const GenericListPage: React.FC<GenericListPageProps> = ({
           hideColumnManagement={true}
         />
         <ResourceTable
-          data={filteredData}
-          unfilteredData={data}
+          data={filteredData || []}
+          unfilteredData={data || []}
           loaded={loaded && isODFNsLoaded}
           loadError={loadError || odfNsLoadError}
           rowData={{ resourceModel, kebabActions }}

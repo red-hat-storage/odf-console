@@ -14,7 +14,7 @@ import {
   EmptyStateHeader,
   EmptyStateFooter,
 } from '@patternfly/react-core';
-import { CubesIcon } from '@patternfly/react-icons';
+import { CubesIcon, FileIcon, FolderIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, IAction } from '@patternfly/react-table';
 import { BUCKETS_BASE_ROUTE, PREFIX } from '../../../constants';
 import { SetObjectsDeleteResponse } from '../../../modals/s3-browser/delete-objects/DeleteObjectsModal';
@@ -147,10 +147,16 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
       <Td translate={null} dataLabel={columnNames[0]}>
         {isFolder ? (
           <Link to={`${BUCKETS_BASE_ROUTE}/${bucketName}?${PREFIX}=${prefix}`}>
-            {name}
+            <span>
+              <FolderIcon className="pf-v5-u-mr-xs" />
+              {name}
+            </span>
           </Link>
         ) : (
-          name
+          <span>
+            <FileIcon className="pf-v5-u-mr-xs" />
+            {name}
+          </span>
         )}
       </Td>
       <Td translate={null} dataLabel={columnNames[1]}>

@@ -59,6 +59,7 @@ import {
 } from '../../../utils';
 import { NoobaaS3Context } from '../noobaa-context';
 import {
+  getPaginationCount,
   Pagination,
   PaginationProps,
   ContinuationTokens,
@@ -190,6 +191,8 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
   refreshTokens,
   searchInput,
   setSearchInput,
+  fromCount: paginationFromCount,
+  toCount: paginationToCount,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -243,6 +246,8 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
           onPrevious={onPrevious}
           disableNext={disableNext}
           disablePrevious={disablePrevious}
+          fromCount={paginationFromCount}
+          toCount={paginationToCount}
         />
       </LevelItem>
     </Level>
@@ -425,6 +430,11 @@ export const ObjectsList: React.FC<{}> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [foldersPath, searchQuery]);
 
+  const [paginationToCount, paginationFromCount] = getPaginationCount(
+    continuationTokens,
+    (data?.Contents?.length || 0) + (data?.CommonPrefixes?.length || 0),
+    MAX_KEYS
+  );
   return (
     <div className="pf-v5-u-m-lg">
       <p className="pf-v5-u-mb-sm">
@@ -473,6 +483,8 @@ export const ObjectsList: React.FC<{}> = () => {
         refreshTokens={refreshTokens}
         searchInput={searchInput}
         setSearchInput={setSearchInput}
+        fromCount={paginationFromCount}
+        toCount={paginationToCount}
       />
       <SelectableTable
         className="pf-v5-u-mt-lg"

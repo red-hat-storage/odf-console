@@ -34,7 +34,7 @@ export class S3Commands {
     });
   }
 
-  // Bucket command members
+  // Bucket command members (alphabetical order)
   createBucket: CreateBucket = (input) =>
     this.s3Client.send(new CreateBucketCommand(input));
 
@@ -44,16 +44,16 @@ export class S3Commands {
   putBucketTags: PutBucketTags = (input) =>
     this.s3Client.send(new PutBucketTaggingCommand(input));
 
-  // Object command members
-  listObjects: ListObjectsV2 = (input) =>
-    this.s3Client.send(new ListObjectsV2Command(input));
-
-  getSignedUrl: GetSignedUrl = (input, expiresIn) =>
-    getSignedUrl(this.s3Client, new GetObjectCommand(input), { expiresIn });
+  // Object command members (alphabetical order)
+  deleteObjects: DeleteObjects = (input) =>
+    this.s3Client.send(new DeleteObjectsCommand(input));
 
   getObject: GetObject = (input) =>
     this.s3Client.send(new GetObjectCommand(input));
 
-  deleteObjects: DeleteObjects = (input) =>
-    this.s3Client.send(new DeleteObjectsCommand(input));
+  getSignedUrl: GetSignedUrl = (input, expiresIn) =>
+    getSignedUrl(this.s3Client, new GetObjectCommand(input), { expiresIn });
+
+  listObjects: ListObjectsV2 = (input) =>
+    this.s3Client.send(new ListObjectsV2Command(input));
 }
