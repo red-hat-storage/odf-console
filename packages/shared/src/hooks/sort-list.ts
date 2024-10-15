@@ -27,7 +27,7 @@ export const useSortList = <R extends K8sResourceCommon>(
   );
 
   const onSort = React.useCallback(
-    (event: React.MouseEvent, columnIndex: number, sortByDirection: any) => {
+    (_event: React.MouseEvent, columnIndex: number, sortByDirection: any) => {
       setSortIndex(columnIndex);
       setSortDirection(sortByDirection);
     },

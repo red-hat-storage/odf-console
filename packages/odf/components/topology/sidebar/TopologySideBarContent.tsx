@@ -125,7 +125,7 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
   const [model, inFlight] = useK8sModel(reference);
 
   const onSelect = React.useCallback(
-    (event, tabIndex) => {
+    (_event, tabIndex) => {
       setActiveTab(tabIndex);
     },
     [setActiveTab]

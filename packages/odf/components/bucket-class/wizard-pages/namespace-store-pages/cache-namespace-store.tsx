@@ -127,7 +127,6 @@ export const CacheNamespaceStorePage: React.FC<CacheNamespaceStoreProps> =
             >
               <TimeDurationDropdown
                 testID="time-to-live-input"
-                id="timetolive-input"
                 inputID="ttl-input"
                 onChange={onTTLChange}
               />

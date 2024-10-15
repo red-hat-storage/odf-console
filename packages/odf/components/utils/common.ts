@@ -249,7 +249,7 @@ export const checkError = (
         base64ErrorKeys.push(item.name ?? 'Unrecognized key');
       try {
         atob(item.data?.userKey ?? item.data?.adminKey);
-      } catch (e) {
+      } catch (_e) {
         base64ErrorKeys.push(item.name ?? 'Unrecognized key');
       }
     }
@@ -316,7 +316,7 @@ export const isValidJSON = (fData: string): boolean => {
   try {
     JSON.parse(fData);
     return true;
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 };
