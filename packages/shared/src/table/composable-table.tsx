@@ -4,6 +4,7 @@ import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import {
   SortByDirection,
   Table,
+  TableVariant,
   Tbody,
   Th,
   ThProps,
@@ -11,6 +12,7 @@ import {
   Tr,
 } from '@patternfly/react-table';
 import { useSortList } from '../hooks/sort-list';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export type TableColumnProps = ThProps & {
   thProps?: TableThProps;
@@ -18,7 +20,7 @@ export type TableColumnProps = ThProps & {
   sortFunction?: <T>(a: T, b: T, c: SortByDirection) => number;
 };
 
-export type RowComponentType<T extends K8sResourceCommon> = {
+export type RowComponentType<T extends K8sResourceCommon | unknown> = {
   row: T;
   rowIndex?: number;
   extraProps?: any;
@@ -36,6 +38,8 @@ export const ComposableTable: ComposableTableProps = <
   unfilteredData,
   noDataMsg,
   emptyRowMessage,
+  variant,
+  isFavorites,
 }) => {
   const {
     onSort,
@@ -43,8 +47,10 @@ export const ComposableTable: ComposableTableProps = <
     sortDirection: activeSortDirection,
     sortedData: sortedRows,
   } = useSortList<T>(rows, columns, false);
+  const { t } = useCustomTranslation();
 
   const getSortParams = (columnIndex: number): ThProps['sort'] => ({
+    ...(isFavorites ? { isFavorites: columnIndex === 0 } : {}),
     sortBy: {
       index: activeSortIndex,
       direction: activeSortDirection,
@@ -65,8 +71,9 @@ export const ComposableTable: ComposableTableProps = <
     >
       <Table
         translate={null}
-        aria-label="Composable table"
+        aria-label={t('Composable table')}
         className="pf-v5-u-mt-md"
+        variant={variant}
       >
         <Thead translate={null}>
           <Tr translate={null}>
@@ -100,7 +107,7 @@ export const ComposableTable: ComposableTableProps = <
 // sort is replaced by sortFunction
 type TableThProps = Omit<ThProps, 'sort' | 'ref'>;
 
-export type TableProps<T extends K8sResourceCommon> = {
+export type TableProps<T extends K8sResourceCommon | unknown> = {
   rows: T[];
   columns: TableColumnProps[];
   RowComponent: React.ComponentType<RowComponentType<T>>;
@@ -110,6 +117,8 @@ export type TableProps<T extends K8sResourceCommon> = {
   unfilteredData?: [];
   noDataMsg?: React.FC;
   emptyRowMessage?: React.FC;
+  variant?: TableVariant;
+  isFavorites?: boolean;
 };
 
 type ComposableTableProps = <T extends K8sResourceCommon>(

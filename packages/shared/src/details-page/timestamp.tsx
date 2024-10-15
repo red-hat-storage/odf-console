@@ -8,7 +8,8 @@ const timestampFor = (
   mdate: Date,
   now: Date,
   omitSuffix: boolean,
-  simple?: boolean
+  simple?: boolean,
+  ignoreRelativeTime?: boolean
 ) => {
   if (!dateTime.isValid(mdate)) {
     return '-';
@@ -20,7 +21,11 @@ const timestampFor = (
   }
 
   // Show a relative time if within 10.5 minutes in the past from the current time.
-  if (timeDifference > dateTime.maxClockSkewMS && timeDifference < 630000) {
+  if (
+    timeDifference > dateTime.maxClockSkewMS &&
+    timeDifference < 630000 &&
+    !ignoreRelativeTime
+  ) {
     return dateTime.fromNow(mdate);
   }
 
@@ -39,7 +44,13 @@ export const Timestamp = (props: TimestampProps) => {
     ? new Date((props.timestamp as number) * 1000)
     : new Date(props.timestamp);
 
-  const timestamp = timestampFor(mdate, new Date(now), props.simple);
+  const timestamp = timestampFor(
+    mdate,
+    new Date(now),
+    props.omitSuffix,
+    props.simple,
+    props?.ignoreRelativeTime
+  );
 
   if (!dateTime.isValid(mdate)) {
     return <div className="co-timestamp">-</div>;
@@ -73,6 +84,8 @@ export type TimestampProps = {
   simple?: boolean;
   omitSuffix?: boolean;
   className?: string;
+  // Simple / omitSuffix can overrride this field
+  ignoreRelativeTime?: boolean;
 };
 
 Timestamp.displayName = 'Timestamp';

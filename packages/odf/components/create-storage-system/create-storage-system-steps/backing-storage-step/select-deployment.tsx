@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FDF_FLAG } from '@odf/core/redux';
-import { DeploymentType } from '@odf/core/types';
+import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -49,6 +49,12 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
       // 'value' on SelectProps['onSelect'] is string hence does not match with payload of type "DeploymentType"
       payload: value as DeploymentType,
     });
+    if (value === DeploymentType.PROVIDER_MODE) {
+      dispatch({
+        type: 'backingStorage/setType',
+        payload: BackingStorageType.EXISTING,
+      });
+    }
     setIsSelectOpen(false);
   };
 

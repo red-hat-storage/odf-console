@@ -46,6 +46,17 @@ export const RedExclamationCircleIcon: React.FC<ColoredIconProps> = ({
   />
 );
 
+export const RedExclamationTriangleIcon: React.FC<ColoredIconProps> = ({
+  className,
+  title,
+}) => (
+  <ExclamationTriangleIcon
+    color={dangerColor.value}
+    className={className}
+    title={title}
+  />
+);
+
 export const YellowExclamationTriangleIcon: React.FC<ColoredIconProps> = ({
   className,
   title,
