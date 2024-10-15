@@ -2,6 +2,7 @@ import * as React from 'react';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { getStorageClusterInNs } from '@odf/core/utils';
 import { ODF_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
 import {
   useCustomPrometheusPoll,
@@ -12,31 +13,39 @@ import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import {
   InfrastructureModel,
   ClusterServiceVersionModel,
+  StorageClusterModel,
 } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import { K8sResourceKind } from '@odf/shared/types';
+import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getOprVersionFromCSV } from '@odf/shared/utils';
+import { getOprVersionFromCSV, referenceForModel } from '@odf/shared/utils';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { resourcePathFromModel } from '@odf/shared/utils';
 import { getMetric } from '@odf/shared/utils';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useFlag,
+  useK8sWatchResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Link, useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ODFSystemParams } from '../../../types';
 import './details-card.scss';
+import EncryptionPopover from '../../common/details-card/encryption-popover';
 
 const NOOBAA_SYSTEM_NAME_QUERY = 'NooBaa_system_info';
 const NOOBAA_DASHBOARD_LINK_QUERY = 'NooBaa_system_links';
 
+const storageClusterResource = {
+  kind: referenceForModel(StorageClusterModel),
+  isList: true,
+};
+
 export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const [infrastructure, infrastructureLoaded, infrastructureError] =
     useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
-
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
-
   const [systemResult, systemLoadError] = useCustomPrometheusPoll({
     query: NOOBAA_SYSTEM_NAME_QUERY,
     endpoint: 'api/v1/query' as any,
@@ -52,7 +61,9 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
 
   const { t } = useCustomTranslation();
   const isODF = useFlag(ODF_MODEL_FLAG);
-
+  const [ocsData, ocsLoaded, ocsError] = useK8sWatchResource<
+    StorageClusterKind[]
+  >(storageClusterResource);
   const systemName = getMetric(systemResult, 'system_name');
   const systemLink = getMetric(dashboardLinkResult, 'dashboard');
 
@@ -74,6 +85,11 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const { systemFlags } = useODFSystemFlagsSelector();
   const hasRGW = systemFlags[clusterNs]?.isRGWAvailable;
   const hasMCG = systemFlags[clusterNs]?.isNoobaaAvailable;
+
+  const storageCluster: StorageClusterKind = getStorageClusterInNs(
+    ocsData,
+    odfNamespace
+  );
 
   const servicePath = `${resourcePathFromModel(
     ClusterServiceVersionModel,
@@ -135,6 +151,17 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
             error={csvLoadError}
           >
             {serviceVersion}
+          </DetailItem>
+          <DetailItem
+            key="encryption"
+            title={t('Encryption')}
+            isLoading={!ocsLoaded}
+            error={ocsError}
+          >
+            <EncryptionPopover
+              cluster={storageCluster}
+              isObjectDashboard={true}
+            />
           </DetailItem>
         </DetailsBody>
       </CardBody>
