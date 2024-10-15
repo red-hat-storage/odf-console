@@ -20,7 +20,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin
-          git rebase origin/${{ github.event.pull_request.base.ref }}
+          git rebase origin/${{ github.event.pull_request.base.ref }} || echo "Merge conflicts!!!!"
+      - name: Check for conflicts
+        if: github.event_name == 'pull_request'
+        run: |
+          git status
+          if ! git diff --check; then
+            git diff
+            exit 1
+          fi
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
