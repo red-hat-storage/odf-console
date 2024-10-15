@@ -14,6 +14,13 @@ jobs:
         node-version: [16, 18.17.1]
     steps:
       - uses: actions/checkout@v3
+      - name: Rebase # Rebase with master or release* (branch against which PR is raised)
+        if: github.event_name == 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin
+          git rebase origin/${{ github.event.pull_request.base.ref }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
