@@ -163,7 +163,7 @@ const LowMonAlertModal: ModalComponent = ({ closeModal }) => {
   );
 };
 
-export const launchLowMonAlertModal = async (alert, launchModal) => {
+export const launchLowMonAlertModal = async (_alert, launchModal) => {
   try {
     launchModal(LowMonAlertModal, { isOpen: true });
   } catch (e) {

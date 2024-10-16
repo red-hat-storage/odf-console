@@ -16,6 +16,7 @@ import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import {
   useResolvedExtensions,
   NamespaceBar,
+  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Extension,
@@ -28,6 +29,8 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom-v5-compat';
+import { BUCKETS_BASE_ROUTE } from '../../constants';
+import { MCG_STANDALONE } from '../../features';
 
 const OBJECT_SERVICE_CONTEXT = 'odf-object-service';
 const NAMESPACE_BAR_PATHS = [referenceForModel(NooBaaObjectBucketClaimModel)];
@@ -38,6 +41,8 @@ const isObjectServiceTab = (e: Extension) =>
 const ObjectServicePage: React.FC = () => {
   const { t } = useCustomTranslation();
   const title = t('Object Storage');
+
+  const isMCGStandalone = useFlag(MCG_STANDALONE);
 
   const [extensions, isLoaded, error] = useResolvedExtensions<HorizontalNavTab>(
     isObjectServiceTab as ExtensionTypeGuard<HorizontalNavTab>
@@ -60,12 +65,13 @@ const ObjectServicePage: React.FC = () => {
   React.useEffect(() => {
     if (
       (location.pathname.endsWith('/odf/object-storage') ||
-        location.pathname.endsWith('/odf/object-storage/')) &&
+        location.pathname.endsWith('/odf/object-storage/') ||
+        (!isMCGStandalone && location.pathname.includes(BUCKETS_BASE_ROUTE))) &&
       !_.isEmpty(sortedPages)
     ) {
       navigate('/odf/object-storage/' + sortedPages[0].href, { replace: true });
     }
-  }, [location.pathname, navigate, sortedPages]);
+  }, [location.pathname, navigate, sortedPages, isMCGStandalone]);
 
   const showNamespaceBar = NAMESPACE_BAR_PATHS.some((path) =>
     location.pathname.includes(path)

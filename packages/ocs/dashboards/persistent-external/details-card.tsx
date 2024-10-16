@@ -26,7 +26,7 @@ import { Base64 } from 'js-base64';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ODFSystemParams } from '../../types';
-import { getNetworkEncryption } from '../../utils';
+import EncryptionPopover from '../common/details-card/encryption-popover';
 
 const getCephLink = (secret: SecretKind): string => {
   const data = secret?.data?.userKey;
@@ -67,9 +67,7 @@ export const DetailsCard: React.FC = () => {
     resourcesObj['ocs'].data as StorageClusterKind[],
     clusterNs
   );
-  const inTransitEncryptionStatus = getNetworkEncryption(ocsCluster)
-    ? t('Enabled')
-    : t('Disabled');
+
   const ocsName = getName(ocsCluster);
 
   const [csv, csvLoaded, csvError] = useFetchCsv({
@@ -124,12 +122,12 @@ export const DetailsCard: React.FC = () => {
             {subscriptionVersion}
           </DetailItem>
           <DetailItem
-            key="inTransitEncryption"
-            title={t('In-transit encryption')}
+            key="encryption"
+            title={t('Encryption')}
             isLoading={!resourcesObj['ocs'].loaded}
             error={resourcesObj['ocs'].loadError}
           >
-            {inTransitEncryptionStatus}
+            <EncryptionPopover cluster={ocsCluster} isObjectDashboard={false} />
           </DetailItem>
         </DetailsBody>
       </CardBody>

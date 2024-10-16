@@ -5,6 +5,7 @@ export const NOOBAA_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY';
 
 export const DELIMITER = '/';
 export const PREFIX = 'prefix';
+export const SEARCH = 'search';
 export const MAX_KEYS = 300;
 export const MAX_BUCKETS = 100;
 
@@ -19,4 +20,5 @@ export const LIST_BUCKET = 'LIST_BUCKET_CACHE_KEY';
 export const LIST_OBJECTS = 'LIST_OBJECTS_CACHE_KEY';
 
 // Bookmarking / favorites
-export const BUCKET_BOOKMARKS_USER_SETTINGS_KEY = 'bucket-bookmarks';
+export const BUCKET_BOOKMARKS_USER_SETTINGS_KEY =
+  'odf-console-bucket-bookmarks';
