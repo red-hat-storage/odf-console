@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { LoadingBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useRefresh } from '@odf/shared/hooks';
 import { ModalKeys, defaultModalMap } from '@odf/shared/modals/types';
@@ -26,7 +25,8 @@ import { PREFIX, BUCKETS_BASE_ROUTE } from '../../../constants';
 import { NooBaaObjectBucketModel } from '../../../models';
 import { getBreadcrumbs } from '../../../utils';
 import { NoobaaS3Provider } from '../noobaa-context';
-import { CustomActionsToggle, ObjectsList } from '../objects-list';
+import { CustomActionsToggle } from '../objects-list';
+import { ObjectListWithSidebar } from '../objects-list/ObjectListWithSidebar';
 import { PageTitle } from './PageTitle';
 
 const getBucketActionsItems = (
@@ -117,7 +117,7 @@ const BucketOverview: React.FC<{}> = () => {
     {
       href: '',
       name: t('Objects'),
-      component: ObjectsList,
+      component: ObjectListWithSidebar,
     },
     ...(!foldersPath
       ? [
@@ -187,14 +187,10 @@ const BucketOverview: React.FC<{}> = () => {
         actions={actions}
         className="pf-v5-u-mt-md"
       />
-      {fresh ? (
-        <HorizontalNav
-          pages={navPages}
-          resource={isCreatedByOBC && noobaaObjectBucket}
-        />
-      ) : (
-        <LoadingBox />
-      )}
+      <HorizontalNav
+        pages={navPages}
+        resource={{ refresh: fresh, triggerRefresh } as any}
+      />
     </NoobaaS3Provider>
   );
 };
