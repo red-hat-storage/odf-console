@@ -6,6 +6,11 @@ import {
   PutBucketTaggingCommand,
   GetObjectCommand,
   DeleteObjectsCommand,
+  GetBucketEncryptionCommand,
+  GetBucketVersioningCommand,
+  GetBucketTaggingCommand,
+  GetBucketAclCommand,
+  GetBucketPolicyCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
@@ -16,6 +21,11 @@ import {
   GetSignedUrl,
   GetObject,
   DeleteObjects,
+  GetBucketEncryption,
+  GetBucketVersioning,
+  GetBucketTagging,
+  GetBucketAcl,
+  GetBucketPolicy,
 } from './types';
 
 export class S3Commands {
@@ -37,6 +47,21 @@ export class S3Commands {
   // Bucket command members (alphabetical order)
   createBucket: CreateBucket = (input) =>
     this.s3Client.send(new CreateBucketCommand(input));
+
+  getBucketAcl: GetBucketAcl = (input) =>
+    this.s3Client.send(new GetBucketAclCommand(input));
+
+  getBucketEncryption: GetBucketEncryption = (input) =>
+    this.s3Client.send(new GetBucketEncryptionCommand(input));
+
+  getBucketPolicy: GetBucketPolicy = (input) =>
+    this.s3Client.send(new GetBucketPolicyCommand(input));
+
+  getBucketTagging: GetBucketTagging = (input) =>
+    this.s3Client.send(new GetBucketTaggingCommand(input));
+
+  getBucketVersioning: GetBucketVersioning = (input) =>
+    this.s3Client.send(new GetBucketVersioningCommand(input));
 
   listBuckets: ListBuckets = (input) =>
     this.s3Client.send(new ListBucketsCommand(input));

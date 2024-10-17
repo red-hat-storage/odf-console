@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { BucketDetails } from '@odf/core/components/s3-browser/bucket-details/BucketDetails';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useRefresh } from '@odf/shared/hooks';
@@ -124,8 +125,7 @@ const BucketOverview: React.FC<{}> = () => {
           {
             href: 'details',
             name: t('Details'),
-            // ToDo: add bucket details page
-            component: () => <>Bucket details page</>,
+            component: BucketDetails,
           },
         ]
       : []),

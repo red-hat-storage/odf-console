@@ -119,6 +119,7 @@ export type ResourceSummaryProps = {
   children?: React.ReactNode;
   customPathName?: string;
   resourceModel: K8sKind;
+  ownerLabel?: string;
 };
 
 export type DetailsItemProps = {
@@ -290,6 +291,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   showLabelEditor = true,
   canUpdateResource = true,
   resourceModel,
+  ownerLabel,
 }) => {
   const { t } = useCustomTranslation();
   const { metadata } = resource;
@@ -385,7 +387,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
         <Timestamp timestamp={metadata.creationTimestamp} />
       </DetailsItem>
       <DetailsItem
-        label={t('Owner')}
+        label={ownerLabel || t('Owner')}
         obj={resource}
         path="metadata.ownerReferences"
       >

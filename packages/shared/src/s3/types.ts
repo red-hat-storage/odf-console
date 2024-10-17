@@ -1,6 +1,16 @@
 import {
   CreateBucketCommandInput,
   CreateBucketCommandOutput,
+  GetBucketAclCommandInput,
+  GetBucketAclCommandOutput,
+  GetBucketEncryptionCommandInput,
+  GetBucketEncryptionCommandOutput,
+  GetBucketPolicyCommandInput,
+  GetBucketPolicyCommandOutput,
+  GetBucketTaggingCommandOutput,
+  GetBucketTaggingCommandInput,
+  GetBucketVersioningCommandInput,
+  GetBucketVersioningCommandOutput,
   ListBucketsCommandInput,
   ListBucketsCommandOutput,
   ListObjectsV2CommandInput,
@@ -17,6 +27,26 @@ import {
 export type CreateBucket = (
   input?: CreateBucketCommandInput
 ) => Promise<CreateBucketCommandOutput>;
+
+export type GetBucketAcl = (
+  input?: GetBucketAclCommandInput
+) => Promise<GetBucketAclCommandOutput>;
+
+export type GetBucketEncryption = (
+  input?: GetBucketEncryptionCommandInput
+) => Promise<GetBucketEncryptionCommandOutput>;
+
+export type GetBucketPolicy = (
+  input?: GetBucketPolicyCommandInput
+) => Promise<GetBucketPolicyCommandOutput>;
+
+export type GetBucketTagging = (
+  input?: GetBucketTaggingCommandInput
+) => Promise<GetBucketTaggingCommandOutput>;
+
+export type GetBucketVersioning = (
+  input?: GetBucketVersioningCommandInput
+) => Promise<GetBucketVersioningCommandOutput>;
 
 export type ListBuckets = (
   input?: ListBucketsCommandInput
@@ -47,3 +77,17 @@ export type ListCommandOutput =
 export type ListObjectsV2 = (
   input: ListObjectsV2CommandInput
 ) => Promise<ListObjectsV2CommandOutput>;
+
+// Bucket Policy
+
+type BucketPolicyCondition = Record<string, string>;
+
+type BucketPolicyStatement = {
+  Action: string | string[];
+  Condition?: Record<string, BucketPolicyCondition>;
+  Effect: 'Allow' | 'Deny';
+};
+
+export type BucketPolicy = {
+  Statement: BucketPolicyStatement[];
+};
