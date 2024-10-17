@@ -76,7 +76,11 @@ export const SelectableTable: SelectableTableProps = <
 
   const [selectableRows, rowIds] = React.useMemo(() => {
     const selectableRows =
-      sortedRows?.filter(isRowSelectable || hasNoDeletionTimestamp) || [];
+      sortedRows?.filter((selectedRow) =>
+        !!isRowSelectable
+          ? isRowSelectable(selectedRow)
+          : true && hasNoDeletionTimestamp(selectedRow)
+      ) || [];
     const rowIds = new Set(selectableRows?.map(getUID));
     return [selectableRows, rowIds];
   }, [sortedRows, isRowSelectable]);
@@ -152,7 +156,7 @@ export const SelectableTable: SelectableTableProps = <
                         onSelect: onSelect,
                         isSelected: isRowSelected(getUID(row), selectedRows),
                         isDisabled:
-                          !isRowSelectable?.(row) ||
+                          (!!isRowSelectable && !isRowSelectable?.(row)) ||
                           !hasNoDeletionTimestamp(row),
                         props: {
                           id: getUID(row),

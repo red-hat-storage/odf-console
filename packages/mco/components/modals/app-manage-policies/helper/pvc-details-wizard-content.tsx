@@ -28,7 +28,6 @@ import {
   Button,
   Form,
   FormGroup,
-  Text,
   Grid,
   GridItem,
   Popover,
@@ -295,23 +294,23 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
     return (
       <Form>
         <FormGroup>
-          <Text>
+          <span>
             {t(
               'Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information, '
             )}
-            <Popover
+          </span>
+          <Popover
+            aria-label={t('Help')}
+            bodyContent={getLabelValidationMessage(t)}
+          >
+            <Button
               aria-label={t('Help')}
-              bodyContent={getLabelValidationMessage(t)}
+              variant={ButtonVariant.link}
+              isInline
             >
-              <Button
-                aria-label={t('Help')}
-                variant={ButtonVariant.link}
-                isInline
-              >
-                {t('see PVC label selector requirements.')}
-              </Button>
-            </Popover>
-          </Text>
+              {t('see PVC label selector requirements.')}
+            </Button>
+          </Popover>
         </FormGroup>
         {loaded && !error ? (
           <LazyNameValueEditor
