@@ -28,7 +28,12 @@ const getObjectURL: GetObjectURL = async (bucketName, object, noobaaS3) => {
     Bucket: bucketName,
     Key: getName(object),
   });
-  const blob = await new Response(responseStream.Body as ReadableStream).blob();
+  let blob = await new Response(responseStream.Body as ReadableStream).blob();
+  blob = blob.slice(
+    0,
+    blob.size,
+    responseStream.ContentType || 'application/octet-stream'
+  );
 
   return window.URL.createObjectURL(blob);
 };
