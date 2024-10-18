@@ -19,6 +19,13 @@ export const KMSVaultTokenSecretName = 'ocs-kms-token';
 export const KMSVaultCSISecretName = 'ceph-csi-kms-token';
 export const KMS_PROVIDER = 'KMS_PROVIDER';
 
+export enum KmsProviderNames {
+  VAULT = 'Vault',
+  AZURE = 'Azure Key Vault',
+  HPCS = 'Hyper Protect Crypto Services',
+  THALES = 'Thales CipherTrust Manager (using KMIP)',
+}
+
 type SupportedProvidersProps = {
   [key: string]: {
     group: string;
@@ -35,19 +42,19 @@ type SupportedProvidersProps = {
  */
 export const SupportedProviders: SupportedProvidersProps = {
   [ProviderNames.VAULT]: {
-    group: 'Vault',
+    group: KmsProviderNames.VAULT,
     supported: [
       KmsImplementations.VAULT_TOKENS,
       KmsImplementations.VAULT_TENANT_SA,
     ],
   },
   [ProviderNames.HPCS]: {
-    group: 'Hyper Protect Crypto Services',
+    group: ProviderNames.HPCS,
     supported: [KmsImplementations.IBM_KEY_PROTECT],
     allowedPlatforms: ['IBMCloud'],
   },
   [ProviderNames.THALES]: {
-    group: 'Thales CipherTrust Manager (using KMIP)',
+    group: ProviderNames.THALES,
     supported: [KmsImplementations.KMIP],
     filter: (kms: ThalesConfigMap, secretsList: SecretKind[]) => {
       const kmsSecret = secretsList?.find(
@@ -60,7 +67,7 @@ export const SupportedProviders: SupportedProvidersProps = {
     },
   },
   [ProviderNames.AZURE]: {
-    group: 'Azure Key Vault',
+    group: ProviderNames.AZURE,
     supported: [KmsImplementations.AZURE],
     allowedPlatforms: ['Azure'],
   },

@@ -9,6 +9,7 @@ import {
   ContinuationTokens,
   continuationTokensRefresher,
   fetchS3Resources,
+  getPaginationCount,
   Pagination,
 } from '../pagination-helper';
 
@@ -39,7 +40,12 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
 
   // initial fetch on first mount
   React.useEffect(() => {
-    continuationTokensRefresher(setContinuationTokens, trigger);
+    continuationTokensRefresher(
+      setContinuationTokens,
+      trigger,
+      undefined,
+      false
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -49,7 +55,9 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
         setContinuationTokens,
         trigger,
         true,
-        continuationTokens.next
+        continuationTokens.next,
+        undefined,
+        false
       );
   };
 
@@ -61,17 +69,26 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
         setContinuationTokens,
         trigger,
         false,
-        paginationToken
+        paginationToken,
+        undefined,
+        false
       );
     }
   };
 
+  const [paginationToCount, paginationFromCount] = getPaginationCount(
+    continuationTokens,
+    data?.Buckets?.length || 0,
+    MAX_BUCKETS
+  );
   return (
     <Pagination
       disableNext={!continuationTokens.next || !loadedWOError}
       disablePrevious={!continuationTokens.current || !loadedWOError}
       onNext={onNextClick}
       onPrevious={onPreviousClick}
+      fromCount={paginationFromCount}
+      toCount={paginationToCount}
     />
   );
 };

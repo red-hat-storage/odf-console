@@ -32,7 +32,7 @@ export const getNodeRoles = (node: NodeKind): string[] => {
   const labels = _.get(node, 'metadata.labels');
   return _.reduce(
     labels,
-    (acc: string[], v: string, k: string) => {
+    (acc: string[], _v: string, k: string) => {
       if (k.startsWith(NODE_ROLE_PREFIX)) {
         acc.push(k.slice(NODE_ROLE_PREFIX.length));
       }

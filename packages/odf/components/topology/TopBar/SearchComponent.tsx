@@ -67,7 +67,7 @@ const SearchBar: React.FC = () => {
 
   const { t } = useCustomTranslation();
 
-  const onChange = (event, input: string) => {
+  const onChange = (_event, input: string) => {
     setUserInput(input);
   };
 

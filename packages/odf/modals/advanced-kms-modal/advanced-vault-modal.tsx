@@ -223,7 +223,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
             >
               <TextInput
                 value={authNamespace}
-                onChange={(ev, value) => setAuthNamespace(value)}
+                onChange={(_ev, value) => setAuthNamespace(value)}
                 type="text"
                 id="kms-service-auth-namespace"
                 name="kms-service-auth-namespace"
@@ -240,7 +240,7 @@ const AdvancedVaultModal: ModalComponent<AdvancedKMSModalProps> = (props) => {
         >
           <TextInput
             value={tlsName}
-            onChange={(ev, value) => setTLSName(value)}
+            onChange={(_ev, value) => setTLSName(value)}
             type="text"
             id="kms-service-tls"
             name="kms-service-tls"

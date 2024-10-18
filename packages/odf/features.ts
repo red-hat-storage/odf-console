@@ -70,7 +70,7 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
         setFlagFalse = false;
         setFlag(PROVIDER_MODE, false);
       }
-    } catch (error) {
+    } catch (_error) {
       setFlag(PROVIDER_MODE, false);
     }
   };
