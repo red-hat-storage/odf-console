@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useEffect } from 'react';
 import { getNamespace, getName } from '@odf/shared/selectors';
 import {
   K8sResourceCommon,
@@ -21,6 +22,24 @@ import { useAccessReview } from '../hooks/rbac-hook';
 import { ModalKeys, defaultModalMap } from '../modals/types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForModel } from '../utils';
+
+const useClickOutside = (
+  ref: React.RefObject<HTMLElement>,
+  callback: () => void
+) => {
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        callback();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [ref, callback]);
+};
 
 export type CustomKebabItem = {
   key: string;
@@ -102,18 +121,18 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   hideItems,
 }) => {
   const { t } = useCustomTranslation();
-
   const launchModal = useModal();
-
   const eventRef = React.useRef(undefined);
   const [toggleDirection, setToggleDirection] =
     React.useState<DropdownPopperProps['direction']>('down');
   const [isOpen, setOpen] = React.useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null); // Ref for the dropdown menu
+
+  // Use the custom hook to detect clicks outside the Kebab menu
+  useClickOutside(dropdownRef, () => setOpen(false));
 
   const { resourceModel, resource } = extraProps;
-
   const resourceLabel = resourceModel.label;
-
   const navigate = useNavigate();
 
   const [canCreate, createLoading] = useAccessReview({
@@ -237,6 +256,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   const content = _.has(resource.metadata, 'deletionTimestamp')
     ? terminatingTooltip || t('Resource is being deleted.')
     : '';
+
   return (
     <Tooltip
       content={
@@ -251,6 +271,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
       }
     >
       <Dropdown
+        ref={dropdownRef}
         data-test="kebab-button"
         onSelect={onClick}
         toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
@@ -258,7 +279,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
             ref={toggleRef}
             aria-label="Dropdown toggle"
             variant={toggleType === 'Kebab' ? 'plain' : 'default'}
-            onClick={() => setOpen((o) => !o)}
+            onClick={() => setOpen(!isOpen)}
             isExpanded={isOpen}
             data-test="kebab-button"
             isDisabled={isDisabled}
