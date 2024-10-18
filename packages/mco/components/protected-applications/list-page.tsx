@@ -34,6 +34,7 @@ import {
   getLastAppDeploymentClusterName,
   getDRPolicyName,
   getReplicationType,
+  getReplicationHealth,
 } from '../../utils';
 import {
   EmptyRowMessage,
@@ -50,7 +51,6 @@ import {
   getHeaderColumns,
   getColumnNames,
   getRowActions,
-  getReplicationHealth,
   isFailingOrRelocating,
   ReplicationHealthMap,
   getAppWorstSyncStatus,

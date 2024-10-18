@@ -70,6 +70,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     //  A list of namespaces that are protected by the DRPC.
     //  N/A for the managed  applications.
     protectedNamespaces?: string[];
+    schedulingInterval?: string;
   };
   status?: {
     // The time of the most recent successful kube object protection

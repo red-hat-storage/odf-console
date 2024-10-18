@@ -10,8 +10,12 @@ import {
 import { TFunction } from 'i18next';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
-import { DRActionType } from '../../../../constants';
-import { checkDRActionReadiness } from '../../../../utils';
+import { DRActionType, VOLUME_REPLICATION_HEALTH } from '../../../../constants';
+import {
+  checkDRActionReadiness,
+  getReplicationHealth,
+  getReplicationType,
+} from '../../../../utils';
 import { DateTimeFormat } from '../failover-relocate-modal-body';
 import { ErrorMessageType } from './error-messages';
 import {
@@ -35,6 +39,7 @@ const initalPeerStatus = (t: TFunction) => ({
   dataLastSyncedOn: {
     text: '',
   },
+  replicationHealth: {},
 });
 
 const getPeerReadiness = (
@@ -78,25 +83,33 @@ const getPeerStatusSummary = (
   t: TFunction
 ) =>
   // Verify all DRPC has Peer ready status
-  drpcStateList?.reduce(
-    (acc, drpcState) =>
-      subsGroups.includes(getName(drpcState?.drPlacementControl))
-        ? {
-            ...acc,
-            peerReadiness: getPeerReadiness(
-              acc.peerReadiness,
-              drpcState,
-              actionType,
-              t
-            ),
-            dataLastSyncedOn: getDataLastSyncTime(
-              acc.dataLastSyncedOn,
-              drpcState
-            ),
-          }
-        : acc,
-    initalPeerStatus(t)
-  );
+  drpcStateList?.reduce((acc, drpcState) => {
+    const drPlacementControl = drpcState?.drPlacementControl;
+
+    if (subsGroups.includes(getName(drPlacementControl))) {
+      const lastGroupSyncTime = drPlacementControl?.status?.lastGroupSyncTime;
+      const volumesSchedulingInterval =
+        drPlacementControl?.spec?.schedulingInterval || '0m';
+      const replicationType = getReplicationType(volumesSchedulingInterval);
+
+      return {
+        ...acc,
+        peerReadiness: getPeerReadiness(
+          acc.peerReadiness,
+          drpcState,
+          actionType,
+          t
+        ),
+        dataLastSyncedOn: getDataLastSyncTime(acc.dataLastSyncedOn, drpcState),
+        replicationHealth: getReplicationHealth(
+          lastGroupSyncTime,
+          volumesSchedulingInterval,
+          replicationType
+        ),
+      };
+    }
+    return acc;
+  }, initalPeerStatus(t));
 
 type StatusProps = {
   icon?: JSX.Element;
@@ -137,13 +150,28 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
         actionType,
         t
       );
-      peerCurrentStatus.peerReadiness.text === PEER_READINESS(t).PEER_NOT_READY
-        ? setErrorMessage(
-            actionType === DRActionType.FAILOVER
-              ? ErrorMessageType.FAILOVER_READINESS_CHECK_FAILED
-              : ErrorMessageType.RELOCATE_READINESS_CHECK_FAILED
-          )
-        : setErrorMessage(0 as ErrorMessageType);
+      if (
+        peerCurrentStatus.peerReadiness.text ===
+        PEER_READINESS(t).PEER_NOT_READY
+      ) {
+        setErrorMessage(
+          actionType === DRActionType.FAILOVER
+            ? ErrorMessageType.FAILOVER_READINESS_CHECK_FAILED
+            : ErrorMessageType.RELOCATE_READINESS_CHECK_FAILED
+        );
+      } else if (
+        peerCurrentStatus.replicationHealth &&
+        [
+          VOLUME_REPLICATION_HEALTH.CRITICAL,
+          VOLUME_REPLICATION_HEALTH.WARNING,
+        ].includes(
+          peerCurrentStatus.replicationHealth as VOLUME_REPLICATION_HEALTH
+        )
+      ) {
+        setErrorMessage(ErrorMessageType.SYNC_DELAY);
+      } else {
+        setErrorMessage(0 as ErrorMessageType);
+      }
       setPeerStatus(peerCurrentStatus);
     } else {
       // Default peer status is Unknown
