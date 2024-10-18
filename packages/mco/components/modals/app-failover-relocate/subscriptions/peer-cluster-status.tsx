@@ -10,8 +10,12 @@ import {
 import { TFunction } from 'i18next';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
-import { DRActionType } from '../../../../constants';
-import { checkDRActionReadiness } from '../../../../utils';
+import { DRActionType, VOLUME_REPLICATION_HEALTH } from '../../../../constants';
+import {
+  checkDRActionReadiness,
+  getReplicationHealth,
+  getReplicationType,
+} from '../../../../utils';
 import { DateTimeFormat } from '../failover-relocate-modal-body';
 import { ErrorMessageType } from './error-messages';
 import {
@@ -35,6 +39,7 @@ const initalPeerStatus = (t: TFunction) => ({
   dataLastSyncedOn: {
     text: '',
   },
+  replicationHealth: VOLUME_REPLICATION_HEALTH.HEALTHY,
 });
 
 const getPeerReadiness = (
@@ -75,28 +80,57 @@ const getPeerStatusSummary = (
   drpcStateList: DRPolicyControlState[],
   subsGroups: string[],
   actionType: DRActionType,
+  schedulingInterval: string,
   t: TFunction
 ) =>
-  // Verify all DRPC has Peer ready status
-  drpcStateList?.reduce(
-    (acc, drpcState) =>
-      subsGroups.includes(getName(drpcState?.drPlacementControl))
-        ? {
-            ...acc,
-            peerReadiness: getPeerReadiness(
-              acc.peerReadiness,
-              drpcState,
-              actionType,
-              t
-            ),
-            dataLastSyncedOn: getDataLastSyncTime(
-              acc.dataLastSyncedOn,
-              drpcState
-            ),
-          }
-        : acc,
-    initalPeerStatus(t)
+  drpcStateList?.reduce((acc, drpcState) => {
+    const drPlacementControl = drpcState?.drPlacementControl;
+
+    if (subsGroups.includes(getName(drPlacementControl))) {
+      const lastGroupSyncTime = drPlacementControl?.status?.lastGroupSyncTime;
+      const higherSeverityHealth = getHigherSeverityHealth(
+        acc.replicationHealth,
+        lastGroupSyncTime,
+        schedulingInterval
+      );
+
+      return {
+        ...acc,
+        peerReadiness: getPeerReadiness(
+          acc.peerReadiness,
+          drpcState,
+          actionType,
+          t
+        ),
+        dataLastSyncedOn: getDataLastSyncTime(acc.dataLastSyncedOn, drpcState),
+        replicationHealth: higherSeverityHealth,
+      };
+    }
+    return acc;
+  }, initalPeerStatus(t));
+
+const getHigherSeverityHealth = (
+  previousHealth: VOLUME_REPLICATION_HEALTH,
+  lastGroupSyncTime: string,
+  schedulingInterval: string
+): VOLUME_REPLICATION_HEALTH => {
+  const replicationType = getReplicationType(schedulingInterval);
+  const currentHealth = getReplicationHealth(
+    lastGroupSyncTime,
+    schedulingInterval,
+    replicationType
   );
+
+  if (
+    [
+      VOLUME_REPLICATION_HEALTH.CRITICAL,
+      VOLUME_REPLICATION_HEALTH.WARNING,
+    ].includes(currentHealth)
+  ) {
+    return currentHealth;
+  }
+  return previousHealth;
+};
 
 type StatusProps = {
   icon?: JSX.Element;
@@ -113,7 +147,12 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
-  const { selectedSubsGroups, drPolicyControlState, actionType } = state;
+  const {
+    selectedSubsGroups,
+    drPolicyControlState,
+    actionType,
+    selectedDRPolicy,
+  } = state;
   const [peerStatus, setPeerStatus] = React.useState<StatusType>(
     initalPeerStatus(t)
   );
@@ -121,9 +160,10 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
     (errorMessage: ErrorMessageType) => {
       dispatch({
         type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
-        payload: {
-          peerStatusErrorMessage: errorMessage,
-        },
+        payload:
+          errorMessage !== ErrorMessageType.VOLUME_SYNC_DELAY
+            ? { peerStatusErrorMessage: errorMessage }
+            : { syncDelayWarningMessage: errorMessage },
       });
     },
     [dispatch]
@@ -135,15 +175,31 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
         drPolicyControlState,
         selectedSubsGroups,
         actionType,
+        selectedDRPolicy.schedulingInterval,
         t
       );
-      peerCurrentStatus.peerReadiness.text === PEER_READINESS(t).PEER_NOT_READY
-        ? setErrorMessage(
-            actionType === DRActionType.FAILOVER
-              ? ErrorMessageType.FAILOVER_READINESS_CHECK_FAILED
-              : ErrorMessageType.RELOCATE_READINESS_CHECK_FAILED
-          )
-        : setErrorMessage(0 as ErrorMessageType);
+      if (
+        peerCurrentStatus.peerReadiness.text ===
+        PEER_READINESS(t).PEER_NOT_READY
+      ) {
+        setErrorMessage(
+          actionType === DRActionType.FAILOVER
+            ? ErrorMessageType.FAILOVER_READINESS_CHECK_FAILED
+            : ErrorMessageType.RELOCATE_READINESS_CHECK_FAILED
+        );
+      } else if (
+        !!peerCurrentStatus.replicationHealth &&
+        [
+          VOLUME_REPLICATION_HEALTH.CRITICAL,
+          VOLUME_REPLICATION_HEALTH.WARNING,
+        ].includes(
+          peerCurrentStatus.replicationHealth as VOLUME_REPLICATION_HEALTH
+        )
+      ) {
+        setErrorMessage(ErrorMessageType.VOLUME_SYNC_DELAY);
+      } else {
+        setErrorMessage(0 as ErrorMessageType);
+      }
       setPeerStatus(peerCurrentStatus);
     } else {
       // Default peer status is Unknown
@@ -152,6 +208,7 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
     }
   }, [
     selectedSubsGroups,
+    selectedDRPolicy.schedulingInterval,
     drPolicyControlState,
     actionType,
     t,

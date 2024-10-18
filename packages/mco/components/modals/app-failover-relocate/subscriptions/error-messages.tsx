@@ -17,6 +17,8 @@ export enum ErrorMessageType {
   PRIMARY_CLUSTER_IS_NOT_FENCED,
   TARGET_CLUSTER_IS_FENCED,
   NO_SUBSCRIPTION_GROUP_FOUND,
+  // Warning Messages
+  VOLUME_SYNC_DELAY,
 }
 
 export type MessageKind = Partial<{
@@ -242,5 +244,16 @@ export const ErrorMessages = (
   [ErrorMessageType.NO_SUBSCRIPTION_GROUP_FOUND]: {
     title: t('No subscription groups are found.'),
     variant: AlertVariant.danger,
+  },
+  [ErrorMessageType.VOLUME_SYNC_DELAY]: {
+    title: t('Inconsistent data on target cluster'),
+    message: (
+      <p>
+        {t(
+          "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing the failover could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
+        )}
+      </p>
+    ),
+    variant: AlertVariant.warning,
   },
 });

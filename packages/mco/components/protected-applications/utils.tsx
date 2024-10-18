@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { ActionDropdownItems } from '@odf/shared/dropdown/action-dropdown';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import {
@@ -22,14 +21,12 @@ import { IAction } from '@patternfly/react-table';
 import {
   VOLUME_REPLICATION_HEALTH,
   DRPC_STATUS,
-  LEAST_SECONDS_IN_PROMETHEUS,
   DR_BASE_ROUTE,
   DRActionType,
   REPLICATION_TYPE,
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind, Progression } from '../../types';
-import { getVolumeReplicationHealth } from '../../utils';
 import { DiscoveredApplicationParser as DiscoveredApplicationModal } from '../modals/app-failover-relocate/parser/discovered-application-parser';
 import RemoveDisasterRecoveryModal from '../modals/remove-disaster-recovery/remove-disaster-recovery';
 
@@ -84,20 +81,6 @@ export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
   [DRPC_STATUS.FailedOver, DRPC_STATUS.Relocating].includes(
     drpc?.status?.phase as DRPC_STATUS
   ) && drpc?.status?.progression === Progression.WaitOnUserToCleanUp;
-
-export const getReplicationHealth = (
-  lastSyncTime: string,
-  schedulingInterval: string,
-  replicationType: REPLICATION_TYPE
-): VOLUME_REPLICATION_HEALTH => {
-  if (replicationType === REPLICATION_TYPE.SYNC) {
-    return VOLUME_REPLICATION_HEALTH.HEALTHY;
-  }
-  const seconds = !!lastSyncTime
-    ? getTimeDifferenceInSeconds(lastSyncTime)
-    : LEAST_SECONDS_IN_PROMETHEUS;
-  return getVolumeReplicationHealth(seconds, schedulingInterval)[0];
-};
 
 export type ReplicationHealthMap = {
   title: string;
