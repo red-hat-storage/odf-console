@@ -1,4 +1,7 @@
 import * as React from 'react';
+import { DRPolicyKind } from '@odf/mco/types';
+import { getReplicationHealth, getReplicationType } from '@odf/mco/utils';
+import { useK8sList } from '@odf/shared';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { getName } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
@@ -14,10 +17,11 @@ import {
   ButtonProps,
   ButtonType,
   ButtonVariant,
+  Alert,
   AlertVariant,
 } from '@patternfly/react-core';
-import { DRActionType } from '../../../../constants';
-import { DRPlacementControlModel } from '../../../../models';
+import { DRActionType, VOLUME_REPLICATION_HEALTH } from '../../../../constants';
+import { DRPlacementControlModel, DRPolicyModel } from '../../../../models';
 import {
   FailoverRelocateModalBody,
   findErrorMessage,
@@ -102,6 +106,38 @@ export const SubscriptionFailoverRelocateModal: React.FC<FailoverRelocateModalPr
       failoverAndRelocateState(action)
     );
 
+    const [drPolicies, loaded] = useK8sList<DRPolicyKind>(DRPolicyModel);
+
+    const checkSyncDelayed = (drPolicyControlStates) => {
+      if (!loaded || !drPolicies?.length) return false;
+
+      return drPolicyControlStates.some((stateItem) => {
+        const drPlacementControl = stateItem?.drPlacementControl;
+        const selectedDrPolicyName =
+          drPlacementControl?.spec?.drPolicyRef?.name;
+
+        const drPolicy = drPolicies.find(
+          (policy) => getName(policy) === selectedDrPolicyName
+        );
+        const volumesSchedulingInterval = drPolicy?.spec?.schedulingInterval;
+
+        if (!volumesSchedulingInterval) return true; // Show warning alert for unknown state also
+
+        const replicationType = getReplicationType(volumesSchedulingInterval);
+        if (!replicationType) return false;
+
+        return (
+          getReplicationHealth(
+            drPlacementControl?.status?.lastGroupSyncTime,
+            volumesSchedulingInterval,
+            replicationType
+          ) === VOLUME_REPLICATION_HEALTH.CRITICAL
+        );
+      });
+    };
+
+    const isSyncDelayed = checkSyncDelayed(state.drPolicyControlState);
+
     const updateModalStatus = (modalFooterStatus: ModalFooterStatus) =>
       dispatch({
         type: FailoverAndRelocateType.SET_MODAL_FOOTER_STATUS,
@@ -183,6 +219,18 @@ export const SubscriptionFailoverRelocateModal: React.FC<FailoverRelocateModalPr
         variant={ModalVariant.medium}
       >
         <ModalBody>
+          {isSyncDelayed && (
+            <Alert
+              variant={AlertVariant.warning}
+              title={t('Inconsistent data on target cluster')}
+              isInline
+            >
+              {t(
+                "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing the failover could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
+              )}
+            </Alert>
+          )}
+
           <FailoverRelocateModalBody
             application={resource}
             action={action}

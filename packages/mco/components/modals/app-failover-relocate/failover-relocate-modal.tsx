@@ -1,4 +1,7 @@
 import * as React from 'react';
+import { DRPolicyKind } from '@odf/mco/types';
+import { getReplicationHealth } from '@odf/mco/utils';
+import { getName } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -15,6 +18,7 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { DRActionType } from '../../../constants';
+import { VOLUME_REPLICATION_HEALTH } from '../../../constants';
 import { DRPlacementControlModel } from '../../../models';
 import {
   ApplicationProps,
@@ -45,8 +49,15 @@ const getModalText = (t: TFunction) => ({
 export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
   props
 ) => {
-  const { applicationNamespace, action, isOpen, loaded, loadError, close } =
-    props;
+  const {
+    applicationNamespace,
+    action,
+    isOpen,
+    loaded,
+    loadError,
+    close,
+    drPolicies,
+  } = props;
 
   const { t } = useCustomTranslation();
   const modalText = getModalText(t)[action];
@@ -58,9 +69,26 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
     React.useState<PlacementControlProps>({});
   const [canInitiate, setCanInitiate] = React.useState(false);
 
+  const lastGroupSyncTime = placementControl?.snapshotTakenTime;
+  const drPolicyName = placementControl.drPolicyName;
+  const volumesSchedulingInterval = drPolicyName
+    ? drPolicies?.find((policy) => getName(policy) === drPolicyName)?.spec
+        ?.schedulingInterval
+    : undefined;
+  const replicationType = placementControl?.replicationType;
+
+  // Determine if sync is delayed (critical state)
+  const replicationHealth = getReplicationHealth(
+    lastGroupSyncTime,
+    volumesSchedulingInterval,
+    replicationType
+  );
+  const isSyncDelayed =
+    replicationHealth === VOLUME_REPLICATION_HEALTH.CRITICAL;
+
   const onClick = () => {
     setFooterStatus(ModalFooterStatus.INPROGRESS);
-    // Prefered cluster and failover cluster should not be same for failover and relocate.
+    // Preferred cluster and failover cluster should not be the same for failover and relocate.
     const patch = [
       {
         op: 'replace',
@@ -120,6 +148,19 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
               setCanInitiate={setCanInitiate}
               setPlacement={setPlacementControl}
             />
+
+            {isSyncDelayed && (
+              <Alert
+                variant={AlertVariant.warning}
+                title={t('Inconsistent data on target cluster')}
+                isInline
+              >
+                {t(
+                  "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing the failover could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
+                )}
+              </Alert>
+            )}
+
             {(!!errorMessage || !!loadError) && (
               <Alert
                 title={errorMessage || getErrorMessage(loadError)}
@@ -169,4 +210,5 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
 type FailoverRelocateModalProps = ApplicationProps & {
   isOpen: boolean;
   close?: () => void;
+  drPolicies: DRPolicyKind[];
 };

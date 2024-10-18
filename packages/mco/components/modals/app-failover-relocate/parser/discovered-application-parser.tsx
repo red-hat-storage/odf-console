@@ -94,6 +94,7 @@ export const DiscoveredApplicationParser: React.FC<
     );
 
   const drResource = drResources?.formattedResources?.[0];
+  const drPolicies = drResources?.drPolicies;
 
   const loaded = drLoaded && managedClusterLoaded;
   const loadError = drLoadError || managedClusterLoadError;
@@ -159,6 +160,7 @@ export const DiscoveredApplicationParser: React.FC<
           isDRActionReady: checkDRActionReadiness(drPlacementControl, action),
           snapshotTakenTime: drPlacementControl?.status?.lastGroupSyncTime,
           replicationType: findDRType(drClusters),
+          drPolicyName: drPlacementControl?.spec?.drPolicyRef?.name,
         },
       ];
     }
@@ -178,6 +180,7 @@ export const DiscoveredApplicationParser: React.FC<
       loaded={loaded}
       close={closeModal}
       message={getAlertMessage(action, t)}
+      drPolicies={drPolicies}
     />
   );
 };

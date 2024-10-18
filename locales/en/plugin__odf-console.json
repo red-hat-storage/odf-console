@@ -282,6 +282,8 @@
   "Failing over force stops active replication and deploys your application on the selected target cluster. Recommended only when the primary cluster is down.": "Failing over force stops active replication and deploys your application on the selected target cluster. Recommended only when the primary cluster is down.",
   "Relocate application": "Relocate application",
   "Relocating terminates your application on its current cluster, syncs its most recent snapshot to the selected target cluster, and then brings up your application.": "Relocating terminates your application on its current cluster, syncs its most recent snapshot to the selected target cluster, and then brings up your application.",
+  "Inconsistent data on target cluster": "Inconsistent data on target cluster",
+  "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing the failover could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information.": "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing the failover could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information.",
   "Initiate": "Initiate",
   "Initiating": "Initiating",
   "No DRPolicy found.": "No DRPolicy found.",

@@ -331,6 +331,7 @@ export type PlacementControlProps = Partial<{
   isPrimaryClusterFenced: boolean;
   areSiblingApplicationsFound: boolean;
   kubeObjectLastSyncTime: string;
+  drPolicyName: string;
 }>;
 
 export type ApplicationProps = {
