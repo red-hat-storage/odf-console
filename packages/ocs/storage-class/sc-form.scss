@@ -17,8 +17,12 @@
   }
 
   &__card {
+    box-sizing: border-box; // Include padding and border in element's total width
+    display: flex;
+    flex-direction: column; // Ensure contents stack vertically
     margin: var(--pf-v5-global--spacer--md) !important; // To override patternfly card class
     padding: var(--pf-v5-global--spacer--md) !important; // To override patternfly card class
+    width: 100%; // Allow card to take full width of its container
   }
 
   &__pv-title {
