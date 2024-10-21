@@ -9,6 +9,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import * as fuzzy from 'fuzzysearch';
 import * as _ from 'lodash-es';
 import { GetAPIVersionForModel } from '../types';
 
@@ -181,3 +182,6 @@ export const numberInputOnChange =
     else if (!!max && inputValue > max) onChange(max);
     else onChange(inputValue);
   };
+
+export const fuzzyCaseInsensitive = (a: string, b: string): boolean =>
+  fuzzy(_.toLower(a), _.toLower(b));
