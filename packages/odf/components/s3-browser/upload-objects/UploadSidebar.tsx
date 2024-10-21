@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Status, useCustomTranslation } from '@odf/shared';
+import { DrawerHead, Status, useCustomTranslation } from '@odf/shared';
 import { ResourceStatus } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
 import {
@@ -10,7 +10,6 @@ import {
   DrawerCloseButton,
   DrawerContent,
   DrawerContentBody,
-  DrawerHead,
   DrawerPanelContent,
   Flex,
   FlexItem,
@@ -26,7 +25,6 @@ import {
   getTotalTimeRemaining,
   getUploadSpeed,
 } from './utils';
-import './uploadSidebar.scss';
 
 type PanelContentProps = {
   uploadProgress: UploadProgress;
@@ -57,69 +55,67 @@ const PanelContent: React.FC<PanelContentProps> = ({
       maxSize="unset"
       height="unset"
     >
-      <div className="odf-upload-sidebar__drawer-head">
-        <DrawerHead>
-          <Flex direction={{ default: 'column' }}>
-            <FlexItem>
-              <Title headingLevel="h3">{t('Uploads')}</Title>
-            </FlexItem>
-            <FlexItem>
-              <Title headingLevel="h4">
-                <span>
-                  {t('{{uploadedFiles}} of {{totalFiles}} files uploaded', {
-                    uploadedFiles,
-                    totalFiles,
-                  })}
-                  &nbsp;
-                  {isComplete ? (
-                    <ResourceStatus>
-                      <Status status={t('Complete')} title={t('Completed')} />
-                    </ResourceStatus>
-                  ) : (
-                    <ResourceStatus>
-                      <Status status={t('Uploading')} title={t('Ongoing')} />
-                    </ResourceStatus>
-                  )}
-                </span>
-              </Title>
-            </FlexItem>
-            {isComplete ? (
-              <>
-                <FlexItem>
-                  {t('Succeeded: {{uploadedFiles}}', { uploadedFiles })}
-                </FlexItem>
-                <FlexItem>
-                  {t('Failed files: {{failedFiles}}', {
-                    failedFiles: totalFiles - uploadedFiles,
-                  })}
-                </FlexItem>
-                <FlexItem>
-                  {t('Completion time: {{totalTimeElapsed}}', {
-                    totalTimeElapsed,
-                  })}
-                </FlexItem>
-              </>
-            ) : (
-              <>
-                <FlexItem>
-                  {t('Total Remaining: {{totalRemaining}}', { totalRemaining })}
-                </FlexItem>
-                <FlexItem>
-                  {t('Estimated time remaining: {{timeRemaining}}', {
-                    timeRemaining,
-                  })}
-                </FlexItem>
-                <FlexItem>
-                  {t('Transfer rate: {{uploadSpeed}}', { uploadSpeed })}
-                </FlexItem>
-              </>
-            )}
-          </Flex>
-          <DrawerActions>
-            <DrawerCloseButton onClick={onClose} />
-          </DrawerActions>
-        </DrawerHead>
-      </div>
+      <DrawerHead>
+        <Flex direction={{ default: 'column' }}>
+          <FlexItem>
+            <Title headingLevel="h3">{t('Uploads')}</Title>
+          </FlexItem>
+          <FlexItem>
+            <Title headingLevel="h4">
+              <span>
+                {t('{{uploadedFiles}} of {{totalFiles}} files uploaded', {
+                  uploadedFiles,
+                  totalFiles,
+                })}
+                &nbsp;
+                {isComplete ? (
+                  <ResourceStatus>
+                    <Status status={t('Complete')} title={t('Completed')} />
+                  </ResourceStatus>
+                ) : (
+                  <ResourceStatus>
+                    <Status status={t('Uploading')} title={t('Ongoing')} />
+                  </ResourceStatus>
+                )}
+              </span>
+            </Title>
+          </FlexItem>
+          {isComplete ? (
+            <>
+              <FlexItem>
+                {t('Succeeded: {{uploadedFiles}}', { uploadedFiles })}
+              </FlexItem>
+              <FlexItem>
+                {t('Failed files: {{failedFiles}}', {
+                  failedFiles: totalFiles - uploadedFiles,
+                })}
+              </FlexItem>
+              <FlexItem>
+                {t('Completion time: {{totalTimeElapsed}}', {
+                  totalTimeElapsed,
+                })}
+              </FlexItem>
+            </>
+          ) : (
+            <>
+              <FlexItem>
+                {t('Total Remaining: {{totalRemaining}}', { totalRemaining })}
+              </FlexItem>
+              <FlexItem>
+                {t('Estimated time remaining: {{timeRemaining}}', {
+                  timeRemaining,
+                })}
+              </FlexItem>
+              <FlexItem>
+                {t('Transfer rate: {{uploadSpeed}}', { uploadSpeed })}
+              </FlexItem>
+            </>
+          )}
+        </Flex>
+        <DrawerActions>
+          <DrawerCloseButton onClick={onClose} />
+        </DrawerActions>
+      </DrawerHead>
       <DrawerContentBody>
         <Alert
           title="How uploading works?"
@@ -140,7 +136,6 @@ const PanelContent: React.FC<PanelContentProps> = ({
 export type UploadSidebarProps = {
   isExpanded: boolean;
   closeSidebar: () => void;
-  setDrawerReference?: (drawerRef: React.Ref<HTMLDivElement>) => void;
   uploadProgress: UploadProgress;
   mainContent: React.ReactNode;
   completionTime: number;

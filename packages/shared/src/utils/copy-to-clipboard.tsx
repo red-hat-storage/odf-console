@@ -1,10 +1,36 @@
 import * as React from 'react';
+import cn from 'classnames';
 import * as _ from 'lodash-es';
 import { CopyToClipboard as CTC } from 'react-copy-to-clipboard';
 import { Button, Tooltip } from '@patternfly/react-core';
 import { CopyIcon } from '@patternfly/react-icons';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import '../style.scss';
+
+type CopyToClipboardWrapperProps = {
+  visibleValue: React.ReactNode;
+  iconOnly?: boolean;
+};
+
+const CopyToClipboardWrapper: React.FC<CopyToClipboardWrapperProps> = ({
+  visibleValue,
+  iconOnly,
+  children,
+}) => {
+  return iconOnly ? (
+    <>{children}</>
+  ) : (
+    <div className="odf-copy-to-clipboard">
+      <pre
+        className="odf-pre-wrap odf-copy-to-clipboard__text odf-copy-to-clipboard__pre"
+        data-test="copy-to-clipboard"
+      >
+        {visibleValue}
+      </pre>
+      {children}
+    </div>
+  );
+};
 
 export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
   (props) => {
@@ -24,13 +50,10 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
       : props.visibleValue;
 
     return (
-      <div className="odf-copy-to-clipboard">
-        <pre
-          className="odf-pre-wrap odf-copy-to-clipboard__text odf-copy-to-clipboard__pre"
-          data-test="copy-to-clipboard"
-        >
-          {visibleValue}
-        </pre>
+      <CopyToClipboardWrapper
+        visibleValue={visibleValue}
+        iconOnly={props.iconOnly}
+      >
         <Tooltip
           content={tooltipContent}
           trigger="click mouseenter focus"
@@ -40,15 +63,20 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
             <Button
               variant="plain"
               onMouseEnter={() => setCopied(false)}
-              className="odf-copy-to-clipboard__btn pf-v5-c-clipboard-copy__group-copy"
+              className={cn(
+                'odf-copy-to-clipboard__btn',
+                'pf-v5-c-clipboard-copy__group-copy',
+                { 'odf-copy-to-clipboard__btn--icon-only': props.iconOnly }
+              )}
               type="button"
+              data-test="copy-to-clipboard-btn"
             >
               <CopyIcon />
               <span className="sr-only">{t('Copy to clipboard')}</span>
             </Button>
           </CTC>
         </Tooltip>
-      </div>
+      </CopyToClipboardWrapper>
     );
   }
 );
@@ -56,6 +84,7 @@ export const CopyToClipboard: React.FC<CopyToClipboardProps> = React.memo(
 export type CopyToClipboardProps = {
   value: string;
   visibleValue?: React.ReactNode;
+  iconOnly?: boolean;
 };
 
 CopyToClipboard.displayName = 'CopyToClipboard';

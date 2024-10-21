@@ -5,6 +5,7 @@ import {
   CreateBucketCommand,
   PutBucketTaggingCommand,
   GetObjectCommand,
+  GetObjectTaggingCommand,
   DeleteObjectsCommand,
   GetBucketEncryptionCommand,
   GetBucketVersioningCommand,
@@ -21,6 +22,7 @@ import {
   PutBucketTags,
   GetSignedUrl,
   GetObject,
+  GetObjectTagging,
   DeleteObjects,
   GetBucketEncryption,
   GetBucketVersioning,
@@ -76,6 +78,9 @@ export class S3Commands extends S3Client {
     getSignedUrl(this, new GetObjectCommand(input), { expiresIn });
 
   getObject: GetObject = (input) => this.send(new GetObjectCommand(input));
+
+  getObjectTagging: GetObjectTagging = (input) =>
+    this.send(new GetObjectTaggingCommand(input));
 
   deleteObjects: DeleteObjects = (input) =>
     this.send(new DeleteObjectsCommand(input));
