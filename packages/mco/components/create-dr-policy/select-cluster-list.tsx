@@ -4,7 +4,7 @@ import { getName } from '@odf/shared/selectors';
 import { RowComponentType } from '@odf/shared/table';
 import {
   SelectableTable,
-  TABLE_VARINAT,
+  TABLE_VARIANT,
 } from '@odf/shared/table/selectable-table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getPageRange, referenceForModel } from '@odf/shared/utils';
@@ -161,7 +161,7 @@ const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
         setSelectedRows={onChange}
         loaded={isLoaded}
         loadError={error}
-        variant={TABLE_VARINAT.DEFAULT}
+        variant={TABLE_VARIANT.DEFAULT}
         isColumnSelectableHidden
         isRowSelectable={(cluster) =>
           isRowSelectable(cluster, selectedClusters)
