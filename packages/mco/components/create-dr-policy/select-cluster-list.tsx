@@ -4,7 +4,7 @@ import { getName } from '@odf/shared/selectors';
 import { RowComponentType } from '@odf/shared/table';
 import {
   SelectableTable,
-  TABLE_VARINAT,
+  TABLE_VARIANT,
 } from '@odf/shared/table/selectable-table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getPageRange, referenceForModel } from '@odf/shared/utils';
@@ -51,7 +51,7 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
 }) => {
   const { t } = useCustomTranslation();
   const { odfInfo, region, isManagedClusterAvailable } = cluster;
-  const isClientExists = !!odfInfo?.storageClusterInfo?.clientInfo;
+  const clientName = !!odfInfo?.storageClusterInfo?.clientInfo?.name;
   const odfVersion = odfInfo?.odfVersion;
   return (
     <>
@@ -91,8 +91,8 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
         translate={null}
         dataLabel={getColumnHelper(COLUMN_NAMES.StorageClients, t).columnName}
       >
-        <Text className={cn({ 'text-muted': !isClientExists })}>
-          {isClientExists ? t('1 connected') : t('Unavailable')}
+        <Text className={cn({ 'text-muted': !clientName })}>
+          {clientName ? clientName : t('Unavailable')}
         </Text>
       </Td>
       <Td
@@ -161,7 +161,7 @@ const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
         setSelectedRows={onChange}
         loaded={isLoaded}
         loadError={error}
-        variant={TABLE_VARINAT.DEFAULT}
+        variant={TABLE_VARIANT.DEFAULT}
         isColumnSelectableHidden
         isRowSelectable={(cluster) =>
           isRowSelectable(cluster, selectedClusters)

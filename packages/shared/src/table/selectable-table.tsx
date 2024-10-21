@@ -15,7 +15,7 @@ import { useSortList } from '../hooks/sort-list';
 import { getUID } from '../selectors';
 import { TableColumnProps, RowComponentType } from './composable-table';
 
-export enum TABLE_VARINAT {
+export enum TABLE_VARIANT {
   DEFAULT = 'default',
   COMPACT = 'compact',
 }
@@ -116,7 +116,7 @@ export const SelectableTable: SelectableTableProps = <
         aria-label="Selectable table"
         borders={borders}
         variant={
-          variant !== TABLE_VARINAT.DEFAULT ? TABLE_VARINAT.COMPACT : undefined
+          variant !== TABLE_VARIANT.DEFAULT ? TABLE_VARIANT.COMPACT : undefined
         }
       >
         <Thead translate={null}>
@@ -157,8 +157,8 @@ export const SelectableTable: SelectableTableProps = <
                   onSelect: onSelect,
                   isSelected: isRowSelected(getUID(row), selectedRows),
                   isDisabled:
-                  (!!isRowSelectable && !isRowSelectable(row)) ||
-                  !hasNoDeletionTimestamp(row),
+                    (!!isRowSelectable && !isRowSelectable(row)) ||
+                    !hasNoDeletionTimestamp(row),
                   props: {
                     id: getUID(row),
                   },
@@ -192,7 +192,7 @@ type TableProps<T extends K8sResourceCommon> = {
   /** Additional classes added to the Table  */
   className?: string;
   isRowSelectable?: IsRowSelectable;
-  variant?: TABLE_VARINAT;
+  variant?: TABLE_VARIANT;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(
