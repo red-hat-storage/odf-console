@@ -17,6 +17,9 @@ const betaDefaultStorageClassAnnotation =
   'storageclass.beta.kubernetes.io/is-default-class';
 export const LAST_LANGUAGE_LOCAL_STORAGE_KEY = 'bridge/last-language';
 
+export const isNotFoundError = (loadError): boolean =>
+  _.get(loadError, 'response.status') === 404;
+
 export const getAPIVersionForModel: GetAPIVersionForModel = (model) =>
   !model?.apiGroup ? model.apiVersion : `${model.apiGroup}/${model.apiVersion}`;
 
