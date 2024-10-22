@@ -17,6 +17,6 @@ jobs:
       - name: Login to Quay Registry
         run: echo ${{ secrets.QUAY_SECRET }} | docker login quay.io -u ${{ secrets.QUAY_UNAME }} --password-stdin
       - name: Build the CI runner image
-        run: docker build . --file Dockerfile.ci.runner --tag quay.io/ocs-dev/odf-console-ci:node18
+        run: docker build . --file Dockerfile.ci.runner --tag quay.io/ocs-dev/odf-console-ci-runner:node20
       - name: Push the CI runner image to ocs-dev
-        run: docker push quay.io/ocs-dev/odf-console-ci-runner:node18
+        run: docker push quay.io/ocs-dev/odf-console-ci-runner:node20

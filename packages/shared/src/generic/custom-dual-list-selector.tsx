@@ -123,13 +123,12 @@ export const CustomDualListSelector = ({
         state={state}
         dispatch={dispatch}
       />
-      <DualListSelectorControlsWrapper translate={false}>
+      <DualListSelectorControlsWrapper>
         <DualListSelectorControl
           isDisabled={!availableOptions.some((option) => option.selected)}
           onClick={() => moveSelected(true)}
           aria-label="Add selected"
           tooltipContent="Add selected"
-          translate={false}
         >
           <AngleRightIcon />
         </DualListSelectorControl>
@@ -138,7 +137,6 @@ export const CustomDualListSelector = ({
           onClick={() => moveAll(true)}
           aria-label="Add all"
           tooltipContent="Add all"
-          translate={false}
         >
           <AngleDoubleRightIcon />
         </DualListSelectorControl>
@@ -147,7 +145,6 @@ export const CustomDualListSelector = ({
           onClick={() => moveAll(false)}
           aria-label="Remove all"
           tooltipContent="Remove all"
-          translate={false}
         >
           <AngleDoubleLeftIcon />
         </DualListSelectorControl>
@@ -156,7 +153,6 @@ export const CustomDualListSelector = ({
           isDisabled={!chosenOptions.some((option) => option.selected)}
           aria-label="Remove selected"
           tooltipContent="Remove selected"
-          translate={false}
         >
           <AngleLeftIcon />
         </DualListSelectorControl>

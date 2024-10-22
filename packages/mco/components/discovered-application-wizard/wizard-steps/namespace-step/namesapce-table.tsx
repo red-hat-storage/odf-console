@@ -84,7 +84,7 @@ const TableRow: React.FC<RowComponentType<K8sResourceCommon>> = ({
 }) => {
   const { t } = useCustomTranslation();
   return (
-    <Td translate={null} dataLabel={getColumns(t)[0].columnName}>
+    <Td dataLabel={getColumns(t)[0].columnName}>
       <ResourceIcon resourceModel={NamespaceModel} />
       {getName(namespaceObj)}
     </Td>

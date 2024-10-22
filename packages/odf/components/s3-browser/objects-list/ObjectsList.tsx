@@ -224,7 +224,6 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
           </Button>
           <ActionsColumn
             isDisabled={!anySelection || !loadedWOError}
-            translate={null}
             items={getBulkActionsItems(
               t,
               launcher,

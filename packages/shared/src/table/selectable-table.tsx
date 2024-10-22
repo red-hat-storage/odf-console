@@ -13,6 +13,7 @@ import {
 import { useSelectList } from '../hooks/select-list';
 import { useSortList } from '../hooks/sort-list';
 import { getUID } from '../selectors';
+import { useCustomTranslation } from '../useCustomTranslationHook';
 import { TableColumnProps, RowComponentType } from './composable-table';
 
 export enum TABLE_VARIANT {
@@ -65,6 +66,8 @@ export const SelectableTable: SelectableTableProps = <
   isRowSelectable,
   variant,
 }) => {
+  const { t } = useCustomTranslation();
+
   const {
     onSort,
     sortIndex: activeSortIndex,
@@ -112,17 +115,15 @@ export const SelectableTable: SelectableTableProps = <
     >
       <Table
         className={className}
-        translate={null}
-        aria-label="Selectable table"
+        aria-label={t('Selectable table')}
         borders={borders}
         variant={
           variant !== TABLE_VARIANT.DEFAULT ? TABLE_VARIANT.COMPACT : undefined
         }
       >
-        <Thead translate={null}>
-          <Tr translate={null}>
+        <Thead>
+          <Tr>
             <Th
-              translate={null}
               {...(!isColumnSelectableHidden
                 ? {
                     select: {
@@ -134,24 +135,24 @@ export const SelectableTable: SelectableTableProps = <
                     },
                   }
                 : {})}
+              aria-label={t('Select all')}
             />
             {columns?.map((col, index) => (
               <Th
                 {...(!!col?.thProps ? col.thProps : {})}
                 {...(!!col?.sortFunction ? { sort: getSortParams(index) } : {})}
-                translate={null}
                 key={col?.columnName}
+                aria-label={col?.columnName}
               >
                 {col?.columnName}
               </Th>
             ))}
           </Tr>
         </Thead>
-        <Tbody translate={null}>
+        <Tbody>
           {sortedRows.map((row, rowIndex) => (
-            <Tr translate={null} key={getUID(row)}>
+            <Tr key={getUID(row)}>
               <Td
-                translate={null}
                 select={{
                   rowIndex,
                   onSelect: onSelect,

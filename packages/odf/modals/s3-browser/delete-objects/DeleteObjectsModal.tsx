@@ -94,16 +94,10 @@ const DeleteObjectsTableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
   const columnNames = getColumnNames(t);
 
   return (
-    <Tr translate={null}>
-      <Td translate={null} dataLabel={columnNames[0]}>
-        {name}
-      </Td>
-      <Td translate={null} dataLabel={columnNames[1]}>
-        {object.apiResponse.size}
-      </Td>
-      <Td translate={null} dataLabel={columnNames[2]}>
-        {object.apiResponse.lastModified}
-      </Td>
+    <Tr>
+      <Td dataLabel={columnNames[0]}>{name}</Td>
+      <Td dataLabel={columnNames[1]}>{object.apiResponse.size}</Td>
+      <Td dataLabel={columnNames[2]}>{object.apiResponse.lastModified}</Td>
     </Tr>
   );
 };

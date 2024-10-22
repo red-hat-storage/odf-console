@@ -132,9 +132,8 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
   };
 
   return (
-    <Tr translate={null} key={rowIndex}>
+    <Tr key={rowIndex}>
       <Td
-        translate={null}
         dataLabel={columnNames[0]}
         favorites={{
           isFavorited: favorites.includes(name),
@@ -143,21 +142,21 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
           rowIndex,
         }}
       />
-      <Td translate={null} dataLabel={columnNames[1]}>
+      <Td dataLabel={columnNames[1]}>
         <Link to={`${BUCKETS_BASE_ROUTE}/${name}`}>{name}</Link>
       </Td>
-      <Td translate={null} dataLabel={columnNames[2]}>
+      <Td dataLabel={columnNames[2]}>
         {/* ToDo: Currently we only support MCG, make is configurable once RGW is supported as well */}
         <Label color="gold">{t('MCG')}</Label>
       </Td>
-      <Td translate={null} dataLabel={columnNames[3]}>
+      <Td dataLabel={columnNames[3]}>
         {<Timestamp timestamp={creationTimestamp} ignoreRelativeTime />}
       </Td>
-      <Td translate={null} dataLabel={columnNames[4]}>
+      <Td dataLabel={columnNames[4]}>
         <UserIcon /> <span data-test="owner">{owner}</span>
       </Td>
-      <Td translate={null} dataLabel={columnNames[5]} isActionCell>
-        <ActionsColumn items={getRowActions(t)} translate={null} />
+      <Td dataLabel={columnNames[5]} isActionCell>
+        <ActionsColumn items={getRowActions(t)} />
       </Td>
     </Tr>
   );

@@ -55,11 +55,11 @@ const MockRowComponent: React.FC<RowComponentType<K8sResourceCommon>> = (
 
   return (
     <>
-      <Td translate={null}> {getName(row)} </Td>
-      <Td translate={null}> {getNamespace(row)} </Td>
-      <Td translate={null}> {row?.kind} </Td>
-      <Td translate={null} isActionCell>
-        <ActionsColumn translate={null} items={RowActions()} />
+      <Td> {getName(row)} </Td>
+      <Td> {getNamespace(row)} </Td>
+      <Td> {row?.kind} </Td>
+      <Td isActionCell>
+        <ActionsColumn items={RowActions()} />
       </Td>
     </>
   );

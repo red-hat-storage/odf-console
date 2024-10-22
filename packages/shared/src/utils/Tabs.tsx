@@ -12,7 +12,6 @@ import {
   TabTitleText,
 } from '@patternfly/react-core';
 import { K8sResourceKind } from '../types';
-import { useCustomTranslation } from '../useCustomTranslationHook';
 import './tabs.scss';
 
 export type TabPage = {
@@ -44,8 +43,6 @@ const Tabs: React.FC<TabsProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { t } = useCustomTranslation();
-
   const elements = React.useMemo(() => {
     const temp = tabs.map((tab, i) => {
       const tabTitle = tab.title || tab.name;
@@ -53,7 +50,6 @@ const Tabs: React.FC<TabsProps> = ({
         <Tab
           eventKey={i + offset}
           title={<TabTitleText>{tabTitle}</TabTitleText>}
-          translate={t}
           key={tabTitle}
           data-test={`horizontal-link-${tabTitle}`}
         >
@@ -62,7 +58,7 @@ const Tabs: React.FC<TabsProps> = ({
       );
     });
     return temp;
-  }, [offset, t, tabs]);
+  }, [offset, tabs]);
 
   const hrefToTabMap = React.useMemo(
     () =>

@@ -56,13 +56,11 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
   return (
     <>
       <Td
-        translate={null}
         dataLabel={getColumnHelper(COLUMN_NAMES.ManagedCluster, t).columnName}
       >
         <Text>{getName(cluster)}</Text>
       </Td>
       <Td
-        translate={null}
         dataLabel={
           getColumnHelper(COLUMN_NAMES.AvailabilityStatus, t).columnName
         }
@@ -80,7 +78,6 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
         )}
       </Td>
       <Td
-        translate={null}
         dataLabel={getColumnHelper(COLUMN_NAMES.DataFoundation, t).columnName}
       >
         <Text className={cn({ 'text-muted': !odfVersion })}>
@@ -88,17 +85,13 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
         </Text>
       </Td>
       <Td
-        translate={null}
         dataLabel={getColumnHelper(COLUMN_NAMES.StorageClients, t).columnName}
       >
         <Text className={cn({ 'text-muted': !clientName })}>
           {clientName ? clientName : t('Unavailable')}
         </Text>
       </Td>
-      <Td
-        translate={null}
-        dataLabel={getColumnHelper(COLUMN_NAMES.Region, t).columnName}
-      >
+      <Td dataLabel={getColumnHelper(COLUMN_NAMES.Region, t).columnName}>
         <Text className={cn({ 'text-muted': !region })}>
           {region || t('Unavailable')}
         </Text>

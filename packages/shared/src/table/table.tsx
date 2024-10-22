@@ -82,12 +82,7 @@ const Table: React.FC<TableProps> = React.memo(
           }
         : {};
       return (
-        <Th
-          key={columnIndex}
-          className={column.className}
-          {...sortParams}
-          translate={null}
-        >
+        <Th key={columnIndex} className={column.className} {...sortParams}>
           {column.columnName}
         </Th>
       );
@@ -103,16 +98,15 @@ const Table: React.FC<TableProps> = React.memo(
         NoDataEmptyMsg={noDataMsg}
         skeleton={<div className="loading-skeleton--table pf-v5-u-mt-lg" />}
       >
-        <PfTable aria-label={ariaLabel} translate={null}>
-          <Thead translate={null}>
-            <Tr translate={null}>{headerColumns}</Tr>
+        <PfTable aria-label={ariaLabel}>
+          <Thead>
+            <Tr>{headerColumns}</Tr>
           </Thead>
-          <Tbody translate={null}>
+          <Tbody>
             {rowData?.map((row, index) => (
-              <Tr key={index} translate={null}>
+              <Tr key={index}>
                 {row.map((item: React.ReactNode, cellIndex: number) => (
                   <Td
-                    translate={null}
                     key={`${cellIndex}_${index}`}
                     className={classNames[cellIndex]}
                   >
