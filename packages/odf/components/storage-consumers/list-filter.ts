@@ -7,8 +7,8 @@ const heartbeatPhases = ['Connected', 'Disconnected'];
 
 export const getHeartbeatPhase = (client: StorageConsumerKind): string => {
   const heartbeat = client?.status?.lastHeartbeat;
-  const timeElasped = getTimeDifferenceInSeconds(heartbeat);
-  if (timeElasped <= 300) {
+  const timeElapsed = getTimeDifferenceInSeconds(heartbeat);
+  if (timeElapsed <= 300) {
     return heartbeatPhases[0];
   }
   return heartbeatPhases[1];

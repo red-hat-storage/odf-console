@@ -54,7 +54,7 @@ import {
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isOCSStorageSystem, referenceForModel } from '@odf/shared/utils';
-import { getInfrastructurePlatform } from '@odf/shared/utils';
+import { getInfrastructurePlatform, isNotFoundError } from '@odf/shared/utils';
 import {
   ProvisionerProps,
   useK8sWatchResource,
@@ -930,7 +930,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
       <StatusBox
         loadError={
           infraLoadError ||
-          csiConfigMapLoadError ||
+          (!isNotFoundError(csiConfigMapLoadError) && csiConfigMapLoadError) ||
           secretsLoadError ||
           odfNsLoadError
         }

@@ -422,7 +422,7 @@ xdescribe('Test drpolicy list page', () => {
     try {
       // east-2 is partially imported cluster
       screen.getByText('east-2');
-    } catch (error) {
+    } catch (_error) {
       nonExist = true;
     }
     expect(nonExist).toBe(true);

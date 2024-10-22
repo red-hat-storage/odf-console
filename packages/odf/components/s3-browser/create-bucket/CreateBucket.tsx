@@ -12,7 +12,9 @@ enum CreationMethod {
 
 const CreateBucket: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const [method, setMethod] = React.useState<CreationMethod>(CreationMethod.S3);
+  const [method, setMethod] = React.useState<CreationMethod>(
+    CreationMethod.OBC
+  );
 
   return (
     <>
@@ -32,23 +34,23 @@ const CreateBucket: React.FC<{}> = () => {
             className="pf-v5-u-mb-md"
           >
             <Tile
-              title={t('Create via S3 API')}
-              isSelected={method === CreationMethod.S3}
-              onClick={() => setMethod(CreationMethod.S3)}
-              className="pf-v5-u-w-33 pf-v5-u-mr-md"
-            >
-              {t(
-                'Ideal for applications and systems that need to interact directly with S3-compatible storage.'
-              )}
-            </Tile>
-            <Tile
               title={t('Create via Object Bucket Claim')}
               isSelected={method === CreationMethod.OBC}
               onClick={() => setMethod(CreationMethod.OBC)}
-              className="pf-v5-u-w-33"
+              className="pf-v5-u-w-50 pf-v5-u-w-33-on-2xl pf-v5-u-mr-md-on-2xl"
             >
               {t(
                 'Ideal for Kubernetes environments providing a more abstracted approach to managing storage resources and leveraging dynamic provisioning.'
+              )}
+            </Tile>
+            <Tile
+              title={t('Create via S3 API')}
+              isSelected={method === CreationMethod.S3}
+              onClick={() => setMethod(CreationMethod.S3)}
+              className="pf-v5-u-w-50 pf-v5-u-w-33-on-2xl"
+            >
+              {t(
+                'Ideal for applications and systems that need to interact directly with S3-compatible storage.'
               )}
             </Tile>
           </FormGroup>

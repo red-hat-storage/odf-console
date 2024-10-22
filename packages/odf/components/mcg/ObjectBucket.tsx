@@ -12,6 +12,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
+  K8sResourceCommon,
   ListPageBody,
   ListPageFilter,
   ResourceLink as ResourceLinkWithKind,
@@ -210,11 +211,12 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
   );
 };
 
-type DetailsProps = {
-  obj: K8sResourceKind;
+type OBDetailsProps = {
+  obj: K8sResourceCommon;
+  ownerLabel?: string;
 };
 
-const OBDetails: React.FC<DetailsProps> = ({ obj }) => {
+export const OBDetails: React.FC<OBDetailsProps> = ({ obj, ownerLabel }) => {
   const { t } = useCustomTranslation();
   const storageClassName = _.get(obj, 'spec.storageClassName');
   const [OBCName, OBCNamespace] = [
@@ -231,6 +233,7 @@ const OBDetails: React.FC<DetailsProps> = ({ obj }) => {
             <ResourceSummary
               resource={obj}
               resourceModel={NooBaaObjectBucketModel}
+              ownerLabel={ownerLabel}
             />
           </div>
           <div className="col-sm-6">
