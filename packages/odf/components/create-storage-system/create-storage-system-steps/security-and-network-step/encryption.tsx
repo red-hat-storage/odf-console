@@ -290,9 +290,15 @@ export const Encryption: React.FC<EncryptionProps> = ({
             isChecked={encryption.inTransit}
             data-checked-state={encryption.inTransit}
             label={t('In-transit encryption')}
-            description={t(
-              'A secure mode that encrypts all data passing over the network'
-            )}
+            description={
+              isExternal
+                ? t(
+                    'Encrypts all Ceph traffic including data, using Ceph msgrv2. Please ensure that relevant in-transit encryption settings are configured on the RHCS cluster by referring to the documentation.'
+                  )
+                : t(
+                    'Encrypts all Ceph traffic including data, using Ceph msgrv2'
+                  )
+            }
             onChange={(_event, checked: boolean) =>
               handleInTransitEncryptionOnChange(checked)
             }
