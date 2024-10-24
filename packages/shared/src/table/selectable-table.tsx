@@ -152,7 +152,7 @@ export const SelectableTable: SelectableTableProps = <
                         onSelect: onSelect,
                         isSelected: isRowSelected(getUID(row), selectedRows),
                         isDisabled:
-                          !isRowSelectable?.(row) ||
+                          (!!isRowSelectable && !isRowSelectable(row)) ||
                           !hasNoDeletionTimestamp(row),
                         props: {
                           id: getUID(row),

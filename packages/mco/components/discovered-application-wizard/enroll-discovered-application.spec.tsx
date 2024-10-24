@@ -1,5 +1,12 @@
 import * as React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { DRPlacementControlModel, DRPolicyModel } from '../../models';
 import {
   DRPlacementControlKind,
@@ -267,45 +274,45 @@ jest.mock('@patternfly/react-core', () => ({
 }));
 
 const moveToStep = async (step: number) => {
+  const user = userEvent.setup();
   if (step > 1) {
     // Select cluster
-    fireEvent.click(screen.getByText('Select cluster'));
-    fireEvent.click(screen.getByText('east-1'));
+    await user.click(screen.getByText('Select cluster'));
+    await user.click(screen.getByText('east-1'));
 
     // Select namespaces
-    fireEvent.click(screen.getByLabelText('Select row 0'));
-    fireEvent.click(screen.getByLabelText('Select row 1'));
+    await user.click(screen.getByLabelText('Select row 0'));
+    await user.click(screen.getByLabelText('Select row 1'));
 
     // Name input
-    fireEvent.change(screen.getByLabelText('Name input'), {
-      target: { value: 'my-name' },
-    });
+    await user.type(screen.getByLabelText('Name input'), 'my-name');
     await waitFor(() => {
       expect(screen.getByDisplayValue('my-name')).toBeInTheDocument();
     });
 
-    // Next wizard step
-    fireEvent.click(screen.getByText('Next'));
+    await act(async () => {
+      // Next wizard step
+      await user.click(screen.getByText('Next'));
+    });
   }
 
-  // Commented out recipe-based steps
   if (step > 2) {
     // Select recipe
-    // fireEvent.click(screen.getByText('Recipe'));
-    // fireEvent.click(screen.getByText('Select a recipe'));
-    // fireEvent.click(screen.getByText('mock-recipe-1'));
+    await user.click(screen.getByText('Recipe'));
+    await user.click(screen.getByText('Select a recipe'));
+    await user.click(screen.getByText('mock-recipe-1'));
 
     // Next wizard step
-    fireEvent.click(screen.getByText('Next'));
+    await user.click(screen.getByText('Next'));
   }
 
   if (step > 3) {
     // Select policy
-    fireEvent.click(screen.getByText('Select a policy'));
-    fireEvent.click(screen.getByText('mock-policy-1'));
+    await user.click(screen.getByText('Select a policy'));
+    await user.click(screen.getByText('mock-policy-1'));
 
     // Next wizard step
-    fireEvent.click(screen.getByText('Next'));
+    await user.click(screen.getByText('Next'));
   }
 };
 
@@ -315,6 +322,7 @@ describe('Test namespace step', () => {
   });
   test('Namespace selection form test', async () => {
     testCase = 1;
+    const user = userEvent.setup();
     // Step1 title
     expect(screen.getByText('Namespace selection')).toBeInTheDocument();
     // Step1 title description
@@ -363,7 +371,7 @@ describe('Test namespace step', () => {
     expect(screen.getByText('Cancel')).toBeInTheDocument();
 
     // Validation message
-    fireEvent.click(screen.getByText('Next'));
+    await user.click(screen.getByText('Next'));
     expect(
       screen.getByText('Select a DRCluster to choose your namespace.')
     ).toBeInTheDocument();
@@ -377,9 +385,10 @@ describe('Test namespace step', () => {
 
   test('No namespace found test', async () => {
     testCase = 2;
+    const user = userEvent.setup();
     // Cluster selection
-    fireEvent.click(screen.getByText('Select cluster'));
-    fireEvent.click(screen.getByText('east-1'));
+    await user.click(screen.getByText('Select cluster'));
+    await user.click(screen.getByText('east-1'));
     // Ensure east-1 selection
     expect(screen.getByText('east-1')).toBeInTheDocument();
 
@@ -394,9 +403,10 @@ describe('Test namespace step', () => {
 
   test('Namespace selection test', async () => {
     testCase = 3;
+    const user = userEvent.setup();
     // Cluster  east-1 selection
-    fireEvent.click(screen.getByText('Select cluster'));
-    fireEvent.click(screen.getByText('east-1'));
+    await user.click(screen.getByText('Select cluster'));
+    await user.click(screen.getByText('east-1'));
     // Ensure east-1 selection
     expect(screen.getByText('east-1')).toBeInTheDocument();
 
@@ -416,8 +426,8 @@ describe('Test namespace step', () => {
     );
 
     // Cluster  west-1 selection
-    fireEvent.click(screen.getByText('east-1'));
-    fireEvent.click(screen.getByText('west-1'));
+    await user.click(screen.getByText('east-1'));
+    await user.click(screen.getByText('west-1'));
     // Ensure west-1 selection
     expect(screen.getByText('west-1')).toBeInTheDocument();
 
@@ -432,25 +442,21 @@ describe('Test namespace step', () => {
       'Unable to find an element'
     );
     // Name input
-    fireEvent.change(screen.getByLabelText('Name input'), {
-      target: { value: 'my-name' },
-    });
+    user.type(screen.getByLabelText('Name input'), 'my-name');
     await waitFor(() => {
       expect(screen.getByDisplayValue('my-name')).toBeInTheDocument();
     });
   });
 });
 
-// The Recipe-bsaed dr protection is in Dev Preview for ODF 4.16.
-// All Recipe-based test cases are skipped.
-// https://bugzilla.redhat.com/show_bug.cgi?id=2291301
-describe.skip('Test configure step', () => {
+describe('Test configure step', () => {
   beforeEach(() => {
     render(<EnrollDiscoveredApplication />);
   });
 
   test('Configure form test', async () => {
     testCase = 4;
+    const user = userEvent.setup();
     await moveToStep(2);
     // Step2 title
     expect(screen.getByText('Configure definition')).toBeInTheDocument();
@@ -475,7 +481,7 @@ describe.skip('Test configure step', () => {
     ).toBeInTheDocument();
 
     // Recipe selection
-    fireEvent.click(screen.getByText('Recipe'));
+    await user.click(screen.getByText('Recipe'));
     expect(screen.getByText('Recipe list')).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -490,7 +496,7 @@ describe.skip('Test configure step', () => {
     expect(screen.getByText('Cancel')).toBeInTheDocument();
 
     // Validation message
-    fireEvent.click(screen.getByText('Next'));
+    await user.click(screen.getByText('Next'));
     expect(screen.getByText('Required')).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -499,24 +505,25 @@ describe.skip('Test configure step', () => {
     ).toBeInTheDocument();
 
     // Select recipe
-    fireEvent.click(screen.getByText('Select a recipe'));
+    await user.click(screen.getByText('Select a recipe'));
     expect(screen.getByText('mock-recipe-1')).toBeInTheDocument();
     expect(screen.getByText('namespace-1')).toBeInTheDocument();
     expect(screen.getByText('mock-recipe-2')).toBeInTheDocument();
     expect(screen.getByText('namespace-2')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('mock-recipe-1'));
+    await user.click(screen.getByText('mock-recipe-1'));
     // Ensure recipe selection
     expect(screen.getByText('mock-recipe-1')).toBeInTheDocument();
   });
 });
 
-describe.skip('Test replication step', () => {
+describe('Test replication step', () => {
   beforeEach(() => {
     render(<EnrollDiscoveredApplication />);
   });
   test('Replication form test', async () => {
     testCase = 5;
-    await moveToStep(3);
+    const user = userEvent.setup();
+    await await moveToStep(3);
     // Step3 title
     expect(
       screen.getByText('Volume and Kubernetes object replication')
@@ -529,7 +536,7 @@ describe.skip('Test replication step', () => {
     ).toBeInTheDocument();
     // Policy dropdown
     expect(screen.getByText('Disaster recovery policy')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Select a policy'));
+    await user.click(screen.getByText('Select a policy'));
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -546,7 +553,7 @@ describe.skip('Test replication step', () => {
     ).toBeInTheDocument();
     // Default interval
     expect(screen.getByDisplayValue(5)).toBeInTheDocument();
-    fireEvent.click(screen.getByText('minutes'));
+    await user.click(screen.getByText('minutes'));
     expect(screen.getByText('hours')).toBeInTheDocument();
     expect(screen.getByText('days')).toBeInTheDocument();
 
@@ -556,32 +563,34 @@ describe.skip('Test replication step', () => {
     expect(screen.getByText('Cancel')).toBeInTheDocument();
 
     // Validation message
-    fireEvent.click(screen.getByText('Next'));
+    await user.click(screen.getByText('Next'));
     expect(screen.getByText('Required')).toBeInTheDocument();
 
     // Select policy
-    fireEvent.click(screen.getByText('Select a policy'));
-    fireEvent.click(screen.getByText('mock-policy-1'));
+    await user.click(screen.getByText('Select a policy'));
+    await user.click(screen.getByText('mock-policy-1'));
     // Ensure policy selection
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
 
     // kubernetes object replication interval selection
-    fireEvent.change(screen.getByDisplayValue(5), { target: { value: 10 } });
+    // user-even is not supporting number input: https://github.com/testing-library/user-event/issues/411
+    fireEvent.input(screen.getByDisplayValue(5), { target: { value: 10 } });
     // Ensure interval selection
     expect(screen.getByDisplayValue(10)).toBeInTheDocument();
     // unit selection
-    fireEvent.click(screen.getByText('minutes'));
-    fireEvent.click(screen.getByText('days'));
+    await user.click(screen.getByText('minutes'));
+    await user.click(screen.getByText('days'));
     // Ensure unit selection
     expect(screen.getByText('days')).toBeInTheDocument();
   });
 });
-describe.skip('Test review step', () => {
+describe('Test review step', () => {
   beforeEach(() => {
     render(<EnrollDiscoveredApplication />);
   });
   test('Review form test', async () => {
     testCase = 6;
+    const user = userEvent.setup();
     await moveToStep(4);
     // Namespace selection test
     expect(screen.getAllByText('Namespace').length === 2).toBeTruthy();
@@ -620,7 +629,7 @@ describe.skip('Test review step', () => {
     expect(screen.getByText('Cancel')).toBeInTheDocument();
 
     // Click save
-    fireEvent.click(screen.getByText('Save'));
+    await user.click(screen.getByText('Save'));
     await waitFor(async () => {
       expect(
         JSON.stringify(drpcObj) ===
