@@ -60,7 +60,7 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
 
   const onClick = () => {
     setFooterStatus(ModalFooterStatus.INPROGRESS);
-    // Prefered cluster and failover cluster should not be same for failover and relocate.
+    // Preferred cluster and failover cluster should not be the same for failover and relocate.
     const patch = [
       {
         op: 'replace',
@@ -120,6 +120,7 @@ export const FailoverRelocateModal: React.FC<FailoverRelocateModalProps> = (
               setCanInitiate={setCanInitiate}
               setPlacement={setPlacementControl}
             />
+
             {(!!errorMessage || !!loadError) && (
               <Alert
                 title={errorMessage || getErrorMessage(loadError)}
