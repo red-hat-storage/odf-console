@@ -46,6 +46,7 @@ import {
   clientHeartBeatFilter,
   getMajorMinorVersion,
   versionMismatchFilter,
+  storageConsumerNameFilter,
 } from './list-filter';
 import { ClientOnBoardingModal } from './onboarding-modal';
 import { RotateKeysModal } from './rotate-keys-modal';
@@ -424,14 +425,23 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
   });
   const serviceVersion = getOprVersionFromCSV(csv);
 
-  const rowFilters = React.useMemo(
-    () => [clientHeartBeatFilter(t), versionMismatchFilter(t, serviceVersion)],
-    [t, serviceVersion]
-  );
+  // "rowFilters":
+  // - custom filters (new) that we are introducing to the list page
+  // - passing to both "useListPageFilter" hook & "ListPageFilter" component
+  // "rowFiltersWithNameOverride":
+  // - needed for overriding the filtering (default) on the CR's "name" (need to read the name from the CR's status instead)
+  // - only passing to "useListPageFilter" hook & not "ListPageFilter" component
+  const [rowFilters, rowFiltersWithNameOverride] = React.useMemo(() => {
+    const customFilters = [
+      clientHeartBeatFilter(t),
+      versionMismatchFilter(t, serviceVersion),
+    ];
+    return [customFilters, [storageConsumerNameFilter(), ...customFilters]];
+  }, [t, serviceVersion]);
 
   const [data, filteredData, onFilterChange] = useListPageFilter(
     storageClients,
-    rowFilters
+    rowFiltersWithNameOverride
   );
 
   const launchModalOnClick = (modalComponent: ModalComponent) => () => {
