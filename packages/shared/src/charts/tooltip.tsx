@@ -283,7 +283,11 @@ export const ChartLegendTooltip: React.FunctionComponent<
     legendProps: getLegendTooltipDataProps(
       labelComponent.props.legendComponent
     ),
-    text: getLegendTooltipVisibleText({ activePoints, legendData, text }),
+    text: getLegendTooltipVisibleText({
+      activePoints,
+      legendData,
+      text,
+    }) as any[],
     theme,
   };
 
@@ -294,7 +298,7 @@ export const ChartLegendTooltip: React.FunctionComponent<
       : {
           ...legendTooltipProps,
           // For non-stack graphs, remove the text for "mainDataName"
-          text: legendTooltipProps.text.filter(
+          text: legendTooltipProps.text?.filter(
             (_t, i) => legendTooltipProps.legendData[i].name !== mainDataName
           ),
         };

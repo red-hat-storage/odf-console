@@ -70,18 +70,16 @@ export const ComposableTable: ComposableTableProps = <
       skeleton={<div className="loading-skeleton--table pf-v5-u-mt-lg" />}
     >
       <Table
-        translate={null}
         aria-label={t('Composable table')}
         className="pf-v5-u-mt-md"
         variant={variant}
       >
-        <Thead translate={null}>
-          <Tr translate={null}>
+        <Thead>
+          <Tr>
             {columns?.map((col, index) => (
               <Th
                 {...(!!col?.thProps ? col.thProps : {})}
                 {...(!!col?.sortFunction ? { sort: getSortParams(index) } : {})}
-                translate={null}
                 key={col?.columnName}
               >
                 {col?.columnName}
@@ -89,7 +87,7 @@ export const ComposableTable: ComposableTableProps = <
             ))}
           </Tr>
         </Thead>
-        <Tbody translate={null}>
+        <Tbody>
           {sortedRows.map((row, rowIndex) => (
             <RowComponent
               row={row}

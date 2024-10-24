@@ -166,7 +166,6 @@ const BucketOverview: React.FC<{}> = () => {
         </Button>
         {!foldersPath && (
           <ActionsColumn
-            translate={null}
             items={getBucketActionsItems(
               t,
               launcher,

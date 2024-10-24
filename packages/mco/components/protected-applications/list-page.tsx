@@ -120,10 +120,9 @@ const ProtectedAppsTableRow: React.FC<
 
   return (
     <>
-      <Tr translate={null}>
+      <Tr>
         <Td
           data-test="expand-button"
-          translate={null}
           expand={{
             rowIndex,
             isExpanded: isExpanded,
@@ -134,14 +133,14 @@ const ProtectedAppsTableRow: React.FC<
             expandId: 'expandable-table',
           }}
         />
-        <Td translate={null} dataLabel={columnNames[1]}>
+        <Td dataLabel={columnNames[1]}>
           <ResourceLink
             resourceModel={DRPlacementControlModel}
             resourceName={appName}
             link={drpcDetailsPageRoute(application)}
           />
         </Td>
-        <Td translate={null} dataLabel={columnNames[2]}>
+        <Td dataLabel={columnNames[2]}>
           <SelectExpandable
             title={
               <div>
@@ -182,7 +181,7 @@ const ProtectedAppsTableRow: React.FC<
             />
           )}
         </Td>
-        <Td translate={null} dataLabel={columnNames[3]}>
+        <Td dataLabel={columnNames[3]}>
           <SelectExpandable
             title={
               <div>
@@ -199,7 +198,7 @@ const ProtectedAppsTableRow: React.FC<
             })}
           />
         </Td>
-        <Td translate={null} dataLabel={columnNames[4]}>
+        <Td dataLabel={columnNames[4]}>
           <Link
             to={`${DR_BASE_ROUTE}/policies?name=${drPolicyName}`}
             data-test={`link-${drPolicyName}`}
@@ -207,19 +206,18 @@ const ProtectedAppsTableRow: React.FC<
             {drPolicyName}
           </Link>
         </Td>
-        <Td translate={null} dataLabel={columnNames[5]}>
+        <Td dataLabel={columnNames[5]}>
           {getLastAppDeploymentClusterName(application) || DASH}
         </Td>
-        <Td translate={null} isActionCell>
+        <Td isActionCell>
           <ActionsColumn
             items={getRowActions(t, launcher, navigate, application)}
-            translate={null}
           />
         </Td>
       </Tr>
       {isExpanded && (
-        <Tr translate={null}>
-          <Td translate={null} colSpan={Object.keys(columnNames).length + 1}>
+        <Tr>
+          <Td colSpan={Object.keys(columnNames).length + 1}>
             <ExpandableComponent
               application={application}
               syncStatusInfo={syncStatusInfo}

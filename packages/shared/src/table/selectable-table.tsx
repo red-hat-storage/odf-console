@@ -107,15 +107,13 @@ export const SelectableTable: SelectableTableProps = <
     >
       <Table
         className={className}
-        translate={null}
         aria-label="Selectable table"
         variant="compact"
         borders={borders}
       >
-        <Thead translate={null}>
-          <Tr translate={null}>
+        <Thead>
+          <Tr>
             <Th
-              translate={null}
               {...(!isSelectableHidden
                 ? {
                     select: {
@@ -127,24 +125,24 @@ export const SelectableTable: SelectableTableProps = <
                     },
                   }
                 : {})}
+              aria-label="Select all"
             />
             {columns?.map((col, index) => (
               <Th
                 {...(!!col?.thProps ? col.thProps : {})}
                 {...(!!col?.sortFunction ? { sort: getSortParams(index) } : {})}
-                translate={null}
                 key={col?.columnName}
+                aria-label={col?.columnName}
               >
                 {col?.columnName}
               </Th>
             ))}
           </Tr>
         </Thead>
-        <Tbody translate={null}>
+        <Tbody>
           {sortedRows.map((row, rowIndex) => (
-            <Tr translate={null} key={getUID(row)}>
+            <Tr key={getUID(row)}>
               <Td
-                translate={null}
                 {...(!isSelectableHidden
                   ? {
                       select: {

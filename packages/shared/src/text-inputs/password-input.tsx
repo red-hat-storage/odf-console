@@ -20,7 +20,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
-    <InputGroup translate={undefined}>
+    <InputGroup>
       <TextInput
         id={id}
         type={showPassword ? 'text' : 'password'}

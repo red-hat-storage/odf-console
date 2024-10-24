@@ -132,7 +132,7 @@ export const FlashSystemConnectionDetails: React.FC<
           fieldId: 'password-input',
         }}
         render={({ onChange, onBlur }) => (
-          <InputGroup translate={undefined}>
+          <InputGroup>
             <InputGroupItem isFill>
               <TextInput
                 id="password-input"

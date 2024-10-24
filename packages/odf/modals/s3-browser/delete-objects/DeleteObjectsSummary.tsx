@@ -84,10 +84,9 @@ const ObjectsSummaryTableRow: React.FC<RowComponentType<_Error>> = ({
 
   return (
     <>
-      <Tr translate={null}>
+      <Tr>
         <Td
           data-test="expand-button"
-          translate={null}
           expand={{
             rowIndex,
             isExpanded: isExpanded,
@@ -95,23 +94,21 @@ const ObjectsSummaryTableRow: React.FC<RowComponentType<_Error>> = ({
             expandId: 'expandable-table',
           }}
         />
-        <Td translate={null} dataLabel={columnNames[1]}>
-          {name}
-        </Td>
-        <Td translate={null} dataLabel={columnNames[2]}>
+        <Td dataLabel={columnNames[1]}>{name}</Td>
+        <Td dataLabel={columnNames[2]}>
           {objectCrFormat.apiResponse?.size || DASH}
         </Td>
-        <Td translate={null} dataLabel={columnNames[3]}>
+        <Td dataLabel={columnNames[3]}>
           {objectCrFormat.apiResponse?.lastModified || DASH}
         </Td>
-        <Td translate={null} dataLabel={columnNames[4]}>
+        <Td dataLabel={columnNames[4]}>
           <RedExclamationCircleIcon className="pf-v5-u-mr-sm" />
           {t('Failed')}
         </Td>
       </Tr>
       {isExpanded && (
-        <Tr translate={null}>
-          <Td translate={null} colSpan={Object.keys(columnNames).length + 1}>
+        <Tr>
+          <Td colSpan={Object.keys(columnNames).length + 1}>
             <RedExclamationTriangleIcon className="pf-v5-u-mr-sm" />
             {object?.Message || DASH}
           </Td>

@@ -49,16 +49,17 @@ jest.mock('@openshift-console/dynamic-plugin-sdk/lib/api/common-types', () => ({
   SilenceStates: SilenceStates,
 }));
 
-// @TODO: delete this warning suppression once @patternfly/react-topology address this.
+// @TODO: delete this warning suppression once @patternfly/react-topology & @patternfly/react-table address this.
 const originalConsole = global.console;
 global.console = {
   ...global.console,
   warn: (...args) => {
     if (
       typeof args[0] === 'string' &&
-      args[0].includes(
+      (args[0].includes(
         '[mobx-react-lite] importing batchingForReactDom is no longer needed'
-      )
+      ) ||
+        args[0].includes('Th: Table headers must have an accessible name.'))
     ) {
       return true;
     }
