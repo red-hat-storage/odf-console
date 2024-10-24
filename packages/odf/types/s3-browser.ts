@@ -4,6 +4,7 @@ export type ObjectCrFormat = K8sResourceCommon & {
   apiResponse?: {
     size?: string;
     lastModified?: string;
+    ownerName?: string;
   };
   isFolder?: boolean;
   type?: string;

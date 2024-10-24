@@ -22,6 +22,7 @@ export * from './popup';
 export * from './queries';
 export * from './resource-link';
 export * from './selectors';
+export * from './sidebar';
 export * from './status';
 export * from './table';
 export * from './topology';

@@ -51,7 +51,8 @@ const getInlineActionsItems = (
   >,
   foldersPath: string,
   setDeleteResponse: SetObjectsDeleteResponse,
-  refreshTokens: () => Promise<void>
+  refreshTokens: () => Promise<void>,
+  closeObjectSidebar: () => void
 ): IAction[] => [
   {
     title: t('Download'),
@@ -85,6 +86,7 @@ const getInlineActionsItems = (
           noobaaS3,
           setDeleteResponse,
           refreshTokens,
+          closeObjectSidebar,
         },
       }),
   },
@@ -135,16 +137,32 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     noobaaS3,
     setDeleteResponse,
     refreshTokens,
+    onRowClick,
+    closeObjectSidebar,
   } = extraProps;
   const isFolder = object.isFolder;
   const name = replacePathFromName(object, foldersPath);
   const prefix = getEncodedPrefix(name, foldersPath);
 
   const columnNames = getColumnNames(t);
+  const actionItems = getInlineActionsItems(
+    t,
+    launcher,
+    bucketName,
+    object,
+    noobaaS3,
+    downloadAndPreview,
+    setDownloadAndPreview,
+    foldersPath,
+    setDeleteResponse,
+    refreshTokens,
+    closeObjectSidebar
+  );
+  const onClick = () => onRowClick(object, actionItems);
 
   return (
     <>
-      <Td translate={null} dataLabel={columnNames[0]}>
+      <Td translate={null} dataLabel={columnNames[0]} onClick={onClick}>
         {isFolder ? (
           <Link to={`${BUCKETS_BASE_ROUTE}/${bucketName}?${PREFIX}=${prefix}`}>
             <span>
@@ -159,32 +177,18 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
           </span>
         )}
       </Td>
-      <Td translate={null} dataLabel={columnNames[1]}>
+      <Td translate={null} dataLabel={columnNames[1]} onClick={onClick}>
         {object.apiResponse.size}
       </Td>
-      <Td translate={null} dataLabel={columnNames[2]}>
+      <Td translate={null} dataLabel={columnNames[2]} onClick={onClick}>
         {object.type}
       </Td>
-      <Td translate={null} dataLabel={columnNames[3]}>
+      <Td translate={null} dataLabel={columnNames[3]} onClick={onClick}>
         {object.apiResponse.lastModified}
       </Td>
       <Td translate={null} dataLabel={columnNames[4]} isActionCell>
         {isFolder ? null : (
-          <ActionsColumn
-            translate={null}
-            items={getInlineActionsItems(
-              t,
-              launcher,
-              bucketName,
-              object,
-              noobaaS3,
-              downloadAndPreview,
-              setDownloadAndPreview,
-              foldersPath,
-              setDeleteResponse,
-              refreshTokens
-            )}
-          />
+          <ActionsColumn translate={null} items={actionItems} />
         )}
       </Td>
     </>
