@@ -11,6 +11,8 @@ import {
   GetBucketTaggingCommand,
   GetBucketAclCommand,
   GetBucketPolicyCommand,
+  ListObjectVersionsCommand,
+  DeleteBucketCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -18,10 +20,12 @@ import {
   CreateBucket,
   ListBuckets,
   ListObjectsV2,
+  ListObjectVersions,
   PutBucketTags,
   GetSignedUrl,
   GetObject,
   DeleteObjects,
+  DeleteBucket,
   GetBucketEncryption,
   GetBucketVersioning,
   GetBucketTagging,
@@ -72,6 +76,9 @@ export class S3Commands extends S3Client {
   listObjects: ListObjectsV2 = (input) =>
     this.send(new ListObjectsV2Command(input));
 
+  listVersionedObjects: ListObjectVersions = (input) =>
+    this.send(new ListObjectVersionsCommand(input));
+
   getSignedUrl: GetSignedUrl = (input, expiresIn) =>
     getSignedUrl(this, new GetObjectCommand(input), { expiresIn });
 
@@ -79,6 +86,9 @@ export class S3Commands extends S3Client {
 
   deleteObjects: DeleteObjects = (input) =>
     this.send(new DeleteObjectsCommand(input));
+
+  deleteBucket: DeleteBucket = (input) =>
+    this.send(new DeleteBucketCommand(input));
 
   getUploader = (file: File, key: string, bucketName: string): Upload => {
     const uploader = new Upload({
