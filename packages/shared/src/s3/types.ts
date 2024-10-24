@@ -21,6 +21,10 @@ import {
   GetObjectCommandOutput,
   DeleteObjectsCommandInput,
   DeleteObjectsCommandOutput,
+  ListObjectVersionsCommandInput,
+  ListObjectVersionsCommandOutput,
+  DeleteBucketCommandInput,
+  DeleteBucketCommandOutput,
 } from '@aws-sdk/client-s3';
 
 // Bucket command types (alphabetical order)
@@ -78,6 +82,14 @@ export type ListObjectsV2 = (
   input: ListObjectsV2CommandInput
 ) => Promise<ListObjectsV2CommandOutput>;
 
+export type ListObjectVersions = (
+  input: ListObjectVersionsCommandInput
+) => Promise<ListObjectVersionsCommandOutput>;
+
+export type DeleteBucket = (
+  input: DeleteBucketCommandInput
+) => Promise<DeleteBucketCommandOutput>;
+//
 // Bucket Policy
 
 type BucketPolicyCondition = Record<string, string>;

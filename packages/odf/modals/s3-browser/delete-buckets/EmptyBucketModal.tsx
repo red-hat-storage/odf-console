@@ -1,55 +1,110 @@
 import * as React from 'react';
-import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
 import { CommonModalProps } from '@odf/shared/modals';
+import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Modal, Button, TextInput, ModalVariant } from '@patternfly/react-core';
+import { TFunction } from 'i18next';
+import { Trans } from 'react-i18next';
+import {
+  Modal,
+  Button,
+  Text,
+  TextInput,
+  ModalVariant,
+  ValidatedOptions,
+  TextInputTypes,
+  TextVariants,
+  TextContent,
+  FormGroup,
+} from '@patternfly/react-core';
 
 type EmptyBucketModalProps = {
   bucketName: string;
-  /* refreshTokens: () => Promise<void>; */
+  noobaaS3: S3Commands;
+  handleEmptyBucketResult?: (success: boolean, errorMessage?: string) => void;
+  refreshTokens?: () => void;
 };
+
+// todo move to utils
+export const getTextInputLabel = (t: TFunction, bucketName: string) => (
+  <Trans t={t as any} ns="plugin__odf-console">
+    <b>
+      To confirm deletion, type <i>{{ bucketName }}</i> in the text input field.
+    </b>
+  </Trans>
+);
 
 const EmptyBucketModal: React.FC<CommonModalProps<EmptyBucketModalProps>> = ({
   closeModal,
   isOpen,
-  extraProps: { bucketName },
+  extraProps: { bucketName, noobaaS3, refreshTokens, handleEmptyBucketResult },
 }) => {
   const { t } = useCustomTranslation();
   const [inputValue, setInputValue] = React.useState('');
   const [inProgress, setInProgress] = React.useState(false);
   const [error, setError] = React.useState(null);
 
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
-
-  // const stack =
-  //   React[
-  //     '__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED'
-  //   ].ReactDebugCurrentFrame.getCurrentStack();
-  // console.log('DIVYANSH', stack);
-
   const onEmpty = async (event) => {
     event.preventDefault();
     setInProgress(true);
 
     try {
-      const objects = await noobaaS3?.listObjects({ Bucket: bucketName });
-      const deleteObjectKeys = objects?.Contents.map((object) => ({
-        Key: object.Key,
-      }));
+      let isTruncated = true;
+      let keyMarker: string;
+      let versionIdMarker: string;
+      const deleteObjectKeys = [];
 
-      const response = await noobaaS3?.deleteObjects({
-        Bucket: bucketName,
-        Delete: { Objects: deleteObjectKeys },
+      while (isTruncated) {
+        const searchParams = {
+          Bucket: bucketName,
+          KeyMarker: keyMarker,
+          VersionIdMarker: versionIdMarker,
+        };
+
+        // eslint-disable-next-line no-await-in-loop
+        const objects = await noobaaS3.listVersionedObjects(searchParams);
+
+        if (objects?.Versions) {
+          deleteObjectKeys.push(
+            ...objects.Versions.map((object) => ({
+              Key: object.Key,
+              VersionId: object.VersionId,
+            }))
+          );
+        }
+
+        isTruncated = objects.IsTruncated;
+        keyMarker = objects.NextKeyMarker;
+        versionIdMarker = objects.NextVersionIdMarker;
+      }
+
+      const deletePromises = [];
+      for (let i = 0; i < deleteObjectKeys.length; i += 1000) {
+        const batch = deleteObjectKeys.slice(i, i + 1000);
+        deletePromises.push(
+          noobaaS3.deleteObjects({
+            Bucket: bucketName,
+            Delete: { Objects: batch },
+          })
+        );
+      }
+
+      const responses = await Promise.all(deletePromises);
+
+      responses.forEach((response) => {
+        if (response.Errors && response.Errors.length > 0) {
+          setError(response.Errors);
+        }
       });
-      console.log(response);
 
       setInProgress(false);
       closeModal();
-      // Refresh tokens or any other necessary state updates
-      /* refreshTokens(); */
+
+      refreshTokens?.();
+      handleEmptyBucketResult?.(true);
     } catch (err) {
       setInProgress(false);
-      setError(err);
+      handleEmptyBucketResult?.(false, err);
+      closeModal();
     }
   };
 
@@ -61,46 +116,66 @@ const EmptyBucketModal: React.FC<CommonModalProps<EmptyBucketModalProps>> = ({
       onClose={closeModal}
       variant={ModalVariant.medium}
       description={
-        <div className="text-muted">
-          <p>
+        <TextContent className="text-muted">
+          <Text component={TextVariants.p}>
             {t(
               'Emptying the bucket deletes all objects in the bucket and cannot be undone. Objects added to the bucket while the empty bucket action is in progress might be deleted.'
             )}
-          </p>
-          <p>
+          </Text>
+          <Text component={TextVariants.p}>
             {t(
               'To prevent new objects from being added to this bucket while the empty bucket action is in progress, you might need to update your bucket policy to stop objects from being added to the bucket.'
             )}
-          </p>
-        </div>
+          </Text>
+        </TextContent>
       }
       actions={[
-        <Button
-          key="confirm"
-          variant="danger"
-          onClick={onEmpty}
-          isDisabled={inputValue !== bucketName || inProgress}
-        >
-          {t('Empty bucket')}
-        </Button>,
-        <Button key="cancel" variant="link" onClick={closeModal}>
-          {t('Cancel')}
-        </Button>,
+        <div>
+          {inProgress && (
+            <Text className="text-muted pf-v5-u-mb-sm">
+              <em>
+                {t(
+                  'The bucket is being emptied. This may take a while to empty'
+                )}
+              </em>
+            </Text>
+          )}
+          <div className="">
+            <Button
+              key="confirm"
+              variant="danger"
+              isLoading={inProgress}
+              onClick={onEmpty}
+              isDisabled={inputValue !== bucketName || inProgress}
+            >
+              {t('Empty bucket')}
+            </Button>
+
+            <Button key="cancel" variant="link" onClick={closeModal}>
+              {t('Cancel')}
+            </Button>
+          </div>
+        </div>,
       ]}
     >
-      <p>
-        {t(
-          'To confirm this action, type {{bucketName}} in the text input field.',
-          { bucketName }
-        )}
-      </p>
-      <TextInput
-        value={inputValue}
-        type="text"
-        onChange={(_event, value) => setInputValue(value)}
-        aria-label={t('Bucket name input')}
-        placeholder={bucketName}
-      />
+      <FormGroup
+        label={getTextInputLabel(t, bucketName)}
+        className="pf-v5-u-mt-2xl pf-v5-u-mb-sm"
+        fieldId="empty-bucket"
+      >
+        <TextInput
+          value={inputValue}
+          type={TextInputTypes.text}
+          onChange={(_event, value) => setInputValue(value)}
+          aria-label={t('Bucket name input')}
+          validated={
+            inputValue === bucketName
+              ? ValidatedOptions.success
+              : ValidatedOptions.default
+          }
+          placeholder={bucketName}
+        />
+      </FormGroup>
       <div style={{ marginTop: '1rem' }} />
       {error && (
         <div className="error">

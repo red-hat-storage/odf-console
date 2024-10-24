@@ -3,16 +3,23 @@ import {
   BUCKET_BOOKMARKS_USER_SETTINGS_KEY,
   BUCKETS_BASE_ROUTE,
 } from '@odf/core/constants';
+import {
+  LazyDeleteBucketModal,
+  LazyEmptyBucketModal,
+} from '@odf/core/modals/s3-browser/delete-buckets/LazyDeleteBucket';
 import { BucketCrFormat } from '@odf/core/types';
 import { Timestamp } from '@odf/shared/details-page/timestamp';
 import { EmptyPage } from '@odf/shared/empty-state-page';
 import { useUserSettingsLocalStorage } from '@odf/shared/hooks/useUserSettingsLocalStorage';
+import { S3Commands } from '@odf/shared/s3';
 import {
   ComposableTable,
   RowComponentType,
 } from '@odf/shared/table/composable-table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { sortRows } from '@odf/shared/utils';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
+import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'react-i18next';
 import { Link } from 'react-router-dom-v5-compat';
 import { Bullseye, Label } from '@patternfly/react-core';
@@ -24,9 +31,14 @@ import {
   Td,
   Tr,
 } from '@patternfly/react-table';
+import { NoobaaS3Context } from '../noobaa-context';
 
-const getRowActions = (t: TFunction<string>): IAction[] => [
-  // ToDo: add empty/delete bucket action
+const getRowActions = (
+  t: TFunction<string>,
+  launcher: LaunchModal,
+  bucketName: string,
+  noobaaS3: S3Commands
+): IAction[] => [
   {
     title: (
       <>
@@ -36,11 +48,19 @@ const getRowActions = (t: TFunction<string>): IAction[] => [
         </p>
       </>
     ),
-    onClick: () => undefined,
+    onClick: () =>
+      launcher(LazyEmptyBucketModal, {
+        isOpen: true,
+        extraProps: { bucketName, noobaaS3 },
+      }),
   },
   {
     title: t('Delete bucket'),
-    onClick: () => undefined,
+    onClick: () =>
+      launcher(LazyDeleteBucketModal, {
+        isOpen: true,
+        extraProps: { bucketName, noobaaS3, launcher },
+      }),
   },
 ];
 
@@ -117,12 +137,15 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
   extraProps,
 }) => {
   const { t } = useCustomTranslation();
+  const launcher = useModal();
   const columnNames = getColumnNames(t);
   const {
     apiResponse: { owner },
     metadata: { name, creationTimestamp },
   } = bucket;
   const { favorites, setFavorites }: RowExtraPropsType = extraProps;
+
+  const { noobaaS3 } = React.useContext(NoobaaS3Context);
 
   const onSetFavorite = (key, active) => {
     setFavorites((oldFavorites) => [
@@ -157,7 +180,10 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
         <UserIcon /> <span data-test="owner">{owner}</span>
       </Td>
       <Td translate={null} dataLabel={columnNames[5]} isActionCell>
-        <ActionsColumn items={getRowActions(t)} translate={null} />
+        <ActionsColumn
+          items={getRowActions(t, launcher, name, noobaaS3)}
+          translate={null}
+        />
       </Td>
     </Tr>
   );
