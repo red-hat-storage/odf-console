@@ -54,7 +54,7 @@ import { ObjectCrFormat } from '../../../types';
 import {
   getPath,
   getPrefix as getSearchWithPrefix,
-  convertObjectsDataToCrFormat,
+  convertObjectDataToCrFormat,
   getNavigationURL,
 } from '../../../utils';
 import { NoobaaS3Context } from '../noobaa-context';
@@ -342,7 +342,15 @@ const DeletionAlerts: React.FC<DeletionAlertsProps> = ({
   );
 };
 
-export const ObjectsList: React.FC<{}> = () => {
+type ObjectsListProps = {
+  onRowClick: (selectedObject: ObjectCrFormat, actionItems: IAction[]) => void;
+  closeObjectSidebar: () => void;
+};
+
+export const ObjectsList: React.FC<ObjectsListProps> = ({
+  onRowClick,
+  closeObjectSidebar,
+}) => {
   const { t } = useCustomTranslation();
 
   const { bucketName } = useParams();
@@ -366,6 +374,7 @@ export const ObjectsList: React.FC<{}> = () => {
         Bucket: bucketName,
         MaxKeys: MAX_KEYS,
         Delimiter: DELIMITER,
+        FetchOwner: true,
         ...(!!searchWithPrefix && { Prefix: searchWithPrefix }),
         ...(!!arg && { ContinuationToken: arg }),
       })
@@ -400,10 +409,10 @@ export const ObjectsList: React.FC<{}> = () => {
       (!!data?.Contents?.length || !!data?.CommonPrefixes?.length)
     ) {
       data?.CommonPrefixes?.forEach((commonPrefix: CommonPrefix) => {
-        objects.push(convertObjectsDataToCrFormat(commonPrefix, true, t));
+        objects.push(convertObjectDataToCrFormat(commonPrefix, true, t));
       });
       data?.Contents?.forEach((content: Content) => {
-        objects.push(convertObjectsDataToCrFormat(content, false, t));
+        objects.push(convertObjectDataToCrFormat(content, false, t));
       });
     }
 
@@ -502,6 +511,8 @@ export const ObjectsList: React.FC<{}> = () => {
           noobaaS3,
           setDeleteResponse,
           refreshTokens,
+          onRowClick,
+          closeObjectSidebar,
         }}
         emptyRowMessage={EmptyPage}
       />
