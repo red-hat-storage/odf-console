@@ -1,204 +1,181 @@
 import * as React from 'react';
 import { getManagedClusterResourceObj } from '@odf/mco/hooks';
-import { ODFInfoYamlObject } from '@odf/mco/types';
+import { getName } from '@odf/shared/selectors';
+import { RowComponentType } from '@odf/shared/table';
 import {
-  getMajorVersion,
-  ValidateManagedClusterCondition,
-  getValueFromClusterClaim,
-  isMinimumSupportedODFVersion,
-  getManagedClusterViewName,
-  getNameNamespace,
-} from '@odf/mco/utils';
-import { StatusBox } from '@odf/shared/generic/status-box';
-import { getName, getNamespace } from '@odf/shared/selectors';
-import { ConfigMapKind } from '@odf/shared/types';
+  SelectableTable,
+  TABLE_VARIANT,
+} from '@odf/shared/table/selectable-table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { Select, SelectOption } from '@patternfly/react-core/deprecated';
-import { safeLoad } from 'js-yaml';
+import { getPageRange, referenceForModel } from '@odf/shared/utils';
 import {
-  DataList,
-  DataListItem,
-  DataListItemRow,
-  DataListCheck,
-  DataListItemCells,
-  DataListCell,
-  Toolbar,
-  ToolbarContent,
-  ToolbarItem,
-  SearchInput,
-  DataListCheckProps,
-  TextContent,
-  TextVariants,
+  GreenCheckCircleIcon,
+  ListPageFilter,
+  RedExclamationCircleIcon,
+  StatusIconAndText,
+  useK8sWatchResource,
+  useListPageFilter,
+} from '@openshift-console/dynamic-plugin-sdk';
+import cn from 'classnames';
+import {
+  Grid,
+  GridItem,
+  Pagination,
+  PaginationVariant,
   Text,
-  Tooltip,
 } from '@patternfly/react-core';
+import { Td } from '@patternfly/react-table';
 import {
-  MAX_ALLOWED_CLUSTERS,
-  MANAGED_CLUSTER_REGION_CLAIM,
-  MANAGED_CLUSTER_JOINED,
-  MANAGED_CLUSTER_CONDITION_AVAILABLE,
   MCO_CREATED_BY_LABEL_KEY,
   MCO_CREATED_BY_MC_CONTROLLER,
 } from '../../constants';
 import { ACMManagedClusterViewModel } from '../../models';
 import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
 import {
+  COLUMN_NAMES,
+  COUNT_PER_PAGE_NUMBER,
+  getColumnHelper,
+  getColumns,
+  getManagedClusterInfoTypes,
+  INITIAL_PAGE_NUMBER,
+  isRowSelectable,
+} from './utils/cluster-list-utils';
+import {
   DRPolicyAction,
   DRPolicyActionType,
   ManagedClusterInfoType,
-  ODFConfigInfoType,
-} from './reducer';
-import './select-cluster-list.scss';
+} from './utils/reducer';
 
-const getFilteredClusters = (
-  clusters: ManagedClusterInfoType[],
-  region: string,
-  name: string
-) => {
-  let filteredClusters = clusters;
-
-  if (region)
-    filteredClusters = filteredClusters.filter((c) => c.region === region);
-  if (name)
-    filteredClusters = filteredClusters.filter((c) => c.name.includes(name));
-  return filteredClusters;
+const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
+  row: cluster,
+}) => {
+  const { t } = useCustomTranslation();
+  const { odfInfo, region, isManagedClusterAvailable } = cluster;
+  const clientName = !!odfInfo?.storageClusterInfo?.clientInfo?.name;
+  const odfVersion = odfInfo?.odfVersion;
+  return (
+    <>
+      <Td
+        translate={null}
+        dataLabel={getColumnHelper(COLUMN_NAMES.ManagedCluster, t).columnName}
+      >
+        <Text>{getName(cluster)}</Text>
+      </Td>
+      <Td
+        translate={null}
+        dataLabel={
+          getColumnHelper(COLUMN_NAMES.AvailabilityStatus, t).columnName
+        }
+      >
+        {isManagedClusterAvailable ? (
+          <StatusIconAndText
+            icon={<GreenCheckCircleIcon />}
+            title={t('Online')}
+          />
+        ) : (
+          <StatusIconAndText
+            icon={<RedExclamationCircleIcon />}
+            title={t('Offline')}
+          />
+        )}
+      </Td>
+      <Td
+        translate={null}
+        dataLabel={getColumnHelper(COLUMN_NAMES.DataFoundation, t).columnName}
+      >
+        <Text className={cn({ 'text-muted': !odfVersion })}>
+          {odfVersion || t('Not Installed')}
+        </Text>
+      </Td>
+      <Td
+        translate={null}
+        dataLabel={getColumnHelper(COLUMN_NAMES.StorageClients, t).columnName}
+      >
+        <Text className={cn({ 'text-muted': !clientName })}>
+          {clientName ? clientName : t('Unavailable')}
+        </Text>
+      </Td>
+      <Td
+        translate={null}
+        dataLabel={getColumnHelper(COLUMN_NAMES.Region, t).columnName}
+      >
+        <Text className={cn({ 'text-muted': !region })}>
+          {region || t('Unavailable')}
+        </Text>
+      </Td>
+    </>
+  );
 };
 
-const getODFInfo = (
-  requiredODFVersion: string,
-  odfInfoConfigData: { [key: string]: string }
-): ODFConfigInfoType => {
-  try {
-    // Managed cluster with multiple StorageSystems is not currently supported for DR
-    // ToDo: Update this once we add support for multiple clusters
-    const odfInfoKey = Object.keys(odfInfoConfigData)[0];
-    const odfInfoYaml = odfInfoConfigData[odfInfoKey];
-    const odfInfo: ODFInfoYamlObject = safeLoad(odfInfoYaml);
+const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
+  selectedClusters,
+  clusters,
+  isLoaded,
+  error,
+  onChange,
+}) => {
+  const { t } = useCustomTranslation();
+  const [page, setPage] = React.useState(INITIAL_PAGE_NUMBER);
+  const [perPage, setPerPage] = React.useState(COUNT_PER_PAGE_NUMBER);
+  const [data, filteredData, onFilterChange] = useListPageFilter(clusters);
+  const paginatedData: ManagedClusterInfoType[] = React.useMemo(() => {
+    const [start, end] = getPageRange(page, perPage);
+    return filteredData.slice(start, end) || [];
+  }, [filteredData, page, perPage]);
 
-    const storageClusterName = odfInfo?.storageCluster?.namespacedName?.name;
-    const storageClusterNamespace =
-      odfInfo?.storageCluster?.namespacedName?.namespace;
-    const storageSystemName = odfInfo?.storageSystemName;
-
-    const odfVersion = odfInfo?.version;
-    const storageClusterCount = Object.keys(odfInfoConfigData).length;
-    const storageClusterNamespacedName = getNameNamespace(
-      storageClusterName,
-      storageClusterNamespace
-    );
-    const storageSystemNamespacedName = getNameNamespace(
-      storageSystemName,
-      storageClusterNamespace
-    );
-    const cephFSID = odfInfo?.storageCluster?.cephClusterFSID;
-
-    return {
-      odfVersion,
-      isValidODFVersion: isMinimumSupportedODFVersion(
-        getMajorVersion(odfVersion),
-        requiredODFVersion
-      ),
-      storageClusterCount,
-      storageClusterInfo: {
-        storageClusterNamespacedName,
-        storageSystemNamespacedName,
-        cephFSID,
-      },
-    };
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err);
-
-    return {
-      odfVersion: '',
-      isValidODFVersion: false,
-      storageClusterCount: 0,
-      storageClusterInfo: {
-        storageClusterNamespacedName: '',
-        storageSystemNamespacedName: '',
-        cephFSID: '',
-      },
-    };
-  }
+  return (
+    <>
+      <Grid>
+        <GridItem md={8} sm={12} className="pf-v5-u-mt-md">
+          <ListPageFilter
+            data={data}
+            loaded={isLoaded}
+            onFilterChange={onFilterChange}
+            hideColumnManagement={true}
+          />
+        </GridItem>
+        <GridItem md={4} sm={12}>
+          <Pagination
+            className="pf-v5-u-mt-md"
+            itemCount={filteredData.length || 0}
+            widgetId="paginated-list-page"
+            perPage={perPage}
+            page={page}
+            variant={PaginationVariant.bottom}
+            dropDirection="up"
+            isStatic
+            isCompact
+            onSetPage={(_event, newPage) => setPage(newPage)}
+            onPerPageSelect={(_event, newPerPage, newPage) => {
+              setPerPage(newPerPage);
+              setPage(newPage);
+            }}
+          />
+        </GridItem>
+      </Grid>
+      <SelectableTable<ManagedClusterInfoType>
+        columns={getColumns(t)}
+        rows={paginatedData}
+        RowComponent={ClusterRow}
+        selectedRows={selectedClusters}
+        setSelectedRows={onChange}
+        loaded={isLoaded}
+        loadError={error}
+        variant={TABLE_VARIANT.DEFAULT}
+        isColumnSelectableHidden
+        isRowSelectable={(cluster) =>
+          isRowSelectable(cluster, selectedClusters)
+        }
+      />
+    </>
+  );
 };
-
-const filterRegions = (filteredClusters: ManagedClusterInfoType[]) =>
-  filteredClusters?.reduce((acc, cluster) => {
-    if (!acc.includes(cluster?.region) && cluster?.region !== '') {
-      acc.push(cluster?.region);
-    }
-    return acc;
-  }, []);
-
-const getManagedClusterInfo = (
-  cluster: ACMManagedClusterKind,
-  requiredODFVersion: string,
-  odfInfoConfigData: { [key: string]: string }
-): ManagedClusterInfoType => ({
-  name: getName(cluster),
-  namesapce: getNamespace(cluster),
-  region: getValueFromClusterClaim(
-    cluster?.status?.clusterClaims,
-    MANAGED_CLUSTER_REGION_CLAIM
-  ),
-  isManagedClusterAvailable: ValidateManagedClusterCondition(
-    cluster,
-    MANAGED_CLUSTER_CONDITION_AVAILABLE
-  ),
-  odfInfo: getODFInfo(requiredODFVersion, odfInfoConfigData),
-});
-
-const getManagedClusterInfoTypes = (
-  managedClusters: ACMManagedClusterKind[],
-  mcvs: ACMManagedClusterViewKind[],
-  requiredODFVersion: string
-): ManagedClusterInfoType[] =>
-  managedClusters?.reduce((acc, cluster) => {
-    if (ValidateManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED)) {
-      // OCS creates a ConfigMap on the managed clusters, with details about StorageClusters, Clients.
-      // MCO creates ManagedClusterView on the hub cluster, referencing that ConfigMap.
-      const managedClusterName = getName(cluster);
-      const mcv =
-        mcvs.find(
-          (obj: ACMManagedClusterViewKind) =>
-            getName(obj) === getManagedClusterViewName(managedClusterName) &&
-            getNamespace(obj) === managedClusterName
-        ) || {};
-      const odfInfoConfigData =
-        (mcv.status?.result as ConfigMapKind)?.data || {};
-      return [
-        ...acc,
-        getManagedClusterInfo(cluster, requiredODFVersion, odfInfoConfigData),
-      ];
-    }
-
-    return acc;
-  }, []);
-
-const isChecked = (clusters: ManagedClusterInfoType[], clusterName: string) =>
-  clusters?.some((cluster) => cluster?.name === clusterName);
-
-const isDisabled = (
-  clusters: ManagedClusterInfoType[],
-  clusterName: string,
-  storageClusterCount: number
-) =>
-  (clusters.length === MAX_ALLOWED_CLUSTERS &&
-    !clusters.some((cluster) => cluster?.name === clusterName)) ||
-  storageClusterCount > 1;
 
 export const SelectClusterList: React.FC<SelectClusterListProps> = ({
   selectedClusters,
   requiredODFVersion,
   dispatch,
 }) => {
-  const { t } = useCustomTranslation();
-  const [isRegionOpen, setIsRegionOpen] = React.useState(false);
-  const [region, setRegion] = React.useState('');
-  const [nameSearch, setNameSearch] = React.useState('');
-
   const [managedClusters, loaded, loadError] = useK8sWatchResource<
     ACMManagedClusterKind[]
   >(getManagedClusterResourceObj());
@@ -228,148 +205,27 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     return [];
   }, [requiredODFVersion, managedClusters, mcvs, allLoaded, anyError]);
 
-  const filteredClusters: ManagedClusterInfoType[] = React.useMemo(
-    () => getFilteredClusters(clusters, region, nameSearch),
-    [clusters, region, nameSearch]
-  );
-
-  const onChange: DataListCheckProps['onChange'] = (event, checked) => {
-    const selectedClusterInfo = filteredClusters.find(
-      (filteredCluster) => filteredCluster.name === event.currentTarget.id
-    );
-    const selectedClusterList = checked
-      ? [...selectedClusters, selectedClusterInfo]
-      : selectedClusters.filter(
-          (cluster) => cluster?.name !== selectedClusterInfo.name
-        );
+  const onChange = (selectedClusterList: ManagedClusterInfoType[]) => {
     dispatch({
       type: DRPolicyActionType.SET_SELECTED_CLUSTERS,
       payload: selectedClusterList,
     });
-  };
-
-  // **Note: PatternFly change the fn signature
-  // From: (value: string, event: React.FormEvent<HTMLInputElement>) => void
-  // To: (_event: React.FormEvent<HTMLInputElement>, value: string) => void
-  // both cases need to be handled for backwards compatibility
-  const onSearch = (input: any) => {
-    const searchValue =
-      typeof input === 'string'
-        ? input
-        : (input.target as HTMLInputElement)?.value;
-    setNameSearch(searchValue);
-  };
-
-  const onSelect = (selection: string, isPlaceholder: boolean) => {
-    setRegion(isPlaceholder ? '' : selection);
-    setIsRegionOpen(false);
+    if (selectedClusterList.length < 2) {
+      dispatch({
+        type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION,
+        payload: false,
+      });
+    }
   };
 
   return (
-    <div className="mco-select-cluster-list">
-      <Toolbar isSticky>
-        <ToolbarContent>
-          <ToolbarItem className="mco-select-cluster-list__filter-toolbar-item">
-            <Select
-              toggleId="region-select"
-              isOpen={isRegionOpen}
-              onToggle={(_event, open) => {
-                setIsRegionOpen(open);
-              }}
-              onSelect={(_event, value, placeholder) =>
-                onSelect(value as string, placeholder)
-              }
-              selections={region}
-            >
-              <SelectOption
-                value={t('Region')}
-                isPlaceholder
-                data-test="region-default-select-option"
-              />
-              <>
-                {filterRegions(filteredClusters).map((clusterRegion) => (
-                  <SelectOption
-                    value={clusterRegion}
-                    key={clusterRegion}
-                    data-test="region-select-option"
-                  />
-                ))}
-              </>
-            </Select>
-          </ToolbarItem>
-          <ToolbarItem className="mco-select-cluster-list__search-toolbar-item">
-            <SearchInput
-              data-test="cluster search"
-              aria-label={t('Cluster search')}
-              placeholder={t('Cluster name')}
-              onChange={onSearch}
-              value={nameSearch}
-              onClear={() => setNameSearch('')}
-            />
-          </ToolbarItem>
-        </ToolbarContent>
-      </Toolbar>
-      <StatusBox
-        data={!!nameSearch ? filteredClusters : managedClusters}
-        loadError={anyError}
-        loaded={allLoaded && !!clusters.length}
-      >
-        <DataList
-          aria-label={t('Select cluster list')}
-          isCompact
-          className="mco-select-cluster-list__data-list"
-        >
-          {filteredClusters.map((filteredCluster) => (
-            <DataListItem key={filteredCluster?.name}>
-              <DataListItemRow>
-                <Tooltip
-                  content={t(
-                    'You cannot select this cluster as it has multiple storage instances.'
-                  )}
-                  trigger={
-                    filteredCluster?.odfInfo?.storageClusterCount > 1
-                      ? 'mouseenter'
-                      : 'manual'
-                  }
-                >
-                  <>
-                    <DataListCheck
-                      data-test="managed-cluster-checkbox"
-                      aria-labelledby={t('Checkbox to select cluster')}
-                      id={filteredCluster?.name}
-                      onChange={onChange}
-                      isChecked={isChecked(
-                        selectedClusters,
-                        filteredCluster?.name
-                      )}
-                      isDisabled={isDisabled(
-                        selectedClusters,
-                        filteredCluster?.name,
-                        filteredCluster?.odfInfo?.storageClusterCount
-                      )}
-                    />
-                    <DataListItemCells
-                      dataListCells={[
-                        <DataListCell key={filteredCluster.name}>
-                          <TextContent>
-                            <Text component={TextVariants.p}>
-                              {filteredCluster.name}
-                            </Text>
-                            <Text component={TextVariants.small}>
-                              {filteredCluster.region}
-                            </Text>
-                          </TextContent>
-                        </DataListCell>,
-                      ]}
-                    />
-                  </>
-                </Tooltip>
-              </DataListItemRow>
-            </DataListItem>
-          ))}
-        </DataList>
-      </StatusBox>
-    </div>
+    <PaginatedClusterTable
+      selectedClusters={selectedClusters}
+      clusters={clusters}
+      isLoaded={allLoaded}
+      error={loadError}
+      onChange={onChange}
+    />
   );
 };
 
@@ -377,4 +233,12 @@ type SelectClusterListProps = {
   selectedClusters: ManagedClusterInfoType[];
   requiredODFVersion: string;
   dispatch: React.Dispatch<DRPolicyAction>;
+};
+
+type PaginatedClusterTableProps = {
+  selectedClusters: ManagedClusterInfoType[];
+  clusters: ManagedClusterInfoType[];
+  isLoaded: boolean;
+  error: any;
+  onChange: (selectedClusterList: ManagedClusterInfoType[]) => void;
 };
