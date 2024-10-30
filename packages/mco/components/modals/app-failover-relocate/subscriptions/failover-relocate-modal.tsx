@@ -109,7 +109,7 @@ export const SubscriptionFailoverRelocateModal: React.FC<FailoverRelocateModalPr
       });
 
     const canInitiate = () =>
-      !findErrorMessage(state.errorMessage) &&
+      !findErrorMessage(state.errorMessage, false) &&
       !!state.selectedSubsGroups.length;
 
     const onClick = () => {

@@ -89,6 +89,7 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
     setSelected({
       policyName: getName(drPolicy),
       drClusters: drPolicy?.spec?.drClusters,
+      schedulingInterval: drPolicy?.spec?.schedulingInterval,
     });
     setOpen(false);
   };
