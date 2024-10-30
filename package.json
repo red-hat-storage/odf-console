@@ -56,7 +56,7 @@
     "memsource-upload": "./scripts/i18n/memsource-upload.sh",
     "memsource-download": "./scripts/i18n/memsource-download.sh",
     "ocp-console": "./scripts/start-ocp-console.sh",
-    "dev:c": "yarn ocp-console & PLUGIN=${PLUGIN} I8N_NS=${I8N_NS} yarn server:plugin & wait"
+    "dev:c": "yarn ocp-console & PLUGIN=${PLUGIN:=odf} I8N_NS=${I8N_NS} yarn server:plugin & wait"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.667.0",

@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
+# Prefer to use podman
+# To run: CONSOLE_VERSION=4.18 PLUGIN=odf I8N_NS=plugin__odf-console yarn dev:c
+
 set -euo pipefail
 
-CONSOLE_VERSION=${CONSOLE_VERSION:=4.14}
+CONSOLE_VERSION=${CONSOLE_VERSION:=4.18}
 CONSOLE_PORT=${CONSOLE_PORT:=9000}
 CONSOLE_IMAGE="quay.io/openshift/origin-console:${CONSOLE_VERSION}"
 
@@ -14,7 +17,6 @@ BRIDGE_K8S_MODE=${BRIDGE_K8S_MODE:="off-cluster"}
 BRIDGE_K8S_AUTH=${BRIDGE_K8S_AUTH:="bearer-token"}
 BRIDGE_K8S_MODE_OFF_CLUSTER_SKIP_VERIFY_TLS=${BRIDGE_K8S_MODE_OFF_CLUSTER_SKIP_VERIFY_TLS:=true}
 BRIDGE_K8S_MODE_OFF_CLUSTER_ENDPOINT=$(oc whoami --show-server)
-BRIDGE_PLUGINS=${BRIDGE_PLUGINS:=odf-console="http://localhost:9001"}
 BRIDGE_PLUGIN_PROXY=${BRIDGE_PLUGIN_PROXY:=""}
 
 # The monitoring operator is not always installed (e.g. for local OpenShift). Tolerate missing config maps.
@@ -40,17 +42,32 @@ echo "$BRIDGE_PLUGIN_PROXY"
 
 # Prefer podman if installed. Otherwise, fall back to docker.
 if [ -x "$(command -v podman)" ]; then
-    podman run \
-      --pull always -p "$CONSOLE_PORT":9000 \
-      --rm --network=host \
-      --env BRIDGE_PLUGIN_PROXY="$BRIDGE_PLUGIN_PROXY" \
-      --env-file <(set | grep BRIDGE) \
-      $CONSOLE_IMAGE
+    if [ "$(uname -s)" = "Linux" ]; then
+        # Use host networking on Linux since host.containers.internal is unreachable in some environments.
+        BRIDGE_PLUGINS=${BRIDGE_PLUGINS:=odf-console="http://localhost:9001"}
+        podman run \
+          --pull always --rm -p "$CONSOLE_PORT":9000 \
+          --network=host \
+          --env BRIDGE_PLUGIN_PROXY="$BRIDGE_PLUGIN_PROXY" \
+          --env-file <(set | grep BRIDGE) \
+          $CONSOLE_IMAGE
+    else
+        BRIDGE_PLUGINS=${BRIDGE_PLUGINS:=odf-console="http://host.containers.internal:9001"}
+        podman run \
+          --pull always --rm -p "$CONSOLE_PORT":9000 \
+          --env BRIDGE_PLUGIN_PROXY="$BRIDGE_PLUGIN_PROXY" \
+          --env-file <(set | grep BRIDGE) \
+          --arch amd64 \
+          --log-level=debug \
+          $CONSOLE_IMAGE
+    fi
 else
+    BRIDGE_PLUGINS=${BRIDGE_PLUGINS:=odf-console="http://host.docker.internal:9001"}
     docker run \
-      --pull always -p "$CONSOLE_PORT":9000 \
-      --rm --network=host \
+      --pull always --rm -p "$CONSOLE_PORT":9000 \
+      --add-host=host.docker.internal:host-gateway \
       --env BRIDGE_PLUGIN_PROXY="$BRIDGE_PLUGIN_PROXY" \
       --env-file <(set | grep BRIDGE) \
+      --platform linux/amd64 \
       $CONSOLE_IMAGE
 fi
