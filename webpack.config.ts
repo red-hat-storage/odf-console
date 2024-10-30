@@ -42,6 +42,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
     ignored: ['node_modules', 'dist'],
   },
   devServer: {
+    allowedHosts: 'all',
     port: 9001,
     devMiddleware: {
       writeToDisk: true,
