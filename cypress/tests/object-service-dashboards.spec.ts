@@ -11,9 +11,8 @@ describe('Tests Buckets, Status, Object Storage Efficiency, and Resource Provide
   beforeEach(() => {
     ODFCommon.visitStorageDashboard();
     cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
-    cy.byLegacyTestID('item-filter') // eslint-disable-line cypress/no-unnecessary-waiting
-      .type('ocs-storagecluster-storagesystem')
-      .wait(5000);
+    cy.byLegacyTestID('item-filter').type('ocs-storagecluster-storagesystem');
+    cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
     cy.byTestRows('resource-row').get('td a').first().click();
     cy.byTestID('horizontal-link-Object').click();
   });

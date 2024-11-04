@@ -1,9 +1,9 @@
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { ObjectMetadata } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import {
   K8sKind,
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { ObjectMetadata } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { K8sResourceCondition } from './common';
 
 // The config is a JSON object with the NetworkAttachmentDefinitionConfig type stored as a string

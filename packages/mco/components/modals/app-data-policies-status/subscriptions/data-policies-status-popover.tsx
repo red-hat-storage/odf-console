@@ -201,43 +201,41 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
     const linkText = pluralize(count, t('policy'), t('policies'), true);
 
     return (
-      <>
-        <Popover
-          aria-label={t('Data policies popover')}
-          position="bottom"
-          headerContent={
-            <h4
-              className="mco-data-policies-subs-status-popover__header"
-              data-test="popover-header"
-            >
-              {headerText}
-            </h4>
-          }
-          bodyContent={
-            <Flex
-              direction={{ default: 'column' }}
-              spaceItems={{ default: 'spaceItemsSm' }}
-            >
-              <DRStatusCard drPolicies={dataPoliciesStatus?.drPolicies} />
-            </Flex>
-          }
-          footerContent={(hide) => (
-            <Flex>
-              <FlexItem align={{ default: 'alignRight' }}>
-                <Button
-                  data-test="status-modal-link"
-                  variant={ButtonVariant.link}
-                  onClick={() => onClick(hide)}
-                >
-                  {t('View more details')}
-                </Button>
-              </FlexItem>
-            </Flex>
-          )}
-        >
-          {!!count && <a data-test="subs-popover-link">{linkText}</a>}
-        </Popover>
-      </>
+      <Popover
+        aria-label={t('Data policies popover')}
+        position="bottom"
+        headerContent={
+          <h4
+            className="mco-data-policies-subs-status-popover__header"
+            data-test="popover-header"
+          >
+            {headerText}
+          </h4>
+        }
+        bodyContent={
+          <Flex
+            direction={{ default: 'column' }}
+            spaceItems={{ default: 'spaceItemsSm' }}
+          >
+            <DRStatusCard drPolicies={dataPoliciesStatus?.drPolicies} />
+          </Flex>
+        }
+        footerContent={(hide) => (
+          <Flex>
+            <FlexItem align={{ default: 'alignRight' }}>
+              <Button
+                data-test="status-modal-link"
+                variant={ButtonVariant.link}
+                onClick={() => onClick(hide)}
+              >
+                {t('View more details')}
+              </Button>
+            </FlexItem>
+          </Flex>
+        )}
+      >
+        {!!count && <a data-test="subs-popover-link">{linkText}</a>}
+      </Popover>
     );
   };
 

@@ -31,12 +31,12 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getResiliencyProgress, referenceForModel } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import {
   ActivityBody,
   OngoingActivityBody,
   RecentEventsBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';

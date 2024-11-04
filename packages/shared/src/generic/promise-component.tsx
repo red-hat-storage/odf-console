@@ -57,6 +57,7 @@ export class PromiseComponent<
     } as S;
   }
 
+  // eslint-disable-next-line react/no-unused-class-component-methods
   handlePromise<T>(promise: Promise<T>): Promise<T> {
     this.setState({
       inProgress: true,

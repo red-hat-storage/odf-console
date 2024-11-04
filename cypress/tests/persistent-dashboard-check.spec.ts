@@ -34,14 +34,12 @@ describe('Check Persistent Dashboard', () => {
   });
 
   it('Check Details card is correct', () => {
-    cy.byTestID('ocs-link')
-      .contains('Data Foundation')
-      .scrollIntoView()
-      .should('be.visible');
+    cy.byTestID('ocs-link').contains('Data Foundation').scrollIntoView();
+    cy.byTestID('ocs-link').should('be.visible');
     cy.byTestID('detail-item-value')
       .contains('ocs-storagecluster')
-      .scrollIntoView()
-      .should('be.visible');
+      .scrollIntoView();
+    cy.byTestID('detail-item-value').should('be.visible');
     cy.log('Check redirect link goes to operator details page');
     cy.byTestID('ocs-link').click();
     cy.url().should(

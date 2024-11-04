@@ -187,54 +187,52 @@ const AlertsPanel: React.FC<AlertsProps> = ({
         {t('Alerts')} ({filteredAlerts.length})
         {!!titleToolTip && <FieldLevelHelp>{titleToolTip}</FieldLevelHelp>}
       </Title>
-      <>
-        <Divider className="odf-alerts-panel__divider" />
-        <AlertBadge
+      <Divider className="odf-alerts-panel__divider" />
+      <AlertBadge
+        alerts={criticalAlerts}
+        alertSeverity={AlertSeverity.Critical}
+        onToggle={onToggle}
+      />
+      <AlertBadge
+        alerts={warningAlerts}
+        alertSeverity={AlertSeverity.Warning}
+        onToggle={onToggle}
+      />
+      <AlertBadge
+        alerts={infoAlerts}
+        alertSeverity={AlertSeverity.Info}
+        onToggle={onToggle}
+      />
+      <Divider className="odf-alerts-panel__divider" />
+      <Accordion asDefinitionList={false}>
+        <AlertAccordionItem
           alerts={criticalAlerts}
           alertSeverity={AlertSeverity.Critical}
           onToggle={onToggle}
+          expanded={expanded}
+          loaded={loaded}
+          loadError={loadError}
+          AlertItemComponent={AlertItemComponent}
         />
-        <AlertBadge
+        <AlertAccordionItem
           alerts={warningAlerts}
           alertSeverity={AlertSeverity.Warning}
           onToggle={onToggle}
+          expanded={expanded}
+          loaded={loaded}
+          loadError={loadError}
+          AlertItemComponent={AlertItemComponent}
         />
-        <AlertBadge
+        <AlertAccordionItem
           alerts={infoAlerts}
           alertSeverity={AlertSeverity.Info}
           onToggle={onToggle}
+          expanded={expanded}
+          loaded={loaded}
+          loadError={loadError}
+          AlertItemComponent={AlertItemComponent}
         />
-        <Divider className="odf-alerts-panel__divider" />
-        <Accordion asDefinitionList={false}>
-          <AlertAccordionItem
-            alerts={criticalAlerts}
-            alertSeverity={AlertSeverity.Critical}
-            onToggle={onToggle}
-            expanded={expanded}
-            loaded={loaded}
-            loadError={loadError}
-            AlertItemComponent={AlertItemComponent}
-          />
-          <AlertAccordionItem
-            alerts={warningAlerts}
-            alertSeverity={AlertSeverity.Warning}
-            onToggle={onToggle}
-            expanded={expanded}
-            loaded={loaded}
-            loadError={loadError}
-            AlertItemComponent={AlertItemComponent}
-          />
-          <AlertAccordionItem
-            alerts={infoAlerts}
-            alertSeverity={AlertSeverity.Info}
-            onToggle={onToggle}
-            expanded={expanded}
-            loaded={loaded}
-            loadError={loadError}
-            AlertItemComponent={AlertItemComponent}
-          />
-        </Accordion>
-      </>
+      </Accordion>
     </div>
   );
 };

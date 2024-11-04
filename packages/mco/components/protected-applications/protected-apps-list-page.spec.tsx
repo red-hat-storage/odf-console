@@ -118,7 +118,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
       return [drpcs, true, ''];
     return [[], true, ''];
   }),
-  useModal: jest.fn(() => <></>),
+  useModal: jest.fn(() => null),
   AlertSeverity: { Critical: 'critical' },
 }));
 

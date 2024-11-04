@@ -190,24 +190,22 @@ export const ObjectBucketListPage: React.FC<ObjectBucketsPageProps> = (
   );
 
   return (
-    <>
-      <ListPageBody>
-        <ListPageFilter
-          data={data}
-          loaded={loaded}
-          onFilterChange={onFilterChange}
-          hideColumnManagement={true}
-          rowFilters={rowFilters}
-        />
-        <ObjectBucketsList
-          data={filteredData}
-          unfilteredData={obc}
-          loaded={loaded}
-          loadError={loadError}
-          rowData={{ namespace }}
-        />
-      </ListPageBody>
-    </>
+    <ListPageBody>
+      <ListPageFilter
+        data={data}
+        loaded={loaded}
+        onFilterChange={onFilterChange}
+        hideColumnManagement={true}
+        rowFilters={rowFilters}
+      />
+      <ObjectBucketsList
+        data={filteredData}
+        unfilteredData={obc}
+        loaded={loaded}
+        loadError={loadError}
+        rowData={{ namespace }}
+      />
+    </ListPageBody>
   );
 };
 
@@ -225,47 +223,45 @@ export const OBDetails: React.FC<OBDetailsProps> = ({ obj, ownerLabel }) => {
   ];
 
   return (
-    <>
-      <div className="odf-m-pane__body">
-        <SectionHeading text={t('Object Bucket Details')} />
-        <div className="row">
-          <div className="col-sm-6">
-            <ResourceSummary
-              resource={obj}
-              resourceModel={NooBaaObjectBucketModel}
-              ownerLabel={ownerLabel}
-            />
-          </div>
-          <div className="col-sm-6">
-            <dl>
-              <dt>{t('Status')}</dt>
-              <dd>
-                <OBStatus ob={obj} />
-              </dd>
-              <dt>{t('StorageClass')}</dt>
-              <dd>
-                {storageClassName ? (
-                  <ResourceLinkWithKind
-                    kind="StorageClass"
-                    name={storageClassName}
-                  />
-                ) : (
-                  '-'
-                )}
-              </dd>
-              <dt>{t('Object Bucket Claim')}</dt>
-              <dd>
+    <div className="odf-m-pane__body">
+      <SectionHeading text={t('Object Bucket Details')} />
+      <div className="row">
+        <div className="col-sm-6">
+          <ResourceSummary
+            resource={obj}
+            resourceModel={NooBaaObjectBucketModel}
+            ownerLabel={ownerLabel}
+          />
+        </div>
+        <div className="col-sm-6">
+          <dl>
+            <dt>{t('Status')}</dt>
+            <dd>
+              <OBStatus ob={obj} />
+            </dd>
+            <dt>{t('StorageClass')}</dt>
+            <dd>
+              {storageClassName ? (
                 <ResourceLinkWithKind
-                  kind={referenceForModel(NooBaaObjectBucketClaimModel)}
-                  name={OBCName}
-                  namespace={OBCNamespace}
+                  kind="StorageClass"
+                  name={storageClassName}
                 />
-              </dd>
-            </dl>
-          </div>
+              ) : (
+                '-'
+              )}
+            </dd>
+            <dt>{t('Object Bucket Claim')}</dt>
+            <dd>
+              <ResourceLinkWithKind
+                kind={referenceForModel(NooBaaObjectBucketClaimModel)}
+                name={OBCName}
+                namespace={OBCNamespace}
+              />
+            </dd>
+          </dl>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -267,62 +267,60 @@ export const RuleForm: React.FC<RuleFormProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   return (
-    <>
-      <Stack className="odf-mcg__stack-item">
-        <StackItem>
-          <Split hasGutter>
-            <SplitItem isFilled>
-              <FormGroup
-                fieldId="namespace-store-dropdown-field"
-                label={t('NamespaceStore')}
-                className="odf-mcg__namespacestore-dropdown"
-                isRequired
-              >
-                <NamespaceStoreDropdown
-                  onChange={onNSChange}
-                  id="ns-dropdown"
-                  selectedKey={rule.namespaceStore}
-                  creatorDisabled={true}
-                  namespace={namespace}
-                />
-              </FormGroup>
-            </SplitItem>
-            <SplitItem isFilled>
-              <FormGroup fieldId="prefix-input-field" label={t('Prefix')}>
-                <TextInput
-                  data-test="prefix-input"
-                  placeholder={t('Enter a prefix')}
-                  type="text"
-                  id="prefix-input"
-                  value={rule.prefix}
-                  onChange={(_event, value) => onPrefixChange(value)}
-                  aria-label={t('Prefix')}
-                />
-              </FormGroup>
-            </SplitItem>
-          </Split>
-        </StackItem>
-        <StackItem>
-          <FormGroup fieldId="sync-deletions-checkbox">
-            <Checkbox
-              data-test="sync-deletion"
-              id="sync-deletions-checkbox"
-              isChecked={rule.syncDeletion}
-              isDisabled={isSyncDeletionDisabled}
-              onChange={(_event, value) => onSyncDeletions(value)}
-              description={
-                index === 0
-                  ? t(
-                      'Sync deletion syncs the delete operation. If you delete data from bucket 1, the same data gets deleted from bucket 2'
-                    )
-                  : ''
-              }
-              aria-label={t('sync deletion')}
-              label={t('Sync deletion')}
-            />
-          </FormGroup>
-        </StackItem>
-      </Stack>
-    </>
+    <Stack className="odf-mcg__stack-item">
+      <StackItem>
+        <Split hasGutter>
+          <SplitItem isFilled>
+            <FormGroup
+              fieldId="namespace-store-dropdown-field"
+              label={t('NamespaceStore')}
+              className="odf-mcg__namespacestore-dropdown"
+              isRequired
+            >
+              <NamespaceStoreDropdown
+                onChange={onNSChange}
+                id="ns-dropdown"
+                selectedKey={rule.namespaceStore}
+                creatorDisabled={true}
+                namespace={namespace}
+              />
+            </FormGroup>
+          </SplitItem>
+          <SplitItem isFilled>
+            <FormGroup fieldId="prefix-input-field" label={t('Prefix')}>
+              <TextInput
+                data-test="prefix-input"
+                placeholder={t('Enter a prefix')}
+                type="text"
+                id="prefix-input"
+                value={rule.prefix}
+                onChange={(_event, value) => onPrefixChange(value)}
+                aria-label={t('Prefix')}
+              />
+            </FormGroup>
+          </SplitItem>
+        </Split>
+      </StackItem>
+      <StackItem>
+        <FormGroup fieldId="sync-deletions-checkbox">
+          <Checkbox
+            data-test="sync-deletion"
+            id="sync-deletions-checkbox"
+            isChecked={rule.syncDeletion}
+            isDisabled={isSyncDeletionDisabled}
+            onChange={(_event, value) => onSyncDeletions(value)}
+            description={
+              index === 0
+                ? t(
+                    'Sync deletion syncs the delete operation. If you delete data from bucket 1, the same data gets deleted from bucket 2'
+                  )
+                : ''
+            }
+            aria-label={t('sync deletion')}
+            label={t('Sync deletion')}
+          />
+        </FormGroup>
+      </StackItem>
+    </Stack>
   );
 };

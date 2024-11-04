@@ -12,7 +12,7 @@ const sameLoader = (a: PromiseComponent, b: PromiseComponent) =>
   a?.name === b?.name && (a || 'a').toString() === (b || 'b').toString();
 
 // Todo: Improve this by having a proper basic loading component
-const EmptyComponent: React.FC = () => <></>;
+const EmptyComponent: React.FC = () => null;
 
 const loadComponentAt = (loader: PromiseComponent, setComponent, count = 0) =>
   loader()

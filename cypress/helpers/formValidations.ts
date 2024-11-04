@@ -12,7 +12,8 @@ const checkTextFieldInputValidation = (
   value: string = validName,
   className: string = 'rich-input__group--success'
 ) => {
-  cy.byTestID(textFieldDataId).type(value).blur();
+  cy.byTestID(textFieldDataId).type(value);
+  cy.byTestID(textFieldDataId).blur();
   cy.byTestID('field-requirements-input-group').should('have.class', className);
 };
 
@@ -43,7 +44,8 @@ const checkSubmitIsDisabled = (
   nameFieldTestId: string,
   value: string = invalidName
 ) => {
-  cy.byTestID(nameFieldTestId).type(value).blur();
+  cy.byTestID(nameFieldTestId).type(value);
+  cy.byTestID(nameFieldTestId).blur();
   cy.contains('button', buttonText).should('have.attr', 'disabled');
 };
 
@@ -52,7 +54,8 @@ const checkSubmitIsNotDisabled = (
   nameFieldTestId: string,
   value: string = validName
 ) => {
-  cy.byTestID(nameFieldTestId).type(value).blur();
+  cy.byTestID(nameFieldTestId).type(value);
+  cy.byTestID(nameFieldTestId).blur();
   cy.contains('button', buttonText).should('not.have.attr', 'disabled');
 };
 
@@ -61,7 +64,8 @@ const submitForm = (
   nameFieldTestId: string,
   value: string = invalidName
 ) => {
-  cy.byTestID(nameFieldTestId).type(value).blur();
+  cy.byTestID(nameFieldTestId).type(value);
+  cy.byTestID(nameFieldTestId).blur();
   cy.contains('button', buttonText).click();
 };
 

@@ -14,7 +14,7 @@ jest.mock('@odf/core/hooks', () => ({
 // Mock needed due to sdk @console/internal declarations.
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
-  ListPageFilter: jest.fn(() => <></>),
+  ListPageFilter: jest.fn(() => null),
   useListPageFilter: jest.fn(),
 }));
 const onRowSelected = jest.fn();

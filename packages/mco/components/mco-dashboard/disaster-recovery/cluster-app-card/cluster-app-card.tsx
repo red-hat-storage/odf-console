@@ -225,7 +225,7 @@ const AppWiseCard: React.FC<AppWiseCardProps> = (props) => {
     case APPLICATION_TYPE.DISCOVERED:
       return <DiscoveredAppCard {...props} />;
     default:
-      return <></>;
+      return null;
   }
 };
 

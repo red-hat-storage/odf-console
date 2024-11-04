@@ -94,7 +94,7 @@ const NoBucketMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <EmptyPage
-      ButtonComponent={() => <></>}
+      ButtonComponent={() => null}
       title={t('Create and manage your buckets')}
       isLoaded
       canAccess

@@ -125,46 +125,44 @@ const BucketDetailsOverview: React.FC<{}> = ({}) => {
   ));
 
   return (
-    <>
-      <div className="odf-m-pane__body">
-        <SectionHeading text={t('Bucket overview')} />
-        <div className="row">
-          <div className="col-sm-6">
-            <dl>
-              <dt>{t('Name')}</dt>
-              <dd>{bucketName}</dd>
-              <dt>{t('Tags')}</dt>
-              <dd>
-                <LabelGroup>{tags || DASH}</LabelGroup>
-              </dd>
-              <dt>{t('Owner')}</dt>
-              <dd>{aclData?.Owner?.DisplayName || DASH}</dd>
-            </dl>
-          </div>
-          <div className="col-sm-6">
-            <dl>
-              <dt>{t('Encryption')}</dt>
-              <dd>
-                <LockIcon /> {t('Enabled')}
-                <div className="pf-v5-u-disabled-color-100">
-                  {encryptionDescription}
-                </div>
-              </dd>
-              <dt>{t('Bucket versioning')}</dt>
-              <dd>
-                {versioningData?.Status === BucketVersioningStatus.Enabled ? (
-                  <>
-                    <GreenCheckCircleIcon /> {t('Enabled')}
-                  </>
-                ) : (
-                  t('Suspended')
-                )}
-              </dd>
-            </dl>
-          </div>
+    <div className="odf-m-pane__body">
+      <SectionHeading text={t('Bucket overview')} />
+      <div className="row">
+        <div className="col-sm-6">
+          <dl>
+            <dt>{t('Name')}</dt>
+            <dd>{bucketName}</dd>
+            <dt>{t('Tags')}</dt>
+            <dd>
+              <LabelGroup>{tags || DASH}</LabelGroup>
+            </dd>
+            <dt>{t('Owner')}</dt>
+            <dd>{aclData?.Owner?.DisplayName || DASH}</dd>
+          </dl>
+        </div>
+        <div className="col-sm-6">
+          <dl>
+            <dt>{t('Encryption')}</dt>
+            <dd>
+              <LockIcon /> {t('Enabled')}
+              <div className="pf-v5-u-disabled-color-100">
+                {encryptionDescription}
+              </div>
+            </dd>
+            <dt>{t('Bucket versioning')}</dt>
+            <dd>
+              {versioningData?.Status === BucketVersioningStatus.Enabled ? (
+                <>
+                  <GreenCheckCircleIcon /> {t('Enabled')}
+                </>
+              ) : (
+                t('Suspended')
+              )}
+            </dd>
+          </dl>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

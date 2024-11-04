@@ -142,13 +142,15 @@ describe('Tests form validations on Object Bucket Claim', () => {
   fieldValidationOnFormsTests(nameFieldTestId, 'Create', populateObcForm);
 
   it('Should not display error alert on empty obc name and valid required fields submit', () => {
-    cy.byTestID(nameFieldTestId).click().blur();
+    cy.byTestID(nameFieldTestId).click();
+    cy.byTestID(nameFieldTestId).blur();
     populateObcForm();
     cy.contains('button', 'Create').click();
   });
 
   it('Should highlight name field with success style on empty obc name input', () => {
-    cy.byTestID(nameFieldTestId).click().blur();
+    cy.byTestID(nameFieldTestId).click();
+    cy.byTestID(nameFieldTestId).blur();
     cy.byTestID('field-requirements-input-group').should(
       'not.have.class',
       'rich-input__group--invalid'

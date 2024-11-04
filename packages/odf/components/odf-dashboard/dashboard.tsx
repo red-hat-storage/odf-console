@@ -62,11 +62,9 @@ const isDashboardTab = (e: Extension) =>
 
 export const ODFDashboard: React.FC = () => {
   return (
-    <>
-      <div className="odf-dashboard-body">
-        <UpperSection />
-      </div>
-    </>
+    <div className="odf-dashboard-body">
+      <UpperSection />
+    </div>
   );
 };
 

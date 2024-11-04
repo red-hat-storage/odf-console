@@ -10,7 +10,8 @@ export const pvc = {
     // eslint-disable-next-line cypress/require-data-selectors
     cy.get(`#${storageClass}-link`).click();
     cy.byTestID('pvc-name').type(name);
-    cy.byTestID('pvc-size').type('{moveToEnd}').type(size);
+    cy.byTestID('pvc-size').type('{moveToEnd}');
+    cy.byTestID('pvc-size').type(size);
     if (mode === 'Block') {
       cy.byTestID('Block-radio-input').click();
     }
@@ -20,10 +21,9 @@ export const pvc = {
   expandPVC: (expansionSize) => {
     cy.byLegacyTestID('actions-menu-button').click();
     cy.byTestActionID('Expand PVC').click();
-    cy.byTestID('pvc-expand-size-input')
-      .clear()
-      .type('{moveToEnd}')
-      .type(expansionSize);
+    cy.byTestID('pvc-expand-size-input').clear();
+    cy.byTestID('pvc-expand-size-input').type('{moveToEnd}');
+    cy.byTestID('pvc-expand-size-input').type(expansionSize);
     cy.byTestID('confirm-action').click();
   },
 };

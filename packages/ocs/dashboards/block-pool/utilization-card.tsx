@@ -24,11 +24,7 @@ export const UtilizationCard: React.FC = () => {
     <Card>
       <CardHeader
         actions={{
-          actions: (
-            <>
-              <UtilizationDurationDropdown />
-            </>
-          ),
+          actions: <UtilizationDurationDropdown />,
           hasNoOffset: false,
           className: undefined,
         }}

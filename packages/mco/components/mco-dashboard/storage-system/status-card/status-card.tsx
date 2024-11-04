@@ -139,9 +139,7 @@ const StorageSystemHealthItem: React.FC = () => {
     >
       <StorageSystemPopup systemHealthMap={parsedHealthData} />
     </HealthItem>
-  ) : (
-    <></>
-  );
+  ) : null;
 };
 
 /**
@@ -185,9 +183,7 @@ const CSVStatusHealthItem: React.FC = () => {
     <HealthItem title={t('Data Foundation')} state={csvStatusMap(worstStatus)}>
       <ODFOperatorPopup csvStatusMap={parsedCSVData} />
     </HealthItem>
-  ) : (
-    <></>
-  );
+  ) : null;
 };
 
 export const StatusCard: React.FC = () => {

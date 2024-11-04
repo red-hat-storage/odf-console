@@ -24,49 +24,47 @@ const BackingStorePage: React.FC<BackingStorePageProps> = React.memo(
       launcher(CreateBackingStoreModal, { isOpen: true });
 
     return (
-      <>
-        <div className="nb-create-bc-step-page">
-          {showHelp && (
-            <Alert
-              className="nb-create-bc-step-page__info"
-              isInline
-              variant="info"
-              title={t('What is a BackingStore?')}
-              actionClose={
-                <AlertActionCloseButton onClose={() => setShowHelp(false)} />
-              }
-            >
-              <p>
-                {t(
-                  'BackingStore represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.'
-                )}
-              </p>
-              <p>
-                {t(
-                  'Multiple types of BackingStores are supported: asws-s3 s3-compatible google-cloud-storage azure-blob obc PVC.'
-                )}
-              </p>
-              <ExternalLink
-                href="https://github.com/noobaa/noobaa-operator/blob/master/doc/backing-store-crd.md"
-                text={t('Learn More')}
-              />
-            </Alert>
-          )}
-          <BackingStoreSelection
-            tier1Policy={tier1Policy}
-            tier2Policy={tier2Policy}
-            selectedTierA={tier1BackingStore}
-            selectedTierB={tier2BackingStore}
-            setSelectedTierA={(bs) =>
-              dispatcher({ type: 'setBackingStoreTier1', value: [...bs] })
+      <div className="nb-create-bc-step-page">
+        {showHelp && (
+          <Alert
+            className="nb-create-bc-step-page__info"
+            isInline
+            variant="info"
+            title={t('What is a BackingStore?')}
+            actionClose={
+              <AlertActionCloseButton onClose={() => setShowHelp(false)} />
             }
-            setSelectedTierB={(bs) =>
-              dispatcher({ type: 'setBackingStoreTier2', value: [...bs] })
-            }
-            launchModal={launchModal}
-          />
-        </div>
-      </>
+          >
+            <p>
+              {t(
+                'BackingStore represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.'
+              )}
+            </p>
+            <p>
+              {t(
+                'Multiple types of BackingStores are supported: asws-s3 s3-compatible google-cloud-storage azure-blob obc PVC.'
+              )}
+            </p>
+            <ExternalLink
+              href="https://github.com/noobaa/noobaa-operator/blob/master/doc/backing-store-crd.md"
+              text={t('Learn More')}
+            />
+          </Alert>
+        )}
+        <BackingStoreSelection
+          tier1Policy={tier1Policy}
+          tier2Policy={tier2Policy}
+          selectedTierA={tier1BackingStore}
+          selectedTierB={tier2BackingStore}
+          setSelectedTierA={(bs) =>
+            dispatcher({ type: 'setBackingStoreTier1', value: [...bs] })
+          }
+          setSelectedTierB={(bs) =>
+            dispatcher({ type: 'setBackingStoreTier2', value: [...bs] })
+          }
+          launchModal={launchModal}
+        />
+      </div>
     );
   }
 );
