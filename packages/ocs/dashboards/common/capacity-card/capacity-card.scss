@@ -11,8 +11,10 @@
     padding-top: var(--pf-v5-global--spacer--md);
   }
   &__chart {
-    flex-grow: 0.5;
+    flex-grow: 0.12;
     max-height: 180px;
+    margin-bottom: 1rem;
+    margin-right: 1rem;
   }
   &--error {
     margin-top: var(--pf-v5-global--spacer--xs);

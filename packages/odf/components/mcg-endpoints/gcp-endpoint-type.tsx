@@ -127,7 +127,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
         }}
         render={({ value, onChange, onBlur }) =>
           !showSecret ? (
-            <InputGroup translate={t}>
+            <InputGroup>
               <InputGroupItem isFill>
                 <TextInput
                   readOnly
@@ -168,7 +168,7 @@ export const GCPEndpointType: React.FC<GCPEndPointTypeProps> = (props) => {
               </InputGroupItem>
             </InputGroup>
           ) : (
-            <InputGroup translate={t}>
+            <InputGroup>
               <InputGroupItem>
                 <ResourceDropdown<K8sResourceCommon>
                   className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"

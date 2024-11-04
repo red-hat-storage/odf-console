@@ -137,7 +137,6 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
               error && 'rich-input__group--invalid',
               !error && (isDirty || isSubmitted) && 'rich-input__group--success'
             )}
-            translate={undefined}
           >
             <InputGroupItem isFill>
               <TextInput
@@ -175,6 +174,7 @@ const TextInputWithFieldRequirements: React.FC<TextInputWithFieldRequirementsPro
                     })}
                   </HelperText>
                 }
+                withFocusTrap={false}
                 {...popoverProps}
               >
                 <Button variant="plain" aria-label="Validation" tabIndex={-1}>

@@ -36,10 +36,6 @@ import {
 } from '../../../../utils';
 import './dr-status-table.scss';
 
-const reactPropFix = {
-  translate: 'yes',
-};
-
 const getLastDataSyncTime = (drpcList: DRPlacementControlKind[]): string =>
   getLatestDate(drpcList?.map((drpc) => drpc?.status?.lastGroupSyncTime));
 
@@ -167,53 +163,37 @@ export const DRPoliciesStatusTable: React.FC<DRPoliciesStatusTableProps> = ({
       </FlexItem>
       <FlexItem className="mco-dr-subs-status-table__box">
         <Table
-          {...reactPropFix}
           variant="compact"
           aria-label={t('Application list')}
           borders={false}
           gridBreakPoint=""
           isStickyHeader
         >
-          <Thead {...reactPropFix}>
-            <Tr {...reactPropFix}>
-              <Th
-                {...reactPropFix}
-                sort={getSortParams(0)}
-                data-test="policy-name-column"
-              >
+          <Thead>
+            <Tr>
+              <Th sort={getSortParams(0)} data-test="policy-name-column">
                 {t('Policy name')}
               </Th>
-              <Th
-                {...reactPropFix}
-                sort={getSortParams(1)}
-                data-test="last-sync-column"
-              >
+              <Th sort={getSortParams(1)} data-test="last-sync-column">
                 {t('Last sync')}
               </Th>
-              <Th
-                {...reactPropFix}
-                sort={getSortParams(2)}
-                data-test="activity-status-column"
-              >
+              <Th sort={getSortParams(2)} data-test="activity-status-column">
                 {t('Activity status')}
               </Th>
             </Tr>
           </Thead>
-          <Tbody {...reactPropFix}>
+          <Tbody>
             {sortedDRStatus?.map((drstatus, rowIndex) => (
-              <Tr {...reactPropFix} key={rowIndex}>
-                <Td {...reactPropFix} data-test={`policy-name-row-${rowIndex}`}>
+              <Tr key={rowIndex}>
+                <Td data-test={`policy-name-row-${rowIndex}`}>
                   {drstatus?.drPolicyName}
                 </Td>
-                <Td {...reactPropFix} data-test={`last-sync-row-${rowIndex}`}>
+                <Td data-test={`last-sync-row-${rowIndex}`}>
                   <Tooltip content={drstatus?.lastSync?.toolTip}>
                     <StatusIconAndText title={drstatus?.lastSync?.text} />
                   </Tooltip>
                 </Td>
-                <Td
-                  {...reactPropFix}
-                  data-test={`activity-status-row-${rowIndex}`}
-                >
+                <Td data-test={`activity-status-row-${rowIndex}`}>
                   <Tooltip content={drstatus?.currentStatus?.toolTip}>
                     <StatusIconAndText
                       title={drstatus?.currentStatus?.text}
