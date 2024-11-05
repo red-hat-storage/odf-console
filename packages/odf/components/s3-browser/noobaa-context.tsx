@@ -38,7 +38,7 @@ export const NoobaaS3Provider: React.FC<NoobaaS3ProviderType> = ({
     SecretModel,
     NOOBAA_ADMIN_SECRET
   );
-  // ToDo: Configure ConsolePlugin proxy instead of using Route
+
   const [routeData, routeLoaded, routeError] = useSafeK8sGet<K8sResourceKind>(
     RouteModel,
     NOOBAA_S3_ROUTE
@@ -47,8 +47,7 @@ export const NoobaaS3Provider: React.FC<NoobaaS3ProviderType> = ({
   const [noobaaS3, noobaaS3Error]: [S3Commands, unknown] = React.useMemo(() => {
     if (!_.isEmpty(secretData) && !_.isEmpty(routeData)) {
       try {
-        // ToDo: Remove this once ConsolePlugin proxy is configured
-        const endpoint = `http://${routeData.spec.host}`;
+        const endpoint = `https://${routeData.spec.host}`;
         const accessKeyId = atob(secretData.data?.[NOOBAA_ACCESS_KEY_ID]);
         const secretAccessKey = atob(
           secretData.data?.[NOOBAA_SECRET_ACCESS_KEY]
