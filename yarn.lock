@@ -1943,7 +1943,6 @@
     "@types/react" "16.8.13"
     "@types/react-dnd-html5-backend" "^3.0.2"
     "@types/react-helmet" "^6.1.1"
-    "@types/react-router-dom" "5.1.2"
     buffer "^6.0.3"
     classnames "^2.3.1"
     fuzzysearch "^1.0.3"
@@ -2161,6 +2160,11 @@
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@react-dnd/shallowequal/-/shallowequal-3.0.0.tgz#ccfe1d6eead7591b4cebf6d7fec7150eb4de1962"
   integrity sha512-1ELWQdJB2UrCXTKK5cCD9uGLLIwECLIEdttKA255owdpchtXohIjZBTlFJszwYi2ZKe2Do+QvUzsGyGCMNwbdw==
+
+"@remix-run/router@1.20.0":
+  version "1.20.0"
+  resolved "https://registry.yarnpkg.com/@remix-run/router/-/router-1.20.0.tgz#03554155b45d8b529adf635b2f6ad1165d70d8b4"
+  integrity sha512-mUnk8rPJBI9loFDZ+YzPGdeniYK+FTmRD1TMCz7ev2SNIozyKKpnGgsxO34u6Z4z/t0ITuu7voi/AshfsGsgFg==
 
 "@remix-run/router@1.8.0":
   version "1.8.0"
@@ -3534,11 +3538,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/history@*":
-  version "4.7.8"
-  resolved "https://registry.yarnpkg.com/@types/history/-/history-4.7.8.tgz#49348387983075705fe8f4e02fb67f7daaec4934"
-  integrity sha512-S78QIYirQcUoo6UJZx9CSP0O2ix9IaeAXwQi26Rhr/+mg7qqPy8TzaxHSUut7eGjL8WmLccT7/MXf304WjqHcA==
-
 "@types/history@^4.7.11":
   version "4.7.11"
   resolved "https://registry.yarnpkg.com/@types/history/-/history-4.7.11.tgz#56588b17ae8f50c53983a524fc3cc47437969d64"
@@ -3729,32 +3728,6 @@
   resolved "https://registry.yarnpkg.com/@types/react-measure/-/react-measure-2.0.8.tgz#3615956c685e6d9fed8380aac53590b333fae34f"
   integrity sha512-Pu4/hQ/1AKVN6efoawtcM+l376WYOI8e1fiM6ir4pdLkHilDCkJLjUGvAm0mWKJ0GE6hzu55yCrcJ/xNyEdFwA==
   dependencies:
-    "@types/react" "*"
-
-"@types/react-router-dom@5.1.2":
-  version "5.1.2"
-  resolved "https://registry.yarnpkg.com/@types/react-router-dom/-/react-router-dom-5.1.2.tgz#853f229f1f297513c0be84f7c914a08b778cfdf5"
-  integrity sha512-kRx8hoBflE4Dp7uus+j/0uMHR5uGTAvQtc4A3vOTWKS+epe0leCuxEx7HNT7XGUd1lH53/moWM51MV2YUyhzAg==
-  dependencies:
-    "@types/history" "*"
-    "@types/react" "*"
-    "@types/react-router" "*"
-
-"@types/react-router-dom@5.3.x":
-  version "5.3.3"
-  resolved "https://registry.yarnpkg.com/@types/react-router-dom/-/react-router-dom-5.3.3.tgz#e9d6b4a66fcdbd651a5f106c2656a30088cc1e83"
-  integrity sha512-kpqnYK4wcdm5UaWI3fLcELopqLrHgLqNsdpHauzlQktfkHL3npOSwtj1Uz9oKBAzs7lFtVkV8j83voAz2D8fhw==
-  dependencies:
-    "@types/history" "^4.7.11"
-    "@types/react" "*"
-    "@types/react-router" "*"
-
-"@types/react-router@*":
-  version "5.1.15"
-  resolved "https://registry.yarnpkg.com/@types/react-router/-/react-router-5.1.15.tgz#c1069e0da4617fd315e381b56b18b89490e14e2a"
-  integrity sha512-z3UlMG/x91SFEVmmvykk9FLTliDvfdIUky4k2rCfXWQ0NKbrP8o9BTCaCTPuYsB8gDkUnUmkcA2vYlm2DR+HAA==
-  dependencies:
-    "@types/history" "*"
     "@types/react" "*"
 
 "@types/react-router@^5.1.20":
@@ -11646,6 +11619,15 @@ react-router-dom-v5-compat@^6.11.2:
     history "^5.3.0"
     react-router "6.15.0"
 
+react-router-dom-v5-compat@^6.27.0:
+  version "6.27.0"
+  resolved "https://registry.yarnpkg.com/react-router-dom-v5-compat/-/react-router-dom-v5-compat-6.27.0.tgz#19429aefa130ee151e6f4487d073d919ec22d458"
+  integrity sha512-hq5yCVoW73mljLhRjyzpYmooLNPR/xb17S3CTz9fe2/P7q821ivMEa9c8OtrAk2Bs83PcNAtst5okT/aUhJtgg==
+  dependencies:
+    "@remix-run/router" "1.20.0"
+    history "^5.3.0"
+    react-router "6.27.0"
+
 react-router-dom@5.3.x:
   version "5.3.4"
   resolved "https://registry.yarnpkg.com/react-router-dom/-/react-router-dom-5.3.4.tgz#2ed62ffd88cae6db134445f4a0c0ae8b91d2e5e6"
@@ -11680,6 +11662,13 @@ react-router@6.15.0:
   integrity sha512-NIytlzvzLwJkCQj2HLefmeakxxWHWAP+02EGqWEZy+DgfHHKQMUoBBjUQLOtFInBMhWtb3hiUy6MfFgwLjXhqg==
   dependencies:
     "@remix-run/router" "1.8.0"
+
+react-router@6.27.0:
+  version "6.27.0"
+  resolved "https://registry.yarnpkg.com/react-router/-/react-router-6.27.0.tgz#db292474926c814c996c0ff3ef0162d1f9f60ed4"
+  integrity sha512-YA+HGZXz4jaAkVoYBE98VQl+nVzI+cVI2Oj/06F5ZM+0u3TgedN9Y9kmMRo2mnkSK2nCpNQn0DVob4HCsY/WLw==
+  dependencies:
+    "@remix-run/router" "1.20.0"
 
 react-side-effect@^2.1.0:
   version "2.1.1"
