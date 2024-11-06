@@ -17,18 +17,13 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { SECOND, RGW_PROVISIONER, NOOBAA_PROVISIONER } from './constants';
-import {
-  isExternalCluster,
-  isClusterIgnored,
-  isMCGStandaloneCluster,
-} from './utils';
+import { isExternalCluster, isClusterIgnored } from './utils';
 
 export const ODF_MODEL_FLAG = 'ODF_MODEL'; // Based on the existence of StorageSystem CRD
 export const RGW_FLAG = 'RGW'; // Based on the existence of StorageClass with RGW provisioner ("openshift-storage.ceph.rook.io/bucket")
 export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaa StorageClass (which only gets created if NooBaaSystem is present)
 export const ODF_ADMIN = 'ODF_ADMIN'; // Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
 export const PROVIDER_MODE = 'PROVIDER_MODE'; // Set to "true" if user has deployed it in provider mode
-export const MCG_STANDALONE = 'MCG_STANDALONE'; // Set to "true" if user has deployed for MCG standalone mode
 
 // Check the user's access to some resources.
 const ssarChecks = [
@@ -64,7 +59,6 @@ export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
             !isClusterIgnored(sc) && !isExternalCluster(sc)
         );
         setFlag(PROVIDER_MODE, isProviderMode(internalStorageCluster));
-        setFlag(MCG_STANDALONE, isMCGStandaloneCluster(internalStorageCluster));
         clearInterval(ocsIntervalId);
       } else if (setFlagFalse) {
         setFlagFalse = false;

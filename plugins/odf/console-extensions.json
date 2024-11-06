@@ -135,9 +135,6 @@
       "path": ["/odf/object-storage/create-bucket"],
       "exact": true,
       "component": { "$codeRef": "createBucket.default" }
-    },
-    "flags": {
-      "required": ["MCG_STANDALONE"]
     }
   },
   {
@@ -553,9 +550,6 @@
       "component": {
         "$codeRef": "s3BucketList.default"
       }
-    },
-    "flags": {
-      "required": ["MCG_STANDALONE", "ODF_ADMIN"]
     }
   },
   {
@@ -604,23 +598,6 @@
     },
     "flags": {
       "required": ["MCG", "ODF_ADMIN"]
-    }
-  },
-  {
-    "type": "odf.horizontalNav/tab",
-    "properties": {
-      "id": "objectbuckets",
-      "name": "%plugin__odf-console~Object Buckets%",
-      "contextId": "odf-object-service",
-      "after": "namespace-store",
-      "href": "objectbucket.io~v1alpha1~ObjectBucket",
-      "component": {
-        "$codeRef": "ob.ObjectBucketListPage"
-      }
-    },
-    "flags": {
-      "required": ["MCG"],
-      "disallowed": ["MCG_STANDALONE"]
     }
   },
   {
@@ -745,9 +722,6 @@
       "component": {
         "$codeRef": "s3BucketOverview.default"
       }
-    },
-    "flags": {
-      "required": ["MCG_STANDALONE"]
     }
   }
 ]
