@@ -46,6 +46,7 @@ type DeleteObjectsModalProps = {
   objects: ObjectCrFormat[];
   setDeleteResponse: SetObjectsDeleteResponse;
   refreshTokens: () => Promise<void>;
+  closeObjectSidebar?: () => void;
 };
 
 const getTextInputLabel = (t: TFunction) => (
@@ -118,6 +119,7 @@ const DeleteObjectsModal: React.FC<CommonModalProps<DeleteObjectsModalProps>> =
       objects: data,
       setDeleteResponse,
       refreshTokens,
+      closeObjectSidebar,
     },
   }) => {
     const { t } = useCustomTranslation();
@@ -147,6 +149,7 @@ const DeleteObjectsModal: React.FC<CommonModalProps<DeleteObjectsModalProps>> =
         closeModal();
         // need new continuation tokens after state of bucket has changed (objects deleted)
         refreshTokens();
+        closeObjectSidebar?.();
       } catch (err) {
         setInProgress(false);
         setError(err);

@@ -7,7 +7,7 @@ import { DASH } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { TFunction } from 'i18next';
-import { DELIMITER, BUCKETS_BASE_ROUTE, PREFIX } from '../constants';
+import { DELIMITER, BUCKETS_BASE_ROUTE, PREFIX, SEARCH } from '../constants';
 import { BucketCrFormat, ObjectCrFormat } from '../types';
 
 export const getBreadcrumbs = (
@@ -61,12 +61,12 @@ export const getEncodedPrefix = (name: string, foldersPath: string) =>
     ? encodeURIComponent(foldersPath + name)
     : encodeURIComponent(name);
 
-export const convertObjectsDataToCrFormat = (
+export const convertObjectDataToCrFormat = (
   objectData: Content | CommonPrefix,
   isFolder: boolean,
   t: TFunction
 ): ObjectCrFormat => {
-  const structuredObjects: ObjectCrFormat = {
+  const structuredObject: ObjectCrFormat = {
     metadata: { name: '', uid: '' },
     apiResponse: { lastModified: DASH, size: DASH },
     isFolder: false,
@@ -74,27 +74,28 @@ export const convertObjectsDataToCrFormat = (
   };
   if (isFolder) {
     const prefix = (objectData as CommonPrefix)?.Prefix;
-    structuredObjects.metadata.name = prefix;
-    structuredObjects.metadata.uid = prefix;
-    structuredObjects.isFolder = true;
-    structuredObjects.type = t('Folder');
+    structuredObject.metadata.name = prefix;
+    structuredObject.metadata.uid = prefix;
+    structuredObject.isFolder = true;
+    structuredObject.type = t('Folder');
   } else {
     const key = (objectData as Content)?.Key;
     const lastIndexOfDot = key.lastIndexOf('.');
-    structuredObjects.metadata.name = key;
-    structuredObjects.metadata.uid = key;
-    structuredObjects.apiResponse.lastModified =
+    structuredObject.metadata.name = key;
+    structuredObject.metadata.uid = key;
+    structuredObject.apiResponse.lastModified =
       (objectData as Content)?.LastModified?.toString() || DASH;
-    structuredObjects.apiResponse.size =
-      humanizeBinaryBytes((objectData as Content)?.Size, 'B', 'GiB')?.string ||
-      DASH;
-    structuredObjects.type =
+    structuredObject.apiResponse.size =
+      humanizeBinaryBytes((objectData as Content)?.Size, 'B')?.string || DASH;
+    structuredObject.type =
       (lastIndexOfDot !== -1
         ? key.substring(lastIndexOfDot + 1, key.length)
         : DASH) || DASH;
+    structuredObject.apiResponse.ownerName =
+      (objectData as Content)?.Owner?.DisplayName || DASH;
   }
 
-  return structuredObjects;
+  return structuredObject;
 };
 
 export const replacePathFromName = (
@@ -118,3 +119,21 @@ export const convertBucketDataToCrFormat = (
       owner: listBucketsCommandOutput?.Owner?.DisplayName,
     },
   })) || [];
+
+export const getNavigationURL = (
+  bucketName: string,
+  foldersPath: string,
+  inputValue: string
+): string => {
+  const queryParams = [
+    ...(!!foldersPath
+      ? [`${PREFIX}=${getEncodedPrefix('', foldersPath)}`]
+      : []),
+    ...(!!inputValue ? [`${SEARCH}=${getEncodedPrefix(inputValue, '')}`] : []),
+  ];
+  const queryParamsString = !!queryParams.length
+    ? '?' + queryParams.join('&')
+    : '';
+
+  return `${BUCKETS_BASE_ROUTE}/${bucketName}` + queryParamsString;
+};

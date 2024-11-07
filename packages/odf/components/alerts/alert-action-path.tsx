@@ -9,7 +9,7 @@ export const getDiskAlertActionPath = () =>
   window.open('https://access.redhat.com/solutions/5194851');
 
 // ToDo (epic 4422): Get StorageCluster name and namespace from the Alert object and then use "k8sGet".
-export const launchClusterExpansionModal = async (alert, launchModal) => {
+export const launchClusterExpansionModal = async (_alert, launchModal) => {
   try {
     /*
     const storageCluster = await k8sGet({

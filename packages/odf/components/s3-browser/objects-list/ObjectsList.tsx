@@ -12,7 +12,11 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { TFunction } from 'i18next';
-import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
+import {
+  useParams,
+  useSearchParams,
+  useNavigate,
+} from 'react-router-dom-v5-compat';
 import useSWRMutation from 'swr/mutation';
 import {
   Button,
@@ -24,13 +28,20 @@ import {
   AlertVariant,
   AlertActionCloseButton,
   AlertActionLink,
+  SearchInput,
 } from '@patternfly/react-core';
 import {
   ActionsColumn,
   IAction,
   CustomActionsToggleProps,
 } from '@patternfly/react-table';
-import { LIST_OBJECTS, DELIMITER, MAX_KEYS, PREFIX } from '../../../constants';
+import {
+  LIST_OBJECTS,
+  DELIMITER,
+  MAX_KEYS,
+  PREFIX,
+  SEARCH,
+} from '../../../constants';
 import {
   ObjectsDeleteResponse,
   SetObjectsDeleteResponse,
@@ -40,9 +51,15 @@ import {
   LazyDeleteObjectsSummary,
 } from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
 import { ObjectCrFormat } from '../../../types';
-import { getPath, convertObjectsDataToCrFormat } from '../../../utils';
+import {
+  getPath,
+  getPrefix as getSearchWithPrefix,
+  convertObjectDataToCrFormat,
+  getNavigationURL,
+} from '../../../utils';
 import { NoobaaS3Context } from '../noobaa-context';
 import {
+  getPaginationCount,
   Pagination,
   PaginationProps,
   ContinuationTokens,
@@ -60,6 +77,14 @@ const LazyCreateFolderModal = React.lazy(
   () => import('../../../modals/s3-browser/create-folder/CreateFolderModal')
 );
 
+type SearchObjectsProps = {
+  foldersPath: string;
+  bucketName: string;
+  searchInput: string;
+  setSearchInput: React.Dispatch<React.SetStateAction<string>>;
+  className: string;
+};
+
 type TableActionsProps = {
   launcher: LaunchModal;
   selectedRows: ObjectCrFormat[];
@@ -69,6 +94,8 @@ type TableActionsProps = {
   noobaaS3: S3Commands;
   setDeleteResponse: SetObjectsDeleteResponse;
   refreshTokens: () => Promise<void>;
+  searchInput: string;
+  setSearchInput: React.Dispatch<React.SetStateAction<string>>;
 };
 
 type DeletionAlertsProps = {
@@ -117,6 +144,38 @@ export const CustomActionsToggle = (props: CustomActionsToggleProps) => {
   );
 };
 
+const SearchObjects: React.FC<SearchObjectsProps> = ({
+  foldersPath,
+  bucketName,
+  searchInput,
+  setSearchInput,
+  className,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const navigate = useNavigate();
+  const onClearURL = getNavigationURL(bucketName, foldersPath, '');
+
+  return (
+    <SearchInput
+      placeholder={t('Search objects in the bucket using prefix')}
+      value={searchInput}
+      onChange={(_event, value) => {
+        setSearchInput(value);
+        if (value === '') navigate(onClearURL);
+      }}
+      onSearch={(_event, value) =>
+        !!value && navigate(getNavigationURL(bucketName, foldersPath, value))
+      }
+      onClear={() => {
+        setSearchInput('');
+        navigate(onClearURL);
+      }}
+      className={className}
+    />
+  );
+};
+
 const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
   onNext,
   onPrevious,
@@ -130,6 +189,10 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
   noobaaS3,
   setDeleteResponse,
   refreshTokens,
+  searchInput,
+  setSearchInput,
+  fromCount: paginationFromCount,
+  toCount: paginationToCount,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -137,8 +200,15 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
 
   return (
     <Level hasGutter>
-      <LevelItem>
+      <LevelItem className="pf-v5-u-w-50">
         <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row">
+          <SearchObjects
+            foldersPath={foldersPath}
+            bucketName={bucketName}
+            searchInput={searchInput}
+            setSearchInput={setSearchInput}
+            className="pf-v5-u-mr-sm"
+          />
           <Button
             variant={ButtonVariant.secondary}
             className="pf-v5-u-mr-sm"
@@ -176,6 +246,8 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
           onPrevious={onPrevious}
           disableNext={disableNext}
           disablePrevious={disablePrevious}
+          fromCount={paginationFromCount}
+          toCount={paginationToCount}
         />
       </LevelItem>
     </Level>
@@ -270,7 +342,15 @@ const DeletionAlerts: React.FC<DeletionAlertsProps> = ({
   );
 };
 
-export const ObjectsList: React.FC<{}> = () => {
+type ObjectsListProps = {
+  onRowClick: (selectedObject: ObjectCrFormat, actionItems: IAction[]) => void;
+  closeObjectSidebar: () => void;
+};
+
+export const ObjectsList: React.FC<ObjectsListProps> = ({
+  onRowClick,
+  closeObjectSidebar,
+}) => {
   const { t } = useCustomTranslation();
 
   const { bucketName } = useParams();
@@ -279,10 +359,14 @@ export const ObjectsList: React.FC<{}> = () => {
   const launcher = useModal();
 
   // if non-empty means we are inside particular folder(s) of a bucket, else just inside a bucket (top-level)
-  const foldersPath = searchParams.get(PREFIX);
+  const foldersPath = searchParams.get(PREFIX) || '';
+  // search objects within a bucket
+  const searchQuery = searchParams.get(SEARCH) || '';
 
   const { noobaaS3 } = React.useContext(NoobaaS3Context);
-  const cacheKey = LIST_OBJECTS + DELIMITER + getPath(bucketName, foldersPath);
+  const searchWithPrefix = getSearchWithPrefix(searchQuery, foldersPath);
+  const cacheKey =
+    LIST_OBJECTS + DELIMITER + getPath(bucketName, searchWithPrefix);
   const { data, error, isMutating, trigger } = useSWRMutation(
     cacheKey,
     (_url, { arg }: { arg: string }) =>
@@ -290,25 +374,33 @@ export const ObjectsList: React.FC<{}> = () => {
         Bucket: bucketName,
         MaxKeys: MAX_KEYS,
         Delimiter: DELIMITER,
-        ...(!!foldersPath && { Prefix: foldersPath }),
+        FetchOwner: true,
+        ...(!!searchWithPrefix && { Prefix: searchWithPrefix }),
         ...(!!arg && { ContinuationToken: arg }),
       })
   );
 
   const loadedWOError = !isMutating && !error;
 
+  // used for pagination
   const [continuationTokens, setContinuationTokens] =
     React.useState<ContinuationTokens>({
       previous: [],
       current: '',
       next: '',
     });
+  // used for multi-select bulk operations
   const [selectedRows, setSelectedRows] = React.useState<ObjectCrFormat[]>([]);
+  // used for storing API's response on performing delete operation on objects
   const [deleteResponse, setDeleteResponse] =
     React.useState<ObjectsDeleteResponse>({
       selectedObjects: [] as ObjectCrFormat[],
       deleteResponse: {} as DeleteObjectsCommandOutput,
     });
+  // used for storing input to the objects' search bar
+  const [searchInput, setSearchInput] = React.useState(searchQuery);
+  // used to store previous value of "foldersPath";
+  const foldersPathPrevRef = React.useRef<string>();
 
   const structuredObjects: ObjectCrFormat[] = React.useMemo(() => {
     const objects: ObjectCrFormat[] = [];
@@ -317,10 +409,10 @@ export const ObjectsList: React.FC<{}> = () => {
       (!!data?.Contents?.length || !!data?.CommonPrefixes?.length)
     ) {
       data?.CommonPrefixes?.forEach((commonPrefix: CommonPrefix) => {
-        objects.push(convertObjectsDataToCrFormat(commonPrefix, true, t));
+        objects.push(convertObjectDataToCrFormat(commonPrefix, true, t));
       });
       data?.Contents?.forEach((content: Content) => {
-        objects.push(convertObjectsDataToCrFormat(content, false, t));
+        objects.push(convertObjectDataToCrFormat(content, false, t));
       });
     }
 
@@ -334,12 +426,24 @@ export const ObjectsList: React.FC<{}> = () => {
       setSelectedRows
     );
 
-  // initial fetch on first mount or on route update (drilling in/out of the folder view)
+  // initial fetch on first mount or on route update (drilling in/out of the folder view or searching objects using prefix)
   React.useEffect(() => {
     refreshTokens();
+    if (foldersPathPrevRef.current !== foldersPath) {
+      // only reset filter if navigated in/out of the current folder
+      // not when search query is changed,
+      // also, not when URL contains search query param
+      if (!searchQuery) setSearchInput('');
+      foldersPathPrevRef.current = foldersPath;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [foldersPath]);
+  }, [foldersPath, searchQuery]);
 
+  const [paginationToCount, paginationFromCount] = getPaginationCount(
+    continuationTokens,
+    (data?.Contents?.length || 0) + (data?.CommonPrefixes?.length || 0),
+    MAX_KEYS
+  );
   return (
     <div className="pf-v5-u-m-lg">
       <p className="pf-v5-u-mb-sm">
@@ -349,7 +453,6 @@ export const ObjectsList: React.FC<{}> = () => {
         deleteResponse={deleteResponse}
         foldersPath={foldersPath}
       />
-      {/* ToDo: add upload objects option */}
       <TableActions
         onNext={async () => {
           if (!!continuationTokens.next && loadedWOError)
@@ -386,6 +489,10 @@ export const ObjectsList: React.FC<{}> = () => {
         noobaaS3={noobaaS3}
         setDeleteResponse={setDeleteResponse}
         refreshTokens={refreshTokens}
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        fromCount={paginationFromCount}
+        toCount={paginationToCount}
       />
       <SelectableTable
         className="pf-v5-u-mt-lg"
@@ -404,6 +511,8 @@ export const ObjectsList: React.FC<{}> = () => {
           noobaaS3,
           setDeleteResponse,
           refreshTokens,
+          onRowClick,
+          closeObjectSidebar,
         }}
         emptyRowMessage={EmptyPage}
       />

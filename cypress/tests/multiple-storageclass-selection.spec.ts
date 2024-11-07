@@ -78,7 +78,7 @@ describe('Add capacity using multiple storage classes', () => {
   it('Add capacity with a new storage class having EBS as provisioner', () => {
     const { name: scName } = testEbsSC.metadata;
     const iAndD: IndexAndDeviceSet = { index: 0, deviceSets: [] };
-    addCapacity(beforeCapacityAddition.uid, scName);
+    addCapacity(scName);
     fetchStorageClusterJson().then((res) => {
       withJSONResult(res, scName, iAndD);
       newStorageClassTests(beforeCapacityAddition, iAndD, true);
@@ -93,7 +93,7 @@ describe('Add capacity using multiple storage classes', () => {
     cy.log('Count is:', index.toString());
     beforeCapacityAddition.portability = deviceSets[index].portable;
     beforeCapacityAddition.devicesCount = deviceSets[index].count;
-    addCapacity(beforeCapacityAddition.uid, scName);
+    addCapacity(scName);
     fetchStorageClusterJson().then((res) => {
       withJSONResult(res, scName, iAndD);
       existingStorageClassTests(beforeCapacityAddition, iAndD);
@@ -103,7 +103,7 @@ describe('Add capacity using multiple storage classes', () => {
   it(`Add capacity with a new storage class having NO-PROVISIONER as provisioner`, () => {
     const { name: scName } = testNoProvisionerSC.metadata;
     const iAndD: IndexAndDeviceSet = { index: 0, deviceSets: [] };
-    addCapacity(beforeCapacityAddition.uid, scName);
+    addCapacity(scName);
     fetchStorageClusterJson().then((res) => {
       withJSONResult(res, scName, iAndD);
       newStorageClassTests(beforeCapacityAddition, iAndD, false);

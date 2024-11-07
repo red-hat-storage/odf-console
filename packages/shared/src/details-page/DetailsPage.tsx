@@ -113,17 +113,13 @@ export default DetailsPage;
 
 export type ResourceSummaryProps = {
   resource: K8sResourceKind;
-  showPodSelector?: boolean;
-  showNodeSelector?: boolean;
   showAnnotations?: boolean;
-  showTolerations?: boolean;
   showLabelEditor?: boolean;
   canUpdateResource?: boolean;
-  podSelector?: string;
-  nodeSelector?: string;
   children?: React.ReactNode;
   customPathName?: string;
   resourceModel: K8sKind;
+  ownerLabel?: string;
 };
 
 export type DetailsItemProps = {
@@ -291,15 +287,11 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   children,
   resource,
   customPathName,
-  showPodSelector = false, // eslint-disable-line @typescript-eslint/no-unused-vars
-  showNodeSelector = false, // eslint-disable-line @typescript-eslint/no-unused-vars
   showAnnotations = true,
-  showTolerations = false, // eslint-disable-line @typescript-eslint/no-unused-vars
   showLabelEditor = true,
   canUpdateResource = true,
-  podSelector = 'spec.selector', // eslint-disable-line @typescript-eslint/no-unused-vars
-  nodeSelector = 'spec.template.spec.nodeSelector', // eslint-disable-line @typescript-eslint/no-unused-vars
   resourceModel,
+  ownerLabel,
 }) => {
   const { t } = useCustomTranslation();
   const { metadata } = resource;
@@ -395,7 +387,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
         <Timestamp timestamp={metadata.creationTimestamp} />
       </DetailsItem>
       <DetailsItem
-        label={t('Owner')}
+        label={ownerLabel || t('Owner')}
         obj={resource}
         path="metadata.ownerReferences"
       >

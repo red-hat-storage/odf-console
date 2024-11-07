@@ -5,8 +5,15 @@ import {
   CreateBucketCommand,
   PutBucketTaggingCommand,
   GetObjectCommand,
+  GetObjectTaggingCommand,
   DeleteObjectsCommand,
+  GetBucketEncryptionCommand,
+  GetBucketVersioningCommand,
+  GetBucketTaggingCommand,
+  GetBucketAclCommand,
+  GetBucketPolicyCommand,
 } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
   CreateBucket,
@@ -15,14 +22,18 @@ import {
   PutBucketTags,
   GetSignedUrl,
   GetObject,
+  GetObjectTagging,
   DeleteObjects,
+  GetBucketEncryption,
+  GetBucketVersioning,
+  GetBucketTagging,
+  GetBucketAcl,
+  GetBucketPolicy,
 } from './types';
 
-export class S3Commands {
-  private s3Client: S3Client;
-
+export class S3Commands extends S3Client {
   constructor(endpoint: string, accessKeyId: string, secretAccessKey: string) {
-    this.s3Client = new S3Client({
+    super({
       // "region" is a required parameter for the SDK, using "none" as a workaround
       region: 'none',
       endpoint,
@@ -34,26 +45,58 @@ export class S3Commands {
     });
   }
 
-  // Bucket command members
+  // Bucket command members (alphabetical order)
   createBucket: CreateBucket = (input) =>
-    this.s3Client.send(new CreateBucketCommand(input));
+    this.send(new CreateBucketCommand(input));
+
+  getBucketAcl: GetBucketAcl = (input) =>
+    this.send(new GetBucketAclCommand(input));
+
+  getBucketEncryption: GetBucketEncryption = (input) =>
+    this.send(new GetBucketEncryptionCommand(input));
+
+  getBucketPolicy: GetBucketPolicy = (input) =>
+    this.send(new GetBucketPolicyCommand(input));
+
+  getBucketTagging: GetBucketTagging = (input) =>
+    this.send(new GetBucketTaggingCommand(input));
+
+  getBucketVersioning: GetBucketVersioning = (input) =>
+    this.send(new GetBucketVersioningCommand(input));
 
   listBuckets: ListBuckets = (input) =>
-    this.s3Client.send(new ListBucketsCommand(input));
+    this.send(new ListBucketsCommand(input));
 
   putBucketTags: PutBucketTags = (input) =>
-    this.s3Client.send(new PutBucketTaggingCommand(input));
+    this.send(new PutBucketTaggingCommand(input));
 
   // Object command members
   listObjects: ListObjectsV2 = (input) =>
-    this.s3Client.send(new ListObjectsV2Command(input));
+    this.send(new ListObjectsV2Command(input));
 
   getSignedUrl: GetSignedUrl = (input, expiresIn) =>
-    getSignedUrl(this.s3Client, new GetObjectCommand(input), { expiresIn });
+    getSignedUrl(this, new GetObjectCommand(input), { expiresIn });
 
-  getObject: GetObject = (input) =>
-    this.s3Client.send(new GetObjectCommand(input));
+  getObject: GetObject = (input) => this.send(new GetObjectCommand(input));
+
+  getObjectTagging: GetObjectTagging = (input) =>
+    this.send(new GetObjectTaggingCommand(input));
 
   deleteObjects: DeleteObjects = (input) =>
-    this.s3Client.send(new DeleteObjectsCommand(input));
+    this.send(new DeleteObjectsCommand(input));
+
+  getUploader = (file: File, key: string, bucketName: string): Upload => {
+    const uploader = new Upload({
+      client: this,
+      params: {
+        Bucket: bucketName,
+        Key: key,
+        Body: file,
+        ...(file.type ? { ContentType: file.type } : {}),
+      },
+      partSize: 5 * 1024 * 1024,
+      queueSize: 4,
+    });
+    return uploader;
+  };
 }
