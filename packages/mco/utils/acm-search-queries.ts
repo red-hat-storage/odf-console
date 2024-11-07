@@ -130,7 +130,7 @@ export const queryRecipesFromCluster = (
   query: searchFilterQuery,
 });
 
-// ACM seach query to fetch all releated resources of this namesapces from the managed cluster.
+// ACM seach query to fetch all releated resources of this namespaces from the managed cluster.
 export const queryK8sResourceFromCluster = (
   clusterName: string,
   namespaces: string[]

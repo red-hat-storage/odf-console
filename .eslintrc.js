@@ -67,7 +67,6 @@ module.exports = {
     'react/jsx-indent': 'off',
     'react/jsx-no-constructed-context-values': 'off',
     'react/jsx-no-useless-fragment': ['error', { allowExpressions: true }],
-    'react/no-unstable-nested-components': 'off',
     'react/no-unused-prop-types': 'off',
     'consistent-return': 'off',
     'default-case': 'off',

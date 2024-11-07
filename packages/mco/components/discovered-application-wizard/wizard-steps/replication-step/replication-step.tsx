@@ -39,7 +39,7 @@ import {
   EnrollDiscoveredApplicationState,
   EnrollDiscoveredApplicationStateType,
 } from '../../utils/reducer';
-import { findAllEligiblePolicies } from '../namespace-step/namesapce-table';
+import { findAllEligiblePolicies } from '../namespace-step/namespace-table';
 import '../../enroll-discovered-application.scss';
 
 const getPolicyOptions = (dataPolicies: DRPolicyKind[], t: TFunction) =>

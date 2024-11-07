@@ -91,6 +91,36 @@ const TableRow: React.FC<RowComponentType<K8sResourceCommon>> = ({
   );
 };
 
+const EmptyRowMessageWrapper: React.FC = ({ children }) => {
+  return (
+    <Bullseye className="mco-namespace-selection__border pf-v5-u-mt-md pf-v5-u-mb-sm pf-v5-u-h-33vh">
+      {children}
+    </Bullseye>
+  );
+};
+
+const EmptyRowMessage: React.FC = () => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <EmptyRowMessageWrapper>
+      {t('There are no namespaces to display.')}
+    </EmptyRowMessageWrapper>
+  );
+};
+
+const NoClusterEmptyRowMessage: React.FC = () => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <EmptyRowMessageWrapper>
+      {t(
+        'There are no namespaces to display. Select a cluster first to view namespaces.'
+      )}
+    </EmptyRowMessageWrapper>
+  );
+};
+
 export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
   ({
     namespaces,
@@ -178,16 +208,13 @@ export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
             setSelectedRows={setSelectedNamespaces}
             loaded={searchLoaded}
             borders={false}
-            emptyRowMessage={() => (
-              <Bullseye className="mco-namespace-selection__border pf-v5-u-mt-md pf-v5-u-mb-sm pf-v5-u-h-33vh">
-                {!!searchError ||
-                  (!clusterName
-                    ? t(
-                        'There are no namespaces to display. Select a cluster first to view namespaces.'
-                      )
-                    : t('There are no namespaces to display.'))}
-              </Bullseye>
-            )}
+            emptyRowMessage={
+              searchError
+                ? searchError
+                : clusterName
+                ? EmptyRowMessage
+                : NoClusterEmptyRowMessage
+            }
           />
           <Text>
             {t(
