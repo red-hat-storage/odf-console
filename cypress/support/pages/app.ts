@@ -31,13 +31,10 @@ export const projectNameSpace = {
     cy.byTestID('dropdown-menu-item-link').should('have.length.gt', 5);
     // Bug: ODC-6164 - is created related to Accessibility violation - Until bug fix, below line is commented to execute the scripts in CI
     // cy.testA11y('Create Project modal');
-    cy.byTestID('dropdown-text-filter')
-      .clear()
-      .then(() => cy.byTestID('dropdown-text-filter').should('be.empty'))
-      .then(() => cy.byTestID('dropdown-text-filter').type(projectName))
-      .then(() =>
-        cy.byTestID('dropdown-text-filter').should('have.value', projectName)
-      );
+    cy.byTestID('dropdown-text-filter').clear();
+    cy.byTestID('dropdown-text-filter').should('be.empty');
+    cy.byTestID('dropdown-text-filter').type(projectName);
+    cy.byTestID('dropdown-text-filter').should('have.value', projectName);
     cy.get('[data-test-id="namespace-bar-dropdown"] span')
       .first()
       .as('projectNameSpaceDropdown');

@@ -34,19 +34,19 @@ abstract class BucketClassConfig {
   constructor(public resources: string[], public type: BucketClassType) {}
 }
 
+const createPVCBackingStore = (storeName: string) => {
+  cy.log(`Creating a Backing Store resource named ${storeName}`);
+  cy.exec(
+    `echo '${JSON.stringify(
+      bucketStore(storeName)
+    )}' | kubectl create -n openshift-storage -f -`
+  );
+};
+
 export class StandardBucketClassConfig extends BucketClassConfig {
   tiers: Tier[];
 
-  private createPVCBackingStore = (storeName: string) => {
-    cy.log(`Creating a Backing Store resource named ${storeName}`);
-    cy.exec(
-      `echo '${JSON.stringify(
-        bucketStore(storeName)
-      )}' | kubectl create -n openshift-storage -f -`
-    );
-  };
-
-  setup = () => this.resources.forEach(this.createPVCBackingStore);
+  setup = () => this.resources.forEach(createPVCBackingStore);
 
   cleanup = () => {
     cy.log('Deleting backing stores');
@@ -56,30 +56,30 @@ export class StandardBucketClassConfig extends BucketClassConfig {
   };
 }
 
+const createAWSStore = (name: string, type: StoreType) => {
+  cy.log(
+    `Creating a ${
+      type === StoreType.NamespaceStore ? 'Namespace' : 'Backing'
+    } Store resource named ${name}`
+  );
+
+  cy.exec(
+    `echo '${JSON.stringify(
+      namespaceStore(name, type)
+    )}' | kubectl create -n openshift-storage -f -`
+  );
+};
+
 export class NamespaceBucketClassConfig extends BucketClassConfig {
   namespacePolicyType: NamespacePolicyType;
 
   readonly testBackingStore: string = 'backingstore-test';
 
-  createAWSStore = (name: string, type: StoreType) => {
-    cy.log(
-      `Creating a ${
-        type === StoreType.NamespaceStore ? 'Namespace' : 'Backing'
-      } Store resource named ${name}`
-    );
-
-    cy.exec(
-      `echo '${JSON.stringify(
-        namespaceStore(name, type)
-      )}' | kubectl create -n openshift-storage -f -`
-    );
-  };
-
   setup = () => {
     this.resources.forEach((testResource) =>
-      this.createAWSStore(testResource, StoreType.NamespaceStore)
+      createAWSStore(testResource, StoreType.NamespaceStore)
     );
-    this.createAWSStore(this.testBackingStore, StoreType.BackingStore);
+    createAWSStore(this.testBackingStore, StoreType.BackingStore);
   };
 
   cleanup = () => {
@@ -107,7 +107,8 @@ const tierLevelToButton = (level: number, tier: Tier) =>
 const setGeneralData = (type: BucketClassType) => {
   // be.visible check added to wait for the page to load
   cy.byTestID(`${type.toLowerCase()}-radio`).click();
-  cy.byTestID('bucket-class-name').scrollIntoView().should('be.visible');
+  cy.byTestID('bucket-class-name').scrollIntoView();
+  cy.byTestID('bucket-class-name').should('be.visible');
   cy.byTestID('bucket-class-name').type(bcName);
   cy.byTestID('bucket-class-description').type(bcDescription);
 };

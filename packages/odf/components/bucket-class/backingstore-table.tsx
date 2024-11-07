@@ -200,23 +200,21 @@ const BackingStoreListWrapper: React.FC<BackingStoreListWrapperProps> = ({
   );
 
   return (
-    <>
-      <ListPageBody>
-        <ListPageFilter
-          data={data}
-          loaded={loaded && isODFNsLoaded}
-          onFilterChange={onFilterChange}
-          hideColumnManagement
-        />
-        <BackingStoreList
-          data={filteredData}
-          unfilteredData={data}
-          loaded={loaded && isODFNsLoaded}
-          loadError={loadError || odfNsLoadError}
-          rowData={{ selectedData: selectedRows, onSelect }}
-        />
-      </ListPageBody>
-    </>
+    <ListPageBody>
+      <ListPageFilter
+        data={data}
+        loaded={loaded && isODFNsLoaded}
+        onFilterChange={onFilterChange}
+        hideColumnManagement
+      />
+      <BackingStoreList
+        data={filteredData}
+        unfilteredData={data}
+        loaded={loaded && isODFNsLoaded}
+        loadError={loadError || odfNsLoadError}
+        rowData={{ selectedData: selectedRows, onSelect }}
+      />
+    </ListPageBody>
   );
 };
 

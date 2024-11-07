@@ -257,79 +257,77 @@ const BucketClassEditModal: React.FC<BucketClassEditModalProps> = (props) => {
       });
   };
   return (
-    <>
-      <Modal
-        title={t('Edit BucketClass Resource')}
-        isOpen={isOpen}
-        variant={ModalVariant.medium}
-        onClose={closeModal}
-      >
-        {nsLoaded && loaded ? (
-          <>
-            <ModalBody className="nb-bc-modal">
-              <p className="nb-bc-modal__text">
-                {t(
-                  '{{storeType}} represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.',
-                  {
-                    storeType: isNamespaceType
-                      ? t('NamespaceStore')
-                      : t('BackingStore'),
-                  }
-                )}
-              </p>
-              {!isNamespaceType ? (
-                <BackingStoreSelection
-                  tier1Policy={policyA}
-                  tier2Policy={policyB}
-                  selectedTierA={state.tier1BackingStore}
-                  selectedTierB={state.tier2BackingStore}
-                  setSelectedTierA={(selectedA) =>
-                    dispatch({ type: 'setBackingStoreTier1', value: selectedA })
-                  }
-                  setSelectedTierB={(selectedB) =>
-                    dispatch({ type: 'setBackingStoreTier2', value: selectedB })
-                  }
-                  hideCreateBackingStore
-                />
-              ) : (
-                getNamespaceStorePage()
+    <Modal
+      title={t('Edit BucketClass Resource')}
+      isOpen={isOpen}
+      variant={ModalVariant.medium}
+      onClose={closeModal}
+    >
+      {nsLoaded && loaded ? (
+        <>
+          <ModalBody className="nb-bc-modal">
+            <p className="nb-bc-modal__text">
+              {t(
+                '{{storeType}} represents a storage target to be used as the underlying storage for the data in Multicloud Object Gateway buckets.',
+                {
+                  storeType: isNamespaceType
+                    ? t('NamespaceStore')
+                    : t('BackingStore'),
+                }
               )}
-              {error && (
-                <Alert isInline variant="danger" title={t('An error occurred')}>
-                  {(error as any)?.message}
-                </Alert>
-              )}
-            </ModalBody>
-            <ModalFooter>
-              <ActionGroup>
+            </p>
+            {!isNamespaceType ? (
+              <BackingStoreSelection
+                tier1Policy={policyA}
+                tier2Policy={policyB}
+                selectedTierA={state.tier1BackingStore}
+                selectedTierB={state.tier2BackingStore}
+                setSelectedTierA={(selectedA) =>
+                  dispatch({ type: 'setBackingStoreTier1', value: selectedA })
+                }
+                setSelectedTierB={(selectedB) =>
+                  dispatch({ type: 'setBackingStoreTier2', value: selectedB })
+                }
+                hideCreateBackingStore
+              />
+            ) : (
+              getNamespaceStorePage()
+            )}
+            {error && (
+              <Alert isInline variant="danger" title={t('An error occurred')}>
+                {(error as any)?.message}
+              </Alert>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <ActionGroup>
+              <Button
+                onClick={closeModal}
+                aria-label={t('Cancel')}
+                variant="secondary"
+              >
+                {t('Cancel')}
+              </Button>
+              {!inProgress ? (
                 <Button
-                  onClick={closeModal}
-                  aria-label={t('Cancel')}
-                  variant="secondary"
+                  onClick={onSubmit}
+                  aria-label={t('Save')}
+                  type="submit"
+                  className="nb-edit-modal__save-btn"
+                  isDisabled={isNamespaceType ? !isEnabledNS() : !isEnabled}
                 >
-                  {t('Cancel')}
+                  {t('Save')}
                 </Button>
-                {!inProgress ? (
-                  <Button
-                    onClick={onSubmit}
-                    aria-label={t('Save')}
-                    type="submit"
-                    className="nb-edit-modal__save-btn"
-                    isDisabled={isNamespaceType ? !isEnabledNS() : !isEnabled}
-                  >
-                    {t('Save')}
-                  </Button>
-                ) : (
-                  <LoadingInline />
-                )}
-              </ActionGroup>
-            </ModalFooter>
-          </>
-        ) : (
-          <LoadingBox />
-        )}
-      </Modal>
-    </>
+              ) : (
+                <LoadingInline />
+              )}
+            </ActionGroup>
+          </ModalFooter>
+        </>
+      ) : (
+        <LoadingBox />
+      )}
+    </Modal>
   );
 };
 

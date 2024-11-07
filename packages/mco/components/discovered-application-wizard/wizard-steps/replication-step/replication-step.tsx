@@ -105,41 +105,37 @@ const PolicySelection: React.FC<PolicySelectionProps> = ({
     });
   };
 
-  return (
-    <>
-      {loaded && !loadError ? (
-        <FormGroup
-          className="pf-v5-u-w-50"
-          fieldId="dr-policy-selection"
-          label={t('Disaster recovery policy')}
-          labelIcon={
-            <FieldLevelHelp>
-              {t('The policy sync interval is only applicable to volumes.')}
-            </FieldLevelHelp>
-          }
-          isRequired
-        >
-          <SingleSelectDropdown
-            id="dr-policy-dropdown"
-            placeholderText={t('Select a policy')}
-            selectedKey={getName(policy)}
-            selectOptions={getPolicyOptions(eligiblePolicies, t)}
-            onChange={setSelectedPolicy}
-            validated={policyValidated}
-            isDisabled={!eligiblePolicies.length}
-          />
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem variant={policyValidated}>
-                {policyValidated === 'error' ? helperTextInvalid : helperText}
-              </HelperTextItem>
-            </HelperText>
-          </FormHelperText>
-        </FormGroup>
-      ) : (
-        <StatusBox loaded={loaded} loadError={loadError} />
-      )}
-    </>
+  return loaded && !loadError ? (
+    <FormGroup
+      className="pf-v5-u-w-50"
+      fieldId="dr-policy-selection"
+      label={t('Disaster recovery policy')}
+      labelIcon={
+        <FieldLevelHelp>
+          {t('The policy sync interval is only applicable to volumes.')}
+        </FieldLevelHelp>
+      }
+      isRequired
+    >
+      <SingleSelectDropdown
+        id="dr-policy-dropdown"
+        placeholderText={t('Select a policy')}
+        selectedKey={getName(policy)}
+        selectOptions={getPolicyOptions(eligiblePolicies, t)}
+        onChange={setSelectedPolicy}
+        validated={policyValidated}
+        isDisabled={!eligiblePolicies.length}
+      />
+      <FormHelperText>
+        <HelperText>
+          <HelperTextItem variant={policyValidated}>
+            {policyValidated === 'error' ? helperTextInvalid : helperText}
+          </HelperTextItem>
+        </HelperText>
+      </FormHelperText>
+    </FormGroup>
+  ) : (
+    <StatusBox loaded={loaded} loadError={loadError} />
   );
 };
 

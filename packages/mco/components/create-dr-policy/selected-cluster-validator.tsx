@@ -301,36 +301,32 @@ export const SelectedClusterValidation: React.FC<SelectedClusterValidationProps>
               </Alert>
             )}
           </>
+        ) : isInvalidPeering ? (
+          <PeeringValidationMessage peeringValidation={peeringValidation} />
         ) : (
           <>
-            {isInvalidPeering ? (
-              <PeeringValidationMessage peeringValidation={peeringValidation} />
-            ) : (
-              <>
-                <Alert
-                  data-test="odf-not-found-alert"
-                  className="odf-alert mco-create-data-policy__alert"
-                  title={t(
-                    '1 or more clusters do not meet disaster recovery cluster prerequisites.'
-                  )}
-                  variant={AlertVariant.danger}
-                  isInline
-                >
-                  {t(
-                    'The selected managed cluster(s) does not meet all necessary conditions ' +
-                      'to be eligible for disaster recovery policy. Resolve the following ' +
-                      'issues to proceed with policy creation.'
-                  )}
-                </Alert>
-                {invalidClusters.map((clusterName) => (
-                  <ClusterValidationMessage
-                    clusterValidation={clusterValidation}
-                    clusterName={clusterName}
-                    requiredODFVersion={requiredODFVersion}
-                  />
-                ))}
-              </>
-            )}
+            <Alert
+              data-test="odf-not-found-alert"
+              className="odf-alert mco-create-data-policy__alert"
+              title={t(
+                '1 or more clusters do not meet disaster recovery cluster prerequisites.'
+              )}
+              variant={AlertVariant.danger}
+              isInline
+            >
+              {t(
+                'The selected managed cluster(s) does not meet all necessary conditions ' +
+                  'to be eligible for disaster recovery policy. Resolve the following ' +
+                  'issues to proceed with policy creation.'
+              )}
+            </Alert>
+            {invalidClusters.map((clusterName) => (
+              <ClusterValidationMessage
+                clusterValidation={clusterValidation}
+                clusterName={clusterName}
+                requiredODFVersion={requiredODFVersion}
+              />
+            ))}
           </>
         )}
       </StatusBox>

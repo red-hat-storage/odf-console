@@ -86,7 +86,8 @@ export const checkStoragePoolIsSelectableInSCForm = (poolName: string) => {
 
 export const fillStoragePoolForm = (poolType: POOL_TYPE, poolName: string) => {
   cy.byTestID(`type-${poolType.toLowerCase()}`).click();
-  cy.byTestID('new-pool-name-textbox').clear().type(poolName);
+  cy.byTestID('new-pool-name-textbox').clear();
+  cy.byTestID('new-pool-name-textbox').type(poolName);
   cy.byTestID('replica-dropdown').click();
   cy.byLegacyTestID('replica-dropdown-item')
     .contains(`${replicaCount}-way Replication`)
@@ -123,7 +124,8 @@ export const triggerPoolFormFooterAction = (action: string) => {
       break;
     default:
       cy.log(`Invoke ${action} action`);
-      cy.byLegacyTestID('confirm-action').scrollIntoView().click();
+      cy.byLegacyTestID('confirm-action').scrollIntoView();
+      cy.byLegacyTestID('confirm-action').click();
   }
 };
 
@@ -166,7 +168,8 @@ export const openStoragePoolKebab = (
   targetPoolName: string,
   isDefaultPool = false
 ) => {
-  cy.byLegacyTestID('item-filter').clear().type(targetPoolName);
+  cy.byLegacyTestID('item-filter').clear();
+  cy.byLegacyTestID('item-filter').type(targetPoolName);
   cy.log('Only one resource should be present after filtering');
   cy.byTestID('kebab-button').should('have.length', 1);
   if (isDefaultPool) cy.byTestID('kebab-button').should('be.disabled');
@@ -182,6 +185,7 @@ export const deleteStoragePool = (poolName: string) => {
   triggerPoolFormFooterAction('delete');
 
   cy.log('Verify that the pool is not found.');
-  cy.byLegacyTestID('item-filter').clear().type(poolName);
+  cy.byLegacyTestID('item-filter').clear();
+  cy.byLegacyTestID('item-filter').type(poolName);
   cy.byTestID('kebab-button').should('have.length', 0);
 };

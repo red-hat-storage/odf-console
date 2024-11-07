@@ -332,19 +332,17 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
             )}
           />
           {isNoobaa && (
-            <>
-              <FormGroup>
-                <Checkbox
-                  id="enable-replication"
-                  label={t('Enable replication')}
-                  isChecked={replicationEnabled}
-                  description={t(
-                    'This option provides higher resiliency of objects stored in NooBaa buckets'
-                  )}
-                  onChange={onChangeReplication}
-                />
-              </FormGroup>
-            </>
+            <FormGroup>
+              <Checkbox
+                id="enable-replication"
+                label={t('Enable replication')}
+                isChecked={replicationEnabled}
+                description={t(
+                  'This option provides higher resiliency of objects stored in NooBaa buckets'
+                )}
+                onChange={onChangeReplication}
+              />
+            </FormGroup>
           )}
           {replicationEnabled && (
             <>

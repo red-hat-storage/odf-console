@@ -135,61 +135,59 @@ export const DRPolicyListPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <>
-      <ListPageBody>
-        {drPolicies?.length === 0 ? (
-          // All length 0 cases are handled by EmptyPage
-          <EmptyPage
-            title={t('No disaster recovery policies yet')}
-            buttonText={t('Create DRPolicy')}
-            canAccess={!drPoliciesLoadError && drPoliciesLoaded}
-            // Stop loading when DRPolicy read is success or any error occured
-            // For DRPolicy read permission issue, loaded is always false and error is non empty
-            isLoaded={drPoliciesLoaded || !!drPoliciesLoadError}
-            onClick={() => navigate(drPolicyCreatePagePath)}
-          >
-            <Trans t={t}>
-              Configure recovery to your failover cluster with a disaster
-              recovery policy.
-              <br />
-              Click the <strong>Create DRPolicy</strong> button to get started.
-            </Trans>
-          </EmptyPage>
-        ) : (
-          <>
-            <div className="mco-drpolicy-list__header">
-              <ListPageFilter
-                data={data}
-                loaded={!!drPolicies?.length}
-                onFilterChange={onFilterChange}
-                hideColumnManagement={true}
-              />
-              <div className="mco-drpolicy-list__createlink">
-                <ListPageCreateLink
-                  to={drPolicyCreatePagePath}
-                  createAccessReview={{
-                    groupVersionKind: referenceForModel(DRPolicyModel),
-                  }}
-                >
-                  {t('Create DRPolicy')}
-                </ListPageCreateLink>
-              </div>
-            </div>
-            <DRPolicyList
-              data={filteredData}
-              unfilteredData={drPolicies}
-              loaded={drPoliciesLoaded}
-              loadError={drPoliciesLoadError}
-              rowData={{
-                canDeleteDRPolicy,
-                appCountLoadedWOError,
-                policyToAppCount,
-              }}
+    <ListPageBody>
+      {drPolicies?.length === 0 ? (
+        // All length 0 cases are handled by EmptyPage
+        <EmptyPage
+          title={t('No disaster recovery policies yet')}
+          buttonText={t('Create DRPolicy')}
+          canAccess={!drPoliciesLoadError && drPoliciesLoaded}
+          // Stop loading when DRPolicy read is success or any error occured
+          // For DRPolicy read permission issue, loaded is always false and error is non empty
+          isLoaded={drPoliciesLoaded || !!drPoliciesLoadError}
+          onClick={() => navigate(drPolicyCreatePagePath)}
+        >
+          <Trans t={t}>
+            Configure recovery to your failover cluster with a disaster recovery
+            policy.
+            <br />
+            Click the <strong>Create DRPolicy</strong> button to get started.
+          </Trans>
+        </EmptyPage>
+      ) : (
+        <>
+          <div className="mco-drpolicy-list__header">
+            <ListPageFilter
+              data={data}
+              loaded={!!drPolicies?.length}
+              onFilterChange={onFilterChange}
+              hideColumnManagement={true}
             />
-          </>
-        )}
-      </ListPageBody>
-    </>
+            <div className="mco-drpolicy-list__createlink">
+              <ListPageCreateLink
+                to={drPolicyCreatePagePath}
+                createAccessReview={{
+                  groupVersionKind: referenceForModel(DRPolicyModel),
+                }}
+              >
+                {t('Create DRPolicy')}
+              </ListPageCreateLink>
+            </div>
+          </div>
+          <DRPolicyList
+            data={filteredData}
+            unfilteredData={drPolicies}
+            loaded={drPoliciesLoaded}
+            loadError={drPoliciesLoadError}
+            rowData={{
+              canDeleteDRPolicy,
+              appCountLoadedWOError,
+              policyToAppCount,
+            }}
+          />
+        </>
+      )}
+    </ListPageBody>
   );
 };
 

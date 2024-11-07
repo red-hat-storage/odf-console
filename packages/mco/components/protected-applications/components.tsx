@@ -315,19 +315,12 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
         resourceName={namespace}
       />
     )) || [];
-  return (
-    <>
-      {!enrolledNamespaces.length ? (
-        <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
-      ) : (
-        <DescriptionList_>
-          <Description
-            term={t('Namespace')}
-            descriptions={enrolledNamespaces}
-          />
-        </DescriptionList_>
-      )}
-    </>
+  return !enrolledNamespaces.length ? (
+    <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
+  ) : (
+    <DescriptionList_>
+      <Description term={t('Namespace')} descriptions={enrolledNamespaces} />
+    </DescriptionList_>
   );
 };
 
@@ -350,20 +343,16 @@ export const EventsDetails: React.FC<ExpandableComponentProps> = ({
   const status = [
     <StatusIconAndText icon={activity.icon} title={activity.status} />,
   ];
-  return (
-    <>
-      {!anyOnGoingEvent ? (
-        <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
-      ) : (
-        <DescriptionList_ columnModifier={'2Col'}>
-          <Description
-            term={t('Activity description')}
-            descriptions={[activity.description]}
-          />
-          <Description term={t('Status')} descriptions={status} />
-        </DescriptionList_>
-      )}
-    </>
+  return !anyOnGoingEvent ? (
+    <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
+  ) : (
+    <DescriptionList_ columnModifier={'2Col'}>
+      <Description
+        term={t('Activity description')}
+        descriptions={[activity.description]}
+      />
+      <Description term={t('Status')} descriptions={status} />
+    </DescriptionList_>
   );
 };
 

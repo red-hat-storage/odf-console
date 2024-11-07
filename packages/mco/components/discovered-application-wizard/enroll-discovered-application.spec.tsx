@@ -243,7 +243,7 @@ jest.mock('react-router-dom-v5-compat', () => ({
 
 jest.mock('@odf/shared/heading/page-heading', () => ({
   __esModule: true,
-  default: jest.fn(() => <></>),
+  default: jest.fn(() => null),
 }));
 
 jest.mock(
@@ -256,7 +256,7 @@ jest.mock(
       if (testCase >= 3) return [userNamespaces, userNamespaces, jest.fn()];
       else return [[], [], jest.fn()];
     }),
-    ListPageFilter: jest.fn(() => <></>),
+    ListPageFilter: jest.fn(() => null),
     useK8sWatchResource: jest.fn(() => {
       return [drPlacements, true, undefined];
     }),
@@ -270,7 +270,7 @@ jest.mock(
 // Mocking as "Popover" is throwing warning for FieldLevelHelp & TextInputWithFieldRequirements
 jest.mock('@patternfly/react-core', () => ({
   ...jest.requireActual('@patternfly/react-core'),
-  Popover: () => <></>,
+  Popover: () => null,
 }));
 
 const moveToStep = async (step: number) => {

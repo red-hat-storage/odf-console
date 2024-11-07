@@ -358,44 +358,42 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
   if (areFlagsSafe && isLoaded && !loadError) {
     if (!isExternal && fsDataLoaded && !fsDataLoadError) {
       return (
-        <>
-          <div className="form-group">
-            <label className="co-required" htmlFor="ocs-storage-pool">
-              {t('Storage Pool')}
-            </label>
-            <Dropdown
-              className="dropdown--full-width"
-              toggle={
-                <DropdownToggle
-                  id="pool-dropdown-id"
-                  data-test="pool-dropdown-toggle"
-                  onToggle={() => setOpen(!isOpen)}
-                  toggleIndicator={CaretDownIcon}
-                >
-                  {parameterValue || t('Select a Pool')}
-                </DropdownToggle>
-              }
-              isOpen={isOpen}
-              dropdownItems={getPoolDropdownItems(
-                poolData,
-                cephCluster,
-                handleDropdownChange,
-                onPoolCreation,
-                launchModal,
-                t,
-                '',
-                POOL_TYPE.FILESYSTEM,
-                existingNames,
-                filesystemName
-              )}
-              onSelect={() => setOpen(false)}
-              id="ocs-storage-pool"
-            />
-            <span className="help-block">
-              {t('Storage pool into which volume data shall be stored')}
-            </span>
-          </div>
-        </>
+        <div className="form-group">
+          <label className="co-required" htmlFor="ocs-storage-pool">
+            {t('Storage Pool')}
+          </label>
+          <Dropdown
+            className="dropdown--full-width"
+            toggle={
+              <DropdownToggle
+                id="pool-dropdown-id"
+                data-test="pool-dropdown-toggle"
+                onToggle={() => setOpen(!isOpen)}
+                toggleIndicator={CaretDownIcon}
+              >
+                {parameterValue || t('Select a Pool')}
+              </DropdownToggle>
+            }
+            isOpen={isOpen}
+            dropdownItems={getPoolDropdownItems(
+              poolData,
+              cephCluster,
+              handleDropdownChange,
+              onPoolCreation,
+              launchModal,
+              t,
+              '',
+              POOL_TYPE.FILESYSTEM,
+              existingNames,
+              filesystemName
+            )}
+            onSelect={() => setOpen(false)}
+            id="ocs-storage-pool"
+          />
+          <span className="help-block">
+            {t('Storage pool into which volume data shall be stored')}
+          </span>
+        </div>
       );
     }
     if (isExternal) {

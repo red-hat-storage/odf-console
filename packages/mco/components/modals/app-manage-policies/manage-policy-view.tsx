@@ -133,45 +133,41 @@ const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
   const allLoaded = policyInfoLoaded && loaded;
   const anyLoadError = policyInfoLoadError || loadError;
 
-  return (
-    <>
-      {allLoaded && !anyLoadError ? (
-        <EmptyPage
-          isLoaded={allLoaded}
-          canAccess={true}
-          isDisabled={isNamespaceProtected}
-          EmptyIcon={BlueInfoCircleIcon}
-          onClick={onClick}
-          buttonText={t('Enroll application')}
-          title={
-            isNamespaceProtected
-              ? t('Application already enrolled in disaster recovery')
-              : t('No assigned disaster recovery policy found')
-          }
-        >
-          {isNamespaceProtected ? (
-            <Trans t={t}>
-              <p>
-                This managed application namespace is already DR protected. You
-                may have protected this namespace while enrolling discovered
-                applications.
-              </p>
-              <p className="pf-v5-u-mt-md">
-                To see disaster recovery information for your applications, go
-                to <strong>Protected applications</strong> under&nbsp;
-                <strong>Disaster Recovery</strong>.
-              </p>
-            </Trans>
-          ) : (
-            t(
-              'You have not enrolled this application yet. To protect your application,'
-            )
-          )}
-        </EmptyPage>
+  return allLoaded && !anyLoadError ? (
+    <EmptyPage
+      isLoaded={allLoaded}
+      canAccess={true}
+      isDisabled={isNamespaceProtected}
+      EmptyIcon={BlueInfoCircleIcon}
+      onClick={onClick}
+      buttonText={t('Enroll application')}
+      title={
+        isNamespaceProtected
+          ? t('Application already enrolled in disaster recovery')
+          : t('No assigned disaster recovery policy found')
+      }
+    >
+      {isNamespaceProtected ? (
+        <Trans t={t}>
+          <p>
+            This managed application namespace is already DR protected. You may
+            have protected this namespace while enrolling discovered
+            applications.
+          </p>
+          <p className="pf-v5-u-mt-md">
+            To see disaster recovery information for your applications, go to
+            <strong>Protected applications</strong> under&nbsp;
+            <strong>Disaster Recovery</strong>.
+          </p>
+        </Trans>
       ) : (
-        <StatusBox loaded={allLoaded} loadError={anyLoadError} />
+        t(
+          'You have not enrolled this application yet. To protect your application,'
+        )
       )}
-    </>
+    </EmptyPage>
+  ) : (
+    <StatusBox loaded={allLoaded} loadError={anyLoadError} />
   );
 };
 

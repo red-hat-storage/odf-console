@@ -8,9 +8,7 @@ const params = {
 };
 
 const mockNamespaceStoreForm = jest.fn();
-const MockNamespaceStoreForm = (): React.ReactElement => {
-  return <></>;
-};
+const MockNamespaceStoreForm: React.FC = () => null;
 jest.mock('./namespace-store-form', () => (props) => {
   mockNamespaceStoreForm(props);
   return <MockNamespaceStoreForm />;

@@ -18,11 +18,11 @@ import {
 } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import {
   AlertsBody,
   AlertItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
 import {

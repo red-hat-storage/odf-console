@@ -24,41 +24,28 @@ const DataPoliciesStatusModal: React.FC<CommonModalProps> = ({
   );
 
   return (
-    <>
-      <Modal
-        title={title}
-        variant="medium"
-        isOpen={isOpen}
-        onClose={closeModal}
-      >
-        <ModalBody>
-          <Nav
-            variant="tertiary"
-            className="mco-data-policies-subs-status-modal__nav"
-          >
-            <NavList>
-              <NavItem
-                key="disaster_recover"
-                isActive={true}
-                data-test="dr-tab"
-              >
-                {t('Disaster Recovery ({{count}})', { count })}
-              </NavItem>
-            </NavList>
-          </Nav>
-          <div className="mco-data-policies-subs-status-modal__body">
-            <DRPoliciesStatusTable
-              drPolicies={dataPoliciesStatus?.drPolicies}
-            />
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button key="close" variant="primary" onClick={closeModal}>
-            {t('Close')}
-          </Button>
-        </ModalFooter>
-      </Modal>
-    </>
+    <Modal title={title} variant="medium" isOpen={isOpen} onClose={closeModal}>
+      <ModalBody>
+        <Nav
+          variant="tertiary"
+          className="mco-data-policies-subs-status-modal__nav"
+        >
+          <NavList>
+            <NavItem key="disaster_recover" isActive={true} data-test="dr-tab">
+              {t('Disaster Recovery ({{count}})', { count })}
+            </NavItem>
+          </NavList>
+        </Nav>
+        <div className="mco-data-policies-subs-status-modal__body">
+          <DRPoliciesStatusTable drPolicies={dataPoliciesStatus?.drPolicies} />
+        </div>
+      </ModalBody>
+      <ModalFooter>
+        <Button key="close" variant="primary" onClick={closeModal}>
+          {t('Close')}
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 };
 

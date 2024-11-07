@@ -41,11 +41,7 @@ export const TopClientsCard: React.FC = () => {
     <Card data-test="nfs-details-card">
       <CardHeader
         actions={{
-          actions: (
-            <>
-              <UtilizationDurationDropdown />
-            </>
-          ),
+          actions: <UtilizationDurationDropdown />,
           hasNoOffset: false,
           className: undefined,
         }}

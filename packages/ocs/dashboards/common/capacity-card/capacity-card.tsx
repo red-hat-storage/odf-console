@@ -158,11 +158,7 @@ const LoadingCardBody: React.FC = () => (
 const ErrorCardBody: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
-    <>
-      <div className="ceph-raw-usage--error text-muted">
-        {t('Not Available')}
-      </div>
-    </>
+    <div className="ceph-raw-usage--error text-muted">{t('Not Available')}</div>
   );
 };
 

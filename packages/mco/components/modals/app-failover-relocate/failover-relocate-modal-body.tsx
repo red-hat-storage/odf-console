@@ -175,34 +175,26 @@ export const DateTimeFormat: React.FC<{
   className?: string;
 }> = ({ dateTime, className }) => {
   const { t } = useCustomTranslation();
-  return (
-    <>
-      {!!dateTime ? (
-        utcDateTimeFormatter.format(new Date(dateTime))
-      ) : (
-        <StatusIconAndText
-          title={t('Unknown')}
-          icon={<UnknownIcon />}
-          className={className}
-        />
-      )}
-    </>
+  return !!dateTime ? (
+    <>{utcDateTimeFormatter.format(new Date(dateTime))}</>
+  ) : (
+    <StatusIconAndText
+      title={t('Unknown')}
+      icon={<UnknownIcon />}
+      className={className}
+    />
   );
 };
 
 const DRActionReadiness = ({ canInitiate }: { canInitiate: boolean }) => {
   const { t } = useCustomTranslation();
-  return (
-    <>
-      {canInitiate ? (
-        <StatusIconAndText title={t('Ready')} icon={<GreenCheckCircleIcon />} />
-      ) : (
-        <StatusIconAndText
-          title={t('Not ready')}
-          icon={<RedExclamationCircleIcon />}
-        />
-      )}
-    </>
+  return canInitiate ? (
+    <StatusIconAndText title={t('Ready')} icon={<GreenCheckCircleIcon />} />
+  ) : (
+    <StatusIconAndText
+      title={t('Not ready')}
+      icon={<RedExclamationCircleIcon />}
+    />
   );
 };
 

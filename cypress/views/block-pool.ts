@@ -31,7 +31,8 @@ export const navigateToBlockPool = () => {
 };
 
 export const populateBlockPoolForm = () => {
-  cy.byTestID('new-pool-name-textbox').clear().type(poolName);
+  cy.byTestID('new-pool-name-textbox').clear();
+  cy.byTestID('new-pool-name-textbox').type(poolName);
   cy.byTestID('replica-dropdown').click();
   cy.byLegacyTestID('replica-dropdown-item')
     .contains(`${replicaCount}-way Replication`)
@@ -68,7 +69,8 @@ export const verifyFooterActions = (action: string) => {
       break;
     default:
       cy.log(`Invoke ${action} action`);
-      cy.byLegacyTestID('confirm-action').scrollIntoView().click();
+      cy.byLegacyTestID('confirm-action').scrollIntoView();
+      cy.byLegacyTestID('confirm-action').click();
   }
 };
 
@@ -114,7 +116,8 @@ export const openBlockPoolKebab = (
   targetPoolName: string,
   isDefaultPool = false
 ) => {
-  cy.byLegacyTestID('item-filter').clear().type(targetPoolName);
+  cy.byLegacyTestID('item-filter').clear();
+  cy.byLegacyTestID('item-filter').type(targetPoolName);
   cy.log('Only one resource should be present after filtering');
   cy.byTestID('kebab-button').should('have.length', 1);
   if (isDefaultPool) cy.byTestID('kebab-button').should('be.disabled');
