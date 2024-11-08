@@ -171,18 +171,6 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
         </Alert>
       )}
       <WizardFooter>
-        <Button
-          isLoading={requestInProgress}
-          isDisabled={requestInProgress || validationError}
-          variant="primary"
-          type="submit"
-          onClick={handleNext}
-        >
-          {stepName ===
-          AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign]
-            ? t('Assign')
-            : t('Next')}
-        </Button>
         {/* Disabling the back button for the first step (Policy) in wizard */}
         <Button
           variant="secondary"
@@ -198,6 +186,18 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
           }
         >
           {t('Back')}
+        </Button>
+        <Button
+          isLoading={requestInProgress}
+          isDisabled={requestInProgress || validationError}
+          variant="primary"
+          type="submit"
+          onClick={handleNext}
+        >
+          {stepName ===
+          AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign]
+            ? t('Assign')
+            : t('Next')}
         </Button>
         <Button
           variant="link"
