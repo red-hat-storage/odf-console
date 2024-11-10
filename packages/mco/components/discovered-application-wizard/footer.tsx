@@ -137,6 +137,14 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
           <Alert title={onSaveError} variant={AlertVariant.danger} isInline />
         )}
         <WizardFooter>
+          {/* Disabling the back button for the first step in wizard */}
+          <Button
+            variant={ButtonVariant.secondary}
+            onClick={onBack}
+            isDisabled={stepId === 1 || requestInProgress}
+          >
+            {t('Back')}
+          </Button>
           <Button
             isLoading={requestInProgress}
             isDisabled={requestInProgress}
@@ -150,14 +158,6 @@ export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplica
             ]
               ? t('Save')
               : t('Next')}
-          </Button>
-          {/* Disabling the back button for the first step in wizard */}
-          <Button
-            variant={ButtonVariant.secondary}
-            onClick={onBack}
-            isDisabled={stepId === 1 || requestInProgress}
-          >
-            {t('Back')}
           </Button>
           <Button
             variant={ButtonVariant.link}
