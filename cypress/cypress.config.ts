@@ -7,6 +7,7 @@ export default defineConfig({
     setupNodeEvents,
     specPattern: 'cypress/tests/**/*.ts',
     supportFile: 'cypress/support.ts',
+    testIsolation: false,
   },
   fixturesFolder: false,
   reporter: 'node_modules/cypress-multi-reporters',
