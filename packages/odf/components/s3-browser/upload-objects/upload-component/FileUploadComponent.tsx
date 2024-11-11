@@ -115,11 +115,10 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
             Transfer files to cloud storage, where each file (object) is stored
             with a unique identifier and metadata. By default, objects are
             private. To configure permissions or properties for objects in an S3
-            bucket, users can use the AWS Command Line Interface (CLI), AWS
-            Management Console, or SDKs. To make objects publicly accessible or
-            apply more specific permissions, users can set bucket policies, use
-            access control lists (ACLs), or define IAM roles based on their
-            requirements.
+            bucket, users can use the Command Line Interface (CLI), Management
+            Console, or SDKs. To make objects publicly accessible or apply more
+            specific permissions, users can set bucket policies, use access
+            control lists (ACLs), or define roles based on their requirements.
           </Trans>
         </FieldLevelHelp>
       </Title>
