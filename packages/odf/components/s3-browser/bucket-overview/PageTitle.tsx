@@ -48,7 +48,7 @@ const Favorite: React.FC<FavoriteProps> = ({ bucketName }) => {
   const onClick = () => {
     if (isFavorite)
       setFavorites((oldFavorites) =>
-        oldFavorites.filter((bucket) => bucket === bucketName)
+        oldFavorites.filter((bucket) => bucket !== bucketName)
       );
     else setFavorites((oldFavorites) => [...oldFavorites, bucketName]);
   };
@@ -73,7 +73,6 @@ export const PageTitle: React.FC<TitleProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  // ToDo: add object name to the path as well (when any object is clicked from the list)
   const objectPath = getPath(bucketName, foldersPath);
   const resourceStatus = isCreatedByOBC
     ? getResourceStatus(noobaaObjectBucket)
