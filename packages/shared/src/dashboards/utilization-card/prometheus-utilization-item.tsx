@@ -12,11 +12,11 @@ import {
   Humanize,
   PrometheusResult,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
 import {
   ByteDataTypes,
   UtilizationItemProps,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
+import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
 
 enum LIMIT_STATE {

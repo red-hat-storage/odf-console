@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getReplicationHealth } from '@odf/mco/utils';
 import { ACM_DEFAULT_DOC_VERSION } from '@odf/shared/constants';
 import { utcDateTimeFormatter } from '@odf/shared/details-page/datetime';
 import { useDocVersion, DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
@@ -25,6 +26,7 @@ import {
   DRActionType,
   REPLICATION_TYPE,
   ACM_OPERATOR_SPEC_NAME,
+  VOLUME_REPLICATION_HEALTH,
 } from '../../../constants';
 import {
   ErrorMessageType,
@@ -79,30 +81,56 @@ const validatePlacement = (
   action: DRActionType
 ): ErrorMessageType => {
   const isFailoverAction = action === DRActionType.FAILOVER;
+
+  // Check if DR is disabled
   if (!placementControl?.drPlacementControlName) {
-    // DR is disabled
     return isFailoverAction
       ? ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER
       : ErrorMessageType.DR_IS_NOT_ENABLED_RELOCATE;
-  } else if (!placementControl?.isDRActionReady) {
-    // Either Peer is not ready for DR failover
-    // Or, Peer is not ready/available for DR relocate
+  }
+
+  // Check if DR action is ready
+  // Either Peer is not ready for DR failover
+  // Or, Peer is not ready/available for DR relocate
+  if (!placementControl?.isDRActionReady) {
     return isFailoverAction
       ? ErrorMessageType.FAILOVER_READINESS_CHECK_FAILED
       : ErrorMessageType.RELOCATE_READINESS_CHECK_FAILED;
-  } else {
-    const errorMessage = isFailoverAction
-      ? failoverPreCheck(placementControl)
-      : relocatePreCheck(placementControl);
-    if (!errorMessage) {
-      if (placementControl?.areSiblingApplicationsFound) {
-        return isFailoverAction
-          ? ErrorMessageType.SIBLING_APPLICATIONS_FOUND_FAILOVER
-          : ErrorMessageType.SIBLING_APPLICATIONS_FOUND_RELOCATE;
-      }
-    }
-    return errorMessage;
   }
+
+  // Perform failover or relocate pre-check
+  const preCheckError = isFailoverAction
+    ? failoverPreCheck(placementControl)
+    : relocatePreCheck(placementControl);
+
+  if (preCheckError) {
+    return preCheckError;
+  }
+
+  // Check volume replication health
+  if (
+    [
+      VOLUME_REPLICATION_HEALTH.CRITICAL,
+      VOLUME_REPLICATION_HEALTH.WARNING,
+    ].includes(
+      getReplicationHealth(
+        placementControl?.snapshotTakenTime,
+        placementControl?.schedulingInterval,
+        placementControl?.replicationType
+      )
+    )
+  ) {
+    return ErrorMessageType.VOLUME_SYNC_DELAY;
+  }
+
+  // Check if sibling applications are found
+  if (placementControl?.areSiblingApplicationsFound) {
+    return isFailoverAction
+      ? ErrorMessageType.SIBLING_APPLICATIONS_FOUND_FAILOVER
+      : ErrorMessageType.SIBLING_APPLICATIONS_FOUND_RELOCATE;
+  }
+
+  return null;
 };
 
 const MessageStatus = ({ message }: { message: MessageKind }) => (
@@ -147,34 +175,26 @@ export const DateTimeFormat: React.FC<{
   className?: string;
 }> = ({ dateTime, className }) => {
   const { t } = useCustomTranslation();
-  return (
-    <>
-      {!!dateTime ? (
-        utcDateTimeFormatter.format(new Date(dateTime))
-      ) : (
-        <StatusIconAndText
-          title={t('Unknown')}
-          icon={<UnknownIcon />}
-          className={className}
-        />
-      )}
-    </>
+  return !!dateTime ? (
+    <>{utcDateTimeFormatter.format(new Date(dateTime))}</>
+  ) : (
+    <StatusIconAndText
+      title={t('Unknown')}
+      icon={<UnknownIcon />}
+      className={className}
+    />
   );
 };
 
 const DRActionReadiness = ({ canInitiate }: { canInitiate: boolean }) => {
   const { t } = useCustomTranslation();
-  return (
-    <>
-      {canInitiate ? (
-        <StatusIconAndText title={t('Ready')} icon={<GreenCheckCircleIcon />} />
-      ) : (
-        <StatusIconAndText
-          title={t('Not ready')}
-          icon={<RedExclamationCircleIcon />}
-        />
-      )}
-    </>
+  return canInitiate ? (
+    <StatusIconAndText title={t('Ready')} icon={<GreenCheckCircleIcon />} />
+  ) : (
+    <StatusIconAndText
+      title={t('Not ready')}
+      icon={<RedExclamationCircleIcon />}
+    />
   );
 };
 
@@ -331,6 +351,7 @@ export type PlacementControlProps = Partial<{
   isPrimaryClusterFenced: boolean;
   areSiblingApplicationsFound: boolean;
   kubeObjectLastSyncTime: string;
+  schedulingInterval: string;
 }>;
 
 export type ApplicationProps = {

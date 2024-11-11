@@ -13,9 +13,10 @@ const config = {
   testEnvironment: 'jsdom',
   transform: {
     '\\.[jt]sx?$': '@swc/jest',
+    '\\.[m]js?$': '@swc/jest',
   },
   transformIgnorePatterns: [
-    '<rootDir>/node_modules/(?!(@openshift-console|@patternfly/react-core/dist|@patternfly/react-icons/dist|@patternfly/react-topology/dist|d3|delaunator|internmap|robust-predicates))',
+    '<rootDir>/node_modules/(?!(@openshift-console|@patternfly/react-core/dist|@patternfly/react-icons/dist|@patternfly/react-topology/dist|@patternfly/react-styles|d3|delaunator|internmap|robust-predicates))',
   ],
   testPathIgnorePatterns: ['/node_modules/', '/build/'],
   testRegex: '.*\\.spec\\.tsx?$',

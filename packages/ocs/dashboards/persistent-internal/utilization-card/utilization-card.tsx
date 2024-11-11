@@ -11,8 +11,8 @@ import {
   humanizeBinaryBytes,
   humanizeDecimalBytesPerSec,
 } from '@odf/shared/utils';
-import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
+import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardHeader, CardTitle, Grid } from '@patternfly/react-core';
 import { useStorageClassQueryFilter } from '../../../hooks';
@@ -127,11 +127,7 @@ const UtilizationCard: React.FC = () => {
     <Card>
       <CardHeader
         actions={{
-          actions: (
-            <>
-              <UtilizationDurationDropdown />
-            </>
-          ),
+          actions: <UtilizationDurationDropdown />,
           hasNoOffset: false,
           className: undefined,
         }}

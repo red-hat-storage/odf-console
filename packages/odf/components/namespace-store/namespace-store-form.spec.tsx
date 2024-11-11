@@ -50,9 +50,7 @@ jest.mock('@odf/core/redux', () => ({
   }),
 }));
 
-const MockResourceDropdown = (): React.ReactElement => {
-  return <></>;
-};
+const MockResourceDropdown: React.FC = () => null;
 jest.mock('@odf/shared/dropdown/ResourceDropdown', () => () => {
   return <MockResourceDropdown />;
 });

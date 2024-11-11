@@ -32,7 +32,7 @@ export const TimeDurationDropdown: React.FC<TimeDurationDropdownProps> = ({
   };
 
   return (
-    <InputGroup translate={undefined}>
+    <InputGroup>
       <InputGroupItem isFill>
         <TextInput
           className={classNames('pf-v5-c-form-control', inputClassName)}

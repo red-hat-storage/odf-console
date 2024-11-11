@@ -45,13 +45,17 @@ import {
 import { SubscriptionGroupSelector } from './subscription-group-selector';
 import { TargetClusterSelector } from './target-cluster-selector';
 
-export const findErrorMessage = (errorMessage: ErrorMessage) =>
+export const findErrorMessage = (
+  errorMessage: ErrorMessage,
+  includeWarning: Boolean
+) =>
   [
     errorMessage.drPolicyControlStateErrorMessage,
     errorMessage.managedClustersErrorMessage,
     errorMessage.targetClusterErrorMessage,
     errorMessage.subscriptionGroupErrorMessage,
     errorMessage.peerStatusErrorMessage,
+    includeWarning && errorMessage.syncDelayWarningMessage,
   ]
     .filter(Boolean)
     .find((errorMessageItem) => errorMessageItem);
@@ -250,11 +254,11 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
                 })}
           />
         )) ||
-          ((!!findErrorMessage(state.errorMessage) ||
+          ((!!findErrorMessage(state.errorMessage, true) ||
             !_.isEmpty(state.actionErrorMessage)) && (
             <MessageStatus
               {...(ErrorMessages(t, mcoDocVersion, acmDocVersion)[
-                findErrorMessage(state.errorMessage)
+                findErrorMessage(state.errorMessage, true)
               ] || state.actionErrorMessage)}
             />
           ))}

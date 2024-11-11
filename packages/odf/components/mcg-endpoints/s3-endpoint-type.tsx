@@ -148,7 +148,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
             isRequired: true,
           }}
           render={({ onChange, onBlur }) => (
-            <InputGroup translate={undefined}>
+            <InputGroup>
               <InputGroupItem>
                 <ResourceDropdown<SecretKind>
                   className="nb-endpoints-form-entry__dropdown nb-endpoints-form-entry__dropdown--full-width"
@@ -189,7 +189,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
               fieldId: 'access-key',
             }}
             render={({ value, onChange, onBlur }) => (
-              <InputGroup translate={undefined}>
+              <InputGroup>
                 <InputGroupItem isFill>
                   <TextInput
                     id="access-key"

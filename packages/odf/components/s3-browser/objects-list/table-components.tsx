@@ -162,7 +162,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
 
   return (
     <>
-      <Td translate={null} dataLabel={columnNames[0]} onClick={onClick}>
+      <Td dataLabel={columnNames[0]} onClick={onClick}>
         {isFolder ? (
           <Link to={`${BUCKETS_BASE_ROUTE}/${bucketName}?${PREFIX}=${prefix}`}>
             <span>
@@ -177,19 +177,17 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
           </span>
         )}
       </Td>
-      <Td translate={null} dataLabel={columnNames[1]} onClick={onClick}>
+      <Td dataLabel={columnNames[1]} onClick={onClick}>
         {object.apiResponse.size}
       </Td>
-      <Td translate={null} dataLabel={columnNames[2]} onClick={onClick}>
+      <Td dataLabel={columnNames[2]} onClick={onClick}>
         {object.type}
       </Td>
-      <Td translate={null} dataLabel={columnNames[3]} onClick={onClick}>
+      <Td dataLabel={columnNames[3]} onClick={onClick}>
         {object.apiResponse.lastModified}
       </Td>
-      <Td translate={null} dataLabel={columnNames[4]} isActionCell>
-        {isFolder ? null : (
-          <ActionsColumn translate={null} items={actionItems} />
-        )}
+      <Td dataLabel={columnNames[4]} isActionCell>
+        {isFolder ? null : <ActionsColumn items={actionItems} />}
       </Td>
     </>
   );

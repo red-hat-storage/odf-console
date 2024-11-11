@@ -19,6 +19,7 @@ export enum ErrorMessageType {
   // Warning message priority start from 20
   SIBLING_APPLICATIONS_FOUND_FAILOVER = 20,
   SIBLING_APPLICATIONS_FOUND_RELOCATE,
+  VOLUME_SYNC_DELAY,
 }
 
 export type MessageKind = Partial<{
@@ -266,6 +267,17 @@ export const ErrorMessages = (
           other applications sharing the same placement.
         </p>
       </Trans>
+    ),
+    variant: AlertVariant.warning,
+  },
+  [ErrorMessageType.VOLUME_SYNC_DELAY]: {
+    title: t('Inconsistent data on target cluster'),
+    message: (
+      <p>
+        {t(
+          "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing the failover could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
+        )}
+      </p>
     ),
     variant: AlertVariant.warning,
   },

@@ -8,6 +8,7 @@ export const LoadingComponent: React.FC = () => {
     <span
       className="pf-v5-c-spinner"
       role="progressbar"
+      aria-label={t('Loading...')}
       aria-valuetext={t('Loading...')}
     >
       <span className="pf-v5-c-spinner__clipper" />

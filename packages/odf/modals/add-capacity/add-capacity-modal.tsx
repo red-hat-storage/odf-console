@@ -124,40 +124,36 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
     replica
   );
   return (
-    <>
-      <FormGroup
-        fieldId="request-size"
-        label={t('Raw Capacity')}
-        labelIcon={
-          <FieldLevelHelp>{requestedCapacityTooltip(t)}</FieldLevelHelp>
-        }
-      >
-        <div className="pf-v5-u-display-flex pf-v5-u-pt-sm pf-v5-u-pl-xs">
-          <TextInput
-            isDisabled
-            id="request-size"
-            className={classNames(
-              'pf-v5-c-form-control',
-              'ceph-add-capacity__input'
-            )}
-            type="number"
-            name="requestSize"
-            value={osdSizeWithoutUnit}
-            aria-label="requestSize"
-            data-test="requestSize"
-          />
-          <TextContent className="ceph-add-capacity__provisioned-capacity pf-v5-u-ml-xs">
-            {' '}
-            {t('x {{ replica, number }} replicas =', {
-              replica,
-            })}{' '}
-            <strong data-test="provisioned-capacity">
-              {provisionedCapacity}&nbsp;TiB
-            </strong>
-          </TextContent>
-        </div>
-      </FormGroup>
-    </>
+    <FormGroup
+      fieldId="request-size"
+      label={t('Raw Capacity')}
+      labelIcon={<FieldLevelHelp>{requestedCapacityTooltip(t)}</FieldLevelHelp>}
+    >
+      <div className="pf-v5-u-display-flex pf-v5-u-pt-sm pf-v5-u-pl-xs">
+        <TextInput
+          isDisabled
+          id="request-size"
+          className={classNames(
+            'pf-v5-c-form-control',
+            'ceph-add-capacity__input'
+          )}
+          type="number"
+          name="requestSize"
+          value={osdSizeWithoutUnit}
+          aria-label="requestSize"
+          data-test="requestSize"
+        />
+        <TextContent className="ceph-add-capacity__provisioned-capacity pf-v5-u-ml-xs">
+          {' '}
+          {t('x {{ replica, number }} replicas =', {
+            replica,
+          })}{' '}
+          <strong data-test="provisioned-capacity">
+            {provisionedCapacity}&nbsp;TiB
+          </strong>
+        </TextContent>
+      </div>
+    </FormGroup>
   );
 };
 

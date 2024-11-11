@@ -126,29 +126,27 @@ const UploadFilePicker: React.FC<UploadFilePickerProps> = ({
   };
 
   return (
-    <>
-      <MultipleFileUpload onFileDrop={handleFileDrop}>
-        <MultipleFileUploadMain
-          titleText={titleText}
-          infoText={infoText}
-          isUploadButtonHidden={currentFiles.length === uploadLimit}
-        />
-        {showStatus && (
-          <MultipleFileUploadStatus statusToggleIcon={statusIcon}>
-            {currentFiles.map((file) => (
-              <MultipleFileUploadStatusItem
-                file={file}
-                key={file.name}
-                onClearClick={() => removeFiles([file.name])}
-                onReadSuccess={handleReadSuccess}
-                onReadFail={handleReadFail}
-                progressHelperText={createHelperText(file)}
-              />
-            ))}
-          </MultipleFileUploadStatus>
-        )}
-      </MultipleFileUpload>
-    </>
+    <MultipleFileUpload onFileDrop={handleFileDrop}>
+      <MultipleFileUploadMain
+        titleText={titleText}
+        infoText={infoText}
+        isUploadButtonHidden={currentFiles.length === uploadLimit}
+      />
+      {showStatus && (
+        <MultipleFileUploadStatus statusToggleIcon={statusIcon}>
+          {currentFiles.map((file) => (
+            <MultipleFileUploadStatusItem
+              file={file}
+              key={file.name}
+              onClearClick={() => removeFiles([file.name])}
+              onReadSuccess={handleReadSuccess}
+              onReadFail={handleReadFail}
+              progressHelperText={createHelperText(file)}
+            />
+          ))}
+        </MultipleFileUploadStatus>
+      )}
+    </MultipleFileUpload>
   );
 };
 

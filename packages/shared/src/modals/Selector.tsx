@@ -170,11 +170,11 @@ export class SelectorInput extends React.Component<
     };
   }
 
-  componentDidUpdate = (prevProps) => {
+  componentDidUpdate(prevProps) {
     if (!_.isEqual(prevProps.tags, this.props.tags)) {
       this.setState({ tags: this.props.tags });
     }
-  };
+  }
 
   static arrayify(obj) {
     return _.map(obj, (v, k) => (v ? `${k}=${v}` : k));
@@ -189,6 +189,7 @@ export class SelectorInput extends React.Component<
     return result;
   }
 
+  // eslint-disable-next-line react/no-unused-class-component-methods
   focus() {
     this.ref_ && this.ref_.focus();
   }

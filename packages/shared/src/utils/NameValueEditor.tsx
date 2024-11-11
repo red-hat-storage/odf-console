@@ -321,9 +321,7 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
       });
       return (
         <>
-          {hideHeaderWhenNoItems && _.isEmpty(pairElems) ? (
-            <></>
-          ) : (
+          {hideHeaderWhenNoItems && _.isEmpty(pairElems) ? null : (
             <>
               <div className="row pairs-list__heading">
                 {!readOnly && allowSorting && (

@@ -25,7 +25,7 @@ import {
   GetObjectTaggingCommandOutput,
 } from '@aws-sdk/client-s3';
 
-// Bucket command types (alphabetical order)
+// Bucket command types
 export type CreateBucket = (
   input?: CreateBucketCommandInput
 ) => Promise<CreateBucketCommandOutput>;
@@ -58,7 +58,7 @@ export type PutBucketTags = (
   input?: PutBucketTaggingCommandInput
 ) => Promise<PutBucketTaggingCommandOutput>;
 
-// Object command types (alphabetical order)
+// Object command types
 export type DeleteObjects = (
   input: DeleteObjectsCommandInput
 ) => Promise<DeleteObjectsCommandOutput>;

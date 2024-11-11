@@ -85,9 +85,11 @@ export const ArogoApplicationSetParser = (
   props: ArogoApplicationSetParserProps
 ) => {
   const { application, action, isOpen, close } = props;
+
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
     getDRResources(getNamespace(application))
   );
+
   const [aroAppSetResources, loaded, loadError] =
     useArgoApplicationSetResourceWatch(
       getApplicationSetResources(
@@ -99,15 +101,22 @@ export const ArogoApplicationSetParser = (
         drLoadError
       )
     );
+
   const aroAppSetResource = aroAppSetResources?.formattedResources?.[0];
+
   const placementControls: PlacementControlProps[] = React.useMemo(() => {
     const {
       managedClusters,
       siblingApplications,
       placements: resourcePlacements,
     } = aroAppSetResource || {};
-    const { drClusters, drPlacementControl, placementDecision, placement } =
-      resourcePlacements?.[0] || {};
+    const {
+      drClusters,
+      drPolicy,
+      drPlacementControl,
+      placementDecision,
+      placement,
+    } = resourcePlacements?.[0] || {};
     const deploymentClusters = findDeploymentClusters(
       placementDecision,
       drPlacementControl
@@ -133,6 +142,7 @@ export const ArogoApplicationSetParser = (
       targetCluster,
       MANAGED_CLUSTER_CONDITION_AVAILABLE
     );
+
     return loaded && !loadError
       ? [
           {
@@ -150,6 +160,7 @@ export const ArogoApplicationSetParser = (
             isTargetClusterFenced: isDRClusterFenced(targetDRCluster),
             isPrimaryClusterFenced: isDRClusterFenced(primaryDRCluster),
             areSiblingApplicationsFound: !!siblingApplications?.length,
+            schedulingInterval: drPolicy?.spec?.schedulingInterval,
           },
         ]
       : [];

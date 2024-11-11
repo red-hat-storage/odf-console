@@ -19,6 +19,7 @@ export type DRPolicyControlState = ApplicationDRInfo;
 export type DRPolicyType = Partial<{
   policyName: string;
   drClusters: string[];
+  schedulingInterval: string;
 }>;
 
 export type TargetClusterType = Partial<{
@@ -33,6 +34,7 @@ export type ErrorMessage = Partial<{
   targetClusterErrorMessage: number;
   subscriptionGroupErrorMessage: number;
   peerStatusErrorMessage: number;
+  syncDelayWarningMessage: number;
 }>;
 
 export type FailoverAndRelocateState = {
@@ -72,6 +74,7 @@ export const failoverAndRelocateState = (
     targetClusterErrorMessage: 0,
     subscriptionGroupErrorMessage: 0,
     peerStatusErrorMessage: 0,
+    syncDelayWarningMessage: 0,
   },
   actionErrorMessage: {},
 });

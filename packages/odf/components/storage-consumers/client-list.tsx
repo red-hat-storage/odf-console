@@ -46,6 +46,7 @@ import {
   clientHeartBeatFilter,
   getMajorMinorVersion,
   versionMismatchFilter,
+  storageConsumerNameFilter,
 } from './list-filter';
 import { ClientOnBoardingModal } from './onboarding-modal';
 import { RotateKeysModal } from './rotate-keys-modal';
@@ -70,37 +71,35 @@ const StorageQuotaPopoverContent: React.FC = () => {
 const NoClientsMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
-    <>
-      <Flex
-        direction={{ default: 'column' }}
-        spaceItems={{ default: 'spaceItemsLg' }}
-        alignItems={{ default: 'alignItemsCenter' }}
-        justifyContent={{ default: 'justifyContentCenter' }}
-        className="pf-v5-u-font-size-lg odf-storage-client-list__no-client-msg"
-      >
-        <FlexItem>
-          <GrayInfoCircleIcon className="odf-storage-client-list__no-client-msg-icon" />
-        </FlexItem>
-        <FlexItem className="pf-v5-u-font-weight-bold">
-          {t('No storage clients found.')}
-        </FlexItem>
-        <FlexItem className="odf-storage-client-list__no-client-msg-text">
-          {t(
-            'You do not have any storage clients connected to this Data Foundation provider cluster.'
-          )}
-        </FlexItem>
-        <FlexItem className="odf-storage-client-list__no-client-msg-text">
-          <Trans t={t} ns="plugin__odf-console">
-            To connect a storage client to the Data Foundation provider cluster,
-            click{' '}
-            <span className="pf-v5-u-font-weight-bold">
-              Generate client onboarding token
-            </span>{' '}
-            and use the token to deploy the client cluster.
-          </Trans>
-        </FlexItem>
-      </Flex>
-    </>
+    <Flex
+      direction={{ default: 'column' }}
+      spaceItems={{ default: 'spaceItemsLg' }}
+      alignItems={{ default: 'alignItemsCenter' }}
+      justifyContent={{ default: 'justifyContentCenter' }}
+      className="pf-v5-u-font-size-lg odf-storage-client-list__no-client-msg"
+    >
+      <FlexItem>
+        <GrayInfoCircleIcon className="odf-storage-client-list__no-client-msg-icon" />
+      </FlexItem>
+      <FlexItem className="pf-v5-u-font-weight-bold">
+        {t('No storage clients found.')}
+      </FlexItem>
+      <FlexItem className="odf-storage-client-list__no-client-msg-text">
+        {t(
+          'You do not have any storage clients connected to this Data Foundation provider cluster.'
+        )}
+      </FlexItem>
+      <FlexItem className="odf-storage-client-list__no-client-msg-text">
+        <Trans t={t} ns="plugin__odf-console">
+          To connect a storage client to the Data Foundation provider cluster,
+          click{' '}
+          <span className="pf-v5-u-font-weight-bold">
+            Generate client onboarding token
+          </span>{' '}
+          and use the token to deploy the client cluster.
+        </Trans>
+      </FlexItem>
+    </Flex>
   );
 };
 
@@ -424,14 +423,23 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
   });
   const serviceVersion = getOprVersionFromCSV(csv);
 
-  const rowFilters = React.useMemo(
-    () => [clientHeartBeatFilter(t), versionMismatchFilter(t, serviceVersion)],
-    [t, serviceVersion]
-  );
+  // "rowFilters":
+  // - custom filters (new) that we are introducing to the list page
+  // - passing to both "useListPageFilter" hook & "ListPageFilter" component
+  // "rowFiltersWithNameOverride":
+  // - needed for overriding the filtering (default) on the CR's "name" (need to read the name from the CR's status instead)
+  // - only passing to "useListPageFilter" hook & not "ListPageFilter" component
+  const [rowFilters, rowFiltersWithNameOverride] = React.useMemo(() => {
+    const customFilters = [
+      clientHeartBeatFilter(t),
+      versionMismatchFilter(t, serviceVersion),
+    ];
+    return [customFilters, [storageConsumerNameFilter(), ...customFilters]];
+  }, [t, serviceVersion]);
 
   const [data, filteredData, onFilterChange] = useListPageFilter(
     storageClients,
-    rowFilters
+    rowFiltersWithNameOverride
   );
 
   const launchModalOnClick = (modalComponent: ModalComponent) => () => {

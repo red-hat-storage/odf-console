@@ -144,7 +144,7 @@ const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({
       </div>
     );
   }
-  return <></>;
+  return null;
 };
 
 export const MirroringCard: React.FC = () => {

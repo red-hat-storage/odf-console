@@ -45,7 +45,7 @@ export class S3Commands extends S3Client {
     });
   }
 
-  // Bucket command members (alphabetical order)
+  // Bucket command members
   createBucket: CreateBucket = (input) =>
     this.send(new CreateBucketCommand(input));
 

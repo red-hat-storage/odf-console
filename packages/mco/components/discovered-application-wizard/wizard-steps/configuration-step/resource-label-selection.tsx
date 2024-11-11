@@ -101,62 +101,58 @@ export const ResourceLabelSelection: React.FC<ResourceLabelSelectionProps> = ({
       payload: expressions,
     });
 
-  return (
+  return searchLoaded && !searchError ? (
     <>
-      {searchLoaded && !searchError ? (
-        <>
-          <FormGroup
-            label={t('Label expressions')}
-            fieldId="protection-method-selection"
-            isRequired
-          >
-            <FormHelperText>
-              <HelperText>
-                <HelperTextItem variant={k8sResourceLabelValidated}>
-                  {k8sResourceLabelValidated === 'error'
-                    ? t('Required')
-                    : t(
-                        'Protect all your Kubernetes objects matching the selected resource label value.'
-                      )}
-                </HelperTextItem>
-              </HelperText>
-            </FormHelperText>
-            <LazyLabelExpressionSelector
-              selectedExpressions={k8sResourceLabelExpressions}
-              labels={labelOptions.k8sResourceLabel}
-              isValidationEnabled={isValidationEnabled}
-              onChange={setK8sResourceLabelExpressions}
-            />
-          </FormGroup>
-          <FormGroup
-            label={t('PVC label selectors')}
-            fieldId="protection-method-selection"
-            isRequired
-          >
-            <FormHelperText>
-              <HelperText>
-                <HelperTextItem variant={pvcLabelValidated}>
-                  {pvcLabelValidated === 'error'
-                    ? t('Required')
-                    : t(
-                        'Protect all your volumes that match the selected PVC labels'
-                      )}
-                </HelperTextItem>
-              </HelperText>
-            </FormHelperText>
-            <LazyLabelExpressionSelector
-              selectedExpressions={pvcLabelExpressions}
-              labels={labelOptions.pvcLabels}
-              isValidationEnabled={isValidationEnabled}
-              onChange={setPVCLabelExpressions}
-              addExpressionString={t('Add PVC label selector')}
-            />
-          </FormGroup>
-        </>
-      ) : (
-        <StatusBox loaded={searchLoaded} loadError={searchError} />
-      )}
+      <FormGroup
+        label={t('Label expressions')}
+        fieldId="protection-method-selection"
+        isRequired
+      >
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem variant={k8sResourceLabelValidated}>
+              {k8sResourceLabelValidated === 'error'
+                ? t('Required')
+                : t(
+                    'Protect all your Kubernetes objects matching the selected resource label value.'
+                  )}
+            </HelperTextItem>
+          </HelperText>
+        </FormHelperText>
+        <LazyLabelExpressionSelector
+          selectedExpressions={k8sResourceLabelExpressions}
+          labels={labelOptions.k8sResourceLabel}
+          isValidationEnabled={isValidationEnabled}
+          onChange={setK8sResourceLabelExpressions}
+        />
+      </FormGroup>
+      <FormGroup
+        label={t('PVC label selectors')}
+        fieldId="protection-method-selection"
+        isRequired
+      >
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem variant={pvcLabelValidated}>
+              {pvcLabelValidated === 'error'
+                ? t('Required')
+                : t(
+                    'Protect all your volumes that match the selected PVC labels'
+                  )}
+            </HelperTextItem>
+          </HelperText>
+        </FormHelperText>
+        <LazyLabelExpressionSelector
+          selectedExpressions={pvcLabelExpressions}
+          labels={labelOptions.pvcLabels}
+          isValidationEnabled={isValidationEnabled}
+          onChange={setPVCLabelExpressions}
+          addExpressionString={t('Add PVC label selector')}
+        />
+      </FormGroup>
     </>
+  ) : (
+    <StatusBox loaded={searchLoaded} loadError={searchError} />
   );
 };
 

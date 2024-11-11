@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {
   daysToSeconds,
+  getTimeDifferenceInSeconds,
   hoursToSeconds,
   minutesToSeconds,
 } from '@odf/shared/details-page/datetime';
@@ -36,6 +37,7 @@ import {
   PLACEMENT_RULE_REF_LABEL,
   MCV_NAME_TEMPLATE,
   NAME_NAMESPACE_SPLIT_CHAR,
+  LEAST_SECONDS_IN_PROMETHEUS,
 } from '../constants';
 import {
   DRPC_NAMESPACE_ANNOTATION,
@@ -245,6 +247,20 @@ export const getDRPoliciesCount = (drPolicies: DRPolicyMap) =>
 
 export const getReplicationType = (interval: string) =>
   interval !== '0m' ? REPLICATION_TYPE.ASYNC : REPLICATION_TYPE.SYNC;
+
+export const getReplicationHealth = (
+  lastSyncTime: string,
+  schedulingInterval: string,
+  replicationType: REPLICATION_TYPE
+): VOLUME_REPLICATION_HEALTH => {
+  if (replicationType === REPLICATION_TYPE.SYNC) {
+    return VOLUME_REPLICATION_HEALTH.HEALTHY;
+  }
+  const seconds = !!lastSyncTime
+    ? getTimeDifferenceInSeconds(lastSyncTime)
+    : LEAST_SECONDS_IN_PROMETHEUS;
+  return getVolumeReplicationHealth(seconds, schedulingInterval)[0];
+};
 
 export const getPlacementKind = (subscription: ACMSubscriptionKind) =>
   subscription?.spec?.placement?.placementRef?.kind;

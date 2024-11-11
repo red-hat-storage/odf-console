@@ -26,7 +26,7 @@ After the OCP console is set as required by ODF Console. Performs the following 
 2. Create a Storage System.
 3. Clone this repo.
 4. Pull all required dependencies by running `yarn install`.
-5. Run the development mode of odf-console using `I8N_NS=plugin__odf-console PLUGIN=odf yarn run dev:c`. This runs a container running both the console bridge and a webserver in port 9001.
+5. Run the development mode of odf-console using `CONSOLE_VERSION=4.18 I8N_NS=plugin__odf-console PLUGIN=odf yarn run dev:c`. This runs a container running both the console bridge and a webserver in port 9001.
 6. For more OCP container related environment variables [Refer](https://github.com/red-hat-storage/odf-console/scripts/start-ocp-console.sh).
 
 ### Unit Tests

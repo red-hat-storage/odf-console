@@ -1,5 +1,6 @@
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { StorageConsumerKind } from '@odf/shared/types';
+import { fuzzyCaseInsensitive } from '@odf/shared/utils';
 import { RowFilter } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 
@@ -75,3 +76,17 @@ export const versionMismatchFilter = (
     );
   },
 });
+
+// overrides default "name" search filter
+export const storageConsumerNameFilter =
+  (): RowFilter<StorageConsumerKind> => ({
+    type: 'name',
+    filterGroupName: '',
+    reducer: () => undefined,
+    items: [],
+    filter: (filterValue, storageConsumer) =>
+      fuzzyCaseInsensitive(
+        filterValue.selected?.[0],
+        storageConsumer?.status?.client?.name || ''
+      ),
+  });

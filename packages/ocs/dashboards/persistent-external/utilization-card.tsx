@@ -3,11 +3,11 @@ import { GraphEmpty } from '@odf/shared/charts';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
+import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import {
   UtilizationDurationDropdown,
   UtilizationBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { useStorageClassQueryFilter } from '../../hooks';
@@ -63,11 +63,7 @@ export const UtilizationCard: React.FC = () => {
     <Card>
       <CardHeader
         actions={{
-          actions: (
-            <>
-              <UtilizationDurationDropdown />
-            </>
-          ),
+          actions: <UtilizationDurationDropdown />,
           hasNoOffset: false,
           className: undefined,
         }}

@@ -157,7 +157,6 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
           className="odf-topology-sidebar__tab"
           eventKey={0}
           title={<TabTitleText>{t('Alerts')}</TabTitleText>}
-          translate={t}
         >
           <AlertsTabComponent resource={resource} />
         </Tab>
@@ -165,7 +164,6 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
           className="odf-topology-sidebar__tab"
           eventKey={1}
           title={<TabTitleText>{t('Details')}</TabTitleText>}
-          translate={t}
         >
           <DetailsTabComponent resource={resource} />
         </Tab>
@@ -173,7 +171,6 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
           className="odf-topology-sidebar__tab"
           eventKey={2}
           title={<TabTitleText>{t('Resources')}</TabTitleText>}
-          translate={t}
         >
           <ResourceTabComponent resource={resource} />
         </Tab>
@@ -181,7 +178,6 @@ const TopologySideBarContent: React.FC<TopologySideBarContentProps> = ({
           className="odf-topology-sidebar__tab"
           eventKey={3}
           title={<TabTitleText>{t('Observe')}</TabTitleText>}
-          translate={t}
         >
           <ObserveTabComponent resource={resource} />
         </Tab>

@@ -18,13 +18,13 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import {
   ActivityBody,
   ActivityItem,
   OngoingActivityBody,
   RecentEventsBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import * as _ from 'lodash-es';
 import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
 import { CLIENT_OPERATOR } from '../../../constants';

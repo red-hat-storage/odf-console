@@ -96,70 +96,68 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   };
 
   return (
-    <>
-      <div className="odf-upload">
-        {(uploadStatus === UploadStatus.UPLOAD_START ||
-          uploadStatus === UploadStatus.UPLOAD_COMPLETE) && (
-          <UploadStatusBasedAlert
-            failedUploads={failedUploads}
-            completedUploads={completedUploads}
-            showSidebar={showSidebar}
-            totalUploads={totalUploads}
-            closeAlert={closeAlert}
-            abortAll={abortAll}
-          />
-        )}
-        <Title headingLevel="h4">
-          {t('Add objects')}
-          <FieldLevelHelp>
-            <Trans t={t}>
-              Transfer files to cloud storage, where each file (object) is
-              stored with a unique identifier and metadata. By default, objects
-              are private. To configure permissions or properties for objects in
-              an S3 bucket, users can use the AWS Command Line Interface (CLI),
-              AWS Management Console, or SDKs. To make objects publicly
-              accessible or apply more specific permissions, users can set
-              bucket policies, use access control lists (ACLs), or define IAM
-              roles based on their requirements.
-            </Trans>
-          </FieldLevelHelp>
-        </Title>
-        <div {...getRootProps()}>
-          <input {...getInputProps({ webkitdirectory: 'true' } as any)} />
-          <Flex className="odf-upload__title">
-            <FlexItem className="odf-upload-title__button">
-              <Flex>
-                <FlexItem>
-                  <Flex>
-                    <FlexItem>
-                      <Icon status="info">
-                        <UploadIcon />
-                      </Icon>
-                    </FlexItem>
-                    <FlexItem>
-                      <Title headingLevel="h5">
-                        {t('Drag and drop files/folders here.')}
-                      </Title>
-                    </FlexItem>
-                  </Flex>
-                </FlexItem>
-                <FlexItem>
-                  <FlexItem className="odf-upload__helper-text">
-                    <Trans t={t}>
-                      Standard uploads have a size limit of up to 5TB in S3. For
-                      objects, multipart upload will upload the object in parts,
-                      which are assembled in the bucket.
-                    </Trans>
+    <div className="odf-upload">
+      {(uploadStatus === UploadStatus.UPLOAD_START ||
+        uploadStatus === UploadStatus.UPLOAD_COMPLETE) && (
+        <UploadStatusBasedAlert
+          failedUploads={failedUploads}
+          completedUploads={completedUploads}
+          showSidebar={showSidebar}
+          totalUploads={totalUploads}
+          closeAlert={closeAlert}
+          abortAll={abortAll}
+        />
+      )}
+      <Title headingLevel="h4">
+        {t('Add objects')}
+        <FieldLevelHelp>
+          <Trans t={t}>
+            Transfer files to cloud storage, where each file (object) is stored
+            with a unique identifier and metadata. By default, objects are
+            private. To configure permissions or properties for objects in an S3
+            bucket, users can use the AWS Command Line Interface (CLI), AWS
+            Management Console, or SDKs. To make objects publicly accessible or
+            apply more specific permissions, users can set bucket policies, use
+            access control lists (ACLs), or define IAM roles based on their
+            requirements.
+          </Trans>
+        </FieldLevelHelp>
+      </Title>
+      <div {...getRootProps()}>
+        <input {...getInputProps({ webkitdirectory: 'true' } as any)} />
+        <Flex className="odf-upload__title">
+          <FlexItem className="odf-upload-title__button">
+            <Flex>
+              <FlexItem>
+                <Flex>
+                  <FlexItem>
+                    <Icon status="info">
+                      <UploadIcon />
+                    </Icon>
                   </FlexItem>
+                  <FlexItem>
+                    <Title headingLevel="h5">
+                      {t('Drag and drop files/folders here.')}
+                    </Title>
+                  </FlexItem>
+                </Flex>
+              </FlexItem>
+              <FlexItem>
+                <FlexItem className="odf-upload__helper-text">
+                  <Trans t={t}>
+                    Standard uploads have a size limit of up to 5TB in S3. For
+                    objects, multipart upload will upload the object in parts,
+                    which are assembled in the bucket.
+                  </Trans>
                 </FlexItem>
-              </Flex>
-            </FlexItem>
-            <FlexItem className="odf-upload-title__input">
-              <Button variant="secondary">{t('Upload')}</Button>
-            </FlexItem>
-          </Flex>
-        </div>
+              </FlexItem>
+            </Flex>
+          </FlexItem>
+          <FlexItem className="odf-upload-title__input">
+            <Button variant="secondary">{t('Upload')}</Button>
+          </FlexItem>
+        </Flex>
       </div>
-    </>
+    </div>
   );
 };

@@ -189,84 +189,80 @@ export const NamespaceSelection: React.FC<NamespaceSelectionProps> = ({
     });
   };
 
-  return (
-    <>
-      {loaded && !loadError ? (
-        <Form maxWidth="58rem">
-          <FormSection title={t('Namespace selection')}>
-            <Text component={TextVariants.small}>
-              {t(
-                'Enable disaster recovery protection by selecting the namespaces of your ACM discovered application.'
-              )}
-            </Text>
-            <FormGroup
-              className="pf-v5-u-w-50"
-              label={t('DR cluster')}
-              fieldId="managed-cluster-selection"
-              isRequired
-            >
-              <SingleSelectDropdown
-                id="managed-cluster-dropdown"
-                placeholderText={t('Select cluster')}
-                selectedKey={clusterName}
-                selectOptions={clusterOptions(drClusters)}
-                onChange={setSelectedClusterName}
-                validated={clusterNamevalidated}
-                isDisabled={!drClusters.length}
-              />
+  return loaded && !loadError ? (
+    <Form maxWidth="58rem">
+      <FormSection title={t('Namespace selection')}>
+        <Text component={TextVariants.small}>
+          {t(
+            'Enable disaster recovery protection by selecting the namespaces of your ACM discovered application.'
+          )}
+        </Text>
+        <FormGroup
+          className="pf-v5-u-w-50"
+          label={t('DR cluster')}
+          fieldId="managed-cluster-selection"
+          isRequired
+        >
+          <SingleSelectDropdown
+            id="managed-cluster-dropdown"
+            placeholderText={t('Select cluster')}
+            selectedKey={clusterName}
+            selectOptions={clusterOptions(drClusters)}
+            onChange={setSelectedClusterName}
+            validated={clusterNamevalidated}
+            isDisabled={!drClusters.length}
+          />
 
-              <FormHelperText>
-                <HelperText>
-                  <HelperTextItem variant={clusterNamevalidated}>
-                    {!drClusters.length
-                      ? noClusterHelperText
-                      : clusterNameHelperText}
-                  </HelperTextItem>
-                </HelperText>
-              </FormHelperText>
-            </FormGroup>
-            <FormGroup
-              label={t('Namespace')}
-              fieldId="multi-namespace-selection"
-              isRequired
-            >
-              <FormHelperText>
-                <HelperText>
-                  <HelperTextItem variant="default">
-                    {t(
-                      'Select namespaces that belongs to your ACM discovered applications.'
-                    )}
-                  </HelperTextItem>
-                </HelperText>
-              </FormHelperText>
-              <Alert
-                className="odf-alert pf-v5-u-mt-sm"
-                title={t(
-                  'Once you select namespaces, applications regardless of their type, within those namespaces cannot be subsequently enrolled separately under disaster recovery protection.'
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant={clusterNamevalidated}>
+                {!drClusters.length
+                  ? noClusterHelperText
+                  : clusterNameHelperText}
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+        </FormGroup>
+        <FormGroup
+          label={t('Namespace')}
+          fieldId="multi-namespace-selection"
+          isRequired
+        >
+          <FormHelperText>
+            <HelperText>
+              <HelperTextItem variant="default">
+                {t(
+                  'Select namespaces that belongs to your ACM discovered applications.'
                 )}
-                variant={AlertVariant.info}
-                isInline
-              />
-              <NamespaceSelectionTable
-                namespaces={namespaces}
-                clusterName={clusterName}
-                policies={drPolicies}
-                drPlacements={drPlacements}
-                isValidationEnabled={isValidationEnabled}
-                dispatch={dispatch}
-              />
-            </FormGroup>
-            <NameInput
-              name={name}
-              drPlacements={drPlacements}
-              dispatch={dispatch}
-            />
-          </FormSection>
-        </Form>
-      ) : (
-        <StatusBox loaded={loaded} loadError={loadError} />
-      )}
-    </>
+              </HelperTextItem>
+            </HelperText>
+          </FormHelperText>
+          <Alert
+            className="odf-alert pf-v5-u-mt-sm"
+            title={t(
+              'Once you select namespaces, applications regardless of their type, within those namespaces cannot be subsequently enrolled separately under disaster recovery protection.'
+            )}
+            variant={AlertVariant.info}
+            isInline
+          />
+          <NamespaceSelectionTable
+            namespaces={namespaces}
+            clusterName={clusterName}
+            policies={drPolicies}
+            drPlacements={drPlacements}
+            isValidationEnabled={isValidationEnabled}
+            dispatch={dispatch}
+          />
+        </FormGroup>
+        <NameInput
+          name={name}
+          drPlacements={drPlacements}
+          dispatch={dispatch}
+        />
+      </FormSection>
+    </Form>
+  ) : (
+    <StatusBox loaded={loaded} loadError={loadError} />
   );
 };
 

@@ -77,33 +77,31 @@ const BackingStoreDetailsPage: React.FC<{}> = () => {
   }, [memoizedResource]);
 
   return (
-    <>
-      <DetailsPage
-        loaded={loaded && isODFNsLoaded}
-        loadError={loadError || odfNsLoadError}
-        breadcrumbs={breadcrumbs}
-        actions={actions}
-        resourceModel={NooBaaBackingStoreModel}
-        resource={resource}
-        pages={[
-          {
-            href: '',
-            name: t('Details'),
-            component: BSDetails as any,
-          },
-          {
-            href: 'yaml',
-            name: t('YAML'),
-            component: YAMLEditorWrapped,
-          },
-          {
-            href: 'events',
-            name: t('Events'),
-            component: EventStreamWrapped,
-          },
-        ]}
-      />
-    </>
+    <DetailsPage
+      loaded={loaded && isODFNsLoaded}
+      loadError={loadError || odfNsLoadError}
+      breadcrumbs={breadcrumbs}
+      actions={actions}
+      resourceModel={NooBaaBackingStoreModel}
+      resource={resource}
+      pages={[
+        {
+          href: '',
+          name: t('Details'),
+          component: BSDetails as any,
+        },
+        {
+          href: 'yaml',
+          name: t('YAML'),
+          component: YAMLEditorWrapped,
+        },
+        {
+          href: 'events',
+          name: t('Events'),
+          component: EventStreamWrapped,
+        },
+      ]}
+    />
   );
 };
 

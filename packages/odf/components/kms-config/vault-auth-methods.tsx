@@ -35,7 +35,7 @@ export const VaultTokenConfigure: React.FC<VaultAuthMethodProps> = ({
       className={className}
       isRequired
     >
-      <InputGroup className="ocs-install-kms__form-token" translate={t}>
+      <InputGroup className="ocs-install-kms__form-token">
         <InputGroupItem isFill>
           <TextInput
             value={vaultState.authValue?.value}

@@ -13,11 +13,7 @@ export const ThroughputCard: React.FC = () => {
     <Card data-test="nfs-throughput-card">
       <CardHeader
         actions={{
-          actions: (
-            <>
-              <UtilizationDurationDropdown />
-            </>
-          ),
+          actions: <UtilizationDurationDropdown />,
           hasNoOffset: false,
           className: undefined,
         }}

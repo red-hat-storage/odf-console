@@ -89,33 +89,32 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
     setSelected({
       policyName: getName(drPolicy),
       drClusters: drPolicy?.spec?.drClusters,
+      schedulingInterval: drPolicy?.spec?.schedulingInterval,
     });
     setOpen(false);
   };
 
   return (
-    <>
-      <Dropdown
-        className="mco-subs-dr-action-body__dropdown--width"
-        onSelect={onSelect}
-        toggle={
-          <DropdownToggle
-            id="drPolicy-selection"
-            data-test="dr-subs-policy-dropdown-toggle"
-            className="mco-subs-dr-action-body__dropdown--width"
-            isDisabled={
-              !drPolicyList.length ||
-              state.modalFooterStatus === ModalFooterStatus.FINISHED
-            }
-            onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
-          >
-            {state.selectedDRPolicy.policyName || t('Select')}
-          </DropdownToggle>
-        }
-        isOpen={isOpen}
-        dropdownItems={dropdownItems}
-      />
-    </>
+    <Dropdown
+      className="mco-subs-dr-action-body__dropdown--width"
+      onSelect={onSelect}
+      toggle={
+        <DropdownToggle
+          id="drPolicy-selection"
+          data-test="dr-subs-policy-dropdown-toggle"
+          className="mco-subs-dr-action-body__dropdown--width"
+          isDisabled={
+            !drPolicyList.length ||
+            state.modalFooterStatus === ModalFooterStatus.FINISHED
+          }
+          onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
+        >
+          {state.selectedDRPolicy.policyName || t('Select')}
+        </DropdownToggle>
+      }
+      isOpen={isOpen}
+      dropdownItems={dropdownItems}
+    />
   );
 };
 

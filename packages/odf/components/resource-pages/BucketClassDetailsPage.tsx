@@ -25,19 +25,17 @@ const PlacementPolicyDetails: React.FC<PolicyDetailsProps> = ({ resource }) => {
   const { t } = useCustomTranslation();
   const tiers = resource.spec.placementPolicy.tiers;
   return (
-    <>
-      <DetailsItem field={t('Tiers')} padChildElement showBorder>
-        {tiers.map((tier) => (
-          <DetailsItem
-            field={t('Placement')}
-            key={`${tier.placement}-placement`}
-            showBorder
-          >
-            {tier.placement || 'Spread'}
-          </DetailsItem>
-        ))}
-      </DetailsItem>
-    </>
+    <DetailsItem field={t('Tiers')} padChildElement showBorder>
+      {tiers.map((tier) => (
+        <DetailsItem
+          field={t('Placement')}
+          key={`${tier.placement}-placement`}
+          showBorder
+        >
+          {tier.placement || 'Spread'}
+        </DetailsItem>
+      ))}
+    </DetailsItem>
   );
 };
 
@@ -123,33 +121,31 @@ const BucketClassDetailsPage: React.FC<{}> = () => {
   }, [memoizedResource, t]);
 
   return (
-    <>
-      <DetailsPage
-        loaded={loaded && isODFNsLoaded}
-        loadError={loadError || odfNsLoadError}
-        breadcrumbs={breadcrumbs}
-        actions={actions}
-        resourceModel={NooBaaBucketClassModel}
-        resource={resource}
-        pages={[
-          {
-            href: '',
-            name: t('Details'),
-            component: BCDetails as any,
-          },
-          {
-            href: 'yaml',
-            name: t('YAML'),
-            component: YAMLEditorWrapped,
-          },
-          {
-            href: 'events',
-            name: t('Events'),
-            component: EventStreamWrapped,
-          },
-        ]}
-      />
-    </>
+    <DetailsPage
+      loaded={loaded && isODFNsLoaded}
+      loadError={loadError || odfNsLoadError}
+      breadcrumbs={breadcrumbs}
+      actions={actions}
+      resourceModel={NooBaaBucketClassModel}
+      resource={resource}
+      pages={[
+        {
+          href: '',
+          name: t('Details'),
+          component: BCDetails as any,
+        },
+        {
+          href: 'yaml',
+          name: t('YAML'),
+          component: YAMLEditorWrapped,
+        },
+        {
+          href: 'events',
+          name: t('Events'),
+          component: EventStreamWrapped,
+        },
+      ]}
+    />
   );
 };
 

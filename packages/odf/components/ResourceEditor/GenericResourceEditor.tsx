@@ -31,14 +31,12 @@ const GenericResourceEditor: React.FC = () => {
   return inFlight || !loaded || loadError ? (
     <LoadingBox />
   ) : (
-    <>
-      <YAMLEditor
-        model={model}
-        sourceObj={sourceObj}
-        setSourceObj={setSourceObj}
-        cluster={cluster}
-      />
-    </>
+    <YAMLEditor
+      model={model}
+      sourceObj={sourceObj}
+      setSourceObj={setSourceObj}
+      cluster={cluster}
+    />
   );
 };
 
