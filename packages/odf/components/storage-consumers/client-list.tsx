@@ -49,6 +49,7 @@ import {
   storageConsumerNameFilter,
 } from './list-filter';
 import { ClientOnBoardingModal } from './onboarding-modal';
+import { StorageQuotaUtilizationProgress } from './QuotaUtilizationProgress';
 import { RotateKeysModal } from './rotate-keys-modal';
 import './client-list.scss';
 
@@ -178,7 +179,7 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
           case 'storageQuotaUtilRatio':
             column.title = t('Storage quota utilization ratio');
             column.sort = 'status.client.storageQuotaUtilization';
-            column.props.info = { popover: <StorageQuotaPopoverContent /> };
+            column.transforms = [sortable];
             break;
           case 'openshiftVersion':
             column.title = t('Openshift version');
@@ -353,7 +354,14 @@ const StorageClientRow: React.FC<
             data = humanizedStorageQuota;
             break;
           case 'storageQuotaUtilRatio':
-            data = getStorageQuotaUtilizationRatio(obj) || '-';
+            data = (
+              <StorageQuotaUtilizationProgress
+                quotaUtilizationRatio={Number(
+                  getStorageQuotaUtilizationRatio(obj)
+                )}
+                storageQuota={obj?.spec?.storageQuotaInGiB}
+              />
+            );
             break;
           case 'openshiftVersion':
             data = getOpenshiftVersion(obj) || '-';
