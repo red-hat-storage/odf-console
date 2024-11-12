@@ -20,12 +20,12 @@ const getODFPeers = (cluster: ManagedClusterInfoType) => {
 
 const getPeerClustersRef = (clusters: ManagedClusterInfoType[]) =>
   clusters.map((cluster) => {
-    const [storageClusterName, storageClusterNamesapce] = getODFPeers(cluster);
+    const [storageClusterName, storageClusterNamespace] = getODFPeers(cluster);
     return {
       clusterName: getName(cluster),
       storageClusterRef: {
         name: storageClusterName,
-        namespace: storageClusterNamesapce,
+        namespace: storageClusterNamespace,
       },
     };
   });

@@ -24,35 +24,36 @@ const getProgressVariant = (
   }
 };
 
+const UploadStatusListRow = ({ data, index, style }) => {
+  const item = data[index];
+  return (
+    <div style={style} key={item.name}>
+      <UploadStatusItem
+        variant={getProgressVariant(item.uploadState)}
+        progress={(item.loaded / item.total) * 100}
+        fileName={item.name}
+        fileSize={humanizeBinaryBytes(item.total).string}
+        onAbort={item.abort}
+        failed={item.uploadState === UploadStatus.UPLOAD_FAILED}
+      />
+    </div>
+  );
+};
+
 export const UploadStatusList: React.FC<UploadStatusListProps> = ({
   progress,
 }) => {
-  const Row = ({ index, style }) => {
-    const item = progress[index];
-    return (
-      <div style={style} key={item.name}>
-        <UploadStatusItem
-          variant={getProgressVariant(item.uploadState)}
-          progress={(item.loaded / item.total) * 100}
-          fileName={item.name}
-          fileSize={humanizeBinaryBytes(item.total).string}
-          onAbort={item.abort}
-          failed={item.uploadState === UploadStatus.UPLOAD_FAILED}
-        />
-      </div>
-    );
-  };
-
   return (
     <AutoSizer>
       {({ height, width }) => (
         <List
           height={height}
           itemCount={progress.length}
+          itemData={progress}
           itemSize={100}
           width={width}
         >
-          {Row}
+          {UploadStatusListRow}
         </List>
       )}
     </AutoSizer>

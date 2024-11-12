@@ -13,7 +13,6 @@ import {
   DropdownItem,
   DropdownPopperProps,
   MenuToggle,
-  MenuToggleElement,
   Tooltip,
 } from '@patternfly/react-core';
 import { EllipsisVIcon } from '@patternfly/react-icons';
@@ -106,6 +105,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   const launchModal = useModal();
 
   const eventRef = React.useRef(undefined);
+  const dropdownToggleRef = React.useRef();
   const [toggleDirection, setToggleDirection] =
     React.useState<DropdownPopperProps['direction']>('down');
   const [isOpen, setOpen] = React.useState(false);
@@ -253,19 +253,22 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
       <Dropdown
         data-test="kebab-button"
         onSelect={onClick}
-        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-          <MenuToggle
-            ref={toggleRef}
-            aria-label="Dropdown toggle"
-            variant={toggleType === 'Kebab' ? 'plain' : 'default'}
-            onClick={() => setOpen((o) => !o)}
-            isExpanded={isOpen}
-            data-test="kebab-button"
-            isDisabled={isDisabled}
-          >
-            {toggleType === 'Kebab' ? <EllipsisVIcon /> : t('Actions')}
-          </MenuToggle>
-        )}
+        toggle={{
+          toggleNode: (
+            <MenuToggle
+              ref={dropdownToggleRef}
+              aria-label="Dropdown toggle"
+              variant={toggleType === 'Kebab' ? 'plain' : 'default'}
+              onClick={() => setOpen((o) => !o)}
+              isExpanded={isOpen}
+              data-test="kebab-button"
+              isDisabled={isDisabled}
+            >
+              {toggleType === 'Kebab' ? <EllipsisVIcon /> : t('Actions')}
+            </MenuToggle>
+          ),
+          toggleRef: dropdownToggleRef,
+        }}
         isOpen={isOpen}
         data-test-id="kebab-button"
         popperProps={{

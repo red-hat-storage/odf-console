@@ -228,7 +228,7 @@ jest.mock('@openshift-console/dynamic-plugin-sdk-internal', () => ({
   HealthBody: (props) => <MockHealthBody {...props} />,
 }));
 
-describe('Test ODF cluster status from different clusters and namesapces', () => {
+describe('Test ODF cluster status from different clusters and namespaces', () => {
   test('All healthy case testing', async () => {
     testCaseId = 1;
     render(<StatusCard />);

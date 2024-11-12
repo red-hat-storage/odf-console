@@ -37,7 +37,6 @@ import {
   Level,
   LevelItem,
   MenuToggle,
-  MenuToggleElement,
   Title,
 } from '@patternfly/react-core';
 import { TagIcon } from '@patternfly/react-icons';
@@ -54,6 +53,7 @@ const ObjectDetailsSidebarContent: React.FC<ObjectDetailsSidebarContentProps> =
   ({ closeSidebar, object, objectActions }) => {
     const { t } = useCustomTranslation();
     const [isOpen, setIsOpen] = React.useState(false);
+    const dropdownToggleRef = React.useRef();
     const onToggleClick = () => {
       setIsOpen(!isOpen);
     };
@@ -127,15 +127,18 @@ const ObjectDetailsSidebarContent: React.FC<ObjectDetailsSidebarContentProps> =
           <Dropdown
             isOpen={isOpen}
             onSelect={onSelect}
-            toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-              <MenuToggle
-                className="odf-object-sidebar__dropdown"
-                ref={toggleRef}
-                onClick={onToggleClick}
-              >
-                {t('Actions')}
-              </MenuToggle>
-            )}
+            toggle={{
+              toggleNode: (
+                <MenuToggle
+                  className="odf-object-sidebar__dropdown"
+                  ref={dropdownToggleRef}
+                  onClick={onToggleClick}
+                >
+                  {t('Actions')}
+                </MenuToggle>
+              ),
+              toggleRef: dropdownToggleRef,
+            }}
           >
             <DropdownList>{dropdownItems}</DropdownList>
           </Dropdown>
