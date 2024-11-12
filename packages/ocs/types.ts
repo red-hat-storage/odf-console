@@ -12,6 +12,17 @@ export enum ImageStates {
   UNKNOWN = 'unknown',
 }
 
+export type States = { [state in ImageStates]: number } | {};
+
+type MirroringStatus = {
+  lastChecked: string;
+  summary: {
+    health: string;
+    states: States;
+    image_health: string;
+  };
+};
+
 export type StoragePoolKind = K8sResourceCommon & {
   spec: DataPool & {
     enableCrushUpdates?: boolean;
@@ -23,13 +34,7 @@ export type StoragePoolKind = K8sResourceCommon & {
   };
   status?: {
     phase?: POOL_STATE;
-    mirroringStatus?: {
-      lastChecked: string;
-      summary: {
-        image_health: string;
-        states: ImageStates | {};
-      };
-    };
+    mirroringStatus?: MirroringStatus;
   };
 };
 
@@ -49,3 +54,19 @@ export type CephFilesystemKind = K8sResourceCommon & {
 };
 
 export type ODFSystemParams = { namespace: string; systemName: string };
+
+export type CephBlockPoolRadosNamespaceKind = K8sResourceCommon & {
+  spec: {
+    blockPoolName: string;
+    mirroring: {
+      mode: string;
+    };
+  };
+  status?: {
+    info: {
+      clusterID: string;
+    };
+    phase?: POOL_STATE;
+    mirroringStatus?: MirroringStatus;
+  };
+};

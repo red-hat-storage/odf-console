@@ -65,3 +65,4 @@ export const OCS_STORAGECLASS_PARAMS = [
 ];
 
 export const CEPH_NS_SESSION_STORAGE = 'odfConsole_scForm_cephNs';
+export const BLOCK_POOL_NAME_LABEL = 'ocs.openshift.io/cephblockpool-name';

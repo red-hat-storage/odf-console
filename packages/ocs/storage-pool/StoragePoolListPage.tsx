@@ -40,6 +40,10 @@ import { Link, useLocation, useParams } from 'react-router-dom-v5-compat';
 import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { POOL_TYPE } from '../constants';
+import {
+  MirroringImageHealthMap,
+  healthStateMessage,
+} from '../dashboards/block-pool/states';
 import { CephBlockPoolModel, CephFileSystemModel } from '../models';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
 import {
@@ -52,7 +56,6 @@ import {
   disableMenuAction,
   getPerPoolMetrics,
   getScNamesUsingPool,
-  twelveHoursdateTimeNoYear,
   isDefaultPool,
   PoolMetrics,
   getStoragePoolsFromFilesystem,
@@ -236,6 +239,9 @@ type CustomData = {
   poolCompressionSavings: {
     [poolName: string]: string | number;
   };
+  poolMirroringImageHealth: {
+    [poolName: string]: string | number;
+  };
   storageClasses: StorageClassResourceKind[];
   listPagePath: string;
 };
@@ -246,7 +252,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
   rowData,
 }) => {
   const { t } = useCustomTranslation();
-
+  const { name } = obj.metadata;
   const { systemFlags } = useODFSystemFlagsSelector();
   const isExternalStorageSystem =
     systemFlags[getNamespace(obj)]?.isExternalMode;
@@ -256,9 +262,9 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
     poolCompressionSavings,
     storageClasses,
     listPagePath,
+    poolMirroringImageHealth,
   }: CustomData = rowData;
 
-  const { name } = obj.metadata;
   const poolType = obj.type;
   const hideItems =
     poolType === POOL_TYPE.FILESYSTEM
@@ -266,13 +272,10 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
       : [];
   const replica = obj.spec?.replicated?.size;
   const mirroringStatus: boolean = obj.spec?.mirroring?.enabled;
-  const mirroringImageHealth: string = mirroringStatus
-    ? obj.status?.mirroringStatus?.summary?.image_health
-    : '-';
-  const lastChecked: string = obj.status?.mirroringStatus?.lastChecked;
-  const formatedDateTime = lastChecked
-    ? twelveHoursdateTimeNoYear.format(new Date(lastChecked))
-    : '-';
+  const imageHealth =
+    healthStateMapping?.[
+      MirroringImageHealthMap?.[poolMirroringImageHealth?.[name]]
+    ];
   const compressionMode = obj.spec?.compressionMode;
   const isCompressionEnabled: boolean =
     !!compressionMode && compressionMode !== 'none';
@@ -339,12 +342,10 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
         {mirroringStatus ? t('Enabled') : t('Disabled')}
       </TableData>
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
-        <Tooltip content={`${t('Last synced')} ${formatedDateTime}`}>
-          <StatusIconAndText
-            title={mirroringImageHealth}
-            icon={healthStateMapping[mirroringImageHealth]?.icon}
-          />
-        </Tooltip>
+        <StatusIconAndText
+          title={healthStateMessage(imageHealth?.health, t)}
+          icon={imageHealth?.icon}
+        />
       </TableData>
       <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
         <span data-test={`${name}-compression`}>
@@ -415,12 +416,11 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
 };
 
 type StoragePoolListPageProps = {
-  showTitle?: boolean;
-  namespace?: string;
-  selector?: any;
-  hideLabelFilter?: boolean;
-  hideNameLabelFilters?: boolean;
-  hideColumnManagement?: boolean;
+  storagePools: StoragePool[];
+  storageClasses: StorageClassResourceKind[];
+  loaded: boolean;
+  loadError: any;
+  managedByOCS: string;
 };
 
 const resources = {
@@ -442,12 +442,8 @@ type WatchType = {
   filesystem: CephFilesystemKind;
 };
 
-export const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({}) => {
-  const { t } = useCustomTranslation();
-
-  const location = useLocation();
-  const listPagePath: string = location.pathname;
-
+// To divide the number of hooks, add _StoragePoolListPage on top of StoragePoolListPage.
+const _StoragePoolListPage: React.FC = () => {
   const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
@@ -481,6 +477,35 @@ export const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({}) => {
   const poolsFromFS = getStoragePoolsFromFilesystem(filesystem);
   const storagePools =
     poolsFromBlock && poolsFromFS ? poolsFromBlock.concat(poolsFromFS) : [];
+
+  const loaded =
+    blockPoolsLoaded && filesystemLoaded && (areFlagsLoaded || scLoaded);
+
+  const error = flagsLoadError || scError || blockPoolsError || filesystemError;
+
+  return (
+    <StoragePoolListPage
+      storagePools={storagePools}
+      storageClasses={memoizedSC}
+      loaded={loaded}
+      loadError={error}
+      managedByOCS={managedByOCS}
+    />
+  );
+};
+
+const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
+  storagePools,
+  storageClasses,
+  loaded,
+  loadError,
+  managedByOCS,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const location = useLocation();
+  const listPagePath: string = location.pathname;
+
   const poolNames = storagePools.map((pool) => pool.metadata?.name);
 
   const [poolRawCapacityMetrics, rawCapLoadError, rawCapLoading] =
@@ -515,6 +540,25 @@ export const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({}) => {
       )
     );
 
+  const [
+    poolMirroringImageMetrics,
+    poolMirroringImageLoadError,
+    poolMirroringImageLoading,
+  ] = useCustomPrometheusPoll(
+    getValidPrometheusPollObj(
+      {
+        endpoint: 'api/v1/query' as any,
+        query: getPoolQuery(
+          poolNames,
+          StorageDashboardQuery.POOL_MIRRORING_IMAGE_HEALTH,
+          managedByOCS
+        ),
+        basePath: usePrometheusBasePath(),
+      },
+      !!poolNames?.length
+    )
+  );
+
   const customData = React.useMemo(() => {
     const poolRawCapacity: PoolMetrics = getPerPoolMetrics(
       poolRawCapacityMetrics,
@@ -526,34 +570,33 @@ export const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({}) => {
       compressionLoadError,
       compressionLoading
     );
+    const poolMirroringImageHealth: PoolMetrics = getPerPoolMetrics(
+      poolMirroringImageMetrics,
+      poolMirroringImageLoadError,
+      poolMirroringImageLoading
+    );
     return {
-      storageClasses: memoizedSC ?? [],
+      storageClasses: storageClasses ?? [],
       poolRawCapacity,
       poolCompressionSavings,
       listPagePath,
+      poolMirroringImageHealth,
     };
   }, [
     compressionLoadError,
     compressionLoading,
     compressionSavings,
-    memoizedSC,
+    storageClasses,
     poolRawCapacityMetrics,
     rawCapLoadError,
     rawCapLoading,
     listPagePath,
+    poolMirroringImageMetrics,
+    poolMirroringImageLoadError,
+    poolMirroringImageLoading,
   ]);
 
-  const loaded =
-    blockPoolsLoaded &&
-    filesystemLoaded &&
-    (areFlagsLoaded || scLoaded || !compressionLoading || !rawCapLoading);
-  const error =
-    flagsLoadError ||
-    scError ||
-    blockPoolsError ||
-    filesystemError ||
-    compressionLoadError ||
-    rawCapLoadError;
+  const error = loadError || compressionLoadError || rawCapLoadError;
 
   const [data, filteredData, onFilterChange] = useListPageFilter(storagePools);
 
@@ -583,3 +626,5 @@ export const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({}) => {
     </>
   );
 };
+
+export default _StoragePoolListPage;
