@@ -175,7 +175,7 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
             column.sort = 'status.storageQuotaInGiB';
             column.props.info = { popover: <StorageQuotaPopoverContent /> };
             break;
-          case 'storageQuotaUtilRation':
+          case 'storageQuotaUtilRatio':
             column.title = t('Storage quota utilization ratio');
             column.sort = 'status.client.storageQuotaUtilization';
             column.props.info = { popover: <StorageQuotaPopoverContent /> };
@@ -352,7 +352,7 @@ const StorageClientRow: React.FC<
           case 'storageQuota':
             data = humanizedStorageQuota;
             break;
-          case 'storageQuotaUtilizationRatio':
+          case 'storageQuotaUtilRatio':
             data = getStorageQuotaUtilizationRatio(obj) || '-';
             break;
           case 'openshiftVersion':
