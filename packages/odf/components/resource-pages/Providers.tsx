@@ -141,7 +141,7 @@ const GCPDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   return (
     <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
-        <DetailsItem field={t('Provider')}>{BC_PROVIDERS.IBM}</DetailsItem>
+        <DetailsItem field={t('Provider')}>{BC_PROVIDERS.GCP}</DetailsItem>
       </FlexItem>
       <FlexItem>
         <DetailsItem field={t('Secret')}>
