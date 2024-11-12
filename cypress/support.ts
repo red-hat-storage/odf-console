@@ -8,6 +8,16 @@ import {
 import './support/selectors';
 import './support/login';
 
+before(() => {
+  // Disable Cypress's default behavior of logging all XMLHttpRequests and fetches.
+  cy.intercept({ resourceType: /xhr|fetch/ }, { log: false });
+});
+
+beforeEach(() => {
+  // Disable Cypress's default behavior of logging all XMLHttpRequests and fetches.
+  cy.intercept({ resourceType: /xhr|fetch/ }, { log: false });
+});
+
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -22,10 +32,6 @@ Cypress.on('uncaught:exception', () => {
 });
 
 Cypress.Cookies.debug(true);
-
-Cypress.Cookies.defaults({
-  preserve: ['openshift-session-token', 'csrf-token'],
-});
 
 Cypress.Commands.add('install', () => {
   cy.exec(
