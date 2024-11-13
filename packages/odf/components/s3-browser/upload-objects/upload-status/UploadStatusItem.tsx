@@ -55,7 +55,7 @@ export const UploadStatusItem: React.FC<UploadStatusItemProps> = ({
         />
       </FlexItem>
       <FlexItem>
-        {progress !== 100 && !failed && (
+        {progress !== 100 && !failed && !!onAbort && (
           <Button onClick={onAbort} variant={ButtonVariant.plain}>
             <CloseIcon />
           </Button>
