@@ -12,16 +12,6 @@ import {
 } from '../views/storage-pool';
 
 describe('Test storage pool creation when creating a new StorageClass', () => {
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
-
-  after(() => {
-    cy.logout();
-  });
-
   it(`Creates a new ${POOL_TYPE.BLOCK} pool`, () => {
     const poolName = 'sc-block-name';
 

@@ -13,15 +13,6 @@ const checkKebabMenuItem = (itemText: string) => {
 };
 
 describe('Tests storage system list page', () => {
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
-  after(() => {
-    cy.logout();
-  });
-
   beforeEach(() => {
     ODFCommon.visitStorageDashboard();
   });

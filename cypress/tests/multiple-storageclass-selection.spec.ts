@@ -24,9 +24,6 @@ describe('Add capacity using multiple storage classes', () => {
   };
 
   before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
     cy.exec(`echo '${JSON.stringify(testEbsSC)}' | kubectl apply -f -`);
     cy.exec(
       `echo '${JSON.stringify(testNoProvisionerSC)}' | kubectl apply -f -`
@@ -43,11 +40,11 @@ describe('Add capacity using multiple storage classes', () => {
         );
       });
     });
-    cy.clickNavLink(['Storage', 'Data Foundation']);
-    cy.byLegacyTestID('horizontal-link-Storage Systems').click();
   });
 
   beforeEach(() => {
+    cy.clickNavLink(['Storage', 'Data Foundation']);
+    cy.byLegacyTestID('horizontal-link-Storage Systems').click();
     fetchStorageClusterJson().then((res) => {
       const json: K8sResourceKind = JSON.parse(res.stdout);
       beforeCapacityAddition.deviceSets = json.spec.storageDeviceSets;
@@ -72,7 +69,6 @@ describe('Add capacity using multiple storage classes', () => {
         );
       });
     });
-    cy.logout();
   });
 
   it('Add capacity with a new storage class having EBS as provisioner', () => {

@@ -57,24 +57,3 @@ Cypress.Commands.add(
     );
   }
 );
-
-Cypress.Commands.add('logout', () => {
-  // Check if auth is disabled (for a local development environment).
-  cy.window().then((win: any) => {
-    if (win.SERVER_FLAGS?.authDisabled) {
-      cy.task(
-        'log',
-        '  skipping logout, console is running with auth disabled'
-      );
-      return;
-    }
-    cy.task('log', '  Logging out');
-    cy.byTestID('user-dropdown').click();
-    cy.byTestID('log-out').should('be.visible');
-    cy.byTestID('log-out').click({ force: true }); // eslint-disable-line cypress/no-force
-    // Logout is flaky and fails the CI (in "after" step), even if all other test case ("it" blocks) passes.
-    // Login executes "cy.clearCookie('openshift-session-token')" as a fallback, which will auto logout the user.
-    // Therefore, commenting out the next line from this file as it is not needed.
-    // cy.byLegacyTestID('login').should('be.visible');
-  });
-});
