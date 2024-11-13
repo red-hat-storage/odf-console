@@ -212,6 +212,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
                   selectedClusters={state.selectedClusters}
                   requiredODFVersion={odfMCOVersion}
                   dispatch={dispatch}
+                  mirrorPeers={mirrorPeers}
                 />
               </FormGroup>
               {state.isClusterSelectionValid && (
