@@ -79,7 +79,7 @@ type StorageClassDropdownProps = {
   filter: (resource: StorageClassResourceKind) => StorageClassResourceKind;
 };
 
-const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
+export const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
   onChange,
   'data-test': dataTest,
   initialSelection,

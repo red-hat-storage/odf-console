@@ -1,0 +1,28 @@
+.attachstorage__description {
+    margin-bottom: var(--pf-v5-global--spacer--sm);
+  }
+  
+.storagepool-form {
+  margin-top: var(--pf-v5-global--spacer--md);
+}
+.attachstorage-form {
+  margin-right: var(--pf-v5-global--spacer--xl);
+  margin-left: var(--pf-v5-global--spacer--xl);
+  max-width: 80%;
+}
+.create-storage-pool__form {
+  margin-right: var(--pf-v5-global--spacer--xl);
+  max-width: 80%;
+}
+
+.lso__sc-dropdown {
+  width: 16rem;
+
+  &--margin {
+    margin-bottom: 1rem;
+  }
+}
+
+.attachstorage-storageclass-dropdown__input {
+  margin: var(--pf-v5-global--spacer--lg) 0 !important;
+}
