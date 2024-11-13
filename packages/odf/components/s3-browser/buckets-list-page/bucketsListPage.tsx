@@ -13,16 +13,24 @@ import { Button, ButtonVariant, Flex, FlexItem } from '@patternfly/react-core';
 import { SyncAltIcon } from '@patternfly/react-icons';
 import { BUCKET_CREATE_PAGE_PATH } from '../../../constants';
 import { BucketCrFormat } from '../../../types';
+import { isCAError, CAErrorMessage } from '../ca-error/CAErrorMessage';
 import { NoobaaS3Provider } from '../noobaa-context';
 import { BucketsListTable } from './bucketListTable';
 import { BucketPagination } from './bucketPagination';
 
-const BucketsListPageBody: React.FC = () => {
+type BucketInfo = [BucketCrFormat[], boolean, any];
+
+type BucketsListPageBodyProps = {
+  bucketInfo: BucketInfo;
+  setBucketInfo: React.Dispatch<React.SetStateAction<BucketInfo>>;
+};
+
+const BucketsListPageBody: React.FC<BucketsListPageBodyProps> = ({
+  bucketInfo,
+  setBucketInfo,
+}) => {
   const { t } = useCustomTranslation();
   const [fresh, triggerRefresh] = useRefresh();
-  const [bucketInfo, setBucketInfo] = React.useState<
-    [BucketCrFormat[], boolean, any]
-  >([[], false, undefined]);
   const [buckets, loaded, loadError] = bucketInfo;
   const [allBuckets, filteredBuckets, onFilterChange] =
     useListPageFilter(buckets);
@@ -69,11 +77,21 @@ const BucketsListPageBody: React.FC = () => {
   );
 };
 
-const BucketsListPage: React.FC = () => {
+const BucketsListPageContent: React.FC = () => {
   const { t } = useCustomTranslation();
+  const [bucketInfo, setBucketInfo] = React.useState<BucketInfo>([
+    [],
+    false,
+    undefined,
+  ]);
+  const [_buckets, _loaded, loadError] = bucketInfo;
+
+  if (isCAError(loadError)) {
+    return <CAErrorMessage />;
+  }
 
   return (
-    <NoobaaS3Provider loading={false}>
+    <>
       <ListPageHeader title={t('Buckets')}>
         <ListPageCreateLink to={BUCKET_CREATE_PAGE_PATH}>
           {t('Create bucket')}
@@ -82,7 +100,18 @@ const BucketsListPage: React.FC = () => {
       <div className="pf-v5-u-ml-lg pf-v5-u-mr-lg text-muted">
         {t('Browse, upload, and manage objects in buckets.')}
       </div>
-      <BucketsListPageBody />
+      <BucketsListPageBody
+        bucketInfo={bucketInfo}
+        setBucketInfo={setBucketInfo}
+      />
+    </>
+  );
+};
+
+const BucketsListPage: React.FC = () => {
+  return (
+    <NoobaaS3Provider loading={false}>
+      <BucketsListPageContent />
     </NoobaaS3Provider>
   );
 };

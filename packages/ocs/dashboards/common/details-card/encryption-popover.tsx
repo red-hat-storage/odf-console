@@ -6,7 +6,7 @@ import {
   ConfigMapKind,
   ConfigMapModel,
   GreenCheckCircleIcon,
-  TimesCircleIcon,
+  RedTimesIcon,
 } from '@odf/shared';
 import { StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -30,7 +30,7 @@ type EncryptionPopoverProps = {
 };
 
 const StatusIcon: React.FC<{ enabled: boolean }> = ({ enabled }) =>
-  enabled ? <GreenCheckCircleIcon /> : <TimesCircleIcon />;
+  enabled ? <GreenCheckCircleIcon /> : <RedTimesIcon />;
 
 const getKmsTypeDescription = (encryptionKMSType: string, t: TFunction) => {
   let provider = '';
