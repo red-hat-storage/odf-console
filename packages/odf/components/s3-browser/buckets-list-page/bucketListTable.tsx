@@ -221,6 +221,7 @@ export const BucketsListTable: React.FC<BucketsListTableProps> = ({
   loaded,
   error,
   setEmptyBucketResponse,
+  triggerRefresh,
 }) => {
   const { t } = useCustomTranslation();
   const [favorites, setFavorites] = useUserSettingsLocalStorage<string[]>(
@@ -242,7 +243,13 @@ export const BucketsListTable: React.FC<BucketsListTableProps> = ({
       loadError={error}
       isFavorites={true}
       variant={TableVariant.compact}
-      extraProps={{ favorites, setFavorites, setEmptyBucketResponse, launcher }}
+      extraProps={{
+        favorites,
+        setFavorites,
+        triggerRefresh,
+        setEmptyBucketResponse,
+        launcher,
+      }}
     />
   );
 };
