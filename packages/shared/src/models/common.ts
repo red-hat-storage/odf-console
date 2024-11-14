@@ -248,3 +248,18 @@ export const DaemonSetModel: K8sKind = {
   labelPlural: 'DaemonSets',
   labelPluralKey: 'DaemonSets',
 };
+
+export const ClusterVersionModel: K8sModel = {
+  label: 'ClusterVersion',
+  labelKey: 'ClusterVersion',
+  labelPlural: 'ClusterVersions',
+  labelPluralKey: 'ClusterVersions',
+  apiVersion: 'v1',
+  apiGroup: 'config.openshift.io',
+  plural: 'clusterversions',
+  abbr: 'CV',
+  namespaced: false,
+  kind: 'ClusterVersion',
+  id: 'clusterversion',
+  crd: true,
+};
