@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getNamespace, getName } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   K8sResourceCommon,
   useModal,
@@ -27,6 +27,7 @@ export type CustomKebabItem = {
   isDisabled?: boolean;
   description?: React.ReactNode;
   component?: React.LazyExoticComponent<any>;
+  redirect?: string;
 };
 
 type CustomKebabItemsMap = {
@@ -159,6 +160,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
     const actionKey = event.currentTarget.id;
     const modalComponent =
       customKebabItemsMap[actionKey]?.component || defaultModalMap[actionKey];
+    const redirectLink = customKebabItemsMap[actionKey]?.redirect;
     if (actionKey === ModalKeys.EDIT_RES && !customKebabItemsMap?.[actionKey]) {
       const editPrefix = extraProps?.cluster
         ? `/odf/edit/${extraProps?.cluster}`
@@ -171,6 +173,8 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
           resource?.metadata?.name
         }/yaml`
       );
+    } else if (redirectLink) {
+      navigate(redirectLink);
     } else {
       launchModal(modalComponent, modalComponentProps);
     }

@@ -1,10 +1,13 @@
 import { useMemo } from 'react';
+import { LSO_OPERATOR } from '@odf/core/constants';
 import AddSSCapacityModal from '@odf/core/modals/add-capacity/add-capacity-modal';
 import ConfigureSSPerformanceModal from '@odf/core/modals/configure-performance/configure-performance-modal';
-import { ODFStorageSystem } from '@odf/shared/models';
+import { getName, getNamespace, useFetchCsv } from '@odf/shared';
+import { ODFStorageSystem, StorageClusterModel } from '@odf/shared/models';
 import { StorageSystemKind } from '@odf/shared/types';
 import {
   groupVersionFor,
+  isCSVSucceeded,
   isOCSStorageSystem,
   referenceFor,
   referenceForModel,
@@ -30,7 +33,11 @@ export const useCsvActions = ({
   );
   const launchModal = useModal();
   const isProviderMode = useFlag(PROVIDER_MODE);
+  const [csv, csvLoaded, csvLoadError] = useFetchCsv({
+    specName: LSO_OPERATOR,
+  });
 
+  const isLSOInstalled = csvLoaded && !csvLoadError && isCSVSucceeded(csv);
   const actions = useMemo(() => {
     const items = [];
     if (
@@ -48,11 +55,29 @@ export const useCsvActions = ({
           )
         );
       }
+
+      if (isLSOInstalled) {
+        items.push(AttachStorageStorageSystem(resource as StorageSystemKind));
+      }
     }
     return items;
-  }, [k8sModel, resource, launchModal, isProviderMode]);
+  }, [k8sModel, resource, launchModal, isProviderMode, isLSOInstalled]);
 
   return useMemo(() => [actions, !inFlight, undefined], [actions, inFlight]);
+};
+
+const AttachStorageStorageSystem = (resource: StorageSystemKind): Action => {
+  return {
+    id: 'attach-storage-lso-storage-system',
+    label: 'Attach Storage',
+    insertBefore: 'add-capacity-storage-system',
+    cta: {
+      href: `/odf/system/ns/${getNamespace(resource)}/${referenceForModel(
+        StorageClusterModel
+      )}/${getName(resource)}/~attachstorage`,
+      external: false,
+    },
+  };
 };
 
 const AddCapacityStorageSystem = (
