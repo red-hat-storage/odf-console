@@ -51,21 +51,11 @@ const isStorageClusterHealthy = () => {
 };
 
 describe('Test Popover behaviour for different active health check cases.', () => {
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
+  beforeEach(() => {
     ODFCommon.visitStorageDashboard();
     cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
     listPage.searchInList(STORAGE_SYSTEM_NAME);
     cy.byTestRows('resource-row').contains(STORAGE_SYSTEM_NAME).click();
-  });
-
-  after(() => {
-    cy.logout();
-  });
-
-  beforeEach(() => {
     isStorageClusterHealthy();
   });
 

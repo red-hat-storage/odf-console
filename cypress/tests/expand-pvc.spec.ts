@@ -1,16 +1,6 @@
 import { pvc } from '../views/pvc';
 
 describe('Tests Expansion of a PVC', () => {
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
-
-  after(() => {
-    cy.logout();
-  });
-
   beforeEach(() => {
     cy.clickNavLink(['Storage', 'PersistentVolumeClaims']);
   });

@@ -23,9 +23,6 @@ describe('Tests creation of Standard Bucket Class', () => {
     BucketClassType.STANDARD
   );
   before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
     config.setup();
   });
 
@@ -40,7 +37,6 @@ describe('Tests creation of Standard Bucket Class', () => {
 
   after(() => {
     config.cleanup();
-    cy.logout();
   });
 
   it('Create a 1 Tier(Spread) Bucket Class', () => {
@@ -70,9 +66,6 @@ describe('Tests creation of Namespace Bucket Class', () => {
     BucketClassType.NAMESPACE
   );
   before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
     config.setup();
   });
 
@@ -87,7 +80,6 @@ describe('Tests creation of Namespace Bucket Class', () => {
 
   after(() => {
     config.cleanup();
-    cy.logout();
   });
 
   it('Create a Single Namespace Bucket Class', () => {
@@ -108,12 +100,6 @@ describe('Tests creation of Namespace Bucket Class', () => {
 
 describe('Tests form validations on Bucket Class', () => {
   const nameFieldTestId: string = 'bucket-class-name';
-
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
 
   beforeEach(() => {
     visitBucketClassPage();

@@ -1,13 +1,13 @@
 import { defineConfig } from 'cypress';
+import { SECOND } from './consts';
 import * as setupNodeEvents from './plugin.js';
 
 export default defineConfig({
-  defaultCommandTimeout: 30000,
+  defaultCommandTimeout: 30 * SECOND,
   e2e: {
     setupNodeEvents,
     specPattern: 'cypress/tests/**/*.ts',
     supportFile: 'cypress/support.ts',
-    testIsolation: false,
   },
   fixturesFolder: false,
   reporter: 'node_modules/cypress-multi-reporters',

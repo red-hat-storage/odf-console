@@ -1,6 +1,6 @@
 import { fieldValidationOnFormsTests } from '../helpers/formValidations';
 import { deployment } from '../mocks/deploymentData';
-import { app } from '../support/pages/app';
+import { app, projectNameSpace } from '../support/pages/app';
 import {
   ACCESS_KEY,
   BOUND,
@@ -19,23 +19,32 @@ import { listPage } from '../views/list-page';
 import { CreateOBCHandler, obcNavigate } from '../views/obcPage';
 
 describe('Test Object Bucket Claim resource', () => {
-  let obcHandler;
+  const obcHandler = new CreateOBCHandler(
+    OBC_NAME,
+    testName,
+    OBC_STORAGE_CLASS
+  );
 
   before(() => {
     cy.login();
     cy.visit('/');
     cy.install();
-    obcHandler = new CreateOBCHandler(OBC_NAME, testName, OBC_STORAGE_CLASS);
     obcHandler.createBucketClaim();
+  });
+
+  beforeEach(() => {
+    obcNavigate.navigateToOBC();
+    projectNameSpace.selectOrCreateProject(testName);
   });
 
   after(() => {
     obcHandler.deleteBucketClaim();
-    cy.logout();
   });
 
   it('Test if Object Bucket Claim details page is rendered correctly', () => {
     cy.log('Test if OBC is bound');
+    listPage.searchInList(OBC_NAME);
+    cy.byTestID(`resource-link-${OBC_NAME}`).click();
     cy.byTestID('resource-status').contains(BOUND, { timeout: MINUTE });
 
     cy.log('Test if secret data is masked');
@@ -104,7 +113,6 @@ describe('Test Object Bucket Claim resource', () => {
         deployment
       )}' | kubectl create -n ${testName} -f -`
     );
-    obcNavigate.navigateToOBC();
     listPage.rows.shouldBeLoaded();
     listPage.rows.clickKebabAction(OBC_NAME, 'Attach to Deployment');
     cy.byTestID('loading-indicator').should('not.exist');
@@ -127,12 +135,6 @@ describe('Tests form validations on Object Bucket Claim', () => {
     cy.byTestID('sc-dropdown').should('be.visible').click();
     cy.contains('openshift-storage.noobaa.io').click();
   };
-
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
 
   beforeEach(() => {
     obcNavigate.navigateToOBC();

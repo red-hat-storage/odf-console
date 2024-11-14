@@ -4,6 +4,7 @@ dist
 .eslintcache
 coverage
 cypress/cypress-a11y-report.json
+cypress/downloads
 gui-test-screenshots
 plugins/**/package.json
 plugins/**/dist

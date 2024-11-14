@@ -1,19 +1,17 @@
-import { testBucket } from '../utils/consts';
+import { SECOND, testBucket } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
 
 describe('Tests Buckets, Status, Object Storage Efficiency, and Resource Providers Cards', () => {
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
-
   beforeEach(() => {
     ODFCommon.visitStorageDashboard();
     cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
     cy.byLegacyTestID('item-filter').type('ocs-storagecluster-storagesystem');
-    cy.wait(5000); // eslint-disable-line cypress/no-unnecessary-waiting
-    cy.byTestRows('resource-row').get('td a').first().click();
+    cy.byTestRows('resource-row')
+      .get('td a', {
+        timeout: 5 * SECOND,
+      })
+      .first()
+      .click();
     cy.byTestID('horizontal-link-Object').click();
   });
 

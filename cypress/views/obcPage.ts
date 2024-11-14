@@ -29,7 +29,6 @@ export class CreateOBCHandler {
     cy.get('#page-sidebar').contains('Data Foundation'); // eslint-disable-line cypress/require-data-selectors
     obcNavigate.navigateToOBC();
     projectNameSpace.selectOrCreateProject(this.namespace);
-    obcNavigate.navigateToOBC();
     cy.byLegacyTestID('namespace-bar-dropdown').contains('Project').click();
     cy.contains(this.namespace);
     cy.byTestID('item-create').click();

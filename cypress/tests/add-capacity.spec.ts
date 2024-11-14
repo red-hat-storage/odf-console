@@ -27,21 +27,7 @@ const ROOK_CONF_PATH =
   '/var/lib/rook/openshift-storage/openshift-storage.config';
 
 describe('OCS Operator Expansion of Storage Class Test', () => {
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
-
-  beforeEach(() => {
-    cy.visit('/');
-  });
-
-  after(() => {
-    cy.logout();
-  });
-
-  it.only('Add additional capacity to Storage Cluster', () => {
+  it('Add additional capacity to Storage Cluster', () => {
     const initialState = {
       storageCluster: null,
       cephCluster: null,
