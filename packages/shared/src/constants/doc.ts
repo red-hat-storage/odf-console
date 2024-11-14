@@ -14,3 +14,15 @@ export const odfDRDocApplyPolicy = (odfDocVersion) =>
   `${odfDRDocHome(
     odfDocVersion
   )}#apply-drpolicy-to-sample-application_manage-dr`;
+
+export const odfDeployExternalMode = (odfDocVersion) =>
+  `${odfDocBasePath(
+    odfDocVersion
+  )}/deploying_openshift_data_foundation_in_external_mode`;
+
+export const inTransitEncryptionSettingsForRHCS = (
+  odfDocVersion: string
+): string =>
+  `${odfDeployExternalMode(
+    odfDocVersion
+  )}/deploy-openshift-data-foundation-using-red-hat-ceph-storage#creating-an-openshift-data-foundation-cluster-service-for-external-storage_ceph-external`;

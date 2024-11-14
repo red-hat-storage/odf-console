@@ -1,9 +1,17 @@
 import * as React from 'react';
 import { ValidationType } from '@odf/core/types';
 import { AdvancedSubscription } from '@odf/shared/badges/advanced-subscription';
+import { inTransitEncryptionSettingsForRHCS } from '@odf/shared/constants/doc';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
+import { DOC_VERSION as odfDocVersion } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Checkbox, FormGroup, Form } from '@patternfly/react-core';
+import {
+  Alert,
+  AlertVariant,
+  Checkbox,
+  FormGroup,
+  Form,
+} from '@patternfly/react-core';
 import { KMSEmptyState } from '../../../../constants';
 import { KMSConfigure } from '../../../kms-config/kms-config';
 import { ValidationMessage } from '../../../utils/common-odf-install-el';
@@ -291,10 +299,31 @@ export const Encryption: React.FC<EncryptionProps> = ({
             data-checked-state={encryption.inTransit}
             label={t('In-transit encryption')}
             description={t(
-              'A secure mode that encrypts all data passing over the network'
+              'Encrypts all Ceph traffic including data, using Ceph msgrv2'
             )}
             onChange={(_event, checked: boolean) =>
               handleInTransitEncryptionOnChange(checked)
+            }
+          />
+        )}
+        {isExternal && encryption.inTransit && (
+          <Alert
+            variant={AlertVariant.info}
+            isInline
+            className="pf-v5-u-mt-sm"
+            title={
+              <>
+                {t(
+                  'Verify your RHCS cluster has the necessary in-transit encryption settings configured to enable in-transit encryption on your external cluster. Refer to the documentation for detailed configuration steps.'
+                )}{' '}
+                <a
+                  href={inTransitEncryptionSettingsForRHCS(odfDocVersion)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('Documentation link')}
+                </a>
+              </>
             }
           />
         )}
