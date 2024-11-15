@@ -571,24 +571,39 @@ const Topology: React.FC = () => {
 
   const zones = memoizedNodes.map(getTopologyDomain);
 
+  const topologyDataContextData = React.useMemo(() => {
+    return {
+      nodes: memoizedNodes,
+      storageCluster: storageCluster,
+      zones,
+      deployments: memoizedDeployments,
+      visualizationLevel: visualizationLevel,
+      activeNode,
+      setActiveNode,
+      nodeDeploymentMap,
+      selectedElement,
+      setSelectedElement: setSelectedElement as any,
+    };
+  }, [
+    memoizedNodes,
+    storageCluster,
+    zones,
+    memoizedDeployments,
+    visualizationLevel,
+    activeNode,
+    setActiveNode,
+    nodeDeploymentMap,
+    selectedElement,
+    setSelectedElement,
+  ]);
+
+  const topologySearchContextData = React.useMemo(() => {
+    return { activeItemsUID, setActiveItemsUID, activeItem, setActiveItem };
+  }, [activeItemsUID, setActiveItemsUID, activeItem, setActiveItem]);
+
   return (
-    <TopologyDataContext.Provider
-      value={{
-        nodes: memoizedNodes,
-        storageCluster: storageCluster,
-        zones,
-        deployments: memoizedDeployments,
-        visualizationLevel: visualizationLevel,
-        activeNode,
-        setActiveNode,
-        nodeDeploymentMap,
-        selectedElement,
-        setSelectedElement: setSelectedElement as any,
-      }}
-    >
-      <TopologySearchContext.Provider
-        value={{ activeItemsUID, setActiveItemsUID, activeItem, setActiveItem }}
-      >
+    <TopologyDataContext.Provider value={topologyDataContextData}>
+      <TopologySearchContext.Provider value={topologySearchContextData}>
         <VisualizationProvider controller={controller}>
           <div className="odf__topology-view" id="odf-topology">
             <TopologyTopBar />

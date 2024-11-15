@@ -116,16 +116,22 @@ const MonitoringDashboard: React.FC = () => {
     return {};
   }, [applicationSets, subscriptions, discovered, loaded, loadError]);
 
-  const dRResourcesContext = {
-    drClusterAppsMap: aggregatedAppsMap,
-    loaded,
-    loadError,
-  };
+  const dRResourcesContext = React.useMemo(() => {
+    return {
+      drClusterAppsMap: aggregatedAppsMap,
+      loaded,
+      loadError,
+    };
+  }, [aggregatedAppsMap, loaded, loadError]);
+
+  const csvContextData = React.useMemo(() => {
+    return { csvData, csvError, csvLoading };
+  }, [csvData, csvError, csvLoading]);
 
   // ToDo(Sanjal): combime multiple Context together to make it scalable
   // refer: https://javascript.plainenglish.io/how-to-combine-context-providers-for-cleaner-react-code-9ed24f20225e
   return (
-    <CSVStatusesContext.Provider value={{ csvData, csvError, csvLoading }}>
+    <CSVStatusesContext.Provider value={csvContextData}>
       <DRResourcesContext.Provider value={dRResourcesContext}>
         <UpperSection />
       </DRResourcesContext.Provider>
