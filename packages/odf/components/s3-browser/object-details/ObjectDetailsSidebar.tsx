@@ -46,7 +46,7 @@ import './object-details-sidebar.scss';
 type ObjectDetailsSidebarContentProps = {
   closeSidebar: () => void;
   object: ObjectCrFormat;
-  objectActions: IAction[];
+  objectActions: React.MutableRefObject<IAction[]>;
 };
 
 const ObjectDetailsSidebarContent: React.FC<ObjectDetailsSidebarContentProps> =
@@ -60,6 +60,8 @@ const ObjectDetailsSidebarContent: React.FC<ObjectDetailsSidebarContentProps> =
     const onSelect = () => {
       setIsOpen(false);
     };
+
+    const actionItems: IAction[] = objectActions.current;
 
     const { noobaaS3 } = React.useContext(NoobaaS3Context);
     const [searchParams] = useSearchParams();
@@ -105,10 +107,15 @@ const ObjectDetailsSidebarContent: React.FC<ObjectDetailsSidebarContentProps> =
     }
 
     const dropdownItems = [];
-    if (Array.isArray(objectActions)) {
-      objectActions.forEach((action: IAction) =>
+    if (Array.isArray(actionItems)) {
+      actionItems.forEach((action: IAction) =>
         dropdownItems.push(
-          <DropdownItem onClick={action.onClick}>{action.title}</DropdownItem>
+          <DropdownItem
+            onClick={action.onClick}
+            isDisabled={action?.isDisabled}
+          >
+            {action.title}
+          </DropdownItem>
         )
       );
     }
@@ -212,7 +219,7 @@ type ObjectDetailsSidebarProps = {
   closeSidebar?: () => void;
   isExpanded: boolean;
   object?: ObjectCrFormat;
-  objectActions?: IAction[];
+  objectActions?: React.MutableRefObject<IAction[]>;
   wrappedContent: React.ReactNode;
 };
 

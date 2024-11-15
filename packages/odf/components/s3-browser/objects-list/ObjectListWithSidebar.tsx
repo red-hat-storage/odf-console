@@ -22,7 +22,8 @@ export const ObjectListWithSidebar: React.FC<ObjectListWithSidebarProps> = ({
   const [isObjectSidebarExpanded, setObjectSidebarExpanded] =
     React.useState(false);
   const [object, setObject] = React.useState<ObjectCrFormat>(null);
-  const [objectActions, setObjectActions] = React.useState<IAction[]>([]);
+  const [objectActions, setObjectActions] =
+    React.useState<React.MutableRefObject<IAction[]>>();
   const [uploadProgress, setUploadProgress] = React.useState<UploadProgress>(
     {}
   );
@@ -44,7 +45,7 @@ export const ObjectListWithSidebar: React.FC<ObjectListWithSidebarProps> = ({
   };
   const onRowClick = (
     selectedObject: ObjectCrFormat,
-    actionItems: IAction[]
+    actionItems: React.MutableRefObject<IAction[]>
   ) => {
     if (selectedObject.isFolder) return;
     closeUploadSidebar();

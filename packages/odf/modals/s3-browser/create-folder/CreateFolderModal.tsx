@@ -156,7 +156,7 @@ const CreateFolderModal: React.FC<CommonModalProps<CreateFolderModalProps>> = ({
         className="pf-v5-u-mb-sm"
         isInline
         title={t(
-          'Folders structure and group objects logically by using prefixes in object keys, without enforcing any physical hierarchy.'
+          'Folders help structure and group objects logically by using prefixes in object keys, without enforcing any physical hierarchy.'
         )}
       />
       <FormGroup label={t('Folder name')} fieldId="folder-name" isRequired>
