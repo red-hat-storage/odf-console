@@ -12,7 +12,7 @@ import {
   EmptyStateIcon,
   EmptyStateBody,
   EmptyStateHeader,
-  EmptyStateFooter,
+  Spinner,
 } from '@patternfly/react-core';
 import { CubesIcon, FileIcon, FolderIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, IAction } from '@patternfly/react-table';
@@ -55,16 +55,28 @@ const getInlineActionsItems = (
   closeObjectSidebar: () => void
 ): IAction[] => [
   {
-    title: t('Download'),
+    title: (
+      <>
+        {downloadAndPreview.isDownloading ? t('Downloading') : t('Download')}
+        {downloadAndPreview.isDownloading && <Spinner size="sm" />}
+      </>
+    ),
     onClick: () =>
       onDownload(bucketName, object, noobaaS3, setDownloadAndPreview),
     isDisabled: downloadAndPreview.isDownloading,
+    shouldCloseOnClick: false,
   },
   {
-    title: t('Preview'),
+    title: (
+      <>
+        {downloadAndPreview.isPreviewing ? t('Previewing') : t('Preview')}
+        {downloadAndPreview.isPreviewing && <Spinner size="sm" />}
+      </>
+    ),
     onClick: () =>
       onPreview(bucketName, object, noobaaS3, setDownloadAndPreview),
     isDisabled: downloadAndPreview.isPreviewing,
+    shouldCloseOnClick: false,
   },
   {
     title: t('Share with presigned URL'),
@@ -130,6 +142,8 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
       isPreviewing: false,
     });
 
+  const actionItemsRef = React.useRef<IAction[]>();
+
   const {
     launcher,
     bucketName,
@@ -145,6 +159,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
   const prefix = getEncodedPrefix(name, foldersPath);
 
   const columnNames = getColumnNames(t);
+
   const actionItems = getInlineActionsItems(
     t,
     launcher,
@@ -158,7 +173,9 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     refreshTokens,
     closeObjectSidebar
   );
-  const onClick = () => onRowClick(object, actionItems);
+  actionItemsRef.current = actionItems;
+
+  const onClick = () => onRowClick(object, actionItemsRef);
 
   return (
     <>
@@ -204,11 +221,8 @@ export const EmptyPage: React.FC<{}> = () => {
         headingLevel="h4"
       />
       <EmptyStateBody>
-        {t('You do not have any objects in the bucket')}
+        {t('You do not have any objects in this bucket')}
       </EmptyStateBody>
-      <EmptyStateFooter>
-        {/* ToDo: add upload objects option */}
-      </EmptyStateFooter>
     </EmptyState>
   );
 };

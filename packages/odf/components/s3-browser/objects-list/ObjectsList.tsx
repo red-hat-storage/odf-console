@@ -342,7 +342,10 @@ const DeletionAlerts: React.FC<DeletionAlertsProps> = ({
 };
 
 type ObjectsListProps = {
-  onRowClick: (selectedObject: ObjectCrFormat, actionItems: IAction[]) => void;
+  onRowClick: (
+    selectedObject: ObjectCrFormat,
+    actionItems: React.MutableRefObject<IAction[]>
+  ) => void;
   closeObjectSidebar: () => void;
 };
 
