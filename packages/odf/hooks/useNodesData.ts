@@ -35,7 +35,7 @@ export const useNodesData = (): [NodeData[], boolean, any] => {
     let nodesData = [];
     // For data consistency, we must return nodes with their metrics.
     if (nodes && utilization && loaded && !error) {
-      nodesData = nodes.map((node: NodeKind): NodeData => {
+      nodesData = nodes.map((node: Partial<NodeData>): NodeData => {
         const metric = _.find(utilization.data.result, [
           'metric.instance',
           node.metadata.name,
