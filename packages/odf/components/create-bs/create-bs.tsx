@@ -157,7 +157,6 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
       },
       spec: {
         type: NOOBAA_TYPE_MAP[provider],
-        ssl: false,
       },
     };
     if (provider === StoreProviders.PVC) {

@@ -60,7 +60,6 @@ const externalProviders = getExternalProviders(StoreType.NS);
 type Payload = K8sResourceCommon & {
   spec: {
     type: string;
-    ssl: boolean;
     [key: string]: any;
   };
 };
@@ -208,7 +207,6 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         },
         spec: {
           type: NOOBAA_TYPE_MAP[provider],
-          ssl: false,
         },
       };
       if (externalProviders.includes(provider)) {
