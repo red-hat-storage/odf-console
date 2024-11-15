@@ -2,7 +2,7 @@ import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
 import { REPLICATION_TYPE } from '@odf/mco/constants';
 import { getDRPolicyResourceObj } from '@odf/mco/hooks';
-import { DRPolicyKind } from '@odf/mco/types';
+import { DRPolicyKind, MirrorPeerKind } from '@odf/mco/types';
 import { getReplicationType } from '@odf/mco/utils';
 import { getName, StatusBox } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -57,9 +57,26 @@ const checkClientToODFPeering = (clusters: ManagedClusterInfoType[]): boolean =>
   !!clusters[0]?.odfInfo?.storageClusterInfo?.clientInfo !==
   !!clusters[1]?.odfInfo?.storageClusterInfo?.clientInfo;
 
+const verifyMirrorPeerExistence = (
+  clusters: ManagedClusterInfoType[],
+  mirrorPeers: MirrorPeerKind[]
+): boolean => {
+  const peerNames: string[] = clusters.map(getName);
+  const mirrorPeer: MirrorPeerKind = mirrorPeers.find((mirrorPeer) =>
+    mirrorPeer.spec?.items?.some((item) => peerNames.includes(item.clusterName))
+  );
+  const existingPeerNames =
+    mirrorPeer?.spec?.items?.map((item) => item.clusterName) ?? [];
+  // When one of the chosen clusters is already paired with another cluster, return True.
+  return existingPeerNames.length > 0
+    ? existingPeerNames.sort().join(',') !== peerNames.sort().join(',')
+    : false;
+};
+
 const validateClusterSelection = (
   clusters: ManagedClusterInfoType[],
-  drPolicies: DRPolicyKind[]
+  drPolicies: DRPolicyKind[],
+  mirrorPeers: MirrorPeerKind[]
 ): ValidationType => {
   const validation: ValidationType = clusters.reduce(
     (acc, cluster) => {
@@ -92,9 +109,11 @@ const validateClusterSelection = (
   );
 
   validation.peeringValidation = {
-    syncPolicyFound: checkSyncPolicyExists(clusters.map(getName), drPolicies),
     unSupportedPeering:
       checkClientToClientPeering(clusters) || checkClientToODFPeering(clusters),
+    invalidPolicyCreation:
+      checkSyncPolicyExists(clusters.map(getName), drPolicies) ||
+      verifyMirrorPeerExistence(clusters, mirrorPeers),
   };
 
   return validation;
@@ -114,12 +133,13 @@ const getPeeringValidationMessage = (
           'the same type or have separate providers to continue.'
       ),
     };
-  } else if (peeringValidation.syncPolicyFound) {
+  } else if (peeringValidation.invalidPolicyCreation) {
     return {
-      title: t('Existing DRPolicy detected.'),
+      title: t('Selected clusters cannot be used to create a DRPolicy.'),
       description: t(
-        'A DRPolicy is already configured for selected managed clusters. ' +
-          'You cannot create another DRPolicy using the same pair of clusters.'
+        'A mirror peer configuration already exists for one or more of the selected clusters, ' +
+          'either from an existing or deleted DR policy. To create a new DR policy with these clusters, ' +
+          'delete any existing mirror peer configurations associated with them and try again.'
       ),
     };
   }
@@ -219,7 +239,7 @@ const PeeringValidationMessage: React.FC<PeeringValidationMessageProps> = ({
 };
 
 export const SelectedClusterValidation: React.FC<SelectedClusterValidationProps> =
-  ({ selectedClusters, requiredODFVersion, dispatch }) => {
+  ({ selectedClusters, requiredODFVersion, dispatch, mirrorPeers }) => {
     const { t } = useCustomTranslation();
 
     const [drPolicies, policyLoaded, policyLoadError] = useK8sWatchResource<
@@ -239,7 +259,8 @@ export const SelectedClusterValidation: React.FC<SelectedClusterValidationProps>
 
     const validations: ValidationType = validateClusterSelection(
       selectedClusters,
-      drPolicies
+      drPolicies,
+      mirrorPeers
     );
 
     const { peeringValidation, clusterValidation } = validations;
@@ -337,11 +358,12 @@ type SelectedClusterValidationProps = {
   selectedClusters: ManagedClusterInfoType[];
   requiredODFVersion: string;
   dispatch: React.Dispatch<DRPolicyAction>;
+  mirrorPeers: MirrorPeerKind[];
 };
 
 type PeeringValidationType = {
   unSupportedPeering: boolean;
-  syncPolicyFound: boolean;
+  invalidPolicyCreation: boolean;
 };
 
 type ClusterValidationType = {
