@@ -387,3 +387,60 @@ export type ApplicationKind = K8sResourceCommon & {
     phase: string;
   };
 };
+
+export type Release = {
+  version: string;
+  image: string;
+  url?: string;
+  channels?: string[];
+};
+
+export type ConditionalUpdate = {
+  release: Release;
+  conditions: K8sResourceCondition[];
+};
+
+export type UpdateHistory = {
+  state: 'Completed' | 'Partial';
+  startedTime: string;
+  completionTime: string;
+  version: string;
+  image: string;
+  verified: boolean;
+};
+
+export enum ClusterVersionConditionType {
+  Available = 'Available',
+  Failing = 'Failing',
+  Progressing = 'Progressing',
+  RetrievedUpdates = 'RetrievedUpdates',
+  Invalid = 'Invalid',
+  Upgradeable = 'Upgradeable',
+  ReleaseAccepted = 'ReleaseAccepted',
+}
+
+export type ClusterVersionCondition = {
+  type: keyof typeof ClusterVersionConditionType;
+} & K8sResourceCondition;
+
+type ClusterVersionStatus = {
+  desired: Release;
+  history: UpdateHistory[];
+  observedGeneration: number;
+  versionHash: string;
+  conditions?: ClusterVersionCondition[];
+  availableUpdates: Release[];
+  conditionalUpdates?: ConditionalUpdate[];
+};
+
+type ClusterVersionSpec = {
+  channel: string;
+  clusterID: string;
+  desiredUpdate?: Release;
+  upstream?: string;
+};
+
+export type ClusterVersionKind = {
+  spec: ClusterVersionSpec;
+  status: ClusterVersionStatus;
+} & K8sResourceCommon;
