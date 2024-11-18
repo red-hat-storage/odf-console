@@ -20,7 +20,7 @@ import {
   useODFSystemFlagsSelector,
 } from '@odf/core/redux';
 import {
-  cephBlockPoolResource,
+  getCephBlockPoolResource,
   cephClusterResource,
 } from '@odf/core/resources';
 import {
@@ -77,7 +77,6 @@ import {
   Form,
   Radio,
   ActionGroup,
-  Icon,
 } from '@patternfly/react-core';
 import { AddCircleOIcon, CaretDownIcon } from '@patternfly/react-icons';
 import {
@@ -172,10 +171,10 @@ const getPoolDropdownItems = (
           })
         }
       >
-        <Icon size="md" className="ocs-storage-class__pool--create">
+        <span className="ocs-storage-class__pool--create">
           <AddCircleOIcon className="pf-v5-u-mr-sm" />
           {t('Create new storage pool')}
-        </Icon>
+        </span>
       </DropdownItem>,
       <DropdownSeparator key="separator" />,
     ]
@@ -439,10 +438,6 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
 
   const launchModal = useModal();
 
-  const [poolsData, poolDataLoaded, poolDataLoadError] = useK8sWatchResource<
-    StoragePoolKind[]
-  >(cephBlockPoolResource);
-
   const [cephClusters, cephClustersLoaded, cephClustersLoadError] =
     useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
 
@@ -450,6 +445,18 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
   const [poolName, setPoolName] = React.useState('');
   const [systemNamespace, setSystemNamespace] = React.useState<string>();
 
+  const cephCluster = getResourceInNs(cephClusters, systemNamespace);
+
+  const { systemFlags, areFlagsLoaded, flagsLoadError, areFlagsSafe } =
+    useODFSystemFlagsSelector();
+  const isExternal = systemFlags[systemNamespace]?.isExternalMode;
+
+  const poolNs = getNamespace(cephCluster);
+  const clusterName = systemFlags[poolNs]?.ocsClusterName;
+  const defaultPoolName = `${clusterName}-cephblockpool`;
+  const [poolsData, poolDataLoaded, poolDataLoadError] = useK8sWatchResource<
+    StoragePoolKind[]
+  >(getCephBlockPoolResource(clusterName));
   const filteredPools = poolsData?.filter(
     (pool) => getNamespace(pool) === systemNamespace
   );
@@ -458,15 +465,7 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
   const poolData = getStoragePoolsFromBlockPools(filteredPools) || [];
   const existingNames = getExistingBlockPoolNames(poolData);
 
-  const cephCluster = getResourceInNs(cephClusters, systemNamespace);
-
-  const { systemFlags, areFlagsLoaded, flagsLoadError, areFlagsSafe } =
-    useODFSystemFlagsSelector();
-  const isExternal = systemFlags[systemNamespace]?.isExternalMode;
-
   // Get the default deviceClass required by the 'create' modal.
-  const poolNs = getNamespace(cephCluster);
-  const defaultPoolName = `${systemFlags[poolNs]?.ocsClusterName}-cephblockpool`;
   const defaultPool = filteredPools.find(
     (pool: StoragePoolKind) => pool.metadata.name === defaultPoolName
   );

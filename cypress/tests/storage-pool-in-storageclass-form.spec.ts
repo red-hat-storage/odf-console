@@ -1,4 +1,6 @@
 import {
+  CEPH_BUILTIN_MGR_POOL,
+  CEPH_BUILTIN_NFS_POOL,
   CEPH_DEFAULT_FS_POOL_PREFIX,
   POOL_TYPE,
 } from '../constants/storage-pool-const';
@@ -9,14 +11,23 @@ import {
   createStoragePoolInSCForm,
   fillPoolModalForm,
   checkStoragePoolIsSelectableInSCForm,
+  showAvailablePoolsInSCForm,
 } from '../views/storage-pool';
 
 describe('Test storage pool creation when creating a new StorageClass', () => {
-  it(`Creates a new ${POOL_TYPE.BLOCK} pool`, () => {
-    const poolName = 'sc-block-name';
-
+  beforeEach(() => {
     cy.clickNavLink(['Storage', 'StorageClasses']);
     cy.byTestID('item-create').click();
+  });
+
+  it(`does not show hidden pools`, () => {
+    showAvailablePoolsInSCForm(POOL_TYPE.BLOCK);
+    cy.byTestID(CEPH_BUILTIN_MGR_POOL).should('not.exist');
+    cy.byTestID(CEPH_BUILTIN_NFS_POOL).should('not.exist');
+  });
+
+  it(`Creates a new ${POOL_TYPE.BLOCK} pool`, () => {
+    const poolName = 'sc-block-name';
 
     cy.log(`Create a new ${POOL_TYPE.BLOCK} pool`);
     createStoragePoolInSCForm(POOL_TYPE.BLOCK, poolName);
@@ -36,9 +47,6 @@ describe('Test storage pool creation when creating a new StorageClass', () => {
   it(`Creates a new ${POOL_TYPE.FILESYSTEM} pool`, () => {
     const poolName = 'sc-fs-name';
     const poolFullName = `${CEPH_DEFAULT_FS_POOL_PREFIX}-${poolName}`;
-
-    cy.clickNavLink(['Storage', 'StorageClasses']);
-    cy.byTestID('item-create').click();
 
     cy.log(`Create a new ${POOL_TYPE.FILESYSTEM} pool`);
     createStoragePoolInSCForm(POOL_TYPE.FILESYSTEM, poolName);

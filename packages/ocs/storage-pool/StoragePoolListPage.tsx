@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
-import { cephBlockPoolResource } from '@odf/core/resources';
+import { getCephBlockPoolResource } from '@odf/core/resources';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -33,6 +33,7 @@ import {
   useListPageFilter,
   VirtualizedTable,
   useK8sWatchResources,
+  WatchK8sResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
@@ -420,20 +421,7 @@ type StoragePoolListPageProps = {
   storageClasses: StorageClassResourceKind[];
   loaded: boolean;
   loadError: any;
-  managedByOCS: string;
-};
-
-const resources = {
-  sc: {
-    kind: StorageClassModel.kind,
-    namespaced: false,
-    isList: true,
-  },
-  blockPools: cephBlockPoolResource,
-  filesystem: {
-    kind: referenceForModel(CephFileSystemModel),
-    isList: false,
-  },
+  clusterName: string;
 };
 
 type WatchType = {
@@ -442,18 +430,35 @@ type WatchType = {
   filesystem: CephFilesystemKind;
 };
 
+const getResources = (
+  clusterName: string,
+  clusterNamespace: string
+): WatchK8sResources<WatchType> => {
+  return {
+    sc: {
+      kind: StorageClassModel.kind,
+      namespaced: false,
+      isList: true,
+    },
+    blockPools: getCephBlockPoolResource(clusterName),
+    filesystem: {
+      kind: referenceForModel(CephFileSystemModel),
+      isList: false,
+      name: `${clusterName}-cephfilesystem`,
+      namespace: clusterNamespace,
+    },
+  };
+};
+
 // To divide the number of hooks, add _StoragePoolListPage on top of StoragePoolListPage.
 const _StoragePoolListPage: React.FC = () => {
   const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
-  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
-
-  resources.filesystem['name'] = `${managedByOCS}-cephfilesystem`;
-  resources.filesystem['namespace'] = clusterNs;
+  const clusterName = systemFlags[clusterNs]?.ocsClusterName;
 
   const response = useK8sWatchResources(
-    resources
+    getResources(clusterName, clusterNs)
   ) as WatchK8sResults<WatchType>;
 
   const storageClasses = response.sc.data;
@@ -489,7 +494,7 @@ const _StoragePoolListPage: React.FC = () => {
       storageClasses={memoizedSC}
       loaded={loaded}
       loadError={error}
-      managedByOCS={managedByOCS}
+      clusterName={clusterName}
     />
   );
 };
@@ -499,7 +504,7 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
   storageClasses,
   loaded,
   loadError,
-  managedByOCS,
+  clusterName,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -516,7 +521,7 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
           query: getPoolQuery(
             poolNames,
             StorageDashboardQuery.POOL_RAW_CAPACITY_USED,
-            managedByOCS
+            clusterName
           ),
           basePath: usePrometheusBasePath(),
         },
@@ -532,7 +537,7 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
           query: getPoolQuery(
             poolNames,
             StorageDashboardQuery.POOL_COMPRESSION_SAVINGS,
-            managedByOCS
+            clusterName
           ),
           basePath: usePrometheusBasePath(),
         },
@@ -551,7 +556,7 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
         query: getPoolQuery(
           poolNames,
           StorageDashboardQuery.POOL_MIRRORING_IMAGE_HEALTH,
-          managedByOCS
+          clusterName
         ),
         basePath: usePrometheusBasePath(),
       },
