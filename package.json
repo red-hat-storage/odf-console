@@ -111,7 +111,7 @@
     "react-window": "^1.8.10",
     "redux": "4.0.1",
     "resolve-url-loader": "^5.0.0",
-    "sass-embedded": "^1.81.0",
+    "sass": "^1.81.0",
     "sass-loader": "^16.0.3",
     "semver": "6.x",
     "style-loader": "^3.3.4",
