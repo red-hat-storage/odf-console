@@ -23,12 +23,20 @@ import {
   GetObjectCommandOutput,
   GetObjectTaggingCommandInput,
   GetObjectTaggingCommandOutput,
+  ListObjectVersionsCommandInput,
+  ListObjectVersionsCommandOutput,
+  DeleteBucketCommandInput,
+  DeleteBucketCommandOutput,
 } from '@aws-sdk/client-s3';
 
 // Bucket command types
 export type CreateBucket = (
   input?: CreateBucketCommandInput
 ) => Promise<CreateBucketCommandOutput>;
+
+export type DeleteBucket = (
+  input: DeleteBucketCommandInput
+) => Promise<DeleteBucketCommandOutput>;
 
 export type GetBucketAcl = (
   input?: GetBucketAclCommandInput
@@ -83,6 +91,10 @@ export type ListCommandOutput =
 export type ListObjectsV2 = (
   input: ListObjectsV2CommandInput
 ) => Promise<ListObjectsV2CommandOutput>;
+
+export type ListObjectVersions = (
+  input: ListObjectVersionsCommandInput
+) => Promise<ListObjectVersionsCommandOutput>;
 
 // Bucket Policy
 

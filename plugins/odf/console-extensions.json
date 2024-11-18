@@ -723,5 +723,13 @@
         "$codeRef": "s3BucketOverview.default"
       }
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~storagecluster/:resourceName/~attachstorage",
+      "exact": false,
+      "component": { "$codeRef": "attachStorage.default" }
+    }
   }
 ]

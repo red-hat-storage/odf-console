@@ -15,9 +15,6 @@ describe('Test Ceph pool creation', () => {
 
   before(() => {
     configureVault();
-    cy.login();
-    cy.visit('/');
-    cy.install();
   });
 
   after(() => {

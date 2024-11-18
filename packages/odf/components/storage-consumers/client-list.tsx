@@ -49,6 +49,7 @@ import {
   storageConsumerNameFilter,
 } from './list-filter';
 import { ClientOnBoardingModal } from './onboarding-modal';
+import { StorageQuotaUtilizationProgress } from './QuotaUtilizationProgress';
 import { RotateKeysModal } from './rotate-keys-modal';
 import './client-list.scss';
 
@@ -118,6 +119,10 @@ const tableColumns = [
   },
   {
     className: '',
+    id: 'storageQuotaUtilRatio',
+  },
+  {
+    className: '',
     id: 'openshiftVersion',
   },
   {
@@ -171,6 +176,11 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
             column.sort = 'status.storageQuotaInGiB';
             column.props.info = { popover: <StorageQuotaPopoverContent /> };
             break;
+          case 'storageQuotaUtilRatio':
+            column.title = t('Storage quota utilization ratio');
+            column.sort = 'status.client.storageQuotaUtilization';
+            column.transforms = [sortable];
+            break;
           case 'openshiftVersion':
             column.title = t('Openshift version');
             column.sort = 'status.client.platformVersion';
@@ -215,6 +225,9 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
 
 const getOpenshiftVersion = (obj: StorageConsumerKind) =>
   obj?.status?.client?.platformVersion;
+
+const getStorageQuotaUtilizationRatio = (obj: StorageConsumerKind) =>
+  `${obj?.status?.client?.storageQuotaUtilizationRatio}`;
 
 const getDataFoundationVersion = (obj: StorageConsumerKind) =>
   obj?.status?.client?.operatorVersion;
@@ -339,6 +352,16 @@ const StorageClientRow: React.FC<
             break;
           case 'storageQuota':
             data = humanizedStorageQuota;
+            break;
+          case 'storageQuotaUtilRatio':
+            data = (
+              <StorageQuotaUtilizationProgress
+                quotaUtilizationRatio={Number(
+                  getStorageQuotaUtilizationRatio(obj)
+                )}
+                storageQuota={obj?.spec?.storageQuotaInGiB}
+              />
+            );
             break;
           case 'openshiftVersion':
             data = getOpenshiftVersion(obj) || '-';

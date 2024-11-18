@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { getNamespace, getName } from '@odf/shared/selectors';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   K8sResourceCommon,
   useModal,
@@ -13,7 +13,6 @@ import {
   DropdownItem,
   DropdownPopperProps,
   MenuToggle,
-  MenuToggleElement,
   Tooltip,
 } from '@patternfly/react-core';
 import { EllipsisVIcon } from '@patternfly/react-icons';
@@ -28,6 +27,7 @@ export type CustomKebabItem = {
   isDisabled?: boolean;
   description?: React.ReactNode;
   component?: React.LazyExoticComponent<any>;
+  redirect?: string;
 };
 
 type CustomKebabItemsMap = {
@@ -106,6 +106,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   const launchModal = useModal();
 
   const eventRef = React.useRef(undefined);
+  const dropdownToggleRef = React.useRef();
   const [toggleDirection, setToggleDirection] =
     React.useState<DropdownPopperProps['direction']>('down');
   const [isOpen, setOpen] = React.useState(false);
@@ -159,6 +160,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
     const actionKey = event.currentTarget.id;
     const modalComponent =
       customKebabItemsMap[actionKey]?.component || defaultModalMap[actionKey];
+    const redirectLink = customKebabItemsMap[actionKey]?.redirect;
     if (actionKey === ModalKeys.EDIT_RES && !customKebabItemsMap?.[actionKey]) {
       const editPrefix = extraProps?.cluster
         ? `/odf/edit/${extraProps?.cluster}`
@@ -171,6 +173,8 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
           resource?.metadata?.name
         }/yaml`
       );
+    } else if (redirectLink) {
+      navigate(redirectLink);
     } else {
       launchModal(modalComponent, modalComponentProps);
     }
@@ -253,19 +257,22 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
       <Dropdown
         data-test="kebab-button"
         onSelect={onClick}
-        toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-          <MenuToggle
-            ref={toggleRef}
-            aria-label="Dropdown toggle"
-            variant={toggleType === 'Kebab' ? 'plain' : 'default'}
-            onClick={() => setOpen((o) => !o)}
-            isExpanded={isOpen}
-            data-test="kebab-button"
-            isDisabled={isDisabled}
-          >
-            {toggleType === 'Kebab' ? <EllipsisVIcon /> : t('Actions')}
-          </MenuToggle>
-        )}
+        toggle={{
+          toggleNode: (
+            <MenuToggle
+              ref={dropdownToggleRef}
+              aria-label="Dropdown toggle"
+              variant={toggleType === 'Kebab' ? 'plain' : 'default'}
+              onClick={() => setOpen((o) => !o)}
+              isExpanded={isOpen}
+              data-test="kebab-button"
+              isDisabled={isDisabled}
+            >
+              {toggleType === 'Kebab' ? <EllipsisVIcon /> : t('Actions')}
+            </MenuToggle>
+          ),
+          toggleRef: dropdownToggleRef,
+        }}
         isOpen={isOpen}
         data-test-id="kebab-button"
         popperProps={{

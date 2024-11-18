@@ -1,10 +1,15 @@
 import * as React from 'react';
+import { LSO_OPERATOR } from '@odf/core/constants';
+import { useFetchCsv } from '@odf/shared';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import { Kebab } from '@odf/shared/kebab/kebab';
-import { ClusterServiceVersionModel } from '@odf/shared/models';
+import { CustomKebabItem, Kebab } from '@odf/shared/kebab/kebab';
+import {
+  ClusterServiceVersionModel,
+  StorageClusterModel,
+} from '@odf/shared/models';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { Status } from '@odf/shared/status/Status';
@@ -22,6 +27,7 @@ import {
   referenceForGroupVersionKind,
   referenceForModel,
   getGVK,
+  isCSVSucceeded,
 } from '@odf/shared/utils';
 import {
   ListPageBody,
@@ -120,6 +126,7 @@ export const normalizeMetrics: MetricNormalize = (
 
 type CustomData = {
   normalizedMetrics: ReturnType<typeof normalizeMetrics>;
+  isLSOInstalled: boolean;
 };
 
 type StorageSystemNewPageProps = {
@@ -252,8 +259,36 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
   const systemName = getName(obj);
   const systemNamespace = getNamespace(obj);
-  const { normalizedMetrics } = rowData;
+  const { normalizedMetrics, isLSOInstalled } = rowData;
+  const customKebabItems: CustomKebabItem[] = [
+    {
+      key: 'ADD_CAPACITY',
+      value: t('Add Capacity'),
+      component: React.lazy(
+        () => import('./../../modals/add-capacity/add-capacity-modal')
+      ),
+    },
+    {
+      key: 'CONFIGURE_PERFORMANCE',
+      value: t('Configure performance'),
+      component: React.lazy(
+        () =>
+          import(
+            '@odf/core/modals/configure-performance/configure-performance-modal'
+          )
+      ),
+    },
+  ];
 
+  if (isLSOInstalled) {
+    customKebabItems.push({
+      key: 'ATTACH_STORAGE',
+      value: t('Attach Storage'),
+      redirect: `/odf/system/ns/${systemNamespace}/${referenceForModel(
+        StorageClusterModel
+      )}/${systemName}/~attachstorage`,
+    });
+  }
   const metrics =
     normalizedMetrics?.normalizedMetrics?.[`${systemName}${systemNamespace}`];
 
@@ -294,25 +329,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
         <Kebab
           extraProps={{ resource: obj, resourceModel: ODFStorageSystem }}
-          customKebabItems={[
-            {
-              key: 'ADD_CAPACITY',
-              value: t('Add Capacity'),
-              component: React.lazy(
-                () => import('./../../modals/add-capacity/add-capacity-modal')
-              ),
-            },
-            {
-              key: 'CONFIGURE_PERFORMANCE',
-              value: t('Configure performance'),
-              component: React.lazy(
-                () =>
-                  import(
-                    '@odf/core/modals/configure-performance/configure-performance-modal'
-                  )
-              ),
-            },
-          ]}
+          customKebabItems={customKebabItems}
         />
       </TableData>
     </>
@@ -405,6 +422,12 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
     }),
     [data, iops, latency, rawCapacity, throughput, usedCapacity]
   );
+  const [lsoCSV, lsoCSVLoaded, lsoCSVLoadError] = useFetchCsv({
+    specName: LSO_OPERATOR,
+  });
+
+  const isLSOInstalled =
+    lsoCSVLoaded && !lsoCSVLoadError && isCSVSucceeded(lsoCSV);
 
   return (
     <>
@@ -427,7 +450,7 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
           unfilteredData={storageSystems}
           loaded={loaded && isODFNsLoaded}
           loadError={loadError || odfNsLoadError}
-          rowData={{ normalizedMetrics }}
+          rowData={{ normalizedMetrics, isLSOInstalled }}
         />
       </ListPageBody>
     </>

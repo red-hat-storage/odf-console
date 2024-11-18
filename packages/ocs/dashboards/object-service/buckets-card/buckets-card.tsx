@@ -20,6 +20,7 @@ import {
   InventoryItem,
   InventoryItemLoading,
   InventoryItemBody,
+  PrometheusResponse,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useParams } from 'react-router-dom-v5-compat';
@@ -54,8 +55,8 @@ type ObjectInventoryItemProps = {
   count: number;
   children?: React.ReactNode;
   error?: boolean;
-  TitleComponent?: React.ComponentType<{}>;
-  dataTest?: string;
+  objectCount?: PrometheusResponse;
+  objectCountError?: boolean;
 };
 
 const ObjectInventoryItem: React.FC<ObjectInventoryItemProps> = ({
@@ -65,8 +66,8 @@ const ObjectInventoryItem: React.FC<ObjectInventoryItemProps> = ({
   count,
   children,
   error = false,
-  TitleComponent,
-  dataTest,
+  objectCount,
+  objectCountError,
 }) => {
   const titleMessage = pluralize(
     count,
@@ -76,16 +77,11 @@ const ObjectInventoryItem: React.FC<ObjectInventoryItemProps> = ({
   );
   return (
     <InventoryItem>
-      <div
-        className="co-inventory-card__item-title"
-        data-test={!TitleComponent ? dataTest : null}
-      >
+      <div className="co-inventory-card__item-title">
         {isLoading && !error && <InventoryItemLoading />}
-        {TitleComponent ? (
-          <TitleComponent>{titleMessage}</TitleComponent>
-        ) : (
-          titleMessage
-        )}
+        <BucketsTitle objects={objectCount} error={objectCountError}>
+          {titleMessage}
+        </BucketsTitle>
       </div>
       <InventoryItemBody error={error}>{children}</InventoryItemBody>
     </InventoryItem>
@@ -124,16 +120,8 @@ const ObjectInventoryItem_: React.FC = () => {
       error={!!(noobaaCountError || unhealthyNoobaaBucketsError)}
       title={t('NooBaa Bucket')}
       count={Number(getGaugeValue(noobaaCount))}
-      TitleComponent={React.useCallback(
-        (props) => (
-          <BucketsTitle
-            objects={noobaaObjectsCount}
-            error={!!noobaaObjectsCountError}
-            {...props}
-          />
-        ),
-        [noobaaObjectsCount, noobaaObjectsCountError]
-      )}
+      objectCount={noobaaObjectsCount}
+      objectCountError={!!noobaaObjectsCountError}
     >
       {unhealthyNoobaaBucketsCount > 0 && (
         <>

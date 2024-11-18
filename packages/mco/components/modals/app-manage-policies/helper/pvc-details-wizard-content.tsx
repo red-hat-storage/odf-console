@@ -34,7 +34,7 @@ import {
   ButtonVariant,
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
-import { queryAppWorkloadPVCs } from '../../../../utils/acm-search-quries';
+import { queryAppWorkloadPVCs } from '../../../../utils/acm-search-queries';
 import { getClusterNamesFromPlacements } from '../utils/parser-utils';
 import {
   ManagePolicyStateAction,

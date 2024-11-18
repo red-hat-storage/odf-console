@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { AttachStorageAction } from '@odf/core/components/attach-storage-storagesystem/state';
 import { checkArbiterCluster } from '@odf/core/utils';
 import {
   fieldRequirementsTranslations,
@@ -92,7 +93,7 @@ export type StoragePoolBodyProps = {
   cephCluster: CephClusterKind;
   state: StoragePoolState;
   showPoolStatus: boolean;
-  dispatch: React.Dispatch<StoragePoolAction>;
+  dispatch: React.Dispatch<StoragePoolAction | AttachStorageAction>;
   poolType: POOL_TYPE;
   existingNames?: string[];
   onPoolTypeChange?: (newPoolType: POOL_TYPE) => void;
@@ -248,159 +249,153 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
     );
   });
 
-  return (
+  return isClusterReady || !showPoolStatus ? (
     <>
-      {isClusterReady || !showPoolStatus ? (
-        <>
-          <FormGroup label={t('Volume type')} isRequired>
-            <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row ceph-pool__radio-flex">
-              <Radio
-                label={t('Filesystem')}
-                value="filesystem"
-                id="type-filesystem"
-                data-test="type-filesystem"
-                name="volume-type"
-                className="pf-v5-u-mr-4xl"
-                isChecked={poolType === POOL_TYPE.FILESYSTEM}
-                isDisabled={
-                  disablePoolType && poolType !== POOL_TYPE.FILESYSTEM
-                }
-                onChange={() => {
-                  onPoolTypeChange(POOL_TYPE.FILESYSTEM);
-                }}
-              />
-              <Radio
-                label={t('Block')}
-                value="block"
-                id="type-block"
-                data-test="type-block"
-                name="volume-type"
-                isChecked={poolType === POOL_TYPE.BLOCK}
-                isDisabled={disablePoolType && poolType !== POOL_TYPE.BLOCK}
-                onChange={() => {
-                  onPoolTypeChange(POOL_TYPE.BLOCK);
-                }}
-              />
-            </div>
-          </FormGroup>
-          <TextInputWithFieldRequirements
-            control={control}
-            fieldRequirements={fieldRequirements}
-            defaultValue={state.poolName}
-            popoverProps={{
-              headerContent: t('Name requirements'),
-              footerContent: `${t('Example')}: my-pool`,
+      <FormGroup label={t('Volume type')} isRequired>
+        <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row ceph-pool__radio-flex">
+          <Radio
+            label={t('Filesystem')}
+            value="filesystem"
+            id="type-filesystem"
+            data-test="type-filesystem"
+            name="volume-type"
+            className="pf-v5-u-mr-4xl"
+            isChecked={poolType === POOL_TYPE.FILESYSTEM}
+            isDisabled={disablePoolType && poolType !== POOL_TYPE.FILESYSTEM}
+            onChange={() => {
+              onPoolTypeChange(POOL_TYPE.FILESYSTEM);
             }}
-            formGroupProps={{
-              label: t('Pool name'),
-              fieldId: 'pool-name',
-              className: 'ceph-block-pool-body__input',
-              isRequired: true,
-            }}
-            textInputProps={{
-              id: 'pool-name',
-              name: 'newPoolName',
-              'data-test': 'new-pool-name-textbox',
-              'aria-describedby': t('pool-name-help'),
-              placeholder: t('my-pool'),
-              isDisabled: isUpdate,
-            }}
-            infoElement={
-              poolType === POOL_TYPE.FILESYSTEM && (
-                <>
-                  <Icon status="info">
-                    <InfoCircleIcon />
-                  </Icon>
-                  <span className="pf-v5-u-disabled-color-100 pf-v5-u-font-size-sm pf-v5-u-ml-sm">
-                    {t(
-                      'The pool name comprises a prefix followed by the user-provided name.'
-                    )}
-                  </span>
-                </>
-              )
-            }
-            inputPrefixElement={
-              poolType === POOL_TYPE.FILESYSTEM && (
-                <>
-                  <TextInput
-                    id="cephfs-pool-prefix"
-                    className="cephfs-pool-prefix"
-                    value={fsName}
-                    isDisabled={true}
-                  />
-                  <div className="pf-v5-u-ml-sm pf-v5-u-mr-sm">-</div>
-                </>
-              )
-            }
           />
-          <div className="form-group ceph-block-pool-body__input">
-            <label
-              className="control-label co-required"
-              htmlFor="pool-replica-size"
-            >
-              {t('Data protection policy')}
-            </label>
-            <Dropdown
-              className="dropdown--full-width"
-              toggle={
-                <DropdownToggle
-                  id="replica-dropdown"
-                  data-test="replica-dropdown"
-                  onToggle={() => setReplicaOpen(!isReplicaOpen)}
-                  toggleIndicator={CaretDownIcon}
-                  isDisabled={state.isArbiterCluster}
-                >
-                  {state.replicaSize
-                    ? t('{{replica}} Replication', {
-                        replica: OCS_DEVICE_REPLICA[state.replicaSize],
-                      })
-                    : t('Select replication')}
-                </DropdownToggle>
-              }
-              isOpen={isReplicaOpen}
-              dropdownItems={replicaDropdownItems}
-              onSelect={() => setReplicaOpen(false)}
-              id="pool-replica-size"
-            />
-          </div>
-          <div className="form-group ceph-block-pool-body__input">
-            <label className="control-label" htmlFor="compression-check">
-              {t('Data compression')}
-            </label>
-            <div className="checkbox">
-              <label className="ceph-block-pool-body__compression">
-                <input
-                  type="checkbox"
-                  onChange={(event) =>
-                    dispatch({
-                      type: StoragePoolActionType.SET_POOL_COMPRESSED,
-                      payload: event.target.checked,
-                    })
-                  }
-                  checked={state.isCompressed}
-                  name="compression-check"
-                  data-test="compression-checkbox"
-                />
+          <Radio
+            label={t('Block')}
+            value="block"
+            id="type-block"
+            data-test="type-block"
+            name="volume-type"
+            isChecked={poolType === POOL_TYPE.BLOCK}
+            isDisabled={disablePoolType && poolType !== POOL_TYPE.BLOCK}
+            onChange={() => {
+              onPoolTypeChange(POOL_TYPE.BLOCK);
+            }}
+          />
+        </div>
+      </FormGroup>
+      <TextInputWithFieldRequirements
+        control={control}
+        fieldRequirements={fieldRequirements}
+        defaultValue={state.poolName}
+        popoverProps={{
+          headerContent: t('Name requirements'),
+          footerContent: `${t('Example')}: my-pool`,
+        }}
+        formGroupProps={{
+          label: t('Pool name'),
+          fieldId: 'pool-name',
+          className: 'ceph-block-pool-body__input',
+          isRequired: true,
+        }}
+        textInputProps={{
+          id: 'pool-name',
+          name: 'newPoolName',
+          'data-test': 'new-pool-name-textbox',
+          'aria-describedby': t('pool-name-help'),
+          placeholder: t('my-pool'),
+          isDisabled: isUpdate,
+        }}
+        infoElement={
+          poolType === POOL_TYPE.FILESYSTEM && (
+            <>
+              <Icon status="info">
+                <InfoCircleIcon />
+              </Icon>
+              <span className="pf-v5-u-disabled-color-100 pf-v5-u-font-size-sm pf-v5-u-ml-sm">
                 {t(
-                  'Optimize storage efficiency by enabling data compression within replicas.'
+                  'The pool name comprises a prefix followed by the user-provided name.'
                 )}
-              </label>
-            </div>
-          </div>
-          {state.isCompressed && (
-            <Alert
-              className="co-alert ceph-block-pool__alert"
-              variant="info"
-              title={t(
-                'Enabling compression may result in little or no space savings for encrypted or random data. Also, enabling compression may have an impact on I/O performance.'
-              )}
-              isInline
+              </span>
+            </>
+          )
+        }
+        inputPrefixElement={
+          poolType === POOL_TYPE.FILESYSTEM && (
+            <>
+              <TextInput
+                id="cephfs-pool-prefix"
+                className="cephfs-pool-prefix"
+                value={fsName}
+                isDisabled={true}
+              />
+              <div className="pf-v5-u-ml-sm pf-v5-u-mr-sm">-</div>
+            </>
+          )
+        }
+      />
+      <div className="form-group ceph-block-pool-body__input">
+        <label
+          className="control-label co-required"
+          htmlFor="pool-replica-size"
+        >
+          {t('Data protection policy')}
+        </label>
+        <Dropdown
+          className="dropdown--full-width"
+          toggle={
+            <DropdownToggle
+              id="replica-dropdown"
+              data-test="replica-dropdown"
+              onToggle={() => setReplicaOpen(!isReplicaOpen)}
+              toggleIndicator={CaretDownIcon}
+              isDisabled={state.isArbiterCluster}
+            >
+              {state.replicaSize
+                ? t('{{replica}} Replication', {
+                    replica: OCS_DEVICE_REPLICA[state.replicaSize],
+                  })
+                : t('Select replication')}
+            </DropdownToggle>
+          }
+          isOpen={isReplicaOpen}
+          dropdownItems={replicaDropdownItems}
+          onSelect={() => setReplicaOpen(false)}
+          id="pool-replica-size"
+        />
+      </div>
+      <div className="form-group ceph-block-pool-body__input">
+        <label className="control-label" htmlFor="compression-check">
+          {t('Data compression')}
+        </label>
+        <div className="checkbox">
+          <label className="ceph-block-pool-body__compression">
+            <input
+              type="checkbox"
+              onChange={(event) =>
+                dispatch({
+                  type: StoragePoolActionType.SET_POOL_COMPRESSED,
+                  payload: event.target.checked,
+                })
+              }
+              checked={state.isCompressed}
+              name="compression-check"
+              data-test="compression-checkbox"
             />
+            {t(
+              'Optimize storage efficiency by enabling data compression within replicas.'
+            )}
+          </label>
+        </div>
+      </div>
+      {state.isCompressed && (
+        <Alert
+          className="co-alert ceph-block-pool__alert"
+          variant="info"
+          title={t(
+            'Enabling compression may result in little or no space savings for encrypted or random data. Also, enabling compression may have an impact on I/O performance.'
           )}
-        </>
-      ) : (
-        <StoragePoolStatus status={POOL_PROGRESS.CLUSTERNOTREADY} />
+          isInline
+        />
       )}
     </>
+  ) : (
+    <StoragePoolStatus status={POOL_PROGRESS.CLUSTERNOTREADY} />
   );
 };

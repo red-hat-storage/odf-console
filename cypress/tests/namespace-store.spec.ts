@@ -10,16 +10,6 @@ import {
 } from '../views/store';
 
 describe('Tests creation of Namespace Stores', () => {
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
-
-  after(() => {
-    cy.logout();
-  });
-
   afterEach(() => {
     cy.byTestID('kebab-button').click();
     cy.log('Deleting namespace store');
@@ -72,14 +62,7 @@ describe('Tests creation of Namespace Stores', () => {
 describe('Tests form validations on Namespace Stores', () => {
   const nameFieldTestId: string = `${StoreType.NamespaceStore}-name`;
 
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
-
   beforeEach(() => {
-    cy.visit('/');
     commonFlows.navigateToObjectStorage();
     cy.byTestID('horizontal-link-Namespace Store').first().click();
     cy.byTestID('item-create').click();

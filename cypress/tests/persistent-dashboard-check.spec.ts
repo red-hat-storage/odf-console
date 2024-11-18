@@ -1,25 +1,23 @@
-import { STORAGE_SYSTEM_NAME } from '../consts';
+import { SECOND, STORAGE_SYSTEM_NAME } from '../consts';
 import { getPVCJSON } from '../helpers/pvc';
 import { ODFCommon } from '../views/odf-common';
 import { deletePVCFromCLI } from '../views/pvc';
 
-describe('Check Persistent Dashboard', () => {
-  let initialPVC;
-  let initialPV;
+const extractNumbersFromText = (text: string): string => {
+  const matches = text.match(/\d+/g);
+  return matches ? matches.join('') : '';
+};
 
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
+describe('Check Persistent Dashboard', () => {
+  beforeEach(() => {
+    ODFCommon.visitStorageDashboard();
   });
 
   after(() => {
     deletePVCFromCLI('dummy-pvc', 'openshift-storage');
-    cy.logout();
   });
 
-  it('Check Status Card is in Healthy', () => {
-    ODFCommon.visitStorageDashboard();
+  it('Check Status Card is healthy', () => {
     cy.log('Check if Data Foundation is Healthy');
     cy.byTestID('success-icon').first().should('be.visible');
     cy.log('Check if Storage System is Healthy');
@@ -34,6 +32,9 @@ describe('Check Persistent Dashboard', () => {
   });
 
   it('Check Details card is correct', () => {
+    cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
+    cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
+    cy.byTestRows('resource-row').get('td a').first().click();
     cy.byTestID('ocs-link').contains('Data Foundation').scrollIntoView();
     cy.byTestID('ocs-link').should('be.visible');
     cy.byTestID('detail-item-value')
@@ -49,36 +50,37 @@ describe('Check Persistent Dashboard', () => {
   });
 
   it('Check Inventory card is correct', () => {
-    ODFCommon.visitStorageDashboard();
     cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
     cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
     cy.byTestRows('resource-row').get('td a').first().click();
     cy.log('Check the total number of OCS nodes');
     cy.get('.skeleton-activity').should('not.exist'); // eslint-disable-line cypress/require-data-selectors
-    cy.byTestID('inventory-nodes')
-      .invoke('text')
-      .then((text) => {
-        cy.exec(
-          `oc get nodes -l cluster.ocs.openshift.io/openshift-storage -o json | jq '.items | length'`
-        ).then(({ stdout }) => {
-          expect(text).to.equal(`${stdout.trim()} Nodes`);
-        });
-      });
+    cy.exec(
+      `oc get nodes -l cluster.ocs.openshift.io/openshift-storage -o json | jq '.items | length'`
+    ).then(({ stdout }) => {
+      cy.byTestID('inventory-nodes').should(
+        'have.text',
+        `${stdout.trim()} Nodes`,
+        { timeout: 3 * SECOND }
+      );
+    });
 
     cy.log(
-      'Check that number of PVCs and PVs is updated after sucessful PVC creation'
+      'Check that number of PVCs and PVs is updated after successful PVC creation'
     );
+    let initialPVC: number;
+    let initialPV: number;
     cy.byTestID('inventory-pvc')
       .invoke('text')
       .then((pvcText) => {
-        const [numberPVC] = pvcText.split(' ');
-        initialPVC = Number(numberPVC);
+        initialPVC = Number(extractNumbersFromText(pvcText));
+        cy.log(`Initial number of PVCs: ${initialPVC}`);
       });
     cy.byTestID('inventory-pv')
       .invoke('text')
       .then((pvText) => {
-        const [numberPV] = pvText.split(' ');
-        initialPV = Number(numberPV);
+        initialPV = Number(extractNumbersFromText(pvText));
+        cy.log(`Initial number of PVs: ${initialPV}`);
       });
     cy.exec(
       ` echo '${JSON.stringify(
@@ -90,11 +92,15 @@ describe('Check Persistent Dashboard', () => {
         )
       )}' | oc create -f -`
     ).then(() => {
-      cy.byTestID('inventory-pvc').contains(
-        `${(initialPVC + 1).toString()} PersistentVolumeClaims`
+      cy.byTestID('inventory-pvc').should(
+        'have.text',
+        `${initialPVC + 1} PersistentVolumeClaims`,
+        { timeout: 3 * SECOND }
       );
-      cy.byTestID('inventory-pv').contains(
-        `${(initialPV + 1).toString()} PersistentVolumes`
+      cy.byTestID('inventory-pv').should(
+        'have.text',
+        `${initialPV + 1} PersistentVolumes`,
+        { timeout: 3 * SECOND }
       );
     });
   });

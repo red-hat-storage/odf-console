@@ -43,6 +43,6 @@ export const BucketsTitle: React.FC<BucketsTitleProps> = ({
 
 export type BucketsTitleProps = {
   objects: PrometheusResponse;
-  link: string;
+  link?: string;
   error: boolean;
 };

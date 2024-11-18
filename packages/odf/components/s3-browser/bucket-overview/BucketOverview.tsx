@@ -1,8 +1,17 @@
 import * as React from 'react';
 import { BucketDetails } from '@odf/core/components/s3-browser/bucket-details/BucketDetails';
+import {
+  EmptyBucketAlerts,
+  EmptyBucketResponse,
+} from '@odf/core/modals/s3-browser/delete-and-empty-bucket/EmptyBucketModal';
+import {
+  LazyEmptyBucketModal,
+  LazyDeleteBucketModal,
+} from '@odf/core/modals/s3-browser/delete-and-empty-bucket/lazy-delete-and-empty-bucket';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useRefresh } from '@odf/shared/hooks';
 import { ModalKeys, defaultModalMap } from '@odf/shared/modals/types';
+import { S3Commands } from '@odf/shared/s3';
 import { BlueSyncIcon } from '@odf/shared/status';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -26,7 +35,7 @@ import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { PREFIX, BUCKETS_BASE_ROUTE } from '../../../constants';
 import { NooBaaObjectBucketModel } from '../../../models';
 import { getBreadcrumbs } from '../../../utils';
-import { NoobaaS3Provider } from '../noobaa-context';
+import { NoobaaS3Context, NoobaaS3Provider } from '../noobaa-context';
 import { CustomActionsToggle } from '../objects-list';
 import { ObjectListWithSidebar } from '../objects-list/ObjectListWithSidebar';
 import { PageTitle } from './PageTitle';
@@ -47,16 +56,39 @@ const getBucketActionsItems = (
   navigate: NavigateFunction,
   bucketName: string,
   isCreatedByOBC: boolean,
-  noobaaObjectBucket: K8sResourceKind
+  noobaaS3: S3Commands,
+  noobaaObjectBucket: K8sResourceKind,
+  refreshTokens: () => void,
+  setEmptyBucketResponse: React.Dispatch<
+    React.SetStateAction<EmptyBucketResponse>
+  >
 ): IAction[] => [
-  // ToDo: add empty/delete bucket actions
   {
     title: t('Empty bucket'),
-    onClick: () => undefined,
+    onClick: () =>
+      launcher(LazyEmptyBucketModal, {
+        isOpen: true,
+        extraProps: {
+          bucketName,
+          noobaaS3,
+          refreshTokens,
+          setEmptyBucketResponse,
+        },
+      }),
   },
   {
     title: t('Delete bucket'),
-    onClick: () => undefined,
+    onClick: () =>
+      launcher(LazyDeleteBucketModal, {
+        isOpen: true,
+        extraProps: {
+          bucketName,
+          noobaaS3,
+          launcher,
+          refreshTokens,
+          setEmptyBucketResponse,
+        },
+      }),
   },
   ...(isCreatedByOBC
     ? [
@@ -90,6 +122,53 @@ const getBucketActionsItems = (
     : []),
 ];
 
+const createBucketActions = (
+  t: TFunction,
+  fresh: boolean,
+  triggerRefresh: () => void,
+  foldersPath: string | null,
+  launcher: ReturnType<typeof useModal>,
+  navigate: NavigateFunction,
+  bucketName: string,
+  isCreatedByOBC: boolean,
+  noobaaS3: S3Commands,
+  noobaaObjectBucket: K8sResourceKind,
+  setEmptyBucketResponse: React.Dispatch<
+    React.SetStateAction<EmptyBucketResponse>
+  >
+) => {
+  return (
+    <>
+      <Button
+        className="pf-v5-u-mr-md pf-v5-u-mb-xs"
+        variant={ButtonVariant.link}
+        icon={<BlueSyncIcon />}
+        onClick={triggerRefresh}
+        isDisabled={!fresh}
+        isInline
+      >
+        {t('Refresh')}
+      </Button>
+      {!foldersPath && (
+        <ActionsColumn
+          items={getBucketActionsItems(
+            t,
+            launcher,
+            navigate,
+            bucketName,
+            isCreatedByOBC,
+            noobaaS3,
+            noobaaObjectBucket,
+            triggerRefresh,
+            setEmptyBucketResponse
+          )}
+          actionsToggle={CustomActionsToggle}
+        />
+      )}
+    </>
+  );
+};
+
 const BucketOverview: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const [fresh, triggerRefresh] = useRefresh();
@@ -99,6 +178,12 @@ const BucketOverview: React.FC<{}> = () => {
 
   const { bucketName } = useParams();
   const [searchParams] = useSearchParams();
+
+  const [emptyBucketResponse, setEmptyBucketResponse] =
+    React.useState<EmptyBucketResponse>({
+      response: null,
+      bucketName: '',
+    });
 
   // if non-empty means we are inside particular folder(s) of a bucket, else just inside a bucket (top-level)
   const foldersPath = searchParams.get(PREFIX);
@@ -151,38 +236,84 @@ const BucketOverview: React.FC<{}> = () => {
       : []),
   ];
 
-  const actions = () => {
-    return (
-      <>
-        <Button
-          className="pf-v5-u-mr-md pf-v5-u-mb-xs"
-          variant={ButtonVariant.link}
-          icon={<BlueSyncIcon />}
-          onClick={triggerRefresh}
-          isDisabled={!fresh}
-          isInline
-        >
-          {t('Refresh')}
-        </Button>
-        {!foldersPath && (
-          <ActionsColumn
-            items={getBucketActionsItems(
-              t,
-              launcher,
-              navigate,
-              bucketName,
-              isCreatedByOBC,
-              noobaaObjectBucket
-            )}
-            actionsToggle={CustomActionsToggle}
-          />
-        )}
-      </>
+  const renderActions = (noobaaS3: S3Commands) => () =>
+    createBucketActions(
+      t,
+      fresh,
+      triggerRefresh,
+      foldersPath,
+      launcher,
+      navigate,
+      bucketName,
+      isCreatedByOBC,
+      noobaaS3,
+      noobaaObjectBucket,
+      setEmptyBucketResponse
     );
-  };
 
   return (
     <NoobaaS3Provider loading={!objectBucketsLoaded} error={objectBucketsError}>
+      <BucketOverviewContent
+        breadcrumbs={breadcrumbs}
+        foldersPath={foldersPath}
+        currentFolder={currentFolder}
+        isCreatedByOBC={isCreatedByOBC}
+        noobaaObjectBucket={noobaaObjectBucket}
+        fresh={fresh}
+        triggerRefresh={triggerRefresh}
+        navPages={navPages}
+        bucketName={bucketName}
+        actions={renderActions}
+        launcher={launcher}
+        emptyBucketResponse={emptyBucketResponse}
+        setEmptyBucketResponse={setEmptyBucketResponse}
+      />
+    </NoobaaS3Provider>
+  );
+};
+
+type NavPage = {
+  href: string;
+  name: string;
+  component: React.ComponentType<any>;
+};
+
+type BucketOverviewContentProps = {
+  breadcrumbs: { name: string; path: string }[];
+  foldersPath: string | null;
+  currentFolder: string;
+  isCreatedByOBC: boolean;
+  fresh: boolean;
+  triggerRefresh: () => void;
+  noobaaObjectBucket: K8sResourceKind;
+  navPages: NavPage[];
+  bucketName: string;
+  actions: (noobaaS3: S3Commands) => () => JSX.Element;
+  launcher: LaunchModal;
+  emptyBucketResponse: EmptyBucketResponse;
+  setEmptyBucketResponse: React.Dispatch<
+    React.SetStateAction<EmptyBucketResponse>
+  >;
+};
+
+const BucketOverviewContent: React.FC<BucketOverviewContentProps> = ({
+  breadcrumbs,
+  foldersPath,
+  currentFolder,
+  isCreatedByOBC,
+  fresh,
+  triggerRefresh,
+  noobaaObjectBucket,
+  navPages,
+  bucketName,
+  actions,
+  emptyBucketResponse,
+  setEmptyBucketResponse,
+}) => {
+  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+
+  return (
+    <>
       <PageHeading
         breadcrumbs={breadcrumbs}
         title={
@@ -194,8 +325,13 @@ const BucketOverview: React.FC<{}> = () => {
             noobaaObjectBucket={noobaaObjectBucket}
           />
         }
-        actions={actions}
+        actions={actions(noobaaS3)}
         className="pf-v5-u-mt-md"
+      />
+      <EmptyBucketAlerts
+        emptyBucketResponse={emptyBucketResponse}
+        setEmptyBucketResponse={setEmptyBucketResponse}
+        triggerRefresh={triggerRefresh}
       />
       <HorizontalNav
         pages={navPages}
@@ -207,7 +343,7 @@ const BucketOverview: React.FC<{}> = () => {
           } as any
         }
       />
-    </NoobaaS3Provider>
+    </>
   );
 };
 

@@ -4,9 +4,27 @@ import {
   STORAGE_SYSTEM_NAME,
   OCS_SC_STATE,
   ODF_OPERATOR_NAME,
+  SECOND,
+  MINUTE,
 } from './consts';
 import './support/selectors';
 import './support/login';
+
+const disableIrrelevantLogging = () => {
+  // Disable the default behavior of logging all XMLHttpRequests and fetches.
+  cy.intercept({ resourceType: /xhr|fetch/ }, { log: false });
+};
+
+before(() => {
+  disableIrrelevantLogging(); // Required as 'before' actions precede 'beforeEach' actions.
+});
+
+beforeEach(() => {
+  disableIrrelevantLogging();
+  cy.login();
+  cy.visit('/');
+  cy.install();
+});
 
 declare global {
   namespace Cypress {
@@ -22,10 +40,6 @@ Cypress.on('uncaught:exception', () => {
 });
 
 Cypress.Cookies.debug(true);
-
-Cypress.Cookies.defaults({
-  preserve: ['openshift-session-token', 'csrf-token'],
-});
 
 Cypress.Commands.add('install', () => {
   cy.exec(
@@ -43,7 +57,7 @@ Cypress.Commands.add('install', () => {
       cy.byTestID('item-create').click();
 
       // Wait for the StorageSystem page to load.
-      cy.contains('Create StorageSystem', { timeout: 10 * 1000 }).should(
+      cy.contains('Create StorageSystem', { timeout: 15 * SECOND }).should(
         'be.visible'
       );
       cy.get('button').contains('Next').click();
@@ -61,7 +75,7 @@ Cypress.Commands.add('install', () => {
         .as('Create StorageSystem Button');
       cy.get('@Create StorageSystem Button').click();
       // Wait for the storage system to be created.
-      cy.get('@Create StorageSystem Button', { timeout: 10 * 1000 }).should(
+      cy.get('@Create StorageSystem Button', { timeout: 10 * SECOND }).should(
         'not.exist'
       );
 
@@ -70,11 +84,12 @@ Cypress.Commands.add('install', () => {
       cy.byLegacyTestID('horizontal-link-Storage Systems').click();
       cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
       cy.get('a').contains(STORAGE_SYSTEM_NAME);
-      cy.get('td[id="status"]', { timeout: 5 * 60000 }).contains('Available', {
-        timeout: 5 * 60000,
+      cy.get('td[id="status"]', { timeout: 5 * MINUTE }).contains('Available', {
+        timeout: 5 * MINUTE,
       });
       // Verify that the OCS SC is in READY state.
-      cy.exec(OCS_SC_STATE, { timeout: 25 * 60000 });
+      cy.exec(OCS_SC_STATE, { timeout: 25 * MINUTE });
+      cy.visit('/');
     } else {
       cy.log(
         ' ocs-storagecluster-storagesystem is present, proceeding without installation.'

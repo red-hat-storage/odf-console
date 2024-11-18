@@ -1,5 +1,5 @@
-export const ODF_DEFAULT_DOC_VERSION = '4.16';
-export const ACM_DEFAULT_DOC_VERSION = '2.10';
+export const ODF_DEFAULT_DOC_VERSION = '4.18';
+export const ACM_DEFAULT_DOC_VERSION = '2.12';
 
 export const odfDocHome = (odfDocVersion) =>
   `https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/${odfDocVersion}`;

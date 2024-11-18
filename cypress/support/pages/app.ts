@@ -33,7 +33,7 @@ export const projectNameSpace = {
     // cy.testA11y('Create Project modal');
     cy.byTestID('dropdown-text-filter').clear();
     cy.byTestID('dropdown-text-filter').should('be.empty');
-    cy.byTestID('dropdown-text-filter').type(projectName);
+    cy.byTestID('dropdown-text-filter').type(projectName, { delay: 0 });
     cy.byTestID('dropdown-text-filter').should('have.value', projectName);
     cy.get('[data-test-id="namespace-bar-dropdown"] span')
       .first()

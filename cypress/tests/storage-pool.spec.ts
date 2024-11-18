@@ -25,16 +25,6 @@ describe('Block pool on ODF UI', () => {
   const poolName = 'block-name';
   const pvcName: string = 'testing-pvc';
 
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
-
-  after(() => {
-    cy.logout();
-  });
-
   beforeEach(() => {
     navigateToStoragePoolList();
   });
@@ -109,16 +99,10 @@ describe('Block pool on ODF UI', () => {
 
 describe('Tests form validations on block pool', () => {
   const nameFieldTestId: string = 'new-pool-name-textbox';
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
+
+  beforeEach(() => {
     navigateToStoragePoolList();
     cy.byTestID('item-create').click();
-  });
-
-  after(() => {
-    cy.logout();
   });
 
   fieldValidationOnWizardFormsTests(nameFieldTestId, 'Create', () =>
@@ -129,16 +113,6 @@ describe('Tests form validations on block pool', () => {
 describe('Filesystem pool on ODF UI', () => {
   const poolName = 'fs-name';
   const poolFullName = `${CEPH_DEFAULT_FS_POOL_PREFIX}-${poolName}`;
-
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
-
-  after(() => {
-    cy.logout();
-  });
 
   beforeEach(() => {
     navigateToStoragePoolList();

@@ -9,16 +9,6 @@ import {
 } from '../views/store';
 
 describe('Tests creation of Backing Stores', () => {
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
-
-  after(() => {
-    cy.logout();
-  });
-
   afterEach(() => {
     cy.exec(`oc delete backingstore test-bucket -n openshift-storage`);
   });
@@ -38,12 +28,6 @@ describe('Tests creation of Backing Stores', () => {
 
 describe('Tests form validations on Backing Stores', () => {
   const nameFieldTestId: string = `${StoreType.BackingStore}-name`;
-
-  before(() => {
-    cy.login();
-    cy.visit('/');
-    cy.install();
-  });
 
   beforeEach(() => {
     commonFlows.navigateToObjectStorage();

@@ -74,6 +74,7 @@ const DataPoliciesStatusModal = React.lazy(
 export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps> =
   ({ application }) => {
     const { t } = useCustomTranslation();
+    const [isVisible, setIsVisible] = React.useState(false);
     const launcher = useModal();
     const response = useK8sWatchResources<DataPoliciesResourceType>(
       drResources(getNamespace(application))
@@ -187,9 +188,9 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
       [launcher, dataPoliciesStatus]
     );
 
-    const onClick = (hide: any) => {
+    const onClick = () => {
       launchModal();
-      hide();
+      setIsVisible(false);
     };
 
     const headerText = pluralize(
@@ -220,19 +221,22 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
             <DRStatusCard drPolicies={dataPoliciesStatus?.drPolicies} />
           </Flex>
         }
-        footerContent={(hide) => (
+        isVisible={isVisible}
+        shouldClose={() => setIsVisible(false)}
+        shouldOpen={() => setIsVisible(true)}
+        footerContent={
           <Flex>
             <FlexItem align={{ default: 'alignRight' }}>
               <Button
                 data-test="status-modal-link"
                 variant={ButtonVariant.link}
-                onClick={() => onClick(hide)}
+                onClick={onClick}
               >
                 {t('View more details')}
               </Button>
             </FlexItem>
           </Flex>
-        )}
+        }
       >
         {!!count && <a data-test="subs-popover-link">{linkText}</a>}
       </Popover>

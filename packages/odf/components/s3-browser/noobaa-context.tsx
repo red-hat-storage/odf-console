@@ -15,6 +15,7 @@ import {
 
 type NoobaaS3ContextType = {
   noobaaS3: S3Commands;
+  noobaaS3Route: string;
 };
 
 type NoobaaS3ProviderType = {
@@ -44,16 +45,21 @@ export const NoobaaS3Provider: React.FC<NoobaaS3ProviderType> = ({
     NOOBAA_S3_ROUTE
   );
 
+  const s3Route = React.useRef<string>();
+
   const [noobaaS3, noobaaS3Error]: [S3Commands, unknown] = React.useMemo(() => {
     if (!_.isEmpty(secretData) && !_.isEmpty(routeData)) {
       try {
-        const endpoint = `https://${routeData.spec.host}`;
+        s3Route.current = `https://${routeData.spec.host}`;
         const accessKeyId = atob(secretData.data?.[NOOBAA_ACCESS_KEY_ID]);
         const secretAccessKey = atob(
           secretData.data?.[NOOBAA_SECRET_ACCESS_KEY]
         );
 
-        return [new S3Commands(endpoint, accessKeyId, secretAccessKey), null];
+        return [
+          new S3Commands(s3Route.current, accessKeyId, secretAccessKey),
+          null,
+        ];
       } catch (err) {
         return [{} as S3Commands, err];
       }
@@ -71,7 +77,9 @@ export const NoobaaS3Provider: React.FC<NoobaaS3ProviderType> = ({
     odfNsLoadError || secretError || routeError || noobaaS3Error || error;
 
   return allLoaded && !anyError ? (
-    <NoobaaS3Context.Provider value={{ noobaaS3 }}>
+    <NoobaaS3Context.Provider
+      value={{ noobaaS3, noobaaS3Route: s3Route.current }}
+    >
       {children}
     </NoobaaS3Context.Provider>
   ) : (

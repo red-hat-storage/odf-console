@@ -193,6 +193,7 @@ type ClientStatus = {
   clusterId: string;
   clusterName: string;
   name: string;
+  storageQuotaUtilizationRatio: number;
 };
 
 export type StorageConsumerKind = K8sResourceCommon & {

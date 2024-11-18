@@ -38,7 +38,7 @@ import {
   EnrollDiscoveredApplicationState,
   EnrollDiscoveredApplicationStateType,
 } from '../../utils/reducer';
-import { NamespaceSelectionTable } from './namesapce-table';
+import { NamespaceSelectionTable } from './namespace-table';
 import './namespace-step.scss';
 
 const getDRClusterFromPolicies = (drPolicies: DRPolicyKind[]): string[] => {
