@@ -76,10 +76,12 @@ export const NoobaaS3Provider: React.FC<NoobaaS3ProviderType> = ({
   const anyError =
     odfNsLoadError || secretError || routeError || noobaaS3Error || error;
 
+  const contextData = React.useMemo(() => {
+    return { noobaaS3, noobaaS3Route: s3Route.current };
+  }, [noobaaS3]);
+
   return allLoaded && !anyError ? (
-    <NoobaaS3Context.Provider
-      value={{ noobaaS3, noobaaS3Route: s3Route.current }}
-    >
+    <NoobaaS3Context.Provider value={contextData}>
       {children}
     </NoobaaS3Context.Provider>
   ) : (

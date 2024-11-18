@@ -23,8 +23,11 @@ const mainCards = [
 const rightCards = [{ Card: MirroringCard }];
 
 export const BlockPoolDashboard: React.FC<PoolDashboardProps> = ({ obj }) => {
+  const contextData = React.useMemo(() => {
+    return { obj };
+  }, [obj]);
   return (
-    <BlockPoolDashboardContext.Provider value={{ obj }}>
+    <BlockPoolDashboardContext.Provider value={contextData}>
       <Overview>
         <OverviewGrid
           mainCards={mainCards}
