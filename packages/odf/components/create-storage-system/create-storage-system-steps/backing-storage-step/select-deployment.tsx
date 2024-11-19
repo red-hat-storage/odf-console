@@ -14,23 +14,35 @@ import { FormGroup } from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './backing-storage-step.scss';
 
-const options = (isFDF: boolean) => [
-  DeploymentType.FULL,
-  ...(isFDF ? [DeploymentType.PROVIDER_MODE] : []),
-  DeploymentType.MCG,
-];
+const selectOptions = (t: TFunction, isFDF: boolean) => {
+  const options = [
+    DeploymentType.FULL,
+    ...(isFDF ? [DeploymentType.PROVIDER_MODE] : []),
+    DeploymentType.MCG,
+  ];
 
-const optionsDescription = (t: TFunction) => ({
-  [DeploymentType.MCG]: t(
-    'Deploys MultiCloud Object Gateway without block and file services.'
-  ),
-  [DeploymentType.FULL]: t(
-    'Deploys Data Foundation with block, shared fileSystem and object services.'
-  ),
-  [DeploymentType.PROVIDER_MODE]: t(
-    'Deploys Data Foundation as a provider cluster'
-  ),
-});
+  const optionsDescription = {
+    [DeploymentType.MCG]: t(
+      'Deploys MultiCloud Object Gateway without block and file services.'
+    ),
+    [DeploymentType.FULL]: t(
+      'Deploys Data Foundation with block, shared fileSystem and object services.'
+    ),
+    [DeploymentType.PROVIDER_MODE]: t(
+      'Deploys Data Foundation as a provider cluster'
+    ),
+  };
+
+  return options.map((option) => (
+    <SelectOption
+      key={option}
+      value={option}
+      description={optionsDescription[option]}
+    >
+      {t(option)}
+    </SelectOption>
+  ));
+};
 
 export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
   deployment,
@@ -40,8 +52,6 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
   const [isSelectOpen, setIsSelectOpen] = React.useState(false);
 
   const isFDF = useFlag(FDF_FLAG);
-
-  const descriptions = optionsDescription(t);
 
   const handleSelection: SelectProps['onSelect'] = (_, value) => {
     dispatch({
@@ -63,14 +73,6 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
     isExpanded: boolean
   ) => setIsSelectOpen(isExpanded);
 
-  const selectOptions = options(isFDF).map((option) => (
-    <SelectOption
-      key={option}
-      value={option}
-      description={descriptions[option]}
-    />
-  ));
-
   return (
     <FormGroup label={t('Deployment type')} fieldId="deployment-type">
       <Select
@@ -83,7 +85,7 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
         selections={deployment}
         isOpen={isSelectOpen}
       >
-        {selectOptions}
+        {selectOptions(t, isFDF)}
       </Select>
     </FormGroup>
   );

@@ -74,7 +74,7 @@ export const UtilizationContent: React.FC = () => {
                 StorageDashboardQuery.UTILIZATION_IOPS_WRITE_QUERY
               ],
             ]}
-            humanizeValue={humanizeIOPS}
+            humanizeValue={humanizeIOPS(t)}
             chartType="stacked-area"
           />
           <PrometheusMultilineUtilizationItem
