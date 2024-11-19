@@ -13,7 +13,7 @@ const LANGUAGES = ['en', 'ja', 'ko', 'zh', 'es', 'fr'];
 const resolveLocale = (dirName: string, ns: string) =>
   LANGUAGES.map((lang) => ({
     from: path.resolve(dirName, `locales/${lang}/plugin__*.json`),
-    to: `locales/${lang}/${ns}.[ext]`,
+    to: `locales/${lang}/${ns}[ext]`,
   }));
 
 const NODE_ENV = (process.env.NODE_ENV ||
