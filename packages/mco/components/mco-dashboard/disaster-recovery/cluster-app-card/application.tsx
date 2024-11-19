@@ -3,8 +3,8 @@
  */
 
 import * as React from 'react';
-import { DRPC_STATUS } from '@odf/mco/constants';
-import { REPLICATION_TYPE } from '@odf/mco/constants';
+import { DRPCStatus } from '@odf/mco/constants';
+import { ReplicationType } from '@odf/mco/constants';
 import { PlacementControlInfo, ProtectedAppsMap } from '@odf/mco/types';
 import { getDRStatus } from '@odf/mco/utils';
 import { formatTime } from '@odf/shared/details-page/datetime';
@@ -59,12 +59,12 @@ export const getCurrentActivity = (
   preferredCluster: string,
   t: TFunction,
   isCleanupPending?: boolean,
-  replicationType?: REPLICATION_TYPE
+  replicationType?: ReplicationType
 ): { description: string; status: string; icon: JSX.Element } => {
-  const status = currentStatus as DRPC_STATUS;
+  const status = currentStatus as DRPCStatus;
 
   switch (status) {
-    case DRPC_STATUS.Relocating:
+    case DRPCStatus.Relocating:
       return isCleanupPending
         ? {
             description: t(
@@ -82,7 +82,7 @@ export const getCurrentActivity = (
             icon: <InProgressIcon />,
           };
 
-    case DRPC_STATUS.Relocated:
+    case DRPCStatus.Relocated:
       return {
         description: t('Relocated to cluster {{ preferredCluster }}', {
           preferredCluster,
@@ -91,7 +91,7 @@ export const getCurrentActivity = (
         icon: <GreenCheckCircleIcon />,
       };
 
-    case DRPC_STATUS.FailingOver:
+    case DRPCStatus.FailingOver:
       return {
         description: t('FailingOver to cluster {{ failoverCluster }}', {
           failoverCluster,
@@ -100,9 +100,9 @@ export const getCurrentActivity = (
         icon: <InProgressIcon />,
       };
 
-    case DRPC_STATUS.FailedOver:
+    case DRPCStatus.FailedOver:
       if (isCleanupPending) {
-        return replicationType === REPLICATION_TYPE.ASYNC
+        return replicationType === ReplicationType.ASYNC
           ? {
               description: t(
                 'Clean up application resources on failed cluster {{ preferredCluster }} to start the replication.',
@@ -141,7 +141,7 @@ export const getCurrentActivity = (
 const getSubscriptionRow = (
   placementControlInfoList: PlacementControlInfo[] = []
 ): SubscriptionRowProps[] => {
-  const _getRowProps = (
+  const getRowProps = (
     subscriptions: string[],
     {
       status,
@@ -160,10 +160,7 @@ const getSubscriptionRow = (
   return placementControlInfoList.reduce(
     (acc, placementControlInfo) => [
       ...acc,
-      ..._getRowProps(
-        placementControlInfo?.subscriptions,
-        placementControlInfo
-      ),
+      ...getRowProps(placementControlInfo?.subscriptions, placementControlInfo),
     ],
     []
   );

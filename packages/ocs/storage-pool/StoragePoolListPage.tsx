@@ -40,7 +40,7 @@ import classNames from 'classnames';
 import { Link, useLocation, useParams } from 'react-router-dom-v5-compat';
 import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { POOL_TYPE } from '../constants';
+import { PoolType } from '../constants';
 import {
   MirroringImageHealthMap,
   healthStateMessage,
@@ -117,7 +117,7 @@ const tableColumnInfo = [
   { className: Kebab.columnClass, id: '' },
 ];
 
-type StoragePoolListProps = {
+type StoragePoolListTableProps = {
   data: StoragePool[];
   unfilteredData: StoragePool[];
   loaded: boolean;
@@ -125,7 +125,7 @@ type StoragePoolListProps = {
   rowData: any;
 };
 
-const StoragePoolList: React.FC<StoragePoolListProps> = (props) => {
+const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
   const { t } = useCustomTranslation();
   const tableColumns = React.useMemo<TableColumn<any>[]>(
     () => [
@@ -268,7 +268,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
 
   const poolType = obj.type;
   const hideItems =
-    poolType === POOL_TYPE.FILESYSTEM
+    poolType === PoolType.FILESYSTEM
       ? [ModalKeys.EDIT_LABELS, ModalKeys.EDIT_ANN]
       : [];
   const replica = obj.spec?.replicated?.size;
@@ -303,12 +303,12 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
         <ResourceIcon
           resourceModel={
-            poolType === POOL_TYPE.BLOCK
+            poolType === PoolType.BLOCK
               ? CephBlockPoolModel
               : CephFileSystemModel
           }
         />
-        {poolType === POOL_TYPE.BLOCK ? (
+        {poolType === PoolType.BLOCK ? (
           <Link
             to={to}
             className="co-resource-item__resource-name"
@@ -416,14 +416,6 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
   );
 };
 
-type StoragePoolListPageProps = {
-  storagePools: StoragePool[];
-  storageClasses: StorageClassResourceKind[];
-  loaded: boolean;
-  loadError: any;
-  clusterName: string;
-};
-
 type WatchType = {
   sc: StorageClassResourceKind[];
   blockPools: StoragePoolKind[];
@@ -450,8 +442,7 @@ const getResources = (
   };
 };
 
-// To divide the number of hooks, add _StoragePoolListPage on top of StoragePoolListPage.
-const _StoragePoolListPage: React.FC = () => {
+const StoragePoolListPage: React.FC = () => {
   const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
@@ -489,7 +480,7 @@ const _StoragePoolListPage: React.FC = () => {
   const error = flagsLoadError || scError || blockPoolsError || filesystemError;
 
   return (
-    <StoragePoolListPage
+    <StoragePoolList
       storagePools={storagePools}
       storageClasses={memoizedSC}
       loaded={loaded}
@@ -499,7 +490,15 @@ const _StoragePoolListPage: React.FC = () => {
   );
 };
 
-const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
+type StoragePoolListProps = {
+  storagePools: StoragePool[];
+  storageClasses: StorageClassResourceKind[];
+  loaded: boolean;
+  loadError: any;
+  clusterName: string;
+};
+
+const StoragePoolList: React.FC<StoragePoolListProps> = ({
   storagePools,
   storageClasses,
   loaded,
@@ -620,7 +619,7 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
           onFilterChange={onFilterChange}
           hideColumnManagement={true}
         />
-        <StoragePoolList
+        <StoragePoolListTable
           data={filteredData}
           unfilteredData={data}
           loaded={loaded}
@@ -632,4 +631,4 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
   );
 };
 
-export default _StoragePoolListPage;
+export default StoragePoolListPage;

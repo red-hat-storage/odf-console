@@ -1,19 +1,19 @@
 import { action } from 'typesafe-actions';
 
-export type nsPayload = {
+export type NsPayload = {
   odfNamespace: string | null;
   isODFNsLoaded: boolean;
   odfNsLoadError: unknown;
 };
 
-export enum nsActions {
+export enum NsActions {
   SetODFNamespace = 'setODFNamespace',
 }
 
-export type nsActionTypes = {
-  type: nsActions;
-  payload: nsPayload;
+export type NsActionTypes = {
+  type: NsActions;
+  payload: NsPayload;
 };
 
-export const setODFNamespace = (payload: nsPayload): nsActionTypes =>
-  action(nsActions.SetODFNamespace, payload);
+export const setODFNamespace = (payload: NsPayload): NsActionTypes =>
+  action(NsActions.SetODFNamespace, payload);

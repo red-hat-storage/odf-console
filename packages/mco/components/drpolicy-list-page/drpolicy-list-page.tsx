@@ -20,7 +20,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
-import { HUB_CLUSTER_NAME, REPLICATION_TYPE } from '../../constants';
+import { HUB_CLUSTER_NAME, ReplicationType } from '../../constants';
 import {
   DRPolicyToAppCount,
   getDRPolicyResourceObj,
@@ -60,12 +60,12 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
         {clusterNames}
       </TableData>
       <TableData {...tableColumnInfo[3]} activeColumnIDs={activeColumnIDs}>
-        {replicationType === REPLICATION_TYPE.ASYNC
+        {replicationType === ReplicationType.ASYNC
           ? t('{{async}}, interval: {{syncInterval}}', {
-              async: REPLICATION_TYPE.ASYNC,
+              async: ReplicationType.ASYNC,
               syncInterval,
             })
-          : REPLICATION_TYPE.SYNC}
+          : ReplicationType.SYNC}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
         {appCount > 0

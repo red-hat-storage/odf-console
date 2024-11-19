@@ -1,4 +1,4 @@
-import { APPLICATION_TYPE } from '@odf/mco/constants';
+import { DRApplication } from '@odf/mco/constants';
 import {
   ACMApplicationKind,
   ACMPlacementType,
@@ -86,7 +86,7 @@ export const generateDRPlacementControlInfo = (
     : [];
 
 export const generateApplicationInfo = (
-  appType: APPLICATION_TYPE,
+  appType: DRApplication,
   application: ACMApplicationKind,
   workloadNamespace: string,
   plsInfo: PlacementType[],

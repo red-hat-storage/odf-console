@@ -80,10 +80,10 @@ import {
 } from '@patternfly/react-core';
 import { AddCircleOIcon, CaretDownIcon } from '@patternfly/react-icons';
 import {
-  CLUSTER_STATUS,
-  POOL_STATE,
+  ClusterStatus,
+  PoolState,
   CEPH_NS_SESSION_STORAGE,
-  POOL_TYPE,
+  PoolType,
 } from '../constants';
 import { CreateStoragePoolModal } from '../modals/storage-pool/create-storage-pool-modal';
 import { CephFilesystemKind, StoragePool, StoragePoolKind } from '../types';
@@ -121,7 +121,7 @@ const getPoolDropdownItems = (
   launchModal,
   t,
   defaultDeviceClass: string,
-  poolType: POOL_TYPE,
+  poolType: PoolType,
   existingNames: string[],
   filesystemName = ''
 ) =>
@@ -134,8 +134,8 @@ const getPoolDropdownItems = (
           ? t('no compression')
           : t('with compression');
       if (
-        pool?.status?.phase === POOL_STATE.READY &&
-        cephCluster?.status?.phase === CLUSTER_STATUS.READY
+        pool?.status?.phase === PoolState.READY &&
+        cephCluster?.status?.phase === ClusterStatus.READY
       ) {
         res.push(
           <DropdownItem
@@ -382,7 +382,7 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
               launchModal,
               t,
               '',
-              POOL_TYPE.FILESYSTEM,
+              PoolType.FILESYSTEM,
               existingNames,
               filesystemName
             )}
@@ -533,7 +533,7 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
                   launchModal,
                   t,
                   defaultDeviceClass,
-                  POOL_TYPE.BLOCK,
+                  PoolType.BLOCK,
                   existingNames
                 )}
                 onSelect={() => setOpen(false)}

@@ -4,6 +4,7 @@ import { AreaChart } from '@odf/shared/dashboards/utilization-card/area-chart';
 import {
   ColoredIconProps,
   Humanize,
+  LIMIT_STATE,
   PrometheusResponse,
   PrometheusResult,
   RedExclamationCircleIcon,
@@ -15,12 +16,6 @@ import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens
 import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import { ChartThemeColor, ChartLegend } from '@patternfly/react-charts';
 import { useCustomTranslation } from '../../useCustomTranslationHook';
-
-enum LIMIT_STATE {
-  ERROR = 'ERROR',
-  WARN = 'WARN',
-  OK = 'OK',
-}
 
 enum AreaChartStatus {
   ERROR = 'ERROR',

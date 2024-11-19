@@ -19,11 +19,11 @@ import {
 } from '@patternfly/react-core';
 import { IAction } from '@patternfly/react-table';
 import {
-  VOLUME_REPLICATION_HEALTH,
-  DRPC_STATUS,
+  VolumeReplicationHealth,
+  DRPCStatus,
   DR_BASE_ROUTE,
   DRActionType,
-  REPLICATION_TYPE,
+  ReplicationType,
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind, Progression } from '../../types';
@@ -73,13 +73,13 @@ export const getAlertMessages = (
 export const isFailingOrRelocating = (
   application: DRPlacementControlKind
 ): boolean =>
-  [DRPC_STATUS.FailingOver, DRPC_STATUS.Relocating].includes(
-    application?.status?.phase as DRPC_STATUS
+  [DRPCStatus.FailingOver, DRPCStatus.Relocating].includes(
+    application?.status?.phase as DRPCStatus
   );
 
 export const isCleanupPending = (drpc: DRPlacementControlKind): boolean =>
-  [DRPC_STATUS.FailedOver, DRPC_STATUS.Relocating].includes(
-    drpc?.status?.phase as DRPC_STATUS
+  [DRPCStatus.FailedOver, DRPCStatus.Relocating].includes(
+    drpc?.status?.phase as DRPCStatus
   ) && drpc?.status?.progression === Progression.WaitOnUserToCleanUp;
 
 export type ReplicationHealthMap = {
@@ -89,23 +89,23 @@ export type ReplicationHealthMap = {
 };
 
 export const replicationHealthMap = (
-  health: VOLUME_REPLICATION_HEALTH,
+  health: VolumeReplicationHealth,
   t: TFunction<string>
 ): ReplicationHealthMap => {
   switch (health) {
-    case VOLUME_REPLICATION_HEALTH.CRITICAL:
+    case VolumeReplicationHealth.CRITICAL:
       return {
         title: t('Critical'),
         icon: <RedExclamationCircleIcon />,
         priority: 3,
       };
-    case VOLUME_REPLICATION_HEALTH.WARNING:
+    case VolumeReplicationHealth.WARNING:
       return {
         title: t('Warning'),
         icon: <YellowExclamationTriangleIcon />,
         priority: 2,
       };
-    case VOLUME_REPLICATION_HEALTH.HEALTHY:
+    case VolumeReplicationHealth.HEALTHY:
       return {
         title: t('Healthy'),
         icon: <GreenCheckCircleIcon />,
@@ -121,12 +121,12 @@ export const replicationHealthMap = (
 };
 
 export type SyncStatusInfo = {
-  volumeReplicationStatus: VOLUME_REPLICATION_HEALTH;
-  volumeReplicationType: REPLICATION_TYPE;
+  volumeReplicationStatus: VolumeReplicationHealth;
+  volumeReplicationType: ReplicationType;
   volumeLastGroupSyncTime: string;
-  kubeObjectReplicationStatus: VOLUME_REPLICATION_HEALTH;
+  kubeObjectReplicationStatus: VolumeReplicationHealth;
   kubeObjectLastProtectionTime: string;
-  replicationType: REPLICATION_TYPE;
+  replicationType: ReplicationType;
 };
 
 export const getAppWorstSyncStatus = (

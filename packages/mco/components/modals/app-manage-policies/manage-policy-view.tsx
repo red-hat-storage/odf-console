@@ -28,7 +28,7 @@ import {
 import { PencilAltIcon, UnknownIcon } from '@patternfly/react-icons';
 import {
   DISCOVERED_APP_NS,
-  REPLICATION_TYPE,
+  ReplicationType,
   SYNC_SCHEDULE_DISPLAY_TEXT,
 } from '../../../constants';
 import { getDRPlacementControlResourceObj } from '../../../hooks';
@@ -209,7 +209,7 @@ const DRInformation: React.FC<DRInformationProps> = ({
   const { drPolicyInfo, placementControlInfo } = dataPolicyInfo;
   const { isValidated, replicationType, schedulingInterval, drClusters } =
     drPolicyInfo;
-  const isAsyncRelication = replicationType === REPLICATION_TYPE.ASYNC;
+  const isAsyncRelication = replicationType === ReplicationType.ASYNC;
   const [unit, interval] = parseSyncInterval(schedulingInterval);
   const { placements, pvcSelector, lastGroupSyncTime, assignedOn } =
     getAggregatedDRInfo(placementControlInfo);

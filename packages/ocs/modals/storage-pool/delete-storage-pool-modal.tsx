@@ -42,8 +42,8 @@ import {
 } from '../..//utils';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
-  POOL_PROGRESS,
-  POOL_TYPE,
+  PoolProgress,
+  PoolType,
 } from '../../constants';
 import { CephBlockPoolModel } from '../../models';
 import { StoragePoolStatus } from '../../storage-pool/body';
@@ -108,7 +108,7 @@ const DeleteStoragePoolModal: React.FC<DeleteStoragePoolModalProps> = (
   newProps.extraProps['systemFlags'] = systemFlags;
 
   if (areFlagsLoaded && !flagsLoadError) {
-    return props?.extraProps?.resource?.type === POOL_TYPE.FILESYSTEM ? (
+    return props?.extraProps?.resource?.type === PoolType.FILESYSTEM ? (
       <DeleteFsPoolModal {...(newProps as DeleteFsPoolModalProps)} />
     ) : (
       <DeleteStoragePoolModalBase
@@ -198,23 +198,19 @@ const DeleteStoragePoolModalBase: React.FC<DeleteStoragePoolModalBaseProps> = (
     isExternalSC || isDefaultPool(resource)
       ? dispatch({
           type: StoragePoolActionType.SET_POOL_STATUS,
-          payload: POOL_PROGRESS.NOTALLOWED,
+          payload: PoolProgress.NOTALLOWED,
         })
       : dispatch({
           type: StoragePoolActionType.SET_POOL_NAME,
           payload:
-            resource.type === POOL_TYPE.FILESYSTEM
+            resource.type === PoolType.FILESYSTEM
               ? resource.shortName
               : poolName,
         });
   }, [resource, isExternalSC, poolName]);
 
   React.useEffect(() => {
-    if (
-      scLoaded &&
-      pvcLoaded &&
-      state.poolStatus !== POOL_PROGRESS.NOTALLOWED
-    ) {
+    if (scLoaded && pvcLoaded && state.poolStatus !== PoolProgress.NOTALLOWED) {
       const poolScNames: string[] = getScNamesUsingPool(
         scResources.items,
         resource
@@ -229,7 +225,7 @@ const DeleteStoragePoolModalBase: React.FC<DeleteStoragePoolModalBaseProps> = (
       if (usedScNames.length) {
         dispatch({
           type: StoragePoolActionType.SET_POOL_STATUS,
-          payload: POOL_PROGRESS.BOUNDED,
+          payload: PoolProgress.BOUNDED,
         });
         setScNames(toList(usedScNames));
       }
@@ -251,7 +247,7 @@ const DeleteStoragePoolModalBase: React.FC<DeleteStoragePoolModalBaseProps> = (
   const deletePool = () => {
     setProgress(true);
     let deleteRequest: () => Promise<K8sResourceCommon>;
-    if (resource.type === POOL_TYPE.FILESYSTEM) {
+    if (resource.type === PoolType.FILESYSTEM) {
       deleteRequest = deleteFsPoolRequest(state, storageCluster);
     } else {
       deleteRequest = () =>
@@ -293,7 +289,7 @@ const DeleteStoragePoolModalBase: React.FC<DeleteStoragePoolModalBaseProps> = (
       {isLoaded && !loadError ? (
         <>
           <ModalBody>
-            {state.poolStatus === POOL_PROGRESS.NOTALLOWED ? (
+            {state.poolStatus === PoolProgress.NOTALLOWED ? (
               <div key="progress-modal">
                 <StoragePoolStatus
                   status={state.poolStatus}
@@ -301,7 +297,7 @@ const DeleteStoragePoolModalBase: React.FC<DeleteStoragePoolModalBaseProps> = (
                   error={state.errorMessage}
                 />
               </div>
-            ) : state.poolStatus === POOL_PROGRESS.BOUNDED ? (
+            ) : state.poolStatus === PoolProgress.BOUNDED ? (
               <div>
                 <Trans t={t}>
                   <p data-test="pool-bound-message">

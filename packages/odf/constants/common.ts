@@ -57,7 +57,7 @@ export const RESOURCE_PROFILE_REQUIREMENTS_MAP: ResourceProfileRequirementsMap =
     },
   };
 
-export enum defaultRequestSize {
+export enum DefaultRequestSize {
   BAREMETAL = '1',
   NON_BAREMETAL = '2Ti',
 }

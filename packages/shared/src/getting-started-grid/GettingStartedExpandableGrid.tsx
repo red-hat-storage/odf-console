@@ -19,7 +19,7 @@ type GettingStartedExpandableGridProps = {
   hideExpandable?: boolean;
 };
 
-type CardProps_ = {
+type ExpandableGridCardProps = {
   titleText?: string;
   children?: React.ReactNode;
   showHeader?: boolean;
@@ -38,7 +38,11 @@ const CardTitle: React.FC<{ titleText: string }> = ({ titleText }) => {
   );
 };
 
-const Card_: React.FC<CardProps_> = ({ titleText, children, showHeader }) => {
+const ExpandableGridCard: React.FC<ExpandableGridCardProps> = ({
+  titleText,
+  children,
+  showHeader,
+}) => {
   return (
     <Card
       className="ocs-getting-started-expandable-grid"
@@ -70,11 +74,11 @@ export const GettingStartedExpandableGrid: React.FC<GettingStartedExpandableGrid
         }
         data-test="getting-started-expandable"
       >
-        <Card_>{children}</Card_>
+        <ExpandableGridCard>{children}</ExpandableGridCard>
       </ExpandableSection>
     ) : (
-      <Card_ titleText={titleText} showHeader>
+      <ExpandableGridCard titleText={titleText} showHeader>
         {children}
-      </Card_>
+      </ExpandableGridCard>
     );
   };

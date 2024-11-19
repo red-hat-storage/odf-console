@@ -27,7 +27,7 @@ import { useNavigate } from 'react-router-dom-v5-compat';
 import * as Yup from 'yup';
 import { ActionGroup, Alert, Button, Form } from '@patternfly/react-core';
 import {
-  BC_PROVIDERS,
+  StoreProviders,
   BUCKET_LABEL_NOOBAA_MAP,
   NOOBAA_TYPE_MAP,
   PROVIDERS_NOOBAA_MAP,
@@ -134,7 +134,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
     /** Create a secret if secret ==='' */
     let { secretName } = providerDataState;
     const promises = [];
-    if (!secretName && provider !== BC_PROVIDERS.PVC) {
+    if (!secretName && provider !== StoreProviders.PVC) {
       secretName = bsName.concat('-secret');
       const { secretKey, accessKey, gcpJSON } = providerDataState;
       const secretPayload = secretPayloadCreator(
@@ -160,7 +160,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
         ssl: false,
       },
     };
-    if (provider === BC_PROVIDERS.PVC) {
+    if (provider === StoreProviders.PVC) {
       // eslint-disable-next-line
       bsPayload.spec['pvPool'] = {
         numVolumes: providerDataState.numVolumes,
@@ -183,21 +183,21 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
         },
       };
     }
-    if (provider === BC_PROVIDERS.S3) {
+    if (provider === StoreProviders.S3) {
       // eslint-disable-next-line
       bsPayload.spec['s3Compatible'] = {
         // eslint-disable-next-line
         ...bsPayload.spec['s3Compatible'],
         endpoint: providerDataState.endpoint,
       };
-    } else if (provider === BC_PROVIDERS.IBM) {
+    } else if (provider === StoreProviders.IBM) {
       bsPayload.spec.ibmCos = {
         ...bsPayload.spec.ibmCos,
         endpoint: providerDataState.endpoint,
       };
     }
     // Add region in the end
-    if (provider === BC_PROVIDERS.AWS) {
+    if (provider === StoreProviders.AWS) {
       bsPayload.spec.awsS3 = {
         ...bsPayload.spec.awsS3,
         region: providerDataState.region,
@@ -257,7 +257,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
         <FormGroupController
           name="provider-name"
           control={control}
-          defaultValue={BC_PROVIDERS.AWS}
+          defaultValue={StoreProviders.AWS}
           formGroupProps={{
             label: t('Provider'),
             fieldId: 'provider-name',
@@ -275,7 +275,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
             />
           )}
         />
-        {provider === BC_PROVIDERS.GCP && (
+        {provider === StoreProviders.GCP && (
           <GCPEndpointType
             control={control}
             state={providerDataState}
@@ -283,10 +283,10 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
             namespace={ns}
           />
         )}
-        {(provider === BC_PROVIDERS.AWS ||
-          provider === BC_PROVIDERS.S3 ||
-          provider === BC_PROVIDERS.IBM ||
-          provider === BC_PROVIDERS.AZURE) && (
+        {(provider === StoreProviders.AWS ||
+          provider === StoreProviders.S3 ||
+          provider === StoreProviders.IBM ||
+          provider === StoreProviders.AZURE) && (
           <S3EndPointType
             showSecret={showSecret}
             setShowSecret={setShowSecret}
@@ -298,7 +298,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
             dispatch={providerDataDispatch}
           />
         )}
-        {provider === BC_PROVIDERS.PVC && (
+        {provider === StoreProviders.PVC && (
           <PVCType state={providerDataState} dispatch={providerDataDispatch} />
         )}
         {!isValid && isSubmitted && (
@@ -312,7 +312,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
           <ActionGroup>
             <Button
               isDisabled={
-                provider === BC_PROVIDERS.PVC &&
+                provider === StoreProviders.PVC &&
                 providerDataState.numVolumes < 1
               }
               type="submit"

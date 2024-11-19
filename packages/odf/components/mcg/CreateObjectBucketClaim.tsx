@@ -102,7 +102,7 @@ const createReplicationRulesAndStringify = (
     sync_deletions: rule.syncDeletion,
   }));
 
-  const log_replication_info: OBCLogReplicationInfo = !_.isEmpty(
+  const obcLogReplicationInfo: OBCLogReplicationInfo = !_.isEmpty(
     logReplicationInfo
   )
     ? {
@@ -114,7 +114,7 @@ const createReplicationRulesAndStringify = (
     : { logs_location: { logs_bucket: null, prefix: null } };
 
   return rules
-    ? JSON.stringify({ rules: [...rules], log_replication_info })
+    ? JSON.stringify({ rules: [...rules], obcLogReplicationInfo })
     : '';
 };
 

@@ -1,4 +1,4 @@
-export const enum PVC_STATUS {
+export const enum PVCStatus {
   BOUND = 'Bound',
   AVAILABLE = 'Available',
 }

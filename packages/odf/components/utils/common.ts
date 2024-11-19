@@ -38,7 +38,7 @@ import { Base64 } from 'js-base64';
 import * as _ from 'lodash-es';
 import {
   MINIMUM_NODES,
-  IP_FAMILY,
+  IPFamily,
   NO_PROVISIONER,
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
@@ -226,16 +226,16 @@ export const getZonesFromNodesKind = (nodes: NodeKind[]) =>
     return data;
   }, []);
 
-export const getIPFamily = (addr: string): IP_FAMILY => {
+export const getIPFamily = (addr: string): IPFamily => {
   const ipPattern = /^[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$/;
-  return ipPattern.test(addr) ? IP_FAMILY.IPV4 : IP_FAMILY.IPV6;
+  return ipPattern.test(addr) ? IPFamily.IPV4 : IPFamily.IPV6;
 };
 
 export const checkError = (
   data: string = '{}',
   requiredKeys = [],
   requiresEncodingKeys = [],
-  ipFamily = IP_FAMILY.IPV4
+  ipFamily = IPFamily.IPV4
 ): string => {
   const parsedData = JSON.parse(data);
   const providedKeys = _.map(parsedData, (item) => item.name);

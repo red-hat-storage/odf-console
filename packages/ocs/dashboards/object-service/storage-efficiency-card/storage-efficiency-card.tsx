@@ -14,7 +14,7 @@ import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ODFSystemParams } from '../../../types';
 
-const EfficiencyItemBody_: React.FC = () => {
+const ObjectStorageEfficiencyItemBody: React.FC = () => {
   const { t } = useCustomTranslation();
 
   const [compressionQueryResult, compressionQueryResultError] =
@@ -109,7 +109,11 @@ const StorageEfficiencyCard: React.FC<{}> = () => {
         <CardTitle>{t('Storage efficiency')}</CardTitle>
       </CardHeader>
       <CardBody>
-        {hasMCG ? <EfficiencyItemBody_ /> : <DataUnavailableError />}
+        {hasMCG ? (
+          <ObjectStorageEfficiencyItemBody />
+        ) : (
+          <DataUnavailableError />
+        )}
       </CardBody>
     </Card>
   );

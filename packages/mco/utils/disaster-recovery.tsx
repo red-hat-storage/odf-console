@@ -26,9 +26,9 @@ import {
 import { TFunction } from 'i18next';
 import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
 import {
-  VOLUME_REPLICATION_HEALTH,
+  VolumeReplicationHealth,
   DR_SECHEDULER_NAME,
-  DRPC_STATUS,
+  DRPCStatus,
   THRESHOLD,
   DRActionType,
   LABEL_SPLIT_CHAR,
@@ -42,8 +42,8 @@ import {
 import {
   DRPC_NAMESPACE_ANNOTATION,
   DRPC_NAME_ANNOTATION,
-  REPLICATION_TYPE,
-  TIME_UNITS,
+  ReplicationType,
+  TimeUnits,
   PROTECTED_APP_ANNOTATION,
   PLACEMENT_REF_LABEL,
   LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
@@ -246,15 +246,15 @@ export const getDRPoliciesCount = (drPolicies: DRPolicyMap) =>
   Object.keys(drPolicies || {})?.length;
 
 export const getReplicationType = (interval: string) =>
-  interval !== '0m' ? REPLICATION_TYPE.ASYNC : REPLICATION_TYPE.SYNC;
+  interval !== '0m' ? ReplicationType.ASYNC : ReplicationType.SYNC;
 
 export const getReplicationHealth = (
   lastSyncTime: string,
   schedulingInterval: string,
-  replicationType: REPLICATION_TYPE
-): VOLUME_REPLICATION_HEALTH => {
-  if (replicationType === REPLICATION_TYPE.SYNC) {
-    return VOLUME_REPLICATION_HEALTH.HEALTHY;
+  replicationType: ReplicationType
+): VolumeReplicationHealth => {
+  if (replicationType === ReplicationType.SYNC) {
+    return VolumeReplicationHealth.HEALTHY;
   }
   const seconds = !!lastSyncTime
     ? getTimeDifferenceInSeconds(lastSyncTime)
@@ -313,8 +313,8 @@ export const findDRType = (drClusters: DRClusterKind[]) =>
   drClusters?.every(
     (drCluster) => drCluster?.spec?.region === drClusters?.[0]?.spec?.region
   )
-    ? REPLICATION_TYPE.SYNC
-    : REPLICATION_TYPE.ASYNC;
+    ? ReplicationType.SYNC
+    : ReplicationType.ASYNC;
 
 export const findDRResourceUsingPlacement = (
   placementName: string,
@@ -394,41 +394,40 @@ export const matchClusters = (
 
 export const parseSyncInterval = (
   scheduledSyncInterval: string
-): [TIME_UNITS, number] => {
+): [TimeUnits, number] => {
   const regex = new RegExp(
-    `([0-9]+)|([${TIME_UNITS.Days}|${TIME_UNITS.Hours}|${TIME_UNITS.Minutes}]+)`,
+    `([0-9]+)|([${TimeUnits.Days}|${TimeUnits.Hours}|${TimeUnits.Minutes}]+)`,
     'g'
   );
   const splittedArray = scheduledSyncInterval?.match(regex);
   const interval = Number(splittedArray?.[0] || 0);
-  const unit = (splittedArray?.[1] || TIME_UNITS.Minutes) as TIME_UNITS;
+  const unit = (splittedArray?.[1] || TimeUnits.Minutes) as TimeUnits;
   return [unit, interval];
 };
 
 export const convertSyncIntervalToSeconds = (
   syncInterval: string
-): [number, TIME_UNITS] => {
+): [number, TimeUnits] => {
   const [unit, scheduledSyncTime] = parseSyncInterval(syncInterval);
   const threshold =
-    (unit === TIME_UNITS.Days && daysToSeconds(scheduledSyncTime)) ||
-    (unit === TIME_UNITS.Hours && hoursToSeconds(scheduledSyncTime)) ||
-    (unit === TIME_UNITS.Minutes && minutesToSeconds(scheduledSyncTime));
+    (unit === TimeUnits.Days && daysToSeconds(scheduledSyncTime)) ||
+    (unit === TimeUnits.Hours && hoursToSeconds(scheduledSyncTime)) ||
+    (unit === TimeUnits.Minutes && minutesToSeconds(scheduledSyncTime));
   return [threshold, unit];
 };
 
 export const getVolumeReplicationHealth = (
   slaTakenInSeconds: number,
   scheduledSyncInterval: string
-): [VOLUME_REPLICATION_HEALTH, number] => {
+): [VolumeReplicationHealth, number] => {
   const [syncIntervalInSeconds] = convertSyncIntervalToSeconds(
     scheduledSyncInterval
   );
   const slaDiff = slaTakenInSeconds / syncIntervalInSeconds || 0;
-  if (slaDiff >= THRESHOLD)
-    return [VOLUME_REPLICATION_HEALTH.CRITICAL, slaDiff];
+  if (slaDiff >= THRESHOLD) return [VolumeReplicationHealth.CRITICAL, slaDiff];
   else if (slaDiff > THRESHOLD - 1 && slaDiff < THRESHOLD)
-    return [VOLUME_REPLICATION_HEALTH.WARNING, slaDiff];
-  else return [VOLUME_REPLICATION_HEALTH.HEALTHY, slaDiff];
+    return [VolumeReplicationHealth.WARNING, slaDiff];
+  else return [VolumeReplicationHealth.HEALTHY, slaDiff];
 };
 
 export const getProtectedPVCsFromDRPC = (
@@ -438,8 +437,8 @@ export const getProtectedPVCsFromDRPC = (
 
 export const getCurrentStatus = (drpcList: DRPlacementControlKind[]): string =>
   drpcList.reduce((prevStatus, drpc) => {
-    const newStatus = DRPC_STATUS[drpc?.status?.phase] || '';
-    return [DRPC_STATUS.Relocating, DRPC_STATUS.FailingOver].includes(newStatus)
+    const newStatus = DRPCStatus[drpc?.status?.phase] || '';
+    return [DRPCStatus.Relocating, DRPCStatus.FailingOver].includes(newStatus)
       ? newStatus
       : prevStatus || newStatus;
   }, '');
@@ -456,8 +455,8 @@ export const getDRStatus = ({
   t: TFunction;
 }) => {
   switch (currentStatus) {
-    case DRPC_STATUS.Relocating:
-    case DRPC_STATUS.FailingOver:
+    case DRPCStatus.Relocating:
+    case DRPCStatus.FailingOver:
       return {
         text: customText || currentStatus,
         icon: <InProgressIcon />,
@@ -468,8 +467,8 @@ export const getDRStatus = ({
           </>
         ),
       };
-    case DRPC_STATUS.Relocated:
-    case DRPC_STATUS.FailedOver:
+    case DRPCStatus.Relocated:
+    case DRPCStatus.FailedOver:
       return {
         text: customText || currentStatus,
         icon: <GreenCheckCircleIcon />,
@@ -509,8 +508,8 @@ export const getProtectedPVCFromVRG = (
         drpcNamespace,
         // VRG has async spec only for RDR
         replicationType: !!vrg?.spec?.async
-          ? REPLICATION_TYPE.ASYNC
-          : REPLICATION_TYPE.SYNC,
+          ? ReplicationType.ASYNC
+          : ReplicationType.SYNC,
         pvcName: pvc?.name,
         pvcNamespace: getNamespace(vrg),
         lastSyncTime: pvc?.lastSyncTime,

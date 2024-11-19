@@ -1,7 +1,7 @@
 import { produce } from 'immer';
-import { nsPayload, nsActions, nsActionTypes } from '../actions';
+import { NsPayload, NsActions, NsActionTypes } from '../actions';
 
-const initialState: nsPayload = {
+const initialState: NsPayload = {
   odfNamespace: null,
   isODFNsLoaded: false,
   odfNsLoadError: undefined,
@@ -9,11 +9,11 @@ const initialState: nsPayload = {
 
 export const odfNamespaceReducer = (
   odfNamespaceState = initialState,
-  action: nsActionTypes
-): nsPayload => {
+  action: NsActionTypes
+): NsPayload => {
   const payload = action.payload;
   switch (action.type) {
-    case nsActions.SetODFNamespace:
+    case NsActions.SetODFNamespace:
       return produce(odfNamespaceState, (draft) => {
         draft.odfNamespace = payload.odfNamespace;
         draft.isODFNsLoaded = payload.isODFNsLoaded;

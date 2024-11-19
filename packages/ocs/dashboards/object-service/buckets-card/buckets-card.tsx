@@ -88,7 +88,7 @@ const ObjectInventoryItem: React.FC<ObjectInventoryItemProps> = ({
   );
 };
 
-const ObjectInventoryItem_: React.FC = () => {
+const MCGObjectInventoryItem: React.FC = () => {
   const { t } = useCustomTranslation();
 
   const [noobaaCount, noobaaCountError] = useCustomPrometheusPoll({
@@ -161,7 +161,7 @@ const ObjectDashboardBucketsCard: React.FC<{}> = () => {
         </CardTitle>
       </CardHeader>
       <CardBody>
-        {isMCGSupported && <ObjectInventoryItem_ />}
+        {isMCGSupported && <MCGObjectInventoryItem />}
         <ResourceInventoryItem
           isLoading={!obLoaded}
           error={!!obLoadError}

@@ -1,7 +1,7 @@
 import {
-  POOL_PROGRESS,
+  PoolProgress,
   CEPH_DEFAULT_BLOCK_POOL_NAME,
-  POOL_TYPE,
+  PoolType,
   CEPH_DEFAULT_FS_POOL_NAME,
   CEPH_DEFAULT_FS_POOL_PREFIX,
 } from '../constants/storage-pool-const';
@@ -30,9 +30,9 @@ describe('Block pool on ODF UI', () => {
   });
 
   it('Check for a new pool creation', () => {
-    createStoragePool(POOL_TYPE.BLOCK, poolName);
+    createStoragePool(PoolType.BLOCK, poolName);
     app.waitForLoad();
-    cy.log(`Verify ${POOL_TYPE.BLOCK} pool creation`);
+    cy.log(`Verify ${PoolType.BLOCK} pool creation`);
     cy.byTestID('status-text').should('contain', 'Ready', {
       timeout: 2 * 60000,
     });
@@ -61,7 +61,7 @@ describe('Block pool on ODF UI', () => {
   it('Test updating/deleting a default block pool is not allowed', () => {
     cy.log('Kebab action should be disabled');
     openStoragePoolKebab(CEPH_DEFAULT_BLOCK_POOL_NAME, true);
-    cy.log(poolMessage(poolName, POOL_PROGRESS.NOTALLOWED));
+    cy.log(poolMessage(poolName, PoolProgress.NOTALLOWED));
   });
 
   it('deletion of a non-default pool deletion pool is successful', () => {
@@ -80,10 +80,10 @@ describe('Block pool on ODF UI', () => {
 
     cy.contains('Delete Storage Pool');
     cy.byTestID('pool-bound-message').contains(
-      poolMessage(poolName, POOL_PROGRESS.BOUNDED)
+      poolMessage(poolName, PoolProgress.BOUNDED)
     );
     cy.byTestID('pool-storage-classes').contains(scName);
-    triggerPoolFormFooterAction(POOL_PROGRESS.BOUNDED);
+    triggerPoolFormFooterAction(PoolProgress.BOUNDED);
 
     cy.log('Delete pvc and storage class, then try pool deletion');
     cy.exec(`oc delete pvc ${pvcName} -n default`, {
@@ -106,7 +106,7 @@ describe('Tests form validations on block pool', () => {
   });
 
   fieldValidationOnWizardFormsTests(nameFieldTestId, 'Create', () =>
-    fillStoragePoolForm(POOL_TYPE.BLOCK, 'test-name')
+    fillStoragePoolForm(PoolType.BLOCK, 'test-name')
   );
 });
 
@@ -119,15 +119,15 @@ describe('Filesystem pool on ODF UI', () => {
   });
 
   it('creates a new pool', () => {
-    createStoragePool(POOL_TYPE.FILESYSTEM, poolName);
+    createStoragePool(PoolType.FILESYSTEM, poolName);
 
-    cy.log(`Verify ${POOL_TYPE.FILESYSTEM} pool creation`);
+    cy.log(`Verify ${PoolType.FILESYSTEM} pool creation`);
     cy.byTestID(`${poolFullName}-replicas`).contains('2');
     cy.byTestID(`${poolFullName}-compression`).contains('Enabled');
   });
 
   it(`updates a non-default pool`, () => {
-    cy.log(`Updating a newly created ${POOL_TYPE.FILESYSTEM} pool`);
+    cy.log(`Updating a newly created ${PoolType.FILESYSTEM} pool`);
     openStoragePoolKebab(poolFullName);
     cy.byTestActionID('Edit Pool').click();
     cy.contains('Edit Storage Pool');
@@ -152,6 +152,6 @@ describe('Filesystem pool on ODF UI', () => {
   it('actions on the default pool are not allowed', () => {
     cy.log('Kebab action should be disabled');
     openStoragePoolKebab(CEPH_DEFAULT_FS_POOL_NAME, true);
-    cy.log(poolMessage[POOL_PROGRESS.NOTALLOWED]);
+    cy.log(poolMessage[PoolProgress.NOTALLOWED]);
   });
 });
