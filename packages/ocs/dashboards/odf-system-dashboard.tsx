@@ -5,7 +5,7 @@ import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { useParams } from 'react-router-dom-v5-compat';
-import { StoragePoolListPage } from '../storage-pool/StoragePoolListPage';
+import StoragePoolListPage from '../storage-pool/StoragePoolListPage';
 import { ODFSystemParams } from '../types';
 import OCSSystemDashboard from './ocs-system-dashboard';
 

@@ -55,3 +55,16 @@ export const CephFileSystemModel: K8sModel = {
   id: 'cephfilesystems',
   crd: true,
 };
+
+export const CephBlockPoolRadosNamespaceModel: K8sKind = {
+  label: 'CephBlockPoolRadosNamespace',
+  labelPlural: 'CephBlockPoolRadosNamespaces',
+  apiVersion: 'v1',
+  apiGroup: 'ceph.rook.io',
+  plural: 'cephblockpoolradosnamespaces',
+  abbr: 'CBPR',
+  namespaced: true,
+  kind: 'CephBlockPoolRadosNamespace',
+  id: 'cephblockpoolradosnamespaces',
+  crd: true,
+};
