@@ -3,10 +3,15 @@ import {
   DiskSize as QuotaSize,
   diskSizeUnitOptions as QuotaSizeUnitOptions,
 } from '@odf/core/constants';
-import { GrayInfoCircleIcon, Kebab } from '@odf/shared';
+import {
+  ClusterVersionKind,
+  ClusterVersionModel,
+  GrayInfoCircleIcon,
+  Kebab,
+} from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants/common';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
-import { useFetchCsv } from '@odf/shared/hooks';
+import { useFetchCsv, useK8sGet } from '@odf/shared/hooks';
 import { ModalKeys } from '@odf/shared/modals';
 import { StorageConsumerKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -309,9 +314,10 @@ const StorageClientRow: React.FC<
     StorageConsumerKind,
     {
       currentVersion: string;
+      localClusterId: string;
     }
   >
-> = ({ obj, activeColumnIDs, rowData: { currentVersion } }) => {
+> = ({ obj, activeColumnIDs, rowData: { currentVersion, localClusterId } }) => {
   const { t } = useCustomTranslation();
   const [allowDeletion, setAllowDeletion] = React.useState(false);
   const DELETE_THRESHOLD = 300; // wait till 5 minutes before activating the delete button
@@ -321,7 +327,8 @@ const StorageClientRow: React.FC<
         QuotaSizeUnitOptions[QuotaSize.Gi]
       ).string
     : t('Unlimited');
-
+  const clientClusterId = obj?.status?.client?.clusterId;
+  const isLocalClient = clientClusterId === localClusterId;
   React.useEffect(() => {
     const setter = () => {
       const timeDifference = getTimeDifferenceInSeconds(
@@ -333,10 +340,17 @@ const StorageClientRow: React.FC<
         setAllowDeletion(false);
       }
     };
-    setter();
-    const id = setInterval(setter, 10000);
-    return () => clearInterval(id);
-  }, [allowDeletion, setAllowDeletion, obj?.status?.lastHeartbeat]);
+    if (!isLocalClient) {
+      setter();
+      const id = setInterval(setter, 10000);
+      return () => clearInterval(id);
+    }
+  }, [
+    allowDeletion,
+    setAllowDeletion,
+    obj?.status?.lastHeartbeat,
+    isLocalClient,
+  ]);
   return (
     <>
       {tableColumns.map((tableColumn) => {
@@ -347,7 +361,7 @@ const StorageClientRow: React.FC<
             break;
           case 'clusterName':
             data = `${obj?.status?.client?.clusterName || '-'} (${
-              obj?.status?.client?.clusterId || '-'
+              clientClusterId || '-'
             })`;
             break;
           case 'storageQuota':
@@ -437,6 +451,13 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
     isList: true,
   });
 
+  const [cv, cvLoaded, cvLoadError] = useK8sGet<ClusterVersionKind>(
+    ClusterVersionModel,
+    'version'
+  );
+
+  const localClusterId = cv?.spec?.clusterID;
+
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
 
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
@@ -489,7 +510,7 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
       <ListPageBody>
         <ListPageFilter
           data={data}
-          loaded={loaded && csvLoaded}
+          loaded={loaded && csvLoaded && cvLoaded}
           onFilterChange={onFilterChange}
           hideColumnManagement={true}
           rowFilters={rowFilters}
@@ -498,8 +519,8 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
           data={filteredData}
           unfilteredData={storageClients}
           loaded={loaded && csvLoaded}
-          loadError={loadError || csvLoadError}
-          rowData={{ currentVersion: serviceVersion }}
+          loadError={loadError || csvLoadError || cvLoadError}
+          rowData={{ currentVersion: serviceVersion, localClusterId }}
         />
       </ListPageBody>
     </>

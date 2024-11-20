@@ -52,8 +52,7 @@ type DeleteObjectsModalProps = {
 const getTextInputLabel = (t: TFunction) => (
   <Trans t={t as any} ns="plugin__odf-console">
     <b>
-      To confirm deletion, type <i>{{ delete: DELETE }}</i> in the text input
-      field.
+      To confirm deletion, type <i>{{ delete: DELETE }}</i>:
     </b>
   </Trans>
 );
@@ -159,7 +158,7 @@ const DeleteObjectsModal: React.FC<CommonModalProps<DeleteObjectsModalProps>> =
         description={
           <div className="text-muted">
             {t(
-              'Deleted objects will no longer be visible in the bucket. If versioning is enabled a delete marker is created, you can recover object from previous versions. For unversioned objects, deletion is final and cannot be undone.'
+              'Deleted objects will no longer be visible in the bucket. If versioning is enabled, a delete marker is created, allowing recovery from previous versions. For unversioned buckets, deletion is permanent and cannot be undone.'
             )}
           </div>
         }

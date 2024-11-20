@@ -2,8 +2,8 @@
 
 import * as path from 'path';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
-import * as CircularDependencyPlugin from 'circular-dependency-plugin';
-import * as CopyWebpackPlugin from 'copy-webpack-plugin';
+import CircularDependencyPlugin from 'circular-dependency-plugin';
+import CopyPlugin from 'copy-webpack-plugin';
 import { ForkTsCheckerWebpackPlugin } from 'fork-ts-checker-webpack-plugin/lib/plugin';
 import * as webpack from 'webpack';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
@@ -13,7 +13,7 @@ const LANGUAGES = ['en', 'ja', 'ko', 'zh', 'es', 'fr'];
 const resolveLocale = (dirName: string, ns: string) =>
   LANGUAGES.map((lang) => ({
     from: path.resolve(dirName, `locales/${lang}/plugin__*.json`),
-    to: `locales/${lang}/${ns}.[ext]`,
+    to: `locales/${lang}/${ns}[ext]`,
   }));
 
 const NODE_ENV = (process.env.NODE_ENV ||
@@ -115,7 +115,13 @@ const config: webpack.Configuration & DevServerConfiguration = {
             loader: 'sass-loader',
             options: {
               sassOptions: {
-                outputStyle: 'compressed',
+                // @TODO: fix Sass deprecation warnings.
+                silenceDeprecations: [
+                  'global-builtin',
+                  'import',
+                  'mixed-decls',
+                ],
+                style: 'compressed',
                 quietDeps: true,
               },
               sourceMap: true,
@@ -138,7 +144,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
   },
   plugins: [
     new ConsoleRemotePlugin(),
-    new CopyWebpackPlugin({
+    new CopyPlugin({
       patterns: [...resolveLocale(__dirname, process.env.I8N_NS || '')],
     }),
     new webpack.DefinePlugin({

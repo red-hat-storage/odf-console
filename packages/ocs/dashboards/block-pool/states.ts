@@ -1,10 +1,4 @@
-import * as React from 'react';
-import { GrayUnknownIcon } from '@odf/shared/status/icons';
-import {
-  GreenCheckCircleIcon,
-  RedExclamationCircleIcon,
-  YellowExclamationTriangleIcon,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
 import { global_danger_color_300 as veryDangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_300';
 import { global_disabled_color_100 as disabledColor } from '@patternfly/react-tokens/dist/js/global_disabled_color_100';
@@ -26,36 +20,29 @@ export const ImageStateLegendMap = (
   [ImageStates.UNKNOWN]: t('Unknown'),
 });
 
-enum ImageHealth {
-  OK = 'OK',
-  WARNING = 'WARNING',
-  ERROR = 'ERROR',
-  UNKNOWN = 'UNKNOWN',
-}
+export const MirroringImageHealthMap = {
+  0: HealthState.OK,
+  1: HealthState.UNKNOWN,
+  2: HealthState.WARNING,
+  3: HealthState.ERROR,
+};
 
-export const healthStateMapping: { [key in ImageHealth]: HealthMappingValues } =
-  {
-    [ImageHealth.OK]: {
-      health: ImageHealth.OK,
-      icon: <GreenCheckCircleIcon />,
-    },
-    [ImageHealth.UNKNOWN]: {
-      health: ImageHealth.UNKNOWN,
-      icon: <GrayUnknownIcon />,
-    },
-    [ImageHealth.WARNING]: {
-      health: ImageHealth.WARNING,
-      icon: <YellowExclamationTriangleIcon />,
-    },
-    [ImageHealth.ERROR]: {
-      health: ImageHealth.ERROR,
-      icon: <RedExclamationCircleIcon />,
-    },
-  };
-
-type HealthMappingValues = {
-  icon: React.ReactNode;
-  health: ImageHealth;
+export const healthStateMessage = (
+  state: keyof typeof HealthState,
+  t: TFunction
+): string => {
+  switch (state) {
+    case HealthState.OK:
+      return t('Ok');
+    case HealthState.UNKNOWN:
+      return t('Unknown');
+    case HealthState.WARNING:
+      return t('Warning');
+    case HealthState.ERROR:
+      return t('Error');
+    default:
+      return '-';
+  }
 };
 
 export const getColor = (status) => {

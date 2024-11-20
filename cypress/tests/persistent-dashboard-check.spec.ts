@@ -71,11 +71,15 @@ describe('Check Persistent Dashboard', () => {
     let initialPVC: number;
     let initialPV: number;
     cy.byTestID('inventory-pvc')
+      .find('.skeleton-inventory')
+      .should('not.exist');
+    cy.byTestID('inventory-pvc')
       .invoke('text')
       .then((pvcText) => {
         initialPVC = Number(extractNumbersFromText(pvcText));
         cy.log(`Initial number of PVCs: ${initialPVC}`);
       });
+    cy.byTestID('inventory-pv').find('.skeleton-inventory').should('not.exist');
     cy.byTestID('inventory-pv')
       .invoke('text')
       .then((pvText) => {

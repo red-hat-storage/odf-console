@@ -28,7 +28,7 @@ spec:
   icon:
     base64data: ''
     mediatype: ''
-  image: quay.io/rhceph-dev/ocs-registry:latest-4.16
+  image: quay.io/rhceph-dev/ocs-registry:latest-4.17
   priority: 100
   publisher: Red Hat
   sourceType: grpc
@@ -42,7 +42,7 @@ metadata:
   name: odf-operator
   namespace: openshift-storage
 spec:
-  channel: stable-4.16
+  channel: stable-4.17
   installPlanApproval: Automatic
   name: odf-operator
   source: redhat-operators
@@ -62,7 +62,7 @@ spec:
       type: RuntimeDefault
   containers:
     - name: rhceph-dev-icsp
-      image: quay.io/rhceph-dev/ocs-registry:latest-4.16
+      image: quay.io/rhceph-dev/ocs-registry:latest-4.17
       securityContext:
         allowPrivilegeEscalation: false
         capabilities:

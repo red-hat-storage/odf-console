@@ -1,6 +1,15 @@
 import * as React from 'react';
+import { BLOCK_POOL_NAME_LABEL } from '@odf/ocs/constants';
+import { CephBlockPoolRadosNamespaceModel } from '@odf/ocs/models';
+import { healthStateMapping, HealthStateMappingValues } from '@odf/shared';
+import { getLatestDate } from '@odf/shared/details-page/datetime';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
+import { referenceForModel } from '@odf/shared/utils';
+import {
+  StatusIconAndText,
+  useK8sWatchResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
@@ -18,15 +27,98 @@ import {
   CardTitle,
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
-import { StoragePoolKind } from '../../types';
+import {
+  CephBlockPoolRadosNamespaceKind,
+  States,
+  StoragePoolKind,
+} from '../../types';
 import { twelveHoursdateTimeNoYear } from '../../utils';
 import { calcPercentage } from '../../utils/common';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 import { MirroringCardBody } from './mirroring-card-body';
 import { MirroringCardItem } from './mirroring-card-item';
 import { getColor } from './states';
-import { healthStateMapping, ImageStateLegendMap } from './states';
+import { ImageStateLegendMap, healthStateMessage } from './states';
 import './mirroring-card.scss';
+
+const aggregateHealth = (
+  poolObj: StoragePoolKind,
+  radosNamespaces: CephBlockPoolRadosNamespaceKind[]
+): HealthStateMappingValues[] => {
+  let mirroringHealth: HealthStateMappingValues =
+    healthStateMapping[poolObj.status?.mirroringStatus?.summary?.health];
+  let imageHealth: HealthStateMappingValues =
+    healthStateMapping[poolObj.status?.mirroringStatus?.summary?.image_health];
+  radosNamespaces.forEach((radosNamespace) => {
+    // Mirroring health
+    const radosNamespaceMirroringHealth: HealthStateMappingValues =
+      healthStateMapping[
+        radosNamespace.status?.mirroringStatus?.summary?.health
+      ];
+    if (!!radosNamespaceMirroringHealth) {
+      mirroringHealth =
+        mirroringHealth.priority > radosNamespaceMirroringHealth.priority
+          ? mirroringHealth
+          : radosNamespaceMirroringHealth;
+    }
+
+    // Image health
+    const radosNamespaceImageHealth: HealthStateMappingValues =
+      healthStateMapping[
+        radosNamespace.status?.mirroringStatus?.summary?.image_health
+      ];
+    if (!!radosNamespaceImageHealth) {
+      imageHealth =
+        imageHealth.priority > radosNamespaceImageHealth.priority
+          ? imageHealth
+          : radosNamespaceImageHealth;
+    }
+  });
+  return [mirroringHealth, imageHealth];
+};
+
+const aggregateMirroringStatusCheckedTime = (
+  poolObj: StoragePoolKind,
+  radosNamespaces: CephBlockPoolRadosNamespaceKind[]
+): string => {
+  let lastChecked: string = poolObj.status?.mirroringStatus?.lastChecked;
+  radosNamespaces.forEach((radosNamespace) => {
+    const radosNamespaceLastChecked: string =
+      radosNamespace.status?.mirroringStatus?.lastChecked;
+    if (!!radosNamespaceLastChecked) {
+      lastChecked = getLatestDate([lastChecked, radosNamespaceLastChecked]);
+    }
+  });
+  return lastChecked;
+};
+
+const aggregateMirroringStates = (
+  poolObj: StoragePoolKind,
+  radosNamespaces: CephBlockPoolRadosNamespaceKind[]
+): States => {
+  const states: States =
+    _.cloneDeep(poolObj.status?.mirroringStatus?.summary?.states) ?? {};
+  radosNamespaces.forEach((radosNamespace) => {
+    const radosNamespaceStates: States =
+      radosNamespace.status?.mirroringStatus?.summary?.states ?? {};
+    if (!!radosNamespaceStates) {
+      Object.entries(radosNamespaceStates).forEach(([state, count]) => {
+        const oldCount = states?.[state] || 0;
+        states[state] = oldCount + count;
+      });
+    }
+  });
+  return states;
+};
+
+const getPieChartHeight = (numOfStates: number) => {
+  if (numOfStates <= 3) {
+    return 150;
+  } else if (numOfStates <= 5) {
+    return 200;
+  }
+  return 240;
+};
 
 const MirroringImageStatePopover: React.FC<MirroringImageStatePopoverProps> = ({
   t,
@@ -96,9 +188,8 @@ const MirroringImageStatePopover: React.FC<MirroringImageStatePopoverProps> = ({
 
 const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({
   t,
-  poolObj,
+  states,
 }) => {
-  const states: any = poolObj.status?.mirroringStatus?.summary?.states ?? {};
   const totalImageCount = Object.keys(states).reduce(
     (sum, state) => sum + states[state],
     0
@@ -124,7 +215,7 @@ const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({
     );
 
     return (
-      <div style={{ maxHeight: '210px', maxWidth: '300px' }}>
+      <div style={{ maxHeight: '240px', maxWidth: '300px' }}>
         <ChartPie
           ariaTitle={t('Image States')}
           colorScale={colorScale}
@@ -134,7 +225,7 @@ const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({
           legendData={legendData}
           legendOrientation="vertical"
           legendPosition="right"
-          height={210}
+          height={getPieChartHeight(data.length)}
           width={300}
           padding={{
             right: 190,
@@ -150,12 +241,29 @@ const MirroringImageHealthChart: React.FC<MirroringImageHealthChartProps> = ({
 export const MirroringCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
+  // watch all cephradosnamespace
+  const [radosNamespaces, isLoaded, isLoadError] = useK8sWatchResource<
+    CephBlockPoolRadosNamespaceKind[]
+  >({
+    isList: true,
+    kind: referenceForModel(CephBlockPoolRadosNamespaceModel),
+    namespace: getNamespace(obj),
+    selector: {
+      matchLabels: {
+        [BLOCK_POOL_NAME_LABEL]: getName(obj),
+      },
+    },
+  });
 
   const mirroringStatus: boolean = obj.spec?.mirroring?.enabled;
-  const mirroringImageHealth: string =
-    obj.status?.mirroringStatus?.summary?.image_health;
-  const lastChecked: string = obj.status?.mirroringStatus?.lastChecked;
-  const formatedDateTime = lastChecked
+  const [mirroringHealth, imageHealth]: HealthStateMappingValues[] =
+    aggregateHealth(obj, radosNamespaces);
+  const lastChecked: string = aggregateMirroringStatusCheckedTime(
+    obj,
+    radosNamespaces
+  );
+  const states: States = aggregateMirroringStates(obj, radosNamespaces);
+  const formatedDateTime = !!lastChecked
     ? twelveHoursdateTimeNoYear.format(new Date(lastChecked))
     : '-';
 
@@ -166,35 +274,60 @@ export const MirroringCard: React.FC = () => {
       </CardHeader>
       <CardBody>
         <MirroringCardBody>
-          <MirroringCardItem isLoading={!obj} title={t('Mirroring status')}>
+          <MirroringCardItem
+            isLoading={!isLoaded}
+            error={!!isLoadError}
+            title={t('Mirroring status')}
+          >
             {mirroringStatus ? t('Enabled') : t('Disabled')}
           </MirroringCardItem>
           {mirroringStatus && (
             <>
               <MirroringCardItem
-                isLoading={!obj}
-                title={t('Overall image health')}
+                isLoading={!isLoaded}
+                error={!!isLoadError}
+                title={t('Mirroring health')}
               >
                 <StatusIconAndText
-                  title={mirroringImageHealth}
-                  icon={healthStateMapping[mirroringImageHealth]?.icon}
+                  title={healthStateMessage(mirroringHealth?.health, t)}
+                  icon={mirroringHealth?.icon as React.ReactElement}
                   className="pf-v5-u-ml-xs"
                 />
               </MirroringCardItem>
-              {!_.isEmpty(obj.status?.mirroringStatus?.summary?.states) && (
+              <MirroringCardItem
+                isLoading={!isLoaded}
+                error={!!isLoadError}
+                title={t('Overall image health')}
+              >
+                <StatusIconAndText
+                  title={healthStateMessage(imageHealth?.health, t)}
+                  icon={imageHealth?.icon as React.ReactElement}
+                  className="pf-v5-u-ml-xs"
+                />
+              </MirroringCardItem>
+              {!_.isEmpty(states) && (
                 <>
-                  <MirroringCardItem>
+                  <MirroringCardItem
+                    isLoading={!isLoaded}
+                    error={!!isLoadError}
+                  >
                     <ExpandableSection toggleText={t('Show image states')}>
-                      <MirroringImageHealthChart t={t} poolObj={obj} />
+                      <MirroringImageHealthChart t={t} states={states} />
                     </ExpandableSection>
                   </MirroringCardItem>
-                  <MirroringCardItem>
+                  <MirroringCardItem
+                    isLoading={!isLoaded}
+                    error={!!isLoadError}
+                  >
                     <MirroringImageStatePopover t={t} />
                   </MirroringCardItem>
                 </>
               )}
-
-              <MirroringCardItem isLoading={!obj} title={t('Last checked')}>
+              <MirroringCardItem
+                isLoading={!isLoaded}
+                error={!!isLoadError}
+                title={t('Last checked')}
+              >
                 {formatedDateTime}
               </MirroringCardItem>
             </>
@@ -211,5 +344,5 @@ type MirroringImageStatePopoverProps = {
 
 type MirroringImageHealthChartProps = {
   t: TFunction;
-  poolObj: StoragePoolKind;
+  states: States;
 };

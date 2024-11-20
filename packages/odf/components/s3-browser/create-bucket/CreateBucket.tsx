@@ -61,7 +61,7 @@ const CreateBucket: React.FC<{}> = () => {
               variant="info"
               isInline
               title={t(
-                'OBC references a StorageClass that uses a provisioner to interact with the S3 API and create the bucket. Kubernetes binds the OBC to the bucket, making it accessible to applications.'
+                'OBC references a StorageClass with a provisioner that interacts with the S3 API to create the bucket. Kubernetes then binds the OBC, making the bucket accessible to applications.'
               )}
               className="pf-v5-u-mb-md"
             />

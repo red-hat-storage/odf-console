@@ -11,4 +11,5 @@ export const DEFAULT_NS = 'default';
 export const RACK_LABEL = 'topology.rook.io/rack';
 export const NOOBA_EXTERNAL_PG_SECRET_NAME = 'noobaa-external-pg';
 export const NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME = 'noobaa-external-pg-tls';
-export const PLUGIN_VERSION = process.env.PLUGIN_VERSION;
+export const PLUGIN_VERSION =
+  typeof process === 'undefined' ? undefined : process?.env?.PLUGIN_VERSION;
