@@ -61,11 +61,16 @@ export const subscriptionResource: WatchK8sResource = {
  * Retrieve all the CRs except those not meant to be
  * exposed to the users. See:
  * https://bugzilla.redhat.com/show_bug.cgi?id=2297295
+ * https://issues.redhat.com/browse/DFBUGS-871
  */
-export const cephBlockPoolResource: WatchK8sResource = {
-  kind: referenceForModel(CephBlockPoolModel),
-  isList: true,
-  fieldSelector: 'metadata.name!=builtin-mgr',
+export const getCephBlockPoolResource = (
+  clusterName: string
+): WatchK8sResource => {
+  return {
+    kind: referenceForModel(CephBlockPoolModel),
+    isList: true,
+    fieldSelector: `metadata.name!=builtin-mgr,metadata.name!=${clusterName}-cephnfs-builtin-pool`,
+  };
 };
 
 export const nodeResource: WatchK8sResource = {

@@ -1,9 +1,10 @@
 import {
   CEPH_DEFAULT_BLOCK_POOL_NAME,
+  CEPH_DEFAULT_FS_POOL_NAME,
   POOL_PROGRESS,
   POOL_TYPE,
 } from '../constants/storage-pool-const';
-import { STORAGE_SYSTEM_NAME } from '../consts';
+import { SECOND, STORAGE_SYSTEM_NAME } from '../consts';
 import { NS } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
 import { modal } from './modals';
@@ -38,8 +39,13 @@ export const navigateToStoragePoolList = () => {
   cy.byTestID('horizontal-link-Storage pools').click();
 };
 
-const prepareStorageClassForm = (poolType: POOL_TYPE) => {
+export const showAvailablePoolsInSCForm = (poolType: POOL_TYPE) => {
   const provisioner = poolType === POOL_TYPE.BLOCK ? 'rbd' : 'cephfs';
+  const defaultPool =
+    poolType === POOL_TYPE.BLOCK
+      ? CEPH_DEFAULT_BLOCK_POOL_NAME
+      : CEPH_DEFAULT_FS_POOL_NAME;
+
   cy.log('Selecting provisioner');
   cy.byTestID('storage-class-provisioner-dropdown').click();
   cy.byLegacyTestID('dropdown-text-filter').type(
@@ -48,17 +54,19 @@ const prepareStorageClassForm = (poolType: POOL_TYPE) => {
   cy.byTestID('dropdown-menu-item-link')
     .contains(`openshift-storage.${provisioner}.csi.ceph.com`)
     .click();
-
-  cy.log('Click on: Create new storage pool');
-  cy.byTestID('pool-dropdown-toggle', { timeout: 1000 })
+  cy.log('Show Storage pool list.');
+  cy.byTestID('pool-dropdown-toggle', { timeout: 5 * SECOND })
     .should('be.visible')
     .click();
-  cy.byTestID('create-new-pool-button').should('be.visible').click();
+  cy.byTestID('create-new-pool-button').should('be.visible');
+  cy.byTestID(defaultPool).should('be.visible');
 };
 
 export const fillPoolModalForm = (poolType: POOL_TYPE, poolName: string) => {
-  prepareStorageClassForm(poolType);
-  cy.log('Make sure the storage pool creation form is open');
+  showAvailablePoolsInSCForm(poolType);
+  cy.log('Click on: Create new storage pool');
+  cy.byTestID('create-new-pool-button').click();
+  cy.log('Make sure the storage pool creation form modal is opened.');
   modal.shouldBeOpened();
   modal.modalTitleShouldContain('Create Storage Pool');
   fillStoragePoolForm(poolType, poolName);
