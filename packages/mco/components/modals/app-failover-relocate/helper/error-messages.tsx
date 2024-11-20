@@ -7,7 +7,7 @@ import { AlertVariant } from '@patternfly/react-core';
 
 export enum ErrorMessageType {
   // Priority wise error messages
-  DR_IS_NOT_ENABLED_FAILOVER,
+  DR_IS_NOT_ENABLED_FAILOVER = 1,
   DR_IS_NOT_ENABLED_RELOCATE,
   FAILOVER_READINESS_CHECK_FAILED,
   RELOCATE_READINESS_CHECK_FAILED,
@@ -287,8 +287,8 @@ export const evaluateErrorMessage = (
   errorMessage: ErrorMessageType,
   includeWarning: boolean = false
 ) => {
-  if (!includeWarning ? errorMessage < 20 : true) {
-    return errorMessage;
+  if (!errorMessage || (!includeWarning && errorMessage >= 20)) {
+    return -1;
   }
-  return -1;
+  return errorMessage;
 };
