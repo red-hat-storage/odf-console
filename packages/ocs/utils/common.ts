@@ -5,7 +5,7 @@ import {
   NooBaaBucketClassModel,
   NooBaaObjectBucketClaimModel,
 } from '@odf/core/models';
-import { PVC_STATUS } from '@odf/shared/constants';
+import { PVCStatus } from '@odf/shared/constants';
 import {
   PersistentVolumeClaimModel,
   PersistentVolumeModel,
@@ -29,7 +29,7 @@ const getPVStorageClass = (pv: K8sResourceKind): string =>
   pv?.spec?.storageClassName;
 
 const isBound = (pvc: PersistentVolumeClaimKind): boolean =>
-  pvc?.status?.phase === PVC_STATUS.BOUND;
+  pvc?.status?.phase === PVCStatus.BOUND;
 
 export const cephStorageProvisioners = [
   'ceph.rook.io/block',

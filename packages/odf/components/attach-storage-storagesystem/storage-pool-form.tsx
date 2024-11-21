@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useSafeK8sGet, useSafeK8sList } from '@odf/core/hooks';
 import { cephClusterResource } from '@odf/core/resources';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
-import { POOL_TYPE } from '@odf/ocs/constants';
+import { PoolType } from '@odf/ocs/constants';
 import { CephBlockPoolModel, CephFileSystemModel } from '@odf/ocs/models';
 import { StoragePoolBody } from '@odf/ocs/storage-pool/body';
 import { CephFilesystemKind, StoragePoolKind } from '@odf/ocs/types';
@@ -63,12 +63,12 @@ const StoragePoolForm: React.FC<StoragePoolFormProps> = ({
   }, [blockPools, blockPoolsLoaded, blockPoolsLoadError]);
 
   const existingNames =
-    state.poolType === POOL_TYPE.FILESYSTEM
+    state.poolType === PoolType.FILESYSTEM
       ? fsExistingNames
       : blockExistingNames;
 
   const onPoolTypeChange = React.useCallback(
-    (newPoolType: POOL_TYPE) => {
+    (newPoolType: PoolType) => {
       dispatch({
         type: AttachStorageActionType.SET_POOL_TYPE,
         payload: newPoolType,

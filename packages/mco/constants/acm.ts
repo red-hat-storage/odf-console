@@ -22,7 +22,7 @@ export const PLACEMENT_RULE_REF_LABEL =
   'cluster.open-cluster-management.io/placementrule';
 
 // Application types supported for DR
-export enum APPLICATION_TYPE {
+export enum DRApplication {
   APPSET = 'ApplicationSet',
   SUBSCRIPTION = 'Subscription',
   DISCOVERED = 'Discovered',
@@ -30,10 +30,10 @@ export enum APPLICATION_TYPE {
 // Display texts
 export const APPLICATION_TYPE_DISPLAY_TEXT = (
   t: TFunction
-): { [key in APPLICATION_TYPE]: string } => ({
-  [APPLICATION_TYPE.APPSET]: t('ApplicationSet'),
-  [APPLICATION_TYPE.SUBSCRIPTION]: t('Subscription'),
-  [APPLICATION_TYPE.DISCOVERED]: t('Discovered'),
+): { [key in DRApplication]: string } => ({
+  [DRApplication.APPSET]: t('ApplicationSet'),
+  [DRApplication.SUBSCRIPTION]: t('Subscription'),
+  [DRApplication.DISCOVERED]: t('Discovered'),
 });
 
 // Managed cluster status conditions

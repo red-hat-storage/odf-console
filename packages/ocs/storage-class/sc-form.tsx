@@ -20,7 +20,7 @@ import {
   useODFSystemFlagsSelector,
 } from '@odf/core/redux';
 import {
-  cephBlockPoolResource,
+  getCephBlockPoolResource,
   cephClusterResource,
 } from '@odf/core/resources';
 import {
@@ -77,14 +77,13 @@ import {
   Form,
   Radio,
   ActionGroup,
-  Icon,
 } from '@patternfly/react-core';
 import { AddCircleOIcon, CaretDownIcon } from '@patternfly/react-icons';
 import {
-  CLUSTER_STATUS,
-  POOL_STATE,
+  ClusterStatus,
+  PoolState,
   CEPH_NS_SESSION_STORAGE,
-  POOL_TYPE,
+  PoolType,
 } from '../constants';
 import { CreateStoragePoolModal } from '../modals/storage-pool/create-storage-pool-modal';
 import { CephFilesystemKind, StoragePool, StoragePoolKind } from '../types';
@@ -122,7 +121,7 @@ const getPoolDropdownItems = (
   launchModal,
   t,
   defaultDeviceClass: string,
-  poolType: POOL_TYPE,
+  poolType: PoolType,
   existingNames: string[],
   filesystemName = ''
 ) =>
@@ -135,8 +134,8 @@ const getPoolDropdownItems = (
           ? t('no compression')
           : t('with compression');
       if (
-        pool?.status?.phase === POOL_STATE.READY &&
-        cephCluster?.status?.phase === CLUSTER_STATUS.READY
+        pool?.status?.phase === PoolState.READY &&
+        cephCluster?.status?.phase === ClusterStatus.READY
       ) {
         res.push(
           <DropdownItem
@@ -172,10 +171,10 @@ const getPoolDropdownItems = (
           })
         }
       >
-        <Icon size="md" className="ocs-storage-class__pool--create">
+        <span className="ocs-storage-class__pool--create">
           <AddCircleOIcon className="pf-v5-u-mr-sm" />
           {t('Create new storage pool')}
-        </Icon>
+        </span>
       </DropdownItem>,
       <DropdownSeparator key="separator" />,
     ]
@@ -383,7 +382,7 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
               launchModal,
               t,
               '',
-              POOL_TYPE.FILESYSTEM,
+              PoolType.FILESYSTEM,
               existingNames,
               filesystemName
             )}
@@ -439,10 +438,6 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
 
   const launchModal = useModal();
 
-  const [poolsData, poolDataLoaded, poolDataLoadError] = useK8sWatchResource<
-    StoragePoolKind[]
-  >(cephBlockPoolResource);
-
   const [cephClusters, cephClustersLoaded, cephClustersLoadError] =
     useK8sWatchResource<CephClusterKind[]>(cephClusterResource);
 
@@ -450,6 +445,18 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
   const [poolName, setPoolName] = React.useState('');
   const [systemNamespace, setSystemNamespace] = React.useState<string>();
 
+  const cephCluster = getResourceInNs(cephClusters, systemNamespace);
+
+  const { systemFlags, areFlagsLoaded, flagsLoadError, areFlagsSafe } =
+    useODFSystemFlagsSelector();
+  const isExternal = systemFlags[systemNamespace]?.isExternalMode;
+
+  const poolNs = getNamespace(cephCluster);
+  const clusterName = systemFlags[poolNs]?.ocsClusterName;
+  const defaultPoolName = `${clusterName}-cephblockpool`;
+  const [poolsData, poolDataLoaded, poolDataLoadError] = useK8sWatchResource<
+    StoragePoolKind[]
+  >(getCephBlockPoolResource(clusterName));
   const filteredPools = poolsData?.filter(
     (pool) => getNamespace(pool) === systemNamespace
   );
@@ -458,15 +465,7 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
   const poolData = getStoragePoolsFromBlockPools(filteredPools) || [];
   const existingNames = getExistingBlockPoolNames(poolData);
 
-  const cephCluster = getResourceInNs(cephClusters, systemNamespace);
-
-  const { systemFlags, areFlagsLoaded, flagsLoadError, areFlagsSafe } =
-    useODFSystemFlagsSelector();
-  const isExternal = systemFlags[systemNamespace]?.isExternalMode;
-
   // Get the default deviceClass required by the 'create' modal.
-  const poolNs = getNamespace(cephCluster);
-  const defaultPoolName = `${systemFlags[poolNs]?.ocsClusterName}-cephblockpool`;
   const defaultPool = filteredPools.find(
     (pool: StoragePoolKind) => pool.metadata.name === defaultPoolName
   );
@@ -534,7 +533,7 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
                   launchModal,
                   t,
                   defaultDeviceClass,
-                  POOL_TYPE.BLOCK,
+                  PoolType.BLOCK,
                   existingNames
                 )}
                 onSelect={() => setOpen(false)}

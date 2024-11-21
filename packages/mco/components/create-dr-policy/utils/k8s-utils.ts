@@ -1,4 +1,4 @@
-import { RBD_IMAGE_FLATTEN_LABEL, REPLICATION_TYPE } from '@odf/mco/constants';
+import { RBD_IMAGE_FLATTEN_LABEL, ReplicationType } from '@odf/mco/constants';
 import { DRPolicyModel, MirrorPeerModel } from '@odf/mco/models';
 import { DRPolicyKind, MirrorPeerKind } from '@odf/mco/types';
 import { parseNamespaceName } from '@odf/mco/utils';
@@ -53,7 +53,7 @@ const fetchMirrorPeer = (
 
 const createMirrorPeer = (
   selectedClusters: ManagedClusterInfoType[],
-  replicationType: REPLICATION_TYPE
+  replicationType: ReplicationType
 ): Promise<MirrorPeerKind> => {
   const mirrorPeerPayload: MirrorPeerKind = {
     apiVersion: getAPIVersionForModel(MirrorPeerModel),
@@ -73,7 +73,7 @@ const createMirrorPeer = (
 
 const createDRPolicy = (
   policyName: string,
-  replicationType: REPLICATION_TYPE,
+  replicationType: ReplicationType,
   syncIntervalTime: string,
   enableRBDImageFlatten: boolean,
   peerNames: string[]
@@ -87,7 +87,7 @@ const createDRPolicy = (
         ? { matchLabels: RBD_IMAGE_FLATTEN_LABEL }
         : {},
       schedulingInterval:
-        replicationType === REPLICATION_TYPE.ASYNC ? syncIntervalTime : '0m',
+        replicationType === ReplicationType.ASYNC ? syncIntervalTime : '0m',
       drClusters: peerNames,
     },
   };

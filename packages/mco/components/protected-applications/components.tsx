@@ -22,7 +22,7 @@ import {
   Button,
   ButtonVariant,
   Tooltip,
-  DescriptionList,
+  DescriptionList as PFDescriptionList,
   DescriptionListTerm,
   DescriptionListGroup,
   DescriptionListDescription,
@@ -33,7 +33,7 @@ import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
 import {
   ENROLLED_APP_QUERY_PARAMS_KEY,
   DR_BASE_ROUTE,
-  REPLICATION_TYPE,
+  ReplicationType,
 } from '../../constants';
 import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
@@ -56,7 +56,7 @@ type SelectExpandableProps = {
     event: React.MouseEvent<HTMLElement, MouseEvent>,
     buttonRef: React.MutableRefObject<HTMLElement>
   ) => void;
-  buttonId: EXPANDABLE_COMPONENT_TYPE;
+  buttonId: ExpandableComponentType;
   className?: string;
 };
 
@@ -65,14 +65,14 @@ type DescriptionProps = {
   descriptions: string[] | React.ReactNode[];
 };
 
-type DescriptionListProps_ = { columnModifier?: '1Col' | '2Col' | '3Col' };
+type DescriptionListProps = { columnModifier?: '1Col' | '2Col' | '3Col' };
 
-const DescriptionList_: React.FC<DescriptionListProps_> = ({
+const DescriptionList: React.FC<DescriptionListProps> = ({
   columnModifier,
   children,
 }) => {
   return (
-    <DescriptionList
+    <PFDescriptionList
       columnModifier={{
         default: columnModifier || '1Col',
       }}
@@ -80,7 +80,7 @@ const DescriptionList_: React.FC<DescriptionListProps_> = ({
       isCompact
     >
       {children}
-    </DescriptionList>
+    </PFDescriptionList>
   );
 };
 
@@ -95,7 +95,7 @@ const Description: React.FC<DescriptionProps> = ({ term, descriptions }) => {
   );
 };
 
-const EnrollApplicationButton_: React.FC = () => (
+const EnrollApplicationNoDataButton: React.FC = () => (
   <EnrollApplicationButton isNoDataMessage />
 );
 
@@ -212,7 +212,7 @@ export const NoDataMessage: React.FC = () => {
   return (
     <EmptyPage
       title={t('Looks like there are no applications here.')}
-      ButtonComponent={EnrollApplicationButton_}
+      ButtonComponent={EnrollApplicationNoDataButton}
       isLoaded
       canAccess
     >
@@ -289,7 +289,7 @@ export const SelectExpandable: React.FC<SelectExpandableProps> = ({
   );
 };
 
-export enum EXPANDABLE_COMPONENT_TYPE {
+export enum ExpandableComponentType {
   DEFAULT = '',
   NS = 'namespaces',
   EVENTS = 'events',
@@ -318,9 +318,9 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
   return !enrolledNamespaces.length ? (
     <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
   ) : (
-    <DescriptionList_>
+    <DescriptionList>
       <Description term={t('Namespace')} descriptions={enrolledNamespaces} />
-    </DescriptionList_>
+    </DescriptionList>
   );
 };
 
@@ -346,13 +346,13 @@ export const EventsDetails: React.FC<ExpandableComponentProps> = ({
   return !anyOnGoingEvent ? (
     <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
   ) : (
-    <DescriptionList_ columnModifier={'2Col'}>
+    <DescriptionList columnModifier={'2Col'}>
       <Description
         term={t('Activity description')}
         descriptions={[activity.description]}
       />
       <Description term={t('Status')} descriptions={status} />
-    </DescriptionList_>
+    </DescriptionList>
   );
 };
 
@@ -364,7 +364,7 @@ export const StatusDetails: React.FC<ExpandableComponentProps> = ({
   const syncStatus = [];
   const lastSyncOn = [];
 
-  if (syncStatusInfo.replicationType === REPLICATION_TYPE.ASYNC) {
+  if (syncStatusInfo.replicationType === ReplicationType.ASYNC) {
     syncType.push(t('Application volumes (PVCs)'));
     const { icon: volIcon, title: volTitle } = replicationHealthMap(
       syncStatusInfo.volumeReplicationStatus,
@@ -399,17 +399,17 @@ export const StatusDetails: React.FC<ExpandableComponentProps> = ({
   );
 
   return (
-    <DescriptionList_ columnModifier={'3Col'}>
+    <DescriptionList columnModifier={'3Col'}>
       <Description term={t('Sync resource type')} descriptions={syncType} />
       <Description term={t('Sync status')} descriptions={syncStatus} />
       <Description term={t('Last synced on')} descriptions={lastSyncOn} />
-    </DescriptionList_>
+    </DescriptionList>
   );
 };
 
 export const ExpandableComponentsMap = {
-  [EXPANDABLE_COMPONENT_TYPE.DEFAULT]: () => null,
-  [EXPANDABLE_COMPONENT_TYPE.NS]: NamespacesDetails,
-  [EXPANDABLE_COMPONENT_TYPE.EVENTS]: EventsDetails,
-  [EXPANDABLE_COMPONENT_TYPE.STATUS]: StatusDetails,
+  [ExpandableComponentType.DEFAULT]: () => null,
+  [ExpandableComponentType.NS]: NamespacesDetails,
+  [ExpandableComponentType.EVENTS]: EventsDetails,
+  [ExpandableComponentType.STATUS]: StatusDetails,
 };

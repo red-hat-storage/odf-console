@@ -45,7 +45,7 @@ const createProvidersList = (data: PrometheusResponse): ProviderType => {
   return providersList;
 };
 
-const ResourceProvidersBody_: React.FC = () => {
+const MCGResourceProvidersBody: React.FC = () => {
   const [providersTypesQueryResult, providersTypesQueryResultError] =
     useCustomPrometheusPoll({
       query: RESOURCE_PROVIDERS_QUERY.PROVIDERS_TYPES,
@@ -123,7 +123,7 @@ const ResourceProviders: React.FC<{}> = () => {
         </CardTitle>
       </CardHeader>
       <CardBody>
-        {hasMCG ? <ResourceProvidersBody_ /> : <DataUnavailableError />}
+        {hasMCG ? <MCGResourceProvidersBody /> : <DataUnavailableError />}
       </CardBody>
     </Card>
   );

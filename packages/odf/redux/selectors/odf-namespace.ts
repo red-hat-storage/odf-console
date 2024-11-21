@@ -1,13 +1,13 @@
 import { reduxReducerScope } from '@odf/core/redux/constants';
 import { useSelector } from 'react-redux';
-import { nsPayload } from '../actions';
+import { NsPayload } from '../actions';
 
 export const odfNamespaceReducerName = 'odfInstallNs';
 
-const getODFNamespace = (state): nsPayload =>
+const getODFNamespace = (state): NsPayload =>
   state.plugins?.[reduxReducerScope]?.[odfNamespaceReducerName] || {};
 
-export const useODFNamespaceSelector = (): nsPayload & {
+export const useODFNamespaceSelector = (): NsPayload & {
   isNsSafe: boolean;
   isFallbackSafe: boolean;
 } => {

@@ -28,7 +28,7 @@ export type StorageClassWizardStepExtensionProps = {
   /**  Handler function to validate the storage class page in order to move to the next step of wizard */
   canGoToNextStep: CanGoToNextStep<{}>;
   /** A function returing a promise, resolving any resources which should be created (if any) before creation of external sub-system */
-  waitToCreate?: (model: Model) => Promise<void>;
+  waitToCreate?: WaitToCreate;
 };
 
 export type StorageClassComponentProps<S = ExternalState> = {
@@ -85,7 +85,7 @@ export type CanGoToNextStep<S = ExternalState> = (
   storageClassName: string
 ) => boolean;
 
-export type waitToCreate = (
+export type WaitToCreate = (
   model: Model,
   maxAttempts?: number
 ) => Promise<void>;

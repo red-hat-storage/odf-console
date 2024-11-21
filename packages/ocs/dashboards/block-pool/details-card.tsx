@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { POOL_TYPE } from '@odf/ocs/constants';
+import { PoolType } from '@odf/ocs/constants';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
@@ -9,7 +9,7 @@ import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 export const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
-  const volumeType = POOL_TYPE.BLOCK;
+  const volumeType = PoolType.BLOCK;
   const deviceType = obj.spec?.deviceClass?.toUpperCase() ?? '-';
 
   return (

@@ -1,4 +1,4 @@
-import { APPLICATION_TYPE, DRPC_STATUS, REPLICATION_TYPE } from '../constants';
+import { DRApplication, DRPCStatus, ReplicationType } from '../constants';
 import { ACMManagedClusterKind } from '../types';
 
 export type PlacementControlInfo = Partial<{
@@ -9,7 +9,7 @@ export type PlacementControlInfo = Partial<{
   // Application workload namespaces on the remote cluster
   workloadNamespaces?: string[];
   // Regional(Async)/Metro(Sync)
-  replicationType: REPLICATION_TYPE;
+  replicationType: ReplicationType;
   // Persisting volume sync interval
   volumeSyncInterval: string;
   // Application deployment remote cluster name.
@@ -21,7 +21,7 @@ export type PlacementControlInfo = Partial<{
   // Volume group last sync time
   lastVolumeGroupSyncTime: string;
   // DR status
-  status: DRPC_STATUS;
+  status: DRPCStatus;
   // DR protected PVC count for the application
   protectedPVCs: string[];
   // Only applicable for Subscription type
@@ -43,7 +43,7 @@ export type ProtectedAppsMap = {
   appKind: string;
   appAPIVersion: string;
   // Subscription/ApplicationSet/Discovred
-  appType: APPLICATION_TYPE;
+  appType: DRApplication;
   // ToDo: refactor this PlacementInfo type to
   // Make more flxibile between different app types
   placementControlInfo: PlacementControlInfo[];
@@ -71,7 +71,7 @@ export type DRClusterAppsMap = {
 export type ProtectedPVCData = {
   drpcName: string;
   drpcNamespace: string;
-  replicationType: REPLICATION_TYPE;
+  replicationType: ReplicationType;
   pvcName?: string;
   pvcNamespace?: string;
   lastSyncTime?: string;

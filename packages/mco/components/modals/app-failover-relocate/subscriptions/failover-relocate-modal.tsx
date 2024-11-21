@@ -45,7 +45,7 @@ const generatefooterButtons = (props: ModalFooterProps): FooterButtonProps => ({
       type: ButtonType.button,
       variant: ButtonVariant.primary,
       isDisabled: props?.isDisable,
-      onClick: props?.Onclick,
+      onClick: props?.onClick,
     },
   ],
   [ModalFooterStatus.INPROGRESS]: [
@@ -195,7 +195,7 @@ export const SubscriptionFailoverRelocateModal: React.FC<FailoverRelocateModalPr
             t,
             close,
             isDisable: !canInitiate(),
-            Onclick: onClick,
+            onClick,
           })[state.modalFooterStatus].map((buttonProp) => (
             <Button
               key={buttonProp.id}
@@ -219,7 +219,7 @@ export const SubscriptionFailoverRelocateModal: React.FC<FailoverRelocateModalPr
 type ModalFooterProps = {
   isDisable?: boolean;
   t: TFunction;
-  Onclick?: () => void;
+  onClick?: () => void;
   close?: () => void;
 };
 

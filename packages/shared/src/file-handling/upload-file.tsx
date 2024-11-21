@@ -8,7 +8,7 @@ import {
   HelperTextItem,
 } from '@patternfly/react-core';
 
-type readFile = {
+type ReadFile = {
   fileName: string;
   data?: string;
   loadResult?: 'danger' | 'success';
@@ -42,7 +42,7 @@ const UploadFilePicker: React.FC<UploadFilePickerProps> = ({
   const [currentFiles, setCurrentFiles] = React.useState<File[]>(
     uploadedFiles.filter((file) => file != null)
   );
-  const [readFileData, setReadFileData] = React.useState<readFile[]>([]);
+  const [readFileData, setReadFileData] = React.useState<ReadFile[]>([]);
   const [showStatus, setShowStatus] = React.useState(false);
   const [statusIcon, setStatusIcon] = React.useState(Status.InProgress);
 

@@ -10,7 +10,7 @@ import {
 import { TFunction } from 'i18next';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
-import { DRActionType, VOLUME_REPLICATION_HEALTH } from '../../../../constants';
+import { DRActionType, VolumeReplicationHealth } from '../../../../constants';
 import {
   checkDRActionReadiness,
   getReplicationHealth,
@@ -39,7 +39,7 @@ const initalPeerStatus = (t: TFunction) => ({
   dataLastSyncedOn: {
     text: '',
   },
-  replicationHealth: VOLUME_REPLICATION_HEALTH.HEALTHY,
+  replicationHealth: VolumeReplicationHealth.HEALTHY,
 });
 
 const getPeerReadiness = (
@@ -110,10 +110,10 @@ const getPeerStatusSummary = (
   }, initalPeerStatus(t));
 
 const getHigherSeverityHealth = (
-  previousHealth: VOLUME_REPLICATION_HEALTH,
+  previousHealth: VolumeReplicationHealth,
   lastGroupSyncTime: string,
   schedulingInterval: string
-): VOLUME_REPLICATION_HEALTH => {
+): VolumeReplicationHealth => {
   const replicationType = getReplicationType(schedulingInterval);
   const currentHealth = getReplicationHealth(
     lastGroupSyncTime,
@@ -123,8 +123,8 @@ const getHigherSeverityHealth = (
 
   if (
     [
-      VOLUME_REPLICATION_HEALTH.CRITICAL,
-      VOLUME_REPLICATION_HEALTH.WARNING,
+      VolumeReplicationHealth.CRITICAL,
+      VolumeReplicationHealth.WARNING,
     ].includes(currentHealth)
   ) {
     return currentHealth;
@@ -190,10 +190,10 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
       } else if (
         !!peerCurrentStatus.replicationHealth &&
         [
-          VOLUME_REPLICATION_HEALTH.CRITICAL,
-          VOLUME_REPLICATION_HEALTH.WARNING,
+          VolumeReplicationHealth.CRITICAL,
+          VolumeReplicationHealth.WARNING,
         ].includes(
-          peerCurrentStatus.replicationHealth as VOLUME_REPLICATION_HEALTH
+          peerCurrentStatus.replicationHealth as VolumeReplicationHealth
         )
       ) {
         setErrorMessage(ErrorMessageType.VOLUME_SYNC_DELAY);

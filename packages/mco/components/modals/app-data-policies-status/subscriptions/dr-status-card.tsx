@@ -10,7 +10,7 @@ import {
   HelperTextItem,
 } from '@patternfly/react-core';
 import { InProgressIcon } from '@patternfly/react-icons';
-import { DRPC_STATUS } from '../../../../constants';
+import { DRPCStatus } from '../../../../constants';
 import { DRPlacementControlKind } from '../../../../types';
 import { getDRPoliciesCount, DRPolicyMap } from '../../../../utils';
 
@@ -18,13 +18,12 @@ const updateStatusSummary = (
   currentStatus: string,
   prevStatus?: DRStatusSummaryType
 ) => {
-  (currentStatus === DRPC_STATUS.FailedOver &&
-    prevStatus.failover.finished++) ||
-    (currentStatus === DRPC_STATUS.FailingOver &&
+  (currentStatus === DRPCStatus.FailedOver && prevStatus.failover.finished++) ||
+    (currentStatus === DRPCStatus.FailingOver &&
       prevStatus.failover.inProgress++) ||
-    (currentStatus === DRPC_STATUS.Relocated &&
+    (currentStatus === DRPCStatus.Relocated &&
       prevStatus.relocate.finished++) ||
-    (currentStatus === DRPC_STATUS.Relocating &&
+    (currentStatus === DRPCStatus.Relocating &&
       prevStatus.relocate.inProgress++);
   return prevStatus;
 };

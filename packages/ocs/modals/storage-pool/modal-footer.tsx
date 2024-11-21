@@ -8,7 +8,7 @@ import {
   ButtonType,
   ButtonVariant,
 } from '@patternfly/react-core';
-import { POOL_PROGRESS } from '../../constants';
+import { PoolProgress } from '../../constants';
 import { checkRequiredValues } from '../../storage-pool/footer';
 import {
   StoragePoolAction,
@@ -28,7 +28,7 @@ export const StoragePoolModalFooter = (props: StoragePoolModalFooterProps) => {
   const navigate = useNavigate();
 
   const footerButtonsFactory: FooterButtonFactory = {
-    [POOL_PROGRESS.FAILED]: [
+    [PoolProgress.FAILED]: [
       {
         id: 'modal-try-again-action',
         label: t('Try Again'),
@@ -49,7 +49,7 @@ export const StoragePoolModalFooter = (props: StoragePoolModalFooterProps) => {
         onClick: handleFinishButton,
       },
     ],
-    [POOL_PROGRESS.NOTALLOWED]: [
+    [PoolProgress.NOTALLOWED]: [
       {
         id: 'modal-close-action',
         label: t('Close'),
@@ -58,7 +58,7 @@ export const StoragePoolModalFooter = (props: StoragePoolModalFooterProps) => {
         onClick: handleFinishButton,
       },
     ],
-    [POOL_PROGRESS.BOUNDED]: [
+    [PoolProgress.BOUNDED]: [
       {
         id: 'modal-close-action',
         label: t('Close'),
@@ -77,47 +77,47 @@ export const StoragePoolModalFooter = (props: StoragePoolModalFooterProps) => {
         },
       },
     ],
-    [POOL_PROGRESS.CREATED]: [
+    [PoolProgress.CREATED]: [
       {
         id: 'modal-finish-action',
         label: t('Finish'),
         type: ButtonType.submit,
         variant: ButtonVariant.primary,
         onClick: handleFinishButton,
-        disable: state.poolStatus === POOL_PROGRESS.PROGRESS,
+        disable: state.poolStatus === PoolProgress.PROGRESS,
       },
     ],
-    [POOL_PROGRESS.CLUSTERNOTREADY]: [
+    [PoolProgress.CLUSTERNOTREADY]: [
       {
         id: 'modal-finish-action',
         label: t('Finish'),
         type: ButtonType.submit,
         variant: ButtonVariant.primary,
         onClick: handleFinishButton,
-        disable: state.poolStatus === POOL_PROGRESS.PROGRESS,
+        disable: state.poolStatus === PoolProgress.PROGRESS,
       },
     ],
-    [POOL_PROGRESS.PROGRESS]: [
+    [PoolProgress.PROGRESS]: [
       {
         id: 'modal-finish-action',
         label: t('Finish'),
         type: ButtonType.submit,
         variant: ButtonVariant.primary,
         onClick: handleFinishButton,
-        disable: state.poolStatus === POOL_PROGRESS.PROGRESS,
+        disable: state.poolStatus === PoolProgress.PROGRESS,
       },
     ],
-    [POOL_PROGRESS.TIMEOUT]: [
+    [PoolProgress.TIMEOUT]: [
       {
         id: 'modal-finish-action',
         label: t('Finish'),
         type: ButtonType.submit,
         variant: ButtonVariant.primary,
         onClick: handleFinishButton,
-        disable: state.poolStatus === POOL_PROGRESS.PROGRESS,
+        disable: state.poolStatus === PoolProgress.PROGRESS,
       },
     ],
-    [POOL_PROGRESS.NOTREADY]: [
+    [PoolProgress.NOTREADY]: [
       {
         id: 'modal-finish-action',
         label: t('Finish'),
@@ -190,7 +190,7 @@ type ButtonProps = {
 };
 
 type FooterButtonFactory = {
-  [status in POOL_PROGRESS | 'default']?: ButtonProps[];
+  [status in PoolProgress | 'default']?: ButtonProps[];
 };
 
 export const FooterPrimaryActions = (t: TFunction) => ({

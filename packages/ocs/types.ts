@@ -1,6 +1,6 @@
 import { DataPool } from '@odf/shared/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { POOL_STATE, POOL_TYPE } from './constants';
+import { PoolState, PoolType } from './constants';
 
 export enum ImageStates {
   STARTING_REPLAY = 'starting_replay',
@@ -33,13 +33,13 @@ export type StoragePoolKind = K8sResourceCommon & {
     };
   };
   status?: {
-    phase?: POOL_STATE;
+    phase?: PoolState;
     mirroringStatus?: MirroringStatus;
   };
 };
 
 export type StoragePool = StoragePoolKind & {
-  type: POOL_TYPE;
+  type: PoolType;
   fsName?: string;
   shortName?: string;
 };
@@ -66,7 +66,7 @@ export type CephBlockPoolRadosNamespaceKind = K8sResourceCommon & {
     info: {
       clusterID: string;
     };
-    phase?: POOL_STATE;
+    phase?: PoolState;
     mirroringStatus?: MirroringStatus;
   };
 };

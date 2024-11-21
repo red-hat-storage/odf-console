@@ -24,7 +24,7 @@ import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-ty
 import * as _ from 'lodash-es';
 import {
   ocsTaint,
-  defaultRequestSize,
+  DefaultRequestSize,
   NO_PROVISIONER,
   cephStorageLabel,
 } from '../../constants';
@@ -168,7 +168,7 @@ export const createStorageCluster = async (
   const isNoProvisioner = storageClass?.provisioner === NO_PROVISIONER;
 
   const storage = (
-    isNoProvisioner ? defaultRequestSize.BAREMETAL : capacity
+    isNoProvisioner ? DefaultRequestSize.BAREMETAL : capacity
   ) as string;
 
   const flexibleScaling = isFlexibleScaling(

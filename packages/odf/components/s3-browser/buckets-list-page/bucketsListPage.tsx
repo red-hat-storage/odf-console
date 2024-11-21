@@ -101,7 +101,7 @@ const BucketsListPageContent: React.FC = () => {
     false,
     undefined,
   ]);
-  const [_buckets, _loaded, loadError] = bucketInfo;
+  const [, , loadError] = bucketInfo;
 
   if (isCAError(loadError)) {
     return <CAErrorMessage />;

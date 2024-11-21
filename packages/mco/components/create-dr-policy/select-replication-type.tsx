@@ -5,7 +5,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
 import { FormGroup, SelectOption } from '@patternfly/react-core';
 import {
-  REPLICATION_TYPE,
+  ReplicationType,
   REPLICATION_DISPLAY_TEXT,
   SYNC_SCHEDULE_DISPLAY_TEXT,
 } from '../../constants';
@@ -69,9 +69,7 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
     dispatch({
       type: DRPolicyActionType.SET_REPLICATION_TYPE,
       payload:
-        cephFSID1 === cephFSID2
-          ? REPLICATION_TYPE.SYNC
-          : REPLICATION_TYPE.ASYNC,
+        cephFSID1 === cephFSID2 ? ReplicationType.SYNC : ReplicationType.ASYNC,
     });
   }, [selectedClusters, dispatch]);
 
@@ -86,7 +84,7 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
     />
   ));
 
-  const onChange = (replType: REPLICATION_TYPE) =>
+  const onChange = (replType: ReplicationType) =>
     dispatch({
       type: DRPolicyActionType.SET_REPLICATION_TYPE,
       payload: replType,
@@ -107,7 +105,7 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
           onChange={onChange}
         />
       </FormGroup>
-      {replicationType === REPLICATION_TYPE.ASYNC && (
+      {replicationType === ReplicationType.ASYNC && (
         <FormGroup label={t('Replication interval')}>
           <SyncSchedule
             syncIntervalTime={syncIntervalTime}
@@ -127,6 +125,6 @@ type SyncScheduleProps = {
 type SelectReplicationTypeProps = {
   selectedClusters: ManagedClusterInfoType[];
   syncIntervalTime: string;
-  replicationType: REPLICATION_TYPE;
+  replicationType: ReplicationType;
   dispatch: React.Dispatch<DRPolicyAction>;
 };

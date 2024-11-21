@@ -1,6 +1,6 @@
 import { produce } from 'immer';
 import {
-  odfSystemFlagsActionTypes,
+  ODFSystemFlagsActionTypes,
   ODFSystemFlagsPayload,
   ODFSystemFlagsActions,
 } from '../actions';
@@ -13,7 +13,7 @@ const initialState: ODFSystemFlagsPayload = {
 
 export const odfSystemFlagsReducer = (
   odfNamespaceState = initialState,
-  action: odfSystemFlagsActionTypes
+  action: ODFSystemFlagsActionTypes
 ): ODFSystemFlagsPayload => {
   const payload = action.payload;
   switch (action.type) {

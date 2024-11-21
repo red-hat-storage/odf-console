@@ -6,7 +6,7 @@ import { DRPolicyModel, DRPlacementControlModel } from '../../models/ramen';
 import {
   EmptyRowMessage,
   NoDataMessage,
-  EXPANDABLE_COMPONENT_TYPE,
+  ExpandableComponentType,
 } from './components';
 import { ProtectedApplicationsListPage } from './list-page';
 
@@ -266,15 +266,15 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
 
     // Details
     expect(
-      container.querySelector(`[id=${EXPANDABLE_COMPONENT_TYPE.NS}]`)
+      container.querySelector(`[id=${ExpandableComponentType.NS}]`)
     ).toBeInTheDocument();
     expect(
-      container.querySelector(`[id=${EXPANDABLE_COMPONENT_TYPE.EVENTS}]`)
+      container.querySelector(`[id=${ExpandableComponentType.EVENTS}]`)
     ).not.toBeInTheDocument();
 
     // Overall sync status
     expect(
-      container.querySelector(`[id=${EXPANDABLE_COMPONENT_TYPE.STATUS}]`)
+      container.querySelector(`[id=${ExpandableComponentType.STATUS}]`)
     ).toBeInTheDocument();
 
     // Policy
@@ -332,10 +332,10 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
 
     // Details
     const namespaceElement = container.querySelector(
-      `[id=${EXPANDABLE_COMPONENT_TYPE.NS}]`
+      `[id=${ExpandableComponentType.NS}]`
     ) as HTMLElement;
     const eventsElement = container.querySelector(
-      `[id=${EXPANDABLE_COMPONENT_TYPE.EVENTS}]`
+      `[id=${ExpandableComponentType.EVENTS}]`
     ) as HTMLElement;
     expect(namespaceElement).toBeInTheDocument();
     expect(eventsElement).toBeInTheDocument();
@@ -345,7 +345,7 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     const syncStatus = 'Sync status';
     const lastSyncedOn = 'Last synced on';
     const statusElement = container.querySelector(
-      `[id=${EXPANDABLE_COMPONENT_TYPE.STATUS}]`
+      `[id=${ExpandableComponentType.STATUS}]`
     ) as HTMLElement;
     // Click namespace details
     fireEvent.click(namespaceElement);

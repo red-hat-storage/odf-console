@@ -40,7 +40,7 @@ import {
   EmptyRowMessage,
   NoDataMessage,
   AlertMessages,
-  EXPANDABLE_COMPONENT_TYPE,
+  ExpandableComponentType,
   SyncStatus,
   ExpandableComponentProps,
   ExpandableComponentsMap,
@@ -71,7 +71,7 @@ const ProtectedAppsTableRow: React.FC<
 > = ({ row: application, rowIndex, extraProps }) => {
   const { t } = useCustomTranslation();
   const [expandableComponentType, setExpandableComponentType] = React.useState(
-    EXPANDABLE_COMPONENT_TYPE.DEFAULT
+    ExpandableComponentType.DEFAULT
   );
 
   const columnNames = getColumnNames(t);
@@ -83,16 +83,16 @@ const ProtectedAppsTableRow: React.FC<
     _event: React.MouseEvent<HTMLElement, MouseEvent>,
     buttonRef: React.MutableRefObject<HTMLElement>
   ) => {
-    const tabKey = buttonRef.current.id as EXPANDABLE_COMPONENT_TYPE;
+    const tabKey = buttonRef.current.id as ExpandableComponentType;
     tabKey === expandableComponentType
       ? // collapse the expandable section
-        setExpandableComponentType(EXPANDABLE_COMPONENT_TYPE.DEFAULT)
+        setExpandableComponentType(ExpandableComponentType.DEFAULT)
       : // render new selected expandable section
         setExpandableComponentType(tabKey);
   };
 
   const isExpanded: boolean =
-    expandableComponentType !== EXPANDABLE_COMPONENT_TYPE.DEFAULT;
+    expandableComponentType !== ExpandableComponentType.DEFAULT;
 
   // Enrolled/protected namespaces details
   const enrolledNamespaces: string[] =
@@ -103,7 +103,7 @@ const ProtectedAppsTableRow: React.FC<
     isFailingOrRelocating(application) || isCleanupPending(application);
   const showEventsDetails: boolean =
     anyOnGoingEvent ||
-    expandableComponentType === EXPANDABLE_COMPONENT_TYPE.EVENTS;
+    expandableComponentType === ExpandableComponentType.EVENTS;
   const eventsCount: number = anyOnGoingEvent ? 1 : 0;
 
   // Overall sync status details (replication health)
@@ -129,7 +129,7 @@ const ProtectedAppsTableRow: React.FC<
             // only allowing collapse from here, we can expand from respective "SelectExpandable" FC
             onToggle: () =>
               isExpanded &&
-              setExpandableComponentType(EXPANDABLE_COMPONENT_TYPE.DEFAULT),
+              setExpandableComponentType(ExpandableComponentType.DEFAULT),
             expandId: 'expandable-table',
           }}
         />
@@ -154,10 +154,10 @@ const ProtectedAppsTableRow: React.FC<
             }
             tooltipContent={t('View namespaces')}
             onSelect={onTabSelect}
-            buttonId={EXPANDABLE_COMPONENT_TYPE.NS}
+            buttonId={ExpandableComponentType.NS}
             className={classNames({
               'mco-protected-applications__expanded':
-                expandableComponentType === EXPANDABLE_COMPONENT_TYPE.NS,
+                expandableComponentType === ExpandableComponentType.NS,
             })}
           />
           {showEventsDetails && (
@@ -172,10 +172,10 @@ const ProtectedAppsTableRow: React.FC<
               }
               tooltipContent={t('View activity')}
               onSelect={onTabSelect}
-              buttonId={EXPANDABLE_COMPONENT_TYPE.EVENTS}
+              buttonId={ExpandableComponentType.EVENTS}
               className={classNames({
                 'mco-protected-applications__expanded':
-                  expandableComponentType === EXPANDABLE_COMPONENT_TYPE.EVENTS,
+                  expandableComponentType === ExpandableComponentType.EVENTS,
                 'pf-v5-u-pl-lg': true,
               })}
             />
@@ -191,10 +191,10 @@ const ProtectedAppsTableRow: React.FC<
             }
             tooltipContent={t('See detailed information')}
             onSelect={onTabSelect}
-            buttonId={EXPANDABLE_COMPONENT_TYPE.STATUS}
+            buttonId={ExpandableComponentType.STATUS}
             className={classNames({
               'mco-protected-applications__expanded':
-                expandableComponentType === EXPANDABLE_COMPONENT_TYPE.STATUS,
+                expandableComponentType === ExpandableComponentType.STATUS,
             })}
           />
         </Td>

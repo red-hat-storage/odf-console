@@ -1,6 +1,6 @@
 import * as _ from 'lodash-es';
 
-export enum BC_PROVIDERS {
+export enum StoreProviders {
   AWS = 'AWS S3',
   S3 = 'S3 Compatible',
   PVC = 'PVC',
@@ -11,23 +11,23 @@ export enum BC_PROVIDERS {
 }
 
 export const PROVIDERS_NOOBAA_MAP = {
-  [BC_PROVIDERS.AWS]: 'awsS3' as const,
-  [BC_PROVIDERS.S3]: 's3Compatible' as const,
-  [BC_PROVIDERS.AZURE]: 'azureBlob' as const,
-  [BC_PROVIDERS.GCP]: 'googleCloudStorage' as const,
-  [BC_PROVIDERS.PVC]: 'pvPool' as const,
-  [BC_PROVIDERS.IBM]: 'ibmCos' as const,
-  [BC_PROVIDERS.FILESYSTEM]: 'nsfs' as const,
+  [StoreProviders.AWS]: 'awsS3' as const,
+  [StoreProviders.S3]: 's3Compatible' as const,
+  [StoreProviders.AZURE]: 'azureBlob' as const,
+  [StoreProviders.GCP]: 'googleCloudStorage' as const,
+  [StoreProviders.PVC]: 'pvPool' as const,
+  [StoreProviders.IBM]: 'ibmCos' as const,
+  [StoreProviders.FILESYSTEM]: 'nsfs' as const,
 };
 
 export const NOOBAA_TYPE_MAP = {
-  [BC_PROVIDERS.AWS]: 'aws-s3' as const,
-  [BC_PROVIDERS.S3]: 's3-compatible' as const,
-  [BC_PROVIDERS.AZURE]: 'azure-blob' as const,
-  [BC_PROVIDERS.GCP]: 'google-cloud-storage' as const,
-  [BC_PROVIDERS.PVC]: 'pv-pool' as const,
-  [BC_PROVIDERS.IBM]: 'ibm-cos' as const,
-  [BC_PROVIDERS.FILESYSTEM]: 'nsfs' as const,
+  [StoreProviders.AWS]: 'aws-s3' as const,
+  [StoreProviders.S3]: 's3-compatible' as const,
+  [StoreProviders.AZURE]: 'azure-blob' as const,
+  [StoreProviders.GCP]: 'google-cloud-storage' as const,
+  [StoreProviders.PVC]: 'pv-pool' as const,
+  [StoreProviders.IBM]: 'ibm-cos' as const,
+  [StoreProviders.FILESYSTEM]: 'nsfs' as const,
 };
 
 export type SpecProvider =
@@ -40,11 +40,11 @@ export enum StoreType {
 }
 
 export const BUCKET_LABEL_NOOBAA_MAP = {
-  [BC_PROVIDERS.AWS]: 'targetBucket',
-  [BC_PROVIDERS.S3]: 'targetBucket',
-  [BC_PROVIDERS.AZURE]: 'targetBlobContainer',
-  [BC_PROVIDERS.GCP]: 'targetBucket',
-  [BC_PROVIDERS.IBM]: 'targetBucket',
+  [StoreProviders.AWS]: 'targetBucket',
+  [StoreProviders.S3]: 'targetBucket',
+  [StoreProviders.AZURE]: 'targetBlobContainer',
+  [StoreProviders.GCP]: 'targetBucket',
+  [StoreProviders.IBM]: 'targetBucket',
 };
 
 export const AWS_REGIONS = [
@@ -73,19 +73,19 @@ export const AWS_REGIONS = [
 
 export const NS_PROVIDERS_NOOBAA_MAP = _.pick(
   PROVIDERS_NOOBAA_MAP,
-  BC_PROVIDERS.AWS,
-  BC_PROVIDERS.S3,
-  BC_PROVIDERS.AZURE,
-  BC_PROVIDERS.IBM,
-  BC_PROVIDERS.FILESYSTEM
+  StoreProviders.AWS,
+  StoreProviders.S3,
+  StoreProviders.AZURE,
+  StoreProviders.IBM,
+  StoreProviders.FILESYSTEM
 );
 
 export const NS_NOOBAA_TYPE_MAP = _.pick(
   NOOBAA_TYPE_MAP,
-  BC_PROVIDERS.AWS,
-  BC_PROVIDERS.S3,
-  BC_PROVIDERS.AZURE,
-  BC_PROVIDERS.IBM
+  StoreProviders.AWS,
+  StoreProviders.S3,
+  StoreProviders.AZURE,
+  StoreProviders.IBM
 );
 
 export enum NamespacePolicyType {

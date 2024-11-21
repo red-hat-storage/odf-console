@@ -60,6 +60,10 @@ Cypress.Commands.add('install', () => {
       cy.contains('Create StorageSystem', { timeout: 15 * SECOND }).should(
         'be.visible'
       );
+
+      // Uncomment next line only if the cluster has enough resources.
+      // cy.get('label[for="enable-nfs"]').click();
+
       cy.get('button').contains('Next').click();
       // @TODO: Do we still want to uncheck the already unchecked 'Taint nodes' checkbox?
       // If yes, we should scroll down (needed after adding the performance profile selection)
