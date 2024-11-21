@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {
-  APPLICATION_TYPE,
+  DRApplication,
   AssignPolicySteps,
   AssignPolicyStepsNames,
 } from '@odf/mco/constants';
@@ -213,7 +213,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
 
 type AssignPolicyViewFooterProps = {
   state: AssignPolicyViewState;
-  appType: APPLICATION_TYPE;
+  appType: DRApplication;
   stepIdReached: number;
   isValidationEnabled: boolean;
   errorMessage: string;

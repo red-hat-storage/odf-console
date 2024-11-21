@@ -22,12 +22,12 @@ export enum ODFSystemFlagsActions {
   SetODFSystemFlags = 'setODFSystemFlags',
 }
 
-export type odfSystemFlagsActionTypes = {
+export type ODFSystemFlagsActionTypes = {
   type: ODFSystemFlagsActions;
   payload: ODFSystemFlagsPayload;
 };
 
 export const setODFSystemFlags = (
   payload: ODFSystemFlagsPayload
-): odfSystemFlagsActionTypes =>
+): ODFSystemFlagsActionTypes =>
   action(ODFSystemFlagsActions.SetODFSystemFlags, payload);

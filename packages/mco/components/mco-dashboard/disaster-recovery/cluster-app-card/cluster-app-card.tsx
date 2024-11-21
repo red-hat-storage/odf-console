@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   ALL_APPS,
   applicationDetails,
-  APPLICATION_TYPE,
+  DRApplication,
   APPLICATION_TYPE_DISPLAY_TEXT,
 } from '@odf/mco/constants';
 import {
@@ -218,11 +218,11 @@ const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
 
 const AppWiseCard: React.FC<AppWiseCardProps> = (props) => {
   switch (props?.selectedApplication?.appType) {
-    case APPLICATION_TYPE.APPSET:
+    case DRApplication.APPSET:
       return <ApplicationSetAppCard {...props} />;
-    case APPLICATION_TYPE.SUBSCRIPTION:
+    case DRApplication.SUBSCRIPTION:
       return <SubscriptionSetAppCard {...props} />;
-    case APPLICATION_TYPE.DISCOVERED:
+    case DRApplication.DISCOVERED:
       return <DiscoveredAppCard {...props} />;
     default:
       return null;
@@ -250,7 +250,7 @@ const ClusterAppCardTitle: React.FC<ClusterAppCardTitleProps> = ({
     <div>
       <Text className="mco-cluster-app__headerText--size mco-dashboard__statusText--margin">
         {t('Application: ')}
-        {appType === APPLICATION_TYPE.DISCOVERED ? (
+        {appType === DRApplication.DISCOVERED ? (
           app.name
         ) : (
           <Link id="app-search-argo-apps-link" to={applicationDetailsPath}>
@@ -400,5 +400,5 @@ type ClusterAppCardTitleProps = {
   cluster: string;
   appKind: string;
   appAPIVersion: string;
-  appType: APPLICATION_TYPE;
+  appType: DRApplication;
 };

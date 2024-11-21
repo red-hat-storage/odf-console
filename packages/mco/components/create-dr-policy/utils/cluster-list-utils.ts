@@ -29,7 +29,7 @@ import { ManagedClusterInfoType, ODFConfigInfoType } from '../utils/reducer';
 export const INITIAL_PAGE_NUMBER = 1;
 export const COUNT_PER_PAGE_NUMBER = 10;
 
-export enum COLUMN_NAMES {
+export enum ClusterListColumns {
   ManagedCluster,
   AvailabilityStatus,
   DataFoundation,
@@ -60,18 +60,21 @@ export const getColumns = (t: TFunction<string>) => [
   },
 ];
 
-export const getColumnHelper = (name: COLUMN_NAMES, t: TFunction<string>) => {
+export const getColumnHelper = (
+  name: ClusterListColumns,
+  t: TFunction<string>
+) => {
   const columns = getColumns(t);
   switch (name) {
-    case COLUMN_NAMES.ManagedCluster:
+    case ClusterListColumns.ManagedCluster:
       return columns[0];
-    case COLUMN_NAMES.AvailabilityStatus:
+    case ClusterListColumns.AvailabilityStatus:
       return columns[1];
-    case COLUMN_NAMES.DataFoundation:
+    case ClusterListColumns.DataFoundation:
       return columns[2];
-    case COLUMN_NAMES.StorageClients:
+    case ClusterListColumns.StorageClients:
       return columns[3];
-    case COLUMN_NAMES.Region:
+    case ClusterListColumns.Region:
       return columns[4];
   }
 };

@@ -29,7 +29,7 @@ import {
 } from '@patternfly/react-core';
 import {
   MAX_ALLOWED_CLUSTERS,
-  REPLICATION_TYPE,
+  ReplicationType,
   ODFMCO_OPERATOR,
 } from '../../constants';
 import { DRPolicyModel, MirrorPeerModel } from '../../models';
@@ -53,7 +53,7 @@ const getDRPolicyListPageLink = (url: string) =>
 
 const validateDRPolicyInputs = (
   policyName: string,
-  replicationType: REPLICATION_TYPE,
+  replicationType: ReplicationType,
   clusterCount: number,
   isClusterSelectionValid: boolean
 ) =>
@@ -235,7 +235,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
                     syncIntervalTime={state.syncIntervalTime}
                     dispatch={dispatch}
                   />
-                  {state.replicationType === REPLICATION_TYPE.ASYNC && (
+                  {state.replicationType === ReplicationType.ASYNC && (
                     <FormGroup fieldId="advanced-settings">
                       <AdvancedSettings
                         enableRBDImageFlatten={state.enableRBDImageFlatten}

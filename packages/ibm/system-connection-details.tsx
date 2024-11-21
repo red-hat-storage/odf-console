@@ -5,7 +5,7 @@ import {
   CreatePayload,
   StorageClassComponentProps as ExternalComponentProps,
   CanGoToNextStep,
-  waitToCreate,
+  WaitToCreate,
 } from '@odf/odf-plugin-sdk/extensions';
 import { FormGroupController } from '@odf/shared/form-group-controller';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
@@ -329,7 +329,7 @@ export const flashSystemCanGoToNextStep: CanGoToNextStep<FlashSystemState> = (
 const isCRDAvailable = (crd: K8sResourceKind, plural: string) =>
   crd?.status?.acceptedNames?.plural === plural;
 
-export const waitforCRD: waitToCreate = async (model) => {
+export const waitforCRD: WaitToCreate = async (model) => {
   const crdName = [model.plural, model.apiGroup].join('.');
   const POLLING_INTERVAL = 5000;
   const maxAttempts = 30;

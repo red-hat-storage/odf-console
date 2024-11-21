@@ -24,9 +24,9 @@ import {
 import { UnknownIcon } from '@patternfly/react-icons';
 import {
   DRActionType,
-  REPLICATION_TYPE,
+  ReplicationType,
   ACM_OPERATOR_SPEC_NAME,
-  VOLUME_REPLICATION_HEALTH,
+  VolumeReplicationHealth,
 } from '../../../constants';
 import {
   ErrorMessageType,
@@ -39,7 +39,7 @@ import './failover-relocate-modal-body.scss';
 const failoverPreCheck = (placementControl: PlacementControlProps) => {
   // Failover pre-check
   if (placementControl?.isTargetClusterAvailable) {
-    if (placementControl?.replicationType === REPLICATION_TYPE.SYNC) {
+    if (placementControl?.replicationType === ReplicationType.SYNC) {
       if (!placementControl?.isPrimaryClusterFenced) {
         // Primary cluster is unfenced
         return ErrorMessageType.PRIMARY_CLUSTER_IS_NOT_FENCED;
@@ -61,7 +61,7 @@ const relocatePreCheck = (placementControl: PlacementControlProps) => {
     placementControl?.isTargetClusterAvailable &&
     placementControl?.isPrimaryClusterAvailable
   ) {
-    if (placementControl?.replicationType === REPLICATION_TYPE.SYNC) {
+    if (placementControl?.replicationType === ReplicationType.SYNC) {
       if (
         placementControl?.isPrimaryClusterFenced ||
         placementControl?.isTargetClusterFenced
@@ -110,8 +110,8 @@ const validatePlacement = (
   // Check volume replication health
   if (
     [
-      VOLUME_REPLICATION_HEALTH.CRITICAL,
-      VOLUME_REPLICATION_HEALTH.WARNING,
+      VolumeReplicationHealth.CRITICAL,
+      VolumeReplicationHealth.WARNING,
     ].includes(
       getReplicationHealth(
         placementControl?.snapshotTakenTime,
@@ -300,7 +300,7 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
               <DRActionReadiness canInitiate={canInitiate} />
             </FlexItem>
           </Flex>
-          {placement?.replicationType === REPLICATION_TYPE.ASYNC && (
+          {placement?.replicationType === ReplicationType.ASYNC && (
             <Flex>
               <FlexItem>
                 <strong>{t('Volume last synced on:')}</strong>
@@ -346,7 +346,7 @@ export type PlacementControlProps = Partial<{
   isTargetClusterAvailable: boolean;
   isPrimaryClusterAvailable: boolean;
   isDRActionReady: boolean;
-  replicationType: REPLICATION_TYPE;
+  replicationType: ReplicationType;
   isTargetClusterFenced: boolean;
   isPrimaryClusterFenced: boolean;
   areSiblingApplicationsFound: boolean;

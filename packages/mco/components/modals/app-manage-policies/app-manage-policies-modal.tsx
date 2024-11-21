@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { APPLICATION_TYPE } from '@odf/mco/constants';
+import { DRApplication } from '@odf/mco/constants';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Trans } from 'react-i18next';
@@ -51,7 +51,7 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
           workloadNamespace={applicaitonInfo?.workloadNamespace}
           eligiblePolicies={matchingPolicies}
           isSubscriptionAppType={
-            applicaitonInfo?.type === APPLICATION_TYPE.SUBSCRIPTION
+            applicaitonInfo?.type === DRApplication.SUBSCRIPTION
           }
           unProtectedPlacementCount={applicaitonInfo?.placements?.length}
           dispatch={dispatch}

@@ -19,7 +19,7 @@ const STORAGECLUSTER_PHASE = `"$(oc get storageclusters -n openshift-storage -o=
 )}')"`;
 export const OCS_SC_STATE = `until [ ${STORAGECLUSTER_PHASE} = "Ready" ]; do sleep 1; done;`;
 
-export enum CLUSTER_STATUS {
+export enum ClusterStatus {
   READY = 'Ready',
   PROGRESSING = 'Progressing',
   HEALTH_ERROR = 'HEALTH_ERR',

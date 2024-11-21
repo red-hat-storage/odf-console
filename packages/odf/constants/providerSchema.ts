@@ -1,52 +1,54 @@
 import { PersistentVolumeClaimKind } from '@odf/shared/types';
 import * as Yup from 'yup';
-import { BC_PROVIDERS } from './mcg';
+import { StoreProviders } from './mcg';
 
 export const providerSchema = (shouldValidateSecret: boolean) =>
   Yup.object({
     'provider-name': Yup.string().required(),
     endpoint: Yup.string().when('provider-name', {
       is: (value: string) =>
-        [BC_PROVIDERS.S3, BC_PROVIDERS.IBM].includes(value as BC_PROVIDERS),
+        [StoreProviders.S3, StoreProviders.IBM].includes(
+          value as StoreProviders
+        ),
       then: (schema: Yup.StringSchema) => schema.required(),
     }),
     'aws-region': Yup.string().when('provider-name', {
-      is: BC_PROVIDERS.AWS,
+      is: StoreProviders.AWS,
       then: (schema: Yup.StringSchema) => schema.required(),
     }),
     secret: Yup.string().when('provider-name', {
       is: (value: string) =>
         [
-          BC_PROVIDERS.AWS,
-          BC_PROVIDERS.S3,
-          BC_PROVIDERS.AZURE,
-          BC_PROVIDERS.IBM,
-        ].includes(value as BC_PROVIDERS),
+          StoreProviders.AWS,
+          StoreProviders.S3,
+          StoreProviders.AZURE,
+          StoreProviders.IBM,
+        ].includes(value as StoreProviders),
       then: (schema: Yup.StringSchema) =>
         shouldValidateSecret ? schema.required() : schema.notRequired(),
     }),
     'secret-key': Yup.string().when('provider-name', {
-      is: BC_PROVIDERS.GCP,
+      is: StoreProviders.GCP,
       then: (schema: Yup.StringSchema) => schema.required(),
     }),
     'target-bucket': Yup.string().when('provider-name', {
       is: (value: string) =>
         [
-          BC_PROVIDERS.S3,
-          BC_PROVIDERS.AWS,
-          BC_PROVIDERS.AZURE,
-          BC_PROVIDERS.IBM,
-          BC_PROVIDERS.GCP,
-        ].includes(value as BC_PROVIDERS),
+          StoreProviders.S3,
+          StoreProviders.AWS,
+          StoreProviders.AZURE,
+          StoreProviders.IBM,
+          StoreProviders.GCP,
+        ].includes(value as StoreProviders),
       then: (schema: Yup.StringSchema) => schema.required(),
     }),
     'pvc-name': Yup.object().when('provider-name', {
-      is: BC_PROVIDERS.FILESYSTEM,
+      is: StoreProviders.FILESYSTEM,
       then: (schema: Yup.SchemaOf<PersistentVolumeClaimKind>) =>
         schema.required(),
     }),
     'folder-name': Yup.string().when('provider-name', {
-      is: BC_PROVIDERS.FILESYSTEM,
+      is: StoreProviders.FILESYSTEM,
       then: (schema: Yup.StringSchema) => schema.required(),
     }),
   });

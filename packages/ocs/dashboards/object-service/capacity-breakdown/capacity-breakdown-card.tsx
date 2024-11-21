@@ -73,14 +73,14 @@ type ServiceTypeProps = {
 
 type DataPointResponse = DataPoint<string | number | Date>[][];
 
-type BreakdownCardBodyProps = ServiceTypeProps & {
+type CapacityBreakdownCardBodyProps = ServiceTypeProps & {
   response: DataPointResponse;
   serviceType: ServiceType;
   loading: boolean;
   error: boolean;
 };
 
-const BreakdownCardBody_: React.FC<BreakdownCardBodyProps> = ({
+const CapacityBreakdownCardBody: React.FC<CapacityBreakdownCardBodyProps> = ({
   response,
   serviceType,
   loading,
@@ -169,7 +169,7 @@ const ServiceTypeALL: React.FC<ServiceTypeProps> = ({
   }, [rgw, noobaa, object, loading, error, data, metric]);
 
   return (
-    <BreakdownCardBody_
+    <CapacityBreakdownCardBody
       response={response}
       serviceType={ServiceType.ALL}
       loading={loading}
@@ -217,7 +217,7 @@ const ServiceTypeMCG: React.FC<ServiceTypeProps> = ({
   }, [byUsed, totalUsed, loading, error, data, metric]);
 
   return (
-    <BreakdownCardBody_
+    <CapacityBreakdownCardBody
       response={response}
       serviceType={ServiceType.MCG}
       loading={loading}
@@ -265,7 +265,7 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({
   }, [used, totalUsed, loading, error, data, metric]);
 
   return (
-    <BreakdownCardBody_
+    <CapacityBreakdownCardBody
       response={response}
       serviceType={ServiceType.RGW}
       loading={loading}

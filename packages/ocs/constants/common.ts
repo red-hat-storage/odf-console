@@ -1,12 +1,12 @@
 export const PVC_PROVISIONER_ANNOTATION =
   'volume.beta.kubernetes.io/storage-provisioner';
 export const COMPRESSION_ON = 'aggressive';
-export enum POOL_STATE {
+export enum PoolState {
   READY = 'Ready',
   RECONCILE_FAILED = 'ReconcileFailed',
   FAILURE = 'Failure',
 }
-export enum POOL_TYPE {
+export enum PoolType {
   BLOCK = 'Block',
   FILESYSTEM = 'Filesystem',
 }
@@ -16,7 +16,7 @@ export const ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH =
 
 export const ROOK_MODEL = 'cephblockpools.ceph.rook.io';
 
-export enum POOL_PROGRESS {
+export enum PoolProgress {
   CREATED = 'created',
   FAILED = 'failed',
   PROGRESS = 'progress',
@@ -33,7 +33,7 @@ export const OCS_DEVICE_REPLICA = Object.freeze({
   '4': '4-way',
 });
 
-export enum CLUSTER_STATUS {
+export enum ClusterStatus {
   READY = 'Ready',
   PROGRESSING = 'Progressing',
 }

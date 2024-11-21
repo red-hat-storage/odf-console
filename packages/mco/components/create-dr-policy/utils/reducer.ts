@@ -1,4 +1,4 @@
-import { REPLICATION_TYPE } from '@odf/mco/constants';
+import { ReplicationType } from '@odf/mco/constants';
 import { ConnectedClient } from '@odf/mco/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
@@ -43,7 +43,7 @@ export type DRPolicyState = {
   // DRPolicy CR name.
   policyName: string;
   // DRPolicy type Async / Sync.
-  replicationType: REPLICATION_TYPE;
+  replicationType: ReplicationType;
   // Sync interval schedule for Async policy.
   syncIntervalTime: string;
   // Selected managed cluster for DRPolicy paring.
@@ -75,7 +75,7 @@ export const drPolicyInitialState: DRPolicyState = {
 
 export type DRPolicyAction =
   | { type: DRPolicyActionType.SET_POLICY_NAME; payload: string }
-  | { type: DRPolicyActionType.SET_REPLICATION_TYPE; payload: REPLICATION_TYPE }
+  | { type: DRPolicyActionType.SET_REPLICATION_TYPE; payload: ReplicationType }
   | { type: DRPolicyActionType.SET_SYNC_INTERVAL_TIME; payload: string }
   | {
       type: DRPolicyActionType.SET_SELECTED_CLUSTERS;

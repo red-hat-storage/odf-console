@@ -7,7 +7,7 @@ import {
   isValidJSON,
   prettifyJSON,
 } from '@odf/core/components/utils';
-import { IP_FAMILY } from '@odf/core/constants';
+import { IPFamily } from '@odf/core/constants';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { RHCSState } from '@odf/core/types';
 import {
@@ -94,9 +94,9 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
         ocsAnnotations?.['external.features.ocs.openshift.io/validation']
       );
       const ipAddress: string = pods.items?.[0]?.status?.podIP;
-      const ipFamily: IP_FAMILY = ipAddress
+      const ipFamily: IPFamily = ipAddress
         ? getIPFamily(ipAddress)
-        : IP_FAMILY.IPV4;
+        : IPFamily.IPV4;
       const error: string = checkError(fData, plainKeys, secretKeys, ipFamily);
       setFormState('errorMessage', error);
     } else {

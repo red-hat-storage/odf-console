@@ -1,14 +1,14 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import { nsPayload, setODFNamespace } from '../actions';
+import { NsPayload, setODFNamespace } from '../actions';
 
-type UseODFNamespaceDispatch = () => (payload: nsPayload) => void;
+type UseODFNamespaceDispatch = () => (payload: NsPayload) => void;
 
 export const useODFNamespaceDispatch: UseODFNamespaceDispatch = () => {
   const dispatch = useDispatch();
 
   return useCallback(
-    (payload: nsPayload) => {
+    (payload: NsPayload) => {
       dispatch(setODFNamespace(payload));
     },
     [dispatch]

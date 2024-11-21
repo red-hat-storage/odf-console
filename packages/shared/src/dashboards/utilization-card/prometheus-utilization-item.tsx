@@ -10,6 +10,7 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import {
   Humanize,
+  LIMIT_STATE,
   PrometheusResult,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -18,12 +19,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
-
-enum LIMIT_STATE {
-  ERROR = 'ERROR',
-  WARN = 'WARN',
-  OK = 'OK',
-}
 
 export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps> =
   ({

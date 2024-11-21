@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
-import { cephBlockPoolResource } from '@odf/core/resources';
+import { getCephBlockPoolResource } from '@odf/core/resources';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -33,13 +33,14 @@ import {
   useListPageFilter,
   VirtualizedTable,
   useK8sWatchResources,
+  WatchK8sResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
 import { Link, useLocation, useParams } from 'react-router-dom-v5-compat';
 import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { POOL_TYPE } from '../constants';
+import { PoolType } from '../constants';
 import {
   MirroringImageHealthMap,
   healthStateMessage,
@@ -116,7 +117,7 @@ const tableColumnInfo = [
   { className: Kebab.columnClass, id: '' },
 ];
 
-type StoragePoolListProps = {
+type StoragePoolListTableProps = {
   data: StoragePool[];
   unfilteredData: StoragePool[];
   loaded: boolean;
@@ -124,7 +125,7 @@ type StoragePoolListProps = {
   rowData: any;
 };
 
-const StoragePoolList: React.FC<StoragePoolListProps> = (props) => {
+const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
   const { t } = useCustomTranslation();
   const tableColumns = React.useMemo<TableColumn<any>[]>(
     () => [
@@ -267,7 +268,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
 
   const poolType = obj.type;
   const hideItems =
-    poolType === POOL_TYPE.FILESYSTEM
+    poolType === PoolType.FILESYSTEM
       ? [ModalKeys.EDIT_LABELS, ModalKeys.EDIT_ANN]
       : [];
   const replica = obj.spec?.replicated?.size;
@@ -302,12 +303,12 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
         <ResourceIcon
           resourceModel={
-            poolType === POOL_TYPE.BLOCK
+            poolType === PoolType.BLOCK
               ? CephBlockPoolModel
               : CephFileSystemModel
           }
         />
-        {poolType === POOL_TYPE.BLOCK ? (
+        {poolType === PoolType.BLOCK ? (
           <Link
             to={to}
             className="co-resource-item__resource-name"
@@ -415,45 +416,40 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
   );
 };
 
-type StoragePoolListPageProps = {
-  storagePools: StoragePool[];
-  storageClasses: StorageClassResourceKind[];
-  loaded: boolean;
-  loadError: any;
-  managedByOCS: string;
-};
-
-const resources = {
-  sc: {
-    kind: StorageClassModel.kind,
-    namespaced: false,
-    isList: true,
-  },
-  blockPools: cephBlockPoolResource,
-  filesystem: {
-    kind: referenceForModel(CephFileSystemModel),
-    isList: false,
-  },
-};
-
 type WatchType = {
   sc: StorageClassResourceKind[];
   blockPools: StoragePoolKind[];
   filesystem: CephFilesystemKind;
 };
 
-// To divide the number of hooks, add _StoragePoolListPage on top of StoragePoolListPage.
-const _StoragePoolListPage: React.FC = () => {
+const getResources = (
+  clusterName: string,
+  clusterNamespace: string
+): WatchK8sResources<WatchType> => {
+  return {
+    sc: {
+      kind: StorageClassModel.kind,
+      namespaced: false,
+      isList: true,
+    },
+    blockPools: getCephBlockPoolResource(clusterName),
+    filesystem: {
+      kind: referenceForModel(CephFileSystemModel),
+      isList: false,
+      name: `${clusterName}-cephfilesystem`,
+      namespace: clusterNamespace,
+    },
+  };
+};
+
+const StoragePoolListPage: React.FC = () => {
   const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
-  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
-
-  resources.filesystem['name'] = `${managedByOCS}-cephfilesystem`;
-  resources.filesystem['namespace'] = clusterNs;
+  const clusterName = systemFlags[clusterNs]?.ocsClusterName;
 
   const response = useK8sWatchResources(
-    resources
+    getResources(clusterName, clusterNs)
   ) as WatchK8sResults<WatchType>;
 
   const storageClasses = response.sc.data;
@@ -484,22 +480,30 @@ const _StoragePoolListPage: React.FC = () => {
   const error = flagsLoadError || scError || blockPoolsError || filesystemError;
 
   return (
-    <StoragePoolListPage
+    <StoragePoolList
       storagePools={storagePools}
       storageClasses={memoizedSC}
       loaded={loaded}
       loadError={error}
-      managedByOCS={managedByOCS}
+      clusterName={clusterName}
     />
   );
 };
 
-const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
+type StoragePoolListProps = {
+  storagePools: StoragePool[];
+  storageClasses: StorageClassResourceKind[];
+  loaded: boolean;
+  loadError: any;
+  clusterName: string;
+};
+
+const StoragePoolList: React.FC<StoragePoolListProps> = ({
   storagePools,
   storageClasses,
   loaded,
   loadError,
-  managedByOCS,
+  clusterName,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -516,7 +520,7 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
           query: getPoolQuery(
             poolNames,
             StorageDashboardQuery.POOL_RAW_CAPACITY_USED,
-            managedByOCS
+            clusterName
           ),
           basePath: usePrometheusBasePath(),
         },
@@ -532,7 +536,7 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
           query: getPoolQuery(
             poolNames,
             StorageDashboardQuery.POOL_COMPRESSION_SAVINGS,
-            managedByOCS
+            clusterName
           ),
           basePath: usePrometheusBasePath(),
         },
@@ -551,7 +555,7 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
         query: getPoolQuery(
           poolNames,
           StorageDashboardQuery.POOL_MIRRORING_IMAGE_HEALTH,
-          managedByOCS
+          clusterName
         ),
         basePath: usePrometheusBasePath(),
       },
@@ -615,7 +619,7 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
           onFilterChange={onFilterChange}
           hideColumnManagement={true}
         />
-        <StoragePoolList
+        <StoragePoolListTable
           data={filteredData}
           unfilteredData={data}
           loaded={loaded}
@@ -627,4 +631,4 @@ const StoragePoolListPage: React.FC<StoragePoolListPageProps> = ({
   );
 };
 
-export default _StoragePoolListPage;
+export default StoragePoolListPage;

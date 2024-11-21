@@ -1,6 +1,8 @@
 import {
+  CEPH_BUILTIN_MGR_POOL,
+  CEPH_BUILTIN_NFS_POOL,
   CEPH_DEFAULT_FS_POOL_PREFIX,
-  POOL_TYPE,
+  PoolType,
 } from '../constants/storage-pool-const';
 import {
   deleteBlockPoolFromCLI,
@@ -9,45 +11,49 @@ import {
   createStoragePoolInSCForm,
   fillPoolModalForm,
   checkStoragePoolIsSelectableInSCForm,
+  showAvailablePoolsInSCForm,
 } from '../views/storage-pool';
 
 describe('Test storage pool creation when creating a new StorageClass', () => {
-  it(`Creates a new ${POOL_TYPE.BLOCK} pool`, () => {
-    const poolName = 'sc-block-name';
-
+  beforeEach(() => {
     cy.clickNavLink(['Storage', 'StorageClasses']);
     cy.byTestID('item-create').click();
+  });
 
-    cy.log(`Create a new ${POOL_TYPE.BLOCK} pool`);
-    createStoragePoolInSCForm(POOL_TYPE.BLOCK, poolName);
+  it(`does not show hidden pools`, () => {
+    showAvailablePoolsInSCForm(PoolType.BLOCK);
+    cy.byTestID(CEPH_BUILTIN_MGR_POOL).should('not.exist');
+    cy.byTestID(CEPH_BUILTIN_NFS_POOL).should('not.exist');
+  });
+
+  it(`Creates a new ${PoolType.BLOCK} pool`, () => {
+    const poolName = 'sc-block-name';
+
+    cy.log(`Create a new ${PoolType.BLOCK} pool`);
+    createStoragePoolInSCForm(PoolType.BLOCK, poolName);
     checkStoragePoolIsSelectableInSCForm(poolName);
     verifyBlockPoolJSON(poolName);
 
-    cy.log(
-      `Try to create a new ${POOL_TYPE.BLOCK} pool using an existing name`
-    );
-    fillPoolModalForm(POOL_TYPE.BLOCK, poolName);
+    cy.log(`Try to create a new ${PoolType.BLOCK} pool using an existing name`);
+    fillPoolModalForm(PoolType.BLOCK, poolName);
     cy.byLegacyTestID('confirm-action').should('be.disabled');
     cy.byLegacyTestID('modal-cancel-action').click();
 
     deleteBlockPoolFromCLI(poolName);
   });
 
-  it(`Creates a new ${POOL_TYPE.FILESYSTEM} pool`, () => {
+  it(`Creates a new ${PoolType.FILESYSTEM} pool`, () => {
     const poolName = 'sc-fs-name';
     const poolFullName = `${CEPH_DEFAULT_FS_POOL_PREFIX}-${poolName}`;
 
-    cy.clickNavLink(['Storage', 'StorageClasses']);
-    cy.byTestID('item-create').click();
-
-    cy.log(`Create a new ${POOL_TYPE.FILESYSTEM} pool`);
-    createStoragePoolInSCForm(POOL_TYPE.FILESYSTEM, poolName);
+    cy.log(`Create a new ${PoolType.FILESYSTEM} pool`);
+    createStoragePoolInSCForm(PoolType.FILESYSTEM, poolName);
     checkStoragePoolIsSelectableInSCForm(poolFullName);
 
     cy.log(
-      `Try to create a new ${POOL_TYPE.FILESYSTEM} pool using an existing name`
+      `Try to create a new ${PoolType.FILESYSTEM} pool using an existing name`
     );
-    fillPoolModalForm(POOL_TYPE.FILESYSTEM, poolName);
+    fillPoolModalForm(PoolType.FILESYSTEM, poolName);
     cy.byLegacyTestID('confirm-action').should('be.disabled');
     cy.byLegacyTestID('modal-cancel-action').click();
 

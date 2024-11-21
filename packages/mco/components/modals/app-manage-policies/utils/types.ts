@@ -2,7 +2,7 @@ import {
   K8sResourceCommon,
   ObjectReference,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { APPLICATION_TYPE, REPLICATION_TYPE } from '../../../../constants';
+import { DRApplication, ReplicationType } from '../../../../constants';
 
 export type PlacementType = K8sResourceCommon & {
   deploymentClusters: string[];
@@ -27,7 +27,7 @@ export type DRPolicyType = K8sResourceCommon & {
   // Volume replication interval, only applicable for RDR(Async)
   schedulingInterval: string;
   // Type of replication async(RDR)/sync(MDR)
-  replicationType: REPLICATION_TYPE;
+  replicationType: ReplicationType;
   // Peer clusters info
   drClusters: string[];
 };
@@ -41,7 +41,7 @@ export type DRInfoType = {
 
 export type ApplicationType = K8sResourceCommon & {
   // ACM managed application types
-  type: APPLICATION_TYPE;
+  type: DRApplication;
   // Remote workload namespace
   workloadNamespace: string;
   // Cluster info, Only Subscription application can have more than one placements

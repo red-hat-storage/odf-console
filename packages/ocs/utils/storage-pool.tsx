@@ -16,8 +16,8 @@ import {
 } from '@patternfly/react-icons';
 import {
   POOL_FS_DEFAULT,
-  POOL_PROGRESS,
-  POOL_TYPE,
+  PoolProgress,
+  PoolType,
   ROOK_MODEL,
 } from '../constants';
 import { CephFilesystemKind, StoragePool, StoragePoolKind } from '../types';
@@ -42,7 +42,7 @@ export const getScNamesUsingPool = (
     const poolName = getName(pool);
     if (
       sc.parameters?.pool === poolName ||
-      (pool.type === POOL_TYPE.FILESYSTEM &&
+      (pool.type === PoolType.FILESYSTEM &&
         sc.parameters?.fsName === pool.fsName &&
         !sc.parameters?.pool &&
         pool.shortName === POOL_FS_DEFAULT)
@@ -62,7 +62,7 @@ export const getPerPoolMetrics = (metrics, error, isLoading) =>
     : {};
 
 export const isDefaultPool = (pool: StoragePool): boolean => {
-  if (pool?.type === POOL_TYPE.FILESYSTEM) {
+  if (pool?.type === PoolType.FILESYSTEM) {
     return pool?.metadata?.name === `${pool?.fsName}-${POOL_FS_DEFAULT}`;
   }
   return !!pool?.metadata.ownerReferences?.find(
@@ -88,7 +88,7 @@ export const PROGRESS_STATUS = (
   poolName: string
 ): ProgressStatusProps[] => [
   {
-    name: POOL_PROGRESS.PROGRESS,
+    name: PoolProgress.PROGRESS,
     icon: LoadingComponent,
     desc: t('Pool {{name}} creation in progress', {
       name: poolName,
@@ -96,7 +96,7 @@ export const PROGRESS_STATUS = (
     className: '',
   },
   {
-    name: POOL_PROGRESS.CREATED,
+    name: PoolProgress.CREATED,
     icon: CheckCircleIcon,
     desc: t('Pool {{name}} was successfully created', {
       name: poolName,
@@ -104,7 +104,7 @@ export const PROGRESS_STATUS = (
     className: 'ceph-block-pool__check-icon',
   },
   {
-    name: POOL_PROGRESS.FAILED,
+    name: PoolProgress.FAILED,
     icon: ExclamationCircleIcon,
     desc: t('An error occurred. Pool {{name}} was not created', {
       name: poolName,
@@ -112,7 +112,7 @@ export const PROGRESS_STATUS = (
     className: 'ceph-block-pool__error-icon',
   },
   {
-    name: POOL_PROGRESS.TIMEOUT,
+    name: PoolProgress.TIMEOUT,
     icon: DisconnectedIcon,
     desc: t(
       'Pool {{name}} creation timed out. Please check if odf operator and rook operator are running',
@@ -121,7 +121,7 @@ export const PROGRESS_STATUS = (
     className: '',
   },
   {
-    name: POOL_PROGRESS.CLUSTERNOTREADY,
+    name: PoolProgress.CLUSTERNOTREADY,
     icon: LockIcon,
     desc: t(
       'The creation of a StorageCluster is still in progress or has failed. Try again after the StorageCuster is ready to use.'
@@ -129,7 +129,7 @@ export const PROGRESS_STATUS = (
     className: '',
   },
   {
-    name: POOL_PROGRESS.NOTALLOWED,
+    name: PoolProgress.NOTALLOWED,
     icon: LockIcon,
     desc: t(
       "Pool management tasks are not supported for default pool and Data Foundation's external mode."
@@ -137,7 +137,7 @@ export const PROGRESS_STATUS = (
     className: '',
   },
   {
-    name: POOL_PROGRESS.NOTREADY,
+    name: PoolProgress.NOTREADY,
     icon: ExclamationCircleIcon,
     desc: t('Pool {{name}} was created with errors.', {
       name: poolName,
@@ -179,7 +179,7 @@ export const getStoragePoolsFromFilesystem = (
       },
       status: { phase: fs.status?.phase },
       shortName: dataPool.name ?? POOL_FS_DEFAULT,
-      type: POOL_TYPE.FILESYSTEM,
+      type: PoolType.FILESYSTEM,
     } as StoragePool;
   });
 };
@@ -188,7 +188,7 @@ export const getStoragePoolsFromBlockPools = (
   blockPools: StoragePoolKind[]
 ): StoragePool[] => {
   return blockPools?.map((pool) => {
-    pool['type'] = POOL_TYPE.BLOCK;
+    pool['type'] = PoolType.BLOCK;
     return pool as StoragePool;
   });
 };

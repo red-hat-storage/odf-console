@@ -9,7 +9,7 @@ export const OBJECT_NAME = 'obj_name';
 export const OBJECT_NAMESPACE = 'obj_namespace';
 
 // Volume replication health status
-export const enum VOLUME_REPLICATION_HEALTH {
+export const enum VolumeReplicationHealth {
   CRITICAL = 'critical',
   WARNING = 'warning',
   HEALTHY = 'healthy',

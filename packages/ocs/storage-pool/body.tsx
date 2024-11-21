@@ -39,9 +39,9 @@ import {
 import { CaretDownIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import {
   OCS_DEVICE_REPLICA,
-  POOL_PROGRESS,
-  POOL_STATE,
-  POOL_TYPE,
+  PoolProgress,
+  PoolState,
+  PoolType,
 } from '../constants';
 import {
   getErrorMessage,
@@ -94,9 +94,9 @@ export type StoragePoolBodyProps = {
   state: StoragePoolState;
   showPoolStatus: boolean;
   dispatch: React.Dispatch<StoragePoolAction | AttachStorageAction>;
-  poolType: POOL_TYPE;
+  poolType: PoolType;
   existingNames?: string[];
-  onPoolTypeChange?: (newPoolType: POOL_TYPE) => void;
+  onPoolTypeChange?: (newPoolType: PoolType) => void;
   disablePoolType?: boolean;
   isUpdate?: boolean;
   fsName?: string;
@@ -189,7 +189,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
 
   // Check storage cluster is in ready state
   const isClusterReady: boolean =
-    cephCluster?.status?.phase === POOL_STATE.READY;
+    cephCluster?.status?.phase === PoolState.READY;
 
   // Check storage cluster is arbiter
   React.useEffect(() => {
@@ -260,10 +260,10 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
             data-test="type-filesystem"
             name="volume-type"
             className="pf-v5-u-mr-4xl"
-            isChecked={poolType === POOL_TYPE.FILESYSTEM}
-            isDisabled={disablePoolType && poolType !== POOL_TYPE.FILESYSTEM}
+            isChecked={poolType === PoolType.FILESYSTEM}
+            isDisabled={disablePoolType && poolType !== PoolType.FILESYSTEM}
             onChange={() => {
-              onPoolTypeChange(POOL_TYPE.FILESYSTEM);
+              onPoolTypeChange(PoolType.FILESYSTEM);
             }}
           />
           <Radio
@@ -272,10 +272,10 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
             id="type-block"
             data-test="type-block"
             name="volume-type"
-            isChecked={poolType === POOL_TYPE.BLOCK}
-            isDisabled={disablePoolType && poolType !== POOL_TYPE.BLOCK}
+            isChecked={poolType === PoolType.BLOCK}
+            isDisabled={disablePoolType && poolType !== PoolType.BLOCK}
             onChange={() => {
-              onPoolTypeChange(POOL_TYPE.BLOCK);
+              onPoolTypeChange(PoolType.BLOCK);
             }}
           />
         </div>
@@ -303,7 +303,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           isDisabled: isUpdate,
         }}
         infoElement={
-          poolType === POOL_TYPE.FILESYSTEM && (
+          poolType === PoolType.FILESYSTEM && (
             <>
               <Icon status="info">
                 <InfoCircleIcon />
@@ -317,7 +317,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           )
         }
         inputPrefixElement={
-          poolType === POOL_TYPE.FILESYSTEM && (
+          poolType === PoolType.FILESYSTEM && (
             <>
               <TextInput
                 id="cephfs-pool-prefix"
@@ -396,6 +396,6 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
       )}
     </>
   ) : (
-    <StoragePoolStatus status={POOL_PROGRESS.CLUSTERNOTREADY} />
+    <StoragePoolStatus status={PoolProgress.CLUSTERNOTREADY} />
   );
 };

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {
-  APPLICATION_TYPE,
+  DRApplication,
   AssignPolicySteps,
   AssignPolicyStepsNames,
 } from '@odf/mco/constants';
@@ -31,7 +31,7 @@ import {
 } from './utils/types';
 
 export const createSteps = (
-  appType: APPLICATION_TYPE,
+  appType: DRApplication,
   workloadNamespace: string,
   unProtectedPlacements: PlacementType[],
   matchingPolicies: DRPolicyType[],
@@ -75,8 +75,8 @@ export const createSteps = (
   };
 
   switch (appType) {
-    case APPLICATION_TYPE.APPSET:
-    case APPLICATION_TYPE.SUBSCRIPTION:
+    case DRApplication.APPSET:
+    case DRApplication.SUBSCRIPTION:
       return isEditMode
         ? [
             {

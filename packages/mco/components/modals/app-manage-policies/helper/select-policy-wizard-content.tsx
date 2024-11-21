@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { REPLICATION_TYPE } from '@odf/mco/constants';
+import { ReplicationType } from '@odf/mco/constants';
 import { getDRPolicyStatus } from '@odf/mco/utils';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { getName } from '@odf/shared/selectors';
@@ -27,7 +27,7 @@ const getDropdownOptions = (dataPolicies: DRPolicyType[], t: TFunction) =>
       key={getName(policy)}
       value={getName(policy)}
       description={
-        policy.replicationType === REPLICATION_TYPE.ASYNC
+        policy.replicationType === ReplicationType.ASYNC
           ? t(
               'Replication type: {{type}}, Interval: {{interval}}, Clusters: {{clusters}}',
               {

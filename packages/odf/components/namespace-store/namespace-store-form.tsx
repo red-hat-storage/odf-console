@@ -30,7 +30,7 @@ import {
   TextInput,
 } from '@patternfly/react-core';
 import {
-  BC_PROVIDERS,
+  StoreProviders,
   NOOBAA_TYPE_MAP,
   PROVIDERS_NOOBAA_MAP,
   BUCKET_LABEL_NOOBAA_MAP,
@@ -75,7 +75,7 @@ type NamespaceStoreFormProps = {
 const createSecret = async (
   dataSourceName: string,
   namespace: string,
-  provider: BC_PROVIDERS,
+  provider: StoreProviders,
   providerDataState: ProviderDataState,
   providerDataDispatch: React.Dispatch<StoreAction>
 ) => {
@@ -199,7 +199,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         );
       }
       /** Payload for nss */
-      const nsPayload: Payload = {
+      const nssPayload: Payload = {
         apiVersion: getAPIVersionForModel(NooBaaNamespaceStoreModel as any),
         kind: NooBaaNamespaceStoreModel.kind,
         metadata: {
@@ -212,8 +212,8 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         },
       };
       if (externalProviders.includes(provider)) {
-        nsPayload.spec = {
-          ...nsPayload.spec,
+        nssPayload.spec = {
+          ...nssPayload.spec,
           [PROVIDERS_NOOBAA_MAP[provider]]: {
             [BUCKET_LABEL_NOOBAA_MAP[provider]]: providerDataState.target,
             secret: {
@@ -224,27 +224,27 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         };
       }
       switch (provider) {
-        case BC_PROVIDERS.S3:
-          nsPayload.spec.s3Compatible = {
-            ...nsPayload.spec.s3Compatible,
+        case StoreProviders.S3:
+          nssPayload.spec.s3Compatible = {
+            ...nssPayload.spec.s3Compatible,
             endpoint: providerDataState.endpoint,
           };
           break;
-        case BC_PROVIDERS.IBM:
-          nsPayload.spec.ibmCos = {
-            ...nsPayload.spec.ibmCos,
+        case StoreProviders.IBM:
+          nssPayload.spec.ibmCos = {
+            ...nssPayload.spec.ibmCos,
             endpoint: providerDataState.endpoint,
           };
           break;
-        case BC_PROVIDERS.AWS:
-          nsPayload.spec.awsS3 = {
-            ...nsPayload.spec.awsS3,
+        case StoreProviders.AWS:
+          nssPayload.spec.awsS3 = {
+            ...nssPayload.spec.awsS3,
             region: providerDataState.region,
           };
           break;
-        case BC_PROVIDERS.FILESYSTEM:
-          nsPayload.spec.nsfs = {
-            ...nsPayload.spec.nsfs,
+        case StoreProviders.FILESYSTEM:
+          nssPayload.spec.nsfs = {
+            ...nssPayload.spec.nsfs,
             pvcName: getName(pvc),
             subPath: folderName,
           };
@@ -253,7 +253,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
 
       const resources = await k8sCreate({
         model: NooBaaNamespaceStoreModel,
-        data: nsPayload,
+        data: nssPayload,
       });
       redirectHandler([resources]);
     } catch (submitError) {
@@ -298,7 +298,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
         <FormGroupController
           name="provider-name"
           control={control}
-          defaultValue={BC_PROVIDERS.AWS}
+          defaultValue={StoreProviders.AWS}
           formGroupProps={{
             label: t('Provider'),
             fieldId: 'provider-name',
@@ -316,10 +316,10 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
             />
           )}
         />
-        {(provider === BC_PROVIDERS.AWS ||
-          provider === BC_PROVIDERS.S3 ||
-          provider === BC_PROVIDERS.IBM ||
-          provider === BC_PROVIDERS.AZURE) && (
+        {(provider === StoreProviders.AWS ||
+          provider === StoreProviders.S3 ||
+          provider === StoreProviders.IBM ||
+          provider === StoreProviders.AZURE) && (
           <S3EndPointType
             showSecret={showSecret}
             setShowSecret={setShowSecret}
@@ -331,7 +331,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
             dispatch={providerDataDispatch}
           />
         )}
-        {provider === BC_PROVIDERS.FILESYSTEM && (
+        {provider === StoreProviders.FILESYSTEM && (
           <>
             <FormGroupController
               name="pvc-name"

@@ -1,11 +1,12 @@
 import {
   CEPH_DEFAULT_BLOCK_POOL_NAME,
-  POOL_PROGRESS,
+  PoolProgress,
 } from '../constants/storage-pool-const';
 import { STORAGE_SYSTEM_NAME } from '../consts';
 import { app } from '../support/pages/app';
 import { NS } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
+import { triggerPoolFormFooterAction } from './storage-pool';
 
 // Pool var
 export const poolName: string = 'example.pool';
@@ -13,13 +14,13 @@ export const replicaCount: string = '2';
 export const scName: string = 'testing-sc';
 
 export const poolMessage: {
-  [key in POOL_PROGRESS]?: string;
+  [key in PoolProgress]?: string;
 } = {
-  [POOL_PROGRESS.FAILED]: `Pool "${poolName}" already exists`,
-  [POOL_PROGRESS.CREATED]: `Pool ${poolName} was successfully created`,
-  [POOL_PROGRESS.NOTALLOWED]:
+  [PoolProgress.FAILED]: `Pool "${poolName}" already exists`,
+  [PoolProgress.CREATED]: `Pool ${poolName} was successfully created`,
+  [PoolProgress.NOTALLOWED]:
     "Pool management tasks are not supported for default pool and ODF's external mode.",
-  [POOL_PROGRESS.BOUNDED]: `${poolName} cannot be deleted. When a pool is bounded to PVC it cannot be deleted. Please detach all the resources from StorageClass(es):`,
+  [PoolProgress.BOUNDED]: `${poolName} cannot be deleted. When a pool is bounded to PVC it cannot be deleted. Please detach all the resources from StorageClass(es):`,
 };
 
 export const navigateToBlockPool = () => {
@@ -38,40 +39,6 @@ export const populateBlockPoolForm = () => {
     .contains(`${replicaCount}-way Replication`)
     .click();
   cy.byTestID('compression-checkbox').check();
-};
-
-export enum Actions {
-  created = 'created',
-  failed = 'failed',
-  notAllowed = 'notAllowed',
-  bound = 'bounded',
-}
-
-export const verifyFooterActions = (action: string) => {
-  switch (action) {
-    case Actions.failed:
-      cy.log('Check try-again-action and finish-action are enabled');
-      cy.byLegacyTestID('modal-try-again-action').should('be.visible');
-      cy.byLegacyTestID('modal-finish-action').click();
-      break;
-    case Actions.created:
-      cy.log('Check finish-action is enabled');
-      cy.byLegacyTestID('modal-finish-action').click();
-      break;
-    case Actions.notAllowed:
-      cy.log('Check close-action is enabled');
-      cy.byLegacyTestID('modal-close-action').click();
-      break;
-    case Actions.bound:
-      cy.log('Check go-to-pvc-list-action and close-action are enabled');
-      cy.byLegacyTestID('modal-go-to-pvc-list-action').should('be.visible');
-      cy.byLegacyTestID('modal-close-action').click();
-      break;
-    default:
-      cy.log(`Invoke ${action} action`);
-      cy.byLegacyTestID('confirm-action').scrollIntoView();
-      cy.byLegacyTestID('confirm-action').click();
-  }
 };
 
 export const verifyBlockPoolJSON = (
@@ -100,7 +67,7 @@ export const verifyBlockPoolJSON = (
 export const createBlockPool = () => {
   cy.byTestID('item-create').click();
   populateBlockPoolForm();
-  verifyFooterActions('create');
+  triggerPoolFormFooterAction('create');
   app.waitForLoad();
   cy.log('Verify a new block pool creation');
   cy.byTestID('status-text').should('contain', 'Ready', { timeout: 2 * 60000 });

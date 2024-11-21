@@ -66,6 +66,7 @@ module.exports = {
     'react/jsx-curly-newline': 'off',
     'react/jsx-indent': 'off',
     'react/jsx-no-useless-fragment': ['error', { allowExpressions: true }],
+    'react/jsx-pascal-case': 'error',
     'react/no-unused-prop-types': 'off',
     'consistent-return': 'off',
     'default-case': 'off',
@@ -102,6 +103,44 @@ module.exports = {
     'jsx-a11y/no-static-element-interactions': 'off',
     'max-classes-per-file': 'off',
     'max-len': 'off',
+    '@typescript-eslint/naming-convention': [
+      'error',
+      {
+        selector: 'enumMember',
+        format: ['PascalCase', 'UPPER_CASE'],
+      },
+      {
+        selector: 'import',
+        format: ['camelCase', 'PascalCase'],
+        leadingUnderscore: 'allow',
+      },
+      {
+        selector: 'objectLiteralMethod',
+        format: ['camelCase', 'PascalCase'],
+      },
+      {
+        selector: 'parameter',
+        format: ['camelCase', 'PascalCase'],
+        leadingUnderscore: 'allow',
+      },
+      {
+        selector: 'property',
+        format: null,
+      },
+      {
+        selector: 'variable',
+        // React Components, regular variables, constants.
+        format: ['PascalCase', 'camelCase', 'UPPER_CASE'],
+      },
+      {
+        selector: 'typeLike',
+        format: ['PascalCase'],
+      },
+      {
+        selector: 'default',
+        format: ['camelCase'],
+      },
+    ],
     'no-empty-function': 'off',
     '@typescript-eslint/no-empty-function': 'error',
     'no-empty-pattern': 'off',
