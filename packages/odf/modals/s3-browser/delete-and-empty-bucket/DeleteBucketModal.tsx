@@ -66,7 +66,7 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
   const hasObjects =
     data?.Versions?.length > 0 || data?.DeleteMarkers?.length > 0;
 
-  const [_favorites, setFavorites] = useUserSettingsLocalStorage<string[]>(
+  const [, setFavorites] = useUserSettingsLocalStorage<string[]>(
     BUCKET_BOOKMARKS_USER_SETTINGS_KEY,
     true,
     []

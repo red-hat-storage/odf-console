@@ -13,7 +13,7 @@ import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
 import {
   AWS_REGIONS,
-  BC_PROVIDERS,
+  StoreProviders,
   BUCKET_LABEL_NOOBAA_MAP,
   NamespacePolicyType,
   NS_PROVIDERS_NOOBAA_MAP,
@@ -130,13 +130,18 @@ export const obStatusFilter = (t): RowFilter<K8sResourceKind> => ({
 
 export const getExternalProviders = (type: StoreType) => {
   return type === StoreType.NS
-    ? [BC_PROVIDERS.AWS, BC_PROVIDERS.AZURE, BC_PROVIDERS.S3, BC_PROVIDERS.IBM]
+    ? [
+        StoreProviders.AWS,
+        StoreProviders.AZURE,
+        StoreProviders.S3,
+        StoreProviders.IBM,
+      ]
     : [
-        BC_PROVIDERS.AWS,
-        BC_PROVIDERS.AZURE,
-        BC_PROVIDERS.S3,
-        BC_PROVIDERS.GCP,
-        BC_PROVIDERS.IBM,
+        StoreProviders.AWS,
+        StoreProviders.AZURE,
+        StoreProviders.S3,
+        StoreProviders.GCP,
+        StoreProviders.IBM,
       ];
 };
 
@@ -144,12 +149,12 @@ export const getProviders = (type: StoreType) => {
   const values =
     type === StoreType.BS
       ? // BackingStore does not support filesystem, NamespaceStore does not support PVC and GCP
-        Object.values(BC_PROVIDERS).filter(
-          (provider) => provider !== BC_PROVIDERS.FILESYSTEM
+        Object.values(StoreProviders).filter(
+          (provider) => provider !== StoreProviders.FILESYSTEM
         )
-      : Object.values(BC_PROVIDERS).filter(
+      : Object.values(StoreProviders).filter(
           (provider) =>
-            provider !== BC_PROVIDERS.GCP && provider !== BC_PROVIDERS.PVC
+            provider !== StoreProviders.GCP && provider !== StoreProviders.PVC
         );
   return _.zipObject(values, values);
 };
@@ -173,13 +178,13 @@ export const secretPayloadCreator = (
   };
 
   switch (provider) {
-    case BC_PROVIDERS.AZURE:
+    case StoreProviders.AZURE:
       payload.stringData = {
         AccountName: field1,
         AccountKey: field2,
       };
       break;
-    case BC_PROVIDERS.IBM:
+    case StoreProviders.IBM:
       payload.stringData = {
         IBM_COS_ACCESS_KEY_ID: field1,
         IBM_COS_SECRET_ACCESS_KEY: field2,
@@ -205,13 +210,15 @@ export const isObjectSC = (sc: StorageClassResourceKind, ns: string) =>
 
 export const awsRegionItems = _.zipObject(AWS_REGIONS, AWS_REGIONS);
 
-export const endpointsSupported = [BC_PROVIDERS.S3, BC_PROVIDERS.IBM];
+export const endpointsSupported = [StoreProviders.S3, StoreProviders.IBM];
 
-export const getNamespaceStoreType = (ns: NamespaceStoreKind): BC_PROVIDERS => {
-  let type: BC_PROVIDERS = null;
+export const getNamespaceStoreType = (
+  ns: NamespaceStoreKind
+): StoreProviders => {
+  let type: StoreProviders = null;
   Object.entries(NS_PROVIDERS_NOOBAA_MAP).forEach(([k, v]) => {
     if (ns?.spec?.[v]) {
-      type = k as BC_PROVIDERS;
+      type = k as StoreProviders;
     }
   });
   return type;
@@ -243,11 +250,11 @@ export const validateBucketClassName = (name: string): boolean =>
 
 export const getMCGStoreType = (
   bs: BackingStoreKind | NamespaceStoreKind
-): BC_PROVIDERS => {
-  let type: BC_PROVIDERS = null;
+): StoreProviders => {
+  let type: StoreProviders = null;
   _.forEach(PROVIDERS_NOOBAA_MAP, (v, k) => {
     if (bs?.spec?.[v]) {
-      type = k as BC_PROVIDERS;
+      type = k as StoreProviders;
     }
   });
   return type;

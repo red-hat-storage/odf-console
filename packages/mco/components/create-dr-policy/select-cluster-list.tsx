@@ -4,7 +4,7 @@ import { getName } from '@odf/shared/selectors';
 import { RowComponentType } from '@odf/shared/table';
 import {
   SelectableTable,
-  TABLE_VARIANT,
+  TableVariant,
 } from '@odf/shared/table/selectable-table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getPageRange, referenceForModel } from '@odf/shared/utils';
@@ -32,7 +32,7 @@ import {
 import { ACMManagedClusterViewModel } from '../../models';
 import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
 import {
-  COLUMN_NAMES,
+  ClusterListColumns,
   COUNT_PER_PAGE_NUMBER,
   getColumnHelper,
   getColumns,
@@ -56,13 +56,15 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
   return (
     <>
       <Td
-        dataLabel={getColumnHelper(COLUMN_NAMES.ManagedCluster, t).columnName}
+        dataLabel={
+          getColumnHelper(ClusterListColumns.ManagedCluster, t).columnName
+        }
       >
         <Text>{getName(cluster)}</Text>
       </Td>
       <Td
         dataLabel={
-          getColumnHelper(COLUMN_NAMES.AvailabilityStatus, t).columnName
+          getColumnHelper(ClusterListColumns.AvailabilityStatus, t).columnName
         }
       >
         {isManagedClusterAvailable ? (
@@ -78,20 +80,24 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
         )}
       </Td>
       <Td
-        dataLabel={getColumnHelper(COLUMN_NAMES.DataFoundation, t).columnName}
+        dataLabel={
+          getColumnHelper(ClusterListColumns.DataFoundation, t).columnName
+        }
       >
         <Text className={cn({ 'text-muted': !odfVersion })}>
           {odfVersion || t('Not Installed')}
         </Text>
       </Td>
       <Td
-        dataLabel={getColumnHelper(COLUMN_NAMES.StorageClients, t).columnName}
+        dataLabel={
+          getColumnHelper(ClusterListColumns.StorageClients, t).columnName
+        }
       >
         <Text className={cn({ 'text-muted': !clientName })}>
           {!!clientName ? clientName : t('Unavailable')}
         </Text>
       </Td>
-      <Td dataLabel={getColumnHelper(COLUMN_NAMES.Region, t).columnName}>
+      <Td dataLabel={getColumnHelper(ClusterListColumns.Region, t).columnName}>
         <Text className={cn({ 'text-muted': !region })}>
           {region || t('Unavailable')}
         </Text>
@@ -154,7 +160,7 @@ const PaginatedClusterTable: React.FC<PaginatedClusterTableProps> = ({
         setSelectedRows={onChange}
         loaded={isLoaded}
         loadError={error}
-        variant={TABLE_VARIANT.DEFAULT}
+        variant={TableVariant.DEFAULT}
         isColumnSelectableHidden
         isRowSelectable={(cluster) =>
           isRowSelectable(cluster, selectedClusters)

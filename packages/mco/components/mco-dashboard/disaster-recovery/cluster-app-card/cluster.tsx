@@ -11,13 +11,13 @@ import {
   ODR_CLUSTER_OPERATOR,
   VOL_SYNC,
   ACM_ENDPOINT,
-  VOLUME_REPLICATION_HEALTH,
+  VolumeReplicationHealth,
   OBJECT_NAMESPACE,
   OBJECT_NAME,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
-  APPLICATION_TYPE,
+  DRApplication,
   LEAST_SECONDS_IN_PROMETHEUS,
-  REPLICATION_TYPE,
+  ReplicationType,
 } from '@odf/mco/constants';
 import { DRClusterAppsMap, ProtectedAppsMap } from '@odf/mco/types';
 import {
@@ -70,7 +70,7 @@ const checkVolumeReplicationHealth = (
           getVolumeReplicationHealth(
             Number(item.value[1]) || 0,
             placementInfo.volumeSyncInterval
-          )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
+          )[0] !== VolumeReplicationHealth.HEALTHY
       )
   );
 
@@ -81,14 +81,14 @@ const checkKubeObjBackupHealth = (
     protectedAppMap.placementControlInfo[0];
   const objCaptureInterval =
     protectedAppMap.placementControlInfo[0].kubeObjSyncInterval;
-  return protectedAppMap.appType === APPLICATION_TYPE.DISCOVERED &&
-    replicationType === REPLICATION_TYPE.ASYNC
+  return protectedAppMap.appType === DRApplication.DISCOVERED &&
+    replicationType === ReplicationType.ASYNC
     ? getVolumeReplicationHealth(
         !!kubeObjectLastProtectionTime
           ? getTimeDifferenceInSeconds(kubeObjectLastProtectionTime)
           : LEAST_SECONDS_IN_PROMETHEUS,
         objCaptureInterval
-      )[0] !== VOLUME_REPLICATION_HEALTH.HEALTHY
+      )[0] !== VolumeReplicationHealth.HEALTHY
     : false;
 };
 
@@ -266,9 +266,7 @@ export const ApplicationsSection: React.FC<ApplicationsSectionProps> = ({
             checkKubeObjBackupHealth(protectedAppMap);
           const hasIssue = hasVolumeReplicationIssue || hasKubeObjBackupIssue;
           hasIssue &&
-            ++acc[
-              protectedAppMap.appType === APPLICATION_TYPE.DISCOVERED ? 0 : 1
-            ];
+            ++acc[protectedAppMap.appType === DRApplication.DISCOVERED ? 0 : 1];
           return acc;
         },
         [0, 0]

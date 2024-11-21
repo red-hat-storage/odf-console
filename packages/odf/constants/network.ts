@@ -1,6 +1,6 @@
 import { NetworkType } from '../types';
 
-export enum IP_FAMILY {
+export enum IPFamily {
   IPV4 = 'IPV4',
   IPV6 = 'IPV6',
 }

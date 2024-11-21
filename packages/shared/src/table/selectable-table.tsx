@@ -16,7 +16,7 @@ import { getUID } from '../selectors';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { TableColumnProps, RowComponentType } from './composable-table';
 
-export enum TABLE_VARIANT {
+export enum TableVariant {
   DEFAULT = 'default',
   COMPACT = 'compact',
 }
@@ -118,7 +118,7 @@ export const SelectableTable: SelectableTableProps = <
         aria-label={t('Selectable table')}
         borders={borders}
         variant={
-          variant !== TABLE_VARIANT.DEFAULT ? TABLE_VARIANT.COMPACT : undefined
+          variant !== TableVariant.DEFAULT ? TableVariant.COMPACT : undefined
         }
       >
         <Thead>
@@ -193,7 +193,7 @@ type TableProps<T extends K8sResourceCommon> = {
   /** Additional classes added to the Table  */
   className?: string;
   isRowSelectable?: IsRowSelectable;
-  variant?: TABLE_VARIANT;
+  variant?: TableVariant;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(

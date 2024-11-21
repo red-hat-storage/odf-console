@@ -1,5 +1,5 @@
-import { defaultRequestSize } from '@odf/core/constants';
-import { POOL_TYPE } from '@odf/ocs/constants';
+import { DefaultRequestSize } from '@odf/core/constants';
+import { PoolType } from '@odf/ocs/constants';
 import {
   blockPoolInitialState,
   StoragePoolState,
@@ -25,7 +25,7 @@ type PoolDetails = {
 export type AttachStorageFormState = StoragePoolState & {
   lsoStorageClassName: string;
   enableEncryptionOnDeviceSet: boolean;
-  poolType: POOL_TYPE;
+  poolType: PoolType;
   storageClassDetails: StorageClassDetails;
 };
 
@@ -43,7 +43,7 @@ export const initialAttachStorageState: AttachStorageFormState = {
   ...blockPoolInitialState,
   lsoStorageClassName: '',
   enableEncryptionOnDeviceSet: false,
-  poolType: POOL_TYPE.FILESYSTEM,
+  poolType: PoolType.FILESYSTEM,
   storageClassDetails: {
     reclaimPolicy: ReclaimPolicy.Delete,
     name: '',
@@ -72,7 +72,7 @@ export const createPayload = (
 
   const payload: AttachStoragePayload = {
     storageClassForOSDs: state.lsoStorageClassName,
-    storage: defaultRequestSize.BAREMETAL,
+    storage: DefaultRequestSize.BAREMETAL,
     replica: replica,
     count: deviceSetCount,
     storageClusterName,
@@ -117,7 +117,7 @@ export type AttachStorageAction =
     }
   | {
       type: AttachStorageActionType.SET_POOL_TYPE;
-      payload: POOL_TYPE;
+      payload: PoolType;
     }
   | {
       type: AttachStorageActionType.SET_STORAGECLASS_NAME;

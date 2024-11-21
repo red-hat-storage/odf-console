@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
-  APPLICATION_TYPE,
-  DRPC_STATUS,
+  DRApplication,
+  DRPCStatus,
   DISCOVERED_APP_NS,
 } from '@odf/mco/constants';
 import {
@@ -102,7 +102,7 @@ export const useDiscoveredParser: UseDiscoveredParser = (
               appNamespace: getNamespace(drPlacementControl),
               appKind: drPlacementControl.kind,
               appAPIVersion: drPlacementControl.apiVersion,
-              appType: APPLICATION_TYPE.DISCOVERED,
+              appType: DRApplication.DISCOVERED,
               placementControlInfo: [
                 {
                   deploymentClusterName: decisionCluster,
@@ -117,7 +117,7 @@ export const useDiscoveredParser: UseDiscoveredParser = (
                   preferredCluster: drPlacementControl.spec?.preferredCluster,
                   lastVolumeGroupSyncTime:
                     drPlacementControl.status?.lastGroupSyncTime,
-                  status: drPlacementControl.status?.phase as DRPC_STATUS,
+                  status: drPlacementControl.status?.phase as DRPCStatus,
                   kubeObjSyncInterval:
                     drPlacementControl.spec?.kubeObjectProtection
                       ?.captureInterval,

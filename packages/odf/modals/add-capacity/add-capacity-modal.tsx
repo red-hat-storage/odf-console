@@ -50,7 +50,7 @@ import {
   getDeviceSetReplica,
 } from '../../components/utils';
 import {
-  defaultRequestSize,
+  DefaultRequestSize,
   NO_PROVISIONER,
   SIZE_IN_TB,
   requestedCapacityTooltip,
@@ -339,7 +339,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
       value: null,
     };
     const osdSizeRequest = isNoProvionerSC
-      ? defaultRequestSize.BAREMETAL
+      ? DefaultRequestSize.BAREMETAL
       : osdSizeWithUnit;
     let portable = !isNoProvionerSC;
     let deviceSetReplica = replica;

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { REPLICATION_TYPE, DRPC_STATUS } from '@odf/mco/constants';
+import { ReplicationType, DRPCStatus } from '@odf/mco/constants';
 import { fromNow } from '@odf/shared/details-page/datetime';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
@@ -14,8 +14,8 @@ import {
 } from '@patternfly/react-core';
 import { getDRStatus } from '../../../utils';
 
-const failOverStatus = [DRPC_STATUS.FailedOver, DRPC_STATUS.FailingOver];
-const relocateStatus = [DRPC_STATUS.Relocating, DRPC_STATUS.Relocated];
+const failOverStatus = [DRPCStatus.FailedOver, DRPCStatus.FailingOver];
+const relocateStatus = [DRPCStatus.Relocating, DRPCStatus.Relocated];
 
 export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
   const { t } = useCustomTranslation();
@@ -29,8 +29,8 @@ export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
     targetCluster,
   } = drStatus || {};
   const customText: string = [
-    DRPC_STATUS.FailedOver,
-    DRPC_STATUS.Relocated,
+    DRPCStatus.FailedOver,
+    DRPCStatus.Relocated,
   ].includes(status)
     ? t('Completed')
     : t('In Progress');
@@ -54,7 +54,7 @@ export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
       <DescriptionListGroup>
         <DescriptionListTerm>{t('Disaster recovery')}</DescriptionListTerm>
         <DescriptionListDescription>
-          {replicationType === REPLICATION_TYPE.ASYNC ? (
+          {replicationType === ReplicationType.ASYNC ? (
             <>
               <Text>
                 {t('{{drPolicy}}, sync every {{syncInterval}}', {
@@ -140,9 +140,9 @@ export const DRStatus: React.FC<DRStatusProps[]> = (disasterRecoveryStatus) => {
 
 export type DRStatusProps = {
   policyName: string;
-  status: DRPC_STATUS;
+  status: DRPCStatus;
   targetCluster: string;
-  replicationType: REPLICATION_TYPE;
+  replicationType: ReplicationType;
   dataLastSyncedOn: string;
   schedulingInterval: string;
 };

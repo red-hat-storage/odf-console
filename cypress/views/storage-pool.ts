@@ -1,8 +1,8 @@
 import {
   CEPH_DEFAULT_BLOCK_POOL_NAME,
   CEPH_DEFAULT_FS_POOL_NAME,
-  POOL_PROGRESS,
-  POOL_TYPE,
+  PoolProgress,
+  PoolType,
 } from '../constants/storage-pool-const';
 import { SECOND, STORAGE_SYSTEM_NAME } from '../consts';
 import { NS } from '../utils/consts';
@@ -15,16 +15,16 @@ export const scName: string = 'testing-sc';
 
 export const poolMessage = (
   poolName: string,
-  poolProgress: POOL_PROGRESS
+  poolProgress: PoolProgress
 ): string => {
   switch (poolProgress) {
-    case POOL_PROGRESS.FAILED:
+    case PoolProgress.FAILED:
       return `Pool "${poolName}" already exists`;
-    case POOL_PROGRESS.CREATED:
+    case PoolProgress.CREATED:
       return `Pool ${poolName} was successfully created`;
-    case POOL_PROGRESS.NOTALLOWED:
+    case PoolProgress.NOTALLOWED:
       return "Pool management tasks are not supported for default pool and ODF's external mode.";
-    case POOL_PROGRESS.BOUNDED:
+    case PoolProgress.BOUNDED:
       return `${poolName} cannot be deleted. When a pool is bounded to PVC it cannot be deleted. Please detach all the resources from StorageClass(es):`;
     default:
       return '';
@@ -39,10 +39,10 @@ export const navigateToStoragePoolList = () => {
   cy.byTestID('horizontal-link-Storage pools').click();
 };
 
-export const showAvailablePoolsInSCForm = (poolType: POOL_TYPE) => {
-  const provisioner = poolType === POOL_TYPE.BLOCK ? 'rbd' : 'cephfs';
+export const showAvailablePoolsInSCForm = (poolType: PoolType) => {
+  const provisioner = poolType === PoolType.BLOCK ? 'rbd' : 'cephfs';
   const defaultPool =
-    poolType === POOL_TYPE.BLOCK
+    poolType === PoolType.BLOCK
       ? CEPH_DEFAULT_BLOCK_POOL_NAME
       : CEPH_DEFAULT_FS_POOL_NAME;
 
@@ -62,7 +62,7 @@ export const showAvailablePoolsInSCForm = (poolType: POOL_TYPE) => {
   cy.byTestID(defaultPool).should('be.visible');
 };
 
-export const fillPoolModalForm = (poolType: POOL_TYPE, poolName: string) => {
+export const fillPoolModalForm = (poolType: PoolType, poolName: string) => {
   showAvailablePoolsInSCForm(poolType);
   cy.log('Click on: Create new storage pool');
   cy.byTestID('create-new-pool-button').click();
@@ -73,7 +73,7 @@ export const fillPoolModalForm = (poolType: POOL_TYPE, poolName: string) => {
 };
 
 export const createStoragePoolInSCForm = (
-  poolType: POOL_TYPE,
+  poolType: PoolType,
   poolName: string
 ) => {
   fillPoolModalForm(poolType, poolName);
@@ -81,9 +81,9 @@ export const createStoragePoolInSCForm = (
 
   cy.log(`Verify the ${poolType} pool creation`);
   cy.byTestID('empty-state-body').contains(
-    poolMessage(poolName, POOL_PROGRESS.CREATED)
+    poolMessage(poolName, PoolProgress.CREATED)
   );
-  triggerPoolFormFooterAction(POOL_PROGRESS.CREATED);
+  triggerPoolFormFooterAction(PoolProgress.CREATED);
   cy.byTestID('pool-dropdown-toggle').contains(poolName);
 };
 
@@ -92,7 +92,7 @@ export const checkStoragePoolIsSelectableInSCForm = (poolName: string) => {
   cy.byTestID(poolName).should('be.visible');
 };
 
-export const fillStoragePoolForm = (poolType: POOL_TYPE, poolName: string) => {
+export const fillStoragePoolForm = (poolType: PoolType, poolName: string) => {
   cy.byTestID(`type-${poolType.toLowerCase()}`).click();
   cy.byTestID('new-pool-name-textbox').clear();
   cy.byTestID('new-pool-name-textbox').type(poolName);
@@ -103,36 +103,34 @@ export const fillStoragePoolForm = (poolType: POOL_TYPE, poolName: string) => {
   cy.byTestID('compression-checkbox').check();
 };
 
-export enum Actions {
-  created = 'created',
-  failed = 'failed',
-  notAllowed = 'notAllowed',
-  bound = 'bounded',
-}
-
 export const triggerPoolFormFooterAction = (action: string) => {
   switch (action) {
-    case Actions.failed:
+    case PoolProgress.FAILED:
       cy.log('Check try-again-action and finish-action are enabled');
       cy.byLegacyTestID('modal-try-again-action').should('be.visible');
+      cy.byLegacyTestID('modal-finish-action').should('be.visible');
       cy.byLegacyTestID('modal-finish-action').click();
       break;
-    case Actions.created:
+    case PoolProgress.CREATED:
       cy.log('Check finish-action is enabled');
+      cy.byLegacyTestID('modal-finish-action').should('be.visible');
       cy.byLegacyTestID('modal-finish-action').click();
       break;
-    case Actions.notAllowed:
+    case PoolProgress.NOTALLOWED:
       cy.log('Check close-action is enabled');
+      cy.byLegacyTestID('modal-close-action').should('be.visible');
       cy.byLegacyTestID('modal-close-action').click();
       break;
-    case Actions.bound:
+    case PoolProgress.BOUNDED:
       cy.log('Check go-to-pvc-list-action and close-action are enabled');
       cy.byLegacyTestID('modal-go-to-pvc-list-action').should('be.visible');
+      cy.byLegacyTestID('modal-close-action').should('be.visible');
       cy.byLegacyTestID('modal-close-action').click();
       break;
     default:
       cy.log(`Invoke ${action} action`);
       cy.byLegacyTestID('confirm-action').scrollIntoView();
+      cy.byLegacyTestID('confirm-action').should('be.visible');
       cy.byLegacyTestID('confirm-action').click();
   }
 };
@@ -161,7 +159,7 @@ export const verifyBlockPoolJSON = (
   });
 };
 
-export const createStoragePool = (poolType: POOL_TYPE, poolName: string) => {
+export const createStoragePool = (poolType: PoolType, poolName: string) => {
   cy.byTestID('item-create').click();
   fillStoragePoolForm(poolType, poolName);
   triggerPoolFormFooterAction('create');

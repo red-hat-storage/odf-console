@@ -34,13 +34,13 @@ export enum DRActionType {
 }
 
 // Regional / Metro DR
-export enum REPLICATION_TYPE {
+export enum ReplicationType {
   ASYNC = 'async',
   SYNC = 'sync',
 }
 
 // DR status
-export enum DRPC_STATUS {
+export enum DRPCStatus {
   FailedOver = 'FailedOver',
   Relocating = 'Relocating',
   FailingOver = 'FailingOver',
@@ -48,14 +48,14 @@ export enum DRPC_STATUS {
 }
 
 // DR cluster type
-export enum DR_REPLICATION_STATE {
+export enum DRReplicationState {
   PrimaryState = 'Primary',
   SecondaryState = 'Secondary',
   UnknownState = 'Unknown',
 }
 
 // DRPolicy sync interval unit
-export enum TIME_UNITS {
+export enum TimeUnits {
   Minutes = 'm',
   Hours = 'h',
   Days = 'd',
@@ -64,17 +64,17 @@ export enum TIME_UNITS {
 // Display texts
 export const REPLICATION_DISPLAY_TEXT = (
   t: TFunction
-): { [key in REPLICATION_TYPE]: string } => ({
+): { [key in ReplicationType]: string } => ({
   async: t('Asynchronous'),
   sync: t('Synchronous'),
 });
 
 export const SYNC_SCHEDULE_DISPLAY_TEXT = (
   t: TFunction
-): { [key in TIME_UNITS]: string } => ({
-  [TIME_UNITS.Minutes]: t('minutes'),
-  [TIME_UNITS.Hours]: t('hours'),
-  [TIME_UNITS.Days]: t('days'),
+): { [key in TimeUnits]: string } => ({
+  [TimeUnits.Minutes]: t('minutes'),
+  [TimeUnits.Hours]: t('hours'),
+  [TimeUnits.Days]: t('days'),
 });
 
 // Asisgn policy wizard steps

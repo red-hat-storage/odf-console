@@ -25,7 +25,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Modal, ModalVariant } from '@patternfly/react-core';
-import { POOL_STATE, POOL_PROGRESS, POOL_TYPE } from '../../constants';
+import { PoolState, PoolProgress, PoolType } from '../../constants';
 import { CephBlockPoolModel } from '../../models';
 import { StoragePoolStatus, StoragePoolBody } from '../../storage-pool/body';
 import {
@@ -80,7 +80,7 @@ export const CreateStoragePoolModal = withHandlePromise(
 
     // Watch newly created pool (or CR owner for cephfs) after submit
     const initResource =
-      poolType === POOL_TYPE.FILESYSTEM
+      poolType === PoolType.FILESYSTEM
         ? {
             kind: referenceForModel(StorageClusterModel),
             namespaced: true,
@@ -99,27 +99,27 @@ export const CreateStoragePoolModal = withHandlePromise(
       if (
         resource &&
         resourceLoaded &&
-        resource?.status?.phase === POOL_STATE.READY
+        resource?.status?.phase === PoolState.READY
       ) {
         dispatch({
           type: StoragePoolActionType.SET_POOL_STATUS,
-          payload: POOL_PROGRESS.CREATED,
+          payload: PoolProgress.CREATED,
         });
         setIsSubmit(false);
         clearTimeout(timer);
         onPoolCreation(
-          poolType === POOL_TYPE.FILESYSTEM
+          poolType === PoolType.FILESYSTEM
             ? `${filesystemName}-${poolName}`
             : poolName
         );
       } else if (
         resourceLoaded &&
-        (resource?.status?.phase === POOL_STATE.RECONCILE_FAILED ||
-          resource?.status?.phase === POOL_STATE.FAILURE)
+        (resource?.status?.phase === PoolState.RECONCILE_FAILED ||
+          resource?.status?.phase === PoolState.FAILURE)
       ) {
         dispatch({
           type: StoragePoolActionType.SET_POOL_STATUS,
-          payload: POOL_PROGRESS.NOTREADY,
+          payload: PoolProgress.NOTREADY,
         });
         setIsSubmit(false);
         clearTimeout(timer);
@@ -130,7 +130,7 @@ export const CreateStoragePoolModal = withHandlePromise(
       ) {
         dispatch({
           type: StoragePoolActionType.SET_POOL_STATUS,
-          payload: POOL_PROGRESS.FAILED,
+          payload: PoolProgress.FAILED,
         });
         setIsSubmit(false);
         clearTimeout(timer);
@@ -157,10 +157,10 @@ export const CreateStoragePoolModal = withHandlePromise(
       if (state.poolStatus === '') {
         dispatch({
           type: StoragePoolActionType.SET_POOL_STATUS,
-          payload: POOL_PROGRESS.PROGRESS,
+          payload: PoolProgress.PROGRESS,
         });
         let createRequest: () => Promise<K8sResourceCommon>;
-        if (poolType === POOL_TYPE.FILESYSTEM) {
+        if (poolType === PoolType.FILESYSTEM) {
           createRequest = createFsPoolRequest(state, storageCluster);
         } else {
           const poolObj: StoragePoolKind = getPoolKindObj(
@@ -180,7 +180,7 @@ export const CreateStoragePoolModal = withHandlePromise(
             const timeoutTimer = setTimeout(() => {
               dispatch({
                 type: StoragePoolActionType.SET_POOL_STATUS,
-                payload: POOL_PROGRESS.TIMEOUT,
+                payload: PoolProgress.TIMEOUT,
               });
               setIsSubmit(false);
             }, 30 * ONE_SECOND);
@@ -189,7 +189,7 @@ export const CreateStoragePoolModal = withHandlePromise(
           () => {
             dispatch({
               type: StoragePoolActionType.SET_POOL_STATUS,
-              payload: POOL_PROGRESS.FAILED,
+              payload: PoolProgress.FAILED,
             });
           }
         );
@@ -235,7 +235,7 @@ export const CreateStoragePoolModal = withHandlePromise(
               />
             )}
           </ModalBody>
-          <ModalFooter inProgress={state.poolStatus === POOL_PROGRESS.PROGRESS}>
+          <ModalFooter inProgress={state.poolStatus === PoolProgress.PROGRESS}>
             <StoragePoolModalFooter
               state={state}
               dispatch={dispatch}
@@ -256,7 +256,7 @@ export type CreateStoragePoolModalProps = {
   cephCluster?: CephClusterKind;
   onPoolCreation: (name: string) => void;
   defaultDeviceClass: string;
-  poolType: POOL_TYPE;
+  poolType: PoolType;
   existingNames: string[];
   filesystemName?: string;
 } & React.ComponentProps<ModalComponent> &

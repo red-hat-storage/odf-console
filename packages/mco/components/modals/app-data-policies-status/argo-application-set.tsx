@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { getNamespace, getName } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
-import { DRPC_STATUS } from '../../../constants';
+import { DRPCStatus } from '../../../constants';
 import {
   getDRClusterResourceObj,
   getDRPlacementControlResourceObj,
@@ -42,10 +42,10 @@ export const ArogoApplicationSetStatus: React.FC<ArogoApplicationSetStatusProps>
       if (!_.isEmpty(drResource)) {
         const drpc = drResource?.drPlacementControls?.[0];
         const drPolicy = drResource?.drPolicy;
-        const status = drpc?.status?.phase as DRPC_STATUS;
+        const status = drpc?.status?.phase as DRPCStatus;
         const targetCluster = [
-          DRPC_STATUS.FailedOver,
-          DRPC_STATUS.FailingOver,
+          DRPCStatus.FailedOver,
+          DRPCStatus.FailingOver,
         ].includes(status)
           ? drpc?.spec?.failoverCluster
           : drpc?.spec?.preferredCluster;

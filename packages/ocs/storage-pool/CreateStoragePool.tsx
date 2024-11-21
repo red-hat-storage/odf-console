@@ -34,8 +34,8 @@ import { Button, Modal } from '@patternfly/react-core';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   COMPRESSION_ON,
-  POOL_STATE,
-  POOL_TYPE,
+  PoolState,
+  PoolType,
 } from '../constants';
 import { CephBlockPoolModel, CephFileSystemModel } from '../models';
 import { CephFilesystemKind, StoragePoolKind } from '../types';
@@ -268,15 +268,13 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
     storagePoolReducer,
     blockPoolInitialState
   );
-  const [poolType, setPoolType] = React.useState<POOL_TYPE>(
-    POOL_TYPE.FILESYSTEM
-  );
+  const [poolType, setPoolType] = React.useState<PoolType>(PoolType.FILESYSTEM);
   const onPoolTypeChange = React.useMemo(
-    () => (newPoolType: POOL_TYPE) => setPoolType(newPoolType),
+    () => (newPoolType: PoolType) => setPoolType(newPoolType),
     [setPoolType]
   );
   const existingNames =
-    poolType === POOL_TYPE.FILESYSTEM ? fsExistingNames : blockExistingNames;
+    poolType === PoolType.FILESYSTEM ? fsExistingNames : blockExistingNames;
 
   // OCS create pool page url ends with ~new, ODF create pool page ends with /create/~new
   const blockPoolPageUrl = appName
@@ -289,9 +287,9 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
 
   // Create new pool
   const createPool = () => {
-    if (cephCluster?.status?.phase === POOL_STATE.READY) {
+    if (cephCluster?.status?.phase === PoolState.READY) {
       let createRequest: () => Promise<K8sResourceCommon>;
-      if (poolType === POOL_TYPE.FILESYSTEM) {
+      if (poolType === PoolType.FILESYSTEM) {
         createRequest = createFsPoolRequest(state, storageCluster);
       } else {
         const poolObj: StoragePoolKind = getPoolKindObj(
@@ -306,7 +304,7 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
       dispatch({ type: StoragePoolActionType.SET_INPROGRESS, payload: true });
       createRequest()
         .then(() =>
-          poolType === POOL_TYPE.BLOCK
+          poolType === PoolType.BLOCK
             ? navigate(`${blockPoolPageUrl}/${state.poolName}`)
             : navigate(`${blockPoolPageUrl}`)
         )

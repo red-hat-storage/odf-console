@@ -1,10 +1,10 @@
-export enum POOL_STATE {
+export enum PoolState {
   READY = 'Ready',
   RECONCILE_FAILED = 'ReconcileFailed',
   FAILURE = 'Failure',
 }
 
-export enum POOL_PROGRESS {
+export enum PoolProgress {
   CREATED = 'created',
   FAILED = 'failed',
   PROGRESS = 'progress',
@@ -15,7 +15,7 @@ export enum POOL_PROGRESS {
   BOUNDED = 'bounded',
 }
 
-export enum POOL_TYPE {
+export enum PoolType {
   BLOCK = 'Block',
   FILESYSTEM = 'Filesystem',
 }

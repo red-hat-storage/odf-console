@@ -24,8 +24,8 @@ import { Modal, ModalVariant } from '@patternfly/react-core';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   COMPRESSION_ON,
-  POOL_PROGRESS,
-  POOL_TYPE,
+  PoolProgress,
+  PoolType,
 } from '../../constants';
 import { CephBlockPoolModel } from '../../models';
 import { StoragePoolBody, StoragePoolStatus } from '../../storage-pool/body';
@@ -87,7 +87,7 @@ const UpdateStoragePoolModal: React.FC<UpdateStoragePoolModalProps> = (
   newProps.extraProps['systemFlags'] = systemFlags;
 
   if (areFlagsLoaded && !flagsLoadError) {
-    return props?.extraProps?.resource?.type === POOL_TYPE.FILESYSTEM ? (
+    return props?.extraProps?.resource?.type === PoolType.FILESYSTEM ? (
       <UpdateFsPoolModal {...(newProps as UpdateFsPoolModalProps)} />
     ) : (
       <UpdateStoragePoolModalBase
@@ -177,7 +177,7 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
       dispatch({
         type: StoragePoolActionType.SET_POOL_NAME,
         payload:
-          pool.type === POOL_TYPE.FILESYSTEM ? pool.shortName : getName(pool),
+          pool.type === PoolType.FILESYSTEM ? pool.shortName : getName(pool),
       });
       dispatch({
         type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
@@ -198,7 +198,7 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
     isExternalSC || isDefaultPool(resource)
       ? dispatch({
           type: StoragePoolActionType.SET_POOL_STATUS,
-          payload: POOL_PROGRESS.NOTALLOWED,
+          payload: PoolProgress.NOTALLOWED,
         })
       : populateStoragePoolData(resource);
   }, [resource, isExternalSC, populateStoragePoolData]);
@@ -207,7 +207,7 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
   const updatePool = () => {
     setProgress(true);
     let updateRequest: () => Promise<K8sResourceCommon>;
-    if (resource.type === POOL_TYPE.FILESYSTEM) {
+    if (resource.type === PoolType.FILESYSTEM) {
       updateRequest = updateFsPoolRequest(state, storageCluster);
     } else {
       updateRequest = () => {
@@ -275,7 +275,7 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
                 poolType={resource.type}
                 disablePoolType
                 isUpdate
-                fsName={POOL_TYPE.FILESYSTEM && resource.fsName}
+                fsName={PoolType.FILESYSTEM && resource.fsName}
               />
             )}
           </ModalBody>

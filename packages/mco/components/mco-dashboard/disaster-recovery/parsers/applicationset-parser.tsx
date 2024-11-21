@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
-  APPLICATION_TYPE,
-  DRPC_STATUS,
+  DRApplication,
+  DRPCStatus,
   GITOPS_OPERATOR_NAMESPACE,
 } from '@odf/mco/constants';
 import {
@@ -132,7 +132,7 @@ export const useApplicationSetParser: UseApplicationSetParser = (
                 appNamespace: getNamespace(application),
                 appKind: application?.kind,
                 appAPIVersion: application?.apiVersion,
-                appType: APPLICATION_TYPE.APPSET,
+                appType: DRApplication.APPSET,
                 placementControlInfo: [
                   {
                     deploymentClusterName: decisionCluster,
@@ -149,7 +149,7 @@ export const useApplicationSetParser: UseApplicationSetParser = (
                       drPlacementControl?.spec?.preferredCluster,
                     lastVolumeGroupSyncTime:
                       drPlacementControl?.status?.lastGroupSyncTime,
-                    status: drPlacementControl?.status?.phase as DRPC_STATUS,
+                    status: drPlacementControl?.status?.phase as DRPCStatus,
                   },
                 ],
               });

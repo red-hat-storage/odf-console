@@ -9,8 +9,8 @@ import {
   GITOPS_OPERATOR_NAMESPACE,
   LEAST_SECONDS_IN_PROMETHEUS,
   DISCOVERED_APP_NS,
-  REPLICATION_TYPE,
-  VOLUME_REPLICATION_HEALTH,
+  ReplicationType,
+  VolumeReplicationHealth,
 } from '@odf/mco/constants';
 import {
   ACMSubscriptionModel,
@@ -105,14 +105,14 @@ export const VolumeSummarySection: React.FC<VolumeSummarySectionProps> = ({
       const pvcLastSyncTime = pvcData?.lastSyncTime;
       // Only RDR(async) has volume replication
       const health =
-        pvcData.replicationType === REPLICATION_TYPE.ASYNC
+        pvcData.replicationType === ReplicationType.ASYNC
           ? getVolumeReplicationHealth(
               !!pvcLastSyncTime
                 ? getTimeDifferenceInSeconds(pvcLastSyncTime)
                 : LEAST_SECONDS_IN_PROMETHEUS,
               pvcData?.schedulingInterval
             )[0]
-          : VOLUME_REPLICATION_HEALTH.HEALTHY;
+          : VolumeReplicationHealth.HEALTHY;
       !!selectedApplication
         ? filterPVCDataUsingApp(pvcData, selectedApplication) &&
           volumeHealth[health]++
@@ -429,18 +429,18 @@ export const ProtectedPVCsSection: React.FC<ProtectedPVCsSectionProps> = ({
         const pvcLastSyncTime = protectedPVCItem?.lastSyncTime;
         // Only RDR(async) has volume replication
         const replicationHealth =
-          protectedPVCItem.replicationType === REPLICATION_TYPE.ASYNC
+          protectedPVCItem.replicationType === ReplicationType.ASYNC
             ? getVolumeReplicationHealth(
                 !!pvcLastSyncTime
                   ? getTimeDifferenceInSeconds(pvcLastSyncTime)
                   : LEAST_SECONDS_IN_PROMETHEUS,
                 protectedPVCItem?.schedulingInterval
               )[0]
-            : VOLUME_REPLICATION_HEALTH.HEALTHY;
+            : VolumeReplicationHealth.HEALTHY;
         (!!selectedApplication
           ? !!filterPVCDataUsingApp(protectedPVCItem, selectedApplication) &&
-            replicationHealth !== VOLUME_REPLICATION_HEALTH.HEALTHY
-          : replicationHealth !== VOLUME_REPLICATION_HEALTH.HEALTHY) && acc++;
+            replicationHealth !== VolumeReplicationHealth.HEALTHY
+          : replicationHealth !== VolumeReplicationHealth.HEALTHY) && acc++;
 
         return acc;
       }, 0) || 0;

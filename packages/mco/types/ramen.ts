@@ -4,7 +4,7 @@ import {
   ObjectReference,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import { DRActionType, DR_REPLICATION_STATE } from '../constants';
+import { DRActionType, DRReplicationState } from '../constants';
 
 type ClusterStatus = {
   name: string;
@@ -100,7 +100,7 @@ export type DRVolumeReplicationGroupKind = K8sResourceCommon & {
     };
   };
   status?: {
-    state?: DR_REPLICATION_STATE;
+    state?: DRReplicationState;
     protectedPVCs?: {
       name?: string;
       protectedByVolSync?: boolean;

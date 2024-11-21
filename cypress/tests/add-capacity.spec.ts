@@ -1,6 +1,6 @@
 import * as _ from 'lodash-es';
 import {
-  CLUSTER_STATUS,
+  ClusterStatus,
   STORAGE_SYSTEM_NAME,
   STORAGE_CLUSTER_NAME,
   CLUSTER_NAMESPACE,
@@ -51,7 +51,7 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
 
       cy.log('Check if ceph cluster is healthy before expansion');
       expect(cephCluster.status.ceph.health).not.to.equal(
-        CLUSTER_STATUS.HEALTH_ERROR
+        ClusterStatus.HEALTH_ERROR
       );
     });
     cy.exec(
@@ -128,7 +128,7 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
 
       cy.log('Check if ceph cluster is healthy after expansion');
       expect(cephCluster.status.ceph.health).to.not.equal(
-        CLUSTER_STATUS.HEALTH_ERROR
+        ClusterStatus.HEALTH_ERROR
       );
     });
     cy.exec(`oc get po -n ${CLUSTER_NAMESPACE} -o json`).then((res) => {

@@ -4,7 +4,7 @@ import { SecretModel, StorageClassModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
 import { Flex, FlexItem } from '@patternfly/react-core';
-import { BC_PROVIDERS, NOOBAA_TYPE_MAP } from '../../constants';
+import { StoreProviders, NOOBAA_TYPE_MAP } from '../../constants';
 import { BackingStoreKind, NamespaceStoreKind } from '../../types';
 import { getRegion } from '../../utils';
 import { DetailsItem } from './CommonDetails';
@@ -23,7 +23,7 @@ const AWSDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   return (
     <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
-        <DetailsItem field={t('Provider')}>{BC_PROVIDERS.AWS}</DetailsItem>
+        <DetailsItem field={t('Provider')}>{StoreProviders.AWS}</DetailsItem>
       </FlexItem>
       <FlexItem>
         <DetailsItem field={t('Region')}>{region}</DetailsItem>
@@ -52,7 +52,7 @@ const AzureBlobDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   return (
     <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
-        <DetailsItem field={t('Provider')}>{BC_PROVIDERS.AZURE}</DetailsItem>
+        <DetailsItem field={t('Provider')}>{StoreProviders.AZURE}</DetailsItem>
       </FlexItem>
       <FlexItem>
         <DetailsItem field={t('Secret')}>
@@ -81,7 +81,7 @@ const S3CompatibleDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   return (
     <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
-        <DetailsItem field={t('Provider')}>{BC_PROVIDERS.S3}</DetailsItem>
+        <DetailsItem field={t('Provider')}>{StoreProviders.S3}</DetailsItem>
       </FlexItem>
       <FlexItem>
         <DetailsItem field={t('Endpoint')}>{endpoint}</DetailsItem>
@@ -111,7 +111,7 @@ const IBMDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   return (
     <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
-        <DetailsItem field={t('Provider')}>{BC_PROVIDERS.IBM}</DetailsItem>
+        <DetailsItem field={t('Provider')}>{StoreProviders.IBM}</DetailsItem>
       </FlexItem>
       <FlexItem>
         <DetailsItem field={t('Endpoint')}>{endpoint}</DetailsItem>
@@ -141,7 +141,7 @@ const GCPDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   return (
     <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
-        <DetailsItem field={t('Provider')}>{BC_PROVIDERS.GCP}</DetailsItem>
+        <DetailsItem field={t('Provider')}>{StoreProviders.GCP}</DetailsItem>
       </FlexItem>
       <FlexItem>
         <DetailsItem field={t('Secret')}>
@@ -167,7 +167,7 @@ const PVCDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
   return (
     <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
-        <DetailsItem field={t('Provider')}>{BC_PROVIDERS.PVC}</DetailsItem>
+        <DetailsItem field={t('Provider')}>{StoreProviders.PVC}</DetailsItem>
       </FlexItem>
       <FlexItem>
         <DetailsItem field={t('Num Volumes')}>{numVolumes}</DetailsItem>
@@ -190,7 +190,7 @@ const FilesystemDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
     <Flex direction={{ default: 'column' }} className="details-item--border">
       <FlexItem>
         <DetailsItem field={t('Provider')}>
-          {BC_PROVIDERS.FILESYSTEM}
+          {StoreProviders.FILESYSTEM}
         </DetailsItem>
       </FlexItem>
       <FlexItem>
@@ -208,19 +208,19 @@ const ProviderDetails: React.FC<ProviderDetailsProps> = ({ resource }) => {
 
   const ProviderComponent = React.useMemo(() => {
     switch (type) {
-      case NOOBAA_TYPE_MAP[BC_PROVIDERS.AWS]:
+      case NOOBAA_TYPE_MAP[StoreProviders.AWS]:
         return AWSDetails;
-      case NOOBAA_TYPE_MAP[BC_PROVIDERS.AZURE]:
+      case NOOBAA_TYPE_MAP[StoreProviders.AZURE]:
         return AzureBlobDetails;
-      case NOOBAA_TYPE_MAP[BC_PROVIDERS.S3]:
+      case NOOBAA_TYPE_MAP[StoreProviders.S3]:
         return S3CompatibleDetails;
-      case NOOBAA_TYPE_MAP[BC_PROVIDERS.IBM]:
+      case NOOBAA_TYPE_MAP[StoreProviders.IBM]:
         return IBMDetails;
-      case NOOBAA_TYPE_MAP[BC_PROVIDERS.PVC]:
+      case NOOBAA_TYPE_MAP[StoreProviders.PVC]:
         return PVCDetails;
-      case NOOBAA_TYPE_MAP[BC_PROVIDERS.GCP]:
+      case NOOBAA_TYPE_MAP[StoreProviders.GCP]:
         return GCPDetails;
-      case NOOBAA_TYPE_MAP[BC_PROVIDERS.FILESYSTEM]:
+      case NOOBAA_TYPE_MAP[StoreProviders.FILESYSTEM]:
         return FilesystemDetails;
       default:
         return LoadingBox;

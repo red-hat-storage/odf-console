@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
-import { REPLICATION_TYPE } from '@odf/mco/constants';
+import { ReplicationType } from '@odf/mco/constants';
 import { getDRPolicyResourceObj } from '@odf/mco/hooks';
 import { DRPolicyKind, MirrorPeerKind } from '@odf/mco/types';
 import { getReplicationType } from '@odf/mco/utils';
@@ -34,7 +34,7 @@ const checkSyncPolicyExists = (
   drPolicies.some((drPolicy) => {
     const { drClusters, schedulingInterval } = drPolicy.spec;
     const isSyncPolicy =
-      getReplicationType(schedulingInterval) === REPLICATION_TYPE.SYNC;
+      getReplicationType(schedulingInterval) === ReplicationType.SYNC;
     return (
       isSyncPolicy && drClusters.every((cluster) => clusters.includes(cluster))
     );

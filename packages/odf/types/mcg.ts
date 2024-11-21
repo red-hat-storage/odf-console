@@ -29,19 +29,19 @@ export type MCGPayload = K8sResourceCommon & {
   };
 };
 
-export type nsSpecProvider =
+export type NsSpecProvider =
   typeof NS_PROVIDERS_NOOBAA_MAP[keyof typeof NS_PROVIDERS_NOOBAA_MAP];
 
-export type nsSpecType =
+export type NsSpecType =
   typeof NS_NOOBAA_TYPE_MAP[keyof typeof NS_NOOBAA_TYPE_MAP];
 
 export type NamespaceStoreKind = K8sResourceCommon & {
   spec: {
-    [key in nsSpecProvider]: {
+    [key in NsSpecProvider]: {
       [key: string]: string;
     };
   } & {
-    type: nsSpecType;
+    type: NsSpecType;
   };
   status: {
     conditions: K8sResourceCondition[];

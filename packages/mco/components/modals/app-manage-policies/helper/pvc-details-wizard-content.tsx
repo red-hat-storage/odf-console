@@ -142,7 +142,7 @@ const PairElement: React.FC<PairElementProps> = ({
     tags,
     isValidationEnabled,
     protectedPlacementNames,
-  }: extraProps = extraProps;
+  }: ExtraProps = extraProps;
   const selectedPlacement = pair[NameValueEditorPair.Name];
   const selectedLabels = pair[NameValueEditorPair.Value];
   // Disable already protected placements for edit mode
@@ -348,7 +348,7 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
 
 type TagsType = (string | string[])[][];
 
-type extraProps = {
+type ExtraProps = {
   unProtectedPlacementNames: string[];
   labels: string[];
   tags: TagsType;

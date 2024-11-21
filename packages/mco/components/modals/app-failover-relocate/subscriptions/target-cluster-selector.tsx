@@ -20,7 +20,7 @@ import {
 import {
   DRActionType,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
-  REPLICATION_TYPE,
+  ReplicationType,
 } from '../../../../constants';
 import {
   getDRClusterResourceObj,
@@ -57,8 +57,8 @@ export const getReplicationTypeUsingDRClusters = (
     (drClusterInfo) =>
       drClusterInfo?.spec?.region === targetClusters?.[0]?.spec?.region
   )
-    ? REPLICATION_TYPE.SYNC
-    : REPLICATION_TYPE.ASYNC;
+    ? ReplicationType.SYNC
+    : ReplicationType.ASYNC;
 
 const TargetClusterStatus: React.FC<TargetClusterStatusProps> = ({
   isClusterAvailable,
@@ -198,7 +198,7 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
         (drCluster) => getName(drCluster) !== getName(managedCluster)
       );
       const replicationType = getReplicationTypeUsingDRClusters(drClusterList);
-      if (replicationType === REPLICATION_TYPE.SYNC) {
+      if (replicationType === ReplicationType.SYNC) {
         if (state.actionType === DRActionType.RELOCATE) {
           // Ensure origin and target both clusters are unfenced
           const isClustersUnfenced = drClusterList.every(

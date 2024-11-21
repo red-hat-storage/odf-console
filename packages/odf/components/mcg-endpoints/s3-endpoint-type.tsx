@@ -13,7 +13,7 @@ import {
   InputGroup,
   InputGroupItem,
 } from '@patternfly/react-core';
-import { AWS_REGIONS, BC_PROVIDERS, StoreType } from '../../constants';
+import { AWS_REGIONS, StoreProviders, StoreType } from '../../constants';
 import './noobaa-provider-endpoints.scss';
 import { awsRegionItems, endpointsSupported } from '../../utils';
 
@@ -38,7 +38,7 @@ type S3EndpointTypeProps = {
   type: StoreType;
   state: ProviderDataState;
   dispatch: React.Dispatch<StoreAction>;
-  provider: BC_PROVIDERS;
+  provider: StoreProviders;
   namespace: string;
   control: Control;
   showSecret: boolean;
@@ -60,13 +60,13 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
   } = props;
 
   const targetLabel =
-    provider === BC_PROVIDERS.AZURE
+    provider === StoreProviders.AZURE
       ? t('Target blob container')
       : t('Target bucket');
   const credentialField1Label =
-    provider === BC_PROVIDERS.AZURE ? t('Account name') : t('Access key');
+    provider === StoreProviders.AZURE ? t('Account name') : t('Access key');
   const credentialField2Label =
-    provider === BC_PROVIDERS.AZURE ? t('Account key') : t('Secret key');
+    provider === StoreProviders.AZURE ? t('Account key') : t('Secret key');
 
   const switchToSecret = () => {
     setShowSecret(true);
@@ -81,7 +81,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
 
   return (
     <>
-      {provider === BC_PROVIDERS.AWS && (
+      {provider === StoreProviders.AWS && (
         <FormGroupController
           name="aws-region"
           control={control}

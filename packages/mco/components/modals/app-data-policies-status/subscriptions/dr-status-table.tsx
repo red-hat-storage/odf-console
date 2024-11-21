@@ -26,7 +26,7 @@ import {
   ThProps,
   SortByDirection,
 } from '@patternfly/react-table';
-import { DRPC_STATUS } from '../../../../constants';
+import { DRPCStatus } from '../../../../constants';
 import { DRPlacementControlKind } from '../../../../types';
 import {
   DRPolicyMap,
@@ -39,18 +39,18 @@ import './dr-status-table.scss';
 const getLastDataSyncTime = (drpcList: DRPlacementControlKind[]): string =>
   getLatestDate(drpcList?.map((drpc) => drpc?.status?.lastGroupSyncTime));
 
-const isRelocating = (status: DRPC_STATUS) =>
-  [DRPC_STATUS.Relocating, DRPC_STATUS.Relocated].includes(status);
+const isRelocating = (status: DRPCStatus) =>
+  [DRPCStatus.Relocating, DRPCStatus.Relocated].includes(status);
 
-const isFailingOver = (status: DRPC_STATUS) =>
-  [DRPC_STATUS.FailingOver, DRPC_STATUS.FailedOver].includes(status);
+const isFailingOver = (status: DRPCStatus) =>
+  [DRPCStatus.FailingOver, DRPCStatus.FailedOver].includes(status);
 
 const getTargetClusters = (
   currentStatus: string,
   drpcList: DRPlacementControlKind[]
 ) => {
   const targetClusters = drpcList.reduce((acc, drpc) => {
-    const status = DRPC_STATUS[drpc?.status?.phase] || '';
+    const status = DRPCStatus[drpc?.status?.phase] || '';
     if (status === currentStatus) {
       (isRelocating(status) && acc.add(drpc?.spec?.preferredCluster)) ||
         (isFailingOver(status) && acc.add(drpc?.spec?.failoverCluster));
