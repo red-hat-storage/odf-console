@@ -120,7 +120,9 @@ const validatePlacement = (
       )
     )
   ) {
-    return ErrorMessageType.VOLUME_SYNC_DELAY;
+    return isFailoverAction
+      ? ErrorMessageType.VOLUME_SYNC_DELAY_FAILOVER
+      : ErrorMessageType.VOLUME_SYNC_DELAY_RELOCATE;
   }
 
   // Check if sibling applications are found
