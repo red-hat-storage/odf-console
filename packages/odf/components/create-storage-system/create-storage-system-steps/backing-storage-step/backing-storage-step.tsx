@@ -12,6 +12,7 @@ import { getSupportedVendors } from '@odf/core/utils';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
+import { StatusBox } from '@odf/shared/generic/status-box';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
   ClusterServiceVersionModel,
@@ -42,7 +43,6 @@ import {
   FormHelperText,
   HelperText,
 } from '@patternfly/react-core';
-import { ErrorHandler } from '../../error-handler';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from './enable-nfs';
 import { PostgresConnectionDetails } from './noobaa-external-postgres/postgres-connection-details';
@@ -328,136 +328,138 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
     isDefaultClass(item)
   );
 
+  const allLoaded = loaded && scLoaded && csvListLoaded && isODFNsLoaded;
+  const anyError = error || scLoadError || csvListLoadError || odfNsLoadError;
+
+  if (!allLoaded || !!anyError) {
+    return <StatusBox loaded={allLoaded} loadError={anyError} />;
+  }
+
   // Internal cluster should be created (or should already exist) before external mode cluster creation
   // Block more than two OCS cluster creations
   // Block internal cluster creation after external cluster already created
   return (
-    <ErrorHandler
-      error={error || scLoadError || csvListLoadError || odfNsLoadError}
-      loaded={loaded && scLoaded && csvListLoaded && isODFNsLoaded}
-    >
-      <Form>
-        {!hasOCS && (
-          <SelectDeployment dispatch={dispatch} deployment={deployment} />
-        )}
-        <FormGroup
-          label={t('Backing storage type')}
-          fieldId={`bs-${BackingStorageType.EXISTING}`}
-        >
-          <Radio
-            label={t('Use an existing StorageClass')}
-            description={t(
-              'Data Foundation will use an existing StorageClass available on your hosting platform.'
-            )}
-            name={RADIO_GROUP_NAME}
-            value={BackingStorageType.EXISTING}
-            isChecked={type === BackingStorageType.EXISTING}
-            onChange={(event, _unused) => onRadioSelect(_unused, event)}
-            isDisabled={hasOCS || sc?.items?.length === 0}
-            body={
-              showStorageClassSelection && (
-                <StorageClassSelection
-                  dispatch={dispatch}
-                  selected={storageClass}
-                />
-              )
-            }
-            id={`bs-${BackingStorageType.EXISTING}`}
-            className="odf-backing-store__radio--margin-bottom"
-          />
-          <Radio
-            label={t('Create a new StorageClass using local storage devices')}
-            description={t(
-              'Data Foundation will use a StorageClass provided by the Local Storage Operator (LSO) on top of your attached drives. This option is available on any platform with devices attached to nodes.'
-            )}
-            name={RADIO_GROUP_NAME}
-            value={BackingStorageType.LOCAL_DEVICES}
-            isChecked={type === BackingStorageType.LOCAL_DEVICES}
-            onChange={(event, _unused) => onRadioSelect(_unused, event)}
-            isDisabled={hasOCS}
-            id={`bs-${BackingStorageType.LOCAL_DEVICES}`}
-            className="odf-backing-store__radio--margin-bottom"
-          />
-          <Radio
-            label={t('Connect an external storage platform')}
-            description={t(
-              'Data Foundation will create a dedicated StorageClass.'
-            )}
-            name={RADIO_GROUP_NAME}
-            value={BackingStorageType.EXTERNAL}
-            isChecked={type === BackingStorageType.EXTERNAL}
-            onChange={(event, _unused) => onRadioSelect(_unused, event)}
-            isDisabled={
-              allowedExternalStorage.length === 0 ||
-              isProviderMode ||
-              isProviderModePresent
-            }
-            body={
-              showExternalStorageSelection && (
-                <ExternalSystemSelection
-                  selectedStorage={externalStorage}
-                  dispatch={dispatch}
-                  selectOptions={allowedExternalStorage}
-                  stepIdReached={stepIdReached}
-                />
-              )
-            }
-            id={`bs-${BackingStorageType.EXTERNAL}`}
-            className="odf-backing-store__radio--margin-bottom"
-          />
-        </FormGroup>
-        {/* Should be visible for both external and internal mode (even if one cluster already exists) */}
-        {isFullDeployment && !hasMultipleClusters && (
-          <>
-            <EnableNFS
-              dispatch={dispatch}
-              nfsEnabled={enableNFS}
-              backingStorageType={type}
-            />
-            <SetCephRBDStorageClassDefault
-              dispatch={dispatch}
-              isRBDStorageClassDefault={isRBDStorageClassDefault}
-              doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
-            />
-          </>
-        )}
-        {/* Should be visible for both external and internal mode (but only single NooBaa is allowed, so should be hidden if any cluster already exists) */}
-        {!hasOCS && (
-          <Checkbox
-            id="use-external-postgress"
-            label={t('Use external PostgreSQL')}
-            description={t(
-              'Allow Noobaa to connect to an external postgres server'
-            )}
-            isChecked={useExternalPostgres}
-            onChange={() =>
-              dispatch({
-                type: 'backingStorage/useExternalPostgres',
-                payload: !useExternalPostgres,
-              })
-            }
-            className="odf-backing-store__radio--margin-bottom"
-          />
-        )}
-        {useExternalPostgres && !hasOCS && (
-          <PostgresConnectionDetails
+    <Form>
+      {!hasOCS && (
+        <SelectDeployment dispatch={dispatch} deployment={deployment} />
+      )}
+      <FormGroup
+        label={t('Backing storage type')}
+        fieldId={`bs-${BackingStorageType.EXISTING}`}
+      >
+        <Radio
+          label={t('Use an existing StorageClass')}
+          description={t(
+            'Data Foundation will use an existing StorageClass available on your hosting platform.'
+          )}
+          name={RADIO_GROUP_NAME}
+          value={BackingStorageType.EXISTING}
+          isChecked={type === BackingStorageType.EXISTING}
+          onChange={(event, _unused) => onRadioSelect(_unused, event)}
+          isDisabled={hasOCS || sc?.items?.length === 0}
+          body={
+            showStorageClassSelection && (
+              <StorageClassSelection
+                dispatch={dispatch}
+                selected={storageClass}
+              />
+            )
+          }
+          id={`bs-${BackingStorageType.EXISTING}`}
+          className="odf-backing-store__radio--margin-bottom"
+        />
+        <Radio
+          label={t('Create a new StorageClass using local storage devices')}
+          description={t(
+            'Data Foundation will use a StorageClass provided by the Local Storage Operator (LSO) on top of your attached drives. This option is available on any platform with devices attached to nodes.'
+          )}
+          name={RADIO_GROUP_NAME}
+          value={BackingStorageType.LOCAL_DEVICES}
+          isChecked={type === BackingStorageType.LOCAL_DEVICES}
+          onChange={(event, _unused) => onRadioSelect(_unused, event)}
+          isDisabled={hasOCS}
+          id={`bs-${BackingStorageType.LOCAL_DEVICES}`}
+          className="odf-backing-store__radio--margin-bottom"
+        />
+        <Radio
+          label={t('Connect an external storage platform')}
+          description={t(
+            'Data Foundation will create a dedicated StorageClass.'
+          )}
+          name={RADIO_GROUP_NAME}
+          value={BackingStorageType.EXTERNAL}
+          isChecked={type === BackingStorageType.EXTERNAL}
+          onChange={(event, _unused) => onRadioSelect(_unused, event)}
+          isDisabled={
+            allowedExternalStorage.length === 0 ||
+            isProviderMode ||
+            isProviderModePresent
+          }
+          body={
+            showExternalStorageSelection && (
+              <ExternalSystemSelection
+                selectedStorage={externalStorage}
+                dispatch={dispatch}
+                selectOptions={allowedExternalStorage}
+                stepIdReached={stepIdReached}
+              />
+            )
+          }
+          id={`bs-${BackingStorageType.EXTERNAL}`}
+          className="odf-backing-store__radio--margin-bottom"
+        />
+      </FormGroup>
+      {/* Should be visible for both external and internal mode (even if one cluster already exists) */}
+      {isFullDeployment && !hasMultipleClusters && (
+        <>
+          <EnableNFS
             dispatch={dispatch}
-            tlsFiles={[
-              externalPostgres.tls.keys.private,
-              externalPostgres.tls.keys.public,
-            ]}
-            tlsEnabled={externalPostgres.tls.enabled}
-            allowSelfSignedCerts={externalPostgres.tls.allowSelfSignedCerts}
-            username={externalPostgres.username}
-            password={externalPostgres.password}
-            serverName={externalPostgres.serverName}
-            databaseName={externalPostgres.databaseName}
-            port={externalPostgres.port}
-            enableClientSideCerts={externalPostgres.tls.enableClientSideCerts}
+            nfsEnabled={enableNFS}
+            backingStorageType={type}
           />
-        )}
-      </Form>
-    </ErrorHandler>
+          <SetCephRBDStorageClassDefault
+            dispatch={dispatch}
+            isRBDStorageClassDefault={isRBDStorageClassDefault}
+            doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
+          />
+        </>
+      )}
+      {/* Should be visible for both external and internal mode (but only single NooBaa is allowed, so should be hidden if any cluster already exists) */}
+      {!hasOCS && (
+        <Checkbox
+          id="use-external-postgress"
+          label={t('Use external PostgreSQL')}
+          description={t(
+            'Allow Noobaa to connect to an external postgres server'
+          )}
+          isChecked={useExternalPostgres}
+          onChange={() =>
+            dispatch({
+              type: 'backingStorage/useExternalPostgres',
+              payload: !useExternalPostgres,
+            })
+          }
+          className="odf-backing-store__radio--margin-bottom"
+        />
+      )}
+      {useExternalPostgres && !hasOCS && (
+        <PostgresConnectionDetails
+          dispatch={dispatch}
+          tlsFiles={[
+            externalPostgres.tls.keys.private,
+            externalPostgres.tls.keys.public,
+          ]}
+          tlsEnabled={externalPostgres.tls.enabled}
+          allowSelfSignedCerts={externalPostgres.tls.allowSelfSignedCerts}
+          username={externalPostgres.username}
+          password={externalPostgres.password}
+          serverName={externalPostgres.serverName}
+          databaseName={externalPostgres.databaseName}
+          port={externalPostgres.port}
+          enableClientSideCerts={externalPostgres.tls.enableClientSideCerts}
+        />
+      )}
+    </Form>
   );
 };
 

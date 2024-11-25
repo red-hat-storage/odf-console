@@ -24,7 +24,7 @@ import {
   K8sResourceKind,
 } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
-import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { ODFSystemFlagsPayload } from '../actions';
 import { useODFSystemFlagsDispatch } from '../dispatchers';
 
@@ -131,23 +131,18 @@ const useODFSystemFlagsPayload = ({
 export const useODFSystemFlags = (): void => {
   const dispatch = useODFSystemFlagsDispatch();
 
-  const resources = useK8sWatchResources(watchResources);
-
-  const storageClusters = (resources?.scs?.data ?? []) as StorageClusterKind[];
-  const scLoaded = resources?.scs?.loaded;
-  const scError = resources?.scs?.loadError;
-
-  const cephClusters = (resources?.ccs?.data ?? []) as CephClusterKind[];
-  const ccLoaded = resources?.ccs?.loaded;
-  const ccError = resources?.ccs?.loadError;
-
-  const objectStores = (resources?.coss?.data ?? []) as K8sResourceKind[];
-  const cosLoaded = resources?.coss?.loaded;
-  const cosError = resources?.coss?.loadError;
-
-  const noobaas = (resources?.nss?.data ?? []) as NoobaaSystemKind[];
-  const nsLoaded = resources?.nss?.loaded;
-  const nsError = resources?.nss?.loadError;
+  const [storageClusters, scLoaded, scError] = useK8sWatchResource<
+    StorageClusterKind[]
+  >(watchResources.scs);
+  const [cephClusters, ccLoaded, ccError] = useK8sWatchResource<
+    CephClusterKind[]
+  >(watchResources.ccs);
+  const [objectStores, cosLoaded, cosError] = useK8sWatchResource<
+    K8sResourceKind[]
+  >(watchResources.coss);
+  const [noobaas, nsLoaded, nsError] = useK8sWatchResource<NoobaaSystemKind[]>(
+    watchResources.nss
+  );
 
   const allLoaded = scLoaded && ccLoaded && cosLoaded && nsLoaded;
   const anyError = scError || ccError || cosError || nsError;
