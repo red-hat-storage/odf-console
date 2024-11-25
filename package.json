@@ -164,7 +164,8 @@
     "webpack-dev-server": "^4.9.2"
   },
   "resolutions": {
-    "webpack": "5.94.0"
+    "webpack": "5.94.0",
+    "webpack-dev-server/express": "^4.21.0"
   },
   "engines": {
     "node": ">=14.17.0"
