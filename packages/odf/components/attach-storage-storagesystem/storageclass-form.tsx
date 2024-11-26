@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { StorageClassEncryptionKMSID } from '@odf/ocs/storage-class/sc-form';
 import { ReclaimPolicy, VolumeBindingMode } from '@odf/shared';
 import {
   Dropdown,
@@ -39,6 +40,16 @@ const StorageClassForm: React.FC<StorageClassFormProps> = ({
       payload: !state.storageClassDetails.enableStorageClassEncryption,
     });
   }, [dispatch, state.storageClassDetails.enableStorageClassEncryption]);
+  const onEncryptionKMSIDChange = (
+    _id: string,
+    paramName: string,
+    _checkbox: boolean
+  ) => {
+    dispatch({
+      type: AttachStorageActionType.SET_ENCRYPTION_KMS_ID,
+      payload: paramName,
+    });
+  };
 
   const reclaimPolicyDropdownItems = React.useMemo(() => {
     return Object.values(ReclaimPolicy).map((policy) => (
@@ -178,12 +189,19 @@ const StorageClassForm: React.FC<StorageClassFormProps> = ({
       </FormGroup>
       <FormGroup>
         <Checkbox
-          id="enable-encryption-device-set"
+          id="enable-encryption-storage-class"
           label={t('Enable encryption on StorageClass')}
           className="pf-v5-u-pt-md"
           isChecked={state.storageClassDetails.enableStorageClassEncryption}
           onChange={onEncryptionChange}
         />
+        {!!state.storageClassDetails.enableStorageClassEncryption && (
+          <StorageClassEncryptionKMSID
+            onParamChange={onEncryptionKMSIDChange}
+            parameterKey=""
+            parameterValue={state.storageClassDetails.encryptionKMSID}
+          />
+        )}
       </FormGroup>
     </div>
   );
