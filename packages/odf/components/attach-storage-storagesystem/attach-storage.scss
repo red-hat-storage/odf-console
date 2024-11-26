@@ -4,6 +4,7 @@
   
 .storagepool-form {
   margin-top: var(--pf-v5-global--spacer--md);
+  margin-left: calc(var(--pf-v5-global--spacer--lg) * -1);
 }
 .attachstorage-form {
   margin-right: var(--pf-v5-global--spacer--xl);
