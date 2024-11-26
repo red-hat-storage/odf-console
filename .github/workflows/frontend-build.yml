@@ -1,13 +1,13 @@
-name: Build Test
+name: Sanity Checks
 on:
   push:
     branches: [master]
   pull_request:
-    branches: [master, release-4.14, release-4.14-compatibility]
+    branches: [master, release*]
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
-  build-test:
-    name: resolve-dependencies
+  sanity-checks:
     runs-on: ubuntu-latest
     strategy:
       matrix:
