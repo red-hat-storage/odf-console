@@ -11,6 +11,7 @@ type StorageClassDetails = {
   name: string;
   volumeBindingMode: VolumeBindingMode;
   enableStorageClassEncryption: boolean;
+  encryptionKMSID: string;
 };
 
 type PoolDetails = {
@@ -49,6 +50,7 @@ export const initialAttachStorageState: AttachStorageFormState = {
     name: '',
     volumeBindingMode: VolumeBindingMode.WaitForFirstConsumer,
     enableStorageClassEncryption: false,
+    encryptionKMSID: '',
   },
 };
 
@@ -97,6 +99,7 @@ export enum AttachStorageActionType {
   SET_DEVICESET_ENCRYPTION = 'SET_DEVICESET_ENCRYPTION',
   SET_STORAGECLASS_NAME = 'SET_STORAGECLASS_NAME',
   SET_STORAGECLASS_ENCRYPTION = 'SET_STORAGECLASS_ENCRYPTION',
+  SET_ENCRYPTION_KMS_ID = 'SET_ENCRYPTION_KMS_ID',
   SET_STORAGECLASS_RECLAIM_POLICY = 'SET_STORAGECLASS_RECLAIM_POLICY',
   SET_STORAGECLASS_VOLUME_BINDING_MODE = 'SET_STORAGECLASS_VOLUME_BINDING_MODE',
 }
@@ -126,6 +129,10 @@ export type AttachStorageAction =
   | {
       type: AttachStorageActionType.SET_STORAGECLASS_ENCRYPTION;
       payload: boolean;
+    }
+  | {
+      type: AttachStorageActionType.SET_ENCRYPTION_KMS_ID;
+      payload: string;
     }
   | {
       type: AttachStorageActionType.SET_STORAGECLASS_RECLAIM_POLICY;
@@ -222,6 +229,15 @@ export const attachStorageReducer = (
         storageClassDetails: {
           ...state.storageClassDetails,
           enableStorageClassEncryption: action.payload,
+        },
+      };
+    }
+    case AttachStorageActionType.SET_ENCRYPTION_KMS_ID: {
+      return {
+        ...state,
+        storageClassDetails: {
+          ...state.storageClassDetails,
+          encryptionKMSID: action.payload,
         },
       };
     }

@@ -23,9 +23,17 @@ export const AttachStorageFormFooter = (
     errorMessage,
     storageClassDetails,
   } = state;
-  const { name } = storageClassDetails;
+  const { name, enableStorageClassEncryption, encryptionKMSID } =
+    storageClassDetails;
   const isDisabled =
-    checkRequiredValues(poolName, replicaSize, lsoStorageClassName, name) ||
+    checkRequiredValues(
+      poolName,
+      replicaSize,
+      lsoStorageClassName,
+      name,
+      enableStorageClassEncryption,
+      encryptionKMSID
+    ) ||
     inProgress ||
     !!errorMessage;
 
