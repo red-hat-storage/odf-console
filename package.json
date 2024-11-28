@@ -111,7 +111,7 @@
     "tsm": "^2.3.0",
     "typescript": "^4.8",
     "victory-core": "^35.4.4",
-    "webpack": "5.74.0",
+    "webpack": "5.94.0",
     "webpack-bundle-analyzer": "^4.6.1",
     "webpack-cli": "4.5.x",
     "yup": "^0.32.11"
@@ -162,6 +162,9 @@
     "stylelint-config-standard": "^22.0.0",
     "stylelint-order": "^4.1.0",
     "webpack-dev-server": "^4.9.2"
+  },
+  "resolutions": {
+    "webpack": "5.94.0"
   },
   "engines": {
     "node": ">=14.17.0"
