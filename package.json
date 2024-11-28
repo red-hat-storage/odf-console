@@ -99,7 +99,6 @@
     "react-i18next": "^11.11.4",
     "react-linkify": "^0.2.2",
     "react-redux": "^7.2.6",
-    "react-router": "5.3.x",
     "react-router-dom": "5.3.x",
     "react-router-dom-v5-compat": "^6.11.2",
     "react-tagsinput": "^3.19.0",
@@ -171,7 +170,8 @@
     "webpack-dev-server": "^4.9.2"
   },
   "resolutions": {
-    "webpack": "5.94.0"
+    "webpack": "5.94.0",
+    "webpack-dev-server/express": "^4.21.0"
   },
   "engines": {
     "node": ">=14.17.0"
