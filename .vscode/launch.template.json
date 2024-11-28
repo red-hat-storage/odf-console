@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug odf-console",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:9000",
+      "sourceMaps": true,
+      "webRoot": "${workspaceFolder}",
+      "skipFiles": [
+        "**/node_modules/**"
+      ],
+      "trace": true
+    }
+  ]
+}

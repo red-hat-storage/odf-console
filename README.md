@@ -59,7 +59,34 @@ yarn test-cypress-headless
 
 By default, it will look for Chrome in the system and use it, but if you want to use Firefox instead, set BRIDGE_E2E_BROWSER_NAME environment variable in your shell with the value firefox.
 
-#### Build the CI runner image
+### Debugging with VSCode
+
+To debug with VSCode breakpoints, do the following:
+
+- Run: `yarn dev:c`
+- To display the value of the variables inline, add this to your _settings.json_:
+
+  ```
+  "debug.inlineValues": "on"
+  ```
+
+  This setting also works with the `debugger;` statement.
+
+- Create a _launch.json_ file from the template:
+
+  ```
+  cp .vscode/launch.{template.json,json}
+  ```
+
+- Set _webRoot_: your _odf-console_ directory path. Check if the template value works for you.
+- Set a breakpoint in the code.
+- Go to _Run and Debug_ panel, select "_Debug odf-console_" and start debugging.
+
+  A Google Chrome instance will be launched.
+
+- Interact with the browser until you reach the breakpoint.
+
+## Build the CI runner image
 
 Build a beta for testing:
 
