@@ -171,7 +171,8 @@
     "webpack-dev-server": "^4.9.2"
   },
   "resolutions": {
-    "webpack": "5.94.0"
+    "webpack": "5.94.0",
+    "tough-cookie": "^4.1.3"
   },
   "engines": {
     "node": ">=14.17.0"
