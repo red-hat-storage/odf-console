@@ -168,6 +168,9 @@
   "engines": {
     "node": ">=14.17.0"
   },
+  "resolutions": {
+    "tough-cookie": "^4.1.3"
+  },
   "lint-staged": {
     "*.{ts,tsx,mts}": "eslint --cache --fix -c ./.eslintrc.js",
     "*.css": "stylelint --fix",
