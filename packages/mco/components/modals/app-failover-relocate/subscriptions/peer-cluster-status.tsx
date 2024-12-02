@@ -214,7 +214,11 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
           peerCurrentStatus.replicationHealth as VolumeReplicationHealth
         )
       ) {
-        setSyncDelayMessage(ErrorMessageType.VOLUME_SYNC_DELAY);
+        setSyncDelayMessage(
+          actionType === DRActionType.FAILOVER
+            ? ErrorMessageType.VOLUME_SYNC_DELAY_FAILOVER
+            : ErrorMessageType.VOLUME_SYNC_DELAY_RELOCATE
+        );
       } else {
         setSyncDelayMessage(0 as ErrorMessageType);
       }
