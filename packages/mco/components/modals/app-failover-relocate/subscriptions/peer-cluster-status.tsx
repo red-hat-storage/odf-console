@@ -156,15 +156,29 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
   const [peerStatus, setPeerStatus] = React.useState<StatusType>(
     initalPeerStatus(t)
   );
-  const setErrorMessage = React.useCallback(
+
+  const setPeerStatusMessage = React.useCallback(
     (errorMessage: ErrorMessageType) => {
       dispatch({
         type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
-        payload:
-          errorMessage !== ErrorMessageType.VOLUME_SYNC_DELAY
-            ? { peerStatusErrorMessage: errorMessage }
-            : { syncDelayWarningMessage: errorMessage },
+        payload: {
+          peerStatusErrorMessage: errorMessage,
+        },
       });
+      return;
+    },
+    [dispatch]
+  );
+
+  const setSyncDelayMessage = React.useCallback(
+    (errorMessage: ErrorMessageType) => {
+      dispatch({
+        type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
+        payload: {
+          syncDelayWarningMessage: errorMessage,
+        },
+      });
+      return;
     },
     [dispatch]
   );
@@ -182,12 +196,16 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
         peerCurrentStatus.peerReadiness.text ===
         PEER_READINESS(t).PEER_NOT_READY
       ) {
-        setErrorMessage(
+        setPeerStatusMessage(
           actionType === DRActionType.FAILOVER
             ? ErrorMessageType.FAILOVER_READINESS_CHECK_FAILED
             : ErrorMessageType.RELOCATE_READINESS_CHECK_FAILED
         );
-      } else if (
+      } else {
+        setPeerStatusMessage(0 as ErrorMessageType);
+      }
+
+      if (
         !!peerCurrentStatus.replicationHealth &&
         [
           VolumeReplicationHealth.CRITICAL,
@@ -196,15 +214,16 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
           peerCurrentStatus.replicationHealth as VolumeReplicationHealth
         )
       ) {
-        setErrorMessage(ErrorMessageType.VOLUME_SYNC_DELAY);
+        setSyncDelayMessage(ErrorMessageType.VOLUME_SYNC_DELAY);
       } else {
-        setErrorMessage(0 as ErrorMessageType);
+        setSyncDelayMessage(0 as ErrorMessageType);
       }
       setPeerStatus(peerCurrentStatus);
     } else {
       // Default peer status is Unknown
       setPeerStatus(initalPeerStatus(t));
-      setErrorMessage(0 as ErrorMessageType);
+      setPeerStatusMessage(0 as ErrorMessageType);
+      setSyncDelayMessage(0 as ErrorMessageType);
     }
   }, [
     selectedSubsGroups,
@@ -213,7 +232,8 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
     actionType,
     t,
     setPeerStatus,
-    setErrorMessage,
+    setPeerStatusMessage,
+    setSyncDelayMessage,
     dispatch,
   ]);
 
