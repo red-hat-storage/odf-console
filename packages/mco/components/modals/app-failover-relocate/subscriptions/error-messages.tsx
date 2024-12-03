@@ -18,7 +18,8 @@ export enum ErrorMessageType {
   TARGET_CLUSTER_IS_FENCED,
   NO_SUBSCRIPTION_GROUP_FOUND,
   // Warning Messages
-  VOLUME_SYNC_DELAY,
+  VOLUME_SYNC_DELAY_FAILOVER,
+  VOLUME_SYNC_DELAY_RELOCATE,
 }
 
 export type MessageKind = Partial<{
@@ -245,14 +246,17 @@ export const ErrorMessages = (
     title: t('No subscription groups are found.'),
     variant: AlertVariant.danger,
   },
-  [ErrorMessageType.VOLUME_SYNC_DELAY]: {
+  [ErrorMessageType.VOLUME_SYNC_DELAY_FAILOVER]: {
     title: t('Inconsistent data on target cluster'),
-    message: (
-      <p>
-        {t(
-          "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing the failover could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
-        )}
-      </p>
+    message: t(
+      "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing failover could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
+    ),
+    variant: AlertVariant.warning,
+  },
+  [ErrorMessageType.VOLUME_SYNC_DELAY_RELOCATE]: {
+    title: t('Inconsistent data on target cluster'),
+    message: t(
+      "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing relocate could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
     ),
     variant: AlertVariant.warning,
   },
