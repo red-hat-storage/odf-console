@@ -52,7 +52,7 @@ describe('AzureConfigure component', () => {
         'An unique name for the key management service within the project. Name must only include alphanumeric characters, "-", "_" or "."'
       )
     ).toBeInTheDocument();
-
+    // eslint-disable-next-line testing-library/prefer-user-event
     fireEvent.change(serviceName, {
       target: { value: 'New Connection Name' },
     });
@@ -74,7 +74,7 @@ describe('AzureConfigure component', () => {
     expect(azureVaultURL).toBeInTheDocument();
     expect(screen.getByText('Azure Vault URL')).toBeInTheDocument();
     expect(azureVaultURL.value).toBe('https://test.com');
-
+    // eslint-disable-next-line testing-library/prefer-user-event
     fireEvent.change(azureVaultURL, {
       target: { value: 'https://new-test.com' },
     });
@@ -95,7 +95,7 @@ describe('AzureConfigure component', () => {
     expect(clientID).toBeInTheDocument();
     expect(screen.getByText('Client ID')).toBeInTheDocument();
     expect(clientID.value).toBe('azure-client-id1');
-
+    // eslint-disable-next-line testing-library/prefer-user-event
     fireEvent.change(clientID, { target: { value: 'new-azure-client-id' } });
     expect(dispatch).toHaveBeenCalledWith({
       type: 'securityAndNetwork/setKmsProviderState',
@@ -114,7 +114,7 @@ describe('AzureConfigure component', () => {
     expect(tenantID).toBeInTheDocument();
     expect(screen.getByText('Tenant ID')).toBeInTheDocument();
     expect(tenantID.value).toBe('azure-tenant-id1');
-
+    // eslint-disable-next-line testing-library/prefer-user-event
     fireEvent.change(tenantID, { target: { value: 'new-azure-tenant-id' } });
     expect(dispatch).toHaveBeenCalledWith({
       type: 'securityAndNetwork/setKmsProviderState',

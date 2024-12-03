@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { MatchExpression } from '@openshift-console/dynamic-plugin-sdk';
-import { screen, render, fireEvent } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { LabelExpressionSelector } from './labelExpressionSelector';
 
 const getLabels = () => ({
@@ -10,6 +11,7 @@ const getLabels = () => ({
 
 describe('Label expression selector', () => {
   test('Verify expression selection', async () => {
+    const user = userEvent.setup();
     let selectedExpression: MatchExpression[] = [];
     const onChange = jest.fn((expression: MatchExpression[]) => {
       selectedExpression = expression;
@@ -27,7 +29,7 @@ describe('Label expression selector', () => {
     const { rerender } = render(component());
 
     // Verify add resource
-    fireEvent.click(screen.getByText('Add resource'));
+    await userEvent.click(screen.getByText('Add resource'));
 
     // rerender after argument change
     rerender(component());
@@ -41,30 +43,30 @@ describe('Label expression selector', () => {
     expect(screen.getByText('Values')).toBeInTheDocument();
 
     // Verify label selection
-    fireEvent.click(screen.getByText('Select a label'));
+    await user.click(screen.getByText('Select a label'));
     expect(screen.getByText('option-1')).toBeInTheDocument();
     expect(screen.getByText('option-2')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('option-1'));
+    await user.click(screen.getByText('option-1'));
     // rerender after argument change
     rerender(component());
     expect(screen.getByText('option-1')).toBeInTheDocument();
 
     // Verify operator selection
-    fireEvent.click(screen.getByText('In'));
+    await user.click(screen.getByText('In'));
     expect(screen.getByText('NotIn')).toBeInTheDocument();
     expect(screen.getByText('Exists')).toBeInTheDocument();
     expect(screen.getByText('DoesNotExist')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('NotIn'));
+    await user.click(screen.getByText('NotIn'));
     // rerender after argument change
     rerender(component());
     expect(screen.getByText('NotIn')).toBeInTheDocument();
 
     // Verify values for option-1
-    fireEvent.click(screen.getByText('Select the values'));
-    fireEvent.click(screen.getByText('value-1'));
+    await user.click(screen.getByText('Select the values'));
+    await user.click(screen.getByText('value-1'));
     // rerender after argument change
     rerender(component());
-    fireEvent.click(screen.getByText('value-2'));
+    await user.click(screen.getByText('value-2'));
     // rerender after argument change
     rerender(component());
     expect(screen.getByText('{{count}} selected')).toBeInTheDocument();

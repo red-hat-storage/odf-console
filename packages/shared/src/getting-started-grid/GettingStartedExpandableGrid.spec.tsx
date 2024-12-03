@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { GettingStartedExpandableGrid } from './GettingStartedExpandableGrid';
 
 const children = 'Testing children prop';
@@ -10,6 +11,7 @@ describe('Test getting started expandable card/grid (GettingStartedExpandableGri
   afterEach(() => jest.clearAllMocks());
 
   it('Renders card/grid with expandable open', async () => {
+    const user = userEvent.setup();
     const { container } = render(
       <GettingStartedExpandableGrid
         isOpen={true}
@@ -31,11 +33,12 @@ describe('Test getting started expandable card/grid (GettingStartedExpandableGri
 
     const toggleButton = screen.getByRole('button', { name: title });
     expect(toggleButton).toBeInTheDocument();
-    fireEvent.click(toggleButton);
+    await user.click(toggleButton);
     expect(setIsOpen).toHaveBeenCalledTimes(1);
   });
 
   it('Renders card/grid with expandable collapsed', async () => {
+    const user = userEvent.setup();
     const { container } = render(
       <GettingStartedExpandableGrid
         isOpen={false}
@@ -57,7 +60,7 @@ describe('Test getting started expandable card/grid (GettingStartedExpandableGri
 
     const toggleButton = screen.getByRole('button', { name: title });
     expect(toggleButton).toBeInTheDocument();
-    fireEvent.click(toggleButton);
+    await user.click(toggleButton);
     expect(setIsOpen).toHaveBeenCalledTimes(1);
   });
 

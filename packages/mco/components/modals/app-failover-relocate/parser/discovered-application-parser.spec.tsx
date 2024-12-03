@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { DRActionType } from '@odf/mco/constants';
 import { DisasterRecoveryResourceKind } from '@odf/mco/hooks';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 // eslint-disable-next-line jest/no-mocks-import
 import {
   mockDRClusterEast1,
@@ -129,6 +130,7 @@ jest.mock('@odf/shared/hooks', () => ({
 
 describe('Discovered application failover/relocate modal test', () => {
   test('Failover happy path test', async () => {
+    const user = userEvent.setup();
     type = 1;
 
     render(
@@ -193,16 +195,16 @@ describe('Discovered application failover/relocate modal test', () => {
     expect(screen.getByRole('button', { name: /Initiate/i })).toBeEnabled();
 
     // Click initiate
-    fireEvent.click(screen.getByRole('button', { name: /Initiate/i }));
-    await waitFor(() =>
-      expect(
-        JSON.stringify(patchObj) ===
-          '[{"op":"replace","path":"/spec/action","value":"Failover"},{"op":"replace","path":"/spec/failoverCluster","value":"west-1"},{"op":"replace","path":"/spec/preferredCluster","value":"east-1"}]'
-      ).toBeTruthy()
-    );
+    await user.click(screen.getByRole('button', { name: /Initiate/i }));
+
+    expect(
+      JSON.stringify(patchObj) ===
+        '[{"op":"replace","path":"/spec/action","value":"Failover"},{"op":"replace","path":"/spec/failoverCluster","value":"west-1"},{"op":"replace","path":"/spec/preferredCluster","value":"east-1"}]'
+    ).toBeTruthy();
   });
 
   test('Relocate happy path test', async () => {
+    const user = userEvent.setup();
     type = 1;
 
     render(
@@ -257,13 +259,11 @@ describe('Discovered application failover/relocate modal test', () => {
     expect(screen.getByRole('button', { name: /Initiate/i })).toBeEnabled();
 
     // Click initiate
-    fireEvent.click(screen.getByRole('button', { name: /Initiate/i }));
-    await waitFor(() =>
-      expect(
-        JSON.stringify(patchObj) ===
-          '[{"op":"replace","path":"/spec/action","value":"Relocate"},{"op":"replace","path":"/spec/failoverCluster","value":"east-1"},{"op":"replace","path":"/spec/preferredCluster","value":"west-1"}]'
-      ).toBeTruthy()
-    );
+    await user.click(screen.getByRole('button', { name: /Initiate/i }));
+    expect(
+      JSON.stringify(patchObj) ===
+        '[{"op":"replace","path":"/spec/action","value":"Relocate"},{"op":"replace","path":"/spec/failoverCluster","value":"east-1"},{"op":"replace","path":"/spec/preferredCluster","value":"west-1"}]'
+    ).toBeTruthy();
   });
 
   test('Target cluster down for failover test', async () => {

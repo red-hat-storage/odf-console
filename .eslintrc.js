@@ -18,7 +18,16 @@ module.exports = {
         'plugin:jest/recommended',
         'plugin:jest/style',
         'plugin:jest-dom/recommended',
+        'plugin:testing-library/react',
       ],
+      rules: {
+        'testing-library/no-render-in-lifecycle': 'error',
+        'testing-library/prefer-user-event': 'error',
+        // @TODO: enable the following rules.
+        'testing-library/no-container': 'off',
+        'testing-library/no-node-access': 'off',
+        'testing-library/prefer-screen-queries': 'off',
+      },
     },
   ],
   parser: '@typescript-eslint/parser',

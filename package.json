@@ -172,6 +172,7 @@
     "eslint-plugin-mobx": "^0.0.13",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-testing-library": "^7.0.0",
     "http-server": "0.12.x",
     "husky": "^9.1.7",
     "i18next-parser": "^9.3.0",

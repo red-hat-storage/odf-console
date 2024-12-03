@@ -57,6 +57,7 @@ describe('NICSelectComponent', () => {
     const input = screen.getByPlaceholderText(
       'Enter a CIDR block (Eg: 192.168.0.0/32)'
     );
+    // eslint-disable-next-line testing-library/prefer-user-event
     fireEvent.change(input, { target: { value: '192.168.1.0/24' } });
     expect(setPublicCIDR).toHaveBeenCalledWith('192.168.1.0/24');
   });
@@ -66,6 +67,7 @@ describe('NICSelectComponent', () => {
     const input = screen.getByPlaceholderText(
       'Enter a CIDR block (Eg: 192.168.100.0/24)'
     );
+    // eslint-disable-next-line testing-library/prefer-user-event
     fireEvent.change(input, { target: { value: '192.168.101.0/24' } });
     expect(setCephCIDR).toHaveBeenCalledWith('192.168.101.0/24');
   });
