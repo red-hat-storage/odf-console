@@ -67,6 +67,8 @@ module.exports = {
     'react/jsx-indent': 'off',
     'react/jsx-no-useless-fragment': ['error', { allowExpressions: true }],
     'react/jsx-pascal-case': 'error',
+    // Enable react/no-unused-prop-types once false positives are addressed:
+    // https://github.com/jsx-eslint/eslint-plugin-react/issues/3209
     'react/no-unused-prop-types': 'off',
     'consistent-return': 'off',
     'default-case': 'off',
@@ -162,7 +164,10 @@ module.exports = {
     'no-underscore-dangle': 'off',
     'no-unreachable': 'off',
     'no-unsafe-optional-chaining': 'off',
-    'no-unused-expressions': 'off',
+    'no-unused-expressions': [
+      'error',
+      { allowShortCircuit: true, allowTernary: true, enforceForJSX: true },
+    ],
     'no-use-before-define': 'off',
     'no-useless-catch': 'off',
     'no-useless-constructor': 'off',
@@ -175,7 +180,6 @@ module.exports = {
     'react/jsx-pascal-case': 'off',
     'react/jsx-props-no-spreading': 'off',
     'react/no-array-index-key': 'off',
-    'react/no-unused-state': 'off',
     'react/require-default-props': 'off',
     'react/sort-comp': 'off',
     'no-unused-vars': 'off',
