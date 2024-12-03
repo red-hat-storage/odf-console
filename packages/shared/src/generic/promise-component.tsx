@@ -51,6 +51,7 @@ export class PromiseComponent<
 > extends React.Component<P, S> {
   constructor(props) {
     super(props);
+    /* eslint-disable react/no-unused-state */
     this.state = {
       inProgress: false,
       errorMessage: '',
@@ -83,6 +84,7 @@ export class PromiseComponent<
       inProgress: false,
       errorMessage,
     });
+    /* eslint-enable react/no-unused-state */
     return Promise.reject(errorMessage);
   }
 }
