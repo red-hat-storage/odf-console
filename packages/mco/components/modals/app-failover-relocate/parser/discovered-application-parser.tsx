@@ -100,7 +100,7 @@ export const DiscoveredApplicationParser: React.FC<
 
   const placementControls: PlacementControlProps[] = React.useMemo(() => {
     if (loaded && !loadError) {
-      const { drClusters, drPlacementControls } = drResource || {};
+      const { drClusters, drPlacementControls, drPolicy } = drResource || {};
       const drPlacementControl = drPlacementControls?.[0];
 
       // use "drplacementcontrol.ramendr.openshift.io/last-app-deployment-cluster" annotation
@@ -159,6 +159,7 @@ export const DiscoveredApplicationParser: React.FC<
           isDRActionReady: checkDRActionReadiness(drPlacementControl, action),
           snapshotTakenTime: drPlacementControl?.status?.lastGroupSyncTime,
           replicationType: findDRType(drClusters),
+          schedulingInterval: drPolicy?.spec?.schedulingInterval,
         },
       ];
     }

@@ -9,7 +9,11 @@ import {
   mockDRClusterWest1,
 } from '../../../../__mocks__/drcluster';
 // eslint-disable-next-line jest/no-mocks-import
-import { mockDRPC1, mockDRPC2 } from '../../../../__mocks__/drplacementcontrol';
+import {
+  mockDRPC1,
+  mockDRPC2,
+  mockDRPC3,
+} from '../../../../__mocks__/drplacementcontrol';
 // eslint-disable-next-line jest/no-mocks-import
 import { mockDRPolicy1, mockDRPolicy2 } from '../../../../__mocks__/drpolicy';
 // eslint-disable-next-line jest/no-mocks-import
@@ -64,6 +68,16 @@ const drResources4: DisasterRecoveryResourceKind = {
   ],
 };
 
+const drResources5: DisasterRecoveryResourceKind = {
+  formattedResources: [
+    {
+      drClusters: [mockDRClusterEast1, mockDRClusterWest1],
+      drPolicy: mockDRPolicy1,
+      drPlacementControls: [mockDRPC3],
+    },
+  ],
+};
+
 jest.mock('@odf/mco/hooks/disaster-recovery', () => ({
   __esModule: true,
   useDisasterRecoveryResourceWatch: jest.fn(() => {
@@ -75,6 +89,8 @@ jest.mock('@odf/mco/hooks/disaster-recovery', () => ({
       return [drResources3, true, ''];
     } else if (type === 4) {
       return [drResources4, true, ''];
+    } else if (type === 5) {
+      return [drResources5, true, ''];
     }
   }),
 }));
@@ -86,7 +102,7 @@ jest.mock(
       '@openshift-console/dynamic-plugin-sdk/lib/api/dynamic-core-api'
     ),
     useK8sWatchResource: jest.fn(() => {
-      if (type === 1) {
+      if (type === 1 || type === 5) {
         return [[mockManagedClusterEast1, mockManagedClusterWest1], true, ''];
       } else if (type === 4) {
         return [[mockManagedClusterEast1, mockManagedClusterEast2], true, ''];
@@ -463,5 +479,77 @@ describe('Discovered application failover/relocate modal test', () => {
     // footer
     expect(screen.getByRole('button', { name: /Cancel/i })).toBeEnabled();
     expect(screen.getByRole('button', { name: /Initiate/i })).toBeDisabled();
+  });
+
+  test('Volume synchronization delay during relocate', async () => {
+    type = 1;
+
+    render(
+      <DiscoveredApplicationModal
+        extraProps={{ application: mockDRPC1, action: DRActionType.RELOCATE }}
+        closeModal={jest.fn()}
+        isOpen={true}
+      />
+    );
+
+    expect(
+      screen.getByRole('dialog', { name: /Relocate application/i })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('heading', {
+        name: /Warning alert: Inconsistent data on target cluster/i,
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing relocate could lead to data loss./i
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Refer to the corresponding VolumeSynchronizationDelay OpenShift alert\(s\) for more information./i
+      )
+    ).toBeInTheDocument();
+
+    expect(screen.getByRole('button', { name: /Cancel/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Initiate/i })).toBeEnabled();
+  });
+
+  test('No volume synchronization delay during relocate', async () => {
+    type = 5;
+
+    render(
+      <DiscoveredApplicationModal
+        extraProps={{ application: mockDRPC3, action: DRActionType.RELOCATE }}
+        closeModal={jest.fn()}
+        isOpen={true}
+      />
+    );
+
+    expect(
+      screen.getByRole('dialog', { name: /Relocate application/i })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.queryByRole('heading', {
+        name: /Warning alert: Inconsistent data on target cluster/i,
+      })
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.queryByText(
+        /The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing relocate could lead to data loss./i
+      )
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.queryByText(
+        /Refer to the corresponding VolumeSynchronizationDelay OpenShift alert\(s\) for more information./i
+      )
+    ).not.toBeInTheDocument();
+
+    expect(screen.getByRole('button', { name: /Cancel/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Initiate/i })).toBeEnabled();
   });
 });
