@@ -50,13 +50,14 @@ import {
 import '../../../../style.scss';
 import '../style.scss';
 
-const getPlacementTags = (pvcSelectors: PVCSelectorType[]) =>
+const getPlacementTags = (pvcSelectors: PVCSelectorType[]): TagsType =>
   !!pvcSelectors.length
-    ? pvcSelectors.map((pvcSelector) => [
+    ? pvcSelectors.map((pvcSelector, index) => [
         pvcSelector.placementName,
         pvcSelector.labels,
+        index,
       ])
-    : [[]];
+    : [['', [], 0]];
 
 const getLabelsFromSearchResult = (searchResult: SearchResult): string[] => {
   const pvcLabels =
@@ -73,13 +74,14 @@ const getLabelsFromSearchResult = (searchResult: SearchResult): string[] => {
 
 const getLabelsFromTags = (tags: TagsType, currIndex: number): string[] =>
   tags.reduce((acc, tag, index) => {
-    const labels: string[] = (tag?.[1] || []) as string[];
+    const labels: string[] =
+      (tag?.[NameValueEditorPair.Value] as string[]) || [];
     return currIndex !== index ? [...acc, ...labels] : acc;
   }, []) as string[];
 
 const getPlacementsFromTags = (tags: TagsType, currIndex: number): string[] =>
   tags.reduce((acc, tag, index) => {
-    const placement: string = tag?.[0] as string;
+    const placement: string = tag?.[NameValueEditorPair.Name] as string;
     return currIndex !== index ? [...acc, placement] : acc;
   }, []) as string[];
 
@@ -346,7 +348,7 @@ export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
     );
   };
 
-type TagsType = (string | string[])[][];
+type TagsType = (string | string[] | number)[][];
 
 type ExtraProps = {
   unProtectedPlacementNames: string[];
