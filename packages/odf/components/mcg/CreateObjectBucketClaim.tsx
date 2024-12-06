@@ -191,9 +191,7 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
       metadata: {
         namespace,
       },
-      spec: {
-        ssl: false,
-      },
+      spec: {},
     };
     if (state.scName) {
       obj.spec.storageClassName = state.scName;
