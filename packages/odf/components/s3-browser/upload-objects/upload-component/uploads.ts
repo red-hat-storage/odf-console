@@ -64,8 +64,7 @@ export const convertFileToUploadProgress = (
   name: file.name,
   filePath: file.webkitRelativePath,
   startTime: undefined,
-  webkitRelativePath: '',
-  size: 0,
   type: '',
   key,
+  total: file.size,
 });

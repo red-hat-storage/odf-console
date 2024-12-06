@@ -1,14 +1,12 @@
 import { humanizeMinutes, humanizeSeconds } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
-import { UploadProgressBatch, UploadStatus } from './types';
+import { UploadProgress, UploadProgressBatch, UploadStatus } from './types';
 
 export const getCompletedAndTotalUploadCount = (
   objects: UploadProgressBatch
 ) => {
   const totalObjects = Object.keys(objects).length;
-  const totalUploaded = Object.values(objects).filter(
-    (obj) => obj.uploadState === UploadStatus.UPLOAD_COMPLETE
-  ).length;
+  const totalUploaded = Object.values(objects).filter(isCompletedFile).length;
   return [totalUploaded, totalObjects];
 };
 
@@ -18,14 +16,12 @@ export const getCompletedTotalFailedCount = (
   const progressItems = Object.values(uploadProgress);
   const [completedUploads, failedUploads] = progressItems.reduce(
     (acc, curr) => {
-      const isCompleted = curr.uploadState === UploadStatus.UPLOAD_COMPLETE;
+      const isCompleted = isCompletedFile(curr);
       if (isCompleted) {
         acc = [acc[0] + 1, acc[1]];
         return acc;
       }
-      const isFailed =
-        curr.uploadState === UploadStatus.UPLOAD_FAILED ||
-        curr.uploadState === UploadStatus.UPLOAD_CANCELLED;
+      const isFailed = isFailedFile(curr) || isCancelledFile(curr);
       if (isFailed) {
         acc = [acc[0], acc[1] + 1];
         return acc;
@@ -53,3 +49,16 @@ export const getTotalTimeElapsed = (
     return minutes.string;
   } else return humanizeSeconds(fromNow / 1000, 'seconds').string;
 };
+
+export const isUploadingFile = (upload: UploadProgress): boolean =>
+  upload.uploadState === UploadStatus.INIT_STATE ||
+  upload.uploadState === UploadStatus.UPLOAD_START;
+
+export const isFailedFile = (upload: UploadProgress): boolean =>
+  upload.uploadState === UploadStatus.UPLOAD_FAILED;
+
+export const isCancelledFile = (upload: UploadProgress): boolean =>
+  upload.uploadState === UploadStatus.UPLOAD_CANCELLED;
+
+export const isCompletedFile = (upload: UploadProgress): boolean =>
+  upload.uploadState === UploadStatus.UPLOAD_COMPLETE;

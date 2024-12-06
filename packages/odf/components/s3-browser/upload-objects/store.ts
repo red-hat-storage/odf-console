@@ -7,6 +7,12 @@ import {
 import * as _ from 'lodash-es';
 import { makeAutoObservable, toJS } from 'mobx';
 import { ObjectID, UploadProgress, UploadStatus } from './types';
+import {
+  isCancelledFile,
+  isCompletedFile,
+  isFailedFile,
+  isUploadingFile,
+} from './utils';
 
 export class UploadStore {
   uploads: Record<string, UploadProgress> = {};
@@ -27,16 +33,16 @@ export class UploadStore {
     };
   }
 
-  get getUploadSpeed(): string {
-    const uploadingItems = Object.values(this.uploads).filter(
-      (upload) => upload.loaded > 0
+  private getSpeed(): ReturnType<typeof humanizeDecimalBytesPerSec> {
+    const totalDataTranserred = Object.values(this.uploads).reduce(
+      (acc, curr) => {
+        return (acc += curr.loaded);
+      },
+      0
     );
-    const totalDataTranserred = uploadingItems.reduce((acc, curr) => {
-      return (acc += curr?.loaded);
-    }, 0);
     const getTotalTimeElapsed = Object.values(this.uploads).reduce(
       (acc, curr) => {
-        if (curr.startTime > acc && curr.startTime !== undefined) {
+        if (curr.startTime < acc && curr.startTime !== undefined) {
           acc = curr.startTime;
         }
         return acc;
@@ -46,29 +52,25 @@ export class UploadStore {
 
     const speed =
       (totalDataTranserred * 1000) / (Date.now() - getTotalTimeElapsed);
-    return humanizeDecimalBytesPerSec(speed).string;
+    return humanizeDecimalBytesPerSec(speed);
+  }
+
+  get getUploadSpeed(): string {
+    return this.getSpeed().string;
   }
 
   get getUploadingFilesCount(): number {
-    return Object.values(this.uploads).filter(
-      (upload) =>
-        upload.uploadState === UploadStatus.UPLOAD_START ||
-        upload.uploadState === UploadStatus.INIT_STATE
-    ).length;
+    return Object.values(this.uploads).filter(isUploadingFile).length;
   }
 
   get getFailedAndCancelledFilesCount(): number {
     return Object.values(this.uploads).filter(
-      (upload) =>
-        upload.uploadState === UploadStatus.UPLOAD_FAILED ||
-        upload.uploadState === UploadStatus.UPLOAD_CANCELLED
+      (obj) => isCancelledFile(obj) || isFailedFile(obj)
     ).length;
   }
 
   get getCompletedFilesCount(): number {
-    return Object.values(this.uploads).filter(
-      (upload) => upload.uploadState === UploadStatus.UPLOAD_COMPLETE
-    ).length;
+    return Object.values(this.uploads).filter(isCompletedFile).length;
   }
 
   get getTotalFilesCount(): number {
@@ -78,35 +80,26 @@ export class UploadStore {
   get getTotalRemainingFilesAndSize(): string {
     if (_.isEmpty(this.uploads)) return '';
     const files = Object.values(this.uploads);
-    const uploadingFiles = files.filter(
-      (item) => item.uploadState === UploadStatus.UPLOAD_START
-    );
+    const uploadingFiles = files.filter(isUploadingFile);
     const filesCount = uploadingFiles.length;
-    const filesSize = uploadingFiles.reduce(
+    const remainingDataSize = uploadingFiles.reduce(
       (acc, curr) => (acc += curr.total - curr.loaded),
       0
     );
-    return `${filesCount} files (${humanizeBinaryBytes(filesSize).string})`;
+    return `${filesCount} files (${
+      humanizeBinaryBytes(remainingDataSize).string
+    })`;
   }
 
   get getTotalTimeRemaning(): string {
     const files = Object.values(this.uploads);
-    const uploadingFiles = files.filter(
-      (item) =>
-        item.uploadState === UploadStatus.UPLOAD_START ||
-        item.uploadState === UploadStatus.INIT_STATE
-    );
-    const totalTimes = uploadingFiles.map(
-      (file) => Date.now() - file?.startTime
-    );
-    const totalUploaded = uploadingFiles.map((file) => file.loaded ?? 0);
-    const uploadSpeeds = totalUploaded.map((size, i) => size / totalTimes[i]);
-    const speed = _.sum(uploadSpeeds) / uploadSpeeds.length;
+    const uploadingFiles = files.filter(isUploadingFile);
+    const speed = this.getSpeed().value;
     const totalRemainingBytes = uploadingFiles.reduce(
       (acc, curr) => (acc += curr.total - curr.loaded),
       0
     );
-    const timeRemaining = totalRemainingBytes / speed;
+    const timeRemaining = (totalRemainingBytes * 1000) / speed;
     if (timeRemaining < 1000) {
       return humanizeSeconds(timeRemaining, 'ms').string;
     }
