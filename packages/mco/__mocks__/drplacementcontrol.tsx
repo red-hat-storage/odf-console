@@ -78,3 +78,40 @@ export const mockDRPC2: DRPlacementControlKind = {
     lastGroupSyncTime: '2023-06-06T17:50:56Z',
   },
 };
+
+export const mockDRPC3: DRPlacementControlKind = {
+  apiVersion: `${DRPlacementControlModel.apiGroup}/${DRPlacementControlModel.apiVersion}`,
+  kind: DRPlacementControlModel.kind,
+  metadata: {
+    name: 'mock-drpc-3',
+    namespace: 'test-ns',
+    creationTimestamp: '2023-06-06T17:50:56Z',
+    annotations: {
+      [LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION]: getName(mockDRClusterEast1),
+    },
+  },
+  spec: {
+    drPolicyRef: createRefFromK8Resource(mockDRPolicy1),
+    placementRef: {},
+    pvcSelector: {
+      matchLabels: {
+        pvc: 'pvc1',
+      },
+    },
+  },
+  status: {
+    conditions: [
+      {
+        type: 'PeerReady',
+        status: 'True',
+      },
+      {
+        type: 'Available',
+        status: 'True',
+      },
+    ],
+    phase: 'Deployed',
+    progression: Progression.WaitOnUserToCleanUp,
+    lastGroupSyncTime: new Date().toISOString(),
+  },
+};
