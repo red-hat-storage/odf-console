@@ -8,6 +8,7 @@ module.exports = {
     'prettier',
     'plugin:react-hooks/recommended',
     'airbnb',
+    'plugin:mobx/recommended',
   ],
   overrides: [
     {
@@ -28,8 +29,9 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: 'module',
   },
-  plugins: ['react', '@typescript-eslint', 'import'],
+  plugins: ['react', '@typescript-eslint', 'import', 'mobx'],
   rules: {
+    'mobx/missing-observer': 'off', // Too many false positives
     'arrow-body-style': 'off',
     'default-param-last': 'off',
     'dot-notation': 'off',
@@ -172,7 +174,6 @@ module.exports = {
     'react/destructuring-assignment': 'off',
     'react/jsx-filename-extension': 'off',
     'react/jsx-no-bind': 'off',
-    'react/jsx-pascal-case': 'off',
     'react/jsx-props-no-spreading': 'off',
     'react/no-array-index-key': 'off',
     'react/no-unused-state': 'off',
