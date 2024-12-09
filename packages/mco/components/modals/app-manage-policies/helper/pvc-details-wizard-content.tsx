@@ -7,6 +7,7 @@ import {
 } from '@odf/mco/constants';
 import { useACMSafeFetch } from '@odf/mco/hooks/acm-safe-fetch';
 import { SearchResult } from '@odf/mco/types';
+import { TechPreviewBadge } from '@odf/shared';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { StatusBox } from '@odf/shared/generic/status-box';
@@ -32,6 +33,7 @@ import {
   GridItem,
   Popover,
   ButtonVariant,
+  Checkbox,
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
 import { queryAppWorkloadPVCs } from '../../../../utils/acm-search-queries';
@@ -245,108 +247,145 @@ const PairElement: React.FC<PairElementProps> = ({
   );
 };
 
-export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
-  ({
-    pvcSelectors,
-    unProtectedPlacements,
-    workloadNamespace,
-    isValidationEnabled,
-    protectedPVCSelectors,
-    dispatch,
-  }) => {
+export const ConsistencyGroupCheckBox: React.FC<ConsistencyGroupCheckBoxProps> =
+  ({ isConsistencyGroupEnabled, onChange }) => {
     const { t } = useCustomTranslation();
 
-    // To update placement and label info
-    const selectedPVCSelectors = React.useMemo(
-      () => _.cloneDeep(pvcSelectors) || [],
-      [pvcSelectors]
-    );
-
-    // Selected placement and labels
-    const [tags, setTags] = React.useState<TagsType>(
-      getPlacementTags([...protectedPVCSelectors, ...selectedPVCSelectors])
-    );
-
-    // ACM search proxy api call
-    const searchQuery = React.useMemo(
-      () =>
-        queryAppWorkloadPVCs(
-          workloadNamespace,
-          getClusterNamesFromPlacements(unProtectedPlacements)
-        ),
-      [unProtectedPlacements, workloadNamespace]
-    );
-    const [searchResult, error, loaded] = useACMSafeFetch(searchQuery);
-
-    // All labels
-    const labels: string[] = React.useMemo(
-      () => getLabelsFromSearchResult(searchResult),
-      [searchResult]
-    );
-
-    // All unprotected placements
-    const unProtectedPlacementNames: string[] =
-      unProtectedPlacements.map(getName);
-
-    // All protected placements
-    const protectedPlacementNames: string[] = protectedPVCSelectors.map(
-      (pvcSelector) => pvcSelector.placementName
-    );
-
     return (
-      <Form>
-        <FormGroup>
-          <span>
-            {t(
-              'Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information, '
-            )}
-          </span>
-          <Popover
-            aria-label={t('Help')}
-            bodyContent={getLabelValidationMessage(t)}
-          >
-            <Button
-              aria-label={t('Help')}
-              variant={ButtonVariant.link}
-              isInline
-            >
-              {t('see PVC label selector requirements.')}
-            </Button>
-          </Popover>
-        </FormGroup>
-        {loaded && !error ? (
-          <LazyNameValueEditor
-            nameValuePairs={tags}
-            updateParentData={({ nameValuePairs }) => {
-              setTags(nameValuePairs);
-              dispatch({
-                type: ManagePolicyStateType.SET_PVC_SELECTORS,
-                context: ModalViewContext.ASSIGN_POLICY_VIEW,
-                payload: getPVCSelectors(
-                  nameValuePairs,
-                  protectedPlacementNames
-                ),
-              });
-            }}
-            PairElementComponent={PairElement}
-            nameString={t('Application resource')}
-            valueString={t('PVC label selector')}
-            addString={t('Add application resource')}
-            extraProps={{
-              unProtectedPlacementNames,
-              labels,
-              tags,
-              isValidationEnabled,
-              protectedPlacementNames,
-            }}
-            className="co-required mco-manage-policies__nameValue--weight"
-          />
-        ) : (
-          <StatusBox loaded={loaded} loadError={error} />
-        )}
-      </Form>
+      <FormGroup
+        label={t('Volume consistency group')}
+        labelIcon={<TechPreviewBadge />}
+      >
+        <Checkbox
+          label={t('Enable disaster recovery for volume consistency groups.')}
+          description={t(
+            'Protect applications deployed across multiple volumes and ensure consistent recovery with volume consistency groups.'
+          )}
+          isChecked={isConsistencyGroupEnabled}
+          onChange={(_event, checked: boolean) => onChange(checked)}
+          id="cg-heckbox"
+          name="cg-heckbox"
+        />
+      </FormGroup>
     );
   };
+
+export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> = (
+  props
+) => {
+  const { isConsistencyGroupEnabled, dispatch } = props;
+  const consistencyGroupOnChange = (checked: boolean) => {
+    dispatch({
+      type: ManagePolicyStateType.ENABLE_CONSISTENCY_GROUP,
+      context: ModalViewContext.ASSIGN_POLICY_VIEW,
+      payload: checked,
+    });
+  };
+  return (
+    <Form>
+      <PVCLabelSelector {...props} />
+      <ConsistencyGroupCheckBox
+        isConsistencyGroupEnabled={isConsistencyGroupEnabled}
+        onChange={consistencyGroupOnChange}
+      />
+    </Form>
+  );
+};
+
+export const PVCLabelSelector: React.FC<PVCLabelSelectorProps> = ({
+  pvcSelectors,
+  unProtectedPlacements,
+  workloadNamespace,
+  isValidationEnabled,
+  protectedPVCSelectors,
+  dispatch,
+}) => {
+  const { t } = useCustomTranslation();
+
+  // To update placement and label info
+  const selectedPVCSelectors = React.useMemo(
+    () => _.cloneDeep(pvcSelectors) || [],
+    [pvcSelectors]
+  );
+
+  // Selected placement and labels
+  const [tags, setTags] = React.useState<TagsType>(
+    getPlacementTags([...protectedPVCSelectors, ...selectedPVCSelectors])
+  );
+
+  // ACM search proxy api call
+  const searchQuery = React.useMemo(
+    () =>
+      queryAppWorkloadPVCs(
+        workloadNamespace,
+        getClusterNamesFromPlacements(unProtectedPlacements)
+      ),
+    [unProtectedPlacements, workloadNamespace]
+  );
+  const [searchResult, error, loaded] = useACMSafeFetch(searchQuery);
+
+  // All labels
+  const labels: string[] = React.useMemo(
+    () => getLabelsFromSearchResult(searchResult),
+    [searchResult]
+  );
+
+  // All unprotected placements
+  const unProtectedPlacementNames: string[] =
+    unProtectedPlacements.map(getName);
+
+  // All protected placements
+  const protectedPlacementNames: string[] = protectedPVCSelectors.map(
+    (pvcSelector) => pvcSelector.placementName
+  );
+
+  return (
+    <>
+      <FormGroup>
+        <span>
+          {t(
+            'Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information, '
+          )}
+        </span>
+        <Popover
+          aria-label={t('Help')}
+          bodyContent={getLabelValidationMessage(t)}
+        >
+          <Button aria-label={t('Help')} variant={ButtonVariant.link} isInline>
+            {t('see PVC label selector requirements.')}
+          </Button>
+        </Popover>
+      </FormGroup>
+      {loaded && !error ? (
+        <LazyNameValueEditor
+          nameValuePairs={tags}
+          updateParentData={({ nameValuePairs }) => {
+            setTags(nameValuePairs);
+            dispatch({
+              type: ManagePolicyStateType.SET_PVC_SELECTORS,
+              context: ModalViewContext.ASSIGN_POLICY_VIEW,
+              payload: getPVCSelectors(nameValuePairs, protectedPlacementNames),
+            });
+          }}
+          PairElementComponent={PairElement}
+          nameString={t('Application resource')}
+          valueString={t('PVC label selector')}
+          addString={t('Add application resource')}
+          extraProps={{
+            unProtectedPlacementNames,
+            labels,
+            tags,
+            isValidationEnabled,
+            protectedPlacementNames,
+          }}
+          className="co-required mco-manage-policies__nameValue--weight"
+        />
+      ) : (
+        <StatusBox loaded={loaded} loadError={error} />
+      )}
+    </>
+  );
+};
 
 type TagsType = (string | string[] | number)[][];
 
@@ -358,11 +397,20 @@ type ExtraProps = {
   protectedPlacementNames: string[];
 };
 
-type PVCDetailsWizardContentProps = {
+type PVCLabelSelectorProps = {
   pvcSelectors: PVCSelectorType[];
   unProtectedPlacements: PlacementType[];
   workloadNamespace: string;
   isValidationEnabled: boolean;
   dispatch: React.Dispatch<ManagePolicyStateAction>;
   protectedPVCSelectors: PVCSelectorType[];
+  isConsistencyGroupEnabled: boolean;
 };
+
+type ConsistencyGroupCheckBoxProps = {
+  isConsistencyGroupEnabled: boolean;
+  onChange: (checked: boolean) => void;
+};
+
+type PVCDetailsWizardContentProps = PVCLabelSelectorProps &
+  Omit<ConsistencyGroupCheckBoxProps, 'onChange'>;

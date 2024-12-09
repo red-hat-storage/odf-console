@@ -20,6 +20,7 @@ export enum ManagePolicyStateType {
   SET_SELECTED_POLICY = 'SET_SELECTED_POLICY',
   SET_PVC_SELECTORS = 'SET_PVC_SELECTORS',
   RESET_ASSIGN_POLICY_STATE = 'RESET_ASSIGN_POLICY_STATE',
+  ENABLE_CONSISTENCY_GROUP = 'ENABLE_CONSISTENCY_GROUP',
 }
 
 export type PVCSelectorType = {
@@ -30,6 +31,8 @@ export type AssignPolicyViewState = {
   policy: DRPolicyType;
   persistentVolumeClaim: {
     pvcSelectors: PVCSelectorType[];
+    // Consistency group support for CephFS & RBD volumes
+    isConsistencyGroupEnabled: boolean;
   };
 };
 
@@ -45,6 +48,7 @@ export const initialPolicyState: ManagePolicyState = {
     policy: undefined,
     persistentVolumeClaim: {
       pvcSelectors: [],
+      isConsistencyGroupEnabled: false,
     },
   },
 };
@@ -71,6 +75,11 @@ export type ManagePolicyStateAction =
   | {
       type: ManagePolicyStateType.RESET_ASSIGN_POLICY_STATE;
       context: ModalViewContext;
+    }
+  | {
+      type: ManagePolicyStateType.ENABLE_CONSISTENCY_GROUP;
+      context: ModalViewContext;
+      payload: boolean;
     };
 
 export const managePolicyStateReducer = (
@@ -117,6 +126,18 @@ export const managePolicyStateReducer = (
         [action.context]: {
           ...state[action.context],
           ...initialPolicyState[action.context],
+        },
+      };
+    }
+    case ManagePolicyStateType.ENABLE_CONSISTENCY_GROUP: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          persistentVolumeClaim: {
+            ...state[action.context]['persistentVolumeClaim'],
+            isConsistencyGroupEnabled: action.payload,
+          },
         },
       };
     }

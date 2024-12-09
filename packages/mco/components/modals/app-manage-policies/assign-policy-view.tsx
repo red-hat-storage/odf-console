@@ -65,6 +65,9 @@ export const createSteps = (
           isValidationEnabled={isValidationEnabled}
           dispatch={dispatch}
           protectedPVCSelectors={protectedPVCSelectors}
+          isConsistencyGroupEnabled={
+            state.persistentVolumeClaim.isConsistencyGroupEnabled
+          }
         />
       ),
     },

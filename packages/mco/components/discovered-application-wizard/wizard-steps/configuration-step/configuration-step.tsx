@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ConsistencyGroupCheckBox } from '@odf/mco/components/modals/app-manage-policies/helper/pvc-details-wizard-content';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Alert,
@@ -32,12 +33,24 @@ export const Configuration: React.FC<ConfigurationProps> = ({
   const { t } = useCustomTranslation();
 
   const { namespaces, clusterName } = state.namespace;
-  const { protectionMethod, recipe, resourceLabels } = state.configuration;
+  const {
+    protectionMethod,
+    recipe,
+    resourceLabels,
+    isConsistencyGroupEnabled,
+  } = state.configuration;
 
   const setProtectionMethod = (_unUsed, event) => {
     dispatch({
       type: EnrollDiscoveredApplicationStateType.SET_PROTECTION_METHOD,
       payload: event.target.value,
+    });
+  };
+
+  const consistencyGroupOnChange = (checked: boolean) => {
+    dispatch({
+      type: EnrollDiscoveredApplicationStateType.ENABLE_CONSISTENCY_GROUP,
+      payload: checked,
     });
   };
 
@@ -121,6 +134,10 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             dispatch={dispatch}
           />
         )}
+        <ConsistencyGroupCheckBox
+          isConsistencyGroupEnabled={isConsistencyGroupEnabled}
+          onChange={consistencyGroupOnChange}
+        />
       </FormSection>
     </Form>
   );

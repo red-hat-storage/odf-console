@@ -21,6 +21,7 @@ export enum EnrollDiscoveredApplicationStateType {
   SET_POLICY = 'REPLICATION/SET_POLICY',
   SET_K8S_RESOURCE_REPLICATION_INTERVAL = 'REPLICATION/SET_K8S_RESOURCE_REPLICATION_INTERVAL',
   SET_NAME = 'NAMESPACE/SET_NAME',
+  ENABLE_CONSISTENCY_GROUP = 'CONFIGURATION/ENABLE_CONSISTENCY_GROUP',
 }
 
 export type EnrollDiscoveredApplicationState = {
@@ -45,6 +46,7 @@ export type EnrollDiscoveredApplicationState = {
       k8sResourceLabelExpressions: MatchExpression[];
       pvcLabelExpressions: MatchExpression[];
     };
+    isConsistencyGroupEnabled: boolean;
   };
   replication: {
     drPolicy: DRPolicyKind;
@@ -75,6 +77,7 @@ export const initialState: EnrollDiscoveredApplicationState = {
       k8sResourceLabelExpressions: [],
       pvcLabelExpressions: [],
     },
+    isConsistencyGroupEnabled: false,
   },
   replication: {
     drPolicy: {},
@@ -119,6 +122,10 @@ export type EnrollDiscoveredApplicationAction =
   | {
       type: EnrollDiscoveredApplicationStateType.SET_NAME;
       payload: string;
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.ENABLE_CONSISTENCY_GROUP;
+      payload: boolean;
     };
 
 export const reducer: EnrollReducer = (state, action) => {
@@ -222,6 +229,15 @@ export const reducer: EnrollReducer = (state, action) => {
         namespace: {
           ...state.namespace,
           name: action.payload,
+        },
+      };
+    }
+    case EnrollDiscoveredApplicationStateType.ENABLE_CONSISTENCY_GROUP: {
+      return {
+        ...state,
+        configuration: {
+          ...state.configuration,
+          isConsistencyGroupEnabled: action.payload,
         },
       };
     }
