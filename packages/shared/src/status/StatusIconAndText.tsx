@@ -29,7 +29,7 @@ const StatusIconAndText: React.FC<StatusIconAndTextProps> = ({
       {icon &&
         React.cloneElement(icon, {
           className: classNames(
-            spin && 'fa-spin',
+            spin && 'co-spin fa-spin',
             icon.props.className,
             !iconOnly && 'co-icon-and-text__icon co-icon-flex-child'
           ),
