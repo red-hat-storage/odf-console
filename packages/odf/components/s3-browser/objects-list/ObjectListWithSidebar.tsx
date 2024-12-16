@@ -6,7 +6,6 @@ import { useParams } from 'react-router-dom-v5-compat';
 import { IAction } from '@patternfly/react-table';
 import { NoobaaS3Context } from '../noobaa-context';
 import UploadSidebar from '../upload-objects';
-import { UploadProgress } from '../upload-objects';
 import { FileUploadComponent } from '../upload-objects';
 import { ObjectsList } from './ObjectsList';
 
@@ -24,14 +23,7 @@ export const ObjectListWithSidebar: React.FC<ObjectListWithSidebarProps> = ({
   const [object, setObject] = React.useState<ObjectCrFormat>(null);
   const [objectActions, setObjectActions] =
     React.useState<React.MutableRefObject<IAction[]>>();
-  const [uploadProgress, setUploadProgress] = React.useState<UploadProgress>(
-    {}
-  );
   const [completionTime, setCompletionTime] = React.useState<number>();
-
-  const abortAll = React.useCallback(() => {
-    Object.values(uploadProgress).forEach((upload) => upload?.abort?.());
-  }, [uploadProgress]);
 
   const { bucketName } = useParams();
 
@@ -58,17 +50,14 @@ export const ObjectListWithSidebar: React.FC<ObjectListWithSidebarProps> = ({
     <UploadSidebar
       isExpanded={isUploadSidebarExpanded}
       closeSidebar={closeUploadSidebar}
-      uploadProgress={uploadProgress}
       completionTime={completionTime}
       mainContent={
         <>
           <FileUploadComponent
             client={noobaaS3}
             bucketName={bucketName}
-            uploadProgress={uploadProgress}
-            setUploadProgress={setUploadProgress}
             showSidebar={showUploadSidebar}
-            abortAll={abortAll}
+            hideSidebar={closeUploadSidebar}
             setCompletionTime={setCompletionTime}
             triggerRefresh={triggerRefresh}
           />
