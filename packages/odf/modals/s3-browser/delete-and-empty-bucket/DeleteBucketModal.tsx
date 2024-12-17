@@ -9,6 +9,7 @@ import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Trans } from 'react-i18next';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import {
   Modal,
@@ -27,6 +28,7 @@ import {
   AlertActionLink,
   ButtonVariant,
 } from '@patternfly/react-core';
+import { BUCKETS_BASE_ROUTE } from '../../../constants';
 import { EmptyBucketResponse, getTextInputLabel } from './EmptyBucketModal';
 import { LazyEmptyBucketModal } from './lazy-delete-and-empty-bucket';
 
@@ -55,6 +57,8 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
   const [inputValue, setInputValue] = React.useState('');
   const [inProgress, setInProgress] = React.useState(false);
   const [deleteError, setDeleteError] = React.useState<Error>(null);
+
+  const navigate = useNavigate();
 
   const {
     data,
@@ -87,6 +91,7 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
         oldFavorites.filter((bucket) => bucket !== bucketName)
       );
       refreshTokens?.();
+      navigate(BUCKETS_BASE_ROUTE);
     } catch (err) {
       setDeleteError(err);
       setInProgress(false);
