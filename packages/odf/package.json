@@ -1,9 +1,9 @@
 {
   "name": "@odf/core",
-  "description": "Core ODF components",
   "version": "0.0.0",
+  "description": "Core ODF components",
   "dependencies": {
-    "@odf/shared": "file:../shared",
-    "@odf/odf-plugin-sdk": "0.0.0"
+    "@odf/odf-plugin-sdk": "0.0.0",
+    "@odf/shared": "file:../shared"
   }
 }
