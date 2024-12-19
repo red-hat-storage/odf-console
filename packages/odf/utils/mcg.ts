@@ -326,7 +326,6 @@ export const createNewObjectBucketClaim = (
       namespace,
     },
     spec: {
-      ssl: false,
       storageClassName,
       generateBucketName: name,
       additionalConfig: {
