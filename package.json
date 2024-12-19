@@ -178,7 +178,8 @@
     "webpack": "5.94.0",
     "webpack-bundle-analyzer/ws": "^7.5.10",
     "webpack-dev-server/express": "^4.21.0",
-    "webpack-dev-server/ws": "^8.18.0"
+    "webpack-dev-server/ws": "^8.18.0",
+    "cross-spawn": "^7.0.6"
   },
   "engines": {
     "node": ">=14.17.0"
