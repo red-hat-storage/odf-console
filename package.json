@@ -173,6 +173,7 @@
     "webpack-dev-server": "^4.15.2"
   },
   "resolutions": {
+    "nanoid": "^3.3.8",
     "jest-environment-jsdom/jsdom": "^20.0.3",
     "webpack": "5.94.0",
     "webpack-bundle-analyzer/ws": "^7.5.10",
