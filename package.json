@@ -138,7 +138,7 @@
     "tsx": "^4.19.2",
     "typesafe-actions": "^4.2.1",
     "typescript": "^5.6.3",
-    "victory-core": "^35.4.4",
+    "victory-core": "^37.1.1",
     "webpack": "^5.96.1",
     "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.1.4",
