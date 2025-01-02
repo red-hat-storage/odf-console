@@ -1,19 +1,19 @@
 {
   "name": "@odf-console/shared",
-  "description": "ODF console shared code.",
   "version": "0.0.0-beta15",
-  "license": "Apache-2.0",
   "private": false,
-  "main": "src/index.ts",
-  "files": [
-    "src"
-  ],
+  "description": "ODF console shared code.",
   "keywords": [
     "openshift",
     "odf",
     "console",
     "plugin",
     "library"
+  ],
+  "license": "Apache-2.0",
+  "main": "src/index.ts",
+  "files": [
+    "src"
   ],
   "scripts": {
     "build": "rm -rf build && mkdir build && cp -r src package.json LICENSE build",
