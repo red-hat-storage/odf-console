@@ -27,30 +27,32 @@ export const ChartLegendTooltipContent: React.FunctionComponent<
     stack?: boolean;
     mainDataName?: string;
   }
-> = ({
-  activePoints,
-  center,
-  dx = 0,
-  dy = 0,
-  flyoutHeight,
-  flyoutWidth,
-  height,
-  labelComponent = <ChartLegendTooltipLabel />,
-  legendComponent = <ChartLegend />,
-  legendData,
-  text,
-  themeColor,
-  title,
-  titleComponent = <ChartLabel />,
-  width,
-  stack,
-  mainDataName,
-  // destructure last
-  theme = getTheme(themeColor),
-  ...rest
-}) => {
+> = (props) => {
+  const {
+    activePoints,
+    center,
+    dx = 0,
+    dy = 0,
+    flyoutHeight,
+    flyoutWidth,
+    height,
+    labelComponent = <ChartLegendTooltipLabel />,
+    legendComponent = <ChartLegend />,
+    legendData,
+    text,
+    themeColor,
+    title,
+    titleComponent = <ChartLabel />,
+    width,
+    stack,
+    mainDataName,
+    // destructure last
+    theme = getTheme(themeColor),
+    ...rest
+  } = props;
+
   const pointerLength = theme?.tooltip
-    ? Helpers.evaluateProp(theme.tooltip.pointerLength)
+    ? Helpers.evaluateProp(theme.tooltip.pointerLength, props)
     : 10;
   const legendProps = getLegendTooltipDataProps(legendComponent.props);
   const visibleLegendData = getLegendTooltipVisibleData({
@@ -83,7 +85,7 @@ export const ChartLegendTooltipContent: React.FunctionComponent<
       const x = (rest as any).x;
       return x ? x : undefined;
     }
-    const finalFlyoutWidth = Helpers.evaluateProp(flyoutWidth);
+    const finalFlyoutWidth = Helpers.evaluateProp(flyoutWidth, props);
     if (width > center.x + finalFlyoutWidth + pointerLength) {
       return center.x + ChartLegendTooltipStyles.flyout.padding / 2;
     } else if (center.x < finalFlyoutWidth + pointerLength) {
@@ -98,7 +100,7 @@ export const ChartLegendTooltipContent: React.FunctionComponent<
       const y = (rest as any).y;
       return y ? y : undefined;
     }
-    const finalFlyoutHeight = Helpers.evaluateProp(flyoutHeight);
+    const finalFlyoutHeight = Helpers.evaluateProp(flyoutHeight, props);
     if (center.y < finalFlyoutHeight / 2) {
       return ChartLegendTooltipStyles.flyout.padding / 2;
     } else if (center.y > height - finalFlyoutHeight / 2) {
@@ -144,8 +146,8 @@ export const ChartLegendTooltipContent: React.FunctionComponent<
       },
       text: titleText,
       textAnchor: 'start',
-      x: getX() + titleOffsetX + Helpers.evaluateProp(dx),
-      y: getY() + titleOffsetY + Helpers.evaluateProp(dy),
+      x: getX() + titleOffsetX + Helpers.evaluateProp(dx, props),
+      y: getY() + titleOffsetY + Helpers.evaluateProp(dy, props),
       ...titleComponent.props,
     });
   };
@@ -172,8 +174,8 @@ export const ChartLegendTooltipContent: React.FunctionComponent<
       labelComponent: getLabelComponent(),
       standalone: false,
       theme,
-      x: getX() + legendOffsetX + Helpers.evaluateProp(dx),
-      y: getY() + legendOffsetY + Helpers.evaluateProp(dy),
+      x: getX() + legendOffsetX + Helpers.evaluateProp(dx, props),
+      y: getY() + legendOffsetY + Helpers.evaluateProp(dy, props),
       ...legendProps,
     });
 
@@ -239,28 +241,29 @@ export const ChartLegendTooltip: React.FunctionComponent<
     getLabel?: (prop: { datum: DataPoint<Date> }) => string;
     mainDataName: string;
   }
-> = ({
-  activePoints,
-  datum,
-  center = { x: 0, y: 0 },
-  flyoutHeight,
-  flyoutWidth,
-  height,
-  isCursorTooltip = true,
-  mainDataName,
-  labelComponent = <ChartLegendTooltipContent mainDataName={mainDataName} />,
-  legendData,
-  text,
-  themeColor,
-  width,
-  stack,
-  formatDate,
-  getLabel,
+> = (props) => {
+  const {
+    activePoints,
+    datum,
+    center = { x: 0, y: 0 },
+    flyoutHeight,
+    flyoutWidth,
+    height,
+    isCursorTooltip = true,
+    mainDataName,
+    labelComponent = <ChartLegendTooltipContent mainDataName={mainDataName} />,
+    legendData,
+    text,
+    themeColor,
+    width,
+    stack,
+    formatDate,
+    getLabel,
+    // destructure last
+    theme = getTheme(themeColor),
+    ...rest
+  } = props;
 
-  // destructure last
-  theme = getTheme(themeColor),
-  ...rest
-}) => {
   const title = (d) => {
     if (stack) {
       return formatDate(d);
@@ -273,7 +276,7 @@ export const ChartLegendTooltip: React.FunctionComponent<
       : `No ${mainDataName || 'data'} available`;
   };
   const pointerLength = theme?.tooltip
-    ? Helpers.evaluateProp(theme.tooltip.pointerLength)
+    ? Helpers.evaluateProp(theme.tooltip.pointerLength, props)
     : 10;
   const legendTooltipProps = {
     legendData: getLegendTooltipVisibleData({
