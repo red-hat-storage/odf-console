@@ -103,7 +103,7 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   );
 
   return (
-    <div className="odf-m-pane__form">
+    <div className="ocs-storage-class-encryption__form-dropdown--padding">
       {!isWizardFlow && (
         <h3 className="ocs-install-kms__heading">
           {t('Connect to a Key Management Service')}
