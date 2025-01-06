@@ -231,7 +231,7 @@ export const CreateStoragePoolModal = withHandlePromise(
                 poolType={poolType}
                 existingNames={existingNames}
                 disablePoolType
-                fsName={filesystemName}
+                prefixName={filesystemName}
               />
             )}
           </ModalBody>
