@@ -1,19 +1,33 @@
 import * as React from 'react';
 import { StorageClassEncryptionKMSID } from '@odf/ocs/storage-class/sc-form';
-import { ReclaimPolicy, VolumeBindingMode } from '@odf/shared';
+import {
+  fieldRequirementsTranslations,
+  formSettings,
+  getName,
+  ReclaimPolicy,
+  StorageClassModel,
+  StorageClassResourceKind,
+  TextInputWithFieldRequirements,
+  useYupValidationResolver,
+  VolumeBindingMode,
+} from '@odf/shared';
+import validationRegEx from '@odf/shared/utils/validation';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Dropdown,
   DropdownItem,
   DropdownToggle,
 } from '@patternfly/react-core/deprecated';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import * as Yup from 'yup';
 import {
   Checkbox,
   FormGroup,
   FormHelperText,
   HelperText,
   HelperTextItem,
-  TextInput,
+  TextInputTypes,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import {
@@ -50,6 +64,56 @@ const StorageClassForm: React.FC<StorageClassFormProps> = ({
       payload: paramName,
     });
   };
+
+  const [data, loaded, loadError] = useK8sWatchResource<
+    StorageClassResourceKind[]
+  >({
+    kind: StorageClassModel.kind,
+    namespaced: false,
+    isList: true,
+  });
+
+  const { schema, fieldRequirements } = React.useMemo(() => {
+    const existingNames =
+      loaded && !loadError ? data?.map((dataItem) => getName(dataItem)) : [];
+
+    const fieldRequirements = [
+      fieldRequirementsTranslations.maxChars(t, 253),
+      fieldRequirementsTranslations.startAndEndName(t),
+      fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
+      fieldRequirementsTranslations.cannotBeUsedBefore(t),
+    ];
+
+    const schema = Yup.object({
+      'attach-storage-storageclass-name': Yup.string()
+        .required()
+        .max(253, fieldRequirements[0])
+        .matches(
+          validationRegEx.startAndEndsWithAlphanumerics,
+          fieldRequirements[1]
+        )
+        .matches(
+          validationRegEx.alphaNumericsPeriodsHyphensNonConsecutive,
+          fieldRequirements[2]
+        )
+        .test(
+          'unique-name',
+          fieldRequirements[3],
+          (value: string) => !existingNames.includes(value)
+        ),
+    });
+
+    return { schema, fieldRequirements };
+  }, [data, loadError, loaded, t]);
+
+  const resolver = useYupValidationResolver(schema);
+  const {
+    control,
+    formState: { isValid },
+  } = useForm({
+    ...formSettings,
+    resolver,
+  });
 
   const reclaimPolicyDropdownItems = React.useMemo(() => {
     return Object.values(ReclaimPolicy).map((policy) => (
@@ -165,26 +229,33 @@ const StorageClassForm: React.FC<StorageClassFormProps> = ({
         className="attachstorage-storageclass__text-input "
         fieldId="attachstorage-storageclass"
       >
-        <label
-          className="control-label co-required"
-          htmlFor="storageclass-name-input"
-        >
-          {t('New StorageClass name')}
-        </label>
-        <TextInput
-          data-test="storageclass-name-text"
-          id="storageclass-name"
-          data-testid="storageclass-name"
-          value={state.storageClassDetails.name}
-          type="text"
-          placeholder={t('Enter a unique StorageClass name')}
-          onChange={(_event, val: string) => {
-            dispatch({
-              type: AttachStorageActionType.SET_STORAGECLASS_NAME,
-              payload: val,
-            });
+        <TextInputWithFieldRequirements
+          control={control}
+          fieldRequirements={fieldRequirements}
+          defaultValue={state.storageClassDetails.name}
+          popoverProps={{
+            headerContent: t('Name requirements'),
+            footerContent: `${t('Example')}: my-storage-class`,
           }}
-          isRequired
+          formGroupProps={{
+            label: t('New StorageClass name'),
+            fieldId: 'attach-storage-storageclass-name',
+          }}
+          textInputProps={{
+            id: 'attach-storage-storageclass-name',
+            name: 'attach-storage-storageclass-name',
+            type: TextInputTypes.text,
+            value: state.storageClassDetails.name,
+            placeholder: 'Enter a unique StorageClass name',
+            'data-test': 'attach-storage-storageclass-name',
+            isRequired: true,
+            onChange: (_event, val) => {
+              dispatch({
+                type: AttachStorageActionType.SET_STORAGECLASS_NAME,
+                payload: isValid ? val : '',
+              });
+            },
+          }}
         />
       </FormGroup>
       <FormGroup>
