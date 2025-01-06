@@ -38,7 +38,7 @@ const useObcFormSchema = (
       fieldRequirementsTranslations.maxChars(t, 253),
       fieldRequirementsTranslations.startAndEndName(t),
       fieldRequirementsTranslations.alphaNumericPeriodAdnHyphen(t),
-      fieldRequirementsTranslations.cannotBeUsedBefore(t),
+      fieldRequirementsTranslations.cannotBeUsedBeforeInNamespace(t),
     ];
 
     const obcNameSchema = Yup.object({

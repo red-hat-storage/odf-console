@@ -14,6 +14,9 @@ export const alphaNumericPeriodAdnHyphen = (t: TFunction) =>
 
 export const cannotBeUsedBefore = (t: TFunction) => t('Cannot be used before');
 
+export const cannotBeUsedBeforeInNamespace = (t: TFunction) =>
+  t('Cannot be used before within the same namespace');
+
 export const uniqueName = (t: TFunction, fieldName: string) =>
   t(`A unique name for the ${fieldName} within the project`);
 
@@ -23,5 +26,6 @@ export const fieldRequirementsTranslations = {
   startAndEndName,
   alphaNumericPeriodAdnHyphen,
   cannotBeUsedBefore,
+  cannotBeUsedBeforeInNamespace,
   uniqueName,
 };
