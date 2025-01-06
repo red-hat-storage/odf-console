@@ -369,7 +369,7 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
           poolType={poolType}
           existingNames={existingNames}
           onPoolTypeChange={onPoolTypeChange}
-          fsName={fsName}
+          prefixName={fsName}
         />
         <StoragePoolFooter
           state={state}
