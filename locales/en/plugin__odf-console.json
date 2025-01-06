@@ -712,7 +712,6 @@
   "Select VolumeBinding Mode": "Select VolumeBinding Mode",
   "Determines what persistent volume claims will be provisioned and bound. Defaults to 'WaitForFirstCustomer'": "Determines what persistent volume claims will be provisioned and bound. Defaults to 'WaitForFirstCustomer'",
   "New StorageClass name": "New StorageClass name",
-  "Enter a unique StorageClass name": "Enter a unique StorageClass name",
   "Enable encryption on StorageClass": "Enable encryption on StorageClass",
   "BucketName": "BucketName",
   "Type": "Type",
