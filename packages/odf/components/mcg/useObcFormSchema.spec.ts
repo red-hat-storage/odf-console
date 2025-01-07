@@ -28,9 +28,9 @@ const defaultState = { scProvisioner: '' } as State;
 const defaultSc = 'test-storageclass';
 
 describe('useObcFormSchema tests', () => {
-  it('should return error "Cannot be used before"', async () => {
+  it('should return error "Cannot be used before within the same namespace"', async () => {
     const obcName = 'test';
-    const expected = 'Cannot be used before';
+    const expected = 'Cannot be used before within the same namespace';
     const spy = jest.spyOn(selectors, 'getName');
     const { result } = renderHook(() =>
       useObcFormSchema(defaultNs, defaultState)
