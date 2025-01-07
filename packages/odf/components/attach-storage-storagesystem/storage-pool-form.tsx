@@ -98,7 +98,13 @@ const StoragePoolForm: React.FC<StoragePoolFormProps> = ({
           poolType={state.poolType}
           existingNames={existingNames}
           onPoolTypeChange={onPoolTypeChange}
-          fsName={fsName}
+          prefixName={
+            state.poolType === PoolType.FILESYSTEM
+              ? fsName
+              : `${clusterName}-cephblockpool`
+          }
+          usePrefix={state.poolType !== PoolType.FILESYSTEM}
+          placeholder={state.lsoStorageClassName}
         />
       )}
     </div>

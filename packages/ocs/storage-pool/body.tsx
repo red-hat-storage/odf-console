@@ -99,7 +99,9 @@ export type StoragePoolBodyProps = {
   onPoolTypeChange?: (newPoolType: PoolType) => void;
   disablePoolType?: boolean;
   isUpdate?: boolean;
-  fsName?: string;
+  prefixName?: string;
+  usePrefix?: boolean;
+  placeholder?: string;
 };
 
 export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
@@ -112,7 +114,9 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   onPoolTypeChange,
   disablePoolType,
   isUpdate,
-  fsName,
+  prefixName,
+  usePrefix,
+  placeholder,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -171,12 +175,15 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
 
   React.useEffect(() => {
     // Update pool name: set empty on validation error.
-    const payload = errors?.newPoolName ? '' : poolName;
+    const possiblyPrefixedPoolName = usePrefix
+      ? `${prefixName}-${poolName}`
+      : poolName;
+    const payload = errors?.newPoolName ? '' : possiblyPrefixedPoolName;
     dispatch({
       type: StoragePoolActionType.SET_POOL_NAME,
       payload: payload,
     });
-  }, [poolName, dispatch, errors?.newPoolName]);
+  }, [poolName, dispatch, errors?.newPoolName, prefixName, usePrefix]);
 
   // Failure Domain
   React.useEffect(() => {
@@ -299,11 +306,11 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           name: 'newPoolName',
           'data-test': 'new-pool-name-textbox',
           'aria-describedby': t('pool-name-help'),
-          placeholder: t('my-pool'),
+          placeholder: placeholder || t('my-pool'),
           isDisabled: isUpdate,
         }}
         infoElement={
-          poolType === PoolType.FILESYSTEM && (
+          (usePrefix || poolType === PoolType.FILESYSTEM) && (
             <>
               <Icon status="info">
                 <InfoCircleIcon />
@@ -317,12 +324,12 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           )
         }
         inputPrefixElement={
-          poolType === PoolType.FILESYSTEM && (
+          (usePrefix || poolType === PoolType.FILESYSTEM) && (
             <>
               <TextInput
-                id="cephfs-pool-prefix"
-                className="cephfs-pool-prefix"
-                value={fsName}
+                id="pool-prefix"
+                className="pool-prefix"
+                value={prefixName}
                 isDisabled={true}
               />
               <div className="pf-v5-u-ml-sm pf-v5-u-mr-sm">-</div>
