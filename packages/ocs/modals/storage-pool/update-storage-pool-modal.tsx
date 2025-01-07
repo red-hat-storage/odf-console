@@ -275,7 +275,7 @@ const UpdateStoragePoolModalBase: React.FC<UpdateStoragePoolModalBaseProps> = (
                 poolType={resource.type}
                 disablePoolType
                 isUpdate
-                fsName={PoolType.FILESYSTEM && resource.fsName}
+                prefixName={PoolType.FILESYSTEM && resource.fsName}
               />
             )}
           </ModalBody>
