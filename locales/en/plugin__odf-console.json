@@ -1480,6 +1480,7 @@
   "Starts and ends with a lowercase letter or number": "Starts and ends with a lowercase letter or number",
   "Only lowercase letters, numbers, non-consecutive periods, or hyphens": "Only lowercase letters, numbers, non-consecutive periods, or hyphens",
   "Cannot be used before": "Cannot be used before",
+  "Cannot be used before within the same namespace": "Cannot be used before within the same namespace",
   "Not enough usage data": "Not enough usage data",
   "Total requests: ": "Total requests: ",
   "used": "used",
