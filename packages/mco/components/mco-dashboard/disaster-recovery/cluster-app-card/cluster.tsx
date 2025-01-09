@@ -93,7 +93,7 @@ const checkKubeObjBackupHealth = (
 };
 
 const OperatorsHealthPopUp: React.FC<OperatorsHealthPopUpProps> = ({
-  clusterCSVStatus,
+  clusterOperatorStatus,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -110,13 +110,13 @@ const OperatorsHealthPopUp: React.FC<OperatorsHealthPopUpProps> = ({
           <Status
             icon={
               healthStateMapping[
-                clusterCSVStatus?.[ODR_CLUSTER_OPERATOR] !== '1'
+                clusterOperatorStatus?.[ODR_CLUSTER_OPERATOR] !== '1'
                   ? HealthState.ERROR
                   : HealthState.OK
               ].icon
             }
             value={
-              clusterCSVStatus?.[ODR_CLUSTER_OPERATOR] !== '1'
+              clusterOperatorStatus?.[ODR_CLUSTER_OPERATOR] !== '1'
                 ? t('Degraded')
                 : t('Healthy')
             }
@@ -126,13 +126,13 @@ const OperatorsHealthPopUp: React.FC<OperatorsHealthPopUpProps> = ({
           <Status
             icon={
               healthStateMapping[
-                clusterCSVStatus?.[VOL_SYNC] !== '1'
+                clusterOperatorStatus?.[VOL_SYNC] !== '1'
                   ? HealthState.ERROR
                   : HealthState.OK
               ].icon
             }
             value={
-              clusterCSVStatus?.[VOL_SYNC] !== '1'
+              clusterOperatorStatus?.[VOL_SYNC] !== '1'
                 ? t('Degraded')
                 : t('Healthy')
             }
@@ -149,22 +149,26 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
   clusterResources,
   csvData,
   clusterName,
+  podData,
 }) => {
   const { t } = useCustomTranslation();
 
-  const clusterCSVStatus = React.useMemo(
-    () =>
-      csvData?.data?.result?.reduce((acc, item: PrometheusResult) => {
-        if (item?.metric.cluster === clusterName) {
-          item?.metric.name.startsWith(ODR_CLUSTER_OPERATOR) &&
-            (acc[ODR_CLUSTER_OPERATOR] = item?.value[1]);
-          item?.metric.name.startsWith(VOL_SYNC) &&
-            (acc[VOL_SYNC] = item?.value[1]);
-        }
-        return acc;
-      }, {} as ClusterCSVStatus) || ({} as ClusterCSVStatus),
-    [csvData, clusterName]
-  );
+  const clusterOperatorStatus = React.useMemo(() => {
+    const operatorStatus = {};
+    csvData?.data?.result?.forEach((item: PrometheusResult) => {
+      if (item?.metric.cluster === clusterName) {
+        item?.metric.name.startsWith(ODR_CLUSTER_OPERATOR) &&
+          (operatorStatus[ODR_CLUSTER_OPERATOR] = item?.value[1]);
+      }
+    });
+    podData?.data?.result?.forEach((item: PrometheusResult) => {
+      if (item?.metric.cluster === clusterName) {
+        item?.metric.pod.startsWith(VOL_SYNC) &&
+          (operatorStatus[VOL_SYNC] = item?.value[1]);
+      }
+    });
+    return operatorStatus as ClusterOperatorStatus;
+  }, [csvData, clusterName, podData]);
 
   return (
     <div className="mco-cluster-app__cluster-health-section">
@@ -184,13 +188,13 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
         title={t('Operators health')}
         // for csv status metrics, '1' means healthy
         state={
-          clusterCSVStatus?.[ODR_CLUSTER_OPERATOR] !== '1' ||
-          clusterCSVStatus?.[VOL_SYNC] !== '1'
+          clusterOperatorStatus?.[ODR_CLUSTER_OPERATOR] !== '1' ||
+          clusterOperatorStatus?.[VOL_SYNC] !== '1'
             ? HealthState.ERROR
             : HealthState.OK
         }
       >
-        <OperatorsHealthPopUp clusterCSVStatus={clusterCSVStatus} />
+        <OperatorsHealthPopUp clusterOperatorStatus={clusterOperatorStatus} />
       </HealthItem>
     </div>
   );
@@ -425,19 +429,20 @@ export const UtilizationCard: React.FC<UtilizationCardProps> = ({
   );
 };
 
-type ClusterCSVStatus = {
+type ClusterOperatorStatus = {
   [ODR_CLUSTER_OPERATOR]: string;
   [VOL_SYNC]: string;
 };
 
 type OperatorsHealthPopUpProps = {
-  clusterCSVStatus: ClusterCSVStatus;
+  clusterOperatorStatus: ClusterOperatorStatus;
 };
 
 type HealthSectionProps = {
   clusterResources: DRClusterAppsMap;
   csvData: PrometheusResponse;
   clusterName: string;
+  podData: PrometheusResponse;
 };
 
 type PeerConnectionSectionProps = {
