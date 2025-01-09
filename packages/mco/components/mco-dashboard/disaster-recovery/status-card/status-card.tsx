@@ -31,7 +31,7 @@ import {
 } from '@patternfly/react-core';
 import { DRClusterAppsMap } from '../../../../types';
 import {
-  CSVStatusesContext,
+  OperatorStatusesContext,
   DRResourcesContext,
 } from '../dr-dashboard-context';
 import './status-card.scss';
@@ -42,7 +42,9 @@ const operatorResource: WatchK8sResource = {
   isList: true,
 };
 const drOperators: string[] = [ODFMCO_OPERATOR, ODR_HUB_OPERATOR];
-const clusterOperators: string[] = [ODR_CLUSTER_OPERATOR, VOL_SYNC];
+const clusterCSVOperators: string[] = [ODR_CLUSTER_OPERATOR];
+// Monitoring non CSV operator as POD
+const clusterPodOperators: string[] = [VOL_SYNC];
 
 const getDRCombinedStatus = (
   csvHubData: ClusterServiceVersionKind[],
@@ -61,26 +63,53 @@ const getDRCombinedStatus = (
   return getOperatorHealthState(worstPhase, !csvHubLoaded, csvHubError);
 };
 
+const getClusterWiseHealth = (
+  prometheusResponse: PrometheusResponse,
+  operators: string[],
+  label: string,
+  drClusters: string[],
+  clusterHealthStatus: ClusterWiseHealth
+): ClusterWiseHealth => {
+  return prometheusResponse?.data?.result?.reduce((acc, item) => {
+    const cluster = item?.metric.cluster;
+    let count = acc?.[cluster] || 0;
+    acc =
+      drClusters.includes(cluster) &&
+      !!operators.find((operator: string) =>
+        item?.metric?.[label].startsWith(operator)
+      )
+        ? { ...acc, [cluster]: item?.value[1] !== '1' ? count : count + 1 }
+        : acc;
+    return acc;
+  }, clusterHealthStatus);
+};
+
 const getClustersOperatorHealth = (
   csvManagedData: PrometheusResponse,
-  drClusterAppsMap: DRClusterAppsMap
+  drClusterAppsMap: DRClusterAppsMap,
+  podManagedData: PrometheusResponse
 ) => {
   const drClusters = Object.keys(drClusterAppsMap);
-  const clusterWiseHealth: ClusterWiseHealth =
-    csvManagedData?.data?.result?.reduce((acc, item) => {
-      const cluster = item?.metric.cluster;
-      let count = acc?.[cluster] || 0;
-      acc =
-        drClusters.includes(cluster) &&
-        !!clusterOperators.find((operator: string) =>
-          item?.metric.name.startsWith(operator)
-        )
-          ? { ...acc, [cluster]: item?.value[1] !== '1' ? count : count + 1 }
-          : acc;
-      return acc;
-    }, {});
+  // Create cluster wise health map
+  let clusterWiseHealth: ClusterWiseHealth = getClusterWiseHealth(
+    csvManagedData,
+    clusterCSVOperators,
+    'name',
+    drClusters,
+    {}
+  );
+  // Update cluster wise health map
+  clusterWiseHealth = getClusterWiseHealth(
+    podManagedData,
+    clusterPodOperators,
+    'pod',
+    drClusters,
+    clusterWiseHealth
+  );
   return drClusters?.every(
-    (cluster) => clusterWiseHealth?.[cluster] === clusterOperators.length
+    (cluster) =>
+      clusterWiseHealth?.[cluster] ===
+      clusterCSVOperators.length + clusterPodOperators.length
   )
     ? HealthState.OK
     : HealthState.ERROR;
@@ -92,10 +121,18 @@ export const StatusCard: React.FC = () => {
     useK8sWatchResource<ClusterServiceVersionKind[]>(operatorResource);
 
   const {
-    csvData: csvManagedData,
-    csvError: csvManagedError,
-    csvLoading: csvManagedLoading,
-  } = React.useContext(CSVStatusesContext);
+    csvStatus: {
+      data: csvManagedData,
+      error: csvManagedError,
+      loading: csvManagedLoading,
+    },
+    podStatus: {
+      data: podManagedData,
+      error: podManagedError,
+      loading: podManagedLoading,
+    },
+  } = React.useContext(OperatorStatusesContext);
+
   const { drClusterAppsMap, loaded, loadError } =
     React.useContext(DRResourcesContext);
 
@@ -105,14 +142,24 @@ export const StatusCard: React.FC = () => {
     csvHubLoaded,
     csvHubError
   ).state;
-  const allManagedLoaded = loaded && !csvManagedLoading;
-  const anyManagedError = csvManagedError || loadError;
+  const allManagedLoaded = loaded && !csvManagedLoading && !podManagedLoading;
+  const anyManagedError = csvManagedError || loadError || podManagedError;
   // combined status of all cluster operators (odr-cluster and vol-sync)
   const clusterOperatorHealthStatus = React.useMemo(() => {
     if (!allManagedLoaded && !anyManagedError) return HealthState.LOADING;
     if (anyManagedError) return HealthState.NOT_AVAILABLE;
-    return getClustersOperatorHealth(csvManagedData, drClusterAppsMap);
-  }, [csvManagedData, drClusterAppsMap, allManagedLoaded, anyManagedError]);
+    return getClustersOperatorHealth(
+      csvManagedData,
+      drClusterAppsMap,
+      podManagedData
+    );
+  }, [
+    csvManagedData,
+    drClusterAppsMap,
+    allManagedLoaded,
+    anyManagedError,
+    podManagedData,
+  ]);
 
   return (
     <Card data-test="operator-status-card">

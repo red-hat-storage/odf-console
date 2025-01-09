@@ -2,18 +2,25 @@ import * as React from 'react';
 import { DRClusterAppsMap } from '@odf/mco/types';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 
-export const CSVStatusesContext = React.createContext<CSVStatusesContextType>(
-  {} as CSVStatusesContextType
-);
+export const OperatorStatusesContext =
+  React.createContext<OperatorStatusesContextType>(
+    {} as OperatorStatusesContextType
+  );
 
 export const DRResourcesContext = React.createContext<DRResourcesContextType>(
   {} as DRResourcesContextType
 );
 
-type CSVStatusesContextType = {
-  csvData: PrometheusResponse;
-  csvError: any;
-  csvLoading: boolean;
+type StatusesContextType = {
+  data: PrometheusResponse;
+  error: any;
+  loading: boolean;
+};
+
+type OperatorStatusesContextType = {
+  csvStatus: StatusesContextType;
+  // Alternate way for non CSV operator status monitoring
+  podStatus: StatusesContextType;
 };
 
 type DRResourcesContextType = {
