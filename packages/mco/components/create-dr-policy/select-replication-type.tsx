@@ -65,7 +65,7 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
     const cephFSID1 =
       selectedClusters[0]?.odfInfo?.storageClusterInfo?.cephFSID;
     const cephFSID2 =
-      selectedClusters[2]?.odfInfo?.storageClusterInfo?.cephFSID;
+      selectedClusters[1]?.odfInfo?.storageClusterInfo?.cephFSID;
     dispatch({
       type: DRPolicyActionType.SET_REPLICATION_TYPE,
       payload:
