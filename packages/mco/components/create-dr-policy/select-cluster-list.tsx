@@ -1,6 +1,11 @@
 import * as React from 'react';
 import { getManagedClusterResourceObj } from '@odf/mco/hooks';
 import { getName } from '@odf/shared/selectors';
+import {
+  GreenCheckCircleIcon,
+  RedExclamationCircleIcon,
+} from '@odf/shared/status/icons';
+import StatusIconAndText from '@odf/shared/status/StatusIconAndText';
 import { RowComponentType } from '@odf/shared/table';
 import {
   SelectableTable,
@@ -9,10 +14,7 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getPageRange, referenceForModel } from '@odf/shared/utils';
 import {
-  GreenCheckCircleIcon,
   ListPageFilter,
-  RedExclamationCircleIcon,
-  StatusIconAndText,
   useK8sWatchResource,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';

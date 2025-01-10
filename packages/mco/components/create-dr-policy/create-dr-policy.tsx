@@ -170,7 +170,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
             <TextInput
               data-test="policy-name-text"
               id="policy-name"
-              data-testid="policy-name"
+              data-test-id="policy-name"
               value={state.policyName}
               type="text"
               placeholder={t('Enter a policy name')}
@@ -261,7 +261,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
           )}
           <ActionGroup className="mco-create-data-policy__action-group">
             <Button
-              data-testid="create-button"
+              data-test-id="create-button"
               data-test="create-button"
               variant={ButtonVariant.primary}
               onClick={onCreate}
