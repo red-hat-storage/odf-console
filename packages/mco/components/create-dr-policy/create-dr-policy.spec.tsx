@@ -1,296 +1,179 @@
 import * as React from 'react';
+import { ConfigMapKind } from '@odf/shared';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+/* eslint-disable jest/no-mocks-import */
+import { mockDRPolicy2 } from '../../__mocks__/drpolicy';
+import {
+  mockManagedClusterEast1,
+  mockManagedClusterEast2,
+  mockManagedClusterWest1,
+  mockManagedClusterWest2Down,
+} from '../../__mocks__/managedcluster';
 import {
   ACMManagedClusterModel,
+  ACMManagedClusterViewModel,
   DRPolicyModel,
   MirrorPeerModel,
 } from '../../models';
-import { ACMManagedClusterKind } from '../../types';
+import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
 import CreateDRPolicy from './create-dr-policy';
 
 let drPolicyObj = {};
 let mirrorPeerObj = {};
+let syncPolicyTest = false;
+let testcase = 1;
+
+const managedClusterViews: ACMManagedClusterViewKind[][] = [
+  [
+    {
+      apiVersion: 'cluster.open-cluster-management.io/v1',
+      kind: 'ManagedClusterView',
+      metadata: {
+        name: 'mcv',
+        namespace: 'east-1',
+      },
+      status: {
+        result: {
+          apiVersion: 'v1',
+          data: {
+            'openshift-storage_ocs-storagecluster.config.yaml':
+              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+          },
+          kind: 'ConfigMap',
+          metadata: {
+            name: 'odf-info',
+            namespace: 'openshift-storage',
+          },
+        } as ConfigMapKind,
+      },
+    },
+    {
+      apiVersion: 'cluster.open-cluster-management.io/v1',
+      kind: 'ManagedClusterView',
+      metadata: {
+        name: 'mcv',
+        namespace: 'west-1',
+      },
+      status: {
+        result: {
+          apiVersion: 'v1',
+          data: {
+            'openshift-storage_ocs-storagecluster.config.yaml':
+              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: cb805a94-bd68-41a7-9a89-6d420ae02002\n  storageClusterUID: 9dd5f858-d6ec-4d38-af41-16cc9cacabd4\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+          },
+          kind: 'ConfigMap',
+          metadata: {
+            name: 'odf-info',
+            namespace: 'openshift-storage',
+          },
+        } as ConfigMapKind,
+      },
+    },
+    {
+      apiVersion: 'cluster.open-cluster-management.io/v1',
+      kind: 'ManagedClusterView',
+      metadata: {
+        name: 'mcv',
+        namespace: 'east-2',
+      },
+      status: {
+        result: {
+          apiVersion: 'v1',
+          data: {
+            'openshift-storage_ocs-storagecluster.config.yaml':
+              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+          },
+          kind: 'ConfigMap',
+          metadata: {
+            name: 'odf-info',
+            namespace: 'openshift-storage',
+          },
+        } as ConfigMapKind,
+      },
+    },
+  ],
+  [
+    {
+      apiVersion: 'cluster.open-cluster-management.io/v1',
+      kind: 'ManagedClusterView',
+      metadata: {
+        name: 'mcv',
+        namespace: 'east-1',
+      },
+      status: {
+        result: {
+          apiVersion: 'v1',
+          data: {
+            'openshift-storage_ocs-storagecluster.config.yaml':
+              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+          },
+          kind: 'ConfigMap',
+          metadata: {
+            name: 'odf-info',
+            namespace: 'openshift-storage',
+          },
+        } as ConfigMapKind,
+      },
+    },
+    {
+      apiVersion: 'cluster.open-cluster-management.io/v1',
+      kind: 'ManagedClusterView',
+      metadata: {
+        name: 'mcv',
+        namespace: 'east-2',
+      },
+      status: {
+        result: {
+          apiVersion: 'v1',
+          data: {
+            'openshift-storage_ocs-storagecluster.config.yaml':
+              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+          },
+          kind: 'ConfigMap',
+          metadata: {
+            name: 'odf-info',
+            namespace: 'openshift-storage',
+          },
+        } as ConfigMapKind,
+      },
+    },
+    {
+      apiVersion: 'cluster.open-cluster-management.io/v1',
+      kind: 'ManagedClusterView',
+      metadata: {
+        name: 'mcv',
+        namespace: 'west-1',
+      },
+      status: {
+        result: {
+          apiVersion: 'v1',
+          data: {
+            'openshift-storage_ocs-storagecluster.config.yaml':
+              'version: 4.17.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: cb805a94-bd68-41a7-9a89-6d420ae02002\n  storageClusterUID: 9dd5f858-d6ec-4d38-af41-16cc9cacabd4\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+          },
+          kind: 'ConfigMap',
+          metadata: {
+            name: 'odf-info',
+            namespace: 'openshift-storage',
+          },
+        } as ConfigMapKind,
+      },
+    },
+  ],
+];
 
 const managedClusters: ACMManagedClusterKind[] = [
-  {
-    apiVersion: 'cluster.open-cluster-management.io/v1',
-    kind: 'ManagedCluster',
-    metadata: {
-      name: 'east-1',
-    },
-    status: {
-      clusterClaims: [
-        {
-          name: 'region.open-cluster-management.io',
-          value: 'us-east-1',
-        },
-      ],
-      conditions: [
-        {
-          type: 'ManagedClusterJoined',
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster joined',
-          reason: 'ManagedClusterJoined',
-          status: 'True',
-        },
-        {
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster is available',
-          reason: 'ManagedClusterAvailable',
-          status: 'True',
-          type: 'ManagedClusterConditionAvailable',
-        },
-      ],
-    },
-  },
-  {
-    apiVersion: 'cluster.open-cluster-management.io/v1',
-    kind: 'ManagedCluster',
-    metadata: {
-      name: 'west-1',
-    },
-    status: {
-      clusterClaims: [
-        {
-          name: 'region.open-cluster-management.io',
-          value: 'us-west-1',
-        },
-      ],
-      conditions: [
-        {
-          type: 'ManagedClusterJoined',
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster joined',
-          reason: 'ManagedClusterJoined',
-          status: 'True',
-        },
-        {
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster is available',
-          reason: 'ManagedClusterAvailable',
-          status: 'True',
-          type: 'ManagedClusterConditionAvailable',
-        },
-      ],
-    },
-  },
-  {
-    apiVersion: 'cluster.open-cluster-management.io/v1',
-    kind: 'ManagedCluster',
-    metadata: {
-      name: 'east-2',
-    },
-    status: {
-      clusterClaims: [
-        {
-          name: 'region.open-cluster-management.io',
-          value: 'us-east-2',
-        },
-      ],
-      conditions: [
-        {
-          type: 'ManagedClusterJoined',
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster joined',
-          reason: 'ManagedClusterJoined',
-          status: 'False',
-        },
-      ],
-    },
-  },
-  {
-    apiVersion: 'cluster.open-cluster-management.io/v1',
-    kind: 'ManagedCluster',
-    metadata: {
-      name: 'west-2',
-    },
-    status: {
-      clusterClaims: [
-        {
-          name: 'region.open-cluster-management.io',
-          value: 'us-west-2',
-        },
-      ],
-      conditions: [
-        {
-          type: 'ManagedClusterJoined',
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster joined',
-          reason: 'ManagedClusterJoined',
-          status: 'True',
-        },
-        {
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster is available',
-          reason: 'ManagedClusterAvailable',
-          status: 'False',
-          type: 'ManagedClusterConditionAvailable',
-        },
-      ],
-    },
-  },
-  {
-    apiVersion: 'cluster.open-cluster-management.io/v1',
-    kind: 'ManagedCluster',
-    metadata: {
-      name: 'east-3',
-    },
-    status: {
-      clusterClaims: [
-        {
-          name: 'region.open-cluster-management.io',
-          value: 'us-east-3',
-        },
-      ],
-      conditions: [
-        {
-          type: 'ManagedClusterJoined',
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster joined',
-          reason: 'ManagedClusterJoined',
-          status: 'True',
-        },
-        {
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster is available',
-          reason: 'ManagedClusterAvailable',
-          status: 'True',
-          type: 'ManagedClusterConditionAvailable',
-        },
-      ],
-    },
-  },
-  {
-    apiVersion: 'cluster.open-cluster-management.io/v1',
-    kind: 'ManagedCluster',
-    metadata: {
-      name: 'west-3',
-    },
-    status: {
-      clusterClaims: [
-        {
-          name: 'region.open-cluster-management.io',
-          value: 'us-west-3',
-        },
-      ],
-      conditions: [
-        {
-          type: 'ManagedClusterJoined',
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster joined',
-          reason: 'ManagedClusterJoined',
-          status: 'True',
-        },
-        {
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster is available',
-          reason: 'ManagedClusterAvailable',
-          status: 'True',
-          type: 'ManagedClusterConditionAvailable',
-        },
-      ],
-    },
-  },
-  {
-    apiVersion: 'cluster.open-cluster-management.io/v1',
-    kind: 'ManagedCluster',
-    metadata: {
-      name: 'east-4',
-    },
-    status: {
-      clusterClaims: [
-        {
-          name: 'region.open-cluster-management.io',
-          value: 'us-east-4',
-        },
-      ],
-      conditions: [
-        {
-          type: 'ManagedClusterJoined',
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster joined',
-          reason: 'ManagedClusterJoined',
-          status: 'True',
-        },
-        {
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster is available',
-          reason: 'ManagedClusterAvailable',
-          status: 'True',
-          type: 'ManagedClusterConditionAvailable',
-        },
-      ],
-    },
-  },
-  {
-    apiVersion: 'cluster.open-cluster-management.io/v1',
-    kind: 'ManagedCluster',
-    metadata: {
-      name: 'west-4',
-    },
-    status: {
-      clusterClaims: [
-        {
-          name: 'region.open-cluster-management.io',
-          value: 'us-west-4',
-        },
-      ],
-      conditions: [
-        {
-          type: 'ManagedClusterJoined',
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster joined',
-          reason: 'ManagedClusterJoined',
-          status: 'True',
-        },
-        {
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster is available',
-          reason: 'ManagedClusterAvailable',
-          status: 'True',
-          type: 'ManagedClusterConditionAvailable',
-        },
-      ],
-    },
-  },
-  {
-    apiVersion: 'cluster.open-cluster-management.io/v1',
-    kind: 'ManagedCluster',
-    metadata: {
-      name: 'east-5',
-    },
-    status: {
-      clusterClaims: [
-        {
-          name: 'region.open-cluster-management.io',
-          value: 'us-east-5',
-        },
-      ],
-      conditions: [
-        {
-          type: 'ManagedClusterJoined',
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster joined',
-          reason: 'ManagedClusterJoined',
-          status: 'True',
-        },
-        {
-          lastTransitionTime: '2023-11-29T04:30:13Z',
-          message: 'Managed cluster is available',
-          reason: 'ManagedClusterAvailable',
-          status: 'True',
-          type: 'ManagedClusterConditionAvailable',
-        },
-      ],
-    },
-  },
+  mockManagedClusterEast1,
+  mockManagedClusterWest1,
+  mockManagedClusterEast2,
+  mockManagedClusterWest2Down,
 ];
 
 const csv = {
   apiVersion: 'operators.coreos.com/v1alpha1',
   kind: 'ClusterServiceVersion',
   spec: {
-    version: '4.14.0',
+    version: '4.18.0',
   },
 };
 
@@ -308,6 +191,22 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
       `${ACMManagedClusterModel.apiGroup}~${ACMManagedClusterModel.apiVersion}~${ACMManagedClusterModel.kind}`
     ) {
       return [managedClusters, true, ''];
+    }
+    if (
+      kind ===
+      `${ACMManagedClusterViewModel.apiGroup}~${ACMManagedClusterViewModel.apiVersion}~${ACMManagedClusterViewModel.kind}`
+    ) {
+      if ([1, 3, 4].includes(testcase)) {
+        return [managedClusterViews[0], true, ''];
+      } else if ([2, 5, 6].includes(testcase)) {
+        return [managedClusterViews[1], true, ''];
+      }
+    }
+    if (
+      kind ===
+      `${DRPolicyModel.apiGroup}~${DRPolicyModel.apiVersion}~${DRPolicyModel.kind}`
+    ) {
+      return syncPolicyTest ? [[mockDRPolicy2], true, ''] : [[], true, ''];
     } else {
       return [[], true, ''];
     }
@@ -320,21 +219,24 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
     }
     return [Promise.resolve({ data: {} })];
   }),
+  useListPageFilter: jest.fn((clusters) => [clusters, clusters, jest.fn()]),
+  ListPageFilter: jest.fn(() => null),
 }));
 
 jest.mock('@odf/shared/hooks/use-fetch-csv', () => ({
   useFetchCsv: jest.fn(() => [csv]),
 }));
 
-// todo(bipuladh): Enable tests
-// eslint-disable-next-line
-xdescribe('Test drpolicy list page', () => {
+describe('Test drpolicy list page', () => {
   beforeEach(() => {
     render(<CreateDRPolicy />);
   });
-  test('DR policy creation test', async () => {
+
+  test('Regional-DR policy creation happy path testing', async () => {
+    testcase = 1;
     // Title
     expect(screen.getByText('Create DRPolicy')).toBeInTheDocument();
+
     // Description
     expect(
       screen.getByText(
@@ -347,9 +249,11 @@ xdescribe('Test drpolicy list page', () => {
 
     // Enter policy name
     expect(screen.getByText('Policy name')).toBeInTheDocument();
-    fireEvent.change(screen.getByTestId('policy-name'), {
-      target: { value: 'policy-1' },
-    });
+    await waitFor(() =>
+      fireEvent.change(screen.getByTestId('policy-name'), {
+        target: { value: 'policy-1' },
+      })
+    );
 
     // Managed cluster paring
     expect(screen.getByText('Connect clusters')).toBeInTheDocument();
@@ -358,53 +262,35 @@ xdescribe('Test drpolicy list page', () => {
         'Enables mirroring/replication between two selected clusters, ensuring failover or relocation between the two clusters in the event of an outage or planned maintenance.'
       )
     ).toBeInTheDocument();
-    await waitFor(() => {
-      fireEvent.click(screen.getAllByText('Region')[0]);
-      expect(screen.getByText('us-east-1')).toBeInTheDocument();
-      expect(screen.getByText('us-east-3')).toBeInTheDocument();
-      expect(screen.getByText('us-east-4')).toBeInTheDocument();
-      expect(screen.getByText('us-west-1')).toBeInTheDocument();
-      expect(screen.getByText('us-west-2')).toBeInTheDocument();
-      expect(screen.getByText('us-west-3')).toBeInTheDocument();
-      expect(screen.getByText('us-west-4')).toBeInTheDocument();
-    });
-    // Managed cluster listing
-    expect(screen.getByText('east-1')).toBeInTheDocument();
-    expect(screen.getByText('east-3')).toBeInTheDocument();
-    expect(screen.getByText('east-4')).toBeInTheDocument();
-    expect(screen.getByText('west-1')).toBeInTheDocument();
-    expect(screen.getByText('west-2')).toBeInTheDocument();
-    expect(screen.getByText('west-3')).toBeInTheDocument();
-    expect(screen.getByText('west-4')).toBeInTheDocument();
 
-    // Select east-1
-    await waitFor(() => fireEvent.click(screen.getByTestId('east-1')));
-    // Select west-1
-    await waitFor(() => fireEvent.click(screen.getByTestId('west-1')));
-    // Verify selected cluster info
-    expect(screen.getByText('Selected clusters')).toBeInTheDocument();
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    expect(screen.getByLabelText('Select row 0')).toBeChecked();
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 1')));
+    expect(screen.getByLabelText('Select row 1')).toBeChecked();
+
+    // Verify successful cluster selection
     expect(screen.getAllByText('east-1').length === 2).toBeTruthy();
     expect(screen.getAllByText('west-1').length === 2).toBeTruthy();
     expect(
       screen.getAllByText('ocs-storagecluster-storagesystem').length === 2
     ).toBeTruthy();
-    expect(screen.getAllByText('us-east-1').length === 2).toBeTruthy();
-    expect(screen.getAllByText('us-west-1').length === 2).toBeTruthy();
-
-    // Replication type
-    expect(screen.getByText('Replication policy')).toBeInTheDocument();
     expect(screen.getByText('Asynchronous')).toBeInTheDocument();
-
-    // Sync interval
-    expect(screen.getByText('Sync schedule')).toBeInTheDocument();
-    expect(screen.getByText('minutes')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'All disaster recovery prerequisites met for both clusters.'
+      )
+    ).toBeInTheDocument();
 
     // Create button should be enabled
     expect(screen.getByTestId('create-button')).toBeEnabled();
+
+    // Create DRPolicy
     await waitFor(() => fireEvent.click(screen.getByTestId('create-button')));
+
+    // Validate kube object creation
     expect(
       JSON.stringify(drPolicyObj) ===
-        '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy","metadata":{"name":"policy-1"},"spec":{"schedulingInterval":"5m","drClusters":["east-1","west-1"]}}'
+        '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy","metadata":{"name":"policy-1"},"spec":{"replicationClassSelector":{},"schedulingInterval":"5m","drClusters":["east-1","west-1"]}}'
     ).toBeTruthy();
     expect(
       JSON.stringify(mirrorPeerObj) ===
@@ -412,109 +298,142 @@ xdescribe('Test drpolicy list page', () => {
     ).toBeTruthy();
   });
 
-  test('Partially imported cluster test', async () => {
-    let nonExist = false;
-    // Enter policy name
-    expect(screen.getByText('Policy name')).toBeInTheDocument();
-    fireEvent.change(screen.getByTestId('policy-name'), {
-      target: { value: 'policy-1' },
-    });
-    try {
-      // east-2 is partially imported cluster
-      screen.getByText('east-2');
-    } catch (_error) {
-      nonExist = true;
-    }
-    expect(nonExist).toBe(true);
+  test('Metro-DR policy creation happy path testing', async () => {
+    testcase = 2;
     // Create button should be disabled
     expect(screen.getByTestId('create-button')).toBeDisabled();
-  });
 
-  test('Down cluser selection test', async () => {
     // Enter policy name
     expect(screen.getByText('Policy name')).toBeInTheDocument();
-    fireEvent.change(screen.getByTestId('policy-name'), {
-      target: { value: 'policy-1' },
-    });
-    // Select west-2 down cluster
-    await waitFor(() => fireEvent.click(screen.getByTestId('west-2')));
-    // Error message for down cluster
+    await waitFor(() =>
+      fireEvent.change(screen.getByTestId('policy-name'), {
+        target: { value: 'policy-1' },
+      })
+    );
+
+    // Managed cluster paring
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    expect(screen.getByLabelText('Select row 0')).toBeChecked();
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 2')));
+    expect(screen.getByLabelText('Select row 2')).toBeChecked();
+
+    // Verify successful cluster selection
+    expect(screen.getAllByText('east-1').length === 2).toBeTruthy();
+    expect(screen.getAllByText('east-2').length === 2).toBeTruthy();
     expect(
-      screen.getByText('1 or more managed clusters are offline')
+      screen.getAllByText('ocs-storagecluster-storagesystem').length === 2
+    ).toBeTruthy();
+    expect(screen.getByText('Synchronous')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'All disaster recovery prerequisites met for both clusters.'
+      )
+    ).toBeInTheDocument();
+
+    // Create button should be enabled
+    expect(screen.getByTestId('create-button')).toBeEnabled();
+
+    // Create DRPolicy
+    await waitFor(() => fireEvent.click(screen.getByTestId('create-button')));
+
+    // Validate kube object creation
+    expect(
+      JSON.stringify(drPolicyObj) ===
+        '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy","metadata":{"name":"policy-1"},"spec":{"replicationClassSelector":{},"schedulingInterval":"0m","drClusters":["east-1","east-2"]}}'
+    ).toBeTruthy();
+    expect(
+      JSON.stringify(mirrorPeerObj) ===
+        '{"apiVersion":"multicluster.odf.openshift.io/v1alpha1","kind":"MirrorPeer","metadata":{"generateName":"mirrorpeer-"},"spec":{"manageS3":true,"type":"sync","items":[{"clusterName":"east-1","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}},{"clusterName":"east-2","storageClusterRef":{"name":"ocs-storagecluster","namespace":"openshift-storage"}}]}}'
+    ).toBeTruthy();
+  });
+
+  test('Managed cluster down check', async () => {
+    testcase = 3;
+    // Managed cluster paring
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    expect(screen.getByLabelText('Select row 0')).toBeChecked();
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 3')));
+    expect(screen.getByLabelText('Select row 3')).toBeChecked();
+    expect(screen.getByText('Offline')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        '1 or more clusters do not meet disaster recovery cluster prerequisites.'
+      )
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'The status for both the managed clusters must be available for creating a DR policy. To restore a cluster to an available state, refer to the instructions in the ACM documentation.'
+        'The selected managed cluster(s) does not meet all necessary conditions ' +
+          'to be eligible for disaster recovery policy. Resolve the following ' +
+          'issues to proceed with policy creation.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'We could not retrieve any information about the managed cluster {{clusterName}}'
       )
     ).toBeInTheDocument();
     // Create button should be disabled
     expect(screen.getByTestId('create-button')).toBeDisabled();
   });
 
-  test('Multiple ODF cluster selection test', async () => {
-    // Enter policy name
-    expect(screen.getByText('Policy name')).toBeInTheDocument();
-    fireEvent.change(screen.getByTestId('policy-name'), {
-      target: { value: 'policy-1' },
-    });
-    // East-3 multiple ODF cluster
-    expect(screen.getByTestId('east-3')).toBeDisabled();
-    // Create button should be disabled
-    expect(screen.getByTestId('create-button')).toBeDisabled();
+  test('More than two cluster selection', async () => {
+    testcase = 4;
+    // Managed cluster paring
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    expect(screen.getByLabelText('Select row 0')).toBeChecked();
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 1')));
+    expect(screen.getByLabelText('Select row 1')).toBeChecked();
+
+    // Rest of row selections should be disabled
+    expect(screen.getByLabelText('Select row 2')).toBeDisabled();
+    expect(screen.getByLabelText('Select row 3')).toBeDisabled();
   });
 
-  test('Non ODF cluster selection test', async () => {
-    // Enter policy name
-    expect(screen.getByText('Policy name')).toBeInTheDocument();
-    fireEvent.change(screen.getByTestId('policy-name'), {
-      target: { value: 'policy-1' },
-    });
-    // Select west-3 non ODF cluster
-    await waitFor(() => fireEvent.click(screen.getByTestId('west-3')));
-    // Error message for non ODF detection
+  test('MDR single policy check', async () => {
+    testcase = 5;
+    syncPolicyTest = true;
+    // Managed cluster paring
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    expect(screen.getByLabelText('Select row 0')).toBeChecked();
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 2')));
+    expect(screen.getByLabelText('Select row 2')).toBeChecked();
     expect(
-      screen.getByText('Cannot proceed with one or more selected clusters')
+      screen.getByText('Selected clusters cannot be used to create a DRPolicy.')
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'We could not retrieve any information about the managed cluster {{names}}. Check the documentation for potential causes and follow the steps mentioned and try again.'
+        'A mirror peer configuration already exists for one or more of the selected clusters, ' +
+          'either from an existing or deleted DR policy. To create a new DR policy with these clusters, ' +
+          'delete any existing mirror peer configurations associated with them and try again.'
       )
     ).toBeInTheDocument();
-    // Create button should be disabled
-    expect(screen.getByTestId('create-button')).toBeDisabled();
   });
 
-  test('Select partially deployed ODF cluster test', async () => {
-    // Enter policy name
-    expect(screen.getByText('Policy name')).toBeInTheDocument();
-    fireEvent.change(screen.getByTestId('policy-name'), {
-      target: { value: 'policy-1' },
-    });
-    // Select west-4 ceph cluster creation inprogress
-    await waitFor(() => fireEvent.click(screen.getByTestId('west-4')));
-    // Error message for cephFSID not found
-    expect(
-      screen.getByText('{{ names }} is not connected to RHCS')
-    ).toBeInTheDocument();
-    // Create button should be disabled
-    expect(screen.getByTestId('create-button')).toBeDisabled();
-  });
-
-  test('Select unsupported ODF version cluster test', async () => {
-    // Enter policy name
-    expect(screen.getByText('Policy name')).toBeInTheDocument();
-    fireEvent.change(screen.getByTestId('policy-name'), {
-      target: { value: 'policy-1' },
-    });
-    // Select east-4 unsupported ODF operator version
-    await waitFor(() => fireEvent.click(screen.getByTestId('east-4')));
-    // Error message for unsupported ODF version
+  test('Unsupported ODF version check', async () => {
+    testcase = 6;
+    syncPolicyTest = true;
+    // Managed cluster paring
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    expect(screen.getByLabelText('Select row 0')).toBeChecked();
+    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 1')));
+    expect(screen.getByLabelText('Select row 1')).toBeChecked();
     expect(
       screen.getByText(
-        '{{ names }} has either an unsupported Data Foundation version or the Data Foundation operator is missing, install or update to Data Foundation {{ version }} or the latest version to enable DR protection.'
+        '1 or more clusters do not meet disaster recovery cluster prerequisites.'
       )
     ).toBeInTheDocument();
-    // Create button should be disabled
-    expect(screen.getByTestId('create-button')).toBeDisabled();
+    expect(
+      screen.getByText(
+        'The selected managed cluster(s) does not meet all necessary conditions ' +
+          'to be eligible for disaster recovery policy. Resolve the following ' +
+          'issues to proceed with policy creation.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('1 check unsuccessful on the {{clusterName}}:')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Data foundation must be {{version}} or above.')
+    ).toBeInTheDocument();
   });
 });
