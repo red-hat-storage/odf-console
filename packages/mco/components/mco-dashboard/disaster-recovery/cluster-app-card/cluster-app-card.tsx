@@ -46,7 +46,7 @@ import {
 } from '../../../../utils';
 import { getLastSyncPerClusterQuery } from '../../queries';
 import {
-  CSVStatusesContext,
+  OperatorStatusesContext,
   DRResourcesContext,
 } from '../dr-dashboard-context';
 import {
@@ -171,6 +171,7 @@ const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
   protectedPVCData,
   csvData,
   clusterResources,
+  podData,
 }) => {
   const [mirrorPeers] = useK8sWatchResource<MirrorPeerKind[]>({
     kind: referenceForModel(MirrorPeerModel),
@@ -188,6 +189,7 @@ const ClusterWiseCard: React.FC<ClusterWiseCardProps> = ({
           clusterResources={clusterResources}
           csvData={csvData}
           clusterName={clusterName}
+          podData={podData}
         />
       </GridItem>
       <GridItem lg={9} rowSpan={8} sm={12}>
@@ -291,13 +293,18 @@ export const ClusterAppCard: React.FC = () => {
       basePath: usePrometheusBasePath(),
     });
 
-  const { csvData, csvError, csvLoading } =
-    React.useContext(CSVStatusesContext);
+  const {
+    csvStatus: { data: csvData, error: csvError, loading: csvLoading },
+    podStatus: { data: podData, error: podError, loading: podLoading },
+  } = React.useContext(OperatorStatusesContext);
+
   const { drClusterAppsMap, loaded, loadError } =
     React.useContext(DRResourcesContext);
 
-  const allLoaded = loaded && !csvLoading && !lastSyncTimeLoading && mcvsLoaded;
-  const anyError = lastSyncTimeError || csvError || loadError || mcvsLoadError;
+  const allLoaded =
+    loaded && !csvLoading && !lastSyncTimeLoading && mcvsLoaded && !podLoading;
+  const anyError =
+    lastSyncTimeError || csvError || loadError || mcvsLoadError || podError;
 
   const selectedApplication: ProtectedAppsMap = React.useMemo(() => {
     const { name, namespace } = application || {};
@@ -359,6 +366,7 @@ export const ClusterAppCard: React.FC = () => {
               lastSyncTimeData={lastSyncTimeData}
               protectedPVCData={protectedPVCData}
               csvData={csvData}
+              podData={podData}
               clusterResources={drClusterAppsMap}
             />
           ) : (
@@ -387,6 +395,7 @@ type ClusterWiseCardProps = {
   lastSyncTimeData: PrometheusResponse;
   protectedPVCData: ProtectedPVCData[];
   csvData: PrometheusResponse;
+  podData: PrometheusResponse;
   clusterResources: DRClusterAppsMap;
 };
 
