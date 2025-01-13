@@ -15,7 +15,10 @@ import { getManagedClusterResourceObj } from '../../../hooks';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import { AlertsCard } from './alert-card/alert-card';
 import { ClusterAppCard } from './cluster-app-card/cluster-app-card';
-import { CSVStatusesContext, DRResourcesContext } from './dr-dashboard-context';
+import {
+  OperatorStatusesContext,
+  DRResourcesContext,
+} from './dr-dashboard-context';
 import { GettingStartedCard } from './getting-started-card';
 import { useApplicationSetParser } from './parsers/applicationset-parser';
 import { useDiscoveredParser } from './parsers/discovered-parser';
@@ -79,6 +82,13 @@ const MonitoringDashboard: React.FC = () => {
     cluster: HUB_CLUSTER_NAME,
   });
 
+  const [podData, podError, podLoading] = useCustomPrometheusPoll({
+    endpoint: 'api/v1/query' as any,
+    query: STATUS_QUERIES[StorageDashboard.POD_STATUS_ALL_WHITELISTED],
+    basePath: ACM_ENDPOINT,
+    cluster: HUB_CLUSTER_NAME,
+  });
+
   const [managedClusters, managedClusterLoaded, managedClusterLoadError] =
     useK8sWatchResource<ACMManagedClusterKind[]>(
       getManagedClusterResourceObj()
@@ -124,18 +134,21 @@ const MonitoringDashboard: React.FC = () => {
     };
   }, [aggregatedAppsMap, loaded, loadError]);
 
-  const csvContextData = React.useMemo(() => {
-    return { csvData, csvError, csvLoading };
-  }, [csvData, csvError, csvLoading]);
+  const operatorStatusContextData = React.useMemo(() => {
+    return {
+      csvStatus: { data: csvData, error: csvError, loading: csvLoading },
+      podStatus: { data: podData, error: podError, loading: podLoading },
+    };
+  }, [csvData, csvError, csvLoading, podData, podError, podLoading]);
 
   // ToDo(Sanjal): combime multiple Context together to make it scalable
   // refer: https://javascript.plainenglish.io/how-to-combine-context-providers-for-cleaner-react-code-9ed24f20225e
   return (
-    <CSVStatusesContext.Provider value={csvContextData}>
+    <OperatorStatusesContext.Provider value={operatorStatusContextData}>
       <DRResourcesContext.Provider value={dRResourcesContext}>
         <UpperSection />
       </DRResourcesContext.Provider>
-    </CSVStatusesContext.Provider>
+    </OperatorStatusesContext.Provider>
   );
 };
 

@@ -1,3 +1,4 @@
+import { ODR_CLUSTER_OPERATOR, VOL_SYNC } from '@odf/mco/constants';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import {
   TOTAL_CAPACITY_FILE_BLOCK_METRIC,
@@ -16,6 +17,7 @@ export enum StorageDashboard {
   CSV_STATUS = 'CSV_STATUS',
   CSV_STATUS_ALL_WHITELISTED = 'CSV_STATUS_ALL_WHITELISTED',
   HEALTH = 'HEALTH',
+  POD_STATUS_ALL_WHITELISTED = 'POD_STATUS_ALL_WHITELISTED',
 }
 
 export enum DRDashboard {
@@ -52,5 +54,8 @@ export const STATUS_QUERIES = {
   [StorageDashboard.SYSTEM_HEALTH]: `(label_replace(odf_system_map, "managedBy", "$1", "target_name", "(.*)"))  * on (target_namespace, managedBy, cluster) group_right(storage_system, target_kind) (label_replace(${SYSTEM_HEALTH_METRIC}, "target_namespace", "$1", "namespace", "(.*)"))`,
   [StorageDashboard.HEALTH]: SYSTEM_HEALTH_METRIC,
   [StorageDashboard.CSV_STATUS]: `csv_succeeded{name=~"${ODF_OPERATOR}.*"}`,
-  [StorageDashboard.CSV_STATUS_ALL_WHITELISTED]: 'csv_succeeded',
+  // To enhance operator CSV monitoring, update the query to: csv_succeeded{name=~"odr-cluster-operator.*|name.*"}
+  [StorageDashboard.CSV_STATUS_ALL_WHITELISTED]: `csv_succeeded{name=~"${ODR_CLUSTER_OPERATOR}.*"}`,
+  // To enhance operator Pod monitoring, update the query to: kube_running_pod_ready{pod=~"${VOL_SYNC}.*|pod.*"}
+  [StorageDashboard.POD_STATUS_ALL_WHITELISTED]: `kube_running_pod_ready{pod=~"${VOL_SYNC}.*"}`,
 };
