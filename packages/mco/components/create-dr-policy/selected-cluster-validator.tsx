@@ -207,11 +207,12 @@ const ClusterValidationMessage: React.FC<ClusterValidationMessageProps> = ({
           isInline
         />
       ) : (
-        errorMessages.map((errorMessage) => (
+        errorMessages.map((errorMessage, index) => (
           <StatusIconAndText
             className="pf-v5-u-ml-sm"
             icon={<TimesIcon color="var(--pf-global--danger-color--100)" />}
             title={errorMessage}
+            key={`${clusterName}-error-${index}`}
           />
         ))
       )}
@@ -346,6 +347,7 @@ export const SelectedClusterValidation: React.FC<SelectedClusterValidationProps>
                 clusterValidation={clusterValidation}
                 clusterName={clusterName}
                 requiredODFVersion={requiredODFVersion}
+                key={clusterName}
               />
             ))}
           </>
