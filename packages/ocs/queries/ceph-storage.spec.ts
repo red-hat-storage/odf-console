@@ -42,8 +42,8 @@ describe('tests for get pvc namespace query method', () => {
     const result = getPVCNamespaceQuery(namespace, scFilter);
 
     expect(result).toEqual({
-      [StorageDashboardQuery.PVC_NAMESPACES_BY_USED]: `max by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${scFilter}"}))`,
-      [StorageDashboardQuery.PVC_NAMESPACES_TOTAL_USED]: `sum(max by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${scFilter}"})))`,
+      [StorageDashboardQuery.PVC_NAMESPACES_BY_USED]: `sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${scFilter}"}))`,
+      [StorageDashboardQuery.PVC_NAMESPACES_TOTAL_USED]: `sum(sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${scFilter}"})))`,
     });
   });
 
@@ -53,8 +53,8 @@ describe('tests for get pvc namespace query method', () => {
     const result = getPVCNamespaceQuery(namespace, scFilter);
 
     expect(result).toEqual({
-      [StorageDashboardQuery.PVC_NAMESPACES_BY_USED]: `max by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${scFilter}"}))`,
-      [StorageDashboardQuery.PVC_NAMESPACES_TOTAL_USED]: `sum(max by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${scFilter}"})))`,
+      [StorageDashboardQuery.PVC_NAMESPACES_BY_USED]: `sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${scFilter}"}))`,
+      [StorageDashboardQuery.PVC_NAMESPACES_TOTAL_USED]: `sum(sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace='${namespace}'} * on (namespace, persistentvolumeclaim) group_left(storageclass, provisioner) (kube_persistentvolumeclaim_info * on (storageclass) group_left(provisioner) kube_storageclass_info {provisioner=~"(.*rbd.csi.ceph.com)|(.*cephfs.csi.ceph.com)|(.*ceph.rook.io/block)",storageclass=~"${scFilter}"})))`,
     });
   });
 });
