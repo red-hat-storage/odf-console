@@ -1,13 +1,11 @@
+import { PrometheusHealthHandler } from '@odf/shared/types';
 import { getGaugeValue } from '@odf/shared/utils';
 import {
   HealthState,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  PrometheusHealthHandler,
-  SubsystemHealth,
-} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
-import { TFunction } from 'i18next';
+import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
+import { TFunction } from 'react-i18next';
 
 const parseNoobaaStatus = (status: string, t: TFunction): SubsystemHealth => {
   switch (status) {

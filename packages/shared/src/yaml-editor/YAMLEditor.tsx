@@ -6,9 +6,9 @@ import {
   OwnerReference,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
-import { TFunction } from 'i18next';
 import { safeLoad } from 'js-yaml';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import { Alert } from '@patternfly/react-core';
 import { DetailsPageTitle } from '../details-page/DetailsPage';
 import { LoadingBox } from '../generic/status-box';

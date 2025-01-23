@@ -7,7 +7,7 @@ import {
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { Text, TextContent, TextVariants } from '@patternfly/react-core';
 import { EnrollDiscoveredApplicationFooter } from './footer';

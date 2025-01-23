@@ -4,7 +4,7 @@ import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { sortRows } from '@odf/shared/utils';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { Link } from 'react-router-dom-v5-compat';
 import {
   EmptyState,

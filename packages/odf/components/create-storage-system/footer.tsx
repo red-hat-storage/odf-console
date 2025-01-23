@@ -32,7 +32,7 @@ import {
   WizardContext,
   WizardContextType,
 } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import { Button, Alert, AlertActionCloseButton } from '@patternfly/react-core';
 import './create-storage-system.scss';

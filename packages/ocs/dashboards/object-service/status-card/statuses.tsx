@@ -1,12 +1,9 @@
 import { Phase } from '@odf/ocs/constants';
-import { K8sResourceKind } from '@odf/shared/types';
+import { K8sResourceKind, PrometheusHealthHandler } from '@odf/shared/types';
 import { getGaugeValue } from '@odf/shared/utils';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  PrometheusHealthHandler,
-  SubsystemHealth,
-} from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
-import { TFunction } from 'i18next';
+import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
+import { TFunction } from 'react-i18next';
 
 const nooBaaStatus = (status: string, t: TFunction): SubsystemHealth => {
   switch (status) {

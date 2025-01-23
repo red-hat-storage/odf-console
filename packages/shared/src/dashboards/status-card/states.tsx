@@ -8,7 +8,7 @@ import {
   YellowExclamationTriangleIcon,
 } from '@odf/shared/status/icons';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { InProgressIcon } from '@patternfly/react-icons';
 
 export const healthStateMap = (state: string) => {

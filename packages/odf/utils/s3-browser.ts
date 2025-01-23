@@ -6,7 +6,7 @@ import {
 import { DASH } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { DELIMITER, BUCKETS_BASE_ROUTE, PREFIX, SEARCH } from '../constants';
 import { BucketCrFormat, ObjectCrFormat } from '../types';
 

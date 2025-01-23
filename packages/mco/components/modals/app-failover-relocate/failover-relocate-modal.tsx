@@ -4,7 +4,7 @@ import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import {
   Modal,
   Button,

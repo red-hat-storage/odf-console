@@ -33,7 +33,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import classNames from 'classnames';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
 import { compose } from 'redux';
 import {

@@ -1,7 +1,7 @@
 import { CustomKebabItem } from '@odf/shared/kebab';
 import { ModalKeys } from '@odf/shared/modals/types';
 import classNames from 'classnames';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { Actions } from '../../constants';
 

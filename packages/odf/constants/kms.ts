@@ -1,5 +1,5 @@
 import { SecretKind } from '@odf/shared/types';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import {
   VaultConfig,
   HpcsConfig,

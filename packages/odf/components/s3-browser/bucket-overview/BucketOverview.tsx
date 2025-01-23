@@ -27,7 +27,7 @@ import {
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { useNavigate, NavigateFunction } from 'react-router-dom-v5-compat';
 import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
 import { Button, ButtonVariant } from '@patternfly/react-core';

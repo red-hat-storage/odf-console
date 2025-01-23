@@ -1,4 +1,4 @@
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 
 // Managed cluster region claim
 export const MANAGED_CLUSTER_REGION_CLAIM = 'region.open-cluster-management.io';

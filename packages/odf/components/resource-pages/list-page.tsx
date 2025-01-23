@@ -23,7 +23,7 @@ import {
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { sortable } from '@patternfly/react-table';
 import {
   NooBaaBackingStoreModel,

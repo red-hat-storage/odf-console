@@ -1,6 +1,6 @@
+import { PrometheusHealthHandler } from '@odf/shared/types';
 import { getResiliencyProgress } from '@odf/shared/utils';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { PrometheusHealthHandler } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 
 export const getDataResiliencyState: PrometheusHealthHandler = (
   responses,

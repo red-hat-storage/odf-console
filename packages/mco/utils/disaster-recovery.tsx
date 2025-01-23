@@ -23,7 +23,7 @@ import {
   Operator,
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
 import {
   VolumeReplicationHealth,

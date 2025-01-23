@@ -13,7 +13,7 @@ import {
   WizardContext,
   WizardFooter,
 } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import {
   Button,
   Alert,
