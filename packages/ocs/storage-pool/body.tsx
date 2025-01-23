@@ -151,7 +151,10 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
         .test(
           'unique-name',
           translationFieldRequirements[3],
-          (value: string) => !existingNames.includes(value)
+          (value: string) =>
+            !existingNames.includes(
+              usePrefix ? `${prefixName}-${value}` : value
+            )
         ),
     });
 
@@ -159,7 +162,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
       schema: validationSchema,
       fieldRequirements: translationFieldRequirements,
     };
-  }, [existingNames, t]);
+  }, [prefixName, usePrefix, existingNames, t]);
 
   const resolver = useYupValidationResolver(schema);
   const {
