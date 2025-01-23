@@ -13,3 +13,8 @@ export const NOOBA_EXTERNAL_PG_SECRET_NAME = 'noobaa-external-pg';
 export const NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME = 'noobaa-external-pg-tls';
 export const PLUGIN_VERSION =
   typeof process === 'undefined' ? undefined : process?.env?.PLUGIN_VERSION;
+
+// Proxy.
+export const CONSOLE_PROXY_ROOT_PATH = '/api/proxy/plugin';
+export const ODF_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-console`;
+export const MCO_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-multicluster-console`;

@@ -6,7 +6,7 @@ import {
 } from '@odf/core/constants';
 import { StorageQuota } from '@odf/core/types';
 import { isUnlimitedQuota, isValidQuota } from '@odf/core/utils';
-import { FieldLevelHelp, ModalFooter } from '@odf/shared';
+import { ODF_PROXY_ROOT_PATH, FieldLevelHelp, ModalFooter } from '@odf/shared';
 import { ModalBody, ModalTitle } from '@odf/shared/generic/ModalTitle';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ExternalLink, getLastLanguage } from '@odf/shared/utils';
@@ -78,13 +78,10 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
 
   const generateToken = () => {
     setInProgress(true);
-    consoleFetch(
-      '/api/proxy/plugin/odf-console/provider-proxy/onboarding-tokens',
-      {
-        method: 'post',
-        body: quota.value > 0 ? JSON.stringify(quota) : null,
-      }
-    )
+    consoleFetch(`${ODF_PROXY_ROOT_PATH}/provider-proxy/onboarding-tokens`, {
+      method: 'post',
+      body: quota.value > 0 ? JSON.stringify(quota) : null,
+    })
       .then((response) => {
         setInProgress(false);
         if (!response.ok) {
