@@ -1897,7 +1897,7 @@
     fastq "^1.6.0"
 
 "@odf/shared@file:packages/shared":
-  version "0.0.0-beta15"
+  version "0.0.0-beta16"
   dependencies:
     "@patternfly/patternfly" "5.4.2"
     "@patternfly/react-charts" "7.4.5"
@@ -1928,7 +1928,7 @@
     react-tagsinput "^3.19.0"
     resolve-url-loader "^5.0.0"
     sass "^1.81.0"
-    typescript "^5.6.3"
+    typescript "^5.7.3"
     victory-core "^37.1.1"
     yup "^0.32.11"
 
@@ -12773,10 +12773,15 @@ typesafe-actions@^4.2.1:
   resolved "https://registry.yarnpkg.com/typesafe-actions/-/typesafe-actions-4.4.2.tgz#8f817c479d12130b5ebb442032968b2a18929e1a"
   integrity sha512-QW61P4cOX8dCNmrfpcUMjvU/MF/sFTC8/PlG9215W1gKDzZUBjRGdyYSO6ZcEUNsn491S2VpryJOHSIVSDqJrg==
 
-typescript@^5.0.4, typescript@^5.6.3:
+typescript@^5.0.4:
   version "5.6.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.6.3.tgz#5f3449e31c9d94febb17de03cc081dd56d81db5b"
   integrity sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==
+
+typescript@^5.7.3:
+  version "5.7.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.7.3.tgz#919b44a7dbb8583a9b856d162be24a54bf80073e"
+  integrity sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw==
 
 uc.micro@^1.0.1:
   version "1.0.6"
