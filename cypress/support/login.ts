@@ -22,6 +22,7 @@ Cypress.Commands.add(
       () => {
         // Check if auth is disabled (for a local development environment).
         cy.visit(''); // visits baseUrl which is set in plugins.js
+
         cy.window().then((win: any) => {
           if (win.SERVER_FLAGS?.authDisabled) {
             cy.task(
@@ -33,7 +34,13 @@ Cypress.Commands.add(
 
           const idp = provider || KUBEADMIN_IDP;
           cy.task('log', `  Logging in as ${username || KUBEADMIN_USERNAME}`);
-          cy.byLegacyTestID('login').should('be.visible');
+
+          // eslint-disable-next-line cypress/no-unnecessary-waiting
+          cy.wait(5000);
+          cy.task('log', `window object location ${win?.location}`);
+          cy.log(`window object location ${win?.location}`);
+
+          cy.byLegacyTestID('login', { timeout: 10000 }).should('be.visible');
           // eslint-disable-next-line cypress/require-data-selectors
           cy.get('body').then(($body) => {
             if ($body.text().includes(idp)) {
