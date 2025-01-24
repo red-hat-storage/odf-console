@@ -143,6 +143,8 @@ BRIDGE_KUBEADMIN_PASSWORD="$(cat "${KUBEADMIN_PASSWORD_FILE:-${INSTALLER_DIR}/au
 export BRIDGE_KUBEADMIN_PASSWORD
 BRIDGE_BASE_ADDRESS="$(oc get consoles.config.openshift.io cluster -o jsonpath='{.status.consoleURL}')"
 export BRIDGE_BASE_ADDRESS
+OAUTH_BASE_ADDRESS="$(oc get route -n openshift-authentication oauth-openshift -o jsonpath='{.spec.host}')"
+export OAUTH_BASE_ADDRESS
 
 # Disable color codes in Cypress since they do not render well CI test logs.
 # https://docs.cypress.io/guides/guides/continuous-integration.html#Colors
