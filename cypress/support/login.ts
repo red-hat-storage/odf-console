@@ -39,6 +39,11 @@ Cypress.Commands.add(
           cy.wait(5000);
           cy.task('log', `window object location ${win?.location}`);
           cy.log(`window object location ${win?.location}`);
+          cy.task(
+            'log',
+            `OAUTH_BASE_ADDRESS ${Cypress.env('OAUTH_BASE_ADDRESS')}`
+          );
+          cy.log(`OAUTH_BASE_ADDRESS ${Cypress.env('OAUTH_BASE_ADDRESS')}`);
 
           cy.byLegacyTestID('login', { timeout: 10000 }).should('be.visible');
           // eslint-disable-next-line cypress/require-data-selectors
