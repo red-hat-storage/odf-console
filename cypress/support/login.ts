@@ -31,9 +31,7 @@ Cypress.Commands.add(
             return;
           }
 
-          cy.log(`window object location ${win?.location}`);
-          cy.log(`OAUTH_BASE_ADDRESS ${Cypress.env('OAUTH_BASE_ADDRESS')}`);
-
+          cy.visit(Cypress.env('OAUTH_BASE_ADDRESS'));
           cy.origin(
             Cypress.env('OAUTH_BASE_ADDRESS'),
             {
