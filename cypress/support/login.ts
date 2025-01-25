@@ -31,7 +31,8 @@ Cypress.Commands.add(
             return;
           }
 
-          cy.visit(Cypress.env('OAUTH_BASE_ADDRESS'));
+          // eslint-disable-next-line cypress/no-unnecessary-waiting
+          cy.wait(5000);
           cy.origin(
             Cypress.env('OAUTH_BASE_ADDRESS'),
             {
@@ -60,7 +61,7 @@ Cypress.Commands.add(
                 'log',
                 `  Logging in as ${username || KUBEADMIN_USERNAME}`
               );
-              cy.byLegacyTestID('login', { timeout: 10000 }).should(
+              cy.get('[data-test-id="login"]', { timeout: 10000 }).should(
                 'be.visible'
               );
 
