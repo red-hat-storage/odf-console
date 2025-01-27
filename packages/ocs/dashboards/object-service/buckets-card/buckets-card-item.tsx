@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeNumber, getGaugeValue } from '@odf/shared/utils';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { Link } from 'react-router-dom-v5-compat';
 
 const formatCount = (count: number, t: TFunction) => {

@@ -1,6 +1,6 @@
 import { DeploymentKind, NodeCondition, NodeKind } from '@odf/shared/types';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import { NodeStatus } from '@patternfly/react-topology';
 
 const isNodeReady = (node: NodeKind): boolean => {

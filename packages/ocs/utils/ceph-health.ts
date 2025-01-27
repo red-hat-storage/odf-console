@@ -2,8 +2,8 @@ import { STATE_PRIORITY } from '@odf/shared/dashboards/status-card/states';
 import { K8sResourceKind, ResourceHealthHandler } from '@odf/shared/types';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 
 export type WatchCephResource = {
   ceph: K8sResourceKind;

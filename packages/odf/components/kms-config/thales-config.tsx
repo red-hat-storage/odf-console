@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import {
   FormGroup,
   TextInput,

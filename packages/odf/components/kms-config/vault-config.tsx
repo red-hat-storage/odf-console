@@ -4,8 +4,8 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { global_palette_blue_300 as blueInfoColor } from '@patternfly/react-tokens/dist/js/global_palette_blue_300';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import {
   FormGroup,
   FormSelect,

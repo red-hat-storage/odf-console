@@ -9,7 +9,7 @@ import {
   SelectProps,
   SelectVariant,
 } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { FormGroup } from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './backing-storage-step.scss';

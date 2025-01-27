@@ -16,8 +16,8 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getAPIVersionForModel, isValidIP } from '@odf/shared/utils';
 import { k8sGet } from '@openshift-console/dynamic-plugin-sdk';
 import { Select, SelectOption } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import * as Yup from 'yup';
 import {
   FormGroup,

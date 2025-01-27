@@ -4,7 +4,7 @@ import {
 } from '@odf/core/types';
 import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { Toleration, Taint } from '@odf/shared/types';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 
 export const CEPH_BRAND_NAME = 'Red Hat Ceph Storage';
 export const NO_PROVISIONER = 'kubernetes.io/no-provisioner';

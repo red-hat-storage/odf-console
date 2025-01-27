@@ -9,7 +9,7 @@ import {
   ResourcesObject,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { K8sResourceCondition } from './common';
 
 export type ClusterServiceVersionIcon = {

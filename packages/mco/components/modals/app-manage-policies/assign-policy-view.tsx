@@ -9,7 +9,7 @@ import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
 import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { AssignPolicyViewFooter } from './helper/assign-policy-view-footer';
 import { PVCDetailsWizardContent } from './helper/pvc-details-wizard-content';
 import { ReviewAndAssign } from './helper/review-and-assign';

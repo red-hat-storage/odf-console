@@ -15,7 +15,7 @@ import {
   OverviewGrid,
   OverviewGridCard,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
 import { ODFSystemParams } from '../types';
 import { StatusCard as NFSStatusCard } from './network-file-system/status-card/status-card';

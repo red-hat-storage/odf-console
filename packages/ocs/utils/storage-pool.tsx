@@ -7,7 +7,7 @@ import {
   StorageClusterKind,
 } from '@odf/shared/types';
 import { getLastLanguage } from '@odf/shared/utils';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import {
   CheckCircleIcon,
   DisconnectedIcon,

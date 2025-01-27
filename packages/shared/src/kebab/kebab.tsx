@@ -6,8 +6,8 @@ import {
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Dropdown,

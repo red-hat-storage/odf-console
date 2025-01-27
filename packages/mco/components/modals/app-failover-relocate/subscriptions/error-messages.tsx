@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ViewDocumentation } from '@odf/shared/utils';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
 import { AlertVariant } from '@patternfly/react-core';
 import { docLinks } from '../../../../constants/doc';

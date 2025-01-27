@@ -7,7 +7,7 @@ import {
   SelectOption,
   SelectVariant,
 } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { HelperText, HelperTextItem } from '@patternfly/react-core';
 import { checkDRActionReadiness } from '../../../../utils';
 import { ErrorMessageType } from './error-messages';

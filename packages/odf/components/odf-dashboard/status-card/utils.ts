@@ -1,7 +1,7 @@
 import { StorageConsumerKind, StorageConsumerState } from '@odf/shared';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 
 const getHealthAndTotalClientCounts = (clients: StorageConsumerKind[]) => {
   const connectedClients = clients.filter(
