@@ -10,11 +10,11 @@ import { FileUploadComponent } from '../upload-objects';
 import { ObjectsList } from './ObjectsList';
 
 type ObjectListWithSidebarProps = {
-  obj: { refresh: boolean; triggerRefresh: () => void };
+  obj: { fresh: boolean; triggerRefresh: () => void };
 };
 
 export const ObjectListWithSidebar: React.FC<ObjectListWithSidebarProps> = ({
-  obj: { refresh, triggerRefresh },
+  obj: { fresh, triggerRefresh },
 }) => {
   const [isUploadSidebarExpanded, setUploadSidebarExpanded] =
     React.useState(false);
@@ -61,7 +61,7 @@ export const ObjectListWithSidebar: React.FC<ObjectListWithSidebarProps> = ({
             setCompletionTime={setCompletionTime}
             triggerRefresh={triggerRefresh}
           />
-          {refresh ? (
+          {fresh ? (
             <ObjectDetailsSidebar
               closeSidebar={closeObjectSidebar}
               isExpanded={isObjectSidebarExpanded}
