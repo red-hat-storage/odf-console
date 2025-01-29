@@ -17,6 +17,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { ODF_S3_PROXY_PATH } from '@odf/shared/s3/constants';
 import {
   CreateBucket,
   ListBuckets,
@@ -85,7 +86,18 @@ export class S3Commands extends S3Client {
     this.send(new ListObjectVersionsCommand(input));
 
   getSignedUrl: GetSignedUrl = (input, expiresIn) =>
-    getSignedUrl(this, new GetObjectCommand(input), { expiresIn });
+    getSignedUrl(this, new GetObjectCommand(input), { expiresIn }).then(
+      (url) => {
+        // We must set the proxy URL because the S3 client
+        // doesn't execute 'finalizeRequest' step for this action.
+        const proxyUrl = new URL(url);
+        proxyUrl.protocol = window.location.protocol;
+        proxyUrl.hostname = window.location.hostname;
+        proxyUrl.port = window.location.port;
+        proxyUrl.pathname = `${ODF_S3_PROXY_PATH}${proxyUrl.pathname}`;
+        return proxyUrl.toString();
+      }
+    );
 
   getObject: GetObject = (input) => this.send(new GetObjectCommand(input));
 
