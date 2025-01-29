@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { parseChunked } from '@discoveryjs/json-ext';
 
 const pluginName = process.env.PLUGIN;
 const MAX_ASSET_SIZE = 17; //17 MiB
@@ -12,17 +13,17 @@ const stringifyMiB = (value: ReturnType<typeof toMiB>): string =>
 
 const getParsedStatFile = () => {
   const filePath = getStatsFilePath();
-  const statsFile = fs.readFileSync(filePath, 'utf-8');
-  return JSON.parse(statsFile);
+
+  return parseChunked(fs.createReadStream(filePath, { encoding: 'utf8' }));
 };
 
 type BundleDataMap = Record<string, number>;
 
 // [Valid Bundles, Violating Bunldes]
-type GetBundleInformation = () => [BundleDataMap, BundleDataMap];
+type GetBundleInformation = () => Promise<[BundleDataMap, BundleDataMap]>;
 
-const getBundleInformation: GetBundleInformation = () => {
-  const statsData = getParsedStatFile();
+const getBundleInformation: GetBundleInformation = async () => {
+  const statsData = await getParsedStatFile();
   const validAssets = {};
   const violatingAssets = {};
 
@@ -39,8 +40,8 @@ const getBundleInformation: GetBundleInformation = () => {
   return [validAssets, violatingAssets];
 };
 
-const validateBuild = () => {
-  const [validAssets, violatingAssets] = getBundleInformation();
+const validateBuild = async () => {
+  const [validAssets, violatingAssets] = await getBundleInformation();
   if (Object.keys(violatingAssets).length > 0) {
     // eslint-disable-next-line no-console
     console.error('Assets are larger than expected', violatingAssets);
