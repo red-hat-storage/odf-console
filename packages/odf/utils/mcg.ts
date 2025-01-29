@@ -217,7 +217,7 @@ export const getNamespaceStoreType = (
 ): StoreProviders => {
   let type: StoreProviders = null;
   Object.entries(NS_PROVIDERS_NOOBAA_MAP).forEach(([k, v]) => {
-    if (ns?.spec?.[v]) {
+    if (ns?.spec?.[v as string]) {
       type = k as StoreProviders;
     }
   });

@@ -7,11 +7,13 @@ import { LoadingInline } from './Loading';
 
 const injectDisabled = (children: React.ReactChild, disabled) => {
   return React.Children.map(children, (c) => {
-    if (!_.isObject(c) || c.type !== 'button') {
+    if (!_.isObject(c) || (c as React.ReactElement).type !== 'button') {
       return c;
     }
 
-    return React.cloneElement(c, { disabled: c.props.disabled || disabled });
+    return React.cloneElement(c as React.ReactElement, {
+      disabled: (c as React.ReactElement).props.disabled || disabled,
+    });
   });
 };
 
