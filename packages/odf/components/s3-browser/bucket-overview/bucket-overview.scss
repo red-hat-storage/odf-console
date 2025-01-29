@@ -5,3 +5,9 @@
 .bucket-label--margin-top {
     margin-top: calc(0.3rem * -1);
 }
+
+.obc-bucket-yaml {
+    .ocs-yaml-editor__root {
+        min-height: 34rem !important;
+    }
+}

@@ -168,17 +168,17 @@ const BucketDetailsOverview: React.FC<{}> = ({}) => {
 
 type BucketDetailsProps = {
   obj: {
-    refresh: boolean;
+    fresh: boolean;
     resource?: K8sResourceCommon;
   };
 };
 
 export const BucketDetails: React.FC<BucketDetailsProps> = ({
-  obj: { resource, refresh },
+  obj: { resource, fresh },
 }) => {
   const { t } = useCustomTranslation();
 
-  return refresh ? (
+  return fresh ? (
     <>
       <BucketDetailsOverview />
       {resource && (
