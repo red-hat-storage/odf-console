@@ -28,7 +28,6 @@ const EncryptionLabel: React.FC<{ label: string }> = ({ label }) => (
 const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
   encryption,
   dispatch,
-  isProviderMode,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -76,21 +75,19 @@ const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
           handleClusterWideEncryption(isChecked)
         }
       />
-      {!isProviderMode && (
-        <Checkbox
-          id="storage-class-encryption"
-          className="odf-security-encryption"
-          isChecked={encryption.storageClass}
-          data-checked-state={encryption.storageClass}
-          label={<EncryptionLabel label={t('StorageClass encryption')} />}
-          description={t(
-            'An encryption key will be generated for each persistent volume (block) created using an encryption enabled StorageClass.'
-          )}
-          onChange={(_event, isChecked: boolean) =>
-            handleStorageClassEncryption(isChecked)
-          }
-        />
-      )}
+      <Checkbox
+        id="storage-class-encryption"
+        className="odf-security-encryption"
+        isChecked={encryption.storageClass}
+        data-checked-state={encryption.storageClass}
+        label={<EncryptionLabel label={t('StorageClass encryption')} />}
+        description={t(
+          'An encryption key will be generated for each persistent volume (block) created using an encryption enabled StorageClass.'
+        )}
+        onChange={(_event, isChecked: boolean) =>
+          handleStorageClassEncryption(isChecked)
+        }
+      />
     </FormGroup>
   );
 };
@@ -98,7 +95,6 @@ const EncryptionLevel: React.FC<EncryptionLevelProps> = ({
 type EncryptionLevelProps = {
   encryption: WizardState['securityAndNetwork']['encryption'];
   dispatch: WizardDispatch;
-  isProviderMode?: boolean;
 };
 
 const KMSConnection: React.FC<EncryptionProps> = ({
@@ -171,7 +167,6 @@ export const Encryption: React.FC<EncryptionProps> = ({
   isMCG,
   isExternal,
   systemNamespace,
-  isProviderMode,
 }) => {
   const { t } = useCustomTranslation();
   const [encryptionChecked, setEncryptionChecked] = React.useState(
@@ -274,7 +269,6 @@ export const Encryption: React.FC<EncryptionProps> = ({
                     <EncryptionLevel
                       encryption={encryption}
                       dispatch={dispatch}
-                      isProviderMode={isProviderMode}
                     />
                   )}
                   <KMSConnection

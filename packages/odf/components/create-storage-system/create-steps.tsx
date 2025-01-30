@@ -39,7 +39,6 @@ export const createSteps = (
   const { encryption, kms } = securityAndNetwork;
 
   const isMCG = deployment === DeploymentType.MCG;
-  const isProviderMode = deployment === DeploymentType.PROVIDER_MODE;
 
   const commonSteps = {
     capacityAndNodes: {
@@ -52,7 +51,6 @@ export const createSteps = (
           volumeSetName={createLocalVolumeSet.volumeSetName}
           nodes={nodes}
           systemNamespace={systemNamespace}
-          deploymentMode={backingStorage.deployment}
         />
       ),
     },
@@ -76,7 +74,6 @@ export const createSteps = (
           kms={kms}
           dispatch={dispatch}
           isMCG={isMCG}
-          isProviderMode={isProviderMode}
           systemNamespace={systemNamespace}
         />
       ),
@@ -167,24 +164,6 @@ export const createSteps = (
             ...commonSteps.reviewAndCreate,
           },
         ];
-      } else if (isProviderMode) {
-        return [
-          {
-            id: 2,
-            canJumpTo: stepIdReached >= 2,
-            ...commonSteps.capacityAndNodes,
-          },
-          {
-            id: 3,
-            canJumpTo: stepIdReached >= 3,
-            ...commonSteps.security,
-          },
-          {
-            id: 4,
-            canJumpTo: stepIdReached >= 4,
-            ...commonSteps.reviewAndCreate,
-          },
-        ];
       } else
         return [
           {
@@ -215,25 +194,6 @@ export const createSteps = (
           {
             id: 4,
             canJumpTo: stepIdReached >= 4,
-            ...commonSteps.reviewAndCreate,
-          },
-        ];
-      } else if (isProviderMode) {
-        return [
-          createLocalVolumeSetStep,
-          {
-            canJumpTo: stepIdReached >= 3,
-            ...commonSteps.capacityAndNodes,
-            id: 3,
-          },
-          {
-            id: 4,
-            canJumpTo: stepIdReached >= 4,
-            ...commonSteps.security,
-          },
-          {
-            id: 5,
-            canJumpTo: stepIdReached >= 5,
             ...commonSteps.reviewAndCreate,
           },
         ];

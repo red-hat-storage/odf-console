@@ -23,7 +23,6 @@ import {
 import { useNodesData } from '@odf/core/hooks';
 import { pvResource } from '@odf/core/resources';
 import {
-  DeploymentType,
   NodeData,
   NodesPerZoneMap,
   ResourceProfile,
@@ -420,7 +419,6 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   volumeSetName,
   nodes,
   systemNamespace,
-  deploymentMode,
 }) => {
   const {
     capacity,
@@ -433,7 +431,6 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   } = state;
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
-  const isProviderMode = deploymentMode === DeploymentType.PROVIDER_MODE;
   const flexibleScaling = isFlexibleScaling(
     nodes,
     isNoProvisioner,
@@ -453,7 +450,6 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
     isNoProvisioner,
     resourceProfile,
     osdAmount,
-    deploymentMode,
     volumeValidationType
   );
   const onProfileChange = React.useCallback(
@@ -487,16 +483,14 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
       )}
       {(!isNoProvisioner || nodes.length > 0) && (
         <>
-          {!isProviderMode && (
-            <ConfigurePerformance
-              onResourceProfileChange={onProfileChange}
-              resourceProfile={resourceProfile}
-              headerText={PerformanceHeaderText}
-              profileRequirementsText={ProfileRequirementsText}
-              selectedNodes={nodes}
-              osdAmount={osdAmount}
-            />
-          )}
+          <ConfigurePerformance
+            onResourceProfileChange={onProfileChange}
+            resourceProfile={resourceProfile}
+            headerText={PerformanceHeaderText}
+            profileRequirementsText={ProfileRequirementsText}
+            selectedNodes={nodes}
+            osdAmount={osdAmount}
+          />
           <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
         </>
       )}
@@ -522,5 +516,4 @@ type CapacityAndNodesProps = {
   volumeSetName: WizardState['createLocalVolumeSet']['volumeSetName'];
   dispatch: WizardDispatch;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
-  deploymentMode: DeploymentType;
 };

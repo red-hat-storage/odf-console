@@ -1,4 +1,4 @@
-import { getOCSRequestData } from '@odf/core/components/utils';
+import { getOCSRequestData, OCSRequestData } from '@odf/core/components/utils';
 import { DeploymentType, BackingStorageType } from '@odf/core/types';
 import { isFlexibleScaling } from '@odf/core/utils';
 import { Payload } from '@odf/odf-plugin-sdk/extensions';
@@ -155,7 +155,7 @@ export const createStorageCluster = async (
   } = state;
   const { capacity, enableArbiter, arbiterLocation, pvCount } =
     capacityAndNodes;
-  const { encryption, publicNetwork, clusterNetwork, kms } = securityAndNetwork;
+  const { encryption, kms } = securityAndNetwork;
   const {
     type,
     enableNFS,
@@ -182,11 +182,15 @@ export const createStorageCluster = async (
     enableNFS &&
     deployment === DeploymentType.FULL &&
     type !== BackingStorageType.EXTERNAL;
-  const isProviderMode = deployment === DeploymentType.PROVIDER_MODE;
 
   const shouldSetCephRBDAsDefault = setCephRBDAsDefault(
     isRBDStorageClassDefault,
     deployment
+  );
+
+  const networkConfiguration: OCSRequestData['networkConfiguration'] = _.omit(
+    securityAndNetwork,
+    ['kms', 'encryption']
   );
 
   const payload = getOCSRequestData({
@@ -196,15 +200,13 @@ export const createStorageCluster = async (
     resourceProfile: capacityAndNodes.resourceProfile,
     nodes,
     flexibleScaling,
-    publicNetwork,
-    clusterNetwork,
+    networkConfiguration,
     kmsEnable: kms.providerState.hasHandled && encryption.advanced,
     selectedArbiterZone: arbiterLocation,
     stretchClusterChecked: enableArbiter,
     availablePvsCount: pvCount,
     isMCG,
     isNFSEnabled,
-    isProviderMode,
     shouldSetCephRBDAsDefault,
     storageClusterNamespace,
     enableNoobaaClientSideCerts: externalPostgres.tls.enableClientSideCerts,

@@ -3,7 +3,6 @@ import {
   STORAGE_CLUSTER_SYSTEM_KIND,
   NO_PROVISIONER,
 } from '@odf/core/constants';
-import { PROVIDER_MODE } from '@odf/core/features';
 import { useSafeK8sGet } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { scResource } from '@odf/core/resources';
@@ -27,7 +26,6 @@ import {
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isDefaultClass, getODFCsv, getGVKLabel } from '@odf/shared/utils';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
   Form,
@@ -214,8 +212,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   >(ClusterServiceVersionModel, null, odfNamespace);
 
   const isFullDeployment = deployment === DeploymentType.FULL;
-  const isProviderMode = deployment === DeploymentType.PROVIDER_MODE;
-  const isProviderModePresent = useFlag(PROVIDER_MODE) && hasInternal;
   const isNonRHCSExternalType =
     type === BackingStorageType.EXTERNAL &&
     externalStorage !== StorageClusterModel.kind;
@@ -272,7 +268,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
      * Allow pre selecting the "external connection" option instead of the "existing" option
      * if an OCS Storage System is already created.
      */
-    if (hasOCS && allowedExternalStorage.length && !isProviderModePresent) {
+    if (hasOCS && allowedExternalStorage.length) {
       dispatch({
         type: 'backingStorage/setType',
         payload: BackingStorageType.EXTERNAL,
@@ -285,7 +281,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
         },
       });
     }
-  }, [dispatch, allowedExternalStorage.length, hasOCS, isProviderModePresent]);
+  }, [dispatch, allowedExternalStorage.length, hasOCS]);
 
   React.useEffect(() => {
     /*
@@ -390,11 +386,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           value={BackingStorageType.EXTERNAL}
           isChecked={type === BackingStorageType.EXTERNAL}
           onChange={(event, _unused) => onRadioSelect(_unused, event)}
-          isDisabled={
-            allowedExternalStorage.length === 0 ||
-            isProviderMode ||
-            isProviderModePresent
-          }
+          isDisabled={allowedExternalStorage.length === 0}
           body={
             showExternalStorageSelection && (
               <ExternalSystemSelection

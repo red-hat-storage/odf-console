@@ -24,6 +24,10 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
     publicNetwork,
     encryption,
     kms,
+    addressRanges: {
+      cluster: [cephClusterCIDR],
+      public: [cephPublicCIDR],
+    },
   } = securityAndNetworkState;
 
   const setNetworkType = (networkType: NetworkType) => {
@@ -31,13 +35,16 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
       type: 'securityAndNetwork/setNetworkType',
       payload: networkType,
     });
-    if (networkType === NetworkType.DEFAULT) {
+    if (
+      networkType === NetworkType.DEFAULT ||
+      networkType === NetworkType.HOST
+    ) {
       dispatch({ type: 'securityAndNetwork/setClusterNetwork', payload: null });
       dispatch({ type: 'securityAndNetwork/setPublicNetwork', payload: null });
     }
   };
 
-  const setNetwork = React.useCallback(
+  const setMultusNetwork = React.useCallback(
     (network: NADSelectorType, resource: K8sResourceCommon) =>
       dispatch({
         type:
@@ -46,6 +53,20 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
             : 'securityAndNetwork/setPublicNetwork',
         payload: resource,
       }),
+    [dispatch]
+  );
+
+  const setCIDRNetwork = React.useCallback(
+    (clusterCIDR: string, publicCIDR: string) => {
+      dispatch({
+        type: 'securityAndNetwork/setCephCIDR',
+        payload: [clusterCIDR],
+      });
+      dispatch({
+        type: 'securityAndNetwork/setPublicCIDR',
+        payload: [publicCIDR],
+      });
+    },
     [dispatch]
   );
 
@@ -63,7 +84,10 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
         <NetworkFormGroup
           networkType={nwType}
           setNetworkType={setNetworkType}
-          setNetwork={setNetwork}
+          setMultusNetwork={setMultusNetwork}
+          setCIDRNetwork={setCIDRNetwork}
+          cephPublicCIDR={cephPublicCIDR}
+          cephClusterCIDR={cephClusterCIDR}
           clusterNetwork={clusterNetwork}
           publicNetwork={publicNetwork}
           systemNamespace={systemNamespace}
