@@ -123,7 +123,12 @@ export const useUserSettingsLocalStorage = <T>(
 ): [T, React.Dispatch<React.SetStateAction<T>>] => {
   // Mount status for safty state updates
   const mounted = React.useRef(true);
-  React.useEffect(() => () => (mounted.current = false), []);
+  React.useEffect(
+    () => () => {
+      mounted.current = false;
+    },
+    []
+  );
   const keyRef = React.useRef<string>(
     userSettingsKey?.replace(/[^-._a-zA-Z0-9]/g, '_')
   );

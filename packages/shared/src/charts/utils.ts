@@ -101,7 +101,7 @@ export const getRangeVectorStats: GetRangeStats = (
         x: xMutator?.(x) ?? defaultXMutator(x),
         y: threshold ? threshold : yMutator?.(y) ?? defaultYMutator(y),
         description: _.isFunction(description)
-          ? description(r, index)
+          ? (description as Function)(r, index)
           : description,
         symbol,
       } as DataPoint<Date>;
