@@ -2,7 +2,15 @@ import { getOCSRequestData, OCSRequestData } from '@odf/core/components/utils';
 import { DeploymentType, BackingStorageType } from '@odf/core/types';
 import { isFlexibleScaling } from '@odf/core/utils';
 import { Payload } from '@odf/odf-plugin-sdk/extensions';
-import { SecretModel, getAPIVersion } from '@odf/shared';
+import {
+  DEFAULT_DEVICECLASS,
+  SecretModel,
+  StorageAutoScalerKind,
+  StorageClusterKind,
+  getAPIVersion,
+  getName,
+  getNamespace,
+} from '@odf/shared';
 import {
   NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
   NOOBA_EXTERNAL_PG_SECRET_NAME,
@@ -13,9 +21,14 @@ import {
   ODFStorageSystem,
   NodeModel,
   NamespaceModel,
+  StorageAutoScalerModel,
 } from '@odf/shared/models';
 import { Patch, StorageSystemKind } from '@odf/shared/types';
-import { getAPIVersionForModel, k8sPatchByName } from '@odf/shared/utils';
+import {
+  getAPIVersionForModel,
+  getStorageAutoScalerName,
+  k8sPatchByName,
+} from '@odf/shared/utils';
 import {
   K8sResourceKind,
   k8sCreate,
@@ -218,6 +231,29 @@ export const createStorageCluster = async (
   });
 
   return k8sCreate({ model: StorageClusterModel, data: payload });
+};
+
+export const createStorageAutoScaler = (
+  capacityLimit: string,
+  storageCluster: StorageClusterKind
+) => {
+  const data: StorageAutoScalerKind = {
+    apiVersion: 'ocs.openshift.io/v1',
+    kind: 'StorageAutoScaler',
+    metadata: {
+      name: getStorageAutoScalerName(storageCluster),
+      namespace: getNamespace(storageCluster),
+    },
+    spec: {
+      deviceClass: DEFAULT_DEVICECLASS,
+      storageCapacityLimit: capacityLimit,
+      storageCluster: {
+        name: getName(storageCluster),
+      },
+    },
+  };
+
+  return k8sCreate({ model: StorageAutoScalerModel, data });
 };
 
 export const labelNodes = async (

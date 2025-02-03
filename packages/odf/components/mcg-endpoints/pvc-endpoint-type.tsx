@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { STORAGE_SIZE_UNIT_NAME_MAP, StorageSizeUnit } from '@odf/shared';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -33,14 +34,14 @@ export const PVCType: React.FC<PVCTypeProps> = ({ state, dispatch }) => {
   const [size, setSize] = React.useState('50');
   const [, updateState] = React.useState(null);
   const units = {
-    GiB: 'GiB',
-    TiB: 'TiB',
+    GiB: STORAGE_SIZE_UNIT_NAME_MAP[StorageSizeUnit.Gi],
+    TiB: STORAGE_SIZE_UNIT_NAME_MAP[StorageSizeUnit.Ti],
   };
 
-  // Noobaa expected Ti console standrad is to show TiB
+  // Noobaa expects Ti but console standard is to show TiB.
   const unitConverter = {
-    GiB: 'Gi',
-    TiB: 'Ti',
+    [units.GiB]: StorageSizeUnit.Gi,
+    [units.TiB]: StorageSizeUnit.Ti,
   };
 
   // Fix for updating the storage class by force rerender

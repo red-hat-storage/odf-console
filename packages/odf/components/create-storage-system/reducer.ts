@@ -9,6 +9,7 @@ import {
   ExternalState,
 } from '@odf/odf-plugin-sdk/extensions';
 import { NetworkAttachmentDefinitionKind, NodeKind } from '@odf/shared/types';
+import { getCapacityAutoScalingDefaultLimit } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
 import {
   DiskSize,
@@ -73,6 +74,10 @@ export const initialState: CreateStorageSystemState = {
     capacity: null,
     pvCount: 0,
     resourceProfile: ResourceProfile.Balanced,
+    capacityAutoScaling: {
+      capacityLimit: getCapacityAutoScalingDefaultLimit(),
+      enable: false,
+    },
     volumeValidationType: VolumeTypeValidation.NONE,
   },
   createStorageClass: {},
@@ -150,6 +155,7 @@ type CreateStorageSystemState = {
     // @TODO: Remove union types and use "number" as type.
     // Requires refactoring osd size dropdown.
     capacity: string | number;
+    capacityAutoScaling: CapacityAutoScalingState;
     pvCount: number;
     resourceProfile: ResourceProfile;
     volumeValidationType: VolumeTypeValidation;
@@ -181,6 +187,11 @@ export type WizardNodeState = {
   roles: string[];
   labels: NodeKind['metadata']['labels'];
   taints: NodeKind['spec']['taints'];
+};
+
+export type CapacityAutoScalingState = {
+  capacityLimit: string;
+  enable: boolean;
 };
 
 export type LocalVolumeSet = {
@@ -364,6 +375,9 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'capacityAndNodes/capacity':
       newState.capacityAndNodes.capacity = action.payload;
       break;
+    case 'capacityAndNodes/capacityAutoScaling':
+      newState.capacityAndNodes.capacityAutoScaling = action.payload;
+      break;
     case 'capacityAndNodes/pvCount':
       newState.capacityAndNodes.pvCount = action.payload;
       break;
@@ -478,6 +492,10 @@ export type CreateStorageSystemAction =
   | {
       type: 'capacityAndNodes/capacity';
       payload: WizardState['capacityAndNodes']['capacity'];
+    }
+  | {
+      type: 'capacityAndNodes/capacityAutoScaling';
+      payload: WizardState['capacityAndNodes']['capacityAutoScaling'];
     }
   | {
       type: 'capacityAndNodes/pvCount';

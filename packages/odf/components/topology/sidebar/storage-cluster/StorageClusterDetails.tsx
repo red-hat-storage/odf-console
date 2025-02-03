@@ -6,7 +6,11 @@ import { getDataResiliencyState } from '@odf/ocs/dashboards/persistent-internal/
 import { StorageEfficiencyContent } from '@odf/ocs/dashboards/persistent-internal/storage-efficiency-card/storage-efficiency-card';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '@odf/ocs/queries';
 import { getCephNodes } from '@odf/ocs/utils';
-import { DASH, ODF_OPERATOR } from '@odf/shared/constants';
+import {
+  DASH,
+  DEFAULT_INFRASTRUCTURE,
+  ODF_OPERATOR,
+} from '@odf/shared/constants';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import {
   useCustomPrometheusPoll,
@@ -23,8 +27,8 @@ import { getName } from '@odf/shared/selectors';
 import { getNodeStatusGroups } from '@odf/shared/status/Inventory';
 import { resourceStatus } from '@odf/shared/status/Resource';
 import { Status } from '@odf/shared/status/Status';
-import { NodeKind } from '@odf/shared/types';
-import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
+import { InfrastructureKind, NodeKind } from '@odf/shared/types';
+import { StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getOprVersionFromCSV } from '@odf/shared/utils';
 import {
@@ -56,7 +60,7 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
 
   const [infrastructure, infrastructureLoaded, infrastructureError] =
-    useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
+    useK8sGet<InfrastructureKind>(InfrastructureModel, DEFAULT_INFRASTRUCTURE);
 
   const ocsName = getName(storageCluster);
   const infrastructurePlatform =
