@@ -3,7 +3,11 @@ import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getStorageClusterInNs } from '@odf/core/utils';
-import { ODF_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
+import {
+  ODF_OPERATOR,
+  OCS_OPERATOR,
+  DEFAULT_INFRASTRUCTURE,
+} from '@odf/shared/constants';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -44,7 +48,7 @@ const storageClusterResource = {
 
 export const ObjectServiceDetailsCard: React.FC<{}> = () => {
   const [infrastructure, infrastructureLoaded, infrastructureError] =
-    useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
+    useK8sGet<K8sResourceKind>(InfrastructureModel, DEFAULT_INFRASTRUCTURE);
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
   const [systemResult, systemLoadError] = useCustomPrometheusPoll({
     query: NOOBAA_SYSTEM_NAME_QUERY,

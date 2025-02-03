@@ -6,7 +6,11 @@ import { getDataResiliencyState } from '@odf/ocs/dashboards/persistent-internal/
 import { StorageEfficiencyContent } from '@odf/ocs/dashboards/persistent-internal/storage-efficiency-card/storage-efficiency-card';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '@odf/ocs/queries';
 import { getCephNodes } from '@odf/ocs/utils';
-import { DASH, ODF_OPERATOR } from '@odf/shared/constants';
+import {
+  DASH,
+  DEFAULT_INFRASTRUCTURE,
+  ODF_OPERATOR,
+} from '@odf/shared/constants';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import {
   useCustomPrometheusPoll,
@@ -56,7 +60,7 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
 
   const [infrastructure, infrastructureLoaded, infrastructureError] =
-    useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
+    useK8sGet<K8sResourceKind>(InfrastructureModel, DEFAULT_INFRASTRUCTURE);
 
   const ocsName = getName(storageCluster);
   const infrastructurePlatform =

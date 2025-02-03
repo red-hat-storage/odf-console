@@ -1,9 +1,10 @@
+import { DiskSize as QuotaSize } from '@odf/core/constants';
+import { ResourceProfile, StorageQuota } from '@odf/core/types';
 import {
-  DiskSize as QuotaSize,
-  diskSizeUnitOptions as QuotaSizeUnitOptions,
-} from '@odf/core/constants';
-import { StorageQuota } from '@odf/core/types';
-import { K8sResourceKind } from '@odf/shared/types';
+  CAPACITY_AUTOSCALING_PROVIDERS,
+  STORAGE_SIZE_UNIT_NAME_MAP,
+} from '@odf/shared/constants';
+import { InfrastructureKind, K8sResourceKind } from '@odf/shared/types';
 import {
   convertToBaseValue,
   humanizeBinaryBytes,
@@ -14,6 +15,14 @@ export const calcPVsCapacity = (pvs: K8sResourceKind[]): number =>
     const storage = Number(convertToBaseValue(pv.spec.capacity.storage));
     return sum + storage;
   }, 0);
+
+export const isCapacityAutoScalingAllowed = (
+  infrastructure: InfrastructureKind,
+  resourceProfile: ResourceProfile
+) =>
+  CAPACITY_AUTOSCALING_PROVIDERS.includes(
+    infrastructure?.spec?.platformSpec?.type
+  ) && resourceProfile !== ResourceProfile.Lean;
 
 export const isUnlimitedQuota = (quota: StorageQuota) => quota.value === 0;
 
@@ -31,7 +40,7 @@ export const getQuotaValueInGiB = (quota: StorageQuota) => {
   const humanizedQuota = humanizeBinaryBytes(
     convertToBaseValue(`${quota.value}${quota.unit}`),
     `B`,
-    QuotaSizeUnitOptions[QuotaSize.Gi]
+    STORAGE_SIZE_UNIT_NAME_MAP[QuotaSize.Gi]
   );
   return humanizedQuota.value;
 };
