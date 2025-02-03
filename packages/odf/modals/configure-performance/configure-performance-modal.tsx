@@ -31,7 +31,9 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Patch, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Alert,
+  AlertVariant,
   Button,
+  ButtonVariant,
   Modal,
   ModalVariant,
   Text,
@@ -180,7 +182,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
       hasNoBodyWrapper={true}
       variant={ModalVariant.small}
       className="configure-performance-modal--overflow"
-      aria-label={t('Add Capacity')}
+      aria-label={t('Configure performance')}
       width={950}
     >
       <ModalBody className="configure-performance-modal--overflow">
@@ -210,7 +212,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
           <Alert
             className="pf-v5-u-mt-md"
             isInline
-            variant="danger"
+            variant={AlertVariant.danger}
             title={t('An error occurred')}
           >
             {errorMessage.message}
@@ -220,7 +222,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
       <ModalFooter>
         <Button
           key="cancel"
-          variant="secondary"
+          variant={ButtonVariant.secondary}
           onClick={closeModal}
           data-test-id="modal-cancel-action"
         >
@@ -231,7 +233,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
             key="save"
             data-test="modal-submit-action"
             data-test-id="confirm-action"
-            variant="primary"
+            variant={ButtonVariant.primary}
             onClick={submit}
             isDisabled={!resourceProfile || !!validation}
           >

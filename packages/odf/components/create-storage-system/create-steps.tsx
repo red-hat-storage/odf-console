@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { StorageClusterModel } from '@odf/shared/models';
+import { InfraProviders } from '@odf/shared/types';
 import { WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { Steps, StepsName } from '../../constants';
@@ -19,7 +20,7 @@ export const createSteps = (
   t: TFunction,
   state: WizardState,
   dispatch: WizardDispatch,
-  infraType: string,
+  infraType: InfraProviders,
   hasOCS: boolean,
   supportedExternalStorage: ExternalStorage[],
   hasMultipleClusters: boolean
@@ -46,6 +47,7 @@ export const createSteps = (
       component: (
         <CapacityAndNodes
           dispatch={dispatch}
+          infraType={infraType}
           state={capacityAndNodes}
           storageClass={storageClass}
           volumeSetName={createLocalVolumeSet.volumeSetName}

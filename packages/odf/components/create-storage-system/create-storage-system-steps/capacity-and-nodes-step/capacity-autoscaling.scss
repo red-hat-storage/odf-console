@@ -1,0 +1,19 @@
+.odf-capacity-autoscaling__popover-link {
+  padding-left: 0.4rem;
+  text-decoration-line: underline;
+}
+
+.odf-capacity-limit__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.odf-capacity-limit__selector {
+  .pf-v5-c-menu__list {
+      max-height: 10rem;
+      overflow-y: auto;
+  }
+  width: 12rem;
+}
