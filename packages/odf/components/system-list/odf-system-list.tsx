@@ -1,6 +1,14 @@
 import * as React from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
-import { useFetchCsv } from '@odf/shared';
+import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
+import {
+  DEFAULT_INFRASTRUCTURE,
+  InfrastructureKind,
+  StorageClusterKind,
+  useFetchCsv,
+  useK8sGet,
+  useK8sList,
+} from '@odf/shared';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -8,10 +16,15 @@ import {
 import { CustomKebabItem, Kebab } from '@odf/shared/kebab/kebab';
 import {
   ClusterServiceVersionModel,
+  InfrastructureModel,
   StorageClusterModel,
 } from '@odf/shared/models';
 import { ODFStorageSystem } from '@odf/shared/models';
-import { getName, getNamespace } from '@odf/shared/selectors';
+import {
+  getName,
+  getNamespace,
+  getOwnerReferences,
+} from '@odf/shared/selectors';
 import { Status } from '@odf/shared/status/Status';
 import {
   ClusterServiceVersionKind,
@@ -28,6 +41,7 @@ import {
   referenceForModel,
   getGVK,
   isCSVSucceeded,
+  getInfrastructurePlatform,
 } from '@odf/shared/utils';
 import {
   ListPageBody,
@@ -125,8 +139,10 @@ export const normalizeMetrics: MetricNormalize = (
 };
 
 type CustomData = {
-  normalizedMetrics: ReturnType<typeof normalizeMetrics>;
+  infrastructure: InfrastructureKind;
   isLSOInstalled: boolean;
+  normalizedMetrics: ReturnType<typeof normalizeMetrics>;
+  storageClusters: StorageClusterKind[];
 };
 
 type StorageSystemNewPageProps = {
@@ -259,7 +275,15 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
   const systemName = getName(obj);
   const systemNamespace = getNamespace(obj);
-  const { normalizedMetrics, isLSOInstalled } = rowData;
+  const { infrastructure, isLSOInstalled, normalizedMetrics, storageClusters } =
+    rowData;
+
+  const storageCluster = storageClusters?.find(
+    (storageClusterItem) =>
+      getOwnerReferences(storageClusterItem)[0]?.name === systemName
+  );
+
+  const resourceProfile = storageCluster?.spec?.resourceProfile;
   const customKebabItems: CustomKebabItem[] = [
     {
       key: 'ADD_CAPACITY',
@@ -280,6 +304,23 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
     },
   ];
 
+  if (
+    isCapacityAutoScalingAllowed(
+      getInfrastructurePlatform(infrastructure),
+      resourceProfile
+    )
+  ) {
+    customKebabItems.push({
+      key: 'CAPACITY_AUTOSCALING',
+      value: t('Smart capacity scaling'),
+      component: React.lazy(
+        () =>
+          import(
+            '@odf/core/modals/capacity-autoscaling/capacity-autoscaling-modal'
+          )
+      ),
+    });
+  }
   if (isLSOInstalled) {
     customKebabItems.push({
       key: 'ATTACH_STORAGE',
@@ -328,7 +369,11 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
         <Kebab
-          extraProps={{ resource: obj, resourceModel: ODFStorageSystem }}
+          extraProps={{
+            resource: obj,
+            resourceModel: ODFStorageSystem,
+            storageCluster,
+          }}
           customKebabItems={customKebabItems}
         />
       </TableData>
@@ -351,6 +396,11 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
+  const [infrastructure] = useK8sGet<InfrastructureKind>(
+    InfrastructureModel,
+    DEFAULT_INFRASTRUCTURE
+  );
+  const [storageClusters] = useK8sList<StorageClusterKind>(StorageClusterModel);
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
 
@@ -360,7 +410,6 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
     kind: referenceForModel(ODFStorageSystem),
     isList: true,
     selector,
-    namespace,
   });
 
   const [data, filteredData, onFilterChange] =
@@ -403,8 +452,8 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
 
   const odfCsvName: string =
     csvLoaded && !csvError
-      ? csv?.find((item) => item?.metadata?.name?.includes('odf-operator'))
-          ?.metadata?.name
+      ? csv?.find((item) => getName(item)?.includes('odf-operator'))?.metadata
+          ?.name
       : null;
 
   const createLink = `/k8s/ns/${odfNamespace}/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
@@ -450,7 +499,12 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
           unfilteredData={storageSystems}
           loaded={loaded && isODFNsLoaded}
           loadError={loadError || odfNsLoadError}
-          rowData={{ normalizedMetrics, isLSOInstalled }}
+          rowData={{
+            infrastructure,
+            isLSOInstalled,
+            normalizedMetrics,
+            storageClusters,
+          }}
         />
       </ListPageBody>
     </>

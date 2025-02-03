@@ -46,8 +46,8 @@ const convertLifecycleRuleToRuleState = (rule: LifecycleRule): RuleState => {
   const tags: Tag[] = rule.Filter?.Tag
     ? [rule.Filter.Tag]
     : rule.Filter?.And
-    ? rule.Filter.And?.Tags || []
-    : [];
+      ? rule.Filter.And?.Tags || []
+      : [];
 
   if (rule.Filter) {
     if (rule.Filter?.And) {

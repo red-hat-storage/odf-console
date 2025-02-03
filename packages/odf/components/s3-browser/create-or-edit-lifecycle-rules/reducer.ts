@@ -1,15 +1,17 @@
 import { Tag } from '@aws-sdk/client-s3';
+import { StorageSizeUnitName } from '@odf/shared/types';
 import * as _ from 'lodash-es';
 
 export enum RuleScope {
   TARGETED = 'TARGETED',
   GLOBAL = 'GLOBAL',
 }
+// SizeUnit is a subset of StorageSizeUnitName.
 export enum SizeUnit {
-  B = 'B',
-  KiB = 'KiB',
-  MiB = 'MiB',
-  GiB = 'GiB',
+  B = StorageSizeUnitName.B,
+  KiB = StorageSizeUnitName.KiB,
+  MiB = StorageSizeUnitName.MiB,
+  GiB = StorageSizeUnitName.GiB,
 }
 export enum FuncType {
   ON_PLUS = 'PLUS',
