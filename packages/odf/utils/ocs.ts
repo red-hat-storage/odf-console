@@ -150,6 +150,11 @@ export const isResourceProfileAllowed = (
   return cpu >= minCpu && memory >= minMem;
 };
 
+export const isValidCapacityAutoScalingConfig = (
+  enabled: boolean,
+  capacityLimit: string
+) => !enabled || !!capacityLimit;
+
 export const getAssociatedNodes = (pvs: K8sResourceKind[]): string[] => {
   const nodes = pvs.reduce((res, pv) => {
     const matchExpressions: MatchExpression[] =
