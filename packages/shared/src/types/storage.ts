@@ -112,6 +112,7 @@ export type DeviceSet = {
       };
     };
   };
+  deviceClass?: string;
 };
 
 export type StorageClusterResource = {
@@ -212,3 +213,42 @@ export type StorageConsumerKind = K8sResourceCommon & {
 };
 
 export type NoobaaSystemKind = K8sResourceCommon;
+
+export enum CapacityAutoscalingStatus {
+  Completed = 'completed',
+  Failure = 'failure',
+  InProgress = 'inProgress',
+  Waiting = 'waiting',
+}
+
+export type StorageAutoScalerKind = K8sResourceCommon & {
+  spec: {
+    capacityLimit: string;
+    deviceClassName: string;
+    storageClusterName: string;
+  };
+  status?: {
+    phase: string;
+    lastRunTimeStamp: string;
+  };
+};
+
+/**
+ * Power-of-2 units. See:
+ * https://en.wikipedia.org/wiki/Byte#Multiple-byte_units
+ */
+export enum StorageSizeUnit {
+  B = 'B',
+  Ki = 'Ki',
+  Mi = 'Mi',
+  Gi = 'Gi',
+  Ti = 'Ti',
+}
+
+export enum StorageSizeUnitName {
+  B = 'B',
+  KiB = 'KiB',
+  MiB = 'MiB',
+  GiB = 'GiB',
+  TiB = 'TiB',
+}

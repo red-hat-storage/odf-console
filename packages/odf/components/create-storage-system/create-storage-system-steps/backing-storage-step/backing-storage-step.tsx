@@ -23,6 +23,7 @@ import {
   ListKind,
   StorageClassResourceKind,
   ClusterServiceVersionKind,
+  InfraProviders,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isDefaultClass, getODFCsv, getGVKLabel } from '@odf/shared/utils';
@@ -49,12 +50,12 @@ import { SetCephRBDStorageClassDefault } from './set-rbd-sc-default';
 import './backing-storage-step.scss';
 
 const RHCS_SUPPORTED_INFRA = [
-  'BareMetal',
-  'None',
-  'VSphere',
-  'OpenStack',
-  'oVirt',
-  'IBMCloud',
+  InfraProviders.BareMetal,
+  InfraProviders.IBMCloud,
+  InfraProviders.None,
+  InfraProviders.OpenStack,
+  InfraProviders.OVirt,
+  InfraProviders.VSphere,
 ];
 
 // ODF watches only 2 namespaces (other one is operator install namespace)
@@ -220,7 +221,8 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
     const odfCsv = getODFCsv(csvList?.items);
     const supportedODFVendors = getSupportedVendors(odfCsv);
     const enableRhcs =
-      RHCS_SUPPORTED_INFRA.includes(infraType) && isFullDeployment;
+      RHCS_SUPPORTED_INFRA.includes(infraType as InfraProviders) &&
+      isFullDeployment;
 
     // Only single external RHCS is allowed
     return !enableRhcs || hasExternal

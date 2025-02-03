@@ -3,7 +3,7 @@ import {
   ResourceProfileRequirementsMap,
 } from '@odf/core/types';
 import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
-import { Toleration, Taint } from '@odf/shared/types';
+import { Toleration, Taint, StorageSizeUnit } from '@odf/shared/types';
 import { TFunction } from 'react-i18next';
 
 export const CEPH_BRAND_NAME = 'Red Hat Ceph Storage';
@@ -81,14 +81,14 @@ export enum CreateStepsSC {
 }
 
 export const SIZE_IN_TB = {
-  Gi: 1024,
-  Ti: 1,
+  [StorageSizeUnit.Gi]: 1024,
+  [StorageSizeUnit.Ti]: 1,
 };
 
 export const OSD_CAPACITY_SIZES = {
-  '512Gi': 0.5,
-  '2Ti': 2,
-  '4Ti': 4,
+  [`512${StorageSizeUnit.Gi}`]: 0.5,
+  [`2${StorageSizeUnit.Ti}`]: 2,
+  [`4${StorageSizeUnit.Ti}`]: 4,
 };
 
 export const ZONE_LABELS = [
