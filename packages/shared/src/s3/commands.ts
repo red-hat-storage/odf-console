@@ -14,6 +14,8 @@ import {
   GetBucketPolicyCommand,
   ListObjectVersionsCommand,
   DeleteBucketCommand,
+  DeleteBucketPolicyCommand,
+  PutBucketPolicyCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -34,6 +36,8 @@ import {
   GetBucketTagging,
   GetBucketAcl,
   GetBucketPolicy,
+  DeleteBucketPolicy,
+  SetBucketPolicy,
 } from './types';
 
 export class S3Commands extends S3Client {
@@ -65,6 +69,12 @@ export class S3Commands extends S3Client {
 
   getBucketPolicy: GetBucketPolicy = (input) =>
     this.send(new GetBucketPolicyCommand(input));
+
+  deleteBucketPolicy: DeleteBucketPolicy = (input) =>
+    this.send(new DeleteBucketPolicyCommand(input));
+
+  setBucketPolicy: SetBucketPolicy = (input) =>
+    this.send(new PutBucketPolicyCommand(input));
 
   getBucketTagging: GetBucketTagging = (input) =>
     this.send(new GetBucketTaggingCommand(input));

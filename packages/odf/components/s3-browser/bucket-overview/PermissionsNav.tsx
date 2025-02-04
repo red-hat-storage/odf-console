@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
+import { PERMISSIONS_ROUTE } from '../../../constants';
+import { BucketPolicy } from '../bucket-policy/BucketPolicy';
 
-const BucketPolicy = () => <>BUCKET POLICY</>;
 const Cors = () => <>CORS</>;
 
-const PermissionsNav = () => {
+const PermissionsNav = ({ obj }) => {
   const { t } = useCustomTranslation();
 
   const pages: TabPage[] = React.useMemo(
@@ -24,7 +25,14 @@ const PermissionsNav = () => {
     [t]
   );
 
-  return <Tabs id="s3-permissions-tab" tabs={pages} basePath="permissions" />;
+  return (
+    <Tabs
+      id="s3-permissions-tab"
+      tabs={pages}
+      customData={obj}
+      basePath={PERMISSIONS_ROUTE}
+    />
+  );
 };
 
 export default PermissionsNav;
