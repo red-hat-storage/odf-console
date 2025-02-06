@@ -1,0 +1,30 @@
+  .dr-status-title {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .dr-status-description {
+      margin-bottom: 1rem;
+    }
+
+    .dr-status-action-needed,
+    .dr-status-critical {
+      color: var(--pf-v5-global--danger-color--100);
+    }
+
+    .dr-status-warning {
+      color: var(--pf-v5-global--warning-color--100);
+    }
+
+    .dr-status-healthy {
+      color: var(--pf-v5-global--success-color--100);
+    }
+
+    .dr-status-failover,
+    .dr-status-relocate {
+      color: var(--pf-v5-global--Color--100);
+    }
+
+    .dr-status-help-link {
+      margin-top: 1rem;
+    }
