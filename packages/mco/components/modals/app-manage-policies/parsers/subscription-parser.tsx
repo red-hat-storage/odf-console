@@ -34,7 +34,7 @@ import {
   PVCQueryFilter,
 } from '../utils/types';
 
-const getSubscriptionResources = (
+export const getSubscriptionResources = (
   appResource: ApplicationKind,
   namespace: string,
   drResources: DisasterRecoveryResourceKind,
