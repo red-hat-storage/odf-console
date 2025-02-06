@@ -127,6 +127,7 @@ export type SyncStatusInfo = {
   kubeObjectReplicationStatus: VolumeReplicationHealth;
   kubeObjectLastProtectionTime: string;
   replicationType: ReplicationType;
+  schedulingInterval?: string;
 };
 
 export const getAppWorstSyncStatus = (
@@ -143,10 +144,9 @@ export const getAppWorstSyncStatus = (
 };
 
 export const getColumnNames = (t: TFunction<string>) => [
-  '', // expandable icon
   t('Name'),
   t('Details'),
-  t('Overall sync status'),
+  t('DR Status'),
   t('Policy'),
   t('Cluster'),
   '', // action kebab
