@@ -31,7 +31,12 @@ import { useNavigate, NavigateFunction } from 'react-router-dom-v5-compat';
 import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
-import { PREFIX, BUCKETS_BASE_ROUTE } from '../../../constants';
+import {
+  PREFIX,
+  BUCKETS_BASE_ROUTE,
+  PERMISSIONS_ROUTE,
+  MANAGEMENT_ROUTE,
+} from '../../../constants';
 import { NooBaaObjectBucketModel } from '../../../models';
 import { getBreadcrumbs } from '../../../utils';
 import { NoobaaS3Context, NoobaaS3Provider } from '../noobaa-context';
@@ -214,41 +219,44 @@ const BucketOverview: React.FC<{}> = () => {
     [foldersPath, bucketName, t]
   );
 
-  const navPages: TabPage[] = [
-    {
-      href: 'objects',
-      title: t('Objects'),
-      component: ObjectListWithSidebar,
-    },
-    ...(!foldersPath
-      ? [
-          {
-            href: 'details',
-            title: t('Details'),
-            component: BucketDetails,
-          },
-          {
-            href: 'permissions',
-            title: t('Permissions'),
-            component: React.lazy(() => import('./PermissionsNav')),
-          },
-          {
-            href: 'management',
-            title: t('Management'),
-            component: React.lazy(() => import('./ManagementNav')),
-          },
-        ]
-      : []),
-    ...(isCreatedByOBC
-      ? [
-          {
-            href: 'yaml',
-            title: t('YAML'),
-            component: CustomYAMLEditor,
-          },
-        ]
-      : []),
-  ];
+  const navPages: TabPage[] = React.useMemo(
+    () => [
+      {
+        href: 'objects',
+        title: t('Objects'),
+        component: ObjectListWithSidebar,
+      },
+      ...(!foldersPath
+        ? [
+            {
+              href: 'details',
+              title: t('Details'),
+              component: BucketDetails,
+            },
+            {
+              href: PERMISSIONS_ROUTE,
+              title: t('Permissions'),
+              component: React.lazy(() => import('./PermissionsNav')),
+            },
+            {
+              href: MANAGEMENT_ROUTE,
+              title: t('Management'),
+              component: React.lazy(() => import('./ManagementNav')),
+            },
+          ]
+        : []),
+      ...(isCreatedByOBC
+        ? [
+            {
+              href: 'yaml',
+              title: t('YAML'),
+              component: CustomYAMLEditor,
+            },
+          ]
+        : []),
+    ],
+    [foldersPath, isCreatedByOBC, t]
+  );
 
   const renderActions = (noobaaS3: S3Commands) => () =>
     createBucketActions(
@@ -320,6 +328,15 @@ const BucketOverviewContent: React.FC<BucketOverviewContentProps> = ({
 }) => {
   const { noobaaS3 } = React.useContext(NoobaaS3Context);
 
+  const customData = React.useMemo(
+    () => ({
+      fresh,
+      triggerRefresh,
+      resource: noobaaObjectBucket,
+    }),
+    [fresh, triggerRefresh, noobaaObjectBucket]
+  );
+
   return (
     <>
       <PageHeading
@@ -341,17 +358,7 @@ const BucketOverviewContent: React.FC<BucketOverviewContentProps> = ({
         setEmptyBucketResponse={setEmptyBucketResponse}
         triggerRefresh={triggerRefresh}
       />
-      <Tabs
-        id="s3-overview"
-        tabs={navPages}
-        customData={
-          {
-            fresh,
-            triggerRefresh,
-            resource: noobaaObjectBucket,
-          } as unknown
-        }
-      />
+      <Tabs id="s3-overview" tabs={navPages} customData={customData} />
     </>
   );
 };
