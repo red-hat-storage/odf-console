@@ -159,8 +159,7 @@ export type SearchResult = {
       items?: SearchResultItemType[];
       count?: number;
       related?: {
-        count: number;
-        kind: string;
+        items?: SearchResultItemType[];
       }[];
     }[];
   };

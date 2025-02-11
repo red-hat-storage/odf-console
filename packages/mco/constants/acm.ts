@@ -45,7 +45,8 @@ export const MANAGED_CLUSTER_JOINED = 'ManagedClusterJoined';
 export const LABEL = 'label';
 export const LABELS_SPLIT_CHAR = '; ';
 export const LABEL_SPLIT_CHAR = '=';
-export const DR_BLOCK_LISTED_LABELS = ['app.kubernetes.io/instance'];
+export const KUBE_INSTANCE_LABEL = 'app.kubernetes.io/instance';
+export const DR_BLOCK_LISTED_LABELS = [KUBE_INSTANCE_LABEL];
 
 export const ACM_OPERATOR_SPEC_NAME = 'advanced-cluster-management';
 

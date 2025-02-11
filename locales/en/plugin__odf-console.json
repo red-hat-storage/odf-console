@@ -342,7 +342,7 @@
   "Select the subscriptions groups you wish to replicate via": "Select the subscriptions groups you wish to replicate via",
   "Enroll managed application": "Enroll managed application",
   "Manage disaster recovery": "Manage disaster recovery",
-  "<0>Application:</0> {getName(applicationInfo)} (Namespace: {getNamespace(applicationInfo)})": "<0>Application:</0> {getName(applicationInfo)} (Namespace: {getNamespace(applicationInfo)})",
+  "<0>Application:</0> {applicationName} (Namespace: {applicationNamespace})": "<0>Application:</0> {applicationName} (Namespace: {applicationNamespace})",
   "Assign policy nav": "Assign policy nav",
   "Assign policy content": "Assign policy content",
   "Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers, dots (.), hyphens (-), forward slash (/), underscore(_) and equal to (=)": "Labels must start and end with an alphanumeric character, can consist of lower-case letters, numbers, dots (.), hyphens (-), forward slash (/), underscore(_) and equal to (=)",

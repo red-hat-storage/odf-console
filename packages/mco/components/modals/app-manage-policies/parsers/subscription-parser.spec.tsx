@@ -32,7 +32,7 @@ import {
 } from '../../../../__mocks__/subscription';
 import { DisasterRecoveryResourceKind } from '../../../../hooks/disaster-recovery';
 import { SearchResult } from '../../../../types';
-import { SubscriptionParser } from './subscription-parser';
+import AppManagePoliciesModal from '../app-manage-policies-modal';
 
 let testCase = 1;
 
@@ -40,16 +40,20 @@ const searchResult: SearchResult = {
   data: {
     searchResult: [
       {
-        items: [
+        related: [
           {
-            apiversion: 'v1',
-            cluster: 'local-cluster',
-            created: '2023-07-04T17:14:10Z',
-            kind: 'PersistentVolumeClaim',
-            label: 'app=mock-application-2',
-            name: 'busybox-pvc',
-            namespace: 'test-ns',
-            _uid: 'local-cluster/683b0a87-85bf-4743-96d2-565863752e53',
+            items: [
+              {
+                apiversion: 'v1',
+                cluster: 'local-cluster',
+                created: '2023-07-04T17:14:10Z',
+                kind: 'PersistentVolumeClaim',
+                label: 'app=mock-application-2',
+                name: 'busybox-pvc',
+                namespace: 'test-ns',
+                _uid: 'local-cluster/683b0a87-85bf-4743-96d2-565863752e53',
+              },
+            ],
           },
         ],
       },
@@ -186,8 +190,8 @@ describe('Subscription manage disaster recovery modal', () => {
   test('Empty manage policy page test', async () => {
     testCase = 1;
     render(
-      <SubscriptionParser
-        application={mockApplication2}
+      <AppManagePoliciesModal
+        resource={mockApplication2}
         close={onClose}
         isOpen={true}
       />
@@ -208,8 +212,8 @@ describe('Subscription manage disaster recovery modal', () => {
   test('manage policy view test', async () => {
     testCase = 2;
     render(
-      <SubscriptionParser
-        application={mockApplication1}
+      <AppManagePoliciesModal
+        resource={mockApplication1}
         close={onClose}
         isOpen={true}
       />
@@ -239,8 +243,8 @@ describe('Subscription manage disaster recovery modal', () => {
     const user = userEvent.setup();
     testCase = 3;
     render(
-      <SubscriptionParser
-        application={mockApplication1}
+      <AppManagePoliciesModal
+        resource={mockApplication1}
         close={onClose}
         isOpen={true}
       />
