@@ -1,5 +1,10 @@
 import { DRApplication } from '@odf/mco/constants';
 import {
+  getDRClusterResourceObj,
+  getDRPlacementControlResourceObj,
+  getDRPolicyResourceObj,
+} from '@odf/mco/hooks';
+import {
   ACMApplicationKind,
   ACMPlacementType,
   DRPlacementControlKind,
@@ -20,6 +25,7 @@ import {
   DRPlacementControlType,
   DRInfoType,
   PlacementType,
+  PVCQueryFilter,
 } from './types';
 
 const getPVCSelector = (pvcSelector: Selector): string[] => {
@@ -90,7 +96,8 @@ export const generateApplicationInfo = (
   application: ACMApplicationKind,
   workloadNamespace: string,
   plsInfo: PlacementType[],
-  drInfo: DRInfoType | {}
+  drInfo: DRInfoType | {},
+  pvcQueryFilter: PVCQueryFilter
 ): ApplicationType => ({
   type: appType,
   apiVersion: application.apiVersion,
@@ -99,6 +106,7 @@ export const generateApplicationInfo = (
   workloadNamespace: workloadNamespace,
   placements: plsInfo,
   drInfo: drInfo,
+  pvcQueryFilter: pvcQueryFilter,
 });
 
 export const getClusterNamesFromPlacements = (placements: PlacementType[]) =>
@@ -124,3 +132,13 @@ export const getMatchingDRPolicies = (
     }, []) || []
   );
 };
+
+export const getDRResources = (namespace: string) => ({
+  resources: {
+    drPolicies: getDRPolicyResourceObj(),
+    drClusters: getDRClusterResourceObj(),
+    drPlacementControls: getDRPlacementControlResourceObj({
+      namespace,
+    }),
+  },
+});
