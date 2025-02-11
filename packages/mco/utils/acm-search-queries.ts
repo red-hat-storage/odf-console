@@ -3,7 +3,18 @@ import {
   K8sResourceCommon,
   ObjectMetadata,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { LABELS_SPLIT_CHAR, LABEL_SPLIT_CHAR } from '../constants';
+import { PVCQueryFilter } from '../components/modals/app-manage-policies/utils/types';
+import {
+  GITOPS_OPERATOR_NAMESPACE,
+  HUB_CLUSTER_NAME,
+  LABELS_SPLIT_CHAR,
+  LABEL_SPLIT_CHAR,
+} from '../constants';
+import {
+  ACMSubscriptionModel,
+  ArgoApplicationSetModel,
+  VirtualMachineModel,
+} from '../models';
 
 // Search query
 export const searchFilterQuery =
@@ -13,32 +24,19 @@ export const searchRelatedItemsFilterQuery =
   'query searchResultRelatedItems($input: [SearchInput]) {\n  searchResult: search(input: $input) {\n    items\n    related {\n      kind\n      items\n      __typename\n    }\n    __typename\n  }\n}';
 
 export const queryAppWorkloadPVCs = (
-  workloadNamespace: string,
-  clusterNames: string[]
+  pvcQueryFilter: PVCQueryFilter
 ): SearchQuery => ({
-  operationName: 'searchResult',
+  operationName: 'searchResultRelatedItems',
   variables: {
     input: [
       {
-        filters: [
-          {
-            property: 'kind',
-            values: ['persistentvolumeclaim'],
-          },
-          {
-            property: 'namespace',
-            values: [workloadNamespace],
-          },
-          {
-            property: 'cluster',
-            values: clusterNames,
-          },
-        ],
-        limit: 20, // search said not to use unlimited results
+        filters: pvcQueryFilter,
+        relatedKinds: ['persistentvolumeclaim'],
+        limit: 100, // search said not to use unlimited results
       },
     ],
   },
-  query: searchFilterQuery,
+  query: searchRelatedItemsFilterQuery,
 });
 
 export const queryNamespacesUsingCluster = (
@@ -150,6 +148,49 @@ export const queryK8sResourceFromCluster = (
           },
         ],
         limit: 2000, // search said not to use unlimited results
+      },
+    ],
+  },
+  query: searchRelatedItemsFilterQuery,
+});
+
+// ACM seach query to find managed application resources of the VM.
+export const queryManagedApplicationResourcesForVM = (
+  names: string[],
+  namespace: string,
+  cluster: string
+): SearchQuery => ({
+  operationName: 'searchResultRelatedItems',
+  variables: {
+    input: [
+      {
+        filters: [
+          {
+            property: 'namespace',
+            values: [namespace, GITOPS_OPERATOR_NAMESPACE],
+          },
+          {
+            property: 'cluster',
+            values: [cluster, HUB_CLUSTER_NAME],
+          },
+          {
+            property: 'kind',
+            values: [VirtualMachineModel.kind, 'Application'],
+          },
+          {
+            property: 'name',
+            values: names.filter(Boolean),
+          },
+          {
+            property: 'apigroup',
+            values: [
+              VirtualMachineModel.apiGroup,
+              ArgoApplicationSetModel.apiGroup,
+            ],
+          },
+        ],
+        relatedKinds: [ACMSubscriptionModel.kind, ArgoApplicationSetModel.kind],
+        limit: 2, // search said not to use unlimited results
       },
     ],
   },
