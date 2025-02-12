@@ -31,6 +31,10 @@ import {
   DeleteBucketPolicyCommandOutput,
   PutBucketPolicyCommandInput,
   PutBucketPolicyCommandOutput,
+  GetBucketLifecycleConfigurationCommandInput,
+  GetBucketLifecycleConfigurationCommandOutput,
+  PutBucketLifecycleConfigurationCommandInput,
+  PutBucketLifecycleConfigurationCommandOutput,
 } from '@aws-sdk/client-s3';
 
 // Bucket command types
@@ -77,6 +81,14 @@ export type ListBuckets = (
 export type PutBucketTags = (
   input: PutBucketTaggingCommandInput
 ) => Promise<PutBucketTaggingCommandOutput>;
+
+export type GetBucketLifecycleConfiguration = (
+  input: GetBucketLifecycleConfigurationCommandInput
+) => Promise<GetBucketLifecycleConfigurationCommandOutput>;
+
+export type PutBucketLifecycleConfiguration = (
+  input: PutBucketLifecycleConfigurationCommandInput
+) => Promise<PutBucketLifecycleConfigurationCommandOutput>;
 
 // Object command types
 export type DeleteObjects = (
