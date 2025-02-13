@@ -86,6 +86,7 @@ module.exports = {
           '**/*.spec.tsx',
           './jest/setup.ts',
           './cypress/**',
+          './analyzeTest.ts',
         ],
         optionalDependencies: false,
         peerDependencies: false,
