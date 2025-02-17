@@ -124,7 +124,7 @@ const canJumpToNextStep = (
     connectionDetails,
     nodes,
   } = state;
-  const { type, externalStorage, deployment } = backingStorage;
+  const { type, externalStorage } = backingStorage;
   const isExternal: boolean = type === BackingStorageType.EXTERNAL;
   const isRHCS: boolean = externalStorage === StorageClusterModel.kind;
   const {
@@ -184,14 +184,12 @@ const canJumpToNextStep = (
         ![VolumeTypeValidation.UNKNOWN, VolumeTypeValidation.ERROR].includes(
           volumeValidationType
         ) &&
-        (deployment !== DeploymentType.PROVIDER_MODE
-          ? isResourceProfileAllowed(
-              resourceProfile,
-              getTotalCpu(nodes),
-              getTotalMemoryInGiB(nodes),
-              osdAmount
-            )
-          : true)
+        isResourceProfileAllowed(
+          resourceProfile,
+          getTotalCpu(nodes),
+          getTotalMemoryInGiB(nodes),
+          osdAmount
+        )
       );
     case StepsName(t)[Steps.SecurityAndNetwork]:
       if (isExternal && isRHCS) {

@@ -15,7 +15,6 @@ export enum BackingStorageType {
 export enum DeploymentType {
   FULL = 'Full deployment',
   MCG = 'MultiCloud Object Gateway',
-  PROVIDER_MODE = 'Provider Mode',
 }
 
 export enum VolumeTypeValidation {

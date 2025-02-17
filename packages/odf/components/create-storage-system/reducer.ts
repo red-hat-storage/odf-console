@@ -104,6 +104,10 @@ export const initialState: CreateStorageSystemState = {
     kms: KMSEmptyState,
     publicNetwork: null,
     clusterNetwork: null,
+    addressRanges: {
+      public: [],
+      cluster: [],
+    },
     networkType: NetworkType.DEFAULT,
   },
 };
@@ -155,9 +159,15 @@ type CreateStorageSystemState = {
     kms: KMSConfig;
     publicNetwork: NetworkAttachmentDefinitionKind;
     clusterNetwork: NetworkAttachmentDefinitionKind;
+    addressRanges: AddressRanges;
     networkType: NetworkType;
   };
   createLocalVolumeSet: LocalVolumeSet;
+};
+
+type AddressRanges = {
+  public: string[];
+  cluster: string[];
 };
 
 export type WizardNodeState = {
@@ -393,6 +403,12 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'securityAndNetwork/setNetworkType':
       newState.securityAndNetwork.networkType = action.payload;
       break;
+    case 'securityAndNetwork/setPublicCIDR':
+      newState.securityAndNetwork.addressRanges.public = action.payload;
+      break;
+    case 'securityAndNetwork/setCephCIDR':
+      newState.securityAndNetwork.addressRanges.cluster = action.payload;
+      break;
     default:
       throw new TypeError(`${action} is not a valid reducer action`);
   }
@@ -502,6 +518,14 @@ export type CreateStorageSystemAction =
   | {
       type: 'securityAndNetwork/setClusterNetwork';
       payload: WizardState['securityAndNetwork']['clusterNetwork'];
+    }
+  | {
+      type: 'securityAndNetwork/setPublicCIDR';
+      payload: WizardState['securityAndNetwork']['addressRanges']['public'];
+    }
+  | {
+      type: 'securityAndNetwork/setCephCIDR';
+      payload: WizardState['securityAndNetwork']['addressRanges']['cluster'];
     }
   | {
       type: 'securityAndNetwork/setNetworkType';

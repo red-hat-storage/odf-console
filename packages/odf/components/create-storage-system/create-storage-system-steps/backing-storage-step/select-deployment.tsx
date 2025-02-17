@@ -1,8 +1,6 @@
 import * as React from 'react';
-import { FDF_FLAG } from '@odf/core/redux';
-import { BackingStorageType, DeploymentType } from '@odf/core/types';
+import { DeploymentType } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Select,
   SelectOption,
@@ -14,12 +12,8 @@ import { FormGroup } from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './backing-storage-step.scss';
 
-const selectOptions = (t: TFunction, isFDF: boolean) => {
-  const options = [
-    DeploymentType.FULL,
-    ...(isFDF ? [DeploymentType.PROVIDER_MODE] : []),
-    DeploymentType.MCG,
-  ];
+const selectOptions = (t: TFunction) => {
+  const options = [DeploymentType.FULL, DeploymentType.MCG];
 
   const optionsDescription = {
     [DeploymentType.MCG]: t(
@@ -27,9 +21,6 @@ const selectOptions = (t: TFunction, isFDF: boolean) => {
     ),
     [DeploymentType.FULL]: t(
       'Deploys Data Foundation with block, shared fileSystem and object services.'
-    ),
-    [DeploymentType.PROVIDER_MODE]: t(
-      'Deploys Data Foundation as a provider cluster'
     ),
   };
 
@@ -51,20 +42,12 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
   const { t } = useCustomTranslation();
   const [isSelectOpen, setIsSelectOpen] = React.useState(false);
 
-  const isFDF = useFlag(FDF_FLAG);
-
   const handleSelection: SelectProps['onSelect'] = (_, value) => {
     dispatch({
       type: 'backingStorage/setDeployment',
       // 'value' on SelectProps['onSelect'] is string hence does not match with payload of type "DeploymentType"
       payload: value as DeploymentType,
     });
-    if (value === DeploymentType.PROVIDER_MODE) {
-      dispatch({
-        type: 'backingStorage/setType',
-        payload: BackingStorageType.EXISTING,
-      });
-    }
     setIsSelectOpen(false);
   };
 
@@ -85,7 +68,7 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
         selections={deployment}
         isOpen={isSelectOpen}
       >
-        {selectOptions(t, isFDF)}
+        {selectOptions(t)}
       </Select>
     </FormGroup>
   );

@@ -25,6 +25,10 @@ export type StorageClusterKind = K8sResourceCommon & {
         public: string;
         private?: string;
       };
+      addressRanges?: {
+        public: string[];
+        cluster: string[];
+      };
     };
     nfs?: {
       enable?: boolean;

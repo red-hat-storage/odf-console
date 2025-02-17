@@ -4,8 +4,8 @@ import {
   EncryptionType,
   ResourceProfile,
   NodeData,
-  DeploymentType,
   VolumeTypeValidation,
+  NetworkType,
 } from '@odf/core/types';
 import {
   getNodeCPUCapacity,
@@ -147,7 +147,6 @@ export const capacityAndNodesValidate = (
   isNoProvSC: boolean,
   resourceProfile: ResourceProfile,
   osdAmount: number,
-  deploymentType: DeploymentType,
   volumeValidationType: VolumeTypeValidation
 ): ValidationType[] => {
   const validations = [];
@@ -160,11 +159,7 @@ export const capacityAndNodesValidate = (
   }
   if (!enableStretchCluster && nodes.length && nodes.length < MINIMUM_NODES) {
     validations.push(ValidationType.MINIMUMNODES);
-  } else if (
-    nodes.length &&
-    nodes.length >= MINIMUM_NODES &&
-    deploymentType !== DeploymentType.PROVIDER_MODE
-  ) {
+  } else if (nodes.length && nodes.length >= MINIMUM_NODES) {
     if (
       !isResourceProfileAllowed(
         resourceProfile,
@@ -387,21 +382,24 @@ export const getDeviceSetReplica = (
 const generateNetworkCardName = (resource: NetworkAttachmentDefinitionKind) =>
   `${getNamespace(resource)}/${getName(resource)}`;
 
-type OCSRequestData = {
+type NetworkConfiguration = Omit<
+  WizardState['securityAndNetwork'],
+  'encryption' | 'kms'
+>;
+
+export type OCSRequestData = {
   storageClass: WizardState['storageClass'];
   storage: string;
   encryption: EncryptionType;
   resourceProfile: ResourceProfile;
   nodes: WizardNodeState[];
   flexibleScaling: boolean;
-  publicNetwork?: NetworkAttachmentDefinitionKind;
-  clusterNetwork?: NetworkAttachmentDefinitionKind;
+  networkConfiguration: NetworkConfiguration;
   kmsEnable?: boolean;
   selectedArbiterZone?: string;
   stretchClusterChecked?: boolean;
   availablePvsCount?: number;
   isMCG?: boolean;
-  isProviderMode?: boolean;
   isNFSEnabled?: boolean;
   shouldSetCephRBDAsDefault?: boolean;
   storageClusterNamespace: string;
@@ -419,15 +417,13 @@ export const getOCSRequestData = ({
   resourceProfile,
   nodes,
   flexibleScaling,
-  publicNetwork,
-  clusterNetwork,
+  networkConfiguration,
   kmsEnable,
   selectedArbiterZone,
   stretchClusterChecked,
   availablePvsCount,
   isMCG,
   isNFSEnabled,
-  isProviderMode,
   shouldSetCephRBDAsDefault,
   storageClusterNamespace,
   useExternalPostgres,
@@ -494,34 +490,19 @@ export const getOCSRequestData = ({
         ),
       ],
       ...Object.assign(
-        getNetworkField(publicNetwork, clusterNetwork, encryption.inTransit)
+        getNetworkField(networkConfiguration, encryption.inTransit)
       ),
       managedResources: {
         cephBlockPools: { defaultStorageClass: shouldSetCephRBDAsDefault },
       },
     };
+  }
 
-    if (isProviderMode) {
-      requestData.spec.allowRemoteStorageConsumers = true;
-      requestData.spec.hostNetwork = true;
-      Object.assign<
-        StorageClusterKind['spec']['managedResources'],
-        StorageClusterKind['spec']['managedResources']
-      >(requestData.spec.managedResources, {
-        ...requestData.spec.managedResources,
-        cephBlockPools: {
-          disableSnapshotClass: true,
-          disableStorageClass: true,
-        },
-        cephFilesystems: {
-          disableSnapshotClass: true,
-          disableStorageClass: true,
-        },
-        cephObjectStores: {
-          hostNetwork: false,
-        },
-      });
-    }
+  if (
+    networkConfiguration.networkType === NetworkType.HOST ||
+    networkConfiguration.networkType === NetworkType.NIC
+  ) {
+    requestData.spec.hostNetwork = true;
   }
 
   if (encryption) {
@@ -571,10 +552,30 @@ export const getOCSRequestData = ({
 };
 
 const getNetworkField = (
-  publicNetwork: NetworkAttachmentDefinitionKind,
-  clusterNetwork: NetworkAttachmentDefinitionKind,
-  inTransitEncryption: boolean
+  networkConfiguration: NetworkConfiguration,
+  isTransitEncryptionEnabled: boolean
 ) => {
+  const {
+    networkType,
+    publicNetwork,
+    clusterNetwork,
+    addressRanges: { cluster, public: publicAddressRange },
+  } = networkConfiguration;
+  if (networkType === NetworkType.HOST || networkType === NetworkType.NIC) {
+    return {
+      network: {
+        connections: {
+          encryption: {
+            enabled: isTransitEncryptionEnabled,
+          },
+        },
+        addressRanges: {
+          cluster: cluster,
+          public: publicAddressRange,
+        },
+      },
+    } as StorageClusterKind['spec']['network'];
+  }
   const publicNetworkString = generateNetworkCardName(publicNetwork);
   const privateNetworkString = generateNetworkCardName(clusterNetwork);
   const multusNetwork =
@@ -596,7 +597,7 @@ const getNetworkField = (
       ...multusNetwork,
       connections: {
         encryption: {
-          enabled: inTransitEncryption,
+          enabled: isTransitEncryptionEnabled,
         },
       },
     },
