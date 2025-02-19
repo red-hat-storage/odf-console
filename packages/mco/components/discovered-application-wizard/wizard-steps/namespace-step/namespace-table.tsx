@@ -26,7 +26,7 @@ import {
   ListPageFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { Bullseye, Grid, GridItem, Text } from '@patternfly/react-core';
 import { Td } from '@patternfly/react-table';
 import {

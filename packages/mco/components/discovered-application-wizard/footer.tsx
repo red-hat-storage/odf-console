@@ -10,8 +10,8 @@ import {
   WizardContext,
   WizardFooter,
 } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import {
   Button,
   ButtonVariant,

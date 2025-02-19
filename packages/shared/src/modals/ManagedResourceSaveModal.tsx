@@ -4,7 +4,7 @@ import {
   K8sResourceCommon,
   OwnerReference,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
 import {
   Button,

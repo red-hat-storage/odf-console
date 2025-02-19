@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getValidatedProp } from '@odf/shared/utils';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import {
   InputGroup,
   FormGroup,

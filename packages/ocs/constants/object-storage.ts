@@ -1,4 +1,4 @@
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 
 export enum ServiceType {
   MCG = 'Multicloud Object Gateway',

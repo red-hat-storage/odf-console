@@ -9,8 +9,8 @@ import {
   getAPIVersionForModel,
   RowFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import {
   AWS_REGIONS,
   StoreProviders,
@@ -217,7 +217,7 @@ export const getNamespaceStoreType = (
 ): StoreProviders => {
   let type: StoreProviders = null;
   Object.entries(NS_PROVIDERS_NOOBAA_MAP).forEach(([k, v]) => {
-    if (ns?.spec?.[v]) {
+    if (ns?.spec?.[v as string]) {
       type = k as StoreProviders;
     }
   });

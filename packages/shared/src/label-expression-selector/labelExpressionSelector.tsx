@@ -3,8 +3,8 @@ import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { MatchExpression } from '@openshift-console/dynamic-plugin-sdk';
 import { SelectOption, SelectVariant } from '@patternfly/react-core/deprecated';
 import { SVGIconProps } from '@patternfly/react-icons/dist/esm/createIcon';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import {
   FormFieldGroupExpandable,
   Button,

@@ -187,7 +187,7 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
         }}
       />
       <Td dataLabel={columnNames[1]}>
-        <Link to={`${BUCKETS_BASE_ROUTE}/${name}`}>{name}</Link>
+        <Link to={`${BUCKETS_BASE_ROUTE}/${name}/objects`}>{name}</Link>
       </Td>
       <Td dataLabel={columnNames[2]}>
         {/* ToDo: Currently we only support MCG, make is configurable once RGW is supported as well */}

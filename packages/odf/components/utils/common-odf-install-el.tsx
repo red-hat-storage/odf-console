@@ -10,7 +10,7 @@ import { getResourceProfileRequirements } from '@odf/core/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { WizardContextConsumer } from '@patternfly/react-core/deprecated';
 import classNames from 'classnames';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { Link } from 'react-router-dom-v5-compat';
 import { Alert, AlertVariant, AlertActionLink } from '@patternfly/react-core';
 import './odf-install.scss';

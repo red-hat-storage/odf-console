@@ -11,7 +11,7 @@ import {
 import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { sortRows } from '@odf/shared/utils';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import {
   Modal,
   ModalVariant,

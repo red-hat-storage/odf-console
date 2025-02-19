@@ -1,4 +1,4 @@
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 
 export const maxChars = (t: TFunction, max: number) =>
   t(`No more than ${max} characters`);

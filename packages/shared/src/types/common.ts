@@ -1,4 +1,10 @@
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  PrometheusResponse,
+  K8sResourceCommon,
+  FirehoseResult,
+  SubsystemHealth,
+} from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'react-i18next';
 
 export type HumanizeResult = {
   value: number;
@@ -33,3 +39,12 @@ export type StorageClass = K8sResourceCommon & {
   volumeBindingMode?: string;
   allowVolumeExpansion?: boolean;
 };
+
+export type PrometheusHealthHandler = (
+  responses: {
+    response: PrometheusResponse;
+    error: any;
+  }[],
+  t?: TFunction,
+  additionalResource?: FirehoseResult<K8sResourceCommon | K8sResourceCommon[]>
+) => SubsystemHealth;

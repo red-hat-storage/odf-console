@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import {
   Alert,
   FormGroup,

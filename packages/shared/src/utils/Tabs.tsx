@@ -28,6 +28,7 @@ type TabsProps = {
   id: string;
   basePath?: string; // The page that is common to these tabs
   updatePathOnSelect?: boolean;
+  customData?: unknown;
 };
 
 const Tabs: React.FC<TabsProps> = ({
@@ -36,6 +37,7 @@ const Tabs: React.FC<TabsProps> = ({
   id,
   basePath,
   updatePathOnSelect = true,
+  customData = {},
 }) => {
   const offset = isSecondary ? 10 : 1;
   const [activeTab, setActiveTab] = React.useState(0 + offset);
@@ -53,12 +55,12 @@ const Tabs: React.FC<TabsProps> = ({
           key={tabTitle}
           data-test={`horizontal-link-${tabTitle}`}
         >
-          <tab.component />
+          <tab.component obj={customData} />
         </Tab>
       );
     });
     return temp;
-  }, [offset, tabs]);
+  }, [offset, tabs, customData]);
 
   const hrefToTabMap = React.useMemo(
     () =>

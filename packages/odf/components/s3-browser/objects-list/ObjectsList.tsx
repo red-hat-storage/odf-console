@@ -11,7 +11,7 @@ import { SelectableTable } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import {
   useParams,
   useSearchParams,

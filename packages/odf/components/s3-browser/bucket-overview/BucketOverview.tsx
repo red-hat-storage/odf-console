@@ -19,26 +19,31 @@ import {
   referenceForModel,
   getValidWatchK8sResourceObj,
 } from '@odf/shared/utils';
-import { YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
+import Tabs, { TabPage, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
   useK8sWatchResource,
-  HorizontalNav,
   useModal,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { TFunction } from 'i18next';
+import { TFunction } from 'react-i18next';
 import { useNavigate, NavigateFunction } from 'react-router-dom-v5-compat';
 import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
-import { PREFIX, BUCKETS_BASE_ROUTE } from '../../../constants';
+import {
+  PREFIX,
+  BUCKETS_BASE_ROUTE,
+  PERMISSIONS_ROUTE,
+  MANAGEMENT_ROUTE,
+} from '../../../constants';
 import { NooBaaObjectBucketModel } from '../../../models';
 import { getBreadcrumbs } from '../../../utils';
 import { NoobaaS3Context, NoobaaS3Provider } from '../noobaa-context';
 import { CustomActionsToggle } from '../objects-list';
 import { ObjectListWithSidebar } from '../objects-list/ObjectListWithSidebar';
 import { PageTitle } from './PageTitle';
+import './bucket-overview.scss';
 
 type CustomYAMLEditorProps = {
   obj: {
@@ -48,7 +53,11 @@ type CustomYAMLEditorProps = {
 
 const CustomYAMLEditor: React.FC<CustomYAMLEditorProps> = ({
   obj: { resource },
-}) => <YAMLEditorWrapped obj={resource} />;
+}) => (
+  <div className="obc-bucket-yaml">
+    <YAMLEditorWrapped obj={resource} />
+  </div>
+);
 
 const getBucketActionsItems = (
   t: TFunction,
@@ -210,31 +219,44 @@ const BucketOverview: React.FC<{}> = () => {
     [foldersPath, bucketName, t]
   );
 
-  const navPages = [
-    {
-      href: '',
-      name: t('Objects'),
-      component: ObjectListWithSidebar,
-    },
-    ...(!foldersPath
-      ? [
-          {
-            href: 'details',
-            name: t('Details'),
-            component: BucketDetails,
-          },
-        ]
-      : []),
-    ...(isCreatedByOBC
-      ? [
-          {
-            href: 'yaml',
-            name: t('YAML'),
-            component: CustomYAMLEditor,
-          },
-        ]
-      : []),
-  ];
+  const navPages: TabPage[] = React.useMemo(
+    () => [
+      {
+        href: 'objects',
+        title: t('Objects'),
+        component: ObjectListWithSidebar,
+      },
+      ...(!foldersPath
+        ? [
+            {
+              href: 'details',
+              title: t('Details'),
+              component: BucketDetails,
+            },
+            {
+              href: PERMISSIONS_ROUTE,
+              title: t('Permissions'),
+              component: React.lazy(() => import('./PermissionsNav')),
+            },
+            {
+              href: MANAGEMENT_ROUTE,
+              title: t('Management'),
+              component: React.lazy(() => import('./ManagementNav')),
+            },
+          ]
+        : []),
+      ...(isCreatedByOBC
+        ? [
+            {
+              href: 'yaml',
+              title: t('YAML'),
+              component: CustomYAMLEditor,
+            },
+          ]
+        : []),
+    ],
+    [foldersPath, isCreatedByOBC, t]
+  );
 
   const renderActions = (noobaaS3: S3Commands) => () =>
     createBucketActions(
@@ -272,12 +294,6 @@ const BucketOverview: React.FC<{}> = () => {
   );
 };
 
-type NavPage = {
-  href: string;
-  name: string;
-  component: React.ComponentType<any>;
-};
-
 type BucketOverviewContentProps = {
   breadcrumbs: { name: string; path: string }[];
   foldersPath: string | null;
@@ -286,7 +302,7 @@ type BucketOverviewContentProps = {
   fresh: boolean;
   triggerRefresh: () => void;
   noobaaObjectBucket: K8sResourceKind;
-  navPages: NavPage[];
+  navPages: TabPage[];
   bucketName: string;
   actions: (noobaaS3: S3Commands) => () => JSX.Element;
   launcher: LaunchModal;
@@ -312,6 +328,15 @@ const BucketOverviewContent: React.FC<BucketOverviewContentProps> = ({
 }) => {
   const { noobaaS3 } = React.useContext(NoobaaS3Context);
 
+  const customData = React.useMemo(
+    () => ({
+      fresh,
+      triggerRefresh,
+      resource: noobaaObjectBucket,
+    }),
+    [fresh, triggerRefresh, noobaaObjectBucket]
+  );
+
   return (
     <>
       <PageHeading
@@ -333,16 +358,7 @@ const BucketOverviewContent: React.FC<BucketOverviewContentProps> = ({
         setEmptyBucketResponse={setEmptyBucketResponse}
         triggerRefresh={triggerRefresh}
       />
-      <HorizontalNav
-        pages={navPages}
-        resource={
-          {
-            refresh: fresh,
-            triggerRefresh,
-            resource: noobaaObjectBucket,
-          } as any
-        }
-      />
+      <Tabs id="s3-overview" tabs={navPages} customData={customData} />
     </>
   );
 };

@@ -59,6 +59,18 @@ yarn test-cypress-headless
 
 By default, it will look for Chrome in the system and use it, but if you want to use Firefox instead, set BRIDGE_E2E_BROWSER_NAME environment variable in your shell with the value firefox.
 
+### NooBaa Object Browser setup
+
+To run NooBaa Object Browser in development mode, do the following:
+
+```
+oc port-forward $(oc get pods -n openshift-storage | grep noobaa-endpoint | awk '{print $1}') 6001
+
+CONSOLE_VERSION=4.18 BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-console/s3/","endpoint":"http://localhost:6001"}]}' BRIDGE_PLUGINS='odf-console=http://localhost:9001' PLUGIN=odf yarn dev:c
+```
+
+To see the NooBaa S3 logs: `oc logs -f deploy/noobaa-endpoint`
+
 ### Debugging with VSCode
 
 To debug with VSCode breakpoints, do the following:

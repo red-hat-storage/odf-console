@@ -18,8 +18,8 @@ import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { SelectOption } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'i18next';
 import { useForm } from 'react-hook-form';
+import { TFunction } from 'react-i18next';
 import * as Yup from 'yup';
 import {
   Alert,

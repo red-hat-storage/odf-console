@@ -22,8 +22,8 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
 import { SelectOption } from '@patternfly/react-core/deprecated';
-import { TFunction } from 'i18next';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import {
   Form,
   FormGroup,

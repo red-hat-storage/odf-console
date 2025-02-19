@@ -3,6 +3,7 @@ import { getNooBaaState } from '@odf/ocs/dashboards/object-service/status-card/s
 import { getCephsHealthState } from '@odf/ocs/utils';
 import { healthStateMapping } from '@odf/shared/dashboards';
 import { CephClusterModel } from '@odf/shared/models';
+import { PrometheusHealthHandler } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
@@ -12,7 +13,6 @@ import {
   PrometheusHealthPopupProps,
   FirehoseResource,
   K8sResourceCommon,
-  PrometheusHealthHandler,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom-v5-compat';

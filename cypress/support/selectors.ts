@@ -13,7 +13,10 @@ declare global {
         options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
       ): Chainable<Element>;
       byTestActionID(selector: string): Chainable<Element>;
-      byLegacyTestID(selector: string): Chainable<Element>;
+      byLegacyTestID(
+        selector: string,
+        options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
+      ): Chainable<Element>;
       byTestDropDownMenu(selector: string): Chainable<Element>;
       byTestOperandLink(selector: string): Chainable<Element>;
       byTestRows(selector: string): Chainable<Element>;
@@ -47,9 +50,15 @@ Cypress.Commands.add(
   }
 );
 
-Cypress.Commands.add('byLegacyTestID', (selector: string) => {
-  cy.get(`[data-test-id="${selector}"]`);
-});
+Cypress.Commands.add(
+  'byLegacyTestID',
+  (
+    selector: string,
+    options?: Partial<Loggable & Timeoutable & Withinable & Shadow>
+  ) => {
+    cy.get(`[data-test-id="${selector}"]`, options);
+  }
+);
 
 Cypress.Commands.add('byTestOperandLink', (selector: string) => {
   cy.get(`[data-test-operand-link="${selector}"]`);
