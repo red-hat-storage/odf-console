@@ -5,8 +5,10 @@ import { referenceForModel } from '@odf/shared/utils';
 import { ArgoApplicationSetModel } from '../../../models';
 import { ACMApplicationKind, ArgoApplicationSetKind } from '../../../types';
 import { getGVKFromK8Resource } from '../../../utils';
-import { ArogoApplicationSetStatus } from './argo-application-set';
-import { DataPoliciesStatusPopover as SubscriptionStatusPopover } from './subscriptions/data-policies-status-popover';
+import ArgoApplicationDRStatusPopover from '../../dr-status-popover/application-set-parser';
+import SubscriptionDRStatusPopover from '../../dr-status-popover/subscription-application-parser';
+// import { ArogoApplicationSetStatus } from './argo-application-set';
+// import { DataPoliciesStatusPopover as SubscriptionStatusPopover } from './subscriptions/data-policies-status-popover';
 
 const DataPoliciesStatus: React.FC<DataPoliciesStatusProps> = ({
   resource,
@@ -16,12 +18,14 @@ const DataPoliciesStatus: React.FC<DataPoliciesStatusProps> = ({
   return (
     <>
       {gvk === referenceForModel(ArgoApplicationSetModel) && (
-        <ArogoApplicationSetStatus
+        <ArgoApplicationDRStatusPopover
           application={resource as ArgoApplicationSetKind}
         />
       )}
       {gvk === referenceForModel(ApplicationModel) && (
-        <SubscriptionStatusPopover application={resource as ApplicationKind} />
+        <SubscriptionDRStatusPopover
+          application={resource as ApplicationKind}
+        />
       )}
     </>
   );

@@ -199,7 +199,7 @@ export const DataPoliciesStatusPopover: React.FC<DataPoliciesStatusPopoverProps>
       t('Data policies ({{count}})', { count }),
       false
     );
-    const linkText = pluralize(count, t('policy'), t('policies'), true);
+    const linkText = pluralize(23456, t('policy'), t('policies'), true);
 
     return (
       <Popover
