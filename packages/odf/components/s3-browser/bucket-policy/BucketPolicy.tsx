@@ -298,16 +298,10 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
 
   // initial fetch on first mount or remounts only
   React.useEffect(() => {
-    const fetchPolicies = async () => {
-      try {
-        await trigger();
-      } catch (err) {
-        // no need to handle any error here, use "error" object directly from the "useSWRMutation" hook
-        // eslint-disable-next-line no-console
-        console.error(err);
-      }
-    };
-    fetchPolicies();
+    trigger().catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

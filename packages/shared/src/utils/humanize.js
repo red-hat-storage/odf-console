@@ -309,6 +309,9 @@ units.dehumanize = (value, typeName) => {
   return convertValueWithUnitsToBaseValue(value, type.units, type.divisor);
 };
 
+export const dehumanize = (value, typeName) =>
+  units.dehumanize(value, typeName);
+
 validate.split = (value) => {
   const index = value.search(/([a-zA-Z]+)/g);
   let number, unit;

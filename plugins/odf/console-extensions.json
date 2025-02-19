@@ -727,6 +727,16 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/create/~new",
+      "exact": false,
+      "component": {
+        "$codeRef": "s3BucketLifecycleRule.default"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~storagecluster/:resourceName/~attachstorage",
       "exact": false,
       "component": { "$codeRef": "attachStorage.default" }
