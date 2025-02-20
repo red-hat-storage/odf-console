@@ -2,8 +2,7 @@ import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { MANAGEMENT_ROUTE } from '../../../constants';
-
-const LifecycleRules = () => <>LIFECYCLE RULES</>;
+import { LifecycleRulesList } from '../lifecycle-rules-list/LifecycleRulesList';
 
 const ManagementNav = ({ obj }) => {
   const { t } = useCustomTranslation();
@@ -13,7 +12,7 @@ const ManagementNav = ({ obj }) => {
       {
         href: 'lifecycle',
         title: t('Lifecycle rules'),
-        component: LifecycleRules,
+        component: LifecycleRulesList,
       },
     ],
     [t]

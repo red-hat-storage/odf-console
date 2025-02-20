@@ -188,3 +188,17 @@ export const numberInputOnChange =
 
 export const fuzzyCaseInsensitive = (a: string, b: string): boolean =>
   fuzzy(_.toLower(a), _.toLower(b));
+
+export const deepSortObject = <T>(obj: T): T => {
+  if (Array.isArray(obj)) {
+    return obj.map(deepSortObject) as T;
+  } else if (typeof obj === 'object' && obj !== null) {
+    return Object.keys(obj)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = deepSortObject(obj[key]);
+        return acc;
+      }, {} as T);
+  }
+  return obj;
+};

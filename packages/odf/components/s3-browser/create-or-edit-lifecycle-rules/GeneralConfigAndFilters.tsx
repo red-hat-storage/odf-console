@@ -445,12 +445,16 @@ const ConditionalFilters: React.FC<StateAndDispatchProps> = ({
 export const GeneralConfigAndFilters: React.FC<
   StateAndDispatchProps & {
     existingRules: GetBucketLifecycleConfigurationCommandOutput;
+    isEdit?: boolean;
+    editingRuleName?: string;
   }
-> = ({ state, dispatch, existingRules }) => {
+> = ({ state, dispatch, existingRules, isEdit, editingRuleName }) => {
   const { t } = useCustomTranslation();
 
   const [invalidName, emptyName, alreadyUsedName, exceedingLengthName] =
-    state.triggerInlineValidations ? isInvalidName(state, existingRules) : [];
+    state.triggerInlineValidations
+      ? isInvalidName(state, existingRules, isEdit, editingRuleName)
+      : [];
 
   return (
     <>

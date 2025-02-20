@@ -4,7 +4,7 @@ import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { PERMISSIONS_ROUTE } from '../../../constants';
 import { BucketPolicy } from '../bucket-policy/BucketPolicy';
 
-const Cors = () => <>CORS</>;
+const CorsList = () => <>CORS</>;
 
 const PermissionsNav = ({ obj }) => {
   const { t } = useCustomTranslation();
@@ -19,7 +19,7 @@ const PermissionsNav = ({ obj }) => {
       {
         href: 'cors',
         title: t('CORS'),
-        component: Cors,
+        component: CorsList,
       },
     ],
     [t]
