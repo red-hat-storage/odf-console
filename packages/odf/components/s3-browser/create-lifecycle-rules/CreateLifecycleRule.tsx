@@ -43,13 +43,8 @@ const getFilterConfig = (
   const minObjectSize = conditionalFilters.minObjectSize;
   const maxObjectSize = conditionalFilters.maxObjectSize;
 
-  const filters = {
+  const filtersWOTags = {
     ...(!!prefix ? { Prefix: prefix } : {}),
-    ...(!!tags.length
-      ? tags.length > 1
-        ? { Tags: tags }
-        : { Tag: tags[0] }
-      : {}),
     ...(minObjectSize.isChecked
       ? { ObjectSizeGreaterThan: minObjectSize.sizeInB }
       : {}),
@@ -59,10 +54,18 @@ const getFilterConfig = (
   };
 
   let ruleFilters: LifecycleRuleFilter;
-  if (Object.keys(filters).length > 1 || filters.hasOwnProperty('Tags')) {
-    ruleFilters = { And: filters };
+  const filtersWOTagsLength = Object.keys(filtersWOTags).length;
+  if (filtersWOTagsLength > 1 || tags.length > 1) {
+    ruleFilters = {
+      And: { ...filtersWOTags, ...(!!tags.length ? { Tags: tags } : {}) },
+    };
+  } else if (filtersWOTagsLength === 1 && tags.length === 1) {
+    ruleFilters = { And: { ...filtersWOTags, Tags: tags } };
   } else {
-    ruleFilters = filters as LifecycleRuleFilter;
+    ruleFilters = {
+      ...filtersWOTags,
+      ...(!!tags.length ? { Tag: tags[0] } : {}),
+    } as LifecycleRuleFilter;
   }
 
   return ruleFilters;
@@ -154,8 +157,12 @@ const CreateLifecycleRuleForm: React.FC<{}> = () => {
     isLoading,
     error: getError,
     mutate,
-  } = useSWR(`${bucketName}-${BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX}`, () =>
-    noobaaS3.getBucketLifecycleConfiguration({ Bucket: bucketName })
+  } = useSWR(
+    `${bucketName}-${BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX}`,
+    () => noobaaS3.getBucketLifecycleConfiguration({ Bucket: bucketName }),
+    {
+      shouldRetryOnError: false,
+    }
   );
 
   const noRuleExists =
@@ -183,7 +190,7 @@ const CreateLifecycleRuleForm: React.FC<{}> = () => {
 
         setInProgress(false);
         mutate();
-        // ToDo: navigate to list/details page
+        navigate(-1);
       } catch (err) {
         setInProgress(false);
         setPutError(err);
