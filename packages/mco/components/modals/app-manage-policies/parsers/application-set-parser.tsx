@@ -16,6 +16,7 @@ import {
   getRemoteNamespaceFromAppSet,
   findDeploymentClusters,
 } from '@odf/mco/utils';
+import { useDeepCompareMemoize } from '@odf/shared';
 import { getNamespace } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
 import { AppManagePoliciesModal } from '../app-manage-policies-modal';
@@ -99,7 +100,12 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         drLoadError
       )
     );
-  const appSetResource = appSetResources?.formattedResources?.[0];
+
+  // Perform deep comparison to prevent unnecessary re-renders
+  const appSetResource = useDeepCompareMemoize(
+    appSetResources?.formattedResources?.[0]
+  );
+
   const { drPolicies } = drResources;
 
   const applicationInfo: ApplicationInfoType = React.useMemo(() => {
@@ -141,7 +147,7 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
 
   return (
     <AppManagePoliciesModal
-      applicaitonInfo={applicationInfo as ApplicationType}
+      applicationInfo={applicationInfo as ApplicationType}
       matchingPolicies={matchingPolicies}
       loaded={loaded}
       loadError={loadError}

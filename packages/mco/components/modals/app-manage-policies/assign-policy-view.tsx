@@ -114,7 +114,7 @@ export const createSteps = (
 
 export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
   state,
-  applicaitonInfo,
+  applicationInfo,
   matchingPolicies,
   modalActionContext,
   setModalContext,
@@ -133,7 +133,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
     workloadNamespace,
     placements: unProtectedPlacements,
     drInfo,
-  } = applicaitonInfo;
+  } = applicationInfo;
 
   const protectedPVCSelectors: PVCSelectorType[] = isEditMode
     ? (drInfo as DRInfoType)?.placementControlInfo?.map((drpc) => ({
@@ -150,7 +150,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
 
   const onSubmit = async () => {
     // assign DRPolicy
-    const promises = assignPromises(state, applicaitonInfo.placements);
+    const promises = assignPromises(state, applicationInfo.placements);
     await Promise.all(promises)
       .then(() => {
         setModalActionContext(
@@ -212,7 +212,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
 
 type AssignPolicyViewProps = {
   state: AssignPolicyViewState;
-  applicaitonInfo: ApplicationType;
+  applicationInfo: ApplicationType;
   matchingPolicies: DRPolicyType[];
   modalActionContext: ModalActionContext;
   dispatch: React.Dispatch<ManagePolicyStateAction>;

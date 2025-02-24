@@ -153,7 +153,7 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
 
   return (
     <AppManagePoliciesModal
-      applicaitonInfo={applicationInfo as ApplicationType}
+      applicationInfo={applicationInfo as ApplicationType}
       matchingPolicies={matchingPolicies}
       loaded={loaded}
       loadError={loadError}
