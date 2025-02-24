@@ -16,7 +16,12 @@ const CreateBackingStoreFormModal: React.FC<CreateBackingStoreFormModalProps> =
 
     const Header = <ModalHeader>{t('Create new BackingStore')}</ModalHeader>;
     return (
-      <Modal isOpen={isOpen} variant={ModalVariant.small} header={Header}>
+      <Modal
+        isOpen={isOpen}
+        variant={ModalVariant.small}
+        header={Header}
+        onClose={closeModal}
+      >
         <div className="nb-endpoints__modal">
           <ModalBody>
             <p>
