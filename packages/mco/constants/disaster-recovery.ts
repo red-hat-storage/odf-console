@@ -129,3 +129,4 @@ export const PVC_RESOURCE_SELECTOR = 'PVC_RESOURCE_SELECTOR';
 export const PROTECTED_VMS = 'PROTECTED_VMS';
 export const K8S_RESOURCE_SELECTOR_LABEL_KEY =
   'ramendr.openshift.io/k8s-resource-selector';
+export const STORAGE_ID_LABEL_KEY = 'ramendr.openshift.io/storageid';
