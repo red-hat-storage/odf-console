@@ -261,7 +261,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
 
   return isClusterReady || !showPoolStatus ? (
     <>
-      <FormGroup label={t('Volume type')} isRequired>
+      <FormGroup label={t('Volume type')} className="pf-v6-u-pt-xl" isRequired>
         <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row ceph-pool__radio-flex">
           <Radio
             label={t('Filesystem')}
