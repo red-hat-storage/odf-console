@@ -1,11 +1,16 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
 import { ReplicationType } from '@odf/mco/constants';
-import { getDRPolicyResourceObj } from '@odf/mco/hooks';
+import { getDRPolicyResourceObj, useACMSafeFetch } from '@odf/mco/hooks';
 import { DRPolicyKind, MirrorPeerKind } from '@odf/mco/types';
-import { getReplicationType } from '@odf/mco/utils';
+import {
+  getReplicationType,
+  queryStorageClassesUsingCluster,
+} from '@odf/mco/utils';
 import { getName, StatusBox } from '@odf/shared';
+import { StorageClassModel } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getAPIVersionForModel } from '@openshift-console/dynamic-plugin-sdk';
 import {
   StatusIconAndText,
   useK8sWatchResource,
@@ -19,6 +24,8 @@ import {
   TextVariants,
 } from '@patternfly/react-core';
 import { TimesIcon } from '@patternfly/react-icons';
+import { ACMManagedClusterViewModel } from '../../models';
+import { ACMManagedClusterViewKind } from '../../types';
 import {
   DRPolicyAction,
   DRPolicyActionType,
@@ -104,6 +111,7 @@ const validateClusterSelection = (
         clustersWithoutODF: [],
         clustersWithUnsuccessfullODF: [],
         clustersWithMultipleStorageInstances: [],
+        clustersWithUnsupportedStorageClasses: [],
       },
     } as ValidationType
   );
@@ -238,6 +246,173 @@ const PeeringValidationMessage: React.FC<PeeringValidationMessageProps> = ({
     </Alert>
   );
 };
+const STORAGE_CLASS_CM_VIEW_NAME = 'odf-console-storageclass-view';
+const CREATED_BY_LABEL = 'multicluster.odf.openshift.io/created-by';
+const MCO_PLUGIN_NAME = 'odf-multicluster-console';
+
+export const getStorageClassAcmClusterObj = (
+  clusterName: string,
+  storageClassName: string
+): ACMManagedClusterViewKind => {
+  return {
+    apiVersion: getAPIVersionForModel(ACMManagedClusterViewModel),
+    kind: ACMManagedClusterViewModel.kind,
+    metadata: {
+      name: `${STORAGE_CLASS_CM_VIEW_NAME}-${clusterName}-${storageClassName}`,
+      namespace: clusterName,
+      labels: {
+        [CREATED_BY_LABEL]: MCO_PLUGIN_NAME,
+      },
+    },
+    spec: {
+      scope: {
+        name: storageClassName,
+        apiGroup: StorageClassModel.apiGroup,
+        kind: StorageClassModel.kind,
+        version: StorageClassModel.apiVersion,
+      },
+    },
+  };
+};
+
+const useStorageClassValidation = (
+  selectedClusters: ManagedClusterInfoType[]
+): [boolean, string[]] => {
+  type StorageClassDetails = {
+    name: string;
+    provisioner: string;
+    storageID: string;
+  };
+
+  const allClusters = selectedClusters.map((mcInfoType) => {
+    return mcInfoType.metadata?.name;
+  });
+  // console.log("All Selected clusters")
+  // console.log(allClusters)
+  const searchQuery = React.useMemo(
+    () => queryStorageClassesUsingCluster(allClusters),
+    [allClusters]
+  );
+  // ACM search proxy API call
+  const [searchResult, searchError, searchLoaded] =
+    useACMSafeFetch(searchQuery);
+  // // console.log(searchResult)
+  // // console.log(searchError)
+  // // console.log(searchLoaded)
+
+  const allowedProvisioners = ['cephfs.csi.ceph.com', 'rbd.csi.ceph.com'];
+  const storageIDKey = 'ramendr.openshift.io/storageid';
+  type ClusterNameType = string;
+  const mapClusterNameToSCDetails: Map<ClusterNameType, StorageClassDetails[]> =
+    new Map();
+  if (searchLoaded && searchError == null) {
+    searchResult.data.searchResult.forEach((sr) => {
+      sr.items.forEach((eachSCItem) => {
+        const thisSCDetails: StorageClassDetails = {
+          name: eachSCItem.name,
+          provisioner: '',
+          storageID: '',
+        };
+        const clusterName = eachSCItem.cluster;
+        const myLabels = (eachSCItem.label?.trim().split(';') || []).map(
+          (lbl): string => {
+            return lbl.trim();
+          }
+        );
+        for (const lbl of myLabels) {
+          const equallySplitLbl = lbl.split('=');
+          if (equallySplitLbl.length === 2) {
+            const [lblKey, lblValue] = equallySplitLbl;
+            if (lblKey === storageIDKey) {
+              thisSCDetails.storageID = lblValue;
+              break;
+            }
+          }
+        }
+        // *************** DELETE BELOW ****************
+        /**/ // console.log("Name of the SC")
+        /**/ // console.log(eachSCItem.name)
+        /**/ eachSCItem.provisioner ??= '';
+        /**/ if (eachSCItem.provisioner === '') {
+          /**/ if (eachSCItem.name.search('cephfs') > -1) {
+            /**/ eachSCItem.provisioner =
+              'openshift-storage.cephfs.csi.ceph.com';
+            /**/
+          } else if (eachSCItem.name.search('ceph-rbd') > -1) {
+            /**/ eachSCItem.provisioner = 'openshift-storage.rbd.csi.ceph.com';
+            /**/
+          }
+          /**/
+        }
+        // *************** DELETE ABOVE ****************
+
+        // filtering StorageClasses with allowed provisioners
+        if (
+          allowedProvisioners.some((allowedProv) => {
+            return eachSCItem.provisioner?.includes(allowedProv);
+          })
+        ) {
+          thisSCDetails.provisioner = eachSCItem.provisioner;
+        }
+        // console.log("Modified StorageClass search result")
+        // console.log(eachSCItem)
+        if (
+          thisSCDetails.name !== '' &&
+          thisSCDetails.provisioner !== '' &&
+          thisSCDetails.storageID !== ''
+        ) {
+          const mappedClusterVal =
+            mapClusterNameToSCDetails.get(clusterName) ?? [];
+          mappedClusterVal.push(thisSCDetails);
+          mapClusterNameToSCDetails.set(clusterName, mappedClusterVal);
+        }
+      });
+    });
+  }
+  // console.log("Mapped ClusterName and StorageClass details")
+  // console.log(mapClusterNameToSCDetails)
+  // Make sure we only have TWO clusters
+  // PS: here we are assuming that we can select only TWO clusters
+  if (mapClusterNameToSCDetails.size !== 2) {
+    return [false, []];
+  }
+  // now apply the needed checks
+  // Check A: number of filtered StorageClasses should be same
+  // on both clusters
+  const [cluster1Name, cluster2Name] = [...mapClusterNameToSCDetails.keys()];
+  const [cluster1StorageClasses, cluster2StorageClasses] = [
+    mapClusterNameToSCDetails.get(cluster1Name),
+    mapClusterNameToSCDetails.get(cluster2Name),
+  ];
+  if (cluster1StorageClasses.length !== cluster2StorageClasses.length) {
+    const failedClusterSCs = cluster1StorageClasses.map(
+      (cluster1SC): string => {
+        return `${cluster1Name}/${cluster1SC}`;
+      }
+    );
+    return [false, failedClusterSCs];
+  }
+  // Check B: each StorageClass in the Cluster1 SC-list,
+  // should have corresponding counter part in Cluster2 SC-list
+  const unSupportedStorageClasses: string[] = [];
+  for (const cluster1SC of cluster1StorageClasses) {
+    let scIsGood = false;
+    for (const cluster2SC of cluster2StorageClasses) {
+      if (
+        cluster1SC.name === cluster2SC.name &&
+        cluster1SC.provisioner === cluster2SC.provisioner &&
+        cluster1SC.storageID === cluster2SC.storageID
+      ) {
+        scIsGood = true;
+        break;
+      }
+    }
+    if (!scIsGood) {
+      unSupportedStorageClasses.push(`${cluster1Name}/${cluster1SC.name}`);
+    }
+  }
+  return [unSupportedStorageClasses.length === 0, unSupportedStorageClasses];
+};
 
 export const SelectedClusterValidation: React.FC<
   SelectedClusterValidationProps
@@ -266,6 +441,12 @@ export const SelectedClusterValidation: React.FC<
   );
 
   const { peeringValidation, clusterValidation } = validations;
+
+  const [scValidation, badSCs] = useStorageClassValidation(selectedClusters);
+  if (!scValidation) {
+    validations.clusterValidation.clustersWithUnsupportedStorageClasses =
+      badSCs;
+  }
 
   const invalidClusters: string[] = Array.from(
     new Set([].concat(...Object.values(clusterValidation)))
@@ -374,6 +555,7 @@ type ClusterValidationType = {
   clustersWithoutODF: string[];
   clustersWithUnsuccessfullODF: string[];
   clustersWithMultipleStorageInstances: string[];
+  clustersWithUnsupportedStorageClasses: string[];
 };
 
 type ValidationType = {
