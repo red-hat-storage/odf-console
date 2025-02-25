@@ -62,6 +62,7 @@ export enum DRPolicyActionType {
   UPDATE_SELECTED_CLUSTERS = 'UPDATE_SELECTED_CLUSTERS',
   SET_RBD_IMAGE_FLATTEN = 'SET_RBD_IMAGE_FLATTEN',
   SET_CLUSTER_SELECTION_VALIDATION = 'SET_CLUSTER_SELECTION_VALIDATION',
+  SET_ERROR_MESSAGE = 'SET_ERROR_MESSAGE',
 }
 
 export const drPolicyInitialState: DRPolicyState = {
@@ -85,7 +86,8 @@ export type DRPolicyAction =
   | {
       type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION;
       payload: boolean;
-    };
+    }
+  | { type: DRPolicyActionType.SET_ERROR_MESSAGE; payload: string };
 
 export const drPolicyReducer = (
   state: DRPolicyState,
