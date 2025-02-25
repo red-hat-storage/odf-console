@@ -18,7 +18,7 @@ import {
 import { ApplicationType, DRInfoType, DRPolicyType } from './utils/types';
 
 export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
-  applicaitonInfo,
+  applicationInfo,
   state,
   matchingPolicies,
   dispatch,
@@ -47,13 +47,13 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
     <>
       {state.modalViewContext === ModalViewContext.MANAGE_POLICY_VIEW && (
         <ManagePolicyView
-          drInfo={applicaitonInfo?.drInfo as DRInfoType}
-          workloadNamespace={applicaitonInfo?.workloadNamespace}
+          drInfo={applicationInfo?.drInfo as DRInfoType}
+          workloadNamespace={applicationInfo?.workloadNamespace}
           eligiblePolicies={matchingPolicies}
           isSubscriptionAppType={
-            applicaitonInfo?.type === DRApplication.SUBSCRIPTION
+            applicationInfo?.type === DRApplication.SUBSCRIPTION
           }
-          unProtectedPlacementCount={applicaitonInfo?.placements?.length}
+          unProtectedPlacementCount={applicationInfo?.placements?.length}
           dispatch={dispatch}
           setModalContext={setModalContext}
           setModalActionContext={setModalActionContext}
@@ -64,7 +64,7 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
       )}
       {state.modalViewContext === ModalViewContext.ASSIGN_POLICY_VIEW && (
         <AssignPolicyView
-          applicaitonInfo={applicaitonInfo}
+          applicationInfo={applicationInfo}
           matchingPolicies={matchingPolicies}
           state={state.assignPolicyView}
           modalActionContext={state.modalActionContext}
@@ -78,7 +78,7 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
 };
 
 export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
-  applicaitonInfo,
+  applicationInfo,
   matchingPolicies,
   loaded,
   loadError,
@@ -102,8 +102,8 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
         loaded &&
         !loadError && (
           <Trans t={t}>
-            <strong>Application:</strong> {getName(applicaitonInfo)} (Namespace:{' '}
-            {getNamespace(applicaitonInfo)})
+            <strong>Application:</strong> {getName(applicationInfo)} (Namespace:{' '}
+            {getNamespace(applicationInfo)})
           </Trans>
         )
       }
@@ -114,7 +114,7 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
       onClose={close}
     >
       <ModalContextViewer
-        applicaitonInfo={applicaitonInfo}
+        applicationInfo={applicationInfo}
         matchingPolicies={matchingPolicies}
         state={state}
         dispatch={dispatch}
@@ -126,7 +126,7 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
 };
 
 type AppManagePoliciesModalProps = {
-  applicaitonInfo: ApplicationType;
+  applicationInfo: ApplicationType;
   matchingPolicies: DRPolicyType[];
   loaded: boolean;
   loadError: any;
@@ -136,7 +136,7 @@ type AppManagePoliciesModalProps = {
 
 type ModalContextViewerProps = {
   state: ManagePolicyState;
-  applicaitonInfo: ApplicationType;
+  applicationInfo: ApplicationType;
   matchingPolicies: DRPolicyType[];
   dispatch: React.Dispatch<ManagePolicyStateAction>;
   loaded: boolean;
