@@ -1,10 +1,19 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
-import { ReplicationType } from '@odf/mco/constants';
-import { getDRPolicyResourceObj } from '@odf/mco/hooks';
+import { ReplicationType, STORAGE_ID_LABEL_KEY } from '@odf/mco/constants';
+import { getDRPolicyResourceObj, useACMSafeFetch } from '@odf/mco/hooks';
 import { DRPolicyKind, MirrorPeerKind } from '@odf/mco/types';
-import { getReplicationType } from '@odf/mco/utils';
-import { getName, StatusBox } from '@odf/shared';
+import {
+  getLabelsFromSearchResult,
+  getReplicationType,
+  queryStorageClassesUsingClusterNames,
+} from '@odf/mco/utils';
+import {
+  getName,
+  StatusBox,
+  CEPHFS_STORAGE_CLASS_PROVIDER_SUFFIX,
+  RBD_STORAGE_CLASS_PROVIDER_SUFFIX,
+} from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   StatusIconAndText,
@@ -114,6 +123,7 @@ const validateClusterSelection = (
     invalidPolicyCreation:
       checkSyncPolicyExists(clusters.map(getName), drPolicies) ||
       verifyMirrorPeerExistence(clusters, mirrorPeers),
+    unSupportedStorageClasses: false,
   };
 
   return validation;
@@ -140,6 +150,15 @@ const getPeeringValidationMessage = (
         'A mirror peer configuration already exists for one or more of the selected clusters, ' +
           'either from an existing or deleted DR policy. To create a new DR policy with these clusters, ' +
           'delete any existing mirror peer configurations associated with them and try again.'
+      ),
+    };
+  } else if (peeringValidation.unSupportedStorageClasses) {
+    return {
+      title: t('Cannot proceed with policy creation.'),
+      description: t(
+        'No common storage class found for the selected managed clusters. ' +
+          'To create a DR policy, a common storage class must exist, ' +
+          'if not configured already, provision a common storage class and try again.'
       ),
     };
   }
@@ -239,6 +258,108 @@ const PeeringValidationMessage: React.FC<PeeringValidationMessageProps> = ({
   );
 };
 
+// useStorageClassValidation returns true when all the storage classes in the
+// selected clusters are valid. Otherwise false.
+const useStorageClassValidation = (
+  selectedClusters: ManagedClusterInfoType[]
+): boolean => {
+  const allClusters = selectedClusters.map((mcInfoType) => getName(mcInfoType));
+  const searchQuery = React.useMemo(
+    () => queryStorageClassesUsingClusterNames(allClusters),
+    [allClusters]
+  );
+  // ACM search proxy API call
+  const [searchResult, searchError, searchLoaded] =
+    useACMSafeFetch(searchQuery);
+
+  const cephStorageProvisioners = [
+    CEPHFS_STORAGE_CLASS_PROVIDER_SUFFIX,
+    RBD_STORAGE_CLASS_PROVIDER_SUFFIX,
+  ];
+  const clusterToSCDetailsMap: Map<ClusterNameType, StorageClassDetailsType[]> =
+    new Map();
+  if (searchLoaded && !searchError) {
+    searchResult.data.searchResult.forEach((result) => {
+      result.items.forEach((sc) => {
+        const cephSCInfo: StorageClassDetailsType = {
+          name: sc.name,
+          provisioner: '',
+          storageID: '',
+        };
+        const clusterName = sc.cluster;
+        cephSCInfo.storageID =
+          getLabelsFromSearchResult(sc)[STORAGE_ID_LABEL_KEY]?.[0] ?? '';
+        sc['provisioner'] ??= ''; // TODO add code to get the right provisioner
+        // *************** DELETE BELOW ****************
+        if (sc['provisioner'] === '') {
+          if (sc.name.search('cephfs') > -1) {
+            sc['provisioner'] = 'openshift-storage.cephfs.csi.ceph.com';
+          } else if (sc.name.search('ceph-rbd') > -1) {
+            sc['provisioner'] = 'openshift-storage.rbd.csi.ceph.com';
+          }
+        }
+        // *************** DELETE ABOVE ****************
+
+        // filtering StorageClasses with allowed provisioners
+        if (
+          cephStorageProvisioners.some((provisioner) =>
+            sc['provisioner']?.includes(provisioner)
+          )
+        ) {
+          cephSCInfo.provisioner = sc['provisioner'];
+        }
+        if (
+          cephSCInfo.name !== '' &&
+          cephSCInfo.provisioner !== '' &&
+          cephSCInfo.storageID !== ''
+        ) {
+          const mappedClusterVal = clusterToSCDetailsMap.get(clusterName) ?? [];
+          mappedClusterVal.push(cephSCInfo);
+          clusterToSCDetailsMap.set(clusterName, mappedClusterVal);
+        }
+      });
+    });
+  }
+  // Make sure we only have TWO clusters
+  // PS: here we are assuming that we can select only TWO clusters
+  if (clusterToSCDetailsMap.size !== 2) {
+    return false;
+  }
+  // now apply the needed checks
+  // Check A: number of filtered StorageClasses should be same
+  // on both clusters
+  const [firstClusterName, secondClusterName] = clusterToSCDetailsMap.keys();
+  const [firstClusterSCs, secondClusterSCs] = [
+    clusterToSCDetailsMap.get(firstClusterName),
+    clusterToSCDetailsMap.get(secondClusterName),
+  ];
+  if (firstClusterSCs.length !== secondClusterSCs.length) {
+    return false;
+  }
+  // Check B: each StorageClass in the Cluster1 SC-list,
+  // should have corresponding counter part in Cluster2 SC-list
+  const unSupportedStorageClasses: string[] = [];
+  for (const firstClusterSC of firstClusterSCs) {
+    let acceptableSC = false;
+    for (const secondClusterSC of secondClusterSCs) {
+      if (
+        firstClusterSC.name === secondClusterSC.name &&
+        firstClusterSC.provisioner === secondClusterSC.provisioner &&
+        firstClusterSC.storageID === secondClusterSC.storageID
+      ) {
+        acceptableSC = true;
+        break;
+      }
+    }
+    if (!acceptableSC) {
+      unSupportedStorageClasses.push(
+        `${firstClusterName}/${firstClusterSC.name}`
+      );
+    }
+  }
+  return unSupportedStorageClasses.length === 0;
+};
+
 export const SelectedClusterValidation: React.FC<
   SelectedClusterValidationProps
 > = ({ selectedClusters, requiredODFVersion, dispatch, mirrorPeers }) => {
@@ -266,6 +387,8 @@ export const SelectedClusterValidation: React.FC<
   );
 
   const { peeringValidation, clusterValidation } = validations;
+  peeringValidation.unSupportedStorageClasses =
+    !useStorageClassValidation(selectedClusters);
 
   const invalidClusters: string[] = Array.from(
     new Set([].concat(...Object.values(clusterValidation)))
@@ -291,8 +414,7 @@ export const SelectedClusterValidation: React.FC<
         <StatusIconAndText
           icon={<Spinner size="sm" />}
           title={t(
-            'Running checks to ensure that the selected managed cluster meets ' +
-              'all necessary conditions so it can enroll in a Disaster Recovery policy.'
+            'Running checks to ensure that the selected managed cluster meets all necessary conditions so it can enroll in a Disaster Recovery policy.'
           )}
         />
       }
@@ -317,9 +439,7 @@ export const SelectedClusterValidation: React.FC<
               isInline
             >
               {t(
-                'The selected clusters are running different versions of Data Foundation. ' +
-                  'Peering clusters with different versions can lead to potential issues and is not recommended. ' +
-                  'Ensure all clusters are upgraded to the same version before proceeding with peering to avoid operational risks.'
+                'The selected clusters are running different versions of Data Foundation. Peering clusters with different versions can lead to potential issues and is not recommended. Ensure all clusters are upgraded to the same version before proceeding with peering to avoid operational risks.'
               )}
             </Alert>
           )}
@@ -338,9 +458,7 @@ export const SelectedClusterValidation: React.FC<
             isInline
           >
             {t(
-              'The selected managed cluster(s) does not meet all necessary conditions ' +
-                'to be eligible for disaster recovery policy. Resolve the following ' +
-                'issues to proceed with policy creation.'
+              'The selected managed cluster(s) does not meet all necessary conditions to be eligible for disaster recovery policy. Resolve the following issues to proceed with policy creation.'
             )}
           </Alert>
           {invalidClusters.map((clusterName) => (
@@ -367,6 +485,7 @@ type SelectedClusterValidationProps = {
 type PeeringValidationType = {
   unSupportedPeering: boolean;
   invalidPolicyCreation: boolean;
+  unSupportedStorageClasses: boolean;
 };
 
 type ClusterValidationType = {
@@ -394,4 +513,11 @@ type PeeringValidationMessageProps = {
 type PeeringValidationMessageType = {
   title: string;
   description?: React.ReactNode;
+};
+
+type ClusterNameType = string;
+type StorageClassDetailsType = {
+  name: string;
+  provisioner: string;
+  storageID: string;
 };
