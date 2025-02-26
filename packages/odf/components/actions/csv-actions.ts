@@ -1,9 +1,23 @@
 import { useMemo } from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
 import AddSSCapacityModal from '@odf/core/modals/add-capacity/add-capacity-modal';
+import CapacityAutoscalingActionModal from '@odf/core/modals/capacity-autoscaling/capacity-autoscaling-modal';
 import ConfigureSSPerformanceModal from '@odf/core/modals/configure-performance/configure-performance-modal';
-import { getName, getNamespace, useFetchCsv } from '@odf/shared';
-import { ODFStorageSystem, StorageClusterModel } from '@odf/shared/models';
+import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
+import {
+  DEFAULT_INFRASTRUCTURE,
+  getName,
+  getNamespace,
+  InfrastructureKind,
+  StorageClusterKind,
+  useFetchCsv,
+  useK8sGet,
+} from '@odf/shared';
+import {
+  InfrastructureModel,
+  ODFStorageSystem,
+  StorageClusterModel,
+} from '@odf/shared/models';
 import { StorageSystemKind } from '@odf/shared/types';
 import {
   groupVersionFor,
@@ -14,7 +28,6 @@ import {
 } from '@odf/shared/utils';
 import {
   Action,
-  K8sResourceCommon,
   useFlag,
   useK8sModel,
   useModal,
@@ -25,7 +38,7 @@ import { PROVIDER_MODE } from '../../features';
 export const useCsvActions = ({
   resource,
 }: {
-  resource: K8sResourceCommon;
+  resource: StorageSystemKind;
 }) => {
   const { group, version } = groupVersionFor(resource.apiVersion);
   const [k8sModel, inFlight] = useK8sModel(
@@ -36,7 +49,16 @@ export const useCsvActions = ({
   const [csv, csvLoaded, csvLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,
   });
-
+  const [infrastructure] = useK8sGet<InfrastructureKind>(
+    InfrastructureModel,
+    DEFAULT_INFRASTRUCTURE
+  );
+  const [storageCluster] = useK8sGet<StorageClusterKind>(
+    StorageClusterModel,
+    resource.spec.name,
+    resource.spec.namespace
+  );
+  const resourceProfile = storageCluster?.spec?.resourceProfile;
   const isLSOInstalled = csvLoaded && !csvLoadError && isCSVSucceeded(csv);
   const actions = useMemo(() => {
     const items = [];
@@ -44,24 +66,27 @@ export const useCsvActions = ({
       referenceForModel(k8sModel) === referenceForModel(ODFStorageSystem) &&
       isOCSStorageSystem(resource)
     ) {
-      items.push(
-        AddCapacityStorageSystem(resource as StorageSystemKind, launchModal)
-      );
+      items.push(AddCapacityStorageSystem(resource, launchModal));
       if (!isProviderMode) {
-        items.push(
-          ConfigurePerformanceStorageSystem(
-            resource as StorageSystemKind,
-            launchModal
-          )
-        );
+        items.push(ConfigurePerformanceStorageSystem(resource, launchModal));
       }
-
+      if (isCapacityAutoScalingAllowed(infrastructure, resourceProfile)) {
+        items.push(CapacityAutoscalingAction(resource, launchModal));
+      }
       if (isLSOInstalled) {
-        items.push(AttachStorageStorageSystem(resource as StorageSystemKind));
+        items.push(AttachStorageStorageSystem(resource));
       }
     }
     return items;
-  }, [k8sModel, resource, launchModal, isProviderMode, isLSOInstalled]);
+  }, [
+    k8sModel,
+    resource,
+    launchModal,
+    infrastructure,
+    isProviderMode,
+    isLSOInstalled,
+    resourceProfile,
+  ]);
 
   return useMemo(() => [actions, !inFlight, undefined], [actions, inFlight]);
 };
@@ -107,6 +132,23 @@ const ConfigurePerformanceStorageSystem = (
     insertAfter: 'add-capacity-storage-system',
     cta: () => {
       launchModal(ConfigureSSPerformanceModal as any, {
+        extraProps: { resource },
+        isOpen: true,
+      });
+    },
+  };
+};
+
+const CapacityAutoscalingAction = (
+  resource: StorageSystemKind,
+  launchModal: LaunchModal
+): Action => {
+  return {
+    id: 'capacity-autoscaling-action',
+    label: 'Smart capacity scaling',
+    insertAfter: 'configure-performance-storage-system',
+    cta: () => {
+      launchModal(CapacityAutoscalingActionModal as any, {
         extraProps: { resource },
         isOpen: true,
       });

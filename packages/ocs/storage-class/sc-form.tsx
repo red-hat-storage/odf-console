@@ -31,6 +31,7 @@ import {
 } from '@odf/core/types';
 import { getResourceInNs } from '@odf/core/utils';
 import { CephFileSystemModel } from '@odf/ocs/models';
+import { DEFAULT_INFRASTRUCTURE } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox } from '@odf/shared/generic/status-box';
@@ -813,7 +814,7 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const onParamChangeRef = React.useRef<OnParamChange>();
-  // refernce of "onParamChange" changes on each re-render, hence storing in a "useRef"
+  // reference of "onParamChange" changes on each re-render, hence storing in a "useRef"
   onParamChangeRef.current = onParamChange;
 
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
@@ -838,9 +839,9 @@ export const StorageClassEncryptionKMSID: React.FC<ProvisionerProps> = ({
     });
   }
 
-  const [infra, infraLoaded, infraLoadError] = useK8sGet<any>(
+  const [infra, infraLoaded, infraLoadError] = useK8sGet<K8sResourceKind>(
     InfrastructureModel,
-    'cluster'
+    DEFAULT_INFRASTRUCTURE
   );
   const [csiConfigMap, csiConfigMapLoaded, csiConfigMapLoadError] =
     useSafeK8sWatchResource<ConfigMapKind>(csiCMWatchResource);

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { getStorageClusterInNs } from '@odf/core/utils';
-import { ODF_OPERATOR } from '@odf/shared/constants';
+import { DEFAULT_INFRASTRUCTURE, ODF_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { StorageClusterModel } from '@odf/shared/models';
@@ -42,7 +42,7 @@ const DetailsCard: React.FC = () => {
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
 
   const [infrastructure, infrastructureLoaded, infrastructureError] =
-    useK8sGet<K8sResourceKind>(InfrastructureModel, 'cluster');
+    useK8sGet<K8sResourceKind>(InfrastructureModel, DEFAULT_INFRASTRUCTURE);
 
   const [ocsData, ocsLoaded, ocsError] = useK8sWatchResource<
     StorageClusterKind[]

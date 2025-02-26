@@ -1,6 +1,13 @@
 import * as React from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
-import { useFetchCsv } from '@odf/shared';
+import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
+import {
+  DEFAULT_INFRASTRUCTURE,
+  InfrastructureKind,
+  StorageClusterKind,
+  useFetchCsv,
+  useK8sGet,
+} from '@odf/shared';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -8,6 +15,7 @@ import {
 import { CustomKebabItem, Kebab } from '@odf/shared/kebab/kebab';
 import {
   ClusterServiceVersionModel,
+  InfrastructureModel,
   StorageClusterModel,
 } from '@odf/shared/models';
 import { ODFStorageSystem } from '@odf/shared/models';
@@ -260,6 +268,16 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   const systemName = getName(obj);
   const systemNamespace = getNamespace(obj);
   const { normalizedMetrics, isLSOInstalled } = rowData;
+  const [infrastructure] = useK8sGet<InfrastructureKind>(
+    InfrastructureModel,
+    DEFAULT_INFRASTRUCTURE
+  );
+  const [storageCluster] = useK8sGet<StorageClusterKind>(
+    StorageClusterModel,
+    obj.spec.name,
+    obj.spec.namespace
+  );
+  const resourceProfile = storageCluster?.spec?.resourceProfile;
   const customKebabItems: CustomKebabItem[] = [
     {
       key: 'ADD_CAPACITY',
@@ -280,6 +298,18 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
     },
   ];
 
+  if (isCapacityAutoScalingAllowed(infrastructure, resourceProfile)) {
+    customKebabItems.push({
+      key: 'CAPACITY_AUTOSCALING',
+      value: t('Smart capacity scaling'),
+      component: React.lazy(
+        () =>
+          import(
+            '@odf/core/modals/capacity-autoscaling/capacity-autoscaling-modal'
+          )
+      ),
+    });
+  }
   if (isLSOInstalled) {
     customKebabItems.push({
       key: 'ATTACH_STORAGE',
