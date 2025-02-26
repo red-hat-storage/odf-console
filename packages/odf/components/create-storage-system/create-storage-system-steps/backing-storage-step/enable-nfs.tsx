@@ -68,7 +68,7 @@ export const EnableNFS: React.FC<EnableNFSProps> = ({
 type ValidationAlert = [
   showAlert: boolean,
   variant: AlertVariant,
-  title: string
+  title: string,
 ];
 
 type EnableNFSProps = {

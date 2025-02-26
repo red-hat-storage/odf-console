@@ -54,7 +54,7 @@ type MultusNetworkConfigurationComponentProps = {
 };
 
 const reduceResourceLoadAndErrorStatus = <
-  T extends keyof MultusWatchResourcesObject
+  T extends keyof MultusWatchResourcesObject,
 >(
   acc: { loaded: boolean; error: any },
   curr: WatchK8sResults<MultusWatchResourcesObject>[T]
@@ -70,45 +70,46 @@ type MultusDropdownProps = {
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };
 
-export const MultusNetworkConfigurationComponent: React.FC<MultusNetworkConfigurationComponentProps> =
-  ({
-    setNetworkType,
-    setNetwork,
-    clusterNetwork,
-    publicNetwork,
-    networkType,
-    systemNamespace,
-  }) => {
-    const { t } = useCustomTranslation();
+export const MultusNetworkConfigurationComponent: React.FC<
+  MultusNetworkConfigurationComponentProps
+> = ({
+  setNetworkType,
+  setNetwork,
+  clusterNetwork,
+  publicNetwork,
+  networkType,
+  systemNamespace,
+}) => {
+  const { t } = useCustomTranslation();
 
-    return (
-      <>
-        <Checkbox
-          isChecked={networkType === NetworkType.MULTUS}
-          onChange={() =>
-            setNetworkType(
-              networkType === NetworkType.DEFAULT
-                ? NetworkType.MULTUS
-                : NetworkType.DEFAULT
-            )
-          }
-          label={t('Isolate network using Multus')}
-          description={t(
-            'Multus allows a network seperation between the data operations and the control plane operations.'
-          )}
-          id="multus-checkbox"
-        />
-        {networkType === NetworkType.MULTUS && (
-          <MultusDropdown
-            setNetwork={setNetwork}
-            clusterNetwork={clusterNetwork}
-            publicNetwork={publicNetwork}
-            systemNamespace={systemNamespace}
-          />
+  return (
+    <>
+      <Checkbox
+        isChecked={networkType === NetworkType.MULTUS}
+        onChange={() =>
+          setNetworkType(
+            networkType === NetworkType.DEFAULT
+              ? NetworkType.MULTUS
+              : NetworkType.DEFAULT
+          )
+        }
+        label={t('Isolate network using Multus')}
+        description={t(
+          'Multus allows a network seperation between the data operations and the control plane operations.'
         )}
-      </>
-    );
-  };
+        id="multus-checkbox"
+      />
+      {networkType === NetworkType.MULTUS && (
+        <MultusDropdown
+          setNetwork={setNetwork}
+          clusterNetwork={clusterNetwork}
+          publicNetwork={publicNetwork}
+          systemNamespace={systemNamespace}
+        />
+      )}
+    </>
+  );
+};
 
 const resources = (ns: string) => ({
   openshift: {

@@ -82,9 +82,8 @@ export const NoobaaS3Provider: React.FC<NoobaaS3ProviderType> = ({
           (next) => (args) => {
             const request: Partial<HttpRequest> = args.request;
             if (s3Url.protocol === 'https:') {
-              request.headers[
-                'host'
-              ] = `${s3Url.hostname}:${S3_INTERNAL_ENDPOINT_PORT}`;
+              request.headers['host'] =
+                `${s3Url.hostname}:${S3_INTERNAL_ENDPOINT_PORT}`;
             }
             return next(args);
           },

@@ -99,7 +99,7 @@ export const getRangeVectorStats: GetRangeStats = (
     return r?.values?.map(([x, y]) => {
       return {
         x: xMutator?.(x) ?? defaultXMutator(x),
-        y: threshold ? threshold : yMutator?.(y) ?? defaultYMutator(y),
+        y: threshold ? threshold : (yMutator?.(y) ?? defaultYMutator(y)),
         description: _.isFunction(description)
           ? (description as Function)(r, index)
           : description,

@@ -258,7 +258,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   const [rawNodes, rawNodesLoaded, rawNodesLoadError]: [
     NodeData[],
     boolean,
-    any
+    any,
   ] = useNodesData();
   const allNodes: WizardNodeState[] =
     createWizardNodeState(nodesWithoutTaints(rawNodes)) || [];
@@ -294,8 +294,8 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
         !csvLoaded
           ? t('Checking Local Storage Operator installation')
           : !allLoaded
-          ? t('Discovering disks on all hosts. This may take a few minutes.')
-          : null
+            ? t('Discovering disks on all hosts. This may take a few minutes.')
+            : null
       }
       error={anyError}
       errorMessage={

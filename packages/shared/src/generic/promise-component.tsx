@@ -47,7 +47,7 @@ export const withHandlePromise: WithHandlePromise = (Component) => (props) => {
 
 export class PromiseComponent<
   P,
-  S extends PromiseComponentState
+  S extends PromiseComponentState,
 > extends React.Component<P, S> {
   constructor(props) {
     super(props);

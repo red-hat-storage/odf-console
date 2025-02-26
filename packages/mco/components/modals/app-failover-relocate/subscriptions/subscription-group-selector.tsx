@@ -81,166 +81,167 @@ const getOptions = (
   </SelectOption>
 );
 
-export const SubscriptionGroupSelector: React.FC<SubscriptionGroupSelectorProps> =
-  ({ state, dispatch }) => {
-    const { t } = useCustomTranslation();
-    const { selectedTargetCluster, selectedDRPolicy, actionType } = state;
-    const [isOpen, setOpen] = React.useState(false);
-    const [options, setOptions] = React.useState<React.ReactElement[]>([]);
-    const memoizedDRPCState = useDeepCompareMemoize(
-      state.drPolicyControlState,
-      true
-    );
+export const SubscriptionGroupSelector: React.FC<
+  SubscriptionGroupSelectorProps
+> = ({ state, dispatch }) => {
+  const { t } = useCustomTranslation();
+  const { selectedTargetCluster, selectedDRPolicy, actionType } = state;
+  const [isOpen, setOpen] = React.useState(false);
+  const [options, setOptions] = React.useState<React.ReactElement[]>([]);
+  const memoizedDRPCState = useDeepCompareMemoize(
+    state.drPolicyControlState,
+    true
+  );
 
-    const setSelected = React.useCallback(
-      (selection: string[], isUpdate?: boolean) => {
-        dispatch({
-          type: FailoverAndRelocateType.SET_SELECTED_SUBS_GROUP,
-          payload: {
-            selected: selection,
-            isUpdate,
-          },
-        });
-      },
-      [dispatch]
-    );
+  const setSelected = React.useCallback(
+    (selection: string[], isUpdate?: boolean) => {
+      dispatch({
+        type: FailoverAndRelocateType.SET_SELECTED_SUBS_GROUP,
+        payload: {
+          selected: selection,
+          isUpdate,
+        },
+      });
+    },
+    [dispatch]
+  );
 
-    const setErrorMessage = React.useCallback(
-      (errorMessage: ErrorMessageType) => {
-        dispatch({
-          type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
-          payload: {
-            subscriptionGroupErrorMessage: errorMessage,
-          },
-        });
-      },
-      [dispatch]
-    );
+  const setErrorMessage = React.useCallback(
+    (errorMessage: ErrorMessageType) => {
+      dispatch({
+        type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
+        payload: {
+          subscriptionGroupErrorMessage: errorMessage,
+        },
+      });
+    },
+    [dispatch]
+  );
 
-    React.useEffect(() => {
-      // Filter all DRPlacements under a selected target cluster
-      if (
-        !!Object.keys(selectedTargetCluster).length &&
-        selectedTargetCluster?.isClusterAvailable
-      ) {
-        const validState: string[] = [];
-        const generatedOptions = memoizedDRPCState.reduce(
-          (acc, drpcState) => {
-            if (validateDRPolicy(drpcState, selectedDRPolicy?.policyName)) {
-              const isValidTargetCluster = validateTargetCluster(
-                drpcState,
-                selectedTargetCluster?.clusterInfo
-              );
-              const isDRActionReady = checkDRActionReadiness(
-                drpcState?.drPlacementControl,
-                actionType
-              );
-              isValidTargetCluster &&
-                isDRActionReady &&
-                validState.push(getName(drpcState.drPlacementControl));
-              const option = getOptions(drpcState, isValidTargetCluster, t);
-              return {
-                validOptions: getValidOptions(
-                  option,
-                  acc.validOptions,
-                  isValidTargetCluster,
-                  isDRActionReady
-                ),
-                inValidOptions: getInValidOptions(
-                  option,
-                  acc.inValidOptions,
-                  isValidTargetCluster
-                ),
-              };
-            } else {
-              return acc;
-            }
-          },
-          {
-            validOptions: [],
-            inValidOptions: [],
+  React.useEffect(() => {
+    // Filter all DRPlacements under a selected target cluster
+    if (
+      !!Object.keys(selectedTargetCluster).length &&
+      selectedTargetCluster?.isClusterAvailable
+    ) {
+      const validState: string[] = [];
+      const generatedOptions = memoizedDRPCState.reduce(
+        (acc, drpcState) => {
+          if (validateDRPolicy(drpcState, selectedDRPolicy?.policyName)) {
+            const isValidTargetCluster = validateTargetCluster(
+              drpcState,
+              selectedTargetCluster?.clusterInfo
+            );
+            const isDRActionReady = checkDRActionReadiness(
+              drpcState?.drPlacementControl,
+              actionType
+            );
+            isValidTargetCluster &&
+              isDRActionReady &&
+              validState.push(getName(drpcState.drPlacementControl));
+            const option = getOptions(drpcState, isValidTargetCluster, t);
+            return {
+              validOptions: getValidOptions(
+                option,
+                acc.validOptions,
+                isValidTargetCluster,
+                isDRActionReady
+              ),
+              inValidOptions: getInValidOptions(
+                option,
+                acc.inValidOptions,
+                isValidTargetCluster
+              ),
+            };
+          } else {
+            return acc;
           }
-        );
-        if (
-          !!generatedOptions.validOptions.length ||
-          !!generatedOptions.inValidOptions.length
-        ) {
-          setSelected(validState);
-          setOptions([
-            ...generatedOptions.validOptions,
-            ...generatedOptions.inValidOptions,
-          ]);
-          setErrorMessage(0 as ErrorMessageType);
-        } else {
-          setOptions([]);
-          setSelected([]);
-          setErrorMessage(ErrorMessageType.NO_SUBSCRIPTION_GROUP_FOUND);
+        },
+        {
+          validOptions: [],
+          inValidOptions: [],
         }
+      );
+      if (
+        !!generatedOptions.validOptions.length ||
+        !!generatedOptions.inValidOptions.length
+      ) {
+        setSelected(validState);
+        setOptions([
+          ...generatedOptions.validOptions,
+          ...generatedOptions.inValidOptions,
+        ]);
+        setErrorMessage(0 as ErrorMessageType);
       } else {
-        setSelected([]);
         setOptions([]);
+        setSelected([]);
+        setErrorMessage(ErrorMessageType.NO_SUBSCRIPTION_GROUP_FOUND);
       }
-    }, [
-      actionType,
-      memoizedDRPCState,
-      selectedDRPolicy,
-      selectedTargetCluster,
-      dispatch,
-      setSelected,
-      setErrorMessage,
-      setOptions,
-      t,
-    ]);
-
-    const onToggle = (isOpenFlag: boolean) => {
-      setOpen(isOpenFlag);
-    };
-
-    const onSelect = (_, selection) =>
-      state.selectedSubsGroups.includes(selection)
-        ? setSelected(
-            state.selectedSubsGroups.filter((item) => item !== selection)
-          )
-        : setSelected([selection], true);
-    const clearSelection = () => {
+    } else {
       setSelected([]);
-    };
+      setOptions([]);
+    }
+  }, [
+    actionType,
+    memoizedDRPCState,
+    selectedDRPolicy,
+    selectedTargetCluster,
+    dispatch,
+    setSelected,
+    setErrorMessage,
+    setOptions,
+    t,
+  ]);
 
-    return (
-      <>
-        <Select
-          variant={SelectVariant.checkbox}
-          onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
-          onSelect={onSelect}
-          selections={state.selectedSubsGroups}
-          isDisabled={
-            !options?.length ||
-            state.modalFooterStatus === ModalFooterStatus.FINISHED
-          }
-          isOpen={isOpen}
-          isCheckboxSelectionBadgeHidden
-          placeholderText={
-            options?.length > 0
-              ? t('{{selected}} of {{total}} selected', {
-                  selected: state.selectedSubsGroups.length,
-                  total: options?.length,
-                })
-              : t('Select')
-          }
-          aria-labelledby={t('subscription-selector')}
-          onClear={clearSelection}
-          data-test="subs-group-selector-options"
-        >
-          {options}
-        </Select>
-        <HelperText>
-          <HelperTextItem variant="indeterminate">
-            {t('Select the subscriptions groups you wish to replicate via')}
-          </HelperTextItem>
-        </HelperText>
-      </>
-    );
+  const onToggle = (isOpenFlag: boolean) => {
+    setOpen(isOpenFlag);
   };
+
+  const onSelect = (_, selection) =>
+    state.selectedSubsGroups.includes(selection)
+      ? setSelected(
+          state.selectedSubsGroups.filter((item) => item !== selection)
+        )
+      : setSelected([selection], true);
+  const clearSelection = () => {
+    setSelected([]);
+  };
+
+  return (
+    <>
+      <Select
+        variant={SelectVariant.checkbox}
+        onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
+        onSelect={onSelect}
+        selections={state.selectedSubsGroups}
+        isDisabled={
+          !options?.length ||
+          state.modalFooterStatus === ModalFooterStatus.FINISHED
+        }
+        isOpen={isOpen}
+        isCheckboxSelectionBadgeHidden
+        placeholderText={
+          options?.length > 0
+            ? t('{{selected}} of {{total}} selected', {
+                selected: state.selectedSubsGroups.length,
+                total: options?.length,
+              })
+            : t('Select')
+        }
+        aria-labelledby={t('subscription-selector')}
+        onClear={clearSelection}
+        data-test="subs-group-selector-options"
+      >
+        {options}
+      </Select>
+      <HelperText>
+        <HelperTextItem variant="indeterminate">
+          {t('Select the subscriptions groups you wish to replicate via')}
+        </HelperTextItem>
+      </HelperText>
+    </>
+  );
+};
 
 type SubscriptionGroupSelectorProps = {
   state: FailoverAndRelocateState;
