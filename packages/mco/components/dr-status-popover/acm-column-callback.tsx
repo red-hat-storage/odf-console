@@ -1,12 +1,12 @@
 import * as React from 'react';
+import { ArgoApplicationSetModel } from '@odf/mco/models';
+import { ACMApplicationKind, ArgoApplicationSetKind } from '@odf/mco/types';
+import { getGVKFromK8Resource } from '@odf/mco/utils';
 import { ApplicationModel } from '@odf/shared/models';
 import { ApplicationKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
-import { ArgoApplicationSetModel } from '../../../models';
-import { ACMApplicationKind, ArgoApplicationSetKind } from '../../../types';
-import { getGVKFromK8Resource } from '../../../utils';
-import { ArogoApplicationSetStatus } from './argo-application-set';
-import { DataPoliciesStatusPopover as SubscriptionStatusPopover } from './subscriptions/data-policies-status-popover';
+import ApplicationSetParser from './parsers/applicationset-parser';
+import SubscriptionParser from './parsers/subscription-parser';
 
 const DataPoliciesStatus: React.FC<DataPoliciesStatusProps> = ({
   resource,
@@ -16,12 +16,12 @@ const DataPoliciesStatus: React.FC<DataPoliciesStatusProps> = ({
   return (
     <>
       {gvk === referenceForModel(ArgoApplicationSetModel) && (
-        <ArogoApplicationSetStatus
+        <ApplicationSetParser
           application={resource as ArgoApplicationSetKind}
         />
       )}
       {gvk === referenceForModel(ApplicationModel) && (
-        <SubscriptionStatusPopover application={resource as ApplicationKind} />
+        <SubscriptionParser application={resource as ApplicationKind} />
       )}
     </>
   );

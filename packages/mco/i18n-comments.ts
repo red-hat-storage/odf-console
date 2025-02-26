@@ -4,7 +4,7 @@
 // t('Manage disaster recovery')
 // t('Relocate application')
 // t('Failover application')
-// t('Data policy')
+// t('DR Status')
 // t('Storage System')
 // t('Disaster recovery')
 // t('Data Services')
