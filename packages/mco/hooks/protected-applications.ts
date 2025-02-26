@@ -228,7 +228,7 @@ type UseProtectedApplicationsWatch = () => UseApplicationsWatchReturnType;
 
 type UseApplicationsWatchReturnType = [
   drPolicyToAppCount: DRPolicyToAppCount,
-  loadedWOError: boolean
+  loadedWOError: boolean,
 ];
 
 type WatchResourceType = {

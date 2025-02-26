@@ -337,7 +337,11 @@ const getCsiVaultResources = (
   if (update) {
     const cmPatch = [generateConfigMapPatch(kmsObj.name.value, csiConfigData)];
     csiKmsResources.push(
-      k8sPatch({ model: ConfigMapModel, resource: csiConfigObj, data: cmPatch })
+      k8sPatch({
+        model: ConfigMapModel,
+        resource: csiConfigObj,
+        data: cmPatch,
+      })
     );
   } else {
     csiKmsResources.push(
@@ -380,7 +384,11 @@ const getCsiHpcsResources = (
   if (update) {
     const cmPatch = [generateConfigMapPatch(kmsName, csiConfigData, false)];
     csiKmsResources.push(
-      k8sPatch({ model: ConfigMapModel, resource: csiConfigObj, data: cmPatch })
+      k8sPatch({
+        model: ConfigMapModel,
+        resource: csiConfigObj,
+        data: cmPatch,
+      })
     );
   } else {
     csiKmsResources.push(
@@ -417,7 +425,11 @@ const getCsiThalesResources = (
   if (update) {
     const cmPatch = [generateConfigMapPatch(kmsName, csiConfigData, false)];
     csiKmsResources.push(
-      k8sPatch({ model: ConfigMapModel, resource: csiConfigObj, data: cmPatch })
+      k8sPatch({
+        model: ConfigMapModel,
+        resource: csiConfigObj,
+        data: cmPatch,
+      })
     );
   } else {
     csiKmsResources.push(

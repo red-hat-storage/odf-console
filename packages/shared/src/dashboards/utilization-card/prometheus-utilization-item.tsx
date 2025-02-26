@@ -20,59 +20,41 @@ import {
 import { useUtilizationDuration } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
 
-export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps> =
-  ({
-    utilizationQuery,
-    totalQuery,
-    title,
-    humanizeValue,
-    byteDataType,
-    TopConsumerPopover,
-    setLimitReqState,
-    basePath,
-    chartType,
-    description,
-    hideCurrentHumanized,
-    hideHorizontalBorder,
-    disableGraphLink,
-    showLegend,
-    CustomUtilizationSummary,
-    formatDate,
-    timespan,
-    showHumanizedInLegend,
-  }) => {
-    const { duration } = useUtilizationDuration();
-    const defaultBasePath = usePrometheusBasePath();
+export const PrometheusUtilizationItem: React.FC<
+  PrometheusUtilizationItemProps
+> = ({
+  utilizationQuery,
+  totalQuery,
+  title,
+  humanizeValue,
+  byteDataType,
+  TopConsumerPopover,
+  setLimitReqState,
+  basePath,
+  chartType,
+  description,
+  hideCurrentHumanized,
+  hideHorizontalBorder,
+  disableGraphLink,
+  showLegend,
+  CustomUtilizationSummary,
+  formatDate,
+  timespan,
+  showHumanizedInLegend,
+}) => {
+  const { duration } = useUtilizationDuration();
+  const defaultBasePath = usePrometheusBasePath();
 
-    const [utilization, error, loading] = useCustomPrometheusPoll({
-      query: utilizationQuery,
-      endpoint: 'api/v1/query_range' as any,
-      timespan: timespan || duration,
-      basePath: basePath || defaultBasePath,
-    });
+  const [utilization, error, loading] = useCustomPrometheusPoll({
+    query: utilizationQuery,
+    endpoint: 'api/v1/query_range' as any,
+    timespan: timespan || duration,
+    basePath: basePath || defaultBasePath,
+  });
 
-    if (totalQuery) {
-      return (
-        <TotalUtilizationItem
-          TopConsumerPopover={TopConsumerPopover}
-          byteDataType={byteDataType}
-          error={error}
-          humanizeValue={humanizeValue}
-          isLoading={loading}
-          query={[utilizationQuery]}
-          setLimitReqState={setLimitReqState}
-          title={title}
-          utilization={utilization}
-          basePath={basePath}
-          defaultBasePath={defaultBasePath}
-          duration={duration}
-          totalQuery={totalQuery}
-        />
-      );
-    }
-
+  if (totalQuery) {
     return (
-      <UtilizationItem
+      <TotalUtilizationItem
         TopConsumerPopover={TopConsumerPopover}
         byteDataType={byteDataType}
         error={error}
@@ -82,18 +64,37 @@ export const PrometheusUtilizationItem: React.FC<PrometheusUtilizationItemProps>
         setLimitReqState={setLimitReqState}
         title={title}
         utilization={utilization}
-        chartType={chartType}
-        description={description}
-        hideCurrentHumanized={hideCurrentHumanized}
-        hideHorizontalBorder={hideHorizontalBorder}
-        disableGraphLink={disableGraphLink}
-        showLegend={showLegend}
-        CustomUtilizationSummary={CustomUtilizationSummary}
-        formatDate={formatDate}
-        showHumanizedInLegend={showHumanizedInLegend}
+        basePath={basePath}
+        defaultBasePath={defaultBasePath}
+        duration={duration}
+        totalQuery={totalQuery}
       />
     );
-  };
+  }
+
+  return (
+    <UtilizationItem
+      TopConsumerPopover={TopConsumerPopover}
+      byteDataType={byteDataType}
+      error={error}
+      humanizeValue={humanizeValue}
+      isLoading={loading}
+      query={[utilizationQuery]}
+      setLimitReqState={setLimitReqState}
+      title={title}
+      utilization={utilization}
+      chartType={chartType}
+      description={description}
+      hideCurrentHumanized={hideCurrentHumanized}
+      hideHorizontalBorder={hideHorizontalBorder}
+      disableGraphLink={disableGraphLink}
+      showLegend={showLegend}
+      CustomUtilizationSummary={CustomUtilizationSummary}
+      formatDate={formatDate}
+      showHumanizedInLegend={showHumanizedInLegend}
+    />
+  );
+};
 
 type TotalUtilizationItemProps = UtilizationItemProps & {
   basePath: string;

@@ -31,7 +31,10 @@ abstract class BucketClassConfig {
 
   public abstract cleanup: () => void;
 
-  constructor(public resources: string[], public type: BucketClassType) {}
+  constructor(
+    public resources: string[],
+    public type: BucketClassType
+  ) {}
 }
 
 const createPVCBackingStore = (storeName: string) => {
@@ -101,8 +104,8 @@ const tierLevelToButton = (level: number, tier: Tier) =>
       ? cy.byTestID('placement-policy-spread1')
       : cy.byTestID('placement-policy-mirror1')
     : tier === Tier.SPREAD
-    ? cy.byTestID('placement-policy-spread2')
-    : cy.byTestID('placement-policy-mirror2');
+      ? cy.byTestID('placement-policy-spread2')
+      : cy.byTestID('placement-policy-mirror2');
 
 const setGeneralData = (type: BucketClassType) => {
   // be.visible check added to wait for the page to load

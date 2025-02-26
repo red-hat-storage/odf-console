@@ -245,108 +245,102 @@ const PairElement: React.FC<PairElementProps> = ({
   );
 };
 
-export const PVCDetailsWizardContent: React.FC<PVCDetailsWizardContentProps> =
-  ({
-    pvcSelectors,
-    unProtectedPlacements,
-    workloadNamespace,
-    isValidationEnabled,
-    protectedPVCSelectors,
-    dispatch,
-  }) => {
-    const { t } = useCustomTranslation();
+export const PVCDetailsWizardContent: React.FC<
+  PVCDetailsWizardContentProps
+> = ({
+  pvcSelectors,
+  unProtectedPlacements,
+  workloadNamespace,
+  isValidationEnabled,
+  protectedPVCSelectors,
+  dispatch,
+}) => {
+  const { t } = useCustomTranslation();
 
-    // To update placement and label info
-    const selectedPVCSelectors = React.useMemo(
-      () => _.cloneDeep(pvcSelectors) || [],
-      [pvcSelectors]
-    );
+  // To update placement and label info
+  const selectedPVCSelectors = React.useMemo(
+    () => _.cloneDeep(pvcSelectors) || [],
+    [pvcSelectors]
+  );
 
-    // Selected placement and labels
-    const [tags, setTags] = React.useState<TagsType>(
-      getPlacementTags([...protectedPVCSelectors, ...selectedPVCSelectors])
-    );
+  // Selected placement and labels
+  const [tags, setTags] = React.useState<TagsType>(
+    getPlacementTags([...protectedPVCSelectors, ...selectedPVCSelectors])
+  );
 
-    // ACM search proxy api call
-    const searchQuery = React.useMemo(
-      () =>
-        queryAppWorkloadPVCs(
-          workloadNamespace,
-          getClusterNamesFromPlacements(unProtectedPlacements)
-        ),
-      [unProtectedPlacements, workloadNamespace]
-    );
-    const [searchResult, error, loaded] = useACMSafeFetch(searchQuery);
+  // ACM search proxy api call
+  const searchQuery = React.useMemo(
+    () =>
+      queryAppWorkloadPVCs(
+        workloadNamespace,
+        getClusterNamesFromPlacements(unProtectedPlacements)
+      ),
+    [unProtectedPlacements, workloadNamespace]
+  );
+  const [searchResult, error, loaded] = useACMSafeFetch(searchQuery);
 
-    // All labels
-    const labels: string[] = React.useMemo(
-      () => getLabelsFromSearchResult(searchResult),
-      [searchResult]
-    );
+  // All labels
+  const labels: string[] = React.useMemo(
+    () => getLabelsFromSearchResult(searchResult),
+    [searchResult]
+  );
 
-    // All unprotected placements
-    const unProtectedPlacementNames: string[] =
-      unProtectedPlacements.map(getName);
+  // All unprotected placements
+  const unProtectedPlacementNames: string[] =
+    unProtectedPlacements.map(getName);
 
-    // All protected placements
-    const protectedPlacementNames: string[] = protectedPVCSelectors.map(
-      (pvcSelector) => pvcSelector.placementName
-    );
+  // All protected placements
+  const protectedPlacementNames: string[] = protectedPVCSelectors.map(
+    (pvcSelector) => pvcSelector.placementName
+  );
 
-    return (
-      <Form>
-        <FormGroup>
-          <span>
-            {t(
-              'Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information, '
-            )}
-          </span>
-          <Popover
-            aria-label={t('Help')}
-            bodyContent={getLabelValidationMessage(t)}
-          >
-            <Button
-              aria-label={t('Help')}
-              variant={ButtonVariant.link}
-              isInline
-            >
-              {t('see PVC label selector requirements.')}
-            </Button>
-          </Popover>
-        </FormGroup>
-        {loaded && !error ? (
-          <LazyNameValueEditor
-            nameValuePairs={tags}
-            updateParentData={({ nameValuePairs }) => {
-              setTags(nameValuePairs);
-              dispatch({
-                type: ManagePolicyStateType.SET_PVC_SELECTORS,
-                context: ModalViewContext.ASSIGN_POLICY_VIEW,
-                payload: getPVCSelectors(
-                  nameValuePairs,
-                  protectedPlacementNames
-                ),
-              });
-            }}
-            PairElementComponent={PairElement}
-            nameString={t('Application resource')}
-            valueString={t('PVC label selector')}
-            addString={t('Add application resource')}
-            extraProps={{
-              unProtectedPlacementNames,
-              labels,
-              tags,
-              isValidationEnabled,
-              protectedPlacementNames,
-            }}
-            className="co-required mco-manage-policies__nameValue--weight"
-          />
-        ) : (
-          <StatusBox loaded={loaded} loadError={error} />
-        )}
-      </Form>
-    );
-  };
+  return (
+    <Form>
+      <FormGroup>
+        <span>
+          {t(
+            'Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information, '
+          )}
+        </span>
+        <Popover
+          aria-label={t('Help')}
+          bodyContent={getLabelValidationMessage(t)}
+        >
+          <Button aria-label={t('Help')} variant={ButtonVariant.link} isInline>
+            {t('see PVC label selector requirements.')}
+          </Button>
+        </Popover>
+      </FormGroup>
+      {loaded && !error ? (
+        <LazyNameValueEditor
+          nameValuePairs={tags}
+          updateParentData={({ nameValuePairs }) => {
+            setTags(nameValuePairs);
+            dispatch({
+              type: ManagePolicyStateType.SET_PVC_SELECTORS,
+              context: ModalViewContext.ASSIGN_POLICY_VIEW,
+              payload: getPVCSelectors(nameValuePairs, protectedPlacementNames),
+            });
+          }}
+          PairElementComponent={PairElement}
+          nameString={t('Application resource')}
+          valueString={t('PVC label selector')}
+          addString={t('Add application resource')}
+          extraProps={{
+            unProtectedPlacementNames,
+            labels,
+            tags,
+            isValidationEnabled,
+            protectedPlacementNames,
+          }}
+          className="co-required mco-manage-policies__nameValue--weight"
+        />
+      ) : (
+        <StatusBox loaded={loaded} loadError={error} />
+      )}
+    </Form>
+  );
+};
 
 type TagsType = (string | string[] | number)[][];
 

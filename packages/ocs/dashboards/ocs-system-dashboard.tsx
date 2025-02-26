@@ -57,22 +57,23 @@ type CommonDashboardRendererProps = {
   mainCards: React.ComponentType[];
 };
 
-export const CommonDashboardRenderer: React.FC<CommonDashboardRendererProps> =
-  ({ leftCards, rightCards, mainCards }) => {
-    const mainGridCards: OverviewGridCard[] = mainCards.map(convertToCard);
-    const leftGridCards: OverviewGridCard[] = leftCards?.map(convertToCard);
-    const rightGridCards: OverviewGridCard[] = rightCards?.map(convertToCard);
+export const CommonDashboardRenderer: React.FC<
+  CommonDashboardRendererProps
+> = ({ leftCards, rightCards, mainCards }) => {
+  const mainGridCards: OverviewGridCard[] = mainCards.map(convertToCard);
+  const leftGridCards: OverviewGridCard[] = leftCards?.map(convertToCard);
+  const rightGridCards: OverviewGridCard[] = rightCards?.map(convertToCard);
 
-    return (
-      <Overview>
-        <OverviewGrid
-          mainCards={mainGridCards}
-          leftCards={leftGridCards}
-          rightCards={rightGridCards}
-        />
-      </Overview>
-    );
-  };
+  return (
+    <Overview>
+      <OverviewGrid
+        mainCards={mainGridCards}
+        leftCards={leftGridCards}
+        rightCards={rightGridCards}
+      />
+    </Overview>
+  );
+};
 
 const PersistentInternalDashboard: React.FC = () => {
   const mainCards: React.ComponentType[] = [

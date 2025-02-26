@@ -64,38 +64,39 @@ type ProfileRequirementsModalTextProps = {
   osdAmount: number;
 };
 
-const ProfileRequirementsModalText: React.FC<ProfileRequirementsModalTextProps> =
-  ({ selectedProfile, osdAmount }) => {
-    const { t } = useCustomTranslation();
-    const { minCpu, minMem } = getResourceProfileRequirements(
-      selectedProfile,
-      osdAmount
-    );
-    return (
-      <TextContent>
-        <Text id="resource-requirements" className="pf-v5-u-font-size-md">
-          <span className="pf-v5-u-mr-sm">
-            {t(
-              'The aggregate resource requirements for {{selectedProfile}} mode is',
-              {
-                selectedProfile,
-              }
-            )}
-          </span>
-          <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md">
-            {minCpu} {t('CPUs')}
-          </span>{' '}
-          {t('and')}{' '}
-          <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md pf-v5-u-mr-xs">
-            {minMem} {t('GiB RAM')}
-          </span>
-          {selectedProfile === ResourceProfile.Performance && (
-            <FieldLevelHelp>{resourceRequirementsTooltip(t)}</FieldLevelHelp>
+const ProfileRequirementsModalText: React.FC<
+  ProfileRequirementsModalTextProps
+> = ({ selectedProfile, osdAmount }) => {
+  const { t } = useCustomTranslation();
+  const { minCpu, minMem } = getResourceProfileRequirements(
+    selectedProfile,
+    osdAmount
+  );
+  return (
+    <TextContent>
+      <Text id="resource-requirements" className="pf-v5-u-font-size-md">
+        <span className="pf-v5-u-mr-sm">
+          {t(
+            'The aggregate resource requirements for {{selectedProfile}} mode is',
+            {
+              selectedProfile,
+            }
           )}
-        </Text>
-      </TextContent>
-    );
-  };
+        </span>
+        <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md">
+          {minCpu} {t('CPUs')}
+        </span>{' '}
+        {t('and')}{' '}
+        <span className="pf-v5-u-font-weight-bold pf-v5-u-font-size-md pf-v5-u-mr-xs">
+          {minMem} {t('GiB RAM')}
+        </span>
+        {selectedProfile === ResourceProfile.Performance && (
+          <FieldLevelHelp>{resourceRequirementsTooltip(t)}</FieldLevelHelp>
+        )}
+      </Text>
+    </TextContent>
+  );
+};
 
 type ConfigurePerformanceModalProps = {
   storageCluster: StorageClusterKind;
@@ -248,18 +249,19 @@ type ConfigureSSPerformanceModalProps = CommonModalProps & {
   storageSystem?: StorageSystemKind;
 };
 
-const ConfigureSSPerformanceModal: React.FC<ConfigureSSPerformanceModalProps> =
-  ({ extraProps: { resource: storageSystem }, ...props }) => {
-    const [ocs, ocsLoaded, ocsError] = useK8sGet<StorageClusterKind>(
-      StorageClusterModel,
-      storageSystem.spec.name,
-      storageSystem.spec.namespace
-    );
-    if (!ocsLoaded || ocsError) {
-      return null;
-    }
+const ConfigureSSPerformanceModal: React.FC<
+  ConfigureSSPerformanceModalProps
+> = ({ extraProps: { resource: storageSystem }, ...props }) => {
+  const [ocs, ocsLoaded, ocsError] = useK8sGet<StorageClusterKind>(
+    StorageClusterModel,
+    storageSystem.spec.name,
+    storageSystem.spec.namespace
+  );
+  if (!ocsLoaded || ocsError) {
+    return null;
+  }
 
-    return <ConfigurePerformanceModal storageCluster={ocs} {...props} />;
-  };
+  return <ConfigurePerformanceModal storageCluster={ocs} {...props} />;
+};
 
 export default ConfigureSSPerformanceModal;

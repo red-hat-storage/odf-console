@@ -58,27 +58,28 @@ const ExpandableGridCard: React.FC<ExpandableGridCardProps> = ({
   );
 };
 
-export const GettingStartedExpandableGrid: React.FC<GettingStartedExpandableGridProps> =
-  ({ toggleContent, title, children, isOpen, setIsOpen, hideExpandable }) => {
-    const { t } = useCustomTranslation();
+export const GettingStartedExpandableGrid: React.FC<
+  GettingStartedExpandableGridProps
+> = ({ toggleContent, title, children, isOpen, setIsOpen, hideExpandable }) => {
+  const { t } = useCustomTranslation();
 
-    const titleText = title || t('Getting started resources');
-    return !hideExpandable ? (
-      <ExpandableSection
-        onToggle={() => setIsOpen(!isOpen)}
-        isExpanded={isOpen}
-        displaySize="lg"
-        className="ocs-getting-started-expandable-section"
-        toggleContent={
-          !toggleContent ? <CardTitle titleText={titleText} /> : toggleContent
-        }
-        data-test="getting-started-expandable"
-      >
-        <ExpandableGridCard>{children}</ExpandableGridCard>
-      </ExpandableSection>
-    ) : (
-      <ExpandableGridCard titleText={titleText} showHeader>
-        {children}
-      </ExpandableGridCard>
-    );
-  };
+  const titleText = title || t('Getting started resources');
+  return !hideExpandable ? (
+    <ExpandableSection
+      onToggle={() => setIsOpen(!isOpen)}
+      isExpanded={isOpen}
+      displaySize="lg"
+      className="ocs-getting-started-expandable-section"
+      toggleContent={
+        !toggleContent ? <CardTitle titleText={titleText} /> : toggleContent
+      }
+      data-test="getting-started-expandable"
+    >
+      <ExpandableGridCard>{children}</ExpandableGridCard>
+    </ExpandableSection>
+  ) : (
+    <ExpandableGridCard titleText={titleText} showHeader>
+      {children}
+    </ExpandableGridCard>
+  );
+};

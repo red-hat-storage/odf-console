@@ -31,8 +31,8 @@ export const NOOBAA_TYPE_MAP = {
 };
 
 export type SpecProvider =
-  typeof PROVIDERS_NOOBAA_MAP[keyof typeof PROVIDERS_NOOBAA_MAP];
-export type SpecType = typeof NOOBAA_TYPE_MAP[keyof typeof NOOBAA_TYPE_MAP];
+  (typeof PROVIDERS_NOOBAA_MAP)[keyof typeof PROVIDERS_NOOBAA_MAP];
+export type SpecType = (typeof NOOBAA_TYPE_MAP)[keyof typeof NOOBAA_TYPE_MAP];
 
 export enum StoreType {
   BS = 'BackingStore',

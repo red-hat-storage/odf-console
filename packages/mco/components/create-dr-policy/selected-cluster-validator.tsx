@@ -239,122 +239,123 @@ const PeeringValidationMessage: React.FC<PeeringValidationMessageProps> = ({
   );
 };
 
-export const SelectedClusterValidation: React.FC<SelectedClusterValidationProps> =
-  ({ selectedClusters, requiredODFVersion, dispatch, mirrorPeers }) => {
-    const { t } = useCustomTranslation();
+export const SelectedClusterValidation: React.FC<
+  SelectedClusterValidationProps
+> = ({ selectedClusters, requiredODFVersion, dispatch, mirrorPeers }) => {
+  const { t } = useCustomTranslation();
 
-    const [drPolicies, policyLoaded, policyLoadError] = useK8sWatchResource<
-      DRPolicyKind[]
-    >(getDRPolicyResourceObj());
+  const [drPolicies, policyLoaded, policyLoadError] = useK8sWatchResource<
+    DRPolicyKind[]
+  >(getDRPolicyResourceObj());
 
-    let isSelectionValid: boolean = false;
+  let isSelectionValid: boolean = false;
 
-    React.useEffect(() => {
-      if (policyLoaded && !policyLoadError) {
-        dispatch({
-          type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION,
-          payload: isSelectionValid,
-        });
+  React.useEffect(() => {
+    if (policyLoaded && !policyLoadError) {
+      dispatch({
+        type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION,
+        payload: isSelectionValid,
+      });
+    }
+  }, [isSelectionValid, policyLoaded, policyLoadError, dispatch]);
+
+  const validations: ValidationType = validateClusterSelection(
+    selectedClusters,
+    drPolicies,
+    mirrorPeers
+  );
+
+  const { peeringValidation, clusterValidation } = validations;
+
+  const invalidClusters: string[] = Array.from(
+    new Set([].concat(...Object.values(clusterValidation)))
+  );
+
+  const isInvalidPeering: boolean = Object.values(peeringValidation).some(
+    (validation) => validation
+  );
+
+  isSelectionValid = !isInvalidPeering && !invalidClusters.length;
+
+  // Warning
+  const isVersionMismatch =
+    selectedClusters[0].odfInfo?.odfVersion !==
+    selectedClusters[1].odfInfo?.odfVersion;
+
+  return (
+    <StatusBox
+      data={selectedClusters}
+      loaded={policyLoaded}
+      loadError={policyLoadError}
+      skeleton={
+        <StatusIconAndText
+          icon={<Spinner size="sm" />}
+          title={t(
+            'Running checks to ensure that the selected managed cluster meets ' +
+              'all necessary conditions so it can enroll in a Disaster Recovery policy.'
+          )}
+        />
       }
-    }, [isSelectionValid, policyLoaded, policyLoadError, dispatch]);
-
-    const validations: ValidationType = validateClusterSelection(
-      selectedClusters,
-      drPolicies,
-      mirrorPeers
-    );
-
-    const { peeringValidation, clusterValidation } = validations;
-
-    const invalidClusters: string[] = Array.from(
-      new Set([].concat(...Object.values(clusterValidation)))
-    );
-
-    const isInvalidPeering: boolean = Object.values(peeringValidation).some(
-      (validation) => validation
-    );
-
-    isSelectionValid = !isInvalidPeering && !invalidClusters.length;
-
-    // Warning
-    const isVersionMismatch =
-      selectedClusters[0].odfInfo?.odfVersion !==
-      selectedClusters[1].odfInfo?.odfVersion;
-
-    return (
-      <StatusBox
-        data={selectedClusters}
-        loaded={policyLoaded}
-        loadError={policyLoadError}
-        skeleton={
-          <StatusIconAndText
-            icon={<Spinner size="sm" />}
+    >
+      {isSelectionValid ? (
+        <>
+          <Alert
+            data-test="odf-not-found-alert"
+            className="odf-alert mco-create-data-policy__alert"
             title={t(
-              'Running checks to ensure that the selected managed cluster meets ' +
-                'all necessary conditions so it can enroll in a Disaster Recovery policy.'
+              'All disaster recovery prerequisites met for both clusters.'
             )}
+            variant={AlertVariant.success}
+            isInline
           />
-        }
-      >
-        {isSelectionValid ? (
-          <>
+          {isVersionMismatch && (
             <Alert
               data-test="odf-not-found-alert"
               className="odf-alert mco-create-data-policy__alert"
-              title={t(
-                'All disaster recovery prerequisites met for both clusters.'
-              )}
-              variant={AlertVariant.success}
-              isInline
-            />
-            {isVersionMismatch && (
-              <Alert
-                data-test="odf-not-found-alert"
-                className="odf-alert mco-create-data-policy__alert"
-                title={t('Version mismatch across selected clusters')}
-                variant={AlertVariant.warning}
-                isInline
-              >
-                {t(
-                  'The selected clusters are running different versions of Data Foundation. ' +
-                    'Peering clusters with different versions can lead to potential issues and is not recommended. ' +
-                    'Ensure all clusters are upgraded to the same version before proceeding with peering to avoid operational risks.'
-                )}
-              </Alert>
-            )}
-          </>
-        ) : isInvalidPeering ? (
-          <PeeringValidationMessage peeringValidation={peeringValidation} />
-        ) : (
-          <>
-            <Alert
-              data-test="odf-not-found-alert"
-              className="odf-alert mco-create-data-policy__alert"
-              title={t(
-                '1 or more clusters do not meet disaster recovery cluster prerequisites.'
-              )}
-              variant={AlertVariant.danger}
+              title={t('Version mismatch across selected clusters')}
+              variant={AlertVariant.warning}
               isInline
             >
               {t(
-                'The selected managed cluster(s) does not meet all necessary conditions ' +
-                  'to be eligible for disaster recovery policy. Resolve the following ' +
-                  'issues to proceed with policy creation.'
+                'The selected clusters are running different versions of Data Foundation. ' +
+                  'Peering clusters with different versions can lead to potential issues and is not recommended. ' +
+                  'Ensure all clusters are upgraded to the same version before proceeding with peering to avoid operational risks.'
               )}
             </Alert>
-            {invalidClusters.map((clusterName) => (
-              <ClusterValidationMessage
-                clusterValidation={clusterValidation}
-                clusterName={clusterName}
-                requiredODFVersion={requiredODFVersion}
-                key={clusterName}
-              />
-            ))}
-          </>
-        )}
-      </StatusBox>
-    );
-  };
+          )}
+        </>
+      ) : isInvalidPeering ? (
+        <PeeringValidationMessage peeringValidation={peeringValidation} />
+      ) : (
+        <>
+          <Alert
+            data-test="odf-not-found-alert"
+            className="odf-alert mco-create-data-policy__alert"
+            title={t(
+              '1 or more clusters do not meet disaster recovery cluster prerequisites.'
+            )}
+            variant={AlertVariant.danger}
+            isInline
+          >
+            {t(
+              'The selected managed cluster(s) does not meet all necessary conditions ' +
+                'to be eligible for disaster recovery policy. Resolve the following ' +
+                'issues to proceed with policy creation.'
+            )}
+          </Alert>
+          {invalidClusters.map((clusterName) => (
+            <ClusterValidationMessage
+              clusterValidation={clusterValidation}
+              clusterName={clusterName}
+              requiredODFVersion={requiredODFVersion}
+              key={clusterName}
+            />
+          ))}
+        </>
+      )}
+    </StatusBox>
+  );
+};
 
 type SelectedClusterValidationProps = {
   selectedClusters: ManagedClusterInfoType[];
