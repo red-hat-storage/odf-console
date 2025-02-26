@@ -11,8 +11,11 @@ import {
 } from '@odf/core/components/s3-browser/noobaa-context';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox } from '@odf/shared/generic/status-box';
+import { isNoLifecycleRuleError } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { deepSortObject } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
+import { murmur3 } from 'murmurhash-js';
 import { useNavigate, useParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import {
@@ -33,7 +36,10 @@ import {
   RuleScope,
 } from './reducer';
 import { RuleActions } from './RuleActions';
+import { useEditLifecycleRule } from './useEditLifecycleRule';
 import { isInvalidLifecycleRule } from './validations';
+
+type IsEditProp = { isEdit?: boolean };
 
 const getFilterConfig = (
   conditionalFilters: RuleState['conditionalFilters']
@@ -43,13 +49,8 @@ const getFilterConfig = (
   const minObjectSize = conditionalFilters.minObjectSize;
   const maxObjectSize = conditionalFilters.maxObjectSize;
 
-  const filters = {
+  const filtersWOTags = {
     ...(!!prefix ? { Prefix: prefix } : {}),
-    ...(!!tags.length
-      ? tags.length > 1
-        ? { Tags: tags }
-        : { Tag: tags[0] }
-      : {}),
     ...(minObjectSize.isChecked
       ? { ObjectSizeGreaterThan: minObjectSize.sizeInB }
       : {}),
@@ -59,10 +60,18 @@ const getFilterConfig = (
   };
 
   let ruleFilters: LifecycleRuleFilter;
-  if (Object.keys(filters).length > 1 || filters.hasOwnProperty('Tags')) {
-    ruleFilters = { And: filters };
+  const filtersWOTagsLength = Object.keys(filtersWOTags).length;
+  if (filtersWOTagsLength > 1 || tags.length > 1) {
+    ruleFilters = {
+      And: { ...filtersWOTags, ...(!!tags.length ? { Tags: tags } : {}) },
+    };
+  } else if (filtersWOTagsLength === 1 && tags.length === 1) {
+    ruleFilters = { And: { ...filtersWOTags, Tags: tags } };
   } else {
-    ruleFilters = filters as LifecycleRuleFilter;
+    ruleFilters = {
+      ...filtersWOTags,
+      ...(!!tags.length ? { Tag: tags[0] } : {}),
+    } as LifecycleRuleFilter;
   }
 
   return ruleFilters;
@@ -113,20 +122,52 @@ const getRuleConfig = (state: RuleState): LifecycleRule => {
 
 const createNewRule = (
   state: RuleState,
-  existingRules: GetBucketLifecycleConfigurationCommandOutput
+  latestRules: GetBucketLifecycleConfigurationCommandOutput
 ) => {
-  const currRules: LifecycleRule[] = existingRules?.Rules || [];
+  const currRules: LifecycleRule[] =
+    latestRules?.Rules?.filter((rule) => rule.ID !== state.name) || [];
   const newRule: LifecycleRule = getRuleConfig(state);
+
   return [...currRules, newRule];
 };
 
-const Header: React.FC<{}> = () => {
+const updateExistingRule = (
+  state: RuleState,
+  latestRules: GetBucketLifecycleConfigurationCommandOutput,
+  ruleName: string,
+  ruleHash: string
+) => {
+  let filteredRules: LifecycleRule[];
+  if (!!ruleName) {
+    filteredRules =
+      latestRules?.Rules?.filter(
+        (rule) => rule.ID !== ruleName && rule.ID !== state.name
+      ) || [];
+  } else if (!!ruleHash) {
+    // fallback if rule name (ID) is missing
+    filteredRules =
+      latestRules?.Rules?.filter(
+        (rule) =>
+          `${murmur3(JSON.stringify(deepSortObject(rule)))}` !== ruleHash &&
+          rule.ID !== state.name
+      ) || [];
+  } else {
+    filteredRules = latestRules?.Rules || [];
+  }
+  const updateRule: LifecycleRule = getRuleConfig(state);
+
+  return [...filteredRules, updateRule];
+};
+
+const Header: React.FC<IsEditProp> = ({ isEdit }) => {
   const { t } = useCustomTranslation();
 
   return (
     <>
       <TextContent>
-        <Text component={TextVariants.h1}>{t('Create lifecycle rule')}</Text>
+        <Text component={TextVariants.h1}>
+          {isEdit ? t('Edit lifecycle rule') : t('Create lifecycle rule')}
+        </Text>
         <Text component={TextVariants.small}>
           {t(
             'To optimize the storage costs of your objects throughout their lifecycle, set up a lifecycle configuration. This configuration consists of a series of rules that determine the actions S3 takes on a specific group of objects.'
@@ -138,7 +179,7 @@ const Header: React.FC<{}> = () => {
   );
 };
 
-const CreateLifecycleRuleForm: React.FC<{}> = () => {
+const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
   const { t } = useCustomTranslation();
 
   const { bucketName } = useParams();
@@ -154,19 +195,28 @@ const CreateLifecycleRuleForm: React.FC<{}> = () => {
     isLoading,
     error: getError,
     mutate,
-  } = useSWR(`${bucketName}-${BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX}`, () =>
-    noobaaS3.getBucketLifecycleConfiguration({ Bucket: bucketName })
+  } = useSWR(
+    `${bucketName}-${BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX}`,
+    () => noobaaS3.getBucketLifecycleConfiguration({ Bucket: bucketName }),
+    {
+      shouldRetryOnError: false,
+    }
   );
 
+  const [ruleName, ruleHash] = useEditLifecycleRule({
+    isEdit,
+    existingRules,
+    dispatch,
+  });
+
   const noRuleExists =
-    getError?.name === 'NoSuchLifecycleConfiguration' &&
-    !existingRules?.Rules?.length;
+    isNoLifecycleRuleError(getError) && !existingRules?.Rules?.length;
 
   const onSave = async (event) => {
     event.preventDefault();
     setInProgress(true);
 
-    if (isInvalidLifecycleRule(state, existingRules)) {
+    if (isInvalidLifecycleRule(state, existingRules, isEdit, ruleName)) {
       dispatch({
         type: RuleActionType.TRIGGER_INLINE_VALIDATIONS,
         payload: true,
@@ -174,16 +224,23 @@ const CreateLifecycleRuleForm: React.FC<{}> = () => {
       setInProgress(false);
     } else {
       try {
+        const latestRules: GetBucketLifecycleConfigurationCommandOutput =
+          await noobaaS3.getBucketLifecycleConfiguration({
+            Bucket: bucketName,
+          });
+
         await noobaaS3.putBucketLifecycleConfiguration({
           Bucket: bucketName,
           LifecycleConfiguration: {
-            Rules: createNewRule(state, existingRules),
+            Rules: isEdit
+              ? updateExistingRule(state, latestRules, ruleName, ruleHash)
+              : createNewRule(state, latestRules),
           },
         });
 
         setInProgress(false);
         mutate();
-        // ToDo: navigate to list/details page
+        navigate(-1);
       } catch (err) {
         setInProgress(false);
         setPutError(err);
@@ -199,11 +256,13 @@ const CreateLifecycleRuleForm: React.FC<{}> = () => {
 
   return (
     <div className="pf-v5-u-m-md">
-      <Header />
+      <Header isEdit={isEdit} />
       <GeneralConfigAndFilters
         state={state}
         dispatch={dispatch}
         existingRules={existingRules}
+        isEdit={isEdit}
+        editingRuleName={ruleName}
       />
       <RuleActions state={state} dispatch={dispatch} />
       <ButtonBar
@@ -215,9 +274,10 @@ const CreateLifecycleRuleForm: React.FC<{}> = () => {
           <Button
             variant={ButtonVariant.primary}
             onClick={onSave}
+            isDisabled={inProgress}
             className="pf-v5-u-mr-xs"
           >
-            {t('Create')}
+            {isEdit ? t('Save') : t('Create')}
           </Button>
           <Button
             variant={ButtonVariant.secondary}
@@ -232,10 +292,14 @@ const CreateLifecycleRuleForm: React.FC<{}> = () => {
   );
 };
 
-const CreateLifecycleRule: React.FC<{}> = () => (
+export const CreateLifecycleRule: React.FC<{}> = () => (
   <NoobaaS3Provider>
-    <CreateLifecycleRuleForm />
+    <CreateOrEditLifecycleRuleForm />
   </NoobaaS3Provider>
 );
 
-export default CreateLifecycleRule;
+export const EditLifecycleRule: React.FC<{}> = () => (
+  <NoobaaS3Provider>
+    <CreateOrEditLifecycleRuleForm isEdit />
+  </NoobaaS3Provider>
+);

@@ -87,6 +87,7 @@ export const ruleInitialState: RuleState = {
 };
 
 export enum RuleActionType {
+  RULE = 'RULE',
   RULE_NAME = 'RULE_NAME',
   RULE_SCOPE = 'RULE_SCOPE',
   RULE_PREFIX_FILTER = 'RULE_PREFIX_FILTER',
@@ -101,6 +102,7 @@ export enum RuleActionType {
 }
 
 export type RuleAction =
+  | { type: RuleActionType.RULE; payload: RuleState }
   | { type: RuleActionType.RULE_NAME; payload: string }
   | { type: RuleActionType.RULE_SCOPE; payload: RuleScope }
   | { type: RuleActionType.RULE_PREFIX_FILTER; payload: string }
@@ -123,8 +125,12 @@ export const ruleReducer = (
   state: RuleState,
   action: RuleAction
 ): RuleState => {
-  const newState: RuleState = _.cloneDeep(state);
+  let newState: RuleState = _.cloneDeep(state);
   switch (action.type) {
+    case RuleActionType.RULE: {
+      newState = action.payload;
+      break;
+    }
     case RuleActionType.RULE_NAME: {
       newState.name = action.payload;
       break;

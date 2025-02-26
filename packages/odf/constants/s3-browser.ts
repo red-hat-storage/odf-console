@@ -6,6 +6,8 @@ export const NOOBAA_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY';
 export const DELIMITER = '/';
 export const PREFIX = 'prefix';
 export const SEARCH = 'search';
+export const RULE_NAME = 'ruleName';
+export const RULE_HASH = 'ruleHash';
 export const MAX_KEYS = 300;
 export const MAX_BUCKETS = 100;
 

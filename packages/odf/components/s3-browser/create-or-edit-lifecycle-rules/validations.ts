@@ -7,12 +7,16 @@ import { RuleScope, RuleState } from './reducer';
 // Rule name validations
 export const isInvalidName = (
   state: RuleState,
-  existingRules: GetBucketLifecycleConfigurationCommandOutput
+  existingRules: GetBucketLifecycleConfigurationCommandOutput,
+  isEdit = false,
+  editingRuleName = ''
 ) => {
   const emptyName = !state.name;
-  const alreadyUsedName = existingRules?.Rules?.some(
-    (rule) => rule.ID === state.name
-  );
+  const alreadyUsedName = isEdit
+    ? existingRules?.Rules?.some(
+        (rule) => rule.ID === state.name && rule.ID !== editingRuleName
+      )
+    : existingRules?.Rules?.some((rule) => rule.ID === state.name);
   const exceedingLengthName = state.name.length > 255;
   const invalidName =
     emptyName || alreadyUsedName || exceedingLengthName || false;
@@ -100,9 +104,11 @@ export const areInvalidActions = (state: RuleState) =>
 // Cummulative validations
 export const isInvalidLifecycleRule = (
   state: RuleState,
-  existingRules: GetBucketLifecycleConfigurationCommandOutput
+  existingRules: GetBucketLifecycleConfigurationCommandOutput,
+  isEdit = false,
+  editingRuleName = ''
 ) =>
-  isInvalidName(state, existingRules)[0] ||
+  isInvalidName(state, existingRules, isEdit, editingRuleName)[0] ||
   isInvalidObjectSize(state)[0] ||
   areInvalidObjectTags(state) ||
   areInvalidFilters(state) ||
