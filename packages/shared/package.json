@@ -55,6 +55,6 @@
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-i18next": "^11.11.4",
-    "react-router-dom-v5-compat": "^6.27.0"
+    "react-router-dom-v5-compat": "^6.28.2"
   }
 }
