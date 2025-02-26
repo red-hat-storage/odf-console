@@ -188,50 +188,49 @@ export const ChartLegendTooltipContent: React.FunctionComponent<
 };
 ChartLegendTooltipContent.displayName = 'ChartLegendTooltipContent';
 
-export const ChartLegendTooltipLabel: React.FunctionComponent<ChartLegendTooltipLabelProps> =
-  ({
-    index = 0,
-    legendData,
-    style,
-    text,
-    textAnchor = 'start',
-    x,
-    y,
+export const ChartLegendTooltipLabel: React.FunctionComponent<
+  ChartLegendTooltipLabelProps
+> = ({
+  index = 0,
+  legendData,
+  style,
+  text,
+  textAnchor = 'start',
+  x,
+  y,
 
-    // destructure last
-    ...rest
-  }: ChartLegendTooltipLabelProps) => {
-    const getStyle = (styles: any) => {
-      const applyDefaultStyle = (customStyle: React.CSSProperties) =>
-        defaults(
-          {
-            ...customStyle,
-          },
-          {
-            fill: ChartLegendTooltipStyles.label.fill,
-          }
-        );
-      return Array.isArray(styles)
-        ? styles.map(applyDefaultStyle)
-        : applyDefaultStyle(styles);
-    };
-
-    const label =
-      legendData && legendData.length
-        ? legendData[index as any].name
-        : undefined;
-    return (
-      <ChartLabel
-        style={getStyle(style)}
-        text={`${text} ${label}`}
-        textAnchor={textAnchor}
-        x={x}
-        y={y}
-        {...rest}
-        dx={undefined}
-      />
-    );
+  // destructure last
+  ...rest
+}: ChartLegendTooltipLabelProps) => {
+  const getStyle = (styles: any) => {
+    const applyDefaultStyle = (customStyle: React.CSSProperties) =>
+      defaults(
+        {
+          ...customStyle,
+        },
+        {
+          fill: ChartLegendTooltipStyles.label.fill,
+        }
+      );
+    return Array.isArray(styles)
+      ? styles.map(applyDefaultStyle)
+      : applyDefaultStyle(styles);
   };
+
+  const label =
+    legendData && legendData.length ? legendData[index as any].name : undefined;
+  return (
+    <ChartLabel
+      style={getStyle(style)}
+      text={`${text} ${label}`}
+      textAnchor={textAnchor}
+      x={x}
+      y={y}
+      {...rest}
+      dx={undefined}
+    />
+  );
+};
 ChartLegendTooltipLabel.displayName = 'ChartLegendTooltipLabel';
 
 export const ChartLegendTooltip: React.FunctionComponent<

@@ -37,19 +37,22 @@ export const convertLabelToExpression = (
   labels: string[]
 ): MatchExpression[] => {
   // appName: busybox-1, appName: busybox-2 will be converted to {key: appName, operator: Equals, values: [busybox-1, busybox-2]}
-  const labelExpressions = labels.reduce((acc, label) => {
-    const [key, value = ''] = label.split('=');
-    if (key in acc) {
-      acc[key].values.push(value);
-    } else {
-      acc[key] = {
-        key,
-        operator: Operator.In,
-        values: [value],
-      };
-    }
-    return acc;
-  }, {} as { [key in string]: MatchExpression });
+  const labelExpressions = labels.reduce(
+    (acc, label) => {
+      const [key, value = ''] = label.split('=');
+      if (key in acc) {
+        acc[key].values.push(value);
+      } else {
+        acc[key] = {
+          key,
+          operator: Operator.In,
+          values: [value],
+        };
+      }
+      return acc;
+    },
+    {} as { [key in string]: MatchExpression }
+  );
   return Object.values(labelExpressions);
 };
 

@@ -310,42 +310,43 @@ const getDescription = (result: PrometheusResult, _index: number) =>
   // Returning cluster name as a description
   result.metric?.['cluster'] || '';
 
-export const SnapshotUtilizationCard: React.FC<SnapshotUtilizationCardProps> =
-  ({
-    title,
-    titleToolTip,
-    queryType,
-    humanizeValue,
-    clusters,
-    CustomUtilizationSummary,
-  }) => {
-    return (
-      <>
-        <div>
-          <StatusText>
-            {title}
-            {!!titleToolTip && <FieldLevelHelp>{titleToolTip}</FieldLevelHelp>}
-          </StatusText>
-        </div>
-        <PrometheusUtilizationItem
-          title={''}
-          utilizationQuery={
-            !!clusters.length &&
-            getRBDSnapshotUtilizationQuery(clusters, queryType)
-          }
-          humanizeValue={humanizeValue}
-          basePath={ACM_ENDPOINT}
-          chartType="grouped-line"
-          description={getDescription}
-          hideCurrentHumanized
-          hideHorizontalBorder
-          disableGraphLink
-          showLegend
-          CustomUtilizationSummary={CustomUtilizationSummary}
-        />
-      </>
-    );
-  };
+export const SnapshotUtilizationCard: React.FC<
+  SnapshotUtilizationCardProps
+> = ({
+  title,
+  titleToolTip,
+  queryType,
+  humanizeValue,
+  clusters,
+  CustomUtilizationSummary,
+}) => {
+  return (
+    <>
+      <div>
+        <StatusText>
+          {title}
+          {!!titleToolTip && <FieldLevelHelp>{titleToolTip}</FieldLevelHelp>}
+        </StatusText>
+      </div>
+      <PrometheusUtilizationItem
+        title={''}
+        utilizationQuery={
+          !!clusters.length &&
+          getRBDSnapshotUtilizationQuery(clusters, queryType)
+        }
+        humanizeValue={humanizeValue}
+        basePath={ACM_ENDPOINT}
+        chartType="grouped-line"
+        description={getDescription}
+        hideCurrentHumanized
+        hideHorizontalBorder
+        disableGraphLink
+        showLegend
+        CustomUtilizationSummary={CustomUtilizationSummary}
+      />
+    </>
+  );
+};
 
 const CustomUtilizationSummary: React.FC<CustomUtilizationSummaryProps> = ({
   currentHumanized,

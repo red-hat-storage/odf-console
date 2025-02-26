@@ -8,7 +8,7 @@ import {
 import { useODFNamespaceSelector } from '../redux';
 
 type UseSafeK8sWatchResource = <
-  R extends K8sResourceCommon | K8sResourceCommon[]
+  R extends K8sResourceCommon | K8sResourceCommon[],
 >(
   initResource: K8sResourceObj | null,
   allowFallback?: boolean

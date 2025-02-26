@@ -161,8 +161,8 @@ const CapacityCardRow: React.FC<CapacityCardRowProps> = ({
     (!isPercentage && isRelative) || (isPercentage && !isRelative)
       ? getProgress(data, isRelative, largestValue)
       : data?.usedValue?.value > 0
-      ? 100
-      : 0;
+        ? 100
+        : 0;
   const value = isPercentage
     ? `${data?.usedValue?.string} / ${data?.totalValue?.string}`
     : data?.usedValue?.string;

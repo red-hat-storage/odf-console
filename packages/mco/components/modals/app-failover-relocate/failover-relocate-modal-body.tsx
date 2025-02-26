@@ -200,122 +200,117 @@ const DRActionReadiness = ({ canInitiate }: { canInitiate: boolean }) => {
   );
 };
 
-export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps> =
-  (props) => {
-    const { t } = useCustomTranslation();
-    const {
-      action,
-      applicationName,
-      canInitiate,
-      setCanInitiate,
-      setPlacement,
-      placementControls,
-      loadError,
-      loaded,
-      applicationModel,
-      message,
-    } = props;
-    const [errorMessage, setErrorMessage] = React.useState<ErrorMessageType>();
-    const placement = placementControls?.[0];
+export const FailoverRelocateModalBody: React.FC<
+  FailoverRelocateModalBodyProps
+> = (props) => {
+  const { t } = useCustomTranslation();
+  const {
+    action,
+    applicationName,
+    canInitiate,
+    setCanInitiate,
+    setPlacement,
+    placementControls,
+    loadError,
+    loaded,
+    applicationModel,
+    message,
+  } = props;
+  const [errorMessage, setErrorMessage] = React.useState<ErrorMessageType>();
+  const placement = placementControls?.[0];
 
-    const acmDocVersion = useDocVersion({
-      defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
-      specName: ACM_OPERATOR_SPEC_NAME,
-    });
+  const acmDocVersion = useDocVersion({
+    defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
+    specName: ACM_OPERATOR_SPEC_NAME,
+  });
 
-    React.useEffect(() => {
-      if (loaded && !loadError) {
-        const placementErrorMessage = validatePlacement(placement, action);
-        setErrorMessage(placementErrorMessage);
-        setPlacement(placement);
-        setCanInitiate(evaluateErrorMessage(placementErrorMessage) < 0);
-      }
-    }, [
-      placement,
-      action,
-      loadError,
-      loaded,
-      setCanInitiate,
-      setPlacement,
-      setErrorMessage,
-    ]);
+  React.useEffect(() => {
+    if (loaded && !loadError) {
+      const placementErrorMessage = validatePlacement(placement, action);
+      setErrorMessage(placementErrorMessage);
+      setPlacement(placement);
+      setCanInitiate(evaluateErrorMessage(placementErrorMessage) < 0);
+    }
+  }, [
+    placement,
+    action,
+    loadError,
+    loaded,
+    setCanInitiate,
+    setPlacement,
+    setErrorMessage,
+  ]);
 
-    return (
-      <>
-        {!!message && <Alert {...message} className="pf-v5-u-mb-md" />}
-        <Flex
-          direction={{ default: 'column' }}
-          spaceItems={{ default: 'spaceItemsMd' }}
-        >
+  return (
+    <>
+      {!!message && <Alert {...message} className="pf-v5-u-mb-md" />}
+      <Flex
+        direction={{ default: 'column' }}
+        spaceItems={{ default: 'spaceItemsMd' }}
+      >
+        <Flex>
+          <FlexItem>
+            <strong> {t('Application:')} </strong>
+          </FlexItem>
+          <FlexItem data-test="app-name">
+            <ResourceIcon resourceModel={applicationModel} />
+            {applicationName || (
+              <StatusIconAndText title={t('Unknown')} icon={<UnknownIcon />} />
+            )}
+          </FlexItem>
+        </Flex>
+        <Flex justifyContent={{ default: 'justifyContentFlexStart' }}>
+          <FlexItem>
+            <strong> {t('Target cluster:')} </strong>
+          </FlexItem>
+          <FlexItem className="mco-dr-action-body__target-cluster--width">
+            {!!placement?.targetClusterName ? (
+              <TargetClusterStatus
+                targetClusterName={placement?.targetClusterName}
+                isClusterAvailable={placement?.isTargetClusterAvailable}
+              />
+            ) : (
+              <StatusIconAndText title={t('Unknown')} icon={<UnknownIcon />} />
+            )}
+          </FlexItem>
+          <FlexItem>
+            <HelperText>
+              <HelperTextItem variant="indeterminate">
+                {t('Last available: ')}
+                <DateTimeFormat
+                  dateTime={placement?.targetClusterAvailableTime}
+                  className="pf-v5-u-display-inline-block pf-v5-u-ml-sm"
+                />
+              </HelperTextItem>
+            </HelperText>
+          </FlexItem>
+        </Flex>
+        <Flex>
+          <FlexItem>
+            <strong>
+              {t('{{actionType}} readiness:', {
+                actionType: action,
+              })}
+            </strong>
+          </FlexItem>
+          <FlexItem>
+            <DRActionReadiness canInitiate={canInitiate} />
+          </FlexItem>
+        </Flex>
+        {placement?.replicationType === ReplicationType.ASYNC && (
           <Flex>
             <FlexItem>
-              <strong> {t('Application:')} </strong>
+              <strong>{t('Volume last synced on:')}</strong>
             </FlexItem>
-            <FlexItem data-test="app-name">
-              <ResourceIcon resourceModel={applicationModel} />
-              {applicationName || (
-                <StatusIconAndText
-                  title={t('Unknown')}
-                  icon={<UnknownIcon />}
-                />
-              )}
+            <FlexItem>
+              <DateTimeFormat dateTime={placement?.snapshotTakenTime} />
             </FlexItem>
           </Flex>
-          <Flex justifyContent={{ default: 'justifyContentFlexStart' }}>
-            <FlexItem>
-              <strong> {t('Target cluster:')} </strong>
-            </FlexItem>
-            <FlexItem className="mco-dr-action-body__target-cluster--width">
-              {!!placement?.targetClusterName ? (
-                <TargetClusterStatus
-                  targetClusterName={placement?.targetClusterName}
-                  isClusterAvailable={placement?.isTargetClusterAvailable}
-                />
-              ) : (
-                <StatusIconAndText
-                  title={t('Unknown')}
-                  icon={<UnknownIcon />}
-                />
-              )}
-            </FlexItem>
-            <FlexItem>
-              <HelperText>
-                <HelperTextItem variant="indeterminate">
-                  {t('Last available: ')}
-                  <DateTimeFormat
-                    dateTime={placement?.targetClusterAvailableTime}
-                    className="pf-v5-u-display-inline-block pf-v5-u-ml-sm"
-                  />
-                </HelperTextItem>
-              </HelperText>
-            </FlexItem>
-          </Flex>
-          <Flex>
-            <FlexItem>
-              <strong>
-                {t('{{actionType}} readiness:', {
-                  actionType: action,
-                })}
-              </strong>
-            </FlexItem>
-            <FlexItem>
-              <DRActionReadiness canInitiate={canInitiate} />
-            </FlexItem>
-          </Flex>
-          {placement?.replicationType === ReplicationType.ASYNC && (
-            <Flex>
-              <FlexItem>
-                <strong>{t('Volume last synced on:')}</strong>
-              </FlexItem>
-              <FlexItem>
-                <DateTimeFormat dateTime={placement?.snapshotTakenTime} />
-              </FlexItem>
-            </Flex>
-          )}
+        )}
 
-          {
-            // ToDo: Enable this once DRPC has kube object last sync time.
-            /*applicationModel.kind === DRPlacementControlModel.kind && (
+        {
+          // ToDo: Enable this once DRPC has kube object last sync time.
+          /*applicationModel.kind === DRPlacementControlModel.kind && (
             <Flex>
               <FlexItem>
                 <strong>{t('Kubernetes object last synced on:')}</strong>
@@ -325,18 +320,18 @@ export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps>
               </FlexItem>
             </Flex>
           )*/
-          }
-          {evaluateErrorMessage(errorMessage, true) > -1 && (
-            <MessageStatus
-              message={
-                ErrorMessages(t, mcoDocVersion, acmDocVersion)[errorMessage]
-              }
-            />
-          )}
-        </Flex>
-      </>
-    );
-  };
+        }
+        {evaluateErrorMessage(errorMessage, true) > -1 && (
+          <MessageStatus
+            message={
+              ErrorMessages(t, mcoDocVersion, acmDocVersion)[errorMessage]
+            }
+          />
+        )}
+      </Flex>
+    </>
+  );
+};
 
 export type PlacementControlProps = Partial<{
   placementName: string;

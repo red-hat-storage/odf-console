@@ -75,101 +75,102 @@ const canJumpToNextStep = (
   }
 };
 
-export const EnrollDiscoveredApplicationFooter: React.FC<EnrollDiscoveredApplicationFooterProps> =
-  ({
-    state,
-    stepIdReached,
-    isValidationEnabled,
-    onSaveError,
-    setStepIdReached,
-    setIsValidationEnabled,
-    onSubmit,
-    onCancel,
-  }) => {
-    const { t } = useCustomTranslation();
-    const [requestInProgress, setRequestInProgress] = React.useState(false);
-    const { activeStep, onNext, onBack } =
-      React.useContext<WizardContextType>(WizardContext);
+export const EnrollDiscoveredApplicationFooter: React.FC<
+  EnrollDiscoveredApplicationFooterProps
+> = ({
+  state,
+  stepIdReached,
+  isValidationEnabled,
+  onSaveError,
+  setStepIdReached,
+  setIsValidationEnabled,
+  onSubmit,
+  onCancel,
+}) => {
+  const { t } = useCustomTranslation();
+  const [requestInProgress, setRequestInProgress] = React.useState(false);
+  const { activeStep, onNext, onBack } =
+    React.useContext<WizardContextType>(WizardContext);
 
-    const stepId = activeStep.id as number;
-    const stepName = activeStep.name as string;
+  const stepId = activeStep.id as number;
+  const stepName = activeStep.name as string;
 
-    const canJumpToNext = canJumpToNextStep(state, stepName, t);
-    const validationError = isValidationEnabled && !canJumpToNext;
-    const enrollDiscoveredApplicationStepNames =
-      EnrollDiscoveredApplicationStepNames(t);
-    const isReviewStep =
-      stepName ===
-      enrollDiscoveredApplicationStepNames[
-        EnrollDiscoveredApplicationSteps.Review
-      ];
+  const canJumpToNext = canJumpToNextStep(state, stepName, t);
+  const validationError = isValidationEnabled && !canJumpToNext;
+  const enrollDiscoveredApplicationStepNames =
+    EnrollDiscoveredApplicationStepNames(t);
+  const isReviewStep =
+    stepName ===
+    enrollDiscoveredApplicationStepNames[
+      EnrollDiscoveredApplicationSteps.Review
+    ];
 
-    const moveToNextStep = () => {
-      if (canJumpToNext) {
-        setStepIdReached(stepIdReached <= stepId ? stepId + 1 : stepIdReached);
-        setIsValidationEnabled(false);
-        onNext();
-      } else {
-        setIsValidationEnabled(true);
-      }
-    };
-
-    const handleNext = () => {
-      if (isReviewStep) {
-        onSubmit(setRequestInProgress);
-      } else {
-        moveToNextStep();
-      }
-    };
-
-    return (
-      <>
-        {validationError && (
-          <Alert
-            title={t(
-              '1 or more mandatory fields are empty. To proceed, fill in the required information.'
-            )}
-            variant={AlertVariant.danger}
-            isInline
-          />
-        )}
-        {!!onSaveError && isReviewStep && (
-          <Alert title={onSaveError} variant={AlertVariant.danger} isInline />
-        )}
-        <WizardFooter>
-          {/* Disabling the back button for the first step in wizard */}
-          <Button
-            variant={ButtonVariant.secondary}
-            onClick={onBack}
-            isDisabled={stepId === 1 || requestInProgress}
-          >
-            {t('Back')}
-          </Button>
-          <Button
-            isLoading={requestInProgress}
-            isDisabled={requestInProgress}
-            variant={ButtonVariant.primary}
-            type={ButtonType.submit}
-            onClick={handleNext}
-          >
-            {stepName ===
-            enrollDiscoveredApplicationStepNames[
-              EnrollDiscoveredApplicationSteps.Review
-            ]
-              ? t('Save')
-              : t('Next')}
-          </Button>
-          <Button
-            variant={ButtonVariant.link}
-            onClick={onCancel}
-            isDisabled={requestInProgress}
-          >
-            {t('Cancel')}
-          </Button>
-        </WizardFooter>
-      </>
-    );
+  const moveToNextStep = () => {
+    if (canJumpToNext) {
+      setStepIdReached(stepIdReached <= stepId ? stepId + 1 : stepIdReached);
+      setIsValidationEnabled(false);
+      onNext();
+    } else {
+      setIsValidationEnabled(true);
+    }
   };
+
+  const handleNext = () => {
+    if (isReviewStep) {
+      onSubmit(setRequestInProgress);
+    } else {
+      moveToNextStep();
+    }
+  };
+
+  return (
+    <>
+      {validationError && (
+        <Alert
+          title={t(
+            '1 or more mandatory fields are empty. To proceed, fill in the required information.'
+          )}
+          variant={AlertVariant.danger}
+          isInline
+        />
+      )}
+      {!!onSaveError && isReviewStep && (
+        <Alert title={onSaveError} variant={AlertVariant.danger} isInline />
+      )}
+      <WizardFooter>
+        {/* Disabling the back button for the first step in wizard */}
+        <Button
+          variant={ButtonVariant.secondary}
+          onClick={onBack}
+          isDisabled={stepId === 1 || requestInProgress}
+        >
+          {t('Back')}
+        </Button>
+        <Button
+          isLoading={requestInProgress}
+          isDisabled={requestInProgress}
+          variant={ButtonVariant.primary}
+          type={ButtonType.submit}
+          onClick={handleNext}
+        >
+          {stepName ===
+          enrollDiscoveredApplicationStepNames[
+            EnrollDiscoveredApplicationSteps.Review
+          ]
+            ? t('Save')
+            : t('Next')}
+        </Button>
+        <Button
+          variant={ButtonVariant.link}
+          onClick={onCancel}
+          isDisabled={requestInProgress}
+        >
+          {t('Cancel')}
+        </Button>
+      </WizardFooter>
+    </>
+  );
+};
 
 type EnrollDiscoveredApplicationFooterProps = {
   state: EnrollDiscoveredApplicationState;
