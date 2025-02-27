@@ -229,8 +229,8 @@ const BucketOverview: React.FC<{}> = () => {
       ...(!foldersPath
         ? [
             {
-              href: 'details',
-              title: t('Details'),
+              href: 'properties',
+              title: t('Properties'),
               component: BucketDetails,
             },
             {
