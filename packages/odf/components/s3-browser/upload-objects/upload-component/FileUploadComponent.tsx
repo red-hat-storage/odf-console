@@ -158,9 +158,8 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = observer(
                 <FlexItem>
                   <FlexItem className="odf-upload__helper-text">
                     <Trans t={t}>
-                      Standard uploads have a size limit of up to 5TB in S3. For
-                      objects, multipart upload will upload the object in parts,
-                      which are assembled in the bucket.
+                      For objects, multipart upload will upload the object in
+                      parts, which are assembled in the bucket.
                     </Trans>
                   </FlexItem>
                 </FlexItem>

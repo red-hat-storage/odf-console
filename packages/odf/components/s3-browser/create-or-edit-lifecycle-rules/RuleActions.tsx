@@ -401,7 +401,7 @@ export const RuleActions: React.FC<StateAndDispatchProps> = ({
           )}
         </Text>
         <Text component={TextVariants.small} className="pf-v5-u-my-sm">
-          <Trans t={t} ns="plugin__odf-console" values={{ actionsCount }}>
+          <Trans t={t} values={{ actionsCount }}>
             You have defined{' '}
             <strong>{{ actionsCount }} lifecycle rules.</strong>
           </Trans>

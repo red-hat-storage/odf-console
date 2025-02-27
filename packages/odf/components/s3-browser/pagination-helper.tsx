@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
   ListObjectsV2CommandOutput,
   ListBucketsCommandOutput,
+  ListObjectVersionsCommandOutput,
 } from '@aws-sdk/client-s3';
 import { ListCommandOutput } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -10,6 +11,14 @@ import * as _ from 'lodash-es';
 import { TriggerWithOptionsArgs } from 'swr/dist/mutation';
 import { Button, ButtonVariant } from '@patternfly/react-core';
 import { AngleLeftIcon, AngleRightIcon } from '@patternfly/react-icons';
+
+export type VersionToken = { keyMarker: string; versionIdMarker: string };
+
+export type ContinuationVersionsTokens = {
+  previous: VersionToken[];
+  current: VersionToken;
+  next: VersionToken;
+};
 
 export type ContinuationTokens = {
   previous: string[];
@@ -26,7 +35,17 @@ export type PaginationProps = {
   toCount: number;
 };
 
-type Trigger<T> = TriggerWithOptionsArgs<T, any, string, string>;
+type Trigger<T> = TriggerWithOptionsArgs<T, any, string, string | VersionToken>;
+
+const getNextMarkers = (
+  response: ListObjectVersionsCommandOutput
+): VersionToken =>
+  response?.IsTruncated
+    ? {
+        keyMarker: response?.NextKeyMarker,
+        versionIdMarker: response?.NextVersionIdMarker,
+      }
+    : null;
 
 const getNextContinuationToken = (
   response: ListCommandOutput,
@@ -36,28 +55,28 @@ const getNextContinuationToken = (
     ? (response as ListObjectsV2CommandOutput).NextContinuationToken
     : (response as ListBucketsCommandOutput).ContinuationToken;
 
-export const continuationTokensSetter = <T extends ListCommandOutput>(
+const continuationTokensSetter = <T extends ListCommandOutput>(
   setContinuationTokens: React.Dispatch<
-    React.SetStateAction<ContinuationTokens>
+    React.SetStateAction<ContinuationTokens | ContinuationVersionsTokens>
   >,
   response: T,
   isNext: boolean,
   setSelectedRows?: React.Dispatch<React.SetStateAction<K8sResourceCommon[]>>,
-  containsNextContinuation?: boolean
+  containsNextContinuation?: boolean,
+  containsMarkers?: boolean
 ) => {
   setContinuationTokens((oldTokens) => {
     const newTokens = _.cloneDeep(oldTokens);
     if (isNext) {
-      newTokens.previous.push(newTokens.current);
+      newTokens.previous.push(newTokens.current as any);
       newTokens.current = newTokens.next;
     } else {
       newTokens.current = newTokens.previous.pop();
     }
 
-    newTokens.next = getNextContinuationToken(
-      response,
-      containsNextContinuation
-    );
+    newTokens.next = containsMarkers
+      ? getNextMarkers(response)
+      : getNextContinuationToken(response, containsNextContinuation);
 
     return newTokens;
   });
@@ -66,22 +85,24 @@ export const continuationTokensSetter = <T extends ListCommandOutput>(
 
 export const fetchS3Resources = async <T extends ListCommandOutput>(
   setContinuationTokens: React.Dispatch<
-    React.SetStateAction<ContinuationTokens>
+    React.SetStateAction<ContinuationTokens | ContinuationVersionsTokens>
   >,
   trigger: Trigger<T>,
   isNext: boolean,
-  paginationToken = '',
+  paginationToken: string | VersionToken,
   setSelectedRows?: React.Dispatch<React.SetStateAction<K8sResourceCommon[]>>,
-  containsNextContinuation?: boolean
+  containsNextContinuation?: boolean,
+  containsMarkers = false
 ) => {
   try {
     const response: T = await trigger(paginationToken);
-    continuationTokensSetter(
+    continuationTokensSetter<T>(
       setContinuationTokens,
       response,
       isNext,
       setSelectedRows,
-      containsNextContinuation
+      containsNextContinuation,
+      containsMarkers
     );
   } catch (err) {
     // no need to handle any error here, use "error" object directly from the "useSWRMutation" hook
@@ -93,19 +114,26 @@ export const fetchS3Resources = async <T extends ListCommandOutput>(
 // for refreshing (re-feching) s3 resources from start, once state has changed by adding/deleted
 export const continuationTokensRefresher = async <T extends ListCommandOutput>(
   setContinuationTokens: React.Dispatch<
-    React.SetStateAction<ContinuationTokens>
+    React.SetStateAction<ContinuationTokens | ContinuationVersionsTokens>
   >,
   trigger: Trigger<T>,
   setSelectedRows?: React.Dispatch<React.SetStateAction<K8sResourceCommon[]>>,
-  containsNextContinuation?: boolean
+  containsNextContinuation?: boolean,
+  containsMarkers = false
 ) => {
   try {
     const response: T = await trigger();
-    setContinuationTokens({
-      previous: [''],
-      current: '',
-      next: getNextContinuationToken(response, containsNextContinuation),
-    });
+    containsMarkers
+      ? setContinuationTokens({
+          previous: [null],
+          current: null,
+          next: getNextMarkers(response),
+        } as ContinuationVersionsTokens)
+      : setContinuationTokens({
+          previous: [''],
+          current: '',
+          next: getNextContinuationToken(response, containsNextContinuation),
+        } as ContinuationTokens);
     !!setSelectedRows && setSelectedRows([]);
   } catch (err) {
     // no need to handle any error here, use "error" object directly from the "useSWRMutation" hook
@@ -115,7 +143,7 @@ export const continuationTokensRefresher = async <T extends ListCommandOutput>(
 };
 
 const getFromCount = (
-  continuationTokens: ContinuationTokens,
+  continuationTokens: ContinuationTokens | ContinuationVersionsTokens,
   currentPageCount: number,
   maxResponses: number
 ): number => {
@@ -130,7 +158,7 @@ const getToCount = (fromCount: number, currentPageCount: number): number => {
 };
 
 export const getPaginationCount = (
-  continuationTokens: ContinuationTokens,
+  continuationTokens: ContinuationTokens | ContinuationVersionsTokens,
   currentPageCount: number,
   maxResponses: number
 ) => {
