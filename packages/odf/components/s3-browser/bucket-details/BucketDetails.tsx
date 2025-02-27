@@ -1,12 +1,11 @@
 import * as React from 'react';
 import {
-  BucketVersioningStatus,
   GetBucketEncryptionCommandOutput,
   GetBucketPolicyCommandOutput,
   ServerSideEncryption,
   Tag,
 } from '@aws-sdk/client-s3';
-import { OBDetails } from '@odf/core/components/mcg/ObjectBucket';
+import { OBDetails as ObjectBucketDetails } from '@odf/core/components/mcg/ObjectBucket';
 import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
 import {
   BUCKET_ACL_CACHE_KEY_SUFFIX,
@@ -15,19 +14,35 @@ import {
   BUCKET_TAGGING_CACHE_KEY_SUFFIX,
   BUCKET_VERSIONING_CACHE_KEY_SUFFIX,
 } from '@odf/core/constants';
+import SetVersioningModal, {
+  SetVersioningModalModalProps,
+} from '@odf/core/modals/s3-browser/set-versioning/SetVersioningModal';
 import { DASH } from '@odf/shared';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { BucketPolicy } from '@odf/shared/s3';
+import {
+  getVersioningStatus,
+  getIsVersioningEnabled,
+} from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  GreenCheckCircleIcon,
   K8sResourceCommon,
+  useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
-import { Label, LabelGroup } from '@patternfly/react-core';
+import {
+  Label,
+  LabelGroup,
+  Level,
+  LevelItem,
+  Switch,
+  TextContent,
+  Text,
+  TextVariants,
+} from '@patternfly/react-core';
 import { LockIcon, TagIcon } from '@patternfly/react-icons';
 
 const getEncryptionDescription = (
@@ -85,7 +100,7 @@ const getEncryptionDescription = (
   }
 };
 
-const BucketDetailsOverview: React.FC<{}> = ({}) => {
+const S3BucketDetailsOverview: React.FC<{}> = ({}) => {
   const { t } = useCustomTranslation();
   const { noobaaS3 } = React.useContext(NoobaaS3Context);
   const { bucketName } = useParams();
@@ -102,12 +117,8 @@ const BucketDetailsOverview: React.FC<{}> = ({}) => {
     `${bucketName}-${BUCKET_POLICY_CACHE_KEY_SUFFIX}`,
     () => noobaaS3.getBucketPolicy(input)
   );
-  const { data: versioningData } = useSWR(
-    `${bucketName}-${BUCKET_TAGGING_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketVersioning(input)
-  );
   const { data: tagData } = useSWR(
-    `${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`,
+    `${bucketName}-${BUCKET_TAGGING_CACHE_KEY_SUFFIX}`,
     () => noobaaS3.getBucketTagging(input)
   );
 
@@ -149,19 +160,70 @@ const BucketDetailsOverview: React.FC<{}> = ({}) => {
                 {encryptionDescription}
               </div>
             </dd>
-            <dt>{t('Bucket versioning')}</dt>
-            <dd>
-              {versioningData?.Status === BucketVersioningStatus.Enabled ? (
-                <>
-                  <GreenCheckCircleIcon /> {t('Enabled')}
-                </>
-              ) : (
-                t('Suspended')
-              )}
-            </dd>
           </dl>
         </div>
       </div>
+    </div>
+  );
+};
+
+const S3BucketProperties: React.FC<{}> = ({}) => {
+  const { t } = useCustomTranslation();
+  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { bucketName } = useParams();
+  const input = { Bucket: bucketName };
+  const { data: versioningData, mutate: versioningMutate } = useSWR(
+    `${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`,
+    () => noobaaS3.getBucketVersioning(input)
+  );
+
+  const [isVersioningChecked, setIsVersioningChecked] =
+    React.useState<boolean>(false);
+
+  const versioningStatus = getVersioningStatus(versioningData, t);
+  const isVersioningEnabled = getIsVersioningEnabled(versioningData);
+
+  const launcher = useModal();
+
+  React.useEffect(
+    () => setIsVersioningChecked(isVersioningEnabled),
+    [isVersioningEnabled, setIsVersioningChecked]
+  );
+
+  return (
+    <div className="odf-m-pane__body">
+      <SectionHeading text={t('Bucket properties')} />
+      <Level>
+        <LevelItem>
+          <TextContent>
+            <Text component={TextVariants.h4}>{t('Versioning')}</Text>
+            <Text component={TextVariants.small}>
+              {t(
+                'Versioning helps in keeping multiple version of an object in the bucket.'
+              )}
+            </Text>
+          </TextContent>
+        </LevelItem>
+        <LevelItem>
+          <Switch
+            id="versioning-switch"
+            label={versioningStatus}
+            labelOff={versioningStatus}
+            isChecked={isVersioningChecked}
+            onChange={(_event, checked) =>
+              launcher(SetVersioningModal, {
+                extraProps: {
+                  mutate: versioningMutate,
+                  noobaaS3,
+                  bucketName,
+                  enableVersioning: checked,
+                } as SetVersioningModalModalProps,
+                isOpen: true,
+              })
+            }
+          />
+        </LevelItem>
+      </Level>
     </div>
   );
 };
@@ -180,9 +242,13 @@ export const BucketDetails: React.FC<BucketDetailsProps> = ({
 
   return fresh ? (
     <>
-      <BucketDetailsOverview />
+      <S3BucketDetailsOverview />
+      <S3BucketProperties />
       {resource && (
-        <OBDetails obj={resource} ownerLabel={t('Owner References')} />
+        <ObjectBucketDetails
+          obj={resource}
+          ownerLabel={t('Owner References')}
+        />
       )}
     </>
   ) : (

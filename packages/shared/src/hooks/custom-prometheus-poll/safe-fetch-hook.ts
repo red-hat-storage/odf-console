@@ -20,7 +20,8 @@ export const useSafeFetch = () => {
     consoleFetchJSON(
       props.url,
       props.method || 'get',
-      props.options || {
+      {
+        ...(props.options || {}),
         signal: controller.current.signal as AbortSignal,
       },
       props.timeout

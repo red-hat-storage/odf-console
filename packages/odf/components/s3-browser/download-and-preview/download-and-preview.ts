@@ -1,4 +1,5 @@
 import { GetObjectCommandOutput } from '@aws-sdk/client-s3';
+import { getObjectVersionId } from '@odf/core/utils';
 import { S3Commands } from '@odf/shared/s3';
 import { getName } from '@odf/shared/selectors';
 import { ObjectCrFormat } from '../../../types';
@@ -9,13 +10,15 @@ type DownloadAndPreviewFunction = (
   noobaaS3: S3Commands,
   setDownloadAndPreview: React.Dispatch<
     React.SetStateAction<DownloadAndPreviewState>
-  >
+  >,
+  showVersioning: boolean
 ) => void;
 
 type GetObjectURL = (
   bucketName: string,
   object: ObjectCrFormat,
-  noobaaS3: S3Commands
+  noobaaS3: S3Commands,
+  showVersioning: boolean
 ) => Promise<string>;
 
 export type DownloadAndPreviewState = {
@@ -23,10 +26,16 @@ export type DownloadAndPreviewState = {
   isPreviewing: boolean;
 };
 
-const getObjectURL: GetObjectURL = async (bucketName, object, noobaaS3) => {
+const getObjectURL: GetObjectURL = async (
+  bucketName,
+  object,
+  noobaaS3,
+  showVersioning
+) => {
   const responseStream: GetObjectCommandOutput = await noobaaS3.getObject({
     Bucket: bucketName,
     Key: getName(object),
+    ...(showVersioning && { VersionId: getObjectVersionId(object) }),
   });
   let blob = await new Response(responseStream.Body as ReadableStream).blob();
   blob = blob.slice(
@@ -42,7 +51,8 @@ export const onDownload: DownloadAndPreviewFunction = async (
   bucketName,
   object,
   noobaaS3,
-  setDownloadAndPreview
+  setDownloadAndPreview,
+  showVersioning
 ) => {
   try {
     setDownloadAndPreview((downloadAndPreview) => ({
@@ -50,7 +60,12 @@ export const onDownload: DownloadAndPreviewFunction = async (
       isDownloading: true,
     }));
 
-    const objectURL = await getObjectURL(bucketName, object, noobaaS3);
+    const objectURL = await getObjectURL(
+      bucketName,
+      object,
+      noobaaS3,
+      showVersioning
+    );
 
     // create a download element and trigger download
     const downloadLink = document.createElement('a');
@@ -76,7 +91,8 @@ export const onPreview: DownloadAndPreviewFunction = async (
   bucketName,
   object,
   noobaaS3,
-  setDownloadAndPreview
+  setDownloadAndPreview,
+  showVersioning
 ) => {
   try {
     setDownloadAndPreview((downloadAndPreview) => ({
@@ -84,7 +100,12 @@ export const onPreview: DownloadAndPreviewFunction = async (
       isPreviewing: true,
     }));
 
-    const objectURL = await getObjectURL(bucketName, object, noobaaS3);
+    const objectURL = await getObjectURL(
+      bucketName,
+      object,
+      noobaaS3,
+      showVersioning
+    );
 
     // open the object URL in a new browser tab
     window.open(objectURL, '_blank');

@@ -54,7 +54,7 @@ export const PaginatedListPage: React.FC<PaginatedListPageProps> = ({
     countPerPage || COUNT_PER_PAGE_NUMBER
   );
 
-  const paginatedData: K8sResourceCommon[] = React.useMemo(() => {
+  const paginatedData: K8sResourceCommon[] | unknown[] = React.useMemo(() => {
     const [start, end] = getPageRange(page, perPage);
     return filteredData.slice(start, end) || [];
   }, [filteredData, page, perPage]);
