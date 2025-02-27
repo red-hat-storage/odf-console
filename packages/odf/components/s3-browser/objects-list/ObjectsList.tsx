@@ -1,10 +1,5 @@
 import * as React from 'react';
-import {
-  ListObjectsV2CommandOutput,
-  DeleteObjectsCommandOutput,
-  _Object as Content,
-  CommonPrefix,
-} from '@aws-sdk/client-s3';
+import { DeleteObjectsCommandOutput } from '@aws-sdk/client-s3';
 import { pluralize } from '@odf/core/components/utils';
 import { S3Commands } from '@odf/shared/s3';
 import { SelectableTable } from '@odf/shared/table';
@@ -17,7 +12,6 @@ import {
   useSearchParams,
   useNavigate,
 } from 'react-router-dom-v5-compat';
-import useSWRMutation from 'swr/mutation';
 import {
   Button,
   ButtonVariant,
@@ -29,19 +23,14 @@ import {
   AlertActionCloseButton,
   AlertActionLink,
   SearchInput,
+  Switch,
 } from '@patternfly/react-core';
 import {
   ActionsColumn,
   IAction,
   CustomActionsToggleProps,
 } from '@patternfly/react-table';
-import {
-  LIST_OBJECTS,
-  DELIMITER,
-  MAX_KEYS,
-  PREFIX,
-  SEARCH,
-} from '../../../constants';
+import { PREFIX, SEARCH } from '../../../constants';
 import {
   ObjectsDeleteResponse,
   SetObjectsDeleteResponse,
@@ -51,27 +40,16 @@ import {
   LazyDeleteObjectsSummary,
 } from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
 import { ObjectCrFormat } from '../../../types';
-import {
-  getPath,
-  getPrefix as getSearchWithPrefix,
-  convertObjectDataToCrFormat,
-  getNavigationURL,
-} from '../../../utils';
+import { getNavigationURL } from '../../../utils';
 import { NoobaaS3Context } from '../noobaa-context';
-import {
-  getPaginationCount,
-  Pagination,
-  PaginationProps,
-  ContinuationTokens,
-  fetchS3Resources,
-  continuationTokensRefresher,
-} from '../pagination-helper';
+import { Pagination, PaginationProps } from '../pagination-helper';
 import {
   isRowSelectable,
   getColumns,
   TableRow,
   EmptyPage,
 } from './table-components';
+import { useObjectsList } from './useObjectsList';
 
 const LazyCreateFolderModal = React.lazy(
   () => import('../../../modals/s3-browser/create-folder/CreateFolderModal')
@@ -96,6 +74,9 @@ type TableActionsProps = {
   refreshTokens: () => Promise<void>;
   searchInput: string;
   setSearchInput: React.Dispatch<React.SetStateAction<string>>;
+  listAllVersions: boolean;
+  setListAllVersions: React.Dispatch<React.SetStateAction<boolean>>;
+  allowVersions: boolean;
 };
 
 type DeletionAlertsProps = {
@@ -193,8 +174,16 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
   setSearchInput,
   fromCount: paginationFromCount,
   toCount: paginationToCount,
+  listAllVersions,
+  setListAllVersions,
+  allowVersions,
 }) => {
   const { t } = useCustomTranslation();
+
+  const versioningOnChange = (
+    _event: React.FormEvent<HTMLInputElement>,
+    checked: boolean
+  ) => setListAllVersions(checked);
 
   const anySelection = !!selectedRows.length;
 
@@ -239,6 +228,17 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
           />
         </div>
       </LevelItem>
+      {allowVersions && (
+        <LevelItem>
+          <Switch
+            id="list-versions-switch"
+            label={t('List all versions')}
+            labelOff={t('List all versions')}
+            isChecked={listAllVersions}
+            onChange={versioningOnChange}
+          />
+        </LevelItem>
+      )}
       <LevelItem>
         <Pagination
           onNext={onNext}
@@ -347,11 +347,17 @@ type ObjectsListProps = {
     actionItems: React.MutableRefObject<IAction[]>
   ) => void;
   closeObjectSidebar: () => void;
+  listAllVersions: boolean;
+  setListAllVersions: React.Dispatch<React.SetStateAction<boolean>>;
+  allowVersions: boolean;
 };
 
 export const ObjectsList: React.FC<ObjectsListProps> = ({
   onRowClick,
   closeObjectSidebar,
+  listAllVersions,
+  setListAllVersions,
+  allowVersions,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -366,31 +372,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
   const searchQuery = searchParams.get(SEARCH) || '';
 
   const { noobaaS3 } = React.useContext(NoobaaS3Context);
-  const searchWithPrefix = getSearchWithPrefix(searchQuery, foldersPath);
-  const cacheKey =
-    LIST_OBJECTS + DELIMITER + getPath(bucketName, searchWithPrefix);
-  const { data, error, isMutating, trigger } = useSWRMutation(
-    cacheKey,
-    (_url, { arg }: { arg: string }) =>
-      noobaaS3.listObjects({
-        Bucket: bucketName,
-        MaxKeys: MAX_KEYS,
-        Delimiter: DELIMITER,
-        FetchOwner: true,
-        ...(!!searchWithPrefix && { Prefix: searchWithPrefix }),
-        ...(!!arg && { ContinuationToken: arg }),
-      })
-  );
 
-  const loadedWOError = !isMutating && !error;
-
-  // used for pagination
-  const [continuationTokens, setContinuationTokens] =
-    React.useState<ContinuationTokens>({
-      previous: [],
-      current: '',
-      next: '',
-    });
   // used for multi-select bulk operations
   const [selectedRows, setSelectedRows] = React.useState<ObjectCrFormat[]>([]);
   // used for storing API's response on performing delete operation on objects
@@ -404,31 +386,29 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
   // used to store previous value of "foldersPath";
   const foldersPathPrevRef = React.useRef<string>();
 
-  const structuredObjects: ObjectCrFormat[] = React.useMemo(() => {
-    const objects: ObjectCrFormat[] = [];
-    if (
-      loadedWOError &&
-      (!!data?.Contents?.length || !!data?.CommonPrefixes?.length)
-    ) {
-      data?.CommonPrefixes?.forEach((commonPrefix: CommonPrefix) => {
-        objects.push(convertObjectDataToCrFormat(commonPrefix, true, t));
-      });
-      data?.Contents?.forEach((content: Content) => {
-        objects.push(convertObjectDataToCrFormat(content, false, t));
-      });
-    }
+  const {
+    error,
+    isMutating,
+    continuationTokens,
+    structuredObjects,
+    refreshTokens,
+    paginationToCount,
+    paginationFromCount,
+    onNext,
+    onPrevious,
+  } = useObjectsList({
+    bucketName,
+    foldersPath,
+    searchQuery,
+    noobaaS3,
+    setSelectedRows,
+    listAllVersions,
+  });
 
-    return objects;
-  }, [data, loadedWOError, t]);
-
-  const refreshTokens = () =>
-    continuationTokensRefresher(
-      setContinuationTokens,
-      trigger,
-      setSelectedRows
-    );
+  const loadedWOError = !isMutating && !error;
 
   // initial fetch on first mount or on route update (drilling in/out of the folder view or searching objects using prefix)
+  // or on "List all versions" toggle
   React.useEffect(() => {
     refreshTokens();
     if (foldersPathPrevRef.current !== foldersPath) {
@@ -439,13 +419,8 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
       foldersPathPrevRef.current = foldersPath;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [foldersPath, searchQuery]);
+  }, [foldersPath, searchQuery, listAllVersions]);
 
-  const [paginationToCount, paginationFromCount] = getPaginationCount(
-    continuationTokens,
-    (data?.Contents?.length || 0) + (data?.CommonPrefixes?.length || 0),
-    MAX_KEYS
-  );
   return (
     <div className="pf-v5-u-m-lg">
       <p className="pf-v5-u-mb-sm">
@@ -456,31 +431,8 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
         foldersPath={foldersPath}
       />
       <TableActions
-        onNext={async () => {
-          if (!!continuationTokens.next && loadedWOError)
-            fetchS3Resources<ListObjectsV2CommandOutput>(
-              setContinuationTokens,
-              trigger,
-              true,
-              continuationTokens.next,
-              setSelectedRows
-            );
-        }}
-        onPrevious={async () => {
-          if (!!continuationTokens.current && loadedWOError) {
-            const paginationToken =
-              continuationTokens.previous[
-                continuationTokens.previous.length - 1
-              ];
-            fetchS3Resources<ListObjectsV2CommandOutput>(
-              setContinuationTokens,
-              trigger,
-              false,
-              paginationToken,
-              setSelectedRows
-            );
-          }
-        }}
+        onNext={onNext}
+        onPrevious={onPrevious}
         selectedRows={selectedRows}
         loadedWOError={loadedWOError}
         disableNext={!continuationTokens.next || !loadedWOError}
@@ -495,10 +447,13 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
         setSearchInput={setSearchInput}
         fromCount={paginationFromCount}
         toCount={paginationToCount}
+        listAllVersions={listAllVersions}
+        setListAllVersions={setListAllVersions}
+        allowVersions={allowVersions}
       />
       <SelectableTable
         className="pf-v5-u-mt-lg"
-        columns={getColumns(t)}
+        columns={getColumns(t, listAllVersions)}
         rows={structuredObjects}
         RowComponent={TableRow}
         selectedRows={selectedRows}
@@ -515,6 +470,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
           refreshTokens,
           onRowClick,
           closeObjectSidebar,
+          listAllVersions,
         }}
         emptyRowMessage={EmptyPage}
       />

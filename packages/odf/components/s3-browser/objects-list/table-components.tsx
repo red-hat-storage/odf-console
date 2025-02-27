@@ -38,6 +38,7 @@ const getColumnNames = (t: TFunction): string[] => [
   t('Last modified'),
   '',
 ];
+const getVersioningColumnName = (t: TFunction): string => t('Version ID');
 
 const getInlineActionsItems = (
   t: TFunction,
@@ -106,14 +107,24 @@ const getInlineActionsItems = (
 
 export const isRowSelectable = (row: ObjectCrFormat) => !row.isFolder;
 
-export const getColumns = (t: TFunction) => {
+export const getColumns = (t: TFunction, listAllVersions: boolean) => {
   const columnNames = getColumnNames(t);
+  const versioningColumnName = getVersioningColumnName(t);
 
   return [
     {
       columnName: columnNames[0],
       sortFunction: (a, b, c) => sortRows(a, b, c, 'metadata.name'),
     },
+    ...(listAllVersions
+      ? [
+          {
+            columnName: versioningColumnName,
+            sortFunction: (a, b, c) =>
+              sortRows(a, b, c, 'apiResponse.versionId'),
+          },
+        ]
+      : []),
     {
       columnName: columnNames[1],
       sortFunction: (a, b, c) => sortRows(a, b, c, 'apiResponse.size'),
@@ -153,12 +164,14 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     refreshTokens,
     onRowClick,
     closeObjectSidebar,
+    listAllVersions,
   } = extraProps;
   const isFolder = object.isFolder;
   const name = replacePathFromName(object, foldersPath);
   const prefix = getEncodedPrefix(name, foldersPath);
 
   const columnNames = getColumnNames(t);
+  const versioningColumnName = getVersioningColumnName(t);
 
   const actionItems = getInlineActionsItems(
     t,
@@ -194,6 +207,11 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
           </span>
         )}
       </Td>
+      {listAllVersions && (
+        <Td dataLabel={versioningColumnName} onClick={onClick}>
+          {object.apiResponse.versionId}
+        </Td>
+      )}
       <Td dataLabel={columnNames[1]} onClick={onClick}>
         {object.apiResponse.size}
       </Td>
