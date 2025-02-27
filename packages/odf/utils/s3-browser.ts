@@ -2,10 +2,12 @@ import {
   _Object as Content,
   CommonPrefix,
   ListBucketsCommandOutput,
+  LifecycleRule,
 } from '@aws-sdk/client-s3';
 import { DASH } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
+import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import { DELIMITER, BUCKETS_BASE_ROUTE, PREFIX, SEARCH } from '../constants';
 import { BucketCrFormat, ObjectCrFormat } from '../types';
@@ -136,4 +138,39 @@ export const getNavigationURL = (
     : '';
 
   return `${BUCKETS_BASE_ROUTE}/${bucketName}` + queryParamsString;
+};
+
+export const isRuleScopeGlobal = (rule: LifecycleRule) => {
+  const filter = rule.Filter;
+
+  if (!filter) return true;
+
+  if (filter.Prefix === '') return true;
+
+  if (filter.And) {
+    const { Prefix, Tags, ObjectSizeGreaterThan, ObjectSizeLessThan } =
+      filter.And;
+
+    if (
+      !Prefix &&
+      _.isEmpty(Tags) &&
+      !ObjectSizeGreaterThan &&
+      !ObjectSizeLessThan
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  if (
+    !!filter.Prefix ||
+    !_.isEmpty(filter.Tag) ||
+    !!filter.ObjectSizeGreaterThan ||
+    !!filter.ObjectSizeLessThan
+  ) {
+    return false;
+  }
+
+  return true;
 };

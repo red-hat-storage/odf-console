@@ -730,7 +730,17 @@
       "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/create/~new",
       "exact": false,
       "component": {
-        "$codeRef": "s3BucketLifecycleRule.default"
+        "$codeRef": "s3BucketLifecycleRule.CreateLifecycleRule"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/edit",
+      "exact": false,
+      "component": {
+        "$codeRef": "s3BucketLifecycleRule.EditLifecycleRule"
       }
     }
   },
