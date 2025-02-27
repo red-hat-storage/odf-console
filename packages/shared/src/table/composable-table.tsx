@@ -27,7 +27,7 @@ export type RowComponentType<T extends K8sResourceCommon | unknown> = {
 };
 
 export const ComposableTable: ComposableTableProps = <
-  T extends K8sResourceCommon
+  T extends K8sResourceCommon,
 >({
   columns,
   rows,

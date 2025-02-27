@@ -54,8 +54,8 @@ export const NameAddrPort: React.FC<NameAddrPortProps> = ({
     kmsState.address.value === ''
       ? t('This is a required field')
       : canAcceptIP
-      ? t('Please enter a valid address')
-      : t('Please enter a URL');
+        ? t('Please enter a valid address')
+        : t('Please enter a URL');
 
   const validatePortMessage = () =>
     kmsState.port.value === ''

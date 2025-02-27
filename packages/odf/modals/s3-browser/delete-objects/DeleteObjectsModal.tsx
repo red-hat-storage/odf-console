@@ -101,138 +101,139 @@ const DeleteObjectsTableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
   );
 };
 
-const DeleteObjectsModal: React.FC<CommonModalProps<DeleteObjectsModalProps>> =
-  ({
-    closeModal,
-    isOpen,
-    extraProps: {
-      foldersPath,
-      bucketName,
-      noobaaS3,
-      objects: data,
-      setDeleteResponse,
-      refreshTokens,
-      closeObjectSidebar,
-    },
-  }) => {
-    const { t } = useCustomTranslation();
+const DeleteObjectsModal: React.FC<
+  CommonModalProps<DeleteObjectsModalProps>
+> = ({
+  closeModal,
+  isOpen,
+  extraProps: {
+    foldersPath,
+    bucketName,
+    noobaaS3,
+    objects: data,
+    setDeleteResponse,
+    refreshTokens,
+    closeObjectSidebar,
+  },
+}) => {
+  const { t } = useCustomTranslation();
 
-    const [deleteText, setDeleteText] = React.useState<string>('');
-    const [inProgress, setInProgress] = React.useState<boolean>(false);
-    const [error, setError] = React.useState<Error>();
+  const [deleteText, setDeleteText] = React.useState<string>('');
+  const [inProgress, setInProgress] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<Error>();
 
-    const onDelete = async (event) => {
-      event.preventDefault();
-      setInProgress(true);
+  const onDelete = async (event) => {
+    event.preventDefault();
+    setInProgress(true);
 
-      try {
-        const deleteObjectKeys: ObjectIdentifier[] = data.map((object) => ({
-          Key: getName(object),
-        }));
-        const response = await noobaaS3.deleteObjects({
-          Bucket: bucketName,
-          Delete: { Objects: deleteObjectKeys },
-        });
+    try {
+      const deleteObjectKeys: ObjectIdentifier[] = data.map((object) => ({
+        Key: getName(object),
+      }));
+      const response = await noobaaS3.deleteObjects({
+        Bucket: bucketName,
+        Delete: { Objects: deleteObjectKeys },
+      });
 
-        setInProgress(false);
-        setDeleteResponse({
-          selectedObjects: data,
-          deleteResponse: response || ({} as DeleteObjectsCommandOutput),
-        });
-        closeModal();
-        // need new continuation tokens after state of bucket has changed (objects deleted)
-        refreshTokens();
-        closeObjectSidebar?.();
-      } catch (err) {
-        setInProgress(false);
-        setError(err);
-      }
-    };
-
-    return (
-      <Modal
-        title={t('Delete object?')}
-        titleIconVariant="warning"
-        isOpen={isOpen}
-        onClose={closeModal}
-        description={
-          <div className="text-muted">
-            {t(
-              'Deleted objects will no longer be visible in the bucket. If versioning is enabled, a delete marker is created, allowing recovery from previous versions. For unversioned buckets, deletion is permanent and cannot be undone.'
-            )}
-          </div>
-        }
-        variant={ModalVariant.medium}
-        actions={[
-          <ButtonBar
-            inProgress={inProgress}
-            errorMessage={error?.message || error}
-          >
-            <span>
-              <Button
-                variant={ButtonVariant.danger}
-                onClick={onDelete}
-                isDisabled={deleteText !== DELETE || !!error}
-                className="pf-v5-u-mr-xs"
-              >
-                {t('Delete object')}
-              </Button>
-              <Button
-                variant={ButtonVariant.link}
-                onClick={closeModal}
-                className="pf-v5-u-ml-xs"
-              >
-                {t('Cancel')}
-              </Button>
-            </span>
-          </ButtonBar>,
-        ]}
-      >
-        <div className="objects-table">
-          <ListFilter
-            data={data}
-            loaded={true}
-            textInputProps={{ className: 'pf-v5-u-w-50 pf-v5-u-ml-lg' }}
-          >
-            {(filteredData): React.ReactNode => (
-              <PaginatedListPage
-                filteredData={filteredData}
-                noData={data.length === 1}
-                hideFilter
-                composableTableProps={{
-                  columns: getHeaderColumns(t),
-                  RowComponent: DeleteObjectsTableRow,
-                  extraProps: { foldersPath },
-                  unfilteredData: data as [],
-                  loaded: true,
-                  variant: TableVariant.compact,
-                }}
-                paginationProps={{
-                  variant: PaginationVariant.top,
-                  isCompact: true,
-                  dropDirection: 'down',
-                  perPageOptions: [{ title: '10', value: 10 }],
-                  className: 'objects-table-paginate--margin-top',
-                }}
-              />
-            )}
-          </ListFilter>
-        </div>
-        <FormGroup
-          label={getTextInputLabel(t)}
-          fieldId="delete-objects"
-          className="pf-v5-u-mt-lg pf-v5-u-mb-sm"
-        >
-          <TextInput
-            value={deleteText}
-            id="delete-objects"
-            onChange={(_event, value) => setDeleteText(value)}
-            type={TextInputTypes.text}
-            placeholder={DELETE}
-          />
-        </FormGroup>
-      </Modal>
-    );
+      setInProgress(false);
+      setDeleteResponse({
+        selectedObjects: data,
+        deleteResponse: response || ({} as DeleteObjectsCommandOutput),
+      });
+      closeModal();
+      // need new continuation tokens after state of bucket has changed (objects deleted)
+      refreshTokens();
+      closeObjectSidebar?.();
+    } catch (err) {
+      setInProgress(false);
+      setError(err);
+    }
   };
+
+  return (
+    <Modal
+      title={t('Delete object?')}
+      titleIconVariant="warning"
+      isOpen={isOpen}
+      onClose={closeModal}
+      description={
+        <div className="text-muted">
+          {t(
+            'Deleted objects will no longer be visible in the bucket. If versioning is enabled, a delete marker is created, allowing recovery from previous versions. For unversioned buckets, deletion is permanent and cannot be undone.'
+          )}
+        </div>
+      }
+      variant={ModalVariant.medium}
+      actions={[
+        <ButtonBar
+          inProgress={inProgress}
+          errorMessage={error?.message || error}
+        >
+          <span>
+            <Button
+              variant={ButtonVariant.danger}
+              onClick={onDelete}
+              isDisabled={deleteText !== DELETE || !!error}
+              className="pf-v5-u-mr-xs"
+            >
+              {t('Delete object')}
+            </Button>
+            <Button
+              variant={ButtonVariant.link}
+              onClick={closeModal}
+              className="pf-v5-u-ml-xs"
+            >
+              {t('Cancel')}
+            </Button>
+          </span>
+        </ButtonBar>,
+      ]}
+    >
+      <div className="objects-table">
+        <ListFilter
+          data={data}
+          loaded={true}
+          textInputProps={{ className: 'pf-v5-u-w-50 pf-v5-u-ml-lg' }}
+        >
+          {(filteredData): React.ReactNode => (
+            <PaginatedListPage
+              filteredData={filteredData}
+              noData={data.length === 1}
+              hideFilter
+              composableTableProps={{
+                columns: getHeaderColumns(t),
+                RowComponent: DeleteObjectsTableRow,
+                extraProps: { foldersPath },
+                unfilteredData: data as [],
+                loaded: true,
+                variant: TableVariant.compact,
+              }}
+              paginationProps={{
+                variant: PaginationVariant.top,
+                isCompact: true,
+                dropDirection: 'down',
+                perPageOptions: [{ title: '10', value: 10 }],
+                className: 'objects-table-paginate--margin-top',
+              }}
+            />
+          )}
+        </ListFilter>
+      </div>
+      <FormGroup
+        label={getTextInputLabel(t)}
+        fieldId="delete-objects"
+        className="pf-v5-u-mt-lg pf-v5-u-mb-sm"
+      >
+        <TextInput
+          value={deleteText}
+          id="delete-objects"
+          onChange={(_event, value) => setDeleteText(value)}
+          type={TextInputTypes.text}
+          placeholder={DELETE}
+        />
+      </FormGroup>
+    </Modal>
+  );
+};
 
 export default DeleteObjectsModal;

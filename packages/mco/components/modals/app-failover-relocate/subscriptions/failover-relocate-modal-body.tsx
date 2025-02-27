@@ -83,190 +83,191 @@ const MessageStatus: React.FC<MessageKind> = ({ title, variant, message }) => (
   </Flex>
 );
 
-export const FailoverRelocateModalBody: React.FC<FailoverRelocateModalBodyProps> =
-  (props) => {
-    const { application, action, state, dispatch } = props;
-    const { t } = useCustomTranslation();
+export const FailoverRelocateModalBody: React.FC<
+  FailoverRelocateModalBodyProps
+> = (props) => {
+  const { application, action, state, dispatch } = props;
+  const { t } = useCustomTranslation();
 
-    const response = useK8sWatchResources<DRActionWatchResourceType>(
-      resources(application?.metadata?.namespace)
-    );
+  const response = useK8sWatchResources<DRActionWatchResourceType>(
+    resources(application?.metadata?.namespace)
+  );
 
-    const acmDocVersion = useDocVersion({
-      defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
-      specName: ACM_OPERATOR_SPEC_NAME,
-    });
+  const acmDocVersion = useDocVersion({
+    defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
+    specName: ACM_OPERATOR_SPEC_NAME,
+  });
 
-    const {
-      data: placementRules,
-      loaded: placementRulesLoaded,
-      loadError: placementRulesLoadError,
-    } = response?.placementRules;
+  const {
+    data: placementRules,
+    loaded: placementRulesLoaded,
+    loadError: placementRulesLoadError,
+  } = response?.placementRules;
 
-    const {
-      data: subscriptions,
-      loaded: subscriptionsLoaded,
-      loadError: subscriptionsLoadError,
-    } = response?.subscriptions;
+  const {
+    data: subscriptions,
+    loaded: subscriptionsLoaded,
+    loadError: subscriptionsLoadError,
+  } = response?.subscriptions;
 
-    const {
-      data: drPlacementControls,
-      loaded: drPlacementControlsLoaded,
-      loadError: drPlacementControlsLoadError,
-    } = response?.drPlacementControls;
+  const {
+    data: drPlacementControls,
+    loaded: drPlacementControlsLoaded,
+    loadError: drPlacementControlsLoadError,
+  } = response?.drPlacementControls;
 
-    const {
-      data: placements,
-      loaded: placementsLoaded,
-      loadError: placementsLoadError,
-    } = response?.placements;
+  const {
+    data: placements,
+    loaded: placementsLoaded,
+    loadError: placementsLoadError,
+  } = response?.placements;
 
-    const {
-      data: placementDecisions,
-      loaded: placementDecisionsLoaded,
-      loadError: placementDecisionsLoadError,
-    } = response?.placementDecisions;
+  const {
+    data: placementDecisions,
+    loaded: placementDecisionsLoaded,
+    loadError: placementDecisionsLoadError,
+  } = response?.placementDecisions;
 
-    const placementLoaded =
-      placementRulesLoaded && placementDecisionsLoaded && placementsLoaded;
+  const placementLoaded =
+    placementRulesLoaded && placementDecisionsLoaded && placementsLoaded;
 
-    const placementLoadError =
-      placementRulesLoadError ||
-      placementsLoadError ||
-      placementDecisionsLoadError;
+  const placementLoadError =
+    placementRulesLoadError ||
+    placementsLoadError ||
+    placementDecisionsLoadError;
 
-    const loaded =
-      subscriptionsLoaded && placementLoaded && drPlacementControlsLoaded;
-    const loadError =
-      subscriptionsLoadError ||
-      placementLoadError ||
-      drPlacementControlsLoadError;
+  const loaded =
+    subscriptionsLoaded && placementLoaded && drPlacementControlsLoaded;
+  const loadError =
+    subscriptionsLoadError ||
+    placementLoadError ||
+    drPlacementControlsLoadError;
 
-    React.useEffect(() => {
-      if (loaded && !loadError) {
-        // Creating unique placement map using name, namespace and kind of placementRule/placement
-        const placementMap: PlacementMap = generateUniquePlacementMap(
-          placementRules,
-          placements,
-          placementDecisions
-        );
+  React.useEffect(() => {
+    if (loaded && !loadError) {
+      // Creating unique placement map using name, namespace and kind of placementRule/placement
+      const placementMap: PlacementMap = generateUniquePlacementMap(
+        placementRules,
+        placements,
+        placementDecisions
+      );
 
-        const subscriptionMap: SubscriptionMap =
-          // Filtering subscription using DR placementRules/placements and application selectors
-          !_.isEmpty(placementMap)
-            ? filterDRSubscriptions(application, subscriptions, placementMap)
-            : {};
+      const subscriptionMap: SubscriptionMap =
+        // Filtering subscription using DR placementRules/placements and application selectors
+        !_.isEmpty(placementMap)
+          ? filterDRSubscriptions(application, subscriptions, placementMap)
+          : {};
 
-        // Grouping ACM subscriptions using DR placement controls
-        const drPolicyControlState: DRPolicyControlState[] = !_.isEmpty(
-          subscriptionMap
-        )
-          ? getAppDRInfo(drPlacementControls, subscriptionMap, placementMap)
-          : [];
-        !!drPolicyControlState.length
-          ? dispatch({
-              type: FailoverAndRelocateType.SET_DR_POLICY_CONTROL_STATE,
-              payload: drPolicyControlState,
-            })
-          : dispatch({
-              type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
-              payload: {
-                drPolicyControlStateErrorMessage:
-                  action === DRActionType.FAILOVER
-                    ? ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER
-                    : ErrorMessageType.DR_IS_NOT_ENABLED_RELOCATE,
-              },
-            });
-      }
-    }, [
-      loaded,
-      loadError,
-      application,
-      drPlacementControls,
-      subscriptions,
-      placementRules,
-      placements,
-      placementDecisions,
-      action,
-      dispatch,
-      t,
-    ]);
+      // Grouping ACM subscriptions using DR placement controls
+      const drPolicyControlState: DRPolicyControlState[] = !_.isEmpty(
+        subscriptionMap
+      )
+        ? getAppDRInfo(drPlacementControls, subscriptionMap, placementMap)
+        : [];
+      !!drPolicyControlState.length
+        ? dispatch({
+            type: FailoverAndRelocateType.SET_DR_POLICY_CONTROL_STATE,
+            payload: drPolicyControlState,
+          })
+        : dispatch({
+            type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
+            payload: {
+              drPolicyControlStateErrorMessage:
+                action === DRActionType.FAILOVER
+                  ? ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER
+                  : ErrorMessageType.DR_IS_NOT_ENABLED_RELOCATE,
+            },
+          });
+    }
+  }, [
+    loaded,
+    loadError,
+    application,
+    drPlacementControls,
+    subscriptions,
+    placementRules,
+    placements,
+    placementDecisions,
+    action,
+    dispatch,
+    t,
+  ]);
 
-    return loaded && !loadError ? (
+  return loaded && !loadError ? (
+    <Flex
+      direction={{ default: 'column' }}
+      spaceItems={{ default: 'spaceItemsSm' }}
+    >
+      <Flex>
+        <FlexItem>
+          <strong> {t('Application name:')} </strong>
+        </FlexItem>
+        <FlexItem data-test="app-name">
+          <ResourceIcon resourceModel={ApplicationModel} />
+          {application?.metadata?.name || '-'}
+        </FlexItem>
+      </Flex>
       <Flex
         direction={{ default: 'column' }}
         spaceItems={{ default: 'spaceItemsSm' }}
       >
-        <Flex>
-          <FlexItem>
-            <strong> {t('Application name:')} </strong>
-          </FlexItem>
-          <FlexItem data-test="app-name">
-            <ResourceIcon resourceModel={ApplicationModel} />
-            {application?.metadata?.name || '-'}
-          </FlexItem>
-        </Flex>
-        <Flex
-          direction={{ default: 'column' }}
-          spaceItems={{ default: 'spaceItemsSm' }}
-        >
-          <FlexItem>
-            <strong> {t('Select policy')} </strong>
-          </FlexItem>
-          <FlexItem>
-            <DRPolicySelector state={state} dispatch={dispatch} />
-          </FlexItem>
-        </Flex>
-        <Flex
-          direction={{ default: 'column' }}
-          spaceItems={{ default: 'spaceItemsSm' }}
-        >
-          <FlexItem>
-            <strong> {t('Target cluster')} </strong>
-          </FlexItem>
-          <FlexItem>
-            <TargetClusterSelector state={state} dispatch={dispatch} />
-          </FlexItem>
-        </Flex>
-        <PeerClusterStatus state={state} dispatch={dispatch} />
-        <Flex
-          grow={{ default: 'grow' }}
-          direction={{ default: 'column' }}
-          spaceItems={{ default: 'spaceItemsSm' }}
-        >
-          <FlexItem>
-            <strong> {t('Select subscriptions group')} </strong>
-          </FlexItem>
-          <FlexItem className="mco-subs-dr-action-body__dropdown--width">
-            <SubscriptionGroupSelector state={state} dispatch={dispatch} />
-          </FlexItem>
-        </Flex>
-        {(state.modalFooterStatus === ModalFooterStatus.FINISHED && (
-          <MessageStatus
-            {...(action === DRActionType.FAILOVER
-              ? {
-                  title: t('Failover initiated'),
-                  variant: AlertVariant.success,
-                }
-              : {
-                  title: t('Relocate initiated'),
-                  variant: AlertVariant.success,
-                })}
-          />
-        )) ||
-          ((!!findErrorMessage(state.errorMessage, true) ||
-            !_.isEmpty(state.actionErrorMessage)) && (
-            <MessageStatus
-              {...(ErrorMessages(t, mcoDocVersion, acmDocVersion)[
-                findErrorMessage(state.errorMessage, true)
-              ] || state.actionErrorMessage)}
-            />
-          ))}
+        <FlexItem>
+          <strong> {t('Select policy')} </strong>
+        </FlexItem>
+        <FlexItem>
+          <DRPolicySelector state={state} dispatch={dispatch} />
+        </FlexItem>
       </Flex>
-    ) : (
-      <StatusBox loaded={loaded} loadError={loadError} />
-    );
-  };
+      <Flex
+        direction={{ default: 'column' }}
+        spaceItems={{ default: 'spaceItemsSm' }}
+      >
+        <FlexItem>
+          <strong> {t('Target cluster')} </strong>
+        </FlexItem>
+        <FlexItem>
+          <TargetClusterSelector state={state} dispatch={dispatch} />
+        </FlexItem>
+      </Flex>
+      <PeerClusterStatus state={state} dispatch={dispatch} />
+      <Flex
+        grow={{ default: 'grow' }}
+        direction={{ default: 'column' }}
+        spaceItems={{ default: 'spaceItemsSm' }}
+      >
+        <FlexItem>
+          <strong> {t('Select subscriptions group')} </strong>
+        </FlexItem>
+        <FlexItem className="mco-subs-dr-action-body__dropdown--width">
+          <SubscriptionGroupSelector state={state} dispatch={dispatch} />
+        </FlexItem>
+      </Flex>
+      {(state.modalFooterStatus === ModalFooterStatus.FINISHED && (
+        <MessageStatus
+          {...(action === DRActionType.FAILOVER
+            ? {
+                title: t('Failover initiated'),
+                variant: AlertVariant.success,
+              }
+            : {
+                title: t('Relocate initiated'),
+                variant: AlertVariant.success,
+              })}
+        />
+      )) ||
+        ((!!findErrorMessage(state.errorMessage, true) ||
+          !_.isEmpty(state.actionErrorMessage)) && (
+          <MessageStatus
+            {...(ErrorMessages(t, mcoDocVersion, acmDocVersion)[
+              findErrorMessage(state.errorMessage, true)
+            ] || state.actionErrorMessage)}
+          />
+        ))}
+    </Flex>
+  ) : (
+    <StatusBox loaded={loaded} loadError={loadError} />
+  );
+};
 
 type FailoverRelocateModalBodyProps = {
   application: ApplicationKind;

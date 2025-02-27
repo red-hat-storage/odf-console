@@ -28,12 +28,11 @@ const withDragDropContext =
     Component: React.ComponentClass<TProps> | React.FC<TProps>
   ) =>
   // eslint-disable-next-line react/display-name
-  (props: TProps) =>
-    (
-      <DndProvider backend={HTML5Backend}>
-        <Component {...props} />
-      </DndProvider>
-    );
+  (props: TProps) => (
+    <DndProvider backend={HTML5Backend}>
+      <Component {...props} />
+    </DndProvider>
+  );
 
 type NameValueEditorProps = {
   nameString: string;

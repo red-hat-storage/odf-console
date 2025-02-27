@@ -25,46 +25,47 @@ const getResources = (namespace: string) => ({
   },
 });
 
-export const ArogoApplicationSetStatus: React.FC<ArogoApplicationSetStatusProps> =
-  ({ application }) => {
-    const [drResources] = useDisasterRecoveryResourceWatch(
-      getResources(getNamespace(application))
+export const ArogoApplicationSetStatus: React.FC<
+  ArogoApplicationSetStatusProps
+> = ({ application }) => {
+  const [drResources] = useDisasterRecoveryResourceWatch(
+    getResources(getNamespace(application))
+  );
+
+  const drStatus: DRStatusProps[] = React.useMemo(() => {
+    const placementName = findPlacementNameFromAppSet(application);
+    // TODO change to appset remote workload namespace
+    const drResource = findDRResourceUsingPlacement(
+      placementName,
+      getNamespace(application),
+      drResources?.formattedResources
     );
+    if (!_.isEmpty(drResource)) {
+      const drpc = drResource?.drPlacementControls?.[0];
+      const drPolicy = drResource?.drPolicy;
+      const status = drpc?.status?.phase as DRPCStatus;
+      const targetCluster = [
+        DRPCStatus.FailedOver,
+        DRPCStatus.FailingOver,
+      ].includes(status)
+        ? drpc?.spec?.failoverCluster
+        : drpc?.spec?.preferredCluster;
+      return [
+        {
+          policyName: getName(drPolicy),
+          status: status,
+          dataLastSyncedOn: drpc?.status?.lastGroupSyncTime,
+          schedulingInterval: drPolicy?.spec?.schedulingInterval,
+          targetCluster: targetCluster,
+          replicationType: findDRType(drResource?.drClusters),
+        },
+      ];
+    }
+    return [];
+  }, [drResources, application]);
 
-    const drStatus: DRStatusProps[] = React.useMemo(() => {
-      const placementName = findPlacementNameFromAppSet(application);
-      // TODO change to appset remote workload namespace
-      const drResource = findDRResourceUsingPlacement(
-        placementName,
-        getNamespace(application),
-        drResources?.formattedResources
-      );
-      if (!_.isEmpty(drResource)) {
-        const drpc = drResource?.drPlacementControls?.[0];
-        const drPolicy = drResource?.drPolicy;
-        const status = drpc?.status?.phase as DRPCStatus;
-        const targetCluster = [
-          DRPCStatus.FailedOver,
-          DRPCStatus.FailingOver,
-        ].includes(status)
-          ? drpc?.spec?.failoverCluster
-          : drpc?.spec?.preferredCluster;
-        return [
-          {
-            policyName: getName(drPolicy),
-            status: status,
-            dataLastSyncedOn: drpc?.status?.lastGroupSyncTime,
-            schedulingInterval: drPolicy?.spec?.schedulingInterval,
-            targetCluster: targetCluster,
-            replicationType: findDRType(drResource?.drClusters),
-          },
-        ];
-      }
-      return [];
-    }, [drResources, application]);
-
-    return <StatusPopover disasterRecoveryStatus={drStatus} />;
-  };
+  return <StatusPopover disasterRecoveryStatus={drStatus} />;
+};
 
 type ArogoApplicationSetStatusProps = {
   application: ArgoApplicationSetKind;

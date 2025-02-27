@@ -63,46 +63,47 @@ type ProfileRequirementsTextProps = {
   osdAmount: number;
 };
 
-export const ProfileRequirementsText: React.FC<ProfileRequirementsTextProps> =
-  ({ selectedProfile, osdAmount }) => {
-    const { t } = useCustomTranslation();
-    const { minCpu, minMem } = getResourceProfileRequirements(
-      selectedProfile,
-      osdAmount
-    );
-    return (
-      <TextContent>
-        <Text id="resource-requirements" component={TextVariants.h4}>
-          <span className="pf-v5-u-mr-sm">
-            {t('Aggregate resource requirements for {{selectedProfile}} mode', {
-              selectedProfile,
-            })}
+export const ProfileRequirementsText: React.FC<
+  ProfileRequirementsTextProps
+> = ({ selectedProfile, osdAmount }) => {
+  const { t } = useCustomTranslation();
+  const { minCpu, minMem } = getResourceProfileRequirements(
+    selectedProfile,
+    osdAmount
+  );
+  return (
+    <TextContent>
+      <Text id="resource-requirements" component={TextVariants.h4}>
+        <span className="pf-v5-u-mr-sm">
+          {t('Aggregate resource requirements for {{selectedProfile}} mode', {
+            selectedProfile,
+          })}
+        </span>
+        {selectedProfile === ResourceProfile.Performance && (
+          <FieldLevelHelp>{resourceRequirementsTooltip(t)}</FieldLevelHelp>
+        )}
+      </Text>
+      <Text id="cpu-requirements-desc" className="pf-v5-u-font-size-sm">
+        <div className="pf-v5-u-mb-sm">
+          <span className="pf-v5-u-disabled-color-100">
+            {t('CPUs required')}:
+          </span>{' '}
+          <span className="pf-v5-u-font-size-md">
+            {minCpu} {t('CPUs')}
           </span>
-          {selectedProfile === ResourceProfile.Performance && (
-            <FieldLevelHelp>{resourceRequirementsTooltip(t)}</FieldLevelHelp>
-          )}
-        </Text>
-        <Text id="cpu-requirements-desc" className="pf-v5-u-font-size-sm">
-          <div className="pf-v5-u-mb-sm">
-            <span className="pf-v5-u-disabled-color-100">
-              {t('CPUs required')}:
-            </span>{' '}
-            <span className="pf-v5-u-font-size-md">
-              {minCpu} {t('CPUs')}
-            </span>
-          </div>
-          <div>
-            <span className="pf-v5-u-disabled-color-100">
-              {t('Memory required')}:
-            </span>{' '}
-            <span className="pf-v5-u-font-size-md">
-              {minMem} {t('GiB')}
-            </span>
-          </div>
-        </Text>
-      </TextContent>
-    );
-  };
+        </div>
+        <div>
+          <span className="pf-v5-u-disabled-color-100">
+            {t('Memory required')}:
+          </span>{' '}
+          <span className="pf-v5-u-font-size-md">
+            {minMem} {t('GiB')}
+          </span>
+        </div>
+      </Text>
+    </TextContent>
+  );
+};
 
 type ConfigurePerformanceProps = {
   onResourceProfileChange: (newProfile: ResourceProfile) => void;

@@ -47,54 +47,55 @@ const getDropdownOptions = (dataPolicies: DRPolicyType[], t: TFunction) =>
 const findPolicy = (name: string, dataPolicies: DRPolicyType[]) =>
   dataPolicies.find((policy) => getName(policy) === name);
 
-export const SelectPolicyWizardContent: React.FC<SelectPolicyWizardContentProps> =
-  ({ policy, matchingPolicies, isValidationEnabled, dispatch }) => {
-    const { t } = useCustomTranslation();
-    const name = getName(policy);
-    const isInvalidPolicy = isValidationEnabled && !name;
-    return (
-      <Form className="mco-manage-policies__form--width">
-        <FormGroup
-          fieldId="policy-type-selector"
-          label={t('Policy name')}
-          isRequired
-        >
-          <SingleSelectDropdown
-            placeholderText={t('Select a policy')}
-            selectOptions={getDropdownOptions(matchingPolicies, t)}
-            id="policy-selection-dropdown"
-            selectedKey={name}
-            validated={getValidatedProp(isInvalidPolicy)}
-            required
-            onChange={(value: string) => {
-              if (name !== value) {
-                dispatch({
-                  type: ManagePolicyStateType.SET_SELECTED_POLICY,
-                  context: ModalViewContext.ASSIGN_POLICY_VIEW,
-                  payload: findPolicy(value, matchingPolicies),
-                });
-              }
-            }}
-          />
-          <FormHelperText>
-            <HelperText>
-              <HelperTextItem>
-                {!!policy &&
-                  t('Status: {{status}}', {
-                    status: getDRPolicyStatus(policy.isValidated, t),
-                  })}
+export const SelectPolicyWizardContent: React.FC<
+  SelectPolicyWizardContentProps
+> = ({ policy, matchingPolicies, isValidationEnabled, dispatch }) => {
+  const { t } = useCustomTranslation();
+  const name = getName(policy);
+  const isInvalidPolicy = isValidationEnabled && !name;
+  return (
+    <Form className="mco-manage-policies__form--width">
+      <FormGroup
+        fieldId="policy-type-selector"
+        label={t('Policy name')}
+        isRequired
+      >
+        <SingleSelectDropdown
+          placeholderText={t('Select a policy')}
+          selectOptions={getDropdownOptions(matchingPolicies, t)}
+          id="policy-selection-dropdown"
+          selectedKey={name}
+          validated={getValidatedProp(isInvalidPolicy)}
+          required
+          onChange={(value: string) => {
+            if (name !== value) {
+              dispatch({
+                type: ManagePolicyStateType.SET_SELECTED_POLICY,
+                context: ModalViewContext.ASSIGN_POLICY_VIEW,
+                payload: findPolicy(value, matchingPolicies),
+              });
+            }
+          }}
+        />
+        <FormHelperText>
+          <HelperText>
+            <HelperTextItem>
+              {!!policy &&
+                t('Status: {{status}}', {
+                  status: getDRPolicyStatus(policy.isValidated, t),
+                })}
+            </HelperTextItem>
+            {isInvalidPolicy && (
+              <HelperTextItem variant={getValidatedProp(isInvalidPolicy)}>
+                {t('Required')}
               </HelperTextItem>
-              {isInvalidPolicy && (
-                <HelperTextItem variant={getValidatedProp(isInvalidPolicy)}>
-                  {t('Required')}
-                </HelperTextItem>
-              )}
-            </HelperText>
-          </FormHelperText>
-        </FormGroup>
-      </Form>
-    );
-  };
+            )}
+          </HelperText>
+        </FormHelperText>
+      </FormGroup>
+    </Form>
+  );
+};
 
 type SelectPolicyWizardContentProps = {
   policy: DRPolicyType;

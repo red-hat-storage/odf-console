@@ -91,130 +91,131 @@ const getModalText = (t: TFunction) => ({
   },
 });
 
-export const SubscriptionFailoverRelocateModal: React.FC<FailoverRelocateModalProps> =
-  (props) => {
-    const { t } = useCustomTranslation();
-    const { action, isOpen, resource, close } = props;
-    const modalText = getModalText(t)[action];
+export const SubscriptionFailoverRelocateModal: React.FC<
+  FailoverRelocateModalProps
+> = (props) => {
+  const { t } = useCustomTranslation();
+  const { action, isOpen, resource, close } = props;
+  const modalText = getModalText(t)[action];
 
-    const [state, dispatch] = React.useReducer(
-      failoverAndRelocateReducer,
-      failoverAndRelocateState(action)
+  const [state, dispatch] = React.useReducer(
+    failoverAndRelocateReducer,
+    failoverAndRelocateState(action)
+  );
+
+  const updateModalStatus = (modalFooterStatus: ModalFooterStatus) =>
+    dispatch({
+      type: FailoverAndRelocateType.SET_MODAL_FOOTER_STATUS,
+      payload: modalFooterStatus,
+    });
+
+  const canInitiate = () =>
+    !findErrorMessage(state.errorMessage, false) &&
+    !!state.selectedSubsGroups.length;
+
+  const onClick = () => {
+    updateModalStatus(ModalFooterStatus.INPROGRESS);
+    const promises: Promise<K8sResourceKind>[] = [];
+    const targetClusterName =
+      state.selectedTargetCluster.clusterInfo.clusterName;
+    const primaryClusterName = state.selectedDRPolicy.drClusters.find(
+      (drCluster) => drCluster !== targetClusterName
     );
-
-    const updateModalStatus = (modalFooterStatus: ModalFooterStatus) =>
-      dispatch({
-        type: FailoverAndRelocateType.SET_MODAL_FOOTER_STATUS,
-        payload: modalFooterStatus,
-      });
-
-    const canInitiate = () =>
-      !findErrorMessage(state.errorMessage, false) &&
-      !!state.selectedSubsGroups.length;
-
-    const onClick = () => {
-      updateModalStatus(ModalFooterStatus.INPROGRESS);
-      const promises: Promise<K8sResourceKind>[] = [];
-      const targetClusterName =
-        state.selectedTargetCluster.clusterInfo.clusterName;
-      const primaryClusterName = state.selectedDRPolicy.drClusters.find(
-        (drCluster) => drCluster !== targetClusterName
-      );
-      state.drPolicyControlState.forEach((acmToDRState) => {
-        if (
-          state.selectedSubsGroups.includes(
-            getName(acmToDRState?.drPlacementControl)
-          )
-        ) {
-          const patch = [
-            {
-              op: 'replace',
-              path: '/spec/action',
-              value: action,
-            },
-            {
-              op: 'replace',
-              path: '/spec/failoverCluster',
-              value:
-                action === DRActionType.FAILOVER
-                  ? targetClusterName
-                  : primaryClusterName,
-            },
-            {
-              op: 'replace',
-              path: '/spec/preferredCluster',
-              value:
-                action === DRActionType.FAILOVER
-                  ? primaryClusterName
-                  : targetClusterName,
-            },
-          ];
-          promises.push(
-            k8sPatch({
-              model: DRPlacementControlModel,
-              resource: acmToDRState?.drPlacementControl,
-              data: patch,
-            })
-          );
-        }
-      });
-      Promise.all(promises)
-        .then(() => {
-          updateModalStatus(ModalFooterStatus.FINISHED);
-        })
-        .catch((error) => {
-          updateModalStatus(ModalFooterStatus.INITIAL);
-          dispatch({
-            type: FailoverAndRelocateType.SET_ACTION_ERROR_MESSAGE,
-            payload: {
-              title: getErrorMessage(error),
-              variant: AlertVariant.danger,
-            },
-          });
+    state.drPolicyControlState.forEach((acmToDRState) => {
+      if (
+        state.selectedSubsGroups.includes(
+          getName(acmToDRState?.drPlacementControl)
+        )
+      ) {
+        const patch = [
+          {
+            op: 'replace',
+            path: '/spec/action',
+            value: action,
+          },
+          {
+            op: 'replace',
+            path: '/spec/failoverCluster',
+            value:
+              action === DRActionType.FAILOVER
+                ? targetClusterName
+                : primaryClusterName,
+          },
+          {
+            op: 'replace',
+            path: '/spec/preferredCluster',
+            value:
+              action === DRActionType.FAILOVER
+                ? primaryClusterName
+                : targetClusterName,
+          },
+        ];
+        promises.push(
+          k8sPatch({
+            model: DRPlacementControlModel,
+            resource: acmToDRState?.drPlacementControl,
+            data: patch,
+          })
+        );
+      }
+    });
+    Promise.all(promises)
+      .then(() => {
+        updateModalStatus(ModalFooterStatus.FINISHED);
+      })
+      .catch((error) => {
+        updateModalStatus(ModalFooterStatus.INITIAL);
+        dispatch({
+          type: FailoverAndRelocateType.SET_ACTION_ERROR_MESSAGE,
+          payload: {
+            title: getErrorMessage(error),
+            variant: AlertVariant.danger,
+          },
         });
-    };
-
-    return (
-      <Modal
-        title={modalText?.title}
-        description={modalText?.description}
-        isOpen={isOpen}
-        onClose={close}
-        variant={ModalVariant.medium}
-      >
-        <ModalBody>
-          <FailoverRelocateModalBody
-            application={resource}
-            action={action}
-            state={state}
-            dispatch={dispatch}
-          />
-        </ModalBody>
-        <ModalFooter>
-          {generatefooterButtons({
-            t,
-            close,
-            isDisable: !canInitiate(),
-            onClick,
-          })[state.modalFooterStatus].map((buttonProp) => (
-            <Button
-              key={buttonProp.id}
-              data-test={buttonProp.id}
-              type={buttonProp.type}
-              variant={buttonProp.variant}
-              isDisabled={buttonProp.isDisabled}
-              id={buttonProp.id}
-              data-test-id={buttonProp.id}
-              onClick={buttonProp.onClick}
-              isLoading={buttonProp.isLoading}
-            >
-              {buttonProp.label}
-            </Button>
-          ))}
-        </ModalFooter>
-      </Modal>
-    );
+      });
   };
+
+  return (
+    <Modal
+      title={modalText?.title}
+      description={modalText?.description}
+      isOpen={isOpen}
+      onClose={close}
+      variant={ModalVariant.medium}
+    >
+      <ModalBody>
+        <FailoverRelocateModalBody
+          application={resource}
+          action={action}
+          state={state}
+          dispatch={dispatch}
+        />
+      </ModalBody>
+      <ModalFooter>
+        {generatefooterButtons({
+          t,
+          close,
+          isDisable: !canInitiate(),
+          onClick,
+        })[state.modalFooterStatus].map((buttonProp) => (
+          <Button
+            key={buttonProp.id}
+            data-test={buttonProp.id}
+            type={buttonProp.type}
+            variant={buttonProp.variant}
+            isDisabled={buttonProp.isDisabled}
+            id={buttonProp.id}
+            data-test-id={buttonProp.id}
+            onClick={buttonProp.onClick}
+            isLoading={buttonProp.isLoading}
+          >
+            {buttonProp.label}
+          </Button>
+        ))}
+      </ModalFooter>
+    </Modal>
+  );
+};
 
 type ModalFooterProps = {
   isDisable?: boolean;

@@ -269,8 +269,8 @@ describe('Test drpolicy list page', () => {
     expect(screen.getByLabelText('Select row 1')).toBeChecked();
 
     // Verify successful cluster selection
-    expect(screen.getAllByText('east-1').length === 2).toBeTruthy();
-    expect(screen.getAllByText('west-1').length === 2).toBeTruthy();
+    expect(screen.getAllByText('east-1')).toHaveLength(2);
+    expect(screen.getAllByText('west-1')).toHaveLength(2);
     expect(
       screen.getAllByText('ocs-storagecluster-storagesystem').length === 2
     ).toBeTruthy();
@@ -318,8 +318,8 @@ describe('Test drpolicy list page', () => {
     expect(screen.getByLabelText('Select row 2')).toBeChecked();
 
     // Verify successful cluster selection
-    expect(screen.getAllByText('east-1').length === 2).toBeTruthy();
-    expect(screen.getAllByText('east-2').length === 2).toBeTruthy();
+    expect(screen.getAllByText('east-1')).toHaveLength(2);
+    expect(screen.getAllByText('east-2')).toHaveLength(2);
     expect(
       screen.getAllByText('ocs-storagecluster-storagesystem').length === 2
     ).toBeTruthy();

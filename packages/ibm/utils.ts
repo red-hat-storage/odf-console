@@ -15,7 +15,7 @@ export const getSecretManagementAddress = <A extends SecretKind = SecretKind>(
   ) as SecretKind['data']['management_address'];
 
 export const getFlashSystemSecretName = <
-  A extends IBMFlashSystemKind = IBMFlashSystemKind
+  A extends IBMFlashSystemKind = IBMFlashSystemKind,
 >(
   value: A
 ) =>

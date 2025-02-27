@@ -91,11 +91,11 @@ const config: webpack.Configuration & DevServerConfiguration = {
               ...(!IS_PRODUCTION
                 ? { poolTimeout: Infinity, poolRespawn: false }
                 : OPENSHIFT_CI
-                ? {
-                    workers: 4,
-                    workerNodeArgs: ['--max-old-space-size=1024'],
-                  }
-                : {}),
+                  ? {
+                      workers: 4,
+                      workerNodeArgs: ['--max-old-space-size=1024'],
+                    }
+                  : {}),
             },
           },
           { loader: 'style-loader' },
