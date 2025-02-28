@@ -18,7 +18,14 @@ import { TimeDurationDropdown } from '../../time-duration-dropdown';
 
 export const CacheNamespaceStorePage: React.FC<CacheNamespaceStoreProps> =
   React.memo(
-    ({ dispatch, namespace, state, hideCreateNamespaceStore, launchModal }) => {
+    ({
+      dispatch,
+      namespace,
+      state,
+      hideCreateNamespaceStore,
+      launchModal,
+      launchBackingStoreModal,
+    }) => {
       const { t } = useCustomTranslation();
       const [showHelp, setShowHelp] = React.useState(true);
 
@@ -112,6 +119,7 @@ export const CacheNamespaceStorePage: React.FC<CacheNamespaceStoreProps> =
                 selectedKey={getName(state.cacheBackingStore)}
                 namespace={namespace}
                 onChange={handleBSStateChange}
+                launchBackingStoreModal={launchBackingStoreModal}
               />
               <p className="nb-create-bc-step-page-form__element--light-text">
                 {t(
@@ -148,4 +156,5 @@ type CacheNamespaceStoreProps = {
   namespace: string;
   hideCreateNamespaceStore?: boolean;
   launchModal?: () => void;
+  launchBackingStoreModal?: () => void;
 };

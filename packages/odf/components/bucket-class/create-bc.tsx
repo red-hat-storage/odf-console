@@ -40,7 +40,9 @@ export const NS_STORE_MODAL_KEY = 'BC_CREATE_WIZARD_NS_STORE_CREATE_MODAL';
 const NamespaceStoreCreateModal = React.lazy(
   () => import('../namespace-store/namespace-store-modal')
 );
-
+const CreateBackingStoreFormModal = React.lazy(
+  () => import('../create-bs/create-bs-modal')
+);
 const CreateBucketClass: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
@@ -56,6 +58,10 @@ const CreateBucketClass: React.FC<{}> = () => {
 
   const launchModal = React.useCallback(
     () => launcher(NamespaceStoreCreateModal, { isOpen: true }),
+    [launcher]
+  );
+  const launchBackingStoreModal = React.useCallback(
+    () => launcher(CreateBackingStoreFormModal, { isOpen: true }),
     [launcher]
   );
 
@@ -77,6 +83,7 @@ const CreateBucketClass: React.FC<{}> = () => {
             dispatch={dispatch}
             namespace={namespace}
             launchModal={launchModal}
+            launchBackingStoreModal={launchBackingStoreModal}
           />
         );
       case NamespacePolicyType.MULTI:
