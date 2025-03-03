@@ -11,6 +11,7 @@ import { NodeData } from '@odf/core/types';
 import {
   fieldRequirementsTranslations,
   formSettings,
+  STORAGE_SIZE_UNIT_NAME_MAP,
 } from '@odf/shared/constants';
 import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
@@ -517,7 +518,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
               <SingleSelectDropdown
                 id="create-lvs-disk-size-unit-dropdown"
                 selectOptions={diskSizeUnitDropdownOptions}
-                selectedKey={diskSizeUnitOptions[state.diskSizeUnit]}
+                selectedKey={STORAGE_SIZE_UNIT_NAME_MAP[state.diskSizeUnit]}
                 onChange={(unit: string) => formHandler('diskSizeUnit', unit)}
                 valueLabelMap={diskSizeUnitOptions}
               />
