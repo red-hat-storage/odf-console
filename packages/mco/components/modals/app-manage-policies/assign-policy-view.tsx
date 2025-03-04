@@ -1,8 +1,8 @@
 import * as React from 'react';
 import {
-  DRApplication,
   AssignPolicySteps,
   AssignPolicyStepsNames,
+  DRApplication,
 } from '@odf/mco/constants';
 import { ModalBody } from '@odf/shared/modals';
 import { getName } from '@odf/shared/selectors';
@@ -11,6 +11,7 @@ import { getErrorMessage } from '@odf/shared/utils';
 import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { AssignPolicyViewFooter } from './helper/assign-policy-view-footer';
+import ConfigureWizardContent from './helper/configure-wizard-content';
 import { PVCDetailsWizardContent } from './helper/pvc-details-wizard-content';
 import { ReviewAndAssign } from './helper/review-and-assign';
 import { SelectPolicyWizardContent } from './helper/select-policy-wizard-content';
@@ -27,6 +28,7 @@ import {
   ApplicationType,
   DRInfoType,
   DRPolicyType,
+  ModalType,
   PlacementType,
   PVCQueryFilter,
 } from './utils/types';
@@ -42,6 +44,8 @@ export const createSteps = (
   dispatch: React.Dispatch<ManagePolicyStateAction>,
   protectedPVCSelectors: PVCSelectorType[],
   pvcQueryFilter: PVCQueryFilter,
+  modalType: ModalType,
+  existingProtectionNames: string[],
   isEditMode?: boolean
 ): WizardStep[] => {
   const commonSteps = {
@@ -75,9 +79,23 @@ export const createSteps = (
     },
   };
 
-  switch (appType) {
-    case DRApplication.APPSET:
-    case DRApplication.SUBSCRIPTION:
+  const vmSteps = {
+    configure: {
+      name: AssignPolicyStepsNames(t)[AssignPolicySteps.Configure],
+      component: (
+        <ConfigureWizardContent
+          vmProtectionMethodType={state.virtualMachine.vmProtectionMethod}
+          vmProtectionName={state.virtualMachine.vmProtectionName}
+          existingProtectionNames={existingProtectionNames}
+          appType={appType}
+          dispatch={dispatch}
+        />
+      ),
+    },
+  };
+
+  switch (modalType) {
+    case ModalType.Application:
       return isEditMode
         ? [
             {
@@ -108,6 +126,47 @@ export const createSteps = (
               canJumpTo: stepIdReached >= 3,
             },
           ];
+    case ModalType.VirtualMachine:
+      return appType === DRApplication.DISCOVERED
+        ? [
+            {
+              id: 1,
+              ...vmSteps.configure,
+              canJumpTo: stepIdReached >= 1,
+            },
+            {
+              id: 2,
+              ...commonSteps.policy,
+              canJumpTo: stepIdReached >= 2,
+            },
+            {
+              id: 3,
+              ...commonSteps.reviewAndAssign,
+              canJumpTo: stepIdReached >= 3,
+            },
+          ]
+        : [
+            {
+              id: 1,
+              ...vmSteps.configure,
+              canJumpTo: stepIdReached >= 1,
+            },
+            {
+              id: 2,
+              ...commonSteps.policy,
+              canJumpTo: stepIdReached >= 2,
+            },
+            {
+              id: 3,
+              ...commonSteps.persistentVolumeClaim,
+              canJumpTo: stepIdReached >= 3,
+            },
+            {
+              id: 4,
+              ...commonSteps.reviewAndAssign,
+              canJumpTo: stepIdReached >= 4,
+            },
+          ];
     default:
       return [];
   }
@@ -121,6 +180,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
   setModalContext,
   setModalActionContext,
   dispatch,
+  modalType,
 }) => {
   const { t } = useCustomTranslation();
   const isEditMode =
@@ -134,6 +194,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
     placements: unProtectedPlacements,
     drInfo,
     pvcQueryFilter,
+    existingProtectionNames,
   } = applicationInfo;
 
   const protectedPVCSelectors: PVCSelectorType[] = isEditMode
@@ -189,6 +250,8 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
           dispatch,
           protectedPVCSelectors,
           pvcQueryFilter,
+          modalType,
+          existingProtectionNames,
           isEditMode
         )}
         footer={
@@ -198,7 +261,6 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
             stepIdReached={stepIdReached}
             isValidationEnabled={isValidationEnabled}
             errorMessage={errorMessage}
-            modalActionContext={modalActionContext}
             setStepIdReached={setStepIdReached}
             onSubmit={onSubmit}
             onCancel={onClose}
@@ -222,4 +284,5 @@ type AssignPolicyViewProps = {
     modalActionContext: ModalActionContext,
     modalViewContext?: ModalViewContext
   ) => void;
+  modalType: ModalType;
 };

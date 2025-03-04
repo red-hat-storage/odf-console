@@ -1,4 +1,4 @@
-import { DRPolicyType } from './types';
+import { DRPolicyType, VMProtectionMethodType } from './types';
 
 export enum ModalViewContext {
   MANAGE_POLICY_VIEW = 'managePolicyView',
@@ -20,16 +20,23 @@ export enum ManagePolicyStateType {
   SET_SELECTED_POLICY = 'SET_SELECTED_POLICY',
   SET_PVC_SELECTORS = 'SET_PVC_SELECTORS',
   RESET_ASSIGN_POLICY_STATE = 'RESET_ASSIGN_POLICY_STATE',
+  SET_VM_PROTECTION_METHOD = 'SET_VM_PROTECTION_METHOD',
+  SET_VM_PROTECTION_NAME = 'SET_VM_PROTECTION_NAME',
 }
 
 export type PVCSelectorType = {
   placementName: string;
   labels: string[];
 };
+
 export type AssignPolicyViewState = {
   policy: DRPolicyType;
   persistentVolumeClaim: {
     pvcSelectors: PVCSelectorType[];
+  };
+  virtualMachine?: {
+    vmProtectionMethod: VMProtectionMethodType;
+    vmProtectionName: string;
   };
 };
 
@@ -45,6 +52,10 @@ export const initialPolicyState: ManagePolicyState = {
     policy: undefined,
     persistentVolumeClaim: {
       pvcSelectors: [],
+    },
+    virtualMachine: {
+      vmProtectionMethod: VMProtectionMethodType.STANDALONE,
+      vmProtectionName: '',
     },
   },
 };
@@ -71,6 +82,16 @@ export type ManagePolicyStateAction =
   | {
       type: ManagePolicyStateType.RESET_ASSIGN_POLICY_STATE;
       context: ModalViewContext;
+    }
+  | {
+      type: ManagePolicyStateType.SET_VM_PROTECTION_METHOD;
+      context: ModalViewContext;
+      payload: VMProtectionMethodType;
+    }
+  | {
+      type: ManagePolicyStateType.SET_VM_PROTECTION_NAME;
+      context: ModalViewContext;
+      payload: string;
     };
 
 export const managePolicyStateReducer = (
@@ -117,6 +138,30 @@ export const managePolicyStateReducer = (
         [action.context]: {
           ...state[action.context],
           ...initialPolicyState[action.context],
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_VM_PROTECTION_METHOD: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          virtualMachine: {
+            ...state[action.context]['virtualMachine'],
+            vmProtectionMethod: action.payload,
+          },
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_VM_PROTECTION_NAME: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          virtualMachine: {
+            ...state[action.context]['virtualMachine'],
+            vmProtectionName: action.payload,
+          },
         },
       };
     }
