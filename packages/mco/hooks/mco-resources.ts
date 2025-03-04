@@ -52,6 +52,7 @@ export const getDRPlacementControlResourceObj = (
   kind: referenceForModel(DRPlacementControlModel),
   ...(!props?.name ? { isList: true } : {}),
   namespaced: !!props?.namespace ? false : true,
+  ...(!!props?.selector ? { selector: props?.selector } : {}),
   optional: true,
 });
 
