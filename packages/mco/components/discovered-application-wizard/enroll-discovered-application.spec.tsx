@@ -625,7 +625,7 @@ describe('Test review step', () => {
     await waitFor(async () => {
       expect(
         JSON.stringify(drpcObj) ===
-          '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPlacementControl","metadata":{"name":"my-name","namespace":"openshift-dr-ops"},"spec":{"preferredCluster":"east-1","protectedNamespaces":["namespace-1","namespace-2"],"pvcSelector":{},"kubeObjectProtection":{"captureInterval":"5m","recipeRef":{"name":"mock-recipe-1","namespace":"namespace-1"}},"drPolicyRef":{"name":"mock-policy-1","apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy"},"placementRef":{"name":"my-name-placement-1","namespace":"openshift-dr-ops","apiVersion":"cluster.open-cluster-management.io/v1beta1","kind":"Placement"}}}'
+          '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPlacementControl","metadata":{"name":"my-name","namespace":"openshift-dr-ops"},"spec":{"preferredCluster":"east-1","protectedNamespaces":["namespace-1","namespace-2"],"pvcSelector":{},"kubeObjectProtection":{"captureInterval":"5m","recipeRef":{"name":"mock-recipe-1","namespace":"namespace-1"},"recipeParameters":{}},"drPolicyRef":{"name":"mock-policy-1","apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy"},"placementRef":{"name":"my-name-placement-1","namespace":"openshift-dr-ops","apiVersion":"cluster.open-cluster-management.io/v1beta1","kind":"Placement"}}}'
       ).toBeTruthy();
     });
   });

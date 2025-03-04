@@ -66,6 +66,8 @@ export type DRPlacementControlKind = K8sResourceCommon & {
       // To identify all the kube objects that need DR protection.
       //  N/A for the managed  applications.
       kubeObjectSelector?: Selector;
+      // Recipe parameter definitions
+      recipeParameters?: Record<string, string[]>;
     };
     //  A list of namespaces that are protected by the DRPC.
     //  N/A for the managed  applications.

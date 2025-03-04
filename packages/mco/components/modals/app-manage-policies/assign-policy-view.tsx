@@ -1,8 +1,8 @@
 import * as React from 'react';
 import {
-  DRApplication,
   AssignPolicySteps,
   AssignPolicyStepsNames,
+  DRApplication,
 } from '@odf/mco/constants';
 import { ModalBody } from '@odf/shared/modals';
 import { getName } from '@odf/shared/selectors';
@@ -11,7 +11,9 @@ import { getErrorMessage } from '@odf/shared/utils';
 import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { AssignPolicyViewFooter } from './helper/assign-policy-view-footer';
+import ProtectionTypeWizardContent from './helper/protection-type-wizard-content';
 import { PVCDetailsWizardContent } from './helper/pvc-details-wizard-content';
+import { ReplicationTypeWizardContent } from './helper/replication-wizard-content';
 import { ReviewAndAssign } from './helper/review-and-assign';
 import { SelectPolicyWizardContent } from './helper/select-policy-wizard-content';
 import { assignPromises } from './utils/k8s-utils';
@@ -27,6 +29,7 @@ import {
   ApplicationType,
   DRInfoType,
   DRPolicyType,
+  ModalType,
   PlacementType,
   PVCQueryFilter,
 } from './utils/types';
@@ -42,6 +45,7 @@ export const createSteps = (
   dispatch: React.Dispatch<ManagePolicyStateAction>,
   protectedPVCSelectors: PVCSelectorType[],
   pvcQueryFilter: PVCQueryFilter,
+  modalType: ModalType,
   isEditMode?: boolean
 ): WizardStep[] => {
   const commonSteps = {
@@ -71,13 +75,44 @@ export const createSteps = (
     },
     reviewAndAssign: {
       name: AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign],
-      component: <ReviewAndAssign state={state} />,
+      component: (
+        <ReviewAndAssign
+          state={state}
+          modalType={modalType}
+          appType={appType}
+        />
+      ),
     },
   };
 
-  switch (appType) {
-    case DRApplication.APPSET:
-    case DRApplication.SUBSCRIPTION:
+  const vmSteps = {
+    protectionType: {
+      name: AssignPolicyStepsNames(t)[AssignPolicySteps.ProtectionType],
+      component: (
+        <ProtectionTypeWizardContent
+          protectionType={state.protectionType.protectionType}
+          protectionName={state.protectionType.protectionName}
+          appType={appType}
+          dispatch={dispatch}
+        />
+      ),
+    },
+    replication: {
+      name: AssignPolicyStepsNames(t)[AssignPolicySteps.Replication],
+      component: (
+        <ReplicationTypeWizardContent
+          matchingPolicies={matchingPolicies}
+          policy={state.replication.policy}
+          k8sResourceSyncInterval={state.replication.k8sSyncInterval}
+          isValidationEnabled={isValidationEnabled}
+          dispatch={dispatch}
+        />
+      ),
+    },
+  };
+
+  switch (modalType) {
+    case ModalType.Application:
       return isEditMode
         ? [
             {
@@ -108,6 +143,47 @@ export const createSteps = (
               canJumpTo: stepIdReached >= 3,
             },
           ];
+    case ModalType.VirtualMachine:
+      return appType === DRApplication.DISCOVERED
+        ? [
+            {
+              id: 1,
+              ...vmSteps.protectionType,
+              canJumpTo: stepIdReached >= 1,
+            },
+            {
+              id: 2,
+              ...vmSteps.replication,
+              canJumpTo: stepIdReached >= 2,
+            },
+            {
+              id: 3,
+              ...commonSteps.reviewAndAssign,
+              canJumpTo: stepIdReached >= 3,
+            },
+          ]
+        : [
+            {
+              id: 1,
+              ...vmSteps.protectionType,
+              canJumpTo: stepIdReached >= 1,
+            },
+            {
+              id: 2,
+              ...commonSteps.policy,
+              canJumpTo: stepIdReached >= 2,
+            },
+            {
+              id: 3,
+              ...commonSteps.persistentVolumeClaim,
+              canJumpTo: stepIdReached >= 3,
+            },
+            {
+              id: 4,
+              ...commonSteps.reviewAndAssign,
+              canJumpTo: stepIdReached >= 4,
+            },
+          ];
     default:
       return [];
   }
@@ -121,6 +197,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
   setModalContext,
   setModalActionContext,
   dispatch,
+  modalType,
 }) => {
   const { t } = useCustomTranslation();
   const isEditMode =
@@ -134,6 +211,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
     placements: unProtectedPlacements,
     drInfo,
     pvcQueryFilter,
+    workloadNamespace,
   } = applicationInfo;
 
   const protectedPVCSelectors: PVCSelectorType[] = isEditMode
@@ -151,7 +229,13 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
 
   const onSubmit = async () => {
     // assign DRPolicy
-    const promises = assignPromises(state, applicationInfo.placements);
+    const promises = assignPromises(
+      state,
+      applicationInfo.placements,
+      appType,
+      workloadNamespace,
+      getName(applicationInfo)
+    );
     await Promise.all(promises)
       .then(() => {
         setModalActionContext(
@@ -189,6 +273,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
           dispatch,
           protectedPVCSelectors,
           pvcQueryFilter,
+          modalType,
           isEditMode
         )}
         footer={
@@ -198,7 +283,6 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
             stepIdReached={stepIdReached}
             isValidationEnabled={isValidationEnabled}
             errorMessage={errorMessage}
-            modalActionContext={modalActionContext}
             setStepIdReached={setStepIdReached}
             onSubmit={onSubmit}
             onCancel={onClose}
@@ -222,4 +306,5 @@ type AssignPolicyViewProps = {
     modalActionContext: ModalActionContext,
     modalViewContext?: ModalViewContext
   ) => void;
+  modalType: ModalType;
 };
