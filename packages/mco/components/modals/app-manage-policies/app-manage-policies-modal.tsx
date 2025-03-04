@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { VirtualMachineModel } from '@odf/mco/models';
 import { SearchResultItemType } from '@odf/mco/types';
 import { convertSearchResult } from '@odf/mco/utils';
 import { getName, getNamespace } from '@odf/shared/selectors';
@@ -28,7 +29,9 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
 
   const title =
     currentModalContext === ModalViewContext.ASSIGN_POLICY_VIEW
-      ? t('Enroll managed application')
+      ? application.kind === VirtualMachineModel.kind
+        ? t('Enroll virtual machine')
+        : t('Enroll managed application')
       : t('Manage disaster recovery');
 
   const description = (

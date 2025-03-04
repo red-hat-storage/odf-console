@@ -20,11 +20,7 @@ import {
   AlertVariant,
   AlertProps,
 } from '@patternfly/react-core';
-import {
-  AssignPolicyViewState,
-  ModalActionContext,
-  PVCSelectorType,
-} from '../utils/reducer';
+import { AssignPolicyViewState, PVCSelectorType } from '../utils/reducer';
 import { DRPolicyType } from '../utils/types';
 import '../../../../style.scss';
 import '../style.scss';
@@ -57,9 +53,15 @@ const isPVCSelectorFound = (pvcSelectors: PVCSelectorType[]) =>
 
 const isDRPolicySelected = (dataPolicy: DRPolicyType) => !!getName(dataPolicy);
 
+const isProtectionNameValid = (
+  protectionName: string,
+  appType: DRApplication
+) => appType !== DRApplication.DISCOVERED || !!protectionName;
+
 const canJumpToNextStep = (
   stepName: string,
   state: AssignPolicyViewState,
+  appType: DRApplication,
   t: TFunction
 ) => {
   switch (stepName) {
@@ -67,6 +69,11 @@ const canJumpToNextStep = (
       return isDRPolicySelected(state.policy);
     case AssignPolicyStepsNames(t)[AssignPolicySteps.PersistentVolumeClaim]:
       return isPVCSelectorFound(state.persistentVolumeClaim.pvcSelectors);
+    case AssignPolicyStepsNames(t)[AssignPolicySteps.ProtectionType]:
+      return isProtectionNameValid(
+        state.virtualMachine.protectionName,
+        appType
+      );
     default:
       return false;
   }
@@ -113,10 +120,10 @@ const getErrorMessage = (
 
 export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
   state,
+  appType,
   stepIdReached,
   isValidationEnabled,
   errorMessage,
-  modalActionContext,
   setStepIdReached,
   onSubmit,
   onCancel,
@@ -130,7 +137,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
   const stepId = activeStep.id as number;
   const stepName = activeStep.name as string;
 
-  const canJumpToNext = canJumpToNextStep(stepName, state, t);
+  const canJumpToNext = canJumpToNextStep(stepName, state, appType, t);
   const validationError = isValidationEnabled && !canJumpToNext;
   const message =
     (validationError || !!errorMessage) &&
@@ -175,15 +182,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
         <Button
           variant="secondary"
           onClick={onBack}
-          isDisabled={
-            stepName === AssignPolicyStepsNames(t)[AssignPolicySteps.Policy] ||
-            requestInProgress ||
-            (stepName ===
-              AssignPolicyStepsNames(t)[
-                AssignPolicySteps.PersistentVolumeClaim
-              ] &&
-              modalActionContext === ModalActionContext.EDIT_DR_PROTECTION)
-          }
+          isDisabled={stepId === 1 || requestInProgress}
         >
           {t('Back')}
         </Button>
@@ -217,7 +216,6 @@ type AssignPolicyViewFooterProps = {
   stepIdReached: number;
   isValidationEnabled: boolean;
   errorMessage: string;
-  modalActionContext: ModalActionContext;
   setStepIdReached: React.Dispatch<React.SetStateAction<number>>;
   onSubmit: () => Promise<void>;
   onCancel: () => void;

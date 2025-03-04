@@ -52,6 +52,18 @@ export type ApplicationType = K8sResourceCommon & {
   drInfo?: DRInfoType | {};
   // ACM search API filter to read application PVCs
   pvcQueryFilter: PVCQueryFilter;
+  // Discovered app specific
+  existingProtectionNames?: string[];
 };
 
 export type ApplicationInfoType = ApplicationType | {};
+
+export enum ModalType {
+  Application = 'Application',
+  VirtualMachine = 'VirtualMachine',
+}
+
+export enum VMProtectioType {
+  STANDALONE = 'STANDALONE',
+  SHARED = 'SHARED',
+}
