@@ -24,7 +24,6 @@ export type BackingStoreKind = K8sResourceCommon & {
 export type MCGPayload = K8sResourceCommon & {
   spec: {
     type: string;
-    ssl: boolean;
     [key: string]: any;
   };
 };
