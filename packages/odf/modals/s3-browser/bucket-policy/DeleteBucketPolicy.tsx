@@ -77,7 +77,7 @@ const DeleteBucketPolicyModal: React.FC<
       actions={[
         <ButtonBar
           inProgress={inProgress}
-          errorMessage={error?.message || error}
+          errorMessage={error?.message || JSON.stringify(error)}
         >
           <span>
             <Button

@@ -129,7 +129,7 @@ const CreateFolderModal: React.FC<CommonModalProps<CreateFolderModalProps>> = ({
       actions={[
         <ButtonBar
           inProgress={inProgress}
-          errorMessage={error?.message || error}
+          errorMessage={error?.message || JSON.stringify(error)}
         >
           <span>
             <Button
