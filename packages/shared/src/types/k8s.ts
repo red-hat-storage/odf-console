@@ -444,3 +444,8 @@ export type ClusterVersionKind = {
   spec: ClusterVersionSpec;
   status: ClusterVersionStatus;
 } & K8sResourceCommon;
+
+export type VolumeSnapshotClassKind = K8sResourceCommon & {
+  deletionPolicy: string;
+  driver: string;
+};

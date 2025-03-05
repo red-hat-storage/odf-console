@@ -175,6 +175,12 @@ export enum StorageConsumerState {
 type StorageConsumerSpec = {
   enable?: boolean;
   storageQuotaInGiB: number;
+  storageClasses: {
+    name: string;
+  }[];
+  volumeSnapshotClasses: {
+    name: string;
+  }[];
 };
 
 type CephResourcesSpec = {

@@ -2169,7 +2169,7 @@
     "@patternfly/react-charts" "7.4.8"
     "@patternfly/react-core" "5.4.8"
     "@patternfly/react-icons" "5.4.2"
-    "@patternfly/react-table" "5.4.14"
+    "@patternfly/react-table" "5.4.16"
     "@patternfly/react-tokens" "5.4.1"
     "@patternfly/react-topology" "5.4.1"
     classnames "^2.5.1"
@@ -2432,6 +2432,18 @@
     react-dropzone "^14.2.3"
     tslib "^2.7.0"
 
+"@patternfly/react-core@^5.4.14":
+  version "5.4.14"
+  resolved "https://registry.yarnpkg.com/@patternfly/react-core/-/react-core-5.4.14.tgz#d41d28c81884f6a45dc3c364dc5ae2c933c72e89"
+  integrity sha512-oXVMzLs9Pa+xmdc39L2u05zbXfY3mWuOFi4GDv44GPdDexZUFy5W69+Nv5P8cwfMim55Nf5kKYpcqmatD2bBXw==
+  dependencies:
+    "@patternfly/react-icons" "^5.4.2"
+    "@patternfly/react-styles" "^5.4.1"
+    "@patternfly/react-tokens" "^5.4.1"
+    focus-trap "7.6.2"
+    react-dropzone "^14.2.3"
+    tslib "^2.7.0"
+
 "@patternfly/react-icons@5.4.2", "@patternfly/react-icons@^5.4.2":
   version "5.4.2"
   resolved "https://registry.yarnpkg.com/@patternfly/react-icons/-/react-icons-5.4.2.tgz#8937a7167a0b3abdc3c179524f456b4cbd8f0c39"
@@ -2447,12 +2459,12 @@
   resolved "https://registry.yarnpkg.com/@patternfly/react-styles/-/react-styles-5.4.1.tgz#c101419917bcf309dfa7469820cd7320dd0c5120"
   integrity sha512-XA8PXksD8uiA3RTwxdUwJXOCf+V6sVd+2HKapWAdRLvtSV+Sdk7NgCvalb4IAQncsddLopjPQD8gAHA298+N8w==
 
-"@patternfly/react-table@5.4.14":
-  version "5.4.14"
-  resolved "https://registry.yarnpkg.com/@patternfly/react-table/-/react-table-5.4.14.tgz#9e2bd576271b2a11faf6039c32d7ad3cd61c58f3"
-  integrity sha512-F2EXhn3wURDFs5mOQQtYSQ1ltvPwN1n/5Iv2WgSehCkw9GzpcJlT7h8t+rnf59ZiWsRjhCFqUOU9l8APnM2+rA==
+"@patternfly/react-table@5.4.16":
+  version "5.4.16"
+  resolved "https://registry.yarnpkg.com/@patternfly/react-table/-/react-table-5.4.16.tgz#3197db7cf7cc3a2f721bbb8adb0fb7ca9182f5fc"
+  integrity sha512-K/xNdTvFKFyD6WhuBU/GCq/3LTrSaObdXSTmzefWWcPcN0gcf/J3ouiuapj951JIsP13CMmwJBNtEa3aHR8igg==
   dependencies:
-    "@patternfly/react-core" "^5.4.12"
+    "@patternfly/react-core" "^5.4.14"
     "@patternfly/react-icons" "^5.4.2"
     "@patternfly/react-styles" "^5.4.1"
     "@patternfly/react-tokens" "^5.4.1"
