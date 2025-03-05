@@ -1,6 +1,7 @@
 import { WizardNodeState } from '@odf/core/components/create-storage-system/reducer';
 import { NodeData, ResourceProfile } from '@odf/core/types';
 import { NamespaceModel } from '@odf/shared/models';
+import { OCS_PROVISIONERS } from '@odf/shared/storage-classes';
 import {
   DeviceSet,
   K8sResourceKind,
@@ -26,7 +27,6 @@ import {
   MINIMUM_NODES,
   ocsTaint,
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
-  OCS_PROVISIONERS,
   ZONE_LABELS,
 } from '../constants';
 

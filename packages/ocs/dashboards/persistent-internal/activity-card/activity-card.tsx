@@ -20,6 +20,7 @@ import {
   SubscriptionModel,
 } from '@odf/shared/models';
 import { getAnnotations, getName } from '@odf/shared/selectors';
+import { isCephProvisioner } from '@odf/shared/storage-classes';
 import {
   K8sResourceKind,
   PersistentVolumeClaimKind,
@@ -46,10 +47,7 @@ import {
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
 import { ODFSystemParams } from '../../../types';
-import {
-  isCephProvisioner,
-  isPersistentStorageEvent,
-} from '../../../utils/common';
+import { isPersistentStorageEvent } from '../../../utils/common';
 import {
   isClusterExpandActivity,
   ClusterExpandActivity,

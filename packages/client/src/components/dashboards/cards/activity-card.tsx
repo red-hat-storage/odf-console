@@ -6,10 +6,11 @@ import {
   pvcResource,
 } from '@odf/ocs/dashboards/persistent-internal/activity-card/activity-card';
 import { isSubscriptionUpgradeActivity } from '@odf/ocs/dashboards/persistent-internal/activity-card/ocs-upgrade-activity';
-import { isCephProvisioner, isPersistentStorageEvent } from '@odf/ocs/utils';
+import { isPersistentStorageEvent } from '@odf/ocs/utils';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { SubscriptionModel } from '@odf/shared/models';
 import { getAnnotations, getName } from '@odf/shared/selectors';
+import { isCephProvisioner } from '@odf/shared/storage-classes';
 import {
   K8sResourceKind,
   PersistentVolumeClaimKind,
