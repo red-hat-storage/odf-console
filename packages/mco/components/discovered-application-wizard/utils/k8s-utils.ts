@@ -81,7 +81,9 @@ export const getDRPCKindObj = (props: {
 });
 
 // Dummy placement for the discovered apps DRPC
-const getPlacementKindObj = (placementName: string): ACMPlacementKind => ({
+export const getPlacementKindObj = (
+  placementName: string
+): ACMPlacementKind => ({
   apiVersion: getAPIVersionForModel(ACMPlacementModel),
   kind: ACMPlacementModel.kind,
   metadata: {

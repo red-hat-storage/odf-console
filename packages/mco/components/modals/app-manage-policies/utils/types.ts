@@ -39,6 +39,8 @@ export type DRInfoType = {
   placementControlInfo?: DRPlacementControlType[];
 };
 
+export type PVCQueryFilter = { property: string; values: string[] | string }[];
+
 export type ApplicationType = K8sResourceCommon & {
   // ACM managed application types
   type: DRApplication;
@@ -48,6 +50,20 @@ export type ApplicationType = K8sResourceCommon & {
   placements: PlacementType[];
   // Disaster recovery info
   drInfo?: DRInfoType | {};
+  // ACM search API filter to read application PVCs
+  pvcQueryFilter: PVCQueryFilter;
+  // Discovered app specific
+  existingProtectionNames?: string[];
 };
 
 export type ApplicationInfoType = ApplicationType | {};
+
+export enum ModalType {
+  Application = 'Application',
+  VirtualMachine = 'VirtualMachine',
+}
+
+export enum VMProtectionMethodType {
+  STANDALONE = 'STANDALONE',
+  SHARED = 'SHARED',
+}

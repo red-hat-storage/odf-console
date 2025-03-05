@@ -1,6 +1,10 @@
-import { DRApplication } from '@odf/mco/constants';
+import { DRApplication, VM_NAME_SELECTOR } from '@odf/mco/constants';
 import {
-  ACMApplicationKind,
+  getDRClusterResourceObj,
+  getDRPlacementControlResourceObj,
+  getDRPolicyResourceObj,
+} from '@odf/mco/hooks';
+import {
   ACMPlacementType,
   DRPlacementControlKind,
   DRPolicyKind,
@@ -13,13 +17,17 @@ import {
 } from '@odf/mco/utils';
 import { getLatestDate } from '@odf/shared/details-page/datetime';
 import { arrayify } from '@odf/shared/modals/EditLabelModal';
-import { Selector } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sResourceCommon,
+  Selector,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
   ApplicationType,
   DRPlacementControlType,
   DRInfoType,
   PlacementType,
+  PVCQueryFilter,
 } from './types';
 
 const getPVCSelector = (pvcSelector: Selector): string[] => {
@@ -87,10 +95,12 @@ export const generateDRPlacementControlInfo = (
 
 export const generateApplicationInfo = (
   appType: DRApplication,
-  application: ACMApplicationKind,
+  application: K8sResourceCommon,
   workloadNamespace: string,
   plsInfo: PlacementType[],
-  drInfo: DRInfoType | {}
+  drInfo: DRInfoType | {},
+  pvcQueryFilter: PVCQueryFilter,
+  existingProtectionNames?: string[]
 ): ApplicationType => ({
   type: appType,
   apiVersion: application.apiVersion,
@@ -99,6 +109,8 @@ export const generateApplicationInfo = (
   workloadNamespace: workloadNamespace,
   placements: plsInfo,
   drInfo: drInfo,
+  pvcQueryFilter: pvcQueryFilter,
+  existingProtectionNames: existingProtectionNames,
 });
 
 export const getClusterNamesFromPlacements = (placements: PlacementType[]) =>
@@ -124,3 +136,29 @@ export const getMatchingDRPolicies = (
     }, []) || []
   );
 };
+
+export const getDRResources = (namespace: string) => ({
+  resources: {
+    drPolicies: getDRPolicyResourceObj(),
+    drClusters: getDRClusterResourceObj(),
+    drPlacementControls: getDRPlacementControlResourceObj({
+      namespace,
+    }),
+  },
+});
+
+const getVMNamesFromRecipe = (
+  spec?: DRPlacementControlKind['spec']
+): string[] =>
+  spec?.kubeObjectProtection?.recipeParameters?.[VM_NAME_SELECTOR] ?? [];
+
+export const findDRPCUsingVM = (
+  drpcs: DRPlacementControlKind[] = [],
+  vmName: string,
+  vmNamespace: string
+): DRPlacementControlKind | undefined =>
+  drpcs.find(
+    ({ spec }) =>
+      getVMNamesFromRecipe(spec).includes(vmName) &&
+      spec?.protectedNamespaces?.includes(vmNamespace)
+  );

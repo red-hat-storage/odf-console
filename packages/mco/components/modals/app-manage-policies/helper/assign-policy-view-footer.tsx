@@ -20,11 +20,7 @@ import {
   AlertVariant,
   AlertProps,
 } from '@patternfly/react-core';
-import {
-  AssignPolicyViewState,
-  ModalActionContext,
-  PVCSelectorType,
-} from '../utils/reducer';
+import { AssignPolicyViewState, PVCSelectorType } from '../utils/reducer';
 import { DRPolicyType } from '../utils/types';
 import '../../../../style.scss';
 import '../style.scss';
@@ -67,6 +63,9 @@ const canJumpToNextStep = (
       return isDRPolicySelected(state.policy);
     case AssignPolicyStepsNames(t)[AssignPolicySteps.PersistentVolumeClaim]:
       return isPVCSelectorFound(state.persistentVolumeClaim.pvcSelectors);
+    case AssignPolicyStepsNames(t)[AssignPolicySteps.Configure]:
+      // No validation needed as a radio button is always selected by default
+      return true;
     default:
       return false;
   }
@@ -116,7 +115,6 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
   stepIdReached,
   isValidationEnabled,
   errorMessage,
-  modalActionContext,
   setStepIdReached,
   onSubmit,
   onCancel,
@@ -175,15 +173,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
         <Button
           variant="secondary"
           onClick={onBack}
-          isDisabled={
-            stepName === AssignPolicyStepsNames(t)[AssignPolicySteps.Policy] ||
-            requestInProgress ||
-            (stepName ===
-              AssignPolicyStepsNames(t)[
-                AssignPolicySteps.PersistentVolumeClaim
-              ] &&
-              modalActionContext === ModalActionContext.EDIT_DR_PROTECTION)
-          }
+          isDisabled={stepId === 1 || requestInProgress}
         >
           {t('Back')}
         </Button>
@@ -217,7 +207,6 @@ type AssignPolicyViewFooterProps = {
   stepIdReached: number;
   isValidationEnabled: boolean;
   errorMessage: string;
-  modalActionContext: ModalActionContext;
   setStepIdReached: React.Dispatch<React.SetStateAction<number>>;
   onSubmit: () => Promise<void>;
   onCancel: () => void;
