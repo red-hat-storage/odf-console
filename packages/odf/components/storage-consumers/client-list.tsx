@@ -407,6 +407,16 @@ const StorageClientRow: React.FC<
                     ),
                   },
                   {
+                    key: 'DISTRIBUTE_RESOURCES',
+                    value: t('Distribute resources'),
+                    component: React.lazy(
+                      () =>
+                        import(
+                          '../../modals/ResourceDistributionModal/ResourceDistributionModal'
+                        )
+                    ),
+                  },
+                  {
                     key: ModalKeys.DELETE,
                     value: t('Delete storage client'),
                     isDisabled: !allowDeletion,

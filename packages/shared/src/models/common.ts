@@ -263,3 +263,18 @@ export const ClusterVersionModel: K8sModel = {
   id: 'clusterversion',
   crd: true,
 };
+
+export const VolumeSnapshotClassModel: K8sModel = {
+  label: 'VolumeSnapshotClass',
+  labelKey: 'VolumeSnapshotClass',
+  apiVersion: 'v1',
+  apiGroup: 'snapshot.storage.k8s.io',
+  plural: 'volumesnapshotclasses',
+  abbr: 'VSC',
+  namespaced: false,
+  kind: 'VolumeSnapshotClass',
+  id: 'volumesnapshotclass',
+  labelPlural: 'VolumeSnapshotClasses',
+  labelPluralKey: 'VolumeSnapshotClasses',
+  crd: true,
+};
