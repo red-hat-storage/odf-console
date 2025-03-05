@@ -65,6 +65,30 @@ export const queryNamespacesUsingCluster = (
   query: searchFilterQuery,
 });
 
+export const queryStorageClassesUsingCluster = (
+  clusterName: string | string[]
+): SearchQuery => ({
+  operationName: 'searchResult',
+  variables: {
+    input: [
+      {
+        filters: [
+          {
+            property: 'kind',
+            values: 'storageclass',
+          },
+          {
+            property: 'cluster',
+            values: clusterName,
+          },
+        ],
+        limit: 5000, // restricting results to a limit
+      },
+    ],
+  },
+  query: searchFilterQuery,
+});
+
 // Only some metadata information are coverted
 export const convertSearchResultToK8sResourceCommon = (
   searchResultItems: SearchResultItemType[]
