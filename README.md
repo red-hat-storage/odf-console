@@ -63,23 +63,57 @@ By default, it will look for Chrome in the system and use it, but if you want to
 
 To run NooBaa Object Browser in development mode, do the following:
 
+#### ODF plugin
+
+Port-forward the noobaa endpoint to local port 6001:
+
 ```
 oc port-forward $(oc get pods -n openshift-storage | grep noobaa-endpoint | awk '{print $1}') 6001 -n openshift-storage
 ```
 
-#### If running OCP Console as a container:
+Serve the plugin choosing how to run OCP Console:
+
+As a container:
 
 ```
-CONSOLE_VERSION=4.18 BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-console/s3/","endpoint":"http://localhost:6001"}]}' BRIDGE_PLUGINS='odf-console=http://localhost:9001' PLUGIN=odf yarn dev:c
+CONSOLE_VERSION=4.19 BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-console/s3/","endpoint":"http://localhost:6001"}]}' BRIDGE_PLUGINS='odf-console=http://localhost:9001' PLUGIN=odf I8N_NS=plugin__odf-console yarn dev:c
 ```
 
-#### If running OCP Console as a server (locally):
+Locally:
 
 ```
 ./bin/bridge -plugins odf-console=http://localhost:9001/ --plugin-proxy='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-console/s3/","endpoint":"http://localhost:6001/"}]}'
 ```
 
 To see the NooBaa S3 logs: `oc logs -f deploy/noobaa-endpoint`
+
+#### Client plugin
+
+Deploy a forward proxy:
+
+```
+oc apply -f ./plugins/client/dev/s3-forward-proxy.yaml
+```
+
+Port-forward the forward proxy to local port 6001:
+
+```
+oc port-forward $(oc get pods -n openshift-storage | grep s3-forward-proxy | awk '{print $1}') 6001:8080 -n openshift-storage
+```
+
+Serve the plugin choosing how to run OCP Console:
+
+As a container:
+
+```
+CONSOLE_VERSION=4.19 BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-client-console/s3/","endpoint":"http://localhost:6001"}]}' BRIDGE_PLUGINS='odf-client-console=http://localhost:9001' PLUGIN=client I8N_NS=plugin__odf-client-console yarn dev:c
+```
+
+Locally:
+
+```
+./bin/bridge -plugins odf-client-console=http://localhost:9001/ --plugin-proxy='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-client-console/s3/","endpoint":"http://localhost:6001/"}]}'
+```
 
 ### Debugging with VSCode
 
