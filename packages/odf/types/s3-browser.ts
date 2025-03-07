@@ -5,8 +5,11 @@ export type ObjectCrFormat = K8sResourceCommon & {
     size?: string;
     lastModified?: string;
     ownerName?: string;
+    versionId?: string;
   };
   isFolder?: boolean;
+  isDeleteMarker?: boolean;
+  isLatest?: boolean;
   type?: string;
 };
 
