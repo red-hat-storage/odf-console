@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { screen, render, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 // eslint-disable-next-line jest/no-mocks-import
 import {
   mockApplicationSet1,
@@ -235,6 +236,7 @@ describe('ApplicationSet manage disaster recovery modal', () => {
   });
 
   test('Assign policy action test', async () => {
+    const user = userEvent.setup();
     testCase = 3;
     render(
       <ApplicationSetParser
@@ -244,7 +246,7 @@ describe('ApplicationSet manage disaster recovery modal', () => {
       />
     );
     // Open assign policy wizard
-    fireEvent.click(screen.getByText('Enroll application'));
+    await user.click(screen.getByText('Enroll application'));
 
     // Step 1 - select a policy
     // Buttons
@@ -252,12 +254,12 @@ describe('ApplicationSet manage disaster recovery modal', () => {
     expect(screen.getByText('Back')).toBeDisabled();
     // Policy selector
     expect(screen.getByText('Select a policy')).toBeEnabled();
-    fireEvent.click(screen.getByText('Select a policy'));
+    await user.click(screen.getByText('Select a policy'));
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('mock-policy-1'));
+    await user.click(screen.getByText('mock-policy-1'));
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Next'));
+    await user.click(screen.getByText('Next'));
 
     // Step 2 - select a placement and labels
     // Buttons
@@ -267,21 +269,21 @@ describe('ApplicationSet manage disaster recovery modal', () => {
     screen.getByText(
       /Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information,/i
     );
-    await waitFor(() => {
-      expect(screen.getByText('Application resource')).toBeInTheDocument();
-      expect(screen.getByText('PVC label selector')).toBeInTheDocument();
-      expect(screen.getByText('Select a placement')).toBeInTheDocument();
-      expect(screen.getByText('Select labels')).toBeInTheDocument();
-    });
-    fireEvent.click(screen.getByText('Select a placement'));
+
+    expect(screen.getByText('Application resource')).toBeInTheDocument();
+    expect(screen.getByText('PVC label selector')).toBeInTheDocument();
+    expect(screen.getByText('Select a placement')).toBeInTheDocument();
+    expect(screen.getByText('Select labels')).toBeInTheDocument();
+
+    await user.click(screen.getByText('Select a placement'));
     expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('mock-placement-2'));
+    await user.click(screen.getByText('mock-placement-2'));
     expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Select labels'));
+    await user.click(screen.getByText('Select labels'));
     screen.getByText('app=mock-appset-2');
-    fireEvent.click(screen.getByText('app=mock-appset-2'));
+    await user.click(screen.getByText('app=mock-appset-2'));
     expect(screen.getByText('app=mock-appset-2')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Next'));
+    await user.click(screen.getByText('Next'));
 
     // Step 3 - review and assign
     // Buttons

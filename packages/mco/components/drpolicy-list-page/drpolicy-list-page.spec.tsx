@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { DRPolicyListPage } from './drpolicy-list-page';
 
 let testCase = 1;
@@ -71,6 +72,7 @@ describe('Test drpolicy list page', () => {
   });
 
   test('Empty page un authorized test', async () => {
+    const user = userEvent.setup();
     testCase = 2;
     render(<DRPolicyListPage />);
     expect(
@@ -81,7 +83,7 @@ describe('Test drpolicy list page', () => {
       'true'
     );
     // Tooltip content check
-    fireEvent.mouseEnter(screen.getByLabelText('Empty Page'));
+    await user.hover(screen.getByLabelText('Empty Page'));
     expect(
       await screen.findByText(
         'You are not authorized to complete this action. See your cluster administrator for role-based access control information.'

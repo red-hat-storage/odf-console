@@ -115,7 +115,9 @@ export const AzureConfigure: React.FC<KMSConfigureProps> = ({
       >
         <TextInput
           value={azureState.name.value}
-          onChange={(_event, name: string) => setServiceName(name)}
+          onChange={(_event, name: string) => {
+            setServiceName(name);
+          }}
           type="text"
           id="kms-service-name"
           name="kms-service-name"

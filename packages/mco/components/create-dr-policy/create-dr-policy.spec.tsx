@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { ConfigMapKind } from '@odf/shared';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 /* eslint-disable jest/no-mocks-import */
+import userEvent from '@testing-library/user-event';
 import { mockDRPolicy2 } from '../../__mocks__/drpolicy';
 import {
   mockManagedClusterEast1,
@@ -228,11 +229,8 @@ jest.mock('@odf/shared/hooks/use-fetch-csv', () => ({
 }));
 
 describe('Test drpolicy list page', () => {
-  beforeEach(() => {
-    render(<CreateDRPolicy />);
-  });
-
   test('Regional-DR policy creation happy path testing', async () => {
+    render(<CreateDRPolicy />);
     testcase = 1;
     // Title
     expect(screen.getByText('Create DRPolicy')).toBeInTheDocument();
@@ -249,13 +247,10 @@ describe('Test drpolicy list page', () => {
 
     // Enter policy name
     expect(screen.getByText('Policy name')).toBeInTheDocument();
-    await waitFor(() =>
-      fireEvent.change(screen.getByTestId('policy-name'), {
-        target: { value: 'policy-1' },
-      })
-    );
 
-    // Managed cluster paring
+    await userEvent.type(screen.getByTestId('policy-name'), 'policy-1');
+
+    // Managed cluster pairing
     expect(screen.getByText('Connect clusters')).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -263,9 +258,9 @@ describe('Test drpolicy list page', () => {
       )
     ).toBeInTheDocument();
 
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    await userEvent.click(screen.getByLabelText('Select row 0'));
     expect(screen.getByLabelText('Select row 0')).toBeChecked();
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 1')));
+    await userEvent.click(screen.getByLabelText('Select row 1'));
     expect(screen.getByLabelText('Select row 1')).toBeChecked();
 
     // Verify successful cluster selection
@@ -285,7 +280,7 @@ describe('Test drpolicy list page', () => {
     expect(screen.getByTestId('create-button')).toBeEnabled();
 
     // Create DRPolicy
-    await waitFor(() => fireEvent.click(screen.getByTestId('create-button')));
+    await userEvent.click(screen.getByTestId('create-button'));
 
     // Validate kube object creation
     expect(
@@ -299,30 +294,27 @@ describe('Test drpolicy list page', () => {
   });
 
   test('Metro-DR policy creation happy path testing', async () => {
+    render(<CreateDRPolicy />);
     testcase = 2;
     // Create button should be disabled
     expect(screen.getByTestId('create-button')).toBeDisabled();
 
     // Enter policy name
     expect(screen.getByText('Policy name')).toBeInTheDocument();
-    await waitFor(() =>
-      fireEvent.change(screen.getByTestId('policy-name'), {
-        target: { value: 'policy-1' },
-      })
-    );
+    await userEvent.type(screen.getByTestId('policy-name'), 'policy-1');
 
-    // Managed cluster paring
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    // Managed cluster pairing
+    await userEvent.click(screen.getByLabelText('Select row 0'));
     expect(screen.getByLabelText('Select row 0')).toBeChecked();
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 2')));
+    await userEvent.click(screen.getByLabelText('Select row 2'));
     expect(screen.getByLabelText('Select row 2')).toBeChecked();
 
     // Verify successful cluster selection
     expect(screen.getAllByText('east-1')).toHaveLength(2);
     expect(screen.getAllByText('east-2')).toHaveLength(2);
     expect(
-      screen.getAllByText('ocs-storagecluster-storagesystem').length === 2
-    ).toBeTruthy();
+      screen.getAllByText('ocs-storagecluster-storagesystem')
+    ).toHaveLength(2);
     expect(screen.getByText('Synchronous')).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -334,7 +326,7 @@ describe('Test drpolicy list page', () => {
     expect(screen.getByTestId('create-button')).toBeEnabled();
 
     // Create DRPolicy
-    await waitFor(() => fireEvent.click(screen.getByTestId('create-button')));
+    await userEvent.click(screen.getByTestId('create-button'));
 
     // Validate kube object creation
     expect(
@@ -348,11 +340,12 @@ describe('Test drpolicy list page', () => {
   });
 
   test('Managed cluster down check', async () => {
+    render(<CreateDRPolicy />);
     testcase = 3;
     // Managed cluster paring
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    await userEvent.click(screen.getByLabelText('Select row 0'));
     expect(screen.getByLabelText('Select row 0')).toBeChecked();
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 3')));
+    await userEvent.click(screen.getByLabelText('Select row 3'));
     expect(screen.getByLabelText('Select row 3')).toBeChecked();
     expect(screen.getByText('Offline')).toBeInTheDocument();
     expect(
@@ -377,11 +370,12 @@ describe('Test drpolicy list page', () => {
   });
 
   test('More than two cluster selection', async () => {
+    render(<CreateDRPolicy />);
     testcase = 4;
     // Managed cluster paring
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    await userEvent.click(screen.getByLabelText('Select row 0'));
     expect(screen.getByLabelText('Select row 0')).toBeChecked();
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 1')));
+    await userEvent.click(screen.getByLabelText('Select row 1'));
     expect(screen.getByLabelText('Select row 1')).toBeChecked();
 
     // Rest of row selections should be disabled
@@ -390,12 +384,13 @@ describe('Test drpolicy list page', () => {
   });
 
   test('MDR single policy check', async () => {
+    render(<CreateDRPolicy />);
     testcase = 5;
     syncPolicyTest = true;
     // Managed cluster paring
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    await userEvent.click(screen.getByLabelText('Select row 0'));
     expect(screen.getByLabelText('Select row 0')).toBeChecked();
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 2')));
+    await userEvent.click(screen.getByLabelText('Select row 2'));
     expect(screen.getByLabelText('Select row 2')).toBeChecked();
     expect(
       screen.getByText('Selected clusters cannot be used to create a DRPolicy.')
@@ -410,12 +405,13 @@ describe('Test drpolicy list page', () => {
   });
 
   test('Unsupported ODF version check', async () => {
+    render(<CreateDRPolicy />);
     testcase = 6;
     syncPolicyTest = true;
     // Managed cluster paring
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 0')));
+    await userEvent.click(screen.getByLabelText('Select row 0'));
     expect(screen.getByLabelText('Select row 0')).toBeChecked();
-    await waitFor(() => fireEvent.click(screen.getByLabelText('Select row 1')));
+    await userEvent.click(screen.getByLabelText('Select row 1'));
     expect(screen.getByLabelText('Select row 1')).toBeChecked();
     expect(
       screen.getByText(

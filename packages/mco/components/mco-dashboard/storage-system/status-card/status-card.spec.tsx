@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { STATUS_QUERIES, StorageDashboard } from '../../queries';
 import { StatusCard } from './status-card';
 
@@ -230,110 +231,107 @@ jest.mock('@openshift-console/dynamic-plugin-sdk-internal', () => ({
 
 describe('Test ODF cluster status from different clusters and namespaces', () => {
   test('All healthy case testing', async () => {
+    const user = userEvent.setup();
     testCaseId = 1;
     render(<StatusCard />);
     // Title
     expect(screen.getByText('Status')).toBeInTheDocument();
-    expect(screen.getAllByText('Healthy').length === 2).toBeTruthy();
+    expect(screen.getAllByText('Healthy')).toHaveLength(2);
 
     // Operator health
     expect(screen.getByText('Data Foundation')).toBeInTheDocument();
-    await waitFor(() => {
-      fireEvent.click(screen.getByText('Data Foundation'));
-      // Popover
-      expect(screen.getByText('Data Foundation status')).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          'The Data Foundation operator is the primary operator of Data Foundation'
-        )
-      ).toBeInTheDocument();
-      expect(screen.getByText('Operator status')).toBeInTheDocument();
-      expect(screen.getByText('Running')).toBeInTheDocument();
-      expect(screen.getByText('Degraded')).toBeInTheDocument();
-      // Running operator count
-      expect(screen.getByText('2')).toBeInTheDocument();
-      // Degraded operator count
-      expect(screen.getByText('0')).toBeInTheDocument();
+    await user.click(screen.getByText('Data Foundation'));
+    // Popover
+    expect(screen.getByText('Data Foundation status')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The Data Foundation operator is the primary operator of Data Foundation'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Operator status')).toBeInTheDocument();
+    expect(screen.getByText('Running')).toBeInTheDocument();
+    expect(screen.getByText('Degraded')).toBeInTheDocument();
+    // Running operator count
+    expect(screen.getByText('2')).toBeInTheDocument();
+    // Degraded operator count
+    expect(screen.getByText('0')).toBeInTheDocument();
 
-      // Close popover
-      fireEvent.click(screen.getByLabelText('Close'));
-    });
+    // Close popover
+    await user.click(screen.getByLabelText('Close'));
 
     expect(screen.getByText('Systems')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Systems'));
+    await user.click(screen.getByText('Systems'));
     // Storage system health
+    // Popover
+    expect(screen.getByText('Storage System status')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'StorageSystem is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Storage System (2)')).toBeInTheDocument();
+    //  Operator status
+    expect(screen.getAllByText('Warning')).toHaveLength(2);
+    expect(screen.getByText('Critical')).toBeInTheDocument();
     await waitFor(() => {
-      // Popover
-      expect(screen.getByText('Storage System status')).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          'StorageSystem is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
-        )
-      ).toBeInTheDocument();
-      expect(screen.getByText('Storage System (2)')).toBeInTheDocument();
-      //  Operator status
-      expect(screen.getAllByText('Warning').length === 2).toBeTruthy();
-      expect(screen.getByText('Critical')).toBeInTheDocument();
       expect(screen.getByText('Error')).toBeInTheDocument();
-      expect(screen.getByText('Critical')).toBeInTheDocument();
-      expect(screen.getAllByText('Healthy').length === 3).toBeTruthy();
-      expect(screen.getByText('Normal')).toBeInTheDocument();
-      expect(screen.getAllByText(`(0)`).length === 2).toBeTruthy();
-      expect(screen.getByText(`(2)`)).toBeInTheDocument();
     });
+    expect(screen.getByText('Critical')).toBeInTheDocument();
+    expect(screen.getAllByText('Healthy')).toHaveLength(3);
+    expect(screen.getByText('Normal')).toBeInTheDocument();
+    expect(screen.getAllByText(`(0)`)).toHaveLength(2);
+    expect(screen.getByText(`(2)`)).toBeInTheDocument();
   });
 
   test('Partially healthy case testing', async () => {
+    const user = userEvent.setup();
     testCaseId = 2;
     render(<StatusCard />);
     // Title
     expect(screen.getByText('Status')).toBeInTheDocument();
     expect(screen.getByText('Error')).toBeInTheDocument();
     expect(screen.getByText('Warning')).toBeInTheDocument();
-    expect(screen.getAllByText('Degraded').length === 2).toBeTruthy();
+    expect(screen.getAllByText('Degraded')).toHaveLength(2);
 
     // Operator health
     expect(screen.getByText('Data Foundation')).toBeInTheDocument();
-    await waitFor(() => {
-      fireEvent.click(screen.getByText('Data Foundation'));
-      // Popover
-      expect(screen.getByText('Data Foundation status')).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          'The Data Foundation operator is the primary operator of Data Foundation'
-        )
-      ).toBeInTheDocument();
-      expect(screen.getByText('Operator status')).toBeInTheDocument();
-      expect(screen.getByText('Running')).toBeInTheDocument();
-      expect(screen.getAllByText('Degraded').length === 3).toBeTruthy();
-      // Running and degraded operator count
-      expect(screen.getAllByText('1').length === 2).toBeTruthy();
+    await user.click(screen.getByText('Data Foundation'));
+    // Popover
+    expect(screen.getByText('Data Foundation status')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The Data Foundation operator is the primary operator of Data Foundation'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Operator status')).toBeInTheDocument();
+    expect(screen.getByText('Running')).toBeInTheDocument();
+    expect(screen.getAllByText('Degraded')).toHaveLength(3);
+    // Running and degraded operator count
+    expect(screen.getAllByText('1')).toHaveLength(2);
 
-      // Close popover
-      fireEvent.click(screen.getByLabelText('Close'));
-    });
+    // Close popover
+    await user.click(screen.getByLabelText('Close'));
 
     expect(screen.getByText('Systems')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Systems'));
+    await user.click(screen.getByText('Systems'));
     // Storage system health
+    // Popover
+    expect(screen.getByText('Storage System status')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'StorageSystem is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Storage System (2)')).toBeInTheDocument();
+    //  Operator status
+    expect(screen.getAllByText('Warning')).toHaveLength(3);
+    expect(screen.getByText('Critical')).toBeInTheDocument();
     await waitFor(() => {
-      // Popover
-      expect(screen.getByText('Storage System status')).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          'StorageSystem is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
-        )
-      ).toBeInTheDocument();
-      expect(screen.getByText('Storage System (2)')).toBeInTheDocument();
-      //  Operator status
-      expect(screen.getAllByText('Warning').length === 3).toBeTruthy();
-      expect(screen.getByText('Critical')).toBeInTheDocument();
-      expect(screen.getAllByText('Error').length === 2).toBeTruthy();
-      expect(screen.getByText('Critical')).toBeInTheDocument();
-      expect(screen.getByText('Healthy')).toBeInTheDocument();
-      expect(screen.getByText('Normal')).toBeInTheDocument();
-      expect(screen.getAllByText(`(1)`).length === 2).toBeTruthy();
-      expect(screen.getByText(`(0)`)).toBeInTheDocument();
+      expect(screen.getAllByText('Error')).toHaveLength(2);
     });
+    expect(screen.getAllByText('Healthy')).toHaveLength(1);
+    expect(screen.getByText('Normal')).toBeInTheDocument();
+    expect(screen.getAllByText(`(1)`)).toHaveLength(2);
+    expect(screen.getByText(`(0)`)).toBeInTheDocument();
   });
 });

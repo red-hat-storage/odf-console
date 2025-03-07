@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import ManagedApplicationsModal from './managed-applications-modal';
 
 const closeModal = jest.fn(() => null);
@@ -40,9 +41,10 @@ describe('Test managed applications modal (ManagedApplicationsModal)', () => {
   });
 
   it('Modal buttons working as expected', async () => {
+    const user = userEvent.setup();
     render(<ManagedApplicationsModal isOpen={true} closeModal={closeModal} />);
 
-    fireEvent.click(screen.getByText('Continue to Applications page'));
+    await user.click(screen.getByText('Continue to Applications page'));
     expect(closeModal).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenCalledTimes(1);
   });

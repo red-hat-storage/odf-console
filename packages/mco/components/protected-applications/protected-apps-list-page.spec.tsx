@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { useScheduler } from '../../../shared/src/hooks';
 import { DR_BASE_ROUTE } from '../../constants';
 import { DRPolicyModel, DRPlacementControlModel } from '../../models/ramen';
@@ -153,7 +154,11 @@ const ignoreErrors = () => {
 let consoleSpy: jest.SpyInstance;
 
 describe('Test protected applications list page table (ProtectedApplicationsListPage)', () => {
-  beforeEach(() => resetGlobals());
+  let user;
+  beforeEach(() => {
+    user = userEvent.setup();
+    resetGlobals();
+  });
   afterEach(() => jest.clearAllMocks());
   beforeAll(() => ignoreErrors());
   afterAll(() => consoleSpy.mockRestore());
@@ -207,12 +212,12 @@ describe('Test protected applications list page table (ProtectedApplicationsList
     // Enroll application dropdown
     expect(screen.getByText(buttonTitle)).toBeInTheDocument();
     // Toggle dropdown (open)
-    fireEvent.click(screen.getByText(buttonTitle));
+    await user.click(screen.getByText(buttonTitle));
     // Dropdown items
     expect(screen.getByText(discoveredApps)).toBeInTheDocument();
     expect(screen.getByText(managedApps)).toBeInTheDocument();
     // Toggle dropdown (close)
-    fireEvent.click(screen.getByText(buttonTitle));
+    await user.click(screen.getByText(buttonTitle));
     expect(() => screen.getByText(discoveredApps)).toThrow(unableToFindError);
     expect(() => screen.getByText(managedApps)).toThrow(unableToFindError);
 
@@ -223,7 +228,11 @@ describe('Test protected applications list page table (ProtectedApplicationsList
 });
 
 describe('Test protected applications list page table row (ProtectedAppsTableRow)', () => {
-  beforeEach(() => resetGlobals());
+  let user;
+  beforeEach(() => {
+    user = userEvent.setup();
+    resetGlobals();
+  });
   afterEach(() => jest.clearAllMocks());
   beforeAll(() => ignoreErrors());
   afterAll(() => consoleSpy.mockRestore());
@@ -297,15 +306,15 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     const relocate = 'Relocate';
     const kebabButton = screen.getByRole('button', { name: /Kebab toggle/i });
     // Open action (kebab) menu
-    fireEvent.click(kebabButton);
-    expect(screen.getByText(editConfig)).toBeInTheDocument();
-    expect(screen.getByText(failover)).toBeInTheDocument();
-    expect(screen.getByText(relocate)).toBeInTheDocument();
+    await user.click(kebabButton);
+    expect(screen.getByText(editConfig)).toBeVisible();
+    expect(screen.getByText(failover)).toBeVisible();
+    expect(screen.getByText(relocate)).toBeVisible();
     // Close action (kebab) menu
-    fireEvent.click(kebabButton);
-    expect(() => screen.getByText(editConfig)).toThrow(unableToFindError);
-    expect(() => screen.getByText(failover)).toThrow(unableToFindError);
-    expect(() => screen.getByText(relocate)).toThrow(unableToFindError);
+    await user.click(kebabButton);
+    expect(screen.getByText(editConfig)).not.toBeVisible();
+    expect(screen.getByText(failover)).not.toBeVisible();
+    expect(screen.getByText(relocate)).not.toBeVisible();
   });
 
   it('"FailingOver DRPC" table row contains all required columns', async () => {
@@ -348,21 +357,21 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
       `[id=${ExpandableComponentType.STATUS}]`
     ) as HTMLElement;
     // Click namespace details
-    fireEvent.click(namespaceElement);
+    await user.click(namespaceElement);
     expect(screen.getByText(namespaces[0])).toBeInTheDocument();
     expect(screen.getByText(namespaces[1])).toBeInTheDocument();
     expect(screen.getByText(namespaces[2])).toBeInTheDocument();
     expect(screen.getByText(namespaces[3])).toBeInTheDocument();
     // Click activity details
-    fireEvent.click(eventsElement);
+    await user.click(eventsElement);
     expect(screen.getByText('Activity description')).toBeInTheDocument();
     // Click status details
-    fireEvent.click(statusElement);
+    await user.click(statusElement);
     expect(screen.getByText(syncType)).toBeInTheDocument();
     expect(screen.getByText(syncStatus)).toBeInTheDocument();
     expect(screen.getByText(lastSyncedOn)).toBeInTheDocument();
     // Click status details again
-    fireEvent.click(statusElement);
+    await user.click(statusElement);
     expect(() => screen.getByText(syncType)).toThrow(unableToFindError);
     expect(() => screen.getByText(syncStatus)).toThrow(unableToFindError);
     expect(() => screen.getByText(lastSyncedOn)).toThrow(unableToFindError);
