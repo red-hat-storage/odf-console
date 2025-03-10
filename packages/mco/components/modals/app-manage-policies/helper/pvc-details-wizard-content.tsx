@@ -35,14 +35,13 @@ import {
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
 import { queryAppWorkloadPVCs } from '../../../../utils/acm-search-queries';
-import { getClusterNamesFromPlacements } from '../utils/parser-utils';
 import {
   ManagePolicyStateAction,
   ManagePolicyStateType,
   ModalViewContext,
   PVCSelectorType,
 } from '../utils/reducer';
-import { PlacementType } from '../utils/types';
+import { PlacementType, PVCQueryFilter } from '../utils/types';
 import {
   getLabelValidationMessage,
   isValidLabelInput,
@@ -61,14 +60,17 @@ const getPlacementTags = (pvcSelectors: PVCSelectorType[]): TagsType =>
 
 const getLabelsFromSearchResult = (searchResult: SearchResult): string[] => {
   const pvcLabels =
-    searchResult?.data.searchResult?.[0]?.items.reduce((acc, item) => {
-      const labels: string[] = item[LABEL]?.split(LABELS_SPLIT_CHAR) || [];
-      const filteredLabels = labels?.filter((label) => {
-        const [key] = label.split(LABEL_SPLIT_CHAR);
-        return !DR_BLOCK_LISTED_LABELS.includes(key);
-      });
-      return [...acc, ...filteredLabels];
-    }, []) || [];
+    searchResult?.data.searchResult?.[0]?.related?.[0]?.items?.reduce(
+      (acc, item) => {
+        const labels: string[] = item[LABEL]?.split(LABELS_SPLIT_CHAR) || [];
+        const filteredLabels = labels?.filter((label) => {
+          const [key] = label.split(LABEL_SPLIT_CHAR);
+          return !DR_BLOCK_LISTED_LABELS.includes(key);
+        });
+        return [...acc, ...filteredLabels];
+      },
+      []
+    ) || [];
   return Array.from(new Set(pvcLabels));
 };
 
@@ -250,10 +252,10 @@ export const PVCDetailsWizardContent: React.FC<
 > = ({
   pvcSelectors,
   unProtectedPlacements,
-  workloadNamespace,
   isValidationEnabled,
   protectedPVCSelectors,
   dispatch,
+  pvcQueryFilter,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -270,12 +272,8 @@ export const PVCDetailsWizardContent: React.FC<
 
   // ACM search proxy api call
   const searchQuery = React.useMemo(
-    () =>
-      queryAppWorkloadPVCs(
-        workloadNamespace,
-        getClusterNamesFromPlacements(unProtectedPlacements)
-      ),
-    [unProtectedPlacements, workloadNamespace]
+    () => queryAppWorkloadPVCs(pvcQueryFilter),
+    [pvcQueryFilter]
   );
   const [searchResult, error, loaded] = useACMSafeFetch(searchQuery);
 
@@ -355,8 +353,8 @@ type ExtraProps = {
 type PVCDetailsWizardContentProps = {
   pvcSelectors: PVCSelectorType[];
   unProtectedPlacements: PlacementType[];
-  workloadNamespace: string;
   isValidationEnabled: boolean;
   dispatch: React.Dispatch<ManagePolicyStateAction>;
   protectedPVCSelectors: PVCSelectorType[];
+  pvcQueryFilter: PVCQueryFilter;
 };

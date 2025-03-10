@@ -5,9 +5,20 @@ import {
   DRPolicyModel,
 } from '@odf/mco//models';
 import {
+  getDRPCKindObj as getDiscoveredDRPCKindObj,
+  getPlacementKindObj,
+} from '@odf/mco/components/discovered-application-wizard/utils/k8s-utils';
+import { ProtectionMethodType } from '@odf/mco/components/discovered-application-wizard/utils/reducer';
+import {
+  DISCOVERED_APP_NS,
   DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH,
   DR_SECHEDULER_NAME,
+  DRApplication,
+  K8S_RESOURCE_SELECTOR,
   PROTECTED_APP_ANNOTATION_WO_SLASH,
+  PVC_RESOURCE_SELECTOR,
+  PROTECTED_VMS,
+  VM_RECIPE_NAME,
 } from '@odf/mco/constants';
 import { DRPlacementControlKind } from '@odf/mco/types';
 import { convertLabelToExpression, matchClusters } from '@odf/mco/utils';
@@ -28,7 +39,7 @@ import * as _ from 'lodash-es';
 import { AssignPolicyViewState } from './reducer';
 import { DRPlacementControlType, PlacementType } from './types';
 
-export const getDRPCKindObj = (
+export const getManagedDRPCKindObj = (
   plsName: string,
   plsNamespace: string,
   plsKind: string,
@@ -161,7 +172,7 @@ const placementRuleAssignPromise = (placement: PlacementType) => {
 const getPlacement = (placementName: string, placements: PlacementType[]) =>
   placements.find((placement) => getName(placement) === placementName);
 
-export const assignPromises = (
+export const assignPromisesForManaged = (
   state: AssignPolicyViewState,
   placements: PlacementType[]
 ) => {
@@ -179,7 +190,7 @@ export const assignPromises = (
     promises.push(
       k8sCreate({
         model: DRPlacementControlModel,
-        data: getDRPCKindObj(
+        data: getManagedDRPCKindObj(
           getName(placement),
           getNamespace(placement),
           placement.kind,
@@ -195,3 +206,53 @@ export const assignPromises = (
 
   return promises;
 };
+
+export const assignPromisesForDiscovered = (
+  state: AssignPolicyViewState,
+  placements: PlacementType[],
+  vmNamespace: string,
+  vmName: string
+): Promise<K8sResourceKind>[] => {
+  const { virtualMachine, policy } = state;
+  const { protectionName } = virtualMachine;
+
+  const placementName = `${protectionName}-drpc-placement-1`;
+
+  return [
+    k8sCreate({
+      model: ACMPlacementModel,
+      data: getPlacementKindObj(placementName),
+    }),
+    k8sCreate({
+      model: DRPlacementControlModel,
+      data: getDiscoveredDRPCKindObj({
+        name: `${protectionName}-drpc`,
+        preferredCluster: placements[0].deploymentClusters[0],
+        namespaces: [vmNamespace],
+        protectionMethod: ProtectionMethodType.RECIPE,
+        recipeName: VM_RECIPE_NAME,
+        recipeNamespace: DISCOVERED_APP_NS,
+        drPolicyName: getName(policy),
+        k8sResourceReplicationInterval: '5m', // TODO: Need UX change for custom interval
+        placementName,
+        pvcLabelExpressions: [],
+        recipeParameters: {
+          [K8S_RESOURCE_SELECTOR]: [protectionName],
+          [PVC_RESOURCE_SELECTOR]: [protectionName],
+          [PROTECTED_VMS]: [vmName],
+        },
+      }),
+    }),
+  ];
+};
+
+export const assignPromises = (
+  state: AssignPolicyViewState,
+  placements: PlacementType[],
+  appType: DRApplication,
+  vmNamespace?: string,
+  vmName?: string
+): Promise<K8sResourceKind>[] =>
+  appType === DRApplication.DISCOVERED
+    ? assignPromisesForDiscovered(state, placements, vmNamespace, vmName)
+    : assignPromisesForManaged(state, placements);
