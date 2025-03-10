@@ -75,3 +75,9 @@ export class IncompleteDataError extends CustomError {
 }
 
 export class RetryError extends CustomError {}
+
+export class NotFoundError extends HttpError {
+  public constructor(message?: string) {
+    super(message || HttpError.messages[404], 404);
+  }
+}

@@ -202,3 +202,13 @@ export const deepSortObject = <T>(obj: T): T => {
   }
   return obj;
 };
+
+export function getGroupFromApiVersion(apiVersion: string) {
+  if (apiVersion.indexOf('/') >= 0) {
+    return {
+      apiGroup: apiVersion.split('/')[0],
+      version: apiVersion.split('/')[1],
+    };
+  }
+  return { apiGroup: '', version: apiVersion };
+}

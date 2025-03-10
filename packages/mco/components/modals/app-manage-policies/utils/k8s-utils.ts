@@ -20,11 +20,17 @@ import {
   PVC_RESOURCE_SELECTOR,
   PROTECTED_VMS,
   VM_RECIPE_NAME,
-  VM_NAMESPACE,
   ODF_RESOURCE_TYPE_LABEL,
+  K8S_RESOURCE_SELECTOR_LABEL_KEY,
 } from '@odf/mco/constants';
-import { DRPlacementControlKind } from '@odf/mco/types';
+import {
+  DRPlacementControlKind,
+  ManagedClusterActionType,
+} from '@odf/mco/types';
 import { convertLabelToExpression, matchClusters } from '@odf/mco/utils';
+import { fireManagedClusterAction } from '@odf/mco/utils/managed-cluster-action';
+import { fireManagedClusterView } from '@odf/mco/utils/managed-cluster-view';
+import { PersistentVolumeClaimModel } from '@odf/shared';
 import {
   getAPIVersion,
   getAnnotations,
@@ -39,6 +45,7 @@ import {
   k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import { AssignPolicyViewState } from './reducer';
 import { DRPlacementControlType, PlacementType } from './types';
 
@@ -178,7 +185,7 @@ const getPlacement = (placementName: string, placements: PlacementType[]) =>
 export const assignPromisesForManaged = (
   state: AssignPolicyViewState,
   placements: PlacementType[]
-) => {
+): Promise<K8sResourceKind>[] => {
   const { policy, persistentVolumeClaim } = state;
   const { pvcSelectors } = persistentVolumeClaim;
   const promises: Promise<K8sResourceKind>[] = [];
@@ -210,57 +217,166 @@ export const assignPromisesForManaged = (
   return promises;
 };
 
+export const updateVMLabels = (
+  vmName: string,
+  vmNamespace: string,
+  protectionName: string,
+  clusterName: string,
+  t: TFunction
+): Promise<K8sResourceKind> => {
+  // Fetch VM details
+  return fireManagedClusterView(
+    vmName,
+    vmNamespace,
+    VirtualMachineModel.kind,
+    VirtualMachineModel.apiVersion,
+    VirtualMachineModel.apiGroup,
+    clusterName,
+    t
+  ).then((mcvResponse) => {
+    // Update labels
+    mcvResponse.result.metadata.labels ||= {}; // Ensure labels exist
+    mcvResponse.result.metadata.labels[K8S_RESOURCE_SELECTOR_LABEL_KEY] =
+      protectionName;
+
+    // Apply the updated labels
+    return fireManagedClusterAction(
+      ManagedClusterActionType.UPDATE,
+      clusterName,
+      VirtualMachineModel.kind,
+      getAPIVersionForModel(VirtualMachineModel),
+      vmName,
+      vmNamespace,
+      mcvResponse.result,
+      t
+    ).then((mcaResponse) => mcaResponse.result); // Return updated VM object);
+  });
+};
+
+export const updatePVCLabels = (
+  pvcNames: string[],
+  pvcNamespace: string,
+  protectionName: string,
+  clusterName: string,
+  t: TFunction
+): Promise<K8sResourceKind>[] => {
+  // Fetch VM details
+  const updatePromises = pvcNames.map((pvcName) =>
+    fireManagedClusterView(
+      pvcName,
+      pvcNamespace,
+      PersistentVolumeClaimModel.kind,
+      PersistentVolumeClaimModel.apiVersion,
+      PersistentVolumeClaimModel.apiGroup,
+      clusterName,
+      t
+    ).then((mcvResponse) => {
+      // Update labels
+      mcvResponse.result.metadata.labels ||= {}; // Ensure labels exist
+      mcvResponse.result.metadata.labels[K8S_RESOURCE_SELECTOR_LABEL_KEY] =
+        protectionName;
+
+      // Apply the updated labels
+      return fireManagedClusterAction(
+        ManagedClusterActionType.UPDATE,
+        clusterName,
+        PersistentVolumeClaimModel.kind,
+        getAPIVersionForModel(PersistentVolumeClaimModel),
+        pvcName,
+        pvcNamespace,
+        mcvResponse.result,
+        t
+      ).then(
+        (mcaResponse) => mcaResponse.result // Return updated PVC object
+      );
+    })
+  );
+
+  return [...updatePromises];
+};
+
 export const assignPromisesForDiscovered = (
   state: AssignPolicyViewState,
   placements: PlacementType[],
   vmNamespace: string,
-  vmName: string
+  vmName: string,
+  t: TFunction
 ): Promise<K8sResourceKind>[] => {
+  const promises: Promise<K8sResourceKind>[] = [];
   const {
     protectionType: { protectionName },
-    replication: { k8sSyncInterval, policy },
+    replication: { k8sSyncInterval, policy, vmPVCS },
   } = state;
-  const placementName = `${protectionName}-drpc-placement-1`;
 
-  return [
-    k8sCreate({
-      model: ACMPlacementModel,
-      data: getPlacementKindObj(placementName),
-    }),
-    k8sCreate({
-      model: DRPlacementControlModel,
-      data: getDiscoveredDRPCKindObj({
-        name: `${protectionName}-drpc`,
-        preferredCluster: placements[0].deploymentClusters[0],
-        namespaces: [vmNamespace],
-        protectionMethod: ProtectionMethodType.RECIPE,
-        recipeName: VM_RECIPE_NAME,
-        recipeNamespace: DISCOVERED_APP_NS,
-        drPolicyName: getName(policy),
-        k8sResourceReplicationInterval: k8sSyncInterval,
-        placementName,
-        pvcLabelExpressions: [],
-        recipeParameters: {
-          [K8S_RESOURCE_SELECTOR]: [protectionName],
-          [PVC_RESOURCE_SELECTOR]: [protectionName],
-          [PROTECTED_VMS]: [vmName],
-          [VM_NAMESPACE]: [vmNamespace],
-        },
-        labels: {
-          [ODF_RESOURCE_TYPE_LABEL]: VirtualMachineModel.kind.toLowerCase(),
-        },
-      }),
-    }),
-  ];
+  const placementName = `${protectionName}-placement-1`;
+  const clusterName = placements[0]?.deploymentClusters?.[0];
+
+  // Step 1: Label the VM
+  promises.push(
+    updateVMLabels(vmName, vmNamespace, protectionName, clusterName, t)
+  );
+
+  // Step 2: Label all PVCs
+  promises.push(
+    ...updatePVCLabels(vmPVCS, vmNamespace, protectionName, clusterName, t)
+  );
+
+  Promise.all(promises)
+    .then(() => {
+      // Step 3: Create DRPC only after labeling is successful
+      promises.push(
+        ...[
+          k8sCreate({
+            model: ACMPlacementModel,
+            data: getPlacementKindObj(placementName),
+          }),
+          k8sCreate({
+            model: DRPlacementControlModel,
+            data: getDiscoveredDRPCKindObj({
+              name: `${protectionName}-drpc`,
+              preferredCluster: clusterName,
+              namespaces: [vmNamespace],
+              protectionMethod: ProtectionMethodType.RECIPE,
+              recipeName: VM_RECIPE_NAME,
+              recipeNamespace: DISCOVERED_APP_NS,
+              drPolicyName: getName(policy),
+              k8sResourceReplicationInterval: k8sSyncInterval,
+              placementName,
+              pvcLabelExpressions: [],
+              recipeParameters: {
+                [K8S_RESOURCE_SELECTOR]: [protectionName],
+                [PVC_RESOURCE_SELECTOR]: [protectionName],
+                [PROTECTED_VMS]: [vmName],
+              },
+              labels: {
+                [ODF_RESOURCE_TYPE_LABEL]:
+                  VirtualMachineModel.kind.toLowerCase(),
+              },
+            }),
+          }),
+        ]
+      );
+    })
+    /* eslint-disable @typescript-eslint/no-empty-function */
+    .catch((_error) => {}); // Promise error will be handled by on onSubmit using promises
+
+  return promises;
 };
 
 export const assignPromises = (
   state: AssignPolicyViewState,
   placements: PlacementType[],
   appType: DRApplication,
-  vmNamespace?: string,
-  vmName?: string
+  workloadNamespace: string,
+  appName: string,
+  t: TFunction
 ): Promise<K8sResourceKind>[] =>
   appType === DRApplication.DISCOVERED
-    ? assignPromisesForDiscovered(state, placements, vmNamespace, vmName)
+    ? assignPromisesForDiscovered(
+        state,
+        placements,
+        workloadNamespace,
+        appName,
+        t
+      )
     : assignPromisesForManaged(state, placements);

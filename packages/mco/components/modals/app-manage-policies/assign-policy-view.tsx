@@ -105,6 +105,7 @@ export const createSteps = (
           policy={state.replication.policy}
           k8sResourceSyncInterval={state.replication.k8sSyncInterval}
           isValidationEnabled={isValidationEnabled}
+          pvcQueryFilter={pvcQueryFilter}
           dispatch={dispatch}
         />
       ),
@@ -234,7 +235,8 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
       applicationInfo.placements,
       appType,
       workloadNamespace,
-      getName(applicationInfo)
+      getName(applicationInfo),
+      t
     );
     await Promise.all(promises)
       .then(() => {

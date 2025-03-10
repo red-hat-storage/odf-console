@@ -3,6 +3,9 @@ import {
   PolicyInfo,
   ReplicationSelectionHelper,
 } from '@odf/mco/components/discovered-application-wizard/wizard-steps/replication-step/replication-selection-helper';
+import { useACMSafeFetch } from '@odf/mco/hooks';
+import { queryAppWorkloadPVCs } from '@odf/mco/utils';
+import { StatusBox } from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
 import {
@@ -10,7 +13,7 @@ import {
   ManagePolicyStateType,
   ModalViewContext,
 } from '../utils/reducer';
-import { DRPolicyType } from '../utils/types';
+import { DRPolicyType, PVCQueryFilter } from '../utils/types';
 import { findPolicy } from './select-policy-wizard-content';
 
 // Convert DRPolicyType to PolicyInfo
@@ -31,8 +34,32 @@ export const ReplicationTypeWizardContent: React.FC<
   k8sResourceSyncInterval,
   matchingPolicies,
   isValidationEnabled,
+  pvcQueryFilter,
   dispatch,
 }) => {
+  // TODO: Temporary place for the PVC search API in Discovered apps
+  // ACM search proxy API call
+  const searchQuery = React.useMemo(
+    () => queryAppWorkloadPVCs(pvcQueryFilter),
+    [pvcQueryFilter]
+  );
+  const [searchResult, searchLoadError, searchLoaded] =
+    useACMSafeFetch(searchQuery);
+
+  // VM Persistent Volume Claims (PVCs)
+  React.useEffect(() => {
+    if (searchLoaded && !searchLoadError) {
+      dispatch({
+        type: ManagePolicyStateType.SET_VM_PVCS,
+        context: ModalViewContext.ASSIGN_POLICY_VIEW,
+        payload:
+          searchResult?.data?.searchResult?.[0]?.related?.[0]?.items?.map(
+            (vm) => vm.name
+          ) || [],
+      });
+    }
+  }, [searchResult, searchLoadError, searchLoaded, dispatch]);
+
   // Convert all policies to PolicyInfoBase before filtering
   const convertedPolicies = matchingPolicies.map(convertToPolicyInfo);
 
@@ -52,7 +79,7 @@ export const ReplicationTypeWizardContent: React.FC<
     });
   };
 
-  return (
+  return searchLoaded && !searchLoadError ? (
     <ReplicationSelectionHelper
       policy={convertToPolicyInfo(policy)}
       eligiblePolicies={convertedPolicies}
@@ -61,6 +88,8 @@ export const ReplicationTypeWizardContent: React.FC<
       onK8sSyncIntervalChange={setK8sSyncInterval}
       onPolicyChange={setSelectedPolicy}
     />
+  ) : (
+    <StatusBox loaded={searchLoaded} loadError={searchLoadError} />
   );
 };
 
@@ -69,5 +98,6 @@ type ReplicationTypeWizardContentProps = {
   k8sResourceSyncInterval: string;
   matchingPolicies: DRPolicyType[];
   isValidationEnabled: boolean;
+  pvcQueryFilter: PVCQueryFilter;
   dispatch: React.Dispatch<ManagePolicyStateAction>;
 };
