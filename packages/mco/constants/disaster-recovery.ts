@@ -121,6 +121,5 @@ export const VM_RECIPE_NAME = 'vm-recipe';
 export const K8S_RESOURCE_SELECTOR = 'K8S_RESOURCE_SELECTOR';
 export const PVC_RESOURCE_SELECTOR = 'PVC_RESOURCE_SELECTOR';
 export const PROTECTED_VMS = 'PROTECTED_VMS';
-export const VM_NAMESPACE = 'VM_NAMESPACE';
 export const K8S_RESOURCE_SELECTOR_LABEL_KEY =
   'ramendr.openshift.io/k8s-resource-selector';
