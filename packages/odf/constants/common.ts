@@ -96,14 +96,6 @@ export const ZONE_LABELS = [
   'failure-domain.beta.kubernetes.io/zone', // deprecated
 ];
 
-export const OCS_PROVISIONERS = [
-  'ceph.rook.io/block',
-  'cephfs.csi.ceph.com',
-  'rbd.csi.ceph.com',
-  'noobaa.io/obc',
-  'ceph.rook.io/bucket',
-];
-
 export const StepsName = (t: TFunction) => ({
   [Steps.CapacityAndNodes]: t('plugin__odf-console~Capacity and nodes'),
   [Steps.BackingStorage]: t('plugin__odf-console~Backing storage'),

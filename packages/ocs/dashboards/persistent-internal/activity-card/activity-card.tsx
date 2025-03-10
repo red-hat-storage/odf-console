@@ -28,7 +28,11 @@ import {
   CephClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getResiliencyProgress, referenceForModel } from '@odf/shared/utils';
+import {
+  getResiliencyProgress,
+  isCephProvisioner,
+  referenceForModel,
+} from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
@@ -46,10 +50,7 @@ import {
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
 import { ODFSystemParams } from '../../../types';
-import {
-  isCephProvisioner,
-  isPersistentStorageEvent,
-} from '../../../utils/common';
+import { isPersistentStorageEvent } from '../../../utils/common';
 import {
   isClusterExpandActivity,
   ClusterExpandActivity,

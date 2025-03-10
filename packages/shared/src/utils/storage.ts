@@ -5,7 +5,8 @@ import {
   StorageSystemKind,
 } from '@odf/shared/types';
 import { K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk';
-import { ODF_OPERATOR } from '../constants';
+import * as _ from 'lodash-es';
+import { CEPH_PROVISIONERS, ODF_OPERATOR } from '../constants';
 import { getGVKLabel } from '../utils/common';
 
 export const getODFCsv = (csvList: ClusterServiceVersionKind[] = []) =>
@@ -26,3 +27,9 @@ export const isOCSStorageSystem = (
 
 export const getOCSStorageSystem = (ssList: StorageSystemKind[] = []) =>
   ssList.find((ss) => isOCSStorageSystem(ss));
+
+export const isCephProvisioner = (scProvisioner: string): boolean => {
+  return CEPH_PROVISIONERS.some((provisioner: string) =>
+    _.endsWith(scProvisioner, provisioner)
+  );
+};
