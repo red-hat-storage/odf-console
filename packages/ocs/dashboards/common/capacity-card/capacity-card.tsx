@@ -128,6 +128,11 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
                 colorScale={colorScale}
                 padding={{ top: 0, bottom: 0, left: 0, right: 0 }}
                 constrainToVisibleArea
+                titleComponent={
+                  <ChartLabel
+                    style={{ fill: `var(--pf-v5-global--Color--100)` }}
+                  />
+                }
                 subTitleComponent={
                   <ChartLabel
                     dy={5}
