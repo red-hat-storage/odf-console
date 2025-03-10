@@ -236,7 +236,9 @@ describe('Subscription manage disaster recovery modal', () => {
     expect(screen.getByText('Placement: mock-placement-1')).toBeInTheDocument();
     expect(screen.getByText('Label selector:')).toBeInTheDocument();
     expect(screen.getByText('pvc=pvc1')).toBeInTheDocument();
-    expect(screen.getByText('Status:')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Volume: Last synced on Jun 6, 2023, 5:50 PM UTC/i)
+    ).toBeInTheDocument();
   });
 
   test('Assign policy action test', async () => {

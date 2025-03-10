@@ -40,6 +40,9 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
   pvcQueryFilter,
   setCurrentModalContext,
 }) => {
+  // The ACM Virtual Machine list page isn't a live watcher.
+  // Optimizing the DRPC search via the VM CR isn't feasible,
+  // After DR protection, K8S_RESOURCE_SELECTOR_LABEL_KEY changes on the VM CR won't reflect here.
   const [drpcs, drpcsLoaded, drpcsLoadError] = useK8sWatchResource<
     DRPlacementControlKind[]
   >(

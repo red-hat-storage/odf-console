@@ -62,13 +62,19 @@ const displayUnknown = (t: TFunction) => (
 
 const replicationStatus = (label: string, time: string, t: TFunction) => (
   <Text component={TextVariants.p} className="pf-v5-l-flex__item">
-    {`${label}: `}
-    {time
-      ? t('Last synced on {{syncTime}}', { syncTime: formatTime(time) })
-      : displayUnknown(t)}
+    <div className="pf-v5-l-flex">
+      {label}{' '}
+      {time ? (
+        t('Last synced on {{syncTime}}', { syncTime: formatTime(time) })
+      ) : (
+        <>
+          &nbsp;
+          {displayUnknown(t)}
+        </>
+      )}
+    </div>
   </Text>
 );
-
 enum EmptyPageContentType {
   NamespaceProtected = 'NamespaceProtected',
   Application = 'Application',
@@ -366,36 +372,14 @@ const DRInformation: React.FC<DRInformationProps> = ({
           </>
         )}
       </DRInformationGroup>
-      {isAsync && appType !== DRApplication.DISCOVERED && (
-        <DRInformationGroup title={t('Replication details')}>
-          <div className="pf-v5-l-flex">
-            <Text component={TextVariants.p} className="pf-v5-l-flex__item">
-              {t('Status: ')}
-            </Text>
-            {!!lastGroupSyncTime ? (
-              t('Volume last synced on {{syncTime}}', {
-                syncTime: formatTime(lastGroupSyncTime),
-              })
-            ) : (
-              <StatusIconAndText
-                icon={<UnknownIcon />}
-                title={t('Unknown')}
-                className="pf-v5-l-flex__item"
-              />
-            )}
-          </div>
-        </DRInformationGroup>
-      )}
       {(isAsync || appType === DRApplication.DISCOVERED) && (
         <DRInformationGroup title={t('Replication details')}>
-          <div className="pf-v5-l-flex">
-            {isAsync && replicationStatus(t('Volume:'), lastGroupSyncTime, t)}
-            {replicationStatus(
-              t('Kubernetes object:'),
-              lastKubeObjectProtectionTime,
-              t
-            )}
-          </div>
+          {isAsync && replicationStatus(t('Volume:'), lastGroupSyncTime, t)}
+          {replicationStatus(
+            t('Kubernetes object:'),
+            lastKubeObjectProtectionTime,
+            t
+          )}
         </DRInformationGroup>
       )}
     </>
