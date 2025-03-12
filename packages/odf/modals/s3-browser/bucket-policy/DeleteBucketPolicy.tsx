@@ -23,7 +23,7 @@ type DeleteBucketPolicyModalProps = {
 };
 
 const getTextInputLabel = (t: TFunction) => (
-  <Trans t={t as any} ns="plugin__odf-console">
+  <Trans t={t as any}>
     <b>
       confirm this action, type <i>{{ delete: DELETE }}</i> in the text input
       field.
@@ -77,7 +77,7 @@ const DeleteBucketPolicyModal: React.FC<
       actions={[
         <ButtonBar
           inProgress={inProgress}
-          errorMessage={error?.message || error}
+          errorMessage={error?.message || JSON.stringify(error)}
         >
           <span>
             <Button
