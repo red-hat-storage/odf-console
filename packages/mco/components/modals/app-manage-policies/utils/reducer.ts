@@ -3,6 +3,7 @@ import { DRPolicyType, VMProtectionType } from './types';
 export enum ModalViewContext {
   MANAGE_POLICY_VIEW = 'managePolicyView',
   ASSIGN_POLICY_VIEW = 'assignPolicyView',
+  VOLUME_CONSISTENCY_GROUP_VIEW = 'volumeConsistencyGroupView',
 }
 
 export enum ModalActionContext {
