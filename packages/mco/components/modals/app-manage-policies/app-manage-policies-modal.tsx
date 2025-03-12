@@ -16,6 +16,7 @@ import {
   ManagePolicyState,
 } from './utils/reducer';
 import { ApplicationType, DRInfoType, DRPolicyType } from './utils/types';
+import { VolumeConsistencyGroupView } from './volume-consistency-group-view';
 
 export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
   applicationInfo,
@@ -71,6 +72,13 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
           dispatch={dispatch}
           setModalContext={setModalContext}
           setModalActionContext={setModalActionContext}
+        />
+      )}
+      {state.modalViewContext ===
+        ModalViewContext.VOLUME_CONSISTENCY_GROUP_VIEW && (
+        <VolumeConsistencyGroupView
+          setModalContext={setModalContext}
+          drInfo={applicationInfo?.drInfo as DRInfoType}
         />
       )}
     </>

@@ -11,6 +11,7 @@ import { BlueInfoCircleIcon } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
 import {
+  GreenCheckCircleIcon,
   StatusIconAndText,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -25,7 +26,7 @@ import {
   Text,
   TextVariants,
 } from '@patternfly/react-core';
-import { PencilAltIcon, UnknownIcon } from '@patternfly/react-icons';
+import { PencilAltIcon, UnknownIcon, BanIcon } from '@patternfly/react-icons';
 import {
   DISCOVERED_APP_NS,
   ReplicationType,
@@ -82,8 +83,19 @@ const getAggregatedDRInfo = (
       assignedOn: formatTime(
         getLatestDate([acc.assignedOn, drpc?.metadata?.creationTimestamp])
       ),
+      volumeReplicationGroup:
+        acc.volumeReplicationGroup ||
+        drpc?.metadata?.annotations?.[
+          'drplacementcontrol.ramendr.openshift.io/is-cg-enabled'
+        ] === 'true',
     }),
-    { placements: [], pvcSelector: [], lastGroupSyncTime: '', assignedOn: '' }
+    {
+      placements: [],
+      pvcSelector: [],
+      lastGroupSyncTime: '',
+      assignedOn: '',
+      volumeReplicationGroup: false,
+    }
   );
 
 const getMessage = (t: TFunction<string>, errorMessage?: string) => ({
@@ -204,6 +216,7 @@ const DRInformation: React.FC<DRInformationProps> = ({
   dataPolicyInfo,
   hideEditAction,
   onEdit,
+  setModalContext,
 }) => {
   const { t } = useCustomTranslation();
   const { drPolicyInfo, placementControlInfo } = dataPolicyInfo;
@@ -211,8 +224,13 @@ const DRInformation: React.FC<DRInformationProps> = ({
     drPolicyInfo;
   const isAsyncRelication = replicationType === ReplicationType.ASYNC;
   const [unit, interval] = parseSyncInterval(schedulingInterval);
-  const { placements, pvcSelector, lastGroupSyncTime, assignedOn } =
-    getAggregatedDRInfo(placementControlInfo);
+  const {
+    placements,
+    pvcSelector,
+    lastGroupSyncTime,
+    assignedOn,
+    volumeReplicationGroup,
+  } = getAggregatedDRInfo(placementControlInfo);
 
   return (
     <>
@@ -264,6 +282,37 @@ const DRInformation: React.FC<DRInformationProps> = ({
         </Text>
         <Text component={TextVariants.p}>{t('Label selector:')}</Text>
         <Labels labels={pvcSelector} numLabels={4} />
+        <div className="pf-v5-l-flex">
+          <Text component={TextVariants.p} className="pf-v5-l-flex__item">
+            {t('Volume group replication: ')}
+          </Text>
+          {volumeReplicationGroup ? (
+            <>
+              <StatusIconAndText
+                icon={<GreenCheckCircleIcon />}
+                title={t('Enabled')}
+                className="pf-v5-l-flex__item"
+              />
+              <Button
+                variant={ButtonVariant.link}
+                onClick={() =>
+                  setModalContext(
+                    ModalViewContext.VOLUME_CONSISTENCY_GROUP_VIEW
+                  )
+                }
+                className="pf-v5-l-flex__item pf-m-align-right"
+              >
+                {t('View details')}
+              </Button>
+            </>
+          ) : (
+            <StatusIconAndText
+              icon={<BanIcon />}
+              title={t('Disabled')}
+              className="pf-v5-l-flex__item"
+            />
+          )}
+        </div>
       </DRInformationGroup>
       {isAsyncRelication && (
         <DRInformationGroup title={t('Replication details')}>
@@ -375,6 +424,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
           dataPolicyInfo={drInfo}
           hideEditAction={!isSubscriptionAppType || !unProtectedPlacementCount}
           onEdit={onEdit}
+          setModalContext={setModalContext}
         />
         {!!alertProps && (
           <Alert title={alertProps.title} variant={alertProps.variant} isInline>
@@ -440,6 +490,7 @@ type DRInformationProps = {
   dataPolicyInfo: DRInfoType;
   hideEditAction: boolean;
   onEdit: () => void;
+  setModalContext: (modalViewContext: ModalViewContext) => void;
 };
 
 type DRInformationGroupProps = {
@@ -466,4 +517,5 @@ type AggregatedDRInfo = {
   pvcSelector: string[];
   lastGroupSyncTime: string;
   assignedOn: string;
+  volumeReplicationGroup?: boolean;
 };
