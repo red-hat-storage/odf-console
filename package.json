@@ -184,6 +184,8 @@
     "webpack-dev-server": "^5.1.0"
   },
   "resolutions": {
+    "async": "^3.2.6",
+    "portfinder": "^1.0.34",
     "webpack": "^5.96.1",
     "webpack-bundle-analyzer/ws": "^7.5.10",
     "webpack-dev-server/express": "^4.21.0",
