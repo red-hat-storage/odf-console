@@ -247,10 +247,13 @@ export const useSubscriptionResourceWatch: UseSubscriptionResourceWatch = (
       const applicationList = Array.isArray(applications)
         ? applications
         : [applications];
+      const subscriptionsList = Array.isArray(subscriptions)
+        ? subscriptions
+        : [subscriptions];
       const namespaceToApplicationMap =
         getNamespaceWiseApplications(applicationList);
       const namespaceToSubscriptionMap =
-        getNamespaceWiseSubscriptions(subscriptions);
+        getNamespaceWiseSubscriptions(subscriptionsList);
       const namespaceToPlacementRuleMap =
         getNamespaceWisePlacements(placementRules);
       const namespaceToPlacementMap = getNamespaceWisePlacements(placements);

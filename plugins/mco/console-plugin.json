@@ -14,7 +14,7 @@
     "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor",
     "dataPolicyStatusPopover": "@odf/mco/components/modals/app-data-policies-status/acm-column-callback",
     "appFailoverRelocate": "@odf/mco/components/modals/app-failover-relocate/acm-action-callback",
-    "appManagePolicy": "@odf/mco/components/modals/app-manage-policies/acm-action-callback",
+    "appManagePolicy": "@odf/mco/components/modals/app-manage-policies/app-manage-policies-modal",
     "enrollDiscoveredApplication": "@odf/mco/components/discovered-application-wizard/enroll-discovered-application"
   }
 }

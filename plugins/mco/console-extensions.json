@@ -156,5 +156,21 @@
       "exact": true,
       "component": { "$codeRef": "enrollDiscoveredApplication.default" }
     }
+  },
+  {
+    "type": "acm.virtualmachine/action",
+    "properties": {
+      "id": "appManagePolicy",
+      "title": "%plugin__odf-multicluster-console~Manage disaster recovery%",
+      "model": [
+        {
+          "apiVersion": "kubevirt.io/v1",
+          "kind": "VirtualMachine"
+        }
+      ],
+      "component": {
+        "$codeRef": "appManagePolicy.default"
+      }
+    }
   }
 ]
