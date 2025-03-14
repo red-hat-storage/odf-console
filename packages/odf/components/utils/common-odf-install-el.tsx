@@ -66,6 +66,15 @@ export const VALIDATIONS = (
         actionLinkStep: CreateStepsSC.STORAGEANDNODES,
         actionLinkText: t('Back to nodes selection'),
       };
+    case ValidationType.CAPACITY_AUTOSCALING:
+      return {
+        variant: AlertVariant.danger,
+        title: t(
+          'Select a cluster expansion limit for smart scaling to continue.'
+        ),
+        actionLinkStep: CreateStepsSC.STORAGEANDNODES,
+        actionLinkText: t('Back to nodes selection'),
+      };
     case ValidationType.INTERNALSTORAGECLASS:
       return {
         variant: AlertVariant.danger,
