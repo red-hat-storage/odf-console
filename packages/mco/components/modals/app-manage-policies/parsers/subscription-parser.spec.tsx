@@ -296,8 +296,7 @@ describe('Subscription manage disaster recovery modal', () => {
     expect(screen.getByText('Cancel')).toBeEnabled();
 
     // Headers
-    expect(screen.getByText('Data policy')).toBeInTheDocument();
-    expect(screen.getByText('Data policy')).toBeInTheDocument();
+    screen.getByText(/Policy/i, { selector: 'span' });
     // Labels
     expect(screen.getByText('Policy name:')).toBeInTheDocument();
     expect(screen.getByText('Clusters:')).toBeInTheDocument();

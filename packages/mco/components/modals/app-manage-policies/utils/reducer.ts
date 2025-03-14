@@ -1,4 +1,4 @@
-import { DRPolicyType } from './types';
+import { DRPolicyType, VMProtectioType } from './types';
 
 export enum ModalViewContext {
   MANAGE_POLICY_VIEW = 'managePolicyView',
@@ -20,16 +20,31 @@ export enum ManagePolicyStateType {
   SET_SELECTED_POLICY = 'SET_SELECTED_POLICY',
   SET_PVC_SELECTORS = 'SET_PVC_SELECTORS',
   RESET_ASSIGN_POLICY_STATE = 'RESET_ASSIGN_POLICY_STATE',
+  SET_VM_PROTECTION_METHOD = 'SET_VM_PROTECTION_METHOD',
+  SET_VM_PROTECTION_NAME = 'SET_VM_PROTECTION_NAME',
+  SET_SELECTED_POLICY_FOR_REPLICATION = 'SET_SELECTED_POLICY_FOR_REPLICATION',
+  SET_K8S_SYNC_INTERVAL = 'SET_K8S_SYNC_INTERVAL',
+  SET_VM_PVCS = 'SET_VM_PVCS',
 }
 
 export type PVCSelectorType = {
   placementName: string;
   labels: string[];
 };
+
 export type AssignPolicyViewState = {
   policy: DRPolicyType;
   persistentVolumeClaim: {
     pvcSelectors: PVCSelectorType[];
+  };
+  protectionType?: {
+    protectionType: VMProtectioType;
+    protectionName: string;
+  };
+  replication?: {
+    policy: DRPolicyType;
+    k8sSyncInterval: string;
+    vmPVCS: string[];
   };
 };
 
@@ -45,6 +60,15 @@ export const initialPolicyState: ManagePolicyState = {
     policy: undefined,
     persistentVolumeClaim: {
       pvcSelectors: [],
+    },
+    protectionType: {
+      protectionType: VMProtectioType.STANDALONE,
+      protectionName: '',
+    },
+    replication: {
+      policy: undefined,
+      k8sSyncInterval: '5m',
+      vmPVCS: [],
     },
   },
 };
@@ -71,6 +95,31 @@ export type ManagePolicyStateAction =
   | {
       type: ManagePolicyStateType.RESET_ASSIGN_POLICY_STATE;
       context: ModalViewContext;
+    }
+  | {
+      type: ManagePolicyStateType.SET_VM_PROTECTION_METHOD;
+      context: ModalViewContext;
+      payload: VMProtectioType;
+    }
+  | {
+      type: ManagePolicyStateType.SET_VM_PROTECTION_NAME;
+      context: ModalViewContext;
+      payload: string;
+    }
+  | {
+      type: ManagePolicyStateType.SET_SELECTED_POLICY_FOR_REPLICATION;
+      context: ModalViewContext;
+      payload: DRPolicyType;
+    }
+  | {
+      type: ManagePolicyStateType.SET_K8S_SYNC_INTERVAL;
+      context: ModalViewContext;
+      payload: string;
+    }
+  | {
+      type: ManagePolicyStateType.SET_VM_PVCS;
+      context: ModalViewContext;
+      payload: string[];
     };
 
 export const managePolicyStateReducer = (
@@ -117,6 +166,66 @@ export const managePolicyStateReducer = (
         [action.context]: {
           ...state[action.context],
           ...initialPolicyState[action.context],
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_VM_PROTECTION_METHOD: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          protectionType: {
+            ...state[action.context]['protectionType'],
+            protectionType: action.payload,
+          },
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_VM_PROTECTION_NAME: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          protectionType: {
+            ...state[action.context]['protectionType'],
+            protectionName: action.payload,
+          },
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_SELECTED_POLICY_FOR_REPLICATION: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          replication: {
+            ...state[action.context]['replication'],
+            policy: action.payload,
+          },
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_K8S_SYNC_INTERVAL: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          replication: {
+            ...state[action.context]['replication'],
+            k8sSyncInterval: action.payload,
+          },
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_VM_PVCS: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          replication: {
+            ...state[action.context]['replication'],
+            vmPVCS: action.payload,
+          },
         },
       };
     }

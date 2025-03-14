@@ -16,20 +16,22 @@ const ComponentMap = {
   [referenceForModel(VirtualMachineModel)]: VirtualMachineParser,
 };
 
-export const AppManagePoliciesModalBody: React.FC<
-  AppManagePoliciesModalBodyProps
-> = ({ application, cluster, setCurrentModalContext }) => {
-  const gvk = getGVKofResource(application);
-  const SelectedComponent = ComponentMap[gvk];
+// Memoizing the component to prevent unnecessary re-renders.
+// Problem: Without React.memo, the component re-renders even if props haven't changed.
+// Fix: React.memo ensures the component only re-renders when `application`, `cluster`, or `setCurrentModalContext` changes.
+export const AppManagePoliciesModalBody: React.FC<AppManagePoliciesModalBodyProps> =
+  React.memo(({ application, cluster, setCurrentModalContext }) => {
+    const gvk = getGVKofResource(application);
+    const SelectedComponent = ComponentMap[gvk];
 
-  return SelectedComponent ? (
-    <SelectedComponent
-      application={application as any}
-      cluster={cluster}
-      setCurrentModalContext={setCurrentModalContext}
-    />
-  ) : null;
-};
+    return SelectedComponent ? (
+      <SelectedComponent
+        application={application as any}
+        cluster={cluster}
+        setCurrentModalContext={setCurrentModalContext}
+      />
+    ) : null;
+  });
 
 type AppManagePoliciesModalBodyProps = {
   application: K8sResourceCommon;

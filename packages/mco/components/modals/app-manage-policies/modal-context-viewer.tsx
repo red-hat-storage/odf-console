@@ -14,6 +14,7 @@ import {
   ApplicationType,
   DRInfoType,
   DRPolicyType,
+  ModalType,
 } from './utils/types';
 
 export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
@@ -22,6 +23,7 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
   loaded,
   loadError,
   setCurrentModalContext,
+  modalType,
 }) => {
   const [state, dispatch] = React.useReducer(
     managePolicyStateReducer,
@@ -67,6 +69,7 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
           loaded={loaded}
           loadError={loadError}
           modalActionContext={state.modalActionContext}
+          modalType={modalType}
         />
       );
     }
@@ -80,6 +83,7 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
           dispatch={dispatch}
           setModalContext={setModalContext}
           setModalActionContext={setModalActionContext}
+          modalType={modalType}
         />
       );
     }
@@ -97,4 +101,5 @@ type ModalContextViewerProps = {
   setCurrentModalContext: React.Dispatch<
     React.SetStateAction<ModalViewContext>
   >;
+  modalType: ModalType;
 };
