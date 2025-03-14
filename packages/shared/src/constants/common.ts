@@ -1,4 +1,5 @@
 export const DASH = '-';
+export const WILDCARD = '*';
 export const AVAILABLE = 'Available';
 export const DEFAULT_STORAGE_NAMESPACE = 'openshift-storage'; // This hardcoded namespace is only for specific cases, do not use it otherwise.
 export const ODF_OPERATOR = 'odf-operator';
