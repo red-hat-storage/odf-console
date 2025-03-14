@@ -30,6 +30,7 @@ import {
   DISCOVERED_APP_NS,
   ReplicationType,
   SYNC_SCHEDULE_DISPLAY_TEXT,
+  VM_RECIPE_NAME,
 } from '../../../constants';
 import { getDRPlacementControlResourceObj } from '../../../hooks';
 import {
@@ -46,8 +47,62 @@ import {
   DRInfoType,
   DRPlacementControlType,
   DRPolicyType,
+  ModalType,
 } from './utils/types';
 import './style.scss';
+
+enum EmptyPageContentType {
+  NamespaceProtected = 'NamespaceProtected',
+  Application = 'Application',
+  VirtualMachine = 'VirtualMachine',
+}
+
+// Map containing content for each type
+const getEmptyPageContentMap = (t: TFunction) => ({
+  [EmptyPageContentType.NamespaceProtected]: {
+    title: t('Application already enrolled in disaster recovery'),
+    content: (
+      <Trans t={t}>
+        <p>
+          This managed application namespace is already DR protected. You may
+          have protected this namespace while enrolling discovered applications.
+        </p>
+        <p className="pf-v5-u-mt-md">
+          To see disaster recovery information for your applications, go to
+          <strong> Protected applications </strong> under&nbsp;
+          <strong> Disaster Recovery </strong>.
+        </p>
+      </Trans>
+    ),
+    buttonText: '',
+  },
+  [EmptyPageContentType.Application]: {
+    title: t('No assigned disaster recovery policy found'),
+    content: (
+      <Trans t={t}>
+        <p>
+          You have not enrolled this application yet. To protect your
+          application, click&nbsp;
+          <strong>Enroll application.</strong>
+        </p>
+      </Trans>
+    ),
+    buttonText: t('Enroll application'),
+  },
+  [EmptyPageContentType.VirtualMachine]: {
+    title: t('No assigned disaster recovery policy found'),
+    content: (
+      <Trans t={t}>
+        <p>
+          You have not enrolled this virtual machine yet. To protect your
+          virtual machine, click&nbsp;
+          <strong>Enroll virtual machine.</strong>
+        </p>
+      </Trans>
+    ),
+    buttonText: t('Enroll virtual machine'),
+  },
+});
 
 const isDRProtectionRemoved = (drpcs: DRPlacementControlType[]) =>
   drpcs.every((drpc) => _.has(drpc.metadata, 'deletionTimestamp'));
@@ -59,7 +114,8 @@ const checkNamespaceProtected = (
 ): boolean =>
   drpcs?.some((drpc) => {
     const isNamespaceProtected =
-      drpc.spec?.protectedNamespaces?.includes(workloadNamespace);
+      drpc.spec?.protectedNamespaces?.includes(workloadNamespace) &&
+      drpc.spec?.kubeObjectProtection?.recipeRef?.name !== VM_RECIPE_NAME;
     const isPolicyMatching = eligiblePolicies?.some(
       (policy) => getName(policy) === drpc.spec.drPolicyRef.name
     );
@@ -114,6 +170,7 @@ const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
   policyInfoLoaded,
   policyInfoLoadError,
   onClick,
+  modalType,
 }) => {
   const { t } = useCustomTranslation();
   const [discoveredApps, loaded, loadError] = useK8sWatchResource<
@@ -130,6 +187,16 @@ const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
     discoveredApps
   );
 
+  // Determine the correct type dynamically
+  const emptyPageContentType: EmptyPageContentType = isNamespaceProtected
+    ? EmptyPageContentType.NamespaceProtected
+    : modalType === ModalType.VirtualMachine
+      ? EmptyPageContentType.VirtualMachine
+      : EmptyPageContentType.Application;
+
+  const { title, content, buttonText } =
+    getEmptyPageContentMap(t)[emptyPageContentType];
+
   const allLoaded = policyInfoLoaded && loaded;
   const anyLoadError = policyInfoLoadError || loadError;
 
@@ -140,31 +207,10 @@ const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
       isDisabled={isNamespaceProtected}
       EmptyIcon={BlueInfoCircleIcon}
       onClick={onClick}
-      buttonText={t('Enroll application')}
-      title={
-        isNamespaceProtected
-          ? t('Application already enrolled in disaster recovery')
-          : t('No assigned disaster recovery policy found')
-      }
+      buttonText={buttonText}
+      title={title}
     >
-      {isNamespaceProtected ? (
-        <Trans t={t}>
-          <p>
-            This managed application namespace is already DR protected. You may
-            have protected this namespace while enrolling discovered
-            applications.
-          </p>
-          <p className="pf-v5-u-mt-md">
-            To see disaster recovery information for your applications, go to
-            <strong>Protected applications</strong> under&nbsp;
-            <strong>Disaster Recovery</strong>.
-          </p>
-        </Trans>
-      ) : (
-        t(
-          'You have not enrolled this application yet. To protect your application,'
-        )
-      )}
+      {content}
     </EmptyPage>
   ) : (
     <StatusBox loaded={allLoaded} loadError={anyLoadError} />
@@ -301,6 +347,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
   dispatch,
   setModalContext,
   setModalActionContext,
+  modalType,
 }) => {
   const { t } = useCustomTranslation();
   const [localModalActionContext, setLocalModalActionContext] =
@@ -321,6 +368,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
           setModalActionContext(ModalActionContext.ENABLE_DR_PROTECTION);
           setModalContext(ModalViewContext.ASSIGN_POLICY_VIEW);
         }}
+        modalType={modalType}
       />
     );
   }
@@ -434,6 +482,7 @@ type ManagePolicyViewProps = {
   dispatch: React.Dispatch<ManagePolicyStateAction>;
   setModalContext: (modalViewContext: ModalViewContext) => void;
   setModalActionContext: (modalActionContext: ModalActionContext) => void;
+  modalType: ModalType;
 };
 
 type DRInformationProps = {
@@ -459,6 +508,7 @@ type ManagePolicyEmptyPageProps = {
   policyInfoLoaded: boolean;
   policyInfoLoadError: any;
   onClick: () => void;
+  modalType: ModalType;
 };
 
 type AggregatedDRInfo = {

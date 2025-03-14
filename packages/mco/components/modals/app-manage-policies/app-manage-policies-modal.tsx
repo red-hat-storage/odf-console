@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { VirtualMachineModel } from '@odf/mco/models';
 import { SearchResultItemType } from '@odf/mco/types';
 import { convertSearchResult } from '@odf/mco/utils';
 import { getName, getNamespace } from '@odf/shared/selectors';
@@ -16,19 +17,35 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
   close,
 }) => {
   const { t } = useCustomTranslation();
-  const [currentModalContext, setCurrentModalContext] = React.useState(
+  const [currentModalContext, setModalContext] = React.useState(
     ModalViewContext.MANAGE_POLICY_VIEW
   );
 
-  const application =
-    'apigroup' in resource ? convertSearchResult(resource) : resource;
+  // Problem: Without useCallback, the function reference changes on each render,
+  // causing child components to re-render unnecessarily.
+  // Fix: useCallback ensures the function has a stable reference.
+  const setCurrentModalContext = React.useCallback(
+    (context: ModalViewContext) => setModalContext(context),
+    []
+  );
+
+  // Problem: Parsing runs on every render, even if the resource didn't change.
+  // This causes performance issues and unnecessary recalculations.
+  // Fix: useMemo ensures parsing only happens when 'resource' changes.
+  const application = React.useMemo(
+    () => ('apigroup' in resource ? convertSearchResult(resource) : resource),
+    [resource]
+  );
+
   const applicationName = getName(application) ?? application?.['name'];
   const applicationNamespace =
     getNamespace(application) ?? application?.['namespace'];
 
   const title =
     currentModalContext === ModalViewContext.ASSIGN_POLICY_VIEW
-      ? t('Enroll managed application')
+      ? application.kind === VirtualMachineModel.kind
+        ? t('Enroll virtual machine')
+        : t('Enroll managed application')
       : t('Manage disaster recovery');
 
   const description = (

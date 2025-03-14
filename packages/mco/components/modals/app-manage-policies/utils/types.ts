@@ -55,3 +55,13 @@ export type ApplicationType = K8sResourceCommon & {
 };
 
 export type ApplicationInfoType = ApplicationType | {};
+
+export enum ModalType {
+  Application = 'Application',
+  VirtualMachine = 'VirtualMachine',
+}
+
+export enum VMProtectioType {
+  STANDALONE = 'STANDALONE',
+  SHARED = 'SHARED',
+}
