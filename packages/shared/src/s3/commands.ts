@@ -18,6 +18,8 @@ import {
   PutBucketPolicyCommand,
   GetBucketLifecycleConfigurationCommand,
   PutBucketLifecycleConfigurationCommand,
+  GetBucketCorsCommand,
+  PutBucketCorsCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -42,6 +44,8 @@ import {
   SetBucketPolicy,
   GetBucketLifecycleConfiguration,
   PutBucketLifecycleConfiguration,
+  GetBucketCors,
+  PutBucketCors,
 } from './types';
 
 export class S3Commands extends S3Client {
@@ -97,6 +101,12 @@ export class S3Commands extends S3Client {
 
   putBucketLifecycleConfiguration: PutBucketLifecycleConfiguration = (input) =>
     this.send(new PutBucketLifecycleConfigurationCommand(input));
+
+  getBucketCors: GetBucketCors = (input) =>
+    this.send(new GetBucketCorsCommand(input));
+
+  putBucketCors: PutBucketCors = (input) =>
+    this.send(new PutBucketCorsCommand(input));
 
   // Object command members
   listObjects: ListObjectsV2 = (input) =>
