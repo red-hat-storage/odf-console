@@ -35,6 +35,10 @@ import {
   GetBucketLifecycleConfigurationCommandOutput,
   PutBucketLifecycleConfigurationCommandInput,
   PutBucketLifecycleConfigurationCommandOutput,
+  GetBucketCorsCommandInput,
+  GetBucketCorsCommandOutput,
+  PutBucketCorsCommandInput,
+  PutBucketCorsCommandOutput,
 } from '@aws-sdk/client-s3';
 
 // Bucket command types
@@ -89,6 +93,15 @@ export type GetBucketLifecycleConfiguration = (
 export type PutBucketLifecycleConfiguration = (
   input: PutBucketLifecycleConfigurationCommandInput
 ) => Promise<PutBucketLifecycleConfigurationCommandOutput>;
+
+// Cors command types
+export type GetBucketCors = (
+  input: GetBucketCorsCommandInput
+) => Promise<GetBucketCorsCommandOutput>;
+
+export type PutBucketCors = (
+  input: PutBucketCorsCommandInput
+) => Promise<PutBucketCorsCommandOutput>;
 
 // Object command types
 export type DeleteObjects = (
