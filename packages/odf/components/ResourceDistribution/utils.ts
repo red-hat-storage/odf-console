@@ -8,14 +8,14 @@ export const generatePatchForDistributionOfResources = (
 ): Patch[] => {
   const patches: Patch[] = [];
   const currentlySelectedStorageClasses =
-    storageConsumer.spec.storageClasses.map((sc) => sc.name);
+    storageConsumer.spec?.storageClasses?.map((sc) => sc.name) || [];
   const currentlySelectedVolumeSnapshotClasses =
-    storageConsumer.spec.volumeSnapshotClasses.map((vsc) => vsc.name);
+    storageConsumer.spec?.volumeSnapshotClasses?.map((vsc) => vsc.name) || [];
   const isStorageClassesChanged = storageClassNames.every((res) =>
     currentlySelectedStorageClasses.includes(res)
   );
-  const isVolumeSnapshotClassesChanged = volumeSnapshotClassNames.every((res) =>
-    currentlySelectedVolumeSnapshotClasses.includes(res)
+  const isVolumeSnapshotClassesChanged = volumeSnapshotClassNames?.every(
+    (res) => currentlySelectedVolumeSnapshotClasses?.includes(res)
   );
 
   if (!isStorageClassesChanged) {
@@ -26,7 +26,7 @@ export const generatePatchForDistributionOfResources = (
       value: storageClassNames.map((name) => ({ name })),
     });
   }
-  if (!storageConsumer.spec.storageClasses.length) {
+  if (!storageConsumer.spec?.storageClasses?.length) {
     patches.push({
       op: 'add',
       path: '/spec/storageClasses/-',
@@ -41,7 +41,7 @@ export const generatePatchForDistributionOfResources = (
       value: volumeSnapshotClassNames.map((name) => ({ name })),
     });
   }
-  if (!storageConsumer.spec.storageClasses.length) {
+  if (!storageConsumer.spec?.storageClasses?.length) {
     patches.push({
       op: 'add',
       path: '/spec/volumeSnapshotClasses/-',

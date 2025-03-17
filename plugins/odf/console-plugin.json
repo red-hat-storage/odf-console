@@ -45,6 +45,7 @@
     "s3BucketOverview": "@odf/core/components/s3-browser/bucket-overview/BucketOverview",
     "s3BucketList": "@odf/core/components/s3-browser/buckets-list-page/bucketsListPage",
     "s3BucketLifecycleRule": "@odf/core/components/s3-browser/create-or-edit-lifecycle-rules/CreateOrEditLifecycleRule",
-    "attachStorage": "@odf/core/components/attach-storage-storagesystem/attach-storage"
+    "attachStorage": "@odf/core/components/attach-storage-storagesystem/attach-storage",
+    "storageClientAttacherAction": "@odf/core/modals/StorageClientDistributionModal/useStorageClientAttacherAction"
   }
 }
