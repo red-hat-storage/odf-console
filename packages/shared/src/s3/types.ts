@@ -10,7 +10,9 @@ import {
   GetBucketTaggingCommandOutput,
   GetBucketTaggingCommandInput,
   GetBucketVersioningCommandInput,
+  PutBucketVersioningCommandInput,
   GetBucketVersioningCommandOutput,
+  PutBucketVersioningCommandOutput,
   ListBucketsCommandInput,
   ListBucketsCommandOutput,
   ListObjectsV2CommandInput,
@@ -74,6 +76,10 @@ export type GetBucketVersioning = (
   input: GetBucketVersioningCommandInput
 ) => Promise<GetBucketVersioningCommandOutput>;
 
+export type PutBucketVersioning = (
+  input: PutBucketVersioningCommandInput
+) => Promise<PutBucketVersioningCommandOutput>;
+
 export type ListBuckets = (
   input: ListBucketsCommandInput
 ) => Promise<ListBucketsCommandOutput>;
@@ -110,7 +116,8 @@ export type GetSignedUrl = (
 
 export type ListCommandOutput =
   | ListObjectsV2CommandOutput
-  | ListBucketsCommandOutput;
+  | ListBucketsCommandOutput
+  | ListObjectVersionsCommandOutput;
 
 export type ListObjectsV2 = (
   input: ListObjectsV2CommandInput

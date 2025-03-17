@@ -1,8 +1,13 @@
 import * as React from 'react';
+import {
+  BucketVersioningStatus,
+  GetBucketVersioningCommandOutput,
+} from '@aws-sdk/client-s3';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { KeyedMutator } from 'swr';
 import {
   Modal,
   ModalVariant,
@@ -10,54 +15,65 @@ import {
   ButtonVariant,
 } from '@patternfly/react-core';
 
-type SaveBucketPolicyModalModalProps = {
-  bucketName: string;
+export type SetVersioningModalModalProps = {
+  mutate: KeyedMutator<GetBucketVersioningCommandOutput>;
   noobaaS3: S3Commands;
-  triggerRefresh: () => void;
-  policy: string;
-  setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
+  bucketName: string;
+  enableVersioning: boolean;
 };
 
-const SaveBucketPolicyModal: React.FC<
-  CommonModalProps<SaveBucketPolicyModalModalProps>
+const SetVersioningModal: React.FC<
+  CommonModalProps<SetVersioningModalModalProps>
 > = ({
   closeModal,
   isOpen,
-  extraProps: { bucketName, noobaaS3, triggerRefresh, policy, setSuccess },
+  extraProps: { noobaaS3, bucketName, mutate, enableVersioning },
 }) => {
   const { t } = useCustomTranslation();
 
   const [inProgress, setInProgress] = React.useState<boolean>(false);
   const [error, setError] = React.useState<Error>();
 
-  const onSave = async (event) => {
-    event.preventDefault();
+  const onEnableOrSuspend = async () => {
     setInProgress(true);
 
     try {
-      await noobaaS3.setBucketPolicy({ Bucket: bucketName, Policy: policy });
+      const params = {
+        Bucket: bucketName,
+        VersioningConfiguration: {
+          Status: enableVersioning
+            ? BucketVersioningStatus.Enabled
+            : BucketVersioningStatus.Suspended,
+        },
+      };
+      await noobaaS3.putBucketVersioning(params);
 
+      mutate();
       setInProgress(false);
       closeModal();
-      setSuccess(true);
-      triggerRefresh();
     } catch (err) {
-      setInProgress(false);
       setError(err);
+      setInProgress(false);
     }
   };
 
   return (
     <Modal
-      title={t('Confirm save changes?')}
+      title={
+        enableVersioning ? t('Enable Versioning') : t('Suspend versioning')
+      }
       titleIconVariant="warning"
       isOpen={isOpen}
       onClose={closeModal}
       description={
         <div className="text-muted">
-          {t(
-            'This action will overwrite the existing configuration, and any updates will immediately affect access permissions for users and applications. Review your changes carefully before proceeding.'
-          )}
+          {enableVersioning
+            ? t(
+                'Enable versioning may lead to increased expenses. You will need to update the lifecycle rules after enabling versions.'
+              )
+            : t(
+                'Preserves any previous object versions. Changes will be applied to newly created objects.'
+              )}
         </div>
       }
       variant={ModalVariant.medium}
@@ -69,11 +85,11 @@ const SaveBucketPolicyModal: React.FC<
           <span>
             <Button
               variant={ButtonVariant.primary}
-              onClick={onSave}
+              onClick={onEnableOrSuspend}
               isDisabled={!!error || inProgress}
               className="pf-v5-u-mr-xs"
             >
-              {t('Update policy')}
+              {enableVersioning ? t('Enable') : t('Suspend')}
             </Button>
             <Button
               variant={ButtonVariant.link}
@@ -91,4 +107,4 @@ const SaveBucketPolicyModal: React.FC<
   );
 };
 
-export default SaveBucketPolicyModal;
+export default SetVersioningModal;

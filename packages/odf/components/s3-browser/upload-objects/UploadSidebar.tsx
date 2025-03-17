@@ -2,10 +2,7 @@ import * as React from 'react';
 import { DrawerHead, Status, useCustomTranslation } from '@odf/shared';
 import { ResourceStatus } from '@openshift-console/dynamic-plugin-sdk';
 import { observer } from 'mobx-react-lite';
-import { Trans } from 'react-i18next';
 import {
-  Alert,
-  AlertVariant,
   Drawer,
   DrawerActions,
   DrawerCloseButton,
@@ -113,16 +110,6 @@ const PanelContent: React.FC<PanelContentProps> = observer(
           </DrawerActions>
         </DrawerHead>
         <DrawerContentBody>
-          <Alert
-            title="How uploading works?"
-            isInline
-            variant={AlertVariant.info}
-            className="pf-v5-u-mb-sm"
-          >
-            <Trans t={t}>
-              Standard uploads have a size limit of up to 5 TB in S3.
-            </Trans>
-          </Alert>
           <UploadStatusList />
         </DrawerContentBody>
       </DrawerPanelContent>

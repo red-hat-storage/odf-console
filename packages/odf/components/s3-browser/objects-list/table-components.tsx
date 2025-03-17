@@ -13,6 +13,7 @@ import {
   EmptyStateBody,
   EmptyStateHeader,
   Spinner,
+  Label,
 } from '@patternfly/react-core';
 import { CubesIcon, FileIcon, FolderIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, IAction } from '@patternfly/react-table';
@@ -38,8 +39,19 @@ const getColumnNames = (t: TFunction): string[] => [
   t('Last modified'),
   '',
 ];
+const getVersioningColumnName = (t: TFunction): string => t('Version ID');
 
-const getInlineActionsItems = (
+const getDeleteInlineActionTitle = (
+  showVersioning: boolean,
+  isDeleteMarker: boolean,
+  t: TFunction
+) => {
+  if (isDeleteMarker) return t('Discard delete marker');
+
+  return showVersioning ? t('Delete this version') : t('Delete');
+};
+
+export const getInlineActionsItems = (
   t: TFunction,
   launcher: LaunchModal,
   bucketName: string,
@@ -52,68 +64,117 @@ const getInlineActionsItems = (
   foldersPath: string,
   setDeleteResponse: SetObjectsDeleteResponse,
   refreshTokens: () => Promise<void>,
-  closeObjectSidebar: () => void
-): IAction[] => [
-  {
-    title: (
-      <>
-        {downloadAndPreview.isDownloading ? t('Downloading') : t('Download')}
-        {downloadAndPreview.isDownloading && <Spinner size="sm" />}
-      </>
-    ),
-    onClick: () =>
-      onDownload(bucketName, object, noobaaS3, setDownloadAndPreview),
-    isDisabled: downloadAndPreview.isDownloading,
-    shouldCloseOnClick: false,
-  },
-  {
-    title: (
-      <>
-        {downloadAndPreview.isPreviewing ? t('Previewing') : t('Preview')}
-        {downloadAndPreview.isPreviewing && <Spinner size="sm" />}
-      </>
-    ),
-    onClick: () =>
-      onPreview(bucketName, object, noobaaS3, setDownloadAndPreview),
-    isDisabled: downloadAndPreview.isPreviewing,
-    shouldCloseOnClick: false,
-  },
-  {
-    title: t('Share with presigned URL'),
-    onClick: () =>
-      launcher(LazyPresignedURLModal, {
-        isOpen: true,
-        extraProps: { bucketName, object, noobaaS3 },
+  closeObjectSidebar: () => void,
+  showVersioning: boolean,
+  isVersioningEnabledOrSuspended: boolean
+): IAction[] => {
+  const isDeleteMarker = object?.isDeleteMarker;
+  return [
+    ...(!isDeleteMarker
+      ? [
+          {
+            title: (
+              <>
+                {downloadAndPreview.isDownloading
+                  ? t('Downloading')
+                  : t('Download')}
+                {downloadAndPreview.isDownloading && <Spinner size="sm" />}
+              </>
+            ),
+            onClick: () =>
+              onDownload(
+                bucketName,
+                object,
+                noobaaS3,
+                setDownloadAndPreview,
+                showVersioning
+              ),
+            isDisabled: downloadAndPreview.isDownloading,
+            shouldCloseOnClick: false,
+          },
+        ]
+      : []),
+    ...(!isDeleteMarker
+      ? [
+          {
+            title: (
+              <>
+                {downloadAndPreview.isPreviewing
+                  ? t('Previewing')
+                  : t('Preview')}
+                {downloadAndPreview.isPreviewing && <Spinner size="sm" />}
+              </>
+            ),
+            onClick: () =>
+              onPreview(
+                bucketName,
+                object,
+                noobaaS3,
+                setDownloadAndPreview,
+                showVersioning
+              ),
+            isDisabled: downloadAndPreview.isPreviewing,
+            shouldCloseOnClick: false,
+          },
+        ]
+      : []),
+    ...(!isDeleteMarker
+      ? [
+          {
+            title: t('Share with presigned URL'),
+            onClick: () =>
+              launcher(LazyPresignedURLModal, {
+                isOpen: true,
+                extraProps: { bucketName, object, noobaaS3, showVersioning },
+              }),
+            isDisabled: isDeleteMarker,
+          },
+        ]
+      : []),
+    {
+      title: getDeleteInlineActionTitle(showVersioning, isDeleteMarker, t),
+      onClick: () =>
+        launcher(LazyDeleteObjectsModal, {
+          isOpen: true,
+          extraProps: {
+            foldersPath,
+            bucketName,
+            objects: [object],
+            noobaaS3,
+            setDeleteResponse,
+            refreshTokens,
+            closeObjectSidebar,
+            showVersioning,
+            isVersioningEnabledOrSuspended,
+          },
+        }),
+      ...(isDeleteMarker && {
+        description: t('Delete this marker to restore object'),
       }),
-  },
-  {
-    title: t('Delete'),
-    onClick: () =>
-      launcher(LazyDeleteObjectsModal, {
-        isOpen: true,
-        extraProps: {
-          foldersPath,
-          bucketName,
-          objects: [object],
-          noobaaS3,
-          setDeleteResponse,
-          refreshTokens,
-          closeObjectSidebar,
-        },
-      }),
-  },
-];
+    },
+  ];
+};
 
 export const isRowSelectable = (row: ObjectCrFormat) => !row.isFolder;
 
-export const getColumns = (t: TFunction) => {
+export const getColumns = (t: TFunction, showVersioning: boolean) => {
   const columnNames = getColumnNames(t);
+  const versioningColumnName = getVersioningColumnName(t);
 
   return [
     {
       columnName: columnNames[0],
       sortFunction: (a, b, c) => sortRows(a, b, c, 'metadata.name'),
     },
+    ...(showVersioning
+      ? [
+          {
+            columnName: versioningColumnName,
+            sortFunction: (a, b, c) =>
+              sortRows(a, b, c, 'apiResponse.versionId'),
+          },
+        ]
+      : []),
     {
       columnName: columnNames[1],
       sortFunction: (a, b, c) => sortRows(a, b, c, 'apiResponse.size'),
@@ -153,12 +214,17 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     refreshTokens,
     onRowClick,
     closeObjectSidebar,
+    showVersioning,
+    isVersioningEnabledOrSuspended,
   } = extraProps;
   const isFolder = object.isFolder;
   const name = replacePathFromName(object, foldersPath);
   const prefix = getEncodedPrefix(name, foldersPath);
+  const isLatest = object?.isLatest;
+  const isDeleteMarker = object?.isDeleteMarker;
 
   const columnNames = getColumnNames(t);
+  const versioningColumnName = getVersioningColumnName(t);
 
   const actionItems = getInlineActionsItems(
     t,
@@ -171,11 +237,18 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     foldersPath,
     setDeleteResponse,
     refreshTokens,
-    closeObjectSidebar
+    closeObjectSidebar,
+    showVersioning,
+    isVersioningEnabledOrSuspended
   );
   actionItemsRef.current = actionItems;
 
-  const onClick = () => onRowClick(object, actionItemsRef);
+  const onClick = () =>
+    onRowClick(object, actionItemsRef, {
+      setDeleteResponse,
+      refreshTokens,
+      closeObjectSidebar,
+    });
 
   return (
     <>
@@ -191,9 +264,24 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
           <span>
             <FileIcon className="pf-v5-u-mr-xs" />
             {name}
+            {isLatest && (
+              <Label color="purple" className="pf-v5-u-ml-xs" isCompact>
+                {t('Latest')}
+              </Label>
+            )}
+            {isDeleteMarker && (
+              <Label color="purple" className="pf-v5-u-ml-xs" isCompact>
+                {t('Delete marker')}
+              </Label>
+            )}
           </span>
         )}
       </Td>
+      {showVersioning && (
+        <Td dataLabel={versioningColumnName} onClick={onClick}>
+          {object.apiResponse.versionId}
+        </Td>
+      )}
       <Td dataLabel={columnNames[1]} onClick={onClick}>
         {object.apiResponse.size}
       </Td>

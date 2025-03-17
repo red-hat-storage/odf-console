@@ -9,6 +9,7 @@ import {
   DeleteObjectsCommand,
   GetBucketEncryptionCommand,
   GetBucketVersioningCommand,
+  PutBucketVersioningCommand,
   GetBucketTaggingCommand,
   GetBucketAclCommand,
   GetBucketPolicyCommand,
@@ -35,6 +36,7 @@ import {
   DeleteBucket,
   GetBucketEncryption,
   GetBucketVersioning,
+  PutBucketVersioning,
   GetBucketTagging,
   GetBucketAcl,
   GetBucketPolicy,
@@ -85,6 +87,9 @@ export class S3Commands extends S3Client {
 
   getBucketVersioning: GetBucketVersioning = (input) =>
     this.send(new GetBucketVersioningCommand(input));
+
+  putBucketVersioning: PutBucketVersioning = (input) =>
+    this.send(new PutBucketVersioningCommand(input));
 
   listBuckets: ListBuckets = (input) =>
     this.send(new ListBucketsCommand(input));
