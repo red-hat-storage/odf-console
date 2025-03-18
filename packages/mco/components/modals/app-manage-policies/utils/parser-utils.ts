@@ -1,4 +1,8 @@
-import { DRApplication, PROTECTED_VMS } from '@odf/mco/constants';
+import {
+  DRApplication,
+  K8S_RESOURCE_SELECTOR,
+  PROTECTED_VMS,
+} from '@odf/mco/constants';
 import {
   getDRClusterResourceObj,
   getDRPlacementControlResourceObj,
@@ -11,6 +15,7 @@ import {
 } from '@odf/mco/types';
 import {
   convertExpressionToLabel,
+  getLastAppDeploymentClusterName,
   getReplicationType,
   isDRPolicyValidated,
   matchClusters,
@@ -77,7 +82,7 @@ export const generatePlacementInfo = (
 
 export const generateDRPlacementControlInfo = (
   drpc: DRPlacementControlKind,
-  plsInfo: PlacementType
+  plsInfo?: PlacementType
 ): DRPlacementControlType[] =>
   !_.isEmpty(drpc)
     ? [
@@ -94,6 +99,16 @@ export const generateDRPlacementControlInfo = (
           recipeName: drpc.spec?.kubeObjectProtection?.recipeRef?.name,
           recipeNamespace:
             drpc.spec?.kubeObjectProtection?.recipeRef?.namespace,
+          vmSharedGroup:
+            drpc.spec?.kubeObjectProtection?.recipeParameters?.[
+              PROTECTED_VMS
+            ] ?? [],
+          vmSharedGroupName:
+            drpc.spec?.kubeObjectProtection?.recipeParameters?.[
+              K8S_RESOURCE_SELECTOR
+            ]?.[0] ?? '',
+          k8sResourceSyncInterval:
+            drpc.spec?.kubeObjectProtection?.captureInterval,
         },
       ]
     : [];
@@ -158,10 +173,12 @@ const getVMNamesFromRecipe = (
 export const findDRPCUsingVM = (
   drpcs: DRPlacementControlKind[] = [],
   vmName: string,
-  vmNamespace: string
+  vmNamespace: string,
+  cluster: string
 ): DRPlacementControlKind | undefined =>
   drpcs.find(
-    ({ spec }) =>
-      getVMNamesFromRecipe(spec).includes(vmName) &&
-      spec?.protectedNamespaces?.includes(vmNamespace)
+    (drpc) =>
+      getVMNamesFromRecipe(drpc.spec).includes(vmName) &&
+      drpc.spec?.protectedNamespaces?.includes(vmNamespace) &&
+      getLastAppDeploymentClusterName(drpc) === cluster
   );

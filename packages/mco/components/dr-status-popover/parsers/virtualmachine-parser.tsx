@@ -68,6 +68,7 @@ const SubscriptionHelper: React.FC<ParserHelperProps> = ({
 const DiscoveredHelper: React.FC<ParserHelperProps> = ({
   vmName,
   vmNamespace,
+  clusterName,
 }) => {
   const [drpcs, loaded, loadError] = useK8sWatchResource<
     DRPlacementControlKind[]
@@ -84,8 +85,8 @@ const DiscoveredHelper: React.FC<ParserHelperProps> = ({
   );
 
   const drpc = React.useMemo(
-    () => findDRPCUsingVM(drpcs, vmName, vmNamespace),
-    [vmName, vmNamespace, drpcs]
+    () => findDRPCUsingVM(drpcs, vmName, vmNamespace, clusterName),
+    [vmName, vmNamespace, drpcs, clusterName]
   );
 
   if (!loaded || loadError || !drpc) return null;
@@ -134,7 +135,13 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
     );
   }
 
-  return <DiscoveredHelper vmName={vmName} vmNamespace={vmNamespace} />;
+  return (
+    <DiscoveredHelper
+      vmName={vmName}
+      vmNamespace={vmNamespace}
+      clusterName={clusterName}
+    />
+  );
 };
 
 type VirtualMachineParserProps = {
@@ -144,6 +151,7 @@ type VirtualMachineParserProps = {
 type ParserHelperProps = {
   vmName: string;
   vmNamespace: string;
+  clusterName?: string;
 };
 
 export default VirtualMachineParser;

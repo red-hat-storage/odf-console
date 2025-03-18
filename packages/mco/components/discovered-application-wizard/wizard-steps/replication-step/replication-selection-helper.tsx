@@ -57,6 +57,7 @@ const PolicySelection: React.FC<PolicySelectionProps> = ({
   eligiblePolicies,
   isValidationEnabled,
   onChange,
+  isDisable,
 }) => {
   const { t } = useCustomTranslation();
   const translatedPolicyStatus = t('Status: {{status}}', {
@@ -91,7 +92,7 @@ const PolicySelection: React.FC<PolicySelectionProps> = ({
         selectOptions={getPolicyOptions(eligiblePolicies, t)}
         onChange={onChange}
         validated={policyValidated}
-        isDisabled={!eligiblePolicies.length}
+        isDisabled={!eligiblePolicies.length || isDisable}
       />
       <FormHelperText>
         <HelperText>
@@ -114,6 +115,7 @@ export const ReplicationSelectionHelper: React.FC<
   isValidationEnabled,
   onK8sSyncIntervalChange,
   onPolicyChange,
+  isDisable,
 }) => {
   const { t } = useCustomTranslation();
   const SyncScheduleFormat = SYNC_SCHEDULE_DISPLAY_TEXT(t);
@@ -138,6 +140,7 @@ export const ReplicationSelectionHelper: React.FC<
           eligiblePolicies={eligiblePolicies}
           isValidationEnabled={isValidationEnabled}
           onChange={onPolicyChange}
+          isDisable={isDisable}
         />
         <FormGroup
           fieldId="k8s-resource-interval-selection"
@@ -157,6 +160,7 @@ export const ReplicationSelectionHelper: React.FC<
             defaultRequestSizeUnit={unitVal}
             defaultRequestSizeValue={interval.toString()}
             minValue={MIN_VALUE}
+            isInputDisabled={isDisable}
           />
         </FormGroup>
       </FormSection>
@@ -180,6 +184,7 @@ type ReplicationSelectionHelperProps = {
   isValidationEnabled: boolean;
   onPolicyChange: (policyName: string) => void;
   onK8sSyncIntervalChange: (syncInterval: string) => void;
+  isDisable?: boolean;
 };
 
 type PolicySelectionProps = {
@@ -187,4 +192,5 @@ type PolicySelectionProps = {
   eligiblePolicies: PolicyInfo[];
   isValidationEnabled: boolean;
   onChange: (policyName: string) => void;
+  isDisable?: boolean;
 };
