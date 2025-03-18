@@ -33,3 +33,6 @@ export const isCephProvisioner = (scProvisioner: string): boolean => {
     _.endsWith(scProvisioner, provisioner)
   );
 };
+
+export const isCephDriver = (driver: string): boolean =>
+  _.endsWith(driver, 'ceph.com');

@@ -751,5 +751,31 @@
       "exact": false,
       "component": { "$codeRef": "attachStorage.default" }
     }
+  },
+  {
+    "type": "console.action/resource-provider",
+    "properties": {
+      "model": {
+        "version": "v1",
+        "kind": "StorageClass",
+        "group": "storage.k8s.io"
+      },
+      "provider": {
+        "$codeRef": "storageClientAttacherAction.useStorageClientAttacherAction"
+      }
+    }
+  },
+  {
+    "type": "console.action/resource-provider",
+    "properties": {
+      "model": {
+        "version": "v1",
+        "kind": "VolumeSnapshotClass",
+        "group": "snapshot.storage.k8s.io"
+      },
+      "provider": {
+        "$codeRef": "storageClientAttacherAction.useStorageClientAttacherAction"
+      }
+    }
   }
 ]

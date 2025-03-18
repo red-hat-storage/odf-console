@@ -5,11 +5,11 @@ import { TFunction } from 'react-i18next';
 
 const getHealthAndTotalClientCounts = (clients: StorageConsumerKind[]) => {
   const connectedClients = clients.filter(
-    (client) => client.status.state === StorageConsumerState.Ready
+    (client) => client.status?.state === StorageConsumerState.Ready
   );
 
   const healthyClients = connectedClients.filter(
-    (client) => getTimeDifferenceInSeconds(client.status.lastHeartbeat) < 120
+    (client) => getTimeDifferenceInSeconds(client.status?.lastHeartbeat) < 120
   );
   const healthyClientsCount = healthyClients.length;
   const totalClientsCount = clients.length;
