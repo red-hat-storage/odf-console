@@ -657,9 +657,24 @@ export const getLabelsFromSearchResult = (
   isAllowBlocklist: boolean = false
 ): { [key in string]: string[] } => {
   // example label foo1=bar1;foo2=bar2
-  const labels: string[] = item?.label?.split(LABELS_SPLIT_CHAR) || [];
+  // we should split multiple key=value pairs using ';' not with '; ' (which has a trailing space)
+  const labelsSeparator = (LABELS_SPLIT_CHAR as string).trim();
+  const labels: string[] =
+    item?.label?.split(labelsSeparator)
+    .map((lbl) => lbl.trim())
+    .filter((lbl) => lbl !== '') || [];
+  // regular expression to split a string only at the first equal
+  // this will give correct result even if the 'value' part has equal-sign(s)
+  // Eg: label: "my-base64-encrypted-id=bXlpZDEyMwo="
+  const regexToSplitAtFirstEqualMark = new RegExp(
+    `([^${LABEL_SPLIT_CHAR}]*)${LABEL_SPLIT_CHAR}(.*)`
+  );
   return labels?.reduce((acc, label) => {
-    const [key, value] = label.split(LABEL_SPLIT_CHAR);
+    const equallySplitKeyVal = label
+    .split(regexToSplitAtFirstEqualMark)
+    .map((lbl) => lbl.trim())
+    .filter((lbl) => lbl !== '');
+    const [key, value] = [equallySplitKeyVal[0], equallySplitKeyVal?.[1] ?? ''];
     if (isAllowBlocklist || !DR_BLOCK_LISTED_LABELS.includes(key)) {
       acc[key] = [...(acc[key] || []), value];
     }

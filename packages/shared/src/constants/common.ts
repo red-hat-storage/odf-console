@@ -18,3 +18,6 @@ export const PLUGIN_VERSION =
 export const CONSOLE_PROXY_ROOT_PATH = '/api/proxy/plugin';
 export const ODF_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-console`;
 export const MCO_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-multicluster-console`;
+
+export const RBD_STORAGE_CLASS_END = 'rbd.csi.ceph.com';
+export const CEPHFS_STORAGE_CLASS_END = 'cephfs.csi.ceph.com';
