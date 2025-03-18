@@ -14,7 +14,7 @@ import {
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { AssignPolicyViewState, PVCSelectorType } from '../utils/reducer';
-import { DRPolicyType, ModalType, VMProtectioType } from '../utils/types';
+import { DRPolicyType, ModalType, VMProtectionType } from '../utils/types';
 import '../style.scss';
 
 const getLabels = (pvcSelectors: PVCSelectorType[]): string[] =>
@@ -26,10 +26,10 @@ const ProtectionTypeReview: React.FC<{
 }> = ({ protectionTypeState: { protectionName, protectionType }, appType }) => {
   const { t } = useCustomTranslation();
   const showProtectionName =
-    protectionType === VMProtectioType.STANDALONE &&
+    protectionType === VMProtectionType.STANDALONE &&
     appType === DRApplication.DISCOVERED;
   const protectionDisplayType =
-    protectionType === VMProtectioType.STANDALONE
+    protectionType === VMProtectionType.STANDALONE
       ? t('Standalone')
       : t('Shared');
 

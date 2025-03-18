@@ -21,6 +21,7 @@ type StaticDropdownProps = {
     dropdownItems?: StaticDropdownProps['dropdownItems']
   ) => JSX.Element | string;
   'data-test'?: string;
+  isDisabled?: boolean;
 };
 
 const StaticDropdown: React.FC<StaticDropdownProps> = ({
@@ -33,6 +34,7 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
   textGenerator,
   required,
   'data-test': dataTest,
+  isDisabled = false,
 }) => {
   const [selectedItem, setSelectedItem] = React.useState(defaultSelection);
   const [isOpen, setOpen] = React.useState(false);
@@ -69,7 +71,10 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
       isOpen={isOpen}
       dropdownItems={processedDropdownItems}
       toggle={
-        <DropdownToggle onToggle={() => setOpen((o) => !o)}>
+        <DropdownToggle
+          onToggle={() => setOpen((o) => !o)}
+          isDisabled={isDisabled}
+        >
           {dropdownText}
         </DropdownToggle>
       }

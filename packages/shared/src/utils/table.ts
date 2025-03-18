@@ -11,11 +11,11 @@ export const sortRows = (
   a: any,
   b: any,
   c: SortByDirection,
-  sortField: string,
+  sortField?: string,
   favoriteNames?: string[]
 ) => {
-  let aValue = _.get(a, sortField, '').toString();
-  let bValue = _.get(b, sortField, '').toString();
+  let aValue = sortField ? _.get(a, sortField, '').toString() : a;
+  let bValue = sortField ? _.get(b, sortField, '').toString() : b;
   if (!!favoriteNames) {
     aValue = favoriteNames.includes(aValue).toString();
     bValue = favoriteNames.includes(bValue).toString();

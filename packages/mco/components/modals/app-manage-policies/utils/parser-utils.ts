@@ -1,4 +1,8 @@
-import { DRApplication, PROTECTED_VMS } from '@odf/mco/constants';
+import {
+  DRApplication,
+  K8S_RESOURCE_SELECTOR,
+  PROTECTED_VMS,
+} from '@odf/mco/constants';
 import {
   getDRClusterResourceObj,
   getDRPlacementControlResourceObj,
@@ -77,7 +81,8 @@ export const generatePlacementInfo = (
 
 export const generateDRPlacementControlInfo = (
   drpc: DRPlacementControlKind,
-  plsInfo: PlacementType
+  plsInfo?: PlacementType,
+  isDiscovered?: boolean
 ): DRPlacementControlType[] =>
   !_.isEmpty(drpc)
     ? [
@@ -89,6 +94,18 @@ export const generateDRPlacementControlInfo = (
           placementInfo: plsInfo,
           pvcSelector: getPVCSelector(drpc.spec.pvcSelector),
           lastGroupSyncTime: drpc?.status?.lastGroupSyncTime,
+          ...(isDiscovered && {
+            lastKubeObjectProtectionTime:
+              drpc?.spec?.kubeObjectProtection?.captureInterval ?? '5m',
+            protectedVMNames:
+              drpc?.spec?.kubeObjectProtection?.recipeParameters?.[
+                PROTECTED_VMS
+              ] ?? [],
+            vmSharedGroupnName:
+              drpc?.spec?.kubeObjectProtection?.recipeParameters?.[
+                K8S_RESOURCE_SELECTOR
+              ]?.[0] ?? '',
+          }),
         },
       ]
     : [];

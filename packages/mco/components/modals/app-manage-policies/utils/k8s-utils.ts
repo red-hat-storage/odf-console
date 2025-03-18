@@ -47,7 +47,11 @@ import {
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import { AssignPolicyViewState } from './reducer';
-import { DRPlacementControlType, PlacementType } from './types';
+import {
+  DRPlacementControlType,
+  PlacementType,
+  VMProtectionType,
+} from './types';
 
 export const getManagedDRPCKindObj = (
   plsName: string,
@@ -304,7 +308,7 @@ export const assignPromisesForDiscovered = (
 ): Promise<K8sResourceKind>[] => {
   const promises: Promise<K8sResourceKind>[] = [];
   const {
-    protectionType: { protectionName },
+    protectionType: { protectionName, protectionType, protectedVMNames },
     replication: { k8sSyncInterval, policy, vmPVCS },
   } = state;
 
@@ -323,39 +327,62 @@ export const assignPromisesForDiscovered = (
 
   Promise.all(promises)
     .then(() => {
-      // Step 3: Create DRPC only after labeling is successful
-      promises.push(
-        ...[
-          k8sCreate({
-            model: ACMPlacementModel,
-            data: getPlacementKindObj(placementName),
-          }),
-          k8sCreate({
-            model: DRPlacementControlModel,
-            data: getDiscoveredDRPCKindObj({
-              name: `${protectionName}-drpc`,
-              preferredCluster: clusterName,
-              namespaces: [vmNamespace],
-              protectionMethod: ProtectionMethodType.RECIPE,
-              recipeName: VM_RECIPE_NAME,
-              recipeNamespace: DISCOVERED_APP_NS,
-              drPolicyName: getName(policy),
-              k8sResourceReplicationInterval: k8sSyncInterval,
-              placementName,
-              pvcLabelExpressions: [],
-              recipeParameters: {
-                [K8S_RESOURCE_SELECTOR]: [protectionName],
-                [PVC_RESOURCE_SELECTOR]: [protectionName],
-                [PROTECTED_VMS]: [vmName],
-              },
-              labels: {
-                [ODF_RESOURCE_TYPE_LABEL]:
-                  VirtualMachineModel.kind.toLowerCase(),
-              },
+      if (protectionType === VMProtectionType.STANDALONE) {
+        // Step 3: Create DRPC only after labeling is successful
+        promises.push(
+          ...[
+            k8sCreate({
+              model: ACMPlacementModel,
+              data: getPlacementKindObj(placementName),
             }),
-          }),
-        ]
-      );
+            k8sCreate({
+              model: DRPlacementControlModel,
+              data: getDiscoveredDRPCKindObj({
+                name: `${protectionName}`,
+                preferredCluster: clusterName,
+                namespaces: [vmNamespace],
+                protectionMethod: ProtectionMethodType.RECIPE,
+                recipeName: VM_RECIPE_NAME,
+                recipeNamespace: DISCOVERED_APP_NS,
+                drPolicyName: getName(policy),
+                k8sResourceReplicationInterval: k8sSyncInterval,
+                placementName,
+                pvcLabelExpressions: [],
+                recipeParameters: {
+                  [K8S_RESOURCE_SELECTOR]: [protectionName],
+                  [PVC_RESOURCE_SELECTOR]: [protectionName],
+                  [PROTECTED_VMS]: [vmName],
+                },
+                labels: {
+                  [ODF_RESOURCE_TYPE_LABEL]:
+                    VirtualMachineModel.kind.toLowerCase(),
+                },
+              }),
+            }),
+          ]
+        );
+      } else {
+        // Step 3: Update DRPC only after labeling is successful
+        const patch = [
+          {
+            op: 'add',
+            path: `/spec/kubeObjectProtection/recipeParameters/${PROTECTED_VMS}`,
+            value: [...protectedVMNames, vmName],
+          },
+        ];
+        promises.push(
+          k8sPatch({
+            model: DRPlacementControlModel,
+            resource: {
+              metadata: {
+                name: `${protectionName}`,
+                namespace: DISCOVERED_APP_NS,
+              },
+            },
+            data: patch,
+          })
+        );
+      }
     })
     /* eslint-disable @typescript-eslint/no-empty-function */
     .catch((_error) => {}); // Promise error will be handled by on onSubmit using promises

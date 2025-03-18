@@ -28,26 +28,29 @@ import {
 import {
   ApplicationType,
   DRInfoType,
+  DRPlacementControlType,
   DRPolicyType,
   ModalType,
   PlacementType,
   PVCQueryFilter,
+  VMProtectionType,
 } from './utils/types';
 
-export const createSteps = (
-  appType: DRApplication,
-  unProtectedPlacements: PlacementType[],
-  matchingPolicies: DRPolicyType[],
-  state: AssignPolicyViewState,
-  stepIdReached: number,
-  isValidationEnabled: boolean,
-  t: TFunction,
-  dispatch: React.Dispatch<ManagePolicyStateAction>,
-  protectedPVCSelectors: PVCSelectorType[],
-  pvcQueryFilter: PVCQueryFilter,
-  modalType: ModalType,
-  isEditMode?: boolean
-): WizardStep[] => {
+export const createSteps = ({
+  appType,
+  unProtectedPlacements,
+  matchingPolicies,
+  state,
+  stepIdReached,
+  isValidationEnabled,
+  t,
+  dispatch,
+  protectedPVCSelectors,
+  pvcQueryFilter,
+  modalType,
+  isEditMode,
+  sharedVMGroups,
+}: CreateStepsParams): WizardStep[] => {
   const commonSteps = {
     policy: {
       name: AssignPolicyStepsNames(t)[AssignPolicySteps.Policy],
@@ -93,6 +96,8 @@ export const createSteps = (
           protectionType={state.protectionType.protectionType}
           protectionName={state.protectionType.protectionName}
           appType={appType}
+          matchingPolicies={matchingPolicies}
+          sharedVMGroups={sharedVMGroups}
           dispatch={dispatch}
         />
       ),
@@ -107,6 +112,9 @@ export const createSteps = (
           isValidationEnabled={isValidationEnabled}
           pvcQueryFilter={pvcQueryFilter}
           dispatch={dispatch}
+          isSharedVMProtection={
+            state.protectionType.protectionType === VMProtectionType.SHARED
+          }
         />
       ),
     },
@@ -199,6 +207,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
   setModalActionContext,
   dispatch,
   modalType,
+  sharedVMGroups,
 }) => {
   const { t } = useCustomTranslation();
   const isEditMode =
@@ -264,7 +273,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
       <Wizard
         navAriaLabel={t('Assign policy nav')}
         mainAriaLabel={t('Assign policy content')}
-        steps={createSteps(
+        steps={createSteps({
           appType,
           unProtectedPlacements,
           matchingPolicies,
@@ -276,8 +285,9 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
           protectedPVCSelectors,
           pvcQueryFilter,
           modalType,
-          isEditMode
-        )}
+          isEditMode,
+          sharedVMGroups,
+        })}
         footer={
           <AssignPolicyViewFooter
             state={state}
@@ -309,4 +319,21 @@ type AssignPolicyViewProps = {
     modalViewContext?: ModalViewContext
   ) => void;
   modalType: ModalType;
+  sharedVMGroups?: DRPlacementControlType[];
+};
+
+type CreateStepsParams = {
+  appType: DRApplication;
+  unProtectedPlacements: PlacementType[];
+  matchingPolicies: DRPolicyType[];
+  state: AssignPolicyViewState;
+  stepIdReached: number;
+  isValidationEnabled: boolean;
+  t: TFunction;
+  dispatch: React.Dispatch<ManagePolicyStateAction>;
+  protectedPVCSelectors: PVCSelectorType[];
+  pvcQueryFilter: PVCQueryFilter;
+  modalType: ModalType;
+  isEditMode?: boolean;
+  sharedVMGroups?: DRPlacementControlType[];
 };

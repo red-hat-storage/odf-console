@@ -1,4 +1,4 @@
-import { DRPolicyType, VMProtectioType } from './types';
+import { DRPolicyType, VMProtectionType } from './types';
 
 export enum ModalViewContext {
   MANAGE_POLICY_VIEW = 'managePolicyView',
@@ -25,6 +25,7 @@ export enum ManagePolicyStateType {
   SET_SELECTED_POLICY_FOR_REPLICATION = 'SET_SELECTED_POLICY_FOR_REPLICATION',
   SET_K8S_SYNC_INTERVAL = 'SET_K8S_SYNC_INTERVAL',
   SET_VM_PVCS = 'SET_VM_PVCS',
+  SET_SHARED_VM_GROUP_INFO = 'SET_SHARED_VM_GROUP_INFO',
 }
 
 export type PVCSelectorType = {
@@ -38,8 +39,9 @@ export type AssignPolicyViewState = {
     pvcSelectors: PVCSelectorType[];
   };
   protectionType?: {
-    protectionType: VMProtectioType;
+    protectionType: VMProtectionType;
     protectionName: string;
+    protectedVMNames: string[];
   };
   replication?: {
     policy: DRPolicyType;
@@ -62,8 +64,9 @@ export const initialPolicyState: ManagePolicyState = {
       pvcSelectors: [],
     },
     protectionType: {
-      protectionType: VMProtectioType.STANDALONE,
+      protectionType: VMProtectionType.STANDALONE,
       protectionName: '',
+      protectedVMNames: [],
     },
     replication: {
       policy: undefined,
@@ -99,7 +102,7 @@ export type ManagePolicyStateAction =
   | {
       type: ManagePolicyStateType.SET_VM_PROTECTION_METHOD;
       context: ModalViewContext;
-      payload: VMProtectioType;
+      payload: VMProtectionType;
     }
   | {
       type: ManagePolicyStateType.SET_VM_PROTECTION_NAME;
@@ -120,6 +123,16 @@ export type ManagePolicyStateAction =
       type: ManagePolicyStateType.SET_VM_PVCS;
       context: ModalViewContext;
       payload: string[];
+    }
+  | {
+      type: ManagePolicyStateType.SET_SHARED_VM_GROUP_INFO;
+      context: ModalViewContext;
+      payload: {
+        protectionName: string;
+        policy: DRPolicyType;
+        k8sSyncInterval: string;
+        sharedVMGroup: string[];
+      };
     };
 
 export const managePolicyStateReducer = (
@@ -175,9 +188,10 @@ export const managePolicyStateReducer = (
         [action.context]: {
           ...state[action.context],
           protectionType: {
-            ...state[action.context]['protectionType'],
+            ...initialPolicyState[action.context]['protectionType'],
             protectionType: action.payload,
           },
+          replication: initialPolicyState[action.context]['replication'],
         },
       };
     }
@@ -225,6 +239,26 @@ export const managePolicyStateReducer = (
           replication: {
             ...state[action.context]['replication'],
             vmPVCS: action.payload,
+          },
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_SHARED_VM_GROUP_INFO: {
+      const { policy, k8sSyncInterval, protectionName, sharedVMGroup } =
+        action.payload;
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          replication: {
+            ...state[action.context]['replication'],
+            policy: policy,
+            k8sSyncInterval: k8sSyncInterval,
+          },
+          protectionType: {
+            ...state[action.context]['protectionType'],
+            protectionName: protectionName,
+            protectedVMNames: sharedVMGroup,
           },
         },
       };

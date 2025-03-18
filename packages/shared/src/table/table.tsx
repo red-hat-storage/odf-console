@@ -9,6 +9,7 @@ import {
   Th,
   Thead,
   Tr,
+  TableVariant,
 } from '@patternfly/react-table';
 
 export type Column = {
@@ -29,6 +30,7 @@ type TableProps = {
   unfilteredData?: [];
   noDataMsg?: React.FC;
   emptyRowMessage?: React.FC;
+  variant?: TableVariant;
 };
 
 const Table: React.FC<TableProps> = React.memo(
@@ -42,6 +44,7 @@ const Table: React.FC<TableProps> = React.memo(
     unfilteredData,
     noDataMsg,
     emptyRowMessage,
+    variant,
   }) => {
     const [sortIndex, setSortIndex] = React.useState(-1);
     const [sortDirection, setSortDirection] = React.useState<SortByDirection>(
@@ -98,7 +101,7 @@ const Table: React.FC<TableProps> = React.memo(
         NoDataEmptyMsg={noDataMsg}
         skeleton={<div className="loading-skeleton--table pf-v5-u-mt-lg" />}
       >
-        <PfTable aria-label={ariaLabel}>
+        <PfTable aria-label={ariaLabel} variant={variant}>
           <Thead>
             <Tr>{headerColumns}</Tr>
           </Thead>

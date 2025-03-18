@@ -58,6 +58,9 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
     useK8sWatchResource<DRPolicyKind[]>(getDRPolicyResourceObj());
 
+  const vmNamespace = getNamespace(virtualMachine);
+  const vmName = getName(virtualMachine);
+
   // Compute loading states
   const isLoaded = drpcsLoaded && drPoliciesLoaded;
   const loadError = drPoliciesLoadError || drpcsLoadError;
@@ -66,8 +69,6 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
   const applicationInfo: ApplicationInfoType = React.useMemo(() => {
     if (!isLoadedWOError) return {};
 
-    const vmName = getName(virtualMachine);
-    const vmNamespace = getNamespace(virtualMachine);
     const drpc = findDRPCUsingVM(drpcs, vmName, vmNamespace);
     const drPolicy = drpc && findDRPolicyUsingDRPC(drpc, drPolicies);
     const placementName =
@@ -76,7 +77,7 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
       getPlacementKindObj(placementName),
       [cluster]
     );
-    const drpcInfo = generateDRPlacementControlInfo(drpc, placementInfo);
+    const drpcInfo = generateDRPlacementControlInfo(drpc, placementInfo, true);
 
     return generateApplicationInfo(
       DRApplication.DISCOVERED,
@@ -87,6 +88,8 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
       pvcQueryFilter
     );
   }, [
+    vmName,
+    vmNamespace,
     virtualMachine,
     cluster,
     drpcs,
@@ -101,10 +104,23 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
       : [];
   }, [applicationInfo, drPolicies]);
 
+  const sharedVMGroups = React.useMemo(() => {
+    return drpcs?.length
+      ? drpcs
+          .filter((drpc) =>
+            drpc.spec?.protectedNamespaces?.includes(vmNamespace)
+          )
+          .flatMap((drpc) =>
+            generateDRPlacementControlInfo(drpc, undefined, true)
+          )
+      : [];
+  }, [drpcs, vmNamespace]);
+
   return (
     <ModalContextViewer
       applicationInfo={applicationInfo}
       matchingPolicies={matchingPolicies}
+      sharedVMGroups={sharedVMGroups}
       loaded={isLoaded}
       loadError={loadError}
       setCurrentModalContext={setCurrentModalContext}

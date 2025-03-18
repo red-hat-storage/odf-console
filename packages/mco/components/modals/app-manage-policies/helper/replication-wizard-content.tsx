@@ -36,6 +36,7 @@ export const ReplicationTypeWizardContent: React.FC<
   isValidationEnabled,
   pvcQueryFilter,
   dispatch,
+  isSharedVMProtection,
 }) => {
   // TODO: Temporary place for the PVC search API in Discovered apps
   // ACM search proxy API call
@@ -87,6 +88,7 @@ export const ReplicationTypeWizardContent: React.FC<
       isValidationEnabled={isValidationEnabled}
       onK8sSyncIntervalChange={setK8sSyncInterval}
       onPolicyChange={setSelectedPolicy}
+      isDisable={isSharedVMProtection}
     />
   ) : (
     <StatusBox loaded={searchLoaded} loadError={searchLoadError} />
@@ -100,4 +102,5 @@ type ReplicationTypeWizardContentProps = {
   isValidationEnabled: boolean;
   pvcQueryFilter: PVCQueryFilter;
   dispatch: React.Dispatch<ManagePolicyStateAction>;
+  isSharedVMProtection: boolean;
 };

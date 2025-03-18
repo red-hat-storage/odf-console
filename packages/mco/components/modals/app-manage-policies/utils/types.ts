@@ -17,6 +17,12 @@ export type DRPlacementControlType = K8sResourceCommon & {
   pvcSelector?: string[];
   // Volume replication group last successful sync completion time
   lastGroupSyncTime?: string;
+  // The time of the most recent successful kube object protection
+  lastKubeObjectProtectionTime?: string;
+  // Discovered VM group DR protection name
+  vmSharedGroupnName?: string;
+  // Protected discovered VM names
+  protectedVMNames?: string[];
 };
 
 export type DRPolicyType = K8sResourceCommon & {
@@ -61,7 +67,7 @@ export enum ModalType {
   VirtualMachine = 'VirtualMachine',
 }
 
-export enum VMProtectioType {
+export enum VMProtectionType {
   STANDALONE = 'STANDALONE',
   SHARED = 'SHARED',
 }

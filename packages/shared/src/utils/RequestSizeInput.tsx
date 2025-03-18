@@ -107,6 +107,7 @@ export const RequestSizeInput: React.FC<RequestSizeInputProps> = ({
             !!unitText ? `${map[key]} ${unitText}` : map[key]
           }
           defaultSelection={defaultRequestSizeUnit}
+          isDisabled={isInputDisabled}
         />
       </div>
       {children}

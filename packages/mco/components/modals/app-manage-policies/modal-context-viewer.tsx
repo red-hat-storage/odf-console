@@ -13,6 +13,7 @@ import {
   ApplicationInfoType,
   ApplicationType,
   DRInfoType,
+  DRPlacementControlType,
   DRPolicyType,
   ModalType,
 } from './utils/types';
@@ -24,6 +25,7 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
   loadError,
   setCurrentModalContext,
   modalType,
+  sharedVMGroups = [],
 }) => {
   const [state, dispatch] = React.useReducer(
     managePolicyStateReducer,
@@ -84,6 +86,7 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
           setModalContext={setModalContext}
           setModalActionContext={setModalActionContext}
           modalType={modalType}
+          sharedVMGroups={sharedVMGroups}
         />
       );
     }
@@ -102,4 +105,6 @@ type ModalContextViewerProps = {
     React.SetStateAction<ModalViewContext>
   >;
   modalType: ModalType;
+  // Discovered VM specifc
+  sharedVMGroups?: DRPlacementControlType[];
 };
