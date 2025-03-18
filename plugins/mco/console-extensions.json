@@ -83,7 +83,7 @@
   {
     "type": "acm.application/list/column",
     "properties": {
-      "header": "%plugin__odf-multicluster-console~Data policy%",
+      "header": "%plugin__odf-multicluster-console~DR Status%",
       "cell": {
         "$codeRef": "dataPolicyStatusPopover.default"
       }

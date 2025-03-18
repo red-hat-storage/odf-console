@@ -304,7 +304,7 @@ type WatchResourceType = {
   subscriptions: ACMSubscriptionKind[];
 };
 
-type WatchResources = {
+export type WatchResources = {
   resources?: {
     applications?: WatchK8sResource;
     placements: WatchK8sResource;

@@ -12,7 +12,7 @@
     "createDataPolicy": "@odf/mco/components/create-dr-policy/create-dr-policy",
     "systemDashboard": "@odf/mco/components/mco-dashboard/storage-system/system-dashboard",
     "editPage": "@odf/core/components/ResourceEditor/GenericResourceEditor",
-    "dataPolicyStatusPopover": "@odf/mco/components/modals/app-data-policies-status/acm-column-callback",
+    "dataPolicyStatusPopover": "@odf/mco/components/dr-status-popover/acm-column-callback",
     "appFailoverRelocate": "@odf/mco/components/modals/app-failover-relocate/acm-action-callback",
     "appManagePolicy": "@odf/mco/components/modals/app-manage-policies/app-manage-policies-modal",
     "enrollDiscoveredApplication": "@odf/mco/components/discovered-application-wizard/enroll-discovered-application"
