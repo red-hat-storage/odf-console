@@ -12,10 +12,29 @@ export type HumanizeResult = {
   string: string;
 };
 
-export type RowFunctionArgs<T = any, C = any> = {
-  obj: T;
-  columns: any[];
-  customData?: C;
+export enum InfraProviders {
+  AWS = 'AWS',
+  Azure = 'Azure',
+  BareMetal = 'BareMetal',
+  GCP = 'GCP',
+  IBMCloud = 'IBMCloud',
+  None = 'None',
+  OpenStack = 'OpenStack',
+  OVirt = 'oVirt',
+  VSphere = 'VSphere',
+}
+
+export type InfrastructureKind = K8sResourceCommon & {
+  apiVersion: 'config.openshift.io/v1';
+  kind: 'Infrastructure';
+  spec: {
+    platformSpec: {
+      type: InfraProviders;
+    };
+  };
+  status?: {
+    platform: InfraProviders;
+  };
 };
 
 export type K8sResourceCondition = {
@@ -32,14 +51,6 @@ export enum K8sResourceConditionStatus {
   Unknown = 'Unknown',
 }
 
-export type StorageClass = K8sResourceCommon & {
-  provisioner: string;
-  parameters: object;
-  reclaimPolicy?: string;
-  volumeBindingMode?: string;
-  allowVolumeExpansion?: boolean;
-};
-
 export type PrometheusHealthHandler = (
   responses: {
     response: PrometheusResponse;
@@ -48,3 +59,17 @@ export type PrometheusHealthHandler = (
   t?: TFunction,
   additionalResource?: FirehoseResult<K8sResourceCommon | K8sResourceCommon[]>
 ) => SubsystemHealth;
+
+export type RowFunctionArgs<T = any, C = any> = {
+  obj: T;
+  columns: any[];
+  customData?: C;
+};
+
+export type StorageClass = K8sResourceCommon & {
+  provisioner: string;
+  parameters: object;
+  reclaimPolicy?: string;
+  volumeBindingMode?: string;
+  allowVolumeExpansion?: boolean;
+};

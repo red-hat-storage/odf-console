@@ -20,8 +20,10 @@ import {
   isFlexibleScaling,
   getDeviceSetCount,
   getOsdAmount,
+  isValidCapacityAutoScalingConfig,
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
+import { StorageClusterKind } from '@odf/shared';
 import { StorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -52,6 +54,7 @@ import {
   labelNodes,
   taintNodes,
   createOCSNamespace,
+  createStorageAutoScaler,
 } from './payloads';
 import { WizardCommonProps, WizardState } from './reducer';
 
@@ -189,6 +192,10 @@ const canJumpToNextStep = (
           getTotalCpu(nodes),
           getTotalMemoryInGiB(nodes),
           osdAmount
+        ) &&
+        isValidCapacityAutoScalingConfig(
+          capacityAndNodes.capacityAutoScaling.enable,
+          capacityAndNodes.capacityAutoScaling.capacityLimit
         )
       );
     case StepsName(t)[Steps.SecurityAndNetwork]:
@@ -291,9 +298,14 @@ const handleReviewAndCreateNext = async (
       ? await labelOCSNamespace(systemNamespace)
       : await createOCSNamespace(systemNamespace);
 
+    let storageCluster: StorageClusterKind;
     if (isMCG) {
       await createAdditionalFeatureResources();
-      await createStorageCluster(state, systemNamespace, OCS_INTERNAL_CR_NAME);
+      storageCluster = await createStorageCluster(
+        state,
+        systemNamespace,
+        OCS_INTERNAL_CR_NAME
+      );
     } else if (
       type === BackingStorageType.EXISTING ||
       type === BackingStorageType.LOCAL_DEVICES
@@ -305,7 +317,11 @@ const handleReviewAndCreateNext = async (
         STORAGE_CLUSTER_SYSTEM_KIND,
         systemNamespace
       );
-      await createStorageCluster(state, systemNamespace, OCS_INTERNAL_CR_NAME);
+      storageCluster = await createStorageCluster(
+        state,
+        systemNamespace,
+        OCS_INTERNAL_CR_NAME
+      );
     } else if (type === BackingStorageType.EXTERNAL) {
       const { createPayload, model, displayName, waitToCreate } =
         getExternalStorage(externalStorage, supportedExternalStorage) || {};
@@ -338,7 +354,7 @@ const handleReviewAndCreateNext = async (
       if (!hasOCS && !isRhcs) {
         await labelNodes(nodes, systemNamespace);
         await createAdditionalFeatureResources();
-        await createStorageCluster(
+        storageCluster = await createStorageCluster(
           state,
           systemNamespace,
           OCS_INTERNAL_CR_NAME
@@ -348,6 +364,21 @@ const handleReviewAndCreateNext = async (
       if (!hasOCS && isRhcs) await createNooBaaResources();
       if (!isRhcs && !!waitToCreate) await waitToCreate(model);
       await createExternalSubSystem(subSystemPayloads);
+    }
+    if (state.capacityAndNodes.capacityAutoScaling.enable && storageCluster) {
+      // Don't stop the workflow on autoscaler creation error.
+      try {
+        await createStorageAutoScaler(
+          state.capacityAndNodes.capacityAutoScaling.capacityLimit,
+          storageCluster
+        );
+      } catch (error) {
+        // TODO: raise a notification once the notification system is implemented.
+        // eslint-disable-next-line no-console
+        console.error(
+          `Error while enabling capacity autoscaling: ${error.message}`
+        );
+      }
     }
     navigate('/odf/systems');
   } catch (err) {

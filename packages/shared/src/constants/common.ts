@@ -1,3 +1,9 @@
+import {
+  InfraProviders,
+  StorageSizeUnit,
+  StorageSizeUnitName,
+} from '@odf/shared/types';
+
 export const DASH = '-';
 export const AVAILABLE = 'Available';
 export const DEFAULT_STORAGE_NAMESPACE = 'openshift-storage'; // This hardcoded namespace is only for specific cases, do not use it otherwise.
@@ -15,6 +21,36 @@ export const PLUGIN_VERSION =
   typeof process === 'undefined' ? undefined : process?.env?.PLUGIN_VERSION;
 
 // Proxy.
+
 export const CONSOLE_PROXY_ROOT_PATH = '/api/proxy/plugin';
 export const ODF_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-console`;
 export const MCO_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-multicluster-console`;
+
+// Infrastructure.
+
+export const CAPACITY_AUTOSCALING_MAX_LIMIT_IN_TIB = 768;
+export const CAPACITY_AUTOSCALING_PROVIDERS = [
+  InfraProviders.AWS,
+  InfraProviders.Azure,
+  InfraProviders.GCP,
+  InfraProviders.IBMCloud,
+  InfraProviders.VSphere,
+];
+export const CAPACITY_OSD_MAX_SIZE_IN_TIB = 8;
+export const DEFAULT_DEVICECLASS = 'ssd';
+export const DEFAULT_INFRASTRUCTURE = 'cluster';
+export const RHCS_SUPPORTED_INFRA = [
+  InfraProviders.BareMetal,
+  InfraProviders.IBMCloud,
+  InfraProviders.None,
+  InfraProviders.OpenStack,
+  InfraProviders.OVirt,
+  InfraProviders.VSphere,
+];
+export const STORAGE_SIZE_UNIT_NAME_MAP = Object.freeze({
+  [StorageSizeUnit.B]: StorageSizeUnitName.B,
+  [StorageSizeUnit.Ki]: StorageSizeUnitName.KiB,
+  [StorageSizeUnit.Mi]: StorageSizeUnitName.MiB,
+  [StorageSizeUnit.Gi]: StorageSizeUnitName.GiB,
+  [StorageSizeUnit.Ti]: StorageSizeUnitName.TiB,
+});

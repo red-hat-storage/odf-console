@@ -1,3 +1,5 @@
+import { STORAGE_SIZE_UNIT_NAME_MAP } from '@odf/shared';
+import { StorageSizeUnit } from '@odf/shared/types/storage';
 import { TFunction } from 'react-i18next';
 import { DiskType } from '../types';
 
@@ -25,12 +27,13 @@ export const diskTypeDropdownItems = (t: TFunction) =>
     [DiskType.HDD]: t('plugin__odf-console~HDD'),
   });
 
+// DiskSize is a subset of StorageSizeUnit.
 export enum DiskSize {
-  Ti = 'Ti',
-  Gi = 'Gi',
+  Ti = StorageSizeUnit.Ti,
+  Gi = StorageSizeUnit.Gi,
 }
 
 export const diskSizeUnitOptions = {
-  [DiskSize.Ti]: 'TiB',
-  [DiskSize.Gi]: 'GiB',
+  [DiskSize.Ti]: STORAGE_SIZE_UNIT_NAME_MAP[DiskSize.Ti],
+  [DiskSize.Gi]: STORAGE_SIZE_UNIT_NAME_MAP[DiskSize.Gi],
 };

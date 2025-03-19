@@ -1,5 +1,10 @@
 import { Model } from '@odf/odf-plugin-sdk/extensions';
-import { K8sResourceKind, Patch } from '@odf/shared/types';
+import {
+  InfraProviders,
+  InfrastructureKind,
+  K8sResourceKind,
+  Patch,
+} from '@odf/shared/types';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import {
   K8sGroupVersionKind,
@@ -130,8 +135,8 @@ export const isFunctionThenApply =
     typeof fn === 'function' ? fn(...args) : fn;
 
 export const getInfrastructurePlatform = (
-  infrastructure: K8sResourceKind
-): string =>
+  infrastructure: InfrastructureKind
+): InfraProviders =>
   infrastructure?.spec?.platformSpec?.type || infrastructure?.status?.platform;
 
 export const getGVKLabel = ({ kind, apiGroup, apiVersion }: Model) =>
