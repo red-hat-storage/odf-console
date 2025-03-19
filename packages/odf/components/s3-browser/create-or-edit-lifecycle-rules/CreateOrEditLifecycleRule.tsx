@@ -267,7 +267,7 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
       <RuleActions state={state} dispatch={dispatch} />
       <ButtonBar
         inProgress={inProgress}
-        errorMessage={putError?.message || putError}
+        errorMessage={putError?.message || JSON.stringify(putError)}
         className="pf-v5-u-mt-lg pf-v5-u-mb-md"
       >
         <span>
