@@ -40,6 +40,7 @@ import {
   Form,
   FormGroup,
   Alert,
+  TextContent,
 } from '@patternfly/react-core';
 import NamespaceSafetyBox from '../../components/utils/safety-box';
 import {
@@ -577,9 +578,11 @@ export const CreateOBCPage: React.FC<{}> = () => {
         <Helmet>
           <title>{t('Create ObjectBucketClaim')}</title>
         </Helmet>
-        <h1 className="odf-m-pane__heading odf-m-pane__heading--baseline">
-          <div>{t('Create ObjectBucketClaim')}</div>
-        </h1>
+        <TextContent className="odf-m-pane__heading odf-m-pane__heading--baseline">
+          <Text component={TextVariants.h1}>
+            {t('Create ObjectBucketClaim')}
+          </Text>
+        </TextContent>
         <CreateOBC />
       </div>
     </>
