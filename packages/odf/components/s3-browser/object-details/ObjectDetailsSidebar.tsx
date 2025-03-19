@@ -87,6 +87,12 @@ type ObjectVersionsProps = {
   foldersPath: string;
 };
 
+const ItemHeading: React.FC<{ text: string }> = ({ text }) => (
+  <TextContent>
+    <Text component={TextVariants.h5}>{text}</Text>
+  </TextContent>
+);
+
 const fetchVersions = async ({
   setInProgress,
   setObjectVersions,
@@ -316,11 +322,11 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
   ) : (
     <Grid className="odf-object-sidebar__data-grid pf-v5-u-mt-sm" hasGutter>
       <GridItem span={6}>
-        <h5>{t('Name')}</h5>
+        <ItemHeading text={t('Name')} />
         {objShortenedName}
       </GridItem>
       <GridItem span={6}>
-        <h5>{t('Key')}</h5>
+        <ItemHeading text={t('Key')} />
         <Level>
           <LevelItem className="odf-object-sidebar__key">{objectKey}</LevelItem>
           <LevelItem>
@@ -330,36 +336,36 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
       </GridItem>
       {showVersioning && (
         <GridItem span={6}>
-          <h5>{t('Version')}</h5>
+          <ItemHeading text={t('Version')} />
           {objectData?.VersionId || versionId || DASH}
         </GridItem>
       )}
       <GridItem span={6}>
-        <h5>{t('Owner')}</h5>
+        <ItemHeading text={t('Owner')} />
         {object.apiResponse?.ownerName}
       </GridItem>
       <GridItem span={6}>
-        <h5>{t('Type')}</h5>
+        <ItemHeading text={t('Type')} />
         {isDeleteMarker ? t('Delete marker') : objectData?.ContentType}
       </GridItem>
       <GridItem span={6}>
-        <h5>{t('Last modified')}</h5>
+        <ItemHeading text={t('Last modified')} />
         {lastModified}
       </GridItem>
       <GridItem span={6}>
-        <h5>{t('Size')}</h5>
+        <ItemHeading text={t('Size')} />
         {object.apiResponse.size}
       </GridItem>
       <GridItem span={6}>
-        <h5>{t('Entity tag (ETag)')}</h5>
+        <ItemHeading text={t('Entity tag (ETag)')} />
         {objectData?.ETag || DASH}
       </GridItem>
       <GridItem span={12}>
-        <h5>{t('Tags')}</h5>
+        <ItemHeading text={t('Tags')} />
         {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
       </GridItem>
       <GridItem span={12}>
-        <h5>{t('Metadata')}</h5>
+        <ItemHeading text={t('Metadata')} />
         {metadata.length > 0 ? metadata : DASH}
       </GridItem>
     </Grid>

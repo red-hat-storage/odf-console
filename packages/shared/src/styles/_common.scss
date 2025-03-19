@@ -162,3 +162,7 @@
     @include odf-break-word;
   }
 }
+
+.text-muted {
+  color: var(--pf-v5-global--Color--200);
+}
