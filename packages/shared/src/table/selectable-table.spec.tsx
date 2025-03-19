@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { screen, render, fireEvent, waitFor } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { ActionsColumn, IAction, Td } from '@patternfly/react-table';
 import { getName, getNamespace } from '../selectors';
 import { RowComponentType } from './composable-table';
@@ -67,6 +68,7 @@ const MockRowComponent: React.FC<RowComponentType<K8sResourceCommon>> = (
 
 describe('ApplicationSet manage data policy modal', () => {
   test('selectable table test', async () => {
+    const user = userEvent.setup();
     let selectedRows: K8sResourceCommon[] = [];
     const mockFuncton = jest.fn((selectedRowList: K8sResourceCommon[]) => {
       selectedRows = selectedRowList;
@@ -104,17 +106,16 @@ describe('ApplicationSet manage data policy modal', () => {
     expect(screen.getByText('kind3')).toBeInTheDocument();
 
     // Row action
-    await waitFor(() =>
-      fireEvent.click(
-        screen.getAllByRole('button', {
-          name: 'Kebab toggle',
-        })[0]
-      )
+    await user.click(
+      screen.getAllByRole('button', {
+        name: 'Kebab toggle',
+      })[0]
     );
     expect(screen.getByText('test action')).toBeInTheDocument();
   });
 
   test('select one row test', async () => {
+    const user = userEvent.setup();
     let selectedRows: K8sResourceCommon[] = [];
     const mockFuncton = jest.fn((selectedRowList: K8sResourceCommon[]) => {
       selectedRows = selectedRowList;
@@ -131,11 +132,12 @@ describe('ApplicationSet manage data policy modal', () => {
     );
     // Select all rows
     const selectRow = screen.getByLabelText('Select row 0');
-    fireEvent.click(selectRow);
+    await user.click(selectRow);
     expect(selectedRows.length === 1).toBeTruthy();
   });
 
   test('select all row test', async () => {
+    const user = userEvent.setup();
     let selectedRows: K8sResourceCommon[] = [];
     const mockFuncton = jest.fn((selectedRowList: K8sResourceCommon[]) => {
       selectedRows = selectedRowList;
@@ -152,7 +154,7 @@ describe('ApplicationSet manage data policy modal', () => {
     );
     // Select all rows
     const selectAll = screen.getByLabelText('Select all rows');
-    fireEvent.click(selectAll);
+    await user.click(selectAll);
     expect(selectedRows.length === 2).toBeTruthy();
   });
 

@@ -2,13 +2,11 @@ import * as React from 'react';
 import { DRApplication, PLACEMENT_REF_LABEL } from '@odf/mco/constants';
 import {
   DisasterRecoveryResourceKind,
-  getDRClusterResourceObj,
-  getDRPlacementControlResourceObj,
-  getDRPolicyResourceObj,
   getPlacementDecisionsResourceObj,
   getPlacementResourceObj,
   useArgoApplicationSetResourceWatch,
   useDisasterRecoveryResourceWatch,
+  getApplicationSetResourceObj,
 } from '@odf/mco/hooks';
 import { ArgoApplicationSetKind } from '@odf/mco/types';
 import {
@@ -16,32 +14,26 @@ import {
   getRemoteNamespaceFromAppSet,
   findDeploymentClusters,
 } from '@odf/mco/utils';
-import { getNamespace } from '@odf/shared/selectors';
+import { useDeepCompareMemoize } from '@odf/shared';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
-import { AppManagePoliciesModal } from '../app-manage-policies-modal';
+import { ModalContextViewer } from '../modal-context-viewer';
 import {
   generateApplicationInfo,
   generateDRPlacementControlInfo,
   generateDRInfo,
   generatePlacementInfo,
   getMatchingDRPolicies,
+  getDRResources,
 } from '../utils/parser-utils';
+import { ModalViewContext } from '../utils/reducer';
 import {
   ApplicationInfoType,
   ApplicationType,
   DRPlacementControlType,
   DRPolicyType,
+  PVCQueryFilter,
 } from '../utils/types';
-
-const getDRResources = (namespace: string) => ({
-  resources: {
-    drPolicies: getDRPolicyResourceObj(),
-    drClusters: getDRClusterResourceObj(),
-    drPlacementControls: getDRPlacementControlResourceObj({
-      namespace: namespace,
-    }),
-  },
-});
 
 const getApplicationSetResources = (
   appResource: ArgoApplicationSetKind,
@@ -49,17 +41,33 @@ const getApplicationSetResources = (
   placementName: string,
   drResources: DisasterRecoveryResourceKind,
   drLoaded: boolean,
-  drLoadError: any
+  drLoadError: any,
+  isWatchApplication: boolean
 ) => ({
   resources: {
-    placements: getPlacementResourceObj({
-      name: placementName,
-      namespace: namespace,
-    }),
-    placementDecisions: getPlacementDecisionsResourceObj({
-      namespace: namespace,
-      selector: { matchLabels: { [PLACEMENT_REF_LABEL]: placementName } },
-    }),
+    ...(isWatchApplication
+      ? {
+          applications: getApplicationSetResourceObj({
+            name: getName(appResource),
+            namespace,
+          }),
+          placements: getPlacementResourceObj({
+            namespace: namespace,
+          }),
+          placementDecisions: getPlacementDecisionsResourceObj({
+            namespace: namespace,
+          }),
+        }
+      : {
+          placements: getPlacementResourceObj({
+            name: placementName,
+            namespace: namespace,
+          }),
+          placementDecisions: getPlacementDecisionsResourceObj({
+            namespace: namespace,
+            selector: { matchLabels: { [PLACEMENT_REF_LABEL]: placementName } },
+          }),
+        }),
   },
   drResources: {
     data: drResources,
@@ -67,11 +75,15 @@ const getApplicationSetResources = (
     loadError: drLoadError,
   },
   overrides: {
-    applications: {
-      data: appResource,
-      loaded: true,
-      loadError: '',
-    },
+    ...(!isWatchApplication
+      ? {
+          applications: {
+            data: appResource,
+            loaded: true,
+            loadError: '',
+          },
+        }
+      : {}),
     managedClusters: {
       data: {},
       loaded: true,
@@ -82,24 +94,32 @@ const getApplicationSetResources = (
 
 export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
   application,
-  isOpen,
-  close,
+  isWatchApplication,
+  pvcQueryFilter,
+  setCurrentModalContext,
 }) => {
+  const namespace = getNamespace(application);
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
-    getDRResources(getNamespace(application))
+    getDRResources(namespace)
   );
   const [appSetResources, loaded, loadError] =
     useArgoApplicationSetResourceWatch(
       getApplicationSetResources(
         application,
-        getNamespace(application),
+        namespace,
         findPlacementNameFromAppSet(application),
         drResources,
         drLoaded,
-        drLoadError
+        drLoadError,
+        isWatchApplication
       )
     );
-  const appSetResource = appSetResources?.formattedResources?.[0];
+
+  // Perform deep comparison to prevent unnecessary re-renders
+  const appSetResource = useDeepCompareMemoize(
+    appSetResources?.formattedResources?.[0]
+  );
+
   const { drPolicies } = drResources;
 
   const applicationInfo: ApplicationInfoType = React.useMemo(() => {
@@ -111,25 +131,49 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       const { placement, placementDecision, drPlacementControl, drPolicy } =
         appSetResource.placements[0];
 
+      const deploymentClusters = findDeploymentClusters(
+        placementDecision,
+        drPlacementControl
+      );
+
       const placementInfo = generatePlacementInfo(
         placement,
-        findDeploymentClusters(placementDecision, drPlacementControl)
+        deploymentClusters
       );
       const drpcInfo: DRPlacementControlType[] = generateDRPlacementControlInfo(
         drPlacementControl,
         placementInfo
       );
+
+      const remoteNamespace = getRemoteNamespaceFromAppSet(
+        appSetResource.application
+      );
+
       applicationInfo = generateApplicationInfo(
         DRApplication.APPSET,
-        application,
-        getRemoteNamespaceFromAppSet(application),
+        appSetResource.application,
+        remoteNamespace,
         // Skip placement if it already DR protected
         _.isEmpty(drpcInfo) ? [placementInfo] : [],
-        generateDRInfo(drPolicy, drpcInfo)
+        generateDRInfo(drPolicy, drpcInfo),
+        pvcQueryFilter || [
+          {
+            property: 'namespace',
+            values: remoteNamespace,
+          },
+          {
+            property: 'cluster',
+            values: deploymentClusters,
+          },
+          {
+            property: 'kind',
+            values: ['pod', 'deployment', 'replicaset'],
+          },
+        ]
       );
     }
     return applicationInfo;
-  }, [application, appSetResource, loaded, loadError]);
+  }, [appSetResource, loaded, loadError, pvcQueryFilter]);
 
   const matchingPolicies: DRPolicyType[] = React.useMemo(
     () =>
@@ -140,19 +184,24 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
   );
 
   return (
-    <AppManagePoliciesModal
-      applicaitonInfo={applicationInfo as ApplicationType}
+    <ModalContextViewer
+      applicationInfo={applicationInfo}
       matchingPolicies={matchingPolicies}
       loaded={loaded}
       loadError={loadError}
-      isOpen={isOpen}
-      close={close}
+      setCurrentModalContext={setCurrentModalContext}
     />
   );
 };
 
 type ApplicationSetParserProps = {
   application: ArgoApplicationSetKind;
-  isOpen: boolean;
-  close: () => void;
+  // Always watch the application resource
+  isWatchApplication?: boolean;
+  // Current active modal context
+  setCurrentModalContext: React.Dispatch<
+    React.SetStateAction<ModalViewContext>
+  >;
+  // ACM search api PVC query filter
+  pvcQueryFilter?: PVCQueryFilter;
 };

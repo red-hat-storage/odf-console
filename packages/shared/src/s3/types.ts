@@ -10,7 +10,9 @@ import {
   GetBucketTaggingCommandOutput,
   GetBucketTaggingCommandInput,
   GetBucketVersioningCommandInput,
+  PutBucketVersioningCommandInput,
   GetBucketVersioningCommandOutput,
+  PutBucketVersioningCommandOutput,
   ListBucketsCommandInput,
   ListBucketsCommandOutput,
   ListObjectsV2CommandInput,
@@ -31,6 +33,10 @@ import {
   DeleteBucketPolicyCommandOutput,
   PutBucketPolicyCommandInput,
   PutBucketPolicyCommandOutput,
+  GetBucketLifecycleConfigurationCommandInput,
+  GetBucketLifecycleConfigurationCommandOutput,
+  PutBucketLifecycleConfigurationCommandInput,
+  PutBucketLifecycleConfigurationCommandOutput,
 } from '@aws-sdk/client-s3';
 
 // Bucket command types
@@ -70,6 +76,10 @@ export type GetBucketVersioning = (
   input: GetBucketVersioningCommandInput
 ) => Promise<GetBucketVersioningCommandOutput>;
 
+export type PutBucketVersioning = (
+  input: PutBucketVersioningCommandInput
+) => Promise<PutBucketVersioningCommandOutput>;
+
 export type ListBuckets = (
   input: ListBucketsCommandInput
 ) => Promise<ListBucketsCommandOutput>;
@@ -77,6 +87,14 @@ export type ListBuckets = (
 export type PutBucketTags = (
   input: PutBucketTaggingCommandInput
 ) => Promise<PutBucketTaggingCommandOutput>;
+
+export type GetBucketLifecycleConfiguration = (
+  input: GetBucketLifecycleConfigurationCommandInput
+) => Promise<GetBucketLifecycleConfigurationCommandOutput>;
+
+export type PutBucketLifecycleConfiguration = (
+  input: PutBucketLifecycleConfigurationCommandInput
+) => Promise<PutBucketLifecycleConfigurationCommandOutput>;
 
 // Object command types
 export type DeleteObjects = (
@@ -98,7 +116,8 @@ export type GetSignedUrl = (
 
 export type ListCommandOutput =
   | ListObjectsV2CommandOutput
-  | ListBucketsCommandOutput;
+  | ListBucketsCommandOutput
+  | ListObjectVersionsCommandOutput;
 
 export type ListObjectsV2 = (
   input: ListObjectsV2CommandInput

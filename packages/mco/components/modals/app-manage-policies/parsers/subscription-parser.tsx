@@ -1,57 +1,59 @@
 import * as React from 'react';
-import { DRApplication } from '@odf/mco/constants';
+import { DRApplication, HUB_CLUSTER_NAME } from '@odf/mco/constants';
 import {
   DisasterRecoveryResourceKind,
-  getDRClusterResourceObj,
-  getDRPlacementControlResourceObj,
-  getDRPolicyResourceObj,
   useSubscriptionResourceWatch,
   useDisasterRecoveryResourceWatch,
   getPlacementResourceObj,
   getPlacementDecisionsResourceObj,
   getSubscriptionResourceObj,
   getPlacementRuleResourceObj,
+  getApplicationResourceObj,
 } from '@odf/mco/hooks';
 import { DRPolicyKind } from '@odf/mco/types';
 import { findDeploymentClusters } from '@odf/mco/utils';
-import { getNamespace } from '@odf/shared/selectors';
+import { ApplicationModel, getName, getNamespace } from '@odf/shared';
 import { ApplicationKind } from '@odf/shared/types';
 import * as _ from 'lodash-es';
-import { AppManagePoliciesModal } from '../app-manage-policies-modal';
+import { ModalContextViewer } from '../modal-context-viewer';
 import {
   generateApplicationInfo,
   generateDRPlacementControlInfo,
   generateDRInfo,
   generatePlacementInfo,
   getMatchingDRPolicies,
+  getDRResources,
 } from '../utils/parser-utils';
+import { ModalViewContext } from '../utils/reducer';
 import {
   ApplicationInfoType,
   ApplicationType,
   DRPlacementControlType,
   DRPolicyType,
   PlacementType,
+  PVCQueryFilter,
 } from '../utils/types';
 
-const getDRResources = (namespace: string) => ({
-  resources: {
-    drPolicies: getDRPolicyResourceObj(),
-    drClusters: getDRClusterResourceObj(),
-    drPlacementControls: getDRPlacementControlResourceObj({
-      namespace,
-    }),
-  },
-});
-
-const getSubscriptionResources = (
+export const getSubscriptionResources = (
   appResource: ApplicationKind,
   namespace: string,
   drResources: DisasterRecoveryResourceKind,
   drLoaded: boolean,
-  drLoadError: any
+  drLoadError: any,
+  subscriptionName: string,
+  isWatchApplication: boolean
 ) => ({
   resources: {
+    ...(isWatchApplication
+      ? {
+          applications: getApplicationResourceObj({
+            name: getName(appResource),
+            namespace,
+          }),
+        }
+      : {}),
     subscriptions: getSubscriptionResourceObj({
+      ...(!!subscriptionName ? { name: subscriptionName } : {}),
       namespace,
     }),
     placementRules: getPlacementRuleResourceObj({
@@ -70,38 +72,47 @@ const getSubscriptionResources = (
     loadError: drLoadError,
   },
   overrides: {
-    applications: {
-      data: appResource,
-      loaded: true,
-      loadError: '',
-    },
+    ...(!isWatchApplication
+      ? {
+          applications: {
+            data: appResource,
+            loaded: true,
+            loadError: '',
+          },
+        }
+      : {}),
   },
 });
 
 export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
   application,
-  isOpen,
-  close,
+  subscriptionName,
+  isWatchApplication,
+  pvcQueryFilter,
+  setCurrentModalContext,
 }) => {
+  const namespace = getNamespace(application);
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
-    getDRResources(getNamespace(application))
+    getDRResources(namespace)
   );
   const [subscriptionResourceList, loaded, loadError] =
     useSubscriptionResourceWatch(
       getSubscriptionResources(
         application,
-        getNamespace(application),
+        namespace,
         drResources,
         drLoaded,
-        drLoadError
+        drLoadError,
+        subscriptionName,
+        isWatchApplication
       )
     );
   const subscriptionResources = subscriptionResourceList?.[0];
   const { drPolicies } = drResources;
-
   const applicationInfo: ApplicationInfoType = React.useMemo(() => {
     let applicationInfo: ApplicationInfoType = {};
     if (loaded && !loadError) {
+      const app = subscriptionResources.application;
       const unProtectedPlacements: PlacementType[] = [];
       const drPlacementControls: DRPlacementControlType[] = [];
       let drPolicyInfo: DRPolicyKind = {};
@@ -134,14 +145,36 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
       );
       applicationInfo = generateApplicationInfo(
         DRApplication.SUBSCRIPTION,
-        application,
-        getNamespace(application),
+        app,
+        namespace,
         unProtectedPlacements,
-        generateDRInfo(drPolicyInfo, drPlacementControls)
+        generateDRInfo(drPolicyInfo, drPlacementControls),
+        pvcQueryFilter || [
+          {
+            property: 'name',
+            values: [getName(app)],
+          },
+          {
+            property: 'kind',
+            values: ApplicationModel.kind,
+          },
+          {
+            property: 'apigroup',
+            values: ApplicationModel.apiGroup,
+          },
+          {
+            property: 'namespace',
+            values: namespace,
+          },
+          {
+            property: 'cluster',
+            values: HUB_CLUSTER_NAME,
+          },
+        ]
       );
     }
     return applicationInfo;
-  }, [application, subscriptionResources, loaded, loadError]);
+  }, [subscriptionResources, namespace, loaded, loadError, pvcQueryFilter]);
 
   const matchingPolicies: DRPolicyType[] = React.useMemo(
     () =>
@@ -152,19 +185,27 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
   );
 
   return (
-    <AppManagePoliciesModal
-      applicaitonInfo={applicationInfo as ApplicationType}
+    <ModalContextViewer
+      applicationInfo={applicationInfo}
       matchingPolicies={matchingPolicies}
       loaded={loaded}
       loadError={loadError}
-      isOpen={isOpen}
-      close={close}
+      setCurrentModalContext={setCurrentModalContext}
     />
   );
 };
 
 type SubscriptionParserProps = {
+  // Application resource
   application: ApplicationKind;
-  isOpen: boolean;
-  close: () => void;
+  // Always watch the application resource
+  isWatchApplication?: boolean;
+  // Subscription name
+  subscriptionName?: string;
+  // Current active modal context
+  setCurrentModalContext: React.Dispatch<
+    React.SetStateAction<ModalViewContext>
+  >;
+  // ACM search api PVC query filter
+  pvcQueryFilter?: PVCQueryFilter;
 };

@@ -9,6 +9,7 @@ import {
   DeleteObjectsCommand,
   GetBucketEncryptionCommand,
   GetBucketVersioningCommand,
+  PutBucketVersioningCommand,
   GetBucketTaggingCommand,
   GetBucketAclCommand,
   GetBucketPolicyCommand,
@@ -16,6 +17,8 @@ import {
   DeleteBucketCommand,
   DeleteBucketPolicyCommand,
   PutBucketPolicyCommand,
+  GetBucketLifecycleConfigurationCommand,
+  PutBucketLifecycleConfigurationCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -33,11 +36,14 @@ import {
   DeleteBucket,
   GetBucketEncryption,
   GetBucketVersioning,
+  PutBucketVersioning,
   GetBucketTagging,
   GetBucketAcl,
   GetBucketPolicy,
   DeleteBucketPolicy,
   SetBucketPolicy,
+  GetBucketLifecycleConfiguration,
+  PutBucketLifecycleConfiguration,
 } from './types';
 
 export class S3Commands extends S3Client {
@@ -82,11 +88,20 @@ export class S3Commands extends S3Client {
   getBucketVersioning: GetBucketVersioning = (input) =>
     this.send(new GetBucketVersioningCommand(input));
 
+  putBucketVersioning: PutBucketVersioning = (input) =>
+    this.send(new PutBucketVersioningCommand(input));
+
   listBuckets: ListBuckets = (input) =>
     this.send(new ListBucketsCommand(input));
 
   putBucketTags: PutBucketTags = (input) =>
     this.send(new PutBucketTaggingCommand(input));
+
+  getBucketLifecycleConfiguration: GetBucketLifecycleConfiguration = (input) =>
+    this.send(new GetBucketLifecycleConfigurationCommand(input));
+
+  putBucketLifecycleConfiguration: PutBucketLifecycleConfiguration = (input) =>
+    this.send(new PutBucketLifecycleConfigurationCommand(input));
 
   // Object command members
   listObjects: ListObjectsV2 = (input) =>

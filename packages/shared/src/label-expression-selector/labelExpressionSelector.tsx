@@ -320,74 +320,75 @@ const ArrayInput: React.FC<ArrayInputProps> = ({
   );
 };
 
-export const LabelExpressionSelector: React.FC<LabelExpressionSelectorProps> =
-  ({
-    selectedExpressions,
-    labels,
-    expandString,
-    addExpressionString,
-    isValidationEnabled,
-    DeleteIcon = TrashIcon,
-    onChange,
-  }) => {
-    const { t } = useCustomTranslation();
+export const LabelExpressionSelector: React.FC<
+  LabelExpressionSelectorProps
+> = ({
+  selectedExpressions,
+  labels,
+  expandString,
+  addExpressionString,
+  isValidationEnabled,
+  DeleteIcon = TrashIcon,
+  onChange,
+}) => {
+  const { t } = useCustomTranslation();
 
-    const onSelect = React.useCallback(
-      (index: number, updatedExpression?: MatchExpression) => {
-        const newExpressions = _.cloneDeep(selectedExpressions);
-        if (!!updatedExpression) {
-          // Update expression
-          newExpressions[index] = updatedExpression;
-        } else {
-          // Delete expression
-          newExpressions.splice(index, 1);
-        }
-        // Callback to update the state
-        onChange(newExpressions);
-      },
-      [selectedExpressions, onChange]
-    );
+  const onSelect = React.useCallback(
+    (index: number, updatedExpression?: MatchExpression) => {
+      const newExpressions = _.cloneDeep(selectedExpressions);
+      if (!!updatedExpression) {
+        // Update expression
+        newExpressions[index] = updatedExpression;
+      } else {
+        // Delete expression
+        newExpressions.splice(index, 1);
+      }
+      // Callback to update the state
+      onChange(newExpressions);
+    },
+    [selectedExpressions, onChange]
+  );
 
-    const addExpression = React.useCallback(
-      () =>
-        onSelect(selectedExpressions.length, {
-          key: '',
-          operator: Operator.In, // In operator is a default selection
-          values: [],
-        }),
-      [selectedExpressions, onSelect]
-    );
+  const addExpression = React.useCallback(
+    () =>
+      onSelect(selectedExpressions.length, {
+        key: '',
+        operator: Operator.In, // In operator is a default selection
+        values: [],
+      }),
+    [selectedExpressions, onSelect]
+  );
 
-    return (
-      <div className="pf-v5-u-mt-sm">
-        {selectedExpressions.map((expression, index) => (
-          <ArrayInput
-            key={index}
-            index={index}
-            selectedExpression={expression}
-            labels={labels}
-            expandString={expandString}
-            isValidationEnabled={isValidationEnabled}
-            DeleteIcon={DeleteIcon}
-            onSelect={onSelect}
-          />
-        ))}
-        <Button
-          data-test="add-button"
-          className="pf-v5-u-mt-md"
-          type="button"
-          variant={ButtonVariant.link}
-          onClick={addExpression}
-        >
-          <PlusCircleIcon
-            data-test="pairs-list__add-icon"
-            className="co-icon-space-r"
-          />
-          {addExpressionString || t('Add label expression')}
-        </Button>
-      </div>
-    );
-  };
+  return (
+    <div className="pf-v5-u-mt-sm">
+      {selectedExpressions.map((expression, index) => (
+        <ArrayInput
+          key={index}
+          index={index}
+          selectedExpression={expression}
+          labels={labels}
+          expandString={expandString}
+          isValidationEnabled={isValidationEnabled}
+          DeleteIcon={DeleteIcon}
+          onSelect={onSelect}
+        />
+      ))}
+      <Button
+        data-test="add-button"
+        className="pf-v5-u-mt-md"
+        type="button"
+        variant={ButtonVariant.link}
+        onClick={addExpression}
+      >
+        <PlusCircleIcon
+          data-test="pairs-list__add-icon"
+          className="co-icon-space-r"
+        />
+        {addExpressionString || t('Add label expression')}
+      </Button>
+    </div>
+  );
+};
 
 // Only selective operator are used as options.
 enum Operator {

@@ -28,11 +28,11 @@ import {
   DRInfoType,
   DRPolicyType,
   PlacementType,
+  PVCQueryFilter,
 } from './utils/types';
 
 export const createSteps = (
   appType: DRApplication,
-  workloadNamespace: string,
   unProtectedPlacements: PlacementType[],
   matchingPolicies: DRPolicyType[],
   state: AssignPolicyViewState,
@@ -41,6 +41,7 @@ export const createSteps = (
   t: TFunction,
   dispatch: React.Dispatch<ManagePolicyStateAction>,
   protectedPVCSelectors: PVCSelectorType[],
+  pvcQueryFilter: PVCQueryFilter,
   isEditMode?: boolean
 ): WizardStep[] => {
   const commonSteps = {
@@ -61,10 +62,10 @@ export const createSteps = (
         <PVCDetailsWizardContent
           pvcSelectors={state.persistentVolumeClaim.pvcSelectors}
           unProtectedPlacements={unProtectedPlacements}
-          workloadNamespace={workloadNamespace}
           isValidationEnabled={isValidationEnabled}
           dispatch={dispatch}
           protectedPVCSelectors={protectedPVCSelectors}
+          pvcQueryFilter={pvcQueryFilter}
         />
       ),
     },
@@ -114,7 +115,7 @@ export const createSteps = (
 
 export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
   state,
-  applicaitonInfo,
+  applicationInfo,
   matchingPolicies,
   modalActionContext,
   setModalContext,
@@ -130,10 +131,10 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
 
   const {
     type: appType,
-    workloadNamespace,
     placements: unProtectedPlacements,
     drInfo,
-  } = applicaitonInfo;
+    pvcQueryFilter,
+  } = applicationInfo;
 
   const protectedPVCSelectors: PVCSelectorType[] = isEditMode
     ? (drInfo as DRInfoType)?.placementControlInfo?.map((drpc) => ({
@@ -150,7 +151,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
 
   const onSubmit = async () => {
     // assign DRPolicy
-    const promises = assignPromises(state, applicaitonInfo.placements);
+    const promises = assignPromises(state, applicationInfo.placements);
     await Promise.all(promises)
       .then(() => {
         setModalActionContext(
@@ -179,7 +180,6 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
         mainAriaLabel={t('Assign policy content')}
         steps={createSteps(
           appType,
-          workloadNamespace,
           unProtectedPlacements,
           matchingPolicies,
           state,
@@ -188,6 +188,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
           t,
           dispatch,
           protectedPVCSelectors,
+          pvcQueryFilter,
           isEditMode
         )}
         footer={
@@ -212,7 +213,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
 
 type AssignPolicyViewProps = {
   state: AssignPolicyViewState;
-  applicaitonInfo: ApplicationType;
+  applicationInfo: ApplicationType;
   matchingPolicies: DRPolicyType[];
   modalActionContext: ModalActionContext;
   dispatch: React.Dispatch<ManagePolicyStateAction>;

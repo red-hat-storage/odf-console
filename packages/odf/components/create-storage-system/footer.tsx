@@ -124,7 +124,7 @@ const canJumpToNextStep = (
     connectionDetails,
     nodes,
   } = state;
-  const { type, externalStorage, deployment } = backingStorage;
+  const { type, externalStorage } = backingStorage;
   const isExternal: boolean = type === BackingStorageType.EXTERNAL;
   const isRHCS: boolean = externalStorage === StorageClusterModel.kind;
   const {
@@ -184,14 +184,12 @@ const canJumpToNextStep = (
         ![VolumeTypeValidation.UNKNOWN, VolumeTypeValidation.ERROR].includes(
           volumeValidationType
         ) &&
-        (deployment !== DeploymentType.PROVIDER_MODE
-          ? isResourceProfileAllowed(
-              resourceProfile,
-              getTotalCpu(nodes),
-              getTotalMemoryInGiB(nodes),
-              osdAmount
-            )
-          : true)
+        isResourceProfileAllowed(
+          resourceProfile,
+          getTotalCpu(nodes),
+          getTotalMemoryInGiB(nodes),
+          osdAmount
+        )
       );
     case StepsName(t)[Steps.SecurityAndNetwork]:
       if (isExternal && isRHCS) {
@@ -357,128 +355,128 @@ const handleReviewAndCreateNext = async (
   }
 };
 
-export const CreateStorageSystemFooter: React.FC<CreateStorageSystemFooterProps> =
-  ({
-    dispatch,
+export const CreateStorageSystemFooter: React.FC<
+  CreateStorageSystemFooterProps
+> = ({
+  dispatch,
+  state,
+  disableNext,
+  hasOCS,
+  supportedExternalStorage,
+  existingNamespaces,
+}) => {
+  const { t } = useCustomTranslation();
+  const navigate = useNavigate();
+  const { activeStep, onNext, onBack } =
+    React.useContext<WizardContextType>(WizardContext);
+
+  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+
+  const [requestInProgress, setRequestInProgress] = React.useState(false);
+  const [requestError, setRequestError] = React.useState('');
+  const [showErrorAlert, setShowErrorAlert] = React.useState(false);
+
+  const stepId = activeStep.id as number;
+  const stepName = activeStep.name as string;
+
+  const jumpToNextStep = canJumpToNextStep(
+    stepName,
     state,
-    disableNext,
-    hasOCS,
-    supportedExternalStorage,
-    existingNamespaces,
-  }) => {
-    const { t } = useCustomTranslation();
-    const navigate = useNavigate();
-    const { activeStep, onNext, onBack } =
-      React.useContext<WizardContextType>(WizardContext);
+    t,
+    supportedExternalStorage
+  );
 
-    const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
-
-    const [requestInProgress, setRequestInProgress] = React.useState(false);
-    const [requestError, setRequestError] = React.useState('');
-    const [showErrorAlert, setShowErrorAlert] = React.useState(false);
-
-    const stepId = activeStep.id as number;
-    const stepName = activeStep.name as string;
-
-    const jumpToNextStep = canJumpToNextStep(
-      stepName,
-      state,
-      t,
-      supportedExternalStorage
-    );
-
-    const moveToNextStep = () => {
-      dispatch({
-        type: 'wizard/setStepIdReached',
-        payload:
-          state.stepIdReached <= stepId ? stepId + 1 : state.stepIdReached,
-      });
-      onNext();
-    };
-
-    const handleError = (errorMessage: string, showError: boolean) => {
-      setRequestError(errorMessage);
-      setShowErrorAlert(showError);
-    };
-
-    const handleNext = async () => {
-      switch (stepName) {
-        case StepsName(t)[Steps.CreateLocalVolumeSet]:
-          dispatch({
-            type: 'wizard/setCreateLocalVolumeSet',
-            payload: { field: 'showConfirmModal', value: true },
-          });
-          break;
-        case StepsName(t)[Steps.ReviewAndCreate]:
-          setRequestInProgress(true);
-          await handleReviewAndCreateNext(
-            state,
-            hasOCS,
-            handleError,
-            navigate,
-            supportedExternalStorage,
-            odfNamespace,
-            existingNamespaces
-          );
-          setRequestInProgress(false);
-          break;
-        default:
-          moveToNextStep();
-      }
-    };
-
-    return (
-      <>
-        {showErrorAlert && (
-          <Alert
-            className="odf-create-storage-system-footer__alert"
-            variant="danger"
-            isInline
-            actionClose={
-              <AlertActionCloseButton onClose={() => handleError('', false)} />
-            }
-            title={t('An error has occurred')}
-          >
-            {requestError}
-          </Alert>
-        )}
-        <WizardFooter>
-          <Button
-            isLoading={requestInProgress || null}
-            isDisabled={
-              disableNext || requestInProgress || !jumpToNextStep || !isNsSafe
-            }
-            variant="primary"
-            type="submit"
-            onClick={handleNext}
-          >
-            {stepName === StepsName(t)[Steps.ReviewAndCreate]
-              ? t('Create StorageSystem')
-              : t('Next')}
-          </Button>
-          {/* Disabling the back button for the first step (Backing storage) in wizard */}
-          <Button
-            variant="secondary"
-            onClick={onBack}
-            isDisabled={
-              stepName === StepsName(t)[Steps.BackingStorage] ||
-              requestInProgress ||
-              !isNsSafe
-            }
-          >
-            {t('Back')}
-          </Button>
-          <Button
-            variant="link"
-            onClick={() => navigate(-1)}
-            isDisabled={requestInProgress}
-          >
-            {t('Cancel')}
-          </Button>
-        </WizardFooter>
-      </>
-    );
+  const moveToNextStep = () => {
+    dispatch({
+      type: 'wizard/setStepIdReached',
+      payload: state.stepIdReached <= stepId ? stepId + 1 : state.stepIdReached,
+    });
+    onNext();
   };
+
+  const handleError = (errorMessage: string, showError: boolean) => {
+    setRequestError(errorMessage);
+    setShowErrorAlert(showError);
+  };
+
+  const handleNext = async () => {
+    switch (stepName) {
+      case StepsName(t)[Steps.CreateLocalVolumeSet]:
+        dispatch({
+          type: 'wizard/setCreateLocalVolumeSet',
+          payload: { field: 'showConfirmModal', value: true },
+        });
+        break;
+      case StepsName(t)[Steps.ReviewAndCreate]:
+        setRequestInProgress(true);
+        await handleReviewAndCreateNext(
+          state,
+          hasOCS,
+          handleError,
+          navigate,
+          supportedExternalStorage,
+          odfNamespace,
+          existingNamespaces
+        );
+        setRequestInProgress(false);
+        break;
+      default:
+        moveToNextStep();
+    }
+  };
+
+  return (
+    <>
+      {showErrorAlert && (
+        <Alert
+          className="odf-create-storage-system-footer__alert"
+          variant="danger"
+          isInline
+          actionClose={
+            <AlertActionCloseButton onClose={() => handleError('', false)} />
+          }
+          title={t('An error has occurred')}
+        >
+          {requestError}
+        </Alert>
+      )}
+      <WizardFooter>
+        <Button
+          isLoading={requestInProgress || null}
+          isDisabled={
+            disableNext || requestInProgress || !jumpToNextStep || !isNsSafe
+          }
+          variant="primary"
+          type="submit"
+          onClick={handleNext}
+        >
+          {stepName === StepsName(t)[Steps.ReviewAndCreate]
+            ? t('Create StorageSystem')
+            : t('Next')}
+        </Button>
+        {/* Disabling the back button for the first step (Backing storage) in wizard */}
+        <Button
+          variant="secondary"
+          onClick={onBack}
+          isDisabled={
+            stepName === StepsName(t)[Steps.BackingStorage] ||
+            requestInProgress ||
+            !isNsSafe
+          }
+        >
+          {t('Back')}
+        </Button>
+        <Button
+          variant="link"
+          onClick={() => navigate(-1)}
+          isDisabled={requestInProgress}
+        >
+          {t('Cancel')}
+        </Button>
+      </WizardFooter>
+    </>
+  );
+};
 
 type CreateStorageSystemFooterProps = WizardCommonProps & {
   disableNext: boolean;

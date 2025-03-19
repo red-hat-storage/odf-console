@@ -5,7 +5,7 @@ import {
   NooBaaBucketClassModel,
   NooBaaObjectBucketClaimModel,
 } from '@odf/core/models';
-import { PVCStatus } from '@odf/shared/constants';
+import { CEPH_PROVISIONERS, PVCStatus } from '@odf/shared/constants';
 import {
   PersistentVolumeClaimModel,
   PersistentVolumeModel,
@@ -30,18 +30,6 @@ const getPVStorageClass = (pv: K8sResourceKind): string =>
 
 const isBound = (pvc: PersistentVolumeClaimKind): boolean =>
   pvc?.status?.phase === PVCStatus.BOUND;
-
-export const cephStorageProvisioners = [
-  'ceph.rook.io/block',
-  'cephfs.csi.ceph.com',
-  'rbd.csi.ceph.com',
-];
-
-export const isCephProvisioner = (scProvisioner: string): boolean => {
-  return cephStorageProvisioners.some((provisioner: string) =>
-    _.endsWith(scProvisioner, provisioner)
-  );
-};
 
 export const isObjectStorageEvent =
   (isRGW: boolean, isMCG: boolean) =>
@@ -90,7 +78,7 @@ export const getCephSC = (
   scData: StorageClassResourceKind[] = []
 ): StorageClassResourceKind[] =>
   scData.filter((sc) => {
-    return cephStorageProvisioners.some((provisioner: string) =>
+    return CEPH_PROVISIONERS.some((provisioner: string) =>
       (sc?.provisioner).includes(provisioner)
     );
   });
@@ -124,7 +112,7 @@ export const getCephPVs = (
   pvsData: K8sResourceKind[] = []
 ): K8sResourceKind[] =>
   pvsData.filter((pv) => {
-    return cephStorageProvisioners.some((provisioner: string) =>
+    return CEPH_PROVISIONERS.some((provisioner: string) =>
       (
         pv?.metadata?.annotations?.['pv.kubernetes.io/provisioned-by'] ||
         pv?.spec?.csi?.driver ||

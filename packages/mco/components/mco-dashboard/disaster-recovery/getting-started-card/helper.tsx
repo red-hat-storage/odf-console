@@ -76,17 +76,19 @@ const EnrollAppFooterSection: React.FC = () => {
   );
 };
 
-export const HeaderSection: React.FC<{ stepCount: number; heading: string }> =
-  ({ stepCount, heading }) => {
-    return (
-      <p className="pf-v5-u-mb-md">
-        <span className="pf-v5-u-mr-sm">
-          <StepsCountBadge stepCount={stepCount} />
-        </span>{' '}
-        <span className="pf-v5-u-font-weight-bold">{heading}</span>
-      </p>
-    );
-  };
+export const HeaderSection: React.FC<{
+  stepCount: number;
+  heading: string;
+}> = ({ stepCount, heading }) => {
+  return (
+    <p className="pf-v5-u-mb-md">
+      <span className="pf-v5-u-mr-sm">
+        <StepsCountBadge stepCount={stepCount} />
+      </span>{' '}
+      <span className="pf-v5-u-font-weight-bold">{heading}</span>
+    </p>
+  );
+};
 
 export const BodySection: React.FC<{
   message: string;

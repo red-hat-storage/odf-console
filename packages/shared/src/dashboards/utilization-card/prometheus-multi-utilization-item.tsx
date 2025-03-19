@@ -15,81 +15,82 @@ const trimSecondsXMutator = (x: number) => {
   return d;
 };
 
-export const PrometheusMultilineUtilizationItem: React.FC<PrometheusMultilineUtilizationItemProps> =
-  ({ queries, chartType, title, humanizeValue }) => {
-    const { duration } = useUtilizationDuration();
-    const [stats, setStats] = React.useState([]);
+export const PrometheusMultilineUtilizationItem: React.FC<
+  PrometheusMultilineUtilizationItemProps
+> = ({ queries, chartType, title, humanizeValue }) => {
+  const { duration } = useUtilizationDuration();
+  const [stats, setStats] = React.useState([]);
 
-    const [queryA, queryB] = queries;
+  const [queryA, queryB] = queries;
 
-    const [firstMetric, firstMetricError, firstMetricLoading] =
-      useCustomPrometheusPoll({
-        query: queryA.query,
-        endpoint: 'api/v1/query_range' as any,
-        timespan: duration,
-        basePath: usePrometheusBasePath(),
-      });
-    const [secondMetric, secondMetricError, secondMetricLoading] =
-      useCustomPrometheusPoll({
-        query: queryB?.query,
-        endpoint: 'api/v1/query_range' as any,
-        timespan: duration,
-        basePath: usePrometheusBasePath(),
-      });
+  const [firstMetric, firstMetricError, firstMetricLoading] =
+    useCustomPrometheusPoll({
+      query: queryA.query,
+      endpoint: 'api/v1/query_range' as any,
+      timespan: duration,
+      basePath: usePrometheusBasePath(),
+    });
+  const [secondMetric, secondMetricError, secondMetricLoading] =
+    useCustomPrometheusPoll({
+      query: queryB?.query,
+      endpoint: 'api/v1/query_range' as any,
+      timespan: duration,
+      basePath: usePrometheusBasePath(),
+    });
 
-    const hasError = firstMetricError || secondMetricError;
-    const isLoading = firstMetricLoading || secondMetricLoading;
+  const hasError = firstMetricError || secondMetricError;
+  const isLoading = firstMetricLoading || secondMetricLoading;
 
-    React.useEffect(() => {
-      let tempStats = [];
-      if (!firstMetricError && !firstMetricLoading) {
-        const statsA =
-          getRangeVectorStats(
-            firstMetric,
-            queryA.desc,
-            null,
-            trimSecondsXMutator
-          )?.[0] || [];
-        tempStats = [statsA];
-      }
-      if (!secondMetricError && !secondMetricLoading) {
-        const statsB =
-          getRangeVectorStats(
-            secondMetric,
-            queryB?.desc,
-            null,
-            trimSecondsXMutator
-          )?.[0] || [];
-        tempStats = [...tempStats, statsB];
-      }
-      if (JSON.stringify(stats) !== JSON.stringify(tempStats)) {
-        setStats(tempStats);
-      }
-    }, [
-      stats,
-      setStats,
-      firstMetric,
-      firstMetricError,
-      firstMetricLoading,
-      secondMetric,
-      secondMetricError,
-      secondMetricLoading,
-      queryA.desc,
-      queryB?.desc,
-    ]);
+  React.useEffect(() => {
+    let tempStats = [];
+    if (!firstMetricError && !firstMetricLoading) {
+      const statsA =
+        getRangeVectorStats(
+          firstMetric,
+          queryA.desc,
+          null,
+          trimSecondsXMutator
+        )?.[0] || [];
+      tempStats = [statsA];
+    }
+    if (!secondMetricError && !secondMetricLoading) {
+      const statsB =
+        getRangeVectorStats(
+          secondMetric,
+          queryB?.desc,
+          null,
+          trimSecondsXMutator
+        )?.[0] || [];
+      tempStats = [...tempStats, statsB];
+    }
+    if (JSON.stringify(stats) !== JSON.stringify(tempStats)) {
+      setStats(tempStats);
+    }
+  }, [
+    stats,
+    setStats,
+    firstMetric,
+    firstMetricError,
+    firstMetricLoading,
+    secondMetric,
+    secondMetricError,
+    secondMetricLoading,
+    queryA.desc,
+    queryB?.desc,
+  ]);
 
-    return (
-      <MultilineUtilizationItem
-        title={title}
-        data={stats}
-        error={hasError}
-        isLoading={isLoading}
-        humanizeValue={humanizeValue}
-        queries={queries}
-        chartType={chartType}
-      />
-    );
-  };
+  return (
+    <MultilineUtilizationItem
+      title={title}
+      data={stats}
+      error={hasError}
+      isLoading={isLoading}
+      humanizeValue={humanizeValue}
+      queries={queries}
+      chartType={chartType}
+    />
+  );
+};
 
 type PrometheusCommonProps = {
   title: string;

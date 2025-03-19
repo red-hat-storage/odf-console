@@ -64,13 +64,13 @@ const SaveBucketPolicyModal: React.FC<
       actions={[
         <ButtonBar
           inProgress={inProgress}
-          errorMessage={error?.message || error}
+          errorMessage={error?.message || JSON.stringify(error)}
         >
           <span>
             <Button
               variant={ButtonVariant.primary}
               onClick={onSave}
-              isDisabled={!!error}
+              isDisabled={!!error || inProgress}
               className="pf-v5-u-mr-xs"
             >
               {t('Update policy')}
@@ -86,7 +86,7 @@ const SaveBucketPolicyModal: React.FC<
         </ButtonBar>,
       ]}
     >
-      {''}
+      {' '}
     </Modal>
   );
 };

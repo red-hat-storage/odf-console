@@ -48,7 +48,7 @@ const canApplyInitialSort = (
 ): boolean => !!columns[initialSortIndex]?.sortFunction;
 
 export const SelectableTable: SelectableTableProps = <
-  T extends K8sResourceCommon
+  T extends K8sResourceCommon,
 >({
   selectedRows,
   setSelectedRows,

@@ -45,7 +45,10 @@ const getWorstHealth = (healthData: SystemHealthMap[]) =>
     '0'
   );
 
-const getUnifiedHealthValue = (sysHealthVal: string, subSysHealthVal: string) =>
+const getUnifiedHealthValue = (
+  sysHealthVal: string,
+  subSysHealthVal: string
+) =>
   !!subSysHealthVal
     ? sysHealthVal < subSysHealthVal
       ? subSysHealthVal

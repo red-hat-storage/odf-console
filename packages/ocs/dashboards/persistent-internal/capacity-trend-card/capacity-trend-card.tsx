@@ -146,10 +146,9 @@ const CapacityTrendCard: React.FC = () => {
 
   const [totalCapacity, totalCapacityError, totalCapacityLoading] =
     useCustomPrometheusPoll({
-      query:
-        CEPH_CAPACITY_BREAKDOWN_QUERIES[
-          StorageDashboardQuery.CEPH_CAPACITY_TOTAL
-        ],
+      query: CEPH_CAPACITY_BREAKDOWN_QUERIES(null, ocsCluster)[
+        StorageDashboardQuery.CEPH_CAPACITY_TOTAL
+      ],
       endpoint: 'api/v1/query' as any,
       basePath: usePrometheusBasePath(),
     });
@@ -194,7 +193,7 @@ const CapacityTrendCard: React.FC = () => {
       (totalCapacityMetric - availableCapacityMetric) / Math.abs(avgUtilMetric);
     const clusterFillUpToMaxDays =
       totalCapacityMetric / Math.abs(avgUtilMetric);
-    daysLeft = clusterCleanUpToZeroDays + clusterFillUpToMaxDays;
+    daysLeft = Math.floor(clusterCleanUpToZeroDays + clusterFillUpToMaxDays);
   }
   return (
     <Card>
@@ -253,7 +252,7 @@ const CapacityTrendCard: React.FC = () => {
                 <Text component={TextVariants.h4}>
                   {t('Estimated days until full')}
                 </Text>
-                {daysLeft} {pluralize(daysUp, t('day'), t('days'), false)}
+                {daysLeft} {pluralize(daysLeft, t('day'), t('days'), false)}
               </FlexItem>
             </Flex>
             <Flex>

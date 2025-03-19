@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { screen, render, fireEvent, waitFor } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 // eslint-disable-next-line jest/no-mocks-import
 import {
   mockApplication1,
@@ -31,7 +32,7 @@ import {
 } from '../../../../__mocks__/subscription';
 import { DisasterRecoveryResourceKind } from '../../../../hooks/disaster-recovery';
 import { SearchResult } from '../../../../types';
-import { SubscriptionParser } from './subscription-parser';
+import AppManagePoliciesModal from '../app-manage-policies-modal';
 
 let testCase = 1;
 
@@ -39,16 +40,20 @@ const searchResult: SearchResult = {
   data: {
     searchResult: [
       {
-        items: [
+        related: [
           {
-            apiversion: 'v1',
-            cluster: 'local-cluster',
-            created: '2023-07-04T17:14:10Z',
-            kind: 'PersistentVolumeClaim',
-            label: 'app=mock-application-2',
-            name: 'busybox-pvc',
-            namespace: 'test-ns',
-            _uid: 'local-cluster/683b0a87-85bf-4743-96d2-565863752e53',
+            items: [
+              {
+                apiversion: 'v1',
+                cluster: 'local-cluster',
+                created: '2023-07-04T17:14:10Z',
+                kind: 'PersistentVolumeClaim',
+                label: 'app=mock-application-2',
+                name: 'busybox-pvc',
+                namespace: 'test-ns',
+                _uid: 'local-cluster/683b0a87-85bf-4743-96d2-565863752e53',
+              },
+            ],
           },
         ],
       },
@@ -185,8 +190,8 @@ describe('Subscription manage disaster recovery modal', () => {
   test('Empty manage policy page test', async () => {
     testCase = 1;
     render(
-      <SubscriptionParser
-        application={mockApplication2}
+      <AppManagePoliciesModal
+        resource={mockApplication2}
         close={onClose}
         isOpen={true}
       />
@@ -207,8 +212,8 @@ describe('Subscription manage disaster recovery modal', () => {
   test('manage policy view test', async () => {
     testCase = 2;
     render(
-      <SubscriptionParser
-        application={mockApplication1}
+      <AppManagePoliciesModal
+        resource={mockApplication1}
         close={onClose}
         isOpen={true}
       />
@@ -235,16 +240,17 @@ describe('Subscription manage disaster recovery modal', () => {
   });
 
   test('Assign policy action test', async () => {
+    const user = userEvent.setup();
     testCase = 3;
     render(
-      <SubscriptionParser
-        application={mockApplication1}
+      <AppManagePoliciesModal
+        resource={mockApplication1}
         close={onClose}
         isOpen={true}
       />
     );
     // Open assign policy wizard
-    fireEvent.click(screen.getByText('Enroll application'));
+    await user.click(screen.getByText('Enroll application'));
 
     // Step 1 - select a policy
     // Buttons
@@ -252,12 +258,12 @@ describe('Subscription manage disaster recovery modal', () => {
     expect(screen.getByText('Back')).toBeDisabled();
     // Policy selector
     expect(screen.getByText('Select a policy')).toBeEnabled();
-    fireEvent.click(screen.getByText('Select a policy'));
+    await user.click(screen.getByText('Select a policy'));
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('mock-policy-1'));
+    await user.click(screen.getByText('mock-policy-1'));
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Next'));
+    await user.click(screen.getByText('Next'));
 
     // Step 2 - select a placement and labels
     // Buttons
@@ -267,21 +273,21 @@ describe('Subscription manage disaster recovery modal', () => {
     screen.getByText(
       /Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information/i
     );
-    await waitFor(() => {
-      expect(screen.getByText('Application resource')).toBeInTheDocument();
-      expect(screen.getByText('PVC label selector')).toBeInTheDocument();
-      expect(screen.getByText('Select a placement')).toBeInTheDocument();
-      expect(screen.getByText('Select labels')).toBeInTheDocument();
-    });
-    fireEvent.click(screen.getByText('Select a placement'));
+
+    expect(screen.getByText('Application resource')).toBeInTheDocument();
+    expect(screen.getByText('PVC label selector')).toBeInTheDocument();
+    expect(screen.getByText('Select a placement')).toBeInTheDocument();
+    expect(screen.getByText('Select labels')).toBeInTheDocument();
+
+    await user.click(screen.getByText('Select a placement'));
     expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('mock-placement-2'));
+    await user.click(screen.getByText('mock-placement-2'));
     expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Select labels'));
+    await user.click(screen.getByText('Select labels'));
     screen.getByText('app=mock-application-2');
-    fireEvent.click(screen.getByText('app=mock-application-2'));
+    await user.click(screen.getByText('app=mock-application-2'));
     expect(screen.getByText('app=mock-application-2')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Next'));
+    await user.click(screen.getByText('Next'));
 
     // Step 3 - review and assign
     // Buttons

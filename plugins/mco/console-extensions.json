@@ -83,7 +83,7 @@
   {
     "type": "acm.application/list/column",
     "properties": {
-      "header": "%plugin__odf-multicluster-console~Data policy%",
+      "header": "%plugin__odf-multicluster-console~DR Status%",
       "cell": {
         "$codeRef": "dataPolicyStatusPopover.default"
       }
@@ -155,6 +155,22 @@
       "path": "multicloud/data-services/disaster-recovery/protected-applications/ramendr.openshift.io~v1alpha1~DRPlacementControl/~new",
       "exact": true,
       "component": { "$codeRef": "enrollDiscoveredApplication.default" }
+    }
+  },
+  {
+    "type": "acm.virtualmachine/action",
+    "properties": {
+      "id": "appManagePolicy",
+      "title": "%plugin__odf-multicluster-console~Manage disaster recovery%",
+      "model": [
+        {
+          "apiVersion": "kubevirt.io/v1",
+          "kind": "VirtualMachine"
+        }
+      ],
+      "component": {
+        "$codeRef": "appManagePolicy.default"
+      }
     }
   }
 ]

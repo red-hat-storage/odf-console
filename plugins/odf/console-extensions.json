@@ -727,9 +727,55 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/create/~new",
+      "exact": false,
+      "component": {
+        "$codeRef": "s3BucketLifecycleRule.CreateLifecycleRule"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/edit",
+      "exact": false,
+      "component": {
+        "$codeRef": "s3BucketLifecycleRule.EditLifecycleRule"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~storagecluster/:resourceName/~attachstorage",
       "exact": false,
       "component": { "$codeRef": "attachStorage.default" }
+    }
+  },
+  {
+    "type": "console.action/resource-provider",
+    "properties": {
+      "model": {
+        "version": "v1",
+        "kind": "StorageClass",
+        "group": "storage.k8s.io"
+      },
+      "provider": {
+        "$codeRef": "storageClientAttacherAction.useStorageClientAttacherAction"
+      }
+    }
+  },
+  {
+    "type": "console.action/resource-provider",
+    "properties": {
+      "model": {
+        "version": "v1",
+        "kind": "VolumeSnapshotClass",
+        "group": "snapshot.storage.k8s.io"
+      },
+      "provider": {
+        "$codeRef": "storageClientAttacherAction.useStorageClientAttacherAction"
+      }
     }
   }
 ]

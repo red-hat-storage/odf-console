@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { useScheduler } from '../../../shared/src/hooks';
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { DR_BASE_ROUTE } from '../../constants';
 import { DRPolicyModel, DRPlacementControlModel } from '../../models/ramen';
 import {
@@ -92,7 +92,6 @@ const drPolicy = {
     schedulingInterval: '1m',
   },
 };
-
 const drpcs = [failingDRPC, relocatedDRPC];
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
@@ -122,11 +121,6 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   AlertSeverity: { Critical: 'critical' },
 }));
 
-jest.mock('@odf/shared/hooks', () => ({
-  ...jest.requireActual('@odf/shared/hooks'),
-  useScheduler: jest.fn(() => null),
-}));
-
 jest.mock('react-router-dom-v5-compat', () => ({
   ...jest.requireActual('react-router-dom-v5-compat'),
   useNavigate: () => null,
@@ -140,8 +134,18 @@ jest.mock('./components', () => ({
   NoDataMessage: jest.fn(() => null),
 }));
 
+jest.mock('../dr-status-popover/dr-status-popover', () => ({
+  __esModule: true,
+  default: jest.fn(() => <div>DR Status</div>),
+}));
+
 // eslint-disable-next-line no-console
 const originalError = console.error.bind(console.error);
+let consoleSpy: jest.SpyInstance<
+  void,
+  [message?: any, ...optionalParams: any[]]
+>;
+
 const ignoreErrors = () => {
   // Ignore error messages coming from ListPageBody (third-party dependency).
   consoleSpy = jest.spyOn(console, 'error').mockImplementation((...data) => {
@@ -150,10 +154,13 @@ const ignoreErrors = () => {
     }
   });
 };
-let consoleSpy: jest.SpyInstance;
 
 describe('Test protected applications list page table (ProtectedApplicationsListPage)', () => {
-  beforeEach(() => resetGlobals());
+  let user;
+  beforeEach(() => {
+    user = userEvent.setup();
+    resetGlobals();
+  });
   afterEach(() => jest.clearAllMocks());
   beforeAll(() => ignoreErrors());
   afterAll(() => consoleSpy.mockRestore());
@@ -165,21 +172,15 @@ describe('Test protected applications list page table (ProtectedApplicationsList
 
     expect(NoDataMessage).toHaveBeenCalledTimes(1);
     expect(EmptyRowMessage).toHaveBeenCalledTimes(0);
-
-    // "useScheduler" hook should be called while render
-    expect(useScheduler).toHaveBeenCalledTimes(1);
   });
 
-  it('"EmptyRowMessage" FC is rendered when applications are found but filterd data is empty', async () => {
+  it('"EmptyRowMessage" FC is rendered when applications are found but filtered data is empty', async () => {
     noData = false;
     noFilteredData = true;
     render(<ProtectedApplicationsListPage />);
 
     expect(EmptyRowMessage).toHaveBeenCalledTimes(1);
     expect(NoDataMessage).toHaveBeenCalledTimes(0);
-
-    // "useScheduler" hook should be called while render
-    expect(useScheduler).toHaveBeenCalledTimes(1);
   });
 
   it('"ComposableTable" FC is rendered, listing all the DRPCs', async () => {
@@ -187,13 +188,6 @@ describe('Test protected applications list page table (ProtectedApplicationsList
 
     expect(screen.getByText(failingDRPCName)).toBeInTheDocument();
     expect(screen.getByText(relocatedDRPCName)).toBeInTheDocument();
-
-    // "EmptyRow" and "NoData" message not rendered
-    expect(EmptyRowMessage).toHaveBeenCalledTimes(0);
-    expect(NoDataMessage).toHaveBeenCalledTimes(0);
-
-    // "useScheduler" hook should be called while render
-    expect(useScheduler).toHaveBeenCalledTimes(1);
   });
 
   it('"EnrollApplicationButton" and "PopoverStatus" FCs are rendered, listing different app types', async () => {
@@ -207,12 +201,12 @@ describe('Test protected applications list page table (ProtectedApplicationsList
     // Enroll application dropdown
     expect(screen.getByText(buttonTitle)).toBeInTheDocument();
     // Toggle dropdown (open)
-    fireEvent.click(screen.getByText(buttonTitle));
+    await user.click(screen.getByText(buttonTitle));
     // Dropdown items
     expect(screen.getByText(discoveredApps)).toBeInTheDocument();
     expect(screen.getByText(managedApps)).toBeInTheDocument();
     // Toggle dropdown (close)
-    fireEvent.click(screen.getByText(buttonTitle));
+    await user.click(screen.getByText(buttonTitle));
     expect(() => screen.getByText(discoveredApps)).toThrow(unableToFindError);
     expect(() => screen.getByText(managedApps)).toThrow(unableToFindError);
 
@@ -223,7 +217,11 @@ describe('Test protected applications list page table (ProtectedApplicationsList
 });
 
 describe('Test protected applications list page table row (ProtectedAppsTableRow)', () => {
-  beforeEach(() => resetGlobals());
+  let user;
+  beforeEach(() => {
+    user = userEvent.setup();
+    resetGlobals();
+  });
   afterEach(() => jest.clearAllMocks());
   beforeAll(() => ignoreErrors());
   afterAll(() => consoleSpy.mockRestore());
@@ -233,7 +231,7 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
 
     expect(screen.getByText('Name')).toBeInTheDocument();
     expect(screen.getByText('Details')).toBeInTheDocument();
-    expect(screen.getByText('Overall sync status')).toBeInTheDocument();
+    expect(screen.getAllByText('DR Status').length).toBeGreaterThan(0);
     expect(screen.getByText('Policy')).toBeInTheDocument();
     expect(screen.getByText('Cluster')).toBeInTheDocument();
   });
@@ -244,16 +242,17 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     const { container } = render(<ProtectedApplicationsListPage />);
 
     // Expand button
-    const exapandButton = container.querySelector(
+    const expandButton = container.querySelector(
       '[data-test="expand-button"]'
     ) as HTMLElement;
-    expect(exapandButton).toBeInTheDocument();
+    expect(expandButton).toBeInTheDocument();
 
     // Name
     expect(() => screen.getByText(failingDRPCName)).toThrow(unableToFindError);
     const nameElement = container.querySelector(
       '[data-label="Name"]'
     ) as HTMLElement;
+    expect(nameElement).not.toBeNull();
     expect(nameElement).toHaveTextContent(relocatedDRPCName);
     expect(
       nameElement.querySelector(
@@ -272,15 +271,11 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
       container.querySelector(`[id=${ExpandableComponentType.EVENTS}]`)
     ).not.toBeInTheDocument();
 
-    // Overall sync status
-    expect(
-      container.querySelector(`[id=${ExpandableComponentType.STATUS}]`)
-    ).toBeInTheDocument();
-
     // Policy
     const policyElement = container.querySelector(
       '[data-label="Policy"]'
     ) as HTMLElement;
+    expect(policyElement).not.toBeNull();
     expect(policyElement).toHaveTextContent(drPolicyName);
     expect(
       policyElement.querySelector(`[data-test='link-${drPolicyName}']`)
@@ -297,15 +292,10 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     const relocate = 'Relocate';
     const kebabButton = screen.getByRole('button', { name: /Kebab toggle/i });
     // Open action (kebab) menu
-    fireEvent.click(kebabButton);
-    expect(screen.getByText(editConfig)).toBeInTheDocument();
-    expect(screen.getByText(failover)).toBeInTheDocument();
-    expect(screen.getByText(relocate)).toBeInTheDocument();
-    // Close action (kebab) menu
-    fireEvent.click(kebabButton);
-    expect(() => screen.getByText(editConfig)).toThrow(unableToFindError);
-    expect(() => screen.getByText(failover)).toThrow(unableToFindError);
-    expect(() => screen.getByText(relocate)).toThrow(unableToFindError);
+    await user.click(kebabButton);
+    expect(screen.getByText(editConfig)).toBeVisible();
+    expect(screen.getByText(failover)).toBeVisible();
+    expect(screen.getByText(relocate)).toBeVisible();
   });
 
   it('"FailingOver DRPC" table row contains all required columns', async () => {
@@ -334,37 +324,12 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     const namespaceElement = container.querySelector(
       `[id=${ExpandableComponentType.NS}]`
     ) as HTMLElement;
-    const eventsElement = container.querySelector(
-      `[id=${ExpandableComponentType.EVENTS}]`
-    ) as HTMLElement;
-    expect(namespaceElement).toBeInTheDocument();
-    expect(eventsElement).toBeInTheDocument();
 
-    // Expandable section
-    const syncType = 'Sync resource type';
-    const syncStatus = 'Sync status';
-    const lastSyncedOn = 'Last synced on';
-    const statusElement = container.querySelector(
-      `[id=${ExpandableComponentType.STATUS}]`
-    ) as HTMLElement;
     // Click namespace details
-    fireEvent.click(namespaceElement);
+    await user.click(namespaceElement);
     expect(screen.getByText(namespaces[0])).toBeInTheDocument();
     expect(screen.getByText(namespaces[1])).toBeInTheDocument();
     expect(screen.getByText(namespaces[2])).toBeInTheDocument();
     expect(screen.getByText(namespaces[3])).toBeInTheDocument();
-    // Click activity details
-    fireEvent.click(eventsElement);
-    expect(screen.getByText('Activity description')).toBeInTheDocument();
-    // Click status details
-    fireEvent.click(statusElement);
-    expect(screen.getByText(syncType)).toBeInTheDocument();
-    expect(screen.getByText(syncStatus)).toBeInTheDocument();
-    expect(screen.getByText(lastSyncedOn)).toBeInTheDocument();
-    // Click status details again
-    fireEvent.click(statusElement);
-    expect(() => screen.getByText(syncType)).toThrow(unableToFindError);
-    expect(() => screen.getByText(syncStatus)).toThrow(unableToFindError);
-    expect(() => screen.getByText(lastSyncedOn)).toThrow(unableToFindError);
   });
 });

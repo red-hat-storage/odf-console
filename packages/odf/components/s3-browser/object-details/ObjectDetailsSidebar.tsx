@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Tag } from '@aws-sdk/client-s3';
+import { Tag, DeleteObjectsCommandOutput } from '@aws-sdk/client-s3';
 import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
 import {
   OBJECT_CACHE_KEY_SUFFIX,
@@ -7,14 +7,24 @@ import {
   PREFIX,
 } from '@odf/core/constants';
 import { ObjectCrFormat } from '@odf/core/types';
-import { replacePathFromName } from '@odf/core/utils';
+import {
+  replacePathFromName,
+  getObjectVersionId,
+  convertObjectDataToCrFormat,
+  sortByLastModified,
+} from '@odf/core/utils';
 import {
   DASH,
   DrawerHead,
+  getName,
   LoadingBox,
   useCustomTranslation,
 } from '@odf/shared';
+import { PaginatedListPage } from '@odf/shared/list-page';
+import { S3Commands } from '@odf/shared/s3';
 import { CopyToClipboard } from '@odf/shared/utils/copy-to-clipboard';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
+import { TFunction } from 'react-i18next';
 import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import {
@@ -38,189 +48,456 @@ import {
   LevelItem,
   MenuToggle,
   Title,
+  Tab,
+  Tabs,
+  TabTitleText,
+  PaginationVariant,
+  TextContent,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 import { TagIcon } from '@patternfly/react-icons';
-import { IAction } from '@patternfly/react-table';
+import { IAction, TableVariant } from '@patternfly/react-table';
+import { ObjectsDeleteResponse } from '../../../modals/s3-browser/delete-objects/DeleteObjectsModal';
+import { ExtraProps, DeletionAlerts } from '../objects-list/ObjectsList';
+import { getHeaderColumns, ObjectVersionsTableRow } from './table-components';
 import './object-details-sidebar.scss';
 
 type ObjectDetailsSidebarContentProps = {
   closeSidebar: () => void;
   object: ObjectCrFormat;
   objectActions: React.MutableRefObject<IAction[]>;
+  extraProps?: ExtraProps;
+  showVersioning: boolean;
 };
 
-const ObjectDetailsSidebarContent: React.FC<ObjectDetailsSidebarContentProps> =
-  ({ closeSidebar, object, objectActions }) => {
-    const { t } = useCustomTranslation();
-    const [isOpen, setIsOpen] = React.useState(false);
-    const dropdownToggleRef = React.useRef();
-    const onToggleClick = () => {
-      setIsOpen(!isOpen);
-    };
-    const onSelect = () => {
-      setIsOpen(false);
-    };
+type ObjectOverviewProps = {
+  object: ObjectCrFormat;
+  showVersioning?: boolean;
+  noobaaS3: S3Commands;
+  bucketName: string;
+  objShortenedName?: string;
+};
 
-    const actionItems: IAction[] = objectActions.current;
+type ObjectVersionsProps = {
+  object: ObjectCrFormat;
+  noobaaS3: S3Commands;
+  bucketName: string;
+  extraProps: ExtraProps;
+  foldersPath: string;
+};
 
-    const { noobaaS3 } = React.useContext(NoobaaS3Context);
-    const [searchParams] = useSearchParams();
-    const { bucketName } = useParams();
+const fetchVersions = async ({
+  setInProgress,
+  setObjectVersions,
+  setError,
+  noobaaS3,
+  bucketName,
+  objectKey,
+  t,
+}: {
+  setInProgress: React.Dispatch<React.SetStateAction<boolean>>;
+  setObjectVersions: React.Dispatch<React.SetStateAction<ObjectCrFormat[]>>;
+  setError: React.Dispatch<any>;
+  noobaaS3: S3Commands;
+  bucketName: string;
+  objectKey: string;
+  t: TFunction;
+}) => {
+  try {
+    setInProgress(true);
 
-    const objectKey = object?.metadata?.name;
-    const foldersPath = searchParams.get(PREFIX);
-    const objName = object ? replacePathFromName(object, foldersPath) : '';
-    const { data: objectData, isLoading: isObjectDataLoading } = useSWR(
-      `${objectKey}-${OBJECT_CACHE_KEY_SUFFIX}`,
-      () =>
-        noobaaS3.getObject({
-          Bucket: bucketName,
-          Key: objectKey,
-        })
-    );
-    const { data: tagData, isLoading: isTagDataLoading } = useSWR(
-      `${objectKey}-${OBJECT_TAGGING_CACHE_KEY_SUFFIX}`,
-      () =>
-        noobaaS3.getObjectTagging({
-          Bucket: bucketName,
-          Key: objectKey,
-        })
-    );
+    let allObjects: ObjectCrFormat[] = [];
+    let isTruncated = true;
+    let stopFetchEarly = false;
+    let keyMarker: string;
+    let versionIdMarker: string;
 
-    const tags = tagData?.TagSet?.map((tag: Tag) => (
-      <Label className="pf-v5-u-mr-xs" color="grey" icon={<TagIcon />}>
-        {tag.Key}
-        {tag.Value && `=${tag.Value}`}
-      </Label>
-    ));
-    const metadata = [];
-    // @TODO: investigate why the Metadata is not returned (unlike in the CLI response).
-    if (objectData?.Metadata) {
-      for (const [key, value] of Object.entries(objectData?.Metadata)) {
-        metadata.push(
-          <div>
-            {key}
-            {value && `=${value}`}
-          </div>
-        );
+    while (isTruncated && !stopFetchEarly) {
+      // eslint-disable-next-line no-await-in-loop
+      const objects = await noobaaS3.listObjectVersions({
+        Bucket: bucketName,
+        Prefix: objectKey,
+        KeyMarker: keyMarker,
+        VersionIdMarker: versionIdMarker,
+      });
+
+      const objectVersions: ObjectCrFormat[] = [];
+      for (const v of objects?.Versions || []) {
+        if (v.Key === objectKey)
+          objectVersions.push(convertObjectDataToCrFormat(v, t, false, false));
+        else stopFetchEarly = true;
       }
+
+      const objectDeleteMarkers: ObjectCrFormat[] = [];
+      for (const d of objects?.DeleteMarkers || []) {
+        if (d.Key === objectKey)
+          objectDeleteMarkers.push(
+            convertObjectDataToCrFormat(d, t, false, true)
+          );
+        else stopFetchEarly = true;
+      }
+
+      allObjects = [...allObjects, ...objectVersions, ...objectDeleteMarkers];
+
+      isTruncated = objects.IsTruncated;
+      keyMarker = objects.NextKeyMarker;
+      versionIdMarker = objects.NextVersionIdMarker;
     }
 
-    const dropdownItems = [];
-    if (Array.isArray(actionItems)) {
-      actionItems.forEach((action: IAction) =>
-        dropdownItems.push(
-          <DropdownItem
-            onClick={action.onClick}
-            isDisabled={action?.isDisabled}
-          >
-            {action.title}
-          </DropdownItem>
-        )
+    allObjects.sort(sortByLastModified);
+    setObjectVersions(allObjects);
+  } catch (error) {
+    setError(error);
+  } finally {
+    setInProgress(false);
+  }
+};
+
+const ObjectVersions: React.FC<ObjectVersionsProps> = ({
+  object,
+  noobaaS3,
+  bucketName,
+  foldersPath,
+  extraProps,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const {
+    setDeleteResponse: setDeleteResponseListPage,
+    refreshTokens,
+    closeObjectSidebar,
+  } = extraProps;
+
+  const launcher = useModal();
+
+  const [objectVersions, setObjectVersions] = React.useState<ObjectCrFormat[]>(
+    []
+  );
+  const [inProgress, setInProgress] = React.useState(false);
+  const [error, setError] = React.useState(null);
+  // used for storing API's response on performing delete operation on object version
+  const [deleteResponseSideBar, setDeleteResponseSideBar] =
+    React.useState<ObjectsDeleteResponse>({
+      selectedObjects: [] as ObjectCrFormat[],
+      deleteResponse: {} as DeleteObjectsCommandOutput,
+    });
+
+  const hasOnlySingleVersion = objectVersions.length === 1;
+  const objectKey = getName(object);
+
+  // initial fetch on first mount or on object version deletion
+  // or if sidebar re-renders with a different object
+  React.useEffect(() => {
+    fetchVersions({
+      setInProgress,
+      setObjectVersions,
+      setError,
+      noobaaS3,
+      bucketName,
+      objectKey,
+      t,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteResponseSideBar, objectKey]);
+
+  return (
+    <>
+      <TextContent className="pf-v5-u-my-sm">
+        <Text component={TextVariants.small}>
+          {t(
+            'Perform actions such as sharing, downloading, previewing, and deleting different versions of an object. For a comprehensive view of each version, enable "List all versions."'
+          )}
+        </Text>
+      </TextContent>
+      <DeletionAlerts
+        deleteResponse={deleteResponseSideBar}
+        foldersPath={foldersPath}
+      />
+      <PaginatedListPage
+        filteredData={objectVersions}
+        noData={hasOnlySingleVersion}
+        hideFilter
+        composableTableProps={{
+          columns: getHeaderColumns(t),
+          RowComponent: ObjectVersionsTableRow,
+          extraProps: {
+            launcher,
+            bucketName,
+            noobaaS3,
+            foldersPath,
+            // if object has only single version, display deletion status on the main list page instead of the sidebar
+            // sidebar will close in this case as no objects/versions are left to display
+            setDeleteResponse: hasOnlySingleVersion
+              ? setDeleteResponseListPage
+              : setDeleteResponseSideBar,
+            ...(hasOnlySingleVersion && { refreshTokens }),
+            ...(hasOnlySingleVersion && { closeObjectSidebar }),
+          },
+          unfilteredData: objectVersions as [],
+          loaded: !inProgress,
+          loadError: error,
+          variant: TableVariant.compact,
+        }}
+        paginationProps={{
+          variant: PaginationVariant.top,
+          isCompact: true,
+          dropDirection: 'down',
+          perPageOptions: [{ title: '10', value: 10 }],
+        }}
+      />
+    </>
+  );
+};
+
+const ObjectOverview: React.FC<ObjectOverviewProps> = ({
+  object,
+  showVersioning,
+  noobaaS3,
+  bucketName,
+  objShortenedName,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const objectKey = getName(object);
+  const versionId = getObjectVersionId(object);
+  const lastModified = object?.apiResponse?.lastModified;
+  const isDeleteMarker = object?.isDeleteMarker;
+
+  const { data: objectData, isLoading: isObjectDataLoading } = useSWR(
+    // don't fetch if object is a delete marker ("getObject" not supported)
+    isDeleteMarker
+      ? null
+      : `${objectKey}-${lastModified}-${OBJECT_CACHE_KEY_SUFFIX}`,
+    () =>
+      noobaaS3.getObject({
+        Bucket: bucketName,
+        Key: objectKey,
+        ...(showVersioning && { VersionId: versionId }),
+      })
+  );
+  const { data: tagData, isLoading: isTagDataLoading } = useSWR(
+    // don't fetch if object is a delete marker ("getObjectTagging" not supported)
+    isDeleteMarker
+      ? null
+      : `${objectKey}-${lastModified}-${OBJECT_TAGGING_CACHE_KEY_SUFFIX}}`,
+    () =>
+      noobaaS3.getObjectTagging({
+        Bucket: bucketName,
+        Key: objectKey,
+        ...(showVersioning && { VersionId: versionId }),
+      })
+  );
+
+  const tags = tagData?.TagSet?.map((tag: Tag) => (
+    <Label className="pf-v5-u-mr-xs" color="grey" icon={<TagIcon />}>
+      {tag.Key}
+      {tag.Value && `=${tag.Value}`}
+    </Label>
+  ));
+
+  const metadata = [];
+  // @TODO: investigate why the Metadata is not returned (unlike in the CLI response).
+  if (objectData?.Metadata) {
+    for (const [key, value] of Object.entries(objectData?.Metadata)) {
+      metadata.push(
+        <div>
+          {key}
+          {value && `=${value}`}
+        </div>
       );
     }
+  }
 
-    const isLoading = isObjectDataLoading || isTagDataLoading;
+  const isLoading = isObjectDataLoading || isTagDataLoading;
 
-    return isLoading ? (
-      <LoadingBox />
-    ) : (
-      <>
-        <DrawerHead>
-          <Title headingLevel="h3">{objName}</Title>
-          <DrawerActions>
-            <DrawerCloseButton onClick={closeSidebar} />
-          </DrawerActions>
-          <Dropdown
-            isOpen={isOpen}
-            onSelect={onSelect}
-            toggle={{
-              toggleNode: (
-                <MenuToggle
-                  className="odf-object-sidebar__dropdown"
-                  ref={dropdownToggleRef}
-                  onClick={onToggleClick}
-                >
-                  {t('Actions')}
-                </MenuToggle>
-              ),
-              toggleRef: dropdownToggleRef,
-            }}
-          >
-            <DropdownList>{dropdownItems}</DropdownList>
-          </Dropdown>
-          {objectData?.VersionId && (
-            <Alert
-              className="pf-v5-u-mt-md"
-              isInline
-              variant={AlertVariant.info}
-              title={t(
-                'This object has multiple versions. You are currently viewing the latest version. To access or manage previous versions, use S3 interface or CLI.'
-              )}
-            ></Alert>
-          )}
-        </DrawerHead>
-        <DrawerPanelBody>
-          <Grid className="odf-object-sidebar__data-grid" hasGutter>
-            <GridItem span={6}>
-              <h5>{t('Name')}</h5>
-              {objName}
-            </GridItem>
-            <GridItem span={6}>
-              <h5>{t('Key')}</h5>
-              <Level>
-                <LevelItem className="odf-object-sidebar__key">
-                  {objectKey}
-                </LevelItem>
-                <LevelItem>
-                  <CopyToClipboard value={objectKey} iconOnly={true} />
-                </LevelItem>
-              </Level>
-            </GridItem>
-            <GridItem span={6}>
-              <h5>{t('Version')}</h5>
-              {objectData?.VersionId || DASH}
-            </GridItem>
-            <GridItem span={6}>
-              <h5>{t('Owner')}</h5>
-              {object.apiResponse?.ownerName}
-            </GridItem>
-            <GridItem span={6}>
-              <h5>{t('Type')}</h5>
-              {objectData?.ContentType}
-            </GridItem>
-            <GridItem span={6}>
-              <h5>{t('Last modified')}</h5>
-              {object.apiResponse.lastModified}
-            </GridItem>
-            <GridItem span={6}>
-              <h5>{t('Size')}</h5>
-              {object.apiResponse.size}
-            </GridItem>
-            <GridItem span={6}>
-              <h5>{t('Entity tag (ETag)')}</h5>
-              {objectData?.ETag}
-            </GridItem>
-            <GridItem span={12}>
-              <h5>{t('Tags')}</h5>
-              {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
-            </GridItem>
-            <GridItem span={12}>
-              <h5>{t('Metadata')}</h5>
-              {metadata.length > 0 ? metadata : DASH}
-            </GridItem>
-          </Grid>
-        </DrawerPanelBody>
-      </>
-    );
+  return isLoading ? (
+    <LoadingBox />
+  ) : (
+    <Grid className="odf-object-sidebar__data-grid pf-v5-u-mt-sm" hasGutter>
+      <GridItem span={6}>
+        <h5>{t('Name')}</h5>
+        {objShortenedName}
+      </GridItem>
+      <GridItem span={6}>
+        <h5>{t('Key')}</h5>
+        <Level>
+          <LevelItem className="odf-object-sidebar__key">{objectKey}</LevelItem>
+          <LevelItem>
+            <CopyToClipboard value={objectKey} iconOnly={true} />
+          </LevelItem>
+        </Level>
+      </GridItem>
+      {showVersioning && (
+        <GridItem span={6}>
+          <h5>{t('Version')}</h5>
+          {objectData?.VersionId || versionId || DASH}
+        </GridItem>
+      )}
+      <GridItem span={6}>
+        <h5>{t('Owner')}</h5>
+        {object.apiResponse?.ownerName}
+      </GridItem>
+      <GridItem span={6}>
+        <h5>{t('Type')}</h5>
+        {isDeleteMarker ? t('Delete marker') : objectData?.ContentType}
+      </GridItem>
+      <GridItem span={6}>
+        <h5>{t('Last modified')}</h5>
+        {lastModified}
+      </GridItem>
+      <GridItem span={6}>
+        <h5>{t('Size')}</h5>
+        {object.apiResponse.size}
+      </GridItem>
+      <GridItem span={6}>
+        <h5>{t('Entity tag (ETag)')}</h5>
+        {objectData?.ETag || DASH}
+      </GridItem>
+      <GridItem span={12}>
+        <h5>{t('Tags')}</h5>
+        {tags?.length > 0 ? <LabelGroup>{tags}</LabelGroup> : DASH}
+      </GridItem>
+      <GridItem span={12}>
+        <h5>{t('Metadata')}</h5>
+        {metadata.length > 0 ? metadata : DASH}
+      </GridItem>
+    </Grid>
+  );
+};
+
+const ObjectDetailsSidebarContent: React.FC<
+  ObjectDetailsSidebarContentProps
+> = ({ closeSidebar, object, objectActions, extraProps, showVersioning }) => {
+  const { t } = useCustomTranslation();
+
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState(0);
+  const dropdownToggleRef = React.useRef();
+
+  const onDropdownToggleClick = () => {
+    setIsOpen(!isOpen);
   };
+  const onDropdownSelect = () => {
+    setIsOpen(false);
+  };
+
+  const actionItems: IAction[] = objectActions.current;
+
+  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const [searchParams] = useSearchParams();
+  const { bucketName } = useParams();
+
+  const foldersPath = searchParams.get(PREFIX);
+  const objName = object ? replacePathFromName(object, foldersPath) : '';
+  const isDeleteMarker = object?.isDeleteMarker;
+
+  const dropdownItems = [];
+  if (Array.isArray(actionItems)) {
+    actionItems.forEach((action: IAction) =>
+      dropdownItems.push(
+        <DropdownItem onClick={action.onClick} isDisabled={action?.isDisabled}>
+          {action.title}
+        </DropdownItem>
+      )
+    );
+  }
+
+  return (
+    <>
+      <DrawerHead>
+        <Title headingLevel="h3">{objName}</Title>
+        <DrawerActions>
+          <DrawerCloseButton onClick={closeSidebar} />
+        </DrawerActions>
+        <Dropdown
+          isOpen={isOpen}
+          onSelect={onDropdownSelect}
+          toggle={{
+            toggleNode: (
+              <MenuToggle
+                className="odf-object-sidebar__dropdown"
+                ref={dropdownToggleRef}
+                onClick={onDropdownToggleClick}
+              >
+                {t('Actions')}
+              </MenuToggle>
+            ),
+            toggleRef: dropdownToggleRef,
+          }}
+        >
+          <DropdownList>{dropdownItems}</DropdownList>
+        </Dropdown>
+      </DrawerHead>
+      {isDeleteMarker && (
+        <Alert
+          isInline
+          variant={AlertVariant.info}
+          title={t('Why this object has a delete marker?')}
+          className="pf-v5-u-m-sm"
+        >
+          <p>
+            {t(
+              "When an object is deleted, a delete marker is created as the current version of that object. A delete marker prevents the object from being visible when listing the objects in a bucket but does not delete the object's data. If you permanently delete the delete marker, the object can be fully restored."
+            )}
+          </p>
+        </Alert>
+      )}
+      <DrawerPanelBody>
+        {showVersioning && (
+          <ObjectOverview
+            object={object}
+            showVersioning={true}
+            noobaaS3={noobaaS3}
+            bucketName={bucketName}
+            objShortenedName={objName}
+          />
+        )}
+        {!showVersioning && (
+          <Tabs
+            activeKey={activeTab}
+            onSelect={(_event, tabIndex) => setActiveTab(tabIndex as number)}
+            unmountOnExit
+          >
+            <Tab
+              eventKey={0}
+              title={<TabTitleText>{t('Overview')}</TabTitleText>}
+            >
+              <ObjectOverview
+                object={object}
+                showVersioning={false}
+                noobaaS3={noobaaS3}
+                bucketName={bucketName}
+                objShortenedName={objName}
+              />
+            </Tab>
+            <Tab
+              eventKey={1}
+              title={<TabTitleText>{t('Versions')}</TabTitleText>}
+            >
+              <ObjectVersions
+                object={object}
+                noobaaS3={noobaaS3}
+                bucketName={bucketName}
+                foldersPath={foldersPath}
+                extraProps={extraProps}
+              />
+            </Tab>
+          </Tabs>
+        )}
+      </DrawerPanelBody>
+    </>
+  );
+};
 
 type ObjectDetailsSidebarProps = {
   closeSidebar?: () => void;
   isExpanded: boolean;
   object?: ObjectCrFormat;
   objectActions?: React.MutableRefObject<IAction[]>;
+  extraProps?: ExtraProps;
   wrappedContent: React.ReactNode;
+  showVersioning: boolean;
 };
 
 export const ObjectDetailsSidebar: React.FC<ObjectDetailsSidebarProps> = ({
@@ -228,7 +505,9 @@ export const ObjectDetailsSidebar: React.FC<ObjectDetailsSidebarProps> = ({
   isExpanded,
   object,
   objectActions,
+  extraProps,
   wrappedContent,
+  showVersioning,
 }) => {
   return (
     <Drawer isExpanded={isExpanded} position="right">
@@ -240,6 +519,8 @@ export const ObjectDetailsSidebar: React.FC<ObjectDetailsSidebarProps> = ({
                 closeSidebar={closeSidebar}
                 object={object}
                 objectActions={objectActions}
+                extraProps={extraProps}
+                showVersioning={showVersioning}
               />
             )}
           </DrawerPanelContent>

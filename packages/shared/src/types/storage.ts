@@ -25,6 +25,10 @@ export type StorageClusterKind = K8sResourceCommon & {
         public: string;
         private?: string;
       };
+      addressRanges?: {
+        public: string[];
+        cluster: string[];
+      };
     };
     nfs?: {
       enable?: boolean;
@@ -171,6 +175,12 @@ export enum StorageConsumerState {
 type StorageConsumerSpec = {
   enable?: boolean;
   storageQuotaInGiB: number;
+  storageClasses: {
+    name: string;
+  }[];
+  volumeSnapshotClasses: {
+    name: string;
+  }[];
 };
 
 type CephResourcesSpec = {

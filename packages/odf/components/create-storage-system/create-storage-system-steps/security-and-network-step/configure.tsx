@@ -1,209 +1,31 @@
 import * as React from 'react';
-import { NetworkAttachmentDefinitionModel } from '@odf/core/models';
-import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
-import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import { getName, getUID } from '@odf/shared/selectors';
 import { NetworkAttachmentDefinitionKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
-import {
-  ResourceIcon,
-  WatchK8sResults,
-  useK8sWatchResources,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { FormGroup, Radio } from '@patternfly/react-core';
+import { FDF_FLAG } from '../../../../redux';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import { WizardState } from '../../reducer';
+import { MultusNetworkConfigurationComponent } from './multus';
+import { NICSelectComponent } from './nic';
 import './configure.scss';
-
-const resources = (ns: string) => ({
-  openshift: {
-    isList: true,
-    kind: referenceForModel(NetworkAttachmentDefinitionModel),
-    namespace: ns,
-    namespaced: true,
-  },
-  default: {
-    isList: true,
-    kind: referenceForModel(NetworkAttachmentDefinitionModel),
-    namespace: 'default',
-    namespaced: true,
-  },
-  multus: {
-    isList: true,
-    kind: referenceForModel(NetworkAttachmentDefinitionModel),
-    namespace: 'openshift-multus',
-    namespaced: true,
-  },
-});
-
-type MultusWatchResourcesObject = {
-  multus: NetworkAttachmentDefinitionKind[];
-  openshift: NetworkAttachmentDefinitionKind[];
-  default: NetworkAttachmentDefinitionKind[];
-};
-
-const k8sToSelectResourceMapper = (
-  item: NetworkAttachmentDefinitionKind
-): JSX.Element => {
-  const uid = getUID(item);
-  return (
-    <SelectOption id={getName(item)} key={uid} value={uid}>
-      <ResourceIcon
-        groupVersionKind={{
-          group: NetworkAttachmentDefinitionModel.apiGroup,
-          version: NetworkAttachmentDefinitionModel.apiVersion,
-          kind: NetworkAttachmentDefinitionModel.kind,
-        }}
-      />
-      {getName(item)}
-    </SelectOption>
-  );
-};
-
-const reduceResourceLoadAndErrorStatus = <
-  T extends keyof MultusWatchResourcesObject
->(
-  acc: { loaded: boolean; error: any },
-  curr: WatchK8sResults<MultusWatchResourcesObject>[T]
-) => {
-  const loadValue = curr.loaded && acc.loaded;
-  const errorValue = curr.loadError || acc.error;
-  return { loaded: loadValue, error: errorValue };
-};
-
-export const MultusDropdown: React.FC<MultusDropdownProps> = ({
-  setNetwork,
-  clusterNetwork,
-  publicNetwork,
-  systemNamespace,
-}) => {
-  const { t } = useCustomTranslation();
-
-  const clusterNetworkUID = getUID(clusterNetwork);
-  const publicNetworkUID = getUID(publicNetwork);
-
-  const networkResources = useK8sWatchResources(resources(systemNamespace));
-
-  const networkDevices: K8sResourceCommon[] = React.useMemo(() => {
-    const { loaded: resourcesLoaded, error: resourcesLoadError } =
-      Object.values(networkResources).reduce(reduceResourceLoadAndErrorStatus, {
-        loaded: true,
-        error: null,
-      });
-
-    if (resourcesLoaded && !resourcesLoadError) {
-      const devices = _.flatMap(
-        Object.values(networkResources),
-        (res) => res.data
-      );
-      return devices;
-    }
-    return [];
-  }, [networkResources]);
-
-  const memoizedNetworkDevices = useDeepCompareMemoize(networkDevices, true);
-
-  const selectOptions: JSX.Element[] = React.useMemo(
-    () => memoizedNetworkDevices.map(k8sToSelectResourceMapper),
-    [memoizedNetworkDevices]
-  );
-
-  const filter = React.useCallback(
-    (_unused, textInput: string) => {
-      if (!textInput) {
-        return selectOptions;
-      } else {
-        return selectOptions.filter((item) =>
-          (item.props.id as string).toLowerCase().includes(textInput)
-        );
-      }
-    },
-    [selectOptions]
-  );
-
-  const onSelectPublicNetwork = React.useCallback(
-    (uid: string) => {
-      if (!(uid === publicNetworkUID)) {
-        const resource = memoizedNetworkDevices.find(
-          (res) => getUID(res) === uid
-        );
-        setNetwork(NADSelectorType.PUBLIC, resource);
-      } else {
-        setNetwork(NADSelectorType.PUBLIC, null);
-      }
-    },
-    [memoizedNetworkDevices, setNetwork, publicNetworkUID]
-  );
-
-  const onSelectClusterNetwork = React.useCallback(
-    (uid: string) => {
-      if (!(uid === clusterNetworkUID)) {
-        const resource = memoizedNetworkDevices.find(
-          (res) => getUID(res) === uid
-        );
-        setNetwork(NADSelectorType.CLUSTER, resource);
-      } else {
-        setNetwork(NADSelectorType.CLUSTER, null);
-      }
-    },
-    [memoizedNetworkDevices, setNetwork, clusterNetworkUID]
-  );
-
-  return (
-    <>
-      <FormGroup
-        fieldId="configure-multus-public"
-        label={t('Public Network Interface')}
-      >
-        <SingleSelectDropdown
-          onChange={onSelectPublicNetwork}
-          selectOptions={selectOptions}
-          selectedKey={publicNetworkUID}
-          className="ceph__multus-dropdown"
-          placeholderText={t('Select NetworkAttachmentDefinition')}
-          onFilter={filter}
-          hasInlineFilter
-        />
-      </FormGroup>
-      <FormGroup
-        fieldId="configure-multus-cluster"
-        label={t('Cluster Network Interface')}
-      >
-        <SingleSelectDropdown
-          onChange={onSelectClusterNetwork}
-          selectOptions={selectOptions}
-          selectedKey={clusterNetworkUID}
-          className="ceph__multus-dropdown"
-          placeholderText={t('Select NetworkAttachmentDefinition')}
-          onFilter={filter}
-          hasInlineFilter
-        />
-      </FormGroup>
-    </>
-  );
-};
-
-type MultusDropdownProps = {
-  setNetwork: (type: NADSelectorType, resource: K8sResourceCommon) => void;
-  clusterNetwork: NetworkAttachmentDefinitionKind;
-  publicNetwork: NetworkAttachmentDefinitionKind;
-  systemNamespace: WizardState['backingStorage']['systemNamespace'];
-};
 
 export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   setNetworkType,
   networkType,
-  setNetwork,
+  setMultusNetwork,
+  setCIDRNetwork,
+  cephPublicCIDR,
+  cephClusterCIDR,
   clusterNetwork,
   publicNetwork,
   systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
+  const isFDF = useFlag(FDF_FLAG);
 
   return (
     <>
@@ -213,11 +35,14 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
         className="ceph__install-radio--inline"
       >
         <Radio
-          isChecked={networkType === NetworkType.DEFAULT}
+          isChecked={
+            networkType === NetworkType.DEFAULT ||
+            networkType === NetworkType.MULTUS
+          }
           name="default-network"
           label={
             <>
-              {t('Default (OVN)')}
+              {t('Default (Pod)')}
               <FieldLevelHelp>
                 {t(
                   'The default OVN uses a single network for all data operations such as read/write and also for control planes, such as data replication.'
@@ -229,30 +54,48 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           value={NetworkType.DEFAULT}
           id={NetworkType.DEFAULT}
         />
-        <Radio
-          isChecked={networkType === NetworkType.MULTUS}
-          name="custom-network"
-          label={
-            <div className="ceph__multus-radio--width">
-              {t('Custom (Multus)')}
-              <FieldLevelHelp>
-                {t(
-                  'Multus allows a network seperation between the data operations and the control plane operations.'
-                )}
-              </FieldLevelHelp>
-            </div>
-          }
-          onChange={() => setNetworkType(NetworkType.MULTUS)}
-          value={NetworkType.MULTUS}
-          id={NetworkType.MULTUS}
-        />
+        {isFDF && (
+          <Radio
+            isChecked={networkType === NetworkType.HOST}
+            name="custom-network"
+            label={
+              <div className="ceph__multus-radio--width">
+                {t('Host')}
+                <FieldLevelHelp>
+                  {t(
+                    'Multus allows a network seperation between the data operations and the control plane operations.'
+                  )}
+                </FieldLevelHelp>
+              </div>
+            }
+            onChange={() => setNetworkType(NetworkType.HOST)}
+            value={NetworkType.MULTUS}
+            id={NetworkType.MULTUS}
+          />
+        )}
       </FormGroup>
-      {networkType === NetworkType.MULTUS && (
-        <MultusDropdown
-          setNetwork={setNetwork}
+      {networkType === NetworkType.MULTUS ||
+      networkType === NetworkType.DEFAULT ? (
+        <MultusNetworkConfigurationComponent
+          setNetwork={setMultusNetwork}
           clusterNetwork={clusterNetwork}
           publicNetwork={publicNetwork}
           systemNamespace={systemNamespace}
+          setNetworkType={(type: NetworkType) => setNetworkType(type)}
+          networkType={networkType}
+        />
+      ) : (
+        <NICSelectComponent
+          cephClusterCIDR={cephClusterCIDR}
+          cephPublicCIDR={cephPublicCIDR}
+          setCephCIDR={(cephCIDR: string) =>
+            setCIDRNetwork(cephCIDR, cephPublicCIDR)
+          }
+          setPublicCIDR={(publicCIDR: string) =>
+            setCIDRNetwork(cephClusterCIDR, publicCIDR)
+          }
+          networkType={networkType}
+          setNetworkType={(type: NetworkType) => setNetworkType(type)}
         />
       )}
     </>
@@ -262,8 +105,14 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
 type NetworkFormGroupProps = {
   setNetworkType: any;
   networkType: NetworkType;
-  setNetwork: (type: NADSelectorType, resource: K8sResourceCommon) => void;
+  setMultusNetwork: (
+    type: NADSelectorType,
+    resource: K8sResourceCommon
+  ) => void;
+  setCIDRNetwork: (clusterCIDR: string, publicCIDR: string) => void;
   clusterNetwork: NetworkAttachmentDefinitionKind;
   publicNetwork: NetworkAttachmentDefinitionKind;
+  cephClusterCIDR: string;
+  cephPublicCIDR: string;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

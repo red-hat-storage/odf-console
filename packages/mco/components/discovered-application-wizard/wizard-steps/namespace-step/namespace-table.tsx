@@ -121,110 +121,111 @@ const NoClusterEmptyRowMessage: React.FC = () => {
   );
 };
 
-export const NamespaceSelectionTable: React.FC<NamespaceSelectionTableProps> =
-  ({
-    namespaces,
-    clusterName,
-    policies,
-    drPlacements,
-    isValidationEnabled,
-    dispatch,
-  }) => {
-    const { t } = useCustomTranslation();
+export const NamespaceSelectionTable: React.FC<
+  NamespaceSelectionTableProps
+> = ({
+  namespaces,
+  clusterName,
+  policies,
+  drPlacements,
+  isValidationEnabled,
+  dispatch,
+}) => {
+  const { t } = useCustomTranslation();
 
-    const protectedNamespaces = React.useMemo(() => {
-      const eligiblePolicies = findAllEligiblePolicies(clusterName, policies);
-      return getProtectedNamespaces(drPlacements, eligiblePolicies);
-    }, [drPlacements, clusterName, policies]);
+  const protectedNamespaces = React.useMemo(() => {
+    const eligiblePolicies = findAllEligiblePolicies(clusterName, policies);
+    return getProtectedNamespaces(drPlacements, eligiblePolicies);
+  }, [drPlacements, clusterName, policies]);
 
-    const searchQuery = React.useMemo(
-      () => queryNamespacesUsingCluster(clusterName),
-      [clusterName]
-    );
+  const searchQuery = React.useMemo(
+    () => queryNamespacesUsingCluster(clusterName),
+    [clusterName]
+  );
 
-    // ACM search proxy API call
-    const [searchResult, searchError, searchLoaded] =
-      useACMSafeFetch(searchQuery);
+  // ACM search proxy API call
+  const [searchResult, searchError, searchLoaded] =
+    useACMSafeFetch(searchQuery);
 
-    const userNamespaces: K8sResourceCommon[] = React.useMemo(() => {
-      if (searchLoaded && !searchError) {
-        // Converting from search result type to K8sResourceCommon for shared components compatibility.
-        const allNamespaces = convertSearchResultToK8sResourceCommon(
-          searchResult?.data.searchResult?.[0]?.items || []
+  const userNamespaces: K8sResourceCommon[] = React.useMemo(() => {
+    if (searchLoaded && !searchError) {
+      // Converting from search result type to K8sResourceCommon for shared components compatibility.
+      const allNamespaces = convertSearchResultToK8sResourceCommon(
+        searchResult?.data.searchResult?.[0]?.items || []
+      );
+      // Filtering only user namespaces for the DR protection.
+      return allNamespaces.filter((namespaceObj) => {
+        const namespace = getName(namespaceObj);
+        return (
+          !isSystemNamespace(namespace) &&
+          !protectedNamespaces.includes(namespace)
         );
-        // Filtering only user namespaces for the DR protection.
-        return allNamespaces.filter((namespaceObj) => {
-          const namespace = getName(namespaceObj);
-          return (
-            !isSystemNamespace(namespace) &&
-            !protectedNamespaces.includes(namespace)
-          );
-        });
-      }
-      return [];
-    }, [searchResult, protectedNamespaces, searchLoaded, searchError]);
-
-    const [data, filteredData, onFilterChange] =
-      useListPageFilter(userNamespaces);
-
-    const setSelectedNamespaces = (selectedNamespaces: K8sResourceCommon[]) =>
-      dispatch({
-        type: EnrollDiscoveredApplicationStateType.SET_NAMESPACES,
-        payload: selectedNamespaces,
       });
+    }
+    return [];
+  }, [searchResult, protectedNamespaces, searchLoaded, searchError]);
 
-    const namespaceValidated = isValidationEnabled && !namespaces.length;
+  const [data, filteredData, onFilterChange] =
+    useListPageFilter(userNamespaces);
 
-    return (
-      <Grid>
-        <GridItem span={10}>
-          <Text className="text-muted pf-v5-u-font-size-lg">
-            {!!clusterName
-              ? t('{{count}} results found for {{clusterName}}', {
-                  count: userNamespaces.length,
-                  clusterName,
-                })
-              : t('0 results found')}
-          </Text>
-        </GridItem>
-        <GridItem span={10}>
-          <ListPageFilter
-            data={data}
-            loaded={searchLoaded}
-            onFilterChange={onFilterChange}
+  const setSelectedNamespaces = (selectedNamespaces: K8sResourceCommon[]) =>
+    dispatch({
+      type: EnrollDiscoveredApplicationStateType.SET_NAMESPACES,
+      payload: selectedNamespaces,
+    });
+
+  const namespaceValidated = isValidationEnabled && !namespaces.length;
+
+  return (
+    <Grid>
+      <GridItem span={10}>
+        <Text className="text-muted pf-v5-u-font-size-lg">
+          {!!clusterName
+            ? t('{{count}} results found for {{clusterName}}', {
+                count: userNamespaces.length,
+                clusterName,
+              })
+            : t('0 results found')}
+        </Text>
+      </GridItem>
+      <GridItem span={10}>
+        <ListPageFilter
+          data={data}
+          loaded={searchLoaded}
+          onFilterChange={onFilterChange}
+        />
+        {namespaceValidated && (
+          <StatusIconAndText
+            icon={<RedExclamationCircleIcon />}
+            title={t('Select a namespace')}
           />
-          {namespaceValidated && (
-            <StatusIconAndText
-              icon={<RedExclamationCircleIcon />}
-              title={t('Select a namespace')}
-            />
-          )}
-          <SelectableTable<K8sResourceCommon>
-            className="mco-namespace-selection__table mco-namespace-selection__border pf-v5-u-mt-sm pf-v5-u-mb-sm pf-v5-u-h-33vh"
-            columns={getColumns(t)}
-            rows={filteredData}
-            RowComponent={TableRow}
-            selectedRows={namespaces}
-            setSelectedRows={setSelectedNamespaces}
-            loaded={searchLoaded}
-            borders={false}
-            emptyRowMessage={
-              searchError
-                ? searchError
-                : clusterName
+        )}
+        <SelectableTable<K8sResourceCommon>
+          className="mco-namespace-selection__table mco-namespace-selection__border pf-v5-u-mt-sm pf-v5-u-mb-sm pf-v5-u-h-33vh"
+          columns={getColumns(t)}
+          rows={filteredData}
+          RowComponent={TableRow}
+          selectedRows={namespaces}
+          setSelectedRows={setSelectedNamespaces}
+          loaded={searchLoaded}
+          borders={false}
+          emptyRowMessage={
+            searchError
+              ? searchError
+              : clusterName
                 ? EmptyRowMessage
                 : NoClusterEmptyRowMessage
-            }
-          />
-          <Text>
-            {t(
-              'This list does not include namespaces where applications are enrolled separately under disaster recovery protection.'
-            )}
-          </Text>
-        </GridItem>
-      </Grid>
-    );
-  };
+          }
+        />
+        <Text>
+          {t(
+            'This list does not include namespaces where applications are enrolled separately under disaster recovery protection.'
+          )}
+        </Text>
+      </GridItem>
+    </Grid>
+  );
+};
 
 type NamespaceSelectionTableProps = {
   namespaces: K8sResourceCommon[];

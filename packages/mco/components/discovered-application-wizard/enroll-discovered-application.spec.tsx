@@ -6,7 +6,7 @@ import {
   fireEvent,
   act,
 } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import userEvent, { UserEvent } from '@testing-library/user-event';
 import { DRPlacementControlModel, DRPolicyModel } from '../../models';
 import {
   DRPlacementControlKind,
@@ -273,8 +273,7 @@ jest.mock('@patternfly/react-core', () => ({
   Popover: () => null,
 }));
 
-const moveToStep = async (step: number) => {
-  const user = userEvent.setup();
+const moveToStep = async (step: number, user: UserEvent) => {
   if (step > 1) {
     // Select cluster
     await user.click(screen.getByText('Select cluster'));
@@ -317,10 +316,8 @@ const moveToStep = async (step: number) => {
 };
 
 describe('Test namespace step', () => {
-  beforeEach(() => {
-    render(<EnrollDiscoveredApplication />);
-  });
   test('Namespace selection form test', async () => {
+    render(<EnrollDiscoveredApplication />);
     testCase = 1;
     const user = userEvent.setup();
     // Step1 title
@@ -384,6 +381,7 @@ describe('Test namespace step', () => {
   });
 
   test('No namespace found test', async () => {
+    render(<EnrollDiscoveredApplication />);
     testCase = 2;
     const user = userEvent.setup();
     // Cluster selection
@@ -402,6 +400,7 @@ describe('Test namespace step', () => {
   });
 
   test('Namespace selection test', async () => {
+    render(<EnrollDiscoveredApplication />);
     testCase = 3;
     const user = userEvent.setup();
     // Cluster  east-1 selection
@@ -442,22 +441,18 @@ describe('Test namespace step', () => {
       'Unable to find an element'
     );
     // Name input
-    user.type(screen.getByLabelText('Name input'), 'my-name');
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('my-name')).toBeInTheDocument();
-    });
+    await user.type(screen.getByLabelText('Name input'), 'my-name');
+
+    expect(screen.getByDisplayValue('my-name')).toBeInTheDocument();
   });
 });
 
 describe('Test configure step', () => {
-  beforeEach(() => {
-    render(<EnrollDiscoveredApplication />);
-  });
-
   test('Configure form test', async () => {
+    render(<EnrollDiscoveredApplication />);
     testCase = 4;
     const user = userEvent.setup();
-    await moveToStep(2);
+    await moveToStep(2, user);
     // Step2 title
     expect(screen.getByText('Configure definition')).toBeInTheDocument();
     // Step2 title description
@@ -517,13 +512,11 @@ describe('Test configure step', () => {
 });
 
 describe('Test replication step', () => {
-  beforeEach(() => {
-    render(<EnrollDiscoveredApplication />);
-  });
   test('Replication form test', async () => {
+    render(<EnrollDiscoveredApplication />);
     testCase = 5;
     const user = userEvent.setup();
-    await await moveToStep(3);
+    await moveToStep(3, user);
     // Step3 title
     expect(
       screen.getByText('Volume and Kubernetes object replication')
@@ -573,7 +566,8 @@ describe('Test replication step', () => {
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
 
     // kubernetes object replication interval selection
-    // user-even is not supporting number input: https://github.com/testing-library/user-event/issues/411
+    // It seems userEvent does not support number input: https://github.com/testing-library/user-event/issues/411
+    // eslint-disable-next-line testing-library/prefer-user-event
     fireEvent.input(screen.getByDisplayValue(5), { target: { value: 10 } });
     // Ensure interval selection
     expect(screen.getByDisplayValue(10)).toBeInTheDocument();
@@ -585,13 +579,11 @@ describe('Test replication step', () => {
   });
 });
 describe('Test review step', () => {
-  beforeEach(() => {
-    render(<EnrollDiscoveredApplication />);
-  });
   test('Review form test', async () => {
+    render(<EnrollDiscoveredApplication />);
     testCase = 6;
     const user = userEvent.setup();
-    await moveToStep(4);
+    await moveToStep(4, user);
     // Namespace selection test
     expect(screen.getAllByText('Namespace').length === 2).toBeTruthy();
     expect(screen.getByText('Cluster:')).toBeInTheDocument();

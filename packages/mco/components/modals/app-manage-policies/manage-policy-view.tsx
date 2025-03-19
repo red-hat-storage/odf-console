@@ -294,7 +294,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
   workloadNamespace,
   eligiblePolicies,
   isSubscriptionAppType,
-  unProtectedPlacementCount,
+  unprotectedPlacementCount,
   modalActionContext,
   loaded,
   loadError,
@@ -373,7 +373,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
       <ModalBody>
         <DRInformation
           dataPolicyInfo={drInfo}
-          hideEditAction={!isSubscriptionAppType || !unProtectedPlacementCount}
+          hideEditAction={!isSubscriptionAppType || !unprotectedPlacementCount}
           onEdit={onEdit}
         />
         {!!alertProps && (
@@ -427,7 +427,7 @@ type ManagePolicyViewProps = {
   workloadNamespace: string;
   eligiblePolicies: DRPolicyType[];
   isSubscriptionAppType: boolean;
-  unProtectedPlacementCount: number;
+  unprotectedPlacementCount: number;
   modalActionContext: ModalActionContext;
   loaded: boolean;
   loadError: any;

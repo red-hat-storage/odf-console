@@ -31,10 +31,9 @@ function consolidateWithExistingTranslations(filePath, fileName, language) {
   const englishKeys = Object.keys(englishFile);
   let existingTranslationsPath = `../../locales/${language}/${fileName}.json`;
   if (fs.existsSync(path.join(__dirname, existingTranslationsPath))) {
-    const existingTranslationsFile = require(path.join(
-      __dirname,
-      existingTranslationsPath
-    ));
+    const existingTranslationsFile = require(
+      path.join(__dirname, existingTranslationsPath)
+    );
     const existingKeys = Object.keys(existingTranslationsFile);
     const matchingKeys = englishKeys.filter(
       (k) => existingKeys.indexOf(k) > -1

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getObjectVersionId } from '@odf/core/utils';
 import StaticDropdown from '@odf/shared/dropdown/StaticDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
@@ -35,6 +36,7 @@ type PresignedURLModalProps = {
   bucketName: string;
   object: ObjectCrFormat;
   noobaaS3: S3Commands;
+  showVersioning: boolean;
 };
 
 type URLExpiration = {
@@ -130,7 +132,7 @@ const CopyURL: React.FC<CopyURLProps> = ({ urlDetails }) => {
 const PresignedURLModal: React.FC<CommonModalProps<PresignedURLModalProps>> = ({
   closeModal,
   isOpen,
-  extraProps: { bucketName, object, noobaaS3 },
+  extraProps: { bucketName, object, noobaaS3, showVersioning },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -159,7 +161,14 @@ const PresignedURLModal: React.FC<CommonModalProps<PresignedURLModalProps>> = ({
       (urlExpiration.unit === TimeUnits.Minutes ? 60 : 3600);
 
     noobaaS3
-      .getSignedUrl({ Bucket: bucketName, Key: objectName }, expiresIn)
+      .getSignedUrl(
+        {
+          Bucket: bucketName,
+          Key: objectName,
+          ...(showVersioning && { VersionId: getObjectVersionId(object) }),
+        },
+        expiresIn
+      )
       .then((url) => {
         urlDetails.current.url = url;
         urlDetails.current.validUntil = DateTime.now()
@@ -188,7 +197,7 @@ const PresignedURLModal: React.FC<CommonModalProps<PresignedURLModalProps>> = ({
       actions={[
         <ButtonBar
           inProgress={inProgress}
-          errorMessage={error?.message || error}
+          errorMessage={error?.message || JSON.stringify(error)}
         >
           <span>
             <Button

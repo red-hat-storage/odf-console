@@ -2,10 +2,14 @@ import {
   _Object as Content,
   CommonPrefix,
   ListBucketsCommandOutput,
+  LifecycleRule,
+  ObjectVersion,
+  DeleteMarkerEntry,
 } from '@aws-sdk/client-s3';
 import { DASH } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
+import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import { DELIMITER, BUCKETS_BASE_ROUTE, PREFIX, SEARCH } from '../constants';
 import { BucketCrFormat, ObjectCrFormat } from '../types';
@@ -62,13 +66,14 @@ export const getEncodedPrefix = (name: string, foldersPath: string) =>
     : encodeURIComponent(name);
 
 export const convertObjectDataToCrFormat = (
-  objectData: Content | CommonPrefix,
-  isFolder: boolean,
-  t: TFunction
+  objectData: Content | ObjectVersion | DeleteMarkerEntry | CommonPrefix,
+  t: TFunction,
+  isFolder = false,
+  isDeleteMarker = false
 ): ObjectCrFormat => {
   const structuredObject: ObjectCrFormat = {
     metadata: { name: '', uid: '' },
-    apiResponse: { lastModified: DASH, size: DASH },
+    apiResponse: { lastModified: DASH, size: DASH, versionId: DASH },
     isFolder: false,
     type: '',
   };
@@ -79,20 +84,33 @@ export const convertObjectDataToCrFormat = (
     structuredObject.isFolder = true;
     structuredObject.type = t('Folder');
   } else {
-    const key = (objectData as Content)?.Key;
+    const key = (objectData as Content | ObjectVersion | DeleteMarkerEntry)
+      ?.Key;
     const lastIndexOfDot = key.lastIndexOf('.');
+    const versionId =
+      (objectData as ObjectVersion | DeleteMarkerEntry)?.VersionId || DASH;
+    const isLatestVersion = (objectData as ObjectVersion | DeleteMarkerEntry)
+      ?.IsLatest;
     structuredObject.metadata.name = key;
-    structuredObject.metadata.uid = key;
+    structuredObject.metadata.uid = key + versionId;
     structuredObject.apiResponse.lastModified =
-      (objectData as Content)?.LastModified?.toString() || DASH;
+      (
+        objectData as Content | ObjectVersion | DeleteMarkerEntry
+      )?.LastModified?.toString() || DASH;
     structuredObject.apiResponse.size =
-      humanizeBinaryBytes((objectData as Content)?.Size, 'B')?.string || DASH;
-    structuredObject.type =
-      (lastIndexOfDot !== -1
-        ? key.substring(lastIndexOfDot + 1, key.length)
-        : DASH) || DASH;
+      humanizeBinaryBytes((objectData as Content | ObjectVersion)?.Size, 'B')
+        ?.string || DASH;
+    structuredObject.type = isDeleteMarker
+      ? t('Delete marker')
+      : (lastIndexOfDot !== -1
+          ? key.substring(lastIndexOfDot + 1, key.length)
+          : DASH) || DASH;
     structuredObject.apiResponse.ownerName =
-      (objectData as Content)?.Owner?.DisplayName || DASH;
+      (objectData as Content | ObjectVersion | DeleteMarkerEntry)?.Owner
+        ?.DisplayName || DASH;
+    structuredObject.apiResponse.versionId = versionId;
+    if (isDeleteMarker) structuredObject.isDeleteMarker = true;
+    if (isLatestVersion) structuredObject.isLatest = true;
   }
 
   return structuredObject;
@@ -136,4 +154,52 @@ export const getNavigationURL = (
     : '';
 
   return `${BUCKETS_BASE_ROUTE}/${bucketName}` + queryParamsString;
+};
+
+export const isRuleScopeGlobal = (rule: LifecycleRule) => {
+  const filter = rule.Filter;
+
+  if (!filter) return true;
+
+  if (filter.Prefix === '') return true;
+
+  if (filter.And) {
+    const { Prefix, Tags, ObjectSizeGreaterThan, ObjectSizeLessThan } =
+      filter.And;
+
+    if (
+      !Prefix &&
+      _.isEmpty(Tags) &&
+      !ObjectSizeGreaterThan &&
+      !ObjectSizeLessThan
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  if (
+    !!filter.Prefix ||
+    !_.isEmpty(filter.Tag) ||
+    !!filter.ObjectSizeGreaterThan ||
+    !!filter.ObjectSizeLessThan
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
+export const getObjectVersionId = (object: ObjectCrFormat) => {
+  const versionId = object?.apiResponse?.versionId;
+  return versionId === DASH ? undefined : versionId;
+};
+
+export const sortByLastModified = (a: ObjectCrFormat, b: ObjectCrFormat) => {
+  let lastModifiedB: string | number = b?.apiResponse?.lastModified;
+  let lastModifiedA: string | number = a?.apiResponse?.lastModified;
+  if (lastModifiedB === DASH || !lastModifiedB) lastModifiedB = 0;
+  if (lastModifiedA === DASH || !lastModifiedA) lastModifiedA = 0;
+  return new Date(lastModifiedB).getTime() - new Date(lastModifiedA).getTime();
 };

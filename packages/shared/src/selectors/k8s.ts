@@ -47,7 +47,7 @@ export const getAPIVersion = <A extends K8sResourceCommon = K8sResourceCommon>(
 ) => _.get(value, 'apiVersion') as K8sResourceCommon['apiVersion'];
 
 export const getOwnerReferences = <
-  A extends K8sResourceCommon = K8sResourceCommon
+  A extends K8sResourceCommon = K8sResourceCommon,
 >(
   value: A
 ) =>
@@ -59,7 +59,7 @@ export const getOwnerReferences = <
 type KnownResourceConditions = 'Available' | 'Degraded' | 'Progressing';
 
 export const getResourceCondition = <
-  A extends K8sResourceKind = K8sResourceKind
+  A extends K8sResourceKind = K8sResourceKind,
 >(
   resource: A,
   condition: KnownResourceConditions

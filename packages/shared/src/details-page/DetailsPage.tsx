@@ -137,23 +137,25 @@ export type DetailsItemProps = {
   model?: K8sKind;
 };
 
-export const PropertyPath: React.FC<{ kind: string; path: string | string[] }> =
-  ({ kind, path }) => {
-    const pathArray: string[] = _.toPath(path);
-    return (
-      <Breadcrumb className="pf-v5-c-breadcrumb--no-padding-top">
-        <BreadcrumbItem>{kind}</BreadcrumbItem>
-        {pathArray.map((property, i) => {
-          const isLast = i === pathArray.length - 1;
-          return (
-            <BreadcrumbItem key={i} isActive={isLast}>
-              {property}
-            </BreadcrumbItem>
-          );
-        })}
-      </Breadcrumb>
-    );
-  };
+export const PropertyPath: React.FC<{
+  kind: string;
+  path: string | string[];
+}> = ({ kind, path }) => {
+  const pathArray: string[] = _.toPath(path);
+  return (
+    <Breadcrumb className="pf-v5-c-breadcrumb--no-padding-top">
+      <BreadcrumbItem>{kind}</BreadcrumbItem>
+      {pathArray.map((property, i) => {
+        const isLast = i === pathArray.length - 1;
+        return (
+          <BreadcrumbItem key={i} isActive={isLast}>
+            {property}
+          </BreadcrumbItem>
+        );
+      })}
+    </Breadcrumb>
+  );
+};
 
 type EditButtonProps = {
   onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;

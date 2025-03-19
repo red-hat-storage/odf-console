@@ -308,96 +308,98 @@ export const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
   );
 };
 
-export const SubscriptionDetailsTable: React.FC<SubscriptionDetailsTableProps> =
-  ({ selectedApplication }) => {
-    const { placementControlInfo } = selectedApplication;
-    const { t } = useCustomTranslation();
-    const [subsWiseRPO, setSubsWiseRPO] =
-      React.useState<SubscriptionWiseRPOMap>({});
-    const [page, setPage] = React.useState(INITIAL_PAGE_NUMBER);
-    const [perPage, setPerPage] = React.useState(COUNT_PER_PAGE_NUMBER);
-    const subscriptionsTableColumns = React.useMemo<
-      TableColumn<SubscriptionRowProps>[]
-    >(
-      () => [
-        {
-          title: t('Name'),
-          sort: 'name',
-          transforms: [sortable],
-          id: subscriptionTableColumnProps[0].id,
-        },
-        {
-          title: t('Activity'),
-          sort: 'activity',
-          transforms: [sortable],
-          id: subscriptionTableColumnProps[1].id,
-        },
-        {
-          title: t('Last snapshot synced'),
-          sort: 'lastSnapshotSyncTime',
-          transforms: [sortable],
-          id: subscriptionTableColumnProps[2].id,
-        },
-      ],
-      [t]
-    );
-    const [columns] = useActiveColumns({
-      columns: subscriptionsTableColumns,
-      showNamespaceOverride: false,
-      columnManagementID: null,
-    });
-    const [subscriptionRows, numberOfRows]: [SubscriptionRowProps[], number] =
-      React.useMemo(() => {
-        const [start, end] = getPageRange(page, perPage);
-        const subscriptionRowList = getSubscriptionRow(placementControlInfo);
-        return [
-          subscriptionRowList.slice(start, end),
-          subscriptionRowList.length,
-        ];
-      }, [placementControlInfo, page, perPage]);
-    const updatedRPO = React.useCallback(() => {
-      const rpoMap = subscriptionRows.reduce((acc, row) => {
-        const { name, lastSnapshotSyncTime } = row;
-        acc[name] = !!lastSnapshotSyncTime ? fromNow(lastSnapshotSyncTime) : '';
-        return acc;
-      }, {});
-      setSubsWiseRPO(rpoMap);
-    }, [subscriptionRows, setSubsWiseRPO]);
+export const SubscriptionDetailsTable: React.FC<
+  SubscriptionDetailsTableProps
+> = ({ selectedApplication }) => {
+  const { placementControlInfo } = selectedApplication;
+  const { t } = useCustomTranslation();
+  const [subsWiseRPO, setSubsWiseRPO] = React.useState<SubscriptionWiseRPOMap>(
+    {}
+  );
+  const [page, setPage] = React.useState(INITIAL_PAGE_NUMBER);
+  const [perPage, setPerPage] = React.useState(COUNT_PER_PAGE_NUMBER);
+  const subscriptionsTableColumns = React.useMemo<
+    TableColumn<SubscriptionRowProps>[]
+  >(
+    () => [
+      {
+        title: t('Name'),
+        sort: 'name',
+        transforms: [sortable],
+        id: subscriptionTableColumnProps[0].id,
+      },
+      {
+        title: t('Activity'),
+        sort: 'activity',
+        transforms: [sortable],
+        id: subscriptionTableColumnProps[1].id,
+      },
+      {
+        title: t('Last snapshot synced'),
+        sort: 'lastSnapshotSyncTime',
+        transforms: [sortable],
+        id: subscriptionTableColumnProps[2].id,
+      },
+    ],
+    [t]
+  );
+  const [columns] = useActiveColumns({
+    columns: subscriptionsTableColumns,
+    showNamespaceOverride: false,
+    columnManagementID: null,
+  });
+  const [subscriptionRows, numberOfRows]: [SubscriptionRowProps[], number] =
+    React.useMemo(() => {
+      const [start, end] = getPageRange(page, perPage);
+      const subscriptionRowList = getSubscriptionRow(placementControlInfo);
+      return [
+        subscriptionRowList.slice(start, end),
+        subscriptionRowList.length,
+      ];
+    }, [placementControlInfo, page, perPage]);
+  const updatedRPO = React.useCallback(() => {
+    const rpoMap = subscriptionRows.reduce((acc, row) => {
+      const { name, lastSnapshotSyncTime } = row;
+      acc[name] = !!lastSnapshotSyncTime ? fromNow(lastSnapshotSyncTime) : '';
+      return acc;
+    }, {});
+    setSubsWiseRPO(rpoMap);
+  }, [subscriptionRows, setSubsWiseRPO]);
 
-    useScheduler(updatedRPO);
+  useScheduler(updatedRPO);
 
-    return (
-      <div className="mco-dashboard__contentColumn">
-        <Text component={TextVariants.h3}>{t('Subscription details')}</Text>
-        <div className="mco-cluster-app__subs-table--width">
-          <VirtualizedTable
-            data={subscriptionRows}
-            unfilteredData={subscriptionRows}
-            aria-label={t('Subscription details')}
-            columns={columns}
-            Row={SubscriptionRow}
-            rowData={subsWiseRPO}
-            loaded={true}
-            loadError=""
-          />
-          <Pagination
-            itemCount={numberOfRows}
-            widgetId="subscription-table"
-            perPage={perPage}
-            page={page}
-            variant={PaginationVariant.bottom}
-            perPageOptions={[]}
-            isStatic
-            onSetPage={(_event, newPage) => setPage(newPage)}
-            onPerPageSelect={(_event, newPerPage, newPage) => {
-              setPerPage(newPerPage);
-              setPage(newPage);
-            }}
-          />
-        </div>
+  return (
+    <div className="mco-dashboard__contentColumn">
+      <Text component={TextVariants.h3}>{t('Subscription details')}</Text>
+      <div className="mco-cluster-app__subs-table--width">
+        <VirtualizedTable
+          data={subscriptionRows}
+          unfilteredData={subscriptionRows}
+          aria-label={t('Subscription details')}
+          columns={columns}
+          Row={SubscriptionRow}
+          rowData={subsWiseRPO}
+          loaded={true}
+          loadError=""
+        />
+        <Pagination
+          itemCount={numberOfRows}
+          widgetId="subscription-table"
+          perPage={perPage}
+          page={page}
+          variant={PaginationVariant.bottom}
+          perPageOptions={[]}
+          isStatic
+          onSetPage={(_event, newPage) => setPage(newPage)}
+          onPerPageSelect={(_event, newPerPage, newPage) => {
+            setPerPage(newPerPage);
+            setPage(newPage);
+          }}
+        />
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 type CommonProps = {
   selectedApplication: ProtectedAppsMap;

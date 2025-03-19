@@ -58,6 +58,18 @@ import { StorageQuotaUtilizationProgress } from './QuotaUtilizationProgress';
 import { RotateKeysModal } from './rotate-keys-modal';
 import './client-list.scss';
 
+export const getClusterName = (client: StorageConsumerKind) => {
+  const clusterName = client.status?.client?.clusterName;
+  const clientClusterId = client.status?.client?.clusterId;
+  let name = '';
+  if (!clusterName && !clientClusterId) {
+    name = '-';
+  } else {
+    name = `${clusterName || '-'} (${clientClusterId || '-'})`;
+  }
+  return name;
+};
+
 const StorageQuotaPopoverContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
@@ -240,7 +252,7 @@ const getDataFoundationVersion = (obj: StorageConsumerKind) =>
 type LastHeartBeatProps = {
   heartbeat: string;
 };
-const LastHeartBeat: React.FC<LastHeartBeatProps> = ({ heartbeat }) => {
+export const LastHeartBeat: React.FC<LastHeartBeatProps> = ({ heartbeat }) => {
   const { t } = useCustomTranslation();
   const difference = getTimeDifferenceInSeconds(heartbeat);
   const Component = (() => {
@@ -360,9 +372,7 @@ const StorageClientRow: React.FC<
             data = obj?.status?.client?.name || '-';
             break;
           case 'clusterName':
-            data = `${obj?.status?.client?.clusterName || '-'} (${
-              clientClusterId || '-'
-            })`;
+            data = getClusterName(obj);
             break;
           case 'storageQuota':
             data = humanizedStorageQuota;
@@ -404,6 +414,16 @@ const StorageClientRow: React.FC<
                     value: t('Edit storage quota'),
                     component: React.lazy(
                       () => import('./update-storage-quota-modal')
+                    ),
+                  },
+                  {
+                    key: 'DISTRIBUTE_RESOURCES',
+                    value: t('Distribute resources'),
+                    component: React.lazy(
+                      () =>
+                        import(
+                          '../../modals/ResourceDistributionModal/ResourceDistributionModal'
+                        )
                     ),
                   },
                   {

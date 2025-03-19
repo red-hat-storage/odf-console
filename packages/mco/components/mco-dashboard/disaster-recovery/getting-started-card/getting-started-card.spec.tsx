@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { EnrollApplicationButton } from '@odf/mco/components/protected-applications/components';
 import { gettingStartedDRDocs } from '@odf/mco/constants';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { GettingStartedCard } from './getting-started-card';
 
 const setIsOpen = jest.fn(() => null);
@@ -36,6 +37,7 @@ describe('Test getting started card (GettingStartedCard)', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('Renders card with all the steps and their details', async () => {
+    const user = userEvent.setup();
     render(<GettingStartedCard />);
 
     // header -- title
@@ -60,14 +62,14 @@ describe('Test getting started card (GettingStartedCard)', () => {
       name: 'Create a disaster recovery policy',
     });
     expect(policyButton).toBeInTheDocument();
-    fireEvent.click(policyButton);
+    await user.click(policyButton);
     expect(navigate).toHaveBeenCalledTimes(1);
 
     const viewPolicyButton = screen.getByRole('button', {
       name: 'View policies',
     });
     expect(viewPolicyButton).toBeInTheDocument();
-    fireEvent.click(viewPolicyButton);
+    await user.click(viewPolicyButton);
     expect(navigate).toHaveBeenCalledTimes(2); // called once before via "policyButton" click
 
     expect(EnrollApplicationButton).toHaveBeenCalledTimes(1);

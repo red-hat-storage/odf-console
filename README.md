@@ -64,9 +64,19 @@ By default, it will look for Chrome in the system and use it, but if you want to
 To run NooBaa Object Browser in development mode, do the following:
 
 ```
-oc port-forward $(oc get pods -n openshift-storage | grep noobaa-endpoint | awk '{print $1}') 6001
+oc port-forward $(oc get pods -n openshift-storage | grep noobaa-endpoint | awk '{print $1}') 6001 -n openshift-storage
+```
 
+#### If running OCP Console as a container:
+
+```
 CONSOLE_VERSION=4.18 BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-console/s3/","endpoint":"http://localhost:6001"}]}' BRIDGE_PLUGINS='odf-console=http://localhost:9001' PLUGIN=odf yarn dev:c
+```
+
+#### If running OCP Console as a server (locally):
+
+```
+./bin/bridge -plugins odf-console=http://localhost:9001/ --plugin-proxy='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-console/s3/","endpoint":"http://localhost:6001/"}]}'
 ```
 
 To see the NooBaa S3 logs: `oc logs -f deploy/noobaa-endpoint`

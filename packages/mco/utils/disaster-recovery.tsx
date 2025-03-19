@@ -653,13 +653,14 @@ export const getNameNamespace = (name: string, namespace: string) =>
     : '';
 
 export const getLabelsFromSearchResult = (
-  item: SearchResultItemType
+  item: SearchResultItemType,
+  isAllowBlocklist: boolean = false
 ): { [key in string]: string[] } => {
   // example label foo1=bar1;foo2=bar2
   const labels: string[] = item?.label?.split(LABELS_SPLIT_CHAR) || [];
   return labels?.reduce((acc, label) => {
     const [key, value] = label.split(LABEL_SPLIT_CHAR);
-    if (!DR_BLOCK_LISTED_LABELS.includes(key)) {
+    if (isAllowBlocklist || !DR_BLOCK_LISTED_LABELS.includes(key)) {
       acc[key] = [...(acc[key] || []), value];
     }
     return acc;

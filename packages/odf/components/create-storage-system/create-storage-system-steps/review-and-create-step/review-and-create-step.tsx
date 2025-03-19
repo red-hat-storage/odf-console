@@ -67,7 +67,6 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
 
   // NooBaa standalone deployment
   const isMCG = deployment === DeploymentType.MCG;
-  const isProviderMode = deployment === DeploymentType.PROVIDER_MODE;
   // External Red Hat Ceph Storage deployment
   const isRhcs = !_.isEmpty(connectionDetails);
   // External IBM deployment without ODF
@@ -164,13 +163,11 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
               memory: humanizeBinaryBytes(totalMemory).string,
             })}
           </ListItem>
-          {!isProviderMode && (
-            <ListItem>
-              {t('Performance profile: {{resourceProfile}}', {
-                resourceProfile: _.capitalize(capacityAndNodes.resourceProfile),
-              })}
-            </ListItem>
-          )}
+          <ListItem>
+            {t('Performance profile: {{resourceProfile}}', {
+              resourceProfile: _.capitalize(capacityAndNodes.resourceProfile),
+            })}
+          </ListItem>
           <ListItem>
             {t('Zone: {{zoneCount, number}} zone', {
               zoneCount: zones.size,
@@ -219,13 +216,11 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
                 })}
               </ListItem>
             )}
-            {!isProviderMode && (
-              <ListItem>
-                {t('Network: {{networkType}}', {
-                  networkType: NetworkTypeLabels[networkType],
-                })}
-              </ListItem>
-            )}
+            <ListItem>
+              {t('Network: {{networkType}}', {
+                networkType: NetworkTypeLabels[networkType],
+              })}
+            </ListItem>
           </ReviewItem>
         ))}
       {isRhcs && (
