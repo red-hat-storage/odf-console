@@ -767,6 +767,16 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/details",
+      "exact": false,
+      "component": {
+        "$codeRef": "s3BucketCorsDetails.CorsDetailsPage"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~storagecluster/:resourceName/~attachstorage",
       "exact": false,
       "component": { "$codeRef": "attachStorage.default" }
