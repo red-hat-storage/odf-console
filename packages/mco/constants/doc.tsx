@@ -33,3 +33,13 @@ export const gettingStartedDRDocs = (mcoDocVersion) => ({
     mcoDocVersion
   )}#enable-dr-monitoring_monitor-dr`,
 });
+
+const odfDRDocTroubleshooting = (odfDocVersion) =>
+  `${odfDRDocHome(odfDocVersion)}/troubleshooting_disaster_recovery`;
+
+export const drStatusPopoverDocs = (mcoDocVersion: string) => ({
+  FAILOVER: `${odfDRDocTroubleshooting(mcoDocVersion)}#failover_statuses`,
+  RELOCATION: `${odfDRDocTroubleshooting(mcoDocVersion)}#relocation_statuses`,
+  CLEANUP: `${odfDRDocTroubleshooting(mcoDocVersion)}#cleaning_up_application_resources`,
+  VOLUME_SYNC_DELAY: `${odfDRDocTroubleshooting(mcoDocVersion)}#volumes_are_syncing_slower_than_usual`,
+});
