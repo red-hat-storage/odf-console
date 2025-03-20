@@ -32,8 +32,10 @@ type UseEditLifecycleRule = ({
 const convertLifecycleRuleToRuleState = (rule: LifecycleRule): RuleState => {
   let ruleState: RuleState = _.cloneDeep(ruleInitialState);
 
+  if (_.isEmpty(rule)) return ruleState;
+
   // name and scope
-  ruleState.name = rule.ID;
+  ruleState.name = rule.ID || '';
   ruleState.scope = isRuleScopeGlobal(rule)
     ? RuleScope.GLOBAL
     : RuleScope.TARGETED;

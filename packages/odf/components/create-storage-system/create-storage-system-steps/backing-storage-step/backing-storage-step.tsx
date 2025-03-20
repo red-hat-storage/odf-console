@@ -10,6 +10,7 @@ import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { getSupportedVendors } from '@odf/core/utils';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
+import { RHCS_SUPPORTED_INFRA } from '@odf/shared/constants/common';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
@@ -23,6 +24,7 @@ import {
   ListKind,
   StorageClassResourceKind,
   ClusterServiceVersionKind,
+  InfraProviders,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { isDefaultClass, getODFCsv, getGVKLabel } from '@odf/shared/utils';
@@ -47,15 +49,6 @@ import { PostgresConnectionDetails } from './noobaa-external-postgres/postgres-c
 import { SelectDeployment } from './select-deployment';
 import { SetCephRBDStorageClassDefault } from './set-rbd-sc-default';
 import './backing-storage-step.scss';
-
-const RHCS_SUPPORTED_INFRA = [
-  'BareMetal',
-  'None',
-  'VSphere',
-  'OpenStack',
-  'oVirt',
-  'IBMCloud',
-];
 
 // ODF watches only 2 namespaces (other one is operator install namespace)
 const OCS_MULTIPLE_CLUSTER_NS = 'openshift-storage-extended';
@@ -464,7 +457,7 @@ type BackingStorageProps = {
   hasMultipleClusters: boolean;
   storageClass: WizardState['storageClass'];
   stepIdReached: WizardState['stepIdReached'];
-  infraType: string;
+  infraType: InfraProviders;
   error: any;
   loaded: boolean;
   supportedExternalStorage: ExternalStorage[];

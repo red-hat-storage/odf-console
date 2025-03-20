@@ -747,6 +747,26 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/create/~new",
+      "exact": false,
+      "component": {
+        "$codeRef": "s3BucketCors.CreateCorsRule"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/edit",
+      "exact": false,
+      "component": {
+        "$codeRef": "s3BucketCors.EditCorsRule"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~storagecluster/:resourceName/~attachstorage",
       "exact": false,
       "component": { "$codeRef": "attachStorage.default" }

@@ -4,6 +4,7 @@ import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   isStorageClassWizardStep,
 } from '@odf/odf-plugin-sdk/extensions';
+import { DEFAULT_INFRASTRUCTURE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import {
@@ -11,6 +12,7 @@ import {
   NamespaceModel,
   ODFStorageSystem,
 } from '@odf/shared/models';
+import { InfrastructureKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getInfrastructurePlatform,
@@ -51,9 +53,9 @@ const CreateStorageSystem: React.FC<{}> = () => {
     initialState
   );
 
-  const [infra, infraLoaded, infraLoadError] = useK8sGet<any>(
+  const [infra, infraLoaded, infraLoadError] = useK8sGet<InfrastructureKind>(
     InfrastructureModel,
-    'cluster'
+    DEFAULT_INFRASTRUCTURE
   );
   const [namespaces, namespacesLoaded, namespacesError] =
     useK8sList(NamespaceModel);

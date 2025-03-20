@@ -24,3 +24,6 @@ export const getIsVersioningEnabled = (
 export const getIsVersioningSuspended = (
   versioningData: GetBucketVersioningCommandOutput
 ) => versioningData?.Status === BucketVersioningStatus.Suspended;
+
+export const isNoCorsRuleError = (error) =>
+  error?.name === 'NoSuchCORSConfiguration';

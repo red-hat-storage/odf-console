@@ -6,7 +6,7 @@ import {
   ObjectVersion,
   DeleteMarkerEntry,
 } from '@aws-sdk/client-s3';
-import { DASH } from '@odf/shared/constants';
+import { DASH, WILDCARD } from '@odf/shared/constants';
 import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
@@ -203,3 +203,6 @@ export const sortByLastModified = (a: ObjectCrFormat, b: ObjectCrFormat) => {
   if (lastModifiedA === DASH || !lastModifiedA) lastModifiedA = 0;
   return new Date(lastModifiedB).getTime() - new Date(lastModifiedA).getTime();
 };
+
+export const isAllowAllConfig = (config: string[]) =>
+  config.length === 1 && config[0] === WILDCARD;
