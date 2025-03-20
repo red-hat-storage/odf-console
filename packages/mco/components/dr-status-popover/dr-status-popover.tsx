@@ -1,6 +1,13 @@
 import * as React from 'react';
 import { DRPCStatus, VolumeReplicationHealth } from '@odf/mco/constants';
 import { Progression } from '@odf/mco/types';
+import {
+  ODF_DEFAULT_DOC_VERSION,
+  odfDRDocCleaningUpResources,
+  odfDRDocFailoverStatuses,
+  odfDRDocRelocationStatuses,
+  odfDRDocVolumesSyncingSlowly,
+} from '@odf/shared';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import {
   GreenCheckCircleIcon,
@@ -20,8 +27,9 @@ import {
   Flex,
   Popover,
   Text,
+  TextVariants,
 } from '@patternfly/react-core';
-import { InProgressIcon } from '@patternfly/react-icons';
+import { ExternalLinkAltIcon, InProgressIcon } from '@patternfly/react-icons';
 import './dr-status-popover.scss';
 
 export type DRStatusProps = {
@@ -164,36 +172,37 @@ const HelpLink: React.FC<{
   message: string;
 }> = ({ href, t, message }) => {
   return (
-    <Button
-      className="dr-status-help-link"
-      variant={ButtonVariant.link}
-      isInline
+    <Text
+      component={TextVariants.a}
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={t('Open documentation')}
     >
-      {message}
-    </Button>
+      {t(message)} <ExternalLinkAltIcon />
+    </Text>
   );
 };
 
 const statusHelpLinks = {
   [DRStatus.Warning]: {
-    href: '', // TODO: Replace with the actual link
+    href: odfDRDocVolumesSyncingSlowly(ODF_DEFAULT_DOC_VERSION),
     message: 'Documentation help link',
   },
   [DRStatus.Critical]: {
-    href: '', // TODO: Replace with the actual link
+    href: odfDRDocVolumesSyncingSlowly(ODF_DEFAULT_DOC_VERSION),
     message: 'Documentation help link',
   },
   [DRStatus.FailingOver]: {
-    href: '', // TODO: Replace with the actual link
+    href: odfDRDocFailoverStatuses(ODF_DEFAULT_DOC_VERSION),
     message: 'Learn about different failover status',
   },
   [DRStatus.Relocating]: {
-    href: '', // TODO: Replace with the actual link
+    href: odfDRDocRelocationStatuses(ODF_DEFAULT_DOC_VERSION),
     message: 'Learn about different relocate status',
+  },
+  [DRStatus.WaitOnUserToCleanUp]: {
+    href: odfDRDocCleaningUpResources(ODF_DEFAULT_DOC_VERSION),
+    message: 'How to clean up resources?',
   },
 };
 
@@ -298,6 +307,22 @@ const getDRStatus = ({
   return DRStatus.Critical;
 };
 
+const getCleanupMessage = (
+  phase: DRPCStatus,
+  cluster: string,
+  t: TFunction
+) => {
+  return phase === DRPCStatus.FailingOver
+    ? t(
+        'Clean up application resources on failed cluster {{cluster}} to start the replication.',
+        { cluster }
+      )
+    : t(
+        'Clean up application resources on the source cluster {{cluster}} to complete the relocation.',
+        { cluster }
+      );
+};
+
 const getDRStatusDetails = ({
   isCleanupRequired,
   phase,
@@ -377,12 +402,10 @@ const getDRStatusDetails = ({
       return createStatus(
         DRStatus.WaitOnUserToCleanUp,
         t('Action needed'),
-        t(
-          'Clean up application resources on failed cluster {{cluster}} to start the replication.',
-          {
-            cluster:
-              phase === DRPCStatus.FailingOver ? targetCluster : primaryCluster,
-          }
+        getCleanupMessage(
+          phase,
+          phase === DRPCStatus.FailingOver ? targetCluster : primaryCluster,
+          t
         ),
         'dr-status-action-needed'
       );

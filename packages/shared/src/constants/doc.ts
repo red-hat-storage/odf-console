@@ -20,6 +20,22 @@ export const odfDeployExternalMode = (odfDocVersion) =>
     odfDocVersion
   )}/deploying_openshift_data_foundation_in_external_mode`;
 
+// Add functions for specific DR-related documentation sections
+export const odfDRDocTroubleshooting = (odfDocVersion) =>
+  `${odfDRDocHome(odfDocVersion)}/troubleshooting_disaster_recovery`;
+
+export const odfDRDocFailoverStatuses = (odfDocVersion) =>
+  `${odfDRDocTroubleshooting(odfDocVersion)}#failover_statuses`;
+
+export const odfDRDocRelocationStatuses = (odfDocVersion) =>
+  `${odfDRDocTroubleshooting(odfDocVersion)}#relocation_statuses`;
+
+export const odfDRDocCleaningUpResources = (odfDocVersion) =>
+  `${odfDRDocTroubleshooting(odfDocVersion)}#cleaning_up_application_resources`;
+
+export const odfDRDocVolumesSyncingSlowly = (odfDocVersion) =>
+  `${odfDRDocTroubleshooting(odfDocVersion)}#volumes_are_sinking_slower_than_usual`;
+
 export const inTransitEncryptionSettingsForRHCS = (
   odfDocVersion: string
 ): string =>
