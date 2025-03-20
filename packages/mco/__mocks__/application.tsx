@@ -1,6 +1,5 @@
-import { ApplicationModel } from '@odf/shared/models';
+import { ApplicationModel, ACMSubscriptionModel } from '@odf/shared';
 import { ApplicationKind } from '@odf/shared/types';
-import { ACMSubscriptionModel } from '../models';
 
 export const mockApplication1: ApplicationKind = {
   apiVersion: `${ApplicationModel.apiGroup}/${ApplicationModel.apiVersion}`,

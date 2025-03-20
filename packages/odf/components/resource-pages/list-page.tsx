@@ -1,6 +1,11 @@
 import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import {
+  NooBaaBackingStoreModel,
+  NooBaaBucketClassModel,
+  NooBaaNamespaceStoreModel,
+} from '@odf/shared';
 import { LabelList } from '@odf/shared/details-page/label-list';
 import { Timestamp } from '@odf/shared/details-page/timestamp';
 import { Kebab, CustomKebabItem } from '@odf/shared/kebab/kebab';
@@ -25,11 +30,6 @@ import {
 import classNames from 'classnames';
 import { TFunction } from 'react-i18next';
 import { sortable } from '@patternfly/react-table';
-import {
-  NooBaaBackingStoreModel,
-  NooBaaBucketClassModel,
-  NooBaaNamespaceStoreModel,
-} from '../../models';
 import { OperandStatus } from '../utils';
 
 const tableColumnInfo = [

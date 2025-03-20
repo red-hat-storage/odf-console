@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { DISCOVERED_APP_NS } from '@odf/mco/constants';
 import { getDRPlacementControlResourceObj } from '@odf/mco/hooks';
-import { DRPolicyModel } from '@odf/mco/models';
 import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
+import { DRPolicyModel } from '@odf/shared';
 import {
   fieldRequirementsTranslations,
   formSettings,

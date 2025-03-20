@@ -2,6 +2,7 @@ import * as React from 'react';
 import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { useSafeK8sList } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import { NooBaaBackingStoreModel } from '@odf/shared';
 import {
   fieldRequirementsTranslations,
   formSettings,
@@ -35,7 +36,6 @@ import {
   providerSchema,
 } from '../../constants';
 import { ODF_MODEL_FLAG } from '../../features';
-import { NooBaaBackingStoreModel } from '../../models';
 import { BackingStoreKind, MCGPayload } from '../../types';
 import {
   getExternalProviders,

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { useSafeK8sList } from '@odf/core/hooks';
+import { NooBaaNamespaceStoreModel } from '@odf/shared';
 import { formSettings } from '@odf/shared/constants';
 import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
@@ -37,7 +38,6 @@ import {
   StoreType,
   providerSchema,
 } from '../../constants';
-import { NooBaaNamespaceStoreModel } from '../../models';
 import { NamespaceStoreKind } from '../../types';
 import {
   getExternalProviders,

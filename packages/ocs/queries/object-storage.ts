@@ -1,4 +1,4 @@
-import { NooBaaBucketClassModel } from '@odf/core/models';
+import { NooBaaBucketClassModel } from '@odf/shared';
 import { ProjectModel } from '@odf/shared/models';
 import * as _ from 'lodash-es';
 import {

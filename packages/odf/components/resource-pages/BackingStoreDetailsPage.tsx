@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import { NooBaaBackingStoreModel } from '@odf/shared';
 import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
@@ -10,7 +11,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import { EventStreamWrapped, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import { useParams } from 'react-router-dom-v5-compat';
-import { NooBaaBackingStoreModel } from '../../models';
 import { BackingStoreKind } from '../../types';
 import { CommonDetails } from './CommonDetails';
 import ProviderDetails from './Providers';

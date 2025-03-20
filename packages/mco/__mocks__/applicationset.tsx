@@ -1,5 +1,5 @@
+import { ArgoApplicationSetModel } from '@odf/shared';
 import { PLACEMENT_REF_LABEL } from '../constants';
-import { ArgoApplicationSetModel } from '../models';
 import { ArgoApplicationSetKind } from '../types';
 
 export const mockApplicationSet1: ArgoApplicationSetKind = {

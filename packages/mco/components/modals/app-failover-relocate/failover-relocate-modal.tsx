@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { DRPlacementControlModel } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -15,7 +16,6 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { DRActionType } from '../../../constants';
-import { DRPlacementControlModel } from '../../../models';
 import {
   ApplicationProps,
   PlacementControlProps,

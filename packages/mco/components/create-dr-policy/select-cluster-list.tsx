@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { getManagedClusterResourceObj } from '@odf/mco/hooks';
+import { ACMManagedClusterViewModel } from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import {
   GreenCheckCircleIcon,
@@ -31,7 +32,6 @@ import {
   MCO_CREATED_BY_LABEL_KEY,
   MCO_CREATED_BY_MC_CONTROLLER,
 } from '../../constants';
-import { ACMManagedClusterViewModel } from '../../models';
 import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
 import {
   ClusterListColumns,

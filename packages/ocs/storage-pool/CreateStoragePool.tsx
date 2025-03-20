@@ -6,6 +6,7 @@ import {
 } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
+import { CephBlockPoolModel, CephFileSystemModel } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -37,7 +38,6 @@ import {
   PoolState,
   PoolType,
 } from '../constants';
-import { CephBlockPoolModel, CephFileSystemModel } from '../models';
 import { CephFilesystemKind, StoragePoolKind } from '../types';
 import {
   getErrorMessage,

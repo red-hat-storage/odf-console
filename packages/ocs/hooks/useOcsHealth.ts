@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/shared';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -14,7 +15,6 @@ import {
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { CephObjectStoreModel, NooBaaSystemModel } from '../models/core';
 import { Health, HEALTH_QUERY } from '../queries';
 import {
   getCephHealthState,

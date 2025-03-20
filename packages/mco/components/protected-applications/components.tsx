@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { DRPlacementControlModel } from '@odf/shared';
 import {
   ActionDropdown,
   ToggleVariant,
@@ -35,7 +36,6 @@ import {
   DR_BASE_ROUTE,
   ReplicationType,
 } from '../../constants';
-import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
 import { getCurrentActivity } from '../mco-dashboard/disaster-recovery/cluster-app-card/application';
 import {

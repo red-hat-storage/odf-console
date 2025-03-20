@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { NooBaaObjectBucketClaimModel } from '@odf/core/models';
 import {
   convertHorizontalNavTabToNavPage as convertObjectServiceTabToNav,
   useSortPages,
@@ -8,6 +7,7 @@ import {
   HorizontalNavTab,
   isHorizontalNavTab,
 } from '@odf/odf-plugin-sdk/extensions';
+import { NooBaaObjectBucketClaimModel } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';

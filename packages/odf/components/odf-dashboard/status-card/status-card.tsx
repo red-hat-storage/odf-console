@@ -3,6 +3,7 @@ import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { K8sResourceObj } from '@odf/core/types';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
 import { StorageConsumerKind } from '@odf/shared';
+import { StorageConsumerModel } from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMap } from '@odf/shared/dashboards/status-card/states';
@@ -39,7 +40,6 @@ import {
   CardTitle,
 } from '@patternfly/react-core';
 import { PROVIDER_MODE } from '../../../features';
-import { StorageConsumerModel } from '../../../models';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import StatusCardPopover from './status-card-popover';

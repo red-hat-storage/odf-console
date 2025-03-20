@@ -9,10 +9,9 @@ import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
 } from '@odf/mco/hooks';
-import { VirtualMachineModel } from '@odf/mco/models';
 import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
 import { findDRPolicyUsingDRPC } from '@odf/mco/utils';
-import { getName, getNamespace } from '@odf/shared';
+import { getName, getNamespace, VirtualMachineModel } from '@odf/shared';
 import {
   K8sResourceCommon,
   useK8sWatchResource,

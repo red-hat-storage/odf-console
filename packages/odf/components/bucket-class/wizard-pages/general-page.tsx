@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { NooBaaBucketClassModel } from '@odf/shared';
 import {
   fieldRequirementsTranslations,
   formSettings,
@@ -21,7 +22,6 @@ import {
   Radio,
   TextArea,
 } from '@patternfly/react-core';
-import { NooBaaBucketClassModel } from '../../../models';
 import { BucketClassKind, BucketClassType } from '../../../types';
 import { ExternalLink } from '../../mcg-endpoints/gcp-endpoint-type';
 import { Action, State } from '../state';

@@ -1,4 +1,4 @@
-import { ACMManagedClusterModel } from '../models';
+import { ACMManagedClusterModel } from '@odf/shared';
 
 export const mockManagedClusterEast1 = {
   apiVersion: `${ACMManagedClusterModel.apiGroup}/${ACMManagedClusterModel.apiVersion}`,

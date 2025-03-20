@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { StorageConsumerModel } from '@odf/core/models';
+import { StorageConsumerModel } from '@odf/shared';
 import {
   getName,
   ModalFooter,

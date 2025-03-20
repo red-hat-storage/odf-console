@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { VirtualMachineModel } from '@odf/mco/models';
 import { SearchResultItemType } from '@odf/mco/types';
 import { convertSearchResult } from '@odf/mco/utils';
+import { VirtualMachineModel } from '@odf/shared';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';

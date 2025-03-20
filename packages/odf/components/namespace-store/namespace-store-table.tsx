@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import { NooBaaNamespaceStoreModel } from '@odf/shared';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { useSelectList } from '@odf/shared/hooks/select-list';
 import { getName, getNamespace } from '@odf/shared/selectors';
@@ -18,7 +19,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import { Checkbox } from '@patternfly/react-core';
-import { NooBaaNamespaceStoreModel } from '../../models';
 import { NamespaceStoreKind } from '../../types';
 import { getNamespaceStoreType, getNSRegion } from '../../utils';
 import './namespace-store-table.scss';

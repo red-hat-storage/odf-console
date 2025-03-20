@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useSafeK8sGet } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { ODFSystemFlagsPayload } from '@odf/core/redux/actions';
+import { CephBlockPoolModel } from '@odf/shared';
 import { ModalFooter } from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
@@ -45,7 +46,6 @@ import {
   PoolProgress,
   PoolType,
 } from '../../constants';
-import { CephBlockPoolModel } from '../../models';
 import { StoragePoolStatus } from '../../storage-pool/body';
 import {
   StoragePoolActionType,

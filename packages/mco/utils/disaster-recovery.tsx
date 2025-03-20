@@ -1,5 +1,10 @@
 import * as React from 'react';
 import {
+  ACMPlacementModel,
+  ACMPlacementRuleModel,
+  DRVolumeReplicationGroup,
+} from '@odf/shared';
+import {
   daysToSeconds,
   getTimeDifferenceInSeconds,
   hoursToSeconds,
@@ -49,11 +54,6 @@ import {
   LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
 } from '../constants';
 import { DisasterRecoveryFormatted } from '../hooks';
-import {
-  ACMPlacementModel,
-  ACMPlacementRuleModel,
-  DRVolumeReplicationGroup,
-} from '../models';
 import {
   ACMSubscriptionKind,
   ACMPlacementRuleKind,

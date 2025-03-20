@@ -1,7 +1,3 @@
-import { renderHook } from '@testing-library/react-hooks';
-import { PLACEMENT_REF_LABEL } from '../../../../constants';
-import { ArgoApplicationSetResourceKind } from '../../../../hooks';
-import { DisasterRecoveryResourceKind } from '../../../../hooks/disaster-recovery';
 import {
   ACMPlacementDecisionModel,
   ACMPlacementModel,
@@ -9,7 +5,11 @@ import {
   DRClusterModel,
   DRPlacementControlModel,
   DRPolicyModel,
-} from '../../../../models';
+} from '@odf/shared';
+import { renderHook } from '@testing-library/react-hooks';
+import { PLACEMENT_REF_LABEL } from '../../../../constants';
+import { ArgoApplicationSetResourceKind } from '../../../../hooks';
+import { DisasterRecoveryResourceKind } from '../../../../hooks/disaster-recovery';
 import {
   ACMPlacementDecisionKind,
   ACMPlacementKind,

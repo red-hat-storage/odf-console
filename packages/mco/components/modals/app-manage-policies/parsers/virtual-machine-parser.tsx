@@ -1,11 +1,6 @@
 import * as React from 'react';
 import { HUB_CLUSTER_NAME, KUBE_INSTANCE_LABEL } from '@odf/mco/constants';
 import { useACMSafeFetch } from '@odf/mco/hooks';
-import {
-  ACMSubscriptionModel,
-  ArgoApplicationSetModel,
-  VirtualMachineModel,
-} from '@odf/mco/models';
 import { ArgoApplicationSetKind, SearchResultItemType } from '@odf/mco/types';
 import {
   getLabelsFromSearchResult,
@@ -13,6 +8,11 @@ import {
 } from '@odf/mco/utils';
 import {
   ApplicationKind,
+  ACMSubscriptionModel,
+  ArgoApplicationSetModel,
+  VirtualMachineModel,
+} from '@odf/shared';
+import {
   ApplicationModel,
   getLabel,
   getName,

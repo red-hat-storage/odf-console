@@ -1,4 +1,4 @@
-import { ACMSubscriptionModel } from '../models';
+import { ACMSubscriptionModel } from '@odf/shared';
 import { ACMSubscriptionKind } from '../types';
 
 export const mockSubscription1: ACMSubscriptionKind = {
