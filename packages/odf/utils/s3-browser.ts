@@ -205,4 +205,4 @@ export const sortByLastModified = (a: ObjectCrFormat, b: ObjectCrFormat) => {
 };
 
 export const isAllowAllConfig = (config: string[]) =>
-  config.length === 1 && config[0] === WILDCARD;
+  config?.length === 1 && config[0] === WILDCARD;
