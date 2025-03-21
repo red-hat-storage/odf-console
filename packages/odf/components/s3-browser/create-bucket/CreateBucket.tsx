@@ -3,7 +3,15 @@ import { CreateOBC } from '@odf/core/components/mcg/CreateObjectBucketClaim';
 import CreateBucketForm from '@odf/core/components/s3-browser/create-bucket/CreateBucketForm';
 import { NoobaaS3Provider } from '@odf/core/components/s3-browser/noobaa-context';
 import { useCustomTranslation } from '@odf/shared';
-import { Alert, FormGroup, Tile } from '@patternfly/react-core';
+import {
+  Alert,
+  FormGroup,
+  Tile,
+  TextContent,
+  Text,
+  TextVariants,
+} from '@patternfly/react-core';
+import '../../../style.scss';
 
 enum CreationMethod {
   OBC = 'obc',
@@ -18,15 +26,17 @@ const CreateBucket: React.FC<{}> = () => {
 
   return (
     <>
-      <div className="co-create-operand__header">
-        <h1 className="co-create-operand__header-text">{t('Create Bucket')}</h1>
+      <div className="odf-create-operand__header">
+        <TextContent className="odf-create-operand__header-text">
+          <Text component={TextVariants.h1}>{t('Create Bucket')}</Text>
+        </TextContent>
         <p>
           {t(
             'An object bucket is a cloud storage container that organizes and manages files (objects), allowing users to store, retrieve and control access to data efficiently.'
           )}
         </p>
       </div>
-      <div className="co-m-pane__body">
+      <div className="odf-m-pane__body">
         <div className="pf-v5-c-form">
           <FormGroup
             label={t('Select bucket creation method')}

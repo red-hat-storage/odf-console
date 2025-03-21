@@ -9,6 +9,9 @@ import {
   BreadcrumbItem,
   Split,
   SplitItem,
+  TextContent,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 import { K8sResourceKind } from '../types/k8s';
 import './page-heading.scss';
@@ -99,10 +102,10 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
         </Split>
       )}
       <div className="odf-title-details">
-        <h1
+        <TextContent
           className={classNames({ 'odf-m-pane__heading--center': centerText })}
         >
-          <div className="co-m-pane__name odf-resource-item">
+          <Text component={TextVariants.h1} className="odf-resource-item">
             <span
               data-test-id="resource-title"
               className="odf-resource-item__resource-name odf-title-status"
@@ -114,8 +117,8 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
                 </ResourceStatus>
               )}
             </span>
-          </div>
-        </h1>
+          </Text>
+        </TextContent>
         {showActions && (
           <div className="odf-actions" data-test-id="details-actions">
             {actions()}
@@ -144,19 +147,21 @@ export const SectionHeading: React.FC<SectionHeadingProps> = ({
   required,
   id,
 }) => (
-  <h2
+  <TextContent
     className="odf-section-heading"
     style={style}
     data-test-section-heading={text}
     id={id}
   >
-    <span
-      className={classNames({
-        'co-required': required,
-      })}
-    >
-      {text}
-    </span>
-    {children}
-  </h2>
+    <Text component={TextVariants.h2}>
+      <span
+        className={classNames({
+          'odf-required': required,
+        })}
+      >
+        {text}
+      </span>
+      {children}
+    </Text>
+  </TextContent>
 );
