@@ -82,11 +82,15 @@ export enum AssignPolicySteps {
   Policy = 'policy',
   PersistentVolumeClaim = 'persistent-volume-claim',
   ReviewAndAssign = 'review-and-assign',
+  ProtectionType = 'protection-type',
+  Replication = 'replication',
 }
 export const AssignPolicyStepsNames = (t: TFunction) => ({
   [AssignPolicySteps.Policy]: t('Policy'),
   [AssignPolicySteps.PersistentVolumeClaim]: t('PersistentVolumeClaim'),
   [AssignPolicySteps.ReviewAndAssign]: t('Review and assign'),
+  [AssignPolicySteps.ProtectionType]: t('Protection type'),
+  [AssignPolicySteps.Replication]: t('Replication'),
 });
 
 export const ENROLLED_APP_QUERY_PARAMS_KEY = 'enrolledApp';
@@ -111,3 +115,12 @@ export const MCO_CREATED_BY_LABEL_KEY =
   'multicluster.odf.openshift.io/created-by';
 export const MCO_CREATED_BY_MC_CONTROLLER =
   'odf-multicluster-managedcluster-controller';
+
+// Recipe parameter keys
+export const VM_RECIPE_NAME = 'vm-recipe';
+export const K8S_RESOURCE_SELECTOR = 'K8S_RESOURCE_SELECTOR';
+export const PVC_RESOURCE_SELECTOR = 'PVC_RESOURCE_SELECTOR';
+export const PROTECTED_VMS = 'PROTECTED_VMS';
+export const VM_NAMESPACE = 'VM_NAMESPACE';
+export const K8S_RESOURCE_SELECTOR_LABEL_KEY =
+  'ramendr.openshift.io/k8s-resource-selector';

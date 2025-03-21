@@ -30,6 +30,7 @@ import {
   ApplicationType,
   DRPlacementControlType,
   DRPolicyType,
+  ModalType,
   PlacementType,
   PVCQueryFilter,
 } from '../utils/types';
@@ -90,6 +91,7 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
   isWatchApplication,
   pvcQueryFilter,
   setCurrentModalContext,
+  modalType,
 }) => {
   const namespace = getNamespace(application);
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
@@ -191,6 +193,7 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
       loaded={loaded}
       loadError={loadError}
       setCurrentModalContext={setCurrentModalContext}
+      modalType={modalType ?? ModalType.Application}
     />
   );
 };
@@ -208,4 +211,5 @@ type SubscriptionParserProps = {
   >;
   // ACM search api PVC query filter
   pvcQueryFilter?: PVCQueryFilter;
+  modalType?: ModalType;
 };

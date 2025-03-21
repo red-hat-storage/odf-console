@@ -1,11 +1,10 @@
-import { DRApplication } from '@odf/mco/constants';
+import { DRApplication, PROTECTED_VMS } from '@odf/mco/constants';
 import {
   getDRClusterResourceObj,
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
 } from '@odf/mco/hooks';
 import {
-  ACMApplicationKind,
   ACMPlacementType,
   DRPlacementControlKind,
   DRPolicyKind,
@@ -18,7 +17,10 @@ import {
 } from '@odf/mco/utils';
 import { getLatestDate } from '@odf/shared/details-page/datetime';
 import { arrayify } from '@odf/shared/modals/EditLabelModal';
-import { Selector } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sResourceCommon,
+  Selector,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
   ApplicationType,
@@ -86,14 +88,19 @@ export const generateDRPlacementControlInfo = (
           drPolicyRef: drpc.spec.drPolicyRef,
           placementInfo: plsInfo,
           pvcSelector: getPVCSelector(drpc.spec.pvcSelector),
-          lastGroupSyncTime: drpc?.status?.lastGroupSyncTime,
+          lastGroupSyncTime: drpc.status?.lastGroupSyncTime,
+          lastKubeObjectProtectionTime:
+            drpc.status?.lastKubeObjectProtectionTime,
+          recipeName: drpc.spec?.kubeObjectProtection?.recipeRef?.name,
+          recipeNamespace:
+            drpc.spec?.kubeObjectProtection?.recipeRef?.namespace,
         },
       ]
     : [];
 
 export const generateApplicationInfo = (
   appType: DRApplication,
-  application: ACMApplicationKind,
+  application: K8sResourceCommon,
   workloadNamespace: string,
   plsInfo: PlacementType[],
   drInfo: DRInfoType | {},
@@ -142,3 +149,19 @@ export const getDRResources = (namespace: string) => ({
     }),
   },
 });
+
+const getVMNamesFromRecipe = (
+  spec?: DRPlacementControlKind['spec']
+): string[] =>
+  spec?.kubeObjectProtection?.recipeParameters?.[PROTECTED_VMS] ?? [];
+
+export const findDRPCUsingVM = (
+  drpcs: DRPlacementControlKind[] = [],
+  vmName: string,
+  vmNamespace: string
+): DRPlacementControlKind | undefined =>
+  drpcs.find(
+    ({ spec }) =>
+      getVMNamesFromRecipe(spec).includes(vmName) &&
+      spec?.protectedNamespaces?.includes(vmNamespace)
+  );
