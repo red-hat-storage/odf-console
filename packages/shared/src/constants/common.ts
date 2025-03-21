@@ -18,12 +18,22 @@ export const DEFAULT_NS = 'default';
 export const RACK_LABEL = 'topology.rook.io/rack';
 export const NOOBA_EXTERNAL_PG_SECRET_NAME = 'noobaa-external-pg';
 export const NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME = 'noobaa-external-pg-tls';
+export const PLUGIN_I18N_NS =
+  typeof PLUGIN_BUILD_I8N_NS === 'undefined' ? '' : PLUGIN_BUILD_I8N_NS;
+export const PLUGIN_NAME =
+  typeof PLUGIN_BUILD_NAME === 'undefined' ? '' : PLUGIN_BUILD_NAME;
 export const PLUGIN_VERSION =
-  typeof process === 'undefined' ? undefined : process?.env?.PLUGIN_VERSION;
+  typeof PLUGIN_BUILD_VERSION === 'undefined' ? '' : PLUGIN_BUILD_VERSION;
+
+// Plugins' build names as set in package.json file.
+export const CLIENT_PLUGIN_BUILD_NAME = 'client';
+export const MCO_PLUGIN_BUILD_NAME = 'mco';
+export const ODF_PLUGIN_BUILD_NAME = 'odf';
 
 // Proxy.
 
 export const CONSOLE_PROXY_ROOT_PATH = '/api/proxy/plugin';
+export const CLIENT_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-client-console`;
 export const ODF_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-console`;
 export const MCO_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-multicluster-console`;
 

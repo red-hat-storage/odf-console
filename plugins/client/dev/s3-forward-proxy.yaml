@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3-forward-proxy
+  namespace: openshift-storage
+  labels:
+    app: s3-forward-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: s3-forward-proxy
+  template:
+    metadata:
+      labels:
+        app: s3-forward-proxy
+    spec:
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:stable
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: s3-forward-proxy-conf
+              mountPath: /etc/nginx
+      volumes:
+        - name: s3-forward-proxy-conf
+          configMap:
+            name: s3-forward-proxy-conf
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: s3-forward-proxy-conf
+  namespace: openshift-storage
+data:
+  nginx.conf: |
+    worker_processes  auto;
+
+    error_log  /var/log/nginx/error.log notice;
+    pid        /tmp/nginx.pid;
+
+    events {
+        worker_connections  1024;
+    }
+
+    stream {
+      server {
+        listen 8080;
+        proxy_pass s3-endpoint-proxy.openshift-storage.svc.cluster.local:80;
+      }
+    }
+---
+

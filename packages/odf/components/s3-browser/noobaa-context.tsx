@@ -4,27 +4,30 @@ import { useODFNamespaceSelector } from '@odf/core/redux';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { SecretModel } from '@odf/shared/models';
 import {
-  ODF_S3_PROXY_PATH,
+  S3_CLIENT_INTERNAL_ENDPOINT_PREFIX,
   S3_INTERNAL_ENDPOINT_PORT,
   S3_INTERNAL_ENDPOINT_PREFIX,
   S3_INTERNAL_ENDPOINT_SUFFIX,
   S3_LOCAL_ENDPOINT,
   S3Commands,
 } from '@odf/shared/s3';
+import { getProxyPath } from '@odf/shared/s3/utils';
 import { SecretKind } from '@odf/shared/types';
+import { isClientPlugin } from '@odf/shared/utils/common';
 import type { HttpRequest } from '@smithy/types';
 import * as _ from 'lodash-es';
 import {
   NOOBAA_ADMIN_SECRET,
   NOOBAA_ACCESS_KEY_ID,
   NOOBAA_SECRET_ACCESS_KEY,
+  NOOBAA_CLIENT_SECRET,
 } from '../../constants';
 
 const getS3Url = (odfNamespace: string) => {
   return new URL(
     window.location.hostname.includes('localhost')
       ? S3_LOCAL_ENDPOINT
-      : `${S3_INTERNAL_ENDPOINT_PREFIX}${odfNamespace}${S3_INTERNAL_ENDPOINT_SUFFIX}`
+      : `${isClientPlugin() ? S3_CLIENT_INTERNAL_ENDPOINT_PREFIX : S3_INTERNAL_ENDPOINT_PREFIX}${odfNamespace}${S3_INTERNAL_ENDPOINT_SUFFIX}`
   );
 };
 
@@ -53,7 +56,7 @@ export const NoobaaS3Provider: React.FC<NoobaaS3ProviderType> = ({
 
   const [secretData, secretLoaded, secretError] = useSafeK8sGet<SecretKind>(
     SecretModel,
-    NOOBAA_ADMIN_SECRET
+    isClientPlugin() ? NOOBAA_CLIENT_SECRET : NOOBAA_ADMIN_SECRET
   );
 
   const s3Route = React.useRef<string>();
@@ -97,7 +100,7 @@ export const NoobaaS3Provider: React.FC<NoobaaS3ProviderType> = ({
             request.protocol = window.location.protocol;
             request.hostname = window.location.hostname;
             request.port = Number(window.location.port);
-            request.path = `${ODF_S3_PROXY_PATH}${request.path}`;
+            request.path = `${getProxyPath()}${request.path}`;
             return next(args);
           },
           { step: 'finalizeRequest' }
