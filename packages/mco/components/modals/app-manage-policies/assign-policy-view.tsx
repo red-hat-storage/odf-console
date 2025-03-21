@@ -105,6 +105,7 @@ export const createSteps = (
           policy={state.replication.policy}
           k8sResourceSyncInterval={state.replication.k8sSyncInterval}
           isValidationEnabled={isValidationEnabled}
+          pvcQueryFilter={pvcQueryFilter}
           dispatch={dispatch}
         />
       ),
@@ -228,27 +229,25 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
     });
 
   const onSubmit = async () => {
-    // assign DRPolicy
-    const promises = assignPromises(
-      state,
-      applicationInfo.placements,
-      appType,
-      workloadNamespace,
-      getName(applicationInfo)
-    );
-    await Promise.all(promises)
-      .then(() => {
-        setModalActionContext(
-          ModalActionContext.ENABLE_DR_PROTECTION_SUCCEEDED
-        );
-        // Switch to manage policy view
-        setModalContext(ModalViewContext.MANAGE_POLICY_VIEW);
-        // Reset info
-        resetAssignState();
-      })
-      .catch((error) => {
-        setErrorMessage(getErrorMessage(error) || error);
-      });
+    try {
+      // Assign DRPolicy
+      await assignPromises(
+        state,
+        applicationInfo.placements,
+        appType,
+        workloadNamespace,
+        getName(applicationInfo),
+        t
+      );
+
+      // Success actions
+      setModalActionContext(ModalActionContext.ENABLE_DR_PROTECTION_SUCCEEDED);
+      setModalContext(ModalViewContext.MANAGE_POLICY_VIEW);
+      resetAssignState();
+    } catch (error) {
+      // Centralized error handling
+      setErrorMessage(getErrorMessage(error) || error);
+    }
   };
 
   const onClose = () => {

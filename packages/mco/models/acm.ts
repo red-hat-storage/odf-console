@@ -84,3 +84,15 @@ export const ACMManagedClusterViewModel: K8sModel = {
   kind: 'ManagedClusterView',
   crd: true,
 };
+
+export const ACMManagedClusterActionModel: K8sModel = {
+  label: 'ManagedClusterAction',
+  labelPlural: 'ManagedClusterActions',
+  apiVersion: 'v1beta1',
+  apiGroup: 'action.open-cluster-management.io',
+  plural: 'managedclusteractions',
+  abbr: 'MCA',
+  namespaced: true,
+  kind: 'ManagedClusterAction',
+  crd: true,
+};

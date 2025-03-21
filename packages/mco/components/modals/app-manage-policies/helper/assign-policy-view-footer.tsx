@@ -65,7 +65,7 @@ const validateReplicationStep = (
 const validateProtectionTypeStep = (
   protectionName: string,
   appType: DRApplication
-) => appType !== DRApplication.DISCOVERED || !!protectionName;
+) => !!appType && (appType !== DRApplication.DISCOVERED || !!protectionName);
 
 const canJumpToNextStep = (
   stepName: string,
