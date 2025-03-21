@@ -21,9 +21,6 @@
 
 .odf-capacity-breakdown-card-pvc-namespace {
   &__header {
-    display: flex;
-    align-items: center;
-    justify-content: end;
     padding: var(--pf-v5-global--spacer--md) var(--pf-v5-global--spacer--lg) 0;
   }
   &__dropdown {
@@ -39,6 +36,8 @@
     overflow: auto;
   }
   &__title {
+    display:flex;
+    flex-direction:row;
     padding-right: var(--pf-v5-global--spacer--lg);
   }
 }
