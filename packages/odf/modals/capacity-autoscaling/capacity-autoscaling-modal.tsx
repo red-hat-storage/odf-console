@@ -24,9 +24,12 @@ import {
 } from '@odf/shared';
 import { dateTimeFormatter } from '@odf/shared/details-page/datetime';
 import { LoadingInline } from '@odf/shared/generic/Loading';
-import { CommonModalProps } from '@odf/shared/modals/common';
+import { StorageClusterActionModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
-import { StorageAutoScalerModel } from '@odf/shared/models';
+import {
+  StorageAutoScalerModel,
+  StorageClusterModel,
+} from '@odf/shared/models';
 import { DeviceSet, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -112,12 +115,8 @@ const CapacityAutoscalingCurrentStatus: React.FC<
   );
 };
 
-type CapacityAutoscalingModalProps = CommonModalProps<{
-  storageCluster: StorageClusterKind;
-}>;
-
-const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
-  extraProps: { storageCluster },
+const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
+  extraProps: { storageCluster: actionStorageCluster },
   closeModal,
   isOpen,
 }) => {
@@ -129,6 +128,11 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
   const [validation, setValidation] = React.useState('');
   const [inProgress, setInProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState<Error>(null);
+  const [storageCluster] = useK8sWatchResource<StorageClusterKind>({
+    kind: referenceForModel(StorageClusterModel),
+    name: getName(actionStorageCluster),
+    namespace: getNamespace(actionStorageCluster),
+  });
   const [
     storageAutoScalers,
     storageAutoScalerLoaded,
@@ -149,7 +153,7 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
   const isLoaded = storageAutoScalerLoaded && scLoaded;
   const isLoadError = storageAutoScalerLoadError || scLoadError;
 
-  const deviceSets = storageCluster.spec.storageDeviceSets?.filter(
+  const deviceSets = storageCluster?.spec?.storageDeviceSets?.filter(
     (deviceSet: DeviceSet) =>
       _.isEmpty(deviceSet.deviceClass) ||
       deviceSet.deviceClass.toLowerCase() === DEFAULT_DEVICECLASS
@@ -182,10 +186,10 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
   // Getting the osd size from the 1st device set is enough as we don't support
   // heterogeneous OSD sizes. See: https://access.redhat.com/articles/5001441
   const osdSize =
-    storageCluster.spec.storageDeviceSets[0].dataPVCTemplate.spec.resources
+    storageCluster?.spec?.storageDeviceSets[0].dataPVCTemplate.spec.resources
       .requests.storage;
   const osdAmount = deviceSets
-    .map((deviceSet: DeviceSet) =>
+    ?.map((deviceSet: DeviceSet) =>
       getOsdAmount(deviceSet.count, deviceSet.replica)
     )
     .reduce((accumulator: number, current: number) => accumulator + current);
