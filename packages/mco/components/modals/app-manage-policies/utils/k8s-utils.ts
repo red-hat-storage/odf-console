@@ -1,11 +1,4 @@
 import {
-  ACMPlacementModel,
-  ACMPlacementRuleModel,
-  DRPlacementControlModel,
-  DRPolicyModel,
-  VirtualMachineModel,
-} from '@odf/mco//models';
-import {
   getDRPCKindObj as getDiscoveredDRPCKindObj,
   getPlacementKindObj,
 } from '@odf/mco/components/discovered-application-wizard/utils/k8s-utils';
@@ -25,6 +18,13 @@ import {
 } from '@odf/mco/constants';
 import { DRPlacementControlKind } from '@odf/mco/types';
 import { convertLabelToExpression, matchClusters } from '@odf/mco/utils';
+import {
+  ACMPlacementModel,
+  ACMPlacementRuleModel,
+  DRPlacementControlModel,
+  DRPolicyModel,
+  VirtualMachineModel,
+} from '@odf/shared';
 import {
   getAPIVersion,
   getAnnotations,

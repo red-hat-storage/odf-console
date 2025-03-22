@@ -1,4 +1,4 @@
-import { ACMPlacementModel } from '../models';
+import { ACMPlacementModel } from '@odf/shared';
 import { ACMPlacementKind } from '../types';
 
 export const mockPlacement1: ACMPlacementKind = {

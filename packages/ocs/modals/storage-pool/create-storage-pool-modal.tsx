@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useSafeK8sGet } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { CephBlockPoolModel } from '@odf/shared';
 import { ONE_SECOND } from '@odf/shared/constants';
 import { StatusBox } from '@odf/shared/generic';
 import { ModalTitle, ModalFooter } from '@odf/shared/generic/ModalTitle';
@@ -26,7 +27,6 @@ import {
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Modal, ModalVariant } from '@patternfly/react-core';
 import { PoolState, PoolProgress, PoolType } from '../../constants';
-import { CephBlockPoolModel } from '../../models';
 import { StoragePoolStatus, StoragePoolBody } from '../../storage-pool/body';
 import {
   StoragePoolDefinitionText,

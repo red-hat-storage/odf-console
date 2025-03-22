@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { DRPolicyModel } from '@odf/mco/models';
 import { DRPolicyKind } from '@odf/mco/types';
 import { isDRPolicyValidated } from '@odf/mco/utils';
-import { StatusBox } from '@odf/shared/generic/status-box';
+import { DRPolicyModel } from '@odf/shared';
+import { StatusBox } from '@odf/shared/generic';
 import { useK8sList } from '@odf/shared/hooks';
 import { getName } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';

@@ -1,6 +1,6 @@
+import { DRPlacementControlModel } from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import { LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION } from '../constants';
-import { DRPlacementControlModel } from '../models';
 import { DRPlacementControlKind, Progression } from '../types';
 import { createRefFromK8Resource } from '../utils';
 import { mockDRClusterEast1 } from './drcluster';

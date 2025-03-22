@@ -8,6 +8,10 @@ import {
   generateGenericName,
   getStorageClassDescription,
 } from '@odf/core/utils';
+import {
+  NooBaaObjectBucketClaimModel,
+  NooBaaBucketClassModel,
+} from '@odf/shared';
 import { formSettings, DEFAULT_NS } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
@@ -43,10 +47,6 @@ import {
   TextContent,
 } from '@patternfly/react-core';
 import NamespaceSafetyBox from '../../components/utils/safety-box';
-import {
-  NooBaaObjectBucketClaimModel,
-  NooBaaBucketClassModel,
-} from '../../models';
 import { useODFNamespaceSelector } from '../../redux';
 import { isObjectSC } from '../../utils';
 import { ReplicationPolicyForm, Rule } from './replication-policy-form';

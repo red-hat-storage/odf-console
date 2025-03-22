@@ -1,5 +1,5 @@
+import { ACMPlacementDecisionModel } from '@odf/shared';
 import { PLACEMENT_REF_LABEL } from '../constants';
-import { ACMPlacementDecisionModel } from '../models';
 import { ACMPlacementDecisionKind } from '../types';
 
 export const mockPlacementDecision1: ACMPlacementDecisionKind = {

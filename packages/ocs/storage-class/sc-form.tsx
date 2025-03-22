@@ -30,7 +30,7 @@ import {
   K8sResourceObj,
 } from '@odf/core/types';
 import { getResourceInNs } from '@odf/core/utils';
-import { CephFileSystemModel } from '@odf/ocs/models';
+import { CephFileSystemModel } from '@odf/shared';
 import { DEFAULT_INFRASTRUCTURE } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';

@@ -1,4 +1,9 @@
 import * as React from 'react';
+import {
+  NooBaaBackingStoreModel,
+  NooBaaBucketClassModel,
+  NooBaaNamespaceStoreModel,
+} from '@odf/shared';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
@@ -18,11 +23,6 @@ import {
   ModalVariant,
 } from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../../constants';
-import {
-  NooBaaBackingStoreModel,
-  NooBaaBucketClassModel,
-  NooBaaNamespaceStoreModel,
-} from '../../../models';
 import {
   BackingStoreKind,
   BucketClassKind,

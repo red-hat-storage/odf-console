@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { ArgoApplicationSetModel } from '@odf/mco/models';
 import { ArgoApplicationSetKind } from '@odf/mco/types';
 import { getGVKFromK8Resource } from '@odf/mco/utils';
+import { ArgoApplicationSetModel } from '@odf/shared';
 import { ApplicationModel } from '@odf/shared/models';
 import { ApplicationKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';

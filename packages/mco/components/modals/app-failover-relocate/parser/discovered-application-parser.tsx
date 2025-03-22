@@ -9,7 +9,6 @@ import {
   getManagedClusterResourceObj,
   useDisasterRecoveryResourceWatch,
 } from '@odf/mco/hooks';
-import { DRPlacementControlModel } from '@odf/mco/models';
 import { ACMManagedClusterKind, DRPlacementControlKind } from '@odf/mco/types';
 import {
   checkDRActionReadiness,
@@ -19,6 +18,7 @@ import {
   getLastAppDeploymentClusterName,
   isDRClusterFenced,
 } from '@odf/mco/utils';
+import { DRPlacementControlModel } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';

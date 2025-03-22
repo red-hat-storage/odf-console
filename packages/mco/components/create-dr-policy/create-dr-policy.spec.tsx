@@ -1,5 +1,11 @@
 import * as React from 'react';
 import { ConfigMapKind } from '@odf/shared';
+import {
+  ACMManagedClusterModel,
+  ACMManagedClusterViewModel,
+  DRPolicyModel,
+  MirrorPeerModel,
+} from '@odf/shared';
 import { render, screen } from '@testing-library/react';
 /* eslint-disable jest/no-mocks-import */
 import userEvent from '@testing-library/user-event';
@@ -10,12 +16,6 @@ import {
   mockManagedClusterWest1,
   mockManagedClusterWest2Down,
 } from '../../__mocks__/managedcluster';
-import {
-  ACMManagedClusterModel,
-  ACMManagedClusterViewModel,
-  DRPolicyModel,
-  MirrorPeerModel,
-} from '../../models';
 import { ACMManagedClusterKind, ACMManagedClusterViewKind } from '../../types';
 import CreateDRPolicy from './create-dr-policy';
 

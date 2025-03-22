@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { NooBaaObjectBucketClaimModel } from '@odf/core/models';
+import { NooBaaObjectBucketClaimModel } from '@odf/shared';
 import DetailsPage, {
   ResourceSummary,
 } from '@odf/shared/details-page/DetailsPage';
@@ -29,7 +29,7 @@ import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
 import { sortable } from '@patternfly/react-table';
-import { NooBaaObjectBucketModel } from '../../models/ocs';
+import { NooBaaObjectBucketModel } from '../../../shared/src/models/ocs';
 import { getPhase, obStatusFilter } from '../../utils';
 import '../../style.scss';
 

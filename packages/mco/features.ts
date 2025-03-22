@@ -1,3 +1,7 @@
+import {
+  AcmMultiClusterObservabilityModel,
+  MirrorPeerModel,
+} from '@odf/shared';
 import { SelfSubjectAccessReviewModel } from '@odf/shared/models';
 import {
   k8sCreate,
@@ -14,7 +18,6 @@ import {
   ADMIN_FLAG,
   HUB_CLUSTER_NAME,
 } from './constants';
-import { AcmMultiClusterObservabilityModel, MirrorPeerModel } from './models';
 import { ACMMultiClusterObservability } from './types';
 
 let intervals: NodeJS.Timeout[] = [];

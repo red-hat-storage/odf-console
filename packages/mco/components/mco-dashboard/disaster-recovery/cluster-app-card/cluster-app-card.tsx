@@ -15,6 +15,7 @@ import {
 } from '@odf/mco/types';
 import { getClusterNamesFromMirrorPeers } from '@odf/mco/utils';
 import { useCustomTranslation } from '@odf/shared';
+import { ACMManagedClusterViewModel, MirrorPeerModel } from '@odf/shared';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import {
   useCustomPrometheusPoll,
@@ -36,10 +37,6 @@ import {
   Text,
   Skeleton,
 } from '@patternfly/react-core';
-import {
-  ACMManagedClusterViewModel,
-  MirrorPeerModel,
-} from '../../../../models';
 import {
   getProtectedPVCFromVRG,
   filterPVCDataUsingApps,

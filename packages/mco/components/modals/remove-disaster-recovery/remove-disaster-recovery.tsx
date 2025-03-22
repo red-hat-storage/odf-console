@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH } from '@odf/mco/constants';
-import { ACMPlacementModel, DRPlacementControlModel } from '@odf/mco/models';
 import { DRPlacementControlKind } from '@odf/mco/types';
+import { ACMPlacementModel, DRPlacementControlModel } from '@odf/shared';
 import {
   ModalBody,
   ModalFooter,

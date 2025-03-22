@@ -1,13 +1,14 @@
 import {
-  ACMPlacementModel,
-  DRPlacementControlModel,
-  DRPolicyModel,
-} from '@odf/mco//models';
-import {
   DISCOVERED_APP_NS,
   PROTECTED_APP_ANNOTATION,
 } from '@odf/mco/constants';
+import {} from '@odf/mco/types';
 import { ACMPlacementKind, DRPlacementControlKind } from '@odf/mco/types';
+import {
+  ACMPlacementModel,
+  DRPlacementControlModel,
+  DRPolicyModel,
+} from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind } from '@odf/shared/types';
 import { getAPIVersionForModel } from '@odf/shared/utils';

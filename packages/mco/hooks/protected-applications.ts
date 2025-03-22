@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { ACMPlacementModel } from '@odf/shared';
 import { getLabel, getNamespace } from '@odf/shared/selectors';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { DISCOVERED_APP_NS } from '../constants';
-import { ACMPlacementModel } from '../models';
 import {
   ACMSubscriptionKind,
   ArgoApplicationSetKind,

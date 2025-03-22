@@ -1,10 +1,10 @@
+import { K8sResourceObj } from '@odf/core/types';
 import {
   CephBlockPoolModel,
   NooBaaBackingStoreModel,
   NooBaaNamespaceStoreModel,
   LocalVolumeDiscoveryResult,
-} from '@odf/core/models';
-import { K8sResourceObj } from '@odf/core/types';
+} from '@odf/shared';
 import {
   PersistentVolumeModel,
   StorageClassModel,

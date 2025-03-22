@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { StorageConsumerModel } from '@odf/core/models';
 import {
   getName,
+  StorageConsumerModel,
   getProvisioner,
   getUID,
   ModalFooter,

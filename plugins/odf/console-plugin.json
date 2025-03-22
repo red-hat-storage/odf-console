@@ -28,7 +28,7 @@
     "activityResource": "@odf/core/components/cluster-overview-extensions/ClusterExpansion",
     "storageProvider": "@odf/core/components/attach-obc/AttachOBC",
     "obcStatus": "@odf/ocs/dashboards/object-service/buckets-card/utils",
-    "models": "@odf/core/models/index.ts",
+    "models": "@odf/shared/models/index.ts",
     "storageProvisioners": "@odf/ocs/storage-class/provisioners",
     "storageProvisionerComponents": "@odf/ocs/storage-class/sc-form",
     "thickProvisioner": "@odf/ocs/storage-class/thick-provisioner",

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { DRPlacementControlModel, DRPolicyModel } from '@odf/shared';
 import {
   render,
   screen,
@@ -7,7 +8,6 @@ import {
   act,
 } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
-import { DRPlacementControlModel, DRPolicyModel } from '../../models';
 import {
   DRPlacementControlKind,
   DRPolicyKind,

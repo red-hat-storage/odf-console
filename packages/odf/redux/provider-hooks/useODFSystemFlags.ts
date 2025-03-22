@@ -5,7 +5,7 @@ import {
   isClusterIgnored,
   isNFSEnabled,
 } from '@odf/core/utils';
-import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/ocs/models';
+import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/shared';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import {
   CephClusterModel,

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { DRPlacementControlModel } from '@odf/shared';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
 import { getName } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
@@ -17,7 +18,6 @@ import {
   AlertVariant,
 } from '@patternfly/react-core';
 import { DRActionType } from '../../../../constants';
-import { DRPlacementControlModel } from '../../../../models';
 import {
   FailoverRelocateModalBody,
   findErrorMessage,

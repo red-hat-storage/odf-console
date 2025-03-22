@@ -1,11 +1,11 @@
 import { LABEL_OPERATOR, LABEL_SELECTOR } from '@odf/core/constants';
-import { LocalVolumeDiscoveryResult } from '@odf/core/models';
 import {
   LocalVolumeDiscoveryResultKind,
   DiscoveredDisk,
   DiskMetadata,
   DeviceType,
 } from '@odf/core/types';
+import { LocalVolumeDiscoveryResult } from '@odf/shared';
 import { AVAILABLE } from '@odf/shared/constants';
 import { referenceForModel } from '@odf/shared/utils';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';

@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { DRPolicyModel, DRPlacementControlModel } from '@odf/shared';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { DR_BASE_ROUTE } from '../../constants';
-import { DRPolicyModel, DRPlacementControlModel } from '../../models/ramen';
 import {
   EmptyRowMessage,
   NoDataMessage,

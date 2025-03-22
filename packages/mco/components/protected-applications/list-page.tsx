@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { DRPlacementControlModel } from '@odf/shared';
 import { DASH } from '@odf/shared/constants';
 import { PaginatedListPage } from '@odf/shared/list-page';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
@@ -23,7 +24,6 @@ import { CubeIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { DR_BASE_ROUTE, DISCOVERED_APP_NS } from '../../constants';
 import { getDRPlacementControlResourceObj } from '../../hooks';
-import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind } from '../../types';
 import { getLastAppDeploymentClusterName, getDRPolicyName } from '../../utils';
 import { DiscoveredParser as DRStatusPopover } from '../dr-status-popover/parsers';

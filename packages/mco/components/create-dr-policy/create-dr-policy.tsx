@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getMajorVersion } from '@odf/mco/utils';
-import { getName } from '@odf/shared';
+import { DRPolicyModel, MirrorPeerModel, getName } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
@@ -32,7 +32,6 @@ import {
   ReplicationType,
   ODFMCO_OPERATOR,
 } from '../../constants';
-import { DRPolicyModel, MirrorPeerModel } from '../../models';
 import { MirrorPeerKind } from '../../types';
 import { SelectClusterList } from './select-cluster-list';
 import { SelectReplicationType } from './select-replication-type';

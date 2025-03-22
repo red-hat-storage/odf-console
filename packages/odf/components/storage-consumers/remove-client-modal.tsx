@@ -7,6 +7,7 @@ import {
   ModalTitle,
   StorageConsumerKind,
   useCustomTranslation,
+  StorageConsumerModel,
 } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
 import {
@@ -21,7 +22,6 @@ import {
   Modal,
   ModalVariant,
 } from '@patternfly/react-core';
-import { StorageConsumerModel } from '../../models';
 
 type RemoveClientModalProps = CommonModalProps<{
   resource: StorageConsumerKind;

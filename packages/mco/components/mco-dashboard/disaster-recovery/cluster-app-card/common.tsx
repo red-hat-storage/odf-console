@@ -13,11 +13,6 @@ import {
   VolumeReplicationHealth,
 } from '@odf/mco/constants';
 import {
-  ACMSubscriptionModel,
-  ArgoApplicationSetModel,
-  DRPlacementControlModel,
-} from '@odf/mco/models';
-import {
   DRClusterAppsMap,
   ProtectedAppsMap,
   ApplicationObj,
@@ -27,6 +22,11 @@ import {
   filterPVCDataUsingApp,
   getVolumeReplicationHealth,
 } from '@odf/mco/utils';
+import {
+  ACMSubscriptionModel,
+  ArgoApplicationSetModel,
+  DRPlacementControlModel,
+} from '@odf/shared';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';

@@ -8,6 +8,7 @@ import {
   ClusterVersionModel,
   GrayInfoCircleIcon,
   Kebab,
+  StorageConsumerModel,
 } from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants/common';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
@@ -45,7 +46,6 @@ import {
   PopoverPosition,
 } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
-import { StorageConsumerModel } from '../../models';
 import { useODFNamespaceSelector } from '../../redux';
 import {
   clientHeartBeatFilter,

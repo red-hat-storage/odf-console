@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArgoApplicationSetModel, VirtualMachineModel } from '@odf/mco/models';
+import { ArgoApplicationSetModel, VirtualMachineModel } from '@odf/shared';
 import { ApplicationModel } from '@odf/shared/models';
 import { getGVKofResource, referenceForModel } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';

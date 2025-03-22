@@ -4,6 +4,7 @@ import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { ODFSystemFlagsPayload } from '@odf/core/redux/actions';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { StoragePoolDefinitionText } from '@odf/ocs/storage-pool/CreateStoragePool';
+import { CephBlockPoolModel } from '@odf/shared';
 import { ModalFooter, ModalTitle } from '@odf/shared/generic/ModalTitle';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { CommonModalProps, ModalBody } from '@odf/shared/modals/Modal';
@@ -27,7 +28,6 @@ import {
   PoolProgress,
   PoolType,
 } from '../../constants';
-import { CephBlockPoolModel } from '../../models';
 import { StoragePoolBody, StoragePoolStatus } from '../../storage-pool/body';
 import {
   StoragePoolActionType,

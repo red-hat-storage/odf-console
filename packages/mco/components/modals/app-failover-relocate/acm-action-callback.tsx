@@ -1,9 +1,9 @@
 import * as React from 'react';
+import { ArgoApplicationSetModel } from '@odf/shared';
 import { ApplicationModel } from '@odf/shared/models';
 import { ApplicationKind } from '@odf/shared/types';
 import { referenceForModel } from '@odf/shared/utils';
 import { DRActionType } from '../../../constants';
-import { ArgoApplicationSetModel } from '../../../models';
 import { ACMApplicationKind, ArgoApplicationSetKind } from '../../../types';
 import { getGVKFromK8Resource } from '../../../utils';
 import { ArogoApplicationSetParser as ArogoApplicationSetModal } from './parser/argo-application-set-parser';

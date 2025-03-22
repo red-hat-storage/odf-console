@@ -1,5 +1,10 @@
 import { SearchResultItemType, SearchQuery } from '@odf/mco/types';
 import {
+  ACMSubscriptionModel,
+  ArgoApplicationSetModel,
+  VirtualMachineModel,
+} from '@odf/shared';
+import {
   K8sResourceCommon,
   ObjectMetadata,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -10,11 +15,6 @@ import {
   LABELS_SPLIT_CHAR,
   LABEL_SPLIT_CHAR,
 } from '../constants';
-import {
-  ACMSubscriptionModel,
-  ArgoApplicationSetModel,
-  VirtualMachineModel,
-} from '../models';
 
 // Search query
 export const searchFilterQuery =
