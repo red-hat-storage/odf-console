@@ -449,3 +449,11 @@ export type VolumeSnapshotClassKind = K8sResourceCommon & {
   deletionPolicy: string;
   driver: string;
 };
+
+export type VolumeGroupSnapshotClassKind = K8sResourceCommon & {
+  deletionPolicy: 'Delete' | 'Retain';
+  driver: string;
+  parameters?: {
+    [key: string]: string;
+  };
+};

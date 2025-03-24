@@ -11,7 +11,10 @@ import { Thead, Tr, Th, Tbody, Table } from '@patternfly/react-table';
 export type SelectedResources = {
   [name: string]: {
     selected: boolean;
-    resourceType: 'storageClass' | 'volumeSnapshotClass';
+    resourceType:
+      | 'storageClass'
+      | 'volumeSnapshotClass'
+      | 'volumeGroupSnapshotClass';
   };
 };
 
@@ -20,14 +23,20 @@ type ResourceDistributionTableProps = {
   selectedResources: {
     [name: string]: {
       selected: boolean;
-      resourceType: 'storageClass' | 'volumeSnapshotClass';
+      resourceType:
+        | 'storageClass'
+        | 'volumeSnapshotClass'
+        | 'volumeGroupSnapshotClass';
     };
   };
   setSelectedResources: React.Dispatch<React.SetStateAction<SelectedResources>>;
   RowGenerator: React.FC<RowGeneratorProps<K8sResourceCommon>>;
   columns: string[];
   loaded: boolean;
-  resourceType: 'storageClass' | 'volumeSnapshotClass';
+  resourceType:
+    | 'storageClass'
+    | 'volumeSnapshotClass'
+    | 'volumeGroupSnapshotClass';
 };
 
 export type RowGeneratorProps<T extends K8sResourceCommon> = {
@@ -83,8 +92,8 @@ export const ResourceDistributionTable: React.FC<
 
   const selectAllResources = (select: boolean) => {
     setAllResourcesSelected(select);
-    const newSelectedResources = resources.reduce((acc, storageClass) => {
-      acc[storageClass.metadata.uid] = {
+    const newSelectedResources = filteredData.reduce((acc, storageClass) => {
+      acc[storageClass.metadata.name] = {
         resourceType,
         selected: select,
       };
