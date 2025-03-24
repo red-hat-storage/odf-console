@@ -6,6 +6,7 @@ import {
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
+import { isNoLifecycleRuleError } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { deepSortObject } from '@odf/shared/utils';
 import { murmur3 } from 'murmurhash-js';
@@ -64,10 +65,21 @@ const DeleteLifecycleRuleModal: React.FC<
     setInProgress(true);
 
     try {
-      const latestRules: GetBucketLifecycleConfigurationCommandOutput =
-        await noobaaS3.getBucketLifecycleConfiguration({
+      let latestRules: GetBucketLifecycleConfigurationCommandOutput;
+
+      try {
+        latestRules = await noobaaS3.getBucketLifecycleConfiguration({
           Bucket: bucketName,
         });
+      } catch (err) {
+        if (isNoLifecycleRuleError(err)) {
+          latestRules = {
+            Rules: [],
+          } as GetBucketLifecycleConfigurationCommandOutput;
+        } else {
+          throw err;
+        }
+      }
 
       await noobaaS3.putBucketLifecycleConfiguration({
         Bucket: bucketName,

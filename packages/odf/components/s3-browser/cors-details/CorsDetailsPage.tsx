@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CORSRule } from '@aws-sdk/client-s3';
+import { CORSRule, GetBucketCorsCommandOutput } from '@aws-sdk/client-s3';
 import { DetailsItem } from '@odf/core/components/resource-pages/CommonDetails';
 import {
   NoobaaS3Provider,
@@ -8,18 +8,32 @@ import {
 import { DASH } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
+import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { deepSortObject } from '@odf/shared/utils';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
+import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import * as _ from 'lodash-es';
 import { murmur3 } from 'murmurhash-js';
-import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
-import useSWR from 'swr';
+import { TFunction } from 'react-i18next';
+import {
+  useParams,
+  useSearchParams,
+  useNavigate,
+  NavigateFunction,
+} from 'react-router-dom-v5-compat';
+import useSWR, { KeyedMutator } from 'swr';
 import {
   TextContent,
   Text,
   TextVariants,
   TextInput,
+  MenuToggle,
 } from '@patternfly/react-core';
+import {
+  ActionsColumn,
+  CustomActionsToggleProps,
+} from '@patternfly/react-table';
 import {
   RULE_NAME,
   RULE_HASH,
@@ -27,8 +41,51 @@ import {
   BUCKETS_BASE_ROUTE,
 } from '../../../constants';
 import { isAllowAllConfig } from '../../../utils';
+import { getRowActions } from '../cors-rules-list/CORSRulesList';
 
 type CorsDetailsContentProps = { corsRule: CORSRule };
+
+const CustomActionsToggle = (props: CustomActionsToggleProps) => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <MenuToggle
+      ref={props.toggleRef}
+      onClick={props.onToggle}
+      isDisabled={props.isDisabled}
+    >
+      {t('Actions')}
+    </MenuToggle>
+  );
+};
+
+const createCorsActions = (
+  t: TFunction<string>,
+  navigate: NavigateFunction,
+  launcher: LaunchModal,
+  mutate: KeyedMutator<GetBucketCorsCommandOutput>,
+  noobaaS3: S3Commands,
+  bucketName: string,
+  ruleName: string,
+  ruleHash: number
+) => {
+  return (
+    <ActionsColumn
+      items={getRowActions(
+        t,
+        navigate,
+        launcher,
+        mutate,
+        noobaaS3,
+        bucketName,
+        ruleName,
+        ruleHash,
+        true
+      )}
+      actionsToggle={CustomActionsToggle}
+    />
+  );
+};
 
 const CorsDetailsContent: React.FC<CorsDetailsContentProps> = ({
   corsRule,
@@ -88,6 +145,9 @@ const CorsDetailsContent: React.FC<CorsDetailsContentProps> = ({
 const CorsDetails: React.FC = () => {
   const { t } = useCustomTranslation();
 
+  const launcher = useModal();
+  const navigate = useNavigate();
+
   const { bucketName } = useParams();
   const { noobaaS3 } = React.useContext(NoobaaS3Context);
   const [searchParams] = useSearchParams();
@@ -98,6 +158,7 @@ const CorsDetails: React.FC = () => {
     data,
     isLoading,
     error: loadError,
+    mutate,
   } = useSWR(
     `${bucketName}-${BUCKET_CORS_RULE_CACHE_KEY_SUFFIX}`,
     () => noobaaS3.getBucketCors({ Bucket: bucketName }),
@@ -159,7 +220,18 @@ const CorsDetails: React.FC = () => {
             </TextContent>
           ) : null
         }
-        // ToDo: add actions dropdown
+        actions={() =>
+          createCorsActions(
+            t,
+            navigate,
+            launcher,
+            mutate,
+            noobaaS3,
+            bucketName,
+            ruleName,
+            !!ruleHash ? Number(ruleHash) : null
+          )
+        }
         className="pf-v5-u-mt-md"
       />
       <CorsDetailsContent corsRule={corsRule} />

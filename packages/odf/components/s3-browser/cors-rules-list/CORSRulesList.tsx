@@ -88,7 +88,8 @@ export const getRowActions = (
   noobaaS3: S3Commands,
   bucketName: string,
   ruleName: string,
-  ruleHash: number
+  ruleHash: number,
+  navigateToListPage = false
 ): IAction[] => {
   const searchParam = getSearchParam(ruleName, ruleHash);
   const editRuleLink = `${BUCKETS_BASE_ROUTE}/${bucketName}/permissions/cors/edit?${searchParam}`;
@@ -102,7 +103,14 @@ export const getRowActions = (
       onClick: () =>
         launcher(DeleteCorsRuleModal, {
           isOpen: true,
-          extraProps: { noobaaS3, bucketName, mutate, ruleName, ruleHash },
+          extraProps: {
+            noobaaS3,
+            bucketName,
+            mutate,
+            ruleName,
+            ruleHash,
+            navigateToListPage,
+          },
         }),
     },
   ];

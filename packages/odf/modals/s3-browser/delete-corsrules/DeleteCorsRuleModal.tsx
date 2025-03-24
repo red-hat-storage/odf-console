@@ -1,11 +1,14 @@
 import * as React from 'react';
 import { CORSRule, GetBucketCorsCommandOutput } from '@aws-sdk/client-s3';
+import { BUCKETS_BASE_ROUTE } from '@odf/core/constants';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
+import { isNoCorsRuleError } from '@odf/shared/s3/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { deepSortObject } from '@odf/shared/utils';
 import { murmur3 } from 'murmurhash-js';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import { KeyedMutator } from 'swr';
 import {
   Modal,
@@ -20,6 +23,7 @@ type DeleteCorsRuleModalProps = {
   bucketName: string;
   ruleName: string;
   ruleHash: number;
+  navigateToListPage: boolean;
 };
 
 const getUpdateCorsRules = (
@@ -49,9 +53,18 @@ const DeleteCorsRuleModal: React.FC<
 > = ({
   closeModal,
   isOpen,
-  extraProps: { noobaaS3, bucketName, mutate, ruleName, ruleHash },
+  extraProps: {
+    noobaaS3,
+    bucketName,
+    mutate,
+    ruleName,
+    ruleHash,
+    navigateToListPage,
+  },
 }) => {
   const { t } = useCustomTranslation();
+
+  const navigate = useNavigate();
 
   const [inProgress, setInProgress] = React.useState<boolean>(false);
   const [error, setError] = React.useState<Error>();
@@ -61,10 +74,17 @@ const DeleteCorsRuleModal: React.FC<
     setInProgress(true);
 
     try {
-      const latestRules: GetBucketCorsCommandOutput =
-        await noobaaS3.getBucketCors({
-          Bucket: bucketName,
-        });
+      let latestRules: GetBucketCorsCommandOutput;
+
+      try {
+        latestRules = await noobaaS3.getBucketCors({ Bucket: bucketName });
+      } catch (err) {
+        if (isNoCorsRuleError(err)) {
+          latestRules = { CORSRules: [] } as GetBucketCorsCommandOutput;
+        } else {
+          throw err;
+        }
+      }
 
       await noobaaS3.putBucketCors({
         Bucket: bucketName,
@@ -76,6 +96,8 @@ const DeleteCorsRuleModal: React.FC<
       setInProgress(false);
       mutate();
       closeModal();
+      navigateToListPage &&
+        navigate(`${BUCKETS_BASE_ROUTE}/${bucketName}/permissions/cors`);
     } catch (err) {
       setInProgress(false);
       setError(err);
