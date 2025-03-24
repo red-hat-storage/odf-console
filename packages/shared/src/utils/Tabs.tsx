@@ -105,7 +105,8 @@ const Tabs: React.FC<TabsProps> = ({
       (href) =>
         location.hash === href ||
         currentLocation.endsWith(href) ||
-        currentLocation.endsWith(`${href}/`)
+        currentLocation.endsWith(`${href}/`) ||
+        currentLocation.includes(href)
     );
     const trueActiveTab = hrefToTabMap[firstMatchKey];
     if (trueActiveTab && trueActiveTab !== activeTab) {
