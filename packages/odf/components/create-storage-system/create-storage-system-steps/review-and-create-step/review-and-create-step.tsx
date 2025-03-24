@@ -13,7 +13,7 @@ import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { getAllZone } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { humanizeBinaryBytes } from '@odf/shared/utils';
+import { getFormattedCapacity, humanizeBinaryBytes } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
 import {
   TextContent,
@@ -76,6 +76,9 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   const formattedCapacity = !isNoProvisioner
     ? `${OSD_CAPACITY_SIZES[capacity]} TiB`
     : humanizeBinaryBytes(capacity).string;
+  const formattedCapacityLimit = getFormattedCapacity(
+    capacityAndNodes.capacityAutoScaling.capacityLimit
+  );
 
   const hasEncryption = encryption.clusterWide || encryption.storageClass;
   const hasInTransitEncryption = encryption.inTransit
@@ -167,6 +170,20 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             {t('Performance profile: {{resourceProfile}}', {
               resourceProfile: _.capitalize(capacityAndNodes.resourceProfile),
             })}
+          </ListItem>
+          <ListItem>
+            {t('Smart scaling: {{autoscaling}}', {
+              autoscaling: capacityAndNodes.capacityAutoScaling.enable
+                ? 'Enabled'
+                : 'Disabled',
+            })}
+            {capacityAndNodes.capacityAutoScaling.enable && (
+              <ListItem>
+                {t('Scaling capacity limit: {{capacityLimit}}', {
+                  capacityLimit: formattedCapacityLimit,
+                })}
+              </ListItem>
+            )}
           </ListItem>
           <ListItem>
             {t('Zone: {{zoneCount, number}} zone', {

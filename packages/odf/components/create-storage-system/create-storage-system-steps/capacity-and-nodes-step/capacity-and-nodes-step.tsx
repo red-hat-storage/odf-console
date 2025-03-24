@@ -35,10 +35,11 @@ import {
   isFlexibleScaling,
   getDeviceSetCount,
   getOsdAmount,
+  isCapacityAutoScalingAllowed,
 } from '@odf/core/utils';
 import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
-import { K8sResourceKind } from '@odf/shared/types';
+import { InfraProviders, K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -60,6 +61,7 @@ import { ValidationMessage } from '../../../utils/common-odf-install-el';
 import { ErrorHandler } from '../../error-handler';
 import { WizardDispatch, WizardNodeState, WizardState } from '../../reducer';
 import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
+import { CapacityAutoScaling } from './capacity-autoscaling';
 import ConfigurePerformance, {
   PerformanceHeaderText,
   ProfileRequirementsText,
@@ -419,9 +421,11 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   volumeSetName,
   nodes,
   systemNamespace,
+  infraType,
 }) => {
   const {
     capacity,
+    capacityAutoScaling,
     enableArbiter,
     enableTaint,
     arbiterLocation,
@@ -446,11 +450,9 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
 
   const validations = capacityAndNodesValidate(
     nodes,
-    enableArbiter,
+    state,
     isNoProvisioner,
-    resourceProfile,
-    osdAmount,
-    volumeValidationType
+    osdAmount
   );
   const onProfileChange = React.useCallback(
     (profile) => onResourceProfileChange(dispatch)(profile),
@@ -459,6 +461,20 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
 
   // In case LSO is already configured (before SS deployment), wizard skips LVS creation step (thus, corresponding redux state should be empty)
   const isLSOPreConfigured = !volumeSetName;
+
+  const { capacityLimit, enable: enableAutoScaling } = capacityAutoScaling;
+  const onCapacityAutoscalingChange = (_ev, checked: boolean) => {
+    dispatch({
+      type: 'capacityAndNodes/capacityAutoScaling',
+      payload: { capacityLimit, enable: checked },
+    });
+  };
+  const onCapacityAutoscalingSelect = (selected: string) => {
+    dispatch({
+      type: 'capacityAndNodes/capacityAutoScaling',
+      payload: { capacityLimit: selected, enable: enableAutoScaling },
+    });
+  };
   return (
     <Form>
       {isNoProvisioner ? (
@@ -494,6 +510,17 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           <EnableTaintNodes dispatch={dispatch} enableTaint={enableTaint} />
         </>
       )}
+      {isCapacityAutoScalingAllowed(infraType, resourceProfile) && (
+        <CapacityAutoScaling
+          capacityLimit={capacityLimit}
+          className="pf-v5-u-w-75"
+          enable={enableAutoScaling}
+          onChange={onCapacityAutoscalingChange}
+          onLimitSelect={onCapacityAutoscalingSelect}
+          osdAmount={osdAmount}
+          osdSize={String(capacity)}
+        />
+      )}
       {!!validations.length &&
         !!capacity &&
         validations.map((validation) => (
@@ -515,5 +542,6 @@ type CapacityAndNodesProps = {
   nodes: WizardState['nodes'];
   volumeSetName: WizardState['createLocalVolumeSet']['volumeSetName'];
   dispatch: WizardDispatch;
+  infraType: InfraProviders;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

@@ -15,6 +15,7 @@ import {
   createDeviceSet,
   isResourceProfileAllowed,
   getNodeTotalMemory,
+  isValidCapacityAutoScalingConfig,
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import {
@@ -143,14 +144,17 @@ export const calculateRadius = (size: number) => {
 
 export const capacityAndNodesValidate = (
   nodes: WizardNodeState[],
-  enableStretchCluster: boolean,
+  state: WizardState['capacityAndNodes'],
   isNoProvSC: boolean,
-  resourceProfile: ResourceProfile,
-  osdAmount: number,
-  volumeValidationType: VolumeTypeValidation
+  osdAmount: number
 ): ValidationType[] => {
   const validations = [];
-
+  const {
+    capacityAutoScaling,
+    enableArbiter: enableStretchCluster,
+    resourceProfile,
+    volumeValidationType,
+  } = state;
   const totalCpu = getTotalCpu(nodes);
   const totalMemory = getTotalMemoryInGiB(nodes);
 
@@ -187,6 +191,14 @@ export const capacityAndNodesValidate = (
     )
   ) {
     validations.push(ValidationType.VOLUME_TYPE);
+  }
+  if (
+    !isValidCapacityAutoScalingConfig(
+      capacityAutoScaling.enable,
+      capacityAutoScaling.capacityLimit
+    )
+  ) {
+    validations.push(ValidationType.CAPACITY_AUTOSCALING);
   }
 
   return validations;

@@ -17,7 +17,6 @@ import { Button, ButtonVariant, Flex, FlexItem } from '@patternfly/react-core';
 import { SyncAltIcon } from '@patternfly/react-icons';
 import { BUCKET_CREATE_PAGE_PATH } from '../../../constants';
 import { BucketCrFormat } from '../../../types';
-import { isCAError, CAErrorMessage } from '../ca-error/CAErrorMessage';
 import { NoobaaS3Provider } from '../noobaa-context';
 import { BucketsListTable } from './bucketListTable';
 import { BucketPagination } from './bucketPagination';
@@ -101,11 +100,6 @@ const BucketsListPageContent: React.FC = () => {
     false,
     undefined,
   ]);
-  const [, , loadError] = bucketInfo;
-
-  if (isCAError(loadError)) {
-    return <CAErrorMessage />;
-  }
 
   return (
     <>
