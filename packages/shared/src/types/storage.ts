@@ -182,6 +182,9 @@ type StorageConsumerSpec = {
   volumeSnapshotClasses: {
     name: string;
   }[];
+  volumeGroupSnapshotClasses: {
+    name: string;
+  }[];
 };
 
 type CephResourcesSpec = {

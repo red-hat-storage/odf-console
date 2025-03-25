@@ -11,9 +11,11 @@ import {
   useCustomTranslation,
   VolumeSnapshotClassKind,
   VolumeSnapshotClassModel,
+  VolumeGroupSnapshotClassModel,
+  VolumeGroupSnapshotClassKind,
 } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
-import { isCephProvisioner } from '@odf/shared/utils';
+import { isCephDriver, isCephProvisioner } from '@odf/shared/utils';
 import {
   WatchK8sResources,
   useK8sWatchResources,
@@ -28,6 +30,7 @@ import {
   Tabs,
   Tab,
   TabTitleText,
+  Label,
 } from '@patternfly/react-core';
 import { Tr, Td } from '@patternfly/react-table';
 import {
@@ -39,6 +42,7 @@ import { generatePatchForDistributionOfResources } from '../../components/Resour
 type Resources = {
   storageClasses: StorageClassResourceKind[];
   volumeSnapshotClasses: VolumeSnapshotClassKind[];
+  volumeGroupSnapshotClasses: VolumeGroupSnapshotClassKind[];
 };
 
 const resources: WatchK8sResources<Resources> = {
@@ -55,6 +59,14 @@ const resources: WatchK8sResources<Resources> = {
       group: VolumeSnapshotClassModel.apiGroup,
       version: VolumeSnapshotClassModel.apiVersion,
       kind: VolumeSnapshotClassModel.kind,
+    },
+    isList: true,
+  },
+  volumeGroupSnapshotClasses: {
+    groupVersionKind: {
+      group: VolumeGroupSnapshotClassModel.apiGroup,
+      version: VolumeGroupSnapshotClassModel.apiVersion,
+      kind: VolumeGroupSnapshotClassModel.kind,
     },
     isList: true,
   },
@@ -104,7 +116,10 @@ const VolumeSnapshotClassRowGenerator: React.FC<RowGeneratorProps<any>> = ({
 type SelectedResources = {
   [uid: string]: {
     selected: boolean;
-    resourceType: 'storageClass' | 'volumeSnapshotClass';
+    resourceType:
+      | 'storageClass'
+      | 'volumeSnapshotClass'
+      | 'volumeGroupSnapshotClass';
   };
 };
 
@@ -126,26 +141,51 @@ export const DistributeResourceModal: React.FC<
     (res) => isCephProvisioner(res?.driver)
   );
 
+  const filteredVolumeGroupSnapshotClasses =
+    data.volumeGroupSnapshotClasses.data.filter((res) =>
+      isCephProvisioner(res?.driver)
+    );
+
   const isStorageClassDataLoaded = data?.storageClasses?.loaded;
   const isVolumeSnapshotClassDataLoaded = data?.volumeSnapshotClasses?.loaded;
+  const isVolumeGroupSnapshotClassDataLoaded =
+    data?.volumeGroupSnapshotClasses?.loaded;
 
   const handleTabClick = (_event, tabIndex: string | number) => {
     setActiveTabKey(tabIndex);
   };
 
+  const selectedStorageClassesCount = Object.values(selectedResources).filter(
+    (res) => res.resourceType === 'storageClass' && res.selected
+  ).length;
+  const selectedVolumeSnapshotClassesCount = Object.values(
+    selectedResources
+  ).filter(
+    (res) => res.resourceType === 'volumeSnapshotClass' && res.selected
+  ).length;
+  const selectedVolumeGroupSnapshotClassesCount = Object.values(
+    selectedResources
+  ).filter(
+    (res) => res.resourceType === 'volumeGroupSnapshotClass' && res.selected
+  ).length;
+
   React.useEffect(() => {
     if (
       isStorageClassDataLoaded &&
       isVolumeSnapshotClassDataLoaded &&
+      isVolumeGroupSnapshotClassDataLoaded &&
       _.isEmpty(selectedResources)
     ) {
-      const preselectedStorageClasses = resource.spec?.storageClasses.map(
+      const preselectedStorageClasses = resource.spec?.storageClasses?.map(
         (sc) => sc?.name
       );
       const preselectedVolumeSnapshotClasses =
-        resource.spec?.volumeSnapshotClasses.map((vsc) => vsc?.name);
-      let newSelectedResources = data.storageClasses.data.reduce(
-        (acc, storageClass) => {
+        resource.spec?.volumeSnapshotClasses?.map((vsc) => vsc?.name);
+      const preselectedVolumeGroupSnapshotClasses =
+        resource?.spec?.volumeGroupSnapshotClasses?.map((vgsc) => vgsc?.name);
+      let newSelectedResources = data.storageClasses.data
+        .filter((sc) => isCephProvisioner(getProvisioner(sc)))
+        .reduce((acc, storageClass) => {
           acc[getName(storageClass)] = {
             selected: preselectedStorageClasses?.includes(
               getName(storageClass)
@@ -153,28 +193,44 @@ export const DistributeResourceModal: React.FC<
             resourceType: 'storageClass',
           };
           return acc;
-        },
-        {} as SelectedResources
-      );
+        }, {} as SelectedResources);
       newSelectedResources = {
         ...newSelectedResources,
-        ...data.volumeSnapshotClasses.data.reduce((acc, vsc) => {
-          acc[getName(vsc)] = {
-            selected: preselectedVolumeSnapshotClasses?.includes(getName(vsc)),
-            resourceType: 'volumeSnapshotClass',
-          };
-          return acc;
-        }, {} as SelectedResources),
+        ...data.volumeSnapshotClasses.data
+          .filter((vsc) => isCephDriver(vsc.driver))
+          .reduce((acc, vsc) => {
+            acc[getName(vsc)] = {
+              selected: preselectedVolumeSnapshotClasses?.includes(
+                getName(vsc)
+              ),
+              resourceType: 'volumeSnapshotClass',
+            };
+            return acc;
+          }, {} as SelectedResources),
+        ...data.volumeGroupSnapshotClasses.data
+          .filter((vgsc) => isCephDriver(vgsc.driver))
+          .reduce((acc, vgsc) => {
+            acc[getName(vgsc)] = {
+              selected: preselectedVolumeGroupSnapshotClasses?.includes(
+                getName(vgsc)
+              ),
+              resourceType: 'volumeGroupSnapshotClass',
+            };
+            return acc;
+          }, {} as SelectedResources),
       };
       setSelectedResources(newSelectedResources);
     }
   }, [
     data.storageClasses.data,
     data.storageClasses.loaded,
+    data.volumeGroupSnapshotClasses.data,
     data.volumeSnapshotClasses.data,
     isStorageClassDataLoaded,
+    isVolumeGroupSnapshotClassDataLoaded,
     isVolumeSnapshotClassDataLoaded,
     resource.spec?.storageClasses,
+    resource.spec?.volumeGroupSnapshotClasses,
     resource.spec?.volumeSnapshotClasses,
     selectedResources,
   ]);
@@ -199,11 +255,17 @@ export const DistributeResourceModal: React.FC<
       isOpen
       onClose={closeModal}
       open={isOpen}
+      variant="medium"
     >
       <Tabs activeKey={activeTabKey} onSelect={handleTabClick}>
         <Tab
           eventKey={0}
-          title={<TabTitleText>{t('Storage classes')}</TabTitleText>}
+          title={
+            <TabTitleText>
+              {t('Storage classes')}{' '}
+              <Label>{selectedStorageClassesCount}</Label>
+            </TabTitleText>
+          }
         >
           <ResourceDistributionTable
             resources={filteredStorageClasses}
@@ -217,7 +279,12 @@ export const DistributeResourceModal: React.FC<
         </Tab>
         <Tab
           eventKey={1}
-          title={<TabTitleText>{t('VolumeSnapshot classes')}</TabTitleText>}
+          title={
+            <TabTitleText>
+              {t('VolumeSnapshot classes')}{' '}
+              <Label>{selectedVolumeSnapshotClassesCount}</Label>
+            </TabTitleText>
+          }
         >
           <ResourceDistributionTable
             resources={filteredVolumeSnapshotClasses}
@@ -227,6 +294,25 @@ export const DistributeResourceModal: React.FC<
             loaded={isVolumeSnapshotClassDataLoaded}
             columns={[t('Name'), t('Driver'), t('Deletion policy')]}
             resourceType="volumeSnapshotClass"
+          />
+        </Tab>
+        <Tab
+          eventKey={3}
+          title={
+            <TabTitleText>
+              {t('VolumeGroupSnapshot classes')}{' '}
+              <Label>{selectedVolumeGroupSnapshotClassesCount}</Label>
+            </TabTitleText>
+          }
+        >
+          <ResourceDistributionTable
+            resources={filteredVolumeGroupSnapshotClasses}
+            selectedResources={selectedResources}
+            setSelectedResources={setSelectedResources}
+            RowGenerator={VolumeSnapshotClassRowGenerator}
+            loaded={isVolumeGroupSnapshotClassDataLoaded}
+            columns={[t('Name'), t('Driver'), t('Deletion policy')]}
+            resourceType="volumeGroupSnapshotClass"
           />
         </Tab>
       </Tabs>

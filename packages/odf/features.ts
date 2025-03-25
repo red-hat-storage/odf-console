@@ -38,7 +38,7 @@ const ssarChecks = [
 ];
 
 const isProviderMode = (cluster: StorageClusterKind): boolean =>
-  !!cluster.spec.allowRemoteStorageConsumers;
+  cluster.spec.hostNetwork;
 
 export const setOCSFlags = async (setFlag: SetFeatureFlag) => {
   let ocsIntervalId = null;

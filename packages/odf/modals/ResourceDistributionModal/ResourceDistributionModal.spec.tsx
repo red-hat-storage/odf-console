@@ -43,6 +43,21 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => {
         loaded: true,
         error: null,
       },
+      volumeGroupSnapshotClasses: {
+        data: [
+          {
+            apiVersion: 'v1beta1',
+            kind: 'VolumeGroupSnapshotClass',
+            metadata: {
+              name: 'test-snapshot-class',
+              namespace: 'test-namespace',
+            },
+            driver: 'test-provisioner.rbd.csi.ceph.com',
+          },
+        ],
+        loaded: true,
+        error: null,
+      },
     }),
     k8sPatch: jest.fn(),
     useListPageFilter: jest.fn().mockReturnValue([
