@@ -23,6 +23,12 @@ export type DRPlacementControlType = K8sResourceCommon & {
   recipeName?: string;
   // Namespace of the Recipe
   recipeNamespace?: string;
+  // List of VM names that belong to a shared VM group
+  vmSharedGroup?: string[];
+  // Name of the shared VM group
+  vmSharedGroupName?: string;
+  // K8s objects replication interval
+  k8sResourceSyncInterval?: string;
 };
 
 export type DRPolicyType = K8sResourceCommon & {

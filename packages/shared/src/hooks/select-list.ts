@@ -2,11 +2,36 @@ import * as React from 'react';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import { OnSelect } from '@patternfly/react-table';
 
+const handleCheckboxSelect = (
+  isSelected,
+  rowIndex,
+  rowData,
+  visibleRows,
+  selectedRows
+) => {
+  const uniqueUIDs = selectedRows ? new Set([...selectedRows]) : new Set();
+
+  if (rowIndex === -1) {
+    // Select/deselect all rows
+    isSelected
+      ? visibleRows.forEach((uid) => uniqueUIDs.add(uid))
+      : visibleRows.forEach((uid) => uniqueUIDs.delete(uid));
+  } else {
+    // Select/deselect individual row
+    isSelected
+      ? uniqueUIDs.add(rowData?.props?.id)
+      : uniqueUIDs.delete(rowData?.props?.id);
+  }
+
+  return uniqueUIDs;
+};
+
 export const useSelectList = <R extends K8sResourceCommon>(
   data: R[],
   visibleRows: Set<string>,
   preSelectAll: boolean = false,
-  onRowSelected: (rows: R[]) => void
+  onRowSelected: (rows: R[]) => void,
+  selectionType: 'radio' | 'checkbox' = 'checkbox'
 ): {
   onSelect: OnSelect;
   selectedRows: Set<string>;
@@ -16,25 +41,33 @@ export const useSelectList = <R extends K8sResourceCommon>(
     preSelectAll && visibleRows
   );
 
+  const handleRadioSelect = (isSelected, rowData) => {
+    // For radio, only one row can be selected
+    return isSelected ? new Set([rowData?.props?.id]) : new Set();
+  };
+
   const onSelect = React.useCallback(
     (_event, isSelected, rowIndex, rowData) => {
-      const uniqueUIDs: Set<string> = selectedRows
-        ? new Set([...selectedRows])
-        : new Set<string>();
+      let updatedSelectedRows;
 
-      if (rowIndex === -1) {
-        isSelected
-          ? visibleRows.forEach((uid) => uniqueUIDs.add(uid))
-          : visibleRows.forEach((uid) => uniqueUIDs.delete(uid));
+      if (selectionType === 'radio') {
+        updatedSelectedRows = handleRadioSelect(isSelected, rowData);
       } else {
-        isSelected
-          ? uniqueUIDs.add(rowData?.props?.id)
-          : uniqueUIDs.delete(rowData?.props?.id);
+        updatedSelectedRows = handleCheckboxSelect(
+          isSelected,
+          rowIndex,
+          rowData,
+          visibleRows,
+          selectedRows
+        );
       }
-      setSelectedRows(uniqueUIDs);
-      onRowSelected(data.filter((row) => uniqueUIDs.has(row.metadata.uid)));
+
+      setSelectedRows(updatedSelectedRows);
+      onRowSelected(
+        data.filter((row) => updatedSelectedRows.has(row.metadata.uid))
+      );
     },
-    [data, onRowSelected, selectedRows, visibleRows]
+    [data, onRowSelected, selectedRows, visibleRows, selectionType]
   );
 
   const updateSelectedRows = React.useCallback(
