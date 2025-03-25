@@ -129,7 +129,8 @@ export type PlacementToDrpcMap = {
 export type ACMManagedClusterViewKind = K8sResourceCommon & {
   spec?: {
     scope: {
-      resource?: string;
+      apiGroup?: string;
+      version?: string;
       name: string;
       namespace?: string;
       kind: string;
@@ -175,4 +176,39 @@ export type SearchResultItemType = {
   created: string;
   label: string;
   _uid: string;
+};
+
+export enum ManagedClusterActionType {
+  UPDATE = 'Update',
+  DELETE = 'Delete',
+}
+
+export type ACMManagedClusterActionKind = K8sResourceCommon & {
+  spec?: {
+    cluster?: {
+      name: string;
+    };
+    type?: 'Action';
+    actionType?: ManagedClusterActionType;
+    scope?: {
+      resourceType: string;
+      namespace: string;
+    };
+    kube?: {
+      resource?: string;
+      name?: string;
+      namespace?: string;
+      template: K8sResourceCommon;
+    };
+  };
+  status?: {
+    conditions?: Array<{
+      lastTransitionTime: Date;
+      message: string;
+      reason: string;
+      status: string;
+      type: string;
+    }>;
+    result?: K8sResourceCommon;
+  };
 };

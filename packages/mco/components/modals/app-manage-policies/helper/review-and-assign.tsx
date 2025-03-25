@@ -126,28 +126,25 @@ export const ReviewAndAssign: React.FC<ReviewAndAssignProps> = ({
   state,
   modalType,
   appType,
-}) => {
-  return (
-    <ReviewAndCreateStep>
-      {modalType === ModalType.VirtualMachine ? (
-        <>
-          <ProtectionTypeReview
-            protectionTypeState={state.protectionType}
-            appType={appType}
-          />
-          <ReplicationReview replication={state.replication} />
-        </>
-      ) : (
-        <>
-          <PolicyReview policy={state.policy} />
-          <PVCDetailsReview
-            persistentVolumeClaim={state.persistentVolumeClaim}
-          />
-        </>
-      )}
-    </ReviewAndCreateStep>
-  );
-};
+}) => (
+  <ReviewAndCreateStep>
+    {modalType === ModalType.VirtualMachine && (
+      <ProtectionTypeReview
+        protectionTypeState={state.protectionType}
+        appType={appType}
+      />
+    )}
+
+    {appType === DRApplication.DISCOVERED ? (
+      <ReplicationReview replication={state.replication} />
+    ) : (
+      <>
+        <PolicyReview policy={state.policy} />
+        <PVCDetailsReview persistentVolumeClaim={state.persistentVolumeClaim} />
+      </>
+    )}
+  </ReviewAndCreateStep>
+);
 
 type ReviewAndAssignProps = {
   state: AssignPolicyViewState;
