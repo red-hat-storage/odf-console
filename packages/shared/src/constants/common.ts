@@ -65,3 +65,6 @@ export const STORAGE_SIZE_UNIT_NAME_MAP = Object.freeze({
   [StorageSizeUnit.Gi]: StorageSizeUnitName.GiB,
   [StorageSizeUnit.Ti]: StorageSizeUnitName.TiB,
 });
+
+export const BLOCK = 'Block';
+export const FILESYSTEM = 'Filesystem';

@@ -105,6 +105,7 @@ export type DRVolumeReplicationGroupKind = K8sResourceCommon & {
     state?: DRReplicationState;
     protectedPVCs?: {
       name?: string;
+      namespace?: string;
       protectedByVolSync?: boolean;
       storageClassName?: string;
       labels?: MatchLabels;

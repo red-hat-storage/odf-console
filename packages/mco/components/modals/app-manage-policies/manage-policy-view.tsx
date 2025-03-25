@@ -6,11 +6,12 @@ import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { Labels } from '@odf/shared/labels';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
-import { getName } from '@odf/shared/selectors';
+import { getAnnotations, getName } from '@odf/shared/selectors';
 import { BlueInfoCircleIcon } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
 import {
+  GreenCheckCircleIcon,
   StatusIconAndText,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -25,10 +26,16 @@ import {
   Text,
   TextVariants,
 } from '@patternfly/react-core';
-import { PencilAltIcon, UnknownIcon } from '@patternfly/react-icons';
+import {
+  PencilAltIcon,
+  UnknownIcon,
+  BanIcon,
+  ArrowRightIcon,
+} from '@patternfly/react-icons';
 import {
   DISCOVERED_APP_NS,
   DRApplication,
+  IS_CG_ENABLED_ANNOTATION,
   ReplicationType,
   SYNC_SCHEDULE_DISPLAY_TEXT,
   VM_RECIPE_NAME,
@@ -166,6 +173,9 @@ const getAggregatedDRInfo = (
         drpc?.lastKubeObjectProtectionTime || acc.lastKubeObjectProtectionTime,
       recipeName: drpc?.recipeName || acc.recipeName,
       recipeNamespace: drpc?.recipeNamespace || acc.recipeNamespace,
+      isVolumeGroupReplicationEnabled:
+        acc.isVolumeGroupReplicationEnabled ||
+        getAnnotations(drpc)?.[IS_CG_ENABLED_ANNOTATION] === 'true',
     }),
     {
       placements: [],
@@ -175,6 +185,7 @@ const getAggregatedDRInfo = (
       recipeName: '',
       recipeNamespace: '',
       lastKubeObjectProtectionTime: '',
+      isVolumeGroupReplicationEnabled: false,
     }
   );
 
@@ -287,6 +298,7 @@ const DRInformation: React.FC<DRInformationProps> = ({
   hideEditAction,
   onEdit,
   appType,
+  setModalContext,
 }) => {
   const { t } = useCustomTranslation();
   const { drPolicyInfo, placementControlInfo } = dataPolicyInfo;
@@ -302,6 +314,7 @@ const DRInformation: React.FC<DRInformationProps> = ({
     lastKubeObjectProtectionTime,
     recipeName,
     recipeNamespace,
+    isVolumeGroupReplicationEnabled,
   } = getAggregatedDRInfo(placementControlInfo);
 
   return (
@@ -371,6 +384,10 @@ const DRInformation: React.FC<DRInformationProps> = ({
             </Text>
           </>
         )}
+        <VolumeGroupReplicationStatus
+          isEnabled={isVolumeGroupReplicationEnabled}
+          setModalContext={setModalContext}
+        />
       </DRInformationGroup>
       {(isAsync || appType === DRApplication.DISCOVERED) && (
         <DRInformationGroup title={t('Replication details')}>
@@ -383,6 +400,36 @@ const DRInformation: React.FC<DRInformationProps> = ({
         </DRInformationGroup>
       )}
     </>
+  );
+};
+
+const VolumeGroupReplicationStatus: React.FC<VolumeReplicationStatusProps> = ({
+  isEnabled,
+  setModalContext,
+}) => {
+  const { t } = useCustomTranslation();
+  return (
+    <div className="pf-v5-l-flex">
+      <Text component={TextVariants.p} className="pf-v5-l-flex__item">
+        {t('Volume group replication: ')}
+      </Text>
+      <StatusIconAndText
+        icon={isEnabled ? <GreenCheckCircleIcon /> : <BanIcon />}
+        title={isEnabled ? t('Enabled') : t('Disabled')}
+        className="pf-v5-l-flex__item"
+      />
+      {isEnabled && (
+        <Button
+          variant={ButtonVariant.link}
+          onClick={() =>
+            setModalContext(ModalViewContext.VOLUME_CONSISTENCY_GROUP_VIEW)
+          }
+          className="pf-v5-l-flex__item pf-m-align-right"
+        >
+          {t('View volume groups')} <ArrowRightIcon />
+        </Button>
+      )}
+    </div>
   );
 };
 
@@ -477,6 +524,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
           }
           onEdit={onEdit}
           appType={appType}
+          setModalContext={setModalContext}
         />
         {!!alertProps && (
           <Alert title={alertProps.title} variant={alertProps.variant} isInline>
@@ -544,6 +592,7 @@ type DRInformationProps = {
   hideEditAction: boolean;
   onEdit: () => void;
   appType: DRApplication;
+  setModalContext: (modalViewContext: ModalViewContext) => void;
 };
 
 type DRInformationGroupProps = {
@@ -574,4 +623,10 @@ type AggregatedDRInfo = {
   lastKubeObjectProtectionTime?: string;
   recipeName?: string;
   recipeNamespace?: string;
+  isVolumeGroupReplicationEnabled?: boolean;
+};
+
+type VolumeReplicationStatusProps = {
+  isEnabled: boolean;
+  setModalContext: (modalViewContext: ModalViewContext) => void;
 };

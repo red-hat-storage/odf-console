@@ -14,6 +14,8 @@ export const APP_NAMESPACE_ANNOTATION =
   'drplacementcontrol.ramendr.openshift.io/app-namespace';
 export const DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH =
   'drplacementcontrol.ramendr.openshift.io~1do-not-delete-pvc';
+export const IS_CG_ENABLED_ANNOTATION =
+  'drplacementcontrol.ramendr.openshift.io/is-cg-enabled';
 
 // Maximum cluster per DRPolicy
 export const MAX_ALLOWED_CLUSTERS = 2;
@@ -27,6 +29,10 @@ export const Actions = {
 export const RBD_IMAGE_FLATTEN_LABEL = {
   'replication.storage.openshift.io/flatten-mode': 'force',
 };
+
+// This label tells us the consistency group name of a pvc
+export const CONSISTENCY_GROUP_LABEL = 'ramendr.openshift.io/consistency-group';
+
 // DR actions
 export enum DRActionType {
   FAILOVER = 'Failover',
