@@ -3,7 +3,7 @@ import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { StorageClusterModel } from '@odf/shared/models';
 import { StorageClusterKind } from '@odf/shared/types';
 import { k8sList } from '@openshift-console/dynamic-plugin-sdk';
-import { AddCapacityModal } from '../../modals/add-capacity/add-capacity-modal';
+import AddCapacityModal from '../../modals/add-capacity/add-capacity-modal';
 
 export const getDiskAlertActionPath = () =>
   window.open('https://access.redhat.com/solutions/5194851');
@@ -17,18 +17,19 @@ export const launchClusterExpansionModal = async (_alert, launchModal) => {
       name: alert?.annotations?.target_name,
       ns: alert?.annotations?.target_namespace,
     });
-    launchModal(AddCapacityModal, { isOpen: true, storageCluster });
     */
-    const storageCluster = (await k8sList({
+    const storageClusters = (await k8sList({
       model: StorageClusterModel,
       queryParams: { ns: DEFAULT_STORAGE_NAMESPACE },
     })) as StorageClusterKind[];
     launchModal(AddCapacityModal, {
       isOpen: true,
-      storageCluster: getStorageClusterInNs(
-        storageCluster,
-        DEFAULT_STORAGE_NAMESPACE
-      ),
+      extraProps: {
+        storageCluster: getStorageClusterInNs(
+          storageClusters,
+          DEFAULT_STORAGE_NAMESPACE
+        ),
+      },
     });
   } catch (e) {
     // eslint-disable-next-line no-console

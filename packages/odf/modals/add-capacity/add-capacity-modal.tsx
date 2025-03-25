@@ -11,8 +11,7 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
-import { CommonModalProps } from '@odf/shared/modals/common';
+import { StorageClusterActionModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { StorageClusterModel } from '@odf/shared/models';
 import { PersistentVolumeModel, StorageClassModel } from '@odf/shared/models';
@@ -21,10 +20,9 @@ import {
   StorageClassResourceKind,
   StorageClusterKind,
   DeviceSet,
-  StorageSystemKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { humanizeBinaryBytes } from '@odf/shared/utils';
+import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
 import {
   useK8sWatchResource,
   WatchK8sResource,
@@ -163,40 +161,20 @@ type RawCapacityProps = {
   t: TFunction;
 };
 
-type AddSSCapacityModalProps = CommonModalProps & {
-  storageSystem?: StorageSystemKind;
-};
-
-const AddSSCapacityModal: React.FC<AddSSCapacityModalProps> = ({
-  extraProps: { resource: storageSystem },
-  ...props
-}) => {
-  const [ocs, ocsLoaded, ocsError] = useK8sGet<StorageClusterKind>(
-    StorageClusterModel,
-    storageSystem.spec.name,
-    storageSystem.spec.namespace
-  );
-  if (!ocsLoaded || ocsError) {
-    return null;
-  }
-
-  return <AddCapacityModal storageCluster={ocs} {...props} />;
-};
-
-type AddCapacityModalProps = {
-  storageCluster: StorageClusterKind;
-} & CommonModalProps;
-
-export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
-  storageCluster: ocsConfig,
+const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
+  extraProps: { storageCluster: actionStorageCluster },
   closeModal,
   isOpen,
 }) => {
   const { t } = useCustomTranslation();
 
-  const ocsClusterNs = getNamespace(ocsConfig);
-  const ocsClusterName = getName(ocsConfig);
-
+  const ocsClusterNs = getNamespace(actionStorageCluster);
+  const ocsClusterName = getName(actionStorageCluster);
+  const [storageCluster] = useK8sWatchResource<StorageClusterKind>({
+    kind: referenceForModel(StorageClusterModel),
+    name: ocsClusterName,
+    namespace: ocsClusterNs,
+  });
   const [cephTotal, totalError, totalLoading] = useCustomPrometheusPoll({
     endpoint: 'api/v1/query' as PrometheusEndpoint,
     query:
@@ -230,19 +208,22 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   const [inProgress, setProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState('');
 
-  const deviceSets: DeviceSet[] = ocsConfig?.spec?.storageDeviceSets || [];
+  const deviceSets: DeviceSet[] = storageCluster?.spec?.storageDeviceSets || [];
   const osdSizeWithUnit = getRequestedPVCSize(deviceSets?.[0]?.dataPVCTemplate);
   // ODF support Gi and Ti for any custome size
-  const [osdSize, unit] = osdSizeWithUnit.split(/(\d+)/).filter(Boolean);
-  const osdSizeWithoutUnit: number = +osdSize / SIZE_IN_TB[unit];
+  const [osdSize, unit] = osdSizeWithUnit
+    ? osdSizeWithUnit.split(/(\d+)/).filter(Boolean)
+    : [];
+  const osdSizeWithoutUnit: number =
+    osdSize && unit ? +osdSize / SIZE_IN_TB[unit] : null;
   const isNoProvionerSC: boolean = storageClass?.provisioner === NO_PROVISIONER;
   const selectedSCName: string = getName(storageClass);
   const deviceSetIndex: number = getCurrentDeviceSetIndex(
     deviceSets,
     selectedSCName
   );
-  const hasFlexibleScaling = checkFlexibleScaling(ocsConfig);
-  const isArbiterEnabled: boolean = checkArbiterCluster(ocsConfig);
+  const hasFlexibleScaling = checkFlexibleScaling(storageCluster);
+  const isArbiterEnabled: boolean = checkArbiterCluster(storageCluster);
   const replica = getDeviceSetReplica(
     isArbiterEnabled,
     hasFlexibleScaling,
@@ -374,7 +355,7 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
     } else {
       k8sPatch({
         model: StorageClusterModel,
-        resource: ocsConfig,
+        resource: storageCluster,
         data: [patch],
       })
         .then(() => {
@@ -495,4 +476,4 @@ export const AddCapacityModal: React.FC<AddCapacityModalProps> = ({
   );
 };
 
-export default AddSSCapacityModal;
+export default AddCapacityModal;

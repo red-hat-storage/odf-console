@@ -87,9 +87,11 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
           initialState.storageCluster?.spec?.storageDeviceSets?.[0]
             ?.dataPVCTemplate?.spec?.resources?.requests?.storage
         ];
+      const replicas =
+        initialState.storageCluster?.spec?.storageDeviceSets?.[0]?.replica;
       cy.byTestID('requestSize').should('have.value', String(initialCapacity));
       cy.byTestID('provisioned-capacity').contains(
-        `${(initialCapacity * 3).toFixed(0)} TiB`
+        `${(initialCapacity * replicas).toFixed(0)} TiB`
       );
       cy.byTestID('add-cap-sc-dropdown', { timeout: 10000 }).should(
         'be.visible'
@@ -154,15 +156,16 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
 
       cy.log('New OSDs are added correctly to the right nodes', () => {
         const nodes = getIds(osdTree.nodes, 'host');
-        expect(verifyNodeOSDMapping(nodes, newOSDIds, formattedOSDTree)).to.be
-          .true;
+        expect(
+          verifyNodeOSDMapping(nodes, newOSDIds, formattedOSDTree)
+        ).to.equal(true);
       });
     });
     cy.exec('oc get nodes -o json').then((res) => {
       const nodes = JSON.parse(res.stdout);
       const allNodesReady = nodes.items.every(isNodeReady);
       cy.log('No Nodes should go to Not Ready state');
-      expect(allNodesReady).to.be.true;
+      expect(allNodesReady).to.equal(true);
     });
   });
 });
