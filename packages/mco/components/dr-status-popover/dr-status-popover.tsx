@@ -1,13 +1,19 @@
 import * as React from 'react';
-import { DRPCStatus, VolumeReplicationHealth } from '@odf/mco/constants';
+import {
+  DRPCStatus,
+  drStatusPopoverDocs,
+  VolumeReplicationHealth,
+} from '@odf/mco/constants';
 import { Progression } from '@odf/mco/types';
 import { formatTime } from '@odf/shared/details-page/datetime';
+import { DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
 import {
   GreenCheckCircleIcon,
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { ViewDocumentation } from '@odf/shared/utils';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import {
@@ -158,44 +164,28 @@ const SyncStatus: React.FC<{
   );
 };
 
-const HelpLink: React.FC<{
-  href: string;
-  t: TFunction;
-  message: string;
-}> = ({ href, t, message }) => {
-  return (
-    <Button
-      className="dr-status-help-link"
-      variant={ButtonVariant.link}
-      isInline
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={t('Open documentation')}
-    >
-      {message}
-    </Button>
-  );
-};
-
-const statusHelpLinks = {
+const statusHelpLinks = (t: TFunction) => ({
   [DRStatus.Warning]: {
-    href: '', // TODO: Replace with the actual link
-    message: 'Documentation help link',
+    href: drStatusPopoverDocs(mcoDocVersion).VOLUME_SYNC_DELAY,
+    message: t('Documentation help link'),
   },
   [DRStatus.Critical]: {
-    href: '', // TODO: Replace with the actual link
-    message: 'Documentation help link',
+    href: drStatusPopoverDocs(mcoDocVersion).VOLUME_SYNC_DELAY,
+    message: t('Documentation help link'),
   },
   [DRStatus.FailingOver]: {
-    href: '', // TODO: Replace with the actual link
-    message: 'Learn about different failover status',
+    href: drStatusPopoverDocs(mcoDocVersion).FAILOVER,
+    message: t('Learn about different failover status'),
   },
   [DRStatus.Relocating]: {
-    href: '', // TODO: Replace with the actual link
-    message: 'Learn about different relocate status',
+    href: drStatusPopoverDocs(mcoDocVersion).RELOCATION,
+    message: t('Learn about different relocate status'),
   },
-};
+  [DRStatus.WaitOnUserToCleanUp]: {
+    href: drStatusPopoverDocs(mcoDocVersion).CLEANUP,
+    message: t('How to clean up resources?'),
+  },
+});
 
 const handleHealthStatus = ({
   status,
@@ -298,6 +288,21 @@ const getDRStatus = ({
   return DRStatus.Critical;
 };
 
+const getCleanupMessage = (
+  phase: DRPCStatus,
+  cluster: string,
+  t: TFunction
+) => {
+  return phase === DRPCStatus.FailingOver
+    ? t('Clean up application resources on failed cluster {{cluster}}.', {
+        cluster,
+      })
+    : t(
+        'Clean up application resources on the primary cluster {{cluster}} to start the relocation.',
+        { cluster }
+      );
+};
+
 const getDRStatusDetails = ({
   isCleanupRequired,
   phase,
@@ -377,12 +382,10 @@ const getDRStatusDetails = ({
       return createStatus(
         DRStatus.WaitOnUserToCleanUp,
         t('Action needed'),
-        t(
-          'Clean up application resources on failed cluster {{cluster}} to start the replication.',
-          {
-            cluster:
-              phase === DRPCStatus.FailingOver ? targetCluster : primaryCluster,
-          }
+        getCleanupMessage(
+          phase,
+          phase === DRPCStatus.FailingOver ? targetCluster : primaryCluster,
+          t
         ),
         'dr-status-action-needed'
       );
@@ -438,7 +441,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
     setIsVisible((prev) => !prev);
   };
 
-  const statusLink = statusHelpLinks[status];
+  const statusLink = statusHelpLinks(t)[status];
 
   return (
     disasterRecoveryStatus.isLoadedWOError && (
@@ -515,10 +518,10 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
             )}
 
             {statusLink && (
-              <HelpLink
-                href={statusLink.href}
-                t={t}
-                message={t(statusLink.message)}
+              <ViewDocumentation
+                doclink={statusLink.href}
+                text={statusLink.message}
+                padding="0"
               />
             )}
           </Flex>
