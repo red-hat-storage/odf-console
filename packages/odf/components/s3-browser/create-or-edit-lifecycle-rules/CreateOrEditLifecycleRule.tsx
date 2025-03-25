@@ -224,10 +224,21 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
       setInProgress(false);
     } else {
       try {
-        const latestRules: GetBucketLifecycleConfigurationCommandOutput =
-          await noobaaS3.getBucketLifecycleConfiguration({
+        let latestRules: GetBucketLifecycleConfigurationCommandOutput;
+
+        try {
+          latestRules = await noobaaS3.getBucketLifecycleConfiguration({
             Bucket: bucketName,
           });
+        } catch (err) {
+          if (isNoLifecycleRuleError(err)) {
+            latestRules = {
+              Rules: [],
+            } as GetBucketLifecycleConfigurationCommandOutput;
+          } else {
+            throw err;
+          }
+        }
 
         await noobaaS3.putBucketLifecycleConfiguration({
           Bucket: bucketName,

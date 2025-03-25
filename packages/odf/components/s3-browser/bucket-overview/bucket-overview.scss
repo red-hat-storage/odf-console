@@ -3,11 +3,11 @@
 }
 
 .bucket-label--margin-top {
-    margin-top: calc(0.3rem * -1);
+    margin-top: calc(0.15rem * -1);
 }
 
 .obc-bucket-yaml {
-    .ocs-yaml-editor__root {
+    .ocs-yaml-editor {
         min-height: 34rem !important;
     }
 }
