@@ -213,7 +213,7 @@ const BreakdownCard: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <div className="pf-v5-u-display-flex pf-v5-u-justify-content-space-between">
+        <div className="ceph-capacity-breakdown-card__header">
           <CardTitle id="breakdown-card-title">
             <TitleWithHelp />
           </CardTitle>
