@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { OSD_CAPACITY_SIZES } from '@odf/core/constants';
 import {
   useCustomTranslation,
   TypeaheadDropdown,
@@ -7,7 +6,10 @@ import {
   CAPACITY_OSD_MAX_SIZE_IN_TIB,
   StorageSizeUnit,
 } from '@odf/shared';
-import { getFormattedCapacity } from '@odf/shared/utils';
+import {
+  getFormattedCapacity,
+  getStorageSizeInTiBWithoutUnit,
+} from '@odf/shared/utils';
 import {
   Alert,
   AlertVariant,
@@ -21,21 +23,28 @@ import {
 import './capacity-autoscaling.scss';
 import { InfoCircleIcon } from '@patternfly/react-icons';
 
-const getCapacityLimitAmount = (capacityLimit: string) =>
-  Number(capacityLimit.replace(/\D/g, ''));
+const getItem = (capacityLimit: number) => {
+  const limit = Number.isInteger(capacityLimit)
+    ? capacityLimit
+    : capacityLimit.toFixed(2);
+  return {
+    'data-limit': limit,
+    value: `${limit}${StorageSizeUnit.Ti}`,
+    children: getFormattedCapacity(`${limit}${StorageSizeUnit.Ti}`),
+  };
+};
 
-const getItem = (value: number) => ({
-  value: `${value}${StorageSizeUnit.Ti}`,
-  children: getFormattedCapacity(`${value}${StorageSizeUnit.Ti}`),
-});
-
-const getCapacityDropdownItems = (
+const getCapacityLimitDropdownItems = (
   osdAmount: number,
   osdSize: number,
   capacityLimit: string
 ): SelectOptionProps[] => {
   const items = [];
   let capacity: number;
+
+  if (osdSize <= 0 || osdAmount <= 0) {
+    return items;
+  }
 
   // Vertical scaling.
   while (osdSize * 2 <= CAPACITY_OSD_MAX_SIZE_IN_TIB) {
@@ -45,25 +54,20 @@ const getCapacityDropdownItems = (
   }
 
   // Horizontal scaling.
-  if (items.length > 0) {
-    while (
-      capacity + osdSize * osdAmount <=
-      CAPACITY_AUTOSCALING_MAX_LIMIT_IN_TIB
-    ) {
-      capacity += osdSize * osdAmount;
-      items.push(getItem(capacity));
-    }
+  while (
+    capacity + osdSize * osdAmount <=
+    CAPACITY_AUTOSCALING_MAX_LIMIT_IN_TIB
+  ) {
+    capacity += osdSize * osdAmount;
+    items.push(getItem(capacity));
   }
 
   // If capacity limit has been set via CLI and not already included
   // in the items, we include it:
   const itemValues = items.map((item) => item.value);
-  if (!itemValues.includes(capacityLimit)) {
-    items.push(getItem(getCapacityLimitAmount(capacityLimit)));
-    items.sort(
-      (a, b) =>
-        getCapacityLimitAmount(a.value) - getCapacityLimitAmount(b.value)
-    );
+  if (capacityLimit && !itemValues.includes(capacityLimit)) {
+    items.push(getItem(getStorageSizeInTiBWithoutUnit(capacityLimit)));
+    items.sort((a, b) => a['data-limit'] - b['data-limit']);
   }
 
   return items;
@@ -93,9 +97,9 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
   const { t } = useCustomTranslation();
   const capacityItems = React.useMemo(
     () =>
-      getCapacityDropdownItems(
+      getCapacityLimitDropdownItems(
         osdAmount,
-        OSD_CAPACITY_SIZES[osdSize],
+        getStorageSizeInTiBWithoutUnit(osdSize),
         capacityLimit
       ),
     [capacityLimit, osdAmount, osdSize]
@@ -103,7 +107,6 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
   const capacityLimitPlaceHolder = t(
     'Select the maximum limit to which the cluster can expand.'
   );
-
   return (
     <div className={className}>
       {!isEditView && (
@@ -143,9 +146,12 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
                     {t('Note:')}
                   </span>
                   {t(
-                    `OSD expansion is limited to a maximum of ${getFormattedCapacity(
-                      `${CAPACITY_OSD_MAX_SIZE_IN_TIB}${StorageSizeUnit.Ti}`
-                    )}.`
+                    'OSD expansion is limited to a maximum of {{osdMaxSize}}.',
+                    {
+                      osdMaxSize: getFormattedCapacity(
+                        `${CAPACITY_OSD_MAX_SIZE_IN_TIB}${StorageSizeUnit.Ti}`
+                      ),
+                    }
                   )}
                 </>
               }

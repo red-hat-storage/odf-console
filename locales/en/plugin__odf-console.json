@@ -915,6 +915,7 @@
   "How does smart scaling work?": "How does smart scaling work?",
   "Smart scaling adds capacity through OSD expansion by resizing existing OSDs or adding new OSDs to maintain node balance.": "Smart scaling adds capacity through OSD expansion by resizing existing OSDs or adding new OSDs to maintain node balance.",
   "Note:": "Note:",
+  "OSD expansion is limited to a maximum of {{osdMaxSize}}.": "OSD expansion is limited to a maximum of {{osdMaxSize}}.",
   "How does it work?": "How does it work?",
   "This may incur additional costs for the underlying storage.": "This may incur additional costs for the underlying storage.",
   "Cluster expansion limit": "Cluster expansion limit",

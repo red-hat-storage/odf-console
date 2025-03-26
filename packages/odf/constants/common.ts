@@ -80,11 +80,6 @@ export enum CreateStepsSC {
   REVIEWANDCREATE = 'REVIEWANDCREATE',
 }
 
-export const SIZE_IN_TB = {
-  [StorageSizeUnit.Gi]: 1024,
-  [StorageSizeUnit.Ti]: 1,
-};
-
 export const OSD_CAPACITY_SIZES = {
   [`512${StorageSizeUnit.Gi}`]: 0.5,
   [`2${StorageSizeUnit.Ti}`]: 2,

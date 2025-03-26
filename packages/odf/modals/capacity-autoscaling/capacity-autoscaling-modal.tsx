@@ -32,11 +32,7 @@ import {
 } from '@odf/shared/models';
 import { DeviceSet, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  getCapacityAutoScalingDefaultLimit,
-  getStorageAutoScalerName,
-  referenceForModel,
-} from '@odf/shared/utils';
+import { getStorageAutoScalerName, referenceForModel } from '@odf/shared/utils';
 import {
   k8sDelete,
   k8sPatch,
@@ -61,12 +57,13 @@ const getFormattedTime = (timestamp: string) =>
 
 type CapacityAutoscalingStatusProps = {
   currentStatus: string;
+  error: StorageAutoScalerKind['status']['error'];
   lastExpansion?: StorageAutoScalerKind['status']['lastExpansion'];
 };
 
 const CapacityAutoscalingCurrentStatus: React.FC<
   CapacityAutoscalingStatusProps
-> = ({ currentStatus, lastExpansion }) => {
+> = ({ currentStatus, error, lastExpansion }) => {
   const { t } = useCustomTranslation();
 
   let StatusIcon:
@@ -82,21 +79,24 @@ const CapacityAutoscalingCurrentStatus: React.FC<
       StatusIcon = InProgressIcon;
       statusText = t('Scaling is in progress');
       if (lastExpansion?.startTime) {
-        statusText += `, ${t('started at ')} ${getFormattedTime(lastExpansion?.startTime)}`;
+        statusText += `, ${t('started at ')} ${getFormattedTime(lastExpansion.startTime)}`;
       }
       break;
     case CapacityAutoscalingStatus.Succeeded:
       StatusIcon = GreenCheckCircleIcon;
       statusText = t('Completed');
       if (lastExpansion?.completionTime) {
-        statusText += `, ${getFormattedTime(lastExpansion?.completionTime)}`;
+        statusText += `, ${getFormattedTime(lastExpansion.completionTime)}`;
       }
       break;
     case CapacityAutoscalingStatus.Failed:
       StatusIcon = RedExclamationCircleIcon;
       statusText = t('Failed');
-      if (lastExpansion?.startTime) {
-        statusText += `, ${t('started at ')} ${getFormattedTime(lastExpansion?.startTime)}`;
+      if (error?.timestamp) {
+        statusText += `, ${getFormattedTime(error.timestamp)}`;
+      }
+      if (error?.message) {
+        statusText += `: ${error.message}`;
       }
       break;
     default:
@@ -105,7 +105,7 @@ const CapacityAutoscalingCurrentStatus: React.FC<
   }
 
   return (
-    <div className="pf-v5-u-mt-sm">
+    <div className="pf-v5-u-mt-sm pf-v5-u-font-size-sm">
       <span className="pf-v5-u-font-family-heading pf-v5-u-mr-sm">
         {t('Current status:')}
       </span>
@@ -122,9 +122,7 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const [enable, setEnable] = React.useState(false);
-  const [capacityLimit, setCapacityLimit] = React.useState<string>(
-    getCapacityAutoScalingDefaultLimit()
-  );
+  const [capacityLimit, setCapacityLimit] = React.useState<string>(null);
   const [validation, setValidation] = React.useState('');
   const [inProgress, setInProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState<Error>(null);
@@ -168,20 +166,26 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
     )
   );
 
-  const storageAutoScaler = storageAutoScalers?.find(
+  const clusterStorageAutoScalers = storageAutoScalers?.filter(
     (autoScaler) =>
       autoScaler.spec.storageCluster.name === getName(storageCluster) &&
       (_.isEmpty(autoScaler.spec.deviceClass) ||
         autoScaler.spec.deviceClass.toLowerCase() === DEFAULT_DEVICECLASS)
   );
+  // Pick the ui-created autoscaler if it exists.
+  let storageAutoScaler = clusterStorageAutoScalers?.find(
+    (autoScaler) =>
+      getName(autoScaler) === getStorageAutoScalerName(storageCluster)
+  );
+  if (!storageAutoScaler && clusterStorageAutoScalers.length > 0) {
+    storageAutoScaler = clusterStorageAutoScalers[0];
+  }
+
   const alreadyEnabled = !_.isEmpty(storageAutoScaler);
   let canEdit = isCapacityAutoScalingAllowedInDay2 && isLoaded && !isLoadError;
-  let status = '';
-  let lastExpansion: StorageAutoScalerKind['status']['lastExpansion'] = {};
-  if (alreadyEnabled) {
-    status = storageAutoScaler.status?.phase;
-    lastExpansion = storageAutoScaler.status?.lastExpansion;
-  }
+  const phase = storageAutoScaler?.status?.phase;
+  const lastExpansion = storageAutoScaler?.status?.lastExpansion;
+  const autoScalerError = storageAutoScaler?.status?.error;
 
   // Getting the osd size from the 1st device set is enough as we don't support
   // heterogeneous OSD sizes. See: https://access.redhat.com/articles/5001441
@@ -234,10 +238,7 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
           });
         }
       } else if (!enable && alreadyEnabled) {
-        if (
-          storageAutoScaler.status?.phase ===
-          CapacityAutoscalingStatus.InProgress
-        ) {
+        if (phase === CapacityAutoscalingStatus.InProgress) {
           throw new Error(
             t('Smart scaling cannot be disabled while scaling is in progress')
           );
@@ -247,7 +248,7 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
           model: StorageAutoScalerModel,
           resource: {
             metadata: {
-              name: getStorageAutoScalerName(storageCluster),
+              name: getName(storageAutoScaler),
               namespace: getNamespace(storageCluster),
             },
           },
@@ -310,7 +311,8 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
               )}
             {alreadyEnabled && (
               <CapacityAutoscalingCurrentStatus
-                currentStatus={status}
+                currentStatus={phase}
+                error={autoScalerError}
                 lastExpansion={lastExpansion}
               />
             )}

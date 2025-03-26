@@ -1,19 +1,29 @@
 import * as React from 'react';
-import { CAPACITY_AUTOSCALING_MAX_LIMIT_IN_TIB } from '@odf/shared/constants';
 import {
   StorageSizeUnit,
   StorageSizeUnitName,
 } from '@odf/shared/types/storage';
-import { getCapacityAutoScalingDefaultLimit } from '@odf/shared/utils/storage';
 import { Screen, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CapacityAutoScaling } from './capacity-autoscaling';
 
-const Wrapper: React.FC = () => {
-  const [enable, setEnable] = React.useState(false);
-  const [capacityLimit, setCapacityLimit] = React.useState(
-    getCapacityAutoScalingDefaultLimit()
-  );
+type WrapperProps = {
+  capacityLimit?: string;
+  enable?: boolean;
+  isEditView?: boolean;
+  osdAmount?: number;
+  osdSize?: string;
+};
+
+const Wrapper: React.FC<WrapperProps> = ({
+  capacityLimit: limit = '',
+  enable: enableFlag = false,
+  isEditView,
+  osdAmount = 3,
+  osdSize = `2${StorageSizeUnit.Ti}`,
+}) => {
+  const [enable, setEnable] = React.useState(enableFlag);
+  const [capacityLimit, setCapacityLimit] = React.useState<string>(limit);
 
   const onChange = (_, checked) => {
     setEnable(checked);
@@ -27,10 +37,11 @@ const Wrapper: React.FC = () => {
     <CapacityAutoScaling
       capacityLimit={capacityLimit}
       enable={enable}
+      isEditView={isEditView}
       onChange={onChange}
       onLimitSelect={onLimitSelect}
-      osdAmount={3}
-      osdSize={`2${StorageSizeUnit.Ti}`}
+      osdAmount={osdAmount}
+      osdSize={osdSize}
     />
   );
 };
@@ -43,6 +54,8 @@ const getAdditionalCostsAlert = (rtlScreen: Screen) =>
   rtlScreen.queryByText(
     /This may incur additional costs for the underlying storage./i
   );
+const getAdditionalCostsLabel = (rtlScreen: Screen) =>
+  rtlScreen.queryByText(/^incur additional costs$/i);
 const getPopover = (rtlScreen: Screen) =>
   rtlScreen.queryByRole('dialog', {
     description:
@@ -59,6 +72,7 @@ describe('Capacity Autoscaling', () => {
 
     expect(getCheckbox(screen)).not.toBeChecked();
     expect(getAdditionalCostsAlert(screen)).not.toBeInTheDocument();
+    expect(getAdditionalCostsLabel(screen)).not.toBeInTheDocument();
     expect(getTypeaheadDropdown(screen)).not.toBeInTheDocument();
   });
 
@@ -85,16 +99,20 @@ describe('Capacity Autoscaling', () => {
 
     expect(checkbox).toBeChecked();
     expect(getAdditionalCostsAlert(screen)).toBeVisible();
-    expect(getTypeaheadDropdown(screen).value).toBe(
-      `${CAPACITY_AUTOSCALING_MAX_LIMIT_IN_TIB} ${StorageSizeUnitName.TiB}`
-    );
+    expect(getAdditionalCostsLabel(screen)).not.toBeInTheDocument();
+    expect(getTypeaheadDropdown(screen)).toBeVisible();
   });
 
-  it('shows the selected option on capacity limit select', async () => {
-    const user = userEvent.setup();
-    render(<Wrapper />);
+  it('does not preselect any limit when enabled', () => {
+    render(<Wrapper enable={true} />);
 
-    await user.click(getCheckbox(screen));
+    expect(getTypeaheadDropdown(screen).value).toBeFalsy();
+  });
+
+  it('shows the limit selected by the user', async () => {
+    const user = userEvent.setup();
+    render(<Wrapper enable={true} />);
+
     const typeaheadDropdown = getTypeaheadDropdown(screen);
     await user.click(typeaheadDropdown);
 
@@ -102,6 +120,13 @@ describe('Capacity Autoscaling', () => {
       name: /^12 tib/i,
     });
     await user.click(option);
+
     expect(typeaheadDropdown.value).toBe(`12 ${StorageSizeUnitName.TiB}`);
+  });
+
+  it('shows additional costs label on edit view', () => {
+    render(<Wrapper isEditView />);
+
+    expect(getAdditionalCostsLabel(screen)).toBeVisible();
   });
 });

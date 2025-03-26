@@ -22,7 +22,11 @@ import {
   DeviceSet,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
+import {
+  getStorageSizeInTiBWithoutUnit,
+  humanizeBinaryBytes,
+  referenceForModel,
+} from '@odf/shared/utils';
 import {
   useK8sWatchResource,
   WatchK8sResource,
@@ -50,7 +54,6 @@ import {
 import {
   DefaultRequestSize,
   NO_PROVISIONER,
-  SIZE_IN_TB,
   requestedCapacityTooltip,
   storageClassTooltip,
 } from '../../constants';
@@ -210,12 +213,7 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
 
   const deviceSets: DeviceSet[] = storageCluster?.spec?.storageDeviceSets || [];
   const osdSizeWithUnit = getRequestedPVCSize(deviceSets?.[0]?.dataPVCTemplate);
-  // ODF support Gi and Ti for any custome size
-  const [osdSize, unit] = osdSizeWithUnit
-    ? osdSizeWithUnit.split(/(\d+)/).filter(Boolean)
-    : [];
-  const osdSizeWithoutUnit: number =
-    osdSize && unit ? +osdSize / SIZE_IN_TB[unit] : null;
+  const osdSizeWithoutUnit = getStorageSizeInTiBWithoutUnit(osdSizeWithUnit);
   const isNoProvionerSC: boolean = storageClass?.provisioner === NO_PROVISIONER;
   const selectedSCName: string = getName(storageClass);
   const deviceSetIndex: number = getCurrentDeviceSetIndex(
