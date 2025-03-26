@@ -73,6 +73,7 @@ import {
   ClusterClaim,
   SearchResultItemType,
   ACMPlacementType,
+  SearchResult,
 } from '../types';
 
 export type PlacementMap = {
@@ -670,3 +671,7 @@ export const getLabelsFromSearchResult = (
 
 export const getManagedClusterViewName = (managedClusterName: string): string =>
   MCV_NAME_TEMPLATE + managedClusterName;
+
+export const getSearchResultItems = (searchResult: SearchResult) => {
+  return searchResult?.data?.searchResult?.[0]?.related?.[0]?.items || [];
+};

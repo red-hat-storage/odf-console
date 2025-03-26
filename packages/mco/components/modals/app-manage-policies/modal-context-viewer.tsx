@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getName } from '@odf/shared';
 import { AssignPolicyView } from './assign-policy-view';
 import { ManagePolicyView } from './manage-policy-view';
 import {
@@ -70,6 +71,8 @@ export const ModalContextViewer: React.FC<ModalContextViewerProps> = ({
           loadError={loadError}
           modalActionContext={state.modalActionContext}
           modalType={modalType}
+          appName={getName(application)}
+          discoveredVMPVCs={application?.discoveredVMPVCs}
         />
       );
     }

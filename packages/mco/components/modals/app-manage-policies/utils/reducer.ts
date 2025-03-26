@@ -25,7 +25,6 @@ export enum ManagePolicyStateType {
   SET_VM_PROTECTION_NAME = 'SET_VM_PROTECTION_NAME',
   SET_SELECTED_POLICY_FOR_REPLICATION = 'SET_SELECTED_POLICY_FOR_REPLICATION',
   SET_K8S_SYNC_INTERVAL = 'SET_K8S_SYNC_INTERVAL',
-  SET_VM_PVCS = 'SET_VM_PVCS',
   SET_SHARED_VM_GROUP_INFO = 'SET_SHARED_VM_GROUP_INFO',
 }
 
@@ -47,7 +46,6 @@ export type AssignPolicyViewState = {
   replication?: {
     policy: DRPolicyType;
     k8sSyncInterval: string;
-    vmPVCs: string[];
   };
 };
 
@@ -72,7 +70,6 @@ export const initialPolicyState: ManagePolicyState = {
     replication: {
       policy: undefined,
       k8sSyncInterval: '5m',
-      vmPVCs: [],
     },
   },
 };
@@ -119,11 +116,6 @@ export type ManagePolicyStateAction =
       type: ManagePolicyStateType.SET_K8S_SYNC_INTERVAL;
       context: ModalViewContext;
       payload: string;
-    }
-  | {
-      type: ManagePolicyStateType.SET_VM_PVCS;
-      context: ModalViewContext;
-      payload: string[];
     }
   | {
       type: ManagePolicyStateType.SET_SHARED_VM_GROUP_INFO;
@@ -228,18 +220,6 @@ export const managePolicyStateReducer = (
           replication: {
             ...state[action.context]['replication'],
             k8sSyncInterval: action.payload,
-          },
-        },
-      };
-    }
-    case ManagePolicyStateType.SET_VM_PVCS: {
-      return {
-        ...state,
-        [action.context]: {
-          ...state[action.context],
-          replication: {
-            ...state[action.context]['replication'],
-            vmPVCs: action.payload,
           },
         },
       };
