@@ -8,9 +8,14 @@ import {
 import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
+  useACMSafeFetch,
 } from '@odf/mco/hooks';
 import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
-import { findDRPolicyUsingDRPC } from '@odf/mco/utils';
+import {
+  findDRPolicyUsingDRPC,
+  getSearchResultItems,
+  queryAppWorkloadPVCs,
+} from '@odf/mco/utils';
 import { getName, getNamespace, VirtualMachineModel } from '@odf/shared';
 import {
   K8sResourceCommon,
@@ -60,12 +65,28 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
   const [drPolicies, drPoliciesLoaded, drPoliciesLoadError] =
     useK8sWatchResource<DRPolicyKind[]>(getDRPolicyResourceObj());
 
+  // ACM search proxy API call
+  const searchQuery = React.useMemo(
+    () => queryAppWorkloadPVCs(pvcQueryFilter),
+    [pvcQueryFilter]
+  );
+  const [searchResult, searchLoadError, searchLoaded] =
+    useACMSafeFetch(searchQuery);
+
+  // VM Persistent Volume Claims (PVCs)
+  const discoveredVMPVCs = React.useMemo(() => {
+    if (searchLoaded && !searchLoadError) {
+      return getSearchResultItems(searchResult).map((vm) => vm.name);
+    }
+    return [];
+  }, [searchResult, searchLoadError, searchLoaded]);
+
   const vmNamespace = getNamespace(virtualMachine);
   const vmName = getName(virtualMachine);
 
   // Compute loading states
-  const isLoaded = drpcsLoaded && drPoliciesLoaded;
-  const loadError = drPoliciesLoadError || drpcsLoadError;
+  const isLoaded = drpcsLoaded && drPoliciesLoaded && searchLoaded;
+  const loadError = drPoliciesLoadError || drpcsLoadError || searchLoadError;
   const isLoadedWOError = isLoaded && !loadError;
 
   const applicationInfo: ApplicationInfoType = React.useMemo(() => {
@@ -87,7 +108,8 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
       vmNamespace,
       drpcInfo.length ? [] : [placementInfo], // Skip placement if DRPC exists
       generateDRInfo(drPolicy, drpcInfo),
-      pvcQueryFilter
+      pvcQueryFilter,
+      discoveredVMPVCs
     );
   }, [
     vmName,
@@ -98,6 +120,7 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
     drPolicies,
     isLoadedWOError,
     pvcQueryFilter,
+    discoveredVMPVCs,
   ]);
 
   const matchingPolicies: DRPolicyType[] = React.useMemo(() => {

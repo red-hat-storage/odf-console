@@ -43,7 +43,7 @@ export const fireManagedClusterAction = async (
   resourceBody: any,
   t: TFunction
 ): Promise<PollManagedClusterActionResult> => {
-  const resourceType = `${resourceKind.toLowerCase()}.${resourceApiVersion}.${resourceApiGroup}`;
+  const resourceType = `${resourceKind.toLowerCase()}.${resourceApiGroup}.${resourceApiVersion}`;
 
   const res = await k8sCreate<ACMManagedClusterActionKind>({
     model: ACMManagedClusterActionModel,

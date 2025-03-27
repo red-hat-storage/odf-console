@@ -41,10 +41,7 @@ import {
   VM_RECIPE_NAME,
 } from '../../../constants';
 import { getDRPlacementControlResourceObj } from '../../../hooks';
-import {
-  doNotDeletePVCAnnotationPromises,
-  unAssignPromises,
-} from './utils/k8s-utils';
+import { unAssignPromises } from './utils/k8s-utils';
 import {
   ModalActionContext,
   ModalViewContext,
@@ -446,6 +443,8 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
   setModalContext,
   setModalActionContext,
   modalType,
+  appName,
+  discoveredVMPVCs,
 }) => {
   const { t } = useCustomTranslation();
   const [localModalActionContext, setLocalModalActionContext] =
@@ -486,32 +485,27 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
   };
 
   const onRemove = async () => {
-    setInProgress(true);
-    await Promise.all(
-      doNotDeletePVCAnnotationPromises(drInfo.placementControlInfo)
-    )
-      .then(() =>
-        // Delete DRPC after adding the PVC annotation successfully
-        Promise.all(unAssignPromises(drInfo.placementControlInfo))
-          .then(() =>
-            setLocalModalActionContext(
-              ModalActionContext.DISABLE_DR_PROTECTION_SUCCEEDED
-            )
-          )
-          .catch((error) => {
-            setLocalModalActionContext(
-              ModalActionContext.DISABLE_DR_PROTECTION_FAILED
-            );
-            setErrorMessage(getErrorMessage(error) || error);
-          })
-      )
-      .catch((error) => {
-        setLocalModalActionContext(
-          ModalActionContext.DISABLE_DR_PROTECTION_FAILED
-        );
-        setErrorMessage(getErrorMessage(error) || error);
-      });
-    setInProgress(false);
+    try {
+      setInProgress(true);
+      await unAssignPromises(
+        drInfo.placementControlInfo,
+        appName,
+        workloadNamespace,
+        appType,
+        t,
+        discoveredVMPVCs
+      );
+      setLocalModalActionContext(
+        ModalActionContext.DISABLE_DR_PROTECTION_SUCCEEDED
+      );
+    } catch (error) {
+      setLocalModalActionContext(
+        ModalActionContext.DISABLE_DR_PROTECTION_FAILED
+      );
+      setErrorMessage(getErrorMessage(error) || error);
+    } finally {
+      setInProgress(false);
+    }
   };
 
   return (
@@ -585,6 +579,8 @@ type ManagePolicyViewProps = {
   setModalContext: (modalViewContext: ModalViewContext) => void;
   setModalActionContext: (modalActionContext: ModalActionContext) => void;
   modalType: ModalType;
+  appName: string;
+  discoveredVMPVCs: string[];
 };
 
 type DRInformationProps = {

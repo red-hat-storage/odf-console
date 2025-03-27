@@ -43,6 +43,7 @@ import {
   k8sDelete,
   k8sPatch,
   k8sCreate,
+  Patch,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
@@ -101,42 +102,117 @@ export const doNotDeletePVCAnnotationPromises = (
     },
   ];
   drpcs.forEach((drpc) => {
-    promises.push(
-      k8sPatch({
-        model: DRPlacementControlModel,
-        resource: {
-          metadata: {
-            name: getName(drpc),
-            namespace: getNamespace(drpc),
-          },
-        },
-        data: patch,
-      })
-    );
+    promises.push(updateDRPC(getName(drpc), getNamespace(drpc), patch));
   });
   return promises;
 };
 
-// ToDo(Gowtham): https://github.com/red-hat-storage/odf-console/issues/1449
-export const unAssignPromises = (drpcs: DRPlacementControlType[]) => {
-  const promises: Promise<K8sResourceKind>[] = [];
-  drpcs.forEach((drpc) => {
-    promises.push(
-      k8sDelete({
-        model: DRPlacementControlModel,
-        resource: {
-          metadata: {
-            name: getName(drpc),
-            namespace: getNamespace(drpc),
-          },
-        },
-        requestInit: null,
-        json: null,
-      })
-    );
+const updateDRPC = (drpcName: string, drpcNamespace: string, patch: Patch[]) =>
+  k8sPatch({
+    model: DRPlacementControlModel,
+    resource: {
+      metadata: {
+        name: drpcName,
+        namespace: drpcNamespace,
+      },
+    },
+    data: patch,
   });
-  return promises;
+
+const deleteDRPC = (drpcName: string, drpcNamespace: string) =>
+  k8sDelete({
+    model: DRPlacementControlModel,
+    resource: {
+      metadata: {
+        name: drpcName,
+        namespace: drpcNamespace,
+      },
+    },
+    requestInit: null,
+    json: null,
+  });
+
+const deleteDummyPlacement = (placementName: string) =>
+  k8sDelete({
+    model: ACMPlacementModel,
+    resource: {
+      metadata: {
+        name: placementName,
+        namespace: DISCOVERED_APP_NS,
+      },
+    },
+    requestInit: null,
+    json: null,
+  });
+
+const unAssignPromisesForDiscovered = async (
+  drpc: DRPlacementControlType,
+  vmName: string,
+  vmNamespace: string,
+  t: TFunction,
+  discoveredVMPVCs: string[]
+) => {
+  const protectionName = drpc.vmSharedGroupName;
+  const clusterName = drpc.placementInfo.deploymentClusters[0];
+  const protectedVMNames = drpc.vmSharedGroup;
+  const drpcName = getName(drpc);
+  const placementName = getName(drpc.placementInfo);
+
+  // Step 1 & 2: Remove label from VM and PVCs
+  await Promise.all([
+    updateVMLabels(vmName, vmNamespace, protectionName, clusterName, t, true),
+    updatePVCLabels(
+      discoveredVMPVCs,
+      vmNamespace,
+      protectionName,
+      clusterName,
+      t,
+      true
+    ),
+  ]);
+
+  if (drpc.vmSharedGroup.length > 1) {
+    const patch = [
+      {
+        op: 'replace',
+        path: `/spec/kubeObjectProtection/recipeParameters/${PROTECTED_VMS}`,
+        value: protectedVMNames.filter((name) => name !== vmName),
+      },
+    ];
+    await updateDRPC(drpcName, DISCOVERED_APP_NS, patch);
+  } else {
+    await Promise.all([
+      deleteDRPC(drpcName, DISCOVERED_APP_NS),
+      deleteDummyPlacement(placementName),
+    ]);
+  }
 };
+
+export const unAssignPromises = async (
+  drpcs: DRPlacementControlType[],
+  appName: string,
+  appNamespace: string,
+  appType: DRApplication,
+  t: TFunction,
+  discoveredVMPVCs: string[]
+) => {
+  if (appType !== DRApplication.DISCOVERED) {
+    await Promise.all(unAssignPromisesForManaged(drpcs));
+  } else {
+    await unAssignPromisesForDiscovered(
+      drpcs[0],
+      appName,
+      appNamespace,
+      t,
+      discoveredVMPVCs
+    );
+  }
+};
+
+export const unAssignPromisesForManaged = (drpcs: DRPlacementControlType[]) => [
+  doNotDeletePVCAnnotationPromises(drpcs),
+  drpcs.map((drpc) => deleteDRPC(getName(drpc), getNamespace(drpc))),
+];
 
 const placementAssignPromise = (placement: PlacementType) => {
   const patch = [];
@@ -233,7 +309,8 @@ export const updateVMLabels = async (
   vmNamespace: string,
   protectionName: string,
   clusterName: string,
-  t: TFunction
+  t: TFunction,
+  deleteLabel?: boolean
 ): Promise<K8sResourceKind> => {
   // Fetch VM details
   const mcvResponse = await fireManagedClusterView(
@@ -246,10 +323,17 @@ export const updateVMLabels = async (
     t
   );
 
+  const vmData = mcvResponse.result;
+
   // Ensure labels exist and update
-  mcvResponse.result.metadata.labels ||= {};
-  mcvResponse.result.metadata.labels[K8S_RESOURCE_SELECTOR_LABEL_KEY] =
-    protectionName;
+  vmData.metadata.labels ||= {};
+  if (deleteLabel) {
+    // Remove label if exists
+    delete vmData.metadata.labels[K8S_RESOURCE_SELECTOR_LABEL_KEY];
+  } else {
+    // Add or update the label
+    vmData.metadata.labels[K8S_RESOURCE_SELECTOR_LABEL_KEY] = protectionName;
+  }
 
   // Apply the updated labels and return updated VM object
   const mcaResponse = await fireManagedClusterAction(
@@ -272,7 +356,8 @@ export const updatePVCLabels = async (
   pvcNamespace: string,
   protectionName: string,
   clusterName: string,
-  t: TFunction
+  t: TFunction,
+  deleteLabel?: boolean
 ): Promise<K8sResourceKind[]> => {
   return Promise.all(
     pvcNames.map(async (pvcName) => {
@@ -286,10 +371,18 @@ export const updatePVCLabels = async (
         t
       );
 
+      const pvcData = mcvResponse.result;
+
       // Ensure labels exist and update
-      mcvResponse.result.metadata.labels ||= {};
-      mcvResponse.result.metadata.labels[K8S_RESOURCE_SELECTOR_LABEL_KEY] =
-        protectionName;
+      pvcData.metadata.labels ||= {};
+      if (deleteLabel) {
+        // Remove label if exists
+        delete pvcData.metadata.labels[K8S_RESOURCE_SELECTOR_LABEL_KEY];
+      } else {
+        // Add or update the label
+        pvcData.metadata.labels[K8S_RESOURCE_SELECTOR_LABEL_KEY] =
+          protectionName;
+      }
 
       // Apply updated labels and return updated PVC object
       const mcaResponse = await fireManagedClusterAction(
@@ -314,11 +407,12 @@ export const assignPromisesForDiscovered = async (
   placements: PlacementType[],
   vmNamespace: string,
   vmName: string,
-  t: TFunction
+  t: TFunction,
+  discoveredVMPVCs: string[]
 ): Promise<void> => {
   const {
     protectionType: { protectionName, protectionType, protectedVMNames },
-    replication: { k8sSyncInterval, policy, vmPVCs },
+    replication: { k8sSyncInterval, policy },
   } = state;
   const drpcName = `${protectionName}-drpc`;
 
@@ -327,7 +421,13 @@ export const assignPromisesForDiscovered = async (
   // Step 1 & 2: Label VM and PVCs
   await Promise.all([
     updateVMLabels(vmName, vmNamespace, protectionName, clusterName, t),
-    updatePVCLabels(vmPVCs, vmNamespace, protectionName, clusterName, t),
+    updatePVCLabels(
+      discoveredVMPVCs,
+      vmNamespace,
+      protectionName,
+      clusterName,
+      t
+    ),
   ]);
 
   if (protectionType === VMProtectionType.STANDALONE) {
@@ -390,7 +490,8 @@ export const assignPromises = async (
   appType: DRApplication,
   workloadNamespace: string,
   appName: string,
-  t: TFunction
+  t: TFunction,
+  discoveredVMPVCs: string[]
 ) => {
   if (appType === DRApplication.DISCOVERED) {
     await assignPromisesForDiscovered(
@@ -398,7 +499,8 @@ export const assignPromises = async (
       placements,
       workloadNamespace,
       appName,
-      t
+      t,
+      discoveredVMPVCs
     );
   } else {
     await assignPromisesForManaged(state, placements);

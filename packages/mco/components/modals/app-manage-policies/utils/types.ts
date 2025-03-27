@@ -64,6 +64,8 @@ export type ApplicationType = K8sResourceCommon & {
   drInfo?: DRInfoType | {};
   // ACM search API filter to read application PVCs
   pvcQueryFilter: PVCQueryFilter;
+  // List of discovered VM PVCs
+  discoveredVMPVCs?: string[];
 };
 
 export type ApplicationInfoType = ApplicationType | {};

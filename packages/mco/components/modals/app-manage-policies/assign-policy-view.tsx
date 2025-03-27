@@ -110,7 +110,6 @@ export const createSteps = ({
           policy={state.replication.policy}
           k8sResourceSyncInterval={state.replication.k8sSyncInterval}
           isValidationEnabled={isValidationEnabled}
-          pvcQueryFilter={pvcQueryFilter}
           dispatch={dispatch}
           isSharedVMProtection={
             state.protectionType.protectionType === VMProtectionType.SHARED
@@ -222,6 +221,7 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
     drInfo,
     pvcQueryFilter,
     workloadNamespace,
+    discoveredVMPVCs,
   } = applicationInfo;
 
   const protectedPVCSelectors: PVCSelectorType[] = isEditMode
@@ -246,7 +246,8 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
         appType,
         workloadNamespace,
         getName(applicationInfo),
-        t
+        t,
+        discoveredVMPVCs
       );
 
       // Success actions

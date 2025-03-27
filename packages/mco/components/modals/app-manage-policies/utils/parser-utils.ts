@@ -119,7 +119,8 @@ export const generateApplicationInfo = (
   workloadNamespace: string,
   plsInfo: PlacementType[],
   drInfo: DRInfoType | {},
-  pvcQueryFilter: PVCQueryFilter
+  pvcQueryFilter: PVCQueryFilter,
+  discoveredVMPVCs?: string[]
 ): ApplicationType => ({
   type: appType,
   apiVersion: application.apiVersion,
@@ -129,6 +130,7 @@ export const generateApplicationInfo = (
   placements: plsInfo,
   drInfo: drInfo,
   pvcQueryFilter: pvcQueryFilter,
+  discoveredVMPVCs: discoveredVMPVCs,
 });
 
 export const getClusterNamesFromPlacements = (placements: PlacementType[]) =>
