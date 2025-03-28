@@ -38,7 +38,7 @@ const managedClusterViews: ACMManagedClusterViewKind[][] = [
           apiVersion: 'v1',
           data: {
             'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\n',
           },
           kind: 'ConfigMap',
           metadata: {
@@ -60,7 +60,7 @@ const managedClusterViews: ACMManagedClusterViewKind[][] = [
           apiVersion: 'v1',
           data: {
             'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: cb805a94-bd68-41a7-9a89-6d420ae02002\n  storageClusterUID: 9dd5f858-d6ec-4d38-af41-16cc9cacabd4\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: cb805a94-bd68-41a7-9a89-6d420ae02002\n  storageClusterUID: 9dd5f858-d6ec-4d38-af41-16cc9cacabd4\n',
           },
           kind: 'ConfigMap',
           metadata: {
@@ -82,7 +82,7 @@ const managedClusterViews: ACMManagedClusterViewKind[][] = [
           apiVersion: 'v1',
           data: {
             'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\n',
           },
           kind: 'ConfigMap',
           metadata: {
@@ -106,7 +106,7 @@ const managedClusterViews: ACMManagedClusterViewKind[][] = [
           apiVersion: 'v1',
           data: {
             'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\n',
           },
           kind: 'ConfigMap',
           metadata: {
@@ -128,7 +128,7 @@ const managedClusterViews: ACMManagedClusterViewKind[][] = [
           apiVersion: 'v1',
           data: {
             'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+              'version: 4.18.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: 3a9ba188-ce63-11ef-97e4-00505684c451\n  storageClusterUID: 83e0a82f-9300-4e22-bbbe-82c5884fcfea\n',
           },
           kind: 'ConfigMap',
           metadata: {
@@ -150,7 +150,7 @@ const managedClusterViews: ACMManagedClusterViewKind[][] = [
           apiVersion: 'v1',
           data: {
             'openshift-storage_ocs-storagecluster.config.yaml':
-              'version: 4.17.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: cb805a94-bd68-41a7-9a89-6d420ae02002\n  storageClusterUID: 9dd5f858-d6ec-4d38-af41-16cc9cacabd4\nstorageSystemName: ocs-storagecluster-storagesystem\n',
+              'version: 4.17.0-103.stable\ndeploymentType: internal\nclients: []\nstorageCluster:\n  namespacedName:\n    namespace: openshift-storage\n    name: ocs-storagecluster\n  storageProviderEndpoint: ""\n  cephClusterFSID: cb805a94-bd68-41a7-9a89-6d420ae02002\n  storageClusterUID: 9dd5f858-d6ec-4d38-af41-16cc9cacabd4\n',
           },
           kind: 'ConfigMap',
           metadata: {
@@ -266,9 +266,7 @@ describe('Test drpolicy list page', () => {
     // Verify successful cluster selection
     expect(screen.getAllByText('east-1')).toHaveLength(2);
     expect(screen.getAllByText('west-1')).toHaveLength(2);
-    expect(
-      screen.getAllByText('ocs-storagecluster-storagesystem').length === 2
-    ).toBeTruthy();
+    expect(screen.getAllByText('ocs-storagecluster').length === 2).toBeTruthy();
     expect(screen.getByText('Asynchronous')).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -312,9 +310,7 @@ describe('Test drpolicy list page', () => {
     // Verify successful cluster selection
     expect(screen.getAllByText('east-1')).toHaveLength(2);
     expect(screen.getAllByText('east-2')).toHaveLength(2);
-    expect(
-      screen.getAllByText('ocs-storagecluster-storagesystem')
-    ).toHaveLength(2);
+    expect(screen.getAllByText('ocs-storagecluster')).toHaveLength(2);
     expect(screen.getByText('Synchronous')).toBeInTheDocument();
     expect(
       screen.getByText(
