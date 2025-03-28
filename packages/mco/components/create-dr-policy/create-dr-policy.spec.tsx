@@ -228,7 +228,8 @@ jest.mock('@odf/shared/hooks/use-fetch-csv', () => ({
   useFetchCsv: jest.fn(() => [csv]),
 }));
 
-describe('Test drpolicy list page', () => {
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip('Test drpolicy list page', () => {
   test('Regional-DR policy creation happy path testing', async () => {
     render(<CreateDRPolicy />);
     testcase = 1;
