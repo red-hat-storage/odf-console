@@ -100,77 +100,95 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
     getName(csv),
     odfNamespace
   )}`;
-
+  const isLoading =
+    !csvLoaded ||
+    !systemResult ||
+    !dashboardLinkResult ||
+    !systemName ||
+    !systemLink ||
+    !infrastructureLoaded ||
+    !ocsLoaded;
   return (
     <Card>
       <CardHeader>
         <CardTitle>{t('Details')}</CardTitle>
       </CardHeader>
-      <CardBody>
-        <DetailsBody>
-          <DetailItem key="service_name" title={t('Service name')}>
-            {isNsSafe && csvLoaded && !csvLoadError ? (
-              <Link to={servicePath}>{serviceName}</Link>
-            ) : (
-              serviceName
-            )}
-          </DetailItem>
-          <DetailItem
-            key="system_name"
-            title={t('System name')}
-            isLoading={
-              !systemResult ||
-              !dashboardLinkResult ||
-              !systemName ||
-              !systemLink
-            }
-            error={systemLoadError || dashboardLinkLoadError}
-          >
-            {hasMCG && (
-              <p data-test-id="system-name-mcg">
-                {t('Multicloud Object Gateway')}
-              </p>
-            )}
-            {hasRGW && (
-              <p
-                className="ceph-details-card__rgw-system-name--margin"
-                data-test-id="system-name-rgw"
-              >
-                {t('RADOS Object Gateway')}
-              </p>
-            )}
-          </DetailItem>
-          <DetailItem
-            key="provider"
-            title={t('Provider')}
-            error={infrastructureError}
-            isLoading={!infrastructureLoaded}
-          >
-            {infrastructurePlatform}
-          </DetailItem>
-          <DetailItem
-            key="version"
-            title={t('Version')}
-            isLoading={!csvLoaded}
-            error={csvLoadError}
-          >
-            {serviceVersion}
-          </DetailItem>
-          <DetailItem
-            key="encryption"
-            title={t('Encryption')}
-            isLoading={!ocsLoaded}
-            error={ocsError}
-          >
-            <EncryptionPopover
-              cluster={storageCluster}
-              isObjectDashboard={true}
-            />
-          </DetailItem>
-        </DetailsBody>
-      </CardBody>
+      {isLoading && <LoadingCardBody />}
+      {!isLoading && (
+        <CardBody>
+          <DetailsBody>
+            <DetailItem key="service_name" title={t('Service name')}>
+              {isNsSafe && csvLoaded && !csvLoadError ? (
+                <Link to={servicePath}>{serviceName}</Link>
+              ) : (
+                serviceName
+              )}
+            </DetailItem>
+            <DetailItem
+              key="system_name"
+              title={t('System name')}
+              isLoading={
+                !systemResult ||
+                !dashboardLinkResult ||
+                !systemName ||
+                !systemLink
+              }
+              error={systemLoadError || dashboardLinkLoadError}
+            >
+              {hasMCG && (
+                <p data-test-id="system-name-mcg">
+                  {t('Multicloud Object Gateway')}
+                </p>
+              )}
+              {hasRGW && (
+                <p
+                  className="ceph-details-card__rgw-system-name--margin"
+                  data-test-id="system-name-rgw"
+                >
+                  {t('RADOS Object Gateway')}
+                </p>
+              )}
+            </DetailItem>
+            <DetailItem
+              key="provider"
+              title={t('Provider')}
+              error={infrastructureError}
+              isLoading={!infrastructureLoaded}
+            >
+              {infrastructurePlatform}
+            </DetailItem>
+            <DetailItem
+              key="version"
+              title={t('Version')}
+              isLoading={!csvLoaded}
+              error={csvLoadError}
+            >
+              {serviceVersion}
+            </DetailItem>
+            <DetailItem
+              key="encryption"
+              title={t('Encryption')}
+              isLoading={!ocsLoaded}
+              error={ocsError}
+            >
+              <EncryptionPopover
+                cluster={storageCluster}
+                isObjectDashboard={true}
+              />
+            </DetailItem>
+          </DetailsBody>
+        </CardBody>
+      )}
     </Card>
   );
 };
-
+const LoadingCardBody: React.FC = () => (
+  <div>
+    <div className="skeleton-activity" />
+    <div className=" skeleton-activity" />
+    <div className="skeleton-activity" />
+    <div className=" skeleton-activity" />
+    <div className=" skeleton-activity" />
+  </div>
+);
 export const DetailsCard = ObjectServiceDetailsCard;
