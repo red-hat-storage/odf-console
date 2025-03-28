@@ -9,7 +9,6 @@ import {
   ExternalState,
 } from '@odf/odf-plugin-sdk/extensions';
 import { NetworkAttachmentDefinitionKind, NodeKind } from '@odf/shared/types';
-import { getCapacityAutoScalingDefaultLimit } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
 import {
   DiskSize,
@@ -75,7 +74,7 @@ export const initialState: CreateStorageSystemState = {
     pvCount: 0,
     resourceProfile: ResourceProfile.Balanced,
     capacityAutoScaling: {
-      capacityLimit: getCapacityAutoScalingDefaultLimit(),
+      capacityLimit: null,
       enable: false,
     },
     volumeValidationType: VolumeTypeValidation.NONE,

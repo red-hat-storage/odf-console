@@ -281,6 +281,9 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
     </MenuToggle>
   );
 
+  if (selectedValue !== selected) {
+    onOptionSelect(null, selectedValue);
+  }
   return (
     <div className={className}>
       <Select

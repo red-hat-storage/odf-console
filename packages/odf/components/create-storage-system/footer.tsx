@@ -24,11 +24,21 @@ import {
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { StorageClusterKind } from '@odf/shared';
-import { StorageClusterModel } from '@odf/shared/models';
-import { getName } from '@odf/shared/selectors';
+import {
+  StorageAutoScalerModel,
+  StorageClusterModel,
+} from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getGVKLabel } from '@odf/shared/utils';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  getGVKLabel,
+  getStorageAutoScalerName,
+  isNotFoundError,
+} from '@odf/shared/utils';
+import {
+  k8sDelete,
+  K8sResourceCommon,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   WizardFooter,
   WizardContext,
@@ -365,19 +375,41 @@ const handleReviewAndCreateNext = async (
       if (!isRhcs && !!waitToCreate) await waitToCreate(model);
       await createExternalSubSystem(subSystemPayloads);
     }
-    if (state.capacityAndNodes.capacityAutoScaling.enable && storageCluster) {
-      // Don't stop the workflow on autoscaler creation error.
+    if (storageCluster) {
       try {
-        await createStorageAutoScaler(
-          state.capacityAndNodes.capacityAutoScaling.capacityLimit,
-          storageCluster
-        );
+        // Delete preexisting ui-created autoscaler to avoid a misconfiguration.
+        await k8sDelete({
+          model: StorageAutoScalerModel,
+          resource: {
+            metadata: {
+              name: getStorageAutoScalerName(storageCluster),
+              namespace: getNamespace(storageCluster),
+            },
+          },
+        });
       } catch (error) {
-        // TODO: raise a notification once the notification system is implemented.
-        // eslint-disable-next-line no-console
-        console.error(
-          `Error while enabling capacity autoscaling: ${error.message}`
-        );
+        // It's OK if it didn't exist.
+        if (!isNotFoundError(error)) {
+          // eslint-disable-next-line no-console
+          console.error(
+            `Error while deleting preexisting capacity autoscaling: ${error.message}`
+          );
+        }
+      }
+      if (state.capacityAndNodes.capacityAutoScaling.enable) {
+        // Don't stop the workflow on autoscaler creation error.
+        try {
+          await createStorageAutoScaler(
+            state.capacityAndNodes.capacityAutoScaling.capacityLimit,
+            storageCluster
+          );
+        } catch (error) {
+          // TODO: raise a notification once the notification system is implemented.
+          // eslint-disable-next-line no-console
+          console.error(
+            `Error while enabling capacity autoscaling: ${error.message}`
+          );
+        }
       }
     }
     navigate('/odf/systems');
