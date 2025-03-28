@@ -23,8 +23,12 @@ export const ObjectServiceStatus: React.FC<ObjectServiceStatusProps> = ({
   const { t } = useCustomTranslation();
 
   const isMissing = !(RGWMetrics && MCGMetrics);
-  const title =
-    statusType === StatusType.HEALTH
+  const isLoading =
+    RGWMetrics?.state === HealthState.LOADING ||
+    MCGMetrics?.state === HealthState.LOADING;
+  const title = isLoading
+    ? ''
+    : statusType === StatusType.HEALTH
       ? t('Object Service')
       : t('Data Resiliency');
   const popupTitle =

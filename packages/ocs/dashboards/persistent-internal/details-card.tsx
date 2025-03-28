@@ -29,6 +29,7 @@ import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { PROVIDER_MODE } from '../../../odf/features';
 import { ODFSystemParams } from '../../types';
 import EncryptionPopover from '../common/details-card/encryption-popover';
+import '../object-service/details-card/details-card.scss';
 
 const storageClusterResource = {
   kind: referenceForModel(StorageClusterModel),
@@ -70,65 +71,76 @@ const DetailsCard: React.FC = () => {
     odfNamespace
   )}`;
   const serviceName = t('Data Foundation');
-
+  const isLoading = !csvLoaded || !infrastructureLoaded || !ocsLoaded;
   return (
     <Card>
       <CardHeader>
         <CardTitle>{t('Details')}</CardTitle>
       </CardHeader>
-      <CardBody>
-        <DetailsBody>
-          <DetailItem key="service_name" title={t('Service name')}>
-            {isNsSafe && csvLoaded && !csvError ? (
-              <Link data-test="ocs-link" to={servicePath}>
-                {serviceName}
-              </Link>
-            ) : (
-              serviceName
-            )}
-          </DetailItem>
-          <DetailItem
-            key="cluster_name"
-            title={t('Cluster name')}
-            error={ocsError as any}
-            isLoading={!ocsLoaded}
-          >
-            {ocsName}
-          </DetailItem>
-          <DetailItem
-            key="provider"
-            title={t('Provider')}
-            error={infrastructureError}
-            isLoading={!infrastructureLoaded}
-          >
-            {infrastructurePlatform}
-          </DetailItem>
-          <DetailItem title={t('Mode')}>
-            {isProviderMode ? t('Provider') : t('Internal')}
-          </DetailItem>
-          <DetailItem
-            key="version"
-            title={t('Version')}
-            isLoading={!csvLoaded}
-            error={csvError}
-          >
-            {serviceVersion}
-          </DetailItem>
-          <DetailItem
-            key="encryption"
-            title={t('Encryption')}
-            isLoading={!ocsLoaded}
-            error={ocsError}
-          >
-            <EncryptionPopover
-              cluster={storageCluster}
-              isObjectDashboard={false}
-            />
-          </DetailItem>
-        </DetailsBody>
-      </CardBody>
+      {isLoading && <LoadingCardBody />}
+      {!isLoading && (
+        <CardBody>
+          <DetailsBody>
+            <DetailItem key="service_name" title={t('Service name')}>
+              {isNsSafe && csvLoaded && !csvError ? (
+                <Link data-test="ocs-link" to={servicePath}>
+                  {serviceName}
+                </Link>
+              ) : (
+                serviceName
+              )}
+            </DetailItem>
+            <DetailItem
+              key="cluster_name"
+              title={t('Cluster name')}
+              error={ocsError as any}
+              isLoading={!ocsLoaded}
+            >
+              {ocsName}
+            </DetailItem>
+            <DetailItem
+              key="provider"
+              title={t('Provider')}
+              error={infrastructureError}
+              isLoading={!infrastructureLoaded}
+            >
+              {infrastructurePlatform}
+            </DetailItem>
+            <DetailItem title={t('Mode')}>
+              {isProviderMode ? t('Provider') : t('Internal')}
+            </DetailItem>
+            <DetailItem
+              key="version"
+              title={t('Version')}
+              isLoading={!csvLoaded}
+              error={csvError}
+            >
+              {serviceVersion}
+            </DetailItem>
+            <DetailItem
+              key="encryption"
+              title={t('Encryption')}
+              isLoading={!ocsLoaded}
+              error={ocsError}
+            >
+              <EncryptionPopover
+                cluster={storageCluster}
+                isObjectDashboard={false}
+              />
+            </DetailItem>
+          </DetailsBody>
+        </CardBody>
+      )}
     </Card>
   );
 };
-
+const LoadingCardBody: React.FC = () => (
+  <div>
+    <div className="skeleton-activity" />
+    <div className=" skeleton-activity" />
+    <div className="skeleton-activity" />
+    <div className=" skeleton-activity" />
+    <div className=" skeleton-activity" />
+  </div>
+);
 export default DetailsCard;
