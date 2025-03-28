@@ -6,17 +6,22 @@ import {
 } from '@odf/core/constants';
 import { StorageQuota } from '@odf/core/types';
 import { isUnlimitedQuota, isValidQuota } from '@odf/core/utils';
-import { ODF_PROXY_ROOT_PATH, FieldLevelHelp, ModalFooter } from '@odf/shared';
+import {
+  FieldLevelHelp,
+  ModalFooter,
+  StorageConsumerKind,
+  StorageConsumerModel,
+} from '@odf/shared';
 import { ModalBody, ModalTitle } from '@odf/shared/generic/ModalTitle';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ExternalLink, getLastLanguage } from '@odf/shared/utils';
-import { HttpError } from '@odf/shared/utils/error/http-error';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
 import {
   BlueInfoCircleIcon,
   GreenCheckCircleIcon,
   StatusIconAndText,
-  consoleFetch,
+  getAPIVersionForModel,
+  k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Trans } from 'react-i18next';
@@ -34,9 +39,11 @@ import {
   AlertVariant,
   ButtonVariant,
   TextArea,
+  TextInput,
 } from '@patternfly/react-core';
 import { CopyIcon } from '@patternfly/react-icons';
 import './onboarding-modal.scss';
+import useGetToken from './useGenerateToken';
 
 const unlimitedQuota: StorageQuota = {
   value: 0,
@@ -69,35 +76,38 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
   closeModal,
 }) => {
   const { t } = useCustomTranslation();
-  const [token, setToken] = React.useState('');
+  const [storageconsumerName, setStorageConsumerName] = React.useState('');
   const [tokenGenerationTimestamp, setTokenGenerationTimestamp] =
     React.useState('');
   const [inProgress, setInProgress] = React.useState(false);
   const [error, setError] = React.useState<string>(null);
   const [quota, setQuota] = React.useState({ ...unlimitedQuota });
+  const [storageConsumer, setStorageConsumer] = React.useState(null);
 
   const generateToken = () => {
     setInProgress(true);
-    consoleFetch(`${ODF_PROXY_ROOT_PATH}/provider-proxy/onboarding-tokens`, {
-      method: 'post',
-      body: quota.value > 0 ? JSON.stringify(quota) : null,
-    })
-      .then((response) => {
-        setInProgress(false);
-        if (!response.ok) {
-          throw new Error('Network response is not ok!');
-        }
-        return response.text();
-      })
-      .then((text) => {
-        setToken(text);
+    const resource: StorageConsumerKind = {
+      kind: StorageConsumerModel.kind,
+      apiVersion: getAPIVersionForModel(StorageConsumerModel),
+      metadata: {
+        name: storageconsumerName,
+      },
+      spec: {
+        storageQuotaInGiB: quota.value,
+      },
+    };
+    k8sCreate({ model: StorageConsumerModel, data: resource })
+      .then((sc) => {
+        setStorageConsumer(sc);
         setTokenGenerationTimestamp(getTimestamp());
       })
-      .catch((err: HttpError) => {
+      .catch((err) => {
         setInProgress(false);
         setError(err.message);
       });
   };
+
+  const token = useGetToken(storageConsumer);
 
   return (
     <Modal isOpen={isOpen} onClose={closeModal} variant={ModalVariant.medium}>
@@ -113,6 +123,18 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
       ) : (
         <>
           <ModalBody>
+            <FormGroup
+              label={t('Storage consumer name')}
+              className="pf-v5-u-mb-lg"
+            >
+              <TextInput
+                value={storageconsumerName}
+                type="text"
+                id="name"
+                onChange={(_e, v) => setStorageConsumerName(v)}
+                label={t('Storage consumer name')}
+              />
+            </FormGroup>
             <p className="odf-onboarding-modal__title-desc">
               {t(
                 'Add storage capacity for the client cluster to consume from the provider cluster.'
