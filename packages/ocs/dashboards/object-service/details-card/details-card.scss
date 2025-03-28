@@ -1,3 +1,11 @@
+@import '@odf/shared/styles/skeleton';
 .ceph-details-card__rgw-system-name--margin {
   margin-bottom: 0;
+}
+.skeleton-activity {
+  animation: $skeleton-animation;
+  background: $skeleton-color;
+  opacity: 0;
+  border-radius: 6px;
+  width:50%;
 }
