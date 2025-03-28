@@ -33,5 +33,4 @@ export type ODFInfoYamlObject = {
   deploymentType: string;
   clients: ConnectedClient[];
   storageCluster: InfoStorageCluster;
-  storageSystemName: string;
 };

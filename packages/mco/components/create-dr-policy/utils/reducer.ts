@@ -5,8 +5,6 @@ import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 export type StorageClusterInfoType = {
   // Namespaced storage cluster name.
   storageClusterNamespacedName: string;
-  // Namespaced storage system name.
-  storageSystemNamespacedName: string;
   // Ceph FSID to determine RDR/MDR.
   cephFSID: string;
   // ToDo: Use list type after ODF starts supporting

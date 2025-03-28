@@ -92,16 +92,11 @@ const getODFInfo = (
     const storageClusterName = odfInfo?.storageCluster?.namespacedName?.name;
     const storageClusterNamespace =
       odfInfo?.storageCluster?.namespacedName?.namespace;
-    const storageSystemName = odfInfo?.storageSystemName;
 
     const odfVersion = getMajorVersion(odfInfo?.version);
     const storageClusterCount = Object.keys(odfInfoConfigData).length;
     const storageClusterNamespacedName = getNameNamespace(
       storageClusterName,
-      storageClusterNamespace
-    );
-    const storageSystemNamespacedName = getNameNamespace(
-      storageSystemName,
       storageClusterNamespace
     );
     const cephFSID = odfInfo?.storageCluster?.cephClusterFSID;
@@ -118,7 +113,6 @@ const getODFInfo = (
         storageClusterCount,
         storageClusterInfo: {
           storageClusterNamespacedName,
-          storageSystemNamespacedName,
           cephFSID,
         },
       },
@@ -135,7 +129,6 @@ const getODFInfo = (
         storageClusterCount: 0,
         storageClusterInfo: {
           storageClusterNamespacedName: '',
-          storageSystemNamespacedName: '',
           cephFSID: '',
         },
       },

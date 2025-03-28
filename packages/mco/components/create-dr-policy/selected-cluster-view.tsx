@@ -24,8 +24,8 @@ export const SelectedClusterView: React.FC<SelectedClusterViewProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const { region, odfInfo } = cluster;
-  const [storageSystemName] = parseNamespaceName(
-    odfInfo.storageClusterInfo.storageSystemNamespacedName
+  const [storageClusterName] = parseNamespaceName(
+    odfInfo.storageClusterInfo.storageClusterNamespacedName
   );
   return (
     <Flex
@@ -40,10 +40,10 @@ export const SelectedClusterView: React.FC<SelectedClusterViewProps> = ({
       <FlexItem>
         <TextContent>
           <Text component={TextVariants.p}>{getName(cluster)}</Text>
-          {!!storageSystemName ? (
+          {!!storageClusterName ? (
             <>
               <Text component={TextVariants.small}>{region}</Text>
-              <Text component={TextVariants.small}>{storageSystemName}</Text>
+              <Text component={TextVariants.small}>{storageClusterName}</Text>
             </>
           ) : (
             <Text component={TextVariants.small}>
