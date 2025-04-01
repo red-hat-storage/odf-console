@@ -16,13 +16,13 @@ import {
 import { TimesIcon } from '@patternfly/react-icons';
 
 type TypeaheadDropdownProps = {
-  ariaLabel: string;
-  className: string;
-  id: string;
-  onSelect: (selected: string) => void;
+  ariaLabel?: string;
+  className?: string;
+  id?: string;
+  onSelect?: (selected: string) => void;
   items: SelectOptionProps[];
-  placeholder: string;
-  selectedValue: string;
+  placeholder?: string;
+  selectedValue?: string | number;
 };
 
 export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
@@ -30,20 +30,20 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
   className,
   id,
   items,
-  onSelect,
+  onSelect = () => undefined,
   placeholder,
   selectedValue,
 }) => {
   const { t } = useCustomTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
-  const [selected, setSelected] = React.useState<string>(selectedValue);
+  const selectedValueText = selectedValue ? String(selectedValue) : '';
+  const [selected, setSelected] = React.useState<string>(selectedValueText);
+  const [isUserSelection, setIsUserSelection] = React.useState(false);
   const selectedItem = items.find((item) => item.value === selected);
   const [inputValue, setInputValue] = React.useState<string>(
     selectedItem ? selectedItem.children : ''
   );
   const [filterValue, setFilterValue] = React.useState<string>('');
-  const [selectOptions, setSelectOptions] =
-    React.useState<SelectOptionProps[]>(items);
   const [focusedItemIndex, setFocusedItemIndex] = React.useState<number | null>(
     null
   );
@@ -52,38 +52,33 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
 
   const NO_RESULTS = t('no results');
 
-  React.useEffect(() => {
-    let newSelectOptions: SelectOptionProps[] = items;
+  let selectOptions: SelectOptionProps[] = items;
+  // Filter menu items based on the text input value when one exists
+  if (filterValue) {
+    selectOptions = items.filter((menuItem) =>
+      String(menuItem.children)
+        .toLowerCase()
+        .includes(filterValue.toLowerCase())
+    );
 
-    // Filter menu items based on the text input value when one exists
-    if (filterValue) {
-      newSelectOptions = items.filter((menuItem) =>
-        String(menuItem.children)
-          .toLowerCase()
-          .includes(filterValue.toLowerCase())
-      );
-
-      // When no options are found after filtering, display 'No results found'
-      if (!newSelectOptions.length) {
-        newSelectOptions = [
-          {
-            isAriaDisabled: true,
-            children: t('No results found for {{ filterValue }}', {
-              filterValue,
-            }),
-            value: NO_RESULTS,
-          },
-        ];
-      }
-
-      // Open the menu when the input value changes and the new value is not empty
-      if (!isOpen) {
-        setIsOpen(true);
-      }
+    // When no options are found after filtering, display 'No results found'
+    if (!selectOptions.length) {
+      selectOptions = [
+        {
+          isAriaDisabled: true,
+          children: t('No results found for {{ filterValue }}', {
+            filterValue,
+          }),
+          value: NO_RESULTS,
+        },
+      ];
     }
 
-    setSelectOptions(newSelectOptions);
-  }, [filterValue, isOpen, items, NO_RESULTS, t]);
+    // Open the menu when the input value changes and the new value is not empty
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+  }
 
   const createItemId = (value: any) =>
     `select-typeahead-${String(value).replace(' ', '-')}`;
@@ -112,27 +107,33 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
     }
   };
 
-  const selectOption = (value: string | number, content: string | number) => {
-    onSelect(value as string);
-
-    setInputValue(String(content));
-    setFilterValue('');
-    setSelected(String(value));
-
-    closeMenu();
-  };
-
-  const onOptionSelect = (
-    _event: React.MouseEvent<Element, MouseEvent> | undefined,
-    value: string | number | undefined
-  ) => {
+  const selectOption = (value: string | number) => {
     if (value && value !== NO_RESULTS) {
       const optionText = selectOptions.find(
         (option) => option.value === value
       )?.children;
-      selectOption(value, optionText);
+      setInputValue(String(optionText));
+      setFilterValue('');
+      setSelected(String(value));
+
+      closeMenu();
     }
   };
+
+  const onOptionSelect = (
+    _event: React.SyntheticEvent | undefined,
+    value: string | undefined
+  ) => {
+    const optionValue = value || '';
+    selectOption(optionValue);
+    onSelect(optionValue);
+    setIsUserSelection(true);
+  };
+
+  // We update the preselected value on re-render if the user hasn't interacted yet.
+  if (!isUserSelection && selectedValueText !== selected) {
+    selectOption(selectedValueText);
+  }
 
   const onTextInputChange = (
     _event: React.FormEvent<HTMLInputElement>,
@@ -145,6 +146,7 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
 
     if (value !== selected) {
       setSelected('');
+      setIsUserSelection(true);
     }
   };
 
@@ -205,13 +207,8 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
 
     switch (event.key) {
       case 'Enter':
-        if (
-          isOpen &&
-          focusedItem &&
-          focusedItem.value !== NO_RESULTS &&
-          !focusedItem.isAriaDisabled
-        ) {
-          selectOption(focusedItem.value, focusedItem.children as string);
+        if (isOpen && focusedItem && !focusedItem?.isAriaDisabled) {
+          onOptionSelect(event, focusedItem?.value);
         }
 
         if (!isOpen) {
@@ -239,6 +236,7 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
     resetActiveAndFocusedItem();
     textInputRef?.current?.focus();
     onSelect('');
+    setIsUserSelection(true);
   };
 
   const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
@@ -280,10 +278,6 @@ export const TypeaheadDropdown: React.FC<TypeaheadDropdownProps> = ({
       </TextInputGroup>
     </MenuToggle>
   );
-
-  if (selectedValue !== selected) {
-    onOptionSelect(null, selectedValue);
-  }
   return (
     <div className={className}>
       <Select
