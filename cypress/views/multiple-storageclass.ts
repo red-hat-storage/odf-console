@@ -26,7 +26,7 @@ export const fetchWorkerNodesJson = () =>
 
 export const addCapacity = (scName: string) => {
   cy.byLegacyTestID('item-filter').clear();
-  cy.byLegacyTestID('item-filter').type('ocs-storagecluster-storagesystem');
+  cy.byLegacyTestID('item-filter').type('ocs-storagecluster');
   cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
   cy.byTestID('kebab-button').click();
   cy.contains('Add Capacity').click();

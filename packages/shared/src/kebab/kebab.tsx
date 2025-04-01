@@ -83,6 +83,7 @@ type KebabProps = {
   };
   terminatingTooltip?: React.ReactNode;
   hideItems?: ModalKeys[];
+  customLabel?: string;
 };
 
 type KebabStaticProperties = {
@@ -135,6 +136,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   isDisabled,
   terminatingTooltip,
   hideItems,
+  customLabel,
 }) => {
   const { t } = useCustomTranslation();
   const launchModal = useModal();
@@ -150,7 +152,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   useClickOutside(dropdownRef, dropdownToggleRef, closeDropdown);
 
   const { resourceModel, resource } = extraProps;
-  const resourceLabel = resourceModel.label;
+  const resourceLabel = customLabel ?? resourceModel.label;
   const navigate = useNavigate();
 
   const [canCreate, createLoading] = useAccessReview({

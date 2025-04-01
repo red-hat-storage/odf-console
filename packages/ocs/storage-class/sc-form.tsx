@@ -43,6 +43,7 @@ import {
   InfrastructureModel,
   StorageClassModel,
   SecretModel,
+  StorageClusterModel,
   ODFStorageSystem,
 } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
@@ -100,8 +101,8 @@ import {
 
 type OnParamChange = (id: string, paramName: string, checkbox: boolean) => void;
 
-const storageSystemResource: WatchK8sResource = {
-  kind: referenceForModel(ODFStorageSystem),
+const storageClusterResource: WatchK8sResource = {
+  kind: referenceForModel(StorageClusterModel),
   isList: true,
 };
 
@@ -209,7 +210,7 @@ const StorageSystemDropdown: React.FC<{
         filterResource={filterOCSStorageSystems}
         id="system-name"
         data-test="storage-system-dropdown"
-        resource={storageSystemResource}
+        resource={storageClusterResource}
         resourceModel={ODFStorageSystem}
       />
       <span className="help-block">

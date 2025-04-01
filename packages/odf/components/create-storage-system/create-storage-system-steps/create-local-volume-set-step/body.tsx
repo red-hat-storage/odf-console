@@ -19,7 +19,7 @@ import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
 import { StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
-import { StorageSystemKind } from '@odf/shared/types';
+import { StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
@@ -224,7 +224,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
   };
 
   const [data, loaded, loadError] =
-    useK8sList<StorageSystemKind>(StorageClassModel);
+    useK8sList<StorageClassResourceKind>(StorageClassModel);
 
   const { schema, fieldRequirements } = React.useMemo(() => {
     const existingNames =

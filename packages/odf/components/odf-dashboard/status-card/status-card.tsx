@@ -11,12 +11,10 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import { StorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
+import { useWatchStorageSystems } from '@odf/shared/hooks/useWatchStorageSystems';
+import { StorageClusterModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
-import {
-  ClusterServiceVersionKind,
-  StorageSystemKind,
-} from '@odf/shared/types';
+import { ClusterServiceVersionKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getGVK,
@@ -52,19 +50,11 @@ const operatorResource: K8sResourceObj = (ns) => ({
   isList: true,
 });
 
-const storageSystemResource = {
-  kind: referenceForModel(ODFStorageSystem),
-  isList: true,
-};
-
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [csvData, csvLoaded, csvLoadError] =
     useSafeK8sWatchResource<ClusterServiceVersionKind[]>(operatorResource);
-  const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<
-    StorageSystemKind[]
-  >(storageSystemResource);
-
+  const [systems, systemsLoaded, systemsLoadError] = useWatchStorageSystems();
   const [healthData, healthError, healthLoading] = useCustomPrometheusPoll({
     query: STATUS_QUERIES[StorageDashboard.HEALTH],
     endpoint: 'api/v1/query' as any,
