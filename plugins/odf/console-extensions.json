@@ -684,10 +684,10 @@
     "type": "console.navigation/href",
     "properties": {
       "id": "storageclients",
-      "name": "%plugin__odf-console~Storage Clients%",
+      "name": "%plugin__odf-console~Storage Consumers%",
       "insertAfter": "odfdashboard",
       "section": "storage",
-      "href": "/odf/storage-clients"
+      "href": "/odf/storage-consumers"
     },
     "flags": {
       "required": ["PROVIDER_MODE"]
@@ -696,14 +696,14 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/storage-clients",
+      "path": "/odf/storage-consumers",
       "exact": true,
       "component": {
         "$codeRef": "storageConsumerListPage.ClientListPage"
+      },
+      "flags": {
+        "required": ["PROVIDER_MODE"]
       }
-    },
-    "flags": {
-      "required": ["PROVIDER_MODE"]
     }
   },
   {
@@ -806,6 +806,14 @@
       "provider": {
         "$codeRef": "storageClientAttacherAction.useStorageClientAttacherAction"
       }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/storage-consumers/create",
+      "exact": true,
+      "component": { "$codeRef": "storageConsumerCreate.default" }
     }
   }
 ]

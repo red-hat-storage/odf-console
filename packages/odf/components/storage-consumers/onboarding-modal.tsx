@@ -6,20 +6,33 @@ import {
 } from '@odf/core/constants';
 import { StorageQuota } from '@odf/core/types';
 import { isUnlimitedQuota, isValidQuota } from '@odf/core/utils';
-import { ODF_PROXY_ROOT_PATH, FieldLevelHelp, ModalFooter } from '@odf/shared';
+import {
+  FieldLevelHelp,
+  getNamespace,
+  ModalFooter,
+  SecretKind,
+  SecretModel,
+  StorageConsumerKind,
+  useK8sGet,
+} from '@odf/shared';
 import { ModalBody, ModalTitle } from '@odf/shared/generic/ModalTitle';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { ExternalLink, getLastLanguage } from '@odf/shared/utils';
-import { HttpError } from '@odf/shared/utils/error/http-error';
+import {
+  ExternalLink,
+  getLastLanguage,
+  humanizeBinaryBytesWithoutB,
+} from '@odf/shared/utils';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
 import {
   BlueInfoCircleIcon,
   GreenCheckCircleIcon,
+  k8sDelete,
+  k8sGet,
+  K8sKind,
   StatusIconAndText,
-  consoleFetch,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
-import { Trans } from 'react-i18next';
+import { TFunction, Trans } from 'react-i18next';
 import {
   Modal,
   Button,
@@ -34,6 +47,7 @@ import {
   AlertVariant,
   ButtonVariant,
   TextArea,
+  Title,
 } from '@patternfly/react-core';
 import { CopyIcon } from '@patternfly/react-icons';
 import './onboarding-modal.scss';
@@ -61,12 +75,48 @@ const getTimestamp = () =>
   }).format(new Date());
 
 type ClientOnBoardingModalProps = ModalComponent<{
+  extraProps: {
+    resource: StorageConsumerKind;
+  };
   isOpen: boolean;
 }>;
+
+const pollUntilAvailable = async (
+  secretName: string,
+  namespace: string,
+  t: TFunction,
+  count = 0
+): Promise<SecretKind> => {
+  if (count >= 3) {
+    throw new Error(t('Secret not found'));
+  }
+  try {
+    const secret = await k8sGet({
+      model: SecretModel,
+      name: secretName,
+      ns: namespace,
+    });
+    if (secret) {
+      return secret;
+    }
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(pollUntilAvailable(secretName, namespace, t));
+      }, 5000);
+    });
+  } catch {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(pollUntilAvailable(secretName, namespace, t));
+      }, 5000);
+    });
+  }
+};
 
 export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
   isOpen,
   closeModal,
+  extraProps: { resource: storageConsumer },
 }) => {
   const { t } = useCustomTranslation();
   const [token, setToken] = React.useState('');
@@ -74,39 +124,46 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
     React.useState('');
   const [inProgress, setInProgress] = React.useState(false);
   const [error, setError] = React.useState<string>(null);
-  const [quota, setQuota] = React.useState({ ...unlimitedQuota });
+  const secretName = storageConsumer.status?.onboardingTicketSecret?.name;
+  const namespace = getNamespace(storageConsumer);
+
+  const [secretResource, ,] = useK8sGet(
+    SecretModel as K8sKind,
+    secretName,
+    namespace
+  );
 
   const generateToken = () => {
     setInProgress(true);
-    consoleFetch(`${ODF_PROXY_ROOT_PATH}/provider-proxy/onboarding-tokens`, {
-      method: 'post',
-      body: quota.value > 0 ? JSON.stringify(quota) : null,
+    k8sDelete({
+      model: SecretModel,
+      resource: secretResource,
     })
-      .then((response) => {
-        setInProgress(false);
-        if (!response.ok) {
-          throw new Error('Network response is not ok!');
-        }
-        return response.text();
+      .then(() => {
+        pollUntilAvailable(secretName, namespace, t).then((secret) => {
+          setToken(secret.data['onboarding-token']);
+          setTokenGenerationTimestamp(getTimestamp());
+          setInProgress(false);
+        });
       })
-      .then((text) => {
-        setToken(text);
-        setTokenGenerationTimestamp(getTimestamp());
-      })
-      .catch((err: HttpError) => {
+      .catch((err) => {
         setInProgress(false);
-        setError(err.message);
+        setError(err);
       });
   };
 
+  const quotaInGib = storageConsumer.spec?.storageQuotaInGiB;
+  const storageQuota = quotaInGib
+    ? humanizeBinaryBytesWithoutB(quotaInGib, 'Gi').string
+    : t('Unlimited');
+
   return (
     <Modal isOpen={isOpen} onClose={closeModal} variant={ModalVariant.medium}>
-      <ModalTitle>{t('Client onboarding token')}</ModalTitle>
+      <ModalTitle>{t('Generate token')}</ModalTitle>
       {token ? (
         <ModalBody>
           <TokenViewBody
             token={token}
-            quota={quota}
             tokenGenerationTimestamp={tokenGenerationTimestamp}
           />
         </ModalBody>
@@ -115,9 +172,27 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
           <ModalBody>
             <p className="odf-onboarding-modal__title-desc">
               {t(
-                'Add storage capacity for the client cluster to consume from the provider cluster.'
+                `An onboarding token to authenticate and authorize an OpenShift cluster, granting access to the Data Foundation deployment, thus establishing a secure connection.`
               )}
             </p>
+            <Flex direction={{ default: 'column' }}>
+              <FlexItem>
+                <span className="odf-onboarding-modal__quota-desc">
+                  <Title headingLevel="h5" size="md">
+                    {t('StorageConsumer')}:{' '}
+                  </Title>
+                  {storageConsumer.metadata.name}
+                </span>
+              </FlexItem>
+              <FlexItem>
+                <span className="odf-onboarding-modal__quota-desc">
+                  <Title headingLevel="h5" size="md">
+                    {t('Storage quota')}:{' '}
+                  </Title>
+                  {storageQuota}
+                </span>
+              </FlexItem>
+            </Flex>
             {error && (
               <Alert
                 variant={AlertVariant.danger}
@@ -134,7 +209,6 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
                 </Trans>
               </Alert>
             )}
-            <StorageQuotaBody quota={quota} setQuota={setQuota} />
           </ModalBody>
           <ModalFooter inProgress={inProgress}>
             <Flex direction={{ default: 'row' }}>
@@ -285,13 +359,11 @@ const UnlimitedRadioDescription: React.FC<UnlimitedRadioDescriptionProps> = ({
 
 type TokenViewBodyProps = {
   token: string;
-  quota: StorageQuota;
   tokenGenerationTimestamp: string;
 };
 
 const TokenViewBody: React.FC<TokenViewBodyProps> = ({
   token,
-  quota,
   tokenGenerationTimestamp,
 }) => {
   const { t } = useCustomTranslation();
@@ -299,10 +371,6 @@ const TokenViewBody: React.FC<TokenViewBodyProps> = ({
   const onCopyToClipboard = () => {
     navigator.clipboard.writeText(token);
   };
-
-  const quotaText = isUnlimitedQuota(quota)
-    ? t('unlimited')
-    : `${quota.value} ${QuotaSizeUnitOptions[quota.unit]}`;
 
   return (
     <Flex direction={{ default: 'column' }}>
@@ -336,8 +404,7 @@ const TokenViewBody: React.FC<TokenViewBodyProps> = ({
       <FlexItem className="pf-v5-u-mb-lg">
         <Trans t={t} ns="plugin__odf-console">
           On an OpenShift cluster, deploy the Data Foundation client operator
-          using the generated token. The token includes an{' '}
-          <strong>{quotaText}</strong> storage quota for client consumption.
+          using the generated token.
         </Trans>
       </FlexItem>
       <FlexItem>
