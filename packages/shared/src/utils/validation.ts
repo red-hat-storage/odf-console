@@ -9,7 +9,10 @@ export const startAndEndsWithAlphanumerics = /^[a-z0-9](.*[a-z0-9])?$/;
 export const alphaNumericsPeriodsHyphensNonConsecutive =
   /(^[a-z0-9]|^([-.](?![-.])))+([a-z0-9]|([-.](?![-.])))*[a-z0-9]*$/;
 
+export const nonEmptyString = /^(?!\s*$).+/;
+
 export default {
   startAndEndsWithAlphanumerics,
   alphaNumericsPeriodsHyphensNonConsecutive,
+  nonEmptyString,
 };

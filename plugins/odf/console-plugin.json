@@ -48,6 +48,7 @@
     "s3BucketCors": "@odf/core/components/s3-browser/create-or-edit-cors-rules/CreateOrEditCorsRule",
     "s3BucketCorsDetails": "@odf/core/components/s3-browser/cors-details/CorsDetailsPage",
     "attachStorage": "@odf/core/components/attach-storage-storagesystem/attach-storage",
-    "storageClientAttacherAction": "@odf/core/modals/StorageClientDistributionModal/useStorageClientAttacherAction"
+    "storageClientAttacherAction": "@odf/core/modals/StorageClientDistributionModal/useStorageClientAttacherAction",
+    "storageConsumerCreate": "@odf/core/components/storage-consumers/CreateStorageConsumer"
   }
 }
