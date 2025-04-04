@@ -10,7 +10,6 @@ import {
   NO_PROVISIONER,
   Steps,
   StepsName,
-  STORAGE_CLUSTER_SYSTEM_KIND,
 } from '@odf/core/constants';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
@@ -30,11 +29,7 @@ import {
 } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  getGVKLabel,
-  getStorageAutoScalerName,
-  isNotFoundError,
-} from '@odf/shared/utils';
+import { getStorageAutoScalerName, isNotFoundError } from '@odf/shared/utils';
 import {
   k8sDelete,
   K8sResourceCommon,
@@ -60,7 +55,6 @@ import {
   createNoobaaExternalPostgresResources,
   setCephRBDAsDefault,
   createStorageCluster,
-  createStorageSystem,
   labelNodes,
   taintNodes,
   createOCSNamespace,
@@ -322,11 +316,6 @@ const handleReviewAndCreateNext = async (
     ) {
       await labelNodes(nodes, systemNamespace);
       await createAdditionalFeatureResources();
-      await createStorageSystem(
-        OCS_INTERNAL_CR_NAME,
-        STORAGE_CLUSTER_SYSTEM_KIND,
-        systemNamespace
-      );
       storageCluster = await createStorageCluster(
         state,
         systemNamespace,
@@ -343,7 +332,6 @@ const handleReviewAndCreateNext = async (
 
       const subSystemName = isRhcs ? OCS_EXTERNAL_CR_NAME : externalSystemName;
       const subSystemState = isRhcs ? connectionDetails : createStorageClass;
-      const subSystemKind = getGVKLabel(model);
 
       const shouldSetCephRBDAsDefault = setCephRBDAsDefault(
         isRBDStorageClassDefault,
@@ -359,7 +347,6 @@ const handleReviewAndCreateNext = async (
         shouldSetCephRBDAsDefault: shouldSetCephRBDAsDefault,
       });
 
-      await createStorageSystem(subSystemName, subSystemKind, systemNamespace);
       // create internal mode cluster along with Non-RHCS StorageSystem (if any Ceph cluster already does not exists)
       if (!hasOCS && !isRhcs) {
         await labelNodes(nodes, systemNamespace);

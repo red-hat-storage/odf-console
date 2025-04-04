@@ -1,8 +1,4 @@
-import {
-  ODFStorageSystem,
-  StorageClassModel,
-  StorageClusterModel,
-} from '@odf/shared/models';
+import { StorageClassModel, StorageClusterModel } from '@odf/shared/models';
 import { SelfSubjectAccessReviewModel } from '@odf/shared/models';
 import {
   StorageClassResourceKind,
@@ -30,8 +26,8 @@ const ssarChecks = [
   {
     flag: ODF_ADMIN,
     resourceAttributes: {
-      group: ODFStorageSystem.apiGroup,
-      resource: ODFStorageSystem.plural,
+      group: StorageClusterModel.apiGroup,
+      resource: StorageClusterModel.plural,
       verb: 'list',
     },
   },

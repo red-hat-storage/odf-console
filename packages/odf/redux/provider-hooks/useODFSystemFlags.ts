@@ -7,16 +7,8 @@ import {
 } from '@odf/core/utils';
 import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/shared';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import {
-  CephClusterModel,
-  StorageClusterModel,
-  ODFStorageSystem,
-} from '@odf/shared/models';
-import {
-  getName,
-  getNamespace,
-  getOwnerReferences,
-} from '@odf/shared/selectors';
+import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   StorageClusterKind,
   CephClusterKind,
@@ -81,9 +73,8 @@ const useODFSystemFlagsPayload = ({
             );
 
             const odfSystemFlags = {
-              odfSystemName: getOwnerReferences(sc)?.find(
-                (o) => o.kind === ODFStorageSystem.kind
-              )?.name,
+              // After deprecation of StorageSystem; system and cluster name are the same
+              odfSystemName: getName(sc),
               ocsClusterName: getName(sc),
               // Set to "true" if it is internal mode StorageCluster
               isInternalMode: !isExternalCluster(sc),

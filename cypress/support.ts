@@ -43,7 +43,7 @@ Cypress.Cookies.debug(true);
 
 Cypress.Commands.add('install', () => {
   cy.exec(
-    `oc get storagesystem ${STORAGE_SYSTEM_NAME} -n ${CLUSTER_NAMESPACE}`,
+    `oc get storagecluster ${STORAGE_SYSTEM_NAME} -n ${CLUSTER_NAMESPACE}`,
     {
       failOnNonZeroExit: false,
     }
@@ -88,15 +88,15 @@ Cypress.Commands.add('install', () => {
       cy.byLegacyTestID('horizontal-link-Storage Systems').click();
       cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
       cy.get('a').contains(STORAGE_SYSTEM_NAME);
-      cy.get('td[id="status"]', { timeout: 5 * MINUTE }).contains('Available', {
-        timeout: 5 * MINUTE,
+      cy.get('td[id="status"]', { timeout: 5 * MINUTE }).contains('Ready', {
+        timeout: 25 * MINUTE,
       });
       // Verify that the OCS SC is in READY state.
       cy.exec(OCS_SC_STATE, { timeout: 25 * MINUTE });
       cy.visit('/');
     } else {
       cy.log(
-        ' ocs-storagecluster-storagesystem is present, proceeding without installation.'
+        ' ocs-storagecluster is present, proceeding without installation.'
       );
     }
   });
