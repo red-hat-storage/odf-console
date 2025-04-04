@@ -15,6 +15,7 @@ import {
   DEFAULT_DEVICECLASS,
   getName,
   getNamespace,
+  getUID,
   GrayUnknownIcon,
   GreenCheckCircleIcon,
   RedExclamationCircleIcon,
@@ -168,7 +169,7 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
 
   const clusterStorageAutoScalers = storageAutoScalers?.filter(
     (autoScaler) =>
-      autoScaler.spec.storageCluster.name === getName(storageCluster) &&
+      autoScaler.spec.storageCluster.uid === getUID(storageCluster) &&
       (_.isEmpty(autoScaler.spec.deviceClass) ||
         autoScaler.spec.deviceClass.toLowerCase() === DEFAULT_DEVICECLASS)
   );

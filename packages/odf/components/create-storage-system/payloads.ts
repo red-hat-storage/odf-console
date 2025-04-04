@@ -10,6 +10,7 @@ import {
   getAPIVersion,
   getName,
   getNamespace,
+  getUID,
 } from '@odf/shared';
 import {
   NOOBAA_EXTERNAL_PG_TLS_SECRET_NAME,
@@ -223,6 +224,8 @@ export const createStorageAutoScaler = (
       storageCapacityLimit: capacityLimit,
       storageCluster: {
         name: getName(storageCluster),
+        namespace: getNamespace(storageCluster),
+        uid: getUID(storageCluster),
       },
     },
   };
