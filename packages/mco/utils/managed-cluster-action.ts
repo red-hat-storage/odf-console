@@ -52,9 +52,6 @@ export const fireManagedClusterAction = async (
       kind: ACMManagedClusterActionModel.kind,
       metadata: { generateName: 'mca-', namespace: clusterName },
       spec: {
-        cluster: { name: clusterName },
-        type: 'Action',
-        scope: { resourceType, namespace: resourceNamespace },
         actionType,
         kube: {
           resource: resourceType,

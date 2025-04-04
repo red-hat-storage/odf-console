@@ -185,15 +185,7 @@ export enum ManagedClusterActionType {
 
 export type ACMManagedClusterActionKind = K8sResourceCommon & {
   spec?: {
-    cluster?: {
-      name: string;
-    };
-    type?: 'Action';
     actionType?: ManagedClusterActionType;
-    scope?: {
-      resourceType: string;
-      namespace: string;
-    };
     kube?: {
       resource?: string;
       name?: string;
