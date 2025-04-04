@@ -37,21 +37,21 @@ export const configureVault = () => {
         const podName: string = pod.stdout;
 
         cy.log('Checking vault pod rsh is possible');
-        commandPoll(`oc exec -ti ${podName} hostname`, podName, false);
+        commandPoll(`oc exec ${podName} -- hostname`, podName, false);
 
         cy.exec(
-          `oc exec -ti ${podName} -- vault operator init --key-shares=1 --key-threshold=1 --format=json`
+          `oc exec ${podName} -- vault operator init --key-shares=1 --key-threshold=1 --format=json`
         ).then((vault) => {
           const vaultObj = JSON.parse(vault.stdout);
           const vaultKeys = vaultObj?.unseal_keys_b64;
           const vaultToken = vaultObj?.root_token;
           cy.log('Unsealing Vault');
           cy.exec(
-            `oc exec  -ti ${podName} -- vault operator unseal ${vaultKeys[0]}`
+            `oc exec ${podName} -- vault operator unseal ${vaultKeys[0]}`
           );
           cy.log('Enabling a key/value secrets engine');
           cy.exec(
-            `oc exec  -ti ${podName} -- /bin/sh -c 'export VAULT_TOKEN=${vaultToken} &&  vault secrets enable -path=secret kv'`
+            `oc exec ${podName} -- /bin/sh -c 'export VAULT_TOKEN=${vaultToken} &&  vault secrets enable -path=secret kv'`
           );
           cy.log(`vault token = ${vaultToken}`);
           cy.exec(
