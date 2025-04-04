@@ -1,12 +1,6 @@
 import * as React from 'react';
 import { DRPlacementControlModel, DRPolicyModel } from '@odf/shared';
-import {
-  render,
-  screen,
-  waitFor,
-  fireEvent,
-  act,
-} from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
 import {
   DRPlacementControlKind,
@@ -289,10 +283,8 @@ const moveToStep = async (step: number, user: UserEvent) => {
       expect(screen.getByDisplayValue('my-name')).toBeInTheDocument();
     });
 
-    await act(async () => {
-      // Next wizard step
-      await user.click(screen.getByText('Next'));
-    });
+    // Next wizard step
+    await user.click(screen.getByText('Next'));
   }
 
   if (step > 2) {

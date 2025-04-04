@@ -186,6 +186,22 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useK8sWatchResource: jest.fn(() => [[], true, undefined]),
 }));
 
+jest.mock('@odf/shared/details-page/datetime', () => ({
+  ...jest.requireActual('@odf/shared/details-page/datetime'),
+  getLastLanguage: () => 'en-US',
+  formatTime: (time: string) =>
+    time &&
+    new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+      timeZoneName: 'short',
+    }).format(new Date(time)),
+}));
+
 describe('Subscription manage disaster recovery modal', () => {
   test('Empty manage policy page test', async () => {
     testCase = 1;
