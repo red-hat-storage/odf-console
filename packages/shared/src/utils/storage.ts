@@ -7,7 +7,7 @@ import {
   STORAGE_SIZE_UNIT_NAME_MAP,
 } from '@odf/shared/constants';
 import { StorageClusterModel } from '@odf/shared/models';
-import { getName } from '@odf/shared/selectors/k8s';
+import { getName, getUID } from '@odf/shared/selectors/k8s';
 import {
   ClusterServiceVersionKind,
   StorageClusterKind,
@@ -46,7 +46,7 @@ export const getStorageSizeInTiBWithoutUnit = (
 };
 
 export const getStorageAutoScalerName = (storageCluster: StorageClusterKind) =>
-  `${getName(storageCluster)}-${DEFAULT_DEVICECLASS}`;
+  `${getName(storageCluster)}-${DEFAULT_DEVICECLASS}-${getUID(storageCluster)}`;
 
 export const isOCSStorageSystem = (
   resource: K8sResourceKind

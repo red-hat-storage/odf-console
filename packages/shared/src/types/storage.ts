@@ -236,6 +236,8 @@ export type StorageAutoScalerKind = K8sResourceCommon & {
     storageCapacityLimit: string;
     storageCluster: {
       name: string;
+      namespace: string;
+      uid: string;
     };
   };
   status?: {
