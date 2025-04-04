@@ -237,7 +237,7 @@ describe('Subscription manage disaster recovery modal', () => {
     expect(screen.getByText('Label selector:')).toBeInTheDocument();
     expect(screen.getByText('pvc=pvc1')).toBeInTheDocument();
     expect(
-      screen.getByText(/Volume: Last synced on Jun 6, 2023, 5:50 PM UTC/i)
+      screen.getByText(/Assigned on: 6 Jun 2023, 5:50 pm UTC/i)
     ).toBeInTheDocument();
   });
 
