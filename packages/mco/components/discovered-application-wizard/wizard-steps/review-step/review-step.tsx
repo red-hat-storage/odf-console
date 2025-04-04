@@ -62,6 +62,13 @@ export const Review: React.FC<ReviewProps> = ({ state }) => {
             <ReviewAndCreationItem label={t('Recipe namespace:')}>
               {recipeNamespace}
             </ReviewAndCreationItem>
+            <ReviewAndCreationItem label={t('Recipe Parameters:')}>
+              {Object.keys(recipe.recipeParameters).length
+                ? Object.entries(recipe.recipeParameters)
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join(', ')
+                : t('None')}
+            </ReviewAndCreationItem>
           </>
         )}
         {protectionMethod === ProtectionMethodType.RESOURCE_LABEL && (

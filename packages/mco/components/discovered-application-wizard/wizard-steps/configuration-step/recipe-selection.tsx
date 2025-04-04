@@ -15,7 +15,13 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
+  TextInput,
+  Button,
+  FlexItem,
+  Flex,
+  Tooltip,
 } from '@patternfly/react-core';
+import { MinusCircleIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import {
   EnrollDiscoveredApplicationAction,
   EnrollDiscoveredApplicationStateType,
@@ -51,6 +57,9 @@ export const RecipeSelection: React.FC<RecipeSelectionProps> = ({
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
+  const [keyValuePairs, setKeyValuePairs] = React.useState([
+    { key: '', value: '' },
+  ]);
 
   const searchQuery = React.useMemo(
     () => queryRecipesFromCluster(clusterName, namespaces.map(getName)),
@@ -80,6 +89,43 @@ export const RecipeSelection: React.FC<RecipeSelectionProps> = ({
       type: EnrollDiscoveredApplicationStateType.SET_RECIPE_NAME_NAMESPACE,
       payload: nameNamespace,
     });
+
+  const removeKeyValuePair = (index: number) => {
+    setKeyValuePairs((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleKeyValueChange = (
+    index: number,
+    field: 'key' | 'value',
+    newValue: string
+  ) => {
+    setKeyValuePairs((prev) => {
+      // Avoid redundant updates
+      if (prev[index][field] === newValue) return prev;
+
+      return prev.map((pair, i) =>
+        i === index ? { ...pair, [field]: newValue } : pair
+      );
+    });
+  };
+
+  React.useEffect(() => {
+    const validPairs = keyValuePairs.filter((pair) => pair.key.trim());
+    dispatch({
+      type: EnrollDiscoveredApplicationStateType.SET_RECIPE_PARAMETERS,
+      payload: Object.fromEntries(
+        validPairs.map(({ key, value }) => [key.trim(), value])
+      ),
+    });
+  }, [dispatch, keyValuePairs]);
+
+  const addKeyValuePair = () => {
+    setKeyValuePairs((prev) => {
+      // Check for empty keys in the latest state
+      if (prev.some((pair) => !pair.key.trim())) return prev;
+      return [...prev, { key: '', value: '' }];
+    });
+  };
 
   return (
     <>
@@ -116,6 +162,75 @@ export const RecipeSelection: React.FC<RecipeSelectionProps> = ({
         </FormGroup>
       ) : (
         <StatusBox loaded={searchLoaded} loadError={searchError} />
+      )}
+      {/* Key-Value Pair Input Fields */}
+      {recipeNameNamespace && (
+        <FormGroup
+          label={t('Recipe Parameters')}
+          fieldId="recipe-parameters"
+          labelIcon={
+            <Tooltip
+              content={t(
+                'Set of rules and configurations that govern how data is selected, stored, and restored.'
+              )}
+            >
+              <span> ⓘ </span>
+            </Tooltip>
+          }
+        >
+          {keyValuePairs.map((pair, index) => (
+            <Flex
+              key={`${index}-${pair.key}`}
+              alignItems={{ default: 'alignItemsCenter' }}
+            >
+              <FlexItem>
+                <TextInput
+                  id={`key-${index}`}
+                  placeholder={t('Key')}
+                  value={pair.key}
+                  onChange={(event) =>
+                    handleKeyValueChange(
+                      index,
+                      'key',
+                      event.currentTarget.value
+                    )
+                  }
+                />
+              </FlexItem>
+              <FlexItem>
+                <TextInput
+                  id={`value-${index}`}
+                  placeholder={t('Value')}
+                  value={pair.value}
+                  onChange={(event) =>
+                    handleKeyValueChange(
+                      index,
+                      'value',
+                      event.currentTarget.value
+                    )
+                  }
+                />
+              </FlexItem>
+              <FlexItem>
+                <Button
+                  variant="plain"
+                  onClick={() => removeKeyValuePair(index)}
+                  aria-label={t('Remove parameter')}
+                >
+                  <MinusCircleIcon />
+                </Button>
+              </FlexItem>
+            </Flex>
+          ))}
+          <Button
+            variant="link"
+            onClick={addKeyValuePair}
+            isDisabled={keyValuePairs.some((pair) => !pair.key.trim())}
+            icon={<PlusCircleIcon />}
+          >
+            {t('Add Parameter')}
+          </Button>
+        </FormGroup>
       )}
     </>
   );
