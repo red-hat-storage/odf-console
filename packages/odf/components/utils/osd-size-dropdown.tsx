@@ -1,27 +1,45 @@
 import * as React from 'react';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
+import {
+  StorageSizeUnit,
+  StorageSizeUnitName,
+} from '@odf/shared/types/storage';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getStorageSizeInTiBWithoutUnit } from '@odf/shared/utils';
 import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
-import { OSD_CAPACITY_SIZES } from '../../constants';
 import '../../style.scss';
 
 const valueLabelMap = (t: TFunction) => {
   return {
     // value (stored in redux-state): label (visible on UI)
-    '512Gi': t('0.5 TiB'),
-    '2Ti': t('2 TiB'),
-    '4Ti': t('4 TiB'),
+    [`512${StorageSizeUnit.Gi}`]: t('0.5 {{sizeUnit}}', {
+      sizeUnit: StorageSizeUnitName.TiB,
+    }),
+    [`1${StorageSizeUnit.Ti}`]: t('1 {{sizeUnit}}', {
+      sizeUnit: StorageSizeUnitName.TiB,
+    }),
+    [`2${StorageSizeUnit.Ti}`]: t('2 {{sizeUnit}}', {
+      sizeUnit: StorageSizeUnitName.TiB,
+    }),
+    [`4${StorageSizeUnit.Ti}`]: t('4 {{sizeUnit}}', {
+      sizeUnit: StorageSizeUnitName.TiB,
+    }),
+    [`8${StorageSizeUnit.Ti}`]: t('8 {{sizeUnit}}', {
+      sizeUnit: StorageSizeUnitName.TiB,
+    }),
   } as const;
 };
 
 const labelDescriptionMap = (t: TFunction) => {
   return {
     // label (visible on UI) : description to show below each label
-    [t('0.5 TiB')]: t('SmallScale'),
-    [t('2 TiB')]: t('Standard'),
-    [t('4 TiB')]: t('LargeScale'),
+    [t(`0.5 ${StorageSizeUnitName.TiB}`)]: t('ExtraSmallScale'),
+    [t(`1 ${StorageSizeUnitName.TiB}`)]: t('SmallScale'),
+    [t(`2 ${StorageSizeUnitName.TiB}`)]: t('Standard'),
+    [t(`4 ${StorageSizeUnitName.TiB}`)]: t('LargeScale'),
+    [t(`8 ${StorageSizeUnitName.TiB}`)]: t('ExtraLargeScale'),
   } as const;
 };
 
@@ -43,10 +61,14 @@ export const TotalCapacityText: React.FC<TotalCapacityTextProps> = ({
 
   return (
     <span>
-      {t('x {{replica}} replicas = {{osdSize, number}} TiB', {
-        replica,
-        osdSize: OSD_CAPACITY_SIZES[capacity] * replica,
-      })}
+      {t(
+        'x {{replica}} replicas = {{osdSize, number(maximumFractionDigits: 2)}} {{sizeUnit}}',
+        {
+          replica,
+          osdSize: getStorageSizeInTiBWithoutUnit(capacity) * replica,
+          sizeUnit: StorageSizeUnitName.TiB,
+        }
+      )}
     </span>
   );
 };

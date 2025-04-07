@@ -17,13 +17,36 @@ import { getGVKLabel } from '@odf/shared/utils/common';
 import { K8sResourceKind } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 
-export const getFormattedCapacity = (capacity: string) => {
+const breakdownCapacity = (capacityText: string): [string, string] => {
+  if (!capacityText) {
+    return [null, null];
+  }
+
+  const [textValue, unit] = capacityText.split(/([^a-zA-Z]+)/).filter(Boolean);
+  return [
+    Number.isInteger(Number(textValue))
+      ? textValue
+      : Number(textValue).toFixed(2),
+    unit,
+  ];
+};
+
+export const formatCapacityText = (capacityText: string) => {
+  const [capacity, unit] = breakdownCapacity(capacityText);
   if (!capacity) {
     return '-';
   }
-  return `${capacity.match(/[^a-zA-Z]+/g)[0]} ${
-    STORAGE_SIZE_UNIT_NAME_MAP[capacity.match(/[a-zA-Z]+/g)[0]]
-  }`;
+
+  return `${capacity} ${STORAGE_SIZE_UNIT_NAME_MAP[unit]}`;
+};
+
+export const formatCapacityValue = (capacityText: string) => {
+  const [capacity, unit] = breakdownCapacity(capacityText);
+  if (!capacity) {
+    return '';
+  }
+
+  return `${capacity}${unit}`;
 };
 
 export const getODFCsv = (csvList: ClusterServiceVersionKind[] = []) =>
