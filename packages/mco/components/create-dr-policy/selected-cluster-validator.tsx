@@ -314,11 +314,7 @@ const getClusterToSCMap = async (
 
         const storageID = getStorageID(sc);
         if (isValidCephProvisioner(provisioner) && storageID !== '') {
-          const scString = formatStorageClassString(
-            sc.name,
-            provisioner,
-            storageID
-          );
+          const scString = formatStorageClassString(sc.name, provisioner);
 
           return { clusterName, scString };
         } else {
@@ -343,44 +339,23 @@ const getClusterToSCMap = async (
 };
 
 // Optimized comparison using Set
-const findUnsupportedStorageClasses = (
+const findSupportedStorageClasses = (
   firstClusterSCs: string[],
   secondClusterSCs: string[]
-) => {
+): boolean => {
   const secondClusterSet = new Set(secondClusterSCs);
-  return firstClusterSCs.filter((sc) => !secondClusterSet.has(sc));
+  return firstClusterSCs.some((sc) => secondClusterSet.has(sc));
 };
 
-// Length validation for clusters
-const validateInClusterStorageClassLength = (
-  clusterToSCMap: Map<ClusterNameType, string[]>
-) => {
-  const [firstClusterSCs, secondClusterSCs] = Array.from(
-    clusterToSCMap.values()
-  );
-  return firstClusterSCs.length === secondClusterSCs.length;
-};
-
-// Full validation of cluster storage classes
+// Ensure both clusters have at least pair of valid storage class
 const validateClusterDetails = (
   clusterToSCMap: Map<ClusterNameType, string[]>
-) => {
+): boolean => {
   const [firstClusterSCs, secondClusterSCs] = Array.from(
     clusterToSCMap.values()
   );
-  const unsupportedSCs = findUnsupportedStorageClasses(
-    firstClusterSCs,
-    secondClusterSCs
-  );
 
-  // first condition, unsupported storageclass === ZERO means everything matching, that is MDR
-  // OR
-  // unsupportedSCs length is same as firstClusterSCs length, that means nothing is matching and it is RDR
-  // these TWO cases we support
-  return (
-    unsupportedSCs.length === 0 ||
-    firstClusterSCs.length === unsupportedSCs.length
-  );
+  return findSupportedStorageClasses(firstClusterSCs, secondClusterSCs);
 };
 
 // Main hook for storage class validation
@@ -388,9 +363,7 @@ const useStorageClassValidation = (
   selectedClusters: ManagedClusterInfoType[],
   t: TFunction
 ): [boolean, boolean, any] => {
-  const [clusterToSCDetailsMap, setClusterToSCDetailsMap] = React.useState(
-    new Map<ClusterNameType, string[]>()
-  );
+  const [result, setResult] = React.useState<boolean>(false);
   const [isCompleted, setCompleted] = React.useState(false);
   const [clusterSCMapError, setClusterSCMapError] = React.useState<
     string | null
@@ -405,33 +378,27 @@ const useStorageClassValidation = (
     useACMSafeFetch(searchQuery);
 
   React.useEffect(() => {
-    getClusterToSCMap(searchResult, searchLoaded, searchError, t)
-      .then((clusterToSCMap) => setClusterToSCDetailsMap(clusterToSCMap))
-      .catch((error) => {
-        setClusterSCMapError(
-          error instanceof Error
-            ? error.message
-            : t('something went wrong while getting storageclasses')
-        );
-      });
-  }, [searchResult, searchError, searchLoaded, t]);
-
-  const result = React.useMemo(() => {
     setCompleted(false);
-    if (clusterToSCDetailsMap.size !== 2) return false;
+    if (searchLoaded && !searchError) {
+      getClusterToSCMap(searchResult, searchLoaded, searchError, t)
+        .then((clusterToSCMap) => {
+          setResult(validateClusterDetails(clusterToSCMap));
+          setCompleted(true);
+        })
+        .catch((error) => {
+          setClusterSCMapError(
+            error instanceof Error
+              ? error.message
+              : t('something went wrong while getting storageclasses')
+          );
+          setCompleted(true);
+        });
+    } else if (searchError) {
+      setCompleted(true);
+    }
+  }, [searchResult, searchError, searchLoaded, t, setCompleted, setResult]);
 
-    const scValidity =
-      validateInClusterStorageClassLength(clusterToSCDetailsMap) &&
-      validateClusterDetails(clusterToSCDetailsMap);
-    setCompleted(true);
-    return scValidity;
-  }, [clusterToSCDetailsMap]);
-
-  return [
-    result,
-    searchLoaded && isCompleted,
-    searchError || clusterSCMapError,
-  ];
+  return [result, isCompleted, searchError || clusterSCMapError];
 };
 
 // Helper functions
@@ -439,12 +406,8 @@ const getStorageID = (sc: SearchResultItemType) => {
   return getLabelsFromSearchResult(sc)?.[STORAGE_ID_LABEL_KEY]?.[0] ?? '';
 };
 
-const formatStorageClassString = (
-  name: string,
-  provisioner: string,
-  storageID: string
-) => {
-  return `${name}/${provisioner}/${storageID}`;
+const formatStorageClassString = (name: string, provisioner: string) => {
+  return `${name}/${provisioner}`;
 };
 
 const isValidCephProvisioner = (provisioner: string) => {
