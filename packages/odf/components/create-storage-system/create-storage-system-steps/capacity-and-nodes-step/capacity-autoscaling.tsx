@@ -7,7 +7,8 @@ import {
   StorageSizeUnit,
 } from '@odf/shared';
 import {
-  getFormattedCapacity,
+  formatCapacityText,
+  formatCapacityValue,
   getStorageSizeInTiBWithoutUnit,
 } from '@odf/shared/utils';
 import {
@@ -23,16 +24,11 @@ import {
 import './capacity-autoscaling.scss';
 import { InfoCircleIcon } from '@patternfly/react-icons';
 
-const getItem = (capacityLimit: number) => {
-  const limit = Number.isInteger(capacityLimit)
-    ? capacityLimit
-    : capacityLimit.toFixed(2);
-  return {
-    'data-limit': limit,
-    value: `${limit}${StorageSizeUnit.Ti}`,
-    children: getFormattedCapacity(`${limit}${StorageSizeUnit.Ti}`),
-  };
-};
+const getItem = (capacityLimit: number) => ({
+  'data-limit': capacityLimit,
+  value: formatCapacityValue(`${capacityLimit}${StorageSizeUnit.Ti}`),
+  children: formatCapacityText(`${capacityLimit}${StorageSizeUnit.Ti}`),
+});
 
 const getCapacityLimitDropdownItems = (
   osdAmount: number,
@@ -40,11 +36,11 @@ const getCapacityLimitDropdownItems = (
   capacityLimit: string
 ): SelectOptionProps[] => {
   const items = [];
-  let capacity: number;
-
   if (osdSize <= 0 || osdAmount <= 0) {
     return items;
   }
+
+  let capacity = osdSize * osdAmount;
 
   // Vertical scaling.
   while (osdSize * 2 <= CAPACITY_OSD_MAX_SIZE_IN_TIB) {
@@ -148,7 +144,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
                   {t(
                     'OSD expansion is limited to a maximum of {{osdMaxSize}}.',
                     {
-                      osdMaxSize: getFormattedCapacity(
+                      osdMaxSize: formatCapacityText(
                         `${CAPACITY_OSD_MAX_SIZE_IN_TIB}${StorageSizeUnit.Ti}`
                       ),
                     }
@@ -194,7 +190,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
             items={capacityItems}
             onSelect={onLimitSelect}
             placeholder={capacityLimitPlaceHolder}
-            selectedValue={capacityLimit}
+            selectedValue={formatCapacityValue(capacityLimit)}
           />
         </div>
       )}
