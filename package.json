@@ -65,7 +65,9 @@
     "**/package.json": "npx --yes sort-package-json@3.0.0"
   },
   "resolutions": {
+    "cache-loader/loader-utils": "^1.4.2",
     "cross-spawn": "^7.0.6",
+    "loader-utils": "^2.0.4",
     "nanoid": "^3.3.8",
     "postcss": "^8.4.49",
     "tough-cookie": "^4.1.3",
