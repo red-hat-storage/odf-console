@@ -46,7 +46,6 @@ import {
   clientHeartBeatFilter,
   getMajorMinorVersion,
   versionMismatchFilter,
-  storageConsumerNameFilter,
 } from './list-filter';
 import { StorageQuotaUtilizationProgress } from './QuotaUtilizationProgress';
 import { RotateKeysModal } from './rotate-keys-modal';
@@ -377,6 +376,7 @@ const StorageClientRow: React.FC<
                   {
                     key: 'GENERATE_ONBOARDING_TOKEN',
                     value: t('Generate client onboarding token'),
+                    isDisabled: isLocalClient,
                     component: React.lazy(() =>
                       import('./onboarding-modal').then((m) => ({
                         default: m.ClientOnBoardingModal,
@@ -395,7 +395,7 @@ const StorageClientRow: React.FC<
                   },
                   {
                     key: ModalKeys.DELETE,
-                    value: t('Delete storage client'),
+                    value: t('Delete StorageConsumer'),
                     isDisabled: !allowDeletion,
                     component: React.lazy(
                       () => import('./remove-client-modal')
@@ -460,18 +460,16 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
   // "rowFiltersWithNameOverride":
   // - needed for overriding the filtering (default) on the CR's "name" (need to read the name from the CR's status instead)
   // - only passing to "useListPageFilter" hook & not "ListPageFilter" component
-  const [rowFilters, rowFiltersWithNameOverride] = React.useMemo(() => {
+  const [rowFilters] = React.useMemo(() => {
     const customFilters = [
       clientHeartBeatFilter(t),
       versionMismatchFilter(t, serviceVersion),
     ];
-    return [customFilters, [storageConsumerNameFilter(), ...customFilters]];
+    return [customFilters, [...customFilters]];
   }, [t, serviceVersion]);
 
-  const [data, filteredData, onFilterChange] = useListPageFilter(
-    storageClients,
-    rowFiltersWithNameOverride
-  );
+  const [data, filteredData, onFilterChange] =
+    useListPageFilter(storageClients);
 
   const launchModalOnClick = (modalComponent: ModalComponent) => () => {
     launchModal(modalComponent, { isOpen: true });

@@ -1,10 +1,12 @@
 import * as React from 'react';
-import { StorageConsumerModel } from '@odf/shared';
+import {
+  getUID,
+  StorageConsumerModel,
+  VolumeGroupSnapshotClassModel,
+} from '@odf/shared';
 import {
   getName,
   ModalFooter,
-  RowComponentType,
-  SelectableTable,
   StorageClassModel,
   StorageClassResourceKind,
   StorageConsumerKind,
@@ -13,40 +15,17 @@ import {
   VolumeSnapshotClassModel,
 } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
-import { sortRows } from '@odf/shared/utils';
 import {
   K8sModel,
   k8sPatch,
-  ListPageFilter,
   useK8sWatchResource,
-  useListPageFilter,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Button, Flex, FlexItem, Modal } from '@patternfly/react-core';
-import { Td } from '@patternfly/react-table';
 import { generatePatchForDistributionOfResources } from '../../components/ResourceDistribution/utils';
-import {
-  getClusterName,
-  LastHeartBeat,
-} from '../../components/storage-consumers/client-list';
 import './storageClientAttacherComponent.scss';
-
-const RowComponent: React.FC<RowComponentType<StorageConsumerKind>> = ({
-  row: client,
-}) => {
-  const name = getName(client);
-  const clusterName = getClusterName(client);
-  return (
-    <>
-      <Td>{name}</Td>
-      <Td>{clusterName}</Td>
-      <Td>
-        <LastHeartBeat heartbeat={client.status?.lastHeartbeat} />{' '}
-      </Td>
-    </>
-  );
-};
+import { StorageConsumerTable } from './StorageConsumerTable';
 
 const storageConsumerResource: WatchK8sResource = {
   isList: true,
@@ -69,30 +48,92 @@ export const StorageClientAttacherModal: ModalComponent<
   const [inProgress, setProgress] = React.useState(false);
   const [error, setError] = React.useState('');
 
-  const [selectedResources, setSelectedResources] = React.useState<
-    StorageConsumerKind[]
-  >([]);
+  const [selectedResources, setSelectedResources] = React.useState<string[]>(
+    []
+  );
   const { t } = useCustomTranslation();
   const [storageConsumers, loaded] = useK8sWatchResource<StorageConsumerKind[]>(
     storageConsumerResource
   );
-  const [unfilteredData, filteredData, onFilterChange] =
-    useListPageFilter(storageConsumers);
+  const isIntialSelection = React.useRef(false);
+
+  const resourceTypeKey: keyof StorageConsumerKind['spec'] =
+    resourceModel.kind === StorageClassModel.kind
+      ? 'storageClasses'
+      : resourceModel.kind === VolumeSnapshotClassModel.kind
+        ? 'volumeSnapshotClasses'
+        : 'volumeGroupSnapshotClasses';
+
+  React.useEffect(() => {
+    if (loaded && !isIntialSelection.current) {
+      const storageConsumersWithCurrentResource = storageConsumers?.filter(
+        (consumer) => {
+          const resourceNames = consumer.spec[resourceTypeKey]?.map(
+            (res) => res.name
+          );
+          return resourceNames?.includes(resourceName);
+        }
+      );
+      setSelectedResources(storageConsumersWithCurrentResource.map(getUID));
+      isIntialSelection.current = true;
+    }
+  }, [
+    loaded,
+    resourceModel.kind,
+    storageConsumers,
+    resourceName,
+    resourceTypeKey,
+  ]);
 
   const onSubmit = React.useCallback(() => {
     const promises = [];
     setProgress(true);
-    const storageClassNames =
-      resourceModel.kind === StorageClassModel.kind ? [resourceName] : [];
-    const volumeSnapshotClassNames =
-      resourceModel.kind === VolumeSnapshotClassModel.kind
-        ? [resourceName]
-        : [];
-    selectedResources.forEach((storageConsumer) => {
+    storageConsumers?.forEach((storageConsumer) => {
+      const isStorageConsumerSelected = selectedResources.includes(
+        getUID(storageConsumer)
+      );
+      const storageClassNames =
+        resourceModel.kind === StorageClassModel.kind &&
+        isStorageConsumerSelected
+          ? [
+              resourceName,
+              ...storageConsumer.spec?.storageClasses?.map((sc) => sc.name),
+            ]
+          : [...storageConsumer.spec?.storageClasses?.map((sc) => sc.name)];
+      const volumeSnapshotClassNames =
+        resourceModel.kind === VolumeSnapshotClassModel.kind &&
+        isStorageConsumerSelected
+          ? [
+              resourceName,
+              ...storageConsumer.spec?.volumeSnapshotClasses?.map(
+                (vsc) => vsc.name
+              ),
+            ]
+          : [
+              ...storageConsumer.spec?.volumeSnapshotClasses?.map(
+                (vsc) => vsc.name
+              ),
+            ];
+      const volumeGroupSnapshotClassNames =
+        resourceModel.kind === VolumeGroupSnapshotClassModel.kind &&
+        isStorageConsumerSelected
+          ? [
+              resourceName,
+              ...storageConsumer.spec?.volumeGroupSnapshotClasses?.map(
+                (vgsc) => vgsc.name
+              ),
+            ]
+          : [
+              resourceName,
+              ...storageConsumer.spec?.volumeGroupSnapshotClasses?.map(
+                (vgsc) => vgsc.name
+              ),
+            ];
       const patch = generatePatchForDistributionOfResources(
         storageConsumer,
         storageClassNames,
-        volumeSnapshotClassNames
+        volumeSnapshotClassNames,
+        volumeGroupSnapshotClassNames
       );
       promises.push(
         k8sPatch({
@@ -111,22 +152,14 @@ export const StorageClientAttacherModal: ModalComponent<
         setProgress(false);
         setError(err?.message);
       });
-  }, [closeModal, resourceModel.kind, resourceName, selectedResources]);
+  }, [
+    closeModal,
+    resourceModel.kind,
+    resourceName,
+    selectedResources,
+    storageConsumers,
+  ]);
 
-  const columns = [
-    {
-      columnName: t('Name'),
-      sortFunction: (a, b, c) => sortRows(a, b, c, 'metadata.name'),
-    },
-    {
-      columnName: t('Cluster name'),
-      sortFunction: (a, b, c) => sortRows(a, b, c, 'status.client.clusterName'),
-    },
-    {
-      columnName: t('Last heartbeat'),
-      sortFunction: (a, b, c) => sortRows(a, b, c, 'status.lastHeartbeat'),
-    },
-  ];
   return (
     <Modal
       isOpen={isOpen}
@@ -134,20 +167,12 @@ export const StorageClientAttacherModal: ModalComponent<
       title={t('Manage distribution of Storage clients')}
       variant="medium"
     >
-      <ListPageFilter
-        data={unfilteredData}
+      <StorageConsumerTable
         loaded={loaded}
-        onFilterChange={onFilterChange}
-        hideColumnManagement={true}
-      />
-      <SelectableTable<StorageConsumerKind>
-        rows={filteredData}
-        columns={columns}
-        RowComponent={RowComponent}
-        selectedRows={selectedResources}
-        setSelectedRows={setSelectedResources}
-        loaded={loaded}
-        loadError={error}
+        resources={storageConsumers}
+        columns={['Name', 'Cluster name', 'Last heartbeat']}
+        selectedResources={selectedResources}
+        setSelectedResources={setSelectedResources}
       />
       <ModalFooter inProgress={inProgress} errorMessage={error}>
         <Flex direction={{ default: 'row' }}>
