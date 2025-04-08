@@ -240,7 +240,9 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
       } else if (!enable && alreadyEnabled) {
         if (phase === CapacityAutoscalingStatus.InProgress) {
           throw new Error(
-            t('Smart scaling cannot be disabled while scaling is in progress')
+            t(
+              'Automatic capacity scaling cannot be disabled while scaling is in progress'
+            )
           );
         }
 
@@ -271,10 +273,10 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alreadyEnabled, validate]);
-  const Header = <ModalHeader>{t('Smart capacity scaling')}</ModalHeader>;
+  const Header = <ModalHeader>{t('Automatic capacity scaling')}</ModalHeader>;
   return (
     <Modal
-      aria-label={t('Smart capacity scaling')}
+      aria-label={t('Automatic capacity scaling')}
       className="odf-capacity-autoscaling__modal"
       header={Header}
       isOpen={isOpen}
@@ -321,10 +323,10 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
                 className="pf-v5-u-mt-md"
                 isInline
                 variant={AlertVariant.warning}
-                title={t('Disable smart capacity scaling?')}
+                title={t('Disable automatic capacity scaling?')}
               >
                 {t(
-                  'Disabling Smart Scaling will prevent the cluster from automatically increasing raw capacity when needed. This may lead to capacity shortages and potential disruptions.'
+                  'Disabling Automatic capacity scaling will prevent the cluster from automatically increasing raw capacity when needed. This may lead to capacity shortages and potential disruptions.'
                 )}
               </Alert>
             )}
@@ -354,7 +356,9 @@ const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
             className="pf-v5-u-mt-md"
             isInline
             variant={AlertVariant.danger}
-            title={t('Smart Scaling is available only for dynamic storage.')}
+            title={t(
+              'Automatic capacity scaling is available only for dynamic storage.'
+            )}
           >
             {t('Local storage is also present in the cluster.')}
           </Alert>
