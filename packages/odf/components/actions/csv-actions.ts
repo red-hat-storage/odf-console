@@ -155,7 +155,7 @@ const CapacityAutoscalingAction = (
 ): Action => {
   return {
     id: 'capacity-autoscaling-action',
-    label: 'Smart capacity scaling',
+    label: 'Automatic capacity scaling',
     insertAfter: 'configure-performance-storage-system',
     cta: () => {
       launchModal(CapacityAutoscalingModal, {

@@ -107,13 +107,13 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
     <div className={className}>
       {!isEditView && (
         <div className="pf-v5-u-font-family-heading pf-v5-u-mb-sm">
-          {t('Smart capacity scaling')}
+          {t('Automatic capacity scaling')}
         </div>
       )}
       <Checkbox
         label={
           <span>
-            {t('Enable smart capacity scaling for your cluster')}
+            {t('Enable automatic capacity scaling for your cluster')}
             {isEditView && (
               <Label
                 color="cyan"
@@ -132,9 +132,9 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
               'Opt-in to automatically add additional raw capacity equivalent to the configured deployment size whenever used capacity reaches 70%. This ensures your deployment scales seamlessly to meet demand.'
             )}
             <Popover
-              aria-label={t('How does smart scaling work?')}
+              aria-label={t('How does automatic capacity scaling work?')}
               bodyContent={t(
-                'Smart scaling adds capacity through OSD expansion by resizing existing OSDs or adding new OSDs to maintain node balance.'
+                'Automatic capacity scaling adds capacity through OSD expansion by resizing existing OSDs or adding new OSDs to maintain node balance.'
               )}
               footerContent={
                 <>
@@ -180,7 +180,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
           </div>
           <div>
             {t(
-              'The maximum limit to which the cluster can expand in the cloud. Smart scaling is suspended if exceeded.'
+              'The maximum limit to which the cluster can expand in the cloud. Automatic capacity scaling is suspended if exceeded.'
             )}
           </div>
           <TypeaheadDropdown

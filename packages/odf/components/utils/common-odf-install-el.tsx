@@ -70,7 +70,7 @@ export const VALIDATIONS = (
       return {
         variant: AlertVariant.danger,
         title: t(
-          'Select a cluster expansion limit for smart scaling to continue.'
+          'Select a cluster expansion limit for automatic capacity scaling to continue.'
         ),
         actionLinkStep: CreateStepsSC.STORAGEANDNODES,
         actionLinkText: t('Back to nodes selection'),

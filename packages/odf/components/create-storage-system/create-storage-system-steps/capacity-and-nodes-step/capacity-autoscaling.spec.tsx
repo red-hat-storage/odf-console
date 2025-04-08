@@ -48,7 +48,7 @@ const Wrapper: React.FC<WrapperProps> = ({
 
 const getCheckbox = (rtlScreen: Screen) =>
   rtlScreen.getByRole<HTMLInputElement>('checkbox', {
-    name: /enable smart capacity scaling for your cluster/i,
+    name: /enable automatic capacity scaling for your cluster/i,
   });
 const getAdditionalCostsAlert = (rtlScreen: Screen) =>
   rtlScreen.queryByText(
@@ -59,7 +59,7 @@ const getAdditionalCostsLabel = (rtlScreen: Screen) =>
 const getPopover = (rtlScreen: Screen) =>
   rtlScreen.queryByRole('dialog', {
     description:
-      /Smart scaling adds capacity through OSD expansion by resizing existing OSDs or adding new OSDs to maintain node balance./i,
+      /Automatic capacity scaling adds capacity through OSD expansion by resizing existing OSDs or adding new OSDs to maintain node balance./i,
   });
 const getTypeaheadDropdown = (rtlScreen: Screen) =>
   rtlScreen.queryByRole<HTMLInputElement>('combobox', {

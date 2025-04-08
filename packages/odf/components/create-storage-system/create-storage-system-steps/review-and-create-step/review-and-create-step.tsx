@@ -173,7 +173,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             })}
           </ListItem>
           <ListItem>
-            {t('Smart scaling: {{autoscaling}}', {
+            {t('Automatic capacity scaling: {{autoscaling}}', {
               autoscaling: capacityAndNodes.capacityAutoScaling.enable
                 ? 'Enabled'
                 : 'Disabled',

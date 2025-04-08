@@ -308,7 +308,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   ) {
     customKebabItems.push({
       key: 'CAPACITY_AUTOSCALING',
-      value: t('Smart capacity scaling'),
+      value: t('Automatic capacity scaling'),
       component: React.lazy(
         () =>
           import(
