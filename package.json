@@ -165,10 +165,16 @@
     "webpack-dev-server": "^4.9.2"
   },
   "resolutions": {
+    "cross-spawn": "^7.0.6",
+    "dompurify": "^2.4.2",
+    "http-proxy-middleware": "^2.0.7",
     "postcss": "^8.4.49",
     "tough-cookie": "^4.1.3",
     "webpack": "5.94.0",
-    "webpack-dev-server/express": "^4.21.0"
+    "webpack-dev-middleware": "^5.3.4",
+    "webpack-bundle-analyzer/ws": "^7.5.10",
+    "webpack-dev-server/express": "^4.21.0",
+    "ws": "^8.18.0"
   },
   "engines": {
     "node": ">=14.17.0"
