@@ -67,7 +67,7 @@ const mapStorageClusterToStorageSystem = (
     labels: getLabels(storageCluster),
   },
   spec: {
-    kind: `${storageCluster.kind}.${storageCluster.apiVersion}`,
+    kind: `${storageCluster.kind.toLowerCase()}.${storageCluster.apiVersion}`,
     name: getName(storageCluster),
     namespace: getNamespace(storageCluster),
   },
