@@ -9934,6 +9934,13 @@ makeerror@1.0.12:
   dependencies:
     tmpl "1.0.5"
 
+map-age-cleaner@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/map-age-cleaner/-/map-age-cleaner-0.1.3.tgz#7d583a7306434c055fe474b0f45078e6e1b4b92a"
+  integrity sha512-bJzx6nMoP6PDLPBFmg7+xRKeFZvFboMrGlxmNj9ClvX53KrmvM5bXFXEWjbz4cz1AFn+jWJ9z/DJSz7hrs0w3w==
+  dependencies:
+    p-defer "^1.0.0"
+
 matcher-collection@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/matcher-collection/-/matcher-collection-2.0.1.tgz#90be1a4cf58d6f2949864f65bb3b0f3e41303b29"
@@ -9970,6 +9977,14 @@ media-typer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
   integrity sha1-hxDXrwqmJvj/+hzgAWhUUmMlV0g=
+
+mem@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/mem/-/mem-10.0.0.tgz#08348356ec2c62148d788f07f2e781dea68524cd"
+  integrity sha512-ucHuGY0h9IKre1NAf8iRyBQhlmuISr0zEOHuLc7szfkUWiaVzuG1g7piPkVl4rVj362pjxsqiOANtDdI7mv86A==
+  dependencies:
+    map-age-cleaner "^0.1.3"
+    mimic-fn "^4.0.0"
 
 memfs@^3.4.1:
   version "3.6.0"
@@ -10087,6 +10102,11 @@ mimic-fn@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-2.1.0.tgz#7ed2c2ccccaf84d3ffcb7a69b57711fc2083401b"
   integrity sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==
+
+mimic-fn@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-4.0.0.tgz#60a90550d5cb0b239cca65d893b1a53b29871ecc"
+  integrity sha512-vqiC06CuhBTUdZH+RYl8sFrL096vA45Ok5ISO6sE/Mr1jRbGH4Csnhi8f3wKVl7x8mO4Au7Ir9D3Oyv1VYMFJw==
 
 min-indent@^1.0.0:
   version "1.0.1"
@@ -10544,6 +10564,11 @@ ospath@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/ospath/-/ospath-1.2.2.tgz#1276639774a3f8ef2572f7fe4280e0ea4550c07b"
   integrity sha1-EnZjl3Sj+O8lcvf+QoDg6kVQwHs=
+
+p-defer@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/p-defer/-/p-defer-1.0.0.tgz#9f6eb182f6c9aa8cd743004a7d4f96b196b0fb0c"
+  integrity sha512-wB3wfAxZpk2AzOfUMJNL+d36xothRSyj8EXOa4f6GMqYDN9BJaaSISbsk+wS9abmnebVw95C2Kb5t85UmpCxuw==
 
 p-from-callback@^2.0.0:
   version "2.0.0"
