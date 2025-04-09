@@ -49,20 +49,6 @@
     }
   },
   {
-    "type": "console.navigation/href",
-    "properties": {
-      "id": "odfobjectservice",
-      "insertBefore": "persistentvolumes",
-      "insertAfter": "odfdashboard",
-      "section": "storage",
-      "name": "%plugin__odf-client-console~Object Storage%",
-      "href": "/odf/object-storage"
-    },
-    "flags": {
-      "disallowed": ["PROVIDER_MODE"]
-    }
-  },
-  {
     "type": "console.redux-reducer",
     "properties": {
       "scope": "odfConsoleRedux",
@@ -81,97 +67,6 @@
     },
     "flags": {
       "disallowed": ["PROVIDER_MODE"]
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": ["/odf/object-storage"],
-      "exact": false,
-      "component": { "$codeRef": "mcg.default" }
-    },
-    "flags": {
-      "disallowed": ["PROVIDER_MODE"]
-    }
-  },
-  {
-    "type": "odf.horizontalNav/tab",
-    "properties": {
-      "id": "buckets",
-      "name": "%plugin__odf-client-console~Buckets%",
-      "contextId": "odf-object-service",
-      "href": "buckets",
-      "component": {
-        "$codeRef": "mcg.BucketsListPage"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": ["/odf/object-storage/create-bucket"],
-      "exact": true,
-      "component": { "$codeRef": "mcg.CreateBucket" }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName",
-      "exact": false,
-      "component": {
-        "$codeRef": "mcg.s3BucketOverview"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/create/~new",
-      "exact": false,
-      "component": {
-        "$codeRef": "mcg.CreateLifecycleRule"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/edit",
-      "exact": false,
-      "component": {
-        "$codeRef": "mcg.EditLifecycleRule"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/create/~new",
-      "exact": false,
-      "component": {
-        "$codeRef": "mcg.CreateCorsRule"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/edit",
-      "exact": false,
-      "component": {
-        "$codeRef": "mcg.EditCorsRule"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/details",
-      "exact": false,
-      "component": {
-        "$codeRef": "mcg.CorsDetailsPage"
-      }
     }
   }
 ]
