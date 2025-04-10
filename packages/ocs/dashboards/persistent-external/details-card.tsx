@@ -6,6 +6,7 @@ import { getStorageClusterInNs } from '@odf/core/utils';
 import { ODF_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { SecretModel, StorageClusterModel } from '@odf/shared/models';
+import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { getName } from '@odf/shared/selectors';
 import {
   SecretKind,
@@ -21,7 +22,6 @@ import {
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Base64 } from 'js-base64';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';

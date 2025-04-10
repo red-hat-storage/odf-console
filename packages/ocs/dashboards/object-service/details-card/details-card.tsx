@@ -15,6 +15,7 @@ import {
   ClusterServiceVersionModel,
   StorageClusterModel,
 } from '@odf/shared/models';
+import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -27,7 +28,6 @@ import {
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Link, useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ODFSystemParams } from '../../../types';
