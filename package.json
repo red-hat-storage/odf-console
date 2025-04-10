@@ -184,6 +184,9 @@
   },
   "resolutions": {
     "@openshift-console/plugin-shared/showdown/yargs/cliui/wrap-ansi/strip-ansi/ansi-regex": "2.0.0",
+    "**/@typescript-eslint/typescript-estree/semver": "^7.7.1",
+    "**/cypress/semver": "^7.7.1",
+    "braces": "^3.0.3",
     "cache-loader/loader-utils": "^1.4.2",
     "cache-loader/loader-utils/json5": "^1.0.2",
     "eslint-plugin-import/tsconfig-paths/json5": "^1.0.2",
