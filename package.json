@@ -160,7 +160,6 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-html-reporter": "^3.10.2",
     "jest-silent-reporter": "^0.5.0",
-    "marge": "^1.0.1",
     "mocha-junit-reporter": "^2.0.0",
     "mochawesome": "^6.2.2",
     "mochawesome-merge": "^4.2.0",
@@ -173,9 +172,14 @@
     "webpack-dev-server": "^4.15.2"
   },
   "resolutions": {
+    "@openshift-console/plugin-shared/showdown/yargs/cliui/wrap-ansi/strip-ansi/ansi-regex": "2.0.0",
+    "cache-loader/loader-utils": "^1.4.2",
+    "cache-loader/loader-utils/json5": "^1.0.2",
     "cross-spawn": "^7.0.6",
+    "eslint-plugin-import/tsconfig-paths/json5": "^1.0.2",
     "http-proxy-middleware": "^2.0.7",
     "jest-environment-jsdom/jsdom": "^20.0.3",
+    "loader-utils": "^2.0.4",
     "nanoid": "^3.3.8",
     "postcss": "^8.4.49",
     "tough-cookie": "^4.1.3",
