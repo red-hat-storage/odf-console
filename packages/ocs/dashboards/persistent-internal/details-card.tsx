@@ -9,6 +9,7 @@ import {
   ClusterServiceVersionModel,
   InfrastructureModel,
 } from '@odf/shared/models';
+import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { getName } from '@odf/shared/selectors';
 import { InfrastructureKind, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -23,7 +24,6 @@ import {
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Link, useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { PROVIDER_MODE } from '../../../odf/features';
