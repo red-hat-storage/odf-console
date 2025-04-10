@@ -18,6 +18,7 @@ export * from './list-page';
 export * as modals from './modals';
 export * from './models';
 export * from './monitoring';
+export * from './overview-page';
 export * from './popup';
 export * from './queries';
 export * from './resource-link';

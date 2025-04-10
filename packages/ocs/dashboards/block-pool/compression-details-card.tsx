@@ -5,6 +5,7 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getInstantVectorStats,
@@ -13,7 +14,6 @@ import {
   getGaugeValue,
 } from '@odf/shared/utils';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
