@@ -106,6 +106,8 @@ const getODFInfo = (
       requiredODFVersion
     );
 
+    const deploymentType = odfInfo?.deploymentType;
+
     return [
       {
         odfVersion,
@@ -114,6 +116,7 @@ const getODFInfo = (
         storageClusterInfo: {
           storageClusterNamespacedName,
           cephFSID,
+          deploymentType,
         },
       },
       odfInfo?.clients || [],
@@ -130,6 +133,7 @@ const getODFInfo = (
         storageClusterInfo: {
           storageClusterNamespacedName: '',
           cephFSID: '',
+          deploymentType: '',
         },
       },
       [],
