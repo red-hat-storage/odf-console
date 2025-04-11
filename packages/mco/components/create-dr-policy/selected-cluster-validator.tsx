@@ -43,6 +43,7 @@ import './create-dr-policy.scss';
 import '../../style.scss';
 
 const PROVISIONER = 'provisioner';
+const EXTERNAL_DEPLOYMENT_TYPE = 'external';
 
 const checkSyncPolicyExists = (
   clusters: string[],
@@ -351,7 +352,7 @@ const findSupportedStorageClasses = (
 const validateClusterDetails = (
   clusterToSCMap: Map<ClusterNameType, string[]>
 ): boolean => {
-  const [firstClusterSCs, secondClusterSCs] = Array.from(
+  const [firstClusterSCs = [], secondClusterSCs = []] = Array.from(
     clusterToSCMap.values()
   );
 
@@ -369,6 +370,13 @@ const useStorageClassValidation = (
     string | null
   >(null);
 
+  // Early return if both clusters are "external"
+  const allExternal = selectedClusters.every(
+    (cluster) =>
+      cluster.odfInfo?.storageClusterInfo?.deploymentType ===
+      EXTERNAL_DEPLOYMENT_TYPE
+  );
+
   const searchQuery = React.useMemo(
     () => queryStorageClassesUsingClusterNames(selectedClusters.map(getName)),
     [selectedClusters]
@@ -378,25 +386,39 @@ const useStorageClassValidation = (
     useACMSafeFetch(searchQuery);
 
   React.useEffect(() => {
-    setCompleted(false);
-    if (searchLoaded && !searchError) {
-      getClusterToSCMap(searchResult, searchLoaded, searchError, t)
-        .then((clusterToSCMap) => {
-          setResult(validateClusterDetails(clusterToSCMap));
-          setCompleted(true);
-        })
-        .catch((error) => {
-          setClusterSCMapError(
-            error instanceof Error
-              ? error.message
-              : t('something went wrong while getting storageclasses')
-          );
-          setCompleted(true);
-        });
-    } else if (searchError) {
+    if (!allExternal) {
+      setCompleted(false);
+      if (searchLoaded && !searchError) {
+        getClusterToSCMap(searchResult, searchLoaded, searchError, t)
+          .then((clusterToSCMap) => {
+            setResult(validateClusterDetails(clusterToSCMap));
+            setCompleted(true);
+          })
+          .catch((error) => {
+            setClusterSCMapError(
+              error instanceof Error
+                ? error.message
+                : t('something went wrong while getting storageclasses')
+            );
+            setCompleted(true);
+          });
+      } else if (searchError) {
+        setCompleted(true);
+      }
+    } else {
+      // Ignore validation for external clusters
+      setResult(true);
       setCompleted(true);
     }
-  }, [searchResult, searchError, searchLoaded, t, setCompleted, setResult]);
+  }, [
+    allExternal,
+    searchResult,
+    searchError,
+    searchLoaded,
+    t,
+    setCompleted,
+    setResult,
+  ]);
 
   return [result, isCompleted, searchError || clusterSCMapError];
 };
