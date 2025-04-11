@@ -17,18 +17,18 @@ import {
 } from '@odf/core/utils';
 import { FieldLevelHelp } from '@odf/shared/generic';
 import { LoadingInline } from '@odf/shared/generic/Loading';
-import { useK8sGet } from '@odf/shared/hooks';
-import { CommonModalProps } from '@odf/shared/modals/common';
+import { StorageClusterActionModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
 import { StorageClusterModel } from '@odf/shared/models';
-import { getNamespace } from '@odf/shared/selectors';
-import {
-  DeviceSet,
-  StorageClusterKind,
-  StorageSystemKind,
-} from '@odf/shared/types';
+import { getName, getNamespace } from '@odf/shared/selectors';
+import { DeviceSet, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Patch, k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
+import { referenceForModel } from '@odf/shared/utils';
+import {
+  Patch,
+  k8sPatch,
+  useK8sWatchResource,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   Alert,
   AlertVariant,
@@ -100,29 +100,28 @@ const ProfileRequirementsModalText: React.FC<
   );
 };
 
-type ConfigurePerformanceModalProps = {
-  storageCluster: StorageClusterKind;
-} & CommonModalProps;
-
-const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
-  storageCluster,
+const ConfigurePerformanceModal: React.FC<StorageClusterActionModalProps> = ({
+  extraProps: { storageCluster: actionStorageCluster },
   closeModal,
   isOpen,
 }) => {
   const { t } = useCustomTranslation();
-  const systemNs = getNamespace(storageCluster);
-
+  const storageClusterNs = getNamespace(actionStorageCluster);
+  const [storageCluster] = useK8sWatchResource<StorageClusterKind>({
+    kind: referenceForModel(StorageClusterModel),
+    name: getName(actionStorageCluster),
+    namespace: storageClusterNs,
+  });
   const [inProgress, setProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState<Error>(null);
 
-  const [resourceProfile, setResourceProfile] = React.useState<ResourceProfile>(
-    storageCluster.spec.resourceProfile
-  );
+  const [resourceProfile, setResourceProfile] =
+    React.useState<ResourceProfile>(null);
   const [selectedNodes, setSelectedNodes] = React.useState<WizardNodeState[]>(
     []
   );
   const [validation, setValidation] = React.useState<ValidationType>(null);
-  const osdAmount = storageCluster.spec.storageDeviceSets
+  const osdAmount = storageCluster?.spec?.storageDeviceSets
     ?.map((deviceSet: DeviceSet) =>
       getOsdAmount(deviceSet.count, deviceSet.replica)
     )
@@ -153,7 +152,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
       return;
     }
     try {
-      await labelNodes(selectedNodes, systemNs);
+      await labelNodes(selectedNodes, storageClusterNs);
 
       const patch: Patch = {
         op: 'replace',
@@ -172,6 +171,11 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
       setProgress(false);
     }
   };
+  React.useEffect(() => {
+    if (storageCluster && !resourceProfile) {
+      setResourceProfile(storageCluster.spec?.resourceProfile);
+    }
+  }, [resourceProfile, storageCluster]);
   const Header = <ModalHeader>{t('Configure Performance')}</ModalHeader>;
   return (
     <Modal
@@ -197,7 +201,7 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
           nodes={selectedNodes}
           onRowSelected={onRowSelected}
           disableLabeledNodes={true}
-          systemNamespace={systemNs}
+          systemNamespace={storageClusterNs}
         />
         {validation && (
           <ValidationMessage
@@ -247,23 +251,4 @@ const ConfigurePerformanceModal: React.FC<ConfigurePerformanceModalProps> = ({
   );
 };
 
-type ConfigureSSPerformanceModalProps = CommonModalProps & {
-  storageSystem?: StorageSystemKind;
-};
-
-const ConfigureSSPerformanceModal: React.FC<
-  ConfigureSSPerformanceModalProps
-> = ({ extraProps: { resource: storageSystem }, ...props }) => {
-  const [ocs, ocsLoaded, ocsError] = useK8sGet<StorageClusterKind>(
-    StorageClusterModel,
-    storageSystem.spec.name,
-    storageSystem.spec.namespace
-  );
-  if (!ocsLoaded || ocsError) {
-    return null;
-  }
-
-  return <ConfigurePerformanceModal storageCluster={ocs} {...props} />;
-};
-
-export default ConfigureSSPerformanceModal;
+export default ConfigurePerformanceModal;

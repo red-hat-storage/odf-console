@@ -5,7 +5,6 @@ import {
   useDisasterRecoveryResourceWatch,
   useSubscriptionResourceWatch,
 } from '@odf/mco/hooks';
-import { ACMPlacementModel } from '@odf/mco/models';
 import {
   ACMManagedClusterKind,
   ACMPlacementDecisionKind,
@@ -19,6 +18,7 @@ import {
   getProtectedPVCsFromDRPC,
   findDeploymentClusters,
 } from '@odf/mco/utils';
+import { ACMPlacementModel } from '@odf/shared';
 import { ApplicationKind } from '@odf/shared';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';

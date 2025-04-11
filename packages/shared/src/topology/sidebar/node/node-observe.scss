@@ -1,9 +1,10 @@
 .node-observe-tab {
   .co-utilization-card__item-section {
-    color: var(--pf-v5-global--palette--black-700);
+    color: var(--pf-v5-global--Color--100);
     display: unset;
     .pf-v5-c-title {
       font-size: 15px;
+      color: var(--pf-v5-global--Color--100);
     }
   }
   .co-utilization-card__item.co-utilization-card__item-header {

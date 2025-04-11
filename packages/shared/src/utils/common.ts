@@ -1,5 +1,9 @@
 import { Model } from '@odf/odf-plugin-sdk/extensions';
 import {
+  CLIENT_PLUGIN_BUILD_NAME,
+  PLUGIN_NAME,
+} from '@odf/shared/constants/common';
+import {
   InfraProviders,
   InfrastructureKind,
   K8sResourceKind,
@@ -22,6 +26,8 @@ const defaultClassAnnotation = 'storageclass.kubernetes.io/is-default-class';
 const betaDefaultStorageClassAnnotation =
   'storageclass.beta.kubernetes.io/is-default-class';
 export const LAST_LANGUAGE_LOCAL_STORAGE_KEY = 'bridge/last-language';
+
+export const isClientPlugin = () => PLUGIN_NAME === CLIENT_PLUGIN_BUILD_NAME;
 
 export const isNotFoundError = (loadError): boolean =>
   _.get(loadError, 'response.status') === 404;

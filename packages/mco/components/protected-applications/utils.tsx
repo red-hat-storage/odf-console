@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { DRPlacementControlModel } from '@odf/shared';
 import { ActionDropdownItems } from '@odf/shared/dropdown/action-dropdown';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import {
@@ -25,7 +26,6 @@ import {
   DRActionType,
   ReplicationType,
 } from '../../constants';
-import { DRPlacementControlModel } from '../../models';
 import { DRPlacementControlKind, Progression } from '../../types';
 import { DiscoveredApplicationParser as DiscoveredApplicationModal } from '../modals/app-failover-relocate/parser/discovered-application-parser';
 import RemoveDisasterRecoveryModal from '../modals/remove-disaster-recovery/remove-disaster-recovery';

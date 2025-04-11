@@ -1,8 +1,9 @@
-import { DRPolicyType } from './types';
+import { DRPolicyType, VMProtectionType } from './types';
 
 export enum ModalViewContext {
   MANAGE_POLICY_VIEW = 'managePolicyView',
   ASSIGN_POLICY_VIEW = 'assignPolicyView',
+  VOLUME_CONSISTENCY_GROUP_VIEW = 'volumeConsistencyGroupView',
 }
 
 export enum ModalActionContext {
@@ -20,16 +21,31 @@ export enum ManagePolicyStateType {
   SET_SELECTED_POLICY = 'SET_SELECTED_POLICY',
   SET_PVC_SELECTORS = 'SET_PVC_SELECTORS',
   RESET_ASSIGN_POLICY_STATE = 'RESET_ASSIGN_POLICY_STATE',
+  SET_VM_PROTECTION_METHOD = 'SET_VM_PROTECTION_METHOD',
+  SET_VM_PROTECTION_NAME = 'SET_VM_PROTECTION_NAME',
+  SET_SELECTED_POLICY_FOR_REPLICATION = 'SET_SELECTED_POLICY_FOR_REPLICATION',
+  SET_K8S_SYNC_INTERVAL = 'SET_K8S_SYNC_INTERVAL',
+  SET_SHARED_VM_GROUP_INFO = 'SET_SHARED_VM_GROUP_INFO',
 }
 
 export type PVCSelectorType = {
   placementName: string;
   labels: string[];
 };
+
 export type AssignPolicyViewState = {
   policy: DRPolicyType;
   persistentVolumeClaim: {
     pvcSelectors: PVCSelectorType[];
+  };
+  protectionType?: {
+    protectionType: VMProtectionType;
+    protectionName: string;
+    protectedVMNames: string[];
+  };
+  replication?: {
+    policy: DRPolicyType;
+    k8sSyncInterval: string;
   };
 };
 
@@ -45,6 +61,15 @@ export const initialPolicyState: ManagePolicyState = {
     policy: undefined,
     persistentVolumeClaim: {
       pvcSelectors: [],
+    },
+    protectionType: {
+      protectionType: VMProtectionType.STANDALONE,
+      protectionName: '',
+      protectedVMNames: [],
+    },
+    replication: {
+      policy: undefined,
+      k8sSyncInterval: '5m',
     },
   },
 };
@@ -71,6 +96,36 @@ export type ManagePolicyStateAction =
   | {
       type: ManagePolicyStateType.RESET_ASSIGN_POLICY_STATE;
       context: ModalViewContext;
+    }
+  | {
+      type: ManagePolicyStateType.SET_VM_PROTECTION_METHOD;
+      context: ModalViewContext;
+      payload: VMProtectionType;
+    }
+  | {
+      type: ManagePolicyStateType.SET_VM_PROTECTION_NAME;
+      context: ModalViewContext;
+      payload: string;
+    }
+  | {
+      type: ManagePolicyStateType.SET_SELECTED_POLICY_FOR_REPLICATION;
+      context: ModalViewContext;
+      payload: DRPolicyType;
+    }
+  | {
+      type: ManagePolicyStateType.SET_K8S_SYNC_INTERVAL;
+      context: ModalViewContext;
+      payload: string;
+    }
+  | {
+      type: ManagePolicyStateType.SET_SHARED_VM_GROUP_INFO;
+      context: ModalViewContext;
+      payload: {
+        protectionName: string;
+        policy: DRPolicyType;
+        k8sSyncInterval: string;
+        sharedVMGroup: string[];
+      };
     };
 
 export const managePolicyStateReducer = (
@@ -117,6 +172,75 @@ export const managePolicyStateReducer = (
         [action.context]: {
           ...state[action.context],
           ...initialPolicyState[action.context],
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_VM_PROTECTION_METHOD: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          protectionType: {
+            ...initialPolicyState[action.context]['protectionType'],
+            protectionType: action.payload,
+          },
+          replication: initialPolicyState[action.context]['replication'],
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_VM_PROTECTION_NAME: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          protectionType: {
+            ...state[action.context]['protectionType'],
+            protectionName: action.payload,
+          },
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_SELECTED_POLICY_FOR_REPLICATION: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          replication: {
+            ...state[action.context]['replication'],
+            policy: action.payload,
+          },
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_K8S_SYNC_INTERVAL: {
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          replication: {
+            ...state[action.context]['replication'],
+            k8sSyncInterval: action.payload,
+          },
+        },
+      };
+    }
+    case ManagePolicyStateType.SET_SHARED_VM_GROUP_INFO: {
+      const { policy, k8sSyncInterval, protectionName, sharedVMGroup } =
+        action.payload;
+      return {
+        ...state,
+        [action.context]: {
+          ...state[action.context],
+          replication: {
+            ...state[action.context]['replication'],
+            policy: policy,
+            k8sSyncInterval: k8sSyncInterval,
+          },
+          protectionType: {
+            ...state[action.context]['protectionType'],
+            protectionName: protectionName,
+            protectedVMNames: sharedVMGroup,
+          },
         },
       };
     }

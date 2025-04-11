@@ -1,7 +1,3 @@
-import { ApplicationModel } from '@odf/shared/models';
-import { referenceForModel } from '@odf/shared/utils';
-import { Selector } from '@openshift-console/dynamic-plugin-sdk';
-import { HUB_CLUSTER_NAME } from '../constants';
 import {
   ACMManagedClusterModel,
   ACMPlacementDecisionModel,
@@ -12,7 +8,11 @@ import {
   DRClusterModel,
   DRPlacementControlModel,
   DRPolicyModel,
-} from '../models';
+} from '@odf/shared';
+import { ApplicationModel } from '@odf/shared/models';
+import { referenceForModel } from '@odf/shared/utils';
+import { Selector } from '@openshift-console/dynamic-plugin-sdk';
+import { HUB_CLUSTER_NAME } from '../constants';
 
 export const getDRClusterResourceObj = (props?: ClusterScopeObjectType) => ({
   cluster: HUB_CLUSTER_NAME,
@@ -52,6 +52,7 @@ export const getDRPlacementControlResourceObj = (
   kind: referenceForModel(DRPlacementControlModel),
   ...(!props?.name ? { isList: true } : {}),
   namespaced: !!props?.namespace ? false : true,
+  ...(!!props?.selector ? { selector: props?.selector } : {}),
   optional: true,
 });
 

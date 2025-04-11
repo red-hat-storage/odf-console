@@ -1,3 +1,7 @@
+import {
+  NooBaaBucketClassModel,
+  NooBaaObjectBucketClaimModel,
+} from '@odf/shared';
 import { SecretModel } from '@odf/shared/models';
 import { getAPIVersion } from '@odf/shared/selectors';
 import {
@@ -21,10 +25,6 @@ import {
   StoreType,
   TimeUnits,
 } from '../constants';
-import {
-  NooBaaBucketClassModel,
-  NooBaaObjectBucketClaimModel,
-} from '../models';
 import {
   BackingStoreKind,
   BucketClassKind,

@@ -65,7 +65,8 @@ export const SelectableTable: SelectableTableProps = <
   className,
   isRowSelectable,
   variant,
-}) => {
+  selectionType = SelectionType.CHECKBOX,
+}: TableProps<T>) => {
   const { t } = useCustomTranslation();
 
   const {
@@ -141,8 +142,8 @@ export const SelectableTable: SelectableTableProps = <
               <Th
                 {...(!!col?.thProps ? col.thProps : {})}
                 {...(!!col?.sortFunction ? { sort: getSortParams(index) } : {})}
-                key={col?.columnName}
-                aria-label={col?.columnName}
+                key={col?.columnName as string}
+                aria-label={col?.columnName as string}
               >
                 {col?.columnName}
               </Th>
@@ -163,6 +164,7 @@ export const SelectableTable: SelectableTableProps = <
                   props: {
                     id: getUID(row),
                   },
+                  variant: selectionType,
                 }}
               />
               <RowComponent row={row} extraProps={extraProps} />
@@ -173,6 +175,11 @@ export const SelectableTable: SelectableTableProps = <
     </StatusBox>
   );
 };
+
+export enum SelectionType {
+  RADIO = 'radio',
+  CHECKBOX = 'checkbox',
+}
 
 type IsRowSelectable = <T extends K8sResourceCommon>(row: T) => boolean;
 
@@ -194,6 +201,7 @@ type TableProps<T extends K8sResourceCommon> = {
   className?: string;
   isRowSelectable?: IsRowSelectable;
   variant?: TableVariant;
+  selectionType?: SelectionType;
 };
 
 type SelectableTableProps = <T extends K8sResourceCommon>(

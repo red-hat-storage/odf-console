@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { NetworkAttachmentDefinitionModel } from '@odf/core/models';
 import { NetworkType, NADSelectorType } from '@odf/core/types';
+import { NetworkAttachmentDefinitionModel } from '@odf/shared';
 import {
   getName,
   getUID,

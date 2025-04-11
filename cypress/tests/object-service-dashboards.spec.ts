@@ -5,7 +5,7 @@ describe('Tests Buckets, Status, Object Storage Efficiency, and Resource Provide
   beforeEach(() => {
     ODFCommon.visitStorageDashboard();
     cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
-    cy.byLegacyTestID('item-filter').type('ocs-storagecluster-storagesystem');
+    cy.byLegacyTestID('item-filter').type('ocs-storagecluster');
     cy.byTestRows('resource-row')
       .get('td a', {
         timeout: 5 * SECOND,

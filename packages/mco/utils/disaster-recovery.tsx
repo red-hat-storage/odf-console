@@ -1,5 +1,10 @@
 import * as React from 'react';
 import {
+  ACMPlacementModel,
+  ACMPlacementRuleModel,
+  DRVolumeReplicationGroup,
+} from '@odf/shared';
+import {
   daysToSeconds,
   getTimeDifferenceInSeconds,
   hoursToSeconds,
@@ -25,6 +30,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { TFunction } from 'react-i18next';
 import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
+import { DRPlacementControlType } from '../components/modals/app-manage-policies/utils/types';
 import {
   VolumeReplicationHealth,
   DR_SECHEDULER_NAME,
@@ -50,11 +56,6 @@ import {
 } from '../constants';
 import { DisasterRecoveryFormatted } from '../hooks';
 import {
-  ACMPlacementModel,
-  ACMPlacementRuleModel,
-  DRVolumeReplicationGroup,
-} from '../models';
-import {
   ACMSubscriptionKind,
   ACMPlacementRuleKind,
   DRPlacementControlKind,
@@ -72,6 +73,7 @@ import {
   ClusterClaim,
   SearchResultItemType,
   ACMPlacementType,
+  SearchResult,
 } from '../types';
 
 export type PlacementMap = {
@@ -616,7 +618,7 @@ export const getRemoteNamespaceFromAppSet = (
 ): string => application?.spec?.template?.spec?.destination?.namespace;
 
 export const getLastAppDeploymentClusterName = (
-  drPlacementControl: DRPlacementControlKind
+  drPlacementControl: DRPlacementControlKind | DRPlacementControlType
 ) =>
   getAnnotations(drPlacementControl)?.[
     LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION
@@ -669,3 +671,7 @@ export const getLabelsFromSearchResult = (
 
 export const getManagedClusterViewName = (managedClusterName: string): string =>
   MCV_NAME_TEMPLATE + managedClusterName;
+
+export const getSearchResultItems = (searchResult: SearchResult) => {
+  return searchResult?.data?.searchResult?.[0]?.related?.[0]?.items || [];
+};

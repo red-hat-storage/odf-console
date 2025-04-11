@@ -176,10 +176,13 @@ export enum StorageConsumerState {
 type StorageConsumerSpec = {
   enable?: boolean;
   storageQuotaInGiB: number;
-  storageClasses: {
+  storageClasses?: {
     name: string;
   }[];
-  volumeSnapshotClasses: {
+  volumeSnapshotClasses?: {
+    name: string;
+  }[];
+  volumeGroupSnapshotClasses?: {
     name: string;
   }[];
 };
@@ -196,6 +199,12 @@ type StorageConsumerStatus = {
   cephResources?: CephResourcesSpec[];
   lastHeartbeat?: string; // Assuming metav1.Time is a string
   client?: ClientStatus;
+  resourceNameMappingConfigMap: {
+    name: string;
+  };
+  onboardingTicketSecret: {
+    name: string;
+  };
 };
 
 type ClientStatus = {
@@ -209,7 +218,7 @@ type ClientStatus = {
 
 export type StorageConsumerKind = K8sResourceCommon & {
   spec?: StorageConsumerSpec;
-  status: StorageConsumerStatus;
+  status?: StorageConsumerStatus;
 };
 
 export type NoobaaSystemKind = K8sResourceCommon;

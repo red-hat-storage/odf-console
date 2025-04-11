@@ -1,4 +1,9 @@
 import * as React from 'react';
+import {
+  ACMPlacementModel,
+  ACMPlacementRuleModel,
+  ACMSubscriptionModel,
+} from '@odf/shared';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { ApplicationKind } from '@odf/shared/types';
 import {
@@ -7,11 +12,6 @@ import {
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import {
-  ACMPlacementModel,
-  ACMPlacementRuleModel,
-  ACMSubscriptionModel,
-} from '../models';
 import {
   ACMPlacementDecisionKind,
   ACMPlacementKind,

@@ -8,18 +8,12 @@ import {
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import useRefWidth from '@odf/shared/hooks/ref-width';
+import { useWatchStorageSystems } from '@odf/shared/hooks/useWatchStorageSystems';
 import { ODFStorageSystem } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import Table, { Column } from '@odf/shared/table/table';
-import { StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  getDashboardLink,
-  getGVK,
-  referenceFor,
-  referenceForModel,
-} from '@odf/shared/utils';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import { getDashboardLink, getGVK, referenceFor } from '@odf/shared/utils';
 import {
   UtilizationDurationDropdown,
   useUtilizationDuration,
@@ -96,11 +90,6 @@ const getRow: GetRow = ({
   ];
 };
 
-const storageSystemResource = {
-  kind: referenceForModel(ODFStorageSystem),
-  isList: true,
-};
-
 const nameSort = (a: RowProps, b: RowProps, c: SortByDirection) => {
   const negation = c !== SortByDirection.asc;
   const sortVal = a.systemName.localeCompare(b.systemName);
@@ -150,9 +139,7 @@ const PerformanceCard: React.FC = () => {
     [t]
   );
 
-  const [systems, systemLoaded, systemLoadError] = useK8sWatchResource<
-    StorageSystemKind[]
-  >(storageSystemResource);
+  const [systems, systemLoaded, systemLoadError] = useWatchStorageSystems();
   const { duration } = useUtilizationDuration();
   const [latency, latencyError, latencyLoading] = useCustomPrometheusPoll({
     query: UTILIZATION_QUERY[StorageDashboard.LATENCY],

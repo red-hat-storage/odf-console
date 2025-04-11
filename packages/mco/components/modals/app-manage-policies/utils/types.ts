@@ -17,6 +17,18 @@ export type DRPlacementControlType = K8sResourceCommon & {
   pvcSelector?: string[];
   // Volume replication group last successful sync completion time
   lastGroupSyncTime?: string;
+  // The time of the most recent successful kube object protection
+  lastKubeObjectProtectionTime?: string;
+  // Name of the Recipe
+  recipeName?: string;
+  // Namespace of the Recipe
+  recipeNamespace?: string;
+  // List of VM names that belong to a shared VM group
+  vmSharedGroup?: string[];
+  // Name of the shared VM group
+  vmSharedGroupName?: string;
+  // K8s objects replication interval
+  k8sResourceSyncInterval?: string;
 };
 
 export type DRPolicyType = K8sResourceCommon & {
@@ -52,6 +64,18 @@ export type ApplicationType = K8sResourceCommon & {
   drInfo?: DRInfoType | {};
   // ACM search API filter to read application PVCs
   pvcQueryFilter: PVCQueryFilter;
+  // List of discovered VM PVCs
+  discoveredVMPVCs?: string[];
 };
 
 export type ApplicationInfoType = ApplicationType | {};
+
+export enum ModalType {
+  Application = 'Application',
+  VirtualMachine = 'VirtualMachine',
+}
+
+export enum VMProtectionType {
+  STANDALONE = 'STANDALONE',
+  SHARED = 'SHARED',
+}

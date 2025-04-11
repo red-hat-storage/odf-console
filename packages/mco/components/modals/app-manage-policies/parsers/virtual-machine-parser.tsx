@@ -1,16 +1,17 @@
 import * as React from 'react';
 import { HUB_CLUSTER_NAME, KUBE_INSTANCE_LABEL } from '@odf/mco/constants';
 import { useACMSafeFetch } from '@odf/mco/hooks';
-import {
-  ACMSubscriptionModel,
-  ArgoApplicationSetModel,
-  VirtualMachineModel,
-} from '@odf/mco/models';
-import { SearchResultItemType } from '@odf/mco/types';
+import { ArgoApplicationSetKind, SearchResultItemType } from '@odf/mco/types';
 import {
   getLabelsFromSearchResult,
   queryManagedApplicationResourcesForVM,
 } from '@odf/mco/utils';
+import {
+  ApplicationKind,
+  ACMSubscriptionModel,
+  ArgoApplicationSetModel,
+  VirtualMachineModel,
+} from '@odf/shared';
 import {
   ApplicationModel,
   getLabel,
@@ -20,9 +21,37 @@ import {
 } from '@odf/shared';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalViewContext } from '../utils/reducer';
-import { PVCQueryFilter } from '../utils/types';
+import { ModalType, PVCQueryFilter } from '../utils/types';
 import { ApplicationSetParser } from './application-set-parser';
+import { DiscoveredVMParser } from './discovered-vm-parser';
 import { SubscriptionParser } from './subscription-parser';
+
+const createApplicationSetObj = (
+  name: string,
+  namespace: string
+): ArgoApplicationSetKind => ({
+  apiVersion: `${ArgoApplicationSetModel.apiGroup}/${ArgoApplicationSetModel.apiVersion}`,
+  kind: ArgoApplicationSetModel.kind,
+  metadata: { name, namespace },
+  spec: {},
+});
+
+const createApplicationObj = (
+  name: string,
+  namespace: string
+): ApplicationKind => ({
+  apiVersion: `${ApplicationModel.apiGroup}/${ApplicationModel.apiVersion}`,
+  kind: ApplicationModel.kind,
+  metadata: {
+    name: name,
+    namespace,
+  },
+  spec: {
+    componentKinds: [
+      { group: ACMSubscriptionModel.apiGroup, kind: ACMSubscriptionModel.kind },
+    ],
+  },
+});
 
 const getPVCQueryFilter = (
   name: string,
@@ -71,20 +100,16 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
       (item) => item.cluster === HUB_CLUSTER_NAME
     );
 
-  const { name, namespace, kind, apigroup } = managedApplication || {};
+  const { name, namespace, kind } = managedApplication || {};
 
   if (kind === ArgoApplicationSetModel.kind) {
     return (
       <ApplicationSetParser
-        application={{
-          apiVersion: `${ArgoApplicationSetModel.apiGroup}/${ArgoApplicationSetModel.apiVersion}`,
-          kind,
-          metadata: { name, namespace },
-          spec: {},
-        }}
+        application={createApplicationSetObj(name, namespace)}
         setCurrentModalContext={setCurrentModalContext}
         isWatchApplication
         pvcQueryFilter={pvcQueryFilter}
+        modalType={ModalType.VirtualMachine}
       />
     );
   }
@@ -92,25 +117,27 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
   if (kind === ACMSubscriptionModel.kind) {
     return (
       <SubscriptionParser
-        application={{
-          apiVersion: `${ApplicationModel.apiGroup}/${ApplicationModel.apiVersion}`,
-          kind: ApplicationModel.kind,
-          metadata: {
-            name: getLabelsFromSearchResult(managedApplication)?.app?.[0],
-            namespace,
-          },
-          spec: { componentKinds: [{ group: apigroup, kind }] },
-        }}
+        application={createApplicationObj(
+          getLabelsFromSearchResult(managedApplication)?.app?.[0],
+          namespace
+        )}
         subscriptionName={name}
         isWatchApplication
         setCurrentModalContext={setCurrentModalContext}
         pvcQueryFilter={pvcQueryFilter}
+        modalType={ModalType.VirtualMachine}
       />
     );
   }
 
-  // TODO: Add support for discovered application type
-  return null;
+  return (
+    <DiscoveredVMParser
+      virtualMachine={virtualMachine}
+      setCurrentModalContext={setCurrentModalContext}
+      pvcQueryFilter={pvcQueryFilter}
+      cluster={clusterName}
+    />
+  );
 };
 
 type VirtualMachineParserProps = {

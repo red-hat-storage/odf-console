@@ -32,6 +32,7 @@ import {
   ApplicationType,
   DRPlacementControlType,
   DRPolicyType,
+  ModalType,
   PVCQueryFilter,
 } from '../utils/types';
 
@@ -97,6 +98,7 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
   isWatchApplication,
   pvcQueryFilter,
   setCurrentModalContext,
+  modalType,
 }) => {
   const namespace = getNamespace(application);
   const [drResources, drLoaded, drLoadError] = useDisasterRecoveryResourceWatch(
@@ -190,6 +192,7 @@ export const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       loaded={loaded}
       loadError={loadError}
       setCurrentModalContext={setCurrentModalContext}
+      modalType={modalType ?? ModalType.Application}
     />
   );
 };
@@ -204,4 +207,5 @@ type ApplicationSetParserProps = {
   >;
   // ACM search api PVC query filter
   pvcQueryFilter?: PVCQueryFilter;
+  modalType?: ModalType;
 };

@@ -186,6 +186,22 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   useK8sWatchResource: jest.fn(() => [[], true, undefined]),
 }));
 
+jest.mock('@odf/shared/details-page/datetime', () => ({
+  ...jest.requireActual('@odf/shared/details-page/datetime'),
+  getLastLanguage: () => 'en-US',
+  formatTime: (time: string) =>
+    time &&
+    new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+      timeZoneName: 'short',
+    }).format(new Date(time)),
+}));
+
 describe('Subscription manage disaster recovery modal', () => {
   test('Empty manage policy page test', async () => {
     testCase = 1;
@@ -236,7 +252,9 @@ describe('Subscription manage disaster recovery modal', () => {
     expect(screen.getByText('Placement: mock-placement-1')).toBeInTheDocument();
     expect(screen.getByText('Label selector:')).toBeInTheDocument();
     expect(screen.getByText('pvc=pvc1')).toBeInTheDocument();
-    expect(screen.getByText('Status:')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Volume: Last synced on Jun 6, 2023, 5:50 PM UTC/i)
+    ).toBeInTheDocument();
   });
 
   test('Assign policy action test', async () => {
@@ -296,8 +314,7 @@ describe('Subscription manage disaster recovery modal', () => {
     expect(screen.getByText('Cancel')).toBeEnabled();
 
     // Headers
-    expect(screen.getByText('Data policy')).toBeInTheDocument();
-    expect(screen.getByText('Data policy')).toBeInTheDocument();
+    screen.getByText(/Policy/i, { selector: 'span' });
     // Labels
     expect(screen.getByText('Policy name:')).toBeInTheDocument();
     expect(screen.getByText('Clusters:')).toBeInTheDocument();

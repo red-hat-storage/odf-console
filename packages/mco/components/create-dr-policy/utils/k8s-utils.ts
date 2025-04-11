@@ -1,7 +1,7 @@
 import { RBD_IMAGE_FLATTEN_LABEL, ReplicationType } from '@odf/mco/constants';
-import { DRPolicyModel, MirrorPeerModel } from '@odf/mco/models';
 import { DRPolicyKind, MirrorPeerKind } from '@odf/mco/types';
 import { parseNamespaceName } from '@odf/mco/utils';
+import { DRPolicyModel, MirrorPeerModel } from '@odf/shared';
 import { getName } from '@odf/shared';
 import {
   getAPIVersionForModel,

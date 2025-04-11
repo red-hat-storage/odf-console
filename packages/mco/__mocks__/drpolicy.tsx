@@ -1,4 +1,4 @@
-import { DRPolicyModel } from '../models';
+import { DRPolicyModel } from '@odf/shared';
 import { DRPolicyKind } from '../types';
 
 // RDR

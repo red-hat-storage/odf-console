@@ -10,7 +10,6 @@ import {
   NO_PROVISIONER,
   Steps,
   StepsName,
-  STORAGE_CLUSTER_SYSTEM_KIND,
 } from '@odf/core/constants';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
@@ -24,11 +23,17 @@ import {
 } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { StorageClusterKind } from '@odf/shared';
-import { StorageClusterModel } from '@odf/shared/models';
-import { getName } from '@odf/shared/selectors';
+import {
+  StorageAutoScalerModel,
+  StorageClusterModel,
+} from '@odf/shared/models';
+import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getGVKLabel } from '@odf/shared/utils';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import { getStorageAutoScalerName, isNotFoundError } from '@odf/shared/utils';
+import {
+  k8sDelete,
+  K8sResourceCommon,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   WizardFooter,
   WizardContext,
@@ -50,7 +55,6 @@ import {
   createNoobaaExternalPostgresResources,
   setCephRBDAsDefault,
   createStorageCluster,
-  createStorageSystem,
   labelNodes,
   taintNodes,
   createOCSNamespace,
@@ -312,11 +316,6 @@ const handleReviewAndCreateNext = async (
     ) {
       await labelNodes(nodes, systemNamespace);
       await createAdditionalFeatureResources();
-      await createStorageSystem(
-        OCS_INTERNAL_CR_NAME,
-        STORAGE_CLUSTER_SYSTEM_KIND,
-        systemNamespace
-      );
       storageCluster = await createStorageCluster(
         state,
         systemNamespace,
@@ -333,7 +332,6 @@ const handleReviewAndCreateNext = async (
 
       const subSystemName = isRhcs ? OCS_EXTERNAL_CR_NAME : externalSystemName;
       const subSystemState = isRhcs ? connectionDetails : createStorageClass;
-      const subSystemKind = getGVKLabel(model);
 
       const shouldSetCephRBDAsDefault = setCephRBDAsDefault(
         isRBDStorageClassDefault,
@@ -349,7 +347,6 @@ const handleReviewAndCreateNext = async (
         shouldSetCephRBDAsDefault: shouldSetCephRBDAsDefault,
       });
 
-      await createStorageSystem(subSystemName, subSystemKind, systemNamespace);
       // create internal mode cluster along with Non-RHCS StorageSystem (if any Ceph cluster already does not exists)
       if (!hasOCS && !isRhcs) {
         await labelNodes(nodes, systemNamespace);
@@ -365,19 +362,41 @@ const handleReviewAndCreateNext = async (
       if (!isRhcs && !!waitToCreate) await waitToCreate(model);
       await createExternalSubSystem(subSystemPayloads);
     }
-    if (state.capacityAndNodes.capacityAutoScaling.enable && storageCluster) {
-      // Don't stop the workflow on autoscaler creation error.
+    if (storageCluster) {
       try {
-        await createStorageAutoScaler(
-          state.capacityAndNodes.capacityAutoScaling.capacityLimit,
-          storageCluster
-        );
+        // Delete preexisting ui-created autoscaler to avoid a misconfiguration.
+        await k8sDelete({
+          model: StorageAutoScalerModel,
+          resource: {
+            metadata: {
+              name: getStorageAutoScalerName(storageCluster),
+              namespace: getNamespace(storageCluster),
+            },
+          },
+        });
       } catch (error) {
-        // TODO: raise a notification once the notification system is implemented.
-        // eslint-disable-next-line no-console
-        console.error(
-          `Error while enabling capacity autoscaling: ${error.message}`
-        );
+        // It's OK if it didn't exist.
+        if (!isNotFoundError(error)) {
+          // eslint-disable-next-line no-console
+          console.error(
+            `Error while deleting preexisting capacity autoscaling: ${error.message}`
+          );
+        }
+      }
+      if (state.capacityAndNodes.capacityAutoScaling.enable) {
+        // Don't stop the workflow on autoscaler creation error.
+        try {
+          await createStorageAutoScaler(
+            state.capacityAndNodes.capacityAutoScaling.capacityLimit,
+            storageCluster
+          );
+        } catch (error) {
+          // TODO: raise a notification once the notification system is implemented.
+          // eslint-disable-next-line no-console
+          console.error(
+            `Error while enabling capacity autoscaling: ${error.message}`
+          );
+        }
       }
     }
     navigate('/odf/systems');

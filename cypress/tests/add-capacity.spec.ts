@@ -5,7 +5,7 @@ import {
   STORAGE_CLUSTER_NAME,
   CLUSTER_NAMESPACE,
   CEPH_CLUSTER_NAME,
-  ODF_OPERATOR_NAME,
+  MINUTE,
 } from '../consts';
 import {
   createOSDTreeMap,
@@ -71,7 +71,6 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       const pods = JSON.parse(res.stdout);
       _.set(initialState, 'pods', pods);
 
-      ODFCommon.visitStorageDashboard();
       ODFCommon.visitStorageSystemList();
       listPage.searchInList(STORAGE_SYSTEM_NAME);
       // Todo(bipuladh): Add a proper data-selector once the list page is migrated
@@ -87,9 +86,11 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
           initialState.storageCluster?.spec?.storageDeviceSets?.[0]
             ?.dataPVCTemplate?.spec?.resources?.requests?.storage
         ];
+      const replicas =
+        initialState.storageCluster?.spec?.storageDeviceSets?.[0]?.replica;
       cy.byTestID('requestSize').should('have.value', String(initialCapacity));
       cy.byTestID('provisioned-capacity').contains(
-        `${(initialCapacity * 3).toFixed(0)} TiB`
+        `${(initialCapacity * replicas).toFixed(0)} TiB`
       );
       cy.byTestID('add-cap-sc-dropdown', { timeout: 10000 }).should(
         'be.visible'
@@ -97,19 +98,17 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       modal.submit();
       modal.shouldBeClosed();
 
-      cy.clickNavLink(['Operators', 'Installed Operators']).first();
-      cy.byLegacyTestID('item-filter').type(ODF_OPERATOR_NAME);
-      cy.byTestOperatorRow(ODF_OPERATOR_NAME).click();
-      cy.byLegacyTestID('horizontal-link-Storage System').click();
-      cy.contains(STORAGE_SYSTEM_NAME).click();
-      cy.contains('Resources').click();
-      cy.byTestOperandLink(STORAGE_CLUSTER_NAME).click();
+      ODFCommon.visitStorageDashboard();
+      ODFCommon.visitStorageSystemList();
       // Wait for the storage cluster to reach Ready
       // Storage Cluster CR flickers so wait for 10 seconds
       // Disablng until ocs-operator fixes above issue
       // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(10000);
-      cy.byTestID('resource-status').contains('Ready', { timeout: 900000 });
+      // eslint-disable-next-line cypress/require-data-selectors
+      cy.get('td[id="status"]', { timeout: 5 * MINUTE }).contains('Ready', {
+        timeout: 900000,
+      });
     });
     cy.exec(
       `oc get storagecluster ${STORAGE_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`
@@ -154,15 +153,16 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
 
       cy.log('New OSDs are added correctly to the right nodes', () => {
         const nodes = getIds(osdTree.nodes, 'host');
-        expect(verifyNodeOSDMapping(nodes, newOSDIds, formattedOSDTree)).to.be
-          .true;
+        expect(
+          verifyNodeOSDMapping(nodes, newOSDIds, formattedOSDTree)
+        ).to.equal(true);
       });
     });
     cy.exec('oc get nodes -o json').then((res) => {
       const nodes = JSON.parse(res.stdout);
       const allNodesReady = nodes.items.every(isNodeReady);
       cy.log('No Nodes should go to Not Ready state');
-      expect(allNodesReady).to.be.true;
+      expect(allNodesReady).to.equal(true);
     });
   });
 });

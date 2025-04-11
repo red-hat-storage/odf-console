@@ -9,13 +9,12 @@ import {
   OCS_TOLERATION,
 } from '@odf/core/constants';
 import { useNodesData, useLSODiskDiscovery } from '@odf/core/hooks';
-import { LocalVolumeSetModel } from '@odf/core/models';
 import { NodeData } from '@odf/core/types';
 import {
   nodesWithoutTaints,
   getLocalVolumeSetRequestData,
 } from '@odf/core/utils';
-import { getNamespace } from '@odf/shared';
+import { getNamespace, LocalVolumeSetModel } from '@odf/shared';
 import { ErrorAlert } from '@odf/shared/generic/Error';
 import { LoadingInline } from '@odf/shared/generic/Loading';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';

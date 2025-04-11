@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
-import AddSSCapacityModal from '@odf/core/modals/add-capacity/add-capacity-modal';
+import AddCapacityModal from '@odf/core/modals/add-capacity/add-capacity-modal';
 import CapacityAutoscalingModal from '@odf/core/modals/capacity-autoscaling/capacity-autoscaling-modal';
-import ConfigureSSPerformanceModal from '@odf/core/modals/configure-performance/configure-performance-modal';
+import ConfigurePerformanceModal from '@odf/core/modals/configure-performance/configure-performance-modal';
 import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
 import {
   DEFAULT_INFRASTRUCTURE,
@@ -68,9 +68,11 @@ export const useCsvActions = ({
       referenceForModel(k8sModel) === referenceForModel(ODFStorageSystem) &&
       isOCSStorageSystem(resource)
     ) {
-      items.push(AddCapacityStorageSystem(resource, launchModal));
+      items.push(AddCapacityStorageSystem(launchModal, storageCluster));
       if (!isProviderMode) {
-        items.push(ConfigurePerformanceStorageSystem(resource, launchModal));
+        items.push(
+          ConfigurePerformanceStorageSystem(launchModal, storageCluster)
+        );
       }
       if (
         isCapacityAutoScalingAllowed(
@@ -114,16 +116,16 @@ const AttachStorageStorageSystem = (resource: StorageSystemKind): Action => {
 };
 
 const AddCapacityStorageSystem = (
-  resource: StorageSystemKind,
-  launchModal: LaunchModal
+  launchModal: LaunchModal,
+  storageCluster: StorageClusterKind
 ): Action => {
   return {
     id: 'add-capacity-storage-system',
     label: 'Add Capacity',
     insertBefore: 'edit-csv',
     cta: () => {
-      launchModal(AddSSCapacityModal as any, {
-        extraProps: { resource },
+      launchModal(AddCapacityModal, {
+        extraProps: { storageCluster },
         isOpen: true,
       });
     },
@@ -131,16 +133,16 @@ const AddCapacityStorageSystem = (
 };
 
 const ConfigurePerformanceStorageSystem = (
-  resource: StorageSystemKind,
-  launchModal: LaunchModal
+  launchModal: LaunchModal,
+  storageCluster: StorageClusterKind
 ): Action => {
   return {
     id: 'configure-performance-storage-system',
     label: 'Configure performance',
     insertAfter: 'add-capacity-storage-system',
     cta: () => {
-      launchModal(ConfigureSSPerformanceModal as any, {
-        extraProps: { resource },
+      launchModal(ConfigurePerformanceModal, {
+        extraProps: { storageCluster },
         isOpen: true,
       });
     },
@@ -153,7 +155,7 @@ const CapacityAutoscalingAction = (
 ): Action => {
   return {
     id: 'capacity-autoscaling-action',
-    label: 'Smart capacity scaling',
+    label: 'Automatic capacity scaling',
     insertAfter: 'configure-performance-storage-system',
     cta: () => {
       launchModal(CapacityAutoscalingModal, {

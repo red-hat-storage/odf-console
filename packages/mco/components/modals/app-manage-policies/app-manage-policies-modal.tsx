@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { SearchResultItemType } from '@odf/mco/types';
 import { convertSearchResult } from '@odf/mco/utils';
+import { VirtualMachineModel } from '@odf/shared';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
@@ -16,19 +17,27 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
   close,
 }) => {
   const { t } = useCustomTranslation();
-  const [currentModalContext, setCurrentModalContext] = React.useState(
+  const [currentModalContext, setModalContext] = React.useState(
     ModalViewContext.MANAGE_POLICY_VIEW
   );
 
-  const application =
-    'apigroup' in resource ? convertSearchResult(resource) : resource;
+  // Problem: Parsing runs on every render, even if the resource didn't change.
+  // This causes performance issues and unnecessary recalculations.
+  // Fix: useMemo ensures parsing only happens when 'resource' changes.
+  const application = React.useMemo(
+    () => ('apigroup' in resource ? convertSearchResult(resource) : resource),
+    [resource]
+  );
+
   const applicationName = getName(application) ?? application?.['name'];
   const applicationNamespace =
     getNamespace(application) ?? application?.['namespace'];
 
   const title =
     currentModalContext === ModalViewContext.ASSIGN_POLICY_VIEW
-      ? t('Enroll managed application')
+      ? application.kind === VirtualMachineModel.kind
+        ? t('Enroll virtual machine')
+        : t('Enroll managed application')
       : t('Manage disaster recovery');
 
   const description = (
@@ -51,7 +60,7 @@ export const AppManagePoliciesModal: React.FC<AppManagePoliciesModalProps> = ({
       <AppManagePoliciesModalBody
         application={application}
         cluster={cluster}
-        setCurrentModalContext={setCurrentModalContext}
+        setCurrentModalContext={setModalContext}
       />
     </Modal>
   );

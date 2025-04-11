@@ -1,7 +1,7 @@
 import * as _ from 'lodash-es';
 import { SortByDirection } from '@patternfly/react-table';
 
-const sort = (aValue: any, bValue: any, c: SortByDirection) => {
+export const sort = (aValue: any, bValue: any, c: SortByDirection) => {
   const negation = c !== SortByDirection.asc;
   const sortVal = aValue.localeCompare(bValue);
   return negation ? -sortVal : sortVal;
@@ -11,7 +11,7 @@ export const sortRows = (
   a: any,
   b: any,
   c: SortByDirection,
-  sortField: string,
+  sortField?: string,
   favoriteNames?: string[]
 ) => {
   let aValue = _.get(a, sortField, '').toString();

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import { NooBaaBucketClassModel } from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
@@ -13,7 +14,6 @@ import { WizardStep, Wizard } from '@patternfly/react-core/deprecated';
 import { useParams, useNavigate } from 'react-router-dom-v5-compat';
 import { Title } from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../constants';
-import { NooBaaBucketClassModel } from '../../models';
 import { BucketClassType, PlacementPolicy } from '../../types';
 import { validateBucketClassName, validateDuration } from '../../utils';
 import { initialState, reducer, State } from './state';

@@ -8,6 +8,7 @@ import {
   LazyEmptyBucketModal,
   LazyDeleteBucketModal,
 } from '@odf/core/modals/s3-browser/delete-and-empty-bucket/lazy-delete-and-empty-bucket';
+import { NooBaaObjectBucketModel } from '@odf/shared';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useRefresh } from '@odf/shared/hooks';
 import { ModalKeys, defaultModalMap } from '@odf/shared/modals/types';
@@ -37,7 +38,6 @@ import {
   PERMISSIONS_ROUTE,
   MANAGEMENT_ROUTE,
 } from '../../../constants';
-import { NooBaaObjectBucketModel } from '../../../models';
 import { getBreadcrumbs } from '../../../utils';
 import { NoobaaS3Context, NoobaaS3Provider } from '../noobaa-context';
 import { CustomActionsToggle } from '../objects-list';

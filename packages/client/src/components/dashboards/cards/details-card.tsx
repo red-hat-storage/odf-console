@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
+import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getOprVersionFromCSV } from '@odf/shared/utils';
 import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { OverviewDetailItem as DetailItem } from '@openshift-console/plugin-shared';
 import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
 import { CLIENT_OPERATOR } from '../../../constants';
 

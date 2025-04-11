@@ -19,8 +19,7 @@
       "@odf/shared/*": ["./packages/shared/src/*"],
       "@odf/core/*": ["./packages/odf/*"],
       "@odf/*": ["./packages/*"]
-    },
-    "types": ["./index"]
+    }
   },
   "exclude": [
     "**/*/build",

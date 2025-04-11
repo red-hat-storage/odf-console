@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { OSD_CAPACITY_SIZES } from '@odf/core/constants';
 import {
   useCustomTranslation,
   TypeaheadDropdown,
@@ -7,7 +6,11 @@ import {
   CAPACITY_OSD_MAX_SIZE_IN_TIB,
   StorageSizeUnit,
 } from '@odf/shared';
-import { getFormattedCapacity } from '@odf/shared/utils';
+import {
+  formatCapacityText,
+  formatCapacityValue,
+  getStorageSizeInTiBWithoutUnit,
+} from '@odf/shared/utils';
 import {
   Alert,
   AlertVariant,
@@ -21,21 +24,23 @@ import {
 import './capacity-autoscaling.scss';
 import { InfoCircleIcon } from '@patternfly/react-icons';
 
-const getCapacityLimitAmount = (capacityLimit: string) =>
-  Number(capacityLimit.replace(/\D/g, ''));
-
-const getItem = (value: number) => ({
-  value: `${value}${StorageSizeUnit.Ti}`,
-  children: getFormattedCapacity(`${value}${StorageSizeUnit.Ti}`),
+const getItem = (capacityLimit: number) => ({
+  'data-limit': capacityLimit,
+  value: formatCapacityValue(`${capacityLimit}${StorageSizeUnit.Ti}`),
+  children: formatCapacityText(`${capacityLimit}${StorageSizeUnit.Ti}`),
 });
 
-const getCapacityDropdownItems = (
+const getCapacityLimitDropdownItems = (
   osdAmount: number,
   osdSize: number,
   capacityLimit: string
 ): SelectOptionProps[] => {
   const items = [];
-  let capacity: number;
+  if (osdSize <= 0 || osdAmount <= 0) {
+    return items;
+  }
+
+  let capacity = osdSize * osdAmount;
 
   // Vertical scaling.
   while (osdSize * 2 <= CAPACITY_OSD_MAX_SIZE_IN_TIB) {
@@ -45,25 +50,20 @@ const getCapacityDropdownItems = (
   }
 
   // Horizontal scaling.
-  if (items.length > 0) {
-    while (
-      capacity + osdSize * osdAmount <=
-      CAPACITY_AUTOSCALING_MAX_LIMIT_IN_TIB
-    ) {
-      capacity += osdSize * osdAmount;
-      items.push(getItem(capacity));
-    }
+  while (
+    capacity + osdSize * osdAmount <=
+    CAPACITY_AUTOSCALING_MAX_LIMIT_IN_TIB
+  ) {
+    capacity += osdSize * osdAmount;
+    items.push(getItem(capacity));
   }
 
   // If capacity limit has been set via CLI and not already included
   // in the items, we include it:
   const itemValues = items.map((item) => item.value);
-  if (!itemValues.includes(capacityLimit)) {
-    items.push(getItem(getCapacityLimitAmount(capacityLimit)));
-    items.sort(
-      (a, b) =>
-        getCapacityLimitAmount(a.value) - getCapacityLimitAmount(b.value)
-    );
+  if (capacityLimit && !itemValues.includes(capacityLimit)) {
+    items.push(getItem(getStorageSizeInTiBWithoutUnit(capacityLimit)));
+    items.sort((a, b) => a['data-limit'] - b['data-limit']);
   }
 
   return items;
@@ -93,9 +93,9 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
   const { t } = useCustomTranslation();
   const capacityItems = React.useMemo(
     () =>
-      getCapacityDropdownItems(
+      getCapacityLimitDropdownItems(
         osdAmount,
-        OSD_CAPACITY_SIZES[osdSize],
+        getStorageSizeInTiBWithoutUnit(osdSize),
         capacityLimit
       ),
     [capacityLimit, osdAmount, osdSize]
@@ -103,18 +103,17 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
   const capacityLimitPlaceHolder = t(
     'Select the maximum limit to which the cluster can expand.'
   );
-
   return (
     <div className={className}>
       {!isEditView && (
         <div className="pf-v5-u-font-family-heading pf-v5-u-mb-sm">
-          {t('Smart capacity scaling')}
+          {t('Automatic capacity scaling')}
         </div>
       )}
       <Checkbox
         label={
           <span>
-            {t('Enable smart capacity scaling for your cluster')}
+            {t('Enable automatic capacity scaling for your cluster')}
             {isEditView && (
               <Label
                 color="cyan"
@@ -133,9 +132,9 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
               'Opt-in to automatically add additional raw capacity equivalent to the configured deployment size whenever used capacity reaches 70%. This ensures your deployment scales seamlessly to meet demand.'
             )}
             <Popover
-              aria-label={t('How does smart scaling work?')}
+              aria-label={t('How does automatic capacity scaling work?')}
               bodyContent={t(
-                'Smart scaling adds capacity through OSD expansion by resizing existing OSDs or adding new OSDs to maintain node balance.'
+                'Automatic capacity scaling adds capacity through OSD expansion by resizing existing OSDs or adding new OSDs to maintain node balance.'
               )}
               footerContent={
                 <>
@@ -143,9 +142,12 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
                     {t('Note:')}
                   </span>
                   {t(
-                    `OSD expansion is limited to a maximum of ${getFormattedCapacity(
-                      `${CAPACITY_OSD_MAX_SIZE_IN_TIB}${StorageSizeUnit.Ti}`
-                    )}.`
+                    'OSD expansion is limited to a maximum of {{osdMaxSize}}.',
+                    {
+                      osdMaxSize: formatCapacityText(
+                        `${CAPACITY_OSD_MAX_SIZE_IN_TIB}${StorageSizeUnit.Ti}`
+                      ),
+                    }
                   )}
                 </>
               }
@@ -178,7 +180,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
           </div>
           <div>
             {t(
-              'The maximum limit to which the cluster can expand in the cloud. Smart scaling is suspended if exceeded.'
+              'The maximum limit to which the cluster can expand in the cloud. Automatic capacity scaling is suspended if exceeded.'
             )}
           </div>
           <TypeaheadDropdown
@@ -188,7 +190,7 @@ export const CapacityAutoScaling: React.FC<CapacityAutoScalingProps> = ({
             items={capacityItems}
             onSelect={onLimitSelect}
             placeholder={capacityLimitPlaceHolder}
-            selectedValue={capacityLimit}
+            selectedValue={formatCapacityValue(capacityLimit)}
           />
         </div>
       )}

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getCephBlockPoolResource } from '@odf/core/resources';
+import { CephBlockPoolModel, CephFileSystemModel } from '@odf/shared';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
@@ -45,7 +46,6 @@ import {
   MirroringImageHealthMap,
   healthStateMessage,
 } from '../dashboards/block-pool/states';
-import { CephBlockPoolModel, CephFileSystemModel } from '../models';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
 import {
   StoragePoolKind,

@@ -20,6 +20,8 @@ export const cannotBeUsedBeforeInNamespace = (t: TFunction) =>
 export const uniqueName = (t: TFunction, fieldName: string) =>
   t(`A unique name for the ${fieldName} within the project`);
 
+export const cannotBeEmpty = (t: TFunction) => t('Cannot be empty');
+
 export const fieldRequirementsTranslations = {
   maxChars,
   minChars,
@@ -28,4 +30,5 @@ export const fieldRequirementsTranslations = {
   cannotBeUsedBefore,
   cannotBeUsedBeforeInNamespace,
   uniqueName,
+  cannotBeEmpty,
 };

@@ -1,24 +1,31 @@
-import { DRApplication } from '@odf/mco/constants';
+import {
+  DRApplication,
+  K8S_RESOURCE_SELECTOR,
+  PROTECTED_VMS,
+} from '@odf/mco/constants';
 import {
   getDRClusterResourceObj,
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
 } from '@odf/mco/hooks';
 import {
-  ACMApplicationKind,
   ACMPlacementType,
   DRPlacementControlKind,
   DRPolicyKind,
 } from '@odf/mco/types';
 import {
   convertExpressionToLabel,
+  getLastAppDeploymentClusterName,
   getReplicationType,
   isDRPolicyValidated,
   matchClusters,
 } from '@odf/mco/utils';
 import { getLatestDate } from '@odf/shared/details-page/datetime';
 import { arrayify } from '@odf/shared/modals/EditLabelModal';
-import { Selector } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sResourceCommon,
+  Selector,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import {
   ApplicationType,
@@ -75,7 +82,7 @@ export const generatePlacementInfo = (
 
 export const generateDRPlacementControlInfo = (
   drpc: DRPlacementControlKind,
-  plsInfo: PlacementType
+  plsInfo?: PlacementType
 ): DRPlacementControlType[] =>
   !_.isEmpty(drpc)
     ? [
@@ -86,18 +93,34 @@ export const generateDRPlacementControlInfo = (
           drPolicyRef: drpc.spec.drPolicyRef,
           placementInfo: plsInfo,
           pvcSelector: getPVCSelector(drpc.spec.pvcSelector),
-          lastGroupSyncTime: drpc?.status?.lastGroupSyncTime,
+          lastGroupSyncTime: drpc.status?.lastGroupSyncTime,
+          lastKubeObjectProtectionTime:
+            drpc.status?.lastKubeObjectProtectionTime,
+          recipeName: drpc.spec?.kubeObjectProtection?.recipeRef?.name,
+          recipeNamespace:
+            drpc.spec?.kubeObjectProtection?.recipeRef?.namespace,
+          vmSharedGroup:
+            drpc.spec?.kubeObjectProtection?.recipeParameters?.[
+              PROTECTED_VMS
+            ] ?? [],
+          vmSharedGroupName:
+            drpc.spec?.kubeObjectProtection?.recipeParameters?.[
+              K8S_RESOURCE_SELECTOR
+            ]?.[0] ?? '',
+          k8sResourceSyncInterval:
+            drpc.spec?.kubeObjectProtection?.captureInterval,
         },
       ]
     : [];
 
 export const generateApplicationInfo = (
   appType: DRApplication,
-  application: ACMApplicationKind,
+  application: K8sResourceCommon,
   workloadNamespace: string,
   plsInfo: PlacementType[],
   drInfo: DRInfoType | {},
-  pvcQueryFilter: PVCQueryFilter
+  pvcQueryFilter: PVCQueryFilter,
+  discoveredVMPVCs?: string[]
 ): ApplicationType => ({
   type: appType,
   apiVersion: application.apiVersion,
@@ -107,6 +130,7 @@ export const generateApplicationInfo = (
   placements: plsInfo,
   drInfo: drInfo,
   pvcQueryFilter: pvcQueryFilter,
+  discoveredVMPVCs: discoveredVMPVCs,
 });
 
 export const getClusterNamesFromPlacements = (placements: PlacementType[]) =>
@@ -142,3 +166,21 @@ export const getDRResources = (namespace: string) => ({
     }),
   },
 });
+
+const getVMNamesFromRecipe = (
+  spec?: DRPlacementControlKind['spec']
+): string[] =>
+  spec?.kubeObjectProtection?.recipeParameters?.[PROTECTED_VMS] ?? [];
+
+export const findDRPCUsingVM = (
+  drpcs: DRPlacementControlKind[] = [],
+  vmName: string,
+  vmNamespace: string,
+  cluster: string
+): DRPlacementControlKind | undefined =>
+  drpcs.find(
+    (drpc) =>
+      getVMNamesFromRecipe(drpc.spec).includes(vmName) &&
+      drpc.spec?.protectedNamespaces?.includes(vmNamespace) &&
+      getLastAppDeploymentClusterName(drpc) === cluster
+  );

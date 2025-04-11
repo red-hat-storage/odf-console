@@ -7,28 +7,16 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { useWatchStorageSystems } from '@odf/shared/hooks/useWatchStorageSystems';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  getGVK,
-  humanizeBinaryBytes,
-  referenceFor,
-  referenceForModel,
-} from '@odf/shared/utils';
-import {
-  PrometheusResponse,
-  useK8sWatchResource,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { getGVK, humanizeBinaryBytes, referenceFor } from '@odf/shared/utils';
+import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { storageCapacityTooltip } from '../../../constants';
 import { StorageDashboard, CAPACITY_QUERIES } from '../queries';
-
-const storageSystemResource = {
-  kind: referenceForModel(ODFStorageSystem),
-  isList: true,
-};
 
 const getMetricForSystem = (
   metric: PrometheusResponse,
@@ -43,10 +31,7 @@ const getMetricForSystem = (
 
 const SystemCapacityCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<
-    StorageSystemKind[]
-  >(storageSystemResource);
-
+  const [systems, systemsLoaded, systemsLoadError] = useWatchStorageSystems();
   const [usedCapacity, errorUsedCapacity, loadingUsedCapacity] =
     useCustomPrometheusPoll({
       query: CAPACITY_QUERIES[StorageDashboard.USED_CAPACITY_FILE_BLOCK],

@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { ArgoApplicationSetModel } from '@odf/mco/models';
-import { K8sResourceCondition } from '@odf/shared';
+import { K8sResourceCondition, ArgoApplicationSetModel } from '@odf/shared';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   DRActionType,

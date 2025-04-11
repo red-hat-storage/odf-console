@@ -4,7 +4,7 @@ import {
   NooBaaBackingStoreModel,
   NooBaaBucketClassModel,
   NooBaaObjectBucketClaimModel,
-} from '@odf/core/models';
+} from '@odf/shared';
 import { CEPH_PROVISIONERS, PVCStatus } from '@odf/shared/constants';
 import {
   PersistentVolumeClaimModel,

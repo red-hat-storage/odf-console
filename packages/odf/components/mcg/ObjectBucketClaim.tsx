@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { NooBaaObjectBucketClaimModel } from '@odf/core/models';
+import { NooBaaObjectBucketClaimModel } from '@odf/shared';
+import { NooBaaObjectBucketModel } from '@odf/shared';
 import DetailsPage, {
   ResourceSummary,
 } from '@odf/shared/details-page/DetailsPage';
@@ -34,7 +35,6 @@ import { useParams } from 'react-router-dom-v5-compat';
 import { sortable } from '@patternfly/react-table';
 import { ATTACH_DEPLOYMENT } from '../../constants';
 import { MCG_FLAG, RGW_FLAG } from '../../features';
-import { NooBaaObjectBucketModel } from '../../models';
 import { getPhase, isBound, obcStatusFilter } from '../../utils';
 import { GetSecret } from './secret';
 import '../../style.scss';

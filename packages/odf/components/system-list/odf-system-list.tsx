@@ -13,13 +13,14 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
+import { useWatchStorageSystems } from '@odf/shared/hooks/useWatchStorageSystems';
 import { CustomKebabItem, Kebab } from '@odf/shared/kebab/kebab';
 import {
   ClusterServiceVersionModel,
   InfrastructureModel,
+  ODFStorageSystem,
   StorageClusterModel,
 } from '@odf/shared/models';
-import { ODFStorageSystem } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { Status } from '@odf/shared/status/Status';
 import {
@@ -307,7 +308,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   ) {
     customKebabItems.push({
       key: 'CAPACITY_AUTOSCALING',
-      value: t('Smart capacity scaling'),
+      value: t('Automatic capacity scaling'),
       component: React.lazy(
         () =>
           import(
@@ -366,10 +367,11 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
         <Kebab
           extraProps={{
             resource: obj,
-            resourceModel: ODFStorageSystem,
+            resourceModel: StorageClusterModel,
             storageCluster,
           }}
           customKebabItems={customKebabItems}
+          customLabel={ODFStorageSystem.label}
         />
       </TableData>
     </>
@@ -393,14 +395,7 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
 
-  const [storageSystems, loaded, loadError] = useK8sWatchResource<
-    StorageSystemKind[]
-  >({
-    kind: referenceForModel(ODFStorageSystem),
-    isList: true,
-    selector,
-  });
-
+  const [storageSystems, loaded, loadError] = useWatchStorageSystems();
   const [data, filteredData, onFilterChange] =
     useListPageFilter(storageSystems);
 

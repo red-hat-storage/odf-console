@@ -155,8 +155,17 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
       setInProgress(false);
     } else {
       try {
-        const latestRules: GetBucketCorsCommandOutput =
-          await noobaaS3.getBucketCors({ Bucket: bucketName });
+        let latestRules: GetBucketCorsCommandOutput;
+
+        try {
+          latestRules = await noobaaS3.getBucketCors({ Bucket: bucketName });
+        } catch (err) {
+          if (isNoCorsRuleError(err)) {
+            latestRules = { CORSRules: [] } as GetBucketCorsCommandOutput;
+          } else {
+            throw err;
+          }
+        }
 
         await noobaaS3.putBucketCors({
           Bucket: bucketName,

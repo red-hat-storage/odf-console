@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { NooBaaObjectBucketClaimModel } from '@odf/shared';
 import { formSettings } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
@@ -27,7 +28,6 @@ import {
   ActionGroup,
   Button,
 } from '@patternfly/react-core';
-import { NooBaaObjectBucketClaimModel } from '../../models';
 import { getAttachOBCPatch } from '../../utils';
 import { CreateOBCForm } from '../mcg/CreateObjectBucketClaim';
 import { commonReducer, defaultState } from '../mcg/state';

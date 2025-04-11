@@ -10,6 +10,9 @@ import {
   Button,
   ButtonVariant,
   ButtonType,
+  TextContent,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 import { CopyIcon, StarIcon } from '@patternfly/react-icons';
 import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens';
@@ -106,20 +109,22 @@ export const PageTitle: React.FC<TitleProps> = ({
           </>
         )}
       </div>
-      <h4>
-        {t('Object path: ')}
-        <span className="text-muted">{objectPath}</span>
-        <Button
-          type="button"
-          onClick={() => {
-            navigator.clipboard.writeText(objectPath);
-          }}
-          variant={ButtonVariant.link}
-        >
-          <CopyIcon className="pf-v5-u-mr-sm" />
-          {t('Copy to share')}
-        </Button>
-      </h4>
+      <TextContent>
+        <Text component={TextVariants.h4}>
+          {t('Object path: ')}
+          <span className="text-muted">{objectPath}</span>
+          <Button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(objectPath);
+            }}
+            variant={ButtonVariant.link}
+          >
+            <CopyIcon className="pf-v5-u-mr-sm" />
+            {t('Copy to share')}
+          </Button>
+        </Text>
+      </TextContent>
     </div>
   );
 };

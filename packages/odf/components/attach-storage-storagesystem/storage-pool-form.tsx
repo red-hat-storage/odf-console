@@ -3,14 +3,19 @@ import { useSafeK8sGet, useSafeK8sList } from '@odf/core/hooks';
 import { cephClusterResource } from '@odf/core/resources';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { PoolType } from '@odf/ocs/constants';
-import { CephBlockPoolModel, CephFileSystemModel } from '@odf/ocs/models';
+import {} from '@odf/shared';
 import { StoragePoolBody } from '@odf/ocs/storage-pool/body';
 import { CephFilesystemKind, StoragePoolKind } from '@odf/ocs/types';
 import {
   getExistingBlockPoolNames,
   getExistingFsPoolNames,
 } from '@odf/ocs/utils';
-import { CephClusterKind, StatusBox } from '@odf/shared';
+import {
+  CephClusterKind,
+  StatusBox,
+  CephBlockPoolModel,
+  CephFileSystemModel,
+} from '@odf/shared';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';

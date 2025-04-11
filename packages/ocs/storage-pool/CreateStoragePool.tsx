@@ -6,6 +6,7 @@ import {
 } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
+import { CephBlockPoolModel, CephFileSystemModel } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
@@ -30,14 +31,19 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom-v5-compat';
-import { Button, Modal } from '@patternfly/react-core';
+import {
+  Button,
+  Modal,
+  TextContent,
+  Text,
+  TextVariants,
+} from '@patternfly/react-core';
 import {
   ADDITIONAL_FS_POOLS_CLUSTER_CR_PATH,
   COMPRESSION_ON,
   PoolState,
   PoolType,
 } from '../constants';
-import { CephBlockPoolModel, CephFileSystemModel } from '../models';
 import { CephFilesystemKind, StoragePoolKind } from '../types';
 import {
   getErrorMessage,
@@ -53,6 +59,7 @@ import {
   StoragePoolState,
 } from './reducer';
 import './create-storage-pool.scss';
+import '../style.scss';
 
 export const createFsPoolRequest = (
   state: StoragePoolState,
@@ -354,10 +361,10 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
 
   return (
     <>
-      <div className="co-create-operand__header">
-        <h1 className="co-create-operand__header-text">
-          {t('Create storage pool')}
-        </h1>
+      <div className="odf-create-operand__header">
+        <TextContent className="odf-create-operand__header-text">
+          <Text component={TextVariants.h1}>{t('Create storage pool')}</Text>
+        </TextContent>
         <StoragePoolDefinitionText />
       </div>
       <div className="create-storage-pool__form">

@@ -6,8 +6,9 @@ import {
 import {
   ClusterVersionKind,
   ClusterVersionModel,
-  GrayInfoCircleIcon,
+  getName,
   Kebab,
+  StorageConsumerModel,
 } from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants/common';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
@@ -37,15 +38,9 @@ import {
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
-import {
-  Button,
-  Flex,
-  FlexItem,
-  Popover,
-  PopoverPosition,
-} from '@patternfly/react-core';
+import { useNavigate } from 'react-router-dom-v5-compat';
+import { Button, Popover, PopoverPosition } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
-import { StorageConsumerModel } from '../../models';
 import { useODFNamespaceSelector } from '../../redux';
 import {
   clientHeartBeatFilter,
@@ -53,7 +48,6 @@ import {
   versionMismatchFilter,
   storageConsumerNameFilter,
 } from './list-filter';
-import { ClientOnBoardingModal } from './onboarding-modal';
 import { StorageQuotaUtilizationProgress } from './QuotaUtilizationProgress';
 import { RotateKeysModal } from './rotate-keys-modal';
 import './client-list.scss';
@@ -83,41 +77,6 @@ const StorageQuotaPopoverContent: React.FC = () => {
         storage may vary affecting your allocated storage quota.
       </p>
     </Trans>
-  );
-};
-
-const NoClientsMessage: React.FC = () => {
-  const { t } = useCustomTranslation();
-  return (
-    <Flex
-      direction={{ default: 'column' }}
-      spaceItems={{ default: 'spaceItemsLg' }}
-      alignItems={{ default: 'alignItemsCenter' }}
-      justifyContent={{ default: 'justifyContentCenter' }}
-      className="pf-v5-u-font-size-lg odf-storage-client-list__no-client-msg"
-    >
-      <FlexItem>
-        <GrayInfoCircleIcon className="odf-storage-client-list__no-client-msg-icon" />
-      </FlexItem>
-      <FlexItem className="pf-v5-u-font-weight-bold">
-        {t('No storage clients found.')}
-      </FlexItem>
-      <FlexItem className="odf-storage-client-list__no-client-msg-text">
-        {t(
-          'You do not have any storage clients connected to this Data Foundation provider cluster.'
-        )}
-      </FlexItem>
-      <FlexItem className="odf-storage-client-list__no-client-msg-text">
-        <Trans t={t} ns="plugin__odf-console">
-          To connect a storage client to the Data Foundation provider cluster,
-          click{' '}
-          <span className="pf-v5-u-font-weight-bold">
-            Generate client onboarding token
-          </span>{' '}
-          and use the token to deploy the client cluster.
-        </Trans>
-      </FlexItem>
-    </Flex>
   );
 };
 
@@ -181,7 +140,7 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
         switch (column.id) {
           case 'name':
             column.title = t('Name');
-            column.sort = 'status.client.name';
+            column.sort = 'metadata.name';
             column.transforms = [sortable];
             break;
           case 'clusterName':
@@ -232,10 +191,9 @@ const ClientsList: React.FC<ClientListProps> = (props) => {
   return (
     <VirtualizedTable
       {...props}
-      aria-label={t('Storage Clients')}
+      aria-label={t('StorageConsumers')}
       columns={columns}
       Row={StorageClientRow}
-      NoDataEmptyMsg={NoClientsMessage}
     />
   );
 };
@@ -369,7 +327,7 @@ const StorageClientRow: React.FC<
         let data: string | JSX.Element;
         switch (tableColumn.id) {
           case 'name':
-            data = obj?.status?.client?.name || '-';
+            data = getName(obj);
             break;
           case 'clusterName':
             data = getClusterName(obj);
@@ -414,6 +372,15 @@ const StorageClientRow: React.FC<
                     value: t('Edit storage quota'),
                     component: React.lazy(
                       () => import('./update-storage-quota-modal')
+                    ),
+                  },
+                  {
+                    key: 'GENERATE_ONBOARDING_TOKEN',
+                    value: t('Generate client onboarding token'),
+                    component: React.lazy(() =>
+                      import('./onboarding-modal').then((m) => ({
+                        default: m.ClientOnBoardingModal,
+                      }))
                     ),
                   },
                   {
@@ -510,15 +477,17 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
     launchModal(modalComponent, { isOpen: true });
   };
 
+  const navigate = useNavigate();
+
   return (
     <>
-      <ListPageHeader title={t('Storage clients')}>
+      <ListPageHeader title={t('StorageConsumers')}>
         <Button
           variant="primary"
           className="pf-v5-u-mr-sm"
-          onClick={launchModalOnClick(ClientOnBoardingModal)}
+          onClick={() => navigate('/odf/storage-consumers/create')}
         >
-          {t('Generate client onboarding token')}
+          {t('Create StorageConsumer')}
         </Button>
         <Button
           variant="tertiary"

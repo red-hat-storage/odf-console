@@ -1,6 +1,6 @@
-import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
-export const NetworkAttachmentDefinitionModel: K8sKind = {
+export const NetworkAttachmentDefinitionModel: K8sModel = {
   label: 'Network Attachment Definition',
   labelPlural: 'Network Attachment Definitions',
   apiVersion: 'v1',
@@ -14,7 +14,7 @@ export const NetworkAttachmentDefinitionModel: K8sKind = {
   legacyPluralURL: true,
 };
 
-export const SriovNetworkNodePolicyModel: K8sKind = {
+export const SriovNetworkNodePolicyModel: K8sModel = {
   label: 'SR-IOV Network Node Policy',
   labelPlural: 'SR-IOV Network Node Policies',
   apiVersion: 'v1',

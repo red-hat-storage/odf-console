@@ -44,7 +44,7 @@ const getDropdownOptions = (dataPolicies: DRPolicyType[], t: TFunction) =>
     />
   ));
 
-const findPolicy = (name: string, dataPolicies: DRPolicyType[]) =>
+export const findPolicy = (name: string, dataPolicies: DRPolicyType[]) =>
   dataPolicies.find((policy) => getName(policy) === name);
 
 export const SelectPolicyWizardContent: React.FC<

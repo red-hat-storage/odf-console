@@ -4,16 +4,17 @@ import {
   getTotalCpu,
   getTotalMemory,
 } from '@odf/core/components/utils';
-import {
-  NetworkTypeLabels,
-  NO_PROVISIONER,
-  OSD_CAPACITY_SIZES,
-} from '@odf/core/constants';
+import { NetworkTypeLabels, NO_PROVISIONER } from '@odf/core/constants';
 import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { getAllZone } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
+import { StorageSizeUnitName } from '@odf/shared/types/storage';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getFormattedCapacity, humanizeBinaryBytes } from '@odf/shared/utils';
+import {
+  formatCapacityText,
+  getStorageSizeInTiBWithoutUnit,
+  humanizeBinaryBytes,
+} from '@odf/shared/utils';
 import * as _ from 'lodash-es';
 import {
   TextContent,
@@ -74,9 +75,9 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
 
   const isNoProvisioner = storageClass.provisioner === NO_PROVISIONER;
   const formattedCapacity = !isNoProvisioner
-    ? `${OSD_CAPACITY_SIZES[capacity]} TiB`
+    ? `${Number.isFinite(capacity) ? capacity : getStorageSizeInTiBWithoutUnit(capacity as string)} ${StorageSizeUnitName.TiB}`
     : humanizeBinaryBytes(capacity).string;
-  const formattedCapacityLimit = getFormattedCapacity(
+  const formattedCapacityLimit = formatCapacityText(
     capacityAndNodes.capacityAutoScaling.capacityLimit
   );
 
@@ -172,7 +173,7 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             })}
           </ListItem>
           <ListItem>
-            {t('Smart scaling: {{autoscaling}}', {
+            {t('Automatic capacity scaling: {{autoscaling}}', {
               autoscaling: capacityAndNodes.capacityAutoScaling.enable
                 ? 'Enabled'
                 : 'Disabled',

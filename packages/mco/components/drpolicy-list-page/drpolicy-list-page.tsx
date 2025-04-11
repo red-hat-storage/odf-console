@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
+import { DRPolicyModel } from '@odf/shared';
 import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { useAccessReview } from '@odf/shared/hooks/rbac-hook';
 import { Kebab } from '@odf/shared/kebab/kebab';
@@ -26,7 +27,6 @@ import {
   getDRPolicyResourceObj,
   useProtectedApplicationsWatch,
 } from '../../hooks';
-import { DRPolicyModel } from '../../models';
 import { DRPolicyKind } from '../../types';
 import { getReplicationType, isDRPolicyValidated } from '../../utils';
 import { Header, kebabActionItems, tableColumnInfo } from './helper';

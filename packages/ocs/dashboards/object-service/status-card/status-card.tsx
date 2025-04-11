@@ -1,9 +1,8 @@
 import * as React from 'react';
-import { CephObjectStoreModel } from '@odf/core/models';
-import { NooBaaSystemModel } from '@odf/core/models';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { secretResource } from '@odf/core/resources';
 import { getResourceInNs } from '@odf/core/utils';
+import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/shared';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,

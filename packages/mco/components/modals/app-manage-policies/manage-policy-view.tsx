@@ -6,11 +6,12 @@ import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { Labels } from '@odf/shared/labels';
 import { ModalBody, ModalFooter } from '@odf/shared/modals/Modal';
-import { getName } from '@odf/shared/selectors';
+import { getAnnotations, getName } from '@odf/shared/selectors';
 import { BlueInfoCircleIcon } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
 import {
+  GreenCheckCircleIcon,
   StatusIconAndText,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
@@ -25,17 +26,22 @@ import {
   Text,
   TextVariants,
 } from '@patternfly/react-core';
-import { PencilAltIcon, UnknownIcon } from '@patternfly/react-icons';
+import {
+  PencilAltIcon,
+  UnknownIcon,
+  BanIcon,
+  ArrowRightIcon,
+} from '@patternfly/react-icons';
 import {
   DISCOVERED_APP_NS,
+  DRApplication,
+  IS_CG_ENABLED_ANNOTATION,
   ReplicationType,
   SYNC_SCHEDULE_DISPLAY_TEXT,
+  VM_RECIPE_NAME,
 } from '../../../constants';
 import { getDRPlacementControlResourceObj } from '../../../hooks';
-import {
-  doNotDeletePVCAnnotationPromises,
-  unAssignPromises,
-} from './utils/k8s-utils';
+import { unAssignPromises } from './utils/k8s-utils';
 import {
   ModalActionContext,
   ModalViewContext,
@@ -46,8 +52,85 @@ import {
   DRInfoType,
   DRPlacementControlType,
   DRPolicyType,
+  ModalType,
 } from './utils/types';
 import './style.scss';
+
+const displayUnknown = (t: TFunction) => (
+  <StatusIconAndText
+    icon={<UnknownIcon />}
+    title={t('Unknown')}
+    className="pf-v5-l-flex__item"
+  />
+);
+
+const replicationStatus = (label: string, time: string, t: TFunction) => (
+  <Text component={TextVariants.p} className="pf-v5-l-flex__item">
+    <div className="pf-v5-l-flex">
+      {label}{' '}
+      {time ? (
+        t('Last synced on {{syncTime}}', { syncTime: formatTime(time) })
+      ) : (
+        <>
+          &nbsp;
+          {displayUnknown(t)}
+        </>
+      )}
+    </div>
+  </Text>
+);
+enum EmptyPageContentType {
+  NamespaceProtected = 'NamespaceProtected',
+  Application = 'Application',
+  VirtualMachine = 'VirtualMachine',
+}
+
+// Map containing content for each type
+const getEmptyPageContentMap = (t: TFunction) => ({
+  [EmptyPageContentType.NamespaceProtected]: {
+    title: t('Application already enrolled in disaster recovery'),
+    content: (
+      <Trans t={t}>
+        <p>
+          This managed application namespace is already DR protected. You may
+          have protected this namespace while enrolling discovered applications.
+        </p>
+        <p className="pf-v5-u-mt-md">
+          To see disaster recovery information for your applications, go to
+          <strong> Protected applications </strong> under&nbsp;
+          <strong> Disaster Recovery </strong>.
+        </p>
+      </Trans>
+    ),
+    buttonText: '',
+  },
+  [EmptyPageContentType.Application]: {
+    title: t('No assigned disaster recovery policy found'),
+    content: (
+      <Trans t={t}>
+        <p>
+          You have not enrolled this application yet. To protect your
+          application, click&nbsp;
+          <strong>Enroll application.</strong>
+        </p>
+      </Trans>
+    ),
+    buttonText: t('Enroll application'),
+  },
+  [EmptyPageContentType.VirtualMachine]: {
+    title: t('No assigned disaster recovery policy found'),
+    content: (
+      <Trans t={t}>
+        <p>
+          You have not enrolled this virtual machine yet. To protect your
+          virtual machine, click&nbsp;
+          <strong>Enroll virtual machine.</strong>
+        </p>
+      </Trans>
+    ),
+    buttonText: t('Enroll virtual machine'),
+  },
+});
 
 const isDRProtectionRemoved = (drpcs: DRPlacementControlType[]) =>
   drpcs.every((drpc) => _.has(drpc.metadata, 'deletionTimestamp'));
@@ -59,7 +142,8 @@ const checkNamespaceProtected = (
 ): boolean =>
   drpcs?.some((drpc) => {
     const isNamespaceProtected =
-      drpc.spec?.protectedNamespaces?.includes(workloadNamespace);
+      drpc.spec?.protectedNamespaces?.includes(workloadNamespace) &&
+      drpc.spec?.kubeObjectProtection?.recipeRef?.name !== VM_RECIPE_NAME;
     const isPolicyMatching = eligiblePolicies?.some(
       (policy) => getName(policy) === drpc.spec.drPolicyRef.name
     );
@@ -82,8 +166,24 @@ const getAggregatedDRInfo = (
       assignedOn: formatTime(
         getLatestDate([acc.assignedOn, drpc?.metadata?.creationTimestamp])
       ),
+      lastKubeObjectProtectionTime:
+        drpc?.lastKubeObjectProtectionTime || acc.lastKubeObjectProtectionTime,
+      recipeName: drpc?.recipeName || acc.recipeName,
+      recipeNamespace: drpc?.recipeNamespace || acc.recipeNamespace,
+      isVolumeGroupReplicationEnabled:
+        acc.isVolumeGroupReplicationEnabled ||
+        getAnnotations(drpc)?.[IS_CG_ENABLED_ANNOTATION] === 'true',
     }),
-    { placements: [], pvcSelector: [], lastGroupSyncTime: '', assignedOn: '' }
+    {
+      placements: [],
+      pvcSelector: [],
+      lastGroupSyncTime: '',
+      assignedOn: '',
+      recipeName: '',
+      recipeNamespace: '',
+      lastKubeObjectProtectionTime: '',
+      isVolumeGroupReplicationEnabled: false,
+    }
   );
 
 const getMessage = (t: TFunction<string>, errorMessage?: string) => ({
@@ -114,6 +214,7 @@ const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
   policyInfoLoaded,
   policyInfoLoadError,
   onClick,
+  modalType,
 }) => {
   const { t } = useCustomTranslation();
   const [discoveredApps, loaded, loadError] = useK8sWatchResource<
@@ -130,6 +231,16 @@ const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
     discoveredApps
   );
 
+  // Determine the correct type dynamically
+  const emptyPageContentType: EmptyPageContentType = isNamespaceProtected
+    ? EmptyPageContentType.NamespaceProtected
+    : modalType === ModalType.VirtualMachine
+      ? EmptyPageContentType.VirtualMachine
+      : EmptyPageContentType.Application;
+
+  const { title, content, buttonText } =
+    getEmptyPageContentMap(t)[emptyPageContentType];
+
   const allLoaded = policyInfoLoaded && loaded;
   const anyLoadError = policyInfoLoadError || loadError;
 
@@ -140,31 +251,10 @@ const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
       isDisabled={isNamespaceProtected}
       EmptyIcon={BlueInfoCircleIcon}
       onClick={onClick}
-      buttonText={t('Enroll application')}
-      title={
-        isNamespaceProtected
-          ? t('Application already enrolled in disaster recovery')
-          : t('No assigned disaster recovery policy found')
-      }
+      buttonText={buttonText}
+      title={title}
     >
-      {isNamespaceProtected ? (
-        <Trans t={t}>
-          <p>
-            This managed application namespace is already DR protected. You may
-            have protected this namespace while enrolling discovered
-            applications.
-          </p>
-          <p className="pf-v5-u-mt-md">
-            To see disaster recovery information for your applications, go to
-            <strong>Protected applications</strong> under&nbsp;
-            <strong>Disaster Recovery</strong>.
-          </p>
-        </Trans>
-      ) : (
-        t(
-          'You have not enrolled this application yet. To protect your application,'
-        )
-      )}
+      {content}
     </EmptyPage>
   ) : (
     <StatusBox loaded={allLoaded} loadError={anyLoadError} />
@@ -204,15 +294,25 @@ const DRInformation: React.FC<DRInformationProps> = ({
   dataPolicyInfo,
   hideEditAction,
   onEdit,
+  appType,
+  setModalContext,
 }) => {
   const { t } = useCustomTranslation();
   const { drPolicyInfo, placementControlInfo } = dataPolicyInfo;
   const { isValidated, replicationType, schedulingInterval, drClusters } =
     drPolicyInfo;
-  const isAsyncRelication = replicationType === ReplicationType.ASYNC;
+  const isAsync = replicationType === ReplicationType.ASYNC;
   const [unit, interval] = parseSyncInterval(schedulingInterval);
-  const { placements, pvcSelector, lastGroupSyncTime, assignedOn } =
-    getAggregatedDRInfo(placementControlInfo);
+  const {
+    placements,
+    pvcSelector,
+    lastGroupSyncTime,
+    assignedOn,
+    lastKubeObjectProtectionTime,
+    recipeName,
+    recipeNamespace,
+    isVolumeGroupReplicationEnabled,
+  } = getAggregatedDRInfo(placementControlInfo);
 
   return (
     <>
@@ -224,7 +324,7 @@ const DRInformation: React.FC<DRInformationProps> = ({
           })}
         </Text>
         <Text component={TextVariants.p}>
-          {isAsyncRelication
+          {isAsync
             ? t(
                 'Replication policy: {{replicationType}}, {{interval}} {{unit}}',
                 {
@@ -262,30 +362,71 @@ const DRInformation: React.FC<DRInformationProps> = ({
             placements: placements.join(', '),
           })}
         </Text>
-        <Text component={TextVariants.p}>{t('Label selector:')}</Text>
-        <Labels labels={pvcSelector} numLabels={4} />
-      </DRInformationGroup>
-      {isAsyncRelication && (
-        <DRInformationGroup title={t('Replication details')}>
-          <div className="pf-v5-l-flex">
-            <Text component={TextVariants.p} className="pf-v5-l-flex__item">
-              {t('Status: ')}
+        {appType !== DRApplication.DISCOVERED ? (
+          <>
+            <Text component={TextVariants.p}>{t('Label selector:')}</Text>
+            <Labels labels={pvcSelector} numLabels={4} />
+          </>
+        ) : (
+          <>
+            <Text component={TextVariants.p}>
+              {t('Recipe name: {{recipeName}}', {
+                recipeName,
+              })}
             </Text>
-            {!!lastGroupSyncTime ? (
-              t('Last synced on {{syncTime}}', {
-                syncTime: formatTime(lastGroupSyncTime),
-              })
-            ) : (
-              <StatusIconAndText
-                icon={<UnknownIcon />}
-                title={t('Unknown')}
-                className="pf-v5-l-flex__item"
-              />
-            )}
-          </div>
+            <Text component={TextVariants.p}>
+              {t('Recipe namespace: {{recipeNamespace}}', {
+                recipeNamespace,
+              })}
+            </Text>
+          </>
+        )}
+        <VolumeGroupReplicationStatus
+          isEnabled={isVolumeGroupReplicationEnabled}
+          setModalContext={setModalContext}
+        />
+      </DRInformationGroup>
+      {(isAsync || appType === DRApplication.DISCOVERED) && (
+        <DRInformationGroup title={t('Replication details')}>
+          {isAsync && replicationStatus(t('Volume:'), lastGroupSyncTime, t)}
+          {replicationStatus(
+            t('Kubernetes object:'),
+            lastKubeObjectProtectionTime,
+            t
+          )}
         </DRInformationGroup>
       )}
     </>
+  );
+};
+
+const VolumeGroupReplicationStatus: React.FC<VolumeReplicationStatusProps> = ({
+  isEnabled,
+  setModalContext,
+}) => {
+  const { t } = useCustomTranslation();
+  return (
+    <div className="pf-v5-l-flex">
+      <Text component={TextVariants.p} className="pf-v5-l-flex__item">
+        {t('Volume group replication: ')}
+      </Text>
+      <StatusIconAndText
+        icon={isEnabled ? <GreenCheckCircleIcon /> : <BanIcon />}
+        title={isEnabled ? t('Enabled') : t('Disabled')}
+        className="pf-v5-l-flex__item"
+      />
+      {isEnabled && (
+        <Button
+          variant={ButtonVariant.link}
+          onClick={() =>
+            setModalContext(ModalViewContext.VOLUME_CONSISTENCY_GROUP_VIEW)
+          }
+          className="pf-v5-l-flex__item pf-m-align-right"
+        >
+          {t('View volume groups')} <ArrowRightIcon />
+        </Button>
+      )}
+    </div>
   );
 };
 
@@ -293,7 +434,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
   drInfo,
   workloadNamespace,
   eligiblePolicies,
-  isSubscriptionAppType,
+  appType,
   unprotectedPlacementCount,
   modalActionContext,
   loaded,
@@ -301,6 +442,9 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
   dispatch,
   setModalContext,
   setModalActionContext,
+  modalType,
+  appName,
+  discoveredVMPVCs,
 }) => {
   const { t } = useCustomTranslation();
   const [localModalActionContext, setLocalModalActionContext] =
@@ -321,6 +465,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
           setModalActionContext(ModalActionContext.ENABLE_DR_PROTECTION);
           setModalContext(ModalViewContext.ASSIGN_POLICY_VIEW);
         }}
+        modalType={modalType}
       />
     );
   }
@@ -340,32 +485,27 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
   };
 
   const onRemove = async () => {
-    setInProgress(true);
-    await Promise.all(
-      doNotDeletePVCAnnotationPromises(drInfo.placementControlInfo)
-    )
-      .then(() =>
-        // Delete DRPC after adding the PVC annotation successfully
-        Promise.all(unAssignPromises(drInfo.placementControlInfo))
-          .then(() =>
-            setLocalModalActionContext(
-              ModalActionContext.DISABLE_DR_PROTECTION_SUCCEEDED
-            )
-          )
-          .catch((error) => {
-            setLocalModalActionContext(
-              ModalActionContext.DISABLE_DR_PROTECTION_FAILED
-            );
-            setErrorMessage(getErrorMessage(error) || error);
-          })
-      )
-      .catch((error) => {
-        setLocalModalActionContext(
-          ModalActionContext.DISABLE_DR_PROTECTION_FAILED
-        );
-        setErrorMessage(getErrorMessage(error) || error);
-      });
-    setInProgress(false);
+    try {
+      setInProgress(true);
+      await unAssignPromises(
+        drInfo.placementControlInfo,
+        appName,
+        workloadNamespace,
+        appType,
+        t,
+        discoveredVMPVCs
+      );
+      setLocalModalActionContext(
+        ModalActionContext.DISABLE_DR_PROTECTION_SUCCEEDED
+      );
+    } catch (error) {
+      setLocalModalActionContext(
+        ModalActionContext.DISABLE_DR_PROTECTION_FAILED
+      );
+      setErrorMessage(getErrorMessage(error) || error);
+    } finally {
+      setInProgress(false);
+    }
   };
 
   return (
@@ -373,8 +513,12 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
       <ModalBody>
         <DRInformation
           dataPolicyInfo={drInfo}
-          hideEditAction={!isSubscriptionAppType || !unprotectedPlacementCount}
+          hideEditAction={
+            appType !== DRApplication.SUBSCRIPTION || !unprotectedPlacementCount
+          }
           onEdit={onEdit}
+          appType={appType}
+          setModalContext={setModalContext}
         />
         {!!alertProps && (
           <Alert title={alertProps.title} variant={alertProps.variant} isInline>
@@ -426,7 +570,7 @@ type ManagePolicyViewProps = {
   drInfo: DRInfoType;
   workloadNamespace: string;
   eligiblePolicies: DRPolicyType[];
-  isSubscriptionAppType: boolean;
+  appType: DRApplication;
   unprotectedPlacementCount: number;
   modalActionContext: ModalActionContext;
   loaded: boolean;
@@ -434,12 +578,17 @@ type ManagePolicyViewProps = {
   dispatch: React.Dispatch<ManagePolicyStateAction>;
   setModalContext: (modalViewContext: ModalViewContext) => void;
   setModalActionContext: (modalActionContext: ModalActionContext) => void;
+  modalType: ModalType;
+  appName: string;
+  discoveredVMPVCs: string[];
 };
 
 type DRInformationProps = {
   dataPolicyInfo: DRInfoType;
   hideEditAction: boolean;
   onEdit: () => void;
+  appType: DRApplication;
+  setModalContext: (modalViewContext: ModalViewContext) => void;
 };
 
 type DRInformationGroupProps = {
@@ -459,6 +608,7 @@ type ManagePolicyEmptyPageProps = {
   policyInfoLoaded: boolean;
   policyInfoLoadError: any;
   onClick: () => void;
+  modalType: ModalType;
 };
 
 type AggregatedDRInfo = {
@@ -466,4 +616,13 @@ type AggregatedDRInfo = {
   pvcSelector: string[];
   lastGroupSyncTime: string;
   assignedOn: string;
+  lastKubeObjectProtectionTime?: string;
+  recipeName?: string;
+  recipeNamespace?: string;
+  isVolumeGroupReplicationEnabled?: boolean;
+};
+
+type VolumeReplicationStatusProps = {
+  isEnabled: boolean;
+  setModalContext: (modalViewContext: ModalViewContext) => void;
 };

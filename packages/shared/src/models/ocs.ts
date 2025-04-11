@@ -1,9 +1,6 @@
-import {
-  K8sKind,
-  K8sModel,
-} from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
-export const CephBlockPoolModel: K8sKind = {
+export const CephBlockPoolModel: K8sModel = {
   label: 'BlockPool',
   labelPlural: 'BlockPools',
   apiVersion: 'v1',
@@ -16,7 +13,7 @@ export const CephBlockPoolModel: K8sKind = {
   crd: true,
 };
 
-export const CephObjectStoreModel: K8sKind = {
+export const CephObjectStoreModel: K8sModel = {
   label: 'Ceph Object Store',
   labelPlural: 'Ceph Object Stores',
   apiVersion: 'v1',
@@ -29,7 +26,7 @@ export const CephObjectStoreModel: K8sKind = {
   crd: true,
 };
 
-export const NooBaaSystemModel: K8sKind = {
+export const NooBaaSystemModel: K8sModel = {
   label: 'NooBaa System',
   labelPlural: 'NooBaa Systems',
   apiVersion: 'v1alpha1',
@@ -43,7 +40,7 @@ export const NooBaaSystemModel: K8sKind = {
   legacyPluralURL: true,
 };
 
-export const NooBaaBackingStoreModel: K8sKind = {
+export const NooBaaBackingStoreModel: K8sModel = {
   label: 'Backing Store',
   labelPlural: 'Backing Stores',
   apiVersion: 'v1alpha1',
@@ -57,7 +54,7 @@ export const NooBaaBackingStoreModel: K8sKind = {
   legacyPluralURL: true,
 };
 
-export const NooBaaNamespaceStoreModel: K8sKind = {
+export const NooBaaNamespaceStoreModel: K8sModel = {
   label: 'Namespace Store',
   labelPlural: 'Namespace Stores',
   apiVersion: 'v1alpha1',
@@ -71,7 +68,7 @@ export const NooBaaNamespaceStoreModel: K8sKind = {
   legacyPluralURL: true,
 };
 
-export const NooBaaBucketClassModel: K8sKind = {
+export const NooBaaBucketClassModel: K8sModel = {
   label: 'Bucket Class',
   labelPlural: 'Bucket Classes',
   apiVersion: 'v1alpha1',
@@ -85,7 +82,7 @@ export const NooBaaBucketClassModel: K8sKind = {
   legacyPluralURL: true,
 };
 
-export const NooBaaObjectBucketClaimModel: K8sKind = {
+export const NooBaaObjectBucketClaimModel: K8sModel = {
   label: 'Object Bucket Claim',
   labelPlural: 'Object Bucket Claims',
   apiVersion: 'v1alpha1',
@@ -99,7 +96,7 @@ export const NooBaaObjectBucketClaimModel: K8sKind = {
   legacyPluralURL: true,
 };
 
-export const NooBaaObjectBucketModel: K8sKind = {
+export const NooBaaObjectBucketModel: K8sModel = {
   label: 'Object Bucket',
   labelPlural: 'Object Buckets',
   apiVersion: 'v1alpha1',
@@ -125,4 +122,30 @@ export const StorageConsumerModel: K8sModel = {
   crd: true,
   verbs: ['get', 'list', 'watch', 'create', 'update', 'patch', 'delete'],
   shortNames: ['sc'],
+};
+
+export const CephFileSystemModel: K8sModel = {
+  label: 'CephFilesystem',
+  labelPlural: 'CephFilesystems',
+  apiVersion: 'v1',
+  apiGroup: 'ceph.rook.io',
+  plural: 'cephfilesystems',
+  abbr: 'CFS',
+  namespaced: true,
+  kind: 'CephFilesystem',
+  id: 'cephfilesystems',
+  crd: true,
+};
+
+export const CephBlockPoolRadosNamespaceModel: K8sModel = {
+  label: 'CephBlockPoolRadosNamespace',
+  labelPlural: 'CephBlockPoolRadosNamespaces',
+  apiVersion: 'v1',
+  apiGroup: 'ceph.rook.io',
+  plural: 'cephblockpoolradosnamespaces',
+  abbr: 'CBPR',
+  namespaced: true,
+  kind: 'CephBlockPoolRadosNamespace',
+  id: 'cephblockpoolradosnamespaces',
+  crd: true,
 };

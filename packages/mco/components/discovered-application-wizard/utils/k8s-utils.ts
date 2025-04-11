@@ -1,22 +1,20 @@
 import {
-  ACMPlacementModel,
-  DRPlacementControlModel,
-  DRPolicyModel,
-} from '@odf/mco//models';
-import {
   DISCOVERED_APP_NS,
   PROTECTED_APP_ANNOTATION,
 } from '@odf/mco/constants';
+import {} from '@odf/mco/types';
+import { ACMPlacementKind, DRPlacementControlKind } from '@odf/mco/types';
 import {
-  ACMPlacementKind,
-  DRPlacementControlKind,
-  DRPolicyKind,
-} from '@odf/mco/types';
+  ACMPlacementModel,
+  DRPlacementControlModel,
+  DRPolicyModel,
+} from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind } from '@odf/shared/types';
 import { getAPIVersionForModel } from '@odf/shared/utils';
 import {
   MatchExpression,
+  ObjectMetadata,
   k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -29,19 +27,22 @@ export const getDRPCKindObj = (props: {
   preferredCluster: string;
   namespaces: string[];
   protectionMethod: ProtectionMethodType;
-  drPolicy: DRPolicyKind;
+  drPolicyName: string;
   k8sResourceReplicationInterval: string;
   recipeName?: string;
   recipeNamespace?: string;
   k8sResourceLabelExpressions?: MatchExpression[];
   pvcLabelExpressions?: MatchExpression[];
   placementName: string;
+  recipeParameters?: Record<string, string[]>;
+  labels?: ObjectMetadata['labels'];
 }): DRPlacementControlKind => ({
   apiVersion: getAPIVersionForModel(DRPlacementControlModel),
   kind: DRPlacementControlModel.kind,
   metadata: {
     name: props.name,
     namespace: DISCOVERED_APP_NS,
+    ...(props.labels && { labels: props.labels }),
   },
   spec: {
     preferredCluster: props.preferredCluster,
@@ -59,6 +60,7 @@ export const getDRPCKindObj = (props: {
               name: props.recipeName,
               namespace: props.recipeNamespace,
             },
+            recipeParameters: props.recipeParameters ?? {},
           }
         : {
             kubeObjectSelector: {
@@ -67,7 +69,7 @@ export const getDRPCKindObj = (props: {
           }),
     },
     drPolicyRef: {
-      name: getName(props.drPolicy),
+      name: props.drPolicyName,
       apiVersion: getAPIVersionForModel(DRPolicyModel),
       kind: DRPolicyModel.kind,
     },
@@ -81,7 +83,9 @@ export const getDRPCKindObj = (props: {
 });
 
 // Dummy placement for the discovered apps DRPC
-const getPlacementKindObj = (placementName: string): ACMPlacementKind => ({
+export const getPlacementKindObj = (
+  placementName: string
+): ACMPlacementKind => ({
   apiVersion: getAPIVersionForModel(ACMPlacementModel),
   kind: ACMPlacementModel.kind,
   metadata: {
@@ -130,7 +134,7 @@ export const createPromise = (
         recipeNamespace,
         k8sResourceLabelExpressions,
         pvcLabelExpressions,
-        drPolicy,
+        drPolicyName: getName(drPolicy),
         k8sResourceReplicationInterval,
         placementName,
       }),

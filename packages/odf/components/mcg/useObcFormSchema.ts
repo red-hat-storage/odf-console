@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { NOOBAA_PROVISIONER } from '@odf/core/constants';
+import { NooBaaObjectBucketClaimModel } from '@odf/shared';
 import { fieldRequirementsTranslations } from '@odf/shared/constants';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
 import * as Yup from 'yup';
-import { NooBaaObjectBucketClaimModel } from '../../models';
 import { State } from './state';
 
 export type UseObcBaseSchema = {

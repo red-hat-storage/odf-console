@@ -1,14 +1,14 @@
-import { ApplicationKind } from '@odf/shared';
-import { renderHook } from '@testing-library/react-hooks';
-import { PLACEMENT_REF_LABEL } from '../../../../constants';
-import { DisasterRecoveryResourceKind } from '../../../../hooks/disaster-recovery';
 import {
   ACMPlacementDecisionModel,
   ACMPlacementModel,
   DRClusterModel,
   DRPlacementControlModel,
   DRPolicyModel,
-} from '../../../../models';
+  ApplicationKind,
+} from '@odf/shared';
+import { renderHook } from '@testing-library/react-hooks';
+import { PLACEMENT_REF_LABEL } from '../../../../constants';
+import { DisasterRecoveryResourceKind } from '../../../../hooks/disaster-recovery';
 import {
   ACMPlacementDecisionKind,
   ACMPlacementKind,

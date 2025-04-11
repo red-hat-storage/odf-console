@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BLOCK_POOL_NAME_LABEL } from '@odf/ocs/constants';
-import { CephBlockPoolRadosNamespaceModel } from '@odf/ocs/models';
+import { CephBlockPoolRadosNamespaceModel } from '@odf/shared';
 import { healthStateMapping, HealthStateMappingValues } from '@odf/shared';
 import { getLatestDate } from '@odf/shared/details-page/datetime';
 import { getName, getNamespace } from '@odf/shared/selectors';

@@ -28,7 +28,7 @@
     "activityResource": "@odf/core/components/cluster-overview-extensions/ClusterExpansion",
     "storageProvider": "@odf/core/components/attach-obc/AttachOBC",
     "obcStatus": "@odf/ocs/dashboards/object-service/buckets-card/utils",
-    "models": "@odf/core/models/index.ts",
+    "models": "@odf/shared/models/index.ts",
     "storageProvisioners": "@odf/ocs/storage-class/provisioners",
     "storageProvisionerComponents": "@odf/ocs/storage-class/sc-form",
     "thickProvisioner": "@odf/ocs/storage-class/thick-provisioner",
@@ -46,7 +46,9 @@
     "s3BucketList": "@odf/core/components/s3-browser/buckets-list-page/bucketsListPage",
     "s3BucketLifecycleRule": "@odf/core/components/s3-browser/create-or-edit-lifecycle-rules/CreateOrEditLifecycleRule",
     "s3BucketCors": "@odf/core/components/s3-browser/create-or-edit-cors-rules/CreateOrEditCorsRule",
+    "s3BucketCorsDetails": "@odf/core/components/s3-browser/cors-details/CorsDetailsPage",
     "attachStorage": "@odf/core/components/attach-storage-storagesystem/attach-storage",
-    "storageClientAttacherAction": "@odf/core/modals/StorageClientDistributionModal/useStorageClientAttacherAction"
+    "storageClientAttacherAction": "@odf/core/modals/StorageClientDistributionModal/useStorageClientAttacherAction",
+    "storageConsumerCreate": "@odf/core/components/storage-consumers/CreateStorageConsumer"
   }
 }

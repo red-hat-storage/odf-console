@@ -1,8 +1,8 @@
 import * as React from 'react';
+import { DRPolicyModel, DRPlacementControlModel } from '@odf/shared';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { DR_BASE_ROUTE } from '../../constants';
-import { DRPolicyModel, DRPlacementControlModel } from '../../models/ramen';
 import {
   EmptyRowMessage,
   NoDataMessage,
@@ -119,6 +119,14 @@ jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   }),
   useModal: jest.fn(() => null),
   AlertSeverity: { Critical: 'critical' },
+  useK8sWatchResources: jest.fn(() => null),
+}));
+
+jest.mock('../modals/app-manage-policies/helper/consistency-groups', () => ({
+  buildMCVResource: jest.fn(() => ({})),
+  extractConsistencyGroups: jest.fn(() => []),
+  ConsistencyGroupsContent: jest.fn(() => null),
+  getMCVName: jest.fn(() => ''),
 }));
 
 jest.mock('react-router-dom-v5-compat', () => ({

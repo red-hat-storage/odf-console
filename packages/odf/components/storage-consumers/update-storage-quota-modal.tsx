@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { DiskSize as QuotaSize } from '@odf/core/constants';
 import { useRawCapacity } from '@odf/core/hooks';
-import { StorageConsumerModel } from '@odf/core/models';
 import {
   useODFNamespaceSelector,
   useODFSystemFlagsSelector,
 } from '@odf/core/redux';
 import { StorageQuota } from '@odf/core/types';
 import { getQuotaValueInGiB, isValidQuota } from '@odf/core/utils';
+import { StorageConsumerModel } from '@odf/shared';
 import {
   GrayInfoCircleIcon,
   ModalFooter,

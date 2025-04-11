@@ -3,6 +3,7 @@ import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { K8sResourceObj } from '@odf/core/types';
 import { useGetOCSHealth } from '@odf/ocs/hooks';
 import { StorageConsumerKind } from '@odf/shared';
+import { StorageConsumerModel } from '@odf/shared';
 import { ODF_OPERATOR } from '@odf/shared/constants';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { healthStateMap } from '@odf/shared/dashboards/status-card/states';
@@ -10,12 +11,10 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import { StorageClusterModel, ODFStorageSystem } from '@odf/shared/models';
+import { useWatchStorageSystems } from '@odf/shared/hooks/useWatchStorageSystems';
+import { StorageClusterModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
-import {
-  ClusterServiceVersionKind,
-  StorageSystemKind,
-} from '@odf/shared/types';
+import { ClusterServiceVersionKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getGVK,
@@ -39,7 +38,6 @@ import {
   CardTitle,
 } from '@patternfly/react-core';
 import { PROVIDER_MODE } from '../../../features';
-import { StorageConsumerModel } from '../../../models';
 import { getVendorDashboardLinkFromMetrics } from '../../utils';
 import { StorageDashboard, STATUS_QUERIES } from '../queries';
 import StatusCardPopover from './status-card-popover';
@@ -52,19 +50,11 @@ const operatorResource: K8sResourceObj = (ns) => ({
   isList: true,
 });
 
-const storageSystemResource = {
-  kind: referenceForModel(ODFStorageSystem),
-  isList: true,
-};
-
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [csvData, csvLoaded, csvLoadError] =
     useSafeK8sWatchResource<ClusterServiceVersionKind[]>(operatorResource);
-  const [systems, systemsLoaded, systemsLoadError] = useK8sWatchResource<
-    StorageSystemKind[]
-  >(storageSystemResource);
-
+  const [systems, systemsLoaded, systemsLoadError] = useWatchStorageSystems();
   const [healthData, healthError, healthLoading] = useCustomPrometheusPoll({
     query: STATUS_QUERIES[StorageDashboard.HEALTH],
     endpoint: 'api/v1/query' as any,

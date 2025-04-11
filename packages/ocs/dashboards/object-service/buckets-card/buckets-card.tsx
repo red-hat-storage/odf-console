@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import {
   NooBaaObjectBucketClaimModel,
   NooBaaObjectBucketModel,
-} from '@odf/core/models';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
+} from '@odf/shared';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
   useCustomPrometheusPoll,

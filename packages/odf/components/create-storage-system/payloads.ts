@@ -18,17 +18,12 @@ import {
 import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import {
   StorageClusterModel,
-  ODFStorageSystem,
   NodeModel,
   NamespaceModel,
   StorageAutoScalerModel,
 } from '@odf/shared/models';
-import { Patch, StorageSystemKind } from '@odf/shared/types';
-import {
-  getAPIVersionForModel,
-  getStorageAutoScalerName,
-  k8sPatchByName,
-} from '@odf/shared/utils';
+import { Patch } from '@odf/shared/types';
+import { getStorageAutoScalerName, k8sPatchByName } from '@odf/shared/utils';
 import {
   K8sResourceKind,
   k8sCreate,
@@ -42,27 +37,6 @@ import {
   cephStorageLabel,
 } from '../../constants';
 import { WizardNodeState, WizardState } from './reducer';
-
-export const createStorageSystem = async (
-  subSystemName: string,
-  subSystemKind: string,
-  systemNamespace: string
-) => {
-  const payload: StorageSystemKind = {
-    apiVersion: getAPIVersionForModel(ODFStorageSystem),
-    kind: ODFStorageSystem.kind,
-    metadata: {
-      name: `${subSystemName}-storagesystem`,
-      namespace: systemNamespace,
-    },
-    spec: {
-      name: subSystemName,
-      kind: subSystemKind,
-      namespace: systemNamespace,
-    },
-  };
-  return k8sCreate({ model: ODFStorageSystem, data: payload });
-};
 
 export const createSecretPayload = (
   name: string,

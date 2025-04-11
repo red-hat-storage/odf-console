@@ -1,4 +1,4 @@
-import { DRClusterModel } from '../models';
+import { DRClusterModel } from '@odf/shared';
 import { DRClusterKind } from '../types';
 
 export const mockDRClusterEast1: DRClusterKind = {

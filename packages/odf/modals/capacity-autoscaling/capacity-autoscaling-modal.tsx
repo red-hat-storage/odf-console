@@ -24,16 +24,15 @@ import {
 } from '@odf/shared';
 import { dateTimeFormatter } from '@odf/shared/details-page/datetime';
 import { LoadingInline } from '@odf/shared/generic/Loading';
-import { CommonModalProps } from '@odf/shared/modals/common';
+import { StorageClusterActionModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
-import { StorageAutoScalerModel } from '@odf/shared/models';
+import {
+  StorageAutoScalerModel,
+  StorageClusterModel,
+} from '@odf/shared/models';
 import { DeviceSet, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  getCapacityAutoScalingDefaultLimit,
-  getStorageAutoScalerName,
-  referenceForModel,
-} from '@odf/shared/utils';
+import { getStorageAutoScalerName, referenceForModel } from '@odf/shared/utils';
 import {
   k8sDelete,
   k8sPatch,
@@ -58,12 +57,13 @@ const getFormattedTime = (timestamp: string) =>
 
 type CapacityAutoscalingStatusProps = {
   currentStatus: string;
+  error: StorageAutoScalerKind['status']['error'];
   lastExpansion?: StorageAutoScalerKind['status']['lastExpansion'];
 };
 
 const CapacityAutoscalingCurrentStatus: React.FC<
   CapacityAutoscalingStatusProps
-> = ({ currentStatus, lastExpansion }) => {
+> = ({ currentStatus, error, lastExpansion }) => {
   const { t } = useCustomTranslation();
 
   let StatusIcon:
@@ -79,21 +79,24 @@ const CapacityAutoscalingCurrentStatus: React.FC<
       StatusIcon = InProgressIcon;
       statusText = t('Scaling is in progress');
       if (lastExpansion?.startTime) {
-        statusText += `, ${t('started at ')} ${getFormattedTime(lastExpansion?.startTime)}`;
+        statusText += `, ${t('started at ')} ${getFormattedTime(lastExpansion.startTime)}`;
       }
       break;
     case CapacityAutoscalingStatus.Succeeded:
       StatusIcon = GreenCheckCircleIcon;
       statusText = t('Completed');
       if (lastExpansion?.completionTime) {
-        statusText += `, ${getFormattedTime(lastExpansion?.completionTime)}`;
+        statusText += `, ${getFormattedTime(lastExpansion.completionTime)}`;
       }
       break;
     case CapacityAutoscalingStatus.Failed:
       StatusIcon = RedExclamationCircleIcon;
       statusText = t('Failed');
-      if (lastExpansion?.startTime) {
-        statusText += `, ${t('started at ')} ${getFormattedTime(lastExpansion?.startTime)}`;
+      if (error?.timestamp) {
+        statusText += `, ${getFormattedTime(error.timestamp)}`;
+      }
+      if (error?.message) {
+        statusText += `: ${error.message}`;
       }
       break;
     default:
@@ -102,7 +105,7 @@ const CapacityAutoscalingCurrentStatus: React.FC<
   }
 
   return (
-    <div className="pf-v5-u-mt-sm">
+    <div className="pf-v5-u-mt-sm pf-v5-u-font-size-sm">
       <span className="pf-v5-u-font-family-heading pf-v5-u-mr-sm">
         {t('Current status:')}
       </span>
@@ -112,23 +115,22 @@ const CapacityAutoscalingCurrentStatus: React.FC<
   );
 };
 
-type CapacityAutoscalingModalProps = CommonModalProps<{
-  storageCluster: StorageClusterKind;
-}>;
-
-const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
-  extraProps: { storageCluster },
+const CapacityAutoscalingModal: React.FC<StorageClusterActionModalProps> = ({
+  extraProps: { storageCluster: actionStorageCluster },
   closeModal,
   isOpen,
 }) => {
   const { t } = useCustomTranslation();
   const [enable, setEnable] = React.useState(false);
-  const [capacityLimit, setCapacityLimit] = React.useState<string>(
-    getCapacityAutoScalingDefaultLimit()
-  );
+  const [capacityLimit, setCapacityLimit] = React.useState<string>(null);
   const [validation, setValidation] = React.useState('');
   const [inProgress, setInProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState<Error>(null);
+  const [storageCluster] = useK8sWatchResource<StorageClusterKind>({
+    kind: referenceForModel(StorageClusterModel),
+    name: getName(actionStorageCluster),
+    namespace: getNamespace(actionStorageCluster),
+  });
   const [
     storageAutoScalers,
     storageAutoScalerLoaded,
@@ -149,7 +151,7 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
   const isLoaded = storageAutoScalerLoaded && scLoaded;
   const isLoadError = storageAutoScalerLoadError || scLoadError;
 
-  const deviceSets = storageCluster.spec.storageDeviceSets?.filter(
+  const deviceSets = storageCluster?.spec?.storageDeviceSets?.filter(
     (deviceSet: DeviceSet) =>
       _.isEmpty(deviceSet.deviceClass) ||
       deviceSet.deviceClass.toLowerCase() === DEFAULT_DEVICECLASS
@@ -164,28 +166,34 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
     )
   );
 
-  const storageAutoScaler = storageAutoScalers?.find(
+  const clusterStorageAutoScalers = storageAutoScalers?.filter(
     (autoScaler) =>
       autoScaler.spec.storageCluster.name === getName(storageCluster) &&
       (_.isEmpty(autoScaler.spec.deviceClass) ||
         autoScaler.spec.deviceClass.toLowerCase() === DEFAULT_DEVICECLASS)
   );
+  // Pick the ui-created autoscaler if it exists.
+  let storageAutoScaler = clusterStorageAutoScalers?.find(
+    (autoScaler) =>
+      getName(autoScaler) === getStorageAutoScalerName(storageCluster)
+  );
+  if (!storageAutoScaler && clusterStorageAutoScalers.length > 0) {
+    storageAutoScaler = clusterStorageAutoScalers[0];
+  }
+
   const alreadyEnabled = !_.isEmpty(storageAutoScaler);
   let canEdit = isCapacityAutoScalingAllowedInDay2 && isLoaded && !isLoadError;
-  let status = '';
-  let lastExpansion: StorageAutoScalerKind['status']['lastExpansion'] = {};
-  if (alreadyEnabled) {
-    status = storageAutoScaler.status?.phase;
-    lastExpansion = storageAutoScaler.status?.lastExpansion;
-  }
+  const phase = storageAutoScaler?.status?.phase;
+  const lastExpansion = storageAutoScaler?.status?.lastExpansion;
+  const autoScalerError = storageAutoScaler?.status?.error;
 
   // Getting the osd size from the 1st device set is enough as we don't support
   // heterogeneous OSD sizes. See: https://access.redhat.com/articles/5001441
   const osdSize =
-    storageCluster.spec.storageDeviceSets[0].dataPVCTemplate.spec.resources
+    storageCluster?.spec?.storageDeviceSets[0].dataPVCTemplate.spec.resources
       .requests.storage;
   const osdAmount = deviceSets
-    .map((deviceSet: DeviceSet) =>
+    ?.map((deviceSet: DeviceSet) =>
       getOsdAmount(deviceSet.count, deviceSet.replica)
     )
     .reduce((accumulator: number, current: number) => accumulator + current);
@@ -230,12 +238,11 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
           });
         }
       } else if (!enable && alreadyEnabled) {
-        if (
-          storageAutoScaler.status?.phase ===
-          CapacityAutoscalingStatus.InProgress
-        ) {
+        if (phase === CapacityAutoscalingStatus.InProgress) {
           throw new Error(
-            t('Smart scaling cannot be disabled while scaling is in progress')
+            t(
+              'Automatic capacity scaling cannot be disabled while scaling is in progress'
+            )
           );
         }
 
@@ -243,7 +250,7 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
           model: StorageAutoScalerModel,
           resource: {
             metadata: {
-              name: getStorageAutoScalerName(storageCluster),
+              name: getName(storageAutoScaler),
               namespace: getNamespace(storageCluster),
             },
           },
@@ -266,10 +273,10 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alreadyEnabled, validate]);
-  const Header = <ModalHeader>{t('Smart capacity scaling')}</ModalHeader>;
+  const Header = <ModalHeader>{t('Automatic capacity scaling')}</ModalHeader>;
   return (
     <Modal
-      aria-label={t('Smart capacity scaling')}
+      aria-label={t('Automatic capacity scaling')}
       className="odf-capacity-autoscaling__modal"
       header={Header}
       isOpen={isOpen}
@@ -306,7 +313,8 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
               )}
             {alreadyEnabled && (
               <CapacityAutoscalingCurrentStatus
-                currentStatus={status}
+                currentStatus={phase}
+                error={autoScalerError}
                 lastExpansion={lastExpansion}
               />
             )}
@@ -315,10 +323,10 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
                 className="pf-v5-u-mt-md"
                 isInline
                 variant={AlertVariant.warning}
-                title={t('Disable smart capacity scaling?')}
+                title={t('Disable automatic capacity scaling?')}
               >
                 {t(
-                  'Disabling Smart Scaling will prevent the cluster from automatically increasing raw capacity when needed. This may lead to capacity shortages and potential disruptions.'
+                  'Disabling Automatic capacity scaling will prevent the cluster from automatically increasing raw capacity when needed. This may lead to capacity shortages and potential disruptions.'
                 )}
               </Alert>
             )}
@@ -348,7 +356,9 @@ const CapacityAutoscalingModal: React.FC<CapacityAutoscalingModalProps> = ({
             className="pf-v5-u-mt-md"
             isInline
             variant={AlertVariant.danger}
-            title={t('Smart Scaling is available only for dynamic storage.')}
+            title={t(
+              'Automatic capacity scaling is available only for dynamic storage.'
+            )}
           >
             {t('Local storage is also present in the cluster.')}
           </Alert>

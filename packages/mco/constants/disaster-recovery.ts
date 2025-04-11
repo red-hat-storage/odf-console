@@ -14,6 +14,8 @@ export const APP_NAMESPACE_ANNOTATION =
   'drplacementcontrol.ramendr.openshift.io/app-namespace';
 export const DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH =
   'drplacementcontrol.ramendr.openshift.io~1do-not-delete-pvc';
+export const IS_CG_ENABLED_ANNOTATION =
+  'drplacementcontrol.ramendr.openshift.io/is-cg-enabled';
 
 // Maximum cluster per DRPolicy
 export const MAX_ALLOWED_CLUSTERS = 2;
@@ -27,6 +29,10 @@ export const Actions = {
 export const RBD_IMAGE_FLATTEN_LABEL = {
   'replication.storage.openshift.io/flatten-mode': 'force',
 };
+
+// This label tells us the consistency group name of a pvc
+export const CONSISTENCY_GROUP_LABEL = 'ramendr.openshift.io/consistency-group';
+
 // DR actions
 export enum DRActionType {
   FAILOVER = 'Failover',
@@ -82,11 +88,15 @@ export enum AssignPolicySteps {
   Policy = 'policy',
   PersistentVolumeClaim = 'persistent-volume-claim',
   ReviewAndAssign = 'review-and-assign',
+  ProtectionType = 'protection-type',
+  Replication = 'replication',
 }
 export const AssignPolicyStepsNames = (t: TFunction) => ({
   [AssignPolicySteps.Policy]: t('Policy'),
   [AssignPolicySteps.PersistentVolumeClaim]: t('PersistentVolumeClaim'),
   [AssignPolicySteps.ReviewAndAssign]: t('Review and assign'),
+  [AssignPolicySteps.ProtectionType]: t('Protection type'),
+  [AssignPolicySteps.Replication]: t('Replication'),
 });
 
 export const ENROLLED_APP_QUERY_PARAMS_KEY = 'enrolledApp';
@@ -111,3 +121,12 @@ export const MCO_CREATED_BY_LABEL_KEY =
   'multicluster.odf.openshift.io/created-by';
 export const MCO_CREATED_BY_MC_CONTROLLER =
   'odf-multicluster-managedcluster-controller';
+
+// Recipe parameter keys
+export const VM_RECIPE_NAME = 'vm-recipe';
+export const K8S_RESOURCE_SELECTOR = 'K8S_RESOURCE_SELECTOR';
+export const PVC_RESOURCE_SELECTOR = 'PVC_RESOURCE_SELECTOR';
+export const PROTECTED_VMS = 'PROTECTED_VMS';
+export const K8S_RESOURCE_SELECTOR_LABEL_KEY =
+  'ramendr.openshift.io/k8s-resource-selector';
+export const STORAGE_ID_LABEL_KEY = 'ramendr.openshift.io/storageid';

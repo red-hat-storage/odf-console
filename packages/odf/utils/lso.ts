@@ -1,3 +1,4 @@
+import { LocalVolumeSetModel, LocalVolumeDiscovery } from '@odf/shared';
 import { Toleration } from '@odf/shared/types';
 import { getAPIVersionForModel } from '@odf/shared/utils';
 import {
@@ -13,7 +14,6 @@ import {
   LABEL_OPERATOR,
   deviceTypeDropdownItems,
 } from '../constants';
-import { LocalVolumeSetModel, LocalVolumeDiscovery } from '../models';
 import {
   DISK_TYPES,
   LocalVolumeSetKind,

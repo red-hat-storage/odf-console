@@ -3,8 +3,8 @@ import {
   StorageDashboard,
   CAPACITY_QUERIES,
 } from '@odf/mco/components/mco-dashboard/queries';
-import { ACMManagedClusterModel } from '@odf/mco/models';
 import { ACMManagedClusterKind } from '@odf/mco/types';
+import { ACMManagedClusterModel } from '@odf/shared';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
 import { ODFStorageSystem } from '@odf/shared/models';

@@ -1,13 +1,7 @@
 import * as React from 'react';
-import {
-  render,
-  screen,
-  waitFor,
-  fireEvent,
-  act,
-} from '@testing-library/react';
+import { DRPlacementControlModel, DRPolicyModel } from '@odf/shared';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
-import { DRPlacementControlModel, DRPolicyModel } from '../../models';
 import {
   DRPlacementControlKind,
   DRPolicyKind,
@@ -289,10 +283,8 @@ const moveToStep = async (step: number, user: UserEvent) => {
       expect(screen.getByDisplayValue('my-name')).toBeInTheDocument();
     });
 
-    await act(async () => {
-      // Next wizard step
-      await user.click(screen.getByText('Next'));
-    });
+    // Next wizard step
+    await user.click(screen.getByText('Next'));
   }
 
   if (step > 2) {
@@ -625,7 +617,7 @@ describe('Test review step', () => {
     await waitFor(async () => {
       expect(
         JSON.stringify(drpcObj) ===
-          '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPlacementControl","metadata":{"name":"my-name","namespace":"openshift-dr-ops"},"spec":{"preferredCluster":"east-1","protectedNamespaces":["namespace-1","namespace-2"],"pvcSelector":{},"kubeObjectProtection":{"captureInterval":"5m","recipeRef":{"name":"mock-recipe-1","namespace":"namespace-1"}},"drPolicyRef":{"name":"mock-policy-1","apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy"},"placementRef":{"name":"my-name-placement-1","namespace":"openshift-dr-ops","apiVersion":"cluster.open-cluster-management.io/v1beta1","kind":"Placement"}}}'
+          '{"apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPlacementControl","metadata":{"name":"my-name","namespace":"openshift-dr-ops"},"spec":{"preferredCluster":"east-1","protectedNamespaces":["namespace-1","namespace-2"],"pvcSelector":{},"kubeObjectProtection":{"captureInterval":"5m","recipeRef":{"name":"mock-recipe-1","namespace":"namespace-1"},"recipeParameters":{}},"drPolicyRef":{"name":"mock-policy-1","apiVersion":"ramendr.openshift.io/v1alpha1","kind":"DRPolicy"},"placementRef":{"name":"my-name-placement-1","namespace":"openshift-dr-ops","apiVersion":"cluster.open-cluster-management.io/v1beta1","kind":"Placement"}}}'
       ).toBeTruthy();
     });
   });
