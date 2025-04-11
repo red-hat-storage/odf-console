@@ -10,6 +10,8 @@ export type StorageClusterInfoType = {
   // ToDo: Use list type after ODF starts supporting
   // multiple clients per managed cluster
   clientInfo?: ConnectedClient;
+  // Deployment type of ODF cluster internal/external
+  deploymentType: string;
 };
 
 export type ODFConfigInfoType = {
