@@ -32,6 +32,7 @@ import {
   StatusIconAndText,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import { Base64 } from 'js-base64';
 import { TFunction, Trans } from 'react-i18next';
 import {
   Modal,
@@ -140,11 +141,16 @@ export const ClientOnBoardingModal: ClientOnBoardingModalProps = ({
       resource: secretResource,
     })
       .then(() => {
-        pollUntilAvailable(secretName, namespace, t).then((secret) => {
-          setToken(secret.data['onboarding-token']);
-          setTokenGenerationTimestamp(getTimestamp());
-          setInProgress(false);
-        });
+        pollUntilAvailable(secretName, namespace, t)
+          .then((secret) => {
+            setToken(Base64.decode(secret.data['onboarding-token']));
+            setTokenGenerationTimestamp(getTimestamp());
+            setInProgress(false);
+          })
+          .catch((err) => {
+            setInProgress(false);
+            setError(err);
+          });
       })
       .catch((err) => {
         setInProgress(false);
