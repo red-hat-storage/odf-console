@@ -155,8 +155,8 @@
     "jest-environment-jsdom": "^29.2.0",
     "jest-silent-reporter": "^0.5.0",
     "mocha-junit-reporter": "^2.0.0",
-    "mochawesome": "^6.2.2",
-    "mochawesome-merge": "^4.2.0",
+    "mochawesome": "^7.1.3",
+    "mochawesome-merge": "^4.4.1",
     "prettier": "2.3.2",
     "read-pkg": "5.x",
     "stylelint": "^15.11.0",
@@ -166,7 +166,7 @@
     "webpack-dev-server": "^4.9.2"
   },
   "resolutions": {
-    "@openshift-console/dynamic-plugin-sdk/@patternfly/quickstarts/showdown/yargs/cliui/wrap-ansi/strip-ansi/ansi-regex": "2.0.0",
+    "@patternfly/quickstarts": "2.4.3",
     "cache-loader/loader-utils": "^1.4.2",
     "cache-loader/loader-utils/json5": "^1.0.2",
     "cross-spawn": "^7.0.6",
@@ -174,6 +174,7 @@
     "eslint-plugin-import/tsconfig-paths/json5": "^1.0.2",
     "http-proxy-middleware": "^2.0.7",
     "loader-utils": "^2.0.4",
+    "minimist": "^1.2.8",
     "postcss": "^8.4.49",
     "tough-cookie": "^4.1.3",
     "webpack": "5.94.0",
