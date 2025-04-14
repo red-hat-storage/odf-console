@@ -185,7 +185,8 @@
     "webpack-dev-middleware": "^5.3.4",
     "webpack-bundle-analyzer/ws": "^7.5.10",
     "webpack-dev-server/express": "^4.21.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "serialize-javascript": "^6.0.2"
   },
   "engines": {
     "node": ">=14.17.0"
