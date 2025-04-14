@@ -68,6 +68,7 @@
     "**/@typescript-eslint/typescript-estree/semver": "^7.7.1",
     "**/cypress/semver": "^7.7.1",
     "@babel/runtime": "^7.27.0",
+    "async": "^3.2.6",
     "braces": "^3.0.3",
     "cache-loader/loader-utils": "^1.4.2",
     "cache-loader/loader-utils/json5": "^1.0.2",
