@@ -114,7 +114,7 @@ const VolumeSnapshotClassRowGenerator: React.FC<RowGeneratorProps<any>> = ({
 };
 
 type SelectedResources = {
-  [uid: string]: {
+  [name: string]: {
     selected: boolean;
     resourceType:
       | 'storageClass'
@@ -236,8 +236,29 @@ export const DistributeResourceModal: React.FC<
   ]);
 
   const onConfirm = () => {
-    // Todo(bipuladh): Implement patching
-    const patch = generatePatchForDistributionOfResources(resource, [], []);
+    const selectedStorageClasses = Object.entries(selectedResources)
+      .filter(
+        ([, value]) => value.selected && value.resourceType === 'storageClass'
+      )
+      .map(([key]) => key);
+    const selectedVolumeSnapshotClasses = Object.entries(selectedResources)
+      .filter(
+        ([, value]) =>
+          value.selected && value.resourceType === 'volumeSnapshotClass'
+      )
+      .map(([key]) => key);
+    const selectedVolumeGroupSnapshotClasses = Object.entries(selectedResources)
+      .filter(
+        ([, value]) =>
+          value.selected && value.resourceType === 'volumeGroupSnapshotClass'
+      )
+      .map(([key]) => key);
+    const patch = generatePatchForDistributionOfResources(
+      resource,
+      selectedStorageClasses,
+      selectedVolumeSnapshotClasses,
+      selectedVolumeGroupSnapshotClasses
+    );
     setProgress(true);
     k8sPatch({ model: StorageConsumerModel, resource, data: patch })
       .then(() => {

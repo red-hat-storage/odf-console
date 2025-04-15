@@ -149,7 +149,7 @@ export const StatusCard: React.FC = () => {
   const navigate = useNavigate();
 
   const redirectToListPage = React.useCallback(() => {
-    navigate('/odf/storage-clients');
+    navigate('/odf/storage-consumers');
   }, [navigate]);
 
   return (
@@ -197,7 +197,7 @@ export const StatusCard: React.FC = () => {
           {isProviderMode && clientsLoaded && !clientsLoadError && (
             <GalleryItem>
               <HealthItem
-                title={t('Storage Clients')}
+                title={t('Storage consumers')}
                 state={clientAggregateHealth}
                 onClick={redirectToListPage}
                 details={getClientText(clients, t)}
