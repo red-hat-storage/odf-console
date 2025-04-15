@@ -173,6 +173,7 @@
     "webpack-dev-server": "^4.15.2"
   },
   "resolutions": {
+    "@babel/runtime": "^7.27.0",
     "cache-loader/loader-utils": "^1.4.2",
     "cache-loader/loader-utils/json5": "^1.0.2",
     "cross-spawn": "^7.0.6",
@@ -180,6 +181,7 @@
     "http-proxy-middleware": "^2.0.7",
     "jest-environment-jsdom/jsdom": "^20.0.3",
     "loader-utils": "^2.0.4",
+    "micromatch": "^4.0.8",
     "minimist": "^1.2.8",
     "nanoid": "^3.3.8",
     "postcss": "^8.4.49",
