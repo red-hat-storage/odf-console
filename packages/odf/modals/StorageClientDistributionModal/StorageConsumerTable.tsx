@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { getName } from '@odf/shared';
+import {
+  getClusterName,
+  LastHeartBeat,
+} from '@odf/core/components/storage-consumers/client-list';
+import { getName, getUID, StorageConsumerKind } from '@odf/shared';
 import { TableSkeletonLoader } from '@odf/shared/skeletal-loader/TableSkeleton';
 import {
   K8sResourceCommon,
@@ -7,56 +11,58 @@ import {
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { Thead, Tr, Th, Tbody, Table } from '@patternfly/react-table';
+import { Thead, Tr, Th, Tbody, Table, Td } from '@patternfly/react-table';
 
-export type SelectedResources = {
-  [name: string]: {
-    selected: boolean;
-    resourceType:
-      | 'storageClass'
-      | 'volumeSnapshotClass'
-      | 'volumeGroupSnapshotClass';
-  };
-};
+export type SelectedResources = string[];
 
 type ResourceDistributionTableProps = {
   resources: K8sResourceCommon[];
-  selectedResources: {
-    [name: string]: {
-      selected: boolean;
-      resourceType:
-        | 'storageClass'
-        | 'volumeSnapshotClass'
-        | 'volumeGroupSnapshotClass';
-    };
-  };
-  setSelectedResources: React.Dispatch<React.SetStateAction<SelectedResources>>;
-  RowGenerator: React.FC<RowGeneratorProps<K8sResourceCommon>>;
+  selectedResources: string[];
+  setSelectedResources: React.Dispatch<React.SetStateAction<string[]>>;
+  RowGenerator?: React.FC<RowGeneratorProps<K8sResourceCommon>>;
   columns: string[];
   loaded: boolean;
-  resourceType:
-    | 'storageClass'
-    | 'volumeSnapshotClass'
-    | 'volumeGroupSnapshotClass';
 };
 
-export type RowGeneratorProps<T extends K8sResourceCommon> = {
+type RowGeneratorProps<T extends K8sResourceCommon> = {
   resource: T;
   onSelect: (selected: boolean) => void;
   isSelected: boolean;
   rowIndex: number;
 };
 
-export const ResourceDistributionTable: React.FC<
-  ResourceDistributionTableProps
-> = ({
+const RowComponent: React.FC<RowGeneratorProps<StorageConsumerKind>> = ({
+  resource,
+  onSelect,
+  isSelected,
+  rowIndex,
+}) => {
+  const name = getName(resource);
+  const clusterName = getClusterName(resource);
+  return (
+    <Tr key={getUID(resource)}>
+      <Td
+        select={{
+          rowIndex,
+          onSelect: (_event, isSelecting) => onSelect(isSelecting),
+          isSelected,
+        }}
+      />
+      <Td>{name}</Td>
+      <Td>{clusterName}</Td>
+      <Td>
+        <LastHeartBeat heartbeat={resource.status?.lastHeartbeat} />{' '}
+      </Td>
+    </Tr>
+  );
+};
+export const StorageConsumerTable: React.FC<ResourceDistributionTableProps> = ({
   resources,
-  RowGenerator,
+  RowGenerator = RowComponent,
   selectedResources,
   setSelectedResources,
   loaded,
   columns,
-  resourceType,
 }) => {
   const [areAllResourcesSelected, setAllResourcesSelected] =
     React.useState(false);
@@ -65,28 +71,22 @@ export const ResourceDistributionTable: React.FC<
     const allSelected = _.isEmpty(resources)
       ? false
       : resources.every((resource) => {
-          const name = getName(resource);
-          return (
-            selectedResources[name]?.selected === true &&
-            selectedResources[name]?.resourceType === resourceType
-          );
+          const uid = getUID(resource);
+          return selectedResources.includes(uid);
         });
     if (allSelected) {
       setAllResourcesSelected(true);
     }
-  }, [resourceType, resources, selectedResources]);
+  }, [resources, selectedResources]);
+
   const onSelectRow = React.useCallback(
     (resource: K8sResourceCommon) => (selected: boolean) => {
-      const updatedResources = {
-        ...selectedResources,
-        [getName(resource)]: {
-          selected,
-          resourceType,
-        },
-      };
-      const isAllSelected = Object.values(updatedResources)
-        .filter((res) => res.resourceType === resourceType)
-        .every((res) => res.selected);
+      const updatedResources = selected
+        ? [...selectedResources, getUID(resource)]
+        : selectedResources.filter((name) => name !== getUID(resource));
+      const isAllSelected = resources.every((res) =>
+        updatedResources.includes(getUID(res))
+      );
       if (isAllSelected) {
         setAllResourcesSelected(true);
       } else {
@@ -94,12 +94,17 @@ export const ResourceDistributionTable: React.FC<
       }
       setSelectedResources(updatedResources);
     },
-    [resourceType, selectedResources, setSelectedResources]
+    [
+      resources,
+      selectedResources,
+      setSelectedResources,
+      setAllResourcesSelected,
+    ]
   );
 
   const isRowSelected = React.useCallback(
     (resource: K8sResourceCommon) =>
-      selectedResources?.[getName(resource)]?.selected,
+      selectedResources.includes(getUID(resource)),
     [selectedResources]
   );
 
@@ -108,14 +113,8 @@ export const ResourceDistributionTable: React.FC<
 
   const selectAllResources = (select: boolean) => {
     setAllResourcesSelected(select);
-    const newSelectedResources = filteredData.reduce((acc, storageClass) => {
-      acc[storageClass.metadata.name] = {
-        resourceType,
-        selected: select,
-      };
-      return acc;
-    }, {} as SelectedResources);
-    setSelectedResources((prev) => ({ ...prev, ...newSelectedResources }));
+    const allUIDs = filteredData.map((resource) => getUID(resource));
+    setSelectedResources(allUIDs);
   };
   return !loaded ? (
     <TableSkeletonLoader columns={4} rows={8} />
