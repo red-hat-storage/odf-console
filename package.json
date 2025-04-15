@@ -108,7 +108,7 @@
     "resolve-url-loader": "^5.0.0",
     "sass": "^1.55.0",
     "sass-loader": "^13.0.2",
-    "semver": "6.x",
+    "semver": "^6.3.1",
     "style-loader": "^3.3.4",
     "thread-loader": "3.0.4",
     "ts-loader": "^9.4.1",
@@ -173,6 +173,10 @@
     "webpack-dev-server": "^4.15.2"
   },
   "resolutions": {
+    "**/@typescript-eslint/typescript-estree/semver": "^7.7.1",
+    "**/cypress/semver": "^7.7.1",
+    "async": "^3.2.6",
+    "braces": "^3.0.3",
     "cache-loader/loader-utils": "^1.4.2",
     "cache-loader/loader-utils/json5": "^1.0.2",
     "@babel/runtime": "^7.27.0",
