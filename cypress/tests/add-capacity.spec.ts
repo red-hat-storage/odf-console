@@ -88,9 +88,10 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
         ];
       const replicas =
         initialState.storageCluster?.spec?.storageDeviceSets?.[0]?.replica;
+      const provisionedCapacity = initialCapacity * replicas;
       cy.byTestID('requestSize').should('have.value', String(initialCapacity));
       cy.byTestID('provisioned-capacity').contains(
-        `${(initialCapacity * replicas).toFixed(0)} TiB`
+        `${Number.isInteger(provisionedCapacity) ? provisionedCapacity : provisionedCapacity.toFixed(2)} TiB`
       );
       cy.byTestID('add-cap-sc-dropdown', { timeout: 10000 }).should(
         'be.visible'
