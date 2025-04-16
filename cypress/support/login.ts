@@ -1,4 +1,4 @@
-import { KUBEADMIN_IDP, KUBEADMIN_USERNAME } from '../consts';
+import { KUBEADMIN_IDP, KUBEADMIN_USERNAME, SECOND } from '../consts';
 import { submitButton, masthead } from './views';
 
 declare global {
@@ -9,7 +9,6 @@ declare global {
         username?: string,
         password?: string
       ): Chainable<Element>;
-      logout(): Chainable<Element>;
     }
   }
 }
@@ -25,68 +24,77 @@ Cypress.Commands.add(
 
         cy.window().then((win: any) => {
           if (win.SERVER_FLAGS?.authDisabled) {
-            cy.task(
-              'log',
-              '  skipping login, console is running with auth disabled'
-            );
-            return;
-          }
-
-          cy.origin(
-            Cypress.env('OAUTH_BASE_ADDRESS'),
-            {
-              args: {
+            cy.log('Skipping login, console is running with auth disabled');
+          } else {
+            cy.origin(
+              Cypress.env('OAUTH_BASE_ADDRESS'),
+              {
+                args: {
+                  provider,
+                  username,
+                  password,
+                  KUBEADMIN_IDP,
+                  KUBEADMIN_USERNAME,
+                  SECOND,
+                  submitButton,
+                },
+              },
+              ({
+                /* eslint-disable @typescript-eslint/no-shadow, @typescript-eslint/naming-convention */
                 provider,
                 username,
                 password,
                 KUBEADMIN_IDP,
                 KUBEADMIN_USERNAME,
+                SECOND,
                 submitButton,
-              },
-            },
-            ({
-              /* eslint-disable @typescript-eslint/no-shadow, @typescript-eslint/naming-convention */
-              provider,
-              username,
-              password,
-              KUBEADMIN_IDP,
-              KUBEADMIN_USERNAME,
-              submitButton,
-              /* eslint-enable @typescript-eslint/no-shadow, @typescript-eslint/naming-convention */
-            }) => {
-              const idp = provider || KUBEADMIN_IDP;
+                /* eslint-enable @typescript-eslint/no-shadow, @typescript-eslint/naming-convention */
+              }) => {
+                const idp = provider || KUBEADMIN_IDP;
 
-              cy.task(
-                'log',
-                `  Logging in as ${username || KUBEADMIN_USERNAME}`
-              );
-              cy.get('[data-test-id="login"]', { timeout: 10000 }).should(
-                'be.visible'
-              );
+                cy.log(`Logging in as ${username || KUBEADMIN_USERNAME}`);
+                // We cannot use byLegacyTestID here.
+                cy.get('[data-test-id="login"]', {
+                  timeout: 10 * SECOND,
+                }).should('be.visible');
 
-              // eslint-disable-next-line cypress/require-data-selectors
-              cy.get('body').then(($body) => {
-                if ($body.text().includes(idp)) {
-                  cy.contains(idp).should('be.visible').click();
-                }
-              });
+                // eslint-disable-next-line cypress/require-data-selectors
+                cy.get('body').then(($body) => {
+                  if ($body.text().includes(idp)) {
+                    cy.contains(idp).should('be.visible').click();
+                  }
+                });
 
-              /* eslint-disable cypress/require-data-selectors */
-              cy.get('#inputUsername').type(username || KUBEADMIN_USERNAME);
-              cy.get('#inputPassword').type(
-                password || Cypress.env('BRIDGE_KUBEADMIN_PASSWORD'),
-                {
-                  log: false,
-                }
-              );
-              cy.get(submitButton).click();
+                /* eslint-disable cypress/require-data-selectors */
+                cy.get('#inputUsername').type(username || KUBEADMIN_USERNAME);
+                cy.get('#inputPassword').type(
+                  password || Cypress.env('BRIDGE_KUBEADMIN_PASSWORD'),
+                  {
+                    log: false,
+                  }
+                );
+                cy.get(submitButton).click();
+              }
+            );
+
+            // Ensure the user is logged in.
+            /* eslint-enable cypress/require-data-selectors */
+            masthead.username.shouldBeVisible();
+          }
+
+          // Close console tour modal.
+          cy.byTestID('detail-item-title')
+            .contains('Cluster API address')
+            .should('be.visible');
+          // eslint-disable-next-line cypress/require-data-selectors
+          cy.get('body').then(($body) => {
+            if ($body.find(`[data-test="guided-tour-modal"]`).length > 0) {
+              cy.byTestID('tour-step-footer-secondary')
+                .contains('Skip tour')
+                .click();
+              cy.byTestID('guided-tour-modal').should('not.exist');
             }
-          );
-
-          // Back to the console's origin and ensure user is logged in.
-          cy.visit('');
-          /* eslint-enable cypress/require-data-selectors */
-          masthead.username.shouldBeVisible();
+          });
         });
       },
       { cacheAcrossSpecs: true }

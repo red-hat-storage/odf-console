@@ -113,7 +113,9 @@ const pvResource: WatchK8sResource = {
 };
 
 const getProvisionedCapacity = (value: number, replica: number) =>
-  value % 1 ? (value * replica).toFixed(2) : value * replica;
+  Number.isInteger(value * replica)
+    ? value * replica
+    : (value * replica).toFixed(2);
 
 const RawCapacity: React.FC<RawCapacityProps> = ({
   t,
