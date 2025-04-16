@@ -14,7 +14,8 @@ import {
   showAvailablePoolsInSCForm,
 } from '../views/storage-pool';
 
-describe('Test storage pool creation when creating a new StorageClass', () => {
+// Skip until https://issues.redhat.com/browse/DFBUGS-2139 is fixed.
+describe.skip('Storage pool creation when creating a new StorageClass', () => {
   beforeEach(() => {
     cy.clickNavLink(['Storage', 'StorageClasses']);
     cy.byTestID('item-create').click();
