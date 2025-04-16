@@ -21,10 +21,10 @@ import {
   DRClusterKind,
 } from '@odf/mco/types';
 import {
-  findDRType,
   findDeploymentClusters,
   getProtectedPVCsFromDRPC,
   getRemoteNamespaceFromAppSet,
+  getReplicationType,
 } from '@odf/mco/utils';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
@@ -112,12 +112,8 @@ export const useApplicationSetParser: UseApplicationSetParser = (
       // DRCluster to its ApplicationSets (total and protected) mapping
       formattedArgoAppSetResources.forEach((argoApplicationSetResource) => {
         const { application } = argoApplicationSetResource || {};
-        const {
-          drClusters: currentDRClusters,
-          drPlacementControl,
-          drPolicy,
-          placementDecision,
-        } = argoApplicationSetResource.placements?.[0] || {};
+        const { drPlacementControl, drPolicy, placementDecision } =
+          argoApplicationSetResource.placements?.[0] || {};
         const deploymentClusters = findDeploymentClusters(
           placementDecision,
           drPlacementControl
@@ -139,7 +135,7 @@ export const useApplicationSetParser: UseApplicationSetParser = (
                     drpcName: getName(drPlacementControl),
                     drpcNamespace: getNamespace(drPlacementControl),
                     protectedPVCs: getProtectedPVCsFromDRPC(drPlacementControl),
-                    replicationType: findDRType(currentDRClusters),
+                    replicationType: getReplicationType(drPolicy),
                     volumeSyncInterval: drPolicy?.spec?.schedulingInterval,
                     workloadNamespaces: [
                       getRemoteNamespaceFromAppSet(application),

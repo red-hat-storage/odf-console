@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getReplicationType } from '@odf/mco/utils';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName, getUID } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -90,6 +91,7 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
       policyName: getName(drPolicy),
       drClusters: drPolicy?.spec?.drClusters,
       schedulingInterval: drPolicy?.spec?.schedulingInterval,
+      replicationType: getReplicationType(drPolicy),
     });
     setOpen(false);
   };

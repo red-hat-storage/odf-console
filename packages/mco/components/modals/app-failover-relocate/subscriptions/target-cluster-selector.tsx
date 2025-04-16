@@ -50,16 +50,6 @@ const getAvailableCondition = (managedCluster: ACMManagedClusterKind) =>
       condition.status === 'True'
   );
 
-export const getReplicationTypeUsingDRClusters = (
-  targetClusters: DRClusterKind[]
-) =>
-  targetClusters?.every(
-    (drClusterInfo) =>
-      drClusterInfo?.spec?.region === targetClusters?.[0]?.spec?.region
-  )
-    ? ReplicationType.SYNC
-    : ReplicationType.ASYNC;
-
 const TargetClusterStatus: React.FC<TargetClusterStatusProps> = ({
   isClusterAvailable,
 }) => {
@@ -197,8 +187,8 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
       const originCluster = drClusterList.find(
         (drCluster) => getName(drCluster) !== getName(managedCluster)
       );
-      const replicationType = getReplicationTypeUsingDRClusters(drClusterList);
-      if (replicationType === ReplicationType.SYNC) {
+
+      if (selectedDRPolicy.replicationType === ReplicationType.SYNC) {
         if (state.actionType === DRActionType.RELOCATE) {
           // Ensure origin and target both clusters are unfenced
           const isClustersUnfenced = drClusterList.every(

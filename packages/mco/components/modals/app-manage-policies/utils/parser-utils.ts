@@ -48,7 +48,7 @@ const getDRPolicyInfo = (drPolicy: DRPolicyKind, assignedOn?: string) =>
         metadata: drPolicy.metadata,
         isValidated: isDRPolicyValidated(drPolicy),
         schedulingInterval: drPolicy.spec.schedulingInterval,
-        replicationType: getReplicationType(drPolicy.spec.schedulingInterval),
+        replicationType: getReplicationType(drPolicy),
         drClusters: drPolicy.spec.drClusters,
         ...(!!assignedOn ? { assignedOn } : {}),
       }

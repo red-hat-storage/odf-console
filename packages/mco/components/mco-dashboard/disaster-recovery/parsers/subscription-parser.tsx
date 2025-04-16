@@ -14,9 +14,9 @@ import {
   ProtectedAppsMap,
 } from '@odf/mco/types';
 import {
-  findDRType,
   getProtectedPVCsFromDRPC,
   findDeploymentClusters,
+  getReplicationType,
 } from '@odf/mco/utils';
 import { ACMPlacementModel } from '@odf/shared';
 import { ApplicationKind } from '@odf/shared';
@@ -33,18 +33,13 @@ const createPlacementControlInfoList = (
   subscriptionGroupsList.forEach((subscriptionGroup) => {
     const { drInfo } = subscriptionGroup;
     if (!_.isEmpty(drInfo)) {
-      const {
-        drPlacementControl,
-        drPolicy,
-        drClusters: currentDRClusters,
-      } = drInfo;
-
+      const { drPlacementControl, drPolicy } = drInfo;
       const placementControlInfo: PlacementControlInfo = {
         deploymentClusterName: clusterName,
         drpcName: getName(drPlacementControl),
         drpcNamespace: getNamespace(drPlacementControl),
         protectedPVCs: getProtectedPVCsFromDRPC(drPlacementControl),
-        replicationType: findDRType(currentDRClusters),
+        replicationType: getReplicationType(drPolicy),
         volumeSyncInterval: drPolicy?.spec?.schedulingInterval,
         workloadNamespaces: [applicationNamespace],
         failoverCluster: drPlacementControl?.spec?.failoverCluster,
