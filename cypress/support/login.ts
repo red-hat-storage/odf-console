@@ -1,4 +1,4 @@
-import { KUBEADMIN_IDP, KUBEADMIN_USERNAME } from '../consts';
+import { KUBEADMIN_IDP, KUBEADMIN_USERNAME, SECOND } from '../consts';
 import { submitButton, masthead } from './views';
 
 declare global {
@@ -60,7 +60,7 @@ Cypress.Commands.add(
                 'log',
                 `  Logging in as ${username || KUBEADMIN_USERNAME}`
               );
-              cy.get('[data-test-id="login"]', { timeout: 10000 }).should(
+              cy.get('[data-test-id="login"]', { timeout: 10 * SECOND }).should(
                 'be.visible'
               );
 
@@ -88,6 +88,11 @@ Cypress.Commands.add(
           /* eslint-enable cypress/require-data-selectors */
           masthead.username.shouldBeVisible();
         });
+
+        // Close console tour modal.
+        cy.byTestID('tour-step-footer-secondary', { timeout: 10 * SECOND })
+          .contains('Skip tour')
+          .click();
       },
       { cacheAcrossSpecs: true }
     );
