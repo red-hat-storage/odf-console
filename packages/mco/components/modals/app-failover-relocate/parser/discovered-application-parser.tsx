@@ -14,8 +14,8 @@ import {
   checkDRActionReadiness,
   filterManagedClusterUsingDRClusters,
   findCluster,
-  findDRType,
   getLastAppDeploymentClusterName,
+  getReplicationType,
   isDRClusterFenced,
 } from '@odf/mco/utils';
 import { DRPlacementControlModel } from '@odf/shared';
@@ -158,7 +158,7 @@ export const DiscoveredApplicationParser: React.FC<
           drPlacementControlName: getName(drPlacementControl),
           isDRActionReady: checkDRActionReadiness(drPlacementControl, action),
           snapshotTakenTime: drPlacementControl?.status?.lastGroupSyncTime,
-          replicationType: findDRType(drClusters),
+          replicationType: getReplicationType(drPolicy),
           schedulingInterval: drPolicy?.spec?.schedulingInterval,
         },
       ];

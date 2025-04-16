@@ -50,9 +50,8 @@ const checkSyncPolicyExists = (
   drPolicies: DRPolicyKind[]
 ): boolean =>
   drPolicies.some((drPolicy) => {
-    const { drClusters, schedulingInterval } = drPolicy.spec;
-    const isSyncPolicy =
-      getReplicationType(schedulingInterval) === ReplicationType.SYNC;
+    const { drClusters } = drPolicy.spec;
+    const isSyncPolicy = getReplicationType(drPolicy) === ReplicationType.SYNC;
     return (
       isSyncPolicy && drClusters.every((cluster) => clusters.includes(cluster))
     );
