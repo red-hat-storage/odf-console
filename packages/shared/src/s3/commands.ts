@@ -21,6 +21,7 @@ import {
   PutBucketLifecycleConfigurationCommand,
   GetBucketCorsCommand,
   PutBucketCorsCommand,
+  DeleteBucketCorsCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -48,6 +49,7 @@ import {
   PutBucketLifecycleConfiguration,
   GetBucketCors,
   PutBucketCors,
+  DeleteBucketCors,
 } from './types';
 
 export class S3Commands extends S3Client {
@@ -112,6 +114,9 @@ export class S3Commands extends S3Client {
 
   putBucketCors: PutBucketCors = (input) =>
     this.send(new PutBucketCorsCommand(input));
+
+  deleteBucketCors: DeleteBucketCors = (input) =>
+    this.send(new DeleteBucketCorsCommand(input));
 
   // Object command members
   listObjects: ListObjectsV2 = (input) =>

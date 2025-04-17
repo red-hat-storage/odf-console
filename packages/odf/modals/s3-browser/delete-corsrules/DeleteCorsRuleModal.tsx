@@ -26,7 +26,7 @@ type DeleteCorsRuleModalProps = {
   navigateToListPage: boolean;
 };
 
-const getUpdateCorsRules = (
+const getUpdatedCorsRules = (
   latestRules: GetBucketCorsCommandOutput,
   ruleName: string,
   ruleHash: number
@@ -86,12 +86,22 @@ const DeleteCorsRuleModal: React.FC<
         }
       }
 
-      await noobaaS3.putBucketCors({
-        Bucket: bucketName,
-        CORSConfiguration: {
-          CORSRules: getUpdateCorsRules(latestRules, ruleName, ruleHash),
-        },
-      });
+      // `{ CORSConfiguration: { CORSRules: [] } }` syntax is being interpreted as an attempt to update CORS config (not delete) with an invalid payload (no rules),
+      // so the endpoint is throwing a 500 error.
+      // Hence using "deleteBucketCors" for such cases where we need to cleanup entire CORS configuration.
+      const updatedCorsRules = getUpdatedCorsRules(
+        latestRules,
+        ruleName,
+        ruleHash
+      );
+      if (!!updatedCorsRules?.length)
+        await noobaaS3.putBucketCors({
+          Bucket: bucketName,
+          CORSConfiguration: {
+            CORSRules: updatedCorsRules,
+          },
+        });
+      else await noobaaS3.deleteBucketCors({ Bucket: bucketName });
 
       setInProgress(false);
       mutate();

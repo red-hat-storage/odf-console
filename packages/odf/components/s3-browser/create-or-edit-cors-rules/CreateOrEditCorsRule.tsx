@@ -122,7 +122,7 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
   const [state, dispatch] = React.useReducer(ruleReducer, ruleInitialState);
 
   const {
-    data: existingRules,
+    data,
     isLoading,
     error: getError,
     mutate,
@@ -134,14 +134,15 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
     }
   );
 
+  const noRuleExistsError = isNoCorsRuleError(getError);
+  // in case of "noRuleExistsError" error, cache could still have older "data", hence clearing that.
+  const existingRules = noRuleExistsError ? undefined : data;
+
   const [ruleName, ruleHash] = useEditCorsRule({
     isEdit,
     existingRules,
     dispatch,
   });
-
-  const noRuleExists =
-    isNoCorsRuleError(getError) && !existingRules?.CORSRules?.length;
 
   const onSave = async (event) => {
     event.preventDefault();
@@ -186,7 +187,7 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
     }
   };
 
-  if (isLoading || (getError && !noRuleExists)) {
+  if (isLoading || (getError && !noRuleExistsError)) {
     return (
       <StatusBox loaded={!isLoading} loadError={isLoading ? '' : getError} />
     );
