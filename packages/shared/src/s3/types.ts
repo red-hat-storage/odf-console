@@ -41,6 +41,8 @@ import {
   GetBucketCorsCommandOutput,
   PutBucketCorsCommandInput,
   PutBucketCorsCommandOutput,
+  DeleteBucketCorsCommandInput,
+  DeleteBucketCorsCommandOutput,
 } from '@aws-sdk/client-s3';
 
 // Bucket command types
@@ -107,6 +109,10 @@ export type GetBucketCors = (
 export type PutBucketCors = (
   input: PutBucketCorsCommandInput
 ) => Promise<PutBucketCorsCommandOutput>;
+
+export type DeleteBucketCors = (
+  input: DeleteBucketCorsCommandInput
+) => Promise<DeleteBucketCorsCommandOutput>;
 
 // Object command types
 export type DeleteObjects = (

@@ -323,9 +323,10 @@ export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
     }
   );
 
-  const rules = data?.Rules || [];
+  const noRuleExistsError = isNoLifecycleRuleError(error);
+  // in case of "noRuleExistsError" error, cache could still have older "data", hence clearing that.
+  const rules = noRuleExistsError ? [] : data?.Rules || [];
   const loaded = !isLoading && fresh;
-  const noRuleExists = isNoLifecycleRuleError(error) && !rules.length;
   const createRuleLink = `${BUCKETS_BASE_ROUTE}/${bucketName}/management/lifecycle/create/~new`;
 
   const [unfilteredRules, filteredRules, onFilterChange] = useListPageFilter(
@@ -337,7 +338,7 @@ export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
     if (!fresh) mutate();
   }, [fresh, mutate]);
 
-  if (!loaded || (error && !noRuleExists)) {
+  if (!loaded || (error && !noRuleExistsError)) {
     return (
       <StatusBox
         loaded={loaded}
