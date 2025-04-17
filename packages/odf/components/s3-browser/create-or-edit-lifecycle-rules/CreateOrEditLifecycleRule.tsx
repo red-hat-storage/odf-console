@@ -191,7 +191,7 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
   const [state, dispatch] = React.useReducer(ruleReducer, ruleInitialState);
 
   const {
-    data: existingRules,
+    data,
     isLoading,
     error: getError,
     mutate,
@@ -203,14 +203,15 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
     }
   );
 
+  const noRuleExistsError = isNoLifecycleRuleError(getError);
+  // in case of "noRuleExistsError" error, cache could still have older "data", hence clearing that.
+  const existingRules = noRuleExistsError ? undefined : data;
+
   const [ruleName, ruleHash] = useEditLifecycleRule({
     isEdit,
     existingRules,
     dispatch,
   });
-
-  const noRuleExists =
-    isNoLifecycleRuleError(getError) && !existingRules?.Rules?.length;
 
   const onSave = async (event) => {
     event.preventDefault();
@@ -259,7 +260,7 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
     }
   };
 
-  if (isLoading || (getError && !noRuleExists)) {
+  if (isLoading || (getError && !noRuleExistsError)) {
     return (
       <StatusBox loaded={!isLoading} loadError={isLoading ? '' : getError} />
     );

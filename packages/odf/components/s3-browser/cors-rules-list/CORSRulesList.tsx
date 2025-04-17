@@ -289,9 +289,10 @@ export const CORSRulesList: React.FC<CORSRulesListProps> = ({
     }
   );
 
-  const corsRules = data?.CORSRules || [];
+  const noRuleExistsError = isNoCorsRuleError(error);
+  // in case of "noRuleExistsError" error, cache could still have older "data", hence clearing that.
+  const corsRules = noRuleExistsError ? [] : data?.CORSRules || [];
   const loaded = !isLoading && fresh;
-  const noCorsRuleExists = isNoCorsRuleError(error) && !corsRules.length;
   const createCorsRuleLink = `${BUCKETS_BASE_ROUTE}/${bucketName}/permissions/cors/create/~new`;
 
   const [unfilteredCorsRules, filteredCorsRules, onFilterChange] =
@@ -301,7 +302,7 @@ export const CORSRulesList: React.FC<CORSRulesListProps> = ({
     if (!fresh) mutate();
   }, [fresh, mutate]);
 
-  if (!loaded || (error && !noCorsRuleExists)) {
+  if (!loaded || (error && !noRuleExistsError)) {
     return (
       <StatusBox
         loaded={loaded}
