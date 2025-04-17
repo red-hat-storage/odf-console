@@ -49,15 +49,14 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
     const volumeReplicationHealth = getReplicationHealth(
       volumeLastGroupSyncTime,
       schedulingInterval,
-      getReplicationType(schedulingInterval)
+      getReplicationType(drPolicy)
     );
 
     const kubeObjectSchedulingInterval =
       drPlacementControl?.spec?.kubeObjectProtection?.captureInterval;
     const kubeObjectReplicationHealth = getReplicationHealth(
       lastKubeObjectProtectionTime,
-      kubeObjectSchedulingInterval,
-      getReplicationType(kubeObjectSchedulingInterval)
+      kubeObjectSchedulingInterval
     );
 
     return {

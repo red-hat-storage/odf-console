@@ -46,7 +46,7 @@ const DRPolicyRow: React.FC<RowProps<DRPolicyKind, RowData>> = ({
   ));
   const appCount = policyToAppCount?.[getName(obj)] || 0;
   const syncInterval = obj?.spec?.schedulingInterval;
-  const replicationType = getReplicationType(syncInterval);
+  const replicationType = getReplicationType(obj);
 
   return (
     <>

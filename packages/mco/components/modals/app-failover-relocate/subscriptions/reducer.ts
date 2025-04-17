@@ -1,4 +1,4 @@
-import { DRActionType } from '../../../../constants';
+import { DRActionType, ReplicationType } from '../../../../constants';
 import { ApplicationDRInfo } from '../../../../utils';
 import { MessageKind } from './error-messages';
 
@@ -20,6 +20,7 @@ export type DRPolicyType = Partial<{
   policyName: string;
   drClusters: string[];
   schedulingInterval: string;
+  replicationType: ReplicationType;
 }>;
 
 export type TargetClusterType = Partial<{

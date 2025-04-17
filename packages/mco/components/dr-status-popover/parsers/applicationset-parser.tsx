@@ -60,7 +60,7 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       const healthStatus = getReplicationHealth(
         dataLastSyncedOn || '',
         schedulingInterval,
-        getReplicationType(schedulingInterval)
+        getReplicationType(drPolicy)
       );
 
       return {

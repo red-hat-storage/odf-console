@@ -10,11 +10,14 @@ import {
 import { TFunction } from 'react-i18next';
 import { Flex, FlexItem } from '@patternfly/react-core';
 import { UnknownIcon } from '@patternfly/react-icons';
-import { DRActionType, VolumeReplicationHealth } from '../../../../constants';
+import {
+  DRActionType,
+  ReplicationType,
+  VolumeReplicationHealth,
+} from '../../../../constants';
 import {
   checkDRActionReadiness,
   getReplicationHealth,
-  getReplicationType,
 } from '../../../../utils';
 import { DateTimeFormat } from '../failover-relocate-modal-body';
 import { ErrorMessageType } from './error-messages';
@@ -81,7 +84,8 @@ const getPeerStatusSummary = (
   subsGroups: string[],
   actionType: DRActionType,
   schedulingInterval: string,
-  t: TFunction
+  t: TFunction,
+  replicationType: ReplicationType
 ) =>
   drpcStateList?.reduce((acc, drpcState) => {
     const drPlacementControl = drpcState?.drPlacementControl;
@@ -91,7 +95,8 @@ const getPeerStatusSummary = (
       const higherSeverityHealth = getHigherSeverityHealth(
         acc.replicationHealth,
         lastGroupSyncTime,
-        schedulingInterval
+        schedulingInterval,
+        replicationType
       );
 
       return {
@@ -112,9 +117,9 @@ const getPeerStatusSummary = (
 const getHigherSeverityHealth = (
   previousHealth: VolumeReplicationHealth,
   lastGroupSyncTime: string,
-  schedulingInterval: string
+  schedulingInterval: string,
+  replicationType: ReplicationType
 ): VolumeReplicationHealth => {
-  const replicationType = getReplicationType(schedulingInterval);
   const currentHealth = getReplicationHealth(
     lastGroupSyncTime,
     schedulingInterval,
@@ -190,7 +195,8 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
         selectedSubsGroups,
         actionType,
         selectedDRPolicy.schedulingInterval,
-        t
+        t,
+        selectedDRPolicy.replicationType
       );
       if (
         peerCurrentStatus.peerReadiness.text ===
@@ -232,6 +238,7 @@ export const PeerClusterStatus: React.FC<PeerClusterStatusProps> = ({
   }, [
     selectedSubsGroups,
     selectedDRPolicy.schedulingInterval,
+    selectedDRPolicy.replicationType,
     drPolicyControlState,
     actionType,
     t,
