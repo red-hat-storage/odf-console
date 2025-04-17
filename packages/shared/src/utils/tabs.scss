@@ -8,8 +8,9 @@
 
   .pf-v5-c-tabs__link {
     margin-right: 2rem;
-    padding: var(--pf-v5-c-tabs__link--PaddingTop) 0
-      var(--pf-v5-c-tabs__link--PaddingBottom) 0;
+    &::cue-region {
+      width: fit-content;  
+    }
   }
 
   .pf-m-current span {
