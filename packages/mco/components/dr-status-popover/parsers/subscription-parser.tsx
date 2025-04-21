@@ -51,7 +51,7 @@ const parseDRStatusForGroup = (
   const targetCluster = findCluster(drClusters, primaryClusterName);
 
   const lastGroupSyncTime: string = drpc?.status?.lastGroupSyncTime;
-  const replicationType = getReplicationType(schedulingInterval);
+  const replicationType = getReplicationType(group.drInfo?.drPolicy);
 
   const volumeReplicationHealth = getReplicationHealth(
     lastGroupSyncTime,

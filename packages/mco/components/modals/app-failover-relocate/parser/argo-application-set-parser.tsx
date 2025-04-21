@@ -25,9 +25,9 @@ import {
   findCluster,
   findDeploymentClusters,
   checkDRActionReadiness,
-  findDRType,
   isDRClusterFenced,
   findPlacementNameFromAppSet,
+  getReplicationType,
 } from '../../../../utils';
 import { FailoverRelocateModal } from '../failover-relocate-modal';
 import { PlacementControlProps } from '../failover-relocate-modal-body';
@@ -155,7 +155,7 @@ export const ArogoApplicationSetParser = (
             isPrimaryClusterAvailable: !!primaryClusterCondition,
             isDRActionReady: checkDRActionReadiness(drPlacementControl, action),
             snapshotTakenTime: drPlacementControl?.status?.lastGroupSyncTime,
-            replicationType: findDRType(drClusters),
+            replicationType: getReplicationType(drPolicy),
             isTargetClusterFenced: isDRClusterFenced(targetDRCluster),
             isPrimaryClusterFenced: isDRClusterFenced(primaryDRCluster),
             areSiblingApplicationsFound: !!siblingApplications?.length,
