@@ -247,15 +247,26 @@ export const getDRPolicyName = (drpc: DRPlacementControlKind) =>
 export const getDRPoliciesCount = (drPolicies: DRPolicyMap) =>
   Object.keys(drPolicies || {})?.length;
 
-export const getReplicationType = (interval: string) =>
-  interval !== '0m' ? ReplicationType.ASYNC : ReplicationType.SYNC;
+export const getReplicationType = (drPolicy: DRPolicyKind): ReplicationType => {
+  const status = drPolicy?.status;
+
+  // Primary logic: Use replication type based on status if available
+  // RDR
+  if (status?.['async']) return ReplicationType.ASYNC;
+  // MDR
+  if (status?.['sync']) return ReplicationType.SYNC;
+
+  // Fallback logic: Use schedulingInterval to determine type
+  const isAsync = drPolicy?.spec?.schedulingInterval !== '0m';
+  return isAsync ? ReplicationType.ASYNC : ReplicationType.SYNC;
+};
 
 export const getReplicationHealth = (
   lastSyncTime: string,
   schedulingInterval: string,
-  replicationType: ReplicationType
+  replicationType?: ReplicationType
 ): VolumeReplicationHealth => {
-  if (replicationType === ReplicationType.SYNC) {
+  if (replicationType && replicationType === ReplicationType.SYNC) {
     return VolumeReplicationHealth.HEALTHY;
   }
   const seconds = !!lastSyncTime
@@ -310,13 +321,6 @@ export const findCluster = (
       ? getName(cluster) === matchClusterName
       : getName(cluster) !== matchClusterName
   );
-
-export const findDRType = (drClusters: DRClusterKind[]) =>
-  drClusters?.every(
-    (drCluster) => drCluster?.spec?.region === drClusters?.[0]?.spec?.region
-  )
-    ? ReplicationType.SYNC
-    : ReplicationType.ASYNC;
 
 export const findDRResourceUsingPlacement = (
   placementName: string,

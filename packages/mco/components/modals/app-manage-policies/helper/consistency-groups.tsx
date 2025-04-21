@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {
   CONSISTENCY_GROUP_LABEL,
+  ReplicationType,
   VolumeReplicationHealth,
 } from '@odf/mco/constants';
 import {
@@ -8,7 +9,7 @@ import {
   DRPlacementControlKind,
   DRVolumeReplicationGroupKind,
 } from '@odf/mco/types';
-import { getReplicationHealth, getReplicationType } from '@odf/mco/utils';
+import { getReplicationHealth } from '@odf/mco/utils';
 import {
   ACMManagedClusterViewModel,
   getName,
@@ -323,7 +324,7 @@ export const extractConsistencyGroups = (
       const healthStatus = getReplicationHealth(
         dataLastSyncedOn || '',
         schedulingInterval,
-        getReplicationType(schedulingInterval)
+        ReplicationType.ASYNC
       );
       const isSynced =
         healthStatus === VolumeReplicationHealth.HEALTHY ? true : false;

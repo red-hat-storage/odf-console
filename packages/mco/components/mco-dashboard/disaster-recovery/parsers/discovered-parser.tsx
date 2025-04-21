@@ -17,9 +17,8 @@ import {
   DRPolicyKind,
 } from '@odf/mco/types';
 import {
-  filerDRClustersUsingDRPolicy,
   findDRPolicyUsingDRPC,
-  findDRType,
+  getReplicationType,
   getLastAppDeploymentClusterName,
   getProtectedPVCsFromDRPC,
 } from '@odf/mco/utils';
@@ -87,10 +86,6 @@ export const useDiscoveredParser: UseDiscoveredParser = (
       // DRCluster to its ApplicationSets (total and protected) mapping
       drPlacementControls.forEach((drPlacementControl) => {
         const drPolicy = findDRPolicyUsingDRPC(drPlacementControl, drPolicies);
-        const currentDRClusters = filerDRClustersUsingDRPolicy(
-          drPolicy,
-          drClusters
-        );
         const decisionCluster =
           getLastAppDeploymentClusterName(drPlacementControl);
         if (drClusterAppsMap.hasOwnProperty(decisionCluster)) {
@@ -109,7 +104,7 @@ export const useDiscoveredParser: UseDiscoveredParser = (
                   drpcName: getName(drPlacementControl),
                   drpcNamespace: getNamespace(drPlacementControl),
                   protectedPVCs: getProtectedPVCsFromDRPC(drPlacementControl),
-                  replicationType: findDRType(currentDRClusters),
+                  replicationType: getReplicationType(drPolicy),
                   volumeSyncInterval: drPolicy?.spec?.schedulingInterval,
                   workloadNamespaces:
                     drPlacementControl.spec?.protectedNamespaces || [],
