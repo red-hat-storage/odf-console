@@ -26,7 +26,7 @@ type DeleteLifecycleRuleModalProps = {
   ruleHash: number;
 };
 
-const getUpdateRules = (
+const getUpdatedRules = (
   latestRules: GetBucketLifecycleConfigurationCommandOutput,
   ruleName: string,
   ruleHash: number
@@ -84,7 +84,7 @@ const DeleteLifecycleRuleModal: React.FC<
       await noobaaS3.putBucketLifecycleConfiguration({
         Bucket: bucketName,
         LifecycleConfiguration: {
-          Rules: getUpdateRules(latestRules, ruleName, ruleHash),
+          Rules: getUpdatedRules(latestRules, ruleName, ruleHash),
         },
       });
 
