@@ -9,7 +9,7 @@
       "href": "/odf/cluster"
     },
     "flags": {
-      "disallowed": ["PROVIDER_MODE"]
+      "disallowed": ["ODF_MODEL"]
     }
   },
   {
@@ -20,7 +20,7 @@
       "component": { "$codeRef": "dashboard.default" }
     },
     "flags": {
-      "disallowed": ["PROVIDER_MODE"]
+      "disallowed": ["ODF_MODEL"]
     }
   },
   {
@@ -34,7 +34,7 @@
       "component": { "$codeRef": "install.default" }
     },
     "flags": {
-      "disallowed": ["PROVIDER_MODE"]
+      "disallowed": ["ODF_MODEL"]
     }
   },
   {
@@ -45,7 +45,7 @@
       }
     },
     "flags": {
-      "disallowed": ["PROVIDER_MODE"]
+      "disallowed": ["ODF_MODEL"]
     }
   },
   {
@@ -55,7 +55,7 @@
       "reducer": { "$codeRef": "features" }
     },
     "flags": {
-      "disallowed": ["PROVIDER_MODE"]
+      "disallowed": ["ODF_MODEL"]
     }
   },
   {
@@ -66,7 +66,7 @@
       }
     },
     "flags": {
-      "disallowed": ["PROVIDER_MODE"]
+      "disallowed": ["ODF_MODEL"]
     }
   }
 ]

@@ -44,7 +44,9 @@ declare global {
     windowError?: string;
     __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: Function;
     store?: {}; // Redux store
-    pluginStore?: {}; // Console plugin store
+    pluginStore?: {
+      loadedDynamicPlugins: Map<string, any>; // Loaded dynamic plugins
+    }; // Console plugin store
     loadPluginEntry?: Function;
     Cypress?: {};
   }
