@@ -8,7 +8,13 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { SecretValue } from '@odf/shared/utils/SecretValue';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { Base64 } from 'js-base64';
-import { Button } from '@patternfly/react-core';
+import {
+  Button,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+} from '@patternfly/react-core';
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
 import '../../style.scss';
 
@@ -69,15 +75,16 @@ export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
     ? secretValues.reduce((acc, datum) => {
         const { field, value } = datum;
         acc.push(
-          <dt key={`${field}-k`} data-test="secret-data">
-            {field}
-          </dt>
+          <DescriptionListGroup>
+            <DescriptionListTerm key={`${field}-k`} data-test="secret-data">
+              {field}
+            </DescriptionListTerm>
+            <DescriptionListDescription key={`${field}-v`}>
+              <SecretValue value={value} reveal={reveal} encoded={false} />
+            </DescriptionListDescription>
+          </DescriptionListGroup>
         );
-        acc.push(
-          <dd key={`${field}-v`}>
-            <SecretValue value={value} reveal={reveal} encoded={false} />
-          </dd>
-        );
+
         return acc;
       }, [])
     : [];
@@ -107,7 +114,7 @@ export const GetSecret: React.FC<GetSecretProps> = ({ obj }) => {
         ) : null}
       </SectionHeading>
       {dl.length ? (
-        <dl className="secret-data">{dl}</dl>
+        <DescriptionList className="secret-data">{dl}</DescriptionList>
       ) : (
         <EmptyBox label={t('Data')} />
       )}

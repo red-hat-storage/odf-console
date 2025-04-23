@@ -42,6 +42,10 @@ import {
   TextContent,
   Text,
   TextVariants,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
 } from '@patternfly/react-core';
 import { LockIcon, TagIcon } from '@patternfly/react-icons';
 
@@ -140,27 +144,41 @@ const S3BucketDetailsOverview: React.FC<{}> = ({}) => {
       <SectionHeading text={t('Bucket overview')} />
       <div className="row">
         <div className="col-sm-6">
-          <dl>
-            <dt>{t('Name')}</dt>
-            <dd>{bucketName}</dd>
-            <dt>{t('Tags')}</dt>
-            <dd>
-              <LabelGroup>{tags || DASH}</LabelGroup>
-            </dd>
-            <dt>{t('Owner')}</dt>
-            <dd>{aclData?.Owner?.DisplayName || DASH}</dd>
-          </dl>
+          <DescriptionList>
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {bucketName}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Tags')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                <LabelGroup>{tags || DASH}</LabelGroup>
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Owner')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {aclData?.Owner?.DisplayName || DASH}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+          </DescriptionList>
         </div>
         <div className="col-sm-6">
-          <dl>
-            <dt>{t('Encryption')}</dt>
-            <dd>
-              <LockIcon /> {t('Enabled')}
-              <div className="pf-v5-u-disabled-color-100">
-                {encryptionDescription}
-              </div>
-            </dd>
-          </dl>
+          <DescriptionList>
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Encryption')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                <LockIcon /> {t('Enabled')}
+                <div className="pf-v5-u-disabled-color-100">
+                  {encryptionDescription}
+                </div>
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+          </DescriptionList>
         </div>
       </div>
     </div>

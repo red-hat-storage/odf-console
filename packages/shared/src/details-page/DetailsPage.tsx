@@ -18,6 +18,10 @@ import {
   Popover,
   Split,
   SplitItem,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
 } from '@patternfly/react-core';
 import { PencilAltIcon } from '@patternfly/react-icons';
 import { LoadingBox } from '../generic/status-box';
@@ -219,8 +223,8 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
   const value: React.ReactNode = children || _.get(obj, path, defaultValue);
   const editable = onEdit && canEdit;
   return hide ? null : (
-    <>
-      <dt
+    <DescriptionListGroup>
+      <DescriptionListTerm
         className={classnames('details-item__label', labelClassName)}
         data-test-selector={`details-item-label__${label}`}
       >
@@ -243,13 +247,9 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
                 })}
                 maxWidth="30rem"
               >
-                <Button
-                  data-test={label}
-                  variant="plain"
-                  className="details-item__popover-button"
-                >
+                <DescriptionListTerm className="description-list-term">
                   {label}
-                </Button>
+                </DescriptionListTerm>
               </Popover>
             ) : (
               label
@@ -258,7 +258,7 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
           {editable && editAsGroup && (
             <>
               <SplitItem isFilled />
-              <SplitItem>
+              <SplitItem className="pf-v5-u-ml-sm">
                 <EditButton testId={label} onClick={onEdit}>
                   {t('Edit')}
                 </EditButton>
@@ -266,8 +266,8 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
             </>
           )}
         </Split>
-      </dt>
-      <dd
+      </DescriptionListTerm>
+      <DescriptionListDescription
         className={classnames('details-item__value', valueClassName, {
           'details-item__value--group': editable && editAsGroup,
         })}
@@ -280,8 +280,8 @@ export const DetailsItem: React.FC<DetailsItemProps> = ({
         ) : (
           value
         )}
-      </dd>
-    </>
+      </DescriptionListDescription>
+    </DescriptionListGroup>
   );
 };
 
@@ -310,7 +310,7 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
   const launchModal = useModal();
 
   return (
-    <dl data-test-id="resource-summary" className="odf-m-pane__details">
+    <DescriptionList data-test-id="resource-summary">
       <DetailsItem
         label={t('Name')}
         obj={resource}
@@ -395,6 +395,6 @@ export const ResourceSummary: React.FC<ResourceSummaryProps> = ({
       >
         <OwnerReferences resource={resource} />
       </DetailsItem>
-    </dl>
+    </DescriptionList>
   );
 };
