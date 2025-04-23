@@ -21,10 +21,15 @@ import {
   useFlag,
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { Base64 } from 'js-base64';
 import { useParams } from 'react-router-dom-v5-compat';
-import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  DescriptionList,
+} from '@patternfly/react-core';
 import { ODFSystemParams } from '../../types';
 import EncryptionPopover from '../common/details-card/encryption-popover';
 
@@ -89,7 +94,7 @@ export const DetailsCard: React.FC = () => {
         <CardTitle>{t('Details')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <DetailsBody>
+        <DescriptionList>
           <DetailItem title={t('Service name')}>{serviceName}</DetailItem>
           <DetailItem
             title={t('Cluster name')}
@@ -129,7 +134,7 @@ export const DetailsCard: React.FC = () => {
           >
             <EncryptionPopover cluster={ocsCluster} isObjectDashboard={false} />
           </DetailItem>
-        </DetailsBody>
+        </DescriptionList>
       </CardBody>
     </Card>
   );

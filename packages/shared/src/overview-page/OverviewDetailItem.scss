@@ -1,16 +1,5 @@
 @import '@odf/shared/styles/skeleton';
 
-.odf-overview-details-card__item-title {
-  flex-basis: 100%;
-}
-
-.odf-overview-details-card__item-value {
-  flex-basis: 100%;
-  margin-bottom: 8px;
-  overflow: hidden;
-  overflow-wrap: break-word;
-}
-
 .odf-overview-details-card__skeleton-text {
   animation: $skeleton-animation;
   background: $skeleton-color;

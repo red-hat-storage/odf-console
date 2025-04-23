@@ -42,6 +42,12 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom-v5-compat';
+import {
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+} from '@patternfly/react-core';
 
 const resiliencyProgressQuery = (managedByOCS: string) =>
   DATA_RESILIENCY_QUERY(managedByOCS)[
@@ -107,59 +113,92 @@ export const StorageClusterDetails: React.FC<StorageClusterDetailsProps> = ({
       <SectionHeading text={t('Cluster details')} />
       <div className="row">
         <div className="col-md-5 col-xs-12">
-          <dl>
-            <dt>{t('Name')}</dt>
-            <dd>{ocsName || DASH}</dd>
-            <dt>{t('Data resiliency')}</dt>
-            <dd>
-              {' '}
-              <HealthItem
-                title=""
-                state={dataResiliencyState.state}
-                details={dataResiliencyState.message}
-              />
-            </dd>
-            <dt>{t('Provider')}</dt>
-            <dd>{infrastructurePlatform}</dd>
-            <dt>{t('Mode')}</dt>
-            <dd>{mode}</dd>
-            <dt>{t('Version')}</dt>
-            <dd>{serviceVersion}</dd>
-            <dt>{t('Inventory')}</dt>
-            <dd>
-              <ResourceInventoryItem
-                dataTest="inventory-nodes"
-                isLoading={!nodesLoaded}
-                error={!!nodesLoadError}
-                kind={NodeModel as any}
-                resources={getCephNodes(nodesData, odfNamespace)}
-                mapper={getNodeStatusGroups}
-                basePath={ocsNodesHref}
-              />
-            </dd>
-          </dl>
+          <DescriptionList>
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {ocsName || DASH}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Data resiliency')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {' '}
+                <HealthItem
+                  title=""
+                  state={dataResiliencyState.state}
+                  details={dataResiliencyState.message}
+                />
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Provider')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {infrastructurePlatform}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Mode')}</DescriptionListTerm>
+              <DescriptionListDescription>{mode}</DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Version')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {serviceVersion}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Inventory')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                <ResourceInventoryItem
+                  dataTest="inventory-nodes"
+                  isLoading={!nodesLoaded}
+                  error={!!nodesLoadError}
+                  kind={NodeModel as any}
+                  resources={getCephNodes(nodesData, odfNamespace)}
+                  mapper={getNodeStatusGroups}
+                  basePath={ocsNodesHref}
+                />
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+          </DescriptionList>
         </div>
         <div className="col-md-7 col-xs-12">
-          <dl>
-            <dt>{t('Status')}</dt>
-            <dd>
-              <Status status={resourceStatus(storageCluster)} />
-            </dd>
-            <dt>{t('Service name')}</dt>
-            <dd className="text-capitalize">
-              {isNsSafe && csvLoaded && !csvError ? (
-                <Link data-test="ocs-link" to={servicePath}>
-                  {serviceName}
-                </Link>
-              ) : (
-                serviceName
-              )}
-            </dd>
-            <dt>{t('Storage efficiency')}</dt>
-            <dd>
-              <StorageEfficiencyContent />
-            </dd>
-          </dl>
+          <DescriptionList>
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Status')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                <Status status={resourceStatus(storageCluster)} />
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Service name')}</DescriptionListTerm>
+              <DescriptionListDescription className="text-capitalize">
+                {isNsSafe && csvLoaded && !csvError ? (
+                  <Link data-test="ocs-link" to={servicePath}>
+                    {serviceName}
+                  </Link>
+                ) : (
+                  serviceName
+                )}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>
+                {t('Storage efficiency')}
+              </DescriptionListTerm>
+              <DescriptionListDescription>
+                <StorageEfficiencyContent />
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+          </DescriptionList>
         </div>
       </div>
     </div>

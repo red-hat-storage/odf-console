@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
-import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
@@ -15,9 +14,7 @@ export const StatusCard: React.FC = () => {
         <CardTitle>{t('Status')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <DetailsBody>
-          <Status status={obj.status?.phase} />
-        </DetailsBody>
+        <Status status={obj.status?.phase} />
       </CardBody>
     </Card>
   );
