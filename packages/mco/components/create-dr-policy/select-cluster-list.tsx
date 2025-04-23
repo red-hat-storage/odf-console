@@ -197,6 +197,8 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
 
   const clusters: ManagedClusterInfoType[] = React.useMemo(() => {
     if (!!requiredODFVersion && allLoaded && !anyError)
+      // TODO: Switch from using the MCV-based odf-info ConfigMap to using
+      // the odf-client-info ConfigMap from the openshift-operators namespace
       return getManagedClusterInfoTypes(
         managedClusters,
         mcvs,

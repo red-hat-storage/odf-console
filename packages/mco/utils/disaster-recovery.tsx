@@ -28,6 +28,7 @@ import {
   Operator,
   MatchExpression,
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import { InProgressIcon, UnknownIcon } from '@patternfly/react-icons';
 import { DRPlacementControlType } from '../components/modals/app-manage-policies/utils/types';
@@ -252,9 +253,9 @@ export const getReplicationType = (drPolicy: DRPolicyKind): ReplicationType => {
 
   // Primary logic: Use replication type based on status if available
   // RDR
-  if (status?.['async']) return ReplicationType.ASYNC;
+  if (!_.isEmpty(status?.['async'])) return ReplicationType.ASYNC;
   // MDR
-  if (status?.['sync']) return ReplicationType.SYNC;
+  if (!_.isEmpty(status?.['sync'])) return ReplicationType.SYNC;
 
   // Fallback logic: Use schedulingInterval to determine type
   const isAsync = drPolicy?.spec?.schedulingInterval !== '0m';

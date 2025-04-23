@@ -57,18 +57,6 @@ const checkSyncPolicyExists = (
     );
   });
 
-const checkClientToClientPeering = (
-  clusters: ManagedClusterInfoType[]
-): boolean => {
-  const odfConfigInfo1 = clusters[0]?.odfInfo?.storageClusterInfo;
-  const odfConfigInfo2 = clusters[1]?.odfInfo?.storageClusterInfo;
-  if (!!odfConfigInfo1?.clientInfo && !!odfConfigInfo2?.clientInfo) {
-    // Clients from same provider are not supported for DR.
-    return odfConfigInfo1.cephFSID === odfConfigInfo2.cephFSID;
-  }
-  return false;
-};
-
 const checkClientToODFPeering = (clusters: ManagedClusterInfoType[]): boolean =>
   // ODF cluster to client peering is not supported for DR.
   !!clusters[0]?.odfInfo?.storageClusterInfo?.clientInfo !==
@@ -127,8 +115,7 @@ const validateClusterSelection = (
   );
 
   validation.peeringValidation = {
-    unSupportedPeering:
-      checkClientToClientPeering(clusters) || checkClientToODFPeering(clusters),
+    unSupportedPeering: checkClientToODFPeering(clusters),
     invalidPolicyCreation:
       checkSyncPolicyExists(clusters.map(getName), drPolicies) ||
       verifyMirrorPeerExistence(clusters, mirrorPeers),
@@ -146,10 +133,8 @@ const getPeeringValidationMessage = (
     return {
       title: t('Unsupported peering configuration.'),
       description: t(
-        "The clusters you're trying to peer aren't compatible. " +
-          'It could be due to mismatched types (one with a client, the other without) ' +
-          'or both using the same Data Foundation provider. Select clusters that are either ' +
-          'the same type or have separate providers to continue.'
+        'The selected clusters cannot be peered due to a mismatch in types. ' +
+          'Ensure both clusters are of the same type to continue.'
       ),
     };
   } else if (peeringValidation.invalidPolicyCreation) {
