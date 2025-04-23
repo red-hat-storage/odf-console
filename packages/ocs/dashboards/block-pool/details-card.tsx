@@ -2,8 +2,13 @@ import * as React from 'react';
 import { PoolType } from '@odf/ocs/constants';
 import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  DescriptionList,
+} from '@patternfly/react-core';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
 export const DetailsCard: React.FC = () => {
@@ -18,7 +23,7 @@ export const DetailsCard: React.FC = () => {
         <CardTitle>{t('Details')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <DetailsBody>
+        <DescriptionList>
           <DetailItem isLoading={!obj} title={t('Pool name')}>
             {obj.metadata?.name}
           </DetailItem>
@@ -31,7 +36,7 @@ export const DetailsCard: React.FC = () => {
           <DetailItem isLoading={!obj} title={t('Replicas')}>
             {obj.spec?.replicated?.size}
           </DetailItem>
-        </DetailsBody>
+        </DescriptionList>
       </CardBody>
     </Card>
   );

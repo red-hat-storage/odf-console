@@ -19,6 +19,10 @@ import {
   TextVariants,
   Text,
   TextContent,
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
 } from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../../constants';
 import { convertTime, getTimeUnitString } from '../../../utils';
@@ -43,13 +47,13 @@ const REVIEW_ICON_MAP = {
  * @deprecated
  */
 const ReviewListTitle: React.FC<{ text: string }> = ({ text }) => (
-  <dt>
+  <DescriptionListTerm>
     <TextContent className="ocs-install-wizard__text-content">
       <Text component={TextVariants.h3} className="ocs-install-wizard__h3 ">
         {text}
       </Text>
     </TextContent>
-  </dt>
+  </DescriptionListTerm>
 );
 
 /**
@@ -79,23 +83,25 @@ const ReviewListBody: React.FC<ReviewListBodyProps> = ({
     : REVIEW_ICON_MAP[alert?.variant || AlertVariant.success];
 
   return (
-    <dd className="ocs-install-wizard__dd">
-      {alert?.variant || !hideIcon ? (
-        <Split>
-          <SplitItem>
-            <Icon className="ocs-install-wizard__icon" />
-          </SplitItem>
-          <SplitItem isFilled>
-            {children}
-            {alert?.variant ? (
-              <ValidationMessage validation={validation} />
-            ) : null}
-          </SplitItem>
-        </Split>
-      ) : (
-        children
-      )}
-    </dd>
+    <DescriptionListGroup>
+      <DescriptionListDescription className="ocs-install-wizard__dd">
+        {alert?.variant || !hideIcon ? (
+          <Split>
+            <SplitItem>
+              <Icon className="ocs-install-wizard__icon" />
+            </SplitItem>
+            <SplitItem isFilled>
+              {children}
+              {alert?.variant ? (
+                <ValidationMessage validation={validation} />
+              ) : null}
+            </SplitItem>
+          </Split>
+        ) : (
+          children
+        )}
+      </DescriptionListDescription>
+    </DescriptionListGroup>
   );
 };
 
@@ -208,7 +214,7 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
       <Title size="xl" headingLevel="h2">
         {t('Review BucketClass')}
       </Title>
-      <dl>
+      <DescriptionList>
         <ReviewListTitle text={t('General')} />
         <br />
         <div className="nb-create-bc-list--indent">
@@ -234,7 +240,7 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ state }) => {
             ? getReviewForNamespaceStore()
             : getReviewForBackingStore()}
         </div>
-      </dl>
+      </DescriptionList>
       {isLoading && <LoadingInline />}
       {!!error && (
         <Alert variant="danger" title="Error" isInline>
