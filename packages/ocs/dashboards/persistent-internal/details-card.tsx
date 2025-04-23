@@ -23,9 +23,14 @@ import {
   useK8sWatchResource,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { Link, useParams } from 'react-router-dom-v5-compat';
-import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  DescriptionList,
+} from '@patternfly/react-core';
 import { PROVIDER_MODE } from '../../../odf/features';
 import { ODFSystemParams } from '../../types';
 import EncryptionPopover from '../common/details-card/encryption-popover';
@@ -77,7 +82,7 @@ const DetailsCard: React.FC = () => {
         <CardTitle>{t('Details')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <DetailsBody>
+        <DescriptionList>
           <DetailItem key="service_name" title={t('Service name')}>
             {isNsSafe && csvLoaded && !csvError ? (
               <Link data-test="ocs-link" to={servicePath}>
@@ -125,7 +130,7 @@ const DetailsCard: React.FC = () => {
               isObjectDashboard={false}
             />
           </DetailItem>
-        </DetailsBody>
+        </DescriptionList>
       </CardBody>
     </Card>
   );

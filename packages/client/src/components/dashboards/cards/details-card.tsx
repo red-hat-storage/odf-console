@@ -3,8 +3,13 @@ import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { OverviewDetailItem as DetailItem } from '@odf/shared/overview-page';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getOprVersionFromCSV } from '@odf/shared/utils';
-import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardBody,
+  DescriptionList,
+} from '@patternfly/react-core';
 import { CLIENT_OPERATOR } from '../../../constants';
 
 export const DetailsCard: React.FC = () => {
@@ -24,7 +29,7 @@ export const DetailsCard: React.FC = () => {
         <CardTitle>{t('Details')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <DetailsBody>
+        <DescriptionList>
           <DetailItem key="service_name" title={t('Service name')}>
             {serviceName}
           </DetailItem>
@@ -40,7 +45,7 @@ export const DetailsCard: React.FC = () => {
           >
             {subscriptionVersion}
           </DetailItem>
-        </DetailsBody>
+        </DescriptionList>
       </CardBody>
     </Card>
   );

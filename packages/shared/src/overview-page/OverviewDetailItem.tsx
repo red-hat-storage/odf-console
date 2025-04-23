@@ -1,5 +1,9 @@
 import * as React from 'react';
-import classNames from 'classnames';
+import {
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+} from '@patternfly/react-core';
 
 import './OverviewDetailItem.scss';
 
@@ -11,10 +15,14 @@ export type OverviewDetailItemProps = {
   isLoading?: boolean;
   /** Value for a className */
   valueClassName?: string;
-
+  /** Error message to display */
   error?: string;
 };
 
+/**
+ * A wrapper around PatternFly's description group. This component's parent must
+ * be a PatternFly DescriptionList.
+ */
 export const OverviewDetailItem: React.FC<OverviewDetailItemProps> = ({
   title,
   isLoading = false,
@@ -34,22 +42,16 @@ export const OverviewDetailItem: React.FC<OverviewDetailItemProps> = ({
     status = children;
   }
   return (
-    <>
-      <dt
-        className="odf-overview-details-card__item-title"
-        data-test="detail-item-title"
-      >
+    <DescriptionListGroup>
+      <DescriptionListTerm data-test="detail-item-title">
         {title}
-      </dt>
-      <dd
-        className={classNames(
-          'odf-overview-details-card__item-value',
-          valueClassName
-        )}
+      </DescriptionListTerm>
+      <DescriptionListDescription
+        className={valueClassName}
         data-test="detail-item-value"
       >
         {status}
-      </dd>
-    </>
+      </DescriptionListDescription>
+    </DescriptionListGroup>
   );
 };
