@@ -28,6 +28,12 @@ import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/sta
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
+import {
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+} from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import { NooBaaObjectBucketModel } from '../../../shared/src/models/ocs';
 import { getPhase, obStatusFilter } from '../../utils';
@@ -234,31 +240,41 @@ export const OBDetails: React.FC<OBDetailsProps> = ({ obj, ownerLabel }) => {
           />
         </div>
         <div className="col-sm-6">
-          <dl>
-            <dt>{t('Status')}</dt>
-            <dd>
-              <OBStatus ob={obj} />
-            </dd>
-            <dt>{t('StorageClass')}</dt>
-            <dd>
-              {storageClassName ? (
+          <DescriptionList>
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Status')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                <OBStatus ob={obj} />
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('StorageClass')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {storageClassName ? (
+                  <ResourceLinkWithKind
+                    kind="StorageClass"
+                    name={storageClassName}
+                  />
+                ) : (
+                  '-'
+                )}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>
+                {t('Object Bucket Claim')}
+              </DescriptionListTerm>
+              <DescriptionListDescription>
                 <ResourceLinkWithKind
-                  kind="StorageClass"
-                  name={storageClassName}
+                  kind={referenceForModel(NooBaaObjectBucketClaimModel)}
+                  name={OBCName}
+                  namespace={OBCNamespace}
                 />
-              ) : (
-                '-'
-              )}
-            </dd>
-            <dt>{t('Object Bucket Claim')}</dt>
-            <dd>
-              <ResourceLinkWithKind
-                kind={referenceForModel(NooBaaObjectBucketClaimModel)}
-                name={OBCName}
-                namespace={OBCNamespace}
-              />
-            </dd>
-          </dl>
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+          </DescriptionList>
         </div>
       </div>
     </div>

@@ -18,6 +18,12 @@ import {
 } from '@odf/shared/utils';
 import { ResourceLink } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
+import {
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+} from '@patternfly/react-core';
 import NodeIPList from './NodeIPList';
 
 export type NodeDetailsProps = {
@@ -36,86 +42,150 @@ export const NodeDetails: React.FC<NodeDetailsProps> = ({ resource: node }) => {
       <SectionHeading text={t('Node details')} />
       <div className="row">
         <div className="col-md-6 col-xs-12">
-          <dl>
-            <dt>{t('Name')}</dt>
-            <dd>{node.metadata.name || '-'}</dd>
-            <dt>{t('Role')}</dt>
-            <dd>{roles.join(', ')}</dd>
-            <dt>{t('Instance type')}</dt>
-            <dd>{getNodeInstanceType(node)}</dd>
+          <DescriptionList>
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Name')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {node.metadata.name || '-'}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Role')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {roles.join(', ')}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Instance type')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {getNodeInstanceType(node)}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
             {availableZone && (
-              <>
-                <dt>{t('Zone')}</dt>
-                <dd>{availableZone}</dd>
-              </>
+              <DescriptionListGroup>
+                <DescriptionListTerm>{t('Zone')}</DescriptionListTerm>
+                <DescriptionListDescription>
+                  {availableZone}
+                </DescriptionListDescription>
+              </DescriptionListGroup>
             )}
+
             {availableRack && (
-              <>
-                <dt>{t('Rack')}</dt>
-                <dd>{availableRack}</dd>
-              </>
+              <DescriptionListGroup>
+                <DescriptionListTerm>{t('Rack')}</DescriptionListTerm>
+                <DescriptionListDescription>
+                  {availableRack}
+                </DescriptionListDescription>
+              </DescriptionListGroup>
             )}
-            <dt>{t('External ID')}</dt>
-            <dd>{_.get(node, 'spec.externalID', '-')}</dd>
-            <dt>{t('Node addresses')}</dt>
-            <dd>
-              <NodeIPList ips={getNodeAddresses(node)} expand />
-            </dd>
-            <dt>{t('Annotations')}</dt>
-            <dd>
-              {t('{{count}} annotation', {
-                count: _.size(node.metadata.annotations),
-              })}
-            </dd>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('External ID')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {_.get(node, 'spec.externalID', '-')}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Node addresses')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                <NodeIPList ips={getNodeAddresses(node)} expand />
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Annotations')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {t('{{count}} annotation', {
+                  count: _.size(node.metadata.annotations),
+                })}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
             {machine.name && (
-              <>
-                <dt>{t('Machine')}</dt>
-                <dd>
+              <DescriptionListGroup>
+                <DescriptionListTerm>{t('Machine')}</DescriptionListTerm>
+                <DescriptionListDescription>
                   <ResourceLink
                     kind={referenceForModel(MachineModel)}
                     name={machine.name}
                     namespace={machine.namespace}
                   />
-                </dd>
-              </>
+                </DescriptionListDescription>
+              </DescriptionListGroup>
             )}
+
             {_.has(node, 'spec.unschedulable') && (
-              <>
-                <dt>{t('Unschedulable')}</dt>
-                <dd className="text-capitalize">
+              <DescriptionListGroup>
+                <DescriptionListTerm>{t('Unschedulable')}</DescriptionListTerm>
+                <DescriptionListDescription className="text-capitalize">
                   {_.get(node, 'spec.unschedulable', '-').toString()}
-                </dd>
-              </>
+                </DescriptionListDescription>
+              </DescriptionListGroup>
             )}
-          </dl>
+          </DescriptionList>
         </div>
         <div className="col-md-6 col-xs-12">
-          <dl>
-            <dt>{t('Status')}</dt>
-            <dd>
-              <Status status={nodeStatus(node)} />
-            </dd>
-            <dt>{t('Operating system')}</dt>
-            <dd className="text-capitalize">
-              {_.get(node, 'status.nodeInfo.operatingSystem', '-')}
-            </dd>
-            <dt>{t('Kernel version')}</dt>
-            <dd>{_.get(node, 'status.nodeInfo.kernelVersion', '-')}</dd>
-            <dt>{t('OS image')}</dt>
-            <dd>{_.get(node, 'status.nodeInfo.osImage', '-')}</dd>
-            <dt>{t('Architecture')}</dt>
-            <dd className="text-uppercase">
-              {_.get(node, 'status.nodeInfo.architecture', '-')}
-            </dd>
-            <dt>{t('Kubelet version')}</dt>
-            <dd>{_.get(node, 'status.nodeInfo.kubeletVersion', '-')}</dd>
-            <dt>{t('Provider ID')}</dt>
-            <dd>{getProviderID(node)}</dd>
-            <dt>{t('Created')}</dt>
-            <dd>
-              <Timestamp timestamp={node.metadata.creationTimestamp} />
-            </dd>
-          </dl>
+          <DescriptionList>
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Status')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                <Status status={nodeStatus(node)} />
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Operating system')}</DescriptionListTerm>
+              <DescriptionListDescription className="text-capitalize">
+                {_.get(node, 'status.nodeInfo.operatingSystem', '-')}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Kernel version')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {_.get(node, 'status.nodeInfo.kernelVersion', '-')}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('OS image')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {_.get(node, 'status.nodeInfo.osImage', '-')}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Architecture')}</DescriptionListTerm>
+              <DescriptionListDescription className="text-uppercase">
+                {_.get(node, 'status.nodeInfo.architecture', '-')}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Kubelet version')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {_.get(node, 'status.nodeInfo.kubeletVersion', '-')}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Provider ID')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                {getProviderID(node)}
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+
+            <DescriptionListGroup>
+              <DescriptionListTerm>{t('Created')}</DescriptionListTerm>
+              <DescriptionListDescription>
+                <Timestamp timestamp={node.metadata.creationTimestamp} />
+              </DescriptionListDescription>
+            </DescriptionListGroup>
+          </DescriptionList>
         </div>
       </div>
     </div>

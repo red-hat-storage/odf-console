@@ -154,15 +154,6 @@
   padding: 0 0 30px;
 }
 
-.odf-m-pane__details {
-  line-height: 1.66;
-  min-width: 0;
-  white-space: normal;
-  dd {
-    @include odf-break-word;
-  }
-}
-
 .text-muted {
   color: var(--pf-v5-global--Color--200);
 }
