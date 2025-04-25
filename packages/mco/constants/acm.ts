@@ -36,10 +36,11 @@ export const APPLICATION_TYPE_DISPLAY_TEXT = (
   [DRApplication.DISCOVERED]: t('Discovered'),
 });
 
-// Managed cluster status conditions
+// Condition types
 export const MANAGED_CLUSTER_CONDITION_AVAILABLE =
   'ManagedClusterConditionAvailable';
 export const MANAGED_CLUSTER_JOINED = 'ManagedClusterJoined';
+export const MANAGED_CLUSTER_VIEW_PROCESSING = 'Processing';
 
 // Search result labels
 export const LABEL = 'label';

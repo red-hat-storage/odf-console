@@ -54,7 +54,7 @@
   "Replication interval": "Replication interval",
   "Replication policy": "Replication policy",
   "Unsupported peering configuration.": "Unsupported peering configuration.",
-  "The clusters you're trying to peer aren't compatible. It could be due to mismatched types (one with a client, the other without) or both using the same Data Foundation provider. Select clusters that are either the same type or have separate providers to continue.": "The clusters you're trying to peer aren't compatible. It could be due to mismatched types (one with a client, the other without) or both using the same Data Foundation provider. Select clusters that are either the same type or have separate providers to continue.",
+  "The selected clusters cannot be peered due to a mismatch in types. Ensure both clusters are of the same type to continue.": "The selected clusters cannot be peered due to a mismatch in types. Ensure both clusters are of the same type to continue.",
   "Selected clusters cannot be used to create a DRPolicy.": "Selected clusters cannot be used to create a DRPolicy.",
   "A mirror peer configuration already exists for one or more of the selected clusters, either from an existing or deleted DR policy. To create a new DR policy with these clusters, delete any existing mirror peer configurations associated with them and try again.": "A mirror peer configuration already exists for one or more of the selected clusters, either from an existing or deleted DR policy. To create a new DR policy with these clusters, delete any existing mirror peer configurations associated with them and try again.",
   "Cannot proceed with policy creation.": "Cannot proceed with policy creation.",
