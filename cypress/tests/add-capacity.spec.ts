@@ -88,9 +88,10 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
         ];
       const replicas =
         initialState.storageCluster?.spec?.storageDeviceSets?.[0]?.replica;
+      const provisionedCapacity = initialCapacity * replicas;
       cy.byTestID('requestSize').should('have.value', String(initialCapacity));
       cy.byTestID('provisioned-capacity').contains(
-        `${(initialCapacity * replicas).toFixed(0)} TiB`
+        `${Number.isInteger(provisionedCapacity) ? provisionedCapacity : provisionedCapacity.toFixed(2)} TiB`
       );
       cy.byTestID('add-cap-sc-dropdown', { timeout: 10000 }).should(
         'be.visible'
@@ -100,14 +101,9 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
 
       ODFCommon.visitStorageDashboard();
       ODFCommon.visitStorageSystemList();
-      // Wait for the storage cluster to reach Ready
-      // Storage Cluster CR flickers so wait for 10 seconds
-      // Disablng until ocs-operator fixes above issue
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(10000);
-      // eslint-disable-next-line cypress/require-data-selectors
-      cy.get('td[id="status"]', { timeout: 5 * MINUTE }).contains('Ready', {
-        timeout: 900000,
+
+      cy.get('[data-label="status"]').contains('Ready', {
+        timeout: 20 * MINUTE,
       });
     });
     cy.exec(
