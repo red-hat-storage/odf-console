@@ -1,7 +1,12 @@
-const fs = require('fs');
-const path = require('path');
-const { gettextToI18next } = require('i18next-conv');
-const minimist = require('minimist');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { gettextToI18next } from 'i18next-conv';
+import minimist from 'minimist';
+
+// __dirname is not defined by default in ES module scope
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function save(target) {
   return (result) => {
