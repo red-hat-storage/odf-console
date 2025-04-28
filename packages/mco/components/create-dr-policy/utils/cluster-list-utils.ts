@@ -6,7 +6,12 @@ import {
   isMinimumSupportedODFVersion,
   getNameNamespace,
 } from '@odf/mco/utils';
-import { getLabel, getName, getNamespace } from '@odf/shared/selectors';
+import {
+  getLabel,
+  getName,
+  getNamespace,
+  getResourceCondition,
+} from '@odf/shared/selectors';
 import { ConfigMapKind } from '@odf/shared/types';
 import { sortRows } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
@@ -19,6 +24,7 @@ import {
   MANAGED_CLUSTER_JOINED,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
   CLUSTER_ID,
+  MANAGED_CLUSTER_VIEW_PROCESSING,
 } from '../../../constants';
 import {
   ACMManagedClusterKind,
@@ -168,7 +174,15 @@ const clusterToODFInfoMapping = (
   requiredODFVersion: string
 ): ClusterToODFInfoMap =>
   mcvs?.reduce((acc, mcv) => {
-    const odfInfoConfig = mcv.status?.result as ConfigMapKind;
+    const condition = getResourceCondition(
+      mcv,
+      MANAGED_CLUSTER_VIEW_PROCESSING
+    );
+    if (condition?.status !== 'True') {
+      // early exit for unprocessed mcvs
+      return acc;
+    }
+    const odfInfoConfig = mcv?.status?.result as ConfigMapKind;
     const odfInfoConfigData = odfInfoConfig?.data || {};
     const [odfInfo, clients] = getODFInfo(
       requiredODFVersion,

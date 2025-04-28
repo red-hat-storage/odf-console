@@ -56,13 +56,11 @@ export const getOwnerReferences = <
     'metadata.ownerReferences'
   ) as K8sResourceCommon['metadata']['ownerReferences'];
 
-type KnownResourceConditions = 'Available' | 'Degraded' | 'Progressing';
-
 export const getResourceCondition = <
   A extends K8sResourceKind = K8sResourceKind,
 >(
   resource: A,
-  condition: KnownResourceConditions
+  condition: string
 ): K8sResourceCondition => {
   return resource?.status?.conditions?.find(
     (current: K8sResourceCondition) => current.type === condition
