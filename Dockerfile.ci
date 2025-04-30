@@ -1,16 +1,23 @@
 FROM docker.io/library/node:20.16.0 AS builder
+
+ARG PLUGIN=odf
+
 WORKDIR /app
 COPY . /app
 RUN yarn install --prod --frozen-lockfile --network-timeout 300000
-RUN NODE_OPTIONS="--max-old-space-size=1024" yarn build
+RUN BUILD_SCRIPT=build; \
+    if [ "$PLUGIN" = "client" ]; then \
+      BUILD_SCRIPT="${BUILD_SCRIPT}-client"; \
+    elif [ "$PLUGIN" = "mco" ]; then \
+      BUILD_SCRIPT="${BUILD_SCRIPT}-mco"; \
+    fi && \
+    NODE_OPTIONS="--max-old-space-size=1024" yarn "${BUILD_SCRIPT}" && \
+    mv /app/plugins/${PLUGIN}/dist /dist
 
+FROM docker.io/library/node:20.16.0
 
-FROM docker.io/library/node:20.16.0 AS serverpackage
 RUN yarn global add http-server
-RUN export PATH="$(yarn global bin):$PATH"
-
-FROM serverpackage
-COPY --from=builder /app/plugins/odf/dist /app
-COPY --from=builder /app/plugins/odf/dist /app/compatibility
+COPY --from=builder /dist /app
+COPY --from=builder /dist /app/compatibility
 COPY --from=builder /app/http-server.sh .
 ENTRYPOINT [ "./http-server.sh", "./app", "-S", "true", "-C", "/var/serving-cert/tls.crt", "-K", "/var/serving-cert/tls.key" ]
