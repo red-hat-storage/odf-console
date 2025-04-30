@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  APP_NAMESPACE_ANNOTATION,
   CONSISTENCY_GROUP_LABEL,
   ReplicationType,
   VolumeReplicationHealth,
@@ -12,15 +13,20 @@ import {
 import { getReplicationHealth } from '@odf/mco/utils';
 import {
   ACMManagedClusterViewModel,
+  getAnnotations,
   getName,
-  getNamespace,
   GreenCheckCircleIcon,
   ModalBody,
   RedExclamationCircleIcon,
+  StatusBox,
   useCustomTranslation,
 } from '@odf/shared';
 import { BLOCK, FILESYSTEM } from '@odf/shared/constants/common';
 import { referenceForModel } from '@odf/shared/utils';
+import {
+  K8sResourceCommon,
+  WatchK8sResultsObject,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import {
   Button,
@@ -133,34 +139,24 @@ const PVCList: React.FC<PVCInfoProps> = ({ pvcs, t }) => {
   return (
     <div className="pf-v5-u-mt-md">
       <Text component={TextVariants.h6}>{t('Persistent volume claims')}</Text>
-      <Flex direction={{ default: 'column' }}>
-        {visiblePVCs.map((pvc, i) => (
-          <FlexItem key={`${pvc}-${i}`} className="pf-v5-u-mb-sm">
-            {pvc}
-            {i < visiblePVCs.length - 1 ? ',' : ''}
-          </FlexItem>
-        ))}
-      </Flex>
-      {hasMorePVCs && !showAll && (
-        <Button
-          variant={ButtonVariant.link}
-          onClick={() => setShowAll(true)}
-          isInline
-          className="pf-v5-u-mt-xs"
-        >
-          {t('{{count}} more', { count: remainingCount })}
-        </Button>
-      )}
-      {showAll && (
-        <Button
-          variant="link"
-          onClick={() => setShowAll(false)}
-          isInline
-          className="pf-v5-u-mt-xs"
-        >
-          {t('Show less')}
-        </Button>
-      )}
+      <Text component={TextVariants.p}>
+        {visiblePVCs.join(', ')}
+        {hasMorePVCs && (
+          <>
+            {' '}
+            <Button
+              variant={ButtonVariant.link}
+              onClick={() => setShowAll((prev) => !prev)}
+              isInline
+              className="pf-v5-u-ml-sm"
+            >
+              {showAll
+                ? t('Show less')
+                : t('{{count}} more', { count: remainingCount })}
+            </Button>
+          </>
+        )}
+      </Text>
     </div>
   );
 };
@@ -174,11 +170,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, isLast, t }) => (
   </div>
 );
 
-const GroupList: React.FC<GroupListProps> = ({
-  filteredGroups,
-  searchValue,
-  t,
-}) => (
+const GroupList: React.FC<GroupListProps> = ({ filteredGroups, t }) => (
   <div>
     {filteredGroups.length > 0 ? (
       filteredGroups.map((group, index) => (
@@ -190,18 +182,24 @@ const GroupList: React.FC<GroupListProps> = ({
         />
       ))
     ) : (
-      <Text>
-        {searchValue
-          ? t('No volume consistency groups match your search')
-          : t('No volume consistency groups found for this application')}
-      </Text>
+      <Text>{t('No volume consistency groups match your search')}</Text>
     )}
   </div>
 );
 
+const NoConsistencyGroups: React.FC = () => {
+  const { t } = useCustomTranslation();
+
+  return (
+    <Text className="pf-v5-u-text-align-center pf-v5-u-mt-lg">
+      {t('No volume consistency groups found for this application')}
+    </Text>
+  );
+};
+
 export const ConsistencyGroupsContent: React.FC<
   ConsistencyGroupsContentProps
-> = ({ consistencyGroups }) => {
+> = ({ consistencyGroups, loaded, loadError }) => {
   const { t } = useCustomTranslation();
   const [searchValue, setSearchValue] = React.useState('');
   const [selectedFilter, setSelectedFilter] = React.useState<FilterType>(
@@ -243,123 +241,150 @@ export const ConsistencyGroupsContent: React.FC<
 
   return (
     <ModalBody>
-      <Text component={TextVariants.h3} className="pf-v5-u-mb-md">
-        {t('Volume consistency groups')}
-      </Text>
+      <StatusBox
+        loaded={loaded}
+        loadError={loadError}
+        EmptyMsg={NoConsistencyGroups}
+        data={consistencyGroups}
+      >
+        <Text component={TextVariants.h3} className="pf-v5-u-mb-md">
+          {t('Volume consistency groups')}
+        </Text>
 
-      <Flex className="pf-v5-u-mb-lg">
-        <FlexItem>
-          <Select
-            id="single-select"
-            isOpen={isOpen}
-            selected={selectedFilter}
-            onSelect={onSelect}
-            onOpenChange={(val) => setIsOpen(val)}
-            toggle={toggle}
-            shouldFocusToggleOnSelect
-          >
-            <SelectList>
-              {FILTERS.map((filter) => (
-                <SelectOption key={filter} value={filter}>
-                  {displayFilterText[filter]}
-                </SelectOption>
-              ))}
-            </SelectList>
-          </Select>
-        </FlexItem>
-        <FlexItem grow={{ default: 'grow' }}>
-          <SearchInput
-            placeholder={t('Search by name')}
-            value={searchValue}
-            onChange={(_event, value) => handleSearchChange(value)}
-            onClear={() => handleSearchChange('')}
-          />
-        </FlexItem>
-      </Flex>
+        <Flex className="pf-v5-u-mb-lg">
+          <FlexItem>
+            <Select
+              id="single-select"
+              isOpen={isOpen}
+              selected={selectedFilter}
+              onSelect={onSelect}
+              onOpenChange={(val) => setIsOpen(val)}
+              toggle={toggle}
+              shouldFocusToggleOnSelect
+            >
+              <SelectList>
+                {FILTERS.map((filter) => (
+                  <SelectOption key={filter} value={filter}>
+                    {displayFilterText[filter]}
+                  </SelectOption>
+                ))}
+              </SelectList>
+            </Select>
+          </FlexItem>
+          <FlexItem grow={{ default: 'grow' }}>
+            <SearchInput
+              placeholder={t('Search by name')}
+              value={searchValue}
+              onChange={(_event, value) => handleSearchChange(value)}
+              onClear={() => handleSearchChange('')}
+            />
+          </FlexItem>
+        </Flex>
 
-      <GroupList
-        filteredGroups={filteredGroups}
-        searchValue={searchValue}
-        t={t}
-      />
+        <GroupList filteredGroups={filteredGroups} t={t} />
+      </StatusBox>
     </ModalBody>
   );
 };
 
-export const extractConsistencyGroups = (
-  mcvs: Record<string, any>
-): ConsistencyGroupInfo[] => {
+const buildConsistencyGroupMap = (
+  vrg: DRVolumeReplicationGroupKind
+): Map<string, ConsistencyGroupInfo> => {
+  const cgMap = new Map<string, ConsistencyGroupInfo>();
+  const protectedPVCs = vrg.status?.protectedPVCs || [];
+
+  protectedPVCs.forEach((pvc) => {
+    const cgLabel = Object.entries(pvc.labels || {}).find(
+      ([key]) => key === CONSISTENCY_GROUP_LABEL
+    );
+    if (!cgLabel) return;
+
+    const cgName = cgLabel[1] as string;
+    const cgType = getCGType(cgName);
+    const schedulingInterval = vrg.spec.async?.schedulingInterval;
+    const dataLastSyncedOn = pvc.lastSyncTime;
+    const healthStatus = getReplicationHealth(
+      dataLastSyncedOn || '',
+      schedulingInterval,
+      ReplicationType.ASYNC
+    );
+    const isSynced = healthStatus === VolumeReplicationHealth.HEALTHY;
+
+    if (!cgMap.has(cgName)) {
+      cgMap.set(cgName, {
+        name: cgName,
+        type: cgType,
+        pvcs: [],
+        namespace: pvc.namespace,
+        lastSyncTime: pvc.lastSyncTime,
+        synced: isSynced,
+      });
+    }
+
+    cgMap.get(cgName).pvcs.push(pvc.name);
+  });
+
+  return cgMap;
+};
+
+const convertCGMapToGroups = (cgMap: Map<string, ConsistencyGroupInfo>) => {
+  const groups = [];
+  cgMap.forEach((value, _) => {
+    groups.push({
+      name: value.name,
+      type: value.type,
+      namespace: value.namespace,
+      lastSyncTime: value.lastSyncTime,
+      pvcs: value.pvcs,
+      synced: value.synced,
+    });
+  });
+  return groups;
+};
+
+const extractVRGFromMCV = (mcvData): DRVolumeReplicationGroupKind | null =>
+  mcvData.data?.status?.result as DRVolumeReplicationGroupKind;
+
+export const extractConsistencyGroups = (mcvs: {
+  [key in string]: WatchK8sResultsObject<K8sResourceCommon>;
+}): { loaded: boolean; loadError: any; data: ConsistencyGroupInfo[] } => {
+  let allLoaded = true;
+  let anyError = '';
   const groups: ConsistencyGroupInfo[] = [];
 
   Object.values(mcvs).forEach((mcvData) => {
+    if (mcvData.loadError && !anyError) {
+      anyError = mcvData.loadError;
+    }
+
+    if (!mcvData.loaded) {
+      allLoaded = false;
+    }
+
     if (!mcvData.loaded || mcvData.loadError || !mcvData.data) return;
 
-    const mcv = mcvData.data;
-    const vrg = mcv?.status?.result as DRVolumeReplicationGroupKind;
+    const vrg = extractVRGFromMCV(mcvData);
     if (!vrg) return;
 
-    const cgMap = new Map<
-      string,
-      {
-        type: string;
-        pvcs: string[];
-        namespace: string;
-        lastSyncTime: string;
-        synced: boolean;
-      }
-    >();
-    const protectedPVCs = vrg.status?.protectedPVCs || [];
-    protectedPVCs.forEach((pvc) => {
-      const cgLabel = Object.entries(pvc.labels || {}).find(
-        ([key]) => key === CONSISTENCY_GROUP_LABEL
-      );
-
-      if (!cgLabel) return;
-
-      const cgName = cgLabel[1] as string;
-      const cgType = getCGType(cgName);
-
-      const schedulingInterval = vrg.spec.async?.schedulingInterval;
-      const dataLastSyncedOn = pvc.lastSyncTime;
-      const healthStatus = getReplicationHealth(
-        dataLastSyncedOn || '',
-        schedulingInterval,
-        ReplicationType.ASYNC
-      );
-      const isSynced =
-        healthStatus === VolumeReplicationHealth.HEALTHY ? true : false;
-      if (!cgMap.has(cgName)) {
-        cgMap.set(cgName, {
-          type: cgType,
-          pvcs: [],
-          namespace: pvc.namespace,
-          lastSyncTime: pvc.lastSyncTime,
-          synced: isSynced,
-        });
-      }
-
-      const group = cgMap.get(cgName);
-      group.pvcs.push(pvc.name);
-    });
-
-    cgMap.forEach((value, cgName) => {
-      groups.push({
-        name: cgName,
-        type: value.type as any,
-        namespace: value.namespace,
-        lastSyncTime: value.lastSyncTime,
-        pvcs: value.pvcs,
-        synced: value.synced,
-      });
-    });
+    const cgMap = buildConsistencyGroupMap(vrg);
+    const vrgGroups = convertCGMapToGroups(cgMap);
+    groups.push(...vrgGroups);
   });
 
-  return groups;
+  return {
+    loaded: allLoaded,
+    loadError: anyError,
+    data: groups,
+  };
 };
 
 export const getMCVName = (
   resource: DRPlacementControlKind | DRPlacementControlType
-): string => `${getName(resource)}-${getNamespace(resource)}-vrg-mcv`;
+): string => {
+  const annotations = getAnnotations(resource, {});
+  const ns = annotations[APP_NAMESPACE_ANNOTATION] ?? '';
+  return `${getName(resource)}-${ns}-vrg-mcv`;
+};
 
 export const buildMCVResource = (clusterName: string, mcvName: string) => {
   return {
@@ -372,6 +397,8 @@ export const buildMCVResource = (clusterName: string, mcvName: string) => {
 export type ConsistencyGroupsContentProps = {
   consistencyGroups: ConsistencyGroupInfo[];
   namespace?: string;
+  loaded: boolean;
+  loadError: any;
 };
 
 type GroupInfoProps = {
@@ -397,6 +424,5 @@ type GroupCardProps = {
 
 type GroupListProps = {
   filteredGroups: ConsistencyGroupInfo[];
-  searchValue: string;
   t: TFunction<string>;
 };

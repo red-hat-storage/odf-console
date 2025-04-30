@@ -44,11 +44,19 @@ export const VolumeConsistencyGroupView: React.FC<
   }, [drInfo]);
 
   const mcvs = useK8sWatchResources<WatchResourceType>(mcvResources);
-  const consistencyGroups = extractConsistencyGroups(mcvs);
+  const {
+    data: consistencyGroups,
+    loaded,
+    loadError,
+  } = extractConsistencyGroups(mcvs);
 
   return (
     <>
-      <ConsistencyGroupsContent consistencyGroups={consistencyGroups} />
+      <ConsistencyGroupsContent
+        consistencyGroups={consistencyGroups}
+        loaded={loaded}
+        loadError={loadError}
+      />
       <ModalFooter>
         <Button
           variant={ButtonVariant.secondary}
