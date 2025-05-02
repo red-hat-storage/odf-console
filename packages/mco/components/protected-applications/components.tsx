@@ -322,7 +322,16 @@ const ConsistencyGroupsModal: React.FC<{
   onClose: () => void;
   consistencyGroups: ConsistencyGroupInfo[];
   description: React.ReactNode;
-}> = ({ isOpen, onClose, consistencyGroups, description }) => {
+  loaded: boolean;
+  loadError: any;
+}> = ({
+  isOpen,
+  onClose,
+  consistencyGroups,
+  description,
+  loaded,
+  loadError,
+}) => {
   const { t } = useCustomTranslation();
 
   return (
@@ -338,7 +347,11 @@ const ConsistencyGroupsModal: React.FC<{
         </Button>,
       ]}
     >
-      <ConsistencyGroupsContent consistencyGroups={consistencyGroups} />
+      <ConsistencyGroupsContent
+        consistencyGroups={consistencyGroups}
+        loaded={loaded}
+        loadError={loadError}
+      />
     </Modal>
   );
 };
@@ -354,9 +367,13 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
   const mcvResources: Record<string, WatchK8sResource> = {};
   mcvResources[mcvName] = buildMCVResource(clusterName, mcvName);
   const mcvs = useK8sWatchResources(mcvResources);
-  const consistencyGroups = extractConsistencyGroups(mcvs);
+  const {
+    loaded,
+    loadError,
+    data: consistencyGroups,
+  } = extractConsistencyGroups(mcvs);
 
-  const consistencyGroupsCount = consistencyGroups.reduce((acc, group) => {
+  const consistencyGroupsCount = consistencyGroups?.reduce((acc, group) => {
     const namespace = group.namespace;
     acc[namespace] = acc[namespace] ? acc[namespace] + 1 : 1;
     return acc;
@@ -394,7 +411,7 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
           resourceModel={NamespaceModel}
           resourceName={namespace}
         />
-        {consistencyGroupsCount[namespace] && (
+        {consistencyGroupsCount?.[namespace] && (
           <>
             <Text className="pf-v5-u-ml-xl pf-v5-u-pl-md">
               {consistencyGroupsCount[namespace]}{' '}
@@ -435,6 +452,8 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
           description={description}
           onClose={closeModal}
           consistencyGroups={consistencyGroups}
+          loaded={loaded}
+          loadError={loadError}
         />
       )}
     </>
