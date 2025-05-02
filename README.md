@@ -71,6 +71,27 @@ CONSOLE_VERSION=4.18 BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/p
 
 To see the NooBaa S3 logs: `oc logs -f deploy/noobaa-endpoint`
 
+## Build the CI plugin image
+
+Build a plugin image for testing purposes:
+
+```
+# odf plugin.
+docker build -t quay.io/<username>/odf-console:test -f Dockerfile.ci .
+# client plugin.
+docker build -t quay.io/<username>/ocs-client-console:test -f Dockerfile.ci . --build-arg PLUGIN=client
+# mco plugin.
+docker build -t quay.io/<username>/odf-multicluster-console:test -f Dockerfile.ci . --build-arg PLUGIN=mco
+```
+
+Push it:
+
+```
+docker push quay.io/<username>/odf-console:test
+```
+
+After pushing you can replace the cluster's console plugin image with your test image.
+
 ## Build the CI runner image
 
 Build a beta for testing:
