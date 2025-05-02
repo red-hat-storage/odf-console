@@ -9,6 +9,7 @@ export type DataPool = {
   name?: string;
   replicated?: {
     size: number;
+    targetSizeRatio?: number;
   };
 };
 
