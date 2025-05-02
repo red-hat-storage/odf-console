@@ -9,7 +9,6 @@
   "exposedModules": {
     "dashboard": "@odf/client/src/components/dashboards/client-dashboard",
     "install": "@odf/client/src/components/create-client/create-client",
-    "mcg": "@odf/client/src/components/mcg/index",
     "features": "@odf/client/src/features"
   }
 }
