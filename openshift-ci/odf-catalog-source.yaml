@@ -28,7 +28,7 @@ spec:
   icon:
     base64data: ''
     mediatype: ''
-  image: quay.io/rhceph-dev/ocs-registry:latest-4.19
+  image: quay.io/rhceph-dev/ocs-registry:latest-stable-4.19
   priority: 100
   publisher: Red Hat
   sourceType: grpc
@@ -62,7 +62,7 @@ spec:
       type: RuntimeDefault
   containers:
     - name: rhceph-dev-icsp
-      image: quay.io/rhceph-dev/ocs-registry:latest-4.19
+      image: quay.io/rhceph-dev/ocs-registry:latest-stable-4.19
       securityContext:
         allowPrivilegeEscalation: false
         capabilities:
