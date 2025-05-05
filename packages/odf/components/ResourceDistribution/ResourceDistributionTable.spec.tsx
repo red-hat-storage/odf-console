@@ -30,13 +30,11 @@ const resources = [
 ];
 
 const selectedResources: SelectedResources = {
-  'test-storage-class': {
-    selected: false,
-    resourceType: 'storageClass',
+  storageClass: {
+    'test-storage-class': false,
   },
-  'test-snapshot-class': {
-    selected: false,
-    resourceType: 'volumeSnapshotClass',
+  volumeSnapshotClass: {
+    'test-snapshot-class': false,
   },
 };
 
@@ -101,13 +99,11 @@ describe('Resource distribution table component renders correctly for a storage 
     const user = userEvent.setup();
     await user.click(checkbox);
     expect(setSelectedResourcesMock).toHaveBeenCalledWith({
-      'test-snapshot-class': {
-        resourceType: 'volumeSnapshotClass',
-        selected: false,
+      volumeSnapshotClass: {
+        'test-snapshot-class': false,
       },
-      'test-storage-class': {
-        resourceType: 'storageClass',
-        selected: true,
+      storageClass: {
+        'test-storage-class': true,
       },
     });
     // Test select all
@@ -115,13 +111,11 @@ describe('Resource distribution table component renders correctly for a storage 
     expect(selectAll).toBeInTheDocument();
     await userEvent.click(selectAll);
     expect(setSelectedResourcesMock).toHaveBeenCalledWith({
-      'test-snapshot-class': {
-        resourceType: 'volumeSnapshotClass',
-        selected: false,
+      volumeSnapshotClass: {
+        'test-snapshot-class': false,
       },
-      'test-storage-class': {
-        resourceType: 'storageClass',
-        selected: true,
+      storageClass: {
+        'test-storage-class': true,
       },
     });
   });

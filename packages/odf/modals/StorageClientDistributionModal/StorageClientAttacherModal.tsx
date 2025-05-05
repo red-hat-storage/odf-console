@@ -1,9 +1,5 @@
 import * as React from 'react';
-import {
-  getUID,
-  StorageConsumerModel,
-  VolumeGroupSnapshotClassModel,
-} from '@odf/shared';
+import { getUID, StorageConsumerModel } from '@odf/shared';
 import {
   getName,
   ModalFooter,
@@ -97,43 +93,32 @@ export const StorageClientAttacherModal: ModalComponent<
         isStorageConsumerSelected
           ? [
               resourceName,
-              ...storageConsumer.spec?.storageClasses?.map((sc) => sc.name),
+              ...(storageConsumer.spec?.storageClasses?.map((sc) => sc.name) ||
+                []),
             ]
-          : [...storageConsumer.spec?.storageClasses?.map((sc) => sc.name)];
+          : [
+              ...(storageConsumer.spec?.storageClasses
+                ?.filter((sc) => sc.name !== resourceName)
+                ?.map((sc) => sc.name) || []),
+            ];
       const volumeSnapshotClassNames =
         resourceModel.kind === VolumeSnapshotClassModel.kind &&
         isStorageConsumerSelected
           ? [
               resourceName,
-              ...storageConsumer.spec?.volumeSnapshotClasses?.map(
+              ...(storageConsumer.spec?.volumeSnapshotClasses?.map(
                 (vsc) => vsc.name
-              ),
+              ) || []),
             ]
           : [
-              ...storageConsumer.spec?.volumeSnapshotClasses?.map(
-                (vsc) => vsc.name
-              ),
-            ];
-      const volumeGroupSnapshotClassNames =
-        resourceModel.kind === VolumeGroupSnapshotClassModel.kind &&
-        isStorageConsumerSelected
-          ? [
-              resourceName,
-              ...storageConsumer.spec?.volumeGroupSnapshotClasses?.map(
-                (vgsc) => vgsc.name
-              ),
-            ]
-          : [
-              resourceName,
-              ...storageConsumer.spec?.volumeGroupSnapshotClasses?.map(
-                (vgsc) => vgsc.name
-              ),
+              ...(storageConsumer.spec?.volumeSnapshotClasses
+                ?.filter((vsc) => vsc.name !== resourceName)
+                .map((vsc) => vsc.name) || []),
             ];
       const patch = generatePatchForDistributionOfResources(
         storageConsumer,
         storageClassNames,
-        volumeSnapshotClassNames,
-        volumeGroupSnapshotClassNames
+        volumeSnapshotClassNames
       );
       promises.push(
         k8sPatch({

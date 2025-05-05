@@ -10,34 +10,22 @@ import * as _ from 'lodash-es';
 import { Thead, Tr, Th, Tbody, Table } from '@patternfly/react-table';
 
 export type SelectedResources = {
-  [name: string]: {
-    selected: boolean;
-    resourceType:
-      | 'storageClass'
-      | 'volumeSnapshotClass'
-      | 'volumeGroupSnapshotClass';
+  storageClass: {
+    [name: string]: boolean;
+  };
+  volumeSnapshotClass: {
+    [name: string]: boolean;
   };
 };
 
-type ResourceDistributionTableProps = {
+export type ResourceDistributionTableProps = {
   resources: K8sResourceCommon[];
-  selectedResources: {
-    [name: string]: {
-      selected: boolean;
-      resourceType:
-        | 'storageClass'
-        | 'volumeSnapshotClass'
-        | 'volumeGroupSnapshotClass';
-    };
-  };
+  selectedResources: SelectedResources;
   setSelectedResources: React.Dispatch<React.SetStateAction<SelectedResources>>;
   RowGenerator: React.FC<RowGeneratorProps<K8sResourceCommon>>;
   columns: string[];
   loaded: boolean;
-  resourceType:
-    | 'storageClass'
-    | 'volumeSnapshotClass'
-    | 'volumeGroupSnapshotClass';
+  resourceType: 'storageClass' | 'volumeSnapshotClass';
 };
 
 export type RowGeneratorProps<T extends K8sResourceCommon> = {
@@ -66,10 +54,7 @@ export const ResourceDistributionTable: React.FC<
       ? false
       : resources.every((resource) => {
           const name = getName(resource);
-          return (
-            selectedResources[name]?.selected === true &&
-            selectedResources[name]?.resourceType === resourceType
-          );
+          return !!selectedResources?.[resourceType]?.[name];
         });
     if (allSelected) {
       setAllResourcesSelected(true);
@@ -79,14 +64,11 @@ export const ResourceDistributionTable: React.FC<
     (resource: K8sResourceCommon) => (selected: boolean) => {
       const updatedResources = {
         ...selectedResources,
-        [getName(resource)]: {
-          selected,
-          resourceType,
-        },
       };
-      const isAllSelected = Object.values(updatedResources)
-        .filter((res) => res.resourceType === resourceType)
-        .every((res) => res.selected);
+      updatedResources[resourceType][getName(resource)] = selected;
+      const isAllSelected = Object.entries(
+        updatedResources?.[resourceType]
+      ).every(([, v]) => v);
       if (isAllSelected) {
         setAllResourcesSelected(true);
       } else {
@@ -99,8 +81,8 @@ export const ResourceDistributionTable: React.FC<
 
   const isRowSelected = React.useCallback(
     (resource: K8sResourceCommon) =>
-      selectedResources?.[getName(resource)]?.selected,
-    [selectedResources]
+      selectedResources[resourceType]?.[getName(resource)],
+    [resourceType, selectedResources]
   );
 
   const [unfilteredData, filteredData, onFilterChange] =
@@ -108,13 +90,12 @@ export const ResourceDistributionTable: React.FC<
 
   const selectAllResources = (select: boolean) => {
     setAllResourcesSelected(select);
-    const newSelectedResources = filteredData.reduce((acc, storageClass) => {
-      acc[storageClass.metadata.name] = {
-        resourceType,
-        selected: select,
-      };
-      return acc;
-    }, {} as SelectedResources);
+    const newSelectedResources = {
+      [resourceType]: filteredData.reduce((acc, storageClass) => {
+        acc[storageClass.metadata.name] = select;
+        return acc;
+      }, {}),
+    };
     setSelectedResources((prev) => ({ ...prev, ...newSelectedResources }));
   };
   return !loaded ? (
