@@ -11,8 +11,6 @@ import {
   useCustomTranslation,
   VolumeSnapshotClassKind,
   VolumeSnapshotClassModel,
-  VolumeGroupSnapshotClassModel,
-  VolumeGroupSnapshotClassKind,
 } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
 import { isCephDriver, isCephProvisioner } from '@odf/shared/utils';
@@ -36,13 +34,13 @@ import { Tr, Td } from '@patternfly/react-table';
 import {
   ResourceDistributionTable,
   RowGeneratorProps,
+  SelectedResources,
 } from '../../components/ResourceDistribution/ResourceDistributionTable';
 import { generatePatchForDistributionOfResources } from '../../components/ResourceDistribution/utils';
 
 type Resources = {
   storageClasses: StorageClassResourceKind[];
   volumeSnapshotClasses: VolumeSnapshotClassKind[];
-  volumeGroupSnapshotClasses: VolumeGroupSnapshotClassKind[];
 };
 
 const resources: WatchK8sResources<Resources> = {
@@ -59,14 +57,6 @@ const resources: WatchK8sResources<Resources> = {
       group: VolumeSnapshotClassModel.apiGroup,
       version: VolumeSnapshotClassModel.apiVersion,
       kind: VolumeSnapshotClassModel.kind,
-    },
-    isList: true,
-  },
-  volumeGroupSnapshotClasses: {
-    groupVersionKind: {
-      group: VolumeGroupSnapshotClassModel.apiGroup,
-      version: VolumeGroupSnapshotClassModel.apiVersion,
-      kind: VolumeGroupSnapshotClassModel.kind,
     },
     isList: true,
   },
@@ -113,22 +103,15 @@ const VolumeSnapshotClassRowGenerator: React.FC<RowGeneratorProps<any>> = ({
   );
 };
 
-type SelectedResources = {
-  [name: string]: {
-    selected: boolean;
-    resourceType:
-      | 'storageClass'
-      | 'volumeSnapshotClass'
-      | 'volumeGroupSnapshotClass';
-  };
-};
-
 export const DistributeResourceModal: React.FC<
   CommonModalProps<{ resource: StorageConsumerKind }>
 > = ({ closeModal, isOpen, extraProps: { resource } }) => {
   const { t } = useCustomTranslation();
   const [selectedResources, setSelectedResources] =
-    React.useState<SelectedResources>({});
+    React.useState<SelectedResources>({
+      storageClass: {},
+      volumeSnapshotClass: {},
+    });
   const [inProgress, setProgress] = React.useState(false);
   const [error, setError] = React.useState('');
   const [activeTabKey, setActiveTabKey] = React.useState<string | number>(0);
@@ -141,93 +124,59 @@ export const DistributeResourceModal: React.FC<
     (res) => isCephProvisioner(res?.driver)
   );
 
-  const filteredVolumeGroupSnapshotClasses =
-    data.volumeGroupSnapshotClasses.data.filter((res) =>
-      isCephProvisioner(res?.driver)
-    );
-
   const isStorageClassDataLoaded = data?.storageClasses?.loaded;
   const isVolumeSnapshotClassDataLoaded = data?.volumeSnapshotClasses?.loaded;
-  const isVolumeGroupSnapshotClassDataLoaded =
-    data?.volumeGroupSnapshotClasses?.loaded;
 
   const handleTabClick = (_event, tabIndex: string | number) => {
     setActiveTabKey(tabIndex);
   };
 
-  const selectedStorageClassesCount = Object.values(selectedResources).filter(
-    (res) => res.resourceType === 'storageClass' && res.selected
-  ).length;
-  const selectedVolumeSnapshotClassesCount = Object.values(
-    selectedResources
-  ).filter(
-    (res) => res.resourceType === 'volumeSnapshotClass' && res.selected
-  ).length;
-  const selectedVolumeGroupSnapshotClassesCount = Object.values(
-    selectedResources
-  ).filter(
-    (res) => res.resourceType === 'volumeGroupSnapshotClass' && res.selected
-  ).length;
+  const selectedStorageClassesCount = Object.entries(
+    selectedResources?.storageClass
+  ).filter(([, value]) => !!value).length;
+  const selectedVolumeSnapshotClassesCount = Object.entries(
+    selectedResources?.volumeSnapshotClass
+  ).filter(([, value]) => !!value).length;
 
   React.useEffect(() => {
     if (
       isStorageClassDataLoaded &&
       isVolumeSnapshotClassDataLoaded &&
-      isVolumeGroupSnapshotClassDataLoaded &&
-      _.isEmpty(selectedResources)
+      _.isEmpty(selectedResources.storageClass) &&
+      _.isEmpty(selectedResources.volumeSnapshotClass)
     ) {
       const preselectedStorageClasses = resource.spec?.storageClasses?.map(
         (sc) => sc?.name
       );
       const preselectedVolumeSnapshotClasses =
         resource.spec?.volumeSnapshotClasses?.map((vsc) => vsc?.name);
-      const preselectedVolumeGroupSnapshotClasses =
-        resource?.spec?.volumeGroupSnapshotClasses?.map((vgsc) => vgsc?.name);
-      let newSelectedResources = data.storageClasses.data
+      const newSelectedResources: SelectedResources = {
+        storageClass: {},
+        volumeSnapshotClass: {},
+      };
+      newSelectedResources.storageClass = data.storageClasses.data
         .filter((sc) => isCephProvisioner(getProvisioner(sc)))
         .reduce((acc, storageClass) => {
-          acc[getName(storageClass)] = {
-            selected: preselectedStorageClasses?.includes(
-              getName(storageClass)
-            ),
-            resourceType: 'storageClass',
-          };
+          acc[getName(storageClass)] = preselectedStorageClasses?.includes(
+            getName(storageClass)
+          );
           return acc;
-        }, {} as SelectedResources);
-      newSelectedResources = {
-        ...newSelectedResources,
-        ...data.volumeSnapshotClasses.data
-          .filter((vsc) => isCephDriver(vsc.driver))
-          .reduce((acc, vsc) => {
-            acc[getName(vsc)] = {
-              selected: preselectedVolumeSnapshotClasses?.includes(
-                getName(vsc)
-              ),
-              resourceType: 'volumeSnapshotClass',
-            };
-            return acc;
-          }, {} as SelectedResources),
-        ...data.volumeGroupSnapshotClasses.data
-          .filter((vgsc) => isCephDriver(vgsc.driver))
-          .reduce((acc, vgsc) => {
-            acc[getName(vgsc)] = {
-              selected: preselectedVolumeGroupSnapshotClasses?.includes(
-                getName(vgsc)
-              ),
-              resourceType: 'volumeGroupSnapshotClass',
-            };
-            return acc;
-          }, {} as SelectedResources),
-      };
+        }, {});
+      newSelectedResources.volumeSnapshotClass = data.volumeSnapshotClasses.data
+        .filter((vsc) => isCephDriver(vsc?.driver))
+        .reduce((acc, vs) => {
+          acc[getName(vs)] = preselectedVolumeSnapshotClasses?.includes(
+            getName(vs)
+          );
+          return acc;
+        }, {});
       setSelectedResources(newSelectedResources);
     }
   }, [
     data.storageClasses.data,
     data.storageClasses.loaded,
-    data.volumeGroupSnapshotClasses.data,
     data.volumeSnapshotClasses.data,
     isStorageClassDataLoaded,
-    isVolumeGroupSnapshotClassDataLoaded,
     isVolumeSnapshotClassDataLoaded,
     resource.spec?.storageClasses,
     resource.spec?.volumeGroupSnapshotClasses,
@@ -236,28 +185,20 @@ export const DistributeResourceModal: React.FC<
   ]);
 
   const onConfirm = () => {
-    const selectedStorageClasses = Object.entries(selectedResources)
-      .filter(
-        ([, value]) => value.selected && value.resourceType === 'storageClass'
-      )
+    const selectedStorageClasses = Object.entries(
+      selectedResources.storageClass
+    )
+      .filter(([, value]) => value)
       .map(([key]) => key);
-    const selectedVolumeSnapshotClasses = Object.entries(selectedResources)
-      .filter(
-        ([, value]) =>
-          value.selected && value.resourceType === 'volumeSnapshotClass'
-      )
-      .map(([key]) => key);
-    const selectedVolumeGroupSnapshotClasses = Object.entries(selectedResources)
-      .filter(
-        ([, value]) =>
-          value.selected && value.resourceType === 'volumeGroupSnapshotClass'
-      )
+    const selectedVolumeSnapshotClasses = Object.entries(
+      selectedResources.volumeSnapshotClass
+    )
+      .filter(([, value]) => value)
       .map(([key]) => key);
     const patch = generatePatchForDistributionOfResources(
       resource,
       selectedStorageClasses,
-      selectedVolumeSnapshotClasses,
-      selectedVolumeGroupSnapshotClasses
+      selectedVolumeSnapshotClasses
     );
     setProgress(true);
     k8sPatch({ model: StorageConsumerModel, resource, data: patch })
@@ -315,25 +256,6 @@ export const DistributeResourceModal: React.FC<
             loaded={isVolumeSnapshotClassDataLoaded}
             columns={[t('Name'), t('Driver'), t('Deletion policy')]}
             resourceType="volumeSnapshotClass"
-          />
-        </Tab>
-        <Tab
-          eventKey={3}
-          title={
-            <TabTitleText>
-              {t('VolumeGroupSnapshot classes')}{' '}
-              <Label>{selectedVolumeGroupSnapshotClassesCount}</Label>
-            </TabTitleText>
-          }
-        >
-          <ResourceDistributionTable
-            resources={filteredVolumeGroupSnapshotClasses}
-            selectedResources={selectedResources}
-            setSelectedResources={setSelectedResources}
-            RowGenerator={VolumeSnapshotClassRowGenerator}
-            loaded={isVolumeGroupSnapshotClassDataLoaded}
-            columns={[t('Name'), t('Driver'), t('Deletion policy')]}
-            resourceType="volumeGroupSnapshotClass"
           />
         </Tab>
       </Tabs>
