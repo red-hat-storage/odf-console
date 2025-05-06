@@ -113,6 +113,7 @@ export const getPoolKindObj = (
     },
     replicated: {
       size: Number(state.replicaSize),
+      targetSizeRatio: 0.49,
     },
   },
 });
