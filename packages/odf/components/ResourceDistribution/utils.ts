@@ -2,91 +2,93 @@ import { StorageConsumerKind } from '@odf/shared';
 import { Patch } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 
+const getInitiallySelectedStorageClasses = (
+  storageConsumer: StorageConsumerKind
+): string[] => {
+  const storageClasses = storageConsumer?.spec?.storageClasses || [];
+  return storageClasses.map((sc) => sc.name);
+};
+
+const getInitiallySelectedVolumeSnapshotClasses = (
+  storageConsumer: StorageConsumerKind
+): string[] => {
+  const volumeSnapshotClasses =
+    storageConsumer?.spec?.volumeSnapshotClasses || [];
+  return volumeSnapshotClasses.map((vsc) => vsc.name);
+};
+
+const generatePatchToModifyResourcesForDistribution = (
+  storageConsumer: StorageConsumerKind,
+  resourceType: 'SC' | 'VSC',
+  resourceNames: string[]
+): Patch[] => {
+  const patches: Patch[] = [];
+  const path =
+    resourceType === 'SC'
+      ? '/spec/storageClasses'
+      : '/spec/volumeSnapshotClasses';
+  const currentlySelectedResources =
+    resourceType === 'SC'
+      ? getInitiallySelectedStorageClasses(storageConsumer)
+      : getInitiallySelectedVolumeSnapshotClasses(storageConsumer);
+  const removedResources = currentlySelectedResources.filter(
+    (sc) => !resourceNames.includes(sc)
+  );
+  const addedResources = resourceNames.filter(
+    (sc) => !currentlySelectedResources.includes(sc)
+  );
+  if (removedResources.length > 0) {
+    patches.push({
+      op: 'replace',
+      path,
+      value: resourceNames.map((name) => ({ name })),
+    });
+  }
+  if (addedResources.length > 0) {
+    patches.push({
+      op: 'add',
+      path,
+      value: resourceNames.map((name) => ({ name })),
+    });
+  }
+  return patches;
+};
+
+export const generatePatchToModifyStorageClasses = (
+  storageConsumer: StorageConsumerKind,
+  storageClassNames: string[]
+): Patch[] =>
+  generatePatchToModifyResourcesForDistribution(
+    storageConsumer,
+    'SC',
+    storageClassNames
+  );
+
+export const generatePatchToModifyVolumeSnapshotClasses = (
+  storageConsumer: StorageConsumerKind,
+  volumeSnapshotClassNames: string[]
+): Patch[] =>
+  generatePatchToModifyResourcesForDistribution(
+    storageConsumer,
+    'VSC',
+    volumeSnapshotClassNames
+  );
+
 export const generatePatchForDistributionOfResources = (
   storageConsumer: StorageConsumerKind,
   storageClassNames: string[],
-  volumeSnapshotClassNames: string[],
-  volumeGroupSnapshotClassNames: string[]
+  volumeSnapshotClassNames: string[]
 ): Patch[] => {
   const patches: Patch[] = [];
-  const isStorageClassesDistributed = !_.isEmpty(
-    storageConsumer?.spec?.storageClasses
+  const storageClassPatches = generatePatchToModifyStorageClasses(
+    storageConsumer,
+    storageClassNames
   );
-  const isVolumeSnapshotClassesDistributed = !_.isEmpty(
-    storageConsumer?.spec?.volumeSnapshotClasses
+  const volumeSnapshotClassPatches = generatePatchToModifyVolumeSnapshotClasses(
+    storageConsumer,
+    volumeSnapshotClassNames
   );
-  const isVolumeGroupSnapshotClassesDistributed = !_.isEmpty(
-    storageConsumer?.spec?.volumeGroupSnapshotClasses
-  );
-  const currentlySelectedStorageClasses =
-    storageConsumer.spec?.storageClasses?.map((sc) => sc.name) || [];
-  const currentlySelectedVolumeSnapshotClasses =
-    storageConsumer.spec?.volumeSnapshotClasses?.map((vsc) => vsc.name) || [];
-  const currentlySelectedVolumeGroupSnapshotClasses =
-    storageConsumer.spec?.volumeGroupSnapshotClasses?.map(
-      (vgsc) => vgsc.name
-    ) || [];
-  const isStorageClassesChanged =
-    storageClassNames.length !== currentlySelectedStorageClasses.length ||
-    !storageClassNames.every((res) =>
-      currentlySelectedStorageClasses.includes(res)
-    );
-  const isVolumeSnapshotClassesChanged =
-    volumeSnapshotClassNames.length !==
-      currentlySelectedVolumeSnapshotClasses.length ||
-    !volumeSnapshotClassNames?.every((res) =>
-      currentlySelectedVolumeSnapshotClasses?.includes(res)
-    );
-  const isVolumeGroupSnapshotClassesChanged =
-    volumeGroupSnapshotClassNames.length !==
-      currentlySelectedVolumeGroupSnapshotClasses.length ||
-    !volumeGroupSnapshotClassNames?.every((res) =>
-      currentlySelectedVolumeGroupSnapshotClasses?.includes(res)
-    );
-
-  if (!isStorageClassesDistributed && !_.isEmpty(storageClassNames)) {
-    patches.push({
-      op: 'add',
-      path: '/spec/storageClasses',
-      value: storageClassNames.map((name) => ({ name })),
-    });
-  } else if (isStorageClassesChanged) {
-    patches.push({
-      op: 'replace',
-      path: '/spec/storageClasses',
-      value: storageClassNames.map((name) => ({ name })),
-    });
-  }
-
-  if (
-    !isVolumeSnapshotClassesDistributed &&
-    !_.isEmpty(volumeSnapshotClassNames)
-  ) {
-    patches.push({
-      op: 'add',
-      path: '/spec/volumeSnapshotClasses',
-      value: volumeSnapshotClassNames.map((name) => ({ name })),
-    });
-  } else if (isVolumeSnapshotClassesChanged) {
-    patches.push({
-      op: 'replace',
-      path: '/spec/volumeSnapshotClasses',
-      value: volumeSnapshotClassNames.map((name) => ({ name })),
-    });
-  }
-  if (!isVolumeGroupSnapshotClassesDistributed) {
-    patches.push({
-      op: 'add',
-      path: '/spec/volumeGroupSnapshotClasses',
-      value: volumeGroupSnapshotClassNames.map((name) => ({ name })),
-    });
-  } else if (isVolumeGroupSnapshotClassesChanged) {
-    patches.push({
-      op: 'replace',
-      path: '/spec/volumeGroupSnapshotClasses',
-      value: volumeGroupSnapshotClassNames.map((name) => ({ name })),
-    });
-  }
-
+  patches.push(...storageClassPatches);
+  patches.push(...volumeSnapshotClassPatches);
   return patches;
 };
