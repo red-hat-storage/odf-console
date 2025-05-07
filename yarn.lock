@@ -2107,7 +2107,7 @@
     fastq "^1.6.0"
 
 "@odf/shared@file:packages/shared":
-  version "0.0.0-beta16"
+  version "0.0.0-beta17"
   dependencies:
     "@patternfly/patternfly" "5.4.2"
     "@patternfly/react-charts" "7.4.8"
