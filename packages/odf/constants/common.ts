@@ -6,7 +6,6 @@ import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { Toleration, Taint } from '@odf/shared/types';
 import { TFunction } from 'react-i18next';
 
-export const OCS_INTERNAL_CR_NAME = 'ocs-storagecluster';
 export const CEPH_BRAND_NAME = 'Red Hat Ceph Storage';
 export const NO_PROVISIONER = 'kubernetes.io/no-provisioner';
 export const STORAGE_CLUSTER_SYSTEM_KIND = 'storagecluster.ocs.openshift.io/v1';
