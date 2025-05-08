@@ -88,7 +88,7 @@ Cypress.Commands.add('install', () => {
       cy.byLegacyTestID('horizontal-link-Storage Systems').click();
       cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
       cy.get('a').contains(STORAGE_SYSTEM_NAME);
-      cy.get('td[id="status"]', { timeout: 5 * MINUTE }).contains('Ready', {
+      cy.get('[data-label="status"]').contains('Ready', {
         timeout: 25 * MINUTE,
       });
       // Verify that the OCS SC is in READY state.
