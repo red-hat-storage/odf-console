@@ -8,6 +8,7 @@ import {
 import {
   MINIMUM_NODES,
   NO_PROVISIONER,
+  OCS_INTERNAL_CR_NAME,
   Steps,
   StepsName,
 } from '@odf/core/constants';
@@ -62,7 +63,6 @@ import {
 } from './payloads';
 import { WizardCommonProps, WizardState } from './reducer';
 
-const OCS_INTERNAL_CR_NAME = 'ocs-storagecluster';
 const OCS_EXTERNAL_CR_NAME = 'ocs-external-storagecluster';
 
 const validateBackingStorageStep = (

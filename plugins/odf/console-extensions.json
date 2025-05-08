@@ -793,6 +793,9 @@
       "provider": {
         "$codeRef": "storageClientAttacherAction.useStorageClientAttacherAction"
       }
+    },
+    "flags": {
+      "required": ["PROVIDER_MODE"]
     }
   },
   {
@@ -806,6 +809,9 @@
       "provider": {
         "$codeRef": "storageClientAttacherAction.useStorageClientAttacherAction"
       }
+    },
+    "flags": {
+      "required": ["PROVIDER_MODE"]
     }
   },
   {
