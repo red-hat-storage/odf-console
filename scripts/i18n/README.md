@@ -10,7 +10,7 @@ This i18n directory contains all the required scripts for i18n automation. Also,
 
 4. Upload translations: you need to create a new project using your project's template. Each template will have its own unique id and an owner (example: for odf-console, name of our template is "OCP ODF UI" and id is "193065").
    Run `yarn memsource-upload -v <VERSION> -s <SPRINT>`.
-   This script will create a new project for you and will call `export-pos.sh` and `i18n-to-po.js` which will export all i18next `.json` files in `.po` format in all the languages we currently support, and will upload these `.po` files under newly created project on Memsource.
+   This script will create a new project for you and will call `export-pos.sh` and `i18n-to-po.mjs` which will export all i18next `.json` files in `.po` format in all the languages we currently support, and will upload these `.po` files under newly created project on Memsource.
 
 5. Download translations: for downloading we download all files in `.po` format and then convert into `.json`.
    Run `yarn memsource-download -p <PROJECT_ID>` (example: from the Memsource project URL "https://cloud.memsource.com/web/project2/show/FBfZeTEWPYaC4VXhgrW0R2" the series of numbers and letters after /show/).
