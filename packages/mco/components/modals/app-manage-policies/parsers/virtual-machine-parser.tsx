@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { HUB_CLUSTER_NAME, KUBE_INSTANCE_LABEL } from '@odf/mco/constants';
+import { KUBE_INSTANCE_LABEL } from '@odf/mco/constants';
 import { useACMSafeFetch } from '@odf/mco/hooks';
 import { ArgoApplicationSetKind, SearchResultItemType } from '@odf/mco/types';
 import {
   getLabelsFromSearchResult,
-  queryManagedApplicationResourcesForVM,
+  querySubscriptionResourcesForVM,
+  queryApplicationSetResourcesForVM,
 } from '@odf/mco/utils';
 import {
   ApplicationKind,
@@ -73,18 +74,16 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
   const vmName = getName(virtualMachine);
   const vmNamespace = getNamespace(virtualMachine);
   const clusterName = virtualMachine?.['status']?.cluster || cluster;
-  const applicationSetName = getLabel(virtualMachine, KUBE_INSTANCE_LABEL);
+  const argoApplicationName = getLabel(virtualMachine, KUBE_INSTANCE_LABEL);
   const pvcQueryFilter = getPVCQueryFilter(vmName, vmNamespace, clusterName);
 
   // ACM search API call to find managed application resource
   const searchQuery = React.useMemo(
     () =>
-      queryManagedApplicationResourcesForVM(
-        [vmName, applicationSetName],
-        vmNamespace,
-        clusterName
-      ),
-    [vmName, vmNamespace, clusterName, applicationSetName]
+      argoApplicationName
+        ? queryApplicationSetResourcesForVM(argoApplicationName)
+        : querySubscriptionResourcesForVM(vmName, vmNamespace, clusterName),
+    [vmName, vmNamespace, clusterName, argoApplicationName]
   );
 
   const [searchResult, searchError, searchLoaded] =
@@ -96,9 +95,7 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
 
   // Extract managed application CR (Application / ApplicationSet)
   const managedApplication: SearchResultItemType =
-    searchResult?.data?.searchResult?.[0]?.related?.[0]?.items?.find(
-      (item) => item.cluster === HUB_CLUSTER_NAME
-    );
+    searchResult?.data?.searchResult?.[0]?.related?.[0]?.items?.[0];
 
   const { name, namespace, kind } = managedApplication || {};
 
