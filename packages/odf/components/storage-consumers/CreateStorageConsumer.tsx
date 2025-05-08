@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DiskSize } from '@odf/core/constants';
+import { DiskSize, OCS_INTERNAL_CR_NAME } from '@odf/core/constants';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { StorageQuota } from '@odf/core/types';
 import {
@@ -126,6 +126,14 @@ const CreateStorageConsumer: React.FC = () => {
         },
         spec: {
           storageQuotaInGiB: quotaInGib,
+          storageClasses: [
+            { name: `${OCS_INTERNAL_CR_NAME}-ceph-rbd` },
+            { name: `${OCS_INTERNAL_CR_NAME}-cephfs` },
+          ],
+          volumeSnapshotClasses: [
+            { name: `${OCS_INTERNAL_CR_NAME}-rbdplugin-snapclass` },
+            { name: `${OCS_INTERNAL_CR_NAME}-cephfsplugin-snapclass` },
+          ],
         },
       },
     })
