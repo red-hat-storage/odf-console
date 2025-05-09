@@ -1,8 +1,13 @@
-const fs = require('fs');
-const path = require('path');
-const { i18nextToPo } = require('i18next-conv');
-const minimist = require('minimist');
-const common = require('./common.js');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { i18nextToPo } from 'i18next-conv';
+import minimist from 'minimist';
+import * as common from './common.mjs';
+
+// __dirname is not defined by default in ES module scope
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function save(target) {
   return (result) => {
@@ -10,8 +15,10 @@ function save(target) {
   };
 }
 
-function removeValues(i18nFile, filePath) {
-  const file = require(i18nFile);
+async function removeValues(i18nFile, filePath) {
+  const file = await import(i18nFile, { assert: { type: 'json' } }).then(
+    (m) => m.default
+  );
 
   const updatedFile = {};
 
@@ -26,14 +33,26 @@ function removeValues(i18nFile, filePath) {
   fs.writeFileSync(tmpFile, JSON.stringify(updatedFile, null, 2));
 }
 
-function consolidateWithExistingTranslations(filePath, fileName, language) {
-  const englishFile = require(filePath);
+async function consolidateWithExistingTranslations(
+  filePath,
+  fileName,
+  language
+) {
+  const englishFile = await import(filePath, { assert: { type: 'json' } }).then(
+    (m) => m.default
+  );
   const englishKeys = Object.keys(englishFile);
-  let existingTranslationsPath = `../../locales/${language}/${fileName}.json`;
-  if (fs.existsSync(path.join(__dirname, existingTranslationsPath))) {
-    const existingTranslationsFile = require(
-      path.join(__dirname, existingTranslationsPath)
-    );
+  const existingTranslationsPath = `../../locales/${language}/${fileName}.json`;
+  const existingTranslationsFullPath = path.join(
+    __dirname,
+    existingTranslationsPath
+  );
+
+  if (fs.existsSync(existingTranslationsFullPath)) {
+    const existingTranslationsFile = await import(
+      existingTranslationsFullPath,
+      { assert: { type: 'json' } }
+    ).then((m) => m.default);
     const existingKeys = Object.keys(existingTranslationsFile);
     const matchingKeys = englishKeys.filter(
       (k) => existingKeys.indexOf(k) > -1
@@ -47,7 +66,7 @@ function consolidateWithExistingTranslations(filePath, fileName, language) {
   }
 }
 
-function processFile(fileName, language) {
+async function processFile(fileName, language) {
   let tmpFile;
   let dirPath;
   const i18nFile = path.join(__dirname, `../../locales/en/${fileName}.json`);
@@ -62,8 +81,8 @@ function processFile(fileName, language) {
 
       tmpFile = path.join(__dirname, `../../locales/tmp/${fileName}.json`);
 
-      removeValues(i18nFile, tmpFile);
-      consolidateWithExistingTranslations(tmpFile, fileName, language);
+      await removeValues(i18nFile, tmpFile);
+      await consolidateWithExistingTranslations(tmpFile, fileName, language);
 
       fs.mkdirSync(path.join(__dirname, `../../po-files/${language}`), {
         recursive: true,
@@ -116,9 +135,9 @@ if (args.help) {
 } else if (args.files && args.language) {
   if (Array.isArray(args.files)) {
     for (let i = 0; i < args.files.length; i++) {
-      processFile(args.files[i], args.language);
+      await processFile(args.files[i], args.language);
     }
   } else {
-    processFile(args.files, args.language);
+    await processFile(args.files, args.language);
   }
 }
