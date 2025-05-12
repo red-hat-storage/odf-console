@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { DiskSize } from '@odf/core/constants';
-import { useODFNamespaceSelector } from '@odf/core/redux';
+import {
+  useODFNamespaceSelector,
+  useODFSystemFlagsSelector,
+} from '@odf/core/redux';
 import { StorageQuota } from '@odf/core/types';
 import {
   ButtonBar,
@@ -90,6 +93,9 @@ const CreateStorageConsumer: React.FC = () => {
 
   const { odfNamespace } = useODFNamespaceSelector();
 
+  const flags = useODFSystemFlagsSelector();
+  const clusterName = flags?.systemFlags?.[odfNamespace]?.odfSystemName;
+
   const navigate = useNavigate();
 
   const { formSchema, fieldRequirements } = useStorageConsumerFormSchema();
@@ -126,6 +132,14 @@ const CreateStorageConsumer: React.FC = () => {
         },
         spec: {
           storageQuotaInGiB: quotaInGib,
+          storageClasses: [
+            { name: `${clusterName}-ceph-rbd` },
+            { name: `${clusterName}-cephfs` },
+          ],
+          volumeSnapshotClasses: [
+            { name: `${clusterName}-rbdplugin-snapclass` },
+            { name: `${clusterName}-cephfsplugin-snapclass` },
+          ],
         },
       },
     })
