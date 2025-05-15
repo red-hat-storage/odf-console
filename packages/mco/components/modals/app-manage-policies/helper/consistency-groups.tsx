@@ -227,7 +227,7 @@ export const ConsistencyGroupsContent: React.FC<
       className="pf-v5-c-form-control"
       icon={<FilterIcon />}
     >
-      {displayFilterText[selectedFilter]}
+      {displayFilterText(t)[selectedFilter]}
     </MenuToggle>
   );
 
@@ -265,7 +265,7 @@ export const ConsistencyGroupsContent: React.FC<
               <SelectList>
                 {FILTERS.map((filter) => (
                   <SelectOption key={filter} value={filter}>
-                    {displayFilterText[filter]}
+                    {displayFilterText(t)[filter]}
                   </SelectOption>
                 ))}
               </SelectList>
