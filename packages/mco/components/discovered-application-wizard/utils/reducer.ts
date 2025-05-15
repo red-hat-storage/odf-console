@@ -16,6 +16,7 @@ export enum EnrollDiscoveredApplicationStateType {
   SET_NAMESPACES = 'NAMESPACE/SET_NAMESPACES',
   SET_PROTECTION_METHOD = 'CONFIGURATION/SET_PROTECTION_METHOD',
   SET_RECIPE_NAME_NAMESPACE = 'CONFIGURATION/RECIPE/SET_RECIPE_NAME_NAMESPACE',
+  SET_RECIPE_PARAMETERS = 'SET_RECIPE_PARAMETERS',
   SET_K8S_RESOURCE_LABEL_EXPRESSIONS = 'CONFIGURATION/RESOURCE_LABEL/SET_K8S_RESOURCE_LABEL_EXPRESSIONS',
   SET_PVC_LABEL_EXPRESSIONS = 'CONFIGURATION/RESOURCE_LABEL/SET_PVC_LABEL_EXPRESSIONS',
   SET_POLICY = 'REPLICATION/SET_POLICY',
@@ -40,6 +41,7 @@ export type EnrollDiscoveredApplicationState = {
       recipeName: string;
       // recipe CR namespace
       recipeNamespace: string;
+      recipeParameters: Record<string, string>;
     };
     resourceLabels: {
       k8sResourceLabelExpressions: MatchExpression[];
@@ -70,6 +72,7 @@ export const initialState: EnrollDiscoveredApplicationState = {
     recipe: {
       recipeName: '',
       recipeNamespace: '',
+      recipeParameters: {},
     },
     resourceLabels: {
       k8sResourceLabelExpressions: [],
@@ -111,6 +114,10 @@ export type EnrollDiscoveredApplicationAction =
   | {
       type: EnrollDiscoveredApplicationStateType.SET_POLICY;
       payload: DRPolicyKind;
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.SET_RECIPE_PARAMETERS;
+      payload: Record<string, string>;
     }
   | {
       type: EnrollDiscoveredApplicationStateType.SET_K8S_RESOURCE_REPLICATION_INTERVAL;
@@ -159,6 +166,18 @@ export const reducer: EnrollReducer = (state, action) => {
         },
       };
     }
+    case EnrollDiscoveredApplicationStateType.SET_RECIPE_PARAMETERS: {
+      return {
+        ...state,
+        configuration: {
+          ...state.configuration,
+          recipe: {
+            ...state.configuration.recipe,
+            recipeParameters: action.payload,
+          },
+        },
+      };
+    }
     case EnrollDiscoveredApplicationStateType.SET_RECIPE_NAME_NAMESPACE: {
       const [recipeName, recipeNamespace] = action.payload.split(
         NAME_NAMESPACE_SPLIT_CHAR
@@ -168,6 +187,7 @@ export const reducer: EnrollReducer = (state, action) => {
         configuration: {
           ...state.configuration,
           recipe: {
+            ...state.configuration.recipe,
             recipeName,
             recipeNamespace,
           },

@@ -12,6 +12,11 @@ import {
 } from '@odf/shared/review-and-create-step';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import * as _ from 'lodash-es';
+import {
+  formatRecipeParametersForDisplay,
+  convertToRecipeParameters,
+} from '../../utils/k8s-utils';
 import {
   EnrollDiscoveredApplicationState,
   ProtectionMethodType,
@@ -23,7 +28,7 @@ export const Review: React.FC<ReviewProps> = ({ state }) => {
   const { namespace, configuration, replication } = state;
   const { clusterName, namespaces, name } = namespace;
   const { protectionMethod, recipe, resourceLabels } = configuration;
-  const { recipeName, recipeNamespace } = recipe;
+  const { recipeName, recipeNamespace, recipeParameters } = recipe;
   const { k8sResourceLabelExpressions, pvcLabelExpressions } = resourceLabels;
   const { drPolicy, k8sResourceReplicationInterval } = replication;
 
@@ -37,6 +42,9 @@ export const Review: React.FC<ReviewProps> = ({ state }) => {
     drPolicy.spec.schedulingInterval === '0m'
       ? REPLICATION_DISPLAY_TEXT(t).sync
       : REPLICATION_DISPLAY_TEXT(t).async;
+  const displayRecipeParameters = formatRecipeParametersForDisplay(
+    convertToRecipeParameters(recipeParameters)
+  );
   const [unitVal, interval] = parseSyncInterval(k8sResourceReplicationInterval);
 
   return (
@@ -62,6 +70,11 @@ export const Review: React.FC<ReviewProps> = ({ state }) => {
             <ReviewAndCreationItem label={t('Recipe namespace:')}>
               {recipeNamespace}
             </ReviewAndCreationItem>
+            {!_.isEmpty(recipeParameters) && (
+              <ReviewAndCreationItem label={t('Recipe Parameters:')}>
+                {displayRecipeParameters}
+              </ReviewAndCreationItem>
+            )}
           </>
         )}
         {protectionMethod === ProtectionMethodType.RESOURCE_LABEL && (
