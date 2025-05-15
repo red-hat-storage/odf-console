@@ -515,7 +515,10 @@ export const getOCSRequestData = ({
     networkConfiguration.networkType === NetworkType.NIC
   ) {
     requestData.spec.hostNetwork = true;
-    requestData.spec.managedResources.cephObjectStores.hostNetwork = false;
+    requestData.spec.managedResources = {
+      ...requestData.spec.managedResources,
+      cephObjectStores: { hostNetwork: false },
+    };
   }
 
   if (encryption) {
