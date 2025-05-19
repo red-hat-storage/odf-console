@@ -37,7 +37,7 @@ const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
   const [confirmed, setConfirmed] = React.useState(false);
   const [inProgress, setProgress] = React.useState(false);
   const [error, setError] = React.useState<Error>(null);
-  const MODAL_TITLE = t('Permanently delete storage client?');
+  const MODAL_TITLE = t('Permanently delete StorageConsumer?');
 
   const onSubmit = (event) => {
     event.preventDefault();
@@ -66,11 +66,11 @@ const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
       <ModalBody>
         <p>
           <Trans t={t}>
-            Deleting the storage client{' '}
+            Deleting the StorageConsumer{' '}
             <strong className="co-break-word">{getName(resource)}</strong> will
             remove all Ceph/Rook resources and erase all data associated with
-            this client, leading to permanent deletion of the client. This
-            action cannot be undone. It will destroy all pods, services and
+            this StorageConsumer, leading to permanent deletion of the client.
+            This action cannot be undone. It will destroy all pods, services and
             other objects in the namespace{' '}
             <strong className="co-break-word">
               {{ name: getNamespace(resource) }}
@@ -79,8 +79,8 @@ const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
           </Trans>
         </p>
         <p>
-          Recommended only if the storage used by this client is no longer
-          needed, as all stored data will be erased.
+          Recommended only if the storage used by this StorageConsumer is no
+          longer needed, as all stored data will be erased.
         </p>
         <p>
           <Trans t={t}>

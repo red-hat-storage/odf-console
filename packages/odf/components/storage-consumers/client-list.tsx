@@ -299,11 +299,14 @@ const StorageClientRow: React.FC<
   const clientClusterId = obj?.status?.client?.clusterId;
   const isLocalClient = clientClusterId === localClusterId;
   React.useEffect(() => {
+    const lastHeartbeat = obj?.status?.lastHeartbeat;
+    const isNotBoarded = _.isEmpty(lastHeartbeat);
     const setter = () => {
-      const timeDifference = getTimeDifferenceInSeconds(
-        obj?.status?.lastHeartbeat
-      );
-      if (timeDifference > DELETE_THRESHOLD && !allowDeletion) {
+      const timeDifference = getTimeDifferenceInSeconds(lastHeartbeat);
+      if (
+        (timeDifference > DELETE_THRESHOLD || isNotBoarded) &&
+        !allowDeletion
+      ) {
         setAllowDeletion(true);
       } else if (timeDifference < DELETE_THRESHOLD && allowDeletion) {
         setAllowDeletion(false);
