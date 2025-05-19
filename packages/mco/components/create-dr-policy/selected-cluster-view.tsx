@@ -23,7 +23,7 @@ export const SelectedClusterView: React.FC<SelectedClusterViewProps> = ({
   cluster,
 }) => {
   const { t } = useCustomTranslation();
-  const { region, odfInfo } = cluster;
+  const { odfInfo } = cluster;
   const [storageClusterName] = parseNamespaceName(
     odfInfo.storageClusterInfo.storageClusterNamespacedName
   );
@@ -41,10 +41,7 @@ export const SelectedClusterView: React.FC<SelectedClusterViewProps> = ({
         <TextContent>
           <Text component={TextVariants.p}>{getName(cluster)}</Text>
           {!!storageClusterName ? (
-            <>
-              <Text component={TextVariants.small}>{region}</Text>
-              <Text component={TextVariants.small}>{storageClusterName}</Text>
-            </>
+            <Text component={TextVariants.small}>{storageClusterName}</Text>
           ) : (
             <Text component={TextVariants.small}>
               {t('Information unavailable')}

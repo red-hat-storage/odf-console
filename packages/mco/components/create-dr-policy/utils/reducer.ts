@@ -29,8 +29,6 @@ export type ODFConfigInfoType = {
 export type ManagedClusterInfoType = K8sResourceCommon & {
   // Cluster id
   id: string;
-  // The cloud region where the cluster is deployed.
-  region?: string;
   // Cluster is offline / online.
   isManagedClusterAvailable: boolean;
   // ODF cluster info.

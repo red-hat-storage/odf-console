@@ -8,7 +8,6 @@ export const mockDRClusterEast1: DRClusterKind = {
     name: 'east-1',
   },
   spec: {
-    region: 'east-1',
     S3ProfileName: '',
   },
 };
@@ -20,7 +19,6 @@ export const mockDRClusterWest1: DRClusterKind = {
     name: 'west-1',
   },
   spec: {
-    region: 'west-1',
     S3ProfileName: '',
   },
 };
@@ -32,8 +30,6 @@ export const mockDRClusterEast2: DRClusterKind = {
     name: 'east-2',
   },
   spec: {
-    // same east-1 region
-    region: 'east-1',
     S3ProfileName: '',
   },
   status: {

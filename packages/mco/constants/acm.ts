@@ -1,7 +1,5 @@
 import { TFunction } from 'react-i18next';
 
-// Managed cluster region claim
-export const MANAGED_CLUSTER_REGION_CLAIM = 'region.open-cluster-management.io';
 // Managed cluster OCP public URL claim
 export const CLUSTER_CLAIM_URL_NAME =
   'consoleurl.cluster.open-cluster-management.io';
