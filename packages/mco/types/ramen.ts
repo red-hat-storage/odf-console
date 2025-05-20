@@ -30,7 +30,6 @@ export type DRClusterKind = K8sResourceCommon & {
   spec?: {
     cidrs?: string[];
     clusterFence?: string;
-    region?: string;
     S3ProfileName: string;
   };
   status?: {

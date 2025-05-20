@@ -52,7 +52,7 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
   row: cluster,
 }) => {
   const { t } = useCustomTranslation();
-  const { odfInfo, region, isManagedClusterAvailable } = cluster;
+  const { odfInfo, isManagedClusterAvailable } = cluster;
   const clientName = odfInfo?.storageClusterInfo?.clientInfo?.name;
   const odfVersion = odfInfo?.odfVersion;
   return (
@@ -97,11 +97,6 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
       >
         <Text className={cn({ 'text-muted': !clientName })}>
           {!!clientName ? clientName : t('Unavailable')}
-        </Text>
-      </Td>
-      <Td dataLabel={getColumnHelper(ClusterListColumns.Region, t).columnName}>
-        <Text className={cn({ 'text-muted': !region })}>
-          {region || t('Unavailable')}
         </Text>
       </Td>
     </>

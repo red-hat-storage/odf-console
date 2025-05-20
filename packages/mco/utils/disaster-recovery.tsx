@@ -71,7 +71,6 @@ import {
   ACMPlacementKind,
   MirrorPeerKind,
   ArgoApplicationSetKind,
-  ClusterClaim,
   SearchResultItemType,
   ACMPlacementType,
   SearchResult,
@@ -644,12 +643,6 @@ export const findDeploymentClusters = (
 
 export const getDRPolicyStatus = (isValidated, t) =>
   isValidated ? t('Validated') : t('Not validated');
-
-export const getValueFromClusterClaim = (
-  clusterClaims: ClusterClaim[],
-  claimName: string
-): string =>
-  clusterClaims?.find((claim) => claim?.name === claimName)?.value || '';
 
 export const parseNamespaceName = (namespaceName: string) =>
   namespaceName.split('/');

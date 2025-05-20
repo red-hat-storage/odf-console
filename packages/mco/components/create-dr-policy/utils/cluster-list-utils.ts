@@ -2,7 +2,6 @@ import { ConnectedClient, ODFInfoYamlObject } from '@odf/mco/types';
 import {
   getMajorVersion,
   ValidateManagedClusterCondition,
-  getValueFromClusterClaim,
   isMinimumSupportedODFVersion,
   getNameNamespace,
 } from '@odf/mco/utils';
@@ -20,7 +19,6 @@ import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import {
   MAX_ALLOWED_CLUSTERS,
-  MANAGED_CLUSTER_REGION_CLAIM,
   MANAGED_CLUSTER_JOINED,
   MANAGED_CLUSTER_CONDITION_AVAILABLE,
   CLUSTER_ID,
@@ -40,7 +38,6 @@ export enum ClusterListColumns {
   AvailabilityStatus,
   DataFoundation,
   StorageClients,
-  Region,
 }
 
 export const getColumns = (t: TFunction<string>) => [
@@ -60,10 +57,6 @@ export const getColumns = (t: TFunction<string>) => [
     columnName: t('Storage clients'),
     sortFunction: (a, b, c) => sortRows(a, b, c, 'metadata.name'),
   },
-  {
-    columnName: t('Region'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'region'),
-  },
 ];
 
 export const getColumnHelper = (
@@ -80,8 +73,6 @@ export const getColumnHelper = (
       return columns[2];
     case ClusterListColumns.StorageClients:
       return columns[3];
-    case ClusterListColumns.Region:
-      return columns[4];
   }
 };
 
@@ -156,10 +147,6 @@ const getManagedClusterInfo = (
   return {
     id: clusterId,
     metadata: cluster.metadata,
-    region: getValueFromClusterClaim(
-      cluster?.status?.clusterClaims,
-      MANAGED_CLUSTER_REGION_CLAIM
-    ),
     isManagedClusterAvailable: ValidateManagedClusterCondition(
       cluster,
       MANAGED_CLUSTER_CONDITION_AVAILABLE
