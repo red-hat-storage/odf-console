@@ -21,8 +21,7 @@ import {
   deleteStoragePool,
 } from '../views/storage-pool';
 
-// Skip until https://issues.redhat.com/browse/DFBUGS-2139 is fixed.
-describe.skip('Storage pools', () => {
+describe('Storage pools', () => {
   describe('Block pool on ODF UI', () => {
     const poolName = 'block-name';
     const pvcName: string = 'testing-pvc';
