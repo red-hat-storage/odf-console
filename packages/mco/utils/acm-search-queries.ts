@@ -16,6 +16,10 @@ import {
   LABEL_SPLIT_CHAR,
 } from '../constants';
 
+// Search query names
+const SEARCH_RELATED_ITEMS_QUERY_NAME = 'searchResultRelatedItems';
+const SEARCH_QUERY_NAME = 'searchResult';
+
 // Search query
 export const searchFilterQuery =
   'query searchResult($input: [SearchInput]) {\n  searchResult: search(input: $input) {\n    items\n  }\n}';
@@ -26,7 +30,7 @@ export const searchRelatedItemsFilterQuery =
 export const queryAppWorkloadPVCs = (
   pvcQueryFilter: PVCQueryFilter
 ): SearchQuery => ({
-  operationName: 'searchResultRelatedItems',
+  operationName: SEARCH_RELATED_ITEMS_QUERY_NAME,
   variables: {
     input: [
       {
@@ -42,7 +46,7 @@ export const queryAppWorkloadPVCs = (
 export const queryNamespacesUsingCluster = (
   clusterName: string
 ): SearchQuery => ({
-  operationName: 'searchResult',
+  operationName: SEARCH_QUERY_NAME,
   variables: {
     input: [
       {
@@ -66,7 +70,7 @@ export const queryNamespacesUsingCluster = (
 export const queryStorageClassesUsingClusterNames = (
   clusterNames: string[]
 ): SearchQuery => ({
-  operationName: 'searchResult',
+  operationName: SEARCH_QUERY_NAME,
   variables: {
     input: [
       {
@@ -126,7 +130,7 @@ export const queryRecipesFromCluster = (
   clusterName: string,
   namespaces: string[]
 ): SearchQuery => ({
-  operationName: 'searchResult',
+  operationName: SEARCH_QUERY_NAME,
   variables: {
     input: [
       {
@@ -160,7 +164,7 @@ export const queryK8sResourceFromCluster = (
   clusterName: string,
   namespaces: string[]
 ): SearchQuery => ({
-  operationName: 'searchResultRelatedItems',
+  operationName: SEARCH_RELATED_ITEMS_QUERY_NAME,
   variables: {
     input: [
       {
@@ -181,42 +185,87 @@ export const queryK8sResourceFromCluster = (
   query: searchRelatedItemsFilterQuery,
 });
 
-// ACM seach query to find managed application resources of the VM.
-export const queryManagedApplicationResourcesForVM = (
-  names: string[],
-  namespace: string,
-  cluster: string
+// ACM seach query to find ApplicationSet resources of the VM.
+export const queryApplicationSetResourcesForVM = (
+  argoApplicationName: string
 ): SearchQuery => ({
-  operationName: 'searchResultRelatedItems',
+  operationName: SEARCH_RELATED_ITEMS_QUERY_NAME,
   variables: {
     input: [
       {
         filters: [
           {
             property: 'namespace',
-            values: [namespace, GITOPS_OPERATOR_NAMESPACE],
+            // namespace where gitops operator is installed
+            values: GITOPS_OPERATOR_NAMESPACE,
           },
           {
             property: 'cluster',
-            values: [cluster, HUB_CLUSTER_NAME],
+            values: HUB_CLUSTER_NAME,
           },
           {
             property: 'kind',
-            values: [VirtualMachineModel.kind, 'Application'],
+            // Finding ApplicationSet using Argo Application
+            values: 'Application',
           },
           {
             property: 'name',
-            values: names.filter(Boolean),
+            // Argo Application name
+            values: argoApplicationName,
           },
           {
             property: 'apigroup',
-            values: [
-              VirtualMachineModel.apiGroup,
-              ArgoApplicationSetModel.apiGroup,
-            ],
+            // Argo Application api group argoproj.io
+            values: ArgoApplicationSetModel.apiGroup,
           },
         ],
-        relatedKinds: [ACMSubscriptionModel.kind, ArgoApplicationSetModel.kind],
+        relatedKinds: [ArgoApplicationSetModel.kind],
+        limit: 3, // search said not to use unlimited results
+      },
+    ],
+  },
+  query: searchRelatedItemsFilterQuery,
+});
+
+// ACM seach query to find managed application resources of the VM.
+// One single query handles both ApplicationSet and Subscription,
+// Split into two queries if needed
+export const querySubscriptionResourcesForVM = (
+  vmName: string,
+  vmNamespace: string,
+  cluster: string
+): SearchQuery => ({
+  operationName: SEARCH_RELATED_ITEMS_QUERY_NAME,
+  variables: {
+    input: [
+      {
+        filters: [
+          {
+            property: 'namespace',
+            values: vmNamespace,
+          },
+          {
+            property: 'cluster',
+            values: cluster,
+          },
+          // VirtualMachine kind
+          {
+            property: 'kind',
+            values: VirtualMachineModel.kind,
+          },
+          // VirtualMachine name
+          {
+            property: 'name',
+            values: vmName,
+          },
+          // VirtualMachine api group
+          {
+            property: 'apigroup',
+            values: VirtualMachineModel.apiGroup,
+          },
+        ],
+        // subscription kind
+        relatedKinds: [ACMSubscriptionModel.kind],
         limit: 2, // search said not to use unlimited results
       },
     ],

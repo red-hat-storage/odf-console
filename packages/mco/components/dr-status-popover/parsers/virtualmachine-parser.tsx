@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {
   DISCOVERED_APP_NS,
-  HUB_CLUSTER_NAME,
   KUBE_INSTANCE_LABEL,
   ODF_RESOURCE_TYPE_LABEL,
 } from '@odf/mco/constants';
@@ -18,7 +17,8 @@ import {
 } from '@odf/mco/types';
 import {
   getLabelsFromSearchResult,
-  queryManagedApplicationResourcesForVM,
+  queryApplicationSetResourcesForVM,
+  querySubscriptionResourcesForVM,
 } from '@odf/mco/utils';
 import {
   ACMSubscriptionModel,
@@ -99,26 +99,22 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
   const vmName = getName(virtualMachine);
   const vmNamespace = getNamespace(virtualMachine);
   const clusterName = virtualMachine?.['status']?.cluster;
-  const applicationSetName = getLabel(virtualMachine, KUBE_INSTANCE_LABEL);
+  const argoApplicationName = getLabel(virtualMachine, KUBE_INSTANCE_LABEL);
 
   // ACM search API call to find managed application resource
   const searchQuery = React.useMemo(
     () =>
-      queryManagedApplicationResourcesForVM(
-        [vmName, applicationSetName],
-        vmNamespace,
-        clusterName
-      ),
-    [vmName, vmNamespace, clusterName, applicationSetName]
+      argoApplicationName
+        ? queryApplicationSetResourcesForVM(argoApplicationName)
+        : querySubscriptionResourcesForVM(vmName, vmNamespace, clusterName),
+    [vmName, vmNamespace, clusterName, argoApplicationName]
   );
 
   const [searchResult] = useACMSafeFetch(searchQuery);
 
   // Extract managed application CR (Application / ApplicationSet)
   const managedApplication: SearchResultItemType =
-    searchResult?.data?.searchResult?.[0]?.related?.[0]?.items?.find(
-      (item) => item.cluster === HUB_CLUSTER_NAME
-    );
+    searchResult?.data?.searchResult?.[0]?.related?.[0]?.[0];
 
   const { name, namespace, kind } = managedApplication || {};
 
