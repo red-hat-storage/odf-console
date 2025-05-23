@@ -22,6 +22,28 @@ import {
   ProtectionMethodType,
 } from './reducer';
 
+export const convertToRecipeParameters = (
+  params: Record<string, string>
+): Record<string, string[]> => {
+  return Object.fromEntries(
+    Object.entries(params || {}).map(([key, value]) => [
+      key,
+      value
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean),
+    ])
+  );
+};
+
+export const formatRecipeParametersForDisplay = (
+  params: Record<string, string[]>
+): string => {
+  return Object.entries(params || {})
+    .map(([key, values]) => `${key}: ${values.join(', ')}`)
+    .join('; ');
+};
+
 export const getDRPCKindObj = (props: {
   name: string;
   preferredCluster: string;
@@ -31,10 +53,10 @@ export const getDRPCKindObj = (props: {
   k8sResourceReplicationInterval: string;
   recipeName?: string;
   recipeNamespace?: string;
+  recipeParameters?: Record<string, string[]>;
   k8sResourceLabelExpressions?: MatchExpression[];
   pvcLabelExpressions?: MatchExpression[];
   placementName: string;
-  recipeParameters?: Record<string, string[]>;
   labels?: ObjectMetadata['labels'];
 }): DRPlacementControlKind => ({
   apiVersion: getAPIVersionForModel(DRPlacementControlModel),
@@ -106,7 +128,7 @@ export const createPromise = (
   const { namespace, configuration, replication } = state;
   const { clusterName, namespaces, name } = namespace;
   const { protectionMethod, recipe, resourceLabels } = configuration;
-  const { recipeName, recipeNamespace } = recipe;
+  const { recipeName, recipeNamespace, recipeParameters } = recipe;
   const { k8sResourceLabelExpressions, pvcLabelExpressions } = resourceLabels;
   const { drPolicy, k8sResourceReplicationInterval } = replication;
   const namespaceList = namespaces.map(getName);
@@ -132,6 +154,7 @@ export const createPromise = (
         protectionMethod,
         recipeName,
         recipeNamespace,
+        recipeParameters: convertToRecipeParameters(recipeParameters),
         k8sResourceLabelExpressions,
         pvcLabelExpressions,
         drPolicyName: getName(drPolicy),
