@@ -955,6 +955,7 @@
   "Instance type": "Instance type",
   "Internal": "Internal",
   "Intiating": "Intiating",
+  "Invalid": "Invalid",
   "Invalid file: File size exceeds 4MB limit or incorrect file extension (only .pem files allowed).": "Invalid file: File size exceeds 4MB limit or incorrect file extension (only .pem files allowed).",
   "Invalid label name": "Invalid label name",
   "Invalid label selector": "Invalid label selector",
