@@ -229,6 +229,7 @@ export type NoobaaSystemKind = K8sResourceCommon;
 export enum CapacityAutoscalingStatus {
   Failed = 'Failed',
   InProgress = 'InProgress',
+  Invalid = 'Invalid',
   NotStarted = 'NotStarted',
   Succeeded = 'Succeeded',
 }
