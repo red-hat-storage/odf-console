@@ -12,7 +12,7 @@ import { useCustomTranslation } from '../useCustomTranslationHook';
 import '../style.scss';
 
 export const Box: React.FC<BoxProps> = ({ children, className }) => (
-  <div className={classNames('cos-status-box', className)}>{children}</div>
+  <div className={classNames('odf-status-box', className)}>{children}</div>
 );
 
 export const LoadError: React.FC<LoadErrorProps> = ({
@@ -24,7 +24,7 @@ export const LoadError: React.FC<LoadErrorProps> = ({
   const { t } = useCustomTranslation();
   return (
     <Box className={className}>
-      <div className="pf-v5-u-text-align-center cos-error-title">
+      <div className="pf-v5-u-text-align-center odf-error-title">
         {_.isString(message)
           ? t('Error Loading {{label}}: {{message}}', {
               label,
@@ -55,18 +55,18 @@ LoadError.displayName = 'LoadError';
 
 export const Loading: React.FC<LoadingProps> = ({ className }) => (
   <div
-    className={classNames('co-m-loader co-an-fade-in-out', className)}
+    className={classNames('odf-m-loader', className)}
     data-test="loading-indicator"
   >
-    <div className="co-m-loader-dot__one" />
-    <div className="co-m-loader-dot__two" />
-    <div className="co-m-loader-dot__three" />
+    <div className="odf-m-loader-dot__one" />
+    <div className="odf-m-loader-dot__two" />
+    <div className="odf-m-loader-dot__three" />
   </div>
 );
 Loading.displayName = 'Loading';
 
 export const LoadingInline: React.FC<{}> = () => (
-  <Loading className="co-m-loader--inline" />
+  <Loading className="odf-m-loader--inline" />
 );
 LoadingInline.displayName = 'LoadingInline';
 
@@ -74,10 +74,10 @@ export const LoadingBox: React.FC<LoadingBoxProps> = ({
   className,
   message,
 }) => (
-  <Box className={classNames('cos-status-box--loading', className)}>
+  <Box className={classNames('odf-status-box--loading', className)}>
     <Loading />
     {message && (
-      <div className="cos-status-box__loading-message">{message}</div>
+      <div className="odf-status-box__loading-message">{message}</div>
     )}
   </Box>
 );
@@ -102,13 +102,13 @@ export const MsgBox: React.FC<MsgBoxProps> = ({
 }) => (
   <Box className={className}>
     {title && (
-      <div className="cos-status-box__title" data-test="msg-box-title">
+      <div className="odf-status-box__title" data-test="msg-box-title">
         {title}
       </div>
     )}
     {detail && (
       <div
-        className="pf-v5-u-text-align-center cos-status-box__detail"
+        className="pf-v5-u-text-align-center odf-status-box__detail"
         data-test="msg-box-detail"
       >
         {detail}
@@ -123,10 +123,6 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({ message }) => {
   return (
     <div>
       <Box className="pf-v5-u-text-align-center">
-        {
-          // (ToDo) Add an icon from PF here, if necessary.
-          // <img className="cos-status-box__access-denied-icon" src={restrictedSignImg} />
-        }
         <MsgBox
           title={t('Restricted Access')}
           detail={t(
@@ -137,7 +133,7 @@ export const AccessDenied: React.FC<AccessDeniedProps> = ({ message }) => {
       {_.isString(message) && (
         <Alert
           isInline
-          className="co-alert"
+          className="odf-alert"
           variant="danger"
           title={t('Error details')}
         >
@@ -159,7 +155,7 @@ const Data: React.FC<DataProps> = ({
 }) => {
   if (NoDataEmptyMsg && _.isEmpty(unfilteredData)) {
     return (
-      <div className="loading-box loading-box__loaded">
+      <div className="odf-loading-box loading-box__loaded">
         {NoDataEmptyMsg ? <NoDataEmptyMsg /> : <EmptyBox label={label} />}
       </div>
     );
@@ -167,12 +163,12 @@ const Data: React.FC<DataProps> = ({
 
   if (!data || _.isEmpty(data)) {
     return (
-      <div className="loading-box loading-box__loaded">
+      <div className="odf-loading-box loading-box__loaded">
         {EmptyMsg ? <EmptyMsg /> : <EmptyBox label={label} />}
       </div>
     );
   }
-  return <div className="loading-box loading-box__loaded">{children}</div>;
+  return <div className="odf-loading-box loading-box__loaded">{children}</div>;
 };
 Data.displayName = 'Data';
 
@@ -220,7 +216,7 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
     if (loaded && loadError instanceof TimeoutError) {
       return (
         <Data data={data} {...dataProps}>
-          <div className="co-m-timeout-error text-muted">
+          <div className="odf-m-timeout-error text-muted">
             {t('Timed out fetching new data. The data below is stale.')}
           </div>
           {props.children}
@@ -232,7 +228,7 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
       <LoadError
         message={loadError.message}
         label={props.label}
-        className="loading-box loading-box__errored"
+        className="odf-loading-box loading-box__errored"
       />
     );
   }
@@ -241,7 +237,7 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
     return skeleton ? (
       <>{skeleton}</>
     ) : (
-      <LoadingBox className="loading-box loading-box__loading" />
+      <LoadingBox className="odf-loading-box loading-box__loading" />
     );
   }
   return <Data data={data} {...dataProps} />;

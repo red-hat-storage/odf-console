@@ -13,9 +13,14 @@ import {
   humanizePercentage,
   getGaugeValue,
 } from '@odf/shared/utils';
-import { DetailsBody } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { useParams } from 'react-router-dom-v5-compat';
-import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  DescriptionList,
+} from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
 import { ODFSystemParams } from '../../types';
 import { getPerPoolMetrics, PoolMetrics } from '../../utils';
@@ -130,23 +135,23 @@ export const CompressionDetailsCard: React.FC = () => {
         <CardTitle>{t('Compression')}</CardTitle>
       </CardHeader>
       <CardBody>
-        <DetailsBody>
+        <DescriptionList>
           <DetailItem isLoading={!obj} title={t('Compression status')}>
             {!compressionEnabled ? t('Disabled') : t('Enabled')}
           </DetailItem>
-        </DetailsBody>
+        </DescriptionList>
         {compressionEnabled && (
-          <DetailsBody>
+          <DescriptionList>
             <div>
-              <DetailsBody>
+              <DescriptionList>
                 <DetailItem isLoading={loading} title={t('Storage efficiency')}>
                   <EfficiencyItemBody {...compressionEligibilityProps} />
                   <EfficiencyItemBody {...compressionRatioProps} />
                   <EfficiencyItemBody {...compressionSavingsProps} />
                 </DetailItem>
-              </DetailsBody>
+              </DescriptionList>
             </div>
-          </DetailsBody>
+          </DescriptionList>
         )}
       </CardBody>
     </Card>

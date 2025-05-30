@@ -5,7 +5,9 @@ export const app = {
   waitForLoad: (timeout: number = 160000) => {
     /* eslint-disable cypress/require-data-selectors */
     cy.get('.co-m-loader', { timeout }).should('not.exist');
+    cy.get('.odf-m-loader', { timeout }).should('not.exist');
     cy.get('.pf-c-spinner', { timeout }).should('not.exist');
+    cy.get('.pf-v5-c-spinner', { timeout }).should('not.exist');
     cy.get('.skeleton-catalog--grid', { timeout }).should('not.exist');
     cy.get('.loading-skeleton--table', { timeout }).should('not.exist');
     /* eslint-enable cypress/require-data-selectors */

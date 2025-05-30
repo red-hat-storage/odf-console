@@ -6,6 +6,9 @@ import {
   MenuToggleElement,
   Select,
   SelectOption,
+  TextContent,
+  Text,
+  TextVariants,
 } from '@patternfly/react-core';
 import { ProviderStateMap } from '../../constants';
 import { ProviderNames } from '../../types';
@@ -105,9 +108,11 @@ export const KMSConfigure: React.FC<KMSConfigureProps> = ({
   return (
     <div className="ocs-storage-class-encryption__form-dropdown--padding">
       {!isWizardFlow && (
-        <h3 className="ocs-install-kms__heading">
-          {t('Connect to a Key Management Service')}
-        </h3>
+        <TextContent className="ocs-install-kms__heading">
+          <Text component={TextVariants.h3}>
+            {t('Connect to a Key Management Service')}
+          </Text>
+        </TextContent>
       )}
       <FormGroup
         fieldId="kms-provider"

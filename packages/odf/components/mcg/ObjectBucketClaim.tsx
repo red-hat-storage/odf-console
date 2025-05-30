@@ -31,6 +31,12 @@ import {
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { useParams } from 'react-router-dom-v5-compat';
+import {
+  DescriptionList,
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+} from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import { ATTACH_DEPLOYMENT } from '../../constants';
 import { MCG_FLAG, RGW_FLAG } from '../../features';
@@ -318,45 +324,56 @@ export const OBCDetails: React.FC<OBCDetailsProps> = ({ obj }) => {
             />
           </div>
           <div className="col-sm-6">
-            {isBound(obj) && (
-              <>
-                <dt>{t('Secret')}</dt>
-                <dd>
-                  <ResourceLinkWithKind
-                    kind="Secret"
-                    name={obj.metadata.name}
-                    namespace={obj.metadata.namespace}
-                  />
-                </dd>
-              </>
-            )}
-            <dt>{t('Status')}</dt>
-            <dd>
-              <OBCStatus obc={obj} />
-            </dd>
-            <dt>{t('StorageClass')}</dt>
-            <dd>
-              {storageClassName ? (
-                <ResourceLinkWithKind
-                  kind="StorageClass"
-                  name={storageClassName}
-                />
-              ) : (
-                '-'
+            <DescriptionList>
+              {isBound(obj) && (
+                <DescriptionListGroup>
+                  <DescriptionListTerm>{t('Secret')}</DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <ResourceLinkWithKind
+                      kind="Secret"
+                      name={obj.metadata.name}
+                      namespace={obj.metadata.namespace}
+                    />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
               )}
-            </dd>
-            {isBound(obj) && (
-              <>
-                <dt>{t('Object Bucket')}</dt>
-                <dd>
-                  <ResourceLinkWithKind
-                    dataTest="ob-link"
-                    kind={referenceForModel(NooBaaObjectBucketModel)}
-                    name={obj.spec.objectBucketName}
-                  />
-                </dd>
-              </>
-            )}
+
+              <DescriptionListGroup>
+                <DescriptionListTerm>{t('Status')}</DescriptionListTerm>
+                <DescriptionListDescription>
+                  <OBCStatus obc={obj} />
+                </DescriptionListDescription>
+              </DescriptionListGroup>
+
+              <DescriptionListGroup>
+                <DescriptionListTerm>{t('StorageClass')}</DescriptionListTerm>
+                <DescriptionListDescription>
+                  {storageClassName ? (
+                    <ResourceLinkWithKind
+                      kind="StorageClass"
+                      name={storageClassName}
+                    />
+                  ) : (
+                    '-'
+                  )}
+                </DescriptionListDescription>
+              </DescriptionListGroup>
+
+              {isBound(obj) && (
+                <DescriptionListGroup>
+                  <DescriptionListTerm>
+                    {t('Object Bucket')}
+                  </DescriptionListTerm>
+                  <DescriptionListDescription>
+                    <ResourceLinkWithKind
+                      dataTest="ob-link"
+                      kind={referenceForModel(NooBaaObjectBucketModel)}
+                      name={obj.spec.objectBucketName}
+                    />
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              )}
+            </DescriptionList>
           </div>
         </div>
       </div>

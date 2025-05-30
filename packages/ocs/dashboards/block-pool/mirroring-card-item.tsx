@@ -1,7 +1,15 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import classNames from 'classnames';
+import {
+  DescriptionListDescription,
+  DescriptionListGroup,
+  DescriptionListTerm,
+} from '@patternfly/react-core';
 
+/**
+ * A wrapper around PatternFly's description group. This component's parent must
+ * be a PatternFly DescriptionList.
+ */
 export const MirroringCardItem: React.FC<MirroringCardItemProps> = React.memo(
   ({
     title,
@@ -27,25 +35,19 @@ export const MirroringCardItem: React.FC<MirroringCardItemProps> = React.memo(
       status = children;
     }
     return (
-      <>
+      <DescriptionListGroup>
         {title && (
-          <dt
-            className="odf-block-pool__mirroring-card-item-dt"
-            data-test="mirroring-card-item-title"
-          >
+          <DescriptionListTerm data-test="mirroring-card-item-title">
             {title}
-          </dt>
+          </DescriptionListTerm>
         )}
-        <dd
-          className={classNames(
-            'odf-block-pool__mirroring-card-item-dd',
-            valueClassName
-          )}
+        <DescriptionListDescription
+          className={valueClassName}
           data-test="mirroring-card-item-value"
         >
           {status}
-        </dd>
-      </>
+        </DescriptionListDescription>
+      </DescriptionListGroup>
     );
   }
 );
