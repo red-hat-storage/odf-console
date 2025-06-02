@@ -48,6 +48,7 @@ import { EnableNFS } from './enable-nfs';
 import { PostgresConnectionDetails } from './noobaa-external-postgres/postgres-connection-details';
 import { SelectDeployment } from './select-deployment';
 import { SetCephRBDStorageClassDefault } from './set-rbd-sc-default';
+import SetVirtualizeSCDefault from './set-virtualize-sc-default';
 import './backing-storage-step.scss';
 
 // ODF watches only 2 namespaces (other one is operator install namespace)
@@ -406,6 +407,12 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
             dispatch={dispatch}
             isRBDStorageClassDefault={isRBDStorageClassDefault}
             doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
+          />
+          <SetVirtualizeSCDefault
+            dispatch={dispatch}
+            isVirtualizeStorageClassDefault={
+              state.isVirtualizeStorageClassDefault
+            }
           />
         </>
       )}
