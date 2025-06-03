@@ -37,3 +37,9 @@ export const diskSizeUnitOptions = {
   [DiskSize.Ti]: STORAGE_SIZE_UNIT_NAME_MAP[DiskSize.Ti],
   [DiskSize.Gi]: STORAGE_SIZE_UNIT_NAME_MAP[DiskSize.Gi],
 };
+
+export const fsTypeDropdownItems = Object.freeze({
+  EXT4: 'ext4',
+  EXT3: 'ext3',
+  XFS: 'xfs',
+});
