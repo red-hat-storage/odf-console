@@ -202,3 +202,19 @@ export type StorageConsumerKind = K8sResourceCommon & {
 };
 
 export type NoobaaSystemKind = K8sResourceCommon;
+
+export enum StorageSizeUnit {
+  B = 'B',
+  Ki = 'Ki',
+  Mi = 'Mi',
+  Gi = 'Gi',
+  Ti = 'Ti',
+}
+
+export enum StorageSizeUnitName {
+  B = 'B',
+  KiB = 'KiB',
+  MiB = 'MiB',
+  GiB = 'GiB',
+  TiB = 'TiB',
+}

@@ -34,3 +34,9 @@ export const diskSizeUnitOptions = {
   [DiskSize.Ti]: 'TiB',
   [DiskSize.Gi]: 'GiB',
 };
+
+export const fsTypeDropdownItems = Object.freeze({
+  EXT4: 'ext4',
+  EXT3: 'ext3',
+  XFS: 'xfs',
+});

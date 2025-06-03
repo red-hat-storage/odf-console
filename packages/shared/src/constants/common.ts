@@ -1,3 +1,5 @@
+import { StorageSizeUnit, StorageSizeUnitName } from '../types';
+
 export const DASH = '-';
 export const AVAILABLE = 'Available';
 export const DEFAULT_STORAGE_NAMESPACE = 'openshift-storage'; // This hardcoded namespace is only for specific cases, do not use it otherwise.
@@ -18,3 +20,10 @@ export const PLUGIN_VERSION =
 export const CONSOLE_PROXY_ROOT_PATH = '/api/proxy/plugin';
 export const ODF_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-console`;
 export const MCO_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-multicluster-console`;
+export const STORAGE_SIZE_UNIT_NAME_MAP = Object.freeze({
+  [StorageSizeUnit.B]: StorageSizeUnitName.B,
+  [StorageSizeUnit.Ki]: StorageSizeUnitName.KiB,
+  [StorageSizeUnit.Mi]: StorageSizeUnitName.MiB,
+  [StorageSizeUnit.Gi]: StorageSizeUnitName.GiB,
+  [StorageSizeUnit.Ti]: StorageSizeUnitName.TiB,
+});
