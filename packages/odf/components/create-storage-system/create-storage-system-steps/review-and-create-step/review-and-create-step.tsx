@@ -96,6 +96,10 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
   const isCephRBDSetAsDefault = isRBDStorageClassDefault
     ? t('Enabled')
     : t('Disabled');
+  const isVirtualizeStorageClassDefault =
+    backingStorage.isVirtualizeStorageClassDefault
+      ? t('Enabled')
+      : t('Disabled');
 
   const kmsStatus = encryption.advanced
     ? kms.providerState.name.value
@@ -124,14 +128,24 @@ export const ReviewAndCreate: React.FC<ReviewAndCreateProps> = ({
             </ListItem>
           )}
         {deployment === DeploymentType.FULL && !hasMultipleClusters && (
-          <ListItem>
-            {t(
-              'Ceph RBD as the default StorageClass: {{isCephRBDSetAsDefault}}',
-              {
-                isCephRBDSetAsDefault,
-              }
-            )}
-          </ListItem>
+          <>
+            <ListItem>
+              {t(
+                'Ceph RBD as the default StorageClass: {{isCephRBDSetAsDefault}}',
+                {
+                  isCephRBDSetAsDefault,
+                }
+              )}
+            </ListItem>
+            <ListItem>
+              {t(
+                'Default StorageClass for virtualization : {{isVirtualizeStorageClassDefault}}',
+                {
+                  isVirtualizeStorageClassDefault,
+                }
+              )}
+            </ListItem>
+          </>
         )}
         {!isRhcs && (
           <ListItem>
