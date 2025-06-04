@@ -19,6 +19,8 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   clusterNetwork,
   publicNetwork,
   systemNamespace,
+  isMultusAcknowledged,
+  setIsMultusAcknowledged,
 }) => {
   const { t } = useCustomTranslation();
   const isFDF = useFlag(FDF_FLAG);
@@ -79,6 +81,8 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           systemNamespace={systemNamespace}
           setNetworkType={(type: NetworkType) => setNetworkType(type)}
           networkType={networkType}
+          isMultusAcknowledged={isMultusAcknowledged}
+          setIsMultusAcknowledged={setIsMultusAcknowledged}
         />
       )}
     </>
@@ -98,4 +102,6 @@ type NetworkFormGroupProps = {
   cephClusterCIDR: string;
   cephPublicCIDR: string;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  isMultusAcknowledged: boolean;
+  setIsMultusAcknowledged: (val: boolean) => void;
 };
