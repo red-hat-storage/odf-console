@@ -115,7 +115,7 @@ export const PROGRESS_STATUS = (
     name: PoolProgress.TIMEOUT,
     icon: DisconnectedIcon,
     desc: t(
-      'Pool {{name}} creation timed out. Please check if odf operator and rook operator are running',
+      'Pool {{name}} creation timed out. Please check if Data Foundation operator and Rook operator are running',
       { name: poolName }
     ),
     className: '',
