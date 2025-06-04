@@ -114,6 +114,7 @@ export const initialState: CreateStorageSystemState = {
       cluster: [],
     },
     networkType: NetworkType.DEFAULT,
+    isMultusAcknowledged: false,
   },
 };
 
@@ -167,6 +168,7 @@ type CreateStorageSystemState = {
     publicNetwork: NetworkAttachmentDefinitionKind;
     clusterNetwork: NetworkAttachmentDefinitionKind;
     addressRanges: AddressRanges;
+    isMultusAcknowledged: boolean;
     networkType: NetworkType;
   };
   createLocalVolumeSet: LocalVolumeSet;
@@ -400,6 +402,9 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'capacityAndNodes/setVolumeValidationType':
       newState.capacityAndNodes.volumeValidationType = action.payload;
       break;
+    case 'securityAndNetwork/setMultusAcknowledged':
+      newState.securityAndNetwork.isMultusAcknowledged = action.payload;
+      break;
     case 'securityAndNetwork/setKms':
       newState.securityAndNetwork.kms = action.payload;
       break;
@@ -520,6 +525,10 @@ export type CreateStorageSystemAction =
   | {
       type: 'capacityAndNodes/enableTaint';
       payload: WizardState['capacityAndNodes']['enableTaint'];
+    }
+  | {
+      type: 'securityAndNetwork/setMultusAcknowledged';
+      payload: boolean;
     }
   | {
       type: 'securityAndNetwork/setKms';
