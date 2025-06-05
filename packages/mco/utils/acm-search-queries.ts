@@ -228,8 +228,6 @@ export const queryApplicationSetResourcesForVM = (
 });
 
 // ACM seach query to find managed application resources of the VM.
-// One single query handles both ApplicationSet and Subscription,
-// Split into two queries if needed
 export const querySubscriptionResourcesForVM = (
   vmName: string,
   vmNamespace: string,
