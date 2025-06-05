@@ -1,0 +1,26 @@
+.odf-default-network-alert {
+  --pf-v5-c-alert--m-custom--BackgroundColor: var(--pf-v5-global--palette--blue-50);
+  --pf-v5-c-alert--m-custom__icon--Color: var(--pf-v5-global--info-color--100);
+  border-left: var(--pf-v5-global--BorderWidth--md) solid var(--pf-v5-global--palette--purple-400);
+}
+
+.pf-v5-c-alert.pf-m-warning {
+  --pf-v5-c-alert--BackgroundColor: var(--pf-v5-global--warning-color--100);
+  border-left: var(--pf-v5-global--BorderWidth--md) solid var(--pf-v5-global--warning-color--200);
+}
+
+.pf-v5-u-ml-md {
+  margin-left: var(--pf-v5-global--spacer--md);
+}
+
+.pf-v5-u-mb-sm {
+  margin-bottom: var(--pf-v5-global--spacer--sm);
+}
+
+.pf-v5-u-mb-md {
+  margin-bottom: var(--pf-v5-global--spacer--md);
+}
+
+.pf-v5-u-mt-md {
+  margin-top: var(--pf-v5-global--spacer--md);
+}
