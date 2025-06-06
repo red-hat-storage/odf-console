@@ -21,6 +21,7 @@ import {
   EnrollDiscoveredApplicationStateType,
 } from '../../utils/reducer';
 import './configuration-step.scss';
+import { RecipeParameterInput } from './recipe-parameter-input';
 
 const getRecipeOptions = (
   searchResultItem: SearchResultItemType[]
@@ -117,6 +118,8 @@ export const RecipeSelection: React.FC<RecipeSelectionProps> = ({
       ) : (
         <StatusBox loaded={searchLoaded} loadError={searchError} />
       )}
+
+      {recipeNameNamespace && <RecipeParameterInput dispatch={dispatch} />}
     </>
   );
 };
