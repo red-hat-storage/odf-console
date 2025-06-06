@@ -44,6 +44,9 @@
     "storageConsumerListPage": "@odf/core/components/storage-consumers/client-list",
     "s3BucketOverview": "@odf/core/components/s3-browser/bucket-overview/BucketOverview",
     "s3BucketList": "@odf/core/components/s3-browser/buckets-list-page/bucketsListPage",
-    "attachStorage": "@odf/core/components/attach-storage-storagesystem/attach-storage"
+    "attachStorage": "@odf/core/components/attach-storage-storagesystem/attach-storage",
+    "createLVD": "@odf/core/components/lso/local-volume-discovery/create-lvd",
+    "createLVS": "@odf/core/components/lso/local-volume-set/create-lvs",
+    "diskListPage": "@odf/core/components/lso/disks-list/disk-list-page"
   }
 }
