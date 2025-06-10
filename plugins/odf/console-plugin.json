@@ -49,6 +49,9 @@
     "s3BucketCorsDetails": "@odf/core/components/s3-browser/cors-details/CorsDetailsPage",
     "attachStorage": "@odf/core/components/attach-storage-storagesystem/attach-storage",
     "storageClientAttacherAction": "@odf/core/modals/StorageClientDistributionModal/useStorageClientAttacherAction",
-    "storageConsumerCreate": "@odf/core/components/storage-consumers/CreateStorageConsumer"
+    "storageConsumerCreate": "@odf/core/components/storage-consumers/CreateStorageConsumer",
+    "createLVD": "@odf/core/components/lso/local-volume-discovery/create-lvd",
+    "createLVS": "@odf/core/components/lso/local-volume-set/create-lvs",
+    "diskListPage": "@odf/core/components/lso/disks-list/disk-list-page"
   }
 }
