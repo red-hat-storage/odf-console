@@ -24,6 +24,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
     publicNetwork,
     encryption,
     kms,
+    isMultusAcknowledged,
     addressRanges: {
       cluster: [cephClusterCIDR],
       public: [cephPublicCIDR],
@@ -35,10 +36,11 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
       type: 'securityAndNetwork/setNetworkType',
       payload: networkType,
     });
-    if (
-      networkType === NetworkType.DEFAULT ||
-      networkType === NetworkType.HOST
-    ) {
+    if (networkType !== NetworkType.MULTUS) {
+      dispatch({
+        type: 'securityAndNetwork/setMultusAcknowledged',
+        payload: false,
+      });
       dispatch({ type: 'securityAndNetwork/setClusterNetwork', payload: null });
       dispatch({ type: 'securityAndNetwork/setPublicNetwork', payload: null });
     }
@@ -70,6 +72,16 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
     [dispatch]
   );
 
+  const setIsMultusAcknowledged = React.useCallback(
+    (val: boolean) => {
+      dispatch({
+        type: 'securityAndNetwork/setMultusAcknowledged',
+        payload: val,
+      });
+    },
+    [dispatch]
+  );
+
   return (
     <Form noValidate={false}>
       <Encryption
@@ -91,6 +103,8 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
           clusterNetwork={clusterNetwork}
           publicNetwork={publicNetwork}
           systemNamespace={systemNamespace}
+          isMultusAcknowledged={isMultusAcknowledged}
+          setIsMultusAcknowledged={setIsMultusAcknowledged}
         />
       )}
       {isExternal && (
@@ -106,7 +120,9 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
 };
 
 type SecurityAndNetworkProps = {
-  securityAndNetworkState: WizardState['securityAndNetwork'];
+  securityAndNetworkState: WizardState['securityAndNetwork'] & {
+    isMultusAcknowledged?: boolean;
+  };
   dispatch: WizardDispatch;
   infraType: string;
   isExternal?: boolean;
