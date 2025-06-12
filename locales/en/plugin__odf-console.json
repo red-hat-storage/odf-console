@@ -1652,6 +1652,7 @@
   "Scaling is in progress": "Scaling is in progress",
   "started at ": "started at ",
   "Failed": "Failed",
+  "Invalid": "Invalid",
   "Current status:": "Current status:",
   "Automatic capacity scaling cannot be disabled while scaling is in progress": "Automatic capacity scaling cannot be disabled while scaling is in progress",
   "Cluster has reached its expansion limit.": "Cluster has reached its expansion limit.",
