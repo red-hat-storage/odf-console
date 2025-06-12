@@ -1773,6 +1773,7 @@
   "Only lowercase letters, numbers, non-consecutive periods, or hyphens": "Only lowercase letters, numbers, non-consecutive periods, or hyphens",
   "Cannot be used before": "Cannot be used before",
   "Cannot be used before within the same namespace": "Cannot be used before within the same namespace",
+  "Cannot be empty": "Cannot be empty",
   "Not enough usage data": "Not enough usage data",
   "Total requests: ": "Total requests: ",
   "used": "used",
@@ -1821,6 +1822,9 @@
   "No resources available": "No resources available",
   "Select {{resourceLabel}}": "Select {{resourceLabel}}",
   "Error Loading": "Error Loading",
+  "no results": "no results",
+  "No results found for {{ filterValue }}": "No results found for {{ filterValue }}",
+  "Clear selected value": "Clear selected value",
   "Loading empty page": "Loading empty page",
   "You are not authorized to complete this action. See your cluster administrator for role-based access control information.": "You are not authorized to complete this action. See your cluster administrator for role-based access control information.",
   "Not Authorized": "Not Authorized",
@@ -1884,6 +1888,7 @@
   "Infrastructures": "Infrastructures",
   "Subscriptions": "Subscriptions",
   "Project": "Project",
+  "Suspended": "Suspended",
   "Composable table": "Composable table",
   "Selectable table": "Selectable table",
   "Select all": "Select all",
@@ -1938,10 +1943,5 @@
   "Cannot change resource name (original: \"{{name}}\", updated: \"{{newName}}\").": "Cannot change resource name (original: \"{{name}}\", updated: \"{{newName}}\").",
   "Cannot change resource namespace (original: \"{{namespace}}\", updated: \"{{newNamespace}}\").": "Cannot change resource namespace (original: \"{{namespace}}\", updated: \"{{newNamespace}}\").",
   "Cannot change resource kind (original: \"{{original}}\", updated: \"{{updated}}\").": "Cannot change resource kind (original: \"{{original}}\", updated: \"{{updated}}\").",
-  "Cannot change API group (original: \"{{apiGroup}}\", updated: \"{{newAPIGroup}}\").": "Cannot change API group (original: \"{{apiGroup}}\", updated: \"{{newAPIGroup}}\").",
-  "Cannot be empty": "Cannot be empty",
-  "no results": "no results",
-  "No results found for {{ filterValue }}": "No results found for {{ filterValue }}",
-  "Clear selected value": "Clear selected value",
-  "Suspended": "Suspended"
+  "Cannot change API group (original: \"{{apiGroup}}\", updated: \"{{newAPIGroup}}\").": "Cannot change API group (original: \"{{apiGroup}}\", updated: \"{{newAPIGroup}}\")."
 }
