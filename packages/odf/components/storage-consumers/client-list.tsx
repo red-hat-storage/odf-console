@@ -288,8 +288,6 @@ const StorageClientRow: React.FC<
   >
 > = ({ obj, activeColumnIDs, rowData: { currentVersion, localClusterId } }) => {
   const { t } = useCustomTranslation();
-  const [allowDeletion, setAllowDeletion] = React.useState(false);
-  const DELETE_THRESHOLD = 300; // wait till 5 minutes before activating the delete button
   const humanizedStorageQuota = obj?.spec?.storageQuotaInGiB
     ? humanizeBinaryBytes(
         obj?.spec?.storageQuotaInGiB,
@@ -298,31 +296,6 @@ const StorageClientRow: React.FC<
     : t('Unlimited');
   const clientClusterId = obj?.status?.client?.clusterId;
   const isLocalClient = clientClusterId === localClusterId;
-  React.useEffect(() => {
-    const lastHeartbeat = obj?.status?.lastHeartbeat;
-    const isNotBoarded = _.isEmpty(lastHeartbeat);
-    const setter = () => {
-      const timeDifference = getTimeDifferenceInSeconds(lastHeartbeat);
-      if (
-        (timeDifference > DELETE_THRESHOLD || isNotBoarded) &&
-        !allowDeletion
-      ) {
-        setAllowDeletion(true);
-      } else if (timeDifference < DELETE_THRESHOLD && allowDeletion) {
-        setAllowDeletion(false);
-      }
-    };
-    if (!isLocalClient) {
-      setter();
-      const id = setInterval(setter, 10000);
-      return () => clearInterval(id);
-    }
-  }, [
-    allowDeletion,
-    setAllowDeletion,
-    obj?.status?.lastHeartbeat,
-    isLocalClient,
-  ]);
   return (
     <>
       {tableColumns.map((tableColumn) => {
@@ -399,7 +372,7 @@ const StorageClientRow: React.FC<
                   {
                     key: ModalKeys.DELETE,
                     value: t('Delete StorageConsumer'),
-                    isDisabled: !allowDeletion,
+                    isDisabled: isLocalClient,
                     component: React.lazy(
                       () => import('./remove-client-modal')
                     ),
