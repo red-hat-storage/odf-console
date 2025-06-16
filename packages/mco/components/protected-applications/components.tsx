@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
-import { getLastAppDeploymentClusterName } from '@odf/mco/utils';
+import { getPrimaryClusterName } from '@odf/mco/utils';
 import { DRPlacementControlModel, getName, getNamespace } from '@odf/shared';
 import {
   ActionDropdown,
@@ -361,7 +361,7 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const clusterName = getLastAppDeploymentClusterName(application);
+  const clusterName = getPrimaryClusterName(application);
   const mcvName = getMCVName(application);
 
   const mcvResources: Record<string, WatchK8sResource> = {};

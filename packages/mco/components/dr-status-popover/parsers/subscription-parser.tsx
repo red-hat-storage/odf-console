@@ -8,7 +8,7 @@ import { useDisasterRecoveryResourceWatch } from '@odf/mco/hooks';
 import {
   findCluster,
   getDRPolicyName,
-  getLastAppDeploymentClusterName,
+  getPrimaryClusterName,
   getReplicationHealth,
   getReplicationType,
 } from '@odf/mco/utils';
@@ -43,7 +43,7 @@ const parseDRStatusForGroup = (
   const drPolicyName = getDRPolicyName(drpc);
   const schedulingInterval = group.drInfo?.drPolicy?.spec?.schedulingInterval;
 
-  const primaryClusterName = getLastAppDeploymentClusterName(drpc);
+  const primaryClusterName = getPrimaryClusterName(drpc);
   const drClusters = group.drInfo?.drClusters;
   if (!drClusters) {
     return null;

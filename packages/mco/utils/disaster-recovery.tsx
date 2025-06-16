@@ -635,9 +635,21 @@ export const findDeploymentClusters = (
   if ((placementDecision ?? {}).status?.decisions?.length > 0) {
     return getClustersFromDecisions(placementDecision);
   } else {
-    const lastDeploymentClusterName =
-      getLastAppDeploymentClusterName(drPlacementControl);
+    const lastDeploymentClusterName = getPrimaryClusterName(drPlacementControl);
     return !!lastDeploymentClusterName ? [lastDeploymentClusterName] : [];
+  }
+};
+
+export const getPrimaryClusterName = (
+  drPlacementControl: DRPlacementControlKind
+) => {
+  switch (drPlacementControl?.status.phase) {
+    case DRPCStatus.FailedOver:
+      return drPlacementControl.spec.failoverCluster;
+    case DRPCStatus.Relocated:
+      return drPlacementControl.spec.preferredCluster;
+    default:
+      return getLastAppDeploymentClusterName(drPlacementControl);
   }
 };
 

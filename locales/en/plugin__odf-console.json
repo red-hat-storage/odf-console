@@ -419,7 +419,7 @@
   "Clean up application resources on failed cluster {{ preferredCluster }} to start the replication.": "Clean up application resources on failed cluster {{ preferredCluster }} to start the replication.",
   "Clean up application resources on failed cluster {{ preferredCluster }}.": "Clean up application resources on failed cluster {{ preferredCluster }}.",
   "Clean up application resources on failed cluster {{cluster}}.": "Clean up application resources on failed cluster {{cluster}}.",
-  "Clean up application resources on the primary cluster {{cluster}} to start the relocation.": "Clean up application resources on the primary cluster {{cluster}} to start the relocation.",
+  "Clean up application resources on the primary cluster {{cluster}} to start relocating.": "Clean up application resources on the primary cluster {{cluster}} to start relocating.",
   "Cleanup Pending": "Cleanup Pending",
   "Clear": "Clear",
   "Clear selected value": "Clear selected value",
