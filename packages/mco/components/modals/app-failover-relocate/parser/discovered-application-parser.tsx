@@ -14,7 +14,7 @@ import {
   checkDRActionReadiness,
   filterManagedClusterUsingDRClusters,
   findCluster,
-  getLastAppDeploymentClusterName,
+  getPrimaryClusterName,
   getReplicationType,
   isDRClusterFenced,
 } from '@odf/mco/utils';
@@ -105,8 +105,7 @@ export const DiscoveredApplicationParser: React.FC<
 
       // use "drplacementcontrol.ramendr.openshift.io/last-app-deployment-cluster" annotation
       // To find current app the deployment cluster
-      const deploymentClusterName =
-        getLastAppDeploymentClusterName(drPlacementControl);
+      const deploymentClusterName = getPrimaryClusterName(drPlacementControl);
 
       const filteredManagedClusters = filterManagedClusterUsingDRClusters(
         drClusters,

@@ -10,10 +10,10 @@ import { ArgoApplicationSetKind } from '@odf/mco/types';
 import {
   findPlacementNameFromAppSet,
   findDRResourceUsingPlacement,
-  getLastAppDeploymentClusterName,
   findCluster,
   getReplicationHealth,
   getReplicationType,
+  getPrimaryClusterName,
 } from '@odf/mco/utils';
 import { getNamespace, getName } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
@@ -50,7 +50,7 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
       const drpc = drResource?.drPlacementControls?.[0];
       const drPolicy = drResource?.drPolicy;
       const status = drpc?.status?.phase as DRPCStatus;
-      const primaryClusterName = getLastAppDeploymentClusterName(drpc);
+      const primaryClusterName = getPrimaryClusterName(drpc);
       const targetCluster = findCluster(
         drResource.drClusters,
         primaryClusterName
