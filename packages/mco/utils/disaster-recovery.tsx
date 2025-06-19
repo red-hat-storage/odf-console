@@ -643,7 +643,11 @@ export const findDeploymentClusters = (
 export const getPrimaryClusterName = (
   drPlacementControl: DRPlacementControlKind
 ) => {
-  switch (drPlacementControl?.status.phase) {
+  if (!drPlacementControl?.status?.phase) {
+    return '';
+  }
+
+  switch (drPlacementControl.status.phase) {
     case DRPCStatus.FailedOver:
       return drPlacementControl.spec.failoverCluster;
     case DRPCStatus.Relocated:
