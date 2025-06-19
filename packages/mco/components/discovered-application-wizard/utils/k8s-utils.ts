@@ -17,6 +17,7 @@ import {
   ObjectMetadata,
   k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { IS_CG_ENABLED_ANNOTATION } from '../../../constants';
 import {
   EnrollDiscoveredApplicationState,
   ProtectionMethodType,
@@ -49,6 +50,7 @@ export const getDRPCKindObj = (props: {
   pvcLabelExpressions?: MatchExpression[];
   placementName: string;
   labels?: ObjectMetadata['labels'];
+  annotations?: ObjectMetadata['annotations'];
 }): DRPlacementControlKind => ({
   apiVersion: getAPIVersionForModel(DRPlacementControlModel),
   kind: DRPlacementControlModel.kind,
@@ -56,6 +58,7 @@ export const getDRPCKindObj = (props: {
     name: props.name,
     namespace: DISCOVERED_APP_NS,
     ...(props.labels && { labels: props.labels }),
+    ...(props.annotations && { annotations: props.annotations }),
   },
   spec: {
     preferredCluster: props.preferredCluster,
@@ -118,7 +121,12 @@ export const createPromise = (
 ): Promise<K8sResourceKind>[] => {
   const { namespace, configuration, replication } = state;
   const { clusterName, namespaces, name } = namespace;
-  const { protectionMethod, recipe, resourceLabels } = configuration;
+  const {
+    protectionMethod,
+    recipe,
+    resourceLabels,
+    isVolumeConsistencyEnabled,
+  } = configuration;
   const { recipeName, recipeNamespace, recipeParameters } = recipe;
   const { k8sResourceLabelExpressions, pvcLabelExpressions } = resourceLabels;
   const { drPolicy, k8sResourceReplicationInterval } = replication;
@@ -134,6 +142,13 @@ export const createPromise = (
       data: getPlacementKindObj(placementName),
     })
   );
+
+  let labels: ObjectMetadata['labels'];
+  const annotations = isVolumeConsistencyEnabled
+    ? {
+        [IS_CG_ENABLED_ANNOTATION]: 'true',
+      }
+    : undefined;
 
   promises.push(
     k8sCreate({
@@ -151,6 +166,8 @@ export const createPromise = (
         drPolicyName: getName(drPolicy),
         k8sResourceReplicationInterval,
         placementName,
+        labels,
+        annotations,
       }),
     })
   );

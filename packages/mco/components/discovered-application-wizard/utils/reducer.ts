@@ -22,6 +22,7 @@ export enum EnrollDiscoveredApplicationStateType {
   SET_POLICY = 'REPLICATION/SET_POLICY',
   SET_K8S_RESOURCE_REPLICATION_INTERVAL = 'REPLICATION/SET_K8S_RESOURCE_REPLICATION_INTERVAL',
   SET_NAME = 'NAMESPACE/SET_NAME',
+  SET_VOLUME_CONSISTENCY_ENABLED = 'CONFIGURATION/SET_VOLUME_CONSISTENCY_ENABLED',
 }
 
 export type EnrollDiscoveredApplicationState = {
@@ -34,6 +35,7 @@ export type EnrollDiscoveredApplicationState = {
     name: string;
   };
   configuration: {
+    isVolumeConsistencyEnabled?: boolean;
     // recipe CRD (or) normal K8s CR label based protection
     protectionMethod: ProtectionMethodType;
     recipe: {
@@ -67,6 +69,7 @@ export const initialState: EnrollDiscoveredApplicationState = {
     name: '',
   },
   configuration: {
+    isVolumeConsistencyEnabled: false,
     // Resource label as a default option
     protectionMethod: ProtectionMethodType.RESOURCE_LABEL,
     recipe: {
@@ -114,6 +117,10 @@ export type EnrollDiscoveredApplicationAction =
   | {
       type: EnrollDiscoveredApplicationStateType.SET_POLICY;
       payload: DRPolicyKind;
+    }
+  | {
+      type: EnrollDiscoveredApplicationStateType.SET_VOLUME_CONSISTENCY_ENABLED;
+      payload: boolean;
     }
   | {
       type: EnrollDiscoveredApplicationStateType.SET_RECIPE_PARAMETERS;
@@ -242,6 +249,15 @@ export const reducer: EnrollReducer = (state, action) => {
         namespace: {
           ...state.namespace,
           name: action.payload,
+        },
+      };
+    }
+    case EnrollDiscoveredApplicationStateType.SET_VOLUME_CONSISTENCY_ENABLED: {
+      return {
+        ...state,
+        configuration: {
+          ...state.configuration,
+          isVolumeConsistencyEnabled: action.payload,
         },
       };
     }
