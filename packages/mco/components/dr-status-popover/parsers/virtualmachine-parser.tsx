@@ -1,9 +1,5 @@
 import * as React from 'react';
-import {
-  DISCOVERED_APP_NS,
-  KUBE_INSTANCE_LABEL,
-  ODF_RESOURCE_TYPE_LABEL,
-} from '@odf/mco/constants';
+import { DISCOVERED_APP_NS, KUBE_INSTANCE_LABEL } from '@odf/mco/constants';
 import {
   getApplicationResourceObj,
   getApplicationSetResourceObj,
@@ -27,7 +23,6 @@ import {
   getLabel,
   getName,
   getNamespace,
-  VirtualMachineModel,
 } from '@odf/shared';
 import {
   K8sResourceCommon,
@@ -75,12 +70,6 @@ const DiscoveredHelper: React.FC<ParserHelperProps> = ({
   >(
     getDRPlacementControlResourceObj({
       namespace: DISCOVERED_APP_NS,
-      selector: {
-        matchLabels: {
-          // To optimize the VM DRPC watch
-          [ODF_RESOURCE_TYPE_LABEL]: VirtualMachineModel.kind.toLowerCase(),
-        },
-      },
     })
   );
 
