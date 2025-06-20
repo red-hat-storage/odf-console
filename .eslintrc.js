@@ -110,10 +110,7 @@ module.exports = {
         bundledDependencies: false,
       },
     ],
-    'jsx-a11y/anchor-is-valid': 'off',
-    'jsx-a11y/click-events-have-key-events': 'off',
-    'jsx-a11y/label-has-associated-control': 'off',
-    'jsx-a11y/no-static-element-interactions': 'off',
+    'jsx-a11y/label-has-associated-control': 'off', // Disabled due to false positives.
     'max-classes-per-file': 'off',
     'max-len': 'off',
     '@typescript-eslint/naming-convention': [
