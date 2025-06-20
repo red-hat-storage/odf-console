@@ -31,7 +31,7 @@ export const Label: React.SFC<LabelProps> = ({ kind, name, value, expand }) => {
         <span className="co-m-label__key" data-test="label-key">
           {name}
         </span>
-        {value && <span className="co-m-label__eq">=</span>}
+        {value && <span className="co-m-label__eq">{'='}</span>}
         {value && <span className="co-m-label__value">{value}</span>}
       </div>
     </Link>
