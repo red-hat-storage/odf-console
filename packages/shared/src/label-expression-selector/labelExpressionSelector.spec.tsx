@@ -99,7 +99,7 @@ describe('Label expression selector', () => {
     const errors = screen.getAllByText('Required');
     expect(errors).toHaveLength(2);
     expect(
-      screen.getByText('Expand to fix validation errors')
+      screen.getByText(/Expand to fix validation errors/i)
     ).toBeInTheDocument();
   });
 });
