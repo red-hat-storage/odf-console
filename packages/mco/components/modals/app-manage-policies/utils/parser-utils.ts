@@ -180,7 +180,10 @@ export const findDRPCUsingVM = (
 ): DRPlacementControlKind | undefined =>
   drpcs.find(
     (drpc) =>
-      getVMNamesFromRecipe(drpc.spec).includes(vmName) &&
+      (getVMNamesFromRecipe(drpc.spec).includes(vmName) ||
+        (
+          drpc.status?.resourceConditions?.resourceMeta?.protectedpvcs || []
+        ).some((pvc) => pvc.startsWith(vmName))) &&
       drpc.spec?.protectedNamespaces?.includes(vmNamespace) &&
       getPrimaryClusterName(drpc) === cluster
   );
