@@ -148,6 +148,7 @@ export const createStorageCluster = async (
     enableNFS,
     deployment,
     isRBDStorageClassDefault,
+    isVirtualizeStorageClassDefault,
     useExternalPostgres,
     externalPostgres,
   } = backingStorage;
@@ -175,6 +176,9 @@ export const createStorageCluster = async (
     deployment
   );
 
+  const shouldSetVirtualizeSCAsDefault =
+    deployment === DeploymentType.FULL && isVirtualizeStorageClassDefault;
+
   const networkConfiguration: OCSRequestData['networkConfiguration'] = _.omit(
     securityAndNetwork,
     ['kms', 'encryption']
@@ -195,6 +199,7 @@ export const createStorageCluster = async (
     isMCG,
     isNFSEnabled,
     shouldSetCephRBDAsDefault,
+    shouldSetVirtualizeSCAsDefault,
     storageClusterNamespace,
     enableNoobaaClientSideCerts: externalPostgres.tls.enableClientSideCerts,
     useExternalPostgres: useExternalPostgres,

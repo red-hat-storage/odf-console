@@ -25,7 +25,7 @@ import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
 import { DR_BASE_ROUTE, DISCOVERED_APP_NS } from '../../constants';
 import { getDRPlacementControlResourceObj } from '../../hooks';
 import { DRPlacementControlKind } from '../../types';
-import { getLastAppDeploymentClusterName, getDRPolicyName } from '../../utils';
+import { getDRPolicyName, getPrimaryClusterName } from '../../utils';
 import { DiscoveredParser as DRStatusPopover } from '../dr-status-popover/parsers';
 import {
   EmptyRowMessage,
@@ -140,7 +140,7 @@ const ProtectedAppsTableRow: React.FC<
           </Link>
         </Td>
         <Td dataLabel={columnNames[5]}>
-          {getLastAppDeploymentClusterName(application) || DASH}
+          {getPrimaryClusterName(application) || DASH}
         </Td>
         <Td isActionCell>
           <ActionsColumn

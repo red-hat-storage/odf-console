@@ -821,5 +821,48 @@
       "exact": true,
       "component": { "$codeRef": "storageConsumerCreate.default" }
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": [
+        "/k8s/ns/:ns/operators.coreos.com~v1alpha1~ClusterServiceVersion/:appName/local.storage.openshift.io~v1alpha1~LocalVolumeDiscovery/~new",
+        "k8s/ns/:ns/clusterserviceversions/:appName/local.storage.openshift.io~v1alpha1~LocalVolumeDiscovery/~new"
+      ],
+      "component": {
+        "$codeRef": "createLVD.CreateLocalVolumeDiscovery"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": [
+        "k8s/ns/:ns/operators.coreos.com~v1alpha1~ClusterServiceVersion/:appName/local.storage.openshift.io~v1alpha1~LocalVolumeSet/~new",
+        "k8s/ns/:ns/clusterserviceversions/:appName/local.storage.openshift.io~v1alpha1~LocalVolumeSet/~new"
+      ],
+      "component": {
+        "$codeRef": "createLVS.default"
+      }
+    }
+  },
+  {
+    "type": "console.tab/horizontalNav",
+    "properties": {
+      "model": {
+        "group": "",
+        "version": "v1",
+        "kind": "Node"
+      },
+      "page": {
+        "name": "Disks",
+        "href": "disks"
+      },
+      "component": {
+        "$codeRef": "diskListPage.default"
+      }
+    }
   }
 ]

@@ -10,9 +10,9 @@ import {
 import {
   getReplicationHealth,
   getReplicationType,
-  getLastAppDeploymentClusterName,
   findCluster,
   getDRPolicyName,
+  getPrimaryClusterName,
 } from '../../../utils';
 import { isCleanupPending } from '../../protected-applications/utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
@@ -34,8 +34,7 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
 
     const schedulingInterval = drPolicy?.spec?.schedulingInterval;
 
-    const primaryClusterName =
-      getLastAppDeploymentClusterName(drPlacementControl);
+    const primaryClusterName = getPrimaryClusterName(drPlacementControl);
     const targetCluster = findCluster(
       drPolicy.spec?.drClusters as K8sResourceCommon[],
       primaryClusterName

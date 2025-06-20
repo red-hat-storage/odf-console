@@ -18,6 +18,7 @@ import {
   GrayUnknownIcon,
   GreenCheckCircleIcon,
   RedExclamationCircleIcon,
+  RedExclamationTriangleIcon,
   StatusBox,
   StorageAutoScalerKind,
   StorageClassResourceKind,
@@ -92,6 +93,16 @@ const CapacityAutoscalingCurrentStatus: React.FC<
     case CapacityAutoscalingStatus.Failed:
       StatusIcon = RedExclamationCircleIcon;
       statusText = t('Failed');
+      if (error?.timestamp) {
+        statusText += `, ${getFormattedTime(error.timestamp)}`;
+      }
+      if (error?.message) {
+        statusText += `: ${error.message}`;
+      }
+      break;
+    case CapacityAutoscalingStatus.Invalid:
+      StatusIcon = RedExclamationTriangleIcon;
+      statusText = t('Invalid');
       if (error?.timestamp) {
         statusText += `, ${getFormattedTime(error.timestamp)}`;
       }
