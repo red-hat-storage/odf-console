@@ -184,9 +184,9 @@ const PolicyBody: React.FC<PolicyBodyProps> = ({
         )}
         emptyStateButton={t('Browse')}
         emptyStateLink={
-          <span onClick={onEdit}>
+          <Button variant={ButtonVariant.link} onClick={onEdit}>
             {t('Start from scratch or use predefined policy configuration')}
-          </span>
+          </Button>
         }
         onEditorDidMount={handleEditorDidMount}
         className="pf-v5-u-mt-sm pf-v5-u-mb-xl"

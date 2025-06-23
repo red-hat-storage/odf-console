@@ -1395,6 +1395,7 @@
   "Remove delete markers with no noncurrent versions.": "Remove delete markers with no noncurrent versions.",
   "Remove disaster recovery": "Remove disaster recovery",
   "Remove disaster recovery?": "Remove disaster recovery?",
+  "Remove tag": "Remove tag",
   "Remove Tier": "Remove Tier",
   "Remove unnecessary delete markers that clutter bucket listings and do not serve a purpose. Targets delete markers in versioned buckets that do not have any associated object versions (orphaned delete markers).": "Remove unnecessary delete markers that clutter bucket listings and do not serve a purpose. Targets delete markers in versioned buckets that do not have any associated object versions (orphaned delete markers).",
   "Replaying": "Replaying",

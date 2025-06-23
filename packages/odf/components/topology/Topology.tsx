@@ -38,6 +38,8 @@ import {
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom-v5-compat';
 import {
+  Button,
+  ButtonVariant,
   EmptyState,
   EmptyStateBody,
   EmptyStateIcon,
@@ -126,9 +128,14 @@ const MessageButton: React.FC = () => {
       <BlueInfoCircleIcon />{' '}
       {showMessage &&
         t('This view is not available for external mode cluster.')}{' '}
-      <a onClick={() => setShowMessage(!showMessage)}>
+      <Button
+        variant={ButtonVariant.link}
+        isInline
+        className="odf-topology__show-message-button"
+        onClick={() => setShowMessage(!showMessage)}
+      >
         {!showMessage ? t('Show message') : t('Hide message')}
-      </a>
+      </Button>
     </div>
   );
 };
@@ -136,9 +143,13 @@ const MessageButton: React.FC = () => {
 const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
   const { t } = useCustomTranslation();
   return (
-    <div className="odf-topology__back-button" onClick={onClick}>
+    <Button
+      variant={ButtonVariant.plain}
+      className="odf-topology__back-button"
+      onClick={onClick}
+    >
       <ArrowCircleLeftIcon /> {t('Back to main view')}
-    </div>
+    </Button>
   );
 };
 

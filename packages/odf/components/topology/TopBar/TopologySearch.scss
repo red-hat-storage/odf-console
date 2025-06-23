@@ -15,4 +15,7 @@
     &-search-bar__expand-icon {
         margin-right: var(--pf-v5-global--spacer--sm);
     }
+    &-search-bar__expand-button {
+      text-decoration: underline;
+    }
 }
