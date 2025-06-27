@@ -3,7 +3,9 @@ import {
   ResourceProfileRequirementsMap,
 } from '@odf/core/types';
 import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
+import { ODFStorageSystem } from '@odf/shared/models';
 import { Toleration, Taint } from '@odf/shared/types';
+import { referenceForModel } from '@odf/shared/utils';
 import { TFunction } from 'react-i18next';
 
 export const CEPH_BRAND_NAME = 'Red Hat Ceph Storage';
@@ -109,3 +111,7 @@ export enum TimeUnits {
   HOUR = 'Hour',
   MIN = 'Min',
 }
+
+export const CREATE_SS_PAGE_URL = `/odf/resource/${referenceForModel(
+  ODFStorageSystem
+)}/create/~new`;

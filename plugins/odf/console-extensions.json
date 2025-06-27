@@ -109,17 +109,6 @@
     }
   },
   {
-    "type": "console.resource/create",
-    "properties": {
-      "model": {
-        "group": "odf.openshift.io",
-        "version": "v1alpha1",
-        "kind": "StorageSystem"
-      },
-      "component": { "$codeRef": "wizard.RedirectStorageSystem" }
-    }
-  },
-  {
     "type": "console.page/route",
     "properties": {
       "exact": true,

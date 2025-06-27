@@ -7,20 +7,12 @@ import {
 import { DEFAULT_INFRASTRUCTURE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
-import {
-  InfrastructureModel,
-  NamespaceModel,
-  ODFStorageSystem,
-} from '@odf/shared/models';
+import { InfrastructureModel, NamespaceModel } from '@odf/shared/models';
 import { InfrastructureKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  getInfrastructurePlatform,
-  referenceForModel,
-} from '@odf/shared/utils';
+import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
 import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
-import { useNavigate, useLocation } from 'react-router-dom-v5-compat';
 import { Steps, StepsName } from '../../constants';
 import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
@@ -30,21 +22,6 @@ import { CreateStorageSystemFooter } from './footer';
 import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
 import './create-storage-system.scss';
-
-const CREATE_SS_PAGE_URL = `/odf/resource/${referenceForModel(
-  ODFStorageSystem
-)}/create/~new`;
-
-export const RedirectStorageSystem: React.FC<{}> = () => {
-  const navigate = useNavigate();
-  const { pathname: url } = useLocation();
-
-  if (url !== CREATE_SS_PAGE_URL) {
-    navigate(CREATE_SS_PAGE_URL, { replace: true });
-  }
-
-  return null;
-};
 
 const CreateStorageSystem: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
