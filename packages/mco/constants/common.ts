@@ -23,6 +23,3 @@ export const ADMIN_FLAG = 'ADMIN';
 export const DISCOVERED_APP_NS = 'openshift-dr-ops';
 
 export const NAME_NAMESPACE_SPLIT_CHAR = '/';
-
-// Console search optimization selector
-export const ODF_RESOURCE_TYPE_LABEL = 'odf.console.selector/resourcetype';

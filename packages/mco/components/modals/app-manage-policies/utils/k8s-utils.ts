@@ -13,7 +13,6 @@ import {
   PVC_RESOURCE_SELECTOR,
   PROTECTED_VMS,
   VM_RECIPE_NAME,
-  ODF_RESOURCE_TYPE_LABEL,
   K8S_RESOURCE_SELECTOR_LABEL_KEY,
   IS_CG_ENABLED_ANNOTATION,
 } from '@odf/mco/constants';
@@ -470,9 +469,6 @@ export const assignPromisesForDiscovered = async (
             [K8S_RESOURCE_SELECTOR]: [protectionName],
             [PVC_RESOURCE_SELECTOR]: [protectionName],
             [PROTECTED_VMS]: [vmName],
-          },
-          labels: {
-            [ODF_RESOURCE_TYPE_LABEL]: VirtualMachineModel.kind.toLowerCase(),
           },
           annotations,
         }),
