@@ -337,3 +337,6 @@ export const CAPACITY_TREND_QUERIES = (
   [StorageDashboardQuery.UPTIME_DAYS]: `delta(sum(timestamp(ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}))[${maxDays}:])`,
   [StorageDashboardQuery.RAW_CAPACITY_AVAILABLE]: `ceph_cluster_total_bytes{managedBy="${managedByOCS}"} - ceph_cluster_total_used_raw_bytes{managedBy="${managedByOCS}"}`,
 });
+
+export const resiliencyProgressQuery = (clusterName: string) =>
+  DATA_RESILIENCY_QUERY(clusterName)[StorageDashboardQuery.RESILIENCY_PROGRESS];

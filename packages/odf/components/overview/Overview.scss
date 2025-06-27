@@ -1,0 +1,23 @@
+@use '@odf/shared/style.scss' as shared;
+
+.odf-general-overview__grid {
+  padding-left: shared.$pf-v5-global-gutter;
+  padding-right: shared.$pf-v5-global-gutter;
+
+  @media(min-width: shared.$pf-v5-global--breakpoint--xl) {
+    padding-left: shared.$pf-v5-global-gutter--md;
+    padding-right: shared.$pf-v5-global-gutter--md;
+  }
+
+  .pf-v5-c-card {
+    border-radius: 15px;
+  }
+
+  .pf-v5-c-card__title-text {
+    font-size: var(--pf-v5-global--FontSize--lg);
+  }
+
+  .pf-v5-c-description-list {
+    --pf-v5-c-description-list__term--FontWeight: 500;
+  }
+}

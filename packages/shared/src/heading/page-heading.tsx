@@ -55,6 +55,7 @@ type PageHeadingProps = {
   resource?: K8sResourceKind;
   getResourceStatus?: (resource: K8sResourceKind) => string;
   centerText?: boolean;
+  hasUnderline?: boolean;
 };
 
 const PageHeading: React.FC<PageHeadingProps> = (props) => {
@@ -68,6 +69,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
     resource,
     getResourceStatus,
     centerText,
+    hasUnderline = true,
   } = props;
   const resourceTitle = title;
   const showBreadcrumbs = !!breadcrumbs;
@@ -83,7 +85,7 @@ const PageHeading: React.FC<PageHeadingProps> = (props) => {
       className={classNames(
         'odf-title',
         'odf-m-nav-title',
-        'odf-m-nav-title--detail',
+        hasUnderline && 'odf-m-nav-title--detail',
         { 'odf-m-nav-title--breadcrumbs': showBreadcrumbs },
         className
       )}

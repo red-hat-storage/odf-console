@@ -134,7 +134,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": ["/odf/external-system", "/odf/overview"],
+      "path": ["/odf/external-system"],
       "exact": true,
       "component": { "$codeRef": "emptyStorageClusterPage.default" }
     },
@@ -858,6 +858,17 @@
       "component": {
         "$codeRef": "diskListPage.default"
       }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/overview",
+      "exact": false,
+      "component": { "$codeRef": "overview.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
   }
 ]

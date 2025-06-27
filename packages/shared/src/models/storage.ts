@@ -50,3 +50,15 @@ export const CephClusterModel: K8sModel = {
   crd: true,
   id: 'cephcluster',
 };
+
+export const IBMFlashSystemModel: K8sModel = {
+  label: 'IBM Flash System',
+  labelPlural: 'IBM Flash Systems',
+  apiVersion: 'v1alpha1',
+  apiGroup: 'odf.ibm.com',
+  plural: 'flashsystemclusters',
+  abbr: 'FS',
+  namespaced: true,
+  kind: 'FlashSystemCluster',
+  crd: true,
+};

@@ -53,6 +53,7 @@
     "diskListPage": "@odf/core/components/lso/disks-list/disk-list-page",
     "emptyStorageClusterPage": "@odf/core/components/Sections/InitialEmptyStatePage",
     "storageClusterDashboard": "@odf/core/components/Sections/StorageClusterSection",
-    "objectStorageSection": "@odf/core/components/Sections/ObjectStorageSection"
+    "objectStorageSection": "@odf/core/components/Sections/ObjectStorageSection",
+    "overview": "@odf/core/components/overview/Overview"
   }
 }
