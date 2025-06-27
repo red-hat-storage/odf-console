@@ -76,11 +76,35 @@
     }
   },
   {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-cluster",
+      "insertBefore": "odfdashboard",
+      "section": "storage",
+      "name": "%plugin__odf-console~Storage Cluster%",
+      "href": "/odf/storage-cluster"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
     "type": "console.page/route",
     "properties": {
       "path": ["/odf/cluster", "/odf/systems"],
       "exact": false,
       "component": { "$codeRef": "dashboard.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/odf/storage-cluster"],
+      "exact": false,
+      "component": { "$codeRef": "emptyStorageClusterPage.default" }
     },
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]
