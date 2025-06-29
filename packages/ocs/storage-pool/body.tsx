@@ -374,24 +374,23 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
         <label className="control-label" htmlFor="compression-check">
           {t('Data compression')}
         </label>
-        <div className="checkbox">
-          <label className="ceph-block-pool-body__compression">
-            <input
-              type="checkbox"
-              onChange={(event) =>
-                dispatch({
-                  type: StoragePoolActionType.SET_POOL_COMPRESSED,
-                  payload: event.target.checked,
-                })
-              }
-              checked={state.isCompressed}
-              name="compression-check"
-              data-test="compression-checkbox"
-            />
-            {t(
-              'Optimize storage efficiency by enabling data compression within replicas.'
-            )}
-          </label>
+        <div className="checkbox ceph-block-pool-body__compression">
+          <input
+            type="checkbox"
+            onChange={(event) =>
+              dispatch({
+                type: StoragePoolActionType.SET_POOL_COMPRESSED,
+                payload: event.target.checked,
+              })
+            }
+            checked={state.isCompressed}
+            id="compression-check"
+            name="compression-check"
+            data-test="compression-checkbox"
+          />
+          {t(
+            'Optimize storage efficiency by enabling data compression within replicas.'
+          )}
         </div>
       </div>
       {state.isCompressed && (

@@ -293,12 +293,12 @@ const getCleanupMessage = (
   cluster: string,
   t: TFunction
 ) => {
-  return phase === DRPCStatus.FailingOver
+  return phase === DRPCStatus.FailedOver
     ? t('Clean up application resources on failed cluster {{cluster}}.', {
         cluster,
       })
     : t(
-        'Clean up application resources on the primary cluster {{cluster}} to start the relocation.',
+        'Clean up application resources on the primary cluster {{cluster}} to start relocating.',
         { cluster }
       );
 };
@@ -384,7 +384,7 @@ const getDRStatusDetails = ({
         t('Action needed'),
         getCleanupMessage(
           phase,
-          phase === DRPCStatus.FailingOver ? targetCluster : primaryCluster,
+          phase === DRPCStatus.FailedOver ? targetCluster : primaryCluster,
           t
         ),
         'dr-status-action-needed'

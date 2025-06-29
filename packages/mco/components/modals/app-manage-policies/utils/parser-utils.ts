@@ -15,7 +15,7 @@ import {
 } from '@odf/mco/types';
 import {
   convertExpressionToLabel,
-  getLastAppDeploymentClusterName,
+  getPrimaryClusterName,
   getReplicationType,
   isDRPolicyValidated,
   matchClusters,
@@ -182,5 +182,5 @@ export const findDRPCUsingVM = (
     (drpc) =>
       getVMNamesFromRecipe(drpc.spec).includes(vmName) &&
       drpc.spec?.protectedNamespaces?.includes(vmNamespace) &&
-      getLastAppDeploymentClusterName(drpc) === cluster
+      getPrimaryClusterName(drpc) === cluster
   );

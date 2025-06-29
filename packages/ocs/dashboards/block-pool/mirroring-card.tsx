@@ -4,11 +4,13 @@ import { CephBlockPoolRadosNamespaceModel } from '@odf/shared';
 import { healthStateMapping, HealthStateMappingValues } from '@odf/shared';
 import { getLatestDate } from '@odf/shared/details-page/datetime';
 import { getName, getNamespace } from '@odf/shared/selectors';
+import { GrayUnknownIcon } from '@odf/shared/status/icons';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   StatusIconAndText,
   useK8sWatchResource,
+  HealthState,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
@@ -41,20 +43,29 @@ import { getColor } from './states';
 import { ImageStateLegendMap, healthStateMessage } from './states';
 import './mirroring-card.scss';
 
+const defaultState = {
+  priority: -1,
+  health: HealthState.UNKNOWN,
+  icon: <GrayUnknownIcon title="Unknown" />,
+};
+
 const aggregateHealth = (
   poolObj: StoragePoolKind,
   radosNamespaces: CephBlockPoolRadosNamespaceKind[]
 ): HealthStateMappingValues[] => {
   let mirroringHealth: HealthStateMappingValues =
-    healthStateMapping[poolObj.status?.mirroringStatus?.summary?.health];
+    healthStateMapping[poolObj.status?.mirroringStatus?.summary?.health] ||
+    defaultState;
   let imageHealth: HealthStateMappingValues =
-    healthStateMapping[poolObj.status?.mirroringStatus?.summary?.image_health];
+    healthStateMapping[
+      poolObj.status?.mirroringStatus?.summary?.image_health
+    ] || defaultState;
   radosNamespaces.forEach((radosNamespace) => {
     // Mirroring health
     const radosNamespaceMirroringHealth: HealthStateMappingValues =
       healthStateMapping[
         radosNamespace.status?.mirroringStatus?.summary?.health
-      ];
+      ] || defaultState;
     if (!!radosNamespaceMirroringHealth) {
       mirroringHealth =
         mirroringHealth.priority > radosNamespaceMirroringHealth.priority
@@ -66,7 +77,7 @@ const aggregateHealth = (
     const radosNamespaceImageHealth: HealthStateMappingValues =
       healthStateMapping[
         radosNamespace.status?.mirroringStatus?.summary?.image_health
-      ];
+      ] || defaultState;
     if (!!radosNamespaceImageHealth) {
       imageHealth =
         imageHealth.priority > radosNamespaceImageHealth.priority

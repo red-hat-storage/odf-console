@@ -16,8 +16,9 @@ import {
   useK8sWatchResources,
   WatchK8sResults,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import { Checkbox, FormGroup, SelectOption } from '@patternfly/react-core';
+import { Checkbox, FormGroup } from '@patternfly/react-core';
 import { WizardState } from '../../reducer';
 
 type MultusWatchResourcesObject = {
@@ -217,6 +218,7 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
         label={t('Public Network Interface')}
       >
         <SingleSelectDropdown
+          id="multus-public-network-dropdown"
           onChange={onSelectPublicNetwork}
           selectOptions={selectOptions}
           selectedKey={publicNetworkUID}
@@ -231,6 +233,7 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
         label={t('Cluster Network Interface')}
       >
         <SingleSelectDropdown
+          id="multus-cluster-network-dropdown"
           onChange={onSelectClusterNetwork}
           selectOptions={selectOptions}
           selectedKey={clusterNetworkUID}

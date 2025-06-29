@@ -7,11 +7,7 @@ import {
 import { getStorageClusterInNs } from '@odf/core/utils';
 import HandleErrorAndLoading from '@odf/shared/error-handler/ErrorStateHandler';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import {
-  ClusterServiceVersionModel,
-  DeploymentModel,
-  NodeModel,
-} from '@odf/shared/models';
+import { DeploymentModel, NodeModel } from '@odf/shared/models';
 import { getName, getUID } from '@odf/shared/selectors';
 import { BlueInfoCircleIcon } from '@odf/shared/status';
 import {
@@ -23,14 +19,12 @@ import {
   TopologyViewLevel,
 } from '@odf/shared/topology';
 import {
-  ClusterServiceVersionKind,
   DeploymentKind,
   NodeKind,
   PodKind,
   StorageClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
   useK8sWatchResource,
@@ -38,6 +32,8 @@ import {
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom-v5-compat';
 import {
+  Button,
+  ButtonVariant,
   EmptyState,
   EmptyStateBody,
   EmptyStateIcon,
@@ -58,7 +54,7 @@ import {
   defaultControlButtonsOptions,
   createTopologyControlButtons,
 } from '@patternfly/react-topology';
-import { cephStorageLabel } from '../../constants';
+import { cephStorageLabel, CREATE_SS_PAGE_URL } from '../../constants';
 import {
   nodeResource,
   odfDaemonSetResource,
@@ -126,9 +122,14 @@ const MessageButton: React.FC = () => {
       <BlueInfoCircleIcon />{' '}
       {showMessage &&
         t('This view is not available for external mode cluster.')}{' '}
-      <a onClick={() => setShowMessage(!showMessage)}>
+      <Button
+        variant={ButtonVariant.link}
+        isInline
+        className="odf-topology__show-message-button"
+        onClick={() => setShowMessage(!showMessage)}
+      >
         {!showMessage ? t('Show message') : t('Hide message')}
-      </a>
+      </Button>
     </div>
   );
 };
@@ -136,9 +137,13 @@ const MessageButton: React.FC = () => {
 const BackButton: React.FC<BackButtonProps> = ({ onClick }) => {
   const { t } = useCustomTranslation();
   return (
-    <div className="odf-topology__back-button" onClick={onClick}>
+    <Button
+      variant={ButtonVariant.plain}
+      className="odf-topology__back-button"
+      onClick={onClick}
+    >
       <ArrowCircleLeftIcon /> {t('Back to main view')}
-    </div>
+    </Button>
   );
 };
 
@@ -641,23 +646,7 @@ const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
-
-  const [csv, csvLoaded, csvError] = useSafeK8sWatchResource<
-    ClusterServiceVersionKind[]
-  >((ns: string) => ({
-    kind: referenceForModel(ClusterServiceVersionModel),
-    isList: true,
-    namespace: ns,
-  }));
-
-  const odfCsvName: string =
-    csvLoaded && !csvError
-      ? csv?.find((item) => item?.metadata?.name?.includes('odf-operator'))
-          ?.metadata?.name
-      : null;
-
-  const createLink = `/k8s/ns/${odfNamespace}/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
+  const { isNsSafe } = useODFNamespaceSelector();
 
   // If external mode cluster exists, we do not allow internal mode cluster creation (in case of multiple StorageSystem support)
   const hideCreateSSOption = (isExternalMode && !isInternalMode) || !isNsSafe;
@@ -674,7 +663,7 @@ const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
           t('Set up a storage cluster to view the topology')}
       </EmptyStateBody>
       {!hideCreateSSOption && (
-        <Link to={createLink}>{t('Create StorageSystem')} </Link>
+        <Link to={CREATE_SS_PAGE_URL}>{t('Create StorageSystem')} </Link>
       )}
     </EmptyState>
   );

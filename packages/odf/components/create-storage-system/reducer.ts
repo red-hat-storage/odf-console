@@ -46,6 +46,7 @@ export const initialState: CreateStorageSystemState = {
     enableNFS: false,
     // using equality check on "null", do not make it "false" as default
     isRBDStorageClassDefault: null,
+    isVirtualizeStorageClassDefault: null,
     externalStorage: '',
     deployment: DeploymentType.FULL,
     useExternalPostgres: false,
@@ -125,6 +126,7 @@ type CreateStorageSystemState = {
     systemNamespace: string;
     enableNFS: boolean;
     isRBDStorageClassDefault: boolean | null;
+    isVirtualizeStorageClassDefault: boolean | null;
     externalStorage: string;
     deployment: DeploymentType;
     useExternalPostgres: boolean;
@@ -328,6 +330,9 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'backingStorage/setIsRBDStorageClassDefault':
       newState.backingStorage.isRBDStorageClassDefault = action.payload;
       break;
+    case 'backingStorage/setIsVirtualizeStorageClassDefault':
+      newState.backingStorage.isVirtualizeStorageClassDefault = action.payload;
+      break;
     case 'backingStorage/useExternalPostgres':
       newState.backingStorage.useExternalPostgres = action.payload;
       break;
@@ -482,6 +487,10 @@ export type CreateStorageSystemAction =
   | {
       type: 'backingStorage/setIsRBDStorageClassDefault';
       payload: WizardState['backingStorage']['isRBDStorageClassDefault'];
+    }
+  | {
+      type: 'backingStorage/setIsVirtualizeStorageClassDefault';
+      payload: WizardState['backingStorage']['isVirtualizeStorageClassDefault'];
     }
   | {
       type: 'backingStorage/setExternalStorage';
