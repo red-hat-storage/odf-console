@@ -17,9 +17,16 @@ import {
   WatchK8sResults,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { SelectOption } from '@patternfly/react-core/deprecated';
+import { flatMap } from 'lodash-es';
 import * as _ from 'lodash-es';
-import { Checkbox, FormGroup } from '@patternfly/react-core';
+import {
+  Alert,
+  AlertVariant,
+  Checkbox,
+  FormGroup,
+} from '@patternfly/react-core';
 import { WizardState } from '../../reducer';
+import './multus.scss';
 
 type MultusWatchResourcesObject = {
   multus: NetworkAttachmentDefinitionKind[];
@@ -52,6 +59,8 @@ type MultusNetworkConfigurationComponentProps = {
   clusterNetwork: NetworkAttachmentDefinitionKind;
   publicNetwork: NetworkAttachmentDefinitionKind;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  isMultusAcknowledged: boolean;
+  setIsMultusAcknowledged: (val: boolean) => void;
 };
 
 const reduceResourceLoadAndErrorStatus = <
@@ -80,35 +89,110 @@ export const MultusNetworkConfigurationComponent: React.FC<
   publicNetwork,
   networkType,
   systemNamespace,
+  isMultusAcknowledged,
+  setIsMultusAcknowledged,
 }) => {
   const { t } = useCustomTranslation();
+  const handleMultusToggle = (_event: any, checked: any) => {
+    setNetworkType(checked ? NetworkType.MULTUS : NetworkType.DEFAULT);
+    if (!checked) {
+      setIsMultusAcknowledged(false);
+    }
+  };
+
+  const handleAcknowledgementChange = (_event: any, checked: boolean) => {
+    setIsMultusAcknowledged(checked);
+  };
 
   return (
-    <>
-      <Checkbox
-        isChecked={networkType === NetworkType.MULTUS}
-        onChange={() =>
-          setNetworkType(
-            networkType === NetworkType.DEFAULT
-              ? NetworkType.MULTUS
-              : NetworkType.DEFAULT
-          )
-        }
-        label={t('Isolate network using Multus')}
-        description={t(
-          'Multus allows a network seperation between the data operations and the control plane operations.'
+    <div className="odf-multus-configuration">
+      {/* Network Section */}
+      <h2 className="odf-section-header">{t('Network')}</h2>
+      <Alert
+        data-test="odf-default-network-alert"
+        className="odf-alert odf-mb-md"
+        title={t('Data Foundation will use the default pod network')}
+        variant={AlertVariant.info}
+        isInline
+      >
+        {t(
+          'If you require a custom network configuration, you can modify the network settings after deployment.'
         )}
-        id="multus-checkbox"
-      />
-      {networkType === NetworkType.MULTUS && (
-        <MultusDropdown
-          setNetwork={setNetwork}
-          clusterNetwork={clusterNetwork}
-          publicNetwork={publicNetwork}
-          systemNamespace={systemNamespace}
+      </Alert>
+
+      {/* Isolate Network Section */}
+      <h2 className="odf-section-header odf-mt-lg">{t('Isolate Network')}</h2>
+      <div className="odf-indented-section">
+        <Checkbox
+          isChecked={networkType === NetworkType.MULTUS}
+          onChange={handleMultusToggle}
+          label={t('Isolate network using Multus')}
+          description={t(
+            'Multus allows a network separation between the data operations and the control plane operations.'
+          )}
+          id="multus-checkbox"
+          className="odf-mb-md"
         />
-      )}
-    </>
+
+        {networkType === NetworkType.MULTUS && (
+          <>
+            <div className="odf-multus-indent pf-v5-u-mt-md">
+              <Alert
+                variant={AlertVariant.warning}
+                isInline
+                title={t(
+                  'This will isolate network to attach additional clusters as external clients. Run Validation test before to proceed further.'
+                )}
+              >
+                <p>
+                  {t(
+                    'Set up Multus by following relevant steps in KCS. Incorrectly setting up Multus might lead to:'
+                  )}
+                </p>
+                <ul>
+                  <li>
+                    {t(
+                      'Data unavailability or loss due to broken internal communication'
+                    )}
+                  </li>
+                  <li>
+                    {t(
+                      'Cluster health issues if network attachments are misconfigured'
+                    )}
+                  </li>
+                  <li>
+                    {t('PVC mounting failures for ODF-dependent workloads')}
+                  </li>
+                </ul>
+              </Alert>
+            </div>
+
+            <div className="odf-multus-indent">
+              <Checkbox
+                isChecked={isMultusAcknowledged}
+                label={t(
+                  'By checking this box, you acknowledge running the validation test'
+                )}
+                onChange={handleAcknowledgementChange}
+                id="acknowledgment-checkbox"
+                className="odf-mb-md"
+              />
+            </div>
+
+            {isMultusAcknowledged && (
+              <div className="odf-indented-section">
+                <MultusDropdown
+                  setNetwork={setNetwork}
+                  clusterNetwork={clusterNetwork}
+                  publicNetwork={publicNetwork}
+                  systemNamespace={systemNamespace}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -154,7 +238,7 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
       });
 
     if (resourcesLoaded && !resourcesLoadError) {
-      const devices = _.flatMap(
+      const devices = flatMap(
         Object.values(networkResources),
         (res) => res.data
       );
