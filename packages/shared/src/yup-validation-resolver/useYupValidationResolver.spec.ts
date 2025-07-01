@@ -49,10 +49,10 @@ describe('useYupValidationResolver tests', () => {
           messages: {
             ['Required']: {
               field: 'name',
-              type: 'required',
+              type: 'optionality',
             },
           },
-          type: 'required',
+          type: 'optionality',
         },
       },
     };
