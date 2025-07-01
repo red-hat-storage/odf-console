@@ -44,7 +44,7 @@ export const providerSchema = (shouldValidateSecret: boolean) =>
     }),
     'pvc-name': Yup.object().when('provider-name', {
       is: StoreProviders.FILESYSTEM,
-      then: (schema: Yup.SchemaOf<PersistentVolumeClaimKind>) =>
+      then: (schema: Yup.ObjectSchema<PersistentVolumeClaimKind>) =>
         schema.required(),
     }),
     'folder-name': Yup.string().when('provider-name', {

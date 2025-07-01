@@ -45,7 +45,7 @@
     "sass": "^1.89.0",
     "typescript": "^5.8.3",
     "victory-core": "^37.3.6",
-    "yup": "^0.32.11"
+    "yup": "^1.6.1"
   },
   "peerDependencies": {
     "@openshift-console/dynamic-plugin-sdk": "1.8.0",
