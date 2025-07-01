@@ -19,7 +19,7 @@ const resolveLocale = (dirName: string, ns: string) =>
 const NODE_ENV = (process.env.NODE_ENV ||
   'development') as webpack.Configuration['mode'];
 const PLUGIN = process.env.PLUGIN;
-const OPENSHIFT_CI = process.env.OPENSHIFT_CI;
+//const OPENSHIFT_CI = process.env.OPENSHIFT_CI;
 const IS_PRODUCTION = NODE_ENV === 'production';
 
 if (PLUGIN === undefined) {
@@ -85,19 +85,6 @@ const config: webpack.Configuration & DevServerConfiguration = {
         exclude: /(build|dist)/, // Ignore shared build folder.
         use: [
           { loader: 'cache-loader' },
-          {
-            loader: 'thread-loader',
-            options: {
-              ...(!IS_PRODUCTION
-                ? { poolTimeout: Infinity, poolRespawn: false }
-                : OPENSHIFT_CI
-                  ? {
-                      workers: 4,
-                      workerNodeArgs: ['--max-old-space-size=1024'],
-                    }
-                  : {}),
-            },
-          },
           { loader: 'style-loader' },
           {
             loader: 'css-loader',
