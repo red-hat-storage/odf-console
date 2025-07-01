@@ -22,6 +22,9 @@ import {
   GetBucketCorsCommand,
   PutBucketCorsCommand,
   DeleteBucketCorsCommand,
+  GetBucketPolicyStatusCommand,
+  GetPublicAccessBlockCommand,
+  PutPublicAccessBlockCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -50,6 +53,9 @@ import {
   GetBucketCors,
   PutBucketCors,
   DeleteBucketCors,
+  GetBucketPolicyStatus,
+  GetPublicAccessBlock,
+  PutPublicAccessBlock,
 } from './types';
 
 export class S3Commands extends S3Client {
@@ -117,6 +123,15 @@ export class S3Commands extends S3Client {
 
   deleteBucketCors: DeleteBucketCors = (input) =>
     this.send(new DeleteBucketCorsCommand(input));
+
+  getBucketPolicyStatus: GetBucketPolicyStatus = (input) =>
+    this.send(new GetBucketPolicyStatusCommand(input));
+
+  getPublicAccessBlock: GetPublicAccessBlock = (input) =>
+    this.send(new GetPublicAccessBlockCommand(input));
+
+  putPublicAccessBlock: PutPublicAccessBlock = (input) =>
+    this.send(new PutPublicAccessBlockCommand(input));
 
   // Object command members
   listObjects: ListObjectsV2 = (input) =>

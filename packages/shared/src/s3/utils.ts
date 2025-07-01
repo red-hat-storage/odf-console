@@ -12,6 +12,9 @@ import { TFunction } from 'react-i18next';
 export const isNoLifecycleRuleError = (error) =>
   error?.name === 'NoSuchLifecycleConfiguration';
 
+export const isNoPabError = (error) =>
+  error?.name === 'NoSuchPublicAccessBlockConfiguration';
+
 export const getProxyPath = () =>
   isClientPlugin() ? CLIENT_S3_PROXY_PATH : ODF_S3_PROXY_PATH;
 
