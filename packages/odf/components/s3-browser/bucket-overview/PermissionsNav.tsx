@@ -4,12 +4,18 @@ import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
 import { PERMISSIONS_ROUTE } from '../../../constants';
 import { BucketPolicy } from '../bucket-policy/BucketPolicy';
 import { CORSRulesList } from '../cors-rules-list/CORSRulesList';
+import { PublicAccessBlock } from '../public-access-block/PublicAccessBlock';
 
 const PermissionsNav = ({ obj }) => {
   const { t } = useCustomTranslation();
 
   const pages: TabPage[] = React.useMemo(
     () => [
+      {
+        href: 'blockpublicaccess',
+        title: t('Block public access'),
+        component: PublicAccessBlock,
+      },
       {
         href: 'policy',
         title: t('Bucket policy'),
