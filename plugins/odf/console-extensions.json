@@ -76,11 +76,66 @@
     }
   },
   {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-overview",
+      "insertBefore": "odfdashboard",
+      "section": "storage",
+      "name": "%plugin__odf-console~Overview%",
+      "href": "/odf/overview"
+    },
+    "flags": {
+      "required": ["ODF_MODEL"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-cluster",
+      "insertAfter": "storage-overview",
+      "section": "storage",
+      "name": "%plugin__odf-console~Storage Cluster%",
+      "href": "/odf/storage-cluster"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-object",
+      "insertAfter": "storage-overview",
+      "section": "storage",
+      "name": "%plugin__odf-console~Obejct Storage%",
+      "href": "/odf/mcg"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
     "type": "console.page/route",
     "properties": {
       "path": ["/odf/cluster", "/odf/systems"],
       "exact": false,
       "component": { "$codeRef": "dashboard.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": [
+        "/odf/storage-cluster",
+        "/odf/mcg",
+        "/odf/external-system",
+        "/odf/overview"
+      ],
+      "exact": false,
+      "component": { "$codeRef": "emptyStorageClusterPage.default" }
     },
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]

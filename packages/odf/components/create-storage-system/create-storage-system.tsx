@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { DeploymentType } from '@odf/core/types';
 import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   isStorageClassWizardStep,
@@ -13,7 +14,8 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
 import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
-import { Steps, StepsName } from '../../constants';
+import { useNavigate, useLocation } from 'react-router-dom-v5-compat';
+import { CREATE_SS_PAGE_URL, Steps, StepsName } from '../../constants';
 import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
 import { BackingStorage } from './create-storage-system-steps';
@@ -23,12 +25,45 @@ import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
 import './create-storage-system.scss';
 
+const convertModeToDeploymentType = (mode: string): DeploymentType => {
+  switch (mode) {
+    case 'storage-cluster':
+      return DeploymentType.FULL;
+    case 'mcg':
+      return DeploymentType.MCG;
+  }
+};
+
+export const RedirectStorageSystem: React.FC<{}> = () => {
+  const navigate = useNavigate();
+  const { pathname: url } = useLocation();
+
+  if (url !== CREATE_SS_PAGE_URL) {
+    navigate(CREATE_SS_PAGE_URL, { replace: true });
+  }
+
+  return null;
+};
+
 const CreateStorageSystem: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const [state, dispatch] = React.useReducer<WizardReducer>(
     reducer,
     initialState
   );
+  const location = useLocation();
+
+  React.useEffect(() => {
+    // To set up deployment type based the URL
+    const urlParams = new URLSearchParams(location.search);
+    const mode = urlParams.get('mode');
+    if (mode) {
+      dispatch({
+        type: 'backingStorage/setDeployment',
+        payload: convertModeToDeploymentType(mode),
+      });
+    }
+  }, [location.search]);
 
   const [infra, infraLoaded, infraLoadError] = useK8sGet<InfrastructureKind>(
     InfrastructureModel,
