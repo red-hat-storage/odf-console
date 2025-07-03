@@ -1,3 +1,4 @@
+import { isExternalCluster } from '@odf/core/utils';
 import {
   K8sModel,
   K8sResourceKind,
@@ -94,7 +95,9 @@ export const useWatchStorageSystems = (): [
   const loaded = odfClusters.loaded && flashSystemClusters.loaded;
   // Flashsystem loaderror can occur when IBM flashsystem operator is not installed hence ignore it
   const loadError = odfClusters.loadError;
-  const storageClusters: StorageClusterKind[] = odfClusters.data;
+  const storageClusters: StorageClusterKind[] = odfClusters.data.filter(
+    (storagecluster) => isExternalCluster(storagecluster)
+  );
   const storageSystems: StorageSystemKind[] =
     odfClusters?.loaded && !odfClusters.loadError
       ? storageClusters?.map(mapStorageClusterToStorageSystem)

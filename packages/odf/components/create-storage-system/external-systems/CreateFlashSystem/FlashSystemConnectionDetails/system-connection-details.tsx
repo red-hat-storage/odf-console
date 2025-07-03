@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { useSafeK8sList } from '@odf/core/hooks';
+import { DeployDataFoundationModal } from '@odf/core/modals/ConfigureDF/DeployDataFoundationModal';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   CreatePayload,
-  StorageClassComponentProps as ExternalComponentProps,
   CanGoToNextStep,
   WaitToCreate,
 } from '@odf/odf-plugin-sdk/extensions';
+import { PageHeading } from '@odf/shared';
 import { FormGroupController } from '@odf/shared/form-group-controller';
 import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import { SecretModel, CustomResourceDefinitionModel } from '@odf/shared/models';
@@ -14,10 +15,18 @@ import { getName, getNamespace } from '@odf/shared/selectors';
 import { SecretKind, K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getAPIVersionForModel, isValidIP } from '@odf/shared/utils';
-import { k8sGet } from '@openshift-console/dynamic-plugin-sdk';
+import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
+import {
+  k8sCreate,
+  k8sGet,
+  K8sModel,
+  useModal,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { Select, SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
+import { useForm } from 'react-hook-form';
 import { TFunction } from 'react-i18next';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import * as Yup from 'yup';
 import {
   FormGroup,
@@ -26,6 +35,11 @@ import {
   Button,
   Tooltip,
   InputGroupItem,
+  Form,
+  Alert,
+  AlertVariant,
+  ButtonVariant,
+  ActionGroup,
 } from '@patternfly/react-core';
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
 import { IBMFlashSystemModel } from './system-models';
@@ -57,12 +71,23 @@ const VOLUME_MODES_TEXT = (t: TFunction) => [
 const volumeModeObject = (t: TFunction) =>
   _.zipObject(VOLUME_MODES_TEXT(t), VOLUME_MODES_VALUES);
 
-export const FlashSystemConnectionDetails: React.FC<
-  ExternalComponentProps<FlashSystemState>
-> = ({ setFormState, formState, control }) => {
+export const FlashSystemConnectionDetails: React.FC = () => {
   const { t } = useCustomTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
   const [reveal, setReveal] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState(null);
+  const { odfNamespace } = useODFNamespaceSelector();
+  const navigate = useNavigate();
+  const launchModal = useModal();
+  // Internal form state
+  const [formState, setFormState] = React.useState<FlashSystemState>({
+    endpoint: '',
+    username: '',
+    password: '',
+    poolname: '',
+    volmode: 'thick',
+  });
 
   const onToggle = () => setIsOpen(!isOpen);
 
@@ -72,130 +97,192 @@ export const FlashSystemConnectionDetails: React.FC<
   const onModeSelect = (event, value) => {
     event.preventDefault();
     const volumeMode = volumeMapper[value];
-    setFormState('volmode', volumeMode);
+    setFormState((prev) => ({ ...prev, volmode: volumeMode }));
     setIsOpen(!isOpen);
+  };
+
+  const updateFormField = (field: keyof FlashSystemState, value: string) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Set up form validation schema
+  const schema = useFlashSystemSchema();
+  const resolver = useYupValidationResolver(schema);
+
+  const { control } = useForm({
+    resolver,
+    mode: 'onChange',
+  });
+
+  const onSubmit = async () => {
+    setIsLoading(true);
+    const payload = createFlashSystemPayload({
+      systemName: 'flash-cluster',
+      state: formState,
+      namespace: odfNamespace,
+      storageClassName: 'flash-storage',
+    });
+    const promises = payload.map((p) =>
+      k8sCreate({ model: p.model as K8sModel, data: p.payload })
+    );
+    try {
+      await Promise.all(promises);
+      launchModal(DeployDataFoundationModal, {} as any);
+    } catch (e) {
+      setError(e?.message ?? JSON.stringify(e));
+    }
+    setIsLoading(false);
   };
 
   return (
     <>
-      <FormGroupController
-        control={control}
-        name="endpoint-input"
-        formGroupProps={{
-          label: t('IP address'),
-          fieldId: 'endpoint-input',
-          isRequired: true,
-          helperText: t('Rest API IP address of IBM FlashSystem.'),
-        }}
-        render={({ value, onChange, onBlur }) => (
-          <TextInput
-            id="endpoint-input"
-            type="text"
-            value={value}
-            onChange={(_event, newValue: string) => {
-              onChange(newValue);
-              setFormState('endpoint', newValue);
-            }}
-            onBlur={onBlur}
-            isRequired
-          />
+      <PageHeading title={t('Connect IBM FlashSystem')}>
+        {t(
+          'Connect to IBM FlashSystem to power Data Foundation with fast, reliable block storage optimized for eterprise performance,'
         )}
-      />
-      <FormGroupController
-        name="username-input"
-        control={control}
-        formGroupProps={{
-          label: t('Username'),
-          isRequired: true,
-          fieldId: 'username-input',
-        }}
-        render={({ onChange, onBlur }) => (
-          <TextInput
-            id="username-input"
-            value={formState.username}
-            type="text"
-            onChange={(_event, value: string) => {
-              onChange(value);
-              setFormState('username', value);
+      </PageHeading>
+      <div className="odf-m-pane__body">
+        <Form isWidthLimited>
+          <FormGroupController
+            control={control}
+            name="endpoint-input"
+            formGroupProps={{
+              label: t('IP address'),
+              fieldId: 'endpoint-input',
+              isRequired: true,
+              helperText: t('Rest API IP address of IBM FlashSystem.'),
             }}
-            onBlur={onBlur}
-            isRequired
-          />
-        )}
-      />
-      <FormGroupController
-        name="password-input"
-        control={control}
-        formGroupProps={{
-          label: t('Password'),
-          isRequired: true,
-          fieldId: 'password-input',
-        }}
-        render={({ onChange, onBlur }) => (
-          <InputGroup>
-            <InputGroupItem isFill>
+            render={({ value, onChange, onBlur }) => (
               <TextInput
-                id="password-input"
-                value={formState.password}
-                type={reveal ? 'text' : 'password'}
-                onChange={(_event, value: string) => {
-                  onChange(value);
-                  setFormState('password', value);
+                id="endpoint-input"
+                type="text"
+                value={value}
+                onChange={(_event, newValue: string) => {
+                  onChange(newValue);
+                  updateFormField('endpoint', newValue);
                 }}
                 onBlur={onBlur}
                 isRequired
               />
-            </InputGroupItem>
-            <InputGroupItem>
-              <Tooltip
-                content={reveal ? t('Hide password') : t('Reveal password')}
-              >
-                <Button variant="control" onClick={() => setReveal(!reveal)}>
-                  {reveal ? <EyeSlashIcon /> : <EyeIcon />}
-                </Button>
-              </Tooltip>
-            </InputGroupItem>
-          </InputGroup>
-        )}
-      />
-
-      <FormGroupController
-        name="poolname-input"
-        control={control}
-        formGroupProps={{
-          label: t('Pool name'),
-          isRequired: true,
-          fieldId: 'poolname-input',
-        }}
-        render={({ onChange, onBlur }) => (
-          <TextInput
-            id="poolname-input"
-            value={formState.poolname}
-            type="text"
-            onChange={(_event, value: string) => {
-              onChange(value);
-              setFormState('poolname', value);
-            }}
-            onBlur={onBlur}
-            isRequired
+            )}
           />
-        )}
-      />
-      <FormGroup label={t('Volume mode')} fieldId="volume-mode-input">
-        <Select
-          onSelect={onModeSelect}
-          id="volume-mode-input"
-          selections={inverseVolumeMapper[formState.volmode]}
-          onToggle={onToggle}
-          isOpen={isOpen}
-          isDisabled={false}
-          placeholderText={Object.keys(volumeMapper)[0]}
-        >
-          {Object.keys(volumeMapper).map((mode) => (
-            <SelectOption key={mode} value={mode} />
-          ))}
-        </Select>
-      </FormGroup>
+          <FormGroupController
+            name="username-input"
+            control={control}
+            formGroupProps={{
+              label: t('Username'),
+              isRequired: true,
+              fieldId: 'username-input',
+            }}
+            render={({ value, onChange, onBlur }) => (
+              <TextInput
+                id="username-input"
+                value={value}
+                type="text"
+                onChange={(_event, newValue: string) => {
+                  onChange(newValue);
+                  updateFormField('username', newValue);
+                }}
+                onBlur={onBlur}
+                isRequired
+              />
+            )}
+          />
+          <FormGroupController
+            name="password-input"
+            control={control}
+            formGroupProps={{
+              label: t('Password'),
+              isRequired: true,
+              fieldId: 'password-input',
+            }}
+            render={({ value, onChange, onBlur }) => (
+              <InputGroup>
+                <InputGroupItem isFill>
+                  <TextInput
+                    id="password-input"
+                    value={value}
+                    type={reveal ? 'text' : 'password'}
+                    onChange={(_event, newValue: string) => {
+                      onChange(newValue);
+                      updateFormField('password', newValue);
+                    }}
+                    onBlur={onBlur}
+                    isRequired
+                  />
+                </InputGroupItem>
+                <InputGroupItem>
+                  <Tooltip
+                    content={reveal ? t('Hide password') : t('Reveal password')}
+                  >
+                    <Button
+                      variant="control"
+                      onClick={() => setReveal(!reveal)}
+                    >
+                      {reveal ? <EyeSlashIcon /> : <EyeIcon />}
+                    </Button>
+                  </Tooltip>
+                </InputGroupItem>
+              </InputGroup>
+            )}
+          />
+
+          <FormGroupController
+            name="poolname-input"
+            control={control}
+            formGroupProps={{
+              label: t('Pool name'),
+              isRequired: true,
+              fieldId: 'poolname-input',
+            }}
+            render={({ value, onChange, onBlur }) => (
+              <TextInput
+                id="poolname-input"
+                value={value}
+                type="text"
+                onChange={(_event, newValue: string) => {
+                  onChange(newValue);
+                  updateFormField('poolname', newValue);
+                }}
+                onBlur={onBlur}
+                isRequired
+              />
+            )}
+          />
+          <FormGroup label={t('Volume mode')} fieldId="volume-mode-input">
+            <Select
+              onSelect={onModeSelect}
+              id="volume-mode-input"
+              selections={inverseVolumeMapper[formState.volmode]}
+              onToggle={onToggle}
+              isOpen={isOpen}
+              isDisabled={false}
+              placeholderText={Object.keys(volumeMapper)[0]}
+            >
+              {Object.keys(volumeMapper).map((mode) => (
+                <SelectOption key={mode} value={mode} />
+              ))}
+            </Select>
+          </FormGroup>
+          {error && (
+            <Alert variant={AlertVariant.danger} isInline title={error} />
+          )}
+          <ActionGroup>
+            <Button
+              isLoading={isLoading}
+              spinnerAriaLabel={t('Connecting')}
+              onClick={onSubmit}
+              variant={ButtonVariant.primary}
+              isDisabled={isLoading}
+            >
+              {isLoading ? t('Connecting') : t('Connect')}
+            </Button>
+            <Button onClick={() => navigate(-1)} variant={ButtonVariant.link}>
+              {t('Cancel')}
+            </Button>
+          </ActionGroup>
+        </Form>
+      </div>
     </>
   );
 };
@@ -254,7 +341,6 @@ export const useFlashSystemSchema = (): Yup.ObjectSchema<{}> => {
 export const createFlashSystemPayload: CreatePayload<FlashSystemState> = ({
   systemName,
   state,
-  model,
   namespace,
   storageClassName,
 }) => {
@@ -287,7 +373,7 @@ export const createFlashSystemPayload: CreatePayload<FlashSystemState> = ({
   };
 
   const flashSystemPayload = {
-    model,
+    model: IBMFlashSystemModel,
     payload: IBMFlashSystemTemplate,
   };
 

@@ -99,6 +99,19 @@
   {
     "type": "console.navigation/href",
     "properties": {
+      "id": "external-systems",
+      "insertAfter": "storage-cluster",
+      "section": "storage",
+      "name": "%plugin__odf-console~External systems%",
+      "href": "/odf/external-systems"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
       "id": "storage-object",
       "insertAfter": "storage-cluster",
       "section": "storage",
@@ -134,9 +147,9 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": ["/odf/external-system", "/odf/overview"],
-      "exact": true,
-      "component": { "$codeRef": "emptyStorageClusterPage.default" }
+      "path": ["/odf/external-systems"],
+      "exact": false,
+      "component": { "$codeRef": "externalSystemsSection.default" }
     },
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]
@@ -500,31 +513,6 @@
     }
   },
   {
-    "type": "odf.wizard/storageclass",
-    "properties": {
-      "displayName": "IBM FlashSystem Storage",
-      "model": {
-        "apiGroup": "odf.ibm.com",
-        "apiVersion": "v1alpha1",
-        "kind": "FlashSystemCluster",
-        "plural": "flashsystemclusters"
-      },
-      "component": {
-        "$codeRef": "ibmStorage.FlashSystemConnectionDetails"
-      },
-      "schemaHandler": {
-        "$codeRef": "ibmStorage.useFlashSystemSchema"
-      },
-      "createPayload": {
-        "$codeRef": "ibmStorage.createFlashSystemPayload"
-      },
-      "canGoToNextStep": {
-        "$codeRef": "ibmStorage.flashSystemCanGoToNextStep"
-      },
-      "waitToCreate": { "$codeRef": "ibmStorage.waitforCRD" }
-    }
-  },
-  {
     "type": "console.page/route",
     "properties": {
       "path": ["/odf/object-storage"],
@@ -858,6 +846,41 @@
       "component": {
         "$codeRef": "diskListPage.default"
       }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/odf/external-systems/ceph/~create"],
+      "exact": true,
+      "component": { "$codeRef": "rhcsCreate.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/odf/external-systems/flash/~create"],
+      "exact": true,
+      "component": { "$codeRef": "flashCreate.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": [
+        "/odf/external-systems/ocs.openshift.io~v1~storagecluster/:systemName"
+      ],
+      "exact": false,
+      "component": { "$codeRef": "rhcsDashboard.ExternalSystemDashboard" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
   }
 ]
