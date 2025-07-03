@@ -21,7 +21,6 @@ import { humanizeBinaryBytesWithNegatives, parser } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import { Trans } from 'react-i18next';
-import { useParams } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,
@@ -39,7 +38,7 @@ import {
   CEPH_CAPACITY_BREAKDOWN_QUERIES,
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
-import { ODFSystemParams } from '../../../types';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 const calculateDaysUp = (timespan: number): number | null => {
   const daysPassed: number = timespan / (60 * 60 * 24);
@@ -92,7 +91,9 @@ const CapacityTrendCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { systemFlags } = useODFSystemFlagsSelector();
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const ocsCluster = systemFlags[clusterNs]?.ocsClusterName;
 
   const [configData, configLoaded, configLoadError] =

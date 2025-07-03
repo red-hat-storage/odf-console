@@ -31,7 +31,7 @@ import {
   useFlag,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link, useParams } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,
@@ -39,9 +39,9 @@ import {
   CardTitle,
   DescriptionList,
 } from '@patternfly/react-core';
-import { ODFSystemParams } from '../../../types';
-import './details-card.scss';
 import EncryptionPopover from '../../common/details-card/encryption-popover';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
+import './details-card.scss';
 
 const NOOBAA_SYSTEM_NAME_QUERY = 'NooBaa_system_info';
 const NOOBAA_DASHBOARD_LINK_QUERY = 'NooBaa_system_links';
@@ -90,7 +90,9 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
     ? t('Data Foundation')
     : t('OpenShift Container Storage');
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
   const hasRGW = systemFlags[clusterNs]?.isRGWAvailable;
   const hasMCG = systemFlags[clusterNs]?.isNoobaaAvailable;

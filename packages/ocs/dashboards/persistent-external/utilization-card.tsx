@@ -8,19 +8,20 @@ import {
   UtilizationDurationDropdown,
   UtilizationBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { useStorageClassQueryFilter } from '../../hooks';
 import {
   StorageDashboardQuery,
   INDEPENDENT_UTILIZATION_QUERIES,
 } from '../../queries';
-import { ODFSystemParams } from '../../types';
+import { OCSDashboardContext } from '../ocs-dashboard-providers';
 
 export const UtilizationContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
 
   const [scQueryfilter, scQueryfilterLoaded, scQueryfilterError] =
     useStorageClassQueryFilter(clusterNs);

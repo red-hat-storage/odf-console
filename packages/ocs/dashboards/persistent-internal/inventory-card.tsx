@@ -20,14 +20,13 @@ import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
 import { ResourceInventoryItem } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { ODFSystemParams } from '../../types';
 import {
   getCephNodes,
   filterCephPVCsByCluster,
   filterCephPVsByCluster,
 } from '../../utils/common';
+import { OCSDashboardContext } from '../ocs-dashboard-providers';
 
 const watchResources = {
   nodes: {
@@ -50,7 +49,9 @@ const watchResources = {
 const InventoryCard: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
 
   const resources = useK8sWatchResources(watchResources);
 
