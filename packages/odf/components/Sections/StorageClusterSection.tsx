@@ -1,12 +1,10 @@
 import * as React from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
-import {
-  isCapacityAutoScalingAllowed,
-  isExternalCluster,
-} from '@odf/core/utils';
+import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
 import {
   OCSDashboardContext,
   OCSDashboardDispatchContext,
+  useOCSDashboardContextSetter,
 } from '@odf/ocs/dashboards/ocs-dashboard-providers';
 import OCSSystemDashboard from '@odf/ocs/dashboards/ocs-system-dashboard';
 import {
@@ -29,7 +27,6 @@ import {
   isCSVSucceeded,
   referenceForModel,
 } from '@odf/shared/utils';
-import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import InitialEmptyStatePage from './InitialEmptyStatePage';
 
@@ -39,13 +36,22 @@ const storageClusterActions =
     storageCluster: StorageClusterKind,
     infrastructure: InfrastructureKind,
     isLSOInstalled: boolean,
-    isExternalMode: boolean
+    isExternalMode: boolean,
+    isFDF?: boolean,
+    hasMultipleStorageClusters?: boolean
   ) =>
   () => {
     const resourceProfile = storageCluster?.spec?.resourceProfile;
     const customKebabItems: CustomKebabItem[] = isExternalMode
       ? []
       : [
+          !isFDF && !hasMultipleStorageClusters
+            ? {
+                key: 'ADD_EXTERNAL_CLUSTER',
+                value: t('Add external cluster'),
+                redirect: '/odf/external-systems/ceph/~create',
+              }
+            : null,
           {
             key: 'ADD_CAPACITY',
             value: t('Add Capacity'),
@@ -106,51 +112,14 @@ const storageClusterActions =
   };
 
 const StorageClusterSection: React.FC = () => {
-  const [storageClusters] = useK8sWatchResource<StorageClusterKind[]>({
-    groupVersionKind: {
-      group: StorageClusterModel.apiGroup,
-      version: StorageClusterModel.apiVersion,
-      kind: StorageClusterModel.kind,
-    },
-    isList: true,
-  });
-
   const { t } = useCustomTranslation();
 
-  const noStorageClusters = storageClusters?.length === 0;
-
-  const [selectedCluster, setSelectedCluster] = React.useState({
-    clusterName: '',
-    clusterNamespace: '',
-    isExternalMode: false,
-  });
-  React.useEffect(() => {
-    if (storageClusters?.length > 0) {
-      setSelectedCluster({
-        clusterName: storageClusters[0].metadata.name,
-        clusterNamespace: storageClusters[0].metadata.namespace,
-        isExternalMode: isExternalCluster(storageClusters[0]),
-      });
-    }
-  }, [selectedCluster.clusterName, storageClusters]);
-
-  const switchStorageCluster = React.useCallback(() => {
-    if (storageClusters?.length > 1) {
-      const currentIndex = storageClusters.findIndex(
-        (cluster) => getName(cluster) === selectedCluster.clusterName
-      );
-      const nextIndex = (currentIndex + 1) % storageClusters.length;
-      const nextCluster = storageClusters[nextIndex];
-      setSelectedCluster({
-        clusterName: getName(nextCluster),
-        clusterNamespace: getNamespace(nextCluster),
-        isExternalMode: isExternalCluster(nextCluster),
-      });
-    }
-  }, [storageClusters, selectedCluster]);
-
-  const hasMultipleStorageClusters = storageClusters?.length > 1;
-
+  const {
+    selectedCluster,
+    hasMultipleStorageClusters,
+    switchStorageCluster,
+    currentStorageCluster,
+  } = useOCSDashboardContextSetter();
   const [lsoCSV, lsoCSVLoaded, lsoCSVLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,
   });
@@ -158,15 +127,12 @@ const StorageClusterSection: React.FC = () => {
     InfrastructureModel,
     DEFAULT_INFRASTRUCTURE
   );
-  const currentStorageCluster = storageClusters?.find(
-    (cluster) => getName(cluster) === selectedCluster.clusterName
-  );
 
   const isLSOInstalled =
     lsoCSVLoaded && !lsoCSVLoadError && isCSVSucceeded(lsoCSV);
 
-  const isExternalMode = isExternalCluster(currentStorageCluster);
-
+  const isExternalMode = selectedCluster.isExternalMode;
+  const noStorageClusters = selectedCluster.clusterName === '';
   return noStorageClusters || selectedCluster.clusterName === '' ? (
     <InitialEmptyStatePage />
   ) : (

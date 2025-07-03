@@ -2,7 +2,7 @@
 
 export type RHCSState = {
   fileData: string;
-  errorMessage: boolean;
+  errorMessage: string;
   isLoading: boolean;
   fileName: string;
 };

@@ -60,7 +60,6 @@ export type StorageClassComponentProps<S = ExternalState> = {
 export type CreatePayload<S = ExternalState> = (payloadOptions: {
   systemName: string;
   state: S;
-  model: Model;
   namespace: string;
   storageClassName?: string;
   inTransitStatus?: boolean;
