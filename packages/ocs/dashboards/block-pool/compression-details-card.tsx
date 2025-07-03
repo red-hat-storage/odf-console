@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { getNamespace } from '@odf/shared';
 import { EfficiencyItemBody } from '@odf/shared/dashboards/storage-efficiency/storage-efficiency-card-item';
 import {
   useCustomPrometheusPoll,
@@ -13,7 +14,6 @@ import {
   humanizePercentage,
   getGaugeValue,
 } from '@odf/shared/utils';
-import { useParams } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,
@@ -22,7 +22,6 @@ import {
   DescriptionList,
 } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
-import { ODFSystemParams } from '../../types';
 import { getPerPoolMetrics, PoolMetrics } from '../../utils';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
@@ -30,7 +29,7 @@ export const CompressionDetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const clusterNs = getNamespace(obj as any);
   const { systemFlags } = useODFSystemFlagsSelector();
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 

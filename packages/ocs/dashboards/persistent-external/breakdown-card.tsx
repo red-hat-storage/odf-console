@@ -17,12 +17,11 @@ import {
   sortInstantVectorStats,
 } from '@odf/shared/utils';
 import { Select, SelectProps } from '@patternfly/react-core/deprecated';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { useStorageClassQueryFilter } from '../../hooks';
 import { getBreakdownMetricsQuery } from '../../queries';
-import { ODFSystemParams } from '../../types';
 import { getStackChartStats } from '../../utils/metrics';
+import { OCSDashboardContext } from '../ocs-dashboard-providers';
 import {
   NamespaceDropdown,
   DescriptionText,
@@ -38,7 +37,9 @@ export const BreakdownCard: React.FC = () => {
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const [pvcNamespace, setPVCNamespace] = React.useState('');
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { odfNamespace } = useODFNamespaceSelector();
 
   const [scQueryfilter, scQueryfilterLoaded, scQueryfilterError] =

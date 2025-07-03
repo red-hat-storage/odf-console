@@ -26,7 +26,6 @@ import {
 } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { Select, SelectProps } from '@patternfly/react-core/deprecated';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { useStorageClassQueryFilter } from '../../../hooks';
 import {
@@ -34,9 +33,9 @@ import {
   CEPH_CAPACITY_BREAKDOWN_QUERIES,
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
-import { ODFSystemParams } from '../../../types';
 import { getStackChartStats } from '../../../utils/metrics';
 import './capacity-breakdown-card.scss';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 const modelByUsedQueryMap = {
   [BreakdownCardFields.PROJECTS]: StorageDashboardQuery.PROJECTS_BY_USED,
@@ -130,7 +129,9 @@ const BreakdownCard: React.FC = () => {
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const [pvcNamespace, setPVCNamespace] = React.useState('');
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
 
   // name of the created StorageClasses are prefix by StorageCluster name,

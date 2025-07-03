@@ -6,7 +6,6 @@ import { K8sResourceKind, CephClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { HealthItem } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useParams } from 'react-router-dom-v5-compat';
 import {
   GalleryItem,
   Gallery,
@@ -15,7 +14,7 @@ import {
   CardBody,
   CardTitle,
 } from '@patternfly/react-core';
-import { ODFSystemParams } from '../../types';
+import { OCSDashboardContext } from '../ocs-dashboard-providers';
 import '../../style.scss';
 
 export const StatusCard: React.FC = () => {
@@ -23,7 +22,9 @@ export const StatusCard: React.FC = () => {
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
 
   const cephHealth = getCephHealthState(
     {

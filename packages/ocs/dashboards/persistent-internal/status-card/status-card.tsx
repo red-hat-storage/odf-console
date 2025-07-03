@@ -27,7 +27,6 @@ import {
   HealthItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
-import { useParams } from 'react-router-dom-v5-compat';
 import {
   Gallery,
   GalleryItem,
@@ -39,7 +38,7 @@ import {
   CardTitle,
 } from '@patternfly/react-core';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
-import { ODFSystemParams } from '../../../types';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import { getDataResiliencyState } from './utils';
 import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
 import '../../../style.scss';
@@ -136,8 +135,10 @@ export const StatusCard: React.FC = () => {
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { systemFlags } = useODFSystemFlagsSelector();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 
   const [resiliencyProgress, resiliencyProgressError] = useCustomPrometheusPoll(
