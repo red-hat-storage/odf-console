@@ -2,7 +2,6 @@ import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getCephBlockPoolResource } from '@odf/core/resources';
 import { CephBlockPoolModel, CephFileSystemModel } from '@odf/shared';
-import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -26,7 +25,6 @@ import {
   ListPageFilter,
   ListPageHeader,
   RowProps,
-  StatusIconAndText,
   TableColumn,
   TableData,
   useActiveColumns,
@@ -39,13 +37,9 @@ import {
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
 import { Link, useLocation, useParams } from 'react-router-dom-v5-compat';
-import { Tooltip } from '@patternfly/react-core';
+import { Tooltip, Label } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { PoolType } from '../constants';
-import {
-  MirroringImageHealthMap,
-  healthStateMessage,
-} from '../dashboards/block-pool/states';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
 import {
   StoragePoolKind,
@@ -62,6 +56,13 @@ import {
   getStoragePoolsFromFilesystem,
   getStoragePoolsFromBlockPools,
 } from '../utils';
+import {
+  getPoolUtilizationPercentage,
+  getPoolUtilizationState,
+  PoolUtilizationState,
+} from '../utils/pool-utilization';
+import { PoolUtilizationPopover } from './PoolUtilizationPopover';
+import { PoolUtilizationStatus } from './PoolUtilizationStatus';
 import { PopoverHelper } from './popover-helper';
 
 const tableColumnInfo = [
@@ -87,32 +88,16 @@ const tableColumnInfo = [
     id: 'volumeType',
   },
   {
-    className: classNames(
-      'pf-m-hidden',
-      'pf-m-visible-on-lg',
-      'pf-v5-u-w-8-on-2xl'
-    ),
-    id: 'replicas',
-  },
-  {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
-    id: 'usedCapacity',
-  },
-  {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
     id: 'mirroringStatus',
   },
   {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
-    id: 'overallImageHealth',
-  },
-  {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
-    id: 'compressionStatus',
+    id: 'volumeMode',
   },
   {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
-    id: 'compressionSavings',
+    id: 'usedOfMaxAvailable',
   },
   { className: Kebab.columnClass, id: '' },
 ];
@@ -162,7 +147,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('Replicas'),
+        title: t('Mirroring status'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[4].className,
@@ -170,7 +155,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[4].id,
       },
       {
-        title: t('Used capacity'),
+        title: t('Volume mode'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[5].className,
@@ -178,7 +163,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[5].id,
       },
       {
-        title: t('Mirroring status'),
+        title: t('Used of max available'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[6].className,
@@ -186,32 +171,11 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[6].id,
       },
       {
-        title: t('Overall image health'),
+        title: '',
         props: {
           className: tableColumnInfo[7].className,
         },
         id: tableColumnInfo[7].id,
-      },
-      {
-        title: t('Compression status'),
-        props: {
-          className: tableColumnInfo[8].className,
-        },
-        id: tableColumnInfo[8].id,
-      },
-      {
-        title: t('Compression savings'),
-        props: {
-          className: tableColumnInfo[9].className,
-        },
-        id: tableColumnInfo[9].id,
-      },
-      {
-        title: '',
-        props: {
-          className: tableColumnInfo[10].className,
-        },
-        id: tableColumnInfo[10].id,
       },
     ],
     [t]
@@ -237,10 +201,10 @@ type CustomData = {
   poolRawCapacity: {
     [poolName: string]: string | number;
   };
-  poolCompressionSavings: {
+  poolMaxAvailableCapacity: {
     [poolName: string]: string | number;
   };
-  poolMirroringImageHealth: {
+  poolUtilization: {
     [poolName: string]: string | number;
   };
   storageClasses: StorageClassResourceKind[];
@@ -260,10 +224,9 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
 
   const {
     poolRawCapacity,
-    poolCompressionSavings,
+    poolUtilization,
     storageClasses,
     listPagePath,
-    poolMirroringImageHealth,
   }: CustomData = rowData;
 
   const poolType = obj.type;
@@ -271,15 +234,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
     poolType === PoolType.FILESYSTEM
       ? [ModalKeys.EDIT_LABELS, ModalKeys.EDIT_ANN]
       : [];
-  const replica = obj.spec?.replicated?.size;
   const mirroringStatus: boolean = obj.spec?.mirroring?.enabled;
-  const imageHealth =
-    healthStateMapping?.[
-      MirroringImageHealthMap?.[poolMirroringImageHealth?.[name]]
-    ];
-  const compressionMode = obj.spec?.compressionMode;
-  const isCompressionEnabled: boolean =
-    !!compressionMode && compressionMode !== 'none';
   const phase = obj?.status?.phase;
 
   const poolScNames: string[] = React.useMemo(
@@ -290,13 +245,21 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
   // Details page link
   const to = `${listPagePath}/${name}`;
 
-  // {poolRawCapacity: {"pool-1" : size_bytes, "pool-2" : size_bytes, ...}}
-  const rawCapacity: string = poolRawCapacity?.[name]
-    ? humanizeBinaryBytes(poolRawCapacity?.[name])?.string
-    : '-';
-  const compressionSavings: string = poolCompressionSavings?.[name]
-    ? humanizeBinaryBytes(poolCompressionSavings?.[name])?.string
-    : '-';
+  // Calculate used capacity (show used only, not "used of max available")
+  const usedCapacity = poolRawCapacity?.[name]
+    ? humanizeBinaryBytes(poolRawCapacity?.[name])
+    : null;
+
+  const usedCapacityDisplay = usedCapacity ? usedCapacity.string : '-';
+
+  // Get pool utilization percentage and state
+  const utilizationPercentage = getPoolUtilizationPercentage(
+    poolUtilization,
+    name
+  );
+  const utilizationInfo = getPoolUtilizationState(utilizationPercentage, t);
+  const poolNeedsAttention =
+    utilizationInfo.state !== PoolUtilizationState.NORMAL;
 
   return (
     <>
@@ -321,7 +284,22 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
         )}
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        <Status status={phase} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {poolNeedsAttention ? (
+            <PoolUtilizationPopover
+              utilizationPercentage={utilizationPercentage}
+              poolType={poolType}
+              poolName={name}
+            >
+              <Status status={phase} />
+            </PoolUtilizationPopover>
+          ) : (
+            <Status status={phase} />
+          )}
+          <PoolUtilizationStatus
+            utilizationPercentage={utilizationPercentage}
+          />
+        </div>
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
         <PopoverHelper
@@ -334,29 +312,20 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
         {poolType}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-        <span data-test={`${name}-replicas`}>{replica}</span>
-      </TableData>
-      <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
-        {rawCapacity}
-      </TableData>
-      <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
         {mirroringStatus ? t('Enabled') : t('Disabled')}
       </TableData>
+      <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
+        <Label
+          variant="filled"
+          color={poolType === PoolType.BLOCK ? 'blue' : 'green'}
+        >
+          {poolType === PoolType.BLOCK ? t('Block') : t('Filesystem')}
+        </Label>
+      </TableData>
+      <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
+        {usedCapacityDisplay}
+      </TableData>
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
-        <StatusIconAndText
-          title={healthStateMessage(imageHealth?.health, t)}
-          icon={imageHealth?.icon}
-        />
-      </TableData>
-      <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
-        <span data-test={`${name}-compression`}>
-          {isCompressionEnabled ? t('Enabled') : t('Disabled')}
-        </span>
-      </TableData>
-      <TableData {...tableColumnInfo[9]} activeColumnIDs={activeColumnIDs}>
-        {isCompressionEnabled ? compressionSavings : '-'}
-      </TableData>
-      <TableData {...tableColumnInfo[10]} activeColumnIDs={activeColumnIDs}>
         {isDefaultPool(obj) ? (
           <Tooltip
             content={t('Default pool cannot be deleted.')}
@@ -528,14 +497,14 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
       )
     );
 
-  const [compressionSavings, compressionLoadError, compressionLoading] =
+  const [maxAvailableCapacityData, maxAvailableLoadError, maxAvailableLoading] =
     useCustomPrometheusPoll(
       getValidPrometheusPollObj(
         {
           endpoint: 'api/v1/query' as any,
           query: getPoolQuery(
             poolNames,
-            StorageDashboardQuery.POOL_COMPRESSION_SAVINGS,
+            StorageDashboardQuery.POOL_MAX_CAPACITY_AVAILABLE,
             clusterName
           ),
           basePath: usePrometheusBasePath(),
@@ -545,16 +514,16 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
     );
 
   const [
-    poolMirroringImageMetrics,
-    poolMirroringImageLoadError,
-    poolMirroringImageLoading,
+    poolUtilizationData,
+    poolUtilizationLoadError,
+    poolUtilizationLoading,
   ] = useCustomPrometheusPoll(
     getValidPrometheusPollObj(
       {
         endpoint: 'api/v1/query' as any,
         query: getPoolQuery(
           poolNames,
-          StorageDashboardQuery.POOL_MIRRORING_IMAGE_HEALTH,
+          StorageDashboardQuery.POOL_UTILIZATION_PERCENTAGE,
           clusterName
         ),
         basePath: usePrometheusBasePath(),
@@ -569,38 +538,42 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
       rawCapLoadError,
       rawCapLoading
     );
-    const poolCompressionSavings: PoolMetrics = getPerPoolMetrics(
-      compressionSavings,
-      compressionLoadError,
-      compressionLoading
+    const poolMaxAvailableCapacity: PoolMetrics = getPerPoolMetrics(
+      maxAvailableCapacityData,
+      maxAvailableLoadError,
+      maxAvailableLoading
     );
-    const poolMirroringImageHealth: PoolMetrics = getPerPoolMetrics(
-      poolMirroringImageMetrics,
-      poolMirroringImageLoadError,
-      poolMirroringImageLoading
+    const poolUtilization: PoolMetrics = getPerPoolMetrics(
+      poolUtilizationData,
+      poolUtilizationLoadError,
+      poolUtilizationLoading
     );
     return {
       storageClasses: storageClasses ?? [],
       poolRawCapacity,
-      poolCompressionSavings,
+      poolMaxAvailableCapacity,
+      poolUtilization,
       listPagePath,
-      poolMirroringImageHealth,
     };
   }, [
-    compressionLoadError,
-    compressionLoading,
-    compressionSavings,
     storageClasses,
     poolRawCapacityMetrics,
     rawCapLoadError,
     rawCapLoading,
+    maxAvailableCapacityData,
+    maxAvailableLoadError,
+    maxAvailableLoading,
+    poolUtilizationData,
+    poolUtilizationLoadError,
+    poolUtilizationLoading,
     listPagePath,
-    poolMirroringImageMetrics,
-    poolMirroringImageLoadError,
-    poolMirroringImageLoading,
   ]);
 
-  const error = loadError || compressionLoadError || rawCapLoadError;
+  const error =
+    loadError ||
+    rawCapLoadError ||
+    maxAvailableLoadError ||
+    poolUtilizationLoadError;
 
   const [data, filteredData, onFilterChange] = useListPageFilter(storagePools);
 
