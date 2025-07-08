@@ -85,8 +85,8 @@ const config: webpack.Configuration & DevServerConfiguration = {
         ],
         exclude: /(build|dist)/, // Ignore shared build folder.
         use: [
-          MiniCssExtractPlugin.loader,
           { loader: 'cache-loader' },
+          { loader: MiniCssExtractPlugin.loader },
           {
             loader: 'css-loader',
             options: {
