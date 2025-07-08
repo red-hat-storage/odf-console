@@ -6,6 +6,7 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInstantVectorStats } from '@odf/shared/utils';
+import { POOL_FULL_THRESHOLD, POOL_NEAR_FULL_THRESHOLD } from '../../constants';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
 import {
   CapacityCard,
@@ -67,6 +68,8 @@ export const RawCapacityCard: React.FC = () => {
     description,
     loading,
     loadError,
+    warningThreshold: POOL_NEAR_FULL_THRESHOLD / 100,
+    dangerThreshold: POOL_FULL_THRESHOLD / 100,
   };
 
   return <CapacityCard {...props} />;
