@@ -61,6 +61,44 @@ export const getPerPoolMetrics = (metrics, error, isLoading) =>
       )
     : {};
 
+export const parseCombinedPoolMetrics = (metrics, error, isLoading) => {
+  if (error || isLoading || !metrics?.data?.result) {
+    return {
+      utilization: {},
+      bytesUsed: {},
+      availRaw: {},
+    };
+  }
+
+  const result = {
+    utilization: {},
+    bytesUsed: {},
+    availRaw: {},
+  };
+
+  metrics.data.result.forEach((item) => {
+    const poolName = item.metric?.name;
+    const metricType = item.metric?.metric_name;
+    const value = parseFloat(item.value[1]);
+
+    if (poolName && metricType) {
+      switch (metricType) {
+        case 'utilization_percentage':
+          result.utilization[poolName] = value;
+          break;
+        case 'bytes_used':
+          result.bytesUsed[poolName] = value;
+          break;
+        case 'avail_raw':
+          result.availRaw[poolName] = value;
+          break;
+      }
+    }
+  });
+
+  return result;
+};
+
 export const isDefaultPool = (pool: StoragePool): boolean => {
   if (pool?.type === PoolType.FILESYSTEM) {
     return pool?.metadata?.name === `${pool?.fsName}-${POOL_FS_DEFAULT}`;

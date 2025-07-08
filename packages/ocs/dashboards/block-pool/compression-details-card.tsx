@@ -22,7 +22,8 @@ import {
   DescriptionList,
 } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
-import { getPerPoolMetrics, PoolMetrics } from '../../utils';
+import { PoolMetrics } from '../../types';
+import { getPerPoolMetrics } from '../../utils';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
 export const CompressionDetailsCard: React.FC = () => {
