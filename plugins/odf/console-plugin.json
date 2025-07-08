@@ -52,6 +52,7 @@
     "storageConsumerCreate": "@odf/core/components/storage-consumers/CreateStorageConsumer",
     "createLVD": "@odf/core/components/lso/local-volume-discovery/create-lvd",
     "createLVS": "@odf/core/components/lso/local-volume-set/create-lvs",
-    "diskListPage": "@odf/core/components/lso/disks-list/disk-list-page"
+    "diskListPage": "@odf/core/components/lso/disks-list/disk-list-page",
+    "testHack": "@odf/core/hack"
   }
 }

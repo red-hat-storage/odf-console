@@ -1,5 +1,26 @@
 [
   {
+    "type": "console.flag/hookProvider",
+    "properties": {
+      "handler": {
+        "$codeRef": "testHack.useDisableAndBoldOnFind"
+      }
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "hacktest",
+      "insertBefore": "persistentvolumes",
+      "section": "storage",
+      "name": "%plugin__odf-console~HACK TEST%",
+      "href": "/",
+      "dataAttributes": {
+        "data-test-odf": "data-test-odf"
+      }
+    }
+  },
+  {
     "type": "console.flag",
     "properties": {
       "handler": {
