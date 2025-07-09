@@ -54,6 +54,7 @@ export enum StorageDashboardQuery {
   UPTIME_DAYS = 'UPTIME_DAYS',
   RAW_CAPACITY_AVAILABLE = 'RAW_CAPACITY_AVAILABLE',
   POOL_MIRRORING_IMAGE_HEALTH = 'POOL_MIRRORING_IMAGE_HEALTH',
+  POOL_UTILIZATION_PERCENTAGE = 'POOL_UTILIZATION_PERCENTAGE',
 }
 
 // ToDo (epic 4422): This should work (for now) as "managedBy" will be unique,
@@ -267,6 +268,7 @@ export const getPoolQuery = (
     [StorageDashboardQuery.POOL_COMPRESSION_ELIGIBILITY]: `(((ceph_pool_compress_under_bytes{managedBy='${managedByOCS}'} > 0) / ceph_pool_stored_raw{managedBy='${managedByOCS}'}) * 100) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}',managedBy='${managedByOCS}'}`,
     [StorageDashboardQuery.POOL_COMPRESSION_RATIO]: `((ceph_pool_compress_under_bytes{managedBy='${managedByOCS}'} / ceph_pool_compress_bytes_used{managedBy='${managedByOCS}'} > 0) and on(pool_id) (((ceph_pool_compress_under_bytes{managedBy='${managedByOCS}'} > 0) / ceph_pool_stored_raw{managedBy='${managedByOCS}'}) * 100 > 0.5)) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}',managedBy='${managedByOCS}'}`,
     [StorageDashboardQuery.POOL_MIRRORING_IMAGE_HEALTH]: `max by (namespace, managedBy, rados_namespace, name) (ocs_pool_mirroring_image_health{managedBy='${managedByOCS}', name=~'${names}'}) * on (namespace, managedBy, rados_namespace, name) group_left () (max by (namespace, managedBy, rados_namespace, name) (ocs_pool_mirroring_status{managedBy='${managedByOCS}', name=~'${names}'}))`,
+    [StorageDashboardQuery.POOL_UTILIZATION_PERCENTAGE]: `((ceph_pool_bytes_used{managedBy='${managedByOCS}'} / (ceph_pool_bytes_used{managedBy='${managedByOCS}'} + ceph_pool_avail_raw{managedBy='${managedByOCS}'})) * 100) * on (pool_id) group_left(name)ceph_pool_metadata{name=~'${names}',managedBy='${managedByOCS}'}`,
   };
   return queries[queryName];
 };
