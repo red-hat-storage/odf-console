@@ -18,7 +18,12 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import { Checkbox, FormGroup } from '@patternfly/react-core';
+import {
+  Alert,
+  AlertVariant,
+  Checkbox,
+  FormGroup,
+} from '@patternfly/react-core';
 import { WizardState } from '../../reducer';
 
 type MultusWatchResourcesObject = {
@@ -52,6 +57,8 @@ type MultusNetworkConfigurationComponentProps = {
   clusterNetwork: NetworkAttachmentDefinitionKind;
   publicNetwork: NetworkAttachmentDefinitionKind;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  isMultusAcknowledged: boolean;
+  setIsMultusAcknowledged: (val: boolean) => void;
 };
 
 const reduceResourceLoadAndErrorStatus = <
@@ -80,27 +87,94 @@ export const MultusNetworkConfigurationComponent: React.FC<
   publicNetwork,
   networkType,
   systemNamespace,
+  isMultusAcknowledged,
+  setIsMultusAcknowledged,
 }) => {
   const { t } = useCustomTranslation();
 
+  const handleMultusToggle = (_event: any, checked: any) => {
+    if (checked) {
+      setNetworkType(NetworkType.MULTUS);
+    } else {
+      setNetworkType(NetworkType.DEFAULT);
+      setIsMultusAcknowledged(false);
+    }
+  };
+
+  const handleAcknowledgementChange = (_event: any, checked: boolean) => {
+    setIsMultusAcknowledged(checked);
+  };
+
   return (
     <>
-      <Checkbox
-        isChecked={networkType === NetworkType.MULTUS}
-        onChange={() =>
-          setNetworkType(
-            networkType === NetworkType.DEFAULT
-              ? NetworkType.MULTUS
-              : NetworkType.DEFAULT
-          )
-        }
-        label={t('Isolate network using Multus')}
-        description={t(
-          'Multus allows a network seperation between the data operations and the control plane operations.'
+      <FormGroup fieldId="network-alert">
+        <Alert
+          data-test="odf-default-network-alert"
+          title={t('Data Foundation will use the default pod network')}
+          variant={AlertVariant.info}
+          isInline
+        >
+          {t(
+            'If you require a custom network configuration, you can modify the network settings after deployment.'
+          )}
+        </Alert>
+      </FormGroup>
+      <FormGroup fieldId="isoloate-network" label={t('Isolate Network')}>
+        <Checkbox
+          isChecked={networkType === NetworkType.MULTUS}
+          onChange={handleMultusToggle}
+          label={t('Isolate network using Multus')}
+          id="multus-checkbox"
+          className="pf-v5-u-mb-md"
+        />
+
+        {networkType === NetworkType.MULTUS && (
+          <>
+            <Alert
+              className="pf-v5-u-ml-md"
+              variant={AlertVariant.warning}
+              isInline
+              title={t(
+                'This will isolate network to attach additional clusters as external clients. Run Validation test before to proceed further.'
+              )}
+            >
+              <p>
+                {t(
+                  'Set up Multus by following relevant steps in KCS. Incorrectly setting up Multus might lead to:'
+                )}
+              </p>
+              <ul>
+                <li>
+                  {t(
+                    'Data unavailability or loss due to broken internal communication'
+                  )}
+                </li>
+                <li>
+                  {t(
+                    'Cluster health issues if network attachments are misconfigured'
+                  )}
+                </li>
+                <li>
+                  {t(
+                    'PVC mounting failures for Data Foundation dependent workloads'
+                  )}
+                </li>
+              </ul>
+            </Alert>
+
+            <Checkbox
+              isChecked={isMultusAcknowledged}
+              label={t(
+                'By checking this box, you acknowledge running the validation test'
+              )}
+              onChange={handleAcknowledgementChange}
+              id="acknowledgment-checkbox"
+              className="pf-v5-u-ml-md"
+            />
+          </>
         )}
-        id="multus-checkbox"
-      />
-      {networkType === NetworkType.MULTUS && (
+      </FormGroup>
+      {isMultusAcknowledged && (
         <MultusDropdown
           setNetwork={setNetwork}
           clusterNetwork={clusterNetwork}
