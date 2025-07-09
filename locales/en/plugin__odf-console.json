@@ -588,6 +588,7 @@
   "Data Foundation does not support HDD disk type in internal mode. You are trying to install an unsupported cluster by choosing HDDs as the local devices. To continue installation, select a supported disk type with internal mode.": "Data Foundation does not support HDD disk type in internal mode. You are trying to install an unsupported cluster by choosing HDDs as the local devices. To continue installation, select a supported disk type with internal mode.",
   "Data Foundation does not support HDD disks as local devices. Select SSD if you plan to use Data Foundation.": "Data Foundation does not support HDD disks as local devices. Select SSD if you plan to use Data Foundation.",
   "Data Foundation endpoint": "Data Foundation endpoint",
+  "Data Foundation is gathering required resources, this may take up to a minute.": "Data Foundation is gathering required resources, this may take up to a minute.",
   "Data foundation must be {{version}} or above.": "Data foundation must be {{version}} or above.",
   "Data Foundation status": "Data Foundation status",
   "Data Foundation supports only SSD/NVMe disk type for internal mode deployment.": "Data Foundation supports only SSD/NVMe disk type for internal mode deployment.",
