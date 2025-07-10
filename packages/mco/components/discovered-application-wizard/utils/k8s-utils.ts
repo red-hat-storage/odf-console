@@ -17,10 +17,24 @@ import {
   ObjectMetadata,
   k8sCreate,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { IS_CG_ENABLED_ANNOTATION } from '../../../constants';
 import {
   EnrollDiscoveredApplicationState,
   ProtectionMethodType,
 } from './reducer';
+
+export const convertRecipeParamsToList = (
+  params: Record<string, string> = {}
+): Record<string, string[]> =>
+  Object.fromEntries(
+    Object.entries(params).map(([k, val]) => [
+      k.trim(),
+      val
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ])
+  );
 
 export const getDRPCKindObj = (props: {
   name: string;
@@ -31,11 +45,12 @@ export const getDRPCKindObj = (props: {
   k8sResourceReplicationInterval: string;
   recipeName?: string;
   recipeNamespace?: string;
+  recipeParameters?: Record<string, string[]>;
   k8sResourceLabelExpressions?: MatchExpression[];
   pvcLabelExpressions?: MatchExpression[];
   placementName: string;
-  recipeParameters?: Record<string, string[]>;
   labels?: ObjectMetadata['labels'];
+  annotations?: ObjectMetadata['annotations'];
 }): DRPlacementControlKind => ({
   apiVersion: getAPIVersionForModel(DRPlacementControlModel),
   kind: DRPlacementControlModel.kind,
@@ -43,6 +58,7 @@ export const getDRPCKindObj = (props: {
     name: props.name,
     namespace: DISCOVERED_APP_NS,
     ...(props.labels && { labels: props.labels }),
+    ...(props.annotations && { annotations: props.annotations }),
   },
   spec: {
     preferredCluster: props.preferredCluster,
@@ -105,8 +121,13 @@ export const createPromise = (
 ): Promise<K8sResourceKind>[] => {
   const { namespace, configuration, replication } = state;
   const { clusterName, namespaces, name } = namespace;
-  const { protectionMethod, recipe, resourceLabels } = configuration;
-  const { recipeName, recipeNamespace } = recipe;
+  const {
+    protectionMethod,
+    recipe,
+    resourceLabels,
+    isVolumeConsistencyEnabled,
+  } = configuration;
+  const { recipeName, recipeNamespace, recipeParameters } = recipe;
   const { k8sResourceLabelExpressions, pvcLabelExpressions } = resourceLabels;
   const { drPolicy, k8sResourceReplicationInterval } = replication;
   const namespaceList = namespaces.map(getName);
@@ -122,6 +143,13 @@ export const createPromise = (
     })
   );
 
+  let labels: ObjectMetadata['labels'];
+  const annotations = isVolumeConsistencyEnabled
+    ? {
+        [IS_CG_ENABLED_ANNOTATION]: 'true',
+      }
+    : undefined;
+
   promises.push(
     k8sCreate({
       model: DRPlacementControlModel,
@@ -132,11 +160,14 @@ export const createPromise = (
         protectionMethod,
         recipeName,
         recipeNamespace,
+        recipeParameters: convertRecipeParamsToList(recipeParameters),
         k8sResourceLabelExpressions,
         pvcLabelExpressions,
         drPolicyName: getName(drPolicy),
         k8sResourceReplicationInterval,
         placementName,
+        labels,
+        annotations,
       }),
     })
   );

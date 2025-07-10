@@ -14,7 +14,7 @@ const unableToFindError = 'Unable to find an element';
 const failingDRPCName = 'test-drpc-1';
 const relocatedDRPCName = 'test-drpc-2';
 const drPolicyName = 'test-policy';
-const deploymentClusterName = 'local-test-cluster';
+const deploymentClusterName = 'test-cluster-2';
 const namespaces = ['ns-1', 'ns-2', 'ns-3', 'ns-4'];
 
 let noData = false;

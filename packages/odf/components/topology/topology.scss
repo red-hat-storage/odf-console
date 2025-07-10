@@ -15,7 +15,7 @@
 }
 
 .odf-topology__back-button {
-    background-color: var(--pf-v5-global--palette--black-300);
+    background-color: var(--pf-v5-global--palette--black-300) !important;
     color: var(--pf-v5-global--Color--dark-200);
     left: var(--pf-v5-global--gutter);
     position: absolute;
@@ -35,6 +35,10 @@
     font-size: var(--pf-v5-global--FontSize--xs);
     font-weight: var(--pf-v5-global--FontWeight--normal);
     z-index: 2;
+}
+
+.odf-topology__show-message-button {
+    text-decoration: underline;
 }
 
 .odf-topology__back-button:hover {

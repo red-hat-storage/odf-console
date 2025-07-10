@@ -1,24 +1,28 @@
 import * as React from 'react';
 import {
   getName,
-  getNamespace,
   ModalBody,
   ModalFooter,
   ModalTitle,
   StorageConsumerKind,
   useCustomTranslation,
   StorageConsumerModel,
+  getAnnotations,
 } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
 import {
   k8sDelete,
+  k8sPatch,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import {
   Button,
+  Checkbox,
   Flex,
   FlexItem,
+  FormGroup,
   Modal,
   ModalVariant,
 } from '@patternfly/react-core';
@@ -26,6 +30,9 @@ import {
 type RemoveClientModalProps = CommonModalProps<{
   resource: StorageConsumerKind;
 }>;
+
+const ANNOTATIONS_PATH = '/metadata/annotations';
+const FORCE_DELETION_ANNOTATION = 'ocs.openshift.io/force-deletion';
 
 const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
   const {
@@ -36,12 +43,38 @@ const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
   const { t } = useCustomTranslation();
   const [confirmed, setConfirmed] = React.useState(false);
   const [inProgress, setProgress] = React.useState(false);
+  const [forceDeletion, setForceDeletion] = React.useState(false);
   const [error, setError] = React.useState<Error>(null);
   const MODAL_TITLE = t('Permanently delete StorageConsumer?');
-
-  const onSubmit = (event) => {
+  const onSubmit = async (event) => {
     event.preventDefault();
     setProgress(true);
+    if (forceDeletion) {
+      const annotations = getAnnotations(resource);
+      const areAnnotationsPresent = !_.isEmpty(annotations);
+      const guardedAnnotations = _.isEmpty(annotations) ? {} : annotations;
+      const updatedAnnotations = {
+        ...guardedAnnotations,
+        [FORCE_DELETION_ANNOTATION]: '',
+      };
+      try {
+        await k8sPatch({
+          model: StorageConsumerModel,
+          resource,
+          data: [
+            {
+              op: areAnnotationsPresent ? 'replace' : 'add',
+              path: ANNOTATIONS_PATH,
+              value: updatedAnnotations,
+            },
+          ],
+        });
+      } catch (err) {
+        setError(err);
+        setProgress(false);
+        return;
+      }
+    }
     k8sDelete({ model: StorageConsumerModel, resource })
       .then(() => {
         setProgress(false);
@@ -66,21 +99,23 @@ const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
       <ModalBody>
         <p>
           <Trans t={t}>
-            Deleting the StorageConsumer{' '}
-            <strong className="co-break-word">{getName(resource)}</strong> will
-            remove all Ceph/Rook resources and erase all data associated with
-            this StorageConsumer, leading to permanent deletion of the client.
-            This action cannot be undone. It will destroy all pods, services and
-            other objects in the namespace{' '}
-            <strong className="co-break-word">
-              {{ name: getNamespace(resource) }}
-            </strong>
-            .
+            This will remove the StorageConsumer from the environment. This
+            action cannot be undone.
           </Trans>
         </p>
         <p>
-          Recommended only if the storage used by this StorageConsumer is no
-          longer needed, as all stored data will be erased.
+          <FormGroup>
+            <Checkbox
+              id="force-deletion-checkbox"
+              label={t('Force deletion')}
+              isChecked={forceDeletion}
+              onChange={(_event, checked) => setForceDeletion(checked)}
+              data-test="force-deletion-checkbox"
+              description={t(
+                'Erases all associated data and Ceph/Rook resources. Recommended only if the storage used by this StorageConsumer is no longer needed.'
+              )}
+            />
+          </FormGroup>
         </p>
         <p>
           <Trans t={t}>

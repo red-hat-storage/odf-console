@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LSO_OPERATOR } from '@odf/core/constants';
+import { LSO_OPERATOR, CREATE_SS_PAGE_URL } from '@odf/core/constants';
 import { storageClusterResource } from '@odf/core/resources';
 import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
 import {
@@ -16,18 +16,13 @@ import {
 import { useWatchStorageSystems } from '@odf/shared/hooks/useWatchStorageSystems';
 import { CustomKebabItem, Kebab } from '@odf/shared/kebab/kebab';
 import {
-  ClusterServiceVersionModel,
   InfrastructureModel,
   ODFStorageSystem,
   StorageClusterModel,
 } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { Status } from '@odf/shared/status/Status';
-import {
-  ClusterServiceVersionKind,
-  HumanizeResult,
-  StorageSystemKind,
-} from '@odf/shared/types';
+import { HumanizeResult, StorageSystemKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   humanizeBinaryBytes,
@@ -378,18 +373,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   );
 };
 
-type StorageSystemListPageProps = {
-  showTitle?: boolean;
-  namespace?: string;
-  selector?: any;
-  hideLabelFilter?: boolean;
-  hideNameLabelFilters?: boolean;
-  hideColumnManagement?: boolean;
-};
-
-export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
-  selector,
-}) => {
+export const StorageSystemListPage: React.FC = () => {
   const { t } = useCustomTranslation();
 
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
@@ -432,21 +416,6 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
   const [storageClusters] = useK8sWatchResource<StorageClusterKind[]>(
     storageClusterResource
   );
-  const [csv, csvLoaded, csvError] = useK8sWatchResource<
-    ClusterServiceVersionKind[]
-  >({
-    kind: referenceForModel(ClusterServiceVersionModel),
-    isList: true,
-    selector,
-  });
-
-  const odfCsvName: string =
-    csvLoaded && !csvError
-      ? csv?.find((item) => getName(item)?.includes('odf-operator'))?.metadata
-          ?.name
-      : null;
-
-  const createLink = `/k8s/ns/${odfNamespace}/operators.coreos.com~v1alpha1~ClusterServiceVersion/${odfCsvName}/odf.openshift.io~v1alpha1~StorageSystem/~new`;
 
   const normalizedMetrics = React.useMemo(
     () => ({
@@ -471,8 +440,8 @@ export const StorageSystemListPage: React.FC<StorageSystemListPageProps> = ({
   return (
     <>
       <ListPageHeader title={t('StorageSystems')}>
-        {odfCsvName && odfNamespace && (
-          <ListPageCreateLink to={createLink}>
+        {odfNamespace && (
+          <ListPageCreateLink to={CREATE_SS_PAGE_URL}>
             {t('Create StorageSystem')}
           </ListPageCreateLink>
         )}

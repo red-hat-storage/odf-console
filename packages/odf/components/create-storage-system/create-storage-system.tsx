@@ -4,23 +4,33 @@ import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   isStorageClassWizardStep,
 } from '@odf/odf-plugin-sdk/extensions';
+import { useK8sList } from '@odf/shared';
 import { DEFAULT_INFRASTRUCTURE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
-import { useK8sList } from '@odf/shared/hooks/useK8sList';
 import {
+  CustomResourceDefinitionModel,
   InfrastructureModel,
   NamespaceModel,
-  ODFStorageSystem,
+  StorageClusterModel,
 } from '@odf/shared/models';
-import { InfrastructureKind } from '@odf/shared/types';
-import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  getInfrastructurePlatform,
-  referenceForModel,
-} from '@odf/shared/utils';
-import { useResolvedExtensions } from '@openshift-console/dynamic-plugin-sdk';
+  CustomResourceDefinitionKind,
+  InfrastructureKind,
+} from '@odf/shared/types';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getInfrastructurePlatform } from '@odf/shared/utils';
+import {
+  useK8sWatchResource,
+  useResolvedExtensions,
+} from '@openshift-console/dynamic-plugin-sdk';
 import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
-import { useNavigate, useLocation } from 'react-router-dom-v5-compat';
+import * as _ from 'lodash-es';
+import {
+  EmptyState,
+  EmptyStateHeader,
+  EmptyStateIcon,
+  Spinner,
+} from '@patternfly/react-core';
 import { Steps, StepsName } from '../../constants';
 import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
@@ -31,19 +41,26 @@ import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
 import './create-storage-system.scss';
 
-const CREATE_SS_PAGE_URL = `/odf/resource/${referenceForModel(
-  ODFStorageSystem
-)}/create/~new`;
+const useIsStorageClusterCRDPresent = (): boolean => {
+  const [crds, crdsLoaded, crdsError] = useK8sWatchResource<
+    CustomResourceDefinitionKind[]
+  >({
+    groupVersionKind: {
+      group: CustomResourceDefinitionModel.apiGroup,
+      version: CustomResourceDefinitionModel.apiVersion,
+      kind: CustomResourceDefinitionModel.kind,
+    },
+    isList: true,
+    optional: true,
+  });
+  const storageClusterCRD = crds?.filter(
+    (crd) => crd.spec.names.kind === StorageClusterModel.kind
+  );
 
-export const RedirectStorageSystem: React.FC<{}> = () => {
-  const navigate = useNavigate();
-  const { pathname: url } = useLocation();
+  const isStorageClusterCRDPresent =
+    crdsLoaded && _.isEmpty(crdsError) && storageClusterCRD.length > 0;
 
-  if (url !== CREATE_SS_PAGE_URL) {
-    navigate(CREATE_SS_PAGE_URL, { replace: true });
-  }
-
-  return null;
+  return isStorageClusterCRDPresent;
 };
 
 const CreateStorageSystem: React.FC<{}> = () => {
@@ -154,4 +171,45 @@ const CreateStorageSystem: React.FC<{}> = () => {
   );
 };
 
-export default CreateStorageSystem;
+const CreateStorageSystemWtihLoader: React.FC = () => {
+  const { t } = useCustomTranslation();
+  // In case it randomly goes loading or refetches
+  const [isCrdPresent, setIsCrdPresent] = React.useState(false);
+  const isStorageClusterCRDPresent = useIsStorageClusterCRDPresent();
+  // It takes a while for the CRD to be present
+  const [delayedShow, setDelayedShow] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isStorageClusterCRDPresent && !isCrdPresent) {
+      setIsCrdPresent(true);
+    }
+  }, [isCrdPresent, isStorageClusterCRDPresent]);
+
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (isCrdPresent) {
+      timer = setTimeout(() => setDelayedShow(true), 5000);
+    }
+
+    return () => clearTimeout(timer);
+  }, [isCrdPresent]);
+
+  return !isCrdPresent || !delayedShow ? (
+    <>
+      <CreateStorageSystemHeader state={{} as any} />
+      <EmptyState className="odf-create-storage-system-wizard__empty-state">
+        <EmptyStateHeader icon={<EmptyStateIcon icon={Spinner} />} />
+        <p>
+          {t(
+            'Data Foundation is gathering required resources, this may take up to a minute.'
+          )}
+        </p>
+      </EmptyState>
+    </>
+  ) : (
+    <CreateStorageSystem />
+  );
+};
+
+export default CreateStorageSystemWtihLoader;

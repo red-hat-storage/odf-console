@@ -19,7 +19,7 @@ import { ResourceIcon } from '../resource-link/resource-link';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { CommonModalProps } from './common';
 import { ModalBody, ModalFooter } from './Modal';
-import { SelectorInput } from './Selector';
+import { TranslatedSelectorInput } from './Selector';
 
 type Patch = {
   op: string;
@@ -146,7 +146,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
               <ResourceIcon resourceModel={resourceModel} />{' '}
               {resource.metadata.name}
             </label>
-            <SelectorInput
+            <TranslatedSelectorInput
               onChange={(l) => setLabels(l)}
               tags={labels}
               labelClassName={labelClassName || `co-text-${resourceModel.id}`}

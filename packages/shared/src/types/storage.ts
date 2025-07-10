@@ -41,6 +41,8 @@ export type StorageClusterKind = K8sResourceCommon & {
       cephBlockPools?: {
         disableSnapshotClass: boolean;
         disableStorageClass: boolean;
+        defaultStorageClass?: boolean;
+        defaultVirtualizationStorageClass?: boolean;
       };
       cephFilesystems?: {
         disableSnapshotClass: boolean;
@@ -227,6 +229,7 @@ export type NoobaaSystemKind = K8sResourceCommon;
 export enum CapacityAutoscalingStatus {
   Failed = 'Failed',
   InProgress = 'InProgress',
+  Invalid = 'Invalid',
   NotStarted = 'NotStarted',
   Succeeded = 'Succeeded',
 }
