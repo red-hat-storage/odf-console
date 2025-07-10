@@ -162,7 +162,9 @@ const config: webpack.Configuration & DevServerConfiguration = {
       allowAsyncCycles: false,
       cwd: process.cwd(),
     }),
-    new MiniCssExtractPlugin(),
+    new MiniCssExtractPlugin({
+      ignoreOrder: true,
+    }),
   ],
   // 'source-map' is recommended choice for production builds, A full SourceMap is emitted as a separate file.
   // 'eval-source-map' is recommended for development but 'eval-cheap-module-source-map' is faster and gives better result.
