@@ -4,19 +4,16 @@ import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-ca
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeDecimalBytesPerSec } from '@odf/shared/utils';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Grid, Card, CardHeader, CardTitle } from '@patternfly/react-core';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
-import { ODFSystemParams } from '../../types';
 import { humanizeIOPS } from '../persistent-internal/utilization-card/utils';
 import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 
 export const UtilizationCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
-  const { name } = obj.metadata;
+  const { name, namespace: clusterNs } = obj.metadata;
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { systemFlags } = useODFSystemFlagsSelector();
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 

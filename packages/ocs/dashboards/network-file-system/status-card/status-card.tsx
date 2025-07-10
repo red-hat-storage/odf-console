@@ -10,9 +10,8 @@ import {
   getPodHealthState,
 } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { ODFSystemParams } from '../../../types';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 const nfsPodResource = (clusterNs: string, clusterName: string) => ({
   isList: true,
@@ -28,7 +27,9 @@ const nfsPodResource = (clusterNs: string, clusterName: string) => ({
 
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
   const clusterName = systemFlags[clusterNs]?.ocsClusterName;
 

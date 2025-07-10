@@ -23,7 +23,7 @@ import {
   useK8sWatchResource,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link, useParams } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,
@@ -32,7 +32,6 @@ import {
   DescriptionList,
 } from '@patternfly/react-core';
 import { PROVIDER_MODE } from '../../../odf/features';
-import { ODFSystemParams } from '../../types';
 import EncryptionPopover from '../common/details-card/encryption-popover';
 
 const storageClusterResource = {
@@ -42,7 +41,6 @@ const storageClusterResource = {
 
 const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const { namespace: ocsNs } = useParams<ODFSystemParams>();
 
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
 
@@ -62,7 +60,7 @@ const DetailsCard: React.FC = () => {
   const infrastructurePlatform = getInfrastructurePlatform(infrastructure);
   const storageCluster: StorageClusterKind = getStorageClusterInNs(
     ocsData,
-    ocsNs
+    odfNamespace
   );
   const ocsName = getName(storageCluster);
 

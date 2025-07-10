@@ -42,15 +42,14 @@ import {
   RecentEventsBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
 import { PVC_PROVISIONER_ANNOTATION } from '../../../constants';
 import {
   DATA_RESILIENCY_QUERY,
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
-import { ODFSystemParams } from '../../../types';
 import { isPersistentStorageEvent } from '../../../utils/common';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import {
   isClusterExpandActivity,
   ClusterExpandActivity,
@@ -87,8 +86,9 @@ const cephClusterResource = {
 };
 
 const RecentEvent: React.FC = () => {
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
-
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const [pvcs, pvcLoaded] =
     useK8sWatchResource<PersistentVolumeClaimKind[]>(pvcResource);
   const [events, eventsLoaded] =
@@ -127,7 +127,9 @@ export const storageClusterResource = {
 };
 
 const OngoingActivity = () => {
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 
