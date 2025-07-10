@@ -84,7 +84,6 @@ const config: webpack.Configuration & DevServerConfiguration = {
         ],
         exclude: /(build|dist)/, // Ignore shared build folder.
         use: [
-          { loader: 'cache-loader' },
           {
             loader: 'thread-loader',
             options: {

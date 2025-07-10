@@ -3,7 +3,6 @@ build
 coverage
 dist
 gui-test-screenshots
-.cache-loader
 locales
 .husky
 .vscode

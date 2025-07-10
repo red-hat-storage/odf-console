@@ -83,7 +83,6 @@
     "@patternfly/react-tokens": "5.4.1",
     "@patternfly/react-topology": "5.4.1",
     "buffer": "^6.0.3",
-    "cache-loader": "^4.1.0",
     "circular-dependency-plugin": "^5.2.2",
     "classnames": "^2.5.1",
     "copy-webpack-plugin": "^13.0.0",
