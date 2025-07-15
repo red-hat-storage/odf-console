@@ -40,8 +40,8 @@ const namespaceDetector = async (
         model: SubscriptionModel,
         queryParams: { ns: null },
       })) as SubscriptionKind[];
-      const odfSubscription = subscriptions.find((subscription) =>
-        getSpecName(subscription).includes(ODF_SUBSCRIPTION_NAME)
+      const odfSubscription = subscriptions.find(
+        (subscription) => getSpecName(subscription) === ODF_SUBSCRIPTION_NAME
       );
       const isODFPresent = odfSubscription !== undefined;
       if (isODFPresent) {
@@ -58,8 +58,8 @@ const namespaceDetector = async (
           csv?.spec?.provider?.name?.toLowerCase()
         );
       } else {
-        const clientSubscription = subscriptions.find((sub) =>
-          getSpecName(sub).includes(CLIENT_SUBSCRIPTION_NAME)
+        const clientSubscription = subscriptions.find(
+          (sub) => getSpecName(sub) === CLIENT_SUBSCRIPTION_NAME
         );
         ns = getNamespace(clientSubscription);
       }
