@@ -24,6 +24,7 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
     publicNetwork,
     encryption,
     kms,
+    isMultusAcknowledged,
     addressRanges: {
       cluster: [cephClusterCIDR],
       public: [cephPublicCIDR],
@@ -35,26 +36,27 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
       type: 'securityAndNetwork/setNetworkType',
       payload: networkType,
     });
-    if (
-      networkType === NetworkType.DEFAULT ||
-      networkType === NetworkType.HOST
-    ) {
+    if (networkType !== NetworkType.MULTUS) {
+      dispatch({
+        type: 'securityAndNetwork/setMultusAcknowledged',
+        payload: false,
+      });
       dispatch({ type: 'securityAndNetwork/setClusterNetwork', payload: null });
       dispatch({ type: 'securityAndNetwork/setPublicNetwork', payload: null });
     }
   };
 
-  const setMultusNetwork = React.useCallback(
-    (network: NADSelectorType, resource: K8sResourceCommon) =>
-      dispatch({
-        type:
-          network === NADSelectorType.CLUSTER
-            ? 'securityAndNetwork/setClusterNetwork'
-            : 'securityAndNetwork/setPublicNetwork',
-        payload: resource,
-      }),
-    [dispatch]
-  );
+  const setMultusNetwork = (
+    network: NADSelectorType,
+    resource: K8sResourceCommon
+  ) =>
+    dispatch({
+      type:
+        network === NADSelectorType.CLUSTER
+          ? 'securityAndNetwork/setClusterNetwork'
+          : 'securityAndNetwork/setPublicNetwork',
+      payload: resource,
+    });
 
   const setCIDRNetwork = React.useCallback(
     (clusterCIDR: string, publicCIDR: string) => {
@@ -69,6 +71,13 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
     },
     [dispatch]
   );
+
+  const setIsMultusAcknowledged = (val: boolean) => {
+    dispatch({
+      type: 'securityAndNetwork/setMultusAcknowledged',
+      payload: val,
+    });
+  };
 
   return (
     <Form noValidate={false}>
@@ -91,6 +100,8 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
           clusterNetwork={clusterNetwork}
           publicNetwork={publicNetwork}
           systemNamespace={systemNamespace}
+          isMultusAcknowledged={isMultusAcknowledged}
+          setIsMultusAcknowledged={setIsMultusAcknowledged}
         />
       )}
       {isExternal && (
@@ -106,7 +117,9 @@ export const SecurityAndNetwork: React.FC<SecurityAndNetworkProps> = ({
 };
 
 type SecurityAndNetworkProps = {
-  securityAndNetworkState: WizardState['securityAndNetwork'];
+  securityAndNetworkState: WizardState['securityAndNetwork'] & {
+    isMultusAcknowledged?: boolean;
+  };
   dispatch: WizardDispatch;
   infraType: string;
   isExternal?: boolean;
