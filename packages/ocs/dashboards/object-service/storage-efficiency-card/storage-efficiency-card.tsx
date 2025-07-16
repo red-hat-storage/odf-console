@@ -10,9 +10,8 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes, humanizePercentage } from '@odf/shared/utils';
 import { getGaugeValue } from '@odf/shared/utils';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { ODFSystemParams } from '../../../types';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 const ObjectStorageEfficiencyItemBody: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -99,7 +98,9 @@ const ObjectStorageEfficiencyItemBody: React.FC = () => {
 const StorageEfficiencyCard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
   const hasMCG = systemFlags[clusterNs]?.isNoobaaAvailable;
 

@@ -13,7 +13,6 @@ import {
 } from '@odf/shared/utils';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardHeader, CardTitle, Grid } from '@patternfly/react-core';
 import { useStorageClassQueryFilter } from '../../../hooks';
 import {
@@ -21,14 +20,16 @@ import {
   utilizationPopoverQueryMap,
   UTILIZATION_QUERY,
 } from '../../../queries';
-import { ODFSystemParams } from '../../../types';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import { humanizeIOPS, humanizeLatency } from './utils';
 import '@odf/shared/dashboards/utilization-card/utilization-card.scss';
 
 export const UtilizationContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
   // name of the created StorageClasses are prefix by StorageCluster name,
   // it is also the value of the "managedBy" label in the metrics.

@@ -17,14 +17,13 @@ import {
   OngoingActivityBody,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk-internal/lib/api/internal-types';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardHeader, CardTitle, CardBody } from '@patternfly/react-core';
 import {
   dataResiliencyQueryMap,
   ObjectServiceDashboardQuery,
 } from '../../../queries';
-import { ODFSystemParams } from '../../../types';
 import { isObjectStorageEvent, decodeRGWPrefix } from '../../../utils';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import '../../../style.scss';
 import './activity-card.scss';
 
@@ -121,7 +120,9 @@ const OngoingActivity: React.FC<ActivityProps> = ({
 const ActivityCard: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
 
   return (
