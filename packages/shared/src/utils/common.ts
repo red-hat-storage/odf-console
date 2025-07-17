@@ -1,3 +1,5 @@
+import { WizardNodeState } from '@odf/core/components/create-storage-system/reducer';
+import { NodeData } from '@odf/core/types';
 import { Model } from '@odf/odf-plugin-sdk/extensions';
 import {
   CLIENT_PLUGIN_BUILD_NAME,
@@ -6,7 +8,9 @@ import {
 import {
   InfraProviders,
   InfrastructureKind,
+  InfraTopologyMode,
   K8sResourceKind,
+  NodeKind,
   Patch,
   SubscriptionKind,
 } from '@odf/shared/types';
@@ -145,6 +149,39 @@ export const getInfrastructurePlatform = (
   infrastructure: InfrastructureKind
 ): InfraProviders =>
   infrastructure?.spec?.platformSpec?.type || infrastructure?.status?.platform;
+
+export const getInfrastructureControlPlaneTopology = (
+  infrastructure: InfrastructureKind
+): InfraTopologyMode =>
+  // if not set, return 'HighlyAvailable', which is the default TopologyMode
+  infrastructure?.status?.controlPlaneTopology ||
+  InfraTopologyMode.HighlyAvailable;
+
+export const hasTwoNodesOneArbiterClusterEnabled = (
+  infra: InfrastructureKind
+): boolean =>
+  getInfrastructureControlPlaneTopology(infra) ===
+  InfraTopologyMode.HighlyAvailableArbiter;
+
+export const isArbiterNode = (
+  obj: NodeKind | NodeData | WizardNodeState
+): boolean => {
+  const specStr = 'spec';
+  const taintsStr = 'taints';
+  const keyStr = 'node-role.kubernetes.io/arbiter';
+  let taintArr: NodeData['spec']['taints'] = [];
+  if (
+    specStr in obj &&
+    taintsStr in obj[specStr] &&
+    Array.isArray(obj[specStr][taintsStr])
+  ) {
+    taintArr = obj[specStr][taintsStr];
+  } else if (taintsStr in obj && Array.isArray(obj[taintsStr])) {
+    const wsObj = obj as WizardNodeState;
+    taintArr = wsObj.taints;
+  }
+  return taintArr.some((t) => t.key === keyStr);
+};
 
 export const getGVKLabel = ({ kind, apiGroup, apiVersion }: Model) =>
   `${kind.toLowerCase()}.${apiGroup}/${apiVersion}`;

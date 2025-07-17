@@ -6,7 +6,7 @@ import {
   getTotalMemoryInGiB,
 } from '@odf/core/components/utils';
 import {
-  MINIMUM_NODES,
+  getMinimumNodes,
   NO_PROVISIONER,
   Steps,
   StepsName,
@@ -114,6 +114,7 @@ const validateBackingStorageStep = (
 const canJumpToNextStep = (
   name: string,
   state: WizardState,
+  hasTwoNodesOneArbiter: boolean,
   t: TFunction,
   supportedExternalStorage: ExternalStorage[]
 ) => {
@@ -158,10 +159,13 @@ const canJumpToNextStep = (
   const deviceSetReplica: number = getDeviceSetReplica(
     enableArbiter,
     flexibleScaling,
+    hasTwoNodesOneArbiter,
     nodes
   );
   const deviceSetCount = getDeviceSetCount(pvCount, deviceSetReplica);
   const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
+
+  const minNodes = getMinimumNodes(hasTwoNodesOneArbiter);
 
   switch (name) {
     case StepsName(t)[Steps.BackingStorage]:
@@ -175,14 +179,14 @@ const canJumpToNextStep = (
     case StepsName(t)[Steps.CreateLocalVolumeSet]:
       return (
         // "chartNodes.size === 0" signify no SSDs are attached, but no need to add that as it's already covered by "chartNodes.size >= MINIMUM_NODES" condition
-        chartNodes.size >= MINIMUM_NODES &&
+        chartNodes.size >= minNodes &&
         volumeSetName.trim().length &&
         isValidDiskSize &&
         isValidDeviceType
       );
     case StepsName(t)[Steps.CapacityAndNodes]:
       return (
-        nodes.length >= MINIMUM_NODES &&
+        nodes.length >= minNodes &&
         capacity &&
         ![VolumeTypeValidation.UNKNOWN, VolumeTypeValidation.ERROR].includes(
           volumeValidationType
@@ -221,9 +225,11 @@ const handleReviewAndCreateNext = async (
   handleError: (err: string, showError: boolean) => void,
   navigate,
   odfNamespace: string,
+  hasTwoNodesOneArbiter: boolean,
   existingNamespaces: K8sResourceCommon[]
 ) => {
   const { nodes, capacityAndNodes } = state;
+  const { arbiterNode } = state.capacityAndNodes;
   const {
     systemNamespace,
     deployment,
@@ -292,18 +298,24 @@ const handleReviewAndCreateNext = async (
       storageCluster = await createStorageCluster(
         state,
         systemNamespace,
-        OCS_INTERNAL_CR_NAME
+        OCS_INTERNAL_CR_NAME,
+        hasTwoNodesOneArbiter
       );
     } else if (
       type === BackingStorageType.EXISTING ||
       type === BackingStorageType.LOCAL_DEVICES
     ) {
-      await labelNodes(nodes, systemNamespace);
+      // needs to label the 'arbiter' node as well,
+      // if it is present (in a TWO nodes + an Arbiter cluster setup)
+      const nodesTobeLabelled =
+        arbiterNode != null ? nodes.concat(arbiterNode) : nodes;
+      await labelNodes(nodesTobeLabelled, systemNamespace);
       await createAdditionalFeatureResources();
       storageCluster = await createStorageCluster(
         state,
         systemNamespace,
-        OCS_INTERNAL_CR_NAME
+        OCS_INTERNAL_CR_NAME,
+        hasTwoNodesOneArbiter
       );
     }
     if (storageCluster) {
@@ -355,6 +367,7 @@ export const CreateStorageSystemFooter: React.FC<
   dispatch,
   state,
   disableNext,
+  hasTwoNodesOneArbiter,
   supportedExternalStorage,
   existingNamespaces,
 }) => {
@@ -375,6 +388,7 @@ export const CreateStorageSystemFooter: React.FC<
   const jumpToNextStep = canJumpToNextStep(
     stepName,
     state,
+    hasTwoNodesOneArbiter,
     t,
     supportedExternalStorage
   );
@@ -407,6 +421,7 @@ export const CreateStorageSystemFooter: React.FC<
           handleError,
           navigate,
           odfNamespace,
+          hasTwoNodesOneArbiter,
           existingNamespaces
         );
         setRequestInProgress(false);
@@ -472,6 +487,7 @@ export const CreateStorageSystemFooter: React.FC<
 type CreateStorageSystemFooterProps = WizardCommonProps & {
   disableNext: boolean;
   hasOCS: boolean;
+  hasTwoNodesOneArbiter: boolean;
   supportedExternalStorage: ExternalStorage[];
   existingNamespaces: K8sResourceCommon[];
 };

@@ -1,6 +1,7 @@
 import {
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
+  OCS_TNA_DEVICE_SET_MINIMUM_REPLICAS,
 } from '../../constants';
 import { WizardNodeState } from '../create-storage-system/reducer';
 import { getDeviceSetReplica, getReplicasFromSelectedNodes } from './common';
@@ -62,7 +63,10 @@ describe('ODF common utilities', () => {
     ];
     dataTest.forEach((test) => {
       expect(
-        getReplicasFromSelectedNodes(test.wizardNodeStates as WizardNodeState[])
+        getReplicasFromSelectedNodes(
+          test.wizardNodeStates as WizardNodeState[],
+          false /* not a TNA cluster */
+        )
       ).toBe(test.expectedReplicas);
     });
   });
@@ -76,22 +80,66 @@ describe('ODF common utilities', () => {
     ];
     // Stretch cluster.
     expect(
-      getDeviceSetReplica(true, false, wizardNodeStates as WizardNodeState[])
+      getDeviceSetReplica(
+        true,
+        false,
+        false,
+        wizardNodeStates as WizardNodeState[]
+      )
     ).toBe(5);
 
     // Flexible scaling.
     expect(
-      getDeviceSetReplica(false, true, wizardNodeStates as WizardNodeState[])
+      getDeviceSetReplica(
+        false,
+        true,
+        false,
+        wizardNodeStates as WizardNodeState[]
+      )
     ).toBe(OCS_DEVICE_SET_FLEXIBLE_REPLICA);
 
     // Stretch cluster + Flexible scaling.
     expect(
-      getDeviceSetReplica(true, true, wizardNodeStates as WizardNodeState[])
+      getDeviceSetReplica(
+        true,
+        true,
+        false,
+        wizardNodeStates as WizardNodeState[]
+      )
     ).toBe(OCS_DEVICE_SET_FLEXIBLE_REPLICA);
 
     // No stretch cluster, no flexible scaling.
     expect(
-      getDeviceSetReplica(false, false, wizardNodeStates as WizardNodeState[])
+      getDeviceSetReplica(
+        false,
+        false,
+        false,
+        wizardNodeStates as WizardNodeState[]
+      )
     ).toBe(4);
+
+    // Two Nodes + One Arbiter (TNA) cluster.
+    // flexible scaling turned ON or OFF,
+    // getDeviceSetReplica() function must return a count of 2.
+    expect(
+      getDeviceSetReplica(
+        false,
+        true, // flexible scaling TRUE.
+        true,
+        // pass only TWO nodes for TNA cluster setup.
+        wizardNodeStates.slice(1, 3) as WizardNodeState[]
+      )
+    ).toBe(OCS_TNA_DEVICE_SET_MINIMUM_REPLICAS);
+
+    // Two Nodes + One Arbiter (TNA) cluster.
+    expect(
+      getDeviceSetReplica(
+        false,
+        false, // flexible scaling FALSE
+        true,
+        // pass only TWO nodes for TNA cluster setup.
+        wizardNodeStates.slice(1, 3) as WizardNodeState[]
+      )
+    ).toBe(OCS_TNA_DEVICE_SET_MINIMUM_REPLICAS);
   });
 });
