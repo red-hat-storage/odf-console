@@ -24,9 +24,11 @@ import {
 } from '@odf/shared/constants';
 import { getLabel, getName, getNamespace, getUID } from '@odf/shared/selectors';
 import {
+  ManagedResources,
   NetworkAttachmentDefinitionKind,
   NodeKind,
   StorageClusterKind,
+  StorageClusterPlacement,
 } from '@odf/shared/types';
 import {
   getNodeRoles,
@@ -38,12 +40,13 @@ import {
 import { Base64 } from 'js-base64';
 import * as _ from 'lodash-es';
 import {
-  MINIMUM_NODES,
   IPFamily,
   NO_PROVISIONER,
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
   ATTACHED_DEVICES_ANNOTATION,
+  getMinimumNodes,
+  OCS_TNA_DEVICE_SET_MINIMUM_REPLICAS,
 } from '../../constants';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
 
@@ -146,6 +149,7 @@ export const capacityAndNodesValidate = (
   nodes: WizardNodeState[],
   state: WizardState['capacityAndNodes'],
   isNoProvSC: boolean,
+  isTwoNodesOneArbiterClusterDetected: boolean,
   osdAmount: number
 ): ValidationType[] => {
   const validations = [];
@@ -161,9 +165,10 @@ export const capacityAndNodesValidate = (
   if (isFlexibleScaling(nodes, isNoProvSC, enableStretchCluster)) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
   }
-  if (!enableStretchCluster && nodes.length && nodes.length < MINIMUM_NODES) {
+  const minNodes = getMinimumNodes(isTwoNodesOneArbiterClusterDetected);
+  if (!enableStretchCluster && nodes.length && nodes.length < minNodes) {
     validations.push(ValidationType.MINIMUMNODES);
-  } else if (nodes.length && nodes.length >= MINIMUM_NODES) {
+  } else if (nodes.length && nodes.length >= minNodes) {
     if (
       !isResourceProfileAllowed(
         resourceProfile,
@@ -359,7 +364,8 @@ const getUniqueRacksSet = (nodes: WizardNodeState[]): Set<string> => {
 };
 
 export const getReplicasFromSelectedNodes = (
-  nodes: WizardNodeState[]
+  nodes: WizardNodeState[],
+  twoNodesOneArbiterCluster: boolean
 ): number => {
   const zones = getUniqueZonesSet(nodes);
   let replicas = zones.size;
@@ -369,26 +375,70 @@ export const getReplicasFromSelectedNodes = (
     replicas = racks.size;
   }
   // When there are not enough zones/racks, we set the minimum replicas.
-  // When there are more than 3 zones/racks, we set one OSD for each zone/rack.
-  return replicas < OCS_DEVICE_SET_MINIMUM_REPLICAS
-    ? OCS_DEVICE_SET_MINIMUM_REPLICAS
-    : replicas;
+  // When there are more than min required number of zones/racks (2 for TNA, 3 otherwise),
+  // we set one OSD for each zone/rack.
+  const minReplicas = twoNodesOneArbiterCluster
+    ? OCS_TNA_DEVICE_SET_MINIMUM_REPLICAS
+    : OCS_DEVICE_SET_MINIMUM_REPLICAS;
+  return replicas < minReplicas ? minReplicas : replicas;
 };
 
 export const getDeviceSetReplica = (
   isStretchCluster: boolean,
   isFlexibleReplicaScaling: boolean,
+  isTwoNodesOneArbiterCluster: boolean,
   nodes: WizardNodeState[]
 ) => {
+  const flexibleScalingReplicaCount = isTwoNodesOneArbiterCluster
+    ? OCS_TNA_DEVICE_SET_MINIMUM_REPLICAS
+    : OCS_DEVICE_SET_FLEXIBLE_REPLICA;
   if (isFlexibleReplicaScaling) {
-    return OCS_DEVICE_SET_FLEXIBLE_REPLICA;
+    return flexibleScalingReplicaCount;
   }
-  const replicas = getReplicasFromSelectedNodes(nodes);
+  const replicas = getReplicasFromSelectedNodes(
+    nodes,
+    isTwoNodesOneArbiterCluster
+  );
   if (isStretchCluster) {
     return replicas + 1;
   }
 
   return replicas;
+};
+
+const getPlacementForTNACluster = (
+  storageCluster: StorageClusterKind
+): Record<string, StorageClusterPlacement> => {
+  return {
+    ...storageCluster.spec.placement,
+    mon: {
+      tolerations: [
+        {
+          key: 'node-role.kubernetes.io/arbiter',
+          operator: 'Exists',
+          effect: 'NoSchedule',
+        },
+        {
+          key: 'node-role.kubernetes.io/master',
+          operator: 'Exists',
+          effect: 'NoSchedule',
+        },
+      ],
+    },
+  };
+};
+
+const getManagedResourcesForTNACluster = (
+  storageCluster: StorageClusterKind
+): ManagedResources => {
+  const managed = _.cloneDeep(storageCluster.spec.managedResources);
+  _.set(managed, 'cephBlockPools.poolSpec.replicated.size', 2);
+  _.set(managed, 'cephFilesystems.metadataPoolSpec.replicated.size', 2);
+  _.set(managed, 'cephFilesystems.dataPoolSpec.replicated.size', 2);
+  _.set(managed, 'cephObjectStores.metadataPoolSpec.replicated.size', 2);
+  _.set(managed, 'cephObjectStores.dataPoolSpec.replicated.size', 2);
+  _.set(managed, 'cephCluster.cephConfig.global.osd_pool_default_size', '2');
+  return managed;
 };
 
 const generateNetworkCardName = (resource: NetworkAttachmentDefinitionKind) =>
@@ -410,6 +460,7 @@ export type OCSRequestData = {
   kmsEnable?: boolean;
   selectedArbiterZone?: string;
   stretchClusterChecked?: boolean;
+  isTwoNodesOneArbiterCluster?: boolean;
   availablePvsCount?: number;
   isMCG?: boolean;
   isNFSEnabled?: boolean;
@@ -434,6 +485,7 @@ export const getOCSRequestData = ({
   kmsEnable,
   selectedArbiterZone,
   stretchClusterChecked,
+  isTwoNodesOneArbiterCluster,
   availablePvsCount,
   isMCG,
   isNFSEnabled,
@@ -452,6 +504,7 @@ export const getOCSRequestData = ({
   const deviceSetReplica: number = getDeviceSetReplica(
     stretchClusterChecked,
     flexibleScaling,
+    isTwoNodesOneArbiterCluster,
     nodes
   );
 
@@ -486,7 +539,8 @@ export const getOCSRequestData = ({
     // for full deployment - ceph + mcg
     requestData.spec = {
       monDataDirHostPath: isNoProvisioner ? '/var/lib/rook' : '',
-      flexibleScaling,
+      // flexible scaling is set to TRUE for TNA clusters
+      flexibleScaling: isTwoNodesOneArbiterCluster ? true : flexibleScaling,
       arbiter: {
         enable: stretchClusterChecked,
       },
@@ -523,6 +577,13 @@ export const getOCSRequestData = ({
       ...requestData.spec.managedResources,
       cephObjectStores: { hostNetwork: false },
     };
+  }
+
+  // spec changes needed for TwoNodes+Arbiter cluster
+  if (isTwoNodesOneArbiterCluster) {
+    requestData.spec.managedResources =
+      getManagedResourcesForTNACluster(requestData);
+    requestData.spec.placement = getPlacementForTNACluster(requestData);
   }
 
   if (encryption) {

@@ -25,6 +25,7 @@ import {
   HOSTNAME_LABEL_KEY,
   LABEL_OPERATOR,
   MINIMUM_NODES,
+  MINIMUM_NODES_FOR_TNA_CLUSTER,
   ocsTaint,
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
   ZONE_LABELS,
@@ -284,6 +285,7 @@ export const isArbiterSC = (
 
 export const isValidTopology = (
   scName: string,
+  isTwoNodesOneArbiterCluster: boolean,
   pvData: K8sResourceKind[],
   nodesData: NodeKind[]
 ): boolean => {
@@ -293,7 +295,11 @@ export const isValidTopology = (
    *  For Baremetal/Vsphere scenario, checking if PVs are in 3 different racks or not
    */
   const { zones, racks } = getTopologyInfo(tableData);
-  return zones.size >= MINIMUM_NODES || racks.size >= MINIMUM_NODES;
+  // if this is a TWO nodes + an arbiter cluster, set the minimum nodes accordingly
+  const minNodes = isTwoNodesOneArbiterCluster
+    ? MINIMUM_NODES_FOR_TNA_CLUSTER
+    : MINIMUM_NODES;
+  return zones.size >= minNodes || racks.size >= minNodes;
 };
 
 export const labelOCSNamespace = (ns: string): Promise<any> =>

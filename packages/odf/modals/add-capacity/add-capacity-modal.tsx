@@ -1,6 +1,7 @@
 import * as React from 'react';
 import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { useNodesData } from '@odf/core/hooks';
+import { infrastructureResource } from '@odf/core/resources';
 import { NodeData } from '@odf/core/types';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { getCephNodes } from '@odf/ocs/utils/common';
@@ -13,10 +14,14 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { StorageClusterActionModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
-import { StorageClusterModel } from '@odf/shared/models';
-import { PersistentVolumeModel, StorageClassModel } from '@odf/shared/models';
+import {
+  PersistentVolumeModel,
+  StorageClassModel,
+  StorageClusterModel,
+} from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import {
+  InfrastructureKind,
   StorageClassResourceKind,
   StorageClusterKind,
   DeviceSet,
@@ -24,6 +29,7 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   getStorageSizeInTiBWithoutUnit,
+  hasTwoNodesOneArbiterClusterEnabled,
   humanizeBinaryBytes,
   referenceForModel,
 } from '@odf/shared/utils';
@@ -209,6 +215,8 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   const [nodesData, nodesLoaded, nodesLoadError] = useNodesData();
   const [scResources, scResourcesLoaded, scResourcesLoadError] =
     useK8sWatchResource<StorageClassResourceKind[]>(scResource);
+  const [infrastructure, infrastructureLoaded, infrastructureError] =
+    useK8sWatchResource<InfrastructureKind>(infrastructureResource);
   const [storageClass, setStorageClass] = React.useState(null);
   const [inProgress, setProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState('');
@@ -224,11 +232,6 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   );
   const hasFlexibleScaling = checkFlexibleScaling(storageCluster);
   const isArbiterEnabled: boolean = checkArbiterCluster(storageCluster);
-  const replica = getDeviceSetReplica(
-    isArbiterEnabled,
-    hasFlexibleScaling,
-    createWizardNodeState(getCephNodes(nodesData, ocsClusterNs) as NodeData[])
-  );
 
   const totalCapacityMetric = values?.[0];
   const usedCapacityMetric = values?.[1];
@@ -262,6 +265,11 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
     [installStorageClass, scResources, scResourcesLoadError, scResourcesLoaded]
   );
 
+  const isTwoNodesOneArbiterCluster =
+    infrastructureLoaded && !infrastructureError
+      ? hasTwoNodesOneArbiterClusterEnabled(infrastructure)
+      : false;
+
   const validateSC = React.useCallback(() => {
     if (!selectedSCName) return t('No StorageClass selected');
     if (!isNoProvionerSC || hasFlexibleScaling) return '';
@@ -272,11 +280,20 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
     }
     if (
       !isArbiterEnabled &&
-      !isValidTopology(selectedSCName, pvData, nodesData)
+      !isValidTopology(
+        selectedSCName,
+        isTwoNodesOneArbiterCluster,
+        pvData,
+        nodesData
+      )
     ) {
-      return t(
-        'The StorageCluster requires a minimum of 3 nodes. Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.'
-      );
+      return isTwoNodesOneArbiterCluster
+        ? t(
+            'The StorageCluster requires 2 nodes. Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.'
+          )
+        : t(
+            'The StorageCluster requires a minimum of 3 nodes. Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.'
+          );
     }
     return '';
   }, [
@@ -285,6 +302,7 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
     isNoProvionerSC,
     isArbiterEnabled,
     hasFlexibleScaling,
+    isTwoNodesOneArbiterCluster,
     pvData,
     nodesData,
   ]);
@@ -310,6 +328,13 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
       </div>
     );
   }
+
+  const replica = getDeviceSetReplica(
+    isArbiterEnabled,
+    hasFlexibleScaling,
+    isTwoNodesOneArbiterCluster,
+    createWizardNodeState(getCephNodes(nodesData, ocsClusterNs) as NodeData[])
+  );
 
   const submit = (event: React.FormEvent<EventTarget>) => {
     event.preventDefault();

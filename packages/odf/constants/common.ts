@@ -18,8 +18,13 @@ export const OCS_DISABLED_ANNOTATION = 'features.ocs.openshift.io/disabled';
 export const ODF_VENDOR_ANNOTATION = 'vendors.odf.openshift.io/kind';
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
 export const OCS_DEVICE_SET_MINIMUM_REPLICAS = 3;
+export const OCS_TNA_DEVICE_SET_MINIMUM_REPLICAS = 2;
 export const MINIMUM_NODES = 3;
+export const MINIMUM_NODES_FOR_TNA_CLUSTER = 2;
 export const SECOND = 1000;
+
+export const getMinimumNodes = (hasTwoNodesOneArbiterCluster: boolean) =>
+  hasTwoNodesOneArbiterCluster ? MINIMUM_NODES_FOR_TNA_CLUSTER : MINIMUM_NODES;
 
 // ToDo (epic 4422): Use StorageSystem namespace once we support multiple internal clusters
 export const cephStorageLabel = (_ns: string) =>

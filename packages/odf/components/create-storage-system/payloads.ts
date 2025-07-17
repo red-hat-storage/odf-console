@@ -131,7 +131,8 @@ export const setCephRBDAsDefault = (
 export const createStorageCluster = async (
   state: WizardState,
   storageClusterNamespace: string,
-  storageClusterName: string
+  storageClusterName: string,
+  hasTwoNodesOneArbiterCluster: boolean
 ) => {
   const {
     storageClass,
@@ -195,6 +196,7 @@ export const createStorageCluster = async (
     kmsEnable: kms.providerState.hasHandled && encryption.advanced,
     selectedArbiterZone: arbiterLocation,
     stretchClusterChecked: enableArbiter,
+    isTwoNodesOneArbiterCluster: hasTwoNodesOneArbiterCluster,
     availablePvsCount: pvCount,
     isMCG,
     isNFSEnabled,

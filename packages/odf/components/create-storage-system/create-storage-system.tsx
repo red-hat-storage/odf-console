@@ -19,7 +19,10 @@ import {
   InfrastructureKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getInfrastructurePlatform } from '@odf/shared/utils';
+import {
+  getInfrastructurePlatform,
+  hasTwoNodesOneArbiterClusterEnabled,
+} from '@odf/shared/utils';
 import {
   useK8sWatchResource,
   useResolvedExtensions,
@@ -130,6 +133,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
     useODFSystemFlagsSelector();
 
   const infraType = getInfrastructurePlatform(infra);
+  const hasTwoNodesOneArbiter = hasTwoNodesOneArbiterClusterEnabled(infra);
 
   let wizardSteps: WizardStep[] = [];
   let hasOCS: boolean = false;
@@ -163,6 +167,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
       state,
       dispatch,
       infraType,
+      hasTwoNodesOneArbiter,
       hasOCS,
       supportedExternalStorage,
       hasMultipleClusters
@@ -203,6 +208,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
           <CreateStorageSystemFooter
             state={state}
             hasOCS={hasOCS}
+            hasTwoNodesOneArbiter={hasTwoNodesOneArbiter}
             dispatch={dispatch}
             disableNext={!allLoaded || !!anyError}
             supportedExternalStorage={supportedExternalStorage}

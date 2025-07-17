@@ -4,6 +4,7 @@ import {
   NooBaaBackingStoreModel,
   NooBaaNamespaceStoreModel,
   LocalVolumeDiscoveryResult,
+  DEFAULT_INFRASTRUCTURE,
 } from '@odf/shared';
 import {
   PersistentVolumeModel,
@@ -20,6 +21,7 @@ import {
   ReplicaSetModel,
   DaemonSetModel,
   NamespaceModel,
+  InfrastructureModel,
 } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -44,6 +46,17 @@ export const scResource: WatchK8sResource = {
   kind: StorageClassModel.kind,
   namespaced: false,
   isList: true,
+};
+
+export const infrastructureResource: WatchK8sResource = {
+  groupVersionKind: {
+    group: InfrastructureModel.apiGroup,
+    version: InfrastructureModel.apiVersion,
+    kind: InfrastructureModel.kind,
+  },
+  name: DEFAULT_INFRASTRUCTURE,
+  namespaced: false,
+  isList: false,
 };
 
 export const odfSubscriptionResource: K8sResourceObj = (ns) => ({

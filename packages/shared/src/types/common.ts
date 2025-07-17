@@ -24,6 +24,16 @@ export enum InfraProviders {
   VSphere = 'VSphere',
 }
 
+// reference:
+// https://github.com/openshift/api/blob/master/config/v1/types_infrastructure.go#L142-L162
+export enum InfraTopologyMode {
+  HighlyAvailable = 'HighlyAvailable',
+  SingleReplica = 'SingleReplica',
+  External = 'External',
+  DualReplica = 'DualReplica',
+  HighlyAvailableArbiter = 'HighlyAvailableArbiter',
+}
+
 export type InfrastructureKind = K8sResourceCommon & {
   apiVersion: 'config.openshift.io/v1';
   kind: 'Infrastructure';
@@ -33,6 +43,7 @@ export type InfrastructureKind = K8sResourceCommon & {
     };
   };
   status?: {
+    controlPlaneTopology: InfraTopologyMode;
     platform: InfraProviders;
   };
 };

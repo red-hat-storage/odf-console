@@ -12,7 +12,7 @@ import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import {
   CephClusterKind,
-  DataPool,
+  NamedPoolSpec,
   StorageClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -61,7 +61,7 @@ export const createFsPoolRequest = (
   state: StoragePoolState,
   storageCluster: StorageClusterKind
 ) => {
-  const patchPool: DataPool = {
+  const patchPool: NamedPoolSpec = {
     name: state.poolName,
     replicated: { size: Number(state.replicaSize) },
     compressionMode: state.isCompressed ? COMPRESSION_ON : 'none',

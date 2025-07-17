@@ -78,6 +78,7 @@ export const initialState: CreateStorageSystemState = {
       capacityLimit: null,
       enable: false,
     },
+    arbiterNode: null,
     volumeValidationType: VolumeTypeValidation.NONE,
   },
   createStorageClass: {},
@@ -161,6 +162,7 @@ type CreateStorageSystemState = {
     pvCount: number;
     resourceProfile: ResourceProfile;
     volumeValidationType: VolumeTypeValidation;
+    arbiterNode?: WizardNodeState;
   };
   securityAndNetwork: {
     encryption: EncryptionType;
@@ -393,6 +395,9 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'capacityAndNodes/enableArbiter':
       newState.capacityAndNodes.enableArbiter = action.payload;
       break;
+    case 'capacityAndNodes/setArbiterNode':
+      newState.capacityAndNodes.arbiterNode = action.payload;
+      break;
     case 'capacityAndNodes/enableTaint':
       newState.capacityAndNodes.enableTaint = action.payload;
       break;
@@ -521,6 +526,10 @@ export type CreateStorageSystemAction =
   | {
       type: 'capacityAndNodes/enableArbiter';
       payload: WizardState['capacityAndNodes']['enableArbiter'];
+    }
+  | {
+      type: 'capacityAndNodes/setArbiterNode';
+      payload: WizardState['capacityAndNodes']['arbiterNode'];
     }
   | {
       type: 'capacityAndNodes/enableTaint';
