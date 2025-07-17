@@ -2,11 +2,11 @@ import * as React from 'react';
 import { createWizardNodeState } from '@odf/core/components/utils';
 import {
   diskModeDropdownItems,
-  MINIMUM_NODES,
   NO_PROVISIONER,
   arbiterText,
   LSO_OPERATOR,
   OCS_TOLERATION,
+  getMinimumNodes,
 } from '@odf/core/constants';
 import { useNodesData, useLSODiskDiscovery } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
@@ -95,6 +95,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   stepIdReached,
   ns,
   nodes,
+  isTwoNodesOneArbiterCluster,
 }) => {
   const { t } = useCustomTranslation();
   const { onNext, activeStep } =
@@ -135,12 +136,15 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <span>
         {t("After the LocalVolumeSet is created you won't be able to edit it.")}
       </span>
-      <p className="pf-v5-u-pt-sm">
-        <strong>{t('Note:')} </strong>
-        {arbiterText(t)}
-      </p>
+      {!isTwoNodesOneArbiterCluster && (
+        <p className="pf-v5-u-pt-sm">
+          <strong>{t('Note:')} </strong>
+          {arbiterText(t)}
+        </p>
+      )}
     </>
   );
+
   return (
     <Modal
       title={t('Create LocalVolumeSet')}
@@ -171,6 +175,7 @@ type ConfirmationModalProps = {
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   nodes: WizardState['nodes'];
   stepIdReached: WizardState['stepIdReached'];
+  isTwoNodesOneArbiterCluster: boolean;
 };
 
 const RequestErrors: React.FC<RequestErrorsProps> = ({
@@ -216,15 +221,17 @@ export const LSOInstallAlert = () => {
 
 const getLVSStepValidationErrors = (
   state: WizardState['createLocalVolumeSet'],
+  twoNodesOneArbiterClusterDetected: boolean,
   t: TFunction
 ) => {
   const validationErrors: { title: string; description: string }[] = [];
-  if (state.chartNodes.size < MINIMUM_NODES)
+  const minNodes = getMinimumNodes(twoNodesOneArbiterClusterDetected);
+  if (state.chartNodes.size < minNodes)
     validationErrors.push({
       title: t('Minimum Node Requirement'),
       description: t(
-        'A minimum of 3 nodes are required for the initial deployment. Only {{nodes}} node match to the selected filters. Please adjust the filters to include more nodes.',
-        { nodes: state.chartNodes.size }
+        'A minimum of {{minNodes}} nodes are required for the initial deployment. Only {{nodes}} node match to the selected filters. Please adjust the filters to include more nodes.',
+        { minNodes: minNodes, nodes: state.chartNodes.size }
       ),
     });
   if (!state.isValidDeviceType && state.deviceType.length !== 0)
@@ -245,6 +252,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   nodes,
   stepIdReached,
   isMCG,
+  isTwoNodesOneArbiterCluster,
   systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
@@ -284,7 +292,11 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
   const anyError =
     csvLoadError || rawNodesLoadError || discoveryError || disksError;
 
-  const lvsStepValidationErrors = getLVSStepValidationErrors(state, t);
+  const lvsStepValidationErrors = getLVSStepValidationErrors(
+    state,
+    isTwoNodesOneArbiterCluster,
+    t
+  );
 
   return (
     <ErrorHandler
@@ -317,6 +329,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
                     : diskModeDropdownItems.BLOCK
                 }
                 systemNamespace={systemNamespace}
+                isTwoNodesOneArbiterCluster={isTwoNodesOneArbiterCluster}
               />
             </Form>
           </GridItem>
@@ -346,6 +359,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
           setErrorMessage={setLvsError}
           storageClassName={storageClass.name}
           stepIdReached={stepIdReached}
+          isTwoNodesOneArbiterCluster={isTwoNodesOneArbiterCluster}
         />
         {!!lvsStepValidationErrors.length &&
           lvsStepValidationErrors.map((lvsStepValidationError) => (
@@ -371,5 +385,6 @@ type CreateLocalVolumeSetProps = {
   stepIdReached: WizardState['stepIdReached'];
   dispatch: WizardDispatch;
   isMCG: boolean;
+  isTwoNodesOneArbiterCluster: boolean;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

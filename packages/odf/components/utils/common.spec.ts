@@ -62,7 +62,10 @@ describe('ODF common utilities', () => {
     ];
     dataTest.forEach((test) => {
       expect(
-        getReplicasFromSelectedNodes(test.wizardNodeStates as WizardNodeState[])
+        getReplicasFromSelectedNodes(
+          test.wizardNodeStates as WizardNodeState[],
+          false /* not a TNA cluster */
+        )
       ).toBe(test.expectedReplicas);
     });
   });

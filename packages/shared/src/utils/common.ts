@@ -6,7 +6,9 @@ import {
 import {
   InfraProviders,
   InfrastructureKind,
+  InfraTopologyMode,
   K8sResourceKind,
+  NodeKind,
   Patch,
   SubscriptionKind,
 } from '@odf/shared/types';
@@ -22,6 +24,8 @@ import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-interna
 import * as fuzzy from 'fuzzysearch';
 import * as _ from 'lodash-es';
 import { GetAPIVersionForModel } from '../types';
+import { NodeData } from '@odf/core/types';
+import { WizardNodeState } from '@odf/core/components/create-storage-system/reducer';
 
 const defaultClassAnnotation = 'storageclass.kubernetes.io/is-default-class';
 const betaDefaultStorageClassAnnotation =
@@ -145,6 +149,39 @@ export const getInfrastructurePlatform = (
   infrastructure: InfrastructureKind
 ): InfraProviders =>
   infrastructure?.spec?.platformSpec?.type || infrastructure?.status?.platform;
+
+export const getInfrastructureControlPlaneTopology = (
+  infrastructure: InfrastructureKind
+): InfraTopologyMode =>
+  // if not set, return 'HighlyAvailable', which is the default TopologyMode
+  infrastructure?.status?.controlPlaneTopology ||
+  InfraTopologyMode.HighlyAvailable;
+
+export const hasTwoNodesOneArbiterClusterEnabled = (
+  infra: InfrastructureKind
+): boolean =>
+  getInfrastructureControlPlaneTopology(infra) ===
+  InfraTopologyMode.HighlyAvailableArbiter;
+
+export const isArbiterNode = (
+  obj: NodeKind | NodeData | WizardNodeState
+): boolean => {
+  const specStr = 'spec';
+  const taintsStr = 'taints';
+  const keyStr = 'node-role.kubernetes.io/arbiter';
+  let taintArr: NodeData['spec']['taints'] = [];
+  if (
+    specStr in obj &&
+    taintsStr in obj[specStr] &&
+    Array.isArray(obj[specStr][taintsStr])
+  ) {
+    taintArr = obj[specStr][taintsStr];
+  } else if (taintsStr in obj && Array.isArray(obj[taintsStr])) {
+    const wsObj = obj as WizardNodeState;
+    taintArr = wsObj.taints;
+  }
+  return taintArr.some((t) => t.key === keyStr);
+};
 
 export const getGVKLabel = ({ kind, apiGroup, apiVersion }: Model) =>
   `${kind.toLowerCase()}.${apiGroup}/${apiVersion}`;

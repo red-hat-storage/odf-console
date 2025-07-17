@@ -18,6 +18,97 @@ export enum StorageClusterPhase {
   Error = 'Error',
 }
 
+export type ManagedResources = {
+  cephCluster?: {
+    monCount?: 3 | 5;
+    cephConfig?: Record<string, Record<string, string>>;
+  };
+  cephBlockPools?: {
+    disableSnapshotClass: boolean;
+    disableStorageClass: boolean;
+    defaultStorageClass?: boolean;
+    defaultVirtualizationStorageClass?: boolean;
+    poolSpec?: PoolSpec;
+  };
+  cephFilesystems?: {
+    // @deprecated :'disableSnapshotClass' field has been deprecated and will be removed in future.
+    disableSnapshotClass?: boolean;
+    // @deprecated :'disableStorageClass' field has been deprecated and will be removed in future.
+    disableStorageClass?: boolean;
+    additionalDataPools?: DataPool[];
+    metadataPoolSpec?: PoolSpec;
+    dataPoolSpec?: PoolSpec;
+  };
+  cephObjectStores?: {
+    hostNetwork: boolean;
+    metadataPoolSpec?: PoolSpec;
+    dataPoolSpec?: PoolSpec;
+  };
+};
+
+export type PoolSpec = {
+  failureDomain?: string;
+  crushRoot?: string;
+  deviceClass?: string;
+  enableCrushUpdates?: boolean;
+  // DEPRECATED: use Parameters instead, e.g., Parameters["compression_mode"] = "force"
+  compressionMode?: string;
+  parameters?: Record<string, string>;
+  enableRBDStats?: boolean;
+  application?: string;
+  replicated?: {
+    // 'size' must be a whole number
+    size: number;
+    // 'targetSizeRatio' is a decimal percentage value
+    targetSizeRatio?: number;
+    // 'requireSafeReplicaSize', if false allows you to set replica 1
+    requireSafeReplicaSize?: boolean;
+    // 'replicasPerFailureDomain', a whole number
+    // if set, minimum value should be 1
+    replicasPerFailureDomain?: number;
+    subFailureDomain?: string;
+  };
+};
+
+type LabelSelector = {
+  matchLabels?: Record<string, string>;
+  matchExpressions?: {
+    // required
+    key: string;
+    // required
+    operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist';
+    values?: string[];
+  }[];
+};
+
+type NodeInclusionPolicy = 'Honor' | 'Ignore';
+
+export type StorageClusterPlacement = {
+  nodeAffinity?: any;
+  podAffinity?: any;
+  podAntiAffinity?: any;
+  tolerations?: {
+    key?: string;
+    operator?: 'Exists' | 'Equal';
+    value?: string;
+    effect?: 'NoSchedule' | 'PreferNoSchedule' | 'NoExecute';
+    tolerationSeconds?: number;
+  }[];
+  topologySpreadConstraints?: {
+    // maxSkew: is a required field. Default value is 1, and 0 is not allowed.
+    maxSkew: number;
+    // topologyKey: is a required field.
+    topologyKey: string;
+    // whenUnsatisfiable: is a required field.
+    whenUnsatisfiable: 'DoNotSchedule' | 'ScheduleAnyway';
+    labelSelector?: LabelSelector;
+    minDomains?: number;
+    nodeAffinityPolicy?: NodeInclusionPolicy;
+    nodeTaintsPolicy?: NodeInclusionPolicy;
+    matchLabelKeys?: string[];
+  }[];
+};
+
 export type StorageClusterKind = K8sResourceCommon & {
   spec: {
     network?: {
@@ -39,25 +130,8 @@ export type StorageClusterKind = K8sResourceCommon & {
     nfs?: {
       enable?: boolean;
     };
-    managedResources?: {
-      cephCluster: {
-        monCount: 3 | 5;
-      };
-      cephBlockPools?: {
-        disableSnapshotClass: boolean;
-        disableStorageClass: boolean;
-        defaultStorageClass?: boolean;
-        defaultVirtualizationStorageClass?: boolean;
-      };
-      cephFilesystems?: {
-        disableSnapshotClass: boolean;
-        disableStorageClass: boolean;
-        additionalDataPools?: DataPool[];
-      };
-      cephObjectStores?: {
-        hostNetwork: boolean;
-      };
-    };
+    placement?: Record<string, StorageClusterPlacement>;
+    managedResources?: ManagedResources;
     manageNodes?: boolean;
     storageDeviceSets?: DeviceSet[];
     resourceProfile?: ResourceProfile;
