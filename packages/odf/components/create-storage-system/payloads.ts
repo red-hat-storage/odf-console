@@ -139,6 +139,7 @@ export const createStorageCluster = async (
     securityAndNetwork,
     nodes,
     backingStorage,
+    hasTwoNodesOneArbiterCluster,
   } = state;
   const { capacity, enableArbiter, arbiterLocation, pvCount } =
     capacityAndNodes;
@@ -195,6 +196,7 @@ export const createStorageCluster = async (
     kmsEnable: kms.providerState.hasHandled && encryption.advanced,
     selectedArbiterZone: arbiterLocation,
     stretchClusterChecked: enableArbiter,
+    isTwoNodesOneArbiterClusterEnabled: hasTwoNodesOneArbiterCluster,
     availablePvsCount: pvCount,
     isMCG,
     isNFSEnabled,

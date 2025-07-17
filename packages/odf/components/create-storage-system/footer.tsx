@@ -7,6 +7,7 @@ import {
 } from '@odf/core/components/utils';
 import {
   MINIMUM_NODES,
+  MINIMUM_NODES_FOR_TNA_CLUSTER,
   NO_PROVISIONER,
   Steps,
   StepsName,
@@ -114,6 +115,7 @@ const validateBackingStorageStep = (
 const canJumpToNextStep = (
   name: string,
   state: WizardState,
+  hasTwoNodesOneArbiter: boolean,
   t: TFunction,
   supportedExternalStorage: ExternalStorage[]
 ) => {
@@ -163,6 +165,10 @@ const canJumpToNextStep = (
   const deviceSetCount = getDeviceSetCount(pvCount, deviceSetReplica);
   const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
 
+  const minNodes = hasTwoNodesOneArbiter
+    ? MINIMUM_NODES_FOR_TNA_CLUSTER
+    : MINIMUM_NODES;
+
   switch (name) {
     case StepsName(t)[Steps.BackingStorage]:
       return validateBackingStorageStep(backingStorage, storageClass);
@@ -175,14 +181,14 @@ const canJumpToNextStep = (
     case StepsName(t)[Steps.CreateLocalVolumeSet]:
       return (
         // "chartNodes.size === 0" signify no SSDs are attached, but no need to add that as it's already covered by "chartNodes.size >= MINIMUM_NODES" condition
-        chartNodes.size >= MINIMUM_NODES &&
+        chartNodes.size >= minNodes &&
         volumeSetName.trim().length &&
         isValidDiskSize &&
         isValidDeviceType
       );
     case StepsName(t)[Steps.CapacityAndNodes]:
       return (
-        nodes.length >= MINIMUM_NODES &&
+        nodes.length >= minNodes &&
         capacity &&
         ![VolumeTypeValidation.UNKNOWN, VolumeTypeValidation.ERROR].includes(
           volumeValidationType
@@ -355,6 +361,7 @@ export const CreateStorageSystemFooter: React.FC<
   dispatch,
   state,
   disableNext,
+  hasTwoNodesOneArbiter,
   supportedExternalStorage,
   existingNamespaces,
 }) => {
@@ -375,6 +382,7 @@ export const CreateStorageSystemFooter: React.FC<
   const jumpToNextStep = canJumpToNextStep(
     stepName,
     state,
+    hasTwoNodesOneArbiter,
     t,
     supportedExternalStorage
   );
@@ -472,6 +480,7 @@ export const CreateStorageSystemFooter: React.FC<
 type CreateStorageSystemFooterProps = WizardCommonProps & {
   disableNext: boolean;
   hasOCS: boolean;
+  hasTwoNodesOneArbiter: boolean;
   supportedExternalStorage: ExternalStorage[];
   existingNamespaces: K8sResourceCommon[];
 };

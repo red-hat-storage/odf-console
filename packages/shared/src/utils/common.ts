@@ -6,6 +6,7 @@ import {
 import {
   InfraProviders,
   InfrastructureKind,
+  InfraTopologyMode,
   K8sResourceKind,
   Patch,
   SubscriptionKind,
@@ -145,6 +146,13 @@ export const getInfrastructurePlatform = (
   infrastructure: InfrastructureKind
 ): InfraProviders =>
   infrastructure?.spec?.platformSpec?.type || infrastructure?.status?.platform;
+
+export const getInfrastructureControlPlaneTopology = (
+  infrastructure: InfrastructureKind
+): InfraTopologyMode =>
+  // if not set, return 'HighlyAvailable', which is the default TopologyMode
+  infrastructure?.status?.controlPlaneTopology ||
+  InfraTopologyMode.HighlyAvailable;
 
 export const getGVKLabel = ({ kind, apiGroup, apiVersion }: Model) =>
   `${kind.toLowerCase()}.${apiGroup}/${apiVersion}`;
