@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { getManagedClusterResourceObj } from '@odf/mco/hooks';
+import { useStorageProviders } from '@odf/mco/hooks/use-storage-providers';
 import { ACMManagedClusterViewModel } from '@odf/shared';
 import { getName } from '@odf/shared/selectors';
 import {
@@ -21,10 +22,12 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import cn from 'classnames';
 import {
+  Button,
   Grid,
   GridItem,
   Pagination,
   PaginationVariant,
+  Popover,
   Text,
 } from '@patternfly/react-core';
 import { Td } from '@patternfly/react-table';
@@ -54,7 +57,7 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
   const { t } = useCustomTranslation();
   const { odfInfo, isManagedClusterAvailable } = cluster;
   const clientName = odfInfo?.storageClusterInfo?.clientInfo?.name;
-  const odfVersion = odfInfo?.odfVersion;
+  const { providers, count, loaded } = useStorageProviders(cluster.id);
   return (
     <>
       <Td
@@ -83,13 +86,34 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
       </Td>
       <Td
         dataLabel={
-          getColumnHelper(ClusterListColumns.DataFoundation, t).columnName
+          getColumnHelper(ClusterListColumns.StorageProviders, t).columnName
         }
       >
-        <Text className={cn({ 'text-muted': !odfVersion })}>
-          {odfVersion || t('Not Installed')}
-        </Text>
+        {!loaded ? (
+          '…'
+        ) : (
+          <Popover
+            headerContent={t('Storage providers')}
+            bodyContent={
+              <ul style={{ margin: 0, paddingLeft: '1em' }}>
+                {providers.map((p) => (
+                  <li key={p.displayName}>
+                    {p.displayName}
+                    {p.count > 1 && ` (${p.count})`}
+                  </li>
+                ))}
+              </ul>
+            }
+            maxWidth="20rem"
+          >
+            <Button variant="link" isInline>
+              {count} {t('provider')}
+              {count !== 1 && 's'}
+            </Button>
+          </Popover>
+        )}
       </Td>
+
       <Td
         dataLabel={
           getColumnHelper(ClusterListColumns.StorageClients, t).columnName

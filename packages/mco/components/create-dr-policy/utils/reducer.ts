@@ -1,4 +1,4 @@
-import { ReplicationType } from '@odf/mco/constants';
+import { BackendType, ReplicationType } from '@odf/mco/constants';
 import { ConnectedClient } from '@odf/mco/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
@@ -37,11 +37,26 @@ export type ManagedClusterInfoType = K8sResourceCommon & {
   odfInfo?: ODFConfigInfoType;
 };
 
+type S3Details = {
+  bucketName: string;
+  endpoint: string;
+  accessKeyId: string;
+  secretKey: string;
+  region: string;
+};
+
 export type DRPolicyState = {
   // DRPolicy CR name.
   policyName: string;
   // DRPolicy type Async / Sync.
   replicationType: ReplicationType;
+
+  replicationBackend: BackendType;
+
+  cluster1S3Details: S3Details;
+  cluster2S3Details: S3Details;
+  useSameS3Connection: boolean;
+
   // Sync interval schedule for Async policy.
   syncIntervalTime: string;
   // Selected managed cluster for DRPolicy paring.
@@ -54,17 +69,37 @@ export type DRPolicyState = {
 
 export enum DRPolicyActionType {
   SET_POLICY_NAME = 'SET_POLICY_NAME',
+  SET_REPLICATION_BACKEND = 'SET_REPLICATION_BACKEND',
   SET_REPLICATION_TYPE = 'SET_REPLICATION_TYPE',
   SET_SYNC_INTERVAL_TIME = 'SET_SYNC_INTERVAL_TIME',
   SET_SELECTED_CLUSTERS = 'SET_SELECTED_CLUSTERS',
   UPDATE_SELECTED_CLUSTERS = 'UPDATE_SELECTED_CLUSTERS',
   SET_RBD_IMAGE_FLATTEN = 'SET_RBD_IMAGE_FLATTEN',
   SET_CLUSTER_SELECTION_VALIDATION = 'SET_CLUSTER_SELECTION_VALIDATION',
+  SET_CLUSTER1_S3_DETAILS = 'SET_CLUSTER1_S3_DETAILS',
+  SET_CLUSTER2_S3_DETAILS = 'SET_CLUSTER2_S3_DETAILS',
+  SET_USE_SAME_S3_CONNECTION = 'SET_USE_SAME_S3_CONNECTION',
 }
 
 export const drPolicyInitialState: DRPolicyState = {
   policyName: '',
   replicationType: null,
+  replicationBackend: BackendType.DataFoundation,
+  cluster1S3Details: {
+    bucketName: '',
+    endpoint: '',
+    accessKeyId: '',
+    secretKey: '',
+    region: '',
+  },
+  cluster2S3Details: {
+    bucketName: '',
+    endpoint: '',
+    accessKeyId: '',
+    secretKey: '',
+    region: '',
+  },
+  useSameS3Connection: false,
   syncIntervalTime: '5m',
   selectedClusters: [],
   enableRBDImageFlatten: false,
@@ -73,6 +108,7 @@ export const drPolicyInitialState: DRPolicyState = {
 
 export type DRPolicyAction =
   | { type: DRPolicyActionType.SET_POLICY_NAME; payload: string }
+  | { type: DRPolicyActionType.SET_REPLICATION_BACKEND; payload: BackendType }
   | { type: DRPolicyActionType.SET_REPLICATION_TYPE; payload: ReplicationType }
   | { type: DRPolicyActionType.SET_SYNC_INTERVAL_TIME; payload: string }
   | {
@@ -82,6 +118,18 @@ export type DRPolicyAction =
   | { type: DRPolicyActionType.SET_RBD_IMAGE_FLATTEN; payload: boolean }
   | {
       type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION;
+      payload: boolean;
+    }
+  | {
+      type: DRPolicyActionType.SET_CLUSTER1_S3_DETAILS;
+      payload: S3Details;
+    }
+  | {
+      type: DRPolicyActionType.SET_CLUSTER2_S3_DETAILS;
+      payload: S3Details;
+    }
+  | {
+      type: DRPolicyActionType.SET_USE_SAME_S3_CONNECTION;
       payload: boolean;
     };
 
@@ -96,6 +144,18 @@ export const drPolicyReducer = (
         policyName: action.payload,
       };
     }
+    case DRPolicyActionType.SET_REPLICATION_BACKEND: {
+      return {
+        ...state,
+        replicationBackend: action.payload,
+      };
+    }
+    case DRPolicyActionType.SET_CLUSTER1_S3_DETAILS:
+      return { ...state, cluster1S3Details: action.payload };
+    case DRPolicyActionType.SET_CLUSTER2_S3_DETAILS:
+      return { ...state, cluster2S3Details: action.payload };
+    case DRPolicyActionType.SET_USE_SAME_S3_CONNECTION:
+      return { ...state, useSameS3Connection: action.payload };
     case DRPolicyActionType.SET_REPLICATION_TYPE: {
       return {
         ...state,

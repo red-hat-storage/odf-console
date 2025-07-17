@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getMajorVersion } from '@odf/mco/utils';
-import { DRPolicyModel, MirrorPeerModel, getName } from '@odf/shared';
+import { DRPolicyModel, MirrorPeerModel } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
@@ -10,42 +10,44 @@ import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
 import {
-  Form,
-  FormGroup,
-  Text,
-  TextInput,
-  TextContent,
-  TextVariants,
   ActionGroup,
-  Button,
-  ButtonVariant,
   Alert,
   AlertVariant,
+  Button,
+  ButtonVariant,
+  Checkbox,
+  ExpandableSection,
+  Form,
+  FormGroup,
   FormHelperText,
   HelperText,
   HelperTextItem,
-  ExpandableSection,
-  Checkbox,
+  Text,
+  TextContent,
+  TextInput,
+  TextVariants,
 } from '@patternfly/react-core';
 import {
+  BackendType,
   MAX_ALLOWED_CLUSTERS,
-  ReplicationType,
   ODFMCO_OPERATOR,
+  ReplicationType,
 } from '../../constants';
+import '../../style.scss';
 import { MirrorPeerKind } from '../../types';
+import { ClusterS3BucketDetailsForm } from './add-s3-bucket-details/s3-bucket-details-form';
+import './create-dr-policy.scss';
 import { SelectClusterList } from './select-cluster-list';
+import { SelectReplicationBackend } from './select-replication-backend/select-replication-backend';
 import { SelectReplicationType } from './select-replication-type';
 import { SelectedClusterValidation } from './selected-cluster-validator';
-import { SelectedClusterView } from './selected-cluster-view';
 import { createPolicyPromises } from './utils/k8s-utils';
 import {
-  drPolicyReducer,
-  drPolicyInitialState,
-  DRPolicyActionType,
   DRPolicyAction,
+  DRPolicyActionType,
+  drPolicyInitialState,
+  drPolicyReducer,
 } from './utils/reducer';
-import '../../style.scss';
-import './create-dr-policy.scss';
 
 const getDRPolicyListPageLink = (url: string) =>
   url.replace(`/${referenceForModel(DRPolicyModel)}/~new`, '');
@@ -217,31 +219,65 @@ const CreateDRPolicy: React.FC<{}> = () => {
               {state.isClusterSelectionValid && (
                 <>
                   <FormGroup
-                    fieldId="selected-clusters"
-                    label={t('Selected clusters')}
+                    fieldId="select-backend"
+                    label={t('Select replication')}
                   >
-                    {state.selectedClusters.map((c, i) => (
-                      <SelectedClusterView
-                        key={getName(c)}
-                        index={i + 1}
-                        cluster={c}
-                      />
-                    ))}
+                    <FormHelperText>
+                      <HelperText className="mco-create-data-policy__text-input">
+                        <HelperTextItem>
+                          {t(
+                            'All disaster recovery prerequisites are met for both clusters. Multiple storage backends are available on both of the selected clusters.'
+                          )}
+                        </HelperTextItem>
+                      </HelperText>
+                    </FormHelperText>
+
+                    <SelectReplicationBackend
+                      selectedClusters={state.selectedClusters}
+                      dispatch={dispatch}
+                      selectedKey={state.replicationBackend}
+                    />
                   </FormGroup>
+                  {state.replicationBackend ===
+                    BackendType.NonDataFoundation && (
+                    <FormGroup
+                      fieldId="add-s3-bucket-details"
+                      label={t('Add S3 bucket details')}
+                    >
+                      <FormHelperText>
+                        <HelperText className="mco-create-data-policy__text-input">
+                          <HelperTextItem>
+                            {t(
+                              'Provide S3 bucket connection details for each managed cluster. If an s3 bucket is not already configured for cluster, create one and then continue.'
+                            )}
+                          </HelperTextItem>
+                        </HelperText>
+                      </FormHelperText>
+                      <ClusterS3BucketDetailsForm
+                        selectedClusters={state.selectedClusters}
+                        cluster1Details={state.cluster1S3Details}
+                        cluster2Details={state.cluster2S3Details}
+                        useSameConnection={state.useSameS3Connection}
+                        dispatch={dispatch}
+                      />
+                    </FormGroup>
+                  )}
+
                   <SelectReplicationType
                     selectedClusters={state.selectedClusters}
                     replicationType={state.replicationType}
                     syncIntervalTime={state.syncIntervalTime}
                     dispatch={dispatch}
                   />
-                  {state.replicationType === ReplicationType.ASYNC && (
-                    <FormGroup fieldId="advanced-settings">
-                      <AdvancedSettings
-                        enableRBDImageFlatten={state.enableRBDImageFlatten}
-                        dispatch={dispatch}
-                      />
-                    </FormGroup>
-                  )}
+                  {state.replicationBackend === BackendType.DataFoundation &&
+                    state.replicationType === ReplicationType.ASYNC && (
+                      <FormGroup fieldId="advanced-settings">
+                        <AdvancedSettings
+                          enableRBDImageFlatten={state.enableRBDImageFlatten}
+                          dispatch={dispatch}
+                        />
+                      </FormGroup>
+                    )}
                   {errorMessage && (
                     <FormGroup fieldId="error-message">
                       <Alert
