@@ -1,4 +1,4 @@
-FROM docker.io/library/node:20.16.0 AS builder
+FROM docker.io/library/node:20.19.2 AS builder
 
 ARG PLUGIN=odf
 
@@ -14,7 +14,7 @@ RUN BUILD_SCRIPT=build; \
     NODE_OPTIONS="--max-old-space-size=1024" yarn "${BUILD_SCRIPT}" && \
     mv /app/plugins/${PLUGIN}/dist /dist
 
-FROM docker.io/library/node:20.16.0
+FROM docker.io/library/node:20.19.2
 
 RUN yarn global add http-server
 COPY --from=builder /dist /app

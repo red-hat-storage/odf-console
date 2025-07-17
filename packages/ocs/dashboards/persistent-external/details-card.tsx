@@ -22,7 +22,6 @@ import {
   useK8sWatchResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Base64 } from 'js-base64';
-import { useParams } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,
@@ -30,8 +29,8 @@ import {
   CardTitle,
   DescriptionList,
 } from '@patternfly/react-core';
-import { ODFSystemParams } from '../../types';
 import EncryptionPopover from '../common/details-card/encryption-popover';
+import { OCSDashboardContext } from '../ocs-dashboard-providers';
 
 const getCephLink = (secret: SecretKind): string => {
   const data = secret?.data?.userKey;
@@ -63,7 +62,9 @@ export const DetailsCard: React.FC = () => {
   const isODF = useFlag(ODF_MODEL_FLAG);
 
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
 
   const resourcesObj: ResourcesObject = useK8sWatchResources(
     k8sResources(clusterNs)

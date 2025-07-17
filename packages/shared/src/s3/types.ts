@@ -43,6 +43,12 @@ import {
   PutBucketCorsCommandOutput,
   DeleteBucketCorsCommandInput,
   DeleteBucketCorsCommandOutput,
+  GetBucketPolicyStatusCommandInput,
+  GetBucketPolicyStatusCommandOutput,
+  GetPublicAccessBlockCommandInput,
+  GetPublicAccessBlockCommandOutput,
+  PutPublicAccessBlockCommandInput,
+  PutPublicAccessBlockCommandOutput,
 } from '@aws-sdk/client-s3';
 
 // Bucket command types
@@ -113,6 +119,18 @@ export type PutBucketCors = (
 export type DeleteBucketCors = (
   input: DeleteBucketCorsCommandInput
 ) => Promise<DeleteBucketCorsCommandOutput>;
+
+export type GetBucketPolicyStatus = (
+  input: GetBucketPolicyStatusCommandInput
+) => Promise<GetBucketPolicyStatusCommandOutput>;
+
+export type GetPublicAccessBlock = (
+  input: GetPublicAccessBlockCommandInput
+) => Promise<GetPublicAccessBlockCommandOutput>;
+
+export type PutPublicAccessBlock = (
+  input: PutPublicAccessBlockCommandInput
+) => Promise<PutPublicAccessBlockCommandOutput>;
 
 // Object command types
 export type DeleteObjects = (

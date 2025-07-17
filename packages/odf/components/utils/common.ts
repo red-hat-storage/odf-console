@@ -414,6 +414,7 @@ export type OCSRequestData = {
   isMCG?: boolean;
   isNFSEnabled?: boolean;
   shouldSetCephRBDAsDefault?: boolean;
+  shouldSetVirtualizeSCAsDefault?: boolean;
   storageClusterNamespace: string;
   useExternalPostgres?: boolean;
   enablePostgresqlTls?: boolean;
@@ -437,6 +438,7 @@ export const getOCSRequestData = ({
   isMCG,
   isNFSEnabled,
   shouldSetCephRBDAsDefault,
+  shouldSetVirtualizeSCAsDefault,
   storageClusterNamespace,
   useExternalPostgres,
   enablePostgresqlTls,
@@ -505,7 +507,10 @@ export const getOCSRequestData = ({
         getNetworkField(networkConfiguration, encryption.inTransit)
       ),
       managedResources: {
-        cephBlockPools: { defaultStorageClass: shouldSetCephRBDAsDefault },
+        cephBlockPools: {
+          defaultStorageClass: shouldSetCephRBDAsDefault,
+          defaultVirtualizeStorageClass: shouldSetVirtualizeSCAsDefault,
+        },
       },
     };
   }

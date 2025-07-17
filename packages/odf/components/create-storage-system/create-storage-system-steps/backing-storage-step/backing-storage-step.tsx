@@ -32,87 +32,20 @@ import * as _ from 'lodash-es';
 import {
   Form,
   FormGroup,
-  FormSelect,
-  FormSelectOption,
-  FormSelectProps,
   Radio,
   Alert,
   AlertVariant,
   Checkbox,
-  HelperTextItem,
-  FormHelperText,
-  HelperText,
 } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from './enable-nfs';
 import { PostgresConnectionDetails } from './noobaa-external-postgres/postgres-connection-details';
-import { SelectDeployment } from './select-deployment';
 import { SetCephRBDStorageClassDefault } from './set-rbd-sc-default';
+import SetVirtualizeSCDefault from './set-virtualize-sc-default';
 import './backing-storage-step.scss';
 
 // ODF watches only 2 namespaces (other one is operator install namespace)
 const OCS_MULTIPLE_CLUSTER_NS = 'openshift-storage-extended';
-
-const ExternalSystemSelection: React.FC<ExternalSystemSelectionProps> = ({
-  dispatch,
-  stepIdReached,
-  selectOptions,
-  selectedStorage,
-}) => {
-  const { t } = useCustomTranslation();
-
-  const handleSelection: FormSelectProps['onChange'] = React.useCallback(
-    (_event, value: string) => {
-      if (stepIdReached === 2)
-        dispatch({ type: 'wizard/setStepIdReached', payload: 1 });
-      dispatch({
-        type: 'backingStorage/setExternalStorage',
-        payload: value,
-      });
-    },
-    [dispatch, stepIdReached]
-  );
-
-  React.useEffect(() => {
-    if (!selectedStorage) {
-      handleSelection(null, selectOptions[0].model.kind);
-    }
-  }, [handleSelection, selectOptions, selectedStorage]);
-
-  return (
-    <FormGroup
-      fieldId="storage-platform-name"
-      label={t('Storage platform')}
-      className=""
-    >
-      <FormSelect
-        aria-label={t('Select external system from list')}
-        value={selectedStorage}
-        id="storage-platform-name"
-        className="odf-backing-storage__selection--width  odf-backing-storage__selection--spacer"
-        onChange={handleSelection}
-      >
-        {selectOptions.map(({ displayName, model: { kind } }) => (
-          <FormSelectOption key={kind} value={kind} label={displayName} />
-        ))}
-      </FormSelect>
-      <FormHelperText>
-        <HelperText>
-          <HelperTextItem>
-            {t('Select a storage platform you wish to connect')}
-          </HelperTextItem>
-        </HelperText>
-      </FormHelperText>
-    </FormGroup>
-  );
-};
-
-type ExternalSystemSelectionProps = {
-  dispatch: WizardDispatch;
-  stepIdReached: WizardState['stepIdReached'];
-  selectedStorage: WizardState['backingStorage']['externalStorage'];
-  selectOptions: ExternalStorage[];
-};
 
 const StorageClassSelection: React.FC<StorageClassSelectionProps> = ({
   dispatch,
@@ -180,7 +113,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   infraType,
   error,
   loaded,
-  stepIdReached,
   supportedExternalStorage,
 }) => {
   const {
@@ -300,9 +232,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
     }
   }, [deployment, dispatch, sc, type, hasInternal]);
 
-  const showExternalStorageSelection =
-    type === BackingStorageType.EXTERNAL && allowedExternalStorage.length;
-  // Only single internal cluster allowed, should be created before external cluster
   const showStorageClassSelection =
     !hasOCS && type === BackingStorageType.EXISTING;
 
@@ -329,9 +258,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   // Block internal cluster creation after external cluster already created
   return (
     <Form>
-      {!hasOCS && (
-        <SelectDeployment dispatch={dispatch} deployment={deployment} />
-      )}
       <FormGroup
         label={t('Backing storage type')}
         fieldId={`bs-${BackingStorageType.EXISTING}`}
@@ -370,29 +296,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           id={`bs-${BackingStorageType.LOCAL_DEVICES}`}
           className="odf-backing-store__radio--margin-bottom"
         />
-        <Radio
-          label={t('Connect an external storage platform')}
-          description={t(
-            'Data Foundation will create a dedicated StorageClass.'
-          )}
-          name={RADIO_GROUP_NAME}
-          value={BackingStorageType.EXTERNAL}
-          isChecked={type === BackingStorageType.EXTERNAL}
-          onChange={(event, _unused) => onRadioSelect(_unused, event)}
-          isDisabled={allowedExternalStorage.length === 0}
-          body={
-            showExternalStorageSelection && (
-              <ExternalSystemSelection
-                selectedStorage={externalStorage}
-                dispatch={dispatch}
-                selectOptions={allowedExternalStorage}
-                stepIdReached={stepIdReached}
-              />
-            )
-          }
-          id={`bs-${BackingStorageType.EXTERNAL}`}
-          className="odf-backing-store__radio--margin-bottom"
-        />
       </FormGroup>
       {/* Should be visible for both external and internal mode (even if one cluster already exists) */}
       {isFullDeployment && !hasMultipleClusters && (
@@ -406,6 +309,12 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
             dispatch={dispatch}
             isRBDStorageClassDefault={isRBDStorageClassDefault}
             doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
+          />
+          <SetVirtualizeSCDefault
+            dispatch={dispatch}
+            isVirtualizeStorageClassDefault={
+              state.isVirtualizeStorageClassDefault
+            }
           />
         </>
       )}

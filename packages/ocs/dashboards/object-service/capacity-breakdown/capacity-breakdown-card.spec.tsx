@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { render, screen } from '@testing-library/react';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import BreakdownCard from './capacity-breakdown-card';
 
 const testNamespace = 'test-ns';
@@ -46,7 +47,20 @@ jest.mock('react-router-dom-v5-compat', () => ({
 
 describe('Capacity Breakdown Card', () => {
   it('renders the Capacity Breakdown Card', () => {
-    render(<BreakdownCard />);
+    render(
+      <OCSDashboardContext.Provider
+        value={{
+          selectedCluster: {
+            clusterNamespace: testNamespace,
+            clusterName: 'test-cluster',
+            isExternalMode: false,
+          },
+          hasMultipleStorageClusters: false,
+        }}
+      >
+        <BreakdownCard />
+      </OCSDashboardContext.Provider>
+    );
 
     expect(screen.getByText('Capacity breakdown')).toBeInTheDocument();
     expect(screen.getByLabelText('Help')).toBeInTheDocument();

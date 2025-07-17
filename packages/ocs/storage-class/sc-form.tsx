@@ -401,7 +401,7 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
     if (isExternal) {
       return (
         <div className="form-group">
-          <label className="co-required" htmlFor="ocs-storage-pool">
+          <label className="co-required" htmlFor="pool-name">
             {t('Storage Pool')}
           </label>
           <input
@@ -567,7 +567,7 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
           systemNamespace={systemNamespace}
         />
         <div className="form-group">
-          <label className="co-required" htmlFor="ocs-storage-pool">
+          <label className="co-required" htmlFor="pool-name">
             {t('Storage Pool')}
           </label>
           <input

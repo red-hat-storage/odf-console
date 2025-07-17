@@ -8,8 +8,15 @@
 }
 
 .ceph-block-pool-body__compression {
-  align-items: center;
+  align-items: start;
   display: flex;
+
+  input[type='checkbox'] {
+    // Override some inherited styles.
+    margin-left: unset !important;
+    position: unset !important;
+    margin-right: 10px;
+  }
 }
 
 .ceph-block-pool__switch {

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { CephBlockPoolModel } from '@odf/shared';
 import DetailsPage from '@odf/shared/details-page/DetailsPage';
 import { Kebab } from '@odf/shared/kebab/kebab';
@@ -21,8 +22,22 @@ export const cephClusterResource = {
 export const BlockPoolDetailsPage: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
-  const { poolName, namespace: poolNs } = useParams();
+  const { poolName } = useParams();
   const location = useLocation();
+  const [poolNs, setPoolNs] = React.useState('');
+  const { odfNamespace } = useODFNamespaceSelector();
+
+  React.useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    let ns = query.get('namespace');
+    if (!ns) {
+      ns = odfNamespace;
+    }
+    if (ns) {
+      setPoolNs(ns);
+    }
+  }, [odfNamespace, location.search]);
+
   const kind = referenceForModel(CephBlockPoolModel);
 
   const [resource, loaded, loadError] = useK8sWatchResource<StoragePoolKind>({
@@ -34,11 +49,7 @@ export const BlockPoolDetailsPage: React.FC<{}> = () => {
 
   const breadcrumbs = [
     {
-      name: t('StorageSystems'),
-      path: '/odf/systems',
-    },
-    {
-      name: t('StorageSystem details'),
+      name: t('Storage pools'),
       path: `${location.pathname.split(`/${poolName}`)[0]}`,
     },
     {

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { Button, ButtonVariant } from '@patternfly/react-core';
 import { ExpandIcon } from '@patternfly/react-icons';
 import SearchBar from './SearchComponent';
 import './TopologySearch.scss';
@@ -19,7 +20,7 @@ const TopologySearchBar: React.FC = () => {
     };
   }, [isFullScreen]);
 
-  const toggleFullScreen = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const toggleFullScreen = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     const element = document.getElementById('odf-topology');
     if (!isFullScreen) {
@@ -40,10 +41,15 @@ const TopologySearchBar: React.FC = () => {
         <SearchBar />
       </span>
       <span className="odf-topology-search-bar__expand">
-        <a onClick={toggleFullScreen}>
+        <Button
+          variant={ButtonVariant.link}
+          isInline
+          onClick={toggleFullScreen}
+          className="odf-topology-search-bar__expand-button"
+        >
           <ExpandIcon className="odf-topology-search-bar__expand-icon" />
           {!isFullScreen ? t('Expand to fullscreen') : t('Exit fullscreen')}
-        </a>
+        </Button>
       </span>
     </div>
   );

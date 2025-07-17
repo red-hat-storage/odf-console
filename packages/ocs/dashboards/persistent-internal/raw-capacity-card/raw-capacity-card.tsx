@@ -3,18 +3,19 @@ import { useRawCapacity } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { parser } from '@odf/shared/utils';
-import { useParams } from 'react-router-dom-v5-compat';
-import { ODFSystemParams } from '../../../types';
 import {
   CapacityCard,
   CapacityCardProps,
 } from '../../common/capacity-card/capacity-card';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 const RawCapacityCard: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { systemFlags } = useODFSystemFlagsSelector();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const clusterName = systemFlags[clusterNs]?.ocsClusterName;
 
   const [totalCapacity, usedCapacity, loading, loadError] =

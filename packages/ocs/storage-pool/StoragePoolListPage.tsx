@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import {
+  useODFNamespaceSelector,
+  useODFSystemFlagsSelector,
+} from '@odf/core/redux';
 import { getCephBlockPoolResource } from '@odf/core/resources';
 import { CephBlockPoolModel, CephFileSystemModel } from '@odf/shared';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
@@ -38,7 +41,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
-import { Link, useLocation, useParams } from 'react-router-dom-v5-compat';
+import { Link, useLocation } from 'react-router-dom-v5-compat';
 import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { PoolType } from '../constants';
@@ -47,12 +50,7 @@ import {
   healthStateMessage,
 } from '../dashboards/block-pool/states';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
-import {
-  StoragePoolKind,
-  ODFSystemParams,
-  CephFilesystemKind,
-  StoragePool,
-} from '../types';
+import { StoragePoolKind, CephFilesystemKind, StoragePool } from '../types';
 import {
   disableMenuAction,
   getPerPoolMetrics,
@@ -288,8 +286,11 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
   );
 
   // Details page link
-  const to = `${listPagePath}/${name}`;
+  const to = `${listPagePath}/${name}?namespace=${getNamespace(obj)}`;
 
+  // https://issues.redhat.com/browse/DFBUGS-2963
+  // https://issues.redhat.com/browse/DFBUGS-2963
+  // /ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/storage-pools/:poolName
   // {poolRawCapacity: {"pool-1" : size_bytes, "pool-2" : size_bytes, ...}}
   const rawCapacity: string = poolRawCapacity?.[name]
     ? humanizeBinaryBytes(poolRawCapacity?.[name])?.string
@@ -443,7 +444,7 @@ const getResources = (
 };
 
 const StoragePoolListPage: React.FC = () => {
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const { odfNamespace: clusterNs } = useODFNamespaceSelector();
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
   const clusterName = systemFlags[clusterNs]?.ocsClusterName;
@@ -603,8 +604,8 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
   const error = loadError || compressionLoadError || rawCapLoadError;
 
   const [data, filteredData, onFilterChange] = useListPageFilter(storagePools);
+  const createPath = `/odf/system/ns/${getNamespace(data[0])}/ocs.openshift.io~v1~StorageCluster/${clusterName}/storage-pools/create/~new`;
 
-  const createPath = `${listPagePath}/create/~new`;
   return (
     <>
       <ListPageHeader title={t('Storage pools')}>

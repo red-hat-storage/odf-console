@@ -7,18 +7,19 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getGaugeValue, humanizeBinaryBytes } from '@odf/shared/utils';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import {
   POOL_STORAGE_EFFICIENCY_QUERIES,
   StorageDashboardQuery,
 } from '../../../queries';
-import { ODFSystemParams } from '../../../types';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 export const StorageEfficiencyContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 

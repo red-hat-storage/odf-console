@@ -1,10 +1,6 @@
 import * as React from 'react';
 import { getPlacementKindObj } from '@odf/mco/components/discovered-application-wizard/utils/k8s-utils';
-import {
-  DISCOVERED_APP_NS,
-  DRApplication,
-  ODF_RESOURCE_TYPE_LABEL,
-} from '@odf/mco/constants';
+import { DISCOVERED_APP_NS, DRApplication } from '@odf/mco/constants';
 import {
   getDRPlacementControlResourceObj,
   getDRPolicyResourceObj,
@@ -16,7 +12,7 @@ import {
   getSearchResultItems,
   queryAppWorkloadPVCs,
 } from '@odf/mco/utils';
-import { getName, getNamespace, VirtualMachineModel } from '@odf/shared';
+import { getName, getNamespace } from '@odf/shared';
 import {
   K8sResourceCommon,
   useK8sWatchResource,
@@ -53,12 +49,6 @@ export const DiscoveredVMParser: React.FC<DiscoveredVMParserProps> = ({
   >(
     getDRPlacementControlResourceObj({
       namespace: DISCOVERED_APP_NS,
-      selector: {
-        matchLabels: {
-          // To optimize the VM DRPC watch
-          [ODF_RESOURCE_TYPE_LABEL]: VirtualMachineModel.kind.toLowerCase(),
-        },
-      },
     })
   );
 

@@ -27,12 +27,11 @@ import {
   SelectProps,
 } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import { useParams } from 'react-router-dom-v5-compat';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ServiceType, CapacityBreakdown } from '../../../constants';
 import { breakdownQueryMapMCG } from '../../../queries';
-import { ODFSystemParams } from '../../../types';
 import { decodeRGWPrefix, getStackChartStats } from '../../../utils';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import './capacity-breakdown-card.scss';
 
 const subscriptionResource = {
@@ -288,7 +287,9 @@ const BreakdownCard: React.FC = () => {
   const [isOpenServiceSelect, setServiceSelect] = React.useState(false);
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
   const isRGWSupported = systemFlags[clusterNs]?.isRGWAvailable;
   const isMCGSupported = systemFlags[clusterNs]?.isNoobaaAvailable;
