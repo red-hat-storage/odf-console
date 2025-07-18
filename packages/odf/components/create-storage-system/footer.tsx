@@ -340,7 +340,6 @@ const handleReviewAndCreateNext = async (
       const subSystemPayloads = createPayload({
         systemName: subSystemName,
         state: subSystemState,
-        model,
         namespace: systemNamespace,
         storageClassName: storageClass.name,
         inTransitStatus: inTransitChecked,
