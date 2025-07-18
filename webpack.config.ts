@@ -5,6 +5,7 @@ import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpa
 import CircularDependencyPlugin from 'circular-dependency-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import { ForkTsCheckerWebpackPlugin } from 'fork-ts-checker-webpack-plugin/lib/plugin';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import * as webpack from 'webpack';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import type { Configuration as DevServerConfiguration } from 'webpack-dev-server';
@@ -84,6 +85,13 @@ const config: webpack.Configuration & DevServerConfiguration = {
         ],
         exclude: /(build|dist)/, // Ignore shared build folder.
         use: [
+          { loader: MiniCssExtractPlugin.loader },
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true,
+            },
+          },
           {
             loader: 'thread-loader',
             options: {
@@ -95,13 +103,6 @@ const config: webpack.Configuration & DevServerConfiguration = {
                       workerNodeArgs: ['--max-old-space-size=1024'],
                     }
                   : {}),
-            },
-          },
-          { loader: 'style-loader' },
-          {
-            loader: 'css-loader',
-            options: {
-              sourceMap: true,
             },
           },
           {
@@ -130,7 +131,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg|woff2?|ttf|eot|otf)(\?.*$|$)/,
@@ -159,6 +160,9 @@ const config: webpack.Configuration & DevServerConfiguration = {
       failOnError: true,
       allowAsyncCycles: false,
       cwd: process.cwd(),
+    }),
+    new MiniCssExtractPlugin({
+      ignoreOrder: true,
     }),
   ],
   // 'source-map' is recommended choice for production builds, A full SourceMap is emitted as a separate file.
