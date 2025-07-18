@@ -8,6 +8,7 @@ import {
   InfrastructureKind,
   K8sResourceKind,
   Patch,
+  SubscriptionKind,
 } from '@odf/shared/types';
 import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
 import {
@@ -177,6 +178,9 @@ export const getValidFilteredData = <T>(filteredData: T[]): T[] =>
 
 export const getOprVersionFromCSV = (operator: K8sResourceKind): string =>
   operator?.spec?.version || '';
+
+export const getOprChannelFromSub = (sub: SubscriptionKind): string =>
+  sub?.spec?.channel;
 
 export const parseOprMajorMinorVersion = (version: string): string => {
   const majorMinorVersionRegex = /[0-9]+\.[0-9]+/;

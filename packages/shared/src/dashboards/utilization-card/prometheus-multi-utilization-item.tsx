@@ -17,7 +17,7 @@ const trimSecondsXMutator = (x: number) => {
 
 export const PrometheusMultilineUtilizationItem: React.FC<
   PrometheusMultilineUtilizationItemProps
-> = ({ queries, chartType, title, humanizeValue }) => {
+> = ({ className = '', queries, chartType, title, humanizeValue }) => {
   const { duration } = useUtilizationDuration();
   const [stats, setStats] = React.useState([]);
 
@@ -81,6 +81,7 @@ export const PrometheusMultilineUtilizationItem: React.FC<
 
   return (
     <MultilineUtilizationItem
+      className={className}
       title={title}
       data={stats}
       error={hasError}
@@ -105,6 +106,7 @@ type QueryWithDescription = {
 };
 
 type PrometheusMultilineUtilizationItemProps = PrometheusCommonProps & {
+  className?: string;
   queries: [QueryWithDescription, QueryWithDescription];
   chartType?: 'stacked-area' | 'grouped-line';
 };

@@ -1,10 +1,6 @@
-import {
-  K8sModel,
-  K8sResourceKind,
-  useK8sWatchResources,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { WatchK8sResources } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
-import { ODFStorageSystem, StorageClusterModel } from '../models';
+import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
+import { ODFStorageSystem } from '@odf/shared/models';
+import { StorageClusterKind, StorageSystemKind } from '@odf/shared/types';
 import {
   getAnnotations,
   getLabels,
@@ -12,45 +8,7 @@ import {
   getNamespace,
   getUID,
 } from '../selectors';
-import { StorageClusterKind, StorageSystemKind } from '../types';
 import { useDeepCompareMemoize } from './deep-compare-memoize';
-
-type ResourceObjects = {
-  storageClusters: StorageClusterKind[];
-  flashSystemClusters: K8sResourceKind[];
-};
-
-// To be used only in this one place and not to be exported
-const IBMFlashSystemModel: K8sModel = {
-  label: 'IBM Flash System',
-  labelPlural: 'IBM Flash Systems',
-  apiVersion: 'v1alpha1',
-  apiGroup: 'odf.ibm.com',
-  plural: 'flashsystemclusters',
-  abbr: 'FS',
-  namespaced: true,
-  kind: 'FlashSystemCluster',
-  crd: true,
-};
-
-const resources: WatchK8sResources<ResourceObjects> = {
-  storageClusters: {
-    groupVersionKind: {
-      group: StorageClusterModel.apiGroup,
-      version: StorageClusterModel.apiVersion,
-      kind: StorageClusterModel.kind,
-    },
-    isList: true,
-  },
-  flashSystemClusters: {
-    groupVersionKind: {
-      group: IBMFlashSystemModel.apiGroup,
-      version: IBMFlashSystemModel.apiVersion,
-      kind: IBMFlashSystemModel.kind,
-    },
-    isList: true,
-  },
-};
 
 const mapStorageClusterToStorageSystem = (
   storageCluster: StorageClusterKind
@@ -89,7 +47,7 @@ export const useWatchStorageSystems = (): [
   any,
 ] => {
   const { storageClusters: odfClusters, flashSystemClusters } =
-    useK8sWatchResources<ResourceObjects>(resources);
+    useWatchStorageClusters();
 
   const loaded = odfClusters.loaded && flashSystemClusters.loaded;
   // Flashsystem loaderror can occur when IBM flashsystem operator is not installed hence ignore it

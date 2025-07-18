@@ -1,6 +1,8 @@
+import { ParsedMetric } from '@odf/shared/types';
 import {
   Humanize,
   PrometheusResponse,
+  PrometheusResult,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Alert, PrometheusLabels } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -19,6 +21,17 @@ export const getResiliencyProgress = (results: PrometheusResponse): number => {
   const progress: string = getGaugeValue(results);
   return parseFloat(progress);
 };
+
+export const getStorageClusterMetric = (
+  metric: PrometheusResponse,
+  clusterName: string,
+  clusterNamespace: string
+): PrometheusResult =>
+  metric?.data?.result?.find(
+    (value) =>
+      value.metric.managedBy === clusterName &&
+      value.metric.namespace === clusterNamespace
+  );
 
 export type DataPoint<X = Date | number | string> = {
   x?: X;
@@ -68,6 +81,23 @@ export const sortInstantVectorStats = (stats: DataPoint[]): DataPoint[] => {
   });
   return stats.length === 6 ? stats.splice(0, 5) : stats;
 };
+
+/**
+ * Parses Prometheus metric data into a human readable format.
+ * @param metric: PrometheusResponse
+ * @param humanize: Humanize
+ * @param nameField: string. The metric object field to be used as the name for the value.
+ * @returns ParsedMetric[]
+ */
+export const parseMetricData = (
+  metric: PrometheusResponse,
+  humanize: Humanize,
+  nameField = '__name__'
+): ParsedMetric[] =>
+  metric?.data?.result?.map((datum) => ({
+    name: datum?.metric?.[nameField],
+    usedValue: humanize(datum?.value?.[1]),
+  })) || [];
 
 // @TODO: Enhance instantVectorStats to directly parse the values (else loading state won't be accurate)
 export const parser = compose((val) => val?.[0]?.y, getInstantVectorStats);

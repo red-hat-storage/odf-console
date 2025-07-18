@@ -3,6 +3,7 @@ import { AreaChart } from '@odf/shared/dashboards/utilization-card/area-chart';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint } from '@odf/shared/utils';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
+import classNames from 'classnames';
 
 export const MultilineUtilizationItem: React.FC<MultilineUtilizationItemProps> =
   React.memo(
@@ -14,6 +15,7 @@ export const MultilineUtilizationItem: React.FC<MultilineUtilizationItemProps> =
       queries,
       error,
       chartType,
+      className = '',
     }) => {
       const { t } = useCustomTranslation();
       const currentValue =
@@ -38,7 +40,7 @@ export const MultilineUtilizationItem: React.FC<MultilineUtilizationItemProps> =
 
       return (
         <div
-          className="co-utilization-card__item-ceph"
+          className={classNames('co-utilization-card__item-ceph', className)}
           data-test-id="utilization-item"
         >
           <div className="co-utilization-card__item-description-ceph">
@@ -48,7 +50,7 @@ export const MultilineUtilizationItem: React.FC<MultilineUtilizationItemProps> =
               </h4>
               {error ||
               (!isLoading &&
-                !(data.length && data.every((datum) => datum.length))) ? (
+                !(data.length && data.some((datum) => datum.length))) ? (
                 <div className="text-secondary co-utilization-card__item-description-ceph-sub">
                   {t('Not available')}
                 </div>
@@ -74,6 +76,7 @@ type QueryWithDescription = {
 };
 
 type MultilineUtilizationItemProps = {
+  className?: string;
   title: string;
   data?: DataPoint[][];
   isLoading: boolean;

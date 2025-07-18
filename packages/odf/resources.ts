@@ -46,11 +46,12 @@ export const scResource: WatchK8sResource = {
   isList: true,
 };
 
-export const LSOSubscriptionResource: WatchK8sResource = {
+export const odfSubscriptionResource: K8sResourceObj = (ns) => ({
   kind: referenceForModel(SubscriptionModel),
-  fieldSelector: 'metadata.name=local-storage-operator',
-  isList: true,
-};
+  fieldSelector: 'metadata.name=odf-operator',
+  isList: false,
+  namespace: ns,
+});
 
 export const subscriptionResource: WatchK8sResource = {
   isList: true,

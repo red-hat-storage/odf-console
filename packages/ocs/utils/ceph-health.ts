@@ -1,5 +1,14 @@
+import { odfDocBasePath } from '@odf/shared/constants';
 import { STATE_PRIORITY } from '@odf/shared/dashboards/status-card/states';
-import { K8sResourceKind, ResourceHealthHandler } from '@odf/shared/types';
+import { DOC_VERSION } from '@odf/shared/hooks';
+import {
+  CephClusterKind,
+  CephHealthCheckType,
+  K8sResourceKind,
+  PrometheusHealthHandler,
+  ResourceHealthHandler,
+} from '@odf/shared/types';
+import { getResiliencyProgress } from '@odf/shared/utils';
 import { HealthState } from '@openshift-console/dynamic-plugin-sdk';
 import { SubsystemHealth } from '@openshift-console/dynamic-plugin-sdk/lib/extensions/dashboard-types';
 import * as _ from 'lodash-es';
@@ -11,6 +20,50 @@ export type WatchCephResource = {
 
 export type WatchCephResources = {
   ceph: K8sResourceKind[];
+};
+
+export const getDataResiliencyState: PrometheusHealthHandler = (
+  responses,
+  t
+) => {
+  const progress: number = getResiliencyProgress(responses[0].response);
+  if (responses[0].error) {
+    return { state: HealthState.NOT_AVAILABLE };
+  }
+  if (!responses[0].response) {
+    return { state: HealthState.LOADING };
+  }
+  if (Number.isNaN(progress)) {
+    return { state: HealthState.UNKNOWN };
+  }
+  if (progress < 1) {
+    return { state: HealthState.PROGRESS, message: t('Progressing') };
+  }
+  return { state: HealthState.OK };
+};
+
+export const getCephHealthChecks = (
+  cephCluster: CephClusterKind
+): CephHealthCheckType[] => {
+  const pattern = /[A-Z]+_*|error/g;
+  const healthChecks: CephHealthCheckType[] = [];
+  const cephDetails = cephCluster?.status?.ceph?.details;
+  for (const key in cephDetails) {
+    if (pattern.test(key)) {
+      const healthCheckObject: CephHealthCheckType = {
+        id: key,
+        details: cephDetails[key].message,
+        ...(!!DOC_VERSION
+          ? {
+              troubleshootLink:
+                whitelistedHealthChecksRef(DOC_VERSION)[key] ?? null,
+            }
+          : {}),
+      };
+      healthChecks.push(healthCheckObject);
+    }
+  }
+  return healthChecks;
 };
 
 const parseCephHealthStatus = (
@@ -102,3 +155,9 @@ export const getRGWHealthState = (cr: K8sResourceKind): SubsystemHealth => {
       return { state: HealthState.UNKNOWN };
   }
 };
+
+export const whitelistedHealthChecksRef = (odfDocVersion: string) => ({
+  MON_DISK_LOW: `${odfDocBasePath(
+    odfDocVersion
+  )}/troubleshooting_openshift_data_foundation#resolving-cluster-health-issues_rhodf`,
+});

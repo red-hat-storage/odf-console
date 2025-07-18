@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { secretResource } from '@odf/core/resources';
 import { getResourceInNs } from '@odf/core/utils';
+import { decodeRGWPrefix, getDataResiliencyState } from '@odf/ocs/utils';
 import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/shared';
 import {
   useCustomPrometheusPoll,
@@ -32,13 +33,11 @@ import {
   CardTitle,
 } from '@patternfly/react-core';
 import { StatusType } from '../../../constants';
-import { getDataResiliencyState } from '../../../dashboards/persistent-internal/status-card/utils';
 import {
   StatusCardQueries,
   dataResiliencyQueryMap,
   ObjectServiceDashboardQuery,
 } from '../../../queries';
-import { decodeRGWPrefix } from '../../../utils';
 import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import { ObjectServiceStatus } from './object-service-health';
 import { getNooBaaState, getRGWHealthState } from './statuses';
