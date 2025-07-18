@@ -1,4 +1,4 @@
-@import '../../styles/skeleton';
+@use '../../styles/skeleton' as *;
 
 .capacity-breakdown-card__available-body {
   float: right;

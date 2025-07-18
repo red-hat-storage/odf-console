@@ -114,12 +114,6 @@ const config: webpack.Configuration & DevServerConfiguration = {
             loader: 'sass-loader',
             options: {
               sassOptions: {
-                // @TODO: fix Sass deprecation warnings.
-                silenceDeprecations: [
-                  'global-builtin',
-                  'import',
-                  'mixed-decls',
-                ],
                 style: 'compressed',
                 quietDeps: true,
               },

@@ -1,5 +1,5 @@
-@import '@odf/shared/styles/skeleton';
-@import '@odf/shared/dashboards/capacity-card/capacity-card.scss';
+@use '@odf/shared/styles/skeleton' as *;
+@use '@odf/shared/dashboards/capacity-card/capacity-card.scss' as *;
 
 .odf {
   &-capacityCardLoading-body {
