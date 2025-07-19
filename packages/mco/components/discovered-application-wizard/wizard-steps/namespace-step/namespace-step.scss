@@ -1,4 +1,4 @@
-@import '../../enroll-discovered-application.scss';
+@use '../../enroll-discovered-application.scss' as *;
 
 .mco-namespace-selection {
     &__border {

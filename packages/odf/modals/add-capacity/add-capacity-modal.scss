@@ -1,4 +1,4 @@
-@import '@patternfly/patternfly/sass-utilities/colors';
+@use '@patternfly/patternfly/sass-utilities/colors' as *;
 
 .add-capacity-modal--overflow {
   overflow-x: unset;

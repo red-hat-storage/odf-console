@@ -1,4 +1,4 @@
-@import '@odf/shared/styles/skeleton';
+@use '@odf/shared/styles/skeleton' as *;
 
 .performanceCard {
   &__header {

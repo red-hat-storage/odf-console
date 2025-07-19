@@ -1,3 +1,6 @@
+@use './vars' as vars;
+@use './mixin/break-word' as *;
+
 .odf-alert {
   margin-bottom: var(--pf-v5-global--spacer--lg);
   text-align: left;
@@ -14,7 +17,7 @@
 
 .odf-alert--margin-top {
   margin-bottom: 0;
-  margin-top: $pf-v5-global-gutter;
+  margin-top: vars.$pf-v5-global-gutter;
 }
 
 .odf-alert--scrollable .pf-v5-c-alert__description {
@@ -22,7 +25,7 @@
   overflow-x: hidden;
   overflow-y: auto;
   @include odf-break-word;
-  @media (min-height: $screen-sm-min) {
+  @media (min-height: vars.$screen-sm-min) {
     max-height: 200px;
   }
 }

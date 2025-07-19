@@ -1,4 +1,4 @@
-@import '../../style.scss';
+@use '../../style.scss' as *;
 
 .mco-enroll-discovered-application {
     &__wizard--height {

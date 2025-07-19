@@ -1,4 +1,4 @@
-@import '../../styles/skeleton';
+@use '../../styles/skeleton' as *;
 
 .o-capacityCard {
   min-height: 215px;
