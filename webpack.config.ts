@@ -135,9 +135,9 @@ const config: webpack.Configuration & DevServerConfiguration = {
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg|woff2?|ttf|eot|otf)(\?.*$|$)/,
-        loader: 'file-loader',
-        options: {
-          name: 'assets/[name].[ext]',
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/[name][ext]',
         },
       },
     ],
