@@ -343,7 +343,7 @@ const handleReviewAndCreateNext = async (
         }
       }
     }
-    navigate('/odf/systems');
+    navigate('/odf/storage-cluster');
   } catch (err) {
     handleError(err.message, true);
   }

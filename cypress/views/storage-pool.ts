@@ -4,7 +4,7 @@ import {
   PoolProgress,
   PoolType,
 } from '../constants/storage-pool-const';
-import { SECOND, STORAGE_SYSTEM_NAME } from '../consts';
+import { SECOND } from '../consts';
 import { NS } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
 import { modal } from './modals';
@@ -32,10 +32,7 @@ export const poolMessage = (
 };
 
 export const navigateToStoragePoolList = () => {
-  ODFCommon.visitStorageDashboard();
-  cy.byLegacyTestID('horizontal-link-Storage Systems').click();
-  cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
-  cy.byTestRows('resource-row').get('td a').first().click();
+  ODFCommon.visitStorageCluster();
   cy.byTestID('horizontal-link-Storage pools').click();
 };
 
@@ -177,9 +174,10 @@ export const openStoragePoolKebab = (
   cy.byLegacyTestID('item-filter').clear();
   cy.byLegacyTestID('item-filter').type(targetPoolName);
   cy.log('Only one resource should be present after filtering');
-  cy.byTestID('kebab-button').should('have.length', 1);
-  if (isDefaultPool) cy.byTestID('kebab-button').should('be.disabled');
-  else cy.byTestID('kebab-button').click();
+  cy.byTestID('storage-pool-kebab-button').should('have.length', 1);
+  if (isDefaultPool)
+    cy.byTestID('storage-pool-kebab-button').should('be.disabled');
+  else cy.byTestID('storage-pool-kebab-button').click();
 };
 
 export const deleteStoragePool = (poolName: string) => {
@@ -193,5 +191,5 @@ export const deleteStoragePool = (poolName: string) => {
   cy.log('Verify that the pool is not found.');
   cy.byLegacyTestID('item-filter').clear();
   cy.byLegacyTestID('item-filter').type(poolName);
-  cy.byTestID('kebab-button').should('have.length', 0);
+  cy.byTestID('storage-pool-kebab-button').should('have.length', 0);
 };

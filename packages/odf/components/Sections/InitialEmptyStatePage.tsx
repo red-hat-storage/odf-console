@@ -116,6 +116,7 @@ const InitialEmptyStatePage: React.FC = () => {
         <EmptyStateFooter>
           <EmptyStateActions>
             <Button
+              data-test="configure-data-foundation"
               variant={ButtonVariant.primary}
               onClick={() => {
                 launchModal(StorageClusterCreateModal, {});

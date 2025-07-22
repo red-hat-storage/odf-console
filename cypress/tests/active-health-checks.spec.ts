@@ -1,6 +1,5 @@
-import { MINUTE, STORAGE_SYSTEM_NAME } from '../consts';
+import { MINUTE } from '../consts';
 import { scaleDeployments } from '../helpers/active-health-checks';
-import { listPage } from '../views/list-page';
 import { ODFCommon } from '../views/odf-common';
 
 const enum Deployments {
@@ -52,10 +51,7 @@ const isStorageClusterHealthy = () => {
 
 describe('Test Popover behaviour for different active health check cases.', () => {
   beforeEach(() => {
-    ODFCommon.visitStorageDashboard();
-    cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
-    listPage.searchInList(STORAGE_SYSTEM_NAME);
-    cy.byTestRows('resource-row').contains(STORAGE_SYSTEM_NAME).click();
+    ODFCommon.visitStorageCluster();
     isStorageClusterHealthy();
   });
 

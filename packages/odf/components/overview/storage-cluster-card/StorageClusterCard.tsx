@@ -43,6 +43,7 @@ import { global_danger_color_100 as danger1 } from '@patternfly/react-tokens/dis
 import { global_warning_color_100 as warning1 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import { ChartDonut, ChartLabel } from '@patternfly/react-charts';
 import {
   DescriptionList,
@@ -71,6 +72,7 @@ const dangerColorScale = [danger1.value, general2.value];
 
 export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
   const { t } = useCustomTranslation();
+  const navigate = useNavigate();
   const [storageClusters, storageClustersLoaded, storageClustersError] =
     useK8sWatchResource<StorageClusterKind[]>(storageClusterResource);
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
@@ -253,7 +255,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                 iconPosition="end"
                 className="pf-v5-u-font-size-lg odf-cluster-card__storage-link"
                 component="a"
-                href="/odf/cluster"
+                onClick={() => navigate('/odf/storage-cluster')}
               >
                 {t('View storage')}
               </Button>

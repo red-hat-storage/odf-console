@@ -9,6 +9,28 @@ if [ $# -eq 0 ]
     exit 1
 fi
 
+wait_for_crd() {
+  local crd_name="$1"
+  local timeout="${2:-300}"  # default timeout: 300 seconds (5 mins)
+  local interval="${3:-10}"  # default check interval: 10 seconds
+  local elapsed=0
+
+  echo "Waiting for CRD '$crd_name' to be available..."
+
+  while ! oc get crd "$crd_name" > /dev/null 2>&1; do
+    if [ $elapsed -ge $timeout ]; then
+      echo "Timeout reached: CRD '$crd_name' not available after $timeout seconds."
+      return 1
+    fi
+    echo "Still waiting... retrying in $interval seconds"
+    sleep $interval
+    elapsed=$((elapsed + interval))
+  done
+
+  echo "CRD '$crd_name' is now available!"
+  return 0
+}
+
 function generateLogsAndCopyArtifacts {
   oc cluster-info dump > "${ARTIFACT_DIR}"/cluster_info.json
   oc get secrets -A -o wide > "${ARTIFACT_DIR}"/secrets.yaml
@@ -27,7 +49,9 @@ function generateLogsAndCopyArtifacts {
   oc get nodes -o yaml >> "${ARTIFACT_DIR}"/node.yaml
   oc get pods -n openshift-storage -o wide >> "${ARTIFACT_DIR}"/pod_details_openshift-storage.yaml
   oc get pods -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/pod_details_openshift-storage.yaml
+  wait_for_crd "storageclusters.ocs.openshift.io" 300 10 || exit 1
   oc get StorageCluster --ignore-not-found=true -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/storage-cluster.yaml
+  wait_for_crd "noobaas.noobaa.io" 300 10 || exit 1
   oc get NooBaa --ignore-not-found=true -n openshift-storage -o yaml >> "${ARTIFACT_DIR}"/noobaa.yaml
   oc logs --previous=false deploy/odf-operator-controller-manager manager -n openshift-storage > "${ARTIFACT_DIR}"/odf.logs
   for pod in $(oc get pods -n "${NS}" --no-headers -o custom-columns=":metadata.name" | grep "odf-console"); do
