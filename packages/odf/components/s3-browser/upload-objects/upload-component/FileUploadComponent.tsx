@@ -79,7 +79,7 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = observer(
           );
           uploadStore.addFile(convertFileToUploadProgress(file, key), key);
         });
-        if (uploadStatus !== UploadStatus.UPLOAD_COMPLETE) {
+        if (!!acceptedFiles.length) {
           setUploadStatus(UploadStatus.UPLOAD_START);
           const batches = _.chunk(acceptedFiles, 6);
           let completionTime: number;
@@ -92,14 +92,7 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = observer(
         setUploadStatus(UploadStatus.UPLOAD_COMPLETE);
         triggerRefresh();
       },
-      [
-        closeAlert,
-        foldersPath,
-        processFiles,
-        setCompletionTime,
-        triggerRefresh,
-        uploadStatus,
-      ]
+      [closeAlert, foldersPath, processFiles, setCompletionTime, triggerRefresh]
     );
 
     const { getRootProps, getInputProps } = useDropzone({

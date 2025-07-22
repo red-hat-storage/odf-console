@@ -73,3 +73,31 @@ export type StorageClass = K8sResourceCommon & {
   volumeBindingMode?: string;
   allowVolumeExpansion?: boolean;
 };
+
+export type CRDVersion = {
+  name: string;
+  served: boolean;
+  storage: boolean;
+  schema: {
+    // NOTE: Actually a subset of JSONSchema, but using this type for convenience
+    openAPIV3Schema: any;
+  };
+};
+
+export type CustomResourceDefinitionKind = {
+  spec: {
+    group: string;
+    versions: CRDVersion[];
+    names: {
+      kind: string;
+      singular: string;
+      plural: string;
+      listKind: string;
+      shortNames?: string[];
+    };
+    scope: 'Cluster' | 'Namespaced';
+  };
+  status?: {
+    conditions?: K8sResourceCondition[];
+  };
+} & K8sResourceCommon;

@@ -228,6 +228,10 @@ export enum ObjectStorageEfficiencyQueries {
   LOGICAL_SAVINGS_QUERY = 'NooBaa_object_savings_logical_size',
 }
 
+export enum ObjectStorageOverviewQueries {
+  NOOBAA_BUCKETS_PROVISIONED = 'job:noobaa_bucket_count:sum',
+}
+
 export enum StatusCardQueries {
   HEALTH_QUERY = 'NooBaa_health_status',
   MCG_REBUILD_PROGRESS_QUERY = 'NooBaa_rebuild_progress',

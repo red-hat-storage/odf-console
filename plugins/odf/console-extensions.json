@@ -63,13 +63,47 @@
     }
   },
   {
+    "type": "console.navigation/separator",
+    "properties": {
+      "id": "odf-separator",
+      "section": "storage",
+      "insertAfter": "storage-object"
+    }
+  },
+  {
     "type": "console.navigation/href",
     "properties": {
       "id": "odfdashboard",
       "insertBefore": "persistentvolumes",
       "section": "storage",
       "name": "%plugin__odf-console~Data Foundation%",
-      "href": "/odf/cluster"
+      "href": "/odf/overview"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-cluster",
+      "insertAfter": "odfdashboard",
+      "section": "storage",
+      "name": "%plugin__odf-console~Storage cluster%",
+      "href": "/odf/storage-cluster"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-object",
+      "insertAfter": "storage-cluster",
+      "section": "storage",
+      "name": "%plugin__odf-console~Object storage%",
+      "href": "/odf/object-storage"
     },
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]
@@ -78,9 +112,9 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": ["/odf/cluster", "/odf/systems"],
+      "path": ["/odf/storage-cluster"],
       "exact": false,
-      "component": { "$codeRef": "dashboard.default" }
+      "component": { "$codeRef": "storageClusterDashboard.default" }
     },
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]
@@ -89,12 +123,23 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": ["/odf", "/odf/overview"],
-      "exact": true,
-      "component": { "$codeRef": "dashboard.Reroute" }
+      "path": ["/odf/object-storage"],
+      "exact": false,
+      "component": { "$codeRef": "objectStorageSection.default" }
     },
     "flags": {
-      "required": ["ODF_MODEL"]
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": ["/odf/external-system"],
+      "exact": true,
+      "component": { "$codeRef": "emptyStorageClusterPage.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
   },
   {
@@ -106,17 +151,6 @@
     },
     "flags": {
       "required": ["ODF_MODEL"]
-    }
-  },
-  {
-    "type": "console.resource/create",
-    "properties": {
-      "model": {
-        "group": "odf.openshift.io",
-        "version": "v1alpha1",
-        "kind": "StorageSystem"
-      },
-      "component": { "$codeRef": "wizard.RedirectStorageSystem" }
     }
   },
   {
@@ -150,7 +184,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/storage-pools/:poolName",
+      "path": "/odf/storage-cluster/storage-pools/:poolName",
       "exact": false,
       "component": {
         "$codeRef": "blockPoolDetailsPage.default"
@@ -214,16 +248,6 @@
       "exact": false,
       "component": {
         "$codeRef": "nsDetails.default"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/odf/system/ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName",
-      "exact": false,
-      "component": {
-        "$codeRef": "ocs.default"
       }
     }
   },
@@ -498,35 +522,6 @@
         "$codeRef": "ibmStorage.flashSystemCanGoToNextStep"
       },
       "waitToCreate": { "$codeRef": "ibmStorage.waitforCRD" }
-    }
-  },
-  {
-    "type": "console.navigation/href",
-    "properties": {
-      "id": "odfobjectservice",
-      "insertBefore": "persistentvolumes",
-      "insertAfter": "odfdashboard",
-      "section": "storage",
-      "name": "%plugin__odf-console~Object Storage%",
-      "href": "/odf/object-storage"
-    },
-    "flags": {
-      "required": ["MCG"]
-    }
-  },
-  {
-    "type": "console.navigation/href",
-    "properties": {
-      "id": "odfobjectservice",
-      "insertBefore": "persistentvolumes",
-      "insertAfter": "odfdashboard",
-      "section": "storage",
-      "name": "%plugin__odf-console~Object Storage%",
-      "href": "/odf/object-storage"
-    },
-    "flags": {
-      "required": ["RGW"],
-      "disallowed": ["MCG"]
     }
   },
   {
@@ -820,6 +815,60 @@
       "path": "/odf/storage-consumers/create",
       "exact": true,
       "component": { "$codeRef": "storageConsumerCreate.default" }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": [
+        "/k8s/ns/:ns/operators.coreos.com~v1alpha1~ClusterServiceVersion/:appName/local.storage.openshift.io~v1alpha1~LocalVolumeDiscovery/~new",
+        "k8s/ns/:ns/clusterserviceversions/:appName/local.storage.openshift.io~v1alpha1~LocalVolumeDiscovery/~new"
+      ],
+      "component": {
+        "$codeRef": "createLVD.CreateLocalVolumeDiscovery"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": [
+        "k8s/ns/:ns/operators.coreos.com~v1alpha1~ClusterServiceVersion/:appName/local.storage.openshift.io~v1alpha1~LocalVolumeSet/~new",
+        "k8s/ns/:ns/clusterserviceversions/:appName/local.storage.openshift.io~v1alpha1~LocalVolumeSet/~new"
+      ],
+      "component": {
+        "$codeRef": "createLVS.default"
+      }
+    }
+  },
+  {
+    "type": "console.tab/horizontalNav",
+    "properties": {
+      "model": {
+        "group": "",
+        "version": "v1",
+        "kind": "Node"
+      },
+      "page": {
+        "name": "Disks",
+        "href": "disks"
+      },
+      "component": {
+        "$codeRef": "diskListPage.default"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/overview",
+      "exact": false,
+      "component": { "$codeRef": "overview.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
   }
 ]

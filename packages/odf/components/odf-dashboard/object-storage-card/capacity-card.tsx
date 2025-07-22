@@ -8,16 +8,10 @@ import {
 import { ODFStorageSystem } from '@odf/shared/models';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes } from '@odf/shared/utils/humanize';
-import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
+import { parseMetricData } from '@odf/shared/utils/metrics';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { externalStorageCapacityUsed } from '../../../constants';
 import { StorageDashboard, CAPACITY_QUERIES } from '../queries';
-
-const parseMetricData = (metric: PrometheusResponse) =>
-  metric?.data?.result?.map((datum) => ({
-    name: datum?.metric?.type,
-    usedValue: humanizeBinaryBytes(datum?.value?.[1]),
-  })) || [];
 
 const ObjectCapacityCard: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -27,7 +21,10 @@ const ObjectCapacityCard: React.FC = () => {
     basePath: usePrometheusBasePath(),
   });
 
-  const dataFrames = !loading && !error ? parseMetricData(data) : [];
+  const dataFrames =
+    !loading && !error
+      ? parseMetricData(data, humanizeBinaryBytes, 'type')
+      : [];
 
   return (
     <Card className="odf-capacityCard--height">

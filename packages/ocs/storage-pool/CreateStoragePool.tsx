@@ -26,11 +26,7 @@ import {
   k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  useParams,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom-v5-compat';
+import { useParams, useNavigate } from 'react-router-dom-v5-compat';
 import {
   Button,
   Modal,
@@ -258,7 +254,6 @@ type CreateStoragePoolFormProps = {
 };
 
 const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
-  appName,
   storageCluster,
   cephCluster,
   isExternalStorageSystem,
@@ -268,7 +263,6 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
   blockExistingNames,
   defaultDeviceClass,
 }) => {
-  const { pathname: url } = useLocation();
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
 
@@ -284,10 +278,7 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
   const existingNames =
     poolType === PoolType.FILESYSTEM ? fsExistingNames : blockExistingNames;
 
-  // OCS create pool page url ends with ~new, ODF create pool page ends with /create/~new
-  const blockPoolPageUrl = appName
-    ? url.replace('/~new', '')
-    : url.replace('/create/~new', '');
+  const blockPoolPageUrl = '/odf/storage-cluster/storage-pools';
 
   const onClose = () => {
     navigate(-1);
@@ -313,7 +304,9 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
       createRequest()
         .then(() =>
           poolType === PoolType.BLOCK
-            ? navigate(`${blockPoolPageUrl}/${state.poolName}`)
+            ? navigate(
+                `${blockPoolPageUrl}/${state.poolName}?namespace=${poolNs}`
+              )
             : navigate(`${blockPoolPageUrl}`)
         )
         .finally(() =>

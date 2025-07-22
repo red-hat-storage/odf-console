@@ -1,7 +1,12 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
-import { getCephHealthState } from '@odf/ocs/utils';
+import { resiliencyProgressQuery } from '@odf/ocs/queries';
+import {
+  getCephHealthChecks,
+  getCephHealthState,
+  getDataResiliencyState,
+} from '@odf/ocs/utils';
 import { odfDocBasePath } from '@odf/shared/constants/doc';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import { DOC_VERSION as odfDocVersion } from '@odf/shared/hooks';
@@ -12,7 +17,7 @@ import {
 import { CephClusterModel } from '@odf/shared/models';
 import useAlerts from '@odf/shared/monitoring/useAlert';
 import { alertURL } from '@odf/shared/monitoring/utils';
-import { K8sResourceKind } from '@odf/shared/types';
+import { CephHealthCheckType, K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { filterCephAlerts, referenceForModel } from '@odf/shared/utils';
 import {
@@ -27,7 +32,6 @@ import {
   HealthItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
-import { useParams } from 'react-router-dom-v5-compat';
 import {
   Gallery,
   GalleryItem,
@@ -38,17 +42,9 @@ import {
   CardBody,
   CardTitle,
 } from '@patternfly/react-core';
-import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '../../../queries';
-import { ODFSystemParams } from '../../../types';
-import { getDataResiliencyState } from './utils';
-import { whitelistedHealthChecksRef } from './whitelisted-health-checks';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import '../../../style.scss';
 import './healthchecks.scss';
-
-const resiliencyProgressQuery = (managedByOCS: string) =>
-  DATA_RESILIENCY_QUERY(managedByOCS)[
-    StorageDashboardQuery.RESILIENCY_PROGRESS
-  ];
 
 const generateDocumentationLink = (
   alert: Alert,
@@ -136,8 +132,10 @@ export const StatusCard: React.FC = () => {
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { systemFlags } = useODFSystemFlagsSelector();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 
   const [resiliencyProgress, resiliencyProgressError] = useCustomPrometheusPoll(
@@ -159,24 +157,7 @@ export const StatusCard: React.FC = () => {
     t
   );
 
-  const pattern = /[A-Z]+_*|error/g;
-  const healthChecks: CephHealthCheckType[] = [];
-  const cephDetails = cephCluster?.status?.ceph?.details;
-  for (const key in cephDetails) {
-    if (pattern.test(key)) {
-      const healthCheckObject: CephHealthCheckType = {
-        id: key,
-        details: cephDetails[key].message,
-        ...(!!odfDocVersion
-          ? {
-              troubleshootLink:
-                whitelistedHealthChecksRef(odfDocVersion)[key] ?? null,
-            }
-          : {}),
-      };
-      healthChecks.push(healthCheckObject);
-    }
-  }
+  const healthChecks = getCephHealthChecks(cephCluster);
 
   return (
     <Card className="odf-overview-card--gradient">
@@ -219,12 +200,6 @@ export const StatusCard: React.FC = () => {
 };
 
 export default StatusCard;
-
-type CephHealthCheckType = {
-  id: string;
-  details: string;
-  troubleshootLink?: string;
-};
 
 type CephHealthCheckProps = {
   cephHealthState: SubsystemHealth;

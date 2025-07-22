@@ -43,7 +43,10 @@ const useS3BucketFormValidation = (): S3BucketFormValidation => {
         .transform((value: string) => (!!value ? value : '')),
     });
 
-    return { bucketFormSchema, fieldRequirements };
+    return {
+      bucketFormSchema: bucketFormSchema as unknown as S3BucketFormSchema,
+      fieldRequirements,
+    };
   }, [t]);
 };
 

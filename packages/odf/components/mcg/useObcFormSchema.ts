@@ -69,7 +69,11 @@ const useObcFormSchema = (
       }),
     }).concat(obcNameSchema);
 
-    return { obcFormSchema, fieldRequirements };
+    return {
+      obcFormSchema:
+        obcFormSchema as unknown as UseObcBaseSchema['obcFormSchema'],
+      fieldRequirements,
+    };
   }, [data, loadError, loaded, state.scProvisioner, t]);
 };
 

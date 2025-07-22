@@ -15,7 +15,7 @@ import {
 } from '@odf/mco/types';
 import {
   convertExpressionToLabel,
-  getLastAppDeploymentClusterName,
+  getPrimaryClusterName,
   getReplicationType,
   isDRPolicyValidated,
   matchClusters,
@@ -180,7 +180,10 @@ export const findDRPCUsingVM = (
 ): DRPlacementControlKind | undefined =>
   drpcs.find(
     (drpc) =>
-      getVMNamesFromRecipe(drpc.spec).includes(vmName) &&
+      (getVMNamesFromRecipe(drpc.spec).includes(vmName) ||
+        (
+          drpc.status?.resourceConditions?.resourceMeta?.protectedpvcs || []
+        ).some((pvc) => pvc.startsWith(vmName))) &&
       drpc.spec?.protectedNamespaces?.includes(vmNamespace) &&
-      getLastAppDeploymentClusterName(drpc) === cluster
+      getPrimaryClusterName(drpc) === cluster
   );

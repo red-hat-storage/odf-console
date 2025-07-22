@@ -6,9 +6,12 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
+import { WithTranslation, withTranslation } from 'react-i18next';
 import * as TagsInput from 'react-tagsinput';
+import { Button } from '@patternfly/react-core';
 import * as k8sSelectorRequirement from './selector-requirement';
 import { createEquals, requirementFromString } from './selector-requirement';
+import './Selector.scss';
 
 declare global {
   namespace JSX {
@@ -133,7 +136,7 @@ export const selectorToString = (selector: Selector): string => {
 const cleanSelectorStr = (tag) => selectorToString(selectorFromString(tag));
 const cleanTags = (tags) => split(cleanSelectorStr(tags.join(',')));
 
-type SelectorProps = {
+type SelectorProps = WithTranslation & {
   setErrorMessage?: (isValid: boolean) => void;
   placeholder?: string;
   options?: any;
@@ -151,10 +154,7 @@ type SelectorInputState = {
   tags: any;
 };
 
-export class SelectorInput extends React.Component<
-  SelectorProps,
-  SelectorInputState
-> {
+class SelectorInput extends React.Component<SelectorProps, SelectorInputState> {
   isBasic: boolean;
   setRef: (ref: any) => any;
   ref_: any;
@@ -245,6 +245,7 @@ export class SelectorInput extends React.Component<
   }
 
   render() {
+    const { t } = this.props;
     const { inputValue, isInputValid, tags } = this.state;
 
     // Keys that add tags: Enter
@@ -275,9 +276,15 @@ export class SelectorInput extends React.Component<
         >
           <span className="tag-item__content">{getTagDisplayValue(tag)}</span>
           &nbsp;
-          <a className="remove-button" onClick={() => onRemove(key)}>
+          <Button
+            variant="link"
+            isInline
+            className="odf-selector-input__remove-tag-button"
+            onClick={() => onRemove(key)}
+            arial-label={t('Remove tag')}
+          >
             ×
-          </a>
+          </Button>
         </span>
       );
     };
@@ -306,3 +313,5 @@ export class SelectorInput extends React.Component<
     );
   }
 }
+
+export const TranslatedSelectorInput = withTranslation()(SelectorInput);

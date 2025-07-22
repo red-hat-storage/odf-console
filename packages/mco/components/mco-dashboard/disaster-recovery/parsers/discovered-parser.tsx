@@ -19,8 +19,8 @@ import {
 import {
   findDRPolicyUsingDRPC,
   getReplicationType,
-  getLastAppDeploymentClusterName,
   getProtectedPVCsFromDRPC,
+  getPrimaryClusterName,
 } from '@odf/mco/utils';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
@@ -86,8 +86,7 @@ export const useDiscoveredParser: UseDiscoveredParser = (
       // DRCluster to its ApplicationSets (total and protected) mapping
       drPlacementControls.forEach((drPlacementControl) => {
         const drPolicy = findDRPolicyUsingDRPC(drPlacementControl, drPolicies);
-        const decisionCluster =
-          getLastAppDeploymentClusterName(drPlacementControl);
+        const decisionCluster = getPrimaryClusterName(drPlacementControl);
         if (drClusterAppsMap.hasOwnProperty(decisionCluster)) {
           drClusterAppsMap[decisionCluster].totalDiscoveredAppsCount =
             drClusterAppsMap[decisionCluster].totalDiscoveredAppsCount + 1;

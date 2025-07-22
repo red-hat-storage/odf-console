@@ -8,6 +8,7 @@ import {
   OptionsMenuItem,
   OptionsMenuToggle,
 } from '@patternfly/react-core/deprecated';
+import { Button, ButtonVariant } from '@patternfly/react-core';
 import { AngleRightIcon } from '@patternfly/react-icons';
 import { useVisualizationController } from '@patternfly/react-topology';
 import { STEP_INTO_EVENT, STEP_TO_CLUSTER } from '../constants';
@@ -75,7 +76,7 @@ const TopologyNavigationBar: React.FC<TopologyNavigationBarProps> = ({
     [selected]
   );
 
-  const onStorageClusterClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const onStorageClusterClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     controller.fireEvent(STEP_TO_CLUSTER);
   };
@@ -83,7 +84,14 @@ const TopologyNavigationBar: React.FC<TopologyNavigationBarProps> = ({
   return (
     <TopologyNavigationBarGroup>
       <TopologyNavigationItem>
-        <a onClick={onStorageClusterClick}>StorageCluster</a>
+        <Button
+          variant={ButtonVariant.link}
+          isInline
+          className="odf-topology-nav__item-storage-cluster-link"
+          onClick={onStorageClusterClick}
+        >
+          StorageCluster
+        </Button>
       </TopologyNavigationItem>
       <TopologyNavigationItem>
         <ResourceIcon

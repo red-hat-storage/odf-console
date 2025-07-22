@@ -2,10 +2,9 @@ import * as React from 'react';
 import { cephStorageLabel } from '@odf/core/constants';
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import { nodeResource } from '@odf/core/resources';
-import { getDataResiliencyState } from '@odf/ocs/dashboards/persistent-internal/status-card/utils';
 import { StorageEfficiencyContent } from '@odf/ocs/dashboards/persistent-internal/storage-efficiency-card/storage-efficiency-card';
 import { DATA_RESILIENCY_QUERY, StorageDashboardQuery } from '@odf/ocs/queries';
-import { getCephNodes } from '@odf/ocs/utils';
+import { getCephNodes, getDataResiliencyState } from '@odf/ocs/utils';
 import {
   DASH,
   DEFAULT_INFRASTRUCTURE,

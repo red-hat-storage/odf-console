@@ -1,9 +1,5 @@
 // Disabling as default imports from multiple files have same names
 /* eslint-disable import/no-named-default */
-/**
- * Dashboard that is injected to ODF Extension Point
- * TODO(bipuladh) Add this to ODF Extension Point once it's ready
- */
 
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
@@ -16,8 +12,7 @@ import {
   OverviewGridCard,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
-import { useParams } from 'react-router-dom-v5-compat';
-import { ODFSystemParams } from '../types';
+import StoragePoolListPage from '../storage-pool/StoragePoolListPage';
 import { StatusCard as NFSStatusCard } from './network-file-system/status-card/status-card';
 import { ThroughputCard } from './network-file-system/throughput-card/throughput-card';
 import { TopClientsCard } from './network-file-system/top-clients-card/top-clients-card';
@@ -29,6 +24,7 @@ import { DetailsCard as ObjectDetailsCard } from './object-service/details-card/
 import { ResourceProvidersCard } from './object-service/resource-providers-card/resource-providers-card';
 import { default as ObjectStatusCard } from './object-service/status-card/status-card';
 import StorageEfficiencyCard from './object-service/storage-efficiency-card/storage-efficiency-card';
+import { OCSDashboardContext } from './ocs-dashboard-providers';
 import { default as ExtBreakdownCard } from './persistent-external/breakdown-card';
 import { default as ExtDetailsCard } from './persistent-external/details-card';
 import { StatusCard as ExtStatusCard } from './persistent-external/status-card';
@@ -172,6 +168,16 @@ const objectPage = (t: TFunction): TabPage => {
   };
 };
 
+const storagePoolHref = 'storage-pools';
+
+const storagePoolPage = (t: TFunction): TabPage => {
+  return {
+    href: storagePoolHref,
+    title: t('Storage pools'),
+    component: StoragePoolListPage,
+  };
+};
+
 const nfsPage = (t: TFunction): TabPage => {
   return {
     href: NFS,
@@ -183,36 +189,40 @@ const nfsPage = (t: TFunction): TabPage => {
 const OCSSystemDashboard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs, isExternalMode },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
 
-  const isIndependent = systemFlags[clusterNs]?.isExternalMode;
+  const showExternalDashboard = isExternalMode;
+
   const isMCGAvailable = systemFlags[clusterNs]?.isNoobaaAvailable;
   const isRGWAvailable = systemFlags[clusterNs]?.isRGWAvailable;
   const isObjectServiceAvailable = isMCGAvailable || isRGWAvailable;
   const isCephAvailable = systemFlags[clusterNs]?.isCephAvailable;
   const isNFSEnabled = systemFlags[clusterNs]?.isNFSEnabled;
 
-  const showInternalDashboard = !isIndependent && isCephAvailable;
-  const showNFSDashboard = !isIndependent && isNFSEnabled;
+  const showInternalDashboard = isCephAvailable && !showExternalDashboard;
+  const showNFSDashboard = !showExternalDashboard && isNFSEnabled;
 
   const pages = React.useMemo(() => {
     const tempPages = [];
     showInternalDashboard && tempPages.push(internalPage(t));
-    isIndependent && tempPages.push(externalPage(t));
+    showExternalDashboard && tempPages.push(externalPage(t));
     showNFSDashboard && tempPages.push(nfsPage(t));
     isObjectServiceAvailable && tempPages.push(objectPage(t));
+    tempPages.push(storagePoolPage(t));
     return tempPages;
   }, [
     showInternalDashboard,
-    isIndependent,
+    t,
+    showExternalDashboard,
     showNFSDashboard,
     isObjectServiceAvailable,
-    t,
   ]);
 
   return pages.length > 0 ? (
-    <Tabs id="odf-dashboard-tab" tabs={pages} basePath="overview" />
+    <Tabs id="odf-dashboard-tab" tabs={pages} />
   ) : (
     <LoadingBox />
   );

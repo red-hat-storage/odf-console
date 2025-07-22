@@ -7,14 +7,12 @@
     "@console/pluginAPI": "*"
   },
   "exposedModules": {
-    "dashboard": "@odf/core/components/odf-dashboard/dashboard",
     "features": "@odf/core/features",
     "wizard": "@odf/core/components/create-storage-system/create-storage-system",
     "obc": "@odf/core/components/mcg/ObjectBucketClaim",
     "createOBC": "@odf/core/components/mcg/CreateObjectBucketClaim",
     "ob": "@odf/core/components/mcg/ObjectBucket",
     "createBucket": "@odf/core/components/s3-browser/create-bucket/CreateBucket",
-    "ocs": "@odf/ocs/dashboards/odf-system-dashboard",
     "blockPoolDetailsPage": "@odf/ocs/storage-pool/BlockPoolDetailsPage",
     "createStoragePools": "@odf/ocs/storage-pool/CreateStoragePool",
     "bsCreate": "@odf/core/components/create-bs/create-bs-page",
@@ -49,6 +47,13 @@
     "s3BucketCorsDetails": "@odf/core/components/s3-browser/cors-details/CorsDetailsPage",
     "attachStorage": "@odf/core/components/attach-storage-storagesystem/attach-storage",
     "storageClientAttacherAction": "@odf/core/modals/StorageClientDistributionModal/useStorageClientAttacherAction",
-    "storageConsumerCreate": "@odf/core/components/storage-consumers/CreateStorageConsumer"
+    "storageConsumerCreate": "@odf/core/components/storage-consumers/CreateStorageConsumer",
+    "createLVD": "@odf/core/components/lso/local-volume-discovery/create-lvd",
+    "createLVS": "@odf/core/components/lso/local-volume-set/create-lvs",
+    "diskListPage": "@odf/core/components/lso/disks-list/disk-list-page",
+    "emptyStorageClusterPage": "@odf/core/components/Sections/InitialEmptyStatePage",
+    "storageClusterDashboard": "@odf/core/components/Sections/StorageClusterSection",
+    "objectStorageSection": "@odf/core/components/Sections/ObjectStorageSection",
+    "overview": "@odf/core/components/overview/Overview"
   }
 }

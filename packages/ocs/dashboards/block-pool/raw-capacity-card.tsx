@@ -6,9 +6,7 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getInstantVectorStats } from '@odf/shared/utils';
-import { useParams } from 'react-router-dom-v5-compat';
 import { getPoolQuery, StorageDashboardQuery } from '../../queries';
-import { ODFSystemParams } from '../../types';
 import {
   CapacityCard,
   CapacityCardProps,
@@ -18,9 +16,8 @@ import { BlockPoolDashboardContext } from './block-pool-dashboard-context';
 export const RawCapacityCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { obj } = React.useContext(BlockPoolDashboardContext);
-  const { name } = obj.metadata;
+  const { name, namespace: clusterNs } = obj.metadata;
 
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
   const { systemFlags } = useODFSystemFlagsSelector();
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 

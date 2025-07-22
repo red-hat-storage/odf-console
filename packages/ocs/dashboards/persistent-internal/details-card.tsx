@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useODFNamespaceSelector } from '@odf/core/redux';
-import { getStorageClusterInNs } from '@odf/core/utils';
+import { isExternalCluster } from '@odf/core/utils';
 import { DEFAULT_INFRASTRUCTURE, ODF_OPERATOR } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
@@ -23,7 +23,7 @@ import {
   useK8sWatchResource,
   useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Link, useParams } from 'react-router-dom-v5-compat';
+import { Link } from 'react-router-dom-v5-compat';
 import {
   Card,
   CardBody,
@@ -32,7 +32,6 @@ import {
   DescriptionList,
 } from '@patternfly/react-core';
 import { PROVIDER_MODE } from '../../../odf/features';
-import { ODFSystemParams } from '../../types';
 import EncryptionPopover from '../common/details-card/encryption-popover';
 
 const storageClusterResource = {
@@ -42,7 +41,6 @@ const storageClusterResource = {
 
 const DetailsCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const { namespace: ocsNs } = useParams<ODFSystemParams>();
 
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
 
@@ -60,9 +58,8 @@ const DetailsCard: React.FC = () => {
   });
 
   const infrastructurePlatform = getInfrastructurePlatform(infrastructure);
-  const storageCluster: StorageClusterKind = getStorageClusterInNs(
-    ocsData,
-    ocsNs
+  const storageCluster: StorageClusterKind = ocsData?.find(
+    (sc: StorageClusterKind) => !isExternalCluster(sc)
   );
   const ocsName = getName(storageCluster);
 

@@ -22,11 +22,15 @@ export const addClusterParams = (sc: StorageClass): StorageClass => {
   return sc;
 };
 
-export const addKubevirtAnnotations = (sc: StorageClass): StorageClass => {
-  if (
+const isEncryptedStorageClass = (sc: StorageClass): boolean => {
+  return (
     sc?.parameters?.hasOwnProperty('encrypted') &&
     sc?.parameters?.['encrypted'] === 'true'
-  ) {
+  );
+};
+
+export const addKubevirtAnnotations = (sc: StorageClass): StorageClass => {
+  if (isEncryptedStorageClass(sc)) {
     sc.metadata.annotations = {
       ...sc.metadata?.annotations,
       'cdi.kubevirt.io/clone-strategy': 'copy',
@@ -34,6 +38,16 @@ export const addKubevirtAnnotations = (sc: StorageClass): StorageClass => {
   }
 
   return addClusterParams(sc);
+};
+
+export const addKeyRotationAnnotation = (sc: StorageClass): StorageClass => {
+  if (isEncryptedStorageClass(sc)) {
+    sc.metadata.annotations = {
+      ...getAnnotations(sc, {}),
+      'keyrotation.csiaddons.openshift.io/schedule': '@weekly',
+    };
+  }
+  return sc;
 };
 
 export const addReclaimSpaceAnnotation = (sc: StorageClass): StorageClass => {
@@ -47,5 +61,6 @@ export const addReclaimSpaceAnnotation = (sc: StorageClass): StorageClass => {
 export const addRBDAnnotations = (sc: StorageClass): StorageClass => {
   sc = addKubevirtAnnotations(sc);
   sc = addReclaimSpaceAnnotation(sc);
+  sc = addKeyRotationAnnotation(sc);
   return sc;
 };

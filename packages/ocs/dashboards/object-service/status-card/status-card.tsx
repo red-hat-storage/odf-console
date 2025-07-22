@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { secretResource } from '@odf/core/resources';
 import { getResourceInNs } from '@odf/core/utils';
+import { decodeRGWPrefix, getDataResiliencyState } from '@odf/ocs/utils';
 import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/shared';
 import {
   useCustomPrometheusPoll,
@@ -23,7 +24,6 @@ import {
   AlertItem,
 } from '@openshift-console/dynamic-plugin-sdk-internal';
 import * as _ from 'lodash-es';
-import { useParams } from 'react-router-dom-v5-compat';
 import {
   Gallery,
   GalleryItem,
@@ -33,14 +33,12 @@ import {
   CardTitle,
 } from '@patternfly/react-core';
 import { StatusType } from '../../../constants';
-import { getDataResiliencyState } from '../../../dashboards/persistent-internal/status-card/utils';
 import {
   StatusCardQueries,
   dataResiliencyQueryMap,
   ObjectServiceDashboardQuery,
 } from '../../../queries';
-import { ODFSystemParams } from '../../../types';
-import { decodeRGWPrefix } from '../../../utils';
+import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import { ObjectServiceStatus } from './object-service-health';
 import { getNooBaaState, getRGWHealthState } from './statuses';
 import '../../../style.scss';
@@ -79,7 +77,9 @@ const ObjectStorageAlerts = () => {
 };
 
 const StatusCard: React.FC<{}> = () => {
-  const { namespace: clusterNs } = useParams<ODFSystemParams>();
+  const {
+    selectedCluster: { clusterNamespace: clusterNs },
+  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
   const isRGWSupported = systemFlags[clusterNs]?.isRGWAvailable;
   const isMCGSupported = systemFlags[clusterNs]?.isNoobaaAvailable;

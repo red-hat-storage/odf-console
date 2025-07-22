@@ -13,6 +13,11 @@ export type DataPool = {
   };
 };
 
+export enum StorageClusterPhase {
+  Ready = 'Ready',
+  Error = 'Error',
+}
+
 export type StorageClusterKind = K8sResourceCommon & {
   spec: {
     network?: {
@@ -41,6 +46,8 @@ export type StorageClusterKind = K8sResourceCommon & {
       cephBlockPools?: {
         disableSnapshotClass: boolean;
         disableStorageClass: boolean;
+        defaultStorageClass?: boolean;
+        defaultVirtualizationStorageClass?: boolean;
       };
       cephFilesystems?: {
         disableSnapshotClass: boolean;
@@ -87,7 +94,7 @@ export type StorageClusterKind = K8sResourceCommon & {
     hostNetwork?: boolean;
   };
   status?: {
-    phase: string;
+    phase: StorageClusterPhase | string;
     failureDomain?: string;
     failureDomainValues: string[];
     currentMonCount?: number;
@@ -148,6 +155,17 @@ type CephDeviceClass = {
   name: string;
 };
 
+export type CephHealthCheckType = {
+  id: string;
+  details: string;
+  troubleshootLink?: string;
+};
+
+export type CephStatusDetail = {
+  message: string;
+  severity: string;
+};
+
 export type CephClusterKind = K8sResourceCommon & {
   status?: {
     storage?: {
@@ -160,6 +178,7 @@ export type CephClusterKind = K8sResourceCommon & {
       deviceClasses: CephDeviceClass[];
     };
     ceph?: {
+      details: Record<string, CephStatusDetail>;
       fsid?: string;
     };
     phase?: string;
@@ -227,6 +246,7 @@ export type NoobaaSystemKind = K8sResourceCommon;
 export enum CapacityAutoscalingStatus {
   Failed = 'Failed',
   InProgress = 'InProgress',
+  Invalid = 'Invalid',
   NotStarted = 'NotStarted',
   Succeeded = 'Succeeded',
 }
