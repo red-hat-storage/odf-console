@@ -43,8 +43,7 @@ describe('Add capacity using multiple storage classes', () => {
   });
 
   beforeEach(() => {
-    cy.clickNavLink(['Storage', 'Data Foundation']);
-    cy.byLegacyTestID('horizontal-link-Storage Systems').click();
+    cy.clickNavLink(['Storage', 'Storage cluster']);
     fetchStorageClusterJson().then((res) => {
       const json: K8sResourceKind = JSON.parse(res.stdout);
       beforeCapacityAddition.deviceSets = json.spec.storageDeviceSets;

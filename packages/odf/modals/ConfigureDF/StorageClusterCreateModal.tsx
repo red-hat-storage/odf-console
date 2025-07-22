@@ -53,6 +53,7 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
           id="setup-storage-cluster"
           isClickable
           className="odf-storage-cluster-create-modal__setup-card"
+          data-test="create-storage-cluster"
         >
           <CardHeader
             selectableActions={{
