@@ -27,7 +27,7 @@ import {
   convertHorizontalNavTabToNavPage as convertDashboardTabToNav,
   useSortPages,
 } from '../../utils';
-import { StorageSystemListPage } from '../system-list/odf-system-list';
+import { StorageSystemListPage } from '../system-list/external-systems-list';
 import ActivityCard from './activity-card/activity-card';
 import ObjectCapacityCard from './object-storage-card/capacity-card';
 import PerformanceCard from './performance-card/performance-card';

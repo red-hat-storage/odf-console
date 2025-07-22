@@ -34,7 +34,6 @@
     "actions": "@odf/core/components/actions/csv-actions",
     "resourcePages": "@odf/core/components/resource-pages/list-page",
     "topology": "@odf/core/components/topology/Topology",
-    "ibmStorage": "@odf/ibm/system-connection-details",
     "objectService": "@odf/core/components/object-service-nav-item/object-service",
     "mutators": "@odf/ocs/storage-class/mutators",
     "odfReduxReducers": "@odf/core/redux",
@@ -51,9 +50,12 @@
     "createLVD": "@odf/core/components/lso/local-volume-discovery/create-lvd",
     "createLVS": "@odf/core/components/lso/local-volume-set/create-lvs",
     "diskListPage": "@odf/core/components/lso/disks-list/disk-list-page",
-    "emptyStorageClusterPage": "@odf/core/components/Sections/InitialEmptyStatePage",
+    "rhcsCreate": "@odf/core/components/create-storage-system/external-systems/CreateCephSystem/CreateCephCluster",
+    "flashCreate": "@odf/core/components/create-storage-system/external-systems/CreateFlashSystem/CreateFlashCluster",
     "storageClusterDashboard": "@odf/core/components/Sections/StorageClusterSection",
     "objectStorageSection": "@odf/core/components/Sections/ObjectStorageSection",
-    "overview": "@odf/core/components/overview/Overview"
+    "overview": "@odf/core/components/overview/Overview",
+    "externalSystemsSection": "@odf/core/components/Sections/ExternalSystemsListPage",
+    "rhcsDashboard": "@odf/ocs/dashboards/ocs-system-dashboard"
   }
 }

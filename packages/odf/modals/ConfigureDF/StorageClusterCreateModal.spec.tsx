@@ -97,9 +97,6 @@ describe('ConfigureDFSelections', () => {
     ) as Element;
     await user.click(externalSystemCard);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      `${CREATE_SS_PAGE_URL}?mode=external-system`
-    );
     expect(mockCloseModal).toHaveBeenCalled();
   });
 
