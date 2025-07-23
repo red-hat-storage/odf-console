@@ -12,12 +12,11 @@ import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
-import { SubscriptionModel } from '@odf/shared/models';
+import { subscriptionResource } from '@odf/shared/resources/common';
 import { K8sResourceKind, SubscriptionKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { DataPoint, getInstantVectorStats } from '@odf/shared/utils';
-import { humanizeBinaryBytes, referenceForModel } from '@odf/shared/utils';
-import { isFunctionThenApply } from '@odf/shared/utils';
+import { humanizeBinaryBytes, isFunctionThenApply } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import {
@@ -33,12 +32,6 @@ import { breakdownQueryMapMCG } from '../../../queries';
 import { decodeRGWPrefix, getStackChartStats } from '../../../utils';
 import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import './capacity-breakdown-card.scss';
-
-const subscriptionResource = {
-  kind: referenceForModel(SubscriptionModel),
-  namespaced: false,
-  isList: true,
-};
 
 type DropdownItems = {
   group: string;

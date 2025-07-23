@@ -14,11 +14,8 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { CephClusterModel, StorageClusterModel } from '@odf/shared/models';
-import {
-  EventModel,
-  PersistentVolumeClaimModel,
-  SubscriptionModel,
-} from '@odf/shared/models';
+import { EventModel, PersistentVolumeClaimModel } from '@odf/shared/models';
+import { subscriptionResource } from '@odf/shared/resources/common';
 import { getAnnotations, getName } from '@odf/shared/selectors';
 import {
   K8sResourceKind,
@@ -114,11 +111,6 @@ const RecentEvent: React.FC = () => {
   };
 
   return <RecentEventsBody events={eventObject} filter={ocsEventsFilter()} />;
-};
-
-export const subscriptionResource = {
-  isList: true,
-  kind: referenceForModel(SubscriptionModel),
 };
 
 export const storageClusterResource = {
