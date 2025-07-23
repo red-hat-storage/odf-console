@@ -5,6 +5,10 @@ export const ODR_HUB_OPERATOR = 'odr-hub-operator';
 // Hub operator namespace
 export const ODFMCO_OPERATOR_NAMESPACE = 'openshift-operators';
 export const GITOPS_OPERATOR_NAMESPACE = 'openshift-gitops';
+export const AWS_ACCESS_KEY_ID = 'AWS_ACCESS_KEY_ID';
+export const AWS_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY';
+export const RAMEN_HUB_OPERATOR_CONFIG_NAME = 'ramen-hub-operator-config';
+export const RAMEN_CONFIG_KEY = 'ramen_manager_config.yaml';
 
 // Cluster operatos
 export const ODR_CLUSTER_OPERATOR = 'odr-cluster-operator';
