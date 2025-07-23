@@ -14,7 +14,6 @@ import {
 import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   labelOCSNamespace,
-  getExternalSubSystemName,
   isResourceProfileAllowed,
   isFlexibleScaling,
   getDeviceSetCount,
@@ -51,9 +50,7 @@ import {
 } from '../../types';
 import { createClusterKmsResources } from '../kms-config/utils';
 import {
-  createExternalSubSystem,
   createNoobaaExternalPostgresResources,
-  setCephRBDAsDefault,
   createStorageCluster,
   labelNodes,
   taintNodes,
@@ -63,7 +60,6 @@ import {
 import { WizardCommonProps, WizardState } from './reducer';
 
 const OCS_INTERNAL_CR_NAME = 'ocs-storagecluster';
-const OCS_EXTERNAL_CR_NAME = 'ocs-external-storagecluster';
 
 const validateBackingStorageStep = (
   backingStorage: WizardState['backingStorage'],
@@ -222,32 +218,20 @@ const canJumpToNextStep = (
 
 const handleReviewAndCreateNext = async (
   state: WizardState,
-  hasOCS: boolean,
   handleError: (err: string, showError: boolean) => void,
   navigate,
-  supportedExternalStorage: ExternalStorage[],
   odfNamespace: string,
   existingNamespaces: K8sResourceCommon[]
 ) => {
-  const {
-    connectionDetails,
-    createStorageClass,
-    storageClass,
-    nodes,
-    capacityAndNodes,
-  } = state;
+  const { nodes, capacityAndNodes } = state;
   const {
     systemNamespace,
-    isRBDStorageClassDefault,
-    externalStorage,
     deployment,
     type,
     useExternalPostgres,
     externalPostgres,
   } = state.backingStorage;
-  const inTransitChecked = state.securityAndNetwork.encryption.inTransit;
   const { encryption, kms } = state.securityAndNetwork;
-  const isRhcs: boolean = externalStorage === StorageClusterModel.kind;
   const isMCG: boolean = deployment === DeploymentType.MCG;
   const nsAlreadyExists = !!existingNamespaces.find(
     (ns) => getName(ns) === systemNamespace
@@ -321,46 +305,6 @@ const handleReviewAndCreateNext = async (
         systemNamespace,
         OCS_INTERNAL_CR_NAME
       );
-    } else if (type === BackingStorageType.EXTERNAL) {
-      const { createPayload, model, displayName, waitToCreate } =
-        getExternalStorage(externalStorage, supportedExternalStorage) || {};
-
-      const externalSystemName = getExternalSubSystemName(
-        displayName,
-        storageClass.name
-      );
-
-      const subSystemName = isRhcs ? OCS_EXTERNAL_CR_NAME : externalSystemName;
-      const subSystemState = isRhcs ? connectionDetails : createStorageClass;
-
-      const shouldSetCephRBDAsDefault = setCephRBDAsDefault(
-        isRBDStorageClassDefault,
-        deployment
-      );
-      const subSystemPayloads = createPayload({
-        systemName: subSystemName,
-        state: subSystemState,
-        model,
-        namespace: systemNamespace,
-        storageClassName: storageClass.name,
-        inTransitStatus: inTransitChecked,
-        shouldSetCephRBDAsDefault: shouldSetCephRBDAsDefault,
-      });
-
-      // create internal mode cluster along with Non-RHCS StorageSystem (if any Ceph cluster already does not exists)
-      if (!hasOCS && !isRhcs) {
-        await labelNodes(nodes, systemNamespace);
-        await createAdditionalFeatureResources();
-        storageCluster = await createStorageCluster(
-          state,
-          systemNamespace,
-          OCS_INTERNAL_CR_NAME
-        );
-      }
-      // create additional NooBaa resources for external RHCS cluster (if opted via checkbox)
-      if (!hasOCS && isRhcs) await createNooBaaResources();
-      if (!isRhcs && !!waitToCreate) await waitToCreate(model);
-      await createExternalSubSystem(subSystemPayloads);
     }
     if (storageCluster) {
       try {
@@ -411,7 +355,6 @@ export const CreateStorageSystemFooter: React.FC<
   dispatch,
   state,
   disableNext,
-  hasOCS,
   supportedExternalStorage,
   existingNamespaces,
 }) => {
@@ -461,10 +404,8 @@ export const CreateStorageSystemFooter: React.FC<
         setRequestInProgress(true);
         await handleReviewAndCreateNext(
           state,
-          hasOCS,
           handleError,
           navigate,
-          supportedExternalStorage,
           odfNamespace,
           existingNamespaces
         );

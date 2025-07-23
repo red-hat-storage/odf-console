@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { LSO_OPERATOR, CREATE_SS_PAGE_URL } from '@odf/core/constants';
+import { LSO_OPERATOR } from '@odf/core/constants';
+import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
 import { storageClusterResource } from '@odf/core/resources';
 import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
 import {
@@ -37,7 +38,6 @@ import {
 } from '@odf/shared/utils';
 import {
   ListPageBody,
-  ListPageCreateLink,
   ListPageFilter,
   ListPageHeader,
   PrometheusEndpoint,
@@ -48,10 +48,12 @@ import {
   useActiveColumns,
   useK8sWatchResource,
   useListPageFilter,
+  useModal,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
+import { Button } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
 import { useODFNamespaceSelector } from '../../redux';
@@ -280,7 +282,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
       key: 'ADD_CAPACITY',
       value: t('Add Capacity'),
       component: React.lazy(
-        () => import('./../../modals/add-capacity/add-capacity-modal')
+        () => import('../../modals/add-capacity/add-capacity-modal')
       ),
     },
     {
@@ -333,7 +335,6 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
           kind={systemKind}
           systemName={systemName}
           providerName={systemName}
-          systemNamespace={systemNamespace}
         />
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
@@ -375,6 +376,8 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
 
 export const StorageSystemListPage: React.FC = () => {
   const { t } = useCustomTranslation();
+
+  const launchModal = useModal();
 
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
@@ -439,11 +442,16 @@ export const StorageSystemListPage: React.FC = () => {
 
   return (
     <>
-      <ListPageHeader title={t('StorageSystems')}>
+      <ListPageHeader title={t('External systems')}>
         {odfNamespace && (
-          <ListPageCreateLink to={CREATE_SS_PAGE_URL}>
-            {t('Create StorageSystem')}
-          </ListPageCreateLink>
+          <Button
+            variant="primary"
+            onClick={() => {
+              launchModal(ExternalSystemsSelectModal, {});
+            }}
+          >
+            {t('Create External system')}
+          </Button>
         )}
       </ListPageHeader>
       <ListPageBody>

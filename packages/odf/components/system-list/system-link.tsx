@@ -7,16 +7,14 @@ type ODFSystemLinkProps = {
   kind: string;
   providerName: string;
   systemName: string;
-  systemNamespace: string;
 };
 
 const ODFSystemLink: React.FC<ODFSystemLinkProps> = ({
   kind,
   systemName,
   providerName,
-  systemNamespace,
 }) => {
-  const path = `/odf/system/ns/${systemNamespace}/${kind}/${providerName}/overview`;
+  const path = `/odf/external-systems/${kind}/${providerName}`;
   return (
     <span>
       <ResourceIcon resourceModel={ODFStorageSystem} />

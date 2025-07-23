@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { isExternalCluster } from '@odf/core/utils/odf';
+import { isClusterIgnored, isExternalCluster } from '@odf/core/utils/odf';
 import { DASH } from '@odf/shared/constants';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
 import { resourceStatus } from '@odf/shared/status/Resource';
@@ -84,8 +84,9 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
   const cephClustersStatuses =
     storageClusters.loaded && !storageClusters.loadError
       ? getClustersStatuses(
-          storageClusters?.data?.filter((cluster) =>
-            isExternalCluster(cluster)
+          storageClusters?.data?.filter(
+            (cluster) =>
+              !isClusterIgnored(cluster) && isExternalCluster(cluster)
           ),
           t
         )

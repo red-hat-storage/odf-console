@@ -29,7 +29,6 @@ import { getAnnotations } from '@odf/shared/selectors';
 import { ConfigMapKind, ListKind, PodKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getAPIVersionForModel } from '@odf/shared/utils';
-import { K8sKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
 import {
@@ -132,7 +131,7 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
               <HelperTextItem>
                 <div className="odf-connection-details__helper-text">
                   <Trans t={t as any} ns="plugin__odf-console">
-                    Download <code>{{ SCRIPT_NAME }}</code> script and run on
+                    1. Download <code>{{ SCRIPT_NAME }}</code> script and run on
                     the RHCS cluster, then upload the results (JSON) in the
                     External storage system metadata field.
                   </Trans>{' '}
@@ -184,7 +183,6 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
 export const rhcsPayload: CreatePayload<RHCSState> = ({
   systemName,
   state,
-  model,
   namespace,
   inTransitStatus,
   shouldSetCephRBDAsDefault,
@@ -206,11 +204,11 @@ export const rhcsPayload: CreatePayload<RHCSState> = ({
       },
     },
     {
-      model,
+      model: StorageClusterModel,
       payload: {
-        apiVersion: getAPIVersionForModel(model as K8sKind),
-        apiGroup: model.apiGroup,
-        kind: model.kind,
+        apiVersion: getAPIVersionForModel(StorageClusterModel),
+        apiGroup: StorageClusterModel.apiGroup,
+        kind: StorageClusterModel.kind,
         metadata: {
           name: systemName,
           namespace: namespace,

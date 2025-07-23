@@ -1,12 +1,18 @@
 import * as React from 'react';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import classNames from 'classnames';
 import { FormGroup, Checkbox } from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './backing-storage-step.scss';
 
 export const SetCephRBDStorageClassDefault: React.FC<
   SetCephRBDStorageClassDefaultProps
-> = ({ dispatch, isRBDStorageClassDefault, doesDefaultSCAlreadyExists }) => {
+> = ({
+  dispatch,
+  isRBDStorageClassDefault,
+  doesDefaultSCAlreadyExists,
+  className,
+}) => {
   const { t } = useCustomTranslation();
 
   // for infra with already existing "default" SC (eg: say gp3-csi): option should be default unchecked.
@@ -39,7 +45,10 @@ export const SetCephRBDStorageClassDefault: React.FC<
             payload: !isRBDStorageClassDefault,
           })
         }
-        className="odf-backing-store__radio--margin-bottom"
+        className={classNames(
+          'odf-backing-store__radio--margin-bottom',
+          className
+        )}
       />
     </FormGroup>
   );
@@ -49,4 +58,5 @@ type SetCephRBDStorageClassDefaultProps = {
   dispatch: WizardDispatch;
   isRBDStorageClassDefault: WizardState['backingStorage']['isRBDStorageClassDefault'];
   doesDefaultSCAlreadyExists: boolean | null;
+  className?: string;
 };

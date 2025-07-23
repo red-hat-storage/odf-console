@@ -1,3 +1,4 @@
+import { isExternalCluster } from '@odf/core/utils';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
 import { ODFStorageSystem } from '@odf/shared/models';
 import { StorageClusterKind, StorageSystemKind } from '@odf/shared/types';
@@ -38,21 +39,24 @@ const mapStorageClusterToStorageSystem = (
  * A facade layer to poll StorageCluster and IBMFlashSystem resources.
  * It should be used where watching of StorageSystem resource is required.
  * StorageSystem resource is a deprecated resource so polling it will not give us any information.
+ * @param onlywatchExternalClusters - If true, only watch external clusters.
  *
  * @returns [StorageSystemKind[], boolean, any]
  */
-export const useWatchStorageSystems = (): [
-  StorageSystemKind[],
-  boolean,
-  any,
-] => {
+export const useWatchStorageSystems = (
+  onlyWatchExternalClusters?: boolean
+): [StorageSystemKind[], boolean, any] => {
   const { storageClusters: odfClusters, flashSystemClusters } =
     useWatchStorageClusters();
 
   const loaded = odfClusters.loaded && flashSystemClusters.loaded;
   // Flashsystem loaderror can occur when IBM flashsystem operator is not installed hence ignore it
   const loadError = odfClusters.loadError;
-  const storageClusters: StorageClusterKind[] = odfClusters.data;
+  const storageClusters: StorageClusterKind[] = onlyWatchExternalClusters
+    ? odfClusters.data.filter((storagecluster) =>
+        isExternalCluster(storagecluster)
+      )
+    : odfClusters.data;
   const storageSystems: StorageSystemKind[] =
     odfClusters?.loaded && !odfClusters.loadError
       ? storageClusters?.map(mapStorageClusterToStorageSystem)
