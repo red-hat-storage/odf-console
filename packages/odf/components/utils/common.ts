@@ -509,7 +509,7 @@ export const getOCSRequestData = ({
       managedResources: {
         cephBlockPools: {
           defaultStorageClass: shouldSetCephRBDAsDefault,
-          defaultVirtualizeStorageClass: shouldSetVirtualizeSCAsDefault,
+          defaultVirtualizationStorageClass: shouldSetVirtualizeSCAsDefault,
         },
       },
     };
