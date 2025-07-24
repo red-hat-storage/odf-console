@@ -8,7 +8,7 @@ import {
 import { isSubscriptionUpgradeActivity } from '@odf/ocs/dashboards/persistent-internal/activity-card/ocs-upgrade-activity';
 import { isPersistentStorageEvent } from '@odf/ocs/utils';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
-import { SubscriptionModel } from '@odf/shared/models';
+import { subscriptionResource } from '@odf/shared/resources/common';
 import { getAnnotations, getName } from '@odf/shared/selectors';
 import {
   K8sResourceKind,
@@ -16,7 +16,7 @@ import {
   SubscriptionKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { isCephProvisioner, referenceForModel } from '@odf/shared/utils';
+import { isCephProvisioner } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { EventKind } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import {
@@ -79,12 +79,6 @@ const RecentEvent: React.FC = () => {
   return (
     <RecentEventsBody events={eventObject} filter={clientEventsFilter()} />
   );
-};
-
-export const subscriptionResource = {
-  isList: true,
-  kind: referenceForModel(SubscriptionModel),
-  namespaced: false,
 };
 
 const OngoingActivity = () => {
