@@ -1,8 +1,13 @@
+@use '@patternfly/patternfly/sass-utilities/all' as pf;
+
 .odf-general-overview__activity-card {
   padding-bottom: 1rem;
 }
 
 .odf-general-overview__activity-card-body {
-  max-height: 56vh;
+  max-height: 35vh;
   overflow-y: auto;
+  @media screen and (min-width: pf.$pf-v5-global--breakpoint--2xl) {
+    max-height: 70vh;
+  }
 }
