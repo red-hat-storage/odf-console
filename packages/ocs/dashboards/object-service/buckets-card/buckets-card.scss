@@ -1,4 +1,4 @@
-@import '@patternfly/patternfly/sass-utilities/colors';
+@use '@patternfly/patternfly/sass-utilities/colors' as colors;
 
 .nb-buckets-card__buckets-failure-status {
   display: flex;
@@ -6,7 +6,7 @@
 }
 
 .nb-buckets-card__buckets-failure-status-count {
-  color: $pf-v5-color-blue-300;
+  color: colors.$pf-v5-color-blue-300;
   margin-left: var(--pf-v5-global--spacer--xs);
 }
 
