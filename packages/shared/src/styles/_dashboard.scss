@@ -1,9 +1,12 @@
+@use './vars' as vars;
+@use '@patternfly/patternfly/sass-utilities/all' as pf ;
+
 .odf-dashboard-body {
   background-color: var(--pf-v5-global--BackgroundColor--200);
   flex: 1 0 auto;
-  padding: $pf-v5-global-gutter;
-  @media(min-width: $pf-v5-global--breakpoint--xl) {
-    padding: $pf-v5-global-gutter--md;
+  padding: vars.$pf-v5-global-gutter;
+  @media(min-width: pf.$pf-v5-global--breakpoint--xl) {
+    padding: vars.$pf-v5-global-gutter--md;
   }
 }
 

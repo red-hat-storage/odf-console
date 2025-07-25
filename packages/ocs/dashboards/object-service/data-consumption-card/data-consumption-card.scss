@@ -1,4 +1,4 @@
-@import '@patternfly/patternfly/sass-utilities/all';
+@use '@patternfly/patternfly/sass-utilities/all' as pf;
 
 .nb-data-consumption-card__header {
   justify-content: space-between;
@@ -10,7 +10,7 @@
 
 .nb-data-consumption-card__dropdown-item {
   max-width: 12em;
-  @media screen and (min-width: $pf-v5-global--breakpoint--lg) {
+  @media screen and (min-width: pf.$pf-v5-global--breakpoint--lg) {
     min-width: 12em;
   }
   &--hide-list-style {

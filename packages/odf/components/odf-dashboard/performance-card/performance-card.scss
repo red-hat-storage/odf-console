@@ -1,4 +1,4 @@
-@import '@odf/shared/styles/skeleton';
+@use '@odf/shared/styles/skeleton' as sk;
 
 .performanceCard {
   &__header {
@@ -49,8 +49,8 @@
 }
 
 .odf-performanceCardLoading-body-item__element {
-  animation: $skeleton-animation;
-  background: $skeleton-color;
+  animation: sk.$skeleton-animation;
+  background: sk.$skeleton-color;
   display: flex;
   flex-grow: 1;
   height: 80px;
