@@ -25,9 +25,6 @@ export const fetchWorkerNodesJson = () =>
   cy.exec('oc get nodes -l "node-role.kubernetes.io/worker" -o json');
 
 export const addCapacity = (scName: string) => {
-  cy.byLegacyTestID('item-filter').clear();
-  cy.byLegacyTestID('item-filter').type('ocs-storagecluster');
-  cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
   cy.byTestID('kebab-button').click();
   cy.contains('Add Capacity').click();
   // eslint-disable-next-line cypress/no-unnecessary-waiting

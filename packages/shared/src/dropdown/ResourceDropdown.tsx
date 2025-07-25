@@ -146,7 +146,12 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
     useK8sWatchResource<T[]>(watchResource);
 
   React.useEffect(() => {
-    if (initialSelection && selectedItem === null && loaded && !loadError) {
+    if (
+      _.isFunction(initialSelection) &&
+      _.isEmpty(selectedItem) &&
+      loaded &&
+      !loadError
+    ) {
       const item = initialSelection(resources);
       onSelect(item);
       setSelectedItem(item);

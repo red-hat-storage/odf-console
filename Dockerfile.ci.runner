@@ -3,7 +3,7 @@
 # cypress/browsers: not used as they don't have a published image with our required NODE_VERSION.
 # cypress/included: same as cypress/browser + we don't need cypress preinstalled as we use our devDep. version.
 # cypress/base: used as it contains all the system dependencies required by cypress (but not cypress itself).
-FROM cypress/base:20.16.0
+FROM cypress/base:22.17.0
 
 # Yarn requires the home dir to be writable by any container user.
 ENV HOME=/opt/home

@@ -3,7 +3,6 @@ import {
   CLUSTER_NAMESPACE,
   STORAGE_SYSTEM_NAME,
   OCS_SC_STATE,
-  ODF_OPERATOR_NAME,
   SECOND,
   MINUTE,
 } from './consts';
@@ -49,21 +48,13 @@ Cypress.Commands.add('install', () => {
     }
   ).then(({ code }) => {
     if (code !== 0) {
-      cy.clickNavLink(['Operators', 'Installed Operators']);
-      cy.byLegacyTestID('item-filter').type(ODF_OPERATOR_NAME);
-      // data-test-operator-row="OpenShift Data Foundation"
-      cy.byTestOperatorRow(ODF_OPERATOR_NAME).click();
-      cy.byLegacyTestID('horizontal-link-Storage System').click();
-      cy.byTestID('item-create').click();
-
-      // Wait for the StorageSystem page to load.
-      cy.contains('Create StorageSystem', { timeout: 15 * SECOND }).should(
-        'be.visible'
-      );
-
-      // Uncomment next line only if the cluster has enough resources.
-      // cy.get('label[for="enable-nfs"]').click();
-
+      cy.clickNavLink(['Storage', 'Storage cluster']);
+      // Clicks create Data Foundation button
+      cy.byTestID('configure-data-foundation').click();
+      // Clicks create StorageCluster tile
+      cy.byTestID('create-storage-cluster').click();
+      cy.byTestID('create-wizard-empty-state').should('exist');
+      cy.byTestID('create-wizard-empty-state').should('not.exist');
       cy.get('button').contains('Next').click();
       // @TODO: Do we still want to uncheck the already unchecked 'Taint nodes' checkbox?
       // If yes, we should scroll down (needed after adding the performance profile selection)
@@ -84,7 +75,7 @@ Cypress.Commands.add('install', () => {
       );
 
       cy.log('Check if storage system was created and is listed as expected.');
-      cy.clickNavLink(['Storage', 'Data Foundation']);
+      cy.clickNavLink(['Storage', 'Storage cluster']);
       cy.byLegacyTestID('horizontal-link-Storage Systems').click();
       cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
       cy.get('a').contains(STORAGE_SYSTEM_NAME);

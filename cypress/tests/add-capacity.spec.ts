@@ -1,7 +1,6 @@
 import * as _ from 'lodash-es';
 import {
   ClusterStatus,
-  STORAGE_SYSTEM_NAME,
   STORAGE_CLUSTER_NAME,
   CLUSTER_NAMESPACE,
   CEPH_CLUSTER_NAME,
@@ -19,7 +18,6 @@ import {
   getPresentPod,
   getPodName,
 } from '../helpers/add-capacity';
-import { listPage } from '../views/list-page';
 import { modal } from '../views/modals';
 import { ODFCommon } from '../views/odf-common';
 
@@ -71,11 +69,7 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       const pods = JSON.parse(res.stdout);
       _.set(initialState, 'pods', pods);
 
-      ODFCommon.visitStorageSystemList();
-      listPage.searchInList(STORAGE_SYSTEM_NAME);
-      // Todo(bipuladh): Add a proper data-selector once the list page is migrated
-      // eslint-disable-next-line cypress/require-data-selectors
-      cy.get('a').contains(STORAGE_SYSTEM_NAME).should('exist');
+      ODFCommon.visitStorageCluster();
       cy.byTestID('kebab-button').click();
       // eslint-disable-next-line cypress/require-data-selectors
       cy.contains('Add Capacity').click();
@@ -99,12 +93,11 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       modal.submit();
       modal.shouldBeClosed();
 
-      ODFCommon.visitStorageDashboard();
-      ODFCommon.visitStorageSystemList();
-
-      cy.get('[data-label="status"]').contains('Ready', {
-        timeout: 20 * MINUTE,
-      });
+      ODFCommon.visitStorageCluster();
+      cy.get(
+        '[data-item-id="Storage Cluster-health-item"] [data-test="success-icon"]',
+        { timeout: 20 * MINUTE }
+      );
     });
     cy.exec(
       `oc get storagecluster ${STORAGE_CLUSTER_NAME} -n ${CLUSTER_NAMESPACE} -o json`

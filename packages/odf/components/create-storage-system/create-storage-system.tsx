@@ -244,7 +244,10 @@ const CreateStorageSystemWtihLoader: React.FC = () => {
   return !isCrdPresent || !delayedShow ? (
     <>
       <CreateStorageSystemHeader state={{} as any} />
-      <EmptyState className="odf-create-storage-system-wizard__empty-state">
+      <EmptyState
+        className="odf-create-storage-system-wizard__empty-state"
+        data-test="create-wizard-empty-state"
+      >
         <EmptyStateHeader icon={<EmptyStateIcon icon={Spinner} />} />
         <p>
           {t(

@@ -288,7 +288,9 @@ export const CreateOBCForm: React.FC<CreateOBCFormProps> = (props) => {
             onBlur={onBlur}
             filterResource={filterResource}
             initialSelection={(resources) =>
-              resources?.find((res) => getName(res) === state.scName)
+              resources?.find((res) =>
+                res.provisioner.includes(NOOBAA_PROVISIONER)
+              )
             }
             className="odf-mcg__resource-dropdown"
             id="sc-dropdown"
