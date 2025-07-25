@@ -1,8 +1,11 @@
+@use './vars' as vars;
+@use './mixin/break-word' as bw;
+
 .odf-resource-item {
   align-items: baseline;
   display: flex;
   min-width: 0; // required so odf-break-word works
-  @include odf-break-word;
+  @include bw.odf-break-word;
 
   &--inline {
     display: inline-flex;
@@ -17,7 +20,7 @@
     animation: odf-resource-icon__deleting 1.5s
       cubic-bezier(0.45, 0.05, 0.55, 0.95) alternate infinite;
     flex: 0 0 auto;
-    font-size: ($font-size-base - 1);
+    font-size: (vars.$font-size-base - 1);
     font-weight: var(--pf-v5-global--FontWeight--bold);
     margin: 0 0 0 15px;
     overflow: hidden;
@@ -43,12 +46,12 @@
 }
 
 .odf-m-resource-icon {
-  background-color: $color-container-dark;
+  background-color: vars.$color-container-dark;
   border-radius: 20px;
   color: var(--pf-v5-global--palette--white);
   display: inline-block;
   flex-shrink: 0;
-  font-size: $font-size-base;
+  font-size: vars.$font-size-base;
   line-height: 16px;
   margin-right: 4px;
   min-width: 18px;
@@ -56,7 +59,7 @@
   text-align: center;
   white-space: nowrap;
   &--lg {
-    font-size: ($font-size-base + 3);
+    font-size: (vars.$font-size-base + 3);
     line-height: 20px;
     margin-right: 7px;
     min-width: 24px;
