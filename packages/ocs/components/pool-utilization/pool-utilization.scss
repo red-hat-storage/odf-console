@@ -1,0 +1,97 @@
+.odf-pool-utilization-card {
+  &__alert {
+    display: flex;
+    align-items: center;
+    gap: var(--pf-v5-global--spacer--sm);
+    margin-bottom: var(--pf-v5-global--spacer--sm);
+
+    &-icon {
+      color: var(--pf-v5-global--warning-color--100);
+      font-size: var(--pf-v5-global--icon--FontSize--lg);
+    }
+
+    &-count {
+      font-size: var(--pf-v5-global--FontSize--2xl);
+      font-weight: var(--pf-v5-global--FontWeight--bold);
+      color: var(--pf-v5-global--warning-color--100);
+    }
+  }
+
+  &__description {
+    color: var(--pf-v5-global--Color--200);
+    margin-bottom: var(--pf-v5-global--spacer--md);
+  }
+
+  &__usage {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  &__highlighted-row {
+    border-left: 3px solid var(--pf-v5-global--primary-color--100);
+    padding-left: var(--pf-v5-global--spacer--md);
+  }
+
+  &__no-issues,
+  &__loading,
+  &__error {
+    text-align: center;
+    padding: var(--pf-v5-global--spacer--xl) var(--pf-v5-global--spacer--md);
+    color: var(--pf-v5-global--Color--200);
+  }
+
+  &__healthy-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--pf-v5-global--spacer--2xl) var(--pf-v5-global--spacer--md);
+    min-height: 200px;
+  }
+
+  &__healthy-icon {
+    margin-bottom: var(--pf-v5-global--spacer--md);
+  }
+
+  &__healthy-message {
+    font-size: var(--pf-v5-global--FontSize--xl);
+    color: var(--pf-v5-global--Color--100);
+    margin: 0;
+  }
+
+  &__error {
+    color: var(--pf-v5-global--danger-color--100);
+  }
+}
+
+.odf-pool-utilization-popover {
+  &__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--pf-v5-global--spacer--sm);
+    font-weight: var(--pf-v5-global--FontWeight--bold);
+  }
+
+  &__pool-name {
+    color: var(--pf-v5-global--Color--100);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pf-v5-global--spacer--sm);
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: var(--pf-v5-global--spacer--sm);
+  }
+
+  &__message {
+    margin-top: var(--pf-v5-global--spacer--sm);
+    padding-top: var(--pf-v5-global--spacer--sm);
+    color: var(--pf-v5-global--Color--200);
+  }
+}

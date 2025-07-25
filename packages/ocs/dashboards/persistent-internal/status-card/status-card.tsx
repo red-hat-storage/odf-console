@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
+import { useStorageClusterStatus } from '@odf/ocs/hooks';
 import { resiliencyProgressQuery } from '@odf/ocs/queries';
 import {
   getCephHealthChecks,
   getCephHealthState,
   getDataResiliencyState,
+  getPoolUtilizationState,
 } from '@odf/ocs/utils';
 import { odfDocBasePath } from '@odf/shared/constants/doc';
 import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
@@ -127,7 +129,7 @@ const cephClusterResource = {
   isList: true,
 };
 
-export const StatusCard: React.FC = () => {
+const StatusCard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
@@ -148,6 +150,12 @@ export const StatusCard: React.FC = () => {
 
   const cephCluster = getCephClusterInNs(data, clusterNs);
 
+  const storageClusterStatus = useStorageClusterStatus(
+    clusterNs,
+    t,
+    managedByOCS
+  );
+
   const cephHealthState = getCephHealthState(
     { ceph: { data: cephCluster, loaded, loadError } },
     t
@@ -158,6 +166,20 @@ export const StatusCard: React.FC = () => {
   );
 
   const healthChecks = getCephHealthChecks(cephCluster);
+
+  const poolsNeedingAttention = React.useMemo(() => {
+    if (!storageClusterStatus?.pools) {
+      return [];
+    }
+    return storageClusterStatus.pools.filter(
+      (pool) =>
+        pool.health.state === HealthState.WARNING ||
+        pool.health.state === HealthState.ERROR
+    );
+  }, [storageClusterStatus.pools]);
+
+  const hasPopupContent =
+    healthChecks?.length > 0 || poolsNeedingAttention.length > 0;
 
   return (
     <Card className="odf-overview-card--gradient">
@@ -172,9 +194,9 @@ export const StatusCard: React.FC = () => {
           <GalleryItem>
             <HealthItem
               title={t('Storage Cluster')}
-              state={cephHealthState.state}
-              details={cephHealthState.message}
-              popupTitle={healthChecks ? t('Active health checks') : null}
+              state={storageClusterStatus?.health?.state || HealthState.UNKNOWN}
+              details={storageClusterStatus?.health?.message || ''}
+              popupTitle={hasPopupContent ? t('Health details') : null}
             >
               {healthChecks?.map((healthCheck: CephHealthCheckType, i) => (
                 <CephHealthCheck
@@ -183,6 +205,38 @@ export const StatusCard: React.FC = () => {
                   healthCheck={healthCheck}
                 />
               ))}
+              {poolsNeedingAttention.length > 0 && (
+                <>
+                  {healthChecks?.length > 0 && <hr className="pf-v5-u-my-md" />}
+                  <div className="pf-v5-u-font-weight-bold pf-v5-u-mb-sm">
+                    {t('Storage pool utilization')}
+                  </div>
+                  {poolsNeedingAttention.map((pool) => {
+                    const utilizationInfo = getPoolUtilizationState(
+                      pool.utilization,
+                      t
+                    );
+                    return (
+                      <CephHealthCheck
+                        key={pool.name}
+                        cephHealthState={pool.health}
+                        healthCheck={{
+                          id: `pool-${pool.name}`,
+                          details: t(
+                            'Pool {{name}}: {{percent}}% utilized. {{message}}',
+                            {
+                              name: pool.name,
+                              percent: pool.utilization.toFixed(1),
+                              message: utilizationInfo.actionableMessage,
+                            }
+                          ),
+                          troubleshootLink: null,
+                        }}
+                      />
+                    );
+                  })}
+                </>
+              )}
             </HealthItem>
           </GalleryItem>
           <GalleryItem>

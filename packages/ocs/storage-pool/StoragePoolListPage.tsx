@@ -5,7 +5,6 @@ import {
 } from '@odf/core/redux';
 import { getCephBlockPoolResource } from '@odf/core/resources';
 import { CephBlockPoolModel, CephFileSystemModel } from '@odf/shared';
-import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -29,7 +28,6 @@ import {
   ListPageFilter,
   ListPageHeader,
   RowProps,
-  StatusIconAndText,
   TableColumn,
   TableData,
   useActiveColumns,
@@ -40,27 +38,43 @@ import {
   WatchK8sResources,
 } from '@openshift-console/dynamic-plugin-sdk';
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
+import { global_danger_color_100 as dangerColor } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
+import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
 import classNames from 'classnames';
 import { Link, useLocation } from 'react-router-dom-v5-compat';
-import { Tooltip } from '@patternfly/react-core';
-import { sortable, wrappable } from '@patternfly/react-table';
-import { PoolType } from '../constants';
+import { Tooltip, Label, Popover } from '@patternfly/react-core';
 import {
-  MirroringImageHealthMap,
-  healthStateMessage,
-} from '../dashboards/block-pool/states';
+  ExclamationTriangleIcon,
+  ExclamationCircleIcon,
+} from '@patternfly/react-icons';
+import { sortable, wrappable } from '@patternfly/react-table';
+import { PoolUtilizationPopoverContent } from '../components/pool-utilization';
+import { PoolType } from '../constants';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
-import { StoragePoolKind, CephFilesystemKind, StoragePool } from '../types';
+import {
+  StoragePoolKind,
+  CephFilesystemKind,
+  StoragePool,
+  PoolRowData,
+  PoolMetrics,
+} from '../types';
 import {
   disableMenuAction,
   getPerPoolMetrics,
   getScNamesUsingPool,
   isDefaultPool,
-  PoolMetrics,
   getStoragePoolsFromFilesystem,
   getStoragePoolsFromBlockPools,
 } from '../utils';
+import {
+  getPoolUtilizationPercentage,
+  getPoolUtilizationState,
+  PoolUtilizationState,
+  POOL_FULL_THRESHOLD,
+  POOL_NEAR_FULL_THRESHOLD,
+} from '../utils/pool-utilization';
 import { PopoverHelper } from './popover-helper';
+import '../components/pool-utilization/pool-utilization.scss';
 
 const tableColumnInfo = [
   { className: 'pf-v5-u-w-16-on-2xl', id: 'name' },
@@ -85,27 +99,19 @@ const tableColumnInfo = [
     id: 'volumeType',
   },
   {
-    className: classNames(
-      'pf-m-hidden',
-      'pf-m-visible-on-lg',
-      'pf-v5-u-w-8-on-2xl'
-    ),
-    id: 'replicas',
-  },
-  {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
-    id: 'usedCapacity',
-  },
-  {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
     id: 'mirroringStatus',
   },
   {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
-    id: 'overallImageHealth',
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
+    id: 'volumeMode',
   },
   {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
+    id: 'usedOfMaxAvailable',
+  },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
     id: 'compressionStatus',
   },
   {
@@ -160,7 +166,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('Replicas'),
+        title: t('Mirroring status'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[4].className,
@@ -168,7 +174,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[4].id,
       },
       {
-        title: t('Used capacity'),
+        title: t('Volume mode'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[5].className,
@@ -176,7 +182,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[5].id,
       },
       {
-        title: t('Mirroring status'),
+        title: t('Used of max available'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[6].className,
@@ -184,32 +190,25 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[6].id,
       },
       {
-        title: t('Overall image health'),
+        title: t('Compression status'),
         props: {
           className: tableColumnInfo[7].className,
         },
         id: tableColumnInfo[7].id,
       },
       {
-        title: t('Compression status'),
+        title: t('Compression savings'),
         props: {
           className: tableColumnInfo[8].className,
         },
         id: tableColumnInfo[8].id,
       },
       {
-        title: t('Compression savings'),
+        title: '',
         props: {
           className: tableColumnInfo[9].className,
         },
         id: tableColumnInfo[9].id,
-      },
-      {
-        title: '',
-        props: {
-          className: tableColumnInfo[10].className,
-        },
-        id: tableColumnInfo[10].id,
       },
     ],
     [t]
@@ -235,10 +234,13 @@ type CustomData = {
   poolRawCapacity: {
     [poolName: string]: string | number;
   };
-  poolCompressionSavings: {
+  poolMaxAvailableCapacity: {
     [poolName: string]: string | number;
   };
-  poolMirroringImageHealth: {
+  poolUtilization: {
+    [poolName: string]: string | number;
+  };
+  poolCompressionSavings: {
     [poolName: string]: string | number;
   };
   storageClasses: StorageClassResourceKind[];
@@ -258,10 +260,11 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
 
   const {
     poolRawCapacity,
+    poolMaxAvailableCapacity,
+    poolUtilization,
     poolCompressionSavings,
     storageClasses,
     listPagePath,
-    poolMirroringImageHealth,
   }: CustomData = rowData;
 
   const poolType = obj.type;
@@ -269,15 +272,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
     poolType === PoolType.FILESYSTEM
       ? [ModalKeys.EDIT_LABELS, ModalKeys.EDIT_ANN]
       : [];
-  const replica = obj.spec?.replicated?.size;
   const mirroringStatus: boolean = obj.spec?.mirroring?.enabled;
-  const imageHealth =
-    healthStateMapping?.[
-      MirroringImageHealthMap?.[poolMirroringImageHealth?.[name]]
-    ];
-  const compressionMode = obj.spec?.compressionMode;
-  const isCompressionEnabled: boolean =
-    !!compressionMode && compressionMode !== 'none';
   const phase = obj?.status?.phase;
 
   const poolScNames: string[] = React.useMemo(
@@ -285,19 +280,44 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
     [obj, storageClasses]
   );
 
+  const compressionMode = obj.spec?.compressionMode;
+  const isCompressionEnabled: boolean =
+    !!compressionMode && compressionMode !== 'none';
+
   // Details page link
   const to = `${listPagePath}/${name}?namespace=${getNamespace(obj)}`;
 
   // https://issues.redhat.com/browse/DFBUGS-2963
-  // https://issues.redhat.com/browse/DFBUGS-2963
   // /ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/storage-pools/:poolName
   // {poolRawCapacity: {"pool-1" : size_bytes, "pool-2" : size_bytes, ...}}
-  const rawCapacity: string = poolRawCapacity?.[name]
-    ? humanizeBinaryBytes(poolRawCapacity?.[name])?.string
-    : '-';
   const compressionSavings: string = poolCompressionSavings?.[name]
     ? humanizeBinaryBytes(poolCompressionSavings?.[name])?.string
     : '-';
+
+  // Calculate used capacity (show used only, not "used of max available")
+  const usedCapacity = poolRawCapacity?.[name]
+    ? humanizeBinaryBytes(poolRawCapacity?.[name])
+    : null;
+
+  const usedCapacityDisplay = usedCapacity ? usedCapacity.string : '-';
+  const totalCapacity = poolMaxAvailableCapacity?.[name]
+    ? humanizeBinaryBytes(poolMaxAvailableCapacity?.[name])
+    : null;
+  const totalCapacityDisplay = totalCapacity ? totalCapacity.string : '-';
+
+  // Get pool utilization percentage and state
+  const utilizationPercentage = getPoolUtilizationPercentage(
+    poolUtilization,
+    name
+  );
+  const utilizationInfo = getPoolUtilizationState(utilizationPercentage, t);
+  const poolNeedsAttention =
+    utilizationInfo.state !== PoolUtilizationState.NORMAL;
+
+  const isCritical = utilizationPercentage >= POOL_FULL_THRESHOLD;
+  const isWarning =
+    utilizationPercentage >= POOL_NEAR_FULL_THRESHOLD &&
+    utilizationPercentage < POOL_FULL_THRESHOLD;
 
   return (
     <>
@@ -335,29 +355,70 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
         {poolType}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-        <span data-test={`${name}-replicas`}>{replica}</span>
-      </TableData>
-      <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
-        {rawCapacity}
-      </TableData>
-      <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
         {mirroringStatus ? t('Enabled') : t('Disabled')}
       </TableData>
-      <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
-        <StatusIconAndText
-          title={healthStateMessage(imageHealth?.health, t)}
-          icon={imageHealth?.icon}
-        />
+      <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
+        <Label
+          variant="filled"
+          color={poolType === PoolType.BLOCK ? 'blue' : 'green'}
+        >
+          {poolType === PoolType.BLOCK ? t('Block') : t('Filesystem')}
+        </Label>
       </TableData>
-      <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
+        {poolNeedsAttention ? (
+          <Popover
+            aria-label={t('Pool utilization information')}
+            bodyContent={
+              <PoolUtilizationPopoverContent
+                pool={
+                  {
+                    ...obj,
+                    utilization: utilizationPercentage,
+                    usedCapacity: usedCapacityDisplay,
+                    totalCapacity: totalCapacityDisplay,
+                    critical: isCritical,
+                    warning: isWarning,
+                  } as PoolRowData
+                }
+              />
+            }
+            hasAutoWidth
+            triggerAction="hover"
+          >
+            <div
+              className="odf-pool-utilization-card__usage"
+              style={{ cursor: 'pointer' }}
+            >
+              {isCritical ? (
+                <ExclamationCircleIcon
+                  style={{ color: dangerColor.value }}
+                  className="pf-v5-u-mr-sm"
+                />
+              ) : (
+                <ExclamationTriangleIcon
+                  style={{ color: warningColor.value }}
+                  className="pf-v5-u-mr-sm"
+                />
+              )}
+              <span>
+                {usedCapacityDisplay} ({utilizationPercentage.toFixed(1)}%)
+              </span>
+            </div>
+          </Popover>
+        ) : (
+          usedCapacityDisplay
+        )}
+      </TableData>
+      <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
         <span data-test={`${name}-compression`}>
           {isCompressionEnabled ? t('Enabled') : t('Disabled')}
         </span>
       </TableData>
-      <TableData {...tableColumnInfo[9]} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
         {isCompressionEnabled ? compressionSavings : '-'}
       </TableData>
-      <TableData {...tableColumnInfo[10]} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumnInfo[9]} activeColumnIDs={activeColumnIDs}>
         {isDefaultPool(obj) ? (
           <Tooltip
             content={t('Default pool cannot be deleted.')}
@@ -529,6 +590,41 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
       )
     );
 
+  const [maxAvailableCapacityData, maxAvailableLoadError, maxAvailableLoading] =
+    useCustomPrometheusPoll(
+      getValidPrometheusPollObj(
+        {
+          endpoint: 'api/v1/query' as any,
+          query: getPoolQuery(
+            poolNames,
+            StorageDashboardQuery.POOL_MAX_CAPACITY_AVAILABLE,
+            clusterName
+          ),
+          basePath: usePrometheusBasePath(),
+        },
+        !!poolNames?.length
+      )
+    );
+
+  const [
+    poolUtilizationData,
+    poolUtilizationLoadError,
+    poolUtilizationLoading,
+  ] = useCustomPrometheusPoll(
+    getValidPrometheusPollObj(
+      {
+        endpoint: 'api/v1/query' as any,
+        query: getPoolQuery(
+          poolNames,
+          StorageDashboardQuery.POOL_UTILIZATION_PERCENTAGE,
+          clusterName
+        ),
+        basePath: usePrometheusBasePath(),
+      },
+      !!poolNames?.length
+    )
+  );
+
   const [compressionSavings, compressionLoadError, compressionLoading] =
     useCustomPrometheusPoll(
       getValidPrometheusPollObj(
@@ -545,63 +641,57 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
       )
     );
 
-  const [
-    poolMirroringImageMetrics,
-    poolMirroringImageLoadError,
-    poolMirroringImageLoading,
-  ] = useCustomPrometheusPoll(
-    getValidPrometheusPollObj(
-      {
-        endpoint: 'api/v1/query' as any,
-        query: getPoolQuery(
-          poolNames,
-          StorageDashboardQuery.POOL_MIRRORING_IMAGE_HEALTH,
-          clusterName
-        ),
-        basePath: usePrometheusBasePath(),
-      },
-      !!poolNames?.length
-    )
-  );
-
   const customData = React.useMemo(() => {
     const poolRawCapacity: PoolMetrics = getPerPoolMetrics(
       poolRawCapacityMetrics,
       rawCapLoadError,
       rawCapLoading
     );
+    const poolMaxAvailableCapacity: PoolMetrics = getPerPoolMetrics(
+      maxAvailableCapacityData,
+      maxAvailableLoadError,
+      maxAvailableLoading
+    );
+    const poolUtilization: PoolMetrics = getPerPoolMetrics(
+      poolUtilizationData,
+      poolUtilizationLoadError,
+      poolUtilizationLoading
+    );
     const poolCompressionSavings: PoolMetrics = getPerPoolMetrics(
       compressionSavings,
       compressionLoadError,
       compressionLoading
     );
-    const poolMirroringImageHealth: PoolMetrics = getPerPoolMetrics(
-      poolMirroringImageMetrics,
-      poolMirroringImageLoadError,
-      poolMirroringImageLoading
-    );
     return {
       storageClasses: storageClasses ?? [],
       poolRawCapacity,
+      poolMaxAvailableCapacity,
+      poolUtilization,
       poolCompressionSavings,
       listPagePath,
-      poolMirroringImageHealth,
     };
   }, [
-    compressionLoadError,
-    compressionLoading,
-    compressionSavings,
     storageClasses,
+    listPagePath,
     poolRawCapacityMetrics,
     rawCapLoadError,
     rawCapLoading,
-    listPagePath,
-    poolMirroringImageMetrics,
-    poolMirroringImageLoadError,
-    poolMirroringImageLoading,
+    maxAvailableCapacityData,
+    maxAvailableLoadError,
+    maxAvailableLoading,
+    poolUtilizationData,
+    poolUtilizationLoadError,
+    poolUtilizationLoading,
+    compressionSavings,
+    compressionLoadError,
+    compressionLoading,
   ]);
 
-  const error = loadError || compressionLoadError || rawCapLoadError;
+  const error =
+    loadError ||
+    rawCapLoadError ||
+    maxAvailableLoadError ||
+    poolUtilizationLoadError;
 
   const [data, filteredData, onFilterChange] = useListPageFilter(storagePools);
   const createPath = `/odf/system/ns/${getNamespace(data[0])}/ocs.openshift.io~v1~StorageCluster/${clusterName}/storage-pools/create/~new`;

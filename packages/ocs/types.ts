@@ -70,3 +70,15 @@ export type CephBlockPoolRadosNamespaceKind = K8sResourceCommon & {
     mirroringStatus?: MirroringStatus;
   };
 };
+
+// Pool utilization types
+export type PoolRowData = StoragePool & {
+  utilization: number;
+  usedCapacity: string;
+  totalCapacity: string;
+  critical: boolean;
+  warning: boolean;
+  isFirstRow?: boolean;
+};
+
+export type PoolMetrics = { [poolName: string]: number };
