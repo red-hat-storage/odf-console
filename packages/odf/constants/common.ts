@@ -19,6 +19,7 @@ export const ODF_VENDOR_ANNOTATION = 'vendors.odf.openshift.io/kind';
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
 export const OCS_DEVICE_SET_MINIMUM_REPLICAS = 3;
 export const MINIMUM_NODES = 3;
+export const MINIMUM_NODES_FOR_TNA_CLUSTER = 2;
 export const SECOND = 1000;
 
 // ToDo (epic 4422): Use StorageSystem namespace once we support multiple internal clusters

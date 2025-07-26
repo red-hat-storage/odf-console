@@ -56,6 +56,7 @@ import {
   TextVariants,
   TextContent,
   TextInput,
+  Alert,
 } from '@patternfly/react-core';
 import { ValidationMessage } from '../../../utils/common-odf-install-el';
 import { ErrorHandler } from '../../error-handler';
@@ -239,6 +240,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   nodes,
   systemNamespace,
   isLSOPreConfigured,
+  isTwoNodesOneArbiterClusterEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -249,6 +251,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
   const [hasStrechClusterEnabled, setHasStrechClusterEnabled] =
     React.useState(false);
   const [zones, setZones] = React.useState([]);
+  const [arbiterNode, setArbiterNode] = React.useState<WizardNodeState[]>([]);
 
   const pvsBySc = React.useMemo(
     () => getSCAvailablePVs(pvs, storageClassName),
@@ -281,12 +284,43 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
       );
       const nodesData = createWizardNodeState(filteredNodes);
       dispatch({ type: 'wizard/setNodes', payload: nodesData });
+
+      // get the arbiter node details
+      if (isTwoNodesOneArbiterClusterEnabled) {
+        const tnArbiter = allNodes.filter((node) =>
+          node.spec.taints?.some(
+            (someTaint) =>
+              someTaint['key'] === 'node-role.kubernetes.io/arbiter'
+          )
+        );
+        if (!!tnArbiter && tnArbiter.length === 1) {
+          const tnArbiterNodeData = createWizardNodeState(tnArbiter);
+          // TODO need to check whether there is more than one arbiter set,
+          // raise an error according to it
+          setArbiterNode(tnArbiterNodeData);
+          dispatch({
+            type: 'wizard/setTwoNodesOneArbiterCluster',
+            payload: isTwoNodesOneArbiterClusterEnabled,
+          });
+        }
+      }
     }
-  }, [dispatch, allNodeLoadError, allNodeLoaded, allNodes, pvsBySc]);
+  }, [
+    dispatch,
+    allNodeLoadError,
+    allNodeLoaded,
+    allNodes,
+    pvsBySc,
+    isTwoNodesOneArbiterClusterEnabled,
+  ]);
 
   React.useEffect(() => {
-    // Validates stretch cluster topology
-    if (allNodes.length && nodes.length) {
+    // Validates stretch cluster topology if this is not a TNA cluster
+    if (
+      allNodes.length &&
+      nodes.length &&
+      !isTwoNodesOneArbiterClusterEnabled
+    ) {
       const allZones = getZonesFromNodesKind(allNodes);
       const nodesPerZoneMap: NodesPerZoneMap =
         getPVAssociatedNodesPerZone(nodes);
@@ -298,7 +332,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
       setHasStrechClusterEnabled(isValidStretchCluster);
       setZones(allZones);
     }
-  }, [allNodes, nodes]);
+  }, [allNodes, nodes, isTwoNodesOneArbiterClusterEnabled]);
 
   // Skipping validation if LSO was configured as part of the SS deployment (in the previous LVS creation wizard step), as that step already have all the required validations
   // These validations are needed if LSO was already configured before even starting with the SS deployment
@@ -394,8 +428,21 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
             />
           </GridItem>
           <GridItem span={10}>
-            <SelectedNodesTable data={nodes} />
+            <SelectedNodesTable data={nodes.concat(arbiterNode)} />
           </GridItem>
+          {isTwoNodesOneArbiterClusterEnabled && (
+            <GridItem span={10}>
+              <Alert
+                title="2-Nodes and 1-Arbiter setup detected"
+                variant="warning"
+                ouiaId="tna-cluster-details"
+              >
+                {t(
+                  'This setup spans across 3 zones with 2 data nodes and 1 arbiter. The arbiter maintains quorum without storing data. This setup uses replica-2, which tolerates only one node failure; data loss can occur if multiple nodes fail. Review your failure domain and recovery plan before proceeding.'
+                )}
+              </Alert>
+            </GridItem>
+          )}
         </Grid>
       </>
     </ErrorHandler>
@@ -412,6 +459,7 @@ type SelectedCapacityAndNodesProps = {
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
   volumeValidationType: VolumeTypeValidation;
   isLSOPreConfigured: boolean;
+  isTwoNodesOneArbiterClusterEnabled: boolean;
 };
 
 export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
@@ -422,6 +470,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   nodes,
   systemNamespace,
   infraType,
+  isTwoNodesOneArbiterCluster: isThisTwoNodesOneArbiterCluster,
 }) => {
   const {
     capacity,
@@ -452,6 +501,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
     nodes,
     state,
     isNoProvisioner,
+    isThisTwoNodesOneArbiterCluster,
     osdAmount
   );
   const onProfileChange = React.useCallback(
@@ -488,6 +538,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
           capacity={capacity}
           systemNamespace={systemNamespace}
           isLSOPreConfigured={isLSOPreConfigured}
+          isTwoNodesOneArbiterClusterEnabled={isThisTwoNodesOneArbiterCluster}
         />
       ) : (
         <SelectCapacityAndNodes
@@ -543,5 +594,6 @@ type CapacityAndNodesProps = {
   volumeSetName: WizardState['createLocalVolumeSet']['volumeSetName'];
   dispatch: WizardDispatch;
   infraType: InfraProviders;
+  isTwoNodesOneArbiterCluster: boolean;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
 };

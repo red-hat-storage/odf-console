@@ -5,7 +5,7 @@ import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   isStorageClassWizardStep,
 } from '@odf/odf-plugin-sdk/extensions';
-import { useK8sList } from '@odf/shared';
+import { InfraTopologyMode, useK8sList } from '@odf/shared';
 import { DEFAULT_INFRASTRUCTURE } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks/k8s-get-hook';
 import {
@@ -19,7 +19,10 @@ import {
   InfrastructureKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getInfrastructurePlatform } from '@odf/shared/utils';
+import {
+  getInfrastructureControlPlaneTopology,
+  getInfrastructurePlatform,
+} from '@odf/shared/utils';
 import {
   useK8sWatchResource,
   useResolvedExtensions,
@@ -130,6 +133,9 @@ const CreateStorageSystem: React.FC<{}> = () => {
     useODFSystemFlagsSelector();
 
   const infraType = getInfrastructurePlatform(infra);
+  const hasTwoNodesOneArbiter =
+    getInfrastructureControlPlaneTopology(infra) ===
+    InfraTopologyMode.HighlyAvailableArbiter;
 
   let wizardSteps: WizardStep[] = [];
   let hasOCS: boolean = false;
@@ -163,6 +169,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
       state,
       dispatch,
       infraType,
+      hasTwoNodesOneArbiter,
       hasOCS,
       supportedExternalStorage,
       hasMultipleClusters
@@ -203,6 +210,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
           <CreateStorageSystemFooter
             state={state}
             hasOCS={hasOCS}
+            hasTwoNodesOneArbiter={hasTwoNodesOneArbiter}
             dispatch={dispatch}
             disableNext={!allLoaded || !!anyError}
             supportedExternalStorage={supportedExternalStorage}

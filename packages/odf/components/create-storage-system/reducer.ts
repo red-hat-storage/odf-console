@@ -40,6 +40,7 @@ export const initialState: CreateStorageSystemState = {
   stepIdReached: 1,
   storageClass: { name: '', provisioner: '' },
   nodes: [],
+  hasTwoNodesOneArbiterCluster: false,
   backingStorage: {
     type: BackingStorageType.EXISTING,
     systemNamespace: '',
@@ -121,6 +122,7 @@ type CreateStorageSystemState = {
   stepIdReached: number;
   storageClass: { name: string; provisioner?: string };
   nodes: WizardNodeState[];
+  hasTwoNodesOneArbiterCluster: boolean;
   backingStorage: {
     type: BackingStorageType;
     systemNamespace: string;
@@ -301,6 +303,9 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'wizard/setNodes':
       newState.nodes = action.payload;
       break;
+    case 'wizard/setTwoNodesOneArbiterCluster':
+      newState.hasTwoNodesOneArbiterCluster = action.payload;
+      break;
     case 'wizard/setCreateStorageClass':
       newState.createStorageClass = {
         ...newState.createStorageClass,
@@ -461,6 +466,10 @@ export type CreateStorageSystemAction =
       };
     }
   | {
+      type: 'wizard/setTwoNodesOneArbiterCluster';
+      payload: boolean;
+    }
+  | {
       type: 'capacityAndNodes/setResourceProfile';
       payload: WizardState['capacityAndNodes']['resourceProfile'];
     }
@@ -497,6 +506,10 @@ export type CreateStorageSystemAction =
       payload: WizardState['backingStorage']['externalStorage'];
     }
   | { type: 'wizard/setNodes'; payload: WizardState['nodes'] }
+  | {
+      type: 'wizard/setTwoNodesOneArbiterCluster';
+      payload: WizardState['hasTwoNodesOneArbiterCluster'];
+    }
   | {
       type: 'capacityAndNodes/capacity';
       payload: WizardState['capacityAndNodes']['capacity'];

@@ -24,9 +24,11 @@ import {
 } from '@odf/shared/constants';
 import { getLabel, getName, getNamespace, getUID } from '@odf/shared/selectors';
 import {
+  ManagedResourcesType,
   NetworkAttachmentDefinitionKind,
   NodeKind,
   StorageClusterKind,
+  StorageClusterPlacementType,
 } from '@odf/shared/types';
 import {
   getNodeRoles,
@@ -44,6 +46,7 @@ import {
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
   ATTACHED_DEVICES_ANNOTATION,
+  MINIMUM_NODES_FOR_TNA_CLUSTER,
 } from '../../constants';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
 
@@ -146,6 +149,7 @@ export const capacityAndNodesValidate = (
   nodes: WizardNodeState[],
   state: WizardState['capacityAndNodes'],
   isNoProvSC: boolean,
+  isTwoNodesOneArbiterClusterDetected: boolean,
   osdAmount: number
 ): ValidationType[] => {
   const validations = [];
@@ -161,9 +165,12 @@ export const capacityAndNodesValidate = (
   if (isFlexibleScaling(nodes, isNoProvSC, enableStretchCluster)) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
   }
-  if (!enableStretchCluster && nodes.length && nodes.length < MINIMUM_NODES) {
+  const minNodes = isTwoNodesOneArbiterClusterDetected
+    ? MINIMUM_NODES_FOR_TNA_CLUSTER
+    : MINIMUM_NODES;
+  if (!enableStretchCluster && nodes.length && nodes.length < minNodes) {
     validations.push(ValidationType.MINIMUMNODES);
-  } else if (nodes.length && nodes.length >= MINIMUM_NODES) {
+  } else if (nodes.length && nodes.length >= minNodes) {
     if (
       !isResourceProfileAllowed(
         resourceProfile,
@@ -391,6 +398,87 @@ export const getDeviceSetReplica = (
   return replicas;
 };
 
+const getPlacementForTNACluster = (
+  storageCluster: StorageClusterKind
+): Record<string, StorageClusterPlacementType> => {
+  return {
+    ...storageCluster.spec.placement,
+    mon: {
+      tolerations: [
+        {
+          key: 'node-role.kubernetes.io/arbiter',
+          operator: 'Exists',
+          effect: 'NoSchedule',
+        },
+        {
+          key: 'node-role.kubernetes.io/master',
+          operator: 'Exists',
+          effect: 'NoSchedule',
+        },
+      ],
+    },
+  };
+};
+
+const getManagedResourcesForTNACluster = (
+  storageCluster: StorageClusterKind
+): ManagedResourcesType => {
+  return {
+    ...storageCluster.spec.managedResources,
+    cephBlockPools: {
+      // preset already set values
+      ...storageCluster.spec.managedResources?.cephBlockPools,
+      poolSpec: {
+        ...storageCluster.spec.managedResources?.cephBlockPools?.poolSpec,
+        replicated: {
+          size: 2,
+        },
+      },
+    },
+    cephFilesystems: {
+      // preset already set values
+      ...storageCluster.spec.managedResources?.cephFilesystems,
+      metadataPoolSpec: {
+        ...storageCluster.spec.managedResources?.cephFilesystems
+          ?.metadataPoolSpec,
+        replicated: {
+          size: 2,
+        },
+      },
+      dataPoolSpec: {
+        ...storageCluster.spec.managedResources?.cephFilesystems?.dataPoolSpec,
+        replicated: {
+          size: 2,
+        },
+      },
+    },
+    cephObjectStores: {
+      ...storageCluster.spec.managedResources?.cephObjectStores,
+      metadataPoolSpec: {
+        ...storageCluster.spec.managedResources?.cephObjectStores
+          ?.metadataPoolSpec,
+        replicated: {
+          size: 2,
+        },
+      },
+      dataPoolSpec: {
+        ...storageCluster.spec.managedResources?.cephObjectStores?.dataPoolSpec,
+        replicated: {
+          size: 2,
+        },
+      },
+    },
+    cephCluster: {
+      ...storageCluster.spec.managedResources?.cephCluster,
+      cephConfig: {
+        global: {
+          osd_pool_default_size: '2',
+        },
+      },
+    },
+  };
+};
+
 const generateNetworkCardName = (resource: NetworkAttachmentDefinitionKind) =>
   `${getNamespace(resource)}/${getName(resource)}`;
 
@@ -410,6 +498,7 @@ export type OCSRequestData = {
   kmsEnable?: boolean;
   selectedArbiterZone?: string;
   stretchClusterChecked?: boolean;
+  isTwoNodesOneArbiterClusterEnabled?: boolean;
   availablePvsCount?: number;
   isMCG?: boolean;
   isNFSEnabled?: boolean;
@@ -434,6 +523,7 @@ export const getOCSRequestData = ({
   kmsEnable,
   selectedArbiterZone,
   stretchClusterChecked,
+  isTwoNodesOneArbiterClusterEnabled,
   availablePvsCount,
   isMCG,
   isNFSEnabled,
@@ -449,11 +539,10 @@ export const getOCSRequestData = ({
   const scName: string = storageClass.name;
   const isNoProvisioner: boolean = storageClass?.provisioner === NO_PROVISIONER;
   const isPortable: boolean = flexibleScaling ? false : !isNoProvisioner;
-  const deviceSetReplica: number = getDeviceSetReplica(
-    stretchClusterChecked,
-    flexibleScaling,
-    nodes
-  );
+  // if it is a TNA cluster, set replica count to 2
+  const deviceSetReplica: number = isTwoNodesOneArbiterClusterEnabled
+    ? 2
+    : getDeviceSetReplica(stretchClusterChecked, flexibleScaling, nodes);
 
   const deviceSetCount = getDeviceSetCount(availablePvsCount, deviceSetReplica);
 
@@ -524,6 +613,13 @@ export const getOCSRequestData = ({
       ...requestData.spec.managedResources,
       cephObjectStores: { hostNetwork: false },
     };
+  }
+
+  // spec changes needed for TwoNodes+Arbiter cluster
+  if (isTwoNodesOneArbiterClusterEnabled) {
+    requestData.spec.managedResources =
+      getManagedResourcesForTNACluster(requestData);
+    requestData.spec.placement = getPlacementForTNACluster(requestData);
   }
 
   if (encryption) {
