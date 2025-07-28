@@ -382,7 +382,7 @@ export const StorageSystemListPage: React.FC = () => {
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
 
-  const [storageSystems, loaded, loadError] = useWatchStorageSystems();
+  const [storageSystems, loaded, loadError] = useWatchStorageSystems(true);
   const [data, filteredData, onFilterChange] =
     useListPageFilter(storageSystems);
 

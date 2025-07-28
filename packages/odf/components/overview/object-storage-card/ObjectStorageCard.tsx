@@ -13,6 +13,7 @@ import { QueryWithDescription } from '@openshift-console/dynamic-plugin-sdk';
 import { UtilizationDurationDropdown } from '@openshift-console/dynamic-plugin-sdk-internal';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Button,
   ButtonVariant,
@@ -43,6 +44,7 @@ const BUCKETS_PROVISIONED_QUERIES: [
 
 export const ObjectStorageCard: React.FC<CardProps> = ({ className }) => {
   const { t } = useCustomTranslation();
+  const navigate = useNavigate();
   const [nbBucketsData, nbBucketsError, nbBucketsLoading] =
     useCustomPrometheusPoll({
       query: ObjectStorageOverviewQueries.NOOBAA_BUCKETS_PROVISIONED,
@@ -92,7 +94,7 @@ export const ObjectStorageCard: React.FC<CardProps> = ({ className }) => {
               iconPosition="end"
               className="pf-v5-u-font-size-lg pf-v5-u-mt-md odf-cluster-card__storage-link"
               component="a"
-              href="/odf/object-storage"
+              onClick={() => navigate('/odf/object-storage')}
             >
               {t('View buckets')}
             </Button>
