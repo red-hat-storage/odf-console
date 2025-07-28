@@ -2,7 +2,6 @@ import * as React from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
 import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
 import { storageClusterResource } from '@odf/core/resources';
-import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
 import {
   DEFAULT_INFRASTRUCTURE,
   InfrastructureKind,
@@ -15,8 +14,9 @@ import {
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useWatchStorageSystems } from '@odf/shared/hooks/useWatchStorageSystems';
-import { CustomKebabItem, Kebab } from '@odf/shared/kebab/kebab';
+import { Kebab } from '@odf/shared/kebab/kebab';
 import {
+  IBMFlashSystemModel,
   InfrastructureModel,
   ODFStorageSystem,
   StorageClusterModel,
@@ -31,12 +31,12 @@ import {
   humanizeIOPS,
   humanizeLatency,
   referenceForGroupVersionKind,
-  referenceForModel,
   getGVK,
   isCSVSucceeded,
-  getInfrastructurePlatform,
 } from '@odf/shared/utils';
 import {
+  K8sModel,
+  K8sResourceCommon,
   ListPageBody,
   ListPageFilter,
   ListPageHeader,
@@ -259,70 +259,28 @@ const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
   );
 };
 
+const getModelOfExternalSystem = (obj: K8sResourceCommon): K8sModel => {
+  const kind = obj.kind;
+  if (kind === IBMFlashSystemModel.kind) {
+    return IBMFlashSystemModel;
+  }
+  if (kind === StorageClusterModel.kind) {
+    return StorageClusterModel;
+  }
+  throw new Error(`Unknown external system kind: ${kind}`);
+};
+
 const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   obj,
   activeColumnIDs,
   rowData,
 }) => {
-  const { t } = useCustomTranslation();
   const { apiGroup, apiVersion, kind } = getGVK(obj.spec.kind);
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
   const systemName = getName(obj);
   const systemNamespace = getNamespace(obj);
-  const { infrastructure, isLSOInstalled, normalizedMetrics, storageClusters } =
-    rowData;
+  const { normalizedMetrics } = rowData;
 
-  const storageCluster = storageClusters?.find(
-    (storageClusterItem) => getName(storageClusterItem) === obj.spec.name
-  );
-
-  const resourceProfile = storageCluster?.spec?.resourceProfile;
-  const customKebabItems: CustomKebabItem[] = [
-    {
-      key: 'ADD_CAPACITY',
-      value: t('Add Capacity'),
-      component: React.lazy(
-        () => import('../../modals/add-capacity/add-capacity-modal')
-      ),
-    },
-    {
-      key: 'CONFIGURE_PERFORMANCE',
-      value: t('Configure performance'),
-      component: React.lazy(
-        () =>
-          import(
-            '@odf/core/modals/configure-performance/configure-performance-modal'
-          )
-      ),
-    },
-  ];
-
-  if (
-    isCapacityAutoScalingAllowed(
-      getInfrastructurePlatform(infrastructure),
-      resourceProfile
-    )
-  ) {
-    customKebabItems.push({
-      key: 'CAPACITY_AUTOSCALING',
-      value: t('Automatic capacity scaling'),
-      component: React.lazy(
-        () =>
-          import(
-            '@odf/core/modals/capacity-autoscaling/capacity-autoscaling-modal'
-          )
-      ),
-    });
-  }
-  if (isLSOInstalled) {
-    customKebabItems.push({
-      key: 'ATTACH_STORAGE',
-      value: t('Attach Storage'),
-      redirect: `/odf/system/ns/${systemNamespace}/${referenceForModel(
-        StorageClusterModel
-      )}/${systemName}/~attachstorage`,
-    });
-  }
   const metrics =
     normalizedMetrics?.normalizedMetrics?.[`${systemName}${systemNamespace}`];
 
@@ -363,10 +321,8 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
         <Kebab
           extraProps={{
             resource: obj,
-            resourceModel: StorageClusterModel,
-            storageCluster,
+            resourceModel: getModelOfExternalSystem(obj),
           }}
-          customKebabItems={customKebabItems}
           customLabel={ODFStorageSystem.label}
         />
       </TableData>
@@ -382,7 +338,7 @@ export const StorageSystemListPage: React.FC = () => {
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
 
-  const [storageSystems, loaded, loadError] = useWatchStorageSystems();
+  const [storageSystems, loaded, loadError] = useWatchStorageSystems(true);
   const [data, filteredData, onFilterChange] =
     useListPageFilter(storageSystems);
 
