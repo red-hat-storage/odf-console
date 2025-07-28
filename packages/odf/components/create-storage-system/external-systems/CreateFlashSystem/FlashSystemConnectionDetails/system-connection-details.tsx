@@ -2,8 +2,12 @@ import * as React from 'react';
 import { FLASH_STORAGE_CLASS } from '@odf/core/constants/common';
 import { useSafeK8sList } from '@odf/core/hooks';
 import { DeployDataFoundationModal } from '@odf/core/modals/ConfigureDF/DeployDataFoundationModal';
-import { useODFNamespaceSelector } from '@odf/core/redux';
-import { getExternalSubSystemName } from '@odf/core/utils';
+import {
+  FDF_FLAG,
+  useODFNamespaceSelector,
+  useODFSystemFlagsSelector,
+} from '@odf/core/redux';
+import { getExternalSubSystemName, hasAnyInternalOCS } from '@odf/core/utils';
 import { CreatePayload } from '@odf/odf-plugin-sdk/extensions';
 import { PageHeading } from '@odf/shared';
 import { FormGroupController } from '@odf/shared/form-group-controller';
@@ -17,6 +21,7 @@ import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
   k8sCreate,
   K8sModel,
+  useFlag,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Select, SelectOption } from '@patternfly/react-core/deprecated';
@@ -114,6 +119,10 @@ export const FlashSystemConnectionDetails: React.FC = () => {
     mode: 'onChange',
   });
 
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const storageClusterExists = hasAnyInternalOCS(systemFlags);
+  const isFDF = useFlag(FDF_FLAG);
+
   const onSubmit = async () => {
     setIsLoading(true);
     const payload = createFlashSystemPayload({
@@ -125,12 +134,22 @@ export const FlashSystemConnectionDetails: React.FC = () => {
       namespace: odfNamespace,
       storageClassName: FLASH_STORAGE_CLASS,
     });
-    const promises = payload.map((p) =>
-      k8sCreate({ model: p.model as K8sModel, data: p.payload })
+    const promises = payload.map(
+      (p) => () => k8sCreate({ model: p.model as K8sModel, data: p.payload })
     );
     try {
-      await Promise.all(promises);
-      launchModal(DeployDataFoundationModal, {} as any);
+      // First create the Secret
+      await promises[0]();
+      // Then create the FlashSystem
+      await promises[1]();
+      if (!storageClusterExists) {
+        launchModal(DeployDataFoundationModal, {} as any);
+      } else {
+        isFDF
+          ? navigate('/odf/external-systems')
+          : // Todo(bipuladh): after updating fusion codebase route update this
+            navigate('/odf/storage-cluster');
+      }
     } catch (e) {
       setError(e?.message ?? JSON.stringify(e));
     } finally {

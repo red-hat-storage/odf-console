@@ -94,6 +94,10 @@ export const useOCSDashboardContextSetter = () => {
     (cluster) => getName(cluster) === selectedCluster.clusterName
   );
 
+  const hasExternalStorageClusters = memoizedFilteredStorageClusters?.some(
+    (cluster) => isExternalCluster(cluster)
+  );
+
   const hasMultipleStorageClusters =
     memoizedFilteredStorageClusters?.length > 1;
   return {
@@ -101,5 +105,6 @@ export const useOCSDashboardContextSetter = () => {
     selectedCluster,
     switchStorageCluster,
     currentStorageCluster,
+    hasExternalStorageClusters,
   };
 };
