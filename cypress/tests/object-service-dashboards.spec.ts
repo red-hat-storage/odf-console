@@ -1,18 +1,10 @@
-import { SECOND, testBucket } from '../utils/consts';
+import { testBucket } from '../utils/consts';
 import { ODFCommon } from '../views/odf-common';
 
 describe('Tests Buckets, Status, Object Storage Efficiency, and Resource Providers Cards', () => {
   beforeEach(() => {
-    ODFCommon.visitStorageDashboard();
-    cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
-    cy.byLegacyTestID('item-filter').type('ocs-storagecluster');
-    cy.byTestRows('resource-row')
-      .get('td a', {
-        timeout: 5 * SECOND,
-      })
-      .first()
-      .click();
-    cy.byTestID('horizontal-link-Object').click();
+    ODFCommon.visitStorageCluster();
+    cy.byTestID('horizontal-link-Object').first().click();
   });
 
   it('Tests Buckets Cards', () => {

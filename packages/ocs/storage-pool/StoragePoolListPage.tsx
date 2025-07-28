@@ -364,6 +364,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
             trigger={'mouseenter'}
           >
             <Kebab
+              data-test="storage-pool-kebab-button"
               extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
               isDisabled={disableMenuAction(obj, isExternalStorageSystem)}
               customKebabItems={[
@@ -389,6 +390,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
           </Tooltip>
         ) : (
           <Kebab
+            data-test="storage-pool-kebab-button"
             extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
             isDisabled={disableMenuAction(obj, isExternalStorageSystem)}
             customKebabItems={[
@@ -513,6 +515,7 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
 
   const poolNames = storagePools.map((pool) => pool.metadata?.name);
 
+  // Todo: fix these metrics they are giving duplicate errors
   const [poolRawCapacityMetrics, rawCapLoadError, rawCapLoading] =
     useCustomPrometheusPoll(
       getValidPrometheusPollObj(
@@ -601,17 +604,17 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
     poolMirroringImageLoading,
   ]);
 
-  const error = loadError || compressionLoadError || rawCapLoadError;
-
   const [data, filteredData, onFilterChange] = useListPageFilter(storagePools);
   const createPath = `/odf/system/ns/${getNamespace(data[0])}/ocs.openshift.io~v1~StorageCluster/${clusterName}/storage-pools/create/~new`;
 
   return (
     <>
       <ListPageHeader title={t('Storage pools')}>
-        <ListPageCreateLink to={createPath}>
-          {t('Create storage pool')}
-        </ListPageCreateLink>
+        {loaded && (
+          <ListPageCreateLink to={createPath}>
+            {t('Create storage pool')}
+          </ListPageCreateLink>
+        )}
       </ListPageHeader>
       <ListPageBody>
         <ListPageFilter
@@ -624,7 +627,7 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
           data={filteredData}
           unfilteredData={data}
           loaded={loaded}
-          loadError={error}
+          loadError={loadError}
           rowData={{ ...customData }}
         />
       </ListPageBody>

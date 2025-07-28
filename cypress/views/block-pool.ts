@@ -2,10 +2,8 @@ import {
   CEPH_DEFAULT_BLOCK_POOL_NAME,
   PoolProgress,
 } from '../constants/storage-pool-const';
-import { STORAGE_SYSTEM_NAME } from '../consts';
 import { app } from '../support/pages/app';
 import { NS } from '../utils/consts';
-import { ODFCommon } from '../views/odf-common';
 import { triggerPoolFormFooterAction } from './storage-pool';
 
 // Pool var
@@ -21,14 +19,6 @@ export const poolMessage: {
   [PoolProgress.NOTALLOWED]:
     "Pool management tasks are not supported for default pool and ODF's external mode.",
   [PoolProgress.BOUNDED]: `${poolName} cannot be deleted. When a pool is bounded to PVC it cannot be deleted. Please detach all the resources from StorageClass(es):`,
-};
-
-export const navigateToBlockPool = () => {
-  ODFCommon.visitStorageDashboard();
-  cy.byLegacyTestID('horizontal-link-Storage Systems').click();
-  cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
-  cy.byTestRows('resource-row').get('td a').first().click();
-  cy.byTestID('horizontal-link-BlockPools').click();
 };
 
 export const populateBlockPoolForm = () => {

@@ -1,4 +1,4 @@
-import { SECOND, STORAGE_SYSTEM_NAME } from '../consts';
+import { SECOND } from '../consts';
 import { getPVCJSON } from '../helpers/pvc';
 import { ODFCommon } from '../views/odf-common';
 import { deletePVCFromCLI } from '../views/pvc';
@@ -10,7 +10,7 @@ const extractNumbersFromText = (text: string): string => {
 
 describe('Check Persistent Dashboard', () => {
   beforeEach(() => {
-    ODFCommon.visitStorageDashboard();
+    ODFCommon.visitStorageCluster();
   });
 
   after(() => {
@@ -18,13 +18,6 @@ describe('Check Persistent Dashboard', () => {
   });
 
   it('Check Status Card is healthy', () => {
-    cy.log('Check if Data Foundation is Healthy');
-    cy.byTestID('success-icon').first().should('be.visible');
-    cy.log('Check if Storage System is Healthy');
-    cy.byTestID('success-icon').last().should('be.visible');
-    cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
-    cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
-    cy.byTestRows('resource-row').get('td a').first().click();
     cy.log('Check if Storage Cluster is Healthy');
     cy.byTestID('success-icon').first().should('be.visible');
     cy.log('Check if Data Resiliency is Healthy');
@@ -32,9 +25,6 @@ describe('Check Persistent Dashboard', () => {
   });
 
   it('Check Details card is correct', () => {
-    cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
-    cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
-    cy.byTestRows('resource-row').get('td a').first().click();
     cy.byTestID('ocs-link').contains('Data Foundation').scrollIntoView();
     cy.byTestID('ocs-link').should('be.visible');
     cy.byTestID('detail-item-value')
@@ -50,9 +40,6 @@ describe('Check Persistent Dashboard', () => {
   });
 
   it('Check Inventory card is correct', () => {
-    cy.byLegacyTestID('horizontal-link-Storage Systems').first().click();
-    cy.byLegacyTestID('item-filter').type(STORAGE_SYSTEM_NAME);
-    cy.byTestRows('resource-row').get('td a').first().click();
     cy.log('Check the total number of OCS nodes');
     cy.get('.skeleton-activity').should('not.exist'); // eslint-disable-line cypress/require-data-selectors
     cy.exec(
