@@ -1,15 +1,40 @@
 import { ResourceProfile } from '@odf/core/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 
-export type DataPool = {
-  compressionMode?: string;
-  mirroring?: {
-    enabled: boolean;
-  };
+// reference:
+// https://github.com/rook/rook/blob/master/pkg/apis/ceph.rook.io/v1/types.go#L964
+// https://github.com/rook/rook/blob/master/pkg/apis/ceph.rook.io/v1/types.go#L954
+// NamedPoolSpec can refer to both `NamedPoolSpec` (#L964) and `NamedBlockPoolSpec` (#L954)
+export type NamedPoolSpec = PoolSpec & {
   name?: string;
+};
+
+// reference:
+// https://github.com/rook/rook/blob/master/pkg/apis/ceph.rook.io/v1/types.go#L890
+export type PoolSpec = {
+  failureDomain?: string;
+  crushRoot?: string;
+  deviceClass?: string;
+  enableCrushUpdates?: boolean;
+  // @deprecated: use Parameters instead, e.g., parameters["compression_mode"] = "force"
+  compressionMode?: string;
+  parameters?: Record<string, string>;
+  enableRBDStats?: boolean;
+  application?: string;
+  mirroring?: {
+    enabled?: boolean;
+  };
   replicated?: {
+    // 'size' must be a whole number
     size: number;
+    // 'targetSizeRatio' is a decimal percentage value
     targetSizeRatio?: number;
+    // 'requireSafeReplicaSize', if false allows you to set replica 1
+    requireSafeReplicaSize?: boolean;
+    // 'replicasPerFailureDomain', a whole number
+    // if set, minimum value should be 1
+    replicasPerFailureDomain?: number;
+    subFailureDomain?: string;
   };
 };
 
@@ -18,6 +43,8 @@ export enum StorageClusterPhase {
   Error = 'Error',
 }
 
+// reference:
+// https://github.com/red-hat-storage/ocs-operator/blob/main/api/v1/storagecluster_types.go#L143
 export type ManagedResources = {
   cephCluster?: {
     monCount?: 3 | 5;
@@ -35,7 +62,7 @@ export type ManagedResources = {
     disableSnapshotClass?: boolean;
     // @deprecated :'disableStorageClass' field has been deprecated and will be removed in future.
     disableStorageClass?: boolean;
-    additionalDataPools?: DataPool[];
+    additionalDataPools?: NamedPoolSpec[];
     metadataPoolSpec?: PoolSpec;
     dataPoolSpec?: PoolSpec;
   };
@@ -43,30 +70,6 @@ export type ManagedResources = {
     hostNetwork: boolean;
     metadataPoolSpec?: PoolSpec;
     dataPoolSpec?: PoolSpec;
-  };
-};
-
-export type PoolSpec = {
-  failureDomain?: string;
-  crushRoot?: string;
-  deviceClass?: string;
-  enableCrushUpdates?: boolean;
-  // DEPRECATED: use Parameters instead, e.g., Parameters["compression_mode"] = "force"
-  compressionMode?: string;
-  parameters?: Record<string, string>;
-  enableRBDStats?: boolean;
-  application?: string;
-  replicated?: {
-    // 'size' must be a whole number
-    size: number;
-    // 'targetSizeRatio' is a decimal percentage value
-    targetSizeRatio?: number;
-    // 'requireSafeReplicaSize', if false allows you to set replica 1
-    requireSafeReplicaSize?: boolean;
-    // 'replicasPerFailureDomain', a whole number
-    // if set, minimum value should be 1
-    replicasPerFailureDomain?: number;
-    subFailureDomain?: string;
   };
 };
 
@@ -109,6 +112,8 @@ export type StorageClusterPlacement = {
   }[];
 };
 
+// reference:
+// https://github.com/red-hat-storage/ocs-operator/blob/main/api/v1/storagecluster_types.go#L674
 export type StorageClusterKind = K8sResourceCommon & {
   spec: {
     network?: {
