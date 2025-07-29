@@ -1,6 +1,17 @@
-import { RBD_IMAGE_FLATTEN_LABEL, ReplicationType } from '@odf/mco/constants';
-import { DRPolicyKind, MirrorPeerKind } from '@odf/mco/types';
+import {
+  BackendType,
+  ODFMCO_OPERATOR_NAMESPACE,
+  RBD_IMAGE_FLATTEN_LABEL,
+  ReplicationType,
+} from '@odf/mco/constants';
+import { DRPolicyKind, MirrorPeerKind, S3StoreProfile } from '@odf/mco/types';
 import { parseNamespaceName } from '@odf/mco/utils';
+import {
+  createSecretNameFromS3,
+  createOrUpdateDRCluster,
+  createOrUpdateRamenS3Secret,
+  updateRamenHubOperatorConfig,
+} from '@odf/mco/utils/tps-payload-creator';
 import { DRPolicyModel, MirrorPeerModel } from '@odf/shared';
 import { getName } from '@odf/shared';
 import {
@@ -8,6 +19,7 @@ import {
   k8sCreate,
   K8sResourceKind,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { S3Details } from '../add-s3-bucket-details/s3-bucket-details-form';
 import { DRPolicyState, ManagedClusterInfoType } from './reducer';
 
 const getODFPeers = (cluster: ManagedClusterInfoType) => {
@@ -112,6 +124,24 @@ export const createPolicyPromises = (
       peerNames
     )
   );
+
+  if (state.replicationBackend === BackendType.DataFoundation) {
+    const mirrorPeerPromise = prepareOdfPeering(state, mirrorPeers, peerNames);
+    promises.push(mirrorPeerPromise);
+  } else {
+    const nonOdfPromises: Promise<K8sResourceKind>[] =
+      prepareThirdPartyPeering(state);
+    promises.push(...nonOdfPromises);
+  }
+
+  return promises;
+};
+
+const prepareOdfPeering = (
+  state: DRPolicyState,
+  mirrorPeers: MirrorPeerKind[],
+  peerNames: string[]
+): Promise<MirrorPeerKind> => {
   const odfPeerNames: string[] = state.selectedClusters.map((cluster) =>
     getODFPeers(cluster).join(',')
   );
@@ -122,10 +152,47 @@ export const createPolicyPromises = (
   );
 
   if (!mirrorPeer) {
-    promises.push(
-      createMirrorPeer(state.selectedClusters, state.replicationType)
-    );
+    return createMirrorPeer(state.selectedClusters, state.replicationType);
   }
+};
 
-  return promises;
+const prepareThirdPartyPeering = (
+  state: DRPolicyState
+): Promise<K8sResourceKind>[] => {
+  const detailsByCluster: Record<string, S3Details> = {
+    [state.cluster1S3Details.clusterName]: state.cluster1S3Details,
+    [state.cluster2S3Details.clusterName]: state.cluster2S3Details,
+  };
+
+  return state.selectedClusters.flatMap((cluster) => {
+    const name = getName(cluster);
+    const det = detailsByCluster[name];
+    if (!det) return [];
+    const secretName = createSecretNameFromS3(det, 's3');
+    const s3Profile: S3StoreProfile = {
+      S3Bucket: det.bucketName,
+      S3Region: det.region,
+      S3CompatibleEndpoint: det.endpoint,
+      S3SecretRef: {
+        Name: secretName,
+        Namespace: ODFMCO_OPERATOR_NAMESPACE,
+      },
+      S3ProfileName: det.s3ProfileName,
+    };
+    return [
+      createOrUpdateDRCluster({
+        name,
+        s3ProfileName: det.s3ProfileName,
+      }),
+      createOrUpdateRamenS3Secret({
+        name: secretName,
+        accessKeyId: det.accessKeyId,
+        secretAccessKey: det.secretKey,
+      }),
+      updateRamenHubOperatorConfig({
+        namespace: ODFMCO_OPERATOR_NAMESPACE,
+        profile: s3Profile,
+      }),
+    ];
+  });
 };
