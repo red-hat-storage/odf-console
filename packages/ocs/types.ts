@@ -70,3 +70,6 @@ export type CephBlockPoolRadosNamespaceKind = K8sResourceCommon & {
     mirroringStatus?: MirroringStatus;
   };
 };
+
+// Pool utilization metrics - mapping of pool name to value
+export type PoolMetrics = { [poolName: string]: string };

@@ -7,6 +7,7 @@ import {
   StorageClusterKind,
 } from '@odf/shared/types';
 import { getLastLanguage } from '@odf/shared/utils';
+import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import {
   CheckCircleIcon,
@@ -52,14 +53,18 @@ export const getScNamesUsingPool = (
     return scList;
   }, []);
 
-export const getPerPoolMetrics = (metrics, error, isLoading) =>
+export const getPerPoolMetrics = (
+  metrics: PrometheusResponse,
+  error: boolean,
+  isLoading: boolean
+): { [poolName: string]: string } =>
   // {"pool-1" : size_bytes, "pool-2" : size_bytes, ...}
   !error && !isLoading
     ? metrics?.data?.result?.reduce(
         (arr, obj) => ({ ...arr, [obj.metric?.name]: obj.value[1] }),
-        {}
+        {} as { [poolName: string]: string }
       )
-    : {};
+    : ({} as { [poolName: string]: string });
 
 export const isDefaultPool = (pool: StoragePool): boolean => {
   if (pool?.type === PoolType.FILESYSTEM) {
