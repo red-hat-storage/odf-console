@@ -13,9 +13,10 @@ import {
   k8sUpdate,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { t } from 'i18next';
+import { Base64 } from 'js-base64';
 import yaml from 'js-yaml';
 import * as _ from 'lodash-es';
-import { v3 as murmurhash3 } from 'murmurhash-js';
+import { murmur3 } from 'murmurhash-js';
 import { S3Details } from '../components/create-dr-policy/add-s3-bucket-details/s3-bucket-details-form';
 import {
   AWS_ACCESS_KEY_ID,
@@ -27,7 +28,7 @@ import {
 import { DRClusterKind, RamenConfig, S3StoreProfile } from '../types';
 
 export function murmur32Hex(str: string, seed = 0): string {
-  const h = murmurhash3(str, seed);
+  const h = murmur3(str, seed);
   return h.toString(16).padStart(8, '0');
 }
 
@@ -110,17 +111,17 @@ export async function updateRamenHubOperatorConfig({
       })
     );
   }
-  ramenConfig.S3StoreProfiles = ramenConfig.S3StoreProfiles || [];
+  ramenConfig.s3StoreProfiles = ramenConfig.s3StoreProfiles || [];
 
-  const idx = ramenConfig.S3StoreProfiles.findIndex(
-    (p) => p.S3ProfileName === profile.S3ProfileName
+  const idx = ramenConfig.s3StoreProfiles.findIndex(
+    (p) => p.s3ProfileName === profile.s3ProfileName
   );
   if (idx === -1) {
-    ramenConfig.S3StoreProfiles.push(profile);
+    ramenConfig.s3StoreProfiles.push(profile);
   } else if (
-    !areS3ProfileFieldsEqual(profile, ramenConfig.S3StoreProfiles[idx])
+    !areS3ProfileFieldsEqual(profile, ramenConfig.s3StoreProfiles[idx])
   ) {
-    updateS3ProfileFields(profile, ramenConfig.S3StoreProfiles[idx]);
+    updateS3ProfileFields(profile, ramenConfig.s3StoreProfiles[idx]);
   } else {
     return cm;
   }
@@ -171,14 +172,14 @@ export function createOrUpdateDRCluster(params: {
         apiVersion: getAPIVersionForModel(DRClusterModel),
         kind: DRClusterModel.kind,
         metadata: { name },
-        spec: { S3ProfileName: s3ProfileName },
+        spec: { s3ProfileName: s3ProfileName },
       };
 
       return {
         ...drCluster,
         spec: {
           ...drCluster.spec,
-          S3ProfileName: s3ProfileName,
+          s3ProfileName: s3ProfileName,
         },
       };
     },
@@ -214,8 +215,8 @@ export const createOrUpdateRamenS3Secret = ({
         ...base,
         type: 'Opaque',
         data: {
-          [AWS_ACCESS_KEY_ID]: accessKeyId,
-          [AWS_SECRET_ACCESS_KEY]: secretAccessKey,
+          [AWS_ACCESS_KEY_ID]: Base64.encode(accessKeyId),
+          [AWS_SECRET_ACCESS_KEY]: Base64.encode(secretAccessKey),
         },
       };
     },

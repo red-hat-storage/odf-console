@@ -170,14 +170,14 @@ const prepareThirdPartyPeering = (
     if (!det) return [];
     const secretName = createSecretNameFromS3(det, 's3');
     const s3Profile: S3StoreProfile = {
-      S3Bucket: det.bucketName,
-      S3Region: det.region,
-      S3CompatibleEndpoint: det.endpoint,
-      S3SecretRef: {
-        Name: secretName,
-        Namespace: ODFMCO_OPERATOR_NAMESPACE,
+      s3Bucket: det.bucketName,
+      s3Region: det.region,
+      s3CompatibleEndpoint: det.endpoint,
+      s3SecretRef: {
+        name: secretName,
+        namespace: ODFMCO_OPERATOR_NAMESPACE,
       },
-      S3ProfileName: det.s3ProfileName,
+      s3ProfileName: det.s3ProfileName,
     };
     return [
       createOrUpdateDRCluster({

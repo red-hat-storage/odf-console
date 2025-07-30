@@ -30,7 +30,7 @@ export type DRClusterKind = K8sResourceCommon & {
   spec?: {
     cidrs?: string[];
     clusterFence?: string;
-    S3ProfileName: string;
+    s3ProfileName: string;
   };
   status?: {
     conditions?: K8sResourceCondition[];
@@ -144,16 +144,16 @@ export enum Progression {
 }
 
 export type S3StoreProfile = {
-  S3ProfileName: string;
-  S3Bucket: string;
-  S3Region: string;
-  S3CompatibleEndpoint: string;
-  S3SecretRef: {
-    Name: string;
-    Namespace?: string;
+  s3ProfileName: string;
+  s3Bucket: string;
+  s3Region: string;
+  s3CompatibleEndpoint: string;
+  s3SecretRef: {
+    name: string;
+    namespace?: string;
   };
 };
 
 export type RamenConfig = {
-  S3StoreProfiles: S3StoreProfile[];
+  s3StoreProfiles: S3StoreProfile[];
 };

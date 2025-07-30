@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BackendType } from '@odf/mco/constants';
-import { t } from 'i18next';
+import { useCustomTranslation } from '@odf/shared';
 import {
   Card,
   CardFooter,
@@ -25,12 +25,16 @@ export const BackendOptionCard: React.FC<BackendOptionProps> = ({
     onSelect(backendType);
   };
 
+  const { t } = useCustomTranslation();
+
   const renderSelectedClusters = () => {
     if (!clusterNames || clusterNames.length === 0) {
       return t('No clusters selected');
     }
+
+    const combinedNames = clusterNames.join(', ');
     return t('Selected Clusters: {{clusters}}', {
-      clusters: clusterNames.join(', '),
+      clusters: combinedNames,
     });
   };
 
