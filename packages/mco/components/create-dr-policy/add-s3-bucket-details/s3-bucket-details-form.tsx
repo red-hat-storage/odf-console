@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { getName } from '@odf/shared';
-import { t } from 'i18next';
+import { getName, useCustomTranslation } from '@odf/shared';
 import {
   Button,
   Checkbox,
@@ -44,6 +43,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
   useSameConnection,
   dispatch,
 }) => {
+  const { t } = useCustomTranslation();
   const [expanded1, setExpanded1] = React.useState(true);
   const [expanded2, setExpanded2] = React.useState(true);
   const [show1, setShow1] = React.useState(false);
