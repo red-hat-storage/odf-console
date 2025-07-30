@@ -1,0 +1,222 @@
+import {
+  ConfigMapModel,
+  DRClusterModel,
+  SecretKind,
+  SecretModel,
+} from '@odf/shared';
+import { getAPIVersionForModel } from '@odf/shared/utils';
+import { createOrUpdate } from '@odf/shared/utils/k8s';
+import {
+  k8sGet,
+  K8sModel,
+  K8sResourceCommon,
+  k8sUpdate,
+} from '@openshift-console/dynamic-plugin-sdk';
+import { t } from 'i18next';
+import yaml from 'js-yaml';
+import * as _ from 'lodash-es';
+import { v3 as murmurhash3 } from 'murmurhash-js';
+import { S3Details } from '../components/create-dr-policy/add-s3-bucket-details/s3-bucket-details-form';
+import {
+  AWS_ACCESS_KEY_ID,
+  AWS_SECRET_ACCESS_KEY,
+  ODFMCO_OPERATOR_NAMESPACE,
+  RAMEN_CONFIG_KEY,
+  RAMEN_HUB_OPERATOR_CONFIG_NAME,
+} from '../constants';
+import { DRClusterKind, RamenConfig, S3StoreProfile } from '../types';
+
+export function murmur32Hex(str: string, seed = 0): string {
+  const h = murmurhash3(str, seed);
+  return h.toString(16).padStart(8, '0');
+}
+
+export function createSecretNameFromS3(
+  s3: Pick<
+    S3Details,
+    'clusterName' | 'bucketName' | 'endpoint' | 'region' | 's3ProfileName'
+  >,
+  prefix = 's3'
+): string {
+  const key = [
+    s3.clusterName,
+    s3.bucketName,
+    s3.endpoint,
+    s3.region,
+    s3.s3ProfileName,
+  ].join('|');
+  const hash = murmur32Hex(key);
+  return `${prefix}-${hash}`.slice(0, 39);
+}
+
+const areS3ProfileFieldsEqual = (
+  a: S3StoreProfile,
+  b: S3StoreProfile
+): boolean => _.isEqual(a, b);
+
+const updateS3ProfileFields = (src: S3StoreProfile, dest: S3StoreProfile) => {
+  const copy = _.cloneDeep(src);
+  Object.assign(dest, copy);
+};
+
+type UpdateRamenHubConfigArgs = {
+  namespace?: string;
+  profile: S3StoreProfile;
+};
+
+export async function updateRamenHubOperatorConfig({
+  namespace = ODFMCO_OPERATOR_NAMESPACE,
+  profile,
+}: UpdateRamenHubConfigArgs): Promise<K8sResourceCommon> {
+  let cm;
+  try {
+    cm = (await k8sGet({
+      model: ConfigMapModel as K8sModel,
+      name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
+      ns: namespace,
+    })) as K8sResourceCommon & { data?: Record<string, string> };
+  } catch (err: any) {
+    throw new Error(
+      t(
+        'Failed to fetch ConfigMap {{name}} in namespace {{namespace}}: {{error}}',
+        {
+          name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
+          namespace,
+          error: err?.message || err,
+        }
+      )
+    );
+  }
+
+  const raw = cm.data?.[RAMEN_CONFIG_KEY];
+  if (!raw) {
+    throw new Error(
+      t('Missing key {{key}} in ConfigMap {{name}}/{{namespace}}', {
+        key: RAMEN_CONFIG_KEY,
+        name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
+        namespace,
+      })
+    );
+  }
+
+  let ramenConfig: RamenConfig;
+  try {
+    ramenConfig = (yaml.load(raw) || {}) as RamenConfig;
+  } catch (err: any) {
+    throw new Error(
+      t('Failed to parse YAML from ConfigMap {{name}}: {{error}}', {
+        name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
+        error: err?.message || err,
+      })
+    );
+  }
+  ramenConfig.S3StoreProfiles = ramenConfig.S3StoreProfiles || [];
+
+  const idx = ramenConfig.S3StoreProfiles.findIndex(
+    (p) => p.S3ProfileName === profile.S3ProfileName
+  );
+  if (idx === -1) {
+    ramenConfig.S3StoreProfiles.push(profile);
+  } else if (
+    !areS3ProfileFieldsEqual(profile, ramenConfig.S3StoreProfiles[idx])
+  ) {
+    updateS3ProfileFields(profile, ramenConfig.S3StoreProfiles[idx]);
+  } else {
+    return cm;
+  }
+
+  const updatedYaml = yaml.dump(ramenConfig);
+  const updatedCm = {
+    ...cm,
+    metadata: {
+      ...cm.metadata,
+      resourceVersion: cm.metadata.resourceVersion,
+    },
+    data: {
+      ...(cm.data || {}),
+      [RAMEN_CONFIG_KEY]: updatedYaml,
+    },
+  };
+
+  try {
+    return (await k8sUpdate({
+      model: ConfigMapModel as K8sModel,
+      data: updatedCm,
+    })) as K8sResourceCommon;
+  } catch (err: any) {
+    throw new Error(
+      t(
+        'Failed to update ConfigMap {{name}} in namespace {{namespace}}: {{error}}',
+        {
+          name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
+          namespace,
+          error: err?.message || err,
+        }
+      )
+    );
+  }
+}
+
+export function createOrUpdateDRCluster(params: {
+  name: string;
+  s3ProfileName: string;
+}): Promise<DRClusterKind> {
+  const { name, s3ProfileName } = params;
+
+  return createOrUpdate<DRClusterKind>({
+    model: DRClusterModel,
+    name,
+    mutate: (current) => {
+      const drCluster: DRClusterKind = current ?? {
+        apiVersion: getAPIVersionForModel(DRClusterModel),
+        kind: DRClusterModel.kind,
+        metadata: { name },
+        spec: { S3ProfileName: s3ProfileName },
+      };
+
+      return {
+        ...drCluster,
+        spec: {
+          ...drCluster.spec,
+          S3ProfileName: s3ProfileName,
+        },
+      };
+    },
+  });
+}
+
+type CreateRamenS3SecretArgs = {
+  name: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  namespace?: string;
+};
+
+export const createOrUpdateRamenS3Secret = ({
+  name,
+  accessKeyId,
+  secretAccessKey,
+  namespace = ODFMCO_OPERATOR_NAMESPACE,
+}: CreateRamenS3SecretArgs) =>
+  createOrUpdate<SecretKind>({
+    model: SecretModel,
+    name,
+    namespace,
+    mutate: (current) => {
+      const base: SecretKind = current ?? {
+        apiVersion: getAPIVersionForModel(SecretModel),
+        kind: SecretModel.kind,
+        metadata: { name, namespace },
+        type: 'Opaque',
+      };
+
+      return {
+        ...base,
+        type: 'Opaque',
+        data: {
+          [AWS_ACCESS_KEY_ID]: accessKeyId,
+          [AWS_SECRET_ACCESS_KEY]: secretAccessKey,
+        },
+      };
+    },
+  });

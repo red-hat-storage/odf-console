@@ -142,3 +142,18 @@ export enum Progression {
   FailedToRelocate = 'FailedToRelocate',
   WaitForUserAction = 'WaitForUserAction',
 }
+
+export type S3StoreProfile = {
+  S3ProfileName: string;
+  S3Bucket: string;
+  S3Region: string;
+  S3CompatibleEndpoint: string;
+  S3SecretRef: {
+    Name: string;
+    Namespace?: string;
+  };
+};
+
+export type RamenConfig = {
+  S3StoreProfiles: S3StoreProfile[];
+};

@@ -1,3 +1,4 @@
+import { ClusterProviders } from '@odf/mco/hooks/use-storage-providers';
 import { ConnectedClient, ODFInfoYamlObject } from '@odf/mco/types';
 import {
   getMajorVersion,
@@ -36,7 +37,7 @@ export const COUNT_PER_PAGE_NUMBER = 10;
 export enum ClusterListColumns {
   ManagedCluster,
   AvailabilityStatus,
-  DataFoundation,
+  StorageProviders,
   StorageClients,
 }
 
@@ -50,8 +51,8 @@ export const getColumns = (t: TFunction<string>) => [
     sortFunction: (a, b, c) => sortRows(a, b, c, 'isManagedClusterAvailable'),
   },
   {
-    columnName: t('Data Foundation'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'odfInfo.odfVersion'),
+    columnName: t('Storage providers'),
+    sortFunction: (a, b, c) => sortRows(a, b, c, 'storageProvidersCount'),
   },
   {
     columnName: t('Storage clients'),
@@ -69,7 +70,7 @@ export const getColumnHelper = (
       return columns[0];
     case ClusterListColumns.AvailabilityStatus:
       return columns[1];
-    case ClusterListColumns.DataFoundation:
+    case ClusterListColumns.StorageProviders:
       return columns[2];
     case ClusterListColumns.StorageClients:
       return columns[3];
@@ -140,7 +141,8 @@ const getODFInfo = (
 
 const getManagedClusterInfo = (
   cluster: ACMManagedClusterKind,
-  clusterToODFInfoMap: ClusterToODFInfoMap
+  clusterToODFInfoMap: ClusterToODFInfoMap,
+  providersByCluster?: ClusterProviders[]
 ): ManagedClusterInfoType => {
   const clusterId = getLabel(cluster, CLUSTER_ID);
   const clusterName = getName(cluster);
@@ -153,6 +155,9 @@ const getManagedClusterInfo = (
     ),
     odfInfo:
       clusterToODFInfoMap?.[clusterId] || clusterToODFInfoMap?.[clusterName],
+    providers: providersByCluster?.find(
+      (provider) => provider.cluster === clusterName
+    )?.providers,
   };
 };
 
@@ -193,7 +198,8 @@ const clusterToODFInfoMapping = (
 export const getManagedClusterInfoTypes = (
   managedClusters: ACMManagedClusterKind[],
   mcvs: ACMManagedClusterViewKind[],
-  requiredODFVersion: string
+  requiredODFVersion: string,
+  providersByCluster?: ClusterProviders[]
 ): ManagedClusterInfoType[] => {
   const clusterIdToODFInfoMap = clusterToODFInfoMapping(
     mcvs,
@@ -201,7 +207,14 @@ export const getManagedClusterInfoTypes = (
   );
   return managedClusters?.reduce((acc, cluster) => {
     if (ValidateManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED))
-      return [...acc, getManagedClusterInfo(cluster, clusterIdToODFInfoMap)];
+      return [
+        ...acc,
+        getManagedClusterInfo(
+          cluster,
+          clusterIdToODFInfoMap,
+          providersByCluster
+        ),
+      ];
     return acc;
   }, []);
 };
