@@ -1,7 +1,7 @@
-@import '@patternfly/patternfly/sass-utilities/all';
+@use '@patternfly/patternfly/sass-utilities/all' as pf;
 
 .mco-drpolicy-list {
-  @media (min-width: $pf-v5-global--breakpoint--md) {
+  @media (min-width: pf.$pf-v5-global--breakpoint--md) {
     &__header {
       display: flex;
       flex-direction: row;
