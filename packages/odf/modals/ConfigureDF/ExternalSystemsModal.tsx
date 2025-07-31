@@ -1,6 +1,14 @@
 import * as React from 'react';
 import { FDF_FLAG } from '@odf/core/redux';
-import { useCustomTranslation } from '@odf/shared';
+import {
+  DEFAULT_INFRASTRUCTURE,
+  InfrastructureKind,
+  InfrastructureModel,
+  RHCS_SUPPORTED_INFRA,
+  useCustomTranslation,
+  useK8sGet,
+} from '@odf/shared';
+import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { useNavigate } from 'react-router-dom-v5-compat';
@@ -38,7 +46,13 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
   const { t } = useCustomTranslation();
 
   const isFDF = useFlag(FDF_FLAG);
+  const [infrastructure] = useK8sGet<InfrastructureKind>(
+    InfrastructureModel,
+    DEFAULT_INFRASTRUCTURE
+  );
 
+  const platform = getInfrastructurePlatform(infrastructure);
+  const isRHCSSupported = RHCS_SUPPORTED_INFRA.includes(platform);
   return (
     <Flex
       direction={{ default: 'column' }}
@@ -46,7 +60,11 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
       className="pf-v5-u-mt-md"
     >
       <FlexItem>
-        <Card id="setup-ceph-cluster" isClickable>
+        <Card
+          id="setup-ceph-cluster"
+          isClickable={isRHCSSupported}
+          isDisabled={isRHCSSupported}
+        >
           <CardHeader
             selectableActions={{
               onClickAction: () =>
@@ -69,6 +87,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
               </FlexItem>
               <FlexItem align={{ default: 'alignRight' }}>
                 <Radio
+                  isDisabled={isRHCSSupported}
                   isChecked={selectedOption === ExternalSystemOption.RedHatCeph}
                   onChange={() =>
                     setSelectedOption(ExternalSystemOption.RedHatCeph)
@@ -207,6 +226,7 @@ export const ExternalSystemsSelectModal: ModalComponent = ({ closeModal }) => {
           key="create-storage-cluster"
           variant={ButtonVariant.primary}
           onClick={handleNext}
+          isDisabled={!selectedOption}
         >
           {t('Next')}
         </Button>,

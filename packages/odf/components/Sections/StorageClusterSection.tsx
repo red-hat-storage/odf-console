@@ -16,6 +16,7 @@ import {
   InfrastructureModel,
   Kebab,
   PageHeading,
+  RHCS_SUPPORTED_INFRA,
   StorageClusterKind,
   StorageClusterModel,
   useCustomTranslation,
@@ -42,41 +43,37 @@ const storageClusterActions =
   ) =>
   () => {
     const resourceProfile = storageCluster?.spec?.resourceProfile;
-    const customKebabItems: CustomKebabItem[] = isExternalMode
-      ? []
-      : [
-          !isFDF && !hasMultipleStorageClusters
-            ? {
-                key: 'ADD_EXTERNAL_CLUSTER',
-                value: t('Add external cluster'),
-                redirect: '/odf/external-systems/ceph/~create',
-              }
-            : null,
-          {
-            key: 'ADD_CAPACITY',
-            value: t('Add Capacity'),
-            component: React.lazy(
-              () => import('../../modals/add-capacity/add-capacity-modal')
-            ),
-          },
-          {
-            key: 'CONFIGURE_PERFORMANCE',
-            value: t('Configure performance'),
-            component: React.lazy(
-              () =>
-                import(
-                  '@odf/core/modals/configure-performance/configure-performance-modal'
-                )
-            ),
-          },
-        ];
+    const platform = getInfrastructurePlatform(infrastructure);
+    const isRHCSSupported = RHCS_SUPPORTED_INFRA.includes(platform);
+    const customKebabItems: CustomKebabItem[] = [];
+    if (!isFDF && !hasMultipleStorageClusters && isRHCSSupported) {
+      customKebabItems.push({
+        key: 'ADD_EXTERNAL_CLUSTER',
+        value: t('Add external cluster'),
+        redirect: '/odf/external-systems/ceph/~create',
+      });
+    }
 
-    if (
-      isCapacityAutoScalingAllowed(
-        getInfrastructurePlatform(infrastructure),
-        resourceProfile
-      )
-    ) {
+    if (!isExternalMode) {
+      customKebabItems.push({
+        key: 'ADD_CAPACITY',
+        value: t('Add Capacity'),
+        component: React.lazy(
+          () => import('../../modals/add-capacity/add-capacity-modal')
+        ),
+      });
+      customKebabItems.push({
+        key: 'CONFIGURE_PERFORMANCE',
+        value: t('Configure performance'),
+        component: React.lazy(
+          () =>
+            import(
+              '@odf/core/modals/configure-performance/configure-performance-modal'
+            )
+        ),
+      });
+    }
+    if (isCapacityAutoScalingAllowed(platform, resourceProfile)) {
       customKebabItems.push({
         key: 'CAPACITY_AUTOSCALING',
         value: t('Automatic capacity scaling'),

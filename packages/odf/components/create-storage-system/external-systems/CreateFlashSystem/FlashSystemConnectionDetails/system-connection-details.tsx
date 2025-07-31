@@ -2,8 +2,11 @@ import * as React from 'react';
 import { FLASH_STORAGE_CLASS } from '@odf/core/constants/common';
 import { useSafeK8sList } from '@odf/core/hooks';
 import { DeployDataFoundationModal } from '@odf/core/modals/ConfigureDF/DeployDataFoundationModal';
-import { useODFNamespaceSelector } from '@odf/core/redux';
-import { getExternalSubSystemName } from '@odf/core/utils';
+import {
+  useODFNamespaceSelector,
+  useODFSystemFlagsSelector,
+} from '@odf/core/redux';
+import { getExternalSubSystemName, hasAnyInternalOCS } from '@odf/core/utils';
 import { CreatePayload } from '@odf/odf-plugin-sdk/extensions';
 import { PageHeading } from '@odf/shared';
 import { FormGroupController } from '@odf/shared/form-group-controller';
@@ -114,6 +117,9 @@ export const FlashSystemConnectionDetails: React.FC = () => {
     mode: 'onChange',
   });
 
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const storageClusterExists = hasAnyInternalOCS(systemFlags);
+
   const onSubmit = async () => {
     setIsLoading(true);
     const payload = createFlashSystemPayload({
@@ -129,8 +135,16 @@ export const FlashSystemConnectionDetails: React.FC = () => {
       k8sCreate({ model: p.model as K8sModel, data: p.payload })
     );
     try {
-      await Promise.all(promises);
-      launchModal(DeployDataFoundationModal, {} as any);
+      // First create the Secret
+      await promises[0];
+      // Then create the FlashSystem
+      await promises[1];
+      if (storageClusterExists) {
+        launchModal(DeployDataFoundationModal, {} as any);
+      } else {
+        // Todo(bipuladh): after updating fusion codebase route update this
+        navigate('/odf/external-systems');
+      }
     } catch (e) {
       setError(e?.message ?? JSON.stringify(e));
     } finally {
