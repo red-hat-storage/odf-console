@@ -5,7 +5,6 @@ import {
 } from '@odf/core/redux';
 import { getCephBlockPoolResource } from '@odf/core/resources';
 import { CephBlockPoolModel, CephFileSystemModel } from '@odf/shared';
-import { healthStateMapping } from '@odf/shared/dashboards/status-card/states';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -29,7 +28,6 @@ import {
   ListPageFilter,
   ListPageHeader,
   RowProps,
-  StatusIconAndText,
   TableColumn,
   TableData,
   useActiveColumns,
@@ -42,24 +40,36 @@ import {
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
 import { Link, useLocation } from 'react-router-dom-v5-compat';
-import { Tooltip } from '@patternfly/react-core';
+import { Tooltip, Label } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { PoolType } from '../constants';
 import {
-  MirroringImageHealthMap,
-  healthStateMessage,
-} from '../dashboards/block-pool/states';
+  OCS_DEVICE_REPLICA,
+  PoolType,
+  PoolUtilizationState,
+  POOL_NEAR_FULL_THRESHOLD,
+  POOL_FULL_THRESHOLD,
+} from '../constants';
+import { StoragePoolTableData } from '../dashboards/persistent-internal/pool-utilization-card/types';
 import { getPoolQuery, StorageDashboardQuery } from '../queries';
-import { StoragePoolKind, CephFilesystemKind, StoragePool } from '../types';
+import {
+  StoragePoolKind,
+  CephFilesystemKind,
+  StoragePool,
+  PoolMetrics,
+} from '../types';
 import {
   disableMenuAction,
   getPerPoolMetrics,
   getScNamesUsingPool,
   isDefaultPool,
-  PoolMetrics,
   getStoragePoolsFromFilesystem,
   getStoragePoolsFromBlockPools,
 } from '../utils';
+import {
+  getPoolUtilizationPercentage,
+  getPoolUtilizationState,
+} from '../utils/pool-utilization';
+import { PoolUtilizationDisplay } from './pool-utilization-display';
 import { PopoverHelper } from './popover-helper';
 
 const tableColumnInfo = [
@@ -90,22 +100,26 @@ const tableColumnInfo = [
       'pf-m-visible-on-lg',
       'pf-v5-u-w-8-on-2xl'
     ),
-    id: 'replicas',
-  },
-  {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
-    id: 'usedCapacity',
+    id: 'replica',
   },
   {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
     id: 'mirroringStatus',
   },
   {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
-    id: 'overallImageHealth',
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
+    id: 'volumeMode',
   },
   {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
+    className: classNames(
+      'pf-m-hidden',
+      'pf-m-visible-on-2xl',
+      'pf-v5-u-text-align-center'
+    ),
+    id: 'usedOfMaxAvailable',
+  },
+  {
+    className: classNames('pf-m-hidden', 'pf-m-visible-on-2xl'),
     id: 'compressionStatus',
   },
   {
@@ -160,7 +174,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[3].id,
       },
       {
-        title: t('Replicas'),
+        title: t('Replica'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[4].className,
@@ -168,7 +182,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[4].id,
       },
       {
-        title: t('Used capacity'),
+        title: t('Mirroring status'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[5].className,
@@ -176,7 +190,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[5].id,
       },
       {
-        title: t('Mirroring status'),
+        title: t('Volume mode'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[6].className,
@@ -184,7 +198,8 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[6].id,
       },
       {
-        title: t('Overall image health'),
+        title: t('Used of max available'),
+        transforms: [wrappable],
         props: {
           className: tableColumnInfo[7].className,
         },
@@ -232,15 +247,10 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
 };
 
 type CustomData = {
-  poolRawCapacity: {
-    [poolName: string]: string | number;
-  };
-  poolCompressionSavings: {
-    [poolName: string]: string | number;
-  };
-  poolMirroringImageHealth: {
-    [poolName: string]: string | number;
-  };
+  poolRawCapacity: PoolMetrics;
+  poolMaxAvailableCapacity: PoolMetrics;
+  poolUtilization: PoolMetrics;
+  poolCompressionSavings: PoolMetrics;
   storageClasses: StorageClassResourceKind[];
   listPagePath: string;
 };
@@ -258,10 +268,12 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
 
   const {
     poolRawCapacity,
+    poolMaxAvailableCapacity,
+    poolUtilization,
     poolCompressionSavings,
+
     storageClasses,
     listPagePath,
-    poolMirroringImageHealth,
   }: CustomData = rowData;
 
   const poolType = obj.type;
@@ -271,13 +283,6 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
       : [];
   const replica = obj.spec?.replicated?.size;
   const mirroringStatus: boolean = obj.spec?.mirroring?.enabled;
-  const imageHealth =
-    healthStateMapping?.[
-      MirroringImageHealthMap?.[poolMirroringImageHealth?.[name]]
-    ];
-  const compressionMode = obj.spec?.compressionMode;
-  const isCompressionEnabled: boolean =
-    !!compressionMode && compressionMode !== 'none';
   const phase = obj?.status?.phase;
 
   const poolScNames: string[] = React.useMemo(
@@ -285,19 +290,40 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
     [obj, storageClasses]
   );
 
+  const compressionMode = obj.spec?.compressionMode;
+  const isCompressionEnabled: boolean =
+    !!compressionMode && compressionMode !== 'none';
+
   // Details page link
   const to = `${listPagePath}/${name}?namespace=${getNamespace(obj)}`;
 
   // https://issues.redhat.com/browse/DFBUGS-2963
-  // https://issues.redhat.com/browse/DFBUGS-2963
   // /ns/:namespace/ocs.openshift.io~v1~StorageCluster/:systemName/storage-pools/:poolName
   // {poolRawCapacity: {"pool-1" : size_bytes, "pool-2" : size_bytes, ...}}
-  const rawCapacity: string = poolRawCapacity?.[name]
-    ? humanizeBinaryBytes(poolRawCapacity?.[name])?.string
-    : '-';
   const compressionSavings: string = poolCompressionSavings?.[name]
     ? humanizeBinaryBytes(poolCompressionSavings?.[name])?.string
     : '-';
+
+  // Calculate used capacity (show used only, not "used of max available")
+  const usedCapacity = poolRawCapacity?.[name]
+    ? humanizeBinaryBytes(poolRawCapacity?.[name])
+    : null;
+
+  const usedCapacityDisplay = usedCapacity ? usedCapacity.string : '-';
+
+  // Get pool utilization percentage and state
+  const utilizationPercentage = getPoolUtilizationPercentage(
+    poolUtilization,
+    name
+  );
+  const utilizationInfo = getPoolUtilizationState(utilizationPercentage, t);
+  const poolNeedsAttention =
+    utilizationInfo.state !== PoolUtilizationState.NORMAL;
+
+  const isCritical = utilizationPercentage >= POOL_FULL_THRESHOLD;
+  const isWarning =
+    utilizationPercentage >= POOL_NEAR_FULL_THRESHOLD &&
+    utilizationPercentage < POOL_FULL_THRESHOLD;
 
   return (
     <>
@@ -335,18 +361,34 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
         {poolType}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-        <span data-test={`${name}-replicas`}>{replica}</span>
+        {poolType === PoolType.BLOCK && replica
+          ? OCS_DEVICE_REPLICA[replica]
+          : '-'}
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
-        {rawCapacity}
-      </TableData>
-      <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
         {mirroringStatus ? t('Enabled') : t('Disabled')}
       </TableData>
+      <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
+        <Label
+          variant="filled"
+          color={poolType === PoolType.BLOCK ? 'blue' : 'green'}
+        >
+          {poolType === PoolType.BLOCK ? t('Block') : t('Filesystem')}
+        </Label>
+      </TableData>
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
-        <StatusIconAndText
-          title={healthStateMessage(imageHealth?.health, t)}
-          icon={imageHealth?.icon}
+        <PoolUtilizationDisplay
+          pool={obj as StoragePoolTableData}
+          usedCapacityDisplay={usedCapacityDisplay}
+          utilizationPercentage={utilizationPercentage}
+          isCritical={isCritical}
+          isWarning={isWarning}
+          needsAttention={poolNeedsAttention}
+          totalCapacity={
+            poolMaxAvailableCapacity?.[name]
+              ? humanizeBinaryBytes(poolMaxAvailableCapacity[name]).string
+              : '-'
+          }
         />
       </TableData>
       <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
@@ -364,6 +406,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
             trigger={'mouseenter'}
           >
             <Kebab
+              data-test="storage-pool-kebab-button"
               extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
               isDisabled={disableMenuAction(obj, isExternalStorageSystem)}
               customKebabItems={[
@@ -389,6 +432,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
           </Tooltip>
         ) : (
           <Kebab
+            data-test="storage-pool-kebab-button"
             extraProps={{ resource: obj, resourceModel: CephBlockPoolModel }}
             isDisabled={disableMenuAction(obj, isExternalStorageSystem)}
             customKebabItems={[
@@ -513,6 +557,7 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
 
   const poolNames = storagePools.map((pool) => pool.metadata?.name);
 
+  // Todo: fix these metrics they are giving duplicate errors
   const [poolRawCapacityMetrics, rawCapLoadError, rawCapLoading] =
     useCustomPrometheusPoll(
       getValidPrometheusPollObj(
@@ -528,6 +573,41 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
         !!poolNames?.length
       )
     );
+
+  const [maxAvailableCapacityData, maxAvailableLoadError, maxAvailableLoading] =
+    useCustomPrometheusPoll(
+      getValidPrometheusPollObj(
+        {
+          endpoint: 'api/v1/query' as any,
+          query: getPoolQuery(
+            poolNames,
+            StorageDashboardQuery.POOL_MAX_CAPACITY_AVAILABLE,
+            clusterName
+          ),
+          basePath: usePrometheusBasePath(),
+        },
+        !!poolNames?.length
+      )
+    );
+
+  const [
+    poolUtilizationData,
+    poolUtilizationLoadError,
+    poolUtilizationLoading,
+  ] = useCustomPrometheusPoll(
+    getValidPrometheusPollObj(
+      {
+        endpoint: 'api/v1/query' as any,
+        query: getPoolQuery(
+          poolNames,
+          StorageDashboardQuery.POOL_UTILIZATION_PERCENTAGE,
+          clusterName
+        ),
+        basePath: usePrometheusBasePath(),
+      },
+      !!poolNames?.length
+    )
+  );
 
   const [compressionSavings, compressionLoadError, compressionLoading] =
     useCustomPrometheusPoll(
@@ -545,73 +625,70 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
       )
     );
 
-  const [
-    poolMirroringImageMetrics,
-    poolMirroringImageLoadError,
-    poolMirroringImageLoading,
-  ] = useCustomPrometheusPoll(
-    getValidPrometheusPollObj(
-      {
-        endpoint: 'api/v1/query' as any,
-        query: getPoolQuery(
-          poolNames,
-          StorageDashboardQuery.POOL_MIRRORING_IMAGE_HEALTH,
-          clusterName
-        ),
-        basePath: usePrometheusBasePath(),
-      },
-      !!poolNames?.length
-    )
-  );
-
   const customData = React.useMemo(() => {
     const poolRawCapacity: PoolMetrics = getPerPoolMetrics(
       poolRawCapacityMetrics,
       rawCapLoadError,
       rawCapLoading
     );
+    const poolMaxAvailableCapacity: PoolMetrics = getPerPoolMetrics(
+      maxAvailableCapacityData,
+      maxAvailableLoadError,
+      maxAvailableLoading
+    );
+    const poolUtilization: PoolMetrics = getPerPoolMetrics(
+      poolUtilizationData,
+      poolUtilizationLoadError,
+      poolUtilizationLoading
+    );
     const poolCompressionSavings: PoolMetrics = getPerPoolMetrics(
       compressionSavings,
       compressionLoadError,
       compressionLoading
     );
-    const poolMirroringImageHealth: PoolMetrics = getPerPoolMetrics(
-      poolMirroringImageMetrics,
-      poolMirroringImageLoadError,
-      poolMirroringImageLoading
-    );
+
     return {
       storageClasses: storageClasses ?? [],
       poolRawCapacity,
+      poolMaxAvailableCapacity,
+      poolUtilization,
       poolCompressionSavings,
+
       listPagePath,
-      poolMirroringImageHealth,
     };
   }, [
-    compressionLoadError,
-    compressionLoading,
-    compressionSavings,
     storageClasses,
+    listPagePath,
     poolRawCapacityMetrics,
     rawCapLoadError,
     rawCapLoading,
-    listPagePath,
-    poolMirroringImageMetrics,
-    poolMirroringImageLoadError,
-    poolMirroringImageLoading,
+    maxAvailableCapacityData,
+    maxAvailableLoadError,
+    maxAvailableLoading,
+    poolUtilizationData,
+    poolUtilizationLoadError,
+    poolUtilizationLoading,
+    compressionSavings,
+    compressionLoadError,
+    compressionLoading,
   ]);
 
-  const error = loadError || compressionLoadError || rawCapLoadError;
-
+  const error =
+    loadError ||
+    rawCapLoadError ||
+    maxAvailableLoadError ||
+    poolUtilizationLoadError;
   const [data, filteredData, onFilterChange] = useListPageFilter(storagePools);
   const createPath = `/odf/system/ns/${getNamespace(data[0])}/ocs.openshift.io~v1~StorageCluster/${clusterName}/storage-pools/create/~new`;
 
   return (
     <>
       <ListPageHeader title={t('Storage pools')}>
-        <ListPageCreateLink to={createPath}>
-          {t('Create storage pool')}
-        </ListPageCreateLink>
+        {loaded && (
+          <ListPageCreateLink to={createPath}>
+            {t('Create storage pool')}
+          </ListPageCreateLink>
+        )}
       </ListPageHeader>
       <ListPageBody>
         <ListPageFilter

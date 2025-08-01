@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
-import { DeploymentType } from '@odf/core/types';
+import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   isStorageClassWizardStep,
@@ -37,7 +37,7 @@ import { CREATE_SS_PAGE_URL, Steps, StepsName } from '../../constants';
 import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
 import { BackingStorage } from './create-storage-system-steps';
-import { EXTERNAL_CEPH_STORAGE } from './external-ceph-storage/system-connection-details';
+import { EXTERNAL_CEPH_STORAGE } from './external-systems/CreateCephSystem/CephConnectionDetails/system-connection-details';
 import { CreateStorageSystemFooter } from './footer';
 import { CreateStorageSystemHeader } from './header';
 import { initialState, reducer, WizardReducer } from './reducer';
@@ -97,10 +97,21 @@ const CreateStorageSystem: React.FC<{}> = () => {
     // To set up deployment type based the URL
     const urlParams = new URLSearchParams(location.search);
     const mode = urlParams.get('mode');
+    const storageClass = urlParams.get('storageClass');
     if (mode) {
       dispatch({
         type: 'backingStorage/setDeployment',
         payload: convertModeToDeploymentType(mode),
+      });
+    }
+    if (storageClass) {
+      dispatch({
+        type: 'wizard/setStorageClass',
+        payload: { name: storageClass },
+      });
+      dispatch({
+        type: 'backingStorage/setType',
+        payload: BackingStorageType.EXISTING,
       });
     }
   }, [location.search]);
@@ -233,7 +244,10 @@ const CreateStorageSystemWtihLoader: React.FC = () => {
   return !isCrdPresent || !delayedShow ? (
     <>
       <CreateStorageSystemHeader state={{} as any} />
-      <EmptyState className="odf-create-storage-system-wizard__empty-state">
+      <EmptyState
+        className="odf-create-storage-system-wizard__empty-state"
+        data-test="create-wizard-empty-state"
+      >
         <EmptyStateHeader icon={<EmptyStateIcon icon={Spinner} />} />
         <p>
           {t(

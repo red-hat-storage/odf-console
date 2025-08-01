@@ -5,7 +5,7 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 import * as _ from 'lodash-es';
-import { FormGroup, Radio } from '@patternfly/react-core';
+import { Alert, AlertVariant, FormGroup, Radio } from '@patternfly/react-core';
 import { FDF_FLAG } from '../../../../redux';
 import { NetworkType, NADSelectorType } from '../../../../types';
 import { WizardState } from '../../reducer';
@@ -19,6 +19,8 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
   clusterNetwork,
   publicNetwork,
   systemNamespace,
+  isMultusAcknowledged,
+  setIsMultusAcknowledged,
 }) => {
   const { t } = useCustomTranslation();
   const isFDF = useFlag(FDF_FLAG);
@@ -30,26 +32,35 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
         label={t('Network')}
         className="ceph__install-radio--inline"
       >
-        <Radio
-          isChecked={
-            networkType === NetworkType.DEFAULT ||
-            networkType === NetworkType.MULTUS
-          }
-          name="default-network"
-          label={
-            <>
-              {t('Default (Pod)')}
-              <FieldLevelHelp>
-                {t(
-                  'The default OVN uses a single network for all data operations such as read/write and also for control planes, such as data replication.'
-                )}
-              </FieldLevelHelp>
-            </>
-          }
-          onChange={() => setNetworkType(NetworkType.DEFAULT)}
-          value={NetworkType.DEFAULT}
-          id={NetworkType.DEFAULT}
-        />
+        {isFDF ? (
+          <Radio
+            isChecked={
+              networkType === NetworkType.DEFAULT ||
+              networkType === NetworkType.MULTUS
+            }
+            name="default-network"
+            label={
+              <>
+                {t('Default (Pod)')}
+                <FieldLevelHelp>
+                  {t(
+                    'The default OVN uses a single network for all data operations such as read/write and also for control planes, such as data replication.'
+                  )}
+                </FieldLevelHelp>
+              </>
+            }
+            onChange={() => setNetworkType(NetworkType.DEFAULT)}
+            value={NetworkType.DEFAULT}
+            id={NetworkType.DEFAULT}
+          />
+        ) : (
+          <Alert
+            data-test="odf-default-network-alert"
+            title={t('Data Foundation will use the default pod network.')}
+            variant={AlertVariant.info}
+            isInline
+          />
+        )}
         {isFDF && (
           <Radio
             isChecked={networkType === NetworkType.HOST}
@@ -79,6 +90,8 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           systemNamespace={systemNamespace}
           setNetworkType={(type: NetworkType) => setNetworkType(type)}
           networkType={networkType}
+          isMultusAcknowledged={isMultusAcknowledged}
+          setIsMultusAcknowledged={setIsMultusAcknowledged}
         />
       )}
     </>
@@ -98,4 +111,6 @@ type NetworkFormGroupProps = {
   cephClusterCIDR: string;
   cephPublicCIDR: string;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  isMultusAcknowledged: boolean;
+  setIsMultusAcknowledged: (val: boolean) => void;
 };

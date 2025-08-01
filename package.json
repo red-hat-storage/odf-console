@@ -87,7 +87,6 @@
     "classnames": "^2.5.1",
     "copy-webpack-plugin": "^13.0.0",
     "css-loader": "^7.1.2",
-    "file-loader": "^6.2.0",
     "fork-ts-checker-webpack-plugin": "^9.1.0",
     "fuzzysearch": "^1.0.3",
     "i18next": "^25.2.1",

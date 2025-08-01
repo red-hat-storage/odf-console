@@ -215,6 +215,7 @@ const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
   policyInfoLoadError,
   onClick,
   modalType,
+  appType,
 }) => {
   const { t } = useCustomTranslation();
   const [discoveredApps, loaded, loadError] = useK8sWatchResource<
@@ -245,17 +246,29 @@ const ManagePolicyEmptyPage: React.FC<ManagePolicyEmptyPageProps> = ({
   const anyLoadError = policyInfoLoadError || loadError;
 
   return allLoaded && !anyLoadError ? (
-    <EmptyPage
-      isLoaded={allLoaded}
-      canAccess={true}
-      isDisabled={isNamespaceProtected}
-      EmptyIcon={BlueInfoCircleIcon}
-      onClick={onClick}
-      buttonText={buttonText}
-      title={title}
-    >
-      {content}
-    </EmptyPage>
+    <>
+      {appType === DRApplication.SUBSCRIPTION && (
+        <Alert
+          variant={AlertVariant.warning}
+          isInline
+          title={t('Subscription deprecated')}
+          data-test="subscription-deprecation-warning"
+        >
+          {t('All processes that use application subscription is deprecated')}
+        </Alert>
+      )}
+      <EmptyPage
+        isLoaded={allLoaded}
+        canAccess={true}
+        isDisabled={isNamespaceProtected}
+        EmptyIcon={BlueInfoCircleIcon}
+        onClick={onClick}
+        buttonText={buttonText}
+        title={title}
+      >
+        {content}
+      </EmptyPage>
+    </>
   ) : (
     <StatusBox loaded={allLoaded} loadError={anyLoadError} />
   );
@@ -466,6 +479,7 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
           setModalContext(ModalViewContext.ASSIGN_POLICY_VIEW);
         }}
         modalType={modalType}
+        appType={appType}
       />
     );
   }
@@ -609,6 +623,7 @@ type ManagePolicyEmptyPageProps = {
   policyInfoLoadError: any;
   onClick: () => void;
   modalType: ModalType;
+  appType?: DRApplication;
 };
 
 type AggregatedDRInfo = {

@@ -33,6 +33,16 @@ export const OCS_DEVICE_REPLICA = Object.freeze({
   '4': '4-way',
 });
 
+// Pool utilization thresholds
+export const POOL_NEAR_FULL_THRESHOLD = 85; // percent
+export const POOL_FULL_THRESHOLD = 95; // percent
+
+export enum PoolUtilizationState {
+  NORMAL = 'NORMAL',
+  NEAR_FULL = 'NEAR_FULL',
+  FULL = 'FULL',
+}
+
 export enum ClusterStatus {
   READY = 'Ready',
   PROGRESSING = 'Progressing',

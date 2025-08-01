@@ -4,13 +4,17 @@
   padding-left: shared.$pf-v5-global-gutter;
   padding-right: shared.$pf-v5-global-gutter;
 
-  @media(min-width: shared.$pf-v5-global--breakpoint--xl) {
+  @media screen and (min-width: shared.$pf-v5-global--breakpoint--2xl) {
     padding-left: shared.$pf-v5-global-gutter--md;
     padding-right: shared.$pf-v5-global-gutter--md;
   }
 
   .pf-v5-c-card {
     border-radius: 15px;
+    height: 100%;
+    @media screen and (min-width: shared.$pf-v5-global--breakpoint--2xl) {
+      min-height: 30vh;
+    }
   }
 
   .pf-v5-c-card__title-text {

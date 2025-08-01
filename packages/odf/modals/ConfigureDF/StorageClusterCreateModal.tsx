@@ -2,6 +2,7 @@ import * as React from 'react';
 import { CREATE_SS_PAGE_URL } from '@odf/core/constants';
 import { StartingPoint } from '@odf/core/types/install-ui';
 import { useCustomTranslation } from '@odf/shared';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Flex,
@@ -16,6 +17,7 @@ import {
   Title,
   Button,
 } from '@patternfly/react-core';
+import { ExternalSystemsSelectModal } from './ExternalSystemsModal';
 import './StorageClusterCreateModal.scss';
 
 type ConfigureDFSelectionsProps = {
@@ -27,11 +29,17 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
 }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
+  const launchModal = useModal();
 
   const redirectTo = (installationFlow: StartingPoint) => () => {
     const urlParams = new URLSearchParams({ mode: installationFlow });
     navigate(`${CREATE_SS_PAGE_URL}?${urlParams.toString()}`);
     closeModal();
+  };
+
+  const showExternalSystems = () => {
+    closeModal();
+    launchModal(ExternalSystemsSelectModal, {});
   };
 
   return (
@@ -45,6 +53,7 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
           id="setup-storage-cluster"
           isClickable
           className="odf-storage-cluster-create-modal__setup-card"
+          data-test="create-storage-cluster"
         >
           <CardHeader
             selectableActions={{
@@ -73,7 +82,7 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
         >
           <CardHeader
             selectableActions={{
-              onClickAction: redirectTo(StartingPoint.EXTERNAL_SYSTEM),
+              onClickAction: showExternalSystems,
               selectableActionId: 'external-system',
             }}
           >

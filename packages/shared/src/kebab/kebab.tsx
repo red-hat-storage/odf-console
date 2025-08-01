@@ -84,6 +84,7 @@ type KebabProps = {
   terminatingTooltip?: React.ReactNode;
   hideItems?: ModalKeys[];
   customLabel?: string;
+  'data-test'?: string;
 };
 
 type KebabStaticProperties = {
@@ -137,6 +138,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   terminatingTooltip,
   hideItems,
   customLabel,
+  'data-test': dataTestId,
 }) => {
   const { t } = useCustomTranslation();
   const launchModal = useModal();
@@ -294,7 +296,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
       }
     >
       <Dropdown
-        data-test="kebab-button"
+        data-test={dataTestId || 'kebab-button'}
         onSelect={onClick}
         ref={dropdownRef}
         toggle={{
@@ -305,7 +307,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
               variant={toggleType === 'Kebab' ? 'plain' : 'default'}
               onClick={() => setOpen(!isOpen)}
               isExpanded={isOpen}
-              data-test="kebab-button"
+              data-test={dataTestId || 'kebab-button'}
               isDisabled={isDisabled}
             >
               {toggleType === 'Kebab' ? <EllipsisVIcon /> : t('Actions')}
@@ -314,7 +316,7 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
           toggleRef: dropdownToggleRef,
         }}
         isOpen={isOpen}
-        data-test-id="kebab-button"
+        data-test-id={dataTestId || 'kebab-button'}
         popperProps={{
           preventOverflow: true,
           direction: toggleDirection,

@@ -18,7 +18,14 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import { Checkbox, FormGroup } from '@patternfly/react-core';
+import { Link } from 'react-router-dom-v5-compat';
+import {
+  Alert,
+  AlertVariant,
+  Checkbox,
+  Form,
+  FormGroup,
+} from '@patternfly/react-core';
 import { WizardState } from '../../reducer';
 
 type MultusWatchResourcesObject = {
@@ -52,6 +59,8 @@ type MultusNetworkConfigurationComponentProps = {
   clusterNetwork: NetworkAttachmentDefinitionKind;
   publicNetwork: NetworkAttachmentDefinitionKind;
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  isMultusAcknowledged: boolean;
+  setIsMultusAcknowledged: (val: boolean) => void;
 };
 
 const reduceResourceLoadAndErrorStatus = <
@@ -80,35 +89,89 @@ export const MultusNetworkConfigurationComponent: React.FC<
   publicNetwork,
   networkType,
   systemNamespace,
+  isMultusAcknowledged,
+  setIsMultusAcknowledged,
 }) => {
   const { t } = useCustomTranslation();
 
+  const handleMultusToggle = (_event: any, checked: any) => {
+    if (checked) {
+      setNetworkType(NetworkType.MULTUS);
+    } else {
+      setNetworkType(NetworkType.DEFAULT);
+      setIsMultusAcknowledged(false);
+    }
+  };
+
+  const handleAcknowledgementChange = (_event: any, checked: boolean) => {
+    setIsMultusAcknowledged(checked);
+  };
+
   return (
-    <>
+    <FormGroup fieldId="isoloate-network" label={t('Network isolation')}>
       <Checkbox
         isChecked={networkType === NetworkType.MULTUS}
-        onChange={() =>
-          setNetworkType(
-            networkType === NetworkType.DEFAULT
-              ? NetworkType.MULTUS
-              : NetworkType.DEFAULT
-          )
-        }
+        onChange={handleMultusToggle}
         label={t('Isolate network using Multus')}
-        description={t(
-          'Multus allows a network seperation between the data operations and the control plane operations.'
-        )}
         id="multus-checkbox"
+        className="pf-v5-u-mb-md"
       />
+
       {networkType === NetworkType.MULTUS && (
-        <MultusDropdown
-          setNetwork={setNetwork}
-          clusterNetwork={clusterNetwork}
-          publicNetwork={publicNetwork}
-          systemNamespace={systemNamespace}
-        />
+        <>
+          <Alert
+            className="pf-v5-u-ml-md"
+            variant={AlertVariant.warning}
+            isInline
+            title={t('Run Validation test before to proceed further.')}
+          >
+            <p>
+              {t('Set up Multus by following relevant steps in')}{' '}
+              {/* TODO: Replace with the actual KCS link when available */}
+              <Link to="#/">{t('KCS')}</Link> {', '}
+              {t('Incorrectly setting up Multus might lead to:')}
+            </p>
+            <ul>
+              <li>
+                {t(
+                  'Data unavailability or loss due to broken internal communication between storage components.'
+                )}
+              </li>
+              <li>
+                {t(
+                  'Cluster health issues if network attachments are missing or misconfigured.'
+                )}
+              </li>
+              <li>
+                {t(
+                  'PVC mounting failures, impacting workloads that rely on DF storage.'
+                )}
+              </li>
+            </ul>
+          </Alert>
+
+          <Checkbox
+            isChecked={isMultusAcknowledged}
+            label={t(
+              'By checking this box, you are acknowledging to have run the validation test.'
+            )}
+            onChange={handleAcknowledgementChange}
+            id="acknowledgment-checkbox"
+            className="pf-v5-u-ml-md pf-v5-u-mt-md"
+          />
+        </>
       )}
-    </>
+      {isMultusAcknowledged && (
+        <div className="pf-v5-u-ml-md pf-v5-u-mt-md">
+          <MultusDropdown
+            setNetwork={setNetwork}
+            clusterNetwork={clusterNetwork}
+            publicNetwork={publicNetwork}
+            systemNamespace={systemNamespace}
+          />
+        </div>
+      )}
+    </FormGroup>
   );
 };
 
@@ -212,10 +275,14 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
   );
 
   return (
-    <>
+    <Form className="pf-v5-u-font-weight-normal">
       <FormGroup
         fieldId="configure-multus-public"
-        label={t('Public Network Interface')}
+        label={
+          <span className="pf-v5-u-font-weight-normal">
+            {t('Public Network Interface')}
+          </span>
+        }
       >
         <SingleSelectDropdown
           id="multus-public-network-dropdown"
@@ -230,7 +297,11 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
       </FormGroup>
       <FormGroup
         fieldId="configure-multus-cluster"
-        label={t('Cluster Network Interface')}
+        label={
+          <span className="pf-v5-u-font-weight-normal">
+            {t('Cluster Network Interface')}
+          </span>
+        }
       >
         <SingleSelectDropdown
           id="multus-cluster-network-dropdown"
@@ -243,6 +314,6 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
           hasInlineFilter
         />
       </FormGroup>
-    </>
+    </Form>
   );
 };

@@ -115,3 +115,5 @@ export enum TimeUnits {
 export const CREATE_SS_PAGE_URL = `/odf/resource/${referenceForModel(
   ODFStorageSystem
 )}/create/~new`;
+
+export const FLASH_STORAGE_CLASS = 'flash-storage';

@@ -271,7 +271,7 @@ const fetchProvisionerIfMissing = async (
 };
 
 // Build cluster-to-SC map with provisioner validation
-const getClusterToSCMap = async (
+export const getClusterToSCMap = async (
   searchResult: SearchResult,
   searchLoaded: boolean,
   searchError: any,

@@ -8,7 +8,7 @@ export const mockDRClusterEast1: DRClusterKind = {
     name: 'east-1',
   },
   spec: {
-    S3ProfileName: '',
+    s3ProfileName: '',
   },
 };
 
@@ -19,7 +19,7 @@ export const mockDRClusterWest1: DRClusterKind = {
     name: 'west-1',
   },
   spec: {
-    S3ProfileName: '',
+    s3ProfileName: '',
   },
 };
 
@@ -30,7 +30,7 @@ export const mockDRClusterEast2: DRClusterKind = {
     name: 'east-2',
   },
   spec: {
-    S3ProfileName: '',
+    s3ProfileName: '',
   },
   status: {
     phase: 'Fenced',

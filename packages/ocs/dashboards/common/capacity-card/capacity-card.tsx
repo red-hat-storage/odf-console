@@ -21,15 +21,19 @@ const warningColorScale = [globalWarning100.value, globalDisable100.value];
 const dangerColorScale = [globalDanger100.value, globalDisable100.value];
 
 const CapacityStatusIcon: React.FC<CapacityStatusIconProps> = React.memo(
-  ({ ratio }) => {
+  ({ ratio, warningThreshold, dangerThreshold }) => {
     const { t } = useCustomTranslation();
-    if (ratio < WARNING_THRESHOLD) return null;
+
+    const warnThreshold = warningThreshold ?? WARNING_THRESHOLD;
+    const dangerThresh = dangerThreshold ?? DANGER_THRESHOLD;
+
+    if (ratio < warnThreshold) return null;
     return (
       <>
-        {ratio > DANGER_THRESHOLD && (
+        {ratio >= dangerThresh && (
           <RedExclamationCircleIcon title={t('Error')} />
         )}
-        {ratio > WARNING_THRESHOLD && ratio <= DANGER_THRESHOLD && (
+        {ratio >= warnThreshold && ratio < dangerThresh && (
           <YellowExclamationTriangleIcon title={t('Warning')} />
         )}
       </>
@@ -48,6 +52,8 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
     description,
     loadError,
     loading,
+    warningThreshold,
+    dangerThreshold,
   } = props;
   const { t } = useCustomTranslation();
 
@@ -73,11 +79,14 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
   );
 
   const colorScale = React.useMemo(() => {
-    if (capacityRatio > DANGER_THRESHOLD) return dangerColorScale;
-    if (capacityRatio > WARNING_THRESHOLD && capacityRatio <= DANGER_THRESHOLD)
+    const warnThreshold = warningThreshold ?? WARNING_THRESHOLD;
+    const dangerThresh = dangerThreshold ?? DANGER_THRESHOLD;
+
+    if (capacityRatio >= dangerThresh) return dangerColorScale;
+    if (capacityRatio >= warnThreshold && capacityRatio < dangerThresh)
       return warningColorScale;
     return generalColorScale;
-  }, [capacityRatio]);
+  }, [capacityRatio, warningThreshold, dangerThreshold]);
 
   const donutData = [
     { x: 'Used', y: usedCapacity.value, string: usedCapacityAdjusted.string },
@@ -110,7 +119,13 @@ export const CapacityCard: React.FC<CapacityCardProps> = React.memo((props) => {
                 fill={colorScale[1]}
                 title={t('Available')}
                 text={availableCapacityAdjusted.string}
-                capacityStatus={<CapacityStatusIcon ratio={capacityRatio} />}
+                capacityStatus={
+                  <CapacityStatusIcon
+                    ratio={capacityRatio}
+                    warningThreshold={warningThreshold}
+                    dangerThreshold={dangerThreshold}
+                  />
+                }
               />
             </div>
             <div className="ceph-raw-usage__item ceph-raw-usage__chart">
@@ -204,6 +219,8 @@ export type CapacityCardProps = {
   description: string;
   loading: boolean;
   loadError: boolean;
+  warningThreshold?: number;
+  dangerThreshold?: number;
 };
 
 type ChartLegendProps = {
@@ -216,4 +233,6 @@ type ChartLegendProps = {
 
 type CapacityStatusIconProps = {
   ratio: number;
+  warningThreshold?: number;
+  dangerThreshold?: number;
 };

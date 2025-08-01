@@ -30,7 +30,7 @@ export type DRClusterKind = K8sResourceCommon & {
   spec?: {
     cidrs?: string[];
     clusterFence?: string;
-    S3ProfileName: string;
+    s3ProfileName: string;
   };
   status?: {
     conditions?: K8sResourceCondition[];
@@ -142,3 +142,18 @@ export enum Progression {
   FailedToRelocate = 'FailedToRelocate',
   WaitForUserAction = 'WaitForUserAction',
 }
+
+export type S3StoreProfile = {
+  s3ProfileName: string;
+  s3Bucket: string;
+  s3Region: string;
+  s3CompatibleEndpoint: string;
+  s3SecretRef: {
+    name: string;
+    namespace?: string;
+  };
+};
+
+export type RamenConfig = {
+  s3StoreProfiles: S3StoreProfile[];
+};

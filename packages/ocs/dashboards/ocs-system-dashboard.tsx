@@ -2,7 +2,9 @@
 /* eslint-disable import/no-named-default */
 
 import * as React from 'react';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import TopologyWithErrorHandler from '@odf/core/components/topology/Topology';
+import { FDF_FLAG, useODFSystemFlagsSelector } from '@odf/core/redux';
+import { PageHeading } from '@odf/shared';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import Tabs, { TabPage } from '@odf/shared/utils/Tabs';
@@ -10,9 +12,12 @@ import {
   Overview,
   OverviewGrid,
   OverviewGridCard,
+  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
+import { useParams } from 'react-router-dom-v5-compat';
 import StoragePoolListPage from '../storage-pool/StoragePoolListPage';
+import { ClusterSelectorBar } from './ClusterSelectorBar/ClusterSelectorBar';
 import { StatusCard as NFSStatusCard } from './network-file-system/status-card/status-card';
 import { ThroughputCard } from './network-file-system/throughput-card/throughput-card';
 import { TopClientsCard } from './network-file-system/top-clients-card/top-clients-card';
@@ -34,6 +39,7 @@ import BreakdownCard from './persistent-internal/capacity-breakdown-card/capacit
 import CapacityTrendCard from './persistent-internal/capacity-trend-card/capacity-trend-card';
 import DetailsCard from './persistent-internal/details-card';
 import InventoryCard from './persistent-internal/inventory-card';
+import PoolUtilizationCard from './persistent-internal/pool-utilization-card/pool-utilization-card';
 import RawCapacityCard from './persistent-internal/raw-capacity-card/raw-capacity-card';
 import { default as StatusCard } from './persistent-internal/status-card/status-card';
 import storageEfficiencyCard from './persistent-internal/storage-efficiency-card/storage-efficiency-card';
@@ -72,9 +78,11 @@ export const CommonDashboardRenderer: React.FC<
 };
 
 const PersistentInternalDashboard: React.FC = () => {
+  const isFDF = useFlag(FDF_FLAG);
   const mainCards: React.ComponentType[] = [
     StatusCard,
     RawCapacityCard,
+    PoolUtilizationCard,
     CapacityTrendCard,
     BreakdownCard,
     UtilizationCard,
@@ -87,11 +95,14 @@ const PersistentInternalDashboard: React.FC = () => {
   const rightCards: React.ComponentType[] = [ActivityCard];
 
   return (
-    <CommonDashboardRenderer
-      leftCards={leftCards}
-      mainCards={mainCards}
-      rightCards={rightCards}
-    />
+    <>
+      {!isFDF && <ClusterSelectorBar />}
+      <CommonDashboardRenderer
+        leftCards={leftCards}
+        mainCards={mainCards}
+        rightCards={rightCards}
+      />
+    </>
   );
 };
 
@@ -103,13 +114,17 @@ const PersistentExternalDashboard: React.FC = () => {
   ];
   const leftCards: React.ComponentType[] = [ExtDetailsCard, InventoryCard];
   const rightCards: React.ComponentType[] = [ActivityCard];
+  const isFDF = useFlag(FDF_FLAG);
 
   return (
-    <CommonDashboardRenderer
-      leftCards={leftCards}
-      mainCards={mainCards}
-      rightCards={rightCards}
-    />
+    <>
+      {!isFDF && <ClusterSelectorBar />}
+      <CommonDashboardRenderer
+        leftCards={leftCards}
+        mainCards={mainCards}
+        rightCards={rightCards}
+      />
+    </>
   );
 };
 
@@ -178,12 +193,43 @@ const storagePoolPage = (t: TFunction): TabPage => {
   };
 };
 
+const topologyPage = (t: TFunction): TabPage => {
+  return {
+    href: 'topology',
+    title: t('Topology'),
+    component: TopologyWithErrorHandler,
+  };
+};
+
 const nfsPage = (t: TFunction): TabPage => {
   return {
     href: NFS,
     title: t('Network file system'),
     component: NFSDashboard,
   };
+};
+
+export const ExternalSystemDashboard: React.FC = () => {
+  const { t } = useCustomTranslation();
+  const { systemName } = useParams();
+  const pages = [externalPage(t), objectPage(t)];
+
+  const breadcrumbs = [
+    {
+      name: t('External systems'),
+      path: '/odf/external-systems',
+    },
+    {
+      name: t('External system details'),
+      path: '',
+    },
+  ];
+  return (
+    <>
+      <PageHeading title={systemName} breadcrumbs={breadcrumbs} />
+      <Tabs id="odf-dashboard-tab" tabs={pages} />;
+    </>
+  );
 };
 
 const OCSSystemDashboard: React.FC<{}> = () => {
@@ -212,6 +258,7 @@ const OCSSystemDashboard: React.FC<{}> = () => {
     showNFSDashboard && tempPages.push(nfsPage(t));
     isObjectServiceAvailable && tempPages.push(objectPage(t));
     tempPages.push(storagePoolPage(t));
+    tempPages.push(topologyPage(t));
     return tempPages;
   }, [
     showInternalDashboard,

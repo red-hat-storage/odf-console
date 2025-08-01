@@ -53,11 +53,6 @@ export const odfSubscriptionResource: K8sResourceObj = (ns) => ({
   namespace: ns,
 });
 
-export const subscriptionResource: WatchK8sResource = {
-  isList: true,
-  kind: referenceForModel(SubscriptionModel),
-  namespaced: false,
-};
 /**
  * Retrieve all the CRs except those not meant to be
  * exposed to the users. See:
