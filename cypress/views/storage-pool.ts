@@ -93,11 +93,22 @@ export const fillStoragePoolForm = (poolType: PoolType, poolName: string) => {
   cy.byTestID(`type-${poolType.toLowerCase()}`).click();
   cy.byTestID('new-pool-name-textbox').clear();
   cy.byTestID('new-pool-name-textbox').type(poolName);
-  cy.byTestID('replica-dropdown').click();
+  cy.byTestID('replica-dropdown')
+    .should('be.visible')
+    .should('not.be.disabled')
+    .click();
   cy.byLegacyTestID('replica-dropdown-item')
     .contains(`${replicaCount}-way Replication`)
+    .should('be.visible')
     .click();
+  cy.byTestID('replica-dropdown').should(
+    'contain',
+    `${replicaCount}-way Replication`
+  );
   cy.byTestID('compression-checkbox').check();
+  cy.byLegacyTestID('confirm-action', { timeout: 10000 }).should(
+    'not.be.disabled'
+  );
 };
 
 export const triggerPoolFormFooterAction = (action: string) => {
