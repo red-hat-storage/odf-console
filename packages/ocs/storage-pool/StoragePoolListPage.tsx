@@ -43,7 +43,6 @@ import { Link, useLocation } from 'react-router-dom-v5-compat';
 import { Tooltip, Label } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
 import {
-  OCS_DEVICE_REPLICA,
   PoolType,
   PoolUtilizationState,
   POOL_NEAR_FULL_THRESHOLD,
@@ -361,9 +360,7 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
         {poolType}
       </TableData>
       <TableData {...tableColumnInfo[4]} activeColumnIDs={activeColumnIDs}>
-        {poolType === PoolType.BLOCK && replica
-          ? OCS_DEVICE_REPLICA[replica]
-          : '-'}
+        <span data-test={`${name}-replicas`}>{replica}</span>
       </TableData>
       <TableData {...tableColumnInfo[5]} activeColumnIDs={activeColumnIDs}>
         {mirroringStatus ? t('Enabled') : t('Disabled')}
@@ -673,11 +670,6 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
     compressionLoading,
   ]);
 
-  const error =
-    loadError ||
-    rawCapLoadError ||
-    maxAvailableLoadError ||
-    poolUtilizationLoadError;
   const [data, filteredData, onFilterChange] = useListPageFilter(storagePools);
   const createPath = `/odf/system/ns/${getNamespace(data[0])}/ocs.openshift.io~v1~StorageCluster/${clusterName}/storage-pools/create/~new`;
 
@@ -685,7 +677,7 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
     <>
       <ListPageHeader title={t('Storage pools')}>
         {loaded && (
-          <ListPageCreateLink to={createPath}>
+          <ListPageCreateLink to={createPath} data-test="item-create">
             {t('Create storage pool')}
           </ListPageCreateLink>
         )}
@@ -701,7 +693,7 @@ const StoragePoolList: React.FC<StoragePoolListProps> = ({
           data={filteredData}
           unfilteredData={data}
           loaded={loaded}
-          loadError={error}
+          loadError={loadError}
           rowData={{ ...customData }}
         />
       </ListPageBody>
