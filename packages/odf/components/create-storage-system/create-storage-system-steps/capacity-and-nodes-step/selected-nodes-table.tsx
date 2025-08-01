@@ -6,13 +6,16 @@ import {
   resourcePathFromModel,
   humanizeCpuCores,
   getConvertedUnits,
+  isArbiterNode,
 } from '@odf/shared/utils';
 import {
+  TableColumn,
   TableData,
   useActiveColumns,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
+import { Label } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import { WizardNodeState } from '../../reducer';
 import { SelectNodesTableFooter } from '../../select-nodes-table/select-nodes-table-footer';
@@ -54,7 +57,9 @@ const tableColumnClasses = [
 ];
 
 const SelectedNodesTableRow = ({ obj, activeColumnIDs }) => {
+  const { t } = useCustomTranslation();
   const { cpu, memory, zone, name, roles } = obj;
+  const isArbiter = isArbiterNode(obj as WizardNodeState);
   return (
     <>
       <TableData {...tableColumnClasses[0]} activeColumnIDs={activeColumnIDs}>
@@ -63,6 +68,11 @@ const SelectedNodesTableRow = ({ obj, activeColumnIDs }) => {
           resourceModel={NodeModel}
           resourceName={name}
         />
+        {isArbiter && (
+          <Label color="green" variant="filled">
+            {t('Arbiter')}
+          </Label>
+        )}
       </TableData>
       <TableData {...tableColumnClasses[1]} activeColumnIDs={activeColumnIDs}>
         {roles.join(', ') ?? '-'}
@@ -87,7 +97,7 @@ export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({
   const { t } = useCustomTranslation();
 
   const SelectedNodesTableColumns = React.useMemo(
-    () => [
+    (): TableColumn<WizardNodeState>[] => [
       {
         title: t('Name'),
         sort: 'name',
@@ -120,7 +130,7 @@ export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({
   );
 
   const [columns] = useActiveColumns({
-    columns: SelectedNodesTableColumns as any, // Todo(bipuladh): Update once sdk is updated
+    columns: SelectedNodesTableColumns,
     showNamespaceOverride: false,
     columnManagementID: 'SELECTED_NODES',
   });
