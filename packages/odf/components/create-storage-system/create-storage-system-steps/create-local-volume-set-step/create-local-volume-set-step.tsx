@@ -347,6 +347,7 @@ export const CreateLocalVolumeSet: React.FC<CreateLocalVolumeSetProps> = ({
               state={state}
               chartDisks={filteredDisksOnSelectedNodes}
               allDiscoveredDisks={allDiscoveredDisks}
+              isTwoNodesOneArbiterCluster={isTwoNodesOneArbiterCluster}
             />
           </GridItem>
         </Grid>
