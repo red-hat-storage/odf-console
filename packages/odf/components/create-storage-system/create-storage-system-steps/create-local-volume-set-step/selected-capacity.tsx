@@ -25,6 +25,7 @@ export const SelectedCapacity: React.FC<SelectedCapacityProps> = ({
   chartDisks,
   allDiscoveredDisks,
   dispatch,
+  isTwoNodesOneArbiterCluster,
 }) => {
   const { t } = useCustomTranslation();
   const [showNodeList, setShowNodeList] = React.useState(false);
@@ -116,6 +117,7 @@ export const SelectedCapacity: React.FC<SelectedCapacityProps> = ({
         showNodeList={showNodeList}
         filteredNodes={state.chartNodes}
         onCancel={() => setShowNodeList(false)}
+        isTwoNodesOneArbiterCluster={isTwoNodesOneArbiterCluster}
       />
     </div>
   );
@@ -126,6 +128,7 @@ type SelectedCapacityProps = {
   dispatch: WizardDispatch;
   chartDisks: DiscoveredDisk[];
   allDiscoveredDisks: DiscoveredDisk[];
+  isTwoNodesOneArbiterCluster: boolean;
 };
 
 const filterNodes = (nodesData: NodeData[], filteredNodes: Set<string>) => {
@@ -139,6 +142,7 @@ const NodeListModal: React.FC<NodeListModalProps> = ({
   filteredNodes,
   onCancel,
   showNodeList,
+  isTwoNodesOneArbiterCluster,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -166,7 +170,11 @@ const NodeListModal: React.FC<NodeListModalProps> = ({
         loaded={nodesLoaded}
         loadError={nodesLoadError}
       >
-        <SelectedNodesTable data={filteredData} showDetails={false} />
+        <SelectedNodesTable
+          data={filteredData}
+          showDetails={false}
+          isTwoNodesOneArbiterCluster={isTwoNodesOneArbiterCluster}
+        />
       </StatusBox>
     </Modal>
   );
@@ -176,4 +184,5 @@ type NodeListModalProps = {
   showNodeList: boolean;
   filteredNodes: Set<string>;
   onCancel: () => void;
+  isTwoNodesOneArbiterCluster: boolean;
 };

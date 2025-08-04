@@ -435,6 +435,7 @@ const SelectedCapacityAndNodes: React.FC<SelectedCapacityAndNodesProps> = ({
                   ? nodes
                   : nodes.concat(arbiterNode)
               }
+              isTwoNodesOneArbiterCluster={isTwoNodesOneArbiterClusterEnabled}
             />
           </GridItem>
           {isTwoNodesOneArbiterClusterEnabled && (
