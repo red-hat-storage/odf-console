@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
+import { FDF_FLAG } from '@odf/core/redux';
 import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
 import {
   OCSDashboardContext,
@@ -16,6 +17,7 @@ import {
   InfrastructureModel,
   Kebab,
   PageHeading,
+  RHCS_SUPPORTED_INFRA,
   StorageClusterKind,
   StorageClusterModel,
   useCustomTranslation,
@@ -27,6 +29,7 @@ import {
   isCSVSucceeded,
   referenceForModel,
 } from '@odf/shared/utils';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import InitialEmptyStatePage from './InitialEmptyStatePage';
 
@@ -42,60 +45,61 @@ const storageClusterActions =
   ) =>
   () => {
     const resourceProfile = storageCluster?.spec?.resourceProfile;
-    const customKebabItems: CustomKebabItem[] = isExternalMode
-      ? []
-      : [
-          !isFDF && !hasMultipleStorageClusters
-            ? {
-                key: 'ADD_EXTERNAL_CLUSTER',
-                value: t('Add external cluster'),
-                redirect: '/odf/external-systems/ceph/~create',
-              }
-            : null,
-          {
-            key: 'ADD_CAPACITY',
-            value: t('Add Capacity'),
-            component: React.lazy(
-              () => import('../../modals/add-capacity/add-capacity-modal')
-            ),
-          },
-          {
-            key: 'CONFIGURE_PERFORMANCE',
-            value: t('Configure performance'),
-            component: React.lazy(
-              () =>
-                import(
-                  '@odf/core/modals/configure-performance/configure-performance-modal'
-                )
-            ),
-          },
-        ];
-
+    const platform = getInfrastructurePlatform(infrastructure);
+    const isRHCSSupported = RHCS_SUPPORTED_INFRA.includes(platform);
+    const customKebabItems: CustomKebabItem[] = [];
     if (
-      isCapacityAutoScalingAllowed(
-        getInfrastructurePlatform(infrastructure),
-        resourceProfile
-      )
+      !isFDF &&
+      !hasMultipleStorageClusters &&
+      isRHCSSupported &&
+      !isExternalMode
     ) {
       customKebabItems.push({
-        key: 'CAPACITY_AUTOSCALING',
-        value: t('Automatic capacity scaling'),
+        key: 'ADD_EXTERNAL_CLUSTER',
+        value: t('Add external cluster'),
+        redirect: '/odf/external-systems/ceph/~create',
+      });
+    }
+
+    if (!isExternalMode) {
+      customKebabItems.push({
+        key: 'ADD_CAPACITY',
+        value: t('Add Capacity'),
+        component: React.lazy(
+          () => import('../../modals/add-capacity/add-capacity-modal')
+        ),
+      });
+      customKebabItems.push({
+        key: 'CONFIGURE_PERFORMANCE',
+        value: t('Configure performance'),
         component: React.lazy(
           () =>
             import(
-              '@odf/core/modals/capacity-autoscaling/capacity-autoscaling-modal'
+              '@odf/core/modals/configure-performance/configure-performance-modal'
             )
         ),
       });
-    }
-    if (isLSOInstalled) {
-      customKebabItems.push({
-        key: 'ATTACH_STORAGE',
-        value: t('Attach Storage'),
-        redirect: `/odf/system/ns/${getNamespace(storageCluster)}/${referenceForModel(
-          StorageClusterModel
-        )}/${getName(storageCluster)}/~attachstorage`,
-      });
+      if (isCapacityAutoScalingAllowed(platform, resourceProfile)) {
+        customKebabItems.push({
+          key: 'CAPACITY_AUTOSCALING',
+          value: t('Automatic capacity scaling'),
+          component: React.lazy(
+            () =>
+              import(
+                '@odf/core/modals/capacity-autoscaling/capacity-autoscaling-modal'
+              )
+          ),
+        });
+      }
+      if (isLSOInstalled) {
+        customKebabItems.push({
+          key: 'ATTACH_STORAGE',
+          value: t('Attach Storage'),
+          redirect: `/odf/system/ns/${getNamespace(storageCluster)}/${referenceForModel(
+            StorageClusterModel
+          )}/${getName(storageCluster)}/~attachstorage`,
+        });
+      }
     }
     return (
       <Kebab
@@ -127,6 +131,7 @@ const StorageClusterSection: React.FC = () => {
     InfrastructureModel,
     DEFAULT_INFRASTRUCTURE
   );
+  const isFDF = useFlag(FDF_FLAG);
 
   const isLSOInstalled =
     lsoCSVLoaded && !lsoCSVLoadError && isCSVSucceeded(lsoCSV);
@@ -144,7 +149,9 @@ const StorageClusterSection: React.FC = () => {
           currentStorageCluster,
           infrastructure,
           isLSOInstalled,
-          isExternalMode
+          isExternalMode,
+          isFDF,
+          hasMultipleStorageClusters
         )}
       />
       <OCSDashboardContext.Provider
