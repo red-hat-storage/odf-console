@@ -81,12 +81,22 @@ const DeleteLifecycleRuleModal: React.FC<
         }
       }
 
-      await noobaaS3.putBucketLifecycleConfiguration({
-        Bucket: bucketName,
-        LifecycleConfiguration: {
-          Rules: getUpdatedRules(latestRules, ruleName, ruleHash),
-        },
-      });
+      // `{ LifecycleConfiguration: { Rules: [] } }` syntax is being interpreted as an attempt to update Lifecycle config (not delete) with an invalid payload (no rules),
+      // so the endpoint is throwing a 500 error.
+      // Hence using "deleteBucketLifecycle" for such cases where we need to cleanup entire Lifecycle configuration.
+      const updatedLifecycleRules = getUpdatedRules(
+        latestRules,
+        ruleName,
+        ruleHash
+      );
+      if (!!updatedLifecycleRules?.length)
+        await noobaaS3.putBucketLifecycleConfiguration({
+          Bucket: bucketName,
+          LifecycleConfiguration: {
+            Rules: updatedLifecycleRules,
+          },
+        });
+      else await noobaaS3.deleteBucketLifecycle({ Bucket: bucketName });
 
       setInProgress(false);
       mutate();
