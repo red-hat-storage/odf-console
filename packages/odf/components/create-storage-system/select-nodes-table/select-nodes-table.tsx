@@ -243,7 +243,12 @@ export const SelectNodesTable: React.FC<SelectNodesTableProps> = ({
           />
         </StatusBox>
       </ListPageBody>
-      {!!nodes.length && <SelectNodesTableFooter nodes={nodes} />}
+      {!!nodes.length && (
+        <SelectNodesTableFooter
+          nodes={nodes}
+          isTwoNodesOneArbiterCluster={false}
+        />
+      )}
     </div>
   );
 };

@@ -6,13 +6,16 @@ import {
   resourcePathFromModel,
   humanizeCpuCores,
   getConvertedUnits,
+  isArbiterNode,
 } from '@odf/shared/utils';
 import {
+  TableColumn,
   TableData,
   useActiveColumns,
   VirtualizedTable,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
+import { Flex, FlexItem, Label } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import { WizardNodeState } from '../../reducer';
 import { SelectNodesTableFooter } from '../../select-nodes-table/select-nodes-table-footer';
@@ -54,15 +57,28 @@ const tableColumnClasses = [
 ];
 
 const SelectedNodesTableRow = ({ obj, activeColumnIDs }) => {
+  const { t } = useCustomTranslation();
   const { cpu, memory, zone, name, roles } = obj;
+  const isArbiter = isArbiterNode(obj as WizardNodeState);
   return (
     <>
       <TableData {...tableColumnClasses[0]} activeColumnIDs={activeColumnIDs}>
-        <ResourceLink
-          link={resourcePathFromModel(NodeModel, name)}
-          resourceModel={NodeModel}
-          resourceName={name}
-        />
+        <Flex>
+          <FlexItem>
+            <ResourceLink
+              link={resourcePathFromModel(NodeModel, name)}
+              resourceModel={NodeModel}
+              resourceName={name}
+            />
+          </FlexItem>
+          <FlexItem>
+            {isArbiter && (
+              <Label color="green" variant="filled">
+                {t('Arbiter')}
+              </Label>
+            )}
+          </FlexItem>
+        </Flex>
       </TableData>
       <TableData {...tableColumnClasses[1]} activeColumnIDs={activeColumnIDs}>
         {roles.join(', ') ?? '-'}
@@ -83,11 +99,12 @@ const SelectedNodesTableRow = ({ obj, activeColumnIDs }) => {
 export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({
   data,
   showDetails = true,
+  isTwoNodesOneArbiterCluster,
 }) => {
   const { t } = useCustomTranslation();
 
   const SelectedNodesTableColumns = React.useMemo(
-    () => [
+    (): TableColumn<WizardNodeState>[] => [
       {
         title: t('Name'),
         sort: 'name',
@@ -120,7 +137,7 @@ export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({
   );
 
   const [columns] = useActiveColumns({
-    columns: SelectedNodesTableColumns as any, // Todo(bipuladh): Update once sdk is updated
+    columns: SelectedNodesTableColumns,
     showNamespaceOverride: false,
     columnManagementID: 'SELECTED_NODES',
   });
@@ -136,7 +153,12 @@ export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({
         loaded={true}
         loadError={false}
       />
-      {showDetails && !!data.length && <SelectNodesTableFooter nodes={data} />}
+      {showDetails && !!data.length && (
+        <SelectNodesTableFooter
+          nodes={data}
+          isTwoNodesOneArbiterCluster={isTwoNodesOneArbiterCluster}
+        />
+      )}
     </>
   );
 };
@@ -144,4 +166,5 @@ export const SelectedNodesTable: React.FC<SelectedNodesTableProps> = ({
 type SelectedNodesTableProps = {
   data: WizardNodeState[];
   showDetails?: boolean;
+  isTwoNodesOneArbiterCluster: boolean;
 };
