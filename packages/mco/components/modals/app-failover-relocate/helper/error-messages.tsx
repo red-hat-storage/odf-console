@@ -274,14 +274,14 @@ export const ErrorMessages = (
   [ErrorMessageType.VOLUME_SYNC_DELAY_FAILOVER]: {
     title: t('Inconsistent data on target cluster'),
     message: t(
-      "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing failover could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
+      "One or more volumes for this application may not be replicating at all or replication is taking longer than the replication interval as defined in the assigned data policy. If either managed cluster's replication services are offline or unreachable, this is an expected condition. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
     ),
     variant: AlertVariant.warning,
   },
   [ErrorMessageType.VOLUME_SYNC_DELAY_RELOCATE]: {
     title: t('Inconsistent data on target cluster'),
     message: t(
-      "The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing relocate could lead to data loss. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
+      "One or more volumes for this application may not be replicating at all or replication is taking longer than the replication interval as defined in the assigned data policy. If either managed cluster's replication services are offline or unreachable, this is an expected condition. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information."
     ),
     variant: AlertVariant.warning,
   },
