@@ -65,6 +65,8 @@
     "**/package.json": "npx --yes sort-package-json@3.0.0"
   },
   "resolutions": {
+    "brace-expansion@1.1.7": "1.1.12",
+    "brace-expansion@2.0.1": "2.0.2",
     "webpack": "^5.99.9"
   },
   "dependencies": {
