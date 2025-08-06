@@ -33,6 +33,7 @@ export const poolMessage = (
 
 export const navigateToStoragePoolList = () => {
   ODFCommon.visitStorageCluster();
+  cy.byTestID('horizontal-link-Block and File').should('be.visible');
   cy.byTestID('horizontal-link-Storage pools').click();
 };
 
@@ -93,10 +94,18 @@ export const fillStoragePoolForm = (poolType: PoolType, poolName: string) => {
   cy.byTestID(`type-${poolType.toLowerCase()}`).click();
   cy.byTestID('new-pool-name-textbox').clear();
   cy.byTestID('new-pool-name-textbox').type(poolName);
-  cy.byTestID('replica-dropdown').click();
+  cy.byTestID('replica-dropdown')
+    .should('be.visible')
+    .should('not.be.disabled')
+    .click();
   cy.byLegacyTestID('replica-dropdown-item')
     .contains(`${replicaCount}-way Replication`)
+    .should('be.visible')
     .click();
+  cy.byTestID('replica-dropdown').should(
+    'contain',
+    `${replicaCount}-way Replication`
+  );
   cy.byTestID('compression-checkbox').check();
 };
 
@@ -157,7 +166,7 @@ export const verifyBlockPoolJSON = (
 };
 
 export const createStoragePool = (poolType: PoolType, poolName: string) => {
-  cy.byTestID('item-create').click();
+  cy.byTestID('item-create', { timeout: 10000 }).should('be.visible').click();
   fillStoragePoolForm(poolType, poolName);
   triggerPoolFormFooterAction('create');
 };
