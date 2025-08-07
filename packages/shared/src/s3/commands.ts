@@ -19,6 +19,7 @@ import {
   PutBucketPolicyCommand,
   GetBucketLifecycleConfigurationCommand,
   PutBucketLifecycleConfigurationCommand,
+  DeleteBucketLifecycleCommand,
   GetBucketCorsCommand,
   PutBucketCorsCommand,
   DeleteBucketCorsCommand,
@@ -50,6 +51,7 @@ import {
   SetBucketPolicy,
   GetBucketLifecycleConfiguration,
   PutBucketLifecycleConfiguration,
+  DeleteBucketLifecycleConfiguration,
   GetBucketCors,
   PutBucketCors,
   DeleteBucketCors,
@@ -114,6 +116,9 @@ export class S3Commands extends S3Client {
 
   putBucketLifecycleConfiguration: PutBucketLifecycleConfiguration = (input) =>
     this.send(new PutBucketLifecycleConfigurationCommand(input));
+
+  deleteBucketLifecycle: DeleteBucketLifecycleConfiguration = (input) =>
+    this.send(new DeleteBucketLifecycleCommand(input));
 
   getBucketCors: GetBucketCors = (input) =>
     this.send(new GetBucketCorsCommand(input));

@@ -37,6 +37,8 @@ import {
   GetBucketLifecycleConfigurationCommandOutput,
   PutBucketLifecycleConfigurationCommandInput,
   PutBucketLifecycleConfigurationCommandOutput,
+  DeleteBucketLifecycleCommandInput,
+  DeleteBucketLifecycleCommandOutput,
   GetBucketCorsCommandInput,
   GetBucketCorsCommandOutput,
   PutBucketCorsCommandInput,
@@ -107,6 +109,10 @@ export type GetBucketLifecycleConfiguration = (
 export type PutBucketLifecycleConfiguration = (
   input: PutBucketLifecycleConfigurationCommandInput
 ) => Promise<PutBucketLifecycleConfigurationCommandOutput>;
+
+export type DeleteBucketLifecycleConfiguration = (
+  input: DeleteBucketLifecycleCommandInput
+) => Promise<DeleteBucketLifecycleCommandOutput>;
 
 export type GetBucketCors = (
   input: GetBucketCorsCommandInput
