@@ -51,12 +51,8 @@ const fetchMirrorPeer = (
     const existingPeerNames =
       mirrorPeer.spec?.items?.map((item) => item.clusterName) ?? [];
     const existingODFPeerNames =
-      mirrorPeer.spec?.items?.map(
-        (item) =>
-          `${item.storageClusterRef.name},${
-            item.storageClusterRef?.namespace || ''
-          }`
-      ) ?? [];
+      mirrorPeer.spec?.items?.map((item) => `${item.storageClusterRef.name}`) ??
+      [];
     return (
       existingPeerNames.sort().join(',') === peerNames.sort().join(',') &&
       existingODFPeerNames.sort().join(',') === odfPeerNames.sort().join(',')
