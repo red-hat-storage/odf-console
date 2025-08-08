@@ -44,21 +44,16 @@ export type StorageClusterKind = K8sResourceCommon & {
         monCount: 3 | 5;
       };
       cephBlockPools?: {
-        disableSnapshotClass: boolean;
-        disableStorageClass: boolean;
         defaultStorageClass?: boolean;
         defaultVirtualizationStorageClass?: boolean;
       };
       cephFilesystems?: {
-        disableSnapshotClass: boolean;
-        disableStorageClass: boolean;
         additionalDataPools?: DataPool[];
       };
       cephObjectStores?: {
         hostNetwork: boolean;
       };
     };
-    manageNodes?: boolean;
     storageDeviceSets?: DeviceSet[];
     resourceProfile?: ResourceProfile;
     resources?: StorageClusterResource;
