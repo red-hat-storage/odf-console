@@ -486,7 +486,6 @@ export const getOCSRequestData = ({
     // for full deployment - ceph + mcg
     requestData.spec = {
       monDataDirHostPath: isNoProvisioner ? '/var/lib/rook' : '',
-      manageNodes: false,
       flexibleScaling,
       arbiter: {
         enable: stretchClusterChecked,
