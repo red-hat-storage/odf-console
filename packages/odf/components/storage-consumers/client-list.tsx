@@ -43,6 +43,11 @@ import { Button, Popover, PopoverPosition } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import { useODFNamespaceSelector } from '../../redux';
 import {
+  getClientClusterId,
+  isLocalClientCluster,
+  isClientClusterOnboarded,
+} from '../../utils';
+import {
   clientHeartBeatFilter,
   getMajorMinorVersion,
   versionMismatchFilter,
@@ -53,7 +58,7 @@ import './client-list.scss';
 
 export const getClusterName = (client: StorageConsumerKind) => {
   const clusterName = client.status?.client?.clusterName;
-  const clientClusterId = client.status?.client?.clusterId;
+  const clientClusterId = getClientClusterId(client);
   let name = '';
   if (!clusterName && !clientClusterId) {
     name = '-';
@@ -294,8 +299,8 @@ const StorageClientRow: React.FC<
         QuotaSizeUnitOptions[QuotaSize.Gi]
       ).string
     : t('Unlimited');
-  const clientClusterId = obj?.status?.client?.clusterId;
-  const isLocalClient = clientClusterId === localClusterId;
+  const isLocalClient = isLocalClientCluster(obj, localClusterId);
+  const isClientOnboarded = isClientClusterOnboarded(obj);
   return (
     <>
       {tableColumns.map((tableColumn) => {
@@ -352,7 +357,7 @@ const StorageClientRow: React.FC<
                   {
                     key: 'GENERATE_ONBOARDING_TOKEN',
                     value: t('Generate client onboarding token'),
-                    isDisabled: isLocalClient,
+                    isDisabled: isLocalClient || isClientOnboarded,
                     component: React.lazy(() =>
                       import('./onboarding-modal').then((m) => ({
                         default: m.ClientOnBoardingModal,
@@ -362,6 +367,7 @@ const StorageClientRow: React.FC<
                   {
                     key: 'DISTRIBUTE_RESOURCES',
                     value: t('Distribute resources'),
+                    isDisabled: isLocalClient,
                     component: React.lazy(
                       () =>
                         import(
@@ -418,7 +424,6 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
     ClusterVersionModel,
     'version'
   );
-
   const localClusterId = cv?.spec?.clusterID;
 
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
@@ -430,22 +435,18 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
   });
   const serviceVersion = getOprVersionFromCSV(csv);
 
-  // "rowFilters":
-  // - custom filters (new) that we are introducing to the list page
-  // - passing to both "useListPageFilter" hook & "ListPageFilter" component
-  // "rowFiltersWithNameOverride":
-  // - needed for overriding the filtering (default) on the CR's "name" (need to read the name from the CR's status instead)
-  // - only passing to "useListPageFilter" hook & not "ListPageFilter" component
-  const [rowFilters] = React.useMemo(() => {
+  const rowFilters = React.useMemo(() => {
     const customFilters = [
       clientHeartBeatFilter(t),
       versionMismatchFilter(t, serviceVersion),
     ];
-    return [customFilters, [...customFilters]];
+    return customFilters;
   }, [t, serviceVersion]);
 
-  const [data, filteredData, onFilterChange] =
-    useListPageFilter(storageClients);
+  const [data, filteredData, onFilterChange] = useListPageFilter(
+    storageClients,
+    rowFilters
+  );
 
   const launchModalOnClick = (modalComponent: ModalComponent) => () => {
     launchModal(modalComponent, { isOpen: true });
