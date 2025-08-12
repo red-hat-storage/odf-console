@@ -3,7 +3,14 @@ import {
   getClusterName,
   LastHeartBeat,
 } from '@odf/core/components/storage-consumers/client-list';
-import { getName, getUID, StorageConsumerKind } from '@odf/shared';
+import {
+  getName,
+  getUID,
+  StorageConsumerKind,
+  ClusterVersionModel,
+  ClusterVersionKind,
+} from '@odf/shared';
+import { useK8sGet } from '@odf/shared/hooks';
 import { TableSkeletonLoader } from '@odf/shared/skeletal-loader/TableSkeleton';
 import {
   K8sResourceCommon,
@@ -12,11 +19,12 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Thead, Tr, Th, Tbody, Table, Td } from '@patternfly/react-table';
+import { isLocalClientCluster } from '../../utils';
 
 export type SelectedResources = string[];
 
 type ResourceDistributionTableProps = {
-  resources: K8sResourceCommon[];
+  resources: StorageConsumerKind[];
   selectedResources: string[];
   setSelectedResources: React.Dispatch<React.SetStateAction<string[]>>;
   RowGenerator?: React.FC<RowGeneratorProps<K8sResourceCommon>>;
@@ -28,6 +36,7 @@ type RowGeneratorProps<T extends K8sResourceCommon> = {
   resource: T;
   onSelect: (selected: boolean) => void;
   isSelected: boolean;
+  localClusterId: string;
   rowIndex: number;
 };
 
@@ -35,10 +44,12 @@ const RowComponent: React.FC<RowGeneratorProps<StorageConsumerKind>> = ({
   resource,
   onSelect,
   isSelected,
+  localClusterId,
   rowIndex,
 }) => {
   const name = getName(resource);
   const clusterName = getClusterName(resource);
+  const isLocalClient = isLocalClientCluster(resource, localClusterId);
   return (
     <Tr key={getUID(resource)}>
       <Td
@@ -46,6 +57,7 @@ const RowComponent: React.FC<RowGeneratorProps<StorageConsumerKind>> = ({
           rowIndex,
           onSelect: (_event, isSelecting) => onSelect(isSelecting),
           isSelected,
+          isDisabled: isLocalClient,
         }}
       />
       <Td>{name}</Td>
@@ -64,6 +76,17 @@ export const StorageConsumerTable: React.FC<ResourceDistributionTableProps> = ({
   loaded,
   columns,
 }) => {
+  const [cv, cvLoaded] = useK8sGet<ClusterVersionKind>(
+    ClusterVersionModel,
+    'version'
+  );
+  const localClusterId = cv?.spec?.clusterID;
+  const localConsumerUID = getUID(
+    resources?.find((resource) =>
+      isLocalClientCluster(resource, localClusterId)
+    )
+  );
+
   const [areAllResourcesSelected, setAllResourcesSelected] =
     React.useState(false);
 
@@ -76,6 +99,8 @@ export const StorageConsumerTable: React.FC<ResourceDistributionTableProps> = ({
         });
     if (allSelected) {
       setAllResourcesSelected(true);
+    } else {
+      setAllResourcesSelected(false);
     }
   }, [resources, selectedResources]);
 
@@ -84,22 +109,9 @@ export const StorageConsumerTable: React.FC<ResourceDistributionTableProps> = ({
       const updatedResources = selected
         ? [...selectedResources, getUID(resource)]
         : selectedResources.filter((name) => name !== getUID(resource));
-      const isAllSelected = resources.every((res) =>
-        updatedResources.includes(getUID(res))
-      );
-      if (isAllSelected) {
-        setAllResourcesSelected(true);
-      } else {
-        setAllResourcesSelected(false);
-      }
       setSelectedResources(updatedResources);
     },
-    [
-      resources,
-      selectedResources,
-      setSelectedResources,
-      setAllResourcesSelected,
-    ]
+    [selectedResources, setSelectedResources]
   );
 
   const isRowSelected = React.useCallback(
@@ -112,17 +124,26 @@ export const StorageConsumerTable: React.FC<ResourceDistributionTableProps> = ({
     useListPageFilter(resources);
 
   const selectAllResources = (select: boolean) => {
-    setAllResourcesSelected(select);
-    const allUIDs = filteredData.map((resource) => getUID(resource));
-    setSelectedResources(allUIDs);
+    const allUIDs = new Set(selectedResources);
+    if (select) {
+      filteredData?.forEach((resource) => {
+        const uid = getUID(resource);
+        if (uid !== localConsumerUID) allUIDs.add(uid);
+      });
+    } else {
+      selectedResources?.forEach((resourceUID) => {
+        if (resourceUID !== localConsumerUID) allUIDs.delete(resourceUID);
+      });
+    }
+    setSelectedResources([...allUIDs]);
   };
-  return !loaded ? (
+  return !loaded || !cvLoaded ? (
     <TableSkeletonLoader columns={4} rows={8} />
   ) : (
     <>
       <ListPageFilter
         data={unfilteredData}
-        loaded={loaded}
+        loaded={loaded && cvLoaded}
         onFilterChange={onFilterChange}
         hideColumnManagement={true}
       />
@@ -149,6 +170,7 @@ export const StorageConsumerTable: React.FC<ResourceDistributionTableProps> = ({
               rowIndex={index}
               onSelect={onSelectRow(resource)}
               isSelected={isRowSelected(resource)}
+              localClusterId={localClusterId}
             />
           ))}
         </Tbody>

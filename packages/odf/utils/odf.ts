@@ -1,5 +1,8 @@
 import { getNamespace } from '@odf/shared/selectors';
-import { ClusterServiceVersionKind } from '@odf/shared/types';
+import {
+  ClusterServiceVersionKind,
+  StorageConsumerKind,
+} from '@odf/shared/types';
 import { K8sResourceKind } from '@odf/shared/types';
 import {
   StorageClassResourceKind,
@@ -81,3 +84,15 @@ export const hasAnyCeph = (
 export const hasAnyNoobaaStandalone = (
   systemFlags: ODFSystemFlagsPayload['systemFlags']
 ): boolean => _.some(systemFlags, (flags) => !!flags.isNoobaaStandalone);
+
+export const getClientClusterId = (resource: StorageConsumerKind) =>
+  resource?.status?.client?.clusterId;
+
+export const isLocalClientCluster = (
+  resource: StorageConsumerKind,
+  localClusterId: string
+) => getClientClusterId(resource) === localClusterId;
+
+// once client gets onboarded (enable = true) onboarding secret gets cleared
+export const isClientClusterOnboarded = (resource: StorageConsumerKind) =>
+  !!resource?.spec?.enable && !resource.status?.onboardingTicketSecret?.name;
