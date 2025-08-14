@@ -1308,6 +1308,7 @@
   "Onboarding token": "Onboarding token",
   "Once you select namespaces, applications regardless of their type, within those namespaces cannot be subsequently enrolled separately under disaster recovery protection.": "Once you select namespaces, applications regardless of their type, within those namespaces cannot be subsequently enrolled separately under disaster recovery protection.",
   "One or more settings might have allowed public access to your bucket": "One or more settings might have allowed public access to your bucket",
+  "One or more volumes for this application may not be replicating at all or replication is taking longer than the replication interval as defined in the assigned data policy. If either managed cluster's replication services are offline or unreachable, this is an expected condition. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information.": "One or more volumes for this application may not be replicating at all or replication is taking longer than the replication interval as defined in the assigned data policy. If either managed cluster's replication services are offline or unreachable, this is an expected condition. Refer to the corresponding VolumeSynchronizationDelay OpenShift alert(s) for more information.",
   "Ongoing": "Ongoing",
   "Online": "Online",
   "Only lowercase letters, numbers, non-consecutive periods, or hyphens": "Only lowercase letters, numbers, non-consecutive periods, or hyphens",
