@@ -8,4 +8,5 @@ export enum IPFamily {
 export const NetworkTypeLabels = {
   [NetworkType.DEFAULT]: 'Default (OVN)',
   [NetworkType.MULTUS]: 'Custom (Multus)',
+  [NetworkType.HOST]: 'Host',
 };
