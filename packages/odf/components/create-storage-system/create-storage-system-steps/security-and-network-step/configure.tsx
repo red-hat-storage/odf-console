@@ -32,30 +32,20 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
         className="ceph__install-radio--inline"
       >
         {isFDF ? (
-          <>
-            <Radio
-              isChecked={
-                networkType === NetworkType.DEFAULT ||
-                networkType === NetworkType.MULTUS
-              }
-              name="default-network"
-              label={t('Default (Pod)')}
-              description={t(
-                'Use the default OVN network for all internal communication.'
-              )}
-              onChange={() => setNetworkType(NetworkType.DEFAULT)}
-              value={NetworkType.DEFAULT}
-              id={NetworkType.DEFAULT}
-            />
-            <Alert
-              data-test="odf-default-network-alert"
-              title={t(
-                'You cannot (connect or) attach additional cluster to the storage provider.'
-              )}
-              variant={AlertVariant.info}
-              isInline
-            />
-          </>
+          <Radio
+            isChecked={
+              networkType === NetworkType.DEFAULT ||
+              networkType === NetworkType.MULTUS
+            }
+            name="default-network"
+            label={t('Default (Pod)')}
+            description={t(
+              'Use the default OVN network for all internal communication.'
+            )}
+            onChange={() => setNetworkType(NetworkType.DEFAULT)}
+            value={NetworkType.DEFAULT}
+            id={NetworkType.DEFAULT}
+          />
         ) : (
           <Alert
             data-test="odf-default-network-alert"
@@ -78,6 +68,18 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           />
         )}
       </FormGroup>
+      {isFDF &&
+        (networkType === NetworkType.DEFAULT ||
+          networkType === NetworkType.MULTUS) && (
+          <Alert
+            data-test="odf-default-network-alert"
+            title={t(
+              'You cannot (connect or) attach additional cluster to the storage provider.'
+            )}
+            variant={AlertVariant.info}
+            isInline
+          />
+        )}
       {(networkType === NetworkType.MULTUS ||
         networkType === NetworkType.DEFAULT) && (
         <MultusNetworkConfigurationComponent
