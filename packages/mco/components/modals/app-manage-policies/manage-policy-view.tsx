@@ -172,7 +172,8 @@ const getAggregatedDRInfo = (
       recipeNamespace: drpc?.recipeNamespace || acc.recipeNamespace,
       isVolumeGroupReplicationEnabled:
         acc.isVolumeGroupReplicationEnabled ||
-        getAnnotations(drpc)?.[IS_CG_ENABLED_ANNOTATION] === 'true',
+        getAnnotations(drpc)?.[IS_CG_ENABLED_ANNOTATION] === 'true' ||
+        !_.isEmpty(drpc?.status?.resourceConditions?.resourceMeta?.pvcgroups),
     }),
     {
       placements: [],
