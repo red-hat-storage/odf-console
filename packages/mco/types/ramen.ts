@@ -38,6 +38,10 @@ export type DRClusterKind = K8sResourceCommon & {
   };
 };
 
+export type Groups = {
+  grouped?: string[];
+};
+
 export type DRPlacementControlKind = K8sResourceCommon & {
   spec: {
     // The reference to the DRPolicy participating in the DR replication for this DRPC.
@@ -80,6 +84,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
       conditions?: K8sResourceCondition[];
       resourceMeta?: {
         protectedpvcs?: string[];
+        pvcgroups?: Groups[];
       };
     };
     phase: string;
