@@ -881,6 +881,30 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": ["/odf/external-systems/scale/~create"],
+      "exact": true,
+      "component": { "$codeRef": "scaleCreate.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": [
+        "/odf/external-systems/scale.spectrum.ibm.com~v1beta1~remotecluster/:systemName"
+      ],
+      "exact": false,
+      "component": { "$codeRef": "scaleDashboard.default" }
+    },
+    "flags": {
+      "required": ["FDF_FLAG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": [
         "/odf/external-systems/ocs.openshift.io~v1~storagecluster/:systemName"
       ],
