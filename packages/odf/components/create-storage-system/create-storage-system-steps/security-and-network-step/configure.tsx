@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { NetworkAttachmentDefinitionKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
@@ -39,16 +38,10 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
               networkType === NetworkType.MULTUS
             }
             name="default-network"
-            label={
-              <>
-                {t('Default (Pod)')}
-                <FieldLevelHelp>
-                  {t(
-                    'The default OVN uses a single network for all data operations such as read/write and also for control planes, such as data replication.'
-                  )}
-                </FieldLevelHelp>
-              </>
-            }
+            label={t('Default (Pod)')}
+            description={t(
+              'Use the default OVN network for all internal communication.'
+            )}
             onChange={() => setNetworkType(NetworkType.DEFAULT)}
             value={NetworkType.DEFAULT}
             id={NetworkType.DEFAULT}
@@ -65,22 +58,28 @@ export const NetworkFormGroup: React.FC<NetworkFormGroupProps> = ({
           <Radio
             isChecked={networkType === NetworkType.HOST}
             name="custom-network"
-            label={
-              <div className="ceph__multus-radio--width">
-                {t('Host')}
-                <FieldLevelHelp>
-                  {t(
-                    'Multus allows a network seperation between the data operations and the control plane operations.'
-                  )}
-                </FieldLevelHelp>
-              </div>
-            }
+            label={t('Host')}
+            description={t(
+              'Use the host network to allow external access, support custom networking, or connect additional clusters to the storage provider.'
+            )}
             onChange={() => setNetworkType(NetworkType.HOST)}
             value={NetworkType.MULTUS}
             id={NetworkType.MULTUS}
           />
         )}
       </FormGroup>
+      {isFDF &&
+        (networkType === NetworkType.DEFAULT ||
+          networkType === NetworkType.MULTUS) && (
+          <Alert
+            data-test="odf-default-network-alert"
+            title={t(
+              'You cannot (connect or) attach additional cluster to the storage provider.'
+            )}
+            variant={AlertVariant.info}
+            isInline
+          />
+        )}
       {(networkType === NetworkType.MULTUS ||
         networkType === NetworkType.DEFAULT) && (
         <MultusNetworkConfigurationComponent
