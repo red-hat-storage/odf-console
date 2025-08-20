@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { VolumeConsistencyCheckbox } from '@odf/mco/components/enable-volume-consistency-group/enable-volume-consistency-group';
 import {
   DR_BLOCK_LISTED_LABELS,
   LABEL,
@@ -257,7 +256,6 @@ export const PVCDetailsWizardContent: React.FC<
   protectedPVCSelectors,
   dispatch,
   pvcQueryFilter,
-  isVolumeConsistencyEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -293,13 +291,6 @@ export const PVCDetailsWizardContent: React.FC<
   const protectedPlacementNames: string[] = protectedPVCSelectors.map(
     (pvcSelector) => pvcSelector.placementName
   );
-
-  const handleVolumeConsistencyChange = (checked: boolean) => {
-    dispatch({
-      type: ManagePolicyStateType.SET_VOLUME_CONSISTENCY_ENABLED,
-      payload: checked,
-    });
-  };
 
   return (
     <Form>
@@ -345,16 +336,6 @@ export const PVCDetailsWizardContent: React.FC<
       ) : (
         <StatusBox loaded={loaded} loadError={error} />
       )}
-      <FormGroup
-        label={t('Volume consistency groups')}
-        fieldId="volume-consistency-groups"
-      >
-        <VolumeConsistencyCheckbox
-          isChecked={isVolumeConsistencyEnabled}
-          onChange={handleVolumeConsistencyChange}
-          t={t}
-        />
-      </FormGroup>
     </Form>
   );
 };
@@ -370,7 +351,6 @@ type ExtraProps = {
 };
 
 type PVCDetailsWizardContentProps = {
-  isVolumeConsistencyEnabled: boolean;
   pvcSelectors: PVCSelectorType[];
   unProtectedPlacements: PlacementType[];
   isValidationEnabled: boolean;

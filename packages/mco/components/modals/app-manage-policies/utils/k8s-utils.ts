@@ -14,7 +14,6 @@ import {
   PROTECTED_VMS,
   VM_RECIPE_NAME,
   K8S_RESOURCE_SELECTOR_LABEL_KEY,
-  IS_CG_ENABLED_ANNOTATION,
 } from '@odf/mco/constants';
 import {
   DRPlacementControlKind,
@@ -269,7 +268,7 @@ export const assignPromisesForManaged = async (
   state: AssignPolicyViewState,
   placements: PlacementType[]
 ): Promise<void> => {
-  const { policy, persistentVolumeClaim, enableVolumeConsistencyGroup } = state;
+  const { policy, persistentVolumeClaim } = state;
   const { pvcSelectors } = persistentVolumeClaim;
 
   const promises: Promise<K8sResourceKind>[] = [];
@@ -285,12 +284,6 @@ export const assignPromisesForManaged = async (
         : placementRuleAssignPromise(placement)
     );
 
-    const annotations = enableVolumeConsistencyGroup
-      ? {
-          [IS_CG_ENABLED_ANNOTATION]: 'true',
-        }
-      : undefined;
-
     // Push DRPC creation promise
     promises.push(
       k8sCreate({
@@ -303,8 +296,7 @@ export const assignPromisesForManaged = async (
           getName(policy),
           policy.drClusters,
           placement.deploymentClusters,
-          labels,
-          annotations
+          labels
         ),
       })
     );
@@ -423,14 +415,10 @@ export const assignPromisesForDiscovered = async (
   const {
     protectionType: { protectionName, protectionType, protectedVMNames },
     replication: { k8sSyncInterval, policy },
-    enableVolumeConsistencyGroup,
   } = state;
   const drpcName = `${protectionName}-drpc`;
 
   const clusterName = placements[0]?.deploymentClusters?.[0];
-  const annotations = enableVolumeConsistencyGroup && {
-    [IS_CG_ENABLED_ANNOTATION]: 'true',
-  };
 
   // Step 1 & 2: Label VM and PVCs
   await Promise.all([
@@ -470,7 +458,6 @@ export const assignPromisesForDiscovered = async (
             [PVC_RESOURCE_SELECTOR]: [protectionName],
             [PROTECTED_VMS]: [vmName],
           },
-          annotations,
         }),
       }),
     ]);

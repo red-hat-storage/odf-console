@@ -1,3 +1,4 @@
+import { DRPlacementControlKind } from '@odf/mco/types';
 import {
   K8sResourceCommon,
   ObjectReference,
@@ -29,6 +30,7 @@ export type DRPlacementControlType = K8sResourceCommon & {
   vmSharedGroupName?: string;
   // K8s objects replication interval
   k8sResourceSyncInterval?: string;
+  status?: DRPlacementControlKind['status'];
 };
 
 export type DRPolicyType = K8sResourceCommon & {
