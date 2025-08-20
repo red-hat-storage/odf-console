@@ -46,8 +46,11 @@ const mapStorageClusterToStorageSystem = (
 export const useWatchStorageSystems = (
   onlyWatchExternalClusters?: boolean
 ): [StorageSystemKind[], boolean, any] => {
-  const { storageClusters: odfClusters, flashSystemClusters } =
-    useWatchStorageClusters();
+  const {
+    storageClusters: odfClusters,
+    flashSystemClusters,
+    remoteClusters: remoteClusterClients,
+  } = useWatchStorageClusters();
 
   const loaded = odfClusters.loaded && flashSystemClusters.loaded;
   // Flashsystem loaderror can occur when IBM flashsystem operator is not installed hence ignore it
@@ -66,10 +69,15 @@ export const useWatchStorageSystems = (
     flashSystemClusters?.loaded && !flashSystemClusters.loadError
       ? flashSystems?.map(mapStorageClusterToStorageSystem)
       : [];
-
+  const remoteClusterClientsData = remoteClusterClients.data;
+  const remoteClusterClientsList: StorageSystemKind[] =
+    remoteClusterClients?.loaded && !remoteClusterClients.loadError
+      ? remoteClusterClientsData?.map(mapStorageClusterToStorageSystem)
+      : [];
   const aggregatedStorageSystems = [
     ...storageSystems,
     ...flashSystemClustersList,
+    ...remoteClusterClientsList,
   ];
   const memoizedStorageSystems = useDeepCompareMemoize(
     aggregatedStorageSystems,
