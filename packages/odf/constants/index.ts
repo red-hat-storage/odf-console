@@ -7,3 +7,4 @@ export * from './mcg';
 export * from './providerSchema';
 export * from './data-protection';
 export * from './s3-browser';
+export * from './scale';

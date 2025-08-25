@@ -96,7 +96,7 @@ export type BreakdownBodyProps = {
   hasLoadError: boolean;
   metricTotal: string;
   top5MetricsStats: StackDataPoint[];
-  capacityUsed: string;
+  capacityUsed?: string;
   capacityAvailable?: string;
   metricModel: K8sKind;
   humanize: Humanize;

@@ -18,6 +18,7 @@ import { Kebab } from '@odf/shared/kebab/kebab';
 import {
   IBMFlashSystemModel,
   InfrastructureModel,
+  RemoteClusterModel,
   ODFStorageSystem,
   StorageClusterModel,
 } from '@odf/shared/models';
@@ -266,6 +267,9 @@ const getModelOfExternalSystem = (obj: K8sResourceCommon): K8sModel => {
   }
   if (kind === StorageClusterModel.kind) {
     return StorageClusterModel;
+  }
+  if (kind === RemoteClusterModel.kind) {
+    return RemoteClusterModel;
   }
   throw new Error(`Unknown external system kind: ${kind}`);
 };

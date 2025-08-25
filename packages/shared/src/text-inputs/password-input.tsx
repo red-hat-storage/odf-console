@@ -8,6 +8,7 @@ type PasswordInputProps = {
   value: string;
   onChange: (value: string) => void;
   isRequired?: boolean;
+  placeholder?: string;
 };
 
 const PasswordInput: React.FC<PasswordInputProps> = ({
@@ -15,6 +16,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   value,
   onChange,
   isRequired,
+  placeholder,
 }) => {
   const { t } = useCustomTranslation();
   const [showPassword, setShowPassword] = React.useState(false);
@@ -27,6 +29,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         value={value}
         onChange={(_event, newValue) => onChange(newValue)}
         isRequired={isRequired}
+        placeholder={placeholder}
       />
       <Tooltip content={showPassword ? t('Hide password') : t('Show password')}>
         <Button

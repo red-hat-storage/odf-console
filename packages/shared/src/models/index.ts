@@ -9,3 +9,4 @@ export * from './argo-cd';
 export * from './kubevirt';
 export * from './odf-mco';
 export * from './ramen';
+export * from './scale';
