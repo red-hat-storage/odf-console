@@ -138,6 +138,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
   allNodes,
   defaultVolumeMode,
   systemNamespace,
+  isTwoNodesOneArbiterCluster,
 }) => {
   const { t } = useCustomTranslation();
   const [radio, setRadio] = React.useState(FilterDiskBy.ALL_NODES);
@@ -368,6 +369,17 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           systemNamespace={systemNamespace}
         />
       )}
+      {isTwoNodesOneArbiterCluster && (
+        <Alert
+          title={t('2-Nodes and 1-Arbiter setup detected')}
+          variant={AlertVariant.warning}
+          ouiaId="tna-cluster-details"
+        >
+          {t(
+            'This setup spans across 3 zones with 2 data nodes and 1 arbiter. The arbiter maintains quorum without storing data. This setup uses replica-2, which tolerates only one node failure; data loss can occur if multiple nodes fail. Review your failure domain and recovery plan before proceeding.'
+          )}
+        </Alert>
+      )}
       <FormGroup label={t('Disk type')} fieldId="create-lvs-disk-type-dropdown">
         <SingleSelectDropdown
           id="create-lvs-disk-type-dropdown"
@@ -565,4 +577,5 @@ type LocalVolumeSetBodyProps = {
   allNodes: WizardState['nodes'];
   defaultVolumeMode: WizardState['createLocalVolumeSet']['diskMode'];
   systemNamespace: WizardState['backingStorage']['systemNamespace'];
+  isTwoNodesOneArbiterCluster: boolean;
 };
