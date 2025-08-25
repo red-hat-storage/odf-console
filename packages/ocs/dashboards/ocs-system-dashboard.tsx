@@ -82,9 +82,9 @@ const PersistentInternalDashboard: React.FC = () => {
   const mainCards: React.ComponentType[] = [
     StatusCard,
     RawCapacityCard,
-    PoolUtilizationCard,
     CapacityTrendCard,
     BreakdownCard,
+    PoolUtilizationCard,
     UtilizationCard,
   ];
   const leftCards: React.ComponentType[] = [
