@@ -37,4 +37,9 @@ export const deletePVCFromCLI = (pvcName: string, ns = 'default') => {
       throw new Error(`PVC deletion failed: ${result.stderr}`);
     }
   });
+
+  cy.log('Waiting for PVC deletion to complete');
+  cy.exec(`oc wait --for=delete pvc/${pvcName} -n ${ns} --timeout=60s`, {
+    failOnNonZeroExit: false,
+  });
 };
