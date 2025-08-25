@@ -109,6 +109,7 @@ export const generateDRPlacementControlInfo = (
             ]?.[0] ?? '',
           k8sResourceSyncInterval:
             drpc.spec?.kubeObjectProtection?.captureInterval,
+          status: drpc.status,
         },
       ]
     : [];

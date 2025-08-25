@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { VolumeConsistencyCheckbox } from '@odf/mco/components/enable-volume-consistency-group/enable-volume-consistency-group';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Alert,
@@ -33,18 +32,7 @@ export const Configuration: React.FC<ConfigurationProps> = ({
   const { t } = useCustomTranslation();
 
   const { namespaces, clusterName } = state.namespace;
-  const {
-    protectionMethod,
-    recipe,
-    resourceLabels,
-    isVolumeConsistencyEnabled,
-  } = state.configuration;
-  const handleVolumeConsistencyChange = (checked: boolean) => {
-    dispatch({
-      type: EnrollDiscoveredApplicationStateType.SET_VOLUME_CONSISTENCY_ENABLED,
-      payload: checked,
-    });
-  };
+  const { protectionMethod, recipe, resourceLabels } = state.configuration;
 
   const setProtectionMethod = (_unUsed, event) => {
     dispatch({
@@ -133,17 +121,6 @@ export const Configuration: React.FC<ConfigurationProps> = ({
             dispatch={dispatch}
           />
         )}
-
-        <FormGroup
-          label={t('Volume consistency groups')}
-          fieldId="volume-consistency-groups"
-        >
-          <VolumeConsistencyCheckbox
-            isChecked={isVolumeConsistencyEnabled}
-            onChange={handleVolumeConsistencyChange}
-            t={t}
-          />
-        </FormGroup>
       </FormSection>
     </Form>
   );
