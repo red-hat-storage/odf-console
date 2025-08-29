@@ -131,11 +131,12 @@ const getPoolDropdownItems = (
   _.reduce(
     poolData,
     (res, pool: StoragePool) => {
-      const compressionText =
-        pool?.spec?.compressionMode === 'none' ||
-        pool?.spec?.compressionMode === ''
-          ? t('no compression')
-          : t('with compression');
+      const compressionMode = pool?.spec?.compressionMode;
+      const isCompressionEnabled: boolean =
+        !!compressionMode && compressionMode !== 'none';
+      const compressionText = !isCompressionEnabled
+        ? t('no compression')
+        : t('with compression');
       if (
         pool?.status?.phase === PoolState.READY &&
         cephCluster?.status?.phase === ClusterStatus.READY
