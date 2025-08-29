@@ -2,19 +2,22 @@ import * as React from 'react';
 import { AttachStorageAction } from '@odf/core/components/attach-storage-storagesystem/state';
 import { checkArbiterCluster } from '@odf/core/utils';
 import {
+  DEFAULT_INFRASTRUCTURE,
   fieldRequirementsTranslations,
   formSettings,
 } from '@odf/shared/constants';
 import { useK8sGet } from '@odf/shared/hooks';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
-import { StorageClusterModel } from '@odf/shared/models';
+import { InfrastructureModel, StorageClusterModel } from '@odf/shared/models';
 import { getNamespace } from '@odf/shared/selectors';
 import {
+  InfrastructureKind,
   ListKind,
   StorageClusterKind,
   CephClusterKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { hasTwoNodesOneArbiterClusterEnabled } from '@odf/shared/utils';
 import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import {
@@ -125,6 +128,9 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   const [storageCluster, storageClusterLoaded, storageClusterLoadError] =
     useK8sGet<ListKind<StorageClusterKind>>(StorageClusterModel, null, poolNs);
 
+  const [infrastructure, infrastructureLoaded, infrastructureError] =
+    useK8sGet<InfrastructureKind>(InfrastructureModel, DEFAULT_INFRASTRUCTURE);
+
   const [isReplicaOpen, setReplicaOpen] = React.useState(false);
 
   const poolNameMaxLength = 253;
@@ -188,6 +194,15 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
     });
   }, [poolName, dispatch, errors?.newPoolName, prefixName, usePrefix]);
 
+  // TwoNodeOneArbiterCluster detection
+  React.useEffect(() => {
+    if (infrastructureLoaded && !infrastructureError)
+      dispatch({
+        type: StoragePoolActionType.SET_POOL_TWO_NODE_ONE_ARBITER,
+        payload: hasTwoNodesOneArbiterClusterEnabled(infrastructure),
+      });
+  }, [infrastructure, infrastructureLoaded, infrastructureError, dispatch]);
+
   // Failure Domain
   React.useEffect(() => {
     if (storageClusterLoaded && !storageClusterLoadError)
@@ -225,9 +240,15 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   ]);
 
   const replicaList: string[] = _.keys(OCS_DEVICE_REPLICA).filter(
-    (replica: string) =>
-      (state.isArbiterCluster && replica === '4') ||
-      (!state.isArbiterCluster && replica !== '4')
+    (replica: string) => {
+      if (state.isTwoNodeOneArbiterCluster) {
+        return replica === '2';
+      } else if (state.isArbiterCluster) {
+        return replica === '4';
+      } else {
+        return replica !== '4';
+      }
+    }
   );
 
   const replicaDropdownItems = replicaList.map((replica) => {

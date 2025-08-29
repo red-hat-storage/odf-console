@@ -1,4 +1,4 @@
-import { DataPool } from '@odf/shared/types';
+import { NamedPoolSpec } from '@odf/shared/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import { PoolState, PoolType } from './constants';
 
@@ -23,15 +23,10 @@ type MirroringStatus = {
   };
 };
 
+// reference: CephBlockPool
+// https://github.com/rook/rook/blob/master/pkg/apis/ceph.rook.io/v1/types.go#L866
 export type StoragePoolKind = K8sResourceCommon & {
-  spec: DataPool & {
-    enableCrushUpdates?: boolean;
-    deviceClass?: string;
-    failureDomain?: string;
-    parameters?: {
-      compression_mode: string;
-    };
-  };
+  spec: NamedPoolSpec;
   status?: {
     phase?: PoolState;
     mirroringStatus?: MirroringStatus;
@@ -44,9 +39,11 @@ export type StoragePool = StoragePoolKind & {
   shortName?: string;
 };
 
+// reference:
+// https://github.com/rook/rook/blob/55e02436da2a8d80bd0610d273c4ac8b2b293c94/pkg/apis/ceph.rook.io/v1/types.go#L1309
 export type CephFilesystemKind = K8sResourceCommon & {
   spec: {
-    dataPools: DataPool[];
+    dataPools: NamedPoolSpec[];
   };
   status?: {
     phase?: string;
