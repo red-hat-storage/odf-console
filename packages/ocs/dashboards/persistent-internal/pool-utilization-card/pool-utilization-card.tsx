@@ -63,7 +63,7 @@ import { StoragePoolTableData } from './types';
 
 const tableColumnInfo = [
   { className: '', id: 'name' },
-  { className: '', id: 'volumeMode' },
+  { className: '', id: 'volumeType' },
   { className: '', id: 'usage' },
 ];
 
@@ -82,7 +82,7 @@ const PoolRowRenderer: React.FC<RowProps<StoragePoolTableData, CustomData>> = ({
   const Icon = obj.critical ? ExclamationCircleIcon : ExclamationTriangleIcon;
   const iconColor = obj.critical ? dangerColor.value : warningColor.value;
   const poolType = obj.type;
-  const volumeMode = poolType === PoolType.BLOCK ? t('Block') : t('Filesystem');
+  const volumeType = poolType === PoolType.BLOCK ? t('Block') : t('Filesystem');
 
   return (
     <>
@@ -94,7 +94,7 @@ const PoolRowRenderer: React.FC<RowProps<StoragePoolTableData, CustomData>> = ({
           variant="filled"
           color={poolType === PoolType.BLOCK ? 'blue' : 'green'}
         >
-          {volumeMode}
+          {volumeType}
         </Label>
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
@@ -294,7 +294,7 @@ export const PoolUtilizationCard: React.FC = () => {
         id: tableColumnInfo[0].id,
       },
       {
-        title: t('Volume mode'),
+        title: t('Volume type'),
         props: {
           className: tableColumnInfo[1].className,
         },

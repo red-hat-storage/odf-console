@@ -40,7 +40,7 @@ import {
 import Status from '@openshift-console/dynamic-plugin-sdk/lib/app/components/status/Status';
 import classNames from 'classnames';
 import { Link, useLocation } from 'react-router-dom-v5-compat';
-import { Tooltip, Label } from '@patternfly/react-core';
+import { Tooltip } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
 import {
   PoolType,
@@ -104,10 +104,6 @@ const tableColumnInfo = [
   {
     className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
     id: 'mirroringStatus',
-  },
-  {
-    className: classNames('pf-m-hidden', 'pf-m-visible-on-xl'),
-    id: 'volumeMode',
   },
   {
     className: classNames(
@@ -189,7 +185,7 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[5].id,
       },
       {
-        title: t('Volume mode'),
+        title: t('Used of max available'),
         transforms: [wrappable],
         props: {
           className: tableColumnInfo[6].className,
@@ -197,33 +193,25 @@ const StoragePoolListTable: React.FC<StoragePoolListTableProps> = (props) => {
         id: tableColumnInfo[6].id,
       },
       {
-        title: t('Used of max available'),
-        transforms: [wrappable],
+        title: t('Compression status'),
         props: {
           className: tableColumnInfo[7].className,
         },
         id: tableColumnInfo[7].id,
       },
       {
-        title: t('Compression status'),
+        title: t('Compression savings'),
         props: {
           className: tableColumnInfo[8].className,
         },
         id: tableColumnInfo[8].id,
       },
       {
-        title: t('Compression savings'),
+        title: '',
         props: {
           className: tableColumnInfo[9].className,
         },
         id: tableColumnInfo[9].id,
-      },
-      {
-        title: '',
-        props: {
-          className: tableColumnInfo[10].className,
-        },
-        id: tableColumnInfo[10].id,
       },
     ],
     [t]
@@ -366,14 +354,6 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
         {mirroringStatus ? t('Enabled') : t('Disabled')}
       </TableData>
       <TableData {...tableColumnInfo[6]} activeColumnIDs={activeColumnIDs}>
-        <Label
-          variant="filled"
-          color={poolType === PoolType.BLOCK ? 'blue' : 'green'}
-        >
-          {poolType === PoolType.BLOCK ? t('Block') : t('Filesystem')}
-        </Label>
-      </TableData>
-      <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
         <PoolUtilizationDisplay
           pool={obj as StoragePoolTableData}
           usedCapacityDisplay={usedCapacityDisplay}
@@ -388,15 +368,15 @@ const RowRenderer: React.FC<RowProps<StoragePool, CustomData>> = ({
           }
         />
       </TableData>
-      <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
         <span data-test={`${name}-compression`}>
           {isCompressionEnabled ? t('Enabled') : t('Disabled')}
         </span>
       </TableData>
-      <TableData {...tableColumnInfo[9]} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumnInfo[8]} activeColumnIDs={activeColumnIDs}>
         {isCompressionEnabled ? compressionSavings : '-'}
       </TableData>
-      <TableData {...tableColumnInfo[10]} activeColumnIDs={activeColumnIDs}>
+      <TableData {...tableColumnInfo[9]} activeColumnIDs={activeColumnIDs}>
         {isDefaultPool(obj) ? (
           <Tooltip
             content={t('Default pool cannot be deleted.')}
