@@ -15,10 +15,12 @@ function save(target) {
   };
 }
 
+function loadJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
 async function removeValues(i18nFile, filePath) {
-  const file = await import(i18nFile, { assert: { type: 'json' } }).then(
-    (m) => m.default
-  );
+  const file = loadJson(i18nFile);
 
   const updatedFile = {};
 
@@ -38,10 +40,9 @@ async function consolidateWithExistingTranslations(
   fileName,
   language
 ) {
-  const englishFile = await import(filePath, { assert: { type: 'json' } }).then(
-    (m) => m.default
-  );
+  const englishFile = loadJson(filePath);
   const englishKeys = Object.keys(englishFile);
+
   const existingTranslationsPath = `../../locales/${language}/${fileName}.json`;
   const existingTranslationsFullPath = path.join(
     __dirname,
@@ -49,10 +50,7 @@ async function consolidateWithExistingTranslations(
   );
 
   if (fs.existsSync(existingTranslationsFullPath)) {
-    const existingTranslationsFile = await import(
-      existingTranslationsFullPath,
-      { assert: { type: 'json' } }
-    ).then((m) => m.default);
+    const existingTranslationsFile = loadJson(existingTranslationsFullPath);
     const existingKeys = Object.keys(existingTranslationsFile);
     const matchingKeys = englishKeys.filter(
       (k) => existingKeys.indexOf(k) > -1
