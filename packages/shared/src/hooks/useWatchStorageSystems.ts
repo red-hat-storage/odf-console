@@ -52,26 +52,26 @@ export const useWatchStorageSystems = (
     remoteClusters: remoteClusterClients,
   } = useWatchStorageClusters();
 
-  const loaded = odfClusters.loaded && flashSystemClusters.loaded;
+  const loaded = odfClusters?.loaded && flashSystemClusters?.loaded;
   // Flashsystem loaderror can occur when IBM flashsystem operator is not installed hence ignore it
-  const loadError = odfClusters.loadError;
+  const loadError = odfClusters?.loadError;
   const storageClusters: StorageClusterKind[] = onlyWatchExternalClusters
-    ? odfClusters.data.filter((storagecluster) =>
+    ? odfClusters?.data?.filter((storagecluster) =>
         isExternalCluster(storagecluster)
       )
-    : odfClusters.data;
+    : odfClusters?.data;
   const storageSystems: StorageSystemKind[] =
-    odfClusters?.loaded && !odfClusters.loadError
+    odfClusters?.loaded && !odfClusters?.loadError
       ? storageClusters?.map(mapStorageClusterToStorageSystem)
       : [];
-  const flashSystems = flashSystemClusters.data;
+  const flashSystems = flashSystemClusters?.data;
   const flashSystemClustersList: StorageSystemKind[] =
-    flashSystemClusters?.loaded && !flashSystemClusters.loadError
+    flashSystemClusters?.loaded && !flashSystemClusters?.loadError
       ? flashSystems?.map(mapStorageClusterToStorageSystem)
       : [];
-  const remoteClusterClientsData = remoteClusterClients.data;
+  const remoteClusterClientsData = remoteClusterClients?.data;
   const remoteClusterClientsList: StorageSystemKind[] =
-    remoteClusterClients?.loaded && !remoteClusterClients.loadError
+    remoteClusterClients?.loaded && !remoteClusterClients?.loadError
       ? remoteClusterClientsData?.map(mapStorageClusterToStorageSystem)
       : [];
   const aggregatedStorageSystems = [

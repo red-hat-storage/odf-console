@@ -27,7 +27,7 @@ export const PoolUtilizationPopoverContent: React.FC<
   const { t } = useCustomTranslation();
   const Icon = pool.critical ? ExclamationCircleIcon : ExclamationTriangleIcon;
   const iconColor = pool.critical ? dangerColor.value : warningColor.value;
-  const volumeMode =
+  const volumeType =
     pool.type === PoolType.BLOCK ? t('Block') : t('Filesystem');
 
   return (
@@ -50,7 +50,7 @@ export const PoolUtilizationPopoverContent: React.FC<
               color={pool.type === PoolType.BLOCK ? 'blue' : 'green'}
               className="pf-v5-u-ml-sm"
             >
-              {volumeMode}
+              {volumeType}
             </Label>
           </DescriptionListDescription>
         </DescriptionListGroup>
