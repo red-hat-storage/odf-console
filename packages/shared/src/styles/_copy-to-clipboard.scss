@@ -1,5 +1,7 @@
+@use './vars' as vars;
+
 .odf-copy-to-clipboard {
-  font-family: $font-family-monospace;
+  font-family: vars.$font-family-monospace;
   position: relative;
 }
 
