@@ -9,8 +9,8 @@ export const getModalStartPoint = (pathname: string): StartingPoint => {
       return StartingPoint.STORAGE_CLUSTER;
     case 'overview':
       return StartingPoint.OVERVIEW;
-    case 'external-system':
-      return StartingPoint.EXTERNAL_SYSTEM;
+    case 'external-systems':
+      return StartingPoint.EXTERNAL_SYSTEMS;
     case 'object-storage':
       return StartingPoint.OBJECT_STORAGE;
     default:
