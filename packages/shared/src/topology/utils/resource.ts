@@ -1,7 +1,7 @@
 import { DeploymentModel } from '@odf/shared/models';
 import { getUID } from '@odf/shared/selectors';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { DeploymentKind, PodKind } from '../../types';
+import { DeploymentKind } from '../../types';
 
 export const resolveResourceUntilDeployment = (
   ownerUID: string,
@@ -15,19 +15,8 @@ export const resolveResourceUntilDeployment = (
     return owner as DeploymentKind;
   } else {
     return resolveResourceUntilDeployment(
-      owner.metadata.ownerReferences[0].uid,
+      owner?.metadata?.ownerReferences?.[0]?.uid,
       ...resources
     );
   }
-};
-
-export const isPodInDeployment = (
-  pod: PodKind,
-  ...resources: K8sResourceCommon[]
-) => {
-  const podOwner = resolveResourceUntilDeployment(
-    pod.metadata.ownerReferences[0].uid,
-    ...resources
-  );
-  return podOwner != null;
 };
