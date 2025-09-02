@@ -2,15 +2,10 @@ import * as React from 'react';
 import { DRPCStatus } from '@odf/mco/constants';
 import { getDRPolicyResourceObj } from '@odf/mco/hooks';
 import { DRPlacementControlKind, DRPolicyKind } from '@odf/mco/types';
-import { getName } from '@odf/shared';
-import {
-  K8sResourceCommon,
-  useK8sWatchResource,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   getReplicationHealth,
   getReplicationType,
-  findCluster,
   getDRPolicyName,
   getPrimaryClusterName,
 } from '../../../utils';
@@ -35,9 +30,8 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
     const schedulingInterval = drPolicy?.spec?.schedulingInterval;
 
     const primaryClusterName = getPrimaryClusterName(drPlacementControl);
-    const targetCluster = findCluster(
-      drPolicy.spec?.drClusters as K8sResourceCommon[],
-      primaryClusterName
+    const targetCluster = drPolicy.spec?.drClusters.find(
+      (name) => name !== primaryClusterName
     );
 
     const volumeLastGroupSyncTime =
@@ -62,7 +56,7 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
       policyName: drPolicyName,
       schedulingInterval,
       primaryCluster: primaryClusterName,
-      targetCluster: getName(targetCluster),
+      targetCluster: targetCluster,
       volumeLastGroupSyncTime: volumeLastGroupSyncTime,
       lastKubeObjectProtectionTime: lastKubeObjectProtectionTime,
       volumeReplicationHealth,
