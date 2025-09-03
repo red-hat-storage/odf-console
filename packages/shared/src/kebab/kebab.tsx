@@ -74,6 +74,7 @@ type KebabProps = {
     resource: K8sResourceCommon;
     resourceModel: K8sModel;
     [key: string]: any;
+    forceDeletion?: boolean;
   };
   customKebabItems?: CustomKebabItem[];
   toggleType?: 'Kebab' | 'Dropdown';
@@ -276,7 +277,10 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   }, [t, customKebabItemsMap, resourceLabel, hideItems]);
 
   isDisabled =
-    isDisabled || _.has(resource.metadata, 'deletionTimestamp') || !canCreate;
+    isDisabled ||
+    (!extraProps?.forceDeletion &&
+      _.has(resource.metadata, 'deletionTimestamp')) ||
+    !canCreate;
 
   const content = _.has(resource.metadata, 'deletionTimestamp')
     ? terminatingTooltip || t('Resource is being deleted.')
