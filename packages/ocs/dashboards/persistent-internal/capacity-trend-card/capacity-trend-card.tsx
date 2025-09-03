@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { GraphEmpty } from '@odf/shared/charts';
 import { DEFAULT_PROMETHEUS_RETENTION } from '@odf/shared/constants';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards';
@@ -38,7 +39,6 @@ import {
   CEPH_CAPACITY_BREAKDOWN_QUERIES,
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 const calculateDaysUp = (timespan: number): number | null => {
   const daysPassed: number = timespan / (60 * 60 * 24);
@@ -91,9 +91,7 @@ const CapacityTrendCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { systemFlags } = useODFSystemFlagsSelector();
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
   const ocsCluster = systemFlags[clusterNs]?.ocsClusterName;
 
   const [configData, configLoaded, configLoadError] =

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { FDF_FLAG } from '@odf/core/redux';
 import { isClusterIgnored, isExternalCluster } from '@odf/core/utils/odf';
 import { DASH } from '@odf/shared/constants';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
@@ -9,11 +10,13 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   K8sResourceKind,
   StatusIconAndText,
+  useFlag,
   YellowExclamationTriangleIcon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Button,
   ButtonVariant,
@@ -80,6 +83,9 @@ const getClustersStatuses = (
 export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
   const { t } = useCustomTranslation();
   const { storageClusters, flashSystemClusters } = useWatchStorageClusters();
+  const navigate = useNavigate();
+
+  const isFDF = useFlag(FDF_FLAG);
 
   const cephClustersStatuses =
     storageClusters.loaded && !storageClusters.loadError
@@ -110,14 +116,16 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
         <Stack>
           <StackItem>
             <DescriptionList>
-              <DescriptionListGroup>
-                <DescriptionListTerm>
-                  {t('IBM Scale System')}
-                </DescriptionListTerm>
-                <DescriptionListDescription>
-                  {scaleClustersStatuses}
-                </DescriptionListDescription>
-              </DescriptionListGroup>
+              {isFDF && (
+                <DescriptionListGroup>
+                  <DescriptionListTerm>
+                    {t('IBM Scale System')}
+                  </DescriptionListTerm>
+                  <DescriptionListDescription>
+                    {scaleClustersStatuses}
+                  </DescriptionListDescription>
+                </DescriptionListGroup>
+              )}
               <DescriptionListGroup>
                 <DescriptionListTerm>
                   {t('IBM Flash System')}
@@ -141,8 +149,7 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
               icon={<ArrowRightIcon />}
               iconPosition="end"
               className="pf-v5-u-font-size-lg odf-cluster-card__storage-link"
-              component="a"
-              href={'' /* @TODO: add the correct link when available. */}
+              onClick={() => navigate('/odf/external-systems')}
             >
               {t('View external systems')}
             </Button>

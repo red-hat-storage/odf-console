@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useGetExternalClusterDetails } from '@odf/core/redux/utils';
 import { GraphEmpty } from '@odf/shared/charts';
 import { PrometheusUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-utilization-item';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -14,14 +15,11 @@ import {
   StorageDashboardQuery,
   INDEPENDENT_UTILIZATION_QUERIES,
 } from '../../queries';
-import { OCSDashboardContext } from '../ocs-dashboard-providers';
 
 export const UtilizationContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetExternalClusterDetails();
 
   const [scQueryfilter, scQueryfilterLoaded, scQueryfilterError] =
     useStorageClassQueryFilter(clusterNs);
