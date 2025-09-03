@@ -245,10 +245,11 @@ const OCSSystemDashboard: React.FC<{}> = () => {
   const isMCGAvailable = systemFlags[clusterNs]?.isNoobaaAvailable;
   const isRGWAvailable = systemFlags[clusterNs]?.isRGWAvailable;
   const isObjectServiceAvailable = isMCGAvailable || isRGWAvailable;
-  const isCephAvailable = systemFlags[clusterNs]?.isCephAvailable;
+  const isStorageClusterAvailable = systemFlags[clusterNs]?.ocsClusterName;
   const isNFSEnabled = systemFlags[clusterNs]?.isNFSEnabled;
 
-  const showInternalDashboard = isCephAvailable && !showExternalDashboard;
+  const showInternalDashboard =
+    isStorageClusterAvailable && !showExternalDashboard;
   const showNFSDashboard = !showExternalDashboard && isNFSEnabled;
 
   const pages = React.useMemo(() => {
