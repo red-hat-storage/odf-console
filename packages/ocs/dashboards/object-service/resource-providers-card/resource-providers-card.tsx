@@ -7,7 +7,6 @@ import {
   usePrometheusBasePath,
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getMetric } from '@odf/shared/utils';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
@@ -59,24 +58,12 @@ const MCGResourceProvidersBody: React.FC = () => {
     endpoint: 'api/v1/query' as any,
     basePath: usePrometheusBasePath(),
   });
-  const [resourcesLinksResponse, resourcesLinksResponseError] =
-    useCustomPrometheusPoll({
-      query: RESOURCE_PROVIDERS_QUERY.RESOURCES_LINK_QUERY,
-      endpoint: 'api/v1/query' as any,
-      basePath: usePrometheusBasePath(),
-    });
 
   const error =
     !!providersTypesQueryResultError ||
-    !!unhealthyProvidersTypesQueryResultError ||
-    !!resourcesLinksResponseError;
-
-  const noobaaResourcesLink = getMetric(resourcesLinksResponse, 'resources');
+    !!unhealthyProvidersTypesQueryResultError;
 
   const allProviders = createProvidersList(providersTypesQueryResult);
-  const unhealthyProviders = createProvidersList(
-    unhealthyProvidersTypesQueryResult
-  );
 
   const providerTypes = filterProviders(allProviders);
 
@@ -93,9 +80,7 @@ const MCGResourceProvidersBody: React.FC = () => {
         <ResourceProvidersItem
           count={allProviders[provider]}
           key={provider}
-          link={noobaaResourcesLink}
           title={provider}
-          unhealthyProviders={unhealthyProviders}
         />
       ))}
     </ResourceProvidersBody>
