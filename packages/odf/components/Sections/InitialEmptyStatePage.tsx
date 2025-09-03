@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
 import { StorageClusterCreateModal } from '@odf/core/modals/ConfigureDF/StorageClusterCreateModal';
 import { getModalStartPoint } from '@odf/core/modals/ConfigureDF/util';
 import { StartingPoint } from '@odf/core/types/install-ui';
@@ -17,7 +18,7 @@ import {
   EmptyStateHeader,
   EmptyStateIcon,
 } from '@patternfly/react-core';
-import { StorageDomainIcon } from '@patternfly/react-icons';
+import { CubesIcon, StorageDomainIcon } from '@patternfly/react-icons';
 
 const getPageTitle = (path: string, t: TFunction) => {
   if (path.includes(StartingPoint.STORAGE_CLUSTER)) {
@@ -26,8 +27,8 @@ const getPageTitle = (path: string, t: TFunction) => {
   if (path.includes(StartingPoint.OBJECT_STORAGE)) {
     return t('Object storage');
   }
-  if (path.includes(StartingPoint.EXTERNAL_SYSTEM)) {
-    return t('External system');
+  if (path.includes(StartingPoint.EXTERNAL_SYSTEMS)) {
+    return t('External systems');
   }
   if (path.includes(StartingPoint.OVERVIEW)) {
     return t('Overview');
@@ -70,7 +71,11 @@ const EmptyStateBodyExternalSystemPage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <Trans t={t}>
-      Configure an external system to connect to Data Foundation
+      Connect an external storage system to get started. Add{' '}
+      <span className="pf-v5-u-font-weight-bold">
+        IBM FlashSystem, IBM Scale or Red Hat Ceph Storage{' '}
+      </span>{' '}
+      to begin managing it.
     </Trans>
   );
 };
@@ -85,18 +90,59 @@ const EmptyStatePageBody: React.FC = () => {
       return <EmptyStateBodyStorageClusterPage />;
     case StartingPoint.OBJECT_STORAGE:
       return <EmptyStateBodyObjectPage />;
-    case StartingPoint.EXTERNAL_SYSTEM:
+    case StartingPoint.EXTERNAL_SYSTEMS:
       return <EmptyStateBodyExternalSystemPage />;
     default:
       return <EmptyStateBodyOverviewPage />;
   }
 };
 
+const ExternalSystemsEmptyState: React.FC = () => {
+  const { t } = useCustomTranslation();
+  const launchModal = useModal();
+  return (
+    <EmptyState>
+      <EmptyStateHeader
+        titleText={t('No external systems connected')}
+        headingLevel="h4"
+        icon={<EmptyStateIcon icon={CubesIcon} />}
+      />
+      <EmptyStateBody>
+        <EmptyStatePageBody />
+      </EmptyStateBody>
+      <EmptyStateFooter>
+        <EmptyStateActions>
+          <Button
+            data-test="configure-external-systems"
+            variant={ButtonVariant.primary}
+            onClick={() => {
+              launchModal(ExternalSystemsSelectModal, {});
+            }}
+          >
+            {t('Connect external systems')}
+          </Button>
+        </EmptyStateActions>
+        <EmptyStateActions>
+          <Button
+            variant={ButtonVariant.link}
+            onClick={() => {
+              return null;
+            }}
+          >
+            {t('Explore all supported external systems')}
+          </Button>
+        </EmptyStateActions>
+      </EmptyStateFooter>
+    </EmptyState>
+  );
+};
 const InitialEmptyStatePage: React.FC = () => {
   const { t } = useCustomTranslation();
   const location = useLocation();
+  const path = location.pathname;
+  const title = getPageTitle(path, t);
   const launchModal = useModal();
-  const title = getPageTitle(location.pathname, t);
+  const isExternalSystems = path.includes(StartingPoint.EXTERNAL_SYSTEMS);
 
   return (
     <>
@@ -104,39 +150,43 @@ const InitialEmptyStatePage: React.FC = () => {
         <title>{title}</title>
       </Helmet>
       <PageHeading title={title} />
-      <EmptyState>
-        <EmptyStateHeader
-          titleText={t('Storage cluster is not configured')}
-          headingLevel="h4"
-          icon={<EmptyStateIcon icon={StorageDomainIcon} />}
-        />
-        <EmptyStateBody>
-          <EmptyStatePageBody />
-        </EmptyStateBody>
-        <EmptyStateFooter>
-          <EmptyStateActions>
-            <Button
-              data-test="configure-data-foundation"
-              variant={ButtonVariant.primary}
-              onClick={() => {
-                launchModal(StorageClusterCreateModal, {});
-              }}
-            >
-              {t('Configure Data Foundation')}
-            </Button>
-          </EmptyStateActions>
-          <EmptyStateActions>
-            <Button
-              variant={ButtonVariant.link}
-              onClick={() => {
-                return null;
-              }}
-            >
-              {t('Documentation link')}
-            </Button>
-          </EmptyStateActions>
-        </EmptyStateFooter>
-      </EmptyState>
+      {!!isExternalSystems ? (
+        <ExternalSystemsEmptyState />
+      ) : (
+        <EmptyState>
+          <EmptyStateHeader
+            titleText={t('Storage cluster is not configured')}
+            headingLevel="h4"
+            icon={<EmptyStateIcon icon={StorageDomainIcon} />}
+          />
+          <EmptyStateBody>
+            <EmptyStatePageBody />
+          </EmptyStateBody>
+          <EmptyStateFooter>
+            <EmptyStateActions>
+              <Button
+                data-test="configure-data-foundation"
+                variant={ButtonVariant.primary}
+                onClick={() => {
+                  launchModal(StorageClusterCreateModal, {});
+                }}
+              >
+                {t('Configure Data Foundation')}
+              </Button>
+            </EmptyStateActions>
+            <EmptyStateActions>
+              <Button
+                variant={ButtonVariant.link}
+                onClick={() => {
+                  return null;
+                }}
+              >
+                {t('Documentation link')}
+              </Button>
+            </EmptyStateActions>
+          </EmptyStateFooter>
+        </EmptyState>
+      )}
     </>
   );
 };
