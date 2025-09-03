@@ -267,7 +267,7 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
     if (!isNoProvionerSC || hasFlexibleScaling) return '';
     if (isArbiterEnabled && !isArbiterSC(selectedSCName, pvData, nodesData)) {
       return t(
-        'The Arbiter stretch cluster requires a minimum of 4 nodes (2 different zones, 2 nodes per zone). Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.'
+        'The Arbiter stretch cluster requires a minimum of 2 nodes (2 different zones, 1 nodes per zone) for expansion. Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.'
       );
     }
     if (
@@ -330,7 +330,12 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
       portable = false;
     }
     if (isNoProvionerSC)
-      deviceSetCount = getDeviceSetCount(availablePvsCount, deviceSetReplica);
+      deviceSetCount = getDeviceSetCount(
+        availablePvsCount,
+        deviceSetReplica,
+        hasFlexibleScaling,
+        isArbiterEnabled
+      );
 
     if (deviceSetIndex === -1) {
       patch.op = 'add';
