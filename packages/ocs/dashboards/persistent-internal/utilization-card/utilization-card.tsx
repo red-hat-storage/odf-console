@@ -1,6 +1,7 @@
 // TODO (@rexagod): https://github.com/openshift/console/pull/10470#discussion_r766453369
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { GraphEmpty } from '@odf/shared/charts';
 import ConsumerPopover from '@odf/shared/dashboards/utilization-card/ConsumerPopover';
 import { PrometheusMultilineUtilizationItem } from '@odf/shared/dashboards/utilization-card/prometheus-multi-utilization-item';
@@ -20,16 +21,13 @@ import {
   utilizationPopoverQueryMap,
   UTILIZATION_QUERY,
 } from '../../../queries';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import { humanizeIOPS, humanizeLatency } from './utils';
 import '@odf/shared/dashboards/utilization-card/utilization-card.scss';
 
 export const UtilizationContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
   // name of the created StorageClasses are prefix by StorageCluster name,
   // it is also the value of the "managedBy" label in the metrics.

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useGetExternalClusterDetails } from '@odf/core/redux/utils';
 import { cephClusterResource } from '@odf/core/resources';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { getCephHealthState } from '@odf/ocs/utils';
@@ -14,7 +15,6 @@ import {
   CardBody,
   CardTitle,
 } from '@patternfly/react-core';
-import { OCSDashboardContext } from '../ocs-dashboard-providers';
 import '../../style.scss';
 
 export const StatusCard: React.FC = () => {
@@ -22,9 +22,7 @@ export const StatusCard: React.FC = () => {
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetExternalClusterDetails();
 
   const cephHealth = getCephHealthState(
     {

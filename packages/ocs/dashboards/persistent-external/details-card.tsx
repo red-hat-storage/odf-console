@@ -2,6 +2,7 @@ import * as React from 'react';
 import { CEPH_BRAND_NAME } from '@odf/core/constants';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import { useGetExternalClusterDetails } from '@odf/core/redux/utils';
 import { getStorageClusterInNs } from '@odf/core/utils';
 import { ODF_OPERATOR, OCS_OPERATOR } from '@odf/shared/constants';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
@@ -30,7 +31,6 @@ import {
   DescriptionList,
 } from '@patternfly/react-core';
 import EncryptionPopover from '../common/details-card/encryption-popover';
-import { OCSDashboardContext } from '../ocs-dashboard-providers';
 
 const getCephLink = (secret: SecretKind): string => {
   const data = secret?.data?.userKey;
@@ -62,9 +62,7 @@ export const DetailsCard: React.FC = () => {
   const isODF = useFlag(ODF_MODEL_FLAG);
 
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetExternalClusterDetails();
 
   const resourcesObj: ResourcesObject = useK8sWatchResources(
     k8sResources(clusterNs)

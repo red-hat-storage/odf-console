@@ -3,6 +3,7 @@ import {
   useODFNamespaceSelector,
   useODFSystemFlagsSelector,
 } from '@odf/core/redux';
+import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { namespaceResource } from '@odf/core/resources';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { getSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
@@ -35,7 +36,6 @@ import {
 } from '../../../queries/ceph-storage';
 import { getStackChartStats } from '../../../utils/metrics';
 import './capacity-breakdown-card.scss';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 const modelByUsedQueryMap = {
   [BreakdownCardFields.PROJECTS]: StorageDashboardQuery.PROJECTS_BY_USED,
@@ -129,9 +129,7 @@ const BreakdownCard: React.FC = () => {
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const [pvcNamespace, setPVCNamespace] = React.useState('');
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
 
   // name of the created StorageClasses are prefix by StorageCluster name,
