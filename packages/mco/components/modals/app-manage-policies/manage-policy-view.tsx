@@ -547,7 +547,11 @@ export const ManagePolicyView: React.FC<ManagePolicyViewProps> = ({
             id="disable-dr-action"
             variant={ButtonVariant.secondary}
             isDanger
-            isDisabled={isDRProtectionRemoved(drInfo.placementControlInfo)}
+            isDisabled={
+              actionContext ===
+                ModalActionContext.DISABLE_DR_PROTECTION_SUCCEEDED ||
+              isDRProtectionRemoved(drInfo.placementControlInfo)
+            }
             onClick={() =>
               setLocalModalActionContext(
                 ModalActionContext.DISABLE_DR_PROTECTION
