@@ -115,23 +115,36 @@ export const createPolicyPromises = (
 ): Promise<K8sResourceKind>[] => {
   const promises: Promise<K8sResourceKind>[] = [];
   const peerNames = state.selectedClusters.map(getName);
-  promises.push(
-    createDRPolicy(
-      state.policyName,
-      state.replicationType,
-      state.syncIntervalTime,
-      state.enableRBDImageFlatten,
-      peerNames
-    )
-  );
 
   if (state.replicationBackend === BackendType.DataFoundation) {
+    promises.push(
+      createDRPolicy(
+        state.policyName,
+        state.replicationType,
+        state.syncIntervalTime,
+        state.enableRBDImageFlatten,
+        peerNames
+      )
+    );
     const mirrorPeerPromise = prepareOdfPeering(state, mirrorPeers, peerNames);
-    promises.push(mirrorPeerPromise);
+    if (mirrorPeerPromise) promises.push(mirrorPeerPromise);
   } else {
-    const nonOdfPromises: Promise<K8sResourceKind>[] =
-      prepareThirdPartyPeering(state);
-    promises.push(...nonOdfPromises);
+    const peeringPromises = prepareThirdPartyPeering(state);
+    promises.push(...peeringPromises);
+
+    // DRPolicy is created ONLY AFTER all third-party peering promises resolve
+    const gate = Promise.all(peeringPromises);
+    const gatedDRPolicy = gate.then(() =>
+      createDRPolicy(
+        state.policyName,
+        state.replicationType,
+        state.syncIntervalTime,
+        state.enableRBDImageFlatten,
+        peerNames
+      )
+    ) as Promise<K8sResourceKind>;
+
+    promises.push(gatedDRPolicy);
   }
 
   return promises;
