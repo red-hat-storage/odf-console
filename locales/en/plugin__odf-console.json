@@ -1828,7 +1828,7 @@
   "Tenant ID": "Tenant ID",
   "The aggregate resource requirements for {{selectedProfile}} mode is": "The aggregate resource requirements for {{selectedProfile}} mode is",
   "The amount of capacity that would be dynamically allocated on the selected StorageClass.": "The amount of capacity that would be dynamically allocated on the selected StorageClass.",
-  "The Arbiter stretch cluster requires a minimum of 4 nodes (2 different zones, 2 nodes per zone). Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.": "The Arbiter stretch cluster requires a minimum of 4 nodes (2 different zones, 2 nodes per zone). Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.",
+  "The Arbiter stretch cluster requires a minimum of 2 nodes (2 different zones, 1 nodes per zone) for expansion. Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.": "The Arbiter stretch cluster requires a minimum of 2 nodes (2 different zones, 1 nodes per zone) for expansion. Please choose a different StorageClass or create a new LocalVolumeSet that matches the minimum node requirement.",
   "The available capacity is based on all attached disks associated with the selected StorageClass <3>{{storageClassName}}</3>": "The available capacity is based on all attached disks associated with the selected StorageClass <3>{{storageClassName}}</3>",
   "The backend path in Vault where the encryption keys will be stored.": "The backend path in Vault where the encryption keys will be stored.",
   "The bucket is being deleted. This may take a while.": "The bucket is being deleted. This may take a while.",

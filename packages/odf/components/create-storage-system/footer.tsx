@@ -160,7 +160,12 @@ const canJumpToNextStep = (
     flexibleScaling,
     nodes
   );
-  const deviceSetCount = getDeviceSetCount(pvCount, deviceSetReplica);
+  const deviceSetCount = getDeviceSetCount(
+    pvCount,
+    deviceSetReplica,
+    flexibleScaling,
+    enableArbiter
+  );
   const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
 
   switch (name) {
