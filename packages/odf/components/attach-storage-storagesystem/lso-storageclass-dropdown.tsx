@@ -45,9 +45,11 @@ export const LSOStorageClassDropdown = ({
     nodesLoadError || !(nodesData as []).length || !nodesLoaded;
   const hasFlexibleScaling = checkFlexibleScaling(storageCluster);
   const isArbiterEnabled: boolean = checkArbiterCluster(storageCluster);
+
   const replica = getDeviceSetReplica(
     isArbiterEnabled,
     hasFlexibleScaling,
+    state.isTwoNodeOneArbiterCluster,
     createWizardNodeState(getCephNodes(nodesData, namespace) as NodeData[])
   );
 

@@ -13,13 +13,20 @@ import {
 } from '@odf/core/utils';
 import { getCephNodes } from '@odf/ocs/utils';
 import {
+  DEFAULT_INFRASTRUCTURE,
+  InfrastructureKind,
+  InfrastructureModel,
   PageHeading,
   StatusBox,
   StorageClusterKind,
   StorageClusterModel,
   useFetchCsv,
 } from '@odf/shared';
-import { isCSVSucceeded, referenceForModel } from '@odf/shared/utils';
+import {
+  hasTwoNodesOneArbiterClusterEnabled,
+  isCSVSucceeded,
+  referenceForModel,
+} from '@odf/shared/utils';
 import {
   consoleFetch,
   K8sResourceCommon,
@@ -101,6 +108,12 @@ const AttachStorage = () => {
 
   const [nodesData, nodesLoaded, nodesLoadError] = useNodesData();
 
+  const [infrastructure, infrastructureLoaded, infrastructureError] =
+    useSafeK8sGet<InfrastructureKind>(
+      InfrastructureModel,
+      DEFAULT_INFRASTRUCTURE
+    );
+
   const breadcrumbs = [
     {
       name: resourceName,
@@ -132,6 +145,15 @@ const AttachStorage = () => {
       return;
     }
 
+    if (!infrastructureLoaded || infrastructureError) {
+      dispatch({
+        type: AttachStorageActionType.SET_ERROR_MESSAGE,
+        payload: t(
+          'Unable to check the infrastructure type. Please try again later.'
+        ),
+      });
+    }
+
     if (!pvData.length) {
       dispatch({
         type: AttachStorageActionType.SET_ERROR_MESSAGE,
@@ -156,6 +178,7 @@ const AttachStorage = () => {
       const replica = getDeviceSetReplica(
         isArbiterEnabled,
         hasFlexibleScaling,
+        hasTwoNodesOneArbiterClusterEnabled(infrastructure),
         createWizardNodeState(getCephNodes(nodesData, namespace) as NodeData[])
       );
 
@@ -199,6 +222,9 @@ const AttachStorage = () => {
     pvData,
     pvLoaded,
     pvLoadError,
+    infrastructure,
+    infrastructureLoaded,
+    infrastructureError,
     state,
     namespace,
     dispatch,

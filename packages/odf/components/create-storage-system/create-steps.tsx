@@ -21,6 +21,7 @@ export const createSteps = (
   state: WizardState,
   dispatch: WizardDispatch,
   infraType: InfraProviders,
+  hasTwoNodesOneArbiter: boolean,
   hasOCS: boolean,
   supportedExternalStorage: ExternalStorage[],
   hasMultipleClusters: boolean
@@ -48,6 +49,7 @@ export const createSteps = (
         <CapacityAndNodes
           dispatch={dispatch}
           infraType={infraType}
+          isTwoNodesOneArbiterCluster={hasTwoNodesOneArbiter}
           state={capacityAndNodes}
           storageClass={storageClass}
           volumeSetName={createLocalVolumeSet.volumeSetName}
@@ -146,6 +148,7 @@ export const createSteps = (
         nodes={nodes}
         stepIdReached={stepIdReached}
         isMCG={isMCG}
+        isTwoNodesOneArbiterCluster={hasTwoNodesOneArbiter}
         systemNamespace={systemNamespace}
       />
     ),
