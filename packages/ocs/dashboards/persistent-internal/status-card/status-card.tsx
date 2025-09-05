@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { resiliencyProgressQuery } from '@odf/ocs/queries';
 import {
@@ -42,7 +43,6 @@ import {
   CardBody,
   CardTitle,
 } from '@patternfly/react-core';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import '../../../style.scss';
 import './healthchecks.scss';
 
@@ -133,9 +133,7 @@ export const StatusCard: React.FC = () => {
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
   const { systemFlags } = useODFSystemFlagsSelector();
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 
   const [resiliencyProgress, resiliencyProgressError] = useCustomPrometheusPoll(

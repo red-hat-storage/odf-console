@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFNamespaceSelector } from '@odf/core/redux';
+import { useGetExternalClusterDetails } from '@odf/core/redux/utils';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { getSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import {
@@ -21,7 +22,6 @@ import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { useStorageClassQueryFilter } from '../../hooks';
 import { getBreakdownMetricsQuery } from '../../queries';
 import { getStackChartStats } from '../../utils/metrics';
-import { OCSDashboardContext } from '../ocs-dashboard-providers';
 import {
   NamespaceDropdown,
   DescriptionText,
@@ -37,9 +37,7 @@ export const BreakdownCard: React.FC = () => {
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const [pvcNamespace, setPVCNamespace] = React.useState('');
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetExternalClusterDetails();
   const { odfNamespace } = useODFNamespaceSelector();
 
   const [scQueryfilter, scQueryfilterLoaded, scQueryfilterError] =

@@ -2,8 +2,13 @@
 /* eslint-disable import/no-named-default */
 
 import * as React from 'react';
+import { ClientListPage } from '@odf/core/components/storage-consumers/client-list';
 import TopologyWithErrorHandler from '@odf/core/components/topology/Topology';
 import { FDF_FLAG, useODFSystemFlagsSelector } from '@odf/core/redux';
+import {
+  useGetExternalClusterDetails,
+  useGetInternalClusterDetails,
+} from '@odf/core/redux/utils';
 import { PageHeading } from '@odf/shared';
 import { LoadingBox } from '@odf/shared/generic/status-box';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -17,7 +22,6 @@ import {
 import { TFunction } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
 import StoragePoolListPage from '../storage-pool/StoragePoolListPage';
-import { ClusterSelectorBar } from './ClusterSelectorBar/ClusterSelectorBar';
 import { StatusCard as NFSStatusCard } from './network-file-system/status-card/status-card';
 import { ThroughputCard } from './network-file-system/throughput-card/throughput-card';
 import { TopClientsCard } from './network-file-system/top-clients-card/top-clients-card';
@@ -29,7 +33,6 @@ import { DetailsCard as ObjectDetailsCard } from './object-service/details-card/
 import { ResourceProvidersCard } from './object-service/resource-providers-card/resource-providers-card';
 import { default as ObjectStatusCard } from './object-service/status-card/status-card';
 import StorageEfficiencyCard from './object-service/storage-efficiency-card/storage-efficiency-card';
-import { OCSDashboardContext } from './ocs-dashboard-providers';
 import { default as ExtBreakdownCard } from './persistent-external/breakdown-card';
 import { default as ExtDetailsCard } from './persistent-external/details-card';
 import { StatusCard as ExtStatusCard } from './persistent-external/status-card';
@@ -78,7 +81,6 @@ export const CommonDashboardRenderer: React.FC<
 };
 
 const PersistentInternalDashboard: React.FC = () => {
-  const isFDF = useFlag(FDF_FLAG);
   const mainCards: React.ComponentType[] = [
     StatusCard,
     RawCapacityCard,
@@ -95,14 +97,11 @@ const PersistentInternalDashboard: React.FC = () => {
   const rightCards: React.ComponentType[] = [ActivityCard];
 
   return (
-    <>
-      {!isFDF && <ClusterSelectorBar />}
-      <CommonDashboardRenderer
-        leftCards={leftCards}
-        mainCards={mainCards}
-        rightCards={rightCards}
-      />
-    </>
+    <CommonDashboardRenderer
+      leftCards={leftCards}
+      mainCards={mainCards}
+      rightCards={rightCards}
+    />
   );
 };
 
@@ -114,17 +113,13 @@ const PersistentExternalDashboard: React.FC = () => {
   ];
   const leftCards: React.ComponentType[] = [ExtDetailsCard, InventoryCard];
   const rightCards: React.ComponentType[] = [ActivityCard];
-  const isFDF = useFlag(FDF_FLAG);
 
   return (
-    <>
-      {!isFDF && <ClusterSelectorBar />}
-      <CommonDashboardRenderer
-        leftCards={leftCards}
-        mainCards={mainCards}
-        rightCards={rightCards}
-      />
-    </>
+    <CommonDashboardRenderer
+      leftCards={leftCards}
+      mainCards={mainCards}
+      rightCards={rightCards}
+    />
   );
 };
 
@@ -209,6 +204,14 @@ const nfsPage = (t: TFunction): TabPage => {
   };
 };
 
+const clientsPage = (t: TFunction): TabPage => {
+  return {
+    href: 'clients',
+    title: t('Clients'),
+    component: ClientListPage,
+  };
+};
+
 export const ExternalSystemDashboard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { systemName } = useParams();
@@ -235,12 +238,8 @@ export const ExternalSystemDashboard: React.FC = () => {
 const OCSSystemDashboard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs, isExternalMode },
-  } = React.useContext(OCSDashboardContext);
   const { systemFlags } = useODFSystemFlagsSelector();
-
-  const showExternalDashboard = isExternalMode;
+  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
 
   const isMCGAvailable = systemFlags[clusterNs]?.isNoobaaAvailable;
   const isRGWAvailable = systemFlags[clusterNs]?.isRGWAvailable;
@@ -248,29 +247,69 @@ const OCSSystemDashboard: React.FC<{}> = () => {
   const isStorageClusterAvailable = systemFlags[clusterNs]?.ocsClusterName;
   const isNFSEnabled = systemFlags[clusterNs]?.isNFSEnabled;
 
-  const showInternalDashboard =
-    isStorageClusterAvailable && !showExternalDashboard;
-  const showNFSDashboard = !showExternalDashboard && isNFSEnabled;
+  const showInternalDashboard = isStorageClusterAvailable;
+  const showNFSDashboard = isNFSEnabled;
+  const isFDF = useFlag(FDF_FLAG);
 
   const pages = React.useMemo(() => {
     const tempPages = [];
     showInternalDashboard && tempPages.push(internalPage(t));
-    showExternalDashboard && tempPages.push(externalPage(t));
     showNFSDashboard && tempPages.push(nfsPage(t));
     isObjectServiceAvailable && tempPages.push(objectPage(t));
     tempPages.push(storagePoolPage(t));
     tempPages.push(topologyPage(t));
+    isFDF && tempPages.push(clientsPage(t));
     return tempPages;
   }, [
     showInternalDashboard,
     t,
-    showExternalDashboard,
     showNFSDashboard,
     isObjectServiceAvailable,
+    isFDF,
   ]);
 
   return pages.length > 0 ? (
     <Tabs id="odf-dashboard-tab" tabs={pages} />
+  ) : (
+    <LoadingBox />
+  );
+};
+
+export const ExternalStorageClusterDashboard: React.FC<{}> = () => {
+  const { t } = useCustomTranslation();
+  const { systemName } = useParams();
+
+  const { systemFlags } = useODFSystemFlagsSelector();
+  const { clusterNamespace: clusterNs } = useGetExternalClusterDetails();
+
+  const isMCGAvailable = systemFlags[clusterNs]?.isNoobaaAvailable;
+  const isRGWAvailable = systemFlags[clusterNs]?.isRGWAvailable;
+  const isObjectServiceAvailable = isMCGAvailable || isRGWAvailable;
+
+  const pages = React.useMemo(() => {
+    const tempPages = [];
+    tempPages.push(externalPage(t));
+    isObjectServiceAvailable && tempPages.push(objectPage(t));
+    return tempPages;
+  }, [t, isObjectServiceAvailable]);
+
+  return pages.length > 0 ? (
+    <>
+      <PageHeading
+        title={systemName}
+        breadcrumbs={[
+          {
+            name: t('External systems'),
+            path: '/odf/external-systems',
+          },
+          {
+            name: systemName,
+            path: '',
+          },
+        ]}
+      />
+      <Tabs id="odf-dashboard-tab" tabs={pages} />
+    </>
   ) : (
     <LoadingBox />
   );

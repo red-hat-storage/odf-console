@@ -459,6 +459,7 @@
   "Client Private Key": "Client Private Key",
   "Client version is out of date": "Client version is out of date",
   "Client: {{ clientName }}": "Client: {{ clientName }}",
+  "Clients": "Clients",
   "Close": "Close",
   "Cluster": "Cluster",
   "Cluster capacity not available at this moment.": "Cluster capacity not available at this moment.",

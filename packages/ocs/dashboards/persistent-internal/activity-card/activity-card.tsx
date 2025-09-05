@@ -2,6 +2,7 @@ import * as React from 'react';
 import { OSDMigrationStatus } from '@odf/core/constants';
 import { PROVIDER_MODE } from '@odf/core/features';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import {
   getStorageClusterInNs,
   getResourceInNs as getCephClusterInNs,
@@ -46,7 +47,6 @@ import {
   StorageDashboardQuery,
 } from '../../../queries/ceph-storage';
 import { isPersistentStorageEvent } from '../../../utils/common';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import {
   isClusterExpandActivity,
   ClusterExpandActivity,
@@ -83,9 +83,7 @@ const cephClusterResource = {
 };
 
 const RecentEvent: React.FC = () => {
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
   const [pvcs, pvcLoaded] =
     useK8sWatchResource<PersistentVolumeClaimKind[]>(pvcResource);
   const [events, eventsLoaded] =
@@ -119,9 +117,7 @@ export const storageClusterResource = {
 };
 
 const OngoingActivity = () => {
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { EfficiencyItemBody } from '@odf/shared/dashboards/storage-efficiency/storage-efficiency-card-item';
 import {
   useCustomPrometheusPoll,
@@ -12,14 +13,11 @@ import {
   POOL_STORAGE_EFFICIENCY_QUERIES,
   StorageDashboardQuery,
 } from '../../../queries';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 export const StorageEfficiencyContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
   const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
 

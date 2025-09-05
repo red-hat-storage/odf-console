@@ -72,7 +72,7 @@ describe('General Overview', () => {
     expect(screen.getByText('Overview')).toBeInTheDocument();
     expect(screen.getByText('Object storage')).toBeInTheDocument();
     expect(screen.getByText('Activity')).toBeInTheDocument();
-    expect(screen.queryByText('External systems')).not.toBeInTheDocument();
+    expect(screen.getByText('External systems')).toBeInTheDocument();
   });
 
   it('also renders External Systems card', () => {

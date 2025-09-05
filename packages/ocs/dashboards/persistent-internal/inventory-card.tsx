@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cephStorageLabel } from '@odf/core/constants';
+import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import {
   NodeModel,
   PersistentVolumeClaimModel,
@@ -26,7 +27,6 @@ import {
   filterCephPVCsByCluster,
   filterCephPVsByCluster,
 } from '../../utils/common';
-import { OCSDashboardContext } from '../ocs-dashboard-providers';
 
 const watchResources = {
   nodes: {
@@ -49,9 +49,7 @@ const watchResources = {
 const InventoryCard: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
 
   const resources = useK8sWatchResources(watchResources);
 
