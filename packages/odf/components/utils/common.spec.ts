@@ -1,6 +1,7 @@
 import {
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
+  OCS_DEVICE_SET_ARBITER_REPLICAS,
 } from '../../constants';
 import { WizardNodeState } from '../create-storage-system/reducer';
 import { getDeviceSetReplica, getReplicasFromSelectedNodes } from './common';
@@ -77,7 +78,7 @@ describe('ODF common utilities', () => {
     // Stretch cluster.
     expect(
       getDeviceSetReplica(true, false, wizardNodeStates as WizardNodeState[])
-    ).toBe(5);
+    ).toBe(OCS_DEVICE_SET_ARBITER_REPLICAS);
 
     // Flexible scaling.
     expect(

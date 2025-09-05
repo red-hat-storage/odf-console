@@ -250,8 +250,27 @@ export const createDeviceSet = (
   },
 });
 
-export const getDeviceSetCount = (pvCount: number, replica: number): number =>
-  Math.floor(pvCount / replica) || 1;
+export const getDeviceSetCount = (
+  pvCount: number,
+  replica: number,
+  isFlexibleScalingEnabled: boolean,
+  isArbiterEnabled: boolean
+): number => {
+  let count = Math.floor(pvCount / replica) || 1;
+
+  // day-1 (arbiter): allows creation for 4, 6, 8, 10... disks attached across 2 zones
+  // day-2 (arbiter): allows expansion for 2, 4, 6, 8... disks attached across 2 zones
+  if (
+    isArbiterEnabled &&
+    !isFlexibleScalingEnabled &&
+    pvCount > replica &&
+    pvCount % replica >= 2
+  ) {
+    count += 1;
+  }
+
+  return count;
+};
 
 export const getOsdAmount = (
   deviceSetCount: number,
@@ -268,6 +287,7 @@ export const getZone = (node: NodeKind) =>
   node.metadata.labels?.[ZONE_LABELS[0]] ||
   node.metadata.labels?.[ZONE_LABELS[1]];
 
+// isArbiterSC is used for day-2 validation only
 export const isArbiterSC = (
   scName: string,
   pvData: K8sResourceKind[],
@@ -279,7 +299,8 @@ export const isArbiterSC = (
   if (_.compact([...uniqZones]).length < 3) return false;
   if (uniqSelectedNodesZones.size !== 2) return false;
   const zonePerNode = countNodesPerZone(tableData);
-  return Object.keys(zonePerNode).every((zone) => zonePerNode[zone] >= 2);
+  // day-2: allows expansion for 2, 4, 6, 8... disks attached across 2 zones
+  return Object.keys(zonePerNode).every((zone) => zonePerNode[zone] >= 1);
 };
 
 export const isValidTopology = (
