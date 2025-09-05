@@ -43,6 +43,7 @@ import {
   NO_PROVISIONER,
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
+  OCS_DEVICE_SET_ARBITER_REPLICAS,
   ATTACHED_DEVICES_ANNOTATION,
 } from '../../constants';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
@@ -204,11 +205,13 @@ export const capacityAndNodesValidate = (
   return validations;
 };
 
+// isValidStretchClusterTopology is used for day-1 validation only
 export const isValidStretchClusterTopology = (
   nodesPerZoneMap: NodesPerZoneMap,
   allZones: string[]
 ): boolean => {
   if (allZones.length >= 3) {
+    // day-1: allows creation for 4, 6, 8, 10... disks attached across 2 zones
     const validNodesWithPVPerZone = allZones.filter(
       (zone) => nodesPerZoneMap[zone] >= 2
     );
@@ -383,11 +386,12 @@ export const getDeviceSetReplica = (
   if (isFlexibleReplicaScaling) {
     return OCS_DEVICE_SET_FLEXIBLE_REPLICA;
   }
-  const replicas = getReplicasFromSelectedNodes(nodes);
+
   if (isStretchCluster) {
-    return replicas + 1;
+    return OCS_DEVICE_SET_ARBITER_REPLICAS;
   }
 
+  const replicas = getReplicasFromSelectedNodes(nodes);
   return replicas;
 };
 
@@ -455,7 +459,12 @@ export const getOCSRequestData = ({
     nodes
   );
 
-  const deviceSetCount = getDeviceSetCount(availablePvsCount, deviceSetReplica);
+  const deviceSetCount = getDeviceSetCount(
+    availablePvsCount,
+    deviceSetReplica,
+    flexibleScaling,
+    stretchClusterChecked
+  );
 
   const requestData: StorageClusterKind = {
     apiVersion: 'ocs.openshift.io/v1',
