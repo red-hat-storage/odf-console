@@ -1,4 +1,4 @@
-@import '@odf/shared/styles/skeleton';
+@use '@odf/shared/styles/skeleton' as sk;
 
 .ceph-raw-usage {
   &__container {
@@ -65,8 +65,8 @@
 /* Styles related to lodaing state */
 
 .skeleton-activity {
-  animation: $skeleton-animation;
-  background: $skeleton-color;
+  animation: sk.$skeleton-animation;
+  background: sk.$skeleton-color;
   opacity: 0;
   border-radius: 6px;
   margin: 0.5rem 0.7em 0.5rem 0.7em;
