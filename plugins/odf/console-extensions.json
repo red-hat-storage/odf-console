@@ -106,7 +106,7 @@
       "href": "/odf/external-systems"
     },
     "flags": {
-      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG"]
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
   },
   {
@@ -152,7 +152,7 @@
       "component": { "$codeRef": "externalSystemsSection.default" }
     },
     "flags": {
-      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG"]
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
   },
   {
@@ -664,32 +664,6 @@
     }
   },
   {
-    "type": "console.navigation/href",
-    "properties": {
-      "id": "storageclients",
-      "name": "%plugin__odf-console~Storage Consumers%",
-      "insertAfter": "odfdashboard",
-      "section": "storage",
-      "href": "/odf/storage-consumers"
-    },
-    "flags": {
-      "required": ["PROVIDER_MODE"]
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/odf/storage-consumers",
-      "exact": true,
-      "component": {
-        "$codeRef": "storageConsumerListPage.ClientListPage"
-      },
-      "flags": {
-        "required": ["PROVIDER_MODE"]
-      }
-    }
-  },
-  {
     "type": "console.page/route",
     "properties": {
       "exact": true,
@@ -909,10 +883,12 @@
         "/odf/external-systems/ocs.openshift.io~v1~storagecluster/:systemName"
       ],
       "exact": false,
-      "component": { "$codeRef": "rhcsDashboard.ExternalSystemDashboard" }
+      "component": {
+        "$codeRef": "rhcsDashboard.ExternalStorageClusterDashboard"
+      }
     },
     "flags": {
-      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG"]
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
   }
 ]
