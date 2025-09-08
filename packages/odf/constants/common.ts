@@ -18,6 +18,7 @@ export const OCS_DISABLED_ANNOTATION = 'features.ocs.openshift.io/disabled';
 export const ODF_VENDOR_ANNOTATION = 'vendors.odf.openshift.io/kind';
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
 export const OCS_DEVICE_SET_MINIMUM_REPLICAS = 3;
+export const OCS_DEVICE_SET_ARBITER_REPLICAS = 4;
 export const MINIMUM_NODES = 3;
 export const SECOND = 1000;
 
