@@ -56,6 +56,7 @@ const RHCS_SUPPORTED_INFRA = [
   'VSphere',
   'OpenStack',
   'oVirt',
+  'KubeVirt',
   'IBMCloud',
 ];
 
