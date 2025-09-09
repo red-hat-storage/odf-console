@@ -56,6 +56,7 @@ export const RHCS_SUPPORTED_INFRA = [
   InfraProviders.None,
   InfraProviders.OpenStack,
   InfraProviders.OVirt,
+  InfraProviders.KubeVirt,
   InfraProviders.VSphere,
 ];
 export const STORAGE_SIZE_UNIT_NAME_MAP = Object.freeze({

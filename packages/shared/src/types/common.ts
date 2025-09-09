@@ -21,6 +21,7 @@ export enum InfraProviders {
   None = 'None',
   OpenStack = 'OpenStack',
   OVirt = 'oVirt',
+  KubeVirt = 'KubeVirt',
   VSphere = 'VSphere',
 }
 
