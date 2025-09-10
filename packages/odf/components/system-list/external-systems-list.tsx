@@ -253,7 +253,7 @@ const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
   return (
     <VirtualizedTable
       {...props}
-      aria-label={t('StorageSystems')}
+      aria-label={t('Storage systems')}
       columns={columns}
       Row={StorageSystemRow}
     />
