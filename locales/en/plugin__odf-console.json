@@ -554,6 +554,7 @@
   "CORS": "CORS",
   "CORS details": "CORS details",
   "Cors rules list page": "Cors rules list page",
+  "Could not create DRPolicy: DRCluster \"{{name}}\" is already bound to S3 profile \"{{existingProfile}}\", which is immutable. Use the same profile or delete the DRCluster and try again": "Could not create DRPolicy: DRCluster \"{{name}}\" is already bound to S3 profile \"{{existingProfile}}\", which is immutable. Use the same profile or delete the DRCluster and try again",
   "CPU": "CPU",
   "CPU and memory: {{cpu, number}} CPU and {{memory}} memory": "CPU and memory: {{cpu, number}} CPU and {{memory}} memory",
   "CPU usage": "CPU usage",

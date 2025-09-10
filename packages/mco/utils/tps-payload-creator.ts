@@ -168,6 +168,23 @@ export function createOrUpdateDRCluster(params: {
     model: DRClusterModel,
     name,
     mutate: (current) => {
+      if (current) {
+        const existing = current as DRClusterKind;
+        const existingProfile = existing?.spec?.s3ProfileName;
+
+        // Ask user to delete the DRCluster if they want to use a different S3 profile.
+        if (existingProfile && existingProfile !== s3ProfileName) {
+          throw new Error(
+            t(
+              'Could not create DRPolicy: DRCluster "{{name}}" is already bound to S3 profile "{{existingProfile}}", which is immutable. Use the same profile or delete the DRCluster and try again',
+              { name, existingProfile }
+            )
+          );
+        }
+
+        return existing;
+      }
+
       const drCluster: DRClusterKind = current ?? {
         apiVersion: getAPIVersionForModel(DRClusterModel),
         kind: DRClusterModel.kind,
