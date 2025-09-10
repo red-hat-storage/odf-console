@@ -65,6 +65,7 @@
     "**/package.json": "npx --yes sort-package-json@3.0.0"
   },
   "resolutions": {
+    "follow-redirects": "^1.15.11",
     "webpack": "^5.99.9"
   },
   "dependencies": {
