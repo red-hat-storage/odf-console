@@ -5,6 +5,6 @@
 // t('Relocate application')
 // t('Failover application')
 // t('DR Status')
-// t('Storage System')
+// t('Storage system')
 // t('Disaster recovery')
 // t('Data Services')

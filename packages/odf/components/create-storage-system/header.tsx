@@ -14,10 +14,10 @@ export const CreateStorageSystemHeader: React.FC<
   return (
     <div className="odf-create-storage-system__header">
       <TextContent>
-        <Text component={TextVariants.h1}>{t('Create StorageSystem')}</Text>
+        <Text component={TextVariants.h1}>{t('Create storage system')}</Text>
         <Text component={TextVariants.small}>
           {t(
-            'Create a StorageSystem to represent your Data Foundation system and all its required storage and computing resources.'
+            'Create a storage system to represent your Data Foundation system and all its required storage and computing resources.'
           )}
         </Text>
         {!!systemNamespace && (

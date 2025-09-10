@@ -1,8 +1,8 @@
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 
 export const ODFStorageSystem: K8sModel = {
-  label: 'Storage System',
-  labelPlural: 'Storage Systems',
+  label: 'Storage system',
+  labelPlural: 'Storage systems',
   apiVersion: 'v1alpha1',
   apiGroup: 'odf.openshift.io',
   plural: 'storagesystems',
