@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { getCephBlockPoolResource } from '@odf/core/resources';
 import { CephFileSystemModel } from '@odf/shared';
 import {
@@ -57,7 +58,6 @@ import {
   getStoragePoolsFromBlockPools,
   getStoragePoolsFromFilesystem,
 } from '../../../utils';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import { PoolUtilizationPopoverContent } from './PoolUtilizationPopoverContent';
 import { StoragePoolTableData } from './types';
 
@@ -136,9 +136,7 @@ const getResources = (
 export const PoolUtilizationCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { systemFlags } = useODFSystemFlagsSelector();
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
   const ocsClusterName = systemFlags[clusterNs]?.ocsClusterName;
 
   const resources = useK8sWatchResources(
