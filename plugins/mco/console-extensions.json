@@ -31,7 +31,8 @@
     "properties": {
       "path": "/multicloud/data-services/disaster-recovery/policies/ramendr.openshift.io~v1alpha1~DRPolicy/~new",
       "exact": true,
-      "component": { "$codeRef": "createDataPolicy.default" }
+      "component": { "$codeRef": "createDataPolicy.default" },
+      "perspective": "acm"
     },
     "flags": {
       "required": ["ADMIN"]
@@ -42,7 +43,8 @@
     "properties": {
       "path": "/multicloud/data-services/disaster-recovery",
       "exact": false,
-      "component": { "$codeRef": "disasterRecoveryPage.default" }
+      "component": { "$codeRef": "disasterRecoveryPage.default" },
+      "perspective": "acm"
     }
   },
   {
@@ -64,7 +66,8 @@
     "properties": {
       "path": "/multicloud/data-services/storagesystem",
       "exact": false,
-      "component": { "$codeRef": "systemDashboard.default" }
+      "component": { "$codeRef": "systemDashboard.default" },
+      "perspective": "acm"
     }
   },
   {
@@ -77,7 +80,8 @@
       "exact": true,
       "component": {
         "$codeRef": "editPage.default"
-      }
+      },
+      "perspective": "acm"
     }
   },
   {
@@ -154,7 +158,8 @@
     "properties": {
       "path": "multicloud/data-services/disaster-recovery/protected-applications/ramendr.openshift.io~v1alpha1~DRPlacementControl/~new",
       "exact": true,
-      "component": { "$codeRef": "enrollDiscoveredApplication.default" }
+      "component": { "$codeRef": "enrollDiscoveredApplication.default" },
+      "perspective": "acm"
     }
   },
   {
