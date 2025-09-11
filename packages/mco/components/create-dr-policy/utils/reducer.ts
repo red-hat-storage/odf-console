@@ -1,5 +1,5 @@
 import { BackendType, ReplicationType } from '@odf/mco/constants';
-import { Provider } from '@odf/mco/hooks/use-storage-providers';
+import { Provider } from '@odf/mco/hooks/use-storage-provisioner';
 import { ConnectedClient } from '@odf/mco/types';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 

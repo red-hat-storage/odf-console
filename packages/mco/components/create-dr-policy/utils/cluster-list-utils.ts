@@ -1,4 +1,4 @@
-import { ClusterProviders } from '@odf/mco/hooks/use-storage-providers';
+import { ClusterProviders } from '@odf/mco/hooks/use-storage-provisioner';
 import { ConnectedClient, ODFInfoYamlObject } from '@odf/mco/types';
 import {
   getMajorVersion,
@@ -37,7 +37,7 @@ export const COUNT_PER_PAGE_NUMBER = 10;
 export enum ClusterListColumns {
   ManagedCluster,
   AvailabilityStatus,
-  StorageProviders,
+  StorageProvisioners,
   StorageClients,
 }
 
@@ -51,8 +51,8 @@ export const getColumns = (t: TFunction<string>) => [
     sortFunction: (a, b, c) => sortRows(a, b, c, 'isManagedClusterAvailable'),
   },
   {
-    columnName: t('Storage providers'),
-    sortFunction: (a, b, c) => sortRows(a, b, c, 'storageProvidersCount'),
+    columnName: t('Storage provisioners'),
+    sortFunction: (a, b, c) => sortRows(a, b, c, 'storageProvisionersCount'),
   },
   {
     columnName: t('Storage clients'),
@@ -70,7 +70,7 @@ export const getColumnHelper = (
       return columns[0];
     case ClusterListColumns.AvailabilityStatus:
       return columns[1];
-    case ClusterListColumns.StorageProviders:
+    case ClusterListColumns.StorageProvisioners:
       return columns[2];
     case ClusterListColumns.StorageClients:
       return columns[3];
