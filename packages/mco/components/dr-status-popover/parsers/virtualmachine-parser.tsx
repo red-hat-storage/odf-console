@@ -34,21 +34,40 @@ import {
   DiscoveredParser,
 } from '../parsers';
 
-const findDRPCByNamespaceAndCluster = (
+const matchesDRPC = (
+  drpc: DRPlacementControlKind,
+  vmNs: string,
+  vmCluster: string | undefined,
+  vmName: string
+): boolean => {
+  const nsOk = drpc.spec?.protectedNamespaces?.includes?.(vmNs) ?? false;
+
+  const clusterOk = drpc.spec?.preferredCluster === vmCluster;
+
+  const protectedVMs =
+    drpc.spec?.kubeObjectProtection?.recipeParameters?.PROTECTED_VMS ?? [];
+  const nameOk = protectedVMs.includes(vmName);
+
+  return nsOk && clusterOk && nameOk;
+};
+
+const findDRPCByNsClusterAndVMName = (
   drpcs: DRPlacementControlKind[],
-  namespace: string,
-  cluster: string
+  vmNs: string,
+  vmCluster: string | undefined,
+  vmName: string
 ): DRPlacementControlKind | undefined =>
-  drpcs.find(
-    (drpc) =>
-      drpc?.spec?.protectedNamespaces?.includes(namespace) &&
-      drpc?.spec?.preferredCluster === cluster
-  );
+  drpcs.find((d) => matchesDRPC(d, vmNs, vmCluster, vmName));
 
 const useMatchingDRPC = (
-  namespace: string,
-  cluster: string
+  virtualMachine: K8sResourceCommon
 ): DRPlacementControlKind | undefined => {
+  const vmName = getName(virtualMachine);
+  const vmNamespace = getNamespace(virtualMachine);
+  const vmCluster = (virtualMachine as any)?.status?.cluster as
+    | string
+    | undefined;
+
   const drpcWatchResource = React.useMemo(
     () => getDRPlacementControlResourceObj({ namespace: DISCOVERED_APP_NS }),
     []
@@ -59,7 +78,7 @@ const useMatchingDRPC = (
 
   if (!loaded || loadError) return undefined;
 
-  return findDRPCByNamespaceAndCluster(drpcs, namespace, cluster);
+  return findDRPCByNsClusterAndVMName(drpcs, vmNamespace, vmCluster, vmName);
 };
 
 const ApplicationSetHelper: React.FC<ParserHelperProps> = ({
@@ -108,8 +127,9 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
         : querySubscriptionResourcesForVM(vmName, vmNamespace, clusterName),
     [vmName, vmNamespace, clusterName, argoApplicationName]
   );
+
   const [searchResult] = useACMSafeFetch(searchQuery);
-  const matchedDRPC = useMatchingDRPC(vmNamespace, clusterName);
+  const matchedDRPC = useMatchingDRPC(virtualMachine);
 
   if (matchedDRPC && matchedDRPC.spec && matchedDRPC.metadata?.name) {
     return <DiscoveredHelper application={matchedDRPC} />;
