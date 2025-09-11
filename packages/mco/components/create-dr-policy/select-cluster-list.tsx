@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getManagedClusterResourceObj } from '@odf/mco/hooks';
-import { useStorageProviders } from '@odf/mco/hooks/use-storage-providers';
+import { useStorageProvisioners } from '@odf/mco/hooks/use-storage-provisioner';
 import {
   ACMManagedClusterViewModel,
   DASH,
@@ -91,14 +91,14 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
       </Td>
       <Td
         dataLabel={
-          getColumnHelper(ClusterListColumns.StorageProviders, t).columnName
+          getColumnHelper(ClusterListColumns.StorageProvisioners, t).columnName
         }
       >
         {!count ? (
           DASH
         ) : (
           <Popover
-            headerContent={t('Storage providers')}
+            headerContent={t('Storage provisioners')}
             bodyContent={
               <ul className="pf-v5-u-m-0 pf-v5-u-pl-xs">
                 {providers.map((p) => (
@@ -113,10 +113,10 @@ const ClusterRow: React.FC<RowComponentType<ManagedClusterInfoType>> = ({
           >
             <Button variant="link" isInline>
               {count > 1
-                ? t('{{count}} providers', {
+                ? t('{{count}} provisioners', {
                     count: count,
                   })
-                : t('{{count}} provider', { count })}
+                : t('{{count}} provisioner', { count })}
             </Button>
           </Popover>
         )}
@@ -228,7 +228,7 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
     providersByCluster,
     loaded: providersLoaded,
     error,
-  } = useStorageProviders(clusterNames);
+  } = useStorageProvisioners(clusterNames);
 
   const allLoaded = loaded && mcvsLoaded && providersLoaded;
   const anyError = loadError || mcvsLoadError || error;
