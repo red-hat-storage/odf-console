@@ -10,6 +10,7 @@ import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { getSupportedVendors } from '@odf/core/utils';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
+import { TechPreviewBadge } from '@odf/shared';
 import { RHCS_SUPPORTED_INFRA } from '@odf/shared/constants/common';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { StatusBox } from '@odf/shared/generic/status-box';
@@ -420,7 +421,14 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
       {!hasOCS && (
         <Checkbox
           id="use-external-postgress"
-          label={t('Use external PostgreSQL')}
+          label={
+            <>
+              {t('Use external PostgreSQL')}
+              <span className="pf-v5-u-ml-sm">
+                <TechPreviewBadge />
+              </span>
+            </>
+          }
           description={t(
             'Allow Noobaa to connect to an external postgres server'
           )}
