@@ -1,5 +1,6 @@
 {
   " {{ peerConnectedCount }} Connected": " {{ peerConnectedCount }} Connected",
+  " for more details.": " for more details.",
   " selected": " selected",
   "(in {{suffixLabel}})": "(in {{suffixLabel}})",
   "{{ actionsCount }} actions": "{{ actionsCount }} actions",
@@ -1296,7 +1297,7 @@
   "Not validated": "Not validated",
   "NotAvailable": "NotAvailable",
   "Note:": "Note:",
-  "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation.": "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation.",
+  "Note: If your managed cluster doesn't appear here, confirm it's successfully imported and refer to the ": "Note: If your managed cluster doesn't appear here, confirm it's successfully imported and refer to the ",
   "Num Volumes": "Num Volumes",
   "Number of noncurrent versions of object.": "Number of noncurrent versions of object.",
   "Number of Volumes": "Number of Volumes",
@@ -1570,6 +1571,7 @@
   "Review and assign": "Review and assign",
   "Review and create": "Review and create",
   "Review BucketClass": "Review BucketClass",
+  "RHACM documentation": "RHACM documentation",
   "Role": "Role",
   "Rotate signing keys": "Rotate signing keys",
   "Rule": "Rule",

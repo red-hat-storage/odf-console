@@ -240,8 +240,16 @@ const CreateDRPolicy: React.FC<{}> = () => {
               <HelperText>
                 <HelperTextItem>
                   {t(
-                    "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation."
+                    "Note: If your managed cluster doesn't appear here, confirm it's successfully imported and refer to the "
                   )}
+                  <a
+                    href="https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t('RHACM documentation')}
+                  </a>
+                  {t(' for more details.')}
                 </HelperTextItem>
               </HelperText>
             </FormHelperText>
