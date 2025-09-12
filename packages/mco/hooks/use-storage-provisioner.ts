@@ -9,7 +9,7 @@ export type ClusterProviders = {
   providers: Provider[];
 };
 
-export function useStorageProviders(clusters: string[]): {
+export function useStorageProvisioners(clusters: string[]): {
   providersByCluster: ClusterProviders[];
   count: number;
   loaded: boolean;
