@@ -447,7 +447,7 @@ export const CreateStorageSystemFooter: React.FC<
           onClick={handleNext}
         >
           {stepName === StepsName(t)[Steps.ReviewAndCreate]
-            ? t('Create StorageSystem')
+            ? t('Create storage system')
             : t('Next')}
         </Button>
         {/* Disabling the back button for the first step (Backing storage) in wizard */}

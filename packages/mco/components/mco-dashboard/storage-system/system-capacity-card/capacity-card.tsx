@@ -377,7 +377,7 @@ const SystemCapacityCard: React.FC = () => {
         >
           <FlexItem>
             <CardTitle data-test="capacity-card-title">
-              {t('Storage System capacity')}
+              {t('Storage system capacity')}
             </CardTitle>
           </FlexItem>
           <FlexItem>

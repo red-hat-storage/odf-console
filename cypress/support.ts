@@ -66,11 +66,11 @@ Cypress.Commands.add('install', () => {
       cy.get('button').contains('Next').click();
       cy.get('button').contains('Next').click();
       cy.get('button')
-        .contains('Create StorageSystem')
-        .as('Create StorageSystem Button');
-      cy.get('@Create StorageSystem Button').click();
+        .contains('Create storage system')
+        .as('Create storage system Button');
+      cy.get('@Create storage system Button').click();
       // Wait for the storage system to be created.
-      cy.get('@Create StorageSystem Button', { timeout: 10 * SECOND }).should(
+      cy.get('@Create storage system Button', { timeout: 10 * SECOND }).should(
         'not.exist'
       );
 

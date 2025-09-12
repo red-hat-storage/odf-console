@@ -168,12 +168,12 @@ export const StatusCard: React.FC = () => {
           {healthySystems.length > 0 && (
             <GalleryItem>
               <HealthItem
-                title={pluralize(healthySystems.length, t('Storage System'))}
+                title={pluralize(healthySystems.length, t('Storage system'))}
                 state={HealthState.OK}
               >
                 <StatusCardPopover
                   resourceHealthMap={healthySystems}
-                  firstColumnName={t('Storage System')}
+                  firstColumnName={t('Storage system')}
                   secondColumnName={t('Health')}
                 />
               </HealthItem>
@@ -182,13 +182,13 @@ export const StatusCard: React.FC = () => {
           {unHealthySystems.length > 0 && (
             <GalleryItem>
               <HealthItem
-                title={pluralize(unHealthySystems.length, 'Storage System')}
+                title={pluralize(unHealthySystems.length, 'Storage system')}
                 state={HealthState.ERROR}
                 maxWidth="35rem"
               >
                 <StatusCardPopover
                   resourceHealthMap={unHealthySystems}
-                  firstColumnName={t('Storage System')}
+                  firstColumnName={t('Storage system')}
                   secondColumnName={t('Health')}
                 />
               </HealthItem>

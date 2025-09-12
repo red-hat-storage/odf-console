@@ -663,7 +663,7 @@ const TopologyViewErrorMessage: React.FC<TopologyViewErrorMessageProps> = ({
           t('Set up a storage cluster to view the topology')}
       </EmptyStateBody>
       {!hideCreateSSOption && (
-        <Link to={CREATE_SS_PAGE_URL}>{t('Create StorageSystem')} </Link>
+        <Link to={CREATE_SS_PAGE_URL}>{t('Create storage system')} </Link>
       )}
     </EmptyState>
   );

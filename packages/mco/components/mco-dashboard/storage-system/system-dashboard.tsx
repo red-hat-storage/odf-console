@@ -29,7 +29,7 @@ export const MCODashboard: React.FC = () => {
 
 const SystemDashboard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const title = t('Storage System');
+  const title = t('Storage system');
   const pages = [
     {
       href: '',

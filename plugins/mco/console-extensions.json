@@ -52,7 +52,7 @@
       "perspective": "acm",
       "insertAfter": "mco-disaster-recovery",
       "section": "mco-data-services",
-      "name": "%plugin__odf-multicluster-console~Storage System%",
+      "name": "%plugin__odf-multicluster-console~Storage system%",
       "href": "/multicloud/data-services/storagesystem"
     },
     "flags": {

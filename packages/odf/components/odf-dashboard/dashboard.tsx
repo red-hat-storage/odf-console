@@ -83,7 +83,7 @@ const ODFDashboardPage: React.FC<{}> = () => {
       {
         id: 'systems',
         href: 'systems',
-        name: t('Storage Systems'),
+        name: t('Storage systems'),
         component: StorageSystemListPage,
         contextId: ODF_DASHBOARD_CONTEXT,
       },
