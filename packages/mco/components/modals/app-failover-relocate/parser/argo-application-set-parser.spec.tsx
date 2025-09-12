@@ -229,7 +229,7 @@ describe('Discovered application failover/relocate modal test', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing relocate could lead to data loss./i
+        /One or more volumes for this application may not be replicating at all or replication is taking longer than the replication interval as defined in the assigned data policy. If either managed cluster's replication services are offline or unreachable, this is an expected condition./i
       )
     ).toBeInTheDocument();
     expect(
@@ -265,7 +265,7 @@ describe('Discovered application failover/relocate modal test', () => {
 
     expect(
       screen.queryByText(
-        /The target cluster's volumes contain data inconsistencies caused by synchronization delays. Performing relocate could lead to data loss./i
+        /One or more volumes for this application may not be replicating at all or replication is taking longer than the replication interval as defined in the assigned data policy. If either managed cluster's replication services are offline or unreachable, this is an expected condition./i
       )
     ).not.toBeInTheDocument();
 
