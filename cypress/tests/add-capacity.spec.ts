@@ -72,6 +72,7 @@ describe('OCS Operator Expansion of Storage Class Test', () => {
       ODFCommon.visitStorageCluster();
       cy.byTestID('kebab-button').click();
       // eslint-disable-next-line cypress/require-data-selectors
+      cy.contains('Add Capacity').should('be.enabled');
       cy.contains('Add Capacity').click();
       modal.shouldBeOpened();
 

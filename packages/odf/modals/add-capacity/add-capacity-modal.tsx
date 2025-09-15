@@ -4,6 +4,7 @@ import { useNodesData } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { getCephNodes } from '@odf/ocs/utils/common';
+import { OCS_OPERATOR, ROOK_CEPH_OPERATOR } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { LoadingInline } from '@odf/shared/generic/Loading';
@@ -13,13 +14,14 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { StorageClusterActionModalProps } from '@odf/shared/modals/common';
 import { ModalBody, ModalFooter, ModalHeader } from '@odf/shared/modals/Modal';
-import { StorageClusterModel } from '@odf/shared/models';
+import { DeploymentModel, StorageClusterModel } from '@odf/shared/models';
 import { PersistentVolumeModel, StorageClassModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import {
   StorageClassResourceKind,
   StorageClusterKind,
   DeviceSet,
+  DeploymentKind,
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -100,6 +102,35 @@ export const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
   );
 };
 
+const useVerifyStorageClusterExpansionIsPossbile = (
+  storageCluster: StorageClusterKind
+): boolean => {
+  const clusterNamespace = getNamespace(storageCluster);
+  const deploymentResource: WatchK8sResource = {
+    kind: DeploymentModel.kind,
+    namespaced: true,
+    isList: true,
+    namespace: clusterNamespace,
+  };
+  const [deployments, isLoaded, loadError] =
+    useK8sWatchResource<DeploymentKind[]>(deploymentResource);
+  const isRookCephOperatorPresent =
+    isLoaded &&
+    !loadError &&
+    deployments?.find(
+      (deployment) => getName(deployment) === ROOK_CEPH_OPERATOR
+    )?.status.replicas > 0;
+  const isOCSOperatorPresent =
+    isLoaded &&
+    !loadError &&
+    deployments?.find((deployment) => getName(deployment) === OCS_OPERATOR)
+      ?.status.replicas > 0;
+  if (!isLoaded || loadError) {
+    return false;
+  }
+  return isRookCephOperatorPresent && isOCSOperatorPresent;
+};
+
 const scResource: WatchK8sResource = {
   kind: StorageClassModel.kind,
   namespaced: false,
@@ -172,6 +203,9 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   isOpen,
 }) => {
   const { t } = useCustomTranslation();
+
+  const isExpansionPossible =
+    useVerifyStorageClusterExpansionIsPossbile(actionStorageCluster);
 
   const ocsClusterNs = getNamespace(actionStorageCluster);
   const ocsClusterName = getName(actionStorageCluster);
@@ -451,6 +485,17 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
               {(errorMessage as any)?.message || errorMessage}
             </Alert>
           )}
+          {!isExpansionPossible && (
+            <Alert
+              isInline
+              variant="danger"
+              title={t('Add Capacity cannot proceed')}
+            >
+              {t(
+                'The "Add Capacity" operation cannot proceed because one or more essential operators (rook-ceph or ocs-operator) are not running or scaled down. Ensure these operators are active and try again.'
+              )}
+            </Alert>
+          )}
         </ModalBody>
         <ModalFooter>
           <Button
@@ -468,7 +513,10 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
               data-test-id="confirm-action"
               variant="primary"
               onClick={submit}
-              isDisabled={isNoProvionerSC && (!availablePvsCount || nodesError)}
+              isDisabled={
+                (isNoProvionerSC && (!availablePvsCount || nodesError)) ||
+                !isExpansionPossible
+              }
             >
               {t('Add')}
             </Button>
