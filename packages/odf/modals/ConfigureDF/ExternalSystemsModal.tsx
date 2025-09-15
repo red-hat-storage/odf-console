@@ -9,6 +9,7 @@ import {
   useCustomTranslation,
   useK8sGet,
 } from '@odf/shared';
+import { DevPreviewBadge } from '@odf/shared/badges';
 import { getInfrastructurePlatform } from '@odf/shared/utils';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
@@ -148,7 +149,10 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
                   setSelectedOption(ExternalSystemOption.Scale),
               }}
             >
-              <CardTitle>{t('IBM Scale')}</CardTitle>
+              <CardTitle>
+                {t('IBM Scale')}
+                <DevPreviewBadge className="pf-v5-u-ml-sm" />
+              </CardTitle>
             </CardHeader>
             <CardBody>
               <Flex direction={{ default: 'row' }}>

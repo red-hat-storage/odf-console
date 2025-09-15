@@ -1,11 +1,20 @@
 import * as React from 'react';
+import classNames from 'classnames';
 import { Label } from '@patternfly/react-core';
 import './Badge.scss';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
-const DevPreviewBadge: React.FC = () => {
+type DevPreviewBadgeProps = {
+  className?: string;
+};
+
+const DevPreviewBadge: React.FC<DevPreviewBadgeProps> = ({ className }) => {
   const { t } = useCustomTranslation();
-  return <Label className="ocs-preview-badge">{t('Dev preview')}</Label>;
+  return (
+    <Label className={classNames('ocs-preview-badge', className)}>
+      {t('Dev preview')}
+    </Label>
+  );
 };
 
 export default DevPreviewBadge;
