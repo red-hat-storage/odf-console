@@ -92,7 +92,7 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
             <TextContent>
               <Text component="small">
                 {t(
-                  'Integrate Data Foundation with an existing storage backend such as external Ceph cluster on IBM FlashSystem.'
+                  'Integrate Data Foundation with an existing storage backend such as external Ceph cluster or IBM FlashSystem.'
                 )}
               </Text>
             </TextContent>

@@ -59,7 +59,7 @@ describe('ConfigureDFSelections', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Integrate Data Foundation with an existing storage backend such as external Ceph cluster on IBM FlashSystem.'
+        'Integrate Data Foundation with an existing storage backend such as external Ceph cluster or IBM FlashSystem.'
       )
     ).toBeInTheDocument();
     expect(
