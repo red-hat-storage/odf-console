@@ -21,7 +21,7 @@ import {
   StatusBox,
   useCustomTranslation,
 } from '@odf/shared';
-import { BLOCK, FILESYSTEM } from '@odf/shared/constants/common';
+import { BLOCK, FILESYSTEM, PVCVolumeMode } from '@odf/shared/constants';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
@@ -71,8 +71,8 @@ const FILTERS = [
   FilterType.FILESYSTEMTYPE,
 ];
 
-const getCGType = (cgName: string) =>
-  cgName.startsWith('cephfs-') ? FILESYSTEM : BLOCK;
+const getCGType = (volumeMode: string) =>
+  PVCVolumeMode.Filesystem === volumeMode ? FILESYSTEM : BLOCK;
 
 const displayFilterText = (t: TFunction) => {
   return {
@@ -300,7 +300,7 @@ const buildConsistencyGroupMap = (
     if (!cgLabel) return;
 
     const cgName = cgLabel[1] as string;
-    const cgType = getCGType(cgName);
+    const cgType = getCGType(pvc.volumeMode);
     const schedulingInterval = vrg.spec.async?.schedulingInterval;
     const dataLastSyncedOn = pvc.lastSyncTime;
     const healthStatus = getReplicationHealth(

@@ -12,3 +12,8 @@ export enum VolumeBindingMode {
   Immediate = 'Immediate',
   WaitForFirstConsumer = 'WaitForFirstConsumer',
 }
+
+export enum PVCVolumeMode {
+  Filesystem = 'Filesystem',
+  Block = 'Block',
+}
