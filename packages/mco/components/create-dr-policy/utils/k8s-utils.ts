@@ -138,8 +138,8 @@ const prepareOdfPeering = (
   mirrorPeers: MirrorPeerKind[],
   peerNames: string[]
 ): Promise<MirrorPeerKind> => {
-  const odfPeerNames: string[] = state.selectedClusters.map((cluster) =>
-    getODFPeers(cluster).join(',')
+  const odfPeerNames: string[] = state.selectedClusters.map(
+    (cluster) => getODFPeers(cluster)[0]
   );
   const mirrorPeer: MirrorPeerKind = fetchMirrorPeer(
     mirrorPeers,
