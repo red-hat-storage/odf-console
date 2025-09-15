@@ -228,7 +228,7 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                   titleComponent={
                     <ChartLabel
                       className="odf-cluster-card__chart-title"
-                      style={{ fill: 'var(--pf-v5-global--Color--200)' , fontSize: 20 }}
+                      style={{ fill: 'var(--pf-v5-global--Color--200)', fontSize: 20 }}
                     />
                   }
                   subTitleComponent={
