@@ -1045,7 +1045,7 @@
   "Initiate": "Initiate",
   "Initiating": "Initiating",
   "Instance type": "Instance type",
-  "Integrate Data Foundation with an existing storage backend such as external Ceph cluster on IBM FlashSystem.": "Integrate Data Foundation with an existing storage backend such as external Ceph cluster on IBM FlashSystem.",
+  "Integrate Data Foundation with an existing storage backend such as external Ceph cluster or IBM FlashSystem.": "Integrate Data Foundation with an existing storage backend such as external Ceph cluster or IBM FlashSystem.",
   "Internal": "Internal",
   "Internal cluster": "Internal cluster",
   "Intiating": "Intiating",
