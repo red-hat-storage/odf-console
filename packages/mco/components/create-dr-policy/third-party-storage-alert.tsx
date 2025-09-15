@@ -34,9 +34,9 @@ const ThirdPartyStorageWarning: React.FC<ThirdPartyStorageWarningProps> = ({
           </AlertActionLink>
         }
       >
-        {t(`Ensure the storage backend supports replication. Carefully validate the
-      configured replication storage class supports failover, replication, and
-      recovery and then proceed.`)}
+        {t(`Ensure the storage backend supports replication. Carefully validate the configured 
+          replication storage class supports failover, replication, recovery, and relocation 
+          before proceeding.`)}
       </Alert>
     </AlertGroup>
   );
