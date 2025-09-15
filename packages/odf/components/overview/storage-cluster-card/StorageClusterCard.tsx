@@ -44,7 +44,7 @@ import { global_warning_color_100 as warning1 } from '@patternfly/react-tokens/d
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import { ChartDonut, ChartLabel } from '@patternfly/react-charts';
+import { ChartDonut, ChartLabel, ChartLegend } from '@patternfly/react-charts';
 import {
   DescriptionList,
   DescriptionListTerm,
@@ -225,12 +225,28 @@ export const StorageClusterCard: React.FC<CardProps> = ({ className }) => {
                   padding={{ top: 0, bottom: 0, left: 0, right: 140 }}
                   constrainToVisibleArea
                   titleComponent={
-                    <ChartLabel className="odf-cluster-card__chart-title" />
+                    <ChartLabel
+                      className="odf-cluster-card__chart-title"
+                      style={{
+                        fill: 'var(--pf-v5-global--Color--100)',
+                        fontSize: 20,
+                      }}
+                    />
                   }
                   subTitleComponent={
                     <ChartLabel
                       className="odf-cluster-card__chart-subtitle"
+                      style={{ fill: 'var(--pf-v5-global--Color--200)' }}
                       dy={5}
+                    />
+                  }
+                  legendComponent={
+                    <ChartLegend
+                      orientation="vertical"
+                      gutter={20}
+                      style={{
+                        labels: { fill: 'var(--pf-v5-global--Color--200)' },
+                      }}
                     />
                   }
                   legendData={[
