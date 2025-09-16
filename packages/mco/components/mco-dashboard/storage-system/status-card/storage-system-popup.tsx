@@ -77,15 +77,15 @@ export const StorageSystemPopup: React.FC<StorageSystemPopopProps> = ({
         size="md"
         data-test="storage-system-status-title"
       >
-        {t('Storage System status')}
+        {t('Storage system status')}
       </Title>
       <Flex data-test="storage-system-status-description">
         {t(
-          'StorageSystem is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
+          'Storage system is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
         )}
       </Flex>
       <Title headingLevel="h3" size="md" data-test="storage-system-count">
-        {t('Storage System')}
+        {t('Storage system')}
         {` (${systemHealthMap.length})`}
       </Title>
       <Flex>

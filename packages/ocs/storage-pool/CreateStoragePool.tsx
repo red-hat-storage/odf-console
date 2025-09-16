@@ -346,7 +346,7 @@ const CreateStoragePoolForm: React.FC<CreateStoragePoolFormProps> = ({
       >
         <strong>
           {t(
-            "Pool creation is not supported for Data Foundation's external RHCS StorageSystem."
+            "Pool creation is not supported for Data Foundation's external RHCS storage system."
           )}
         </strong>
       </Modal>

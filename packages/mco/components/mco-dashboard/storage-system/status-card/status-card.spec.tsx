@@ -264,13 +264,13 @@ describe('Test ODF cluster status from different clusters and namespaces', () =>
     await user.click(screen.getByText('Systems'));
     // Storage system health
     // Popover
-    expect(screen.getByText('Storage System status')).toBeInTheDocument();
+    expect(screen.getByText('Storage system status')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'StorageSystem is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
+        'Storage system is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
       )
     ).toBeInTheDocument();
-    expect(screen.getByText('Storage System (2)')).toBeInTheDocument();
+    expect(screen.getByText('Storage system (2)')).toBeInTheDocument();
     //  Operator status
     expect(screen.getAllByText('Warning')).toHaveLength(2);
     expect(screen.getByText('Critical')).toBeInTheDocument();
@@ -317,13 +317,13 @@ describe('Test ODF cluster status from different clusters and namespaces', () =>
     await user.click(screen.getByText('Systems'));
     // Storage system health
     // Popover
-    expect(screen.getByText('Storage System status')).toBeInTheDocument();
+    expect(screen.getByText('Storage system status')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'StorageSystem is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
+        'Storage system is responsible for ensuring different types of file and block storage availability, storage capacity management and generic operations on storage.'
       )
     ).toBeInTheDocument();
-    expect(screen.getByText('Storage System (2)')).toBeInTheDocument();
+    expect(screen.getByText('Storage system (2)')).toBeInTheDocument();
     //  Operator status
     expect(screen.getAllByText('Warning')).toHaveLength(3);
     expect(screen.getByText('Critical')).toBeInTheDocument();
