@@ -1297,7 +1297,7 @@
   "Not validated": "Not validated",
   "NotAvailable": "NotAvailable",
   "Note:": "Note:",
-  "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation.": "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation.",
+  "Note: If your managed cluster does not appear here, confirm it is successfully imported and refer to the <2>RHACM documentation</2> for more details.": "Note: If your managed cluster does not appear here, confirm it is successfully imported and refer to the <2>RHACM documentation</2> for more details.",
   "Num Volumes": "Num Volumes",
   "Number of noncurrent versions of object.": "Number of noncurrent versions of object.",
   "Number of Volumes": "Number of Volumes",
