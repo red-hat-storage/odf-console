@@ -21,11 +21,11 @@ const ODFSystemDashboard: React.FC<{}> = ({}) => {
 
   const breadcrumbs = [
     {
-      name: t('StorageSystems'),
+      name: t('Storage systems'),
       path: '/odf/systems',
     },
     {
-      name: t('StorageSystem details'),
+      name: t('Storage system details'),
       path: '',
     },
   ];

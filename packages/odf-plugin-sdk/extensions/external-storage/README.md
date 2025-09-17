@@ -2,7 +2,7 @@
 
 OpenShift Data Foundation (ODF) operator supports connecting to an external vendor storage system.
 
-All external vendors can contribute their UI via the `Create storage class` step of `CreateStorageSystem` wizard.
+All external vendors can contribute their UI via the `Create storage class` step of `Create storage system` wizard.
 
 #### Prerequisite:
 
