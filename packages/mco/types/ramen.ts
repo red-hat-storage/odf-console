@@ -117,6 +117,7 @@ export type DRVolumeReplicationGroupKind = K8sResourceCommon & {
       resources?: any;
       conditions?: K8sResourceCondition[];
       lastSyncTime?: string;
+      volumeMode: string;
     }[];
     conditions?: K8sResourceCondition[];
     observedGeneration?: number;
