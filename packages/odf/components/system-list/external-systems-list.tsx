@@ -37,7 +37,6 @@ import {
 } from '@odf/shared/utils';
 import {
   K8sModel,
-  K8sResourceCommon,
   ListPageBody,
   ListPageFilter,
   ListPageHeader,
@@ -260,15 +259,15 @@ const StorageSystemList: React.FC<StorageSystemNewPageProps> = (props) => {
   );
 };
 
-const getModelOfExternalSystem = (obj: K8sResourceCommon): K8sModel => {
-  const kind = obj.kind;
-  if (kind === IBMFlashSystemModel.kind) {
+const getModelOfExternalSystem = (obj: StorageSystemKind): K8sModel => {
+  const { kind } = getGVK(obj.spec.kind);
+  if (kind === IBMFlashSystemModel.kind.toLowerCase()) {
     return IBMFlashSystemModel;
   }
-  if (kind === StorageClusterModel.kind) {
+  if (kind === StorageClusterModel.kind.toLowerCase()) {
     return StorageClusterModel;
   }
-  if (kind === RemoteClusterModel.kind) {
+  if (kind === RemoteClusterModel.kind.toLowerCase()) {
     return RemoteClusterModel;
   }
   throw new Error(`Unknown external system kind: ${kind}`);
