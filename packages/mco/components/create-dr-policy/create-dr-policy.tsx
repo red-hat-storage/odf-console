@@ -1,17 +1,19 @@
 import * as React from 'react';
 import { getMajorVersion } from '@odf/mco/utils';
 import {
+  ACM_DEFAULT_DOC_VERSION,
   DOC_VERSION,
   DRPolicyModel,
   getName,
   MirrorPeerModel,
   odfDRDocHome,
+  useDocVersion,
 } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useFetchCsv } from '@odf/shared/hooks/use-fetch-csv';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { referenceForModel } from '@odf/shared/utils';
+import { ExternalLink, referenceForModel } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
@@ -34,6 +36,8 @@ import {
   TextVariants,
 } from '@patternfly/react-core';
 import {
+  ACM_OPERATOR_SPEC_NAME,
+  acmDocHome,
   BackendType,
   MAX_ALLOWED_CLUSTERS,
   ODFMCO_OPERATOR,
@@ -189,7 +193,12 @@ const CreateDRPolicy: React.FC<{}> = () => {
     () => state.selectedClusters.map(getName),
     [state.selectedClusters]
   );
+  const acmDocVersion = useDocVersion({
+    defaultDocVersion: ACM_DEFAULT_DOC_VERSION,
+    specName: ACM_OPERATOR_SPEC_NAME,
+  });
 
+  const acmDoc = acmDocHome(acmDocVersion);
   return (
     <>
       <PageHeading title={t('Create DRPolicy')}>
@@ -239,9 +248,14 @@ const CreateDRPolicy: React.FC<{}> = () => {
             <FormHelperText>
               <HelperText>
                 <HelperTextItem>
-                  {t(
-                    "Note: If your cluster isn't visible on this list, verify its import status and refer to the steps outlined in the ACM documentation."
-                  )}
+                  <Trans>
+                    Note: If your managed cluster does not appear here, confirm
+                    it is successfully imported and refer to the{' '}
+                    <ExternalLink href={acmDoc}>
+                      RHACM documentation
+                    </ExternalLink>{' '}
+                    for more details.
+                  </Trans>
                 </HelperTextItem>
               </HelperText>
             </FormHelperText>
