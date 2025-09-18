@@ -1,7 +1,11 @@
 import { isExternalCluster } from '@odf/core/utils';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
 import { ODFStorageSystem } from '@odf/shared/models';
-import { StorageClusterKind, StorageSystemKind } from '@odf/shared/types';
+import {
+  StorageClusterKind,
+  StorageSystemKind,
+  K8sResourceKind,
+} from '@odf/shared/types';
 import {
   getAnnotations,
   getLabels,
@@ -12,7 +16,7 @@ import {
 import { useDeepCompareMemoize } from './deep-compare-memoize';
 
 const mapStorageClusterToStorageSystem = (
-  storageCluster: StorageClusterKind
+  storageCluster: K8sResourceKind
 ): StorageSystemKind => ({
   apiVersion: ODFStorageSystem.apiVersion,
   kind: ODFStorageSystem.kind,
