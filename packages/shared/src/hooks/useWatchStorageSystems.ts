@@ -1,3 +1,4 @@
+import { FDF_FLAG } from '@odf/core/redux/provider-hooks';
 import { isExternalCluster } from '@odf/core/utils';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
 import { ODFStorageSystem } from '@odf/shared/models';
@@ -6,6 +7,7 @@ import {
   StorageSystemKind,
   K8sResourceKind,
 } from '@odf/shared/types';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import {
   getAnnotations,
   getLabels,
@@ -50,13 +52,17 @@ const mapStorageClusterToStorageSystem = (
 export const useWatchStorageSystems = (
   onlyWatchExternalClusters?: boolean
 ): [StorageSystemKind[], boolean, any] => {
+  const isFDF = useFlag(FDF_FLAG);
   const {
     storageClusters: odfClusters,
     flashSystemClusters,
     remoteClusters: remoteClusterClients,
   } = useWatchStorageClusters();
 
-  const loaded = odfClusters?.loaded && flashSystemClusters?.loaded;
+  const loaded =
+    odfClusters?.loaded &&
+    flashSystemClusters?.loaded &&
+    (isFDF ? remoteClusterClients?.loaded : true);
   // Flashsystem loaderror can occur when IBM flashsystem operator is not installed hence ignore it
   const loadError = odfClusters?.loadError;
   const storageClusters: StorageClusterKind[] = onlyWatchExternalClusters
