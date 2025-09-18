@@ -1,1 +1,4 @@
-export { default as PasswordInput } from './password-input';
+export {
+  default as PasswordInput,
+  ValidatedPasswordInput,
+} from './password-input';

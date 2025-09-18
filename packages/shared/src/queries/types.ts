@@ -11,7 +11,7 @@ export enum BreakdownCardFieldsWithParams {
 }
 
 export type BreakdownCardQueryMap = {
-  [key in BreakdownCardFields]: {
+  [key in BreakdownCardFields]?: {
     model: K8sModel;
     metric: string;
     queries: {

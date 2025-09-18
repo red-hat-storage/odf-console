@@ -1,4 +1,5 @@
 import { FDF_FLAG } from '@odf/core/redux';
+import { RemoteClusterKind } from '@odf/core/types/scale';
 import {
   IBMFlashSystemModel,
   RemoteClusterModel,
@@ -16,7 +17,7 @@ import { WatchK8sResources } from '@openshift-console/dynamic-plugin-sdk-interna
 type AllClusters = {
   storageClusters: StorageClusterKind[];
   flashSystemClusters: K8sResourceKind[];
-  remoteClusters?: K8sResourceKind[];
+  remoteClusters?: RemoteClusterKind[];
 };
 
 const resources = (isFDF: boolean): WatchK8sResources<AllClusters> => ({
