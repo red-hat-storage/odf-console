@@ -301,6 +301,7 @@ const StorageClientRow: React.FC<
     : t('Unlimited');
   const isLocalClient = isLocalClientCluster(obj, localClusterId);
   const isClientOnboarded = isClientClusterOnboarded(obj);
+  const hasDeletionTimestamp = !!obj?.metadata?.deletionTimestamp;
   return (
     <>
       {tableColumns.map((tableColumn) => {
@@ -345,6 +346,7 @@ const StorageClientRow: React.FC<
                 extraProps={{
                   resource: obj,
                   resourceModel: StorageConsumerModel,
+                  forceDeletion: true,
                 }}
                 customKebabItems={[
                   {
@@ -353,11 +355,15 @@ const StorageClientRow: React.FC<
                     component: React.lazy(
                       () => import('./update-storage-quota-modal')
                     ),
+                    isDisabled: hasDeletionTimestamp,
                   },
                   {
                     key: 'GENERATE_ONBOARDING_TOKEN',
                     value: t('Generate client onboarding token'),
-                    isDisabled: isLocalClient || isClientOnboarded,
+                    isDisabled:
+                      isLocalClient ||
+                      isClientOnboarded ||
+                      hasDeletionTimestamp,
                     component: React.lazy(() =>
                       import('./onboarding-modal').then((m) => ({
                         default: m.ClientOnBoardingModal,
@@ -367,7 +373,7 @@ const StorageClientRow: React.FC<
                   {
                     key: 'DISTRIBUTE_RESOURCES',
                     value: t('Distribute resources'),
-                    isDisabled: isLocalClient,
+                    isDisabled: isLocalClient || hasDeletionTimestamp,
                     component: React.lazy(
                       () =>
                         import(
