@@ -1,4 +1,5 @@
 import * as React from 'react';
+import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { DiskSize as QuotaSize } from '@odf/core/constants';
 import { useRawCapacity } from '@odf/core/hooks';
 import {
@@ -180,11 +181,13 @@ const AvailableCapacity: React.FC = () => {
     icon = <BlueInfoCircleIcon />;
   }
   return (
-    <StatusIconAndText
-      title={title}
-      icon={icon}
-      className="text-muted pf-v5-u-font-size-sm odf-onboarding-modal__info-icon"
-    />
+    <NamespaceSafetyBox>
+      <StatusIconAndText
+        title={title}
+        icon={icon}
+        className="text-muted pf-v5-u-font-size-sm odf-onboarding-modal__info-icon"
+      />
+    </NamespaceSafetyBox>
   );
 };
 

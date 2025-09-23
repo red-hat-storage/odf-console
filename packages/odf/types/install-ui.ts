@@ -2,6 +2,6 @@
 export enum StartingPoint {
   OVERVIEW = 'overview',
   STORAGE_CLUSTER = 'storage-cluster',
-  OBJECT_STORAGE = 'object-storage', // Fusion only
+  OBJECT_STORAGE = 'object-storage',
   EXTERNAL_SYSTEMS = 'external-systems',
 }
