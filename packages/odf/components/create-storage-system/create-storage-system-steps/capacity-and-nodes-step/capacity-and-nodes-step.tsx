@@ -445,12 +445,7 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
     flexibleScaling,
     nodes
   );
-  const deviceSetCount = getDeviceSetCount(
-    pvCount,
-    deviceSetReplica,
-    flexibleScaling,
-    enableArbiter
-  );
+  const deviceSetCount = getDeviceSetCount(pvCount, deviceSetReplica);
   const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
 
   const validations = capacityAndNodesValidate(
