@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { FDF_FLAG } from '@odf/core/redux';
+import { RemoteClusterKind } from '@odf/core/types/scale';
 import { isClusterIgnored, isExternalCluster } from '@odf/core/utils/odf';
 import { DASH } from '@odf/shared/constants';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
@@ -80,9 +81,56 @@ const getClustersStatuses = (
   );
 };
 
+const getScaleClustersStatuses = (
+  clusters: RemoteClusterKind[],
+  t: TFunction
+): React.ReactNode => {
+  let [healthy, error, warning] = [0, 0, 0];
+  for (const cluster of clusters) {
+    const clusterStatus = cluster.status?.conditions?.find(
+      (condition) => condition.type === 'Available'
+    )?.status;
+    if (clusterStatus === 'True') {
+      healthy++;
+    }
+    if (clusterStatus === 'False') {
+      error++;
+    }
+    if (clusterStatus === 'Unknown') {
+      warning++;
+    }
+  }
+  return (
+    <>
+      {error > 0 && (
+        <Status
+          status={StorageClusterPhase.Error}
+          title={String(error)}
+          className="pf-v5-u-mr-lg"
+        />
+      )}
+      {warning > 0 && (
+        <StatusIconAndText
+          icon={<YellowExclamationTriangleIcon />}
+          title={String(warning)}
+          className="pf-v5-u-mr-lg"
+        />
+      )}
+      {healthy > 0 && (
+        <Status status={StorageClusterPhase.Ready} title={String(healthy)} />
+      )}
+      {healthy + error + warning === 0 && (
+        <span className="pf-v5-u-disabled-color-100">
+          {t('No external systems connected')}
+        </span>
+      )}
+    </>
+  );
+};
 export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
   const { t } = useCustomTranslation();
-  const { storageClusters, flashSystemClusters } = useWatchStorageClusters();
+  const { storageClusters, flashSystemClusters, remoteClusters } =
+    useWatchStorageClusters();
   const navigate = useNavigate();
 
   const isFDF = useFlag(FDF_FLAG);
@@ -101,8 +149,10 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
     flashSystemClusters.loaded && !flashSystemClusters.loadError
       ? getClustersStatuses(flashSystemClusters?.data, t)
       : DASH;
-  // @TODO: Add IBM Scale System when available.
-  const scaleClustersStatuses = DASH;
+  const scaleClustersStatuses =
+    remoteClusters.loaded && !remoteClusters.loadError
+      ? getScaleClustersStatuses(remoteClusters?.data, t)
+      : DASH;
 
   return (
     <Card
