@@ -7,18 +7,15 @@ import {
   DataConsumption,
   defaultBreakdown,
 } from '@odf/ocs/constants';
-import {
-  getOptionsMenuItems,
-  getGroupedSelectOptions,
-} from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  OptionsMenu,
-  OptionsMenuPosition,
-  OptionsMenuToggle,
   Select,
-  SelectVariant,
-} from '@patternfly/react-core/deprecated';
+  SelectList,
+  SelectOption,
+  SelectGroup,
+  MenuToggle,
+  MenuToggleElement,
+} from '@patternfly/react-core';
 import './data-consumption-card.scss';
 
 export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
@@ -35,6 +32,7 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
     isMcgSupported,
   } = props;
   const { t } = useCustomTranslation();
+
   const [isOpenComboDropdown, setComboDropdown] = React.useState(false);
   const [isOpenServiceTypeDropdown, setServiceTypeDropdown] =
     React.useState(false);
@@ -89,30 +87,27 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
     },
   ];
 
-  const onSelectComboDropdown = (e: React.MouseEvent) => {
-    const { id } = e.currentTarget;
+  const onSelectComboDropdown = (
+    _event: React.MouseEvent | undefined,
+    value: string | number | undefined
+  ) => {
+    const id = value as string;
     const isBreakdown = id === Breakdown.ACCOUNTS || id === Breakdown.PROVIDERS;
     const breakdownBy = isBreakdown ? Groups.BREAKDOWN : Groups.METRIC;
-    switch (breakdownBy) {
-      case Groups.BREAKDOWN:
-        setSelectedBreakdown(id as Breakdown);
-        setSelectedMetric(DataConsumption.defaultMetrics[selectedService]);
-        break;
-      case Groups.METRIC:
-        setSelectedMetric(id as Metrics);
-        break;
-      default:
-        break;
-    }
-    if (selectedService !== ServiceType.MCG) {
-      setComboDropdown(!isOpenComboDropdown);
+
+    if (breakdownBy === Groups.BREAKDOWN) {
+      setSelectedBreakdown(id as Breakdown);
+      setSelectedMetric(DataConsumption.defaultMetrics[selectedService]);
+    } else {
+      setSelectedMetric(id as Metrics);
     }
   };
 
   const onSelectServiceDropdown = (
-    _e: React.MouseEvent,
-    selection: ServiceType
+    _e: React.MouseEvent | undefined,
+    value: string | number | undefined
   ) => {
+    const selection = value as ServiceType;
     setSelectedService(selection);
     setSelectedMetric(DataConsumption.defaultMetrics[selection]);
     if (selection === ServiceType.MCG) {
@@ -120,63 +115,114 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
     } else {
       setSelectedBreakdown(null);
     }
-    setServiceTypeDropdown(!isOpenServiceTypeDropdown);
   };
 
-  const comboDropdownItems = (() => {
-    const dropdown =
-      selectedService === ServiceType.MCG ? MCGDropdown : RGWDropdown;
-    return getOptionsMenuItems(
-      dropdown,
-      [selectedBreakdown, selectedMetric],
-      onSelectComboDropdown
-    );
-  })();
+  // ---------- ITEMS ----------
+  const comboDropdownItems = (
+    <SelectList className="nb-dat a-consumption-card__dropdown-item nb-data-consumption-card__options-menu">
+      {(selectedService === ServiceType.MCG ? MCGDropdown : RGWDropdown).map(
+        (group) => (
+          <SelectGroup key={group.group} label={group.group}>
+            {group.items.map((item) => {
+              const isSelected =
+                item.id === selectedBreakdown || item.id === selectedMetric;
+              return (
+                <SelectOption
+                  key={item.id}
+                  value={item.id}
+                  isSelected={isSelected}
+                >
+                  {item.name}
+                </SelectOption>
+              );
+            })}
+          </SelectGroup>
+        )
+      )}
+    </SelectList>
+  );
 
-  const serviceDropdownItems = getGroupedSelectOptions(ServiceTypeDropdown);
+  const serviceDropdownItems = (
+    <SelectList className="nb-data-consumption-card__dropdown-item nb-data-consumption-card__options-menu">
+      {ServiceTypeDropdown.map((group) => (
+        <SelectGroup key={group.group} label={group.group}>
+          {group.items.map((item) => (
+            <SelectOption
+              key={item.id}
+              value={item.id}
+              isSelected={item.id === selectedService}
+            >
+              {item.name}
+            </SelectOption>
+          ))}
+        </SelectGroup>
+      ))}
+    </SelectList>
+  );
+
+  const comboToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      className="nb-data-consumption-card__dropdown-item nb-data-consumption-card__options-menu"
+      ref={toggleRef}
+      onClick={() => setComboDropdown(!isOpenComboDropdown)}
+      isExpanded={isOpenComboDropdown}
+      style={{
+        width: '170px',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+      }}
+    >
+      {selectedBreakdown
+        ? t('{{selectedMetric}} by {{selectedBreakdown}}', {
+            selectedMetric,
+            selectedBreakdown,
+          })
+        : selectedMetric}
+    </MenuToggle>
+  );
+
+  const serviceToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      className="nb-data-consumption-card__dropdown-item nb-data-consumption-card__options-menu"
+      ref={toggleRef}
+      onClick={() => setServiceTypeDropdown(!isOpenServiceTypeDropdown)}
+      isExpanded={isOpenServiceTypeDropdown}
+    >
+      {t('Type: {{selectedService}}', { selectedService })}
+    </MenuToggle>
+  );
 
   return (
     <div className="nb-data-consumption-card__dropdown">
       {isRgwSupported && isMcgSupported && (
         <Select
-          variant={SelectVariant.single}
-          className="nb-data-consumption-card__dropdown-item nb-data-consumption-card__dropdown-item--margin"
-          autoFocus={false}
-          onSelect={onSelectServiceDropdown}
-          onToggle={() => setServiceTypeDropdown(!isOpenServiceTypeDropdown)}
           isOpen={isOpenServiceTypeDropdown}
-          selections={[selectedService]}
-          isGrouped
-          placeholderText={t('Type: {{selectedService}}', {
-            selectedService,
-          })}
-          aria-label={t('Break By Dropdown')}
-          isCheckboxSelectionBadgeHidden
+          onSelect={onSelectServiceDropdown}
+          onOpenChange={setServiceTypeDropdown}
+          toggle={serviceToggle}
+          className="nb-data-consumption-card__dropdown-item nb-data-consumption-card__dropdown-item--margin"
+          selectPopperProps={{
+            position: 'right-start',
+            enableFlip: false,
+          }}
         >
           {serviceDropdownItems}
         </Select>
       )}
-      <OptionsMenu
-        id="breakdown-options"
-        className="nb-data-consumption-card__dropdown-item nb-data-consumption-card__options-menu"
-        position={OptionsMenuPosition.right}
-        menuItems={comboDropdownItems}
-        toggle={
-          <OptionsMenuToggle
-            onToggle={() => setComboDropdown(!isOpenComboDropdown)}
-            toggleTemplate={
-              selectedBreakdown
-                ? t('{{selectedMetric}} by {{selectedBreakdown}}', {
-                    selectedMetric,
-                    selectedBreakdown,
-                  })
-                : selectedMetric
-            }
-          />
-        }
+
+      <Select
         isOpen={isOpenComboDropdown}
-        isGrouped
-      />
+        onSelect={onSelectComboDropdown}
+        onOpenChange={setComboDropdown}
+        toggle={comboToggle}
+        selectPopperProps={{
+          position: 'right-start',
+          enableFlip: false,
+        }}
+      >
+        {comboDropdownItems}
+      </Select>
     </div>
   );
 };
