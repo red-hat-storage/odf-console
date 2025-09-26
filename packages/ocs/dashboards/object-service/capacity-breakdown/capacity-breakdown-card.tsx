@@ -5,7 +5,6 @@ import { secretResource } from '@odf/core/resources';
 import { OCS_OPERATOR } from '@odf/shared/constants';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
 import { LabelPadding } from '@odf/shared/dashboards/breakdown-card/breakdown-chart';
-import { getGroupedSelectOptions } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import { Colors } from '@odf/shared/dashboards/breakdown-card/consts';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
@@ -19,40 +18,21 @@ import { DataPoint, getInstantVectorStats } from '@odf/shared/utils';
 import { humanizeBinaryBytes, isFunctionThenApply } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import * as _ from 'lodash-es';
 import {
   Select,
+  SelectList,
   SelectGroup,
   SelectOption,
-  SelectProps,
-} from '@patternfly/react-core/deprecated';
-import * as _ from 'lodash-es';
+  MenuToggle,
+  MenuToggleElement,
+} from '@patternfly/react-core';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ServiceType, CapacityBreakdown } from '../../../constants';
 import { breakdownQueryMapMCG } from '../../../queries';
 import { decodeRGWPrefix, getStackChartStats } from '../../../utils';
 import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import './capacity-breakdown-card.scss';
-
-type DropdownItems = {
-  group: string;
-  items: {
-    name: string;
-    id: string;
-    disabled: boolean;
-  }[];
-}[];
-
-const getDisableableSelectOptions = (dropdownItems: DropdownItems) => {
-  return dropdownItems.map(({ group, items }) => (
-    <SelectGroup key={group} label={group} className="co-filter-dropdown-group">
-      {items.map(({ name, id, disabled }) => (
-        <SelectOption key={id} value={id} disabled={disabled}>
-          {name}
-        </SelectOption>
-      ))}
-    </SelectGroup>
-  ));
-};
 
 type ServiceTypeProps = {
   metricType: CapacityBreakdown.Metrics;
@@ -83,10 +63,8 @@ const CapacityBreakdownCardBody: React.FC<CapacityBreakdownCardBodyProps> = ({
   labelPadding,
 }) => {
   const { t } = useCustomTranslation();
-
   const { odfNamespace } = useODFNamespaceSelector();
 
-  // For charts whose datapoints are composed of multiple queries
   const flattenedResponse = response.reduce(
     (acc, curr, ind) => (ind < response?.length - 1 ? [...acc, ...curr] : acc),
     []
@@ -123,14 +101,9 @@ const CapacityBreakdownCardBody: React.FC<CapacityBreakdownCardBodyProps> = ({
   );
 };
 
-const ServiceTypeALL: React.FC<ServiceTypeProps> = ({
-  metricType,
-  prometheusQueries,
-  model,
-  metric,
-  ocsVersion,
-  labelPadding,
-}) => {
+// ---- Service Type ALL ----
+const ServiceTypeALL: React.FC<ServiceTypeProps> = (props) => {
+  const { prometheusQueries, metric } = props;
   const [rgw, rgwLoadError, rgwLoading] = useCustomPrometheusPoll({
     query: prometheusQueries?.[0],
     endpoint: 'api/v1/query' as any,
@@ -150,39 +123,33 @@ const ServiceTypeALL: React.FC<ServiceTypeProps> = ({
   const loading = rgwLoading || noobaaLoading || objectLoading;
   const error = !!rgwLoadError || !!noobaaLoadError || !!objectLoadError;
   const data = !!rgw && !!noobaa && !!object;
-  const response: DataPointResponse = React.useMemo(() => {
-    return !loading && !error && data
-      ? [
-          getInstantVectorStats(rgw, metric),
-          getInstantVectorStats(noobaa, metric),
-          getInstantVectorStats(object, metric),
-        ]
-      : [];
-  }, [rgw, noobaa, object, loading, error, data, metric]);
+
+  const response: DataPointResponse = React.useMemo(
+    () =>
+      !loading && !error && data
+        ? [
+            getInstantVectorStats(rgw, metric),
+            getInstantVectorStats(noobaa, metric),
+            getInstantVectorStats(object, metric),
+          ]
+        : [],
+    [rgw, noobaa, object, loading, error, data, metric]
+  );
 
   return (
     <CapacityBreakdownCardBody
+      {...props}
       response={response}
       serviceType={ServiceType.ALL}
       loading={loading}
       error={error}
-      metricType={metricType}
-      model={model}
-      metric={metric}
-      ocsVersion={ocsVersion}
-      labelPadding={labelPadding}
     />
   );
 };
 
-const ServiceTypeMCG: React.FC<ServiceTypeProps> = ({
-  metricType,
-  prometheusQueries,
-  model,
-  metric,
-  ocsVersion,
-  labelPadding,
-}) => {
+// ---- Service Type MCG ----
+const ServiceTypeMCG: React.FC<ServiceTypeProps> = (props) => {
+  const { prometheusQueries, metric } = props;
   const [byUsed, byUsedError, byUsedLoading] = useCustomPrometheusPoll({
     query: prometheusQueries?.[0],
     endpoint: 'api/v1/query' as any,
@@ -199,38 +166,32 @@ const ServiceTypeMCG: React.FC<ServiceTypeProps> = ({
   const loading = byUsedLoading || totalUsedLoading;
   const error = !!byUsedError || !!totalUsedError;
   const data = !!byUsed && !!totalUsed;
-  const response: DataPointResponse = React.useMemo(() => {
-    return !loading && !error && data
-      ? [
-          getInstantVectorStats(byUsed, metric),
-          getInstantVectorStats(totalUsed, metric),
-        ]
-      : [];
-  }, [byUsed, totalUsed, loading, error, data, metric]);
+
+  const response: DataPointResponse = React.useMemo(
+    () =>
+      !loading && !error && data
+        ? [
+            getInstantVectorStats(byUsed, metric),
+            getInstantVectorStats(totalUsed, metric),
+          ]
+        : [],
+    [byUsed, totalUsed, loading, error, data, metric]
+  );
 
   return (
     <CapacityBreakdownCardBody
+      {...props}
       response={response}
       serviceType={ServiceType.MCG}
       loading={loading}
       error={error}
-      metricType={metricType}
-      model={model}
-      metric={metric}
-      ocsVersion={ocsVersion}
-      labelPadding={labelPadding}
     />
   );
 };
 
-const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({
-  metricType,
-  prometheusQueries,
-  model,
-  metric,
-  ocsVersion,
-  labelPadding,
-}) => {
+// ---- Service Type RGW ----
+const ServiceTypeRGW: React.FC<ServiceTypeProps> = (props) => {
+  const { prometheusQueries, metric } = props;
   const [totalUsed, totalUsedError, totalUsedLoading] = useCustomPrometheusPoll(
     {
       query: prometheusQueries?.[0],
@@ -247,30 +208,142 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = ({
   const loading = usedLoading || totalUsedLoading;
   const error = !!usedError || !!totalUsedError;
   const data = !!totalUsed && !!used;
-  const response: DataPointResponse = React.useMemo(() => {
-    return !loading && !error && data
-      ? [
-          getInstantVectorStats(used, metric),
-          getInstantVectorStats(totalUsed, metric),
-        ]
-      : [];
-  }, [used, totalUsed, loading, error, data, metric]);
+
+  const response: DataPointResponse = React.useMemo(
+    () =>
+      !loading && !error && data
+        ? [
+            getInstantVectorStats(used, metric),
+            getInstantVectorStats(totalUsed, metric),
+          ]
+        : [],
+    [used, totalUsed, loading, error, data, metric]
+  );
 
   return (
     <CapacityBreakdownCardBody
+      {...props}
       response={response}
       serviceType={ServiceType.RGW}
       loading={loading}
       error={error}
-      metricType={metricType}
-      model={model}
-      metric={metric}
-      ocsVersion={ocsVersion}
-      labelPadding={labelPadding}
     />
   );
 };
 
+// ---- Dropdown Components ----
+const ServiceTypeDropdown: React.FC<{
+  serviceType: ServiceType;
+  setServiceType: (s: ServiceType) => void;
+  isOpen: boolean;
+  setIsOpen: (o: boolean) => void;
+}> = ({ serviceType, setServiceType, isOpen, setIsOpen }) => {
+  const { t } = useCustomTranslation();
+
+  const serviceLabels: Record<ServiceType, string> = {
+    [ServiceType.ALL]: t('All'),
+    [ServiceType.MCG]: ServiceType.MCG,
+    [ServiceType.RGW]: ServiceType.RGW,
+  };
+
+  const onSelect = (_e: any, value: string) => {
+    setServiceType(value as ServiceType);
+    setIsOpen(false);
+  };
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      isExpanded={isOpen}
+      onClick={() => setIsOpen(!isOpen)}
+      style={{ width: '170px' }}
+    >
+      {serviceLabels[serviceType] || t('Select')}
+    </MenuToggle>
+  );
+
+  return (
+    <Select
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      selected={serviceType}
+      onSelect={onSelect}
+      toggle={toggle}
+    >
+      <SelectList>
+        <SelectGroup label={t('Service type')}>
+          <SelectOption value={ServiceType.ALL}>{t('All')}</SelectOption>
+          <SelectOption value={ServiceType.MCG}>{ServiceType.MCG}</SelectOption>
+          <SelectOption value={ServiceType.RGW}>{ServiceType.RGW}</SelectOption>
+        </SelectGroup>
+      </SelectList>
+    </Select>
+  );
+};
+
+const BreakdownDropdown: React.FC<{
+  metricType: CapacityBreakdown.Metrics;
+  setMetricType: (m: CapacityBreakdown.Metrics) => void;
+  isOpen: boolean;
+  setIsOpen: (o: boolean) => void;
+  serviceType: ServiceType;
+}> = ({ metricType, setMetricType, isOpen, setIsOpen, serviceType }) => {
+  const { t } = useCustomTranslation();
+
+  const metricLabels: Record<string, string> = {
+    [CapacityBreakdown.Metrics.TOTAL]: t('Total'),
+    [CapacityBreakdown.Metrics.PROJECTS]: t('Projects'),
+    [CapacityBreakdown.Metrics.BC]: t('BucketClasses'),
+  };
+
+  const onSelect = (_e: any, value: string) => {
+    setMetricType(value as CapacityBreakdown.Metrics);
+    setIsOpen(false);
+  };
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      isExpanded={isOpen}
+      onClick={() => setIsOpen(!isOpen)}
+      style={{ width: '170px' }}
+    >
+      {metricLabels[metricType] || t('Select')}
+    </MenuToggle>
+  );
+
+  return (
+    <Select
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      selected={metricType}
+      onSelect={onSelect}
+      toggle={toggle}
+    >
+      <SelectList>
+        <SelectGroup label={t('Break by')}>
+          <SelectOption value={CapacityBreakdown.Metrics.TOTAL}>
+            {t('Total')}
+          </SelectOption>
+          <SelectOption
+            value={CapacityBreakdown.Metrics.PROJECTS}
+            isDisabled={serviceType !== ServiceType.MCG}
+          >
+            {t('Projects')}
+          </SelectOption>
+          <SelectOption
+            value={CapacityBreakdown.Metrics.BC}
+            isDisabled={serviceType !== ServiceType.MCG}
+          >
+            {t('BucketClasses')}
+          </SelectOption>
+        </SelectGroup>
+      </SelectList>
+    </Select>
+  );
+};
+
+// ---- Main Card ----
 const BreakdownCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [serviceType, setServiceType] = React.useState(ServiceType.MCG);
@@ -303,6 +376,7 @@ const BreakdownCard: React.FC = () => {
 
   const [secretData, secretLoaded, secretLoadError] =
     useK8sWatchResource<K8sResourceKind>(secretResource(clusterNs));
+
   const rgwPrefix = React.useMemo(
     () =>
       isRGWSupported && secretLoaded && !secretLoadError
@@ -335,57 +409,6 @@ const BreakdownCard: React.FC = () => {
   const [subscription, loaded, loadError] =
     useK8sWatchResource<SubscriptionKind>(subscriptionResource);
 
-  const breakdownItems = React.useMemo(
-    () => [
-      {
-        group: t('Break by'),
-        items: [
-          {
-            id: CapacityBreakdown.Metrics.TOTAL,
-            name: t('Total'),
-            disabled: false,
-          },
-          {
-            id: CapacityBreakdown.Metrics.PROJECTS,
-            name: t('Projects'),
-            disabled: serviceType !== ServiceType.MCG,
-          },
-          {
-            id: CapacityBreakdown.Metrics.BC,
-            name: t('BucketClasses'),
-            disabled: serviceType !== ServiceType.MCG,
-          },
-        ],
-      },
-    ],
-    [serviceType, t]
-  );
-
-  const ServiceItems = [
-    {
-      group: t('Service type'),
-      items: [
-        { name: t('All'), id: ServiceType.ALL },
-        { name: ServiceType.MCG, id: ServiceType.MCG },
-        { name: ServiceType.RGW, id: ServiceType.RGW },
-      ],
-    },
-  ];
-
-  const serviceSelectItems = getGroupedSelectOptions(ServiceItems);
-  const breakdownSelectItems = getDisableableSelectOptions(breakdownItems);
-
-  const handleServiceChange = (_e: React.MouseEvent, service: ServiceType) => {
-    setServiceType(service);
-    setMetricType(CapacityBreakdown.defaultMetrics[service]);
-    setServiceSelect(!isOpenServiceSelect);
-  };
-
-  const handleMetricsChange: SelectProps['onSelect'] = (_e, breakdown) => {
-    setMetricType(breakdown as CapacityBreakdown.Metrics);
-    setBreakdownSelect(!isOpenBreakdownSelect);
-  };
-
   const padding =
     serviceType !== ServiceType.MCG
       ? { top: 0, bottom: 0, left: 0, right: 50 }
@@ -414,43 +437,29 @@ const BreakdownCard: React.FC = () => {
               )}
             </FieldLevelHelp>
           </CardTitle>
+
           {isRGWSupported && isMCGSupported && (
-            <Select
-              className="nb-capacity-breakdown-card-header__dropdown nb-capacity-breakdown-card-header__dropdown--margin"
-              autoFocus={false}
-              onSelect={handleServiceChange}
-              onToggle={() => setServiceSelect(!isOpenServiceSelect)}
+            <ServiceTypeDropdown
+              serviceType={serviceType}
+              setServiceType={(s) => {
+                setServiceType(s);
+                setMetricType(CapacityBreakdown.defaultMetrics[s]);
+              }}
               isOpen={isOpenServiceSelect}
-              selections={[serviceType]}
-              isGrouped
-              placeholderText={t('Type: {{serviceType}}', {
-                serviceType,
-              })}
-              aria-label={t('Service Type Dropdown')}
-              toggleAriaLabel={t('Service Type Dropdown Toggle')}
-              isCheckboxSelectionBadgeHidden
-            >
-              {serviceSelectItems}
-            </Select>
+              setIsOpen={setServiceSelect}
+            />
           )}
-          <Select
-            className="nb-capacity-breakdown-card-header__dropdown"
-            autoFocus={false}
-            onSelect={handleMetricsChange}
-            onToggle={() => setBreakdownSelect(!isOpenBreakdownSelect)}
+
+          <BreakdownDropdown
+            metricType={metricType}
+            setMetricType={setMetricType}
             isOpen={isOpenBreakdownSelect}
-            selections={[metricType]}
-            isGrouped
-            placeholderText={t('By: {{serviceType}}', {
-              serviceType,
-            })}
-            aria-label={t('Break By Dropdown')}
-            isCheckboxSelectionBadgeHidden
-          >
-            {breakdownSelectItems}
-          </Select>
+            setIsOpen={setBreakdownSelect}
+            serviceType={serviceType}
+          />
         </div>
       </CardHeader>
+
       <CardBody className="nb-capacity-breakdown-card__body">
         {serviceType === ServiceType.ALL && (
           <ServiceTypeALL
