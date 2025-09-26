@@ -6,12 +6,16 @@ import { ApplicationModel } from '@odf/shared/models';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { ApplicationKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { useK8sWatchResources } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  useK8sWatchResources,
+  K8sResourceCondition,
+} from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Flex, FlexItem, Alert, AlertVariant } from '@patternfly/react-core';
 import { DRActionType, ACM_OPERATOR_SPEC_NAME } from '../../../../constants';
 import {
   getDRPlacementControlResourceObj,
+  getDRPolicyResourceObj,
   getPlacementDecisionsResourceObj,
   getPlacementResourceObj,
   getPlacementRuleResourceObj,
@@ -23,6 +27,7 @@ import {
   DRPlacementControlKind,
   ACMPlacementDecisionKind,
   ACMPlacementKind,
+  DRPolicyKind,
 } from '../../../../types';
 import {
   filterDRSubscriptions,
@@ -30,6 +35,7 @@ import {
   SubscriptionMap,
   getAppDRInfo,
   PlacementMap,
+  getInvalidDRPolicy,
 } from '../../../../utils';
 import { DRPolicySelector } from './dr-policy-selector';
 import { ErrorMessages, ErrorMessageType, MessageKind } from './error-messages';
@@ -66,6 +72,7 @@ const resources = (namespace: string) => ({
   placements: getPlacementResourceObj({ namespace }),
   placementDecisions: getPlacementDecisionsResourceObj({ namespace }),
   drPlacementControls: getDRPlacementControlResourceObj({ namespace }),
+  drPolicies: getDRPolicyResourceObj(),
 });
 
 const MessageStatus: React.FC<MessageKind> = ({ title, variant, message }) => (
@@ -88,7 +95,8 @@ export const FailoverRelocateModalBody: React.FC<
 > = (props) => {
   const { application, action, state, dispatch } = props;
   const { t } = useCustomTranslation();
-
+  const [invalidPolicy, setInvalidPolicy] =
+    React.useState<K8sResourceCondition>();
   const response = useK8sWatchResources<DRActionWatchResourceType>(
     resources(application?.metadata?.namespace)
   );
@@ -128,6 +136,12 @@ export const FailoverRelocateModalBody: React.FC<
     loadError: placementDecisionsLoadError,
   } = response?.placementDecisions;
 
+  const {
+    data: drPolicies,
+    loaded: drPoliciesLoaded,
+    loadError: drPoliciesLoadError,
+  } = response?.drPolicies;
+
   const placementLoaded =
     placementRulesLoaded && placementDecisionsLoaded && placementsLoaded;
 
@@ -137,11 +151,15 @@ export const FailoverRelocateModalBody: React.FC<
     placementDecisionsLoadError;
 
   const loaded =
-    subscriptionsLoaded && placementLoaded && drPlacementControlsLoaded;
+    subscriptionsLoaded &&
+    placementLoaded &&
+    drPlacementControlsLoaded &&
+    drPoliciesLoaded;
   const loadError =
     subscriptionsLoadError ||
     placementLoadError ||
-    drPlacementControlsLoadError;
+    drPlacementControlsLoadError ||
+    drPoliciesLoadError;
 
   React.useEffect(() => {
     if (loaded && !loadError) {
@@ -164,32 +182,58 @@ export const FailoverRelocateModalBody: React.FC<
       )
         ? getAppDRInfo(drPlacementControls, subscriptionMap, placementMap)
         : [];
-      !!drPolicyControlState.length
+
+      // Check for invalid DR policy
+      const drPolicy = drPolicies?.find(
+        (policy) => policy.metadata?.name === state.selectedDRPolicy.policyName
+      );
+      const invalidPolicyCondition = drPolicy
+        ? getInvalidDRPolicy(drPolicy)
+        : null;
+
+      // Set the invalid policy state
+      setInvalidPolicy(invalidPolicyCondition);
+
+      console.log('DR Policy validation check:', {
+        invalidDRPolicy: !!invalidPolicyCondition,
+        drPolicyControlState,
+      });
+
+      !!invalidPolicyCondition
         ? dispatch({
-            type: FailoverAndRelocateType.SET_DR_POLICY_CONTROL_STATE,
-            payload: drPolicyControlState,
-          })
-        : dispatch({
             type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
             payload: {
-              drPolicyControlStateErrorMessage:
-                action === DRActionType.FAILOVER
-                  ? ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER
-                  : ErrorMessageType.DR_IS_NOT_ENABLED_RELOCATE,
+              drPolicyControlStateErrorMessage: ErrorMessageType.DR_IS_INVALID,
             },
-          });
+          })
+        : !!drPolicyControlState.length
+          ? dispatch({
+              type: FailoverAndRelocateType.SET_DR_POLICY_CONTROL_STATE,
+              payload: drPolicyControlState,
+            })
+          : dispatch({
+              type: FailoverAndRelocateType.SET_ERROR_MESSAGE,
+              payload: {
+                drPolicyControlStateErrorMessage:
+                  action === DRActionType.FAILOVER
+                    ? ErrorMessageType.DR_IS_NOT_ENABLED_FAILOVER
+                    : ErrorMessageType.DR_IS_NOT_ENABLED_RELOCATE,
+              },
+            });
     }
   }, [
     loaded,
     loadError,
     application,
     drPlacementControls,
+    drPolicies,
     subscriptions,
     placementRules,
     placements,
     placementDecisions,
     action,
     dispatch,
+    state.selectedDRPolicy.policyName,
     t,
   ]);
 
@@ -258,7 +302,7 @@ export const FailoverRelocateModalBody: React.FC<
         ((!!findErrorMessage(state.errorMessage, true) ||
           !_.isEmpty(state.actionErrorMessage)) && (
           <MessageStatus
-            {...(ErrorMessages(t, mcoDocVersion, acmDocVersion)[
+            {...(ErrorMessages(t, mcoDocVersion, acmDocVersion, invalidPolicy)[
               findErrorMessage(state.errorMessage, true)
             ] || state.actionErrorMessage)}
           />
@@ -282,4 +326,5 @@ type DRActionWatchResourceType = {
   drPlacementControls: DRPlacementControlKind[];
   placements: ACMPlacementKind[];
   placementDecisions: ACMPlacementDecisionKind[];
+  drPolicies: DRPolicyKind[];
 };
