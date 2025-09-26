@@ -119,7 +119,7 @@
       "href": "/odf/object-storage"
     },
     "flags": {
-      "required": ["ODF_MODEL", "ODF_ADMIN"]
+      "required": ["ODF_MODEL"]
     }
   },
   {
@@ -520,7 +520,8 @@
       "component": { "$codeRef": "objectService.default" }
     },
     "flags": {
-      "required": ["ODF_MODEL"]
+      "required": ["ODF_MODEL"],
+      "disallowed": ["ODF_ADMIN"]
     }
   },
   {
