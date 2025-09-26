@@ -101,7 +101,6 @@ const CapacityBreakdownCardBody: React.FC<CapacityBreakdownCardBodyProps> = ({
   );
 };
 
-// ---- Service Type ALL ----
 const ServiceTypeALL: React.FC<ServiceTypeProps> = (props) => {
   const { prometheusQueries, metric } = props;
   const [rgw, rgwLoadError, rgwLoading] = useCustomPrometheusPoll({
@@ -147,7 +146,6 @@ const ServiceTypeALL: React.FC<ServiceTypeProps> = (props) => {
   );
 };
 
-// ---- Service Type MCG ----
 const ServiceTypeMCG: React.FC<ServiceTypeProps> = (props) => {
   const { prometheusQueries, metric } = props;
   const [byUsed, byUsedError, byUsedLoading] = useCustomPrometheusPoll({
@@ -189,7 +187,6 @@ const ServiceTypeMCG: React.FC<ServiceTypeProps> = (props) => {
   );
 };
 
-// ---- Service Type RGW ----
 const ServiceTypeRGW: React.FC<ServiceTypeProps> = (props) => {
   const { prometheusQueries, metric } = props;
   const [totalUsed, totalUsedError, totalUsedLoading] = useCustomPrometheusPoll(
@@ -231,7 +228,6 @@ const ServiceTypeRGW: React.FC<ServiceTypeProps> = (props) => {
   );
 };
 
-// ---- Dropdown Components ----
 const ServiceTypeDropdown: React.FC<{
   serviceType: ServiceType;
   setServiceType: (s: ServiceType) => void;
@@ -343,7 +339,6 @@ const BreakdownDropdown: React.FC<{
   );
 };
 
-// ---- Main Card ----
 const BreakdownCard: React.FC = () => {
   const { t } = useCustomTranslation();
   const [serviceType, setServiceType] = React.useState(ServiceType.MCG);
