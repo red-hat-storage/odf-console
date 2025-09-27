@@ -43,7 +43,9 @@ export const labelNodes = (nodes: WizardNodeState[]) => {
   return () => Promise.all(requests);
 };
 
-export const createScaleLocalClusterPayload = () => {
+export const createScaleLocalClusterPayload = (
+  isEncryptionEnabled?: boolean
+) => {
   const payload: ClusterKind = {
     apiVersion: 'scale.spectrum.ibm.com/v1beta1',
     kind: 'Cluster',
@@ -68,7 +70,7 @@ export const createScaleLocalClusterPayload = () => {
       },
       license: {
         accept: true,
-        license: 'data-access',
+        license: isEncryptionEnabled ? 'data-management' : 'data-access',
       },
     },
   };
@@ -116,6 +118,7 @@ export const createScaleRemoteClusterPayload = (
   name: string,
   hostNames: string[],
   port: string,
+  secretName: string,
   caCert?: string
 ) => {
   const payload: RemoteClusterKind = {
@@ -129,7 +132,7 @@ export const createScaleRemoteClusterPayload = (
       gui: {
         port: Number(port),
         ...(caCert && { cacert: caCert }),
-        secretName: '',
+        secretName,
         insecureSkipVerify: !!caCert ? false : true,
         hosts: hostNames,
       },
@@ -175,15 +178,22 @@ export const createScaleFileSystemPayload = (name: string, hosts: string[]) => {
   return payload;
 };
 
-export const createFileSystem = (name: string) => {
+export const createFileSystem = (
+  remoteClusterName: string,
+  remoteFileSystemName: string
+) => {
   const payload: FilesystemKind = {
     apiVersion: 'scale.spectrum.ibm.com/v1beta1',
     kind: 'Filesystem',
     metadata: {
-      name: name,
+      name: `${remoteClusterName}-${remoteFileSystemName}`,
       namespace: IBM_SCALE_NAMESPACE,
     },
     spec: {
+      remote: {
+        cluster: remoteClusterName,
+        fs: remoteFileSystemName,
+      },
       seLinuxOptions: {
         level: 's0',
         role: 'object_r',

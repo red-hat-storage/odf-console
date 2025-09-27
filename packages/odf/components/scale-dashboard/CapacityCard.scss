@@ -1,0 +1,20 @@
+
+@import '@patternfly/patternfly/sass-utilities/all';
+
+.scale-capacity-breakdown-card__body {
+  padding-top: 24px;
+}
+
+.scale-capacity-breakdown-card__header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scale-capacity-breakdown-card-header__dropdown {
+  max-width: 30em;
+  @media screen and (min-width: $pf-v5-global--breakpoint--lg) {
+    min-width: 12em;
+  }
+}
