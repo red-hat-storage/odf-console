@@ -26,3 +26,9 @@ export const inTransitEncryptionSettingsForRHCS = (
   `${odfDeployExternalMode(
     odfDocVersion
   )}/deploy-openshift-data-foundation-using-red-hat-ceph-storage#creating-an-openshift-data-foundation-cluster-service-for-external-storage_ceph-external`;
+
+// Multus setup documentation link for ODF
+export const multusSetupDoc = (odfDocVersion: string): string =>
+  `${odfDocBasePath(
+    odfDocVersion
+  )}/planning_your_deployment/index#multus-networking-setup_odf`;
