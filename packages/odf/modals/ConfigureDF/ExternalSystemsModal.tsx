@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FDF_FLAG } from '@odf/core/redux';
-import { useOCSDashboardContextSetter } from '@odf/ocs/dashboards/ocs-dashboard-providers';
+import { useGetExternalClusterDetails } from '@odf/core/redux/utils';
 import {
   DEFAULT_INFRASTRUCTURE,
   InfrastructureKind,
@@ -53,7 +53,8 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
     DEFAULT_INFRASTRUCTURE
   );
 
-  const { hasExternalStorageClusters } = useOCSDashboardContextSetter();
+  const externalClusterDetails = useGetExternalClusterDetails();
+  const hasExternalStorageClusters = externalClusterDetails.clusterName !== '';
   const platform = getInfrastructurePlatform(infrastructure);
   const isRHCSSupported = RHCS_SUPPORTED_INFRA.includes(platform);
   return (

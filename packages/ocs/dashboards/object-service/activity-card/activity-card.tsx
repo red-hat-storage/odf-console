@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { ODFSystemFlagsPayload } from '@odf/core/redux/actions';
+import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { secretResource } from '@odf/core/resources';
 import {
   useCustomPrometheusPoll,
@@ -23,7 +24,6 @@ import {
   ObjectServiceDashboardQuery,
 } from '../../../queries';
 import { isObjectStorageEvent, decodeRGWPrefix } from '../../../utils';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import '../../../style.scss';
 import './activity-card.scss';
 
@@ -120,9 +120,7 @@ const OngoingActivity: React.FC<ActivityProps> = ({
 const ActivityCard: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
 
   return (
