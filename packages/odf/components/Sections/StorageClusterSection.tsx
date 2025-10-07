@@ -1,12 +1,7 @@
 import * as React from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
-import { FDF_FLAG } from '@odf/core/redux';
-import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
-import {
-  OCSDashboardContext,
-  OCSDashboardDispatchContext,
-  useOCSDashboardContextSetter,
-} from '@odf/ocs/dashboards/ocs-dashboard-providers';
+import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
+import { isCapacityAutoScalingAllowed, getResourceInNs } from '@odf/core/utils';
 import OCSSystemDashboard from '@odf/ocs/dashboards/ocs-system-dashboard';
 import {
   CustomKebabItem,
@@ -29,7 +24,7 @@ import {
   isCSVSucceeded,
   referenceForModel,
 } from '@odf/shared/utils';
-import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import InitialEmptyStatePage from './InitialEmptyStatePage';
 
@@ -40,7 +35,6 @@ const storageClusterActions =
     infrastructure: InfrastructureKind,
     isLSOInstalled: boolean,
     isExternalMode: boolean,
-    isFDF?: boolean,
     hasMultipleStorageClusters?: boolean
   ) =>
   () => {
@@ -48,12 +42,7 @@ const storageClusterActions =
     const platform = getInfrastructurePlatform(infrastructure);
     const isRHCSSupported = RHCS_SUPPORTED_INFRA.includes(platform);
     const customKebabItems: CustomKebabItem[] = [];
-    if (
-      !isFDF &&
-      !hasMultipleStorageClusters &&
-      isRHCSSupported &&
-      !isExternalMode
-    ) {
+    if (!hasMultipleStorageClusters && isRHCSSupported && !isExternalMode) {
       customKebabItems.push({
         key: 'ADD_EXTERNAL_CLUSTER',
         value: t('Add external cluster'),
@@ -115,15 +104,31 @@ const storageClusterActions =
     );
   };
 
+const useInternalStorageCluster = () => {
+  const [storageClusters] = useK8sWatchResource<StorageClusterKind[]>({
+    kind: referenceForModel(StorageClusterModel),
+    isList: true,
+  });
+
+  const internalClusterDetails = useGetInternalClusterDetails();
+  const currentStorageCluster = getResourceInNs(
+    storageClusters,
+    internalClusterDetails.clusterNamespace
+  ) as StorageClusterKind;
+  const hasMultipleStorageClusters = storageClusters?.length > 1;
+
+  return {
+    hasMultipleStorageClusters,
+    selectedCluster: { ...internalClusterDetails, isExternalMode: false },
+    currentStorageCluster,
+  };
+};
+
 const StorageClusterSection: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const {
-    selectedCluster,
-    hasMultipleStorageClusters,
-    switchStorageCluster,
-    currentStorageCluster,
-  } = useOCSDashboardContextSetter();
+  const { selectedCluster, hasMultipleStorageClusters, currentStorageCluster } =
+    useInternalStorageCluster();
   const [lsoCSV, lsoCSVLoaded, lsoCSVLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,
   });
@@ -131,14 +136,14 @@ const StorageClusterSection: React.FC = () => {
     InfrastructureModel,
     DEFAULT_INFRASTRUCTURE
   );
-  const isFDF = useFlag(FDF_FLAG);
 
   const isLSOInstalled =
     lsoCSVLoaded && !lsoCSVLoadError && isCSVSucceeded(lsoCSV);
 
   const isExternalMode = selectedCluster.isExternalMode;
-  const noStorageClusters = selectedCluster.clusterName === '';
-  return noStorageClusters || selectedCluster.clusterName === '' ? (
+  const noStorageClusters =
+    selectedCluster.clusterName === '' || !currentStorageCluster;
+  return noStorageClusters ? (
     <InitialEmptyStatePage />
   ) : (
     <>
@@ -150,26 +155,10 @@ const StorageClusterSection: React.FC = () => {
           infrastructure,
           isLSOInstalled,
           isExternalMode,
-          isFDF,
           hasMultipleStorageClusters
         )}
       />
-      <OCSDashboardContext.Provider
-        // These values are not changing frequently
-        // eslint-disable-next-line react/jsx-no-constructed-context-values
-        value={{
-          hasMultipleStorageClusters,
-          selectedCluster,
-        }}
-      >
-        <OCSDashboardDispatchContext.Provider
-          // These values are not changing frequently
-          // eslint-disable-next-line react/jsx-no-constructed-context-values
-          value={{ switchStorageCluster }}
-        >
-          <OCSSystemDashboard />
-        </OCSDashboardDispatchContext.Provider>
-      </OCSDashboardContext.Provider>
+      <OCSSystemDashboard />
     </>
   );
 };

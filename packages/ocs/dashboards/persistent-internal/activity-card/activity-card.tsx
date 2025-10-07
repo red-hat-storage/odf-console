@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { OSDMigrationStatus } from '@odf/core/constants';
 import { PROVIDER_MODE } from '@odf/core/features';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import {
   getStorageClusterInNs,
@@ -117,9 +116,8 @@ export const storageClusterResource = {
 };
 
 const OngoingActivity = () => {
-  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
-  const { systemFlags } = useODFSystemFlagsSelector();
-  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+  const { clusterNamespace: clusterNs, clusterName: managedByOCS } =
+    useGetInternalClusterDetails();
 
   const [subscriptions, subLoaded] =
     useK8sWatchResource<K8sResourceKind[]>(subscriptionResource);

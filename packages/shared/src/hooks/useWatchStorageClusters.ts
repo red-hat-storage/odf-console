@@ -6,6 +6,7 @@ import {
   StorageClusterModel,
 } from '@odf/shared/models';
 import { StorageClusterKind } from '@odf/shared/types';
+import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sResourceKind,
   useFlag,
@@ -13,7 +14,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { WatchK8sResources } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
 
-// @TODO: add IBM Scale System clusters when available.
 type AllClusters = {
   storageClusters: StorageClusterKind[];
   flashSystemClusters: K8sResourceKind[];
@@ -22,11 +22,7 @@ type AllClusters = {
 
 const resources = (isFDF: boolean): WatchK8sResources<AllClusters> => ({
   storageClusters: {
-    groupVersionKind: {
-      group: StorageClusterModel.apiGroup,
-      version: StorageClusterModel.apiVersion,
-      kind: StorageClusterModel.kind,
-    },
+    kind: referenceForModel(StorageClusterModel),
     isList: true,
   },
   flashSystemClusters: {

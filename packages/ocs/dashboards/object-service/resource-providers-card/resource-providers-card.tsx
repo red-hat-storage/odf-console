@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { DataUnavailableError } from '@odf/shared/generic';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import {
@@ -10,7 +11,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import { ResourceProvidersBody } from './resource-providers-card-body';
 import {
   ResourceProvidersItem,
@@ -93,9 +93,7 @@ const MCGResourceProvidersBody: React.FC = () => {
 const ResourceProviders: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
   const hasMCG = systemFlags[clusterNs]?.isNoobaaAvailable;
 

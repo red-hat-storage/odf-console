@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { ODF_MODEL_FLAG } from '@odf/core/features';
-import { useODFNamespaceSelector } from '@odf/core/redux';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import {
+  useODFNamespaceSelector,
+  useODFSystemFlagsSelector,
+} from '@odf/core/redux';
+import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { getStorageClusterInNs } from '@odf/core/utils';
 import {
   ODF_OPERATOR,
@@ -40,7 +43,6 @@ import {
   DescriptionList,
 } from '@patternfly/react-core';
 import EncryptionPopover from '../../common/details-card/encryption-popover';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import './details-card.scss';
 
 const NOOBAA_SYSTEM_NAME_QUERY = 'NooBaa_system_info';
@@ -90,9 +92,7 @@ export const ObjectServiceDetailsCard: React.FC<{}> = () => {
     ? t('Data Foundation')
     : t('OpenShift Container Storage');
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
   const hasRGW = systemFlags[clusterNs]?.isRGWAvailable;
   const hasMCG = systemFlags[clusterNs]?.isNoobaaAvailable;
