@@ -57,6 +57,7 @@
     "overview": "@odf/core/components/overview/Overview",
     "externalSystemsSection": "@odf/core/components/Sections/ExternalSystemsListPage",
     "rhcsDashboard": "@odf/ocs/dashboards/ocs-system-dashboard",
-    "scaleDashboard": "@odf/core/components/scale-dashboard/ScaleDashboard"
+    "scaleDashboard": "@odf/core/components/scale-dashboard/ScaleDashboard",
+    "storageConsumerListPage": "@odf/core/components/storage-consumers/client-list"
   }
 }
