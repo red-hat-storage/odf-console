@@ -1,4 +1,5 @@
 import * as React from 'react';
+import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { FLASH_STORAGE_CLASS } from '@odf/core/constants/common';
 import { useSafeK8sList } from '@odf/core/hooks';
 import { DeployDataFoundationModal } from '@odf/core/modals/ConfigureDF/DeployDataFoundationModal';
@@ -165,146 +166,150 @@ export const FlashSystemConnectionDetails: React.FC = () => {
         )}
       </PageHeading>
       <div className="odf-m-pane__body">
-        <Form isWidthLimited>
-          <FormGroupController
-            control={control}
-            name="endpoint-input"
-            formGroupProps={{
-              label: t('IP address'),
-              fieldId: 'endpoint-input',
-              isRequired: true,
-              helperText: t('Rest API IP address of IBM FlashSystem.'),
-            }}
-            render={({ value, onChange, onBlur }) => (
-              <TextInput
-                id="endpoint-input"
-                type="text"
-                value={value}
-                onChange={(_event, newValue: string) => {
-                  onChange(newValue);
-                  updateFormField('endpoint', newValue);
-                }}
-                onBlur={onBlur}
-                isRequired
-              />
-            )}
-          />
-          <FormGroupController
-            name="username-input"
-            control={control}
-            formGroupProps={{
-              label: t('Username'),
-              isRequired: true,
-              fieldId: 'username-input',
-            }}
-            render={({ value, onChange, onBlur }) => (
-              <TextInput
-                id="username-input"
-                value={value}
-                type="text"
-                onChange={(_event, newValue: string) => {
-                  onChange(newValue);
-                  updateFormField('username', newValue);
-                }}
-                onBlur={onBlur}
-                isRequired
-              />
-            )}
-          />
-          <FormGroupController
-            name="password-input"
-            control={control}
-            formGroupProps={{
-              label: t('Password'),
-              isRequired: true,
-              fieldId: 'password-input',
-            }}
-            render={({ value, onChange, onBlur }) => (
-              <InputGroup>
-                <InputGroupItem isFill>
-                  <TextInput
-                    id="password-input"
-                    value={value}
-                    type={reveal ? 'text' : 'password'}
-                    onChange={(_event, newValue: string) => {
-                      onChange(newValue);
-                      updateFormField('password', newValue);
-                    }}
-                    onBlur={onBlur}
-                    isRequired
-                  />
-                </InputGroupItem>
-                <InputGroupItem>
-                  <Tooltip
-                    content={reveal ? t('Hide password') : t('Reveal password')}
-                  >
-                    <Button
-                      variant="control"
-                      onClick={() => setReveal(!reveal)}
+        <NamespaceSafetyBox>
+          <Form isWidthLimited>
+            <FormGroupController
+              control={control}
+              name="endpoint-input"
+              formGroupProps={{
+                label: t('IP address'),
+                fieldId: 'endpoint-input',
+                isRequired: true,
+                helperText: t('Rest API IP address of IBM FlashSystem.'),
+              }}
+              render={({ value, onChange, onBlur }) => (
+                <TextInput
+                  id="endpoint-input"
+                  type="text"
+                  value={value}
+                  onChange={(_event, newValue: string) => {
+                    onChange(newValue);
+                    updateFormField('endpoint', newValue);
+                  }}
+                  onBlur={onBlur}
+                  isRequired
+                />
+              )}
+            />
+            <FormGroupController
+              name="username-input"
+              control={control}
+              formGroupProps={{
+                label: t('Username'),
+                isRequired: true,
+                fieldId: 'username-input',
+              }}
+              render={({ value, onChange, onBlur }) => (
+                <TextInput
+                  id="username-input"
+                  value={value}
+                  type="text"
+                  onChange={(_event, newValue: string) => {
+                    onChange(newValue);
+                    updateFormField('username', newValue);
+                  }}
+                  onBlur={onBlur}
+                  isRequired
+                />
+              )}
+            />
+            <FormGroupController
+              name="password-input"
+              control={control}
+              formGroupProps={{
+                label: t('Password'),
+                isRequired: true,
+                fieldId: 'password-input',
+              }}
+              render={({ value, onChange, onBlur }) => (
+                <InputGroup>
+                  <InputGroupItem isFill>
+                    <TextInput
+                      id="password-input"
+                      value={value}
+                      type={reveal ? 'text' : 'password'}
+                      onChange={(_event, newValue: string) => {
+                        onChange(newValue);
+                        updateFormField('password', newValue);
+                      }}
+                      onBlur={onBlur}
+                      isRequired
+                    />
+                  </InputGroupItem>
+                  <InputGroupItem>
+                    <Tooltip
+                      content={
+                        reveal ? t('Hide password') : t('Reveal password')
+                      }
                     >
-                      {reveal ? <EyeSlashIcon /> : <EyeIcon />}
-                    </Button>
-                  </Tooltip>
-                </InputGroupItem>
-              </InputGroup>
-            )}
-          />
+                      <Button
+                        variant="control"
+                        onClick={() => setReveal(!reveal)}
+                      >
+                        {reveal ? <EyeSlashIcon /> : <EyeIcon />}
+                      </Button>
+                    </Tooltip>
+                  </InputGroupItem>
+                </InputGroup>
+              )}
+            />
 
-          <FormGroupController
-            name="poolname-input"
-            control={control}
-            formGroupProps={{
-              label: t('Pool name'),
-              isRequired: true,
-              fieldId: 'poolname-input',
-            }}
-            render={({ value, onChange, onBlur }) => (
-              <TextInput
-                id="poolname-input"
-                value={value}
-                type="text"
-                onChange={(_event, newValue: string) => {
-                  onChange(newValue);
-                  updateFormField('poolname', newValue);
-                }}
-                onBlur={onBlur}
-                isRequired
-              />
+            <FormGroupController
+              name="poolname-input"
+              control={control}
+              formGroupProps={{
+                label: t('Pool name'),
+                isRequired: true,
+                fieldId: 'poolname-input',
+              }}
+              render={({ value, onChange, onBlur }) => (
+                <TextInput
+                  id="poolname-input"
+                  value={value}
+                  type="text"
+                  onChange={(_event, newValue: string) => {
+                    onChange(newValue);
+                    updateFormField('poolname', newValue);
+                  }}
+                  onBlur={onBlur}
+                  isRequired
+                />
+              )}
+            />
+            <FormGroup label={t('Volume mode')} fieldId="volume-mode-input">
+              <Select
+                onSelect={onModeSelect}
+                id="volume-mode-input"
+                selections={inverseVolumeMapper[formState.volmode]}
+                onToggle={onToggle}
+                isOpen={isOpen}
+                isDisabled={false}
+                placeholderText={Object.keys(volumeMapper)[0]}
+              >
+                {Object.keys(volumeMapper).map((mode) => (
+                  <SelectOption key={mode} value={mode} />
+                ))}
+              </Select>
+            </FormGroup>
+            {error && (
+              <Alert variant={AlertVariant.danger} isInline title={error} />
             )}
-          />
-          <FormGroup label={t('Volume mode')} fieldId="volume-mode-input">
-            <Select
-              onSelect={onModeSelect}
-              id="volume-mode-input"
-              selections={inverseVolumeMapper[formState.volmode]}
-              onToggle={onToggle}
-              isOpen={isOpen}
-              isDisabled={false}
-              placeholderText={Object.keys(volumeMapper)[0]}
-            >
-              {Object.keys(volumeMapper).map((mode) => (
-                <SelectOption key={mode} value={mode} />
-              ))}
-            </Select>
-          </FormGroup>
-          {error && (
-            <Alert variant={AlertVariant.danger} isInline title={error} />
-          )}
-          <ActionGroup>
-            <Button
-              isLoading={isLoading}
-              spinnerAriaLabel={t('Connecting')}
-              onClick={onSubmit}
-              variant={ButtonVariant.primary}
-              isDisabled={isLoading || !isValid}
-            >
-              {isLoading ? t('Connecting') : t('Connect')}
-            </Button>
-            <Button onClick={() => navigate(-1)} variant={ButtonVariant.link}>
-              {t('Cancel')}
-            </Button>
-          </ActionGroup>
-        </Form>
+            <ActionGroup>
+              <Button
+                isLoading={isLoading}
+                spinnerAriaLabel={t('Connecting')}
+                onClick={onSubmit}
+                variant={ButtonVariant.primary}
+                isDisabled={isLoading || !isValid}
+              >
+                {isLoading ? t('Connecting') : t('Connect')}
+              </Button>
+              <Button onClick={() => navigate(-1)} variant={ButtonVariant.link}>
+                {t('Cancel')}
+              </Button>
+            </ActionGroup>
+          </Form>
+        </NamespaceSafetyBox>
       </div>
     </>
   );
