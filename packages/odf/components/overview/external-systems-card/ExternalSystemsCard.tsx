@@ -37,7 +37,7 @@ import { ArrowRightIcon } from '@patternfly/react-icons';
 import './ExternalSystemsCard.scss';
 
 const getClustersStatuses = (
-  clusters: K8sResourceKind[],
+  clusters: K8sResourceKind[] = [],
   t: TFunction
 ): React.ReactNode => {
   let [healthy, error, warning] = [0, 0, 0];
@@ -82,7 +82,7 @@ const getClustersStatuses = (
 };
 
 const getScaleClustersStatuses = (
-  clusters: RemoteClusterKind[],
+  clusters: RemoteClusterKind[] = [],
   t: TFunction
 ): React.ReactNode => {
   let [healthy, error, warning] = [0, 0, 0];
@@ -136,7 +136,7 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
   const isFDF = useFlag(FDF_FLAG);
 
   const cephClustersStatuses =
-    storageClusters.loaded && !storageClusters.loadError
+    storageClusters?.loaded && !storageClusters?.loadError
       ? getClustersStatuses(
           storageClusters?.data?.filter(
             (cluster) =>
@@ -146,11 +146,11 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
         )
       : DASH;
   const fsClustersStatuses =
-    flashSystemClusters.loaded && !flashSystemClusters.loadError
+    flashSystemClusters?.loaded && !flashSystemClusters?.loadError
       ? getClustersStatuses(flashSystemClusters?.data, t)
       : DASH;
   const scaleClustersStatuses =
-    remoteClusters.loaded && !remoteClusters.loadError
+    (isFDF ? remoteClusters?.loaded : true) && !remoteClusters?.loadError
       ? getScaleClustersStatuses(remoteClusters?.data, t)
       : DASH;
 
