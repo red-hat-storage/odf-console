@@ -67,14 +67,14 @@
     "properties": {
       "id": "odf-separator",
       "section": "storage",
-      "insertAfter": "storage-object"
+      "insertBefore": "odfdashboard"
     }
   },
   {
     "type": "console.navigation/href",
     "properties": {
       "id": "odfdashboard",
-      "insertBefore": "persistentvolumes",
+      "insertAfter": "volumesnapshotcontents",
       "section": "storage",
       "name": "%plugin__odf-console~Data Foundation%",
       "href": "/odf/overview"
@@ -100,7 +100,7 @@
     "type": "console.navigation/href",
     "properties": {
       "id": "external-systems",
-      "insertBefore": "storage-object",
+      "insertAfter": "storage-cluster",
       "section": "storage",
       "name": "%plugin__odf-console~External systems%",
       "href": "/odf/external-systems"
@@ -113,7 +113,7 @@
     "type": "console.navigation/href",
     "properties": {
       "id": "storage-object",
-      "insertAfter": "storage-cluster",
+      "insertAfter": "external-systems",
       "section": "storage",
       "name": "%plugin__odf-console~Object storage%",
       "href": "/odf/object-storage"
@@ -661,6 +661,32 @@
       "text": "Configure",
       "action": {
         "$codeRef": "monCountAlertModal.launchLowMonAlertModal"
+      }
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-consumers",
+      "name": "%plugin__odf-console~Storage consumers%",
+      "insertAfter": "storage-object",
+      "section": "storage",
+      "href": "/odf/storage-consumers"
+    },
+    "flags": {
+      "required": ["PROVIDER_MODE", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/storage-consumers",
+      "exact": true,
+      "component": {
+        "$codeRef": "storageConsumerListPage.ClientListPage"
+      },
+      "flags": {
+        "required": ["PROVIDER_MODE", "ODF_ADMIN"]
       }
     }
   },
