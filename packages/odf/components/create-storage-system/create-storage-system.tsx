@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
-import { BackingStorageType, DeploymentType } from '@odf/core/types';
+import {
+  BackingStorageType,
+  DeploymentType,
+  StartingPoint,
+} from '@odf/core/types';
 import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   isStorageClassWizardStep,
@@ -67,9 +71,9 @@ const useIsStorageClusterCRDPresent = (): boolean => {
 
 const convertModeToDeploymentType = (mode: string): DeploymentType => {
   switch (mode) {
-    case 'storage-cluster':
+    case StartingPoint.STORAGE_CLUSTER:
       return DeploymentType.FULL;
-    case 'mcg':
+    case StartingPoint.OBJECT_STORAGE:
       return DeploymentType.MCG;
   }
 };
