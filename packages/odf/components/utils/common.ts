@@ -34,6 +34,7 @@ import {
   convertToBaseValue,
   getRack,
   humanizeBinaryBytes,
+  getNodeArchitecture,
 } from '@odf/shared/utils';
 import { Base64 } from 'js-base64';
 import * as _ from 'lodash-es';
@@ -111,6 +112,7 @@ export const createWizardNodeState = (
     const roles = getNodeRoles(node).sort();
     const labels = node?.metadata?.labels;
     const taints = node?.spec?.taints;
+    const architecture = getNodeArchitecture(node);
     return {
       name,
       hostName,
@@ -122,6 +124,7 @@ export const createWizardNodeState = (
       roles,
       labels,
       taints,
+      architecture,
     };
   });
 
@@ -159,6 +162,9 @@ export const capacityAndNodesValidate = (
   const totalCpu = getTotalCpu(nodes);
   const totalMemory = getTotalMemoryInGiB(nodes);
 
+  // Get architecture from first node (assuming homogeneous architecture)
+  const architecture = getNodeArchitecture(nodes);
+
   if (isFlexibleScaling(nodes, isNoProvSC, enableStretchCluster)) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
   }
@@ -170,7 +176,8 @@ export const capacityAndNodesValidate = (
         resourceProfile,
         totalCpu,
         totalMemory,
-        osdAmount
+        osdAmount,
+        architecture
       )
     ) {
       validations.push(ValidationType.RESOURCE_PROFILE);
@@ -180,7 +187,8 @@ export const capacityAndNodesValidate = (
         ResourceProfile.Balanced,
         totalCpu,
         totalMemory,
-        osdAmount
+        osdAmount,
+        architecture
       )
     ) {
       validations.push(ValidationType.MINIMAL);
