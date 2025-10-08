@@ -462,13 +462,13 @@ export const ClientListPage: React.FC<ClientListPageProps> = () => {
 
   return (
     <>
-      <ListPageHeader title={t('StorageConsumers')}>
+      <ListPageHeader title={t('Storage Consumers')}>
         <Button
           variant="primary"
           className="pf-v5-u-mr-sm"
           onClick={() => navigate('/odf/storage-consumers/create')}
         >
-          {t('Create StorageConsumer')}
+          {t('Create Storage Consumer')}
         </Button>
         <Button
           variant="tertiary"
