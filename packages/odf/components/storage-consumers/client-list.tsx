@@ -355,7 +355,7 @@ const StorageClientRow: React.FC<
                     component: React.lazy(
                       () => import('./update-storage-quota-modal')
                     ),
-                    isDisabled: hasDeletionTimestamp,
+                    isDisabled: isLocalClient || hasDeletionTimestamp,
                   },
                   {
                     key: 'GENERATE_ONBOARDING_TOKEN',
