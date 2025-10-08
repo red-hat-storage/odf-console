@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { getMajorVersion } from '@odf/mco/utils';
+import { fetchRamenS3Profiles } from '@odf/mco/utils/tps-payload-creator';
 import {
   ACM_DEFAULT_DOC_VERSION,
   DOC_VERSION,
+  DRClusterModel,
   DRPolicyModel,
   getName,
   MirrorPeerModel,
@@ -44,7 +46,7 @@ import {
   ReplicationType,
 } from '../../constants';
 import '../../style.scss';
-import { MirrorPeerKind } from '../../types';
+import { DRClusterKind, MirrorPeerKind, S3StoreProfile } from '../../types';
 import {
   ClusterS3BucketDetailsForm,
   S3Details,
@@ -164,10 +166,115 @@ const CreateDRPolicy: React.FC<{}> = () => {
       namespaced: false,
     });
 
+  const [drClusters, drClustersLoaded, drClustersLoadError] =
+    useK8sWatchResource<DRClusterKind[]>({
+      kind: referenceForModel(DRClusterModel),
+      isList: true,
+      namespaced: false,
+    });
+
   const [csv] = useFetchCsv({
     specName: ODFMCO_OPERATOR,
   });
   const odfMCOVersion = getMajorVersion(csv?.spec?.version);
+
+  const selectedDRClusters = React.useMemo(() => {
+    if (
+      state.selectedClusters.length === MAX_ALLOWED_CLUSTERS &&
+      drClustersLoaded &&
+      !drClustersLoadError
+    ) {
+      const drCluster1 = drClusters.find(
+        (drCluster) => getName(drCluster) === getName(state.selectedClusters[0])
+      );
+      const drCluster2 = drClusters.find(
+        (drCluster) => getName(drCluster) === getName(state.selectedClusters[1])
+      );
+      return [drCluster1, drCluster2].filter(Boolean) as DRClusterKind[];
+    }
+    return [];
+  }, [
+    state.selectedClusters,
+    drClusters,
+    drClustersLoaded,
+    drClustersLoadError,
+  ]);
+
+  const convertS3ProfileToDetails = (
+    profile: S3StoreProfile,
+    clusterName: string
+  ): S3Details => {
+    return {
+      clusterName,
+      bucketName: profile.s3Bucket || '',
+      endpoint: profile.s3CompatibleEndpoint || '',
+      accessKeyId: '',
+      secretKey: '',
+      region: profile.s3Region || '',
+      s3ProfileName: profile.s3ProfileName || '',
+    };
+  };
+
+  React.useEffect(() => {
+    const loadS3ProfileDetails = async () => {
+      if (
+        state.replicationBackend === BackendType.ThirdParty &&
+        selectedDRClusters.length === MAX_ALLOWED_CLUSTERS
+      ) {
+        try {
+          const ramenS3Profiles = await fetchRamenS3Profiles();
+
+          const cluster1S3ProfileName =
+            selectedDRClusters[0]?.spec?.s3ProfileName;
+          const cluster2S3ProfileName =
+            selectedDRClusters[1]?.spec?.s3ProfileName;
+
+          const cluster1Name = getName(selectedDRClusters[0]);
+          const cluster2Name = getName(selectedDRClusters[1]);
+
+          if (cluster1S3ProfileName) {
+            const cluster1Profile = ramenS3Profiles.find(
+              (profile) => profile.s3ProfileName === cluster1S3ProfileName
+            );
+            if (cluster1Profile) {
+              const cluster1Details = convertS3ProfileToDetails(
+                cluster1Profile,
+                cluster1Name
+              );
+              dispatch({
+                type: DRPolicyActionType.SET_CLUSTER1_S3_DETAILS,
+                payload: cluster1Details,
+              });
+            }
+          }
+
+          if (cluster2S3ProfileName) {
+            const cluster2Profile = ramenS3Profiles.find(
+              (profile) => profile.s3ProfileName === cluster2S3ProfileName
+            );
+            if (cluster2Profile) {
+              const cluster2Details = convertS3ProfileToDetails(
+                cluster2Profile,
+                cluster2Name
+              );
+              dispatch({
+                type: DRPolicyActionType.SET_CLUSTER2_S3_DETAILS,
+                payload: cluster2Details,
+              });
+            }
+          }
+        } catch (error) {
+          setErrorMessage(
+            t('Failed to load S3 profile details: {{error}}', {
+              error: (error as Error).message,
+            })
+          );
+        }
+      }
+    };
+
+    loadS3ProfileDetails();
+  }, [selectedDRClusters, dispatch, state.replicationBackend, t]);
 
   const onCreate = () => {
     const promises = createPolicyPromises(state, mirrorPeers);
@@ -315,6 +422,9 @@ const CreateDRPolicy: React.FC<{}> = () => {
                             </HelperText>
                           </FormHelperText>
                           <ClusterS3BucketDetailsForm
+                            areDRClustersAlreadyCreated={
+                              selectedDRClusters.length === 2
+                            }
                             selectedClusters={state.selectedClusters}
                             cluster1Details={state.cluster1S3Details}
                             cluster2Details={state.cluster2S3Details}

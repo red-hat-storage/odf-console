@@ -32,6 +32,7 @@ type ClusterS3BucketDetailsFormProps = {
   cluster2Details: S3Details;
   useSameConnection: boolean;
   dispatch: React.Dispatch<any>;
+  areDRClustersAlreadyCreated?: boolean;
 };
 
 export const ClusterS3BucketDetailsForm: React.FC<
@@ -41,6 +42,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
   cluster1Details,
   cluster2Details,
   useSameConnection,
+  areDRClustersAlreadyCreated,
   dispatch,
 }) => {
   const { t } = useCustomTranslation();
@@ -157,7 +159,11 @@ export const ClusterS3BucketDetailsForm: React.FC<
   return (
     <div className="pf-v5-u-p-md">
       <ExpandableSection
-        toggleText={t(`S3 bucket for {{name}}`, { name: name1 })}
+        toggleText={
+          areDRClustersAlreadyCreated
+            ? t(`Previously used S3 bucket for {{name}}`, { name: name1 })
+            : t(`S3 bucket for {{name}}`, { name: name1 })
+        }
         isExpanded={expanded1}
         onToggle={(_, exp) => setExpanded1(exp)}
         isIndented
@@ -177,9 +183,13 @@ export const ClusterS3BucketDetailsForm: React.FC<
                     type={show1 ? 'text' : 'password'}
                     id={`c1-${key}`}
                     value={cluster1Details[key]}
-                    placeholder={t('Enter the {{label}}', {
-                      label: label.toLowerCase(),
-                    })}
+                    placeholder={
+                      areDRClustersAlreadyCreated
+                        ? ''
+                        : t('Enter the {{label}}', {
+                            label: label.toLowerCase(),
+                          })
+                    }
                     onChange={(_, v) => update(1, key, v)}
                     validated={errors1[key] ? 'error' : 'default'}
                     onBlur={() => handleBlur(1)}
@@ -217,7 +227,11 @@ export const ClusterS3BucketDetailsForm: React.FC<
       </ExpandableSection>
       <Divider className="pf-v5-u-p-md" />
       <ExpandableSection
-        toggleText={t(`S3 bucket for {{name}}`, { name: name2 })}
+        toggleText={
+          areDRClustersAlreadyCreated
+            ? t(`Previously used S3 bucket for {{name}}`, { name: name2 })
+            : t(`S3 bucket for {{name}}`, { name: name2 })
+        }
         isExpanded={expanded2}
         onToggle={(_, exp) => setExpanded2(exp)}
         isIndented
@@ -247,7 +261,7 @@ export const ClusterS3BucketDetailsForm: React.FC<
                   })}
                   onChange={(_, v) => update(2, key, v)}
                   validated={errors2[key] ? 'error' : 'default'}
-                  isDisabled={useSameConnection}
+                  isDisabled={useSameConnection || areDRClustersAlreadyCreated}
                   style={{ flex: 1 }}
                   onBlur={() => handleBlur(2)}
                 />
