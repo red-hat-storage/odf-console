@@ -71,6 +71,7 @@ export type DRPolicyState = {
   enableRBDImageFlatten: boolean;
   // Any error to block the creation
   isClusterSelectionValid: boolean;
+  selectedClustersHaveODF: boolean;
 };
 
 export enum DRPolicyActionType {
@@ -86,6 +87,7 @@ export enum DRPolicyActionType {
   SET_CLUSTER2_S3_DETAILS = 'SET_CLUSTER2_S3_DETAILS',
   SET_USE_SAME_S3_CONNECTION = 'SET_USE_SAME_S3_CONNECTION',
   SET_COMMON_STORAGE_CLASS = 'SET_COMMON_STORAGE_CLASS',
+  SET_DO_CLUSTERS_HAVE_ODF = 'SET_DO_CLUSTERS_HAVE_ODF',
 }
 
 export const drPolicyInitialState: DRPolicyState = {
@@ -113,6 +115,7 @@ export const drPolicyInitialState: DRPolicyState = {
   useSameS3Connection: false,
   syncIntervalTime: '5m',
   selectedClusters: [],
+  selectedClustersHaveODF: false,
   enableRBDImageFlatten: false,
   isClusterSelectionValid: false,
 };
@@ -141,6 +144,10 @@ export type DRPolicyAction =
     }
   | {
       type: DRPolicyActionType.SET_USE_SAME_S3_CONNECTION;
+      payload: boolean;
+    }
+  | {
+      type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF;
       payload: boolean;
     };
 
@@ -195,6 +202,12 @@ export const drPolicyReducer = (
       return {
         ...state,
         isClusterSelectionValid: action.payload,
+      };
+    }
+    case DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF: {
+      return {
+        ...state,
+        selectedClustersHaveODF: action.payload,
       };
     }
     default:
