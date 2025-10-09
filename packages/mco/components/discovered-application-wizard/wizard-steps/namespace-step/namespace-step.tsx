@@ -17,10 +17,10 @@ import { getValidatedProp } from '@odf/shared/utils';
 import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import { useForm } from 'react-hook-form';
 import { TFunction } from 'react-i18next';
 import * as Yup from 'yup';
+import { SelectOption } from '@patternfly/react-core';
 import {
   Alert,
   AlertVariant,
@@ -48,14 +48,16 @@ const getDRClusterFromPolicies = (drPolicies: DRPolicyKind[]): string[] => {
   return [...new Set(drClusters)];
 };
 
-const clusterOptions = (clusters: string[]): JSX.Element[] =>
-  clusters?.map((cluster) => (
+export const clusterOptions = (clusters: string[] = []): JSX.Element[] =>
+  clusters.map((cluster) => (
     <SelectOption
       id={cluster}
       key={cluster}
       data-test="cluster-dropdown-item"
       value={cluster}
-    />
+    >
+      {cluster}
+    </SelectOption>
   ));
 
 const getInputValidationSchema = (t: TFunction, existingNames: string[]) => {

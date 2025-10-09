@@ -26,6 +26,7 @@ import {
   Text,
   TextVariants,
   Tooltip,
+  SelectOption as SelectOptionNext,
 } from '@patternfly/react-core';
 import { SelectNodesTable } from '../../create-storage-system/select-nodes-table/select-nodes-table';
 import { createWizardNodeState } from '../../utils';
@@ -34,17 +35,29 @@ import '../../create-storage-system/create-storage-system-steps/create-local-vol
 
 const fsTypeDropdownOptions: JSX.Element[] = _.map(
   fsTypeDropdownItems,
-  (v, _unused) => <SelectOption key={v} value={v} />
+  (v, _unused) => (
+    <SelectOptionNext key={v} value={v}>
+      {v}
+    </SelectOptionNext>
+  )
 );
 
 const diskModeDropdownOptions: JSX.Element[] = _.map(
   diskModeDropdownItems,
-  (v, _unused) => <SelectOption key={v} value={v} />
+  (v, _unused) => (
+    <SelectOptionNext key={v} value={v}>
+      {v}
+    </SelectOptionNext>
+  )
 );
 
 const diskSizeUnitDropdownOptions: JSX.Element[] = _.map(
   diskSizeUnitOptions,
-  (v, _unused) => <SelectOption key={v} value={v} />
+  (v, _unused) => (
+    <SelectOptionNext key={v} value={v}>
+      {v}
+    </SelectOptionNext>
+  )
 );
 
 const deviceTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
@@ -64,7 +77,9 @@ const deviceTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
 
 const diskTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
   _.map(diskTypeDropdownItems(t), (v, _unused) => (
-    <SelectOption key={v} value={v} />
+    <SelectOptionNext key={v} value={v}>
+      {v}
+    </SelectOptionNext>
   ));
 
 export enum FilterDiskBy {
