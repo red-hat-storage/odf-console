@@ -76,7 +76,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
               selectableActionId: 'ceph-cluster',
             }}
           >
-            <CardTitle>{t('Create RedHat Ceph Cluster')}</CardTitle>
+            <CardTitle>{t('RedHat/IBM Ceph Cluster')}</CardTitle>
           </CardHeader>
           <CardBody>
             <Flex direction={{ default: 'row' }}>
@@ -190,7 +190,7 @@ const ModalHeader: React.FC = () => {
   return (
     <>
       <Title headingLevel="h1" id="welcome-df-modal-title">
-        {t('Welcome to Data Foundation')}
+        {t('Connect to external storage')}
       </Title>
       <TextContent>
         <Text component="small">
