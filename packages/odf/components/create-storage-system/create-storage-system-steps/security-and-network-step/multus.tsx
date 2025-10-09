@@ -16,7 +16,6 @@ import {
   useK8sWatchResources,
   WatchK8sResults,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { Link } from 'react-router-dom-v5-compat';
 import {
@@ -25,6 +24,7 @@ import {
   Checkbox,
   Form,
   FormGroup,
+  SelectOption,
 } from '@patternfly/react-core';
 import { WizardState } from '../../reducer';
 

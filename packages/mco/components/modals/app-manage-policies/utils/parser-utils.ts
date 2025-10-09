@@ -148,14 +148,36 @@ export const getMatchingDRPolicies = (
     appInfo.placements
   );
 
-  return (
-    // Filter all matching policies
+  console.log('getMatchingDRPolicies Debug:', {
+    appInfo,
+    appInfoPlacements: appInfo.placements,
+    deploymentClusters,
+    drPolicies,
+    drPoliciesLength: drPolicies?.length,
+  });
+
+  const matchingPolicies =
     drPolicies?.reduce((acc, drPolicy) => {
-      return matchClusters(drPolicy?.spec?.drClusters, deploymentClusters)
-        ? [...acc, getDRPolicyInfo(drPolicy)]
-        : acc;
-    }, []) || []
-  );
+      const drClusters = drPolicy?.spec?.drClusters;
+      const isMatch = matchClusters(drClusters, deploymentClusters);
+
+      console.log('Policy Match Check:', {
+        policyName: drPolicy?.metadata?.name,
+        drClusters,
+        deploymentClusters,
+        isMatch,
+        matchResult: isMatch ? 'MATCHED' : 'NO MATCH',
+      });
+
+      return isMatch ? [...acc, getDRPolicyInfo(drPolicy)] : acc;
+    }, []) || [];
+
+  console.log('Final Matching Policies:', {
+    matchingPolicies,
+    matchingPoliciesCount: matchingPolicies.length,
+  });
+
+  return matchingPolicies;
 };
 
 export const getDRResources = (namespace: string) => ({

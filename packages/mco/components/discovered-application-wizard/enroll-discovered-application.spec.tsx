@@ -271,7 +271,9 @@ const moveToStep = async (step: number, user: UserEvent) => {
   if (step > 1) {
     // Select cluster
     await user.click(screen.getByText('Select cluster'));
-    await user.click(screen.getByText('east-1'));
+    // Use getAllByText to get all elements, then click the menu item (not the toggle)
+    const eastItems = screen.getAllByText('east-1');
+    await user.click(eastItems[eastItems.length - 1]); // Click the last one (menu item)
 
     // Select namespaces
     await user.click(screen.getByLabelText('Select row 0'));
@@ -300,7 +302,9 @@ const moveToStep = async (step: number, user: UserEvent) => {
   if (step > 3) {
     // Select policy
     await user.click(screen.getByText('Select a policy'));
-    await user.click(screen.getByText('mock-policy-1'));
+    // Use getAllByText to get all elements, then click the menu item (not the toggle)
+    const policyItems = screen.getAllByText('mock-policy-1');
+    await user.click(policyItems[policyItems.length - 1]); // Click the last one (menu item)
 
     // Next wizard step
     await user.click(screen.getByText('Next'));
@@ -379,8 +383,8 @@ describe('Test namespace step', () => {
     // Cluster selection
     await user.click(screen.getByText('Select cluster'));
     await user.click(screen.getByText('east-1'));
-    // Ensure east-1 selection
-    expect(screen.getByText('east-1')).toBeInTheDocument();
+    // Ensure east-1 selection - target the button instead of menu item
+    expect(screen.getByRole('button', { name: /east-1/i })).toBeInTheDocument();
 
     // No namespace found for the cluster
     expect(
@@ -398,8 +402,8 @@ describe('Test namespace step', () => {
     // Cluster  east-1 selection
     await user.click(screen.getByText('Select cluster'));
     await user.click(screen.getByText('east-1'));
-    // Ensure east-1 selection
-    expect(screen.getByText('east-1')).toBeInTheDocument();
+    // Ensure east-1 selection - target the button instead of menu item
+    expect(screen.getByRole('button', { name: /east-1/i })).toBeInTheDocument();
 
     // No namespace found for the cluster
     expect(screen.getByText('namespace-1')).toBeInTheDocument();
@@ -417,10 +421,10 @@ describe('Test namespace step', () => {
     );
 
     // Cluster  west-1 selection
-    await user.click(screen.getByText('east-1'));
+    await user.click(screen.getByRole('button', { name: /east-1/i }));
     await user.click(screen.getByText('west-1'));
-    // Ensure west-1 selection
-    expect(screen.getByText('west-1')).toBeInTheDocument();
+    // Ensure west-1 selection - target the button instead of menu item
+    expect(screen.getByRole('button', { name: /west-1/i })).toBeInTheDocument();
 
     // No namespace found for the cluster
     expect(screen.getByText('namespace-3')).toBeInTheDocument();
@@ -553,9 +557,13 @@ describe('Test replication step', () => {
 
     // Select policy
     await user.click(screen.getByText('Select a policy'));
-    await user.click(screen.getByText('mock-policy-1'));
-    // Ensure policy selection
-    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+    // Use getAllByText to get all elements, then click the menu item (not the toggle)
+    const policyItems = screen.getAllByText('mock-policy-1');
+    await user.click(policyItems[policyItems.length - 1]); // Click the last one (menu item)
+    // Ensure policy selection - target the button instead of menu item
+    expect(
+      screen.getByRole('button', { name: /mock-policy-1/i })
+    ).toBeInTheDocument();
 
     // kubernetes object replication interval selection
     // It seems userEvent does not support number input: https://github.com/testing-library/user-event/issues/411
