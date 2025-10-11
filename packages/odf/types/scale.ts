@@ -88,7 +88,7 @@ export type FilesystemKind = K8sResourceCommon & {
       replication: '1-way' | '2-way' | '3-way';
       type: 'shared' | 'unshared';
     };
-    remote?: {
+    remote: {
       cluster: string;
       fs: string;
     };

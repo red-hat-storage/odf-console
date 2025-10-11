@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
 import { PodModel } from '@odf/shared/models';
 import { PodKind } from '@odf/shared/types';
@@ -11,7 +11,6 @@ import {
 } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 const nfsPodResource = (clusterNs: string, clusterName: string) => ({
   isList: true,
@@ -27,11 +26,9 @@ const nfsPodResource = (clusterNs: string, clusterName: string) => ({
 
 export const StatusCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
-  const { systemFlags } = useODFSystemFlagsSelector();
-  const clusterName = systemFlags[clusterNs]?.ocsClusterName;
+
+  const { clusterNamespace: clusterNs, clusterName } =
+    useGetInternalClusterDetails();
 
   const [nfsPods, nfsPodsLoaded, nfsPodsLoadError] = useK8sWatchResource<
     PodKind[]

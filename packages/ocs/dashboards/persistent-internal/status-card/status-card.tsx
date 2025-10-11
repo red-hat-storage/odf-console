@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { getResourceInNs as getCephClusterInNs } from '@odf/core/utils';
 import { resiliencyProgressQuery } from '@odf/ocs/queries';
@@ -132,9 +131,8 @@ export const StatusCard: React.FC = () => {
   const [data, loaded, loadError] =
     useK8sWatchResource<K8sResourceKind[]>(cephClusterResource);
 
-  const { systemFlags } = useODFSystemFlagsSelector();
-  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
-  const managedByOCS = systemFlags[clusterNs]?.ocsClusterName;
+  const { clusterNamespace: clusterNs, clusterName: managedByOCS } =
+    useGetInternalClusterDetails();
 
   const [resiliencyProgress, resiliencyProgressError] = useCustomPrometheusPoll(
     {

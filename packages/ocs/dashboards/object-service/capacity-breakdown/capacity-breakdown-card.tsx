@@ -1,6 +1,9 @@
 import * as React from 'react';
-import { useODFNamespaceSelector } from '@odf/core/redux';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import {
+  useODFNamespaceSelector,
+  useODFSystemFlagsSelector,
+} from '@odf/core/redux';
+import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { secretResource } from '@odf/core/resources';
 import { OCS_OPERATOR } from '@odf/shared/constants';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
@@ -30,7 +33,6 @@ import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import { ServiceType, CapacityBreakdown } from '../../../constants';
 import { breakdownQueryMapMCG } from '../../../queries';
 import { decodeRGWPrefix, getStackChartStats } from '../../../utils';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import './capacity-breakdown-card.scss';
 
 type DropdownItems = {
@@ -280,9 +282,7 @@ const BreakdownCard: React.FC = () => {
   const [isOpenServiceSelect, setServiceSelect] = React.useState(false);
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
   const isRGWSupported = systemFlags[clusterNs]?.isRGWAvailable;
   const isMCGSupported = systemFlags[clusterNs]?.isNoobaaAvailable;

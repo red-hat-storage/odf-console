@@ -3,14 +3,15 @@ import {
   IBM_SCALE_NAMESPACE,
   IBM_SCALE_OPERATOR_NAME,
 } from '@odf/core/constants';
-import { FileSystemKind } from '@odf/core/types/scale';
+import { RemoteClusterKind } from '@odf/core/types/scale';
 import {
   ClusterServiceVersionKind,
   ClusterServiceVersionModel,
+  getName,
   useCustomTranslation,
 } from '@odf/shared';
 import HealthItem from '@odf/shared/dashboards/status-card/HealthItem';
-import { FileSystemModel } from '@odf/shared/models/scale';
+import { RemoteClusterModel } from '@odf/shared/models/scale';
 import { getOperatorHealthState, referenceForModel } from '@odf/shared/utils';
 import {
   HealthState,
@@ -25,27 +26,26 @@ import {
   GalleryItem,
 } from '@patternfly/react-core';
 
-const getAggregateFileSystemHealth = (
-  fileSystems: FileSystemKind[],
+const getRemoteClusterConnectionHealth = (
+  remoteCluster: RemoteClusterKind,
   loading: boolean,
   loadError: any
-): HealthState => {
+) => {
   if (loading) {
     return HealthState.LOADING;
   }
   if (loadError) {
     return HealthState.ERROR;
   }
-  const fileSystemHealth = fileSystems?.map(
-    (fileSystem) => fileSystem.status.conditions[0].status
-  );
-  if (fileSystemHealth.every((health) => health === HealthState.OK)) {
-    return HealthState.OK;
+  if (!remoteCluster) {
+    return HealthState.NOT_AVAILABLE;
   }
-  if (fileSystemHealth.some((health) => health === HealthState.ERROR)) {
-    return HealthState.WARNING;
-  }
-  return HealthState.OK;
+  const remoteClusterConnectionStatus = remoteCluster?.status?.conditions?.find(
+    (condition) => condition.type === 'Available'
+  ).status;
+  return remoteClusterConnectionStatus === 'True'
+    ? HealthState.OK
+    : HealthState.ERROR;
 };
 
 const StatusCard: React.FC<{}> = () => {
@@ -59,24 +59,26 @@ const StatusCard: React.FC<{}> = () => {
     namespace: IBM_SCALE_NAMESPACE,
   });
 
-  const [fileSystems, fileSystemsLoaded, fileSystemsLoadError] =
-    useK8sWatchResource<FileSystemKind[]>({
-      kind: referenceForModel(FileSystemModel),
+  const [remoteClusters, remoteClustersLoaded, remoteClustersLoadError] =
+    useK8sWatchResource<RemoteClusterKind[]>({
+      kind: referenceForModel(RemoteClusterModel),
       isList: true,
+      namespace: IBM_SCALE_NAMESPACE,
     });
 
   const ibmCSV = csvs?.find((csv) =>
-    csv.metadata.name.includes(IBM_SCALE_OPERATOR_NAME)
+    getName(csv).includes(IBM_SCALE_OPERATOR_NAME)
   );
   const flashOperator = getOperatorHealthState(
     ibmCSV?.status?.phase,
     !csvsLoaded,
     csvsLoadError
   );
-  const aggregateFileSystemHealth = getAggregateFileSystemHealth(
-    fileSystems,
-    !fileSystemsLoaded,
-    fileSystemsLoadError
+
+  const remoteClusterConnectionHealth = getRemoteClusterConnectionHealth(
+    remoteClusters?.[0],
+    !remoteClustersLoaded,
+    remoteClustersLoadError
   );
 
   return (
@@ -91,8 +93,8 @@ const StatusCard: React.FC<{}> = () => {
           </GalleryItem>
           <GalleryItem>
             <HealthItem
-              title={t('Connected')}
-              state={aggregateFileSystemHealth}
+              title={t('Connection')}
+              state={remoteClusterConnectionHealth}
             />
           </GalleryItem>
         </Gallery>

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { pluralize } from '@odf/core/components/utils';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { GraphEmpty } from '@odf/shared/charts';
 import { DEFAULT_PROMETHEUS_RETENTION } from '@odf/shared/constants';
@@ -89,10 +88,8 @@ const understandingToolTip = (t: TFunction) => {
 
 const CapacityTrendCard: React.FC = () => {
   const { t } = useCustomTranslation();
-  const { systemFlags } = useODFSystemFlagsSelector();
 
-  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
-  const ocsCluster = systemFlags[clusterNs]?.ocsClusterName;
+  const { clusterName: ocsCluster } = useGetInternalClusterDetails();
 
   const [configData, configLoaded, configLoadError] =
     useK8sWatchResource<ConfigMapKind>({
