@@ -5,6 +5,7 @@ import {
   SelectOption,
   MenuToggle,
   MenuToggleElement,
+  MenuToggleStatus,
 } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
@@ -13,12 +14,26 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
   selectOptions,
   selectedKey = '',
   valueLabelMap,
+  validated = 'default',
   ...props
 }) => {
   const { t } = useCustomTranslation();
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [newOptions, setNewOptions] = React.useState<JSX.Element[]>([]);
+  const [status, setStatus] = React.useState<MenuToggleStatus>();
+
+  React.useEffect(() => {
+    let derivedValidated = '';
+    derivedValidated = validated;
+    if (derivedValidated === 'error') derivedValidated = 'danger';
+
+    if (derivedValidated !== 'default') {
+      setStatus(derivedValidated.toLowerCase() as MenuToggleStatus);
+    } else {
+      setStatus(undefined);
+    }
+  }, [validated]);
 
   const allOptions =
     newOptions.length > 0 ? selectOptions.concat(newOptions) : selectOptions;
@@ -28,6 +43,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
     value: string | number | undefined
   ) => {
     const stringValue = String(value);
+
     const mappedValue = valueLabelMap
       ? Object.keys(valueLabelMap).find(
           (key) => valueLabelMap[key] === stringValue
@@ -56,6 +72,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
       isExpanded={isOpen}
       isDisabled={props.isDisabled}
       style={{ width: '700px' }}
+      status={status}
     >
       {selectedKey || props.placeholderText || t('Select options')}
     </MenuToggle>
