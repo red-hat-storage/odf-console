@@ -3,7 +3,7 @@ import { createWizardNodeState } from '@odf/core/components/utils';
 import { useNodesData } from '@odf/core/hooks';
 import { ResourceProfile } from '@odf/core/types';
 import { render, screen } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { createFakeNodesData } from '../../../../../../jest/helpers';
 import ConfigurePerformance, {
   ProfileRequirementsText,
@@ -14,7 +14,6 @@ jest.mock('@odf/core/hooks', () => ({
 }));
 
 const onResourceProfileChange = jest.fn();
-
 const errorIconSelector = '[class$="select__toggle-status-icon"]';
 
 describe('Configure Performance', () => {
@@ -38,9 +37,7 @@ describe('Configure Performance', () => {
       />
     );
 
-    const dropdown = screen.getByRole('button', {
-      name: /balanced/i,
-    });
+    const dropdown = screen.getByRole('button', { name: /balanced/i });
     expect(dropdown).toHaveTextContent('balanced');
 
     const errorIcon = container.querySelector(errorIconSelector);
@@ -67,6 +64,7 @@ describe('Configure Performance', () => {
         selectedNodes={[]}
       />
     );
+
     expect(onResourceProfileChange).toHaveBeenNthCalledWith(
       1,
       ResourceProfile.Lean
@@ -78,14 +76,13 @@ describe('Configure Performance', () => {
     const memory = 32 * 1000 * 1000 * 1000;
     const nodes = createFakeNodesData(3, cpu, memory);
     (useNodesData as jest.Mock).mockReturnValueOnce([nodes, true, null]);
-    const dropdown = screen.getByRole('button', {
-      name: /performance/i,
-    });
+
+    const dropdown = screen.getByRole('button', { name: /performance/i });
     expect(dropdown).toHaveTextContent('performance');
 
-    // Note: Error styling may be handled differently in the new dropdown component
     // const errorIcon = container.querySelector(errorIconSelector);
     // expect(errorIcon).toBeVisible();
+
     expect(onResourceProfileChange).toHaveBeenCalledTimes(0);
   });
 
@@ -106,9 +103,7 @@ describe('Configure Performance', () => {
       />
     );
 
-    const dropdown = screen.getByRole('button', {
-      name: /balanced/i,
-    });
+    const dropdown = screen.getByRole('button', { name: /balanced/i });
     expect(dropdown).toHaveTextContent('balanced');
     expect(screen.getByText(/36 CPUs/i)).toBeInTheDocument();
     expect(screen.getByText(/87 GiB/i)).toBeInTheDocument();
