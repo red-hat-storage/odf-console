@@ -27,6 +27,7 @@ import {
   Checkbox,
   Form,
   FormGroup,
+  SelectOption,
 } from '@patternfly/react-core';
 import { WizardState } from '../../reducer';
 
