@@ -75,7 +75,17 @@ describe('Configure Performance', () => {
     const cpu = 12;
     const memory = 32 * 1000 * 1000 * 1000;
     const nodes = createFakeNodesData(3, cpu, memory);
+    const selectedNodes = createWizardNodeState(nodes);
     (useNodesData as jest.Mock).mockReturnValueOnce([nodes, true, null]);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { container } = render(
+      <ConfigurePerformance
+        onResourceProfileChange={onResourceProfileChange}
+        resourceProfile={ResourceProfile.Performance}
+        selectedNodes={selectedNodes}
+      />
+    );
 
     const dropdown = screen.getByRole('button', { name: /performance/i });
     expect(dropdown).toHaveTextContent('performance');
