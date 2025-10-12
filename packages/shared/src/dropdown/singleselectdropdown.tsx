@@ -14,7 +14,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
   selectOptions,
   selectedKey = '',
   valueLabelMap,
-  validated = 'default',
+  validated,
   ...props
 }) => {
   const { t } = useCustomTranslation();
@@ -29,7 +29,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
     if (derivedValidated === 'error') derivedValidated = 'danger';
 
     if (derivedValidated !== 'default') {
-      setStatus(derivedValidated.toLowerCase() as MenuToggleStatus);
+      setStatus(derivedValidated as MenuToggleStatus);
     } else {
       setStatus(undefined);
     }
