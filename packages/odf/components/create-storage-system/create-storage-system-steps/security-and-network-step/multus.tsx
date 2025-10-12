@@ -20,7 +20,6 @@ import {
   WatchK8sResults,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { SelectOption } from '@patternfly/react-core';
 import {
   Alert,
   AlertVariant,
