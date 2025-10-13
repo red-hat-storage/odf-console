@@ -397,7 +397,7 @@ export const LabelExpressionSelector: React.FC<
 };
 
 // Only selective operator are used as options.
-enum Operator {
+export enum Operator {
   In = 'In',
   NotIn = 'NotIn',
   Exists = 'Exists',

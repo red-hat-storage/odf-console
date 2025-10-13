@@ -1,4 +1,5 @@
 import * as React from 'react';
+import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { DiskSize } from '@odf/core/constants';
 import {
   useODFNamespaceSelector,
@@ -163,41 +164,43 @@ const CreateStorageConsumer: React.FC = () => {
       <TextContent className="odf-m-pane__heading odf-m-pane__heading--baseline">
         <Text component={TextVariants.h1}>{t('Create StorageConsumer')}</Text>
       </TextContent>
-      <Form onSubmit={handleSubmit(onSubmit)}>
-        <TextInputWithFieldRequirements
-          control={control}
-          fieldRequirements={fieldRequirements}
-          popoverProps={{
-            headerContent: t('Name requirements'),
-            footerContent: `${exampleTranslatedText}: stark-lab-consumer`,
-          }}
-          formGroupProps={{
-            label: t('StorageConsumer Name'),
-            fieldId: 'storageconsumer-name',
-            className: 'control-label',
-          }}
-          textInputProps={{
-            id: 'storageconsumer-name',
-            name: 'storageconsumerName',
-            className: 'pf-v5-c-form-control',
-            type: 'text',
-            placeholder: t('stark-lab-storage-consumer'),
-            'data-test': 'storage-consumer-name',
-            isRequired: true,
-          }}
-        />
-        <StorageQuotaBody quota={quota} setQuota={setQuota} />
-        <ButtonBar errorMessage={error} inProgress={progress}>
-          <ActionGroup className="pf-v5-c-form">
-            <Button id="submit-btn" type="submit" variant="primary">
-              {t('Create')}
-            </Button>
-            <Button onClick={() => navigate(-1)} variant="secondary">
-              {t('Cancel')}
-            </Button>
-          </ActionGroup>
-        </ButtonBar>
-      </Form>
+      <NamespaceSafetyBox>
+        <Form onSubmit={handleSubmit(onSubmit)}>
+          <TextInputWithFieldRequirements
+            control={control}
+            fieldRequirements={fieldRequirements}
+            popoverProps={{
+              headerContent: t('Name requirements'),
+              footerContent: `${exampleTranslatedText}: stark-lab-consumer`,
+            }}
+            formGroupProps={{
+              label: t('StorageConsumer Name'),
+              fieldId: 'storageconsumer-name',
+              className: 'control-label',
+            }}
+            textInputProps={{
+              id: 'storageconsumer-name',
+              name: 'storageconsumerName',
+              className: 'pf-v5-c-form-control',
+              type: 'text',
+              placeholder: t('stark-lab-storage-consumer'),
+              'data-test': 'storage-consumer-name',
+              isRequired: true,
+            }}
+          />
+          <StorageQuotaBody quota={quota} setQuota={setQuota} />
+          <ButtonBar errorMessage={error} inProgress={progress}>
+            <ActionGroup className="pf-v5-c-form">
+              <Button id="submit-btn" type="submit" variant="primary">
+                {t('Create')}
+              </Button>
+              <Button onClick={() => navigate(-1)} variant="secondary">
+                {t('Cancel')}
+              </Button>
+            </ActionGroup>
+          </ButtonBar>
+        </Form>
+      </NamespaceSafetyBox>
     </div>
   );
 };

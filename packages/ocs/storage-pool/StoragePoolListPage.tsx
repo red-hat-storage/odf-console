@@ -465,7 +465,11 @@ const getResources = (
 };
 
 const StoragePoolListPage: React.FC = () => {
-  const { odfNamespace: clusterNs } = useODFNamespaceSelector();
+  const {
+    odfNamespace: clusterNs,
+    isODFNsLoaded,
+    odfNsLoadError,
+  } = useODFNamespaceSelector();
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
   const clusterName = systemFlags[clusterNs]?.ocsClusterName;
@@ -497,9 +501,17 @@ const StoragePoolListPage: React.FC = () => {
     poolsFromBlock && poolsFromFS ? poolsFromBlock.concat(poolsFromFS) : [];
 
   const loaded =
-    blockPoolsLoaded && filesystemLoaded && (areFlagsLoaded || scLoaded);
+    blockPoolsLoaded &&
+    filesystemLoaded &&
+    isODFNsLoaded &&
+    (areFlagsLoaded || scLoaded);
 
-  const error = flagsLoadError || scError || blockPoolsError || filesystemError;
+  const error =
+    odfNsLoadError ||
+    flagsLoadError ||
+    scError ||
+    blockPoolsError ||
+    filesystemError;
 
   return (
     <StoragePoolList
