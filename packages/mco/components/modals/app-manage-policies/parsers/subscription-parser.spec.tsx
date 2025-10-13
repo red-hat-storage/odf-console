@@ -300,7 +300,8 @@ describe('Subscription manage disaster recovery modal', () => {
     await user.click(screen.getByText('Select a placement'));
     expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
     await user.click(screen.getByText('mock-placement-2'));
-    expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
+    // expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
+    expect(await screen.findByText('mock-placement-2')).toBeInTheDocument();
     await user.click(screen.getByText('Select labels'));
     screen.getByText('app=mock-application-2');
     await user.click(screen.getByText('app=mock-application-2'));
