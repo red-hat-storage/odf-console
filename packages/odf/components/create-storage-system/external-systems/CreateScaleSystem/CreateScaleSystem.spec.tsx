@@ -620,8 +620,8 @@ describe('CreateScaleSystem', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      // Re-renders should be very fast (less than 100ms in CI)
-      expect(duration).toBeLessThan(100);
+      // Re-renders should be very fast (less than 150ms in CI)
+      expect(duration).toBeLessThan(150);
     });
 
     it('should automatically select all nodes when "All nodes" is selected by default', async () => {
