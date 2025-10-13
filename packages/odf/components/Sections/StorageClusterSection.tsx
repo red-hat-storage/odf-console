@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
-import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
+import {
+  useGetExternalClusterDetails,
+  useGetInternalClusterDetails,
+} from '@odf/core/redux/utils';
 import { isCapacityAutoScalingAllowed, getResourceInNs } from '@odf/core/utils';
 import OCSSystemDashboard from '@odf/ocs/dashboards/ocs-system-dashboard';
 import {
@@ -12,7 +15,6 @@ import {
   InfrastructureModel,
   Kebab,
   PageHeading,
-  RHCS_SUPPORTED_INFRA,
   StorageClusterKind,
   StorageClusterModel,
   useCustomTranslation,
@@ -26,6 +28,13 @@ import {
 } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
+import {
+  EmptyState,
+  EmptyStateBody,
+  EmptyStateHeader,
+  EmptyStateIcon,
+} from '@patternfly/react-core';
+import { CubesIcon } from '@patternfly/react-icons';
 import InitialEmptyStatePage from './InitialEmptyStatePage';
 
 const storageClusterActions =
@@ -34,22 +43,12 @@ const storageClusterActions =
     storageCluster: StorageClusterKind,
     infrastructure: InfrastructureKind,
     isLSOInstalled: boolean,
-    isExternalMode: boolean,
-    hasMultipleStorageClusters?: boolean
+    isExternalMode: boolean
   ) =>
   () => {
     const resourceProfile = storageCluster?.spec?.resourceProfile;
     const platform = getInfrastructurePlatform(infrastructure);
-    const isRHCSSupported = RHCS_SUPPORTED_INFRA.includes(platform);
     const customKebabItems: CustomKebabItem[] = [];
-    if (!hasMultipleStorageClusters && isRHCSSupported && !isExternalMode) {
-      customKebabItems.push({
-        key: 'ADD_EXTERNAL_CLUSTER',
-        value: t('Add external cluster'),
-        redirect: '/odf/external-systems/ceph/~create',
-      });
-    }
-
     if (!isExternalMode) {
       customKebabItems.push({
         key: 'ADD_CAPACITY',
@@ -137,14 +136,18 @@ const StorageClusterSection: React.FC = () => {
     DEFAULT_INFRASTRUCTURE
   );
 
+  const externalClusterDetails = useGetExternalClusterDetails();
   const isLSOInstalled =
     lsoCSVLoaded && !lsoCSVLoadError && isCSVSucceeded(lsoCSV);
 
-  const isExternalMode = selectedCluster.isExternalMode;
-  const noStorageClusters =
-    selectedCluster.clusterName === '' || !currentStorageCluster;
+  const hasExternalMode = externalClusterDetails.clusterName !== '';
+  const hasInternalMode = selectedCluster.clusterName !== '';
+  const noStorageClusters = !hasExternalMode && !hasInternalMode;
+
   return noStorageClusters ? (
     <InitialEmptyStatePage />
+  ) : hasExternalMode && !hasInternalMode && !hasMultipleStorageClusters ? (
+    <ExternalClusterPresentMessage />
   ) : (
     <>
       <PageHeading
@@ -154,12 +157,29 @@ const StorageClusterSection: React.FC = () => {
           currentStorageCluster,
           infrastructure,
           isLSOInstalled,
-          isExternalMode,
-          hasMultipleStorageClusters
+          hasExternalMode
         )}
       />
       <OCSSystemDashboard />
     </>
+  );
+};
+
+const ExternalClusterPresentMessage: React.FC = () => {
+  const { t } = useCustomTranslation();
+  return (
+    <EmptyState isFullHeight>
+      <EmptyStateHeader
+        titleText={t('Internal mode cluster not available')}
+        headingLevel="h4"
+        icon={<EmptyStateIcon icon={CubesIcon} />}
+      />
+      <EmptyStateBody>
+        {t(
+          'Internal mode cluster setup path is unavailable because an External mode cluster has already been configured.'
+        )}
+      </EmptyStateBody>
+    </EmptyState>
   );
 };
 
