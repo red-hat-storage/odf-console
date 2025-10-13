@@ -171,7 +171,6 @@ const prepareThirdPartyPeering = (
       s3CompatibleEndpoint: det.endpoint,
       s3SecretRef: {
         name: secretName,
-        namespace: ODFMCO_OPERATOR_NAMESPACE,
       },
       s3ProfileName: det.s3ProfileName,
     };
