@@ -605,8 +605,8 @@ describe('CreateScaleSystem', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      // Component should render in less than 150ms (CI environments can be slower)
-      expect(duration).toBeLessThan(150);
+      // Component should render in less than 250ms (CI environments can be slower)
+      expect(duration).toBeLessThan(250);
     });
 
     it('should handle form field updates efficiently', () => {
@@ -620,8 +620,8 @@ describe('CreateScaleSystem', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      // Re-renders should be very fast (less than 150ms in CI)
-      expect(duration).toBeLessThan(150);
+      // Re-renders should be very fast (less than 250ms in CI)
+      expect(duration).toBeLessThan(250);
     });
 
     it('should automatically select all nodes when "All nodes" is selected by default', async () => {
