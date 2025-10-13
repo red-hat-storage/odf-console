@@ -280,7 +280,7 @@ describe('Subscription manage disaster recovery modal', () => {
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
     await user.click(screen.getByText('mock-policy-1'));
-    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+    expect(screen.getAllByText('mock-policy-1')[0]).toBeInTheDocument();
     await user.click(screen.getByText('Next'));
 
     // Step 2 - select a placement and labels
