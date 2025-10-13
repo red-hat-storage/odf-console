@@ -2,11 +2,9 @@ import * as React from 'react';
 import { getMajorVersion } from '@odf/mco/utils';
 import {
   ACM_DEFAULT_DOC_VERSION,
-  DOC_VERSION,
   DRPolicyModel,
   getName,
   MirrorPeerModel,
-  odfDRDocHome,
   useDocVersion,
 } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
@@ -294,9 +292,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
                   </FormGroup>
                   {state.replicationBackend === BackendType.ThirdParty && (
                     <>
-                      <ThirdPartyStorageWarning
-                        docHref={odfDRDocHome(DOC_VERSION)}
-                      />
+                      <ThirdPartyStorageWarning />
                       <FormGroup
                         fieldId="add-s3-bucket-details"
                         label={t('Replication site')}
