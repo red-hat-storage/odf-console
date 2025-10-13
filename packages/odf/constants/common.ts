@@ -10,6 +10,7 @@ import { TFunction } from 'react-i18next';
 
 export const CEPH_BRAND_NAME = 'Red Hat Ceph Storage';
 export const NO_PROVISIONER = 'kubernetes.io/no-provisioner';
+export const SCALE_PROVISIONER = 'spectrumscale.csi.ibm.com';
 export const STORAGE_CLUSTER_SYSTEM_KIND = 'storagecluster.ocs.openshift.io/v1';
 export const HOSTNAME_LABEL_KEY = 'kubernetes.io/hostname';
 export const LABEL_OPERATOR = 'In';
