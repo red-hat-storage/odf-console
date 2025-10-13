@@ -165,12 +165,7 @@ const AttachStorage = () => {
       );
       const availablePvsCount = pvs.length || 0;
       const failureDomain = storageCluster?.status?.failureDomain;
-      const deviceSetCount = getDeviceSetCount(
-        availablePvsCount,
-        replica,
-        hasFlexibleScaling,
-        isArbiterEnabled
-      );
+      const deviceSetCount = getDeviceSetCount(availablePvsCount, replica);
       const filesystemName = `${clusterName}-cephfilesystem`;
       const payload = createPayload(
         state,
