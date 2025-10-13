@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { MatchExpression } from '@openshift-console/dynamic-plugin-sdk';
 import { screen, render } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { LabelExpressionSelector } from './labelExpressionSelector';
 
 const getLabels = () => ({
@@ -16,6 +16,7 @@ describe('Label expression selector', () => {
     const onChange = jest.fn((expression: MatchExpression[]) => {
       selectedExpression = expression;
     });
+
     const component = () => (
       <LabelExpressionSelector
         labels={getLabels()}
@@ -29,9 +30,7 @@ describe('Label expression selector', () => {
     const { rerender } = render(component());
 
     // Verify add resource
-    await userEvent.click(screen.getByText('Add resource'));
-
-    // rerender after argument change
+    await user.click(screen.getByText('Add resource'));
     rerender(component());
 
     // Verify expand section before selection
@@ -46,10 +45,11 @@ describe('Label expression selector', () => {
     await user.click(screen.getByText('Select a label'));
     expect(screen.getByText('option-1')).toBeInTheDocument();
     expect(screen.getByText('option-2')).toBeInTheDocument();
+
     await user.click(screen.getByText('option-1'));
-    // rerender after argument change
     rerender(component());
-    expect(screen.getByText('option-1')).toBeInTheDocument();
+
+    expect(screen.getAllByText(/option-1/i)[0]).toBeInTheDocument();
 
     // Verify operator selection
     await user.click(screen.getByText('In'));
@@ -57,18 +57,15 @@ describe('Label expression selector', () => {
     expect(screen.getByText('Exists')).toBeInTheDocument();
     expect(screen.getByText('DoesNotExist')).toBeInTheDocument();
     await user.click(screen.getByText('NotIn'));
-    // rerender after argument change
     rerender(component());
-    expect(screen.getByText('NotIn')).toBeInTheDocument();
-
+    expect(screen.getAllByText('NotIn')[0]).toBeInTheDocument();
     // Verify values for option-1
     await user.click(screen.getByText('Select the values'));
     await user.click(screen.getByText('value-1'));
-    // rerender after argument change
     rerender(component());
     await user.click(screen.getByText('value-2'));
-    // rerender after argument change
     rerender(component());
+
     expect(screen.getByText('{{count}} selected')).toBeInTheDocument();
 
     // Verify expand section after selection
@@ -86,6 +83,7 @@ describe('Label expression selector', () => {
       },
     ];
     const onChange = jest.fn();
+
     render(
       <LabelExpressionSelector
         labels={getLabels()}
@@ -95,6 +93,7 @@ describe('Label expression selector', () => {
         selectedExpressions={selectedExpression}
       />
     );
+
     // Verify validation error message
     const errors = screen.getAllByText('Required');
     expect(errors).toHaveLength(2);

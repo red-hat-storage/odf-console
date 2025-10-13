@@ -42,6 +42,7 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
+  SelectOption as SelectOptionNext,
 } from '@patternfly/react-core';
 import { getValidatedDeviceTypes } from '../../../../utils';
 import { LocalVolumeSet, WizardDispatch, WizardState } from '../../reducer';
@@ -51,12 +52,20 @@ import './body.scss';
 
 const diskModeDropdownOptions: JSX.Element[] = _.map(
   diskModeDropdownItems,
-  (v, _unused) => <SelectOption key={v} value={v} />
+  (v, _unused) => (
+    <SelectOptionNext key={v} value={v}>
+      {v}
+    </SelectOptionNext>
+  )
 );
 
 const diskSizeUnitDropdownOptions: JSX.Element[] = _.map(
   diskSizeUnitOptions,
-  (v, _unused) => <SelectOption key={v} value={v} />
+  (v, _unused) => (
+    <SelectOptionNext key={v} value={v}>
+      {v}
+    </SelectOptionNext>
+  )
 );
 
 const deviceTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
@@ -76,7 +85,9 @@ const deviceTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
 
 const diskTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
   _.map(diskTypeDropdownItems(t), (v, _unused) => (
-    <SelectOption key={v} value={v} />
+    <SelectOptionNext key={v} value={v}>
+      {v}
+    </SelectOptionNext>
   ));
 
 export enum FilterDiskBy {
@@ -413,6 +424,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
           <MultiSelectDropdown
             id="create-odf-device-type-dropdown"
             selections={state.deviceType}
+            //selected={state.deviceType}
             selectOptions={deviceTypeDropdownOptions(t)}
             placeholderText={t('Select disk types')}
             validated={!state.isValidDeviceType ? 'error' : 'default'}

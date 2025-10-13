@@ -8,7 +8,7 @@ import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
-import { SelectOption } from '@patternfly/react-core/deprecated';
+import { SelectOption } from '@patternfly/react-core';
 import {
   FormGroup,
   Text,
