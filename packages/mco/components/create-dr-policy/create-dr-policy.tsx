@@ -272,19 +272,20 @@ const CreateDRPolicy: React.FC<{}> = () => {
               </FormGroup>
               {state.isClusterSelectionValid && (
                 <>
-                  <FormGroup
-                    fieldId="select-backend"
-                    label={t('Select replication')}
-                  >
-                    <FormHelperText>
-                      <HelperText className="mco-create-data-policy__text-input">
-                        <HelperTextItem>
-                          {t(
-                            'All disaster recovery prerequisites are met for both clusters. Multiple storage backends are available on both of the selected clusters.'
-                          )}
-                        </HelperTextItem>
-                      </HelperText>
-                    </FormHelperText>
+                  {!state.selectedClustersHaveODF && (
+                    <FormGroup
+                      fieldId="select-backend"
+                      label={t('Select replication')}
+                    >
+                      <FormHelperText>
+                        <HelperText className="mco-create-data-policy__text-input">
+                          <HelperTextItem>
+                            {t(
+                              'All disaster recovery prerequisites are met for both clusters. Multiple storage backends are available on both of the selected clusters.'
+                            )}
+                          </HelperTextItem>
+                        </HelperText>
+                      </FormHelperText>
 
                     <SelectReplicationBackend
                       clusterNames={clusterNames}
@@ -317,7 +318,43 @@ const CreateDRPolicy: React.FC<{}> = () => {
                         />
                       </FormGroup>
                     </>
+                      <SelectReplicationBackend
+                        clusterNames={clusterNames}
+                        doClustersHaveODF={state.selectedClustersHaveODF}
+                        dispatch={dispatch}
+                        selectedKey={state.replicationBackend}
+                      />
+                    </FormGroup>
                   )}
+                  {!state.selectedClustersHaveODF &&
+                    state.replicationBackend === BackendType.ThirdParty && (
+                      <>
+                        <ThirdPartyStorageWarning
+                          docHref={odfDRDocHome(DOC_VERSION)}
+                        />
+                        <FormGroup
+                          fieldId="add-s3-bucket-details"
+                          label={t('Replication site')}
+                        >
+                          <FormHelperText>
+                            <HelperText className="mco-create-data-policy__text-input">
+                              <HelperTextItem>
+                                {t(
+                                  'Provide S3 bucket connection details for each managed cluster. If a S3 bucket is not already configured for cluster, create one and then continue.'
+                                )}
+                              </HelperTextItem>
+                            </HelperText>
+                          </FormHelperText>
+                          <ClusterS3BucketDetailsForm
+                            selectedClusters={state.selectedClusters}
+                            cluster1Details={state.cluster1S3Details}
+                            cluster2Details={state.cluster2S3Details}
+                            useSameConnection={state.useSameS3Connection}
+                            dispatch={dispatch}
+                          />
+                        </FormGroup>
+                      </>
+                    )}
 
                   <SelectReplicationType
                     selectedClusters={state.selectedClusters}
