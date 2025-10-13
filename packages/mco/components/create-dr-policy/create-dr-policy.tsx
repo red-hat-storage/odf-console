@@ -6,7 +6,7 @@ import {
   DRPolicyModel,
   getName,
   MirrorPeerModel,
-  odfDRDocHome,
+  tpsDoc,
   useDocVersion,
 } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
@@ -294,9 +294,7 @@ const CreateDRPolicy: React.FC<{}> = () => {
                   </FormGroup>
                   {state.replicationBackend === BackendType.ThirdParty && (
                     <>
-                      <ThirdPartyStorageWarning
-                        docHref={odfDRDocHome(DOC_VERSION)}
-                      />
+                      <ThirdPartyStorageWarning docHref={tpsDoc(DOC_VERSION)} />
                       <FormGroup
                         fieldId="add-s3-bucket-details"
                         label={t('Replication site')}
