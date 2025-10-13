@@ -9,16 +9,18 @@ import {
   useCustomTranslation,
   useDeepCompareMemoize,
 } from '@odf/shared';
+import { multusSetupDoc } from '@odf/shared/constants/doc';
+import { DOC_VERSION as odfDocVersion } from '@odf/shared/hooks';
 import { referenceForModel } from '@odf/shared/utils';
+import { ViewDocumentation } from '@odf/shared/utils/doc-utils';
 import {
   K8sResourceCommon,
   ResourceIcon,
   useK8sWatchResources,
   WatchK8sResults,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
-import { Link } from 'react-router-dom-v5-compat';
+import { SelectOption } from '@patternfly/react-core';
 import {
   Alert,
   AlertVariant,
@@ -126,10 +128,15 @@ export const MultusNetworkConfigurationComponent: React.FC<
             title={t('Run Validation test before to proceed further.')}
           >
             <p>
-              {t('Set up Multus by following relevant steps in')}{' '}
-              {/* TODO: Replace with the actual KCS link when available */}
-              <Link to="#/">{t('KCS')}</Link> {', '}
-              {t('Incorrectly setting up Multus might lead to:')}
+              {t('To run the tool, follow the steps provided in the')}{' '}
+              <ViewDocumentation
+                doclink={multusSetupDoc(odfDocVersion)}
+                text={t('Multus prerequisites validation tool')}
+                padding="0"
+              />{' '}
+              {t(
+                'section of the documentation. Incorrectly setting up Multus might lead to:'
+              )}
             </p>
             <ul>
               <li>
