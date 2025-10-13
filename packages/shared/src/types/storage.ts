@@ -52,6 +52,11 @@ export type StorageClusterKind = K8sResourceCommon & {
       cephObjectStores?: {
         hostNetwork: boolean;
       };
+      cephNonResilientPools?: {
+        useExistingOsds?: boolean;
+        poolNamePrefix?: string;
+        skipCreateStorageclass?: boolean;
+      };
     };
     storageDeviceSets?: DeviceSet[];
     resourceProfile?: ResourceProfile;
