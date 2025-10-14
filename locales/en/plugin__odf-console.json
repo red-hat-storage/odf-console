@@ -857,7 +857,7 @@
   "Enroll virtual machine": "Enroll virtual machine",
   "Enroll your applications to improve resilience by implementing disaster recovery protection.": "Enroll your applications to improve resilience by implementing disaster recovery protection.",
   "enrolled in disaster recovery": "enrolled in disaster recovery",
-  "Ensure the storage backend supports replication. Carefully validate the configured replication storage class supports failover, replication, recovery, and relocation before proceeding.": "Ensure the storage backend supports replication. Carefully validate the configured replication storage class supports failover, replication, recovery, and relocation before proceeding.",
+  "Ensure the third party storage supports Disaster Recovery pre-requisites and enable the required configuration for the same.": "Ensure the third party storage supports Disaster Recovery pre-requisites and enable the required configuration for the same.",
   "Ensures all filesystem data is securely stored and protected.": "Ensures all filesystem data is securely stored and protected.",
   "Enter a bucket name": "Enter a bucket name",
   "Enter a CIDR block (Eg: 192.168.0.0/32)": "Enter a CIDR block (Eg: 192.168.0.0/32)",
