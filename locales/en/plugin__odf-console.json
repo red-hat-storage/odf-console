@@ -1564,7 +1564,7 @@
   "Request for ManagedClusterAction {{actionName}} on cluster {{clusterName}} timed out after too many retries. Ensure the work manager pod in open-cluster-management-agent-addon is healthy.": "Request for ManagedClusterAction {{actionName}} on cluster {{clusterName}} timed out after too many retries. Ensure the work manager pod in open-cluster-management-agent-addon is healthy.",
   "Request for ManagedClusterView {{viewName}} on cluster {{clusterName}} timed out after too many retries. Make sure the work manager pod in namespace open-cluster-management-agent-addon is healthy.": "Request for ManagedClusterView {{viewName}} on cluster {{clusterName}} timed out after too many retries. Make sure the work manager pod in namespace open-cluster-management-agent-addon is healthy.",
   "Requested capacity": "Requested capacity",
-  "Requested Capacity": "Requested Capacity",
+  "Requested Capacity - Namespace (5)": "Requested Capacity - Namespace (5)",
   "Required": "Required",
   "Required data is not available. Please try again later.": "Required data is not available. Please try again later.",
   "Reset": "Reset",
