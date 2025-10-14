@@ -36,6 +36,7 @@ import {
 } from '@patternfly/react-core';
 import { Td } from '@patternfly/react-table';
 import {
+  BackendType,
   MCO_CREATED_BY_LABEL_KEY,
   MCO_CREATED_BY_MC_CONTROLLER,
 } from '../../constants';
@@ -259,9 +260,31 @@ export const SelectClusterList: React.FC<SelectClusterListProps> = ({
       type: DRPolicyActionType.SET_SELECTED_CLUSTERS,
       payload: selectedClusterList,
     });
+
+    if (selectedClusterList?.length >= 2) {
+      const doClustersHaveODF = selectedClusterList?.every(
+        (cluster) => cluster?.odfInfo?.isValidODFVersion
+      );
+      dispatch({
+        type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
+        payload: doClustersHaveODF,
+      });
+
+      dispatch({
+        type: DRPolicyActionType.SET_REPLICATION_BACKEND,
+        payload: doClustersHaveODF
+          ? BackendType.DataFoundation
+          : BackendType.ThirdParty,
+      });
+    }
     if (selectedClusterList.length < 2) {
       dispatch({
         type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION,
+        payload: false,
+      });
+
+      dispatch({
+        type: DRPolicyActionType.SET_DO_CLUSTERS_HAVE_ODF,
         payload: false,
       });
     }
