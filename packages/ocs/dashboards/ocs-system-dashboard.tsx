@@ -236,19 +236,28 @@ const OCSSystemDashboard: React.FC<{}> = () => {
   const isObjectServiceAvailable = isMCGAvailable || isRGWAvailable;
   const isStorageClusterAvailable = systemFlags[clusterNs]?.ocsClusterName;
   const isNFSEnabled = systemFlags[clusterNs]?.isNFSEnabled;
+  const isMCGStandalone = systemFlags[clusterNs]?.isNoobaaStandalone;
 
   const showInternalDashboard = isStorageClusterAvailable;
   const showNFSDashboard = isNFSEnabled;
 
   const pages = React.useMemo(() => {
     const tempPages = [];
-    showInternalDashboard && tempPages.push(internalPage(t));
-    showNFSDashboard && tempPages.push(nfsPage(t));
+    !isMCGStandalone &&
+      showInternalDashboard &&
+      tempPages.push(internalPage(t));
+    !isMCGStandalone && showNFSDashboard && tempPages.push(nfsPage(t));
     isObjectServiceAvailable && tempPages.push(objectPage(t));
-    tempPages.push(storagePoolPage(t));
+    !isMCGStandalone && tempPages.push(storagePoolPage(t));
     tempPages.push(topologyPage(t));
     return tempPages;
-  }, [showInternalDashboard, t, showNFSDashboard, isObjectServiceAvailable]);
+  }, [
+    isMCGStandalone,
+    showInternalDashboard,
+    t,
+    showNFSDashboard,
+    isObjectServiceAvailable,
+  ]);
 
   return pages.length > 0 ? (
     <Tabs id="odf-dashboard-tab" tabs={pages} />
