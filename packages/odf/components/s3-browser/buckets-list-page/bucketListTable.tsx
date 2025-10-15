@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {
   BUCKET_BOOKMARKS_USER_SETTINGS_KEY,
-  BUCKETS_BASE_ROUTE,
+  getBucketOverviewBaseRoute,
 } from '@odf/core/constants';
 import { EmptyBucketResponse } from '@odf/core/modals/s3-browser/delete-and-empty-bucket/EmptyBucketModal';
 import {
@@ -32,13 +32,14 @@ import {
   Td,
   Tr,
 } from '@patternfly/react-table';
-import { NoobaaS3Context } from '../noobaa-context';
+import { getProviderLabel } from '../../../utils';
+import { S3Context } from '../s3-context';
 
 const getRowActions = (
   t: TFunction<string>,
   launcher: LaunchModal,
   bucketName: string,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   refreshTokens: () => void,
   setEmptyBucketResponse: React.Dispatch<
     React.SetStateAction<EmptyBucketResponse>
@@ -58,7 +59,7 @@ const getRowActions = (
         isOpen: true,
         extraProps: {
           bucketName,
-          noobaaS3,
+          s3Client,
           refreshTokens,
           setEmptyBucketResponse,
         },
@@ -71,7 +72,7 @@ const getRowActions = (
         isOpen: true,
         extraProps: {
           bucketName,
-          noobaaS3,
+          s3Client,
           launcher,
           refreshTokens,
           setEmptyBucketResponse,
@@ -166,7 +167,7 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
     launcher,
   }: RowExtraPropsType = extraProps;
 
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client, providerType } = React.useContext(S3Context);
 
   const onSetFavorite = (key, active) => {
     setFavorites((oldFavorites) => [
@@ -187,11 +188,12 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
         }}
       />
       <Td dataLabel={columnNames[1]}>
-        <Link to={`${BUCKETS_BASE_ROUTE}/${name}/objects`}>{name}</Link>
+        <Link to={`${getBucketOverviewBaseRoute(name, providerType)}/objects`}>
+          {name}
+        </Link>
       </Td>
       <Td dataLabel={columnNames[2]}>
-        {/* ToDo: Currently we only support MCG, make is configurable once RGW is supported as well */}
-        <Label color="gold">{t('MCG')}</Label>
+        <Label color="gold">{getProviderLabel(providerType)}</Label>
       </Td>
       <Td dataLabel={columnNames[3]}>
         {<Timestamp timestamp={creationTimestamp} ignoreRelativeTime />}
@@ -205,7 +207,7 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
             t,
             launcher,
             name,
-            noobaaS3,
+            s3Client,
             triggerRefresh,
             setEmptyBucketResponse
           )}

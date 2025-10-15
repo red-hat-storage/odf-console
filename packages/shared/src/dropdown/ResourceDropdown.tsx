@@ -112,6 +112,7 @@ type ResourceDropdownProps<T> = {
   className?: string;
   initialSelection?: (resource: T[]) => T;
   filterResource?: (resource: T) => boolean;
+  isDisabled?: boolean;
   'data-test'?: string;
   id?: string;
   selectedResource?: T;
@@ -132,6 +133,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
   className,
   initialSelection,
   filterResource,
+  isDisabled = false,
   'data-test': dataTest,
   id,
   children,
@@ -242,6 +244,7 @@ const ResourceDropdown: ResourceDropdown = <T extends unknown>({
             onToggle={loaded && !loadError ? onToggle : () => null}
             toggleIndicator={CaretDownIcon}
             data-test={dataTest}
+            isDisabled={isDisabled || !loaded || loadError}
           >
             {!loaded && <LoadingInline />}
             {loaded &&
