@@ -37,13 +37,9 @@ import {
   k8sDelete,
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  WizardFooter,
-  WizardContext,
-  WizardContextType,
-} from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
+import { useWizardContext, WizardFooterWrapper } from '@patternfly/react-core';
 import { Button, Alert, AlertActionCloseButton } from '@patternfly/react-core';
 import './create-storage-system.scss';
 import {
@@ -368,8 +364,7 @@ export const CreateStorageSystemFooter: React.FC<
 }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
-  const { activeStep, onNext, onBack } =
-    React.useContext<WizardContextType>(WizardContext);
+  const { activeStep, goToNextStep, goToPrevStep } = useWizardContext();
 
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
 
@@ -377,7 +372,6 @@ export const CreateStorageSystemFooter: React.FC<
   const [requestError, setRequestError] = React.useState('');
   const [showErrorAlert, setShowErrorAlert] = React.useState(false);
 
-  const stepId = activeStep.id as number;
   const stepName = activeStep.name as string;
 
   const jumpToNextStep = canJumpToNextStep(
@@ -388,11 +382,7 @@ export const CreateStorageSystemFooter: React.FC<
   );
 
   const moveToNextStep = () => {
-    dispatch({
-      type: 'wizard/setStepIdReached',
-      payload: state.stepIdReached <= stepId ? stepId + 1 : state.stepIdReached,
-    });
-    onNext();
+    goToNextStep();
   };
 
   const handleError = (errorMessage: string, showError: boolean) => {
@@ -439,14 +429,13 @@ export const CreateStorageSystemFooter: React.FC<
           {requestError}
         </Alert>
       )}
-      <WizardFooter>
+      <WizardFooterWrapper>
         <Button
           isLoading={requestInProgress || null}
           isDisabled={
             disableNext || requestInProgress || !jumpToNextStep || !isNsSafe
           }
           variant="primary"
-          type="submit"
           onClick={handleNext}
         >
           {stepName === StepsName(t)[Steps.ReviewAndCreate]
@@ -456,7 +445,7 @@ export const CreateStorageSystemFooter: React.FC<
         {/* Disabling the back button for the first step (Backing storage) in wizard */}
         <Button
           variant="secondary"
-          onClick={onBack}
+          onClick={goToPrevStep}
           isDisabled={
             stepName === StepsName(t)[Steps.BackingStorage] ||
             requestInProgress ||
@@ -472,7 +461,7 @@ export const CreateStorageSystemFooter: React.FC<
         >
           {t('Cancel')}
         </Button>
-      </WizardFooter>
+      </WizardFooterWrapper>
     </>
   );
 };

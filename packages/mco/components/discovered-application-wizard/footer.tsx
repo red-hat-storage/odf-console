@@ -5,19 +5,15 @@ import {
 } from '@odf/mco/constants';
 import { isLabelOnlyOperator } from '@odf/shared/label-expression-selector';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  WizardContextType,
-  WizardContext,
-  WizardFooter,
-} from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import {
   Button,
   ButtonVariant,
-  ButtonType,
   Alert,
   AlertVariant,
+  useWizardContext,
+  WizardFooterWrapper,
 } from '@patternfly/react-core';
 import {
   EnrollDiscoveredApplicationState,
@@ -79,20 +75,16 @@ export const EnrollDiscoveredApplicationFooter: React.FC<
   EnrollDiscoveredApplicationFooterProps
 > = ({
   state,
-  stepIdReached,
   isValidationEnabled,
   onSaveError,
-  setStepIdReached,
   setIsValidationEnabled,
   onSubmit,
   onCancel,
 }) => {
   const { t } = useCustomTranslation();
   const [requestInProgress, setRequestInProgress] = React.useState(false);
-  const { activeStep, onNext, onBack } =
-    React.useContext<WizardContextType>(WizardContext);
+  const { activeStep, goToNextStep, goToPrevStep } = useWizardContext();
 
-  const stepId = activeStep.id as number;
   const stepName = activeStep.name as string;
 
   const canJumpToNext = canJumpToNextStep(state, stepName, t);
@@ -107,9 +99,8 @@ export const EnrollDiscoveredApplicationFooter: React.FC<
 
   const moveToNextStep = () => {
     if (canJumpToNext) {
-      setStepIdReached(stepIdReached <= stepId ? stepId + 1 : stepIdReached);
       setIsValidationEnabled(false);
-      onNext();
+      goToNextStep();
     } else {
       setIsValidationEnabled(true);
     }
@@ -137,20 +128,11 @@ export const EnrollDiscoveredApplicationFooter: React.FC<
       {!!onSaveError && isReviewStep && (
         <Alert title={onSaveError} variant={AlertVariant.danger} isInline />
       )}
-      <WizardFooter>
-        {/* Disabling the back button for the first step in wizard */}
-        <Button
-          variant={ButtonVariant.secondary}
-          onClick={onBack}
-          isDisabled={stepId === 1 || requestInProgress}
-        >
-          {t('Back')}
-        </Button>
+      <WizardFooterWrapper>
         <Button
           isLoading={requestInProgress}
           isDisabled={requestInProgress}
           variant={ButtonVariant.primary}
-          type={ButtonType.submit}
           onClick={handleNext}
         >
           {stepName ===
@@ -160,6 +142,14 @@ export const EnrollDiscoveredApplicationFooter: React.FC<
             ? t('Save')
             : t('Next')}
         </Button>
+        {/* Disabling the back button for the first step in wizard */}
+        <Button
+          variant={ButtonVariant.secondary}
+          onClick={goToPrevStep}
+          isDisabled={activeStep.index === 1 || requestInProgress}
+        >
+          {t('Back')}
+        </Button>
         <Button
           variant={ButtonVariant.link}
           onClick={onCancel}
@@ -167,17 +157,15 @@ export const EnrollDiscoveredApplicationFooter: React.FC<
         >
           {t('Cancel')}
         </Button>
-      </WizardFooter>
+      </WizardFooterWrapper>
     </>
   );
 };
 
 type EnrollDiscoveredApplicationFooterProps = {
   state: EnrollDiscoveredApplicationState;
-  stepIdReached: number;
   isValidationEnabled: boolean;
   onSaveError: string;
-  setStepIdReached: React.Dispatch<React.SetStateAction<number>>;
   setIsValidationEnabled: React.Dispatch<React.SetStateAction<boolean>>;
   onSubmit: (
     setRequestInProgress: React.Dispatch<React.SetStateAction<boolean>>
