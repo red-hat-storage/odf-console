@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { PutBucketTaggingCommandInput } from '@aws-sdk/client-s3';
 import useS3BucketFormValidation from '@odf/core/components/s3-browser/create-bucket/useS3BucketFormValidation';
-import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
+import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import { BUCKETS_BASE_ROUTE } from '@odf/core/constants';
 import {
   ButtonBar,
@@ -39,7 +39,7 @@ const CreateBucketForm: React.FC<{}> = () => {
   const [errorMessage, setErrorMessage] = React.useState('');
   const [tagsData, setTagsData] = React.useState<string[][]>([]);
 
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
   const { bucketFormSchema, fieldRequirements } = useS3BucketFormValidation();
   const resolver = useYupValidationResolver(bucketFormSchema);
 
@@ -57,7 +57,7 @@ const CreateBucketForm: React.FC<{}> = () => {
     setErrorMessage('');
     const { bucketName } = formData;
     try {
-      await noobaaS3.createBucket({ Bucket: bucketName });
+      await s3Client.createBucket({ Bucket: bucketName });
     } catch ({ name, message }) {
       setErrorMessage(`Error while creating bucket: ${name}: ${message}`);
       setInProgress(false);
@@ -71,7 +71,7 @@ const CreateBucketForm: React.FC<{}> = () => {
         .filter((pair: string[]) => !_.isEmpty(pair[0]))
         .map((pair: string[]) => ({ Key: pair[0], Value: pair[1] }));
       if (!_.isEmpty(tagSet)) {
-        await noobaaS3.putBucketTags({
+        await s3Client.putBucketTags({
           Bucket: bucketName,
           Tagging: { TagSet: tagSet },
         });

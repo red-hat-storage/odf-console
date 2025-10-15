@@ -39,9 +39,9 @@ import {
   MANAGEMENT_ROUTE,
 } from '../../../constants';
 import { getBreadcrumbs } from '../../../utils';
-import { NoobaaS3Context, NoobaaS3Provider } from '../noobaa-context';
 import { CustomActionsToggle } from '../objects-list';
 import { ObjectListWithSidebar } from '../objects-list/ObjectListWithSidebar';
+import { S3Provider, S3Context } from '../s3-context';
 import { PageTitle } from './PageTitle';
 import './bucket-overview.scss';
 
@@ -65,7 +65,7 @@ const getBucketActionsItems = (
   navigate: NavigateFunction,
   bucketName: string,
   isCreatedByOBC: boolean,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   noobaaObjectBucket: K8sResourceKind,
   refreshTokens: () => void,
   setEmptyBucketResponse: React.Dispatch<
@@ -79,7 +79,7 @@ const getBucketActionsItems = (
         isOpen: true,
         extraProps: {
           bucketName,
-          noobaaS3,
+          s3Client,
           refreshTokens,
           setEmptyBucketResponse,
         },
@@ -92,7 +92,7 @@ const getBucketActionsItems = (
         isOpen: true,
         extraProps: {
           bucketName,
-          noobaaS3,
+          s3Client,
           launcher,
           refreshTokens,
           setEmptyBucketResponse,
@@ -140,7 +140,7 @@ const createBucketActions = (
   navigate: NavigateFunction,
   bucketName: string,
   isCreatedByOBC: boolean,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   noobaaObjectBucket: K8sResourceKind,
   setEmptyBucketResponse: React.Dispatch<
     React.SetStateAction<EmptyBucketResponse>
@@ -166,7 +166,7 @@ const createBucketActions = (
             navigate,
             bucketName,
             isCreatedByOBC,
-            noobaaS3,
+            s3Client,
             noobaaObjectBucket,
             triggerRefresh,
             setEmptyBucketResponse
@@ -258,7 +258,7 @@ const BucketOverview: React.FC<{}> = () => {
     [foldersPath, isCreatedByOBC, t]
   );
 
-  const renderActions = (noobaaS3: S3Commands) => () =>
+  const renderActions = (s3Client: S3Commands) => () =>
     createBucketActions(
       t,
       fresh,
@@ -268,13 +268,13 @@ const BucketOverview: React.FC<{}> = () => {
       navigate,
       bucketName,
       isCreatedByOBC,
-      noobaaS3,
+      s3Client,
       noobaaObjectBucket,
       setEmptyBucketResponse
     );
 
   return (
-    <NoobaaS3Provider loading={!objectBucketsLoaded} error={objectBucketsError}>
+    <S3Provider loading={!objectBucketsLoaded} error={objectBucketsError}>
       <BucketOverviewContent
         breadcrumbs={breadcrumbs}
         foldersPath={foldersPath}
@@ -290,7 +290,7 @@ const BucketOverview: React.FC<{}> = () => {
         emptyBucketResponse={emptyBucketResponse}
         setEmptyBucketResponse={setEmptyBucketResponse}
       />
-    </NoobaaS3Provider>
+    </S3Provider>
   );
 };
 
@@ -304,7 +304,7 @@ type BucketOverviewContentProps = {
   noobaaObjectBucket: K8sResourceKind;
   navPages: TabPage[];
   bucketName: string;
-  actions: (noobaaS3: S3Commands) => () => JSX.Element;
+  actions: (s3Client: S3Commands) => () => JSX.Element;
   launcher: LaunchModal;
   emptyBucketResponse: EmptyBucketResponse;
   setEmptyBucketResponse: React.Dispatch<
@@ -326,7 +326,7 @@ const BucketOverviewContent: React.FC<BucketOverviewContentProps> = ({
   emptyBucketResponse,
   setEmptyBucketResponse,
 }) => {
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
 
   const customData = React.useMemo(
     () => ({
@@ -350,7 +350,7 @@ const BucketOverviewContent: React.FC<BucketOverviewContentProps> = ({
             noobaaObjectBucket={noobaaObjectBucket}
           />
         }
-        actions={actions(noobaaS3)}
+        actions={actions(s3Client)}
         className="pf-v5-u-mt-md"
       />
       <EmptyBucketAlerts

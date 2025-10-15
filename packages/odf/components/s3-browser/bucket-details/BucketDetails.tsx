@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Tag } from '@aws-sdk/client-s3';
 import { OBDetails as ObjectBucketDetails } from '@odf/core/components/mcg/ObjectBucket';
-import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
+import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import {
   BUCKET_ACL_CACHE_KEY_SUFFIX,
   BUCKET_TAGGING_CACHE_KEY_SUFFIX,
@@ -42,16 +42,16 @@ import { TagIcon } from '@patternfly/react-icons';
 
 const S3BucketDetailsOverview: React.FC<{}> = ({}) => {
   const { t } = useCustomTranslation();
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
   const { bucketName } = useParams();
   const input = { Bucket: bucketName };
   const { data: aclData } = useSWR(
     `${bucketName}-${BUCKET_ACL_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketAcl(input)
+    () => s3Client.getBucketAcl(input)
   );
   const { data: tagData } = useSWR(
     `${bucketName}-${BUCKET_TAGGING_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketTagging(input)
+    () => s3Client.getBucketTagging(input)
   );
 
   const tags = tagData?.TagSet?.map((tag: Tag) => (
@@ -96,12 +96,12 @@ const S3BucketDetailsOverview: React.FC<{}> = ({}) => {
 
 const S3BucketProperties: React.FC<{}> = ({}) => {
   const { t } = useCustomTranslation();
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
   const { bucketName } = useParams();
   const input = { Bucket: bucketName };
   const { data: versioningData, mutate: versioningMutate } = useSWR(
     `${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketVersioning(input)
+    () => s3Client.getBucketVersioning(input)
   );
 
   const [isVersioningChecked, setIsVersioningChecked] =
@@ -141,7 +141,7 @@ const S3BucketProperties: React.FC<{}> = ({}) => {
               launcher(SetVersioningModal, {
                 extraProps: {
                   mutate: versioningMutate,
-                  noobaaS3,
+                  s3Client,
                   bucketName,
                   enableVersioning: checked,
                 } as SetVersioningModalModalProps,

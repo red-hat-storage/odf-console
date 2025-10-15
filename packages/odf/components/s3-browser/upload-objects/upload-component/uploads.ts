@@ -9,10 +9,10 @@ const performUploadPromise = (
   folderPath: string,
   bucketName: string,
   uploadStore: UploadStore,
-  client: S3Commands
+  s3Client: S3Commands
 ) => {
   const key = getPrefix(file.webkitRelativePath || file.name, folderPath);
-  const uploader = client.getUploader(file as File, key, bucketName);
+  const uploader = s3Client.getUploader(file as File, key, bucketName);
   uploadStore.setAborter(key, () => uploader.abort());
   uploader.on('httpUploadProgress', (progress) => {
     uploadStore.updateProgress(progress.Key, progress.loaded, progress.total);
@@ -24,7 +24,7 @@ const performUploadPromise = (
 
 export const uploadFile = async (
   files: File[],
-  client: S3Commands,
+  s3Client: S3Commands,
   bucketName: string,
   folderPath: string,
   uploadStore: UploadStore
@@ -36,7 +36,7 @@ export const uploadFile = async (
       return item.uploadState !== UploadStatus.UPLOAD_CANCELLED;
     })
     .map((file) =>
-      performUploadPromise(file, folderPath, bucketName, uploadStore, client)
+      performUploadPromise(file, folderPath, bucketName, uploadStore, s3Client)
     );
   const settledPromises = await Promise.allSettled(allUploadPromise);
   settledPromises.forEach((promise, i) => {

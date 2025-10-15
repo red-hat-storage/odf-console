@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { CORSRule, GetBucketCorsCommandOutput } from '@aws-sdk/client-s3';
 import {
-  NoobaaS3Provider,
-  NoobaaS3Context,
-} from '@odf/core/components/s3-browser/noobaa-context';
+  S3Provider,
+  S3Context,
+} from '@odf/core/components/s3-browser/s3-context';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { isNoCorsRuleError } from '@odf/shared/s3/utils';
@@ -115,7 +115,7 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
 
   const { bucketName } = useParams();
   const navigate = useNavigate();
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
 
   const [inProgress, setInProgress] = React.useState<boolean>(false);
   const [putError, setPutError] = React.useState<Error>();
@@ -128,7 +128,7 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
     mutate,
   } = useSWR(
     `${bucketName}-${BUCKET_CORS_RULE_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketCors({ Bucket: bucketName }),
+    () => s3Client.getBucketCors({ Bucket: bucketName }),
     {
       shouldRetryOnError: false,
     }
@@ -159,7 +159,7 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
         let latestRules: GetBucketCorsCommandOutput;
 
         try {
-          latestRules = await noobaaS3.getBucketCors({ Bucket: bucketName });
+          latestRules = await s3Client.getBucketCors({ Bucket: bucketName });
         } catch (err) {
           if (isNoCorsRuleError(err)) {
             latestRules = { CORSRules: [] } as GetBucketCorsCommandOutput;
@@ -168,7 +168,7 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
           }
         }
 
-        await noobaaS3.putBucketCors({
+        await s3Client.putBucketCors({
           Bucket: bucketName,
           CORSConfiguration: {
             CORSRules: isEdit
@@ -231,13 +231,13 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
 };
 
 export const CreateCorsRule: React.FC<{}> = () => (
-  <NoobaaS3Provider>
+  <S3Provider>
     <CreateOrEditCorsForm />
-  </NoobaaS3Provider>
+  </S3Provider>
 );
 
 export const EditCorsRule: React.FC<{}> = () => (
-  <NoobaaS3Provider>
+  <S3Provider>
     <CreateOrEditCorsForm isEdit />
-  </NoobaaS3Provider>
+  </S3Provider>
 );
