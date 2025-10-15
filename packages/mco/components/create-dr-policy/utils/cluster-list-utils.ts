@@ -174,6 +174,7 @@ const clusterToODFInfoMapping = (
       // early exit for unprocessed mcvs
       return acc;
     }
+
     const odfInfoConfig = mcv?.status?.result as ConfigMapKind;
     const odfInfoConfigData = odfInfoConfig?.data || {};
     const [odfInfo, clients] = getODFInfo(
@@ -205,6 +206,7 @@ export const getManagedClusterInfoTypes = (
     mcvs,
     requiredODFVersion
   );
+
   return managedClusters?.reduce((acc, cluster) => {
     if (ValidateManagedClusterCondition(cluster, MANAGED_CLUSTER_JOINED))
       return [
