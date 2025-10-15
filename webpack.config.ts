@@ -151,6 +151,7 @@ const config: webpack.Configuration & DevServerConfiguration = {
       PLUGIN_BUILD_I8N_NS: JSON.stringify(process.env.I8N_NS),
       PLUGIN_BUILD_NAME: JSON.stringify(PLUGIN),
       PLUGIN_BUILD_VERSION: JSON.stringify(process.env.PLUGIN_VERSION),
+      OPENSHIFT_CI: JSON.stringify(OPENSHIFT_CI),
     }),
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],

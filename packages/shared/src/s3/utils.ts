@@ -2,11 +2,6 @@ import {
   BucketVersioningStatus,
   GetBucketVersioningCommandOutput,
 } from '@aws-sdk/client-s3';
-import {
-  CLIENT_S3_PROXY_PATH,
-  ODF_S3_PROXY_PATH,
-} from '@odf/shared/s3/constants';
-import { isClientPlugin } from '@odf/shared/utils';
 import { TFunction } from 'react-i18next';
 
 export const isNoLifecycleRuleError = (error) =>
@@ -14,9 +9,6 @@ export const isNoLifecycleRuleError = (error) =>
 
 export const isNoPabError = (error) =>
   error?.name === 'NoSuchPublicAccessBlockConfiguration';
-
-export const getProxyPath = () =>
-  isClientPlugin() ? CLIENT_S3_PROXY_PATH : ODF_S3_PROXY_PATH;
 
 export const getVersioningStatus = (
   versioningData: GetBucketVersioningCommandOutput,

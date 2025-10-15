@@ -12,7 +12,7 @@ import {
 
 type SaveBucketPolicyModalModalProps = {
   bucketName: string;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   triggerRefresh: () => void;
   policy: string;
   setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
@@ -23,7 +23,7 @@ const SaveBucketPolicyModal: React.FC<
 > = ({
   closeModal,
   isOpen,
-  extraProps: { bucketName, noobaaS3, triggerRefresh, policy, setSuccess },
+  extraProps: { bucketName, s3Client, triggerRefresh, policy, setSuccess },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -35,7 +35,7 @@ const SaveBucketPolicyModal: React.FC<
     setInProgress(true);
 
     try {
-      await noobaaS3.setBucketPolicy({ Bucket: bucketName, Policy: policy });
+      await s3Client.setBucketPolicy({ Bucket: bucketName, Policy: policy });
 
       setInProgress(false);
       closeModal();

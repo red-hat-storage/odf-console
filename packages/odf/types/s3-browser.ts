@@ -18,3 +18,9 @@ export type BucketCrFormat = K8sResourceCommon & {
     owner?: string;
   };
 };
+
+export enum S3ProviderType {
+  Noobaa = 'noobaa',
+  RgwInt = 'rgwInternal',
+  RgwExt = 'rgwExternal',
+}

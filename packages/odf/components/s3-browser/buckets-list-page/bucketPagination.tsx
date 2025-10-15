@@ -4,7 +4,6 @@ import { LIST_BUCKET, MAX_BUCKETS } from '@odf/core/constants';
 import { BucketCrFormat } from '@odf/core/types';
 import { convertBucketDataToCrFormat } from '@odf/core/utils';
 import useSWRMutation from 'swr/mutation';
-import { NoobaaS3Context } from '../noobaa-context';
 import {
   ContinuationTokens,
   continuationTokensRefresher,
@@ -12,15 +11,16 @@ import {
   getPaginationCount,
   Pagination,
 } from '../pagination-helper';
+import { S3Context } from '../s3-context';
 
 export const BucketPagination: React.FC<BucketPaginationProps> = ({
   setBucketInfo,
 }) => {
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
   const { data, error, isMutating, trigger } = useSWRMutation(
     LIST_BUCKET,
     (_url, { arg }: { arg: string }) =>
-      noobaaS3.listBuckets({
+      s3Client.listBuckets({
         MaxBuckets: MAX_BUCKETS,
         ...(!!arg && { ContinuationToken: arg }),
       })

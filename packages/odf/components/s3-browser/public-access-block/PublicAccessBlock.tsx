@@ -3,7 +3,7 @@ import {
   GetPublicAccessBlockCommandOutput,
   GetBucketPolicyStatusCommandOutput,
 } from '@aws-sdk/client-s3';
-import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
+import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import { CheckboxTree } from '@odf/shared/checkbox-tree';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox, LoadingBox } from '@odf/shared/generic/status-box';
@@ -58,7 +58,7 @@ type PabFooterProps = {
   checkedItems: Set<string>;
   triggerRefresh: () => void;
   bucketName: string;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   pabData: PabOutput;
 };
 
@@ -125,7 +125,7 @@ const PabFooter: React.FC<PabFooterProps> = ({
   checkedItems,
   triggerRefresh,
   bucketName,
-  noobaaS3,
+  s3Client,
   pabData,
 }) => {
   const { t } = useCustomTranslation();
@@ -144,7 +144,7 @@ const PabFooter: React.FC<PabFooterProps> = ({
       publicAccessBlockConfiguration[key] = checkedItems.has(value);
     });
 
-    noobaaS3
+    s3Client
       .putPublicAccessBlock({
         Bucket: bucketName,
         PublicAccessBlockConfiguration: publicAccessBlockConfiguration,
@@ -203,11 +203,11 @@ const PublicAccessBlockContent: React.FC<PublicAccessBlockProps['obj']> = ({
   const setItemsRef = React.useRef(true);
 
   const { bucketName } = useParams();
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
 
   const { data: policyStatus, trigger: triggerPolicyStatus } = useSWRMutation(
     `${bucketName}-${BUCKET_POLICY_STATUS_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketPolicyStatus({ Bucket: bucketName })
+    () => s3Client.getBucketPolicyStatus({ Bucket: bucketName })
   );
   const {
     data: pabData = {} as PabOutput,
@@ -216,7 +216,7 @@ const PublicAccessBlockContent: React.FC<PublicAccessBlockProps['obj']> = ({
     trigger: triggerPab,
   } = useSWRMutation(
     `${bucketName}-${BUCKET_PUBLIC_ACCESS_BLOCK_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getPublicAccessBlock({ Bucket: bucketName })
+    () => s3Client.getPublicAccessBlock({ Bucket: bucketName })
   );
 
   const noPabError = isNoPabError(error);
@@ -284,7 +284,7 @@ const PublicAccessBlockContent: React.FC<PublicAccessBlockProps['obj']> = ({
             checkedItems={checkedItems}
             triggerRefresh={triggerRefresh}
             bucketName={bucketName}
-            noobaaS3={noobaaS3}
+            s3Client={s3Client}
             pabData={pabData}
           />
         )}

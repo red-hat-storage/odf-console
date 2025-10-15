@@ -2,9 +2,10 @@ import * as React from 'react';
 import { CORSRule, GetBucketCorsCommandOutput } from '@aws-sdk/client-s3';
 import { DetailsItem } from '@odf/core/components/resource-pages/CommonDetails';
 import {
-  NoobaaS3Provider,
-  NoobaaS3Context,
-} from '@odf/core/components/s3-browser/noobaa-context';
+  S3Provider,
+  S3Context,
+} from '@odf/core/components/s3-browser/s3-context';
+import { S3ProviderType } from '@odf/core/types';
 import { DASH } from '@odf/shared';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import PageHeading from '@odf/shared/heading/page-heading';
@@ -39,6 +40,7 @@ import {
   RULE_HASH,
   BUCKET_CORS_RULE_CACHE_KEY_SUFFIX,
   BUCKETS_BASE_ROUTE,
+  getBucketOverviewBaseRoute,
 } from '../../../constants';
 import { isAllowAllConfig } from '../../../utils';
 import { getRowActions } from '../cors-rules-list/CORSRulesList';
@@ -64,7 +66,7 @@ const createCorsActions = (
   navigate: NavigateFunction,
   launcher: LaunchModal,
   mutate: KeyedMutator<GetBucketCorsCommandOutput>,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   bucketName: string,
   ruleName: string,
   ruleHash: number
@@ -76,7 +78,7 @@ const createCorsActions = (
         navigate,
         launcher,
         mutate,
-        noobaaS3,
+        s3Client,
         bucketName,
         ruleName,
         ruleHash,
@@ -149,10 +151,11 @@ const CorsDetails: React.FC = () => {
   const navigate = useNavigate();
 
   const { bucketName } = useParams();
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
   const [searchParams] = useSearchParams();
   const ruleName = searchParams.get(RULE_NAME);
   const ruleHash = searchParams.get(RULE_HASH);
+  const providerType = s3Client.providerType as S3ProviderType;
 
   const {
     data,
@@ -161,7 +164,7 @@ const CorsDetails: React.FC = () => {
     mutate,
   } = useSWR(
     `${bucketName}-${BUCKET_CORS_RULE_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketCors({ Bucket: bucketName }),
+    () => s3Client.getBucketCors({ Bucket: bucketName }),
     {
       shouldRetryOnError: false,
     }
@@ -206,7 +209,7 @@ const CorsDetails: React.FC = () => {
           },
           {
             name: t('CORS'),
-            path: `${BUCKETS_BASE_ROUTE}/${bucketName}/permissions/cors`,
+            path: `${getBucketOverviewBaseRoute(bucketName, providerType)}/permissions/cors`,
           },
           {
             name: t('CORS details'),
@@ -226,7 +229,7 @@ const CorsDetails: React.FC = () => {
             navigate,
             launcher,
             mutate,
-            noobaaS3,
+            s3Client,
             bucketName,
             ruleName,
             !!ruleHash ? Number(ruleHash) : null
@@ -240,7 +243,7 @@ const CorsDetails: React.FC = () => {
 };
 
 export const CorsDetailsPage: React.FC = () => (
-  <NoobaaS3Provider>
+  <S3Provider>
     <CorsDetails />
-  </NoobaaS3Provider>
+  </S3Provider>
 );

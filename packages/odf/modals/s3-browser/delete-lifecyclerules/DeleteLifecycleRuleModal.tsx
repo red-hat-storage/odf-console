@@ -20,7 +20,7 @@ import {
 
 type DeleteLifecycleRuleModalProps = {
   mutate: KeyedMutator<GetBucketLifecycleConfigurationCommandOutput>;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   bucketName: string;
   ruleName: string;
   ruleHash: number;
@@ -53,7 +53,7 @@ const DeleteLifecycleRuleModal: React.FC<
 > = ({
   closeModal,
   isOpen,
-  extraProps: { noobaaS3, bucketName, mutate, ruleName, ruleHash },
+  extraProps: { s3Client, bucketName, mutate, ruleName, ruleHash },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -68,7 +68,7 @@ const DeleteLifecycleRuleModal: React.FC<
       let latestRules: GetBucketLifecycleConfigurationCommandOutput;
 
       try {
-        latestRules = await noobaaS3.getBucketLifecycleConfiguration({
+        latestRules = await s3Client.getBucketLifecycleConfiguration({
           Bucket: bucketName,
         });
       } catch (err) {
@@ -90,13 +90,13 @@ const DeleteLifecycleRuleModal: React.FC<
         ruleHash
       );
       if (!!updatedLifecycleRules?.length)
-        await noobaaS3.putBucketLifecycleConfiguration({
+        await s3Client.putBucketLifecycleConfiguration({
           Bucket: bucketName,
           LifecycleConfiguration: {
             Rules: updatedLifecycleRules,
           },
         });
-      else await noobaaS3.deleteBucketLifecycle({ Bucket: bucketName });
+      else await s3Client.deleteBucketLifecycle({ Bucket: bucketName });
 
       setInProgress(false);
       mutate();
