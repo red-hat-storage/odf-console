@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { BucketDetails } from '@odf/core/components/s3-browser/bucket-details/BucketDetails';
+import { ODF_ADMIN } from '@odf/core/features';
 import {
   EmptyBucketAlerts,
   EmptyBucketResponse,
@@ -8,25 +9,23 @@ import {
   LazyEmptyBucketModal,
   LazyDeleteBucketModal,
 } from '@odf/core/modals/s3-browser/delete-and-empty-bucket/lazy-delete-and-empty-bucket';
-import { NooBaaObjectBucketModel } from '@odf/shared';
+import { S3ProviderType } from '@odf/core/types';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useRefresh } from '@odf/shared/hooks';
 import { ModalKeys, defaultModalMap } from '@odf/shared/modals/types';
+import { NooBaaObjectBucketModel } from '@odf/shared/models';
 import { S3Commands } from '@odf/shared/s3';
 import { BlueSyncIcon } from '@odf/shared/status';
 import { K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  referenceForModel,
-  getValidWatchK8sResourceObj,
-} from '@odf/shared/utils';
 import Tabs, { TabPage, YAMLEditorWrapped } from '@odf/shared/utils/Tabs';
 import {
-  useK8sWatchResource,
   useModal,
   K8sResourceCommon,
+  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
+import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import { useNavigate, NavigateFunction } from 'react-router-dom-v5-compat';
 import { useParams, useSearchParams } from 'react-router-dom-v5-compat';
@@ -34,15 +33,17 @@ import { Button, ButtonVariant } from '@patternfly/react-core';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
 import {
   PREFIX,
-  BUCKETS_BASE_ROUTE,
+  getBucketOverviewBaseRoute,
   PERMISSIONS_ROUTE,
   MANAGEMENT_ROUTE,
 } from '../../../constants';
 import { getBreadcrumbs } from '../../../utils';
-import { NoobaaS3Context, NoobaaS3Provider } from '../noobaa-context';
 import { CustomActionsToggle } from '../objects-list';
 import { ObjectListWithSidebar } from '../objects-list/ObjectListWithSidebar';
+import { S3Provider, S3Context } from '../s3-context';
+import { useProviderType } from '../s3-provider/hooks/useProviderType';
 import { PageTitle } from './PageTitle';
+import { useBucketOrigin } from './useBucketOrigin';
 import './bucket-overview.scss';
 
 type CustomYAMLEditorProps = {
@@ -64,8 +65,9 @@ const getBucketActionsItems = (
   launcher: LaunchModal,
   navigate: NavigateFunction,
   bucketName: string,
-  isCreatedByOBC: boolean,
-  noobaaS3: S3Commands,
+  allowResourceEditing: boolean,
+  s3Client: S3Commands,
+  providerType: S3ProviderType,
   noobaaObjectBucket: K8sResourceKind,
   refreshTokens: () => void,
   setEmptyBucketResponse: React.Dispatch<
@@ -79,7 +81,7 @@ const getBucketActionsItems = (
         isOpen: true,
         extraProps: {
           bucketName,
-          noobaaS3,
+          s3Client,
           refreshTokens,
           setEmptyBucketResponse,
         },
@@ -92,14 +94,14 @@ const getBucketActionsItems = (
         isOpen: true,
         extraProps: {
           bucketName,
-          noobaaS3,
+          s3Client,
           launcher,
           refreshTokens,
           setEmptyBucketResponse,
         },
       }),
   },
-  ...(isCreatedByOBC
+  ...(allowResourceEditing
     ? [
         {
           title: t('Edit labels'),
@@ -125,7 +127,10 @@ const getBucketActionsItems = (
         },
         {
           title: t('Edit bucket'),
-          onClick: () => navigate(`${BUCKETS_BASE_ROUTE}/${bucketName}/yaml`),
+          onClick: () =>
+            navigate(
+              `${getBucketOverviewBaseRoute(bucketName, providerType)}/yaml`
+            ),
         },
       ]
     : []),
@@ -139,8 +144,9 @@ const createBucketActions = (
   launcher: ReturnType<typeof useModal>,
   navigate: NavigateFunction,
   bucketName: string,
-  isCreatedByOBC: boolean,
-  noobaaS3: S3Commands,
+  allowResourceEditing: boolean,
+  s3Client: S3Commands,
+  providerType: S3ProviderType,
   noobaaObjectBucket: K8sResourceKind,
   setEmptyBucketResponse: React.Dispatch<
     React.SetStateAction<EmptyBucketResponse>
@@ -165,8 +171,9 @@ const createBucketActions = (
             launcher,
             navigate,
             bucketName,
-            isCreatedByOBC,
-            noobaaS3,
+            allowResourceEditing,
+            s3Client,
+            providerType,
             noobaaObjectBucket,
             triggerRefresh,
             setEmptyBucketResponse
@@ -188,6 +195,9 @@ const BucketOverview: React.FC<{}> = () => {
   const { bucketName } = useParams();
   const [searchParams] = useSearchParams();
 
+  const isAdmin = useFlag(ODF_ADMIN);
+  const providerType = useProviderType();
+
   const [emptyBucketResponse, setEmptyBucketResponse] =
     React.useState<EmptyBucketResponse>({
       response: null,
@@ -197,26 +207,15 @@ const BucketOverview: React.FC<{}> = () => {
   // if non-empty means we are inside particular folder(s) of a bucket, else just inside a bucket (top-level)
   const foldersPath = searchParams.get(PREFIX);
 
-  const [objectBuckets, objectBucketsLoaded, objectBucketsError] =
-    useK8sWatchResource<K8sResourceKind[]>(
-      getValidWatchK8sResourceObj(
-        {
-          kind: referenceForModel(NooBaaObjectBucketModel),
-          namespaced: false,
-          isList: true,
-        },
-        !foldersPath
-      )
-    );
-  const noobaaObjectBucket: K8sResourceKind = objectBuckets?.find(
-    (ob) => ob.spec?.endpoint?.bucketName === bucketName
-  );
-  // denotes whether bucket is created via OBC or S3 endpoint (will be false if we are inside folder view)
-  const isCreatedByOBC = !!noobaaObjectBucket;
+  // "isCreatedByOBC" denotes whether bucket is created via OBC or S3 endpoint (will be false if we are inside folder view)
+  const { isCreatedByOBC, noobaaObjectBucket, isLoading, error } =
+    useBucketOrigin(bucketName, foldersPath, isAdmin);
+
+  const allowResourceEditing = isAdmin && isCreatedByOBC && _.isEmpty(error);
 
   const { breadcrumbs, currentFolder } = React.useMemo(
-    () => getBreadcrumbs(foldersPath, bucketName, t),
-    [foldersPath, bucketName, t]
+    () => getBreadcrumbs(foldersPath, bucketName, providerType, t),
+    [foldersPath, bucketName, providerType, t]
   );
 
   const navPages: TabPage[] = React.useMemo(
@@ -245,7 +244,7 @@ const BucketOverview: React.FC<{}> = () => {
             },
           ]
         : []),
-      ...(isCreatedByOBC
+      ...(allowResourceEditing
         ? [
             {
               href: 'yaml',
@@ -255,26 +254,28 @@ const BucketOverview: React.FC<{}> = () => {
           ]
         : []),
     ],
-    [foldersPath, isCreatedByOBC, t]
+    [foldersPath, allowResourceEditing, t]
   );
 
-  const renderActions = (noobaaS3: S3Commands) => () =>
-    createBucketActions(
-      t,
-      fresh,
-      triggerRefresh,
-      foldersPath,
-      launcher,
-      navigate,
-      bucketName,
-      isCreatedByOBC,
-      noobaaS3,
-      noobaaObjectBucket,
-      setEmptyBucketResponse
-    );
+  const renderActions =
+    (s3Client: S3Commands, provider: S3ProviderType) => () =>
+      createBucketActions(
+        t,
+        fresh,
+        triggerRefresh,
+        foldersPath,
+        launcher,
+        navigate,
+        bucketName,
+        allowResourceEditing,
+        s3Client,
+        provider,
+        noobaaObjectBucket,
+        setEmptyBucketResponse
+      );
 
   return (
-    <NoobaaS3Provider loading={!objectBucketsLoaded} error={objectBucketsError}>
+    <S3Provider loading={isLoading}>
       <BucketOverviewContent
         breadcrumbs={breadcrumbs}
         foldersPath={foldersPath}
@@ -290,7 +291,7 @@ const BucketOverview: React.FC<{}> = () => {
         emptyBucketResponse={emptyBucketResponse}
         setEmptyBucketResponse={setEmptyBucketResponse}
       />
-    </NoobaaS3Provider>
+    </S3Provider>
   );
 };
 
@@ -304,7 +305,10 @@ type BucketOverviewContentProps = {
   noobaaObjectBucket: K8sResourceKind;
   navPages: TabPage[];
   bucketName: string;
-  actions: (noobaaS3: S3Commands) => () => JSX.Element;
+  actions: (
+    s3Client: S3Commands,
+    provider: S3ProviderType
+  ) => () => JSX.Element;
   launcher: LaunchModal;
   emptyBucketResponse: EmptyBucketResponse;
   setEmptyBucketResponse: React.Dispatch<
@@ -326,7 +330,7 @@ const BucketOverviewContent: React.FC<BucketOverviewContentProps> = ({
   emptyBucketResponse,
   setEmptyBucketResponse,
 }) => {
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client, providerType } = React.useContext(S3Context);
 
   const customData = React.useMemo(
     () => ({
@@ -344,13 +348,14 @@ const BucketOverviewContent: React.FC<BucketOverviewContentProps> = ({
         title={
           <PageTitle
             bucketName={bucketName}
+            providerType={providerType}
             foldersPath={foldersPath}
             currentFolder={currentFolder}
             isCreatedByOBC={isCreatedByOBC}
             noobaaObjectBucket={noobaaObjectBucket}
           />
         }
-        actions={actions(noobaaS3)}
+        actions={actions(s3Client, providerType)}
         className="pf-v5-u-mt-md"
       />
       <EmptyBucketAlerts

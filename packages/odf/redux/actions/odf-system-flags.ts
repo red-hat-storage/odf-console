@@ -11,6 +11,7 @@ export type ODFSystemFlagsPayload = {
       isNoobaaAvailable: boolean;
       isCephAvailable: boolean;
       isRGWAvailable: boolean;
+      rgwSecureEndpoint?: string;
       isNFSEnabled: boolean;
     };
   };
