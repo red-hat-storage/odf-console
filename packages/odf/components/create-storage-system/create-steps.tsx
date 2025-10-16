@@ -2,8 +2,8 @@ import * as React from 'react';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
 import { StorageClusterModel } from '@odf/shared/models';
 import { InfraProviders } from '@odf/shared/types';
-import { WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
+import { WizardStepProps } from '@patternfly/react-core';
 import { Steps, StepsName } from '../../constants';
 import { BackingStorageType, DeploymentType } from '../../types';
 import {
@@ -24,7 +24,10 @@ export const createSteps = (
   hasOCS: boolean,
   supportedExternalStorage: ExternalStorage[],
   hasMultipleClusters: boolean
-): WizardStep[] => {
+): (Pick<WizardStepProps, 'id' | 'name'> & {
+  component: React.ReactElement;
+  canJumpTo: boolean;
+})[] => {
   const {
     backingStorage,
     stepIdReached,
@@ -93,7 +96,10 @@ export const createSteps = (
     },
   };
 
-  const rhcsExternalProviderSteps: WizardStep[] = [
+  const rhcsExternalProviderSteps: (Pick<WizardStepProps, 'id' | 'name'> & {
+    component: React.ReactElement;
+    canJumpTo: boolean;
+  })[] = [
     {
       name: StepsName(t)[Steps.SecurityAndNetwork],
       canJumpTo: stepIdReached >= 2,
@@ -119,7 +125,10 @@ export const createSteps = (
     },
   ];
 
-  const nonRhcsExternalProviderStep: WizardStep = {
+  const nonRhcsExternalProviderStep: Pick<WizardStepProps, 'id' | 'name'> & {
+    component: React.ReactElement;
+    canJumpTo: boolean;
+  } = {
     canJumpTo: stepIdReached >= 2,
     id: 2,
     name: StepsName(t)[Steps.CreateStorageClass],
@@ -134,7 +143,10 @@ export const createSteps = (
     ),
   };
 
-  const createLocalVolumeSetStep: WizardStep = {
+  const createLocalVolumeSetStep: Pick<WizardStepProps, 'id' | 'name'> & {
+    component: React.ReactElement;
+    canJumpTo: boolean;
+  } = {
     name: StepsName(t)[Steps.CreateLocalVolumeSet],
     canJumpTo: stepIdReached >= 2,
     id: 2,
