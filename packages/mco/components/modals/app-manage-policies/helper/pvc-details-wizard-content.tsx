@@ -19,9 +19,9 @@ import {
   PairElementProps,
 } from '@odf/shared/utils/NameValueEditor';
 import {
-  SelectOption,
   SelectPosition,
   SelectVariant,
+  SelectOption,
 } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import {
@@ -32,6 +32,7 @@ import {
   Grid,
   GridItem,
   Popover,
+  SelectOption as SelectOptionNext,
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
 import '../../../../style.scss';
@@ -98,7 +99,9 @@ const getPlacementDropdownOptions = (
     (name) => !selectedNames.includes(name)
   );
   return shortListedNames.map((name) => (
-    <SelectOption key={name} value={name} />
+    <SelectOptionNext key={name} value={name}>
+      {name}
+    </SelectOptionNext>
   ));
 };
 

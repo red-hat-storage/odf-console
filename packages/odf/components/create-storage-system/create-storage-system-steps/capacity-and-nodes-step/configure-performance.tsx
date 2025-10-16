@@ -20,8 +20,8 @@ import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getNodeArchitecture } from '@odf/shared/utils';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
+import { SelectOption } from '@patternfly/react-core';
 import { Text, TextVariants, TextContent } from '@patternfly/react-core';
 import './configure-performance.scss';
 

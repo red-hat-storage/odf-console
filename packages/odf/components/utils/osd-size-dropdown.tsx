@@ -6,9 +6,9 @@ import {
 } from '@odf/shared/types/storage';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getStorageSizeInTiBWithoutUnit } from '@odf/shared/utils';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
+import { SelectOption } from '@patternfly/react-core';
 import '../../style.scss';
 
 const valueLabelMap = (t: TFunction) => {
@@ -50,7 +50,9 @@ const dropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
       key={v}
       value={v}
       description={labelDescriptionMap(t)[v]}
-    />
+    >
+      {v}
+    </SelectOption>
   ));
 
 export const TotalCapacityText: React.FC<TotalCapacityTextProps> = ({

@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { MatchExpression } from '@openshift-console/dynamic-plugin-sdk';
-import { SelectOption, SelectVariant } from '@patternfly/react-core/deprecated';
+import { SelectVariant } from '@patternfly/react-core/deprecated';
+import { SelectOption } from '@patternfly/react-core/deprecated';
 import { SVGIconProps } from '@patternfly/react-icons/dist/esm/createIcon';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
@@ -20,6 +21,7 @@ import {
   HelperText,
   HelperTextItem,
   FormHelperText,
+  SelectOption as SelectOptionNext,
 } from '@patternfly/react-core';
 import { TrashIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import { SingleSelectDropdown, MultiSelectDropdown } from '../dropdown';
@@ -127,14 +129,18 @@ const ExpressionElement: React.FC<ExpressionElementProps> = ({
   const keyOptions = React.useMemo(
     () =>
       Object.keys(labels).map((labelKey) => (
-        <SelectOption key={labelKey} value={labelKey} />
+        <SelectOptionNext key={labelKey} value={labelKey}>
+          {labelKey}
+        </SelectOptionNext>
       )),
     [labels]
   );
 
   // Default options of Operator enum.
   const operatorOptions = Object.values(Operator).map((option) => (
-    <SelectOption key={option} value={option} />
+    <SelectOptionNext key={option} value={option}>
+      {option}
+    </SelectOptionNext>
   ));
 
   // Display each values of the selected key as options
