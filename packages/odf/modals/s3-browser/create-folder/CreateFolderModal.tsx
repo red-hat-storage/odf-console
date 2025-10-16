@@ -26,7 +26,7 @@ import { getPrefix, getEncodedPrefix } from '../../../utils';
 type CreateFolderModalProps = {
   foldersPath: string;
   bucketName: string;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
 };
 
 const getValidations = (
@@ -64,7 +64,7 @@ const getValidations = (
 const CreateFolderModal: React.FC<CommonModalProps<CreateFolderModalProps>> = ({
   closeModal,
   isOpen,
-  extraProps: { foldersPath, bucketName, noobaaS3 },
+  extraProps: { foldersPath, bucketName, s3Client },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -89,7 +89,7 @@ const CreateFolderModal: React.FC<CommonModalProps<CreateFolderModalProps>> = ({
 
     try {
       const folderNameWDelimiter = folderName + DELIMITER;
-      const data = await noobaaS3.listObjects({
+      const data = await s3Client.listObjects({
         Bucket: bucketName,
         MaxKeys: 1,
         Delimiter: DELIMITER,

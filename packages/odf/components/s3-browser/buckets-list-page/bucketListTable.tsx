@@ -32,13 +32,13 @@ import {
   Td,
   Tr,
 } from '@patternfly/react-table';
-import { NoobaaS3Context } from '../noobaa-context';
+import { S3Context } from '../s3-context';
 
 const getRowActions = (
   t: TFunction<string>,
   launcher: LaunchModal,
   bucketName: string,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   refreshTokens: () => void,
   setEmptyBucketResponse: React.Dispatch<
     React.SetStateAction<EmptyBucketResponse>
@@ -58,7 +58,7 @@ const getRowActions = (
         isOpen: true,
         extraProps: {
           bucketName,
-          noobaaS3,
+          s3Client,
           refreshTokens,
           setEmptyBucketResponse,
         },
@@ -71,7 +71,7 @@ const getRowActions = (
         isOpen: true,
         extraProps: {
           bucketName,
-          noobaaS3,
+          s3Client,
           launcher,
           refreshTokens,
           setEmptyBucketResponse,
@@ -166,7 +166,7 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
     launcher,
   }: RowExtraPropsType = extraProps;
 
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
 
   const onSetFavorite = (key, active) => {
     setFavorites((oldFavorites) => [
@@ -205,7 +205,7 @@ const BucketsTableRow: React.FC<RowComponentType<BucketCrFormat>> = ({
             t,
             launcher,
             name,
-            noobaaS3,
+            s3Client,
             triggerRefresh,
             setEmptyBucketResponse
           )}

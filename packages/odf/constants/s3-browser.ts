@@ -1,8 +1,11 @@
 export const NOOBAA_ADMIN_SECRET = 'noobaa-admin';
-export const NOOBAA_CLIENT_SECRET = 'noobaa-remote-join-secret';
 export const NOOBAA_S3_ROUTE = 's3';
 export const NOOBAA_ACCESS_KEY_ID = 'AWS_ACCESS_KEY_ID';
 export const NOOBAA_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY';
+// ToDo: Placeholder, fix this
+export const RGW_ADMIN_SECRET = 'rgw-admin';
+export const RGW_ACCESS_KEY_ID = 'AWS_ACCESS_KEY_ID';
+export const RGW_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY';
 
 export const DELIMITER = '/';
 export const PREFIX = 'prefix';
@@ -43,3 +46,9 @@ export const BUCKET_PUBLIC_ACCESS_BLOCK_CACHE_KEY_SUFFIX =
 // Bookmarking / favorites
 export const BUCKET_BOOKMARKS_USER_SETTINGS_KEY =
   'odf-console-bucket-bookmarks';
+
+// Non-admin credentials (Secret name and namespace)
+export const S3_CREDENTIALS_SESSION_STORE_KEY =
+  'odf-console-s3-credentials-session';
+export const S3_CREDENTIALS_LOCAL_STORE_KEY =
+  'odf-console-s3-credentials-local';

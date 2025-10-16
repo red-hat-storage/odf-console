@@ -29,7 +29,6 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { getProxyPath } from '@odf/shared/s3/utils';
 import {
   CreateBucket,
   ListBuckets,
@@ -61,10 +60,17 @@ import {
 } from './types';
 
 export class S3Commands extends S3Client {
-  constructor(endpoint: string, accessKeyId: string, secretAccessKey: string) {
+  private proxyPath: string;
+
+  constructor(
+    endpoint: string,
+    accessKeyId: string,
+    secretAccessKey: string,
+    region: string,
+    proxyPath: string
+  ) {
     super({
-      // "region" is a required parameter for the SDK, using "none" as a workaround
-      region: 'none',
+      region,
       endpoint,
       credentials: {
         accessKeyId,
@@ -72,6 +78,7 @@ export class S3Commands extends S3Client {
       },
       forcePathStyle: true,
     });
+    this.proxyPath = proxyPath;
   }
 
   // Bucket command members
@@ -154,7 +161,7 @@ export class S3Commands extends S3Client {
         proxyUrl.protocol = window.location.protocol;
         proxyUrl.hostname = window.location.hostname;
         proxyUrl.port = window.location.port;
-        proxyUrl.pathname = `${getProxyPath()}${proxyUrl.pathname}`;
+        proxyUrl.pathname = `${this.proxyPath}${proxyUrl.pathname}`;
         return proxyUrl.toString();
       }
     );

@@ -19,7 +19,7 @@ import {
 
 type DeleteCorsRuleModalProps = {
   mutate: KeyedMutator<GetBucketCorsCommandOutput>;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   bucketName: string;
   ruleName: string;
   ruleHash: number;
@@ -54,7 +54,7 @@ const DeleteCorsRuleModal: React.FC<
   closeModal,
   isOpen,
   extraProps: {
-    noobaaS3,
+    s3Client,
     bucketName,
     mutate,
     ruleName,
@@ -77,7 +77,7 @@ const DeleteCorsRuleModal: React.FC<
       let latestRules: GetBucketCorsCommandOutput;
 
       try {
-        latestRules = await noobaaS3.getBucketCors({ Bucket: bucketName });
+        latestRules = await s3Client.getBucketCors({ Bucket: bucketName });
       } catch (err) {
         if (isNoCorsRuleError(err)) {
           latestRules = { CORSRules: [] } as GetBucketCorsCommandOutput;
@@ -95,13 +95,13 @@ const DeleteCorsRuleModal: React.FC<
         ruleHash
       );
       if (!!updatedCorsRules?.length)
-        await noobaaS3.putBucketCors({
+        await s3Client.putBucketCors({
           Bucket: bucketName,
           CORSConfiguration: {
             CORSRules: updatedCorsRules,
           },
         });
-      else await noobaaS3.deleteBucketCors({ Bucket: bucketName });
+      else await s3Client.deleteBucketCors({ Bucket: bucketName });
 
       setInProgress(false);
       mutate();

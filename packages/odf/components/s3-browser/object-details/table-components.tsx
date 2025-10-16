@@ -34,7 +34,7 @@ export const ObjectVersionsTableRow: React.FC<
   const {
     launcher,
     bucketName,
-    noobaaS3,
+    s3Client,
     foldersPath,
     setDeleteResponse,
     refreshTokens,
@@ -55,7 +55,7 @@ export const ObjectVersionsTableRow: React.FC<
     launcher,
     bucketName,
     object,
-    noobaaS3,
+    s3Client,
     downloadAndPreview,
     setDownloadAndPreview,
     foldersPath,

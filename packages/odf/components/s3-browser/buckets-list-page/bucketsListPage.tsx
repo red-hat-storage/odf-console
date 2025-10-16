@@ -17,7 +17,7 @@ import { Button, ButtonVariant, Flex, FlexItem } from '@patternfly/react-core';
 import { SyncAltIcon } from '@patternfly/react-icons';
 import { BUCKET_CREATE_PAGE_PATH } from '../../../constants';
 import { BucketCrFormat } from '../../../types';
-import { NoobaaS3Provider } from '../noobaa-context';
+import { S3Provider } from '../s3-context';
 import { BucketsListTable } from './bucketListTable';
 import { BucketPagination } from './bucketPagination';
 
@@ -121,9 +121,9 @@ const BucketsListPageContent: React.FC = () => {
 
 const BucketsListPage: React.FC = () => {
   return (
-    <NoobaaS3Provider loading={false}>
+    <S3Provider loading={false}>
       <BucketsListPageContent />
-    </NoobaaS3Provider>
+    </S3Provider>
   );
 };
 

@@ -56,7 +56,7 @@ export const getInlineActionsItems = (
   launcher: LaunchModal,
   bucketName: string,
   object: ObjectCrFormat,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   downloadAndPreview: DownloadAndPreviewState,
   setDownloadAndPreview: React.Dispatch<
     React.SetStateAction<DownloadAndPreviewState>
@@ -85,7 +85,7 @@ export const getInlineActionsItems = (
               onDownload(
                 bucketName,
                 object,
-                noobaaS3,
+                s3Client,
                 setDownloadAndPreview,
                 showVersioning
               ),
@@ -109,7 +109,7 @@ export const getInlineActionsItems = (
               onPreview(
                 bucketName,
                 object,
-                noobaaS3,
+                s3Client,
                 setDownloadAndPreview,
                 showVersioning
               ),
@@ -125,7 +125,7 @@ export const getInlineActionsItems = (
             onClick: () =>
               launcher(LazyPresignedURLModal, {
                 isOpen: true,
-                extraProps: { bucketName, object, noobaaS3, showVersioning },
+                extraProps: { bucketName, object, s3Client, showVersioning },
               }),
             isDisabled: isDeleteMarker,
           },
@@ -140,7 +140,7 @@ export const getInlineActionsItems = (
             foldersPath,
             bucketName,
             objects: [object],
-            noobaaS3,
+            s3Client,
             setDeleteResponse,
             refreshTokens,
             closeObjectSidebar,
@@ -209,7 +209,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     launcher,
     bucketName,
     foldersPath,
-    noobaaS3,
+    s3Client,
     setDeleteResponse,
     refreshTokens,
     onRowClick,
@@ -231,7 +231,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     launcher,
     bucketName,
     object,
-    noobaaS3,
+    s3Client,
     downloadAndPreview,
     setDownloadAndPreview,
     foldersPath,
