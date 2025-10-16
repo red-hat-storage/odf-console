@@ -7,9 +7,11 @@ import {
 import { getAPIVersionForModel } from '@odf/shared/utils';
 import { createOrUpdate } from '@odf/shared/utils/k8s';
 import {
+  k8sDelete,
   k8sGet,
   K8sModel,
   K8sResourceCommon,
+  K8sResourceKind,
   k8sUpdate,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { t } from 'i18next';
@@ -30,6 +32,46 @@ import { DRClusterKind, RamenConfig, S3StoreProfile } from '../types';
 export function murmur32Hex(str: string, seed = 0): string {
   const h = murmur3(str, seed);
   return h.toString(16).padStart(8, '0');
+}
+
+export async function fetchRamenS3Profiles(
+  namespace: string = ODFMCO_OPERATOR_NAMESPACE
+): Promise<S3StoreProfile[]> {
+  let cm: K8sResourceCommon & { data?: Record<string, string> };
+
+  try {
+    cm = (await k8sGet({
+      model: ConfigMapModel as K8sModel,
+      name: RAMEN_HUB_OPERATOR_CONFIG_NAME,
+      ns: namespace,
+    })) as K8sResourceCommon & { data?: Record<string, string> };
+  } catch (err: any) {
+    throw new Error(
+      `Failed to fetch ConfigMap ${RAMEN_HUB_OPERATOR_CONFIG_NAME} in namespace ${namespace}: ${
+        err?.message || JSON.stringify(err)
+      }`
+    );
+  }
+
+  const raw = cm.data?.[RAMEN_CONFIG_KEY];
+  if (!raw) {
+    throw new Error(
+      `Missing key ${RAMEN_CONFIG_KEY} in ConfigMap ${RAMEN_HUB_OPERATOR_CONFIG_NAME}/${namespace}`
+    );
+  }
+
+  let ramenConfig: RamenConfig;
+  try {
+    ramenConfig = (yaml.load(raw) || {}) as RamenConfig;
+  } catch (err: any) {
+    throw new Error(
+      `Failed to parse YAML from ConfigMap ${RAMEN_HUB_OPERATOR_CONFIG_NAME}: ${
+        err?.message || JSON.stringify(err)
+      }`
+    );
+  }
+
+  return ramenConfig.s3StoreProfiles || [];
 }
 
 export function createSecretNameFromS3(
@@ -158,7 +200,20 @@ export async function updateRamenHubOperatorConfig({
   }
 }
 
-export function createOrUpdateDRCluster(params: {
+export function deleteDRCluster(name: string): Promise<K8sResourceKind> {
+  const drCluster: DRClusterKind = {
+    apiVersion: getAPIVersionForModel(DRClusterModel),
+    kind: DRClusterModel.kind,
+    metadata: { name },
+    spec: { s3ProfileName: '' },
+  };
+  return k8sDelete({
+    model: DRClusterModel,
+    resource: drCluster,
+  }) as Promise<K8sResourceKind>;
+}
+
+export function createDRCluster(params: {
   name: string;
   s3ProfileName: string;
 }): Promise<DRClusterKind> {

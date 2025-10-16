@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CEPH_PROVISIONERS } from '@odf/shared';
+import { CEPH_PROVISIONERS, IBM_PROVISIONERS } from '@odf/shared';
 import { queryStorageClassesUsingClusterNames } from '../utils';
 import { useACMSafeFetch } from './acm-safe-fetch';
 
@@ -53,14 +53,16 @@ export function useStorageProvisioners(clusters: string[]): {
   const providersByCluster = React.useMemo<ClusterProviders[]>(() => {
     if (!loaded) return [];
 
+    const supportedProvisioners = [...CEPH_PROVISIONERS, ...IBM_PROVISIONERS];
+
     return Object.entries(itemsByCluster).map(([cluster, items]) => {
       const odfCount = items.filter((i) =>
-        CEPH_PROVISIONERS.includes(i.provisioner)
+        supportedProvisioners.includes(i.provisioner)
       ).length;
 
       const tpMap = new Map<string, number>();
       items.forEach(({ provisioner }) => {
-        if (!CEPH_PROVISIONERS.includes(provisioner)) {
+        if (!supportedProvisioners.includes(provisioner)) {
           tpMap.set(provisioner, (tpMap.get(provisioner) || 0) + 1);
         }
       });

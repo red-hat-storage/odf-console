@@ -10,6 +10,7 @@ import { TFunction } from 'react-i18next';
 
 export const CEPH_BRAND_NAME = 'Red Hat Ceph Storage';
 export const NO_PROVISIONER = 'kubernetes.io/no-provisioner';
+export const SCALE_PROVISIONER = 'spectrumscale.csi.ibm.com';
 export const STORAGE_CLUSTER_SYSTEM_KIND = 'storagecluster.ocs.openshift.io/v1';
 export const HOSTNAME_LABEL_KEY = 'kubernetes.io/hostname';
 export const LABEL_OPERATOR = 'In';
@@ -18,7 +19,6 @@ export const OCS_DISABLED_ANNOTATION = 'features.ocs.openshift.io/disabled';
 export const ODF_VENDOR_ANNOTATION = 'vendors.odf.openshift.io/kind';
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
 export const OCS_DEVICE_SET_MINIMUM_REPLICAS = 3;
-export const OCS_DEVICE_SET_ARBITER_REPLICAS = 4;
 export const MINIMUM_NODES = 3;
 export const SECOND = 1000;
 
@@ -59,6 +59,26 @@ export const RESOURCE_PROFILE_REQUIREMENTS_MAP: ResourceProfileRequirementsMap =
       },
     },
   };
+
+/**
+ * s390x specific CPU adjustments
+ * In s390x env individual CPUs are much more powerful than other platforms like x86
+ * Hence the CPU requirements are reduced in s390x env
+ */
+export const S390X_CPU_ADJUSTMENTS = {
+  [ResourceProfile.Lean]: {
+    minCpu: 15,
+    osdCpu: 0.75,
+  },
+  [ResourceProfile.Balanced]: {
+    minCpu: 18,
+    osdCpu: 1,
+  },
+  [ResourceProfile.Performance]: {
+    minCpu: 27,
+    osdCpu: 2,
+  },
+};
 
 export enum DefaultRequestSize {
   BAREMETAL = '1',

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { render, screen } from '@testing-library/react';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import BreakdownCard from './capacity-breakdown-card';
 
 const testNamespace = 'test-ns';
@@ -35,8 +34,20 @@ jest.mock('@odf/core/redux', () => ({
   useODFNamespaceSelector: () => ({ odfNamespace: testNamespace }),
   useODFSystemFlagsSelector: () => ({
     systemFlags: {
-      [testNamespace]: { isRGWAvailable: true, isNoobaaAvailable: true },
+      [testNamespace]: {
+        isRGWAvailable: true,
+        isNoobaaAvailable: true,
+        ocsClusterName: 'test-cluster',
+      },
     },
+  }),
+}));
+
+jest.mock('@odf/core/redux/utils', () => ({
+  ...jest.requireActual('@odf/core/redux/utils'),
+  useGetClusterDetails: () => ({
+    clusterName: 'test-cluster',
+    clusterNamespace: testNamespace,
   }),
 }));
 
@@ -47,20 +58,7 @@ jest.mock('react-router-dom-v5-compat', () => ({
 
 describe('Capacity Breakdown Card', () => {
   it('renders the Capacity Breakdown Card', () => {
-    render(
-      <OCSDashboardContext.Provider
-        value={{
-          selectedCluster: {
-            clusterNamespace: testNamespace,
-            clusterName: 'test-cluster',
-            isExternalMode: false,
-          },
-          hasMultipleStorageClusters: false,
-        }}
-      >
-        <BreakdownCard />
-      </OCSDashboardContext.Provider>
-    );
+    render(<BreakdownCard />);
 
     expect(screen.getByText('Capacity breakdown')).toBeInTheDocument();
     expect(screen.getByLabelText('Help')).toBeInTheDocument();

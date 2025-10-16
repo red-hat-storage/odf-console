@@ -28,7 +28,11 @@ import {
 } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getStorageAutoScalerName, isNotFoundError } from '@odf/shared/utils';
+import {
+  getStorageAutoScalerName,
+  isNotFoundError,
+  getNodeArchitecture,
+} from '@odf/shared/utils';
 import {
   k8sDelete,
   K8sResourceCommon,
@@ -160,12 +164,7 @@ const canJumpToNextStep = (
     flexibleScaling,
     nodes
   );
-  const deviceSetCount = getDeviceSetCount(
-    pvCount,
-    deviceSetReplica,
-    flexibleScaling,
-    enableArbiter
-  );
+  const deviceSetCount = getDeviceSetCount(pvCount, deviceSetReplica);
   const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
 
   switch (name) {
@@ -185,7 +184,9 @@ const canJumpToNextStep = (
         isValidDiskSize &&
         isValidDeviceType
       );
-    case StepsName(t)[Steps.CapacityAndNodes]:
+    case StepsName(t)[Steps.CapacityAndNodes]: {
+      // Get architecture from first node (assuming homogeneous architecture)
+      const architecture = getNodeArchitecture(nodes);
       return (
         nodes.length >= MINIMUM_NODES &&
         capacity &&
@@ -196,13 +197,15 @@ const canJumpToNextStep = (
           resourceProfile,
           getTotalCpu(nodes),
           getTotalMemoryInGiB(nodes),
-          osdAmount
+          osdAmount,
+          architecture
         ) &&
         isValidCapacityAutoScalingConfig(
           capacityAndNodes.capacityAutoScaling.enable,
           capacityAndNodes.capacityAutoScaling.capacityLimit
         )
       );
+    }
     case StepsName(t)[Steps.SecurityAndNetwork]:
       if (isExternal && isRHCS) {
         return canGoToNextStep(connectionDetails, storageClass.name);

@@ -27,6 +27,7 @@ import {
   MINIMUM_NODES,
   ocsTaint,
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
+  S390X_CPU_ADJUSTMENTS,
   ZONE_LABELS,
 } from '../constants';
 
@@ -114,14 +115,23 @@ export const isFlexibleScaling = (
 
 /**
  * Returns the minimum required resources taking into account the OSD pods.
- * Default requirements assume 6 OSDs deployed.
+ * Default requirements assume 3 OSDs deployed
+ * For s390x: uses S390X_CPU_ADJUSTMENTS for CPU values
  */
 export const getResourceProfileRequirements = (
   profile: ResourceProfile,
-  osdAmount: number
+  osdAmount: number,
+  architecture: string
 ): { minCpu: number; minMem: number } => {
-  const { minCpu, minMem, osd } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
-  const extraOsds = osdAmount - 6;
+  let { minCpu, minMem, osd } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
+
+  if (architecture === 's390x') {
+    const s390xAdjustments = S390X_CPU_ADJUSTMENTS[profile];
+    minCpu = s390xAdjustments.minCpu;
+    osd.cpu = s390xAdjustments.osdCpu;
+  }
+
+  const extraOsds = osdAmount - 3;
   let cpu = minCpu;
   let mem = minMem;
   if (extraOsds > 0) {
@@ -136,16 +146,22 @@ export const getResourceProfileRequirements = (
  * @param profile A resource profile.
  * @param cpu The amount CPUs.
  * @param memory The amount of selected nodes' memory in GiB.
- * @param memory The amount of OSD pods.
+ * @param osdAmount The amount of OSD pods.
+ * @param architecture The node architecture.
  * @returns boolean
  */
 export const isResourceProfileAllowed = (
   profile: ResourceProfile,
   cpu: number,
   memory: number,
-  osdAmount: number
+  osdAmount: number,
+  architecture: string = ''
 ): boolean => {
-  const { minCpu, minMem } = getResourceProfileRequirements(profile, osdAmount);
+  const { minCpu, minMem } = getResourceProfileRequirements(
+    profile,
+    osdAmount,
+    architecture
+  );
 
   return cpu >= minCpu && memory >= minMem;
 };
@@ -250,27 +266,8 @@ export const createDeviceSet = (
   },
 });
 
-export const getDeviceSetCount = (
-  pvCount: number,
-  replica: number,
-  isFlexibleScalingEnabled: boolean,
-  isArbiterEnabled: boolean
-): number => {
-  let count = Math.floor(pvCount / replica) || 1;
-
-  // day-1 (arbiter): allows creation for 4, 6, 8, 10... disks attached across 2 zones
-  // day-2 (arbiter): allows expansion for 2, 4, 6, 8... disks attached across 2 zones
-  if (
-    isArbiterEnabled &&
-    !isFlexibleScalingEnabled &&
-    pvCount > replica &&
-    pvCount % replica >= 2
-  ) {
-    count += 1;
-  }
-
-  return count;
-};
+export const getDeviceSetCount = (pvCount: number, replica: number): number =>
+  Math.floor(pvCount / replica) || 1;
 
 export const getOsdAmount = (
   deviceSetCount: number,
@@ -287,7 +284,6 @@ export const getZone = (node: NodeKind) =>
   node.metadata.labels?.[ZONE_LABELS[0]] ||
   node.metadata.labels?.[ZONE_LABELS[1]];
 
-// isArbiterSC is used for day-2 validation only
 export const isArbiterSC = (
   scName: string,
   pvData: K8sResourceKind[],
@@ -299,8 +295,7 @@ export const isArbiterSC = (
   if (_.compact([...uniqZones]).length < 3) return false;
   if (uniqSelectedNodesZones.size !== 2) return false;
   const zonePerNode = countNodesPerZone(tableData);
-  // day-2: allows expansion for 2, 4, 6, 8... disks attached across 2 zones
-  return Object.keys(zonePerNode).every((zone) => zonePerNode[zone] >= 1);
+  return Object.keys(zonePerNode).every((zone) => zonePerNode[zone] >= 2);
 };
 
 export const isValidTopology = (

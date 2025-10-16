@@ -34,6 +34,7 @@ import {
   convertToBaseValue,
   getRack,
   humanizeBinaryBytes,
+  getNodeArchitecture,
 } from '@odf/shared/utils';
 import { Base64 } from 'js-base64';
 import * as _ from 'lodash-es';
@@ -43,7 +44,6 @@ import {
   NO_PROVISIONER,
   OCS_DEVICE_SET_FLEXIBLE_REPLICA,
   OCS_DEVICE_SET_MINIMUM_REPLICAS,
-  OCS_DEVICE_SET_ARBITER_REPLICAS,
   ATTACHED_DEVICES_ANNOTATION,
 } from '../../constants';
 import { WizardNodeState, WizardState } from '../create-storage-system/reducer';
@@ -111,6 +111,7 @@ export const createWizardNodeState = (
     const roles = getNodeRoles(node).sort();
     const labels = node?.metadata?.labels;
     const taints = node?.spec?.taints;
+    const architecture = getNodeArchitecture(node);
     return {
       name,
       hostName,
@@ -122,6 +123,7 @@ export const createWizardNodeState = (
       roles,
       labels,
       taints,
+      architecture,
     };
   });
 
@@ -159,6 +161,9 @@ export const capacityAndNodesValidate = (
   const totalCpu = getTotalCpu(nodes);
   const totalMemory = getTotalMemoryInGiB(nodes);
 
+  // Get architecture from first node (assuming homogeneous architecture)
+  const architecture = getNodeArchitecture(nodes);
+
   if (isFlexibleScaling(nodes, isNoProvSC, enableStretchCluster)) {
     validations.push(ValidationType.ATTACHED_DEVICES_FLEXIBLE_SCALING);
   }
@@ -170,7 +175,8 @@ export const capacityAndNodesValidate = (
         resourceProfile,
         totalCpu,
         totalMemory,
-        osdAmount
+        osdAmount,
+        architecture
       )
     ) {
       validations.push(ValidationType.RESOURCE_PROFILE);
@@ -180,7 +186,8 @@ export const capacityAndNodesValidate = (
         ResourceProfile.Balanced,
         totalCpu,
         totalMemory,
-        osdAmount
+        osdAmount,
+        architecture
       )
     ) {
       validations.push(ValidationType.MINIMAL);
@@ -205,13 +212,11 @@ export const capacityAndNodesValidate = (
   return validations;
 };
 
-// isValidStretchClusterTopology is used for day-1 validation only
 export const isValidStretchClusterTopology = (
   nodesPerZoneMap: NodesPerZoneMap,
   allZones: string[]
 ): boolean => {
   if (allZones.length >= 3) {
-    // day-1: allows creation for 4, 6, 8, 10... disks attached across 2 zones
     const validNodesWithPVPerZone = allZones.filter(
       (zone) => nodesPerZoneMap[zone] >= 2
     );
@@ -386,12 +391,11 @@ export const getDeviceSetReplica = (
   if (isFlexibleReplicaScaling) {
     return OCS_DEVICE_SET_FLEXIBLE_REPLICA;
   }
-
+  const replicas = getReplicasFromSelectedNodes(nodes);
   if (isStretchCluster) {
-    return OCS_DEVICE_SET_ARBITER_REPLICAS;
+    return replicas + 1;
   }
 
-  const replicas = getReplicasFromSelectedNodes(nodes);
   return replicas;
 };
 
@@ -459,12 +463,7 @@ export const getOCSRequestData = ({
     nodes
   );
 
-  const deviceSetCount = getDeviceSetCount(
-    availablePvsCount,
-    deviceSetReplica,
-    flexibleScaling,
-    stretchClusterChecked
-  );
+  const deviceSetCount = getDeviceSetCount(availablePvsCount, deviceSetReplica);
 
   const requestData: StorageClusterKind = {
     apiVersion: 'ocs.openshift.io/v1',
