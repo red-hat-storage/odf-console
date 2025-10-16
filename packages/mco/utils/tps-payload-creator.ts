@@ -110,7 +110,10 @@ type UpdateRamenHubConfigArgs = {
 export async function updateRamenHubOperatorConfig({
   namespace = ODFMCO_OPERATOR_NAMESPACE,
   profile,
-}: UpdateRamenHubConfigArgs): Promise<K8sResourceCommon> {
+  remove = false,
+}: UpdateRamenHubConfigArgs & {
+  remove?: boolean;
+}): Promise<K8sResourceCommon> {
   let cm;
   try {
     cm = (await k8sGet({
@@ -158,7 +161,14 @@ export async function updateRamenHubOperatorConfig({
   const idx = ramenConfig.s3StoreProfiles.findIndex(
     (p) => p.s3ProfileName === profile.s3ProfileName
   );
-  if (idx === -1) {
+
+  if (remove) {
+    if (idx !== -1) {
+      ramenConfig.s3StoreProfiles.splice(idx, 1);
+    } else {
+      return cm;
+    }
+  } else if (idx === -1) {
     ramenConfig.s3StoreProfiles.push(profile);
   } else if (
     !areS3ProfileFieldsEqual(profile, ramenConfig.s3StoreProfiles[idx])
