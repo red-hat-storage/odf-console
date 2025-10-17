@@ -82,6 +82,11 @@ export type StorageClusterKind = K8sResourceCommon & {
         tlsSecretName?: string;
         enableTls?: boolean;
       };
+      automaticBackup?: {
+        enabled: boolean;
+        schedule: string;
+        frequency: number;
+      };
     };
     externalStorage?: {};
     allowRemoteStorageConsumers?: boolean;
