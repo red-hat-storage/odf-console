@@ -4,11 +4,10 @@ import { AdvancedSubscription } from '@odf/shared/badges/advanced-subscription';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Select,
-  SelectVariant,
   SelectOption,
-  SelectProps,
-} from '@patternfly/react-core/deprecated';
-import {
+  SelectList,
+  MenuToggle,
+  MenuToggleElement,
   FormGroup,
   Alert,
   Checkbox,
@@ -71,10 +70,23 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
   const { t } = useCustomTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const handleSelection: SelectProps['onSelect'] = (e, selection) => {
-    onSelect(e, selection);
+  const handleSelect = (_event: any, value: string | number | undefined) => {
+    onSelect(_event, value);
     setIsOpen(false);
   };
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={() => setIsOpen((prev) => !prev)}
+      isExpanded={isOpen}
+      id="arbiter-zone-toggle"
+      aria-label={t('Arbiter zone selection')}
+      style={{ width: '100%' }}
+    >
+      {arbiterLocation || t('Select an arbiter zone')}
+    </MenuToggle>
+  );
 
   return (
     <>
@@ -99,18 +111,19 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
               fieldId="arbiter-zone-selection"
             >
               <Select
-                variant={SelectVariant.single}
-                placeholderText={t('Select an arbiter zone')}
-                aria-label={t('Arbiter zone selection')}
-                onToggle={(_event, value: boolean) => setIsOpen(value)}
-                onSelect={handleSelection}
-                selections={arbiterLocation}
                 isOpen={isOpen}
-                id="arbiter-zone-selection"
+                selected={arbiterLocation}
+                onSelect={handleSelect}
+                onOpenChange={setIsOpen}
+                toggle={toggle}
               >
-                {zones.map((zone) => (
-                  <SelectOption key={zone} value={zone} />
-                ))}
+                <SelectList>
+                  {zones.map((zone) => (
+                    <SelectOption key={zone} value={zone}>
+                      {zone}
+                    </SelectOption>
+                  ))}
+                </SelectList>
               </Select>
               <FormHelperText>
                 <PfHelperText>
@@ -130,7 +143,7 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
 };
 
 type StretchClusterProps = {
-  onSelect: SelectProps['onSelect'];
+  onSelect: (e: any, value: string | number | undefined) => void;
   onChecked: (isChecked: boolean) => void;
   arbiterLocation: WizardState['capacityAndNodes']['arbiterLocation'];
   enableArbiter: WizardState['capacityAndNodes']['enableArbiter'];
