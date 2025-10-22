@@ -34,3 +34,8 @@ export const multusSetupDoc = (odfDocVersion: string): string =>
 
 export const tpsDoc = (odfDocVersion: string): string =>
   `${odfDRDocHome(odfDocVersion)}#third-party-storage-prerequisites`;
+
+export const externalSystemsDoc = (odfDocVersion: string): string =>
+  `${odfDocBasePath(
+    odfDocVersion
+  )}/deploying_openshift_data_foundation_in_external_mode/index#overview-of-deploying-in-external-mode_rhods`;
