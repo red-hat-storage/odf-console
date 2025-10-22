@@ -20,9 +20,13 @@ import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getNodeArchitecture } from '@odf/shared/utils';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
-import { Text, TextVariants, TextContent } from '@patternfly/react-core';
+import {
+  Text,
+  TextVariants,
+  TextContent,
+  SelectOption,
+} from '@patternfly/react-core';
 import './configure-performance.scss';
 
 const selectOptions = (
@@ -92,6 +96,7 @@ export const ProfileRequirementsText: React.FC<
           <FieldLevelHelp>{resourceRequirementsTooltip(t)}</FieldLevelHelp>
         )}
       </Text>
+
       <Text id="cpu-requirements-desc" className="pf-v5-u-font-size-sm">
         <div className="pf-v5-u-mb-sm">
           <span className="pf-v5-u-disabled-color-100">
