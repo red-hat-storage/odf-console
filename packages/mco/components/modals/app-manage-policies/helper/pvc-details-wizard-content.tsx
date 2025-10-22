@@ -18,11 +18,6 @@ import {
   NameValueEditorPair,
   PairElementProps,
 } from '@odf/shared/utils/NameValueEditor';
-import {
-  SelectOption,
-  SelectPosition,
-  SelectVariant,
-} from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import {
   Button,
@@ -32,6 +27,7 @@ import {
   Grid,
   GridItem,
   Popover,
+  SelectOption,
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
 import '../../../../style.scss';
@@ -98,7 +94,9 @@ const getPlacementDropdownOptions = (
     (name) => !selectedNames.includes(name)
   );
   return shortListedNames.map((name) => (
-    <SelectOption key={name} value={name} />
+    <SelectOption key={name} value={name}>
+      {name}
+    </SelectOption>
   ));
 };
 
@@ -110,7 +108,12 @@ const getLabelsDropdownOptions = (
   return labels.reduce(
     (acc, name) =>
       !selectedLabels.includes(name)
-        ? [...acc, <SelectOption key={name} value={name} />]
+        ? [
+            ...acc,
+            <SelectOption key={name} value={name}>
+              {name}
+            </SelectOption>,
+          ]
         : acc,
     []
   );
@@ -180,6 +183,7 @@ const PairElement: React.FC<PairElementProps> = ({
     onRemoveProp(index);
   }, [index, onRemoveProp]);
 
+  const variant = 'checkbox';
   return (
     <Grid hasGutter>
       <GridItem lg={5} sm={5}>
@@ -218,15 +222,18 @@ const PairElement: React.FC<PairElementProps> = ({
                 ? t('{{count}} selected', { count: selectedLabels?.length })
                 : t('Select labels')
             }
-            variant={SelectVariant.checkbox}
+            variant={variant}
             required
             validated={getValidatedProp(
               isValidationEnabled && !isValidLabelInput(selectedLabels)
             )}
             isDisabled={isDisabled}
-            position={SelectPosition.right}
-            isCreatable
-            hasInlineFilter
+            popperProps={{
+              position: 'right',
+            }}
+            isCreatable={true}
+            toggle={undefined}
+            hasInlineFilter={true} // hasInlineFilter
           />
         </FormGroup>
       </GridItem>

@@ -20,13 +20,13 @@ import {
   WatchK8sResults,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { SelectOption } from '@patternfly/react-core';
 import {
   Alert,
   AlertVariant,
   Checkbox,
   Form,
   FormGroup,
+  SelectOption,
 } from '@patternfly/react-core';
 import { WizardState } from '../../reducer';
 
@@ -245,9 +245,18 @@ export const MultusDropdown: React.FC<MultusDropdownProps> = ({
       if (!textInput) {
         return selectOptions;
       } else {
-        return selectOptions.filter((item) =>
+        let newOptions = selectOptions.filter((item) =>
           (item.props.id as string).toLowerCase().includes(textInput)
         );
+
+        if (!newOptions.length) {
+          return [
+            <SelectOption key="no-option" isDisabled={true}>
+              {'No option found'}
+            </SelectOption>,
+          ];
+        }
+        return newOptions;
       }
     },
     [selectOptions]

@@ -23,7 +23,6 @@ import { StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
 import { TFunction } from 'react-i18next';
@@ -42,6 +41,7 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
+  SelectOption,
 } from '@patternfly/react-core';
 import { getValidatedDeviceTypes } from '../../../../utils';
 import { LocalVolumeSet, WizardDispatch, WizardState } from '../../reducer';
@@ -51,12 +51,20 @@ import './body.scss';
 
 const diskModeDropdownOptions: JSX.Element[] = _.map(
   diskModeDropdownItems,
-  (v, _unused) => <SelectOption key={v} value={v} />
+  (v, _unused) => (
+    <SelectOption key={v} value={v}>
+      {v}
+    </SelectOption>
+  )
 );
 
 const diskSizeUnitDropdownOptions: JSX.Element[] = _.map(
   diskSizeUnitOptions,
-  (v, _unused) => <SelectOption key={v} value={v} />
+  (v, _unused) => (
+    <SelectOption key={v} value={v}>
+      {v}
+    </SelectOption>
+  )
 );
 
 const deviceTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
@@ -71,12 +79,16 @@ const deviceTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
             ),
           }
         : {})}
-    />
+    >
+      {v}
+    </SelectOption>
   ));
 
 const diskTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
   _.map(diskTypeDropdownItems(t), (v, _unused) => (
-    <SelectOption key={v} value={v} />
+    <SelectOption key={v} value={v}>
+      {v}
+    </SelectOption>
   ));
 
 export enum FilterDiskBy {
@@ -422,6 +434,7 @@ export const LocalVolumeSetBody: React.FC<LocalVolumeSetBodyProps> = ({
               formHandler('deviceType', deviceType);
               formHandler('isValidDeviceType', deviceTypeValidation);
             }}
+            toggle={undefined}
           />
         </FormGroup>
         <FormGroup

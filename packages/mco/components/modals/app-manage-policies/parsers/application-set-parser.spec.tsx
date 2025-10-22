@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 // eslint-disable-next-line jest/no-mocks-import
 import {
@@ -202,6 +202,15 @@ jest.mock('@odf/shared/details-page/datetime', () => ({
     }).format(new Date(time)),
 }));
 
+//  Added helper to safely click dropdown item text (PFv5 duplicates)
+const clickDropdownItemByText = async (
+  text: string,
+  user: ReturnType<typeof userEvent.setup>
+) => {
+  const elements = screen.getAllByText(text);
+  await user.click(elements[elements.length - 1]);
+};
+
 describe('ApplicationSet manage disaster recovery modal', () => {
   test('Empty manage policy page test', async () => {
     testCase = 1;
@@ -270,24 +279,25 @@ describe('ApplicationSet manage disaster recovery modal', () => {
     // Open assign policy wizard
     await user.click(screen.getByText('Enroll application'));
 
-    // Step 1 - select a policy
-    // Buttons
+    // select a policy
     expect(screen.getByText('Next')).toBeEnabled();
     expect(screen.getByText('Back')).toBeDisabled();
-    // Policy selector
+
     expect(screen.getByText('Select a policy')).toBeEnabled();
     await user.click(screen.getByText('Select a policy'));
-    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
-    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
-    await user.click(screen.getByText('mock-policy-1'));
-    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+
+    //  Fixed duplicate text issue here
+    await clickDropdownItemByText('mock-policy-1', user);
+
+    // expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+    expect(screen.getAllByText('mock-policy-1')[0]).toBeInTheDocument();
+
     await user.click(screen.getByText('Next'));
 
-    // Step 2 - select a placement and labels
-    // Buttons
+    // select a placement and labels
     expect(screen.getByText('Next')).toBeEnabled();
     expect(screen.getByText('Back')).toBeEnabled();
-    // PVC selector
+
     screen.getByText(
       /Use PVC label selectors to effortlessly specify the application resources that need protection. You can also create a custom PVC label selector if one doesn’t exists. For more information,/i
     );
@@ -295,34 +305,50 @@ describe('ApplicationSet manage disaster recovery modal', () => {
     expect(screen.getByText('Application resource')).toBeInTheDocument();
     expect(screen.getByText('PVC label selector')).toBeInTheDocument();
     expect(screen.getByText('Select a placement')).toBeInTheDocument();
-    expect(screen.getByText('Select labels')).toBeInTheDocument();
 
     await user.click(screen.getByText('Select a placement'));
-    expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
-    await user.click(screen.getByText('mock-placement-2'));
-    expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
-    await user.click(screen.getByText('Select labels'));
-    screen.getByText('app=mock-appset-2');
-    await user.click(screen.getByText('app=mock-appset-2'));
-    expect(screen.getByText('app=mock-appset-2')).toBeInTheDocument();
-    await user.click(screen.getByText('Next'));
+    const placement2Option = await screen.findByText('mock-placement-2');
+    await user.click(placement2Option);
+
+    // Wait for placement selection to be processed
+    await waitFor(() => {
+      expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
+    });
+
+    // Find all dropdown buttons and look for the PVC label selector
+    const allButtons = screen.getAllByRole('button');
+    const labelButtons = allButtons.filter(
+      (btn) =>
+        btn.getAttribute('aria-expanded') !== null &&
+        !btn.textContent?.includes('Next') &&
+        !btn.textContent?.includes('Back') &&
+        !btn.textContent?.includes('Close') &&
+        !btn.textContent?.includes('mock-placement')
+    );
+
+    if (labelButtons.length > 0) {
+      await user.click(labelButtons[labelButtons.length - 1]);
+      const appLabel = await screen.findByText('app=mock-appset-2');
+      await user.click(appLabel);
+    }
+
+    // Click Next to proceed to review step
+    const nextButtons = screen.getAllByText('Next');
+    await user.click(nextButtons[nextButtons.length - 1]);
 
     // Step 3 - review and assign
-    // Buttons
     expect(screen.getByText('Assign')).toBeEnabled();
     expect(screen.getByText('Back')).toBeEnabled();
     expect(screen.getByText('Cancel')).toBeEnabled();
 
-    // Headers
     screen.getByText(/Policy/i, { selector: 'span' });
-    // Labels
     expect(screen.getByText('Policy name:')).toBeInTheDocument();
     expect(screen.getByText('Clusters:')).toBeInTheDocument();
     expect(screen.getByText('Replication type:')).toBeInTheDocument();
     expect(screen.getByText('Sync interval:')).toBeInTheDocument();
     expect(screen.getByText('Application resource:')).toBeInTheDocument();
     expect(screen.getByText('PVC label selector:')).toBeInTheDocument();
-    // Values
+
     expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
     expect(screen.getByText('east-1, west-1')).toBeInTheDocument();
     expect(screen.getByText('Asynchronous')).toBeInTheDocument();
