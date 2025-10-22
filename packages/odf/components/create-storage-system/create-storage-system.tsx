@@ -28,9 +28,9 @@ import {
   useK8sWatchResource,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { useNavigate, useLocation } from 'react-router-dom-v5-compat';
+import { Wizard, WizardStep } from '@patternfly/react-core';
 import {
   EmptyState,
   EmptyStateHeader,
@@ -135,7 +135,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
 
   const infraType = getInfrastructurePlatform(infra);
 
-  let wizardSteps: WizardStep[] = [];
+  let wizardSteps = [];
   let hasOCS: boolean = false;
   let hasExternal: boolean = false;
   let hasInternal: boolean = false;
@@ -173,7 +173,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
     );
   }
 
-  const steps: WizardStep[] = [
+  const steps = [
     {
       id: 1,
       name: StepsName(t)[Steps.BackingStorage],
@@ -193,6 +193,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
           supportedExternalStorage={supportedExternalStorage}
         />
       ),
+      canJumpTo: true,
     },
     ...wizardSteps,
   ];
@@ -202,7 +203,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
       <CreateStorageSystemHeader state={state} />
       <Wizard
         className="odf-create-storage-system-wizard"
-        steps={steps}
+        isVisitRequired
         footer={
           <CreateStorageSystemFooter
             state={state}
@@ -213,10 +214,13 @@ const CreateStorageSystem: React.FC<{}> = () => {
             existingNamespaces={namespaces}
           />
         }
-        cancelButtonText={t('Cancel')}
-        nextButtonText={t('Next')}
-        backButtonText={t('Back')}
-      />
+      >
+        {steps.map((step) => (
+          <WizardStep key={step.id} id={step.id} name={step.name}>
+            {step.component}
+          </WizardStep>
+        ))}
+      </Wizard>
     </>
   );
 };
