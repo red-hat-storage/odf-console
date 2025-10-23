@@ -3,7 +3,8 @@ import {
   LifecycleRule,
   GetBucketLifecycleConfigurationCommandOutput,
 } from '@aws-sdk/client-s3';
-import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
+import { S3Context } from '@odf/core/components/s3-browser/s3-context';
+import { S3ProviderType } from '@odf/core/types';
 import { DASH } from '@odf/shared';
 import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { StatusBox } from '@odf/shared/generic/status-box';
@@ -46,7 +47,7 @@ import {
 import { sortable, ActionsColumn, IAction } from '@patternfly/react-table';
 import {
   BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX,
-  BUCKETS_BASE_ROUTE,
+  getBucketOverviewBaseRoute,
   RULE_NAME,
   RULE_HASH,
 } from '../../../constants';
@@ -61,7 +62,8 @@ type CustomData = {
   navigate: NavigateFunction;
   launcher: LaunchModal;
   mutate: KeyedMutator<GetBucketLifecycleConfigurationCommandOutput>;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
+  providerType: S3ProviderType;
   bucketName: string;
 };
 
@@ -103,12 +105,13 @@ const nameFilterOverride: RowFilter<LifecycleRule>[] = [
   },
 ];
 
-export const getRowActions = (
+const getRowActions = (
   t: TFunction<string>,
   navigate: NavigateFunction,
   launcher: LaunchModal,
   mutate: KeyedMutator<GetBucketLifecycleConfigurationCommandOutput>,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
+  providerType: S3ProviderType,
   bucketName: string,
   ruleName: string,
   ruleHash: number
@@ -116,7 +119,7 @@ export const getRowActions = (
   const searchParam = !!ruleName
     ? `${RULE_NAME}=${encodeURIComponent(ruleName)}`
     : `${RULE_HASH}=${ruleHash}`;
-  const editRuleLink = `${BUCKETS_BASE_ROUTE}/${bucketName}/management/lifecycle/edit?${searchParam}`;
+  const editRuleLink = `${getBucketOverviewBaseRoute(bucketName, providerType)}/management/lifecycle/edit?${searchParam}`;
   return [
     {
       title: t('Edit lifecycle rule'),
@@ -127,7 +130,7 @@ export const getRowActions = (
       onClick: () =>
         launcher(DeleteLifecycleRuleModal, {
           isOpen: true,
-          extraProps: { noobaaS3, bucketName, mutate, ruleName, ruleHash },
+          extraProps: { s3Client, bucketName, mutate, ruleName, ruleHash },
         }),
     },
   ];
@@ -142,7 +145,8 @@ const RuleRow: React.FC<RowProps<LifecycleRule, CustomData>> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const { navigate, launcher, mutate, noobaaS3, bucketName } = rowData;
+  const { navigate, launcher, mutate, s3Client, providerType, bucketName } =
+    rowData;
 
   const ruleName = ruleObj?.ID;
   const expiration = ruleObj.Expiration;
@@ -252,7 +256,8 @@ const RuleRow: React.FC<RowProps<LifecycleRule, CustomData>> = ({
             navigate,
             launcher,
             mutate,
-            noobaaS3,
+            s3Client,
+            providerType,
             bucketName,
             ruleName,
             ruleHash
@@ -313,11 +318,11 @@ export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
   const { bucketName } = useParams();
   const navigate = useNavigate();
   const launcher = useModal();
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client, providerType } = React.useContext(S3Context);
 
   const { data, isLoading, error, mutate } = useSWR(
     `${bucketName}-${BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketLifecycleConfiguration({ Bucket: bucketName }),
+    () => s3Client.getBucketLifecycleConfiguration({ Bucket: bucketName }),
     {
       shouldRetryOnError: false,
     }
@@ -325,9 +330,9 @@ export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
 
   const noRuleExistsError = isNoLifecycleRuleError(error);
   // in case of "noRuleExistsError" error, cache could still have older "data", hence clearing that.
-  const rules = noRuleExistsError ? [] : data?.Rules || [];
+  const rules: LifecycleRule[] = noRuleExistsError ? [] : data?.Rules || [];
   const loaded = !isLoading && fresh;
-  const createRuleLink = `${BUCKETS_BASE_ROUTE}/${bucketName}/management/lifecycle/create/~new`;
+  const createRuleLink = `${getBucketOverviewBaseRoute(bucketName, providerType)}/management/lifecycle/create/~new`;
 
   const [unfilteredRules, filteredRules, onFilterChange] = useListPageFilter(
     rules,
@@ -382,7 +387,14 @@ export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
               unfilteredData={rules}
               loaded
               loadError={null}
-              rowData={{ navigate, launcher, mutate, noobaaS3, bucketName }}
+              rowData={{
+                navigate,
+                launcher,
+                mutate,
+                s3Client,
+                providerType,
+                bucketName,
+              }}
             />
           </>
         )}

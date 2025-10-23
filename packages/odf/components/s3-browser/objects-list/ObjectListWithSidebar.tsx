@@ -10,7 +10,7 @@ import {
 import { useParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import { IAction } from '@patternfly/react-table';
-import { NoobaaS3Context } from '../noobaa-context';
+import { S3Context } from '../s3-context';
 import UploadSidebar from '../upload-objects';
 import { FileUploadComponent } from '../upload-objects';
 import { ExtraProps, ObjectsList } from './ObjectsList';
@@ -23,11 +23,11 @@ export const ObjectListWithSidebar: React.FC<ObjectListWithSidebarProps> = ({
   obj: { fresh, triggerRefresh },
 }) => {
   const { bucketName } = useParams();
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
 
   const { data: versioningData } = useSWR(
     `${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketVersioning({ Bucket: bucketName })
+    () => s3Client.getBucketVersioning({ Bucket: bucketName })
   );
 
   const allowVersioning =
@@ -72,7 +72,7 @@ export const ObjectListWithSidebar: React.FC<ObjectListWithSidebarProps> = ({
       mainContent={
         <>
           <FileUploadComponent
-            client={noobaaS3}
+            s3Client={s3Client}
             bucketName={bucketName}
             showSidebar={showUploadSidebar}
             hideSidebar={closeUploadSidebar}
