@@ -56,6 +56,7 @@ Cypress.Commands.add('install', () => {
       cy.byTestID('create-wizard-empty-state').should('exist');
       cy.byTestID('create-wizard-empty-state').should('not.exist');
       cy.get('button').contains('Next').click();
+      cy.get('button').contains('Next').click();
       // @TODO: Do we still want to uncheck the already unchecked 'Taint nodes' checkbox?
       // If yes, we should scroll down (needed after adding the performance profile selection)
       // and then scroll up again to still be able to select nodes

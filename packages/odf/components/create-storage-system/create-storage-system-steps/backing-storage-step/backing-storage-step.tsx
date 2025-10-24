@@ -10,7 +10,6 @@ import { BackingStorageType, DeploymentType } from '@odf/core/types';
 import { getSupportedVendors } from '@odf/core/utils';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { StorageClassWizardStepExtensionProps as ExternalStorage } from '@odf/odf-plugin-sdk/extensions';
-import { TechPreviewBadge } from '@odf/shared';
 import { RHCS_SUPPORTED_INFRA } from '@odf/shared/constants/common';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { StatusBox } from '@odf/shared/generic/status-box';
@@ -36,12 +35,8 @@ import {
   Radio,
   Alert,
   AlertVariant,
-  Checkbox,
 } from '@patternfly/react-core';
 import { WizardState, WizardDispatch } from '../../reducer';
-import { EnableNFS } from './enable-nfs';
-import { PostgresConnectionDetails } from './noobaa-external-postgres/postgres-connection-details';
-import { SetCephRBDStorageClassDefault } from './set-rbd-sc-default';
 import SetVirtualizeSCDefault from './set-virtualize-sc-default';
 import './backing-storage-step.scss';
 
@@ -116,15 +111,7 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
   loaded,
   supportedExternalStorage,
 }) => {
-  const {
-    type,
-    enableNFS,
-    isRBDStorageClassDefault,
-    externalStorage,
-    deployment,
-    externalPostgres,
-    useExternalPostgres,
-  } = state;
+  const { type, externalStorage, deployment } = state;
 
   const { t } = useCustomTranslation();
 
@@ -243,10 +230,6 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
     dispatch({ type: 'backingStorage/setType', payload: newType });
   };
 
-  const doesDefaultSCAlreadyExists = sc?.items?.some((item) =>
-    isDefaultClass(item)
-  );
-
   const allLoaded = loaded && scLoaded && csvListLoaded && isODFNsLoaded;
   const anyError = error || scLoadError || csvListLoadError || odfNsLoadError;
 
@@ -298,67 +281,12 @@ export const BackingStorage: React.FC<BackingStorageProps> = ({
           className="odf-backing-store__radio--margin-bottom"
         />
       </FormGroup>
-      {/* Should be visible for both external and internal mode (even if one cluster already exists) */}
       {isFullDeployment && !hasMultipleClusters && (
-        <>
-          <EnableNFS
-            dispatch={dispatch}
-            nfsEnabled={enableNFS}
-            backingStorageType={type}
-          />
-          <SetCephRBDStorageClassDefault
-            dispatch={dispatch}
-            isRBDStorageClassDefault={isRBDStorageClassDefault}
-            doesDefaultSCAlreadyExists={doesDefaultSCAlreadyExists}
-          />
-          <SetVirtualizeSCDefault
-            dispatch={dispatch}
-            isVirtualizeStorageClassDefault={
-              state.isVirtualizeStorageClassDefault
-            }
-          />
-        </>
-      )}
-      {/* Should be visible for both external and internal mode (but only single NooBaa is allowed, so should be hidden if any cluster already exists) */}
-      {!hasOCS && (
-        <Checkbox
-          id="use-external-postgress"
-          label={
-            <>
-              {t('Use external PostgreSQL')}
-              <span className="pf-v5-u-ml-sm">
-                <TechPreviewBadge />
-              </span>
-            </>
-          }
-          description={t(
-            'Allow Noobaa to connect to an external postgres server'
-          )}
-          isChecked={useExternalPostgres}
-          onChange={() =>
-            dispatch({
-              type: 'backingStorage/useExternalPostgres',
-              payload: !useExternalPostgres,
-            })
-          }
-          className="odf-backing-store__radio--margin-bottom"
-        />
-      )}
-      {useExternalPostgres && !hasOCS && (
-        <PostgresConnectionDetails
+        <SetVirtualizeSCDefault
           dispatch={dispatch}
-          tlsFiles={[
-            externalPostgres.tls.keys.private,
-            externalPostgres.tls.keys.public,
-          ]}
-          tlsEnabled={externalPostgres.tls.enabled}
-          allowSelfSignedCerts={externalPostgres.tls.allowSelfSignedCerts}
-          username={externalPostgres.username}
-          password={externalPostgres.password}
-          serverName={externalPostgres.serverName}
-          databaseName={externalPostgres.databaseName}
-          port={externalPostgres.port}
-          enableClientSideCerts={externalPostgres.tls.enableClientSideCerts}
+          isVirtualizeStorageClassDefault={
+            state.isVirtualizeStorageClassDefault
+          }
         />
       )}
     </Form>

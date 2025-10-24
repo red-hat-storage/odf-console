@@ -50,6 +50,11 @@ export const initialState: CreateStorageSystemState = {
     externalStorage: '',
     deployment: DeploymentType.FULL,
     useExternalPostgres: false,
+    isAutomaticBackup: false,
+    automaticBackup: {
+      schedule: '0 0 * * *',
+      frequency: 5,
+    },
     externalPostgres: {
       username: '',
       password: '',
@@ -131,6 +136,11 @@ type CreateStorageSystemState = {
     externalStorage: string;
     deployment: DeploymentType;
     useExternalPostgres: boolean;
+    isAutomaticBackup: boolean;
+    automaticBackup: {
+      schedule: string;
+      frequency: number;
+    };
     externalPostgres: {
       username: string;
       password: string;
@@ -379,6 +389,15 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'backingStorage/setExternalStorage':
       newState.backingStorage.externalStorage = action.payload;
       break;
+    case 'backingStorage/automaticBackup/schedule':
+      newState.backingStorage.automaticBackup.schedule = action.payload;
+      break;
+    case 'backingStorage/automaticBackup/frequency':
+      newState.backingStorage.automaticBackup.frequency = action.payload;
+      break;
+    case 'backingStorage/setAutomaticBackup':
+      newState.backingStorage.isAutomaticBackup = action.payload;
+      break;
     case 'capacityAndNodes/capacity':
       newState.capacityAndNodes.capacity = action.payload;
       break;
@@ -610,4 +629,16 @@ export type CreateStorageSystemAction =
   | {
       type: 'backingStorage/externalPostgres/tls/keys/setPublicKey';
       payload: WizardState['backingStorage']['externalPostgres']['tls']['keys']['public'];
+    }
+  | {
+      type: 'backingStorage/setAutomaticBackup';
+      payload: WizardState['backingStorage']['isAutomaticBackup'];
+    }
+  | {
+      type: 'backingStorage/automaticBackup/schedule';
+      payload: WizardState['backingStorage']['automaticBackup']['schedule'];
+    }
+  | {
+      type: 'backingStorage/automaticBackup/frequency';
+      payload: WizardState['backingStorage']['automaticBackup']['frequency'];
     };
