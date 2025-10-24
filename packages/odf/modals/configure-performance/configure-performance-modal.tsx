@@ -23,7 +23,6 @@ import { StorageClusterModel } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { DeviceSet, StorageClusterKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { getNodeArchitecture } from '@odf/shared/utils';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   Patch,
@@ -52,15 +51,11 @@ const getValidation = (
     return null;
   }
 
-  // Get architecture from first node (assuming homogeneous architecture)
-  const architecture = getNodeArchitecture(nodes);
-
   return isResourceProfileAllowed(
     profile,
     getTotalCpu(nodes),
     getTotalMemoryInGiB(nodes),
-    osdAmount,
-    architecture
+    osdAmount
   )
     ? null
     : ValidationType.RESOURCE_PROFILE;
@@ -69,17 +64,15 @@ const getValidation = (
 type ProfileRequirementsModalTextProps = {
   selectedProfile: ResourceProfile;
   osdAmount: number;
-  architecture?: string;
 };
 
 const ProfileRequirementsModalText: React.FC<
   ProfileRequirementsModalTextProps
-> = ({ selectedProfile, osdAmount, architecture = '' }) => {
+> = ({ selectedProfile, osdAmount }) => {
   const { t } = useCustomTranslation();
   const { minCpu, minMem } = getResourceProfileRequirements(
     selectedProfile,
-    osdAmount,
-    architecture
+    osdAmount
   );
   return (
     <TextContent>
@@ -133,7 +126,6 @@ const ConfigurePerformanceModal: React.FC<StorageClusterActionModalProps> = ({
       getOsdAmount(deviceSet.count, deviceSet.replica)
     )
     .reduce((accumulator: number, current: number) => accumulator + current);
-  const architecture = getNodeArchitecture(selectedNodes);
 
   const onProfileChange = React.useCallback(
     (newProfile: ResourceProfile): void => {
@@ -218,7 +210,6 @@ const ConfigurePerformanceModal: React.FC<StorageClusterActionModalProps> = ({
             key={validation}
             validation={validation}
             className="pf-v5-u-mt-md"
-            architecture={architecture}
           />
         )}
         {errorMessage && (
