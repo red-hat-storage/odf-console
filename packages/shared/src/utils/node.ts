@@ -46,19 +46,3 @@ export const getNodeZone = (node: NodeKind): string =>
   node.metadata.labels?.['topology.kubernetes.io/zone'];
 
 export const getRack = (node: NodeKind) => node.metadata.labels?.[RACK_LABEL];
-
-export const getNodeArchitecture = (
-  input: NodeKind | NodeKind[] | { architecture: string }[]
-): string => {
-  if (Array.isArray(input)) {
-    if (input.length === 0) return '';
-    const firstNode = input[0];
-    // Check if the node has architecture property directly (WizardNodeState)
-    if ('architecture' in firstNode) {
-      return firstNode.architecture;
-    }
-    // Otherwise extract from NodeKind structure
-    return _.get(firstNode, 'status.nodeInfo.architecture', '');
-  }
-  return _.get(input, 'status.nodeInfo.architecture', '');
-};
