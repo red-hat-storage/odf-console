@@ -60,26 +60,6 @@ export const RESOURCE_PROFILE_REQUIREMENTS_MAP: ResourceProfileRequirementsMap =
     },
   };
 
-/**
- * s390x specific CPU adjustments
- * In s390x env individual CPUs are much more powerful than other platforms like x86
- * Hence the CPU requirements are reduced in s390x env
- */
-export const S390X_CPU_ADJUSTMENTS = {
-  [ResourceProfile.Lean]: {
-    minCpu: 15,
-    osdCpu: 0.75,
-  },
-  [ResourceProfile.Balanced]: {
-    minCpu: 18,
-    osdCpu: 1,
-  },
-  [ResourceProfile.Performance]: {
-    minCpu: 27,
-    osdCpu: 2,
-  },
-};
-
 export enum DefaultRequestSize {
   BAREMETAL = '1',
   NON_BAREMETAL = '2Ti',

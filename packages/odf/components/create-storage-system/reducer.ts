@@ -190,7 +190,6 @@ export type WizardNodeState = {
   roles: string[];
   labels: NodeKind['metadata']['labels'];
   taints: NodeKind['spec']['taints'];
-  architecture: string;
 };
 
 export type CapacityAutoScalingState = {
