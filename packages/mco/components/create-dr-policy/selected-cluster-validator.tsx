@@ -473,20 +473,26 @@ export const SelectedClusterValidation: React.FC<
   // Determine selection validity
   const isSelectionValid = !isInvalidPeering && !invalidClusters.length;
 
+  // Either of the clusters lack ODF
+  const eitherClustersWithoutODF = selectedClusters.some((cluster) =>
+    clusterValidation.clustersWithoutODF.includes(getName(cluster))
+  );
+
   // Dispatch selection validation state
   React.useEffect(() => {
     if (loaded && !loadError) {
       dispatch({
         type: DRPolicyActionType.SET_CLUSTER_SELECTION_VALIDATION,
-        payload: isSelectionValid,
+        payload: isSelectionValid || eitherClustersWithoutODF,
       });
     }
   }, [isSelectionValid, loaded, loadError, dispatch]);
 
   // Check for version mismatch
-  const isVersionMismatch =
-    selectedClusters[0]?.odfInfo?.odfVersion !==
-    selectedClusters[1]?.odfInfo?.odfVersion;
+  const isVersionMismatch = eitherClustersWithoutODF
+    ? false
+    : selectedClusters[0]?.odfInfo?.odfVersion !==
+      selectedClusters[1]?.odfInfo?.odfVersion;
 
   return (
     <StatusBox
@@ -502,7 +508,7 @@ export const SelectedClusterValidation: React.FC<
         />
       }
     >
-      {isSelectionValid ? (
+      {isSelectionValid || eitherClustersWithoutODF ? (
         <>
           <Alert
             data-test="odf-not-found-alert"
