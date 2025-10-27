@@ -27,7 +27,6 @@ import {
   MINIMUM_NODES,
   ocsTaint,
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
-  S390X_CPU_ADJUSTMENTS,
   ZONE_LABELS,
 } from '../constants';
 
@@ -115,23 +114,14 @@ export const isFlexibleScaling = (
 
 /**
  * Returns the minimum required resources taking into account the OSD pods.
- * Default requirements assume 3 OSDs deployed
- * For s390x: uses S390X_CPU_ADJUSTMENTS for CPU values
+ * Default requirements assume 6 OSDs deployed.
  */
 export const getResourceProfileRequirements = (
   profile: ResourceProfile,
-  osdAmount: number,
-  architecture: string
+  osdAmount: number
 ): { minCpu: number; minMem: number } => {
-  let { minCpu, minMem, osd } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
-
-  if (architecture === 's390x') {
-    const s390xAdjustments = S390X_CPU_ADJUSTMENTS[profile];
-    minCpu = s390xAdjustments.minCpu;
-    osd.cpu = s390xAdjustments.osdCpu;
-  }
-
-  const extraOsds = osdAmount - 3;
+  const { minCpu, minMem, osd } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
+  const extraOsds = osdAmount - 6;
   let cpu = minCpu;
   let mem = minMem;
   if (extraOsds > 0) {
@@ -146,22 +136,16 @@ export const getResourceProfileRequirements = (
  * @param profile A resource profile.
  * @param cpu The amount CPUs.
  * @param memory The amount of selected nodes' memory in GiB.
- * @param osdAmount The amount of OSD pods.
- * @param architecture The node architecture.
+ * @param memory The amount of OSD pods.
  * @returns boolean
  */
 export const isResourceProfileAllowed = (
   profile: ResourceProfile,
   cpu: number,
   memory: number,
-  osdAmount: number,
-  architecture: string = ''
+  osdAmount: number
 ): boolean => {
-  const { minCpu, minMem } = getResourceProfileRequirements(
-    profile,
-    osdAmount,
-    architecture
-  );
+  const { minCpu, minMem } = getResourceProfileRequirements(profile, osdAmount);
 
   return cpu >= minCpu && memory >= minMem;
 };

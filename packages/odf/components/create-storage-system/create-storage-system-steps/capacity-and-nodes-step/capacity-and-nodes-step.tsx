@@ -41,7 +41,7 @@ import { DEFAULT_STORAGE_NAMESPACE } from '@odf/shared/constants';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { InfraProviders, K8sResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { humanizeBinaryBytes, getNodeArchitecture } from '@odf/shared/utils';
+import { humanizeBinaryBytes } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Trans } from 'react-i18next';
@@ -447,7 +447,6 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
   );
   const deviceSetCount = getDeviceSetCount(pvCount, deviceSetReplica);
   const osdAmount = getOsdAmount(deviceSetCount, deviceSetReplica);
-  const architecture = getNodeArchitecture(nodes);
 
   const validations = capacityAndNodesValidate(
     nodes,
@@ -531,7 +530,6 @@ export const CapacityAndNodes: React.FC<CapacityAndNodesProps> = ({
             osdAmount={osdAmount}
             key={validation}
             validation={validation}
-            architecture={architecture}
           />
         ))}
     </Form>
