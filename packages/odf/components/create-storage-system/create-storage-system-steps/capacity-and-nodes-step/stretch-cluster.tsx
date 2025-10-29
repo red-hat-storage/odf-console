@@ -4,11 +4,11 @@ import { AdvancedSubscription } from '@odf/shared/badges/advanced-subscription';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Select,
-  SelectVariant,
   SelectOption,
+  SelectList,
   SelectProps,
-} from '@patternfly/react-core/deprecated';
-import {
+  MenuToggle,
+  MenuToggleElement,
   FormGroup,
   Alert,
   Checkbox,
@@ -76,6 +76,17 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
     setIsOpen(false);
   };
 
+  const arbiterLocationToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={() => setIsOpen((prev) => !prev)}
+      isExpanded={isOpen}
+      isFullWidth
+    >
+      {arbiterLocation || t('Select an arbiter zone')}
+    </MenuToggle>
+  );
+
   return (
     <>
       <TextContent>
@@ -99,18 +110,21 @@ export const StretchCluster: React.FC<StretchClusterProps> = ({
               fieldId="arbiter-zone-selection"
             >
               <Select
-                variant={SelectVariant.single}
-                placeholderText={t('Select an arbiter zone')}
-                aria-label={t('Arbiter zone selection')}
-                onToggle={(_event, value: boolean) => setIsOpen(value)}
-                onSelect={handleSelection}
-                selections={arbiterLocation}
-                isOpen={isOpen}
                 id="arbiter-zone-selection"
+                isOpen={isOpen}
+                selected={arbiterLocation}
+                onSelect={handleSelection}
+                onOpenChange={setIsOpen}
+                toggle={arbiterLocationToggle}
+                aria-label={t('Arbiter zone selection')}
               >
-                {zones.map((zone) => (
-                  <SelectOption key={zone} value={zone} />
-                ))}
+                <SelectList>
+                  {zones.map((zone) => (
+                    <SelectOption key={zone} value={zone}>
+                      {zone}
+                    </SelectOption>
+                  ))}
+                </SelectList>
               </Select>
               <FormHelperText>
                 <PfHelperText>
