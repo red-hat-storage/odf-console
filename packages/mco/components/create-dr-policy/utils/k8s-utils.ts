@@ -112,8 +112,8 @@ export const createPolicyPromises = (
       peerNames
     )
   );
-  const odfPeerNames: string[] = state.selectedClusters.map((cluster) =>
-    getODFPeers(cluster).join(',')
+  const odfPeerNames: string[] = state.selectedClusters.map(
+    (cluster) => getODFPeers(cluster)[0]
   );
   const mirrorPeer: MirrorPeerKind = fetchMirrorPeer(
     mirrorPeers,
