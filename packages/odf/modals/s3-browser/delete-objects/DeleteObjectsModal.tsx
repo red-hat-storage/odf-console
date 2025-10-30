@@ -46,7 +46,7 @@ export type SetObjectsDeleteResponse = React.Dispatch<
 type DeleteObjectsModalProps = {
   foldersPath: string;
   bucketName: string;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   objects: ObjectCrFormat[];
   setDeleteResponse: SetObjectsDeleteResponse;
   refreshTokens?: () => Promise<void>;
@@ -170,7 +170,7 @@ const DeleteObjectsModal: React.FC<
   extraProps: {
     foldersPath,
     bucketName,
-    noobaaS3,
+    s3Client,
     objects: data,
     setDeleteResponse,
     refreshTokens,
@@ -209,7 +209,7 @@ const DeleteObjectsModal: React.FC<
           const deleteVersionKeys: ObjectIdentifier[] = [];
 
           // eslint-disable-next-line no-await-in-loop
-          const objectVersions = await noobaaS3.listObjectVersions({
+          const objectVersions = await s3Client.listObjectVersions({
             Bucket: bucketName,
             Prefix: objectKey,
             KeyMarker: keyMarker,
@@ -235,7 +235,7 @@ const DeleteObjectsModal: React.FC<
           }
 
           // eslint-disable-next-line no-await-in-loop
-          deleteResponse = await noobaaS3.deleteObjects({
+          deleteResponse = await s3Client.deleteObjects({
             Bucket: bucketName,
             Delete: { Objects: deleteVersionKeys },
           });
@@ -261,7 +261,7 @@ const DeleteObjectsModal: React.FC<
           ...(showVersioning && { VersionId: getObjectVersionId(object) }),
         }));
 
-        const deleteResponse = await noobaaS3.deleteObjects({
+        const deleteResponse = await s3Client.deleteObjects({
           Bucket: bucketName,
           Delete: { Objects: deleteObjectKeys },
         });

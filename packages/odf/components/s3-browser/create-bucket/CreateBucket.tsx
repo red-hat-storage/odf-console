@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { CreateOBC } from '@odf/core/components/mcg/CreateObjectBucketClaim';
 import CreateBucketForm from '@odf/core/components/s3-browser/create-bucket/CreateBucketForm';
-import { NoobaaS3Provider } from '@odf/core/components/s3-browser/noobaa-context';
+import { S3Provider } from '@odf/core/components/s3-browser/s3-context';
 import { useCustomTranslation } from '@odf/shared';
-import { isClientPlugin } from '@odf/shared/utils';
 import {
   Alert,
   FormGroup,
@@ -21,9 +20,8 @@ enum CreationMethod {
 
 const CreateBucket: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
-  const allowOBCCreation = !isClientPlugin();
   const [method, setMethod] = React.useState<CreationMethod>(
-    allowOBCCreation ? CreationMethod.OBC : CreationMethod.S3
+    CreationMethod.OBC
   );
 
   return (
@@ -45,18 +43,16 @@ const CreateBucket: React.FC<{}> = () => {
             isRequired
             className="pf-v5-u-mb-md"
           >
-            {allowOBCCreation && (
-              <Tile
-                title={t('Create via Object Bucket Claim')}
-                isSelected={method === CreationMethod.OBC}
-                onClick={() => setMethod(CreationMethod.OBC)}
-                className="pf-v5-u-w-50 pf-v5-u-w-33-on-2xl pf-v5-u-mr-md-on-2xl"
-              >
-                {t(
-                  'Ideal for Kubernetes environments providing a more abstracted approach to managing storage resources and leveraging dynamic provisioning.'
-                )}
-              </Tile>
-            )}
+            <Tile
+              title={t('Create via Object Bucket Claim')}
+              isSelected={method === CreationMethod.OBC}
+              onClick={() => setMethod(CreationMethod.OBC)}
+              className="pf-v5-u-w-50 pf-v5-u-w-33-on-2xl pf-v5-u-mr-md-on-2xl"
+            >
+              {t(
+                'Ideal for Kubernetes environments providing a more abstracted approach to managing storage resources and leveraging dynamic provisioning.'
+              )}
+            </Tile>
             <Tile
               title={t('Create via S3 API')}
               isSelected={method === CreationMethod.S3}
@@ -83,9 +79,9 @@ const CreateBucket: React.FC<{}> = () => {
           </>
         )}
         {method === CreationMethod.S3 && (
-          <NoobaaS3Provider>
+          <S3Provider>
             <CreateBucketForm />
-          </NoobaaS3Provider>
+          </S3Provider>
         )}
       </div>
     </>

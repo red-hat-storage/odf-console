@@ -35,7 +35,7 @@ enum TimeUnits {
 type PresignedURLModalProps = {
   bucketName: string;
   object: ObjectCrFormat;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   showVersioning: boolean;
 };
 
@@ -132,7 +132,7 @@ const CopyURL: React.FC<CopyURLProps> = ({ urlDetails }) => {
 const PresignedURLModal: React.FC<CommonModalProps<PresignedURLModalProps>> = ({
   closeModal,
   isOpen,
-  extraProps: { bucketName, object, noobaaS3, showVersioning },
+  extraProps: { bucketName, object, s3Client, showVersioning },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -160,7 +160,7 @@ const PresignedURLModal: React.FC<CommonModalProps<PresignedURLModalProps>> = ({
       urlExpiration.value *
       (urlExpiration.unit === TimeUnits.Minutes ? 60 : 3600);
 
-    noobaaS3
+    s3Client
       .getSignedUrl(
         {
           Bucket: bucketName,

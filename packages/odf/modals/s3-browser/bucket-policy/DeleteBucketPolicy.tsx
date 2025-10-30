@@ -18,7 +18,7 @@ const DELETE = 'delete';
 
 type DeleteBucketPolicyModalProps = {
   bucketName: string;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   triggerRefresh: () => void;
 };
 
@@ -36,7 +36,7 @@ const DeleteBucketPolicyModal: React.FC<
 > = ({
   closeModal,
   isOpen,
-  extraProps: { bucketName, noobaaS3, triggerRefresh },
+  extraProps: { bucketName, s3Client, triggerRefresh },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -49,7 +49,7 @@ const DeleteBucketPolicyModal: React.FC<
     setInProgress(true);
 
     try {
-      await noobaaS3.deleteBucketPolicy({ Bucket: bucketName });
+      await s3Client.deleteBucketPolicy({ Bucket: bucketName });
 
       setInProgress(false);
       closeModal();
