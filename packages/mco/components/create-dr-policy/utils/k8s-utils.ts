@@ -66,15 +66,15 @@ const fetchMirrorPeer = (
 
 const createMirrorPeer = (
   selectedClusters: ManagedClusterInfoType[],
-  replicationType: ReplicationType,
-  areDRClustersCreated: boolean = false
+  replicationType: ReplicationType
+  //  areDRClustersCreated: boolean = false
 ): Promise<MirrorPeerKind> => {
   const mirrorPeerPayload: MirrorPeerKind = {
     apiVersion: getAPIVersionForModel(MirrorPeerModel),
     kind: MirrorPeerModel.kind,
     metadata: { generateName: 'mirrorpeer-' },
     spec: {
-      manageS3: areDRClustersCreated ? false : true,
+      manageS3: true,
       type: replicationType,
       items: getPeerClustersRef(selectedClusters),
     },
@@ -114,17 +114,12 @@ const createDRPolicy = (
 export const createPolicyPromises = async (
   state: DRPolicyState,
   mirrorPeers: MirrorPeerKind[],
-  selectedDRClusters: DRClusterKind[] = []
+  selectedDRClusters?: DRClusterKind[] // Changed to optional to avoid changes to third party flow
 ): Promise<void> => {
   const peerNames = state.selectedClusters.map(getName);
 
   if (state.replicationBackend === BackendType.DataFoundation) {
-    await prepareOdfPeering(
-      state,
-      mirrorPeers,
-      peerNames,
-      selectedDRClusters.length === 2
-    );
+    await prepareOdfPeering(state, mirrorPeers, peerNames);
   } else {
     await prepareThirdPartyPeering(state, selectedDRClusters);
   }
@@ -141,8 +136,7 @@ export const createPolicyPromises = async (
 const prepareOdfPeering = async (
   state: DRPolicyState,
   mirrorPeers: MirrorPeerKind[],
-  peerNames: string[],
-  areDRClustersCreated: boolean = false
+  peerNames: string[]
 ): Promise<void> => {
   const odfPeerNames: string[] = state.selectedClusters.map(
     (cluster) => getODFPeers(cluster)[0]
@@ -154,11 +148,7 @@ const prepareOdfPeering = async (
   );
 
   if (!mirrorPeer) {
-    await createMirrorPeer(
-      state.selectedClusters,
-      state.replicationType,
-      areDRClustersCreated
-    );
+    await createMirrorPeer(state.selectedClusters, state.replicationType);
   }
 };
 

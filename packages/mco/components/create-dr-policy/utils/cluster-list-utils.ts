@@ -37,7 +37,8 @@ export const COUNT_PER_PAGE_NUMBER = 10;
 export enum ClusterListColumns {
   ManagedCluster,
   AvailabilityStatus,
-  StorageProvisioners,
+  // StorageProvisioners,
+  DataFoundation,
   StorageClients,
 }
 
@@ -51,9 +52,13 @@ export const getColumns = (t: TFunction<string>) => [
     sortFunction: (a, b, c) => sortRows(a, b, c, 'isManagedClusterAvailable'),
   },
   {
+    columnName: t('Data Foundation'),
+    sortFunction: (a, b, c) => sortRows(a, b, c, 'odfInfo.odfVersion'),
+  },
+  /*   {
     columnName: t('Storage provisioners'),
     sortFunction: (a, b, c) => sortRows(a, b, c, 'storageProvisionersCount'),
-  },
+  }, */
   {
     columnName: t('Storage clients'),
     sortFunction: (a, b, c) => sortRows(a, b, c, 'metadata.name'),
@@ -70,7 +75,7 @@ export const getColumnHelper = (
       return columns[0];
     case ClusterListColumns.AvailabilityStatus:
       return columns[1];
-    case ClusterListColumns.StorageProvisioners:
+    case ClusterListColumns.DataFoundation:
       return columns[2];
     case ClusterListColumns.StorageClients:
       return columns[3];
