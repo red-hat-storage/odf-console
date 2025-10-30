@@ -1,15 +1,10 @@
-import * as React from 'react';
-import { CEPH_PROVISIONERS, IBM_PROVISIONERS } from '@odf/shared';
-import { queryStorageClassesUsingClusterNames } from '../utils';
-import { useACMSafeFetch } from './acm-safe-fetch';
-
 export type Provider = { displayName: string; count: number };
 export type ClusterProviders = {
   cluster: string;
   providers: Provider[];
 };
 
-export function useStorageProvisioners(clusters: string[]): {
+/* export function useStorageProvisioners(clusters: string[]): {
   providersByCluster: ClusterProviders[];
   count: number;
   loaded: boolean;
@@ -86,3 +81,4 @@ export function useStorageProvisioners(clusters: string[]): {
     error,
   };
 }
+ */
