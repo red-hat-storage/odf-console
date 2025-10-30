@@ -22,14 +22,20 @@ import { DataPoint, getInstantVectorStats } from '@odf/shared/utils';
 import { humanizeBinaryBytes, isFunctionThenApply } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
+import * as _ from 'lodash-es';
 import {
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  MenuToggle,
+  MenuToggleElement,
+  SelectList,
   Select,
   SelectGroup,
   SelectOption,
   SelectProps,
-} from '@patternfly/react-core/deprecated';
-import * as _ from 'lodash-es';
-import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+} from '@patternfly/react-core';
 import { ServiceType, CapacityBreakdown } from '../../../constants';
 import { breakdownQueryMapMCG } from '../../../queries';
 import { decodeRGWPrefix, getStackChartStats } from '../../../utils';
@@ -47,11 +53,13 @@ type DropdownItems = {
 const getDisableableSelectOptions = (dropdownItems: DropdownItems) => {
   return dropdownItems.map(({ group, items }) => (
     <SelectGroup key={group} label={group} className="co-filter-dropdown-group">
-      {items.map(({ name, id, disabled }) => (
-        <SelectOption key={id} value={id} disabled={disabled}>
-          {name}
-        </SelectOption>
-      ))}
+      <SelectList>
+        {items.map(({ name, id, disabled }) => (
+          <SelectOption key={id} value={id} isDisabled={disabled}>
+            {name}
+          </SelectOption>
+        ))}
+      </SelectList>
     </SelectGroup>
   ));
 };
@@ -402,6 +410,45 @@ const BreakdownCard: React.FC = () => {
         })()
       : '';
 
+  const getMetricDisplayName = (metricName: string): string => {
+    switch (metricName) {
+      case CapacityBreakdown.Metrics.TOTAL:
+        return 'Total';
+      case CapacityBreakdown.Metrics.PROJECTS:
+        return 'Projects';
+      case CapacityBreakdown.Metrics.BC:
+        return 'BucketClasses';
+      default:
+        return 'Total';
+    }
+  };
+
+  const serviceTypeToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={() => setServiceSelect(!isOpenServiceSelect)}
+      isExpanded={isOpenServiceSelect}
+      className="nb-capacity-breakdown-card-header__dropdown nb-capacity-breakdown-card-header__dropdown--margin"
+      aria-label={t('Service Type Dropdown Toggle')}
+    >
+      {t('{{serviceType}}', {
+        serviceType,
+      })}
+    </MenuToggle>
+  );
+
+  const breakDownToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={() => setBreakdownSelect(!isOpenBreakdownSelect)}
+      isExpanded={isOpenBreakdownSelect}
+      className="nb-capacity-breakdown-card-header__dropdown"
+      aria-label={t('Break By Dropdown Toggle')}
+    >
+      {t('{{metricName}}', { metricName: getMetricDisplayName(metricType) })}
+    </MenuToggle>
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -416,36 +463,23 @@ const BreakdownCard: React.FC = () => {
           </CardTitle>
           {isRGWSupported && isMCGSupported && (
             <Select
-              className="nb-capacity-breakdown-card-header__dropdown nb-capacity-breakdown-card-header__dropdown--margin"
-              autoFocus={false}
-              onSelect={handleServiceChange}
-              onToggle={() => setServiceSelect(!isOpenServiceSelect)}
               isOpen={isOpenServiceSelect}
-              selections={[serviceType]}
-              isGrouped
-              placeholderText={t('Type: {{serviceType}}', {
-                serviceType,
-              })}
+              onOpenChange={setServiceSelect}
+              selected={serviceType}
+              onSelect={handleServiceChange}
               aria-label={t('Service Type Dropdown')}
-              toggleAriaLabel={t('Service Type Dropdown Toggle')}
-              isCheckboxSelectionBadgeHidden
+              toggle={serviceTypeToggle}
             >
               {serviceSelectItems}
             </Select>
           )}
           <Select
-            className="nb-capacity-breakdown-card-header__dropdown"
-            autoFocus={false}
-            onSelect={handleMetricsChange}
-            onToggle={() => setBreakdownSelect(!isOpenBreakdownSelect)}
             isOpen={isOpenBreakdownSelect}
-            selections={[metricType]}
-            isGrouped
-            placeholderText={t('By: {{serviceType}}', {
-              serviceType,
-            })}
+            onSelect={handleMetricsChange}
+            selected={metricType}
+            onOpenChange={setBreakdownSelect}
             aria-label={t('Break By Dropdown')}
-            isCheckboxSelectionBadgeHidden
+            toggle={breakDownToggle}
           >
             {breakdownSelectItems}
           </Select>

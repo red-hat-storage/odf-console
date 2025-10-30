@@ -56,6 +56,16 @@ jest.mock('react-router-dom-v5-compat', () => ({
   useParams: () => ({ namespace: testNamespace }),
 }));
 
+jest.mock('@odf/shared/useCustomTranslationHook', () => ({
+  useCustomTranslation: () => ({
+    t: (key: string, params?: Record<string, any>) => {
+      if (!params) return key;
+      // Simple interpolation for test purposes
+      return key.replace(/\{\{(\w+)\}\}/g, (_, param) => params[param] || '');
+    },
+  }),
+}));
+
 describe('Capacity Breakdown Card', () => {
   it('renders the Capacity Breakdown Card', () => {
     render(<BreakdownCard />);
@@ -65,11 +75,13 @@ describe('Capacity Breakdown Card', () => {
     expect(
       screen.getByLabelText('Service Type Dropdown Toggle')
     ).toBeInTheDocument();
-    // Service type seclect items.
+    // Service type select toggle shows exact service type
     expect(screen.getByText('All')).toBeInTheDocument();
-    // Breakdown select items.
+    // Breakdown select toggle shows exact metric name
     expect(screen.getByText('Total')).toBeInTheDocument();
 
-    expect(screen.getByLabelText('Options menu')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Break By Dropdown Toggle')
+    ).toBeInTheDocument();
   });
 });
