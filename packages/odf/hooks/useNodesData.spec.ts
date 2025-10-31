@@ -84,4 +84,20 @@ describe('useNodesData', () => {
     const [nodesData] = result.current;
     expect(nodesData).toStrictEqual([]);
   });
+
+  it('returns nodes when prom response errors out', () => {
+    const nodes = createFakeNodes(1, cpu, memory);
+    (useK8sWatchResource as jest.Mock).mockReturnValue([nodes, true, null]);
+    (useCustomPrometheusPoll as jest.Mock).mockReturnValue([
+      null,
+      new Error('Bad Gateway'),
+      false,
+    ]);
+
+    const { result } = renderHook(() => useNodesData());
+    const [nodesData, loaded] = result.current;
+    expect(nodesData).toHaveLength(1);
+    expect(nodesData[0].metrics.memory).toBeUndefined();
+    expect(loaded).toBe(true);
+  });
 });
