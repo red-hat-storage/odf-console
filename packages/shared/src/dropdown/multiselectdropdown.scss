@@ -1,0 +1,45 @@
+.odf-multiselect-menu-toggle {
+  cursor: pointer;
+  --pf-v5-c-menu-toggle__text--Color: var(--pf-v5-global--Color--200);
+}
+
+.odf-multiselect-menu-toggle--has-selection {
+    cursor: pointer;
+  --pf-v5-c-menu-toggle__text--Color: var(--pf-v5-global--Color--100);
+}
+
+.odf-multiselect-input {
+  color: var(--pf-v5-global--Color--200);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.odf-multiselect-input--has-selection {
+  color: var(--pf-v5-global--Color--100);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.odf-multiselect-selections-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.odf-multiselect-selection-chip {
+  border: 1px solid var(--pf-v5-global--BorderColor--200);
+  display: flex;
+  align-items: center;
+  color: var(--pf-v5-global--Color--100);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.odf-multiselect-chip-remove-button {
+  margin-left: 4px;
+  color: inherit;
+  padding: 0;
+}
+
