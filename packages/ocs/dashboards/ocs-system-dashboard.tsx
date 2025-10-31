@@ -2,9 +2,8 @@
 /* eslint-disable import/no-named-default */
 
 import * as React from 'react';
-import { ClientListPage } from '@odf/core/components/storage-consumers/client-list';
 import TopologyWithErrorHandler from '@odf/core/components/topology/Topology';
-import { FDF_FLAG, useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import {
   useGetExternalClusterDetails,
   useGetInternalClusterDetails,
@@ -17,7 +16,6 @@ import {
   Overview,
   OverviewGrid,
   OverviewGridCard,
-  useFlag,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { TFunction } from 'react-i18next';
 import { useParams } from 'react-router-dom-v5-compat';
@@ -204,14 +202,6 @@ const nfsPage = (t: TFunction): TabPage => {
   };
 };
 
-const clientsPage = (t: TFunction): TabPage => {
-  return {
-    href: 'clients',
-    title: t('Clients'),
-    component: ClientListPage,
-  };
-};
-
 export const ExternalSystemDashboard: React.FC = () => {
   const { t } = useCustomTranslation();
   const { systemName } = useParams();
@@ -246,26 +236,27 @@ const OCSSystemDashboard: React.FC<{}> = () => {
   const isObjectServiceAvailable = isMCGAvailable || isRGWAvailable;
   const isStorageClusterAvailable = systemFlags[clusterNs]?.ocsClusterName;
   const isNFSEnabled = systemFlags[clusterNs]?.isNFSEnabled;
+  const isMCGStandalone = systemFlags[clusterNs]?.isNoobaaStandalone;
 
   const showInternalDashboard = isStorageClusterAvailable;
   const showNFSDashboard = isNFSEnabled;
-  const isFDF = useFlag(FDF_FLAG);
 
   const pages = React.useMemo(() => {
     const tempPages = [];
-    showInternalDashboard && tempPages.push(internalPage(t));
-    showNFSDashboard && tempPages.push(nfsPage(t));
+    !isMCGStandalone &&
+      showInternalDashboard &&
+      tempPages.push(internalPage(t));
+    !isMCGStandalone && showNFSDashboard && tempPages.push(nfsPage(t));
     isObjectServiceAvailable && tempPages.push(objectPage(t));
-    tempPages.push(storagePoolPage(t));
+    !isMCGStandalone && tempPages.push(storagePoolPage(t));
     tempPages.push(topologyPage(t));
-    isFDF && tempPages.push(clientsPage(t));
     return tempPages;
   }, [
+    isMCGStandalone,
     showInternalDashboard,
     t,
     showNFSDashboard,
     isObjectServiceAvailable,
-    isFDF,
   ]);
 
   return pages.length > 0 ? (

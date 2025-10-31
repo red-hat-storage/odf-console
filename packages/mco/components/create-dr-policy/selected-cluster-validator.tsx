@@ -19,6 +19,7 @@ import {
   StatusBox,
   CEPH_PROVISIONERS,
   StorageClassModel,
+  IBM_PROVISIONERS,
 } from '@odf/shared';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -298,7 +299,11 @@ export const getClusterToSCMap = async (
         }
 
         const storageID = getStorageID(sc);
-        if (isValidCephProvisioner(provisioner) && storageID !== '') {
+        if (
+          (isValidCephProvisioner(provisioner) ||
+            isValidIBMProvisioner(provisioner)) &&
+          storageID !== ''
+        ) {
           const scString = formatStorageClassString(sc.name, provisioner);
 
           return { clusterName, scString };
@@ -418,6 +423,11 @@ const formatStorageClassString = (name: string, provisioner: string) => {
 
 const isValidCephProvisioner = (provisioner: string) => {
   return CEPH_PROVISIONERS.some((allowedProvisioner) =>
+    provisioner.includes(allowedProvisioner)
+  );
+};
+const isValidIBMProvisioner = (provisioner: string) => {
+  return IBM_PROVISIONERS.some((allowedProvisioner) =>
     provisioner.includes(allowedProvisioner)
   );
 };

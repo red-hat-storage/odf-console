@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useSafeK8sWatchResource } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { K8sResourceObj } from '@odf/core/types';
 import {
   Breakdown,
@@ -25,7 +26,6 @@ import { referenceForModel } from '@odf/shared/utils';
 import { PrometheusResponse } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import { DataConsumptionDropdown } from './data-consumption-card-dropdown';
 import DataConsumptionGraph from './data-consumption-graph';
 import PerformanceGraph from './performance-graph';
@@ -240,9 +240,7 @@ const DataConsumptionCard: React.FC = () => {
   const [metric, setMetric] = React.useState(Metrics.IOPS);
   const [serviceType, setServiceType] = React.useState(ServiceType.MCG);
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
   const RGW = systemFlags[clusterNs]?.isRGWAvailable;
   const MCG = systemFlags[clusterNs]?.isNoobaaAvailable;

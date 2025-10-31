@@ -1,8 +1,5 @@
 import * as React from 'react';
-import {
-  useODFNamespaceSelector,
-  useODFSystemFlagsSelector,
-} from '@odf/core/redux';
+import { useODFNamespaceSelector } from '@odf/core/redux';
 import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { namespaceResource } from '@odf/core/resources';
 import { BreakdownCardBody } from '@odf/shared/dashboards/breakdown-card/breakdown-body';
@@ -129,12 +126,10 @@ const BreakdownCard: React.FC = () => {
   const [isOpenBreakdownSelect, setBreakdownSelect] = React.useState(false);
   const [pvcNamespace, setPVCNamespace] = React.useState('');
 
-  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
-  const { systemFlags } = useODFSystemFlagsSelector();
-
   // name of the created StorageClasses are prefix by StorageCluster name,
   // it is also the value of the "managedBy" label in the metrics.
-  const ocsCluster = systemFlags[clusterNs]?.ocsClusterName;
+  const { clusterNamespace: clusterNs, clusterName: ocsCluster } =
+    useGetInternalClusterDetails();
 
   const [scQueryfilter, scQueryfilterLoaded, scQueryfilterError] =
     useStorageClassQueryFilter(clusterNs);

@@ -4,20 +4,25 @@ import {
   RBD_IMAGE_FLATTEN_LABEL,
   ReplicationType,
 } from '@odf/mco/constants';
-import { DRPolicyKind, MirrorPeerKind, S3StoreProfile } from '@odf/mco/types';
+import {
+  DRClusterKind,
+  DRPolicyKind,
+  MirrorPeerKind,
+  S3StoreProfile,
+} from '@odf/mco/types';
 import { parseNamespaceName } from '@odf/mco/utils';
 import {
   createSecretNameFromS3,
-  createOrUpdateDRCluster,
   createOrUpdateRamenS3Secret,
   updateRamenHubOperatorConfig,
+  deleteDRCluster,
+  createDRCluster,
 } from '@odf/mco/utils/tps-payload-creator';
 import { DRPolicyModel, MirrorPeerModel } from '@odf/shared';
 import { getName } from '@odf/shared';
 import {
   getAPIVersionForModel,
   k8sCreate,
-  K8sResourceKind,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { S3Details } from '../add-s3-bucket-details/s3-bucket-details-form';
 import { DRPolicyState, ManagedClusterInfoType } from './reducer';
@@ -62,6 +67,7 @@ const fetchMirrorPeer = (
 const createMirrorPeer = (
   selectedClusters: ManagedClusterInfoType[],
   replicationType: ReplicationType
+  //  areDRClustersCreated: boolean = false
 ): Promise<MirrorPeerKind> => {
   const mirrorPeerPayload: MirrorPeerKind = {
     apiVersion: getAPIVersionForModel(MirrorPeerModel),
@@ -105,39 +111,33 @@ const createDRPolicy = (
   });
 };
 
-export const createPolicyPromises = (
+export const createPolicyPromises = async (
   state: DRPolicyState,
-  mirrorPeers: MirrorPeerKind[]
-): Promise<K8sResourceKind>[] => {
-  const promises: Promise<K8sResourceKind>[] = [];
+  mirrorPeers: MirrorPeerKind[],
+  selectedDRClusters?: DRClusterKind[] // Changed to optional to avoid changes to third party flow
+): Promise<void> => {
   const peerNames = state.selectedClusters.map(getName);
-  promises.push(
-    createDRPolicy(
-      state.policyName,
-      state.replicationType,
-      state.syncIntervalTime,
-      state.enableRBDImageFlatten,
-      peerNames
-    )
-  );
 
   if (state.replicationBackend === BackendType.DataFoundation) {
-    const mirrorPeerPromise = prepareOdfPeering(state, mirrorPeers, peerNames);
-    promises.push(mirrorPeerPromise);
+    await prepareOdfPeering(state, mirrorPeers, peerNames);
   } else {
-    const nonOdfPromises: Promise<K8sResourceKind>[] =
-      prepareThirdPartyPeering(state);
-    promises.push(...nonOdfPromises);
+    await prepareThirdPartyPeering(state, selectedDRClusters);
   }
 
-  return promises;
+  await createDRPolicy(
+    state.policyName,
+    state.replicationType,
+    state.syncIntervalTime,
+    state.enableRBDImageFlatten,
+    peerNames
+  );
 };
 
-const prepareOdfPeering = (
+const prepareOdfPeering = async (
   state: DRPolicyState,
   mirrorPeers: MirrorPeerKind[],
   peerNames: string[]
-): Promise<MirrorPeerKind> => {
+): Promise<void> => {
   const odfPeerNames: string[] = state.selectedClusters.map(
     (cluster) => getODFPeers(cluster)[0]
   );
@@ -148,22 +148,29 @@ const prepareOdfPeering = (
   );
 
   if (!mirrorPeer) {
-    return createMirrorPeer(state.selectedClusters, state.replicationType);
+    await createMirrorPeer(state.selectedClusters, state.replicationType);
   }
 };
 
-const prepareThirdPartyPeering = (
-  state: DRPolicyState
-): Promise<K8sResourceKind>[] => {
+const prepareThirdPartyPeering = async (
+  state: DRPolicyState,
+  selectedDRClusters: DRClusterKind[] = []
+): Promise<void> => {
   const detailsByCluster: Record<string, S3Details> = {
     [state.cluster1S3Details.clusterName]: state.cluster1S3Details,
     [state.cluster2S3Details.clusterName]: state.cluster2S3Details,
   };
 
-  return state.selectedClusters.flatMap((cluster) => {
+  // Process each cluster sequentially to avoid ConfigMap race conditions
+  // We are intentionally using for..of loop to process each cluster one after another
+  for (const cluster of state.selectedClusters) {
     const name = getName(cluster);
     const det = detailsByCluster[name];
-    if (!det) return [];
+
+    // Skip if details are missing for the cluster
+    // eslint-disable-next-line no-continue
+    if (!det) continue;
+
     const secretName = createSecretNameFromS3(det, 's3');
     const s3Profile: S3StoreProfile = {
       s3Bucket: det.bucketName,
@@ -171,24 +178,44 @@ const prepareThirdPartyPeering = (
       s3CompatibleEndpoint: det.endpoint,
       s3SecretRef: {
         name: secretName,
-        namespace: ODFMCO_OPERATOR_NAMESPACE,
       },
       s3ProfileName: det.s3ProfileName,
     };
-    return [
-      createOrUpdateDRCluster({
+
+    const existingDRCluster = selectedDRClusters.find(
+      (drCluster) => getName(drCluster) === name
+    );
+
+    // Handle DRCluster deletion if needed
+    if (
+      existingDRCluster &&
+      existingDRCluster.spec.s3ProfileName !== det.s3ProfileName
+    ) {
+      // eslint-disable-next-line no-await-in-loop
+      await deleteDRCluster(name);
+    }
+
+    // eslint-disable-next-line no-await-in-loop
+    await createOrUpdateRamenS3Secret({
+      name: secretName,
+      accessKeyId: det.accessKeyId,
+      secretAccessKey: det.secretKey,
+    });
+
+    // Update Ramen config
+    // eslint-disable-next-line no-await-in-loop
+    await updateRamenHubOperatorConfig({
+      namespace: ODFMCO_OPERATOR_NAMESPACE,
+      profile: s3Profile,
+    });
+
+    // Create DRCluster
+    if (!existingDRCluster) {
+      // eslint-disable-next-line no-await-in-loop
+      await createDRCluster({
         name,
         s3ProfileName: det.s3ProfileName,
-      }),
-      createOrUpdateRamenS3Secret({
-        name: secretName,
-        accessKeyId: det.accessKeyId,
-        secretAccessKey: det.secretKey,
-      }),
-      updateRamenHubOperatorConfig({
-        namespace: ODFMCO_OPERATOR_NAMESPACE,
-        profile: s3Profile,
-      }),
-    ];
-  });
+      });
+    }
+  }
 };

@@ -33,7 +33,7 @@ const resource = {
 
 const isConnected = (fileSystem: FileSystemKind) => {
   return fileSystem.status?.conditions?.some(
-    (condition) => condition.type === 'Connected' && condition.status === 'True'
+    (condition) => condition.type === 'Success' && condition.status === 'True'
   );
 };
 
@@ -45,17 +45,17 @@ const FileSystemStatusIcon: React.FC<{
   if (fileSystems?.length === 0 || loading || loadError) {
     return null;
   }
-  const areAllFileSystemsConnected = fileSystems.every((fileSystem) =>
-    fileSystem.status?.conditions?.every(
-      (condition) =>
-        condition.type === 'Connected' && condition.status === 'True'
-    )
+  const areAllFileSystemsConnected = fileSystems.every(
+    (fileSystem) =>
+      fileSystem.status?.conditions?.find(
+        (condition) => condition.type === 'Success'
+      )?.status === 'True'
   );
-  const isAnyFileSystemConnected = fileSystems.some((fileSystem) =>
-    fileSystem.status?.conditions?.some(
-      (condition) =>
-        condition.type === 'Connected' && condition.status === 'True'
-    )
+  const isAnyFileSystemConnected = fileSystems.some(
+    (fileSystem) =>
+      fileSystem.status?.conditions?.find(
+        (condition) => condition.type === 'Success'
+      )?.status === 'True'
   );
   if (areAllFileSystemsConnected) {
     return <GreenCheckCircleIcon />;
