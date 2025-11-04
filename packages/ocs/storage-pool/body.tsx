@@ -17,11 +17,6 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import validationRegEx from '@odf/shared/utils/validation';
 import { useYupValidationResolver } from '@odf/shared/yup-validation-resolver';
-import {
-  Dropdown,
-  DropdownToggle,
-  DropdownItem,
-} from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -35,6 +30,11 @@ import {
   FormGroup,
   TextInput,
   Icon,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
 } from '@patternfly/react-core';
 import { CaretDownIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import {
@@ -259,6 +259,25 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
     );
   });
 
+  const replicaDropdownToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      id="replica-dropdown"
+      data-test="replica-dropdown"
+      onClick={() => setReplicaOpen(!isReplicaOpen)}
+      isExpanded={isReplicaOpen}
+      icon={<CaretDownIcon />}
+      isDisabled={state.isArbiterCluster}
+      isFullWidth
+    >
+      {state.replicaSize
+        ? t('{{replica}} Replication', {
+            replica: OCS_DEVICE_REPLICA[state.replicaSize],
+          })
+        : t('Select replication')}
+    </MenuToggle>
+  );
+
   return isClusterReady || !showPoolStatus ? (
     <>
       <FormGroup label={t('Volume type')} className="pf-v5-u-pt-xl" isRequired>
@@ -349,26 +368,14 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
         </label>
         <Dropdown
           className="dropdown--full-width"
-          toggle={
-            <DropdownToggle
-              id="replica-dropdown"
-              data-test="replica-dropdown"
-              onToggle={() => setReplicaOpen(!isReplicaOpen)}
-              toggleIndicator={CaretDownIcon}
-              isDisabled={state.isArbiterCluster}
-            >
-              {state.replicaSize
-                ? t('{{replica}} Replication', {
-                    replica: OCS_DEVICE_REPLICA[state.replicaSize],
-                  })
-                : t('Select replication')}
-            </DropdownToggle>
-          }
           isOpen={isReplicaOpen}
-          dropdownItems={replicaDropdownItems}
           onSelect={() => setReplicaOpen(false)}
-          id="pool-replica-size"
-        />
+          onOpenChange={(open: boolean) => setReplicaOpen(open)}
+          toggle={replicaDropdownToggle}
+          popperProps={{ width: 'trigger' }}
+        >
+          <DropdownList>{replicaDropdownItems}</DropdownList>
+        </Dropdown>
       </div>
       <div className="form-group ceph-block-pool-body__input">
         <label className="control-label" htmlFor="compression-check">
