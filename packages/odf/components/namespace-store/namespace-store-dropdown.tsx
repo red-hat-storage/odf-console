@@ -6,17 +6,18 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Dropdown,
   DropdownItem,
-  DropdownSeparator,
-  DropdownToggle,
-} from '@patternfly/react-core/deprecated';
-import { Alert } from '@patternfly/react-core';
+  DropdownList,
+  Divider,
+  MenuToggle,
+  MenuToggleElement,
+  Alert,
+} from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../constants';
 import { namespaceStoreResource } from '../../resources';
 import { NamespaceStoreKind } from '../../types';
 import '../../style.scss';
 
 export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
-  id,
   namespace,
   onChange,
   className,
@@ -85,7 +86,7 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
             >
               {t('Create new NamespaceStore ')}
             </DropdownItem>,
-            <DropdownSeparator key="separator" />,
+            <Divider key="separator" />,
           ]
     );
     setDropdownItems(nnsDropdownItems);
@@ -100,6 +101,24 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
     launchModal,
   ]);
 
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      id="nns-dropdown-id"
+      data-test="nns-dropdown-toggle"
+      onClick={() => setOpen(!isOpen)}
+      isExpanded={isOpen}
+      isDisabled={
+        !!nnsLoadErr ||
+        (namespacePolicy === NamespacePolicyType.MULTI &&
+          enabledItems?.length === 0)
+      }
+      isFullWidth
+    >
+      {selectedKey || t('Select a namespace store')}
+    </MenuToggle>
+  );
+
   return (
     <div className={className}>
       {nnsLoadErr && (
@@ -112,25 +131,14 @@ export const NamespaceStoreDropdown: React.FC<NamespaceStoreDropdownProps> = ({
       )}
       <Dropdown
         className="dropdown--full-width"
-        toggle={
-          <DropdownToggle
-            id="nns-dropdown-id"
-            isDisabled={
-              !!nnsLoadErr ||
-              (namespacePolicy === NamespacePolicyType.MULTI &&
-                enabledItems?.length === 0)
-            }
-            data-test="nns-dropdown-toggle"
-            onToggle={() => setOpen(!isOpen)}
-          >
-            {selectedKey || t('Select a namespace store')}
-          </DropdownToggle>
-        }
         isOpen={isOpen}
-        dropdownItems={dropdownItems}
         onSelect={() => setOpen(false)}
-        id={id}
-      />
+        onOpenChange={(open: boolean) => setOpen(open)}
+        toggle={toggle}
+        popperProps={{ width: 'trigger' }}
+      >
+        <DropdownList>{dropdownItems}</DropdownList>
+      </Dropdown>
     </div>
   );
 };

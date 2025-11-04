@@ -6,15 +6,16 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
   Dropdown,
   DropdownItem,
-  DropdownSeparator,
-  DropdownToggle,
-} from '@patternfly/react-core/deprecated';
-import { Alert } from '@patternfly/react-core';
+  DropdownList,
+  Divider,
+  MenuToggle,
+  MenuToggleElement,
+  Alert,
+} from '@patternfly/react-core';
 import { BackingStoreKind } from '../../types';
 import '../../style.scss';
 
 export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
-  id,
   onChange,
   className,
   selectedKey,
@@ -74,7 +75,7 @@ export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
               >
                 {t('Create new BackingStore ')}
               </DropdownItem>,
-              <DropdownSeparator key="separator" />,
+              <Divider key="separator" />,
             ]
           : []
       );
@@ -83,6 +84,20 @@ export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
   );
 
   const dropdownItems = getDropdownItems(noobaaBackingStores);
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      id="nbs-dropdown-id"
+      data-test="nbs-dropdown-toggle"
+      onClick={() => setOpen(!isOpen)}
+      isExpanded={isOpen}
+      isDisabled={!!nbsLoadErr}
+      isFullWidth
+    >
+      {selectedKey || nsName || t('Select a backing store')}
+    </MenuToggle>
+  );
 
   return (
     <div className={className}>
@@ -96,21 +111,14 @@ export const BackingStoreDropdown: React.FC<BackingStoreDropdownProps> = ({
       )}
       <Dropdown
         className="dropdown--full-width"
-        toggle={
-          <DropdownToggle
-            id="nbs-dropdown-id"
-            data-test="nbs-dropdown-toggle"
-            onToggle={() => setOpen(!isOpen)}
-            isDisabled={!!nbsLoadErr}
-          >
-            {selectedKey || nsName || t('Select a backing store')}
-          </DropdownToggle>
-        }
         isOpen={isOpen}
-        dropdownItems={dropdownItems}
         onSelect={() => setOpen(false)}
-        id={id}
-      />
+        onOpenChange={(open: boolean) => setOpen(open)}
+        toggle={toggle}
+        popperProps={{ width: 'trigger' }}
+      >
+        <DropdownList>{dropdownItems}</DropdownList>
+      </Dropdown>
     </div>
   );
 };
