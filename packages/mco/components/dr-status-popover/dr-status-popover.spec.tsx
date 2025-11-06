@@ -43,6 +43,22 @@ describe('DRStatusPopover Component', () => {
     targetCluster: 'target-cluster',
   } as DRStatusProps;
 
+  const failoverCompleteStatus = {
+    isLoadedWOError: true,
+    phase: DRPCStatus.FailedOver,
+    primaryCluster: 'primary-cluster',
+    targetCluster: 'target-cluster',
+    volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+  } as DRStatusProps;
+
+  const relocateCompleteStatus = {
+    isLoadedWOError: true,
+    phase: DRPCStatus.Relocated,
+    primaryCluster: 'primary-cluster',
+    targetCluster: 'target-cluster',
+    volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+  } as DRStatusProps;
+
   it('renders the popover with Healthy status', async () => {
     render(<DRStatusPopover disasterRecoveryStatus={healthyStatus} />);
 
@@ -69,7 +85,7 @@ describe('DRStatusPopover Component', () => {
 
     await userEvent.click(screen.getByTestId('dr-status-button'));
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      'Failover in progress'
+      /Failing over application to/
     );
     expect(screen.getByTestId('popover-description')).toBeInTheDocument();
     expect(screen.getByTestId('cluster-details')).toHaveTextContent(
@@ -85,7 +101,7 @@ describe('DRStatusPopover Component', () => {
 
     await userEvent.click(screen.getByTestId('dr-status-button'));
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      'Relocate in progress'
+      /Relocating application to/
     );
     expect(screen.getByTestId('popover-description')).toBeInTheDocument();
     expect(screen.getByTestId('cluster-details')).toHaveTextContent(
@@ -94,5 +110,31 @@ describe('DRStatusPopover Component', () => {
     expect(screen.getByTestId('cluster-details')).toHaveTextContent(
       'Target clustertarget-cluster'
     );
+  });
+
+  it('renders the popover with Failover completed status', async () => {
+    render(<DRStatusPopover disasterRecoveryStatus={failoverCompleteStatus} />);
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Failover complete'
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Application is now running on/
+    );
+    expect(screen.getByTestId('cluster-details')).toBeInTheDocument();
+  });
+
+  it('renders the popover with Relocation completed status', async () => {
+    render(<DRStatusPopover disasterRecoveryStatus={relocateCompleteStatus} />);
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      'Relocation complete'
+    );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Application successfully relocated to/
+    );
+    expect(screen.getByTestId('cluster-details')).toBeInTheDocument();
   });
 });
