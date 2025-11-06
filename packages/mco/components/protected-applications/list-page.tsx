@@ -37,6 +37,7 @@ import {
   ExpandableComponentsMap,
   SelectExpandable,
 } from './components';
+import { useDROperationAlert } from './dr-operation-alert-helper';
 import {
   getHeaderColumns,
   getColumnNames,
@@ -170,6 +171,9 @@ export const ProtectedApplicationsListPage: React.FC = () => {
         namespace: DISCOVERED_APP_NS,
       })
     );
+
+  // Monitor for DR operation completions and show alerts
+  useDROperationAlert(discoveredApps || []);
 
   const isAllLoadedWOAnyError = discoveredAppsLoaded && !discoveredAppsError;
 

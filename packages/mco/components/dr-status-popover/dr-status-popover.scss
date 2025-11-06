@@ -38,19 +38,17 @@
     margin-top: var(--pf-v5-global--spacer--md);
   }
 
-  &__title-text {
-    &.dr-status-action-needed,
-    &.dr-status-critical {
-      color: var(--pf-v5-global--danger-color--100);
-    }
+  &__title-text.dr-status-action-needed,
+  &__title-text.dr-status-critical {
+    color: var(--pf-v5-global--danger-color--100);
+  }
 
-    &.dr-status-warning {
-      color: var(--pf-v5-global--warning-color--100);
-    }
+  &__title-text.dr-status-warning {
+    color: var(--pf-v5-global--warning-color--100);
+  }
 
-    &.dr-status-healthy {
-      color: var(--pf-v5-global--success-color--100);
-    }
+  &__title-text.dr-status-healthy {
+    color: var(--pf-v5-global--success-color--100);
   }
 
   &__popover-body {
