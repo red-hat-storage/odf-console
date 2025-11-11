@@ -1,10 +1,28 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import React from 'react';
+import { describe, expect, it } from '@jest/globals';
 import { DRPCStatus, VolumeReplicationHealth } from '@odf/mco/constants';
+import { DRPlacementControlConditionReason } from '@odf/mco/types';
+import { K8sResourceConditionStatus } from '@odf/shared/types';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import DRStatusPopover, { DRStatusProps } from './dr-status-popover';
 
 describe('DRStatusPopover Component', () => {
+  const baseStatus: DRStatusProps = {
+    policyName: 'policy-1',
+    schedulingInterval: '5m',
+    primaryCluster: 'primary-cluster',
+    targetCluster: 'target-cluster',
+    volumeLastGroupSyncTime: '2023-10-01T12:00:00Z',
+    lastKubeObjectProtectionTime: '2023-10-01T12:00:00Z',
+    volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
+    kubeObjectReplicationHealth: VolumeReplicationHealth.HEALTHY,
+    phase: DRPCStatus.Relocated,
+    isCleanupRequired: false,
+    isLoadedWOError: true,
+  };
+
   const healthyStatus: DRStatusProps = {
     isLoadedWOError: true,
     phase: 'Deployed' as DRPCStatus,
@@ -75,14 +93,34 @@ describe('DRStatusPopover Component', () => {
     volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
   };
 
-  it('renders the popover with Healthy status', async () => {
-    render(<DRStatusPopover disasterRecoveryStatus={healthyStatus} />);
+  it('renders Protecting when ConditionProtected is initializing', async () => {
+    const protectingStatus: DRStatusProps = {
+      ...baseStatus,
+      phase: 'Deployed' as DRPCStatus, // Must be Deployed (not Relocated/FailedOver) for Protecting to show
+      volumeLastGroupSyncTime: '', // No sync time - sync hasn't started yet
+      protectedCondition: {
+        status: K8sResourceConditionStatus.Unknown,
+        reason: DRPlacementControlConditionReason.Unknown,
+        message: 'Validating protection status.',
+      },
+    };
+
+    render(<DRStatusPopover disasterRecoveryStatus={protectingStatus} />);
 
     await userEvent.click(screen.getByTestId('dr-status-button'));
 
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      'All volumes & Kubernetes resources are synced'
+      /Protecting/
     );
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Validating protection status\./
+    );
+  });
+
+  it('renders the popover with Healthy status', async () => {
+    render(<DRStatusPopover disasterRecoveryStatus={healthyStatus} />);
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
     expect(screen.queryByTestId('popover-description')).not.toBeInTheDocument();
   });
 
@@ -125,6 +163,24 @@ describe('DRStatusPopover Component', () => {
     );
     expect(screen.getByTestId('cluster-details')).toHaveTextContent(
       'Target clustertarget-cluster'
+    );
+  });
+
+  it('renders Critical state when replication health is critical', async () => {
+    const criticalStatus: DRStatusProps = {
+      ...baseStatus,
+      volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+      protectedCondition: {
+        status: K8sResourceConditionStatus.True,
+      },
+    };
+
+    render(<DRStatusPopover disasterRecoveryStatus={criticalStatus} />);
+
+    await userEvent.click(screen.getByTestId('dr-status-button'));
+
+    expect(screen.getByTestId('popover-header')).toHaveTextContent(
+      /Volumes are not syncing/
     );
   });
 

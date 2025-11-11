@@ -150,6 +150,23 @@ export enum Progression {
   WaitForUserAction = 'WaitForUserAction',
 }
 
+// DRPC condition types
+export enum DRPlacementControlConditionType {
+  Protected = 'Protected',
+}
+
+// DRPC Protected condition reasons
+export enum DRPlacementControlConditionReason {
+  Progressing = 'Progressing',
+  Error = 'Error',
+  Unknown = 'Unknown',
+}
+
+// VRG condition reasons (for resourceConditions)
+export enum VRGConditionReason {
+  Unused = 'Unused',
+}
+
 export type S3StoreProfile = {
   s3ProfileName: string;
   s3Bucket: string;

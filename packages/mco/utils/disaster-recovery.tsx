@@ -17,6 +17,7 @@ import {
   getNamespace,
   getAnnotations,
 } from '@odf/shared/selectors';
+import { K8sResourceCondition } from '@odf/shared/types';
 import { ApplicationKind } from '@odf/shared/types/k8s';
 import {
   K8sResourceCommon,
@@ -56,6 +57,7 @@ import {
   LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
 } from '../constants';
 import { DisasterRecoveryFormatted } from '../hooks';
+import { DRPlacementControlConditionType } from '../types';
 import {
   ACMSubscriptionKind,
   ACMPlacementRuleKind,
@@ -688,4 +690,14 @@ export const getManagedClusterViewName = (managedClusterName: string): string =>
 
 export const getSearchResultItems = (searchResult: SearchResult) => {
   return searchResult?.data?.searchResult?.[0]?.related?.[0]?.items || [];
+};
+
+export const getProtectedCondition = (
+  drpc: DRPlacementControlKind
+): K8sResourceCondition | undefined => {
+  const condition = drpc?.status?.conditions?.find(
+    (condition) => condition.type === DRPlacementControlConditionType.Protected
+  );
+  if (!condition) return undefined;
+  return condition;
 };

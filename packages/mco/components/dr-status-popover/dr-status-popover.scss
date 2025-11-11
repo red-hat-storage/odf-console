@@ -51,6 +51,14 @@
     color: var(--pf-v5-global--success-color--100);
   }
 
+  &__title-text.dr-status-protecting {
+    color: var(--pf-v5-global--info-color--100);
+  }
+
+  &__title-text.dr-status-protection-error {
+    color: var(--pf-v5-global--danger-color--100);
+  }
+
   &__popover-body {
     max-width: 300px;
   }
