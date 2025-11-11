@@ -15,6 +15,7 @@ import {
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ViewDocumentation } from '@odf/shared/utils';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import {
   Button,
@@ -30,6 +31,12 @@ import {
 import { InProgressIcon } from '@patternfly/react-icons';
 import './dr-status-popover.scss';
 
+export type ProtectedCondition = {
+  status?: string;
+  reason?: string;
+  message?: string;
+};
+
 export type DRStatusProps = {
   policyName: string;
   schedulingInterval: string;
@@ -42,6 +49,7 @@ export type DRStatusProps = {
   phase: DRPCStatus;
   isCleanupRequired?: boolean;
   isLoadedWOError: boolean;
+  protectedCondition?: ProtectedCondition;
 };
 
 enum DRStatus {
@@ -51,6 +59,8 @@ enum DRStatus {
   Critical = VolumeReplicationHealth.CRITICAL,
   Warning = VolumeReplicationHealth.WARNING,
   Healthy = VolumeReplicationHealth.HEALTHY,
+  Protecting = 'Protecting',
+  ProtectionError = 'ProtectionError',
 }
 
 const getStatusIcon = (status?: DRStatus): JSX.Element => {
@@ -61,6 +71,8 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.FailingOver]: <InProgressIcon />,
     [DRStatus.Relocating]: <InProgressIcon />,
     [DRStatus.WaitOnUserToCleanUp]: <RedExclamationCircleIcon />,
+    [DRStatus.Protecting]: <InProgressIcon />,
+    [DRStatus.ProtectionError]: <RedExclamationCircleIcon />,
   };
 
   return iconMap[status] ?? null;
@@ -248,16 +260,45 @@ const createStatus = (
   status,
 });
 
+const shouldShowProtecting = (
+  isCleanupRequired: boolean,
+  protectedCondition?: ProtectedCondition
+): boolean => {
+  if (isCleanupRequired || !protectedCondition) return false;
+
+  const normalizedStatus = _.toLower(protectedCondition.status || '');
+  const normalizedReason = _.toLower(protectedCondition.reason || '');
+
+  return (
+    normalizedStatus === 'unknown' ||
+    normalizedReason === 'unknown' ||
+    (normalizedStatus === 'false' && normalizedReason === 'progressing')
+  );
+};
+
+const shouldShowProtectionError = (
+  protectedCondition?: ProtectedCondition
+): boolean => {
+  if (!protectedCondition) return false;
+
+  const normalizedStatus = _.toLower(protectedCondition.status || '');
+  const normalizedReason = _.toLower(protectedCondition.reason || '');
+
+  return normalizedStatus === 'false' && normalizedReason === 'error';
+};
+
 const getDRStatus = ({
   isCleanupRequired,
   phase,
   volumeReplicationHealth,
   kubeObjectReplicationHealth,
+  protectedCondition,
 }: {
   isCleanupRequired: boolean;
   phase: DRPCStatus;
   volumeReplicationHealth: VolumeReplicationHealth;
   kubeObjectReplicationHealth: VolumeReplicationHealth;
+  protectedCondition?: ProtectedCondition;
 }): DRStatus => {
   // Check if cleanup is required — this has the highest priority
   if (isCleanupRequired) return DRStatus.WaitOnUserToCleanUp;
@@ -265,6 +306,14 @@ const getDRStatus = ({
   // Handle failover or relocation phases directly
   if (phase === DRPCStatus.FailingOver) return DRStatus.FailingOver;
   if (phase === DRPCStatus.Relocating) return DRStatus.Relocating;
+
+  // Check for protection error before other statuses
+  if (shouldShowProtectionError(protectedCondition))
+    return DRStatus.ProtectionError;
+
+  // Check for protecting status before health checks
+  if (shouldShowProtecting(isCleanupRequired, protectedCondition))
+    return DRStatus.Protecting;
 
   // Combine health statuses into an array for easier checks
   const replicationHealths = [
@@ -303,6 +352,17 @@ const getCleanupMessage = (
       );
 };
 
+type GetDRStatusDetailsParams = {
+  isCleanupRequired: boolean;
+  phase: DRPCStatus;
+  volumeReplicationHealth: VolumeReplicationHealth;
+  kubeObjectReplicationHealth: VolumeReplicationHealth;
+  t: TFunction;
+  primaryCluster: string;
+  targetCluster: string;
+  protectedCondition?: ProtectedCondition;
+};
+
 const getDRStatusDetails = ({
   isCleanupRequired,
   phase,
@@ -311,15 +371,35 @@ const getDRStatusDetails = ({
   t,
   primaryCluster,
   targetCluster,
-}): StatusContent => {
+  protectedCondition,
+}: GetDRStatusDetailsParams): StatusContent => {
   const drStatus = getDRStatus({
     isCleanupRequired,
     phase,
     volumeReplicationHealth,
     kubeObjectReplicationHealth,
+    protectedCondition,
   });
 
   switch (drStatus) {
+    case DRStatus.Protecting:
+      return createStatus(
+        DRStatus.Protecting,
+        t('Protecting'),
+        protectedCondition?.message ||
+          t('Validating application protection. This may take a few minutes.'),
+        'dr-status-protecting'
+      );
+
+    case DRStatus.ProtectionError:
+      return createStatus(
+        DRStatus.ProtectionError,
+        t('Protection Error'),
+        protectedCondition?.message ||
+          t('An error occurred during application protection.'),
+        'dr-status-protection-error'
+      );
+
     case DRStatus.Healthy: {
       const title = kubeObjectReplicationHealth
         ? t('All volumes & Kubernetes resources are synced')
@@ -433,6 +513,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
         t,
         primaryCluster: disasterRecoveryStatus.primaryCluster,
         targetCluster: disasterRecoveryStatus.targetCluster,
+        protectedCondition: disasterRecoveryStatus.protectedCondition,
       }),
     [disasterRecoveryStatus, t]
   );

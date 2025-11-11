@@ -54,6 +54,7 @@ import {
   PROTECTED_APP_ANNOTATION,
   PLACEMENT_REF_LABEL,
   LAST_APP_DEPLOYMENT_CLUSTER_ANNOTATION,
+  CONDITION_PROTECTED,
 } from '../constants';
 import { DisasterRecoveryFormatted } from '../hooks';
 import {
@@ -688,4 +689,19 @@ export const getManagedClusterViewName = (managedClusterName: string): string =>
 
 export const getSearchResultItems = (searchResult: SearchResult) => {
   return searchResult?.data?.searchResult?.[0]?.related?.[0]?.items || [];
+};
+
+export const getProtectedCondition = (
+  drpc: DRPlacementControlKind
+): { status?: string; reason?: string; message?: string } | undefined => {
+  const condition = drpc?.status?.conditions?.find(
+    (condition) => condition.type === CONDITION_PROTECTED
+  );
+  return condition
+    ? {
+        status: condition.status,
+        reason: condition.reason,
+        message: condition.message,
+      }
+    : undefined;
 };
