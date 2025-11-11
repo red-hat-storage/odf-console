@@ -1,10 +1,5 @@
 import * as React from 'react';
-import {
-  OptionsMenuItemGroup,
-  OptionsMenuItem,
-  SelectOption,
-  SelectGroup,
-} from '@patternfly/react-core/deprecated';
+import { SelectOption, SelectGroup, SelectList } from '@patternfly/react-core';
 
 type GroupedSelectItems = {
   group: string;
@@ -25,31 +20,32 @@ export const getGroupedSelectOptions = (
 ): React.ReactElement[] =>
   groupedSelectItems.map(({ group, items }) => (
     <SelectGroup key={group} label={group}>
-      {getSelectOptions(items)}
+      <SelectList>{getSelectOptions(items)}</SelectList>
     </SelectGroup>
   ));
 
 export const getOptionsMenuItems = (
   dropdownItems: GroupedSelectItems,
-  selectedItems: string[],
-  onSelect: (e) => void
+  selectedItems: string[]
 ) => {
   return dropdownItems.map(({ group, items }) => (
-    <OptionsMenuItemGroup
+    <SelectGroup
       className="nb-data-consumption-card__dropdown-item--hide-list-style"
       key={group}
-      groupTitle={group}
+      label={group}
     >
-      {items.map((item) => (
-        <OptionsMenuItem
-          onSelect={onSelect}
-          isSelected={selectedItems.includes(item.id)}
-          id={item.id}
-          key={item.id}
-        >
-          {item.name}
-        </OptionsMenuItem>
-      ))}
-    </OptionsMenuItemGroup>
+      <SelectList>
+        {items.map((item) => (
+          <SelectOption
+            isSelected={selectedItems.includes(item.id)}
+            id={item.id}
+            key={item.id}
+            value={item.id}
+          >
+            {item.name}
+          </SelectOption>
+        ))}
+      </SelectList>
+    </SelectGroup>
   ));
 };
