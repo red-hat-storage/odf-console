@@ -12,6 +12,8 @@ import {
 import { isCleanupPending } from '../../protected-applications/utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
 
+const CONDITION_PROTECTED = 'Protected';
+
 export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
   application: drPlacementControl,
 }) => {
@@ -30,7 +32,7 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
     const schedulingInterval = drPolicy?.spec?.schedulingInterval;
 
     const primaryClusterName = getPrimaryClusterName(drPlacementControl);
-    const targetCluster = drPolicy.spec?.drClusters.find(
+    const targetCluster = drPolicy?.spec?.drClusters?.find(
       (name) => name !== primaryClusterName
     );
 
@@ -52,6 +54,10 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
       kubeObjectSchedulingInterval
     );
 
+    const protectedCondition = drPlacementControl?.status?.conditions?.find(
+      (condition) => condition.type === CONDITION_PROTECTED
+    );
+
     return {
       policyName: drPolicyName,
       schedulingInterval,
@@ -64,6 +70,9 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
       phase: drPlacementControl?.status?.phase as DRPCStatus,
       isCleanupRequired: isCleanupPending(drPlacementControl),
       isLoadedWOError: loaded && !loadError,
+      protectedConditionStatus: protectedCondition?.status,
+      protectedConditionReason: protectedCondition?.reason,
+      protectedConditionMessage: protectedCondition?.message,
     };
   }, [loaded, loadError, drPolicy, drPlacementControl, drPolicyName]);
 

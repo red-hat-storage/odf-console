@@ -19,6 +19,8 @@ import { getNamespace, getName } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
 
+const CONDITION_PROTECTED = 'Protected';
+
 const getDRResources = (namespace: string) => ({
   resources: {
     drPolicies: getDRPolicyResourceObj(),
@@ -63,6 +65,10 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         getReplicationType(drPolicy)
       );
 
+      const protectedCondition = drpc?.status?.conditions?.find(
+        (condition) => condition.type === CONDITION_PROTECTED
+      );
+
       return {
         policyName: getName(drPolicy),
         schedulingInterval: schedulingInterval,
@@ -72,6 +78,9 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         volumeReplicationHealth: healthStatus,
         phase: status,
         isLoadedWOError: drLoaded && !drLoadError,
+        protectedConditionStatus: protectedCondition?.status,
+        protectedConditionReason: protectedCondition?.reason,
+        protectedConditionMessage: protectedCondition?.message,
       };
     }
     return null;

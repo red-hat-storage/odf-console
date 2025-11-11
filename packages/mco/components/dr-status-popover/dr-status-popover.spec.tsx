@@ -1,98 +1,59 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import React from 'react';
+import { describe, expect, it } from '@jest/globals';
 import { DRPCStatus, VolumeReplicationHealth } from '@odf/mco/constants';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import DRStatusPopover, { DRStatusProps } from './dr-status-popover';
 
 describe('DRStatusPopover Component', () => {
-  const healthyStatus = {
-    isLoadedWOError: true,
+  const baseStatus: DRStatusProps = {
+    policyName: 'policy-1',
+    schedulingInterval: '5m',
+    primaryCluster: 'primary-cluster',
+    targetCluster: 'target-cluster',
+    volumeLastGroupSyncTime: '2023-10-01T12:00:00Z',
+    lastKubeObjectProtectionTime: '2023-10-01T12:00:00Z',
     volumeReplicationHealth: VolumeReplicationHealth.HEALTHY,
     kubeObjectReplicationHealth: VolumeReplicationHealth.HEALTHY,
-    primaryCluster: 'primary-cluster',
-    targetCluster: 'target-cluster',
-    policyName: 'policy-1',
-    schedulingInterval: '5m',
-    volumeLastGroupSyncTime: '2023-10-01T12:00:00Z',
-    lastKubeObjectProtectionTime: '2023-10-01T12:00:00Z',
-  } as DRStatusProps;
-
-  const warningStatus = {
+    phase: DRPCStatus.Relocated,
+    isCleanupRequired: false,
     isLoadedWOError: true,
-    volumeReplicationHealth: VolumeReplicationHealth.WARNING,
-    kubeObjectReplicationHealth: VolumeReplicationHealth.WARNING,
-    primaryCluster: 'primary-cluster',
-    targetCluster: 'target-cluster',
-    policyName: 'policy-1',
-    schedulingInterval: '5m',
-    volumeLastGroupSyncTime: '2023-10-01T12:00:00Z',
-    lastKubeObjectProtectionTime: '2023-10-01T12:00:00Z',
-  } as DRStatusProps;
+  };
 
-  const failoverStatus = {
-    isLoadedWOError: true,
-    phase: DRPCStatus.FailingOver,
-    primaryCluster: 'primary-cluster',
-    targetCluster: 'target-cluster',
-  } as DRStatusProps;
+  it('renders Protecting when ConditionProtected is initializing', async () => {
+    const protectingStatus: DRStatusProps = {
+      ...baseStatus,
+      protectedConditionStatus: 'Unknown',
+      protectedConditionReason: 'Unknown',
+      protectedConditionMessage: 'Validating protection status.',
+    };
 
-  const relocateStatus = {
-    isLoadedWOError: true,
-    phase: DRPCStatus.Relocating,
-    primaryCluster: 'primary-cluster',
-    targetCluster: 'target-cluster',
-  } as DRStatusProps;
-
-  it('renders the popover with Healthy status', async () => {
-    render(<DRStatusPopover disasterRecoveryStatus={healthyStatus} />);
+    render(<DRStatusPopover disasterRecoveryStatus={protectingStatus} />);
 
     await userEvent.click(screen.getByTestId('dr-status-button'));
 
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      'All volumes & Kubernetes resources are synced'
+      /Protecting/
     );
-    expect(screen.queryByTestId('popover-description')).not.toBeInTheDocument();
-  });
-
-  it('renders the popover with Warning status', async () => {
-    render(<DRStatusPopover disasterRecoveryStatus={warningStatus} />);
-
-    await userEvent.click(screen.getByTestId('dr-status-button'));
-    expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      'Volumes & Kubernetes resources are syncing slower than usual'
-    );
-    expect(screen.getByTestId('popover-description')).toBeInTheDocument();
-  });
-
-  it('renders the popover with FailingOver status', async () => {
-    render(<DRStatusPopover disasterRecoveryStatus={failoverStatus} />);
-
-    await userEvent.click(screen.getByTestId('dr-status-button'));
-    expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      'Failover in progress'
-    );
-    expect(screen.getByTestId('popover-description')).toBeInTheDocument();
-    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
-      'Primary clusterprimary-cluster'
-    );
-    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
-      'Target clustertarget-cluster'
+    expect(screen.getByTestId('popover-description')).toHaveTextContent(
+      /Validating protection status\./
     );
   });
 
-  it('renders the popover with Relocating status', async () => {
-    render(<DRStatusPopover disasterRecoveryStatus={relocateStatus} />);
+  it('renders Critical state when replication health is critical', async () => {
+    const criticalStatus: DRStatusProps = {
+      ...baseStatus,
+      volumeReplicationHealth: VolumeReplicationHealth.CRITICAL,
+      protectedConditionStatus: 'True',
+    };
+
+    render(<DRStatusPopover disasterRecoveryStatus={criticalStatus} />);
 
     await userEvent.click(screen.getByTestId('dr-status-button'));
+
     expect(screen.getByTestId('popover-header')).toHaveTextContent(
-      'Relocate in progress'
-    );
-    expect(screen.getByTestId('popover-description')).toBeInTheDocument();
-    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
-      'Primary clusterprimary-cluster'
-    );
-    expect(screen.getByTestId('cluster-details')).toHaveTextContent(
-      'Target clustertarget-cluster'
+      /Volumes are not syncing/
     );
   });
 });

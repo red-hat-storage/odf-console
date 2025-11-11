@@ -42,6 +42,9 @@ export type DRStatusProps = {
   phase: DRPCStatus;
   isCleanupRequired?: boolean;
   isLoadedWOError: boolean;
+  protectedConditionStatus?: string;
+  protectedConditionReason?: string;
+  protectedConditionMessage?: string;
 };
 
 enum DRStatus {
@@ -51,6 +54,7 @@ enum DRStatus {
   Critical = VolumeReplicationHealth.CRITICAL,
   Warning = VolumeReplicationHealth.WARNING,
   Healthy = VolumeReplicationHealth.HEALTHY,
+  Protecting = 'Protecting',
 }
 
 const getStatusIcon = (status?: DRStatus): JSX.Element => {
@@ -61,6 +65,7 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.FailingOver]: <InProgressIcon />,
     [DRStatus.Relocating]: <InProgressIcon />,
     [DRStatus.WaitOnUserToCleanUp]: <RedExclamationCircleIcon />,
+    [DRStatus.Protecting]: <InProgressIcon />,
   };
 
   return iconMap[status] ?? null;
@@ -288,6 +293,19 @@ const getDRStatus = ({
   return DRStatus.Critical;
 };
 
+const normalize = (value?: string) => value?.toLowerCase?.() ?? '';
+
+const shouldShowProtecting = (status?: string, reason?: string) => {
+  const normalizedStatus = normalize(status);
+  const normalizedReason = normalize(reason);
+
+  return (
+    normalizedStatus === 'unknown' ||
+    normalizedReason === 'unknown' ||
+    (normalizedStatus === 'false' && normalizedReason === 'progressing')
+  );
+};
+
 const getCleanupMessage = (
   phase: DRPCStatus,
   cluster: string,
@@ -311,7 +329,35 @@ const getDRStatusDetails = ({
   t,
   primaryCluster,
   targetCluster,
+  protectedConditionStatus,
+  protectedConditionReason,
+  protectedConditionMessage,
+}: {
+  isCleanupRequired: boolean;
+  phase: DRPCStatus;
+  volumeReplicationHealth: VolumeReplicationHealth;
+  kubeObjectReplicationHealth: VolumeReplicationHealth;
+  t: TFunction;
+  primaryCluster: string;
+  targetCluster: string;
+  protectedConditionStatus?: string;
+  protectedConditionReason?: string;
+  protectedConditionMessage?: string;
 }): StatusContent => {
+  const showProtecting =
+    !isCleanupRequired &&
+    shouldShowProtecting(protectedConditionStatus, protectedConditionReason);
+
+  if (showProtecting) {
+    return createStatus(
+      DRStatus.Protecting,
+      t('Protecting'),
+      protectedConditionMessage ||
+        t('Validating application protection. This may take a few minutes.'),
+      'dr-status-protecting'
+    );
+  }
+
   const drStatus = getDRStatus({
     isCleanupRequired,
     phase,
@@ -433,6 +479,12 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
         t,
         primaryCluster: disasterRecoveryStatus.primaryCluster,
         targetCluster: disasterRecoveryStatus.targetCluster,
+        protectedConditionStatus:
+          disasterRecoveryStatus.protectedConditionStatus,
+        protectedConditionReason:
+          disasterRecoveryStatus.protectedConditionReason,
+        protectedConditionMessage:
+          disasterRecoveryStatus.protectedConditionMessage,
       }),
     [disasterRecoveryStatus, t]
   );
