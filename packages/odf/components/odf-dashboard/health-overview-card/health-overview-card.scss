@@ -1,0 +1,57 @@
+.odf-infrastructure-health-card {
+  &__score {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 120px;
+  }
+
+  &__score-value {
+    font-size: var(--pf-v5-global--FontSize--3xl);
+    font-weight: var(--pf-v5-global--FontWeight--bold);
+    line-height: 1.2;
+  }
+
+  &__score-label {
+    color: var(--pf-v5-global--Color--200);
+    font-size: var(--pf-v5-global--FontSize--sm);
+    margin-top: var(--pf-v5-global--spacer--xs);
+  }
+
+  &__chart {
+    padding: var(--pf-v5-global--spacer--sm) 0;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  &__chart-label {
+    color: var(--pf-v5-global--Color--200);
+    font-size: var(--pf-v5-global--FontSize--sm);
+    margin-bottom: var(--pf-v5-global--spacer--sm);
+    text-align: left;
+  }
+
+  &__section-title {
+    font-weight: var(--pf-v5-global--FontWeight--bold);
+    margin-bottom: var(--pf-v5-global--spacer--sm);
+  }
+
+  &__issue-count {
+    font-size: var(--pf-v5-global--FontSize--2xl);
+    font-weight: var(--pf-v5-global--FontWeight--bold);
+  }
+
+  &__issue-label {
+    color: var(--pf-v5-global--Color--200);
+    font-size: var(--pf-v5-global--FontSize--sm);
+  }
+
+  &__empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--pf-v5-global--spacer--lg) 0;
+    text-align: center;
+  }
+}

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { HealthOverviewCard } from '@odf/core/components/odf-dashboard/health-overview-card/HealthOverviewCard';
 import { GeneralOverviewActivityCard } from '@odf/core/components/overview/activity-card/GeneralOverviewActivityCard';
 import { ExternalSystemsCard } from '@odf/core/components/overview/external-systems-card/ExternalSystemsCard';
 import { ObjectStorageCard } from '@odf/core/components/overview/object-storage-card/ObjectStorageCard';
@@ -19,6 +20,9 @@ const Overview: React.FC = () => {
       </Helmet>
       <PageHeading title={title} hasUnderline={false} />
       <Grid hasGutter className="odf-general-overview__grid">
+        <GridItem xl2={5}>
+          <HealthOverviewCard />
+        </GridItem>
         <GridItem xl2={5}>
           <StorageClusterCard />
         </GridItem>
