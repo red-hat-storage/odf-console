@@ -6,10 +6,16 @@ import {
 } from '@odf/mco/constants';
 import PageHeading from '@odf/shared/heading/page-heading';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import { Text, TextContent, TextVariants } from '@patternfly/react-core';
+import {
+  Text,
+  TextContent,
+  TextVariants,
+  Wizard,
+  WizardStep,
+  WizardStepProps,
+} from '@patternfly/react-core';
 import { EnrollDiscoveredApplicationFooter } from './footer';
 import { createPromise } from './utils/k8s-utils';
 import {
@@ -40,11 +46,12 @@ const breadcrumbs = (t: TFunction) => [
 
 export const createSteps = (
   state: EnrollDiscoveredApplicationState,
-  stepIdReached: number,
   isValidationEnabled: boolean,
   dispatch: React.Dispatch<EnrollDiscoveredApplicationAction>,
   t: TFunction
-): WizardStep[] => [
+): (Pick<WizardStepProps, 'id' | 'name'> & {
+  component: React.ReactElement;
+})[] => [
   {
     id: 1,
     name: EnrollDiscoveredApplicationStepNames(t)[
@@ -57,7 +64,6 @@ export const createSteps = (
         dispatch={dispatch}
       />
     ),
-    canJumpTo: stepIdReached >= 1,
   },
   {
     id: 2,
@@ -71,7 +77,6 @@ export const createSteps = (
         dispatch={dispatch}
       />
     ),
-    canJumpTo: stepIdReached >= 2,
   },
   {
     id: 3,
@@ -85,7 +90,6 @@ export const createSteps = (
         dispatch={dispatch}
       />
     ),
-    canJumpTo: stepIdReached >= 3,
   },
   {
     id: 4,
@@ -93,14 +97,12 @@ export const createSteps = (
       EnrollDiscoveredApplicationSteps.Review
     ],
     component: <Review state={state} />,
-    canJumpTo: stepIdReached >= 4,
   },
 ];
 
 const EnrollDiscoveredApplication: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
-  const [stepIdReached, setStepIdReached] = React.useState(1);
   const [isValidationEnabled, setIsValidationEnabled] = React.useState(false);
   const [onSaveError, setOnSaveError] = React.useState('');
 
@@ -128,6 +130,8 @@ const EnrollDiscoveredApplication: React.FC<{}> = () => {
       });
   };
 
+  const steps = createSteps(state, isValidationEnabled, dispatch, t);
+
   return (
     <>
       <PageHeading title={title} breadcrumbs={breadcrumbs(t)}>
@@ -142,27 +146,24 @@ const EnrollDiscoveredApplication: React.FC<{}> = () => {
       <Wizard
         className="mco-enroll-discovered-application__wizard--height"
         navAriaLabel={t('Enroll discovered application nav')}
-        mainAriaLabel={t('Enroll discovered application steps')}
-        steps={createSteps(
-          state,
-          stepIdReached,
-          isValidationEnabled,
-          dispatch,
-          t
-        )}
+        isVisitRequired
         footer={
           <EnrollDiscoveredApplicationFooter
             state={state}
-            stepIdReached={stepIdReached}
             isValidationEnabled={isValidationEnabled}
             onSaveError={onSaveError}
-            setStepIdReached={setStepIdReached}
             setIsValidationEnabled={setIsValidationEnabled}
             onSubmit={onSubmit}
             onCancel={() => navigate(-1)}
           />
         }
-      />
+      >
+        {steps.map((step) => (
+          <WizardStep key={step.id} id={step.id} name={step.name}>
+            {step.component}
+          </WizardStep>
+        ))}
+      </Wizard>
     </>
   );
 };
