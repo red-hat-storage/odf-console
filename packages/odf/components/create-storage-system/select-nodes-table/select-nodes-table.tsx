@@ -9,11 +9,15 @@ import {
   getNodeTotalMemory,
 } from '@odf/core/utils';
 import { StatusBox } from '@odf/shared/generic/status-box';
-import { useSelectList } from '@odf/shared/hooks/select-list';
-import { useSortList } from '@odf/shared/hooks/sort-list';
 import { NodeModel } from '@odf/shared/models';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
 import { getName, hasLabel } from '@odf/shared/selectors';
+import {
+  SelectableTable,
+  TableVariant,
+  RowComponentType,
+  TableColumnProps,
+} from '@odf/shared/table';
 import { NodeKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
@@ -27,183 +31,157 @@ import {
   ListPageFilter,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-} from '@patternfly/react-table/deprecated';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
-import { IRow, sortable } from '@patternfly/react-table';
+import { Td } from '@patternfly/react-table';
+import { SortByDirection } from '@patternfly/react-table';
 import { WizardNodeState, WizardState } from '../reducer';
 import { SelectNodesTableFooter } from './select-nodes-table-footer';
 import './select-nodes-table.scss';
 
-const tableColumnClasses = [
-  classNames('pf-v5-u-w-33-on-md', 'pf-v5-u-w-50-on-sm'),
-  classNames('pf-m-hidden', 'pf-m-visible-on-xl', 'pf-v5-u-w-inherit-on-xl'),
-  classNames('pf-m-hidden', 'pf-m-visible-on-xl', 'pf-v5-u-w-inherit-on-xl'),
-  classNames('pf-m-hidden', 'pf-m-visible-on-xl', 'pf-v5-u-w-inherit-on-xl'),
-  classNames('pf-v5-u-w-inherit'),
-];
-
-const getRows = (
-  nodesData: NodeData[],
-  visibleRows,
-  setVisibleRows,
-  selectedNodes,
-  setSelectedNodes,
-  ns,
-  disableLabeledNodes
-) => {
-  const storageLabel = cephStorageLabel(ns);
-
-  const filteredData = nodesWithoutTaints(nodesData);
-
-  const rows: IRow[] = filteredData.map((node: NodeData) => {
-    const roles = getNodeRoles(node).sort();
-    const cpuSpec: string = getNodeCPUCapacity(node);
-    const memSpec: string = getNodeTotalMemory(node);
-    const cells: IRow['cells'] = [
-      {
-        title: (
-          <ResourceLink
-            link={resourcePathFromModel(NodeModel, getName(node))}
-            resourceModel={NodeModel}
-            resourceName={getName(node)}
-          />
-        ),
-      },
-      {
-        title: roles.join(', ') ?? '-',
-      },
-      {
-        title: `${humanizeCpuCores(cpuSpec).string || '-'}`,
-      },
-      {
-        title: `${getConvertedUnits(memSpec)}`,
-      },
-      {
-        title: getZone(node) || '-',
-      },
-    ];
-    return {
-      cells,
-      disableSelection: disableLabeledNodes && hasLabel(node, storageLabel),
-      selected: selectedNodes
-        ? selectedNodes.has(node.metadata.uid)
-        : hasLabel(node, storageLabel),
-      props: {
-        id: node.metadata.uid,
-      },
-    };
-  });
-
-  const uids = new Set(filteredData.map((n) => n.metadata.uid));
-
-  if (!_.isEqual(uids, visibleRows)) {
-    setVisibleRows(uids);
-    if (!selectedNodes?.size && filteredData.length) {
-      const preSelected = filteredData.filter((row) =>
-        hasLabel(row, storageLabel)
-      );
-      setSelectedNodes(preSelected);
-    }
-  }
-
-  return rows;
+const tableColumnClasses = {
+  name: classNames('pf-v5-u-w-33-on-md', 'pf-v5-u-w-50-on-sm'),
+  role: classNames(
+    'pf-m-hidden',
+    'pf-m-visible-on-xl',
+    'pf-v5-u-w-inherit-on-xl'
+  ),
+  cpu: classNames(
+    'pf-m-hidden',
+    'pf-m-visible-on-xl',
+    'pf-v5-u-w-inherit-on-xl'
+  ),
+  memory: classNames(
+    'pf-m-hidden',
+    'pf-m-visible-on-xl',
+    'pf-v5-u-w-inherit-on-xl'
+  ),
+  zone: classNames('pf-v5-u-w-inherit'),
 };
 
-const nameSort = (a, b, c) => {
-  const negation = c !== 'asc';
+const NodeRow: React.FC<RowComponentType<NodeData>> = ({ row: node }) => {
+  const { t } = useCustomTranslation();
+  const roles = getNodeRoles(node).sort();
+  const cpuSpec: string = getNodeCPUCapacity(node);
+  const memSpec: string = getNodeTotalMemory(node);
+
+  return (
+    <>
+      <Td dataLabel={t('Name')}>
+        <ResourceLink
+          link={resourcePathFromModel(NodeModel, getName(node))}
+          resourceModel={NodeModel}
+          resourceName={getName(node)}
+        />
+      </Td>
+      <Td dataLabel={t('Role')}>{roles.join(', ') ?? '-'}</Td>
+      <Td dataLabel={t('CPU')}>{humanizeCpuCores(cpuSpec).string || '-'}</Td>
+      <Td dataLabel={t('Memory')}>{getConvertedUnits(memSpec)}</Td>
+      <Td dataLabel={t('Zone')}>{getZone(node) || '-'}</Td>
+    </>
+  );
+};
+
+const nameSort = (a: NodeData, b: NodeData, direction: SortByDirection) => {
+  const negation = direction !== 'asc';
   const sortVal = a?.metadata.name.localeCompare(b?.metadata.name);
   return negation ? -sortVal : sortVal;
 };
 
 const InternalNodeTable: React.FC<NodeTableProps> = ({
-  nodes,
   onRowSelected,
   nodesData,
   disableLabeledNodes,
   systemNamespace,
 }) => {
   const { t } = useCustomTranslation();
+  const storageLabel = cephStorageLabel(systemNamespace);
 
   const getColumns = React.useMemo(
-    () => [
+    (): TableColumnProps[] => [
       {
-        title: t('Name'),
-        sortFunction: nameSort,
-        transforms: [sortable],
-        props: { className: tableColumnClasses[0] },
+        columnName: t('Name'),
+        sortFunction: nameSort as <T>(a: T, b: T, c: SortByDirection) => number,
+        thProps: { className: tableColumnClasses.name },
       },
       {
-        title: t('Role'),
-        props: { className: tableColumnClasses[1] },
+        columnName: t('Role'),
+        thProps: { className: tableColumnClasses.role },
       },
       {
-        title: t('CPU'),
-        props: { className: tableColumnClasses[2] },
+        columnName: t('CPU'),
+        thProps: { className: tableColumnClasses.cpu },
       },
       {
-        title: t('Memory'),
-        props: { className: tableColumnClasses[3] },
+        columnName: t('Memory'),
+        thProps: { className: tableColumnClasses.memory },
       },
       {
-        title: t('Zone'),
-        props: { className: tableColumnClasses[4] },
+        columnName: t('Zone'),
+        thProps: { className: tableColumnClasses.zone },
       },
     ],
     [t]
   );
 
-  const [visibleRows, setVisibleRows] = React.useState<Set<string>>(nodes);
-  const {
-    onSelect,
-    selectedRows: selectedNodes,
-    updateSelectedRows: setSelectedNodes,
-  } = useSelectList<NodeKind>(nodesData, visibleRows, true, onRowSelected);
-  const {
-    onSort,
-    sortIndex: index,
-    sortDirection: direction,
-    sortedData: rowsData,
-  } = useSortList<NodeData>(nodesData, getColumns, true);
+  const filteredData = React.useMemo(
+    () => nodesWithoutTaints(nodesData),
+    [nodesData]
+  );
 
-  /* Prevent the deselection of the labeled nodes (when that protection is enabled)
-     through the "Select/Unselect All" checkbox. */
-  const canSelectAll = !disableLabeledNodes;
+  // Initialize with labeled nodes selected
+  const [selectedNodes, setSelectedNodes] = React.useState<NodeData[]>([]);
+
+  React.useEffect(() => {
+    if (filteredData.length && !selectedNodes.length) {
+      const preSelected = filteredData.filter((node) =>
+        hasLabel(node, storageLabel)
+      );
+      if (preSelected.length) {
+        setSelectedNodes(preSelected);
+        onRowSelected(preSelected);
+      }
+    }
+  }, [filteredData, selectedNodes.length, storageLabel, onRowSelected]);
+
+  const handleRowSelection = React.useCallback(
+    (selected: NodeData[]) => {
+      setSelectedNodes(selected);
+      onRowSelected(selected);
+    },
+    [onRowSelected]
+  );
+
+  const isRowSelectable = React.useCallback(
+    (node: NodeData) => {
+      // If disableLabeledNodes is true, nodes with storage label cannot be deselected
+      if (disableLabeledNodes && hasLabel(node as NodeKind, storageLabel)) {
+        return false;
+      }
+      return true;
+    },
+    [disableLabeledNodes, storageLabel]
+  ) as (row: any) => boolean;
 
   return (
     <div className="ceph-odf-install__select-nodes-table">
-      <Table
-        aria-label={t('Node Table')}
-        data-test-id="select-nodes-table"
-        variant="compact"
-        rows={getRows(
-          rowsData,
-          visibleRows,
-          setVisibleRows,
-          selectedNodes,
-          setSelectedNodes,
-          systemNamespace,
-          disableLabeledNodes
-        )}
-        cells={getColumns}
-        onSelect={onSelect}
-        onSort={onSort}
-        sortBy={{ index, direction }}
-        canSelectAll={canSelectAll}
-      >
-        <TableHeader />
-        <TableBody />
-      </Table>
+      <SelectableTable<NodeData>
+        columns={getColumns}
+        rows={filteredData}
+        RowComponent={NodeRow}
+        selectedRows={selectedNodes}
+        setSelectedRows={handleRowSelection}
+        loaded={true}
+        variant={TableVariant.COMPACT}
+        initialSortColumnIndex={0}
+        isRowSelectable={isRowSelectable}
+        isColumnSelectableHidden={disableLabeledNodes}
+      />
     </div>
   );
 };
 
 type NodeTableProps = {
-  nodes: Set<string>;
   onRowSelected: (selectedNodes: NodeKind[]) => void;
   nodesData: NodeData[];
   disableLabeledNodes: boolean;
@@ -235,7 +213,6 @@ export const SelectNodesTable: React.FC<SelectNodesTableProps> = ({
           loadError={nodesLoadError}
         >
           <InternalNodeTable
-            nodes={new Set(nodes.map(({ uid }) => uid))}
             onRowSelected={onRowSelected}
             nodesData={filteredData}
             disableLabeledNodes={disableLabeledNodes}
