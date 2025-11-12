@@ -31,10 +31,11 @@ import {
   EmptyStateIcon,
   EmptyStateBody,
   EmptyStateHeader,
-  Radio,
-  FormGroup,
   TextInput,
   Icon,
+  Title,
+  FormGroup,
+  Radio,
 } from '@patternfly/react-core';
 import { CaretDownIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import {
@@ -102,6 +103,7 @@ export type StoragePoolBodyProps = {
   prefixName?: string;
   usePrefix?: boolean;
   placeholder?: string;
+  isModal?: boolean;
 };
 
 export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
@@ -111,12 +113,13 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
   dispatch,
   poolType,
   existingNames,
-  onPoolTypeChange,
-  disablePoolType,
   isUpdate,
   prefixName,
   usePrefix,
   placeholder,
+  isModal,
+  disablePoolType,
+  onPoolTypeChange,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -126,8 +129,12 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
     useK8sGet<ListKind<StorageClusterKind>>(StorageClusterModel, null, poolNs);
 
   const [isReplicaOpen, setReplicaOpen] = React.useState(false);
+  const [isOsdAllocationOpen, setOsdAllocationOpen] = React.useState(false);
 
   const poolNameMaxLength = 253;
+  const isBlockPoolType = poolType === PoolType.BLOCK;
+  const isSingleReplicaPool = state.replicaSize === '1';
+
   const { schema, fieldRequirements } = React.useMemo(() => {
     const translationFieldRequirements = [
       fieldRequirementsTranslations.maxChars(t, poolNameMaxLength),
@@ -162,7 +169,7 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
       schema: validationSchema,
       fieldRequirements: translationFieldRequirements,
     };
-  }, [prefixName, usePrefix, existingNames, t]);
+  }, [t, existingNames, usePrefix, prefixName]);
 
   const resolver = useYupValidationResolver(schema);
   const {
@@ -230,7 +237,32 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
       (!state.isArbiterCluster && replica !== '4')
   );
 
-  const replicaDropdownItems = replicaList.map((replica) => {
+  let replicaDropdownItems = [];
+  if (isBlockPoolType && isModal) {
+    const item = (
+      <DropdownItem
+        key={`replica-${1}`}
+        component="button"
+        id="1"
+        data-test-id="replica-dropdown-item"
+        className="ceph-block-pool__dropdown-description"
+        description={t(
+          'Non resilient pool is an one time operation. It cannot be opted again. Data loss may occur'
+        )}
+        onClick={(e) =>
+          dispatch({
+            type: StoragePoolActionType.SET_POOL_REPLICA_SIZE,
+            payload: e.currentTarget.id,
+          })
+        }
+      >
+        {t('Non resilient pool')}
+      </DropdownItem>
+    );
+    replicaDropdownItems.push(item);
+  }
+
+  const blockReplicaDropdownItems = replicaList.map((replica) => {
     let warning = '';
     if (replica === '2') {
       warning = t(
@@ -258,88 +290,80 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
       </DropdownItem>
     );
   });
+  replicaDropdownItems.push(...blockReplicaDropdownItems);
+
+  const osdAllocationDropdownItems = [
+    <DropdownItem
+      key="use-existing-osds"
+      component="button"
+      id="use-existing-osds"
+      onClick={() =>
+        dispatch({
+          type: StoragePoolActionType.SET_USE_EXISTING_OSDS,
+          payload: true,
+        })
+      }
+      description={t('Storage pool will be deployed on existing OSDs')}
+    >
+      {t('Deploy on existing OSDs')}
+    </DropdownItem>,
+    <DropdownItem
+      key="allocate-new-osds"
+      component="button"
+      id="allocate-new-osds"
+      onClick={() =>
+        dispatch({
+          type: StoragePoolActionType.SET_USE_EXISTING_OSDS,
+          payload: false,
+        })
+      }
+      description={t('Storage pool will be deployed on new OSDs')}
+    >
+      {t('Deploy on new OSDs')}
+    </DropdownItem>,
+  ];
 
   return isClusterReady || !showPoolStatus ? (
     <>
-      <FormGroup label={t('Volume type')} className="pf-v5-u-pt-xl" isRequired>
-        <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row ceph-pool__radio-flex">
-          <Radio
-            label={t('Filesystem')}
-            value="filesystem"
-            id="type-filesystem"
-            data-test="type-filesystem"
-            name="volume-type"
-            className="pf-v5-u-mr-4xl"
-            isChecked={poolType === PoolType.FILESYSTEM}
-            isDisabled={disablePoolType && poolType !== PoolType.FILESYSTEM}
-            onChange={() => {
-              onPoolTypeChange(PoolType.FILESYSTEM);
-            }}
-          />
-          <Radio
-            label={t('Block')}
-            value="block"
-            id="type-block"
-            data-test="type-block"
-            name="volume-type"
-            isChecked={poolType === PoolType.BLOCK}
-            isDisabled={disablePoolType && poolType !== PoolType.BLOCK}
-            onChange={() => {
-              onPoolTypeChange(PoolType.BLOCK);
-            }}
-          />
-        </div>
-      </FormGroup>
-      <TextInputWithFieldRequirements
-        control={control}
-        fieldRequirements={fieldRequirements}
-        defaultValue={state.poolName}
-        popoverProps={{
-          headerContent: t('Name requirements'),
-          footerContent: `${t('Example')}: my-pool`,
-        }}
-        formGroupProps={{
-          label: t('Pool name'),
-          fieldId: 'pool-name',
-          className: 'ceph-block-pool-body__input',
-          isRequired: true,
-        }}
-        textInputProps={{
-          id: 'pool-name',
-          name: 'newPoolName',
-          'data-test': 'new-pool-name-textbox',
-          'aria-describedby': t('pool-name-help'),
-          placeholder: placeholder || t('my-pool'),
-          isDisabled: isUpdate,
-        }}
-        infoElement={
-          (usePrefix || poolType === PoolType.FILESYSTEM) && (
-            <>
-              <Icon status="info">
-                <InfoCircleIcon />
-              </Icon>
-              <span className="pf-v5-u-disabled-color-100 pf-v5-u-font-size-sm pf-v5-u-ml-sm">
-                {t(
-                  'The pool name comprises a prefix followed by the user-provided name.'
-                )}
-              </span>
-            </>
-          )
-        }
-        inputPrefixElement={
-          (usePrefix || poolType === PoolType.FILESYSTEM) && (
-            <>
-              <TextInput
-                id="pool-prefix"
-                className="pool-prefix"
-                value={prefixName}
-                isDisabled={true}
-              />
-              <div className="pf-v5-u-ml-sm pf-v5-u-mr-sm">-</div>
-            </>
-          )
-        }
-      />
+      {!isModal ? (
+        <FormGroup
+          label={t('Volume type')}
+          className="pf-v5-u-pt-xl"
+          isRequired
+        >
+          <div className="pf-v5-u-display-flex pf-v5-u-flex-direction-row ceph-pool__radio-flex">
+            <Radio
+              label={t('Filesystem')}
+              value="filesystem"
+              id="type-filesystem"
+              data-test="type-filesystem"
+              name="volume-type"
+              className="pf-v5-u-mr-4xl"
+              isChecked={poolType === PoolType.FILESYSTEM}
+              isDisabled={disablePoolType && poolType !== PoolType.FILESYSTEM}
+              onChange={() => {
+                onPoolTypeChange(PoolType.FILESYSTEM);
+              }}
+            />
+            <Radio
+              label={t('Block')}
+              value="block"
+              id="type-block"
+              data-test="type-block"
+              name="volume-type"
+              isChecked={poolType === PoolType.BLOCK}
+              isDisabled={disablePoolType && poolType !== PoolType.BLOCK}
+              onChange={() => {
+                onPoolTypeChange(PoolType.BLOCK);
+              }}
+            />
+          </div>
+        </FormGroup>
+      ) : (
+        <Title headingLevel="h6">
+          {t('Volume type - {{poolType}}', { poolType: poolType })}
+        </Title>
+      )}
       <div className="form-group ceph-block-pool-body__input">
         <label
           className="control-label co-required"
@@ -370,6 +394,87 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
           id="pool-replica-size"
         />
       </div>
+      {state.replicaSize !== '' && (
+        <TextInputWithFieldRequirements
+          control={control}
+          fieldRequirements={fieldRequirements}
+          defaultValue={state.poolName}
+          popoverProps={{
+            headerContent: t('Name requirements'),
+            footerContent: `${t('Example')}: my-pool`,
+          }}
+          formGroupProps={{
+            label: isSingleReplicaPool
+              ? t('Prefix of pool name')
+              : t('Pool name'),
+            fieldId: 'pool-name',
+            className: 'ceph-block-pool-body__input',
+            isRequired: true,
+          }}
+          textInputProps={{
+            id: 'pool-name',
+            name: 'newPoolName',
+            'data-test': 'new-pool-name-textbox',
+            'aria-describedby': t('pool-name-help'),
+            placeholder: placeholder || t('my-pool'),
+            isDisabled: isUpdate,
+          }}
+          infoElement={
+            (usePrefix || poolType === PoolType.FILESYSTEM) && (
+              <>
+                <Icon status="info">
+                  <InfoCircleIcon />
+                </Icon>
+                <span className="pf-v5-u-disabled-color-100 pf-v5-u-font-size-sm pf-v5-u-ml-sm">
+                  {t(
+                    'The pool name comprises a prefix followed by the user-provided name.'
+                  )}
+                </span>
+              </>
+            )
+          }
+          inputPrefixElement={
+            (usePrefix || poolType === PoolType.FILESYSTEM) && (
+              <>
+                <TextInput
+                  id="pool-prefix"
+                  className="pool-prefix"
+                  value={prefixName}
+                  isDisabled={true}
+                />
+                <div className="pf-v5-u-ml-sm pf-v5-u-mr-sm">-</div>
+              </>
+            )
+          }
+        />
+      )}
+      {isBlockPoolType && isSingleReplicaPool && (
+        <div className="form-group ceph-block-pool-body__input">
+          <label className="control-label" htmlFor="use-existing-osds">
+            {t('Use existing OSDs')}
+          </label>
+          <Dropdown
+            className="dropdown--full-width"
+            toggle={
+              <DropdownToggle
+                id="osd-allocation-dropdown"
+                data-test="osd-allocation-dropdown"
+                onToggle={() => setOsdAllocationOpen(!isOsdAllocationOpen)}
+                toggleIndicator={CaretDownIcon}
+                isDisabled={state.isArbiterCluster}
+              >
+                {state.useExistingOsds
+                  ? t('Deploy on existing OSDs')
+                  : t('Deploy on new OSDs')}
+              </DropdownToggle>
+            }
+            isOpen={isOsdAllocationOpen}
+            dropdownItems={osdAllocationDropdownItems}
+            onSelect={() => setOsdAllocationOpen(false)}
+            id="osd-allocation-dropdown"
+          />
+        </div>
+      )}
       <div className="form-group ceph-block-pool-body__input">
         <label className="control-label" htmlFor="compression-check">
           {t('Data compression')}
