@@ -6,6 +6,7 @@ import { StorageClusterCard } from '@odf/core/components/overview/storage-cluste
 import { PageHeading, useCustomTranslation } from '@odf/shared';
 import { Helmet } from 'react-helmet';
 import { Grid, GridItem } from '@patternfly/react-core';
+import { HealthOverviewCard } from './health-overview-card/HealthOverviewCard';
 import './Overview.scss';
 
 const Overview: React.FC = () => {
@@ -23,12 +24,15 @@ const Overview: React.FC = () => {
           <StorageClusterCard />
         </GridItem>
         <GridItem xl2={3}>
-          <ExternalSystemsCard />
+          <HealthOverviewCard />
         </GridItem>
         <GridItem xl2={4} xl2RowSpan={3} order={{ '2xl': '0', default: '3' }}>
           <GeneralOverviewActivityCard />
         </GridItem>
-        <GridItem xl2={8}>
+        <GridItem xl2={3}>
+          <ExternalSystemsCard />
+        </GridItem>
+        <GridItem xl2={5}>
           <ObjectStorageCard />
         </GridItem>
       </Grid>

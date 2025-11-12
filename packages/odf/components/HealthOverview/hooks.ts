@@ -3,6 +3,7 @@ import { useODFNamespaceSelector } from '@odf/core/redux';
 import {
   ALERTMANAGER_SILENCES_PATH,
   MINUTES_IN_DAY,
+  SAMPLE_STEP_SECONDS,
   TWENTY_FOUR_HOURS,
 } from '@odf/shared/constants';
 import { useCustomPrometheusPoll } from '@odf/shared/hooks/custom-prometheus-poll';
@@ -86,8 +87,6 @@ type AlertAnnotations = {
   description?: string;
   summary?: string;
 };
-
-const SAMPLE_STEP_SECONDS = 60;
 
 const getNormalizedAlertKey = (
   alertname: string,
