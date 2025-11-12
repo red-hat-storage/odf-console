@@ -81,7 +81,9 @@ export const SelectReplicationType: React.FC<SelectReplicationTypeProps> = ({
       id={key}
       data-test="replication-dropdown-item"
       value={value}
-    />
+    >
+      {value}
+    </SelectOption>
   ));
 
   const onChange = (replType: ReplicationType) =>
