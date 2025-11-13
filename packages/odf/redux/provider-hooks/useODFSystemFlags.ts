@@ -4,6 +4,7 @@ import {
   isExternalCluster,
   isClusterIgnored,
   isNFSEnabled,
+  getRGWSecureEndpoint,
 } from '@odf/core/utils';
 import { CephObjectStoreModel, NooBaaSystemModel } from '@odf/shared';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
@@ -88,6 +89,11 @@ const useODFSystemFlagsPayload = ({
               isCephAvailable: !!ceph,
               // Based on the existence of CephObjectStore CR
               isRGWAvailable: !!cephObjStore,
+              // Based on the existence of CephObjectStore CR
+              // ToDo (Sanjal): Rename the hook if we need to store information beyond just flags (e.g., additional details)
+              ...(!!cephObjStore && {
+                rgwSecureEndpoint: getRGWSecureEndpoint(cephObjStore),
+              }),
               // Based on the enablement of NFS from StorageCluster spec
               isNFSEnabled: isNFSEnabled(sc),
             };

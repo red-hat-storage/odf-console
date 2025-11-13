@@ -20,6 +20,7 @@ import {
   ReplicaSetModel,
   DaemonSetModel,
   NamespaceModel,
+  ProjectModel,
 } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -142,5 +143,10 @@ export const namespaceStoreResource: K8sResourceObj = (ns) => ({
 
 export const namespaceResource = {
   kind: referenceForModel(NamespaceModel),
+  isList: true,
+};
+
+export const projectResource = {
+  kind: referenceForModel(ProjectModel),
   isList: true,
 };

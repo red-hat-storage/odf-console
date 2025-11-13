@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NOOBAA_PROVISIONER } from '@odf/core/constants';
-import { namespaceResource } from '@odf/core/resources';
+import { projectResource } from '@odf/core/resources';
 import { BucketClassKind, ObjectBucketClaimKind } from '@odf/core/types';
 import {
   createNewObjectBucketClaim,
@@ -18,7 +18,7 @@ import ResourcesDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FormGroupController } from '@odf/shared/form-group-controller';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { TextInputWithFieldRequirements } from '@odf/shared/input-with-requirements';
-import { NamespaceModel, StorageClassModel } from '@odf/shared/models';
+import { ProjectModel, StorageClassModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { K8sResourceKind, StorageClassResourceKind } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -516,7 +516,7 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
             }}
             render={({ onBlur }) => (
               <ResourcesDropdown<K8sResourceCommon>
-                resourceModel={NamespaceModel}
+                resourceModel={ProjectModel}
                 onSelect={(selectedNamespace) =>
                   setNamespace(getName(selectedNamespace))
                 }
@@ -527,7 +527,7 @@ export const CreateOBC: React.FC<CreateOBCProps> = ({
                 className="odf-mcg__resource-dropdown"
                 id="ns-dropdown"
                 data-test="ns-dropdown"
-                resource={namespaceResource}
+                resource={projectResource}
               />
             )}
           />

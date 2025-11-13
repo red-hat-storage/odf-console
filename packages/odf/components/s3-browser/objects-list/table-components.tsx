@@ -17,10 +17,10 @@ import {
 } from '@patternfly/react-core';
 import { CubesIcon, FileIcon, FolderIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, IAction } from '@patternfly/react-table';
-import { BUCKETS_BASE_ROUTE, PREFIX } from '../../../constants';
+import { getBucketOverviewBaseRoute, PREFIX } from '../../../constants';
 import { SetObjectsDeleteResponse } from '../../../modals/s3-browser/delete-objects/DeleteObjectsModal';
 import { LazyDeleteObjectsModal } from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
-import { ObjectCrFormat } from '../../../types';
+import { ObjectCrFormat, S3ProviderType } from '../../../types';
 import { getEncodedPrefix, replacePathFromName } from '../../../utils';
 import {
   DownloadAndPreviewState,
@@ -56,7 +56,7 @@ export const getInlineActionsItems = (
   launcher: LaunchModal,
   bucketName: string,
   object: ObjectCrFormat,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   downloadAndPreview: DownloadAndPreviewState,
   setDownloadAndPreview: React.Dispatch<
     React.SetStateAction<DownloadAndPreviewState>
@@ -85,7 +85,7 @@ export const getInlineActionsItems = (
               onDownload(
                 bucketName,
                 object,
-                noobaaS3,
+                s3Client,
                 setDownloadAndPreview,
                 showVersioning
               ),
@@ -109,7 +109,7 @@ export const getInlineActionsItems = (
               onPreview(
                 bucketName,
                 object,
-                noobaaS3,
+                s3Client,
                 setDownloadAndPreview,
                 showVersioning
               ),
@@ -125,7 +125,7 @@ export const getInlineActionsItems = (
             onClick: () =>
               launcher(LazyPresignedURLModal, {
                 isOpen: true,
-                extraProps: { bucketName, object, noobaaS3, showVersioning },
+                extraProps: { bucketName, object, s3Client, showVersioning },
               }),
             isDisabled: isDeleteMarker,
           },
@@ -140,7 +140,7 @@ export const getInlineActionsItems = (
             foldersPath,
             bucketName,
             objects: [object],
-            noobaaS3,
+            s3Client,
             setDeleteResponse,
             refreshTokens,
             closeObjectSidebar,
@@ -209,7 +209,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     launcher,
     bucketName,
     foldersPath,
-    noobaaS3,
+    s3Client,
     setDeleteResponse,
     refreshTokens,
     onRowClick,
@@ -222,6 +222,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
   const prefix = getEncodedPrefix(name, foldersPath);
   const isLatest = object?.isLatest;
   const isDeleteMarker = object?.isDeleteMarker;
+  const providerType = s3Client.providerType as S3ProviderType;
 
   const columnNames = getColumnNames(t);
   const versioningColumnName = getVersioningColumnName(t);
@@ -231,7 +232,7 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     launcher,
     bucketName,
     object,
-    noobaaS3,
+    s3Client,
     downloadAndPreview,
     setDownloadAndPreview,
     foldersPath,
@@ -254,7 +255,9 @@ export const TableRow: React.FC<RowComponentType<ObjectCrFormat>> = ({
     <>
       <Td dataLabel={columnNames[0]} onClick={onClick}>
         {isFolder ? (
-          <Link to={`${BUCKETS_BASE_ROUTE}/${bucketName}?${PREFIX}=${prefix}`}>
+          <Link
+            to={`${getBucketOverviewBaseRoute(bucketName, providerType)}?${PREFIX}=${prefix}`}
+          >
             <span>
               <FolderIcon className="pf-v5-u-mr-xs" />
               {name}
