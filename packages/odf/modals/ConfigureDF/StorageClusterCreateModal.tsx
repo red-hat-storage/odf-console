@@ -58,7 +58,7 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
           <CardHeader
             selectableActions={{
               onClickAction: redirectTo(StartingPoint.STORAGE_CLUSTER),
-              selectableActionId: 'storage-cluster',
+              selectableActionId: StartingPoint.STORAGE_CLUSTER,
             }}
           >
             <CardTitle>{t('Create Storage Cluster')}</CardTitle>
@@ -108,7 +108,7 @@ export const ConfigureDFSelections: React.FC<ConfigureDFSelectionsProps> = ({
           <CardHeader
             selectableActions={{
               onClickAction: redirectTo(StartingPoint.OBJECT_STORAGE),
-              selectableActionId: 'object-storage',
+              selectableActionId: StartingPoint.OBJECT_STORAGE,
             }}
           >
             <CardTitle>{t('Setup Multicloud Object Gateway')}</CardTitle>

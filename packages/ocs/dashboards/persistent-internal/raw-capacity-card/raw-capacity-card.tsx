@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useRawCapacity } from '@odf/core/hooks';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { parser } from '@odf/shared/utils';
@@ -12,9 +11,7 @@ import {
 const RawCapacityCard: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const { systemFlags } = useODFSystemFlagsSelector();
-  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
-  const clusterName = systemFlags[clusterNs]?.ocsClusterName;
+  const { clusterName } = useGetInternalClusterDetails();
 
   const [totalCapacity, usedCapacity, loading, loadError] =
     useRawCapacity(clusterName);

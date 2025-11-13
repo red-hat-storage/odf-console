@@ -21,7 +21,6 @@ import {
   StatusBox,
   useCustomTranslation,
 } from '@odf/shared';
-import { BLOCK, FILESYSTEM, PVCVolumeMode } from '@odf/shared/constants';
 import { referenceForModel } from '@odf/shared/utils';
 import {
   K8sResourceCommon,
@@ -34,21 +33,14 @@ import {
   Divider,
   Flex,
   FlexItem,
-  MenuToggle,
-  MenuToggleElement,
   SearchInput,
-  Select,
-  SelectList,
-  SelectOption,
   Text,
   TextVariants,
 } from '@patternfly/react-core';
-import { FilterIcon } from '@patternfly/react-icons';
 import { DRPlacementControlType } from '../utils/types';
 
 export type ConsistencyGroupInfo = {
   name: string;
-  type: string;
   namespace: string;
   lastSyncTime: string;
   pvcs: string[];
@@ -59,42 +51,12 @@ export type WatchResourceType = {
   [key in string]: ACMManagedClusterViewKind;
 };
 
-enum FilterType {
-  ALL = 'all',
-  BLOCKTYPE = 'block',
-  FILESYSTEMTYPE = 'filesystem',
-}
-
-const FILTERS = [
-  FilterType.ALL,
-  FilterType.BLOCKTYPE,
-  FilterType.FILESYSTEMTYPE,
-];
-
-const getCGType = (volumeMode: string) =>
-  PVCVolumeMode.Filesystem === volumeMode ? FILESYSTEM : BLOCK;
-
-const displayFilterText = (t: TFunction) => {
-  return {
-    [FilterType.ALL]: t('All'),
-    [FilterType.BLOCKTYPE]: t('Block'),
-    [FilterType.FILESYSTEMTYPE]: t('Filesystem'),
-  };
-};
-
-const filterGroups = (
-  groups: ConsistencyGroupInfo[],
-  searchValue: string,
-  selectedFilter: FilterType
-) => {
+const filterGroups = (groups: ConsistencyGroupInfo[], searchValue: string) => {
   const lowerSearch = searchValue.toLowerCase();
   const matchesSearch = (text: string) =>
     text.toLowerCase().includes(lowerSearch);
-  return groups.filter(
-    ({ type, name, namespace, pvcs }) =>
-      (selectedFilter === 'all' ||
-        type.toLowerCase() === selectedFilter.toLowerCase()) &&
-      [name, namespace, ...pvcs].some(matchesSearch)
+  return groups.filter(({ name, namespace, pvcs }) =>
+    [name, namespace, ...pvcs].some(matchesSearch)
   );
 };
 
@@ -104,8 +66,9 @@ const GroupInfo: React.FC<GroupInfoProps> = ({ group, t }) => (
     alignItems={{ default: 'alignItemsCenter' }}
   >
     <FlexItem>
-      <Text component={TextVariants.h5}>{group.name}</Text>
-      <Text className="pf-v5-u-color-200">{group.type}</Text>
+      <Text component={TextVariants.h5}>
+        {t('Group name: {{ groupName }}', { groupName: group.name })}
+      </Text>
     </FlexItem>
     {group.synced ? (
       <FlexItem>
@@ -202,41 +165,14 @@ export const ConsistencyGroupsContent: React.FC<
 > = ({ consistencyGroups, loaded, loadError }) => {
   const { t } = useCustomTranslation();
   const [searchValue, setSearchValue] = React.useState('');
-  const [selectedFilter, setSelectedFilter] = React.useState<FilterType>(
-    FilterType.ALL
-  );
-  const [isOpen, setIsOpen] = React.useState(false);
 
   const filteredGroups = React.useMemo(
-    () => filterGroups(consistencyGroups, searchValue, selectedFilter),
-    [consistencyGroups, searchValue, selectedFilter]
+    () => filterGroups(consistencyGroups, searchValue),
+    [consistencyGroups, searchValue]
   );
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
-  };
-  const onToggleClick = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
-    <MenuToggle
-      ref={toggleRef}
-      onClick={onToggleClick}
-      isExpanded={isOpen}
-      className="pf-v5-c-form-control"
-      icon={<FilterIcon />}
-    >
-      {displayFilterText(t)[selectedFilter]}
-    </MenuToggle>
-  );
-
-  const onSelect = (
-    _event: React.MouseEvent<Element, MouseEvent> | undefined,
-    value: string
-  ) => {
-    setSelectedFilter(value as FilterType);
-    setIsOpen(false);
   };
 
   return (
@@ -252,28 +188,11 @@ export const ConsistencyGroupsContent: React.FC<
         </Text>
 
         <Flex className="pf-v5-u-mb-lg">
-          <FlexItem>
-            <Select
-              id="single-select"
-              isOpen={isOpen}
-              selected={selectedFilter}
-              onSelect={onSelect}
-              onOpenChange={(val) => setIsOpen(val)}
-              toggle={toggle}
-              shouldFocusToggleOnSelect
-            >
-              <SelectList>
-                {FILTERS.map((filter) => (
-                  <SelectOption key={filter} value={filter}>
-                    {displayFilterText(t)[filter]}
-                  </SelectOption>
-                ))}
-              </SelectList>
-            </Select>
-          </FlexItem>
           <FlexItem grow={{ default: 'grow' }}>
             <SearchInput
-              placeholder={t('Search by name')}
+              placeholder={t(
+                'Search by group name, PVC name, or PVC namespace'
+              )}
               value={searchValue}
               onChange={(_event, value) => handleSearchChange(value)}
               onClear={() => handleSearchChange('')}
@@ -300,7 +219,6 @@ const buildConsistencyGroupMap = (
     if (!cgLabel) return;
 
     const cgName = cgLabel[1] as string;
-    const cgType = getCGType(pvc.volumeMode);
     const schedulingInterval = vrg.spec.async?.schedulingInterval;
     const dataLastSyncedOn = pvc.lastSyncTime;
     const healthStatus = getReplicationHealth(
@@ -313,7 +231,6 @@ const buildConsistencyGroupMap = (
     if (!cgMap.has(cgName)) {
       cgMap.set(cgName, {
         name: cgName,
-        type: cgType,
         pvcs: [],
         namespace: pvc.namespace,
         lastSyncTime: pvc.lastSyncTime,
@@ -332,7 +249,6 @@ const convertCGMapToGroups = (cgMap: Map<string, ConsistencyGroupInfo>) => {
   cgMap.forEach((value, _) => {
     groups.push({
       name: value.name,
-      type: value.type,
       namespace: value.namespace,
       lastSyncTime: value.lastSyncTime,
       pvcs: value.pvcs,

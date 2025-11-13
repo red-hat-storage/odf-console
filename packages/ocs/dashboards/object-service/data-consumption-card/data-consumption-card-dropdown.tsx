@@ -12,13 +12,7 @@ import {
   getGroupedSelectOptions,
 } from '@odf/shared/dashboards/breakdown-card/breakdown-dropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  OptionsMenu,
-  OptionsMenuPosition,
-  OptionsMenuToggle,
-  Select,
-  SelectVariant,
-} from '@patternfly/react-core/deprecated';
+import { MenuToggle, MenuToggleElement, Select } from '@patternfly/react-core';
 import './data-consumption-card.scss';
 
 export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
@@ -126,57 +120,67 @@ export const DataConsumptionDropdown: React.FC<DataConsumptionDropdownProps> = (
   const comboDropdownItems = (() => {
     const dropdown =
       selectedService === ServiceType.MCG ? MCGDropdown : RGWDropdown;
-    return getOptionsMenuItems(
-      dropdown,
-      [selectedBreakdown, selectedMetric],
-      onSelectComboDropdown
-    );
+    return getOptionsMenuItems(dropdown, [selectedBreakdown, selectedMetric]);
   })();
 
   const serviceDropdownItems = getGroupedSelectOptions(ServiceTypeDropdown);
+
+  const comboToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={() => setComboDropdown(!isOpenComboDropdown)}
+      isExpanded={isOpenComboDropdown}
+      className="nb-data-consumption-card__dropdown-item nb-data-consumption-card__options-menu"
+    >
+      {selectedBreakdown
+        ? t('{{selectedMetric}} by {{selectedBreakdown}}', {
+            selectedMetric,
+            selectedBreakdown,
+          })
+        : selectedMetric}
+    </MenuToggle>
+  );
+
+  const serviceTypeToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={() => setServiceTypeDropdown(!isOpenServiceTypeDropdown)}
+      isExpanded={isOpenServiceTypeDropdown}
+      className="nb-data-consumption-card__dropdown-item--margin nb-data-consumption-card__dropdown-item"
+    >
+      {selectedService
+        ? t('Type: {{selectedService}}', { selectedService })
+        : t('Select Service Type')}
+    </MenuToggle>
+  );
 
   return (
     <div className="nb-data-consumption-card__dropdown">
       {isRgwSupported && isMcgSupported && (
         <Select
-          variant={SelectVariant.single}
-          className="nb-data-consumption-card__dropdown-item nb-data-consumption-card__dropdown-item--margin"
-          autoFocus={false}
-          onSelect={onSelectServiceDropdown}
-          onToggle={() => setServiceTypeDropdown(!isOpenServiceTypeDropdown)}
+          id="service-type-select"
           isOpen={isOpenServiceTypeDropdown}
-          selections={[selectedService]}
-          isGrouped
-          placeholderText={t('Type: {{selectedService}}', {
-            selectedService,
-          })}
+          onOpenChange={setServiceTypeDropdown}
+          onSelect={onSelectServiceDropdown}
+          selected={selectedService}
+          toggle={serviceTypeToggle}
           aria-label={t('Break By Dropdown')}
-          isCheckboxSelectionBadgeHidden
         >
           {serviceDropdownItems}
         </Select>
       )}
-      <OptionsMenu
+      <Select
         id="breakdown-options"
-        className="nb-data-consumption-card__dropdown-item nb-data-consumption-card__options-menu"
-        position={OptionsMenuPosition.right}
-        menuItems={comboDropdownItems}
-        toggle={
-          <OptionsMenuToggle
-            onToggle={() => setComboDropdown(!isOpenComboDropdown)}
-            toggleTemplate={
-              selectedBreakdown
-                ? t('{{selectedMetric}} by {{selectedBreakdown}}', {
-                    selectedMetric,
-                    selectedBreakdown,
-                  })
-                : selectedMetric
-            }
-          />
-        }
         isOpen={isOpenComboDropdown}
-        isGrouped
-      />
+        onSelect={onSelectComboDropdown}
+        toggle={comboToggle}
+        onOpenChange={setComboDropdown}
+        popperProps={{
+          position: 'right',
+        }}
+      >
+        {comboDropdownItems}
+      </Select>
     </div>
   );
 };

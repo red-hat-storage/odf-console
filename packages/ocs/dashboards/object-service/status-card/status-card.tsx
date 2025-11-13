@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { secretResource } from '@odf/core/resources';
 import { getResourceInNs } from '@odf/core/utils';
 import { decodeRGWPrefix, getDataResiliencyState } from '@odf/ocs/utils';
@@ -38,7 +39,6 @@ import {
   dataResiliencyQueryMap,
   ObjectServiceDashboardQuery,
 } from '../../../queries';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 import { ObjectServiceStatus } from './object-service-health';
 import { getNooBaaState, getRGWHealthState } from './statuses';
 import '../../../style.scss';
@@ -77,9 +77,7 @@ const ObjectStorageAlerts = () => {
 };
 
 const StatusCard: React.FC<{}> = () => {
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
   const isRGWSupported = systemFlags[clusterNs]?.isRGWAvailable;
   const isMCGSupported = systemFlags[clusterNs]?.isNoobaaAvailable;

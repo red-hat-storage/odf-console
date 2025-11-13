@@ -3,7 +3,13 @@ import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/Externa
 import { StorageClusterCreateModal } from '@odf/core/modals/ConfigureDF/StorageClusterCreateModal';
 import { getModalStartPoint } from '@odf/core/modals/ConfigureDF/util';
 import { StartingPoint } from '@odf/core/types/install-ui';
-import { PageHeading, useCustomTranslation } from '@odf/shared';
+import {
+  externalSystemsDoc,
+  PageHeading,
+  useCustomTranslation,
+} from '@odf/shared';
+import { DOC_VERSION } from '@odf/shared/hooks/use-doc-version';
+import { ViewDocumentation } from '@odf/shared/utils';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import { Helmet } from 'react-helmet';
 import { TFunction, Trans } from 'react-i18next';
@@ -123,14 +129,10 @@ const ExternalSystemsEmptyState: React.FC = () => {
           </Button>
         </EmptyStateActions>
         <EmptyStateActions>
-          <Button
-            variant={ButtonVariant.link}
-            onClick={() => {
-              return null;
-            }}
-          >
-            {t('Explore all supported external systems')}
-          </Button>
+          <ViewDocumentation
+            doclink={externalSystemsDoc(DOC_VERSION)}
+            text={t('Explore all supported external systems')}
+          />
         </EmptyStateActions>
       </EmptyStateFooter>
     </EmptyState>

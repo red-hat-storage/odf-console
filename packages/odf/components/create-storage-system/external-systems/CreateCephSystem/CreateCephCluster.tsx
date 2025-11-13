@@ -1,22 +1,20 @@
 import * as React from 'react';
 import {
-  FDF_FLAG,
   useODFNamespaceSelector,
   useODFSystemFlagsSelector,
 } from '@odf/core/redux';
 import { RHCSState } from '@odf/core/types';
-import { hasAnyInternalOCS } from '@odf/core/utils';
+import { hasAnyInternalOCS, labelOCSNamespace } from '@odf/core/utils';
 import {
   inTransitEncryptionSettingsForRHCS,
   PageHeading,
   useCustomTranslation,
+  useK8sList,
 } from '@odf/shared';
 import { DOC_VERSION as odfDocVersion } from '@odf/shared/hooks';
-import {
-  k8sCreate,
-  K8sModel,
-  useFlag,
-} from '@openshift-console/dynamic-plugin-sdk';
+import { NamespaceModel } from '@odf/shared/models';
+import { getName } from '@odf/shared/selectors';
+import { k8sCreate, K8sModel } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
@@ -32,6 +30,7 @@ import {
   ButtonVariant,
 } from '@patternfly/react-core';
 import { SetCephRBDStorageClassDefault } from '../../create-storage-system-steps/backing-storage-step/set-rbd-sc-default';
+import { createOCSNamespace } from '../../payloads';
 import {
   ConnectionDetails,
   rhcsPayload,
@@ -80,7 +79,7 @@ const OCS_MULTIPLE_CLUSTER_NS = 'openshift-storage-extended';
 
 const CreateCephCluster: React.FC = () => {
   const { t } = useCustomTranslation();
-  const { odfNamespace } = useODFNamespaceSelector();
+  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [encryption, setEncryption] = React.useState(false);
   const [isRBDStorageClassDefault, setRBDStorageClassDefault] =
@@ -88,14 +87,16 @@ const CreateCephCluster: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const navigate = useNavigate();
-  const isFDF = useFlag(FDF_FLAG);
-  const redirectPath = isFDF ? '/odf/external-systems' : '/odf/storage-cluster';
+  const redirectPath = '/odf/external-systems';
 
   const { systemFlags, areFlagsLoaded, flagsLoadError } =
     useODFSystemFlagsSelector();
 
+  const [namespaces] = useK8sList(NamespaceModel);
+
   const hasInternal =
     areFlagsLoaded && !flagsLoadError ? hasAnyInternalOCS(systemFlags) : false;
+
   // Create a dispatch function that matches the expected interface
   const setFormState: RHCSDispatch = React.useCallback((key, value) => {
     dispatch({ type: 'SET_FIELD', payload: { key, value } });
@@ -103,17 +104,28 @@ const CreateCephCluster: React.FC = () => {
 
   const onSubmit = async () => {
     setIsLoading(true);
-    const payload = rhcsPayload({
-      systemName: OCS_EXTERNAL_CR_NAME,
-      state,
-      namespace: !hasInternal ? odfNamespace : OCS_MULTIPLE_CLUSTER_NS,
-      inTransitStatus: encryption,
-      shouldSetCephRBDAsDefault: isRBDStorageClassDefault,
-    });
-    const promises = payload.map((p) =>
-      k8sCreate({ model: p.model as K8sModel, data: p.payload })
-    );
+
     try {
+      const systemNamespace = !hasInternal
+        ? odfNamespace
+        : OCS_MULTIPLE_CLUSTER_NS;
+      const nsAlreadyExists = !!(namespaces ?? []).find(
+        (ns) => getName(ns) === systemNamespace
+      );
+      systemNamespace === odfNamespace || nsAlreadyExists
+        ? await labelOCSNamespace(systemNamespace)
+        : await createOCSNamespace(systemNamespace);
+
+      const payload = rhcsPayload({
+        systemName: OCS_EXTERNAL_CR_NAME,
+        state,
+        namespace: systemNamespace,
+        inTransitStatus: encryption,
+        shouldSetCephRBDAsDefault: isRBDStorageClassDefault,
+      });
+      const promises = payload.map((p) =>
+        k8sCreate({ model: p.model as K8sModel, data: p.payload })
+      );
       await Promise.all(promises);
       navigate(redirectPath);
     } catch (e) {
@@ -203,7 +215,7 @@ const CreateCephCluster: React.FC = () => {
               spinnerAriaLabel={t('Connecting')}
               onClick={onSubmit}
               variant={ButtonVariant.primary}
-              isDisabled={isLoading || _.isEmpty(state.fileData)}
+              isDisabled={isLoading || _.isEmpty(state.fileData) || !isNsSafe}
             >
               {isLoading ? t('Connecting') : t('Connect')}
             </Button>
