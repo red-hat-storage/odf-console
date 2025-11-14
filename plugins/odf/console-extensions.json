@@ -893,6 +893,17 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": ["/odf/external-systems/san/~create"],
+      "exact": true,
+      "component": { "$codeRef": "sanCreate.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": [
         "/odf/external-systems/scale.spectrum.ibm.com~v1beta1~remotecluster/:systemName"
       ],

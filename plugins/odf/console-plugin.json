@@ -52,6 +52,7 @@
     "rhcsCreate": "@odf/core/components/create-storage-system/external-systems/CreateCephSystem/CreateCephCluster",
     "flashCreate": "@odf/core/components/create-storage-system/external-systems/CreateFlashSystem/CreateFlashCluster",
     "scaleCreate": "@odf/core/components/create-storage-system/external-systems/CreateScaleSystem/CreateScaleSystem",
+    "sanCreate": "@odf/core/components/create-storage-system/external-systems/CreateSANSystem/CreateSANSystem",
     "storageClusterDashboard": "@odf/core/components/Sections/StorageClusterSection",
     "objectStorageSection": "@odf/core/components/Sections/ObjectStorageSection",
     "overview": "@odf/core/components/overview/Overview",

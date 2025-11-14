@@ -1,6 +1,5 @@
 import { IBM_SCALE_NAMESPACE } from '@odf/core/constants';
 import {
-  ClusterKind,
   EncryptionConfigKind,
   FilesystemKind,
   RemoteClusterKind,
@@ -8,74 +7,15 @@ import {
 import {
   ConfigMapKind,
   ConfigMapModel,
-  NodeModel,
   SecretKind,
   SecretModel,
 } from '@odf/shared';
 import {
-  ClusterModel,
   EncryptionConfigModel,
   FileSystemModel,
   RemoteClusterModel,
 } from '@odf/shared/models/scale';
-import { k8sPatchByName } from '@odf/shared/utils';
-import {
-  k8sCreate,
-  K8sKind,
-  Patch,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { WizardNodeState } from '../../reducer';
-
-export const labelNodes = (nodes: WizardNodeState[]) => {
-  const labelPath = `/metadata/labels/scale.spectrum.ibm.com~1daemon-selector`;
-  const patch: Patch[] = [
-    {
-      op: 'add',
-      path: labelPath,
-      value: '',
-    },
-  ];
-  const requests: Promise<K8sKind>[] = [];
-  nodes.forEach((node) => {
-    if (!node.labels?.['scale.spectrum.ibm.com/daemon-selector/'])
-      requests.push(k8sPatchByName(NodeModel, node.name, null, patch));
-  });
-  return () => Promise.all(requests);
-};
-
-export const createScaleLocalClusterPayload = (
-  isEncryptionEnabled?: boolean
-) => {
-  const payload: ClusterKind = {
-    apiVersion: 'scale.spectrum.ibm.com/v1beta1',
-    kind: 'Cluster',
-    metadata: {
-      name: 'ibm-spectrum-scale',
-    },
-    spec: {
-      daemon: {
-        nodeSelector: {
-          'scale.spectrum.ibm.com/daemon-selector': '',
-        },
-        roles: [],
-        clusterProfile: {
-          controlSetxattrImmutableSELinux: 'yes',
-          enforceFilesetQuotaOnRoot: 'yes',
-          ignorePrefetchLUNCount: 'yes',
-          initPrefetchBuffers: '128',
-          maxblocksize: '16M',
-          prefetchPct: '25',
-          prefetchTimeout: '30',
-        },
-      },
-      license: {
-        accept: true,
-        license: isEncryptionEnabled ? 'data-management' : 'data-access',
-      },
-    },
-  };
-  return () => k8sCreate({ model: ClusterModel, data: payload });
-};
+import { k8sCreate } from '@openshift-console/dynamic-plugin-sdk';
 
 export const createUserDetailsSecretPayload = (
   name: string,
@@ -84,7 +24,7 @@ export const createUserDetailsSecretPayload = (
 ) => {
   const mySecret: SecretKind = {
     apiVersion: 'v1',
-    kind: 'Secret',
+    kind: SecretModel.kind,
     metadata: {
       name: name,
       namespace: IBM_SCALE_NAMESPACE,
@@ -104,7 +44,7 @@ export const createConfigMapPayload = (
 ) => {
   const myConfigMap: ConfigMapKind = {
     apiVersion: 'v1',
-    kind: 'ConfigMap',
+    kind: ConfigMapModel.kind,
     metadata: {
       name,
       namespace: IBM_SCALE_NAMESPACE,
