@@ -63,6 +63,7 @@ export type CustomKebabItem = {
   description?: React.ReactNode;
   component?: React.LazyExoticComponent<any>;
   redirect?: string;
+  shouldShow?: (resource) => boolean;
 };
 
 type CustomKebabItemsMap = {
@@ -187,12 +188,11 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   const customKebabItemsMap: CustomKebabItemsMap = React.useMemo(
     () =>
       customKebabItems
-        ? customKebabItems?.reduce(
-            (acc, item) => ({ ...acc, [item.key]: item }),
-            {}
-          )
+        ? customKebabItems
+            ?.filter((item) => item.shouldShow?.(resource))
+            .reduce((acc, item) => ({ ...acc, [item.key]: item }), {})
         : {},
-    [customKebabItems]
+    [customKebabItems, resource]
   );
 
   const onClick = (event?: React.SyntheticEvent<HTMLDivElement>) => {

@@ -1,0 +1,39 @@
+.odf-luns-table {
+  max-height: 400px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &__header-table {
+    flex-shrink: 0;
+    table-layout: fixed;
+    width: 100%;
+
+    .pf-v5-c-table__check {
+      width: 42px !important;
+      min-width: 42px !important;
+      padding-right: var(--pf-v5-global--spacer--xs) !important;
+    }
+  }
+
+  &__body-container {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  &__body-table {
+    table-layout: fixed;
+    width: 100%;
+    margin-top: 0;
+
+    .pf-v5-c-table__check {
+      width: 42px !important;
+      min-width: 42px !important;
+      padding-right: var(--pf-v5-global--spacer--xs) !important;
+    }
+  }
+}
+
