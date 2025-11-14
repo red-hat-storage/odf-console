@@ -17,6 +17,8 @@ import { getSubscriptionResources } from '../../modals/app-manage-policies/parse
 import { getDRResources } from '../../modals/app-manage-policies/utils/parser-utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
 
+const CONDITION_PROTECTED = 'Protected';
+
 const getMostSevereHealthStatus = (
   drStatusList: { volumeReplicationHealth: VolumeReplicationHealth }[]
 ): VolumeReplicationHealth => {
@@ -59,6 +61,10 @@ const parseDRStatusForGroup = (
     replicationType
   );
 
+  const protectedCondition = drpc?.status?.conditions?.find(
+    (condition) => condition.type === CONDITION_PROTECTED
+  );
+
   return {
     drPolicyName,
     schedulingInterval,
@@ -67,6 +73,9 @@ const parseDRStatusForGroup = (
     lastGroupSyncTime,
     volumeReplicationHealth,
     phase: drpc?.status?.phase,
+    protectedConditionStatus: protectedCondition?.status,
+    protectedConditionReason: protectedCondition?.reason,
+    protectedConditionMessage: protectedCondition?.message,
   };
 };
 
@@ -123,6 +132,9 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
           volumeLastGroupSyncTime: selectedDRPC.lastGroupSyncTime,
           phase: selectedDRPC.phase as DRPCStatus,
           isLoadedWOError: isLoadedWOError,
+          protectedConditionStatus: selectedDRPC.protectedConditionStatus,
+          protectedConditionReason: selectedDRPC.protectedConditionReason,
+          protectedConditionMessage: selectedDRPC.protectedConditionMessage,
         }
       : null;
   }, [isLoadedWOError, subscriptionResourceList]);
@@ -142,6 +154,9 @@ type DRStatusForGroup = {
   lastGroupSyncTime: string;
   volumeReplicationHealth: VolumeReplicationHealth;
   phase: string;
+  protectedConditionStatus?: string;
+  protectedConditionReason?: string;
+  protectedConditionMessage?: string;
 };
 
 export default SubscriptionParser;
