@@ -645,6 +645,22 @@
     }
   },
   {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "iam-users",
+      "name": "%plugin__odf-console~IAM Users%",
+      "contextId": "odf-object-service",
+      "after": "objectbucketclaims",
+      "href": "s3-iam",
+      "component": {
+        "$codeRef": "iamUsersListPage.default"
+      }
+    },
+    "flags": {
+      "required": ["MCG", "ODF_ADMIN"]
+    }
+  },
+  {
     "type": "console.page/route",
     "properties": {
       "path": "/odf/resource/ns/:namespace/objectbucket.io~v1alpha1~ObjectBucketClaim/:resourceName",
@@ -916,6 +932,16 @@
     },
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/s3-iam/:resourceName",
+      "exact": false,
+      "component": {
+        "$codeRef": "iamUserOverview.default"
+      }
     }
   }
 ]
