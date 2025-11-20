@@ -216,10 +216,13 @@ export const getSCAvailablePVs = (pvsData, sc: string) =>
 
 export const getCurrentDeviceSetIndex = (
   deviceSets: DeviceSet[],
+  deviceClass: string,
   selectedSCName: string
 ): number =>
   deviceSets.findIndex(
-    (ds) => ds.dataPVCTemplate.spec.storageClassName === selectedSCName
+    (ds) =>
+      ds.dataPVCTemplate.spec.storageClassName === selectedSCName &&
+      ds.deviceClass === deviceClass
   );
 
 export const createDeviceSet = (
