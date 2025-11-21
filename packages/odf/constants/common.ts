@@ -118,3 +118,5 @@ export const CREATE_SS_PAGE_URL = `/odf/resource/${referenceForModel(
 )}/create/~new`;
 
 export const FLASH_STORAGE_CLASS = 'flash-storage';
+
+export const ODF_SUBSCRIPTION_NAME = 'odf-operator';
