@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ODF_SUBSCRIPTION_NAME } from '@odf/core/constants';
 import { DEFAULT_STORAGE_NAMESPACE as FALLBACK_NAMESPACE } from '@odf/shared/constants';
 import {
   SubscriptionModel,
@@ -14,7 +15,6 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useODFNamespaceDispatch } from '../dispatchers';
 
-const ODF_SUBSCRIPTION_NAME = 'odf-operator';
 const CLIENT_SUBSCRIPTION_NAME = 'ocs-client-operator';
 
 const getSpecName = (resource: SubscriptionKind) => resource?.spec?.name;

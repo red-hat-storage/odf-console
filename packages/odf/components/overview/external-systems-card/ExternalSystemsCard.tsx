@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { SCALE_GATE_FLAG } from '@odf/core/features';
 import { FDF_FLAG } from '@odf/core/redux';
 import { RemoteClusterKind } from '@odf/core/types/scale';
 import { isClusterIgnored, isExternalCluster } from '@odf/core/utils/odf';
@@ -133,6 +134,7 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
     useWatchStorageClusters();
   const navigate = useNavigate();
 
+  const isScaleEnabled = useFlag(SCALE_GATE_FLAG);
   const isFDF = useFlag(FDF_FLAG);
 
   const cephClustersStatuses =
@@ -166,7 +168,7 @@ export const ExternalSystemsCard: React.FC<CardProps> = ({ className }) => {
         <Stack>
           <StackItem>
             <DescriptionList>
-              {isFDF && (
+              {isFDF && isScaleEnabled && (
                 <DescriptionListGroup>
                   <DescriptionListTerm>
                     {t('IBM Scale System')}

@@ -1,8 +1,13 @@
-import { StorageClassModel, StorageClusterModel } from '@odf/shared/models';
+import {
+  StorageClassModel,
+  StorageClusterModel,
+  SubscriptionModel,
+} from '@odf/shared/models';
 import { SelfSubjectAccessReviewModel } from '@odf/shared/models';
 import {
   StorageClassResourceKind,
   StorageClusterKind,
+  SubscriptionKind,
 } from '@odf/shared/types';
 import {
   SetFeatureFlag,
@@ -12,14 +17,21 @@ import {
   K8sResourceCommon,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { SECOND, RGW_PROVISIONER, NOOBAA_PROVISIONER } from './constants';
+import {
+  SECOND,
+  RGW_PROVISIONER,
+  NOOBAA_PROVISIONER,
+  ODF_SUBSCRIPTION_NAME,
+} from './constants';
 import { isExternalCluster, isClusterIgnored } from './utils';
+import { isScaleFeatureGateEnabled } from './utils/scale';
 
 export const ODF_MODEL_FLAG = 'ODF_MODEL'; // Based on the existence of StorageSystem CRD
 export const RGW_FLAG = 'RGW'; // Based on the existence of StorageClass with RGW provisioner ("openshift-storage.ceph.rook.io/bucket")
 export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaa StorageClass (which only gets created if NooBaaSystem is present)
 export const ODF_ADMIN = 'ODF_ADMIN'; // Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
 export const PROVIDER_MODE = 'PROVIDER_MODE'; // Set to "true" if user has deployed it in provider mode
+export const SCALE_GATE_FLAG = 'SCALE_GATE'; // Set to "true" if ODF operator is installed
 
 // Check the user's access to some resources.
 const ssarChecks = [
@@ -170,10 +182,36 @@ export const detectSSAR = (setFlag: SetFeatureFlag) => {
   ssarDetectors.forEach((detectorFunc) => detectorFunc(setFlag));
 };
 
+const getODFSubscription = async () => {
+  const subscriptions = (await k8sList<SubscriptionKind>({
+    model: SubscriptionModel,
+    queryParams: { ns: null },
+  })) as SubscriptionKind[];
+  return (subscriptions as SubscriptionKind[]).find(
+    (s: SubscriptionKind) => s?.spec?.name === ODF_SUBSCRIPTION_NAME
+  );
+};
+
 export const detectComponents: FeatureDetector = async (
   setFlag: SetFeatureFlag
 ) => {
   let noobaaIntervalId = null;
+  let odfSubscriptionIntervalId = null;
+
+  const odfSubscriptionDetector = async () => {
+    try {
+      const odfSubscription = await getODFSubscription();
+      if (odfSubscription) {
+        setFlag(SCALE_GATE_FLAG, isScaleFeatureGateEnabled(odfSubscription));
+        clearInterval(odfSubscriptionIntervalId);
+      }
+    } catch {
+      setFlag(SCALE_GATE_FLAG, false);
+    }
+  };
+
+  odfSubscriptionDetector();
+  odfSubscriptionIntervalId = setInterval(odfSubscriptionDetector, 15 * SECOND);
 
   // Setting flag based on presence of NooBaa StorageClass gets created only if NooBaa CR is present
   const noobaaDetector = async () => {
