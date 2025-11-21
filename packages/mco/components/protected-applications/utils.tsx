@@ -38,7 +38,11 @@ export const drpcDetailsPageRoute = (drpc: DRPlacementControlKind) =>
 export const getAlertMessages = (
   t: TFunction<string>,
   application: string,
-  navigate: NavigateFunction
+  navigate: NavigateFunction,
+  relocatedApp?: string,
+  relocatedCluster?: string,
+  failedOverApp?: string,
+  failedOverCluster?: string
 ): AlertProps[] => [
   ...(!!application
     ? [
@@ -57,6 +61,48 @@ export const getAlertMessages = (
           ),
           isInline: true,
           key: 'enrolled_success',
+        },
+      ]
+    : []),
+  ...(!!relocatedApp && !!relocatedCluster
+    ? [
+        {
+          variant: AlertVariant.success,
+          title: t('{{appName}} relocated', { appName: relocatedApp }),
+          children: t(
+            'Application "{{appName}}" is now deployed on cluster {{cluster}}',
+            { appName: relocatedApp, cluster: relocatedCluster }
+          ),
+          actionClose: (
+            <AlertActionCloseButton
+              onClose={() =>
+                navigate(`${DR_BASE_ROUTE}/protected-applications`)
+              }
+            />
+          ),
+          isInline: true,
+          key: 'relocated_success',
+        },
+      ]
+    : []),
+  ...(!!failedOverApp && !!failedOverCluster
+    ? [
+        {
+          variant: AlertVariant.success,
+          title: t('{{appName}} failed over', { appName: failedOverApp }),
+          children: t(
+            'Application "{{appName}}" is now deployed on cluster {{cluster}}',
+            { appName: failedOverApp, cluster: failedOverCluster }
+          ),
+          actionClose: (
+            <AlertActionCloseButton
+              onClose={() =>
+                navigate(`${DR_BASE_ROUTE}/protected-applications`)
+              }
+            />
+          ),
+          isInline: true,
+          key: 'failedover_success',
         },
       ]
     : []),

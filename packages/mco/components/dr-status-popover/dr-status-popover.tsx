@@ -3,6 +3,7 @@ import {
   DRPCStatus,
   drStatusPopoverDocs,
   VolumeReplicationHealth,
+  DRActionType,
 } from '@odf/mco/constants';
 import { Progression } from '@odf/mco/types';
 import { formatTime } from '@odf/shared/details-page/datetime';
@@ -28,6 +29,7 @@ import {
   Text,
 } from '@patternfly/react-core';
 import { InProgressIcon } from '@patternfly/react-icons';
+import { ProgressionTrainView } from './progression-train-view';
 import './dr-status-popover.scss';
 
 export type DRStatusProps = {
@@ -42,16 +44,45 @@ export type DRStatusProps = {
   phase: DRPCStatus;
   isCleanupRequired?: boolean;
   isLoadedWOError: boolean;
+  progression?: string;
+  applicationName?: string;
+  actionStartTime?: string;
+  progressionDetails?: string[];
+  action?: DRActionType;
 };
 
 enum DRStatus {
   WaitOnUserToCleanUp = Progression.WaitOnUserToCleanUp,
   FailingOver = DRPCStatus.FailingOver,
   Relocating = DRPCStatus.Relocating,
+  FailedOver = DRPCStatus.FailedOver,
+  Relocated = DRPCStatus.Relocated,
   Critical = VolumeReplicationHealth.CRITICAL,
   Warning = VolumeReplicationHealth.WARNING,
   Healthy = VolumeReplicationHealth.HEALTHY,
 }
+
+const shouldShowSyncDetails = ({
+  status,
+  volumeHealth,
+  kubeHealth,
+}: {
+  status: DRStatus;
+  volumeHealth: VolumeReplicationHealth;
+  kubeHealth?: VolumeReplicationHealth;
+}): boolean => {
+  if ([DRStatus.Healthy, DRStatus.Warning, DRStatus.Critical].includes(status))
+    return true;
+
+  if ([DRStatus.FailedOver, DRStatus.Relocated].includes(status)) {
+    const isHealthy =
+      volumeHealth === VolumeReplicationHealth.HEALTHY &&
+      (!kubeHealth || kubeHealth === VolumeReplicationHealth.HEALTHY);
+    return !isHealthy;
+  }
+
+  return false;
+};
 
 const getStatusIcon = (status?: DRStatus): JSX.Element => {
   const iconMap = {
@@ -60,6 +91,8 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.Healthy]: <GreenCheckCircleIcon />,
     [DRStatus.FailingOver]: <InProgressIcon />,
     [DRStatus.Relocating]: <InProgressIcon />,
+    [DRStatus.FailedOver]: <GreenCheckCircleIcon />,
+    [DRStatus.Relocated]: <GreenCheckCircleIcon />,
     [DRStatus.WaitOnUserToCleanUp]: <RedExclamationCircleIcon />,
   };
 
@@ -181,6 +214,14 @@ const statusHelpLinks = (t: TFunction) => ({
     href: drStatusPopoverDocs(mcoDocVersion).RELOCATION,
     message: t('Learn about different relocate status'),
   },
+  [DRStatus.FailedOver]: {
+    href: drStatusPopoverDocs(mcoDocVersion).FAILOVER,
+    message: t('Learn about different failover status'),
+  },
+  [DRStatus.Relocated]: {
+    href: drStatusPopoverDocs(mcoDocVersion).RELOCATION,
+    message: t('Learn about different relocate status'),
+  },
   [DRStatus.WaitOnUserToCleanUp]: {
     href: drStatusPopoverDocs(mcoDocVersion).CLEANUP,
     message: t('How to clean up resources?'),
@@ -248,23 +289,59 @@ const createStatus = (
   status,
 });
 
+const shouldShowActionStatus = ({
+  phase,
+  progression,
+  volumeReplicationHealth,
+  kubeObjectReplicationHealth,
+}: {
+  phase: DRPCStatus;
+  progression?: Progression | string;
+  volumeReplicationHealth: VolumeReplicationHealth;
+  kubeObjectReplicationHealth?: VolumeReplicationHealth;
+}): boolean => {
+  const isCompleted = progression === Progression.Completed;
+  const isHealthy =
+    volumeReplicationHealth === VolumeReplicationHealth.HEALTHY &&
+    (!kubeObjectReplicationHealth ||
+      kubeObjectReplicationHealth === VolumeReplicationHealth.HEALTHY);
+
+  if ([DRPCStatus.FailedOver, DRPCStatus.Relocated].includes(phase)) {
+    return !(isCompleted && isHealthy);
+  }
+
+  return [DRPCStatus.FailingOver, DRPCStatus.Relocating].includes(phase);
+};
+
 const getDRStatus = ({
   isCleanupRequired,
   phase,
   volumeReplicationHealth,
   kubeObjectReplicationHealth,
+  progression,
 }: {
   isCleanupRequired: boolean;
   phase: DRPCStatus;
   volumeReplicationHealth: VolumeReplicationHealth;
   kubeObjectReplicationHealth: VolumeReplicationHealth;
+  progression?: Progression | string;
 }): DRStatus => {
   // Check if cleanup is required — this has the highest priority
   if (isCleanupRequired) return DRStatus.WaitOnUserToCleanUp;
 
-  // Handle failover or relocation phases directly
-  if (phase === DRPCStatus.FailingOver) return DRStatus.FailingOver;
-  if (phase === DRPCStatus.Relocating) return DRStatus.Relocating;
+  if (
+    shouldShowActionStatus({
+      phase,
+      progression,
+      volumeReplicationHealth,
+      kubeObjectReplicationHealth,
+    })
+  ) {
+    if (phase === DRPCStatus.FailingOver) return DRStatus.FailingOver;
+    if (phase === DRPCStatus.Relocating) return DRStatus.Relocating;
+    if (phase === DRPCStatus.FailedOver) return DRStatus.FailedOver;
+    if (phase === DRPCStatus.Relocated) return DRStatus.Relocated;
+  }
 
   // Combine health statuses into an array for easier checks
   const replicationHealths = [
@@ -308,15 +385,26 @@ const getDRStatusDetails = ({
   phase,
   volumeReplicationHealth,
   kubeObjectReplicationHealth,
+  progression,
   t,
   primaryCluster,
   targetCluster,
+}: {
+  isCleanupRequired: boolean;
+  phase: DRPCStatus;
+  volumeReplicationHealth: VolumeReplicationHealth;
+  kubeObjectReplicationHealth: VolumeReplicationHealth;
+  progression?: Progression | string;
+  t: TFunction;
+  primaryCluster: string;
+  targetCluster: string;
 }): StatusContent => {
   const drStatus = getDRStatus({
     isCleanupRequired,
     phase,
     volumeReplicationHealth,
     kubeObjectReplicationHealth,
+    progression,
   });
 
   switch (drStatus) {
@@ -393,7 +481,7 @@ const getDRStatusDetails = ({
     case DRStatus.FailingOver:
       return createStatus(
         DRStatus.FailingOver,
-        t('Failover in progress'),
+        t('Failing over application to {{targetCluster}}', { targetCluster }),
         t('Deploying the application on the target cluster.'),
         'dr-status-failover'
       );
@@ -401,10 +489,58 @@ const getDRStatusDetails = ({
     case DRStatus.Relocating:
       return createStatus(
         DRStatus.Relocating,
-        t('Relocate in progress'),
+        t('Relocating application to {{targetCluster}}', { targetCluster }),
         t('Deploying the application on the target cluster.'),
         'dr-status-relocating'
       );
+
+    case DRStatus.FailedOver:
+    case DRStatus.Relocated: {
+      const isHealthy =
+        volumeReplicationHealth === VolumeReplicationHealth.HEALTHY &&
+        (!kubeObjectReplicationHealth ||
+          kubeObjectReplicationHealth === VolumeReplicationHealth.HEALTHY);
+
+      const detailMessage = !isHealthy
+        ? t(
+            'Replication health is {{health}}. Review sync details below for more information.',
+            {
+              health:
+                volumeReplicationHealth === VolumeReplicationHealth.CRITICAL
+                  ? t('Critical')
+                  : t('Warning'),
+            }
+          )
+        : null;
+
+      const completionTitle =
+        drStatus === DRStatus.FailedOver
+          ? t('Failover complete')
+          : t('Relocation complete');
+
+      const completionMessage =
+        drStatus === DRStatus.FailedOver
+          ? t('Application is now running on {{targetCluster}}.', {
+              targetCluster,
+            })
+          : t('Application successfully relocated to {{targetCluster}}.', {
+              targetCluster,
+            });
+
+      return createStatus(
+        drStatus,
+        completionTitle,
+        detailMessage ? (
+          <>
+            <Text>{completionMessage}</Text>
+            <Text className="pf-v5-u-mt-sm">{detailMessage}</Text>
+          </>
+        ) : (
+          completionMessage
+        ),
+        isHealthy ? 'dr-status-healthy' : 'dr-status-warning'
+      );
+    }
 
     default:
       return createStatus(
@@ -430,6 +566,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
         volumeReplicationHealth: disasterRecoveryStatus.volumeReplicationHealth,
         kubeObjectReplicationHealth:
           disasterRecoveryStatus.kubeObjectReplicationHealth,
+        progression: disasterRecoveryStatus.progression,
         t,
         primaryCluster: disasterRecoveryStatus.primaryCluster,
         targetCluster: disasterRecoveryStatus.targetCluster,
@@ -442,6 +579,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
   };
 
   const statusLink = statusHelpLinks(t)[status];
+  const cleanupDocHref = drStatusPopoverDocs(mcoDocVersion).CLEANUP;
 
   return (
     disasterRecoveryStatus.isLoadedWOError && (
@@ -468,27 +606,54 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
             className="dr-status-popover__popover-body"
             data-test-id="popover-body"
           >
-            {message && (
-              <Text
-                className="dr-status-popover__description"
-                data-test-id="popover-description"
-              >
-                {message}
-              </Text>
-            )}
-            {[DRStatus.FailingOver, DRStatus.Relocating].includes(status) && (
-              <div className="dr-status-popover__cluster-details">
-                <ClusterDetails
-                  primaryCluster={disasterRecoveryStatus.primaryCluster}
-                  targetCluster={disasterRecoveryStatus.targetCluster}
-                  status={status}
-                />
-              </div>
+            {[DRStatus.FailingOver, DRStatus.Relocating].includes(status) &&
+            disasterRecoveryStatus.progression &&
+            disasterRecoveryStatus.action ? (
+              <ProgressionTrainView
+                action={disasterRecoveryStatus.action}
+                currentProgression={disasterRecoveryStatus.progression}
+                targetCluster={disasterRecoveryStatus.targetCluster}
+                applicationName={
+                  disasterRecoveryStatus.applicationName || 'Application'
+                }
+                actionStartTime={disasterRecoveryStatus.actionStartTime}
+                progressionDetails={disasterRecoveryStatus.progressionDetails}
+                isCleanupRequired={disasterRecoveryStatus.isCleanupRequired}
+                primaryCluster={disasterRecoveryStatus.primaryCluster}
+                learnMoreHref={cleanupDocHref}
+              />
+            ) : (
+              <>
+                {message && (
+                  <Text
+                    className="dr-status-popover__description"
+                    data-test-id="popover-description"
+                  >
+                    {message}
+                  </Text>
+                )}
+                {[
+                  DRStatus.FailingOver,
+                  DRStatus.Relocating,
+                  DRStatus.FailedOver,
+                  DRStatus.Relocated,
+                ].includes(status) && (
+                  <div className="dr-status-popover__cluster-details">
+                    <ClusterDetails
+                      primaryCluster={disasterRecoveryStatus.primaryCluster}
+                      targetCluster={disasterRecoveryStatus.targetCluster}
+                      status={status}
+                    />
+                  </div>
+                )}
+              </>
             )}
 
-            {[DRStatus.Healthy, DRStatus.Warning, DRStatus.Critical].includes(
-              status
-            ) && (
+            {shouldShowSyncDetails({
+              status,
+              volumeHealth: disasterRecoveryStatus.volumeReplicationHealth,
+              kubeHealth: disasterRecoveryStatus.kubeObjectReplicationHealth,
+            }) && (
               <>
                 <div className="dr-status-popover__sync-details">
                   <SyncDetails
@@ -516,7 +681,6 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
                 </div>
               </>
             )}
-
             {statusLink && (
               <ViewDocumentation
                 doclink={statusLink.href}
