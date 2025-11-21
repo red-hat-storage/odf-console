@@ -887,7 +887,7 @@
       "component": { "$codeRef": "scaleCreate.default" }
     },
     "flags": {
-      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG"]
+      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG", "SCALE_GATE"]
     }
   },
   {
@@ -900,7 +900,7 @@
       "component": { "$codeRef": "scaleDashboard.default" }
     },
     "flags": {
-      "required": ["FDF_FLAG"]
+      "required": ["FDF_FLAG", "SCALE_GATE"]
     }
   },
   {

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { isScaleFeatureGateEnabled } from '@odf/core/utils/scale';
 import { DEFAULT_STORAGE_NAMESPACE as FALLBACK_NAMESPACE } from '@odf/shared/constants';
 import {
   SubscriptionModel,
@@ -14,20 +15,23 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import { useODFNamespaceDispatch } from '../dispatchers';
 
-const ODF_SUBSCRIPTION_NAME = 'odf-operator';
 const CLIENT_SUBSCRIPTION_NAME = 'ocs-client-operator';
 
 const getSpecName = (resource: SubscriptionKind) => resource?.spec?.name;
 
+const ODF_SUBSCRIPTION_NAME = 'odf-operator';
+
 export const FDF_FLAG = 'FDF_FLAG'; // Based on whether installed operator is ODF or FDF
+export const SCALE_GATE_FLAG = 'SCALE_GATE'; // Set to "true" if ODF operator is installed
 
 const namespaceDetector = async (
   maxAttempt = 5
-): Promise<[string, boolean]> => {
+): Promise<[string, boolean, boolean]> => {
   let attempt = 0;
   let ns = null;
   let isFDF = false;
   let shouldRetry = true;
+  let isScaleFeatureGateEnabledFlag = false;
 
   while (shouldRetry) {
     shouldRetry = false;
@@ -57,6 +61,9 @@ const namespaceDetector = async (
         isFDF = !['redhat', 'red hat'].includes(
           csv?.spec?.provider?.name?.toLowerCase()
         );
+        isScaleFeatureGateEnabledFlag = isFDF
+          ? isScaleFeatureGateEnabled(odfSubscription)
+          : false;
       } else {
         const clientSubscription = subscriptions.find(
           (sub) => getSpecName(sub) === CLIENT_SUBSCRIPTION_NAME
@@ -70,7 +77,7 @@ const namespaceDetector = async (
     }
   }
 
-  return [ns, isFDF];
+  return [ns, isFDF, isScaleFeatureGateEnabledFlag];
 };
 
 export const useODFNamespace = (setFlag: SetFeatureFlag): void => {
@@ -78,13 +85,14 @@ export const useODFNamespace = (setFlag: SetFeatureFlag): void => {
 
   React.useEffect(() => {
     namespaceDetector()
-      .then(([ns, isFDF]) => {
+      .then(([ns, isFDF, isScaleFeatureGateEnabledFlag]) => {
         dispatch({
           odfNamespace: ns,
           isODFNsLoaded: true,
           odfNsLoadError: undefined,
         });
         setFlag(FDF_FLAG, isFDF);
+        setFlag(SCALE_GATE_FLAG, isScaleFeatureGateEnabledFlag);
       })
       /**
        * ODF can be installed in any namespace, still recommended namespace is "openshift-storage".
