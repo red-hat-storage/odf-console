@@ -51,6 +51,10 @@
     &.dr-status-healthy {
       color: var(--pf-v5-global--success-color--100);
     }
+
+    &.dr-status-protecting {
+      color: var(--pf-v5-global--info-color--100);
+    }
   }
 
   &__popover-body {

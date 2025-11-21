@@ -11,6 +11,7 @@ import {
   getPrimaryClusterName,
   getReplicationHealth,
   getReplicationType,
+  getProtectedCondition,
 } from '@odf/mco/utils';
 import { getNamespace, ApplicationKind } from '@odf/shared';
 import { getSubscriptionResources } from '../../modals/app-manage-policies/parsers/subscription-parser';
@@ -59,6 +60,8 @@ const parseDRStatusForGroup = (
     replicationType
   );
 
+  const protectedCondition = getProtectedCondition(drpc);
+
   return {
     drPolicyName,
     schedulingInterval,
@@ -67,6 +70,7 @@ const parseDRStatusForGroup = (
     lastGroupSyncTime,
     volumeReplicationHealth,
     phase: drpc?.status?.phase,
+    protectedCondition,
   };
 };
 
@@ -123,6 +127,7 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
           volumeLastGroupSyncTime: selectedDRPC.lastGroupSyncTime,
           phase: selectedDRPC.phase as DRPCStatus,
           isLoadedWOError: isLoadedWOError,
+          protectedCondition: selectedDRPC.protectedCondition,
         }
       : null;
   }, [isLoadedWOError, subscriptionResourceList]);
@@ -142,6 +147,7 @@ type DRStatusForGroup = {
   lastGroupSyncTime: string;
   volumeReplicationHealth: VolumeReplicationHealth;
   phase: string;
+  protectedCondition?: { status?: string; reason?: string; message?: string };
 };
 
 export default SubscriptionParser;

@@ -60,6 +60,9 @@ export enum DRReplicationState {
   UnknownState = 'Unknown',
 }
 
+// DRPC condition types
+export const CONDITION_PROTECTED = 'Protected';
+
 // DRPolicy sync interval unit
 export enum TimeUnits {
   Minutes = 'm',
