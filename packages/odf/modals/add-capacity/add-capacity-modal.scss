@@ -56,3 +56,13 @@
 .ceph-add-capacity__sc-dropdown--hide {
   display: none;
 }
+
+.add-capacity{
+  width: 17.5rem;
+  color: var(--pf-v5-global--Color--200);
+
+  &--selected{
+    width: 17.5rem;
+    color: var(--pf-v5-global--Color--100);
+  }
+}
