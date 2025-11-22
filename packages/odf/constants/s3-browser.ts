@@ -1,8 +1,14 @@
+import { S3ProviderType } from '../types';
+
 export const NOOBAA_ADMIN_SECRET = 'noobaa-admin';
-export const NOOBAA_CLIENT_SECRET = 'noobaa-remote-join-secret';
 export const NOOBAA_S3_ROUTE = 's3';
 export const NOOBAA_ACCESS_KEY_ID = 'AWS_ACCESS_KEY_ID';
 export const NOOBAA_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY';
+const NOOBAA_COSU_NAME = 'noobaa-ceph-objectstore-user';
+export const getNoobaaCOSUAdminSecret = (clusterName: string) =>
+  `rook-ceph-object-user-${clusterName}-cephobjectstore-${NOOBAA_COSU_NAME}`;
+export const RGW_ACCESS_KEY_ID = 'AccessKey';
+export const RGW_SECRET_ACCESS_KEY = 'SecretKey';
 
 export const DELIMITER = '/';
 export const PREFIX = 'prefix';
@@ -16,7 +22,12 @@ export const BUCKET_NAME_MAX_LENGTH = 63;
 export const BUCKET_NAME_MIN_LENGTH = 3;
 
 export const BUCKETS_BASE_ROUTE = '/odf/object-storage/buckets';
-export const BUCKET_CREATE_PAGE_PATH = '/odf/object-storage/create-bucket';
+export const getBucketOverviewBaseRoute = (
+  bucketName: string,
+  s3Provider: S3ProviderType
+) => `/odf/object-storage/${s3Provider}/buckets/${bucketName}`;
+export const getBucketCreatePageRoute = (s3Provider: string) =>
+  `/odf/object-storage/${s3Provider}/create-bucket`;
 export const PERMISSIONS_ROUTE = 'permissions';
 export const MANAGEMENT_ROUTE = 'management';
 
@@ -43,3 +54,9 @@ export const BUCKET_PUBLIC_ACCESS_BLOCK_CACHE_KEY_SUFFIX =
 // Bookmarking / favorites
 export const BUCKET_BOOKMARKS_USER_SETTINGS_KEY =
   'odf-console-bucket-bookmarks';
+
+// Non-admin credentials (Secret name and namespace)
+export const S3_CREDENTIALS_SESSION_STORE_KEY =
+  'odf-console-s3-credentials-session';
+export const S3_CREDENTIALS_LOCAL_STORE_KEY =
+  'odf-console-s3-credentials-local';

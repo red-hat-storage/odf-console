@@ -38,17 +38,6 @@
     }
   },
   {
-    "type": "console.flag",
-    "properties": {
-      "handler": {
-        "$codeRef": "features.detectRGW"
-      }
-    },
-    "flags": {
-      "disallowed": ["ODF_MODEL"]
-    }
-  },
-  {
     "type": "console.redux-reducer",
     "properties": {
       "scope": "odfConsoleRedux",

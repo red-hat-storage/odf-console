@@ -1,6 +1,9 @@
 FROM docker.io/library/node:22.17 AS builder
 
 ARG PLUGIN=odf
+ARG OPENSHIFT_CI=true
+
+ENV OPENSHIFT_CI=${OPENSHIFT_CI}
 
 WORKDIR /app
 COPY . /app
