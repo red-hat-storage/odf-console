@@ -13,20 +13,20 @@ import {
 } from '@odf/shared';
 import validationRegEx from '@odf/shared/utils/validation';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownToggle,
-} from '@patternfly/react-core/deprecated';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import * as Yup from 'yup';
 import {
   Checkbox,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
   FormGroup,
   FormHelperText,
   HelperText,
   HelperTextItem,
+  MenuToggle,
+  MenuToggleElement,
   TextInputTypes,
 } from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
@@ -153,6 +153,35 @@ const StorageClassForm: React.FC<StorageClassFormProps> = ({
     ));
   }, [dispatch]);
 
+  const reclaimPolicyToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      id="reclaim-policy-dropdown"
+      data-test="reclaim-policy-dropdown"
+      onClick={() => setIsReclaimOpen(!isReclaimOpen)}
+      isExpanded={isReclaimOpen}
+      icon={<CaretDownIcon />}
+      isFullWidth
+    >
+      {state.storageClassDetails.reclaimPolicy || t('Select reclaim policy')}
+    </MenuToggle>
+  );
+
+  const volumeBindingModeToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      id="volume-binding-mode-dropdown"
+      data-test="volume-binding-mode-dropdown"
+      onClick={() => setIsVolumeBindingOpen(!isVolumeBindingOpen)}
+      isExpanded={isVolumeBindingOpen}
+      icon={<CaretDownIcon />}
+      isFullWidth
+    >
+      {state.storageClassDetails.volumeBindingMode ||
+        t('Select VolumeBinding Mode')}
+    </MenuToggle>
+  );
+
   return (
     <div className="odf-create-storage-class__form">
       <div className="form-group attachstorage-storageclass-dropdown__input">
@@ -164,22 +193,14 @@ const StorageClassForm: React.FC<StorageClassFormProps> = ({
         </label>
         <Dropdown
           className="dropdown--full-width"
-          toggle={
-            <DropdownToggle
-              id="reclaim-policy-dropdown"
-              data-test="reclaim-policy-dropdown"
-              onToggle={() => setIsReclaimOpen(!isReclaimOpen)}
-              toggleIndicator={CaretDownIcon}
-            >
-              {state.storageClassDetails.reclaimPolicy ||
-                t('Select reclaim policy')}
-            </DropdownToggle>
-          }
           isOpen={isReclaimOpen}
-          dropdownItems={reclaimPolicyDropdownItems}
           onSelect={() => setIsReclaimOpen(false)}
-          id="reclaim-policy-dropdown"
-        />
+          onOpenChange={(open: boolean) => setIsReclaimOpen(open)}
+          toggle={reclaimPolicyToggle}
+          popperProps={{ width: 'trigger' }}
+        >
+          <DropdownList>{reclaimPolicyDropdownItems}</DropdownList>
+        </Dropdown>
         <FormHelperText>
           <HelperText id="reclaim-policy-helper">
             <HelperTextItem>
@@ -199,22 +220,14 @@ const StorageClassForm: React.FC<StorageClassFormProps> = ({
         </label>
         <Dropdown
           className="dropdown--full-width"
-          toggle={
-            <DropdownToggle
-              id="volume-binding-mode-dropdown"
-              data-test="volume-binding-mode-dropdown"
-              onToggle={() => setIsVolumeBindingOpen(!isVolumeBindingOpen)}
-              toggleIndicator={CaretDownIcon}
-            >
-              {state.storageClassDetails.volumeBindingMode ||
-                t('Select VolumeBinding Mode')}
-            </DropdownToggle>
-          }
           isOpen={isVolumeBindingOpen}
-          dropdownItems={volumeBindingModeDropdownItems}
           onSelect={() => setIsVolumeBindingOpen(false)}
-          id="volume-binding-mode-dropdown"
-        />
+          onOpenChange={(open: boolean) => setIsVolumeBindingOpen(open)}
+          toggle={volumeBindingModeToggle}
+          popperProps={{ width: 'trigger' }}
+        >
+          <DropdownList>{volumeBindingModeDropdownItems}</DropdownList>
+        </Dropdown>
         <FormHelperText>
           <HelperText id="volume-binding-helper">
             <HelperTextItem>

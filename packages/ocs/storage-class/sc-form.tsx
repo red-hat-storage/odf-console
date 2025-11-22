@@ -64,12 +64,6 @@ import {
   useModal,
   WatchK8sResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownToggle,
-  DropdownSeparator,
-} from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import {
   Alert,
@@ -80,8 +74,14 @@ import {
   Form,
   Radio,
   ActionGroup,
+  Dropdown,
+  DropdownItem,
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
+  Divider,
 } from '@patternfly/react-core';
-import { AddCircleOIcon, CaretDownIcon } from '@patternfly/react-icons';
+import { AddCircleOIcon } from '@patternfly/react-icons';
 import {
   ClusterStatus,
   PoolState,
@@ -180,7 +180,7 @@ const getPoolDropdownItems = (
           {t('Create new storage pool')}
         </span>
       </DropdownItem>,
-      <DropdownSeparator key="separator" />,
+      <Divider key="separator" />,
     ]
   );
 
@@ -358,6 +358,19 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
   const poolData = getStoragePoolsFromFilesystem(fsData) || [];
   const existingNames = getExistingFsPoolNames(fsData);
 
+  const poolToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      id="pool-dropdown-id"
+      data-test="pool-dropdown-toggle"
+      onClick={() => setOpen(!isOpen)}
+      isExpanded={isOpen}
+      isFullWidth
+    >
+      {parameterValue || t('Select a Pool')}
+    </MenuToggle>
+  );
+
   if (areFlagsSafe && isLoaded && !loadError) {
     if (!isExternal && fsDataLoaded && !fsDataLoadError) {
       return (
@@ -366,33 +379,27 @@ export const CephFsPoolComponent: React.FC<ProvisionerProps> = ({
             {t('Storage Pool')}
           </label>
           <Dropdown
-            className="dropdown--full-width"
-            toggle={
-              <DropdownToggle
-                id="pool-dropdown-id"
-                data-test="pool-dropdown-toggle"
-                onToggle={() => setOpen(!isOpen)}
-                toggleIndicator={CaretDownIcon}
-              >
-                {parameterValue || t('Select a Pool')}
-              </DropdownToggle>
-            }
             isOpen={isOpen}
-            dropdownItems={getPoolDropdownItems(
-              poolData,
-              cephCluster,
-              handleDropdownChange,
-              onPoolCreation,
-              launchModal,
-              t,
-              '',
-              PoolType.FILESYSTEM,
-              existingNames,
-              filesystemName
-            )}
             onSelect={() => setOpen(false)}
-            id="ocs-storage-pool"
-          />
+            onOpenChange={(open: boolean) => setOpen(open)}
+            toggle={poolToggle}
+            popperProps={{ width: 'trigger' }}
+          >
+            <DropdownList>
+              {getPoolDropdownItems(
+                poolData,
+                cephCluster,
+                handleDropdownChange,
+                onPoolCreation,
+                launchModal,
+                t,
+                '',
+                PoolType.FILESYSTEM,
+                existingNames,
+                filesystemName
+              )}
+            </DropdownList>
+          </Dropdown>
           <span className="help-block">
             {t('Storage pool into which volume data shall be stored')}
           </span>
@@ -503,6 +510,19 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
 
   setSessionStorageSystemNamespace(systemNamespace);
 
+  const blockPoolToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      id="pool-dropdown-id"
+      data-test="pool-dropdown-toggle"
+      onClick={() => setOpen(!isOpen)}
+      isExpanded={isOpen}
+      isFullWidth
+    >
+      {poolName || t('Select a Pool')}
+    </MenuToggle>
+  );
+
   if (areFlagsSafe && !isExternal) {
     return (
       <>
@@ -517,32 +537,26 @@ export const BlockPoolResourceComponent: React.FC<ProvisionerProps> = ({
                 {t('Storage Pool')}
               </label>
               <Dropdown
-                className="dropdown--full-width"
-                toggle={
-                  <DropdownToggle
-                    id="pool-dropdown-id"
-                    data-test="pool-dropdown-toggle"
-                    onToggle={() => setOpen(!isOpen)}
-                    toggleIndicator={CaretDownIcon}
-                  >
-                    {poolName || t('Select a Pool')}
-                  </DropdownToggle>
-                }
                 isOpen={isOpen}
-                dropdownItems={getPoolDropdownItems(
-                  poolData,
-                  cephCluster,
-                  handleDropdownChange,
-                  onPoolCreation,
-                  launchModal,
-                  t,
-                  defaultDeviceClass,
-                  PoolType.BLOCK,
-                  existingNames
-                )}
                 onSelect={() => setOpen(false)}
-                id="ocs-storage-pool"
-              />
+                onOpenChange={(open: boolean) => setOpen(open)}
+                toggle={blockPoolToggle}
+                popperProps={{ width: 'trigger' }}
+              >
+                <DropdownList>
+                  {getPoolDropdownItems(
+                    poolData,
+                    cephCluster,
+                    handleDropdownChange,
+                    onPoolCreation,
+                    launchModal,
+                    t,
+                    defaultDeviceClass,
+                    PoolType.BLOCK,
+                    existingNames
+                  )}
+                </DropdownList>
+              </Dropdown>
               <span className="help-block">
                 {t('Storage pool into which volume data shall be stored')}
               </span>
@@ -748,50 +762,58 @@ const ExistingKMSDropDown: React.FC<ExistingKMSDropDownProps> = ({
     );
   }, [provider, csiConfigMap, secrets, setEncryptionId]);
 
+  const providerToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      id="kms-provider-dropdown-id"
+      data-test="kms-provider-dropdown-toggle"
+      onClick={() => setProviderOpen(!isProviderOpen)}
+      isExpanded={isProviderOpen}
+      isDisabled={isLengthUnity(kmsProviderDropdownItems)}
+      isFullWidth
+    >
+      {SupportedProviders[provider].group}
+    </MenuToggle>
+  );
+
+  const serviceToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      id="kms-service-dropdown-id"
+      data-test="kms-service-dropdown-toggle"
+      onClick={() => setServiceOpen(!isServiceOpen)}
+      isExpanded={isServiceOpen}
+      isFullWidth
+    >
+      {serviceName || t('Select an existing connection')}
+    </MenuToggle>
+  );
+
   return (
     <div className="ocs-storage-class-encryption__form-dropdown--padding">
       <div className="form-group">
         <label htmlFor="kms-provider">{t('Provider')}</label>
         <Dropdown
-          className="dropdown dropdown--full-width"
-          toggle={
-            <DropdownToggle
-              id="kms-provider-dropdown-id"
-              data-test="kms-provider-dropdown-toggle"
-              onToggle={() => setProviderOpen(!isProviderOpen)}
-              toggleIndicator={CaretDownIcon}
-              isDisabled={isLengthUnity(kmsProviderDropdownItems)}
-            >
-              {SupportedProviders[provider].group}
-            </DropdownToggle>
-          }
           isOpen={isProviderOpen}
-          dropdownItems={kmsProviderDropdownItems}
           onSelect={() => setProviderOpen(false)}
-          id="kms-provider"
-          data-test="kms-provider-dropdown"
-        />
+          onOpenChange={(open: boolean) => setProviderOpen(open)}
+          toggle={providerToggle}
+          popperProps={{ width: 'trigger' }}
+        >
+          <DropdownList>{kmsProviderDropdownItems}</DropdownList>
+        </Dropdown>
       </div>
       <div className="form-group">
         <label htmlFor="kms-service">{t('Key service')}</label>
         <Dropdown
-          className="dropdown dropdown--full-width"
-          toggle={
-            <DropdownToggle
-              id="kms-service-dropdown-id"
-              data-test="kms-service-dropdown-toggle"
-              onToggle={() => setServiceOpen(!isServiceOpen)}
-              toggleIndicator={CaretDownIcon}
-            >
-              {serviceName || t('Select an existing connection')}
-            </DropdownToggle>
-          }
           isOpen={isServiceOpen}
-          dropdownItems={kmsServiceDropdownItems}
           onSelect={() => setServiceOpen(false)}
-          id="kms-service"
-          data-test="kms-service-dropdown"
-        />
+          onOpenChange={(open: boolean) => setServiceOpen(open)}
+          toggle={serviceToggle}
+          popperProps={{ width: 'trigger' }}
+        >
+          <DropdownList>{kmsServiceDropdownItems}</DropdownList>
+        </Dropdown>
       </div>
     </div>
   );

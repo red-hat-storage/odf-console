@@ -8,9 +8,11 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Dropdown,
-  DropdownToggle,
   DropdownItem,
-} from '@patternfly/react-core/deprecated';
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
+} from '@patternfly/react-core';
 import {
   Flex,
   FlexItem,
@@ -149,19 +151,14 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
     });
   };
 
-  const onToggle = (isOpenFlag: boolean) => {
-    setOpen(isOpenFlag);
-  };
-
   const dropdownItems = React.useMemo(
     () =>
       managedClusterList.map((managedCluster, index) => (
         <DropdownItem
-          id={index.toString()}
           data-test={`target-cluster-dropdown-item-${index}`}
           key={`selected-target-cluster-${getName(managedCluster)}`}
-          value={getName(managedCluster)}
-          component="button"
+          value={index}
+          data-name={getName(managedCluster)}
         >
           {getName(managedCluster)}
         </DropdownItem>
@@ -169,10 +166,12 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
     [managedClusterList]
   );
 
-  const onSelect = (e) => {
+  const onSelect = (
+    _event?: React.MouseEvent<Element, MouseEvent>,
+    selection?: string | number
+  ) => {
+    const managedCluster = managedClusterList?.[selection as number];
     // Select a target cluster to intiate failover or relocate
-    const managedCluster = managedClusterList?.[e.currentTarget.id];
-
     // Check ACM managed cluster is available or not
     const condition = getAvailableCondition(managedCluster);
     let isClusterAvailable = !!condition;
@@ -229,44 +228,50 @@ export const TargetClusterSelector: React.FC<TargetClusterSelectorProps> = ({
     setOpen(false);
   };
 
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      className="mco-subs-dr-action-body__dropdown--width"
+      data-test="target-cluster-dropdown-toggle"
+      isDisabled={
+        !drClusterList.length ||
+        !managedClusterList.length ||
+        state.modalFooterStatus === ModalFooterStatus.FINISHED ||
+        !!state.errorMessage.managedClustersErrorMessage
+      }
+      isExpanded={isOpen}
+      onClick={() => setOpen((prev) => !prev)}
+    >
+      {!!Object.keys(state.selectedTargetCluster).length ? (
+        <Flex>
+          <FlexItem className="mco-subs-dr-action__target-cluster--width">
+            {state.selectedTargetCluster?.clusterInfo?.clusterName}
+          </FlexItem>
+          <FlexItem>
+            <TargetClusterStatus
+              isClusterAvailable={
+                state.selectedTargetCluster?.isClusterAvailable
+              }
+            />
+          </FlexItem>
+        </Flex>
+      ) : (
+        t('Select')
+      )}
+    </MenuToggle>
+  );
+
   return (
     <>
       <Dropdown
         className="mco-subs-dr-action-body__dropdown--width"
-        onSelect={onSelect}
-        toggle={
-          <DropdownToggle
-            className="mco-subs-dr-action-body__dropdown--width"
-            data-test="target-cluster-dropdown-toggle"
-            isDisabled={
-              !drClusterList.length ||
-              !managedClusterList.length ||
-              state.modalFooterStatus === ModalFooterStatus.FINISHED ||
-              !!state.errorMessage.managedClustersErrorMessage
-            }
-            onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
-          >
-            {!!Object.keys(state.selectedTargetCluster).length ? (
-              <Flex>
-                <FlexItem className="mco-subs-dr-action__target-cluster--width">
-                  {state.selectedTargetCluster?.clusterInfo?.clusterName}
-                </FlexItem>
-                <FlexItem>
-                  <TargetClusterStatus
-                    isClusterAvailable={
-                      state.selectedTargetCluster?.isClusterAvailable
-                    }
-                  />
-                </FlexItem>
-              </Flex>
-            ) : (
-              t('Select')
-            )}
-          </DropdownToggle>
-        }
         isOpen={isOpen}
-        dropdownItems={dropdownItems}
-      />
+        onOpenChange={(open: boolean) => setOpen(open)}
+        onSelect={onSelect}
+        toggle={toggle}
+      >
+        <DropdownList>{dropdownItems}</DropdownList>
+      </Dropdown>
       <HelperText>
         <HelperTextItem variant="indeterminate">
           {t('Last available: ')}

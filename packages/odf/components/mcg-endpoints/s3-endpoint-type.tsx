@@ -104,6 +104,7 @@ export const S3EndPointType: React.FC<S3EndpointTypeProps> = (props) => {
               defaultSelection={value}
               aria-label={t('Region Dropdown')}
               data-test="aws-region-dropdown"
+              isFullWidth
             />
           )}
         />
