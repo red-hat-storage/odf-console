@@ -1,0 +1,14 @@
+@use '@odf/shared/style.scss' as shared;
+
+  .pf-v5-c-card {
+    border-radius: 15px;
+    height: 100%;
+    
+    @media screen and (min-width: shared.$pf-v5-global--breakpoint--lg) {
+      min-height: 200px;
+    }
+  }
+
+  .status-icon-text-border{
+    border: 1px solid var(--pf-v5-global--BorderColor--300);
+  }
