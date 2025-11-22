@@ -645,6 +645,29 @@
     }
   },
   {
+    "type": "odf.horizontalNav/tab",
+    "properties": {
+      "id": "iam",
+      "after": "objectbucketclaims",
+      "name": "%plugin__odf-console~IAM%",
+      "contextId": "odf-object-service",
+      "href": "IAM",
+      "component": {
+        "$codeRef": "iam.default"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/iam/createUserForm",
+      "exact": true,
+      "component": {
+        "$codeRef": "createIAMUser.default"
+      }
+    }
+  },
+  {
     "type": "console.page/route",
     "properties": {
       "path": "/odf/resource/ns/:namespace/objectbucket.io~v1alpha1~ObjectBucketClaim/:resourceName",
