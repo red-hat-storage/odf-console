@@ -1,82 +1,303 @@
 import * as React from 'react';
+import TimesIcon from '@patternfly/react-icons/dist/esm/icons/times-icon';
 import {
   Select,
   SelectOption,
-  SelectVariant,
+  SelectList,
+  MenuToggle,
+  MenuToggleElement,
+  TextInputGroup,
+  TextInputGroupMain,
+  TextInputGroupUtilities,
+  Button,
   SelectProps,
-} from '@patternfly/react-core/deprecated';
+  MenuToggleStatus,
+  ChipGroup,
+  Chip,
+} from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
-
-export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
-  onChange,
-  placeholderText,
-  id,
-  options,
-  selectOptions,
-  selections = [],
-  variant,
-  isCreatable,
-  ...rest
-}) => {
-  const [isOpen, setOpen] = React.useState(false);
-  const [newOptions, setNewOptions] = React.useState<JSX.Element[]>([]);
-  const allOptions =
-    newOptions.length > 0 ? selectOptions.concat(newOptions) : selectOptions;
-
-  const onSelect = (
-    _event: React.MouseEvent | React.ChangeEvent,
-    selection: string
-  ) => {
-    const prevSelection = selections as string[];
-    let cSelected = prevSelection;
-    if (prevSelection.includes(selection)) {
-      cSelected = prevSelection.filter((item) => item !== selection);
-    } else {
-      cSelected = [...prevSelection, selection];
-    }
-    onChange(cSelected, selection);
-  };
-
-  const { t } = useCustomTranslation();
-
-  const items: JSX.Element[] = options?.map((item) => (
-    <SelectOption key={item} value={item} />
-  ));
-
-  const onCreateOption = (newValue: string) =>
-    setNewOptions([
-      ...newOptions,
-      <SelectOption key={newValue} value={newValue} />,
-    ]);
-
-  return (
-    <Select
-      variant={variant || SelectVariant.typeaheadMulti}
-      aria-label={t('Select input')}
-      onToggle={(_event, expanded) => setOpen(() => expanded)}
-      onSelect={onSelect}
-      selections={selections}
-      isOpen={isOpen}
-      placeholderText={placeholderText || t('Select options')}
-      aria-labelledby={id}
-      noResultsFoundText={t('No results found')}
-      isCheckboxSelectionBadgeHidden
-      onCreateOption={(isCreatable && onCreateOption) || undefined}
-      isCreatable={isCreatable}
-      {...rest}
-    >
-      {allOptions || items}
-    </Select>
-  );
-};
+import './multiselectdropdown.scss';
 
 export type MultiSelectDropdownProps = Omit<
   SelectProps,
-  'onChange' | 'onToggle'
+  'onChange' | 'onToggle' | 'toggle'
 > & {
   id?: string;
-  options?: string[];
-  selectOptions?: JSX.Element[];
+  className?: string;
+  selections?: string[];
+  selectOptions: JSX.Element[];
+  placeholderText?: string;
   onChange: (selected: string[], selection?: string) => void;
+  validated?: 'success' | 'warning' | 'error' | 'default';
   isCreatable?: boolean;
+  isDisabled?: boolean;
+  variant?: 'typeahead' | 'checkbox';
+  popperProps?: SelectProps['popperProps'];
+  hasInlineFilter?: boolean;
+};
+
+type Option = {
+  value: string;
+  key: string;
+  label: React.ReactNode;
+  description?: React.ReactNode;
+};
+
+export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
+  id,
+  className,
+  selections = [],
+  selectOptions,
+  placeholderText = 'Select options',
+  onChange,
+  validated,
+  isCreatable = false,
+  isDisabled,
+  variant = 'typeahead',
+  popperProps,
+  hasInlineFilter,
+}) => {
+  const { t } = useCustomTranslation();
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [filterValue, setFilterValue] = React.useState('');
+  const [createdOptions, setCreatedOptions] = React.useState<Option[]>([]);
+  const [status, setStatus] = React.useState<MenuToggleStatus>();
+  const [newOptionVal, setNewOptionVal] = React.useState('');
+  const textInputRef = React.useRef<HTMLInputElement>(null);
+  const DISABLED = '__disabled__';
+
+  const baseOptions = React.useMemo<Option[]>(() => {
+    return selectOptions.map((opt) => ({
+      value: String(opt.props.value ?? opt.props.children),
+      key: String(opt.key ?? opt.props.children),
+      label: opt.props.children,
+      description: opt.props.description,
+    }));
+  }, [selectOptions]);
+
+  const fullOptions = React.useMemo(
+    () => [...baseOptions, ...createdOptions],
+    [baseOptions, createdOptions]
+  );
+
+  React.useEffect(() => {
+    if (filterValue) {
+      setNewOptionVal(filterValue);
+    }
+  }, [filterValue]);
+
+  const visibleOptions = React.useMemo(() => {
+    let filteredOptions = fullOptions;
+    const lowerValue = filterValue.toLowerCase();
+    if (hasInlineFilter && filterValue) {
+      filteredOptions = fullOptions.filter((opt) =>
+        String(opt.label).toLowerCase().includes(lowerValue)
+      );
+
+      const exactMatchExists = fullOptions.some(
+        (opt) => opt.value.toLowerCase() === lowerValue
+      );
+
+      if (filteredOptions.length === 0 && isCreatable) {
+        return [
+          {
+            value: filterValue,
+            key: filterValue,
+            label: `Create "${filterValue}"`,
+          },
+        ];
+      }
+
+      if (isCreatable && !exactMatchExists) {
+        return [
+          {
+            value: filterValue,
+            key: filterValue,
+            label: `Create "${filterValue}"`,
+          },
+          ...filteredOptions,
+        ];
+      }
+    }
+
+    return filteredOptions;
+  }, [fullOptions, filterValue, isCreatable, hasInlineFilter]);
+
+  React.useEffect(() => {
+    let derivedValidated = validated === 'error' ? 'danger' : validated;
+    setStatus(
+      derivedValidated && derivedValidated !== 'default'
+        ? (derivedValidated as MenuToggleStatus)
+        : undefined
+    );
+  }, [validated]);
+
+  const onSelect = (
+    _event: React.MouseEvent | React.ChangeEvent,
+    value: string
+  ) => {
+    let newSelections = [...selections];
+    const createVal = newOptionVal;
+
+    if (value === createVal) {
+      if (!createVal) return;
+
+      if (
+        !fullOptions.some(
+          (o) => o.value.toLowerCase() === createVal.toLowerCase()
+        )
+      ) {
+        setCreatedOptions((prev) => [
+          ...prev,
+          { value: createVal, key: createVal, label: createVal },
+        ]);
+      }
+
+      newSelections = selections.includes(createVal)
+        ? selections.filter((s) => s !== createVal)
+        : [...selections, createVal];
+
+      setFilterValue('');
+    } else {
+      newSelections = selections.includes(value)
+        ? selections.filter((s) => s !== value)
+        : [...selections, value];
+    }
+
+    onChange(newSelections, value);
+  };
+
+  const onInputChange = (
+    _e: React.FormEvent<HTMLInputElement>,
+    val: string
+  ) => {
+    setFilterValue(val);
+    if (val && !isOpen) setIsOpen(true);
+  };
+
+  const onClearAll = () => {
+    onChange([]);
+    setFilterValue('');
+  };
+
+  const onInputClick = () => {
+    if (!isOpen) {
+      setIsOpen(true);
+    } else if (!filterValue) {
+      setIsOpen(false);
+    }
+  };
+
+  const onToggleClick = () => {
+    setIsOpen((prev) => !prev);
+    textInputRef.current?.focus();
+  };
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => {
+    const hasSelection = selections.length > 0;
+
+    return (
+      <MenuToggle
+        variant="typeahead"
+        isExpanded={isOpen}
+        onClick={onToggleClick}
+        isFullWidth
+        innerRef={toggleRef}
+        aria-label={t('Multi-select typeahead')}
+        isDisabled={isDisabled}
+        status={status}
+        className={
+          hasSelection
+            ? 'odf-multiselect-menu-toggle--has-selection'
+            : 'odf-multiselect-menu-toggle'
+        }
+      >
+        <TextInputGroup isPlain>
+          <TextInputGroupMain
+            value={filterValue}
+            onChange={onInputChange}
+            id={`${id || 'multi-typeahead'}-input`}
+            innerRef={textInputRef}
+            autoComplete="off"
+            placeholder={placeholderText}
+            onClick={onInputClick}
+            role="combobox"
+            isExpanded={isOpen}
+            className={
+              hasSelection
+                ? 'odf-multiselect-input--has-selection'
+                : 'odf-multiselect-input'
+            }
+          >
+            {hasSelection && variant === 'typeahead' && (
+              <ChipGroup aria-label={t('Current selections')}>
+                {selections.map((sel) => (
+                  <Chip
+                    key={sel}
+                    onClick={(ev: React.MouseEvent | React.ChangeEvent) => {
+                      ev.stopPropagation();
+                      onSelect(ev, sel);
+                    }}
+                  >
+                    {sel}
+                  </Chip>
+                ))}
+              </ChipGroup>
+            )}
+          </TextInputGroupMain>
+          <TextInputGroupUtilities
+            {...(selections.length === 0 ? { style: { display: 'none' } } : {})}
+          >
+            <Button
+              variant="plain"
+              onClick={onClearAll}
+              aria-label={t('Clear input value')}
+            >
+              <TimesIcon aria-hidden />
+            </Button>
+          </TextInputGroupUtilities>
+        </TextInputGroup>
+      </MenuToggle>
+    );
+  };
+
+  const options = () => {
+    if (visibleOptions.length === 0) {
+      return (
+        <SelectOption key="disabled-options" value={DISABLED} isDisabled>
+          {t('No option found')}
+        </SelectOption>
+      );
+    }
+
+    return visibleOptions.map((opt) => (
+      <SelectOption
+        key={opt.value}
+        value={opt.value}
+        description={opt.description}
+        hasCheckbox={variant === 'checkbox'}
+        isSelected={selections.includes(opt.value)}
+      >
+        {opt.label}
+      </SelectOption>
+    ));
+  };
+
+  return (
+    <Select
+      id={id}
+      className={className}
+      onSelect={onSelect}
+      isOpen={isOpen}
+      selected={selections}
+      onOpenChange={(open) => setIsOpen(open)}
+      toggle={toggle}
+      isDisabled={isDisabled}
+      popperProps={popperProps}
+    >
+      <SelectList isAriaMultiselectable={variant === 'typeahead'}>
+        {options()}
+      </SelectList>
+    </Select>
+  );
 };

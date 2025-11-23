@@ -12,7 +12,6 @@ import { MultiSelectDropdown } from '@odf/shared/dropdown/multiselectdropdown';
 import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { NodeKind } from '@openshift-console/dynamic-plugin-sdk';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import {
@@ -26,6 +25,7 @@ import {
   Text,
   TextVariants,
   Tooltip,
+  SelectOption,
 } from '@patternfly/react-core';
 import { SelectNodesTable } from '../../create-storage-system/select-nodes-table/select-nodes-table';
 import { createWizardNodeState } from '../../utils';
@@ -34,17 +34,29 @@ import '../../create-storage-system/create-storage-system-steps/create-local-vol
 
 const fsTypeDropdownOptions: JSX.Element[] = _.map(
   fsTypeDropdownItems,
-  (v, _unused) => <SelectOption key={v} value={v} />
+  (v, _unused) => (
+    <SelectOption key={v} value={v}>
+      {v}
+    </SelectOption>
+  )
 );
 
 const diskModeDropdownOptions: JSX.Element[] = _.map(
   diskModeDropdownItems,
-  (v, _unused) => <SelectOption key={v} value={v} />
+  (v, _unused) => (
+    <SelectOption key={v} value={v}>
+      {v}
+    </SelectOption>
+  )
 );
 
 const diskSizeUnitDropdownOptions: JSX.Element[] = _.map(
   diskSizeUnitOptions,
-  (v, _unused) => <SelectOption key={v} value={v} />
+  (v, _unused) => (
+    <SelectOption key={v} value={v}>
+      {v}
+    </SelectOption>
+  )
 );
 
 const deviceTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
@@ -59,12 +71,16 @@ const deviceTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
             ),
           }
         : {})}
-    />
+    >
+      {v}
+    </SelectOption>
   ));
 
 const diskTypeDropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
   _.map(diskTypeDropdownItems(t), (v, _unused) => (
-    <SelectOption key={v} value={v} />
+    <SelectOption key={v} value={v}>
+      {v}
+    </SelectOption>
   ));
 
 export enum FilterDiskBy {

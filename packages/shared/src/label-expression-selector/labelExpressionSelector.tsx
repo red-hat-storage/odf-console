@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { RedExclamationCircleIcon } from '@odf/shared/status/icons';
 import { MatchExpression } from '@openshift-console/dynamic-plugin-sdk';
-import { SelectOption, SelectVariant } from '@patternfly/react-core/deprecated';
 import { SVGIconProps } from '@patternfly/react-icons/dist/esm/createIcon';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
@@ -20,6 +19,7 @@ import {
   HelperText,
   HelperTextItem,
   FormHelperText,
+  SelectOption,
 } from '@patternfly/react-core';
 import { TrashIcon, PlusCircleIcon } from '@patternfly/react-icons';
 import { SingleSelectDropdown, MultiSelectDropdown } from '../dropdown';
@@ -127,14 +127,18 @@ const ExpressionElement: React.FC<ExpressionElementProps> = ({
   const keyOptions = React.useMemo(
     () =>
       Object.keys(labels).map((labelKey) => (
-        <SelectOption key={labelKey} value={labelKey} />
+        <SelectOption key={labelKey} value={labelKey}>
+          {labelKey}
+        </SelectOption>
       )),
     [labels]
   );
 
   // Default options of Operator enum.
   const operatorOptions = Object.values(Operator).map((option) => (
-    <SelectOption key={option} value={option} />
+    <SelectOption key={option} value={option}>
+      {option}
+    </SelectOption>
   ));
 
   // Display each values of the selected key as options
@@ -142,7 +146,9 @@ const ExpressionElement: React.FC<ExpressionElementProps> = ({
   const valueOptions = React.useMemo(
     () =>
       (!!key ? labels[key] || [] : []).map((value) => (
-        <SelectOption key={value} value={value} />
+        <SelectOption key={value} value={value}>
+          {value}{' '}
+        </SelectOption>
       )),
     [labels, key]
   );
@@ -235,11 +241,10 @@ const ExpressionElement: React.FC<ExpressionElementProps> = ({
                   : t('Select the values')
               }
               selections={values}
-              variant={SelectVariant.checkbox}
+              variant={'checkbox'}
               selectOptions={valueOptions}
               onChange={onValuesChange}
               hasInlineFilter
-              required
               validated={isValuesValid}
               isCreatable
             />
