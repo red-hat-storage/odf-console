@@ -56,6 +56,10 @@ type NameValueEditorProps = {
   IconComponent?: React.FC;
   nameMaxLength?: number;
   valueMaxLength?: number;
+  customInputComponent?: React.FC<CustomInputProps>;
+  customStyles?: React.CSSProperties;
+  hideHeaderWithCustomInput?: boolean;
+  alwaysAllowRemove?: boolean;
 };
 
 export const enum NameValueEditorPair {
@@ -85,6 +89,22 @@ export type PairElementProps = {
   extraProps?: any;
   nameMaxLength?: number;
   valueMaxLength?: number;
+  customInputComponent?: React.FC<CustomInputProps>;
+  customStyles?: React.CSSProperties;
+};
+
+export type CustomInputProps = {
+  name: string;
+  value: string;
+  nameString: string;
+  valueString: string;
+  readOnly?: boolean;
+  index?: number;
+  onChange: (field: 'name' | 'value', value: string) => void;
+  onRemove?: () => void;
+  nameMaxLength?: number;
+  valueMaxLength?: number;
+  toolTip: {};
 };
 
 const PairElement: React.FC<PairElementProps> = ({
@@ -104,6 +124,8 @@ const PairElement: React.FC<PairElementProps> = ({
   alwaysAllowRemove,
   nameMaxLength,
   valueMaxLength,
+  customInputComponent: CustomInputComponent,
+  customStyles,
 }) => {
   const { t } = useCustomTranslation();
   const deleteIcon = (
@@ -143,7 +165,41 @@ const PairElement: React.FC<PairElementProps> = ({
   const onRemove = React.useCallback(() => {
     onRemoveProp(index);
   }, [index, onRemoveProp]);
-
+  // If custom input component is provided, use it
+  if (CustomInputComponent) {
+    const handleCustomChange = (field: 'name' | 'value', value: string) => {
+      const e = { target: { value } } as React.ChangeEvent<HTMLInputElement>;
+      if (field === 'name') {
+        onChange(e, index, NameValueEditorPair.Name);
+      } else {
+        onChange(e, index, NameValueEditorPair.Value);
+      }
+    };
+    return (
+      <div
+        className={classNames(
+          'row',
+          isDragging ? 'pairs-list__row-dragging' : 'pairs-list__row'
+        )}
+        data-test="pairs-list-row"
+        style={customStyles}
+      >
+        <CustomInputComponent
+          name={pair[NameValueEditorPair.Name] || ''}
+          value={pair[NameValueEditorPair.Value] || ''}
+          nameString={nameString}
+          valueString={valueString}
+          readOnly={readOnly}
+          index={index}
+          onChange={handleCustomChange}
+          onRemove={onRemove}
+          nameMaxLength={nameMaxLength}
+          valueMaxLength={valueMaxLength}
+          toolTip={toolTip}
+        />
+      </div>
+    );
+  }
   return (
     <div
       className={classNames(
@@ -224,6 +280,10 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
       valueMaxLength,
       IconComponent = PlusCircleIcon,
       PairElementComponent = PairElement,
+      customInputComponent,
+      customStyles,
+      hideHeaderWithCustomInput = true,
+      alwaysAllowRemove = false,
     }) => {
       const { t } = useCustomTranslation();
 
@@ -243,9 +303,11 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
 
           updateParentData(
             {
-              nameValuePairs: nameValuePairsUpdated.length
+              nameValuePairs: alwaysAllowRemove
                 ? nameValuePairsUpdated
-                : [['', '', 0]],
+                : nameValuePairsUpdated.length
+                  ? nameValuePairsUpdated
+                  : [['', '', 0]],
             },
             nameValueId
           );
@@ -254,7 +316,13 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
             onLastItemRemoved();
           }
         },
-        [nameValuePairs, onLastItemRemoved, updateParentData, nameValueId]
+        [
+          nameValuePairs,
+          onLastItemRemoved,
+          updateParentData,
+          nameValueId,
+          alwaysAllowRemove,
+        ]
       );
 
       const change = React.useCallback(
@@ -291,6 +359,8 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
 
       const nameStringUpdated = nameString || t('Key');
       const valueStringUpdated = valueString || t('Value');
+      const shouldHideHeader =
+        customInputComponent && hideHeaderWithCustomInput;
       const pairElems = nameValuePairs?.map((pair, i) => {
         const key = _.get(pair, [NameValueEditorPair.Index], i);
         const isEmpty =
@@ -312,9 +382,12 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
             isEmpty={isEmpty}
             disableReorder={nameValuePairs.length === 1}
             toolTip={toolTip}
+            alwaysAllowRemove={alwaysAllowRemove}
             extraProps={extraProps}
             nameMaxLength={nameMaxLength}
             valueMaxLength={valueMaxLength}
+            customInputComponent={customInputComponent}
+            customStyles={customStyles}
           />
         );
       });
@@ -322,24 +395,26 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
         <>
           {hideHeaderWhenNoItems && _.isEmpty(pairElems) ? null : (
             <>
-              <div className="row pairs-list__heading">
-                {!readOnly && allowSorting && (
+              {!shouldHideHeader && (
+                <div className="row pairs-list__heading">
+                  {!readOnly && allowSorting && (
+                    <div className="col-xs-1 co-empty__header" />
+                  )}
+                  <div className={classNames('col-xs-5', className)}>
+                    {nameStringUpdated}
+                  </div>
+                  <div className={classNames('col-xs-5', className)}>
+                    {valueStringUpdated}
+                  </div>
                   <div className="col-xs-1 co-empty__header" />
-                )}
-                <div className={classNames('col-xs-5', className)}>
-                  {nameStringUpdated}
                 </div>
-                <div className={classNames('col-xs-5', className)}>
-                  {valueStringUpdated}
-                </div>
-                <div className="col-xs-1 co-empty__header" />
-              </div>
+              )}
               {pairElems}
             </>
           )}
           <div className="row">
             <div className="col-xs-12">
-              {readOnly ? null : (
+              {readOnly || isAddDisabled ? null : (
                 <div className="co-toolbar__group co-toolbar__group--left">
                   <Button
                     className="pf-m-link--align-left"
