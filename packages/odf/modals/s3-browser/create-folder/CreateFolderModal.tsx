@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { S3ProviderType } from '@odf/core/types';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
@@ -20,13 +21,17 @@ import {
   HelperTextItem,
   ValidatedOptions,
 } from '@patternfly/react-core';
-import { BUCKETS_BASE_ROUTE, DELIMITER, PREFIX } from '../../../constants';
+import {
+  getBucketOverviewBaseRoute,
+  DELIMITER,
+  PREFIX,
+} from '../../../constants';
 import { getPrefix, getEncodedPrefix } from '../../../utils';
 
 type CreateFolderModalProps = {
   foldersPath: string;
   bucketName: string;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
 };
 
 const getValidations = (
@@ -64,7 +69,7 @@ const getValidations = (
 const CreateFolderModal: React.FC<CommonModalProps<CreateFolderModalProps>> = ({
   closeModal,
   isOpen,
-  extraProps: { foldersPath, bucketName, noobaaS3 },
+  extraProps: { foldersPath, bucketName, s3Client },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -82,6 +87,7 @@ const CreateFolderModal: React.FC<CommonModalProps<CreateFolderModalProps>> = ({
     folderName,
     t
   );
+  const providerType = s3Client.providerType as S3ProviderType;
 
   const onCreate = async (event) => {
     event.preventDefault();
@@ -89,7 +95,7 @@ const CreateFolderModal: React.FC<CommonModalProps<CreateFolderModalProps>> = ({
 
     try {
       const folderNameWDelimiter = folderName + DELIMITER;
-      const data = await noobaaS3.listObjects({
+      const data = await s3Client.listObjects({
         Bucket: bucketName,
         MaxKeys: 1,
         Delimiter: DELIMITER,
@@ -104,7 +110,9 @@ const CreateFolderModal: React.FC<CommonModalProps<CreateFolderModalProps>> = ({
         setIsExisting(true);
       } else {
         const prefix = getEncodedPrefix(folderNameWDelimiter, foldersPath);
-        navigate(`${BUCKETS_BASE_ROUTE}/${bucketName}?${PREFIX}=${prefix}`);
+        navigate(
+          `${getBucketOverviewBaseRoute(bucketName, providerType)}?${PREFIX}=${prefix}`
+        );
         closeModal();
       }
     } catch (err) {

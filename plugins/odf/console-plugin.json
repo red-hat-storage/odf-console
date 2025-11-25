@@ -11,7 +11,6 @@
     "wizard": "@odf/core/components/create-storage-system/create-storage-system",
     "obc": "@odf/core/components/mcg/ObjectBucketClaim",
     "createOBC": "@odf/core/components/mcg/CreateObjectBucketClaim",
-    "ob": "@odf/core/components/mcg/ObjectBucket",
     "createBucket": "@odf/core/components/s3-browser/create-bucket/CreateBucket",
     "blockPoolDetailsPage": "@odf/ocs/storage-pool/BlockPoolDetailsPage",
     "createStoragePools": "@odf/ocs/storage-pool/CreateStoragePool",

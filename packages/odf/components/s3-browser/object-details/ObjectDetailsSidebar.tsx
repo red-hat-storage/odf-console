@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Tag, DeleteObjectsCommandOutput } from '@aws-sdk/client-s3';
-import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
+import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import {
   OBJECT_CACHE_KEY_SUFFIX,
   OBJECT_TAGGING_CACHE_KEY_SUFFIX,
@@ -74,14 +74,14 @@ type ObjectDetailsSidebarContentProps = {
 type ObjectOverviewProps = {
   object: ObjectCrFormat;
   showVersioning?: boolean;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   bucketName: string;
   objShortenedName?: string;
 };
 
 type ObjectVersionsProps = {
   object: ObjectCrFormat;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   bucketName: string;
   extraProps: ExtraProps;
   foldersPath: string;
@@ -97,7 +97,7 @@ const fetchVersions = async ({
   setInProgress,
   setObjectVersions,
   setError,
-  noobaaS3,
+  s3Client,
   bucketName,
   objectKey,
   t,
@@ -105,7 +105,7 @@ const fetchVersions = async ({
   setInProgress: React.Dispatch<React.SetStateAction<boolean>>;
   setObjectVersions: React.Dispatch<React.SetStateAction<ObjectCrFormat[]>>;
   setError: React.Dispatch<any>;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   bucketName: string;
   objectKey: string;
   t: TFunction;
@@ -121,7 +121,7 @@ const fetchVersions = async ({
 
     while (isTruncated && !stopFetchEarly) {
       // eslint-disable-next-line no-await-in-loop
-      const objects = await noobaaS3.listObjectVersions({
+      const objects = await s3Client.listObjectVersions({
         Bucket: bucketName,
         Prefix: objectKey,
         KeyMarker: keyMarker,
@@ -162,7 +162,7 @@ const fetchVersions = async ({
 
 const ObjectVersions: React.FC<ObjectVersionsProps> = ({
   object,
-  noobaaS3,
+  s3Client,
   bucketName,
   foldersPath,
   extraProps,
@@ -199,7 +199,7 @@ const ObjectVersions: React.FC<ObjectVersionsProps> = ({
       setInProgress,
       setObjectVersions,
       setError,
-      noobaaS3,
+      s3Client,
       bucketName,
       objectKey,
       t,
@@ -230,7 +230,7 @@ const ObjectVersions: React.FC<ObjectVersionsProps> = ({
           extraProps: {
             launcher,
             bucketName,
-            noobaaS3,
+            s3Client,
             foldersPath,
             // if object has only single version, display deletion status on the main list page instead of the sidebar
             // sidebar will close in this case as no objects/versions are left to display
@@ -259,7 +259,7 @@ const ObjectVersions: React.FC<ObjectVersionsProps> = ({
 const ObjectOverview: React.FC<ObjectOverviewProps> = ({
   object,
   showVersioning,
-  noobaaS3,
+  s3Client,
   bucketName,
   objShortenedName,
 }) => {
@@ -276,7 +276,7 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
       ? null
       : `${objectKey}-${lastModified}-${OBJECT_CACHE_KEY_SUFFIX}`,
     () =>
-      noobaaS3.getObject({
+      s3Client.getObject({
         Bucket: bucketName,
         Key: objectKey,
         ...(showVersioning && { VersionId: versionId }),
@@ -288,7 +288,7 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
       ? null
       : `${objectKey}-${lastModified}-${OBJECT_TAGGING_CACHE_KEY_SUFFIX}}`,
     () =>
-      noobaaS3.getObjectTagging({
+      s3Client.getObjectTagging({
         Bucket: bucketName,
         Key: objectKey,
         ...(showVersioning && { VersionId: versionId }),
@@ -390,7 +390,7 @@ const ObjectDetailsSidebarContent: React.FC<
 
   const actionItems: IAction[] = objectActions.current;
 
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
   const [searchParams] = useSearchParams();
   const { bucketName } = useParams();
 
@@ -454,7 +454,7 @@ const ObjectDetailsSidebarContent: React.FC<
           <ObjectOverview
             object={object}
             showVersioning={true}
-            noobaaS3={noobaaS3}
+            s3Client={s3Client}
             bucketName={bucketName}
             objShortenedName={objName}
           />
@@ -472,7 +472,7 @@ const ObjectDetailsSidebarContent: React.FC<
               <ObjectOverview
                 object={object}
                 showVersioning={false}
-                noobaaS3={noobaaS3}
+                s3Client={s3Client}
                 bucketName={bucketName}
                 objShortenedName={objName}
               />
@@ -483,7 +483,7 @@ const ObjectDetailsSidebarContent: React.FC<
             >
               <ObjectVersions
                 object={object}
-                noobaaS3={noobaaS3}
+                s3Client={s3Client}
                 bucketName={bucketName}
                 foldersPath={foldersPath}
                 extraProps={extraProps}

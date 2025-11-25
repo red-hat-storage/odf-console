@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { S3ProviderType } from '@odf/core/types';
 import { useUserSettingsLocalStorage } from '@odf/shared/hooks/useUserSettingsLocalStorage';
 import { resourceStatus as getResourceStatus } from '@odf/shared/status/Resource';
 import { K8sResourceKind } from '@odf/shared/types';
@@ -17,11 +18,12 @@ import {
 import { CopyIcon, StarIcon } from '@patternfly/react-icons';
 import { global_warning_color_100 as warningColor } from '@patternfly/react-tokens';
 import { BUCKET_BOOKMARKS_USER_SETTINGS_KEY } from '../../../constants';
-import { getPath } from '../../../utils';
+import { getPath, getProviderLabel } from '../../../utils';
 import './bucket-overview.scss';
 
 type TitleProps = {
   bucketName: string;
+  providerType: S3ProviderType;
   foldersPath: string;
   currentFolder: string;
   isCreatedByOBC: boolean;
@@ -69,6 +71,7 @@ const Favorite: React.FC<FavoriteProps> = ({ bucketName }) => {
 
 export const PageTitle: React.FC<TitleProps> = ({
   bucketName,
+  providerType,
   foldersPath,
   currentFolder,
   isCreatedByOBC,
@@ -89,13 +92,12 @@ export const PageTitle: React.FC<TitleProps> = ({
         {!foldersPath && (
           <>
             <Favorite bucketName={bucketName} />
-            {/* ToDo: Currently we only support MCG, make is configurable once RGW is supported as well */}
             <Label
               color="gold"
               className="pf-v5-u-mt-sm bucket-label--height"
               isCompact
             >
-              {t('MCG')}
+              {getProviderLabel(providerType)}
             </Label>
             <Label
               className="pf-v5-u-ml-sm pf-v5-u-mt-sm bucket-label--height"

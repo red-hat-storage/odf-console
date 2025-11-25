@@ -17,7 +17,7 @@ import {
 
 export type SetVersioningModalModalProps = {
   mutate: KeyedMutator<GetBucketVersioningCommandOutput>;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   bucketName: string;
   enableVersioning: boolean;
 };
@@ -27,7 +27,7 @@ const SetVersioningModal: React.FC<
 > = ({
   closeModal,
   isOpen,
-  extraProps: { noobaaS3, bucketName, mutate, enableVersioning },
+  extraProps: { s3Client, bucketName, mutate, enableVersioning },
 }) => {
   const { t } = useCustomTranslation();
 
@@ -46,7 +46,7 @@ const SetVersioningModal: React.FC<
             : BucketVersioningStatus.Suspended,
         },
       };
-      await noobaaS3.putBucketVersioning(params);
+      await s3Client.putBucketVersioning(params);
 
       mutate();
       setInProgress(false);

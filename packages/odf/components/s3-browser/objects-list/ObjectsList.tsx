@@ -40,10 +40,10 @@ import {
   LazyDeleteObjectsModal,
   LazyDeleteObjectsSummary,
 } from '../../../modals/s3-browser/delete-objects/LazyDeleteModals';
-import { ObjectCrFormat } from '../../../types';
+import { ObjectCrFormat, S3ProviderType } from '../../../types';
 import { getNavigationURL } from '../../../utils';
-import { NoobaaS3Context } from '../noobaa-context';
 import { Pagination, PaginationProps } from '../pagination-helper';
+import { S3Context } from '../s3-context';
 import {
   isRowSelectable,
   getColumns,
@@ -65,6 +65,7 @@ export type ExtraProps = {
 type SearchObjectsProps = {
   foldersPath: string;
   bucketName: string;
+  providerType: S3ProviderType;
   searchInput: string;
   setSearchInput: React.Dispatch<React.SetStateAction<string>>;
   className: string;
@@ -76,7 +77,7 @@ type TableActionsProps = {
   loadedWOError: boolean;
   foldersPath: string;
   bucketName: string;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   setDeleteResponse: SetObjectsDeleteResponse;
   refreshTokens: () => Promise<void>;
   searchInput: string;
@@ -97,7 +98,7 @@ const getBulkActionsItems = (
   selectedRows: ObjectCrFormat[],
   foldersPath: string,
   bucketName: string,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   setDeleteResponse: SetObjectsDeleteResponse,
   refreshTokens: () => Promise<void>,
   showVersioning: boolean,
@@ -112,7 +113,7 @@ const getBulkActionsItems = (
           foldersPath,
           bucketName,
           objects: selectedRows,
-          noobaaS3,
+          s3Client,
           setDeleteResponse,
           refreshTokens,
           showVersioning,
@@ -139,6 +140,7 @@ export const CustomActionsToggle = (props: CustomActionsToggleProps) => {
 const SearchObjects: React.FC<SearchObjectsProps> = ({
   foldersPath,
   bucketName,
+  providerType,
   searchInput,
   setSearchInput,
   className,
@@ -146,7 +148,12 @@ const SearchObjects: React.FC<SearchObjectsProps> = ({
   const { t } = useCustomTranslation();
 
   const navigate = useNavigate();
-  const onClearURL = getNavigationURL(bucketName, foldersPath, '');
+  const onClearURL = getNavigationURL(
+    bucketName,
+    providerType,
+    foldersPath,
+    ''
+  );
 
   return (
     <SearchInput
@@ -157,7 +164,8 @@ const SearchObjects: React.FC<SearchObjectsProps> = ({
         if (value === '') navigate(onClearURL);
       }}
       onSearch={(_event, value) =>
-        !!value && navigate(getNavigationURL(bucketName, foldersPath, value))
+        !!value &&
+        navigate(getNavigationURL(bucketName, providerType, foldersPath, value))
       }
       onClear={() => {
         setSearchInput('');
@@ -178,7 +186,7 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
   selectedRows,
   foldersPath,
   bucketName,
-  noobaaS3,
+  s3Client,
   setDeleteResponse,
   refreshTokens,
   searchInput,
@@ -197,6 +205,7 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
   ) => setListAllVersions(checked);
 
   const anySelection = !!selectedRows.length;
+  const providerType = s3Client.providerType as S3ProviderType;
 
   return (
     <Level hasGutter>
@@ -205,6 +214,7 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
           <SearchObjects
             foldersPath={foldersPath}
             bucketName={bucketName}
+            providerType={providerType}
             searchInput={searchInput}
             setSearchInput={setSearchInput}
             className="pf-v5-u-mr-sm"
@@ -216,7 +226,7 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
             onClick={() =>
               launcher(LazyCreateFolderModal, {
                 isOpen: true,
-                extraProps: { foldersPath, bucketName, noobaaS3 },
+                extraProps: { foldersPath, bucketName, s3Client },
               })
             }
           >
@@ -230,7 +240,7 @@ const TableActions: React.FC<PaginationProps & TableActionsProps> = ({
               selectedRows,
               foldersPath,
               bucketName,
-              noobaaS3,
+              s3Client,
               setDeleteResponse,
               refreshTokens,
               listAllVersions,
@@ -394,7 +404,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
   // search objects within a bucket
   const searchQuery = searchParams.get(SEARCH) || '';
 
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
 
   // used for multi-select bulk operations
   const [selectedRows, setSelectedRows] = React.useState<ObjectCrFormat[]>([]);
@@ -423,7 +433,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
     bucketName,
     foldersPath,
     searchQuery,
-    noobaaS3,
+    s3Client,
     setSelectedRows,
     listAllVersions,
   });
@@ -463,7 +473,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
         launcher={launcher}
         foldersPath={foldersPath}
         bucketName={bucketName}
-        noobaaS3={noobaaS3}
+        s3Client={s3Client}
         setDeleteResponse={setDeleteResponse}
         refreshTokens={refreshTokens}
         searchInput={searchInput}
@@ -503,7 +513,7 @@ export const ObjectsList: React.FC<ObjectsListProps> = ({
           launcher,
           bucketName,
           foldersPath,
-          noobaaS3,
+          s3Client,
           setDeleteResponse,
           refreshTokens,
           onRowClick,

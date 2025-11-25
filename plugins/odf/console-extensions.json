@@ -19,14 +19,6 @@
     "type": "console.flag",
     "properties": {
       "handler": {
-        "$codeRef": "features.detectRGW"
-      }
-    }
-  },
-  {
-    "type": "console.flag",
-    "properties": {
-      "handler": {
         "$codeRef": "features.detectComponents"
       }
     }
@@ -119,7 +111,21 @@
       "href": "/odf/object-storage"
     },
     "flags": {
-      "required": ["ODF_MODEL"]
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-object",
+      "insertAfter": "external-systems",
+      "section": "storage",
+      "name": "%plugin__odf-console~Object storage%",
+      "href": "/odf/object-storage"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "MCG"],
+      "disallowed": ["ODF_ADMIN"]
     }
   },
   {
@@ -179,7 +185,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": ["/odf/object-storage/create-bucket"],
+      "path": ["/odf/object-storage/:s3Provider/create-bucket"],
       "exact": true,
       "component": { "$codeRef": "createBucket.default" }
     }
@@ -520,7 +526,7 @@
       "component": { "$codeRef": "objectService.default" }
     },
     "flags": {
-      "required": ["ODF_MODEL"],
+      "required": ["ODF_MODEL", "MCG"],
       "disallowed": ["ODF_ADMIN"]
     }
   },
@@ -587,33 +593,6 @@
   {
     "type": "odf.horizontalNav/tab",
     "properties": {
-      "id": "objectbuckets",
-      "name": "%plugin__odf-console~Object Buckets%",
-      "contextId": "odf-object-service",
-      "after": "namespace-store",
-      "href": "objectbucket.io~v1alpha1~ObjectBucket",
-      "component": {
-        "$codeRef": "ob.ObjectBucketListPage"
-      }
-    },
-    "flags": {
-      "required": ["RGW"],
-      "disallowed": ["MCG"]
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/odf/resource/objectbucket.io~v1alpha1~ObjectBucket/:resourceName",
-      "exact": false,
-      "component": {
-        "$codeRef": "ob.OBDetailsPage"
-      }
-    }
-  },
-  {
-    "type": "odf.horizontalNav/tab",
-    "properties": {
       "id": "objectbucketclaims",
       "name": "%plugin__odf-console~Object Bucket Claims%",
       "contextId": "odf-object-service",
@@ -625,23 +604,6 @@
     },
     "flags": {
       "required": ["MCG"]
-    }
-  },
-  {
-    "type": "odf.horizontalNav/tab",
-    "properties": {
-      "id": "objectbucketclaims",
-      "name": "%plugin__odf-console~Object Bucket Claims%",
-      "contextId": "odf-object-service",
-      "after": "objectbuckets",
-      "href": "objectbucket.io~v1alpha1~ObjectBucketClaim",
-      "component": {
-        "$codeRef": "obc.OBCListPage"
-      }
-    },
-    "flags": {
-      "required": ["RGW"],
-      "disallowed": ["MCG"]
     }
   },
   {
@@ -701,7 +663,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketOverview.default"
@@ -711,7 +673,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/create/~new",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName/management/lifecycle/create/~new",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketLifecycleRule.CreateLifecycleRule"
@@ -721,7 +683,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/edit",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName/management/lifecycle/edit",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketLifecycleRule.EditLifecycleRule"
@@ -731,7 +693,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/create/~new",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName/permissions/cors/create/~new",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketCors.CreateCorsRule"
@@ -741,7 +703,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/edit",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName/permissions/cors/edit",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketCors.EditCorsRule"
@@ -751,7 +713,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/details",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName/permissions/cors/details",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketCorsDetails.CorsDetailsPage"

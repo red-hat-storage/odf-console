@@ -1,3 +1,7 @@
+import {
+  ODF_PROXY_ROOT_PATH,
+  PLUGIN_OPENSHIFT_CI,
+} from '@odf/shared/constants';
 import { StorageClassModel, StorageClusterModel } from '@odf/shared/models';
 import { SelfSubjectAccessReviewModel } from '@odf/shared/models';
 import {
@@ -10,16 +14,24 @@ import {
   k8sCreate,
   SelfSubjectAccessReviewKind,
   K8sResourceCommon,
+  consoleFetchJSON,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { SECOND, RGW_PROVISIONER, NOOBAA_PROVISIONER } from './constants';
+import { SECOND, NOOBAA_PROVISIONER } from './constants';
 import { isExternalCluster, isClusterIgnored } from './utils';
 
 export const ODF_MODEL_FLAG = 'ODF_MODEL'; // Based on the existence of StorageSystem CRD
-export const RGW_FLAG = 'RGW'; // Based on the existence of StorageClass with RGW provisioner ("openshift-storage.ceph.rook.io/bucket")
-export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaa StorageClass (which only gets created if NooBaaSystem is present)
+export const MCG_FLAG = 'MCG'; // Based on the existence of NooBaa CR and NooBaa StorageClass
 export const ODF_ADMIN = 'ODF_ADMIN'; // Set to "true" if user is an "openshift-storage" admin (access to StorageSystems)
 export const PROVIDER_MODE = 'PROVIDER_MODE'; // Set to "true" if user has deployed it in provider mode
+
+const nooBaaFlagName = 'noobaa';
+type FeatureFlagResponse = {
+  [flagName: string]: {
+    value: boolean;
+    error?: string;
+  };
+};
 
 // Check the user's access to some resources.
 const ssarChecks = [
@@ -98,53 +110,6 @@ const handleError = (
   }
 };
 
-// To be Run only once the Storage Cluster is Installed
-// RGW storageClass should init. first => Noobaa consumes RGW to create a backingStore
-// Stops polling when either the RGW storageClass or the Noobaa Storage Class comes up
-export const detectRGW: FeatureDetector = async (setFlag: SetFeatureFlag) => {
-  let id = null;
-  let isInitial = true;
-  const logicHandler = () =>
-    k8sList({ model: StorageClassModel, queryParams: { ns: null } })
-      .then((data: StorageClassResourceKind[]) => {
-        const isRGWPresent = data.some((sc) =>
-          sc.provisioner?.endsWith(RGW_PROVISIONER)
-        );
-        const isNooBaaPresent = data.some((sc) =>
-          sc.provisioner?.endsWith(NOOBAA_PROVISIONER)
-        );
-        if (isRGWPresent) {
-          setFlag(RGW_FLAG, true);
-          clearInterval(id);
-        } else {
-          if (isInitial === true) {
-            setFlag(RGW_FLAG, false);
-            isInitial = false;
-          }
-          // If Noobaa already has come up; Platform doesn't support RGW; stop polling
-          if (isNooBaaPresent) {
-            clearInterval(id);
-          }
-        }
-      })
-      .catch((error) => {
-        if (error?.response instanceof Response) {
-          const status = error?.response?.status;
-          if (_.includes([403, 502], status)) {
-            setFlag(RGW_FLAG, false);
-            clearInterval(id);
-          }
-          if (!_.includes([401, 403, 500], status) && isInitial === true) {
-            setFlag(RGW_FLAG, false);
-            isInitial = false;
-          }
-        } else {
-          clearInterval(id);
-        }
-      });
-  id = setInterval(logicHandler, 15 * SECOND);
-};
-
 export const detectSSAR = (setFlag: SetFeatureFlag) => {
   const ssar = {
     apiVersion: 'authorization.k8s.io/v1',
@@ -175,8 +140,8 @@ export const detectComponents: FeatureDetector = async (
 ) => {
   let noobaaIntervalId = null;
 
-  // Setting flag based on presence of NooBaa StorageClass gets created only if NooBaa CR is present
-  const noobaaDetector = async () => {
+  // ToDo (Sanjal): Remove this once CI is upgraded to ODF 4.21 or above
+  const noobaaDetectorCI = async () => {
     try {
       const storageClasses = (await k8sList({
         model: StorageClassModel,
@@ -193,6 +158,26 @@ export const detectComponents: FeatureDetector = async (
       setFlag(MCG_FLAG, false);
     }
   };
+
+  const noobaaDetectorProd = async () => {
+    try {
+      const response = (await consoleFetchJSON(
+        `${ODF_PROXY_ROOT_PATH}/provider-proxy/info/featureflags?flags=${nooBaaFlagName}`
+      )) as FeatureFlagResponse;
+      const isNooBaaPresent = response?.[nooBaaFlagName]?.value;
+      if (isNooBaaPresent) {
+        setFlag(MCG_FLAG, true);
+        clearInterval(noobaaIntervalId);
+      }
+    } catch {
+      setFlag(MCG_FLAG, false);
+    }
+  };
+
+  const noobaaDetector =
+    PLUGIN_OPENSHIFT_CI === 'true' || PLUGIN_OPENSHIFT_CI === '1'
+      ? noobaaDetectorCI
+      : noobaaDetectorProd;
 
   // calling first time instantaneously
   // else it will wait for 15s before start polling
