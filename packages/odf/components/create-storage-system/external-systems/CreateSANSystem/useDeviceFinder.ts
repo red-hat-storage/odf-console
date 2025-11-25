@@ -11,17 +11,13 @@ import { WizardNodeState } from '../../reducer';
 
 const DEVICE_FINDER_ENDPOINT = `${ODF_PROXY_ROOT_PATH}/ux-backend-server/cnsa/devicefinder`;
 
-const initiateDeviceFinder = async (
-  namespace: string = 'openshift-storage'
-) => {
+const initiateDeviceFinder = async () => {
   await consoleFetch(DEVICE_FINDER_ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      namespace,
-    }),
+    body: JSON.stringify({}),
   });
 };
 
@@ -58,10 +54,7 @@ const getSharedDiscoveredDevicesRepresentatives = (
   return sharedGroups.map(([, dds]) => dds[0]);
 };
 
-export const useDeviceFinder = (
-  selectedNodes?: WizardNodeState[],
-  namespace: string = 'openshift-storage'
-) => {
+export const useDeviceFinder = (selectedNodes?: WizardNodeState[]) => {
   const [deviceFinderResponse, setDeviceFinderResponse] =
     React.useState<GetDevicefinderResponse | null>(null);
   const [deviceFinderError, setDeviceFinderError] =
@@ -82,7 +75,6 @@ export const useDeviceFinder = (
       // Call devicefinder with a PUT request to update selected hostnames
       if (selectedHostnames.length > 0) {
         const payload = {
-          namespace,
           nodeSelector: {
             nodeSelectorTerms: [
               {
@@ -109,7 +101,7 @@ export const useDeviceFinder = (
         });
       }
     }
-  }, [memoizedSelectedNodes, namespace]);
+  }, [memoizedSelectedNodes]);
 
   // NEW: expose shared devices
   const [sharedDevices, setSharedDevices] = React.useState<DiscoveredDevice[]>(
@@ -123,7 +115,7 @@ export const useDeviceFinder = (
 
     const init = async () => {
       try {
-        await initiateDeviceFinder(namespace);
+        await initiateDeviceFinder();
       } catch (error) {
         if (isMounted) {
           setDeviceFinderError(error as Error);
@@ -173,7 +165,7 @@ export const useDeviceFinder = (
         clearInterval(intervalId);
       }
     };
-  }, [namespace]);
+  }, []);
 
   return {
     deviceFinderResponse,

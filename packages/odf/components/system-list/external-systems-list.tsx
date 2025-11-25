@@ -298,6 +298,17 @@ const getActions = (obj: StorageSystemKind, t: TFunction) => {
       },
     ];
   }
+  if (obj.spec.kind === RemoteClusterModel.kind.toLowerCase()) {
+    return [
+      {
+        key: 'ADD_REMOTE_FILE_SYSTEM',
+        value: t('Add Remote FileSystem'),
+        component: React.lazy(
+          () => import('../../modals/add-remote-fs/AddRemoteFileSystemModal')
+        ),
+      },
+    ];
+  }
   return [];
 };
 

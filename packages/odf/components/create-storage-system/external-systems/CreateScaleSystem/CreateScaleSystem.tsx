@@ -6,6 +6,7 @@ import {
   ButtonBar,
 } from '@odf/shared';
 import { ValidatedPasswordInput } from '@odf/shared/text-inputs/password-input';
+import * as _ from 'lodash-es';
 import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Form,
@@ -25,6 +26,7 @@ import {
   ButtonType,
   ButtonVariant,
 } from '@patternfly/react-core';
+import { useIsLocalClusterConfigured } from '../common/hooks';
 import { NodesSection } from '../common/NodesSection';
 import { createScaleLocalClusterPayload, labelNodes } from '../common/payload';
 import {
@@ -56,6 +58,8 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   const navigate = useNavigate();
   const [error, setError] = React.useState<string>('');
   const [loading, setLoading] = React.useState(false);
+  const localCluster = useIsLocalClusterConfigured();
+  const isLocalClusterConfigured = !_.isEmpty(localCluster);
 
   const {
     fieldRequirements,
@@ -148,12 +152,16 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     try {
       const formData = getValues();
       const patchNodes = labelNodes(componentState.selectedNodes);
+      if (!isLocalClusterConfigured) {
+        await patchNodes();
+        const localClusterPromise = createScaleLocalClusterPayload(
+          componentState.encryptionEnabled
+        );
+        await localClusterPromise();
+      }
       const secretPromise = createScaleCaCertSecretPayload(
         formData.name,
         componentState.caCertificate
-      );
-      const localClusterPromise = createScaleLocalClusterPayload(
-        componentState.encryptionEnabled
       );
       const userDetailsSecretName = `${formData.name}-user-details-secret`;
       const userDetailsSecretPromise = createUserDetailsSecretPayload(
@@ -210,11 +218,9 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         formData.fileSystemName
       );
 
-      await patchNodes();
       if (!!componentState.caCertificate) {
         await secretPromise();
       }
-      await localClusterPromise();
       await userDetailsSecretPromise();
       if (componentState.caCertificate) {
         await remoteClusterConfigMapPromise();
@@ -234,7 +240,15 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [componentState, getValues, navigate]);
+  }, [
+    componentState.caCertificate,
+    componentState.encryptionCert,
+    componentState.encryptionEnabled,
+    componentState.selectedNodes,
+    getValues,
+    isLocalClusterConfigured,
+    navigate,
+  ]);
 
   return (
     <Form onSubmit={handleSubmit(onCreate)} isWidthLimited>
@@ -264,6 +278,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         />
         <FormGroup label={t('Select local cluster nodes')} isRequired>
           <NodesSection
+            isDisabled={isLocalClusterConfigured}
             selectedNodes={componentState.selectedNodes}
             setSelectedNodes={(nodes) =>
               setComponentState((prev) => ({ ...prev, selectedNodes: nodes }))
