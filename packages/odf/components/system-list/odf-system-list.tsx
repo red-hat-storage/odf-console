@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { LSO_OPERATOR, CREATE_SS_PAGE_URL } from '@odf/core/constants';
 import { storageClusterResource } from '@odf/core/resources';
-import { isCapacityAutoScalingAllowed } from '@odf/core/utils';
+import {
+  isCapacityAutoScalingAllowed,
+  isExternalCluster,
+} from '@odf/core/utils';
 import {
   DEFAULT_INFRASTRUCTURE,
   InfrastructureKind,
@@ -274,32 +277,39 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
     (storageClusterItem) => getName(storageClusterItem) === obj.spec.name
   );
 
+  const isExternalMode = isExternalCluster(storageCluster);
+
   const resourceProfile = storageCluster?.spec?.resourceProfile;
-  const customKebabItems: CustomKebabItem[] = [
-    {
-      key: 'ADD_CAPACITY',
-      value: t('Add Capacity'),
-      component: React.lazy(
-        () => import('./../../modals/add-capacity/add-capacity-modal')
-      ),
-    },
-    {
-      key: 'CONFIGURE_PERFORMANCE',
-      value: t('Configure performance'),
-      component: React.lazy(
-        () =>
-          import(
-            '@odf/core/modals/configure-performance/configure-performance-modal'
-          )
-      ),
-    },
-  ];
+  const customKebabItems: CustomKebabItem[] = [];
+
+  if (!isExternalMode) {
+    customKebabItems.push(
+      {
+        key: 'ADD_CAPACITY',
+        value: t('Add Capacity'),
+        component: React.lazy(
+          () => import('./../../modals/add-capacity/add-capacity-modal')
+        ),
+      },
+      {
+        key: 'CONFIGURE_PERFORMANCE',
+        value: t('Configure performance'),
+        component: React.lazy(
+          () =>
+            import(
+              '@odf/core/modals/configure-performance/configure-performance-modal'
+            )
+        ),
+      }
+    );
+  }
 
   if (
     isCapacityAutoScalingAllowed(
       getInfrastructurePlatform(infrastructure),
       resourceProfile
-    )
+    ) &&
+    !isExternalMode
   ) {
     customKebabItems.push({
       key: 'CAPACITY_AUTOSCALING',
@@ -312,7 +322,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
       ),
     });
   }
-  if (isLSOInstalled) {
+  if (isLSOInstalled && !isExternalMode) {
     customKebabItems.push({
       key: 'ATTACH_STORAGE',
       value: t('Attach Storage'),
