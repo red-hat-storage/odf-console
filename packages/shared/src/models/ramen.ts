@@ -36,6 +36,18 @@ export const DRPlacementControlModel: K8sModel = {
   crd: true,
 };
 
+export const ProtectedApplicationViewModel: K8sModel = {
+  apiVersion: 'v1alpha1',
+  apiGroup: 'multicluster.odf.openshift.io',
+  kind: 'ProtectedApplicationView',
+  plural: 'protectedapplicationviews',
+  abbr: 'PAV',
+  namespaced: true,
+  label: 'Protected Application View',
+  labelPlural: 'Protected Application Views',
+  crd: true,
+};
+
 export const DRVolumeReplicationGroup: K8sModel = {
   label: 'VolumeReplicationGroup',
   labelPlural: 'VolumeReplicationGroups',

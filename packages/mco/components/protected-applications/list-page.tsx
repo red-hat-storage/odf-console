@@ -1,49 +1,58 @@
 import * as React from 'react';
+import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
+import {
+  getApplicationName,
+  getDetailsCount,
+  getDRPCRef,
+  getPAVDRPolicyName,
+  getPrimaryCluster,
+} from '@odf/mco/utils/pav';
 import { DRPlacementControlModel } from '@odf/shared';
 import { DASH } from '@odf/shared/constants';
 import { PaginatedListPage } from '@odf/shared/list-page';
 import ResourceLink from '@odf/shared/resource-link/resource-link';
-import { getName } from '@odf/shared/selectors';
 import { RowComponentType } from '@odf/shared/table';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
-  useListPageFilter,
   useK8sWatchResource,
+  useListPageFilter,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { global_palette_black_900 as blackIconColor } from '@patternfly/react-tokens/dist/js/global_palette_black_900';
 import classNames from 'classnames';
 import {
-  useNavigate,
-  NavigateFunction,
   Link,
+  NavigateFunction,
+  useNavigate,
 } from 'react-router-dom-v5-compat';
 import { Icon } from '@patternfly/react-core';
 import { CubeIcon } from '@patternfly/react-icons';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
-import { DR_BASE_ROUTE, DISCOVERED_APP_NS } from '../../constants';
-import { getDRPlacementControlResourceObj } from '../../hooks';
+import { DR_BASE_ROUTE } from '../../constants';
+import {
+  getDRPlacementControlResourceObj,
+  getProtectedApplicationViewResourceObj,
+} from '../../hooks';
 import { DRPlacementControlKind } from '../../types';
-import { getDRPolicyName, getPrimaryClusterName } from '../../utils';
 import { DiscoveredParser as DRStatusPopover } from '../dr-status-popover/parsers';
 import {
-  EmptyRowMessage,
-  NoDataMessage,
   AlertMessages,
+  EmptyRowMessage,
   EnrollApplicationButton,
-  ExpandableComponentType,
   ExpandableComponentProps,
   ExpandableComponentsMap,
+  ExpandableComponentType,
+  NoDataMessage,
   SelectExpandable,
 } from './components';
+import './protected-apps.scss';
 import {
-  getHeaderColumns,
-  getColumnNames,
   drpcDetailsPageRoute,
+  getColumnNames,
+  getHeaderColumns,
   getRowActions,
 } from './utils';
-import './protected-apps.scss';
 
 type RowExtraProps = {
   launcher: LaunchModal;
@@ -51,20 +60,28 @@ type RowExtraProps = {
 };
 
 const ProtectedAppsTableRow: React.FC<
-  RowComponentType<DRPlacementControlKind>
-> = ({ row: application, extraProps }) => {
+  RowComponentType<ProtectedApplicationViewKind>
+> = ({ row: pav, extraProps }) => {
   const { t } = useCustomTranslation();
-  const { launcher, navigate }: RowExtraProps = extraProps;
+  const {
+    launcher,
+    navigate,
+    drpcMap,
+  }: RowExtraProps & { drpcMap: Map<string, DRPlacementControlKind> } =
+    extraProps;
+
+  const drpcRef = getDRPCRef(pav);
+  const drpcKey = `${drpcRef.namespace || pav.metadata.namespace}/${drpcRef.name}`;
+  const drpc = drpcMap.get(drpcKey);
 
   const [expandableComponentType, setExpandableComponentType] = React.useState(
     ExpandableComponentType.DEFAULT
   );
 
   const columnNames = getColumnNames(t);
-  const appName = getName(application);
-  const drPolicyName = getDRPolicyName(application);
-  const enrolledNamespaces: string[] =
-    application.spec?.protectedNamespaces || [];
+  const appName = getApplicationName(pav);
+  const drPolicyName = getPAVDRPolicyName(pav);
+  const detailsCount = getDetailsCount(pav);
 
   const onTabSelect = (
     _event: React.MouseEvent<HTMLElement, MouseEvent>,
@@ -104,7 +121,7 @@ const ProtectedAppsTableRow: React.FC<
           <ResourceLink
             resourceModel={DRPlacementControlModel}
             resourceName={appName}
-            link={drpcDetailsPageRoute(application)}
+            link={drpcDetailsPageRoute(drpc)}
           />
         </Td>
         <Td dataLabel={columnNames[2]}>
@@ -114,9 +131,7 @@ const ProtectedAppsTableRow: React.FC<
                 <Icon size="sm">
                   <CubeIcon color={blackIconColor.value} />
                 </Icon>
-                <span className="pf-v5-u-pl-sm">
-                  {enrolledNamespaces.length}
-                </span>
+                <span className="pf-v5-u-pl-sm">{detailsCount}</span>
               </div>
             }
             tooltipContent={t('View namespaces')}
@@ -129,7 +144,7 @@ const ProtectedAppsTableRow: React.FC<
           />
         </Td>
         <Td dataLabel={columnNames[3]}>
-          <DRStatusPopover application={application} />
+          <DRStatusPopover application={drpc} />
         </Td>
         <Td dataLabel={columnNames[4]}>
           <Link
@@ -139,19 +154,15 @@ const ProtectedAppsTableRow: React.FC<
             {drPolicyName}
           </Link>
         </Td>
-        <Td dataLabel={columnNames[5]}>
-          {getPrimaryClusterName(application) || DASH}
-        </Td>
+        <Td dataLabel={columnNames[5]}>{getPrimaryCluster(pav) || DASH}</Td>
         <Td isActionCell>
-          <ActionsColumn
-            items={getRowActions(t, launcher, navigate, application)}
-          />
+          <ActionsColumn items={getRowActions(t, launcher, navigate, drpc)} />
         </Td>
       </Tr>
       {isExpanded && (
         <Tr>
           <Td colSpan={Object.keys(columnNames).length + 1}>
-            <ExpandableComponent application={application} />
+            <ExpandableComponent application={drpc} />
           </Td>
         </Tr>
       )}
@@ -164,18 +175,29 @@ export const ProtectedApplicationsListPage: React.FC = () => {
   const launcher = useModal();
   const navigate = useNavigate();
 
-  const [discoveredApps, discoveredAppsLoaded, discoveredAppsError] =
-    useK8sWatchResource<DRPlacementControlKind[]>(
-      getDRPlacementControlResourceObj({
-        namespace: DISCOVERED_APP_NS,
-      })
-    );
+  const [pavs, pavsLoaded, pavsError] = useK8sWatchResource<
+    ProtectedApplicationViewKind[]
+  >(getProtectedApplicationViewResourceObj());
 
-  const isAllLoadedWOAnyError = discoveredAppsLoaded && !discoveredAppsError;
+  const [drpcs, drpcsLoaded, drpcsError] = useK8sWatchResource<
+    DRPlacementControlKind[]
+  >(getDRPlacementControlResourceObj({}));
 
-  const [data, filteredData, onFilterChange] = useListPageFilter(
-    discoveredApps || []
-  );
+  const drpcMap = React.useMemo(() => {
+    const map = new Map<string, DRPlacementControlKind>();
+    if (drpcsLoaded && drpcs) {
+      drpcs.forEach((drpc) => {
+        const key = `${drpc.metadata.namespace}/${drpc.metadata.name}`;
+        map.set(key, drpc);
+      });
+    }
+    return map;
+  }, [drpcs, drpcsLoaded]);
+
+  const isAllLoadedWOAnyError =
+    pavsLoaded && drpcsLoaded && !pavsError && !drpcsError;
+
+  const [data, filteredData, onFilterChange] = useListPageFilter(pavs || []);
 
   return (
     <PaginatedListPage
@@ -185,18 +207,18 @@ export const ProtectedApplicationsListPage: React.FC = () => {
       noData={!isAllLoadedWOAnyError || !data.length}
       listPageFilterProps={{
         data: data,
-        loaded: discoveredAppsLoaded,
+        loaded: drpcsLoaded && pavsLoaded,
         onFilterChange: onFilterChange,
       }}
       composableTableProps={{
         columns: getHeaderColumns(t),
         RowComponent: ProtectedAppsTableRow,
-        extraProps: { launcher, navigate },
+        extraProps: { launcher, navigate, drpcMap },
         emptyRowMessage: EmptyRowMessage,
         unfilteredData: data as [],
         noDataMsg: NoDataMessage,
-        loaded: discoveredAppsLoaded,
-        loadError: discoveredAppsError,
+        loaded: pavsLoaded && drpcsLoaded,
+        loadError: pavsError || drpcsError,
       }}
     />
   );
