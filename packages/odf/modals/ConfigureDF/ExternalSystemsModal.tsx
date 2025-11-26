@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FDF_FLAG } from '@odf/core/redux';
+import { FDF_FLAG, SCALE_GATE_FLAG } from '@odf/core/redux';
 import { useGetExternalClusterDetails } from '@odf/core/redux/utils';
 import {
   DEFAULT_INFRASTRUCTURE,
@@ -48,6 +48,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
   const { t } = useCustomTranslation();
 
   const isFDF = useFlag(FDF_FLAG);
+  const isScaleEnabled = useFlag(SCALE_GATE_FLAG);
   const [infrastructure] = useK8sGet<InfrastructureKind>(
     InfrastructureModel,
     DEFAULT_INFRASTRUCTURE
@@ -140,7 +141,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
           </CardBody>
         </Card>
       </FlexItem>
-      {isFDF && (
+      {isFDF && isScaleEnabled && (
         <FlexItem>
           <Card id="setup-scale-storage" isClickable>
             <CardHeader
