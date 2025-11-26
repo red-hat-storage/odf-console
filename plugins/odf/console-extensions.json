@@ -879,5 +879,16 @@
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/overview/health",
+      "exact": true,
+      "component": { "$codeRef": "healthOverview.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
   }
 ]
