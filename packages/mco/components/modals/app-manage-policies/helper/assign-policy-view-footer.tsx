@@ -8,13 +8,9 @@ import { requirementFromString } from '@odf/shared/modals';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Operator } from '@openshift-console/dynamic-plugin-sdk';
-import {
-  WizardContextType,
-  WizardContext,
-  WizardFooter,
-} from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
+import { useWizardContext, WizardFooterWrapper } from '@patternfly/react-core';
 import {
   Button,
   Alert,
@@ -135,20 +131,16 @@ const getErrorMessage = (
 export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
   state,
   appType,
-  stepIdReached,
   isValidationEnabled,
   errorMessage,
-  setStepIdReached,
   onSubmit,
   onCancel,
   setIsValidationEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const [requestInProgress, setRequestInProgress] = React.useState(false);
-  const { activeStep, onNext, onBack } =
-    React.useContext<WizardContextType>(WizardContext);
+  const { activeStep, goToNextStep, goToPrevStep } = useWizardContext();
 
-  const stepId = activeStep.id as number;
   const stepName = activeStep.name as string;
 
   const canJumpToNext = canJumpToNextStep(stepName, state, appType, t);
@@ -159,8 +151,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
 
   const moveToNextStep = () => {
     if (canJumpToNext) {
-      setStepIdReached(stepIdReached <= stepId ? stepId + 1 : stepIdReached);
-      onNext();
+      goToNextStep();
       setIsValidationEnabled(false);
     } else {
       setIsValidationEnabled(true);
@@ -191,26 +182,25 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
           {message?.children}
         </Alert>
       )}
-      <WizardFooter>
-        {/* Disabling the back button for the first step (Policy) in wizard */}
-        <Button
-          variant="secondary"
-          onClick={onBack}
-          isDisabled={stepId === 1 || requestInProgress}
-        >
-          {t('Back')}
-        </Button>
+      <WizardFooterWrapper>
         <Button
           isLoading={requestInProgress}
           isDisabled={requestInProgress || validationError}
           variant="primary"
-          type="submit"
           onClick={handleNext}
         >
           {stepName ===
           AssignPolicyStepsNames(t)[AssignPolicySteps.ReviewAndAssign]
             ? t('Assign')
             : t('Next')}
+        </Button>
+        {/* Disabling the back button for the first step (Policy) in wizard */}
+        <Button
+          variant="secondary"
+          onClick={goToPrevStep}
+          isDisabled={activeStep.index === 1 || requestInProgress}
+        >
+          {t('Back')}
         </Button>
         <Button
           variant="link"
@@ -219,7 +209,7 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
         >
           {t('Cancel')}
         </Button>
-      </WizardFooter>
+      </WizardFooterWrapper>
     </>
   );
 };
@@ -227,10 +217,8 @@ export const AssignPolicyViewFooter: React.FC<AssignPolicyViewFooterProps> = ({
 type AssignPolicyViewFooterProps = {
   state: AssignPolicyViewState;
   appType: DRApplication;
-  stepIdReached: number;
   isValidationEnabled: boolean;
   errorMessage: string;
-  setStepIdReached: React.Dispatch<React.SetStateAction<number>>;
   onSubmit: () => Promise<void>;
   onCancel: () => void;
   setIsValidationEnabled: React.Dispatch<React.SetStateAction<boolean>>;

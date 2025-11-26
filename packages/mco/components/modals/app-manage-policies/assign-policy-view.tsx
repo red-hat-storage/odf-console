@@ -8,8 +8,8 @@ import { ModalBody } from '@odf/shared/modals';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
-import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
+import { Wizard, WizardStep, WizardStepProps } from '@patternfly/react-core';
 import { AssignPolicyViewFooter } from './helper/assign-policy-view-footer';
 import ProtectionTypeWizardContent from './helper/protection-type-wizard-content';
 import { PVCDetailsWizardContent } from './helper/pvc-details-wizard-content';
@@ -41,7 +41,6 @@ export const createSteps = ({
   unProtectedPlacements,
   matchingPolicies,
   state,
-  stepIdReached,
   isValidationEnabled,
   t,
   dispatch,
@@ -50,7 +49,9 @@ export const createSteps = ({
   modalType,
   isEditMode,
   sharedVMGroups,
-}: CreateStepsParams): WizardStep[] => {
+}: CreateStepsParams): (Pick<WizardStepProps, 'id' | 'name'> & {
+  component: React.ReactElement;
+})[] => {
   const commonSteps = {
     policy: {
       name: AssignPolicyStepsNames(t)[AssignPolicySteps.Policy],
@@ -126,29 +127,24 @@ export const createSteps = ({
             {
               id: 1,
               ...commonSteps.persistentVolumeClaim,
-              canJumpTo: stepIdReached >= 1,
             },
             {
               id: 2,
               ...commonSteps.reviewAndAssign,
-              canJumpTo: stepIdReached >= 2,
             },
           ]
         : [
             {
               id: 1,
               ...commonSteps.policy,
-              canJumpTo: stepIdReached >= 1,
             },
             {
               id: 2,
               ...commonSteps.persistentVolumeClaim,
-              canJumpTo: stepIdReached >= 2,
             },
             {
               id: 3,
               ...commonSteps.reviewAndAssign,
-              canJumpTo: stepIdReached >= 3,
             },
           ];
     case ModalType.VirtualMachine:
@@ -157,39 +153,32 @@ export const createSteps = ({
             {
               id: 1,
               ...vmSteps.protectionType,
-              canJumpTo: stepIdReached >= 1,
             },
             {
               id: 2,
               ...vmSteps.replication,
-              canJumpTo: stepIdReached >= 2,
             },
             {
               id: 3,
               ...commonSteps.reviewAndAssign,
-              canJumpTo: stepIdReached >= 3,
             },
           ]
         : [
             {
               id: 1,
               ...vmSteps.protectionType,
-              canJumpTo: stepIdReached >= 1,
             },
             {
               id: 2,
               ...commonSteps.policy,
-              canJumpTo: stepIdReached >= 2,
             },
             {
               id: 3,
               ...commonSteps.persistentVolumeClaim,
-              canJumpTo: stepIdReached >= 3,
             },
             {
               id: 4,
               ...commonSteps.reviewAndAssign,
-              canJumpTo: stepIdReached >= 4,
             },
           ];
     default:
@@ -211,7 +200,6 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
   const { t } = useCustomTranslation();
   const isEditMode =
     modalActionContext === ModalActionContext.EDIT_DR_PROTECTION;
-  const [stepIdReached, setStepIdReached] = React.useState(1);
   const [isValidationEnabled, setIsValidationEnabled] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
 
@@ -266,41 +254,45 @@ export const AssignPolicyView: React.FC<AssignPolicyViewProps> = ({
     resetAssignState();
   };
 
+  const steps = createSteps({
+    appType,
+    unProtectedPlacements,
+    matchingPolicies,
+    state,
+    isValidationEnabled,
+    t,
+    dispatch,
+    protectedPVCSelectors,
+    pvcQueryFilter,
+    modalType,
+    isEditMode,
+    sharedVMGroups,
+  });
+
   return (
     <ModalBody>
       <Wizard
         navAriaLabel={t('Assign policy nav')}
-        mainAriaLabel={t('Assign policy content')}
-        steps={createSteps({
-          appType,
-          unProtectedPlacements,
-          matchingPolicies,
-          state,
-          stepIdReached,
-          isValidationEnabled,
-          t,
-          dispatch,
-          protectedPVCSelectors,
-          pvcQueryFilter,
-          modalType,
-          isEditMode,
-          sharedVMGroups,
-        })}
+        isVisitRequired
         footer={
           <AssignPolicyViewFooter
             state={state}
             appType={appType}
-            stepIdReached={stepIdReached}
             isValidationEnabled={isValidationEnabled}
             errorMessage={errorMessage}
-            setStepIdReached={setStepIdReached}
             onSubmit={onSubmit}
             onCancel={onClose}
             setIsValidationEnabled={setIsValidationEnabled}
           />
         }
         height={450}
-      />
+      >
+        {steps.map((step) => (
+          <WizardStep key={step.id} id={step.id} name={step.name}>
+            {step.component}
+          </WizardStep>
+        ))}
+      </Wizard>
     </ModalBody>
   );
 };
@@ -325,7 +317,6 @@ type CreateStepsParams = {
   unProtectedPlacements: PlacementType[];
   matchingPolicies: DRPolicyType[];
   state: AssignPolicyViewState;
-  stepIdReached: number;
   isValidationEnabled: boolean;
   t: TFunction;
   dispatch: React.Dispatch<ManagePolicyStateAction>;
