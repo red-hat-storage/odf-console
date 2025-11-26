@@ -1294,7 +1294,6 @@
   "Node has unavailable deployments": "Node has unavailable deployments",
   "Node is degraded": "Node is degraded",
   "Node Selector": "Node Selector",
-  "Node Table": "Node Table",
   "Nodes": "Nodes",
   "Nodes must be annotated with network.rook.io/mon-ip: <IPAddress> to set the correct IP address for the mon before proceeding with the host networking configuration. This ensures that the mons operate on the desired network": "Nodes must be annotated with network.rook.io/mon-ip: <IPAddress> to set the correct IP address for the mon before proceeding with the host networking configuration. This ensures that the mons operate on the desired network",
   "Noncurrent versions of objects": "Noncurrent versions of objects",
