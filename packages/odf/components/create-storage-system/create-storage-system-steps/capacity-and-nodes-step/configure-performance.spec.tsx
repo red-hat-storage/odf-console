@@ -15,7 +15,7 @@ jest.mock('@odf/core/hooks', () => ({
 
 const onResourceProfileChange = jest.fn();
 
-const errorIconSelector = '[class$="select__toggle-status-icon"]';
+const errorIconSelector = '.pf-v5-c-menu-toggle__status-icon';
 
 describe('Configure Performance', () => {
   beforeEach(() => {
@@ -39,7 +39,7 @@ describe('Configure Performance', () => {
     );
 
     const dropdown = screen.getByRole('button', {
-      name: /options menu/i,
+      name: /select a performance mode from the list/i,
     });
     expect(dropdown).toHaveTextContent('Balanced mode');
 
@@ -48,7 +48,7 @@ describe('Configure Performance', () => {
 
     await user.click(dropdown);
     const performanceOption = screen.getByRole('option', {
-      name: /performance mode cpus required/i,
+      name: /performance mode/i,
     });
     await user.click(performanceOption);
     expect(onResourceProfileChange).toHaveBeenNthCalledWith(
@@ -88,7 +88,7 @@ describe('Configure Performance', () => {
       />
     );
     const dropdown = screen.getByRole('button', {
-      name: /options menu/i,
+      name: /select a performance mode from the list/i,
     });
     expect(dropdown).toHaveTextContent('Performance mode');
 
@@ -115,7 +115,7 @@ describe('Configure Performance', () => {
     );
 
     const dropdown = screen.getByRole('button', {
-      name: /options menu/i,
+      name: /select a performance mode from the list/i,
     });
     expect(dropdown).toHaveTextContent('Balanced mode');
     expect(screen.getByText(/42 CPUs/i)).toBeInTheDocument();

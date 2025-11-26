@@ -16,6 +16,7 @@ describe('Label expression selector', () => {
     const onChange = jest.fn((expression: MatchExpression[]) => {
       selectedExpression = expression;
     });
+
     const component = () => (
       <LabelExpressionSelector
         labels={getLabels()}
@@ -31,7 +32,7 @@ describe('Label expression selector', () => {
     // Verify add resource
     await userEvent.click(screen.getByText('Add resource'));
 
-    // rerender after argument change
+    // Rerender after argument change
     rerender(component());
 
     // Verify expand section before selection
@@ -42,36 +43,80 @@ describe('Label expression selector', () => {
     expect(screen.getByText('Operator')).toBeInTheDocument();
     expect(screen.getByText('Values')).toBeInTheDocument();
 
-    // Verify label selection
-    await user.click(screen.getByText('Select a label'));
+    // Step 1: Select label
+    const labelInput =
+      screen.queryByPlaceholderText(/select a label/i) ||
+      screen.queryByRole('textbox', { name: /type to filter/i });
+
+    if (!labelInput) {
+      throw new Error('Could not find the "Select a label" input field');
+    }
+
+    await user.click(labelInput);
+
+    // Wait for dropdown options to appear
+    const option1 = await screen.findByText('option-1');
+    const option2 = await screen.findByText('option-2');
+
+    expect(option1).toBeInTheDocument();
+    expect(option2).toBeInTheDocument();
+
+    await user.click(option1);
+
+    rerender(component());
     expect(screen.getByText('option-1')).toBeInTheDocument();
-    expect(screen.getByText('option-2')).toBeInTheDocument();
-    await user.click(screen.getByText('option-1'));
-    // rerender after argument change
-    rerender(component());
-    expect(screen.getByText('option-1')).toBeInTheDocument();
 
-    // Verify operator selection
-    await user.click(screen.getByText('In'));
+    // Step 2: Select operator
+    // PFv5 renders operator as typeahead input
+    const operatorInput =
+      screen.queryByPlaceholderText(/select options/i) ||
+      screen.queryByRole('textbox', { name: /type to filter/i });
+
+    if (!operatorInput) {
+      throw new Error('Could not find the "Operator" input field');
+    }
+
+    // Click to open dropdown
+    await user.click(operatorInput);
+
+    // Wait for operator options to appear
+    const notInOption = await screen.findByText((c) => c.trim() === 'NotIn');
+    const existsOption = await screen.findByText((c) => c.trim() === 'Exists');
+    const doesNotExistOption = await screen.findByText(
+      (c) => c.trim() === 'DoesNotExist'
+    );
+
+    expect(notInOption).toBeInTheDocument();
+    expect(existsOption).toBeInTheDocument();
+    expect(doesNotExistOption).toBeInTheDocument();
+
+    await user.click(notInOption);
+
+    rerender(component());
     expect(screen.getByText('NotIn')).toBeInTheDocument();
-    expect(screen.getByText('Exists')).toBeInTheDocument();
-    expect(screen.getByText('DoesNotExist')).toBeInTheDocument();
-    await user.click(screen.getByText('NotIn'));
-    // rerender after argument change
-    rerender(component());
-    expect(screen.getByText('NotIn')).toBeInTheDocument();
 
-    // Verify values for option-1
-    await user.click(screen.getByText('Select the values'));
-    await user.click(screen.getByText('value-1'));
-    // rerender after argument change
-    rerender(component());
-    await user.click(screen.getByText('value-2'));
-    // rerender after argument change
-    rerender(component());
-    expect(screen.getByText('{{count}} selected')).toBeInTheDocument();
+    // Step 3: Select values
+    // Find the Values section and its combobox input
+    const valuesSection = screen
+      .getByText('Values')
+      .closest('.pf-v5-c-form__group');
+    const valueInput = valuesSection?.querySelector('[role="combobox"]');
 
-    // Verify expand section after selection
+    if (!valueInput) {
+      throw new Error('Could not find the values input field');
+    }
+
+    await user.click(valueInput);
+
+    const value1 = await screen.findByText('value-1');
+    const value2 = await screen.findByText('value-2');
+
+    await user.click(value1);
+    rerender(component());
+    await user.click(value2);
+    rerender(component());
+
+    //Step 4: Verify final expanded text
     expect(
       screen.getByText('option-1 does not equal any of value-1, value-2')
     ).toBeInTheDocument();
@@ -86,6 +131,7 @@ describe('Label expression selector', () => {
       },
     ];
     const onChange = jest.fn();
+
     render(
       <LabelExpressionSelector
         labels={getLabels()}
@@ -95,6 +141,7 @@ describe('Label expression selector', () => {
         selectedExpressions={selectedExpression}
       />
     );
+
     // Verify validation error message
     const errors = screen.getAllByText('Required');
     expect(errors).toHaveLength(2);

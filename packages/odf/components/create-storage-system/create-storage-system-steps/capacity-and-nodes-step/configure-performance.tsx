@@ -19,9 +19,13 @@ import {
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
-import { Text, TextVariants, TextContent } from '@patternfly/react-core';
+import {
+  Text,
+  TextVariants,
+  TextContent,
+  SelectOption,
+} from '@patternfly/react-core';
 import './configure-performance.scss';
 
 const selectOptions = (t: TFunction, forceLean: boolean, osdAmount: number) =>
