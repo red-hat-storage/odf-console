@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LSO_OPERATOR } from '@odf/core/constants';
+import { DeviceClassTooltip, LSO_OPERATOR } from '@odf/core/constants';
 import { expandStorageUXBackendEndpoint } from '@odf/core/constants/attach-storage';
 import { useNodesData, useSafeK8sGet } from '@odf/core/hooks';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
@@ -13,6 +13,7 @@ import {
 } from '@odf/core/utils';
 import { getCephNodes } from '@odf/ocs/utils';
 import {
+  FieldLevelHelp,
   PageHeading,
   StatusBox,
   StorageClusterKind,
@@ -31,7 +32,13 @@ import {
   useNavigate,
   useParams,
 } from 'react-router-dom-v5-compat';
-import { Text, TextContent, TextVariants } from '@patternfly/react-core';
+import {
+  FormGroup,
+  Text,
+  TextContent,
+  TextInput,
+  TextVariants,
+} from '@patternfly/react-core';
 import { createWizardNodeState, getDeviceSetReplica } from '../utils';
 import { AttachStorageFormFooter } from './attach-storage-footer';
 import './attach-storage.scss';
@@ -219,6 +226,34 @@ const AttachStorage = () => {
     storageClusterLoadError ||
     pvLoadError;
 
+  const deviceSets = React.useMemo(
+    () => storageCluster?.spec?.storageDeviceSets || [],
+    [storageCluster]
+  );
+
+  const deviceClassList = React.useCallback((): string[] => {
+    return deviceSets.map((ds) => ds.deviceClass as string);
+  }, [deviceSets]);
+
+  let selectedStorageClassCount = 0;
+
+  React.useEffect(() => {
+    for (const deviceSet of deviceSets) {
+      if (
+        deviceSet.dataPVCTemplate?.spec?.storageClassName ===
+        state.lsoStorageClassName
+      ) {
+        selectedStorageClassCount++;
+      }
+    }
+    if (selectedStorageClassCount === 0) {
+      dispatch({
+        type: AttachStorageActionType.SET_DEVICE_CLASS,
+        payload: state.lsoStorageClassName,
+      });
+    }
+  }, [state.lsoStorageClassName, deviceSets, selectedStorageClassCount]);
+
   return (
     <>
       <PageHeading title={t('Attach Storage')} breadcrumbs={breadcrumbs}>
@@ -246,6 +281,38 @@ const AttachStorage = () => {
             namespace={namespace}
             state={state}
           />
+          {
+            <FormGroup
+              className="pf-v5-u-pt-md pf-v5-u-mb-sm"
+              label={t('DeviceClass')}
+              fieldId="device-class"
+              labelIcon={
+                <FieldLevelHelp>{DeviceClassTooltip(t)}</FieldLevelHelp>
+              }
+              isRequired
+            >
+              <TextInput
+                isRequired={selectedStorageClassCount > 0}
+                type="text"
+                value={state.deviceClass}
+                aria-label="device-class-input"
+                onChange={(
+                  _event: React.FormEvent<HTMLInputElement>,
+                  deviceClassValue: string
+                ) => {
+                  return dispatch({
+                    type: AttachStorageActionType.SET_DEVICE_CLASS,
+                    payload: deviceClassValue,
+                  });
+                }}
+                validated={
+                  deviceClassList().includes(state.deviceClass)
+                    ? 'error'
+                    : undefined
+                }
+              />
+            </FormGroup>
+          }
           <div className="storagepool-form">
             <StoragePoolForm
               state={state}
