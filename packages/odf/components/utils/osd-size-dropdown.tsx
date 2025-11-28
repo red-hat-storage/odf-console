@@ -35,11 +35,11 @@ const valueLabelMap = (t: TFunction) => {
 const labelDescriptionMap = (t: TFunction) => {
   return {
     // label (visible on UI) : description to show below each label
-    [t(`0.5 ${StorageSizeUnitName.TiB}`)]: t('ExtraSmallScale'),
-    [t(`1 ${StorageSizeUnitName.TiB}`)]: t('SmallScale'),
-    [t(`2 ${StorageSizeUnitName.TiB}`)]: t('Standard'),
-    [t(`4 ${StorageSizeUnitName.TiB}`)]: t('LargeScale'),
-    [t(`8 ${StorageSizeUnitName.TiB}`)]: t('ExtraLargeScale'),
+    [`0.5 ${StorageSizeUnitName.TiB}`]: t('ExtraSmallScale'),
+    [`1 ${StorageSizeUnitName.TiB}`]: t('SmallScale'),
+    [`2 ${StorageSizeUnitName.TiB}`]: t('Standard'),
+    [`4 ${StorageSizeUnitName.TiB}`]: t('LargeScale'),
+    [`8 ${StorageSizeUnitName.TiB}`]: t('ExtraLargeScale'),
   } as const;
 };
 

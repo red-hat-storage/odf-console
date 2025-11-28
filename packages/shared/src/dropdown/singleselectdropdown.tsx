@@ -80,7 +80,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
         if (props.isCreatable && filterValue.trim() && !exactMatchExists) {
           options = [
             <SelectOption key={filterValue} value={filterValue}>
-              {t(`Create "${filterValue}"`)}
+              {t('Create "{{filterValue}}"', { filterValue })}
             </SelectOption>,
           ];
         } else {
@@ -93,7 +93,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
       } else if (props.isCreatable && filterValue.trim() && !exactMatchExists) {
         options = [
           <SelectOption key={filterValue} value={filterValue}>
-            {t(`Create "${filterValue}"`)}
+            {t('Create "{{filterValue}}"', { filterValue })}
           </SelectOption>,
           ...options,
         ];
@@ -184,7 +184,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
         <MenuToggle
           ref={toggleRef}
           variant="typeahead"
-          aria-label={t(props['aria-label']) || t('Options menu')}
+          aria-label={props['aria-label'] || t('Options menu')}
           isExpanded={isOpen}
           isDisabled={props.isDisabled}
           status={status}
@@ -217,7 +217,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
     return (
       <MenuToggle
         ref={toggleRef}
-        aria-label={t(props['aria-label']) || t('Typeahead single select')}
+        aria-label={props['aria-label'] || t('Typeahead single select')}
         onClick={() => setIsOpen((prev) => !prev)}
         isExpanded={isOpen}
         isDisabled={props.isDisabled}

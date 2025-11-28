@@ -110,7 +110,7 @@ export const FileUploadInput: React.FC<
           <HelperTextItem variant={getValidatedProp(kmsState[id].error)}>
             {getValidatedProp(!kmsState[id].error) === ValidatedOptions.default
               ? kmsState[id].error
-              : t(helperText)}
+              : helperText}
           </HelperTextItem>
         </HelperText>
       </FormHelperText>

@@ -100,7 +100,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
   const header = (
     <Title headingLevel="h1" size={TitleSizes['2xl']}>
       {descriptionKey
-        ? t('Edit {{description}}', { description: t(descriptionKey) })
+        ? t('Edit {{description}}', { description: descriptionKey })
         : t('Edit labels')}
     </Title>
   );
@@ -141,7 +141,7 @@ export const EditLabelModal: React.FC<EditLabelModalProps> = ({
           <div className="col-sm-12">
             <label htmlFor="tags-input" className="control-label">
               {descriptionKey
-                ? t('{{description}} for', { description: t(descriptionKey) })
+                ? t('{{description}} for', { description: descriptionKey })
                 : t('Labels for')}{' '}
               <ResourceIcon resourceModel={resourceModel} />{' '}
               {resource.metadata.name}

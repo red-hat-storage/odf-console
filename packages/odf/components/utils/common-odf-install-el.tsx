@@ -46,7 +46,8 @@ export const VALIDATIONS = (
           </div>
         ),
         text: t(
-          `The selected nodes do not meet the Data Foundation storage cluster requirement of an aggregated ${minCpu} CPUs and ${minMem} GiB of RAM. If the requirement is not met, a lean mode cluster will be deployed. You can add more resources now to select a different performance profile, or you can change the profile later by adding more resources.`
+          'The selected nodes do not meet the Data Foundation storage cluster requirement of an aggregated {{minCpu}} CPUs and {{minMem}} GiB of RAM. If the requirement is not met, a lean mode cluster will be deployed. You can add more resources now to select a different performance profile, or you can change the profile later by adding more resources.',
+          { minCpu, minMem }
         ),
         actionLinkStep: CreateStepsSC.STORAGEANDNODES,
         actionLinkText: t('Back to nodes selection'),
