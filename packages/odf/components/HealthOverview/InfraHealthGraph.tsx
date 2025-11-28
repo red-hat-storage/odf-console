@@ -14,17 +14,14 @@ import {
   Chart,
   ChartAxis,
   ChartGroup,
+  ChartLegend,
   ChartLine,
   ChartVoronoiContainer,
 } from '@patternfly/react-charts';
-import {
-  global_danger_color_100 as dangerColor,
-  global_warning_color_100 as warningColor,
-  global_info_color_100 as infoColor,
-  global_active_color_100 as activeColor,
-} from '@patternfly/react-tokens';
+import { global_active_color_100 as activeColor } from '@patternfly/react-tokens';
 import { HEALTH_SCORE_QUERY } from '../odf-dashboard/queries';
 import { AlertRowData } from './hooks';
+import { getSeverityColor } from './utils';
 import './infra-health-graph.scss';
 
 type InfraHealthGraphProps = {
@@ -142,19 +139,27 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
             symbol: { type: 'line', fill: activeColor.value },
           },
           {
-            name: t('Critical alert'),
-            symbol: { type: 'minus', fill: dangerColor.value },
+            name: t('Critical'),
+            symbol: { type: 'minus', fill: getSeverityColor('critical') },
           },
           {
-            name: t('Warning alert'),
-            symbol: { type: 'minus', fill: warningColor.value },
+            name: t('Moderate'),
+            symbol: { type: 'minus', fill: getSeverityColor('warning') },
           },
           {
-            name: t('Info alert'),
-            symbol: { type: 'minus', fill: infoColor.value },
+            name: t('Minor'),
+            symbol: { type: 'minus', fill: getSeverityColor('info') },
           },
         ]}
         legendPosition="bottom"
+        legendAllowWrap={true}
+        legendComponent={
+          <ChartLegend
+            style={{
+              labels: { fill: 'var(--pf-v5-global--Color--100)' },
+            }}
+          />
+        }
         containerComponent={
           <ChartVoronoiContainer
             voronoiDimension="x"
@@ -179,8 +184,18 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
           />
         }
       >
-        <ChartAxis />
-        <ChartAxis dependentAxis tickFormat={(v) => `${v}%`} />
+        <ChartAxis
+          style={{
+            tickLabels: { fill: 'var(--pf-v5-global--Color--100)' },
+          }}
+        />
+        <ChartAxis
+          dependentAxis
+          tickFormat={(v) => `${v}%`}
+          style={{
+            tickLabels: { fill: 'var(--pf-v5-global--Color--100)' },
+          }}
+        />
         <ChartGroup>
           {scoreHasData && (
             <ChartLine
@@ -210,12 +225,7 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
               style={{
                 data: {
                   strokeWidth: 6,
-                  stroke:
-                    alert.severity === 'critical'
-                      ? dangerColor.value
-                      : alert.severity === 'warning'
-                        ? warningColor.value
-                        : infoColor.value,
+                  stroke: getSeverityColor(alert.severity),
                 },
               }}
             />

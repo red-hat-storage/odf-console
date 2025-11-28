@@ -432,6 +432,57 @@ const mapSilencesToRows = (
     });
 };
 
+/**
+ * Checks if an alert matches a silence's matchers
+ */
+const alertMatchesSilence = (
+  alert: AlertRowData,
+  silence: AlertmanagerSilence
+): boolean => {
+  if (!silence.matchers || silence.status?.state !== 'active') {
+    return false;
+  }
+
+  // Check if all matchers match the alert
+  return silence.matchers.every((matcher) => {
+    const alertValue = alert.labels?.[matcher.name];
+
+    if (!alertValue) {
+      return false;
+    }
+
+    if (matcher.isRegex) {
+      try {
+        const regex = new RegExp(matcher.value);
+        const matches = regex.test(alertValue);
+        return matcher.isEqual ? matches : !matches;
+      } catch {
+        return false;
+      }
+    }
+
+    const matches = alertValue === matcher.value;
+    return matcher.isEqual ? matches : !matches;
+  });
+};
+
+/**
+ * Filters out alerts that are currently silenced
+ */
+export const filterOutSilencedAlerts = (
+  alerts: AlertRowData[],
+  silences: AlertmanagerSilence[] = []
+): AlertRowData[] => {
+  if (!silences.length) {
+    return alerts;
+  }
+
+  return alerts.filter((alert) => {
+    // Check if this alert matches any active silence
+    return !silences.some((silence) => alertMatchesSilence(alert, silence));
+  });
+};
+
 export const useSilencedAlerts = () => {
   const alertManagerBasePath = useAlertManagerBasePath();
   const silencesURL = alertManagerBasePath
@@ -476,5 +527,7 @@ export const useSilencedAlerts = () => {
     silencedAlertsLoaded,
     silencedAlertsError,
     refreshSilencedAlerts,
+    // Expose raw silences for filtering
+    silences,
   };
 };
