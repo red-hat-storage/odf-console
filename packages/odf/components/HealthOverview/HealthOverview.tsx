@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { PageHeading, useCustomTranslation } from '@odf/shared';
 import { ToggleGroup, ToggleGroupItem } from '@patternfly/react-core';
+import InfraHealthGraph from './InfraHealthGraph';
 
 enum HealthOverviewTab {
   SILENCED_ALERTS,
-  ACTIVE_ALERTS,
+  LAST_24_HOURS_ALERTS,
 }
 
 type HealthOverviewToggleGroupProps = {
@@ -24,9 +25,9 @@ const HealthOverviewToggleGroup: React.FC<HealthOverviewToggleGroupProps> = ({
   return (
     <ToggleGroup>
       <ToggleGroupItem
-        value={HealthOverviewTab.ACTIVE_ALERTS}
-        isSelected={selectedTab === HealthOverviewTab.ACTIVE_ALERTS}
-        onChange={() => setSelectedTab(HealthOverviewTab.ACTIVE_ALERTS)}
+        value={HealthOverviewTab.LAST_24_HOURS_ALERTS}
+        isSelected={selectedTab === HealthOverviewTab.LAST_24_HOURS_ALERTS}
+        onChange={() => setSelectedTab(HealthOverviewTab.LAST_24_HOURS_ALERTS)}
         text={t('Last 24 hours ({{count}})', { count: activeAlertsCount })}
       />
       <ToggleGroupItem
@@ -41,18 +42,18 @@ const HealthOverviewToggleGroup: React.FC<HealthOverviewToggleGroupProps> = ({
 
 const HealthOverview: React.FC = () => {
   const [selectedTab, setSelectedTab] = React.useState(
-    HealthOverviewTab.ACTIVE_ALERTS
+    HealthOverviewTab.LAST_24_HOURS_ALERTS
   );
   const { t } = useCustomTranslation();
   return (
     <>
       <PageHeading
-        title={t('ODF infrastructure health')}
+        title={t('DF infrastructure health')}
         hasUnderline={false}
         breadcrumbs={[
           { name: t('Overview'), path: '/odf/overview' },
           {
-            name: t('ODF infrastructure health'),
+            name: t('DF infrastructure health'),
             path: '/odf/overview/health',
           },
         ]}
@@ -64,6 +65,8 @@ const HealthOverview: React.FC = () => {
           selectedTab={selectedTab}
           setSelectedTab={setSelectedTab}
         />
+        {/* ToDo: Call "useHealthAlerts.ts" hook to get alerts data */}
+        <InfraHealthGraph alerts={[]} alertsLoaded={true} alertsError={null} />
       </div>
     </>
   );

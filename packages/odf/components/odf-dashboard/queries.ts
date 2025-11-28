@@ -27,6 +27,8 @@ export const UTILIZATION_QUERY = {
   [StorageDashboard.THROUGHPUT]: 'odf_system_throughput_total_bytes',
 };
 
+export const HEALTH_SCORE_QUERY = 'odf_health_score';
+
 // ToDo (epic 4422): Need to update as per updates in the metrics (if needed/once confirmed).
 // Assuming "namespace" in "odf_system.*"" metrics (except "odf_system_map" which is pushed by ODF opr and already has "target_namespace") is where system is deployed.
 export const STATUS_QUERIES = {
