@@ -1,10 +1,5 @@
 import * as React from 'react';
-import {
-  Dropdown,
-  DropdownToggle,
-  DropdownItem,
-  DropdownPosition,
-} from '@patternfly/react-core/deprecated';
+import { Dropdown, DropdownItem, MenuToggle } from '@patternfly/react-core';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 
 export const ActionDropdown: React.FC<ActionDropdownProps> = ({
@@ -20,6 +15,7 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = ({
 }) => {
   const [isOpen, setOpen] = React.useState<boolean>(false);
   const { t } = useCustomTranslation();
+  const toggleRef = React.useRef<HTMLButtonElement>();
 
   const onClick = (key: string) => {
     onSelect(key);
@@ -28,8 +24,32 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = ({
 
   return (
     <Dropdown
-      position={dropdownPosition || DropdownPosition.right}
-      dropdownItems={dropdownItems.map((item) => (
+      popperProps={{
+        position: dropdownPosition || 'right',
+      }}
+      toggle={{
+        toggleNode: (
+          <MenuToggle
+            ref={toggleRef}
+            aria-label={t('Select input')}
+            variant={toggleVariant || 'default'}
+            id={id}
+            isDisabled={isDisabled}
+            onClick={() => {
+              setOpen(!isOpen);
+              !!onToggle && onToggle(!isOpen);
+            }}
+            isExpanded={isOpen}
+          >
+            {text}
+          </MenuToggle>
+        ),
+        toggleRef,
+      }}
+      isOpen={isOpen}
+      isPlain={isPlain}
+    >
+      {dropdownItems.map((item) => (
         <DropdownItem
           key={item.id}
           isDisabled={item?.isDisabled}
@@ -38,23 +58,7 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = ({
           {item.text}
         </DropdownItem>
       ))}
-      toggle={
-        <DropdownToggle
-          aria-label={t('Select input')}
-          toggleVariant={toggleVariant || 'default'}
-          id={id}
-          isDisabled={isDisabled}
-          onToggle={() => {
-            setOpen(!isOpen);
-            !!onToggle && onToggle(!isOpen);
-          }}
-        >
-          {text}
-        </DropdownToggle>
-      }
-      isOpen={isOpen}
-      isPlain={isPlain}
-    />
+    </Dropdown>
   );
 };
 
@@ -72,7 +76,7 @@ export type ActionDropdownProps = {
   isDisabled?: boolean;
   id: string;
   toggleVariant?: ToggleVariant;
-  dropdownPosition?: DropdownPosition;
+  dropdownPosition?: 'right' | 'left' | 'center' | 'start' | 'end';
   isPlain?: boolean;
   onSelect: (id: string) => void;
   onToggle?: (isOpen?: boolean) => void;

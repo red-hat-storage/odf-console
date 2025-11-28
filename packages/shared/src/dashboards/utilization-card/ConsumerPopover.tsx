@@ -9,13 +9,17 @@ import {
   K8sResourceCommon,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { Link } from 'react-router-dom-v5-compat';
 import {
   Dropdown,
   DropdownItem,
-  DropdownToggle,
-} from '@patternfly/react-core/deprecated';
-import { Link } from 'react-router-dom-v5-compat';
-import { PopoverPosition, Popover, Button } from '@patternfly/react-core';
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
+  PopoverPosition,
+  Popover,
+  Button,
+} from '@patternfly/react-core';
 import { CaretDownIcon } from '@patternfly/react-icons';
 import { getName, getNamespace } from '../../selectors';
 import { useCustomTranslation } from '../../useCustomTranslationHook';
@@ -265,6 +269,22 @@ export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
       );
     }
 
+    const dropdownToggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+      <MenuToggle
+        ref={toggleRef}
+        onClick={() => setDropdownOpen((o) => !o)}
+        isExpanded={dropdownOpen}
+        icon={<CaretDownIcon />}
+        aria-label={t('Select consumer type')}
+      >
+        {t('By {{label}}', {
+          label: currentConsumer.model.labelKey
+            ? currentConsumer.model.labelKey
+            : currentConsumer.model.label,
+        })}
+      </MenuToggle>
+    );
+
     return (
       <div className="co-utilization-card-popover__body">
         {description && (
@@ -284,24 +304,12 @@ export const PopoverBody: React.FC<PopoverBodyProps> = React.memo(
           <Dropdown
             isOpen={dropdownOpen}
             className="co-utilization-card-popover__dropdown"
-            id="consumer-select"
-            name="selectConsumerType"
-            aria-label={t('Select consumer type')}
-            dropdownItems={dropdownItems}
             onSelect={onDropdownChange}
-            toggle={
-              <DropdownToggle
-                onToggle={() => setDropdownOpen((o) => !o)}
-                toggleIndicator={CaretDownIcon}
-              >
-                {t('By {{label}}', {
-                  label: currentConsumer.model.labelKey
-                    ? t(currentConsumer.model.labelKey)
-                    : currentConsumer.model.label,
-                })}
-              </DropdownToggle>
-            }
-          />
+            onOpenChange={(open: boolean) => setDropdownOpen(open)}
+            toggle={dropdownToggle}
+          >
+            <DropdownList>{dropdownItems}</DropdownList>
+          </Dropdown>
         )}
         {body}
       </div>
