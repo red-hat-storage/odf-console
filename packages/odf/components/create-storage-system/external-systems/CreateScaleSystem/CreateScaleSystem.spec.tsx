@@ -213,8 +213,8 @@ describe('CreateScaleSystem', () => {
     it('should render node selection cards', () => {
       render(<CreateScaleSystem />);
 
-      expect(screen.getByText('All nodes')).toBeInTheDocument();
-      expect(screen.getByText('Select nodes')).toBeInTheDocument();
+      expect(screen.getByText('All Nodes (Default)')).toBeInTheDocument();
+      expect(screen.getByText('Select Nodes')).toBeInTheDocument();
     });
 
     it('should render form buttons', () => {
@@ -303,8 +303,8 @@ describe('CreateScaleSystem', () => {
     it('should render node selection cards', () => {
       render(<CreateScaleSystem />);
 
-      expect(screen.getByText('All nodes')).toBeInTheDocument();
-      expect(screen.getByText('Select nodes')).toBeInTheDocument();
+      expect(screen.getByText('All Nodes (Default)')).toBeInTheDocument();
+      expect(screen.getByText('Select Nodes')).toBeInTheDocument();
     });
 
     it('should render node selection table when select nodes is chosen', () => {
@@ -627,19 +627,19 @@ describe('CreateScaleSystem', () => {
     it('should automatically select all nodes when "All nodes" is selected by default', async () => {
       render(<CreateScaleSystem />);
 
-      // Check that "All nodes" card is selected by default
+      // Check that "All Nodes (Default)" card is selected by default
       const allNodesCard = screen
-        .getByText('All nodes')
+        .getByText('All Nodes (Default)')
         .closest('[id="all-nodes"]');
       expect(allNodesCard).toHaveClass('pf-m-selected');
 
-      // Check that the "Select nodes" card is not selected
+      // Check that the "Select Nodes" card is not selected
       const selectNodesCard = screen
-        .getByText('Select nodes')
+        .getByText('Select Nodes')
         .closest('[id="selected-nodes"]');
       expect(selectNodesCard).not.toHaveClass('pf-m-selected');
 
-      // Check that the node selection table is not visible (since "All nodes" is selected)
+      // Check that the node selection table is not visible (since "All Nodes (Default)" is selected)
       expect(
         screen.queryByTestId('select-nodes-table')
       ).not.toBeInTheDocument();
@@ -652,7 +652,7 @@ describe('CreateScaleSystem', () => {
       // The key test: verify that the useEffect properly initialized the selectedNodes
       // We can't directly access the state, but we can verify the behavior by checking
       // that the component doesn't show any errors about missing node selection
-      // and that the "All nodes" card remains selected
+      // and that the "All Nodes (Default)" card remains selected
       expect(allNodesCard).toHaveClass('pf-m-selected');
     });
   });
