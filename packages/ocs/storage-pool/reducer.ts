@@ -7,6 +7,7 @@ export type StoragePoolState = {
   failureDomain: string;
   inProgress: boolean;
   errorMessage: string;
+  useExistingOsds: boolean;
 };
 
 export enum StoragePoolActionType {
@@ -18,6 +19,7 @@ export enum StoragePoolActionType {
   SET_FAILURE_DOMAIN = 'SET_FAILURE_DOMAIN',
   SET_INPROGRESS = 'SET_INPROGRESS',
   SET_ERROR_MESSAGE = 'SET_ERROR_MESSAGE',
+  SET_USE_EXISTING_OSDS = 'SET_USE_EXISTING_OSDS',
 }
 
 export const blockPoolInitialState: StoragePoolState = {
@@ -29,6 +31,7 @@ export const blockPoolInitialState: StoragePoolState = {
   failureDomain: '',
   inProgress: false,
   errorMessage: '',
+  useExistingOsds: false,
 };
 
 export type StoragePoolAction =
@@ -39,7 +42,8 @@ export type StoragePoolAction =
   | { type: StoragePoolActionType.SET_POOL_ARBITER; payload: boolean }
   | { type: StoragePoolActionType.SET_FAILURE_DOMAIN; payload: string }
   | { type: StoragePoolActionType.SET_INPROGRESS; payload: boolean }
-  | { type: StoragePoolActionType.SET_ERROR_MESSAGE; payload: string };
+  | { type: StoragePoolActionType.SET_ERROR_MESSAGE; payload: string }
+  | { type: StoragePoolActionType.SET_USE_EXISTING_OSDS; payload: boolean };
 
 export const storagePoolReducer = (
   state: StoragePoolState,
@@ -92,6 +96,12 @@ export const storagePoolReducer = (
       return {
         ...state,
         errorMessage: action.payload,
+      };
+    }
+    case StoragePoolActionType.SET_USE_EXISTING_OSDS: {
+      return {
+        ...state,
+        useExistingOsds: action.payload,
       };
     }
     default:

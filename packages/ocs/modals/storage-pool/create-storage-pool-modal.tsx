@@ -22,6 +22,7 @@ import {
   K8sResourceCommon,
   K8sResourceKind,
   k8sCreate,
+  k8sPatch,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { ModalComponent } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
@@ -71,6 +72,8 @@ export const CreateStoragePoolModal = withHandlePromise(
       storagePoolReducer,
       blockPoolInitialState
     );
+    const isSingleReplicaPool = state.replicaSize === '1';
+
     const [isSubmit, setIsSubmit] = React.useState(false);
     const [timer, setTimer] = React.useState<NodeJS.Timer>(null);
 
@@ -154,7 +157,37 @@ export const CreateStoragePoolModal = withHandlePromise(
 
     // Create new pool
     const createPool = () => {
-      if (state.poolStatus === '') {
+      if (isSingleReplicaPool) {
+        const createRequest = () =>
+          k8sPatch({
+            model: StorageClusterModel,
+            resource: storageCluster,
+            data: [
+              {
+                op: 'add',
+                path: '/spec/managedResources/cephNonResilientPools/useExistingOsds',
+                value: true,
+              },
+              {
+                op: 'add',
+                path: '/spec/managedResources/cephNonResilientPools/poolNamePrefix',
+                value: `${poolName}`,
+              },
+            ],
+          });
+        handlePromise(
+          createRequest(),
+          () => {
+            setIsSubmit(true);
+          },
+          () => {
+            dispatch({
+              type: StoragePoolActionType.SET_POOL_STATUS,
+              payload: PoolProgress.FAILED,
+            });
+          }
+        );
+      } else if (state.poolStatus === '') {
         dispatch({
           type: StoragePoolActionType.SET_POOL_STATUS,
           payload: PoolProgress.PROGRESS,
