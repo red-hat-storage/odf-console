@@ -56,6 +56,7 @@ type NameValueEditorProps = {
   IconComponent?: React.FC;
   nameMaxLength?: number;
   valueMaxLength?: number;
+  alwaysAllowRemove?: boolean;
 };
 
 export const enum NameValueEditorPair {
@@ -224,6 +225,7 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
       valueMaxLength,
       IconComponent = PlusCircleIcon,
       PairElementComponent = PairElement,
+      alwaysAllowRemove = false,
     }) => {
       const { t } = useCustomTranslation();
 
@@ -315,6 +317,7 @@ export const NameValueEditor: React.FC<NameValueEditorProps> =
             extraProps={extraProps}
             nameMaxLength={nameMaxLength}
             valueMaxLength={valueMaxLength}
+            alwaysAllowRemove={alwaysAllowRemove}
           />
         );
       });
