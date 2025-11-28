@@ -4,6 +4,7 @@ import { useNodesData } from '@odf/core/hooks';
 import { NodeData } from '@odf/core/types';
 import { getStorageClassDescription } from '@odf/core/utils';
 import { getCephNodes } from '@odf/ocs/utils/common';
+import { SingleSelectDropdown } from '@odf/shared';
 import { OCS_OPERATOR, ROOK_CEPH_OPERATOR } from '@odf/shared/constants';
 import ResourceDropdown from '@odf/shared/dropdown/ResourceDropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
@@ -48,6 +49,7 @@ import {
   Modal,
   Alert,
   ModalVariant,
+  SelectOption,
 } from '@patternfly/react-core';
 import {
   createWizardNodeState,
@@ -55,6 +57,7 @@ import {
 } from '../../components/utils';
 import {
   DefaultRequestSize,
+  DeviceClassTooltip,
   NO_PROVISIONER,
   requestedCapacityTooltip,
   storageClassTooltip,
@@ -82,6 +85,15 @@ type StorageClassDropdownProps = {
   filter: (resource: StorageClassResourceKind) => StorageClassResourceKind;
 };
 
+type DeviceClassDropdownProps = {
+  deviceClasses: string[];
+  selectedDeviceClass: string;
+  onChange: (deviceClass: string) => void;
+  'data-test'?: string;
+  placeholder?: string;
+  className?: string;
+};
+
 export const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
   onChange,
   'data-test': dataTest,
@@ -97,6 +109,44 @@ export const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
       onSelect={onChange}
       initialSelection={initialSelection}
       filterResource={compose(filterSC, filter)}
+      data-test={dataTest}
+    />
+  );
+};
+
+export const DeviceClassDropdown: React.FC<DeviceClassDropdownProps> = ({
+  deviceClasses,
+  selectedDeviceClass,
+  onChange,
+  'data-test': dataTest = 'device-class-dropdown',
+  placeholder,
+  className,
+}) => {
+  const { t } = useCustomTranslation();
+
+  const deviceClassOptions = deviceClasses.map((cls) => (
+    <SelectOption key={cls} value={cls}>
+      {cls}
+    </SelectOption>
+  ));
+
+  const placeholderText =
+    placeholder ||
+    (selectedDeviceClass === ''
+      ? t('Select device class')
+      : selectedDeviceClass);
+
+  const dropdownClassName =
+    className || 'ceph-add-capacity__device-class-dropdown';
+
+  return (
+    <SingleSelectDropdown
+      id="device-class"
+      selectOptions={deviceClassOptions}
+      selectedKey={selectedDeviceClass}
+      onChange={onChange}
+      placeholderText={placeholderText}
+      className={dropdownClassName}
       data-test={dataTest}
     />
   );
@@ -191,6 +241,18 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
   );
 };
 
+const getDeviceClassesForSC = (
+  deviceSets: DeviceSet[],
+  scName: string
+): string[] =>
+  deviceSets
+    .filter(
+      (ds) =>
+        ds.dataPVCTemplate?.spec?.storageClassName === scName &&
+        !!ds.deviceClass
+    )
+    .map((ds) => (ds.deviceClass !== '' ? ds.deviceClass : 'ssd'));
+
 type RawCapacityProps = {
   osdSizeWithoutUnit: number;
   replica: number;
@@ -203,7 +265,6 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   isOpen,
 }) => {
   const { t } = useCustomTranslation();
-
   const isExpansionPossible =
     useVerifyStorageClusterExpansionIsPossbile(actionStorageCluster);
 
@@ -244,6 +305,7 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   const [scResources, scResourcesLoaded, scResourcesLoadError] =
     useK8sWatchResource<StorageClassResourceKind[]>(scResource);
   const [storageClass, setStorageClass] = React.useState(null);
+  const [deviceClass, setDeviceClass] = React.useState('');
   const [inProgress, setProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState('');
 
@@ -252,10 +314,7 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   const osdSizeWithoutUnit = getStorageSizeInTiBWithoutUnit(osdSizeWithUnit);
   const isNoProvionerSC: boolean = storageClass?.provisioner === NO_PROVISIONER;
   const selectedSCName: string = getName(storageClass);
-  const deviceSetIndex: number = getCurrentDeviceSetIndex(
-    deviceSets,
-    selectedSCName
-  );
+
   const hasFlexibleScaling = checkFlexibleScaling(storageCluster);
   const isArbiterEnabled: boolean = checkArbiterCluster(storageCluster);
   const replica = getDeviceSetReplica(
@@ -278,6 +337,23 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
     (storageClasses: StorageClassResourceKind[]) =>
       storageClasses.find((sc) => getName(sc) === installStorageClass),
     [installStorageClass]
+  );
+
+  const deviceClasses = getDeviceClassesForSC(deviceSets, selectedSCName);
+  const hasMultiDeviceClasses = deviceClasses.length > 1;
+
+  React.useEffect(() => {
+    if (!deviceClasses.length) {
+      setDeviceClass('ssd');
+    } else if (deviceClasses.length === 1) {
+      setDeviceClass(deviceClasses[0] === '' ? 'ssd' : deviceClasses[0]);
+    }
+  }, [deviceClasses]);
+
+  const deviceSetIndex: number = getCurrentDeviceSetIndex(
+    deviceSets,
+    selectedSCName,
+    hasMultiDeviceClasses ? deviceClass : null
   );
 
   // Stops users from moving from no-prov SC to prov SC. (Bug 2213183)
@@ -402,7 +478,6 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
         });
     }
   };
-
   const Header = <ModalHeader>{t('Add Capacity')}</ModalHeader>;
   return (
     <Modal
@@ -450,6 +525,24 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
               <div className="skeleton-text ceph-add-capacity__storage-class-dropdown--loading" />
             )}
           </FormGroup>
+          {hasMultiDeviceClasses && (
+            <FormGroup
+              className="pf-v5-u-pt-md pf-v5-u-pb-sm"
+              label={t('Device class')}
+              fieldId="device-class"
+              labelIcon={
+                <FieldLevelHelp>{DeviceClassTooltip(t)}</FieldLevelHelp>
+              }
+            >
+              <DeviceClassDropdown
+                deviceClasses={deviceClasses}
+                selectedDeviceClass={deviceClass}
+                onChange={setDeviceClass}
+                data-test="add-cap-device-class-dropdown"
+              />
+            </FormGroup>
+          )}
+
           {!!selectedSCName &&
             (isNoProvionerSC ? (
               <PVsAvailableCapacity
