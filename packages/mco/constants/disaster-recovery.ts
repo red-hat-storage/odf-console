@@ -135,3 +135,9 @@ export enum BackendType {
   DataFoundation = 'Data Foundation',
   ThirdParty = 'Third Party Storage',
 }
+
+export enum ApplicationType {
+  ApplicationSet = 'ApplicationSet',
+  Subscription = 'Subscription',
+  Discovered = 'Discovered',
+}

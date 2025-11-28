@@ -56,6 +56,30 @@ export const getDRPlacementControlResourceObj = (
   optional: true,
 });
 
+export const getProtectedApplicationViewResourceObj = (
+  namespace?: string
+): {
+  kind: string;
+  namespaced: boolean;
+  isList: boolean;
+  namespace?: string;
+  groupVersionKind: {
+    group: string;
+    version: string;
+    kind: string;
+  };
+} => ({
+  kind: 'ProtectedApplicationView',
+  namespaced: true,
+  isList: true,
+  groupVersionKind: {
+    group: 'multicluster.odf.openshift.io',
+    version: 'v1alpha1',
+    kind: 'ProtectedApplicationView',
+  },
+  ...(namespace && { namespace }),
+});
+
 export const getApplicationSetResourceObj = (props?: NamespacedObjectType) => ({
   cluster: HUB_CLUSTER_NAME,
   ...(!!props?.name ? { name: props?.name } : {}),
