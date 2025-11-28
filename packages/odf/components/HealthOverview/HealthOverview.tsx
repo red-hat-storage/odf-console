@@ -1,6 +1,11 @@
 import * as React from 'react';
 import { PageHeading, useCustomTranslation } from '@odf/shared';
+import { useAlertManagerBasePath } from '@odf/shared/hooks/custom-prometheus-poll';
+import { ListPageBody } from '@openshift-console/dynamic-plugin-sdk';
 import { ToggleGroup, ToggleGroupItem } from '@patternfly/react-core';
+import { AlertsTable } from './AlertsTable';
+import { useHealthAlerts, useSilencedAlerts } from './hooks';
+import { SilencedAlertsTable } from './SilencedAlertsTable';
 
 enum HealthOverviewTab {
   SILENCED_ALERTS,
@@ -34,6 +39,7 @@ const HealthOverviewToggleGroup: React.FC<HealthOverviewToggleGroupProps> = ({
         isSelected={selectedTab === HealthOverviewTab.SILENCED_ALERTS}
         onChange={() => setSelectedTab(HealthOverviewTab.SILENCED_ALERTS)}
         text={t('Silenced Alerts ({{count}})', { count: silencedAlertsCount })}
+        isDisabled={silencedAlertsCount === 0}
       />
     </ToggleGroup>
   );
@@ -44,6 +50,17 @@ const HealthOverview: React.FC = () => {
     HealthOverviewTab.ACTIVE_ALERTS
   );
   const { t } = useCustomTranslation();
+
+  const [healthAlerts, healthAlertsLoaded, healthAlertsError] =
+    useHealthAlerts();
+  const {
+    silencedAlerts,
+    silencedAlertsLoaded,
+    silencedAlertsError,
+    refreshSilencedAlerts,
+  } = useSilencedAlerts();
+  const alertManagerBasePath = useAlertManagerBasePath();
+
   return (
     <>
       <PageHeading
@@ -57,14 +74,30 @@ const HealthOverview: React.FC = () => {
           },
         ]}
       />
-      <div className="odf-m-pane__body">
+      <ListPageBody>
         <HealthOverviewToggleGroup
-          activeAlertsCount={10}
-          silencedAlertsCount={20}
+          activeAlertsCount={healthAlerts.length}
+          silencedAlertsCount={silencedAlerts.length}
           selectedTab={selectedTab}
           setSelectedTab={setSelectedTab}
         />
-      </div>
+        {selectedTab === HealthOverviewTab.ACTIVE_ALERTS && (
+          <AlertsTable
+            alerts={healthAlerts}
+            loaded={healthAlertsLoaded}
+            error={healthAlertsError}
+          />
+        )}
+        {selectedTab === HealthOverviewTab.SILENCED_ALERTS && (
+          <SilencedAlertsTable
+            alerts={silencedAlerts}
+            loaded={silencedAlertsLoaded}
+            error={silencedAlertsError}
+            alertManagerBasePath={alertManagerBasePath}
+            onRefresh={refreshSilencedAlerts}
+          />
+        )}
+      </ListPageBody>
     </>
   );
 };
