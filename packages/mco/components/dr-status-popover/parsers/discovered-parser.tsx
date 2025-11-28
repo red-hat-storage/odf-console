@@ -11,6 +11,7 @@ import {
 } from '../../../utils';
 import { isCleanupPending } from '../../protected-applications/utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
+import { getProgressionFields } from './utils';
 
 export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
   application: drPlacementControl,
@@ -64,6 +65,7 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
       phase: drPlacementControl?.status?.phase as DRPCStatus,
       isCleanupRequired: isCleanupPending(drPlacementControl),
       isLoadedWOError: loaded && !loadError,
+      ...getProgressionFields(drPlacementControl),
     };
   }, [loaded, loadError, drPolicy, drPlacementControl, drPolicyName]);
 
