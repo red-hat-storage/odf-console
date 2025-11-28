@@ -21,6 +21,7 @@ import {
   DaemonSetModel,
   NamespaceModel,
   ProjectModel,
+  FileSystemModel,
 } from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
 import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk';
@@ -44,6 +45,16 @@ export const pvcResource: WatchK8sResource = {
 export const scResource: WatchK8sResource = {
   kind: StorageClassModel.kind,
   namespaced: false,
+  isList: true,
+};
+
+export const filesystemResource: WatchK8sResource = {
+  groupVersionKind: {
+    group: FileSystemModel.apiGroup,
+    version: FileSystemModel.apiVersion,
+    kind: FileSystemModel.kind,
+  },
+  namespaced: true,
   isList: true,
 };
 

@@ -1,7 +1,4 @@
 import * as React from 'react';
-import { createWizardNodeState } from '@odf/core/components/utils';
-import { useNodesData } from '@odf/core/hooks';
-import { NodeData } from '@odf/core/types';
 import {
   PageHeading,
   useCustomTranslation,
@@ -21,12 +18,6 @@ import {
   ActionGroup,
   Button,
   Alert,
-  Card,
-  CardHeader,
-  Flex,
-  CardTitle,
-  CardBody,
-  FlexItem,
   FormHelperText,
   HelperText,
   HelperTextItem,
@@ -34,13 +25,11 @@ import {
   ButtonType,
   ButtonVariant,
 } from '@patternfly/react-core';
-import { WizardNodeState } from '../../reducer';
-import { SelectNodesTable } from '../../select-nodes-table/select-nodes-table';
+import { NodesSection } from '../common/NodesSection';
+import { createScaleLocalClusterPayload, labelNodes } from '../common/payload';
 import {
   createScaleCaCertSecretPayload,
-  createScaleLocalClusterPayload,
   createScaleRemoteClusterPayload,
-  labelNodes,
   createFileSystem,
   createConfigMapPayload,
   createEncryptionConfigPayload,
@@ -56,119 +45,6 @@ type CreateScaleSystemFormProps = {
     React.SetStateAction<ScaleSystemComponentState>
   >;
 };
-
-type NodesSectionProps = {
-  selectedNodes: WizardNodeState[];
-  setSelectedNodes: (nodes: WizardNodeState[]) => void;
-};
-
-const NodesSection: React.FC<NodesSectionProps> = React.memo(
-  ({ selectedNodes, setSelectedNodes }) => {
-    const { t } = useCustomTranslation();
-    const [isUseAllNodes, setIsUseAllNodes] = React.useState(true);
-    const [allNodes, allNodesLoaded] = useNodesData(true);
-
-    const onNodeSelect = React.useCallback(
-      (nodes: NodeData[]) => {
-        const nodesData = createWizardNodeState(nodes);
-        setSelectedNodes(nodesData);
-      },
-      [setSelectedNodes]
-    );
-
-    // Initialize selected nodes when component mounts and "All nodes" is selected by default
-    React.useEffect(() => {
-      if (
-        isUseAllNodes &&
-        allNodesLoaded &&
-        allNodes.length > 0 &&
-        selectedNodes.length === 0
-      ) {
-        onNodeSelect(allNodes);
-      }
-    }, [
-      isUseAllNodes,
-      allNodesLoaded,
-      allNodes,
-      selectedNodes.length,
-      onNodeSelect,
-    ]);
-
-    // Handle "All nodes" selection directly in the click handler
-    const handleAllNodesClick = React.useCallback(() => {
-      setIsUseAllNodes(true);
-      if (allNodesLoaded && allNodes.length > 0) {
-        onNodeSelect(allNodes);
-      }
-    }, [allNodesLoaded, allNodes, onNodeSelect]);
-
-    return (
-      <>
-        <Flex direction={{ default: 'row' }}>
-          <FlexItem>
-            <Card
-              className="odf-create-scale-system__card"
-              isSelected={isUseAllNodes}
-              isRounded
-              isSelectable
-              id="all-nodes"
-            >
-              <CardHeader
-                selectableActions={{
-                  onChange: handleAllNodesClick,
-                  selectableActionId: 'use-all-nodes',
-                  variant: 'single',
-                  name: 'node-selector',
-                  selectableActionAriaLabelledby: 'all-nodes',
-                }}
-              >
-                <CardTitle>{t('All nodes')}</CardTitle>
-              </CardHeader>
-              <CardBody>
-                {t(
-                  'All non control plane nodes are selected to handle requests to IBM Scale'
-                )}
-              </CardBody>
-            </Card>
-          </FlexItem>
-          <FlexItem>
-            <Card
-              className="odf-create-scale-system__card"
-              isSelected={!isUseAllNodes}
-              isRounded
-              isSelectable
-              id="selected-nodes"
-            >
-              <CardHeader
-                selectableActions={{
-                  onChange: () => setIsUseAllNodes(false),
-                  selectableActionId: 'use-selected-nodes',
-                  variant: 'single',
-                  name: 'node-selector',
-                  selectableActionAriaLabelledby: 'selected-nodes',
-                }}
-              >
-                <CardTitle>{t('Select nodes')}</CardTitle>
-              </CardHeader>
-              <CardBody>
-                {t(
-                  'Select a minimum of 3 nodes to handle requests to IBM scale'
-                )}
-              </CardBody>
-            </Card>
-          </FlexItem>
-        </Flex>
-        {!isUseAllNodes && (
-          <SelectNodesTable
-            nodes={selectedNodes}
-            onRowSelected={onNodeSelect}
-            systemNamespace={''}
-          />
-        )}
-      </>
-    );
-  }
-);
 
 const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
   componentState,

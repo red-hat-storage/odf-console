@@ -41,6 +41,24 @@ const mapStorageClusterToStorageSystem = (
   },
 });
 
+const mapSANClusterToStorageSystem = (
+  sanCluster: K8sResourceKind
+): StorageSystemKind => ({
+  apiVersion: ODFStorageSystem.apiVersion,
+  kind: ODFStorageSystem.kind,
+  metadata: {
+    name: 'SAN_Storage',
+    namespace: getNamespace(sanCluster),
+  },
+  spec: {
+    kind: `${sanCluster.kind.toLowerCase()}.${sanCluster.apiVersion}`,
+    name: getName(sanCluster),
+    namespace: getNamespace(sanCluster),
+  },
+  status: {
+    phase: sanCluster?.status?.phase,
+  },
+});
 /**
  * A facade layer to poll StorageCluster and IBMFlashSystem resources.
  * It should be used where watching of StorageSystem resource is required.
@@ -57,11 +75,13 @@ export const useWatchStorageSystems = (
     storageClusters: odfClusters,
     flashSystemClusters,
     remoteClusters: remoteClusterClients,
+    sanClusters,
   } = useWatchStorageClusters();
 
   const loaded =
     odfClusters?.loaded &&
     flashSystemClusters?.loaded &&
+    (isFDF ? sanClusters?.loaded : true) &&
     (isFDF ? remoteClusterClients?.loaded : true);
   // Flashsystem loaderror can occur when IBM flashsystem operator is not installed hence ignore it
   const loadError = odfClusters?.loadError;
@@ -84,10 +104,16 @@ export const useWatchStorageSystems = (
     remoteClusterClients?.loaded && !remoteClusterClients?.loadError
       ? remoteClusterClientsData?.map(mapStorageClusterToStorageSystem)
       : [];
+  const sanClustersData = sanClusters?.data;
+  const sanClustersList: StorageSystemKind[] =
+    sanClusters?.loaded && !sanClusters?.loadError
+      ? sanClustersData?.map(mapSANClusterToStorageSystem)
+      : [];
   const aggregatedStorageSystems = [
     ...storageSystems,
     ...flashSystemClustersList,
     ...remoteClusterClientsList,
+    ...sanClustersList,
   ];
   const memoizedStorageSystems = useDeepCompareMemoize(
     aggregatedStorageSystems,
