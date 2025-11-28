@@ -1,0 +1,33 @@
+.odf-luns-table {
+  max-height: 400px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &__body-container {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  &__table {
+    table-layout: fixed;
+    width: 100%;
+
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: var(--pf-v5-global--BackgroundColor--100);
+    }
+
+    .pf-v5-c-table__check {
+      width: 42px;
+      min-width: 42px;
+      padding-right: var(--pf-v5-global--spacer--xs);
+    }
+  }
+}
+

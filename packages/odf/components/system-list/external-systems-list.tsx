@@ -15,12 +15,14 @@ import {
 } from '@odf/shared/hooks/custom-prometheus-poll';
 import { useWatchStorageSystems } from '@odf/shared/hooks/useWatchStorageSystems';
 import { Kebab } from '@odf/shared/kebab/kebab';
+import { ModalKeys } from '@odf/shared/modals';
 import {
   IBMFlashSystemModel,
   InfrastructureModel,
   RemoteClusterModel,
   ODFStorageSystem,
   StorageClusterModel,
+  ClusterModel,
 } from '@odf/shared/models';
 import { getName, getNamespace } from '@odf/shared/selectors';
 import { Status } from '@odf/shared/status/Status';
@@ -53,6 +55,7 @@ import {
 } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import * as _ from 'lodash-es';
+import { TFunction } from 'react-i18next';
 import { Button } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
 import { ODF_QUERIES, ODFQueries } from '../../queries';
@@ -277,7 +280,25 @@ const getModelOfExternalSystem = (obj: StorageSystemKind): K8sModel => {
   if (kind === RemoteClusterModel.kind.toLowerCase()) {
     return RemoteClusterModel;
   }
+  if (kind === ClusterModel.kind.toLowerCase()) {
+    return ClusterModel;
+  }
   throw new Error(`Unknown external system kind: ${kind}`);
+};
+
+const getActions = (obj: StorageSystemKind, t: TFunction) => {
+  if (obj.spec.kind === ClusterModel.kind.toLowerCase()) {
+    return [
+      {
+        key: 'ADD_LUN_GROUP',
+        value: t('Add LUN group'),
+        component: React.lazy(
+          () => import('../../modals/lun-group/AddLunGroupModal')
+        ),
+      },
+    ];
+  }
+  return [];
 };
 
 const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
@@ -285,6 +306,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   activeColumnIDs,
   rowData,
 }) => {
+  const { t } = useCustomTranslation();
   const { apiGroup, apiVersion, kind } = getGVK(obj.spec.kind);
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
   const systemName = getName(obj);
@@ -329,6 +351,8 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
       </TableData>
       <TableData {...tableColumnInfo[7]} activeColumnIDs={activeColumnIDs}>
         <Kebab
+          customKebabItems={getActions(obj, t)}
+          hideItems={[ModalKeys.DELETE]}
           extraProps={{
             resource: obj,
             resourceModel: getModelOfExternalSystem(obj),
