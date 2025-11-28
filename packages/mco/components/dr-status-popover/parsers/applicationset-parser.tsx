@@ -14,6 +14,7 @@ import {
   getReplicationHealth,
   getReplicationType,
   getPrimaryClusterName,
+  getProtectedCondition,
 } from '@odf/mco/utils';
 import { getNamespace, getName } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
@@ -63,6 +64,8 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         getReplicationType(drPolicy)
       );
 
+      const protectedCondition = getProtectedCondition(drpc);
+
       return {
         policyName: getName(drPolicy),
         schedulingInterval: schedulingInterval,
@@ -72,6 +75,7 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         volumeReplicationHealth: healthStatus,
         phase: status,
         isLoadedWOError: drLoaded && !drLoadError,
+        protectedCondition,
       };
     }
     return null;
