@@ -125,7 +125,10 @@ const useScaleSystemFormValidation = (): ScaleSystemFormValidation => {
 
     // Port validation
     const portFieldRequirements = [
-      t(`Must be a number between ${PORT_MIN} and ${PORT_MAX}`),
+      t('Must be a number between {{min}} and {{max}}', {
+        min: PORT_MIN,
+        max: PORT_MAX,
+      }),
       fieldRequirementsTranslations.cannotBeEmpty(t),
     ];
 

@@ -46,7 +46,7 @@ describe('useObcFormSchema tests', () => {
 
   it('should return error "No more than 253 characters"', async () => {
     const obcName = new Array(254).fill('a').join('');
-    const expected = 'No more than 253 characters';
+    const expected = 'No more than {{max}} characters';
     const spy = jest.spyOn(selectors, 'getName');
     const { result } = renderHook(() =>
       useObcFormSchema(defaultNs, defaultState)

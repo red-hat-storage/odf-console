@@ -30,7 +30,7 @@ const selectOptions = (t: TFunction) => {
       value={option}
       description={optionsDescription[option]}
     >
-      {t(option)}
+      {option}
     </SelectOption>
   ));
 };
