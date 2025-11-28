@@ -8,6 +8,7 @@ import {
 } from './consts';
 import './support/selectors';
 import './support/login';
+import { commandPoll } from './views/common';
 
 const disableIrrelevantLogging = () => {
   // Disable the default behavior of logging all XMLHttpRequests and fetches.
@@ -29,6 +30,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       install(encrypted?: boolean): Chainable<Element>;
+      enableToolboxPod(): void;
     }
   }
 }
@@ -91,4 +93,20 @@ Cypress.Commands.add('install', () => {
       );
     }
   });
+});
+
+Cypress.Commands.add('enableToolboxPod', () => {
+  cy.exec(
+    `oc patch ocsinitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'`
+  );
+  commandPoll(
+    'oc get pod -l "app=rook-ceph-tools" -n openshift-storage',
+    null,
+    false,
+    200,
+    0
+  );
+  cy.exec(
+    `oc wait --for=condition=ready pod -l "app=rook-ceph-tools" -n openshift-storage`
+  );
 });
