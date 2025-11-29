@@ -65,6 +65,13 @@ const RowRenderer: React.FC<RowComponentType<SilencedAlertRowData>> = ({
 const getSilenceEndpoint = (basePath: string, silenceId: string) =>
   `${basePath}/api/v2/silence/${silenceId}`;
 
+// Map filter severity values to actual Prometheus severity labels
+const SEVERITY_MAP: Record<string, string> = {
+  critical: 'critical',
+  moderate: 'warning',
+  minor: 'info',
+};
+
 export const SilencedAlertsTable: React.FC<SilencedAlertsTableProps> = ({
   alerts,
   loaded,
@@ -77,35 +84,46 @@ export const SilencedAlertsTable: React.FC<SilencedAlertsTableProps> = ({
     SilencedAlertRowData[]
   >([]);
   const [nameFilter, setNameFilter] = React.useState('');
-  const [checkFilter, setCheckFilter] = React.useState('all');
-  const [isCheckOpen, setIsCheckOpen] = React.useState(false);
+  const [severityFilter, setSeverityFilter] = React.useState('all');
+  const [isSeverityOpen, setIsSeverityOpen] = React.useState(false);
   const [isUnsilencing, setIsUnsilencing] = React.useState(false);
   const [actionError, setActionError] = React.useState<any>();
 
-  const checkOptions = React.useMemo(
-    () =>
-      Array.from(new Set(alerts.map((alert) => alert.alertname)))
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b)),
-    [alerts]
+  const severityOptions = React.useMemo(
+    () => [
+      { value: 'all', label: t('All checks') },
+      { value: 'critical', label: t('Critical') },
+      { value: 'moderate', label: t('Moderate') },
+      { value: 'minor', label: t('Minor') },
+    ],
+    [t]
   );
 
   const filteredAlerts = React.useMemo(
     () =>
       alerts.filter((alert) => {
-        return (
-          (checkFilter === 'all' || alert.alertname === checkFilter) &&
-          (!nameFilter.trim() ||
-            alert.alertname.toLowerCase().includes(nameFilter.toLowerCase()) ||
-            alert.details.toLowerCase().includes(nameFilter.toLowerCase()))
-        );
+        // Filter by severity using the SEVERITY_MAP
+        let severityMatch = true;
+        if (severityFilter !== 'all') {
+          const targetSeverity = SEVERITY_MAP[severityFilter];
+          if (targetSeverity) {
+            severityMatch =
+              alert.severity.toLowerCase() === targetSeverity.toLowerCase();
+          }
+        }
+
+        const nameMatch =
+          !nameFilter.trim() ||
+          alert.alertname.toLowerCase().includes(nameFilter.toLowerCase()) ||
+          alert.details.toLowerCase().includes(nameFilter.toLowerCase());
+        return severityMatch && nameMatch;
       }),
-    [alerts, checkFilter, nameFilter]
+    [alerts, severityFilter, nameFilter]
   );
 
-  const onCheckSelect = React.useCallback((_event, selection: string) => {
-    setCheckFilter(selection);
-    setIsCheckOpen(false);
+  const onSeveritySelect = React.useCallback((_event, selection: string) => {
+    setSeverityFilter(selection);
+    setIsSeverityOpen(false);
   }, []);
 
   const onUnsilence = async () => {
@@ -169,19 +187,18 @@ export const SilencedAlertsTable: React.FC<SilencedAlertsTableProps> = ({
   const isUnsilenceDisabled =
     !selectedAlerts.length || !alertManagerBasePath || isUnsilencing;
 
-  const renderCheckToggle = React.useCallback(
+  const renderSeverityToggle = React.useCallback(
     (toggleRef: React.Ref<MenuToggleElement>) => (
       <MenuToggle
         ref={toggleRef}
-        onClick={() => setIsCheckOpen((prev) => !prev)}
-        isExpanded={isCheckOpen}
+        onClick={() => setIsSeverityOpen((prev) => !prev)}
+        isExpanded={isSeverityOpen}
       >
-        {checkFilter === 'all'
-          ? t('All checks')
-          : checkFilter || t('All checks')}
+        {severityOptions.find((opt) => opt.value === severityFilter)?.label ||
+          t('All checks')}
       </MenuToggle>
     ),
-    [checkFilter, isCheckOpen, t]
+    [severityFilter, isSeverityOpen, severityOptions, t]
   );
 
   return (
@@ -190,18 +207,19 @@ export const SilencedAlertsTable: React.FC<SilencedAlertsTableProps> = ({
         <ToolbarContent>
           <ToolbarItem>
             <Select
-              aria-label={t('Filter by check')}
-              isOpen={isCheckOpen}
-              toggle={renderCheckToggle}
-              onOpenChange={setIsCheckOpen}
-              onSelect={onCheckSelect}
-              selected={checkFilter}
+              aria-label={t('Filter by severity')}
+              isOpen={isSeverityOpen}
+              toggle={renderSeverityToggle}
+              onOpenChange={setIsSeverityOpen}
+              onSelect={onSeveritySelect}
+              selected={severityFilter}
+              shouldFocusFirstItemOnOpen
+              shouldFocusToggleOnSelect
             >
               <SelectList>
-                <SelectOption value="all">{t('All checks')}</SelectOption>
-                {checkOptions.map((option) => (
-                  <SelectOption key={option} value={option}>
-                    {option}
+                {severityOptions.map((option) => (
+                  <SelectOption key={option.value} value={option.value}>
+                    {option.label}
                   </SelectOption>
                 ))}
               </SelectList>
@@ -218,7 +236,7 @@ export const SilencedAlertsTable: React.FC<SilencedAlertsTableProps> = ({
           </ToolbarItem>
           <ToolbarItem>
             <Button
-              variant={ButtonVariant.secondary}
+              variant={ButtonVariant.primary}
               onClick={onUnsilence}
               isDisabled={isUnsilenceDisabled}
               isLoading={isUnsilencing}
