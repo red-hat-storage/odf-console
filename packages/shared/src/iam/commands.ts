@@ -24,7 +24,7 @@ import {
   TagUser,
 } from './types';
 
-export class S3IAMCommands extends IAMClient {
+export class IamCommands extends IAMClient {
   constructor(endpoint: string, accessKeyId: string, secretAccessKey: string) {
     super({
       // "region" is a required parameter for the SDK, using "none" as a workaround

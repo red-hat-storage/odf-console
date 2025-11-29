@@ -890,5 +890,15 @@
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]
     }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/s3-iam/:userName",
+      "exact": false,
+      "component": {
+        "$codeRef": "iamUserOverview.default"
+      }
+    }
   }
 ]
