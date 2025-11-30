@@ -162,6 +162,8 @@ const canJumpToNextStep = (
   switch (name) {
     case StepsName(t)[Steps.BackingStorage]:
       return validateBackingStorageStep(backingStorage, storageClass);
+    case StepsName(t)[Steps.AdvancedSettings]:
+      return validateBackingStorageStep(backingStorage, storageClass);
     case StepsName(t)[Steps.CreateStorageClass]:
       return (
         !!storageClass.name &&

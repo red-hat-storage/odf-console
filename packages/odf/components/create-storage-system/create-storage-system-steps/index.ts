@@ -1,3 +1,4 @@
+export { AdvancedSettings } from './advanced-settings-step/advanced-settings-step';
 export { BackingStorage } from './backing-storage-step/backing-storage-step';
 export { CapacityAndNodes } from './capacity-and-nodes-step/capacity-and-nodes-step';
 export { ConnectionDetails } from './connection-details-step';
