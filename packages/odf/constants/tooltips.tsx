@@ -17,6 +17,11 @@ export const arbiterText = (t: TFunction) =>
     'plugin__odf-console~If you wish to use the Arbiter stretch cluster, a minimum of 4 nodes (2 different zones, 2 nodes per zone) and 1 additional zone with 1 node is required. All nodes must be pre-labeled with zones in order to be validated on cluster creation.'
   );
 
+export const deviceClassTooltip = (t: TFunction) =>
+  t(
+    'Multiple device classes are in use. Select the required device class to add capacity.'
+  );
+
 export const attachDevices = (t: TFunction, scName: string) => {
   return (
     <Trans t={t} ns="plugin__odf-console">
