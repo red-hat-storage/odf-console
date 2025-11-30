@@ -19,14 +19,18 @@ import {
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { FieldLevelHelp } from '@odf/shared/generic/FieldLevelHelp';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
-import { Text, TextVariants, TextContent } from '@patternfly/react-core';
+import {
+  Text,
+  TextVariants,
+  TextContent,
+  SelectOption,
+} from '@patternfly/react-core';
 import './configure-performance.scss';
 
 const selectOptions = (t: TFunction, forceLean: boolean, osdAmount: number) =>
   Object.entries(ResourceProfile).map((value: [string, ResourceProfile]) => {
-    const displayName = t(`${value[0]} mode`);
+    const displayName = t('{{mode}} mode', { mode: value[0] });
     let profile = value[1];
     const { minCpu, minMem } = getResourceProfileRequirements(
       profile,
@@ -41,6 +45,7 @@ const selectOptions = (t: TFunction, forceLean: boolean, osdAmount: number) =>
         key={profile}
         value={profile}
         description={description}
+        data-test-id={`${value[0]} mode`}
         isDisabled={isDisabled}
       >
         {displayName}

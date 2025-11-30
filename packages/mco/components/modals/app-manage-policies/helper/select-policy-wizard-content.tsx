@@ -5,7 +5,6 @@ import { SingleSelectDropdown } from '@odf/shared/dropdown/singleselectdropdown'
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
 import {
   Form,
@@ -13,6 +12,7 @@ import {
   FormHelperText,
   HelperText,
   HelperTextItem,
+  SelectOption,
 } from '@patternfly/react-core';
 import {
   ManagePolicyStateAction,
@@ -41,7 +41,9 @@ const getDropdownOptions = (dataPolicies: DRPolicyType[], t: TFunction) =>
               clusters: policy.drClusters.join(', '),
             })
       }
-    />
+    >
+      {getName(policy)}
+    </SelectOption>
   ));
 
 export const findPolicy = (name: string, dataPolicies: DRPolicyType[]) =>

@@ -1,6 +1,5 @@
 // TODO (@rexagod): https://github.com/openshift/console/pull/10470#discussion_r766453369
 import * as React from 'react';
-import { useODFSystemFlagsSelector } from '@odf/core/redux';
 import { useGetInternalClusterDetails } from '@odf/core/redux/utils';
 import { GraphEmpty } from '@odf/shared/charts';
 import ConsumerPopover from '@odf/shared/dashboards/utilization-card/ConsumerPopover';
@@ -27,11 +26,10 @@ import '@odf/shared/dashboards/utilization-card/utilization-card.scss';
 export const UtilizationContent: React.FC = () => {
   const { t } = useCustomTranslation();
 
-  const { clusterNamespace: clusterNs } = useGetInternalClusterDetails();
-  const { systemFlags } = useODFSystemFlagsSelector();
   // name of the created StorageClasses are prefix by StorageCluster name,
   // it is also the value of the "managedBy" label in the metrics.
-  const ocsCluster = systemFlags[clusterNs]?.ocsClusterName;
+  const { clusterNamespace: clusterNs, clusterName: ocsCluster } =
+    useGetInternalClusterDetails();
 
   const [scQueryfilter, scQueryfilterLoaded, scQueryfilterError] =
     useStorageClassQueryFilter(clusterNs);

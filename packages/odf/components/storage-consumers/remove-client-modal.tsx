@@ -132,8 +132,8 @@ const RemoveClientModal: React.FC<RemoveClientModalProps> = (props) => {
           className="pf-v5-c-form-control"
           onKeyUp={onKeyUp}
           placeholder={t('Enter name')}
-          aria-label={t('Type client name to confirm', {
-            label: t(StorageConsumerModel.labelKey),
+          aria-label={t('Type client name to confirm {{label}}', {
+            label: StorageConsumerModel.labelKey,
           })}
         />
       </ModalBody>

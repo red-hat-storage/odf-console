@@ -97,36 +97,43 @@ export const normalizeMetrics: MetricNormalize = (
   ) {
     return {};
   }
+
   // ToDo (epic 4422): This equality check should work (for now) as "managedBy" will be unique,
   // but moving forward add a label to metric for StorageSystem namespace as well and use that,
   // equality check should be updated with "&&" condition on StorageSystem namespace.
+  // Helper to humanize and return '-' if value is empty or 0
+  const getHumanizedMetric = (
+    humanizeFn,
+    metricResult: PrometheusResponse,
+    system: StorageSystemKind
+  ) => {
+    const value = metricResult.data.result.find(
+      (item) => item?.metric?.managedBy === system.spec.name
+    )?.value?.[1];
+
+    // Check for undefined, null, empty string, or 0
+    if (
+      value === undefined ||
+      value === null ||
+      value === '' ||
+      Number(value) === 0
+    ) {
+      return { string: '-', value: 0, unit: '' };
+    }
+    return humanizeFn(value);
+  };
+
   return systems.reduce<SystemMetrics>((acc, curr) => {
     acc[`${getName(curr)}${getNamespace(curr)}`] = {
-      rawCapacity: humanizeBinaryBytes(
-        rawCapacity.data.result.find(
-          (item) => item?.metric?.managedBy === curr.spec.name
-        )?.value?.[1]
+      rawCapacity: getHumanizedMetric(humanizeBinaryBytes, rawCapacity, curr),
+      usedCapacity: getHumanizedMetric(humanizeBinaryBytes, usedCapacity, curr),
+      iops: getHumanizedMetric(humanizeIOPS, iops, curr),
+      throughput: getHumanizedMetric(
+        humanizeDecimalBytesPerSec,
+        throughput,
+        curr
       ),
-      usedCapacity: humanizeBinaryBytes(
-        usedCapacity.data.result.find(
-          (item) => item?.metric?.managedBy === curr.spec.name
-        )?.value?.[1]
-      ),
-      iops: humanizeIOPS(
-        iops.data.result.find(
-          (item) => item?.metric?.managedBy === curr.spec.name
-        )?.value?.[1]
-      ),
-      throughput: humanizeDecimalBytesPerSec(
-        throughput.data.result.find(
-          (item) => item?.metric?.managedBy === curr.spec.name
-        )?.value?.[1]
-      ),
-      latency: humanizeLatency(
-        latency.data.result.find(
-          (item) => item?.metric?.managedBy === curr.spec.name
-        )?.value?.[1]
-      ),
+      latency: getHumanizedMetric(humanizeLatency, latency, curr),
     };
     return acc;
   }, {});

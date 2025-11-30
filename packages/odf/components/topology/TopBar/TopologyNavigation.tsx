@@ -4,11 +4,14 @@ import { getName, getUID } from '@odf/shared/selectors';
 import { TopologyDataContext } from '@odf/shared/topology';
 import { ResourceIcon } from '@openshift-console/dynamic-plugin-sdk';
 import {
-  OptionsMenu,
-  OptionsMenuItem,
-  OptionsMenuToggle,
-} from '@patternfly/react-core/deprecated';
-import { Button, ButtonVariant } from '@patternfly/react-core';
+  Button,
+  ButtonVariant,
+  MenuToggle,
+  MenuToggleElement,
+  Select,
+  SelectList,
+  SelectOption,
+} from '@patternfly/react-core';
 import { AngleRightIcon } from '@patternfly/react-icons';
 import { useVisualizationController } from '@patternfly/react-topology';
 import { STEP_INTO_EVENT, STEP_TO_CLUSTER } from '../constants';
@@ -49,12 +52,7 @@ const TopologyNavigationBar: React.FC<TopologyNavigationBarProps> = ({
         const uid = getUID(node);
         const name = getName(node);
         return (
-          <OptionsMenuItem
-            onSelect={onSelect}
-            isSelected={selected === name}
-            key={uid}
-            id={name}
-          >
+          <SelectOption isSelected={selected === name} key={uid} id={name}>
             <ResourceIcon
               groupVersionKind={{
                 group: NodeModel.apiGroup,
@@ -63,23 +61,26 @@ const TopologyNavigationBar: React.FC<TopologyNavigationBarProps> = ({
               }}
             />
             {name}
-          </OptionsMenuItem>
+          </SelectOption>
         );
       }),
-    [nodes, selected, onSelect]
-  );
-
-  const onToggle = () => setOpen((o) => !o);
-
-  const toggle = React.useMemo(
-    () => <OptionsMenuToggle onToggle={onToggle} toggleTemplate={selected} />,
-    [selected]
+    [nodes, selected]
   );
 
   const onStorageClusterClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     controller.fireEvent(STEP_TO_CLUSTER);
   };
+
+  const onToggleClick = () => {
+    setOpen(!isOpen);
+  };
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle ref={toggleRef} onClick={onToggleClick} isExpanded={isOpen}>
+      {selected}
+    </MenuToggle>
+  );
 
   return (
     <TopologyNavigationBarGroup>
@@ -101,12 +102,17 @@ const TopologyNavigationBar: React.FC<TopologyNavigationBarProps> = ({
             kind: NodeModel.kind,
           }}
         />
-        <OptionsMenu
+        <Select
           id="node-menu"
-          menuItems={menuItems}
-          toggle={toggle}
           isOpen={isOpen}
-        />
+          onOpenChange={(newOpenState) => setOpen(newOpenState)}
+          onSelect={onSelect}
+          selected={selected}
+          toggle={toggle}
+          shouldFocusToggleOnSelect
+        >
+          <SelectList>{menuItems}</SelectList>
+        </Select>
       </TopologyNavigationItem>
     </TopologyNavigationBarGroup>
   );

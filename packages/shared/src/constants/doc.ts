@@ -26,3 +26,16 @@ export const inTransitEncryptionSettingsForRHCS = (
   `${odfDeployExternalMode(
     odfDocVersion
   )}/deploy-openshift-data-foundation-using-red-hat-ceph-storage#creating-an-openshift-data-foundation-cluster-service-for-external-storage_ceph-external`;
+
+export const multusSetupDoc = (odfDocVersion: string): string =>
+  `${odfDocBasePath(
+    odfDocVersion
+  )}/planning_your_deployment/index#multus-networking-setup_odf`;
+
+export const tpsDoc = (odfDocVersion: string): string =>
+  `${odfDRDocHome(odfDocVersion)}#third-party-storage-prerequisites`;
+
+export const externalSystemsDoc = (odfDocVersion: string): string =>
+  `${odfDocBasePath(
+    odfDocVersion
+  )}/deploying_openshift_data_foundation_in_external_mode/index#overview-of-deploying-in-external-mode_rhods`;

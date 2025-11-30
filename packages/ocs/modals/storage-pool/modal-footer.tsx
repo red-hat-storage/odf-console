@@ -136,7 +136,7 @@ export const StoragePoolModalFooter = (props: StoragePoolModalFooterProps) => {
       },
       {
         id: 'confirm-action',
-        label: t(`${primaryAction}`),
+        label: primaryAction,
         type: ButtonType.submit,
         variant:
           primaryAction === FooterPrimaryActions(t).DELETE

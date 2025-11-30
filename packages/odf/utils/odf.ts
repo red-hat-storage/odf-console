@@ -96,3 +96,7 @@ export const isLocalClientCluster = (
 // once client gets onboarded (enable = true) onboarding secret gets cleared
 export const isClientClusterOnboarded = (resource: StorageConsumerKind) =>
   !!resource?.spec?.enable && !resource.status?.onboardingTicketSecret?.name;
+
+export const getRGWSecureEndpoint = (cephObjStore: K8sResourceKind) =>
+  cephObjStore?.status?.info?.secureEndpoint ||
+  cephObjStore?.status?.endpoints?.secure?.[0];

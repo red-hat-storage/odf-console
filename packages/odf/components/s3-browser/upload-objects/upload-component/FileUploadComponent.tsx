@@ -17,7 +17,7 @@ import { convertFileToUploadProgress, uploadFile } from './uploads';
 import './fileUploadComponent.scss';
 
 type FileUploadComponentProps = {
-  client: S3Commands;
+  s3Client: S3Commands;
   bucketName: string;
   showSidebar: () => void;
   hideSidebar: () => void;
@@ -27,7 +27,7 @@ type FileUploadComponentProps = {
 
 export const FileUploadComponent: React.FC<FileUploadComponentProps> = observer(
   ({
-    client,
+    s3Client,
     bucketName,
     showSidebar,
     hideSidebar,
@@ -49,7 +49,7 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = observer(
         try {
           const completionTime = await uploadFile(
             uploadObjects,
-            client,
+            s3Client,
             bucketName,
             foldersPath,
             uploadStore
@@ -60,7 +60,7 @@ export const FileUploadComponent: React.FC<FileUploadComponentProps> = observer(
           console.error('Error uploading file', e);
         }
       },
-      [bucketName, client, foldersPath]
+      [bucketName, s3Client, foldersPath]
     );
 
     const closeAlert = React.useCallback(() => {

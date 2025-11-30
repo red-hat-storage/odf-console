@@ -195,7 +195,6 @@ const handleHealthStatus = ({
   kubeMsg,
   bothTitle,
   bothMsg,
-  t,
   volumeReplicationHealth,
   kubeObjectReplicationHealth,
 }): StatusContent => {
@@ -205,8 +204,8 @@ const handleHealthStatus = ({
   ) {
     return {
       icon: getStatusIcon(status),
-      title: t(bothTitle),
-      message: t(bothMsg),
+      title: bothTitle,
+      message: bothMsg,
       className: `dr-status-${status.toLowerCase()}`,
       status,
     };
@@ -215,8 +214,8 @@ const handleHealthStatus = ({
   if (volumeReplicationHealth === status) {
     return {
       icon: getStatusIcon(status),
-      title: t(volumeTitle),
-      message: t(volumeMsg),
+      title: volumeTitle,
+      message: volumeMsg,
       className: `dr-status-${status.toLowerCase()}`,
       status,
     };
@@ -225,8 +224,8 @@ const handleHealthStatus = ({
   if (kubeObjectReplicationHealth === status) {
     return {
       icon: getStatusIcon(status),
-      title: t(kubeTitle),
-      message: t(kubeMsg),
+      title: kubeTitle,
+      message: kubeMsg,
       className: `dr-status-${status.toLowerCase()}`,
       status,
     };
@@ -331,17 +330,20 @@ const getDRStatusDetails = ({
       return (
         handleHealthStatus({
           status: DRStatus.Warning,
-          volumeTitle: 'Volumes are syncing slower than usual',
-          volumeMsg:
-            '1 or more volume groups are affected. Check the network connection, cluster health, or workload status for potential issues.',
-          kubeTitle: 'Kubernetes resources are syncing slower than usual',
-          kubeMsg:
-            '1 or more Kubernetes resources are affected. Check the network connection, cluster health, or workload status for potential issues.',
-          bothTitle:
-            'Volumes & Kubernetes resources are syncing slower than usual',
-          bothMsg:
-            '1 or more volumes & Kubernetes resources are affected. Check the network connection, cluster health, or workload status for potential issues.',
-          t,
+          volumeTitle: t('Volumes are syncing slower than usual'),
+          volumeMsg: t(
+            '1 or more volume groups are affected. Check the network connection, cluster health, or workload status for potential issues.'
+          ),
+          kubeTitle: t('Kubernetes resources are syncing slower than usual'),
+          kubeMsg: t(
+            '1 or more Kubernetes resources are affected. Check the network connection, cluster health, or workload status for potential issues.'
+          ),
+          bothTitle: t(
+            'Volumes & Kubernetes resources are syncing slower than usual'
+          ),
+          bothMsg: t(
+            '1 or more volumes & Kubernetes resources are affected. Check the network connection, cluster health, or workload status for potential issues.'
+          ),
           volumeReplicationHealth,
           kubeObjectReplicationHealth,
         }) ||
@@ -366,7 +368,6 @@ const getDRStatusDetails = ({
           bothTitle: 'Volumes & Kubernetes resources are not syncing',
           bothMsg:
             '1 or more volumes & Kubernetes resources are affected. Check the network connection, cluster health, or workload status for potential issues.',
-          t,
           volumeReplicationHealth,
           kubeObjectReplicationHealth,
         }) ||

@@ -21,12 +21,13 @@ type DeleteModalExtraProps = {
   resource: K8sResourceCommon;
   resourceModel: K8sModel;
   cluster?: string;
+  cleanupBeforeDelete?: (resource: K8sResourceCommon) => Promise<void>;
 };
 
 const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
   closeModal,
   isOpen,
-  extraProps: { resource, resourceModel, cluster },
+  extraProps: { resource, resourceModel, cluster, cleanupBeforeDelete },
 }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
@@ -56,9 +57,18 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
       });
   });
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
     setLoading(true);
+    if (cleanupBeforeDelete) {
+      try {
+        await cleanupBeforeDelete(resource);
+      } catch (cleanupError) {
+        setError(cleanupError);
+        setLoading(false);
+        return;
+      }
+    }
 
     //https://kubernetes.io/docs/concepts/workloads/controllers/garbage-collection/
     const propagationPolicy =

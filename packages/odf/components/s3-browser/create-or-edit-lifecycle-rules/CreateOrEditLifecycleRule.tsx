@@ -6,9 +6,9 @@ import {
   LifecycleRuleFilter,
 } from '@aws-sdk/client-s3';
 import {
-  NoobaaS3Provider,
-  NoobaaS3Context,
-} from '@odf/core/components/s3-browser/noobaa-context';
+  S3Provider,
+  S3Context,
+} from '@odf/core/components/s3-browser/s3-context';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { StatusBox } from '@odf/shared/generic/status-box';
 import { isNoLifecycleRuleError } from '@odf/shared/s3/utils';
@@ -184,7 +184,7 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
 
   const { bucketName } = useParams();
   const navigate = useNavigate();
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
 
   const [inProgress, setInProgress] = React.useState<boolean>(false);
   const [putError, setPutError] = React.useState<Error>();
@@ -197,7 +197,7 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
     mutate,
   } = useSWR(
     `${bucketName}-${BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketLifecycleConfiguration({ Bucket: bucketName }),
+    () => s3Client.getBucketLifecycleConfiguration({ Bucket: bucketName }),
     {
       shouldRetryOnError: false,
     }
@@ -228,7 +228,7 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
         let latestRules: GetBucketLifecycleConfigurationCommandOutput;
 
         try {
-          latestRules = await noobaaS3.getBucketLifecycleConfiguration({
+          latestRules = await s3Client.getBucketLifecycleConfiguration({
             Bucket: bucketName,
           });
         } catch (err) {
@@ -241,7 +241,7 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
           }
         }
 
-        await noobaaS3.putBucketLifecycleConfiguration({
+        await s3Client.putBucketLifecycleConfiguration({
           Bucket: bucketName,
           LifecycleConfiguration: {
             Rules: isEdit
@@ -305,13 +305,13 @@ const CreateOrEditLifecycleRuleForm: React.FC<IsEditProp> = ({ isEdit }) => {
 };
 
 export const CreateLifecycleRule: React.FC<{}> = () => (
-  <NoobaaS3Provider>
+  <S3Provider>
     <CreateOrEditLifecycleRuleForm />
-  </NoobaaS3Provider>
+  </S3Provider>
 );
 
 export const EditLifecycleRule: React.FC<{}> = () => (
-  <NoobaaS3Provider>
+  <S3Provider>
     <CreateOrEditLifecycleRuleForm isEdit />
-  </NoobaaS3Provider>
+  </S3Provider>
 );

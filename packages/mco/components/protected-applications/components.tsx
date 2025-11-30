@@ -424,7 +424,7 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
             </Text>
             <Button
               variant={ButtonVariant.link}
-              aria-label={t(`View details for ${namespace}`, { namespace })}
+              aria-label={t('View details for {{namespace}}', { namespace })}
               onClick={() => openModal(namespace)}
             >
               {t('View all')}

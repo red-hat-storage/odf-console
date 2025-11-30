@@ -34,7 +34,7 @@ import { LazyEmptyBucketModal } from './lazy-delete-and-empty-bucket';
 
 type DeleteBucketModalProps = {
   bucketName: string;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   launcher: LaunchModal;
   refreshTokens?: () => void;
   setEmptyBucketResponse: React.Dispatch<
@@ -47,7 +47,7 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
   isOpen,
   extraProps: {
     bucketName,
-    noobaaS3,
+    s3Client,
     launcher,
     refreshTokens,
     setEmptyBucketResponse,
@@ -65,7 +65,7 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
     error,
     isLoading: isChecking,
   } = useSWR(`${bucketName}-${LIST_VERSIONED_OBJECTS}`, () =>
-    noobaaS3.listObjectVersions({ Bucket: bucketName, MaxKeys: 1 })
+    s3Client.listObjectVersions({ Bucket: bucketName, MaxKeys: 1 })
   );
   const hasObjects =
     data?.Versions?.length > 0 || data?.DeleteMarkers?.length > 0;
@@ -81,7 +81,7 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
     setInProgress(true);
 
     try {
-      await noobaaS3.deleteBucket({
+      await s3Client.deleteBucket({
         Bucket: bucketName,
       });
 
@@ -150,7 +150,7 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
                     isOpen: true,
                     extraProps: {
                       bucketName,
-                      noobaaS3,
+                      s3Client,
                       refreshTokens,
                       setEmptyBucketResponse,
                     },

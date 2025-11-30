@@ -6,9 +6,9 @@ import {
 } from '@odf/shared/types/storage';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getStorageSizeInTiBWithoutUnit } from '@odf/shared/utils';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
+import { SelectOption } from '@patternfly/react-core';
 import '../../style.scss';
 
 const valueLabelMap = (t: TFunction) => {
@@ -35,11 +35,11 @@ const valueLabelMap = (t: TFunction) => {
 const labelDescriptionMap = (t: TFunction) => {
   return {
     // label (visible on UI) : description to show below each label
-    [t(`0.5 ${StorageSizeUnitName.TiB}`)]: t('ExtraSmallScale'),
-    [t(`1 ${StorageSizeUnitName.TiB}`)]: t('SmallScale'),
-    [t(`2 ${StorageSizeUnitName.TiB}`)]: t('Standard'),
-    [t(`4 ${StorageSizeUnitName.TiB}`)]: t('LargeScale'),
-    [t(`8 ${StorageSizeUnitName.TiB}`)]: t('ExtraLargeScale'),
+    [`0.5 ${StorageSizeUnitName.TiB}`]: t('ExtraSmallScale'),
+    [`1 ${StorageSizeUnitName.TiB}`]: t('SmallScale'),
+    [`2 ${StorageSizeUnitName.TiB}`]: t('Standard'),
+    [`4 ${StorageSizeUnitName.TiB}`]: t('LargeScale'),
+    [`8 ${StorageSizeUnitName.TiB}`]: t('ExtraLargeScale'),
   } as const;
 };
 
@@ -50,7 +50,9 @@ const dropdownOptions: (t: TFunction) => JSX.Element[] = (t) =>
       key={v}
       value={v}
       description={labelDescriptionMap(t)[v]}
-    />
+    >
+      {v}
+    </SelectOption>
   ));
 
 export const TotalCapacityText: React.FC<TotalCapacityTextProps> = ({

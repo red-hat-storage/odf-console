@@ -43,7 +43,7 @@ export const ButtonBar: React.FC<ButtonBarProps> = ({
   errorMessage,
   infoMessage,
   successMessage,
-  inProgress,
+  inProgress = false,
 }) => {
   return (
     <div className={classNames(className, 'co-m-btn-bar')}>
@@ -66,6 +66,6 @@ type ButtonBarProps = {
   successMessage?: string;
   errorMessage: React.ReactNode;
   infoMessage?: string;
-  inProgress: boolean;
+  inProgress?: boolean;
   className?: string;
 };

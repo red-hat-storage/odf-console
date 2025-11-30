@@ -1,4 +1,5 @@
 import * as React from 'react';
+import NamespaceSafetyBox from '@odf/core/components/utils/safety-box';
 import { ModalFooter } from '@odf/shared/generic';
 import { ModalBody, ModalTitle } from '@odf/shared/generic/ModalTitle';
 import { SecretModel } from '@odf/shared/models';
@@ -52,34 +53,36 @@ export const RotateKeysModal: RotateKeysModalProps = ({
   return (
     <Modal isOpen={isOpen} onClose={closeModal} variant={ModalVariant.medium}>
       <ModalTitle>{MODAL_TITLE}</ModalTitle>
-      <ModalBody>
-        <Flex direction={{ default: 'column' }}>
-          <FlexItem grow={{ default: 'grow' }}>
-            <div>
-              {t(
-                'This action will rotate the signing key currently used for generating and validating client onboarding tokens.'
-              )}
-            </div>
-            <div>
-              {t(
-                'Upon rotation, the existing signing key will be revoked and replaced with a new one.'
-              )}
-            </div>
-          </FlexItem>
-        </Flex>
-      </ModalBody>
-      <ModalFooter inProgress={inProgress} errorMessage={error?.message}>
-        <Flex direction={{ default: 'row' }}>
-          <FlexItem>
-            <Button variant="secondary" onClick={() => closeModal()}>
-              {t('Cancel')}
-            </Button>
-          </FlexItem>
-          <FlexItem>
-            <Button onClick={() => onRotate()}>{t('Confirm')}</Button>
-          </FlexItem>
-        </Flex>
-      </ModalFooter>
+      <NamespaceSafetyBox>
+        <ModalBody>
+          <Flex direction={{ default: 'column' }}>
+            <FlexItem grow={{ default: 'grow' }}>
+              <div>
+                {t(
+                  'This action will rotate the signing key currently used for generating and validating client onboarding tokens.'
+                )}
+              </div>
+              <div>
+                {t(
+                  'Upon rotation, the existing signing key will be revoked and replaced with a new one.'
+                )}
+              </div>
+            </FlexItem>
+          </Flex>
+        </ModalBody>
+        <ModalFooter inProgress={inProgress} errorMessage={error?.message}>
+          <Flex direction={{ default: 'row' }}>
+            <FlexItem>
+              <Button variant="secondary" onClick={() => closeModal()}>
+                {t('Cancel')}
+              </Button>
+            </FlexItem>
+            <FlexItem>
+              <Button onClick={() => onRotate()}>{t('Confirm')}</Button>
+            </FlexItem>
+          </Flex>
+        </ModalFooter>
+      </NamespaceSafetyBox>
     </Modal>
   );
 };

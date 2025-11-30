@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
+import { useGetClusterDetails } from '@odf/core/redux/utils';
 import { ObjectStorageEfficiencyQueries } from '@odf/ocs/queries';
 import { EfficiencyItemBody } from '@odf/shared/dashboards/storage-efficiency/storage-efficiency-card-item';
 import { DataUnavailableError } from '@odf/shared/generic';
@@ -11,7 +12,6 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { humanizeBinaryBytes, humanizePercentage } from '@odf/shared/utils';
 import { getGaugeValue } from '@odf/shared/utils';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
-import { OCSDashboardContext } from '../../ocs-dashboard-providers';
 
 const ObjectStorageEfficiencyItemBody: React.FC = () => {
   const { t } = useCustomTranslation();
@@ -98,9 +98,7 @@ const ObjectStorageEfficiencyItemBody: React.FC = () => {
 const StorageEfficiencyCard: React.FC<{}> = () => {
   const { t } = useCustomTranslation();
 
-  const {
-    selectedCluster: { clusterNamespace: clusterNs },
-  } = React.useContext(OCSDashboardContext);
+  const { clusterNamespace: clusterNs } = useGetClusterDetails();
   const { systemFlags } = useODFSystemFlagsSelector();
   const hasMCG = systemFlags[clusterNs]?.isNoobaaAvailable;
 

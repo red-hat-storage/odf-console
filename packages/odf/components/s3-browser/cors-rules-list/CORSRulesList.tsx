@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { CORSRule, GetBucketCorsCommandOutput } from '@aws-sdk/client-s3';
-import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
+import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import {
   BUCKET_CORS_RULE_CACHE_KEY_SUFFIX,
-  BUCKETS_BASE_ROUTE,
+  getBucketOverviewBaseRoute,
   RULE_NAME,
   RULE_HASH,
 } from '@odf/core/constants';
 import DeleteCorsRuleModal from '@odf/core/modals/s3-browser/delete-corsrules/DeleteCorsRuleModal';
+import { S3ProviderType } from '@odf/core/types';
 import { isAllowAllConfig } from '@odf/core/utils';
 import { DASH } from '@odf/shared';
 import EmptyPage from '@odf/shared/empty-state-page/empty-page';
@@ -63,7 +64,7 @@ type CustomData = {
   navigate: NavigateFunction;
   launcher: LaunchModal;
   mutate: KeyedMutator<GetBucketCorsCommandOutput>;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   bucketName: string;
 };
 
@@ -85,14 +86,15 @@ export const getRowActions = (
   navigate: NavigateFunction,
   launcher: LaunchModal,
   mutate: KeyedMutator<GetBucketCorsCommandOutput>,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   bucketName: string,
   ruleName: string,
   ruleHash: number,
   navigateToListPage = false
 ): IAction[] => {
+  const providerType = s3Client.providerType as S3ProviderType;
   const searchParam = getSearchParam(ruleName, ruleHash);
-  const editRuleLink = `${BUCKETS_BASE_ROUTE}/${bucketName}/permissions/cors/edit?${searchParam}`;
+  const editRuleLink = `${getBucketOverviewBaseRoute(bucketName, providerType)}/permissions/cors/edit?${searchParam}`;
   return [
     {
       title: t('Edit configuration'),
@@ -104,7 +106,7 @@ export const getRowActions = (
         launcher(DeleteCorsRuleModal, {
           isOpen: true,
           extraProps: {
-            noobaaS3,
+            s3Client,
             bucketName,
             mutate,
             ruleName,
@@ -188,7 +190,7 @@ const RuleRow: React.FC<RowProps<CORSRule, CustomData>> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const { navigate, launcher, mutate, noobaaS3, bucketName } = rowData;
+  const { navigate, launcher, mutate, s3Client, bucketName } = rowData;
 
   const ruleName = corsRuleObj?.ID;
   // allowed-origins
@@ -228,7 +230,8 @@ const RuleRow: React.FC<RowProps<CORSRule, CustomData>> = ({
     return null;
   }, [ruleName, corsRuleObj]);
 
-  const detailsPagePath = `${BUCKETS_BASE_ROUTE}/${bucketName}/permissions/cors/details?${getSearchParam(ruleName, ruleHash)}`;
+  const providerType = s3Client.providerType as S3ProviderType;
+  const detailsPagePath = `${getBucketOverviewBaseRoute(bucketName, providerType)}/permissions/cors/details?${getSearchParam(ruleName, ruleHash)}`;
 
   return (
     <>
@@ -261,7 +264,7 @@ const RuleRow: React.FC<RowProps<CORSRule, CustomData>> = ({
             navigate,
             launcher,
             mutate,
-            noobaaS3,
+            s3Client,
             bucketName,
             ruleName,
             ruleHash
@@ -279,11 +282,11 @@ export const CORSRulesList: React.FC<CORSRulesListProps> = ({
   const { bucketName } = useParams();
   const navigate = useNavigate();
   const launcher = useModal();
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
 
   const { data, isLoading, error, mutate } = useSWR(
     `${bucketName}-${BUCKET_CORS_RULE_CACHE_KEY_SUFFIX}`,
-    () => noobaaS3.getBucketCors({ Bucket: bucketName }),
+    () => s3Client.getBucketCors({ Bucket: bucketName }),
     {
       shouldRetryOnError: false,
     }
@@ -291,9 +294,10 @@ export const CORSRulesList: React.FC<CORSRulesListProps> = ({
 
   const noRuleExistsError = isNoCorsRuleError(error);
   // in case of "noRuleExistsError" error, cache could still have older "data", hence clearing that.
-  const corsRules = noRuleExistsError ? [] : data?.CORSRules || [];
+  const corsRules: CORSRule[] = noRuleExistsError ? [] : data?.CORSRules || [];
   const loaded = !isLoading && fresh;
-  const createCorsRuleLink = `${BUCKETS_BASE_ROUTE}/${bucketName}/permissions/cors/create/~new`;
+  const providerType = s3Client.providerType as S3ProviderType;
+  const createCorsRuleLink = `${getBucketOverviewBaseRoute(bucketName, providerType)}/permissions/cors/create/~new`;
 
   const [unfilteredCorsRules, filteredCorsRules, onFilterChange] =
     useListPageFilter(corsRules, nameFilterOverride);
@@ -344,7 +348,13 @@ export const CORSRulesList: React.FC<CORSRulesListProps> = ({
               unfilteredData={corsRules}
               loaded
               loadError={null}
-              rowData={{ navigate, launcher, mutate, noobaaS3, bucketName }}
+              rowData={{
+                navigate,
+                launcher,
+                mutate,
+                s3Client,
+                bucketName,
+              }}
             />
           </>
         )}

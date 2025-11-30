@@ -59,16 +59,20 @@ yarn test-cypress-headless
 
 By default, it will look for Chrome in the system and use it, but if you want to use Firefox instead, set BRIDGE_E2E_BROWSER_NAME environment variable in your shell with the value firefox.
 
-### NooBaa Object Browser setup
+### Object Browser setup
 
-To run NooBaa Object Browser in development mode, do the following:
+To run Object Browser in development mode, do the following:
 
 #### ODF plugin
 
-Port-forward the noobaa endpoint to local port 6001:
+Port-forward the noobaa or rgw (internal) endpoint respectively to local port 6001:
 
 ```
 oc port-forward $(oc get pods -n openshift-storage | grep noobaa-endpoint | awk '{print $1}') 6001 -n openshift-storage
+
+or,
+
+oc port-forward $(oc get pods -n openshift-storage | grep rook-ceph-rgw-ocs-storagecluster-cephobjectstore | awk '{print $1}') 6001:8080 -n openshift-storage
 ```
 
 Serve the plugin choosing how to run OCP Console:
@@ -77,17 +81,25 @@ As a container:
 
 ```
 CONSOLE_VERSION=4.19 BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-console/s3/","endpoint":"http://localhost:6001"}]}' BRIDGE_PLUGINS='odf-console=http://localhost:9001' PLUGIN=odf I8N_NS=plugin__odf-console yarn dev:c
+
+or,
+
+CONSOLE_VERSION=4.19 BRIDGE_PLUGIN_PROXY='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-console/internalRgwS3/","endpoint":"http://localhost:6001"}]}' BRIDGE_PLUGINS='odf-console=http://localhost:9001' PLUGIN=odf I8N_NS=plugin__odf-console yarn dev:c
 ```
 
 Locally:
 
 ```
 ./bin/bridge -plugins odf-console=http://localhost:9001/ --plugin-proxy='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-console/s3/","endpoint":"http://localhost:6001/"}]}'
+
+or,
+
+./bin/bridge -plugins odf-console=http://localhost:9001/ --plugin-proxy='{"services":[{"consoleAPIPath":"/api/proxy/plugin/odf-console/internalRgwS3/","endpoint":"http://localhost:6001/"}]}'
 ```
 
-To see the NooBaa S3 logs: `oc logs -f deploy/noobaa-endpoint`
+To see the NooBaa or RGW (internal) S3 logs respectively: `oc logs -f deploy/noobaa-endpoint` or `oc logs -f deploy/rook-ceph-rgw-ocs-storagecluster-cephobjectstore`
 
-#### Client plugin
+#### Client plugin (outdated, placeholder purpose only)
 
 Deploy a forward proxy:
 
@@ -148,11 +160,11 @@ Build a plugin image for testing purposes:
 
 ```
 # odf plugin.
-docker build -t quay.io/<username>/odf-console:test -f Dockerfile.ci .
+docker build -t quay.io/<username>/odf-console:test -f Dockerfile.ci . --build-arg OPENSHIFT_CI=false
 # client plugin.
-docker build -t quay.io/<username>/ocs-client-console:test -f Dockerfile.ci . --build-arg PLUGIN=client
+docker build -t quay.io/<username>/ocs-client-console:test -f Dockerfile.ci . --build-arg PLUGIN=client --build-arg OPENSHIFT_CI=false
 # mco plugin.
-docker build -t quay.io/<username>/odf-multicluster-console:test -f Dockerfile.ci . --build-arg PLUGIN=mco
+docker build -t quay.io/<username>/odf-multicluster-console:test -f Dockerfile.ci . --build-arg PLUGIN=mco --build-arg OPENSHIFT_CI=false
 ```
 
 Push it:
