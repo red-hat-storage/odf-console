@@ -118,7 +118,7 @@ describe('Configure Performance', () => {
       name: /options menu/i,
     });
     expect(dropdown).toHaveTextContent('Balanced mode');
-    expect(screen.getByText(/36 CPUs/i)).toBeInTheDocument();
-    expect(screen.getByText(/87 GiB/i)).toBeInTheDocument();
+    expect(screen.getByText(/42 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/102 GiB/i)).toBeInTheDocument();
   });
 });
