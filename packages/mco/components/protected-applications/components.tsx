@@ -54,6 +54,12 @@ import {
 } from '../modals/app-manage-policies/helper/consistency-groups';
 import './protected-apps.scss';
 import {
+  FAILED_OVER_APP_QUERY_PARAM,
+  FAILED_OVER_CLUSTER_QUERY_PARAM,
+  RELOCATED_APP_QUERY_PARAM,
+  RELOCATED_CLUSTER_QUERY_PARAM,
+} from './dr-operation-alert-helper';
+import {
   EnrollApplicationTypes,
   getAlertMessages,
   getEnrollDropdownItems,
@@ -255,10 +261,19 @@ export const AlertMessages: React.FC = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const recentlyEnrolledApp = params.get(ENROLLED_APP_QUERY_PARAMS_KEY) ?? '';
+  const relocatedApp = params.get(RELOCATED_APP_QUERY_PARAM) ?? '';
+  const relocatedCluster = params.get(RELOCATED_CLUSTER_QUERY_PARAM) ?? '';
+  const failedOverApp = params.get(FAILED_OVER_APP_QUERY_PARAM) ?? '';
+  const failedOverCluster = params.get(FAILED_OVER_CLUSTER_QUERY_PARAM) ?? '';
+
   const messages: AlertProps[] = getAlertMessages(
     t,
     recentlyEnrolledApp,
-    navigate
+    navigate,
+    relocatedApp,
+    relocatedCluster,
+    failedOverApp,
+    failedOverCluster
   );
 
   return (
@@ -273,7 +288,9 @@ export const AlertMessages: React.FC = () => {
           {...(message?.actionClose
             ? { actionClose: message.actionClose }
             : {})}
-        />
+        >
+          {message.children}
+        </Alert>
       ))}
     </>
   );
