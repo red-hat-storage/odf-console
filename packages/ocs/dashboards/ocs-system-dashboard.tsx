@@ -24,6 +24,7 @@ import { StatusCard as NFSStatusCard } from './network-file-system/status-card/s
 import { ThroughputCard } from './network-file-system/throughput-card/throughput-card';
 import { TopClientsCard } from './network-file-system/top-clients-card/top-clients-card';
 import { default as ObjectActivityCard } from './object-service/activity-card/activity-card';
+import AutomaticBackupCard from './object-service/automatic-backup/automatic-backup-card';
 import { BucketsCard } from './object-service/buckets-card/buckets-card';
 import { default as ObjectBreakdownCard } from './object-service/capacity-breakdown/capacity-breakdown-card';
 import DataConsumptionCard from './object-service/data-consumption-card/data-consumption-card';
@@ -133,7 +134,10 @@ const ObjectServiceDashboard: React.FC = () => {
     BucketsCard,
     ResourceProvidersCard,
   ];
-  const rightCards: React.ComponentType[] = [ObjectActivityCard];
+  const rightCards: React.ComponentType[] = [
+    ObjectActivityCard,
+    AutomaticBackupCard,
+  ];
   return (
     <CommonDashboardRenderer
       leftCards={leftCards}

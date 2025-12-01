@@ -102,8 +102,8 @@ export const createSteps = (
   })[] = [
     {
       name: StepsName(t)[Steps.SecurityAndNetwork],
-      canJumpTo: stepIdReached >= 2,
-      id: 2,
+      canJumpTo: stepIdReached >= 3,
+      id: 3,
       component: (
         <SecurityAndNetwork
           securityAndNetworkState={securityAndNetwork}
@@ -119,8 +119,8 @@ export const createSteps = (
     },
     {
       name: StepsName(t)[Steps.ReviewAndCreate],
-      canJumpTo: stepIdReached >= 3,
-      id: 3,
+      canJumpTo: stepIdReached >= 4,
+      id: 4,
       ...commonSteps.reviewAndCreate,
     },
   ];
@@ -129,8 +129,8 @@ export const createSteps = (
     component: React.ReactElement;
     canJumpTo: boolean;
   } = {
-    canJumpTo: stepIdReached >= 2,
-    id: 2,
+    canJumpTo: stepIdReached >= 3,
+    id: 3,
     name: StepsName(t)[Steps.CreateStorageClass],
     component: (
       <CreateStorageClass
@@ -148,8 +148,8 @@ export const createSteps = (
     canJumpTo: boolean;
   } = {
     name: StepsName(t)[Steps.CreateLocalVolumeSet],
-    canJumpTo: stepIdReached >= 2,
-    id: 2,
+    canJumpTo: stepIdReached >= 3,
+    id: 3,
     component: (
       <CreateLocalVolumeSet
         state={createLocalVolumeSet}
@@ -168,31 +168,31 @@ export const createSteps = (
       if (isMCG) {
         return [
           {
-            id: 2,
-            canJumpTo: stepIdReached >= 2,
+            id: 3,
+            canJumpTo: stepIdReached >= 3,
             ...commonSteps.security,
           },
           {
-            id: 3,
-            canJumpTo: stepIdReached >= 3,
+            id: 4,
+            canJumpTo: stepIdReached >= 4,
             ...commonSteps.reviewAndCreate,
           },
         ];
       } else
         return [
           {
-            id: 2,
-            canJumpTo: stepIdReached >= 2,
-            ...commonSteps.capacityAndNodes,
-          },
-          {
             id: 3,
             canJumpTo: stepIdReached >= 3,
-            ...commonSteps.securityAndNetwork,
+            ...commonSteps.capacityAndNodes,
           },
           {
             id: 4,
             canJumpTo: stepIdReached >= 4,
+            ...commonSteps.securityAndNetwork,
+          },
+          {
+            id: 5,
+            canJumpTo: stepIdReached >= 5,
             ...commonSteps.reviewAndCreate,
           },
         ];
@@ -201,13 +201,13 @@ export const createSteps = (
         return [
           createLocalVolumeSetStep,
           {
-            id: 3,
-            canJumpTo: stepIdReached >= 3,
+            id: 4,
+            canJumpTo: stepIdReached >= 4,
             ...commonSteps.security,
           },
           {
-            id: 4,
-            canJumpTo: stepIdReached >= 4,
+            id: 5,
+            canJumpTo: stepIdReached >= 5,
             ...commonSteps.reviewAndCreate,
           },
         ];
@@ -215,21 +215,21 @@ export const createSteps = (
       return [
         createLocalVolumeSetStep,
         {
-          canJumpTo: stepIdReached >= 3,
-          ...commonSteps.capacityAndNodes,
-          id: 3,
-        },
-        {
           canJumpTo: stepIdReached >= 4,
-          name: StepsName(t)[Steps.SecurityAndNetwork],
-          ...commonSteps.securityAndNetwork,
+          ...commonSteps.capacityAndNodes,
           id: 4,
         },
         {
           canJumpTo: stepIdReached >= 5,
+          name: StepsName(t)[Steps.SecurityAndNetwork],
+          ...commonSteps.securityAndNetwork,
+          id: 5,
+        },
+        {
+          canJumpTo: stepIdReached >= 6,
           name: StepsName(t)[Steps.ReviewAndCreate],
           ...commonSteps.reviewAndCreate,
-          id: 5,
+          id: 6,
         },
       ];
     case BackingStorageType.EXTERNAL:
@@ -241,31 +241,31 @@ export const createSteps = (
           ? [
               nonRhcsExternalProviderStep,
               {
-                id: 3,
-                canJumpTo: stepIdReached >= 3,
+                id: 4,
+                canJumpTo: stepIdReached >= 4,
                 ...commonSteps.security,
               },
               {
-                id: 4,
-                canJumpTo: stepIdReached >= 4,
+                id: 5,
+                canJumpTo: stepIdReached >= 5,
                 ...commonSteps.reviewAndCreate,
               },
             ]
           : [
               nonRhcsExternalProviderStep,
               {
-                canJumpTo: stepIdReached >= 3,
-                id: 3,
-                ...commonSteps.capacityAndNodes,
-              },
-              {
                 canJumpTo: stepIdReached >= 4,
                 id: 4,
-                ...commonSteps.securityAndNetwork,
+                ...commonSteps.capacityAndNodes,
               },
               {
                 canJumpTo: stepIdReached >= 5,
                 id: 5,
+                ...commonSteps.securityAndNetwork,
+              },
+              {
+                canJumpTo: stepIdReached >= 6,
+                id: 6,
                 ...commonSteps.reviewAndCreate,
               },
             ];
@@ -273,8 +273,8 @@ export const createSteps = (
       return [
         nonRhcsExternalProviderStep,
         {
-          canJumpTo: stepIdReached >= 3,
-          id: 3,
+          canJumpTo: stepIdReached >= 4,
+          id: 4,
           ...commonSteps.reviewAndCreate,
         },
       ];

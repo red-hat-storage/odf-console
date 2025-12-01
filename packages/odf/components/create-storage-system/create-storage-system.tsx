@@ -40,7 +40,10 @@ import {
 import { CREATE_SS_PAGE_URL, Steps, StepsName } from '../../constants';
 import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
-import { BackingStorage } from './create-storage-system-steps';
+import {
+  BackingStorage,
+  AdvancedSettings,
+} from './create-storage-system-steps';
 import { EXTERNAL_CEPH_STORAGE } from './external-systems/CreateCephSystem/CephConnectionDetails/system-connection-details';
 import { CreateStorageSystemFooter } from './footer';
 import { CreateStorageSystemHeader } from './header';
@@ -191,6 +194,19 @@ const CreateStorageSystem: React.FC<{}> = () => {
           error={anyError}
           loaded={allLoaded}
           supportedExternalStorage={supportedExternalStorage}
+        />
+      ),
+      canJumpTo: true,
+    },
+    {
+      id: 2,
+      name: StepsName(t)[Steps.AdvancedSettings],
+      component: (
+        <AdvancedSettings
+          state={state.backingStorage}
+          dispatch={dispatch}
+          hasOCS={hasOCS}
+          hasMultipleClusters={hasMultipleClusters}
         />
       ),
       canJumpTo: true,
