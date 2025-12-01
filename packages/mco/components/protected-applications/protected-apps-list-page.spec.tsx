@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { DRPolicyModel, DRPlacementControlModel } from '@odf/shared';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { DR_BASE_ROUTE } from '../../constants';
 import {
@@ -215,8 +215,12 @@ describe('Test protected applications list page table (ProtectedApplicationsList
     expect(screen.getByText(managedApps)).toBeInTheDocument();
     // Toggle dropdown (close)
     await user.click(screen.getByText(buttonTitle));
-    expect(() => screen.getByText(discoveredApps)).toThrow(unableToFindError);
-    expect(() => screen.getByText(managedApps)).toThrow(unableToFindError);
+    await waitFor(() => {
+      expect(screen.queryByText(discoveredApps)).not.toBeVisible();
+    });
+    await waitFor(() => {
+      expect(screen.queryByText(managedApps)).not.toBeInTheDocument();
+    });
 
     // Application types popover
     expect(screen.getByText(popoverTitle)).toBeInTheDocument();

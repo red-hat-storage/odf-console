@@ -271,6 +271,7 @@ const CreateBackingStoreForm: React.FC<CreateBackingStoreFormProps> = (
               dropdownItems={PROVIDERS}
               defaultSelection={value}
               data-test="backingstore-provider"
+              isFullWidth
             />
           )}
         />

@@ -311,6 +311,7 @@ const NamespaceStoreForm: React.FC<NamespaceStoreFormProps> = (props) => {
               dropdownItems={PROVIDERS}
               defaultSelection={value}
               data-test="namespacestore-provider"
+              isFullWidth
             />
           )}
         />

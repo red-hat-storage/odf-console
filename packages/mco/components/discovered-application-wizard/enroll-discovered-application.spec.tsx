@@ -594,7 +594,8 @@ describe('Test replication step', () => {
     await user.click(screen.getByText('minutes'));
     await user.click(screen.getByText('days'));
     // Ensure unit selection
-    expect(screen.getByText('days')).toBeInTheDocument();
+    const toggleButton = screen.getByRole('button', { name: /days/i });
+    expect(toggleButton).toBeInTheDocument();
   });
 });
 describe('Test review step', () => {
