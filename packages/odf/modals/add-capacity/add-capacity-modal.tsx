@@ -581,7 +581,8 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
               onClick={submit}
               isDisabled={
                 (isNoProvionerSC && (!availablePvsCount || nodesError)) ||
-                !isExpansionPossible
+                !isExpansionPossible ||
+                (hasMultiDeviceClasses && !deviceClass)
               }
             >
               {t('Add')}

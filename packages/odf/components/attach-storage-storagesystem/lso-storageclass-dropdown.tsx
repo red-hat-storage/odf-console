@@ -52,17 +52,10 @@ export const LSOStorageClassDropdown = ({
   );
 
   const storageClassDropdownFilter = React.useCallback(
-    (sc: StorageClassResourceKind): StorageClassResourceKind => {
-      const deviceSets = storageCluster?.spec?.storageDeviceSets || [];
-      const isNotInDeviceSets = !deviceSets.some(
-        (ds) => ds?.dataPVCTemplate?.spec?.storageClassName === getName(sc)
-      );
-
-      return sc.provisioner === NO_PROVISIONER && isNotInDeviceSets
-        ? sc
-        : undefined;
+    (sc: StorageClassResourceKind): StorageClassResourceKind | undefined => {
+      return sc.provisioner === NO_PROVISIONER ? sc : undefined;
     },
-    [storageCluster]
+    []
   );
 
   const preSelectionFilter = React.useCallback(
