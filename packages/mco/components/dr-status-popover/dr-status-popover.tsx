@@ -4,8 +4,9 @@ import {
   drStatusPopoverDocs,
   VolumeReplicationHealth,
   DRActionType,
+  DRProtectionStatus,
 } from '@odf/mco/constants';
-import { Progression } from '@odf/mco/types';
+import { Progression, DRPlacementControlConditionReason } from '@odf/mco/types';
 import { formatTime } from '@odf/shared/details-page/datetime';
 import { DOC_VERSION as mcoDocVersion } from '@odf/shared/hooks';
 import {
@@ -13,6 +14,10 @@ import {
   RedExclamationCircleIcon,
   YellowExclamationTriangleIcon,
 } from '@odf/shared/status/icons';
+import {
+  K8sResourceCondition,
+  K8sResourceConditionStatus,
+} from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { ViewDocumentation } from '@odf/shared/utils';
 import { StatusIconAndText } from '@openshift-console/dynamic-plugin-sdk';
@@ -50,6 +55,7 @@ export type DRStatusProps = {
   progressionDetails?: string[];
   action?: DRActionType;
   isDiscoveredApp?: boolean;
+  protectedCondition?: K8sResourceCondition;
 };
 
 enum DRStatus {
@@ -61,6 +67,8 @@ enum DRStatus {
   Critical = VolumeReplicationHealth.CRITICAL,
   Warning = VolumeReplicationHealth.WARNING,
   Healthy = VolumeReplicationHealth.HEALTHY,
+  Protecting = DRProtectionStatus.Protecting,
+  ProtectionError = DRProtectionStatus.ProtectionError,
 }
 
 const DR_STATUS_CLASS_NAMES = {
@@ -71,6 +79,8 @@ const DR_STATUS_CLASS_NAMES = {
   FAILOVER: 'dr-status-failover',
   RELOCATING: 'dr-status-relocating',
   UNKNOWN: 'dr-status-unknown',
+  PROTECTING: 'dr-status-protecting',
+  PROTECTION_ERROR: 'dr-status-protection-error',
 } as const;
 
 const shouldShowSyncDetails = ({
@@ -105,6 +115,8 @@ const getStatusIcon = (status?: DRStatus): JSX.Element => {
     [DRStatus.FailedOver]: <GreenCheckCircleIcon />,
     [DRStatus.Relocated]: <GreenCheckCircleIcon />,
     [DRStatus.WaitOnUserToCleanUp]: <RedExclamationCircleIcon />,
+    [DRStatus.Protecting]: <InProgressIcon />,
+    [DRStatus.ProtectionError]: <RedExclamationCircleIcon />,
   };
 
   return iconMap[status] ?? null;
@@ -249,7 +261,7 @@ const handleHealthStatus = ({
   bothMsg,
   volumeReplicationHealth,
   kubeObjectReplicationHealth,
-}): StatusContent => {
+}): StatusContent | null => {
   if (
     volumeReplicationHealth === status &&
     kubeObjectReplicationHealth === status
@@ -396,6 +408,52 @@ const shouldShowActionStatus = ({
   }
 };
 
+const shouldShowProtecting = (
+  isCleanupRequired: boolean,
+  protectedCondition?: K8sResourceCondition,
+  volumeLastGroupSyncTime?: string
+): boolean => {
+  // Never show "Protecting" during cleanup or when condition is missing
+  if (isCleanupRequired || !protectedCondition) {
+    return false;
+  }
+
+  // If sync has started, protection is already established
+  if (volumeLastGroupSyncTime) {
+    return false;
+  }
+
+  const { status, reason } = protectedCondition;
+
+  // Show "Protecting" during initial setup before sync starts
+  const isStatusUnknown = status === K8sResourceConditionStatus.Unknown;
+  const isReasonUnknown = reason === DRPlacementControlConditionReason.Unknown;
+  const isProgressingWithoutSync =
+    status === K8sResourceConditionStatus.False &&
+    reason === DRPlacementControlConditionReason.Progressing;
+
+  // Protection is shown when:
+  // 1. Status is unknown (validating), OR
+  // 2. Reason is unknown (undetermined), OR
+  // 3. Protection is progressing but sync hasn't started
+  return isStatusUnknown || isReasonUnknown || isProgressingWithoutSync;
+};
+
+const shouldShowProtectionError = (
+  protectedCondition?: K8sResourceCondition
+): boolean => {
+  if (!protectedCondition) return false;
+
+  const { status, reason } = protectedCondition;
+
+  // Only show error for Error reasons with actionable statuses
+  return (
+    reason === DRPlacementControlConditionReason.Error &&
+    (status === K8sResourceConditionStatus.True ||
+      status === K8sResourceConditionStatus.False)
+  );
+};
+
 const getDRStatus = ({
   isCleanupRequired,
   phase,
@@ -403,6 +461,7 @@ const getDRStatus = ({
   kubeObjectReplicationHealth,
   progression,
   volumeLastGroupSyncTime,
+  protectedCondition,
 }: {
   isCleanupRequired: boolean;
   phase: DRPCStatus;
@@ -410,9 +469,14 @@ const getDRStatus = ({
   kubeObjectReplicationHealth?: VolumeReplicationHealth;
   progression?: string;
   volumeLastGroupSyncTime?: string;
+  protectedCondition?: K8sResourceCondition;
 }): DRStatus => {
   // Check if cleanup is required — this has the highest priority
   if (isCleanupRequired) return DRStatus.WaitOnUserToCleanUp;
+
+  // Handle failover or relocation phases directly
+  if (phase === DRPCStatus.FailingOver) return DRStatus.FailingOver;
+  if (phase === DRPCStatus.Relocating) return DRStatus.Relocating;
 
   // Combine health statuses into an array for easier checks (filter out undefined)
   const replicationHealths = [
@@ -423,8 +487,10 @@ const getDRStatus = ({
   // For FailedOver/Relocated phases:
   // - If sync has started (lastGroupSyncTime exists), always show health status
   // - If sync hasn't started yet, show completion message (phase status)
-  const hasSyncStarted =
-    !!volumeLastGroupSyncTime && volumeLastGroupSyncTime.trim() !== '';
+  // This check must come BEFORE "Protecting" status to ensure completion status
+  // is shown immediately after failover/relocate completes, even if protectedCondition
+  // is still in "Unknown" or "Progressing" state.
+  const hasSyncStarted = !!volumeLastGroupSyncTime;
 
   if (phase === DRPCStatus.FailedOver || phase === DRPCStatus.Relocated) {
     // Once sync has started, always prioritize health status over phase status
@@ -459,6 +525,22 @@ const getDRStatus = ({
     // Fallback: show Critical if phase doesn't match
     return DRStatus.Critical;
   }
+
+  // Check for protection error before other statuses (only for non-completion phases)
+  if (shouldShowProtectionError(protectedCondition))
+    return DRStatus.ProtectionError;
+
+  // Check for protecting status before health checks (only for non-completion phases)
+  // This should NOT apply to FailedOver/Relocated phases as they are handled above
+  // Also, if sync has started, we should NOT show "Protecting" - show health status instead
+  if (
+    shouldShowProtecting(
+      isCleanupRequired,
+      protectedCondition,
+      volumeLastGroupSyncTime
+    )
+  )
+    return DRStatus.Protecting;
 
   // For FailingOver/Relocating phases, always show the action status
   if (
@@ -505,6 +587,19 @@ const getCleanupMessage = (
       );
 };
 
+type GetDRStatusDetailsParams = {
+  isCleanupRequired: boolean;
+  phase: DRPCStatus;
+  volumeReplicationHealth: VolumeReplicationHealth;
+  kubeObjectReplicationHealth?: VolumeReplicationHealth;
+  progression?: string;
+  volumeLastGroupSyncTime?: string;
+  t: TFunction;
+  primaryCluster: string;
+  targetCluster: string;
+  protectedCondition?: K8sResourceCondition;
+};
+
 const getDRStatusDetails = ({
   isCleanupRequired,
   phase,
@@ -515,17 +610,8 @@ const getDRStatusDetails = ({
   t,
   primaryCluster,
   targetCluster,
-}: {
-  isCleanupRequired: boolean;
-  phase: DRPCStatus;
-  volumeReplicationHealth: VolumeReplicationHealth;
-  kubeObjectReplicationHealth?: VolumeReplicationHealth;
-  progression?: string;
-  volumeLastGroupSyncTime?: string;
-  t: TFunction;
-  primaryCluster: string;
-  targetCluster: string;
-}): StatusContent => {
+  protectedCondition,
+}: GetDRStatusDetailsParams): StatusContent => {
   const drStatus = getDRStatus({
     isCleanupRequired,
     phase,
@@ -533,9 +619,28 @@ const getDRStatusDetails = ({
     kubeObjectReplicationHealth,
     progression,
     volumeLastGroupSyncTime,
+    protectedCondition,
   });
 
   switch (drStatus) {
+    case DRStatus.Protecting:
+      return createStatus(
+        DRStatus.Protecting,
+        t('Protecting'),
+        protectedCondition?.message ||
+          t('Validating application protection. This may take a few minutes.'),
+        DR_STATUS_CLASS_NAMES.PROTECTING
+      );
+
+    case DRStatus.ProtectionError:
+      return createStatus(
+        DRStatus.ProtectionError,
+        t('Protection Error'),
+        protectedCondition?.message ||
+          t('An error occurred during application protection.'),
+        DR_STATUS_CLASS_NAMES.PROTECTION_ERROR
+      );
+
     case DRStatus.Healthy: {
       const title = kubeObjectReplicationHealth
         ? t('All volumes & Kubernetes resources are synced')
@@ -581,15 +686,18 @@ const getDRStatusDetails = ({
       return (
         handleHealthStatus({
           status: DRStatus.Critical,
-          volumeTitle: 'Volumes are not syncing',
-          volumeMsg:
-            '1 or more volume groups are affected. Check the network connection, cluster health, or workload status for potential issues.',
-          kubeTitle: 'Kubernetes resources are not syncing',
-          kubeMsg:
-            '1 or more Kubernetes resources are affected. Check the network connection, cluster health, or workload status for potential issues.',
-          bothTitle: 'Volumes & Kubernetes resources are not syncing',
-          bothMsg:
-            '1 or more volumes & Kubernetes resources are affected. Check the network connection, cluster health, or workload status for potential issues.',
+          volumeTitle: t('Volumes are not syncing'),
+          volumeMsg: t(
+            '1 or more volume groups are affected. Check the network connection, cluster health, or workload status for potential issues.'
+          ),
+          kubeTitle: t('Kubernetes resources are not syncing'),
+          kubeMsg: t(
+            '1 or more Kubernetes resources are affected. Check the network connection, cluster health, or workload status for potential issues.'
+          ),
+          bothTitle: t('Volumes & Kubernetes resources are not syncing'),
+          bothMsg: t(
+            '1 or more volumes & Kubernetes resources are affected. Check the network connection, cluster health, or workload status for potential issues.'
+          ),
           volumeReplicationHealth,
           kubeObjectReplicationHealth,
         }) ||
@@ -808,6 +916,7 @@ const DRStatusPopover: React.FC<DRStatusPopoverProps> = ({
         t,
         primaryCluster: disasterRecoveryStatus.primaryCluster,
         targetCluster: disasterRecoveryStatus.targetCluster,
+        protectedCondition: disasterRecoveryStatus.protectedCondition,
       }),
     [disasterRecoveryStatus, t]
   );

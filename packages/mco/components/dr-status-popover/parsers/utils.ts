@@ -1,6 +1,9 @@
-import { DRPlacementControlKind } from '@odf/mco/types';
+import { DRPlacementControlKind, VRGConditionReason } from '@odf/mco/types';
 import { formatTime } from '@odf/shared/details-page/datetime';
-import { K8sResourceCondition } from '@odf/shared/types';
+import {
+  K8sResourceCondition,
+  K8sResourceConditionStatus,
+} from '@odf/shared/types';
 import { DRStatusProps } from '../dr-status-popover';
 
 type ProgressionFields = Pick<
@@ -54,13 +57,14 @@ export const getProgressionFields = (
 
   const drpcDetails = buildDetailList(
     drPlacementControl.status?.conditions,
-    (condition) => condition?.status !== 'True'
+    (condition) => condition?.status !== K8sResourceConditionStatus.True
   );
 
   const resourceDetails = buildDetailList(
     drPlacementControl.status?.resourceConditions?.conditions,
     (condition) =>
-      condition?.status !== 'True' && condition?.reason !== 'Unused'
+      condition?.status !== K8sResourceConditionStatus.True &&
+      condition?.reason !== VRGConditionReason.Unused
   );
 
   const detailMessages = [...drpcDetails, ...resourceDetails];

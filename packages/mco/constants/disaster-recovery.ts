@@ -60,6 +60,12 @@ export enum DRReplicationState {
   UnknownState = 'Unknown',
 }
 
+// DR protection status (UI-only, derived from conditions)
+export enum DRProtectionStatus {
+  Protecting = 'Protecting',
+  ProtectionError = 'ProtectionError',
+}
+
 // DRPolicy sync interval unit
 export enum TimeUnits {
   Minutes = 'm',
