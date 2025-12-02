@@ -24,23 +24,8 @@ import {
   global_active_color_100 as activeColor,
 } from '@patternfly/react-tokens';
 import { HEALTH_SCORE_QUERY } from '../odf-dashboard/queries';
+import { AlertRowData } from './hooks';
 import './infra-health-graph.scss';
-
-// ToDo: Remove this and import from "useHealthAlerts.ts"
-export type AlertRowData = {
-  uid: string;
-  alertname: string;
-  startTime: Date;
-  endTime?: Date;
-  duration: number;
-  message: string;
-  severity: string;
-  labels: Record<string, string>;
-  state: 'firing' | 'resolved';
-  metadata: {
-    uid: string;
-  };
-};
 
 type InfraHealthGraphProps = {
   alerts?: AlertRowData[];
@@ -70,11 +55,20 @@ const getAlertSeries = (alerts: AlertRowData[]) => {
   const laneCount = alerts.length;
   const gap = bandHeight / (laneCount + 1);
 
+  const now = new Date();
+  const twentyFourHoursAgo = new Date(now.getTime() - TWENTY_FOUR_HOURS);
+
   return alerts.map((alert, index) => {
     const laneY = MIN_Y + gap * (index + 1);
 
-    const start = alert.startTime;
-    const end = alert.endTime ?? new Date();
+    // Clamp start time to the 24-hour window
+    const start = new Date(
+      Math.max(alert.startTime.getTime(), twentyFourHoursAgo.getTime())
+    );
+    // Clamp end time to now
+    const end = alert.endTime
+      ? new Date(Math.min(alert.endTime.getTime(), now.getTime()))
+      : now;
 
     return {
       alert,
@@ -129,12 +123,19 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
   } else if (!scoreHasData && !alertsHaveData) {
     content = <GraphEmpty height={250} loading={false} />;
   } else {
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - TWENTY_FOUR_HOURS);
+
     content = (
       <Chart
         height={250}
         width={width}
         scale={{ x: 'time', y: 'linear' }}
         padding={{ top: 20, bottom: 60, left: 70, right: 80 }}
+        domain={{
+          x: [twentyFourHoursAgo, now],
+          y: [0, 100],
+        }}
         legendData={[
           {
             name: t('Health score'),
@@ -177,7 +178,6 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
             }}
           />
         }
-        domain={{ y: [0, 100] }}
       >
         <ChartAxis />
         <ChartAxis dependentAxis tickFormat={(v) => `${v}%`} />
@@ -198,7 +198,7 @@ export const InfraHealthGraph: React.FC<InfraHealthGraphProps> = ({
           )}
           {alertSeries.map(({ alert, data }) => (
             <ChartLine
-              key={alert.uid}
+              key={alert.metadata.uid}
               data={data.map((point) => ({
                 ...point,
                 type: 'alert',

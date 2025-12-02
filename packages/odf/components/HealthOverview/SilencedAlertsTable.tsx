@@ -1,0 +1,255 @@
+import * as React from 'react';
+import { DASH, getAlertManagerSilenceEndpoint } from '@odf/shared';
+import { dateTimeFormatter } from '@odf/shared/details-page/datetime';
+import {
+  SelectableTable,
+  TableColumnProps,
+  RowComponentType,
+  TableVariant,
+} from '@odf/shared/table';
+import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Alert,
+  AlertVariant,
+  Button,
+  ButtonVariant,
+  MenuToggle,
+  MenuToggleElement,
+  SearchInput,
+  Select,
+  SelectList,
+  SelectOption,
+  Toolbar,
+  ToolbarContent,
+  ToolbarItem,
+} from '@patternfly/react-core';
+import { Td } from '@patternfly/react-table';
+import { SilencedAlertRowData } from './hooks';
+import { getSeverityIcon } from './utils';
+
+type SilencedAlertsTableProps = {
+  alerts: SilencedAlertRowData[];
+  loaded: boolean;
+  error?: any;
+  alertManagerBasePath: string;
+  onRefresh: () => void;
+};
+
+const RowRenderer: React.FC<RowComponentType<SilencedAlertRowData>> = ({
+  row,
+}) => {
+  const { t } = useCustomTranslation();
+  const silencedOnDisplay = row.silencedOn
+    ? dateTimeFormatter.format(row.silencedOn)
+    : DASH;
+  const untilDisplay = row.endsOn ? dateTimeFormatter.format(row.endsOn) : DASH;
+
+  return (
+    <>
+      <Td dataLabel={t('Silenced on')}>
+        <div>{silencedOnDisplay}</div>
+        <div className="pf-v5-u-color-200">
+          {row.endsOn ? t('Until {{time}}', { time: untilDisplay }) : DASH}
+        </div>
+      </Td>
+      <Td dataLabel={t('Check')}>
+        {getSeverityIcon(row.severity)}
+        {row.alertname}
+      </Td>
+      <Td dataLabel={t('Details')}>{row.details}</Td>
+    </>
+  );
+};
+
+export const SilencedAlertsTable: React.FC<SilencedAlertsTableProps> = ({
+  alerts,
+  loaded,
+  error,
+  alertManagerBasePath,
+  onRefresh,
+}) => {
+  const { t } = useCustomTranslation();
+  const [selectedAlerts, setSelectedAlerts] = React.useState<
+    SilencedAlertRowData[]
+  >([]);
+  const [nameFilter, setNameFilter] = React.useState('');
+  const [checkFilter, setCheckFilter] = React.useState('all');
+  const [isCheckOpen, setIsCheckOpen] = React.useState(false);
+  const [isUnsilencing, setIsUnsilencing] = React.useState(false);
+  const [actionError, setActionError] = React.useState<any>();
+
+  const checkOptions = React.useMemo(
+    () =>
+      Array.from(new Set(alerts.map((alert) => alert.alertname)))
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b)),
+    [alerts]
+  );
+
+  const filteredAlerts = React.useMemo(
+    () =>
+      alerts.filter((alert) => {
+        return (
+          (checkFilter === 'all' || alert.alertname === checkFilter) &&
+          (!nameFilter.trim() ||
+            alert.alertname.toLowerCase().includes(nameFilter.toLowerCase()) ||
+            alert.details.toLowerCase().includes(nameFilter.toLowerCase()))
+        );
+      }),
+    [alerts, checkFilter, nameFilter]
+  );
+
+  const onCheckSelect = React.useCallback((_event, selection: string) => {
+    setCheckFilter(selection);
+    setIsCheckOpen(false);
+  }, []);
+
+  const onUnsilence = async () => {
+    if (!alertManagerBasePath) {
+      return;
+    }
+    setIsUnsilencing(true);
+    setActionError(undefined);
+    try {
+      await Promise.all(
+        selectedAlerts.map((alert) =>
+          consoleFetch(
+            getAlertManagerSilenceEndpoint(
+              alertManagerBasePath,
+              alert.silenceId
+            ),
+            {
+              method: 'DELETE',
+            }
+          ).then((response) => {
+            if (!response?.ok) {
+              throw new Error(
+                `${response.status} ${response.statusText || t('Unknown error')}`
+              );
+            }
+          })
+        )
+      );
+      setSelectedAlerts([]);
+    } catch (err) {
+      setActionError(err);
+    } finally {
+      onRefresh();
+      setIsUnsilencing(false);
+    }
+  };
+
+  const columns = React.useMemo<TableColumnProps[]>(
+    () => [
+      {
+        columnName: t('Silenced on'),
+        sortFunction: (a, b, direction) => {
+          const aTime = (a as SilencedAlertRowData).silencedOn?.getTime() || 0;
+          const bTime = (b as SilencedAlertRowData).silencedOn?.getTime() || 0;
+          return direction === 'asc' ? bTime - aTime : aTime - bTime;
+        },
+      },
+      {
+        columnName: t('Check'),
+        sortFunction: (a, b, direction) => {
+          const cmp = (a as SilencedAlertRowData).alertname.localeCompare(
+            (b as SilencedAlertRowData).alertname
+          );
+          return direction === 'asc' ? cmp : -cmp;
+        },
+      },
+      {
+        columnName: t('Details'),
+      },
+    ],
+    [t]
+  );
+
+  const isUnsilenceDisabled =
+    !selectedAlerts.length || !alertManagerBasePath || isUnsilencing;
+
+  const renderCheckToggle = React.useCallback(
+    (toggleRef: React.Ref<MenuToggleElement>) => (
+      <MenuToggle
+        ref={toggleRef}
+        onClick={() => setIsCheckOpen((prev) => !prev)}
+        isExpanded={isCheckOpen}
+      >
+        {checkFilter === 'all'
+          ? t('All checks')
+          : checkFilter || t('All checks')}
+      </MenuToggle>
+    ),
+    [checkFilter, isCheckOpen, t]
+  );
+
+  return (
+    <>
+      <Toolbar className="pf-v5-u-mb-md">
+        <ToolbarContent>
+          <ToolbarItem>
+            <Select
+              aria-label={t('Filter by check')}
+              isOpen={isCheckOpen}
+              toggle={renderCheckToggle}
+              onOpenChange={setIsCheckOpen}
+              onSelect={onCheckSelect}
+              selected={checkFilter}
+            >
+              <SelectList>
+                <SelectOption value="all">{t('All checks')}</SelectOption>
+                {checkOptions.map((option) => (
+                  <SelectOption key={option} value={option}>
+                    {option}
+                  </SelectOption>
+                ))}
+              </SelectList>
+            </Select>
+          </ToolbarItem>
+          <ToolbarItem>
+            <SearchInput
+              aria-label={t('Find by name')}
+              placeholder={t('Find by name')}
+              value={nameFilter}
+              onChange={(_event, value) => setNameFilter(value)}
+              onClear={() => setNameFilter('')}
+            />
+          </ToolbarItem>
+          <ToolbarItem>
+            <Button
+              variant={ButtonVariant.secondary}
+              onClick={onUnsilence}
+              isDisabled={isUnsilenceDisabled}
+              isLoading={isUnsilencing}
+            >
+              {t('Unsilence')}
+            </Button>
+          </ToolbarItem>
+        </ToolbarContent>
+      </Toolbar>
+      {actionError && (
+        <Alert
+          isInline
+          variant={AlertVariant.danger}
+          title={t('Unable to unsilence the selected alerts')}
+          className="pf-v5-u-mb-md"
+        >
+          {actionError?.message}
+        </Alert>
+      )}
+      <SelectableTable
+        rows={filteredAlerts}
+        columns={columns}
+        RowComponent={RowRenderer}
+        selectedRows={selectedAlerts}
+        setSelectedRows={setSelectedAlerts}
+        loaded={loaded}
+        loadError={error}
+        initialSortColumnIndex={0}
+        borders={true}
+        variant={TableVariant.DEFAULT}
+      />
+    </>
+  );
+};
