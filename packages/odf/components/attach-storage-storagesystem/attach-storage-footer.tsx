@@ -22,6 +22,7 @@ export const AttachStorageFormFooter = (
     inProgress,
     errorMessage,
     storageClassDetails,
+    deviceClass,
   } = state;
   const { name, enableStorageClassEncryption, encryptionKMSID } =
     storageClassDetails;
@@ -32,7 +33,8 @@ export const AttachStorageFormFooter = (
       lsoStorageClassName,
       name,
       enableStorageClassEncryption,
-      encryptionKMSID
+      encryptionKMSID,
+      deviceClass
     ) ||
     inProgress ||
     !!errorMessage;
