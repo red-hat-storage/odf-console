@@ -91,3 +91,8 @@ export const onboardingTokenTooltip = (t: TFunction) =>
   t(
     'plugin__odf-console~An onboarding token to authenticate and authorize an OpenShift cluster, granting access to the Data Foundation deployment, thus establishing a secure connection.'
   );
+
+export const deviceClassTooltip = (t: TFunction) =>
+  t(
+    'Multiple device classes are in use. Select the required device class to add capacity.'
+  );
