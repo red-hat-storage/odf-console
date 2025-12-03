@@ -9,7 +9,10 @@ import {
   DRPlacementControlModel,
   DRPolicyModel,
 } from '@odf/shared';
-import { ApplicationModel } from '@odf/shared/models';
+import {
+  ApplicationModel,
+  ProtectedApplicationViewModel,
+} from '@odf/shared/models';
 import { referenceForModel } from '@odf/shared/utils';
 import { Selector } from '@openshift-console/dynamic-plugin-sdk';
 import { HUB_CLUSTER_NAME } from '../constants';
@@ -54,6 +57,30 @@ export const getDRPlacementControlResourceObj = (
   namespaced: !!props?.namespace ? false : true,
   ...(!!props?.selector ? { selector: props?.selector } : {}),
   optional: true,
+});
+
+export const getProtectedApplicationViewResourceObj = (
+  namespace?: string
+): {
+  kind: string;
+  namespaced: boolean;
+  isList: boolean;
+  namespace?: string;
+  groupVersionKind: {
+    group: string;
+    version: string;
+    kind: string;
+  };
+} => ({
+  kind: ProtectedApplicationViewModel.kind,
+  namespaced: true,
+  isList: true,
+  groupVersionKind: {
+    group: ProtectedApplicationViewModel.apiGroup,
+    version: ProtectedApplicationViewModel.apiVersion,
+    kind: ProtectedApplicationViewModel.kind,
+  },
+  ...(namespace && { namespace }),
 });
 
 export const getApplicationSetResourceObj = (props?: NamespacedObjectType) => ({

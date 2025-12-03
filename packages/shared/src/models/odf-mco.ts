@@ -11,3 +11,15 @@ export const MirrorPeerModel: K8sModel = {
   abbr: 'MP',
   namespaced: false,
 };
+
+export const ProtectedApplicationViewModel: K8sModel = {
+  apiVersion: 'v1alpha1',
+  apiGroup: 'multicluster.odf.openshift.io',
+  kind: 'ProtectedApplicationView',
+  plural: 'protectedapplicationviews',
+  abbr: 'PAV',
+  namespaced: true,
+  label: 'Protected Application View',
+  labelPlural: 'Protected Application Views',
+  crd: true,
+};

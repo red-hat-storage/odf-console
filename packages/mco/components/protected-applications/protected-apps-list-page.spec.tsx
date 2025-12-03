@@ -2,12 +2,8 @@ import * as React from 'react';
 import { DRPolicyModel, DRPlacementControlModel } from '@odf/shared';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { DR_BASE_ROUTE } from '../../constants';
-import {
-  EmptyRowMessage,
-  NoDataMessage,
-  ExpandableComponentType,
-} from './components';
+import { DR_BASE_ROUTE, ApplicationType } from '../../constants';
+import { EmptyRowMessage, NoDataMessage } from './components';
 import { ProtectedApplicationsListPage } from './list-page';
 
 const unableToFindError = 'Unable to find an element';
@@ -92,59 +88,144 @@ const drPolicy = {
     schedulingInterval: '1m',
   },
 };
+
+const failingPAV = {
+  apiVersion: 'multicluster.odf.openshift.io/v1alpha1',
+  kind: 'ProtectedApplicationView',
+  metadata: { name: failingDRPCName, namespace: 'test' },
+  spec: { drpcRef: { name: failingDRPCName, namespace: 'test' } },
+  status: {
+    applicationInfo: {
+      type: ApplicationType.Discovered,
+      applicationRef: {
+        kind: 'DRPlacementControl',
+        name: failingDRPCName,
+        namespace: 'test',
+      },
+    },
+    placementInfo: {
+      placementRef: { name: 'test-ref', kind: 'Placement', namespace: 'test' },
+      selectedClusters: ['test-cluster-1', 'test-cluster-2'],
+    },
+    drInfo: {
+      drPolicyRef: { name: drPolicyName },
+      drClusters: ['test-cluster-1', 'test-cluster-2'],
+      primaryCluster: deploymentClusterName,
+      protectedNamespaces: namespaces,
+      status: {
+        phase: 'FailingOver',
+        lastGroupSyncTime: '2024-03-04T11:38:44Z',
+      },
+    },
+  },
+};
+
+const relocatedPAV = {
+  apiVersion: 'multicluster.odf.openshift.io/v1alpha1',
+  kind: 'ProtectedApplicationView',
+  metadata: { name: relocatedDRPCName, namespace: 'test' },
+  spec: { drpcRef: { name: relocatedDRPCName, namespace: 'test' } },
+  status: {
+    applicationInfo: {
+      type: ApplicationType.Discovered,
+      applicationRef: {
+        kind: 'DRPlacementControl',
+        name: relocatedDRPCName,
+        namespace: 'test',
+      },
+    },
+    placementInfo: {
+      placementRef: { name: 'test-ref', kind: 'Placement', namespace: 'test' },
+      selectedClusters: ['test-cluster-1', 'test-cluster-2'],
+    },
+    drInfo: {
+      drPolicyRef: { name: drPolicyName },
+      drClusters: ['test-cluster-1', 'test-cluster-2'],
+      primaryCluster: deploymentClusterName,
+      protectedNamespaces: namespaces,
+      status: { phase: 'Relocated', lastGroupSyncTime: '2024-03-04T11:38:44Z' },
+    },
+  },
+};
+
 const drpcs = [failingDRPC, relocatedDRPC];
+const pavs = [failingPAV, relocatedPAV];
 
 jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
   ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
   useListPageFilter: jest.fn(() => [
-    noData ? [] : drpcs,
+    noData ? [] : pavs,
     noFilteredData
       ? []
-      : drpcs.filter((drpc) => drpc.metadata.name !== filterDRPC),
+      : pavs.filter((pav) => pav.metadata.name !== filterDRPC),
     jest.fn(),
   ]),
-  useK8sWatchResource: jest.fn(({ kind }) => {
+  useK8sWatchResource: jest.fn(({ kind, groupVersionKind }) => {
     if (noData) return [[], true, ''];
+    if (
+      groupVersionKind?.group === 'multicluster.odf.openshift.io' &&
+      groupVersionKind?.kind === 'ProtectedApplicationView'
+    )
+      return [pavs, true, ''];
+    if (
+      kind ===
+        `${DRPlacementControlModel.apiGroup}~${DRPlacementControlModel.apiVersion}~${DRPlacementControlModel.kind}` ||
+      groupVersionKind?.kind === DRPlacementControlModel.kind
+    )
+      return [drpcs, true, ''];
     if (
       kind ===
       `${DRPolicyModel.apiGroup}~${DRPolicyModel.apiVersion}~${DRPolicyModel.kind}`
     )
       return [[drPolicy], true, ''];
-    if (
-      kind ===
-      `${DRPlacementControlModel.apiGroup}~${DRPlacementControlModel.apiVersion}~${DRPlacementControlModel.kind}`
-    )
-      return [drpcs, true, ''];
     return [[], true, ''];
   }),
-  useModal: jest.fn(() => null),
+  useModal: jest.fn(() => jest.fn()),
   AlertSeverity: { Critical: 'critical' },
-  useK8sWatchResources: jest.fn(() => null),
+  useK8sWatchResources: jest.fn(() => ({})),
 }));
 
 jest.mock('../modals/app-manage-policies/helper/consistency-groups', () => ({
   buildMCVResource: jest.fn(() => ({})),
-  extractConsistencyGroups: jest.fn(() => []),
+  extractConsistencyGroups: jest.fn(() => ({
+    loaded: true,
+    loadError: null,
+    data: [],
+  })),
   ConsistencyGroupsContent: jest.fn(() => null),
   getMCVName: jest.fn(() => ''),
 }));
 
 jest.mock('react-router-dom-v5-compat', () => ({
   ...jest.requireActual('react-router-dom-v5-compat'),
-  useNavigate: () => null,
-  useLocation: () => ({ pathname: '/' }),
-  Link: jest.fn((props) => <div {...props} />),
+  useNavigate: () => jest.fn(),
+  useLocation: () => ({ pathname: '/', search: '' }),
+  Link: jest.fn((props) => <a {...props}>{props.children}</a>),
 }));
 
 jest.mock('./components', () => ({
   ...jest.requireActual('./components'),
   EmptyRowMessage: jest.fn(() => null),
   NoDataMessage: jest.fn(() => null),
+  NamespacesDetails: jest.fn(({ view }) => (
+    <div>
+      {view?.status?.drInfo?.protectedNamespaces?.map((ns) => (
+        <div key={ns}>{ns}</div>
+      ))}
+    </div>
+  )),
 }));
 
-jest.mock('../dr-status-popover/dr-status-popover', () => ({
-  __esModule: true,
-  default: jest.fn(() => <div>DR Status</div>),
+jest.mock('../dr-status-popover/parsers', () => ({
+  DRPlacementControlParser: jest.fn(() => <div>DR Status</div>),
+}));
+
+jest.mock('@odf/mco/utils', () => ({
+  getApplicationName: jest.fn((pav) => pav.metadata.name),
+  getDRPlacementControlRef: jest.fn((pav) => pav.spec.drpcRef),
+  getPAVDRPolicyName: jest.fn(() => drPolicyName),
+  getPrimaryCluster: jest.fn(() => deploymentClusterName),
+  getPrimaryClusterName: jest.fn(() => 'test-cluster-1'),
 }));
 
 // eslint-disable-next-line no-console
@@ -155,7 +236,6 @@ let consoleSpy: jest.SpyInstance<
 >;
 
 const ignoreErrors = () => {
-  // Ignore error messages coming from ListPageBody (third-party dependency).
   consoleSpy = jest.spyOn(console, 'error').mockImplementation((...data) => {
     if (!data.toString().includes('ListPageBody.js')) {
       originalError(...data);
@@ -206,14 +286,10 @@ describe('Test protected applications list page table (ProtectedApplicationsList
     const discoveredApps = 'ACM discovered applications';
     const managedApps = 'ACM managed applications';
 
-    // Enroll application dropdown
     expect(screen.getByText(buttonTitle)).toBeInTheDocument();
-    // Toggle dropdown (open)
     await user.click(screen.getByText(buttonTitle));
-    // Dropdown items
     expect(screen.getByText(discoveredApps)).toBeInTheDocument();
     expect(screen.getByText(managedApps)).toBeInTheDocument();
-    // Toggle dropdown (close)
     await user.click(screen.getByText(buttonTitle));
     await waitFor(() => {
       expect(screen.queryByText(discoveredApps)).not.toBeVisible();
@@ -222,7 +298,6 @@ describe('Test protected applications list page table (ProtectedApplicationsList
       expect(screen.queryByText(managedApps)).not.toBeInTheDocument();
     });
 
-    // Application types popover
     expect(screen.getByText(popoverTitle)).toBeInTheDocument();
     expect(screen.getByText(popoverTitle)).toBeEnabled();
   });
@@ -242,24 +317,20 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
     render(<ProtectedApplicationsListPage />);
 
     expect(screen.getByText('Name')).toBeInTheDocument();
-    expect(screen.getByText('Details')).toBeInTheDocument();
     expect(screen.getAllByText('DR Status').length).toBeGreaterThan(0);
     expect(screen.getByText('Policy')).toBeInTheDocument();
     expect(screen.getByText('Cluster')).toBeInTheDocument();
   });
 
   it('"Relocated DRPC" table row contains all required columns', async () => {
-    // Filter rest and display only a single row item
     filterDRPC = failingDRPCName;
     const { container } = render(<ProtectedApplicationsListPage />);
 
-    // Expand button
     const expandButton = container.querySelector(
       '[data-test="expand-button"]'
     ) as HTMLElement;
     expect(expandButton).toBeInTheDocument();
 
-    // Name
     expect(() => screen.getByText(failingDRPCName)).toThrow(unableToFindError);
     const nameElement = container.querySelector(
       '[data-label="Name"]'
@@ -275,15 +346,6 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
       `/k8s/ns/${relocatedDRPC.metadata.namespace}/ramendr.openshift.io~v1alpha1~DRPlacementControl/${relocatedDRPCName}`
     );
 
-    // Details
-    expect(
-      container.querySelector(`[id=${ExpandableComponentType.NS}]`)
-    ).toBeInTheDocument();
-    expect(
-      container.querySelector(`[id=${ExpandableComponentType.EVENTS}]`)
-    ).not.toBeInTheDocument();
-
-    // Policy
     const policyElement = container.querySelector(
       '[data-label="Policy"]'
     ) as HTMLElement;
@@ -293,29 +355,21 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
       policyElement.querySelector(`[data-test='link-${drPolicyName}']`)
     ).toHaveAttribute('to', `${DR_BASE_ROUTE}/policies?name=${drPolicyName}`);
 
-    // Cluster
     expect(container.querySelector('[data-label="Cluster"]')).toHaveTextContent(
       deploymentClusterName
     );
 
-    // Kebab
-    const editConfig = 'Edit configuration';
-    const failover = 'Failover';
-    const relocate = 'Relocate';
     const kebabButton = screen.getByRole('button', { name: /Kebab toggle/i });
-    // Open action (kebab) menu
     await user.click(kebabButton);
-    expect(screen.getByText(editConfig)).toBeVisible();
-    expect(screen.getByText(failover)).toBeVisible();
-    expect(screen.getByText(relocate)).toBeVisible();
+    expect(screen.getByText('Edit configuration')).toBeVisible();
+    expect(screen.getByText('Failover')).toBeVisible();
+    expect(screen.getByText('Relocate')).toBeVisible();
   });
 
-  it('"FailingOver DRPC" table row contains all required columns', async () => {
-    // Filter rest and display only a single row item
+  it('"FailingOver DRPC" expands to show namespaces when expand button is clicked', async () => {
     filterDRPC = relocatedDRPCName;
     const { container } = render(<ProtectedApplicationsListPage />);
 
-    // Name
     expect(() => screen.getByText(relocatedDRPCName)).toThrow(
       unableToFindError
     );
@@ -332,13 +386,13 @@ describe('Test protected applications list page table row (ProtectedAppsTableRow
       `/k8s/ns/${failingDRPC.metadata.namespace}/ramendr.openshift.io~v1alpha1~DRPlacementControl/${failingDRPCName}`
     );
 
-    // Details
-    const namespaceElement = container.querySelector(
-      `[id=${ExpandableComponentType.NS}]`
+    const expandButton = container.querySelector(
+      '[data-test="expand-button"] button'
     ) as HTMLElement;
+    expect(expandButton).toBeInTheDocument();
 
-    // Click namespace details
-    await user.click(namespaceElement);
+    await user.click(expandButton);
+
     expect(screen.getByText(namespaces[0])).toBeInTheDocument();
     expect(screen.getByText(namespaces[1])).toBeInTheDocument();
     expect(screen.getByText(namespaces[2])).toBeInTheDocument();

@@ -27,7 +27,7 @@ import {
   ReplicationType,
 } from '../../constants';
 import { DRPlacementControlKind, Progression } from '../../types';
-import { DiscoveredApplicationParser as DiscoveredApplicationModal } from '../modals/app-failover-relocate/parser/discovered-application-parser';
+import { DRPlacementControlParser } from '../modals/app-failover-relocate/parser/discovered-application-parser';
 import RemoveDisasterRecoveryModal from '../modals/remove-disaster-recovery/remove-disaster-recovery';
 
 export const drpcDetailsPageRoute = (drpc: DRPlacementControlKind) =>
@@ -192,7 +192,6 @@ export const getAppWorstSyncStatus = (
 export const getColumnNames = (t: TFunction<string>) => [
   '', // expandable icon
   t('Name'),
-  t('Details'),
   t('DR Status'),
   t('Policy'),
   t('Cluster'),
@@ -222,9 +221,6 @@ export const getHeaderColumns = (t: TFunction<string>) => {
     {
       columnName: columnNames[5],
     },
-    {
-      columnName: columnNames[6],
-    },
   ];
 };
 
@@ -232,67 +228,72 @@ export const getRowActions = (
   t: TFunction<string>,
   launcher: LaunchModal,
   navigate: NavigateFunction,
-  rowItem: DRPlacementControlKind
-): IAction[] => [
-  {
-    title: (
-      <>
-        {t('Edit configuration')}
-        <p className="text-muted pf-v5-u-font-size-xs">
-          {t('Update existing configuration in YAML view')}
-        </p>
-      </>
-    ),
-    onClick: () => navigate(`${drpcDetailsPageRoute(rowItem)}/yaml`),
-  },
-  {
-    title: (
-      <>
-        {t('Failover')}
-        <p className="text-muted pf-v5-u-font-size-xs">
-          {t('Move workloads to target cluster')}
-        </p>
-      </>
-    ),
-    onClick: () =>
-      launcher(DiscoveredApplicationModal, {
-        isOpen: true,
-        extraProps: { application: rowItem, action: DRActionType.FAILOVER },
-      }),
-  },
-  {
-    title: (
-      <>
-        {t('Relocate')}
-        <p className="text-muted pf-v5-u-font-size-xs">
-          {t('Failback workloads to primary cluster')}
-        </p>
-      </>
-    ),
-    onClick: () =>
-      launcher(DiscoveredApplicationModal, {
-        isOpen: true,
-        extraProps: { application: rowItem, action: DRActionType.RELOCATE },
-      }),
-  },
-  {
-    title: t('Remove disaster recovery'),
-    ...(_.has(rowItem.metadata, 'deletionTimestamp')
-      ? {
-          isAriaDisabled: true,
-          tooltipProps: {
-            content: t('Resource is being deleted.'),
-            trigger: 'mouseenter',
-          },
-        }
-      : {}),
-    onClick: () =>
-      launcher(RemoveDisasterRecoveryModal, {
-        isOpen: true,
-        extraProps: { application: rowItem },
-      }),
-  },
-];
+  rowItem: DRPlacementControlKind | undefined
+): IAction[] => {
+  if (!rowItem) {
+    return [];
+  }
+  return [
+    {
+      title: (
+        <>
+          {t('Edit configuration')}
+          <p className="text-muted pf-v5-u-font-size-xs">
+            {t('Update existing configuration in YAML view')}
+          </p>
+        </>
+      ),
+      onClick: () => navigate(`${drpcDetailsPageRoute(rowItem)}/yaml`),
+    },
+    {
+      title: (
+        <>
+          {t('Failover')}
+          <p className="text-muted pf-v5-u-font-size-xs">
+            {t('Move workloads to target cluster')}
+          </p>
+        </>
+      ),
+      onClick: () =>
+        launcher(DRPlacementControlParser, {
+          isOpen: true,
+          extraProps: { application: rowItem, action: DRActionType.FAILOVER },
+        }),
+    },
+    {
+      title: (
+        <>
+          {t('Relocate')}
+          <p className="text-muted pf-v5-u-font-size-xs">
+            {t('Failback workloads to primary cluster')}
+          </p>
+        </>
+      ),
+      onClick: () =>
+        launcher(DRPlacementControlParser, {
+          isOpen: true,
+          extraProps: { application: rowItem, action: DRActionType.RELOCATE },
+        }),
+    },
+    {
+      title: t('Remove disaster recovery'),
+      ...(_.has(rowItem.metadata, 'deletionTimestamp')
+        ? {
+            isAriaDisabled: true,
+            tooltipProps: {
+              content: t('Resource is being deleted.'),
+              trigger: 'mouseenter',
+            },
+          }
+        : {}),
+      onClick: () =>
+        launcher(RemoveDisasterRecoveryModal, {
+          isOpen: true,
+          extraProps: { application: rowItem },
+        }),
+    },
+  ];
+};
 
 export const enum EnrollApplicationTypes {
   CHOOSE_TYPE = 'CHOOSE_TYPE',
