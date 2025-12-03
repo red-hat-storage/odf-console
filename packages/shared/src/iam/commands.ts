@@ -24,7 +24,7 @@ import {
   TagUser,
 } from './types';
 
-export class S3IAMCommands extends IAMClient {
+export class IamCommands extends IAMClient {
   constructor(endpoint: string, accessKeyId: string, secretAccessKey: string) {
     super({
       // "region" is a required parameter for the SDK, using "none" as a workaround
@@ -37,10 +37,9 @@ export class S3IAMCommands extends IAMClient {
     });
   }
 
-  // IAM command members
-  getIAMUser: GetUser = (input) => this.send(new GetUserCommand(input));
+  getIamUser: GetUser = (input) => this.send(new GetUserCommand(input));
 
-  listIAMUsers: ListUsers = (input) => this.send(new ListUsersCommand(input));
+  listIamUsers: ListUsers = (input) => this.send(new ListUsersCommand(input));
 
   listAccessKeys: ListAccessKeys = (input) =>
     this.send(new ListAccessKeysCommand(input));
@@ -48,7 +47,7 @@ export class S3IAMCommands extends IAMClient {
   listUserTags: ListUserTags = (input) =>
     this.send(new ListUserTagsCommand(input));
 
-  deleteIAMUser: DeleteUser = (input) =>
+  deleteIamUser: DeleteUser = (input) =>
     this.send(new DeleteUserCommand(input));
 
   createAccessKey: CreateAccessKey = (input) =>
@@ -60,7 +59,7 @@ export class S3IAMCommands extends IAMClient {
   deleteAccessKey: DeleteAccessKey = (input) =>
     this.send(new DeleteAccessKeyCommand(input));
 
-  createIAMUser: CreateUser = (input) =>
+  createIamUser: CreateUser = (input) =>
     this.send(new CreateUserCommand(input));
 
   tagUser: TagUser = (input) => this.send(new TagUserCommand(input));

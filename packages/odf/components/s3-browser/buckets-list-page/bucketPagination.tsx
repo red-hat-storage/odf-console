@@ -26,7 +26,7 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
       })
   );
 
-  const loadedWOError = !isMutating && !error;
+  const loadedWithoutError = !isMutating && !error;
   const [continuationTokens, setContinuationTokens] =
     React.useState<ContinuationTokens>({
       previous: [],
@@ -50,7 +50,7 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
   }, []);
 
   const onNextClick = async () => {
-    if (!!continuationTokens.next && loadedWOError)
+    if (!!continuationTokens.next && loadedWithoutError)
       fetchS3Resources<ListBucketsCommandOutput>(
         setContinuationTokens,
         trigger,
@@ -62,7 +62,7 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
   };
 
   const onPreviousClick = async () => {
-    if (!!continuationTokens.current && loadedWOError) {
+    if (!!continuationTokens.current && loadedWithoutError) {
       const paginationToken =
         continuationTokens.previous[continuationTokens.previous.length - 1];
       fetchS3Resources<ListBucketsCommandOutput>(
@@ -83,8 +83,8 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
   );
   return (
     <Pagination
-      disableNext={!continuationTokens.next || !loadedWOError}
-      disablePrevious={!continuationTokens.current || !loadedWOError}
+      disableNext={!continuationTokens.next || !loadedWithoutError}
+      disablePrevious={!continuationTokens.current || !loadedWithoutError}
       onNext={onNextClick}
       onPrevious={onPreviousClick}
       fromCount={paginationFromCount}
