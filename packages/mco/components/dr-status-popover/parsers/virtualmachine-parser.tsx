@@ -34,7 +34,7 @@ import {
 import {
   ApplicationSetParser,
   SubscriptionParser,
-  DiscoveredParser,
+  DRPlacementControlParser as DiscoveredParser,
 } from '../parsers';
 
 const useGetVMDRPC = (

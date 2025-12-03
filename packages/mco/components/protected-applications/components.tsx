@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { pluralize } from '@odf/core/components/utils';
-import { getPrimaryClusterName } from '@odf/mco/utils';
-import { DRPlacementControlModel, getName, getNamespace } from '@odf/shared';
+import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
+import { DRPlacementControlModel } from '@odf/shared';
 import {
   ActionDropdown,
   ToggleVariant,
@@ -10,14 +9,10 @@ import EmptyPage from '@odf/shared/empty-state-page/empty-page';
 import { DataUnavailableError } from '@odf/shared/generic/Error';
 import { NamespaceModel } from '@odf/shared/models';
 import { ResourceNameWIcon } from '@odf/shared/resource-link/resource-link';
-import { PopoverStatus, StatusIconAndText } from '@odf/shared/status';
+import { PopoverStatus } from '@odf/shared/status';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { referenceForModel } from '@odf/shared/utils';
-import {
-  useK8sWatchResources,
-  useModal,
-} from '@openshift-console/dynamic-plugin-sdk';
-import { WatchK8sResource } from '@openshift-console/dynamic-plugin-sdk-internal/lib/extensions/console-types';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import classNames from 'classnames';
 import { Trans } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom-v5-compat';
@@ -30,42 +25,24 @@ import {
   DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
-  Modal,
-  ModalVariant,
+  Label,
   DescriptionList as PFDescriptionList,
   PopoverPosition,
-  Text,
   Tooltip,
 } from '@patternfly/react-core';
 import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons';
-import {
-  DR_BASE_ROUTE,
-  ENROLLED_APP_QUERY_PARAMS_KEY,
-  ReplicationType,
-} from '../../constants';
-import { DRPlacementControlKind } from '../../types';
-import { getCurrentActivity } from '../mco-dashboard/disaster-recovery/cluster-app-card/application';
-import {
-  buildMCVResource,
-  ConsistencyGroupInfo,
-  ConsistencyGroupsContent,
-  extractConsistencyGroups,
-  getMCVName,
-} from '../modals/app-manage-policies/helper/consistency-groups';
-import './protected-apps.scss';
+import { DR_BASE_ROUTE, ENROLLED_APP_QUERY_PARAMS_KEY } from '../../constants';
 import {
   FAILED_OVER_APP_QUERY_PARAM,
   FAILED_OVER_CLUSTER_QUERY_PARAM,
   RELOCATED_APP_QUERY_PARAM,
   RELOCATED_CLUSTER_QUERY_PARAM,
 } from './dr-operation-alert-helper';
+import './protected-apps.scss';
 import {
   EnrollApplicationTypes,
   getAlertMessages,
   getEnrollDropdownItems,
-  isCleanupPending,
-  isFailingOrRelocating,
-  replicationHealthMap,
   SyncStatusInfo,
 } from './utils';
 
@@ -78,11 +55,6 @@ type SelectExpandableProps = {
   ) => void;
   buttonId: ExpandableComponentType;
   className?: string;
-};
-
-type DescriptionProps = {
-  term: string;
-  descriptions: string[] | React.ReactNode[];
 };
 
 type DescriptionListProps = { columnModifier?: '1Col' | '2Col' | '3Col' };
@@ -101,17 +73,6 @@ const DescriptionList: React.FC<DescriptionListProps> = ({
     >
       {children}
     </PFDescriptionList>
-  );
-};
-
-const Description: React.FC<DescriptionProps> = ({ term, descriptions }) => {
-  return (
-    <DescriptionListGroup>
-      <DescriptionListTerm>{term}</DescriptionListTerm>
-      {descriptions.map((description) => (
-        <DescriptionListDescription>{description}</DescriptionListDescription>
-      ))}
-    </DescriptionListGroup>
   );
 };
 
@@ -222,7 +183,7 @@ export const EmptyRowMessage: React.FC = () => {
   const { t } = useCustomTranslation();
   return (
     <Bullseye className="pf-v5-u-mt-xl">
-      {t('No protected discovered applications found')}
+      {t('No protected applications found')}
     </Bullseye>
   );
 };
@@ -323,246 +284,86 @@ export const SelectExpandable: React.FC<SelectExpandableProps> = ({
 export enum ExpandableComponentType {
   DEFAULT = '',
   NS = 'namespaces',
-  EVENTS = 'events',
-  STATUS = 'status',
 }
 
 export type SyncStatus = { [appName: string]: SyncStatusInfo };
 
 export type ExpandableComponentProps = {
-  application?: DRPlacementControlKind;
+  view?: ProtectedApplicationViewKind;
   syncStatusInfo?: SyncStatusInfo;
 };
 
-const ConsistencyGroupsModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  consistencyGroups: ConsistencyGroupInfo[];
-  description: React.ReactNode;
-  loaded: boolean;
-  loadError: any;
-}> = ({
-  isOpen,
-  onClose,
-  consistencyGroups,
-  description,
-  loaded,
-  loadError,
-}) => {
-  const { t } = useCustomTranslation();
-
-  return (
-    <Modal
-      variant={ModalVariant.large}
-      title={t('Manage disaster recovery')}
-      description={description}
-      isOpen={isOpen}
-      onClose={onClose}
-      actions={[
-        <Button key="close" variant={ButtonVariant.primary} onClick={onClose}>
-          {t('Close')}
-        </Button>,
-      ]}
-    >
-      <ConsistencyGroupsContent
-        consistencyGroups={consistencyGroups}
-        loaded={loaded}
-        loadError={loadError}
-      />
-    </Modal>
-  );
-};
-
 export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
-  application,
+  view,
 }) => {
   const { t } = useCustomTranslation();
 
-  const clusterName = getPrimaryClusterName(application);
-  const mcvName = getMCVName(application);
-
-  const mcvResources: Record<string, WatchK8sResource> = {};
-  mcvResources[mcvName] = buildMCVResource(clusterName, mcvName);
-  const mcvs = useK8sWatchResources(mcvResources);
-  const {
-    loaded,
-    loadError,
-    data: consistencyGroups,
-  } = extractConsistencyGroups(mcvs);
-
-  const consistencyGroupsCount = consistencyGroups?.reduce((acc, group) => {
-    const namespace = group.namespace;
-    acc[namespace] = acc[namespace] ? acc[namespace] + 1 : 1;
-    return acc;
-  }, {});
-
-  const [selectedNamespace, setSelectedNamespace] = React.useState<
-    string | null
-  >(null);
-  const openModal = (namespace: string) => {
-    setSelectedNamespace(namespace);
-  };
-
-  const closeModal = () => {
-    setSelectedNamespace(null);
-  };
-
-  const applicationName = getName(application) ?? application?.['name'];
-  const applicationNamespace =
-    getNamespace(application) ?? application?.['namespace'];
-
-  const description = (
-    <Trans t={t}>
-      <strong>Application:</strong> {applicationName} (Namespace:{' '}
-      {applicationNamespace})
-    </Trans>
-  );
-
-  const enrolledNamespaces: React.ReactNode[] =
-    application.spec?.protectedNamespaces?.map((namespace: string) => (
-      <div
-        key={namespace}
-        className="pf-v5-u-display-flex pf-v5-u-align-items-center"
-      >
-        <ResourceNameWIcon
-          resourceModel={NamespaceModel}
-          resourceName={namespace}
-        />
-        {consistencyGroupsCount?.[namespace] && (
-          <>
-            <Text className="pf-v5-u-ml-xl pf-v5-u-pl-md">
-              {consistencyGroupsCount[namespace]}{' '}
-              {pluralize(
-                consistencyGroupsCount[namespace],
-                t('Volume Consistency group'),
-                t('Volume Consistency groups'),
-                false
-              )}
-            </Text>
-            <Button
-              variant={ButtonVariant.link}
-              aria-label={t('View details for {{namespace}}', { namespace })}
-              onClick={() => openModal(namespace)}
-            >
-              {t('View all')}
-            </Button>
-          </>
-        )}
-      </div>
-    )) || [];
-  return (
-    <>
-      {!enrolledNamespaces.length ? (
-        <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
-      ) : (
-        <DescriptionList>
-          <Description
-            term={t('Namespace')}
-            descriptions={enrolledNamespaces}
-          />
-        </DescriptionList>
-      )}
-
-      {selectedNamespace && (
-        <ConsistencyGroupsModal
-          isOpen={!!selectedNamespace}
-          description={description}
-          onClose={closeModal}
-          consistencyGroups={consistencyGroups}
-          loaded={loaded}
-          loadError={loadError}
-        />
-      )}
-    </>
-  );
-};
-
-export const EventsDetails: React.FC<ExpandableComponentProps> = ({
-  application,
-  syncStatusInfo,
-}) => {
-  const { t } = useCustomTranslation();
-  const anyOnGoingEvent =
-    isFailingOrRelocating(application) || isCleanupPending(application);
-
-  const activity = getCurrentActivity(
-    application?.status?.phase,
-    application.spec?.failoverCluster,
-    application.spec?.preferredCluster,
-    t,
-    isCleanupPending(application),
-    syncStatusInfo.volumeReplicationType
-  );
-  const status = [
-    <StatusIconAndText icon={activity.icon} title={activity.status} />,
-  ];
-  return !anyOnGoingEvent ? (
-    <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />
-  ) : (
-    <DescriptionList columnModifier={'2Col'}>
-      <Description
-        term={t('Activity description')}
-        descriptions={[activity.description]}
-      />
-      <Description term={t('Status')} descriptions={status} />
-    </DescriptionList>
-  );
-};
-
-export const StatusDetails: React.FC<ExpandableComponentProps> = ({
-  syncStatusInfo,
-}) => {
-  const { t } = useCustomTranslation();
-  const syncType = [];
-  const syncStatus = [];
-  const lastSyncOn = [];
-
-  if (syncStatusInfo.replicationType === ReplicationType.ASYNC) {
-    syncType.push(t('Application volumes (PVCs)'));
-    const { icon: volIcon, title: volTitle } = replicationHealthMap(
-      syncStatusInfo.volumeReplicationStatus,
-      t
-    );
-    syncStatus.push(
-      <>
-        {volIcon} {volTitle}
-      </>
-    );
-    lastSyncOn.push(
-      syncStatusInfo.volumeLastGroupSyncTime || (
-        <Text className="text-muted">{t('No data available')}</Text>
-      )
-    );
+  if (!view) {
+    return <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />;
   }
 
-  syncType.push(t('Kubernetes objects'));
-  const { icon: kubeIcon, title: kubeTitle } = replicationHealthMap(
-    syncStatusInfo.kubeObjectReplicationStatus,
-    t
-  );
-  syncStatus.push(
-    <>
-      {kubeIcon} {kubeTitle}
-    </>
-  );
-  lastSyncOn.push(
-    syncStatusInfo.kubeObjectLastProtectionTime || (
-      <Text className="text-muted"> {t('No data available')}</Text>
-    )
-  );
+  const applicationType = view.status?.applicationInfo?.type;
+  const isDiscovered = applicationType === 'Discovered';
+
+  const destinationNamespace =
+    !isDiscovered && view.status?.applicationInfo?.destinationNamespace;
+  const enrolledNamespaces = view.status?.drInfo?.protectedNamespaces || [];
+
+  const hasData =
+    applicationType &&
+    ((isDiscovered && enrolledNamespaces.length > 0) ||
+      (!isDiscovered && destinationNamespace));
+
+  if (!hasData) {
+    return <DataUnavailableError className="pf-v5-u-pt-xl pf-v5-u-pb-xl" />;
+  }
 
   return (
-    <DescriptionList columnModifier={'3Col'}>
-      <Description term={t('Sync resource type')} descriptions={syncType} />
-      <Description term={t('Sync status')} descriptions={syncStatus} />
-      <Description term={t('Last synced on')} descriptions={lastSyncOn} />
+    <DescriptionList columnModifier="2Col">
+      {/* Application type */}
+      <DescriptionListGroup>
+        <DescriptionListTerm>{t('Application type')}</DescriptionListTerm>
+        <DescriptionListDescription>
+          {applicationType}
+        </DescriptionListDescription>
+      </DescriptionListGroup>
+
+      {/* Namespace(s) based on application type */}
+      {isDiscovered ? (
+        <DescriptionListGroup>
+          <DescriptionListTerm>{t('Protected namespaces')}</DescriptionListTerm>
+          <DescriptionListDescription>
+            {enrolledNamespaces.map((namespace: string) => (
+              <div key={namespace}>
+                <Label color="green" isCompact className="pf-v5-u-mr-sm">
+                  NS
+                </Label>
+                <ResourceNameWIcon
+                  resourceModel={NamespaceModel}
+                  resourceName={namespace}
+                />
+              </div>
+            ))}
+          </DescriptionListDescription>
+        </DescriptionListGroup>
+      ) : (
+        <DescriptionListGroup>
+          <DescriptionListTerm>
+            {t('Destination namespace')}
+          </DescriptionListTerm>
+          <DescriptionListDescription>
+            <div className="pf-v5-u-display-flex pf-v5-u-align-items-center">
+              <Label color="green" isCompact className="pf-v5-u-mr-sm">
+                NS
+              </Label>
+              <ResourceNameWIcon
+                resourceModel={NamespaceModel}
+                resourceName={destinationNamespace}
+              />
+            </div>
+          </DescriptionListDescription>
+        </DescriptionListGroup>
+      )}
     </DescriptionList>
   );
-};
-
-export const ExpandableComponentsMap = {
-  [ExpandableComponentType.DEFAULT]: () => null,
-  [ExpandableComponentType.NS]: NamespacesDetails,
-  [ExpandableComponentType.EVENTS]: EventsDetails,
-  [ExpandableComponentType.STATUS]: StatusDetails,
 };

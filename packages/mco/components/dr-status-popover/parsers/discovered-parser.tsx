@@ -14,9 +14,9 @@ import { isCleanupPending } from '../../protected-applications/utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
 import { getProgressionFields } from './utils';
 
-export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
-  application: drPlacementControl,
-}) => {
+export const DRPlacementControlParser: React.FC<
+  DRPlacementControlParserProps
+> = ({ application: drPlacementControl }) => {
   const drPolicyName = getDRPolicyName(drPlacementControl);
   const [drPolicy, drPolicyLoaded, drPolicyLoadError] =
     useK8sWatchResource<DRPolicyKind>({
@@ -76,8 +76,8 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
   return drStatus && <DRStatusPopover disasterRecoveryStatus={drStatus} />;
 };
 
-export default DiscoveredParser;
+export default DRPlacementControlParser;
 
-type DiscoveredParserProps = {
+type DRPlacementControlParserProps = {
   application: DRPlacementControlKind;
 };

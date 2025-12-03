@@ -79,8 +79,8 @@ const getAlertMessage = (action: DRActionType, t: TFunction): AlertProps =>
         ),
       };
 
-export const DiscoveredApplicationParser: React.FC<
-  CommonModalProps<DiscoveredApplicationParserProps>
+export const DRPlacementControlParser: React.FC<
+  CommonModalProps<DRPlacementControlParserProps>
 > = ({ isOpen, closeModal, extraProps: { application, action } }) => {
   const { t } = useCustomTranslation();
 
@@ -182,7 +182,7 @@ export const DiscoveredApplicationParser: React.FC<
   );
 };
 
-type DiscoveredApplicationParserProps = {
+type DRPlacementControlParserProps = {
   // Discovered application
   application: DRPlacementControlKind;
   // Failover/Relocate
