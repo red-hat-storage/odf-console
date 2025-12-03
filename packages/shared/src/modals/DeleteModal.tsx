@@ -8,10 +8,18 @@ import {
 import { K8sModel } from '@openshift-console/dynamic-plugin-sdk/lib/api/common-types';
 import { Trans } from 'react-i18next';
 import { useNavigate } from 'react-router-dom-v5-compat';
-import { Alert, Button, Modal, ModalVariant } from '@patternfly/react-core';
+import {
+  Alert,
+  Button,
+  FormGroup,
+  Modal,
+  ModalVariant,
+  TextInput,
+} from '@patternfly/react-core';
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
 import { LoadingInline } from '../generic/Loading';
 import { ClusterServiceVersionModel } from '../models';
+import { getName } from '../selectors';
 import { ClusterServiceVersionKind } from '../types/console-types';
 import { useCustomTranslation } from '../useCustomTranslationHook';
 import { referenceForOwnerRef, findOwner } from '../utils';
@@ -22,12 +30,19 @@ type DeleteModalExtraProps = {
   resourceModel: K8sModel;
   cluster?: string;
   cleanupBeforeDelete?: (resource: K8sResourceCommon) => Promise<void>;
+  confirmWithName?: string;
 };
 
 const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
   closeModal,
   isOpen,
-  extraProps: { resource, resourceModel, cluster, cleanupBeforeDelete },
+  extraProps: {
+    resource,
+    resourceModel,
+    cluster,
+    cleanupBeforeDelete,
+    confirmWithName,
+  },
 }) => {
   const { t } = useCustomTranslation();
   const navigate = useNavigate();
@@ -37,6 +52,9 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
 
   const [isChecked, setIsChecked] = React.useState(true);
   const [owner, setOwner] = React.useState(null);
+  const [confirmName, setConfirmName] = React.useState('');
+
+  const isConfirmNameValid = getName(resource) === confirmName;
   React.useEffect(() => {
     const namespace = resource?.metadata?.namespace;
     if (!namespace || !resource?.metadata?.ownerReferences?.length) {
@@ -155,6 +173,19 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
             </label>
           </div>
         )}
+        {confirmWithName && (
+          <FormGroup
+            label={t('Type {{name}} to confirm', { name: getName(resource) })}
+            fieldId="confirm-name"
+          >
+            <TextInput
+              id="confirm-name"
+              aria-label={t('Confirm name')}
+              value={confirmName}
+              onChange={(_event, value) => setConfirmName(value)}
+            />
+          </FormGroup>
+        )}
         {owner && (
           <Alert
             className="co-alert co-alert--margin-top"
@@ -198,6 +229,7 @@ const DeleteModal: React.FC<CommonModalProps<DeleteModalExtraProps>> = ({
             variant="danger"
             onClick={submit}
             data-test="delete-action"
+            isDisabled={confirmWithName ? !isConfirmNameValid : false}
           >
             {t('Delete')}
           </Button>

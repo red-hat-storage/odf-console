@@ -855,11 +855,35 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": ["/odf/external-systems/san/~create"],
+      "exact": true,
+      "component": { "$codeRef": "sanCreate.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": [
         "/odf/external-systems/scale.spectrum.ibm.com~v1beta1~remotecluster/:systemName"
       ],
       "exact": false,
       "component": { "$codeRef": "scaleDashboard.default" }
+    },
+    "flags": {
+      "required": ["FDF_FLAG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": [
+        "/odf/external-systems/scale.spectrum.ibm.com~v1beta1~cluster/:systemName"
+      ],
+      "exact": false,
+      "component": { "$codeRef": "sanDashboard.default" }
     },
     "flags": {
       "required": ["FDF_FLAG"]
@@ -889,6 +913,21 @@
     },
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": [
+        "/odf/external-systems/scale.spectrum.ibm.com~v1beta1~cluster/:systemName/filesystems/ns/:namespace/:name"
+      ],
+      "exact": false,
+      "component": {
+        "$codeRef": "fileSystemDetails.default"
+      }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG"]
     }
   }
 ]

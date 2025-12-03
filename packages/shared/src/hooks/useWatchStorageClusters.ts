@@ -1,6 +1,7 @@
 import { FDF_FLAG } from '@odf/core/redux';
-import { RemoteClusterKind } from '@odf/core/types/scale';
+import { ClusterKind, RemoteClusterKind } from '@odf/core/types/scale';
 import {
+  ClusterModel,
   IBMFlashSystemModel,
   RemoteClusterModel,
   StorageClusterModel,
@@ -18,6 +19,7 @@ type AllClusters = {
   storageClusters: StorageClusterKind[];
   flashSystemClusters: K8sResourceKind[];
   remoteClusters?: RemoteClusterKind[];
+  sanClusters?: ClusterKind[];
 };
 
 const resources = (isFDF: boolean): WatchK8sResources<AllClusters> => ({
@@ -40,6 +42,14 @@ const resources = (isFDF: boolean): WatchK8sResources<AllClusters> => ({
             group: RemoteClusterModel.apiGroup,
             version: RemoteClusterModel.apiVersion,
             kind: RemoteClusterModel.kind,
+          },
+          isList: true,
+        },
+        sanClusters: {
+          groupVersionKind: {
+            group: ClusterModel.apiGroup,
+            version: ClusterModel.apiVersion,
+            kind: ClusterModel.kind,
           },
           isList: true,
         },
