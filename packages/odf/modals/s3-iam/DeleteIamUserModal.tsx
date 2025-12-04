@@ -34,7 +34,7 @@ import { useUserDetails } from '../../components/s3-iam/hooks/useUserDetails';
 type DeleteIamUserModalProps = {
   userName: string;
   iamClient: IamCommands;
-  refreshTokens?: () => void;
+  refreshTokens: () => void;
 };
 
 const getTextInputLabel = (t: TFunction) => (
@@ -88,11 +88,11 @@ export const DeleteIamUserModal: React.FC<
   const isChecking = isLoadingUser || isLoadingAccessKeys;
   const fetchError = userError || accessKeysError;
 
-  const creationDate = userDetails.CreateDate
+  const creationDate = userDetails?.CreateDate
     ? new Date(userDetails.CreateDate).toLocaleDateString()
     : DASH;
 
-  const lastUsed = userDetails.PasswordLastUsed
+  const lastUsed = userDetails?.PasswordLastUsed
     ? new Date(userDetails.PasswordLastUsed).toLocaleDateString()
     : DASH;
 

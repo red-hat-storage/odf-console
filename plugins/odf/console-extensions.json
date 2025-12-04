@@ -632,6 +632,16 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": "/odf/object-storage/iam/:userName",
+      "exact": false,
+      "component": {
+        "$codeRef": "iamUserOverview.default"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": "/odf/resource/ns/:namespace/objectbucket.io~v1alpha1~ObjectBucketClaim/:resourceName",
       "exact": false,
       "component": {

@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { IAM_USERS_BOOKMARKS_USER_SETTINGS_KEY } from '@odf/core/constants/s3-iam';
+import {
+  IAM_BASE_ROUTE,
+  IAM_USERS_BOOKMARKS_USER_SETTINGS_KEY,
+} from '@odf/core/constants/s3-iam';
 import { IamUserCrFormat } from '@odf/core/types';
 import { DASH } from '@odf/shared';
 import { useUserSettingsLocalStorage } from '@odf/shared/hooks/useUserSettingsLocalStorage';
@@ -35,7 +38,7 @@ const getUsersActionsItems = (
   {
     title: t('Delete user'),
     onClick: () =>
-      launcher(DeleteIamUserModal as any, {
+      launcher(DeleteIamUserModal, {
         isOpen: true,
         extraProps: {
           userName,
@@ -59,12 +62,11 @@ const getHeaderColumns = (t: TFunction<string>, favorites: string[]) => {
   return [
     {
       columnName: columnNames[0],
-      sortFunction: (a, b, c) =>
-        sortRows(a, b, c, 'userDetails.UserName', favorites),
+      sortFunction: (a, b, c) => sortRows(a, b, c, 'UserName', favorites),
     },
     {
       columnName: columnNames[1],
-      sortFunction: (a, b, c) => sortRows(a, b, c, 'userDetails.UserName'),
+      sortFunction: (a, b, c) => sortRows(a, b, c, 'UserName'),
     },
     {
       columnName: columnNames[2],
@@ -115,8 +117,7 @@ const UsersTableRow: React.FC<RowComponentType<IamUserCrFormat>> = ({
     ? new Date(user.CreateDate).toLocaleDateString()
     : DASH;
 
-  // Construct path for resource link
-  const path = `/odf/object-storage/iam/${userName}`;
+  const path = `${IAM_BASE_ROUTE}/${userName}`;
 
   const onSetFavorite = (key, active) => {
     setFavorites((oldFavorites) => [
