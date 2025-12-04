@@ -118,15 +118,29 @@ jest.mock('../../select-nodes-table/select-nodes-table', () => ({
   ),
 }));
 
+// Mock @openshift-console/dynamic-plugin-sdk to provide useK8sWatchResource
+jest.mock('@openshift-console/dynamic-plugin-sdk', () => ({
+  ...jest.requireActual('@openshift-console/dynamic-plugin-sdk'),
+  useK8sWatchResource: jest.fn(() => [null, true, null]),
+}));
+
+// Mock the common hooks
+jest.mock('../common/hooks', () => ({
+  useIsLocalClusterConfigured: jest.fn(() => null),
+}));
+
 jest.mock('./payload', () => ({
   createScaleCaCertSecretPayload: jest.fn(() => Promise.resolve({})),
-  createScaleLocalClusterPayload: jest.fn(() => Promise.resolve({})),
   createScaleRemoteClusterPayload: jest.fn(() => Promise.resolve({})),
-  labelNodes: jest.fn(() => Promise.resolve({})),
   createFileSystem: jest.fn(() => Promise.resolve({})),
   createConfigMapPayload: jest.fn(() => Promise.resolve({})),
   createEncryptionConfigPayload: jest.fn(() => Promise.resolve({})),
   createUserDetailsSecretPayload: jest.fn(() => Promise.resolve({})),
+}));
+
+jest.mock('../common/payload', () => ({
+  createScaleLocalClusterPayload: jest.fn(() => () => Promise.resolve({})),
+  labelNodes: jest.fn(() => () => Promise.resolve({})),
 }));
 
 // Mock only the specific hooks and components that require connectivity or SDK dependencies
