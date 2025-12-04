@@ -62,6 +62,7 @@
     "healthOverview": "@odf/core/components/HealthOverview/HealthOverview",
     "sanDashboard": "@odf/core/components/san-dashboard/SANDashboard",
     "fileSystemDetails": "@odf/core/components/FileSystem/FileSystemDetails",
+    "iamUserOverview": "@odf/core/components/s3-iam/user-overview/UserOverview",
     "iam": "@odf/core/components/s3-iam/EmptyIamUserPage",
     "createIAMUser": "@odf/core/components/s3-iam/create-user/CreateUserForm"
   }

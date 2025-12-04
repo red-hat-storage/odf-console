@@ -1,4 +1,5 @@
 import { User, Tag } from '@aws-sdk/client-iam';
+import { IamCommands } from '@odf/shared/iam';
 import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
 import * as Yup from 'yup';
 
@@ -13,4 +14,11 @@ export type IamUserFormSchema = Yup.ObjectSchema<{
 export type IamUserFormValidation = {
   userFormSchema: IamUserFormSchema;
   fieldRequirements: string[];
+};
+
+export type IamUserDetails = {
+  fresh: boolean;
+  triggerRefresh: () => void;
+  userName: string;
+  iamClient: IamCommands;
 };
