@@ -61,6 +61,8 @@
     "storageConsumerListPage": "@odf/core/components/storage-consumers/client-list",
     "healthOverview": "@odf/core/components/HealthOverview/HealthOverview",
     "sanDashboard": "@odf/core/components/san-dashboard/SANDashboard",
-    "fileSystemDetails": "@odf/core/components/FileSystem/FileSystemDetails"
+    "fileSystemDetails": "@odf/core/components/FileSystem/FileSystemDetails",
+    "iam": "@odf/core/components/s3-iam/EmptyIamUserPage",
+    "createIAMUser": "@odf/core/components/s3-iam/create-user/CreateUserForm"
   }
 }
