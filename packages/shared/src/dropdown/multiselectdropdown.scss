@@ -1,0 +1,22 @@
+.odf-multiselect-menu-toggle {
+  cursor: pointer;
+  --pf-v5-c-menu-toggle__text--Color: var(--pf-v5-global--Color--200);
+
+  &--has-selection {
+    cursor: pointer;
+    --pf-v5-c-menu-toggle__text--Color: var(--pf-v5-global--Color--100);
+  }
+}
+
+.odf-multiselect-input {
+  color: var(--pf-v5-global--Color--200);
+  font-weight: 400;
+  cursor: pointer;
+
+  &--has-selection {
+    --pf-v5-c-menu-toggle__text--Color: var(--pf-v5-global--Color--100);
+    font-weight: 600;
+    cursor: pointer;
+  }
+}
+

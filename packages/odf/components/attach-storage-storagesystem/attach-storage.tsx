@@ -35,6 +35,7 @@ import { Text, TextContent, TextVariants } from '@patternfly/react-core';
 import { createWizardNodeState, getDeviceSetReplica } from '../utils';
 import { AttachStorageFormFooter } from './attach-storage-footer';
 import './attach-storage.scss';
+import DeviceClassForm from './device-class-form';
 import { LSOStorageClassDropdown } from './lso-storageclass-dropdown';
 import {
   AttachStorageActionType,
@@ -165,12 +166,7 @@ const AttachStorage = () => {
       );
       const availablePvsCount = pvs.length || 0;
       const failureDomain = storageCluster?.status?.failureDomain;
-      const deviceSetCount = getDeviceSetCount(
-        availablePvsCount,
-        replica,
-        hasFlexibleScaling,
-        isArbiterEnabled
-      );
+      const deviceSetCount = getDeviceSetCount(availablePvsCount, replica);
       const filesystemName = `${clusterName}-cephfilesystem`;
       const payload = createPayload(
         state,
@@ -224,6 +220,31 @@ const AttachStorage = () => {
     storageClusterLoadError ||
     pvLoadError;
 
+  const deviceSets = React.useMemo(
+    () => storageCluster?.spec?.storageDeviceSets || [],
+    [storageCluster?.spec?.storageDeviceSets]
+  );
+
+  const selectedStorageClassCount =
+    deviceSets?.filter(
+      (ds) =>
+        ds.dataPVCTemplate?.spec?.storageClassName === state.lsoStorageClassName
+    )?.length || 0;
+
+  const defaultDeviceClassName =
+    selectedStorageClassCount === 0
+      ? state.lsoStorageClassName
+      : `${state.lsoStorageClassName}-${selectedStorageClassCount}`;
+
+  React.useEffect(() => {
+    if (!state.lsoStorageClassName) return;
+
+    dispatch({
+      type: AttachStorageActionType.SET_DEVICE_CLASS,
+      payload: defaultDeviceClassName,
+    });
+  }, [state.lsoStorageClassName, defaultDeviceClassName, dispatch]);
+
   return (
     <>
       <PageHeading title={t('Attach Storage')} breadcrumbs={breadcrumbs}>
@@ -251,6 +272,14 @@ const AttachStorage = () => {
             namespace={namespace}
             state={state}
           />
+          {selectedStorageClassCount > 0 && (
+            <DeviceClassForm
+              state={state}
+              dispatch={dispatch}
+              deviceSets={deviceSets}
+              defaultDeviceClass={defaultDeviceClassName}
+            />
+          )}
           <div className="storagepool-form">
             <StoragePoolForm
               state={state}

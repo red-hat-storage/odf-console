@@ -51,3 +51,9 @@ export const ACM_OPERATOR_SPEC_NAME = 'advanced-cluster-management';
 
 // Managed cluster cluster id label key
 export const CLUSTER_ID = 'clusterID';
+
+export enum ApplicationType {
+  ApplicationSet = 'ApplicationSet',
+  Subscription = 'Subscription',
+  Discovered = 'Discovered',
+}

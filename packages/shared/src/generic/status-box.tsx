@@ -182,7 +182,11 @@ export const StatusBox: React.FC<StatusBoxProps> = (props) => {
       return (
         <div className="odf-m-pane__body">
           <h1 className="odf-m-pane__heading odf-m-pane__heading">
-            {t('404: Not Found')}
+            {_.isString(loadError.message)
+              ? t('404 Not Found: {{ message }}', {
+                  message: loadError.message,
+                })
+              : t('404: Not Found')}
           </h1>
         </div>
       );

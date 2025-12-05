@@ -1,3 +1,4 @@
+import { FDF_FLAG } from '@odf/core/redux/provider-hooks';
 import { isExternalCluster } from '@odf/core/utils';
 import { useWatchStorageClusters } from '@odf/shared/hooks/useWatchStorageClusters';
 import { ODFStorageSystem } from '@odf/shared/models';
@@ -6,6 +7,7 @@ import {
   StorageSystemKind,
   K8sResourceKind,
 } from '@odf/shared/types';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import {
   getAnnotations,
   getLabels,
@@ -39,6 +41,24 @@ const mapStorageClusterToStorageSystem = (
   },
 });
 
+const mapSANClusterToStorageSystem = (
+  sanCluster: K8sResourceKind
+): StorageSystemKind => ({
+  apiVersion: ODFStorageSystem.apiVersion,
+  kind: ODFStorageSystem.kind,
+  metadata: {
+    name: 'SAN_Storage',
+    namespace: getNamespace(sanCluster),
+  },
+  spec: {
+    kind: `${sanCluster.kind.toLowerCase()}.${sanCluster.apiVersion}`,
+    name: getName(sanCluster),
+    namespace: getNamespace(sanCluster),
+  },
+  status: {
+    phase: sanCluster?.status?.phase,
+  },
+});
 /**
  * A facade layer to poll StorageCluster and IBMFlashSystem resources.
  * It should be used where watching of StorageSystem resource is required.
@@ -50,13 +70,19 @@ const mapStorageClusterToStorageSystem = (
 export const useWatchStorageSystems = (
   onlyWatchExternalClusters?: boolean
 ): [StorageSystemKind[], boolean, any] => {
+  const isFDF = useFlag(FDF_FLAG);
   const {
     storageClusters: odfClusters,
     flashSystemClusters,
     remoteClusters: remoteClusterClients,
+    sanClusters,
   } = useWatchStorageClusters();
 
-  const loaded = odfClusters?.loaded && flashSystemClusters?.loaded;
+  const loaded =
+    odfClusters?.loaded &&
+    flashSystemClusters?.loaded &&
+    (isFDF ? sanClusters?.loaded : true) &&
+    (isFDF ? remoteClusterClients?.loaded : true);
   // Flashsystem loaderror can occur when IBM flashsystem operator is not installed hence ignore it
   const loadError = odfClusters?.loadError;
   const storageClusters: StorageClusterKind[] = onlyWatchExternalClusters
@@ -78,10 +104,16 @@ export const useWatchStorageSystems = (
     remoteClusterClients?.loaded && !remoteClusterClients?.loadError
       ? remoteClusterClientsData?.map(mapStorageClusterToStorageSystem)
       : [];
+  const sanClustersData = sanClusters?.data;
+  const sanClustersList: StorageSystemKind[] =
+    sanClusters?.loaded && !sanClusters?.loadError
+      ? sanClustersData?.map(mapSANClusterToStorageSystem)
+      : [];
   const aggregatedStorageSystems = [
     ...storageSystems,
     ...flashSystemClustersList,
     ...remoteClusterClientsList,
+    ...sanClustersList,
   ];
   const memoizedStorageSystems = useDeepCompareMemoize(
     aggregatedStorageSystems,

@@ -15,7 +15,6 @@ import {
 } from '@odf/mco/types';
 import {
   convertExpressionToLabel,
-  getPrimaryClusterName,
   getReplicationType,
   isDRPolicyValidated,
   matchClusters,
@@ -167,24 +166,3 @@ export const getDRResources = (namespace: string) => ({
     }),
   },
 });
-
-const getVMNamesFromRecipe = (
-  spec?: DRPlacementControlKind['spec']
-): string[] =>
-  spec?.kubeObjectProtection?.recipeParameters?.[PROTECTED_VMS] ?? [];
-
-export const findDRPCUsingVM = (
-  drpcs: DRPlacementControlKind[] = [],
-  vmName: string,
-  vmNamespace: string,
-  cluster: string
-): DRPlacementControlKind | undefined =>
-  drpcs.find(
-    (drpc) =>
-      (getVMNamesFromRecipe(drpc.spec).includes(vmName) ||
-        (
-          drpc.status?.resourceConditions?.resourceMeta?.protectedpvcs || []
-        ).some((pvc) => pvc.startsWith(vmName))) &&
-      drpc.spec?.protectedNamespaces?.includes(vmNamespace) &&
-      getPrimaryClusterName(drpc) === cluster
-  );

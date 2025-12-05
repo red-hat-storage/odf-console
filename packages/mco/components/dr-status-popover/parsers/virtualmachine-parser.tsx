@@ -15,12 +15,15 @@ import {
   getLabelsFromSearchResult,
   queryApplicationSetResourcesForVM,
   querySubscriptionResourcesForVM,
+  getVMClusterName,
+  findDRPCByNsClusterAndVMName,
 } from '@odf/mco/utils';
 import {
   ACMSubscriptionModel,
   ApplicationKind,
   ArgoApplicationSetModel,
   getLabel,
+  getLabels,
   getName,
   getNamespace,
 } from '@odf/shared';
@@ -31,54 +34,30 @@ import {
 import {
   ApplicationSetParser,
   SubscriptionParser,
-  DiscoveredParser,
+  DRPlacementControlParser as DiscoveredParser,
 } from '../parsers';
 
-const matchesDRPC = (
-  drpc: DRPlacementControlKind,
-  vmNs: string,
-  vmCluster: string | undefined,
-  vmName: string
-): boolean => {
-  const nsOk = drpc.spec?.protectedNamespaces?.includes?.(vmNs) ?? false;
-
-  const clusterOk = drpc.spec?.preferredCluster === vmCluster;
-
-  const protectedVMs =
-    drpc.spec?.kubeObjectProtection?.recipeParameters?.PROTECTED_VMS ?? [];
-  const nameOk = protectedVMs.includes(vmName);
-
-  return nsOk && clusterOk && nameOk;
-};
-
-const findDRPCByNsClusterAndVMName = (
-  drpcs: DRPlacementControlKind[],
-  vmNs: string,
-  vmCluster: string | undefined,
-  vmName: string
-): DRPlacementControlKind | undefined =>
-  drpcs.find((d) => matchesDRPC(d, vmNs, vmCluster, vmName));
-
-const useMatchingDRPC = (
+const useGetVMDRPC = (
   virtualMachine: K8sResourceCommon
 ): DRPlacementControlKind | undefined => {
   const vmName = getName(virtualMachine);
   const vmNamespace = getNamespace(virtualMachine);
-  const vmCluster = (virtualMachine as any)?.status?.cluster as
-    | string
-    | undefined;
+  const vmCluster = getVMClusterName(virtualMachine);
+  const vmLabels = getLabels(virtualMachine);
 
-  const drpcWatchResource = React.useMemo(
-    () => getDRPlacementControlResourceObj({ namespace: DISCOVERED_APP_NS }),
-    []
-  );
-
-  const [drpcs, loaded, loadError] =
-    useK8sWatchResource<DRPlacementControlKind[]>(drpcWatchResource);
+  const [drpcs, loaded, loadError] = useK8sWatchResource<
+    DRPlacementControlKind[]
+  >(getDRPlacementControlResourceObj({ namespace: DISCOVERED_APP_NS }));
 
   if (!loaded || loadError) return undefined;
 
-  return findDRPCByNsClusterAndVMName(drpcs, vmNamespace, vmCluster, vmName);
+  return findDRPCByNsClusterAndVMName(
+    drpcs,
+    vmNamespace,
+    vmCluster,
+    vmName,
+    vmLabels
+  );
 };
 
 const ApplicationSetHelper: React.FC<ParserHelperProps> = ({
@@ -116,8 +95,10 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
 }) => {
   const vmName = getName(virtualMachine);
   const vmNamespace = getNamespace(virtualMachine);
-  const clusterName = virtualMachine?.['status']?.cluster;
+  const clusterName = getVMClusterName(virtualMachine);
   const argoApplicationName = getLabel(virtualMachine, KUBE_INSTANCE_LABEL);
+
+  const vmDRPC = useGetVMDRPC(virtualMachine);
 
   // ACM search API call to find managed application resource
   const searchQuery = React.useMemo(
@@ -128,13 +109,14 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
     [vmName, vmNamespace, clusterName, argoApplicationName]
   );
 
-  const [searchResult] = useACMSafeFetch(searchQuery);
-  const matchedDRPC = useMatchingDRPC(virtualMachine);
+  const [searchResult, searchError, searchLoaded] =
+    useACMSafeFetch(searchQuery);
 
-  if (matchedDRPC && matchedDRPC.spec && matchedDRPC.metadata?.name) {
-    return <DiscoveredHelper application={matchedDRPC} />;
+  if (!searchLoaded || searchError) {
+    return null;
   }
 
+  // Extract managed application CR (Application / ApplicationSet)
   const managedApplication: SearchResultItemType =
     searchResult?.data?.searchResult?.[0]?.related?.[0]?.items?.[0];
 
@@ -153,7 +135,7 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
     );
   }
 
-  return null;
+  return <DiscoveredHelper application={vmDRPC} />;
 };
 
 type VirtualMachineParserProps = {

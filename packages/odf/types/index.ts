@@ -6,3 +6,5 @@ export * from './network';
 export * from './mcg';
 export * from './storage-consumer';
 export * from './s3-browser';
+export * from './install-ui';
+export * from './s3-iam';

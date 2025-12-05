@@ -9,7 +9,6 @@ export type DataPool = {
   name?: string;
   replicated?: {
     size: number;
-    targetSizeRatio?: number;
   };
 };
 
@@ -82,6 +81,11 @@ export type StorageClusterKind = K8sResourceCommon & {
         allowSelfSignedCerts?: boolean;
         tlsSecretName?: string;
         enableTls?: boolean;
+      };
+      automaticBackup?: {
+        enabled: boolean;
+        frequency: string;
+        copies: number;
       };
     };
     externalStorage?: {};

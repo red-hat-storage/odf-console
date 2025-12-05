@@ -14,10 +14,12 @@ import {
   getReplicationHealth,
   getReplicationType,
   getPrimaryClusterName,
+  getProtectedCondition,
 } from '@odf/mco/utils';
 import { getNamespace, getName } from '@odf/shared/selectors';
 import * as _ from 'lodash-es';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
+import { getProgressionFields } from './utils';
 
 const getDRResources = (namespace: string) => ({
   resources: {
@@ -63,6 +65,8 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         getReplicationType(drPolicy)
       );
 
+      const protectedCondition = getProtectedCondition(drpc);
+
       return {
         policyName: getName(drPolicy),
         schedulingInterval: schedulingInterval,
@@ -72,6 +76,8 @@ const ApplicationSetParser: React.FC<ApplicationSetParserProps> = ({
         volumeReplicationHealth: healthStatus,
         phase: status,
         isLoadedWOError: drLoaded && !drLoadError,
+        ...getProgressionFields(drpc),
+        protectedCondition,
       };
     }
     return null;

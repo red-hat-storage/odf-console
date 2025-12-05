@@ -35,13 +35,13 @@ type UseObjectsList = ({
   bucketName,
   foldersPath,
   searchQuery,
-  noobaaS3,
+  s3Client,
   setSelectedRows,
 }: {
   bucketName: string;
   foldersPath: string;
   searchQuery: string;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   setSelectedRows: React.Dispatch<React.SetStateAction<ObjectCrFormat[]>>;
   listAllVersions: boolean;
 }) => {
@@ -61,7 +61,7 @@ export const useObjectsList: UseObjectsList = ({
   bucketName,
   foldersPath,
   searchQuery,
-  noobaaS3,
+  s3Client,
   setSelectedRows,
   listAllVersions,
 }) => {
@@ -79,7 +79,7 @@ export const useObjectsList: UseObjectsList = ({
     isMutating: isMutatingLatestVersions,
     trigger: triggerLatestVersions,
   } = useSWRMutation(key, (_url, { arg }: { arg: string }) =>
-    noobaaS3.listObjects({
+    s3Client.listObjects({
       Bucket: bucketName,
       MaxKeys: MAX_KEYS,
       Delimiter: DELIMITER,
@@ -95,7 +95,7 @@ export const useObjectsList: UseObjectsList = ({
     isMutating: isMutatingAllVersions,
     trigger: triggerAllVersions,
   } = useSWRMutation(versionsKey, (_url, { arg }: { arg: VersionToken }) =>
-    noobaaS3.listObjectVersions({
+    s3Client.listObjectVersions({
       Bucket: bucketName,
       MaxKeys: MAX_KEYS,
       Delimiter: DELIMITER,

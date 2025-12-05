@@ -1,0 +1,145 @@
+import * as React from 'react';
+import { AccessKeyMetadata } from '@aws-sdk/client-iam';
+import { MAX_ACCESS_KEYS } from '@odf/core/constants/s3-iam';
+import { GenerateAnotherAccessKeyModal } from '@odf/core/modals/s3-iam/GenerateAnotherAccessKeyModal';
+import { IamUserDetails } from '@odf/core/types';
+import { useCustomTranslation } from '@odf/shared';
+import { StatusBox } from '@odf/shared/generic/status-box';
+import { useModal } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  Alert,
+  AlertVariant,
+  Button,
+  Grid,
+  EmptyState,
+  EmptyStateActions,
+  EmptyStateFooter,
+  EmptyStateHeader,
+  EmptyStateIcon,
+  EmptyStateVariant,
+} from '@patternfly/react-core';
+import { KeyIcon, PlusCircleIcon } from '@patternfly/react-icons';
+import { useUserAccessKeys } from '../hooks/useUserAccessKeys';
+import { useUserDetails } from '../hooks/useUserDetails';
+import AccessKeyCard from './AccessKeyCard';
+
+type IamAccesskeysDetailsProps = {
+  obj: IamUserDetails;
+};
+
+/**
+ * Displays AccessKeysDetails in a Card.
+ * Create Another Accesskey if only one Accesskey exists
+ * @param userName @param iamClient
+ */
+export const AccessKeysDetails: React.FC<IamAccesskeysDetailsProps> = ({
+  obj,
+}) => {
+  const { t } = useCustomTranslation();
+  const launchModal = useModal();
+
+  const { userName, iamClient, fresh, triggerRefresh } = obj;
+
+  // Fetch user details (for tags)
+  const {
+    userDetails,
+    isLoading: isLoadingUserDetails,
+    error: userDetailsError,
+    refreshTokens: refreshUserDetails,
+  } = useUserDetails(userName, iamClient);
+
+  // Fetch user access keys
+  const {
+    iamAccessKeys,
+    isLoading: isLoadingAccessKeys,
+    error: accessKeysError,
+    refreshTokens: refreshAccessKeys,
+  } = useUserAccessKeys(userName, iamClient);
+
+  const tags = userDetails?.Tags || [];
+  const isLoading = isLoadingUserDetails || isLoadingAccessKeys;
+  const error = userDetailsError || accessKeysError;
+
+  const launchModalOnClick = React.useCallback(() => {
+    launchModal(GenerateAnotherAccessKeyModal, {
+      isOpen: true,
+      userName,
+      refreshTokens: triggerRefresh,
+      iamClient,
+    });
+  }, [launchModal, userName, triggerRefresh, iamClient]);
+
+  React.useEffect(() => {
+    if (fresh) {
+      refreshUserDetails?.();
+      refreshAccessKeys?.();
+    }
+  }, [fresh, refreshUserDetails, refreshAccessKeys]);
+
+  if (isLoading || error) {
+    return <StatusBox loaded={!isLoading} loadError={error} />;
+  }
+
+  return (
+    <div className="odf-m-pane__body">
+      <div className="pf-v5-u-mt-md">
+        <Alert
+          title={t('You can define only {{maxKeys}} access keys', {
+            maxKeys: MAX_ACCESS_KEYS,
+          })}
+          variant={AlertVariant.info}
+          isInline
+        >
+          {t(
+            'An access key enables secure access to Object storage resources.'
+          )}
+        </Alert>
+        <Grid hasGutter>
+          {iamAccessKeys.map(
+            (iamAccessKey: AccessKeyMetadata, index: number) => (
+              <AccessKeyCard
+                key={iamAccessKey.AccessKeyId}
+                accessKeyCard={iamAccessKey}
+                accessKeyNumber={index + 1}
+                tags={tags}
+                refreshTokens={triggerRefresh}
+                iamClient={iamClient}
+              />
+            )
+          )}
+        </Grid>
+        {iamAccessKeys.length === 0 && (
+          <EmptyState variant={EmptyStateVariant.lg}>
+            <EmptyStateHeader
+              titleText={t('No access keys found')}
+              icon={<EmptyStateIcon icon={KeyIcon} />}
+              headingLevel="h4"
+            />
+            <EmptyStateFooter>
+              <EmptyStateActions>
+                <Button
+                  variant="secondary"
+                  onClick={launchModalOnClick}
+                  icon={<PlusCircleIcon />}
+                  aria-label={t('Generate access key')}
+                >
+                  {t('Generate access key')}
+                </Button>
+              </EmptyStateActions>
+            </EmptyStateFooter>
+          </EmptyState>
+        )}
+        {iamAccessKeys.length > 0 && iamAccessKeys.length < MAX_ACCESS_KEYS && (
+          <Button
+            variant="secondary"
+            onClick={launchModalOnClick}
+            icon={<PlusCircleIcon />}
+            aria-label={t('Generate another access key')}
+          >
+            {t('Generate another access key')}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};

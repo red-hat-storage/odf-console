@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
+import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import { BUCKET_POLICY_CACHE_KEY_SUFFIX } from '@odf/core/constants';
 import { StatusBox, LoadingBox } from '@odf/shared/generic/status-box';
 import { S3Commands } from '@odf/shared/s3';
@@ -49,7 +49,7 @@ type PolicyBodyProps = {
 type PolicyFooterProps = {
   noPolicyExists: boolean;
   triggerRefresh: () => void;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   bucketName: string;
   code: string;
   setCode: React.Dispatch<React.SetStateAction<string>>;
@@ -198,7 +198,7 @@ const PolicyBody: React.FC<PolicyBodyProps> = ({
 const PolicyFooter: React.FC<PolicyFooterProps> = ({
   noPolicyExists,
   triggerRefresh,
-  noobaaS3,
+  s3Client,
   bucketName,
   code,
   setCode,
@@ -209,14 +209,14 @@ const PolicyFooter: React.FC<PolicyFooterProps> = ({
 
   const launchDeleteModal = () =>
     launcher(DeleteBucketPolicyModal, {
-      extraProps: { bucketName, noobaaS3, triggerRefresh },
+      extraProps: { bucketName, s3Client, triggerRefresh },
       isOpen: true,
     });
   const launchSaveModal = () =>
     launcher(SaveBucketPolicyModal, {
       extraProps: {
         bucketName,
-        noobaaS3,
+        s3Client,
         triggerRefresh,
         policy: code,
         setSuccess,
@@ -282,7 +282,7 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
   const [code, setCode] = React.useState('');
   const [edit, setEdit] = React.useState(false);
 
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
   const { bucketName } = useParams();
   const {
     data: policyData,
@@ -290,7 +290,7 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
     isMutating: isLoading,
     trigger,
   } = useSWRMutation(`${bucketName}-${BUCKET_POLICY_CACHE_KEY_SUFFIX}`, () =>
-    noobaaS3.getBucketPolicy({ Bucket: bucketName })
+    s3Client.getBucketPolicy({ Bucket: bucketName })
   );
 
   const noPolicyExists =
@@ -339,7 +339,7 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
         <PolicyFooter
           noPolicyExists={noPolicyExists}
           triggerRefresh={triggerRefresh}
-          noobaaS3={noobaaS3}
+          s3Client={s3Client}
           bucketName={bucketName}
           code={code}
           setCode={setCode}

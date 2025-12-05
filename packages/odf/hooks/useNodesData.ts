@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { nodeResource } from '@odf/core/resources';
+import { getName } from '@odf/shared';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -20,32 +21,43 @@ import { NodeData } from '../types';
  * That is, "utilization" updates every few seconds.
  * Make sure to optimise on the consumer FC side (in case really needed or if it affects the FC's performance).
  */
-export const useNodesData = (): [NodeData[], boolean, any] => {
+export const useNodesData = (
+  useOnlyWorker?: boolean
+): [NodeData[], boolean, any] => {
   const [nodes, nodesLoaded, nodesLoadError] =
     useK8sWatchResource<NodeKind[]>(nodeResource);
-  const [utilization, promError, promLoading] = useCustomPrometheusPoll({
+  const [utilization, , promLoading] = useCustomPrometheusPoll({
     query: allNodesUtilizationQueries[NodeQueries.ALL_NODES_MEMORY_TOTAL],
     endpoint: 'api/v1/query' as any,
     basePath: usePrometheusBasePath(),
   });
 
   const loaded = nodesLoaded && !promLoading;
-  const error = nodesLoadError || promError;
+  const error = nodesLoadError;
+
   const nodesData = React.useMemo(() => {
     let nodesData = [];
-    // For data consistency, we must return nodes with their metrics.
-    if (nodes && utilization && loaded && !error) {
-      nodesData = nodes.map((node: Partial<NodeData>): NodeData => {
-        const metric = _.find(utilization.data.result, [
-          'metric.instance',
-          node.metadata.name,
-        ]);
-        node['metrics'] = { memory: metric ? metric.value[1] : undefined };
-        return node as NodeData;
-      });
+    // Fallback to node.status.capacity when prometheus is unavailable
+    if (nodes && loaded && !error) {
+      nodesData = nodes
+        .filter(
+          (node) =>
+            !useOnlyWorker ||
+            node.metadata.labels?.hasOwnProperty(
+              'node-role.kubernetes.io/worker'
+            )
+        )
+        .map((node: Partial<NodeData>): NodeData => {
+          const metric = _.find(utilization?.data?.result || [], [
+            'metric.instance',
+            getName(node),
+          ]);
+          node['metrics'] = { memory: metric ? metric.value[1] : undefined };
+          return node as NodeData;
+        });
     }
     return nodesData;
-  }, [nodes, utilization, loaded, error]);
+  }, [nodes, utilization, loaded, error, useOnlyWorker]);
 
   return [nodesData, loaded, error];
 };

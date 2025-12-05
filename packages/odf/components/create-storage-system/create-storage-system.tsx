@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { useODFSystemFlagsSelector } from '@odf/core/redux';
-import { BackingStorageType, DeploymentType } from '@odf/core/types';
+import {
+  BackingStorageType,
+  DeploymentType,
+  StartingPoint,
+} from '@odf/core/types';
 import {
   StorageClassWizardStepExtensionProps as ExternalStorage,
   isStorageClassWizardStep,
@@ -24,9 +28,9 @@ import {
   useK8sWatchResource,
   useResolvedExtensions,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Wizard, WizardStep } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { useNavigate, useLocation } from 'react-router-dom-v5-compat';
+import { Wizard, WizardStep } from '@patternfly/react-core';
 import {
   EmptyState,
   EmptyStateHeader,
@@ -36,7 +40,10 @@ import {
 import { CREATE_SS_PAGE_URL, Steps, StepsName } from '../../constants';
 import { hasAnyExternalOCS, hasAnyInternalOCS } from '../../utils';
 import { createSteps } from './create-steps';
-import { BackingStorage } from './create-storage-system-steps';
+import {
+  BackingStorage,
+  AdvancedSettings,
+} from './create-storage-system-steps';
 import { EXTERNAL_CEPH_STORAGE } from './external-systems/CreateCephSystem/CephConnectionDetails/system-connection-details';
 import { CreateStorageSystemFooter } from './footer';
 import { CreateStorageSystemHeader } from './header';
@@ -67,9 +74,9 @@ const useIsStorageClusterCRDPresent = (): boolean => {
 
 const convertModeToDeploymentType = (mode: string): DeploymentType => {
   switch (mode) {
-    case 'storage-cluster':
+    case StartingPoint.STORAGE_CLUSTER:
       return DeploymentType.FULL;
-    case 'mcg':
+    case StartingPoint.OBJECT_STORAGE:
       return DeploymentType.MCG;
   }
 };
@@ -131,7 +138,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
 
   const infraType = getInfrastructurePlatform(infra);
 
-  let wizardSteps: WizardStep[] = [];
+  let wizardSteps = [];
   let hasOCS: boolean = false;
   let hasExternal: boolean = false;
   let hasInternal: boolean = false;
@@ -169,7 +176,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
     );
   }
 
-  const steps: WizardStep[] = [
+  const steps = [
     {
       id: 1,
       name: StepsName(t)[Steps.BackingStorage],
@@ -189,6 +196,20 @@ const CreateStorageSystem: React.FC<{}> = () => {
           supportedExternalStorage={supportedExternalStorage}
         />
       ),
+      canJumpTo: true,
+    },
+    {
+      id: 2,
+      name: StepsName(t)[Steps.AdvancedSettings],
+      component: (
+        <AdvancedSettings
+          state={state.backingStorage}
+          dispatch={dispatch}
+          hasOCS={hasOCS}
+          hasMultipleClusters={hasMultipleClusters}
+        />
+      ),
+      canJumpTo: true,
     },
     ...wizardSteps,
   ];
@@ -198,7 +219,7 @@ const CreateStorageSystem: React.FC<{}> = () => {
       <CreateStorageSystemHeader state={state} />
       <Wizard
         className="odf-create-storage-system-wizard"
-        steps={steps}
+        isVisitRequired
         footer={
           <CreateStorageSystemFooter
             state={state}
@@ -209,10 +230,13 @@ const CreateStorageSystem: React.FC<{}> = () => {
             existingNamespaces={namespaces}
           />
         }
-        cancelButtonText={t('Cancel')}
-        nextButtonText={t('Next')}
-        backButtonText={t('Back')}
-      />
+      >
+        {steps.map((step) => (
+          <WizardStep key={step.id} id={step.id} name={step.name}>
+            {step.component}
+          </WizardStep>
+        ))}
+      </Wizard>
     </>
   );
 };

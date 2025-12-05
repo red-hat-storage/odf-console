@@ -13,7 +13,6 @@ import { FieldLevelHelp } from '@odf/shared/generic';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
 import { RequestSizeInput } from '@odf/shared/utils/RequestSizeInput';
-import { SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
 import {
@@ -25,6 +24,7 @@ import {
   HelperTextItem,
   Text,
   TextVariants,
+  SelectOption,
 } from '@patternfly/react-core';
 
 // Get Policy Dropdown Options
@@ -48,7 +48,9 @@ const getPolicyOptions = (policies: PolicyInfo[], t: TFunction) =>
               clusters: policy.drClusters.join(', '),
             })
       }
-    />
+    >
+      {policy.name}
+    </SelectOption>
   ));
 
 // Policy Selection Component

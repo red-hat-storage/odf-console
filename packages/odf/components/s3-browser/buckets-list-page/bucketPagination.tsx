@@ -4,7 +4,6 @@ import { LIST_BUCKET, MAX_BUCKETS } from '@odf/core/constants';
 import { BucketCrFormat } from '@odf/core/types';
 import { convertBucketDataToCrFormat } from '@odf/core/utils';
 import useSWRMutation from 'swr/mutation';
-import { NoobaaS3Context } from '../noobaa-context';
 import {
   ContinuationTokens,
   continuationTokensRefresher,
@@ -12,21 +11,22 @@ import {
   getPaginationCount,
   Pagination,
 } from '../pagination-helper';
+import { S3Context } from '../s3-context';
 
 export const BucketPagination: React.FC<BucketPaginationProps> = ({
   setBucketInfo,
 }) => {
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
   const { data, error, isMutating, trigger } = useSWRMutation(
     LIST_BUCKET,
     (_url, { arg }: { arg: string }) =>
-      noobaaS3.listBuckets({
+      s3Client.listBuckets({
         MaxBuckets: MAX_BUCKETS,
         ...(!!arg && { ContinuationToken: arg }),
       })
   );
 
-  const loadedWOError = !isMutating && !error;
+  const loadedWithoutError = !isMutating && !error;
   const [continuationTokens, setContinuationTokens] =
     React.useState<ContinuationTokens>({
       previous: [],
@@ -50,7 +50,7 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
   }, []);
 
   const onNextClick = async () => {
-    if (!!continuationTokens.next && loadedWOError)
+    if (!!continuationTokens.next && loadedWithoutError)
       fetchS3Resources<ListBucketsCommandOutput>(
         setContinuationTokens,
         trigger,
@@ -62,7 +62,7 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
   };
 
   const onPreviousClick = async () => {
-    if (!!continuationTokens.current && loadedWOError) {
+    if (!!continuationTokens.current && loadedWithoutError) {
       const paginationToken =
         continuationTokens.previous[continuationTokens.previous.length - 1];
       fetchS3Resources<ListBucketsCommandOutput>(
@@ -83,8 +83,8 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
   );
   return (
     <Pagination
-      disableNext={!continuationTokens.next || !loadedWOError}
-      disablePrevious={!continuationTokens.current || !loadedWOError}
+      disableNext={!continuationTokens.next || !loadedWithoutError}
+      disablePrevious={!continuationTokens.current || !loadedWithoutError}
       onNext={onNextClick}
       onPrevious={onPreviousClick}
       fromCount={paginationFromCount}

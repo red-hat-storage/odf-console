@@ -14,6 +14,13 @@ export const ROOK_CEPH_OPERATOR = 'rook-ceph-operator';
 export const ONE_SECOND = 1000;
 export const ONE_MINUTE = 60 * ONE_SECOND;
 export const ONE_HOUR = 60 * ONE_MINUTE;
+export const MINUTES_IN_DAY = 24 * 60;
+export const TWENTY_FOUR_HOURS = 24 * ONE_HOUR;
+export const ALERTMANAGER_SILENCES_PATH = 'api/v2/silences';
+export const getAlertManagerSilenceEndpoint = (
+  basePath: string,
+  silenceId: string
+) => `${basePath}/api/v2/silence/${silenceId}`;
 export const ALL_NAMESPACES = 'all-namespaces';
 export const DEFAULT_NS = 'default';
 export const RACK_LABEL = 'topology.rook.io/rack';
@@ -25,6 +32,8 @@ export const PLUGIN_NAME =
   typeof PLUGIN_BUILD_NAME === 'undefined' ? '' : PLUGIN_BUILD_NAME;
 export const PLUGIN_VERSION =
   typeof PLUGIN_BUILD_VERSION === 'undefined' ? '' : PLUGIN_BUILD_VERSION;
+export const PLUGIN_OPENSHIFT_CI =
+  typeof OPENSHIFT_CI === 'undefined' ? '' : OPENSHIFT_CI;
 
 // Plugins' build names as set in package.json file.
 export const CLIENT_PLUGIN_BUILD_NAME = 'client';
@@ -34,7 +43,6 @@ export const ODF_PLUGIN_BUILD_NAME = 'odf';
 // Proxy.
 
 export const CONSOLE_PROXY_ROOT_PATH = '/api/proxy/plugin';
-export const CLIENT_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-client-console`;
 export const ODF_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-console`;
 export const MCO_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-multicluster-console`;
 

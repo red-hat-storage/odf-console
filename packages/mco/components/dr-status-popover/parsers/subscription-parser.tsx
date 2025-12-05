@@ -11,11 +11,13 @@ import {
   getPrimaryClusterName,
   getReplicationHealth,
   getReplicationType,
+  getProtectedCondition,
 } from '@odf/mco/utils';
 import { getNamespace, ApplicationKind } from '@odf/shared';
 import { getSubscriptionResources } from '../../modals/app-manage-policies/parsers/subscription-parser';
 import { getDRResources } from '../../modals/app-manage-policies/utils/parser-utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
+import { getProgressionFields } from './utils';
 
 const getMostSevereHealthStatus = (
   drStatusList: { volumeReplicationHealth: VolumeReplicationHealth }[]
@@ -59,6 +61,8 @@ const parseDRStatusForGroup = (
     replicationType
   );
 
+  const protectedCondition = getProtectedCondition(drpc);
+
   return {
     drPolicyName,
     schedulingInterval,
@@ -67,6 +71,8 @@ const parseDRStatusForGroup = (
     lastGroupSyncTime,
     volumeReplicationHealth,
     phase: drpc?.status?.phase,
+    ...getProgressionFields(drpc),
+    protectedCondition,
   };
 };
 
@@ -123,6 +129,12 @@ export const SubscriptionParser: React.FC<SubscriptionParserProps> = ({
           volumeLastGroupSyncTime: selectedDRPC.lastGroupSyncTime,
           phase: selectedDRPC.phase as DRPCStatus,
           isLoadedWOError: isLoadedWOError,
+          action: selectedDRPC.action,
+          progression: selectedDRPC.progression,
+          actionStartTime: selectedDRPC.actionStartTime,
+          progressionDetails: selectedDRPC.progressionDetails,
+          applicationName: selectedDRPC.applicationName,
+          protectedCondition: selectedDRPC.protectedCondition,
         }
       : null;
   }, [isLoadedWOError, subscriptionResourceList]);
@@ -142,6 +154,14 @@ type DRStatusForGroup = {
   lastGroupSyncTime: string;
   volumeReplicationHealth: VolumeReplicationHealth;
   phase: string;
-};
+} & Pick<
+  DRStatusProps,
+  | 'progression'
+  | 'action'
+  | 'actionStartTime'
+  | 'progressionDetails'
+  | 'applicationName'
+  | 'protectedCondition'
+>;
 
 export default SubscriptionParser;

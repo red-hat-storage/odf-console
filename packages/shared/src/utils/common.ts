@@ -10,7 +10,10 @@ import {
   Patch,
   SubscriptionKind,
 } from '@odf/shared/types';
-import { k8sPatch } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  consoleFetchJSON,
+  k8sPatch,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   K8sGroupVersionKind,
   K8sResourceKindReference,
@@ -217,3 +220,5 @@ export const deepSortObject = <T>(obj: T): T => {
   }
   return obj;
 };
+
+export const swrFetcher = <T>(url: string): Promise<T> => consoleFetchJSON(url);

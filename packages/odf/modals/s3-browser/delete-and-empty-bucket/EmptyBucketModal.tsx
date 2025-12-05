@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { DeleteObjectsCommandOutput } from '@aws-sdk/client-s3';
-import { NoobaaS3Context } from '@odf/core/components/s3-browser/noobaa-context';
+import { S3Context } from '@odf/core/components/s3-browser/s3-context';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
@@ -28,7 +28,7 @@ import { LazyDeleteBucketModal } from './lazy-delete-and-empty-bucket';
 
 type EmptyBucketModalProps = {
   bucketName: string;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   refreshTokens?: () => void;
   setEmptyBucketResponse: React.Dispatch<
     React.SetStateAction<EmptyBucketResponse>
@@ -46,7 +46,7 @@ export const getTextInputLabel = (t: TFunction, bucketName: string) => (
 const EmptyBucketModal: React.FC<CommonModalProps<EmptyBucketModalProps>> = ({
   closeModal,
   isOpen,
-  extraProps: { bucketName, noobaaS3, refreshTokens, setEmptyBucketResponse },
+  extraProps: { bucketName, s3Client, refreshTokens, setEmptyBucketResponse },
 }) => {
   const { t } = useCustomTranslation();
   const [inputValue, setInputValue] = React.useState('');
@@ -71,7 +71,7 @@ const EmptyBucketModal: React.FC<CommonModalProps<EmptyBucketModalProps>> = ({
         };
 
         // eslint-disable-next-line no-await-in-loop
-        const objects = await noobaaS3.listObjectVersions(searchParams);
+        const objects = await s3Client.listObjectVersions(searchParams);
 
         if (objects?.Versions) {
           deleteObjectKeys.push(
@@ -91,7 +91,7 @@ const EmptyBucketModal: React.FC<CommonModalProps<EmptyBucketModalProps>> = ({
         }
 
         // eslint-disable-next-line no-await-in-loop
-        deleteResponse = await noobaaS3.deleteObjects({
+        deleteResponse = await s3Client.deleteObjects({
           Bucket: bucketName,
           Delete: { Objects: deleteObjectKeys },
         });
@@ -206,7 +206,7 @@ export const EmptyBucketAlerts: React.FC<EmptyBucketAlertProps> = ({
   setEmptyBucketResponse,
   triggerRefresh,
 }) => {
-  const { noobaaS3 } = React.useContext(NoobaaS3Context);
+  const { s3Client } = React.useContext(S3Context);
   const { t } = useTranslation();
   const launcher = useModal();
 
@@ -277,7 +277,7 @@ export const EmptyBucketAlerts: React.FC<EmptyBucketAlertProps> = ({
                 isOpen: true,
                 extraProps: {
                   bucketName: emptyBucketResponse.bucketName,
-                  noobaaS3,
+                  s3Client,
                   launcher,
                   triggerRefresh,
                   setEmptyBucketResponse,

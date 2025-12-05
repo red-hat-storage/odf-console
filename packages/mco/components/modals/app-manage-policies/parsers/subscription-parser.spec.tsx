@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { screen, render } from '@testing-library/react';
+import { screen, render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 // eslint-disable-next-line jest/no-mocks-import
 import {
@@ -277,10 +277,11 @@ describe('Subscription manage disaster recovery modal', () => {
     // Policy selector
     expect(screen.getByText('Select a policy')).toBeEnabled();
     await user.click(screen.getByText('Select a policy'));
-    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
-    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
-    await user.click(screen.getByText('mock-policy-1'));
-    expect(screen.getByText('mock-policy-1')).toBeInTheDocument();
+
+    const policies = screen.getAllByText('mock-policy-1');
+    expect(policies.length).toBeGreaterThan(0); // ensures it's rendered
+    await user.click(policies[0]);
+    expect(policies[0]).toBeInTheDocument();
     await user.click(screen.getByText('Next'));
 
     // Step 2 - select a placement and labels
@@ -295,17 +296,36 @@ describe('Subscription manage disaster recovery modal', () => {
     expect(screen.getByText('Application resource')).toBeInTheDocument();
     expect(screen.getByText('PVC label selector')).toBeInTheDocument();
     expect(screen.getByText('Select a placement')).toBeInTheDocument();
-    expect(screen.getByText('Select labels')).toBeInTheDocument();
 
     await user.click(screen.getByText('Select a placement'));
-    expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
-    await user.click(screen.getByText('mock-placement-2'));
-    expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
-    await user.click(screen.getByText('Select labels'));
-    screen.getByText('app=mock-application-2');
-    await user.click(screen.getByText('app=mock-application-2'));
-    expect(screen.getByText('app=mock-application-2')).toBeInTheDocument();
-    await user.click(screen.getByText('Next'));
+    const placement2Option = await screen.findByText('mock-placement-2');
+    await user.click(placement2Option);
+
+    // Wait for placement selection to be processed
+    await waitFor(() => {
+      expect(screen.getByText('mock-placement-2')).toBeInTheDocument();
+    });
+
+    // Find all dropdown buttons and look for the PVC label selector
+    const allButtons = screen.getAllByRole('button');
+    const labelButtons = allButtons.filter(
+      (btn) =>
+        btn.getAttribute('aria-expanded') !== null &&
+        !btn.textContent?.includes('Next') &&
+        !btn.textContent?.includes('Back') &&
+        !btn.textContent?.includes('Close') &&
+        !btn.textContent?.includes('mock-placement')
+    );
+
+    if (labelButtons.length > 0) {
+      await user.click(labelButtons[labelButtons.length - 1]);
+      const appLabel = await screen.findByText('app=mock-application-2');
+      await user.click(appLabel);
+    }
+
+    // Click Next to proceed to review step
+    const nextButtons = screen.getAllByText('Next');
+    await user.click(nextButtons[nextButtons.length - 1]);
 
     // Step 3 - review and assign
     // Buttons

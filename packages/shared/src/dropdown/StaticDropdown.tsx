@@ -2,8 +2,10 @@ import * as React from 'react';
 import {
   Dropdown,
   DropdownItem,
-  DropdownToggle,
-} from '@patternfly/react-core/deprecated';
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
+} from '@patternfly/react-core';
 
 type StaticDropdownProps = {
   onSelect: (selectedItem: string) => void;
@@ -22,19 +24,19 @@ type StaticDropdownProps = {
   ) => JSX.Element | string;
   'data-test'?: string;
   isDisabled?: boolean;
+  isFullWidth?: boolean;
 };
 
 const StaticDropdown: React.FC<StaticDropdownProps> = ({
   onSelect,
-  onBlur,
   className,
   defaultSelection = '',
   dropdownItems,
   defaultText = '',
   textGenerator,
-  required,
   'data-test': dataTest,
   isDisabled = false,
+  isFullWidth = false,
 }) => {
   const [selectedItem, setSelectedItem] = React.useState(defaultSelection);
   const [isOpen, setOpen] = React.useState(false);
@@ -64,26 +66,30 @@ const StaticDropdown: React.FC<StaticDropdownProps> = ({
       ? textGenerator(selectedItem, dropdownItems)
       : selectedItem || defaultText;
 
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={() => setOpen((o) => !o)}
+      isExpanded={isOpen}
+      isDisabled={isDisabled}
+      data-test={dataTest}
+      isFullWidth={isFullWidth}
+    >
+      {dropdownText}
+    </MenuToggle>
+  );
+
   return (
     <Dropdown
-      required={required}
       className={className}
       isOpen={isOpen}
-      dropdownItems={processedDropdownItems}
-      toggle={
-        <DropdownToggle
-          onToggle={() => setOpen((o) => !o)}
-          isDisabled={isDisabled}
-        >
-          {dropdownText}
-        </DropdownToggle>
-      }
-      autoFocus={false}
       onSelect={onChange}
-      onBlur={onBlur}
-      onClick={onBlur}
-      data-test={dataTest}
-    />
+      onOpenChange={(open: boolean) => setOpen(open)}
+      toggle={toggle}
+      popperProps={isFullWidth ? { width: 'trigger' } : undefined}
+    >
+      <DropdownList>{processedDropdownItems}</DropdownList>
+    </Dropdown>
   );
 };
 

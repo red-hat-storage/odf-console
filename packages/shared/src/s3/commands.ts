@@ -29,7 +29,6 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { getProxyPath } from '@odf/shared/s3/utils';
 import {
   CreateBucket,
   ListBuckets,
@@ -61,10 +60,19 @@ import {
 } from './types';
 
 export class S3Commands extends S3Client {
-  constructor(endpoint: string, accessKeyId: string, secretAccessKey: string) {
+  private path: string;
+  providerType: string;
+
+  constructor(
+    endpoint: string,
+    accessKeyId: string,
+    secretAccessKey: string,
+    region: string,
+    path: string,
+    providerType: string
+  ) {
     super({
-      // "region" is a required parameter for the SDK, using "none" as a workaround
-      region: 'none',
+      region,
       endpoint,
       credentials: {
         accessKeyId,
@@ -72,6 +80,8 @@ export class S3Commands extends S3Client {
       },
       forcePathStyle: true,
     });
+    this.path = path;
+    this.providerType = providerType;
   }
 
   // Bucket command members
@@ -145,19 +155,24 @@ export class S3Commands extends S3Client {
   listObjectVersions: ListObjectVersions = (input) =>
     this.send(new ListObjectVersionsCommand(input));
 
-  getSignedUrl: GetSignedUrl = (input, expiresIn) =>
-    getSignedUrl(this, new GetObjectCommand(input), { expiresIn }).then(
-      (url) => {
+  getSignedUrl: GetSignedUrl = (input, expiresIn) => {
+    if (!!this.path) {
+      return getSignedUrl(this, new GetObjectCommand(input), {
+        expiresIn,
+      }).then((url) => {
         // We must set the proxy URL because the S3 client
         // doesn't execute 'finalizeRequest' step for this action.
         const proxyUrl = new URL(url);
         proxyUrl.protocol = window.location.protocol;
         proxyUrl.hostname = window.location.hostname;
         proxyUrl.port = window.location.port;
-        proxyUrl.pathname = `${getProxyPath()}${proxyUrl.pathname}`;
+        proxyUrl.pathname = `${this.path}${proxyUrl.pathname}`;
         return proxyUrl.toString();
-      }
-    );
+      });
+    }
+
+    return getSignedUrl(this, new GetObjectCommand(input), { expiresIn });
+  };
 
   getObject: GetObject = (input) => this.send(new GetObjectCommand(input));
 

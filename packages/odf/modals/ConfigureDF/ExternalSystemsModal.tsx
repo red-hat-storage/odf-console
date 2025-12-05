@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FDF_FLAG } from '@odf/core/redux';
-import { useOCSDashboardContextSetter } from '@odf/ocs/dashboards/ocs-dashboard-providers';
+import { useGetExternalClusterDetails } from '@odf/core/redux/utils';
 import {
   DEFAULT_INFRASTRUCTURE,
   InfrastructureKind,
@@ -39,6 +39,7 @@ enum ExternalSystemOption {
   RedHatCeph = 'redhat-ceph',
   IBMFlash = 'ibm-flash',
   Scale = 'scale',
+  SAN = 'san',
 }
 
 const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
@@ -53,7 +54,8 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
     DEFAULT_INFRASTRUCTURE
   );
 
-  const { hasExternalStorageClusters } = useOCSDashboardContextSetter();
+  const externalClusterDetails = useGetExternalClusterDetails();
+  const hasExternalStorageClusters = externalClusterDetails.clusterName !== '';
   const platform = getInfrastructurePlatform(infrastructure);
   const isRHCSSupported = RHCS_SUPPORTED_INFRA.includes(platform);
   return (
@@ -75,7 +77,7 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
               selectableActionId: 'ceph-cluster',
             }}
           >
-            <CardTitle>{t('Create RedHat Ceph Cluster')}</CardTitle>
+            <CardTitle>{t('RedHat/IBM Ceph Cluster')}</CardTitle>
           </CardHeader>
           <CardBody>
             <Flex direction={{ default: 'row' }}>
@@ -140,45 +142,83 @@ const ConfigureExternalSystems: React.FC<ConfigureDFSelectionsProps> = ({
         </Card>
       </FlexItem>
       {isFDF && (
-        <FlexItem>
-          <Card id="setup-scale-storage" isClickable>
-            <CardHeader
-              selectableActions={{
-                selectableActionId: 'scale-storage',
-                onClickAction: () =>
-                  setSelectedOption(ExternalSystemOption.Scale),
-              }}
-            >
-              <CardTitle>
-                {t('IBM Scale')}
-                <DevPreviewBadge className="pf-v5-u-ml-sm" />
-              </CardTitle>
-            </CardHeader>
-            <CardBody>
-              <Flex direction={{ default: 'row' }}>
-                <FlexItem>
-                  <TextContent>
-                    <Text component="small">
-                      {t(
-                        'Connect to IBM Storage Scale to deliver fast, scalable file storage for Data Foundation'
-                      )}
-                    </Text>
-                  </TextContent>
-                </FlexItem>
-                <FlexItem align={{ default: 'alignRight' }}>
-                  <Radio
-                    isChecked={selectedOption === ExternalSystemOption.Scale}
-                    onChange={() =>
-                      setSelectedOption(ExternalSystemOption.Scale)
-                    }
-                    name="setup-scale-radio"
-                    id="setup-scale-radio"
-                  />
-                </FlexItem>
-              </Flex>
-            </CardBody>
-          </Card>
-        </FlexItem>
+        <>
+          <FlexItem>
+            <Card id="setup-scale-storage" isClickable>
+              <CardHeader
+                selectableActions={{
+                  selectableActionId: 'scale-storage',
+                  onClickAction: () =>
+                    setSelectedOption(ExternalSystemOption.Scale),
+                }}
+              >
+                <CardTitle>
+                  {t('IBM Scale')}
+                  <DevPreviewBadge className="pf-v5-u-ml-sm" />
+                </CardTitle>
+              </CardHeader>
+              <CardBody>
+                <Flex direction={{ default: 'row' }}>
+                  <FlexItem>
+                    <TextContent>
+                      <Text component="small">
+                        {t(
+                          'Connect to IBM Storage Scale to deliver fast, scalable file storage for Data Foundation'
+                        )}
+                      </Text>
+                    </TextContent>
+                  </FlexItem>
+                  <FlexItem align={{ default: 'alignRight' }}>
+                    <Radio
+                      isChecked={selectedOption === ExternalSystemOption.Scale}
+                      onChange={() =>
+                        setSelectedOption(ExternalSystemOption.Scale)
+                      }
+                      name="setup-scale-radio"
+                      id="setup-scale-radio"
+                    />
+                  </FlexItem>
+                </Flex>
+              </CardBody>
+            </Card>
+          </FlexItem>
+          <FlexItem>
+            <Card id="setup-san-storage" isClickable>
+              <CardHeader
+                selectableActions={{
+                  selectableActionId: 'san-storage',
+                  onClickAction: () =>
+                    setSelectedOption(ExternalSystemOption.SAN),
+                }}
+              >
+                <CardTitle>{t('Storage Area Network')}</CardTitle>
+              </CardHeader>
+              <CardBody>
+                <Flex direction={{ default: 'row' }}>
+                  <FlexItem>
+                    <TextContent>
+                      <Text component="small">
+                        {t(
+                          'Use groups of shared LUNs from local cluster nodes to create StorageClases with Fusion Data Foundation Access for SAN.'
+                        )}
+                      </Text>
+                    </TextContent>
+                  </FlexItem>
+                  <FlexItem align={{ default: 'alignRight' }}>
+                    <Radio
+                      isChecked={selectedOption === ExternalSystemOption.SAN}
+                      onChange={() =>
+                        setSelectedOption(ExternalSystemOption.SAN)
+                      }
+                      name="setup-scale-radio"
+                      id="setup-scale-radio"
+                    />
+                  </FlexItem>
+                </Flex>
+              </CardBody>
+            </Card>
+          </FlexItem>
+        </>
       )}
     </Flex>
   );
@@ -189,7 +229,7 @@ const ModalHeader: React.FC = () => {
   return (
     <>
       <Title headingLevel="h1" id="welcome-df-modal-title">
-        {t('Welcome to Data Foundation')}
+        {t('Connect to external storage')}
       </Title>
       <TextContent>
         <Text component="small">
@@ -215,6 +255,8 @@ export const ExternalSystemsSelectModal: ModalComponent = ({ closeModal }) => {
       navigate('/odf/external-systems/flash/~create');
     } else if (selectedOption === ExternalSystemOption.Scale) {
       navigate('/odf/external-systems/scale/~create');
+    } else if (selectedOption === ExternalSystemOption.SAN) {
+      navigate('/odf/external-systems/san/~create');
     }
     closeModal();
   };

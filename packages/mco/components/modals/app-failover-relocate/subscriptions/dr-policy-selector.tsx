@@ -6,9 +6,11 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Dropdown,
-  DropdownToggle,
   DropdownItem,
-} from '@patternfly/react-core/deprecated';
+  DropdownList,
+  MenuToggle,
+  MenuToggleElement,
+} from '@patternfly/react-core';
 import { getDRPolicyResourceObj } from '../../../../hooks';
 import { DRPolicyKind } from '../../../../types';
 import {
@@ -70,11 +72,9 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
     () =>
       drPolicyList.map((drPolicy, index) => (
         <DropdownItem
-          id={index.toString()}
           data-test={`dr-policy-dropdown-item-${index}`}
           key={getUID(drPolicy)}
           value={getName(drPolicy)}
-          component="button"
         >
           {getName(drPolicy)}
         </DropdownItem>
@@ -82,11 +82,13 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
     [drPolicyList]
   );
 
-  const onToggle = (isOpenFlag: boolean) => setOpen(isOpenFlag);
-
-  const onSelect = (e: React.SyntheticEvent<HTMLDivElement>) => {
-    // Selecting a DRPolicy to intiate failover or relocate
-    const drPolicy: DRPolicyKind = drPolicyList[e.currentTarget.id];
+  const onSelect = (
+    _event?: React.MouseEvent<Element, MouseEvent>,
+    value?: string | number
+  ) => {
+    const drPolicy: DRPolicyKind = drPolicyList.find(
+      (policy) => getName(policy) === value
+    );
     setSelected({
       policyName: getName(drPolicy),
       drClusters: drPolicy?.spec?.drClusters,
@@ -96,27 +98,33 @@ export const DRPolicySelector: React.FC<DRPolicySelectorProps> = ({
     setOpen(false);
   };
 
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      id="drPolicy-selection"
+      data-test="dr-subs-policy-dropdown-toggle"
+      className="mco-subs-dr-action-body__dropdown--width"
+      isDisabled={
+        !drPolicyList.length ||
+        state.modalFooterStatus === ModalFooterStatus.FINISHED
+      }
+      onClick={() => setOpen((prev) => !prev)}
+      isExpanded={isOpen}
+    >
+      {state.selectedDRPolicy.policyName || t('Select')}
+    </MenuToggle>
+  );
+
   return (
     <Dropdown
       className="mco-subs-dr-action-body__dropdown--width"
       onSelect={onSelect}
-      toggle={
-        <DropdownToggle
-          id="drPolicy-selection"
-          data-test="dr-subs-policy-dropdown-toggle"
-          className="mco-subs-dr-action-body__dropdown--width"
-          isDisabled={
-            !drPolicyList.length ||
-            state.modalFooterStatus === ModalFooterStatus.FINISHED
-          }
-          onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
-        >
-          {state.selectedDRPolicy.policyName || t('Select')}
-        </DropdownToggle>
-      }
       isOpen={isOpen}
-      dropdownItems={dropdownItems}
-    />
+      onOpenChange={(open: boolean) => setOpen(open)}
+      toggle={toggle}
+    >
+      <DropdownList>{dropdownItems}</DropdownList>
+    </Dropdown>
   );
 };
 

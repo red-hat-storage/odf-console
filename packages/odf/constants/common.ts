@@ -10,6 +10,7 @@ import { TFunction } from 'react-i18next';
 
 export const CEPH_BRAND_NAME = 'Red Hat Ceph Storage';
 export const NO_PROVISIONER = 'kubernetes.io/no-provisioner';
+export const SCALE_PROVISIONER = 'spectrumscale.csi.ibm.com';
 export const STORAGE_CLUSTER_SYSTEM_KIND = 'storagecluster.ocs.openshift.io/v1';
 export const HOSTNAME_LABEL_KEY = 'kubernetes.io/hostname';
 export const LABEL_OPERATOR = 'In';
@@ -18,7 +19,6 @@ export const OCS_DISABLED_ANNOTATION = 'features.ocs.openshift.io/disabled';
 export const ODF_VENDOR_ANNOTATION = 'vendors.odf.openshift.io/kind';
 export const OCS_DEVICE_SET_FLEXIBLE_REPLICA = 1;
 export const OCS_DEVICE_SET_MINIMUM_REPLICAS = 3;
-export const OCS_DEVICE_SET_ARBITER_REPLICAS = 4;
 export const MINIMUM_NODES = 3;
 export const SECOND = 1000;
 
@@ -73,6 +73,7 @@ export enum Steps {
   SecurityAndNetwork = 'security-and-network',
   Security = 'security',
   ReviewAndCreate = 'review-and-create',
+  AdvancedSettings = 'advanced-settings',
 }
 
 export enum CreateStepsSC {
@@ -98,6 +99,7 @@ export const StepsName = (t: TFunction) => ({
   [Steps.ReviewAndCreate]: t('plugin__odf-console~Review and create'),
   [Steps.SecurityAndNetwork]: t('plugin__odf-console~Security and network'),
   [Steps.Security]: t('plugin__odf-console~Security'),
+  [Steps.AdvancedSettings]: t('plugin__odf-console~Advanced settings'),
 });
 
 export const ocsTaint: Taint = Object.freeze({

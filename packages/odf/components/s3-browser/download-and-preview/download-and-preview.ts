@@ -7,7 +7,7 @@ import { ObjectCrFormat } from '../../../types';
 type DownloadAndPreviewFunction = (
   bucketName: string,
   object: ObjectCrFormat,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   setDownloadAndPreview: React.Dispatch<
     React.SetStateAction<DownloadAndPreviewState>
   >,
@@ -17,7 +17,7 @@ type DownloadAndPreviewFunction = (
 type GetObjectURL = (
   bucketName: string,
   object: ObjectCrFormat,
-  noobaaS3: S3Commands,
+  s3Client: S3Commands,
   showVersioning: boolean
 ) => Promise<string>;
 
@@ -29,10 +29,10 @@ export type DownloadAndPreviewState = {
 const getObjectURL: GetObjectURL = async (
   bucketName,
   object,
-  noobaaS3,
+  s3Client,
   showVersioning
 ) => {
-  const responseStream: GetObjectCommandOutput = await noobaaS3.getObject({
+  const responseStream: GetObjectCommandOutput = await s3Client.getObject({
     Bucket: bucketName,
     Key: getName(object),
     ...(showVersioning && { VersionId: getObjectVersionId(object) }),
@@ -50,7 +50,7 @@ const getObjectURL: GetObjectURL = async (
 export const onDownload: DownloadAndPreviewFunction = async (
   bucketName,
   object,
-  noobaaS3,
+  s3Client,
   setDownloadAndPreview,
   showVersioning
 ) => {
@@ -63,7 +63,7 @@ export const onDownload: DownloadAndPreviewFunction = async (
     const objectURL = await getObjectURL(
       bucketName,
       object,
-      noobaaS3,
+      s3Client,
       showVersioning
     );
 
@@ -90,7 +90,7 @@ export const onDownload: DownloadAndPreviewFunction = async (
 export const onPreview: DownloadAndPreviewFunction = async (
   bucketName,
   object,
-  noobaaS3,
+  s3Client,
   setDownloadAndPreview,
   showVersioning
 ) => {
@@ -103,7 +103,7 @@ export const onPreview: DownloadAndPreviewFunction = async (
     const objectURL = await getObjectURL(
       bucketName,
       object,
-      noobaaS3,
+      s3Client,
       showVersioning
     );
 

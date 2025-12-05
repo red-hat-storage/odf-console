@@ -4,6 +4,7 @@ const config = {
   moduleNameMapper: {
     '^@console': 'identity-obj-proxy',
     '^@odf/shared(.*)': '<rootDir>/packages/shared/src$1',
+    '^@odf/(mco|odf|ocs)/(.*)': '<rootDir>/packages/$1/$2',
     '^lodash-es$': 'lodash',
     '\\.(css|scss)$': 'identity-obj-proxy',
   },

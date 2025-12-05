@@ -23,7 +23,6 @@ import {
   TableColumn,
   TableData,
   useActiveColumns,
-  useFlag,
   useK8sWatchResource,
   useListPageFilter,
   VirtualizedTable,
@@ -40,7 +39,6 @@ import {
 } from '@patternfly/react-core';
 import { sortable } from '@patternfly/react-table';
 import { ATTACH_DEPLOYMENT } from '../../constants';
-import { MCG_FLAG, RGW_FLAG } from '../../features';
 import { getPhase, isBound, obcStatusFilter } from '../../utils';
 import { GetSecret } from './secret';
 import '../../style.scss';
@@ -254,9 +252,6 @@ type ObjectBucketClaimsPageProps = {
 
 export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
   const { t } = useCustomTranslation();
-  const hasRGW = useFlag(RGW_FLAG);
-  const hasMCG = useFlag(MCG_FLAG);
-  const hasNone = !hasRGW && !hasMCG;
 
   const [namespace] = useActiveNamespace();
   const { selector } = props;
@@ -280,11 +275,9 @@ export const OBCListPage: React.FC<ObjectBucketClaimsPageProps> = (props) => {
   return (
     <>
       <ListPageHeader title="">
-        {!hasNone ? (
-          <ListPageCreateLink to={createLink}>
-            {t('Create ObjectBucketClaim')}
-          </ListPageCreateLink>
-        ) : null}
+        <ListPageCreateLink to={createLink}>
+          {t('Create ObjectBucketClaim')}
+        </ListPageCreateLink>
       </ListPageHeader>
       <ListPageBody>
         <ListPageFilter

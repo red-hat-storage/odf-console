@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { CORSRule, GetBucketCorsCommandOutput } from '@aws-sdk/client-s3';
-import { BUCKETS_BASE_ROUTE } from '@odf/core/constants';
+import { getBucketOverviewBaseRoute } from '@odf/core/constants';
+import { S3ProviderType } from '@odf/core/types';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
@@ -19,7 +20,7 @@ import {
 
 type DeleteCorsRuleModalProps = {
   mutate: KeyedMutator<GetBucketCorsCommandOutput>;
-  noobaaS3: S3Commands;
+  s3Client: S3Commands;
   bucketName: string;
   ruleName: string;
   ruleHash: number;
@@ -54,7 +55,7 @@ const DeleteCorsRuleModal: React.FC<
   closeModal,
   isOpen,
   extraProps: {
-    noobaaS3,
+    s3Client,
     bucketName,
     mutate,
     ruleName,
@@ -69,6 +70,8 @@ const DeleteCorsRuleModal: React.FC<
   const [inProgress, setInProgress] = React.useState<boolean>(false);
   const [error, setError] = React.useState<Error>();
 
+  const providerType = s3Client.providerType as S3ProviderType;
+
   const onDelete = async (event) => {
     event.preventDefault();
     setInProgress(true);
@@ -77,7 +80,7 @@ const DeleteCorsRuleModal: React.FC<
       let latestRules: GetBucketCorsCommandOutput;
 
       try {
-        latestRules = await noobaaS3.getBucketCors({ Bucket: bucketName });
+        latestRules = await s3Client.getBucketCors({ Bucket: bucketName });
       } catch (err) {
         if (isNoCorsRuleError(err)) {
           latestRules = { CORSRules: [] } as GetBucketCorsCommandOutput;
@@ -95,19 +98,21 @@ const DeleteCorsRuleModal: React.FC<
         ruleHash
       );
       if (!!updatedCorsRules?.length)
-        await noobaaS3.putBucketCors({
+        await s3Client.putBucketCors({
           Bucket: bucketName,
           CORSConfiguration: {
             CORSRules: updatedCorsRules,
           },
         });
-      else await noobaaS3.deleteBucketCors({ Bucket: bucketName });
+      else await s3Client.deleteBucketCors({ Bucket: bucketName });
 
       setInProgress(false);
       mutate();
       closeModal();
       navigateToListPage &&
-        navigate(`${BUCKETS_BASE_ROUTE}/${bucketName}/permissions/cors`);
+        navigate(
+          `${getBucketOverviewBaseRoute(bucketName, providerType)}/permissions/cors`
+        );
     } catch (err) {
       setInProgress(false);
       setError(err);

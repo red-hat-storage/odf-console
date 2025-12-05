@@ -15,7 +15,7 @@ jest.mock('@odf/core/hooks', () => ({
 
 const onResourceProfileChange = jest.fn();
 
-const errorIconSelector = '[class$="select__toggle-status-icon"]';
+const errorIconSelector = '.pf-v5-c-menu-toggle__status-icon';
 
 describe('Configure Performance', () => {
   beforeEach(() => {
@@ -39,17 +39,17 @@ describe('Configure Performance', () => {
     );
 
     const dropdown = screen.getByRole('button', {
-      name: /options menu/i,
+      name: /select a performance mode from the list/i,
     });
-    expect(dropdown).toHaveTextContent('Balanced mode');
+    expect(dropdown).toHaveTextContent('{{mode}} mode');
 
     const errorIcon = container.querySelector(errorIconSelector);
     expect(errorIcon).toBeFalsy();
 
     await user.click(dropdown);
-    const performanceOption = screen.getByRole('option', {
-      name: /performance mode cpus required/i,
-    });
+    const performanceOption = screen
+      .getByTestId('Performance mode')
+      .querySelector('button') as HTMLButtonElement;
     await user.click(performanceOption);
     expect(onResourceProfileChange).toHaveBeenNthCalledWith(
       1,
@@ -88,9 +88,9 @@ describe('Configure Performance', () => {
       />
     );
     const dropdown = screen.getByRole('button', {
-      name: /options menu/i,
+      name: /select a performance mode from the list/i,
     });
-    expect(dropdown).toHaveTextContent('Performance mode');
+    expect(dropdown).toHaveTextContent('{{mode}} mode');
 
     const errorIcon = container.querySelector(errorIconSelector);
     expect(errorIcon).toBeVisible();
@@ -115,10 +115,10 @@ describe('Configure Performance', () => {
     );
 
     const dropdown = screen.getByRole('button', {
-      name: /options menu/i,
+      name: /select a performance mode from the list/i,
     });
-    expect(dropdown).toHaveTextContent('Balanced mode');
-    expect(screen.getByText(/36 CPUs/i)).toBeInTheDocument();
-    expect(screen.getByText(/87 GiB/i)).toBeInTheDocument();
+    expect(dropdown).toHaveTextContent('{{mode}} mode');
+    expect(screen.getByText(/42 CPUs/i)).toBeInTheDocument();
+    expect(screen.getByText(/102 GiB/i)).toBeInTheDocument();
   });
 });

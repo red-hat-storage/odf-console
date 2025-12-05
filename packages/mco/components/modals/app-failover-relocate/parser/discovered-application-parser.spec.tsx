@@ -24,7 +24,7 @@ import {
   mockManagedClusterWest1,
   mockManagedClusterWest1Down,
 } from '../../../../__mocks__/managedcluster';
-import { DiscoveredApplicationParser as DiscoveredApplicationModal } from './discovered-application-parser';
+import { DRPlacementControlParser } from './discovered-application-parser';
 
 let type = 1;
 let patchObj = {};
@@ -134,7 +134,7 @@ describe('Discovered application failover/relocate modal test', () => {
     type = 1;
 
     render(
-      <DiscoveredApplicationModal
+      <DRPlacementControlParser
         extraProps={{ application: mockDRPC1, action: DRActionType.FAILOVER }}
         closeModal={jest.fn()}
         isOpen={true}
@@ -208,7 +208,7 @@ describe('Discovered application failover/relocate modal test', () => {
     type = 1;
 
     render(
-      <DiscoveredApplicationModal
+      <DRPlacementControlParser
         extraProps={{ application: mockDRPC1, action: DRActionType.RELOCATE }}
         closeModal={jest.fn()}
         isOpen={true}
@@ -270,7 +270,7 @@ describe('Discovered application failover/relocate modal test', () => {
     type = 2;
 
     render(
-      <DiscoveredApplicationModal
+      <DRPlacementControlParser
         extraProps={{ application: mockDRPC1, action: DRActionType.FAILOVER }}
         closeModal={jest.fn()}
         isOpen={true}
@@ -300,7 +300,7 @@ describe('Discovered application failover/relocate modal test', () => {
     type = 2;
 
     render(
-      <DiscoveredApplicationModal
+      <DRPlacementControlParser
         extraProps={{ application: mockDRPC1, action: DRActionType.RELOCATE }}
         closeModal={jest.fn()}
         isOpen={true}
@@ -343,7 +343,7 @@ describe('Discovered application failover/relocate modal test', () => {
     type = 3;
 
     render(
-      <DiscoveredApplicationModal
+      <DRPlacementControlParser
         extraProps={{ application: mockDRPC1, action: DRActionType.FAILOVER }}
         closeModal={jest.fn()}
         isOpen={true}
@@ -371,7 +371,7 @@ describe('Discovered application failover/relocate modal test', () => {
     type = 3;
 
     render(
-      <DiscoveredApplicationModal
+      <DRPlacementControlParser
         extraProps={{ application: mockDRPC1, action: DRActionType.RELOCATE }}
         closeModal={jest.fn()}
         isOpen={true}
@@ -399,7 +399,7 @@ describe('Discovered application failover/relocate modal test', () => {
     type = 4;
 
     render(
-      <DiscoveredApplicationModal
+      <DRPlacementControlParser
         extraProps={{ application: mockDRPC1, action: DRActionType.FAILOVER }}
         closeModal={jest.fn()}
         isOpen={true}
@@ -442,7 +442,7 @@ describe('Discovered application failover/relocate modal test', () => {
     type = 4;
 
     render(
-      <DiscoveredApplicationModal
+      <DRPlacementControlParser
         extraProps={{ application: mockDRPC1, action: DRActionType.RELOCATE }}
         closeModal={jest.fn()}
         isOpen={true}
@@ -485,7 +485,7 @@ describe('Discovered application failover/relocate modal test', () => {
     type = 1;
 
     render(
-      <DiscoveredApplicationModal
+      <DRPlacementControlParser
         extraProps={{ application: mockDRPC1, action: DRActionType.RELOCATE }}
         closeModal={jest.fn()}
         isOpen={true}
@@ -520,7 +520,7 @@ describe('Discovered application failover/relocate modal test', () => {
     type = 5;
 
     render(
-      <DiscoveredApplicationModal
+      <DRPlacementControlParser
         extraProps={{ application: mockDRPC3, action: DRActionType.RELOCATE }}
         closeModal={jest.fn()}
         isOpen={true}

@@ -62,7 +62,8 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
 }) => {
   const { t } = useCustomTranslation();
 
-  const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
+  const { odfNamespace, isNsSafe, isODFNsLoaded, odfNsLoadError } =
+    useODFNamespaceSelector();
 
   const [pods, podsLoaded, podsLoadError] =
     useK8sGet<ListKind<PodKind>>(PodModel);
@@ -117,8 +118,8 @@ export const ConnectionDetails: React.FC<ExternalComponentProps<RHCSState>> = ({
 
   return (
     <ErrorHandler
-      error={podsLoadError || ocsCSVError || cmLoadError}
-      loaded={podsLoaded && ocsCSVLoaded && cmLoaded}
+      error={odfNsLoadError || podsLoadError || ocsCSVError || cmLoadError}
+      loaded={isODFNsLoaded && podsLoaded && ocsCSVLoaded && cmLoaded}
     >
       <Form>
         <FormGroup

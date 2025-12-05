@@ -47,3 +47,27 @@ export const FileSystemModel: K8sModel = {
   abbr: 'Fs',
   namespaced: true,
 };
+
+export const DaemonModel: K8sModel = {
+  apiVersion: 'v1beta1',
+  apiGroup: 'scale.spectrum.ibm.com',
+  kind: 'Daemon',
+  plural: 'daemons',
+  label: 'Daemon',
+  labelPlural: 'Daemons',
+  crd: true,
+  abbr: 'D',
+  namespaced: true,
+};
+
+export const LocalDiskModel: K8sModel = {
+  apiVersion: 'v1beta1',
+  apiGroup: 'scale.spectrum.ibm.com',
+  kind: 'LocalDisk',
+  plural: 'localdisks',
+  label: 'LocalDisk',
+  labelPlural: 'LocalDisks',
+  crd: true,
+  abbr: 'LD',
+  namespaced: true,
+};

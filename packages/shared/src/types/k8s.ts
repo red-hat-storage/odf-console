@@ -17,7 +17,9 @@ export type NetworkAttachmentDefinitionKind = {
 
 export type StorageClassResourceKind = {
   provisioner: string;
+  allowVolumeExpansion?: boolean;
   reclaimPolicy: string;
+  volumeBindingMode?: string;
   parameters?: {
     [key: string]: string;
   };

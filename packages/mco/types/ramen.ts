@@ -89,6 +89,7 @@ export type DRPlacementControlKind = K8sResourceCommon & {
     };
     phase: string;
     progression?: Progression;
+    actionStartTime?: string;
     // The time of the most recent successful synchronization of all PVCs.
     lastGroupSyncTime?: string;
     preferredDecision?: {
@@ -147,6 +148,23 @@ export enum Progression {
   CleaningUp = 'CleaningUp',
   FailedToRelocate = 'FailedToRelocate',
   WaitForUserAction = 'WaitForUserAction',
+}
+
+// DRPC condition types
+export enum DRPlacementControlConditionType {
+  Protected = 'Protected',
+}
+
+// DRPC Protected condition reasons
+export enum DRPlacementControlConditionReason {
+  Progressing = 'Progressing',
+  Error = 'Error',
+  Unknown = 'Unknown',
+}
+
+// VRG condition reasons (for resourceConditions)
+export enum VRGConditionReason {
+  Unused = 'Unused',
 }
 
 export type S3StoreProfile = {

@@ -11,12 +11,19 @@ import { getName } from '@odf/shared/selectors';
 import { humanizeBinaryBytes } from '@odf/shared/utils';
 import * as _ from 'lodash-es';
 import { TFunction } from 'react-i18next';
-import { DELIMITER, BUCKETS_BASE_ROUTE, PREFIX, SEARCH } from '../constants';
-import { BucketCrFormat, ObjectCrFormat } from '../types';
+import {
+  DELIMITER,
+  BUCKETS_BASE_ROUTE,
+  getBucketOverviewBaseRoute,
+  PREFIX,
+  SEARCH,
+} from '../constants';
+import { BucketCrFormat, ObjectCrFormat, S3ProviderType } from '../types';
 
 export const getBreadcrumbs = (
   foldersPath: string,
   bucketName: string,
+  providerType: S3ProviderType,
   t: TFunction
 ) => {
   const folders = foldersPath?.split(DELIMITER)?.filter(Boolean);
@@ -35,7 +42,10 @@ export const getBreadcrumbs = (
 
   const initialBreadcrumb = [
     ...bucketsListPage,
-    { name: bucketName, path: `${BUCKETS_BASE_ROUTE}/${bucketName}` },
+    {
+      name: bucketName,
+      path: `${getBucketOverviewBaseRoute(bucketName, providerType)}`,
+    },
   ];
   let encodedPathToFolder = '';
   return {
@@ -46,7 +56,7 @@ export const getBreadcrumbs = (
         : encodedPathToFolder + encodeURIComponent(folderNameWDelimiter);
       acc.push({
         name: folderNameWDelimiter,
-        path: `${BUCKETS_BASE_ROUTE}/${bucketName}?${PREFIX}=${encodedPathToFolder}`,
+        path: `${getBucketOverviewBaseRoute(bucketName, providerType)}?${PREFIX}=${encodedPathToFolder}`,
       });
       return acc;
     }, initialBreadcrumb),
@@ -140,6 +150,7 @@ export const convertBucketDataToCrFormat = (
 
 export const getNavigationURL = (
   bucketName: string,
+  providerType: S3ProviderType,
   foldersPath: string,
   inputValue: string
 ): string => {
@@ -153,7 +164,10 @@ export const getNavigationURL = (
     ? '?' + queryParams.join('&')
     : '';
 
-  return `${BUCKETS_BASE_ROUTE}/${bucketName}` + queryParamsString;
+  return (
+    `${getBucketOverviewBaseRoute(bucketName, providerType)}` +
+    queryParamsString
+  );
 };
 
 export const isRuleScopeGlobal = (rule: LifecycleRule) => {
@@ -206,3 +220,6 @@ export const sortByLastModified = (a: ObjectCrFormat, b: ObjectCrFormat) => {
 
 export const isAllowAllConfig = (config: string[]) =>
   config?.length === 1 && config[0] === WILDCARD;
+
+export const getProviderLabel = (providerType: S3ProviderType) =>
+  providerType === S3ProviderType.Noobaa ? 'MCG' : 'RGW';

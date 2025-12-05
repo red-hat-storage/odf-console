@@ -3,6 +3,7 @@ declare global {
   declare const PLUGIN_BUILD_I8N_NS: string;
   declare const PLUGIN_BUILD_NAME: string;
   declare const PLUGIN_BUILD_VERSION: string;
+  declare const OPENSHIFT_CI: string;
 
   declare interface Window {
     SERVER_FLAGS: {

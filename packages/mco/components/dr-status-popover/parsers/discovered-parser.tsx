@@ -8,13 +8,15 @@ import {
   getReplicationType,
   getDRPolicyName,
   getPrimaryClusterName,
+  getProtectedCondition,
 } from '../../../utils';
 import { isCleanupPending } from '../../protected-applications/utils';
 import DRStatusPopover, { DRStatusProps } from '../dr-status-popover';
+import { getProgressionFields } from './utils';
 
-export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
-  application: drPlacementControl,
-}) => {
+export const DRPlacementControlParser: React.FC<
+  DRPlacementControlParserProps
+> = ({ application: drPlacementControl }) => {
   const drPolicyName = getDRPolicyName(drPlacementControl);
   const [drPolicy, drPolicyLoaded, drPolicyLoadError] =
     useK8sWatchResource<DRPolicyKind>({
@@ -30,7 +32,7 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
     const schedulingInterval = drPolicy?.spec?.schedulingInterval;
 
     const primaryClusterName = getPrimaryClusterName(drPlacementControl);
-    const targetCluster = drPolicy.spec?.drClusters.find(
+    const targetCluster = drPolicy?.spec?.drClusters?.find(
       (name) => name !== primaryClusterName
     );
 
@@ -52,6 +54,8 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
       kubeObjectSchedulingInterval
     );
 
+    const protectedCondition = getProtectedCondition(drPlacementControl);
+
     return {
       policyName: drPolicyName,
       schedulingInterval,
@@ -64,14 +68,16 @@ export const DiscoveredParser: React.FC<DiscoveredParserProps> = ({
       phase: drPlacementControl?.status?.phase as DRPCStatus,
       isCleanupRequired: isCleanupPending(drPlacementControl),
       isLoadedWOError: loaded && !loadError,
+      ...getProgressionFields(drPlacementControl),
+      protectedCondition,
     };
   }, [loaded, loadError, drPolicy, drPlacementControl, drPolicyName]);
 
   return drStatus && <DRStatusPopover disasterRecoveryStatus={drStatus} />;
 };
 
-export default DiscoveredParser;
+export default DRPlacementControlParser;
 
-type DiscoveredParserProps = {
+type DRPlacementControlParserProps = {
   application: DRPlacementControlKind;
 };

@@ -4,10 +4,12 @@ export const checkRequiredValues = (
   lsoStorageClassName: string,
   storageClassName: string,
   enableStorageClassEncryption: boolean,
-  encryptionKMSID: string
+  encryptionKMSID: string,
+  deviceClass: string
 ): boolean =>
   !poolName ||
   !replicaSize ||
   !lsoStorageClassName ||
   !storageClassName ||
+  !deviceClass ||
   (enableStorageClassEncryption ? !encryptionKMSID : false);

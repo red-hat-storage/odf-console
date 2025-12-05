@@ -65,12 +65,13 @@
     "**/package.json": "npx --yes sort-package-json@3.0.0"
   },
   "resolutions": {
-    "follow-redirects": "^1.15.11",
     "brace-expansion@1.1.7": "1.1.12",
     "brace-expansion@2.0.1": "2.0.2",
+    "follow-redirects": "^1.15.11",
     "webpack": "^5.99.9"
   },
   "dependencies": {
+    "@aws-sdk/client-iam": "^3.919.0",
     "@aws-sdk/client-s3": "3.823.0",
     "@aws-sdk/lib-storage": "3.823.0",
     "@aws-sdk/s3-request-presigner": "3.823.0",

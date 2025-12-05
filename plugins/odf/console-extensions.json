@@ -19,14 +19,6 @@
     "type": "console.flag",
     "properties": {
       "handler": {
-        "$codeRef": "features.detectRGW"
-      }
-    }
-  },
-  {
-    "type": "console.flag",
-    "properties": {
-      "handler": {
         "$codeRef": "features.detectComponents"
       }
     }
@@ -67,14 +59,14 @@
     "properties": {
       "id": "odf-separator",
       "section": "storage",
-      "insertAfter": "storage-object"
+      "insertBefore": "odfdashboard"
     }
   },
   {
     "type": "console.navigation/href",
     "properties": {
       "id": "odfdashboard",
-      "insertBefore": "persistentvolumes",
+      "insertAfter": "volumesnapshotcontents",
       "section": "storage",
       "name": "%plugin__odf-console~Data Foundation%",
       "href": "/odf/overview"
@@ -100,7 +92,7 @@
     "type": "console.navigation/href",
     "properties": {
       "id": "external-systems",
-      "insertBefore": "storage-object",
+      "insertAfter": "storage-cluster",
       "section": "storage",
       "name": "%plugin__odf-console~External systems%",
       "href": "/odf/external-systems"
@@ -113,13 +105,27 @@
     "type": "console.navigation/href",
     "properties": {
       "id": "storage-object",
-      "insertAfter": "storage-cluster",
+      "insertAfter": "external-systems",
       "section": "storage",
       "name": "%plugin__odf-console~Object storage%",
       "href": "/odf/object-storage"
     },
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-object",
+      "insertAfter": "external-systems",
+      "section": "storage",
+      "name": "%plugin__odf-console~Object storage%",
+      "href": "/odf/object-storage"
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "MCG"],
+      "disallowed": ["ODF_ADMIN"]
     }
   },
   {
@@ -179,7 +185,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": ["/odf/object-storage/create-bucket"],
+      "path": ["/odf/object-storage/:s3Provider/create-bucket"],
       "exact": true,
       "component": { "$codeRef": "createBucket.default" }
     }
@@ -520,7 +526,8 @@
       "component": { "$codeRef": "objectService.default" }
     },
     "flags": {
-      "required": ["ODF_MODEL"]
+      "required": ["ODF_MODEL", "MCG"],
+      "disallowed": ["ODF_ADMIN"]
     }
   },
   {
@@ -586,33 +593,6 @@
   {
     "type": "odf.horizontalNav/tab",
     "properties": {
-      "id": "objectbuckets",
-      "name": "%plugin__odf-console~Object Buckets%",
-      "contextId": "odf-object-service",
-      "after": "namespace-store",
-      "href": "objectbucket.io~v1alpha1~ObjectBucket",
-      "component": {
-        "$codeRef": "ob.ObjectBucketListPage"
-      }
-    },
-    "flags": {
-      "required": ["RGW"],
-      "disallowed": ["MCG"]
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "path": "/odf/resource/objectbucket.io~v1alpha1~ObjectBucket/:resourceName",
-      "exact": false,
-      "component": {
-        "$codeRef": "ob.OBDetailsPage"
-      }
-    }
-  },
-  {
-    "type": "odf.horizontalNav/tab",
-    "properties": {
       "id": "objectbucketclaims",
       "name": "%plugin__odf-console~Object Bucket Claims%",
       "contextId": "odf-object-service",
@@ -629,18 +609,34 @@
   {
     "type": "odf.horizontalNav/tab",
     "properties": {
-      "id": "objectbucketclaims",
-      "name": "%plugin__odf-console~Object Bucket Claims%",
+      "id": "iam",
+      "after": "objectbucketclaims",
+      "name": "%plugin__odf-console~IAM%",
       "contextId": "odf-object-service",
-      "after": "objectbuckets",
-      "href": "objectbucket.io~v1alpha1~ObjectBucketClaim",
+      "href": "iam",
       "component": {
-        "$codeRef": "obc.OBCListPage"
+        "$codeRef": "iam.default"
       }
-    },
-    "flags": {
-      "required": ["RGW"],
-      "disallowed": ["MCG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/iam/create-user",
+      "exact": true,
+      "component": {
+        "$codeRef": "createIAMUser.default"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/object-storage/iam/:userName",
+      "exact": false,
+      "component": {
+        "$codeRef": "iamUserOverview.default"
+      }
     }
   },
   {
@@ -664,6 +660,32 @@
     }
   },
   {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "storage-consumers",
+      "name": "%plugin__odf-console~Storage consumers%",
+      "insertAfter": "storage-object",
+      "section": "storage",
+      "href": "/odf/storage-consumers"
+    },
+    "flags": {
+      "required": ["PROVIDER_MODE", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/storage-consumers",
+      "exact": true,
+      "component": {
+        "$codeRef": "storageConsumerListPage.ClientListPage"
+      },
+      "flags": {
+        "required": ["PROVIDER_MODE", "ODF_ADMIN"]
+      }
+    }
+  },
+  {
     "type": "console.page/route",
     "properties": {
       "exact": true,
@@ -674,7 +696,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketOverview.default"
@@ -684,7 +706,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/create/~new",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName/management/lifecycle/create/~new",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketLifecycleRule.CreateLifecycleRule"
@@ -694,7 +716,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/management/lifecycle/edit",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName/management/lifecycle/edit",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketLifecycleRule.EditLifecycleRule"
@@ -704,7 +726,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/create/~new",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName/permissions/cors/create/~new",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketCors.CreateCorsRule"
@@ -714,7 +736,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/edit",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName/permissions/cors/edit",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketCors.EditCorsRule"
@@ -724,7 +746,7 @@
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/odf/object-storage/buckets/:bucketName/permissions/cors/details",
+      "path": "/odf/object-storage/:s3Provider/buckets/:bucketName/permissions/cors/details",
       "exact": false,
       "component": {
         "$codeRef": "s3BucketCorsDetails.CorsDetailsPage"
@@ -866,11 +888,35 @@
   {
     "type": "console.page/route",
     "properties": {
+      "path": ["/odf/external-systems/san/~create"],
+      "exact": true,
+      "component": { "$codeRef": "sanCreate.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
       "path": [
         "/odf/external-systems/scale.spectrum.ibm.com~v1beta1~remotecluster/:systemName"
       ],
       "exact": false,
       "component": { "$codeRef": "scaleDashboard.default" }
+    },
+    "flags": {
+      "required": ["FDF_FLAG"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": [
+        "/odf/external-systems/scale.spectrum.ibm.com~v1beta1~cluster/:systemName"
+      ],
+      "exact": false,
+      "component": { "$codeRef": "sanDashboard.default" }
     },
     "flags": {
       "required": ["FDF_FLAG"]
@@ -889,6 +935,32 @@
     },
     "flags": {
       "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": "/odf/overview/health",
+      "exact": true,
+      "component": { "$codeRef": "healthOverview.default" }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN"]
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "path": [
+        "/odf/external-systems/scale.spectrum.ibm.com~v1beta1~cluster/:systemName/filesystems/ns/:namespace/:name"
+      ],
+      "exact": false,
+      "component": {
+        "$codeRef": "fileSystemDetails.default"
+      }
+    },
+    "flags": {
+      "required": ["ODF_MODEL", "ODF_ADMIN", "FDF_FLAG"]
     }
   }
 ]
