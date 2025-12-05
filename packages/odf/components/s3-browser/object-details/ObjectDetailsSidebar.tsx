@@ -274,7 +274,7 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
     // don't fetch if object is a delete marker ("getObject" not supported)
     isDeleteMarker
       ? null
-      : `${objectKey}-${lastModified}-${OBJECT_CACHE_KEY_SUFFIX}`,
+      : `${s3Client.providerType}-${objectKey}-${lastModified}-${OBJECT_CACHE_KEY_SUFFIX}`,
     () =>
       s3Client.getObject({
         Bucket: bucketName,
@@ -286,7 +286,7 @@ const ObjectOverview: React.FC<ObjectOverviewProps> = ({
     // don't fetch if object is a delete marker ("getObjectTagging" not supported)
     isDeleteMarker
       ? null
-      : `${objectKey}-${lastModified}-${OBJECT_TAGGING_CACHE_KEY_SUFFIX}}`,
+      : `${s3Client.providerType}-${objectKey}-${lastModified}-${OBJECT_TAGGING_CACHE_KEY_SUFFIX}}`,
     () =>
       s3Client.getObjectTagging({
         Bucket: bucketName,

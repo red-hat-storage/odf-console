@@ -46,11 +46,11 @@ const S3BucketDetailsOverview: React.FC<{}> = ({}) => {
   const { bucketName } = useParams();
   const input = { Bucket: bucketName };
   const { data: aclData } = useSWR(
-    `${bucketName}-${BUCKET_ACL_CACHE_KEY_SUFFIX}`,
+    `${s3Client.providerType}-${bucketName}-${BUCKET_ACL_CACHE_KEY_SUFFIX}`,
     () => s3Client.getBucketAcl(input)
   );
   const { data: tagData } = useSWR(
-    `${bucketName}-${BUCKET_TAGGING_CACHE_KEY_SUFFIX}`,
+    `${s3Client.providerType}-${bucketName}-${BUCKET_TAGGING_CACHE_KEY_SUFFIX}`,
     () => s3Client.getBucketTagging(input)
   );
 
@@ -100,7 +100,7 @@ const S3BucketProperties: React.FC<{}> = ({}) => {
   const { bucketName } = useParams();
   const input = { Bucket: bucketName };
   const { data: versioningData, mutate: versioningMutate } = useSWR(
-    `${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`,
+    `${s3Client.providerType}-${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`,
     () => s3Client.getBucketVersioning(input)
   );
 

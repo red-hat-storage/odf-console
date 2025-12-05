@@ -5,6 +5,7 @@ import {
   S3_LOCAL_ENDPOINT,
   NOOBAA_S3_PROXY_PATH,
   RGW_INTERNAL_S3_PROXY_PATH,
+  RGW_S3_INTERNAL_ENDPOINT_SUFFIX,
 } from '@odf/shared/s3';
 import {
   NOOBAA_ADMIN_SECRET,
@@ -15,6 +16,30 @@ import {
   RGW_SECRET_ACCESS_KEY,
 } from '../../../../constants';
 import { SystemInfoData } from '../hooks/useSystemInfo';
+
+const getRGWEndpointURL = (endpoint: string | undefined): URL | undefined => {
+  if (!endpoint) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(endpoint);
+    const hostname = url.hostname;
+
+    // Check if hostname already ends with ".cluster.local"
+    if (hostname.endsWith(RGW_S3_INTERNAL_ENDPOINT_SUFFIX)) {
+      return url;
+    }
+
+    // Add ".cluster.local" before the port (if any)
+    const newHostname = `${hostname}${RGW_S3_INTERNAL_ENDPOINT_SUFFIX}`;
+    url.hostname = newHostname;
+
+    return url;
+  } catch {
+    return undefined;
+  }
+};
 
 export type ProviderConfig = {
   adminSecretName: string;
@@ -83,11 +108,9 @@ export const PROVIDER_REGISTRY: Record<S3ProviderType, ProviderRegistryEntry> =
             },
             // "region" is a required parameter for the SDK, using "us-east-1" as a workaround ("none" is not supported)
             region: 'us-east-1',
-            s3Endpoint: new URL(
-              window.location.hostname.includes('localhost')
-                ? S3_LOCAL_ENDPOINT
-                : intRgwInfo?.rgwSecureEndpoint
-            ),
+            s3Endpoint: window.location.hostname.includes('localhost')
+              ? new URL(S3_LOCAL_ENDPOINT)
+              : getRGWEndpointURL(intRgwInfo?.rgwSecureEndpoint),
             s3ConsolePath: RGW_INTERNAL_S3_PROXY_PATH,
             skipSignatureCalculation: false,
           };
@@ -114,11 +137,9 @@ export const PROVIDER_REGISTRY: Record<S3ProviderType, ProviderRegistryEntry> =
             },
             // "region" is a required parameter for the SDK, using "us-east-1" as a workaround ("none" is not supported)
             region: 'us-east-1',
-            s3Endpoint: new URL(
-              window.location.hostname.includes('localhost')
-                ? S3_LOCAL_ENDPOINT
-                : extRgwInfo?.rgwSecureEndpoint
-            ),
+            s3Endpoint: window.location.hostname.includes('localhost')
+              ? new URL(S3_LOCAL_ENDPOINT)
+              : getRGWEndpointURL(extRgwInfo?.rgwSecureEndpoint),
             s3ConsolePath: extRgwInfo?.rgwSecureEndpoint,
             skipSignatureCalculation: true,
           };

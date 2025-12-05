@@ -289,8 +289,9 @@ const BucketPolicyContent: React.FC<BucketPolicyContentProps> = ({
     error,
     isMutating: isLoading,
     trigger,
-  } = useSWRMutation(`${bucketName}-${BUCKET_POLICY_CACHE_KEY_SUFFIX}`, () =>
-    s3Client.getBucketPolicy({ Bucket: bucketName })
+  } = useSWRMutation(
+    `${s3Client.providerType}-${bucketName}-${BUCKET_POLICY_CACHE_KEY_SUFFIX}`,
+    () => s3Client.getBucketPolicy({ Bucket: bucketName })
   );
 
   const noPolicyExists =

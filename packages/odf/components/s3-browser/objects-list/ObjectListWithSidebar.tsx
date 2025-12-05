@@ -26,7 +26,7 @@ export const ObjectListWithSidebar: React.FC<ObjectListWithSidebarProps> = ({
   const { s3Client } = React.useContext(S3Context);
 
   const { data: versioningData } = useSWR(
-    `${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`,
+    `${s3Client.providerType}-${bucketName}-${BUCKET_VERSIONING_CACHE_KEY_SUFFIX}`,
     () => s3Client.getBucketVersioning({ Bucket: bucketName })
   );
 

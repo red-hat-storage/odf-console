@@ -68,9 +68,16 @@ export const useObjectsList: UseObjectsList = ({
   const { t } = useCustomTranslation();
 
   const searchWithPrefix = getSearchWithPrefix(searchQuery, foldersPath);
-  const key = LIST_OBJECTS + DELIMITER + getPath(bucketName, searchWithPrefix);
+  const key =
+    `${s3Client.providerType}-` +
+    LIST_OBJECTS +
+    DELIMITER +
+    getPath(bucketName, searchWithPrefix);
   const versionsKey =
-    LIST_VERSIONED_OBJECTS + DELIMITER + getPath(bucketName, searchWithPrefix);
+    `${s3Client.providerType}-` +
+    LIST_VERSIONED_OBJECTS +
+    DELIMITER +
+    getPath(bucketName, searchWithPrefix);
 
   // latest/current version of objects
   const {
