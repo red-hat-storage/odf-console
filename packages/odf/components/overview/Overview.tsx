@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { HealthOverviewCard } from '@odf/core/components/odf-dashboard/health-overview-card/HealthOverviewCard';
 import { GeneralOverviewActivityCard } from '@odf/core/components/overview/activity-card/GeneralOverviewActivityCard';
 import { ExternalSystemsCard } from '@odf/core/components/overview/external-systems-card/ExternalSystemsCard';
 import { ObjectStorageCard } from '@odf/core/components/overview/object-storage-card/ObjectStorageCard';
@@ -23,12 +24,15 @@ const Overview: React.FC = () => {
           <StorageClusterCard />
         </GridItem>
         <GridItem xl2={3}>
-          <ExternalSystemsCard />
+          <HealthOverviewCard />
         </GridItem>
         <GridItem xl2={4} xl2RowSpan={3} order={{ '2xl': '0', default: '3' }}>
           <GeneralOverviewActivityCard />
         </GridItem>
-        <GridItem xl2={8}>
+        <GridItem xl2={3}>
+          <ExternalSystemsCard />
+        </GridItem>
+        <GridItem xl2={5}>
           <ObjectStorageCard />
         </GridItem>
       </Grid>

@@ -1,0 +1,40 @@
+.health-overview-filter-toolbox {
+  &__item {
+    margin-right: var(--pf-v5-global--spacer--sm);
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  &__severity-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  &__check-type-toggle {
+    min-width: 9.375rem;
+  }
+
+  &__clear-filters {
+    padding-left: 0;
+    padding-top: var(--pf-v5-global--spacer--xs);
+    font-size: var(--pf-v5-global--FontSize--sm);
+  }
+
+  &__datetime-group {
+    margin-left: var(--pf-v5-global--spacer--sm);
+  }
+
+  &__datetime-item {
+    margin-right: 0;
+  }
+
+  &__search {
+    flex-grow: 1;
+    min-width: 15.625rem;
+    margin-left: var(--pf-v5-global--spacer--sm);
+  }
+}
+

@@ -3,9 +3,15 @@ import { PageHeading, useCustomTranslation } from '@odf/shared';
 import { useAlertManagerBasePath } from '@odf/shared/hooks/custom-prometheus-poll';
 import { ListPageBody } from '@openshift-console/dynamic-plugin-sdk';
 import { ToggleGroup, ToggleGroupItem } from '@patternfly/react-core';
-import { AlertsTable } from './AlertsTable';
-import { useHealthAlerts, useSilencedAlerts } from './hooks';
+import { FilterableAlertsTable } from './FilterableAlertsTable';
+import {
+  useHealthAlerts,
+  useSilencedAlerts,
+  AlertRowData,
+  filterOutSilencedAlerts,
+} from './hooks';
 import InfraHealthGraph from './InfraHealthGraph';
+import { SilenceAlertModal } from './SilenceAlertModal';
 import { SilencedAlertsTable } from './SilencedAlertsTable';
 
 enum HealthOverviewTab {
@@ -59,8 +65,45 @@ const HealthOverview: React.FC = () => {
     silencedAlertsLoaded,
     silencedAlertsError,
     refreshSilencedAlerts,
+    silences,
   } = useSilencedAlerts();
   const alertManagerBasePath = useAlertManagerBasePath();
+
+  // Filter out silenced alerts from the active alerts list
+  const activeAlerts = React.useMemo(
+    () => filterOutSilencedAlerts(healthAlerts, silences),
+    [healthAlerts, silences]
+  );
+
+  // Track filtered alerts from the FilterableAlertsTable
+  const [filteredAlerts, setFilteredAlerts] =
+    React.useState<AlertRowData[]>(activeAlerts);
+
+  // Silence modal state
+  const [isSilenceModalOpen, setIsSilenceModalOpen] = React.useState(false);
+  const [alertsToSilence, setAlertsToSilence] = React.useState<AlertRowData[]>(
+    []
+  );
+
+  const handleSilenceAlerts = (selectedAlerts: AlertRowData[]) => {
+    setAlertsToSilence(selectedAlerts);
+    setIsSilenceModalOpen(true);
+  };
+
+  const handleSilenceModalClose = () => {
+    setIsSilenceModalOpen(false);
+    setAlertsToSilence([]);
+  };
+
+  const handleSilenceSuccess = () => {
+    // Refresh the silenced alerts data after successful silence
+    // This will cause the active alerts to be re-filtered
+    refreshSilencedAlerts();
+  };
+
+  const handleFilteredAlertsChange = (newFilteredAlerts: AlertRowData[]) => {
+    setFilteredAlerts(newFilteredAlerts);
+  };
 
   return (
     <>
@@ -77,22 +120,26 @@ const HealthOverview: React.FC = () => {
       />
       <ListPageBody>
         <HealthOverviewToggleGroup
-          activeAlertsCount={healthAlerts.length}
+          activeAlertsCount={activeAlerts.length}
           silencedAlertsCount={silencedAlerts.length}
           selectedTab={selectedTab}
           setSelectedTab={setSelectedTab}
         />
-        <InfraHealthGraph
-          alerts={healthAlerts}
-          alertsLoaded={healthAlertsLoaded}
-          alertsError={healthAlertsError}
-        />
         {selectedTab === HealthOverviewTab.LAST_24_HOURS_ALERTS && (
-          <AlertsTable
-            alerts={healthAlerts}
-            loaded={healthAlertsLoaded}
-            error={healthAlertsError}
-          />
+          <>
+            <InfraHealthGraph
+              alerts={filteredAlerts}
+              alertsLoaded={healthAlertsLoaded}
+              alertsError={healthAlertsError}
+            />
+            <FilterableAlertsTable
+              alerts={activeAlerts}
+              loaded={healthAlertsLoaded}
+              error={healthAlertsError}
+              onSilenceClick={handleSilenceAlerts}
+              onFilteredAlertsChange={handleFilteredAlertsChange}
+            />
+          </>
         )}
         {selectedTab === HealthOverviewTab.SILENCED_ALERTS && (
           <SilencedAlertsTable
@@ -104,6 +151,13 @@ const HealthOverview: React.FC = () => {
           />
         )}
       </ListPageBody>
+      <SilenceAlertModal
+        isOpen={isSilenceModalOpen}
+        onClose={handleSilenceModalClose}
+        selectedAlerts={alertsToSilence}
+        alertManagerBasePath={alertManagerBasePath}
+        onSuccess={handleSilenceSuccess}
+      />
     </>
   );
 };

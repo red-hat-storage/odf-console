@@ -16,6 +16,8 @@ export const ONE_MINUTE = 60 * ONE_SECOND;
 export const ONE_HOUR = 60 * ONE_MINUTE;
 export const MINUTES_IN_DAY = 24 * 60;
 export const TWENTY_FOUR_HOURS = 24 * ONE_HOUR;
+export const ALERT_SAMPLES = MINUTES_IN_DAY; // one sample per minute for 24h
+export const ALERT_SIXTY_SAMPLES = 60; // one sample every 24 minutes for 24h
 export const ALERTMANAGER_SILENCES_PATH = 'api/v2/silences';
 export const getAlertManagerSilenceEndpoint = (
   basePath: string,
