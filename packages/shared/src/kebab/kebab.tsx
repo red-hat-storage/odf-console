@@ -279,10 +279,10 @@ export const Kebab: React.FC<KebabProps> & KebabStaticProperties = ({
   isDisabled =
     isDisabled ||
     (!extraProps?.forceDeletion &&
-      _.has(resource.metadata, 'deletionTimestamp')) ||
+      _.has(resource?.metadata, 'deletionTimestamp')) ||
     !canCreate;
 
-  const content = _.has(resource.metadata, 'deletionTimestamp')
+  const content = _.has(resource?.metadata, 'deletionTimestamp')
     ? terminatingTooltip || t('Resource is being deleted.')
     : '';
 

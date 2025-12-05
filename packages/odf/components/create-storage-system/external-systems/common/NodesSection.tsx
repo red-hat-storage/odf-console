@@ -145,7 +145,12 @@ export const NodesSection: React.FC<NodesSectionProps> = React.memo(
           />
         )}
         {isDisabled && (
-          <Alert variant="info" title={t('Nodes are disabled')} isInline>
+          <Alert
+            variant="info"
+            title={t('Nodes are disabled')}
+            isInline
+            className="pf-v5-u-mt-md"
+          >
             {t('Nodes are disabled because the local cluster is configured')}
           </Alert>
         )}

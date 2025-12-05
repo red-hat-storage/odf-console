@@ -51,7 +51,7 @@ type PageHeadingProps = {
   title?: string | JSX.Element;
   badge?: React.ReactNode;
   className?: string;
-  actions?: any;
+  actions?: Function;
   resource?: K8sResourceKind;
   getResourceStatus?: (resource: K8sResourceKind) => string;
   centerText?: boolean;
