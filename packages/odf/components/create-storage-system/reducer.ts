@@ -50,10 +50,13 @@ export const initialState: CreateStorageSystemState = {
     externalStorage: '',
     deployment: DeploymentType.FULL,
     useExternalPostgres: false,
-    isAutomaticBackup: false,
-    automaticBackup: {
-      frequency: '0 0 * * *',
-      copies: 5,
+    isDbBackup: false,
+    dbBackup: {
+      schedule: '0 0 * * *',
+      volumeSnapshot: {
+        maxSnapshots: 5,
+        volumeSnapshotClass: '',
+      },
     },
     externalPostgres: {
       username: '',
@@ -136,10 +139,13 @@ type CreateStorageSystemState = {
     externalStorage: string;
     deployment: DeploymentType;
     useExternalPostgres: boolean;
-    isAutomaticBackup: boolean;
-    automaticBackup: {
-      frequency: string;
-      copies: number;
+    isDbBackup: boolean;
+    dbBackup: {
+      schedule: string;
+      volumeSnapshot: {
+        maxSnapshots: number;
+        volumeSnapshotClass: string;
+      };
     };
     externalPostgres: {
       username: string;
@@ -388,14 +394,19 @@ export const reducer: WizardReducer = (prevState, action) => {
     case 'backingStorage/setExternalStorage':
       newState.backingStorage.externalStorage = action.payload;
       break;
-    case 'backingStorage/automaticBackup/copies':
-      newState.backingStorage.automaticBackup.copies = action.payload;
+    case 'backingStorage/dbBackup/volumeSnapshot/maxSnapshots':
+      newState.backingStorage.dbBackup.volumeSnapshot.maxSnapshots =
+        action.payload;
       break;
-    case 'backingStorage/automaticBackup/frequency':
-      newState.backingStorage.automaticBackup.frequency = action.payload;
+    case 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass':
+      newState.backingStorage.dbBackup.volumeSnapshot.volumeSnapshotClass =
+        action.payload;
       break;
-    case 'backingStorage/setAutomaticBackup':
-      newState.backingStorage.isAutomaticBackup = action.payload;
+    case 'backingStorage/dbBackup/schedule':
+      newState.backingStorage.dbBackup.schedule = action.payload;
+      break;
+    case 'backingStorage/setDbBackup':
+      newState.backingStorage.isDbBackup = action.payload;
       break;
     case 'capacityAndNodes/capacity':
       newState.capacityAndNodes.capacity = action.payload;
@@ -630,14 +641,18 @@ export type CreateStorageSystemAction =
       payload: WizardState['backingStorage']['externalPostgres']['tls']['keys']['public'];
     }
   | {
-      type: 'backingStorage/setAutomaticBackup';
-      payload: WizardState['backingStorage']['isAutomaticBackup'];
+      type: 'backingStorage/setDbBackup';
+      payload: WizardState['backingStorage']['isDbBackup'];
     }
   | {
-      type: 'backingStorage/automaticBackup/copies';
-      payload: WizardState['backingStorage']['automaticBackup']['copies'];
+      type: 'backingStorage/dbBackup/volumeSnapshot/maxSnapshots';
+      payload: WizardState['backingStorage']['dbBackup']['volumeSnapshot']['maxSnapshots'];
     }
   | {
-      type: 'backingStorage/automaticBackup/frequency';
-      payload: WizardState['backingStorage']['automaticBackup']['frequency'];
+      type: 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass';
+      payload: WizardState['backingStorage']['dbBackup']['volumeSnapshot']['volumeSnapshotClass'];
+    }
+  | {
+      type: 'backingStorage/dbBackup/schedule';
+      payload: WizardState['backingStorage']['dbBackup']['schedule'];
     };
