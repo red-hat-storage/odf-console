@@ -70,7 +70,7 @@ export const AccessKeysDetails: React.FC<IamAccesskeysDetailsProps> = ({
   }, [launchModal, userName, triggerRefresh, iamClient]);
 
   React.useEffect(() => {
-    if (fresh) {
+    if (!fresh) {
       refreshUserDetails?.();
       refreshAccessKeys?.();
     }

@@ -199,7 +199,7 @@ type UsersListTableProps = {
   allUsers: IamUserCrFormat[];
   filteredUsers: IamUserCrFormat[];
   loaded: boolean;
-  error: any;
+  error: Error | null;
   triggerRefresh: () => void;
 };
 

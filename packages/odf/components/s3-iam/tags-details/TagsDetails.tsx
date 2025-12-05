@@ -27,7 +27,7 @@ export const TagsDetails: React.FC<TagsDetailsProps> = ({ obj }) => {
   const remainingTags = MAX_TAGS - tags.length;
 
   React.useEffect(() => {
-    if (fresh) {
+    if (!fresh) {
       refreshTokens?.();
     }
   }, [fresh, refreshTokens]);
