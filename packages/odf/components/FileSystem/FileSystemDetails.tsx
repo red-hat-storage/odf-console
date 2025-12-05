@@ -9,7 +9,7 @@ import {
   ResourceYAMLEditor,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { useParams } from 'react-router-dom-v5-compat';
+import { useLocation, useParams } from 'react-router-dom-v5-compat';
 
 type FileSystemDetailsProps = {
   obj: FileSystemKind;
@@ -40,6 +40,8 @@ const YAMLEditor: React.FC<FileSystemDetailsProps> = (props) => {
 export const FileSystemDetailsPage: React.FC = () => {
   const { t } = useCustomTranslation();
   const { name, namespace } = useParams();
+  const location = useLocation();
+  const externalSystemName = location.pathname.split('/')[3];
   const [resource, loaded, loadError] = useK8sWatchResource<FileSystemKind>({
     groupVersionKind: {
       group: FileSystemModel.apiGroup,
@@ -70,7 +72,7 @@ export const FileSystemDetailsPage: React.FC = () => {
     },
     {
       name: SAN_STORAGE_SYSTEM_NAME,
-      path: `/odf/external-systems/scale.spectrum.ibm.com~v1beta1~cluster/${SAN_STORAGE_SYSTEM_NAME}`,
+      path: `/odf/external-systems/scale.spectrum.ibm.com~v1beta1~cluster/${externalSystemName}`,
     },
     {
       name: resource ? getName(resource) : '',

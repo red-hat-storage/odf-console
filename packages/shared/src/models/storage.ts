@@ -62,3 +62,16 @@ export const IBMFlashSystemModel: K8sModel = {
   kind: 'FlashSystemCluster',
   crd: true,
 };
+
+export const CSIDriverModel: K8sModel = {
+  label: 'CSIDriver',
+  labelPlural: 'CSIDrivers',
+  apiVersion: 'v1',
+  apiGroup: 'storage.k8s.io',
+  plural: 'csidrivers',
+  abbr: 'CSI',
+  namespaced: false,
+  kind: 'CSIDriver',
+  id: 'csidriver',
+  crd: true,
+};
