@@ -206,7 +206,7 @@ const PublicAccessBlockContent: React.FC<PublicAccessBlockProps['obj']> = ({
   const { s3Client } = React.useContext(S3Context);
 
   const { data: policyStatus, trigger: triggerPolicyStatus } = useSWRMutation(
-    `${bucketName}-${BUCKET_POLICY_STATUS_CACHE_KEY_SUFFIX}`,
+    `${s3Client.providerType}-${bucketName}-${BUCKET_POLICY_STATUS_CACHE_KEY_SUFFIX}`,
     () => s3Client.getBucketPolicyStatus({ Bucket: bucketName })
   );
   const {
@@ -215,7 +215,7 @@ const PublicAccessBlockContent: React.FC<PublicAccessBlockProps['obj']> = ({
     error,
     trigger: triggerPab,
   } = useSWRMutation(
-    `${bucketName}-${BUCKET_PUBLIC_ACCESS_BLOCK_CACHE_KEY_SUFFIX}`,
+    `${s3Client.providerType}-${bucketName}-${BUCKET_PUBLIC_ACCESS_BLOCK_CACHE_KEY_SUFFIX}`,
     () => s3Client.getPublicAccessBlock({ Bucket: bucketName })
   );
 

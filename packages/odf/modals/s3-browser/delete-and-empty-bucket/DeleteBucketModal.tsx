@@ -64,8 +64,9 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
     data,
     error,
     isLoading: isChecking,
-  } = useSWR(`${bucketName}-${LIST_VERSIONED_OBJECTS}`, () =>
-    s3Client.listObjectVersions({ Bucket: bucketName, MaxKeys: 1 })
+  } = useSWR(
+    `${s3Client.providerType}-${bucketName}-${LIST_VERSIONED_OBJECTS}`,
+    () => s3Client.listObjectVersions({ Bucket: bucketName, MaxKeys: 1 })
   );
   const hasObjects =
     data?.Versions?.length > 0 || data?.DeleteMarkers?.length > 0;

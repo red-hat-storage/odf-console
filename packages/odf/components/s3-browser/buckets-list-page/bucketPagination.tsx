@@ -18,7 +18,7 @@ export const BucketPagination: React.FC<BucketPaginationProps> = ({
 }) => {
   const { s3Client } = React.useContext(S3Context);
   const { data, error, isMutating, trigger } = useSWRMutation(
-    LIST_BUCKET,
+    `${s3Client.providerType}-${LIST_BUCKET}`,
     (_url, { arg }: { arg: string }) =>
       s3Client.listBuckets({
         MaxBuckets: MAX_BUCKETS,

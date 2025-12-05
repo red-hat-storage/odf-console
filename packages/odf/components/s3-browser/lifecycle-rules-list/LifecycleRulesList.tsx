@@ -318,7 +318,7 @@ export const LifecycleRulesList: React.FC<LifecycleRulesListProps> = ({
   const { s3Client } = React.useContext(S3Context);
 
   const { data, isLoading, error, mutate } = useSWR(
-    `${bucketName}-${BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX}`,
+    `${s3Client.providerType}-${bucketName}-${BUCKET_LIFECYCLE_RULE_CACHE_KEY_SUFFIX}`,
     () => s3Client.getBucketLifecycleConfiguration({ Bucket: bucketName }),
     {
       shouldRetryOnError: false,

@@ -85,7 +85,12 @@ export const useStorage = (
     if (local) {
       setSecretRef(local);
       setStorageType(StorageType.Local);
+      return;
     }
+
+    // If no secret ref is found meaning user is not logged in for this provider, so set it to null
+    setSecretRef(null);
+    setStorageType(null);
   }, [provider, isAdmin]);
 
   // Cross-tab updates (only for localStorage)
