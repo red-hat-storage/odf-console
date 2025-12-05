@@ -33,8 +33,7 @@ const AutomaticBackupCard: React.FC = () => {
     ocsData,
     odfNamespace
   );
-  const automaticBackup =
-    storageCluster?.spec?.multiCloudGateway?.automaticBackup;
+  const dbBackup = storageCluster?.spec?.multiCloudGateway?.dbBackup;
 
   return (
     <Card className="odf-overview-card--gradient">
@@ -42,7 +41,7 @@ const AutomaticBackupCard: React.FC = () => {
         <CardTitle>{t('Automatic backup')}</CardTitle>
       </CardHeader>
       <CardBody>
-        {!!automaticBackup?.enabled ? (
+        {!!dbBackup ? (
           <DescriptionList>
             <DetailItem
               key="backupFrequency"
@@ -50,7 +49,7 @@ const AutomaticBackupCard: React.FC = () => {
               isLoading={!ocsLoaded}
               error={ocsError}
             >
-              {automaticBackup.frequency}
+              {dbBackup.schedule}
             </DetailItem>
 
             <DetailItem
@@ -59,7 +58,7 @@ const AutomaticBackupCard: React.FC = () => {
               isLoading={!ocsLoaded}
               error={ocsError}
             >
-              {automaticBackup.copies}
+              {dbBackup.volumeSnapshot?.maxSnapshots}
             </DetailItem>
           </DescriptionList>
         ) : (

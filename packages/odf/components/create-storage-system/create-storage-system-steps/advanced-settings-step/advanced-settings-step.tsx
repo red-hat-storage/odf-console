@@ -14,7 +14,6 @@ import { WizardState, WizardDispatch } from '../../reducer';
 import { EnableNFS } from '../backing-storage-step/enable-nfs';
 import { PostgresConnectionDetails } from '../backing-storage-step/noobaa-external-postgres/postgres-connection-details';
 import { SetCephRBDStorageClassDefault } from '../backing-storage-step/set-rbd-sc-default';
-import './advanced-settings-step.scss';
 import { AutomaticBackup } from './automatic-backup/automatic-backup';
 
 export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
@@ -30,7 +29,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
     externalPostgres,
     useExternalPostgres,
     deployment,
-    isAutomaticBackup,
+    isDbBackup,
     type: backingStorageType,
   } = state;
 
@@ -104,10 +103,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
           />
         )}
         {!hasOCS && (
-          <AutomaticBackup
-            isAutomaticBackup={isAutomaticBackup}
-            dispatch={dispatch}
-          />
+          <AutomaticBackup isDbBackup={isDbBackup} dispatch={dispatch} />
         )}
       </FormGroup>
     </Form>
