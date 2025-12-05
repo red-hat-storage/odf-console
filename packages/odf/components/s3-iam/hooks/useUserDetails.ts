@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { User } from '@aws-sdk/client-iam';
 import { LIST_IAM_USER } from '@odf/core/constants/s3-iam';
 import { IamCommands } from '@odf/shared/iam';
@@ -6,7 +7,7 @@ import useSWR from 'swr';
 export type UseUserDetailsReturn = {
   userDetails: User;
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   refreshTokens: () => Promise<void>;
 };
 
@@ -26,13 +27,17 @@ export const useUserDetails = (
     isLoading,
     error,
     mutate,
-  } = useSWR(`${userName}-${LIST_IAM_USER}`, () =>
-    iamClient.getIamUser({ UserName: userName })
+  } = useSWR(
+    `${userName}-${LIST_IAM_USER}`,
+    () => iamClient.getIamUser({ UserName: userName }),
+    {
+      shouldRetryOnError: false,
+    }
   );
 
   const userDetails = iamUserResponse?.User;
 
-  const refreshTokens = async () => {
+  const refreshTokens = React.useCallback(async () => {
     try {
       await mutate();
     } catch (err) {
@@ -40,7 +45,7 @@ export const useUserDetails = (
       // eslint-disable-next-line no-console
       console.error('Error fetching user details:', err);
     }
-  };
+  }, [mutate]);
 
   return {
     userDetails,

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { AccessKeyMetadata } from '@aws-sdk/client-iam';
 import {
   AccessKeyStatus,
@@ -10,7 +11,7 @@ export type UseUserAccessKeysReturn = {
   iamAccessKeys: AccessKeyMetadata[];
   hasActiveAccessKeys: boolean;
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   refreshTokens: () => Promise<void>;
 };
 
@@ -30,8 +31,12 @@ export const useUserAccessKeys = (
     isLoading,
     error,
     mutate,
-  } = useSWR(`${userName}-${LIST_IAM_USER_ACCESS_KEYS}`, () =>
-    iamClient.listAccessKeys({ UserName: userName })
+  } = useSWR(
+    `${userName}-${LIST_IAM_USER_ACCESS_KEYS}`,
+    () => iamClient.listAccessKeys({ UserName: userName }),
+    {
+      shouldRetryOnError: false,
+    }
   );
 
   const iamAccessKeys = accessKeysResponse?.AccessKeyMetadata || [];
@@ -39,7 +44,7 @@ export const useUserAccessKeys = (
   const hasActiveAccessKeys =
     iamAccessKeys?.some((ak) => ak.Status === AccessKeyStatus.ACTIVE) ?? false;
 
-  const refreshTokens = async () => {
+  const refreshTokens = React.useCallback(async () => {
     try {
       await mutate();
     } catch (err) {
@@ -47,7 +52,7 @@ export const useUserAccessKeys = (
       // eslint-disable-next-line no-console
       console.error('Error fetching access keys:', err);
     }
-  };
+  }, [mutate]);
 
   return {
     iamAccessKeys,
