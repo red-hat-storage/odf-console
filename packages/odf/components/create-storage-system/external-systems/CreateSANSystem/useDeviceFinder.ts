@@ -3,13 +3,13 @@ import {
   DiscoveredDevice,
   GetDevicefinderResponse,
 } from '@odf/core/types/scale';
-import { ODF_PROXY_ROOT_PATH } from '@odf/shared';
+import { UX_BACKEND_PROXY_ROOT_PATH } from '@odf/shared';
 import { useDeepCompareMemoize } from '@odf/shared/hooks';
 import { consoleFetch } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
 import { WizardNodeState } from '../../reducer';
 
-const DEVICE_FINDER_ENDPOINT = `${ODF_PROXY_ROOT_PATH}/ux-backend-server/cnsa/devicefinder`;
+const DEVICE_FINDER_ENDPOINT = `${UX_BACKEND_PROXY_ROOT_PATH}/cnsa/devicefinder`;
 
 const initiateDeviceFinder = async () => {
   await consoleFetch(DEVICE_FINDER_ENDPOINT, {
