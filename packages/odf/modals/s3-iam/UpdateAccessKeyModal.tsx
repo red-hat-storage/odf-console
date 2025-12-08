@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { StatusType } from '@aws-sdk/client-iam';
 import { AccessKeyStatus } from '@odf/core/constants/s3-iam';
 import { useCustomTranslation } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
@@ -17,7 +16,7 @@ import {
 export type UpdateAccessKeyModalProps = {
   name: string;
   AccessKeyId: string;
-  status: StatusType;
+  status: AccessKeyStatus;
   iamClient: IamCommands;
 };
 
