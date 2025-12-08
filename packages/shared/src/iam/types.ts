@@ -19,6 +19,10 @@ import {
   CreateUserCommandOutput,
   TagUserCommandInput,
   TagUserCommandOutput,
+  PutUserPolicyCommandInput,
+  PutUserPolicyCommandOutput,
+  DeleteUserPolicyCommandInput,
+  DeleteUserPolicyCommandOutput,
 } from '@aws-sdk/client-iam';
 
 export type GetUser = (
@@ -60,3 +64,11 @@ export type CreateUser = (
 export type TagUser = (
   input: TagUserCommandInput
 ) => Promise<TagUserCommandOutput>;
+
+export type PutUserPolicy = (
+  input: PutUserPolicyCommandInput
+) => Promise<PutUserPolicyCommandOutput>;
+
+export type DeleteUserPolicy = (
+  input: DeleteUserPolicyCommandInput
+) => Promise<DeleteUserPolicyCommandOutput>;

@@ -42,7 +42,10 @@ import {
   CREATE_IAM_USER_MUTATION_KEY,
   UPDATE_ACCESS_KEY_CLEANUP_MUTATION_KEY,
   DELETE_ACCESS_KEY_CLEANUP_MUTATION_KEY,
+  DELETE_USER_POLICY_CLEANUP_MUTATION_KEY,
   DELETE_IAM_USER_CLEANUP_MUTATION_KEY,
+  POLICY_DOCUMENT,
+  POLICY_NAME,
 } from '../../../constants/s3-iam';
 import {
   AccessKeySecretKeyDisplayModal,
@@ -105,6 +108,20 @@ export const CreateUserFormContent = () => {
   );
 
   const {
+    trigger: deleteUserPolicy,
+    isMutating: isDeletingUserPolicy,
+    error: deleteUserPolicyError,
+  } = useSWRMutation(
+    DELETE_USER_POLICY_CLEANUP_MUTATION_KEY,
+    async (_key, { arg }: { arg: { userName: string } }) => {
+      await iamClient.deleteUserPolicy({
+        UserName: arg.userName,
+        PolicyName: POLICY_NAME,
+      });
+    }
+  );
+
+  const {
     trigger: deleteIAMUser,
     isMutating: isDeletingUser,
     error: deleteUserError,
@@ -118,7 +135,10 @@ export const CreateUserFormContent = () => {
   );
 
   const isCleanupInProgress =
-    isUpdatingAccessKey || isDeletingAccessKey || isDeletingUser;
+    isUpdatingAccessKey ||
+    isDeletingAccessKey ||
+    isDeletingUserPolicy ||
+    isDeletingUser;
 
   const {
     trigger: createUser,
@@ -145,6 +165,7 @@ export const CreateUserFormContent = () => {
       } = arg;
       let userCreated = false;
       let accessKeyCreated = false;
+      let policyCreated = false;
       let accessKeyId: string | undefined;
       let accessKeyResponse: any;
 
@@ -172,6 +193,13 @@ export const CreateUserFormContent = () => {
           Tags: allTags,
         });
 
+        await iamClient.putUserPolicy({
+          UserName: userNameArg,
+          PolicyDocument: POLICY_DOCUMENT,
+          PolicyName: POLICY_NAME,
+        });
+        policyCreated = true;
+
         return {
           accessKeyResponse,
           userCreated,
@@ -180,6 +208,7 @@ export const CreateUserFormContent = () => {
         };
       } catch (error: any) {
         let accessKeyDeleted = false;
+        let policyDeleted = false;
 
         if (accessKeyCreated && accessKeyId) {
           let deactivationSucceeded = false;
@@ -200,7 +229,20 @@ export const CreateUserFormContent = () => {
           accessKeyDeleted = true;
         }
 
-        if (userCreated && accessKeyDeleted) {
+        if (policyCreated) {
+          await deleteUserPolicy({ userName: userNameArg })
+            .then(() => {
+              policyDeleted = true;
+            })
+            .catch(_.noop);
+        } else {
+          // Policy was never created, so no need to delete it
+          policyDeleted = true;
+        }
+
+        // Only delete user if access key and policy cleanup completed successfully
+        // (or if they were never created)
+        if (userCreated && accessKeyDeleted && policyDeleted) {
           await deleteIAMUser({ userName: userNameArg }).catch(_.noop);
         }
 
@@ -260,6 +302,11 @@ export const CreateUserFormContent = () => {
         deleteAccessKeyError?.message || JSON.stringify(deleteAccessKeyError)
       );
     }
+    if (deleteUserPolicyError) {
+      cleanupErrors.push(
+        deleteUserPolicyError?.message || JSON.stringify(deleteUserPolicyError)
+      );
+    }
     if (deleteUserError) {
       cleanupErrors.push(
         deleteUserError?.message || JSON.stringify(deleteUserError)
@@ -283,6 +330,7 @@ export const CreateUserFormContent = () => {
     createError,
     updateAccessKeyError,
     deleteAccessKeyError,
+    deleteUserPolicyError,
     deleteUserError,
     t,
   ]);
