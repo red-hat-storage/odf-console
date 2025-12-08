@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { S3ProviderType } from '@odf/core/types';
-import { PROVIDER_REGISTRY, ProviderConfig } from '../registry/providers';
+import { IAM_PROVIDER_REGISTRY } from '../registry/iam-providers';
+import { S3_PROVIDER_REGISTRY, ProviderConfig } from '../registry/s3-providers';
+import { ClientType } from '../types';
 import { useSystemInfo } from './useSystemInfo';
 
 type UseProviderConfigResult = {
@@ -10,12 +12,16 @@ type UseProviderConfigResult = {
 };
 
 export const useProviderConfig = (
-  providerType: S3ProviderType
+  providerType: S3ProviderType,
+  type: ClientType = ClientType.S3
 ): UseProviderConfigResult => {
   const { data: systemInfo, odfNamespace, isLoading, error } = useSystemInfo();
 
   return React.useMemo(() => {
-    const registryEntry = PROVIDER_REGISTRY[providerType];
+    const registryEntry =
+      type === ClientType.IAM
+        ? IAM_PROVIDER_REGISTRY
+        : S3_PROVIDER_REGISTRY[providerType];
 
     if (registryEntry.staticConfig) {
       const staticConfig = registryEntry.staticConfig;
@@ -46,5 +52,5 @@ export const useProviderConfig = (
       isLoading,
       error,
     };
-  }, [providerType, odfNamespace, systemInfo, isLoading, error]);
+  }, [providerType, type, odfNamespace, systemInfo, isLoading, error]);
 };
