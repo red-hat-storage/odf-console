@@ -6,7 +6,10 @@ import { ProjectModel, SecretModel } from '@odf/shared/models';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidWatchK8sResourceObj } from '@odf/shared/utils';
-import { K8sResourceCommon } from '@openshift-console/dynamic-plugin-sdk';
+import {
+  K8sResourceCommon,
+  k8sGet,
+} from '@openshift-console/dynamic-plugin-sdk';
 import {
   FormGroup,
   Checkbox,
@@ -18,25 +21,33 @@ import {
   TextContent,
   Text,
   TextVariants,
+  Alert,
+  AlertVariant,
 } from '@patternfly/react-core';
 import { LockIcon } from '@patternfly/react-icons';
-import { StorageType, SecretRef } from '../types';
-import './s3LoginForm.scss';
+import { StorageType, SecretRef, ClientType } from '../types';
+import { hasOBCOwnerRef } from '../utils';
+import './loginForm.scss';
 
-export type S3LoginFormProps = {
-  onLogin: (secretRef: SecretRef, storageType: StorageType) => void;
+export type LoginFormProps = {
+  onLogin: (
+    secretRef: SecretRef,
+    storageType: StorageType,
+    hasOBCOwnerRef?: boolean
+  ) => void;
   logout: () => void;
   providerType?: S3ProviderType;
+  type?: ClientType;
 };
 
-type S3LoginBodyProps = {
+type LoginBodyProps = {
   secretRef: SecretRef;
   setSecretRef: React.Dispatch<React.SetStateAction<SecretRef>>;
   storageType: StorageType;
   setStorageType: React.Dispatch<React.SetStateAction<StorageType>>;
 };
 
-export const S3LoginBody: React.FC<S3LoginBodyProps> = ({
+export const LoginBody: React.FC<LoginBodyProps> = ({
   secretRef,
   setSecretRef,
   storageType,
@@ -99,9 +110,10 @@ export const S3LoginBody: React.FC<S3LoginBodyProps> = ({
   );
 };
 
-export const S3LoginForm: React.FC<S3LoginFormProps> = ({
+export const LoginForm: React.FC<LoginFormProps> = ({
   onLogin,
   logout,
+  type = ClientType.S3,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -112,10 +124,49 @@ export const S3LoginForm: React.FC<S3LoginFormProps> = ({
   const [storageType, setStorageType] = React.useState<StorageType>(
     StorageType.Session
   );
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const storeCredentials = () => {
-    logout();
-    onLogin(secretRef, storageType);
+  const storeCredentials = async () => {
+    if (!secretRef.name || !secretRef.namespace) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const secret = await k8sGet({
+        model: SecretModel,
+        name: secretRef.name,
+        ns: secretRef.namespace,
+      });
+
+      const obcOwnerRef = hasOBCOwnerRef(secret);
+
+      // Block login from IAM tab if Secret has OBC owner reference
+      if (obcOwnerRef && type === ClientType.IAM) {
+        setError(
+          t(
+            'IAM is not supported for ObjectBucketClaim accounts. Please select a different Secret.'
+          )
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      logout();
+      onLogin(secretRef, storageType, obcOwnerRef);
+    } catch (err) {
+      setError(
+        err?.message ||
+          t(
+            'Failed to fetch Secret. Please check the Secret name and namespace.'
+          )
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -135,7 +186,17 @@ export const S3LoginForm: React.FC<S3LoginFormProps> = ({
           </TextContent>
         </StackItem>
         <StackItem>
-          <S3LoginBody
+          {error && (
+            <Alert
+              variant={AlertVariant.danger}
+              title={error}
+              isInline
+              className="pf-v5-u-my-md"
+            />
+          )}
+        </StackItem>
+        <StackItem>
+          <LoginBody
             secretRef={secretRef}
             setSecretRef={setSecretRef}
             storageType={storageType}
@@ -146,7 +207,8 @@ export const S3LoginForm: React.FC<S3LoginFormProps> = ({
           <Button
             variant={ButtonVariant.primary}
             onClick={storeCredentials}
-            isDisabled={!secretRef.name || !secretRef.namespace}
+            isDisabled={!secretRef.name || !secretRef.namespace || isLoading}
+            isLoading={isLoading}
           >
             {t('Sign in')}
           </Button>
@@ -156,4 +218,4 @@ export const S3LoginForm: React.FC<S3LoginFormProps> = ({
   );
 };
 
-export default S3LoginForm;
+export default LoginForm;

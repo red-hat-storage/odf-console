@@ -5,19 +5,23 @@ import { StatusBox } from '@odf/shared/generic/status-box';
 import { S3Commands } from '@odf/shared/s3';
 import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
-import { LazyS3LoginForm } from './s3-provider/components/LazyS3Login';
-import { useProviderConfig } from './s3-provider/hooks/useProviderConfig';
-import { useProviderType } from './s3-provider/hooks/useProviderType';
-import { useS3Client } from './s3-provider/hooks/useS3Client';
-import { useSecretData } from './s3-provider/hooks/useSecretData';
-import { useSecretRef } from './s3-provider/hooks/useSecretRef';
-import { useStorage } from './s3-provider/hooks/useStorage';
-import { StorageType, SecretRef } from './s3-provider/types';
+import { LazyLoginForm } from '../s3-common/components/LazyLogin';
+import { useClient } from '../s3-common/hooks/useClient';
+import { useProviderConfig } from '../s3-common/hooks/useProviderConfig';
+import { useProviderType } from '../s3-common/hooks/useProviderType';
+import { useSecretData } from '../s3-common/hooks/useSecretData';
+import { useSecretRef } from '../s3-common/hooks/useSecretRef';
+import { useStorage } from '../s3-common/hooks/useStorage';
+import { StorageType, SecretRef } from '../s3-common/types';
 
 type S3ContextType = {
   s3Client: S3Commands;
   logout?: () => void;
-  setSecretRef?: (value: SecretRef, targetStorageType: StorageType) => void;
+  setSecretRef?: (
+    value: SecretRef,
+    targetStorageType: StorageType,
+    hasOBCOwnerRef?: boolean
+  ) => void;
 };
 
 type S3ProviderProps = {
@@ -62,7 +66,7 @@ export const S3Provider: React.FC<S3ProviderProps> = ({
 
   const { secretData, secretLoaded, secretError } = useSecretData(secretRef);
 
-  const { s3Client, error: s3ClientError } = useS3Client(
+  const { client: s3Client, error: s3ClientError } = useClient(
     secretData,
     secretFieldKeys,
     providerConfig,
@@ -79,7 +83,7 @@ export const S3Provider: React.FC<S3ProviderProps> = ({
 
   const contextData = React.useMemo(
     () => ({
-      s3Client: s3Client || ({} as S3Commands),
+      s3Client: (s3Client as S3Commands) || ({} as S3Commands),
       logout: isAdmin ? undefined : logout,
       setSecretRef: isAdmin ? undefined : setSecretRef,
     }),
@@ -90,7 +94,7 @@ export const S3Provider: React.FC<S3ProviderProps> = ({
     ? false
     : _.isEmpty(secretRef) && secretLoaded;
   if (shouldShowLogin) {
-    return <LazyS3LoginForm onLogin={setSecretRef} logout={logout} />;
+    return <LazyLoginForm onLogin={setSecretRef} logout={logout} />;
   }
 
   if (allLoaded && !anyError) {

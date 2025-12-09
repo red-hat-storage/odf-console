@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ProviderConfig } from '../registry/providers';
+import { ProviderConfig } from '../registry/s3-providers';
 import { SecretRef } from '../types';
 
 export const useSecretRef = (

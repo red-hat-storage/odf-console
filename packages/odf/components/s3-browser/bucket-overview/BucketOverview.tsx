@@ -38,10 +38,10 @@ import {
   MANAGEMENT_ROUTE,
 } from '../../../constants';
 import { getBreadcrumbs } from '../../../utils';
+import { useProviderType } from '../../s3-common/hooks/useProviderType';
 import { CustomActionsToggle } from '../objects-list';
 import { ObjectListWithSidebar } from '../objects-list/ObjectListWithSidebar';
 import { S3Provider, S3Context } from '../s3-context';
-import { useProviderType } from '../s3-provider/hooks/useProviderType';
 import { PageTitle } from './PageTitle';
 import { useBucketOrigin } from './useBucketOrigin';
 import './bucket-overview.scss';

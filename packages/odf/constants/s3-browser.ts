@@ -60,3 +60,6 @@ export const S3_CREDENTIALS_SESSION_STORE_KEY =
   'odf-console-s3-credentials-session';
 export const S3_CREDENTIALS_LOCAL_STORE_KEY =
   'odf-console-s3-credentials-local';
+
+// Custom event name for S3 storage changes (same-tab updates)
+export const ODF_S3_STORAGE_EVENT = 'odf-s3-storage-event';
