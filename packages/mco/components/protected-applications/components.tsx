@@ -25,7 +25,6 @@ import {
   DescriptionListDescription,
   DescriptionListGroup,
   DescriptionListTerm,
-  Label,
   DescriptionList as PFDescriptionList,
   PopoverPosition,
   Tooltip,
@@ -335,9 +334,6 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
           <DescriptionListDescription>
             {enrolledNamespaces.map((namespace: string) => (
               <div key={namespace}>
-                <Label color="green" isCompact className="pf-v5-u-mr-sm">
-                  NS
-                </Label>
                 <ResourceNameWIcon
                   resourceModel={NamespaceModel}
                   resourceName={namespace}
@@ -353,9 +349,6 @@ export const NamespacesDetails: React.FC<ExpandableComponentProps> = ({
           </DescriptionListTerm>
           <DescriptionListDescription>
             <div className="pf-v5-u-display-flex pf-v5-u-align-items-center">
-              <Label color="green" isCompact className="pf-v5-u-mr-sm">
-                NS
-              </Label>
               <ResourceNameWIcon
                 resourceModel={NamespaceModel}
                 resourceName={destinationNamespace}

@@ -24,7 +24,7 @@ import {
   useNavigate,
 } from 'react-router-dom-v5-compat';
 import { ActionsColumn, Td, Tr } from '@patternfly/react-table';
-import { DR_BASE_ROUTE, ApplicationType } from '../../constants';
+import { DR_BASE_ROUTE } from '../../constants';
 import {
   getDRPlacementControlResourceObj,
   getProtectedApplicationViewResourceObj,
@@ -72,8 +72,6 @@ const ProtectedAppsTableRow: React.FC<
   const appName = getApplicationName(pav);
   const drPolicyName = getPAVDRPolicyName(pav);
 
-  const isDiscoveredApp =
-    pav.status?.applicationInfo?.type === ApplicationType.Discovered;
   const isExpanded: boolean =
     expandableComponentType === ExpandableComponentType.NS;
 
@@ -93,24 +91,20 @@ const ProtectedAppsTableRow: React.FC<
   return (
     <>
       <Tr>
-        {isDiscoveredApp ? (
-          <Td
-            data-test="expand-button"
-            expand={{
-              rowIndex: 0,
-              isExpanded: isExpanded,
-              onToggle: () =>
-                setExpandableComponentType(
-                  isExpanded
-                    ? ExpandableComponentType.DEFAULT
-                    : ExpandableComponentType.NS
-                ),
-              expandId: 'expandable-table',
-            }}
-          />
-        ) : (
-          <Td />
-        )}
+        <Td
+          data-test="expand-button"
+          expand={{
+            rowIndex: 0,
+            isExpanded: isExpanded,
+            onToggle: () =>
+              setExpandableComponentType(
+                isExpanded
+                  ? ExpandableComponentType.DEFAULT
+                  : ExpandableComponentType.NS
+              ),
+            expandId: 'expandable-table',
+          }}
+        />
         <Td dataLabel={columnNames[1]}>
           <ResourceLink
             resourceModel={DRPlacementControlModel}
@@ -131,10 +125,12 @@ const ProtectedAppsTableRow: React.FC<
         </Td>
         <Td dataLabel={columnNames[4]}>{getPrimaryCluster(pav) || DASH}</Td>
         <Td isActionCell>
-          <ActionsColumn items={getRowActions(t, launcher, navigate, drpc)} />
+          <ActionsColumn
+            items={getRowActions(t, launcher, navigate, drpc, pav)}
+          />
         </Td>
       </Tr>
-      {isDiscoveredApp && isExpanded && (
+      {isExpanded && (
         <Tr>
           <Td colSpan={Object.keys(columnNames).length + 1}>
             <NamespacesDetails view={pav} />
