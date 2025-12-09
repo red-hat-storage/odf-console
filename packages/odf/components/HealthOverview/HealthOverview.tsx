@@ -108,12 +108,12 @@ const HealthOverview: React.FC = () => {
   return (
     <>
       <PageHeading
-        title={t('DF infrastructure health')}
+        title={t('Infrastructure health')}
         hasUnderline={false}
         breadcrumbs={[
           { name: t('Overview'), path: '/odf/overview' },
           {
-            name: t('DF infrastructure health'),
+            name: t('Infrastructure health'),
             path: '/odf/overview/health',
           },
         ]}

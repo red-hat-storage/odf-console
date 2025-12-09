@@ -1,0 +1,14 @@
+.odf-infrastructure-health-card {
+  &__score {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 120px;
+  }
+
+  &__chart {
+    padding: var(--pf-v5-global--spacer--sm) 0;
+    width: 100%;
+    overflow-x: auto;
+  }
+}
