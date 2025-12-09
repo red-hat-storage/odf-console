@@ -1,9 +1,16 @@
 import * as React from 'react';
 import { MAX_TAGS } from '@odf/core/constants/s3-iam';
 import { IamUserDetails } from '@odf/core/types';
-import { DASH, StatusBox, useCustomTranslation } from '@odf/shared';
+import { DASH, LoadingBox, StatusBox, useCustomTranslation } from '@odf/shared';
 import { SectionHeading } from '@odf/shared/heading/page-heading';
-import { Alert, AlertVariant } from '@patternfly/react-core';
+import { IamCommands } from '@odf/shared/iam';
+import {
+  Alert,
+  AlertVariant,
+  EmptyState,
+  EmptyStateHeader,
+  EmptyStateVariant,
+} from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { useUserDetails } from '../hooks/useUserDetails';
 
@@ -11,32 +18,40 @@ type TagsDetailsProps = {
   obj: IamUserDetails;
 };
 
-export const TagsDetails: React.FC<TagsDetailsProps> = ({ obj }) => {
-  const { t } = useCustomTranslation();
+type TagsDetailsContentProps = {
+  userName: string;
+  iamClient: IamCommands;
+};
 
-  const { userName, iamClient, fresh } = obj;
+const TagsDetailsContent: React.FC<TagsDetailsContentProps> = ({
+  userName,
+  iamClient,
+}) => {
+  const { t } = useCustomTranslation();
 
   const {
     userDetails,
     isLoading: isLoadingUserDetails,
     error: userDetailsError,
-    refreshTokens,
   } = useUserDetails(userName, iamClient);
 
   const tags = userDetails?.Tags || [];
   const remainingTags = MAX_TAGS - tags.length;
-
-  React.useEffect(() => {
-    if (fresh) {
-      refreshTokens?.();
-    }
-  }, [fresh, refreshTokens]);
 
   if (isLoadingUserDetails || userDetailsError) {
     return (
       <StatusBox loaded={!isLoadingUserDetails} loadError={userDetailsError} />
     );
   }
+
+  if (tags.length === 0) {
+    return (
+      <EmptyState variant={EmptyStateVariant.lg}>
+        <EmptyStateHeader titleText={t('No tags found')} headingLevel="h4" />
+      </EmptyState>
+    );
+  }
+
   return (
     <div className="odf-m-pane__body">
       <div className="pf-v5-u-mt-md">
@@ -66,5 +81,15 @@ export const TagsDetails: React.FC<TagsDetailsProps> = ({ obj }) => {
         </Table>
       </div>
     </div>
+  );
+};
+
+export const TagsDetails: React.FC<TagsDetailsProps> = ({ obj }) => {
+  const { userName, iamClient, fresh } = obj;
+
+  return fresh ? (
+    <TagsDetailsContent userName={userName} iamClient={iamClient} />
+  ) : (
+    <LoadingBox />
   );
 };

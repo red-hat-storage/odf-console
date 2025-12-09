@@ -61,6 +61,20 @@ export const GenerateAnotherAccessKeyModal: GenerateAnotherAccessKeyModalProps =
         const response = await iamClient.createAccessKey({
           UserName: userName,
         });
+
+        // Save description as user tag (Key = AccessKeyId, Value = description)
+        if (response.AccessKey && description.trim()) {
+          await iamClient.tagUser({
+            UserName: userName,
+            Tags: [
+              {
+                Key: response.AccessKey.AccessKeyId,
+                Value: description.trim(),
+              },
+            ],
+          });
+        }
+
         closeModal();
         if (response.AccessKey) {
           launchModal(AccessKeySecretKeyDisplayModal, {
@@ -81,6 +95,7 @@ export const GenerateAnotherAccessKeyModal: GenerateAnotherAccessKeyModalProps =
       }
     }, [
       closeModal,
+      description,
       descriptionValidationState,
       iamClient,
       launchModal,

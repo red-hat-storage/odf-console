@@ -4,7 +4,8 @@ import { MAX_ACCESS_KEYS } from '@odf/core/constants/s3-iam';
 import { GenerateAnotherAccessKeyModal } from '@odf/core/modals/s3-iam/GenerateAnotherAccessKeyModal';
 import { IamUserDetails } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared';
-import { StatusBox } from '@odf/shared/generic/status-box';
+import { LoadingBox, StatusBox } from '@odf/shared/generic/status-box';
+import { IamCommands } from '@odf/shared/iam';
 import { useModal } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Alert,
@@ -27,25 +28,25 @@ type IamAccesskeysDetailsProps = {
   obj: IamUserDetails;
 };
 
-/**
- * Displays AccessKeysDetails in a Card.
- * Create Another Accesskey if only one Accesskey exists
- * @param userName @param iamClient
- */
-export const AccessKeysDetails: React.FC<IamAccesskeysDetailsProps> = ({
-  obj,
+type AccessKeysDetailsContentProps = {
+  userName: string;
+  iamClient: IamCommands;
+  triggerRefresh: () => void;
+};
+
+const AccessKeysDetailsContent: React.FC<AccessKeysDetailsContentProps> = ({
+  userName,
+  iamClient,
+  triggerRefresh,
 }) => {
   const { t } = useCustomTranslation();
   const launchModal = useModal();
-
-  const { userName, iamClient, fresh, triggerRefresh } = obj;
 
   // Fetch user details (for tags)
   const {
     userDetails,
     isLoading: isLoadingUserDetails,
     error: userDetailsError,
-    refreshTokens: refreshUserDetails,
   } = useUserDetails(userName, iamClient);
 
   // Fetch user access keys
@@ -53,7 +54,6 @@ export const AccessKeysDetails: React.FC<IamAccesskeysDetailsProps> = ({
     iamAccessKeys,
     isLoading: isLoadingAccessKeys,
     error: accessKeysError,
-    refreshTokens: refreshAccessKeys,
   } = useUserAccessKeys(userName, iamClient);
 
   const tags = userDetails?.Tags || [];
@@ -68,13 +68,6 @@ export const AccessKeysDetails: React.FC<IamAccesskeysDetailsProps> = ({
       iamClient,
     });
   }, [launchModal, userName, triggerRefresh, iamClient]);
-
-  React.useEffect(() => {
-    if (fresh) {
-      refreshUserDetails?.();
-      refreshAccessKeys?.();
-    }
-  }, [fresh, refreshUserDetails, refreshAccessKeys]);
 
   if (isLoading || error) {
     return <StatusBox loaded={!isLoading} loadError={error} />;
@@ -141,5 +134,26 @@ export const AccessKeysDetails: React.FC<IamAccesskeysDetailsProps> = ({
         )}
       </div>
     </div>
+  );
+};
+
+/**
+ * Displays AccessKeysDetails in a Card.
+ * Create Another Accesskey if only one Accesskey exists
+ * @param userName @param iamClient @param fresh @param triggerRefresh
+ */
+export const AccessKeysDetails: React.FC<IamAccesskeysDetailsProps> = ({
+  obj,
+}) => {
+  const { userName, iamClient, fresh, triggerRefresh } = obj;
+
+  return fresh ? (
+    <AccessKeysDetailsContent
+      userName={userName}
+      iamClient={iamClient}
+      triggerRefresh={triggerRefresh}
+    />
+  ) : (
+    <LoadingBox />
   );
 };

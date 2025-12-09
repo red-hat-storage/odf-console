@@ -119,6 +119,7 @@ const HeaderActions: React.FC<HeaderProps> = ({ headerProps }) => {
                 name: accessKeyCard.UserName,
                 AccessKeyId: accessKeyCard.AccessKeyId,
                 iamClient,
+                refreshTokens,
               },
             })
           }
