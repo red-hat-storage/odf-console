@@ -73,7 +73,6 @@ export const createSteps = ({
           dispatch={dispatch}
           protectedPVCSelectors={protectedPVCSelectors}
           pvcQueryFilter={pvcQueryFilter}
-          isVolumeConsistencyEnabled={state.enableVolumeConsistencyGroup}
         />
       ),
     },
