@@ -1,8 +1,9 @@
 export const USERS_CREATE_PAGE_PATH = '/odf/object-storage/iam/create-user';
 export const IAM_BASE_ROUTE = '/odf/object-storage/iam';
 
+export const GET_IAM_USER = 'GET_IAM_USER_CACHE_KEY';
+
 export const LIST_IAM_USERS = 'LIST_IAM_USERS_CACHE_KEY';
-export const LIST_IAM_USER = 'LIST_IAM_USER_CACHE_KEY';
 export const LIST_IAM_USER_TAGS = 'LIST_IAM_USER_TAGS_CACHE_KEY';
 export const LIST_IAM_USER_ACCESS_KEYS = 'LIST_IAM_USER_ACCESS_KEYS_CACHE_KEY';
 

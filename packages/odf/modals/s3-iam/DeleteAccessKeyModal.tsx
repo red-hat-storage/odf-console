@@ -59,6 +59,12 @@ const DeleteAccessKeyModal: React.FC<
           AccessKeyId: accessKeyCard.AccessKeyId,
         });
 
+        // Remove the description tag (Key = AccessKeyId)
+        await iamClient.untagUser({
+          UserName: accessKeyCard.UserName,
+          TagKeys: [accessKeyCard.AccessKeyId],
+        });
+
         setInProgress(false);
         closeModal();
         refreshTokens?.();
