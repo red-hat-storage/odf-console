@@ -1,9 +1,5 @@
 import * as React from 'react';
-import {
-  DISCOVERED_APP_NS,
-  KUBE_INSTANCE_LABEL,
-  ODF_RESOURCE_TYPE_LABEL,
-} from '@odf/mco/constants';
+import { DISCOVERED_APP_NS, KUBE_INSTANCE_LABEL } from '@odf/mco/constants';
 import {
   getApplicationResourceObj,
   getApplicationSetResourceObj,
@@ -19,26 +15,50 @@ import {
   getLabelsFromSearchResult,
   queryApplicationSetResourcesForVM,
   querySubscriptionResourcesForVM,
+  getVMClusterName,
+  findDRPCByNsClusterAndVMName,
 } from '@odf/mco/utils';
 import {
   ACMSubscriptionModel,
   ApplicationKind,
   ArgoApplicationSetModel,
   getLabel,
+  getLabels,
   getName,
   getNamespace,
-  VirtualMachineModel,
 } from '@odf/shared';
 import {
   K8sResourceCommon,
   useK8sWatchResource,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { findDRPCUsingVM } from '../../modals/app-manage-policies/utils/parser-utils';
 import {
   ApplicationSetParser,
   SubscriptionParser,
   DiscoveredParser,
 } from '../parsers';
+
+const useGetVMDRPC = (
+  virtualMachine: K8sResourceCommon
+): DRPlacementControlKind | undefined => {
+  const vmName = getName(virtualMachine);
+  const vmNamespace = getNamespace(virtualMachine);
+  const vmCluster = getVMClusterName(virtualMachine);
+  const vmLabels = getLabels(virtualMachine);
+
+  const [drpcs, loaded, loadError] = useK8sWatchResource<
+    DRPlacementControlKind[]
+  >(getDRPlacementControlResourceObj({ namespace: DISCOVERED_APP_NS }));
+
+  if (!loaded || loadError) return undefined;
+
+  return findDRPCByNsClusterAndVMName(
+    drpcs,
+    vmNamespace,
+    vmCluster,
+    vmName,
+    vmLabels
+  );
+};
 
 const ApplicationSetHelper: React.FC<ParserHelperProps> = ({
   vmName,
@@ -65,32 +85,12 @@ const SubscriptionHelper: React.FC<ParserHelperProps> = ({
   return <SubscriptionParser application={resource} />;
 };
 
-const DiscoveredHelper: React.FC<ParserHelperProps> = ({
-  vmName,
-  vmNamespace,
-  clusterName,
+const DiscoveredHelper: React.FC<{ application?: DRPlacementControlKind }> = ({
+  application,
 }) => {
-  const [drpcs, loaded, loadError] = useK8sWatchResource<
-    DRPlacementControlKind[]
-  >(
-    getDRPlacementControlResourceObj({
-      namespace: DISCOVERED_APP_NS,
-      selector: {
-        matchLabels: {
-          // To optimize the VM DRPC watch
-          [ODF_RESOURCE_TYPE_LABEL]: VirtualMachineModel.kind.toLowerCase(),
-        },
-      },
-    })
-  );
+  if (!application) return null;
 
-  const drpc = React.useMemo(
-    () => findDRPCUsingVM(drpcs, vmName, vmNamespace, clusterName),
-    [vmName, vmNamespace, drpcs, clusterName]
-  );
-
-  if (!loaded || loadError || !drpc) return null;
-  return <DiscoveredParser application={drpc} />;
+  return <DiscoveredParser application={application} />;
 };
 
 export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
@@ -98,8 +98,10 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
 }) => {
   const vmName = getName(virtualMachine);
   const vmNamespace = getNamespace(virtualMachine);
-  const clusterName = virtualMachine?.['status']?.cluster;
+  const clusterName = getVMClusterName(virtualMachine);
   const argoApplicationName = getLabel(virtualMachine, KUBE_INSTANCE_LABEL);
+
+  const vmDRPC = useGetVMDRPC(virtualMachine);
 
   // ACM search API call to find managed application resource
   const searchQuery = React.useMemo(
@@ -110,7 +112,12 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
     [vmName, vmNamespace, clusterName, argoApplicationName]
   );
 
-  const [searchResult] = useACMSafeFetch(searchQuery);
+  const [searchResult, searchError, searchLoaded] =
+    useACMSafeFetch(searchQuery);
+
+  if (!searchLoaded || searchError) {
+    return null;
+  }
 
   // Extract managed application CR (Application / ApplicationSet)
   const managedApplication: SearchResultItemType =
@@ -131,13 +138,7 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
     );
   }
 
-  return (
-    <DiscoveredHelper
-      vmName={vmName}
-      vmNamespace={vmNamespace}
-      clusterName={clusterName}
-    />
-  );
+  return <DiscoveredHelper application={vmDRPC} />;
 };
 
 type VirtualMachineParserProps = {
