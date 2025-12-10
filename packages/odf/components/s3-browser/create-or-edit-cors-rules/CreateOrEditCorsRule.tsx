@@ -127,7 +127,7 @@ const CreateOrEditCorsForm: React.FC<IsEditProp> = ({ isEdit }) => {
     error: getError,
     mutate,
   } = useSWR(
-    `${bucketName}-${BUCKET_CORS_RULE_CACHE_KEY_SUFFIX}`,
+    `${s3Client.providerType}-${bucketName}-${BUCKET_CORS_RULE_CACHE_KEY_SUFFIX}`,
     () => s3Client.getBucketCors({ Bucket: bucketName }),
     {
       shouldRetryOnError: false,

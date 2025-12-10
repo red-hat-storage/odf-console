@@ -25,11 +25,16 @@ export type EditDescriptionTagModalProps = {
   name: string;
   AccessKeyId: string;
   iamClient: IamCommands;
+  refreshTokens: () => void;
 };
 
 const EditDescriptionTagModal: React.FC<
   CommonModalProps<EditDescriptionTagModalProps>
-> = ({ closeModal, isOpen, extraProps: { name, AccessKeyId, iamClient } }) => {
+> = ({
+  closeModal,
+  isOpen,
+  extraProps: { name, AccessKeyId, iamClient, refreshTokens },
+}) => {
   const { t } = useCustomTranslation();
   const [descriptionTagValue, setDescriptionTagValue] =
     React.useState<string>('');
@@ -72,6 +77,7 @@ const EditDescriptionTagModal: React.FC<
       });
       setInProgress(false);
       closeModal();
+      refreshTokens?.();
     } catch (err) {
       setInProgress(false);
       setError(err as Error);

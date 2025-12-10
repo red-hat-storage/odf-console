@@ -5,6 +5,7 @@ import {
   LocalDiskKind,
 } from '@odf/core/types/scale';
 import {
+  CSIDriverModel,
   getName,
   StorageClassModel,
   StorageClassResourceKind,
@@ -155,4 +156,23 @@ export const createStorageClass = async (
       })
     );
   }
+};
+
+export const createCSIDriver = () => {
+  const payload = {
+    apiVersion: 'storage.k8s.io/v1',
+    kind: CSIDriverModel.kind,
+    metadata: {
+      name: 'spectrumscale.csi.ibm.com',
+    },
+    spec: {
+      attachRequired: true,
+      fsGroupPolicy: 'File',
+      podInfoOnMount: true,
+    },
+  };
+  return k8sCreate({
+    model: CSIDriverModel,
+    data: payload,
+  });
 };

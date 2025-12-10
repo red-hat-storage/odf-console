@@ -3,12 +3,14 @@ import { S3ProviderType } from '@odf/core/types';
 import {
   S3_CREDENTIALS_SESSION_STORE_KEY,
   S3_CREDENTIALS_LOCAL_STORE_KEY,
-} from '../../../../constants';
+  ODF_S3_STORAGE_EVENT,
+} from '../../../constants';
 import {
   StorageType,
   SecretRef,
   StoredCredentials,
   SetSecretRefWithStorage,
+  StoredCredentialData,
 } from '../types';
 
 const readStore = (storageType: StorageType): StoredCredentials => {
@@ -76,16 +78,27 @@ export const useStorage = (
 
     const session = readStore(StorageType.Session)[provider];
     if (session) {
-      setSecretRef(session);
+      // Extract SecretRef from StoredCredentialData
+      const { hasOBCOwnerRef: unusedHasOBCOwnerRef, ...extractedSecretRef } =
+        session;
+      setSecretRef(extractedSecretRef);
       setStorageType(StorageType.Session);
       return;
     }
 
     const local = readStore(StorageType.Local)[provider];
     if (local) {
-      setSecretRef(local);
+      // Extract SecretRef from StoredCredentialData
+      const { hasOBCOwnerRef: unusedHasOBCOwnerRef, ...extractedSecretRef } =
+        local;
+      setSecretRef(extractedSecretRef);
       setStorageType(StorageType.Local);
+      return;
     }
+
+    // If no secret ref is found meaning user is not logged in for this provider, so set it to null
+    setSecretRef(null);
+    setStorageType(null);
   }, [provider, isAdmin]);
 
   // Cross-tab updates (only for localStorage)
@@ -95,7 +108,7 @@ export const useStorage = (
     const onStorage = (e: StorageEvent) => {
       if (e.key === S3_CREDENTIALS_LOCAL_STORE_KEY) {
         try {
-          const parsed: StoredCredentials = JSON.parse(e.newValue);
+          const parsed: StoredCredentials = JSON.parse(e.newValue || '{}');
           // "provider" is the S3 provider of the current tab
           const updated = parsed?.[provider];
 
@@ -104,7 +117,12 @@ export const useStorage = (
           // This ensures that changes to other providers don't affect this tab.
           if (storageType !== StorageType.Session) {
             if (updated) {
-              setSecretRef(updated);
+              // Extract SecretRef from StoredCredentialData
+              const {
+                hasOBCOwnerRef: unusedHasOBCOwnerRef,
+                ...extractedSecretRef
+              } = updated;
+              setSecretRef(extractedSecretRef);
               setStorageType(StorageType.Local);
             } else {
               // Provider was removed from local storage
@@ -124,15 +142,31 @@ export const useStorage = (
   }, [provider, storageType, secretRef, isAdmin]);
 
   const setSecretRefWithStorage: SetSecretRefWithStorage = React.useCallback(
-    (value, targetStorageType) => {
+    (value, targetStorageType, hasOBCOwnerRef = false) => {
       if (isAdmin) return;
 
       const currentData = readStore(targetStorageType);
-      const updatedData = { ...currentData, [provider]: value };
+      const credentialData: StoredCredentialData = {
+        ...value,
+        hasOBCOwnerRef,
+      };
+      const updatedData = { ...currentData, [provider]: credentialData };
       writeStore(targetStorageType, updatedData);
 
       setSecretRef(value);
       setStorageType(targetStorageType);
+
+      // Dispatch custom event for same-tab updates (works for both session and local storage)
+      // For now only needed for Noobaa provider (to hide/show IAM tab)
+      if (provider === S3ProviderType.Noobaa) {
+        const event = new CustomEvent(ODF_S3_STORAGE_EVENT, {
+          detail: {
+            filterIamTab: hasOBCOwnerRef,
+            providerType: provider,
+          },
+        });
+        window.dispatchEvent(event);
+      }
     },
     [provider, isAdmin, setSecretRef, setStorageType]
   );
@@ -161,6 +195,18 @@ export const useStorage = (
 
     setSecretRef(null);
     setStorageType(null);
+
+    // Dispatch custom event for same-tab updates (works for both session and local storage)
+    // For now only needed for Noobaa provider (to show IAM tab when user logs out)
+    if (provider === S3ProviderType.Noobaa) {
+      const event = new CustomEvent(ODF_S3_STORAGE_EVENT, {
+        detail: {
+          filterIamTab: false,
+          providerType: provider,
+        },
+      });
+      window.dispatchEvent(event);
+    }
   }, [provider, storageType, isAdmin, setSecretRef, setStorageType]);
 
   return {

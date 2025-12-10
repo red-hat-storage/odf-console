@@ -10,6 +10,9 @@ import {
   CreateAccessKeyCommand,
   CreateUserCommand,
   TagUserCommand,
+  PutUserPolicyCommand,
+  DeleteUserPolicyCommand,
+  UntagUserCommand,
 } from '@aws-sdk/client-iam';
 import {
   GetUser,
@@ -22,6 +25,9 @@ import {
   CreateAccessKey,
   CreateUser,
   TagUser,
+  PutUserPolicy,
+  DeleteUserPolicy,
+  UntagUser,
 } from './types';
 
 export class IamCommands extends IAMClient {
@@ -63,4 +69,12 @@ export class IamCommands extends IAMClient {
     this.send(new CreateUserCommand(input));
 
   tagUser: TagUser = (input) => this.send(new TagUserCommand(input));
+
+  putUserPolicy: PutUserPolicy = (input) =>
+    this.send(new PutUserPolicyCommand(input));
+
+  deleteUserPolicy: DeleteUserPolicy = (input) =>
+    this.send(new DeleteUserPolicyCommand(input));
+
+  untagUser: UntagUser = (input) => this.send(new UntagUserCommand(input));
 }

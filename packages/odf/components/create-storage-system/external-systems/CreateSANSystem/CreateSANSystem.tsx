@@ -30,6 +30,7 @@ import { NodesSection } from '../common/NodesSection';
 import { createScaleLocalClusterPayload, labelNodes } from '../common/payload';
 import { LUNsTable } from './LUNsTable';
 import {
+  createCSIDriver,
   createLocalDisks,
   createLocalFileSystem,
   createStorageClass,
@@ -88,6 +89,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
       if (!isLocalClusterConfigured) {
         await labelNodes(componentState.selectedNodes)();
         await createScaleLocalClusterPayload(false)();
+        await createCSIDriver();
       }
       const localDisks = await createLocalDisks(mappedLuns, t);
       const fileSystem = await createLocalFileSystem(

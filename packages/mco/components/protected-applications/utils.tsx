@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ProtectedApplicationViewKind } from '@odf/mco/types/pav';
 import { DRPlacementControlModel } from '@odf/shared';
 import { ActionDropdownItems } from '@odf/shared/dropdown/action-dropdown';
 import { getName, getNamespace } from '@odf/shared/selectors';
@@ -25,9 +26,12 @@ import {
   DR_BASE_ROUTE,
   DRActionType,
   ReplicationType,
+  ApplicationType,
 } from '../../constants';
 import { DRPlacementControlKind, Progression } from '../../types';
 import { DRPlacementControlParser } from '../modals/app-failover-relocate/parser/discovered-application-parser';
+import { AppManagePoliciesModalWrapper } from '../modals/protected-applications/app-manage-policies-modal-wrapper';
+import { ApplicationActionModal } from '../modals/protected-applications/applications-action-modal';
 import RemoveDisasterRecoveryModal from '../modals/remove-disaster-recovery/remove-disaster-recovery';
 
 export const drpcDetailsPageRoute = (drpc: DRPlacementControlKind) =>
@@ -228,11 +232,27 @@ export const getRowActions = (
   t: TFunction<string>,
   launcher: LaunchModal,
   navigate: NavigateFunction,
-  rowItem: DRPlacementControlKind | undefined
+  drpc: DRPlacementControlKind | undefined,
+  pav: ProtectedApplicationViewKind
 ): IAction[] => {
-  if (!rowItem) {
+  if (!drpc) {
     return [];
   }
+
+  const appInfo = pav.status?.applicationInfo;
+  const isDiscoveredApp = appInfo?.type === ApplicationType.Discovered;
+
+  const launchDRAction = (action: DRActionType) =>
+    isDiscoveredApp
+      ? launcher(DRPlacementControlParser, {
+          isOpen: true,
+          extraProps: { application: drpc, action },
+        })
+      : launcher(ApplicationActionModal, {
+          isOpen: true,
+          extraProps: { pav, action },
+        });
+
   return [
     {
       title: (
@@ -243,7 +263,7 @@ export const getRowActions = (
           </p>
         </>
       ),
-      onClick: () => navigate(`${drpcDetailsPageRoute(rowItem)}/yaml`),
+      onClick: () => navigate(`${drpcDetailsPageRoute(drpc)}/yaml`),
     },
     {
       title: (
@@ -254,11 +274,7 @@ export const getRowActions = (
           </p>
         </>
       ),
-      onClick: () =>
-        launcher(DRPlacementControlParser, {
-          isOpen: true,
-          extraProps: { application: rowItem, action: DRActionType.FAILOVER },
-        }),
+      onClick: () => launchDRAction(DRActionType.FAILOVER),
     },
     {
       title: (
@@ -269,32 +285,41 @@ export const getRowActions = (
           </p>
         </>
       ),
-      onClick: () =>
-        launcher(DRPlacementControlParser, {
-          isOpen: true,
-          extraProps: { application: rowItem, action: DRActionType.RELOCATE },
-        }),
+      onClick: () => launchDRAction(DRActionType.RELOCATE),
     },
-    {
-      title: t('Remove disaster recovery'),
-      ...(_.has(rowItem.metadata, 'deletionTimestamp')
-        ? {
+    isDiscoveredApp
+      ? {
+          title: t('Remove disaster recovery'),
+          ...(_.has(drpc.metadata, 'deletionTimestamp') && {
             isAriaDisabled: true,
             tooltipProps: {
               content: t('Resource is being deleted.'),
               trigger: 'mouseenter',
             },
-          }
-        : {}),
-      onClick: () =>
-        launcher(RemoveDisasterRecoveryModal, {
-          isOpen: true,
-          extraProps: { application: rowItem },
-        }),
-    },
+          }),
+          onClick: () =>
+            launcher(RemoveDisasterRecoveryModal, {
+              isOpen: true,
+              extraProps: { application: drpc },
+            }),
+        }
+      : {
+          title: (
+            <>
+              {t('Manage disaster recovery')}
+              <p className="text-muted pf-v5-u-font-size-xs">
+                {t('Update DR policies and configuration')}
+              </p>
+            </>
+          ),
+          onClick: () =>
+            launcher(AppManagePoliciesModalWrapper, {
+              isOpen: true,
+              extraProps: { pav },
+            }),
+        },
   ];
 };
-
 export const enum EnrollApplicationTypes {
   CHOOSE_TYPE = 'CHOOSE_TYPE',
   DISCOVERED = 'DISCOVERED',

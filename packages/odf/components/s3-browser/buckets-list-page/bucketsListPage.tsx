@@ -37,13 +37,13 @@ import { SyncAltIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { getBucketCreatePageRoute } from '../../../constants';
 import { BucketCrFormat } from '../../../types';
-import { S3Provider, S3Context } from '../s3-context';
-import { LazyS3LoginModal } from '../s3-provider/components/LazyS3Login';
+import { LazyLoginModal } from '../../s3-common/components/LazyLogin';
 import {
   useSystemInfo,
   SystemInfoData,
-} from '../s3-provider/hooks/useSystemInfo';
-import { SetSecretRefWithStorage } from '../s3-provider/types';
+} from '../../s3-common/hooks/useSystemInfo';
+import { SetSecretRefWithStorage, ClientType } from '../../s3-common/types';
+import { S3Provider, S3Context } from '../s3-context';
 import { BucketsListTable } from './bucketListTable';
 import { BucketPagination } from './bucketPagination';
 
@@ -60,23 +60,25 @@ type StorageEndpointProps = {
   systemInfo: SystemInfoData;
 };
 
-const getAccountActionsItems = (
+export const getAccountActionsItems = (
   t: TFunction,
   launcher: LaunchModal,
   providerType: S3ProviderType,
   logout: () => void,
-  setSecretRef: SetSecretRefWithStorage
+  setSecretRef: SetSecretRefWithStorage,
+  clientType?: ClientType
 ): IAction[] => [
   {
     title: t('Sign in to another account'),
     description: t('You will be signed out of this account.'),
     onClick: () =>
-      launcher(LazyS3LoginModal, {
+      launcher(LazyLoginModal, {
         isOpen: true,
         extraProps: {
           providerType,
           logout,
           onLogin: setSecretRef,
+          type: clientType,
         },
       }),
   },
@@ -85,6 +87,12 @@ const getAccountActionsItems = (
     onClick: () => logout(),
   },
 ];
+
+export const getAcountBadge = (t: TFunction) => (
+  <Label color="green" icon={<InfoCircleIcon />}>
+    {t('Signed in with credentials')}
+  </Label>
+);
 
 const BucketsListPageBody: React.FC<BucketsListPageBodyProps> = ({
   bucketInfo,
@@ -170,15 +178,7 @@ const BucketsListPageContent: React.FC = () => {
       <ListPageHeader
         title={t('Buckets')}
         helpText={t('Browse, upload, and manage objects in buckets.')}
-        {...(!isAdmin
-          ? {
-              badge: (
-                <Label color="green" icon={<InfoCircleIcon />}>
-                  {t('Signed in with credentials')}
-                </Label>
-              ),
-            }
-          : {})}
+        {...(!isAdmin ? { badge: getAcountBadge(t) } : {})}
       >
         <ListPageCreateLink to={getBucketCreatePageRoute(providerType)}>
           {t('Create bucket')}

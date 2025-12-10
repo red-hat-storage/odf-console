@@ -11,6 +11,7 @@ import { ButtonBar } from '@odf/shared/generic/ButtonBar';
 import { LocalDiskModel } from '@odf/shared/models/scale';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
+import * as _ from 'lodash-es';
 import {
   Button,
   ButtonVariant,
@@ -89,7 +90,9 @@ const AddLunGroupModal: React.FC<AddLunGroupModalProps> = ({
             <Button
               variant={ButtonVariant.primary}
               onClick={createLunGroup}
-              isDisabled={inProgress}
+              isDisabled={
+                inProgress || _.isEmpty(selectedLUNs) || !lunGroupName
+              }
               isLoading={inProgress}
             >
               {t('Connect and create')}

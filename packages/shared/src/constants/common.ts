@@ -16,6 +16,7 @@ export const ONE_MINUTE = 60 * ONE_SECOND;
 export const ONE_HOUR = 60 * ONE_MINUTE;
 export const MINUTES_IN_DAY = 24 * 60;
 export const TWENTY_FOUR_HOURS = 24 * ONE_HOUR;
+export const SAMPLE_STEP_SECONDS = 60;
 export const ALERTMANAGER_SILENCES_PATH = 'api/v2/silences';
 export const getAlertManagerSilenceEndpoint = (
   basePath: string,
@@ -45,6 +46,7 @@ export const ODF_PLUGIN_BUILD_NAME = 'odf';
 export const CONSOLE_PROXY_ROOT_PATH = '/api/proxy/plugin';
 export const ODF_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-console`;
 export const MCO_PROXY_ROOT_PATH = `${CONSOLE_PROXY_ROOT_PATH}/odf-multicluster-console`;
+export const UX_BACKEND_PROXY_ROOT_PATH = `${ODF_PROXY_ROOT_PATH}/provider-proxy`;
 
 // Infrastructure.
 

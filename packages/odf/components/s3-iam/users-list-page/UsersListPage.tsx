@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { USERS_CREATE_PAGE_PATH } from '@odf/core/constants/s3-iam';
-import { IamUserCrFormat } from '@odf/core/types';
+import { ODF_ADMIN } from '@odf/core/features';
+import { IamUserCrFormat, S3ProviderType } from '@odf/core/types';
 import { useRefresh } from '@odf/shared/hooks';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidFilteredData } from '@odf/shared/utils';
@@ -9,11 +10,19 @@ import {
   ListPageCreateLink,
   ListPageFilter,
   ListPageHeader,
+  useFlag,
+  useModal,
   useListPageFilter,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Button, ButtonVariant, Flex, FlexItem } from '@patternfly/react-core';
 import { SyncAltIcon } from '@patternfly/react-icons';
-import { IamProvider } from '../iam-context';
+import { ActionsColumn } from '@patternfly/react-table';
+import {
+  getAcountBadge,
+  getAccountActionsItems,
+} from '../../s3-browser/buckets-list-page/bucketsListPage';
+import { ClientType } from '../../s3-common/types';
+import { IamContext, IamProvider } from '../iam-context';
 import { UsersListTable } from './UsersListTable';
 import { UsersPagination } from './UsersPagination';
 
@@ -84,12 +93,31 @@ const UsersListPageContent: React.FC = () => {
     undefined,
   ]);
 
+  const isAdmin = useFlag(ODF_ADMIN);
+  const { logout, setSecretRef } = React.useContext(IamContext);
+  const launcher = useModal();
+
   return (
     <>
-      <ListPageHeader title={t('IAM user')}>
+      <ListPageHeader
+        title={t('IAM user')}
+        {...(!isAdmin ? { badge: getAcountBadge(t) } : {})}
+      >
         <ListPageCreateLink to={USERS_CREATE_PAGE_PATH}>
           {t('Create IAM user')}
         </ListPageCreateLink>
+        {!isAdmin && (
+          <ActionsColumn
+            items={getAccountActionsItems(
+              t,
+              launcher,
+              S3ProviderType.Noobaa,
+              logout,
+              setSecretRef,
+              ClientType.IAM
+            )}
+          />
+        )}
       </ListPageHeader>
       <div className="pf-v5-u-ml-lg pf-v5-u-mr-lg text-muted">
         {t('IAM account is used to manage users, access keys and policies')}
@@ -101,7 +129,7 @@ const UsersListPageContent: React.FC = () => {
 
 const UsersListPage: React.FC = () => {
   return (
-    <IamProvider loading={false}>
+    <IamProvider>
       <UsersListPageContent />
     </IamProvider>
   );

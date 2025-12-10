@@ -1,8 +1,9 @@
 export const USERS_CREATE_PAGE_PATH = '/odf/object-storage/iam/create-user';
 export const IAM_BASE_ROUTE = '/odf/object-storage/iam';
 
+export const GET_IAM_USER = 'GET_IAM_USER_CACHE_KEY';
+
 export const LIST_IAM_USERS = 'LIST_IAM_USERS_CACHE_KEY';
-export const LIST_IAM_USER = 'LIST_IAM_USER_CACHE_KEY';
 export const LIST_IAM_USER_TAGS = 'LIST_IAM_USER_TAGS_CACHE_KEY';
 export const LIST_IAM_USER_ACCESS_KEYS = 'LIST_IAM_USER_ACCESS_KEYS_CACHE_KEY';
 
@@ -12,6 +13,8 @@ export const UPDATE_ACCESS_KEY_CLEANUP_MUTATION_KEY =
   'update-access-key-cleanup';
 export const DELETE_ACCESS_KEY_CLEANUP_MUTATION_KEY =
   'delete-access-key-cleanup';
+export const DELETE_USER_POLICY_CLEANUP_MUTATION_KEY =
+  'delete-user-policy-cleanup';
 export const DELETE_IAM_USER_CLEANUP_MUTATION_KEY = 'delete-iam-user-cleanup';
 
 export const MAX_USERS = 50;
@@ -38,3 +41,8 @@ export const TAG_VALUE_ALLOWED_CHARS_REGEX = /^[\p{L}\p{Z}\p{N}_.:/=+\-@]*$/u;
 export const USER_NAME_MIN_LENGTH = 1;
 export const USER_NAME_MAX_LENGTH = 64;
 export const USER_NAME_ALLOWED_CHARS_REGEX = /^[A-Za-z0-9+=,.@_-]*$/;
+
+//default IAM policy for a user
+export const POLICY_DOCUMENT =
+  '{ "Version": "2012-10-17", "Statement": [ { "Effect": "Allow", "Action": [ "s3:*" ], "Resource": "*" } ] }';
+export const POLICY_NAME = 'policy_allow_all_s3_actions';

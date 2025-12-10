@@ -52,8 +52,8 @@ const getUsersActionsItems = (
 const getColumnNames = (t: TFunction<string>) => [
   '', // favorites
   t('Name'),
-  t('Tags'),
   t('Creation Date'),
+  t('Last activity'),
   '', // action kebab
 ];
 
@@ -110,11 +110,12 @@ const UsersTableRow: React.FC<RowComponentType<IamUserCrFormat>> = ({
 
   const userName = user.UserName || DASH;
 
-  const tags = user.Tags || [];
-  const tagCount = Array.isArray(tags) ? tags.length : 0;
-
   const creationDate = user.CreateDate
     ? new Date(user.CreateDate).toLocaleDateString()
+    : DASH;
+
+  const passwordLastUsed = user.PasswordLastUsed
+    ? new Date(user.PasswordLastUsed).toLocaleDateString()
     : DASH;
 
   const path = `${IAM_BASE_ROUTE}/${userName}`;
@@ -140,8 +141,8 @@ const UsersTableRow: React.FC<RowComponentType<IamUserCrFormat>> = ({
       <Td dataLabel={columnNames[1]}>
         <Link to={path}>{userName}</Link>
       </Td>
-      <Td dataLabel={columnNames[2]}>{tagCount}</Td>
-      <Td dataLabel={columnNames[3]}>{creationDate}</Td>
+      <Td dataLabel={columnNames[2]}>{creationDate}</Td>
+      <Td dataLabel={columnNames[3]}>{passwordLastUsed}</Td>
       <Td dataLabel={columnNames[4]} isActionCell>
         <ActionsColumn
           items={getUsersActionsItems(
@@ -199,7 +200,7 @@ type UsersListTableProps = {
   allUsers: IamUserCrFormat[];
   filteredUsers: IamUserCrFormat[];
   loaded: boolean;
-  error: any;
+  error: Error | null;
   triggerRefresh: () => void;
 };
 

@@ -14,13 +14,17 @@ import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Td } from '@patternfly/react-table';
 import { AlertRowData } from './hooks';
 import { getSeverityIcon } from './utils';
-import './alerts-table.scss';
+import './health-overview.scss';
 
 const RowRenderer: React.FC<RowComponentType<AlertRowData>> = ({ row }) => {
   const endTimeDisplay = row.endTime
     ? dateTimeFormatter.format(row.endTime)
     : DASH;
-  const durationDisplay = formatPrometheusDuration(row.duration);
+  // Remove seconds from duration display, show '0m' for very short durations
+  const durationDisplay =
+    formatPrometheusDuration(row.duration)
+      .replace(/\d+s\s*$/, '')
+      .trim() || '0m';
   const startTimeDisplay = dateTimeFormatter.format(row.startTime);
   const severityIcon = getSeverityIcon(row.severity);
 
@@ -42,12 +46,20 @@ type AlertsTableProps = {
   alerts: AlertRowData[];
   loaded: boolean;
   error?: any;
+  selectedRows?: AlertRowData[];
+  setSelectedRows?: (rows: AlertRowData[]) => void;
+  isColumnSelectable?: boolean;
+  className?: string;
 };
 
 export const AlertsTable: React.FC<AlertsTableProps> = ({
   alerts,
   loaded,
   error,
+  selectedRows,
+  setSelectedRows,
+  isColumnSelectable = false,
+  className = 'health-overview__alerts-table',
 }) => {
   const { t } = useCustomTranslation();
 
@@ -99,17 +111,15 @@ export const AlertsTable: React.FC<AlertsTableProps> = ({
       rows={alerts}
       columns={columns}
       RowComponent={RowRenderer}
-      selectedRows={[]}
-      // TODO: Add silence functionality
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      setSelectedRows={() => {}}
+      selectedRows={selectedRows}
+      setSelectedRows={setSelectedRows}
       loaded={loaded}
       loadError={error}
       initialSortColumnIndex={2}
       borders={true}
       variant={TableVariant.COMPACT}
-      className="odf-health-alerts-table"
-      isColumnSelectableHidden={true}
+      className={className}
+      isColumnSelectableHidden={!isColumnSelectable}
     />
   );
 };

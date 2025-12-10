@@ -1,6 +1,12 @@
 import * as React from 'react';
+import { isMCGStandaloneCluster } from '@odf/core/utils';
+import { VolumeSnapshotClassKind, VolumeSnapshotClassModel } from '@odf/shared';
+import { SingleSelectDropdown } from '@odf/shared/dropdown';
+import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
+  Alert,
   Checkbox,
   FormGroup,
   FormHelperText,
@@ -8,6 +14,7 @@ import {
   HelperTextItem,
   NumberInput,
   Radio,
+  SelectOption,
 } from '@patternfly/react-core';
 import { QuestionCircleIcon } from '@patternfly/react-icons';
 import { WizardDispatch } from '../../../reducer';
@@ -26,14 +33,25 @@ const CRON_MAP: Record<CronTime, string> = {
   [CronTime.MONTHLY]: '0 0 1-7 * 6', // First Saturday of each month at 12:00 AM
 };
 
+const selectOptions = (volumeSnapshotClasses: VolumeSnapshotClassKind[]) =>
+  volumeSnapshotClasses?.map((vsc) => (
+    <SelectOption
+      key={vsc.metadata.uid}
+      value={vsc.metadata.name}
+      data-test-id={vsc.metadata.name}
+    >
+      {getName(vsc)}
+    </SelectOption>
+  )) || [];
+
 type AutomaticBackupProps = {
   dispatch: WizardDispatch;
-  isAutomaticBackup: boolean;
+  isDbBackup: boolean;
 };
 
 export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
   dispatch,
-  isAutomaticBackup,
+  isDbBackup,
 }) => {
   const { t } = useCustomTranslation();
   const [backupCopies, setBackupCopies] = React.useState(DEFAULT_BACKUP_COPIES);
@@ -41,10 +59,29 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
     CronTime.DAILY
   );
   const [cron, setCron] = React.useState(CRON_MAP[CronTime.DAILY]);
+  const [volumeSnapshotClasses, vscLoaded] = useK8sWatchResource<
+    VolumeSnapshotClassKind[]
+  >({
+    groupVersionKind: {
+      group: VolumeSnapshotClassModel.apiGroup,
+      version: VolumeSnapshotClassModel.apiVersion,
+      kind: VolumeSnapshotClassModel.kind,
+    },
+    isList: true,
+  });
+
+  const isMCG = isMCGStandaloneCluster;
+  const hasVSCs = vscLoaded && volumeSnapshotClasses?.length > 0;
+  const [selectedVolumeSnapshotClass, setSelectedVolumeSnapshotClass] =
+    React.useState<string>('');
 
   const handleSelect = (type: CronTime) => {
     setSelectedFrequency(type);
     setCron(CRON_MAP[type] || '');
+  };
+
+  const onVolumeSnapshotChange = (vscName: string) => {
+    setSelectedVolumeSnapshotClass(vscName);
   };
 
   const onBackupCopiesChange = (
@@ -70,20 +107,41 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
     setBackupCopies(newValue);
   };
 
-  // Dispatch cron schedule and frequency when they change
+  React.useEffect(() => {
+    if (!isMCG && vscLoaded && volumeSnapshotClasses?.length > 0) {
+      const rbdVSC = volumeSnapshotClasses.find((vsc) =>
+        vsc.metadata.name.endsWith('rbdplugin-snapclass')
+      );
+      if (rbdVSC) {
+        setSelectedVolumeSnapshotClass(rbdVSC.metadata.name);
+      }
+    }
+  }, [isMCG, vscLoaded, volumeSnapshotClasses]);
+
   React.useEffect(() => {
     dispatch({
-      type: 'backingStorage/automaticBackup/frequency',
+      type: 'backingStorage/dbBackup/schedule',
       payload: cron,
     });
   }, [cron, dispatch]);
 
   React.useEffect(() => {
     dispatch({
-      type: 'backingStorage/automaticBackup/copies',
+      type: 'backingStorage/dbBackup/volumeSnapshot/maxSnapshots',
       payload: backupCopies,
     });
   }, [backupCopies, dispatch]);
+
+  React.useEffect(() => {
+    if (selectedVolumeSnapshotClass) {
+      dispatch({
+        type: 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass',
+        payload: selectedVolumeSnapshotClass,
+      });
+    }
+  }, [selectedVolumeSnapshotClass, dispatch]);
+
+  const isBackupDisabled = vscLoaded && !hasVSCs;
 
   return (
     <>
@@ -93,16 +151,29 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
         description={t(
           'Opt in for automatic backup for MultiCloud Object Gateway metadata database'
         )}
-        isChecked={isAutomaticBackup}
+        isChecked={isDbBackup}
+        isDisabled={isBackupDisabled}
         onChange={() =>
           dispatch({
-            type: 'backingStorage/setAutomaticBackup',
-            payload: !isAutomaticBackup,
+            type: 'backingStorage/setDbBackup',
+            payload: !isDbBackup,
           })
         }
         className="odf-advanced-settings__checkbox"
       />
-      {isAutomaticBackup && (
+      {isBackupDisabled && (
+        <Alert
+          variant="info"
+          title={t('No volume snapshot class present')}
+          isInline
+          className="pf-v5-u-mt-sm"
+        >
+          {t(
+            'VolumeSnapshotClass is required to use this feature. Ensure a VolumeSnapshotClass is present in the cluster.'
+          )}
+        </Alert>
+      )}
+      {isDbBackup && (
         <>
           <FormGroup
             role="radiogroup"
@@ -145,6 +216,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
           <FormGroup
             fieldId="backup-copies"
             label={t('Number of backup copies to be retained')}
+            className="pf-v5-u-mb-sm"
             isRequired
           >
             <NumberInput
@@ -166,6 +238,22 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
               </HelperText>
             </FormHelperText>
           </FormGroup>
+          {isMCG && hasVSCs && (
+            <FormGroup
+              fieldId="backup-add-volumeSnapshotClass"
+              label={t('Add VolumeSnapshot')}
+              isRequired
+            >
+              <SingleSelectDropdown
+                id="volume-snapshot-class-dropdown"
+                className="pf-v5-u-w-50 pf-v5-u-mt-sm"
+                selectedKey={selectedVolumeSnapshotClass}
+                selectOptions={selectOptions(volumeSnapshotClasses)}
+                onChange={onVolumeSnapshotChange}
+                placeholderText={t('Select a VolumeSnapshotClass')}
+              />
+            </FormGroup>
+          )}
         </>
       )}
     </>

@@ -96,7 +96,10 @@ const HeaderActions: React.FC<HeaderProps> = ({ headerProps }) => {
               extraProps: {
                 name: accessKeyCard.UserName,
                 AccessKeyId: accessKeyCard.AccessKeyId,
-                status: accessKeyCard.Status,
+                status:
+                  accessKeyCard.Status === AccessKeyStatus.ACTIVE
+                    ? AccessKeyStatus.INACTIVE
+                    : AccessKeyStatus.ACTIVE,
                 iamClient,
               },
             })
@@ -116,6 +119,7 @@ const HeaderActions: React.FC<HeaderProps> = ({ headerProps }) => {
                 name: accessKeyCard.UserName,
                 AccessKeyId: accessKeyCard.AccessKeyId,
                 iamClient,
+                refreshTokens,
               },
             })
           }

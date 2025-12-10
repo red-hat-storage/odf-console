@@ -1,7 +1,9 @@
 import * as React from 'react';
 import {
   AccessKeyStatus,
+  IAM_BASE_ROUTE,
   IAM_USERS_BOOKMARKS_USER_SETTINGS_KEY,
+  POLICY_NAME,
 } from '@odf/core/constants/s3-iam';
 import { DASH, useUserSettingsLocalStorage } from '@odf/shared';
 import { ButtonBar } from '@odf/shared/generic/ButtonBar';
@@ -10,6 +12,7 @@ import { CommonModalProps } from '@odf/shared/modals';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { Trans } from 'react-i18next';
 import { TFunction } from 'react-i18next';
+import { useNavigate } from 'react-router-dom-v5-compat';
 import {
   Modal,
   Button,
@@ -54,7 +57,7 @@ const getDescription = (t: TFunction) => (
 );
 
 /**
- * Delete IAM User Modal, deactivate the Access Keys before deletion
+ * Delete IAM User Modal, delete the Access Keys before deletion
  * @param userName @param iamClient @param refreshTokens
  */
 export const DeleteIamUserModal: React.FC<
@@ -68,7 +71,9 @@ export const DeleteIamUserModal: React.FC<
   const [deleteText, setDeleteText] = React.useState<string>('');
   const [inProgress, setInProgress] = React.useState<boolean>(false);
   const [error, setError] = React.useState<Error>();
-  const [deactivateSuccess, setDeactivateSuccess] = React.useState(false);
+  const [deleteSuccess, setDeleteSuccess] = React.useState(false);
+
+  const navigate = useNavigate();
 
   // Fetch user details
   const {
@@ -80,10 +85,11 @@ export const DeleteIamUserModal: React.FC<
   // Fetch user access keys
   const {
     iamAccessKeys,
-    hasActiveAccessKeys,
     isLoading: isLoadingAccessKeys,
     error: accessKeysError,
   } = useUserAccessKeys(userName, iamClient);
+
+  const hasAccessKeys = iamAccessKeys.length > 0;
 
   const isChecking = isLoadingUser || isLoadingAccessKeys;
   const fetchError = userError || accessKeysError;
@@ -107,6 +113,11 @@ export const DeleteIamUserModal: React.FC<
     setInProgress(true);
 
     try {
+      await iamClient.deleteUserPolicy({
+        UserName: userName,
+        PolicyName: POLICY_NAME,
+      });
+
       await iamClient.deleteIamUser({
         UserName: userName,
       });
@@ -117,20 +128,26 @@ export const DeleteIamUserModal: React.FC<
         oldFavorites.filter((user) => user !== userName)
       );
       refreshTokens();
+      navigate(IAM_BASE_ROUTE);
     } catch (err) {
+      setError(err as Error);
+    } finally {
       setInProgress(false);
-      setError(err);
     }
   };
 
-  const onDeactivate = async (event) => {
+  const onDeleteAccessKeys = async (event: React.FormEvent) => {
     event.preventDefault();
     setInProgress(true);
 
     try {
-      const keysToDeactivate = iamAccessKeys ?? [];
+      const accessKeys = iamAccessKeys ?? [];
+      if (accessKeys.length === 0) {
+        setDeleteSuccess(true);
+        return;
+      }
 
-      const deactivatePromises = keysToDeactivate
+      const deactivateAccessKeysPromises = accessKeys
         .filter((key) => key.Status === AccessKeyStatus.ACTIVE)
         .map((key) =>
           iamClient.updateAccessKey({
@@ -140,17 +157,26 @@ export const DeleteIamUserModal: React.FC<
           })
         );
 
-      await Promise.all(deactivatePromises);
+      if (deactivateAccessKeysPromises.length > 0) {
+        await Promise.all(deactivateAccessKeysPromises);
+      }
 
-      setInProgress(false);
-      setDeactivateSuccess(true);
-      refreshTokens();
+      const deleteAccessKeysPromises = accessKeys.map((key) =>
+        iamClient.deleteAccessKey({
+          UserName: key.UserName,
+          AccessKeyId: key.AccessKeyId,
+        })
+      );
+
+      await Promise.all(deleteAccessKeysPromises);
+
+      setDeleteSuccess(true);
     } catch (err) {
+      setError(err as Error);
+    } finally {
       setInProgress(false);
-      setError(err);
     }
   };
-
   return (
     <Modal
       title={t('Delete user?')}
@@ -170,13 +196,7 @@ export const DeleteIamUserModal: React.FC<
               className="pf-v5-u-mr-xs"
               variant={ButtonVariant.danger}
               isLoading={inProgress}
-              isDisabled={
-                deleteText !== t('delete') ||
-                inProgress ||
-                hasActiveAccessKeys ||
-                !!error ||
-                !!fetchError
-              }
+              isDisabled={deleteText !== t('delete') || inProgress}
               onClick={onDelete}
             >
               {t('Delete user')}
@@ -208,56 +228,59 @@ export const DeleteIamUserModal: React.FC<
           </Tr>
         </Tbody>
       </Table>
-      {isChecking && <Spinner size="md" className="pf-v5-u-mb-md" />}
-      {hasActiveAccessKeys && !deactivateSuccess && (
-        <FlexItem>
-          <Alert
-            variant="warning"
-            isInline
-            title={t('User has one or more active access keys')}
-            actionLinks={
-              <AlertActionLink onClick={onDeactivate} isDisabled={inProgress}>
-                {t('Deactivate access keys')}
-              </AlertActionLink>
-            }
-          >
-            <Text>
-              {t('IAM user has {{count}} active access keys', {
-                count: iamAccessKeys.filter(
-                  (ak) => ak.Status === AccessKeyStatus.ACTIVE
-                ).length,
-              })}
-            </Text>
-            <List component="ol" className="pf-v5-u-mt-sm">
-              {iamAccessKeys.map(
-                (accessKey) =>
-                  accessKey.Status === AccessKeyStatus.ACTIVE && (
-                    <ListItem key={accessKey.AccessKeyId}>
-                      {accessKey.AccessKeyId}
-                    </ListItem>
-                  )
-              )}
-            </List>
-            <Text className="pf-v5-u-mt-md">
-              <b>
-                {t(
-                  'You must deactivate the access keys before deleting this user'
+      {isChecking ? (
+        <Spinner size="md" className="pf-v5-u-mb-md" />
+      ) : (
+        hasAccessKeys &&
+        !deleteSuccess && (
+          <FlexItem>
+            <Alert
+              variant="warning"
+              isInline
+              title={t('User has one or more access keys')}
+              actionLinks={
+                <AlertActionLink
+                  onClick={onDeleteAccessKeys}
+                  isDisabled={inProgress}
+                >
+                  {t('Delete access keys')}
+                </AlertActionLink>
+              }
+            >
+              <Text>
+                {t('IAM user has {{count}} access keys', {
+                  count: iamAccessKeys.length,
+                })}
+              </Text>
+              <List component="ol" className="pf-v5-u-mt-sm">
+                {iamAccessKeys.map(
+                  (accessKey) =>
+                    accessKey.Status === AccessKeyStatus.ACTIVE && (
+                      <ListItem key={accessKey.AccessKeyId}>
+                        {accessKey.AccessKeyId}
+                      </ListItem>
+                    )
                 )}
-              </b>
-            </Text>
-          </Alert>
-        </FlexItem>
+              </List>
+              <Text className="pf-v5-u-mt-md">
+                <b>
+                  {t(
+                    'You must delete the access keys before deleting this user'
+                  )}
+                </b>
+              </Text>
+            </Alert>
+          </FlexItem>
+        )
       )}
-      {deactivateSuccess && (
+      {deleteSuccess && (
         <Alert
           variant={AlertVariant.success}
           isInline
-          title={t('Access keys deactivated successfully')}
+          title={t('Access keys deleted successfully')}
           className="co-alert pf-v5-u-mb-md"
         >
-          <p>
-            {t('All access keys assigned to the user have been deactivated')}
-          </p>
+          <p>{t('All access keys assigned to the user have been deleted')}</p>
         </Alert>
       )}
       <FormGroup
