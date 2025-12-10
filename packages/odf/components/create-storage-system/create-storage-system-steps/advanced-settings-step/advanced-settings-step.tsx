@@ -103,7 +103,11 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
           />
         )}
         {!hasOCS && (
-          <AutomaticBackup isDbBackup={isDbBackup} dispatch={dispatch} />
+          <AutomaticBackup
+            isDbBackup={isDbBackup}
+            dispatch={dispatch}
+            deployment={deployment}
+          />
         )}
       </FormGroup>
     </Form>

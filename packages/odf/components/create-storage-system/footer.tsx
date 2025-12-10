@@ -55,6 +55,7 @@ import {
 } from './payloads';
 import { WizardCommonProps, WizardState } from './reducer';
 
+// Not to be exposed to other files to make our code name agnostic
 const OCS_INTERNAL_CR_NAME = 'ocs-storagecluster';
 
 const validateBackingStorageStep = (
