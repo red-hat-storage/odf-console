@@ -421,6 +421,7 @@ export type OCSRequestData = {
   allowNoobaaPostgresSelfSignedCerts?: boolean;
   enableNoobaaClientSideCerts?: boolean;
   storageClusterName: string;
+  isDbBackup?: boolean;
   dbBackup?: WizardState['backingStorage']['dbBackup'];
 };
 
@@ -446,6 +447,7 @@ export const getOCSRequestData = ({
   allowNoobaaPostgresSelfSignedCerts,
   enableNoobaaClientSideCerts,
   storageClusterName,
+  isDbBackup,
   dbBackup,
 }: OCSRequestData): StorageClusterKind => {
   const scName: string = storageClass.name;
@@ -571,7 +573,7 @@ export const getOCSRequestData = ({
   requestData.spec.resourceProfile = resourceProfile;
 
   // Add automatic backup configuration if enabled
-  if (dbBackup) {
+  if (isDbBackup) {
     requestData.spec.multiCloudGateway = {
       ...requestData.spec.multiCloudGateway,
       dbBackup: {

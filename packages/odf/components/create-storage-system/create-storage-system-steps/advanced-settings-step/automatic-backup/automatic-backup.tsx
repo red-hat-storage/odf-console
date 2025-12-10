@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { isMCGStandaloneCluster } from '@odf/core/utils';
+import { DeploymentType } from '@odf/core/types';
 import { VolumeSnapshotClassKind, VolumeSnapshotClassModel } from '@odf/shared';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { getName } from '@odf/shared/selectors';
@@ -47,11 +47,13 @@ const selectOptions = (volumeSnapshotClasses: VolumeSnapshotClassKind[]) =>
 type AutomaticBackupProps = {
   dispatch: WizardDispatch;
   isDbBackup: boolean;
+  deployment: DeploymentType;
 };
 
 export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
   dispatch,
   isDbBackup,
+  deployment,
 }) => {
   const { t } = useCustomTranslation();
   const [backupCopies, setBackupCopies] = React.useState(DEFAULT_BACKUP_COPIES);
@@ -70,7 +72,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
     isList: true,
   });
 
-  const isMCG = isMCGStandaloneCluster;
+  const isMCG = deployment === DeploymentType.MCG;
   const hasVSCs = vscLoaded && volumeSnapshotClasses?.length > 0;
   const [selectedVolumeSnapshotClass, setSelectedVolumeSnapshotClass] =
     React.useState<string>('');
