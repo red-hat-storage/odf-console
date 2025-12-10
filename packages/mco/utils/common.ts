@@ -1,3 +1,5 @@
+import { DRPlacementControlKind } from '@odf/mco/types';
+import { Operator as VMOperator } from '@odf/shared/label-expression-selector';
 import {
   getAPIVersion,
   getName,
@@ -8,9 +10,11 @@ import { groupVersionFor, referenceFor } from '@odf/shared/utils';
 import {
   ObjectReference,
   K8sResourceCommon,
+  ObjectMetadata,
   MatchExpression,
   Operator,
 } from '@openshift-console/dynamic-plugin-sdk';
+import { getPrimaryClusterName } from './disaster-recovery';
 
 export const getGVKFromK8Resource = (resource: K8sResourceCommon) => {
   const { group, version } = groupVersionFor(resource?.apiVersion || '');
@@ -65,3 +69,76 @@ export const convertExpressionToLabel = (
     acc.push(...values.map((value) => `${key}=${value}`));
     return acc;
   }, []);
+
+const matchKubeObjectSelector = (
+  vmLabels: ObjectMetadata['labels'] = {},
+  drpc: DRPlacementControlKind
+) => {
+  const selector = drpc?.spec?.kubeObjectProtection?.kubeObjectSelector;
+  const matchExpressions = selector?.matchExpressions || [];
+  const matchLabels = selector?.matchLabels || [];
+
+  if (!matchExpressions.length && !matchLabels.length) return false;
+
+  const labelsMatch = !!matchLabels.length
+    ? Object.entries(matchLabels).every(
+        ([key, value]) => vmLabels[key] === value
+      )
+    : true;
+
+  const expressionsMatch = !!matchExpressions.length
+    ? matchExpressions.every((expr) => {
+        const { key, operator, values = [] } = expr;
+        const vmValue = vmLabels[key];
+
+        switch (operator) {
+          case VMOperator.In:
+            return vmValue !== undefined && values.includes(vmValue);
+          case VMOperator.NotIn:
+            return vmValue === undefined || !values.includes(vmValue);
+          case VMOperator.Exists:
+            return key in vmLabels;
+          case VMOperator.DoesNotExist:
+            return !(key in vmLabels);
+          default:
+            return false;
+        }
+      })
+    : true;
+
+  return labelsMatch && expressionsMatch;
+};
+
+const findDRPC = (
+  drpc: DRPlacementControlKind,
+  vmNs: string,
+  vmCluster: string | undefined,
+  vmName: string,
+  vmLabels: ObjectMetadata['labels']
+): boolean => {
+  const nsOk = drpc.spec?.protectedNamespaces?.includes?.(vmNs) ?? false;
+
+  const clusterOk = getPrimaryClusterName(drpc) === vmCluster;
+
+  // VMs protected via Recipe
+  const protectedVMs =
+    drpc.spec?.kubeObjectProtection?.recipeParameters?.PROTECTED_VMS ?? [];
+  const nameOk = protectedVMs.includes(vmName);
+
+  // VMs protected via label selectors
+  const labelOK = matchKubeObjectSelector(vmLabels, drpc);
+
+  return nsOk && clusterOk && (nameOk || labelOK);
+};
+
+export const findDRPCByNsClusterAndVMName = (
+  drpcs: DRPlacementControlKind[],
+  vmNs: string,
+  vmCluster: string | undefined,
+  vmName: string,
+  vmLabels: ObjectMetadata['labels']
+): DRPlacementControlKind | undefined =>
+  drpcs.find((d) => findDRPC(d, vmNs, vmCluster, vmName, vmLabels));
+
+export const getVMClusterName = (virtualMachine: K8sResourceCommon) =>
+  virtualMachine?.['status']?.cluster || virtualMachine?.['cluster'];
