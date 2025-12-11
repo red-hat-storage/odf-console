@@ -71,7 +71,9 @@ const DeviceClassForm: React.FC<DeviceClassFormProps> = ({
           (value: string) => {
             if (!value) return true;
             const isDuplicate = existingDeviceClasses.includes(value);
-            return !isDuplicate;
+            const isEmptyDeviceClass =
+              value === 'ssd' ? existingDeviceClasses.includes('') : false;
+            return !isDuplicate && !isEmptyDeviceClass;
           }
         ),
     });
