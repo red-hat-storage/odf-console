@@ -187,7 +187,38 @@ export const rhcsPayload: CreatePayload<RHCSState> = ({
   namespace,
   inTransitStatus,
   shouldSetCephRBDAsDefault,
+  isDbBackup,
+  dbBackup,
 }) => {
+  const storageClusterSpec: Record<string, unknown> = {
+    network: {
+      connections: {
+        encryption: {
+          enabled: inTransitStatus,
+        },
+      },
+    },
+    externalStorage: {
+      enable: true,
+    },
+    managedResources: {
+      cephBlockPools: { defaultStorageClass: shouldSetCephRBDAsDefault },
+    },
+    labelSelector: {
+      matchExpressions: [],
+    },
+  };
+
+  // Add automatic backup configuration if enabled
+  if (isDbBackup) {
+    storageClusterSpec.multiCloudGateway = {
+      dbBackup: {
+        schedule: dbBackup.schedule,
+        volumeSnapshot: dbBackup.volumeSnapshot,
+      },
+    };
+  }
+
   return [
     {
       model: SecretModel,
@@ -214,24 +245,7 @@ export const rhcsPayload: CreatePayload<RHCSState> = ({
           name: systemName,
           namespace: namespace,
         },
-        spec: {
-          network: {
-            connections: {
-              encryption: {
-                enabled: inTransitStatus,
-              },
-            },
-          },
-          externalStorage: {
-            enable: true,
-          },
-          managedResources: {
-            cephBlockPools: { defaultStorageClass: shouldSetCephRBDAsDefault },
-          },
-          labelSelector: {
-            matchExpressions: [],
-          },
-        },
+        spec: storageClusterSpec,
       },
     },
   ];
