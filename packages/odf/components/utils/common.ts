@@ -638,3 +638,6 @@ const getNetworkField = (
     },
   };
 };
+
+export const getRBDVolumeSnapshotClassName = (clusterName: string) =>
+  `${clusterName}-rbdplugin-snapclass`;

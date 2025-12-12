@@ -30,6 +30,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
     useExternalPostgres,
     deployment,
     isDbBackup,
+    dbBackup,
     type: backingStorageType,
   } = state;
 
@@ -42,6 +43,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
     ? sc?.items?.some((item) => isDefaultClass(item)) || false
     : true;
 
+  const isMCG = deployment === DeploymentType.MCG;
   return (
     <Form>
       <FormGroup label={t('Advanced Settings')} fieldId="advanced-settings">
@@ -106,7 +108,8 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
           <AutomaticBackup
             isDbBackup={isDbBackup}
             dispatch={dispatch}
-            deployment={deployment}
+            isMCG={isMCG}
+            dbBackup={dbBackup}
           />
         )}
       </FormGroup>
