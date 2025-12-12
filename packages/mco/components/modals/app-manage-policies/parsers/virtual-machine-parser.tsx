@@ -6,6 +6,7 @@ import {
   getLabelsFromSearchResult,
   querySubscriptionResourcesForVM,
   queryApplicationSetResourcesForVM,
+  getVMClusterName,
 } from '@odf/mco/utils';
 import {
   ApplicationKind,
@@ -73,7 +74,7 @@ export const VirtualMachineParser: React.FC<VirtualMachineParserProps> = ({
 }) => {
   const vmName = getName(virtualMachine);
   const vmNamespace = getNamespace(virtualMachine);
-  const clusterName = virtualMachine?.['status']?.cluster || cluster;
+  const clusterName = getVMClusterName(virtualMachine) || cluster;
   const argoApplicationName = getLabel(virtualMachine, KUBE_INSTANCE_LABEL);
   const pvcQueryFilter = getPVCQueryFilter(vmName, vmNamespace, clusterName);
 
