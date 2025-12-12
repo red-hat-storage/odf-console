@@ -228,7 +228,7 @@
   "Add tag": "Add tag",
   "Add this VM to an existing DR placement control for consistent failover and recovery. This method is only available for discovered VMs.": "Add this VM to an existing DR placement control for consistent failover and recovery. This method is only available for discovered VMs.",
   "Add Tier": "Add Tier",
-  "Add VolumeSnapshot": "Add VolumeSnapshot",
+  "Add VolumeSnapshotClass": "Add VolumeSnapshotClass",
   "Adding capacity for <1>{{ocsClusterName}}</1>, may increase your expenses.": "Adding capacity for <1>{{ocsClusterName}}</1>, may increase your expenses.",
   "Adding this option will allow the postgres server to use a self-signed certificates.": "Adding this option will allow the postgres server to use a self-signed certificates.",
   "Address": "Address",

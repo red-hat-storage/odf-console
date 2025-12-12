@@ -151,6 +151,7 @@ export const createStorageCluster = async (
     isVirtualizeStorageClassDefault,
     useExternalPostgres,
     externalPostgres,
+    isDbBackup,
     dbBackup,
   } = backingStorage;
 
@@ -208,7 +209,8 @@ export const createStorageCluster = async (
     allowNoobaaPostgresSelfSignedCerts:
       externalPostgres.tls.allowSelfSignedCerts,
     storageClusterName,
-    dbBackup: dbBackup,
+    isDbBackup,
+    dbBackup,
   });
 
   return k8sCreate({ model: StorageClusterModel, data: payload });
