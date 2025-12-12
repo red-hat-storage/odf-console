@@ -4,6 +4,7 @@ import {
   getExternalStorage,
   getTotalCpu,
   getTotalMemoryInGiB,
+  getRBDVolumeSnapshotClassName,
 } from '@odf/core/components/utils';
 import {
   MINIMUM_NODES,
@@ -57,14 +58,16 @@ import { WizardCommonProps, WizardState } from './reducer';
 
 // Not to be exposed to other files to make our code name agnostic
 const OCS_INTERNAL_CR_NAME = 'ocs-storagecluster';
-
+const NOOBAA_DB_BACKUP_VOLUMESNAPSHOTCLASS =
+  getRBDVolumeSnapshotClassName(OCS_INTERNAL_CR_NAME);
 const validateBackingStorageStep = (
   backingStorage: WizardState['backingStorage'],
   sc: WizardState['storageClass']
 ) => {
   const { type, enableNFS, externalStorage, deployment } = backingStorage;
 
-  const { useExternalPostgres, externalPostgres } = backingStorage;
+  const { useExternalPostgres, externalPostgres, isDbBackup, dbBackup } =
+    backingStorage;
 
   const {
     username,
@@ -75,6 +78,8 @@ const validateBackingStorageStep = (
     tls: { enableClientSideCerts, keys },
   } = externalPostgres;
 
+  const isMCG: boolean = deployment === DeploymentType.MCG;
+
   const hasPGEnabledButNoFields =
     useExternalPostgres &&
     (!username || !password || !serverName || !port || !databaseName);
@@ -82,26 +87,33 @@ const validateBackingStorageStep = (
   const hasClientCertsEnabledButNoKeys =
     enableClientSideCerts && (!keys.private || !keys.public);
 
+  // The Next button is disabled only when no VolumeSnapshotClass is selected for MCG Standalone when automatic backup option enabled.
+  const hasDbBackupEnabledButNoFields =
+    isDbBackup && !dbBackup.volumeSnapshot?.volumeSnapshotClass && isMCG;
+
   switch (type) {
     case BackingStorageType.EXISTING:
       return (
         !!sc.name &&
         !!deployment &&
         !hasPGEnabledButNoFields &&
-        !hasClientCertsEnabledButNoKeys
+        !hasClientCertsEnabledButNoKeys &&
+        !hasDbBackupEnabledButNoFields
       );
     case BackingStorageType.EXTERNAL:
       return (
         !!externalStorage &&
         !enableNFS &&
         !hasPGEnabledButNoFields &&
-        !hasClientCertsEnabledButNoKeys
+        !hasClientCertsEnabledButNoKeys &&
+        !hasDbBackupEnabledButNoFields
       );
     case BackingStorageType.LOCAL_DEVICES:
       return (
         !!deployment &&
         !hasPGEnabledButNoFields &&
-        !hasClientCertsEnabledButNoKeys
+        !hasClientCertsEnabledButNoKeys &&
+        !hasDbBackupEnabledButNoFields
       );
     default:
       return false;
@@ -369,6 +381,9 @@ export const CreateStorageSystemFooter: React.FC<
 
   const stepName = activeStep.name as string;
 
+  const { deployment, isDbBackup } = state.backingStorage;
+  const isMCG: boolean = deployment === DeploymentType.MCG;
+
   const jumpToNextStep = canJumpToNextStep(
     stepName,
     state,
@@ -392,6 +407,16 @@ export const CreateStorageSystemFooter: React.FC<
           type: 'wizard/setCreateLocalVolumeSet',
           payload: { field: 'showConfirmModal', value: true },
         });
+        break;
+      case StepsName(t)[Steps.AdvancedSettings]:
+        // Auto-select the RBD VolumeSnapshotClass for internal mode when automatic backup is enabled.
+        if (isDbBackup && !isMCG) {
+          dispatch({
+            type: 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass',
+            payload: NOOBAA_DB_BACKUP_VOLUMESNAPSHOTCLASS,
+          });
+        }
+        moveToNextStep();
         break;
       case StepsName(t)[Steps.ReviewAndCreate]:
         setRequestInProgress(true);

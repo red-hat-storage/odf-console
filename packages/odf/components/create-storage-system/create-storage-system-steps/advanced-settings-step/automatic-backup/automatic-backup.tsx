@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { DeploymentType } from '@odf/core/types';
 import { VolumeSnapshotClassKind, VolumeSnapshotClassModel } from '@odf/shared';
 import { SingleSelectDropdown } from '@odf/shared/dropdown';
 import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { getValidWatchK8sResourceObj } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Alert,
@@ -17,9 +17,7 @@ import {
   SelectOption,
 } from '@patternfly/react-core';
 import { QuestionCircleIcon } from '@patternfly/react-icons';
-import { WizardDispatch } from '../../../reducer';
-
-const DEFAULT_BACKUP_COPIES = 5;
+import { WizardDispatch, WizardState } from '../../../reducer';
 
 enum CronTime {
   DAILY = 'daily',
@@ -31,6 +29,13 @@ const CRON_MAP: Record<CronTime, string> = {
   [CronTime.DAILY]: '0 0 * * *', // Every day at 12:00 AM
   [CronTime.WEEKLY]: '0 0 * * 6', // Every Saturday at 12:00 AM
   [CronTime.MONTHLY]: '0 0 1-7 * 6', // First Saturday of each month at 12:00 AM
+};
+
+const getCronTimeFromSchedule = (schedule: string): CronTime => {
+  const entry = Object.entries(CRON_MAP).find(
+    ([, value]) => value === schedule
+  );
+  return entry ? (entry[0] as CronTime) : CronTime.DAILY;
 };
 
 const selectOptions = (volumeSnapshotClasses: VolumeSnapshotClassKind[]) =>
@@ -47,43 +52,50 @@ const selectOptions = (volumeSnapshotClasses: VolumeSnapshotClassKind[]) =>
 type AutomaticBackupProps = {
   dispatch: WizardDispatch;
   isDbBackup: boolean;
-  deployment: DeploymentType;
+  isMCG: boolean;
+  dbBackup: WizardState['backingStorage']['dbBackup'];
 };
 
 export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
   dispatch,
   isDbBackup,
-  deployment,
+  isMCG,
+  dbBackup,
 }) => {
   const { t } = useCustomTranslation();
-  const [backupCopies, setBackupCopies] = React.useState(DEFAULT_BACKUP_COPIES);
-  const [selectedFrequency, setSelectedFrequency] = React.useState<CronTime>(
-    CronTime.DAILY
-  );
-  const [cron, setCron] = React.useState(CRON_MAP[CronTime.DAILY]);
+  const { schedule, volumeSnapshot } = dbBackup;
   const [volumeSnapshotClasses, vscLoaded] = useK8sWatchResource<
     VolumeSnapshotClassKind[]
-  >({
-    groupVersionKind: {
-      group: VolumeSnapshotClassModel.apiGroup,
-      version: VolumeSnapshotClassModel.apiVersion,
-      kind: VolumeSnapshotClassModel.kind,
-    },
-    isList: true,
-  });
+  >(
+    getValidWatchK8sResourceObj(
+      {
+        groupVersionKind: {
+          group: VolumeSnapshotClassModel.apiGroup,
+          version: VolumeSnapshotClassModel.apiVersion,
+          kind: VolumeSnapshotClassModel.kind,
+        },
+        isList: true,
+      },
+      isMCG
+    )
+  );
 
-  const isMCG = deployment === DeploymentType.MCG;
-  const hasVSCs = vscLoaded && volumeSnapshotClasses?.length > 0;
-  const [selectedVolumeSnapshotClass, setSelectedVolumeSnapshotClass] =
-    React.useState<string>('');
+  const hasVSCs = (volumeSnapshotClasses ?? []).length > 0;
+  const shouldDisableBackup = isMCG && vscLoaded && !hasVSCs;
 
+  const selectedFrequency = getCronTimeFromSchedule(schedule);
   const handleSelect = (type: CronTime) => {
-    setSelectedFrequency(type);
-    setCron(CRON_MAP[type] || '');
+    dispatch({
+      type: 'backingStorage/dbBackup/schedule',
+      payload: CRON_MAP[type],
+    });
   };
 
   const onVolumeSnapshotChange = (vscName: string) => {
-    setSelectedVolumeSnapshotClass(vscName);
+    dispatch({
+      type: 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass',
+      payload: vscName,
+    });
   };
 
   const onBackupCopiesChange = (
@@ -98,52 +110,19 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
         break;
       }
       case 'onMinus': {
-        newValue = Math.max(backupCopies - 1, 1);
+        newValue = Math.max(volumeSnapshot.maxSnapshots - 1, 1);
         break;
       }
       case 'onPlus': {
-        newValue = Math.min(backupCopies + 1, 12);
+        newValue = Math.min(volumeSnapshot.maxSnapshots + 1, 12);
         break;
       }
     }
-    setBackupCopies(newValue);
-  };
-
-  React.useEffect(() => {
-    if (!isMCG && vscLoaded && volumeSnapshotClasses?.length > 0) {
-      const rbdVSC = volumeSnapshotClasses.find((vsc) =>
-        vsc.metadata.name.endsWith('rbdplugin-snapclass')
-      );
-      if (rbdVSC) {
-        setSelectedVolumeSnapshotClass(rbdVSC.metadata.name);
-      }
-    }
-  }, [isMCG, vscLoaded, volumeSnapshotClasses]);
-
-  React.useEffect(() => {
-    dispatch({
-      type: 'backingStorage/dbBackup/schedule',
-      payload: cron,
-    });
-  }, [cron, dispatch]);
-
-  React.useEffect(() => {
     dispatch({
       type: 'backingStorage/dbBackup/volumeSnapshot/maxSnapshots',
-      payload: backupCopies,
+      payload: newValue,
     });
-  }, [backupCopies, dispatch]);
-
-  React.useEffect(() => {
-    if (selectedVolumeSnapshotClass) {
-      dispatch({
-        type: 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass',
-        payload: selectedVolumeSnapshotClass,
-      });
-    }
-  }, [selectedVolumeSnapshotClass, dispatch]);
-
-  const isBackupDisabled = vscLoaded && !hasVSCs;
+  };
 
   return (
     <>
@@ -154,7 +133,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
           'Opt in for automatic backup for MultiCloud Object Gateway metadata database'
         )}
         isChecked={isDbBackup}
-        isDisabled={isBackupDisabled}
+        isDisabled={shouldDisableBackup}
         onChange={() =>
           dispatch({
             type: 'backingStorage/setDbBackup',
@@ -163,7 +142,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
         }
         className="odf-advanced-settings__checkbox"
       />
-      {isBackupDisabled && (
+      {shouldDisableBackup && (
         <Alert
           variant="info"
           title={t('No volume snapshot class present')}
@@ -182,7 +161,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
             fieldId="backup-frequency-radio-group"
             label={t('Backup frequency')}
             labelIcon={<QuestionCircleIcon />}
-            className="pf-v5-u-mb-sm"
+            className="pf-v5-u-mt-md"
             isRequired
           >
             <Radio
@@ -223,7 +202,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
           >
             <NumberInput
               id="backup-copies-input"
-              value={backupCopies}
+              value={volumeSnapshot.maxSnapshots}
               min={1}
               max={12}
               onMinus={() => onBackupCopiesChange('onMinus')}
@@ -240,16 +219,17 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
               </HelperText>
             </FormHelperText>
           </FormGroup>
-          {isMCG && hasVSCs && (
+          {isMCG && (
             <FormGroup
               fieldId="backup-add-volumeSnapshotClass"
-              label={t('Add VolumeSnapshot')}
+              label={t('Add VolumeSnapshotClass')}
+              className="pf-v5-u-mt-md"
               isRequired
             >
               <SingleSelectDropdown
                 id="volume-snapshot-class-dropdown"
                 className="pf-v5-u-w-50 pf-v5-u-mt-sm"
-                selectedKey={selectedVolumeSnapshotClass}
+                selectedKey={volumeSnapshot.volumeSnapshotClass}
                 selectOptions={selectOptions(volumeSnapshotClasses)}
                 onChange={onVolumeSnapshotChange}
                 placeholderText={t('Select a VolumeSnapshotClass')}
