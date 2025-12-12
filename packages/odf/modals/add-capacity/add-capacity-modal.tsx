@@ -133,7 +133,7 @@ export const DeviceClassDropdown: React.FC<DeviceClassDropdownProps> = ({
       id="device-class"
       selectOptions={deviceClassOptions}
       selectedKey={selectedDeviceClass}
-      onChange={onChange}
+      onChange={(value) => (value === 'None' ? onChange('') : onChange(value))}
       placeholderText={t('Select device class')}
       className="ceph-add-capacity__device-class-dropdown"
       data-test={dataTest}
@@ -230,13 +230,15 @@ const RawCapacity: React.FC<RawCapacityProps> = ({
   );
 };
 
+// This function can return empty when no deviceSet match the given scName.
 const getDeviceClassesForSC = (
   deviceSets: DeviceSet[],
   scName: string
 ): string[] =>
   deviceSets
     .filter((ds) => ds.dataPVCTemplate?.spec?.storageClassName === scName)
-    .map((ds) => ds.deviceClass);
+    // if deviceclass is missing -> ds.deviceClass = undefined -> becomes "None".
+    .map((ds) => ds.deviceClass || 'None');
 
 type RawCapacityProps = {
   osdSizeWithoutUnit: number;
@@ -294,11 +296,15 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   const [inProgress, setProgress] = React.useState(false);
   const [errorMessage, setError] = React.useState('');
 
-  const deviceSets = storageCluster?.spec?.storageDeviceSets || [];
+  const deviceSets = React.useMemo(() => {
+    return storageCluster?.spec?.storageDeviceSets || [];
+  }, [storageCluster]);
   const osdSizeWithUnit = getRequestedPVCSize(deviceSets?.[0]?.dataPVCTemplate);
   const osdSizeWithoutUnit = getStorageSizeInTiBWithoutUnit(osdSizeWithUnit);
   const isNoProvionerSC: boolean = storageClass?.provisioner === NO_PROVISIONER;
-  const selectedSCName: string = getName(storageClass);
+  const selectedSCName: string = React.useMemo(() => {
+    return getName(storageClass);
+  }, [storageClass]);
 
   const hasFlexibleScaling = checkFlexibleScaling(storageCluster);
   const isArbiterEnabled: boolean = checkArbiterCluster(storageCluster);
@@ -324,15 +330,26 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
     [installStorageClass]
   );
 
-  const deviceClasses = getDeviceClassesForSC(deviceSets, selectedSCName);
-
+  const deviceClasses = React.useMemo(() => {
+    return getDeviceClassesForSC(deviceSets, selectedSCName);
+  }, [deviceSets, selectedSCName]);
   const hasMultiDeviceClasses = deviceClasses.length > 1;
 
-  const deviceSetIndex: number = getCurrentDeviceSetIndex(
-    deviceSets,
-    selectedSCName,
-    hasMultiDeviceClasses ? deviceClass : null
-  );
+  React.useEffect(() => {
+    if (deviceClasses.length === 1) {
+      setDeviceClass(deviceClasses[0]);
+    }
+  }, [deviceClasses]);
+
+  // deviceClasses.length === 0 -> only possible when storageClass is not present the storageCluster.
+  const deviceSetIndex: number =
+    deviceClasses.length === 0
+      ? -1
+      : getCurrentDeviceSetIndex(
+          deviceSets,
+          selectedSCName,
+          deviceClasses.length > 0 ? deviceClass : null
+        );
 
   // Stops users from moving from no-prov SC to prov SC. (Bug 2213183)
   const storageClassFilter = React.useCallback(

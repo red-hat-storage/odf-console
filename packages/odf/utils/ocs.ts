@@ -1,5 +1,6 @@
 import { WizardNodeState } from '@odf/core/components/create-storage-system/reducer';
 import { NodeData, ResourceProfile } from '@odf/core/types';
+import { DiskType } from '@odf/core/types';
 import { OCS_PROVISIONERS } from '@odf/shared';
 import { NamespaceModel } from '@odf/shared/models';
 import {
@@ -31,6 +32,8 @@ import {
 } from '../constants';
 
 const getPVStorageClass = (pv) => pv?.spec?.storageClassName;
+
+const SSD = DiskType.SSD;
 
 const getSelectedNodes = (
   scName: string,
@@ -226,7 +229,7 @@ export const getCurrentDeviceSetIndex = (
     unique StorageClass (passing diviceClass as "null" as an argument in this case). */
     const matchesDeviceClass = !!deviceClass
       ? ds.deviceClass === deviceClass
-      : true;
+      : ds.deviceClass === '';
 
     return matchesSC && matchesDeviceClass;
   });
@@ -257,6 +260,7 @@ export const createDeviceSet = (
       },
     },
   },
+  deviceClass: SSD,
 });
 
 export const getDeviceSetCount = (pvCount: number, replica: number): number =>
