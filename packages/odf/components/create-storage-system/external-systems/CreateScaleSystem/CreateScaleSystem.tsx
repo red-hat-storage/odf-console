@@ -28,7 +28,12 @@ import {
 } from '@patternfly/react-core';
 import { useIsLocalClusterConfigured } from '../common/hooks';
 import { NodesSection } from '../common/NodesSection';
-import { createScaleLocalClusterPayload, labelNodes } from '../common/payload';
+import {
+  createScaleLocalClusterPayload,
+  labelNodes,
+  labelUserWorkloadMonitoringNamespace,
+  removeClusterMonitoringLabel,
+} from '../common/payload';
 import {
   createScaleCaCertSecretPayload,
   createScaleRemoteClusterPayload,
@@ -158,6 +163,12 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           componentState.encryptionEnabled
         );
         await localClusterPromise();
+        await labelUserWorkloadMonitoringNamespace();
+        try {
+          await removeClusterMonitoringLabel();
+        } catch {
+          // Label may not exist, ignore
+        }
       }
       const secretPromise = createScaleCaCertSecretPayload(
         formData.name,
