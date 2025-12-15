@@ -1,11 +1,15 @@
-import { IBM_SCALE_LOCAL_CLUSTER_NAME } from '@odf/core/constants';
+import {
+  IBM_SCALE_LOCAL_CLUSTER_NAME,
+  OPENSHIFT_USER_WORKLOAD_MONITORING_NAMESPACE,
+} from '@odf/core/constants';
 import { ClusterKind } from '@odf/core/types/scale';
-import { NodeModel, ClusterModel } from '@odf/shared';
+import { ClusterModel, NamespaceModel, NodeModel } from '@odf/shared';
 import { k8sPatchByName } from '@odf/shared/utils';
 import {
   K8sKind,
   Patch,
   k8sCreate,
+  k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { WizardNodeState } from '../../reducer';
 
@@ -51,6 +55,9 @@ export const createScaleLocalClusterPayload = (
           prefetchTimeout: '30',
         },
       },
+      grafanaBridge: {
+        enablePrometheusExporter: true,
+      },
       license: {
         accept: true,
         license: isEncryptionEnabled ? 'data-management' : 'data-access',
@@ -58,4 +65,23 @@ export const createScaleLocalClusterPayload = (
     },
   };
   return () => k8sCreate({ model: ClusterModel, data: payload });
+};
+
+export const labelUserWorkloadMonitoringNamespace = () => {
+  const patch: Patch[] = [
+    {
+      op: 'add',
+      path: '/metadata/labels/scale.spectrum.ibm.com~1networkpolicy',
+      value: 'allow',
+    },
+  ];
+  return k8sPatch({
+    model: NamespaceModel,
+    resource: {
+      metadata: {
+        name: OPENSHIFT_USER_WORKLOAD_MONITORING_NAMESPACE,
+      },
+    },
+    data: patch,
+  });
 };

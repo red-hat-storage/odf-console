@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { LSO_OPERATOR } from '@odf/core/constants';
+import { IBM_SCALE_NAMESPACE, LSO_OPERATOR } from '@odf/core/constants';
 import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
 import { storageClusterResource } from '@odf/core/resources';
+import { ClusterKind } from '@odf/core/types/scale';
 import {
   DEFAULT_INFRASTRUCTURE,
   InfrastructureKind,
@@ -33,6 +34,7 @@ import {
   humanizeIOPS,
   humanizeLatency,
   referenceForGroupVersionKind,
+  referenceForModel,
   getGVK,
   isCSVSucceeded,
 } from '@odf/shared/utils';
@@ -56,7 +58,12 @@ import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { Button } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { ODF_QUERIES, ODFQueries } from '../../queries';
+import {
+  GPFS_QUERIES,
+  GPFSQueries,
+  ODF_QUERIES,
+  ODFQueries,
+} from '../../queries';
 import { useODFNamespaceSelector } from '../../redux';
 import { OperandStatus } from '../utils';
 import { getActions } from './actions';
@@ -72,48 +79,85 @@ type SystemMetrics = {
   };
 };
 
+type MetricSet = {
+  latency: PrometheusResponse;
+  throughput: PrometheusResponse;
+  rawCapacity: PrometheusResponse;
+  usedCapacity: PrometheusResponse;
+  iops: PrometheusResponse;
+};
+
+const getLocalClusterStatus = (localCluster: ClusterKind): string | null => {
+  if (!localCluster) {
+    return null;
+  }
+  const successCondition = localCluster?.status?.conditions?.find(
+    (condition) => condition.type === 'Success'
+  );
+  if (!successCondition) {
+    return null;
+  }
+  return successCondition.status === 'True' ? 'Healthy' : 'Error';
+};
+
 type MetricNormalize = (
   systems: StorageSystemKind[],
-  latency: PrometheusResponse,
-  throughput: PrometheusResponse,
-  rawCapacity: PrometheusResponse,
-  usedCapacity: PrometheusResponse,
-  iops: PrometheusResponse
+  odfMetrics: MetricSet,
+  gpfsMetrics: MetricSet
 ) => SystemMetrics;
 
 export const normalizeMetrics: MetricNormalize = (
   systems,
-  latency,
-  throughput,
-  rawCapacity,
-  usedCapacity,
-  iops
+  odfMetrics,
+  gpfsMetrics
 ) => {
-  if (
-    _.isEmpty(systems) ||
-    !latency ||
-    !throughput ||
-    !rawCapacity ||
-    !usedCapacity ||
-    !iops
-  ) {
+  if (_.isEmpty(systems)) {
+    return {};
+  }
+
+  const hasOdfMetrics =
+    odfMetrics.latency ||
+    odfMetrics.throughput ||
+    odfMetrics.rawCapacity ||
+    odfMetrics.usedCapacity ||
+    odfMetrics.iops;
+  const hasGpfsMetrics =
+    gpfsMetrics.latency ||
+    gpfsMetrics.throughput ||
+    gpfsMetrics.rawCapacity ||
+    gpfsMetrics.usedCapacity ||
+    gpfsMetrics.iops;
+
+  if (!hasOdfMetrics && !hasGpfsMetrics) {
     return {};
   }
 
   // ToDo (epic 4422): This equality check should work (for now) as "managedBy" will be unique,
   // but moving forward add a label to metric for StorageSystem namespace as well and use that,
   // equality check should be updated with "&&" condition on StorageSystem namespace.
-  // Helper to humanize and return '-' if value is empty or 0
   const getHumanizedMetric = (
-    humanizeFn,
-    metricResult: PrometheusResponse,
+    humanizeFn: (v: string | number) => HumanizeResult,
+    odfMetricResult: PrometheusResponse,
+    gpfsMetricResult: PrometheusResponse,
     system: StorageSystemKind
   ) => {
-    const value = metricResult.data.result.find(
-      (item) => item?.metric?.managedBy === system.spec.name
-    )?.value?.[1];
+    const { kind } = getGVK(system.spec.kind);
+    const isGPFSSystem = kind === ClusterModel.kind.toLowerCase();
 
-    // Check for undefined, null, empty string, or 0
+    let value: string | undefined;
+
+    if (isGPFSSystem && gpfsMetricResult?.data?.result) {
+      const metric = gpfsMetricResult.data.result.find((item) =>
+        item?.metric?.gpfs_cluster_name?.startsWith(system.spec.name)
+      );
+      value = metric?.value?.[1];
+    } else if (odfMetricResult?.data?.result) {
+      const metric = odfMetricResult.data.result.find(
+        (item) => item?.metric?.managedBy === system.spec.name
+      );
+      value = metric?.value?.[1];
+    }
+
     if (
       value === undefined ||
       value === null ||
@@ -127,15 +171,36 @@ export const normalizeMetrics: MetricNormalize = (
 
   return systems.reduce<SystemMetrics>((acc, curr) => {
     acc[`${getName(curr)}${getNamespace(curr)}`] = {
-      rawCapacity: getHumanizedMetric(humanizeBinaryBytes, rawCapacity, curr),
-      usedCapacity: getHumanizedMetric(humanizeBinaryBytes, usedCapacity, curr),
-      iops: getHumanizedMetric(humanizeIOPS, iops, curr),
-      throughput: getHumanizedMetric(
-        humanizeDecimalBytesPerSec,
-        throughput,
+      rawCapacity: getHumanizedMetric(
+        humanizeBinaryBytes,
+        odfMetrics.rawCapacity,
+        gpfsMetrics.rawCapacity,
         curr
       ),
-      latency: getHumanizedMetric(humanizeLatency, latency, curr),
+      usedCapacity: getHumanizedMetric(
+        humanizeBinaryBytes,
+        odfMetrics.usedCapacity,
+        gpfsMetrics.usedCapacity,
+        curr
+      ),
+      iops: getHumanizedMetric(
+        humanizeIOPS,
+        odfMetrics.iops,
+        gpfsMetrics.iops,
+        curr
+      ),
+      throughput: getHumanizedMetric(
+        humanizeDecimalBytesPerSec,
+        odfMetrics.throughput,
+        gpfsMetrics.throughput,
+        curr
+      ),
+      latency: getHumanizedMetric(
+        humanizeLatency,
+        odfMetrics.latency,
+        gpfsMetrics.latency,
+        curr
+      ),
     };
     return acc;
   }, {});
@@ -145,6 +210,7 @@ type CustomData = {
   infrastructure: InfrastructureKind;
   isLSOInstalled: boolean;
   normalizedMetrics: ReturnType<typeof normalizeMetrics>;
+  localClusters: ClusterKind[];
   storageClusters: StorageClusterKind[];
 };
 
@@ -295,7 +361,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
   const systemKind = referenceForGroupVersionKind(apiGroup)(apiVersion)(kind);
   const systemName = getName(obj);
   const systemNamespace = getNamespace(obj);
-  const { normalizedMetrics } = rowData;
+  const { normalizedMetrics, localClusters } = rowData;
   const { customActions, hiddenActions } = getActions(obj, t);
 
   const metrics =
@@ -303,6 +369,21 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
 
   const { rawCapacity, usedCapacity, iops, throughput, latency } =
     metrics || {};
+
+  const isSANSystem = kind === ClusterModel.kind.toLowerCase();
+  const localCluster = isSANSystem ? localClusters?.[0] : null;
+  const sanStatus = getLocalClusterStatus(localCluster);
+
+  const renderStatus = () => {
+    if (obj?.metadata?.deletionTimestamp) {
+      return <Status status="Terminating" />;
+    }
+    if (isSANSystem && sanStatus) {
+      return <Status status={sanStatus} />;
+    }
+    return <OperandStatus operand={obj} />;
+  };
+
   return (
     <>
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
@@ -313,11 +394,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
         />
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        {obj?.metadata?.deletionTimestamp ? (
-          <Status status="Terminating" />
-        ) : (
-          <OperandStatus operand={obj} />
-        )}
+        {renderStatus()}
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
         {rawCapacity?.string || '-'}
@@ -361,30 +438,64 @@ export const StorageSystemListPage: React.FC = () => {
   const [data, filteredData, onFilterChange] =
     useListPageFilter(storageSystems);
 
+  const prometheusBasePath = usePrometheusBasePath();
+
   const [latency] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.LATENCY],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [iops] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.IOPS],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [throughput] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.THROUGHPUT],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [rawCapacity] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.RAW_CAPACITY],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [usedCapacity] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.USED_CAPACITY],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
+  });
+
+  const [gpfsLatency] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: GPFS_QUERIES[GPFSQueries.LATENCY],
+    basePath: prometheusBasePath,
+  });
+  const [gpfsIops] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: GPFS_QUERIES[GPFSQueries.IOPS],
+    basePath: prometheusBasePath,
+  });
+  const [gpfsThroughput] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: GPFS_QUERIES[GPFSQueries.THROUGHPUT],
+    basePath: prometheusBasePath,
+  });
+  const [gpfsRawCapacity] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: GPFS_QUERIES[GPFSQueries.RAW_CAPACITY],
+    basePath: prometheusBasePath,
+  });
+  const [gpfsUsedCapacity] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: GPFS_QUERIES[GPFSQueries.USED_CAPACITY],
+    basePath: prometheusBasePath,
+  });
+
+  const [localClusters] = useK8sWatchResource<ClusterKind[]>({
+    kind: referenceForModel(ClusterModel),
+    isList: true,
+    namespace: IBM_SCALE_NAMESPACE,
   });
 
   const [infrastructure] = useK8sGet<InfrastructureKind>(
@@ -398,16 +509,38 @@ export const StorageSystemListPage: React.FC = () => {
   const normalizedMetrics = React.useMemo(
     () => ({
       normalizedMetrics: normalizeMetrics(
-        data as any,
-        latency,
-        throughput,
-        rawCapacity,
-        usedCapacity,
-        iops
+        data as StorageSystemKind[],
+        {
+          latency,
+          throughput,
+          rawCapacity,
+          usedCapacity,
+          iops,
+        },
+        {
+          latency: gpfsLatency,
+          throughput: gpfsThroughput,
+          rawCapacity: gpfsRawCapacity,
+          usedCapacity: gpfsUsedCapacity,
+          iops: gpfsIops,
+        }
       ),
     }),
-    [data, iops, latency, rawCapacity, throughput, usedCapacity]
+    [
+      data,
+      iops,
+      latency,
+      rawCapacity,
+      throughput,
+      usedCapacity,
+      gpfsIops,
+      gpfsLatency,
+      gpfsRawCapacity,
+      gpfsThroughput,
+      gpfsUsedCapacity,
+    ]
   );
+
   const [lsoCSV, lsoCSVLoaded, lsoCSVLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,
   });
@@ -445,6 +578,7 @@ export const StorageSystemListPage: React.FC = () => {
             infrastructure,
             isLSOInstalled,
             normalizedMetrics,
+            localClusters,
             storageClusters,
           }}
         />
