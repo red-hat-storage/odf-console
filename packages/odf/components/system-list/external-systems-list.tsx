@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { LSO_OPERATOR } from '@odf/core/constants';
 import { ExternalSystemsSelectModal } from '@odf/core/modals/ConfigureDF/ExternalSystemsModal';
+import { FDF_FLAG } from '@odf/core/redux';
 import { storageClusterResource } from '@odf/core/resources';
 import {
   DEFAULT_INFRASTRUCTURE,
@@ -47,6 +48,7 @@ import {
   TableColumn,
   TableData,
   useActiveColumns,
+  useFlag,
   useK8sWatchResource,
   useListPageFilter,
   useModal,
@@ -56,7 +58,12 @@ import classNames from 'classnames';
 import * as _ from 'lodash-es';
 import { Button } from '@patternfly/react-core';
 import { sortable, wrappable } from '@patternfly/react-table';
-import { ODF_QUERIES, ODFQueries } from '../../queries';
+import {
+  ODF_QUERIES,
+  ODFQueries,
+  SCALE_QUERIES,
+  ScaleQueries,
+} from '../../queries';
 import { useODFNamespaceSelector } from '../../redux';
 import { OperandStatus } from '../utils';
 import { getActions } from './actions';
@@ -72,48 +79,85 @@ type SystemMetrics = {
   };
 };
 
+type MetricSet = {
+  latency: PrometheusResponse;
+  throughput: PrometheusResponse;
+  rawCapacity: PrometheusResponse;
+  usedCapacity: PrometheusResponse;
+  iops: PrometheusResponse;
+};
+
+const getSANSystemStatus = (phase: string | undefined): string | null => {
+  if (!phase) {
+    return null;
+  }
+  if (phase === 'Ready' || phase === 'Healthy') {
+    return 'Healthy';
+  }
+  if (phase === 'Error' || phase === 'Failed') {
+    return 'Error';
+  }
+  return phase;
+};
+
 type MetricNormalize = (
   systems: StorageSystemKind[],
-  latency: PrometheusResponse,
-  throughput: PrometheusResponse,
-  rawCapacity: PrometheusResponse,
-  usedCapacity: PrometheusResponse,
-  iops: PrometheusResponse
+  odfMetrics: MetricSet,
+  scaleMetrics: MetricSet
 ) => SystemMetrics;
 
 export const normalizeMetrics: MetricNormalize = (
   systems,
-  latency,
-  throughput,
-  rawCapacity,
-  usedCapacity,
-  iops
+  odfMetrics,
+  scaleMetrics
 ) => {
-  if (
-    _.isEmpty(systems) ||
-    !latency ||
-    !throughput ||
-    !rawCapacity ||
-    !usedCapacity ||
-    !iops
-  ) {
+  if (_.isEmpty(systems)) {
+    return {};
+  }
+
+  const hasOdfMetrics =
+    odfMetrics.latency ||
+    odfMetrics.throughput ||
+    odfMetrics.rawCapacity ||
+    odfMetrics.usedCapacity ||
+    odfMetrics.iops;
+  const hasScaleMetrics =
+    scaleMetrics.latency ||
+    scaleMetrics.throughput ||
+    scaleMetrics.rawCapacity ||
+    scaleMetrics.usedCapacity ||
+    scaleMetrics.iops;
+
+  if (!hasOdfMetrics && !hasScaleMetrics) {
     return {};
   }
 
   // ToDo (epic 4422): This equality check should work (for now) as "managedBy" will be unique,
   // but moving forward add a label to metric for StorageSystem namespace as well and use that,
   // equality check should be updated with "&&" condition on StorageSystem namespace.
-  // Helper to humanize and return '-' if value is empty or 0
   const getHumanizedMetric = (
-    humanizeFn,
-    metricResult: PrometheusResponse,
+    humanizeFn: (v: string | number) => HumanizeResult,
+    odfMetricResult: PrometheusResponse,
+    scaleMetricResult: PrometheusResponse,
     system: StorageSystemKind
   ) => {
-    const value = metricResult.data.result.find(
-      (item) => item?.metric?.managedBy === system.spec.name
-    )?.value?.[1];
+    const { kind } = getGVK(system.spec.kind);
+    const isScaleSystem = kind === ClusterModel.kind.toLowerCase();
 
-    // Check for undefined, null, empty string, or 0
+    let value: string | undefined;
+
+    if (isScaleSystem && scaleMetricResult?.data?.result) {
+      const metric = scaleMetricResult.data.result.find((item) =>
+        item?.metric?.gpfs_cluster_name?.startsWith(system.spec.name)
+      );
+      value = metric?.value?.[1];
+    } else if (odfMetricResult?.data?.result) {
+      const metric = odfMetricResult.data.result.find(
+        (item) => item?.metric?.managedBy === system.spec.name
+      );
+      value = metric?.value?.[1];
+    }
+
     if (
       value === undefined ||
       value === null ||
@@ -127,15 +171,36 @@ export const normalizeMetrics: MetricNormalize = (
 
   return systems.reduce<SystemMetrics>((acc, curr) => {
     acc[`${getName(curr)}${getNamespace(curr)}`] = {
-      rawCapacity: getHumanizedMetric(humanizeBinaryBytes, rawCapacity, curr),
-      usedCapacity: getHumanizedMetric(humanizeBinaryBytes, usedCapacity, curr),
-      iops: getHumanizedMetric(humanizeIOPS, iops, curr),
-      throughput: getHumanizedMetric(
-        humanizeDecimalBytesPerSec,
-        throughput,
+      rawCapacity: getHumanizedMetric(
+        humanizeBinaryBytes,
+        odfMetrics.rawCapacity,
+        scaleMetrics.rawCapacity,
         curr
       ),
-      latency: getHumanizedMetric(humanizeLatency, latency, curr),
+      usedCapacity: getHumanizedMetric(
+        humanizeBinaryBytes,
+        odfMetrics.usedCapacity,
+        scaleMetrics.usedCapacity,
+        curr
+      ),
+      iops: getHumanizedMetric(
+        humanizeIOPS,
+        odfMetrics.iops,
+        scaleMetrics.iops,
+        curr
+      ),
+      throughput: getHumanizedMetric(
+        humanizeDecimalBytesPerSec,
+        odfMetrics.throughput,
+        scaleMetrics.throughput,
+        curr
+      ),
+      latency: getHumanizedMetric(
+        humanizeLatency,
+        odfMetrics.latency,
+        scaleMetrics.latency,
+        curr
+      ),
     };
     return acc;
   }, {});
@@ -303,6 +368,20 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
 
   const { rawCapacity, usedCapacity, iops, throughput, latency } =
     metrics || {};
+
+  const isSANSystem = kind === ClusterModel.kind.toLowerCase();
+  const sanStatus = getSANSystemStatus(obj?.status?.phase);
+
+  const renderStatus = React.useCallback(() => {
+    if (obj?.metadata?.deletionTimestamp) {
+      return <Status status="Terminating" />;
+    }
+    if (isSANSystem && sanStatus) {
+      return <Status status={sanStatus} />;
+    }
+    return <OperandStatus operand={obj} />;
+  }, [obj, isSANSystem, sanStatus]);
+
   return (
     <>
       <TableData {...tableColumnInfo[0]} activeColumnIDs={activeColumnIDs}>
@@ -313,11 +392,7 @@ const StorageSystemRow: React.FC<RowProps<StorageSystemKind, CustomData>> = ({
         />
       </TableData>
       <TableData {...tableColumnInfo[1]} activeColumnIDs={activeColumnIDs}>
-        {obj?.metadata?.deletionTimestamp ? (
-          <Status status="Terminating" />
-        ) : (
-          <OperandStatus operand={obj} />
-        )}
+        {renderStatus()}
       </TableData>
       <TableData {...tableColumnInfo[2]} activeColumnIDs={activeColumnIDs}>
         {rawCapacity?.string || '-'}
@@ -353,6 +428,7 @@ export const StorageSystemListPage: React.FC = () => {
   const { t } = useCustomTranslation();
 
   const launchModal = useModal();
+  const isFDF = useFlag(FDF_FLAG);
 
   const { odfNamespace, isODFNsLoaded, odfNsLoadError } =
     useODFNamespaceSelector();
@@ -361,30 +437,70 @@ export const StorageSystemListPage: React.FC = () => {
   const [data, filteredData, onFilterChange] =
     useListPageFilter(storageSystems);
 
+  const prometheusBasePath = usePrometheusBasePath();
+
   const [latency] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.LATENCY],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [iops] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.IOPS],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [throughput] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.THROUGHPUT],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [rawCapacity] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.RAW_CAPACITY],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
   });
   const [usedCapacity] = useCustomPrometheusPoll({
     endpoint: PrometheusEndpoint.QUERY,
     query: ODF_QUERIES[ODFQueries.USED_CAPACITY],
-    basePath: usePrometheusBasePath(),
+    basePath: prometheusBasePath,
+  });
+
+  const scaleLatencyQuery = isFDF ? SCALE_QUERIES[ScaleQueries.LATENCY] : null;
+  const scaleIopsQuery = isFDF ? SCALE_QUERIES[ScaleQueries.IOPS] : null;
+  const scaleThroughputQuery = isFDF
+    ? SCALE_QUERIES[ScaleQueries.THROUGHPUT]
+    : null;
+  const scaleRawCapacityQuery = isFDF
+    ? SCALE_QUERIES[ScaleQueries.RAW_CAPACITY]
+    : null;
+  const scaleUsedCapacityQuery = isFDF
+    ? SCALE_QUERIES[ScaleQueries.USED_CAPACITY]
+    : null;
+
+  const [scaleLatency] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleLatencyQuery,
+    basePath: prometheusBasePath,
+  });
+  const [scaleIops] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleIopsQuery,
+    basePath: prometheusBasePath,
+  });
+  const [scaleThroughput] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleThroughputQuery,
+    basePath: prometheusBasePath,
+  });
+  const [scaleRawCapacity] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleRawCapacityQuery,
+    basePath: prometheusBasePath,
+  });
+  const [scaleUsedCapacity] = useCustomPrometheusPoll({
+    endpoint: PrometheusEndpoint.QUERY,
+    query: scaleUsedCapacityQuery,
+    basePath: prometheusBasePath,
   });
 
   const [infrastructure] = useK8sGet<InfrastructureKind>(
@@ -398,16 +514,38 @@ export const StorageSystemListPage: React.FC = () => {
   const normalizedMetrics = React.useMemo(
     () => ({
       normalizedMetrics: normalizeMetrics(
-        data as any,
-        latency,
-        throughput,
-        rawCapacity,
-        usedCapacity,
-        iops
+        data as StorageSystemKind[],
+        {
+          latency,
+          throughput,
+          rawCapacity,
+          usedCapacity,
+          iops,
+        },
+        {
+          latency: scaleLatency,
+          throughput: scaleThroughput,
+          rawCapacity: scaleRawCapacity,
+          usedCapacity: scaleUsedCapacity,
+          iops: scaleIops,
+        }
       ),
     }),
-    [data, iops, latency, rawCapacity, throughput, usedCapacity]
+    [
+      data,
+      iops,
+      latency,
+      rawCapacity,
+      throughput,
+      usedCapacity,
+      scaleIops,
+      scaleLatency,
+      scaleRawCapacity,
+      scaleThroughput,
+      scaleUsedCapacity,
+    ]
   );
+
   const [lsoCSV, lsoCSVLoaded, lsoCSVLoadError] = useFetchCsv({
     specName: LSO_OPERATOR,
   });
