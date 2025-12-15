@@ -40,6 +40,14 @@ export type StorageClassComponentProps<S = ExternalState> = {
   control?: Control;
 };
 
+type DbBackupConfig = {
+  schedule: string;
+  volumeSnapshot: {
+    maxSnapshots: number;
+    volumeSnapshotClass: string;
+  };
+};
+
 /**
  *  @function CreatePayload<S>
  *
@@ -64,6 +72,8 @@ export type CreatePayload<S = ExternalState> = (payloadOptions: {
   storageClassName?: string;
   inTransitStatus?: boolean;
   shouldSetCephRBDAsDefault?: boolean;
+  isDbBackup?: boolean;
+  dbBackup?: DbBackupConfig;
 }) => Payload[];
 
 export type Payload = { model: Model; payload: K8sResourceKind };
