@@ -71,3 +71,15 @@ export const LocalDiskModel: K8sModel = {
   abbr: 'LD',
   namespaced: true,
 };
+
+export const GrafanaBridgeModel: K8sModel = {
+  apiVersion: 'v1beta1',
+  apiGroup: 'scale.spectrum.ibm.com',
+  kind: 'GrafanaBridge',
+  plural: 'grafanabridges',
+  label: 'GrafanaBridge',
+  labelPlural: 'GrafanaBridges',
+  crd: true,
+  abbr: 'GB',
+  namespaced: true,
+};
