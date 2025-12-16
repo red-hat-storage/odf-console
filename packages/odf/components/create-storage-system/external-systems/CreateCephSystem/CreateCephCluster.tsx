@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { getRBDVolumeSnapshotClassName } from '@odf/core/components/utils';
 import {
   useODFNamespaceSelector,
   useODFSystemFlagsSelector,
@@ -29,8 +30,10 @@ import {
   Flex,
   ButtonVariant,
 } from '@patternfly/react-core';
+import { AutomaticBackup } from '../../create-storage-system-steps/advanced-settings-step/automatic-backup/automatic-backup';
 import { SetCephRBDStorageClassDefault } from '../../create-storage-system-steps/backing-storage-step/set-rbd-sc-default';
 import { createOCSNamespace } from '../../payloads';
+import { CreateStorageSystemAction } from '../../reducer';
 import {
   ConnectionDetails,
   rhcsPayload,
@@ -77,6 +80,18 @@ type RHCSDispatch = (key: keyof RHCSState, value: any) => void;
 const OCS_EXTERNAL_CR_NAME = 'ocs-external-storagecluster';
 const OCS_MULTIPLE_CLUSTER_NS = 'openshift-storage-extended';
 
+const NOOBAA_DB_BACKUP_VOLUMESNAPSHOTCLASS =
+  getRBDVolumeSnapshotClassName(OCS_EXTERNAL_CR_NAME);
+
+// Initial state for automatic backup
+const initialDbBackupState = {
+  schedule: '0 0 * * *',
+  volumeSnapshot: {
+    maxSnapshots: 5,
+    volumeSnapshotClass: '',
+  },
+};
+
 const CreateCephCluster: React.FC = () => {
   const { t } = useCustomTranslation();
   const { odfNamespace, isNsSafe } = useODFNamespaceSelector();
@@ -86,6 +101,8 @@ const CreateCephCluster: React.FC = () => {
     React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
+  const [isDbBackup, setIsDbBackup] = React.useState(false);
+  const [dbBackup, setDbBackup] = React.useState(initialDbBackupState);
   const navigate = useNavigate();
   const redirectPath = '/odf/external-systems';
 
@@ -101,6 +118,41 @@ const CreateCephCluster: React.FC = () => {
   const setFormState: RHCSDispatch = React.useCallback((key, value) => {
     dispatch({ type: 'SET_FIELD', payload: { key, value } });
   }, []);
+
+  // Create a dispatch function for AutomaticBackup component
+  const backupDispatch = React.useCallback(
+    (action: CreateStorageSystemAction) => {
+      switch (action.type) {
+        case 'backingStorage/setDbBackup':
+          setIsDbBackup(action.payload);
+          break;
+        case 'backingStorage/dbBackup/schedule':
+          setDbBackup((prev) => ({ ...prev, schedule: action.payload }));
+          break;
+        case 'backingStorage/dbBackup/volumeSnapshot/maxSnapshots':
+          setDbBackup((prev) => ({
+            ...prev,
+            volumeSnapshot: {
+              ...prev.volumeSnapshot,
+              maxSnapshots: action.payload,
+            },
+          }));
+          break;
+        case 'backingStorage/dbBackup/volumeSnapshot/volumeSnapshotClass':
+          setDbBackup((prev) => ({
+            ...prev,
+            volumeSnapshot: {
+              ...prev.volumeSnapshot,
+              volumeSnapshotClass: action.payload,
+            },
+          }));
+          break;
+        default:
+          break;
+      }
+    },
+    []
+  );
 
   const onSubmit = async () => {
     setIsLoading(true);
@@ -122,7 +174,19 @@ const CreateCephCluster: React.FC = () => {
         namespace: systemNamespace,
         inTransitStatus: encryption,
         shouldSetCephRBDAsDefault: isRBDStorageClassDefault,
+        isDbBackup,
+        dbBackup: isDbBackup
+          ? {
+              ...dbBackup,
+              volumeSnapshot: {
+                ...dbBackup.volumeSnapshot,
+                // Auto-set volumeSnapshotClass for external mode (isMCG=false)
+                volumeSnapshotClass: NOOBAA_DB_BACKUP_VOLUMESNAPSHOTCLASS,
+              },
+            }
+          : undefined,
       });
+
       const promises = payload.map((p) =>
         k8sCreate({ model: p.model as K8sModel, data: p.payload })
       );
@@ -204,6 +268,14 @@ const CreateCephCluster: React.FC = () => {
             isRBDStorageClassDefault={isRBDStorageClassDefault}
             doesDefaultSCAlreadyExists={false}
           />
+          <div className="pf-v5-u-my-md">
+            <AutomaticBackup
+              dispatch={backupDispatch}
+              isDbBackup={isDbBackup}
+              isMCG={false}
+              dbBackup={dbBackup}
+            />
+          </div>
         </div>
         {error && (
           <Alert variant={AlertVariant.danger} isInline title={error} />
