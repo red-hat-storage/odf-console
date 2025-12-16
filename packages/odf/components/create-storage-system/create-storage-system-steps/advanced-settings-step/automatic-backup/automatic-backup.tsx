@@ -54,6 +54,7 @@ type AutomaticBackupProps = {
   isDbBackup: boolean;
   isMCG: boolean;
   dbBackup: WizardState['backingStorage']['dbBackup'];
+  isExternalPostgresEnabled: boolean;
 };
 
 export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
@@ -61,6 +62,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
   isDbBackup,
   isMCG,
   dbBackup,
+  isExternalPostgresEnabled,
 }) => {
   const { t } = useCustomTranslation();
   const { schedule, volumeSnapshot } = dbBackup;
@@ -79,9 +81,6 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
       isMCG
     )
   );
-
-  const hasVSCs = (volumeSnapshotClasses ?? []).length > 0;
-  const shouldDisableBackup = isMCG && vscLoaded && !hasVSCs;
 
   const selectedFrequency = getCronTimeFromSchedule(schedule);
   const handleSelect = (type: CronTime) => {
@@ -133,7 +132,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
           'Opt in for automatic backup for MultiCloud Object Gateway metadata database'
         )}
         isChecked={isDbBackup}
-        isDisabled={shouldDisableBackup}
+        isDisabled={!vscLoaded || isExternalPostgresEnabled}
         onChange={() =>
           dispatch({
             type: 'backingStorage/setDbBackup',
@@ -142,7 +141,7 @@ export const AutomaticBackup: React.FC<AutomaticBackupProps> = ({
         }
         className="odf-advanced-settings__checkbox"
       />
-      {shouldDisableBackup && (
+      {!vscLoaded && (
         <Alert
           variant="info"
           title={t('No volume snapshot class present')}
