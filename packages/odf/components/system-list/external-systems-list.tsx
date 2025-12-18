@@ -425,7 +425,7 @@ export const StorageSystemListPage: React.FC = () => {
               launchModal(ExternalSystemsSelectModal, {});
             }}
           >
-            {t('Create External system')}
+            {t('Connect External system')}
           </Button>
         )}
       </ListPageHeader>
