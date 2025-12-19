@@ -1,4 +1,5 @@
 import { ListUsersCommandOutput } from '@aws-sdk/client-iam';
+import { IamCommands } from '@odf/shared/iam';
 import { TFunction } from 'react-i18next';
 import { ValidatedOptions } from '@patternfly/react-core';
 import {
@@ -85,4 +86,57 @@ export const getValueValidations = (
       ),
     ];
   }
+};
+
+export const cleanupAllPolicies = async (
+  iamClient: IamCommands,
+  userName: string
+): Promise<void> => {
+  // List and detach all attached user policies
+  let marker: string | undefined;
+  do {
+    // eslint-disable-next-line no-await-in-loop
+    const attachedPoliciesResponse = await iamClient.listAttachedUserPolicies({
+      UserName: userName,
+      Marker: marker,
+    });
+
+    if (attachedPoliciesResponse.AttachedPolicies) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.allSettled(
+        attachedPoliciesResponse.AttachedPolicies.map((policy) =>
+          iamClient.detachUserPolicy({
+            UserName: userName,
+            PolicyArn: policy.PolicyArn!,
+          })
+        )
+      );
+    }
+
+    marker = attachedPoliciesResponse.Marker;
+  } while (marker);
+
+  // List and delete all inline user policies
+  marker = undefined;
+  do {
+    // eslint-disable-next-line no-await-in-loop
+    const inlinePoliciesResponse = await iamClient.listUserPolicies({
+      UserName: userName,
+      Marker: marker,
+    });
+
+    if (inlinePoliciesResponse.PolicyNames) {
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.allSettled(
+        inlinePoliciesResponse.PolicyNames.map((policyName) =>
+          iamClient.deleteUserPolicy({
+            UserName: userName,
+            PolicyName: policyName,
+          })
+        )
+      );
+    }
+
+    marker = inlinePoliciesResponse.Marker;
+  } while (marker);
 };
