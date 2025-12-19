@@ -13,6 +13,9 @@ import {
   PutUserPolicyCommand,
   DeleteUserPolicyCommand,
   UntagUserCommand,
+  ListAttachedUserPoliciesCommand,
+  DetachUserPolicyCommand,
+  ListUserPoliciesCommand,
 } from '@aws-sdk/client-iam';
 import {
   GetUser,
@@ -28,6 +31,9 @@ import {
   PutUserPolicy,
   DeleteUserPolicy,
   UntagUser,
+  ListAttachedUserPolicies,
+  DetachUserPolicy,
+  ListUserPolicies,
 } from './types';
 
 export class IamCommands extends IAMClient {
@@ -77,4 +83,13 @@ export class IamCommands extends IAMClient {
     this.send(new DeleteUserPolicyCommand(input));
 
   untagUser: UntagUser = (input) => this.send(new UntagUserCommand(input));
+
+  listAttachedUserPolicies: ListAttachedUserPolicies = (input) =>
+    this.send(new ListAttachedUserPoliciesCommand(input));
+
+  detachUserPolicy: DetachUserPolicy = (input) =>
+    this.send(new DetachUserPolicyCommand(input));
+
+  listUserPolicies: ListUserPolicies = (input) =>
+    this.send(new ListUserPoliciesCommand(input));
 }
