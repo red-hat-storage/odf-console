@@ -405,7 +405,6 @@
   "Blocks any newly created bucket policy that grants public access to your data, helping prevent accidental exposure in the future.": "Blocks any newly created bucket policy that grants public access to your data, helping prevent accidental exposure in the future.",
   "Both public and cluster network attachment definition cannot be empty": "Both public and cluster network attachment definition cannot be empty",
   "Break by": "Break by",
-  "Break by dropdown": "Break by dropdown",
   "Break By Dropdown": "Break By Dropdown",
   "Break By Dropdown Toggle": "Break By Dropdown Toggle",
   "Browse": "Browse",

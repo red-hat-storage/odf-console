@@ -1,13 +1,10 @@
 import * as React from 'react';
+import { MultiSelectDropdown } from '@odf/shared';
 import { useDeepCompareMemoize } from '@odf/shared/hooks/deep-compare-memoize';
 import { getName, getUID } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  Select,
-  SelectOption,
-  SelectVariant,
-} from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
+import { SelectOption } from '@patternfly/react-core';
 import { HelperText, HelperTextItem } from '@patternfly/react-core';
 import { checkDRActionReadiness } from '../../../../utils';
 import { ErrorMessageType } from './error-messages';
@@ -86,7 +83,6 @@ export const SubscriptionGroupSelector: React.FC<
 > = ({ state, dispatch }) => {
   const { t } = useCustomTranslation();
   const { selectedTargetCluster, selectedDRPolicy, actionType } = state;
-  const [isOpen, setOpen] = React.useState(false);
   const [options, setOptions] = React.useState<React.ReactElement[]>([]);
   const memoizedDRPCState = useDeepCompareMemoize(
     state.drPolicyControlState,
@@ -193,33 +189,21 @@ export const SubscriptionGroupSelector: React.FC<
     t,
   ]);
 
-  const onToggle = (isOpenFlag: boolean) => {
-    setOpen(isOpenFlag);
-  };
-
   const onSelect = (_, selection) =>
     state.selectedSubsGroups.includes(selection)
       ? setSelected(
           state.selectedSubsGroups.filter((item) => item !== selection)
         )
       : setSelected([selection], true);
+
   const clearSelection = () => {
     setSelected([]);
   };
 
   return (
     <>
-      <Select
-        variant={SelectVariant.checkbox}
-        onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
-        onSelect={onSelect}
-        selections={state.selectedSubsGroups}
-        isDisabled={
-          !options?.length ||
-          state.modalFooterStatus === ModalFooterStatus.FINISHED
-        }
-        isOpen={isOpen}
-        isCheckboxSelectionBadgeHidden
+      <MultiSelectDropdown
+        variant={'checkbox'}
         placeholderText={
           options?.length > 0
             ? t('{{selected}} of {{total}} selected', {
@@ -228,12 +212,17 @@ export const SubscriptionGroupSelector: React.FC<
               })
             : t('Select')
         }
-        aria-labelledby={t('subscription-selector')}
-        onClear={clearSelection}
+        isDisabled={
+          !options?.length ||
+          state.modalFooterStatus === ModalFooterStatus.FINISHED
+        }
+        onChange={onSelect}
+        selections={state.selectedSubsGroups}
+        aria-label={t('subscription-selector')}
         data-test="subs-group-selector-options"
-      >
-        {options}
-      </Select>
+        selectOptions={options}
+        onClear={clearSelection}
+      />
       <HelperText>
         <HelperTextItem variant="indeterminate">
           {t('Select the subscriptions groups you wish to replicate via')}
