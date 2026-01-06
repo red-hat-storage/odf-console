@@ -26,7 +26,6 @@ export enum ManagePolicyStateType {
   SET_SELECTED_POLICY_FOR_REPLICATION = 'SET_SELECTED_POLICY_FOR_REPLICATION',
   SET_K8S_SYNC_INTERVAL = 'SET_K8S_SYNC_INTERVAL',
   SET_SHARED_VM_GROUP_INFO = 'SET_SHARED_VM_GROUP_INFO',
-  SET_VOLUME_CONSISTENCY_ENABLED = 'SET_VOLUME_CONSISTENCY_ENABLED',
 }
 
 export type PVCSelectorType = {
@@ -36,7 +35,6 @@ export type PVCSelectorType = {
 
 export type AssignPolicyViewState = {
   policy: DRPolicyType;
-  enableVolumeConsistencyGroup: boolean;
   persistentVolumeClaim: {
     pvcSelectors: PVCSelectorType[];
   };
@@ -60,7 +58,6 @@ export type ManagePolicyState = {
 export const initialPolicyState: ManagePolicyState = {
   modalViewContext: ModalViewContext.MANAGE_POLICY_VIEW,
   [ModalViewContext.ASSIGN_POLICY_VIEW]: {
-    enableVolumeConsistencyGroup: false,
     policy: undefined,
     persistentVolumeClaim: {
       pvcSelectors: [],
@@ -95,10 +92,6 @@ export type ManagePolicyStateAction =
       type: ManagePolicyStateType.SET_PVC_SELECTORS;
       context: ModalViewContext;
       payload: PVCSelectorType[];
-    }
-  | {
-      type: ManagePolicyStateType.SET_VOLUME_CONSISTENCY_ENABLED;
-      payload: boolean;
     }
   | {
       type: ManagePolicyStateType.RESET_ASSIGN_POLICY_STATE;
@@ -248,15 +241,6 @@ export const managePolicyStateReducer = (
             protectionName: protectionName,
             protectedVMNames: sharedVMGroup,
           },
-        },
-      };
-    }
-    case ManagePolicyStateType.SET_VOLUME_CONSISTENCY_ENABLED: {
-      return {
-        ...state,
-        [ModalViewContext.ASSIGN_POLICY_VIEW]: {
-          ...state[ModalViewContext.ASSIGN_POLICY_VIEW],
-          enableVolumeConsistencyGroup: action.payload,
         },
       };
     }

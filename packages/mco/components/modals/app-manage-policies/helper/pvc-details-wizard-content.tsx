@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { VolumeConsistencyCheckbox } from '@odf/mco/components/enable-volume-consistency-group/enable-volume-consistency-group';
 import {
-  DR_BLOCK_LISTED_LABELS,
   LABEL,
-  LABEL_SPLIT_CHAR,
   LABELS_SPLIT_CHAR,
+  DR_BLOCK_LISTED_LABELS,
+  LABEL_SPLIT_CHAR,
 } from '@odf/mco/constants';
 import { useACMSafeFetch } from '@odf/mco/hooks/acm-safe-fetch';
 import { SearchResult } from '@odf/mco/types';
@@ -15,29 +14,27 @@ import { getName } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getValidatedProp } from '@odf/shared/utils';
 import {
+  PairElementProps,
   LazyNameValueEditor,
   NameValueEditorPair,
-  PairElementProps,
 } from '@odf/shared/utils/NameValueEditor';
 import {
   SelectOption,
-  SelectPosition,
   SelectVariant,
+  SelectPosition,
 } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import {
   Button,
-  ButtonVariant,
   Form,
   FormGroup,
   Grid,
   GridItem,
   Popover,
+  ButtonVariant,
 } from '@patternfly/react-core';
 import { MinusCircleIcon } from '@patternfly/react-icons';
-import '../../../../style.scss';
 import { queryAppWorkloadPVCs } from '../../../../utils/acm-search-queries';
-import '../style.scss';
 import {
   ManagePolicyStateAction,
   ManagePolicyStateType,
@@ -49,6 +46,8 @@ import {
   getLabelValidationMessage,
   isValidLabelInput,
 } from './assign-policy-view-footer';
+import '../../../../style.scss';
+import '../style.scss';
 
 const getPlacementTags = (pvcSelectors: PVCSelectorType[]): TagsType =>
   !!pvcSelectors.length
@@ -257,7 +256,6 @@ export const PVCDetailsWizardContent: React.FC<
   protectedPVCSelectors,
   dispatch,
   pvcQueryFilter,
-  isVolumeConsistencyEnabled,
 }) => {
   const { t } = useCustomTranslation();
 
@@ -293,13 +291,6 @@ export const PVCDetailsWizardContent: React.FC<
   const protectedPlacementNames: string[] = protectedPVCSelectors.map(
     (pvcSelector) => pvcSelector.placementName
   );
-
-  const handleVolumeConsistencyChange = (checked: boolean) => {
-    dispatch({
-      type: ManagePolicyStateType.SET_VOLUME_CONSISTENCY_ENABLED,
-      payload: checked,
-    });
-  };
 
   return (
     <Form>
@@ -345,16 +336,6 @@ export const PVCDetailsWizardContent: React.FC<
       ) : (
         <StatusBox loaded={loaded} loadError={error} />
       )}
-      <FormGroup
-        label={t('Volume consistency groups')}
-        fieldId="volume-consistency-groups"
-      >
-        <VolumeConsistencyCheckbox
-          isChecked={isVolumeConsistencyEnabled}
-          onChange={handleVolumeConsistencyChange}
-          t={t}
-        />
-      </FormGroup>
     </Form>
   );
 };
@@ -370,7 +351,6 @@ type ExtraProps = {
 };
 
 type PVCDetailsWizardContentProps = {
-  isVolumeConsistencyEnabled: boolean;
   pvcSelectors: PVCSelectorType[];
   unProtectedPlacements: PlacementType[];
   isValidationEnabled: boolean;
