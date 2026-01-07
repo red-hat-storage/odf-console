@@ -114,14 +114,14 @@ export const isFlexibleScaling = (
 
 /**
  * Returns the minimum required resources taking into account the OSD pods.
- * Default requirements assume 6 OSDs deployed.
+ * Default requirements assume 3 OSDs deployed.
  */
 export const getResourceProfileRequirements = (
   profile: ResourceProfile,
   osdAmount: number
 ): { minCpu: number; minMem: number } => {
   const { minCpu, minMem, osd } = RESOURCE_PROFILE_REQUIREMENTS_MAP[profile];
-  const extraOsds = osdAmount - 6;
+  const extraOsds = osdAmount - 3;
   let cpu = minCpu;
   let mem = minMem;
   if (extraOsds > 0) {
