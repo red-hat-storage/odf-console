@@ -15,6 +15,7 @@ import {
   VM_RECIPE_NAME,
   ODF_RESOURCE_TYPE_LABEL,
   K8S_RESOURCE_SELECTOR_LABEL_KEY,
+  PROTECTED_APP_ANNOTATION,
 } from '@odf/mco/constants';
 import {
   DRPlacementControlKind,
@@ -23,26 +24,27 @@ import {
 import { convertLabelToExpression, matchClusters } from '@odf/mco/utils';
 import { fireManagedClusterAction } from '@odf/mco/utils/managed-cluster-action';
 import { fireManagedClusterView } from '@odf/mco/utils/managed-cluster-view';
-import { PersistentVolumeClaimModel } from '@odf/shared';
 import {
   ACMPlacementModel,
   ACMPlacementRuleModel,
   DRPlacementControlModel,
   DRPolicyModel,
+  PersistentVolumeClaimModel,
   VirtualMachineModel,
 } from '@odf/shared';
 import {
-  getAPIVersion,
   getAnnotations,
+  getAPIVersion,
   getName,
   getNamespace,
 } from '@odf/shared/selectors';
 import { K8sResourceKind } from '@odf/shared/types';
 import { getAPIVersionForModel } from '@odf/shared/utils';
 import {
-  k8sDelete,
-  k8sPatch,
   k8sCreate,
+  k8sDelete,
+  k8sGet,
+  k8sPatch,
   Patch,
 } from '@openshift-console/dynamic-plugin-sdk';
 import * as _ from 'lodash-es';
@@ -105,6 +107,51 @@ export const doNotDeletePVCAnnotationPromises = (
     promises.push(updateDRPC(getName(drpc), getNamespace(drpc), patch));
   });
   return promises;
+};
+
+export const removeExperimentalAnnotationPromises = async (
+  drpcs: DRPlacementControlType[]
+) => {
+  const placementPromises = drpcs.map(async (drpc) => {
+    try {
+      const name = getName(drpc.placementInfo);
+      const namespace = getNamespace(drpc);
+      const placement = await k8sGet({
+        model: ACMPlacementModel,
+        name,
+        ns: namespace,
+      });
+      return { drpc, placement };
+    } catch (_err) {
+      return { drpc, placement: null };
+    }
+  });
+
+  const results = await Promise.all(placementPromises);
+
+  const promises: Promise<K8sResourceKind>[] = [];
+  results.forEach(({ placement }) => {
+    if (placement) {
+      const annotations = getAnnotations(placement, {});
+      if (annotations && annotations[PROTECTED_APP_ANNOTATION]) {
+        const patch = [
+          {
+            op: 'remove',
+            path: `/metadata/annotations/${PROTECTED_APP_ANNOTATION_WO_SLASH}`,
+          },
+        ];
+        promises.push(
+          k8sPatch({
+            model: ACMPlacementModel,
+            resource: placement,
+            data: patch,
+          })
+        );
+      }
+    }
+  });
+
+  return Promise.all(promises);
 };
 
 const updateDRPC = (drpcName: string, drpcNamespace: string, patch: Patch[]) =>
@@ -197,8 +244,11 @@ export const unAssignPromises = async (
   discoveredVMPVCs: string[]
 ) => {
   if (appType !== DRApplication.DISCOVERED) {
-    await Promise.all(unAssignPromisesForManaged(drpcs));
+    await removeExperimentalAnnotationPromises(drpcs);
+
+    await unAssignPromisesForManaged(drpcs);
   } else {
+    // Removal of experimental annotation not required for discovered apps as the dummy placement will get deleted. https://github.com/red-hat-storage/odf-console/pull/2382
     await unAssignPromisesForDiscovered(
       drpcs[0],
       appName,
@@ -209,10 +259,15 @@ export const unAssignPromises = async (
   }
 };
 
-export const unAssignPromisesForManaged = (drpcs: DRPlacementControlType[]) => [
-  doNotDeletePVCAnnotationPromises(drpcs),
-  drpcs.map((drpc) => deleteDRPC(getName(drpc), getNamespace(drpc))),
-];
+export const unAssignPromisesForManaged = async (
+  drpcs: DRPlacementControlType[]
+) => {
+  await Promise.all(doNotDeletePVCAnnotationPromises(drpcs));
+
+  await Promise.all(
+    drpcs.map((drpc) => deleteDRPC(getName(drpc), getNamespace(drpc)))
+  );
+};
 
 const placementAssignPromise = (placement: PlacementType) => {
   const patch = [];
