@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH } from '@odf/mco/constants';
+import {
+  DO_NOT_DELETE_PVC_ANNOTATION_WO_SLASH,
+  PROTECTED_APP_ANNOTATION,
+  PROTECTED_APP_ANNOTATION_WO_SLASH,
+} from '@odf/mco/constants';
 import { DRPlacementControlKind } from '@odf/mco/types';
 import { ACMPlacementModel, DRPlacementControlModel } from '@odf/shared';
 import {
@@ -8,12 +12,13 @@ import {
   ModalHeader,
   CommonModalProps,
 } from '@odf/shared/modals';
-import { getName, getNamespace } from '@odf/shared/selectors';
+import { getAnnotations, getName, getNamespace } from '@odf/shared/selectors';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import { getErrorMessage } from '@odf/shared/utils';
 import {
   K8sResourceKind,
   k8sDelete,
+  k8sGet,
   k8sPatch,
 } from '@openshift-console/dynamic-plugin-sdk';
 import { Trans } from 'react-i18next';
@@ -28,7 +33,9 @@ import {
 import { ExclamationTriangleIcon } from '@patternfly/react-icons';
 
 // ToDo(Gowtham): https://github.com/red-hat-storage/odf-console/issues/1449
-const pvcAnnotationPatchPromise = (application: DRPlacementControlKind) => {
+const pvcAnnotationPatchPromise = async (
+  application: DRPlacementControlKind
+) => {
   const patch = [
     {
       op: 'add',
@@ -47,6 +54,42 @@ const pvcAnnotationPatchPromise = (application: DRPlacementControlKind) => {
     },
     data: patch,
   });
+};
+
+const experimentalAnnotationRemovalPatchPromise = async (
+  application: DRPlacementControlKind
+) => {
+  try {
+    const name = application.spec.placementRef.name;
+    const namespace = getNamespace(application);
+
+    const placement = await k8sGet({
+      model: ACMPlacementModel,
+      name,
+      ns: namespace,
+    });
+
+    const annotations = getAnnotations(placement, {});
+
+    if (!annotations || !annotations[PROTECTED_APP_ANNOTATION]) {
+      return Promise.resolve();
+    }
+
+    const patch = [
+      {
+        op: 'remove',
+        path: `/metadata/annotations/${PROTECTED_APP_ANNOTATION_WO_SLASH}`,
+      },
+    ];
+
+    return k8sPatch({
+      model: ACMPlacementModel,
+      resource: placement,
+      data: patch,
+    });
+  } catch (err) {
+    return Promise.reject(err);
+  }
 };
 
 // ToDo(Gowtham): https://github.com/red-hat-storage/odf-console/issues/1449
@@ -91,25 +134,19 @@ const RemoveDisasterRecoveryModal: React.FC<
   const [isInprogress, setInProgress] = React.useState(false);
   const [error, setError] = React.useState();
 
-  const onRemove = (event) => {
+  const onRemove = async (event) => {
     event.preventDefault();
     setInProgress(true);
 
-    pvcAnnotationPatchPromise(application)
-      .then(() => {
-        Promise.all(deleteApplicationResourcePromise(application))
-          .then(() => {
-            closeModal();
-          })
-          .catch((err) => {
-            setError(err);
-            setInProgress(false);
-          });
-      })
-      .catch((err) => {
-        setError(err);
-        setInProgress(false);
-      });
+    try {
+      await experimentalAnnotationRemovalPatchPromise(application);
+      await pvcAnnotationPatchPromise(application);
+      await Promise.all(deleteApplicationResourcePromise(application));
+      closeModal();
+    } catch (err) {
+      setError(err);
+      setInProgress(false);
+    }
   };
 
   return (
