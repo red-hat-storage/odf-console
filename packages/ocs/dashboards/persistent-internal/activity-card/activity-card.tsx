@@ -8,6 +8,7 @@ import {
 } from '@odf/core/utils';
 import { getOSDMigrationStatus } from '@odf/ocs/utils';
 import { OCS_OPERATOR } from '@odf/shared/constants';
+import { DataResiliency } from '@odf/shared/dashboards/data-resiliency/data-resiliency-activity';
 import {
   useCustomPrometheusPoll,
   usePrometheusBasePath,
@@ -156,10 +157,7 @@ const OngoingActivity = () => {
   if (getResiliencyProgress(resiliencyMetric) < 1) {
     prometheusActivities.push({
       results: resiliencyMetric,
-      loader: () =>
-        import(
-          '@odf/shared/dashboards/data-resiliency/data-resiliency-activity'
-        ).then((m) => m.DataResiliency),
+      component: DataResiliency,
     });
   }
 
@@ -167,7 +165,7 @@ const OngoingActivity = () => {
     resourceActivities.push({
       resource: ocsSubscription,
       timestamp: ocsSubscription?.status?.lastUpdated,
-      loader: () => Promise.resolve(OCSUpgradeActivity),
+      component: OCSUpgradeActivity,
     });
   }
 
@@ -175,7 +173,7 @@ const OngoingActivity = () => {
     resourceActivities.push({
       resource: ocsCluster,
       timestamp: null,
-      loader: () => Promise.resolve(ClusterExpandActivity),
+      component: ClusterExpandActivity,
     });
   }
 
@@ -193,7 +191,7 @@ const OngoingActivity = () => {
     resourceActivities.push({
       resource: cephCluster,
       timestamp: null,
-      loader: () => Promise.resolve(ClusterMigrationActivity),
+      component: ClusterMigrationActivity,
     });
   }
 
