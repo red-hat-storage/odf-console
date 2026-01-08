@@ -10,13 +10,21 @@ import {
   k8sCreate,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { WizardStep, Wizard } from '@patternfly/react-core/deprecated';
 import { useParams, useNavigate } from 'react-router-dom-v5-compat';
-import { Title } from '@patternfly/react-core';
+import {
+  Alert,
+  AlertActionCloseButton,
+  Button,
+  Title,
+  Wizard,
+  WizardStep,
+  WizardFooterWrapper,
+  useWizardContext,
+} from '@patternfly/react-core';
 import { NamespacePolicyType } from '../../constants';
 import { BucketClassType, PlacementPolicy } from '../../types';
 import { validateBucketClassName, validateDuration } from '../../utils';
-import { initialState, reducer, State } from './state';
+import { Action, initialState, reducer, State } from './state';
 import BackingStorePage from './wizard-pages/backingstore-page';
 import GeneralPage from './wizard-pages/general-page';
 import { NamespacePolicyPage } from './wizard-pages/namespace-policy-page';
@@ -43,103 +51,159 @@ const NamespaceStoreCreateModal = React.lazy(
 const CreateBackingStoreFormModal = React.lazy(
   () => import('../create-bs/create-bs-modal')
 );
-const CreateBucketClass: React.FC<{}> = () => {
+
+type BucketClassWizardFooterProps = {
+  state: State;
+  dispatch: React.Dispatch<Action>;
+  namespace: string;
+};
+
+const BucketClassWizardFooter: React.FC<BucketClassWizardFooterProps> = ({
+  state,
+  dispatch,
+  namespace,
+}) => {
   const { t } = useCustomTranslation();
-
-  const { odfNamespace } = useODFNamespaceSelector();
-
-  const [state, dispatch] = React.useReducer(reducer, initialState);
-  const { ns } = useParams();
-  const namespace = ns || odfNamespace;
-
-  const launcher = useModal();
-
   const navigate = useNavigate();
+  const { activeStep, goToNextStep, goToPrevStep } = useWizardContext();
 
-  const launchModal = React.useCallback(
-    () => launcher(NamespaceStoreCreateModal, { isOpen: true }),
-    [launcher]
-  );
-  const launchBackingStoreModal = React.useCallback(
-    () => launcher(CreateBackingStoreFormModal, { isOpen: true }),
-    [launcher]
-  );
+  const [showErrorAlert, setShowErrorAlert] = React.useState(false);
 
-  const getNamespaceStorePage = () => {
-    switch (state.namespacePolicyType) {
-      case NamespacePolicyType.SINGLE:
-        return (
-          <SingleNamespaceStorePage
-            state={state}
-            dispatch={dispatch}
-            namespace={namespace}
-            launchModal={launchModal}
-          />
-        );
-      case NamespacePolicyType.CACHE:
-        return (
-          <CacheNamespaceStorePage
-            state={state}
-            dispatch={dispatch}
-            namespace={namespace}
-            launchModal={launchModal}
-            launchBackingStoreModal={launchBackingStoreModal}
-          />
-        );
-      case NamespacePolicyType.MULTI:
-        return (
-          <MultiNamespaceStorePage
-            state={state}
-            dispatch={dispatch}
-            namespace={namespace}
-            launchModal={launchModal}
-          />
-        );
-      default:
-        return null;
+  const currentStepId = activeStep.id as string;
+
+  const backingStoreNextConditions = React.useCallback(() => {
+    if (state.tier1BackingStore.length === 0) return false;
+    if (
+      state.tier1Policy === PlacementPolicy.Mirror &&
+      state.tier1BackingStore.length < 2
+    )
+      return false;
+    if (
+      state.tier2Policy === PlacementPolicy.Mirror &&
+      state.tier2BackingStore.length < 2
+    )
+      return false;
+    if (!!state.tier2Policy && state.tier2BackingStore.length === 0)
+      return false;
+    return true;
+  }, [
+    state.tier1BackingStore.length,
+    state.tier1Policy,
+    state.tier2BackingStore.length,
+    state.tier2Policy,
+  ]);
+
+  const namespaceStoreNextConditions = React.useCallback(() => {
+    if (state.namespacePolicyType === NamespacePolicyType.SINGLE) {
+      return (
+        state.readNamespaceStore.length === 1 &&
+        state.writeNamespaceStore.length === 1
+      );
     }
-  };
+    if (state.namespacePolicyType === NamespacePolicyType.CACHE) {
+      return (
+        !!state.hubNamespaceStore &&
+        !!state.cacheBackingStore &&
+        validateDuration(state.timeToLive)
+      );
+    }
+    if (state.namespacePolicyType === NamespacePolicyType.MULTI) {
+      return (
+        state.readNamespaceStore.length >= 1 &&
+        state.writeNamespaceStore.length === 1
+      );
+    }
+    return false;
+  }, [
+    state.namespacePolicyType,
+    state.readNamespaceStore.length,
+    state.writeNamespaceStore.length,
+    state.hubNamespaceStore,
+    state.cacheBackingStore,
+    state.timeToLive,
+  ]);
 
-  const getPayload = (currentState: State) => {
+  const creationConditionsSatisfied = React.useCallback(() => {
+    return (
+      (state.bucketClassType === BucketClassType.STANDARD
+        ? backingStoreNextConditions()
+        : namespaceStoreNextConditions()) && !!state.bucketClassName
+    );
+  }, [
+    state.bucketClassType,
+    state.bucketClassName,
+    backingStoreNextConditions,
+    namespaceStoreNextConditions,
+  ]);
+
+  const canProceed = React.useMemo(() => {
+    switch (currentStepId) {
+      case CreateStepsBC.GENERAL:
+        return validateBucketClassName(state.bucketClassName.trim());
+      case CreateStepsBC.PLACEMENT:
+        return state.bucketClassType === BucketClassType.STANDARD
+          ? !!state.tier1Policy
+          : !!state.namespacePolicyType;
+      case CreateStepsBC.RESOURCES:
+        return state.bucketClassType === BucketClassType.STANDARD
+          ? backingStoreNextConditions()
+          : namespaceStoreNextConditions();
+      case CreateStepsBC.REVIEW:
+        return creationConditionsSatisfied();
+      default:
+        return false;
+    }
+  }, [
+    currentStepId,
+    state.bucketClassName,
+    state.bucketClassType,
+    state.tier1Policy,
+    state.namespacePolicyType,
+    backingStoreNextConditions,
+    namespaceStoreNextConditions,
+    creationConditionsSatisfied,
+  ]);
+
+  const getPayload = React.useCallback(() => {
     const metadata = {
       apiVersion: getAPIVersionForModel(NooBaaBucketClassModel),
       kind: NooBaaBucketClassModel.kind,
       metadata: {
-        name: currentState.bucketClassName,
+        name: state.bucketClassName,
         namespace: namespace,
       },
     };
     let payload = null;
-    if (currentState.bucketClassType === BucketClassType.STANDARD) {
+    if (state.bucketClassType === BucketClassType.STANDARD) {
       payload = {
         ...metadata,
         spec: {
           placementPolicy: {
             tiers: [
               {
-                placement: currentState.tier1Policy,
-                backingStores: currentState.tier1BackingStore.map(getName),
+                placement: state.tier1Policy,
+                backingStores: state.tier1BackingStore.map(getName),
               },
             ],
           },
         },
       };
-      if (currentState.tier2Policy) {
+      if (state.tier2Policy) {
         payload.spec.placementPolicy.tiers.push({
-          placement: currentState.tier2Policy,
-          backingStores: currentState.tier2BackingStore.map(getName),
+          placement: state.tier2Policy,
+          backingStores: state.tier2BackingStore.map(getName),
         });
       }
     } else {
-      switch (currentState.namespacePolicyType) {
+      switch (state.namespacePolicyType) {
         case NamespacePolicyType.SINGLE:
           payload = {
             ...metadata,
             spec: {
               namespacePolicy: {
-                type: currentState.namespacePolicyType,
+                type: state.namespacePolicyType,
                 single: {
-                  resource: getName(currentState.readNamespaceStore[0]),
+                  resource: getName(state.readNamespaceStore[0]),
                 },
               },
             },
@@ -164,18 +228,18 @@ const CreateBucketClass: React.FC<{}> = () => {
             ...metadata,
             spec: {
               namespacePolicy: {
-                type: currentState.namespacePolicyType,
+                type: state.namespacePolicyType,
                 cache: {
                   caching: {
-                    ttl: currentState.timeToLive,
+                    ttl: state.timeToLive,
                   },
-                  hubResource: getName(currentState.hubNamespaceStore),
+                  hubResource: getName(state.hubNamespaceStore),
                 },
               },
               placementPolicy: {
                 tiers: [
                   {
-                    backingStores: [getName(currentState.cacheBackingStore)],
+                    backingStores: [getName(state.cacheBackingStore)],
                   },
                 ],
               },
@@ -187,16 +251,26 @@ const CreateBucketClass: React.FC<{}> = () => {
       }
     }
     return payload;
-  };
-  const finalStep = () => {
+  }, [namespace, state]);
+
+  const isMountedRef = React.useRef(true);
+
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const finalStep = React.useCallback(() => {
     dispatch({ type: 'setIsLoading', value: true });
-    const payload = getPayload(state);
+    const payload = getPayload();
     const promiseObj = k8sCreate({
       model: NooBaaBucketClassModel,
       data: payload,
     });
     promiseObj
       .then((obj) => {
+        if (!isMountedRef.current) return;
         const resourcePath = `${referenceForModel(
           NooBaaBucketClassModel
         )}/${getName(obj)}`;
@@ -204,89 +278,140 @@ const CreateBucketClass: React.FC<{}> = () => {
         navigate(`/odf/resource/${resourcePath}`);
       })
       .catch((err) => {
+        if (!isMountedRef.current) return;
         dispatch({ type: 'setIsLoading', value: false });
         dispatch({ type: 'setError', value: err.message });
       });
-  };
+  }, [dispatch, getPayload, navigate]);
 
-  const backingStoreNextConditions = () => {
-    if (state.tier1BackingStore.length === 0) return false;
-    if (
-      state.tier1Policy === PlacementPolicy.Mirror &&
-      state.tier1BackingStore.length < 2
-    )
-      return false;
-    if (
-      state.tier2Policy === PlacementPolicy.Mirror &&
-      state.tier2BackingStore.length < 2
-    )
-      return false;
-    if (!!state.tier2Policy && state.tier2BackingStore.length === 0)
-      return false;
-    return true;
-  };
-
-  const namespaceStoreNextConditions = () => {
-    if (state.namespacePolicyType === NamespacePolicyType.SINGLE) {
-      return (
-        state.readNamespaceStore.length === 1 &&
-        state.writeNamespaceStore.length === 1
-      );
+  const handleNext = () => {
+    if (currentStepId === CreateStepsBC.REVIEW) {
+      finalStep();
+    } else {
+      goToNextStep();
     }
-    if (state.namespacePolicyType === NamespacePolicyType.CACHE) {
-      return (
-        !!state.hubNamespaceStore &&
-        !!state.cacheBackingStore &&
-        validateDuration(state.timeToLive)
-      );
-    }
-    if (state.namespacePolicyType === NamespacePolicyType.MULTI) {
-      return (
-        state.readNamespaceStore.length >= 1 &&
-        state.writeNamespaceStore.length === 1
-      );
-    }
-    return false;
   };
 
-  const creationConditionsSatisfied = () => {
-    return (
-      (state.bucketClassType === BucketClassType.STANDARD
-        ? backingStoreNextConditions()
-        : namespaceStoreNextConditions()) && !!state.bucketClassName
-    );
-  };
+  const isLoading = state.isLoading;
 
-  const [currentStep, setCurrentStep] = React.useState(1);
-  const [stepsReached, setStepsReached] = React.useState(1);
+  React.useEffect(() => {
+    if (state.error) {
+      setShowErrorAlert(true);
+    }
+  }, [state.error]);
 
-  const StepPositionMap = Object.entries(CreateStepsBC).reduce(
-    (acc, cur, index) => {
-      acc[cur[0]] = index + 1;
-      return acc;
-    },
-    {}
+  return (
+    <>
+      {showErrorAlert && state.error && (
+        <Alert
+          className="nb-create-bc-wizard__alert"
+          variant="danger"
+          isInline
+          actionClose={
+            <AlertActionCloseButton
+              onClose={() => {
+                setShowErrorAlert(false);
+                dispatch({ type: 'setError', value: '' });
+              }}
+            />
+          }
+          title={t('An error has occurred')}
+        >
+          {state.error}
+        </Alert>
+      )}
+      <WizardFooterWrapper>
+        <Button
+          isLoading={isLoading}
+          isDisabled={!canProceed || isLoading}
+          variant="primary"
+          onClick={handleNext}
+        >
+          {currentStepId === CreateStepsBC.REVIEW
+            ? t('Create BucketClass')
+            : t('Next')}
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={goToPrevStep}
+          isDisabled={currentStepId === CreateStepsBC.GENERAL || isLoading}
+        >
+          {t('Back')}
+        </Button>
+        <Button
+          variant="link"
+          onClick={() => navigate(-1)}
+          isDisabled={isLoading}
+        >
+          {t('Cancel')}
+        </Button>
+      </WizardFooterWrapper>
+    </>
+  );
+};
+
+const CreateBucketClass: React.FC = () => {
+  const { t } = useCustomTranslation();
+
+  const { odfNamespace } = useODFNamespaceSelector();
+
+  const [state, dispatch] = React.useReducer(reducer, initialState);
+  const { ns } = useParams();
+  const namespace = ns || odfNamespace;
+
+  const launcher = useModal();
+
+  const launchNamespaceStoreModal = React.useCallback(
+    () => launcher(NamespaceStoreCreateModal, { isOpen: true }),
+    [launcher]
+  );
+  const launchBackingStoreModal = React.useCallback(
+    () => launcher(CreateBackingStoreFormModal, { isOpen: true }),
+    [launcher]
   );
 
-  const canJumpToHelper = (that) => {
-    const currentId = StepPositionMap[that.id];
-    if (currentId === currentStep && !that.enableNext) {
-      setStepsReached(currentId);
+  const renderNamespaceStorePage = () => {
+    switch (state.namespacePolicyType) {
+      case NamespacePolicyType.SINGLE:
+        return (
+          <SingleNamespaceStorePage
+            state={state}
+            dispatch={dispatch}
+            namespace={namespace}
+            launchModal={launchNamespaceStoreModal}
+          />
+        );
+      case NamespacePolicyType.CACHE:
+        return (
+          <CacheNamespaceStorePage
+            state={state}
+            dispatch={dispatch}
+            namespace={namespace}
+            launchModal={launchNamespaceStoreModal}
+            launchBackingStoreModal={launchBackingStoreModal}
+          />
+        );
+      case NamespacePolicyType.MULTI:
+        return (
+          <MultiNamespaceStorePage
+            state={state}
+            dispatch={dispatch}
+            namespace={namespace}
+            launchModal={launchNamespaceStoreModal}
+          />
+        );
+      default:
+        return null;
     }
-    return stepsReached >= currentId;
   };
 
-  const steps: WizardStep[] = [
+  const steps = [
     {
       id: CreateStepsBC.GENERAL,
       name: t('General'),
       component: (
         <GeneralPage dispatch={dispatch} state={state} namespace={namespace} />
       ),
-      enableNext: validateBucketClassName(state.bucketClassName.trim()),
-      get canJumpTo() {
-        return canJumpToHelper(this);
-      },
     },
     {
       id: CreateStepsBC.PLACEMENT,
@@ -297,13 +422,6 @@ const CreateBucketClass: React.FC<{}> = () => {
         ) : (
           <NamespacePolicyPage state={state} dispatch={dispatch} />
         ),
-      enableNext:
-        state.bucketClassType === BucketClassType.STANDARD
-          ? !!state.tier1Policy
-          : !!state.namespacePolicyType,
-      get canJumpTo() {
-        return canJumpToHelper(this);
-      },
     },
     {
       id: CreateStepsBC.RESOURCES,
@@ -316,25 +434,13 @@ const CreateBucketClass: React.FC<{}> = () => {
             namespace={namespace}
           />
         ) : (
-          getNamespaceStorePage()
+          renderNamespaceStorePage()
         ),
-      enableNext:
-        state.bucketClassType === BucketClassType.STANDARD
-          ? backingStoreNextConditions()
-          : namespaceStoreNextConditions(),
-      get canJumpTo() {
-        return canJumpToHelper(this);
-      },
     },
     {
       id: CreateStepsBC.REVIEW,
       name: t('Review'),
       component: <ReviewPage state={state} />,
-      nextButtonText: t('Create BucketClass'),
-      enableNext: creationConditionsSatisfied(),
-      get canJumpTo() {
-        return canJumpToHelper(this);
-      },
     },
   ];
 
@@ -357,26 +463,21 @@ const CreateBucketClass: React.FC<{}> = () => {
       <div className="nb-create-bc-wizard">
         <NamespaceSafetyBox>
           <Wizard
-            steps={steps}
-            cancelButtonText={t('Cancel')}
-            nextButtonText={t('Next')}
-            backButtonText={t('Back')}
-            onSave={finalStep}
-            onClose={() => navigate(-1)}
-            onNext={({ id }) => {
-              setCurrentStep(currentStep + 1);
-              const idIndexPlusOne = StepPositionMap[id];
-              const newStepHigherBound =
-                stepsReached < idIndexPlusOne ? idIndexPlusOne : stepsReached;
-              setStepsReached(newStepHigherBound);
-            }}
-            onBack={() => {
-              setCurrentStep(currentStep - 1);
-            }}
-            onGoToStep={(newStep) => {
-              setCurrentStep(StepPositionMap[newStep.id]);
-            }}
-          />
+            isVisitRequired
+            footer={
+              <BucketClassWizardFooter
+                state={state}
+                dispatch={dispatch}
+                namespace={namespace}
+              />
+            }
+          >
+            {steps.map((step) => (
+              <WizardStep key={step.id} id={step.id} name={step.name}>
+                {step.component}
+              </WizardStep>
+            ))}
+          </Wizard>
         </NamespaceSafetyBox>
       </div>
     </>

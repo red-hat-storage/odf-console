@@ -86,6 +86,10 @@
 
 .nb-create-bc-wizard {
   overflow-y: auto;
+
+  &__alert {
+    margin: 0 var(--pf-v5-global--spacer--md);
+  }
 }
 
 .nb-bc-create-review__selected-stores {
