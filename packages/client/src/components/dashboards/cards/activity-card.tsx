@@ -94,7 +94,7 @@ const OngoingActivity = () => {
     resourceActivities.push({
       resource: clientOperatorSubscription,
       timestamp: clientOperatorSubscription?.status?.lastUpdated,
-      loader: () => Promise.resolve(ClientOperatorUpgradeActivity),
+      component: ClientOperatorUpgradeActivity,
     });
   }
 
