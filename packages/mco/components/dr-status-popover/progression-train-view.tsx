@@ -212,10 +212,13 @@ const getCurrentStepFromFlow = (
     return flow[flow.length - 1].label; // Clean up (last step)
   }
 
+  const normalizedProgression = progression.toLowerCase().replace(/\s+/g, '');
+
   // Use case-insensitive comparison for robustness
+  // Also normalize status strings by removing spaces
   const stepConfig = flow.find((config) =>
     config.statuses.some((status) =>
-      progression.toLowerCase().includes(status.toLowerCase())
+      normalizedProgression.includes(status.toLowerCase().replace(/\s+/g, ''))
     )
   );
   return stepConfig?.label || flow[0].label;
