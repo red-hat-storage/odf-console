@@ -26,16 +26,12 @@ import {
   ACMSubscriptionModel,
   ArgoApplicationSetModel,
   DRPlacementControlModel,
+  TypeaheadDropdown,
 } from '@odf/shared';
 import { getTimeDifferenceInSeconds } from '@odf/shared/details-page/datetime';
 import { useScheduler } from '@odf/shared/hooks';
 import { ResourceIcon } from '@odf/shared/resource-link/resource-link';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  Select,
-  SelectOption,
-  SelectVariant,
-} from '@patternfly/react-core/deprecated';
 import { global_danger_color_100 as globalDanger100 } from '@patternfly/react-tokens/dist/js/global_danger_color_100';
 import { global_info_color_100 as globalInfo100 } from '@patternfly/react-tokens/dist/js/global_info_color_100';
 import { global_warning_color_100 as globalWarning100 } from '@patternfly/react-tokens/dist/js/global_warning_color_100';
@@ -47,10 +43,10 @@ import {
   FlexItem,
   Text,
   TextVariants,
-  Select as SelectNext /* data-codemods */,
-  SelectOption as SelectOptionNext /* data-codemods */,
-  SelectList as SelectListNext /* data-codemods */,
-  SelectGroup as SelectGroupNext /* data-codemods */,
+  Select,
+  SelectOption,
+  SelectList,
+  SelectGroup,
   Divider,
 } from '@patternfly/react-core';
 
@@ -176,12 +172,13 @@ const ClusterDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
   className,
 }) => {
   const { t } = useCustomTranslation();
-  const [isOpen, setIsOpen] = React.useState(false);
 
   const options = React.useMemo(
     () =>
       Object.keys(clusterResources)?.map((cluster) => (
-        <SelectOption key={cluster} value={cluster} />
+        <SelectOption key={cluster} value={cluster}>
+          {cluster}
+        </SelectOption>
       )),
     [clusterResources]
   );
@@ -193,51 +190,29 @@ const ClusterDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
     }
   }, [options, clusterName, setCluster]);
 
-  const onToggle = (isOpenFlag: boolean) => setIsOpen(isOpenFlag);
-  const clearSelection = () => {
-    setCluster(null);
-    setIsOpen(false);
-  };
-  const onSelect = (
-    _event: React.MouseEvent | React.ChangeEvent,
-    selection: string
-  ) => {
-    setCluster(selection);
-    setApplication({
-      namespace: undefined,
-      name: ALL_APPS,
-    });
-    setIsOpen(false);
-  };
-  const customFilter = (
-    _event: React.ChangeEvent<HTMLInputElement> | null,
-    value: string
-  ) => {
-    if (!value) {
-      return options;
+  const onSelect = (selection: string) => {
+    if (selection !== '') {
+      setCluster(selection);
+      setApplication({
+        namespace: undefined,
+        name: ALL_APPS,
+      });
+    } else {
+      setCluster(null);
     }
-    const input = new RegExp(value, 'i');
-    return options.filter((child) => input.test(child.props.value));
   };
 
   return (
-    <Select
-      variant={SelectVariant.typeahead}
-      onToggle={(_event, isOpenFlag: boolean) => onToggle(isOpenFlag)}
-      onSelect={onSelect}
-      onClear={clearSelection}
-      onFilter={customFilter}
-      selections={t('Cluster: {{clusterName}}', { clusterName })}
-      isOpen={isOpen}
-      placeholderText={t('Select a cluster')}
+    <TypeaheadDropdown
       className={className}
-    >
-      {options}
-    </Select>
+      selectedValue={t('Cluster: {{clusterName}}', { clusterName })}
+      onSelect={onSelect}
+      items={options}
+      placeholder={t('Select a cluster')}
+    />
   );
 };
 
-// Imports: Select as SelectNext, SelectOption as SelectOptionNext, SelectList as SelectListNext.
 const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
   clusterResources,
   clusterName,
@@ -310,7 +285,7 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
 
   return (
     // ToDo: Add a search provision for the application name dropdown
-    <SelectNext
+    <Select
       id="single-select-next"
       ref={menuRef}
       isOpen={isOpen}
@@ -320,21 +295,19 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
       toggle={toggle}
     >
       <div className={className}>
-        <SelectGroupNext label="Applications">
-          <SelectListNext>
-            <SelectOptionNext itemId={ALL_APPS_ITEM_ID}>
-              {ALL_APPS}
-            </SelectOptionNext>
-          </SelectListNext>
-        </SelectGroupNext>
+        <SelectGroup label="Applications">
+          <SelectList>
+            <SelectOption itemId={ALL_APPS_ITEM_ID}>{ALL_APPS}</SelectOption>
+          </SelectList>
+        </SelectGroup>
         <Divider />
         {isDiscoveredAppsFound && (
           // Discovered application group
           <>
-            <SelectGroupNext label={t('Discovered applications')}>
-              <SelectListNext>
+            <SelectGroup label={t('Discovered applications')}>
+              <SelectList>
                 {options[DISCOVERED_APP_NS]?.map((appName: string) => (
-                  <SelectOptionNext
+                  <SelectOption
                     key={DISCOVERED_APP_NS + appName}
                     value={`${DISCOVERED_APP_NS}${NAMESPACE_NAME_SPLIT_CHAR}${appName}`}
                     icon={
@@ -342,26 +315,26 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
                     }
                   >
                     {appName}
-                  </SelectOptionNext>
+                  </SelectOption>
                 ))}
-              </SelectListNext>
-            </SelectGroupNext>
+              </SelectList>
+            </SelectGroup>
             <Divider />
           </>
         )}
         {isManagedAppsFound && (
           // Managed application group
-          <SelectGroupNext label={t('Managed applications')}>
+          <SelectGroup label={t('Managed applications')}>
             {Object.keys(options)?.map(
               (appNS: string) =>
                 appNS !== DISCOVERED_APP_NS && (
-                  <SelectGroupNext
+                  <SelectGroup
                     key={appNS}
                     label={t('Namespace: ') + `${appNS}`}
                   >
-                    <SelectListNext>
+                    <SelectList>
                       {options[appNS]?.map((appName: string) => (
-                        <SelectOptionNext
+                        <SelectOption
                           key={appNS + appName}
                           value={`${appNS}${NAMESPACE_NAME_SPLIT_CHAR}${appName}`}
                           icon={
@@ -371,16 +344,16 @@ const AppDropdown: React.FC<Partial<ClusterAppDropdownProps>> = ({
                           }
                         >
                           {appName}
-                        </SelectOptionNext>
+                        </SelectOption>
                       ))}
-                    </SelectListNext>
-                  </SelectGroupNext>
+                    </SelectList>
+                  </SelectGroup>
                 )
             )}
-          </SelectGroupNext>
+          </SelectGroup>
         )}
       </div>
-    </SelectNext>
+    </Select>
   );
 };
 

@@ -25,7 +25,13 @@ import {
   sortInstantVectorStats,
 } from '@odf/shared/utils';
 import { useK8sWatchResource } from '@openshift-console/dynamic-plugin-sdk';
-import { Select, SelectProps } from '@patternfly/react-core/deprecated';
+import {
+  MenuToggle,
+  MenuToggleElement,
+  Select,
+  SelectList,
+  SelectProps,
+} from '@patternfly/react-core';
 import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
 import './CapacityCard.scss';
 
@@ -90,6 +96,23 @@ export const CapacityCard: React.FC<{}> = () => {
     setBreakdownSelect(!isOpenBreakdownSelect);
   };
 
+  const onToggleClick = () => {
+    setBreakdownSelect(!isOpenBreakdownSelect);
+  };
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={onToggleClick}
+      isExpanded={isOpenBreakdownSelect}
+      className="scale-capacity-breakdown-card-header__dropdown"
+      aria-label={t('Break By Dropdown')}
+      isFullWidth
+    >
+      {storageClassName}
+    </MenuToggle>
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -98,20 +121,16 @@ export const CapacityCard: React.FC<{}> = () => {
             {t('Requested Capacity - Namespace (5)')}
           </CardTitle>
           <Select
-            className="scale-capacity-breakdown-card-header__dropdown"
-            autoFocus={false}
-            onSelect={handleMetricsChange}
-            onToggle={() => setBreakdownSelect(!isOpenBreakdownSelect)}
-            isOpen={isOpenBreakdownSelect}
-            selections={[storageClassName]}
-            placeholderText={t('{{metricType}}', {
-              storageClassName,
-            })}
-            aria-label={t('Break By Dropdown')}
-            isCheckboxSelectionBadgeHidden
             id="breakdown-card-metrics-dropdown"
+            isOpen={isOpenBreakdownSelect}
+            selected={storageClassName}
+            onSelect={handleMetricsChange}
+            onOpenChange={(isOpen) => setBreakdownSelect(isOpen)}
+            toggle={toggle}
+            shouldFocusToggleOnSelect
+            popperProps={{ width: 'trigger' }}
           >
-            {breakdownSelectItems}
+            <SelectList>{breakdownSelectItems}</SelectList>
           </Select>
         </div>
       </CardHeader>

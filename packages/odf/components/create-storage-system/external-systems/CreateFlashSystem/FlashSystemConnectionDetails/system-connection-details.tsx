@@ -25,7 +25,6 @@ import {
   useFlag,
   useModal,
 } from '@openshift-console/dynamic-plugin-sdk';
-import { Select, SelectOption } from '@patternfly/react-core/deprecated';
 import * as _ from 'lodash-es';
 import { useForm } from 'react-hook-form';
 import { TFunction } from 'react-i18next';
@@ -43,6 +42,11 @@ import {
   AlertVariant,
   ButtonVariant,
   ActionGroup,
+  Select,
+  SelectOption,
+  SelectList,
+  MenuToggleElement,
+  MenuToggle,
 } from '@patternfly/react-core';
 import { EyeSlashIcon, EyeIcon } from '@patternfly/react-icons';
 import { IBMFlashSystemModel } from './system-models';
@@ -91,8 +95,6 @@ export const FlashSystemConnectionDetails: React.FC = () => {
     poolname: '',
     volmode: 'thick',
   });
-
-  const onToggle = () => setIsOpen(!isOpen);
 
   const volumeMapper = volumeModeObject(t);
   const inverseVolumeMapper = _.invert(volumeMapper);
@@ -157,6 +159,23 @@ export const FlashSystemConnectionDetails: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  const onToggleClick = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={onToggleClick}
+      isExpanded={isOpen}
+      aria-label={t('Break By Dropdown')}
+      isDisabled={false}
+      isFullWidth
+    >
+      {inverseVolumeMapper[formState.volmode] || Object.keys(volumeMapper)[0]}
+    </MenuToggle>
+  );
 
   return (
     <>
@@ -280,15 +299,20 @@ export const FlashSystemConnectionDetails: React.FC = () => {
               <Select
                 onSelect={onModeSelect}
                 id="volume-mode-input"
-                selections={inverseVolumeMapper[formState.volmode]}
-                onToggle={onToggle}
+                selected={inverseVolumeMapper[formState.volmode]}
                 isOpen={isOpen}
-                isDisabled={false}
-                placeholderText={Object.keys(volumeMapper)[0]}
+                toggle={toggle}
+                shouldFocusToggleOnSelect
+                popperProps={{ width: 'trigger' }}
+                onOpenChange={(isOpenState) => setIsOpen(isOpenState)}
               >
-                {Object.keys(volumeMapper).map((mode) => (
-                  <SelectOption key={mode} value={mode} />
-                ))}
+                <SelectList>
+                  {Object.keys(volumeMapper).map((mode) => (
+                    <SelectOption key={mode} value={mode}>
+                      {mode}
+                    </SelectOption>
+                  ))}
+                </SelectList>
               </Select>
             </FormGroup>
             {error && (
