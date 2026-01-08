@@ -24,6 +24,7 @@ import {
   ObjectServiceDashboardQuery,
 } from '../../../queries';
 import { isObjectStorageEvent, decodeRGWPrefix } from '../../../utils';
+import { NoobaaDataResiliency } from './data-resiliency-activity/data-resiliency-activity';
 import '../../../style.scss';
 import './activity-card.scss';
 
@@ -89,20 +90,14 @@ const OngoingActivity: React.FC<ActivityProps> = ({
   if (isMCGSupported && getResiliencyProgress(progress) < 1) {
     prometheusActivities.push({
       results: [progress, eta],
-      loader: () =>
-        import('./data-resiliency-activity/data-resiliency-activity').then(
-          (m) => m.NoobaaDataResiliency
-        ),
+      component: NoobaaDataResiliency,
     });
   }
 
   if (isRGWSupported && getResiliencyProgress(rgwProgress) < 1) {
     prometheusActivities.push({
       results: [rgwProgress],
-      loader: () =>
-        import('./data-resiliency-activity/data-resiliency-activity').then(
-          (m) => m.NoobaaDataResiliency
-        ),
+      component: NoobaaDataResiliency,
     });
   }
 
