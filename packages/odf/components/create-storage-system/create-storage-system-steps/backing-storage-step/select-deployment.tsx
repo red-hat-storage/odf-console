@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { DeploymentType } from '@odf/core/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import {
-  Select,
-  SelectOption,
-  SelectProps,
-  SelectVariant,
-} from '@patternfly/react-core/deprecated';
 import { TFunction } from 'react-i18next';
-import { FormGroup } from '@patternfly/react-core';
+import { Select, SelectOption, SelectProps } from '@patternfly/react-core';
+import {
+  FormGroup,
+  MenuToggle,
+  MenuToggleElement,
+  SelectList,
+} from '@patternfly/react-core';
 import { WizardDispatch, WizardState } from '../../reducer';
 import './backing-storage-step.scss';
 
@@ -51,24 +51,34 @@ export const SelectDeployment: React.FC<SelectDeploymentProps> = ({
     setIsSelectOpen(false);
   };
 
-  const handleToggling: SelectProps['onToggle'] = (
-    _event,
-    isExpanded: boolean
-  ) => setIsSelectOpen(isExpanded);
+  const onToggleClick = () => {
+    setIsSelectOpen(!isSelectOpen);
+  };
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={onToggleClick}
+      isExpanded={isSelectOpen}
+      className="odf-backing-storage__selection--width"
+      isFullWidth
+    >
+      {deployment}
+    </MenuToggle>
+  );
 
   return (
     <FormGroup label={t('Deployment type')} fieldId="deployment-type">
       <Select
-        className="odf-backing-storage__selection--width"
-        variant={SelectVariant.single}
-        onToggle={(_event, isExpanded: boolean) =>
-          handleToggling(_event, isExpanded)
-        }
         onSelect={handleSelection}
-        selections={deployment}
+        selected={deployment}
         isOpen={isSelectOpen}
+        onOpenChange={(isOpen) => setIsSelectOpen(isOpen)}
+        toggle={toggle}
+        shouldFocusToggleOnSelect
+        popperProps={{ width: 'trigger' }}
       >
-        {selectOptions(t)}
+        <SelectList>{selectOptions(t)}</SelectList>
       </Select>
     </FormGroup>
   );
