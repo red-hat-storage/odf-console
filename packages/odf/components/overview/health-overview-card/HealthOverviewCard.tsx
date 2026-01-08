@@ -78,7 +78,6 @@ export const HealthOverviewCard: React.FC = () => {
     // Get active alerts (exclude silenced ones)
     const activeAlerts = filterOutSilencedAlerts(healthAlerts, silences);
 
-    // Count firing alerts by severity in a single pass (O(n) instead of O(4n))
     return activeAlerts.reduce(
       (acc, alert) => {
         // Only count firing alerts
@@ -133,7 +132,6 @@ export const HealthOverviewCard: React.FC = () => {
     return [now - TWENTY_FOUR_HOURS, now];
   }, []);
 
-  // Comprehensive loading and error state management
   const isAlertsLoading = !healthAlertsLoaded || !silencedAlertsLoaded;
   const isLoading = healthScoreLoading || isAlertsLoading;
 
