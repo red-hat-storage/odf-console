@@ -8,11 +8,15 @@ import {
 } from '@odf/core/types';
 import { getResourceProfileRequirements } from '@odf/core/utils';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
-import { WizardContextConsumer } from '@patternfly/react-core/deprecated';
 import classNames from 'classnames';
 import { TFunction } from 'react-i18next';
 import { Link } from 'react-router-dom-v5-compat';
-import { Alert, AlertVariant, AlertActionLink } from '@patternfly/react-core';
+import {
+  Alert,
+  AlertVariant,
+  AlertActionLink,
+  useWizardContext,
+} from '@patternfly/react-core';
 import './odf-install.scss';
 
 export type Validation = {
@@ -182,28 +186,28 @@ export const ActionAlert: React.FC<ActionAlertProps> = ({
   actionLinkText,
   actionLinkStep,
   className,
-}) => (
-  <WizardContextConsumer>
-    {({ goToStepById }) => (
-      <Alert
-        className={classNames('co-alert', className)}
-        variant={variant}
-        title={title}
-        isInline
-        actionLinks={
-          actionLinkStep &&
-          actionLinkText && (
-            <AlertActionLink onClick={() => goToStepById(actionLinkStep)}>
-              {actionLinkText}
-            </AlertActionLink>
-          )
-        }
-      >
-        {text && <p>{text}</p>}
-      </Alert>
-    )}
-  </WizardContextConsumer>
-);
+}) => {
+  const { goToStepById } = useWizardContext();
+
+  return (
+    <Alert
+      className={classNames('co-alert', className)}
+      variant={variant}
+      title={title}
+      isInline
+      actionLinks={
+        actionLinkStep &&
+        actionLinkText && (
+          <AlertActionLink onClick={() => goToStepById(actionLinkStep)}>
+            {actionLinkText}
+          </AlertActionLink>
+        )
+      }
+    >
+      {text && <p>{text}</p>}
+    </Alert>
+  );
+};
 
 type ActionAlertProps = Validation & {
   className?: string;
