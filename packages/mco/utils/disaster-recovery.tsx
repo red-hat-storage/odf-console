@@ -24,6 +24,7 @@ import {
   GreenCheckCircleIcon,
   Alert,
   AlertStates,
+  K8sResourceCondition,
 } from '@openshift-console/dynamic-plugin-sdk';
 import {
   Operator,
@@ -558,6 +559,14 @@ export const isDRPolicyValidated = (drPolicy: DRPolicyKind) =>
   drPolicy?.status?.conditions?.some(
     (condition) =>
       condition?.type === 'Validated' && condition?.status === 'True'
+  );
+
+export const getInvalidDRPolicy = (
+  drPolicy: DRPolicyKind
+): K8sResourceCondition =>
+  drPolicy?.status?.conditions?.find(
+    (condition) =>
+      condition?.type === 'Validated' && condition.status === 'False'
   );
 
 // Finding placement from application generators
