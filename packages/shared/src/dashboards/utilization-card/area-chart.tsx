@@ -13,6 +13,7 @@ import { DataPoint, humanizeNumber } from '@odf/shared/utils';
 import { Humanize } from '@openshift-console/dynamic-plugin-sdk';
 import { ByteDataTypes } from '@openshift-console/dynamic-plugin-sdk/lib/api/internal-types';
 import i18n from 'i18next';
+import { InterpolationPropType } from 'victory-core';
 import {
   ChartVoronoiContainer,
   ChartGroup,
@@ -23,6 +24,31 @@ import {
   Chart,
   ChartAxis,
 } from '@patternfly/react-charts';
+
+export type ChartPaddingType = {
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
+
+export type ChartDomainType = {
+  x?: [number, number];
+  y?: [number, number];
+};
+
+export type AxisStyleType = {
+  axis?: object;
+  tickLabels?: object;
+  grid?: object;
+};
+
+const DEFAULT_PADDING: ChartPaddingType = {
+  top: 20,
+  left: 70,
+  bottom: 60,
+  right: 0,
+};
 
 export const AreaChart: React.FC<AreaChartProps> = ({
   data = [],
@@ -42,6 +68,13 @@ export const AreaChart: React.FC<AreaChartProps> = ({
   height = 200,
   showLegend,
   legendComponent,
+  domain,
+  themeColor = ChartThemeColor.multiUnordered,
+  padding = DEFAULT_PADDING,
+  interpolation,
+  xAxisStyle,
+  yAxisStyle,
+  disableGraphLink = false,
 }) => {
   const [containerRef, width] = useRefWidth();
 
@@ -129,10 +162,26 @@ export const AreaChart: React.FC<AreaChartProps> = ({
     CustomChartGroup = ChartGroup;
   }
 
+  // Build domain props for Chart
+  const domainProps = React.useMemo(() => {
+    const props: { minDomain?: object; maxDomain?: object } = {};
+    if (domain?.x || domain?.y) {
+      if (domain.x) {
+        props.minDomain = { ...props.minDomain, x: domain.x[0] };
+        props.maxDomain = { ...props.maxDomain, x: domain.x[1] };
+      }
+      if (domain.y) {
+        props.minDomain = { ...props.minDomain, y: domain.y[0] };
+        props.maxDomain = { ...props.maxDomain, y: domain.y[1] };
+      }
+    }
+    return props;
+  }, [domain]);
+
   return (
     <PrometheusGraph ref={containerRef}>
       <PrometheusGraphLink
-        query={query}
+        query={disableGraphLink ? undefined : query}
         ariaChartLinkLabel={ariaChartLinkLabel}
       >
         {processedData?.length ? (
@@ -142,21 +191,27 @@ export const AreaChart: React.FC<AreaChartProps> = ({
             domainPadding={{ y: 20 }}
             height={height}
             width={width}
-            themeColor={ChartThemeColor.multiUnordered}
+            themeColor={themeColor}
             scale={{ x: 'time', y: 'linear' }}
-            padding={{ top: 20, left: 70, bottom: 60, right: 0 }}
+            padding={padding}
             legendData={chartType && showLegend ? legendData : null}
             legendPosition="bottom-left"
             legendComponent={legendComponent}
+            {...domainProps}
           >
             {xAxis && (
-              <ChartAxis tickCount={tickCount} tickFormat={xTickFormat} />
+              <ChartAxis
+                tickCount={tickCount}
+                tickFormat={xTickFormat}
+                style={xAxisStyle}
+              />
             )}
             {yAxis && (
               <ChartAxis
                 dependentAxis
                 tickCount={tickCount}
                 tickFormat={yTickFormat}
+                style={yAxisStyle}
               />
             )}
             <CustomChartGroup height={height} width={width}>
@@ -167,6 +222,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({
                   data={datum}
                   style={chartStyle && chartStyle[index]}
                   name={datum[0]?.description}
+                  interpolation={interpolation}
                 />
               ))}
             </CustomChartGroup>
@@ -197,4 +253,18 @@ export type AreaChartProps = {
   height?: number;
   showLegend?: boolean;
   legendComponent?: React.ReactElement<any>;
+  /** Fixed min/max domain for x and/or y axes */
+  domain?: ChartDomainType;
+  /** Chart color theme (default: multiUnordered) */
+  themeColor?: (typeof ChartThemeColor)[keyof typeof ChartThemeColor];
+  /** Chart padding (default: { top: 20, left: 70, bottom: 60, right: 0 }) */
+  padding?: ChartPaddingType;
+  /** Interpolation style for area/line (e.g., 'monotoneX', 'linear', 'step') */
+  interpolation?: InterpolationPropType;
+  /** Custom styling for x-axis */
+  xAxisStyle?: AxisStyleType;
+  /** Custom styling for y-axis */
+  yAxisStyle?: AxisStyleType;
+  /** Disable the Prometheus query browser link */
+  disableGraphLink?: boolean;
 };
