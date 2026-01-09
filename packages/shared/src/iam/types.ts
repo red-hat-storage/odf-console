@@ -25,6 +25,12 @@ import {
   DeleteUserPolicyCommandOutput,
   UntagUserCommandInput,
   UntagUserCommandOutput,
+  ListAttachedUserPoliciesCommandInput,
+  ListAttachedUserPoliciesCommandOutput,
+  DetachUserPolicyCommandInput,
+  DetachUserPolicyCommandOutput,
+  ListUserPoliciesCommandInput,
+  ListUserPoliciesCommandOutput,
 } from '@aws-sdk/client-iam';
 
 export type GetUser = (
@@ -78,3 +84,15 @@ export type DeleteUserPolicy = (
 export type UntagUser = (
   input: UntagUserCommandInput
 ) => Promise<UntagUserCommandOutput>;
+
+export type ListAttachedUserPolicies = (
+  input: ListAttachedUserPoliciesCommandInput
+) => Promise<ListAttachedUserPoliciesCommandOutput>;
+
+export type DetachUserPolicy = (
+  input: DetachUserPolicyCommandInput
+) => Promise<DetachUserPolicyCommandOutput>;
+
+export type ListUserPolicies = (
+  input: ListUserPoliciesCommandInput
+) => Promise<ListUserPoliciesCommandOutput>;

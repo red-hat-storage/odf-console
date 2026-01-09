@@ -42,7 +42,7 @@ import {
   CREATE_IAM_USER_MUTATION_KEY,
   UPDATE_ACCESS_KEY_CLEANUP_MUTATION_KEY,
   DELETE_ACCESS_KEY_CLEANUP_MUTATION_KEY,
-  DELETE_USER_POLICY_CLEANUP_MUTATION_KEY,
+  CLEANUP_ALL_POLICIES_MUTATION_KEY,
   DELETE_IAM_USER_CLEANUP_MUTATION_KEY,
   POLICY_DOCUMENT,
   POLICY_NAME,
@@ -52,7 +52,11 @@ import {
   AccessKeySecretKeyDisplayModalProps,
 } from '../../../modals/s3-iam/AccessKeySecretKeyDisplayModal';
 import { KeyValuePair } from '../../../types/s3-iam';
-import { getKeyValidations, getValueValidations } from '../../../utils/s3-iam';
+import {
+  getKeyValidations,
+  getValueValidations,
+  cleanupAllPolicies as cleanupAllPoliciesUtil,
+} from '../../../utils/s3-iam';
 import useIamUserFormValidation from '../hooks/useIamUserFormValidation';
 import { IamContext, IamProvider } from '../iam-context';
 import { AddKeyValuePairs } from './AddKeyValuePair';
@@ -108,16 +112,13 @@ export const CreateUserFormContent = () => {
   );
 
   const {
-    trigger: deleteUserPolicy,
-    isMutating: isDeletingUserPolicy,
-    error: deleteUserPolicyError,
+    trigger: cleanupAllPolicies,
+    isMutating: isCleaningUpPolicies,
+    error: cleanupPoliciesError,
   } = useSWRMutation(
-    DELETE_USER_POLICY_CLEANUP_MUTATION_KEY,
+    CLEANUP_ALL_POLICIES_MUTATION_KEY,
     async (_key, { arg }: { arg: { userName: string } }) => {
-      await iamClient.deleteUserPolicy({
-        UserName: arg.userName,
-        PolicyName: POLICY_NAME,
-      });
+      await cleanupAllPoliciesUtil(iamClient, arg.userName);
     }
   );
 
@@ -137,7 +138,7 @@ export const CreateUserFormContent = () => {
   const isCleanupInProgress =
     isUpdatingAccessKey ||
     isDeletingAccessKey ||
-    isDeletingUserPolicy ||
+    isCleaningUpPolicies ||
     isDeletingUser;
 
   const {
@@ -165,7 +166,6 @@ export const CreateUserFormContent = () => {
       } = arg;
       let userCreated = false;
       let accessKeyCreated = false;
-      let policyCreated = false;
       let accessKeyId: string | undefined;
       let accessKeyResponse: any;
 
@@ -198,7 +198,6 @@ export const CreateUserFormContent = () => {
           PolicyDocument: POLICY_DOCUMENT,
           PolicyName: POLICY_NAME,
         });
-        policyCreated = true;
 
         return {
           accessKeyResponse,
@@ -207,43 +206,55 @@ export const CreateUserFormContent = () => {
           accessKeyId,
         };
       } catch (error: any) {
+        // Try-catch is needed to set flags only on success (not on failure).
+        // useSWRMutation tracks errors internally before the promise is returned,
+        // so try-catch doesn't prevent error tracking - errors are still
+        // stored in error properties (updateAccessKeyError, deleteAccessKeyError, etc.)
+        // and displayed to users via useEffect.
         let accessKeyDeleted = false;
-        let policyDeleted = false;
+        let policiesDeleted = false;
 
         if (accessKeyCreated && accessKeyId) {
           let deactivationSucceeded = false;
-          await updateAccessKey({ userName: userNameArg, accessKeyId })
-            .then(() => {
-              deactivationSucceeded = true;
-            })
-            .catch(_.noop);
+          try {
+            await updateAccessKey({ userName: userNameArg, accessKeyId });
+            deactivationSucceeded = true;
+          } catch {
+            _.noop();
+          }
 
           if (deactivationSucceeded) {
-            await deleteAccessKey({ userName: userNameArg, accessKeyId })
-              .then(() => {
-                accessKeyDeleted = true;
-              })
-              .catch(_.noop);
+            try {
+              await deleteAccessKey({ userName: userNameArg, accessKeyId });
+              accessKeyDeleted = true;
+            } catch {
+              _.noop();
+            }
           }
         } else {
           accessKeyDeleted = true;
         }
 
-        if (policyCreated) {
-          await deleteUserPolicy({ userName: userNameArg })
-            .then(() => {
-              policyDeleted = true;
-            })
-            .catch(_.noop);
+        // Clean up all policies (attached and inline) before deleting user
+        if (userCreated) {
+          try {
+            await cleanupAllPolicies({ userName: userNameArg });
+            policiesDeleted = true;
+          } catch {
+            _.noop();
+          }
         } else {
-          // Policy was never created, so no need to delete it
-          policyDeleted = true;
+          // If user was never created, no policies to clean up
+          policiesDeleted = true;
         }
 
-        // Only delete user if access key and policy cleanup completed successfully
-        // (or if they were never created)
-        if (userCreated && accessKeyDeleted && policyDeleted) {
-          await deleteIAMUser({ userName: userNameArg }).catch(_.noop);
+        // Only delete user if access key and policies cleanup completed successfully (or were never created)
+        if (userCreated && accessKeyDeleted && policiesDeleted) {
+          try {
+            await deleteIAMUser({ userName: userNameArg });
+          } catch {
+            _.noop();
+          }
         }
 
         throw error;
@@ -302,9 +313,9 @@ export const CreateUserFormContent = () => {
         deleteAccessKeyError?.message || JSON.stringify(deleteAccessKeyError)
       );
     }
-    if (deleteUserPolicyError) {
+    if (cleanupPoliciesError) {
       cleanupErrors.push(
-        deleteUserPolicyError?.message || JSON.stringify(deleteUserPolicyError)
+        cleanupPoliciesError?.message || JSON.stringify(cleanupPoliciesError)
       );
     }
     if (deleteUserError) {
@@ -330,7 +341,7 @@ export const CreateUserFormContent = () => {
     createError,
     updateAccessKeyError,
     deleteAccessKeyError,
-    deleteUserPolicyError,
+    cleanupPoliciesError,
     deleteUserError,
     t,
   ]);
