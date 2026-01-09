@@ -17,8 +17,17 @@ import {
   getInstantVectorStats,
   sortInstantVectorStats,
 } from '@odf/shared/utils';
-import { Select, SelectProps } from '@patternfly/react-core/deprecated';
-import { Card, CardBody, CardHeader, CardTitle } from '@patternfly/react-core';
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  CardTitle,
+  MenuToggle,
+  MenuToggleElement,
+  SelectList,
+  Select,
+  SelectProps,
+} from '@patternfly/react-core';
 import { useStorageClassQueryFilter } from '../../hooks';
 import { getBreakdownMetricsQuery } from '../../queries';
 import { getStackChartStats } from '../../utils/metrics';
@@ -100,6 +109,23 @@ export const BreakdownCard: React.FC = () => {
 
   const breakdownSelectItems = getSelectOptions(dropdownOptions);
 
+  const onToggleClick = () => {
+    setBreakdownSelect(!isOpenBreakdownSelect);
+  };
+
+  const toggle = (toggleRef: React.Ref<MenuToggleElement>) => (
+    <MenuToggle
+      ref={toggleRef}
+      onClick={onToggleClick}
+      isExpanded={isOpenBreakdownSelect}
+      className="ceph-capacity-breakdown-card-header__dropdown"
+      aria-label={t('Break By Dropdown')}
+      isFullWidth
+    >
+      {metricType}
+    </MenuToggle>
+  );
+
   return (
     <Card>
       <CardHeader className="ceph-capacity-breakdown-card__header">
@@ -107,17 +133,15 @@ export const BreakdownCard: React.FC = () => {
           <TitleWithHelp />
         </CardTitle>
         <Select
-          className="ceph-capacity-breakdown-card-header__dropdown"
-          autoFocus={false}
           onSelect={handleMetricsChange}
-          onToggle={() => setBreakdownSelect(!isOpenBreakdownSelect)}
           isOpen={isOpenBreakdownSelect}
-          selections={[t('{{metricType}}', { metricType })]}
-          placeholderText={t('{{metricType}}', { metricType })}
-          aria-label={t('Break by dropdown')}
-          isCheckboxSelectionBadgeHidden
+          selected={t('{{metricType}}', { metricType })}
+          toggle={toggle}
+          shouldFocusToggleOnSelect
+          popperProps={{ width: 'trigger' }}
+          onOpenChange={(isOpen) => setBreakdownSelect(isOpen)}
         >
-          {breakdownSelectItems}
+          <SelectList>{breakdownSelectItems}</SelectList>
         </Select>
       </CardHeader>
       {metricType === BreakdownCardFieldsWithParams.PVCS && (
