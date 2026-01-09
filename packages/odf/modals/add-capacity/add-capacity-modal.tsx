@@ -26,6 +26,7 @@ import {
 } from '@odf/shared/types';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
 import {
+  getRandomChars,
   getStorageSizeInTiBWithoutUnit,
   humanizeBinaryBytes,
   referenceForModel,
@@ -94,6 +95,8 @@ type DeviceClassDropdownProps = {
   className?: string;
 };
 
+export const noDeviceClassKey = 'no-dc-' + getRandomChars();
+
 export const StorageClassDropdown: React.FC<StorageClassDropdownProps> = ({
   onChange,
   'data-test': dataTest,
@@ -123,8 +126,11 @@ export const DeviceClassDropdown: React.FC<DeviceClassDropdownProps> = ({
   const { t } = useCustomTranslation();
 
   const deviceClassOptions = deviceClasses.map((cls) => (
-    <SelectOption key={cls} value={cls}>
-      {cls}
+    <SelectOption
+      key={!cls ? noDeviceClassKey : cls}
+      value={!cls ? noDeviceClassKey : cls}
+    >
+      {!cls ? t('None (no device class)') : cls}
     </SelectOption>
   ));
 
@@ -325,13 +331,18 @@ const AddCapacityModal: React.FC<StorageClusterActionModalProps> = ({
   );
 
   const deviceClasses = getDeviceClassesForSC(deviceSets, selectedSCName);
-
   const hasMultiDeviceClasses = deviceClasses.length > 1;
+
+  React.useEffect(() => {
+    if (deviceClasses.length === 1) {
+      setDeviceClass(deviceClasses[0] || noDeviceClassKey);
+    }
+  }, [deviceClasses, setDeviceClass]);
 
   const deviceSetIndex: number = getCurrentDeviceSetIndex(
     deviceSets,
     selectedSCName,
-    hasMultiDeviceClasses ? deviceClass : null
+    deviceClass
   );
 
   // Stops users from moving from no-prov SC to prov SC. (Bug 2213183)

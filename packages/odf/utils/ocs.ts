@@ -1,6 +1,7 @@
 import { WizardNodeState } from '@odf/core/components/create-storage-system/reducer';
 import { NodeData, ResourceProfile } from '@odf/core/types';
 import { OCS_PROVISIONERS } from '@odf/shared';
+import { DEFAULT_DEVICECLASS } from '@odf/shared';
 import { NamespaceModel } from '@odf/shared/models';
 import {
   DeviceSet,
@@ -29,6 +30,7 @@ import {
   RESOURCE_PROFILE_REQUIREMENTS_MAP,
   ZONE_LABELS,
 } from '../constants';
+import { noDeviceClassKey } from '../modals/add-capacity/add-capacity-modal';
 
 const getPVStorageClass = (pv) => pv?.spec?.storageClassName;
 
@@ -222,11 +224,12 @@ export const getCurrentDeviceSetIndex = (
   deviceSets.findIndex((ds) => {
     const matchesSC =
       ds.dataPVCTemplate.spec.storageClassName === selectedSCName;
-    /*  No need to check "deviceClass" equality for the case where each deviceSet has its own
-    unique StorageClass (passing diviceClass as "null" as an argument in this case). */
-    const matchesDeviceClass = !!deviceClass
-      ? ds.deviceClass === deviceClass
-      : true;
+
+    /* if the deviceClass is noDeviceClassKey, we need match it with an index having empty string. */
+    const matchesDeviceClass =
+      deviceClass === noDeviceClassKey
+        ? !ds.deviceClass
+        : ds.deviceClass === deviceClass;
 
     return matchesSC && matchesDeviceClass;
   });
@@ -257,6 +260,7 @@ export const createDeviceSet = (
       },
     },
   },
+  deviceClass: DEFAULT_DEVICECLASS,
 });
 
 export const getDeviceSetCount = (pvCount: number, replica: number): number =>
