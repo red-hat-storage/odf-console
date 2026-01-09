@@ -53,7 +53,7 @@ export const EnableNFS: React.FC<EnableNFSProps> = ({
         description={t('Allow NFS to use low resources by default.')}
         isChecked={nfsEnabled}
         onChange={() =>
-          dispatch({ type: 'backingStorage/enableNFS', payload: !nfsEnabled })
+          dispatch({ type: 'advancedSettings/enableNFS', payload: !nfsEnabled })
         }
         isDisabled={
           backingStorageType === BackingStorageType.EXTERNAL && !nfsEnabled
@@ -73,6 +73,6 @@ type ValidationAlert = [
 
 type EnableNFSProps = {
   dispatch: WizardDispatch;
-  nfsEnabled: WizardState['backingStorage']['enableNFS'];
+  nfsEnabled: WizardState['advancedSettings']['enableNFS'];
   backingStorageType: WizardState['backingStorage']['type'];
 };

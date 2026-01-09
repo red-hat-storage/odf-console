@@ -22,7 +22,7 @@ export const SetCephRBDStorageClassDefault: React.FC<
     // needed when user navigates back to this step and the FC gets mounted again.
     if (isRBDStorageClassDefault === null && !doesDefaultSCAlreadyExists) {
       dispatch({
-        type: 'backingStorage/setIsRBDStorageClassDefault',
+        type: 'advancedSettings/setIsRBDStorageClassDefault',
         payload: true,
       });
     }
@@ -41,7 +41,7 @@ export const SetCephRBDStorageClassDefault: React.FC<
         isChecked={isRBDStorageClassDefault || false}
         onChange={() =>
           dispatch({
-            type: 'backingStorage/setIsRBDStorageClassDefault',
+            type: 'advancedSettings/setIsRBDStorageClassDefault',
             payload: !isRBDStorageClassDefault,
           })
         }
@@ -56,7 +56,7 @@ export const SetCephRBDStorageClassDefault: React.FC<
 
 type SetCephRBDStorageClassDefaultProps = {
   dispatch: WizardDispatch;
-  isRBDStorageClassDefault: WizardState['backingStorage']['isRBDStorageClassDefault'];
+  isRBDStorageClassDefault: WizardState['advancedSettings']['isRBDStorageClassDefault'];
   doesDefaultSCAlreadyExists: boolean | null;
   className?: string;
 };
