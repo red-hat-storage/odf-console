@@ -1,7 +1,9 @@
 reviewers:
   - SanjalKatiyar
-  - GowthamShanmugam
+  - vbnrh
+  - bipuladh
 approvers:
   - SanjalKatiyar
-  - GowthamShanmugam
+  - vbnrh
+  - bipuladh
 component: Multicluster Orchestrator Operator frontend
