@@ -178,9 +178,8 @@ export const StoragePoolBody: React.FC<StoragePoolBodyProps> = ({
 
   React.useEffect(() => {
     // Update pool name: set empty on validation error.
-    const possiblyPrefixedPoolName = usePrefix
-      ? `${prefixName}-${poolName}`
-      : poolName;
+    const possiblyPrefixedPoolName =
+      usePrefix && poolName ? `${prefixName}-${poolName}` : poolName;
     const payload = errors?.newPoolName ? '' : possiblyPrefixedPoolName;
     dispatch({
       type: StoragePoolActionType.SET_POOL_NAME,
