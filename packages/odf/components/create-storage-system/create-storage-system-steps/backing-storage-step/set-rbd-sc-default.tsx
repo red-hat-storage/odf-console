@@ -11,6 +11,7 @@ export const SetCephRBDStorageClassDefault: React.FC<
   dispatch,
   isRBDStorageClassDefault,
   doesDefaultSCAlreadyExists,
+  scLoaded,
   className,
 }) => {
   const { t } = useCustomTranslation();
@@ -27,7 +28,7 @@ export const SetCephRBDStorageClassDefault: React.FC<
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [doesDefaultSCAlreadyExists]);
 
   return (
     <FormGroup>
@@ -49,6 +50,7 @@ export const SetCephRBDStorageClassDefault: React.FC<
           'odf-backing-store__radio--margin-bottom',
           className
         )}
+        isDisabled={scLoaded ? !scLoaded : false}
       />
     </FormGroup>
   );
@@ -58,5 +60,6 @@ type SetCephRBDStorageClassDefaultProps = {
   dispatch: WizardDispatch;
   isRBDStorageClassDefault: WizardState['backingStorage']['isRBDStorageClassDefault'];
   doesDefaultSCAlreadyExists: boolean | null;
+  scLoaded?: boolean;
   className?: string;
 };
