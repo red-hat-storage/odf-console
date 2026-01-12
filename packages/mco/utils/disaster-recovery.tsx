@@ -560,6 +560,14 @@ export const isDRPolicyValidated = (drPolicy: DRPolicyKind) =>
       condition?.type === 'Validated' && condition?.status === 'True'
   );
 
+export const getInvalidDRPolicy = (
+  drPolicy: DRPolicyKind
+): K8sResourceCondition =>
+  drPolicy?.status?.conditions?.find(
+    (condition) =>
+      condition?.type === 'Validated' && condition.status === 'False'
+  );
+
 // Finding placement from application generators
 export const findPlacementNameFromAppSet = (
   application: ArgoApplicationSetKind
