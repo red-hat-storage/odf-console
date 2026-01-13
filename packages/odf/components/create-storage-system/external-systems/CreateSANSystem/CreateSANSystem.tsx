@@ -29,10 +29,9 @@ import {
 import { useIsLocalClusterConfigured } from '../common/hooks';
 import { NodesSection } from '../common/NodesSection';
 import {
+  configureMetricsNamespaceLabels,
   createScaleLocalClusterPayload,
   labelNodes,
-  labelUserWorkloadMonitoringNamespace,
-  removeClusterMonitoringLabel,
 } from '../common/payload';
 import { LUNsTable } from './LUNsTable';
 import {
@@ -112,12 +111,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
         await labelNodes(componentState.selectedNodes)();
         await createScaleLocalClusterPayload()();
         await createCSIDriver();
-      }
-      await labelUserWorkloadMonitoringNamespace();
-      try {
-        await removeClusterMonitoringLabel();
-      } catch {
-        // Label may not exist, ignore
+        await configureMetricsNamespaceLabels();
       }
       const localDisks = await createLocalDisks(mappedLuns, t);
       const fileSystem = await createLocalFileSystem(
