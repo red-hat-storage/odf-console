@@ -29,10 +29,9 @@ import {
 import { useIsLocalClusterConfigured } from '../common/hooks';
 import { NodesSection } from '../common/NodesSection';
 import {
+  configureMetricsNamespaceLabels,
   createScaleLocalClusterPayload,
   labelNodes,
-  labelUserWorkloadMonitoringNamespace,
-  removeClusterMonitoringLabel,
 } from '../common/payload';
 import {
   createScaleCaCertSecretPayload,
@@ -163,12 +162,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
           componentState.encryptionEnabled
         );
         await localClusterPromise();
-        await labelUserWorkloadMonitoringNamespace();
-        try {
-          await removeClusterMonitoringLabel();
-        } catch {
-          // Label may not exist, ignore
-        }
+        await configureMetricsNamespaceLabels();
       }
       const secretPromise = createScaleCaCertSecretPayload(
         formData.name,
@@ -229,7 +223,7 @@ const CreateScaleSystemForm: React.FC<CreateScaleSystemFormProps> = ({
         formData.fileSystemName
       );
 
-      if (!!componentState.caCertificate) {
+      if (componentState.caCertificate) {
         await secretPromise();
       }
       await userDetailsSecretPromise();

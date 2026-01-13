@@ -72,7 +72,7 @@ export const createScaleLocalClusterPayload = (
   return () => k8sCreate({ model: ClusterModel, data: payload });
 };
 
-export const labelUserWorkloadMonitoringNamespace = () => {
+const labelUserWorkloadMonitoringNamespace = (): Promise<unknown> => {
   const patch: Patch[] = [
     {
       op: 'add',
@@ -95,7 +95,7 @@ export const labelUserWorkloadMonitoringNamespace = () => {
 // to allow user-workload-monitoring Prometheus to scrape the GrafanaBridge ServiceMonitor.
 // The user-workload-monitoring serviceMonitorNamespaceSelector excludes namespaces
 // with openshift.io/cluster-monitoring=true.
-export const removeClusterMonitoringLabel = () => {
+const removeClusterMonitoringLabel = (): Promise<unknown> => {
   const patch: Patch[] = [
     {
       op: 'remove',
@@ -111,4 +111,13 @@ export const removeClusterMonitoringLabel = () => {
     },
     data: patch,
   });
+};
+
+export const configureMetricsNamespaceLabels = async (): Promise<void> => {
+  await labelUserWorkloadMonitoringNamespace();
+  try {
+    await removeClusterMonitoringLabel();
+  } catch {
+    // Label may not exist, ignore
+  }
 };
