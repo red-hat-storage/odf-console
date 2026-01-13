@@ -20,20 +20,26 @@ export enum ScaleQueries {
   THROUGHPUT = 'SCALE_THROUGHPUT',
   RAW_CAPACITY = 'SCALE_RAW_CAP',
   USED_CAPACITY = 'SCALE_USED_CAP',
+  HEALTH = 'SCALE_HEALTH',
 }
 
-// Note: Scale metrics may have multiple pod instances (HA replicas) reporting the same data.
-// We use max by (gpfs_cluster_name, gpfs_diskpool_name/gpfs_fs_name) first to deduplicate
-// across instances, then aggregate by cluster.
+export enum ScaleHealthStatus {
+  HEALTHY = 10,
+  DEGRADED = 20,
+  FAILED = 40,
+}
+
 export const SCALE_QUERIES: { [key in ScaleQueries]: string } = {
   [ScaleQueries.RAW_CAPACITY]:
-    'sum by (gpfs_cluster_name) (max by (gpfs_cluster_name, gpfs_diskpool_name) (gpfs_pool_total_dataKB)) * 1024',
+    'max by (gpfs_cluster_name, gpfs_fs_name, gpfs_diskpool_name) (gpfs_pool_total_dataKB * on(gpfs_fs_name) group_left(gpfs_cluster_name) (max by(gpfs_fs_name, gpfs_cluster_name) (gpfs_fs_read_ops) * 0 + 1)) * 1024',
   [ScaleQueries.USED_CAPACITY]:
-    'sum by (gpfs_cluster_name) (max by (gpfs_cluster_name, gpfs_diskpool_name) (gpfs_pool_total_dataKB - gpfs_pool_free_dataKB)) * 1024',
+    'max by (gpfs_cluster_name, gpfs_fs_name, gpfs_diskpool_name) ((gpfs_pool_total_dataKB - gpfs_pool_free_dataKB) * on(gpfs_fs_name) group_left(gpfs_cluster_name) (max by(gpfs_fs_name, gpfs_cluster_name) (gpfs_fs_read_ops) * 0 + 1)) * 1024',
   [ScaleQueries.IOPS]:
-    'sum by (gpfs_cluster_name) (max by (gpfs_cluster_name, gpfs_fs_name) (gpfs_fs_read_ops + gpfs_fs_write_ops))',
+    'max by (gpfs_cluster_name, gpfs_fs_name, instance, job) (rate(gpfs_fs_read_ops[1m]) + rate(gpfs_fs_write_ops[1m]))',
   [ScaleQueries.THROUGHPUT]:
-    'sum by (gpfs_cluster_name) (max by (gpfs_cluster_name, gpfs_fs_name) (gpfs_fs_bytes_read + gpfs_fs_bytes_written))',
+    'max by (gpfs_cluster_name, gpfs_fs_name, instance, job) (rate(gpfs_fs_bytes_read[1m]) + rate(gpfs_fs_bytes_written[1m]))',
   [ScaleQueries.LATENCY]:
-    'avg by (gpfs_cluster_name) (max by (gpfs_cluster_name, gpfs_fs_name) (gpfs_fs_tot_disk_wait_rd + gpfs_fs_tot_disk_wait_wr))',
+    'max by (gpfs_cluster_name, gpfs_fs_name, instance, job) ((gpfs_fs_tot_disk_wait_rd + gpfs_fs_tot_disk_wait_wr) / ((gpfs_fs_read_ops + gpfs_fs_write_ops) > 0))',
+  [ScaleQueries.HEALTH]:
+    'max by (gpfs_cluster_name, gpfs_health_entity) (gpfs_health_status{gpfs_health_component="FILESYSTEM", gpfs_health_entity=~"[^-].*"} * on(node, gpfs_health_entity) group_left(gpfs_cluster_name) (label_replace(max by(node, gpfs_cluster_name, gpfs_fs_name) (gpfs_fs_read_ops), "gpfs_health_entity", "$1", "gpfs_fs_name", "(.*)") * 0 + 1))',
 };
