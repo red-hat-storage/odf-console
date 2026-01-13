@@ -1,15 +1,19 @@
 import * as React from 'react';
+import { useBucketOrigin } from '@odf/core/components/s3-browser/bucket-overview/useBucketOrigin';
 import {
   BUCKET_BOOKMARKS_USER_SETTINGS_KEY,
   LIST_VERSIONED_OBJECTS,
+  PREFIX,
 } from '@odf/core/constants';
+import { ODF_ADMIN } from '@odf/core/features';
 import { useUserSettingsLocalStorage } from '@odf/shared';
 import { CommonModalProps } from '@odf/shared/modals';
 import { S3Commands } from '@odf/shared/s3';
 import { useCustomTranslation } from '@odf/shared/useCustomTranslationHook';
+import { useFlag } from '@openshift-console/dynamic-plugin-sdk';
 import { LaunchModal } from '@openshift-console/dynamic-plugin-sdk/lib/app/modal-support/ModalProvider';
 import { Trans } from 'react-i18next';
-import { useNavigate } from 'react-router-dom-v5-compat';
+import { useNavigate, useSearchParams } from 'react-router-dom-v5-compat';
 import useSWR from 'swr';
 import {
   Modal,
@@ -76,6 +80,12 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
     true,
     []
   );
+  const isAdmin = useFlag(ODF_ADMIN);
+  const [searchParams] = useSearchParams();
+  // if non-empty means we are inside particular folder(s) of a bucket, else just inside a bucket (top-level)
+  const foldersPath = searchParams.get(PREFIX);
+  // "isCreatedByOBC" denotes whether bucket is created via OBC or S3 endpoint (will be false if we are inside folder view)
+  const { isCreatedByOBC } = useBucketOrigin(bucketName, foldersPath, isAdmin);
 
   const onDelete = async (event) => {
     event.preventDefault();
@@ -182,6 +192,18 @@ const DeleteBucketModal: React.FC<CommonModalProps<DeleteBucketModalProps>> = ({
           )}
         </Text>
       </TextContent>
+      {isCreatedByOBC && (
+        <Alert
+          title={t('Delete OBC')}
+          variant={AlertVariant.warning}
+          className="pf-v5-u-mt-md"
+          isInline
+        >
+          {t(
+            'NooBaa does not automatically delete the OBC if a bucket is deleted. Make sure you delete the corresponding OBC'
+          )}
+        </Alert>
+      )}
 
       <FormGroup
         label={getTextInputLabel(t, bucketName)}
