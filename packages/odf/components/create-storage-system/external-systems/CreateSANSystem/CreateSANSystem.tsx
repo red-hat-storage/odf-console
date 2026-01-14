@@ -88,7 +88,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
     try {
       if (!isLocalClusterConfigured) {
         await labelNodes(componentState.selectedNodes)();
-        await createScaleLocalClusterPayload(false)();
+        await createScaleLocalClusterPayload()();
         await createCSIDriver();
       }
       const localDisks = await createLocalDisks(mappedLuns, t);
@@ -169,7 +169,7 @@ const CreateSANSystemForm: React.FC<CreateSANSystemFormProps> = ({
           fieldRequirements={fieldRequirements.lunGroupName}
           popoverProps={{
             headerContent: t('LUN group name requirements'),
-            footerContent: `${t('Example')}: LUN_groupA`,
+            footerContent: `${t('Example')}: lun-group-a`,
           }}
           formGroupProps={{
             label: t('Name'),
