@@ -11,6 +11,7 @@ import {
   Form,
   FormGroup,
   Modal,
+  ModalVariant,
   TextInput,
 } from '@patternfly/react-core';
 
@@ -40,13 +41,11 @@ const AddRemoteFileSystemModal: React.FC<
   return (
     <Modal
       title={t('Add Remote FileSystem')}
+      variant={ModalVariant.medium}
       isOpen={isOpen}
       onClose={closeModal}
       actions={[
-        <ButtonBar
-          inProgress={inProgress}
-          errorMessage={error?.message || JSON.stringify(error)}
-        >
+        <ButtonBar inProgress={inProgress} errorMessage={error?.message}>
           <Flex display={{ default: 'inlineFlex' }}>
             <FlexItem>
               <Button
